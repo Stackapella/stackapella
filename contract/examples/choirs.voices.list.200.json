@@ -1,0 +1,27 @@
+{
+    "data": [
+        {
+            "id": "f6a7b8c9-d0e1-4f2a-9b3c-4d5e6f7a8b9c",
+            "partKey": "alto",
+            "singer": {
+                "handle": "ana",
+                "name": "Ana Ruiz",
+                "avatarUrl": null
+            },
+            "createdAt": "2026-11-05T10:00:00Z"
+        },
+        {
+            "id": "a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d",
+            "partKey": "bass",
+            "singer": {
+                "handle": null,
+                "name": "A Stackapella singer",
+                "avatarUrl": null
+            },
+            "createdAt": "2026-11-05T09:00:00Z"
+        }
+    ],
+    "meta": {
+        "nextCursor": null
+    }
+}

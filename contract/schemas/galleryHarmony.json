@@ -1,0 +1,140 @@
+{
+    "$id": "galleryHarmony.json",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "id",
+        "title",
+        "pageUrl",
+        "audioUrl",
+        "cardUrl",
+        "durationSeconds",
+        "song",
+        "owner",
+        "singers",
+        "likes",
+        "comments",
+        "liked",
+        "commentsOff",
+        "canComment",
+        "featured",
+        "createdAt",
+        "openParts"
+    ],
+    "properties": {
+        "id": {
+            "type": "string"
+        },
+        "title": {
+            "type": "string"
+        },
+        "pageUrl": {
+            "type": "string"
+        },
+        "audioUrl": {
+            "type": [
+                "string",
+                "null"
+            ]
+        },
+        "cardUrl": {
+            "type": [
+                "string",
+                "null"
+            ]
+        },
+        "durationSeconds": {
+            "type": "number"
+        },
+        "song": {
+            "type": [
+                "object",
+                "null"
+            ],
+            "additionalProperties": false,
+            "required": [
+                "id",
+                "title"
+            ],
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "owner": {
+            "$ref": "person.json"
+        },
+        "singers": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                    "name",
+                    "handle"
+                ],
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "handle": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    }
+                }
+            }
+        },
+        "likes": {
+            "type": "integer"
+        },
+        "comments": {
+            "type": "integer"
+        },
+        "liked": {
+            "type": "boolean"
+        },
+        "commentsOff": {
+            "type": "boolean"
+        },
+        "canComment": {
+            "type": "boolean"
+        },
+        "featured": {
+            "type": "boolean"
+        },
+        "createdAt": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "format": "date-time"
+        },
+        "openParts": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                    "key",
+                    "name"
+                ],
+                "properties": {
+                    "key": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    }
+                }
+            },
+            "description": "Open parts (N5): the parts left open for others; empty when none."
+        }
+    },
+    "title": "A harmony in the gallery"
+}

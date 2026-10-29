@@ -1,0 +1,197 @@
+{
+    "$id": "ideas.show.json",
+    "title": "ideas.show and ideas.create",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "title": "An idea with its voices and its tune",
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "id",
+                "title",
+                "note",
+                "writer",
+                "template",
+                "voicing",
+                "parts",
+                "voices",
+                "complete",
+                "status",
+                "mine",
+                "createdAt",
+                "voiceList",
+                "song"
+            ],
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "note": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "writer": {
+                    "$ref": "person.json"
+                },
+                "template": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                        "id",
+                        "version"
+                    ],
+                    "properties": {
+                        "id": {
+                            "type": "string"
+                        },
+                        "version": {
+                            "type": "integer"
+                        }
+                    }
+                },
+                "voicing": {
+                    "type": "integer"
+                },
+                "parts": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "key",
+                            "name",
+                            "range",
+                            "voices"
+                        ],
+                        "properties": {
+                            "key": {
+                                "type": "string"
+                            },
+                            "name": {
+                                "type": "string"
+                            },
+                            "range": {
+                                "type": "object",
+                                "additionalProperties": false,
+                                "required": [
+                                    "low",
+                                    "high"
+                                ],
+                                "properties": {
+                                    "low": {
+                                        "type": "integer"
+                                    },
+                                    "high": {
+                                        "type": "integer"
+                                    }
+                                }
+                            },
+                            "voices": {
+                                "type": "integer"
+                            }
+                        }
+                    },
+                    "description": "The voicing's parts, melody first."
+                },
+                "voices": {
+                    "type": "integer"
+                },
+                "complete": {
+                    "type": "boolean"
+                },
+                "status": {
+                    "type": "string",
+                    "enum": [
+                        "listed",
+                        "held",
+                        "hidden"
+                    ]
+                },
+                "mine": {
+                    "type": "boolean",
+                    "description": "The caller wrote it."
+                },
+                "createdAt": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "format": "date-time"
+                },
+                "voiceList": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "idea.voice.json"
+                    },
+                    "description": "Ready voices, newest first, and the caller's own on the way."
+                },
+                "song": {
+                    "type": [
+                        "object",
+                        "null"
+                    ],
+                    "additionalProperties": false,
+                    "required": [
+                        "template",
+                        "voices",
+                        "grant",
+                        "freeUntil"
+                    ],
+                    "properties": {
+                        "template": {
+                            "$ref": "template.json"
+                        },
+                        "voices": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "guide.recording.json"
+                            },
+                            "description": "Every part's published versions (each names its partKey), each part's default first, as the catalogue's versions."
+                        },
+                        "grant": {
+                            "type": "string",
+                            "enum": [
+                                "free",
+                                "plus",
+                                "month",
+                                "kept",
+                                "own",
+                                "link",
+                                "group",
+                                "project",
+                                "admin",
+                                "beta",
+                                "public",
+                                "idea"
+                            ],
+                            "description": "Why the caller may have it: a free song, Plus, the song of the month, kept from a project started while it was, their own template, an unlisted template's link, or a choir group's song, or a project they sing in made from it; Hillel or the editor reviewing; or a beta singer's assigned song. public: a template listed in the library (N3)."
+                        },
+                        "freeUntil": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "format": "date-time",
+                            "description": "The song of the month's last moment (for grant month)."
+                        },
+                        "library": {
+                            "$ref": "library.json",
+                            "description": "Only for a public template (N3): its creator, for the credits in exports, and its uses and rating."
+                        }
+                    },
+                    "description": "The tune, as templates.show answers it (grant idea, or own for its writer)."
+                }
+            }
+        }
+    }
+}

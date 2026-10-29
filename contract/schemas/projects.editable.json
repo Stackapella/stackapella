@@ -1,0 +1,107 @@
+{
+    "$id": "projects.editable.json",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "usage",
+                "projects"
+            ],
+            "properties": {
+                "usage": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                        "plan",
+                        "projects",
+                        "storage"
+                    ],
+                    "properties": {
+                        "plan": {
+                            "type": "string",
+                            "enum": [
+                                "free",
+                                "plus"
+                            ]
+                        },
+                        "projects": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "required": [
+                                "used",
+                                "limit"
+                            ],
+                            "properties": {
+                                "used": {
+                                    "type": "integer"
+                                },
+                                "limit": {
+                                    "type": [
+                                        "integer",
+                                        "null"
+                                    ],
+                                    "description": "null: unlimited."
+                                }
+                            }
+                        },
+                        "storage": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "required": [
+                                "usedBytes",
+                                "limitBytes",
+                                "binBytes"
+                            ],
+                            "properties": {
+                                "usedBytes": {
+                                    "type": "integer"
+                                },
+                                "limitBytes": {
+                                    "type": "integer"
+                                },
+                                "binBytes": {
+                                    "type": "integer",
+                                    "description": "In the bin: doesn't count."
+                                }
+                            }
+                        }
+                    }
+                },
+                "projects": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "id",
+                            "readOnly"
+                        ],
+                        "properties": {
+                            "id": {
+                                "type": "string"
+                            },
+                            "readOnly": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ],
+                                "enum": [
+                                    "limit",
+                                    "plus_song",
+                                    null
+                                ],
+                                "description": "Readable (and exportable as WAV), not editable: beyond the free limit after a downgrade, or made from a Plus song. Null: editable."
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

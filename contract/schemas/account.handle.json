@@ -1,0 +1,40 @@
+{
+    "$id": "account.handle.json",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "handle",
+                "available",
+                "reason"
+            ],
+            "properties": {
+                "handle": {
+                    "type": "string"
+                },
+                "available": {
+                    "type": "boolean"
+                },
+                "reason": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "enum": [
+                        "taken",
+                        "reserved",
+                        "invalid",
+                        null
+                    ]
+                }
+            }
+        }
+    },
+    "title": "Is this handle free?"
+}

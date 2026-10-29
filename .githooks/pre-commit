@@ -1,0 +1,144 @@
+#!/bin/sh
+# Keeps each agent's commits to its own folders (docs/parallel-agents-plan.md, "Git").
+#
+# - STACKAPELLA_AGENT=backend, frontend, courses (web/) or arranger (the song templates): staged files
+#   outside that agent's folders are refused.
+# - Anything under contract/ (except contract/log.md), .githooks/ or .gitleaks.toml needs
+#   CONTRACT_OK=1, set only once both agents have agreed the change.
+# - For everyone: no secrets (gitleaks, with .gitleaks.toml), no keys, keystores, env files, store
+#   configs or data dumps, no audio outside web/tests/fixtures/, nothing over 5 MB.
+#
+# Enable it once per clone or worktree: git config core.hooksPath .githooks
+
+staged=$(git diff --cached --name-only --diff-filter=ACMRD)
+[ -z "$staged" ] && exit 0
+
+status=0
+
+# Nothing unshareable, ever (docs/open-source-plan.md: the repos go public). Secrets by gitleaks
+# (.gitleaks.toml), then files that must never be committed, whatever they hold.
+# gitleaks 8.25 or later: an older one would read .gitleaks.toml's allowlist without its rule
+# limit, and wave through a real key in a test.
+gitleaks_ok() {
+    version=$(gitleaks version 2>/dev/null | sed 's/^v//')
+    major=$(printf '%s' "$version" | cut -d. -f1)
+    minor=$(printf '%s' "$version" | cut -d. -f2)
+    [ -n "$major" ] && [ -n "$minor" ] && { [ "$major" -gt 8 ] || { [ "$major" -eq 8 ] && [ "$minor" -ge 25 ]; }; }
+}
+
+if command -v gitleaks >/dev/null 2>&1 && ! gitleaks_ok; then
+    echo "pre-commit: gitleaks $(gitleaks version) is too old: 8.25 or later (brew upgrade gitleaks)." >&2
+    exit 1
+fi
+
+if command -v gitleaks >/dev/null 2>&1; then
+    if ! gitleaks git --pre-commit --staged --redact --no-banner --exit-code 1 . >/dev/null 2>&1; then
+        gitleaks git --pre-commit --staged --redact --no-banner . >&2
+        echo "pre-commit: gitleaks found a secret in what's staged (above). Remove it; if it's a made-up fixture, see .gitleaks.toml." >&2
+        status=1
+    fi
+else
+    echo "pre-commit: gitleaks isn't installed (brew install gitleaks): every commit is checked for secrets." >&2
+    exit 1
+fi
+
+# One name a line, so a name with spaces stays whole.
+old_ifs=$IFS
+IFS='
+'
+for file in $(git diff --cached --name-only --diff-filter=ACMR); do
+    name=$(basename "$file")
+    lower=$(printf '%s' "$name" | tr '[:upper:]' '[:lower:]')
+
+    case "$lower" in
+        .env.example) ;;
+        .env|.env.*|*.env|*.p8|*.p12|*.pfx|*.jks|*.keystore|keystore|key.properties|google-services.json|googleservice-info.plist|*.mobileprovision|id_rsa*|id_ed25519*)
+            echo "pre-commit: $file must never be committed (a key, a keystore, a store config or an env file)." >&2
+            status=1
+            ;;
+        *.pem|*.key)
+            case "$file" in
+                server/resources/certs/*.pem) ;; # Apple's public root certificate, pinned.
+                *) echo "pre-commit: $file looks like a key or certificate. Only server/resources/certs/ holds public ones." >&2; status=1 ;;
+            esac
+            ;;
+        *.csv|*.sql|*.sqlite|*.dump)
+            echo "pre-commit: $file is a data file (the mudeo list, a database dump?): never committed." >&2
+            status=1
+            ;;
+        *.wav|*.mp3|*.m4a|*.aac|*.flac|*.ogg|*.opus|*.aif|*.aiff|*.caf|*.webm)
+            case "$file" in
+                web/tests/fixtures/*) ;;
+                web/sounds/*)
+                    # The app's own short sounds (stars, mic, events): CC0, credited in web/sounds/CREDITS.md.
+                    if [ "$(git cat-file -s ":$file" 2>/dev/null || echo 0)" -gt 102400 ]; then
+                        echo "pre-commit: $file is over 100 KB: the app's sounds stay short and small." >&2
+                        status=1
+                    fi
+                    ;;
+                *) echo "pre-commit: $file is audio outside web/tests/fixtures/ and web/sounds/: recordings and samples live in the buckets, never the repo." >&2; status=1 ;;
+            esac
+            ;;
+    esac
+
+    size=$(git cat-file -s ":$file" 2>/dev/null || echo 0)
+    if [ "$size" -gt 5242880 ]; then
+        echo "pre-commit: $file is over 5 MB ($size bytes): too big for the repo." >&2
+        status=1
+    fi
+done
+IFS=$old_ifs
+
+for file in $staged; do
+    case "$file" in
+        contract/log.md) ;;
+        contract/*|.githooks/*|.gitleaks.toml)
+            if [ "$CONTRACT_OK" != "1" ]; then
+                echo "pre-commit: $file is shared. Agree the change with the other agent, then commit with CONTRACT_OK=1." >&2
+                status=1
+            fi
+            ;;
+    esac
+
+    [ -z "$STACKAPELLA_AGENT" ] && continue
+
+    allowed=0
+    case "$file" in
+        contract/*|.githooks/*|docs/*|README.md|.gitleaks.toml|CONTENT-LICENSE|TRADEMARK.md|CONTRIBUTING.md|SECURITY.md|THIRD-PARTY-NOTICES.md|LICENSE.asc) allowed=1 ;;
+    esac
+
+    case "$STACKAPELLA_AGENT" in
+        backend)
+            case "$file" in
+                server/resources/views/public/*) ;;
+                server/*|.github/*|.do/*|Aptfile) allowed=1 ;;
+            esac
+            ;;
+        frontend)
+            case "$file" in
+                web/*|server/resources/views/public/*) allowed=1 ;;
+            esac
+            ;;
+        courses)
+            case "$file" in
+                web/*) allowed=1 ;;
+            esac
+            ;;
+        arranger)
+            case "$file" in
+                server/database/templates/*|web/templates/*|web/js/hum.js|web/sw.js|web/tests/index.html|web/tests/hum.test.js|web/tests/fixtures/hum-*|web/js/transcribe.js|web/js/arrange.js|web/tests/vectors/arrange.json) allowed=1 ;;
+            esac
+            ;;
+        *)
+            echo "pre-commit: STACKAPELLA_AGENT must be backend, frontend, courses or arranger, not \"$STACKAPELLA_AGENT\"." >&2
+            exit 1
+            ;;
+    esac
+
+    if [ "$allowed" != "1" ]; then
+        echo "pre-commit: $file is outside the $STACKAPELLA_AGENT agent's folders. Ask the other agent to change it." >&2
+        status=1
+    fi
+done
+
+exit $status

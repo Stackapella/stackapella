@@ -1,0 +1,120 @@
+{
+    "$id": "part.json",
+    "title": "A part of a project",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "id",
+        "projectId",
+        "order",
+        "name",
+        "color",
+        "volume",
+        "pan",
+        "muted",
+        "solo",
+        "nudgeFrames",
+        "trimStartFrames",
+        "trimEndFrames",
+        "templatePartKey",
+        "kind",
+        "currentTakeId",
+        "settings",
+        "version",
+        "createdAt",
+        "updatedAt"
+    ],
+    "properties": {
+        "id": {
+            "type": "string"
+        },
+        "projectId": {
+            "type": "string"
+        },
+        "order": {
+            "type": "integer"
+        },
+        "name": {
+            "type": "string"
+        },
+        "color": {
+            "type": "string"
+        },
+        "volume": {
+            "type": "number"
+        },
+        "pan": {
+            "type": "number"
+        },
+        "muted": {
+            "type": "boolean"
+        },
+        "solo": {
+            "type": "boolean"
+        },
+        "nudgeFrames": {
+            "type": "integer",
+            "description": "Moves the current take from its own offsetFrames, at that take's rate."
+        },
+        "trimStartFrames": {
+            "type": "integer"
+        },
+        "trimEndFrames": {
+            "type": "integer"
+        },
+        "templatePartKey": {
+            "type": [
+                "string",
+                "null"
+            ]
+        },
+        "kind": {
+            "type": "string",
+            "enum": [
+                "voice",
+                "instrument"
+            ],
+            "description": "A voice or an instrument, for the credits (\"played by\"). In parts.save it's optional: left out, the stored one stays (a new part is a voice)."
+        },
+        "currentTakeId": {
+            "type": [
+                "string",
+                "null"
+            ]
+        },
+        "settings": {
+            "type": "object"
+        },
+        "version": {
+            "type": "integer"
+        },
+        "createdAt": {
+            "type": "string",
+            "format": "date-time"
+        },
+        "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+        },
+        "createdBy": {
+            "type": [
+                "object",
+                "null"
+            ],
+            "additionalProperties": false,
+            "required": [
+                "id",
+                "name"
+            ],
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            },
+            "description": "Who made the part: null for the owner's, else the singer (from M7, on shared projects)."
+        }
+    }
+}

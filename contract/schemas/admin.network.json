@@ -1,0 +1,72 @@
+{
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                    "key",
+                    "title",
+                    "status",
+                    "numbers"
+                ],
+                "properties": {
+                    "key": {
+                        "type": "string",
+                        "enum": [
+                            "N1",
+                            "N2",
+                            "N3",
+                            "N4",
+                            "N5",
+                            "N6",
+                            "N7"
+                        ]
+                    },
+                    "title": {
+                        "type": "string"
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "collecting",
+                            "start_building",
+                            "ready_to_open",
+                            "open"
+                        ]
+                    },
+                    "numbers": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "required": [
+                                "key",
+                                "value",
+                                "threshold"
+                            ],
+                            "properties": {
+                                "key": {
+                                    "type": "string"
+                                },
+                                "value": {
+                                    "type": "integer"
+                                },
+                                "threshold": {
+                                    "type": "integer"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "$id": "admin.network.json"
+}

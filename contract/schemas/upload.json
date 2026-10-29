@@ -1,0 +1,67 @@
+{
+    "$id": "upload.json",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "url",
+        "method",
+        "headers",
+        "expiresAt"
+    ],
+    "properties": {
+        "url": {
+            "type": "string",
+            "format": "uri"
+        },
+        "method": {
+            "type": "string",
+            "enum": [
+                "PUT"
+            ]
+        },
+        "headers": {
+            "type": "object",
+            "description": "Send these (Content-Type). The browser sets Content-Length from the body; the server checks the size at *.complete."
+        },
+        "expiresAt": {
+            "type": "string",
+            "format": "date-time"
+        }
+    },
+    "title": "Where to PUT a file: a presigned URL to the private bucket (contract/api.md, \"Uploads\")",
+    "$defs": {
+        "nullable": {
+            "additionalProperties": false,
+            "required": [
+                "url",
+                "method",
+                "headers",
+                "expiresAt"
+            ],
+            "properties": {
+                "url": {
+                    "type": "string",
+                    "format": "uri"
+                },
+                "method": {
+                    "type": "string",
+                    "enum": [
+                        "PUT"
+                    ]
+                },
+                "headers": {
+                    "type": "object",
+                    "description": "Send these (Content-Type). The browser sets Content-Length from the body; the server checks the size at *.complete."
+                },
+                "expiresAt": {
+                    "type": "string",
+                    "format": "date-time"
+                }
+            },
+            "type": [
+                "object",
+                "null"
+            ]
+        }
+    }
+}

@@ -1,0 +1,56 @@
+{
+    "$id": "admin.mudeo.import.json",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "imported",
+                "skipped"
+            ],
+            "properties": {
+                "imported": {
+                    "type": "integer"
+                },
+                "skipped": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                        "invalid",
+                        "duplicate",
+                        "test",
+                        "suppressed",
+                        "hasAccount",
+                        "alreadyListed"
+                    ],
+                    "properties": {
+                        "invalid": {
+                            "type": "integer"
+                        },
+                        "duplicate": {
+                            "type": "integer"
+                        },
+                        "test": {
+                            "type": "integer"
+                        },
+                        "suppressed": {
+                            "type": "integer"
+                        },
+                        "hasAccount": {
+                            "type": "integer"
+                        },
+                        "alreadyListed": {
+                            "type": "integer"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "title": "What an import took, and what it skipped"
+}

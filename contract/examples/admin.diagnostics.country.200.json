@@ -1,0 +1,12 @@
+{
+    "data": {
+        "header": "GB",
+        "behindCloudflare": true,
+        "behindAppPlatform": true,
+        "viaAppPlatform": true,
+        "connectingFromCloudflare": true,
+        "cfConnectingIp": true,
+        "trusted": true,
+        "country": "GB"
+    }
+}

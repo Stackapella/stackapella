@@ -1,0 +1,11 @@
+.DS_Store
+.idea/
+.vscode/
+
+# Flutter / Dart
+.dart_tool/
+build/
+*.iml
+
+# Laravel (server/ gets its own .gitignore with the MVP)
+.env

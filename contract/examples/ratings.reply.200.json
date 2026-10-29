@@ -1,0 +1,13 @@
+{
+    "data": {
+        "id": "Rt1aBc",
+        "stars": 5,
+        "text": "Clear and kind.",
+        "reply": "Thank you, Ana!",
+        "singer": {
+            "name": "Ana R."
+        },
+        "createdAt": "2026-10-29T10:00:00Z",
+        "editableUntil": "2026-11-28T10:00:00Z"
+    }
+}

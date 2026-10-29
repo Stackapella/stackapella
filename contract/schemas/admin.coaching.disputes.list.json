@@ -1,0 +1,75 @@
+{
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data",
+        "meta"
+    ],
+    "properties": {
+        "data": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                    "engagement",
+                    "reports"
+                ],
+                "properties": {
+                    "engagement": {
+                        "$ref": "engagement.json"
+                    },
+                    "reports": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "required": [
+                                "from",
+                                "text",
+                                "createdAt",
+                                "resolvedAt"
+                            ],
+                            "properties": {
+                                "from": {
+                                    "type": "object",
+                                    "additionalProperties": false,
+                                    "required": [
+                                        "id",
+                                        "name"
+                                    ],
+                                    "properties": {
+                                        "id": {
+                                            "type": "string"
+                                        },
+                                        "name": {
+                                            "type": "string"
+                                        }
+                                    }
+                                },
+                                "text": {
+                                    "type": "string"
+                                },
+                                "createdAt": {
+                                    "type": "string",
+                                    "format": "date-time"
+                                },
+                                "resolvedAt": {
+                                    "type": [
+                                        "string",
+                                        "null"
+                                    ],
+                                    "format": "date-time"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "meta": {
+            "$ref": "meta.json"
+        }
+    },
+    "$id": "admin.coaching.disputes.list.json"
+}

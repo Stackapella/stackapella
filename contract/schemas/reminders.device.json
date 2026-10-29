@@ -1,0 +1,27 @@
+{
+    "$id": "reminders.device.json",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "id",
+                "token"
+            ],
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "token": {
+                    "type": "string",
+                    "description": "Keep it in the service worker (IndexedDB): it changes or removes this device without a session."
+                }
+            }
+        }
+    }
+}

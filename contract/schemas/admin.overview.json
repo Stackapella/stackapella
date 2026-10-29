@@ -1,0 +1,97 @@
+{
+    "$id": "admin.overview.json",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "beta",
+                "harmonies",
+                "growth"
+            ],
+            "properties": {
+                "beta": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                        "singers",
+                        "consented",
+                        "waiting",
+                        "guides",
+                        "partsWithVoices",
+                        "parts",
+                        "unreadFeedback"
+                    ],
+                    "properties": {
+                        "singers": {
+                            "type": "integer"
+                        },
+                        "consented": {
+                            "type": "integer"
+                        },
+                        "waiting": {
+                            "type": "integer",
+                            "description": "Takes waiting for review."
+                        },
+                        "guides": {
+                            "type": "integer"
+                        },
+                        "partsWithVoices": {
+                            "type": "integer"
+                        },
+                        "parts": {
+                            "type": "integer"
+                        },
+                        "unreadFeedback": {
+                            "type": "integer"
+                        }
+                    }
+                },
+                "harmonies": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                        "finished",
+                        "secondSongs"
+                    ],
+                    "properties": {
+                        "finished": {
+                            "type": "integer",
+                            "description": "Songs where every part is the singer's own."
+                        },
+                        "secondSongs": {
+                            "type": "integer",
+                            "description": "People who finished a second song."
+                        }
+                    }
+                },
+                "growth": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                        "signUps",
+                        "upgrades",
+                        "activeSingers"
+                    ],
+                    "properties": {
+                        "signUps": {
+                            "type": "integer"
+                        },
+                        "upgrades": {
+                            "type": "integer"
+                        },
+                        "activeSingers": {
+                            "type": "integer"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "title": "The admin's overview: the numbers that matter, from our own records"
+}

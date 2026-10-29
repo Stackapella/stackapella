@@ -1,0 +1,9 @@
+{
+    "message": "Unprocessable Content.",
+    "code": "validation_failed",
+    "errors": {
+        "q": [
+            "The q field must be at least 2 characters."
+        ]
+    }
+}

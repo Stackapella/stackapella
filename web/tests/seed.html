@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Seed a demo project</title>
+    <script type="importmap">{ "imports": { "vue": "https://cdn.jsdelivr.net/npm/vue@3.5.44/dist/vue.esm-browser.prod.js" } }</script>
+</head>
+<body>
+<p id="status">Seeding</p>
+<script type="module">
+// Dev only: makes a demo project with six generated parts, then opens it.
+import { createProject, loadProjects, savePart } from '/js/stores/projects.js';
+import { peaks } from '/js/dsp.js';
+import { PART_COLORS } from '/js/theme.js';
+import { harmonyPart, percussion } from '/tests/fixtures.js';
+
+const sr = 48000;
+const bpm = 92;
+const melody = [72, 74, 76, 77, 76, 74, 72, 71, 72, 74, 76, 72, 77, 76, 74, 72];
+const parts = [
+    ['Melody', harmonyPart(sr, { notes: melody, bpm, beatsPerNote: 2, rest: [4, 12] })],
+    ['Harmony 1', harmonyPart(sr, { notes: melody.map((n) => n - 3), bpm, beatsPerNote: 2, rest: [0, 1, 8] })],
+    ['Harmony 2', harmonyPart(sr, { notes: melody.map((n) => n - 5), bpm, beatsPerNote: 2, rest: [2, 3, 10, 11] })],
+    ['Alto', harmonyPart(sr, { notes: melody.map((n) => n - 8), bpm, beatsPerNote: 2, rest: [6, 7] })],
+    ['Bass', harmonyPart(sr, { notes: melody.map((n) => n - 24), bpm, beatsPerNote: 2, level: 0.3 })],
+    ['Vocal percussion', percussion(sr, { bpm, beats: 64 })],
+];
+await loadProjects();
+const params = new URLSearchParams(location.search);
+const project = await createProject({ title: params.get('title') ?? 'Lean on me, Sunday choir', bpm, key: 'C', timeSignature: '4/4' });
+let order = 0;
+for (const [name, samples] of parts) {
+    await savePart({
+        id: crypto.randomUUID(), projectId: project.id, name, color: PART_COLORS[order], order, volume: 1, pan: 0,
+        muted: name === 'Harmony 2', solo: false, offsetSeconds: 0, nudgeSeconds: 0, sampleRate: sr,
+        frames: samples.length, framesPerPeak: 512, peaks: peaks(samples, 512), createdAt: Date.now(),
+    }, samples);
+    order++;
+}
+document.getElementById('status').textContent = 'Seeded';
+location.href = '/p/' + project.id;
+</script>
+</body>
+</html>

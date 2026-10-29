@@ -1,0 +1,55 @@
+{
+    "$id": "admin.beta.submission.detail.json",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data",
+        "master",
+        "peaks",
+        "otherParts"
+    ],
+    "properties": {
+        "data": {
+            "$ref": "admin.beta.submission.json"
+        },
+        "master": {
+            "type": [
+                "object",
+                "null"
+            ],
+            "additionalProperties": false,
+            "required": [
+                "url",
+                "expiresAt"
+            ],
+            "properties": {
+                "url": {
+                    "type": "string",
+                    "format": "uri",
+                    "description": "The WAV master, for 15 minutes (a temporary URL)."
+                },
+                "expiresAt": {
+                    "type": "string",
+                    "format": "date-time"
+                }
+            }
+        },
+        "peaks": {
+            "type": [
+                "array",
+                "null"
+            ],
+            "items": {
+                "type": "number"
+            },
+            "description": "The outline for the waveform: 0 to 1, about 100 a second."
+        },
+        "otherParts": {
+            "type": "array",
+            "items": {
+                "$ref": "guide.recording.json"
+            },
+            "description": "The template version's other default real voices, for the mix (the synth plays the rest)."
+        }
+    }
+}

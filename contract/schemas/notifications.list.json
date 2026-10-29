@@ -1,0 +1,36 @@
+{
+    "$id": "notifications.list.json",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data",
+        "meta"
+    ],
+    "properties": {
+        "data": {
+            "type": "array",
+            "items": {
+                "$ref": "bellItem.json"
+            }
+        },
+        "meta": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "nextCursor",
+                "unread"
+            ],
+            "properties": {
+                "nextCursor": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "unread": {
+                    "type": "integer"
+                }
+            }
+        }
+    }
+}

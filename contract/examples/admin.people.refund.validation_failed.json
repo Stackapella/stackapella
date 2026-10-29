@@ -1,0 +1,9 @@
+{
+    "message": "Unprocessable Content.",
+    "code": "validation_failed",
+    "errors": {
+        "amountCents": [
+            "Refund between 1 and 499 cents."
+        ]
+    }
+}

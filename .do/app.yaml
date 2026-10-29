@@ -1,0 +1,104 @@
+# The App Platform spec, used ONCE: doctl apps create --spec .do/app.yaml. After that, change the app
+# in the console: re-applying a stored spec deletes domains and console-set secrets (docs/conventions.md).
+#
+# Secrets are never in this file. Set these in the console, as encrypted values, before the first
+# deploy (each is described in server/.env.example):
+#   APP_KEY, APP_URL, DB_HOST, DB_PORT, DB_DATABASE, DB_USERNAME, DB_PASSWORD, DB_CA_CERT,
+#   SPACES_KEY, SPACES_SECRET, CDN_URL, SQIDS_ALPHABET,
+#   ADMIN_GOOGLE_IDS, ADMIN_EMAILS, EDITOR_GOOGLE_IDS, EDITOR_EMAILS,
+#   GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET
+#
+# Every component runs the one image (.do/Dockerfile), built from the repository's root so the
+# PWA's files (/web) ship beside the server.
+name: stackapella
+region: nyc
+
+# The app joins the stackapella-nyc1 VPC, where the database accepts connections only over its
+# private host. App Platform's nyc region can attach only to NYC1 VPCs. The VPC's id isn't kept in
+# this file: it's set when the app is created (vpc: { id: ... }).
+
+envs:
+  - { key: APP_NAME, value: Stackapella }
+  - { key: APP_ENV, value: production }
+  - { key: APP_DEBUG, value: 'false' }
+  - { key: MAIL_FROM_NAME, value: Stackapella }
+  - { key: LOG_CHANNEL, value: stderr }
+  - { key: QUEUE_CONNECTION, value: database }
+  - { key: CACHE_STORE, value: database }
+  - { key: SESSION_DRIVER, value: database }
+  - { key: SESSION_SECURE_COOKIE, value: 'true' }
+  - { key: SESSION_ENCRYPT, value: 'true' }
+  # At least the admin's idle limit (config/admin.php, 240 minutes).
+  - { key: SESSION_LIFETIME, value: '240' }
+  - { key: MEDIA_DISK, value: spaces_media }
+  - { key: PRIVATE_DISK, value: spaces_private }
+  - { key: BACKUP_DISK, value: spaces_backup }
+  - { key: BEHIND_APP_PLATFORM, value: 'true' }
+  # The beta domain: "coming soon" for anyone who didn't come in through an invite link or /admin.
+  - { key: COMING_SOON, value: 'true' }
+  # The log mailer until Cloudflare Email Service is set up (roadmap M3; "Needs Hillel" in contract/log.md).
+  - { key: MAIL_MAILER, value: log }
+
+services:
+  - name: web
+    github:
+      repo: hillelcoren/stackapella
+      branch: main
+      deploy_on_push: true
+    dockerfile_path: .do/Dockerfile
+    source_dir: /
+    instance_size_slug: apps-s-1vcpu-1gb
+    instance_count: 1
+    http_port: 8080
+    health_check:
+      http_path: /up
+      initial_delay_seconds: 20
+    envs:
+      - { key: APP_BUILD, value: '${_self.COMMIT_HASH}' }
+
+workers:
+  # Runs the schedule, which also drains the `default` queue every minute (server/routes/console.php).
+  - name: scheduler
+    github:
+      repo: hillelcoren/stackapella
+      branch: main
+      deploy_on_push: true
+    dockerfile_path: .do/Dockerfile
+    source_dir: /
+    instance_size_slug: apps-s-1vcpu-0.5gb
+    instance_count: 1
+    run_command: sh -c 'cd /app/server && php artisan optimize && php artisan schedule:clear-cache && exec php artisan schedule:work'
+    envs:
+      - { key: APP_BUILD, value: '${_self.COMMIT_HASH}' }
+
+  # ffmpeg work (ProcessTake, ProcessHarmony, RenderShareVideo): its own resident worker on the
+  # `long` queue, 2 processes, which is also the cap on video renders at once (docs/conventions.md).
+  - name: long
+    github:
+      repo: hillelcoren/stackapella
+      branch: main
+      deploy_on_push: true
+    dockerfile_path: .do/Dockerfile
+    source_dir: /
+    instance_size_slug: apps-s-1vcpu-1gb
+    instance_count: 1
+    # Two workers, each started again when it reaches its job or time limit.
+    run_command: >-
+      sh -c 'cd /app/server && php artisan optimize &&
+      for worker in 1 2; do
+      (while true; do php artisan queue:work database_long --queue=long --timeout=300 --max-jobs=50 --max-time=3600; sleep 1; done) &
+      done; wait'
+    envs:
+      - { key: APP_BUILD, value: '${_self.COMMIT_HASH}' }
+
+jobs:
+  - name: migrate
+    kind: PRE_DEPLOY
+    github:
+      repo: hillelcoren/stackapella
+      branch: main
+    dockerfile_path: .do/Dockerfile
+    source_dir: /
+    instance_size_slug: apps-s-1vcpu-0.5gb
+    # The migrations, then the official templates into the catalogue (safe to run again).
+    run_command: sh -c 'cd /app/server && php artisan migrate --force && php artisan app:templates:sync'

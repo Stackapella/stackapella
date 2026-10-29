@@ -1,0 +1,29 @@
+{
+    "$id": "earlyAccess.show.json",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "status"
+            ],
+            "properties": {
+                "status": {
+                    "type": "string",
+                    "enum": [
+                        "open",
+                        "paused",
+                        "full",
+                        "closed"
+                    ]
+                }
+            }
+        }
+    },
+    "title": "Whether the early-access link lets people in"
+}

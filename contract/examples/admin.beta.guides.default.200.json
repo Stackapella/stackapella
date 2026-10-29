@@ -1,0 +1,24 @@
+{
+    "data": {
+        "id": "Gd1Hx4",
+        "partKey": "alto",
+        "isDefault": true,
+        "recording": {
+            "id": "Gd7Kp2",
+            "partKey": "alto",
+            "url": "https://stackapella-media.nyc3.cdn.digitaloceanspaces.com/guides/7f3c9b2e1a4d8f6e0b5c2a9d4e7f1b3c.m4a",
+            "sampleRate": 48000,
+            "frames": 2304000,
+            "offsetFrames": 0,
+            "credit": "Sarah K.",
+            "creditHandle": null
+        },
+        "submissionId": "Tz4Kq8",
+        "singer": {
+            "id": "Pq7Rm2",
+            "name": "Sarah Kim"
+        },
+        "publishedAt": "2026-10-26T15:51:00Z",
+        "pitchPercent": 91
+    }
+}

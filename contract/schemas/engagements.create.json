@@ -1,0 +1,21 @@
+{
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data",
+        "checkoutUrl"
+    ],
+    "properties": {
+        "data": {
+            "$ref": "engagement.json"
+        },
+        "checkoutUrl": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "format": "uri"
+        }
+    },
+    "$id": "engagements.create.json"
+}

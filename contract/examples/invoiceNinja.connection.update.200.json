@@ -1,0 +1,14 @@
+{
+    "data": {
+        "companyName": "Sarah's Studio",
+        "url": null,
+        "sendEmail": true,
+        "status": "active",
+        "problem": null,
+        "recorded": 42,
+        "waiting": 1,
+        "notRecorded": 2,
+        "connectedAt": "2026-11-01T09:00:00Z",
+        "problemCode": null
+    }
+}

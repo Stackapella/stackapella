@@ -1,0 +1,19 @@
+{
+    "data": [
+        {
+            "id": "Rc9pL1",
+            "kind": "plus",
+            "description": "Stackapella Plus",
+            "amountCents": 499,
+            "currency": "gbp",
+            "status": "recorded",
+            "problem": null,
+            "attempts": 1,
+            "createdAt": "2026-11-02T10:00:00Z",
+            "problemCode": null
+        }
+    ],
+    "meta": {
+        "nextCursor": null
+    }
+}

@@ -1,0 +1,91 @@
+{
+    "data": [
+        {
+            "id": "c3d4e5f6-7081-4293-a4b5-c6d7e8f9a012",
+            "version": 2,
+            "title": "Shall We Gather",
+            "description": "A river hymn for 2 to 4 singers.",
+            "difficulty": "beginner",
+            "genre": [
+                "hymn"
+            ],
+            "key": "G",
+            "tempo": 80,
+            "timeSignature": "3/4",
+            "durationSeconds": 36,
+            "parts": [
+                {
+                    "key": "soprano",
+                    "name": "Soprano",
+                    "range": {
+                        "low": 62,
+                        "high": 74
+                    }
+                },
+                {
+                    "key": "alto",
+                    "name": "Alto",
+                    "range": {
+                        "low": 59,
+                        "high": 71
+                    }
+                },
+                {
+                    "key": "tenor",
+                    "name": "Tenor",
+                    "range": {
+                        "low": 55,
+                        "high": 60
+                    }
+                },
+                {
+                    "key": "bass",
+                    "name": "Bass",
+                    "range": {
+                        "low": 43,
+                        "high": 50
+                    }
+                }
+            ],
+            "voicings": [
+                2,
+                3,
+                4
+            ],
+            "library": {
+                "status": "held",
+                "creator": {
+                    "handle": "ana",
+                    "name": "Ana Ruiz",
+                    "avatarUrl": null
+                },
+                "uses": 0,
+                "rating": {
+                    "average": null,
+                    "count": 0,
+                    "mine": null
+                },
+                "featured": false,
+                "publishedAt": "2026-10-27T09:00:00Z",
+                "parent": null
+            },
+            "creator": {
+                "handle": "ana",
+                "name": "Ana Ruiz",
+                "avatarUrl": null,
+                "id": "k5Rt9"
+            },
+            "declaration": {
+                "song": "public_domain",
+                "source": "Traditional",
+                "ownWork": true,
+                "at": "2026-10-27T09:00:00Z"
+            },
+            "heldAt": "2026-10-27T09:00:00Z",
+            "reports": {
+                "count": 0,
+                "reasons": []
+            }
+        }
+    ]
+}

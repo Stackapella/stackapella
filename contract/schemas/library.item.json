@@ -1,0 +1,14 @@
+{
+    "$id": "library.item.json",
+    "title": "admin.library.feature",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "$ref": "library.template.json"
+        }
+    }
+}

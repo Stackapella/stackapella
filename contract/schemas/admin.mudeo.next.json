@@ -1,0 +1,45 @@
+{
+    "$id": "admin.mudeo.next.json",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "ids",
+                "emails",
+                "line",
+                "fits",
+                "remaining"
+            ],
+            "properties": {
+                "ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "emails": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "line": {
+                    "type": "string"
+                },
+                "fits": {
+                    "type": "boolean"
+                },
+                "remaining": {
+                    "type": "integer"
+                }
+            }
+        }
+    },
+    "title": "The next batch of up to 50"
+}

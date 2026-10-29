@@ -1,0 +1,9 @@
+{
+    "message": "Unprocessable Content.",
+    "code": "validation_failed",
+    "errors": {
+        "transactions": [
+            "The transactions field is required when store is apple."
+        ]
+    }
+}

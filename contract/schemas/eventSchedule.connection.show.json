@@ -1,0 +1,97 @@
+{
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "type": [
+                "object",
+                "null"
+            ],
+            "additionalProperties": false,
+            "required": [
+                "status",
+                "mode",
+                "baseUrl",
+                "account",
+                "schedule",
+                "webhook",
+                "connectedAt"
+            ],
+            "properties": {
+                "status": {
+                    "type": "string",
+                    "enum": [
+                        "active",
+                        "needs_reconnect"
+                    ]
+                },
+                "mode": {
+                    "type": "string",
+                    "enum": [
+                        "oauth",
+                        "api_key"
+                    ]
+                },
+                "baseUrl": {
+                    "type": "string",
+                    "format": "uri"
+                },
+                "account": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                        "id",
+                        "name"
+                    ],
+                    "properties": {
+                        "id": {
+                            "type": "string"
+                        },
+                        "name": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "schedule": {
+                    "type": [
+                        "object",
+                        "null"
+                    ],
+                    "additionalProperties": false,
+                    "required": [
+                        "subdomain",
+                        "name",
+                        "timezone"
+                    ],
+                    "properties": {
+                        "subdomain": {
+                            "type": "string"
+                        },
+                        "name": {
+                            "type": "string"
+                        },
+                        "timezone": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "webhook": {
+                    "type": "string",
+                    "enum": [
+                        "none",
+                        "active",
+                        "failing"
+                    ]
+                },
+                "connectedAt": {
+                    "type": "string",
+                    "format": "date-time"
+                }
+            }
+        }
+    },
+    "$id": "eventSchedule.connection.show.json"
+}

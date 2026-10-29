@@ -1,0 +1,51 @@
+{
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "timezone",
+                "durationMinutes",
+                "slots"
+            ],
+            "properties": {
+                "timezone": {
+                    "type": "string"
+                },
+                "durationMinutes": {
+                    "type": "integer"
+                },
+                "slots": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "startsAt",
+                            "date",
+                            "label"
+                        ],
+                        "properties": {
+                            "startsAt": {
+                                "type": "string",
+                                "format": "date-time"
+                            },
+                            "date": {
+                                "type": "string"
+                            },
+                            "label": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "$id": "coaches.slots.json"
+}

@@ -1,0 +1,14 @@
+{
+    "$id": "coaches.directory.item.json",
+    "title": "admin.coaches.feature",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "$ref": "coach.directory.json"
+        }
+    }
+}

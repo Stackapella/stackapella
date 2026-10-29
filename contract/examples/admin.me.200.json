@@ -1,0 +1,9 @@
+{
+    "data": {
+        "id": "Xk3pQ9",
+        "name": "Hillel Coren",
+        "email": "hillel@example.com",
+        "role": "admin",
+        "sudoUntil": "2026-10-26T14:35:00Z"
+    }
+}

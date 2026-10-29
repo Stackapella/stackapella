@@ -1,0 +1,82 @@
+{
+    "$id": "beta.agreement.show.json",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "version",
+                "reviewed",
+                "language",
+                "title",
+                "blocks"
+            ],
+            "properties": {
+                "version": {
+                    "type": "integer"
+                },
+                "reviewed": {
+                    "type": "boolean",
+                    "description": "False until the lawyer has checked it: the app shows a draft notice."
+                },
+                "language": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "blocks": {
+                    "type": "array",
+                    "description": "The agreement, as headings, paragraphs and lists, shown as text (never HTML). Strong text is marked with **, which the app shows bold.",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "type",
+                            "level",
+                            "text",
+                            "items"
+                        ],
+                        "properties": {
+                            "type": {
+                                "type": "string",
+                                "enum": [
+                                    "heading",
+                                    "paragraph",
+                                    "list"
+                                ]
+                            },
+                            "level": {
+                                "type": [
+                                    "integer",
+                                    "null"
+                                ]
+                            },
+                            "text": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            },
+                            "items": {
+                                "type": [
+                                    "array",
+                                    "null"
+                                ],
+                                "items": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "title": "The beta agreement, in the singer's language"
+}

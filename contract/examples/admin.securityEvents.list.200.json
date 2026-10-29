@@ -1,0 +1,8 @@
+{
+    "data": [
+        { "id": "Wd6Kp2", "type": "rate_limited", "user": null, "ip": "203.0.113.77", "ipHash": "9f2c4ab01e7d", "context": { "limiter": "sign-in", "rule": "ip" }, "createdAt": "2026-10-26T14:01:00Z" },
+        { "id": "Tz9Mq4", "type": "admin_sign_in", "user": { "id": "Xk3pQ9", "name": "Hillel Coren" }, "ip": "198.51.100.7", "ipHash": "41aa07c93b2e", "context": { "method": "passkey" }, "createdAt": "2026-10-26T13:58:00Z" },
+        { "id": "Rf3Ny8", "type": "sign_in_refused", "user": null, "ip": null, "ipHash": "77e1d0c4a9b3", "context": { "reason": "not_admin" }, "createdAt": "2026-09-20T08:00:00Z" }
+    ],
+    "meta": { "nextCursor": null }
+}

@@ -1,0 +1,15 @@
+{
+    "data": {
+        "enabled": true,
+        "days": [
+            1,
+            3,
+            5
+        ],
+        "time": "18:30",
+        "timezone": "Europe/London",
+        "vapidPublicKey": "BOr6x...publickey",
+        "devices": 1,
+        "thisDevice": true
+    }
+}

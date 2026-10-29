@@ -1,0 +1,9 @@
+{
+    "data": {
+        "status": "ready",
+        "requestedAt": "2026-10-26T18:00:00Z",
+        "readyAt": "2026-10-26T18:03:00Z",
+        "url": "https://stackapella-private.nyc3.digitaloceanspaces.com/exports/5f2c8a1e9b3d7f4c6a0e2b8d1f5c9a3e.zip?X-Amz-Expires=604800&X-Amz-Signature=abc",
+        "expiresAt": "2026-11-02T18:03:00Z"
+    }
+}

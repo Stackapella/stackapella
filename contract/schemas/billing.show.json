@@ -1,0 +1,261 @@
+{
+    "$id": "billing.show.json",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "plan",
+                "status",
+                "source",
+                "store",
+                "storeAccountToken",
+                "subscription",
+                "pastDueUntil",
+                "endedAt",
+                "endedReason",
+                "trial",
+                "notice",
+                "checkedAt",
+                "plusOfflineUntil"
+            ],
+            "properties": {
+                "plan": {
+                    "type": "string",
+                    "enum": [
+                        "free",
+                        "plus"
+                    ]
+                },
+                "status": {
+                    "type": "string",
+                    "enum": [
+                        "none",
+                        "pending",
+                        "trialing",
+                        "active",
+                        "past_due",
+                        "canceled",
+                        "ended"
+                    ],
+                    "description": "pending: a Checkout in the last 30 minutes, before the webhook; canceled: Plus until subscription.endsAt; ended: Plus has ended (see endedReason)."
+                },
+                "source": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "enum": [
+                        "stripe",
+                        "apple",
+                        "google",
+                        "coach",
+                        "invoice",
+                        "demo",
+                        null
+                    ],
+                    "description": "Where Plus comes from now (null without Plus). With apple or google, the web points to the store's settings, not the portal, and the apps don't offer Checkout."
+                },
+                "store": {
+                    "type": [
+                        "object",
+                        "null"
+                    ],
+                    "additionalProperties": false,
+                    "required": [
+                        "store",
+                        "productId",
+                        "interval",
+                        "expiresAt",
+                        "willRenew",
+                        "inGracePeriod"
+                    ],
+                    "properties": {
+                        "store": {
+                            "type": "string",
+                            "enum": [
+                                "apple",
+                                "google"
+                            ]
+                        },
+                        "productId": {
+                            "type": "string"
+                        },
+                        "interval": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "enum": [
+                                "month",
+                                "year",
+                                null
+                            ]
+                        },
+                        "expiresAt": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "format": "date-time",
+                            "description": "Plus until then (the grace period's end, in grace)."
+                        },
+                        "willRenew": {
+                            "type": "boolean"
+                        },
+                        "inGracePeriod": {
+                            "type": "boolean",
+                            "description": "A renewal failed and the store is retrying; Plus stays meanwhile."
+                        }
+                    },
+                    "description": "The App Store or Google Play subscription giving Plus, or null."
+                },
+                "storeAccountToken": {
+                    "type": "string",
+                    "description": "A UUID per account: the apps set it as Apple's appAccountToken and Google's obfuscatedAccountId, so a purchase names its account."
+                },
+                "subscription": {
+                    "type": [
+                        "object",
+                        "null"
+                    ],
+                    "additionalProperties": false,
+                    "required": [
+                        "interval",
+                        "currency",
+                        "amountCents",
+                        "renewsAt",
+                        "endsAt",
+                        "trialEndsAt"
+                    ],
+                    "properties": {
+                        "interval": {
+                            "type": "string",
+                            "enum": [
+                                "month",
+                                "year"
+                            ]
+                        },
+                        "currency": {
+                            "type": "string",
+                            "enum": [
+                                "usd",
+                                "eur",
+                                "gbp"
+                            ]
+                        },
+                        "amountCents": {
+                            "type": "integer",
+                            "description": "What this subscriber pays (a launch price stays theirs)."
+                        },
+                        "renewsAt": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "format": "date-time"
+                        },
+                        "endsAt": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "format": "date-time"
+                        },
+                        "trialEndsAt": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "format": "date-time"
+                        }
+                    }
+                },
+                "pastDueUntil": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "format": "date-time"
+                },
+                "endedAt": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "format": "date-time"
+                },
+                "endedReason": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "enum": [
+                        "canceled",
+                        "payment_failed",
+                        "dispute",
+                        "refunded",
+                        null
+                    ]
+                },
+                "trial": {
+                    "type": [
+                        "object",
+                        "null"
+                    ],
+                    "additionalProperties": false,
+                    "required": [
+                        "days",
+                        "intervals"
+                    ],
+                    "properties": {
+                        "days": {
+                            "type": "integer"
+                        },
+                        "intervals": {
+                            "type": "array",
+                            "items": {
+                                "type": "string",
+                                "enum": [
+                                    "month",
+                                    "year"
+                                ]
+                            },
+                            "description": "Which intervals offer it."
+                        }
+                    },
+                    "description": "The trial on offer, or null."
+                },
+                "notice": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "enum": [
+                        "card_had_trial",
+                        "payment_failed",
+                        "plus_twice",
+                        null
+                    ]
+                },
+                "checkedAt": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "plusOfflineUntil": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "format": "date-time",
+                    "description": "Plus songs stay usable offline until then: 14 days after checkedAt, never past a cancelled plan's end. Null on free."
+                }
+            }
+        }
+    }
+}

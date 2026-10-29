@@ -1,0 +1,12 @@
+{
+    "message": "Unprocessable Content.",
+    "code": "validation_failed",
+    "errors": {
+        "ids": [
+            "Choose at most 3 projects."
+        ],
+        "ids.1": [
+            "A project made from a Plus song stays read-only until Plus."
+        ]
+    }
+}

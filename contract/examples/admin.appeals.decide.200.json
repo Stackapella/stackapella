@@ -1,0 +1,29 @@
+{
+    "data": {
+        "id": "Nt3kQ9",
+        "kind": "harmony_hidden",
+        "what": "Your shared harmony was hidden: its link shows that it isn't available.",
+        "about": {
+            "kind": "harmony",
+            "id": "k3Xb9QmT7wLp",
+            "title": "Silent Night for Mum"
+        },
+        "rule": "reports",
+        "why": "Several people reported it, so it was hidden automatically until a person looks at it.",
+        "note": null,
+        "automatic": true,
+        "createdAt": "2026-11-02T09:00:00Z",
+        "canAppeal": false,
+        "appeal": {
+            "text": "It's my own recording of a carol.",
+            "at": "2026-11-02T11:00:00Z",
+            "decision": "reversed",
+            "decisionNote": "A carol in the public domain: restored.",
+            "decidedAt": "2026-11-02T13:00:00Z"
+        },
+        "person": {
+            "id": "jR4kLmNo",
+            "name": "Ana Ruiz"
+        }
+    }
+}

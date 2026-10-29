@@ -1,0 +1,168 @@
+name: tests
+
+# Run by hand (Actions > tests > Run workflow, or `gh workflow run tests`) while the build settles.
+# Hillel turns pushes to main back on once the code is stable:
+#   push:
+#     branches: [main]
+on:
+  workflow_dispatch:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  server:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: server
+
+    services:
+      # Like production: MySQL 8.4, primary keys required, the strict sql_mode.
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: stackapella_test
+        ports: ['3306:3306']
+        options: >-
+          --health-cmd="mysqladmin ping -proot"
+          --health-interval=5s --health-timeout=5s --health-retries=20
+
+    env:
+      DB_HOST: 127.0.0.1
+      DB_PORT: 3306
+      DB_USERNAME: root
+      DB_PASSWORD: root
+      DB_TEST_DATABASE: stackapella_test
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: The courses and songs at the pinned commit (content.lock)
+        working-directory: .
+        run: sh server/tool/content.sh fetch
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: gd, intl, pdo_mysql, bcmath
+          coverage: none
+          tools: composer:v2
+
+      - name: ffmpeg (the takes' checks and the guides)
+        run: sudo apt-get update -q && sudo apt-get install -yq --no-install-recommends ffmpeg
+
+      - name: Match production's MySQL settings
+        run: |
+          mysql -h127.0.0.1 -uroot -proot -e "SET PERSIST sql_require_primary_key = ON; SET PERSIST sql_mode = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION';"
+
+      - name: Composer install
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: No npm, ever
+        working-directory: .
+        run: |
+          if find . -name package.json -not -path './server/vendor/*' | grep -q . || find . -name node_modules -not -path './server/vendor/*' | grep -q .; then
+            echo "A package.json or node_modules appeared. Stackapella never uses npm." && exit 1
+          fi
+
+      - name: Prepare the app
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+
+      - name: Pint
+        run: vendor/bin/pint --test
+
+      - name: Larastan
+        run: vendor/bin/phpstan analyse --memory-limit=2G --no-progress
+
+      - name: Composer audit
+        run: composer audit
+
+      - name: Route and config caches build
+        run: php artisan route:cache && php artisan config:cache && php artisan route:clear && php artisan config:clear
+
+      - name: PHPUnit
+        run: php artisan test --compact
+
+  web:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: web
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: The courses and songs at the pinned commit (content.lock)
+        working-directory: .
+        run: sh server/tool/content.sh fetch
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+
+      - name: No npm, ever
+        run: test ! -e package.json && test ! -e node_modules
+
+      - name: The CSS is up to date
+        run: |
+          tool/tailwind.sh
+          git diff --exit-code -- css/app.css || (echo "web/css/app.css is out of date: run web/tool/tailwind.sh and commit it." && exit 1)
+
+      - name: Every CDN library is pinned with an integrity hash
+        run: |
+          python3 -I - <<'PY'
+          import re, sys
+          html = open('index.html').read()
+          tags = re.findall(r'<(?:script|link)\b[^>]*https://cdn\.jsdelivr\.net[^>]*>', html)
+          bad = [t for t in tags if not re.search(r'@\d+\.\d+\.\d+/', t) or 'integrity="sha' not in t or 'crossorigin="anonymous"' not in t]
+          for url in re.findall(r'"(https://cdn\.jsdelivr\.net/[^"]+)"', html):
+              if not re.search(r'@\d+\.\d+\.\d+/', url):
+                  bad.append(url)
+          if bad:
+              print("Not pinned to an exact version with an integrity hash:\n" + "\n".join(bad))
+              sys.exit(1)
+          print(f"{len(tags)} CDN tags pinned.")
+          PY
+
+      - name: The web tests (headless Chrome)
+        # The runner's Chrome (tool/cdp.py defaults to the Mac's). Ubuntu 24.04's AppArmor blocks the
+        # user namespaces Chrome's sandbox needs, so allow them rather than turn the sandbox off.
+        env:
+          CHROME: /usr/bin/google-chrome
+        run: |
+          sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+          tool/test.sh
+
+  secrets:
+    # Nothing unshareable in the history or the tree (server/tool/leak-check.sh, as before every
+    # push): gitleaks at a pinned version, checked against its published sha256.
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: gitleaks 8.30.1
+        run: |
+          curl -sSfL -o gitleaks.tar.gz https://github.com/gitleaks/gitleaks/releases/download/v8.30.1/gitleaks_8.30.1_linux_x64.tar.gz
+          echo "551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb  gitleaks.tar.gz" | sha256sum -c -
+          tar -xzf gitleaks.tar.gz gitleaks
+          sudo mv gitleaks /usr/local/bin/gitleaks
+          rm gitleaks.tar.gz
+
+      - name: Nothing unshareable
+        run: sh server/tool/leak-check.sh

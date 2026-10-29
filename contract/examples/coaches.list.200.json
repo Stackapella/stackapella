@@ -1,0 +1,44 @@
+{
+    "data": [
+        {
+            "handle": "grace_sings",
+            "name": "Grace Okafor",
+            "avatarUrl": null,
+            "bio": "Choir director and vocal coach for twenty years. I help singers find their part and hold it.",
+            "voiceTypes": [
+                "alto",
+                "soprano"
+            ],
+            "styles": [
+                "gospel",
+                "choral"
+            ],
+            "languages": [
+                "en"
+            ],
+            "timezone": "America/New_York",
+            "rating": {
+                "average": 4.8,
+                "count": 12
+            },
+            "newCoach": false,
+            "from": {
+                "cents": 2500,
+                "currency": "usd"
+            },
+            "turnaroundDays": 3,
+            "nextLessonAt": "2026-11-06T15:00:00Z",
+            "featured": false
+        }
+    ],
+    "meta": {
+        "nextCursor": null,
+        "styles": [
+            "choral",
+            "gospel"
+        ],
+        "languages": [
+            "en"
+        ]
+    }
+}

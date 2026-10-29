@@ -1,0 +1,7 @@
+{
+    "message": "Conflict.",
+    "code": "terms_changed",
+    "current": {
+        "version": 2
+    }
+}

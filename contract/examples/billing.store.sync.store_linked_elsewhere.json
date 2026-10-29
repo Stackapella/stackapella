@@ -1,0 +1,24 @@
+{
+    "message": "Conflict",
+    "code": "store_linked_elsewhere",
+    "billing": {
+        "plan": "free",
+        "status": "none",
+        "source": null,
+        "store": null,
+        "storeAccountToken": "4c6a2f0e-8f7b-4a51-9d2e-6b1f0c3a7e91",
+        "subscription": null,
+        "pastDueUntil": null,
+        "endedAt": null,
+        "endedReason": null,
+        "trial": {
+            "days": 7,
+            "intervals": [
+                "year"
+            ]
+        },
+        "notice": null,
+        "checkedAt": "2026-10-26T18:00:00Z",
+        "plusOfflineUntil": null
+    }
+}

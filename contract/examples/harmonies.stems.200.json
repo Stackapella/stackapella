@@ -1,0 +1,39 @@
+{
+    "data": {
+        "template": {
+            "id": "amazing-grace",
+            "version": 2
+        },
+        "bpm": 80,
+        "openParts": [
+            {
+                "key": "tenor",
+                "name": "Tenor"
+            }
+        ],
+        "stems": [
+            {
+                "partKey": "alto",
+                "singer": {
+                    "handle": "ana",
+                    "name": "Ana Ruiz",
+                    "avatarUrl": null
+                },
+                "url": "https://stackapella-private.nyc3.digitaloceanspaces.com/stems/s7t6u5.flac?X-Amz-Signature=abc",
+                "sampleRate": 48000,
+                "frames": 1440000,
+                "offsetFrames": 0,
+                "trimStartFrames": 0,
+                "trimEndFrames": 0,
+                "volume": 1,
+                "pan": -0.3,
+                "framesPerPeak": 512,
+                "peaks": [
+                    0.1,
+                    0.42,
+                    0.38
+                ]
+            }
+        ]
+    }
+}

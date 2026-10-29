@@ -1,0 +1,10 @@
+{
+  "instruments": [
+    {
+      "name": "sine",
+      "version": "1",
+      "manifest": "/tests/fixtures/instruments/sine/1/manifest.json",
+      "updatedAt": "2026-10-28T00:00:00Z"
+    }
+  ]
+}

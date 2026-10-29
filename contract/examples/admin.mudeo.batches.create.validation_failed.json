@@ -1,0 +1,9 @@
+{
+    "message": "Unprocessable Content.",
+    "code": "validation_failed",
+    "errors": {
+        "ids": [
+            "Some of these were already sent or aren't on the list. Get the next batch again."
+        ]
+    }
+}

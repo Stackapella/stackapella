@@ -1,0 +1,322 @@
+{
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "experiments",
+                "experiment",
+                "from",
+                "to",
+                "split",
+                "enough",
+                "steps",
+                "asks",
+                "days"
+            ],
+            "properties": {
+                "experiments": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "id",
+                            "arms",
+                            "start",
+                            "end",
+                            "enrolUntil",
+                            "readFrom",
+                            "plannedPerArm",
+                            "primary",
+                            "guardrail",
+                            "enrolling"
+                        ],
+                        "properties": {
+                            "id": {
+                                "type": "string"
+                            },
+                            "arms": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                }
+                            },
+                            "start": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            },
+                            "end": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            },
+                            "enrolUntil": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ],
+                                "description": "The experiment's end day once it has passed (enrolment stops only by date, never by counts); null while enrolling or not started."
+                            },
+                            "readFrom": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ],
+                                "description": "enrolUntil plus 7 days, when day-2 and week-1 returns have matured."
+                            },
+                            "plannedPerArm": {
+                                "type": "integer"
+                            },
+                            "primary": {
+                                "type": "string",
+                                "description": "The step the experiment is judged on."
+                            },
+                            "guardrail": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ],
+                                "description": "A step that must not fall."
+                            },
+                            "enrolling": {
+                                "type": "boolean"
+                            }
+                        }
+                    },
+                    "description": "Every configured experiment, newest first."
+                },
+                "experiment": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "description": "The experiment shown, or null: every device over the period, as one arm \"all\"."
+                },
+                "from": {
+                    "type": "string"
+                },
+                "to": {
+                    "type": "string"
+                },
+                "split": {
+                    "type": [
+                        "object",
+                        "null"
+                    ],
+                    "additionalProperties": false,
+                    "required": [
+                        "arms",
+                        "pValue",
+                        "ok"
+                    ],
+                    "properties": {
+                        "arms": {
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "additionalProperties": false,
+                                "required": [
+                                    "arm",
+                                    "arrivals",
+                                    "share"
+                                ],
+                                "properties": {
+                                    "arm": {
+                                        "type": "string"
+                                    },
+                                    "arrivals": {
+                                        "type": "integer"
+                                    },
+                                    "share": {
+                                        "type": [
+                                            "number",
+                                            "null"
+                                        ]
+                                    }
+                                }
+                            }
+                        },
+                        "pValue": {
+                            "type": [
+                                "number",
+                                "null"
+                            ],
+                            "description": "How likely a split this far from 50/50 is by chance."
+                        },
+                        "ok": {
+                            "type": "boolean",
+                            "description": "False below p 0.001: a bug in the bucketing, not a result."
+                        }
+                    },
+                    "description": "The 50/50 check; null without an experiment."
+                },
+                "enough": {
+                    "type": "boolean",
+                    "description": "Every arm has its planned arrivals."
+                },
+                "steps": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "kind",
+                            "arms",
+                            "difference"
+                        ],
+                        "properties": {
+                            "kind": {
+                                "type": "string"
+                            },
+                            "arms": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "additionalProperties": false,
+                                    "required": [
+                                        "arm",
+                                        "guest",
+                                        "account",
+                                        "total",
+                                        "rate"
+                                    ],
+                                    "properties": {
+                                        "arm": {
+                                            "type": "string",
+                                            "description": "The arm (\"a\", \"b\"), or \"all\" without an experiment."
+                                        },
+                                        "guest": {
+                                            "type": "integer"
+                                        },
+                                        "account": {
+                                            "type": "integer"
+                                        },
+                                        "total": {
+                                            "type": "integer"
+                                        },
+                                        "rate": {
+                                            "type": [
+                                                "number",
+                                                "null"
+                                            ],
+                                            "description": "total / this arm's arrivals (f_arrive + f_arrive_start), 0 to 1 or a little over (daily totals mix days); null with no arrivals."
+                                        }
+                                    }
+                                }
+                            },
+                            "difference": {
+                                "type": [
+                                    "object",
+                                    "null"
+                                ],
+                                "additionalProperties": false,
+                                "required": [
+                                    "points",
+                                    "low",
+                                    "high"
+                                ],
+                                "properties": {
+                                    "points": {
+                                        "type": "number"
+                                    },
+                                    "low": {
+                                        "type": "number"
+                                    },
+                                    "high": {
+                                        "type": "number"
+                                    }
+                                },
+                                "description": "The second arm's rate minus the first's, in percentage points, with its 95% interval. Null without two arms with arrivals, and for the arrivals themselves."
+                            }
+                        }
+                    },
+                    "description": "Every funnel kind, in the funnel's order."
+                },
+                "asks": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "ask",
+                            "arms"
+                        ],
+                        "properties": {
+                            "ask": {
+                                "type": "string"
+                            },
+                            "arms": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "additionalProperties": false,
+                                    "required": [
+                                        "arm",
+                                        "shown",
+                                        "yes",
+                                        "rate"
+                                    ],
+                                    "properties": {
+                                        "arm": {
+                                            "type": "string"
+                                        },
+                                        "shown": {
+                                            "type": "integer"
+                                        },
+                                        "yes": {
+                                            "type": "integer"
+                                        },
+                                        "rate": {
+                                            "type": [
+                                                "number",
+                                                "null"
+                                            ],
+                                            "description": "yes / shown"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "days": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "date",
+                            "kind",
+                            "arm",
+                            "total"
+                        ],
+                        "properties": {
+                            "date": {
+                                "type": "string"
+                            },
+                            "kind": {
+                                "type": "string"
+                            },
+                            "arm": {
+                                "type": "string"
+                            },
+                            "total": {
+                                "type": "integer"
+                            }
+                        }
+                    },
+                    "description": "Each day's totals per kind and arm, for a chart."
+                }
+            }
+        }
+    }
+}

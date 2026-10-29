@@ -1,0 +1,9 @@
+{
+    "message": "Unprocessable Content.",
+    "code": "validation_failed",
+    "errors": {
+        "ownWork": [
+            "The own work field must be accepted."
+        ]
+    }
+}

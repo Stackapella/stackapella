@@ -1,0 +1,49 @@
+{
+    "$id": "admin.beta.guide.json",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "id",
+        "partKey",
+        "isDefault",
+        "recording",
+        "submissionId",
+        "singer",
+        "publishedAt",
+        "pitchPercent"
+    ],
+    "properties": {
+        "id": {
+            "type": "string"
+        },
+        "partKey": {
+            "type": "string"
+        },
+        "isDefault": {
+            "type": "boolean"
+        },
+        "recording": {
+            "$ref": "guide.recording.json"
+        },
+        "submissionId": {
+            "type": [
+                "string",
+                "null"
+            ]
+        },
+        "singer": {
+            "$ref": "admin.person.json"
+        },
+        "publishedAt": {
+            "type": "string",
+            "format": "date-time"
+        },
+        "pitchPercent": {
+            "type": [
+                "integer",
+                "null"
+            ],
+            "description": "That version's take score, to compare a part's versions."
+        }
+    }
+}

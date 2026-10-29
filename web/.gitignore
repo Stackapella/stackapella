@@ -1,0 +1,10 @@
+bin/
+tests/last-result.json
+# Python bytecode, and the flow scripts screenshots (made on every run)
+__pycache__/
+tests/flows/shots/
+
+# The courses and songs, from their own repo at the commit .do/content.lock pins
+# (server/tool/content.sh link puts them here; docs/repos-plan.md).
+/course
+/templates

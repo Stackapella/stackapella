@@ -1,0 +1,9 @@
+{
+    "message": "Unprocessable Content.",
+    "code": "validation_failed",
+    "errors": {
+        "rightsConfirmed": [
+            "The rights confirmed field must be accepted."
+        ]
+    }
+}

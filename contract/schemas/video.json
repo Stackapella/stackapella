@@ -1,0 +1,96 @@
+{
+    "$id": "video.json",
+    "title": "A share video being made, or made",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "id",
+        "harmonyId",
+        "status",
+        "progress",
+        "failure",
+        "startSeconds",
+        "endSeconds",
+        "look",
+        "words",
+        "url",
+        "bytes",
+        "expiresAt",
+        "createdAt"
+    ],
+    "properties": {
+        "id": {
+            "type": "string"
+        },
+        "harmonyId": {
+            "type": "string"
+        },
+        "status": {
+            "type": "string",
+            "enum": [
+                "queued",
+                "rendering",
+                "ready",
+                "failed",
+                "expired"
+            ]
+        },
+        "progress": {
+            "type": "number",
+            "description": "0 to 1."
+        },
+        "failure": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "enum": [
+                null,
+                "render_error",
+                "timed_out"
+            ]
+        },
+        "startSeconds": {
+            "type": "number"
+        },
+        "endSeconds": {
+            "type": "number"
+        },
+        "look": {
+            "type": "string",
+            "enum": [
+                "dark",
+                "light"
+            ]
+        },
+        "words": {
+            "type": "boolean",
+            "description": "Asked for; a song without words has none either way."
+        },
+        "url": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "format": "uri",
+            "description": "The MP4 (an attachment), valid 15 minutes, once ready."
+        },
+        "bytes": {
+            "type": [
+                "integer",
+                "null"
+            ]
+        },
+        "expiresAt": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "format": "date-time"
+        },
+        "createdAt": {
+            "type": "string",
+            "format": "date-time"
+        }
+    }
+}

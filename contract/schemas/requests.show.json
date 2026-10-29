@@ -1,0 +1,14 @@
+{
+    "$id": "requests.show.json",
+    "title": "requests.create, .vote and .unvote",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "$ref": "songRequest.json"
+        }
+    }
+}

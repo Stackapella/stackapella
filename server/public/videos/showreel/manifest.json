@@ -1,0 +1,92 @@
+{
+  "film": "Harmony, made by you",
+  "duration": 39.375,
+  "source": "server/resources/promo/showreel",
+  "files": [
+    {
+      "name": "stackapella-showreel-audio.m4a",
+      "bytes": 642284,
+      "sha256": "0f091953ee2b53ac9866d5fbc8c4b044231d519caad3fcdda60329b36c37f464"
+    },
+    {
+      "name": "stackapella-showreel-audio.opus",
+      "bytes": 838401,
+      "sha256": "c5ee9c6d22b5e17eace18f1c3825201dd5b77961e560aa860c82d318ea95cfe1"
+    },
+    {
+      "name": "stackapella-showreel-light-mobile.mp4",
+      "bytes": 5114317,
+      "sha256": "10ecfa7e0d7aeaea604ba355f2a102a54c47b31719ed91fcd0aa1a2a7d0594b1"
+    },
+    {
+      "name": "stackapella-showreel-light-poster-1440.webp",
+      "bytes": 50994,
+      "sha256": "411fdfed1812e5f4c2f98d4fde3e0c054e6689927625002dd456e0536dc2e232"
+    },
+    {
+      "name": "stackapella-showreel-light-poster-1920.webp",
+      "bytes": 79334,
+      "sha256": "89d03f3749d30d473465f61afbf27cf29663c3000d692f888f0ba2f2c74fc62c"
+    },
+    {
+      "name": "stackapella-showreel-light-poster-960.webp",
+      "bytes": 28246,
+      "sha256": "c973389012447797f2abb1688faa26a40a864247286f0a86f393cf11d1a43e34"
+    },
+    {
+      "name": "stackapella-showreel-light-poster.jpg",
+      "bytes": 154684,
+      "sha256": "20098129f94ff3d0349fe8cf3cbec892298b7ddfc4497983351668f76844cee6"
+    },
+    {
+      "name": "stackapella-showreel-light.mp4",
+      "bytes": 13490443,
+      "sha256": "f5d2df304519c3f1dd5587fcc93b5e1bebe1de225d5de4c3fcfffbad8a4f864d"
+    },
+    {
+      "name": "stackapella-showreel-light.webm",
+      "bytes": 13570682,
+      "sha256": "13aca9cb889872ef8bc7a9ee47476568d8ce5a004c2628c42cfc9e154da0367d"
+    },
+    {
+      "name": "stackapella-showreel-mobile.mp4",
+      "bytes": 5099953,
+      "sha256": "5dcfa573e7df1458a7cd42bd6b55feaaf62ac4dd2e934a192cdc3488bf7511cf"
+    },
+    {
+      "name": "stackapella-showreel-poster-1440.webp",
+      "bytes": 49624,
+      "sha256": "ba6429254c859bb7809c2cc02398912673e1c3179e8994d3ed2f524677340b91"
+    },
+    {
+      "name": "stackapella-showreel-poster-1920.webp",
+      "bytes": 77498,
+      "sha256": "cfd10f0b3b2e4ed6985fc60a9954ca0d010d849168337695780fa04e371c8233"
+    },
+    {
+      "name": "stackapella-showreel-poster-960.webp",
+      "bytes": 27930,
+      "sha256": "4d46b6201ed450ba016deb440e1e4e9d15e0651517966efb81d938e1b7cd7a25"
+    },
+    {
+      "name": "stackapella-showreel-poster.jpg",
+      "bytes": 151378,
+      "sha256": "c91908e6c48d5870531f80941a91df2dd89aa04c16a1b5499c48ae365b22c845"
+    },
+    {
+      "name": "stackapella-showreel.mp4",
+      "bytes": 13437534,
+      "sha256": "101f12e7f2acf6d093e91be0fa8da4fd8d3449fcc318f0cc71bad680a66055ba"
+    },
+    {
+      "name": "stackapella-showreel.vtt",
+      "bytes": 451,
+      "sha256": "73e509888358ebaa05bbb6d3c59cb91758cb27a996f2eb7feaf75ff215fc421b"
+    },
+    {
+      "name": "stackapella-showreel.webm",
+      "bytes": 13577347,
+      "sha256": "f468bea0b70155ced5552b60641bd5d2d81d96b9eb1ebe2049a2ade57605fefc"
+    }
+  ]
+}

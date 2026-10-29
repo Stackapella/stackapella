@@ -1,0 +1,280 @@
+{
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "id",
+        "engagementId",
+        "status",
+        "take",
+        "pitchTrackUrl",
+        "scores",
+        "question",
+        "review",
+        "media",
+        "deliveredAt",
+        "unsendUntil",
+        "followUp",
+        "createdAt"
+    ],
+    "properties": {
+        "id": {
+            "type": "string"
+        },
+        "engagementId": {
+            "type": "string"
+        },
+        "status": {
+            "type": "string",
+            "enum": [
+                "requested",
+                "accepted",
+                "delivered",
+                "cancelled"
+            ]
+        },
+        "take": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "url",
+                "sampleRate",
+                "frames",
+                "template"
+            ],
+            "properties": {
+                "url": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "format": "uri"
+                },
+                "sampleRate": {
+                    "type": "integer"
+                },
+                "frames": {
+                    "type": "integer"
+                },
+                "template": {
+                    "type": [
+                        "object",
+                        "null"
+                    ],
+                    "additionalProperties": false,
+                    "required": [
+                        "id",
+                        "version",
+                        "partKey"
+                    ],
+                    "properties": {
+                        "id": {
+                            "type": "string"
+                        },
+                        "version": {
+                            "type": "integer"
+                        },
+                        "partKey": {
+                            "type": [
+                                "string",
+                                "null"
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "pitchTrackUrl": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "format": "uri",
+            "description": "The pitch track as the device sent it (JSON), valid an hour."
+        },
+        "scores": {
+            "type": [
+                "object",
+                "null"
+            ]
+        },
+        "question": {
+            "type": "string"
+        },
+        "review": {
+            "type": [
+                "object",
+                "null"
+            ],
+            "additionalProperties": false,
+            "required": [
+                "comments",
+                "summary",
+                "exercises",
+                "demoMediaId"
+            ],
+            "properties": {
+                "comments": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "id",
+                            "atSeconds"
+                        ],
+                        "properties": {
+                            "id": {
+                                "type": "string"
+                            },
+                            "atSeconds": {
+                                "type": "number"
+                            },
+                            "noteIndex": {
+                                "type": [
+                                    "integer",
+                                    "null"
+                                ]
+                            },
+                            "text": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            },
+                            "mediaId": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "summary": {
+                    "type": [
+                        "object",
+                        "null"
+                    ],
+                    "additionalProperties": false,
+                    "required": [
+                        "working",
+                        "toWorkOn",
+                        "practise"
+                    ],
+                    "properties": {
+                        "working": {
+                            "type": "string"
+                        },
+                        "toWorkOn": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        },
+                        "practise": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "exercises": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "packId",
+                            "exerciseId"
+                        ],
+                        "properties": {
+                            "packId": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ],
+                                "description": "A pack's id, or null for the app's own library."
+                            },
+                            "exerciseId": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                },
+                "demoMediaId": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                }
+            },
+            "description": "The coach's draft (for the coach), or the delivered review (for both); null for the singer until delivered."
+        },
+        "media": {
+            "type": "array",
+            "items": {
+                "$ref": "review.media.json"
+            }
+        },
+        "deliveredAt": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "format": "date-time"
+        },
+        "unsendUntil": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "format": "date-time"
+        },
+        "followUp": {
+            "type": [
+                "object",
+                "null"
+            ],
+            "additionalProperties": false,
+            "required": [
+                "question",
+                "askedAt",
+                "answer",
+                "answerMediaId",
+                "answeredAt"
+            ],
+            "properties": {
+                "question": {
+                    "type": "string"
+                },
+                "askedAt": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "answer": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "answerMediaId": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "answeredAt": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "format": "date-time"
+                }
+            }
+        },
+        "createdAt": {
+            "type": "string",
+            "format": "date-time"
+        }
+    },
+    "$id": "review.json",
+    "title": "One take sent for review, and the review"
+}

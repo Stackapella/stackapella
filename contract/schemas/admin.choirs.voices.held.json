@@ -1,0 +1,114 @@
+{
+    "$id": "admin.choirs.voices.held.json",
+    "title": "admin.choirs.voices.held",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                    "id",
+                    "partKey",
+                    "singer",
+                    "song",
+                    "url",
+                    "heldAt",
+                    "reports"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "partKey": {
+                        "type": "string"
+                    },
+                    "singer": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "handle",
+                            "name",
+                            "avatarUrl",
+                            "id"
+                        ],
+                        "properties": {
+                            "handle": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            },
+                            "name": {
+                                "type": "string"
+                            },
+                            "avatarUrl": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            },
+                            "id": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "song": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "id",
+                            "title"
+                        ],
+                        "properties": {
+                            "id": {
+                                "type": "string"
+                            },
+                            "title": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "url": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "uri"
+                    },
+                    "heldAt": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    },
+                    "reports": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "count",
+                            "reasons"
+                        ],
+                        "properties": {
+                            "count": {
+                                "type": "integer"
+                            },
+                            "reasons": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

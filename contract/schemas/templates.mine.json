@@ -1,0 +1,20 @@
+{
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data",
+        "meta"
+    ],
+    "properties": {
+        "data": {
+            "type": "array",
+            "items": {
+                "$ref": "templates.mine.template.json"
+            }
+        },
+        "meta": {
+            "$ref": "meta.json"
+        }
+    },
+    "$id": "templates.mine.json"
+}

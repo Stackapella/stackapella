@@ -1,0 +1,9 @@
+{
+    "$id": "admin.blocklist.create.json",
+    "type": "object",
+    "additionalProperties": false,
+    "required": ["data"],
+    "properties": {
+        "data": { "$ref": "admin.block.json" }
+    }
+}

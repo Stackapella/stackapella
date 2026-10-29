@@ -1,0 +1,81 @@
+{
+    "data": {
+        "id": "Tz4Kq8",
+        "singer": {
+            "id": "Pq7Rm2",
+            "name": "Sarah Kim",
+            "credit": "Sarah K."
+        },
+        "assignmentId": "Ab3Cd9",
+        "template": {
+            "id": "amazing-grace",
+            "version": 2,
+            "currentVersion": 2,
+            "title": "Amazing Grace",
+            "key": "G"
+        },
+        "partKey": "alto",
+        "status": "submitted",
+        "failure": null,
+        "sampleRate": 48000,
+        "frames": 2304000,
+        "latencyFrames": 960,
+        "durationSeconds": 48.0,
+        "loudnessDbfs": -23.4,
+        "device": "iPhone 15, Safari 26 (installed)",
+        "mic": "EarPods",
+        "scores": {
+            "pitchPercent": 92,
+            "timingMs": 18,
+            "clipping": false,
+            "noise": "low",
+            "bleed": false,
+            "phrases": [
+                {
+                    "index": 3,
+                    "pitchPercent": 81,
+                    "tendency": "flat"
+                }
+            ]
+        },
+        "singerNote": "Phrase 3 felt a little flat.",
+        "adjust": {
+            "offsetMs": 0,
+            "trimStartMs": 0,
+            "trimEndMs": 0,
+            "gainDb": 0
+        },
+        "adminNote": null,
+        "adminNoteBeat": null,
+        "guide": null,
+        "paidAt": null,
+        "reviewedAt": null,
+        "createdAt": "2026-10-26T15:30:00Z",
+        "publish": "none",
+        "kind": "part",
+        "clip": null
+    },
+    "master": {
+        "url": "https://stackapella-private.nyc3.digitaloceanspaces.com/beta/masters/2b8f1c6e9d3a4f7b0c5e2a8d1f6b9c3e.wav?X-Amz-Expires=900&X-Amz-Signature=def",
+        "expiresAt": "2026-10-26T15:45:00Z"
+    },
+    "peaks": [
+        0.02,
+        0.4,
+        0.61,
+        0.55,
+        0.12
+    ],
+    "otherParts": [
+        {
+            "id": "Kv9Np1",
+            "partKey": "bass",
+            "url": "https://stackapella-media.nyc3.cdn.digitaloceanspaces.com/guides/a1b2c3d4e5f60718293a4b5c6d7e8f90.m4a",
+            "sampleRate": 44100,
+            "frames": 2116800,
+            "offsetFrames": 22050,
+            "credit": null,
+            "creditHandle": null
+        }
+    ]
+}

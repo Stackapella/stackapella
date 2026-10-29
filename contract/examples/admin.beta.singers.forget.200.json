@@ -1,0 +1,39 @@
+{
+    "data": {
+        "id": "Pq7Rm2",
+        "name": "",
+        "email": null,
+        "note": null,
+        "link": "revoked",
+        "expiresAt": null,
+        "consent": {
+            "version": 1,
+            "acceptedAt": "2026-10-26T15:02:00Z",
+            "current": true
+        },
+        "credit": {
+            "mode": null,
+            "name": null
+        },
+        "hourlyRateCents": 3000,
+        "currency": "USD",
+        "owedCents": 1250,
+        "paidCents": 0,
+        "lastSeenAt": "2026-10-26T15:30:00Z",
+        "createdAt": "2026-10-26T14:55:00Z",
+        "assignments": [],
+        "account": {
+            "id": "Mx4Lp9",
+            "email": "sarah@example.com"
+        },
+        "acceptedAt": "2026-10-24T09:30:00Z",
+        "stats": {
+            "takes": 2,
+            "accepted": 1,
+            "retakes": 1,
+            "published": 1,
+            "defaults": 1,
+            "pitchPercent": 91
+        }
+    }
+}

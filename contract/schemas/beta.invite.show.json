@@ -1,0 +1,51 @@
+{
+    "$id": "beta.invite.show.json",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "name",
+                "status",
+                "bar"
+            ],
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "description": "Who the invite is for, as Hillel wrote it."
+                },
+                "status": {
+                    "type": "string",
+                    "enum": [
+                        "open",
+                        "accepted",
+                        "expired",
+                        "revoked"
+                    ]
+                },
+                "bar": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                        "pitchPercent",
+                        "timingPercent"
+                    ],
+                    "properties": {
+                        "pitchPercent": {
+                            "type": "integer"
+                        },
+                        "timingPercent": {
+                            "type": "integer"
+                        }
+                    },
+                    "description": "The bar a take must clear to be sent."
+                }
+            }
+        }
+    }
+}

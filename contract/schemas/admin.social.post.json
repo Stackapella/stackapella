@@ -1,0 +1,119 @@
+{
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "id",
+                "network",
+                "occasion",
+                "status",
+                "about",
+                "text",
+                "url",
+                "error",
+                "scheduledFor",
+                "postedAt",
+                "createdAt"
+            ],
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "network": {
+                    "type": "string",
+                    "enum": [
+                        "x",
+                        "bluesky"
+                    ]
+                },
+                "occasion": {
+                    "type": "string",
+                    "enum": [
+                        "new_song",
+                        "month",
+                        "featured"
+                    ]
+                },
+                "status": {
+                    "type": "string",
+                    "enum": [
+                        "awaiting",
+                        "queued",
+                        "posting",
+                        "posted",
+                        "failed",
+                        "cancelled"
+                    ]
+                },
+                "about": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                        "kind",
+                        "id",
+                        "title"
+                    ],
+                    "properties": {
+                        "kind": {
+                            "type": "string",
+                            "enum": [
+                                "song",
+                                "harmony",
+                                "gone"
+                            ]
+                        },
+                        "id": {
+                            "type": "string"
+                        },
+                        "title": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "text": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "url": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "error": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "scheduledFor": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "format": "date-time"
+                },
+                "postedAt": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "format": "date-time"
+                },
+                "createdAt": {
+                    "type": "string",
+                    "format": "date-time"
+                }
+            }
+        }
+    },
+    "$id": "admin.social.post.json"
+}

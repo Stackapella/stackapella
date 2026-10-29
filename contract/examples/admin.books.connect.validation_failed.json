@@ -1,0 +1,9 @@
+{
+    "message": "Unprocessable Content.",
+    "code": "validation_failed",
+    "errors": {
+        "url": [
+            "That address can't be used: it must be a public https address."
+        ]
+    }
+}

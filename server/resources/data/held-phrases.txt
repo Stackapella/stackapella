@@ -1,0 +1,22 @@
+# Phrases that hold a title for Hillel's look (docs/trust-and-safety-plan.md, "The text filter"):
+# scams and spam. Matched anywhere in the text, ignoring case and spacing. One per line.
+free money
+make money
+earn money
+click here
+crypto
+bitcoin
+giveaway
+promo code
+discount code
+whatsapp me
+telegram
+onlyfans
+casino
+betting
+viagra
+loan offer
+work from home
+followers for
+free followers
+dm me

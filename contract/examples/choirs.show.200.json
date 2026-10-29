@@ -1,0 +1,39 @@
+{
+    "data": {
+        "song": {
+            "id": "danny-boy",
+            "title": "Danny Boy",
+            "version": 1
+        },
+        "bpm": 72,
+        "key": "Eb",
+        "mixUrl": "https://media.stackapella.com/choirs/c4d3e2.m4a",
+        "mixedAt": "2026-11-05T10:45:00Z",
+        "voices": 214,
+        "minScore": 60,
+        "maxVoicesPerPart": 60,
+        "parts": [
+            {
+                "key": "soprano",
+                "name": "Soprano",
+                "voices": 71
+            },
+            {
+                "key": "alto",
+                "name": "Alto",
+                "voices": 58
+            },
+            {
+                "key": "tenor",
+                "name": "Tenor",
+                "voices": 40
+            },
+            {
+                "key": "bass",
+                "name": "Bass",
+                "voices": 45
+            }
+        ],
+        "mine": null
+    }
+}

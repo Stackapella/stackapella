@@ -1,0 +1,9 @@
+{
+    "message": "Unprocessable Content.",
+    "code": "validation_failed",
+    "errors": {
+        "stars": [
+            "The stars field must not be greater than 5."
+        ]
+    }
+}

@@ -1,0 +1,9 @@
+{
+    "message": "Unprocessable Content.",
+    "code": "validation_failed",
+    "errors": {
+        "reason": [
+            "The selected reason is invalid."
+        ]
+    }
+}

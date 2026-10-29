@@ -1,0 +1,279 @@
+{
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "id",
+        "kind",
+        "status",
+        "role",
+        "singer",
+        "coach",
+        "offering",
+        "money",
+        "acceptBy",
+        "dueAt",
+        "periodEndsAt",
+        "reviewsLeft",
+        "declineReason",
+        "can",
+        "rated",
+        "createdAt",
+        "lesson"
+    ],
+    "properties": {
+        "id": {
+            "type": "string"
+        },
+        "kind": {
+            "type": "string",
+            "enum": [
+                "review",
+                "package",
+                "pack",
+                "teacher",
+                "lesson"
+            ]
+        },
+        "status": {
+            "type": "string",
+            "enum": [
+                "pending_payment",
+                "requested",
+                "accepted",
+                "delivered",
+                "refunded",
+                "cancelled",
+                "active",
+                "ending",
+                "ended",
+                "booking",
+                "booked"
+            ]
+        },
+        "role": {
+            "type": "string",
+            "enum": [
+                "singer",
+                "coach"
+            ]
+        },
+        "singer": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "id",
+                "name"
+            ],
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "coach": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "id",
+                "name"
+            ],
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "offering": {
+            "type": [
+                "object",
+                "null"
+            ],
+            "additionalProperties": false,
+            "required": [
+                "id",
+                "title"
+            ],
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "money": {
+            "type": [
+                "object",
+                "null"
+            ],
+            "additionalProperties": false,
+            "required": [
+                "priceCents",
+                "currency",
+                "feeCents",
+                "refundedCents"
+            ],
+            "properties": {
+                "priceCents": {
+                    "type": "integer"
+                },
+                "currency": {
+                    "type": "string",
+                    "enum": [
+                        "usd",
+                        "eur",
+                        "gbp"
+                    ]
+                },
+                "feeCents": {
+                    "type": [
+                        "integer",
+                        "null"
+                    ]
+                },
+                "refundedCents": {
+                    "type": "integer"
+                }
+            },
+            "description": "Only for the singer and Hillel: what was paid, the commission and refunds. The coach sees their share in their Stripe dashboard."
+        },
+        "acceptBy": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "format": "date-time"
+        },
+        "dueAt": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "format": "date-time"
+        },
+        "periodEndsAt": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "format": "date-time"
+        },
+        "reviewsLeft": {
+            "type": [
+                "integer",
+                "null"
+            ]
+        },
+        "declineReason": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "description": "Why it was refunded: the coach's words when they declined, or no_answer, missed_deadline, cancelled, coach_unavailable, singer_left."
+        },
+        "can": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            },
+            "description": "What the caller may do now: accept, decline, cancel, review (send a take), deliver, message, rate, report. A delivered review's follow-up and answer are on the review itself."
+        },
+        "rated": {
+            "type": "boolean"
+        },
+        "createdAt": {
+            "type": "string",
+            "format": "date-time"
+        },
+        "lesson": {
+            "type": [
+                "object",
+                "null"
+            ],
+            "additionalProperties": false,
+            "required": [
+                "startsAt",
+                "endsAt",
+                "timezone",
+                "status",
+                "joinUrl",
+                "manageUrl",
+                "icalUrl",
+                "changedBy",
+                "refundUntil"
+            ],
+            "properties": {
+                "startsAt": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "endsAt": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "timezone": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string",
+                    "enum": [
+                        "booking",
+                        "pending_approval",
+                        "confirmed",
+                        "cancelled",
+                        "completed",
+                        "failed"
+                    ]
+                },
+                "joinUrl": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "format": "uri"
+                },
+                "manageUrl": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "format": "uri"
+                },
+                "icalUrl": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "format": "uri"
+                },
+                "changedBy": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "enum": [
+                        "coach",
+                        "singer",
+                        null
+                    ]
+                },
+                "refundUntil": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "format": "date-time"
+                }
+            }
+        }
+    },
+    "$id": "engagement.json",
+    "title": "A purchase from a coach (or a teacher link)"
+}

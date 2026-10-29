@@ -1,0 +1,41 @@
+{
+    "$id": "auth.app.tokens.json",
+    "title": "A device's tokens, after a sign-in or a refresh (a refresh leaves out account)",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "accessToken",
+                "accessExpiresAt",
+                "refreshToken",
+                "device"
+            ],
+            "properties": {
+                "accessToken": {
+                    "type": "string",
+                    "description": "sat_..., sent as Authorization: Bearer for an hour."
+                },
+                "accessExpiresAt": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "refreshToken": {
+                    "type": "string",
+                    "description": "srt_..., for auth.app.refresh; replaced by each refresh."
+                },
+                "device": {
+                    "$ref": "app.device.json"
+                },
+                "account": {
+                    "$ref": "account.json"
+                }
+            }
+        }
+    }
+}

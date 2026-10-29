@@ -1,0 +1,32 @@
+{
+    "data": [
+        {
+            "id": "Of3dRt",
+            "kind": "review",
+            "title": "A take review",
+            "description": "I listen to your take and pin notes where it matters.",
+            "priceCents": 2500,
+            "currency": "gbp",
+            "turnaroundDays": 5,
+            "maxSeconds": 180,
+            "reviewsPerMonth": null,
+            "archived": false,
+            "appointmentTypeId": null,
+            "durationMinutes": null
+        },
+        {
+            "id": "Of4eSu",
+            "kind": "package",
+            "title": "Monthly coaching",
+            "description": "I listen to your take and pin notes where it matters.",
+            "priceCents": 6000,
+            "currency": "gbp",
+            "turnaroundDays": 5,
+            "maxSeconds": 180,
+            "reviewsPerMonth": 4,
+            "archived": false,
+            "appointmentTypeId": null,
+            "durationMinutes": null
+        }
+    ]
+}

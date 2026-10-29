@@ -1,0 +1,13 @@
+{
+    "$id": "admin.harmonies.feature.json",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "$ref": "galleryHarmony.json"
+        }
+    }
+}

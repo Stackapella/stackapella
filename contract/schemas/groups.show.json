@@ -1,0 +1,204 @@
+{
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "id",
+                "name",
+                "role",
+                "director",
+                "readOnly",
+                "memberCount",
+                "songs",
+                "members",
+                "link"
+            ],
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "role": {
+                    "type": "string",
+                    "enum": [
+                        "director",
+                        "member"
+                    ]
+                },
+                "director": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                        "id",
+                        "name"
+                    ],
+                    "properties": {
+                        "id": {
+                            "type": "string"
+                        },
+                        "name": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "readOnly": {
+                    "type": "boolean"
+                },
+                "memberCount": {
+                    "type": "integer"
+                },
+                "songs": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "templateId",
+                            "title",
+                            "access",
+                            "own",
+                            "sharedAt"
+                        ],
+                        "properties": {
+                            "templateId": {
+                                "type": "string"
+                            },
+                            "title": {
+                                "type": "string"
+                            },
+                            "access": {
+                                "type": "string",
+                                "enum": [
+                                    "free",
+                                    "plus",
+                                    "own"
+                                ],
+                                "description": "own: one of the director's templates."
+                            },
+                            "own": {
+                                "type": "boolean"
+                            },
+                            "sharedAt": {
+                                "type": "string",
+                                "format": "date-time"
+                            }
+                        }
+                    }
+                },
+                "members": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "id",
+                            "name",
+                            "avatarUrl",
+                            "role",
+                            "joinedAt",
+                            "assignments"
+                        ],
+                        "properties": {
+                            "id": {
+                                "type": "string"
+                            },
+                            "name": {
+                                "type": "string"
+                            },
+                            "role": {
+                                "type": "string",
+                                "enum": [
+                                    "director",
+                                    "member"
+                                ]
+                            },
+                            "joinedAt": {
+                                "type": "string",
+                                "format": "date-time"
+                            },
+                            "assignments": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "additionalProperties": false,
+                                    "required": [
+                                        "templateId",
+                                        "partKey",
+                                        "status",
+                                        "updatedAt"
+                                    ],
+                                    "properties": {
+                                        "templateId": {
+                                            "type": "string"
+                                        },
+                                        "partKey": {
+                                            "type": "string"
+                                        },
+                                        "status": {
+                                            "type": "string",
+                                            "enum": [
+                                                "none",
+                                                "started",
+                                                "recorded"
+                                            ]
+                                        },
+                                        "updatedAt": {
+                                            "type": [
+                                                "string",
+                                                "null"
+                                            ],
+                                            "format": "date-time",
+                                            "description": "Since when it's had that status (the take's time once recorded)."
+                                        }
+                                    }
+                                }
+                            },
+                            "avatarUrl": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ],
+                                "format": "uri"
+                            }
+                        }
+                    },
+                    "description": "The director sees everyone; a member sees only themselves."
+                },
+                "link": {
+                    "type": [
+                        "object",
+                        "null"
+                    ],
+                    "additionalProperties": false,
+                    "required": [
+                        "url",
+                        "createdAt"
+                    ],
+                    "properties": {
+                        "url": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "description": "The join link, for the director to copy again; null for a link made before links were kept (Reset link makes one)."
+                        },
+                        "createdAt": {
+                            "type": "string",
+                            "format": "date-time"
+                        }
+                    },
+                    "description": "The director's join link and when it was made (null before one is). A member never sees it."
+                }
+            }
+        }
+    },
+    "$id": "groups.show.json"
+}

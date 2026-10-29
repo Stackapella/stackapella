@@ -1,0 +1,97 @@
+{
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "id",
+                "kind",
+                "description",
+                "amountCents",
+                "currency",
+                "status",
+                "problem",
+                "attempts",
+                "createdAt",
+                "problemCode"
+            ],
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "kind": {
+                    "type": "string",
+                    "enum": [
+                        "sale",
+                        "fee",
+                        "refund",
+                        "plus",
+                        "commission",
+                        "plus_invoice"
+                    ]
+                },
+                "description": {
+                    "type": "string"
+                },
+                "amountCents": {
+                    "type": "integer"
+                },
+                "currency": {
+                    "type": "string",
+                    "enum": [
+                        "usd",
+                        "eur",
+                        "gbp"
+                    ]
+                },
+                "status": {
+                    "type": "string",
+                    "enum": [
+                        "pending",
+                        "recording",
+                        "recorded",
+                        "failed",
+                        "sent",
+                        "paid"
+                    ]
+                },
+                "problem": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "attempts": {
+                    "type": "integer"
+                },
+                "createdAt": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "problemCode": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "enum": [
+                        "unreachable",
+                        "tls",
+                        "bad_token",
+                        "not_allowed",
+                        "redirected",
+                        "refused",
+                        "paused",
+                        "waiting",
+                        null
+                    ]
+                }
+            }
+        }
+    },
+    "$id": "invoiceNinja.record.json"
+}

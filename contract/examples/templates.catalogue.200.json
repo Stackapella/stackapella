@@ -1,0 +1,201 @@
+{
+    "data": [
+        {
+            "id": "amazing-grace",
+            "version": 3,
+            "title": "Amazing Grace",
+            "description": "The best-loved hymn, for 2 to 4 singers.",
+            "difficulty": "beginner",
+            "genre": [
+                "hymn",
+                "gospel"
+            ],
+            "language": "en",
+            "key": "G",
+            "tempo": 80,
+            "timeSignature": "3/4",
+            "reviewed": true,
+            "access": "free",
+            "freeUntil": null,
+            "previewUrl": null,
+            "parts": [
+                {
+                    "key": "soprano",
+                    "name": "Soprano",
+                    "range": {
+                        "low": 62,
+                        "high": 74
+                    },
+                    "guide": null,
+                    "versions": []
+                },
+                {
+                    "key": "alto",
+                    "name": "Alto",
+                    "range": {
+                        "low": 59,
+                        "high": 71
+                    },
+                    "guide": {
+                        "id": "Lw2Qr6",
+                        "partKey": "alto",
+                        "url": "https://stackapella-media.nyc3.cdn.digitaloceanspaces.com/guides/7f3c9b2e1a4d8f6e0b5c2a9d4e7f1b3c.m4a",
+                        "sampleRate": 48000,
+                        "frames": 2304000,
+                        "offsetFrames": 0,
+                        "credit": "Sarah K.",
+                        "creditHandle": null
+                    },
+                    "versions": [
+                        {
+                            "id": "Lw2Qr6",
+                            "partKey": "alto",
+                            "url": "https://stackapella-media.nyc3.cdn.digitaloceanspaces.com/guides/7f3c9b2e1a4d8f6e0b5c2a9d4e7f1b3c.m4a",
+                            "sampleRate": 48000,
+                            "frames": 2304000,
+                            "offsetFrames": 0,
+                            "credit": "Sarah K.",
+                            "creditHandle": null,
+                            "default": true
+                        }
+                    ]
+                },
+                {
+                    "key": "tenor",
+                    "name": "Tenor",
+                    "range": {
+                        "low": 55,
+                        "high": 60
+                    },
+                    "guide": null,
+                    "versions": []
+                },
+                {
+                    "key": "bass",
+                    "name": "Bass",
+                    "range": {
+                        "low": 43,
+                        "high": 50
+                    },
+                    "guide": {
+                        "id": "Mx8St3",
+                        "partKey": "bass",
+                        "url": "https://stackapella-media.nyc3.cdn.digitaloceanspaces.com/guides/a1b2c3d4e5f60718293a4b5c6d7e8f90.m4a",
+                        "sampleRate": 44100,
+                        "frames": 2116800,
+                        "offsetFrames": 22050,
+                        "credit": null,
+                        "creditHandle": null
+                    },
+                    "versions": [
+                        {
+                            "id": "Mx8St3",
+                            "partKey": "bass",
+                            "url": "https://stackapella-media.nyc3.cdn.digitaloceanspaces.com/guides/a1b2c3d4e5f60718293a4b5c6d7e8f90.m4a",
+                            "sampleRate": 44100,
+                            "frames": 2116800,
+                            "offsetFrames": 22050,
+                            "credit": null,
+                            "creditHandle": null,
+                            "default": true
+                        }
+                    ]
+                }
+            ],
+            "voicings": {
+                "2": [
+                    "soprano",
+                    "alto"
+                ],
+                "3": [
+                    "soprano",
+                    "alto",
+                    "bass"
+                ],
+                "4": [
+                    "soprano",
+                    "alto",
+                    "tenor",
+                    "bass"
+                ]
+            }
+        },
+        {
+            "id": "silent-night",
+            "version": 1,
+            "title": "Silent Night",
+            "description": "A gentle carol for 2 to 4 singers.",
+            "difficulty": "beginner",
+            "genre": [
+                "christmas"
+            ],
+            "language": "en",
+            "key": "Bb",
+            "tempo": 66,
+            "timeSignature": "6/8",
+            "reviewed": false,
+            "access": "plus",
+            "freeUntil": "2026-12-31T23:59:59Z",
+            "previewUrl": "https://stackapella-media.nyc3.cdn.digitaloceanspaces.com/previews/2c9e4f7a1b3d5e8c0a6f2d4b7e9c1a3f.m4a",
+            "parts": [
+                {
+                    "key": "soprano",
+                    "name": "Soprano",
+                    "range": {
+                        "low": 65,
+                        "high": 77
+                    },
+                    "guide": null,
+                    "versions": []
+                },
+                {
+                    "key": "alto",
+                    "name": "Alto",
+                    "range": {
+                        "low": 58,
+                        "high": 70
+                    },
+                    "guide": null,
+                    "versions": []
+                },
+                {
+                    "key": "tenor",
+                    "name": "Tenor",
+                    "range": {
+                        "low": 53,
+                        "high": 65
+                    },
+                    "guide": null,
+                    "versions": []
+                },
+                {
+                    "key": "bass",
+                    "name": "Bass",
+                    "range": {
+                        "low": 41,
+                        "high": 55
+                    },
+                    "guide": null,
+                    "versions": []
+                }
+            ],
+            "voicings": {
+                "2": [
+                    "soprano",
+                    "alto"
+                ],
+                "3": [
+                    "soprano",
+                    "alto",
+                    "bass"
+                ],
+                "4": [
+                    "soprano",
+                    "alto",
+                    "tenor",
+                    "bass"
+                ]
+            }
+        }
+    ]
+}

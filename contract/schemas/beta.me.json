@@ -1,0 +1,124 @@
+{
+    "$id": "beta.me.json",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "id",
+                "name",
+                "consent",
+                "credit",
+                "voiceOfParts",
+                "bar",
+                "creditLinksProfile",
+                "hasPublicProfile",
+                "profilesOpen"
+            ],
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "consent": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                        "version",
+                        "acceptedAt",
+                        "current"
+                    ],
+                    "properties": {
+                        "version": {
+                            "type": [
+                                "integer",
+                                "null"
+                            ],
+                            "description": "The agreement version they accepted, or null."
+                        },
+                        "acceptedAt": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "format": "date-time"
+                        },
+                        "current": {
+                            "type": "integer",
+                            "description": "The agreement's current version. If it differs from `version`, show the agreement again."
+                        }
+                    }
+                },
+                "credit": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                        "mode",
+                        "name"
+                    ],
+                    "properties": {
+                        "mode": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "enum": [
+                                "name",
+                                "anonymous",
+                                null
+                            ]
+                        },
+                        "name": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "description": "The account's name as learners see it; null while anonymous (or before consent)."
+                        }
+                    }
+                },
+                "voiceOfParts": {
+                    "type": "integer",
+                    "description": "How many parts are now sung by this singer (\"You're the voice of 3 parts\")."
+                },
+                "bar": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                        "pitchPercent",
+                        "timingPercent"
+                    ],
+                    "properties": {
+                        "pitchPercent": {
+                            "type": "integer"
+                        },
+                        "timingPercent": {
+                            "type": "integer"
+                        }
+                    },
+                    "description": "The bar a take must clear to be sent."
+                },
+                "creditLinksProfile": {
+                    "type": "boolean",
+                    "description": "Whether their credit links to their public profile, when it can (credited by name, a public profile, profiles open)."
+                },
+                "hasPublicProfile": {
+                    "type": "boolean",
+                    "description": "Their account has a public profile to link to (18 or over, a handle, public, not suspended)."
+                },
+                "profilesOpen": {
+                    "type": "boolean",
+                    "description": "Public profiles are open (the gallery is), so a credit can link to one."
+                }
+            }
+        }
+    },
+    "title": "The beta singer this session belongs to"
+}

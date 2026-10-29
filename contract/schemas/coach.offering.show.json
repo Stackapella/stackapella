@@ -1,0 +1,13 @@
+{
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "$ref": "offering.json"
+        }
+    },
+    "$id": "coach.offering.show.json"
+}

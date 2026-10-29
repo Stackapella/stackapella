@@ -1,0 +1,28 @@
+Stackapella content licence
+
+Copyright (c) 2026 Hillel Coren (Stackapella, https://stackapella.com).
+
+The content in this repository is licensed under the Creative Commons Attribution-ShareAlike 4.0
+International licence (CC BY-SA 4.0): https://creativecommons.org/licenses/by-sa/4.0/
+
+Credit it as: Stackapella (https://stackapella.com)
+
+This covers:
+- the guides and help articles (server/resources/guides/, the help pages' words);
+- What's new (server/resources/whats-new/);
+- the screenshots and share images (web/icons/help/, web/icons/og/, web/icons/og-landing.png).
+
+The courses and the song arrangements are under the same licence in their own repository,
+hillelcoren/stackapella-courses, which this one fetches at a pinned commit (.do/content.lock).
+
+Not covered, all rights reserved:
+- real singers' recordings: the guide voices, the course clips and any audio a singer gave us.
+  They agreed to them being used by Stackapella only, so they're never in either repository;
+- the legal texts (server/resources/legal/): write your own;
+- the Stackapella name and logo (TRADEMARK.md).
+
+The tunes and words of public-domain songs stay in the public domain. This licence covers our
+arrangements, lessons, words and images, not them.
+
+The software in this repository is licensed separately, under the Attribution Assurance License
+(LICENSE).

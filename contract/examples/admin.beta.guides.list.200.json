@@ -1,0 +1,76 @@
+{
+    "data": [
+        {
+            "id": "amazing-grace",
+            "version": 2,
+            "title": "Amazing Grace",
+            "reviewed": true,
+            "parts": [
+                {
+                    "key": "soprano",
+                    "name": "Soprano",
+                    "guides": []
+                },
+                {
+                    "key": "alto",
+                    "name": "Alto",
+                    "guides": [
+                        {
+                            "id": "Gd1Hx4",
+                            "partKey": "alto",
+                            "isDefault": true,
+                            "recording": {
+                                "id": "Hq3Ln8",
+                                "partKey": "alto",
+                                "url": "https://stackapella-media.nyc3.cdn.digitaloceanspaces.com/guides/7f3c9b2e1a4d8f6e0b5c2a9d4e7f1b3c.m4a",
+                                "sampleRate": 48000,
+                                "frames": 2304000,
+                                "offsetFrames": 0,
+                                "credit": "Sarah K.",
+                                "creditHandle": null
+                            },
+                            "submissionId": "Tz4Kq8",
+                            "singer": {
+                                "id": "Pq7Rm2",
+                                "name": "Sarah Kim"
+                            },
+                            "publishedAt": "2026-10-26T15:51:00Z",
+                            "pitchPercent": 91
+                        }
+                    ]
+                },
+                {
+                    "key": "tenor",
+                    "name": "Tenor",
+                    "guides": []
+                },
+                {
+                    "key": "bass",
+                    "name": "Bass",
+                    "guides": [
+                        {
+                            "id": "Gd2Bq7",
+                            "partKey": "bass",
+                            "isDefault": true,
+                            "recording": {
+                                "id": "Jr5Mt4",
+                                "partKey": "bass",
+                                "url": "https://stackapella-media.nyc3.cdn.digitaloceanspaces.com/guides/a1b2c3d4e5f60718293a4b5c6d7e8f90.m4a",
+                                "sampleRate": 44100,
+                                "frames": 2116800,
+                                "offsetFrames": 22050,
+                                "credit": null,
+                                "creditHandle": null
+                            },
+                            "submissionId": null,
+                            "singer": null,
+                            "publishedAt": "2026-10-26T15:51:00Z",
+                            "pitchPercent": 91
+                        }
+                    ]
+                }
+            ],
+            "olderGuides": 0
+        }
+    ]
+}

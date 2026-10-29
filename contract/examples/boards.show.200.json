@@ -1,0 +1,36 @@
+{
+    "data": {
+        "templateId": "amazing-grace",
+        "templateVersion": 3,
+        "partKey": "alto",
+        "scope": "friends",
+        "scoringVersion": 1,
+        "entries": [
+            {
+                "id": "Ps8Kd2",
+                "rank": 1,
+                "name": "Ana Ruiz",
+                "score": 91,
+                "at": "2026-10-27T18:04:00Z",
+                "you": false
+            },
+            {
+                "id": "Lm3Qx7",
+                "rank": 2,
+                "name": "Ben",
+                "score": 87,
+                "at": "2026-10-27T18:04:00Z",
+                "you": true
+            }
+        ],
+        "you": {
+            "score": 87,
+            "rank": 2
+        },
+        "onGlobal": false,
+        "current": true,
+        "olderVersions": [
+            2
+        ]
+    }
+}

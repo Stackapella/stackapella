@@ -1,0 +1,16 @@
+{
+    "$id": "templates.catalogue.json",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "type": "array",
+            "items": {
+                "$ref": "catalogue.song.json"
+            }
+        }
+    }
+}

@@ -1,0 +1,75 @@
+{
+    "$id": "admin.limit.json",
+    "title": "One rule of a named limiter (server/config/limits.php), with Hillel's override",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "limiter",
+        "rule",
+        "max",
+        "per",
+        "by",
+        "default",
+        "override",
+        "reason",
+        "changedAt",
+        "changedBy"
+    ],
+    "properties": {
+        "limiter": {
+            "type": "string",
+            "description": "A stable key the app words: api, sign-in, take-uploads..."
+        },
+        "rule": {
+            "type": "string",
+            "description": "The rule's key within its limiter: ip, account, hour, day..."
+        },
+        "max": {
+            "type": "integer",
+            "description": "What's in force now: the override, or the default."
+        },
+        "per": {
+            "type": "string",
+            "enum": [
+                "minute",
+                "hour",
+                "day"
+            ]
+        },
+        "by": {
+            "type": "string",
+            "enum": [
+                "account",
+                "ip",
+                "email",
+                "ip_and_email"
+            ]
+        },
+        "default": {
+            "type": "integer"
+        },
+        "override": {
+            "type": [
+                "integer",
+                "null"
+            ]
+        },
+        "reason": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "description": "Why the override was set, in the admin's words; null without one."
+        },
+        "changedAt": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "format": "date-time"
+        },
+        "changedBy": {
+            "$ref": "admin.person.json"
+        }
+    }
+}

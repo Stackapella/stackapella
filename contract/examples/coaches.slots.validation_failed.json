@@ -1,0 +1,9 @@
+{
+    "message": "Unprocessable Content.",
+    "code": "validation_failed",
+    "errors": {
+        "days": [
+            "The days field must not be greater than 31."
+        ]
+    }
+}

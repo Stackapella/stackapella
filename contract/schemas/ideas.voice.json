@@ -1,0 +1,14 @@
+{
+    "$id": "ideas.voice.json",
+    "title": "ideas.voices.complete",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "$ref": "idea.voice.json"
+        }
+    }
+}

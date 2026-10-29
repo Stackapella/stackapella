@@ -1,0 +1,9 @@
+{
+    "message": "Unprocessable Content.",
+    "code": "validation_failed",
+    "errors": {
+        "parts": [
+            "Open parts of the song sung in it, leaving at least one part sung."
+        ]
+    }
+}

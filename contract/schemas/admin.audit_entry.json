@@ -1,0 +1,25 @@
+{
+    "$id": "admin.audit_entry.json",
+    "title": "One audit log entry (append-only)",
+    "type": "object",
+    "additionalProperties": false,
+    "required": ["id", "action", "actor", "subject", "before", "after", "reason", "createdAt"],
+    "properties": {
+        "id": { "type": "string", "description": "A Sqid." },
+        "action": { "type": "string", "description": "A stable key: flag.read_only, limit.limits.api.signed_out, block.created, admin.totp_enabled..." },
+        "actor": { "$ref": "admin.person.json", "description": "Null for the console or the system." },
+        "subject": {
+            "type": ["object", "null"],
+            "additionalProperties": false,
+            "required": ["type", "id"],
+            "properties": {
+                "type": { "type": "string", "description": "user, block, flag..." },
+                "id": { "type": "string", "description": "The subject's Sqid." }
+            }
+        },
+        "before": { "type": ["object", "null"] },
+        "after": { "type": ["object", "null"] },
+        "reason": { "type": ["string", "null"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+    }
+}

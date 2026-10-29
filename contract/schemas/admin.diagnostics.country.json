@@ -1,0 +1,63 @@
+{
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "header",
+                "behindCloudflare",
+                "behindAppPlatform",
+                "viaAppPlatform",
+                "connectingFromCloudflare",
+                "cfConnectingIp",
+                "trusted",
+                "country"
+            ],
+            "properties": {
+                "header": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "description": "CF-IPCountry as it arrived on this request, or null."
+                },
+                "behindCloudflare": {
+                    "type": "boolean",
+                    "description": "BEHIND_CLOUDFLARE."
+                },
+                "behindAppPlatform": {
+                    "type": "boolean",
+                    "description": "Running on App Platform (do-connecting-ip is looked for)."
+                },
+                "viaAppPlatform": {
+                    "type": "boolean",
+                    "description": "This request came through App Platform's edge."
+                },
+                "connectingFromCloudflare": {
+                    "type": "boolean",
+                    "description": "It reached App Platform from our own Cloudflare zone (false: straight to App Platform, as beta's host does)."
+                },
+                "cfConnectingIp": {
+                    "type": "boolean",
+                    "description": "Whether CF-Connecting-IP arrived (never its value)."
+                },
+                "trusted": {
+                    "type": "boolean",
+                    "description": "Whether the app took the country from it."
+                },
+                "country": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "description": "The country the app would keep."
+                }
+            }
+        }
+    }
+}

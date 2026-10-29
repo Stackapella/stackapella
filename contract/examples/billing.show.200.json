@@ -1,0 +1,24 @@
+{
+    "data": {
+        "plan": "plus",
+        "status": "trialing",
+        "source": "stripe",
+        "store": null,
+        "storeAccountToken": "4c6a2f0e-8f7b-4a51-9d2e-6b1f0c3a7e91",
+        "subscription": {
+            "interval": "year",
+            "currency": "usd",
+            "amountCents": 3999,
+            "renewsAt": "2026-11-02T10:00:00Z",
+            "endsAt": null,
+            "trialEndsAt": "2026-11-02T10:00:00Z"
+        },
+        "pastDueUntil": null,
+        "endedAt": null,
+        "endedReason": null,
+        "trial": null,
+        "notice": null,
+        "checkedAt": "2026-10-26T18:00:00Z",
+        "plusOfflineUntil": "2026-11-09T18:00:00Z"
+    }
+}

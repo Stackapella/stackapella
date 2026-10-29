@@ -1,0 +1,13 @@
+{
+    "$id": "account.device.json",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "$ref": "app.device.json"
+        }
+    }
+}

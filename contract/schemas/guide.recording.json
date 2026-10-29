@@ -1,0 +1,127 @@
+{
+    "$id": "guide.recording.json",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "id",
+        "partKey",
+        "url",
+        "sampleRate",
+        "frames",
+        "offsetFrames",
+        "credit",
+        "creditHandle"
+    ],
+    "properties": {
+        "id": {
+            "type": "string",
+            "description": "The version's own id (a Sqid): a learner's choice of voice names it."
+        },
+        "partKey": {
+            "type": "string"
+        },
+        "url": {
+            "type": "string",
+            "format": "uri",
+            "description": "The AAC (MP4 with its edit list) on the CDN, at an immutable address."
+        },
+        "sampleRate": {
+            "type": "integer",
+            "description": "The rate the file was made at; scale frame counts to the AudioContext's rate."
+        },
+        "frames": {
+            "type": "integer",
+            "description": "The exact length, at sampleRate, for the AAC priming check."
+        },
+        "offsetFrames": {
+            "type": "integer",
+            "description": "Where the file starts, in frames at sampleRate after the template's beat 0."
+        },
+        "credit": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "description": "\"Sarah K.\", or null when the singer chose to stay anonymous."
+        },
+        "creditHandle": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "description": "The credited singer's profile handle, to link the credit to; null unless they're credited by name and have a public profile."
+        },
+        "mine": {
+            "type": "boolean",
+            "description": "Only in beta.parts.list: true when this is the signed-in singer's own take."
+        },
+        "default": {
+            "type": "boolean",
+            "description": "Only in the catalogue's versions: this is the part's default voice."
+        }
+    },
+    "title": "A real voice for one part of one template version (guide.recording)",
+    "$defs": {
+        "nullable": {
+            "type": [
+                "object",
+                "null"
+            ],
+            "additionalProperties": false,
+            "required": [
+                "id",
+                "partKey",
+                "url",
+                "sampleRate",
+                "frames",
+                "offsetFrames",
+                "credit",
+                "creditHandle"
+            ],
+            "properties": {
+                "id": {
+                    "type": "string",
+                    "description": "The version's own id (a Sqid): a learner's choice of voice names it."
+                },
+                "partKey": {
+                    "type": "string"
+                },
+                "url": {
+                    "type": "string",
+                    "format": "uri",
+                    "description": "The AAC (MP4 with its edit list) on the CDN, at an immutable address."
+                },
+                "sampleRate": {
+                    "type": "integer",
+                    "description": "The rate the file was made at; scale frame counts to the AudioContext's rate."
+                },
+                "frames": {
+                    "type": "integer",
+                    "description": "The exact length, at sampleRate, for the AAC priming check."
+                },
+                "offsetFrames": {
+                    "type": "integer",
+                    "description": "Where the file starts, in frames at sampleRate after the template's beat 0."
+                },
+                "credit": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "description": "\"Sarah K.\", or null when the singer chose to stay anonymous."
+                },
+                "creditHandle": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "description": "The credited singer's profile handle, to link the credit to; null unless they're credited by name and have a public profile."
+                },
+                "default": {
+                    "type": "boolean",
+                    "description": "Only in the catalogue's versions: this is the part's default voice."
+                }
+            }
+        }
+    }
+}

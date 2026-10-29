@@ -1,0 +1,44 @@
+{
+    "$id": "leagueMember.json",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "handle",
+        "name",
+        "avatarUrl",
+        "level",
+        "xp",
+        "me",
+        "rank"
+    ],
+    "properties": {
+        "handle": {
+            "type": [
+                "string",
+                "null"
+            ]
+        },
+        "name": {
+            "type": "string"
+        },
+        "avatarUrl": {
+            "type": [
+                "string",
+                "null"
+            ]
+        },
+        "level": {
+            "type": "integer"
+        },
+        "xp": {
+            "type": "integer"
+        },
+        "me": {
+            "type": "boolean"
+        },
+        "rank": {
+            "type": "integer"
+        }
+    },
+    "title": "A singer on a leaderboard"
+}

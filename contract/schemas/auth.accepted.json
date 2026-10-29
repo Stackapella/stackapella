@@ -1,0 +1,26 @@
+{
+    "$id": "auth.accepted.json",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "status"
+            ],
+            "properties": {
+                "status": {
+                    "type": "string",
+                    "enum": [
+                        "check_email"
+                    ]
+                }
+            }
+        }
+    },
+    "title": "Accepted: check your email. The same answer whether or not the address has an account."
+}

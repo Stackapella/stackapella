@@ -1,0 +1,60 @@
+{
+    "$id": "score.json",
+    "title": "One score summary in the history",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "id",
+        "takeId",
+        "templateId",
+        "templateVersion",
+        "partKey",
+        "lesson",
+        "recordedAt",
+        "summary"
+    ],
+    "properties": {
+        "id": {
+            "type": "string"
+        },
+        "takeId": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "description": "A take's report (kept from takes.create, under the take's id); null for an exercise."
+        },
+        "templateId": {
+            "type": [
+                "string",
+                "null"
+            ]
+        },
+        "templateVersion": {
+            "type": [
+                "integer",
+                "null"
+            ]
+        },
+        "partKey": {
+            "type": [
+                "string",
+                "null"
+            ]
+        },
+        "lesson": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "description": "A course lesson or exercise id, for scored exercises."
+        },
+        "recordedAt": {
+            "type": "string",
+            "format": "date-time"
+        },
+        "summary": {
+            "type": "object"
+        }
+    }
+}

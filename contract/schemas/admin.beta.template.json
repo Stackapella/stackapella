@@ -1,0 +1,58 @@
+{
+    "$id": "admin.beta.template.json",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "id",
+        "version",
+        "title",
+        "reviewed",
+        "parts",
+        "olderGuides"
+    ],
+    "properties": {
+        "id": {
+            "type": "string"
+        },
+        "version": {
+            "type": "integer"
+        },
+        "title": {
+            "type": "string"
+        },
+        "reviewed": {
+            "type": "boolean"
+        },
+        "parts": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                    "key",
+                    "name",
+                    "guides"
+                ],
+                "properties": {
+                    "key": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "guides": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "admin.beta.guide.json"
+                        }
+                    }
+                }
+            }
+        },
+        "olderGuides": {
+            "type": "integer",
+            "description": "Guides recorded for older versions of this template (kept, flagged; the synth plays until a new take is accepted)."
+        }
+    },
+    "title": "One template's real voices: \"3 of 4 parts are real voices\""
+}

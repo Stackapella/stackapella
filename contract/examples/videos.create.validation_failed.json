@@ -1,0 +1,9 @@
+{
+    "message": "Unprocessable Content.",
+    "code": "validation_failed",
+    "errors": {
+        "endSeconds": [
+            "A video is 3 to 60 seconds of the harmony."
+        ]
+    }
+}

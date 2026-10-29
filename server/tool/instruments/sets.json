@@ -1,0 +1,129 @@
+{
+ "about": "VCSL's Kawai and VSCO 2 CE name middle C \"C3\", VCSL's TX81Z \"C4\" (each measured by the build's pitch check). The real instruments build.py makes (docs/instrument-build.md). CC0 sets only (docs/instrument-samples.md); each source is pinned to a commit or a SHA-256. A change to what's built is a new version. The organ skips the pitch check: its 16-foot drawbar sounds an octave below the note, which YIN hears as the pitch. Jeff Learman's jRhodes and Martin HD28 wait for his reply: the electric piano and the guitar use the doc's backups.",
+ "instruments": {
+  "piano": {
+   "version": "1",
+   "title": "Grand piano",
+   "kind": "pitched",
+   "licence": "CC0-1.0",
+   "credit": "Versilian Studios Chamber Library (VCSL), Grand Piano, Kawai.",
+   "source": {"type": "github", "repo": "sgossner/VCSL", "commit": "c1ea7bcc3c7309650ab0da9d15c9cd1fbc4a4c7e"},
+   "from": [{"dir": "Chordophones/Zithers/Grand Piano, Kawai/Sustains", "pattern": "GPiano_sus_(?P<note>[A-G]#?-?\\d)_v(?P<vel>\\d)_rr1_Player\\.wav", "middleCOctave": 3}],
+   "low": 33, "high": 96, "step": 4, "layers": 3, "channels": 2, "seconds": 6, "fade": 0.6, "release": 0.35
+  },
+  "electric-piano": {
+   "version": "1",
+   "title": "Electric piano (FM)",
+   "kind": "pitched",
+   "licence": "CC0-1.0",
+   "credit": "Versilian Studios Chamber Library (VCSL), TX81Z FM Piano.",
+   "source": {"type": "github", "repo": "sgossner/VCSL", "commit": "c1ea7bcc3c7309650ab0da9d15c9cd1fbc4a4c7e"},
+   "from": [{"dir": "Electrophones/TX81Z/FM Piano", "pattern": "FMPiano_(?P<note>[A-G]#?-?\\d)_vl(?P<vel>\\d)\\.wav", "middleCOctave": 4}],
+   "low": 36, "high": 92, "step": 4, "layers": 2, "channels": 1, "seconds": 5, "fade": 0.5, "release": 0.3
+  },
+  "nylon-guitar": {
+   "version": "1",
+   "title": "Nylon-string guitar",
+   "kind": "pitched",
+   "licence": "CC0-1.0",
+   "credit": "FreePats, Spanish classical guitar.",
+   "source": {"type": "archive", "url": "https://freepats.zenvoid.org/Guitar/SpanishClassicalGuitar/SpanishClassicalGuitar-SFZ+FLAC-20190618.7z", "sha256": "903916921a21662d2237ade7f0e98e55de93cb7b86da219e4e10f4ad385b8f5e"},
+   "from": [{"program": "SpanishClassicalGuitar-SFZ+FLAC-20190618/SpanishClassicalGuitar-20190618.sfz"}],
+   "low": 40, "high": 84, "step": 3, "layers": 2, "channels": 1, "seconds": 4, "fade": 0.5, "release": 0.4
+  },
+  "ukulele": {
+   "version": "1",
+   "title": "Ukulele",
+   "kind": "pitched",
+   "licence": "CC0-1.0",
+   "credit": "FreePats, Ukulele (Mateusz Dąbrowski).",
+   "source": {"type": "github", "repo": "freepats/ukulele1", "commit": "86d345f6f7b79a106ace98eca0da19b087786dba"},
+   "from": [{"program": "Ukulele 20260811.sfz"}],
+   "low": 58,
+   "step": 3, "layers": 2, "channels": 1, "seconds": 3, "fade": 0.4, "release": 0.3
+  },
+  "upright-bass": {
+   "version": "1",
+   "title": "Upright bass",
+   "kind": "pitched",
+   "licence": "CC0-1.0",
+   "credit": "Karoryfer Samples, Meatbass (pizzicato).",
+   "source": {"type": "github", "repo": "sfzinstruments/karoryfer.meatbass", "commit": "ac9e859564bda286ab5ec672d00ff1aa2fef2895"},
+   "from": [{"program": "Programs/04_pizz.sfz"}],
+   "high": 65, "step": 3, "layers": 3, "channels": 1, "seconds": 3, "fade": 0.4, "release": 0.2
+  },
+  "electric-bass": {
+   "version": "1",
+   "title": "Electric bass",
+   "kind": "pitched",
+   "licence": "CC0-1.0",
+   "credit": "Karoryfer Samples, Swagbass (flatwounds).",
+   "source": {"type": "github", "repo": "sfzinstruments/karoryfer.swagbass", "commit": "9d10fcae71af1975988ddecd5af1c95d372c7355"},
+   "from": [{"program": "swagbass.sfz", "samples": "^notes/"}],
+   "pitchTolerance": 90,
+   "pitchToleranceWhy": "The hardest pluck on the lowest string sounds about 80 cents sharp in its first half-second (string tension), as played; the softer layers on the same note are in tune.",
+   "step": 3, "layers": 3, "channels": 1, "seconds": 3, "fade": 0.4, "release": 0.15
+  },
+  "organ": {
+   "version": "1",
+   "title": "Drawbar organ",
+   "kind": "pitched",
+   "licence": "CC0-1.0",
+   "credit": "FreePats, Drawbar organ emulation (rendered from setBfree).",
+   "source": {"type": "archive", "url": "https://freepats.zenvoid.org/Organ/DrawbarOrganEmulation/DrawbarOrganEmulation-SFZ-20190712.tar.xz", "sha256": "e2da18b0a4d13be7020037e18e4a719387433357e7603d0773990e794dcf5d0f"},
+   "from": [{"program": "DrawbarOrganEmulation-SFZ-20190712/DrawbarOrganEmulation-20190712.sfz"}],
+   "pitchCheck": false,
+   "step": 4, "layers": 1, "channels": 1, "seconds": 6, "fade": 1.0, "release": 0.15
+  },
+  "strings": {
+   "version": "1",
+   "title": "String section (pad)",
+   "kind": "pitched",
+   "licence": "CC0-1.0",
+   "credit": "Versilian Studios, VSCO 2 Community Edition (cello, viola and violin sections).",
+   "source": {"type": "github", "repo": "sgossner/VSCO-2-CE", "commit": "440300901dfe9275fd84e0b7763af1f8443ae62e"},
+   "from": [
+    {"dir": "Strings/Cello Section/susvib", "pattern": "susvib_(?P<note>[A-G]#?\\d)_v(?P<vel>[13])_1\\.wav", "middleCOctave": 3},
+    {"dir": "Strings/Viola Section/susvib", "pattern": "ViolaEns_susvib_(?P<note>[A-G]#?\\d)_v(?P<vel>[12])_1\\.wav", "middleCOctave": 3},
+    {"dir": "Strings/Violin Section/susVib", "pattern": "VlnEns_susVib_(?P<note>[A-G]#?\\d)_v(?P<vel>[12])\\.wav", "middleCOctave": 3}
+   ],
+   "low": 36, "high": 88, "step": 4, "layers": 1, "channels": 1, "seconds": 7, "fade": 1.5, "release": 0.6
+  },
+  "drums": {
+   "version": "2",
+   "title": "Drum kit (sticks)",
+   "kind": "drums",
+   "licence": "CC0-1.0",
+   "credit": "Versilian Studios and Karoryfer Samples, Virtuosity Drums.",
+   "source": {"type": "github", "repo": "sfzinstruments/virtuosity_drums", "commit": "9f04cf9a734527edfbb0a4eee1f674e45bbf71bc"},
+   "from": [{"program": "Programs/01-basic-kit.sfz"}],
+   "pieces": {"kick": 36, "snare": 38, "rim": 37, "hat-closed": 42, "hat-pedal": 44, "hat-open": {"key": 46, "cc": {"4": 127}}, "ride": 51, "crash": 49, "tom-low": 41, "tom-high": 48, "tambourine": 54, "cowbell": 56, "shaker": 70},
+   "layers": 3, "roundRobin": 2, "channels": 2, "seconds": {"crash": 3.5, "ride": 3, "hat-open": 1.5, "*": 1.0}, "fade": 0.25
+  },
+  "brushes": {
+   "version": "2",
+   "title": "Drum kit (brushes)",
+   "kind": "drums",
+   "licence": "CC0-1.0",
+   "credit": "Karoryfer Samples, Swirly Drums.",
+   "source": {"type": "github", "repo": "sfzinstruments/karoryfer.swirly-drums", "commit": "c40dafe0011cb2e54c0c220ff0fa308a11fc60f5"},
+   "from": [{"program": "Programs/Basic_kit.sfz"}],
+   "pieces": {"kick": 36, "brush-tap": 38, "rim": 40, "hat-closed": 42, "hat-pedal": 44, "hat-open": {"key": 46, "cc": {"4": 127}}, "ride": 51, "crash": 49, "tom-low": 41, "tom-high": 47, "brush-sweep": 60},
+   "layers": 3, "roundRobin": 2, "channels": 2, "seconds": {"crash": 3.5, "ride": 3, "brush-sweep": 2, "hat-open": 1.5, "*": 1.0}, "fade": 0.25
+  },
+  "body-percussion": {
+   "version": "1",
+   "title": "Claps, snaps and stomps",
+   "kind": "drums",
+   "licence": "CC0-1.0",
+   "credit": "Karoryfer Samples, body_percussion; Versilian Studios Chamber Library (VCSL), Shaker, Small.",
+   "source": {"type": "github", "repo": "sfzinstruments/body_percussion", "commit": "4ac9d8966679c648b62fa10a188179e186b97f24"},
+   "from": [
+    {"program": "Programs/body.sfz"},
+    {"source": {"type": "github", "repo": "sgossner/VCSL", "commit": "c1ea7bcc3c7309650ab0da9d15c9cd1fbc4a4c7e"}, "dir": "Idiophones/Struck Idiophones/Shaker, Small", "pattern": "Mid_Shaker_Slap_rr(?P<rr>\\d)\\.wav", "piece": "shaker"}
+   ],
+   "pieces": {"clap": 61, "snap": 56, "stomp": 40, "shaker": "shaker"},
+   "layers": 2, "roundRobin": 3, "channels": 2, "seconds": {"*": 0.8}, "fade": 0.15
+  }
+ }
+}

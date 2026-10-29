@@ -1,0 +1,11 @@
+{
+    "data": [
+        {
+            "id": "Xk7qP2",
+            "email": "ana@example.com",
+            "name": "Ana Ruiz",
+            "status": "sent",
+            "sentAt": "2026-10-27T10:30:00Z"
+        }
+    ]
+}

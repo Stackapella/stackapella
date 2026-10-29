@@ -1,0 +1,30 @@
+# gitleaks' rules for this repo (docs/open-source-plan.md, 1.5), used by the pre-commit hook and
+# by tool/leak-check.sh before each push. gitleaks' own rules, plus an allowlist for the made-up
+# values in fixtures: the generic "api key" rule matches test passwords and the contract's demo
+# tokens there. Only that rule is allowed in those paths: a real key (AWS, Stripe, a private
+# key...) still stops a commit anywhere, fixtures included. Needs gitleaks 8.25 or later (the
+# [[allowlists]] form with targetRules): the hook and tool/leak-check.sh refuse an older one.
+title = "Stackapella"
+
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Fixtures: test passwords, demo device and store tokens, made-up push tokens"
+targetRules = ["generic-api-key"]
+paths = [
+    '''^contract/examples/''',
+    '''^server/tests/''',
+    '''^server/database/factories/''',
+    '''^server/database/seeders/DemoSeeder\.php$''',
+    '''^web/tests/''',
+    # The mobile repo's copy of the contract examples, and its tests.
+    '''^test/''',
+]
+
+[[allowlists]]
+description = "abuse-test.php's one made-up password (its history included); anything else in the tool still stops a commit"
+targetRules = ["generic-api-key"]
+condition = "AND"
+paths = ['''^server/tool/abuse-test\.php$''']
+regexes = ['''^a-fine-long-passphrase-42$''']

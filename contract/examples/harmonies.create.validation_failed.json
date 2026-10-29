@@ -1,0 +1,9 @@
+{
+    "message": "Unprocessable Content.",
+    "code": "validation_failed",
+    "errors": {
+        "title": [
+            "Links aren't allowed here."
+        ]
+    }
+}

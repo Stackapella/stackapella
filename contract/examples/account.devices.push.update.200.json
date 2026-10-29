@@ -1,0 +1,13 @@
+{
+    "data": {
+        "id": "Qp7Rk2",
+        "name": "Ada's iPhone",
+        "platform": "ios",
+        "model": "iPhone17,1",
+        "appVersion": "0.1.0",
+        "signedInAt": "2026-10-27T14:05:00Z",
+        "lastUsedAt": "2026-10-27T15:04:12Z",
+        "current": true,
+        "push": true
+    }
+}

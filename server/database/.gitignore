@@ -1,0 +1,5 @@
+*.sqlite*
+
+# The library songs, from the courses repo at the commit .do/content.lock pins
+# (server/tool/content.sh link puts them here; docs/repos-plan.md).
+/templates

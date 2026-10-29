@@ -1,0 +1,230 @@
+{
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data",
+        "sampleTakeUrl",
+        "agreementVersion"
+    ],
+    "properties": {
+        "data": {
+            "type": [
+                "object",
+                "null"
+            ],
+            "additionalProperties": false,
+            "required": [
+                "id",
+                "status",
+                "answers",
+                "sampleReview",
+                "note",
+                "canApplyAgainAt",
+                "createdAt",
+                "decidedAt"
+            ],
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string",
+                    "enum": [
+                        "submitted",
+                        "approved",
+                        "declined"
+                    ]
+                },
+                "answers": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                        "experience",
+                        "training",
+                        "voiceTypes",
+                        "styles",
+                        "languages",
+                        "timezone",
+                        "introUrl"
+                    ],
+                    "properties": {
+                        "experience": {
+                            "type": "string"
+                        },
+                        "training": {
+                            "type": "string"
+                        },
+                        "voiceTypes": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            },
+                            "description": "What the caller may do now: accept, decline, cancel, review, deliver, followup, answer, message, rate, report."
+                        },
+                        "styles": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            },
+                            "description": "What the caller may do now: accept, decline, cancel, review, deliver, followup, answer, message, rate, report."
+                        },
+                        "languages": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            },
+                            "description": "What the caller may do now: accept, decline, cancel, review, deliver, followup, answer, message, rate, report."
+                        },
+                        "timezone": {
+                            "type": "string"
+                        },
+                        "introUrl": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "format": "uri"
+                        }
+                    }
+                },
+                "sampleReview": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                        "comments",
+                        "summary",
+                        "exercises",
+                        "demoMediaId"
+                    ],
+                    "properties": {
+                        "comments": {
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "additionalProperties": false,
+                                "required": [
+                                    "id",
+                                    "atSeconds"
+                                ],
+                                "properties": {
+                                    "id": {
+                                        "type": "string"
+                                    },
+                                    "atSeconds": {
+                                        "type": "number"
+                                    },
+                                    "noteIndex": {
+                                        "type": [
+                                            "integer",
+                                            "null"
+                                        ]
+                                    },
+                                    "text": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ]
+                                    },
+                                    "mediaId": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ]
+                                    }
+                                }
+                            }
+                        },
+                        "summary": {
+                            "type": [
+                                "object",
+                                "null"
+                            ],
+                            "additionalProperties": false,
+                            "required": [
+                                "working",
+                                "toWorkOn",
+                                "practise"
+                            ],
+                            "properties": {
+                                "working": {
+                                    "type": "string"
+                                },
+                                "toWorkOn": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "string"
+                                    },
+                                    "description": "What the caller may do now: accept, decline, cancel, review, deliver, followup, answer, message, rate, report."
+                                },
+                                "practise": {
+                                    "type": "string"
+                                }
+                            }
+                        },
+                        "exercises": {
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "additionalProperties": false,
+                                "required": [
+                                    "packId",
+                                    "exerciseId"
+                                ],
+                                "properties": {
+                                    "packId": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ],
+                                        "description": "A pack's id, or null for the app's own library."
+                                    },
+                                    "exerciseId": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        },
+                        "demoMediaId": {
+                            "type": [
+                                "string",
+                                "null"
+                            ]
+                        }
+                    }
+                },
+                "note": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "canApplyAgainAt": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "format": "date-time"
+                },
+                "createdAt": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "decidedAt": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "format": "date-time"
+                }
+            }
+        },
+        "sampleTakeUrl": {
+            "type": "string",
+            "format": "uri"
+        },
+        "agreementVersion": {
+            "type": "integer"
+        }
+    },
+    "$id": "coach.application.show.json"
+}

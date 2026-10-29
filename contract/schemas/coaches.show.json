@@ -1,0 +1,116 @@
+{
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "handle",
+                "name",
+                "avatarUrl",
+                "bio",
+                "voiceTypes",
+                "styles",
+                "languages",
+                "timezone",
+                "newCoach",
+                "rating",
+                "offerings",
+                "packs",
+                "ratings",
+                "keepsBooks"
+            ],
+            "properties": {
+                "handle": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "avatarUrl": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "format": "uri"
+                },
+                "bio": {
+                    "type": "string"
+                },
+                "voiceTypes": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "What the caller may do now: accept, decline, cancel, review, deliver, followup, answer, message, rate, report."
+                },
+                "styles": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "What the caller may do now: accept, decline, cancel, review, deliver, followup, answer, message, rate, report."
+                },
+                "languages": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "What the caller may do now: accept, decline, cancel, review, deliver, followup, answer, message, rate, report."
+                },
+                "timezone": {
+                    "type": "string"
+                },
+                "newCoach": {
+                    "type": "boolean"
+                },
+                "rating": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                        "average",
+                        "count"
+                    ],
+                    "properties": {
+                        "average": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "count": {
+                            "type": "integer"
+                        }
+                    }
+                },
+                "offerings": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "offering.json"
+                    }
+                },
+                "packs": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "pack.json"
+                    }
+                },
+                "ratings": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "rating.json"
+                    },
+                    "description": "The newest 20, once there are 3."
+                },
+                "keepsBooks": {
+                    "type": "boolean"
+                }
+            }
+        }
+    },
+    "$id": "coaches.show.json"
+}

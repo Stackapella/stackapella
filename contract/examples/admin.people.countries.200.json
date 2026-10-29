@@ -1,0 +1,16 @@
+{
+    "data": [
+        {
+            "country": "US",
+            "people": 412
+        },
+        {
+            "country": "GB",
+            "people": 198
+        },
+        {
+            "country": null,
+            "people": 37
+        }
+    ]
+}

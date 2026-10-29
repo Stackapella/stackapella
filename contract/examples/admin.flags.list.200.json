@@ -1,0 +1,9 @@
+{
+    "data": [
+        { "name": "shield_mode", "kind": "switch", "value": "off", "values": ["off", "on"], "reason": null, "changedAt": null, "changedBy": null },
+        { "name": "pause_signups", "kind": "switch", "value": "password", "values": ["off", "password", "all"], "reason": "Bot sign-ups from one range", "changedAt": "2026-10-26T14:05:00Z", "changedBy": { "id": "Xk3pQ9", "name": "Hillel Coren" } },
+        { "name": "pause_uploads", "kind": "switch", "value": "off", "values": ["off", "on"], "reason": null, "changedAt": null, "changedBy": null },
+        { "name": "read_only", "kind": "switch", "value": "off", "values": ["off", "on"], "reason": "The incident is over", "changedAt": "2026-10-25T09:30:00Z", "changedBy": { "id": "Xk3pQ9", "name": "Hillel Coren" } },
+        { "name": "gallery", "kind": "feature", "value": "off", "values": ["off", "on"], "reason": null, "changedAt": null, "changedBy": null }
+    ]
+}

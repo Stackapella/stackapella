@@ -1,0 +1,43 @@
+{
+    "$id": "admin.harmony.item.json",
+    "title": "One harmony in the queue, with its reports",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "$ref": "#/$defs/item"
+        }
+    },
+    "$defs": {
+        "item": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "harmony",
+                "reports",
+                "firstReportedAt"
+            ],
+            "properties": {
+                "harmony": {
+                    "$ref": "admin.harmony.json"
+                },
+                "reports": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "admin.report.json"
+                    }
+                },
+                "firstReportedAt": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "format": "date-time"
+                }
+            }
+        }
+    }
+}

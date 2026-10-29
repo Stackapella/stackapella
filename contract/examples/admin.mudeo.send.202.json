@@ -1,0 +1,39 @@
+{
+    "data": {
+        "total": 4210,
+        "sent": 350,
+        "toSend": 3790,
+        "optedOut": 41,
+        "bounced": 29,
+        "sentToday": 150,
+        "warnAt": 160,
+        "limit": 200,
+        "dailyCap": 200,
+        "newsReady": true,
+        "postalAddressSet": true,
+        "lastBatch": {
+            "id": "Xk7qP2",
+            "count": 50,
+            "sentAt": "2026-10-27T10:30:00Z",
+            "mode": "app",
+            "status": "sending",
+            "delivered": 0,
+            "bounced": 0,
+            "failed": 0,
+            "bounceRate": 0.0,
+            "error": null
+        },
+        "importedAt": "2026-10-27T09:00:00Z",
+        "joined": 12,
+        "days": [
+            {
+                "date": "2026-10-27",
+                "sent": 50,
+                "bounced": 1,
+                "visits": 31,
+                "joined": 4,
+                "used": 3
+            }
+        ]
+    }
+}

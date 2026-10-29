@@ -1,0 +1,13 @@
+{
+    "$id": "templates.recording.show.json",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "$ref": "templates.recording.json"
+        }
+    }
+}

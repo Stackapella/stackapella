@@ -1,0 +1,90 @@
+{
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "type": [
+                "object",
+                "null"
+            ],
+            "additionalProperties": false,
+            "required": [
+                "companyName",
+                "url",
+                "sendEmail",
+                "status",
+                "problem",
+                "recorded",
+                "waiting",
+                "notRecorded",
+                "connectedAt",
+                "paymentsWebhook",
+                "problemCode"
+            ],
+            "properties": {
+                "companyName": {
+                    "type": "string"
+                },
+                "url": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "sendEmail": {
+                    "type": "boolean"
+                },
+                "status": {
+                    "type": "string",
+                    "enum": [
+                        "active",
+                        "needs_reconnect"
+                    ]
+                },
+                "problem": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "recorded": {
+                    "type": "integer"
+                },
+                "waiting": {
+                    "type": "integer"
+                },
+                "notRecorded": {
+                    "type": "integer"
+                },
+                "connectedAt": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "paymentsWebhook": {
+                    "type": "boolean"
+                },
+                "problemCode": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "enum": [
+                        "unreachable",
+                        "tls",
+                        "bad_token",
+                        "not_allowed",
+                        "redirected",
+                        "refused",
+                        "paused",
+                        "waiting",
+                        null
+                    ]
+                }
+            }
+        }
+    },
+    "$id": "admin.books.json"
+}

@@ -1,0 +1,97 @@
+[
+    {
+        "date": "2026-10-28",
+        "title": "The studio, redrawn",
+        "body": "Each part in the studio is now a compact track. Tap the circle beside a part to choose which one you record, and use S and M to solo or mute it, with a volume slider on a bigger screen. Polished is beside the red button, and Export is at the top."
+    },
+    {
+        "date": "2026-10-28",
+        "title": "Sign in from your email",
+        "body": "Accepting an invite now sends a sign-in link to your email. The link signs you in, or makes your account if you're new and asks a bit about you first."
+    },
+    {
+        "date": "2026-10-28",
+        "title": "When you were born",
+        "body": "Signing up asks for the month and year you were born, in place of a box saying you're 13 or over. Features for 18 and over ask once, the first time you need them."
+    },
+    {
+        "date": "2026-10-28",
+        "title": "A new look for our emails",
+        "body": "Every email from us has a new look, with the link written out in full under the button and a line at the bottom saying who it went to and why."
+    },
+    {
+        "date": "2026-10-28",
+        "title": "Part by part, or the whole song",
+        "body": "Opening a song in Sing asks how you want to sing it. Part by part teaches your part a phrase at a time, and The whole song is one take with the other parts playing. Each says about how long it takes, and Use this every time skips the question."
+    },
+    {
+        "date": "2026-10-28",
+        "title": "Your song's own page",
+        "body": "Saving a song you made opens its own page. Under Pick your part, choose how many singers, then a part: each shows its range against yours, and the one that suits you is chosen first. Hear all parts plays them together."
+    },
+    {
+        "date": "2026-10-28",
+        "title": "Undo a delete",
+        "body": "Deleting a song shows what you'd lose before you confirm, then offers Undo for a few seconds. That goes for songs you made yourself too."
+    },
+    {
+        "date": "2026-10-28",
+        "title": "A few small sounds",
+        "body": "Stackapella plays a short sound when your stars land, when it hears your mic, and at a few special moments. They work offline too. To turn them off, open Settings, then On this device, then Sounds."
+    },
+    {
+        "date": "2026-10-28",
+        "title": "Help when there's no sound",
+        "body": "If Find your voice hears nothing for a few seconds, it says so, shows your mic's level, and lists what to check: the input it's plugged into, the gain, and phantom power for a condenser mic."
+    },
+    {
+        "date": "2026-10-28",
+        "title": "Notes you can see",
+        "body": "In the course, every note is a big glossy brick as long as the note, with its word inside. A long exercise scrolls past instead of squeezing its notes together."
+    },
+    {
+        "date": "2026-10-27",
+        "title": "Recording, with nothing in the way",
+        "body": "When you record in Sing, everything else steps aside: the lane is big, the words are huge, and you see how much is on pitch so far. Start over, or Stop and keep when you're done."
+    },
+    {
+        "date": "2026-10-27",
+        "title": "A user guide",
+        "body": "Help is now a step-by-step guide: getting started, finding your voice and the course, learning a part in Sing, recording in the studio, sharing, choir groups, Plus and Settings. It has search, and the fixes for the mic, headphones and timing."
+    },
+    {
+        "date": "2026-10-27",
+        "title": "The website, redesigned",
+        "body": "Each feature page shows the app beside its words. A free song's page plays its first line in four voices, a shared harmony draws each part in its own colour, and on the home page you can tap a voice to bring it forward."
+    },
+    {
+        "date": "2026-10-27",
+        "title": "A new home on the web",
+        "body": "Stackapella's own website: press Play to hear a harmony in four voices, take out any part, and see what each feature does, and what's coming."
+    },
+    {
+        "date": "2026-10-27",
+        "title": "Contact us, in the app",
+        "body": "Settings now has Contact us. Write to us there, and it shows the details about your device that will be sent with your message before you send it."
+    },
+    {
+        "date": "2026-10-27",
+        "title": "Your look follows you",
+        "body": "The light or dark look, colour and accent you choose now follow you between the app and this website, and your account remembers them."
+    },
+    {
+        "date": "2026-10-27",
+        "title": "Better suggested harmonies",
+        "body": "When you make your own song, the suggested alto, tenor and bass now plan their chords for the whole song and move the way a choir arranger would write them."
+    },
+    {
+        "date": "2026-10-27",
+        "title": "Four colours, light or dark",
+        "body": "Choose how Stackapella looks from the Theme button at the top of the home. Each colour has a dark and a light version with its own name: Stage and Spotlight, Ember and Warm, Midnight and Sky, Graphite and Paper."
+    },
+    {
+        "date": "2026-10-26",
+        "title": "Sing, redesigned",
+        "body": "Sing your part with the words on a stage or the notes on a lane. Your voice draws as a line while you sing, and your notes light up as you hit them."
+    }
+]

@@ -1,0 +1,82 @@
+{
+    "$id": "sync.pull.json",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data",
+        "meta"
+    ],
+    "properties": {
+        "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "projects",
+                "parts",
+                "takes",
+                "removed"
+            ],
+            "properties": {
+                "projects": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "project.json"
+                    }
+                },
+                "parts": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "part.json"
+                    }
+                },
+                "takes": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "take.json"
+                    }
+                },
+                "removed": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "kind",
+                            "id"
+                        ],
+                        "properties": {
+                            "kind": {
+                                "type": "string",
+                                "enum": [
+                                    "project",
+                                    "part",
+                                    "take"
+                                ]
+                            },
+                            "id": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "meta": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "cursor",
+                "more"
+            ],
+            "properties": {
+                "cursor": {
+                    "type": "string",
+                    "description": "Pass as ?cursor= next time."
+                },
+                "more": {
+                    "type": "boolean"
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,30 @@
+{
+    "data": {
+        "progress": {
+            "version": 1,
+            "home": 57,
+            "range": {
+                "low": 53,
+                "high": 69
+            },
+            "lessons": {
+                "u1-l1": {
+                    "stars": 3,
+                    "bestPercent": 94,
+                    "at": 1761500000000
+                }
+            },
+            "testedOut": [],
+            "xp": {
+                "total": 320,
+                "days": {}
+            },
+            "goal": 3
+        },
+        "version": 6,
+        "epoch": 2,
+        "resetAt": null,
+        "undoUntil": null,
+        "updatedAt": "2026-10-27T15:00:00Z"
+    }
+}

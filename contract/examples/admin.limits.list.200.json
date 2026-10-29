@@ -1,0 +1,55 @@
+{
+    "data": [
+        {
+            "limiter": "api",
+            "rule": "signed_in",
+            "max": 300,
+            "per": "minute",
+            "by": "account",
+            "default": 300,
+            "override": null,
+            "reason": null,
+            "changedAt": null,
+            "changedBy": null
+        },
+        {
+            "limiter": "api",
+            "rule": "signed_out",
+            "max": 60,
+            "per": "minute",
+            "by": "ip",
+            "default": 60,
+            "override": null,
+            "reason": null,
+            "changedAt": null,
+            "changedBy": null
+        },
+        {
+            "limiter": "sign-up",
+            "rule": "ip_hour",
+            "max": 2,
+            "per": "hour",
+            "by": "ip",
+            "default": 5,
+            "override": 2,
+            "reason": "Bot sign-ups from one range",
+            "changedAt": "2026-10-26T14:05:00Z",
+            "changedBy": {
+                "id": "Xk3pQ9",
+                "name": "Hillel Coren"
+            }
+        },
+        {
+            "limiter": "sign-in",
+            "rule": "ip_and_email",
+            "max": 10,
+            "per": "minute",
+            "by": "ip_and_email",
+            "default": 10,
+            "override": null,
+            "reason": null,
+            "changedAt": null,
+            "changedBy": null
+        }
+    ]
+}

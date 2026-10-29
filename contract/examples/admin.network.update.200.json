@@ -1,0 +1,43 @@
+{
+    "data": [
+        {
+            "key": "N1",
+            "title": "The gallery",
+            "status": "collecting",
+            "numbers": [
+                {
+                    "key": "harmonies",
+                    "value": 42,
+                    "threshold": 300
+                },
+                {
+                    "key": "singers",
+                    "value": 20,
+                    "threshold": 100
+                }
+            ]
+        },
+        {
+            "key": "N4",
+            "title": "The coach directory",
+            "status": "start_building",
+            "numbers": [
+                {
+                    "key": "coaches",
+                    "value": 9,
+                    "threshold": 15
+                },
+                {
+                    "key": "rated",
+                    "value": 6,
+                    "threshold": 10
+                },
+                {
+                    "key": "active",
+                    "value": 300,
+                    "threshold": 500
+                }
+            ]
+        }
+    ]
+}

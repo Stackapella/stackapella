@@ -1,0 +1,8 @@
+{
+    "data": [
+        { "id": "Gm5Rt1", "action": "flag.shield_mode", "actor": { "id": "Xk3pQ9", "name": "Hillel Coren" }, "subject": null, "before": { "value": "off" }, "after": { "value": "on" }, "reason": "A wave of bot sign-ups", "createdAt": "2026-10-26T14:10:00Z" },
+        { "id": "Vb7Lw3", "action": "block.created", "actor": { "id": "Xk3pQ9", "name": "Hillel Coren" }, "subject": { "type": "block", "id": "Lp4Vc9" }, "before": null, "after": { "type": "email", "value": "bot@spam-farm.example" }, "reason": "Sign-ups with someone else's address", "createdAt": "2026-10-26T14:12:00Z" },
+        { "id": "Ns2Hq6", "action": "admin.role.is_admin", "actor": null, "subject": { "type": "user", "id": "Xk3pQ9" }, "before": { "is_admin": false }, "after": { "is_admin": true }, "reason": "console", "createdAt": "2026-10-26T12:00:00Z" }
+    ],
+    "meta": { "nextCursor": "eyJpZCI6NDAsIl9wb2ludHNUb05leHRJdGVtcyI6dHJ1ZX0" }
+}

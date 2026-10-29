@@ -1,0 +1,40 @@
+{
+    "data": {
+        "configured": true,
+        "fake": false,
+        "connections": {
+            "active": 12,
+            "needsReconnect": 1,
+            "webhooksFailing": 0
+        },
+        "needsReconnect": [
+            {
+                "user": {
+                    "id": "Cz8xYw2v",
+                    "name": "Grace Okafor"
+                },
+                "mode": "oauth",
+                "since": "2026-11-02T08:00:00Z",
+                "error": "invalid_grant"
+            }
+        ],
+        "lessons": [
+            {
+                "engagementId": "En9lSn",
+                "coach": {
+                    "id": "Cz8xYw2v",
+                    "name": "Grace Okafor"
+                },
+                "singer": {
+                    "id": "jR4kLmNo",
+                    "name": "Ana Ruiz"
+                },
+                "startsAt": "2026-11-03T18:00:00Z",
+                "status": "booked",
+                "problem": "mismatch",
+                "note": "Event Schedule says it was cancelled at 2026-11-02T10:00:00Z.",
+                "at": "2026-11-02T11:00:00Z"
+            }
+        ]
+    }
+}

@@ -1,0 +1,65 @@
+{
+    "data": [
+        {
+            "id": "Bt7Kq2",
+            "kind": "board_beaten",
+            "actor": {
+                "handle": null,
+                "name": "Ana"
+            },
+            "others": 0,
+            "harmony": null,
+            "idea": null,
+            "request": null,
+            "read": false,
+            "createdAt": "2026-11-05T12:00:00Z",
+            "board": {
+                "templateId": "amazing-grace",
+                "title": "Amazing Grace",
+                "partKey": "alto",
+                "partName": "Alto",
+                "score": 87
+            }
+        },
+        {
+            "id": "Bl3Kx7",
+            "kind": "like",
+            "actor": {
+                "handle": "sam_sings",
+                "name": "Sam Lee"
+            },
+            "others": 4,
+            "harmony": {
+                "id": "h7Kq2mXa9Lp3",
+                "title": "Silent Night for Mum"
+            },
+            "idea": null,
+            "request": null,
+            "read": false,
+            "createdAt": "2026-11-05T12:00:00Z",
+            "board": null
+        },
+        {
+            "id": "Cm4Ly8",
+            "kind": "idea_voice",
+            "actor": {
+                "handle": null,
+                "name": "Ana Ruiz"
+            },
+            "others": 1,
+            "harmony": null,
+            "idea": {
+                "id": "Qx7Lm2Pa9Kd4",
+                "title": "Bus Stop Hum"
+            },
+            "request": null,
+            "read": false,
+            "createdAt": "2026-11-05T11:00:00Z",
+            "board": null
+        }
+    ],
+    "meta": {
+        "nextCursor": null,
+        "unread": 1
+    }
+}

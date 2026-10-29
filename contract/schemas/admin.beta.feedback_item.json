@@ -1,0 +1,55 @@
+{
+    "$id": "admin.beta.feedback_item.json",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "id",
+        "singer",
+        "templateId",
+        "partKey",
+        "beat",
+        "text",
+        "readAt",
+        "createdAt"
+    ],
+    "properties": {
+        "id": {
+            "type": "string"
+        },
+        "singer": {
+            "$ref": "admin.person.json"
+        },
+        "templateId": {
+            "type": [
+                "string",
+                "null"
+            ]
+        },
+        "partKey": {
+            "type": [
+                "string",
+                "null"
+            ]
+        },
+        "beat": {
+            "type": [
+                "number",
+                "null"
+            ]
+        },
+        "text": {
+            "type": "string"
+        },
+        "readAt": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "format": "date-time"
+        },
+        "createdAt": {
+            "type": "string",
+            "format": "date-time"
+        }
+    }
+}

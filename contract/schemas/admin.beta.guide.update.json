@@ -1,0 +1,13 @@
+{
+    "$id": "admin.beta.guide.update.json",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "$ref": "admin.beta.guide.json"
+        }
+    }
+}

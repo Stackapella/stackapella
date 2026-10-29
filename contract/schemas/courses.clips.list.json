@@ -1,0 +1,48 @@
+{
+    "$id": "courses.clips.list.json",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                    "slot",
+                    "url",
+                    "durationSeconds",
+                    "credit",
+                    "creditHandle"
+                ],
+                "properties": {
+                    "slot": {
+                        "type": "string"
+                    },
+                    "url": {
+                        "type": "string"
+                    },
+                    "durationSeconds": {
+                        "type": "number"
+                    },
+                    "credit": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "description": "The singer as they chose to be credited; null when anonymous."
+                    },
+                    "creditHandle": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    }
+                }
+            }
+        }
+    }
+}

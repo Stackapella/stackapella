@@ -1,0 +1,30 @@
+#!/bin/sh
+# Before anything is pushed (docs/open-source-plan.md: the repos go public): gitleaks over the
+# commits being pushed, with .gitleaks.toml's rules, so a secret that got past a commit (with
+# --no-verify, or from a clone without the hooks) still stops here. The whole history is
+# server/tool/leak-check.sh's.
+#
+# Enable it once per clone or worktree: git config core.hooksPath .githooks
+if ! command -v gitleaks >/dev/null 2>&1; then
+    echo "pre-push: gitleaks isn't installed (brew install gitleaks): every push is checked for secrets." >&2
+    exit 1
+fi
+
+zero=0000000000000000000000000000000000000000
+status=0
+
+while read -r local_ref local_sha remote_ref remote_sha; do
+    [ "$local_sha" = "$zero" ] && continue
+    if [ "$remote_sha" = "$zero" ]; then
+        range="$local_sha --not --remotes"
+    else
+        range="$remote_sha..$local_sha"
+    fi
+
+    if ! gitleaks git --redact --no-banner --exit-code 1 --log-opts="$range" . >&2; then
+        echo "pre-push: gitleaks found a secret in what's being pushed to $remote_ref (above). Nothing was pushed." >&2
+        status=1
+    fi
+done
+
+exit $status

@@ -1,0 +1,64 @@
+{
+    "$id": "bin.list.json",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                    "kind",
+                    "id",
+                    "title",
+                    "projectId",
+                    "partName",
+                    "bytes",
+                    "binnedAt",
+                    "goesAt"
+                ],
+                "properties": {
+                    "kind": {
+                        "type": "string",
+                        "enum": [
+                            "project",
+                            "take"
+                        ]
+                    },
+                    "id": {
+                        "type": "string"
+                    },
+                    "title": {
+                        "type": "string",
+                        "description": "The project's title."
+                    },
+                    "projectId": {
+                        "type": "string"
+                    },
+                    "partName": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "description": "A take's part."
+                    },
+                    "bytes": {
+                        "type": "integer"
+                    },
+                    "binnedAt": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "goesAt": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                }
+            }
+        }
+    }
+}

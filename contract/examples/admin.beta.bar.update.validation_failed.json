@@ -1,0 +1,9 @@
+{
+    "message": "Unprocessable Content.",
+    "code": "validation_failed",
+    "errors": {
+        "pitchPercent": [
+            "The pitch percent field must be between 50 and 100."
+        ]
+    }
+}

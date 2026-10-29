@@ -1,0 +1,20 @@
+{
+    "data": {
+        "methods": [
+            "apple",
+            "google",
+            "password"
+        ],
+        "signups": "open",
+        "turnstileSiteKey": null,
+        "passwordMinLength": 10,
+        "comingSoon": false,
+        "prelaunch": false,
+        "instrumentsIndexUrl": null,
+        "selfHosted": false,
+        "sentryDsn": null,
+        "usageCounts": true,
+        "coachSignup": true,
+        "experiment": null
+    }
+}

@@ -1,0 +1,52 @@
+{
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "id",
+                "partKey",
+                "partName",
+                "expiresAt",
+                "createdAt",
+                "url"
+            ],
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "partKey": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "partName": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "expiresAt": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "createdAt": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "url": {
+                    "type": "string",
+                    "format": "uri",
+                    "description": "/join/<token>: shown once."
+                }
+            }
+        }
+    },
+    "$id": "invite.created.json"
+}

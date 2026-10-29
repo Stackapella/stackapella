@@ -1,0 +1,26 @@
+{
+    "data": [
+        {
+            "id": "f6a7b8c9-d0e1-4f2a-9b3c-4d5e6f7a8b9c",
+            "partKey": "alto",
+            "singer": {
+                "handle": "ana",
+                "name": "Ana Ruiz",
+                "avatarUrl": null,
+                "id": "k5Rt9"
+            },
+            "song": {
+                "id": "danny-boy",
+                "title": "Danny Boy"
+            },
+            "url": "https://stackapella-private.nyc3.digitaloceanspaces.com/choirs/a1b2.flac?X-Amz-Signature=abc",
+            "heldAt": "2026-11-05T10:00:00Z",
+            "reports": {
+                "count": 3,
+                "reasons": [
+                    "offensive"
+                ]
+            }
+        }
+    ]
+}

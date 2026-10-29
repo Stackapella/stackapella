@@ -1,0 +1,50 @@
+name: outdated
+
+# Weekly: are the pinned CDN libraries, Tailwind and the server's base images still the newest? A newer release is a reminder
+# to update the pin (and its SRI hash) by hand; nothing updates on its own.
+on:
+  schedule:
+    - cron: '17 6 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  outdated:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Compare pins with the latest releases
+        run: |
+          python3 -I - <<'PY'
+          import json, re, sys, urllib.request
+          stale = []
+          html = open('web/index.html').read()
+          for name, version in sorted(set(re.findall(r'cdn\.jsdelivr\.net/npm/([@\w./-]+?)@(\d+\.\d+\.\d+)/', html))):
+              latest = json.load(urllib.request.urlopen(f'https://data.jsdelivr.com/v1/packages/npm/{name}/resolved?specifier=latest'))['version']
+              if latest != version:
+                  stale.append(f'{name}: pinned {version}, latest {latest}')
+          pinned = re.search(r'^VERSION=(\S+)', open('web/tool/tailwind.sh').read(), re.M).group(1)
+          latest = json.load(urllib.request.urlopen('https://api.github.com/repos/tailwindlabs/tailwindcss/releases/latest'))['tag_name'].lstrip('v')
+          if latest != pinned:
+              stale.append(f'tailwindcss: pinned {pinned}, latest {latest}')
+          print('\n'.join(stale) or 'Everything is current.')
+          sys.exit(1 if stale else 0)
+          PY
+
+      - name: Compare the base image pins with their tags
+        run: |
+          stale=0
+          while read -r tag; read -r from; do
+            pinned=$(echo "$from" | sed -E 's/.*@(sha256:[0-9a-f]+).*/\1/')
+            latest=$(docker buildx imagetools inspect "$tag" --format '{{json .Manifest.Digest}}' | tr -d '"')
+            if [ "$pinned" != "$latest" ]; then
+              echo "$tag: pinned $pinned, latest $latest"
+              stale=1
+            fi
+          done < <(grep -A1 -E '^# [a-z0-9./-]+:[A-Za-z0-9.-]+$' .do/Dockerfile | grep -v '^--$' | sed 's/^# //')
+          [ "$stale" = 0 ] && echo "The base images are current."
+          exit $stale

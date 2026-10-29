@@ -1,0 +1,85 @@
+{
+    "$id": "consentRequest.json",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "id",
+        "harmony",
+        "owner",
+        "asks",
+        "status",
+        "decidedAt"
+    ],
+    "properties": {
+        "id": {
+            "type": "string"
+        },
+        "harmony": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "id",
+                "title",
+                "pageUrl"
+            ],
+            "properties": {
+                "id": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "title": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "pageUrl": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                }
+            }
+        },
+        "owner": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "name"
+            ],
+            "properties": {
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "asks": {
+            "type": "array",
+            "items": {
+                "type": "string",
+                "enum": [
+                    "gallery",
+                    "feature"
+                ]
+            }
+        },
+        "status": {
+            "type": "string",
+            "enum": [
+                "asked",
+                "agreed",
+                "declined"
+            ]
+        },
+        "decidedAt": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "format": "date-time"
+        }
+    },
+    "title": "A friend's consent, asked"
+}

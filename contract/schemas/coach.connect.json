@@ -1,0 +1,42 @@
+{
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "accountExists",
+                "chargesEnabled",
+                "payoutsEnabled",
+                "detailsSubmitted",
+                "dashboardUrl"
+            ],
+            "properties": {
+                "accountExists": {
+                    "type": "boolean"
+                },
+                "chargesEnabled": {
+                    "type": "boolean"
+                },
+                "payoutsEnabled": {
+                    "type": "boolean"
+                },
+                "detailsSubmitted": {
+                    "type": "boolean"
+                },
+                "dashboardUrl": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "format": "uri"
+                }
+            }
+        }
+    },
+    "$id": "coach.connect.json"
+}

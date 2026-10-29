@@ -1,0 +1,10 @@
+{
+    "$id": "admin.securityEvents.list.json",
+    "type": "object",
+    "additionalProperties": false,
+    "required": ["data", "meta"],
+    "properties": {
+        "data": { "type": "array", "items": { "$ref": "admin.security_event.json" } },
+        "meta": { "$ref": "meta.json" }
+    }
+}

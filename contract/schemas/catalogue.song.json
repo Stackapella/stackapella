@@ -1,0 +1,149 @@
+{
+    "$id": "catalogue.song.json",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "id",
+        "version",
+        "title",
+        "description",
+        "difficulty",
+        "genre",
+        "language",
+        "key",
+        "tempo",
+        "timeSignature",
+        "reviewed",
+        "access",
+        "freeUntil",
+        "previewUrl",
+        "parts",
+        "voicings"
+    ],
+    "properties": {
+        "id": {
+            "type": "string",
+            "description": "The template's own id (\"amazing-grace\"), as in its JSON."
+        },
+        "version": {
+            "type": "integer",
+            "description": "The current version. Guides belong to a version: a project on an older one keeps the synth for that part."
+        },
+        "title": {
+            "type": "string"
+        },
+        "description": {
+            "type": "string"
+        },
+        "difficulty": {
+            "type": "string",
+            "enum": [
+                "beginner",
+                "intermediate",
+                "advanced"
+            ]
+        },
+        "genre": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "language": {
+            "type": "string",
+            "description": "The language the words are sung in (BCP 47)."
+        },
+        "key": {
+            "type": "string"
+        },
+        "tempo": {
+            "type": "number"
+        },
+        "timeSignature": {
+            "type": "string",
+            "enum": [
+                "4/4",
+                "3/4",
+                "6/8",
+                "2/4"
+            ]
+        },
+        "reviewed": {
+            "type": "boolean",
+            "description": "False for a draft the musician hasn't checked; the app shows drafts only locally or with ?drafts=1."
+        },
+        "access": {
+            "type": "string",
+            "enum": [
+                "free",
+                "plus"
+            ]
+        },
+        "freeUntil": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "format": "date-time",
+            "description": "The song of the month: free to everyone until this moment. Null otherwise."
+        },
+        "previewUrl": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "format": "uri",
+            "description": "A 20 to 30 second mix on the CDN, once made in admin (from M5). Null until then."
+        },
+        "parts": {
+            "type": "array",
+            "items": {
+                "$ref": "catalogue.part.json"
+            }
+        },
+        "voicings": {
+            "type": "object",
+            "additionalProperties": false,
+            "description": "The template's voicings: which parts sing for each number of singers, by that number. {} when it has none.",
+            "properties": {
+                "1": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "2": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "3": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "4": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "5": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "6": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        }
+    },
+    "title": "A song in the catalogue: what anyone may see, never the notes"
+}

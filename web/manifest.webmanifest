@@ -1,0 +1,18 @@
+{
+    "name": "Stackapella",
+    "short_name": "Stackapella",
+    "description": "Harmony, made by you. For one voice, or a whole choir. Learn a part with a guide voice, then stack your own voices, exactly in time.",
+    "id": "/",
+    "start_url": "/",
+    "scope": "/",
+    "display": "standalone",
+    "orientation": "any",
+    "background_color": "#000000",
+    "theme_color": "#000000",
+    "icons": [
+        { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+        { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+        { "src": "/icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
+        { "src": "/icons/icon.svg", "sizes": "any", "type": "image/svg+xml" }
+    ]
+}

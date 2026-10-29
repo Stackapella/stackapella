@@ -1,0 +1,28 @@
+{
+    "$id": "person.json",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "handle",
+        "name",
+        "avatarUrl"
+    ],
+    "properties": {
+        "handle": {
+            "type": [
+                "string",
+                "null"
+            ]
+        },
+        "name": {
+            "type": "string"
+        },
+        "avatarUrl": {
+            "type": [
+                "string",
+                "null"
+            ]
+        }
+    },
+    "title": "A person as the gallery shows them: a handle only when their profile is public; a hidden profile (account hideProfile) is \"Anonymous\" with handle and avatarUrl null"
+}

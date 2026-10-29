@@ -1,0 +1,18 @@
+{
+    "data": [
+        {
+            "id": "Ms1gQw",
+            "from": {
+                "id": "Cz8xYw2v",
+                "name": "Grace Okafor"
+            },
+            "text": "Send me the last verse when you've tried it.",
+            "mediaUrl": null,
+            "warning": null,
+            "createdAt": "2026-10-28T10:00:00Z"
+        }
+    ],
+    "meta": {
+        "nextCursor": null
+    }
+}

@@ -1,0 +1,19 @@
+{
+    "data": [
+        {
+            "id": "Rq7Lm2",
+            "title": "Danny Boy",
+            "writer": "Traditional",
+            "why": "Our choir sings it at Christmas",
+            "votes": 42,
+            "voted": false,
+            "mine": false,
+            "status": "arranging",
+            "template": null,
+            "createdAt": "2026-11-05T09:00:00Z"
+        }
+    ],
+    "meta": {
+        "nextCursor": null
+    }
+}

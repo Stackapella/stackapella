@@ -1,0 +1,10 @@
+{
+    "$id": "admin.audit.list.json",
+    "type": "object",
+    "additionalProperties": false,
+    "required": ["data", "meta"],
+    "properties": {
+        "data": { "type": "array", "items": { "$ref": "admin.audit_entry.json" } },
+        "meta": { "$ref": "meta.json" }
+    }
+}

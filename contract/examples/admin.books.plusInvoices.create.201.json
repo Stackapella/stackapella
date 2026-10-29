@@ -1,0 +1,14 @@
+{
+    "data": {
+        "id": "Rc7qM5",
+        "kind": "plus_invoice",
+        "description": "Stackapella Plus, 12 months",
+        "amountCents": 6000,
+        "currency": "gbp",
+        "status": "pending",
+        "problem": null,
+        "attempts": 0,
+        "createdAt": "2026-11-02T10:00:00Z",
+        "problemCode": null
+    }
+}

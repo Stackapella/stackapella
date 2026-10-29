@@ -1,0 +1,38 @@
+{
+    "data": {
+        "id": "En7gHj",
+        "kind": "review",
+        "status": "pending_payment",
+        "role": "singer",
+        "singer": {
+            "id": "jR4kLmNo",
+            "name": "Ana Ruiz"
+        },
+        "coach": {
+            "id": "Cz8xYw2v",
+            "name": "Grace Okafor"
+        },
+        "offering": {
+            "id": "Of3dRt",
+            "title": "A take review"
+        },
+        "money": {
+            "priceCents": 2500,
+            "currency": "gbp",
+            "feeCents": 375,
+            "refundedCents": 0
+        },
+        "acceptBy": null,
+        "dueAt": null,
+        "periodEndsAt": null,
+        "reviewsLeft": null,
+        "declineReason": null,
+        "can": [
+            "cancel"
+        ],
+        "rated": false,
+        "createdAt": "2026-10-27T10:00:00Z",
+        "lesson": null
+    },
+    "checkoutUrl": "https://checkout.stripe.com/c/pay/cs_test_123"
+}

@@ -1,0 +1,17 @@
+{
+    "data": {
+        "id": "Vb81xK",
+        "harmonyId": "k3Xb9QmT7wLp",
+        "status": "rendering",
+        "progress": 0.42,
+        "failure": null,
+        "startSeconds": 42.5,
+        "endSeconds": 98.0,
+        "look": "dark",
+        "words": true,
+        "url": null,
+        "bytes": null,
+        "expiresAt": null,
+        "createdAt": "2026-10-26T14:10:00Z"
+    }
+}

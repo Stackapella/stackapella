@@ -1,0 +1,9 @@
+{
+    "data": {
+        "accountExists": true,
+        "chargesEnabled": true,
+        "payoutsEnabled": true,
+        "detailsSubmitted": true,
+        "dashboardUrl": "https://connect.stripe.com/express/acct_1/xyz"
+    }
+}

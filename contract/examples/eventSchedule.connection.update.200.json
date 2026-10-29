@@ -1,0 +1,18 @@
+{
+    "data": {
+        "status": "active",
+        "mode": "oauth",
+        "baseUrl": "https://eventschedule.com",
+        "account": {
+            "id": "Ux8kQ2",
+            "name": "Grace Okafor"
+        },
+        "schedule": {
+            "subdomain": "grace-sings",
+            "name": "Grace Sings",
+            "timezone": "Europe/London"
+        },
+        "webhook": "active",
+        "connectedAt": "2026-11-01T09:00:00Z"
+    }
+}

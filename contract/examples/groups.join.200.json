@@ -1,0 +1,47 @@
+{
+    "data": {
+        "id": "Gp4rQs",
+        "name": "Thursday Singers",
+        "role": "member",
+        "director": {
+            "id": "jR4kLmNo",
+            "name": "Ana Ruiz"
+        },
+        "readOnly": false,
+        "memberCount": 3,
+        "songs": [
+            {
+                "templateId": "amazing-grace",
+                "title": "Amazing Grace",
+                "access": "free",
+                "own": false,
+                "sharedAt": "2026-10-27T12:00:00Z"
+            },
+            {
+                "templateId": "b2c3d4e5-6f70-4182-93a4-b5c6d7e8f901",
+                "title": "Our Song for Gran",
+                "access": "own",
+                "own": true,
+                "sharedAt": "2026-10-27T12:05:00Z"
+            }
+        ],
+        "members": [
+            {
+                "id": "Ty6uIoPq",
+                "name": "Sam Lee",
+                "avatarUrl": null,
+                "role": "member",
+                "joinedAt": "2026-10-27T12:30:00Z",
+                "assignments": [
+                    {
+                        "templateId": "amazing-grace",
+                        "partKey": "alto",
+                        "status": "recorded",
+                        "updatedAt": "2026-10-27T18:00:00Z"
+                    }
+                ]
+            }
+        ],
+        "link": null
+    }
+}

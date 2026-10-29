@@ -1,0 +1,13 @@
+{
+    "$id": "comments.create.json",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "$ref": "comment.json"
+        }
+    }
+}

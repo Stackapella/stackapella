@@ -1,0 +1,325 @@
+{
+    "$id": "admin.beta.submission.json",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "id",
+        "singer",
+        "assignmentId",
+        "template",
+        "partKey",
+        "status",
+        "failure",
+        "sampleRate",
+        "frames",
+        "latencyFrames",
+        "durationSeconds",
+        "loudnessDbfs",
+        "device",
+        "mic",
+        "scores",
+        "singerNote",
+        "adjust",
+        "adminNote",
+        "adminNoteBeat",
+        "guide",
+        "paidAt",
+        "reviewedAt",
+        "createdAt",
+        "publish",
+        "kind",
+        "clip"
+    ],
+    "properties": {
+        "id": {
+            "type": "string"
+        },
+        "singer": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "id",
+                "name",
+                "credit"
+            ],
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "credit": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                }
+            }
+        },
+        "assignmentId": {
+            "type": "string"
+        },
+        "template": {
+            "type": [
+                "object",
+                "null"
+            ],
+            "additionalProperties": false,
+            "required": [
+                "id",
+                "version",
+                "currentVersion",
+                "title",
+                "key"
+            ],
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "integer"
+                },
+                "currentVersion": {
+                    "type": "integer"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "key": {
+                    "type": "string"
+                }
+            }
+        },
+        "partKey": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "enum": [
+                "soprano",
+                "alto",
+                "tenor",
+                "bass",
+                "lead",
+                "baritone",
+                null
+            ]
+        },
+        "status": {
+            "type": "string",
+            "enum": [
+                "uploading",
+                "processing",
+                "submitted",
+                "in_review",
+                "retake",
+                "rejected",
+                "accepted",
+                "failed"
+            ]
+        },
+        "failure": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "enum": [
+                "not_audio",
+                "wrong_format",
+                "wrong_length",
+                "processing_error",
+                null
+            ]
+        },
+        "sampleRate": {
+            "type": "integer"
+        },
+        "frames": {
+            "type": "integer"
+        },
+        "latencyFrames": {
+            "type": "integer"
+        },
+        "durationSeconds": {
+            "type": "number"
+        },
+        "loudnessDbfs": {
+            "type": [
+                "number",
+                "null"
+            ]
+        },
+        "device": {
+            "type": [
+                "string",
+                "null"
+            ]
+        },
+        "mic": {
+            "type": [
+                "string",
+                "null"
+            ]
+        },
+        "scores": {
+            "type": [
+                "object",
+                "null"
+            ],
+            "description": "What the device's quality check sent (pitch %, phrases, timing, clipping, noise, bleed), as it sent it."
+        },
+        "singerNote": {
+            "type": [
+                "string",
+                "null"
+            ]
+        },
+        "adjust": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "offsetMs",
+                "trimStartMs",
+                "trimEndMs",
+                "gainDb"
+            ],
+            "properties": {
+                "offsetMs": {
+                    "type": "integer"
+                },
+                "trimStartMs": {
+                    "type": "integer"
+                },
+                "trimEndMs": {
+                    "type": "integer"
+                },
+                "gainDb": {
+                    "type": "number"
+                }
+            }
+        },
+        "adminNote": {
+            "type": [
+                "string",
+                "null"
+            ]
+        },
+        "adminNoteBeat": {
+            "type": [
+                "number",
+                "null"
+            ]
+        },
+        "guide": {
+            "$ref": "guide.recording.json#/$defs/nullable",
+            "description": "Once accepted and published."
+        },
+        "paidAt": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "format": "date-time"
+        },
+        "reviewedAt": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "format": "date-time"
+        },
+        "createdAt": {
+            "type": "string",
+            "format": "date-time"
+        },
+        "publish": {
+            "type": "string",
+            "enum": [
+                "none",
+                "pending",
+                "published",
+                "failed"
+            ],
+            "description": "Publishing the guide: not asked for, under way, done, or failed (publish it again)."
+        },
+        "kind": {
+            "type": "string",
+            "enum": [
+                "part",
+                "clip"
+            ]
+        },
+        "clip": {
+            "type": [
+                "object",
+                "null"
+            ],
+            "additionalProperties": false,
+            "required": [
+                "id",
+                "courseId",
+                "lessonId",
+                "step",
+                "sing",
+                "pitch",
+                "seconds",
+                "style",
+                "voices"
+            ],
+            "description": "A course clip's brief, from web/course/plus/clips.json.",
+            "properties": {
+                "id": {
+                    "type": "string",
+                    "description": "The slot, <course>.<name>."
+                },
+                "courseId": {
+                    "type": "string"
+                },
+                "lessonId": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "step": {
+                    "type": [
+                        "integer",
+                        "null"
+                    ]
+                },
+                "sing": {
+                    "type": "string",
+                    "description": "What to sing, in the singer's language."
+                },
+                "pitch": {
+                    "type": [
+                        "object",
+                        "null"
+                    ],
+                    "description": "{ step } relative to the singer's own comfortable note, or { low, high }."
+                },
+                "seconds": {
+                    "type": "number"
+                },
+                "style": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "voices": {
+                    "type": [
+                        "string",
+                        "array"
+                    ],
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "\"any\", or the voices that may record it."
+                }
+            }
+        }
+    },
+    "title": "A beta take, for the review queue"
+}

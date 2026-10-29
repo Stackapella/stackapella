@@ -1,0 +1,126 @@
+{
+    "$id": "harmonies.stems.json",
+    "title": "harmonies.stems",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "template",
+                "bpm",
+                "openParts",
+                "stems"
+            ],
+            "properties": {
+                "template": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                        "id",
+                        "version"
+                    ],
+                    "properties": {
+                        "id": {
+                            "type": "string"
+                        },
+                        "version": {
+                            "type": "integer"
+                        }
+                    }
+                },
+                "bpm": {
+                    "type": "number"
+                },
+                "openParts": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "key",
+                            "name"
+                        ],
+                        "properties": {
+                            "key": {
+                                "type": "string"
+                            },
+                            "name": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "description": "Open parts (N5): the parts left open for others; empty when none."
+                },
+                "stems": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "partKey",
+                            "singer",
+                            "url",
+                            "sampleRate",
+                            "frames",
+                            "offsetFrames",
+                            "trimStartFrames",
+                            "trimEndFrames",
+                            "volume",
+                            "pan",
+                            "framesPerPeak",
+                            "peaks"
+                        ],
+                        "properties": {
+                            "partKey": {
+                                "type": "string"
+                            },
+                            "singer": {
+                                "$ref": "person.json"
+                            },
+                            "url": {
+                                "type": "string",
+                                "format": "uri",
+                                "description": "Valid for 2 hours."
+                            },
+                            "sampleRate": {
+                                "type": "integer"
+                            },
+                            "frames": {
+                                "type": "integer"
+                            },
+                            "offsetFrames": {
+                                "type": "integer"
+                            },
+                            "trimStartFrames": {
+                                "type": "integer"
+                            },
+                            "trimEndFrames": {
+                                "type": "integer"
+                            },
+                            "volume": {
+                                "type": "number"
+                            },
+                            "pan": {
+                                "type": "number"
+                            },
+                            "framesPerPeak": {
+                                "type": "integer"
+                            },
+                            "peaks": {
+                                "type": "array",
+                                "items": {
+                                    "type": "number"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

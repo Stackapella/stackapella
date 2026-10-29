@@ -1,0 +1,9 @@
+{
+    "message": "Unprocessable Content.",
+    "code": "validation_failed",
+    "errors": {
+        "currency": [
+            "The currency field must be 3 characters."
+        ]
+    }
+}

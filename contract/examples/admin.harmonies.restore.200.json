@@ -1,0 +1,55 @@
+{
+    "data": {
+        "harmony": {
+            "id": "k3Xb9QmT7wLp",
+            "title": "Silent Night for Mum",
+            "owner": {
+                "id": "jR4kLm",
+                "name": "Ana Ruiz"
+            },
+            "ownerTakedowns": 0,
+            "visibility": "unlisted",
+            "status": "ready",
+            "moderation": null,
+            "hiddenReason": null,
+            "hiddenAt": null,
+            "titleHeld": false,
+            "pageUrl": "https://beta.stackapella.com/h/k3Xb9QmT7wLp",
+            "audioUrl": "https://stackapella-private.nyc3.digitaloceanspaces.com/harmonies/q8w7e6.m4a?X-Amz-Signature=abc",
+            "cardUrl": "https://stackapella-private.nyc3.digitaloceanspaces.com/harmonies/q8w7e6.jpg?X-Amz-Signature=def",
+            "durationSeconds": 182.4,
+            "signUps": 2,
+            "createdAt": "2026-10-26T14:05:00Z"
+        },
+        "reports": [
+            {
+                "id": "Rp1aQz",
+                "reason": "copyright",
+                "note": "This is my recording.",
+                "reporter": null,
+                "status": "dismissed",
+                "createdAt": "2026-10-26T17:00:00Z"
+            },
+            {
+                "id": "Rp2bWx",
+                "reason": "copyright",
+                "note": "",
+                "reporter": {
+                    "id": "Ty6uIo",
+                    "name": "Sam Lee"
+                },
+                "status": "dismissed",
+                "createdAt": "2026-10-26T18:00:00Z"
+            },
+            {
+                "id": "Rp3cEv",
+                "reason": "other",
+                "note": "",
+                "reporter": null,
+                "status": "dismissed",
+                "createdAt": "2026-10-26T18:20:00Z"
+            }
+        ],
+        "firstReportedAt": "2026-10-26T17:00:00Z"
+    }
+}

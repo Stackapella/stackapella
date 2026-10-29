@@ -1,0 +1,161 @@
+{
+    "$id": "choirs.show.json",
+    "title": "choirs.show and choirs.join",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "song",
+                "bpm",
+                "key",
+                "mixUrl",
+                "mixedAt",
+                "voices",
+                "minScore",
+                "maxVoicesPerPart",
+                "parts",
+                "mine"
+            ],
+            "properties": {
+                "song": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                        "id",
+                        "title",
+                        "version"
+                    ],
+                    "properties": {
+                        "id": {
+                            "type": "string"
+                        },
+                        "title": {
+                            "type": "string"
+                        },
+                        "version": {
+                            "type": "integer"
+                        }
+                    }
+                },
+                "bpm": {
+                    "type": "number"
+                },
+                "key": {
+                    "type": "string"
+                },
+                "mixUrl": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "format": "uri"
+                },
+                "mixedAt": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "format": "date-time"
+                },
+                "voices": {
+                    "type": "integer"
+                },
+                "minScore": {
+                    "type": "integer"
+                },
+                "maxVoicesPerPart": {
+                    "type": "integer"
+                },
+                "parts": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "key",
+                            "name",
+                            "voices"
+                        ],
+                        "properties": {
+                            "key": {
+                                "type": "string"
+                            },
+                            "name": {
+                                "type": "string"
+                            },
+                            "voices": {
+                                "type": "integer"
+                            }
+                        }
+                    }
+                },
+                "mine": {
+                    "type": [
+                        "object",
+                        "null"
+                    ],
+                    "additionalProperties": false,
+                    "required": [
+                        "id",
+                        "partKey",
+                        "status",
+                        "inMix",
+                        "credit",
+                        "url",
+                        "sampleRate",
+                        "frames",
+                        "offsetFrames"
+                    ],
+                    "properties": {
+                        "id": {
+                            "type": "string"
+                        },
+                        "partKey": {
+                            "type": "string"
+                        },
+                        "status": {
+                            "type": "string",
+                            "enum": [
+                                "processing",
+                                "ready",
+                                "failed"
+                            ]
+                        },
+                        "inMix": {
+                            "type": "boolean"
+                        },
+                        "credit": {
+                            "type": "string",
+                            "enum": [
+                                "handle",
+                                "anonymous"
+                            ]
+                        },
+                        "url": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "format": "uri"
+                        },
+                        "sampleRate": {
+                            "type": "integer"
+                        },
+                        "frames": {
+                            "type": "integer"
+                        },
+                        "offsetFrames": {
+                            "type": "integer"
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

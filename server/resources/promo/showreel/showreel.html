@@ -1,0 +1,44 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Harmony, made by you</title>
+<meta name="description" content="Stackapella: a 39-second motion showreel with its own soundtrack, in a dark and a light cut.">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script>
+// ?theme=light|dark picks the cut. Without it the preview follows the OS, but a render (?render=1)
+// always names its theme, so the same command renders the same film anywhere.
+(() => {
+    const q = new URLSearchParams(location.search);
+    const light = q.has('theme') ? q.get('theme') === 'light' : !q.has('render') && matchMedia('(prefers-color-scheme: light)').matches;
+    document.documentElement.dataset.theme = light ? 'light' : 'dark';
+})();
+</script>
+<link rel="stylesheet" href="film.css">
+
+<div id="app">
+  <div id="frame"><div id="stage">
+    <div id="key"></div>
+    <div id="wash"></div>
+    <div id="lens"><div id="world"></div></div>
+    <div id="split"></div>
+    <canvas id="fx" class="full" width="1920" height="1080"></canvas>
+    <div id="hud"></div>
+    <div id="vig"></div>
+    <canvas id="grain" class="full" width="960" height="540"></canvas>
+    <div id="flash"></div>
+  </div></div>
+
+  <div id="bar" role="group" aria-label="Player controls">
+    <button id="play" aria-label="Play"><svg viewBox="0 0 24 24" fill="currentColor" id="playIco"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.5-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5z"/></svg></button>
+    <button id="sound" aria-label="Sound" aria-pressed="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5L6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/></svg></button>
+    <input id="scrub" type="range" min="0" max="39.375" step="0.001" value="0" aria-label="Seek">
+    <span id="tc">00.00 / 39.38</span>
+    <button id="theme" aria-label="Switch to the other cut (T)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><path d="M12 4a8 8 0 0 1 0 16z" fill="currentColor"/></svg></button>
+  </div>
+</div>
+
+<script>
+// The film's length in seconds: Amazing Grace's 48 beats and 15 beats of fermatas, at 96 BPM.
+// render.py reads this line, and score.js must agree (it checks).
+window.DUR = 39.375;
+</script>
+<script type="module" src="js/main.js"></script>

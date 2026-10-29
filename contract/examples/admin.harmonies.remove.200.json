@@ -1,0 +1,55 @@
+{
+    "data": {
+        "harmony": {
+            "id": "k3Xb9QmT7wLp",
+            "title": "Silent Night for Mum",
+            "owner": {
+                "id": "jR4kLm",
+                "name": "Ana Ruiz"
+            },
+            "ownerTakedowns": 1,
+            "visibility": "unlisted",
+            "status": "ready",
+            "moderation": "removed",
+            "hiddenReason": "dmca",
+            "hiddenAt": "2026-10-26T19:00:00Z",
+            "titleHeld": false,
+            "pageUrl": "https://beta.stackapella.com/h/k3Xb9QmT7wLp",
+            "audioUrl": null,
+            "cardUrl": null,
+            "durationSeconds": 182.4,
+            "signUps": 2,
+            "createdAt": "2026-10-26T14:05:00Z"
+        },
+        "reports": [
+            {
+                "id": "Rp1aQz",
+                "reason": "copyright",
+                "note": "This is my recording.",
+                "reporter": null,
+                "status": "upheld",
+                "createdAt": "2026-10-26T17:00:00Z"
+            },
+            {
+                "id": "Rp2bWx",
+                "reason": "copyright",
+                "note": "",
+                "reporter": {
+                    "id": "Ty6uIo",
+                    "name": "Sam Lee"
+                },
+                "status": "upheld",
+                "createdAt": "2026-10-26T18:00:00Z"
+            },
+            {
+                "id": "Rp3cEv",
+                "reason": "other",
+                "note": "",
+                "reporter": null,
+                "status": "upheld",
+                "createdAt": "2026-10-26T18:20:00Z"
+            }
+        ],
+        "firstReportedAt": "2026-10-26T17:00:00Z"
+    }
+}

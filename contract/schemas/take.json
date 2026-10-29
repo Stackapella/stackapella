@@ -1,0 +1,102 @@
+{
+    "$id": "take.json",
+    "title": "A take (immutable audio)",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "id",
+        "partId",
+        "status",
+        "failure",
+        "sampleRate",
+        "frames",
+        "offsetFrames",
+        "bytes",
+        "sha256",
+        "framesPerPeak",
+        "peaks8",
+        "createdAt",
+        "binnedAt"
+    ],
+    "properties": {
+        "id": {
+            "type": "string"
+        },
+        "partId": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "description": "Null for a take in the bin whose part was deleted."
+        },
+        "status": {
+            "type": "string",
+            "enum": [
+                "uploading",
+                "processing",
+                "ready",
+                "failed"
+            ]
+        },
+        "failure": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "enum": [
+                "not_audio",
+                "wrong_format",
+                "too_long",
+                "processing_error",
+                null
+            ],
+            "description": "Why it failed, when it did (processing_error: send it again)."
+        },
+        "sampleRate": {
+            "type": "integer"
+        },
+        "frames": {
+            "type": "integer"
+        },
+        "offsetFrames": {
+            "type": "integer",
+            "description": "Where it was recorded, at sampleRate. Immutable."
+        },
+        "bytes": {
+            "type": "integer",
+            "description": "The stored FLAC's size once ready (what counts toward storage); the WAV's before."
+        },
+        "sha256": {
+            "type": "string"
+        },
+        "framesPerPeak": {
+            "type": "integer"
+        },
+        "url": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "format": "uri",
+            "description": "takes.show and takes.complete only: the FLAC, valid 15 minutes, once ready."
+        },
+        "createdAt": {
+            "type": "string",
+            "format": "date-time"
+        },
+        "binnedAt": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "format": "date-time"
+        },
+        "peaks8": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "description": "The peaks as base64, one byte each, 0 to 255 for 0 to 1 (contract/api.md, \"Peaks\"); null until ready."
+        }
+    }
+}

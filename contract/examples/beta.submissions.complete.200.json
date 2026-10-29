@@ -1,0 +1,15 @@
+{
+    "data": {
+        "id": "Tz4Kq8",
+        "assignmentId": "Ab3Cd9",
+        "status": "processing",
+        "failure": null,
+        "templateVersion": 2,
+        "durationSeconds": 48.0,
+        "adminNote": null,
+        "adminNoteBeat": null,
+        "adminNoteAt": null,
+        "url": null,
+        "createdAt": "2026-10-26T15:30:00Z"
+    }
+}

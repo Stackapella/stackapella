@@ -1,0 +1,26 @@
+{
+    "data": {
+        "plan": "free",
+        "projects": {
+            "used": 2,
+            "limit": 3
+        },
+        "storage": {
+            "usedBytes": 38211000,
+            "limitBytes": 1073741824,
+            "binBytes": 17278512,
+            "projects": [
+                {
+                    "projectId": "3f2a1c9e-4b7d-4e2a-9c1f-0a8b7c6d5e4f",
+                    "bytes": 21340000,
+                    "binBytes": 8398112
+                },
+                {
+                    "projectId": "7c6b5a4d-3e2f-4a1b-9c8d-7e6f5a4b3c2d",
+                    "bytes": 16871000,
+                    "binBytes": 0
+                }
+            ]
+        }
+    }
+}

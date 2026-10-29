@@ -1,0 +1,60 @@
+{
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "counted",
+                "why",
+                "best",
+                "improved",
+                "before"
+            ],
+            "properties": {
+                "counted": {
+                    "type": "boolean",
+                    "description": "Whether it qualified for the boards."
+                },
+                "why": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "enum": [
+                        "mode",
+                        "key",
+                        "speed",
+                        "guide",
+                        "timing",
+                        "bluetooth",
+                        "take",
+                        null
+                    ],
+                    "description": "Why it didn't count: sung along (mode), another key, another speed, the guide on, no passed timing check, Bluetooth output, or a take that isn't theirs for this part."
+                },
+                "best": {
+                    "type": [
+                        "integer",
+                        "null"
+                    ],
+                    "description": "Their best on this part now (null: none yet)."
+                },
+                "improved": {
+                    "type": "boolean"
+                },
+                "before": {
+                    "type": [
+                        "integer",
+                        "null"
+                    ],
+                    "description": "Their best on this part's board before this take, set on any device (for \"up from\"): null on a first score or one that didn't count."
+                }
+            }
+        }
+    }
+}

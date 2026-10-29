@@ -1,0 +1,9 @@
+{
+    "message": "Unprocessable Content.",
+    "code": "validation_failed",
+    "errors": {
+        "offsetMs": [
+            "The offset ms field must not be greater than 500."
+        ]
+    }
+}

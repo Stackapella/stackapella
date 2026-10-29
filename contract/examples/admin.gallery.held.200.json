@@ -1,0 +1,58 @@
+{
+    "data": {
+        "harmonies": [
+            {
+                "id": "h7Kq2mXa9Lp3",
+                "title": "Silent Night for Mum",
+                "pageUrl": "https://stackapella.test/h/h7Kq2mXa9Lp3",
+                "audioUrl": "https://cdn.stackapella.test/harmonies/x.m4a",
+                "cardUrl": "https://cdn.stackapella.test/cards/x.jpg",
+                "durationSeconds": 96.5,
+                "song": {
+                    "id": "silent-night",
+                    "title": "Silent Night"
+                },
+                "owner": {
+                    "handle": "ana_sings",
+                    "name": "Ana Ruiz",
+                    "avatarUrl": null
+                },
+                "singers": [
+                    {
+                        "name": "Ana Ruiz",
+                        "handle": "ana_sings"
+                    },
+                    {
+                        "name": "Sam Lee",
+                        "handle": null
+                    }
+                ],
+                "likes": 12,
+                "comments": 3,
+                "liked": false,
+                "commentsOff": false,
+                "canComment": true,
+                "featured": false,
+                "openParts": [],
+                "createdAt": "2026-11-05T10:00:00Z"
+            }
+        ],
+        "comments": [
+            {
+                "id": "Cm4Xq9",
+                "body": "Call me on ...",
+                "author": {
+                    "handle": null,
+                    "name": "Sam Lee",
+                    "avatarUrl": null,
+                    "id": "Us7Kp2"
+                },
+                "harmony": {
+                    "id": "h7Kq2mXa9Lp3",
+                    "title": "Silent Night for Mum"
+                },
+                "createdAt": "2026-11-05T11:00:00Z"
+            }
+        ]
+    }
+}

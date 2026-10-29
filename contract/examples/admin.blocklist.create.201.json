@@ -1,0 +1,3 @@
+{
+    "data": { "id": "Lp4Vc9", "type": "email", "value": "bot@spam-farm.example", "reason": "Sign-ups with someone else's address", "expiresAt": null, "createdAt": "2026-10-26T14:12:00Z", "createdBy": { "id": "Xk3pQ9", "name": "Hillel Coren" } }
+}

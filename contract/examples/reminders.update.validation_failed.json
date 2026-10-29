@@ -1,0 +1,9 @@
+{
+    "message": "Unprocessable Content.",
+    "code": "validation_failed",
+    "errors": {
+        "time": [
+            "The time must be like 18:30."
+        ]
+    }
+}

@@ -1,0 +1,20 @@
+{
+    "$id": "admin.billing.disputes.list.json",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data",
+        "meta"
+    ],
+    "properties": {
+        "data": {
+            "type": "array",
+            "items": {
+                "$ref": "admin.dispute.json"
+            }
+        },
+        "meta": {
+            "$ref": "meta.json"
+        }
+    }
+}

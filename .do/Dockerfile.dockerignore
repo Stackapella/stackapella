@@ -1,0 +1,22 @@
+# What a build of .do/Dockerfile never sends (BuildKit reads this file because it sits beside the
+# Dockerfile). The Dockerfile copies only Aptfile, .do/, server/ and web/ anyway; this keeps local
+# secrets and leftovers out of those.
+.git
+docs
+contract/*.md
+contract/examples
+server/.env
+server/.env.*
+!server/.env.example
+server/vendor
+server/node_modules
+server/storage/app
+server/storage/logs
+server/storage/framework
+server/bootstrap/cache/*.php
+server/tests
+server/.phpunit.cache
+web/tests
+web/tool
+web/bin
+web/spike_audio

@@ -1,0 +1,77 @@
+{
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data",
+        "meta"
+    ],
+    "properties": {
+        "data": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                    "project",
+                    "parts",
+                    "takes",
+                    "owner",
+                    "role",
+                    "lastActivityAt"
+                ],
+                "properties": {
+                    "project": {
+                        "$ref": "project.json"
+                    },
+                    "parts": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "part.json"
+                        }
+                    },
+                    "takes": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "take.json"
+                        }
+                    },
+                    "owner": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "id",
+                            "name"
+                        ],
+                        "properties": {
+                            "id": {
+                                "type": "string"
+                            },
+                            "name": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "role": {
+                        "type": "string",
+                        "enum": [
+                            "singer"
+                        ]
+                    },
+                    "lastActivityAt": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time",
+                        "description": "When the project, or a part on it, last changed."
+                    }
+                }
+            }
+        },
+        "meta": {
+            "$ref": "meta.json"
+        }
+    },
+    "$id": "projects.shared.json",
+    "title": "Projects the person sings in but doesn't own"
+}

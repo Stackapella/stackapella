@@ -1,0 +1,28 @@
+{
+    "data": [
+        {
+            "id": "Gp4rQs",
+            "name": "Thursday Singers",
+            "role": "director",
+            "director": {
+                "id": "jR4kLmNo",
+                "name": "Ana Ruiz"
+            },
+            "members": 3,
+            "songs": 2,
+            "readOnly": false
+        },
+        {
+            "id": "Gz7xWv",
+            "name": "Church choir",
+            "role": "member",
+            "director": {
+                "id": "Qw2eRtYu",
+                "name": "Jo Park"
+            },
+            "members": 24,
+            "songs": 5,
+            "readOnly": false
+        }
+    ]
+}

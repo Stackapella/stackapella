@@ -1,0 +1,13 @@
+{
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "$ref": "review.media.json"
+        }
+    },
+    "$id": "review.media.show.json"
+}

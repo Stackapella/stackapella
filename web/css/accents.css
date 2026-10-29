@@ -1,0 +1,361 @@
+/* Written by web/tool/accents.py from the palettes: don't edit by hand. */
+:root[data-theme="warm-dark"] {
+    --color-accent: #4ccfb0;
+    --color-accent-strong: #6ae9c9;
+    --color-accent-ink: #17120f;
+}
+:root[data-theme="warm-dark"][data-accent="coral"] {
+    --color-accent: #fd826a;
+    --color-accent-strong: #feac9b;
+    --color-accent-ink: #17120f;
+}
+:root[data-theme="warm-dark"][data-accent="amber"] {
+    --color-accent: #e69825;
+    --color-accent-strong: #feb354;
+    --color-accent-ink: #17120f;
+}
+:root[data-theme="warm-dark"][data-accent="green"] {
+    --color-accent: #58c66e;
+    --color-accent-strong: #73e087;
+    --color-accent-ink: #17120f;
+}
+:root[data-theme="warm-dark"][data-accent="teal"] {
+    --color-accent: #2ac3bb;
+    --color-accent-strong: #50ddd5;
+    --color-accent-ink: #17120f;
+}
+:root[data-theme="warm-dark"][data-accent="sky"] {
+    --color-accent: #47b5fa;
+    --color-accent-strong: #86cdff;
+    --color-accent-ink: #17120f;
+}
+:root[data-theme="warm-dark"][data-accent="indigo"] {
+    --color-accent: #88a7fd;
+    --color-accent-strong: #acc3fc;
+    --color-accent-ink: #17120f;
+}
+:root[data-theme="warm-dark"][data-accent="violet"] {
+    --color-accent: #b296ff;
+    --color-accent-strong: #c8b7ff;
+    --color-accent-ink: #17120f;
+}
+:root[data-theme="warm-dark"][data-accent="rose"] {
+    --color-accent: #fb78b0;
+    --color-accent-strong: #fda6c8;
+    --color-accent-ink: #17120f;
+}
+:root[data-theme="warm-light"] {
+    --color-accent: #b2357a;
+    --color-accent-strong: #971663;
+    --color-accent-ink: #faf5ee;
+}
+:root[data-theme="warm-light"][data-accent="coral"] {
+    --color-accent: #bd3b26;
+    --color-accent-strong: #a11d05;
+    --color-accent-ink: #faf5ee;
+}
+:root[data-theme="warm-light"][data-accent="amber"] {
+    --color-accent: #925d0b;
+    --color-accent-strong: #754903;
+    --color-accent-ink: #faf5ee;
+}
+:root[data-theme="warm-light"][data-accent="green"] {
+    --color-accent: #037a2f;
+    --color-accent-strong: #065f24;
+    --color-accent-ink: #faf5ee;
+}
+:root[data-theme="warm-light"][data-accent="teal"] {
+    --color-accent: #0e7571;
+    --color-accent-strong: #0e5c58;
+    --color-accent-ink: #faf5ee;
+}
+:root[data-theme="warm-light"][data-accent="sky"] {
+    --color-accent: #0d70a4;
+    --color-accent-strong: #025884;
+    --color-accent-ink: #faf5ee;
+}
+:root[data-theme="warm-light"][data-accent="indigo"] {
+    --color-accent: #4463c7;
+    --color-accent-strong: #304aac;
+    --color-accent-ink: #faf5ee;
+}
+:root[data-theme="warm-light"][data-accent="violet"] {
+    --color-accent: #7853c5;
+    --color-accent-strong: #623bab;
+    --color-accent-ink: #faf5ee;
+}
+:root[data-theme="warm-light"][data-accent="rose"] {
+    --color-accent: #b73975;
+    --color-accent-strong: #9b1c5e;
+    --color-accent-ink: #faf5ee;
+}
+:root[data-theme="midnight-dark"] {
+    --color-accent: #6cc4ff;
+    --color-accent-strong: #abdbfe;
+    --color-accent-ink: #0d1220;
+}
+:root[data-theme="midnight-dark"][data-accent="coral"] {
+    --color-accent: #fd826a;
+    --color-accent-strong: #feac9b;
+    --color-accent-ink: #0d1220;
+}
+:root[data-theme="midnight-dark"][data-accent="amber"] {
+    --color-accent: #e69825;
+    --color-accent-strong: #feb354;
+    --color-accent-ink: #0d1220;
+}
+:root[data-theme="midnight-dark"][data-accent="green"] {
+    --color-accent: #58c66e;
+    --color-accent-strong: #73e087;
+    --color-accent-ink: #0d1220;
+}
+:root[data-theme="midnight-dark"][data-accent="teal"] {
+    --color-accent: #2ac3bb;
+    --color-accent-strong: #50ddd5;
+    --color-accent-ink: #0d1220;
+}
+:root[data-theme="midnight-dark"][data-accent="sky"] {
+    --color-accent: #47b5fa;
+    --color-accent-strong: #86cdff;
+    --color-accent-ink: #0d1220;
+}
+:root[data-theme="midnight-dark"][data-accent="indigo"] {
+    --color-accent: #88a7fd;
+    --color-accent-strong: #acc3fc;
+    --color-accent-ink: #0d1220;
+}
+:root[data-theme="midnight-dark"][data-accent="violet"] {
+    --color-accent: #b296ff;
+    --color-accent-strong: #c8b7ff;
+    --color-accent-ink: #0d1220;
+}
+:root[data-theme="midnight-dark"][data-accent="rose"] {
+    --color-accent: #fb78b0;
+    --color-accent-strong: #fda6c8;
+    --color-accent-ink: #0d1220;
+}
+:root[data-theme="midnight-light"] {
+    --color-accent: #036eae;
+    --color-accent-strong: #02578b;
+    --color-accent-ink: #f1f5fb;
+}
+:root[data-theme="midnight-light"][data-accent="coral"] {
+    --color-accent: #bd3b26;
+    --color-accent-strong: #a11d05;
+    --color-accent-ink: #f1f5fb;
+}
+:root[data-theme="midnight-light"][data-accent="amber"] {
+    --color-accent: #945f0e;
+    --color-accent-strong: #764a05;
+    --color-accent-ink: #f1f5fb;
+}
+:root[data-theme="midnight-light"][data-accent="green"] {
+    --color-accent: #037a2f;
+    --color-accent-strong: #065f24;
+    --color-accent-ink: #f1f5fb;
+}
+:root[data-theme="midnight-light"][data-accent="teal"] {
+    --color-accent: #0e7571;
+    --color-accent-strong: #0e5c58;
+    --color-accent-ink: #f1f5fb;
+}
+:root[data-theme="midnight-light"][data-accent="sky"] {
+    --color-accent: #0d70a4;
+    --color-accent-strong: #025884;
+    --color-accent-ink: #f1f5fb;
+}
+:root[data-theme="midnight-light"][data-accent="indigo"] {
+    --color-accent: #4463c7;
+    --color-accent-strong: #304aac;
+    --color-accent-ink: #f1f5fb;
+}
+:root[data-theme="midnight-light"][data-accent="violet"] {
+    --color-accent: #7853c5;
+    --color-accent-strong: #623bab;
+    --color-accent-ink: #f1f5fb;
+}
+:root[data-theme="midnight-light"][data-accent="rose"] {
+    --color-accent: #b73975;
+    --color-accent-strong: #9b1c5e;
+    --color-accent-ink: #f1f5fb;
+}
+:root[data-theme="graphite-dark"] {
+    --color-accent: #c99bff;
+    --color-accent-strong: #dbbffe;
+    --color-accent-ink: #151617;
+}
+:root[data-theme="graphite-dark"][data-accent="coral"] {
+    --color-accent: #fd826a;
+    --color-accent-strong: #feac9b;
+    --color-accent-ink: #151617;
+}
+:root[data-theme="graphite-dark"][data-accent="amber"] {
+    --color-accent: #e69825;
+    --color-accent-strong: #feb354;
+    --color-accent-ink: #151617;
+}
+:root[data-theme="graphite-dark"][data-accent="green"] {
+    --color-accent: #58c66e;
+    --color-accent-strong: #73e087;
+    --color-accent-ink: #151617;
+}
+:root[data-theme="graphite-dark"][data-accent="teal"] {
+    --color-accent: #2ac3bb;
+    --color-accent-strong: #50ddd5;
+    --color-accent-ink: #151617;
+}
+:root[data-theme="graphite-dark"][data-accent="sky"] {
+    --color-accent: #47b5fa;
+    --color-accent-strong: #86cdff;
+    --color-accent-ink: #151617;
+}
+:root[data-theme="graphite-dark"][data-accent="indigo"] {
+    --color-accent: #88a7fd;
+    --color-accent-strong: #acc3fc;
+    --color-accent-ink: #151617;
+}
+:root[data-theme="graphite-dark"][data-accent="violet"] {
+    --color-accent: #b296ff;
+    --color-accent-strong: #c8b7ff;
+    --color-accent-ink: #151617;
+}
+:root[data-theme="graphite-dark"][data-accent="rose"] {
+    --color-accent: #fb78b0;
+    --color-accent-strong: #fda6c8;
+    --color-accent-ink: #151617;
+}
+:root[data-theme="graphite-light"] {
+    --color-accent: #7c3eb3;
+    --color-accent-strong: #652399;
+    --color-accent-ink: #f3f3f1;
+}
+:root[data-theme="graphite-light"][data-accent="coral"] {
+    --color-accent: #bb3924;
+    --color-accent-strong: #a01b03;
+    --color-accent-ink: #f3f3f1;
+}
+:root[data-theme="graphite-light"][data-accent="amber"] {
+    --color-accent: #925d0b;
+    --color-accent-strong: #754903;
+    --color-accent-ink: #f3f3f1;
+}
+:root[data-theme="graphite-light"][data-accent="green"] {
+    --color-accent: #0c7830;
+    --color-accent-strong: #035e23;
+    --color-accent-ink: #f3f3f1;
+}
+:root[data-theme="graphite-light"][data-accent="teal"] {
+    --color-accent: #0a746f;
+    --color-accent-strong: #0b5a57;
+    --color-accent-ink: #f3f3f1;
+}
+:root[data-theme="graphite-light"][data-accent="sky"] {
+    --color-accent: #0a6ea2;
+    --color-accent-strong: #0b5780;
+    --color-accent-ink: #f3f3f1;
+}
+:root[data-theme="graphite-light"][data-accent="indigo"] {
+    --color-accent: #4361c5;
+    --color-accent-strong: #2f49ab;
+    --color-accent-ink: #f3f3f1;
+}
+:root[data-theme="graphite-light"][data-accent="violet"] {
+    --color-accent: #7752c3;
+    --color-accent-strong: #6139a9;
+    --color-accent-ink: #f3f3f1;
+}
+:root[data-theme="graphite-light"][data-accent="rose"] {
+    --color-accent: #b53874;
+    --color-accent-strong: #9a1a5d;
+    --color-accent-ink: #f3f3f1;
+}
+:root[data-theme="stage-dark"] {
+    --color-accent: #ff79da;
+    --color-accent-strong: #feade4;
+    --color-accent-ink: #000000;
+}
+:root[data-theme="stage-dark"][data-accent="coral"] {
+    --color-accent: #fd826a;
+    --color-accent-strong: #feac9b;
+    --color-accent-ink: #000000;
+}
+:root[data-theme="stage-dark"][data-accent="amber"] {
+    --color-accent: #e69825;
+    --color-accent-strong: #feb354;
+    --color-accent-ink: #000000;
+}
+:root[data-theme="stage-dark"][data-accent="green"] {
+    --color-accent: #58c66e;
+    --color-accent-strong: #73e087;
+    --color-accent-ink: #000000;
+}
+:root[data-theme="stage-dark"][data-accent="teal"] {
+    --color-accent: #2ac3bb;
+    --color-accent-strong: #50ddd5;
+    --color-accent-ink: #000000;
+}
+:root[data-theme="stage-dark"][data-accent="sky"] {
+    --color-accent: #47b5fa;
+    --color-accent-strong: #86cdff;
+    --color-accent-ink: #000000;
+}
+:root[data-theme="stage-dark"][data-accent="indigo"] {
+    --color-accent: #88a7fd;
+    --color-accent-strong: #acc3fc;
+    --color-accent-ink: #000000;
+}
+:root[data-theme="stage-dark"][data-accent="violet"] {
+    --color-accent: #b296ff;
+    --color-accent-strong: #c8b7ff;
+    --color-accent-ink: #000000;
+}
+:root[data-theme="stage-dark"][data-accent="rose"] {
+    --color-accent: #fb78b0;
+    --color-accent-strong: #fda6c8;
+    --color-accent-ink: #000000;
+}
+:root[data-theme="stage-light"] {
+    --color-accent: #950183;
+    --color-accent-strong: #720064;
+    --color-accent-ink: #f0f0f0;
+}
+:root[data-theme="stage-light"][data-accent="coral"] {
+    --color-accent: #ba3822;
+    --color-accent-strong: #9e1901;
+    --color-accent-ink: #f0f0f0;
+}
+:root[data-theme="stage-light"][data-accent="amber"] {
+    --color-accent: #8f5a04;
+    --color-accent-strong: #704709;
+    --color-accent-ink: #f0f0f0;
+}
+:root[data-theme="stage-light"][data-accent="green"] {
+    --color-accent: #09762e;
+    --color-accent-strong: #005c21;
+    --color-accent-ink: #f0f0f0;
+}
+:root[data-theme="stage-light"][data-accent="teal"] {
+    --color-accent: #06726e;
+    --color-accent-strong: #085955;
+    --color-accent-ink: #f0f0f0;
+}
+:root[data-theme="stage-light"][data-accent="sky"] {
+    --color-accent: #026c9f;
+    --color-accent-strong: #05547d;
+    --color-accent-ink: #f0f0f0;
+}
+:root[data-theme="stage-light"][data-accent="indigo"] {
+    --color-accent: #415ec2;
+    --color-accent-strong: #2c46a8;
+    --color-accent-ink: #f0f0f0;
+}
+:root[data-theme="stage-light"][data-accent="violet"] {
+    --color-accent: #744fc0;
+    --color-accent-strong: #5e36a6;
+    --color-accent-ink: #f0f0f0;
+}
+:root[data-theme="stage-light"][data-accent="rose"] {
+    --color-accent: #b23471;
+    --color-accent-strong: #96165a;
+    --color-accent-ink: #f0f0f0;
+}

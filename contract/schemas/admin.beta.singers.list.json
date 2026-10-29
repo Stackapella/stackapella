@@ -1,0 +1,16 @@
+{
+    "$id": "admin.beta.singers.list.json",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "type": "array",
+            "items": {
+                "$ref": "admin.beta.singer.json"
+            }
+        }
+    }
+}

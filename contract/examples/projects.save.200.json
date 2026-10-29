@@ -1,0 +1,24 @@
+{
+    "data": {
+        "id": "3f2a1c9e-4b7d-4e2a-9c1f-0a8b7c6d5e4f",
+        "title": "Amazing Grace",
+        "bpm": 80,
+        "key": "G",
+        "timeSignature": "3/4",
+        "template": {
+            "id": "amazing-grace",
+            "version": 2
+        },
+        "settings": {
+            "practice": {
+                "focus": "7b1e2d3c-5a6f-4b8c-9d0e-1f2a3b4c5d6e"
+            }
+        },
+        "version": 5,
+        "bytes": 4421730,
+        "createdAt": "2026-10-20T09:00:00Z",
+        "updatedAt": "2026-10-26T18:00:00Z",
+        "binnedAt": null,
+        "readOnly": null
+    }
+}

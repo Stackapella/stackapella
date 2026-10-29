@@ -1,0 +1,24 @@
+{
+    "data": [
+        {
+            "kind": "take",
+            "id": "5a4b3c2d-1e0f-4a9b-8c7d-6e5f4a3b2c1d",
+            "title": "Amazing Grace",
+            "projectId": "3f2a1c9e-4b7d-4e2a-9c1f-0a8b7c6d5e4f",
+            "partName": "Alto",
+            "bytes": 4398112,
+            "binnedAt": "2026-10-26T18:00:00Z",
+            "goesAt": "2026-11-25T18:00:00Z"
+        },
+        {
+            "kind": "project",
+            "id": "1d2c3b4a-5f6e-4d7c-8b9a-0f1e2d3c4b5a",
+            "title": "Red River Valley",
+            "projectId": "1d2c3b4a-5f6e-4d7c-8b9a-0f1e2d3c4b5a",
+            "partName": null,
+            "bytes": 12880400,
+            "binnedAt": "2026-10-25T10:00:00Z",
+            "goesAt": "2026-11-24T10:00:00Z"
+        }
+    ]
+}

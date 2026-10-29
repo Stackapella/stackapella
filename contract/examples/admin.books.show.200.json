@@ -1,0 +1,15 @@
+{
+    "data": {
+        "companyName": "Stackapella",
+        "url": null,
+        "sendEmail": false,
+        "status": "active",
+        "problem": null,
+        "recorded": 310,
+        "waiting": 1,
+        "notRecorded": 2,
+        "connectedAt": "2026-11-01T09:00:00Z",
+        "paymentsWebhook": true,
+        "problemCode": null
+    }
+}

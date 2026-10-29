@@ -1,0 +1,11 @@
+{
+    "data": {
+        "id": "m1a2b3c4-d5e6-4f70-8192-a3b4c5d6e7f8",
+        "kind": "voice_note",
+        "status": "processing",
+        "url": null,
+        "sampleRate": 48000,
+        "frames": 240000,
+        "createdAt": "2026-10-28T09:00:00Z"
+    }
+}

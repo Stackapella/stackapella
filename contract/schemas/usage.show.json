@@ -1,0 +1,96 @@
+{
+    "$id": "usage.show.json",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "plan",
+                "projects",
+                "storage"
+            ],
+            "properties": {
+                "plan": {
+                    "type": "string",
+                    "enum": [
+                        "free",
+                        "plus"
+                    ]
+                },
+                "projects": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                        "used",
+                        "limit"
+                    ],
+                    "properties": {
+                        "used": {
+                            "type": "integer"
+                        },
+                        "limit": {
+                            "type": [
+                                "integer",
+                                "null"
+                            ],
+                            "description": "null: unlimited."
+                        }
+                    }
+                },
+                "storage": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                        "usedBytes",
+                        "limitBytes",
+                        "binBytes",
+                        "projects"
+                    ],
+                    "properties": {
+                        "usedBytes": {
+                            "type": "integer"
+                        },
+                        "limitBytes": {
+                            "type": "integer"
+                        },
+                        "binBytes": {
+                            "type": "integer",
+                            "description": "In the bin: doesn't count."
+                        },
+                        "projects": {
+                            "type": "array",
+                            "description": "Each project outside the bin with takes they recorded, largest first.",
+                            "items": {
+                                "type": "object",
+                                "additionalProperties": false,
+                                "required": [
+                                    "projectId",
+                                    "bytes",
+                                    "binBytes"
+                                ],
+                                "properties": {
+                                    "projectId": {
+                                        "type": "string"
+                                    },
+                                    "bytes": {
+                                        "type": "integer",
+                                        "description": "Its current takes (they count)."
+                                    },
+                                    "binBytes": {
+                                        "type": "integer",
+                                        "description": "Its older takes in the bin (they don't count)."
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

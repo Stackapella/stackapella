@@ -1,0 +1,18 @@
+{
+    "data": {
+        "timezone": "America/New_York",
+        "durationMinutes": 45,
+        "slots": [
+            {
+                "startsAt": "2026-11-03T18:00:00Z",
+                "date": "2026-11-03",
+                "label": "1:00 PM"
+            },
+            {
+                "startsAt": "2026-11-03T19:00:00Z",
+                "date": "2026-11-03",
+                "label": "2:00 PM"
+            }
+        ]
+    }
+}

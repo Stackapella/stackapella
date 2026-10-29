@@ -1,0 +1,538 @@
+{
+    "$id": "template.json",
+    "title": "A harmony template (one version of it)",
+    "description": "The format in web/templates/*.json. Times are in beats from beat 0 (the first pickup beat); pitches are MIDI note numbers. Ranges and ordering rules (tempo 30 to 300, notes in order and inside the part's range, phrases inside their section, voicings that keep the melody) are checked by validateTemplate in web/js/templates.js and its PHP twin, not by this schema's subset.",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "id",
+        "version",
+        "reviewed",
+        "title",
+        "description",
+        "difficulty",
+        "genre",
+        "tempo",
+        "key",
+        "timeSignature",
+        "pickupBeats",
+        "credits",
+        "licence",
+        "sections",
+        "parts"
+    ],
+    "properties": {
+        "id": {
+            "type": "string",
+            "description": "Lowercase letters, digits and dashes."
+        },
+        "version": {
+            "type": "integer",
+            "description": "From 1. A published version never changes."
+        },
+        "reviewed": {
+            "type": "boolean",
+            "description": "False until the musician has checked it; drafts only show on localhost or with ?drafts=1."
+        },
+        "title": {
+            "type": "string"
+        },
+        "description": {
+            "type": "string"
+        },
+        "language": {
+            "type": "string",
+            "description": "The language the words are sung in (BCP 47, e.g. en, la, uk). Optional; English when missing."
+        },
+        "difficulty": {
+            "type": "string",
+            "enum": [
+                "beginner",
+                "intermediate",
+                "advanced"
+            ]
+        },
+        "genre": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "style": {
+            "type": "string",
+            "enum": [
+                "straight",
+                "free",
+                "vibrato"
+            ],
+            "description": "How to use vibrato (docs/vibrato-plan.md): straight (a light, straight tone so the chord rings: barbershop, choral, rounds), free (the singer's natural tone; the default) or vibrato (welcomed). Metadata, not music: changing it never needs a new version."
+        },
+        "tempo": {
+            "type": "number",
+            "description": "Beats per minute, 30 to 300."
+        },
+        "key": {
+            "type": "string",
+            "description": "C, C#, D, Eb, E, F, F#, G, Ab, A, Bb or B, with an m for minor."
+        },
+        "timeSignature": {
+            "type": "string",
+            "enum": [
+                "4/4",
+                "3/4",
+                "6/8",
+                "2/4"
+            ]
+        },
+        "pickupBeats": {
+            "type": "number",
+            "description": "Beats before bar 1: 0 or more, less than a bar."
+        },
+        "credits": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "words",
+                "tune",
+                "arrangement"
+            ],
+            "properties": {
+                "words": {
+                    "type": "string"
+                },
+                "tune": {
+                    "type": "string"
+                },
+                "arrangement": {
+                    "type": "string"
+                }
+            }
+        },
+        "licence": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "words",
+                "tune",
+                "arrangement",
+                "recordings",
+                "checked"
+            ],
+            "properties": {
+                "words": {
+                    "type": "string"
+                },
+                "tune": {
+                    "type": "string"
+                },
+                "arrangement": {
+                    "type": "string"
+                },
+                "recordings": {
+                    "type": "string"
+                },
+                "source": {
+                    "type": "string",
+                    "description": "Where the public-domain basis was confirmed."
+                },
+                "checked": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "format": "date-time",
+                    "description": "When the musician confirmed the licence basis; null for drafts."
+                }
+            }
+        },
+        "order": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            },
+            "description": "Part keys in the suggested order to record them."
+        },
+        "voicings": {
+            "type": "object",
+            "additionalProperties": false,
+            "description": "Which parts sing for 1 up to the number of parts' singers. Each list names that many part keys and includes the melody.",
+            "properties": {
+                "1": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "2": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "3": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "4": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "5": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "6": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "chords": {
+            "type": "array",
+            "description": "Optional: the harmony underneath, for Chords underneath (docs/more-features-plan.md, feature 3). Each chord lasts until the next one's beat, or the song's end; beats ascend from 0 (the server checks). The root and bass are pitch classes in the key as written, and the app transposes them.",
+            "items": {
+                "$ref": "#/$defs/chord"
+            }
+        },
+        "sections": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                    "name",
+                    "startBeat",
+                    "endBeat",
+                    "phrases"
+                ],
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "startBeat": {
+                        "type": "number"
+                    },
+                    "endBeat": {
+                        "type": "number"
+                    },
+                    "phrases": {
+                        "type": "array",
+                        "description": "Each phrase is [startBeat, endBeat].",
+                        "items": {
+                            "type": "array",
+                            "items": {
+                                "type": "number"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "parts": {
+            "type": "array",
+            "items": {
+                "$ref": "#/$defs/part"
+            }
+        },
+        "builder": {
+            "type": "object",
+            "additionalProperties": false,
+            "description": "Optional: how the song builder made it (Start from chords), so it reopens in the builder and another device can rebuild its backing. The server only checks it: at most 64 bars a section, numerals up to 12 characters.",
+            "properties": {
+                "progression": {
+                    "type": [
+                        "object",
+                        "null"
+                    ],
+                    "additionalProperties": false,
+                    "required": [
+                        "id",
+                        "bars",
+                        "mode"
+                    ],
+                    "properties": {
+                        "id": {
+                            "type": "string"
+                        },
+                        "bars": {
+                            "type": "array",
+                            "description": "Bars, each a list of the chords in it as Roman numerals the way the app's theory.js writes them (e.g. I, vi, V7, bVII).",
+                            "items": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                }
+                            }
+                        },
+                        "mode": {
+                            "type": "string",
+                            "enum": [
+                                "major",
+                                "minor"
+                            ]
+                        },
+                        "swing": {
+                            "type": "number",
+                            "description": "0 (straight) to 1."
+                        }
+                    }
+                },
+                "sound": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "enum": [
+                        "band",
+                        "voices",
+                        "piano",
+                        "guitar",
+                        "beat",
+                        null
+                    ]
+                },
+                "mix": {
+                    "type": [
+                        "object",
+                        "null"
+                    ],
+                    "additionalProperties": false,
+                    "properties": {
+                        "voices": {
+                            "type": "number"
+                        },
+                        "instrument": {
+                            "type": "number"
+                        },
+                        "bass": {
+                            "type": "number"
+                        },
+                        "beat": {
+                            "type": "number"
+                        }
+                    },
+                    "description": "Each 0 to 1."
+                },
+                "sections": {
+                    "type": [
+                        "array",
+                        "null"
+                    ],
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "name",
+                            "bars"
+                        ],
+                        "properties": {
+                            "name": {
+                                "type": "string"
+                            },
+                            "bars": {
+                                "type": "array",
+                                "description": "Bars, each a list of the chords in it as Roman numerals the way the app's theory.js writes them (e.g. I, vi, V7, bVII).",
+                                "items": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "$defs": {
+        "chord": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "beat",
+                "root",
+                "quality",
+                "bass"
+            ],
+            "properties": {
+                "beat": {
+                    "type": "number"
+                },
+                "root": {
+                    "type": "integer",
+                    "enum": [
+                        0,
+                        1,
+                        2,
+                        3,
+                        4,
+                        5,
+                        6,
+                        7,
+                        8,
+                        9,
+                        10,
+                        11
+                    ]
+                },
+                "quality": {
+                    "type": "string",
+                    "enum": [
+                        "maj",
+                        "min",
+                        "dim",
+                        "aug",
+                        "sus2",
+                        "sus4",
+                        "maj7",
+                        "min7",
+                        "dom7",
+                        "dim7",
+                        "hdim7",
+                        "maj6",
+                        "min6",
+                        "add9"
+                    ]
+                },
+                "bass": {
+                    "type": [
+                        "integer",
+                        "null"
+                    ],
+                    "enum": [
+                        0,
+                        1,
+                        2,
+                        3,
+                        4,
+                        5,
+                        6,
+                        7,
+                        8,
+                        9,
+                        10,
+                        11,
+                        null
+                    ],
+                    "description": "An inversion or a pedal; null is the root."
+                }
+            }
+        },
+        "part": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "key",
+                "name",
+                "range",
+                "guide"
+            ],
+            "properties": {
+                "key": {
+                    "type": "string",
+                    "description": "A stable key, unique in the template, never shown: lower-case letters, digits and dashes, starting with a letter, up to 40 (the server checks). Official templates use soprano, alto, tenor and bass, or barbershop's tenor, lead (the melody), baritone and bass, never a mix; the app names those in each language, and any other from its name."
+                },
+                "name": {
+                    "type": "string",
+                    "description": "The part's name, 1 to 40 characters (the server checks): for credits, the admin, and any part whose key isn't one of the four."
+                },
+                "kind": {
+                    "type": "string",
+                    "enum": [
+                        "voice",
+                        "instrument"
+                    ],
+                    "description": "Optional; absent is a voice. An instrument's credits say \"played by\". Official templates are voices only."
+                },
+                "melody": {
+                    "type": "boolean",
+                    "description": "True on exactly one part: the one with the tune."
+                },
+                "style": {
+                    "type": "string",
+                    "enum": [
+                        "straight",
+                        "free",
+                        "vibrato"
+                    ],
+                    "description": "This part's own style, over the song's."
+                },
+                "range": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                        "low",
+                        "high"
+                    ],
+                    "properties": {
+                        "low": {
+                            "type": "integer"
+                        },
+                        "high": {
+                            "type": "integer"
+                        }
+                    }
+                },
+                "guide": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                        "type",
+                        "notes"
+                    ],
+                    "properties": {
+                        "type": {
+                            "type": "string",
+                            "enum": [
+                                "notes"
+                            ]
+                        },
+                        "notes": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/$defs/note"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "note": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "beat",
+                "length",
+                "pitch"
+            ],
+            "properties": {
+                "beat": {
+                    "type": "number"
+                },
+                "length": {
+                    "type": "number"
+                },
+                "pitch": {
+                    "type": "integer"
+                },
+                "lyric": {
+                    "type": "string",
+                    "description": "The syllable sung on this note. A trailing dash joins it to the next syllable. A note without one continues the word (a melisma)."
+                },
+                "br": {
+                    "type": "boolean",
+                    "description": "This note starts a new line of words."
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,7 @@
+# The showreel's videos and sound are served from the CDN, never committed (server/resources/promo/showreel/README.md).
+*.webm
+*.mp4
+*.m4a
+*.opus
+*.wav
+*.gif

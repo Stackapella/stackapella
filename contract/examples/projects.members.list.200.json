@@ -1,0 +1,16 @@
+{
+    "data": [
+        {
+            "id": "jR4kLmNo",
+            "name": "Ana Ruiz",
+            "role": "owner",
+            "joinedAt": null
+        },
+        {
+            "id": "Ty6uIoPq",
+            "name": "Sam Lee",
+            "role": "singer",
+            "joinedAt": "2026-10-27T11:00:00Z"
+        }
+    ]
+}

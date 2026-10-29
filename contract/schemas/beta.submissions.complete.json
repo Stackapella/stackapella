@@ -1,0 +1,13 @@
+{
+    "$id": "beta.submissions.complete.json",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "$ref": "beta.submission.json"
+        }
+    }
+}

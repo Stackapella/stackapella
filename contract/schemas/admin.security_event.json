@@ -1,0 +1,53 @@
+{
+    "$id": "admin.security_event.json",
+    "title": "One security event",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "id",
+        "type",
+        "user",
+        "ip",
+        "ipHash",
+        "context",
+        "createdAt"
+    ],
+    "properties": {
+        "id": {
+            "type": "string",
+            "description": "A Sqid."
+        },
+        "type": {
+            "type": "string",
+            "description": "A stable key the app words. Known now: admin_sign_in, sign_in_refused, second_factor_failed, second_factor_locked, rate_limited, blocked. Later milestones add more (sign_up, share, report, payment_failed...), so the app shows an unknown key as a generic event."
+        },
+        "user": {
+            "$ref": "admin.person.json"
+        },
+        "ip": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "description": "The raw address, for 30 days; null after."
+        },
+        "ipHash": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "description": "The first 12 characters of the address's HMAC, to link events across accounts."
+        },
+        "context": {
+            "type": [
+                "object",
+                "null"
+            ],
+            "description": "Values for the type: limiter and rule, reason, where, attempts, method."
+        },
+        "createdAt": {
+            "type": "string",
+            "format": "date-time"
+        }
+    }
+}

@@ -1,0 +1,29 @@
+{
+    "data": {
+        "handle": "grace_sings",
+        "name": "Grace Okafor",
+        "avatarUrl": null,
+        "status": "approved",
+        "bio": "Choir director and voice teacher.",
+        "voiceTypes": [
+            "alto",
+            "soprano"
+        ],
+        "styles": [
+            "choral",
+            "folk"
+        ],
+        "languages": [
+            "en"
+        ],
+        "timezone": "Europe/London",
+        "cancellationHours": 24,
+        "canSell": true,
+        "chargesEnabled": true,
+        "rating": {
+            "average": null,
+            "count": 1
+        },
+        "profileUrl": "https://beta.stackapella.com/coach/grace_sings"
+    }
+}

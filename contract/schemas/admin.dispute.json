@@ -1,0 +1,41 @@
+{
+    "$id": "admin.dispute.json",
+    "title": "A chargeback",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "id",
+        "person",
+        "amountCents",
+        "currency",
+        "reason",
+        "status",
+        "createdAt"
+    ],
+    "properties": {
+        "id": {
+            "type": "string"
+        },
+        "person": {
+            "$ref": "admin.person.json"
+        },
+        "amountCents": {
+            "type": "integer"
+        },
+        "currency": {
+            "type": "string"
+        },
+        "reason": {
+            "type": "string",
+            "description": "Stripe's reason code (fraudulent, product_not_received...)."
+        },
+        "status": {
+            "type": "string",
+            "description": "Stripe's dispute status (needs_response, won, lost...)."
+        },
+        "createdAt": {
+            "type": "string",
+            "format": "date-time"
+        }
+    }
+}

@@ -1,0 +1,56 @@
+{
+    "$id": "account.learning.json",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "progress",
+                "version",
+                "epoch",
+                "resetAt",
+                "undoUntil",
+                "updatedAt"
+            ],
+            "properties": {
+                "progress": {
+                    "type": "object"
+                },
+                "version": {
+                    "type": "integer"
+                },
+                "epoch": {
+                    "type": "integer",
+                    "description": "0 until the course is started over; each reset (and its undo) adds one. Saves from an older epoch are refused with learning_reset."
+                },
+                "resetAt": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "format": "date-time"
+                },
+                "undoUntil": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "format": "date-time",
+                    "description": "While the last reset can be undone (30 days)."
+                },
+                "updatedAt": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "format": "date-time"
+                }
+            }
+        }
+    }
+}

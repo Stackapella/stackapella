@@ -1,0 +1,126 @@
+{
+    "$id": "auth.config.json",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "methods",
+                "signups",
+                "turnstileSiteKey",
+                "passwordMinLength",
+                "comingSoon",
+                "prelaunch",
+                "instrumentsIndexUrl",
+                "selfHosted",
+                "sentryDsn",
+                "usageCounts",
+                "coachSignup",
+                "experiment"
+            ],
+            "properties": {
+                "methods": {
+                    "type": "array",
+                    "items": {
+                        "type": "string",
+                        "enum": [
+                            "google",
+                            "apple",
+                            "event_schedule",
+                            "password"
+                        ]
+                    },
+                    "description": "The sign-in methods on offer, in order (the last one used first is the app's to remember)."
+                },
+                "signups": {
+                    "type": "string",
+                    "enum": [
+                        "open",
+                        "password_paused",
+                        "paused"
+                    ],
+                    "description": "An attack switch: new accounts with a password, or any new accounts, paused for now."
+                },
+                "sentryDsn": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "description": "The browser error reporter's Sentry DSN (public by design): its envelopes go to /log/errors, which scrubs and forwards them. Null when it isn't set up, and the app sends nothing."
+                },
+                "turnstileSiteKey": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "description": "Set while shield mode is on: show Cloudflare Turnstile on sign-up, sign-in and reset, and send its token as turnstileToken."
+                },
+                "passwordMinLength": {
+                    "type": "integer"
+                },
+                "comingSoon": {
+                    "type": "boolean",
+                    "description": "Before launch, and this visitor isn't let in yet (no beta pass, not signed in): show only signing in, the emails' token pages and the invite pages. Never cached (no-store)."
+                },
+                "prelaunch": {
+                    "type": "boolean",
+                    "description": "Before launch (coming soon is on), whoever is asking; comingSoon is false for anyone let in."
+                },
+                "instrumentsIndexUrl": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "format": "uri",
+                    "description": "The real-instrument samples' index (instruments/index.json on the media CDN): each instrument's current version and its manifest. Null where instruments are off: the apps use the synth."
+                },
+                "selfHosted": {
+                    "type": "boolean",
+                    "description": "A self-hosted install (SELF_HOSTED on its server): every account has Plus, so the app shows no Plus page link, Get Plus button or See Plus, and says Plus is included. False on stackapella.com."
+                },
+                "usageCounts": {
+                    "type": "boolean",
+                    "description": "Whether the app sends its anonymous usage counts (counts.create). False on a self-hosted install unless its owner turns them on."
+                },
+                "coachSignup": {
+                    "type": "boolean",
+                    "description": "Coaches can apply (the coach_signup switch); the directory that lists them is a separate switch."
+                },
+                "experiment": {
+                    "type": [
+                        "object",
+                        "null"
+                    ],
+                    "additionalProperties": false,
+                    "required": [
+                        "id",
+                        "arms",
+                        "enrol"
+                    ],
+                    "properties": {
+                        "id": {
+                            "type": "string"
+                        },
+                        "arms": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        },
+                        "enrol": {
+                            "type": "boolean",
+                            "description": "A new device draws an arm at its first open (f_arrive) only while true (from the experiment's start until its end day); devices already in an arm keep sending it."
+                        }
+                    },
+                    "description": "The funnel's running A/B experiment (admin.funnel.show), or null when none runs or usage counts are off. A device sends \"<id>-<arm>\" as counts.create's variant."
+                }
+            }
+        }
+    },
+    "title": "What the sign-in screens need to know"
+}

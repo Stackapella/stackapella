@@ -1,0 +1,38 @@
+{
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "id",
+        "partKey",
+        "partName",
+        "expiresAt",
+        "createdAt"
+    ],
+    "properties": {
+        "id": {
+            "type": "string"
+        },
+        "partKey": {
+            "type": [
+                "string",
+                "null"
+            ]
+        },
+        "partName": {
+            "type": [
+                "string",
+                "null"
+            ]
+        },
+        "expiresAt": {
+            "type": "string",
+            "format": "date-time"
+        },
+        "createdAt": {
+            "type": "string",
+            "format": "date-time"
+        }
+    },
+    "$id": "invite.item.json",
+    "title": "An open project invite, for its owner"
+}

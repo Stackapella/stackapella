@@ -1,0 +1,190 @@
+{
+    "$id": "beta.submission.json",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "id",
+        "assignmentId",
+        "status",
+        "failure",
+        "templateVersion",
+        "durationSeconds",
+        "adminNote",
+        "adminNoteBeat",
+        "createdAt",
+        "adminNoteAt",
+        "url"
+    ],
+    "properties": {
+        "id": {
+            "type": "string"
+        },
+        "assignmentId": {
+            "type": "string"
+        },
+        "status": {
+            "type": "string",
+            "enum": [
+                "uploading",
+                "processing",
+                "submitted",
+                "in_review",
+                "retake",
+                "rejected",
+                "accepted",
+                "failed"
+            ]
+        },
+        "failure": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "enum": [
+                "not_audio",
+                "wrong_format",
+                "wrong_length",
+                "processing_error",
+                null
+            ],
+            "description": "Why processing refused the upload (status failed)."
+        },
+        "templateVersion": {
+            "type": [
+                "integer",
+                "null"
+            ]
+        },
+        "durationSeconds": {
+            "type": "number"
+        },
+        "adminNote": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "description": "Hillel's note (another take, or a kind word with a rejection), in his own words."
+        },
+        "adminNoteBeat": {
+            "type": [
+                "number",
+                "null"
+            ],
+            "description": "The beat his note is pinned to: open that phrase, ready to loop."
+        },
+        "adminNoteAt": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "description": "When Hillel wrote the note (ISO 8601); null without one."
+        },
+        "url": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "description": "Their own take, signed for 15 minutes, once it's processed; null while uploading or processing, or if it failed."
+        },
+        "createdAt": {
+            "type": "string",
+            "format": "date-time"
+        }
+    },
+    "title": "One take a beta singer sent",
+    "$defs": {
+        "nullable": {
+            "type": [
+                "object",
+                "null"
+            ],
+            "additionalProperties": false,
+            "required": [
+                "id",
+                "assignmentId",
+                "status",
+                "failure",
+                "templateVersion",
+                "durationSeconds",
+                "adminNote",
+                "adminNoteBeat",
+                "createdAt",
+                "adminNoteAt",
+                "url"
+            ],
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "assignmentId": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string",
+                    "enum": [
+                        "uploading",
+                        "processing",
+                        "submitted",
+                        "in_review",
+                        "retake",
+                        "rejected",
+                        "accepted",
+                        "failed"
+                    ]
+                },
+                "failure": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "enum": [
+                        "not_audio",
+                        "wrong_format",
+                        "wrong_length",
+                        "processing_error",
+                        null
+                    ],
+                    "description": "Why processing refused the upload (status failed)."
+                },
+                "templateVersion": {
+                    "type": "integer"
+                },
+                "durationSeconds": {
+                    "type": "number"
+                },
+                "adminNote": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "description": "Hillel's note (another take, or a kind word with a rejection), in his own words."
+                },
+                "adminNoteBeat": {
+                    "type": [
+                        "number",
+                        "null"
+                    ],
+                    "description": "The beat his note is pinned to: open that phrase, ready to loop."
+                },
+                "adminNoteAt": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "description": "When Hillel wrote the note (ISO 8601); null without one."
+                },
+                "url": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "description": "Their own take, signed for 15 minutes, once it's processed; null while uploading or processing, or if it failed."
+                },
+                "createdAt": {
+                    "type": "string",
+                    "format": "date-time"
+                }
+            }
+        }
+    }
+}

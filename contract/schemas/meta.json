@@ -1,0 +1,10 @@
+{
+    "$id": "meta.json",
+    "title": "A list's meta: the cursor for the next page",
+    "type": "object",
+    "additionalProperties": false,
+    "required": ["nextCursor"],
+    "properties": {
+        "nextCursor": { "type": ["string", "null"], "description": "Pass as ?cursor= for the next page; null on the last." }
+    }
+}

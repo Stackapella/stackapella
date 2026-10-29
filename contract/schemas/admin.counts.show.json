@@ -1,0 +1,93 @@
+{
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "days",
+                "countries",
+                "totals"
+            ],
+            "properties": {
+                "days": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "date",
+                            "kind",
+                            "guest",
+                            "account"
+                        ],
+                        "properties": {
+                            "date": {
+                                "type": "string",
+                                "description": "The day, as YYYY-MM-DD (UTC)."
+                            },
+                            "kind": {
+                                "type": "string"
+                            },
+                            "guest": {
+                                "type": "integer"
+                            },
+                            "account": {
+                                "type": "integer"
+                            }
+                        }
+                    }
+                },
+                "countries": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "country",
+                            "count"
+                        ],
+                        "properties": {
+                            "country": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            },
+                            "count": {
+                                "type": "integer"
+                            }
+                        }
+                    }
+                },
+                "totals": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "kind",
+                            "guest",
+                            "account"
+                        ],
+                        "properties": {
+                            "kind": {
+                                "type": "string"
+                            },
+                            "guest": {
+                                "type": "integer"
+                            },
+                            "account": {
+                                "type": "integer"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

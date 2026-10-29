@@ -1,0 +1,8 @@
+{
+    "message": "Unprocessable Content.",
+    "code": "below_bar",
+    "bar": {
+        "pitchPercent": 90,
+        "timingPercent": 80
+    }
+}

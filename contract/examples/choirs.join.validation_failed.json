@@ -1,0 +1,9 @@
+{
+    "message": "Unprocessable Content.",
+    "code": "validation_failed",
+    "errors": {
+        "score": [
+            "Almost! Your take needs 60% on pitch to join: practise and try again."
+        ]
+    }
+}

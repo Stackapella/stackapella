@@ -1,0 +1,47 @@
+{
+    "$id": "admin.report.json",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "id",
+        "reason",
+        "note",
+        "reporter",
+        "status",
+        "createdAt"
+    ],
+    "properties": {
+        "id": {
+            "type": "string"
+        },
+        "reason": {
+            "type": "string",
+            "enum": [
+                "copyright",
+                "offensive",
+                "spam",
+                "personal",
+                "other"
+            ]
+        },
+        "note": {
+            "type": "string"
+        },
+        "reporter": {
+            "$ref": "admin.person.json",
+            "description": "Null when signed out."
+        },
+        "status": {
+            "type": "string",
+            "enum": [
+                "open",
+                "upheld",
+                "dismissed"
+            ]
+        },
+        "createdAt": {
+            "type": "string",
+            "format": "date-time"
+        }
+    }
+}

@@ -1,0 +1,214 @@
+{
+    "$id": "admin.library.held.json",
+    "title": "admin.library.held",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                    "id",
+                    "version",
+                    "title",
+                    "description",
+                    "difficulty",
+                    "genre",
+                    "key",
+                    "tempo",
+                    "timeSignature",
+                    "durationSeconds",
+                    "parts",
+                    "voicings",
+                    "library",
+                    "creator",
+                    "declaration",
+                    "heldAt",
+                    "reports"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "version": {
+                        "type": "integer"
+                    },
+                    "title": {
+                        "type": "string"
+                    },
+                    "description": {
+                        "type": "string"
+                    },
+                    "difficulty": {
+                        "type": "string"
+                    },
+                    "genre": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "key": {
+                        "type": "string"
+                    },
+                    "tempo": {
+                        "type": "integer"
+                    },
+                    "timeSignature": {
+                        "type": "string"
+                    },
+                    "durationSeconds": {
+                        "type": "integer"
+                    },
+                    "parts": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "required": [
+                                "key",
+                                "name",
+                                "range"
+                            ],
+                            "properties": {
+                                "key": {
+                                    "type": "string"
+                                },
+                                "name": {
+                                    "type": "string"
+                                },
+                                "range": {
+                                    "type": "object",
+                                    "additionalProperties": false,
+                                    "required": [
+                                        "low",
+                                        "high"
+                                    ],
+                                    "properties": {
+                                        "low": {
+                                            "type": "integer"
+                                        },
+                                        "high": {
+                                            "type": "integer"
+                                        }
+                                    },
+                                    "description": "MIDI notes."
+                                }
+                            }
+                        }
+                    },
+                    "voicings": {
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        },
+                        "description": "How many singers it has versions for."
+                    },
+                    "library": {
+                        "$ref": "library.json"
+                    },
+                    "creator": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "handle",
+                            "name",
+                            "avatarUrl",
+                            "id"
+                        ],
+                        "properties": {
+                            "handle": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            },
+                            "name": {
+                                "type": "string"
+                            },
+                            "avatarUrl": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            },
+                            "id": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ],
+                                "description": "The account's id, for admin.people."
+                            }
+                        }
+                    },
+                    "declaration": {
+                        "type": [
+                            "object",
+                            "null"
+                        ],
+                        "additionalProperties": false,
+                        "required": [
+                            "song",
+                            "source",
+                            "ownWork",
+                            "at"
+                        ],
+                        "properties": {
+                            "song": {
+                                "type": "string",
+                                "enum": [
+                                    "original",
+                                    "public_domain"
+                                ]
+                            },
+                            "source": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            },
+                            "ownWork": {
+                                "type": "boolean"
+                            },
+                            "at": {
+                                "type": "string",
+                                "format": "date-time"
+                            }
+                        }
+                    },
+                    "heldAt": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    },
+                    "reports": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "count",
+                            "reasons"
+                        ],
+                        "properties": {
+                            "count": {
+                                "type": "integer"
+                            },
+                            "reasons": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

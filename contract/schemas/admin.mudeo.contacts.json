@@ -1,0 +1,55 @@
+{
+    "$id": "admin.mudeo.contacts.json",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                    "id",
+                    "email",
+                    "name",
+                    "status",
+                    "sentAt"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "email": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "to_send",
+                            "sent",
+                            "opted_out",
+                            "bounced"
+                        ]
+                    },
+                    "sentAt": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    }
+                }
+            }
+        }
+    },
+    "title": "Addresses on the list matching a search"
+}

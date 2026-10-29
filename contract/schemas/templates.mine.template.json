@@ -1,0 +1,123 @@
+{
+    "$id": "templates.mine.template.json",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "id",
+        "title",
+        "visibility",
+        "version",
+        "versions",
+        "libraryOptIn",
+        "readOnly",
+        "recordings",
+        "createdAt",
+        "updatedAt",
+        "library",
+        "parent"
+    ],
+    "properties": {
+        "id": {
+            "type": "string",
+            "description": "The UUID the device gave it (the template JSON's id); also its link."
+        },
+        "title": {
+            "type": "string"
+        },
+        "visibility": {
+            "type": "string",
+            "enum": [
+                "private",
+                "unlisted",
+                "public"
+            ]
+        },
+        "version": {
+            "type": "integer",
+            "description": "The current version."
+        },
+        "versions": {
+            "type": "array",
+            "items": {
+                "type": "integer"
+            },
+            "description": "Every version kept, oldest first."
+        },
+        "libraryOptIn": {
+            "type": "boolean"
+        },
+        "readOnly": {
+            "type": "boolean",
+            "description": "Over the free limit after a downgrade: usable, but takes no new versions."
+        },
+        "recordings": {
+            "type": "array",
+            "items": {
+                "$ref": "templates.recording.json"
+            }
+        },
+        "createdAt": {
+            "type": "string",
+            "format": "date-time"
+        },
+        "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+        },
+        "library": {
+            "$ref": "library.json"
+        },
+        "parent": {
+            "type": [
+                "object",
+                "null"
+            ],
+            "additionalProperties": false,
+            "required": [
+                "id",
+                "title",
+                "creator"
+            ],
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "creator": {
+                    "type": [
+                        "object",
+                        "null"
+                    ],
+                    "additionalProperties": false,
+                    "required": [
+                        "handle",
+                        "name",
+                        "avatarUrl"
+                    ],
+                    "properties": {
+                        "handle": {
+                            "type": [
+                                "string",
+                                "null"
+                            ]
+                        },
+                        "name": {
+                            "type": "string"
+                        },
+                        "avatarUrl": {
+                            "type": [
+                                "string",
+                                "null"
+                            ]
+                        }
+                    },
+                    "description": "Null for one of our own songs."
+                }
+            },
+            "description": "What it was remixed from, while that can still be seen."
+        }
+    },
+    "title": "One of the person's own templates"
+}

@@ -1,0 +1,47 @@
+{
+    "$id": "coaches.list.json",
+    "title": "coaches.list",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data",
+        "meta"
+    ],
+    "properties": {
+        "data": {
+            "type": "array",
+            "items": {
+                "$ref": "coach.directory.json"
+            }
+        },
+        "meta": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "nextCursor",
+                "styles",
+                "languages"
+            ],
+            "properties": {
+                "nextCursor": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "styles": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "languages": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        }
+    }
+}

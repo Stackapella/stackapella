@@ -1,0 +1,9 @@
+{
+    "$id": "admin.flags.update.json",
+    "type": "object",
+    "additionalProperties": false,
+    "required": ["data"],
+    "properties": {
+        "data": { "$ref": "admin.flag.json" }
+    }
+}

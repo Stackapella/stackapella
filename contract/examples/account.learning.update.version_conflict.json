@@ -1,0 +1,22 @@
+{
+    "message": "Conflict.",
+    "code": "version_conflict",
+    "current": {
+        "progress": {
+            "lessons": {
+                "1.1": {
+                    "stars": 2
+                },
+                "1.2": {
+                    "stars": 1
+                }
+            },
+            "xp": 450
+        },
+        "version": 5,
+        "epoch": 0,
+        "resetAt": null,
+        "undoUntil": null,
+        "updatedAt": "2026-10-26T18:00:00Z"
+    }
+}

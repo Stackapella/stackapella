@@ -1,0 +1,41 @@
+{
+    "$id": "library.list.json",
+    "title": "library.list",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data",
+        "meta"
+    ],
+    "properties": {
+        "data": {
+            "type": "array",
+            "items": {
+                "$ref": "library.template.json"
+            }
+        },
+        "meta": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "nextCursor",
+                "genres"
+            ],
+            "properties": {
+                "nextCursor": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "genres": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "The genres listed templates have, for the filter."
+                }
+            }
+        }
+    }
+}

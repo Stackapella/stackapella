@@ -1,0 +1,4 @@
+# System packages the server needs (docs/conventions.md, "Deployment"). .do/Dockerfile installs
+# exactly these.
+ffmpeg
+default-mysql-client

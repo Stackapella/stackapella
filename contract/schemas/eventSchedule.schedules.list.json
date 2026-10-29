@@ -1,0 +1,37 @@
+{
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                    "subdomain",
+                    "name",
+                    "type",
+                    "timezone"
+                ],
+                "properties": {
+                    "subdomain": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "type": {
+                        "type": "string"
+                    },
+                    "timezone": {
+                        "type": "string"
+                    }
+                }
+            }
+        }
+    },
+    "$id": "eventSchedule.schedules.list.json"
+}

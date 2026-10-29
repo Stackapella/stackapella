@@ -1,0 +1,184 @@
+{
+    "$id": "admin.mudeo.json",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "total",
+                "sent",
+                "toSend",
+                "optedOut",
+                "bounced",
+                "sentToday",
+                "warnAt",
+                "limit",
+                "dailyCap",
+                "newsReady",
+                "postalAddressSet",
+                "lastBatch",
+                "importedAt",
+                "joined",
+                "days"
+            ],
+            "properties": {
+                "total": {
+                    "type": "integer"
+                },
+                "sent": {
+                    "type": "integer"
+                },
+                "toSend": {
+                    "type": "integer"
+                },
+                "optedOut": {
+                    "type": "integer"
+                },
+                "bounced": {
+                    "type": "integer"
+                },
+                "sentToday": {
+                    "type": "integer"
+                },
+                "warnAt": {
+                    "type": "integer"
+                },
+                "limit": {
+                    "type": "integer"
+                },
+                "dailyCap": {
+                    "type": "integer"
+                },
+                "newsReady": {
+                    "type": "boolean",
+                    "description": "The mudeo sending domain is onboarded (MAIL_MUDEO_READY) with a valid from-address."
+                },
+                "postalAddressSet": {
+                    "type": "boolean",
+                    "description": "The footer's postal address (MAIL_POSTAL_ADDRESS) is set."
+                },
+                "lastBatch": {
+                    "type": [
+                        "object",
+                        "null"
+                    ],
+                    "additionalProperties": false,
+                    "required": [
+                        "id",
+                        "count",
+                        "sentAt",
+                        "mode",
+                        "status",
+                        "delivered",
+                        "bounced",
+                        "failed",
+                        "bounceRate",
+                        "error"
+                    ],
+                    "properties": {
+                        "id": {
+                            "type": "string"
+                        },
+                        "count": {
+                            "type": "integer"
+                        },
+                        "sentAt": {
+                            "type": "string",
+                            "format": "date-time"
+                        },
+                        "mode": {
+                            "type": "string",
+                            "enum": [
+                                "app",
+                                "manual"
+                            ]
+                        },
+                        "status": {
+                            "type": "string",
+                            "enum": [
+                                "sending",
+                                "sent",
+                                "failed"
+                            ]
+                        },
+                        "delivered": {
+                            "type": "integer"
+                        },
+                        "bounced": {
+                            "type": "integer"
+                        },
+                        "failed": {
+                            "type": "integer"
+                        },
+                        "bounceRate": {
+                            "type": "number",
+                            "description": "0 to 1: stop for the day above 0.05."
+                        },
+                        "error": {
+                            "type": [
+                                "string",
+                                "null"
+                            ]
+                        }
+                    }
+                },
+                "importedAt": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "format": "date-time"
+                },
+                "joined": {
+                    "type": "integer"
+                },
+                "days": {
+                    "type": "array",
+                    "description": "The email's results by day, newest first, over the last 60 days (Hillel: \"Anonymous totals\"): daily numbers only, never per person.",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "date",
+                            "sent",
+                            "bounced",
+                            "visits",
+                            "joined",
+                            "used"
+                        ],
+                        "properties": {
+                            "date": {
+                                "type": "string",
+                                "description": "The day, YYYY-MM-DD."
+                            },
+                            "sent": {
+                                "type": "integer"
+                            },
+                            "bounced": {
+                                "type": "integer"
+                            },
+                            "visits": {
+                                "type": "integer",
+                                "description": "Browsers that opened the email's early-access link that day, once a visit."
+                            },
+                            "joined": {
+                                "type": "integer",
+                                "description": "Accounts made through the link that day."
+                            },
+                            "used": {
+                                "type": "integer",
+                                "description": "People from it who made a first song or finished a lesson that day, once a visit."
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "title": "The mudeo email list's counts"
+}

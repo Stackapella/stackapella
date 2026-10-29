@@ -1,0 +1,29 @@
+{
+    "data": [
+        {
+            "id": "Qp7Rk2",
+            "name": "Ada's iPhone",
+            "platform": "ios",
+            "model": "iPhone17,1",
+            "appVersion": "0.1.0",
+            "signedInAt": "2026-10-27T14:05:00Z",
+            "lastUsedAt": "2026-10-27T15:04:12Z",
+            "current": true,
+            "push": true
+        },
+        {
+            "id": "Lm3Tz8",
+            "name": "Ada's Pixel",
+            "platform": "android",
+            "model": "Pixel 9",
+            "appVersion": "0.1.0",
+            "signedInAt": "2026-10-20T09:12:00Z",
+            "lastUsedAt": "2026-10-26T21:40:31Z",
+            "current": false,
+            "push": false
+        }
+    ],
+    "meta": {
+        "nextCursor": null
+    }
+}

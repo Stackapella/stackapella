@@ -1,0 +1,9 @@
+{
+    "message": "Unprocessable Content.",
+    "code": "validation_failed",
+    "errors": {
+        "currentTakeId": [
+            "That take isn't one of this part's."
+        ]
+    }
+}

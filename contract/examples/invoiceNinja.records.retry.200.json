@@ -1,0 +1,14 @@
+{
+    "data": {
+        "id": "Rc4kP2",
+        "kind": "sale",
+        "description": "Take review: A take review, for Ana Ruiz",
+        "amountCents": 2500,
+        "currency": "gbp",
+        "status": "pending",
+        "problem": null,
+        "attempts": 3,
+        "createdAt": "2026-11-02T10:00:00Z",
+        "problemCode": null
+    }
+}

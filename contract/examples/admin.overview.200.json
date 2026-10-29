@@ -1,0 +1,22 @@
+{
+    "data": {
+        "beta": {
+            "singers": 3,
+            "consented": 2,
+            "waiting": 1,
+            "guides": 2,
+            "partsWithVoices": 2,
+            "parts": 32,
+            "unreadFeedback": 1
+        },
+        "harmonies": {
+            "finished": 12,
+            "secondSongs": 3
+        },
+        "growth": {
+            "signUps": 40,
+            "upgrades": 6,
+            "activeSingers": 85
+        }
+    }
+}

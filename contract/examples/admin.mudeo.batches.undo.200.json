@@ -1,0 +1,28 @@
+{
+    "data": {
+        "total": 4210,
+        "sent": 300,
+        "toSend": 3840,
+        "optedOut": 41,
+        "bounced": 29,
+        "sentToday": 100,
+        "warnAt": 160,
+        "limit": 200,
+        "dailyCap": 200,
+        "newsReady": true,
+        "postalAddressSet": true,
+        "lastBatch": null,
+        "importedAt": "2026-10-27T09:00:00Z",
+        "joined": 12,
+        "days": [
+            {
+                "date": "2026-10-27",
+                "sent": 50,
+                "bounced": 1,
+                "visits": 31,
+                "joined": 4,
+                "used": 3
+            }
+        ]
+    }
+}

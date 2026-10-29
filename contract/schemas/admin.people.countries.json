@@ -1,0 +1,32 @@
+{
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                    "country",
+                    "people"
+                ],
+                "properties": {
+                    "country": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "description": "Null: not known (no sign-in through Cloudflare yet, or a self-hosted install)."
+                    },
+                    "people": {
+                        "type": "integer"
+                    }
+                }
+            }
+        }
+    }
+}

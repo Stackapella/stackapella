@@ -1,0 +1,57 @@
+{
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "id",
+        "stars",
+        "text",
+        "reply",
+        "singer",
+        "createdAt",
+        "editableUntil"
+    ],
+    "properties": {
+        "id": {
+            "type": "string"
+        },
+        "stars": {
+            "type": "integer"
+        },
+        "text": {
+            "type": [
+                "string",
+                "null"
+            ]
+        },
+        "reply": {
+            "type": [
+                "string",
+                "null"
+            ]
+        },
+        "singer": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "name"
+            ],
+            "properties": {
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "createdAt": {
+            "type": "string",
+            "format": "date-time"
+        },
+        "editableUntil": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "format": "date-time"
+        }
+    },
+    "$id": "rating.json"
+}

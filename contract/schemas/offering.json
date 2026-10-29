@@ -1,0 +1,82 @@
+{
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "id",
+        "kind",
+        "title",
+        "description",
+        "priceCents",
+        "currency",
+        "turnaroundDays",
+        "maxSeconds",
+        "reviewsPerMonth",
+        "archived",
+        "appointmentTypeId",
+        "durationMinutes"
+    ],
+    "properties": {
+        "id": {
+            "type": "string"
+        },
+        "kind": {
+            "type": "string",
+            "enum": [
+                "review",
+                "package",
+                "lesson"
+            ]
+        },
+        "title": {
+            "type": "string"
+        },
+        "description": {
+            "type": "string"
+        },
+        "priceCents": {
+            "type": "integer"
+        },
+        "currency": {
+            "type": "string",
+            "enum": [
+                "usd",
+                "eur",
+                "gbp"
+            ]
+        },
+        "turnaroundDays": {
+            "type": [
+                "integer",
+                "null"
+            ]
+        },
+        "maxSeconds": {
+            "type": [
+                "integer",
+                "null"
+            ]
+        },
+        "reviewsPerMonth": {
+            "type": [
+                "integer",
+                "null"
+            ]
+        },
+        "archived": {
+            "type": "boolean"
+        },
+        "appointmentTypeId": {
+            "type": [
+                "string",
+                "null"
+            ]
+        },
+        "durationMinutes": {
+            "type": [
+                "integer",
+                "null"
+            ]
+        }
+    },
+    "$id": "offering.json"
+}

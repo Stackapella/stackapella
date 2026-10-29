@@ -1,0 +1,63 @@
+{
+    "$id": "profile.json",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "handle",
+        "name",
+        "avatarUrl",
+        "bio",
+        "followers",
+        "following",
+        "harmonies",
+        "isMe",
+        "isFollowing",
+        "blocked",
+        "canFollow"
+    ],
+    "properties": {
+        "handle": {
+            "type": [
+                "string",
+                "null"
+            ]
+        },
+        "name": {
+            "type": "string"
+        },
+        "avatarUrl": {
+            "type": [
+                "string",
+                "null"
+            ]
+        },
+        "bio": {
+            "type": [
+                "string",
+                "null"
+            ]
+        },
+        "followers": {
+            "type": "integer"
+        },
+        "following": {
+            "type": "integer"
+        },
+        "harmonies": {
+            "type": "integer"
+        },
+        "isMe": {
+            "type": "boolean"
+        },
+        "isFollowing": {
+            "type": "boolean"
+        },
+        "blocked": {
+            "type": "boolean"
+        },
+        "canFollow": {
+            "type": "boolean"
+        }
+    },
+    "title": "A public profile"
+}

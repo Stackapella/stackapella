@@ -1,0 +1,65 @@
+{
+    "data": [
+        {
+            "id": "Qx7Lm2Pa9Kd4",
+            "title": "Bus Stop Hum",
+            "note": "Hummed on the bus. Who wants the bass?",
+            "writer": {
+                "handle": "ana",
+                "name": "Ana Ruiz",
+                "avatarUrl": null
+            },
+            "template": {
+                "id": "c3d4e5f6-7081-4293-a4b5-c6d7e8f9a012",
+                "version": 1
+            },
+            "voicing": 4,
+            "parts": [
+                {
+                    "key": "soprano",
+                    "name": "Soprano",
+                    "range": {
+                        "low": 62,
+                        "high": 74
+                    },
+                    "voices": 1
+                },
+                {
+                    "key": "alto",
+                    "name": "Alto",
+                    "range": {
+                        "low": 59,
+                        "high": 71
+                    },
+                    "voices": 1
+                },
+                {
+                    "key": "tenor",
+                    "name": "Tenor",
+                    "range": {
+                        "low": 55,
+                        "high": 60
+                    },
+                    "voices": 0
+                },
+                {
+                    "key": "bass",
+                    "name": "Bass",
+                    "range": {
+                        "low": 43,
+                        "high": 50
+                    },
+                    "voices": 0
+                }
+            ],
+            "voices": 2,
+            "complete": false,
+            "status": "held",
+            "mine": true,
+            "createdAt": "2026-11-05T09:00:00Z"
+        }
+    ],
+    "meta": {
+        "nextCursor": null
+    }
+}

@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en" data-theme="stage-dark">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Embedded lane</title>
+    <!-- How a public page mounts the app's Sing lane (js/embed/lane.js): the theme's tokens, a sized box, and mount(). -->
+    <link rel="stylesheet" href="/css/app.css">
+    <script src="/js/theme-boot.js"></script>
+</head>
+<body class="bg-ink p-6 text-cream">
+    <div id="lane" style="height: 340px; border-radius: 16px; overflow: hidden; background: var(--color-ink); border: 1px solid var(--color-line)"></div>
+    <script type="module">
+        import { mount } from '/js/embed/lane.js';
+        const lane = mount(document.querySelector('#lane'), { take: '/templates/takes/amazing-grace-alto.json', trail: '#ffffff', trailGlow: 'var(--color-part-2)', controls: true, muted: new URLSearchParams(location.search).has('muted'), words: { play: 'Play', pause: 'Pause', zoom: 'Zoom', zoomOut: 'Zoom out', zoomIn: 'Zoom in' } });
+        window.__lane = lane;
+        window.__notes = [];
+        lane.on('note', (n) => window.__notes.push(n));
+    </script>
+</body>
+</html>

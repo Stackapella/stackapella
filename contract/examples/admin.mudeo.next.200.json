@@ -1,0 +1,15 @@
+{
+    "data": {
+        "ids": [
+            "Xk7qP2",
+            "Lm3Nx5"
+        ],
+        "emails": [
+            "ana@example.com",
+            "sam@example.net"
+        ],
+        "line": "ana@example.com, sam@example.net",
+        "fits": true,
+        "remaining": 3790
+    }
+}

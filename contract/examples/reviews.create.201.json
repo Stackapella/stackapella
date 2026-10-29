@@ -1,0 +1,28 @@
+{
+    "data": {
+        "id": "Rv5tYu",
+        "engagementId": "En7gHj",
+        "status": "requested",
+        "take": {
+            "url": "https://stackapella-private.nyc3.digitaloceanspaces.com/reviews/t1.flac?X-Amz-Signature=abc",
+            "sampleRate": 48000,
+            "frames": 4320000,
+            "template": {
+                "id": "amazing-grace",
+                "version": 2,
+                "partKey": "alto"
+            }
+        },
+        "pitchTrackUrl": "https://stackapella-private.nyc3.digitaloceanspaces.com/reviews/t1.json?X-Amz-Signature=abc",
+        "scores": {
+            "pitchPercent": 82
+        },
+        "question": "My high notes feel strained in the last verse.",
+        "review": null,
+        "media": [],
+        "deliveredAt": null,
+        "unsendUntil": null,
+        "followUp": null,
+        "createdAt": "2026-10-27T10:00:00Z"
+    }
+}

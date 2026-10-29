@@ -1,0 +1,13 @@
+{
+    "$id": "admin.beta.singer.update.json",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "$ref": "admin.beta.singer.json"
+        }
+    }
+}

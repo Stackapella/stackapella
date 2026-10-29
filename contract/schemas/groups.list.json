@@ -1,0 +1,67 @@
+{
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                    "id",
+                    "name",
+                    "role",
+                    "director",
+                    "members",
+                    "songs",
+                    "readOnly"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "role": {
+                        "type": "string",
+                        "enum": [
+                            "director",
+                            "member"
+                        ]
+                    },
+                    "director": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "id",
+                            "name"
+                        ],
+                        "properties": {
+                            "id": {
+                                "type": "string"
+                            },
+                            "name": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "members": {
+                        "type": "integer"
+                    },
+                    "songs": {
+                        "type": "integer"
+                    },
+                    "readOnly": {
+                        "type": "boolean",
+                        "description": "The director's Plus has ended: no new songs, members or assignments."
+                    }
+                }
+            }
+        }
+    },
+    "$id": "groups.list.json"
+}

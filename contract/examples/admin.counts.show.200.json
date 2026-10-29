@@ -1,0 +1,39 @@
+{
+    "data": {
+        "days": [
+            {
+                "date": "2026-10-27",
+                "kind": "lesson_done",
+                "guest": 31,
+                "account": 58
+            },
+            {
+                "date": "2026-10-28",
+                "kind": "lesson_done",
+                "guest": 27,
+                "account": 64
+            }
+        ],
+        "countries": [
+            {
+                "country": "US",
+                "count": 96
+            },
+            {
+                "country": "GB",
+                "count": 51
+            },
+            {
+                "country": null,
+                "count": 33
+            }
+        ],
+        "totals": [
+            {
+                "kind": "lesson_done",
+                "guest": 58,
+                "account": 122
+            }
+        ]
+    }
+}

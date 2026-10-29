@@ -1,0 +1,9 @@
+{
+    "message": "The kind field is invalid.",
+    "code": "validation_failed",
+    "errors": {
+        "kind": [
+            "The selected kind is invalid."
+        ]
+    }
+}

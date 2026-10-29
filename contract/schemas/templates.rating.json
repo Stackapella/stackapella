@@ -1,0 +1,14 @@
+{
+    "$id": "templates.rating.json",
+    "title": "templates.rate and .unrate",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "$ref": "templates.rating.value.json"
+        }
+    }
+}

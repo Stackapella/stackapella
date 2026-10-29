@@ -1,0 +1,80 @@
+{
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "id",
+        "title",
+        "description",
+        "priceCents",
+        "currency",
+        "exercises",
+        "status",
+        "note",
+        "coach",
+        "updatedAt"
+    ],
+    "properties": {
+        "id": {
+            "type": "string"
+        },
+        "title": {
+            "type": "string"
+        },
+        "description": {
+            "type": "string"
+        },
+        "priceCents": {
+            "type": "integer"
+        },
+        "currency": {
+            "type": "string",
+            "enum": [
+                "usd",
+                "eur",
+                "gbp"
+            ]
+        },
+        "exercises": {
+            "type": "array",
+            "items": {
+                "type": "object"
+            }
+        },
+        "status": {
+            "type": "string",
+            "enum": [
+                "draft",
+                "submitted",
+                "approved",
+                "rejected"
+            ]
+        },
+        "note": {
+            "type": [
+                "string",
+                "null"
+            ]
+        },
+        "coach": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "id",
+                "name"
+            ],
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+        }
+    },
+    "$id": "pack.json"
+}

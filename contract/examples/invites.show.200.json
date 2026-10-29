@@ -1,0 +1,15 @@
+{
+    "data": {
+        "projectTitle": "Amazing Grace",
+        "owner": {
+            "name": "Ana Ruiz"
+        },
+        "partKey": "tenor",
+        "partName": "Tenor",
+        "song": {
+            "id": "amazing-grace",
+            "title": "Amazing Grace"
+        },
+        "expiresAt": "2026-11-10T11:00:00Z"
+    }
+}

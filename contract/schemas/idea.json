@@ -1,0 +1,122 @@
+{
+    "$id": "idea.json",
+    "title": "An idea: a tune with every part open",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "id",
+        "title",
+        "note",
+        "writer",
+        "template",
+        "voicing",
+        "parts",
+        "voices",
+        "complete",
+        "status",
+        "mine",
+        "createdAt"
+    ],
+    "properties": {
+        "id": {
+            "type": "string"
+        },
+        "title": {
+            "type": "string"
+        },
+        "note": {
+            "type": [
+                "string",
+                "null"
+            ]
+        },
+        "writer": {
+            "$ref": "person.json"
+        },
+        "template": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "id",
+                "version"
+            ],
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "integer"
+                }
+            }
+        },
+        "voicing": {
+            "type": "integer"
+        },
+        "parts": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                    "key",
+                    "name",
+                    "range",
+                    "voices"
+                ],
+                "properties": {
+                    "key": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "range": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "low",
+                            "high"
+                        ],
+                        "properties": {
+                            "low": {
+                                "type": "integer"
+                            },
+                            "high": {
+                                "type": "integer"
+                            }
+                        }
+                    },
+                    "voices": {
+                        "type": "integer"
+                    }
+                }
+            },
+            "description": "The voicing's parts, melody first."
+        },
+        "voices": {
+            "type": "integer"
+        },
+        "complete": {
+            "type": "boolean"
+        },
+        "status": {
+            "type": "string",
+            "enum": [
+                "listed",
+                "held",
+                "hidden"
+            ]
+        },
+        "mine": {
+            "type": "boolean",
+            "description": "The caller wrote it."
+        },
+        "createdAt": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "format": "date-time"
+        }
+    }
+}

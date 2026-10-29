@@ -1,0 +1,19 @@
+{
+    "data": {
+        "id": "Nt3kQ9",
+        "kind": "harmony_hidden",
+        "what": "Your shared harmony was hidden: its link shows that it isn't available.",
+        "about": {
+            "kind": "harmony",
+            "id": "k3Xb9QmT7wLp",
+            "title": "Silent Night for Mum"
+        },
+        "rule": "reports",
+        "why": "Several people reported it, so it was hidden automatically until a person looks at it.",
+        "note": null,
+        "automatic": true,
+        "createdAt": "2026-11-02T09:00:00Z",
+        "canAppeal": true,
+        "appeal": null
+    }
+}

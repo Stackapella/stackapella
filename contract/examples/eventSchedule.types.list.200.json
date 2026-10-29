@@ -1,0 +1,25 @@
+{
+    "data": [
+        {
+            "id": "Ap4nT1",
+            "name": "45-minute lesson",
+            "durationMinutes": 45,
+            "timezone": "Europe/London",
+            "requiresApproval": false,
+            "nextAvailable": "2026-11-03T18:00:00Z",
+            "linked": {
+                "id": "Of9lSn",
+                "title": "A 45-minute lesson"
+            }
+        },
+        {
+            "id": "Ap4nT2",
+            "name": "Trial lesson",
+            "durationMinutes": 20,
+            "timezone": "Europe/London",
+            "requiresApproval": true,
+            "nextAvailable": null,
+            "linked": null
+        }
+    ]
+}

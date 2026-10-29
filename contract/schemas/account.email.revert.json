@@ -1,0 +1,24 @@
+{
+    "$id": "account.email.revert.json",
+    "title": "The address an undo link brought back",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "email"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string",
+                    "description": "The restored address, the one the undo link was sent to."
+                }
+            }
+        }
+    }
+}

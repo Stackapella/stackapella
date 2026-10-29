@@ -1,0 +1,169 @@
+{
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "id",
+                "kind",
+                "what",
+                "about",
+                "rule",
+                "why",
+                "note",
+                "automatic",
+                "createdAt",
+                "canAppeal",
+                "appeal",
+                "person"
+            ],
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "kind": {
+                    "type": "string",
+                    "enum": [
+                        "harmony_hidden",
+                            "comment_hidden",
+                            "template_hidden",
+                            "idea_hidden",
+                            "idea_voice_hidden",
+                            "choir_voice_removed",
+                        "harmony_removed",
+                        "account_limited",
+                        "account_suspended",
+                        "coach_paused",
+                        "coach_suspended"
+                    ]
+                },
+                "what": {
+                    "type": "string"
+                },
+                "about": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                        "kind",
+                        "id",
+                        "title"
+                    ],
+                    "properties": {
+                        "kind": {
+                            "type": "string",
+                            "enum": [
+                                "harmony",
+                                "account",
+                                "coaching"
+                            ]
+                        },
+                        "id": {
+                            "type": "string"
+                        },
+                        "title": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "rule": {
+                    "type": "string",
+                    "enum": [
+                        "community_guidelines",
+                        "copyright",
+                        "reports",
+                        "terms",
+                        "coach_agreement"
+                    ]
+                },
+                "why": {
+                    "type": "string"
+                },
+                "note": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "automatic": {
+                    "type": "boolean"
+                },
+                "createdAt": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "canAppeal": {
+                    "type": "boolean"
+                },
+                "appeal": {
+                    "type": [
+                        "object",
+                        "null"
+                    ],
+                    "additionalProperties": false,
+                    "required": [
+                        "text",
+                        "at",
+                        "decision",
+                        "decisionNote",
+                        "decidedAt"
+                    ],
+                    "properties": {
+                        "text": {
+                            "type": "string"
+                        },
+                        "at": {
+                            "type": "string",
+                            "format": "date-time"
+                        },
+                        "decision": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "enum": [
+                                "kept",
+                                "reversed",
+                                null
+                            ]
+                        },
+                        "decisionNote": {
+                            "type": [
+                                "string",
+                                "null"
+                            ]
+                        },
+                        "decidedAt": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "format": "date-time"
+                        }
+                    }
+                },
+                "person": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                        "id",
+                        "name"
+                    ],
+                    "properties": {
+                        "id": {
+                            "type": "string"
+                        },
+                        "name": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "$id": "admin.notice.json"
+}

@@ -1,0 +1,9 @@
+{
+    "message": "Unprocessable Content.",
+    "code": "validation_failed",
+    "errors": {
+        "level": [
+            "The level field must be between 0 and 3."
+        ]
+    }
+}

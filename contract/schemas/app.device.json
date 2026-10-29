@@ -1,0 +1,68 @@
+{
+    "$id": "app.device.json",
+    "title": "A device signed in with the app (Settings, Signed in on)",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "id",
+        "name",
+        "platform",
+        "model",
+        "appVersion",
+        "signedInAt",
+        "lastUsedAt",
+        "current",
+        "push"
+    ],
+    "properties": {
+        "id": {
+            "type": "string"
+        },
+        "name": {
+            "type": "string"
+        },
+        "platform": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "enum": [
+                "ios",
+                "android",
+                "macos",
+                "windows",
+                "linux",
+                null
+            ]
+        },
+        "model": {
+            "type": [
+                "string",
+                "null"
+            ]
+        },
+        "appVersion": {
+            "type": [
+                "string",
+                "null"
+            ]
+        },
+        "signedInAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When this device last signed in: the recent sign-in clock."
+        },
+        "lastUsedAt": {
+            "type": "string",
+            "format": "date-time"
+        },
+        "current": {
+            "type": "boolean",
+            "description": "The device asking."
+        },
+        "push": {
+            "type": "boolean",
+            "description": "The device has a push token (account.devices.push.update): the bell is pushed to it."
+        }
+    }
+}

@@ -1,0 +1,9 @@
+{
+    "message": "Unprocessable Content.",
+    "code": "validation_failed",
+    "errors": {
+        "featured": [
+            "The featured field is required."
+        ]
+    }
+}

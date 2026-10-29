@@ -1,0 +1,30 @@
+{
+    "$id": "admin.mudeo.mark.json",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "marked",
+                "notFound"
+            ],
+            "properties": {
+                "marked": {
+                    "type": "integer"
+                },
+                "notFound": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        }
+    },
+    "title": "Addresses marked opted out or bounced"
+}

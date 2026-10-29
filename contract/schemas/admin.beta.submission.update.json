@@ -1,0 +1,13 @@
+{
+    "$id": "admin.beta.submission.update.json",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "$ref": "admin.beta.submission.json"
+        }
+    }
+}

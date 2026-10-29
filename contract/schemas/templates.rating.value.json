@@ -1,0 +1,30 @@
+{
+    "$id": "templates.rating.value.json",
+    "title": "A template's rating",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "average",
+        "count",
+        "mine"
+    ],
+    "properties": {
+        "average": {
+            "type": [
+                "number",
+                "null"
+            ],
+            "description": "Null until it has 3 ratings."
+        },
+        "count": {
+            "type": "integer"
+        },
+        "mine": {
+            "type": [
+                "integer",
+                "null"
+            ],
+            "description": "The caller's stars, or null."
+        }
+    }
+}

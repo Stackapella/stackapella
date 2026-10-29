@@ -1,0 +1,20 @@
+{
+    "$id": "admin.beta.feedback.list.json",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data",
+        "meta"
+    ],
+    "properties": {
+        "data": {
+            "type": "array",
+            "items": {
+                "$ref": "admin.beta.feedback_item.json"
+            }
+        },
+        "meta": {
+            "$ref": "meta.json"
+        }
+    }
+}

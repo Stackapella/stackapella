@@ -1,0 +1,29 @@
+{
+    "$id": "friends.leaderboard.json",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "week",
+                "members"
+            ],
+            "properties": {
+                "week": {
+                    "type": "string"
+                },
+                "members": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "leagueMember.json"
+                    }
+                }
+            }
+        }
+    }
+}

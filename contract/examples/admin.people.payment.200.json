@@ -1,0 +1,10 @@
+{
+    "data": {
+        "payment": {
+            "amountCents": 3999,
+            "refundedCents": 0,
+            "currency": "gbp",
+            "paidAt": "2026-10-20T09:12:00Z"
+        }
+    }
+}

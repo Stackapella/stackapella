@@ -1,0 +1,9 @@
+{
+    "message": "Unprocessable Content.",
+    "code": "validation_failed",
+    "errors": {
+        "creditMode": [
+            "The selected credit mode is invalid."
+        ]
+    }
+}

@@ -1,0 +1,84 @@
+{
+    "$id": "idea.voice.json",
+    "title": "A voice on an idea",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "id",
+        "partKey",
+        "singer",
+        "status",
+        "url",
+        "sampleRate",
+        "frames",
+        "offsetFrames",
+        "framesPerPeak",
+        "peaks",
+        "mine",
+        "createdAt"
+    ],
+    "properties": {
+        "id": {
+            "type": "string"
+        },
+        "partKey": {
+            "type": "string"
+        },
+        "singer": {
+            "$ref": "person.json"
+        },
+        "status": {
+            "type": "string",
+            "enum": [
+                "uploading",
+                "processing",
+                "ready",
+                "failed"
+            ]
+        },
+        "url": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "format": "uri",
+            "description": "Valid for 2 hours; null until ready."
+        },
+        "sampleRate": {
+            "type": "integer"
+        },
+        "frames": {
+            "type": "integer"
+        },
+        "offsetFrames": {
+            "type": "integer",
+            "description": "From the template's beat zero, as a take's."
+        },
+        "framesPerPeak": {
+            "type": [
+                "integer",
+                "null"
+            ]
+        },
+        "peaks": {
+            "type": [
+                "array",
+                "null"
+            ],
+            "items": {
+                "type": "number"
+            },
+            "description": "0 to 1, one per framesPerPeak frames; null until ready."
+        },
+        "mine": {
+            "type": "boolean"
+        },
+        "createdAt": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "format": "date-time"
+        }
+    }
+}

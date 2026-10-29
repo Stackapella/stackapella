@@ -1,0 +1,11 @@
+{
+    "$id": "admin.person.json",
+    "title": "Who did something: a person's Sqid and name, or null",
+    "type": ["object", "null"],
+    "additionalProperties": false,
+    "required": ["id", "name"],
+    "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" }
+    }
+}

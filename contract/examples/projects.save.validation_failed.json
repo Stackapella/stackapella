@@ -1,0 +1,9 @@
+{
+    "message": "Unprocessable Content.",
+    "code": "validation_failed",
+    "errors": {
+        "bpm": [
+            "The bpm field must be between 20 and 300."
+        ]
+    }
+}

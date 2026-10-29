@@ -1,0 +1,13 @@
+{
+    "$id": "admin.people.show.json",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "$ref": "admin.account.json"
+        }
+    }
+}

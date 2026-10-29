@@ -1,0 +1,22 @@
+{
+    "data": [
+        {
+            "id": "Sm4kP1",
+            "category": "recording",
+            "status": "open",
+            "from": {
+                "email": "ana@example.com",
+                "account": {
+                    "id": "jR4kLmNo",
+                    "name": "Ana Ruiz"
+                }
+            },
+            "preview": "My takes come out late on my phone.",
+            "createdAt": "2026-11-02T10:00:00Z",
+            "answeredAt": null
+        }
+    ],
+    "meta": {
+        "nextCursor": null
+    }
+}

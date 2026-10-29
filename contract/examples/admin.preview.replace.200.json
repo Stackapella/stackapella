@@ -1,0 +1,17 @@
+{
+    "data": {
+        "url": "https://stackapella.test/preview/Pq4Rt7Vb2Nx9Lm3Kc8Hd5Jf1Gs6Ya0Ue2OiWzXy",
+        "status": "open",
+        "cap": 100000,
+        "joined": 0,
+        "paused": false,
+        "createdAt": "2026-10-27T09:00:00Z",
+        "earlier": [
+            {
+                "joined": 3,
+                "createdAt": "2026-10-27T09:00:00Z",
+                "closedAt": "2026-10-28T08:00:00Z"
+            }
+        ]
+    }
+}

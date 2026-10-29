@@ -1,0 +1,22 @@
+{
+    "$id": "reminders.push.json",
+    "title": "A practice reminder's push payload (never anyone's text)",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "kind",
+        "url"
+    ],
+    "properties": {
+        "kind": {
+            "type": "string",
+            "enum": [
+                "practice"
+            ]
+        },
+        "url": {
+            "type": "string",
+            "description": "The app path a tap opens."
+        }
+    }
+}

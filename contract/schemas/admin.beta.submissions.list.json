@@ -1,0 +1,20 @@
+{
+    "$id": "admin.beta.submissions.list.json",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data",
+        "meta"
+    ],
+    "properties": {
+        "data": {
+            "type": "array",
+            "items": {
+                "$ref": "admin.beta.submission.json"
+            }
+        },
+        "meta": {
+            "$ref": "meta.json"
+        }
+    }
+}

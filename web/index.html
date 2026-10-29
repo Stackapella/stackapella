@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="description" content="Harmony, made by you. For one voice, or a whole choir. Learn a part with a guide voice, then stack your own voices, exactly in time.">
+    <meta name="theme-color" content="#17120f">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Stackapella">
+    <title>Stackapella</title>
+    <link rel="manifest" href="/manifest.webmanifest">
+    <link rel="icon" href="/icons/favicon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@300..800&display=swap">
+    <!-- The staff's clefs and accidentals only (text=), so every phone has them. -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Music&display=block&text=%F0%9D%84%9E%F0%9D%84%A0%F0%9D%84%A2%E2%99%AF%E2%99%AD%E2%99%AE%F0%9D%84%AA%F0%9D%84%AB">
+    <!-- The chosen theme (light or dark, and a colour), set before the page paints. The app's game mode may be light (the site's never is). -->
+    <meta name="stackapella-app" content="1">
+    <script src="/js/theme-boot.js"></script>
+    <link rel="stylesheet" href="/css/app.css">
+    <!-- Libraries load from the CDN at a pinned version, refused if their bytes change (SRI). -->
+    <script type="importmap">
+    {
+        "imports": {
+            "vue": "https://cdn.jsdelivr.net/npm/vue@3.5.44/dist/vue.esm-browser.prod.js"
+        },
+        "integrity": {
+            "https://cdn.jsdelivr.net/npm/vue@3.5.44/dist/vue.esm-browser.prod.js": "sha384-Yy+wUwjypE8OL2+tZ7lLLMsIVMFBXibFJCdzCWWWXnuVVdiuS3gViCyubnRyWnSP"
+        }
+    }
+    </script>
+    <!-- Loaded only when needed, by js/mp3.js (pinned, with SRI); named here so the CSP allows it:
+         https://cdn.jsdelivr.net/npm/lamejs@1.2.1/lame.min.js -->
+    <!-- Vue preloaded on a first visit only (with the service worker in control, its cache answers). -->
+    <script src="/js/preload.js"></script>
+    <script type="module" src="/js/main.js"></script>
+</head>
+<body class="bg-ink font-sans text-cream antialiased">
+    <div id="app"></div>
+    <noscript>Stackapella needs JavaScript.</noscript>
+</body>
+</html>

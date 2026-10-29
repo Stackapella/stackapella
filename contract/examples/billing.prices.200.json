@@ -1,0 +1,49 @@
+{
+    "data": {
+        "prices": [
+            {
+                "interval": "year",
+                "currency": "usd",
+                "amountCents": 3999,
+                "taxInclusive": false
+            },
+            {
+                "interval": "month",
+                "currency": "usd",
+                "amountCents": 499,
+                "taxInclusive": false
+            },
+            {
+                "interval": "year",
+                "currency": "eur",
+                "amountCents": 3999,
+                "taxInclusive": true
+            },
+            {
+                "interval": "month",
+                "currency": "eur",
+                "amountCents": 499,
+                "taxInclusive": true
+            },
+            {
+                "interval": "year",
+                "currency": "gbp",
+                "amountCents": 3499,
+                "taxInclusive": true
+            },
+            {
+                "interval": "month",
+                "currency": "gbp",
+                "amountCents": 449,
+                "taxInclusive": true
+            }
+        ],
+        "trial": {
+            "days": 7,
+            "intervals": [
+                "year"
+            ]
+        },
+        "startNowConsent": false
+    }
+}

@@ -1,0 +1,9 @@
+{
+    "message": "Unprocessable Content.",
+    "code": "validation_failed",
+    "errors": {
+        "parts.0.partKey": [
+            "Amazing Grace has no part called baritone."
+        ]
+    }
+}

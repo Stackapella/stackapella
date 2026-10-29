@@ -1,0 +1,15 @@
+{
+    "data": {
+        "handle": "ana_sings",
+        "name": "Ana Ruiz",
+        "avatarUrl": null,
+        "bio": "Alto in a community choir.",
+        "followers": 18,
+        "following": 4,
+        "harmonies": 6,
+        "isMe": false,
+        "isFollowing": false,
+        "blocked": false,
+        "canFollow": true
+    }
+}

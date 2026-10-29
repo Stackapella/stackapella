@@ -1,0 +1,23 @@
+{
+    "$id": "bin.purgeTakes.json",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "freedBytes"
+            ],
+            "properties": {
+                "freedBytes": {
+                    "type": "integer",
+                    "description": "The bytes the cleared takes used."
+                }
+            }
+        }
+    }
+}

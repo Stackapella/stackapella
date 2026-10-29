@@ -1,0 +1,23 @@
+{
+    "data": {
+        "id": "Pq7Rm2",
+        "name": "Sarah Kim",
+        "consent": {
+            "version": 1,
+            "acceptedAt": "2026-10-26T15:02:00Z",
+            "current": 1
+        },
+        "credit": {
+            "mode": "name",
+            "name": "Sarah K."
+        },
+        "voiceOfParts": 1,
+        "bar": {
+            "pitchPercent": 90,
+            "timingPercent": 80
+        },
+        "creditLinksProfile": false,
+        "hasPublicProfile": false,
+        "profilesOpen": false
+    }
+}

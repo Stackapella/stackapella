@@ -1,0 +1,166 @@
+{
+    "$id": "bellItem.json",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "id",
+        "kind",
+        "actor",
+        "others",
+        "harmony",
+        "read",
+        "createdAt",
+        "idea",
+        "request",
+        "board"
+    ],
+    "properties": {
+        "id": {
+            "type": "string"
+        },
+        "kind": {
+            "type": "string",
+            "enum": [
+                "like",
+                "comment",
+                "follow",
+                "consent_request",
+                "consent_answer",
+                "featured",
+                "idea_voice",
+                "idea_complete",
+                "fill",
+                "request_ready",
+                "board_beaten"
+            ]
+        },
+        "actor": {
+            "type": [
+                "object",
+                "null"
+            ],
+            "additionalProperties": false,
+            "required": [
+                "handle",
+                "name"
+            ],
+            "properties": {
+                "handle": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "others": {
+            "type": "integer"
+        },
+        "harmony": {
+            "type": [
+                "object",
+                "null"
+            ],
+            "additionalProperties": false,
+            "required": [
+                "id",
+                "title"
+            ],
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "read": {
+            "type": "boolean"
+        },
+        "createdAt": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "format": "date-time"
+        },
+        "idea": {
+            "type": [
+                "object",
+                "null"
+            ],
+            "additionalProperties": false,
+            "required": [
+                "id",
+                "title"
+            ],
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                }
+            },
+            "description": "Ideas: the tune a voice was added to."
+        },
+        "request": {
+            "type": [
+                "object",
+                "null"
+            ],
+            "additionalProperties": false,
+            "required": [
+                "id",
+                "title"
+            ],
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                }
+            },
+            "description": "Song requests (N7): the request now ready to learn."
+        },
+        "board": {
+            "type": [
+                "object",
+                "null"
+            ],
+            "additionalProperties": false,
+            "required": [
+                "templateId",
+                "title",
+                "partKey",
+                "partName",
+                "score"
+            ],
+            "properties": {
+                "templateId": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "partKey": {
+                    "type": "string"
+                },
+                "partName": {
+                    "type": "string"
+                },
+                "score": {
+                    "type": "integer",
+                    "description": "The friend's score that beat yours."
+                }
+            },
+            "description": "board_beaten: the song and part where a friend (`actor`) beat your score."
+        }
+    },
+    "title": "One thing in the bell"
+}

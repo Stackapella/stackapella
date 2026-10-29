@@ -1,0 +1,46 @@
+{
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data",
+        "meta"
+    ],
+    "properties": {
+        "data": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                    "application",
+                    "person"
+                ],
+                "properties": {
+                    "application": {
+                        "$ref": "coach.application.json"
+                    },
+                    "person": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "id",
+                            "name"
+                        ],
+                        "properties": {
+                            "id": {
+                                "type": "string"
+                            },
+                            "name": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "meta": {
+            "$ref": "meta.json"
+        }
+    },
+    "$id": "admin.coaching.applications.list.json"
+}

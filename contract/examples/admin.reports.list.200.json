@@ -1,0 +1,85 @@
+{
+    "data": [
+        {
+            "harmony": {
+                "id": "k3Xb9QmT7wLp",
+                "title": "Silent Night for Mum",
+                "owner": {
+                    "id": "jR4kLm",
+                    "name": "Ana Ruiz"
+                },
+                "ownerTakedowns": 0,
+                "visibility": "unlisted",
+                "status": "ready",
+                "moderation": "under_review",
+                "hiddenReason": "reports",
+                "hiddenAt": "2026-10-26T18:20:00Z",
+                "titleHeld": false,
+                "pageUrl": "https://beta.stackapella.com/h/k3Xb9QmT7wLp",
+                "audioUrl": "https://stackapella-private.nyc3.digitaloceanspaces.com/harmonies/q8w7e6.m4a?X-Amz-Signature=abc",
+                "cardUrl": "https://stackapella-private.nyc3.digitaloceanspaces.com/harmonies/q8w7e6.jpg?X-Amz-Signature=def",
+                "durationSeconds": 182.4,
+                "signUps": 2,
+                "createdAt": "2026-10-26T14:05:00Z"
+            },
+            "reports": [
+                {
+                    "id": "Rp1aQz",
+                    "reason": "copyright",
+                    "note": "This is my recording.",
+                    "reporter": null,
+                    "status": "open",
+                    "createdAt": "2026-10-26T17:00:00Z"
+                },
+                {
+                    "id": "Rp2bWx",
+                    "reason": "copyright",
+                    "note": "",
+                    "reporter": {
+                        "id": "Ty6uIo",
+                        "name": "Sam Lee"
+                    },
+                    "status": "open",
+                    "createdAt": "2026-10-26T18:00:00Z"
+                },
+                {
+                    "id": "Rp3cEv",
+                    "reason": "other",
+                    "note": "",
+                    "reporter": null,
+                    "status": "open",
+                    "createdAt": "2026-10-26T18:20:00Z"
+                }
+            ],
+            "firstReportedAt": "2026-10-26T17:00:00Z"
+        },
+        {
+            "harmony": {
+                "id": "Zz9Yy8cB2nRq",
+                "title": "free money at my site",
+                "owner": {
+                    "id": "Qw2eRt",
+                    "name": "Jo"
+                },
+                "ownerTakedowns": 0,
+                "visibility": "unlisted",
+                "status": "ready",
+                "moderation": null,
+                "hiddenReason": null,
+                "hiddenAt": null,
+                "titleHeld": true,
+                "pageUrl": "https://beta.stackapella.com/h/Zz9Yy8cB2nRq",
+                "audioUrl": "https://stackapella-private.nyc3.digitaloceanspaces.com/harmonies/q8w7e6.m4a?X-Amz-Signature=abc",
+                "cardUrl": "https://stackapella-private.nyc3.digitaloceanspaces.com/harmonies/q8w7e6.jpg?X-Amz-Signature=def",
+                "durationSeconds": 182.4,
+                "signUps": 0,
+                "createdAt": "2026-10-26T14:05:00Z"
+            },
+            "reports": [],
+            "firstReportedAt": null
+        }
+    ],
+    "meta": {
+        "nextCursor": null
+    }
+}

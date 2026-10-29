@@ -1,0 +1,39 @@
+{
+    "data": [
+        {
+            "id": "8c7b6a5f-4e3d-4c2b-9a1f-0e9d8c7b6a5f",
+            "takeId": "c9d8e7f6-a5b4-4c3d-8e2f-1a0b9c8d7e6f",
+            "templateId": "amazing-grace",
+            "templateVersion": 2,
+            "partKey": "alto",
+            "lesson": null,
+            "recordedAt": "2026-10-26T17:58:00Z",
+            "summary": {
+                "pitchPercent": 88,
+                "level": "good",
+                "phrases": [
+                    {
+                        "index": 0,
+                        "pitchPercent": 92
+                    }
+                ]
+            }
+        },
+        {
+            "id": "8c7b6a5f-4e3d-4c2b-9a1f-0e9d8c7b6a5f",
+            "takeId": null,
+            "templateId": null,
+            "templateVersion": null,
+            "partKey": null,
+            "lesson": "u4.l2.ex1",
+            "recordedAt": "2026-10-26T17:58:00Z",
+            "summary": {
+                "pitchPercent": 81,
+                "stars": 2
+            }
+        }
+    ],
+    "meta": {
+        "nextCursor": null
+    }
+}

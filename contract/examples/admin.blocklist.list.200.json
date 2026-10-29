@@ -1,0 +1,7 @@
+{
+    "data": [
+        { "id": "Qm8ZtR", "type": "email_domain", "value": "spam-farm.example", "reason": "200 sign-ups in an hour", "expiresAt": null, "createdAt": "2026-10-26T13:40:00Z", "createdBy": { "id": "Xk3pQ9", "name": "Hillel Coren" } },
+        { "id": "Hb2Wn7", "type": "ip_range", "value": "203.0.113.0/24", "reason": "Credential stuffing", "expiresAt": "2026-11-02T13:40:00Z", "createdAt": "2026-10-26T13:41:00Z", "createdBy": { "id": "Xk3pQ9", "name": "Hillel Coren" } }
+    ],
+    "meta": { "nextCursor": "eyJpZCI6MTIsIl9wb2ludHNUb05leHRJdGVtcyI6dHJ1ZX0" }
+}

@@ -1,0 +1,37 @@
+{
+    "data": {
+        "schedule": {
+            "subdomain": "riverside-choir",
+            "name": "Riverside Choir",
+            "url": "https://riverside-choir.eventschedule.com"
+        },
+        "available": true,
+        "events": [
+            {
+                "id": "Ev3kP9",
+                "name": "Thursday rehearsal",
+                "startsAt": "2026-11-05T19:00:00Z",
+                "endsAt": "2026-11-05T21:00:00Z",
+                "timezone": "Europe/London",
+                "url": "https://riverside-choir.eventschedule.com/thursday-rehearsal",
+                "songs": [
+                    {
+                        "templateId": "danny-boy",
+                        "title": "Danny Boy",
+                        "partKey": "alto",
+                        "status": "started"
+                    }
+                ]
+            },
+            {
+                "id": "Ev3kQ1",
+                "name": "Spring concert",
+                "startsAt": "2026-12-12T18:30:00Z",
+                "endsAt": null,
+                "timezone": "Europe/London",
+                "url": "https://riverside-choir.eventschedule.com/spring-concert",
+                "songs": []
+            }
+        ]
+    }
+}

@@ -1,0 +1,2 @@
+// Written by web/tool/icons.py: the mark, inline (the black square and four bars), for the header.
+export const LOGO_MARK = "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><rect width='24' height='24' rx='4' fill='#000000'/><rect x='3.50' y='7.14' width='17.00' height='1.70' rx='0.85' fill='#ff9139'/><rect x='3.50' y='9.81' width='12.58' height='1.70' rx='0.85' fill='#ffea6b'/><rect x='3.50' y='12.49' width='14.96' height='1.70' rx='0.85' fill='#45eca4'/><rect x='3.50' y='15.16' width='10.54' height='1.70' rx='0.85' fill='#968dfd'/></svg>";

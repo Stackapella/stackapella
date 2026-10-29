@@ -1,0 +1,110 @@
+{
+    "$id": "admin.gallery.held.json",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "harmonies",
+                "comments"
+            ],
+            "properties": {
+                "harmonies": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "galleryHarmony.json"
+                    }
+                },
+                "comments": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "id",
+                            "body",
+                            "author",
+                            "harmony",
+                            "createdAt"
+                        ],
+                        "properties": {
+                            "id": {
+                                "type": "string"
+                            },
+                            "body": {
+                                "type": "string"
+                            },
+                            "author": {
+                                "type": "object",
+                                "additionalProperties": false,
+                                "required": [
+                                    "handle",
+                                    "name",
+                                    "avatarUrl",
+                                    "id"
+                                ],
+                                "properties": {
+                                    "handle": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ]
+                                    },
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "avatarUrl": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ]
+                                    },
+                                    "id": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ]
+                                    }
+                                }
+                            },
+                            "harmony": {
+                                "type": "object",
+                                "additionalProperties": false,
+                                "required": [
+                                    "id",
+                                    "title"
+                                ],
+                                "properties": {
+                                    "id": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ]
+                                    },
+                                    "title": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ]
+                                    }
+                                }
+                            },
+                            "createdAt": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ],
+                                "format": "date-time"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

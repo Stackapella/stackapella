@@ -1,0 +1,21 @@
+{
+    "$id": "ideas.list.json",
+    "title": "ideas.list and ideas.mine",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data",
+        "meta"
+    ],
+    "properties": {
+        "data": {
+            "type": "array",
+            "items": {
+                "$ref": "idea.json"
+            }
+        },
+        "meta": {
+            "$ref": "meta.json"
+        }
+    }
+}

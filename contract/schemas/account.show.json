@@ -1,0 +1,13 @@
+{
+    "$id": "account.show.json",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "$ref": "account.json"
+        }
+    }
+}

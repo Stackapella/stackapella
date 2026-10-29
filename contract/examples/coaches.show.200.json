@@ -1,0 +1,79 @@
+{
+    "data": {
+        "handle": "grace_sings",
+        "name": "Grace Okafor",
+        "avatarUrl": null,
+        "bio": "Choir director and voice teacher.",
+        "voiceTypes": [
+            "alto",
+            "soprano"
+        ],
+        "styles": [
+            "choral",
+            "folk"
+        ],
+        "languages": [
+            "en"
+        ],
+        "timezone": "Europe/London",
+        "newCoach": true,
+        "rating": {
+            "average": null,
+            "count": 1
+        },
+        "offerings": [
+            {
+                "id": "Of3dRt",
+                "kind": "review",
+                "title": "A take review",
+                "description": "I listen to your take and pin notes where it matters.",
+                "priceCents": 2500,
+                "currency": "gbp",
+                "turnaroundDays": 5,
+                "maxSeconds": 180,
+                "reviewsPerMonth": null,
+                "archived": false,
+                "appointmentTypeId": null,
+                "durationMinutes": null
+            },
+            {
+                "id": "Of4eSu",
+                "kind": "package",
+                "title": "Monthly coaching",
+                "description": "I listen to your take and pin notes where it matters.",
+                "priceCents": 6000,
+                "currency": "gbp",
+                "turnaroundDays": 5,
+                "maxSeconds": 180,
+                "reviewsPerMonth": 4,
+                "archived": false,
+                "appointmentTypeId": null,
+                "durationMinutes": null
+            }
+        ],
+        "packs": [
+            {
+                "id": "c3d4e5f6-a7b8-4c9d-8e0f-1a2b3c4d5e6f",
+                "title": "Breath for long phrases",
+                "description": "Five exercises.",
+                "priceCents": 0,
+                "currency": "gbp",
+                "exercises": [
+                    {
+                        "id": "breath-4-4",
+                        "title": "Four in, four out"
+                    }
+                ],
+                "status": "approved",
+                "note": null,
+                "coach": {
+                    "id": "Cz8xYw2v",
+                    "name": "Grace Okafor"
+                },
+                "updatedAt": "2026-10-27T10:00:00Z"
+            }
+        ],
+        "ratings": [],
+        "keepsBooks": false
+    }
+}

@@ -1,0 +1,223 @@
+{
+    "$id": "admin.beta.singer.json",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "id",
+        "name",
+        "email",
+        "note",
+        "link",
+        "expiresAt",
+        "consent",
+        "credit",
+        "hourlyRateCents",
+        "currency",
+        "owedCents",
+        "paidCents",
+        "lastSeenAt",
+        "createdAt",
+        "assignments",
+        "account",
+        "acceptedAt",
+        "stats"
+    ],
+    "properties": {
+        "id": {
+            "type": "string"
+        },
+        "name": {
+            "type": "string"
+        },
+        "email": {
+            "type": [
+                "string",
+                "null"
+            ]
+        },
+        "note": {
+            "type": [
+                "string",
+                "null"
+            ]
+        },
+        "link": {
+            "type": "string",
+            "enum": [
+                "active",
+                "accepted",
+                "expired",
+                "revoked"
+            ],
+            "description": "The invite: open (active), accepted by an account, expired, or revoked (or forgotten)."
+        },
+        "expiresAt": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "format": "date-time"
+        },
+        "consent": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "version",
+                "acceptedAt",
+                "current"
+            ],
+            "properties": {
+                "version": {
+                    "type": [
+                        "integer",
+                        "null"
+                    ]
+                },
+                "acceptedAt": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "format": "date-time"
+                },
+                "current": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "credit": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "mode",
+                "name"
+            ],
+            "properties": {
+                "mode": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "enum": [
+                        "name",
+                        "anonymous",
+                        null
+                    ]
+                },
+                "name": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                }
+            }
+        },
+        "hourlyRateCents": {
+            "type": [
+                "integer",
+                "null"
+            ]
+        },
+        "currency": {
+            "type": [
+                "string",
+                "null"
+            ]
+        },
+        "owedCents": {
+            "type": "integer",
+            "description": "Accepted parts not yet marked paid: minutes / 60 x the hourly rate."
+        },
+        "paidCents": {
+            "type": "integer"
+        },
+        "lastSeenAt": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "format": "date-time"
+        },
+        "createdAt": {
+            "type": "string",
+            "format": "date-time"
+        },
+        "assignments": {
+            "type": "array",
+            "items": {
+                "$ref": "admin.beta.assignment.json"
+            }
+        },
+        "account": {
+            "type": [
+                "object",
+                "null"
+            ],
+            "additionalProperties": false,
+            "required": [
+                "id",
+                "email"
+            ],
+            "properties": {
+                "id": {
+                    "type": "string",
+                    "description": "The account's Sqid (admin.people.show)."
+                },
+                "email": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                }
+            },
+            "description": "The account that accepted the invite, or null until then."
+        },
+        "acceptedAt": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "format": "date-time"
+        },
+        "stats": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "takes",
+                "accepted",
+                "retakes",
+                "published",
+                "defaults",
+                "pitchPercent"
+            ],
+            "description": "Who did well, at a glance.",
+            "properties": {
+                "takes": {
+                    "type": "integer"
+                },
+                "accepted": {
+                    "type": "integer"
+                },
+                "retakes": {
+                    "type": "integer"
+                },
+                "published": {
+                    "type": "integer",
+                    "description": "Their versions on the app."
+                },
+                "defaults": {
+                    "type": "integer",
+                    "description": "How many of those lead their part."
+                },
+                "pitchPercent": {
+                    "type": [
+                        "integer",
+                        "null"
+                    ],
+                    "description": "Their sent takes' average pitch score (the device's own)."
+                }
+            }
+        }
+    },
+    "title": "A beta singer, for Hillel"
+}

@@ -1,0 +1,101 @@
+{
+    "$id": "library.json",
+    "title": "A template's place in the library (N3)",
+    "type": [
+        "object",
+        "null"
+    ],
+    "additionalProperties": false,
+    "required": [
+        "status",
+        "creator",
+        "uses",
+        "rating",
+        "featured",
+        "publishedAt",
+        "parent"
+    ],
+    "properties": {
+        "status": {
+            "type": "string",
+            "enum": [
+                "listed",
+                "held",
+                "hidden"
+            ],
+            "description": "listed: anyone finds it; held: waiting for Hillel's review (opens as if unlisted); hidden: taken out (its owner alone opens it)."
+        },
+        "creator": {
+            "$ref": "person.json"
+        },
+        "uses": {
+            "type": "integer",
+            "description": "Different people (not its creator) who made a project from it, recounted nightly."
+        },
+        "rating": {
+            "$ref": "templates.rating.value.json"
+        },
+        "featured": {
+            "type": "boolean"
+        },
+        "publishedAt": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "format": "date-time"
+        },
+        "parent": {
+            "type": [
+                "object",
+                "null"
+            ],
+            "additionalProperties": false,
+            "required": [
+                "id",
+                "title",
+                "creator"
+            ],
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "creator": {
+                    "type": [
+                        "object",
+                        "null"
+                    ],
+                    "additionalProperties": false,
+                    "required": [
+                        "handle",
+                        "name",
+                        "avatarUrl"
+                    ],
+                    "properties": {
+                        "handle": {
+                            "type": [
+                                "string",
+                                "null"
+                            ]
+                        },
+                        "name": {
+                            "type": "string"
+                        },
+                        "avatarUrl": {
+                            "type": [
+                                "string",
+                                "null"
+                            ]
+                        }
+                    },
+                    "description": "Null for one of our own songs."
+                }
+            },
+            "description": "What it was remixed from, while that can still be seen."
+        }
+    },
+    "description": "Null for a template that isn't public (in templates.mine)."
+}

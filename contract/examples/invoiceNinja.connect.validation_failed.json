@@ -1,0 +1,9 @@
+{
+    "message": "Unprocessable Content.",
+    "code": "validation_failed",
+    "errors": {
+        "token": [
+            "Invoice Ninja didn't accept the token. Connect it again."
+        ]
+    }
+}

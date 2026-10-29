@@ -1,0 +1,6 @@
+{
+    "data": {
+        "url": "https://eventschedule.com/oauth/authorize?response_type=code&client_id=stackapella&redirect_uri=https%3A%2F%2Fstackapella.com%2Fconnect%2Fevent-schedule%2Fcallback&scope=profile+schedules%3Aread&state=s7Hk2&code_challenge=Xy9&code_challenge_method=S256",
+        "expiresAt": "2026-11-01T09:10:00Z"
+    }
+}

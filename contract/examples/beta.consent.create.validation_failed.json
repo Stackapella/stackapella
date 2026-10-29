@@ -1,0 +1,9 @@
+{
+    "message": "Unprocessable Content.",
+    "code": "validation_failed",
+    "errors": {
+        "adult": [
+            "You need to be 18 or over to sing in the beta."
+        ]
+    }
+}

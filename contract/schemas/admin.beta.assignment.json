@@ -1,0 +1,79 @@
+{
+    "$id": "admin.beta.assignment.json",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "id",
+        "templateId",
+        "templateTitle",
+        "partKey",
+        "minutes",
+        "status",
+        "kind",
+        "clipId"
+    ],
+    "properties": {
+        "id": {
+            "type": "string"
+        },
+        "templateId": {
+            "type": [
+                "string",
+                "null"
+            ]
+        },
+        "templateTitle": {
+            "type": [
+                "string",
+                "null"
+            ]
+        },
+        "partKey": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "enum": [
+                "soprano",
+                "alto",
+                "tenor",
+                "bass",
+                "lead",
+                "baritone",
+                null
+            ]
+        },
+        "minutes": {
+            "type": [
+                "integer",
+                "null"
+            ]
+        },
+        "status": {
+            "type": "string",
+            "enum": [
+                "to_record",
+                "submitted",
+                "in_review",
+                "retake",
+                "guide",
+                "accepted",
+                "rejected"
+            ]
+        },
+        "kind": {
+            "type": "string",
+            "enum": [
+                "part",
+                "clip"
+            ]
+        },
+        "clipId": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "description": "A course clip's slot, for kind clip."
+        }
+    }
+}

@@ -1,0 +1,10 @@
+{
+    "$id": "admin.blocklist.list.json",
+    "type": "object",
+    "additionalProperties": false,
+    "required": ["data", "meta"],
+    "properties": {
+        "data": { "type": "array", "items": { "$ref": "admin.block.json" } },
+        "meta": { "$ref": "meta.json" }
+    }
+}

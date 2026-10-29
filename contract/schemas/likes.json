@@ -1,0 +1,26 @@
+{
+    "$id": "likes.json",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "liked",
+                "likes"
+            ],
+            "properties": {
+                "liked": {
+                    "type": "boolean"
+                },
+                "likes": {
+                    "type": "integer"
+                }
+            }
+        }
+    }
+}

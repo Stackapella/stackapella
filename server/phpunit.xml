@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
+         bootstrap="tests/bootstrap.php"
+         colors="true"
+         cacheDirectory=".phpunit.cache"
+>
+    <testsuites>
+        <testsuite name="Unit">
+            <directory>tests/Unit</directory>
+        </testsuite>
+        <testsuite name="Feature">
+            <directory>tests/Feature</directory>
+        </testsuite>
+        <testsuite name="Architecture">
+            <directory>tests/Architecture</directory>
+        </testsuite>
+        <testsuite name="Contract">
+            <directory>tests/Contract</directory>
+        </testsuite>
+    </testsuites>
+    <source>
+        <include>
+            <directory>app</directory>
+        </include>
+    </source>
+    <php>
+        <env name="APP_ENV" value="testing" force="true"/>
+        <env name="APP_URL" value="https://stackapella.test" force="true"/>
+        <env name="APP_MAINTENANCE_DRIVER" value="file"/>
+        <env name="APP_BUILD" value="" force="true"/>
+        <env name="MIN_APP_VERSION" value="" force="true"/>
+        <env name="BCRYPT_ROUNDS" value="4"/>
+        <env name="BROADCAST_CONNECTION" value="null"/>
+        <!-- As production (.do/app.yaml): a cache read is a query here too. -->
+        <env name="CACHE_STORE" value="database" force="true"/>
+        <env name="DB_CONNECTION" value="mysql" force="true"/>
+        <env name="MAIL_MAILER" value="array" force="true"/>
+        <env name="QUEUE_CONNECTION" value="sync" force="true"/>
+        <env name="SESSION_DRIVER" value="array" force="true"/>
+        <env name="SESSION_SECURE_COOKIE" value="false" force="true"/>
+        <env name="MEDIA_DISK" value="media_local" force="true"/>
+        <env name="PRIVATE_DISK" value="private_local" force="true"/>
+        <env name="BACKUP_DISK" value="backup_local" force="true"/>
+        <env name="MEDIA_URL" value="https://stackapella.test/media" force="true"/>
+        <env name="BEHIND_APP_PLATFORM" value="false" force="true"/>
+        <env name="ADMIN_GOOGLE_IDS" value="admin-google-id" force="true"/>
+        <env name="ADMIN_EMAILS" value="admin@example.test" force="true"/>
+        <env name="EDITOR_GOOGLE_IDS" value="editor-google-id" force="true"/>
+        <env name="EDITOR_EMAILS" value="editor@example.test" force="true"/>
+        <env name="ADMIN_2FA_REQUIRED" value="true" force="true"/>
+        <!-- Every third-party key empty, so a test never reaches a real service. -->
+        <env name="GOOGLE_CLIENT_ID" value="" force="true"/>
+        <env name="GOOGLE_CLIENT_SECRET" value="" force="true"/>
+        <env name="CLOUDFLARE_ACCOUNT_ID" value="" force="true"/>
+        <env name="CLOUDFLARE_EMAIL_TOKEN" value="" force="true"/>
+        <env name="DIGITALOCEAN_TOKEN" value="" force="true"/>
+        <env name="DIGITALOCEAN_CDN_ENDPOINT_ID" value="" force="true"/>
+        <env name="APPLE_CLIENT_ID" value="" force="true"/>
+        <env name="APPLE_PRIVATE_KEY" value="" force="true"/>
+        <env name="TURNSTILE_SITE_KEY" value="" force="true"/>
+        <env name="TURNSTILE_SECRET" value="" force="true"/>
+        <env name="SPACES_KEY" value="" force="true"/>
+        <env name="SPACES_SECRET" value="" force="true"/>
+        <env name="CDN_URL" value="" force="true"/>
+        <env name="DB_CA_CERT" value="" force="true"/>
+        <env name="PASSKEYS_USER_HANDLE_SECRET" value="" force="true"/>
+    </php>
+</phpunit>

@@ -1,0 +1,99 @@
+{
+    "$id": "project.json",
+    "title": "A project in the cloud",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "id",
+        "title",
+        "bpm",
+        "key",
+        "timeSignature",
+        "template",
+        "settings",
+        "version",
+        "bytes",
+        "createdAt",
+        "updatedAt",
+        "binnedAt",
+        "readOnly"
+    ],
+    "properties": {
+        "id": {
+            "type": "string",
+            "description": "The UUID the device gave it."
+        },
+        "title": {
+            "type": "string"
+        },
+        "bpm": {
+            "type": "number"
+        },
+        "key": {
+            "type": [
+                "string",
+                "null"
+            ]
+        },
+        "timeSignature": {
+            "type": "string"
+        },
+        "template": {
+            "type": [
+                "object",
+                "null"
+            ],
+            "additionalProperties": false,
+            "required": [
+                "id",
+                "version"
+            ],
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "integer"
+                }
+            }
+        },
+        "settings": {
+            "type": "object",
+            "description": "The app's own, as it sent them."
+        },
+        "version": {
+            "type": "integer"
+        },
+        "bytes": {
+            "type": "integer",
+            "description": "What its current takes use of the storage allowance."
+        },
+        "createdAt": {
+            "type": "string",
+            "format": "date-time"
+        },
+        "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+        },
+        "binnedAt": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "format": "date-time"
+        },
+        "readOnly": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "enum": [
+                "limit",
+                "plus_song",
+                null
+            ],
+            "description": "Readable (and exportable as WAV), not editable: beyond the free limit after a downgrade, or made from a Plus song. Null: editable."
+        }
+    }
+}

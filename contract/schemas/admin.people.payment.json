@@ -1,0 +1,50 @@
+{
+    "$id": "admin.people.payment.json",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "payment"
+            ],
+            "properties": {
+                "payment": {
+                    "type": [
+                        "object",
+                        "null"
+                    ],
+                    "additionalProperties": false,
+                    "required": [
+                        "amountCents",
+                        "refundedCents",
+                        "currency",
+                        "paidAt"
+                    ],
+                    "description": "The latest paid Plus invoice through Stripe, or null when there's none.",
+                    "properties": {
+                        "amountCents": {
+                            "type": "integer",
+                            "description": "What was paid."
+                        },
+                        "refundedCents": {
+                            "type": "integer",
+                            "description": "What's been refunded of it already; a refund can take the rest."
+                        },
+                        "currency": {
+                            "type": "string"
+                        },
+                        "paidAt": {
+                            "type": "string",
+                            "format": "date-time"
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

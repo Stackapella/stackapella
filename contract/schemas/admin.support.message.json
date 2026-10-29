@@ -1,0 +1,213 @@
+{
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "id",
+                "category",
+                "status",
+                "from",
+                "preview",
+                "createdAt",
+                "answeredAt",
+                "body",
+                "context",
+                "replies",
+                "savedReplies"
+            ],
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "category": {
+                    "type": "string",
+                    "enum": [
+                        "account",
+                        "payments",
+                        "recording",
+                        "coaching",
+                        "other",
+                        "diagnostics",
+                        "bug",
+                        "idea"
+                    ]
+                },
+                "status": {
+                    "type": "string",
+                    "enum": [
+                        "open",
+                        "answered",
+                        "closed"
+                    ]
+                },
+                "from": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                        "email",
+                        "account"
+                    ],
+                    "properties": {
+                        "email": {
+                            "type": [
+                                "string",
+                                "null"
+                            ]
+                        },
+                        "account": {
+                            "type": [
+                                "object",
+                                "null"
+                            ],
+                            "additionalProperties": false,
+                            "required": [
+                                "id",
+                                "name"
+                            ],
+                            "properties": {
+                                "id": {
+                                    "type": "string"
+                                },
+                                "name": {
+                                    "type": "string"
+                                },
+                                "plan": {
+                                    "type": "object",
+                                    "additionalProperties": false,
+                                    "required": [
+                                        "plus",
+                                        "source",
+                                        "until"
+                                    ],
+                                    "description": "Their plan now, from the billing state, as admin.people.show has it.",
+                                    "properties": {
+                                        "plus": {
+                                            "type": "boolean"
+                                        },
+                                        "source": {
+                                            "type": [
+                                                "string",
+                                                "null"
+                                            ],
+                                            "enum": [
+                                                "stripe",
+                                                "apple",
+                                                "google",
+                                                "coach",
+                                                "invoice",
+                                                "demo",
+                                                null
+                                            ],
+                                            "description": "Where Plus comes from: the web (Stripe), a store, a coach's, an invoice, or the demo; null on the free plan."
+                                        },
+                                        "until": {
+                                            "type": [
+                                                "string",
+                                                "null"
+                                            ],
+                                            "format": "date-time",
+                                            "description": "When Plus next renews or ends, when known."
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "preview": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "answeredAt": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "format": "date-time"
+                },
+                "body": {
+                    "type": "string"
+                },
+                "context": {
+                    "type": [
+                        "object",
+                        "null"
+                    ]
+                },
+                "replies": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "body",
+                            "by",
+                            "sentAt"
+                        ],
+                        "properties": {
+                            "body": {
+                                "type": "string"
+                            },
+                            "by": {
+                                "type": [
+                                    "object",
+                                    "null"
+                                ],
+                                "additionalProperties": false,
+                                "required": [
+                                    "id",
+                                    "name"
+                                ],
+                                "properties": {
+                                    "id": {
+                                        "type": "string"
+                                    },
+                                    "name": {
+                                        "type": "string"
+                                    }
+                                }
+                            },
+                            "sentAt": {
+                                "type": "string",
+                                "format": "date-time"
+                            }
+                        }
+                    }
+                },
+                "savedReplies": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "key",
+                            "title",
+                            "body"
+                        ],
+                        "properties": {
+                            "key": {
+                                "type": "string"
+                            },
+                            "title": {
+                                "type": "string"
+                            },
+                            "body": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "$id": "admin.support.message.json"
+}

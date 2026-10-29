@@ -1,0 +1,56 @@
+{
+    "$id": "catalogue.part.json",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "key",
+        "name",
+        "range",
+        "guide",
+        "versions"
+    ],
+    "properties": {
+        "key": {
+            "type": "string",
+            "enum": [
+                "soprano",
+                "alto",
+                "tenor",
+                "bass",
+                "lead",
+                "baritone"
+            ]
+        },
+        "name": {
+            "type": "string"
+        },
+        "range": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "low",
+                "high"
+            ],
+            "properties": {
+                "low": {
+                    "type": "integer"
+                },
+                "high": {
+                    "type": "integer"
+                }
+            }
+        },
+        "guide": {
+            "$ref": "guide.recording.json#/$defs/nullable",
+            "description": "The default real voice, or null: the synth plays."
+        },
+        "versions": {
+            "type": "array",
+            "items": {
+                "$ref": "guide.recording.json"
+            },
+            "description": "Every published version of this part, the default first, then the newest: a learner may choose any as their guide. Empty for a song the caller can't start."
+        }
+    },
+    "title": "One part of a song in the catalogue: never its notes"
+}

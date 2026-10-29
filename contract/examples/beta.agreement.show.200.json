@@ -1,0 +1,31 @@
+{
+    "data": {
+        "version": 1,
+        "reviewed": false,
+        "language": "en",
+        "title": "Singing for Stackapella: the beta agreement",
+        "blocks": [
+            {
+                "type": "heading",
+                "level": 2,
+                "text": "The short version",
+                "items": null
+            },
+            {
+                "type": "list",
+                "level": null,
+                "text": null,
+                "items": [
+                    "**You record parts of our songs,** and the ones we accept become the guide voice that learners hear in the app.",
+                    "**You must be 18 or over.**"
+                ]
+            },
+            {
+                "type": "paragraph",
+                "level": null,
+                "text": "1.1 You'll record parts of Stackapella's official arrangements in the app.",
+                "items": null
+            }
+        ]
+    }
+}

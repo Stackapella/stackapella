@@ -1,0 +1,46 @@
+{
+    "$id": "choirs.voices.list.json",
+    "title": "choirs.voices.list",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data",
+        "meta"
+    ],
+    "properties": {
+        "data": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                    "id",
+                    "partKey",
+                    "singer",
+                    "createdAt"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "partKey": {
+                        "type": "string"
+                    },
+                    "singer": {
+                        "$ref": "person.json"
+                    },
+                    "createdAt": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    }
+                }
+            }
+        },
+        "meta": {
+            "$ref": "meta.json"
+        }
+    }
+}

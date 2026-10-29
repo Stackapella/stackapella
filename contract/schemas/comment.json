@@ -1,0 +1,42 @@
+{
+    "$id": "comment.json",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "id",
+        "body",
+        "author",
+        "mine",
+        "canDelete",
+        "held",
+        "createdAt"
+    ],
+    "properties": {
+        "id": {
+            "type": "string"
+        },
+        "body": {
+            "type": "string"
+        },
+        "author": {
+            "$ref": "person.json"
+        },
+        "mine": {
+            "type": "boolean"
+        },
+        "canDelete": {
+            "type": "boolean"
+        },
+        "held": {
+            "type": "boolean"
+        },
+        "createdAt": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "format": "date-time"
+        }
+    },
+    "title": "A comment in the gallery"
+}

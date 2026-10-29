@@ -1,0 +1,19 @@
+{
+    "data": [
+        {
+            "id": "Dp4Qw2",
+            "person": {
+                "id": "Mx4Lp9",
+                "name": "Ada Lovelace"
+            },
+            "amountCents": 3999,
+            "currency": "usd",
+            "reason": "fraudulent",
+            "status": "needs_response",
+            "createdAt": "2026-10-26T12:00:00Z"
+        }
+    ],
+    "meta": {
+        "nextCursor": null
+    }
+}

@@ -1,0 +1,19 @@
+{
+    "data": [
+        {
+            "id": "Mb1",
+            "name": "Ana Ruiz",
+            "email": "ana@example.com",
+            "role": "member"
+        },
+        {
+            "id": "Mb2",
+            "name": "Ben Cole",
+            "email": null,
+            "role": "member"
+        }
+    ],
+    "meta": {
+        "nextCursor": null
+    }
+}

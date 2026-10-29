@@ -1,0 +1,60 @@
+{
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "id",
+        "partKey",
+        "status",
+        "failure",
+        "sampleRate",
+        "frames",
+        "offsetFrames",
+        "createdAt"
+    ],
+    "properties": {
+        "id": {
+            "type": "string",
+            "description": "The UUID the device gave it."
+        },
+        "partKey": {
+            "type": "string"
+        },
+        "status": {
+            "type": "string",
+            "enum": [
+                "uploading",
+                "processing",
+                "ready",
+                "failed"
+            ]
+        },
+        "failure": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "enum": [
+                null,
+                "not_audio",
+                "wrong_format",
+                "too_long",
+                "processing_error"
+            ]
+        },
+        "sampleRate": {
+            "type": "integer"
+        },
+        "frames": {
+            "type": "integer"
+        },
+        "offsetFrames": {
+            "type": "integer"
+        },
+        "createdAt": {
+            "type": "string",
+            "format": "date-time"
+        }
+    },
+    "$id": "templates.recording.json",
+    "title": "A creator's own recorded guide for one part (Plus)"
+}

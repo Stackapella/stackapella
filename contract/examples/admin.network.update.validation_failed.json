@@ -1,0 +1,9 @@
+{
+    "message": "Unprocessable Content.",
+    "code": "validation_failed",
+    "errors": {
+        "thresholds": [
+            "The selected thresholds is invalid."
+        ]
+    }
+}

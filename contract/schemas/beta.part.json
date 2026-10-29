@@ -1,0 +1,191 @@
+{
+    "$id": "beta.part.json",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "id",
+        "template",
+        "partKey",
+        "status",
+        "recordable",
+        "latestSubmission",
+        "guides",
+        "style",
+        "kind",
+        "clip"
+    ],
+    "properties": {
+        "id": {
+            "type": "string",
+            "description": "The assignment's Sqid."
+        },
+        "template": {
+            "type": [
+                "object",
+                "null"
+            ],
+            "additionalProperties": false,
+            "required": [
+                "id",
+                "version",
+                "title",
+                "key",
+                "tempo",
+                "reviewed"
+            ],
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "integer"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "key": {
+                    "type": "string"
+                },
+                "tempo": {
+                    "type": "number"
+                },
+                "reviewed": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "partKey": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "enum": [
+                "soprano",
+                "alto",
+                "tenor",
+                "bass",
+                "lead",
+                "baritone",
+                null
+            ]
+        },
+        "style": {
+            "type": "string",
+            "enum": [
+                "straight",
+                "free",
+                "vibrato"
+            ],
+            "description": "How to use vibrato on this part (the part's own style, else the song's; free when neither says): straight is a light, straight tone so the chord rings; free is the singer's natural tone; vibrato is welcomed."
+        },
+        "status": {
+            "type": "string",
+            "enum": [
+                "to_record",
+                "submitted",
+                "in_review",
+                "retake",
+                "guide",
+                "accepted",
+                "rejected"
+            ],
+            "description": "What My parts shows: To record, Submitted, In review, Hillel asked for another take, Now the guide (this singer's take is the part's default voice on the current version), Accepted as an alternate voice, or not used."
+        },
+        "recordable": {
+            "type": "boolean",
+            "description": "False until the musician has reviewed the template (recording opens only then)."
+        },
+        "latestSubmission": {
+            "$ref": "beta.submission.json#/$defs/nullable"
+        },
+        "guides": {
+            "type": "array",
+            "items": {
+                "$ref": "guide.recording.json"
+            },
+            "description": "The real voices already accepted for this template version's parts (other singers', and this singer's own once accepted), to learn and record with."
+        },
+        "kind": {
+            "type": "string",
+            "enum": [
+                "part",
+                "clip"
+            ]
+        },
+        "clip": {
+            "type": [
+                "object",
+                "null"
+            ],
+            "additionalProperties": false,
+            "description": "A course clip's brief, from web/course/plus/clips.json.",
+            "properties": {
+                "id": {
+                    "type": "string",
+                    "description": "The slot, <course>.<name>."
+                },
+                "courseId": {
+                    "type": "string"
+                },
+                "lessonId": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "step": {
+                    "type": [
+                        "integer",
+                        "null"
+                    ]
+                },
+                "sing": {
+                    "type": "string",
+                    "description": "What to sing, in the singer's language."
+                },
+                "pitch": {
+                    "type": [
+                        "object",
+                        "null"
+                    ],
+                    "description": "{ step } relative to the singer's own comfortable note, or { low, high }."
+                },
+                "seconds": {
+                    "type": "number"
+                },
+                "style": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "voices": {
+                    "type": [
+                        "string",
+                        "array"
+                    ],
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "\"any\", or the voices that may record it."
+                },
+                "courseTitle": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "id",
+                "courseId",
+                "lessonId",
+                "step",
+                "sing",
+                "pitch",
+                "seconds",
+                "style",
+                "voices",
+                "courseTitle"
+            ]
+        }
+    },
+    "title": "A part a beta singer was asked to record"
+}

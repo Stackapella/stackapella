@@ -1,0 +1,92 @@
+{
+    "$id": "admin.boards.flags.list.json",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                    "id",
+                    "person",
+                    "templateId",
+                    "title",
+                    "partKey",
+                    "score",
+                    "reason",
+                    "reports",
+                    "recordedAt",
+                    "holdEndsAt",
+                    "takeUrl"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "person": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "id",
+                            "name"
+                        ],
+                        "properties": {
+                            "id": {
+                                "type": "string"
+                            },
+                            "name": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "templateId": {
+                        "type": "string"
+                    },
+                    "title": {
+                        "type": "string"
+                    },
+                    "partKey": {
+                        "type": "string"
+                    },
+                    "score": {
+                        "type": "integer"
+                    },
+                    "reason": {
+                        "type": "string",
+                        "enum": [
+                            "perfect",
+                            "outlier",
+                            "reported"
+                        ],
+                        "description": "A perfect 100, a jump over their own best or the board's, or reported by people (a name, usually)."
+                    },
+                    "reports": {
+                        "type": "integer",
+                        "description": "People's open reports on the entry."
+                    },
+                    "recordedAt": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "holdEndsAt": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "When it shows on the global board anyway, if nobody looks."
+                    },
+                    "takeUrl": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "description": "A 10-minute link to the take behind the score, or null when there's none."
+                    }
+                }
+            }
+        }
+    }
+}

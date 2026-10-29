@@ -1,0 +1,335 @@
+{
+    "$id": "admin.account.json",
+    "title": "Someone's account, as the admin sees it",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "id",
+        "name",
+        "handle",
+        "email",
+        "emailVerified",
+        "appleRelay",
+        "methods",
+        "staff",
+        "trustLevel",
+        "trustOverride",
+        "trustNote",
+        "suspendedAt",
+        "ref",
+        "heardFrom",
+        "createdAt",
+        "lastSignInAt",
+        "plusPaidUntil",
+        "storeTesterSince",
+        "lastActiveAt",
+        "adult",
+        "betaSinger",
+        "stats",
+        "country"
+    ],
+    "properties": {
+        "id": {
+            "type": "string",
+            "description": "A Sqid."
+        },
+        "name": {
+            "type": "string"
+        },
+        "handle": {
+            "type": [
+                "string",
+                "null"
+            ]
+        },
+        "email": {
+            "type": [
+                "string",
+                "null"
+            ]
+        },
+        "emailVerified": {
+            "type": "boolean"
+        },
+        "appleRelay": {
+            "type": "boolean",
+            "description": "The email is Apple's Hide My Email relay."
+        },
+        "methods": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "google",
+                "apple",
+                "eventSchedule",
+                "password"
+            ],
+            "properties": {
+                "google": {
+                    "type": "boolean"
+                },
+                "apple": {
+                    "type": "boolean"
+                },
+                "eventSchedule": {
+                    "type": "boolean"
+                },
+                "password": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "staff": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "enum": [
+                "admin",
+                "editor",
+                null
+            ]
+        },
+        "trustLevel": {
+            "type": "integer",
+            "enum": [
+                0,
+                1,
+                2,
+                3
+            ],
+            "description": "What limits and permissions read: the override, or the earned level."
+        },
+        "trustOverride": {
+            "type": [
+                "integer",
+                "null"
+            ],
+            "enum": [
+                0,
+                1,
+                2,
+                3,
+                null
+            ]
+        },
+        "trustNote": {
+            "type": [
+                "string",
+                "null"
+            ]
+        },
+        "suspendedAt": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "format": "date-time"
+        },
+        "ref": {
+            "type": [
+                "string",
+                "null"
+            ]
+        },
+        "heardFrom": {
+            "type": [
+                "string",
+                "null"
+            ]
+        },
+        "createdAt": {
+            "type": "string",
+            "format": "date-time"
+        },
+        "lastSignInAt": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "format": "date-time"
+        },
+        "plusPaidUntil": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "format": "date-time"
+        },
+        "storeTesterSince": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "format": "date-time",
+            "description": "Marked as a store tester (their sandbox App Store and Google Play purchases give Plus) since then; null when not."
+        },
+        "lastActiveAt": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "format": "date-time",
+            "description": "Last seen on any of their browsers or devices (touched at most daily), or null."
+        },
+        "adult": {
+            "type": [
+                "boolean",
+                "null"
+            ],
+            "description": "18 or over (true), under 18 (false), or not known: no birth date given (null). Never the date itself."
+        },
+        "betaSinger": {
+            "type": "boolean",
+            "description": "They're one of the beta's guide singers."
+        },
+        "plan": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "plus",
+                "source",
+                "until"
+            ],
+            "description": "admin.people.show (and its actions) only: their plan now, from the billing state.",
+            "properties": {
+                "plus": {
+                    "type": "boolean"
+                },
+                "source": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "enum": [
+                        "stripe",
+                        "apple",
+                        "google",
+                        "coach",
+                        "invoice",
+                        "demo",
+                        null
+                    ],
+                    "description": "Where Plus comes from: the web (Stripe), a store, a coach's, an invoice, or the demo; null on the free plan."
+                },
+                "until": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "format": "date-time",
+                    "description": "When Plus next renews or ends, when known."
+                }
+            }
+        },
+        "counts": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "publicHarmonies",
+                "groups"
+            ],
+            "description": "admin.people.show (and its actions) only: what they've made public, and their groups. Never their recordings or private songs.",
+            "properties": {
+                "publicHarmonies": {
+                    "type": "integer"
+                },
+                "groups": {
+                    "type": "integer"
+                }
+            }
+        },
+        "stats": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "songs",
+                "lessonsDone",
+                "streakWeeks",
+                "lastActivity"
+            ],
+            "description": "How much they use the app, as counts and times only, never what's in anything. Every row has the first four; the person page (admin.people.show and its actions) adds the rest.",
+            "properties": {
+                "songs": {
+                    "type": "integer",
+                    "description": "Songs (projects) not in the bin."
+                },
+                "lessonsDone": {
+                    "type": "integer",
+                    "description": "Course lessons with at least one star."
+                },
+                "streakWeeks": {
+                    "type": "integer",
+                    "description": "Weeks in a row the weekly goal was met, as the app shows it."
+                },
+                "lastActivity": {
+                    "type": [
+                        "object",
+                        "null"
+                    ],
+                    "additionalProperties": false,
+                    "required": [
+                        "kind",
+                        "at"
+                    ],
+                    "properties": {
+                        "kind": {
+                            "type": "string",
+                            "enum": [
+                                "take",
+                                "practice",
+                                "song",
+                                "share",
+                                "sign_in"
+                            ]
+                        },
+                        "at": {
+                            "type": "string",
+                            "format": "date-time"
+                        }
+                    },
+                    "description": "The latest of: recorded a take, practised (a scored run), changed a song, shared a harmony, signed in. No titles."
+                },
+                "takes": {
+                    "type": "integer"
+                },
+                "stars": {
+                    "type": "integer"
+                },
+                "xp": {
+                    "type": "integer"
+                },
+                "level": {
+                    "type": "integer",
+                    "description": "The app's voice level for that XP."
+                },
+                "practiceMinutes": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                        "lastWeek",
+                        "total"
+                    ],
+                    "properties": {
+                        "lastWeek": {
+                            "type": "integer"
+                        },
+                        "total": {
+                            "type": "integer"
+                        }
+                    }
+                },
+                "storageBytes": {
+                    "type": "integer"
+                }
+            }
+        },
+        "country": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "description": "The country they last signed in from, as Cloudflare names it (two letters); null when not known."
+        }
+    }
+}

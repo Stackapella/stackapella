@@ -1,0 +1,9 @@
+{
+    "message": "Unprocessable Content.",
+    "code": "validation_failed",
+    "errors": {
+        "assignments.0.partKey": [
+            "That part isn't in this song."
+        ]
+    }
+}

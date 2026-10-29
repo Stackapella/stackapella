@@ -1,0 +1,9 @@
+{
+    "message": "Unprocessable Content.",
+    "code": "validation_failed",
+    "errors": {
+        "visibility": [
+            "The selected visibility is invalid."
+        ]
+    }
+}

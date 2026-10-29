@@ -1,0 +1,26 @@
+{
+    "$id": "follows.json",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "following",
+                "followers"
+            ],
+            "properties": {
+                "following": {
+                    "type": "boolean"
+                },
+                "followers": {
+                    "type": "integer"
+                }
+            }
+        }
+    }
+}

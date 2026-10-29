@@ -1,0 +1,30 @@
+{
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "templateId",
+                "partKey",
+                "connected"
+            ],
+            "properties": {
+                "templateId": {
+                    "type": "string"
+                },
+                "partKey": {
+                    "type": "string"
+                },
+                "connected": {
+                    "type": "boolean",
+                    "description": "Whether it connected them for friends' boards: only between two adults, never with yourself."
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,18 @@
+{
+    "data": {
+        "id": "c9d8e7f6-a5b4-4c3d-8e2f-1a0b9c8d7e6f",
+        "partId": "7b1e2d3c-5a6f-4b8c-9d0e-1f2a3b4c5d6e",
+        "status": "ready",
+        "failure": null,
+        "sampleRate": 48000,
+        "frames": 2304000,
+        "offsetFrames": -960,
+        "bytes": 4421730,
+        "sha256": "9f9f9f9f9f9f9f9f9f9f9f9f9f9f9f9f9f9f9f9f9f9f9f9f9f9f9f9f9f9f9f9f",
+        "framesPerPeak": 512,
+        "peaks8": "BU9wYQ==",
+        "url": "https://stackapella-private.nyc3.digitaloceanspaces.com/takes/a1b2c3.flac?X-Amz-Signature=abc",
+        "createdAt": "2026-10-26T17:58:00Z",
+        "binnedAt": null
+    }
+}

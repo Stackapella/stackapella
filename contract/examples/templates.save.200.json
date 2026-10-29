@@ -1,0 +1,30 @@
+{
+    "data": {
+        "id": "b2c3d4e5-6f70-4182-93a4-b5c6d7e8f901",
+        "title": "Our Song for Gran",
+        "visibility": "private",
+        "version": 2,
+        "versions": [
+            1,
+            2
+        ],
+        "libraryOptIn": false,
+        "library": null,
+        "parent": null,
+        "readOnly": false,
+        "recordings": [
+            {
+                "id": "d1e2f3a4-b5c6-4d7e-8f90-a1b2c3d4e5f6",
+                "partKey": "alto",
+                "status": "ready",
+                "failure": null,
+                "sampleRate": 48000,
+                "frames": 2880000,
+                "offsetFrames": 0,
+                "createdAt": "2026-10-27T10:00:00Z"
+            }
+        ],
+        "createdAt": "2026-10-27T09:00:00Z",
+        "updatedAt": "2026-10-27T10:00:00Z"
+    }
+}

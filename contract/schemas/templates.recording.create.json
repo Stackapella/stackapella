@@ -1,0 +1,17 @@
+{
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data",
+        "upload"
+    ],
+    "properties": {
+        "data": {
+            "$ref": "templates.recording.json"
+        },
+        "upload": {
+            "$ref": "upload.json#/$defs/nullable"
+        }
+    },
+    "$id": "templates.recording.create.json"
+}

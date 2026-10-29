@@ -1,0 +1,28 @@
+{
+    "data": {
+        "id": "e5f6a7b8-c9d0-4e1f-8a2b-3c4d5e6f7a8b",
+        "partKey": "alto",
+        "singer": {
+            "handle": null,
+            "name": "Sam Lee",
+            "avatarUrl": null
+        },
+        "status": "uploading",
+        "url": null,
+        "sampleRate": 48000,
+        "frames": 480000,
+        "offsetFrames": 0,
+        "framesPerPeak": null,
+        "peaks": null,
+        "mine": true,
+        "createdAt": "2026-11-05T10:00:00Z"
+    },
+    "upload": {
+        "url": "https://stackapella-private.nyc3.digitaloceanspaces.com/uploads/voices/u5v4w3.wav?X-Amz-Signature=abc",
+        "method": "PUT",
+        "headers": {
+            "Content-Type": "audio/wav"
+        },
+        "expiresAt": "2026-11-05T10:10:00Z"
+    }
+}

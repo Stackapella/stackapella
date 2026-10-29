@@ -1,0 +1,27 @@
+{
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "id",
+                "receivedAt"
+            ],
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "receivedAt": {
+                    "type": "string",
+                    "format": "date-time"
+                }
+            }
+        }
+    },
+    "$id": "support.received.json"
+}

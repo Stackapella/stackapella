@@ -1,0 +1,16 @@
+{
+    "$id": "admin.flag.json",
+    "title": "One switch for an attack, or a feature that ships dark (server/config/flags.php)",
+    "type": "object",
+    "additionalProperties": false,
+    "required": ["name", "kind", "value", "values", "reason", "changedAt", "changedBy"],
+    "properties": {
+        "name": { "type": "string", "description": "A stable key the app words: shield_mode, pause_signups, pause_sharing, pause_videos, pause_uploads, pause_comments, pause_follows, pause_requests, pause_messages, read_only, gallery, coaching, event_schedule." },
+        "kind": { "type": "string", "enum": ["switch", "feature"] },
+        "value": { "type": "string", "description": "One of `values`." },
+        "values": { "type": "array", "items": { "type": "string" }, "description": "Each a stable key; the first is off." },
+        "reason": { "type": ["string", "null"], "description": "What the admin typed when they last changed it, shown as it is." },
+        "changedAt": { "type": ["string", "null"], "format": "date-time" },
+        "changedBy": { "$ref": "admin.person.json" }
+    }
+}

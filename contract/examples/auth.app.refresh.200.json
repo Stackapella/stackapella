@@ -1,0 +1,18 @@
+{
+    "data": {
+        "accessToken": "sat_8Gh2Wq5Rt7Yu1Io3Pa9Sd4Fz",
+        "accessExpiresAt": "2026-10-27T16:05:00Z",
+        "refreshToken": "srt_Mn2Bv8Cx4Za6Lk1Jh9Gf3Ds7",
+        "device": {
+            "id": "Qp7Rk2",
+            "name": "Ada's iPhone",
+            "platform": "ios",
+            "model": "iPhone17,1",
+            "appVersion": "0.1.0",
+            "signedInAt": "2026-10-27T14:05:00Z",
+            "lastUsedAt": "2026-10-27T15:04:12Z",
+            "current": true,
+            "push": false
+        }
+    }
+}

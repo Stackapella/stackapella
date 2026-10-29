@@ -1,0 +1,17 @@
+{
+    "$id": "beta.submissions.create.json",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data",
+        "upload"
+    ],
+    "properties": {
+        "data": {
+            "$ref": "beta.submission.json"
+        },
+        "upload": {
+            "$ref": "upload.json"
+        }
+    }
+}

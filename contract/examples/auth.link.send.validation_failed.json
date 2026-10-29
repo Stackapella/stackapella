@@ -1,0 +1,9 @@
+{
+    "message": "Unprocessable Content.",
+    "code": "validation_failed",
+    "errors": {
+        "email": [
+            "The email field must be a valid email address."
+        ]
+    }
+}

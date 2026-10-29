@@ -1,0 +1,20 @@
+{
+    "data": [
+        {
+            "id": "Fb2Lm7",
+            "singer": {
+                "id": "Pq7Rm2",
+                "name": "Sarah Kim"
+            },
+            "templateId": "amazing-grace",
+            "partKey": "alto",
+            "beat": 33,
+            "text": "The note on \"sweet\" feels low for the alto.",
+            "readAt": null,
+            "createdAt": "2026-10-26T15:40:00Z"
+        }
+    ],
+    "meta": {
+        "nextCursor": null
+    }
+}

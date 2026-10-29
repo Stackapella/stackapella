@@ -1,0 +1,28 @@
+{
+    "$id": "admin.beta.bar.json",
+    "title": "admin.beta.bar.show and .update",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "pitchPercent",
+                "timingPercent"
+            ],
+            "properties": {
+                "pitchPercent": {
+                    "type": "integer"
+                },
+                "timingPercent": {
+                    "type": "integer"
+                }
+            },
+            "description": "The bar a take must clear to be sent."
+        }
+    }
+}

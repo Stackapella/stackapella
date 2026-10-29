@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Stackapella tests</title>
+    <script type="importmap">{ "imports": { "vue": "https://cdn.jsdelivr.net/npm/vue@3.5.44/dist/vue.esm-browser.prod.js" } }</script>
+    <style>body { font: 14px ui-monospace, monospace; background: #17120f; color: #f4eee6; padding: 1rem; } li { margin: 0.25rem 0; }</style>
+</head>
+<body>
+<h1>Stackapella tests</h1>
+<ul id="results"></ul>
+<script type="module">
+import { run } from './harness.js';
+import { loadLanguage } from '/js/i18n.js';
+import './i18n.test.js';
+import './sw-routes.test.js';
+import './errors.test.js';
+import './instruments.test.js';
+import './band.test.js';
+import './clock.test.js';
+import './lazy.test.js';
+import './instrument-parts.test.js';
+import './usage.test.js';
+import './funnel.test.js';
+import './chord-moment.test.js';
+import './session-wrap.test.js';
+import './then-and-now.test.js';
+import './dsp.test.js';
+import './synth.test.js';
+import './pitchtrack.test.js';
+import './scoring.test.js';
+import './quality.test.js';
+import './beta-clip.test.js';
+import './mic-help.test.js';
+import './listening.test.js';
+import './celebrate.test.js';
+import './chord-chart.test.js';
+import './pitch-display.test.js';
+import './accent.test.js';
+        import './beta-outbox.test.js';
+        import './sing.test.js';
+        import './staff.test.js';
+        import './course.test.js';
+        import './plus-courses.test.js';
+        import './sharpen.test.js';
+        import './vibrato.test.js';
+        import './pitch-skills.test.js';
+        import './style-scores.test.js';
+        import './pitch.test.js';
+        import './ear.test.js';
+        import './breath.test.js';
+        import './barbershop.test.js';
+        import './harmony.test.js';
+        import './keep-song.test.js';
+        import './embed.test.js';
+        import './skin.test.js';
+        import './home.test.js';
+        import './admin-singers.test.js';
+        import './listen.test.js';
+        import './mic-check.test.js';
+        import './results.test.js';
+        import './camera.test.js';
+        import './patch.test.js';
+        import './trim.test.js';
+        import './polish.test.js';
+        import './waitforme.test.js';
+        import './report.test.js';
+        import './workout.test.js';
+        import './zip.test.js';
+        import './whatsnext.test.js';
+        import './share.test.js';
+        import './transcribe.test.js';
+        import './hum.test.js';
+        import './lyrics.test.js';
+        import './arrange.test.js';
+        import './move.test.js';
+        import './theory.test.js';
+        import './backing.test.js';
+        import './creator.test.js';
+        import './notes.test.js';
+        import './livevoice.test.js';
+        import './sync.test.js';
+import './templates.test.js';
+import './practice.test.js';
+import './part-suggest.test.js';
+import './audio.test.js';
+import './db.test.js';
+import './session.test.js';
+import './api.test.js';
+import './guides.test.js';
+import './engine.test.js';
+import './game.test.js';
+await loadLanguage(['en']);
+run();
+</script>
+</body>
+</html>

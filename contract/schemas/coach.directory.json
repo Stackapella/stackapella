@@ -1,0 +1,121 @@
+{
+    "$id": "coach.directory.json",
+    "title": "A coach in the directory (N4)",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "handle",
+        "name",
+        "avatarUrl",
+        "bio",
+        "voiceTypes",
+        "styles",
+        "languages",
+        "timezone",
+        "rating",
+        "newCoach",
+        "from",
+        "turnaroundDays",
+        "nextLessonAt",
+        "featured"
+    ],
+    "properties": {
+        "handle": {
+            "type": "string"
+        },
+        "name": {
+            "type": "string"
+        },
+        "avatarUrl": {
+            "type": [
+                "string",
+                "null"
+            ]
+        },
+        "bio": {
+            "type": "string",
+            "description": "Up to 200 characters, cut at a word."
+        },
+        "voiceTypes": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "styles": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "languages": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "timezone": {
+            "type": "string"
+        },
+        "rating": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "average",
+                "count"
+            ],
+            "properties": {
+                "average": {
+                    "type": [
+                        "number",
+                        "null"
+                    ]
+                },
+                "count": {
+                    "type": "integer"
+                }
+            }
+        },
+        "newCoach": {
+            "type": "boolean"
+        },
+        "from": {
+            "type": [
+                "object",
+                "null"
+            ],
+            "additionalProperties": false,
+            "required": [
+                "cents",
+                "currency"
+            ],
+            "properties": {
+                "cents": {
+                    "type": "integer"
+                },
+                "currency": {
+                    "type": "string"
+                }
+            },
+            "description": "Their lowest price on sale, worked out hourly."
+        },
+        "turnaroundDays": {
+            "type": [
+                "integer",
+                "null"
+            ],
+            "description": "Their fastest review."
+        },
+        "nextLessonAt": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "format": "date-time",
+            "description": "Their soonest free lesson time in the next 14 days."
+        },
+        "featured": {
+            "type": "boolean"
+        }
+    }
+}

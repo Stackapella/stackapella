@@ -1,0 +1,24 @@
+{
+    "data": {
+        "id": "Tz4Kq8",
+        "assignmentId": "Ab3Cd9",
+        "status": "uploading",
+        "failure": null,
+        "templateVersion": 2,
+        "durationSeconds": 48.0,
+        "adminNote": null,
+        "adminNoteBeat": null,
+        "adminNoteAt": null,
+        "url": null,
+        "createdAt": "2026-10-26T15:30:00Z"
+    },
+    "upload": {
+        "url": "https://stackapella-private.nyc3.digitaloceanspaces.com/beta/masters/2b8f1c6e9d3a4f7b0c5e2a8d1f6b9c3e.wav?X-Amz-Expires=1800&X-Amz-Signature=abc",
+        "method": "PUT",
+        "headers": {
+            "Content-Type": "audio/wav",
+            "Content-Length": "4608044"
+        },
+        "expiresAt": "2026-10-26T16:00:00Z"
+    }
+}

@@ -1,0 +1,17 @@
+{
+    "data": {
+        "id": "Vb81xK",
+        "harmonyId": "k3Xb9QmT7wLp",
+        "status": "ready",
+        "progress": 1,
+        "failure": null,
+        "startSeconds": 42.5,
+        "endSeconds": 98.0,
+        "look": "dark",
+        "words": true,
+        "url": "https://stackapella-private.nyc3.digitaloceanspaces.com/exports/videos/r4t5y6.mp4?response-content-disposition=attachment&X-Amz-Signature=abc",
+        "bytes": 9437184,
+        "expiresAt": "2026-11-02T14:10:31Z",
+        "createdAt": "2026-10-26T14:10:00Z"
+    }
+}

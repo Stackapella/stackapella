@@ -1,0 +1,41 @@
+{
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "templateId",
+                "partKey",
+                "score",
+                "by"
+            ],
+            "properties": {
+                "templateId": {
+                    "type": "string"
+                },
+                "partKey": {
+                    "type": "string"
+                },
+                "score": {
+                    "type": [
+                        "integer",
+                        "null"
+                    ],
+                    "description": "The challenger's best on it, or null."
+                },
+                "by": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "description": "The challenger's name; null for someone signed out or under 18."
+                }
+            }
+        }
+    }
+}

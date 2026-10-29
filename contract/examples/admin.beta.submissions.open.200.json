@@ -1,0 +1,58 @@
+{
+    "data": {
+        "id": "Tz4Kq8",
+        "singer": {
+            "id": "Pq7Rm2",
+            "name": "Sarah Kim",
+            "credit": "Sarah K."
+        },
+        "assignmentId": "Ab3Cd9",
+        "template": {
+            "id": "amazing-grace",
+            "version": 2,
+            "currentVersion": 2,
+            "title": "Amazing Grace",
+            "key": "G"
+        },
+        "partKey": "alto",
+        "status": "in_review",
+        "failure": null,
+        "sampleRate": 48000,
+        "frames": 2304000,
+        "latencyFrames": 960,
+        "durationSeconds": 48.0,
+        "loudnessDbfs": -23.4,
+        "device": "iPhone 15, Safari 26 (installed)",
+        "mic": "EarPods",
+        "scores": {
+            "pitchPercent": 92,
+            "timingMs": 18,
+            "clipping": false,
+            "noise": "low",
+            "bleed": false,
+            "phrases": [
+                {
+                    "index": 3,
+                    "pitchPercent": 81,
+                    "tendency": "flat"
+                }
+            ]
+        },
+        "singerNote": "Phrase 3 felt a little flat.",
+        "adjust": {
+            "offsetMs": 0,
+            "trimStartMs": 0,
+            "trimEndMs": 0,
+            "gainDb": 0
+        },
+        "adminNote": null,
+        "adminNoteBeat": null,
+        "guide": null,
+        "paidAt": null,
+        "reviewedAt": null,
+        "createdAt": "2026-10-26T15:30:00Z",
+        "publish": "none",
+        "kind": "part",
+        "clip": null
+    }
+}

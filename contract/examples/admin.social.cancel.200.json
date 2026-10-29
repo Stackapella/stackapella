@@ -1,0 +1,19 @@
+{
+    "data": {
+        "id": "Sp3kQ9",
+        "network": "bluesky",
+        "occasion": "new_song",
+        "status": "cancelled",
+        "about": {
+            "kind": "song",
+            "id": "danny-boy",
+            "title": "Danny Boy"
+        },
+        "text": null,
+        "url": null,
+        "error": null,
+        "scheduledFor": null,
+        "postedAt": null,
+        "createdAt": "2026-11-01T09:00:00Z"
+    }
+}

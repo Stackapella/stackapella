@@ -1,0 +1,9 @@
+{
+    "message": "Unprocessable Content.",
+    "code": "validation_failed",
+    "errors": {
+        "partKey": [
+            "Sarah Kim is already asked to record this part."
+        ]
+    }
+}

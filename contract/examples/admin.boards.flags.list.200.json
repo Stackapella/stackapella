@@ -1,0 +1,20 @@
+{
+    "data": [
+        {
+            "id": "Ps8Kd2",
+            "person": {
+                "id": "jR4kLmNo",
+                "name": "Ana Ruiz"
+            },
+            "templateId": "amazing-grace",
+            "title": "Amazing Grace",
+            "partKey": "alto",
+            "score": 100,
+            "reason": "perfect",
+            "reports": 0,
+            "recordedAt": "2026-10-29T10:00:00Z",
+            "holdEndsAt": "2026-10-31T10:00:00Z",
+            "takeUrl": "https://stackapella-private.nyc3.digitaloceanspaces.com/takes/3f9c2b7e.flac?X-Amz-Expires=600"
+        }
+    ]
+}

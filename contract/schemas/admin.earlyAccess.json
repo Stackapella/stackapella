@@ -1,0 +1,85 @@
+{
+    "$id": "admin.earlyAccess.json",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "url",
+                "status",
+                "cap",
+                "joined",
+                "paused",
+                "createdAt",
+                "earlier"
+            ],
+            "properties": {
+                "url": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string",
+                    "enum": [
+                        "open",
+                        "paused",
+                        "full",
+                        "closed"
+                    ]
+                },
+                "cap": {
+                    "type": "integer"
+                },
+                "joined": {
+                    "type": "integer"
+                },
+                "paused": {
+                    "type": "boolean"
+                },
+                "createdAt": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "format": "date-time"
+                },
+                "earlier": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "joined",
+                            "createdAt",
+                            "closedAt"
+                        ],
+                        "properties": {
+                            "joined": {
+                                "type": "integer"
+                            },
+                            "createdAt": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ],
+                                "format": "date-time"
+                            },
+                            "closedAt": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ],
+                                "format": "date-time"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "title": "The mudeo email's early-access link"
+}

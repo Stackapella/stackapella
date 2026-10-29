@@ -1,0 +1,35 @@
+{
+  "format": 1,
+  "name": "sine",
+  "version": "1",
+  "title": "A test sine",
+  "kind": "pitched",
+  "sampleRate": 44100,
+  "channels": 1,
+  "release": 0.1,
+  "gain": 1,
+  "zones": [
+    {
+      "file": "s/069.wav",
+      "frames": 22050,
+      "encoderDelay": 0,
+      "onset": 0,
+      "root": 69,
+      "lo": 0,
+      "hi": 127,
+      "velLo": 1,
+      "velHi": 127,
+      "tune": 0
+    }
+  ],
+  "licence": "CC0-1.0",
+  "credit": "A sine made for the tests.",
+  "sources": [],
+  "files": [
+    {
+      "path": "s/069.wav",
+      "bytes": 44144,
+      "sha256": ""
+    }
+  ]
+}

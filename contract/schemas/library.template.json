@@ -1,0 +1,103 @@
+{
+    "$id": "library.template.json",
+    "title": "A template in the library: what its card shows",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "id",
+        "version",
+        "title",
+        "description",
+        "difficulty",
+        "genre",
+        "key",
+        "tempo",
+        "timeSignature",
+        "durationSeconds",
+        "parts",
+        "voicings",
+        "library"
+    ],
+    "properties": {
+        "id": {
+            "type": "string"
+        },
+        "version": {
+            "type": "integer"
+        },
+        "title": {
+            "type": "string"
+        },
+        "description": {
+            "type": "string"
+        },
+        "difficulty": {
+            "type": "string"
+        },
+        "genre": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "key": {
+            "type": "string"
+        },
+        "tempo": {
+            "type": "integer"
+        },
+        "timeSignature": {
+            "type": "string"
+        },
+        "durationSeconds": {
+            "type": "integer"
+        },
+        "parts": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                    "key",
+                    "name",
+                    "range"
+                ],
+                "properties": {
+                    "key": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "range": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "low",
+                            "high"
+                        ],
+                        "properties": {
+                            "low": {
+                                "type": "integer"
+                            },
+                            "high": {
+                                "type": "integer"
+                            }
+                        },
+                        "description": "MIDI notes."
+                    }
+                }
+            }
+        },
+        "voicings": {
+            "type": "array",
+            "items": {
+                "type": "integer"
+            },
+            "description": "How many singers it has versions for."
+        },
+        "library": {
+            "$ref": "library.json"
+        }
+    }
+}

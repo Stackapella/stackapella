@@ -1,0 +1,687 @@
+{
+    "data": {
+        "experiments": [
+            {
+                "id": "onb1",
+                "arms": [
+                    "a",
+                    "b"
+                ],
+                "start": "2026-11-10",
+                "end": null,
+                "enrolUntil": "2026-12-08",
+                "readFrom": "2026-12-15",
+                "plannedPerArm": 1500,
+                "primary": "f_lesson3",
+                "guardrail": "f_lesson2",
+                "enrolling": false
+            }
+        ],
+        "experiment": "onb1",
+        "from": "2026-11-10",
+        "to": "2026-12-15",
+        "split": {
+            "arms": [
+                {
+                    "arm": "a",
+                    "arrivals": 1500,
+                    "share": 0.4967
+                },
+                {
+                    "arm": "b",
+                    "arrivals": 1520,
+                    "share": 0.5033
+                }
+            ],
+            "pValue": 0.715,
+            "ok": true
+        },
+        "enough": true,
+        "steps": [
+            {
+                "kind": "f_site_start",
+                "arms": [
+                    {
+                        "arm": "a",
+                        "guest": 0,
+                        "account": 0,
+                        "total": 0,
+                        "rate": 0.0
+                    },
+                    {
+                        "arm": "b",
+                        "guest": 0,
+                        "account": 0,
+                        "total": 0,
+                        "rate": 0.0
+                    }
+                ],
+                "difference": {
+                    "points": 0.0,
+                    "low": 0.0,
+                    "high": 0.0
+                }
+            },
+            {
+                "kind": "f_arrive",
+                "arms": [
+                    {
+                        "arm": "a",
+                        "guest": 1332,
+                        "account": 148,
+                        "total": 1480,
+                        "rate": 0.9867
+                    },
+                    {
+                        "arm": "b",
+                        "guest": 1352,
+                        "account": 150,
+                        "total": 1502,
+                        "rate": 0.9882
+                    }
+                ],
+                "difference": null
+            },
+            {
+                "kind": "f_arrive_start",
+                "arms": [
+                    {
+                        "arm": "a",
+                        "guest": 18,
+                        "account": 2,
+                        "total": 20,
+                        "rate": 0.0133
+                    },
+                    {
+                        "arm": "b",
+                        "guest": 17,
+                        "account": 1,
+                        "total": 18,
+                        "rate": 0.0118
+                    }
+                ],
+                "difference": null
+            },
+            {
+                "kind": "f_mic",
+                "arms": [
+                    {
+                        "arm": "a",
+                        "guest": 1089,
+                        "account": 121,
+                        "total": 1210,
+                        "rate": 0.8067
+                    },
+                    {
+                        "arm": "b",
+                        "guest": 1113,
+                        "account": 123,
+                        "total": 1236,
+                        "rate": 0.8132
+                    }
+                ],
+                "difference": {
+                    "points": 0.65,
+                    "low": -2.15,
+                    "high": 3.45
+                }
+            },
+            {
+                "kind": "f_note",
+                "arms": [
+                    {
+                        "arm": "a",
+                        "guest": 995,
+                        "account": 110,
+                        "total": 1105,
+                        "rate": 0.7367
+                    },
+                    {
+                        "arm": "b",
+                        "guest": 1017,
+                        "account": 113,
+                        "total": 1130,
+                        "rate": 0.7434
+                    }
+                ],
+                "difference": {
+                    "points": 0.68,
+                    "low": -2.45,
+                    "high": 3.8
+                }
+            },
+            {
+                "kind": "f_note_skip",
+                "arms": [
+                    {
+                        "arm": "a",
+                        "guest": 0,
+                        "account": 0,
+                        "total": 0,
+                        "rate": 0.0
+                    },
+                    {
+                        "arm": "b",
+                        "guest": 0,
+                        "account": 0,
+                        "total": 0,
+                        "rate": 0.0
+                    }
+                ],
+                "difference": {
+                    "points": 0.0,
+                    "low": 0.0,
+                    "high": 0.0
+                }
+            },
+            {
+                "kind": "f_lesson1",
+                "arms": [
+                    {
+                        "arm": "a",
+                        "guest": 837,
+                        "account": 93,
+                        "total": 930,
+                        "rate": 0.62
+                    },
+                    {
+                        "arm": "b",
+                        "guest": 872,
+                        "account": 96,
+                        "total": 968,
+                        "rate": 0.6368
+                    }
+                ],
+                "difference": {
+                    "points": 1.68,
+                    "low": -1.76,
+                    "high": 5.13
+                }
+            },
+            {
+                "kind": "f_chord",
+                "arms": [
+                    {
+                        "arm": "a",
+                        "guest": 0,
+                        "account": 0,
+                        "total": 0,
+                        "rate": 0.0
+                    },
+                    {
+                        "arm": "b",
+                        "guest": 821,
+                        "account": 91,
+                        "total": 912,
+                        "rate": 0.6
+                    }
+                ],
+                "difference": {
+                    "points": 60.0,
+                    "low": 57.54,
+                    "high": 62.46
+                }
+            },
+            {
+                "kind": "f_lesson2",
+                "arms": [
+                    {
+                        "arm": "a",
+                        "guest": 576,
+                        "account": 64,
+                        "total": 640,
+                        "rate": 0.4267
+                    },
+                    {
+                        "arm": "b",
+                        "guest": 632,
+                        "account": 70,
+                        "total": 702,
+                        "rate": 0.4618
+                    }
+                ],
+                "difference": {
+                    "points": 3.52,
+                    "low": -0.02,
+                    "high": 7.06
+                }
+            },
+            {
+                "kind": "f_lesson3",
+                "arms": [
+                    {
+                        "arm": "a",
+                        "guest": 449,
+                        "account": 49,
+                        "total": 498,
+                        "rate": 0.332
+                    },
+                    {
+                        "arm": "b",
+                        "guest": 514,
+                        "account": 57,
+                        "total": 571,
+                        "rate": 0.3757
+                    }
+                ],
+                "difference": {
+                    "points": 4.37,
+                    "low": 0.96,
+                    "high": 7.77
+                }
+            },
+            {
+                "kind": "f_unit1",
+                "arms": [
+                    {
+                        "arm": "a",
+                        "guest": 0,
+                        "account": 0,
+                        "total": 0,
+                        "rate": 0.0
+                    },
+                    {
+                        "arm": "b",
+                        "guest": 0,
+                        "account": 0,
+                        "total": 0,
+                        "rate": 0.0
+                    }
+                ],
+                "difference": {
+                    "points": 0.0,
+                    "low": 0.0,
+                    "high": 0.0
+                }
+            },
+            {
+                "kind": "f_goal",
+                "arms": [
+                    {
+                        "arm": "a",
+                        "guest": 0,
+                        "account": 0,
+                        "total": 0,
+                        "rate": 0.0
+                    },
+                    {
+                        "arm": "b",
+                        "guest": 0,
+                        "account": 0,
+                        "total": 0,
+                        "rate": 0.0
+                    }
+                ],
+                "difference": {
+                    "points": 0.0,
+                    "low": 0.0,
+                    "high": 0.0
+                }
+            },
+            {
+                "kind": "f_install",
+                "arms": [
+                    {
+                        "arm": "a",
+                        "guest": 0,
+                        "account": 0,
+                        "total": 0,
+                        "rate": 0.0
+                    },
+                    {
+                        "arm": "b",
+                        "guest": 0,
+                        "account": 0,
+                        "total": 0,
+                        "rate": 0.0
+                    }
+                ],
+                "difference": {
+                    "points": 0.0,
+                    "low": 0.0,
+                    "high": 0.0
+                }
+            },
+            {
+                "kind": "f_name",
+                "arms": [
+                    {
+                        "arm": "a",
+                        "guest": 0,
+                        "account": 0,
+                        "total": 0,
+                        "rate": 0.0
+                    },
+                    {
+                        "arm": "b",
+                        "guest": 0,
+                        "account": 0,
+                        "total": 0,
+                        "rate": 0.0
+                    }
+                ],
+                "difference": {
+                    "points": 0.0,
+                    "low": 0.0,
+                    "high": 0.0
+                }
+            },
+            {
+                "kind": "f_account",
+                "arms": [
+                    {
+                        "arm": "a",
+                        "guest": 0,
+                        "account": 0,
+                        "total": 0,
+                        "rate": 0.0
+                    },
+                    {
+                        "arm": "b",
+                        "guest": 0,
+                        "account": 0,
+                        "total": 0,
+                        "rate": 0.0
+                    }
+                ],
+                "difference": {
+                    "points": 0.0,
+                    "low": 0.0,
+                    "high": 0.0
+                }
+            },
+            {
+                "kind": "f_share",
+                "arms": [
+                    {
+                        "arm": "a",
+                        "guest": 0,
+                        "account": 0,
+                        "total": 0,
+                        "rate": 0.0
+                    },
+                    {
+                        "arm": "b",
+                        "guest": 0,
+                        "account": 0,
+                        "total": 0,
+                        "rate": 0.0
+                    }
+                ],
+                "difference": {
+                    "points": 0.0,
+                    "low": 0.0,
+                    "high": 0.0
+                }
+            },
+            {
+                "kind": "f_remind",
+                "arms": [
+                    {
+                        "arm": "a",
+                        "guest": 0,
+                        "account": 0,
+                        "total": 0,
+                        "rate": 0.0
+                    },
+                    {
+                        "arm": "b",
+                        "guest": 0,
+                        "account": 0,
+                        "total": 0,
+                        "rate": 0.0
+                    }
+                ],
+                "difference": {
+                    "points": 0.0,
+                    "low": 0.0,
+                    "high": 0.0
+                }
+            },
+            {
+                "kind": "f_take",
+                "arms": [
+                    {
+                        "arm": "a",
+                        "guest": 0,
+                        "account": 0,
+                        "total": 0,
+                        "rate": 0.0
+                    },
+                    {
+                        "arm": "b",
+                        "guest": 0,
+                        "account": 0,
+                        "total": 0,
+                        "rate": 0.0
+                    }
+                ],
+                "difference": {
+                    "points": 0.0,
+                    "low": 0.0,
+                    "high": 0.0
+                }
+            },
+            {
+                "kind": "f_harmony",
+                "arms": [
+                    {
+                        "arm": "a",
+                        "guest": 0,
+                        "account": 0,
+                        "total": 0,
+                        "rate": 0.0
+                    },
+                    {
+                        "arm": "b",
+                        "guest": 0,
+                        "account": 0,
+                        "total": 0,
+                        "rate": 0.0
+                    }
+                ],
+                "difference": {
+                    "points": 0.0,
+                    "low": 0.0,
+                    "high": 0.0
+                }
+            },
+            {
+                "kind": "f_day2",
+                "arms": [
+                    {
+                        "arm": "a",
+                        "guest": 0,
+                        "account": 0,
+                        "total": 0,
+                        "rate": 0.0
+                    },
+                    {
+                        "arm": "b",
+                        "guest": 0,
+                        "account": 0,
+                        "total": 0,
+                        "rate": 0.0
+                    }
+                ],
+                "difference": {
+                    "points": 0.0,
+                    "low": 0.0,
+                    "high": 0.0
+                }
+            },
+            {
+                "kind": "f_week1",
+                "arms": [
+                    {
+                        "arm": "a",
+                        "guest": 0,
+                        "account": 0,
+                        "total": 0,
+                        "rate": 0.0
+                    },
+                    {
+                        "arm": "b",
+                        "guest": 0,
+                        "account": 0,
+                        "total": 0,
+                        "rate": 0.0
+                    }
+                ],
+                "difference": {
+                    "points": 0.0,
+                    "low": 0.0,
+                    "high": 0.0
+                }
+            },
+            {
+                "kind": "f_goal_met",
+                "arms": [
+                    {
+                        "arm": "a",
+                        "guest": 0,
+                        "account": 0,
+                        "total": 0,
+                        "rate": 0.0
+                    },
+                    {
+                        "arm": "b",
+                        "guest": 0,
+                        "account": 0,
+                        "total": 0,
+                        "rate": 0.0
+                    }
+                ],
+                "difference": {
+                    "points": 0.0,
+                    "low": 0.0,
+                    "high": 0.0
+                }
+            }
+        ],
+        "asks": [
+            {
+                "ask": "install",
+                "arms": [
+                    {
+                        "arm": "a",
+                        "shown": 400,
+                        "yes": 52,
+                        "rate": 0.13
+                    },
+                    {
+                        "arm": "b",
+                        "shown": 410,
+                        "yes": 61,
+                        "rate": 0.1488
+                    }
+                ]
+            },
+            {
+                "ask": "account",
+                "arms": [
+                    {
+                        "arm": "a",
+                        "shown": 0,
+                        "yes": 0,
+                        "rate": null
+                    },
+                    {
+                        "arm": "b",
+                        "shown": 0,
+                        "yes": 0,
+                        "rate": null
+                    }
+                ]
+            },
+            {
+                "ask": "name",
+                "arms": [
+                    {
+                        "arm": "a",
+                        "shown": 0,
+                        "yes": 0,
+                        "rate": null
+                    },
+                    {
+                        "arm": "b",
+                        "shown": 0,
+                        "yes": 0,
+                        "rate": null
+                    }
+                ]
+            },
+            {
+                "ask": "share",
+                "arms": [
+                    {
+                        "arm": "a",
+                        "shown": 0,
+                        "yes": 0,
+                        "rate": null
+                    },
+                    {
+                        "arm": "b",
+                        "shown": 0,
+                        "yes": 0,
+                        "rate": null
+                    }
+                ]
+            },
+            {
+                "ask": "goal",
+                "arms": [
+                    {
+                        "arm": "a",
+                        "shown": 0,
+                        "yes": 0,
+                        "rate": null
+                    },
+                    {
+                        "arm": "b",
+                        "shown": 0,
+                        "yes": 0,
+                        "rate": null
+                    }
+                ]
+            },
+            {
+                "ask": "remind",
+                "arms": [
+                    {
+                        "arm": "a",
+                        "shown": 0,
+                        "yes": 0,
+                        "rate": null
+                    },
+                    {
+                        "arm": "b",
+                        "shown": 0,
+                        "yes": 0,
+                        "rate": null
+                    }
+                ]
+            }
+        ],
+        "days": [
+            {
+                "date": "2026-11-10",
+                "kind": "f_arrive",
+                "arm": "a",
+                "total": 52
+            },
+            {
+                "date": "2026-11-10",
+                "kind": "f_arrive",
+                "arm": "b",
+                "total": 49
+            },
+            {
+                "date": "2026-11-10",
+                "kind": "f_lesson1",
+                "arm": "b",
+                "total": 31
+            }
+        ]
+    }
+}

@@ -1,0 +1,51 @@
+{
+    "$id": "parts.takes.list.json",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                    "take",
+                    "current",
+                    "recordedBy",
+                    "pitchPercent",
+                    "durationSeconds"
+                ],
+                "properties": {
+                    "take": {
+                        "$ref": "take.json"
+                    },
+                    "current": {
+                        "type": "boolean",
+                        "description": "The take the part plays now."
+                    },
+                    "recordedBy": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "description": "A singer on a shared song who recorded it; null for the project owner's own."
+                    },
+                    "pitchPercent": {
+                        "type": [
+                            "number",
+                            "null"
+                        ],
+                        "description": "The take's on-pitch score from takes.create's scores, when it sent one."
+                    },
+                    "durationSeconds": {
+                        "type": "number"
+                    }
+                }
+            },
+            "description": "Every kept take of the part, newest first (binned and failed ones left out)."
+        }
+    }
+}

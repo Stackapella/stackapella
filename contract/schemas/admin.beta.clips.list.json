@@ -1,0 +1,141 @@
+{
+    "$id": "admin.beta.clips.list.json",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                    "id",
+                    "courseId",
+                    "lessonId",
+                    "step",
+                    "sing",
+                    "pitch",
+                    "seconds",
+                    "style",
+                    "voices",
+                    "retired",
+                    "status",
+                    "assignee",
+                    "published"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "description": "The slot, <course>.<name>."
+                    },
+                    "courseId": {
+                        "type": "string"
+                    },
+                    "lessonId": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "step": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
+                    },
+                    "sing": {
+                        "type": "string",
+                        "description": "What to sing, in the singer's language."
+                    },
+                    "pitch": {
+                        "type": [
+                            "object",
+                            "null"
+                        ],
+                        "description": "{ step } relative to the singer's own comfortable note, or { low, high }."
+                    },
+                    "seconds": {
+                        "type": "number"
+                    },
+                    "style": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "voices": {
+                        "type": [
+                            "string",
+                            "array"
+                        ],
+                        "items": {
+                            "type": "string"
+                        },
+                        "description": "\"any\", or the voices that may record it."
+                    },
+                    "retired": {
+                        "type": "boolean",
+                        "description": "Gone from clips.json: kept for what was recorded, never assigned again."
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "open",
+                            "assigned",
+                            "submitted",
+                            "published"
+                        ]
+                    },
+                    "assignee": {
+                        "type": [
+                            "object",
+                            "null"
+                        ],
+                        "additionalProperties": false,
+                        "required": [
+                            "singerId",
+                            "name"
+                        ],
+                        "properties": {
+                            "singerId": {
+                                "type": "string"
+                            },
+                            "name": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "published": {
+                        "type": [
+                            "object",
+                            "null"
+                        ],
+                        "additionalProperties": false,
+                        "required": [
+                            "url",
+                            "durationSeconds",
+                            "credit"
+                        ],
+                        "properties": {
+                            "url": {
+                                "type": "string"
+                            },
+                            "durationSeconds": {
+                                "type": "number"
+                            },
+                            "credit": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

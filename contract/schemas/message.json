@@ -1,0 +1,61 @@
+{
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "id",
+        "from",
+        "text",
+        "mediaUrl",
+        "warning",
+        "createdAt"
+    ],
+    "properties": {
+        "id": {
+            "type": "string"
+        },
+        "from": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "id",
+                "name"
+            ],
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "text": {
+            "type": [
+                "string",
+                "null"
+            ]
+        },
+        "mediaUrl": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "format": "uri"
+        },
+        "warning": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "enum": [
+                null,
+                "off_platform"
+            ]
+        },
+        "createdAt": {
+            "type": "string",
+            "format": "date-time"
+        }
+    },
+    "$id": "message.json"
+}

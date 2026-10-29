@@ -1,0 +1,37 @@
+{
+    "$id": "projects.show.json",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "project",
+                "parts",
+                "takes"
+            ],
+            "properties": {
+                "project": {
+                    "$ref": "project.json"
+                },
+                "parts": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "part.json"
+                    }
+                },
+                "takes": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "take.json"
+                    },
+                    "description": "The parts' current takes."
+                }
+            }
+        }
+    }
+}

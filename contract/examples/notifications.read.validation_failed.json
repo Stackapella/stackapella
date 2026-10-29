@@ -1,0 +1,9 @@
+{
+    "message": "Unprocessable Content.",
+    "code": "validation_failed",
+    "errors": {
+        "upTo": [
+            "The up to field is required when all is not present."
+        ]
+    }
+}

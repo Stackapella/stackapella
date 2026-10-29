@@ -1,0 +1,23 @@
+{
+    "$id": "admin.mudeo.test.json",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "sentTo"
+            ],
+            "properties": {
+                "sentTo": {
+                    "type": "string"
+                }
+            }
+        }
+    },
+    "title": "Where the test went"
+}

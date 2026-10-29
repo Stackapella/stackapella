@@ -1,0 +1,165 @@
+{
+    "data": [
+        {
+            "id": "Cl4Vb8",
+            "kind": "clip",
+            "template": null,
+            "partKey": null,
+            "style": "free",
+            "status": "to_record",
+            "recordable": true,
+            "latestSubmission": null,
+            "guides": [],
+            "clip": {
+                "id": "vibrato.natural",
+                "courseId": "vibrato",
+                "lessonId": "vib-1-hear",
+                "step": 0,
+                "sing": "One held \"ah\" on a comfortable note with your own easy vibrato, medium volume",
+                "pitch": {
+                    "step": 0
+                },
+                "seconds": 3,
+                "style": "vibrato",
+                "voices": "any",
+                "courseTitle": "Vibrato"
+            }
+        },
+        {
+            "id": "Uv4Wx6",
+            "template": {
+                "id": "michael-row",
+                "version": 2,
+                "title": "Michael, Row the Boat Ashore",
+                "key": "D",
+                "tempo": 96,
+                "reviewed": true
+            },
+            "partKey": "alto",
+            "style": "straight",
+            "status": "guide",
+            "recordable": true,
+            "latestSubmission": {
+                "id": "Yz8Ab1",
+                "assignmentId": "Uv4Wx6",
+                "status": "accepted",
+                "failure": null,
+                "templateVersion": 2,
+                "durationSeconds": 44.0,
+                "adminNote": null,
+                "adminNoteBeat": null,
+                "adminNoteAt": null,
+                "url": "https://stackapella-private.nyc3.digitaloceanspaces.com/beta/masters/example.wav?X-Amz-Expires=900",
+                "createdAt": "2026-10-24T10:00:00Z"
+            },
+            "guides": [
+                {
+                    "id": "Nz4Uv7",
+                    "partKey": "alto",
+                    "url": "https://stackapella-media.nyc3.cdn.digitaloceanspaces.com/guides/9e8d7c6b5a4f3e2d1c0b9a8f7e6d5c4b.m4a",
+                    "sampleRate": 48000,
+                    "frames": 2112000,
+                    "offsetFrames": 0,
+                    "credit": "Sarah K.",
+                    "creditHandle": null,
+                    "mine": true
+                }
+            ],
+            "kind": "part",
+            "clip": null
+        },
+        {
+            "id": "Ab3Cd9",
+            "template": {
+                "id": "amazing-grace",
+                "version": 3,
+                "title": "Amazing Grace",
+                "key": "G",
+                "tempo": 80,
+                "reviewed": true
+            },
+            "partKey": "alto",
+            "style": "straight",
+            "status": "retake",
+            "recordable": true,
+            "latestSubmission": {
+                "id": "Tz4Kq8",
+                "assignmentId": "Ab3Cd9",
+                "status": "retake",
+                "failure": null,
+                "templateVersion": 2,
+                "durationSeconds": 48.0,
+                "adminNote": "Lovely tone. A little rushed in phrase 3: one more?",
+                "adminNoteBeat": 24,
+                "adminNoteAt": "2026-10-27T16:20:00Z",
+                "url": "https://stackapella-private.nyc3.digitaloceanspaces.com/beta/masters/example.wav?X-Amz-Expires=900",
+                "createdAt": "2026-10-26T15:30:00Z"
+            },
+            "guides": [
+                {
+                    "id": "Pa6Wx9",
+                    "partKey": "bass",
+                    "url": "https://stackapella-media.nyc3.cdn.digitaloceanspaces.com/guides/a1b2c3d4e5f60718293a4b5c6d7e8f90.m4a",
+                    "sampleRate": 44100,
+                    "frames": 2116800,
+                    "offsetFrames": 22050,
+                    "credit": null,
+                    "creditHandle": null,
+                    "mine": false
+                }
+            ],
+            "kind": "part",
+            "clip": null
+        },
+        {
+            "id": "Ef5Gh2",
+            "template": {
+                "id": "silent-night",
+                "version": 1,
+                "title": "Silent Night",
+                "key": "Bb",
+                "tempo": 66,
+                "reviewed": false
+            },
+            "partKey": "alto",
+            "style": "straight",
+            "status": "to_record",
+            "recordable": false,
+            "latestSubmission": null,
+            "guides": [],
+            "kind": "part",
+            "clip": null
+        },
+        {
+            "id": "Jk2Mn5",
+            "template": {
+                "id": "ode-to-joy",
+                "version": 2,
+                "title": "Ode to Joy",
+                "key": "G",
+                "tempo": 100,
+                "reviewed": true
+            },
+            "partKey": "alto",
+            "style": "straight",
+            "status": "accepted",
+            "recordable": true,
+            "latestSubmission": {
+                "id": "Qr7St3",
+                "assignmentId": "Jk2Mn5",
+                "status": "accepted",
+                "failure": null,
+                "templateVersion": 2,
+                "durationSeconds": 52.5,
+                "adminNote": null,
+                "adminNoteBeat": null,
+                "adminNoteAt": null,
+                "url": "https://stackapella-private.nyc3.digitaloceanspaces.com/beta/masters/example.wav?X-Amz-Expires=900",
+                "createdAt": "2026-10-25T11:00:00Z"
+            },
+            "guides": [],
+            "kind": "part",
+            "clip": null
+        }
+    ]
+}

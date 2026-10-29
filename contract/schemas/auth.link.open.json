@@ -1,0 +1,25 @@
+{
+    "$id": "auth.link.open.json",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data",
+        "created",
+        "intended",
+        "needsProfile"
+    ],
+    "properties": {
+        "data": {
+            "$ref": "account.json"
+        },
+        "created": {
+            "type": "boolean"
+        },
+        "intended": {
+            "type": "string"
+        },
+        "needsProfile": {
+            "type": "boolean"
+        }
+    }
+}

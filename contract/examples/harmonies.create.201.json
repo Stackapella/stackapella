@@ -1,0 +1,40 @@
+{
+    "data": {
+        "id": "k3Xb9QmT7wLp",
+        "projectId": "3f2a1b4c-5d6e-4f70-8192-a3b4c5d6e7f8",
+        "partId": null,
+        "title": "Silent Night for Mum",
+        "visibility": "unlisted",
+        "status": "uploading",
+        "failure": null,
+        "sampleRate": 48000,
+        "channels": 2,
+        "frames": 8755200,
+        "durationSeconds": 182.4,
+        "moderation": null,
+        "titleHeld": false,
+        "pageUrl": "https://beta.stackapella.com/h/k3Xb9QmT7wLp",
+        "audioUrl": null,
+        "cardUrl": null,
+        "createdAt": "2026-10-26T14:05:00Z",
+        "updatedAt": "2026-10-26T14:05:00Z",
+        "mayFeature": false,
+        "inGallery": false,
+        "galleryHeld": false,
+        "rightsConfirmed": false,
+        "commentsOff": false,
+        "singers": [],
+        "openParts": [],
+        "openPartsGuide": true,
+        "parent": null,
+        "featuredFill": null
+    },
+    "upload": {
+        "url": "https://stackapella-private.nyc3.digitaloceanspaces.com/uploads/harmonies/z1x2c3.wav?X-Amz-Signature=abc",
+        "method": "PUT",
+        "headers": {
+            "Content-Type": "audio/wav"
+        },
+        "expiresAt": "2026-10-26T14:15:00Z"
+    }
+}

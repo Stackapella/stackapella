@@ -1,0 +1,76 @@
+{
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "projectTitle",
+                "owner",
+                "partKey",
+                "partName",
+                "song",
+                "expiresAt"
+            ],
+            "properties": {
+                "projectTitle": {
+                    "type": "string",
+                    "description": "May be blank: the app shows \"Untitled song\"."
+                },
+                "owner": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                        "name"
+                    ],
+                    "properties": {
+                        "name": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "partKey": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "partName": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "song": {
+                    "type": [
+                        "object",
+                        "null"
+                    ],
+                    "additionalProperties": false,
+                    "required": [
+                        "id",
+                        "title"
+                    ],
+                    "properties": {
+                        "id": {
+                            "type": "string"
+                        },
+                        "title": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "expiresAt": {
+                    "type": "string",
+                    "format": "date-time"
+                }
+            }
+        }
+    },
+    "$id": "invite.json",
+    "title": "What an invite link is for"
+}

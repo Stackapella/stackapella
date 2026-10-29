@@ -1,0 +1,20 @@
+{
+    "$id": "admin.people.list.json",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data",
+        "meta"
+    ],
+    "properties": {
+        "data": {
+            "type": "array",
+            "items": {
+                "$ref": "admin.account.json"
+            }
+        },
+        "meta": {
+            "$ref": "meta.json"
+        }
+    }
+}

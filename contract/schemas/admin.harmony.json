@@ -1,0 +1,121 @@
+{
+    "$id": "admin.harmony.json",
+    "title": "A shared harmony, as the trust and safety queue shows it",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "id",
+        "title",
+        "owner",
+        "ownerTakedowns",
+        "visibility",
+        "status",
+        "moderation",
+        "hiddenReason",
+        "hiddenAt",
+        "titleHeld",
+        "pageUrl",
+        "audioUrl",
+        "cardUrl",
+        "durationSeconds",
+        "signUps",
+        "createdAt"
+    ],
+    "properties": {
+        "id": {
+            "type": "string"
+        },
+        "title": {
+            "type": "string",
+            "description": "As typed, held or not."
+        },
+        "owner": {
+            "$ref": "admin.person.json"
+        },
+        "ownerTakedowns": {
+            "type": "integer",
+            "description": "The owner's harmonies hidden or removed by Hillel, ever (repeat infringers)."
+        },
+        "visibility": {
+            "type": "string",
+            "enum": [
+                "private",
+                "unlisted"
+            ]
+        },
+        "status": {
+            "type": "string",
+            "enum": [
+                "uploading",
+                "processing",
+                "ready",
+                "failed"
+            ]
+        },
+        "moderation": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "enum": [
+                null,
+                "under_review",
+                "hidden",
+                "removed"
+            ]
+        },
+        "hiddenReason": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "enum": [
+                null,
+                "reports",
+                "dmca",
+                "admin",
+                "suspended"
+            ]
+        },
+        "hiddenAt": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "format": "date-time"
+        },
+        "titleHeld": {
+            "type": "boolean"
+        },
+        "pageUrl": {
+            "type": "string",
+            "format": "uri"
+        },
+        "audioUrl": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "format": "uri",
+            "description": "To listen before deciding, valid 15 minutes; null once removed."
+        },
+        "cardUrl": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "format": "uri"
+        },
+        "durationSeconds": {
+            "type": "number"
+        },
+        "signUps": {
+            "type": "integer",
+            "description": "Accounts made from its page's links."
+        },
+        "createdAt": {
+            "type": "string",
+            "format": "date-time"
+        }
+    }
+}

@@ -1,0 +1,63 @@
+{
+    "$id": "account.export.json",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "status",
+                "requestedAt",
+                "readyAt",
+                "url",
+                "expiresAt"
+            ],
+            "properties": {
+                "status": {
+                    "type": "string",
+                    "enum": [
+                        "none",
+                        "preparing",
+                        "ready",
+                        "failed"
+                    ],
+                    "description": "failed: it couldn't be made; asking again starts a new one."
+                },
+                "requestedAt": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "format": "date-time"
+                },
+                "readyAt": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "format": "date-time"
+                },
+                "url": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "format": "uri",
+                    "description": "The ZIP, while ready (a signed link, valid until expiresAt)."
+                },
+                "expiresAt": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "format": "date-time"
+                }
+            }
+        }
+    },
+    "title": "Download my data"
+}

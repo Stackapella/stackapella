@@ -1,0 +1,19 @@
+{
+    "$id": "admin.beta.singer.link.json",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data",
+        "link"
+    ],
+    "properties": {
+        "data": {
+            "$ref": "admin.beta.singer.json"
+        },
+        "link": {
+            "type": "string",
+            "format": "uri",
+            "description": "The invite link, shown once: APP_URL/beta/<token>. A new one replaces it."
+        }
+    }
+}

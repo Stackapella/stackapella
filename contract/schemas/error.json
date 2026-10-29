@@ -1,0 +1,59 @@
+{
+    "$id": "error.json",
+    "title": "An error response",
+    "description": "Every non-2xx response. The app reads `code`; `message` is never shown to people.",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "message",
+        "code"
+    ],
+    "properties": {
+        "message": {
+            "type": "string"
+        },
+        "code": {
+            "type": "string"
+        },
+        "errors": {
+            "type": "object",
+            "description": "A 422 only: each field's translated messages."
+        },
+        "retryAfter": {
+            "type": "integer",
+            "description": "A 429 only: seconds to wait, as the Retry-After header."
+        },
+        "current": {
+            "type": "object",
+            "description": "A 409 version_conflict only: the server's copy, to keep or to save over (with its version)."
+        },
+        "projectId": {
+            "type": "string",
+            "description": "A 403 project_read_only only: which project."
+        },
+        "reason": {
+            "type": "string",
+            "enum": [
+                "limit",
+                "plus_song"
+            ],
+            "description": "A 403 project_read_only only: why it's read-only."
+        },
+        "sentToday": {
+            "type": "integer",
+            "description": "A 409 daily_limit only (admin.mudeo.send and .batches.create): how many were sent today."
+        },
+        "limit": {
+            "type": "integer",
+            "description": "A 409 daily_limit only (admin.mudeo.send and .batches.create): today's cap."
+        },
+        "bar": {
+            "type": "object",
+            "description": "A 422 below_bar only: the bar the take didn't clear."
+        },
+        "billing": {
+            "type": "object",
+            "description": "A 409 store_linked_elsewhere only: billing.show's data, so the app shows where it stands."
+        }
+    }
+}

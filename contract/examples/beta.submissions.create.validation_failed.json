@@ -1,0 +1,9 @@
+{
+    "message": "Unprocessable Content.",
+    "code": "validation_failed",
+    "errors": {
+        "frames": [
+            "A take can be at most 10 minutes long."
+        ]
+    }
+}

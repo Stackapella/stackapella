@@ -1,0 +1,30 @@
+{
+    "data": {
+        "usage": {
+            "plan": "free",
+            "projects": {
+                "used": 2,
+                "limit": 3
+            },
+            "storage": {
+                "usedBytes": 38211000,
+                "limitBytes": 1073741824,
+                "binBytes": 17278512
+            }
+        },
+        "projects": [
+            {
+                "id": "3f2a1c9e-4b7d-4e2a-9c1f-0a8b7c6d5e4f",
+                "readOnly": null
+            },
+            {
+                "id": "1d2c3b4a-5f6e-4d7c-8b9a-0f1e2d3c4b5a",
+                "readOnly": "limit"
+            },
+            {
+                "id": "6e5d4c3b-2a1f-4e0d-9c8b-7a6f5e4d3c2b",
+                "readOnly": "plus_song"
+            }
+        ]
+    }
+}

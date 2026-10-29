@@ -1,0 +1,31 @@
+# Words a handle may not contain (docs/trust-and-safety-plan.md, "Rules for anything people type").
+# A short starting list, matched through look-alike letters; Hillel or an Editor adds to it by hand.
+# One per line; lines starting with # are notes.
+fuck
+shit
+cunt
+bitch
+whore
+slut
+nigger
+nigga
+faggot
+fag
+retard
+rape
+nazi
+hitler
+porn
+penis
+vagina
+dick
+cock
+pussy
+asshole
+bastard
+wank
+twat
+kike
+spic
+chink
+tranny

@@ -1,0 +1,29 @@
+{
+    "$id": "appPass.json",
+    "title": "The beta pass for an app: a signed expiry, sent as X-App-Pass",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "pass",
+                "expiresAt"
+            ],
+            "properties": {
+                "pass": {
+                    "type": "string",
+                    "description": "sap_..."
+                },
+                "expiresAt": {
+                    "type": "string",
+                    "format": "date-time"
+                }
+            }
+        }
+    }
+}

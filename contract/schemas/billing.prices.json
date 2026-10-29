@@ -1,0 +1,90 @@
+{
+    "$id": "billing.prices.json",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "prices",
+                "trial",
+                "startNowConsent"
+            ],
+            "properties": {
+                "prices": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "interval",
+                            "currency",
+                            "amountCents",
+                            "taxInclusive"
+                        ],
+                        "properties": {
+                            "interval": {
+                                "type": "string",
+                                "enum": [
+                                    "month",
+                                    "year"
+                                ]
+                            },
+                            "currency": {
+                                "type": "string",
+                                "enum": [
+                                    "usd",
+                                    "eur",
+                                    "gbp"
+                                ]
+                            },
+                            "amountCents": {
+                                "type": "integer"
+                            },
+                            "taxInclusive": {
+                                "type": "boolean",
+                                "description": "The amount includes tax (EUR, GBP), or tax is added at Checkout (USD)."
+                            }
+                        }
+                    }
+                },
+                "trial": {
+                    "type": [
+                        "object",
+                        "null"
+                    ],
+                    "additionalProperties": false,
+                    "required": [
+                        "days",
+                        "intervals"
+                    ],
+                    "properties": {
+                        "days": {
+                            "type": "integer"
+                        },
+                        "intervals": {
+                            "type": "array",
+                            "items": {
+                                "type": "string",
+                                "enum": [
+                                    "month",
+                                    "year"
+                                ]
+                            },
+                            "description": "Which intervals offer it."
+                        }
+                    },
+                    "description": "The trial on offer, or null."
+                },
+                "startNowConsent": {
+                    "type": "boolean",
+                    "description": "True for a visitor in the EU, EEA or UK (Cloudflare's country): the app asks for consent to start Plus at once, and billing.checkout needs startNowConsent: true. False when the country isn't known."
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,117 @@
+{
+    "$id": "leagues.current.json",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "joined",
+                "week",
+                "endsAt",
+                "tier",
+                "tiers",
+                "promote",
+                "lastWeek",
+                "members"
+            ],
+            "properties": {
+                "joined": {
+                    "type": "boolean"
+                },
+                "week": {
+                    "type": "string"
+                },
+                "endsAt": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "tier": {
+                    "type": "integer"
+                },
+                "tiers": {
+                    "type": "integer"
+                },
+                "promote": {
+                    "type": "integer"
+                },
+                "lastWeek": {
+                    "type": [
+                        "object",
+                        "null"
+                    ],
+                    "additionalProperties": false,
+                    "required": [
+                        "tier",
+                        "rank",
+                        "movedUp"
+                    ],
+                    "properties": {
+                        "tier": {
+                            "type": "integer"
+                        },
+                        "rank": {
+                            "type": "integer"
+                        },
+                        "movedUp": {
+                            "type": "boolean"
+                        }
+                    }
+                },
+                "members": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "handle",
+                            "name",
+                            "avatarUrl",
+                            "level",
+                            "xp",
+                            "me",
+                            "rank",
+                            "movingUp"
+                        ],
+                        "properties": {
+                            "handle": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            },
+                            "name": {
+                                "type": "string"
+                            },
+                            "avatarUrl": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            },
+                            "level": {
+                                "type": "integer"
+                            },
+                            "xp": {
+                                "type": "integer"
+                            },
+                            "me": {
+                                "type": "boolean"
+                            },
+                            "rank": {
+                                "type": "integer"
+                            },
+                            "movingUp": {
+                                "type": "boolean"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

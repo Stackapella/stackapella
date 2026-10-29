@@ -1,0 +1,6 @@
+{
+    "message": "Conflict.",
+    "code": "daily_limit",
+    "sentToday": 200,
+    "limit": 200
+}

@@ -1,0 +1,48 @@
+{
+    "data": {
+        "id": "Pq7Rm2",
+        "name": "Sarah Kim",
+        "email": "sarah@example.com",
+        "note": "Alto in the community choir",
+        "link": "active",
+        "expiresAt": null,
+        "consent": {
+            "version": null,
+            "acceptedAt": null,
+            "current": false
+        },
+        "credit": {
+            "mode": null,
+            "name": null
+        },
+        "hourlyRateCents": 3000,
+        "currency": "USD",
+        "owedCents": 0,
+        "paidCents": 0,
+        "lastSeenAt": null,
+        "createdAt": "2026-10-26T14:55:00Z",
+        "assignments": [
+            {
+                "id": "Ab3Cd9",
+                "templateId": "amazing-grace",
+                "templateTitle": "Amazing Grace",
+                "partKey": "alto",
+                "minutes": 25,
+                "status": "to_record",
+                "kind": "part",
+                "clipId": null
+            }
+        ],
+        "account": null,
+        "acceptedAt": null,
+        "stats": {
+            "takes": 2,
+            "accepted": 1,
+            "retakes": 1,
+            "published": 1,
+            "defaults": 1,
+            "pitchPercent": 91
+        }
+    },
+    "link": "https://beta.stackapella.com/beta/q9W2e8R4t6Y1u3I5o7P9a2S4d6F8g0H1j3K5l7Z9"
+}

@@ -1,0 +1,18 @@
+{
+    "$id": "takes.create.json",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data",
+        "upload"
+    ],
+    "properties": {
+        "data": {
+            "$ref": "take.json"
+        },
+        "upload": {
+            "$ref": "upload.json#/$defs/nullable",
+            "description": "Null once the take is past uploading."
+        }
+    }
+}

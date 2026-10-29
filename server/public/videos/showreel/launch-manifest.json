@@ -1,0 +1,27 @@
+{
+  "film": "Harmony, made by you",
+  "duration": 39.375,
+  "source": "server/resources/promo/showreel",
+  "files": [
+    {
+      "name": "stackapella-launch-square.mp4",
+      "bytes": 9102590,
+      "sha256": "5521883de96c7e056aac8ec2289f5306eecf58eaf47042be4036879eda55ba51"
+    },
+    {
+      "name": "stackapella-launch-thumb.gif",
+      "bytes": 934818,
+      "sha256": "c77d51405c35555eccba00873b54585a05881d5fed3753da88792241333b5293"
+    },
+    {
+      "name": "stackapella-launch-thumb.mp4",
+      "bytes": 252014,
+      "sha256": "b11be24585080af209a5da64c14dd8f2b3c1966cfcff4ee60d4e97db4d6411c5"
+    },
+    {
+      "name": "stackapella-launch-vertical.mp4",
+      "bytes": 13277397,
+      "sha256": "4a14350ba83febd7cd67d3f841b0a285149210077a6841d3f2ba3699e9324fbd"
+    }
+  ]
+}

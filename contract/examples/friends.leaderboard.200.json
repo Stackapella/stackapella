@@ -1,0 +1,25 @@
+{
+    "data": {
+        "week": "2026-11-02",
+        "members": [
+            {
+                "handle": "ana",
+                "name": "Ana Ruiz",
+                "avatarUrl": null,
+                "level": 6,
+                "xp": 540,
+                "me": false,
+                "rank": 1
+            },
+            {
+                "handle": "sam",
+                "name": "Sam Lee",
+                "avatarUrl": null,
+                "level": 3,
+                "xp": 210,
+                "me": true,
+                "rank": 2
+            }
+        ]
+    }
+}

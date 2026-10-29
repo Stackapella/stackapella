@@ -1,0 +1,25 @@
+{
+    "data": {
+        "id": "c9d8e7f6-a5b4-4c3d-8e2f-1a0b9c8d7e6f",
+        "partId": "7b1e2d3c-5a6f-4b8c-9d0e-1f2a3b4c5d6e",
+        "status": "uploading",
+        "failure": null,
+        "sampleRate": 48000,
+        "frames": 2304000,
+        "offsetFrames": -960,
+        "bytes": 4608044,
+        "sha256": "9f9f9f9f9f9f9f9f9f9f9f9f9f9f9f9f9f9f9f9f9f9f9f9f9f9f9f9f9f9f9f9f",
+        "framesPerPeak": 512,
+        "peaks8": null,
+        "createdAt": "2026-10-26T17:58:00Z",
+        "binnedAt": null
+    },
+    "upload": {
+        "url": "https://stackapella-private.nyc3.digitaloceanspaces.com/uploads/takes/d4e5f6.wav?X-Amz-Signature=abc",
+        "method": "PUT",
+        "headers": {
+            "Content-Type": "audio/wav"
+        },
+        "expiresAt": "2026-10-26T18:30:00Z"
+    }
+}

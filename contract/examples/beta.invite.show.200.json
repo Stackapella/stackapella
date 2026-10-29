@@ -1,0 +1,10 @@
+{
+    "data": {
+        "name": "Sarah Kim",
+        "status": "open",
+        "bar": {
+            "pitchPercent": 90,
+            "timingPercent": 80
+        }
+    }
+}

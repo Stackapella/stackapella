@@ -1,0 +1,9 @@
+{
+    "message": "Unprocessable Content.",
+    "code": "validation_failed",
+    "errors": {
+        "progress": [
+            "The progress may not be larger than 256 KB."
+        ]
+    }
+}

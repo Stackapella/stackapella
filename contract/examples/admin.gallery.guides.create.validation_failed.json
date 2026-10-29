@@ -1,0 +1,9 @@
+{
+    "message": "Unprocessable Content.",
+    "code": "validation_failed",
+    "errors": {
+        "partId": [
+            "The part id field must be a valid UUID."
+        ]
+    }
+}

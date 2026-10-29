@@ -1,0 +1,399 @@
+{
+    "$id": "account.json",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "id",
+        "name",
+        "handle",
+        "email",
+        "emailVerified",
+        "pendingEmail",
+        "locale",
+        "appearance",
+        "timezone",
+        "bio",
+        "avatarUrl",
+        "xHandle",
+        "blueskyHandle",
+        "methods",
+        "heardFrom",
+        "plan",
+        "createdAt",
+        "betaSinger",
+        "staff",
+        "publicProfile",
+        "hideProfile",
+        "gallery",
+        "ideaEmails",
+        "pushTypes",
+        "quietHours",
+        "isAdult",
+        "boardsGlobal",
+        "birthGiven",
+        "plusCourses",
+        "terms"
+    ],
+    "properties": {
+        "id": {
+            "type": "string"
+        },
+        "name": {
+            "type": "string"
+        },
+        "handle": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "description": "Lower-case letters, digits and underscores, 3 to 20, starting with a letter. Null until chosen."
+        },
+        "email": {
+            "type": [
+                "string",
+                "null"
+            ]
+        },
+        "emailVerified": {
+            "type": "boolean"
+        },
+        "pendingEmail": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "description": "A new address waiting for its confirmation link."
+        },
+        "locale": {
+            "type": "string"
+        },
+        "appearance": {
+            "type": [
+                "object",
+                "null"
+            ],
+            "additionalProperties": false,
+            "required": [
+                "mode",
+                "colour",
+                "accent",
+                "customAccent",
+                "skin"
+            ],
+            "properties": {
+                "mode": {
+                    "type": "string",
+                    "enum": [
+                        "system",
+                        "light",
+                        "dark"
+                    ]
+                },
+                "colour": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "enum": [
+                        "warm",
+                        "midnight",
+                        "graphite",
+                        "plum",
+                        "stage",
+                        null
+                    ]
+                },
+                "accent": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "enum": [
+                        "coral",
+                        "amber",
+                        "green",
+                        "teal",
+                        "sky",
+                        "indigo",
+                        "violet",
+                        "rose",
+                        "custom",
+                        null
+                    ]
+                },
+                "customAccent": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "description": "With accent custom only: their own colour (#rrggbb, lower case), which the app fits to each theme for contrast; null otherwise."
+                },
+                "skin": {
+                    "type": "string",
+                    "enum": [
+                        "game",
+                        "serious"
+                    ],
+                    "description": "The skin: game (the default) or serious (docs/skins-plan.md)."
+                }
+            },
+            "description": "The theme they chose, following them to every device. Null until they choose: the device's own choice stands. A null colour is not chosen: the mode's own (Stage in dark, Warm in light). A null accent is the palette's own."
+        },
+        "timezone": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "description": "An IANA zone (Europe/Kyiv), for lessons."
+        },
+        "bio": {
+            "type": [
+                "string",
+                "null"
+            ]
+        },
+        "avatarUrl": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "format": "uri"
+        },
+        "xHandle": {
+            "type": [
+                "string",
+                "null"
+            ]
+        },
+        "blueskyHandle": {
+            "type": [
+                "string",
+                "null"
+            ]
+        },
+        "methods": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "google",
+                "apple",
+                "eventSchedule",
+                "password"
+            ],
+            "properties": {
+                "google": {
+                    "type": "boolean"
+                },
+                "apple": {
+                    "type": "boolean"
+                },
+                "eventSchedule": {
+                    "type": "boolean"
+                },
+                "password": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "heardFrom": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "enum": [
+                "search",
+                "friend",
+                "choir",
+                "reddit",
+                "tiktok",
+                "instagram",
+                "youtube",
+                "app_store",
+                "teacher",
+                "other",
+                null
+            ]
+        },
+        "plan": {
+            "type": "string",
+            "enum": [
+                "free",
+                "plus"
+            ]
+        },
+        "createdAt": {
+            "type": "string",
+            "format": "date-time"
+        },
+        "betaSinger": {
+            "type": "boolean",
+            "description": "A live beta singer: show \"Your beta parts\" and send waiting beta takes."
+        },
+        "staff": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "enum": [
+                "admin",
+                "editor",
+                null
+            ],
+            "description": "A display hint (the admin's version badge): nothing is granted by it, and admin operations check for themselves."
+        },
+        "publicProfile": {
+            "type": "boolean",
+            "description": "Their profile is public in the gallery (18 or over, with a handle)."
+        },
+        "hideProfile": {
+            "type": "boolean",
+            "description": "Hide profile: everyone else sees \"Anonymous\", with no handle, picture or profile page (profiles.show 404), in the gallery, shared song pages, link previews, boards, leagues and bells. People in a shared song, a choir group or coaching with them still see the name, and admins the real person. It never blocks sharing, recording or listing in the gallery. Overrides publicProfile while on (which keeps its value)."
+        },
+        "gallery": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "canPost",
+                "canComment",
+                "postsHeld"
+            ],
+            "properties": {
+                "canPost": {
+                    "type": "boolean"
+                },
+                "canComment": {
+                    "type": "boolean"
+                },
+                "postsHeld": {
+                    "type": "boolean"
+                }
+            },
+            "description": "What the gallery lets them do now (false while it's closed); postsHeld: their next harmony in it waits for review."
+        },
+        "ideaEmails": {
+            "type": "boolean",
+            "description": "Ideas: emailed about new voices on their tunes (at most daily per idea). True by default."
+        },
+        "pushTypes": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "like",
+                "comment",
+                "follow",
+                "consent_request",
+                "consent_answer",
+                "featured",
+                "idea_voice",
+                "idea_complete",
+                "fill",
+                "request_ready",
+                "board_beaten"
+            ],
+            "properties": {
+                "like": {
+                    "type": "boolean"
+                },
+                "comment": {
+                    "type": "boolean"
+                },
+                "follow": {
+                    "type": "boolean"
+                },
+                "consent_request": {
+                    "type": "boolean"
+                },
+                "consent_answer": {
+                    "type": "boolean"
+                },
+                "featured": {
+                    "type": "boolean"
+                },
+                "idea_voice": {
+                    "type": "boolean"
+                },
+                "idea_complete": {
+                    "type": "boolean"
+                },
+                "fill": {
+                    "type": "boolean"
+                },
+                "request_ready": {
+                    "type": "boolean"
+                },
+                "board_beaten": {
+                    "type": "boolean"
+                }
+            },
+            "description": "Which of the bell's kinds are pushed to the apps (on unless turned off)."
+        },
+        "quietHours": {
+            "type": [
+                "object",
+                "null"
+            ],
+            "additionalProperties": false,
+            "required": [
+                "start",
+                "end"
+            ],
+            "properties": {
+                "start": {
+                    "type": "string",
+                    "description": "HH:MM, in the account's time zone"
+                },
+                "end": {
+                    "type": "string",
+                    "description": "HH:MM; may be earlier than start (across midnight)"
+                }
+            },
+            "description": "Pushes made during them wait until they end; null: none."
+        },
+        "isAdult": {
+            "type": "boolean",
+            "description": "18 or over: by their birth month and year, or as they said (adult: true). Never the date itself."
+        },
+        "boardsGlobal": {
+            "type": "boolean",
+            "description": "On the worldwide part leaderboards (boards.global.update, 18 and over)."
+        },
+        "birthGiven": {
+            "type": "boolean",
+            "description": "They have said when they were born; when false and an 18+ feature answers adult_required, the app asks for the month and year."
+        },
+        "plusCourses": {
+            "type": "boolean",
+            "description": "Whether the app shows the Plus courses: true once the plus_courses switch is on, and for staff before."
+        },
+        "terms": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "accepted",
+                "current",
+                "acceptedAt"
+            ],
+            "description": "The terms of use they agreed to and the current version; when they differ, the app asks once (account.terms.accept).",
+            "properties": {
+                "accepted": {
+                    "type": [
+                        "integer",
+                        "null"
+                    ],
+                    "description": "Null for an account from before acceptance was recorded."
+                },
+                "current": {
+                    "type": "integer"
+                },
+                "acceptedAt": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "format": "date-time"
+                }
+            }
+        }
+    },
+    "title": "The signed-in person's own account"
+}

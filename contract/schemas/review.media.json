@@ -1,0 +1,52 @@
+{
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "id",
+        "kind",
+        "status",
+        "url",
+        "sampleRate",
+        "frames",
+        "createdAt"
+    ],
+    "properties": {
+        "id": {
+            "type": "string"
+        },
+        "kind": {
+            "type": "string",
+            "enum": [
+                "voice_note",
+                "demo"
+            ]
+        },
+        "status": {
+            "type": "string",
+            "enum": [
+                "uploading",
+                "processing",
+                "ready",
+                "failed"
+            ]
+        },
+        "url": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "format": "uri"
+        },
+        "sampleRate": {
+            "type": "integer"
+        },
+        "frames": {
+            "type": "integer"
+        },
+        "createdAt": {
+            "type": "string",
+            "format": "date-time"
+        }
+    },
+    "$id": "review.media.json"
+}

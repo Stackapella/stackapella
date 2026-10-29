@@ -1,0 +1,67 @@
+{
+    "data": {
+        "engagement": {
+            "id": "En7gHj",
+            "kind": "review",
+            "status": "refunded",
+            "role": "singer",
+            "singer": {
+                "id": "jR4kLmNo",
+                "name": "Ana Ruiz"
+            },
+            "coach": {
+                "id": "Cz8xYw2v",
+                "name": "Grace Okafor"
+            },
+            "offering": {
+                "id": "Of3dRt",
+                "title": "A take review"
+            },
+            "money": {
+                "priceCents": 2500,
+                "currency": "gbp",
+                "feeCents": 375,
+                "refundedCents": 2500
+            },
+            "acceptBy": "2026-10-29T10:00:00Z",
+            "dueAt": null,
+            "periodEndsAt": null,
+            "reviewsLeft": null,
+            "declineReason": null,
+            "can": [
+                "report"
+            ],
+            "rated": false,
+            "createdAt": "2026-10-27T10:00:00Z",
+            "lesson": null
+        },
+        "reviews": [
+            {
+                "id": "Rv5tYu",
+                "engagementId": "En7gHj",
+                "status": "cancelled",
+                "take": {
+                    "url": "https://stackapella-private.nyc3.digitaloceanspaces.com/reviews/t1.flac?X-Amz-Signature=abc",
+                    "sampleRate": 48000,
+                    "frames": 4320000,
+                    "template": {
+                        "id": "amazing-grace",
+                        "version": 2,
+                        "partKey": "alto"
+                    }
+                },
+                "pitchTrackUrl": "https://stackapella-private.nyc3.digitaloceanspaces.com/reviews/t1.json?X-Amz-Signature=abc",
+                "scores": {
+                    "pitchPercent": 82
+                },
+                "question": "My high notes feel strained in the last verse.",
+                "review": null,
+                "media": [],
+                "deliveredAt": null,
+                "unsendUntil": null,
+                "followUp": null,
+                "createdAt": "2026-10-27T10:00:00Z"
+            }
+        ]
+    }
+}

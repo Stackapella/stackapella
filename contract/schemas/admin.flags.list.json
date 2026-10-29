@@ -1,0 +1,9 @@
+{
+    "$id": "admin.flags.list.json",
+    "type": "object",
+    "additionalProperties": false,
+    "required": ["data"],
+    "properties": {
+        "data": { "type": "array", "items": { "$ref": "admin.flag.json" } }
+    }
+}

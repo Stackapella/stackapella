@@ -1,0 +1,314 @@
+{
+    "$id": "harmony.json",
+    "title": "A harmony the person shared (their own view)",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "id",
+        "projectId",
+        "partId",
+        "title",
+        "visibility",
+        "status",
+        "failure",
+        "sampleRate",
+        "channels",
+        "frames",
+        "durationSeconds",
+        "moderation",
+        "titleHeld",
+        "pageUrl",
+        "audioUrl",
+        "cardUrl",
+        "createdAt",
+        "updatedAt",
+        "mayFeature",
+        "inGallery",
+        "galleryHeld",
+        "rightsConfirmed",
+        "commentsOff",
+        "singers",
+        "openParts",
+        "openPartsGuide",
+        "parent",
+        "featuredFill"
+    ],
+    "properties": {
+        "id": {
+            "type": "string",
+            "description": "12 random letters and digits (not a Sqid); the page is /h/<id>."
+        },
+        "projectId": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "description": "The project's UUID; null once the project is gone for good."
+        },
+        "partId": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "description": "Just my part: that part's UUID. Null for the whole harmony, or once the part is gone."
+        },
+        "title": {
+            "type": "string",
+            "description": "As the person typed it (may be blank)."
+        },
+        "visibility": {
+            "type": "string",
+            "enum": [
+                "private",
+                "unlisted"
+            ]
+        },
+        "status": {
+            "type": "string",
+            "enum": [
+                "uploading",
+                "processing",
+                "ready",
+                "failed"
+            ]
+        },
+        "failure": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "enum": [
+                null,
+                "not_audio",
+                "wrong_format",
+                "too_long",
+                "mix_mismatch",
+                "processing_error"
+            ]
+        },
+        "sampleRate": {
+            "type": "integer"
+        },
+        "channels": {
+            "type": "integer"
+        },
+        "frames": {
+            "type": "integer"
+        },
+        "durationSeconds": {
+            "type": "number"
+        },
+        "moderation": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "enum": [
+                null,
+                "under_review",
+                "hidden",
+                "removed"
+            ]
+        },
+        "titleHeld": {
+            "type": "boolean",
+            "description": "The title waits for Hillel's look; the page says \"Untitled song\" meanwhile."
+        },
+        "pageUrl": {
+            "type": "string",
+            "format": "uri"
+        },
+        "audioUrl": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "format": "uri",
+            "description": "The AAC, valid 15 minutes, once ready (whatever the visibility)."
+        },
+        "cardUrl": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "format": "uri",
+            "description": "The share card JPEG, valid 15 minutes, once ready."
+        },
+        "createdAt": {
+            "type": "string",
+            "format": "date-time"
+        },
+        "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+        },
+        "mayFeature": {
+            "type": "boolean"
+        },
+        "inGallery": {
+            "type": "boolean"
+        },
+        "galleryHeld": {
+            "type": "boolean"
+        },
+        "rightsConfirmed": {
+            "type": "boolean"
+        },
+        "commentsOff": {
+            "type": "boolean"
+        },
+        "singers": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                    "name",
+                    "consent"
+                ],
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "consent": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "enum": [
+                            "asked",
+                            "agreed",
+                            "declined",
+                            null
+                        ]
+                    }
+                }
+            }
+        },
+        "openParts": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                    "key",
+                    "name"
+                ],
+                "properties": {
+                    "key": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    }
+                }
+            },
+            "description": "Open parts (N5): the parts left open for others; empty when none."
+        },
+        "openPartsGuide": {
+            "type": "boolean",
+            "description": "Whether the open parts play their guide in its mix."
+        },
+        "parent": {
+            "type": [
+                "object",
+                "null"
+            ],
+            "additionalProperties": false,
+            "required": [
+                "id",
+                "title",
+                "owner",
+                "part"
+            ],
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "owner": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                        "handle",
+                        "name",
+                        "avatarUrl"
+                    ],
+                    "properties": {
+                        "handle": {
+                            "type": [
+                                "string",
+                                "null"
+                            ]
+                        },
+                        "name": {
+                            "type": "string"
+                        },
+                        "avatarUrl": {
+                            "type": [
+                                "string",
+                                "null"
+                            ]
+                        }
+                    }
+                },
+                "part": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                }
+            },
+            "description": "On a fill: the harmony it was sung for, and the part."
+        },
+        "featuredFill": {
+            "type": [
+                "object",
+                "null"
+            ],
+            "additionalProperties": false,
+            "required": [
+                "id",
+                "title",
+                "owner"
+            ],
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "owner": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                        "handle",
+                        "name",
+                        "avatarUrl"
+                    ],
+                    "properties": {
+                        "handle": {
+                            "type": [
+                                "string",
+                                "null"
+                            ]
+                        },
+                        "name": {
+                            "type": "string"
+                        },
+                        "avatarUrl": {
+                            "type": [
+                                "string",
+                                "null"
+                            ]
+                        }
+                    }
+                }
+            },
+            "description": "The fill its owner features."
+        }
+    }
+}

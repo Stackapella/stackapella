@@ -1,0 +1,74 @@
+{
+    "$id": "reminders.show.json",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "enabled",
+                "days",
+                "time",
+                "timezone",
+                "vapidPublicKey",
+                "devices",
+                "thisDevice"
+            ],
+            "properties": {
+                "enabled": {
+                    "type": "boolean"
+                },
+                "days": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer",
+                        "enum": [
+                            0,
+                            1,
+                            2,
+                            3,
+                            4,
+                            5,
+                            6
+                        ]
+                    }
+                },
+                "time": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "description": "Local, HH:MM, 24-hour, on a quarter hour."
+                },
+                "timezone": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "vapidPublicKey": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "description": "For pushManager.subscribe's applicationServerKey; null when push isn't set up."
+                },
+                "devices": {
+                    "type": "integer",
+                    "description": "How many devices will be reminded."
+                },
+                "thisDevice": {
+                    "type": [
+                        "boolean",
+                        "null"
+                    ],
+                    "description": "With ?endpoint=: whether that device is reminded; null without it."
+                }
+            }
+        }
+    }
+}

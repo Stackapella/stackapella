@@ -1,0 +1,16 @@
+{
+    "$id": "admin.beta.guides.list.json",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "type": "array",
+            "items": {
+                "$ref": "admin.beta.template.json"
+            }
+        }
+    }
+}

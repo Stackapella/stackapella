@@ -1,0 +1,25 @@
+{
+    "data": {
+        "id": "Gp4rQs",
+        "name": "Thursday Singers",
+        "role": "director",
+        "director": {
+            "id": "jR4kLmNo",
+            "name": "Ana Ruiz"
+        },
+        "readOnly": false,
+        "memberCount": 1,
+        "songs": [],
+        "members": [
+            {
+                "id": "jR4kLmNo",
+                "name": "Ana Ruiz",
+                "avatarUrl": null,
+                "role": "director",
+                "joinedAt": "2026-10-27T12:00:00Z",
+                "assignments": []
+            }
+        ],
+        "link": null
+    }
+}

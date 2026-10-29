@@ -1,0 +1,181 @@
+{
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "configured",
+                "fake",
+                "connections",
+                "needsReconnect",
+                "lessons"
+            ],
+            "properties": {
+                "configured": {
+                    "type": "boolean"
+                },
+                "fake": {
+                    "type": "boolean"
+                },
+                "connections": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                        "active",
+                        "needsReconnect",
+                        "webhooksFailing"
+                    ],
+                    "properties": {
+                        "active": {
+                            "type": "integer"
+                        },
+                        "needsReconnect": {
+                            "type": "integer"
+                        },
+                        "webhooksFailing": {
+                            "type": "integer"
+                        }
+                    }
+                },
+                "needsReconnect": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "user",
+                            "mode",
+                            "since",
+                            "error"
+                        ],
+                        "properties": {
+                            "user": {
+                                "type": "object",
+                                "additionalProperties": false,
+                                "required": [
+                                    "id",
+                                    "name"
+                                ],
+                                "properties": {
+                                    "id": {
+                                        "type": "string"
+                                    },
+                                    "name": {
+                                        "type": "string"
+                                    }
+                                }
+                            },
+                            "mode": {
+                                "type": "string",
+                                "enum": [
+                                    "oauth",
+                                    "api_key"
+                                ]
+                            },
+                            "since": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ],
+                                "format": "date-time"
+                            },
+                            "error": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "lessons": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "engagementId",
+                            "coach",
+                            "singer",
+                            "startsAt",
+                            "status",
+                            "problem",
+                            "note",
+                            "at"
+                        ],
+                        "properties": {
+                            "engagementId": {
+                                "type": "string"
+                            },
+                            "coach": {
+                                "type": "object",
+                                "additionalProperties": false,
+                                "required": [
+                                    "id",
+                                    "name"
+                                ],
+                                "properties": {
+                                    "id": {
+                                        "type": "string"
+                                    },
+                                    "name": {
+                                        "type": "string"
+                                    }
+                                }
+                            },
+                            "singer": {
+                                "type": "object",
+                                "additionalProperties": false,
+                                "required": [
+                                    "id",
+                                    "name"
+                                ],
+                                "properties": {
+                                    "id": {
+                                        "type": "string"
+                                    },
+                                    "name": {
+                                        "type": "string"
+                                    }
+                                }
+                            },
+                            "startsAt": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ],
+                                "format": "date-time"
+                            },
+                            "status": {
+                                "type": "string"
+                            },
+                            "problem": {
+                                "type": "string",
+                                "enum": [
+                                    "mismatch",
+                                    "booking_failed"
+                                ]
+                            },
+                            "note": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            },
+                            "at": {
+                                "type": "string",
+                                "format": "date-time"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "$id": "admin.eventSchedule.json"
+}

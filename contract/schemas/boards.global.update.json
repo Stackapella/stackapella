@@ -1,0 +1,21 @@
+{
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "onGlobal"
+            ],
+            "properties": {
+                "onGlobal": {
+                    "type": "boolean"
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,20 @@
+{
+    "$id": "admin.reports.list.json",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data",
+        "meta"
+    ],
+    "properties": {
+        "data": {
+            "type": "array",
+            "items": {
+                "$ref": "admin.harmony.item.json#/$defs/item"
+            }
+        },
+        "meta": {
+            "$ref": "meta.json"
+        }
+    }
+}
