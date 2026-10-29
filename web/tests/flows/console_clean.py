@@ -17,8 +17,8 @@ def visit(f, path, ready):
 
 def journey(f):
     visit(f, "/?api=mock&scenario=&as=signedOut", "document.querySelector('#app header')")
-    # Not controlled yet (a first visit): Vue preloaded once, from the boot script.
-    assert f.js("navigator.serviceWorker?.controller ? true : document.querySelectorAll('link[rel=modulepreload]').length === 1"), "Vue isn't preloaded once on a first visit"
+    # Not controlled yet (a first visit): Vue and lesson 1's modules preloaded once each, from the boot script.
+    assert f.js("navigator.serviceWorker?.controller ? true : (() => { const all = [...document.querySelectorAll('link[rel=modulepreload]')].map((l) => l.href); return new Set(all).size === all.length && all.filter((h) => h.includes('/vue@')).length === 1 && all.some((h) => h.endsWith('/js/views/learn.js')); })()"), "Vue and lesson 1's modules aren't preloaded once each on a first visit"
     visit(f, "/workout?api=mock&scenario=&as=signedOut", "document.querySelector('#app h1')")
     f.run("const s = await import('/js/stores/projects.js'); const p = await s.createProject({ title: 'Console' }); window.made = p.id;")
     visit(f, "/p/" + f.js("window.made") + "?api=mock&scenario=&as=signedOut", "document.querySelector('footer')")

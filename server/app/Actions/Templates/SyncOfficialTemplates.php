@@ -187,8 +187,8 @@ final class SyncOfficialTemplates
     }
 
     /**
-     * A song whose file has left the content (Hillel: "Remove them now", for the two the lawyer
-     * hasn't cleared) is withdrawn: out of the library, its page and the sitemap, still served to
+     * A song whose file has left the content (Hillel: "Remove them now") is withdrawn: out of the
+     * library, its page and the sitemap, still served to
      * the projects made from it. One that comes back returns. Never many at once: a content fetch
      * that went wrong (no files, or most missing) is a problem to look at, not a withdrawal.
      *

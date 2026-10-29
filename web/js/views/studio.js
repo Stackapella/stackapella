@@ -96,9 +96,9 @@ export const StudioView = {
                     <div class="min-w-0 flex-1">
                         <label class="sr-only" for="song-name">{{ t('project.nameLabel') }}</label>
                         <input id="song-name" :value="project.title" maxlength="80" autocomplete="off" translate="no" :placeholder="t('project.namePlaceholder')" :readonly="!!project.shared"
-                            class="block w-full truncate rounded-lg border border-transparent bg-transparent px-1 -mx-1 text-lg font-extrabold tracking-tight text-cream outline-none placeholder:text-muted hover:border-line focus:border-accent md:text-xl"
+                            class="block w-full truncate rounded-lg border border-transparent bg-transparent px-1 -mx-1 text-lg font-extrabold tracking-tight text-cream placeholder:text-muted hover:border-line focus:border-accent md:text-xl"
                             @change="rename($event.target.value)" @keydown.enter="$event.target.blur()" />
-                        <button type="button" class="block max-w-full truncate text-start text-xs text-muted hover:text-cream md:text-sm" @click="dialog = project.shared ? 'together' : 'settings'">{{ meta }}<span v-if="credit"> · {{ credit }}</span> · <span :class="saving ? 'text-muted' : 'text-good'">{{ saving ? t('common.saving') : t('common.saved') }}</span></button>
+                        <button type="button" class="block min-h-6 max-w-full truncate text-start text-xs text-muted hover:text-cream md:text-sm" @click="dialog = project.shared ? 'together' : 'settings'">{{ meta }}<span v-if="credit"> · {{ credit }}</span> · <span :class="saving ? 'text-muted' : 'text-good'">{{ saving ? t('common.saving') : t('common.saved') }}</span></button>
                     </div>
                     <span v-if="recording" class="flex items-center gap-2 rounded-full bg-record px-3 py-1.5 text-sm font-bold text-record-label" role="status"><span class="size-2 animate-pulse rounded-full bg-record-label"></span><span translate="no">{{ t('studio.recordingNamed', { name: liveName }) }}</span><span class="tabular-nums">{{ formatTime(Math.max(0, position - recordFrom)) }}</span></span>
                     <template v-else>

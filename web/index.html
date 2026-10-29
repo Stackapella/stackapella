@@ -36,6 +36,8 @@
          https://cdn.jsdelivr.net/npm/lamejs@1.2.1/lame.min.js -->
     <!-- Vue preloaded on a first visit only (with the service worker in control, its cache answers). -->
     <script src="/js/preload.js"></script>
+    <!-- A browser too old for the import map (Safari before 16.4): a plain message, not a blank page. -->
+    <script src="/js/old-browser.js" defer></script>
     <script type="module" src="/js/main.js"></script>
 </head>
 <body class="bg-ink font-sans text-cream antialiased">

@@ -1,13 +1,161 @@
-// Vue, fetched early on a visit the service worker doesn't control yet (the first). With the
-// service worker in control, the import comes from its cache, and a preload beside it would be a
-// second fetch that's never used (Chrome: "cross-world service worker resource mismatch"). A
-// classic script after the import map, so the preload never comes before it.
+// Vue and lesson 1's modules, fetched early on a visit the service worker doesn't control yet (the
+// first). Without these the browser finds the modules one import at a time, a round trip for each
+// level; with them it asks for all of them at once (no bundling: the files stay as they are). With
+// the service worker in control, the imports come from its cache, and a preload beside them would
+// be a second fetch that's never used (Chrome: "cross-world service worker resource mismatch"). A
+// classic script after the import map, so the preloads never come before it.
 (() => {
     if (navigator.serviceWorker?.controller) return;
-    const link = document.createElement('link');
-    link.rel = 'modulepreload';
-    link.href = 'https://cdn.jsdelivr.net/npm/vue@3.5.44/dist/vue.esm-browser.prod.js';
-    link.integrity = 'sha384-Yy+wUwjypE8OL2+tZ7lLLMsIVMFBXibFJCdzCWWWXnuVVdiuS3gViCyubnRyWnSP';
-    link.crossOrigin = 'anonymous';
-    document.head.append(link);
+    const preload = (href, extra = {}) => {
+        const link = document.createElement('link');
+        link.rel = 'modulepreload';
+        link.href = href;
+        Object.assign(link, extra);
+        document.head.append(link);
+    };
+    preload('https://cdn.jsdelivr.net/npm/vue@3.5.44/dist/vue.esm-browser.prod.js', { integrity: 'sha384-Yy+wUwjypE8OL2+tZ7lLLMsIVMFBXibFJCdzCWWWXnuVVdiuS3gViCyubnRyWnSP', crossOrigin: 'anonymous' });
+    // Every module js/main.js imports, nearest first: written by tool/preload_list.py from the
+    // import graph, and tool/test.sh fails when it's stale. main.js itself is the page's own script.
+    // preload_list.py: begin
+    const MODULES = [
+        '/js/errors.js',
+        '/js/templates.js',
+        '/js/api.js',
+        '/js/db.js',
+        '/js/i18n.js',
+        '/js/router.js',
+        '/js/stores/session.js',
+        '/js/components/ui.js',
+        '/js/components/confirm.js',
+        '/js/views/projects.js',
+        '/js/views/auth.js',
+        '/js/stores/plan.js',
+        '/js/components/cloud.js',
+        '/js/views/learn.js',
+        '/js/components/account.js',
+        '/js/components/birth.js',
+        '/js/components/version.js',
+        '/js/components/mic-help.js',
+        '/js/components/mic-check.js',
+        '/js/game/fonts.js',
+        '/js/version.js',
+        '/js/components/install.js',
+        '/js/components/controls.js',
+        '/js/stores/account.js',
+        '/js/stores/cloud.js',
+        '/js/stores/appearance.js',
+        '/js/colors.js',
+        '/js/beta-outbox.js',
+        '/js/usage.js',
+        '/js/funnel.js',
+        '/js/lazy.js',
+        '/js/screen-name.js',
+        '/js/storage.js',
+        '/js/theme.js',
+        '/js/api-mock.js',
+        '/js/audio.js',
+        '/js/dsp.js',
+        '/js/guides.js',
+        '/js/band.js',
+        '/js/recorded-guides.js',
+        '/js/stores/catalogue.js',
+        '/js/practice.js',
+        '/js/stores/projects.js',
+        '/js/synth.js',
+        '/js/stores/learning.js',
+        '/js/sync.js',
+        '/js/patch.js',
+        '/js/trim.js',
+        '/js/share.js',
+        '/js/polish.js',
+        '/js/stores/prefs.js',
+        '/js/components/icon.js',
+        '/js/hosts.js',
+        '/js/home.js',
+        '/js/components/home.js',
+        '/js/game/title-screen.js',
+        '/js/game/effects.js',
+        '/js/components/session-wrap.js',
+        '/js/components/beta.js',
+        '/js/components/form.js',
+        '/js/components/appearance.js',
+        '/js/creator.js',
+        '/js/stores/templates.js',
+        '/js/components/create/save.js',
+        '/js/components/dialogs.js',
+        '/js/components/plus-moment.js',
+        '/js/components/card-menu.js',
+        '/js/turnstile.js',
+        '/js/components/invite-card.js',
+        '/js/skin.js',
+        '/js/course.js',
+        '/js/theory.js',
+        '/js/mic-help.js',
+        '/js/sounds.js',
+        '/js/pitchtrack.js',
+        '/js/scoring.js',
+        '/js/components/exercise.js',
+        '/js/components/listening.js',
+        '/js/components/chord-moment.js',
+        '/js/components/then-and-now.js',
+        '/js/components/voice-card.js',
+        '/js/components/learn-visual.js',
+        '/js/components/results.js',
+        '/js/components/fact-card.js',
+        '/js/components/keep-song.js',
+        '/js/results.js',
+        '/js/celebrate.js',
+        '/js/components/share-result.js',
+        '/js/courses.js',
+        '/js/lesson-steps.js',
+        '/js/game/title-card.js',
+        '/js/sharpen.js',
+        '/js/mic-check.js',
+        '/js/components/level-meter.js',
+        '/js/components/mic.js',
+        '/js/wav.js',
+        '/engine/engine.js',
+        '/js/instrument-parts.js',
+        '/js/instruments.js',
+        '/js/badges.js',
+        '/js/logo-mark.js',
+        '/js/workout.js',
+        '/js/reminders.js',
+        '/js/quality.js',
+        '/js/beta.js',
+        '/js/game-toggle.js',
+        '/js/accent-colours.js',
+        '/js/listen.js',
+        '/js/listening.js',
+        '/js/pitch-display.js',
+        '/js/components/gems.js',
+        '/js/camera.js',
+        '/js/glass.js',
+        '/js/components/key-control.js',
+        '/js/game/hud.js',
+        '/js/game/popups.js',
+        '/js/waitforme.js',
+        '/js/lesson-scores.js',
+        '/js/style-scores.js',
+        '/js/harmony.js',
+        '/js/creator-audio.js',
+        '/engine/clock.js',
+        '/js/game/tally.js',
+        '/js/keep-song.js',
+        '/js/result-card.js',
+        '/js/components/wave-lane.js',
+        '/js/components/choose.js',
+        '/js/components/bullseye.js',
+        '/js/components/selfcheck.js',
+        '/js/components/breath-hold.js',
+        '/js/game/motion.js',
+        '/js/arrange.js',
+        '/js/vibrato.js',
+        '/js/pitch-skills.js',
+        '/js/ring.js',
+        '/js/game/chip.js',
+        '/js/course-clips.js',
+    ];
+    // preload_list.py: end
+    for (const module of MODULES) preload(module);
 })();

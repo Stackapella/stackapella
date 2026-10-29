@@ -9,7 +9,7 @@ desktop ones 1440 x 900 at 1x. Singing is a synthesized voice played into the mi
 Each screen is shot in Warm light, then the theme changes in place (the app redraws its canvases
 on a change) and it's shot in Stage dark, so a moment that can't be had twice (a held note, a take
 recording) is the same in both. Such a moment is held still by holding back the page's animation
-frames. Pillow compresses the shots at the end, through a plain python3 (this script runs isolated).
+frames. FLOW_SKINS=serious shoots serious mode's own set, as <id>-serious and <id>-serious-dark. Pillow compresses the shots at the end, through a plain python3 (this script runs isolated).
 """
 import base64
 import json
@@ -121,7 +121,9 @@ def capture(f, shot_id, suffix, scroll=None, wait=0.6):
     raw = tempfile.NamedTemporaryFile(suffix=".png", delete=False)
     raw.write(base64.b64decode(data))
     raw.close()
-    RAW.append([raw.name, str(OUT / f"{shot_id}-{f.size}{suffix}" if OUT else HELP / f"{shot_id}{suffix}"), *PIXELS[f.size]])
+    # Serious mode's own pair beside game mode's (FLOW_SKINS=serious): <id>-serious and <id>-serious-dark.
+    skin = "-serious" if getattr(f, "skin", "game") == "serious" else ""
+    RAW.append([raw.name, str(OUT / f"{shot_id}-{f.size}{skin}{suffix}" if OUT else HELP / f"{shot_id}{skin}{suffix}"), *PIXELS[f.size]])
 
 
 def shoot(f, shot_id, scroll=None, wait=0.6):

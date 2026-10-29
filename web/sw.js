@@ -21,6 +21,7 @@ const SHELL = [
     '/js/i18n.js',
     '/js/levels.js',
     '/js/lazy.js',
+    '/js/screen-name.js',
     '/locales/en.json',
     '/js/audio.js',
     '/js/db.js',
@@ -99,6 +100,9 @@ const SHELL = [
     '/js/keep-song.js',
     '/js/components/keep-song.js',
     '/js/views/plus-course.js',
+    '/js/views/ideas.js',
+    '/js/stores/ideas.js',
+    '/js/components/share-idea.js',
     '/js/components/exercise.js',
     '/course/course.json',
     '/course/plus/courses.json',
@@ -165,6 +169,7 @@ const SHELL = [
     '/js/colors.js',
     '/js/theme-boot.js',
     '/js/preload.js',
+    '/js/old-browser.js',
     '/js/stores/appearance.js',
     '/js/components/create/check.js',
     '/js/components/create/chords.js',
@@ -267,7 +272,7 @@ const SHELL = [
 
 // The app's own addresses (every route in router.js; tests/sw-routes.test.js keeps them in step);
 // every other page is the server's.
-const APP_ROUTE = /^\/(?:$|index\.html$|p\/[\w-]+(?:\/sing)?\/?$|styleguide\/?$|beta(?:\/[\w-]*)?\/?$|signin(?:\/link)?\/?$|settings(?:\/reminders)?\/?$|storage\/?$|voice\/?$|workout\/?$|plus\/?$|learn(?:\/c)?(?:\/[\w-]+)?\/?$|verify\/?$|reset\/?$|email\/(?:confirm|revert)\/?$|create(?:\/[\w-]+)?\/?$|t\/[\w-]+\/?$|(?:join|early|invite|choir|challenge)\/[\w-]+\/?$|groups(?:\/[\w-]+)?\/?$|moved\/?$|contact\/?$|admin(?:\/(?!sign-in|sign-out|second-factor)[\w-]+(?:\/[\w-]+)?)?\/?$)/;
+const APP_ROUTE = /^\/(?:$|index\.html$|p\/[\w-]+(?:\/sing)?\/?$|styleguide\/?$|beta(?:\/[\w-]*)?\/?$|signin(?:\/link)?\/?$|settings(?:\/reminders)?\/?$|storage\/?$|voice\/?$|workout\/?$|plus\/?$|learn(?:\/c)?(?:\/[\w-]+)?\/?$|verify\/?$|reset\/?$|email\/(?:confirm|revert)\/?$|create(?:\/[\w-]+)?\/?$|t\/[\w-]+\/?$|(?:join|early|invite|choir|challenge)\/[\w-]+\/?$|groups(?:\/[\w-]+)?\/?$|ideas(?:\/[\w-]+)?\/?$|moved\/?$|contact\/?$|admin(?:\/(?!sign-in|sign-out|second-factor)[\w-]+(?:\/[\w-]+)?)?\/?$)/;
 
 /**
  * Caches every file of the app, or none: a file that fails (a folder the server doesn't serve, say)

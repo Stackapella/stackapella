@@ -57,13 +57,13 @@ export const Icon = {
     },
 };
 
-/** The mark (four bars, one per voice, on a black square: web/tool/icons.py) and the name. */
+/** The mark (four bars, one per voice, on a black square: web/tool/icons.py) and the name, set as the site's header sets it (.s-brand: Figtree 800, 18 px, -0.01em) and the logo set draws it. */
 export const Logo = {
     props: { size: { type: Number, default: 22 } },
     setup: () => ({ LOGO_MARK }),
     template: `
-        <span class="inline-flex items-center gap-2 font-bold tracking-tight text-cream">
+        <span class="inline-flex items-center gap-2 font-extrabold text-cream">
             <span class="block shrink-0 [&>svg]:size-full" :style="{ width: size + 'px', height: size + 'px' }" aria-hidden="true" v-html="LOGO_MARK"></span>
-            <span class="text-[17px]" translate="no">stackapella</span>
+            <span class="text-[18px] tracking-[-0.01em]" translate="no">Stackapella</span>
         </span>`,
 };

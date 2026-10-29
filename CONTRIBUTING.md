@@ -10,7 +10,7 @@ pull request.
   which microphone (and how it's connected), and the timing check's result if recording is
   involved.
 - **Ideas and larger changes:** open an issue first, so we can agree on the shape before you
-  write it. Product decisions are Hillel's, and they're logged in `docs/decisions.md`.
+  write it. Product decisions are Hillel's.
 - **Security problems:** never in an issue. See `SECURITY.md`, or write to
   contact@stackapella.com.
 
@@ -43,7 +43,7 @@ The name and the mark aren't open either (`TRADEMARK.md`).
 
 ## The house rules
 
-The full set is `docs/conventions.md`. The ones that matter most:
+The ones that matter most:
 
 - **No npm, ever.** No `package.json`, no bundler. Browser libraries load from a CDN, pinned to an
   exact version with an `integrity` (SRI) hash; Tailwind is its standalone binary
@@ -59,7 +59,7 @@ The full set is `docs/conventions.md`. The ones that matter most:
   form request or policy, one action, an API resource); no `env()` outside `config/`; no route
   closures; no data-changing GETs; no empty `catch`; every model has a factory.
 - **The API contract** (`contract/api.md`) describes every route; a change to it comes with its
-  example and a line in `contract/log.md`.
+  schema and example.
 - **Words:** every word the app shows comes from `web/locales/en.json` or `server/lang/`. Plain
   English, and no em dashes in the interface or the docs.
 
@@ -80,9 +80,8 @@ tool/test.sh                      # the headless-browser tests
 tool/flows.sh                     # the flow scripts, when you changed a screen
 ```
 
-Turn on the commit hook once per clone (`git config core.hooksPath .githooks`). It needs
-[gitleaks](https://github.com/gitleaks/gitleaks) 8.25 or later, and stops secrets, keys, data
-dumps and recordings from being committed.
+Run [gitleaks](https://github.com/gitleaks/gitleaks) 8.25 or later (`gitleaks dir .`) before you
+send it: CI runs it on every push and stops secrets, keys, data dumps and recordings.
 
 ## Commits and pull requests
 
@@ -90,6 +89,6 @@ dumps and recordings from being committed.
   `Studio: the count-in follows the song's tempo`. No co-author or tool trailers.
 - One change per pull request, with what you tested and on which browsers or devices.
 - Tests for backend logic, and a headless-browser test or flow for frontend behaviour.
-- Keep the README's setup steps true if you change them.
+- Keep DEVELOPING.md's setup steps true if you change them.
 
-The full setup is in the README ("Running the server" and "Running the app").
+The full setup is in DEVELOPING.md ("Running the server" and "Running the app").

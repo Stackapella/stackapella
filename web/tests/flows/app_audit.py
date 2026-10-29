@@ -85,6 +85,43 @@ LAST_IN_SHEET = f"""(() => {{
 }})()"""
 
 
+# Where keyboard focus is now, and whether it shows: an outline or a ring (box-shadow) on the focused
+# control itself, or on the label or wrapper it sits in (a switch, a checkbox row).
+FOCUS_NOW = """(() => {
+  const el = document.activeElement;
+  if (!el || el === document.body) return null;
+  const shows = (node) => { const s = getComputedStyle(node); return (s.outlineStyle !== 'none' && parseFloat(s.outlineWidth) > 0) || (s.boxShadow && s.boxShadow !== 'none'); };
+  // A slider shows its focus as a ring round its thumb (input.css, .range:focus-visible), which styles can't read.
+  const seen = el.matches('input[type=range].range') || [el, el.parentElement, el.closest('label')].filter(Boolean).some(shows);
+  const name = (el.getAttribute('aria-label') || el.textContent || el.getAttribute('name') || el.id || '').trim().replace(/\\s+/g, ' ').slice(0, 30);
+  return { seen, name: `${el.tagName.toLowerCase()} "${name}"` };
+})()"""
+TAB_STOPS = 20
+
+# WCAG 2.5.8 (AA): a target is at least 24 by 24, or has room round it. A link inside a sentence is
+# exempt, and so is a slider's track (its thumb is the target) and anything inside a canvas's lane.
+SMALL_TARGETS = f"""(() => {{
+  const visible = (el) => !!(el.offsetWidth || el.offsetHeight || el.getClientRects().length);
+  const inline = (el) => el.tagName === 'A' && getComputedStyle(el).display === 'inline' && /\\S/.test((el.parentElement?.textContent ?? '').replace(el.textContent, ''));
+  const roomy = (r) => r.width + 0.5 >= 24 && r.height + 0.5 >= 24;
+  return [...document.querySelectorAll({json.dumps(FOCUSABLE)})].filter((el) => visible(el) && !el.closest('[aria-hidden="true"], .sr-only') && el.type !== 'range' && !inline(el))
+    .map((el) => [el, el.getBoundingClientRect()]).filter(([el, r]) => r.width > 0 && !roomy(r) && !((el.closest('label')?.getBoundingClientRect().height ?? 0) >= 24))
+    .slice(0, 3).map(([el, r]) => `a target under 24px: ${{el.tagName.toLowerCase()}} "${{(el.getAttribute('aria-label') || el.textContent || '').trim().replace(/\\s+/g, ' ').slice(0, 30)}}" ${{Math.round(r.width)}}x${{Math.round(r.height)}}`);
+}})()"""
+
+
+def focus_shows(f, screen, failures):
+    """The first stops of Tab from the top: each one's focus can be seen."""
+    f.run("document.activeElement?.blur(); window.scrollTo(0, 0);")
+    hidden = []
+    for _ in range(TAB_STOPS):
+        f.press("Tab")
+        now = f.chrome.evaluate(FOCUS_NOW)
+        if now and not now["seen"] and now["name"] not in hidden:
+            hidden.append(now["name"])
+    failures += [f"{screen} {f.size[1:]}px: no visible focus on {name}" for name in hidden[:3]]
+
+
 def look(f, mode):
     f.run(f"window.stackapellaTheme.choose({{ mode: {json.dumps(mode)}, colour: 'stage', accent: null, customAccent: null }});")
     f.wait(f"document.documentElement.dataset.theme === 'stage-{mode}'", what=f"stage-{mode}")
@@ -100,6 +137,10 @@ def check(f, screen, failures):
         failures += [f"{where}: below AA: {low}" for low in f.chrome.evaluate(APP_CONTRAST)]
         failures += [f"{where}: runs endlessly while idle: {name}" for name in f.chrome.evaluate(ENDLESS)]
         failures += [f"{where}: {problem}" for problem in f.chrome.evaluate(HIDDEN_FOCUS)]
+        if mode == MODES[0]:
+            failures += [f"{where}: {problem}" for problem in f.chrome.evaluate(SMALL_TARGETS)]
+    if not f.js("!!document.querySelector('[role=dialog][aria-modal=true]')"):
+        focus_shows(f, screen, failures)
     if f.chrome.evaluate(LAST_IN_SHEET):
         f.press("Tab")
         if not f.js("[...document.querySelectorAll('[role=dialog][aria-modal=true]')].at(-1)?.contains(document.activeElement)"):
@@ -227,16 +268,20 @@ def main():
     base = (sys.argv[1] if len(sys.argv) > 1 else "http://127.0.0.1:8081").rstrip("/")
     flow.SIZES.update(WIDTHS)
     failures = []
-    for size in WIDTHS:
-        f = flow.Flow(base, size, "app_audit")
-        try:
-            failures += audit(f)
-        except Exception as error:  # report every width, then fail
-            failures.append(f"{size[1:]}px: stopped: {error}")
-        finally:
-            f.chrome.errors.clear()
-            f.close()
-    print(f"{'ok  ' if not failures else 'FAIL'} app_audit ({len(WIDTHS)} widths, light and dark)")
+    # FLOW_SKINS=game,serious audits each skin (docs/skins-plan.md); game alone by default.
+    skins = os.environ.get("FLOW_SKINS", "game").split(",")
+    for skin in skins:
+        for size in WIDTHS:
+            f = flow.Flow(base, size, "app_audit", skin)
+            where = f"{size[1:]}px" if skin == "game" else f"{size[1:]}px {skin}"
+            try:
+                failures += [failure if skin == "game" else f"[{skin}] {failure}" for failure in audit(f)]
+            except Exception as error:  # report every width, then fail
+                failures.append(f"{where}: stopped: {error}")
+            finally:
+                f.chrome.errors.clear()
+                f.close()
+    print(f"{'ok  ' if not failures else 'FAIL'} app_audit ({len(WIDTHS)} widths, light and dark, {' and '.join(skins)})")
     for failure in failures[:300]:
         print("     " + failure)
     sys.exit(1 if failures else 0)

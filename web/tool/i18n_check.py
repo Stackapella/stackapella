@@ -78,7 +78,7 @@ STATIC_ATTRIBUTE = re.compile(r"""(?<![:\w-])(title|aria-label|placeholder|alt|l
 WORDS = re.compile(r"""'([A-Z][a-z]+(?:[ ,.:!?][^']*)?)'|"([A-Z][a-z]+(?:[ ,.:!?'][^"]*)?)"|`([A-Z][a-z]+(?:[ ,.:!?'][^`]*)?)`""")
 NOT_WORDS = re.compile(r"console\.|new Error|DOMException|TemplateError|throw |need\(|i18n-ignore|import |querySelector|\.name ===|error\?\.name|Intl\.|event\.(key|code)")
 LITERAL_CALL = re.compile(r"""\b(toast|confirm|alert)\(\s*(['"`])""")
-ALLOWED_TEXT = {"stackapella", "WAV", "MP3"}
+ALLOWED_TEXT = {"stackapella", "Stackapella", "WAV", "MP3"}  # the name is never translated
 
 for path in sorted((WEB / "js").rglob("*.js")):
     # Comments don't count (i18n.js shows examples in its header).

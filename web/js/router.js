@@ -34,6 +34,8 @@ const routes = [
     { name: 'challenge', pattern: /^\/challenge\/([\w-]+)\/?$/, keys: ['token'] },
     { name: 'moved', pattern: /^\/moved\/?$/, keys: [] },
     { name: 'contact', pattern: /^\/contact\/?$/, keys: [] },
+    { name: 'ideas', pattern: /^\/ideas\/?$/, keys: [] },
+    { name: 'idea', pattern: /^\/ideas\/([\w-]+)\/?$/, keys: ['id'] },
     { name: 'projects', pattern: /^\/?$/, keys: [] },
 ];
 

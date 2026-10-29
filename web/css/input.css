@@ -1490,7 +1490,7 @@ select:disabled {
 /* The serious skin's own screenshots (<id>-serious, when the guide has them): the calm look's pair in
    place of the game's, in the visitor's light or dark. Without them, the game's pair shows as before. */
 .s-shot-serious, .s-shot-serious-dark { display: none; }
-:root:not([data-skin="game"]) .s-appshot:has(.s-shot-serious) :is(.s-shot-light, .s-shot-dark) { display: none; }
+:root:not([data-skin="game"]) :is(.s-appshot, .s-shot):has(.s-shot-serious) :is(.s-shot-light, .s-shot-dark) { display: none; }
 :root:not([data-skin="game"]):not([data-theme$="-dark"]) .s-shot-serious { display: block; }
 :root:not([data-skin="game"])[data-theme$="-dark"] .s-shot-serious-dark { display: block; }
 .s-pager { display: grid; gap: 12px; margin-top: 32px; }

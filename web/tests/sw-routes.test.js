@@ -8,7 +8,7 @@ const SAMPLES = {
     settings: '/settings', storage: '/storage', voice: '/voice', workout: '/workout', plus: '/plus', reminders: '/settings/reminders',
     course: '/learn', learn: '/learn/match-a-note', plusCourse: '/learn/c/vibrato', beta: '/beta/abc', create: '/create/abc', template: '/t/abc', join: '/join/abc',
     early: '/early/abc', invite: '/invite/abc', groups: '/groups', group: '/groups/abc', choir: '/choir/abc', challenge: '/challenge/abc', moved: '/moved',
-    contact: '/contact', projects: '/',
+    contact: '/contact', ideas: '/ideas', idea: '/ideas/Qx7Lm2Pa9Kd4', projects: '/',
 };
 
 test('sw: the app shell covers every route the router knows', async () => {

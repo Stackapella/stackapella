@@ -198,7 +198,7 @@ let persisting = null;
  * waveform outline (for the projects page). Counts toward the free limit like any project, except
  * a beta singer's recording project (`beta`), which is kept apart.
  */
-export async function startFromTemplate(template, { transpose = 0, focusKey = null, singers = null, beta = null, course = null, keyChosen = false } = {}) {
+export async function startFromTemplate(template, { transpose = 0, focusKey = null, singers = null, beta = null, course = null, idea = null, keyChosen = false } = {}) {
     const project = await createProject({
         title: template.title,
         bpm: template.tempo,
@@ -213,6 +213,7 @@ export async function startFromTemplate(template, { transpose = 0, focusKey = nu
         practice: { ...PRACTICE_DEFAULTS, seedVoices: true, ...(keyChosen ? { sing: { keyChosen: true } } : {}) },
         ...(beta ? { beta } : {}),
         ...(course ? { course } : {}), // a song a lesson opened: listed, but not counted toward the limit
+        ...(idea ? { idea } : {}), // an idea's tune (docs/ideas-app-plan.md): { id, writer, partKey }, to add your voice to it
     });
     for (const part of partsFor(template, singers ?? undefined)) {
         const slot = await makeSlot(project, template, part, transpose);

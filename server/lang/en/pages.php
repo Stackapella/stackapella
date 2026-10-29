@@ -644,17 +644,17 @@ return [
                         'When the mic is blocked, we say **The mic is blocked for Stackapella**, show the steps for your own browser, and try again by ourselves the moment it\'s allowed.',
                         'Chrome: click the icon at the far left of the address bar and turn on **Microphone**. Edge: click the lock, then **Permissions for this site**, and set **Microphone** to **Allow**. Firefox: click the crossed-out microphone in the address bar, then the × next to **Blocked**, and choose **Allow** when it asks again.',
                         'Safari on a Mac: choose **Safari**, then **Settings**, then **Websites**, then **Microphone**, and set stackapella.com to **Allow**. Safari on iPhone: tap the page menu at the edge of the address bar, then **Website Settings**, and set **Microphone** to **Allow**.',
-                        'A Mac and Windows have a switch of their own too: on a Mac, System Settings, then Privacy & Security, then Microphone; in Windows, Settings, then Privacy & security, then Microphone. Turn your browser on there.',
+                        'A Mac and Windows have a switch of their own too: on a Mac, System Settings, then Privacy & Security, then Microphone, and turn your browser on there; in Windows, Settings, then Privacy & security, then Microphone, and turn on **Microphone access** and **Let desktop apps access your microphone**.',
                         'Inside another app\'s browser, like Instagram\'s or Facebook\'s, the mic often can\'t work. Open the link in Safari or Chrome.',
                         ['links' => [['guide' => 'mic']]],
                     ]],
                     ['It can\'t hear me, or only very quietly', [
-                        'In Find your voice, the first lesson, a few seconds of nothing brings up **No sound from** your mic, or that we hear it only very quietly, with a level meter, the **Microphone** to pick, and **Things to check**.',
+                        'In Your comfortable note, the first lesson, a few seconds of nothing brings up **No sound from** your mic, or that we hear it only very quietly, with a level meter, the **Microphone** to pick, and **Things to check**.',
                         'Pick the mic you sing into, and check it isn\'t muted: a switch on a headset, or your computer\'s sound settings. Turn your computer\'s input level up.',
                         'With an audio interface: plug the mic into input 1, because a browser hears the first input. Turn that input\'s gain up until its light flickers when you sing, and turn on 48V phantom power for a condenser mic.',
                         'On a Mac with the lid closed, the built-in mic hears nothing: pick another.',
                         'If a take in the studio comes out silent, we say so. Pick another mic, then record again.',
-                        ['links' => [['guide' => 'mic', 'at' => 'the-quick-mic-check'], ['app' => '/learn/1-comfortable', 'label' => 'Open Find your voice']]],
+                        ['links' => [['guide' => 'mic', 'at' => 'the-quick-mic-check'], ['app' => '/learn/1-comfortable', 'label' => 'Open lesson 1']]],
                     ]],
                     ['Headphones, Bluetooth or speakers?', [
                         'Wear headphones to record. The other parts play while you record so you can sing along, and headphones keep them out of your take.',
@@ -665,7 +665,7 @@ return [
                     ['My part sounds late or early', [
                         'Every phone, computer and pair of headphones adds a small delay. The timing check measures yours, so each part lands where you sang it. We ask for it the first time you record with a mic, and again when you change headphones or mics.',
                         'To run it again, open a song in the studio, then **Microphone and timing**: in the More menu on a phone, or the mic at the top on a bigger screen.',
-                        'One take still off? After a take in Sing, nudge it earlier or later by ear, or let us line it up for you. In the studio, a part\'s panel moves it 10 ms at a time.',
+                        'One take still off? After a take in Sing, nudge it earlier or later by ear, or let us line it up for you. In the studio, tap a track to open its row: the minus and plus beside **Timing** move it 10 ms at a time.',
                         'Drifting more as the song goes on? That\'s usually Bluetooth: switch to wired headphones, or run the check before each take.',
                         ['links' => [['guide' => 'timing'], ['guide' => 'timing', 'at' => 'nudge-one-take']]],
                     ]],
@@ -674,7 +674,7 @@ return [
                         'Keep the phone unlocked while you record. A call, a locked screen or another app stops the take, and we keep it up to that moment.',
                         'The mic won\'t start? Another app may be using it, like a call or a voice note. Close it. If it still won\'t start, close Safari completely, by swiping it away, and open it again.',
                         'Hear nothing at all? Turn the volume up with the side buttons, and switch Silent mode off.',
-                        'Low Power Mode can make the screen less smooth, but not the timing: playing, recording and the timing check all run on the audio clock, so a take still lands where you sang it.',
+                        'If takes seem out of time, try turning off Low Power Mode, then run the timing check again.',
                         ['links' => [['guide' => 'iphone']]],
                     ]],
                     ['On a Chromebook', [
@@ -690,7 +690,7 @@ return [
                     ['A song won\'t open offline', [
                         'The app opens without a connection once you\'ve opened it online on that device. The four free songs come with it, and your own songs are kept on the device, so they open offline too.',
                         'A song from your account, like a Plus song or one your choir shares, needs a connection the first time you start it. After that, it opens offline.',
-                        'Real singers\' guide voices need a connection. Offline, you hear our practice voice instead, and the real voice is tried again when you\'re back online.',
+                        'A real singer\'s guide voice is saved on your device the first time it plays, so after that it plays offline too. If one can\'t load, that part uses our practice voice, and the real voice is tried again when you\'re back online.',
                         'A Plus song needs a quick check online before you change it again. You can still play it.',
                         'The course, Sing and the studio work offline, Export too. Sharing, signing in, choir groups, Plus, Storage, reminders and sending a message to us need a connection: each says so if you\'re offline. Your work stays on the device, and goes to your account when you\'re back.',
                     ]],
@@ -715,7 +715,7 @@ return [
                         '**Skip** if you\'d rather go straight on.',
                     ]],
                     ['Pick the right mic', [
-                        'In the studio, open the menu, then Microphone and timing, and pick the mic you sing into. Watch the level move when you speak.',
+                        'In the studio, open Microphone and timing (in the More menu on a phone, or the mic at the top on a bigger screen), and pick the mic you sing into. Watch the level move when you speak.',
                         'On a Mac with the lid closed, the built-in mic hears nothing: pick another.',
                         'Check the mic isn\'t muted on the headset or in your system\'s sound settings.',
                     ]],
@@ -749,7 +749,7 @@ return [
                         [
                             'Before the first take of a session, we ask you to **Put your headphones on**. Choose **Wired** or **Bluetooth**.',
                             'Bluetooth says **Needs timing check** until you\'ve measured it with this mic, and we run the check before your take. Then it\'s **Ready**.',
-                            'Tap **Start recording**. **Don\'t ask again** stops the question on this device, and **Not now** goes back without recording.',
+                            'Tap **Start recording**. **Don\'t ask again** stops the question on this device, and **Not now** goes back without recording. In Sing and the course, **No headphones** takes the place of **Not now**: you record anyway, with the other parts softer or resting.',
                         ],
                     ],
                     [
@@ -786,15 +786,15 @@ return [
                         'If you skip it',
                         [
                             '"Skip and use an estimate" uses the browser\'s own guess. It\'s often close, but not exact.',
-                            'The report on a take gives three stars only after a timing check.',
+                            'In game mode, the report on a take gives three stars only after a timing check. Serious mode shows no stars.',
                         ],
                     ],
                     [
                         'Nudge one take',
                         [
-                            'After a take in Sing, tap "Sound off? Nudge timing". Slide left to move your take earlier, or right to move it later, then play it against the others.',
+                            'After a take in Sing, tap "Nudge timing". Slide left to move your take earlier, or right to move it later, then play it against the others.',
                             'For a song\'s part, tap "Line it up for me": we listen for where you came in on each note and move the take to match. If you were already in time, we say so.',
-                            'In the studio, tap a part to open it, then use the minus and plus beside Timing to move it 10 ms at a time. "as recorded" puts it back.',
+                            'In the studio, tap a part to open it, then use the minus and plus beside Timing to move it 10 ms at a time. "As recorded" puts it back.',
                         ],
                     ],
                     [
@@ -815,11 +815,11 @@ return [
                         'A harmony you only share by link, without that tick, is never used: only the people you send it to can find it.',
                     ]],
                     ['Friends who sang on it', [
-                        'Everyone who sang on a song agrees before it\'s public. If a friend takes their yes back, the song stops being public and its parts stop being guides.',
+                        'Everyone who sang on a song agrees before it\'s public. If a friend takes their yes back, the song stops being public and its parts stop being guides. Its share link still works for anyone who has it, and you can ask again.',
                     ]],
                     ['How to stop it', [
-                        'Open Share on the song and untick featuring. Its parts stop being used as guide voices.',
-                        'Or delete the shared harmony: open Share, then find it under "Shared before". Its parts stop being used as guide voices straight away.',
+                        'Open Share on the song, tap "Use that link", and untick featuring. Its parts stop being used as guide voices.',
+                        'Or stop sharing it: open Share, tap "Use that link", then "Stop sharing". Its parts stop being used as guide voices straight away.',
                         'Deleting your account does the same for all your songs.',
                     ]],
                 ],
@@ -910,38 +910,38 @@ return [
                     ]],
                     ['Your first lesson', [
                         'Tap **Start singing**. Lesson 1, "Your comfortable note", opens straight away.',
-                        'Read the first step, then tap **Continue**.',
-                        'The first time, we say why we need your mic. Tap **Continue**, then allow the mic when your browser asks.',
+                        'Read the first step, then tap **Turn on my mic**.',
+                        'A line under the button says why we listen. Allow the mic when your browser asks.',
                         'Sing any easy note, like a long "ahh", and hold it for a few seconds. We show **Your comfortable note**, with **Play it** to hear it.',
-                        'Tap **Finish** to see your stars, then **Next lesson**, or go back home to try a song.',
+                        'Tap **Finish** to see your note again, with the parts it suits (and your stars, in game mode), then **Next lesson**, or go back home to try a song.',
                         ['shot' => 'getting-started--first-note', 'alt' => 'Lesson 1 after a note is found: Your comfortable note, A3, with the parts that may suit you, Play it and Sing again.'],
                         ['tip' => 'If the mic won\'t start, we show you how to fix it on your device. The page about the mic has the same steps.'],
                     ], 'steps' => true],
                     ['Choose a song', [
-                        'Tap a song in the library to open it: what it\'s about, its level, key and tempo, and who wrote and sang it, with three buttons: **Play** to hear it, **Edit** to make a copy you can change in the song builder, and **Start**.',
-                        '**Start** begins with every part, on the part that fits your range. If we don\'t know your range yet, Sing asks **Which part is yours?**. A Plus song offers Plus instead.',
+                        'Tap a song in the library to open it: what it\'s about, its level, key and tempo, and who wrote and sang it, with three buttons: **Play** to hear it, **Edit** to make a copy you can change in the song builder, and **Start**. Where a song can be sung by fewer singers, **How many singers?** picks 2, 3 or 4 parts.',
+                        '**Start** begins with those parts. Once we know your range, Sing opens on a part for you and says which: as a new singer, the melody, in your own octave; once you\'ve recorded parts of your own, the part that fits your range best. If we don\'t know your range yet, Sing asks **Which part is yours?**. A Plus song offers Plus instead.',
                         'The song joins **Your songs**: the free plan keeps 3, and songs the course opens don\'t count.',
                         ['shot' => 'getting-started--song', 'alt' => 'Amazing Grace\'s sheet before it starts: what it\'s about, its details and credits, How many singers?, then Play, Edit and Start.'],
                     ], 'steps' => true],
                     ['Choose how to sing', [
                         'We ask **How do you want to sing?**, with three choices that each start at once: **Part by part** teaches you one part, a phrase at a time, then records it (best for a song that\'s new to you); **The whole song** is your part straight through, with the others (best when you know it); **Open in the studio** gives you every part as a track to record and mix yourself. The one you used last says **Last time**. Tick **Use this every time** to go straight in next time; you can still switch.',
-                        'Then **Which part is yours?**. **Best for you** marks the one your range check suggests. You can change both any time.',
+                        'If Sing hasn\'t picked your part, **Which part is yours?** comes next. **Best for you** marks the one your range check suggests. You can change both any time.',
                         'The page on learning a part in Sing has the rest.',
                     ]],
                     ['Headphones and the timing check', [
-                        'Before you record, we ask **Headphones on?**. Put them on, so the other parts stay out of your recording, and tap **They\'re on**.',
-                        'The first time you record with a mic, we measure its delay, so your part lines up exactly. Say what you\'ll record with, then tap **Start the check**. It takes about 10 seconds.',
+                        'Before you record, we ask you to **Put your headphones on**, so the other parts stay out of your recording. Choose **Wired** or **Bluetooth**, then tap **Start recording**.',
+                        'The first time you record on a device, a quick mic check comes first: say something or hum. The first time you record with a mic, we measure its delay, so your part lines up exactly. Say what you\'ll record with, then tap **Start the check**. It takes about 10 seconds.',
                         'The page on parts out of time explains the check, and what to do if it can\'t hear the chirps.',
                     ]],
                     ['Record your first part', [
                         'In **Part by part**, go through **Listen**, **Sing along** and **On your own**, or tap **Skip to record**.',
                         'At **Record**, tap the button with your part\'s name, for example **Record the Alto**.',
                         'A bar of clicks counts you in. Sing along with the others. The take stops by itself just after the song ends, or tap **Stop and keep** sooner.',
-                        'We show your part recorded, for example **Alto recorded**, with your take in the stack. Tap **Hear it with the others** to listen.',
+                        'We show how it went, for example **Close: 77% on pitch**, with your take among the parts. Tap **Hear it with the others** to listen.',
                         ['shot' => 'getting-started--recorded', 'alt' => 'Just after recording the Alto: Your take with how much was on pitch, your best score, Hear it with the others with the four parts stacked and yours outlined, Record again and Keep it, record Soprano.'],
                     ], 'steps' => true],
                     ['The next part, over the first', [
-                        'Tap the button with the next part\'s name, for example **Next: Soprano**. While you record it, you hear the part you just sang, with the guides for the rest.',
+                        'Tap the button with the next part\'s name, for example **Keep it, record Soprano**. While you record it, you hear the part you just sang, with the guides for the rest.',
                         'Keep going until every part is yours. We say **Every part is you!**, and **Share** sends it to friends (signed in). Sharing your harmony has the details.',
                         'Not happy with a take? **Record again** sings it over. The studio page covers takes, fixing one phrase, trimming and the mixer.',
                     ]],
@@ -953,7 +953,7 @@ return [
                 'sections' => [
                     ['The course', [
                         'The course teaches harmony from the start, in short lessons with a guide voice. Its units build on each other, from your first note to every part of a song.',
-                        'It leads the home. Before your first lesson, tap **Start singing**. After that, the home shows your next lesson with **Continue**, and **Course map** opens the whole course.',
+                        'It leads the home. Before your first lesson, tap **Start singing**. After that, the home shows your next lesson with **Continue lesson** (or **Continue**), and **Course map** opens the whole course.',
                         'Units 1 to 7 are free. The later units come with Stackapella Plus.',
                         'A song a lesson opens is kept apart, and never counts toward the free plan\'s 3 songs.',
                     ]],
@@ -966,42 +966,42 @@ return [
                         ['shot' => 'your-voice--note', 'alt' => 'Finding your note: the ring around the mic, That\'s it, keep holding, and your voice as a marker on a bar of notes.'],
                     ]],
                     ['The course map', [
-                        'Tap **Course map** on the home. Each unit shows its lessons as circles: a tick once you\'ve earned stars, and **Start singing** under your next one. A unit ends with a challenge.',
-                        'A unit opens once you\'ve earned enough stars in the one before. A closed unit says how many stars open it.',
-                        'At the top are your week and your level, with **Your weekly goal**: 2, 3 or 5 days a week. Signed in, **Remind me on my practice days** sets up reminders.',
-                        '**Today\'s workout** is five to eight minutes made for you: a warm-up, something to work on, and a review.',
+                        'Tap **Course map** on the home. Each unit is a card, and the one you\'re in is open, with its lessons as circles: a tick once you\'ve sung one, and a play mark on your next one. Tap a lesson, then **Start lesson** (or **Play again**). A unit ends with a challenge.',
+                        'A unit opens once you\'ve earned enough stars in the one before. A closed unit says what opens it: in game mode, how many stars; in serious mode, which unit to finish, like **Opens as you finish unit 2**.',
+                        'At the top are your next lesson, with **Start lesson**, and **Today\'s workout**. Under them, **This week** shows the days you sang, with your **Goal**: 2, 3 or 5 days a week. In game mode, your level and XP sit beside it. Signed in, **Remind me on my practice days** sets up reminders.',
+                        '**Today\'s workout** is five to eight minutes made for you: a warm-up, one thing to work on, and a quick review. Tap **Begin**.',
                         ['shot' => 'your-voice--map', 'alt' => 'The course map: unit 2\'s next lesson with Start lesson, Today\'s workout with Begin, then This week\'s days and your goal of 2, 3 or 5 days a week.'],
                     ]],
                     ['A lesson', [
-                        'A lesson is a few short steps, one at a time. Each says what it is: **Learn**, **Try**, **Sing it**, **Use it** or **Record**. Tap **Continue** after each, and **Finish** at the end.',
-                        'Each note is a brick as long as the note, with its word inside, and the notes scroll past as you sing. In **Try**, the music waits for you on each note. If you\'re off, we say **A little higher** or **A little lower**, and **Skip this note** appears if one won\'t come.',
-                        '**Sing it** is for stars: sing it through, and we listen.',
-                        '**Use it** opens a real song: tap **Open it in Sing**, sing in it for a little while, then come back.',
-                        '**Record** opens a song to record your part: tap **Record it in Sing**, record, come back, then tap **Check my recording**.',
+                        'A lesson is a few short steps, one at a time, counted at the top, like **1 of 3**. Tap **Continue** after each, and **Finish** at the end. A step you sing waits until you\'ve sung it once (**Skip** goes past it).',
+                        'Each note is a brick as long as the note, with its word inside, and the notes scroll past as you sing. In a step to try, the music waits for you, one note at a time: the note fills only while you\'re on it, and if you\'re off we say **Slide up** or **Come down**. **Skip this note** appears if one won\'t come.',
+                        'A step to sing is scored: sing it through, and we listen.',
+                        'Some steps open a real song: tap **Open it in Sing**, sing in it for a little while, then come back.',
+                        'A record step opens a song to record your part: tap **Record it in Sing**, record, come back, then tap **Check my recording**.',
                         ['tip' => 'No headphones? Choose **No headphones** when we ask. The sound underneath then rests while you sing, so the mic hears only you.'],
                     ]],
                     ['Stars and XP', [
-                        'A lesson gives up to 3 stars: 1 for singing it through, 2 for 70% or more on pitch, and 3 for 90% or more.',
+                        'In game mode, a lesson gives up to 3 stars: 1 for singing it through, 2 for 70% or more on pitch, and 3 for 90% or more. Serious mode shows the measure instead, like **82% on pitch**, with no stars.',
                         'If we couldn\'t hear you clearly, there are no stars this time, and nothing is lost. Try again somewhere quieter, a little closer to the mic.',
-                        '**Play again for more stars** replays a lesson. **Next lesson** goes on.',
-                        'Lessons and workouts earn XP, which raises your level. There\'s a most for each day, and your stars still count after it.',
-                        ['shot' => 'your-voice--stars', 'alt' => 'The end of a lesson: two stars, Great!, the XP earned, the unit\'s path, the level, then Next lesson and Play again for more stars.'],
+                        '**Play again** replays a lesson (in game mode, **Play again for more stars** until you have 3). **Next lesson** goes on. Some lessons end with a **Did you know?** card: a fact about singing, with its source.',
+                        'In game mode, lessons and workouts earn XP, which raises your level. There\'s a most for each day, and your stars still count after it. Serious mode has no XP or levels.',
+                        ['shot' => 'your-voice--stars', 'alt' => 'The end of a lesson: your result (two stars and Great! in game mode, 83% on pitch in serious mode), the unit\'s path, then Next lesson and Play again.'],
                     ]],
                     ['Your voice', [
-                        'On the course map, tap **Your voice** (the star at the top). On a bigger screen, the home has it at the side too.',
-                        '**Your range** shows the notes you sing on a keyboard, with your comfortable note marked. It fills in as you sing the course\'s first lessons, or a range check.',
+                        'On the course map, tap **Your voice** at the top right: once we know your range, it says which, like **Your voice · Alto**. On a bigger screen, the home has it at the side too, as **Range, badges and history**.',
+                        '**Your range** shows the notes you sing on a keyboard, with your comfortable note marked. It fills in as you sing the course\'s first lessons, or a range check. **Measure again** (or **Measure your range**) runs a range check, and **Change it** (or **Choose it**) lets you pick a voice or set your lowest and highest notes.',
                         'It also says which part your range suits, like "That suits an alto part.", with a button to find songs with that part. It\'s a starting point, not a label: sing any part you like.',
-                        ['shot' => 'your-voice--voice', 'alt' => 'Your voice: the level, your range and the part it suits, your range lit on a keyboard beside each part\'s, then your lowest, highest and most comfortable notes.'],
+                        ['shot' => 'your-voice--voice', 'alt' => 'Your voice: your range and the part it suits, your range lit on a keyboard beside each part\'s, then your lowest, highest and most comfortable notes.'],
                     ]],
                     ['Check your range', [
                         '**Check my range** is where you choose your part, and in Sing under your part\'s name. **Find your range** asks for your **Lowest note**, then your **Highest note**: sing each on "ah" and hold it until it says **Got it**, then tap **Next**. **Try again** sings that note again.',
                         'We show your range and how each part fits. The page on your part and key has the details.',
                     ]],
                     ['Badges', [
-                        '**Badges** on Your voice lists them all, in groups like **Firsts**, **Range** and **Habit**. The ones you\'ve earned show the date. The rest wait as outlines, each with a line saying what it\'s for.',
+                        'In game mode, **Badges** on Your voice lists them all, with how many you\'ve earned, and can show one group at a time, like **Firsts**, **Range** or **Habit**. The ones you\'ve earned show the date. The rest wait under **Still to earn**, each with a line saying what it\'s for and, where it counts, how far you\'ve got. Serious mode has no badges.',
                     ]],
                     ['What Plus adds', [
-                        'Stackapella Plus opens the course\'s later units, after the free units 1 to 7.',
+                        'Stackapella Plus opens the course\'s later units, after the free units 1 to 7, and the ten Plus courses on singing skills, harmony and styles, from **Vibrato** and **Perfect your pitch** to **Barbershop and tags** and **Yodeling**. Each one\'s first lesson is free for everyone.',
                         'Free has one workout a day. Plus has as many as you like.',
                         '**Your history** on Your voice: how much of each take was on pitch over time, which way you tend to lean, and recent highlights. Without Plus, it shows a sample.',
                         'Plus and billing has the price and the trial.',
@@ -1014,7 +1014,7 @@ return [
                 'sections' => [
                     ['Open Sing', [
                         'Start a song from the home, and Sing opens on it. In the studio, tap **Sing** at the top, or tap a part\'s name and then **Learn it in Sing**.',
-                        'The first time, choose **Part by part** or **The whole song**, then your part.',
+                        'The first time, choose **Part by part**, **The whole song** or **Open in the studio**, then your part, unless Sing has picked one for you.',
                         'At the top are the song\'s title, your part\'s name and **Settings**, at the right. Tap your part\'s name to switch part, choose who sings your guide, **Check my range**, or change how you sing. On a phone, your part is the first row in **Settings**.',
                         'The page on your part and key covers guide voices, the key and the speed.',
                     ]],
@@ -1026,15 +1026,15 @@ return [
                         ['shot' => 'learn-a-part--steps', 'alt' => 'Learning the Alto, step 2 of 4: the four steps, Sing along with its big button, and the phrases with the first one ticked.'],
                     ], 'steps' => true],
                     ['The phrases', [
-                        'Under the step, **The phrases** lists your part line by line, with how many are done. The one you\'re on says which note it starts on.',
-                        '**Hear it** plays that phrase over and over. **Listen, then repeat** plays it, then gives you your turn. The note button beside it plays your first note.',
+                        'Under the step, **Phrases** lists your part line by line, with how many you\'ve heard, like **1/4 heard**. A phrase you haven\'t practised yet says which note it starts on.',
+                        'The big button plays the phrase you\'re on for this step, like **Sing along with phrase 2**; on a bigger screen, Play does it. Between plays, **Phrase 2 · ready** shows its first note big: tap the note to hear it.',
                         'Tap any other phrase to go to it. Each says how often you\'ve practised it.',
                         'When a step is done, go on to the next one, for example **Next: Sing along**, or tap **Practise once more**. **Skip to record** is always there, and **Choose another part** if this one isn\'t right.',
                         ['tip' => 'On your turn, **Again** repeats the phrase. To hear your guide on your turn, turn it on in **Settings**, under **What you hear**.'],
                     ]],
                     ['The whole song', [
                         'Sing your part straight through, live, with the others. Choose how you hear your part: **Listen**, **Sing along** (your guide sings with you) or **On your own** (your guide goes quiet while the others keep going).',
-                        'On a phone, the parts are circles at the bottom, each with the note it sings now and **You**, **Guide** or **Recorded**. Tap one to make it yours.',
+                        'On a bigger screen, the song\'s lines run along the bottom, each filling as it\'s sung: tap one to go there.',
                         'A bar before you come in after a rest, a card says **Get ready** and counts the beats.',
                     ]],
                     ['What you hear', [
@@ -1054,19 +1054,19 @@ return [
                         'On your turn and while you record, we hear you as you sing. In Notes, your voice is a dot in your part\'s colour that grows as you sing louder, with a trail that fades behind it, and each note lights up as you hit it.',
                         'In Words, the syllable glows when you hit it, and the line under the words says **On the note.**, **A little higher** or **A little lower**.',
                         'A missed note just dims and slides past. Nothing turns red.',
-                        'In Notes, hit three or more in a row and we count them.',
+                        'In game mode, hit three or more in a row in Notes and we count them.',
                         ['shot' => 'learn-a-part--stage', 'alt' => 'Words on your turn: the line huge with the syllable lit in the Alto\'s colour, On the note. under it, and Your turn at the top.'],
                     ]],
                     ['Loop, slow down and your first note', [
-                        '**Loop line** plays the line you\'re in over and over. Tap it again to stop.',
-                        'To slow down, open **Settings**, then **Speed**: 100%, 85% or 70%. Recording is always at full speed, so your take fits with the others.',
-                        'Before you start, **Your first note** shows the note you come in on, with **Play it**. Just before you come in, **Play my first note** does the same.',
+                        '**Loop line** (on a phone, **Loop**) plays the line you\'re in over and over. Tap it again to stop.',
+                        'To slow down, open **Settings**, then **Speed**: 100%, 85% or 70%. In the whole song on a bigger screen, the minus and plus beside **Tempo** do the same. Recording is always at full speed, so your take fits with the others.',
+                        'In the whole song, before you start, a line says the word and note you come in on, with **Hear note**. Just before you come in, **Play my first note** does the same.',
                         '**Settings** also has **Note names** (D4, do re mi, 1 2 3, or Off), **Keyboard down the side** and **Other parts on the lane** for Notes, and **Chords underneath** on songs with chords: a soft backing to tune to, never recorded.',
-                        'On a computer, **Keyboard shortcuts** are on: R to record, L to loop, M to turn your guide off or on, and Space to play.',
+                        'On a computer, **Keyboard shortcuts** are on: R to record, L to loop, N for the next phrase, M to turn your guide off or on, and Space to play.',
                     ]],
                     ['Record your part', [
                         'In Part by part, tap **Record the Alto** (your part\'s name) at the **Record** step. In the whole song, tap **Record**.',
-                        'Put your headphones on when we ask **Headphones on?**, and run the timing check the first time you record with a mic.',
+                        'Put your headphones on when we ask, choose **Wired** or **Bluetooth** and tap **Start recording**, and run the timing check the first time you record with a mic.',
                         'A bar of clicks counts you in, then everything else steps aside: the red **Recording** label with your part and the take (**Take 1**), your notes big, and the words, the syllable you\'re on in your part\'s colour. **Settings** is there too, with just **What you hear**.',
                         'Sing along with the others. At the bottom are the time, how much has been on pitch so far, and **Start over**, which begins the take again.',
                         'The take stops by itself half a second after the song ends, and your review opens. To stop sooner, tap the big red **Stop and keep** button.',
@@ -1077,9 +1077,9 @@ return [
                         'After a take, your part\'s review opens. **Hear it with the others** plays your take with the other parts you hear (**What you hear**, in **Settings**, chooses them).',
                         '**One thing to try** names the phrase and the words that missed, and how to fix them. Under it, each phrase shows how much was on pitch and how many notes were off.',
                         'Tap a phrase to see its pitch line, with a key: **Target**, **You** and **Needs another go**. Play the phrase to hear it, or re-sing just that line.',
-                        '**Nudge timing** moves the take if it sounds early or late, and **Trim the ends** cuts the first breath or the reach for Stop. When it\'s right, keep it and record the next part.',
-                        'A take gives 1 star for singing it through, 2 for 70% or more on pitch, and 3 for 90% or more with your entries on time. Three stars need a timing check: with an estimate, the most is 2.',
-                        'If we could hear the other parts through your mic, we say so, and that take doesn\'t count against you. Headphones give you accurate stars.',
+                        '**Nudge timing** moves the take if it sounds early or late, and **Trim the ends** cuts the first breath or the reach for Stop. When it\'s right, tap **Keep it, record Soprano** (the next part\'s name), or **Record again** to sing it over.',
+                        'The review\'s heading says how it went, like **Close: 77% on pitch**: **Excellent** from 90%, **Close** from 70%, then **Getting there** or **A tricky one**. In game mode, your best on the part shows under it.',
+                        'If we could hear the other parts through your mic, we say so, and that take doesn\'t count against you. Headphones give you an accurate result.',
                         ['shot' => 'learn-a-part--report', 'alt' => 'The review after an Alto take: one thing to try, the two phrases with how much was on pitch, and phrase 1\'s pitch line with Play phrase 1 and Re-sing phrase 1.'],
                     ]],
                 ],
@@ -1090,8 +1090,8 @@ return [
                 'sections' => [
                     ['The studio', [
                         'The studio is where a song\'s parts are recorded and mixed. Open one from **Your songs** on the home, or tap **Open in the studio** in Sing.',
-                        'Each part is a track: a circle to pick it for recording, its colour and name, a tag (**Guide**, **Your take**, or a friend\'s name), **S** for solo and **M** for mute, and its waveform across the song. Above them, a line says how many parts are recorded by you.',
-                        'Tap a part\'s name to open its panel: its pan, its timing, **Trim**, **Record again** and **Learn it in Sing**. **Voice and more** has the rest.',
+                        'Each part is a track: a circle to pick it for recording, its colour and name, a tag (**Guide**, **Your take**, or a friend\'s name), **Solo** and **Mute** (**S** and **M** where the row is narrow), and its waveform across the song. Above them, a line says how many parts are recorded by you.',
+                        'Tap a part\'s name to open its row: **Level** and **Pan**, each with its value, the **Timing** of your take, then **Retake**, **Trim**, **Rename** and **Voice**, **Learn it in Sing** for a song\'s part, and its **Takes**. **Voice** has the rest.',
                         'The part picked to record says **Ready to record**, and a recorded part says when, for example **Recorded 1 hour ago**. Under the ruler, **Words** shows the song\'s lines: the one you\'re on is filled, and a tap goes there.',
                         'On the home, **New song**, then **Just record**, opens an empty studio on **Sing the tune first**: every voice you add stacks on top, and you hear the others while you sing.',
                         ['shot' => 'studio--overview', 'alt' => 'The studio for Amazing Grace: the words as lines under the ruler, the Soprano and Alto tagged Your take and recorded an hour ago, the Tenor and Bass as guides, the Bass picked and Ready to record, and the red Record Bass button with Headphones, Count-in, Click and Polished beside it.'],
@@ -1099,7 +1099,7 @@ return [
                     ['Record a part', [
                         'Put your headphones on.',
                         'Tap the circle next to the part you\'ll sing. It starts on the next part without your take, in the order the song suggests. Tap it again to unpick it: the red button then says **Pick a track to record**.',
-                        'Tap the red button. It names the part, for example **Record Tenor**, or **Re-record Tenor** once it has your take, which records again from where that take starts. In a song of your own, it names the voice, for example **Record Melody**, then the next one.',
+                        'Tap the red button. It names the part, for example **Record Tenor**, or **Retake Tenor** once it has your take, and recording always starts from the beginning of the song. When every part has your take, it says **Record new part**. In a song of your own, it names the track, for example **Record Track 1**, then the next one: the next track waits at the bottom, **Armed for recording**, and **Add track** adds another.',
                         'The first time with a mic, we run the timing check. It takes about 10 seconds.',
                         'A bar of clicks counts you in, with big numbers on screen. Every track that isn\'t muted plays while you sing, the one you\'re recording too (its guide, or your earlier take), softer without headphones.',
                         'Tap **Stop recording** when you\'re done.',
@@ -1107,15 +1107,15 @@ return [
                         ['tip' => 'Keep your phone unlocked while you record. If a call or a locked screen stops a take, we keep it up to that moment.'],
                     ], 'steps' => true],
                     ['Headphones, count-in and click', [
-                        'Three switches beside the red button say what recording will do: **Headphones** (so we don\'t ask before each take), **Count-in** (a bar of clicks, then sing) and **Click** (a steady beat while you sing).',
-                        'In an empty song of your own, they\'re on the card for the first voice too: **Headphones on**, **Count me in** and **Click while I sing**.',
+                        'On a bigger screen, three switches beside the red button say what recording will do: **Headphones** (so we don\'t ask before each take), **Count-in** (a bar of clicks, then sing) and **Click** (a steady beat while you sing).',
+                        'On a phone, they\'re on the card for the first voice in an empty song of your own: **Headphones**, **Count-in** and **Click**.',
                         '**Song settings** has the **Key**, with minus and plus and **Find my key with a range check**, the **Parts** for 2, 3 or 4 singers, and **Count me in** and **Metronome** as switches. A song of your own has its **Tempo (BPM)** and **Time signature** too. **Save** keeps what you changed. It\'s the sliders button at the top on a bigger screen, or in the More menu on a phone.',
                     ]],
                     ['Takes and your best one', [
-                        'Each part keeps one take. To sing it again, pick it and tap **Re-record**, or open its panel and tap **Record again**: the new take replaces the old one.',
-                        'Straight after, **Undo** on the message puts the earlier take back.',
-                        'Signed in, a replaced take waits in **Recently deleted** for 30 days: Settings, then **See what\'s using space** under Storage, then **Restore**.',
-                        'For a song\'s part, **Voice and more**, then **Delete take**, goes back to the guide.',
+                        'Each part keeps every take. To sing it again, pick it and tap the red button (**Retake Tenor**, for example), or open its row and tap **Retake**: the new take is used, and the earlier ones are listed under **Takes**, each with a play button, **Use this take** and a bin to delete it.',
+                        'Straight after, **Undo: use the previous take** on the notice above the transport puts the earlier take back.',
+                        'Signed in, a take you delete from **Takes** waits in **Recently deleted** for 30 days: Settings, then **See what\'s using space** under Storage, then **Restore take**. A take only on this device can\'t come back.',
+                        'For a song\'s part, **Voice**, then **Delete take**, goes back to the guide.',
                         'If a take comes out silent, we say so. Pick another mic, then record again.',
                     ]],
                     ['Fix one phrase', [
@@ -1136,13 +1136,13 @@ return [
                     ['The timing', [
                         'Open **Microphone and timing**: in the More menu on a phone, or the mic at the top on a bigger screen, with its name and whether it\'s listening. It shows your mic, its level and your timing, with **Check timing** or **Check again**.',
                         'If you switch headphones or mics, we ask **New headphones or mic?**. Tap **Check the mic and timing**.',
-                        'To nudge one of your takes, tap its name and use the minus and plus beside **Timing**, 10 ms at a time. **as recorded** puts it back.',
+                        'To nudge one of your takes, tap its name and use the minus and plus beside **Timing**, 10 ms at a time. **As recorded** puts it back.',
                         'Parts out of time has the whole check, step by step.',
                     ]],
                     ['The mixer', [
-                        '**S** plays only the soloed parts. **M** leaves a part out. A muted part\'s **M** is lit; while another part is soloed, the others\' **M** is softly lit. Every part you can\'t hear is greyed.',
-                        'On a bigger screen, each track has a slider for its volume, with its value: 100 is as recorded. Tap a part\'s name for the slider from **L** to **R**, its pan (and on a phone, its **Level**).',
-                        '**Voice and more** has **Practise this part**, the part\'s **Name**, and under **Mix** its **Volume**, **Pan** and **Timing**, on any screen. Where a real singer sang the part, **Guide voice** chooses them (**Recommended by Hillel**) or the **Practice voice**. Under **Your take**: **Delete take**, **Trim** and **Re-record**.',
+                        '**Solo** (**S** on a narrow row) plays only the soloed parts. **Mute** (**M**) leaves a part out. A muted part\'s **Mute** is lit and its name says **Muted**; while another part is soloed, the others\' **Mute** is softly lit. Every part you can\'t hear is greyed.',
+                        'Tap a part\'s name for its **Level**, with its value (100 is as recorded), and its **Pan**, from **L** to **R** with **C** in the middle, on any screen.',
+                        '**Voice** has **Practise this part**, the part\'s **Name**, and under **Mix** its **Volume**, **Pan** and **Timing**, on any screen. Where a real singer sang the part, **Guide voice** chooses them (**Recommended by Hillel**) or the **Practice voice**. Under **Your take**: **Delete take**, **Trim** and **Re-record**.',
                         'Mute, solo and level are for the studio and its export. Sing plays the parts you choose in its **What you hear**.',
                         ['shot' => 'studio--mixer', 'alt' => 'The tracks on a bigger screen: each with Solo and Mute, the Tenor soloed and the other parts greyed, their Mute lit.'],
                     ]],
@@ -1159,7 +1159,7 @@ return [
                         'Once something\'s recorded, turn on **Polished** beside the red button (on a phone, **Hear it polished** is in the More menu too). It levels the parts, smooths loud and quiet moments, and adds a room. Your recordings stay as they are.',
                         '**Export**, at the top (in the More menu on a phone), makes a file. Under **What to export**, choose **The whole song**, a **Practice track** (one part louder, or left out, for learning it), or **Each part separately**, a ZIP of WAVs.',
                         'Under **Sound**, **Polished** balances the parts and sets the loudness, with a **Room**: **Dry**, **Small room**, **Hall** or **Chapel**. **Piano chords underneath** adds soft backing that follows the harmony.',
-                        'Under **File**, name it and choose WAV (full quality, and free) or MP3 (smaller, for sending), then tap the button at the bottom, which says how big the file will be. MP3 and **Each part separately** come with Plus.',
+                        'Under **File**, name it and choose WAV (full quality, and free) or MP3 (smaller, for sending), then tap **Export WAV** or **Export MP3** at the bottom, beside how big the file will be. MP3 and **Each part separately** come with Plus.',
                         'A part muted in the studio is left out, and we say so: **Include it** puts it back in the file.',
                         ['shot' => 'studio--export', 'alt' => 'Export Amazing Grace on a bigger screen: The whole song chosen, Polished on with a room, the file name with WAV, and the size and length at the bottom.'],
                         'Sharing your harmony has the rest: links, videos and files.',
@@ -1172,12 +1172,12 @@ return [
                 'sections' => [
                     ['Open Settings', [
                         'Signed in, tap your name or picture at the top of the home.',
-                        'Settings has five parts: **Profile**, **Account and sign-in**, **Practice and appearance**, **Plan and storage** and **Your data**. On a bigger screen they\'re listed down the side: tap one to jump to it.',
-                        'Not signed in? Settings asks you to sign in to see your account. **Practice and appearance** is still there, with how it looks and the sounds.',
+                        'Settings has seven parts: **Profile**, **Account and sign-in**, **Game mode**, **Practice and appearance**, **Plan and storage**, **Your data** and **This device**. On a bigger screen they\'re listed down the side: tap one to jump to it.',
+                        'Not signed in? Settings asks you to sign in to see your account. **Game mode**, **Practice and appearance** (with how it looks and the sounds) and **This device** are still there.',
                         ['shot' => 'settings--page', 'alt' => 'Settings on a bigger screen: the seven parts down the side, then the profile card with the photo, Your name, Handle and About you.'],
                     ]],
                     ['Your profile', [
-                        'The profile card has your photo (**Choose a photo**: a JPEG, PNG or WebP, up to 2 MB), **Your name**, your **Handle**, **About you**, and your Bluesky and X handles. Tap **Save**.',
+                        'The profile card has your photo (**Choose a photo**: a JPEG, PNG or WebP, up to 2 MB), **Your name**, your **Handle**, **About you**, and your Bluesky and X handles. Tap **Save**. **Hide profile** shows your songs and scores as Anonymous to others, and saves at once.',
                         'Your name is how you appear in Stackapella, and the name learners see on the guides you sang. A handle is letters, numbers and underscores, 3 to 30 of them. Everything but your name is optional, and all of it shows on your public profile.',
                     ]],
                     ['Email, password and ways to sign in', [
@@ -1191,7 +1191,7 @@ return [
                         '**Appearance**, under **Practice and appearance**, says your look in a line. Tap the theme button beside it, or the one at the top of the home. On a bigger screen it says **Theme**.',
                         '**Mode**: **Light**, **Dark**, or **Auto**, which follows your device.',
                         '**Colour**: four sets, each with a dark and a light look. Until you choose, dark uses Stage and light uses Warm.',
-                        '**Accent**: the colour of links, highlights and the focus ring. Keep your theme\'s own, pick another, or choose your own colour. We keep every choice readable in your theme.',
+                        '**Accent**: the colour of links, highlights and the focus ring. Keep your theme\'s own, pick another, or choose your own colour. We keep every choice readable in your theme. **Game mode**, its own part of Settings, switches the arcade look, with XP, stars, badges, combos and high scores; off, it\'s a plain practice tool with just your measures, and nothing you\'ve earned is lost. With it on, its extras turn off one at a time.',
                         'Tap **Done**.',
                         ['shot' => 'settings--theme', 'alt' => 'Appearance on a phone: Mode with Light, Dark and Auto, the four themes with a light and a dark preview each, and the accents.'],
                     ]],
@@ -1213,14 +1213,14 @@ return [
                     ['Your plan and storage', [
                         '**Plan and storage** says whether you\'re on the **Free plan** or **Plus**. **See Plus** (or **Manage your plan**, on Plus) opens the plan page. Plus and billing covers the trial, cancelling and refunds.',
                         'On the free plan, **Songs** shows how many of your 3 you\'ve made, one slot each. **Storage** is a bar of the space your recordings use in your account.',
-                        '**See what\'s using space** opens **Storage**: your songs as slots (**Unlimited with Plus**), then **Space**, and **Your songs**, biggest first. Open a song to see its current takes and the older takes you didn\'t keep. **Clear older takes** frees their space.',
+                        '**See what\'s using space** opens **Storage**: your songs as slots (**Unlimited with Plus**), then **Space**, and **Your songs**, biggest first. Open a song to see its current takes and the older takes you didn\'t keep. **Clear older takes** frees their space. **Course voice takes**, the first takes kept on this device for Then and now, has its own **Delete**.',
                         '**Recently deleted** keeps deleted songs and replaced recordings for 30 days, each saying when it\'s gone for good. They don\'t use space or count toward your songs. **Restore** brings a song back, **Restore take** brings back a recording as an older take, and **Delete now** removes it for good.',
                         ['shot' => 'settings--storage', 'alt' => 'Storage on a phone: the free plan\'s 3 of 3 songs as slots with Unlimited with Plus, Space with each song\'s share, and Your songs, biggest first.'],
                     ]],
                     ['Your data, signing out and deleting', [
                         '**Download my data**: tap **Prepare my data**, and **Download** appears once it\'s ready. Your privacy has the details.',
                         '**Sign out** signs out this device. **Sign out everywhere** signs out every device. Your songs on this device stay here.',
-                        '**Delete my account** deletes your account, your songs and your recordings for good. Your privacy says what\'s deleted and what stays.',
+                        '**Delete my account** deletes your account, your songs and your recordings for good. Your privacy says what\'s deleted and what stays. Under **This device**, signed in or not, **Delete everything here**, then **Delete everything**, clears the songs, takes, course progress, drafts and settings kept in this browser, and signs you out here. Songs backed up to your account come back when you sign in again.',
                     ]],
                     ['Contact us', [
                         '**Contact us** is at the bottom of Settings. Hillel reads every message.',
@@ -1239,21 +1239,21 @@ return [
                             'We show your comfortable range, then each part: "Fits as written", "Fits in" a new key, or "A stretch for your voice". The best one is marked "Best for you".',
                             'Tap "Use this" on a part to sing it, in the key shown.',
                             'If we couldn\'t hear a steady note, sing a little louder and hold it for a couple of seconds.',
-                            '"Check my range" is on a song before you start it, where you pick your part, and in Sing under Your part.',
+                            '"Check my range" is in Sing where you pick your part, and under Your part. On Your voice, "Measure again" checks your range on its own.',
                         ],
                     ],
                     [
                         'Choose your part',
                         [
-                            'When you start a song, pick the part that sits best in your voice. Each one shows its lowest and highest notes.',
-                            'To switch later, tap your part\'s name at the top of Sing. Your part lists them all: tap another.',
+                            'Once we know your range, a song opens on a part for you, and we say which: as a new singer, the melody, in your own octave; after that, the part that fits your range best. If we don\'t know your range yet, pick the part that sits best in your voice. Each one shows its lowest and highest notes.',
+                            'To switch later, tap your part\'s name at the top of Sing (on a phone, it\'s the first row in Settings). Your part lists them all: tap another.',
                             'Your range is a starting point, not a label: sing any part you like.',
                         ],
                     ],
                     [
                         'Change the key',
                         [
-                            '"Use this" after a range check moves the song into that key.',
+                            '"Use this" after a range check moves the song into that key. Once we know your range, a song you learn starts in the key that fits it. In Part by part, while nothing in the song is recorded, "Not in your range?" moves it down or up a semitone with minus and plus.',
                             'Or open the song in the studio, then Song settings. Beside Key, tap minus or plus to move it down or up a semitone, up to 7 either way. "Find my key with a range check" is there too.',
                             'Parts you\'ve already recorded stay in the key you sang them in. Record them again to match the new key.',
                         ],
@@ -1261,7 +1261,7 @@ return [
                     [
                         'Slow it down',
                         [
-                            'In Sing, open Settings, then Speed: 100%, 85% or 70%.',
+                            'In Sing, open Settings, then Speed: 100%, 85% or 70%. In the whole song on a bigger screen, the minus and plus beside Tempo do the same.',
                             'Recording is always at full speed, so your take fits with the others. If you tap Record while it\'s slowed, we offer "Back to full speed".',
                         ],
                     ],
@@ -1277,7 +1277,7 @@ return [
                             'Many parts are sung by a real singer. Tap your part\'s name at the top of Sing, and under "Who sings the Alto for you" (your part\'s name there), pick a singer ("Sung by" and their name) or the "Practice voice".',
                             'The practice voice is a steady, synthesized voice. Some find its pitch easier to match.',
                             'A real singer recorded the part in the song\'s own key, at full speed. In another key, or slowed down, you hear the practice voice, which follows any key and speed. We tell you when that happens, with a way to sing in the real voice\'s key.',
-                            'You can also reach the voices from Settings, then Voices, or in the studio from a part\'s "Voice and more".',
+                            'You can also reach the voices from Settings, then "Guide voices", or in the studio: tap a part\'s name, then "Voice".',
                         ],
                     ],
                 ],
@@ -1299,7 +1299,7 @@ return [
                     [
                         'What Plus adds',
                         [
-                            'Every song, with new ones each month, and the full course with all its units and paths.',
+                            'Every song, with new ones each month, the full course with all its units and paths, and the ten Plus courses (Vibrato, Counterpoint, Barbershop and tags and more), each with its first lesson free.',
                             'Unlimited workouts, and your history: how you\'re improving over time.',
                             'Unlimited songs, 50 GB for recordings, and up to 20 friends on a song.',
                             'MP3 export, and each part on its own (stems).',
@@ -1318,14 +1318,14 @@ return [
                     [
                         'Getting Plus',
                         [
-                            'Sign in and confirm your email. Then open Settings (tap your name or picture at the top of the home page), and "What Plus adds" under Your plan.',
-                            'Choose Yearly or Monthly and the currency to pay in, then "Start your :days-day free trial", or "Get Plus".',
+                            'Sign in and confirm your email. Then open Settings (tap your name or picture at the top of the home page), and "See Plus" under Plan and storage.',
+                            'Choose Yearly or Monthly and the currency to pay in, then "Start your :days-day free trial", or "Get Plus yearly" or "Get Plus monthly" with the price.',
                         ],
                     ],
                     [
                         'Cancelling',
                         [
-                            'Cancel online, any time: Settings, then "Manage your plan" under Your plan, then "Manage your plan" again to open the billing page, and cancel there.',
+                            'Cancel online, any time: Settings, then "Manage your plan" under Plan and storage, then "Manage your plan" again under Your plan to open the billing page, and cancel there.',
                             'Plus stays on until the end of the period you\'ve paid for, and nothing more is charged. Your plan says "Plus is cancelled and stays on until" that date.',
                             'If your Plus is paid by invoice, write to us to change it.',
                         ],
@@ -1349,7 +1349,7 @@ return [
                     [
                         'Refunds',
                         [
-                            'Ask us with Contact us in the app (choose "Plus and payments"), or write to :email from your account\'s address. We answer payment questions within 1 working day.',
+                            'Ask us with Contact us in the app (choose "Account or Plus"), or write to :email from your account\'s address. We answer payment questions within 1 working day.',
                             'A refund goes back to the card you paid with, and usually reaches it in 5 to 10 days, depending on your bank.',
                             'In the European Union and the United Kingdom, you can withdraw within 14 days of buying, without giving a reason.',
                             'The refund policy has the full details.',
@@ -1390,7 +1390,7 @@ return [
                         [
                             'If you let us feature a harmony you shared (the box "Stackapella may feature it on our X and Bluesky"), its parts may become guide voices that other singers learn from, credited to you.',
                             'Everyone who sang on it agrees first, and only people 18 and over can say yes.',
-                            'To stop it, untick the box right after you share, or later delete the harmony under "Shared before" in Share. Its parts stop being guides. Deleting your account does the same.',
+                            'To stop it, untick the box right after you share, or later open Share, tap "Use that link", and untick it or tap "Stop sharing". Its parts stop being guides. Deleting your account does the same.',
                             'A harmony you share by link without ticking the box is never used.',
                         ],
                     ],
@@ -1406,7 +1406,7 @@ return [
                         [
                             'Settings, then "Delete my account". Type delete to confirm. This can\'t be undone.',
                             'Your account and the recordings kept with it are deleted, your shared harmonies are taken down, and Plus is cancelled.',
-                            'Songs on this device stay here.',
+                            'Songs on this device stay here. To clear them too, Settings, then "Delete everything here" under This device.',
                             'For your safety, we may ask you to sign in again first.',
                         ],
                     ],
@@ -1428,7 +1428,7 @@ return [
                     [
                         'Start a group',
                         [
-                            'Sign in, open Settings, then "Open choir groups" under Choir groups. Tap "Start a group".',
+                            'Sign in, open Settings, then tap "Choir groups". Tap "Start a group".',
                             'Give it a name, tick "I\'m 18 or over", then tap "Start the group".',
                         ],
                     ],
@@ -1443,7 +1443,7 @@ return [
                         'Share songs and give out parts',
                         [
                             'Tap "Share a song", choose one from the library or from your own templates, then "Share it".',
-                            'Under the song, tap "Who sings what" and pick a part for each singer. Tap "Done" when you\'re finished.',
+                            'Beside the song, tap "Assign parts" and pick a part for each singer. Tap "Done" when you\'re finished.',
                         ],
                     ],
                     [
@@ -1481,7 +1481,7 @@ return [
                         [
                             'On the home page, tap "New song", the first card in Your songs, then "Make a harmony". Choose "Sing it", "Start from chords", "Write it", or "Open a file" (a song exported from Stackapella).',
                             'Your draft saves as you go. Leave any time, and find it in Your songs, marked "Draft", with Resume and Discard.',
-                            'To turn a song you\'ve recorded into a template, open its Song settings, then "Make a template from this song".',
+                            'To turn a song you\'ve recorded into a template, open its **Song settings**, then **Save as template**.',
                         ],
                     ],
                     [
@@ -1503,7 +1503,7 @@ return [
                     [
                         'Start from chords',
                         [
-                            '**Pick the chords you\'ll sing over**: tap a card\'s play button to hear it, and tap the card to choose it. Show them as **Shape**, **Numbers** or **Letters**.',
+                            '**Pick the chords you\'ll sing over**: tap a card\'s play button to hear it, and tap the card to choose it. Name the chords in **Letters**, **Numbers** or **Numerals**.',
                             'At **Key and tempo**, pick your voice (or **Not sure? Check your range**): we suggest a key, with Lower and Higher, and you set the tempo, the feel and the backing sound.',
                             'Sing or hum over it: after a bar of clicks, the chords go round a few times, and we write down what you sing. The chords become the other parts.',
                         ],
@@ -1530,7 +1530,7 @@ return [
                         'Share it by link',
                         [
                             'Sign in and open your song from the home page. Under **You made this**, a card says where it\'s kept: on your account, or only on this device and why. If details are missing, fill them in and tap **Back it up**.',
-                            'Choose **Anyone with the link**, then **Copy** or **Share**. Friends who open it can learn it, part by part. **Only me** keeps it to yourself.',
+                            'Choose **Anyone with the link**, then **Copy link** or **Share**. Friends who open it can learn it, part by part. **Only me** keeps it to yourself.',
                             '**Edit**, **Make a copy** and **Export file** are under it. **Delete** asks first, and offers **Undo** for a few seconds after.',
                         ],
                     ],
@@ -1553,7 +1553,7 @@ return [
                             'You need to be signed in, with your email confirmed.',
                             'Share shows a preview of what listeners will see: the song\'s name, which you can change right there, how many parts, how long, and whether it\'s polished.',
                             'Under "What to share", choose all the parts or "One part", and which. "Polished" balances the parts with a little room. Your takes aren\'t changed.',
-                            'Anyone with the link can listen. It isn\'t listed or searchable, and you can stop sharing at any time. If you\'ve shared the song before, "Use that link" keeps the earlier one. Then tap "Create link".',
+                            'Anyone with the link can listen. It isn\'t listed or searchable, and you can stop sharing at any time. If you\'ve shared the song before, "Use that link" keeps the earlier one. For a new link, tap "Create link".',
                             ['shot' => 'studio--share', 'alt' => 'Share Amazing Grace on a bigger screen: the preview with the title, Four-part harmony, its length and polished, all 4 parts chosen, Polished on, and Create link.'],
                             'Tap "Copy link", or send it with "Message", "Email" or "More", or "Post to X" or "Post to Bluesky".',
                             '"Stop sharing" turns the link off at once, and its videos go too. It asks first. Your song stays as it is.',
@@ -1595,7 +1595,7 @@ return [
                     [
                         'Make it private again',
                         [
-                            'Open Share in the same song. Under "Shared before", tap Delete beside it.',
+                            'Open Share in the same song, tap "Use that link", then "Stop sharing". It asks first.',
                             'Its link stops working at once, and its videos go too. Your song stays as it is.',
                             'You can share it again any time, with a new link.',
                         ],

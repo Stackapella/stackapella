@@ -342,7 +342,7 @@ export const WeekCard = {
                 <p class="flex justify-between gap-3 text-sm"><span class="font-semibold text-cream">{{ t('course.levelName', { level: level.level, name: t(level.name) }) }}</span><span class="tabular-nums text-xs text-muted">{{ t('results.levelXp', { into: level.into, needed: level.needed }) }}</span></p>
                 <div class="mt-2 h-2.5 overflow-hidden rounded-full bg-raised" data-level-bar role="progressbar" :aria-valuenow="level.into" aria-valuemin="0" :aria-valuemax="level.needed" :aria-label="t('course.xpLabel', { xp: level.into, needed: level.needed })"><div class="h-full rounded-full bg-accent" :style="{ width: Math.max(4, Math.round((level.into / level.needed) * 100)) + '%' }"></div></div>
             </div>
-            <a href="/voice" class="flex items-center justify-between text-sm text-cream hover:text-accent-strong" @click.prevent="navigate('/voice')">{{ t('home.week.voice') }}<Icon name="arrow" :size="16" /></a>
+            <a href="/voice" class="flex min-h-6 items-center justify-between text-sm text-cream hover:text-accent-strong" @click.prevent="navigate('/voice')">{{ t('home.week.voice') }}<Icon name="arrow" :size="16" /></a>
         </section>`,
     computed: {
         days: () => weekDays(learning.progress),

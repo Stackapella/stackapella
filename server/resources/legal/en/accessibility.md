@@ -1,36 +1,53 @@
 ---
 title: Accessibility statement
-version: 1
+version: 2
 reviewed: false
 drafted: 2026-10-27
+updated: 2026-10-30
 ---
 
 # Accessibility statement
 
 We want everyone who wants to sing harmony to be able to use Stackapella. This page says what we
-do, where we know the app falls short, and how to tell us about a problem.
+do, how we check it, where we know the app falls short, and how to tell us about a problem.
 
 ## What we aim for
 
 Our target is the Web Content Accessibility Guidelines (WCAG) 2.2 at level AA, across the app and
-the website.
+the website, and we check it automatically on every main screen.
+
+## How we check
+
+Every main screen (home, the course and a lesson, the workout, a song and Sing, the studio and its
+sheets, Settings, sign-in and Contact us) is checked automatically on every change to the app: at
+phone, tablet and desktop widths, in light and dark, in both looks (game and serious), and with
+reduced motion on. We also go through it by keyboard. These are our own checks, not a formal audit
+or certification. This statement was last updated on 30 October 2026.
 
 ## What the app does
 
-- **Contrast and size:** text and controls meet WCAG 2.2 AA contrast, and touch targets are at
-  least 44 by 44 pixels. Lyrics are sized to read at arm's length.
-- **Not by colour alone:** mute, solo and record also have icons or labels, notes you hit change
-  shape as well as colour, and each part's colour is picked to stay distinct for colour-blind
-  singers.
-- **Screen readers:** the app uses real buttons and form fields, and announces the moments that
-  matter while you sing, such as "Get ready" and "Your turn", once each. Stars are read out ("2 of
-  3 stars"), and the progress chart has a text summary. In the template editor, notes have a list
-  view, and each edit is announced.
-- **Keyboard:** you can play, loop, record and switch views from the keyboard, and the template
-  editor works fully from it. Single-letter shortcuts can be turned off.
-- **Reduced motion:** if your device asks for less motion, there are no fades, pulses or confetti,
-  and moving lines step instead of gliding.
-- **Light and dark themes,** and visible focus on every control.
+- **Contrast:** text meets WCAG 2.2 AA contrast (4.5:1, and 3:1 for large text) in light and dark,
+  in both looks.
+- **Keyboard:** everything works from the keyboard, and focus is always visible. An open sheet keeps
+  focus inside it until you close it, and Escape closes it. You can start a lesson and move through
+  its steps by keyboard alone. In Sing and the studio, Space plays, or stops a recording, and the
+  single-letter shortcuts (like R to record) can be turned off in Settings.
+- **Screen readers:** every button, link and field has a name, and every picture has a text
+  alternative. Each screen has one main region, its headings never skip a level, and its heading is
+  also the tab's title. When you move to a new screen, focus moves to its heading, so your screen
+  reader says where you are. Feedback while you sing, like "Hearing you", "On the note" and your
+  score, is announced as it changes. In the song editor, notes also have a list view.
+- **Not by colour alone:** your pitch is also given in words and note names, like "Now G4, next
+  F#4" and "On the note", and each part's colour is picked to stay distinct.
+- **Reduced motion:** if your device asks for less motion, the app's animations (celebrations,
+  moving lesson drawings and game effects) stay still, and nothing moves on its own while you're
+  idle.
+- **Size and zoom:** every control is at least 24 by 24 pixels, and most are 44 or more on phones.
+  The app works from 320 pixels wide without scrolling sideways, and pinch zoom is never blocked.
+- **High contrast:** Windows High Contrast (forced colours) is supported, and controls keep their
+  borders and focus rings.
+- **Calmer or quieter:** sounds and game effects can each be turned off, and the serious look drops
+  stars, XP, badges and streaks.
 - **Captions:** when a song has words, share videos can show them as they're sung, so they work
   with the sound off.
 - **Password managers** work with our sign-in forms.
@@ -40,9 +57,9 @@ the website.
 - **It's an audio app.** Learning harmony means hearing the other parts and singing your own, and
   the feedback on your pitch comes from your microphone. Much of Stackapella will be of little use
   without hearing, or without a voice and a microphone.
-- **The note lane, waveforms and pitch line are drawn as pictures.** A screen reader can't follow
-  them note by note while you sing. The announcements, star readouts and text summaries cover the
-  main moments, but not everything the picture shows.
+- **The note lane, waveforms and pitch line are drawn as pictures.** Their main information is also
+  in words, but a screen reader can't follow the picture note by note while you sing, and we haven't
+  yet tested singing with VoiceOver or TalkBack users.
 - **Timing depends on your device.** Speakers and headphones add a delay, which the timing check
   measures by playing short chirps into your microphone. If that fails, you can use your browser's
   own estimate instead, which can be tens of milliseconds off, and then move a part's timing by ear

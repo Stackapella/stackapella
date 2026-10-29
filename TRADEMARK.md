@@ -36,4 +36,4 @@ prior written permission."
 
 Questions: contact@stackapella.com.
 
-DRAFT, waiting for the lawyer's review (docs/open-source-plan.md, section 3.3).
+DRAFT, waiting for the lawyer's review.

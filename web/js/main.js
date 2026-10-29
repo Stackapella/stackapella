@@ -30,6 +30,7 @@ import { loadOutbox, outbox, sendAll } from './beta-outbox.js';
 import { count } from './usage.js';
 import { arrive, first } from './funnel.js';
 import { lazyView } from './lazy.js';
+import { nameScreens } from './screen-name.js';
 
 // Views load when they're opened, from the same version as the page (js/lazy.js reloads otherwise).
 // The admin and the styleguide load only when opened (and are never precached for singers).
@@ -60,10 +61,13 @@ const ChoirJoinView = defineAsyncComponent(lazyView(() => import('./views/groups
 // Songs arriving from the old address (docs/app-subdomain-plan.md).
 const MovedView = defineAsyncComponent(lazyView(() => import('./views/moved.js').then((m) => m.MovedView)));
 const ContactView = defineAsyncComponent(lazyView(() => import('./views/contact.js').then((m) => m.ContactView)));
+// Ideas (docs/ideas-app-plan.md), behind the server's flag: the shelf and one tune.
+const IdeasView = defineAsyncComponent(lazyView(() => import('./views/ideas.js').then((m) => m.IdeasView)));
+const IdeaView = defineAsyncComponent(lazyView(() => import('./views/ideas.js').then((m) => m.IdeaView)));
 const FIRST_INSTALL_WAIT_MS = 15000; // a timer for when to install, never for audio
 
 const App = {
-    components: { ProjectsView, StudioView, SingView, AuthView, SettingsView, StorageView, VoiceView, WorkoutView, PlusView, RemindersView, CloudConflicts, LearnView, CourseView, PlusCourseView, BirthHost, NewVersion, AdminView, StyleguideView, BetaView, CreateView, TemplateView, JoinView, EarlyView, GroupsView, GroupView, ChoirJoinView, MovedView, ContactView, Toasts, ConfirmHost, MicHelpHost, MicCheckHost, ChallengeView },
+    components: { ProjectsView, StudioView, SingView, AuthView, SettingsView, StorageView, VoiceView, WorkoutView, PlusView, RemindersView, CloudConflicts, LearnView, CourseView, PlusCourseView, BirthHost, NewVersion, AdminView, StyleguideView, BetaView, CreateView, TemplateView, JoinView, EarlyView, GroupsView, GroupView, ChoirJoinView, MovedView, ContactView, IdeasView, IdeaView, Toasts, ConfirmHost, MicHelpHost, MicCheckHost, ChallengeView },
     setup: () => ({ route }),
     template: `
         <AdminView v-if="route.name === 'admin'" />
@@ -84,6 +88,8 @@ const App = {
         <ChoirJoinView v-else-if="route.name === 'choir'" :key="'c-' + route.params.token" :token="route.params.token" />
         <MovedView v-else-if="route.name === 'moved'" />
         <ContactView v-else-if="route.name === 'contact'" />
+        <IdeasView v-else-if="route.name === 'ideas'" />
+        <IdeaView v-else-if="route.name === 'idea'" :key="'idea-' + route.params.id" :id="route.params.id" />
         <AuthView v-else-if="route.name === 'auth'" :key="route.params.page" />
         <SettingsView v-else-if="route.name === 'settings'" />
         <StorageView v-else-if="route.name === 'storage'" />
@@ -131,6 +137,7 @@ watchErrors(app); // to Sentry through /log/errors, once auth.config gives the D
 const themed = (fn) => (color) => (appearance.version, fn(color));
 Object.assign(app.config.globalProperties, { t, formatNumber, formatDate, timeAgo, paint: themed(paint), paintText: themed(paintText), paintInk: themed(paintInk) });
 app.mount('#app');
+nameScreens(); // each screen's heading as the tab's title, and focus on it after a move
 count('app_open'); // each time the app is opened (a load): anonymous, with no ID (js/usage.js)
 count(game() ? 'open_game' : 'open_serious'); // and in which skin
 

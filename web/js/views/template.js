@@ -27,6 +27,7 @@ import { PART_COLORS } from '../theme.js';
 import { downloadFile } from '../components/create/save.js';
 import { Field } from '../components/form.js';
 import { Icon } from '../components/icon.js';
+import { ShareIdea } from '../components/share-idea.js';
 import { toast } from '../components/ui.js';
 import { PartBoard } from '../components/boards.js';
 import { game } from '../skin.js';
@@ -43,7 +44,7 @@ const STATES = {
 const DIFFICULTY = { beginner: tk('templates.difficulty.beginner'), intermediate: tk('templates.difficulty.intermediate'), advanced: tk('templates.difficulty.advanced') };
 
 export const TemplateView = {
-    components: { Field, Icon, PageHeader, PlusMoment, PartBoard },
+    components: { Field, Icon, PageHeader, PlusMoment, PartBoard, ShareIdea },
     props: { id: { type: String, required: true } },
     data: () => ({ template: null, missing: false, failed: false, singers: 4, picked: null, player: null, playingPart: null, starting: false, changing: false, limitOpen: false, details: { description: '', words: '', tune: '' }, backingUp: false }),
     setup: () => ({ STATES, DIFFICULTY, account, keyLabel, midiName, templatePartName, singerOptions, formatTime, goBack, paint, PART_COLORS, game }),
@@ -125,6 +126,8 @@ export const TemplateView = {
                         <p v-else-if="!account.me" class="text-sm text-muted">{{ t('template.signInHint') }} <a href="/signin" class="link" @click.prevent="navigate('/signin?next=/t/' + id)">{{ t('auth.signIn') }}</a></p>
                         <p v-else-if="record.state === 'saved'" class="text-sm text-muted">{{ t('template.savedHint') }}</p>
                     </div>
+                    <!-- Share as an idea (docs/ideas-app-plan.md): a backed-up song of your own, once Ideas is open -->
+                    <ShareIdea v-if="account.me && record.state === 'saved' && !otherAuthor" :template="template" :template-id="id" />
                     <fieldset v-if="account.me" class="grid gap-3 sm:grid-cols-2" :disabled="changing || otherAuthor">
                         <legend class="sr-only">{{ t('create.save.visibility') }}</legend>
                         <label v-for="v in ['private', 'unlisted']" :key="v" class="radio-card">

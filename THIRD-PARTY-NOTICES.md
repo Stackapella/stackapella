@@ -82,7 +82,7 @@ each build's `LICENSES.txt` beside its samples). CC0 asks for no credit; we give
 | Claps, snaps and stomps | Karoryfer Samples, body_percussion; VCSL, Shaker, Small | CC0 1.0 |
 
 A self-hosted install has none of these until it builds and uploads its own
-(`docs/instrument-build.md`).
+(`php artisan app:instruments:upload`).
 
 ## Server packages (not in this repository)
 

@@ -44,9 +44,9 @@ export const RemindersView = {
                                 <div class="mb-2 flex flex-wrap items-baseline justify-between gap-3">
                                     <legend class="text-sm font-semibold text-muted">{{ t('reminders.days') }}</legend>
                                     <span class="flex gap-4 text-sm font-semibold">
-                                        <button type="button" class="text-accent-strong hover:underline" @click="pick([1, 2, 3, 4, 5])">{{ t('reminders.weekdays') }}</button>
-                                        <button type="button" class="text-accent-strong hover:underline" @click="pick([1, 2, 3, 4, 5, 6, 0])">{{ t('reminders.everyDay') }}</button>
-                                        <button type="button" class="text-accent-strong hover:underline" @click="pick([])">{{ t('reminders.clear') }}</button>
+                                        <button type="button" class="min-h-6 text-accent-strong hover:underline" @click="pick([1, 2, 3, 4, 5])">{{ t('reminders.weekdays') }}</button>
+                                        <button type="button" class="min-h-6 text-accent-strong hover:underline" @click="pick([1, 2, 3, 4, 5, 6, 0])">{{ t('reminders.everyDay') }}</button>
+                                        <button type="button" class="min-h-6 text-accent-strong hover:underline" @click="pick([])">{{ t('reminders.clear') }}</button>
                                     </span>
                                 </div>
                                 <div class="grid grid-cols-7 gap-1.5 md:gap-2">
