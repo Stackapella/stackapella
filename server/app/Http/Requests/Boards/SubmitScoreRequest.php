@@ -42,6 +42,8 @@ final class SubmitScoreRequest extends FormRequest
             'notes.*.lit' => ['required', 'boolean'],
             'notes.*.cents' => ['nullable', 'integer', 'between:-2400,2400'],
             'notes.*.timingMs' => ['nullable', 'integer', 'between:-10000,10000'],
+            // The daily challenge's day, when the take was of it (Boards::toDaily).
+            'daily' => ['nullable', 'date_format:Y-m-d'],
         ];
     }
 }

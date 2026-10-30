@@ -13,7 +13,8 @@
                 "why",
                 "best",
                 "improved",
-                "before"
+                "before",
+                "daily"
             ],
             "properties": {
                 "counted": {
@@ -53,6 +54,39 @@
                         "null"
                     ],
                     "description": "Their best on this part's board before this take, set on any device (for \"up from\"): null on a first score or one that didn't count."
+                },
+                "daily": {
+                    "type": [
+                        "object",
+                        "null"
+                    ],
+                    "additionalProperties": false,
+                    "required": [
+                        "counted",
+                        "best",
+                        "rank"
+                    ],
+                    "properties": {
+                        "counted": {
+                            "type": "boolean",
+                            "description": "It went on that day's board (today's pick, a score that counts)."
+                        },
+                        "best": {
+                            "type": [
+                                "integer",
+                                "null"
+                            ],
+                            "description": "Their best that day."
+                        },
+                        "rank": {
+                            "type": [
+                                "integer",
+                                "null"
+                            ],
+                            "description": "Their place that day on the global board (null when they're not on it)."
+                        }
+                    },
+                    "description": "With `daily` sent: that day's board; else null."
                 }
             }
         }

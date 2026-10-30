@@ -43,7 +43,7 @@ export const MoreCourses = {
         preview: () => !!account.me?.staff && account.me?.plusCourses !== true,
         shown() {
             return learning.catalogue
-                .filter((entry) => courseVisible(entry, account.me) && learning.courses[entry.id])
+                .filter((entry) => courseVisible(entry, account.me, account.config) && learning.courses[entry.id])
                 .map((entry) => ({ entry, summary: courseSummary(learning.courses[entry.id], learning.progress) }));
         },
     },

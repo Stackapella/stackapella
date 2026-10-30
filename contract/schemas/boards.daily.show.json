@@ -1,0 +1,141 @@
+{
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "date",
+                "templateId",
+                "templateVersion",
+                "partKey",
+                "scope",
+                "endsAt",
+                "days",
+                "entries",
+                "you"
+            ],
+            "properties": {
+                "date": {
+                    "type": "string",
+                    "description": "The day, YYYY-MM-DD (UTC)."
+                },
+                "templateId": {
+                    "type": "string"
+                },
+                "templateVersion": {
+                    "type": "integer"
+                },
+                "partKey": {
+                    "type": "string"
+                },
+                "scope": {
+                    "type": "string",
+                    "enum": [
+                        "global",
+                        "friends"
+                    ]
+                },
+                "endsAt": {
+                    "type": "string",
+                    "format": "date-time",
+                    "description": "The next midnight (UTC), when the day's challenge changes."
+                },
+                "days": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "The dates (YYYY-MM-DD, UTC) in the 7 days ending on `date` on which they took the daily challenge, oldest first: their own, so a score held off the global board counts, but not one taken off or whose take is binned. Empty for someone signed out; the same for either scope."
+                },
+                "entries": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "id",
+                            "rank",
+                            "name",
+                            "initials",
+                            "score",
+                            "at",
+                            "you"
+                        ],
+                        "properties": {
+                            "id": {
+                                "type": "string",
+                                "description": "The entry's id, to report its name (reports.create boardEntryId)."
+                            },
+                            "rank": {
+                                "type": "integer"
+                            },
+                            "name": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ],
+                                "description": "The public name rules; on a friends' board, someone under 18 by first name only. Never an email. Null when they show initials."
+                            },
+                            "initials": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ],
+                                "description": "Their three initials when they show initials on the boards (always for someone under 18), else null; with initials, `name` is null. Null initials with a null name: the app shows \"???\"."
+                            },
+                            "score": {
+                                "type": "integer"
+                            },
+                            "at": {
+                                "type": "string",
+                                "format": "date-time",
+                                "description": "When that best was sung."
+                            },
+                            "you": {
+                                "type": "boolean"
+                            }
+                        }
+                    },
+                    "description": "The day's top 10, best first; empty for someone signed out."
+                },
+                "you": {
+                    "type": [
+                        "object",
+                        "null"
+                    ],
+                    "additionalProperties": false,
+                    "required": [
+                        "score",
+                        "rank",
+                        "initials"
+                    ],
+                    "properties": {
+                        "score": {
+                            "type": "integer"
+                        },
+                        "rank": {
+                            "type": [
+                                "integer",
+                                "null"
+                            ],
+                            "description": "Null when they're not on this board (the global board without the opt-in)."
+                        },
+                        "initials": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "description": "Their three initials when they show initials on the boards (always for someone under 18), else null; with initials, `name` is null. Null initials with a null name: the app shows \"???\"."
+                        }
+                    },
+                    "description": "Their best that day and its place, or null."
+                }
+            }
+        }
+    }
+}

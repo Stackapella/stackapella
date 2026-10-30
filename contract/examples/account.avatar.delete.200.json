@@ -26,6 +26,8 @@
         "staff": null,
         "publicProfile": false,
         "hideProfile": false,
+        "initials": null,
+        "boardsName": "name",
         "ideaEmails": true,
         "gallery": {
             "canPost": false,

@@ -40,6 +40,7 @@ export const LANE_DEFAULTS = {
     secondsShown: 6, // the lane's width, in seconds (the zoom across)
     trail: null, // your voice's ribbon and dot, if not in your colour (the landing: white, so it reads over gold gems)
     trailGlow: null, // the dot's glow, if not the trail's colour
+    ghost: [], // your best take's pitch line, faint, to race (game mode's ghost): [{ seconds, midi|null }]
 };
 
 /** A colour a canvas can use: a CSS variable (var(--x)) read from the page, else as it is. */
@@ -151,6 +152,7 @@ export class LanePainter {
         this.drawnAt = clock;
         const still = stillMotion();
         const g = canvas.getContext('2d');
+        g.direction = 'ltr'; // time runs left to right on any page; a right-to-left page would right-align every label
         g.setTransform(ratio, 0, 0, ratio, 0, 0);
         g.clearRect(0, 0, width, height);
         const seconds = (beat) => beat * this.beatSeconds;
@@ -178,7 +180,9 @@ export class LanePainter {
         g.beginPath();
         g.rect(left, EDGE, width - left, inner);
         g.clip();
-        // The other parts: faint ghosts at their real pitches.
+        // Game mode's ghost: under the gems, so it never covers a note to come.
+        this.drawGhost(g, { x, mid, left, width });
+        // The other parts: faint outlines at their real pitches.
         const tolH = rowH * (2 * this.tolerance) / 100;
         const barH = Math.max(tolH, Math.min(34, Math.max(14, rowH * 1.25)));
         for (const other of this.others) {
@@ -309,6 +313,30 @@ export class LanePainter {
         cancelAnimationFrame(this.again);
         if (moving) this.again = requestAnimationFrame(() => this.draw());
     }
+    /** Your best take's line (game mode's ghost), faint and dashed, under the gems and your voice; a gap where it was silent. */
+    drawGhost(g, { x, mid, left, width }) {
+        if (!this.ghost?.length) return;
+        g.save();
+        g.globalAlpha = this.light ? 0.45 : 0.4;
+        g.strokeStyle = this.cream;
+        g.lineWidth = 2;
+        g.setLineDash([5, 5]);
+        g.beginPath();
+        let open = false;
+        for (const p of this.ghost) {
+            const px = x(p.seconds);
+            if (p.midi === null || px < left - 10 || px > width + 10) {
+                open = false;
+                continue;
+            }
+            if (open) g.lineTo(px, mid(p.midi));
+            else g.moveTo(px, mid(p.midi));
+            open = true;
+        }
+        g.stroke();
+        g.restore();
+    }
+
     /**
      * Your voice (Hillel: steady, easy to see, louder is bigger): a ribbon in your colour whose
      * path is your pitch and whose thickness is how loud you sing (to a cap that never hides the

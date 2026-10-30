@@ -76,6 +76,18 @@ final class OwnTemplatesTest extends TestCase
         $this->assertNotContains($id, array_column((array) $this->getJson('/api/templates')->json('data'), 'id'));
     }
 
+    public function test_an_empty_description_and_credits_are_kept_as_sent(): void
+    {
+        $this->as(User::factory()->create());
+        $id = (string) Str::uuid();
+
+        // The creator leaves them optional: "" must reach the format check as "", not as null.
+        $saved = $this->save($id, $this->template($id, 1, ['description' => '', 'credits' => ['words' => '', 'tune' => '', 'arrangement' => '']]));
+        $this->assertMatchesContract($saved, 'templates.save', 200);
+        $data = TemplateVersion::query()->latest('id')->firstOrFail()->data;
+        $this->assertSame(['', '', '', ''], [$data['description'], $data['credits']['words'], $data['credits']['tune'], $data['credits']['arrangement']]);
+    }
+
     public function test_the_template_must_be_well_formed_its_own_id_and_free_of_links(): void
     {
         $this->as(User::factory()->create());

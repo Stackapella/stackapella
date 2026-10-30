@@ -22,6 +22,7 @@ import { prefs } from '../stores/prefs.js';
 import { setGlobal } from '../components/boards.js';
 import { sk } from '../skin.js';
 import { deleteEverythingHere, deviceSummary } from '../device.js';
+import { ideas, ideasOpen } from '../stores/ideas.js';
 
 const AVATAR_BYTES = 2 * 1024 * 1024;
 const AVATAR_SIDE = 3000;
@@ -69,6 +70,7 @@ export const SettingsView = {
     data: () => ({
         restarting: false,
         profile: null,
+        profileFrom: null, // the account values the form was last filled with
         handleCheck: null,
         email: { address: '', password: '' },
         password: { current: '', next: '' },
@@ -86,7 +88,7 @@ export const SettingsView = {
         editing: null, // 'email' or 'password': its change open under its row
         section: 'profile', // the section in view, marked in the sidebar
     }),
-    setup: () => ({ learning, prefs, account, METHODS, HANDLE_REASONS, EXPORT, formatDate, formatBytes, SECTIONS, SECTION_WORDS, appearanceSummary, selfHosted, CREDIT_SITE, sk }),
+    setup: () => ({ ideas, learning, prefs, account, METHODS, HANDLE_REASONS, EXPORT, formatDate, formatBytes, SECTIONS, SECTION_WORDS, appearanceSummary, selfHosted, CREDIT_SITE, sk }),
     template: `
         <div class="min-h-dvh bg-ink px-4 pb-16 pt-[max(0.5rem,env(safe-area-inset-top))] md:px-8">
             <div class="mx-auto w-full max-w-5xl">
@@ -143,9 +145,11 @@ export const SettingsView = {
                         <div class="divide-y divide-line rounded-2xl border border-line">
                             <!-- Hide profile (contract: account.update hideProfile): saved at once; it never stops sharing or recording. -->
                             <div class="py-2 pe-2 ps-4" data-hide-profile><Switch :on="!!account.me.hideProfile" :label="t('settings.hide.title')" :hint="t('settings.hide.hint')" :disabled="busy === 'hide'" @change="setHidden" /></div>
+                            <!-- Ideas (docs/ideas-app-plan.md): an email when someone sings your tune, once Ideas is open -->
+                            <div v-if="ideas.open" class="py-2 pe-2 ps-4" data-idea-emails><Switch :on="account.me.ideaEmails !== false" :label="t('settings.ideaEmails.title')" :hint="t('settings.ideaEmails.hint')" :disabled="busy === 'ideaEmails'" @change="setIdeaEmails" /></div>
                             <div v-if="account.me?.isAdult" class="py-2 pe-2 ps-4" data-boards-global><Switch :on="!!account.me.boardsGlobal" :label="t('boards.settings.title')" :hint="t('boards.settings.hint')" @change="setBoardsGlobal" /></div>
                         </div>
-                        <Notice v-if="notice.hide || notice.boards" tone="bad">{{ notice.hide || notice.boards }}</Notice>
+                        <Notice v-if="notice.hide || notice.boards || notice.ideaEmails" tone="bad">{{ notice.hide || notice.boards || notice.ideaEmails }}</Notice>
                         <button type="submit" class="btn-primary" :disabled="busy === 'profile'">{{ busy === 'profile' ? t('common.saving') : t('common.save') }}</button>
                     </form>
 
@@ -338,8 +342,9 @@ export const SettingsView = {
         if (account.me) this.reset();
         loadAuthConfig().then((config) => (this.config = config), (error) => console.warn('Sign-in settings not loaded', error));
         loadLearning().catch((error) => console.warn('Course progress not loaded', error));
+        ideasOpen();
         await loadAccount({ fresh: true });
-        this.reset();
+        this.reset({ keepEdits: true }); // anything typed while it loaded stays
         if (account.me) this.loadExport();
         if (account.me) api.usage.show().then(({ data }) => (this.usage = data), (error) => console.warn('Storage not loaded', error));
     },
@@ -400,9 +405,17 @@ export const SettingsView = {
             document.getElementById(key)?.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
         },
         navigate,
-        reset() {
+        /**
+         * The profile's fields from the account. With `keepEdits` (the fresh account arriving after
+         * the form showed the kept one), a field the person has already changed keeps their words.
+         */
+        reset({ keepEdits = false } = {}) {
             const me = account.me;
-            this.profile = me ? { name: me.name ?? '', handle: me.handle ?? '', bio: me.bio ?? '', xHandle: me.xHandle ?? '', blueskyHandle: me.blueskyHandle ?? '' } : null;
+            const fresh = me ? { name: me.name ?? '', handle: me.handle ?? '', bio: me.bio ?? '', xHandle: me.xHandle ?? '', blueskyHandle: me.blueskyHandle ?? '' } : null;
+            const shown = this.profile;
+            const from = this.profileFrom;
+            this.profile = fresh && keepEdits && shown && from ? Object.fromEntries(Object.entries(fresh).map(([key, value]) => [key, shown[key] !== from[key] ? shown[key] : value])) : fresh;
+            this.profileFrom = fresh && { ...fresh }; // a copy: typing changes the form, never this
         },
         /** Runs a section's change, keeping its refusal by the section. */
         async run(section, request) {
@@ -443,6 +456,10 @@ export const SettingsView = {
         /** Hide profile: everyone else sees "Anonymous", with no handle, picture or profile page. */
         async setHidden(on) {
             if (await this.run('hide', () => api.account.update({ hideProfile: on }))) toast(t('settings.saved'));
+        },
+        /** Ideas: an email when someone sings your tune (at most one a day per tune), at once. */
+        async setIdeaEmails(on) {
+            if (await this.run('ideaEmails', () => api.account.update({ ideaEmails: on }))) toast(t('settings.saved'));
         },
         async setBoardsGlobal(on) {
             if (await this.run('boards', () => setGlobal(on))) {

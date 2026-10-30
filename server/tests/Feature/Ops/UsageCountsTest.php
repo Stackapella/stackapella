@@ -79,6 +79,12 @@ final class UsageCountsTest extends TestCase
         $this->assertMatchesContract($week, 'admin.counts.show', 200);
         $week->assertJsonPath('data.totals.0', ['kind' => 'lesson_done', 'guest' => 3, 'account' => 5])->assertJsonPath('data.countries.0', ['country' => 'GB', 'count' => 5]);
         $this->getJson('/api/admin/counts?days=90')->assertJsonPath('data.totals.0.account', 14)->assertJsonPath('data.countries.0', ['country' => null, 'count' => 9]);
+
+        // Today alone: yesterday's counts stay out.
+        DB::table('usage_counts')->insert(['day' => now()->subDay()->toDateString(), 'kind' => 'lesson_done', 'audience' => 'guest', 'country' => 'US', 'count' => 4]);
+        $today = $this->getJson('/api/admin/counts?days=1');
+        $this->assertMatchesContract($today, 'admin.counts.show', 200);
+        $today->assertJsonPath('data.totals.0', ['kind' => 'lesson_done', 'guest' => 3, 'account' => 5])->assertJsonPath('data.days.0.date', now()->toDateString());
     }
 
     public function test_the_server_counts_every_new_account_itself(): void

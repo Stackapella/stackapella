@@ -12,6 +12,7 @@ import { toast } from '../components/ui.js';
 import { AuditSection } from './audit.js';
 import { FeedbackSection } from './feedback.js';
 import { ReportsSection } from './reports.js';
+import { IdeasSection } from './ideas.js';
 import { MudeoSection } from './mudeo.js';
 import { GuidesSection } from './guides.js';
 import { ReviewSection } from './review.js';
@@ -47,6 +48,7 @@ const SECTIONS = [
     { name: 'singers', group: 'people', path: '/admin/singers', label: tk('admin.nav.singers'), hint: tk('admin.nav.singersHint'), icon: 'headphones', role: 'admin' },
     { name: 'safety', group: 'people', path: '/admin/safety', label: tk('admin.nav.safety'), hint: tk('admin.nav.safetyHint'), icon: 'shield', role: 'admin' },
     { name: 'guides', group: 'content', path: '/admin/guides', label: tk('admin.nav.guides'), hint: tk('admin.nav.guidesHint'), icon: 'note', role: 'editor' },
+    { name: 'ideas', group: 'content', path: '/admin/ideas', label: tk('admin.nav.ideas'), hint: tk('admin.nav.ideasHint'), icon: 'mic', role: 'admin' },
     { name: 'posts', group: 'content', path: '/admin/posts', label: tk('admin.nav.posts'), hint: tk('admin.nav.postsHint'), icon: 'sparkle', role: 'admin', count: (c) => c.posts, words: tk('admin.posts.waitingCount') },
     { name: 'usage', group: 'growth', path: '/admin/usage', label: tk('admin.nav.usage'), hint: tk('admin.nav.usageHint'), icon: 'sparkle', role: 'admin' },
     { name: 'funnel', group: 'growth', path: '/admin/funnel', label: tk('admin.nav.funnel'), hint: tk('admin.nav.funnelHint'), icon: 'list', role: 'admin' },
@@ -107,7 +109,7 @@ const HomeSection = {
 };
 
 export const AdminView = {
-    components: { Icon, Logo, Notice, HomeSection, SafetySection, AuditSection, ReviewSection, SingersSection, GuidesSection, FeedbackSection, ReportsSection, MudeoSection, SupportSection, LinksSection, PeopleSection, PostsSection, UsageSection, FunnelSection },
+    components: { Icon, Logo, Notice, HomeSection, SafetySection, AuditSection, ReviewSection, SingersSection, GuidesSection, FeedbackSection, ReportsSection, IdeasSection, MudeoSection, SupportSection, LinksSection, PeopleSection, PostsSection, UsageSection, FunnelSection },
     data: () => ({ me: null, failed: false, overview: null }),
     setup: () => ({ route, socialWaiting, formatNumber }),
     template: `
@@ -153,6 +155,7 @@ export const AdminView = {
                 <GuidesSection v-else-if="current === 'guides'" :me="me" />
                 <FeedbackSection v-else-if="current === 'feedback'" :me="me" />
                 <ReportsSection v-else-if="current === 'reports'" :me="me" />
+                <IdeasSection v-else-if="current === 'ideas'" :me="me" />
                 <SupportSection v-else-if="current === 'support'" :me="me" />
                 <LinksSection v-else-if="current === 'links'" :me="me" />
                 <PostsSection v-else-if="current === 'posts'" :me="me" />

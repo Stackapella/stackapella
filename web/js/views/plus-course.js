@@ -33,7 +33,7 @@ export const PlusCourseView = {
                     <h1 class="truncate text-xl font-bold text-cream" translate="no">{{ course ? localized(entry.title) : t('courses.title') }}</h1>
                 </div>
             </header>
-            <p v-if="!learning.loaded || !learning.coursesLoaded" class="text-muted" role="status">{{ t('course.loading') }}</p>
+            <p v-if="!learning.loaded || (!learning.coursesLoaded && !course)" class="text-muted" role="status">{{ t('course.loading') }}</p>
             <p v-else-if="!course" class="text-cream">{{ t('courses.notHere') }} <a href="/learn" class="link" @click.prevent="navigate('/learn')">{{ t('course.backToCourse') }}</a></p>
             <template v-else>
                 <section v-if="next" class="card p-6" :aria-label="t('course.hub.upNext')" data-up-next>
@@ -75,12 +75,17 @@ export const PlusCourseView = {
             </template>
         </div>`,
     computed: {
+        /** The course's id, from the address's id or slug. */
+        courseId() {
+            return this.entry?.id ?? this.id;
+        },
         entry() {
-            return learning.catalogue.find((c) => c.id === this.id) ?? null;
+            // By id, or by the course's slug (the site's links, and links already shared, use either).
+            return learning.catalogue.find((c) => c.id === this.id || c.slug === this.id) ?? null;
         },
         /** The course's data, when this account can see it. */
         course() {
-            return this.entry && courseVisible(this.entry, account.me) ? learning.courses[this.id] ?? null : null;
+            return this.entry && courseVisible(this.entry, account.me, account.config) ? learning.courses[this.courseId] ?? null : null;
         },
         next() {
             if (!this.course) return null;
@@ -121,7 +126,7 @@ export const PlusCourseView = {
         /** Sharpen up: its lessons queued in this tab, then the first, at its scored part. */
         sharpenUp() {
             const ids = this.sharpen.map((pick) => pick.lesson.id);
-            startSharpen(this.id, ids);
+            startSharpen(this.courseId, ids);
             navigate('/learn/' + ids[0]);
         },
         /** Restart this course: a styled confirm naming the course, then only its lessons go. */
@@ -129,7 +134,7 @@ export const PlusCourseView = {
             const name = localized(this.entry.title);
             if (!(await confirmAction({ title: t('courses.restartTitle', { course: name }), body: sk('courses.restartBodySerious', 'courses.restartBody', { course: name }), action: t('courses.restartAction', { course: name }) }))) return;
             try {
-                await restartPlusCourse(this.id);
+                await restartPlusCourse(this.courseId);
                 toast(t('courses.restarted', { course: name }));
             } catch (error) {
                 console.error('The course could not restart', error);

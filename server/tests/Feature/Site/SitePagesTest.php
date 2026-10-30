@@ -19,6 +19,7 @@ use App\Support\Site\WhatsNew;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Routing\Middleware\ThrottleRequests;
 use Illuminate\Support\Facades\Lang;
+use Illuminate\Support\Str;
 use Tests\TestCase;
 
 /**
@@ -62,7 +63,9 @@ final class SitePagesTest extends TestCase
 
         foreach ([...SitePages::FEATURES] as $slug) {
             $this->assertIsArray(Lang::get('site.features.pages.'.$slug.'.sections'), "{$slug}: its words");
-            $this->get('/features/'.$slug)->assertSee(__('site.features.pages.'.$slug.'.headline'));
+            // A feature with its own designed page (site/features/<slug>) leads with its hero title instead.
+            $words = (array) Lang::get('site.features.pages.'.$slug);
+            $this->get('/features/'.$slug)->assertSee((string) ($words['hero_title'] ?? $words['headline']));
         }
         foreach (SitePages::FOR as $who) {
             $this->get('/for/'.$who)->assertSee(__('site.for.pages.'.$who.'.headline'));
@@ -179,7 +182,10 @@ final class SitePagesTest extends TestCase
         $entries = WhatsNew::entries();
         $this->assertNotSame([], $entries);
         $this->assertSame($entries, collect($entries)->sortByDesc('date')->values()->all());
-        $this->get('/whats-new')->assertOk()->assertSee($entries[0]['title'])->assertSee('datetime="'.$entries[0]['date'].'"', false);
+        // Newest first, each linkable by its title, and no dates shown (Hillel: changes come in bursts).
+        $this->get('/whats-new')->assertOk()->assertSee($entries[0]['title'])
+            ->assertSee('id="'.Str::slug($entries[0]['title']).'"', false)
+            ->assertDontSee('datetime=', false)->assertDontSee($entries[0]['day']);
     }
 
     public function test_guides_and_legal_pages_read_as_pages_in_the_sites_frame(): void
@@ -391,14 +397,47 @@ final class SitePagesTest extends TestCase
         }
     }
 
+    public function test_the_free_courses_outline_comes_from_its_own_file(): void
+    {
+        $file = (array) json_decode((string) file_get_contents(dirname(base_path()).'/web/course/course.json'), true);
+
+        $outline = SitePages::freeCourseOutline();
+        $this->assertNotNull($outline);
+        $this->assertCount(count($file['units']), $outline['units']);
+        $this->assertSame(array_sum(array_map(fn (array $u): int => count($u['lessons']), $file['units'])), $outline['lessons']);
+        $this->assertSame($file['units'][0]['lessons'][0]['title']['en'], $outline['units'][0]['lessons'][0]);
+    }
+
+    public function test_the_free_course_has_its_own_page_with_its_units_and_is_listed_first(): void
+    {
+        $outline = SitePages::freeCourseOutline();
+        $this->assertNotNull($outline);
+        $page = (array) Lang::get('site.features.pages.course');
+
+        $response = $this->get('/features/course')->assertOk()
+            ->assertSee((string) $page['hero_title'])
+            ->assertSee((string) $page['plus_unit'])
+            ->assertSee('"@type":"FAQPage"', false);
+        foreach ($outline['units'] as $unit) {
+            $response->assertSee($unit['title'])->assertSee($unit['lessons'][0]);
+        }
+
+        $html = (string) $this->get('/courses')->assertOk()->getContent();
+        $free = strpos($html, 'href="/features/course"');
+        $this->assertNotFalse($free, 'the free course is on /courses');
+        $this->assertLessThan(strpos($html, 'href="/courses/'), $free, 'and listed before the Plus courses');
+        $this->assertStringContainsString(e(__('site.courses.index.free_name')), $html);
+    }
+
     public function test_a_course_page_shows_its_units_from_its_file_how_it_listens_and_its_songs(): void
     {
         $outline = SitePages::courseOutline('vibrato');
         $this->assertNotNull($outline);
         $page = (array) Lang::get('site.courses.pages.vibrato');
 
+        // Vibrato has its own designed page (site/courses/vibrato), with the same facts from the course.
         $response = $this->get('/courses/vibrato')->assertOk()
-            ->assertSee(__('pages.site.course_units'))
+            ->assertSee((string) $page['titles']['units'])
             ->assertSee(__('pages.site.course_free'))
             ->assertSee((string) $page['measures'])
             ->assertSee((string) $page['scoring']['serious'])
@@ -410,7 +449,7 @@ final class SitePagesTest extends TestCase
 
         // Barbershop says what's built: its own chorus and original tags, never "classic tags".
         $this->get('/courses/barbershop')->assertOk()
-            ->assertSee(__('pages.site.course_hears'))
+            ->assertSee((string) Lang::get('site.courses.pages.barbershop.titles.inside'))
             ->assertSee('Down by the Old Mill Stream')
             ->assertDontSee('Sweet Adeline')
             ->assertDontSee('classic tags');

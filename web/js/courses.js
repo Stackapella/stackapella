@@ -77,10 +77,14 @@ export function mergeCourses(mine = {}, theirs = {}) {
 
 /**
  * Whether an account sees a course: a live course, for staff before launch, then for everyone the
- * `plusCourses` feature reaches (account.show, once the backend has it). Signed out sees none yet.
+ * `plusCourses` feature reaches (account.show). Signed out, a guest sees it once the feature is on
+ * for everyone (auth.config's `plusCourses`, passed as `config`), to try its free lesson.
  */
-export function courseVisible(entry, me) {
-    if (!entry || entry.status !== 'live' || !me) return false;
+export function courseVisible(entry, me, config = null) {
+    if (!entry || entry.status !== 'live') return false;
+    // Signed out, a guest can try a live course's free lesson once the feature is on for everyone
+    // (Hillel, 2026-10-30: "Guests can try it"), as auth.config says it.
+    if (!me) return config?.plusCourses === true;
     return me.plusCourses === true || !!me.staff;
 }
 

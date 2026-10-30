@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Ops;
 
+use App\Actions\Templates\SyncOfficialTemplates;
 use App\Console\Commands\BackupDrill;
 use App\Console\Commands\BackupRun;
 use App\Enums\SecurityEventType;
@@ -20,6 +21,7 @@ use Illuminate\Console\Scheduling\Event as ScheduledEvent;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Notification;
@@ -190,6 +192,37 @@ final class OpsTest extends TestCase
         config(['app.sqids_alphabet_set' => true, 'services.turnstile.site_key' => 'site', 'services.turnstile.secret' => 'secret']);
         $this->assertSame('pass', $status('sqids'));
         $this->assertSame('pass', $status('turnstile'));
+    }
+
+    public function test_a_self_hosted_install_is_checked_only_for_what_it_needs(): void
+    {
+        $this->app['env'] = 'production';
+        $checks = fn (): Collection => collect(app(Readiness::class)->run())->keyBy('key');
+        config(['mail.default' => 'smtp']);
+        $this->assertSame('fail', $checks()->get('transport')?->status);
+        $this->assertTrue($checks()->has('stripe'));
+
+        config(['selfhost.enabled' => true]);
+        $mine = $checks();
+        // Any real mailer, and none of Stackapella's own services or docs.
+        $this->assertSame('pass', $mine->get('transport')?->status);
+        foreach (['stripe', 'stripe_webhook', 'connect_webhook', 'invoice_ninja', 'social', 'bounces', 'event_schedule'] as $ours) {
+            $this->assertFalse($mine->has($ours), $ours);
+        }
+        $this->assertStringNotContainsString('docs/', $mine->pluck('fix')->implode(' '));
+        $this->assertStringNotContainsString('Hillel', $mine->pluck('fix')->implode(' '));
+        config(['mail.default' => 'log']);
+        $this->assertSame('fail', $checks()->get('transport')?->status);
+    }
+
+    public function test_readiness_says_where_the_songs_come_from_when_the_library_is_empty(): void
+    {
+        $songs = fn (): ?string => collect(app(Readiness::class)->run())->firstWhere('key', 'songs')?->status;
+        $this->assertSame('fail', $songs());
+        $this->assertStringContainsString('content.sh fetch', (string) collect(app(Readiness::class)->run())->firstWhere('key', 'songs')?->fix);
+
+        app(SyncOfficialTemplates::class)->handle();
+        $this->assertSame('pass', $songs());
     }
 
     public function test_the_file_backup_copies_new_files_and_lets_deleted_ones_go_after_30_days(): void

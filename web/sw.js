@@ -74,6 +74,10 @@ const SHELL = [
     '/js/game/stage-map.js',
     '/js/game/part-select.js',
     '/js/game/crt.js',
+    '/js/game/ghost.js',
+    '/js/game/initials.js',
+    '/js/game/daily.js',
+    '/js/game/badge-news.js',
     '/js/views/projects.js',
     '/js/views/studio.js',
     '/js/views/sing.js',
@@ -102,7 +106,9 @@ const SHELL = [
     '/js/views/plus-course.js',
     '/js/views/ideas.js',
     '/js/stores/ideas.js',
+    '/js/views/reset.js',
     '/js/components/share-idea.js',
+    '/js/components/idea-voice.js',
     '/js/components/exercise.js',
     '/course/course.json',
     '/course/plus/courses.json',
@@ -197,6 +203,7 @@ const SHELL = [
     '/js/components/mic-help.js',
     '/js/components/chord-moment.js',
     '/js/components/session-wrap.js',
+    '/js/components/screen-loading.js',
     '/js/components/then-and-now.js',
     '/js/components/voice-card.js',
     '/js/components/create/hum-tune.js',
@@ -272,7 +279,7 @@ const SHELL = [
 
 // The app's own addresses (every route in router.js; tests/sw-routes.test.js keeps them in step);
 // every other page is the server's.
-const APP_ROUTE = /^\/(?:$|index\.html$|p\/[\w-]+(?:\/sing)?\/?$|styleguide\/?$|beta(?:\/[\w-]*)?\/?$|signin(?:\/link)?\/?$|settings(?:\/reminders)?\/?$|storage\/?$|voice\/?$|workout\/?$|plus\/?$|learn(?:\/c)?(?:\/[\w-]+)?\/?$|verify\/?$|reset\/?$|email\/(?:confirm|revert)\/?$|create(?:\/[\w-]+)?\/?$|t\/[\w-]+\/?$|(?:join|early|invite|choir|challenge)\/[\w-]+\/?$|groups(?:\/[\w-]+)?\/?$|ideas(?:\/[\w-]+)?\/?$|moved\/?$|contact\/?$|admin(?:\/(?!sign-in|sign-out|second-factor)[\w-]+(?:\/[\w-]+)?)?\/?$)/;
+const APP_ROUTE = /^\/(?:$|index\.html$|p\/[\w-]+(?:\/sing)?\/?$|styleguide\/?$|beta(?:\/[\w-]*)?\/?$|signin(?:\/link)?\/?$|settings(?:\/reminders)?\/?$|storage\/?$|voice\/?$|workout\/?$|plus\/?$|learn(?:\/c)?(?:\/[\w-]+)?\/?$|verify\/?$|reset\/?$|email\/(?:confirm|revert)\/?$|create(?:\/[\w-]+)?\/?$|t\/[\w-]+\/?$|(?:join|early|invite|choir|challenge)\/[\w-]+\/?$|groups(?:\/[\w-]+)?\/?$|ideas(?:\/[\w-]+)?\/?$|start-fresh\/?$|moved\/?$|contact\/?$|admin(?:\/(?!sign-in|sign-out|second-factor)[\w-]+(?:\/[\w-]+)?)?\/?$)/;
 
 /**
  * Caches every file of the app, or none: a file that fails (a folder the server doesn't serve, say)

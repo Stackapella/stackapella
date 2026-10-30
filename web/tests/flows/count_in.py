@@ -33,6 +33,9 @@ def journey(f):
             if (n && window.__shown.at(-1) !== n) window.__shown.push(n);  // 0: before the first click, nothing shown
             if (!window.__started) requestAnimationFrame(watch); };
         window.__started = false; requestAnimationFrame(watch);""")
+    # What a screen reader hears (the view's polite line): the count-in once, then Recording, never each beat.
+    f.run("""window.__said = []; const line = document.querySelector('#main p.sr-only[aria-live=polite]');
+        new MutationObserver(() => { const s = line.textContent.trim(); if (s && window.__said.at(-1) !== s) window.__said.push(s); }).observe(line, { childList: true, characterData: true, subtree: true });""")
     f.press("r")
     f.wait(f"{SESSION}.session.recording && {SESSION}.session.countIn === null && {SESSION}.session.position > {SESSION}.session.recordFrom + 0.2", timeout=30, what="recording after the count-in")
     f.run("window.__started = true;")
@@ -45,6 +48,9 @@ def journey(f):
     print(f"    count-in shown {shown}, the clicks' beats {expected}")
     assert shown == expected, f"the count-in showed {shown}, the clicks were on beats {expected}"
     assert not f.js("document.body.innerText.includes('Recording in')"), "a countdown is back"
+    said = f.js("window.__said")
+    assert said[-2:] == [t(f, "sing.say.countIn"), t(f, "sing.say.recording")], f"a screen reader heard {said}"
+    assert not any(s.strip().isdigit() for s in said), f"each beat was said: {said}"
     f.run("document.querySelector('[data-stop]')?.click()")
     clear_projects(f)
 

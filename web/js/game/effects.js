@@ -10,7 +10,7 @@ import { game } from '../stores/appearance.js';
 const KEY = 'stackapella.gameEffects';
 
 /** The switches in Settings' order, with their defaults. */
-export const EFFECTS = { sounds: false, hud: true, popups: true, titles: true, celebrations: true, title: true, stages: true, versus: true, select: true };
+export const EFFECTS = { sounds: false, hud: true, popups: true, titles: true, celebrations: true, title: true, stages: true, versus: true, select: true, ghost: true, daily: true };
 
 function read() {
     let kept = {};

@@ -1,21 +1,21 @@
 // Ideas: a tune shared for real voices (docs/ideas-app-plan.md; contract/api.md, "Ideas"). Behind
-// the server's `ideas` flag, which `auth.config` doesn't name: closed, `ideas.list` answers 404, so
-// the app asks it once a session and shows no way in until it's open.
+// the server's `ideas` flag, which auth.config says (`ideas`): closed, or an older server that doesn't
+// say, the app shows no way in. Never asked of ideas.list itself: while closed it answers 404, which
+// the browser logs as an error on every page that asked.
 
 import { reactive } from 'vue';
-import { api, ApiError } from '../api.js';
+import { api } from '../api.js';
+import { loadAuthConfig } from './account.js';
 
-export const ideas = reactive({ open: null }); // null until asked; then true or false
+export const ideas = reactive({ open: null }); // null until the settings are in; then true or false
 
 let asking = null;
 
-/** Whether Ideas is open: asked once a session (a failed ask, offline say, is asked again later). */
+/** Whether Ideas is open, from auth.config (a failed load, offline say, is asked again later). */
 export function ideasOpen() {
-    asking ??= api.ideas
-        .list({ query: { tab: 'open' } })
-        .then(() => (ideas.open = true))
+    asking ??= loadAuthConfig()
+        .then((config) => (ideas.open = config?.ideas === true))
         .catch((error) => {
-            if (error instanceof ApiError && error.status === 404) return (ideas.open = false);
             console.info('Ideas could not be checked', error?.message ?? error);
             asking = null;
             return false;

@@ -23,7 +23,7 @@ use Illuminate\Validation\ValidationException;
  */
 final class UpdateProfile
 {
-    private const FIELDS = ['name' => 'name', 'handle' => 'handle', 'bio' => 'bio', 'locale' => 'locale', 'timezone' => 'timezone', 'xHandle' => 'x_handle', 'blueskyHandle' => 'bluesky_handle', 'heardFrom' => 'heard_from', 'ideaEmails' => 'idea_emails', 'hideProfile' => 'hide_profile'];
+    private const FIELDS = ['name' => 'name', 'handle' => 'handle', 'bio' => 'bio', 'locale' => 'locale', 'timezone' => 'timezone', 'xHandle' => 'x_handle', 'blueskyHandle' => 'bluesky_handle', 'heardFrom' => 'heard_from', 'ideaEmails' => 'idea_emails', 'hideProfile' => 'hide_profile', 'initials' => 'initials', 'boardsName' => 'boards_name'];
 
     /**
      * @param  array<string, mixed>  $changes  validated, in the contract's names
@@ -50,6 +50,15 @@ final class UpdateProfile
             }
 
             $fields['public_profile_at'] = $changes['publicProfile'] ? ($user->public_profile_at ?? now()) : null;
+        }
+
+        // Initials are kept in capitals; showing them needs them set (this change's or theirs).
+        if (array_key_exists('initials', $fields)) {
+            $fields['initials'] = is_string($fields['initials']) && $fields['initials'] !== '' ? strtoupper($fields['initials']) : null;
+        }
+
+        if (($fields['boards_name'] ?? $user->getAttributes()['boards_name'] ?? 'name') === 'initials' && (array_key_exists('initials', $fields) ? $fields['initials'] : ($user->getAttributes()['initials'] ?? null)) === null) {
+            throw ValidationException::withMessages(['boardsName' => __('validation.initials_required')]);
         }
 
         // How they heard of us is asked once: a later answer doesn't replace the first.

@@ -435,6 +435,9 @@ Each operation is one function in `web/js/api.js` named after it, and one route 
 | `boards.challenges.create` | `POST /api/boards/challenges` | Anyone signed in | L |
 | `boards.challenges.show` | `GET /api/boards/challenges/{token}` | Anyone with the link | L |
 | `boards.challenges.accept` | `POST /api/boards/challenges/{token}/accept` | Anyone signed in | L |
+| `boards.daily.show` | `GET /api/boards/daily` | Anyone | L |
+| `boards.ghost.show` | `GET /api/boards/{template}/{part}/ghost` | Anyone signed in | L |
+| `boards.ghost.update` | `PUT /api/boards/{template}/{part}/ghost` | Anyone signed in | L |
 | `admin.boards.flags.list` | `GET /api/admin/boards/flags` | An admin | L |
 | `admin.boards.scores.review` | `POST /api/admin/boards/scores/{id}/review` | An admin | L |
 | `admin.boards.scores.delete` | `DELETE /api/admin/boards/scores/{id}` | An admin, in sudo | L |
@@ -1277,6 +1280,12 @@ apps use the synth. A version's files never change (cache them by URL for good);
 no Plus page or Get Plus), false on stackapella.com. `sentryDsn` is the browser error reporter's DSN
 (public by design; its envelopes go to `/log/errors`), or null when it isn't set up, when the app
 sends nothing. `usageCounts` says whether to send the anonymous usage counts (`counts.create`).
+`humTune` says whether Hum a tune is on (the `your_tune` switch, the same one that turns the site's
+`/features/your-tune` page to "now"). `ideas` says whether Ideas is on (the `ideas` switch); while
+it's false the app shows no Ideas, and reads this rather than asking the ideas operations.
+`plusCourses` says whether the Plus courses are live (the `plus_courses` switch), so a signed-out
+visitor can try a live course's free first lesson; `account.plusCourses` is the same switch, plus
+staff before it opens.
 `experiment` is the funnel's running A/B test, `{ "id": "onb1", "arms": ["a", "b"], "enrol": true }`,
 or null: a new device draws an arm (`crypto.getRandomValues`) at its first open only while `enrol`
 is true, keeps it on the device, and sends `"<id>-<arm>"` as `counts.create`'s `variant`.
@@ -1453,7 +1462,10 @@ The signed-in account. **Request:** none.
 `birthMonth` and `birthYear` (as `auth.register`'s, once: while the account has none, for a first
 Google or Apple sign-in and for older accounts that ticked "13 or over"; a later answer doesn't
 replace it; under 13 answers `422 too_young`; the old `ageConfirmed` is refused, `422`), `publicProfile` (N1: a public profile in the gallery; a handle and 18
-or over, `403 adult_required`), `hideProfile` (Hide profile: everyone else sees "Anonymous" with no
+or over, `403 adult_required`), `initials` (three letters A to Z, upper case, or null: game mode's arcade initials; a blocked
+combination is `422` on `initials`) and `boardsName` (`name` or `initials`: what the boards and
+challenges show; `initials` needs initials set, else `422` on `boardsName`; under 18 it's always
+initials), `hideProfile` (Hide profile: everyone else sees "Anonymous" with no
 handle, picture or profile page; it overrides `publicProfile` while on and never blocks sharing,
 recording or the gallery, where a hidden adult's songs are listed as Anonymous), `ideaEmails` (Ideas: emailed about new voices on your tunes), `pushTypes` (which of the bell's
 kinds are pushed to the apps, `{ "like": false, ... }`; the kinds sent change, the rest stay),
@@ -4640,6 +4652,12 @@ later rescore. Keeps only the best; 30 a minute. A score that doesn't qualify is
 before this take, whichever device set it (game mode's "up from 82"): null on a first score or one
 that didn't count.
 
+**The daily challenge:** an optional `daily: "YYYY-MM-DD"` (today in UTC, or yesterday within 5
+minutes of midnight) also puts a score that counts on that day's board, when the song and part are
+that day's pick (`boards.daily.show`), keeping their best of the day. The answer's `daily` is then `{
+"counted": bool, "best": int|null, "rank": int|null }` (rank on the global board, null when they're
+not on it), and null when `daily` wasn't sent.
+
 | Status | Code | Schema | Example |
 |---|---|---|---|
 | 200 | | `boards.scores.submit.json` | `boards.scores.submit.200.json` |
@@ -4652,7 +4670,9 @@ that didn't count.
 **Request:** `?scope=global` or `friends`, and optionally `?version=` (an earlier version of the
 song: its board, read only; `404` when it has no entries on this part). The top 10 and their own
 best and place; `current` says whether it's the song's current arrangement, and `olderVersions`
-lists the earlier versions with entries on this part, newest first.
+lists the earlier versions with entries on this part, newest first. Each entry (and `you`) has
+`initials`: someone who shows initials on the boards (`account.update` `boardsName`, and always
+someone under 18) shows them, with `name` null; null initials with a null name, the app shows "???".
 
 | Status | Code | Schema | Example |
 |---|---|---|---|
@@ -4695,6 +4715,53 @@ The song and part to sing, and, between two adults, a connection both ways. **Re
 | 200 | | `boards.challenges.accept.json` | `boards.challenges.accept.200.json` |
 | 404 | `not_found` | `error.json` | `boards.challenges.accept.not_found.json` |
 
+
+#### `boards.daily.show`
+
+Game mode's daily challenge: one song part a day, **the same for everyone**, picked by the server
+from the date (UTC). The pool is the official templates that are reviewed, free and current, each
+part of each, sorted by `templateId` then `partKey`; the day's is the one at `fnv1a32("YYYY-MM-DD")
+mod` the pool's size. **Request:** `?date=YYYY-MM-DD` (today in UTC by default; one of the last 7
+days, else `422`) and `?scope=global` (default) or `friends`. Answers the day's pick, `endsAt` (the
+next midnight, UTC), that day's top 10 (`entries`, named as `boards.show`'s, empty for someone signed
+out) and their own best and place that day (`you`, or null). `days` is the dates in the 7 days
+ending on `date` on which they took the challenge, oldest first, for Home's stamps (their own
+history: a held score counts, one taken off or binned doesn't; `[]` signed out). The scores come
+from `boards.scores.submit` with `daily`.
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 200 | | `boards.daily.show.json` | `boards.daily.show.200.json` |
+| 404 | `not_found` | `error.json` | `boards.daily.show.not_found.json` |
+| 422 | `validation_failed` | `error.json` | `boards.daily.show.validation_failed.json` |
+
+#### `boards.ghost.show`
+
+The ghost of their own best take on a part: its pitch line, for game mode's Sing lane. Their own
+only, never anyone else's. `rate` is frames a second (20), `startSeconds` the song position of the
+first frame, `pitches` base64 of little-endian Int16 (MIDI times 100 a frame, 0 for no pitch).
+`data` is null when they have none kept (no best yet, or a newer best whose ghost wasn't sent);
+`404` only for an unknown song or part. **Request:** none.
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 200 | | `boards.ghost.show.json` | `boards.ghost.show.200.json` |
+| 404 | `not_found` | `error.json` | `boards.ghost.show.not_found.json` |
+
+#### `boards.ghost.update`
+
+Keeps the ghost of their best take, replacing the one before. **Request:** the fields
+`boards.ghost.show` answers (`templateVersion`, `scoringVersion`, `score`, `rate` (20),
+`startSeconds`, `keyOffset`, `pitches`). Accepted only when `score` is their current best on that
+part's board (`409 not_best` otherwise), at most 120 seconds (2,400 frames; longer is `422`). It goes
+with the account, and with the score behind it. A guest keeps theirs on the device.
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 200 | | `boards.ghost.update.json` | `boards.ghost.update.200.json` |
+| 404 | `not_found` | `error.json` | `boards.ghost.update.not_found.json` |
+| 409 | `not_best` | `error.json` | `boards.ghost.update.not_best.json` |
+| 422 | `validation_failed` | `error.json` | `boards.ghost.update.validation_failed.json` |
 #### `admin.boards.flags.list`
 
 Scores held for a look, newest first (up to 100): a perfect 100, a jump of 25 or more over the
@@ -5682,7 +5749,7 @@ below p 0.001 means a bucketing bug, not a result). `asks` is each ask's shown a
 
 #### `admin.counts.show`
 
-The Usage panel. **Request:** `?days=7`, `30` (the default) or `90`. `days` is each day's count per
+The Usage panel. **Request:** `?days=1` (today so far, UTC), `7`, `30` (the default) or `90`. `days` is each day's count per
 kind (guest and account), `totals` the same summed over the period, and `countries` every kind
 summed per country, most first (`country` null: not known).
 

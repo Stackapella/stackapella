@@ -17,12 +17,23 @@ import struct
 import subprocess
 import sys
 import shutil
+import signal
 import tempfile
 import time
 import urllib.request
 from pathlib import Path
 
 CHROME = os.environ.get("CHROME", "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome")
+CLOSE_SECONDS = 5  # a polite close, then forced
+
+
+def _exit_on_term(signum, frame):
+    # SIGTERM (an outer timeout, a killed chain) ends Python the normal way, so every browser closes.
+    raise SystemExit(128 + signum)
+
+
+if signal.getsignal(signal.SIGTERM) is signal.SIG_DFL:
+    signal.signal(signal.SIGTERM, _exit_on_term)
 
 
 class WebSocket:
@@ -93,18 +104,37 @@ class Chrome:
         Path(self.profile).mkdir(parents=True, exist_ok=True)
         port_file = Path(self.profile) / "DevToolsActivePort"
         port_file.unlink(missing_ok=True)
+        # Its own process group, so closing takes its helpers too (renderer, GPU, audio), and never
+        # leaves a headless Chrome holding the audio for the next run (2026-10-30: test.sh hung on them).
         self.process = subprocess.Popen(
             [CHROME, "--headless=new", "--mute-audio", f"--user-data-dir={self.profile}", "--no-first-run",
              "--remote-debugging-port=0", "--autoplay-policy=no-user-gesture-required",
              "--use-fake-ui-for-media-stream", "--use-fake-device-for-media-stream",
              "--host-resolver-rules=MAP *.stackapella.test 127.0.0.1",  # two hosts of one domain, for the flows that cross them
              "about:blank"],
-            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, start_new_session=True,
         )
+        self.closed = False
+        # Closed when Python ends normally or by SIGTERM (atexit), and by a watchdog if Python is
+        # killed outright (SIGKILL runs nothing): it waits for this process, then ends the group.
+        atexit.register(self.close)
+        self.watchdog = subprocess.Popen(
+            ["/bin/sh", "-c", f"while kill -0 {os.getpid()} 2>/dev/null; do sleep 2; done; kill -9 -{self.process.pid} 2>/dev/null"],
+            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, start_new_session=True,
+        )
+        try:
+            self._connect(port_file, width, height, mobile)
+        except BaseException:
+            self.close()  # a Chrome that never came up is still closed
+            raise
+
+    def _connect(self, port_file, width, height, mobile):
         for _ in range(100):
             if port_file.exists() and port_file.read_text().strip():
                 break
             time.sleep(0.1)
+        else:
+            raise RuntimeError("Chrome didn't start (no DevTools port)")
         port = port_file.read_text().split()[0]
         targets = json.load(urllib.request.urlopen(f"http://127.0.0.1:{port}/json"))
         page = next(t for t in targets if t["type"] == "page")
@@ -172,8 +202,25 @@ class Chrome:
         Path(path).write_bytes(base64.b64decode(data))
 
     def close(self):
-        self.process.terminate()
-        self.process.wait()
+        """Ends Chrome and its helpers: politely, then by force after CLOSE_SECONDS. Safe to call twice."""
+        if getattr(self, "closed", True):
+            return
+        self.closed = True
+        for sig, wait in ((signal.SIGTERM, CLOSE_SECONDS), (signal.SIGKILL, CLOSE_SECONDS)):
+            try:
+                os.killpg(self.process.pid, sig)
+            except ProcessLookupError:
+                break  # the whole group has gone
+            try:
+                self.process.wait(timeout=wait)
+            except subprocess.TimeoutExpired:
+                continue
+            try:
+                os.killpg(self.process.pid, 0)  # helpers still there after the browser went?
+            except ProcessLookupError:
+                break
+        if getattr(self, "watchdog", None) and self.watchdog.poll() is None:
+            self.watchdog.kill()
         if self.own_profile:
             shutil.rmtree(self.profile, ignore_errors=True)
 

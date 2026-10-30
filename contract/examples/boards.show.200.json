@@ -9,7 +9,8 @@
             {
                 "id": "Ps8Kd2",
                 "rank": 1,
-                "name": "Ana Ruiz",
+                "name": null,
+                "initials": "ANA",
                 "score": 91,
                 "at": "2026-10-27T18:04:00Z",
                 "you": false
@@ -18,6 +19,7 @@
                 "id": "Lm3Qx7",
                 "rank": 2,
                 "name": "Ben",
+                "initials": null,
                 "score": 87,
                 "at": "2026-10-27T18:04:00Z",
                 "you": true
@@ -25,7 +27,8 @@
         ],
         "you": {
             "score": 87,
-            "rank": 2
+            "rank": 2,
+            "initials": null
         },
         "onGlobal": false,
         "current": true,

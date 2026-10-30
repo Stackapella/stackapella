@@ -49,6 +49,7 @@
                             "id",
                             "rank",
                             "name",
+                            "initials",
                             "score",
                             "at",
                             "you"
@@ -62,8 +63,18 @@
                                 "type": "integer"
                             },
                             "name": {
-                                "type": "string",
-                                "description": "The public name rules; on a friends' board, someone under 18 by first name only. Never an email."
+                                "type": [
+                                    "string",
+                                    "null"
+                                ],
+                                "description": "The public name rules; on a friends' board, someone under 18 by first name only. Never an email. Null when they show initials."
+                            },
+                            "initials": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ],
+                                "description": "Their three initials when they show initials on the boards (always for someone under 18), else null; with initials, `name` is null. Null initials with a null name: the app shows \"???\"."
                             },
                             "score": {
                                 "type": "integer"
@@ -88,7 +99,8 @@
                     "additionalProperties": false,
                     "required": [
                         "score",
-                        "rank"
+                        "rank",
+                        "initials"
                     ],
                     "properties": {
                         "score": {
@@ -100,6 +112,13 @@
                                 "null"
                             ],
                             "description": "Null when they're not on this board (the global board without the opt-in)."
+                        },
+                        "initials": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "description": "Their three initials when they show initials on the boards (always for someone under 18), else null; with initials, `name` is null. Null initials with a null name: the app shows \"???\"."
                         }
                     },
                     "description": "Their own best on this part, or null."

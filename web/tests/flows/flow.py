@@ -35,7 +35,7 @@ class Flow:
         self.step = 0
         # Substrings of console errors this journey causes on purpose. Without a server, the
         # app's start-up calls (the catalogue, the account, coming soon) are 404s, all handled.
-        self.expected_errors = ["404 (Not Found) " + self.base + "/api/templates", "404 (Not Found) " + self.base + "/api/account", "404 (Not Found) " + self.base + "/api/auth/config"]
+        self.expected_errors = ["404 (Not Found) " + self.base + "/api/templates", "404 (Not Found) " + self.base + "/api/account", "404 (Not Found) " + self.base + "/api/auth/config", "404 (Not Found) " + self.base + "/api/boards/daily"]
 
     def go(self, path, wait=None):
         self.chrome.goto(self.base + path, wait)
@@ -153,9 +153,19 @@ class Flow:
 
     def close(self):
         self.chrome.close()
-        errors = [e for e in self.chrome.errors if "favicon" not in e and not any(x in e for x in self.expected_errors)]
+        errors = [e for e in self.chrome.errors if "favicon" not in e and not any(x in e for x in self.expected_errors) and not font_blip(e)]
         if errors:
             raise AssertionError(f"[{self.name}, {self.size}] page errors: {errors}")
+
+
+# Google Fonts' own network blips (ERR_SOCKET_NOT_CONNECTED and the like) fail runs at random, and
+# the push gate runs these flows: a network failure from those two hosts only is ignored. A 404, a
+# blocked request or any other error from them still fails.
+FONT_HOSTS = ("https://fonts.googleapis.com/", "https://fonts.gstatic.com/")
+
+
+def font_blip(error):
+    return "net::ERR_" in error and any(host in error for host in FONT_HOSTS)
 
 
 def run(name, journey, sizes=("phone", "desktop")):

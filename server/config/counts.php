@@ -23,12 +23,14 @@ return [
     // The only kinds counted; anything else is dropped.
     'kinds' => [
         'app_open', 'lesson_start', 'lesson_done', 'unit_done', 'song_created', 'take_recorded', 'share_created', 'harmonise_used', 'export_done', 'sign_up', 'result_shared', 'leaderboard_viewed', 'challenge_accepted',
+        // Game mode: the day's challenge seen and sung.
+        'daily_viewed', 'daily_sung',
         // The skins: app_open split by the skin in use, and the Game mode switch.
         'open_game', 'open_serious', 'game_on', 'game_off',
         // Plus extras.
         'sharpen_up', 'then_now', 'keep_song', 'fact_source',
         // Hum a tune.
-        'hum_start', 'hum_click', 'hum_tap',
+        'hum_start', 'hum_click', 'hum_tap', 'hum_found', 'hum_saved',
         // The studio (export_done stays the total of the three exports).
         'take_use', 'take_undo', 'track_add', 'track_rename', 'exp_song', 'exp_practice', 'exp_stems',
         // Onboarding: the asks that made an account, by reason, and the day-2 card.

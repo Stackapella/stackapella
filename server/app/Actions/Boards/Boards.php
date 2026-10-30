@@ -9,6 +9,8 @@ use App\Exceptions\Refusal;
 use App\Models\AuditLog;
 use App\Models\BoardChallenge;
 use App\Models\BoardConnection;
+use App\Models\DailyScore;
+use App\Models\Ghost;
 use App\Models\Group;
 use App\Models\GroupMember;
 use App\Models\PartScore;
@@ -20,19 +22,23 @@ use App\Models\Template;
 use App\Models\TemplateVersion;
 use App\Models\User;
 use App\Models\UserBlock;
+use App\Support\Boards\Daily;
 use App\Support\Gallery\Bell;
 use App\Support\Gallery\Gallery;
 use App\Support\Gallery\GalleryViews;
 use App\Support\Ids;
 use App\Support\Trust\IpHash;
 use App\Support\Trust\SecurityLog;
+use Carbon\CarbonImmutable;
 use Closure;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Query\Builder as QueryBuilder;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 
 /**
  * Part leaderboards (docs/decisions.md, "part leaderboards"): each person's best score on a part
@@ -62,7 +68,7 @@ final class Boards
 
     /**
      * @param  array{templateId: string, templateVersion: int, partKey: string, scoringVersion: int, score: int, mode: string, keyOffset: int, speed: float, guideMuted: bool, timingChecked: bool, output?: string|null, takeId?: string|null, appVersion?: string|null, pitchDetectorVersion: int, alignmentMs?: int|null, notes?: list<array<string, mixed>>|null}  $s
-     * @return array{counted: bool, why: string|null, best: int|null, improved: bool, before: int|null}
+     * @return array{counted: bool, why: string|null, best: int|null, improved: bool, before: int|null, daily: array{counted: bool, best: int|null, rank: int|null}|null}
      */
     public function submit(User $user, array $s): array
     {
@@ -110,7 +116,7 @@ final class Boards
         if ($why !== null) {
             $had = PartScore::query()->where(['user_id' => $user->id, 'template_version_id' => $version->id, 'part_key' => $s['partKey'], 'scoring_version' => $s['scoringVersion']])->value('score');
 
-            return ['counted' => false, 'why' => $why, 'best' => $had !== null ? (int) $had : null, 'improved' => false, 'before' => null];
+            return ['counted' => false, 'why' => $why, 'best' => $had !== null ? (int) $had : null, 'improved' => false, 'before' => null, 'daily' => $this->toDaily($user, $s, $template, $version, null)];
         }
 
         $score = max(0, min(100, $s['score']));
@@ -142,7 +148,198 @@ final class Boards
 
         // `before`: their best on this board before this take, for the game's "up from" (whatever
         // device set it); null on a first score or one that didn't count.
-        return ['counted' => $result['counted'], 'why' => $result['why'], 'best' => $result['best'], 'improved' => $result['improved'], 'before' => $result['before'] ?? null];
+        return ['counted' => $result['counted'], 'why' => $result['why'], 'best' => $result['best'], 'improved' => $result['improved'], 'before' => $result['before'] ?? null, 'daily' => $this->toDaily($user, $s, $template, $version, $score)];
+    }
+
+    /**
+     * A score sent with `daily`: on that day's board too, when the day is still open and this is
+     * its pick, keeping their best of the day. Null when `daily` wasn't sent.
+     *
+     * @param  array<string, mixed>  $s
+     * @return array{counted: bool, best: int|null, rank: int|null}|null
+     */
+    private function toDaily(User $user, array $s, Template $template, TemplateVersion $version, ?int $score): ?array
+    {
+        $date = $s['daily'] ?? null;
+
+        if (! is_string($date)) {
+            return null;
+        }
+
+        $pick = Daily::open($date) ? Daily::pick($date) : null;
+        $counts = $score !== null && $pick !== null && $pick['template']->id === $template->id && $pick['version']->id === $version->id && $pick['part'] === $s['partKey'];
+
+        if ($counts) {
+            DB::transaction(function () use ($user, $date, $template, $version, $s, $score): void {
+                $row = DailyScore::query()->where('date', $date)->where('user_id', $user->id)->lockForUpdate()->first() ?? new DailyScore;
+
+                if (! $row->exists || $row->score < $score) {
+                    $row->forceFill(['date' => $date, 'user_id' => $user->id, 'template_id' => $template->id, 'template_version_id' => $version->id, 'part_key' => $s['partKey'], 'scoring_version' => $s['scoringVersion'], 'score' => $score, 'recorded_at' => now()])->save();
+                }
+            });
+        }
+
+        $best = DailyScore::query()->where('date', $date)->where('user_id', $user->id)->value('score');
+        $rank = $pick !== null && $best !== null ? self::rankOf($this->dailyRanked($user, $date, $pick, 'global'), $user) : null;
+
+        return ['counted' => $counts, 'best' => $best !== null ? (int) $best : null, 'rank' => $rank];
+    }
+
+    /**
+     * The daily challenge's board: the day's pick, its top 10 (none for someone signed out) and
+     * their own best and place. Named as the part boards are, and held and hidden by them: a day's
+     * score shows only while its singer's part score on that song is on the board.
+     *
+     * @return array<string, mixed>
+     */
+    public function daily(?User $viewer, string $date, string $scope): array
+    {
+        if (! Daily::viewable($date)) {
+            throw ValidationException::withMessages(['date' => __('validation.daily_date')]);
+        }
+
+        $pick = Daily::pick($date) ?? throw new Refusal(404, 'not_found');
+        $ranked = $viewer !== null ? $this->dailyRanked($viewer, $date, $pick, $scope) : collect();
+        $ids = $ranked->isEmpty() ? collect() : PartScore::query()->where('template_version_id', $pick['version']->id)->where('part_key', $pick['part'])
+            ->where('scoring_version', (int) config('boards.scoring_version'))->whereIn('user_id', $ranked->pluck('user_id'))->get()->keyBy('user_id');
+        $own = $viewer !== null ? DailyScore::query()->where('date', $date)->where('user_id', $viewer->id)->where('template_version_id', $pick['version']->id)->value('score') : null;
+
+        return [
+            'date' => $date,
+            'templateId' => $pick['template']->slug,
+            'templateVersion' => $pick['version']->version,
+            'partKey' => $pick['part'],
+            'scope' => $scope,
+            'endsAt' => Daily::endsAt($date),
+            'days' => $viewer !== null ? $this->stampDays($viewer, $date) : [],
+            'entries' => $ranked->take((int) config('boards.top'))->map(fn (DailyScore $row, int $i): array => [
+                // The singer's part-board entry, so "Report this name" works the same here.
+                'id' => $ids->get($row->user_id)?->sqid() ?? '',
+                'rank' => $i + 1,
+                ...self::shown($row->user, $scope),
+                'score' => $row->score,
+                'at' => $row->recorded_at->utc()->toIso8601ZuluString(),
+                'you' => $row->user_id === $viewer?->id,
+            ])->values()->all(),
+            'you' => $viewer !== null && $own !== null ? ['score' => (int) $own, 'rank' => self::rankOf($ranked, $viewer), 'initials' => self::initials($viewer)] : null,
+        ];
+    }
+
+    /**
+     * The days of the week ending on $date on which they took the daily challenge, oldest first:
+     * their own history, so a score held off the global board counts, but not one taken off the
+     * board or whose take is binned.
+     *
+     * @return list<string>
+     */
+    private function stampDays(User $user, string $date): array
+    {
+        $from = CarbonImmutable::createFromFormat('!Y-m-d', $date, 'UTC')?->subDays(Daily::DAYS_BACK - 1)->toDateString() ?? $date;
+
+        return array_values(DailyScore::query()->where('user_id', $user->id)->whereBetween('date', [$from, $date])
+            ->whereExists(fn (QueryBuilder $q) => $q->from('part_scores')->selectRaw('1')
+                ->whereColumn('part_scores.user_id', 'daily_scores.user_id')->whereColumn('part_scores.template_version_id', 'daily_scores.template_version_id')
+                ->whereColumn('part_scores.part_key', 'daily_scores.part_key')->whereColumn('part_scores.scoring_version', 'daily_scores.scoring_version')
+                ->whereNull('part_scores.hidden_at')
+                ->whereNotExists(fn (QueryBuilder $t) => $t->from('takes')->selectRaw('1')->whereColumn('takes.id', 'part_scores.take_id')->whereNotNull('takes.binned_at')))
+            ->orderBy('date')->get(['date'])->map(fn (DailyScore $row): string => $row->date->toDateString())->all());
+    }
+
+    /**
+     * Their place on a day's board, or null when it doesn't show them.
+     *
+     * @param  Collection<int, DailyScore>  $ranked
+     */
+    private static function rankOf(Collection $ranked, User $user): ?int
+    {
+        $at = $ranked->search(fn (DailyScore $row): bool => $row->user_id === $user->id);
+
+        return $at === false ? null : $at + 1;
+    }
+
+    /**
+     * A day's scores in order, as the viewer may see them: only where the singer's part score on
+     * that song is on the board (not hidden, not held, its take not binned), global or friends.
+     *
+     * @param  array{template: Template, version: TemplateVersion, part: string}  $pick
+     * @return Collection<int, DailyScore>
+     */
+    private function dailyRanked(User $viewer, string $date, array $pick, string $scope): Collection
+    {
+        $visible = PartScore::query()->where('template_version_id', $pick['version']->id)->where('part_key', $pick['part'])
+            ->where('scoring_version', (int) config('boards.scoring_version'))->whereNull('hidden_at')
+            ->whereDoesntHave('take', fn ($q) => $q->whereNotNull('binned_at'))
+            ->when($scope === 'global', fn ($q) => $q->where(fn ($q) => $q->where(self::notHeld(...))->orWhere('user_id', $viewer->id)))
+            ->pluck('user_id');
+
+        return DailyScore::query()->with('user')->where('date', $date)->where('template_version_id', $pick['version']->id)->where('part_key', $pick['part'])
+            ->whereIn('user_id', $visible)->whereNotIn('user_id', self::blocked($viewer))
+            ->when($scope === 'global',
+                fn ($q) => $q->whereHas('user', fn ($u) => $u->whereNotNull('board_global_at')->whereNotNull('adult_confirmed_at')->whereNull('suspended_at')),
+                fn ($q) => $q->whereIn('user_id', [$viewer->id, ...$this->friendIds($viewer)])->whereHas('user', fn ($u) => $u->whereNull('suspended_at')))
+            ->orderByDesc('score')->orderBy('recorded_at')->orderBy('id')->get()->values();
+    }
+
+    /**
+     * Their ghost on a part: the pitch line of their best take, while that best still stands on
+     * the board (a score taken off, or its take binned, takes the ghost with it). Null when none is
+     * kept; an unknown song or part is a 404.
+     */
+    public function ghost(User $user, string $templateId, string $part): ?Ghost
+    {
+        $template = $this->template($templateId);
+        $version = $template->currentVersion ?? throw new Refusal(404, 'not_found');
+
+        if (! self::hasPart($version, $part)) {
+            throw new Refusal(404, 'not_found');
+        }
+
+        $scoring = (int) config('boards.scoring_version');
+        $ghost = Ghost::query()->where(['user_id' => $user->id, 'template_version_id' => $version->id, 'part_key' => $part, 'scoring_version' => $scoring])->first();
+        $best = PartScore::query()->where(['user_id' => $user->id, 'template_version_id' => $version->id, 'part_key' => $part, 'scoring_version' => $scoring])->whereNull('hidden_at')
+            ->whereDoesntHave('take', fn ($q) => $q->whereNotNull('binned_at'))->value('score');
+
+        if ($ghost === null || $best === null || (int) $best !== $ghost->score) {
+            return null;
+        }
+
+        return $ghost->setRelation('templateVersion', $version);
+    }
+
+    private static function hasPart(TemplateVersion $version, string $part): bool
+    {
+        return collect((array) ($version->data['parts'] ?? []))->contains(fn ($p): bool => is_array($p) && ($p['key'] ?? null) === $part);
+    }
+
+    /**
+     * Keeps the ghost of their best take, replacing the one before: only for the score that is
+     * their best on that part's board now.
+     *
+     * @param  array{templateVersion: int, scoringVersion: int, score: int, rate: int, startSeconds: float, keyOffset: int, pitches: string}  $g
+     */
+    public function keepGhost(User $user, string $templateId, string $part, array $g): Ghost
+    {
+        $template = $this->template($templateId);
+        $version = $template->currentVersion ?? throw new Refusal(404, 'not_found');
+
+        if (! self::hasPart($version, $part)) {
+            throw new Refusal(404, 'not_found');
+        }
+
+        $best = PartScore::query()->where(['user_id' => $user->id, 'template_version_id' => $version->id, 'part_key' => $part, 'scoring_version' => $g['scoringVersion']])->whereNull('hidden_at')
+            ->whereDoesntHave('take', fn ($q) => $q->whereNotNull('binned_at'))->value('score');
+
+        if ($g['templateVersion'] !== $version->version || $g['scoringVersion'] !== (int) config('boards.scoring_version') || $best === null || (int) $best !== $g['score']) {
+            throw new Refusal(409, 'not_best');
+        }
+
+        $ghost = Ghost::query()->where(['user_id' => $user->id, 'template_version_id' => $version->id, 'part_key' => $part, 'scoring_version' => $g['scoringVersion']])->first() ?? new Ghost;
+        $ghost->forceFill([
+            'user_id' => $user->id, 'template_version_id' => $version->id, 'part_key' => $part, 'scoring_version' => $g['scoringVersion'], 'score' => $g['score'],
+            'rate' => $g['rate'], 'start_seconds' => number_format($g['startSeconds'], 2, '.', ''), 'key_offset' => $g['keyOffset'], 'pitches' => $g['pitches'],
+        ])->save();
+
+        return $ghost->setRelation('templateVersion', $version);
     }
 
     /**
@@ -243,12 +440,12 @@ final class Boards
             'entries' => $ranked->take((int) config('boards.top'))->map(fn (PartScore $row, int $i): array => [
                 'id' => $row->sqid(),
                 'rank' => $i + 1,
-                'name' => $this->name($row->user, $scope),
+                ...self::shown($row->user, $scope),
                 'score' => $row->score,
                 'at' => $row->recorded_at->utc()->toIso8601ZuluString(),
                 'you' => $row->user_id === $viewer->id,
             ])->values()->all(),
-            'you' => $own !== null ? ['score' => (int) $own, 'rank' => $mine !== false ? $mine + 1 : null] : null,
+            'you' => $own !== null ? ['score' => (int) $own, 'rank' => $mine !== false ? $mine + 1 : null, 'initials' => self::initials($viewer)] : null,
             'onGlobal' => ($viewer->getAttributes()['board_global_at'] ?? null) !== null,
             'current' => $version->id === $current->id,
             'olderVersions' => $older->pluck('version')->map(fn ($v): int => (int) $v)->values()->all(),
@@ -298,7 +495,8 @@ final class Boards
             'templateId' => $challenge->template->slug,
             'partKey' => $challenge->part_key,
             'score' => $score !== null ? (int) $score : null,
-            'by' => $viewer !== null && Gallery::adult($viewer) ? GalleryViews::person($challenge->user)['name'] : null,
+            // Their initials when they show initials; their name only to an adult.
+            'by' => $viewer === null ? null : (self::showsInitials($challenge->user) ? self::initials($challenge->user) : (Gallery::adult($viewer) ? GalleryViews::person($challenge->user)['name'] : null)),
         ];
     }
 
@@ -386,6 +584,9 @@ final class Boards
     public function reset(User $admin, User $person, string $note, ?string $ip): int
     {
         $count = PartScore::query()->where('user_id', $person->id)->delete();
+        // Their day's boards and ghosts trace those scores, so they go too.
+        DailyScore::query()->where('user_id', $person->id)->delete();
+        Ghost::query()->where('user_id', $person->id)->delete();
         AuditLog::record('boards.scores_reset', $person, $admin, after: ['scores' => $count], reason: $note, ip: $ip);
 
         return (int) $count;
@@ -413,12 +614,32 @@ final class Boards
     }
 
     /**
-     * The name a board shows: the name rules of public pages, and on a friends' board, someone
-     * under 18 by their first name only. Never an email.
+     * How a board shows someone: their initials when they show initials (game mode's arcade
+     * letters, and always someone under 18), else the name rules of public pages (and on a friends'
+     * board, someone under 18 by their first name only). Never an email.
+     *
+     * @return array{name: string|null, initials: string|null}
      */
-    private function name(User $user, string $scope): string
+    public static function shown(User $user, string $scope): array
     {
-        return $scope === 'friends' ? self::friendName($user) : GalleryViews::person($user)['name'];
+        if (self::showsInitials($user)) {
+            return ['name' => null, 'initials' => self::initials($user)];
+        }
+
+        return ['name' => $scope === 'friends' ? self::friendName($user) : GalleryViews::person($user)['name'], 'initials' => null];
+    }
+
+    /**
+     * Their initials as a board shows them: null when they show their name.
+     */
+    public static function initials(User $user): ?string
+    {
+        return self::showsInitials($user) ? ($user->getAttributes()['initials'] ?? null) : null;
+    }
+
+    public static function showsInitials(User $user): bool
+    {
+        return ! Gallery::adult($user) || ($user->getAttributes()['boards_name'] ?? 'name') === 'initials';
     }
 
     /**

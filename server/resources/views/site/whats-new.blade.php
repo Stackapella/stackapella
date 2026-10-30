@@ -1,5 +1,6 @@
-{{-- What's new (/whats-new): resources/whats-new/en.json, newest first, as a timeline (the redesign):
-     each day's date held at the side while its changes scroll by, each change linkable. --}}
+{{-- What's new (/whats-new): resources/whats-new/en.json, newest first, one change after another,
+     each linkable by its title. No dates shown (Hillel: "remove dates from what's new, we'll likely add
+     features in bursts"); each entry keeps its date in the file, for the order. --}}
 @extends('public.layout')
 
 @section('head')
@@ -15,19 +16,15 @@
             <p class="s-lede">{{ __('site.whats_new.lead') }}</p>
         </section>
         <section class="s-wrap s-sec" aria-label="{{ __('site.whats_new.headline') }}">
-            @foreach (collect($entries)->groupBy('date') as $date => $day)
-                <section class="s-tl-day" aria-labelledby="day-{{ $date }}">
-                    <h2 id="day-{{ $date }}" class="s-tl-date"><time datetime="{{ $date }}">{{ $day[0]['day'] }}</time></h2>
-                    <ol class="s-tl-list">
-                        @foreach ($day as $entry)
-                            <li id="{{ $date }}-{{ $loop->iteration }}">
-                                <h3><a href="#{{ $date }}-{{ $loop->iteration }}">{{ $entry['title'] }}</a></h3>
-                                <p>{{ $entry['body'] }}</p>
-                            </li>
-                        @endforeach
-                    </ol>
-                </section>
-            @endforeach
+            <ol class="s-tl-list">
+                @foreach ($entries as $entry)
+                    @php($anchor = \Illuminate\Support\Str::slug($entry['title']))
+                    <li id="{{ $anchor }}">
+                        <h2><a href="#{{ $anchor }}">{{ $entry['title'] }}</a></h2>
+                        <p>{{ $entry['body'] }}</p>
+                    </li>
+                @endforeach
+            </ol>
         </section>
     </main>
     <x-site.footer />

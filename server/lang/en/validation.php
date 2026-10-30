@@ -281,4 +281,10 @@ return [
         'card_fingerprint' => 'That isn\'t a card fingerprint from Stripe.',
     ],
 
+    // Game mode's boards.
+    'initials_blocked' => 'Choose other letters.',
+    'initials_required' => 'Choose your initials first.',
+    'daily_date' => 'One of the last seven days.',
+    'ghost_pitches' => 'At most 120 seconds.',
+
 ];

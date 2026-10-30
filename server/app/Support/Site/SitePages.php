@@ -131,7 +131,30 @@ final class SitePages
             return null;
         }
 
-        $course = json_decode((string) file_get_contents($root.'/'.$file), true);
+        $outline = self::outlineOf($root.'/'.$file);
+
+        return $outline === null ? null : [...$outline, 'minutes' => is_int($entry['minutes'] ?? null) ? $entry['minutes'] : null];
+    }
+
+    /**
+     * The free course's outline, as courseOutline() gives a Plus course's, from web/course/course.json.
+     * Null when it doesn't parse.
+     *
+     * @return array{units: list<array{title: string, lessons: list<string>}>, lessons: int}|null
+     */
+    public static function freeCourseOutline(): ?array
+    {
+        return self::outlineOf(dirname(base_path()).'/web/course/course.json');
+    }
+
+    /**
+     * Each unit's title and its lessons' titles (in English), and how many lessons, from a course file.
+     *
+     * @return array{units: list<array{title: string, lessons: list<string>}>, lessons: int}|null
+     */
+    private static function outlineOf(string $path): ?array
+    {
+        $course = is_file($path) ? json_decode((string) file_get_contents($path), true) : null;
 
         if (! is_array($course) || ! is_array($course['units'] ?? null)) {
             return null;
@@ -146,7 +169,7 @@ final class SitePages
             }
         }
 
-        return ['units' => $units, 'lessons' => array_sum(array_map(static fn (array $u): int => count($u['lessons']), $units)), 'minutes' => is_int($entry['minutes'] ?? null) ? $entry['minutes'] : null];
+        return ['units' => $units, 'lessons' => array_sum(array_map(static fn (array $u): int => count($u['lessons']), $units))];
     }
 
     /**
@@ -239,7 +262,7 @@ final class SitePages
      * @param  array<string, string>  $values
      * @return array<array-key, mixed>
      */
-    private static function fill(array $words, array $values): array
+    public static function fill(array $words, array $values): array
     {
         return array_map(static fn (mixed $word): mixed => match (true) {
             is_string($word) => strtr($word, $values),
@@ -404,6 +427,31 @@ final class SitePages
 
         return ['/features', ...array_map(static fn (string $s): string => '/features/'.$s, self::FEATURES), ...array_map(static fn (string $s): string => '/for/'.$s, self::FOR),
             ...($courses === [] ? [] : ['/courses', ...array_map(static fn (string $s): string => '/courses/'.$s, $courses)]), '/about', ...$how, '/press', '/whats-new', '/guides'];
+    }
+
+    /**
+     * The comparison pages' slugs, from their words (site.compare.pages), in that order; none until
+     * the words are there.
+     *
+     * @return list<string>
+     */
+    public static function compareSlugs(): array
+    {
+        $pages = Lang::get('site.compare.pages');
+
+        return is_array($pages) ? array_values(array_filter(array_keys($pages), static fn (mixed $slug): bool => is_string($slug) && preg_match('/^[a-z0-9-]{1,40}$/', $slug) === 1)) : [];
+    }
+
+    /**
+     * The comparison pages' addresses for the sitemap: only once the compare_pages switch is on.
+     *
+     * @return list<string>
+     */
+    public static function comparePaths(): array
+    {
+        $slugs = app(Flags::class)->on('compare_pages') ? self::compareSlugs() : [];
+
+        return $slugs === [] ? [] : ['/compare', ...array_map(static fn (string $s): string => '/compare/'.$s, $slugs)];
     }
 
     /**

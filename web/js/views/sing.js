@@ -33,11 +33,15 @@ import { Stage } from '../components/sing/stage.js';
 import { RecordingStage } from '../components/sing/recording.js';
 import { Coach, PhraseStage, StepDone } from '../components/sing/coach.js';
 import { JustRecorded } from '../components/sing/recorded.js';
+import { IdeaVoice } from '../components/idea-voice.js';
 import { LineBar, ModeBar, SingHeader, Transport, TurnBand } from '../components/sing/frame.js';
 import { PopupSlot } from '../game/hud.js';
 import { effect } from '../game/effects.js';
-import { comboMilestone, popupQueue } from '../game/popups.js';
+import { comboMilestone, heldToEnd, popupQueue } from '../game/popups.js';
 import { crtOnce } from '../game/crt.js';
+import { decodeGhost, encodeGhost, keepDeviceGhost, loadGhost, placeGhost, saveGhost } from '../game/ghost.js';
+import { stampDaily } from '../game/daily.js';
+import { SCORING_VERSION } from '../scoring.js';
 import { run } from '../game/motion.js';
 import { PartSheet, SettingsSheet } from '../components/sing/sheets.js';
 import { chordName, noteLabel } from '../notes.js';
@@ -76,10 +80,10 @@ const FIT_WORDS = { fits: tk('sing.fitsYourRange'), lower: tk('sing.fitsYourRang
 
 export const SingView = {
     mixins: [RecordSetup],
-    components: { PopupSlot, TakeBest, PhraseStage, Chooser, Stage, RecordingStage, Lane, NowCard, Coach, StepDone, JustRecorded, LineBar, ModeBar, SingHeader, Transport, TurnBand, PartSheet, SettingsSheet, HeadphonesDialog, TimingDialog, RangeDialog, Icon, VoiceNote, ResingSheet, ResungCard, TrimSheet, WhatsNext, LockedBanner, ShareSheet },
+    components: { PopupSlot, TakeBest, IdeaVoice, PhraseStage, Chooser, Stage, RecordingStage, Lane, NowCard, Coach, StepDone, JustRecorded, LineBar, ModeBar, SingHeader, Transport, TurnBand, PartSheet, SettingsSheet, HeadphonesDialog, TimingDialog, RangeDialog, Icon, VoiceNote, ResingSheet, ResungCard, TrimSheet, WhatsNext, LockedBanner, ShareSheet },
     props: { id: { type: String, required: true } },
     setup: () => ({ ...toRefs(session), audio, formatTime, shownTitle, prefs, game, effect }),
-    data: () => ({ crt: false, hud: popupQueue(), viewPicked: false, readied: null, combo: 0, hintState: { hint: null }, voice: voiceFollower(), dialog: null, choosing: false, recorded: null, said: '', suggested: null, celebrated: null, lining: false, lined: null, resingPlanned: null, resung: null, takeNumbers: {}, fitSuggestion: null }),
+    data: () => ({ crt: false, ghostTake: null, pendingGhost: null, hud: popupQueue(), viewPicked: false, readied: null, combo: 0, hintState: { hint: null }, voice: voiceFollower(), dialog: null, choosing: false, recorded: null, said: '', suggested: null, celebrated: null, lining: false, lined: null, resingPlanned: null, resung: null, takeNumbers: {}, fitSuggestion: null }),
     template: `
         <div class="flex h-dvh flex-col bg-ink">
             <p class="sr-only" aria-live="polite">{{ said }}</p>
@@ -102,7 +106,7 @@ export const SingView = {
                     <!-- Game mode's bonus pop-ups (docs/game-elements-plan.md): under the header's end, never on the lane -->
                     <PopupSlot v-if="effect('popups')" class="ge-slot--float" :queue="hud" /></span></template>
                 <Lane :notes="notes" :words="hasWords ? [] : laneWords" :transpose="project.transpose || 0" :beat-seconds="beatSeconds" :position="position" :color="paint(focusPart.color)" state="recording" :note-name="laneName"
-                    :keyboard="prefs.keyboard" :voice="voice.points" :lit="voice.lit" :hits="voice.hits" :trail="onFire ? 'var(--ge-fire)' : null" :hint="hintState.hint" :hint-text="hintChip" :data-voice="voice.points.length" :data-lit="voice.lit.size" />
+                    :keyboard="prefs.keyboard" :voice="voice.points" :lit="voice.lit" :hits="voice.hits" :trail="onFire ? 'var(--ge-fire)' : null" :ghost="ghostLine" :hint="hintState.hint" :hint-text="hintChip" :data-voice="voice.points.length" :data-lit="voice.lit.size" />
             </RecordingStage>
             <template v-else>
                 <!-- Your turn is a band in your colour; otherwise the song, and your part with what's happening -->
@@ -130,8 +134,10 @@ export const SingView = {
                             @hear="hearTake" @again="recordPart" @next="nextPart" @nudge="nudge" @nudged="nudged" @line-up="lineUp" @studio="openStudio" @resing="resingFrom" @trim="openTrim" :polished="prefs.hearPolished" @polish="hearPolished" @share="dialog = 'share'" @hear-phrase="hearPhrase">
                             <template #report>
                                 <!-- The part's leaderboard (components/boards.js): your best, or why it didn't count; never a lesson's song -->
-                                <TakeBest v-if="game() && recorded.report?.score?.percent != null && !project.course && project.template?.id" :key="'best-' + recorded.part.id" :template-id="project.template.id" :template-version="project.template.version" :part-key="recorded.part.templatePartKey"
+                                <TakeBest v-if="game() && recorded.report?.score?.percent != null && !project.course && project.template?.id" :key="'best-' + recorded.part.id" @result="ghostResult" :template-id="project.template.id" :template-version="project.template.version" :part-key="recorded.part.templatePartKey"
                                     :part-name="nameOf(recorded.part)" :song-title="shownTitle(project)" :score="recorded.report.score.percent" :key-offset="project.transpose ?? 0" :guide-muted="!guideHeard" :take-id="recorded.part.takeId ?? null" />
+                                <!-- A song started from an idea's tune (docs/ideas-app-plan.md): add this take to it -->
+                                <IdeaVoice v-if="project.idea && recorded.part.templatePartKey" :key="'idea-' + recorded.part.id + '-' + (recorded.part.takeId ?? '')" :idea="project.idea" :part="recorded.part" :part-name="nameOf(recorded.part)" />
                                 <WhatsNext v-if="recorded.everyPart" :current="{ id: project.template.id, difficulty: project.template.difficulty }" />
                             </template>
                         </JustRecorded>
@@ -149,7 +155,7 @@ export const SingView = {
                                     </div>
                                     <Lane class="min-h-0 flex-1" :class="crt ? 'ge-crt' : ''" :notes="notes" :words="laneWords" :others="laneOthers" :transpose="project.transpose || 0" :beat-seconds="beatSeconds" :position="position"
                                         :color="paint(focusPart.color)" :state="recording ? 'recording' : turn ? 'turn' : 'listen'" :note-name="laneName"
-                                        :keyboard="prefs.keyboard" :chords="laneChords" :loop="laneLoop" :voice="turn ? voice.points : []" :lit="voice.lit" :hits="voice.hits" :trail="onFire ? 'var(--ge-fire)' : null" :hint="turn ? hintState.hint : null" :data-voice="turn ? voice.points.length : 0" :data-lit="voice.lit.size" />
+                                        :keyboard="prefs.keyboard" :chords="laneChords" :loop="laneLoop" :voice="turn ? voice.points : []" :lit="voice.lit" :hits="voice.hits" :trail="onFire ? 'var(--ge-fire)' : null" :ghost="ghostLine" :hint="turn ? hintState.hint : null" :data-voice="turn ? voice.points.length : 0" :data-lit="voice.lit.size" />
                                 </div>
                             </div>
                         </template>
@@ -158,7 +164,7 @@ export const SingView = {
                             :staff="view === 'staff' || !hasWords ? staffNow : null" :current="staffCurrent" :words="hasWords" :tuning="stageTuning" :hint="turn ? hintState.hint : null">
                             <!-- Option D: a slim strip of the same lane over the big words, on your turn. -->
                             <div v-if="turn" class="h-32 w-full shrink-0"><Lane :notes="notes" :words="[]" :others="[]" :transpose="project.transpose || 0" :beat-seconds="beatSeconds" :position="position"
-                                :color="paint(focusPart.color)" :state="recording ? 'recording' : 'turn'" :note-name="laneName" :keyboard="false" :voice="voice.points" :lit="voice.lit" :hits="voice.hits" :trail="onFire ? 'var(--ge-fire)' : null" :hint="hintState.hint" /></div>
+                                :color="paint(focusPart.color)" :state="recording ? 'recording' : 'turn'" :note-name="laneName" :keyboard="false" :voice="voice.points" :lit="voice.lit" :hits="voice.hits" :trail="onFire ? 'var(--ge-fire)' : null" :ghost="ghostLine" :hint="hintState.hint" /></div>
                         </Stage>
                     </div>
                 </div>
@@ -184,8 +190,22 @@ export const SingView = {
         </div>`,
     computed: {
         /** Game mode's on-fire run (docs/game-elements-plan.md, idea 19): 10 or more in a row, your voice's trail turns pink. */
+        ghostKeyNow() {
+            return this.ghostWhere ? Object.values(this.ghostWhere).join(':') : null;
+        },
         onFire() {
             return this.turn && this.combo >= 10 && effect('popups');
+        },
+        /** Where your ghost is kept: this song's version, your part and the scorer. */
+        ghostWhere() {
+            const template = this.project?.template;
+            const key = this.focusPart?.templatePartKey;
+            return template?.id && key ? { templateId: template.id, templateVersion: template.version, partKey: key, scoringVersion: SCORING_VERSION } : null;
+        },
+        /** Game mode's ghost (game/ghost.js): your best take's line, on your turn and while recording, where the part sits now. */
+        ghostLine() {
+            if (!this.ghostTake || !this.turn || !effect('ghost')) return [];
+            return placeGhost(decodeGhost(this.ghostTake), this.notes, { keyOffset: this.ghostTake.keyOffset ?? 0, transpose: this.project.transpose || 0 });
         },
         /** The key moves while nothing's recorded in the song (a take would be left in the old key). */
         keyMovable: (vm) => !!vm.project?.template && !vm.parts.some(hasTake),
@@ -536,6 +556,17 @@ export const SingView = {
         },
     },
     watch: {
+        // Game mode's ghost: your best take of this part, loaded as the part is chosen (or the song's version changes).
+        ghostKeyNow: {
+            async handler(now) {
+                this.ghostTake = null;
+                this.pendingGhost = null;
+                if (!now || !game()) return;
+                const ghost = await loadGhost(this.ghostWhere);
+                if (this.ghostKeyNow === now) this.ghostTake = ghost;
+            },
+            immediate: true,
+        },
         // Opened again with another device's change: Just recorded holds the part as it now is.
         reloads() {
             if (!this.recorded) return;
@@ -591,6 +622,16 @@ export const SingView = {
         recording(now) {
             const part = now && this.parts.find((p) => p.id === this.rerecordId);
             if (part) this.takeNumbers = { ...this.takeNumbers, [part.id]: (this.takeNumbers[part.id] ?? (hasTake(part) ? 1 : 0)) + 1 };
+        },
+        /**
+         * Said to a screen reader: the count-in starting (when there is one), then the recording,
+         * never each beat. countIn is 0 through the engine's lead even without a count-in, and null
+         * once the recording itself has begun.
+         */
+        countIn(now, before) {
+            if (!this.recording) return;
+            if (now !== null && before === null && this.countInBeats > 0) this.say(t('sing.say.countIn'));
+            else if (now === null && before !== null) this.say(t('sing.say.recording'));
         },
         getReady(now, before) {
             if (now && !before) this.say(t('sing.say.getReady', { note: now.note }));
@@ -717,9 +758,17 @@ export const SingView = {
                 if (this.comboCounted.has(n.beat) || seconds < (n.beat + n.length) * this.beatSeconds || seconds > (n.beat + n.length) * this.beatSeconds + 1) continue;
                 this.comboCounted.add(n.beat);
                 this.combo = this.voice.lit.has(n.beat) ? this.combo + 1 : 0;
-                if (comboMilestone(this.combo) && effect('popups')) this.hud.offer({ kind: 'combo', count: this.combo, phrase: this.phraseOf(n)?.index ?? null }, seconds);
-                const phrase = effect('popups') ? this.phraseCleared(n) : null;
+                if (!effect('popups')) continue;
+                const index = this.phraseOf(n)?.index ?? null;
+                const milestone = comboMilestone(this.combo);
+                if (milestone) this.hud.offer({ kind: 'combo', count: this.combo, phrase: index }, seconds);
+                const phrase = this.phraseCleared(n);
                 if (phrase !== null) this.hud.offer({ kind: 'phrase', phrase }, seconds);
+                // A long note held in tune to its end, when nothing bigger was just said for it.
+                const bs = this.beatSeconds;
+                if (!milestone && phrase === null && this.voice.lit.has(n.beat) && heldToEnd(this.voice.points, { start: n.beat * bs, end: (n.beat + n.length) * bs, pitch: n.pitch + (this.project.transpose || 0) })) {
+                    this.hud.offer({ kind: 'hold', phrase: index }, seconds);
+                }
             }
             this.hud.tick(seconds);
         },
@@ -730,6 +779,33 @@ export const SingView = {
             const notes = this.notes.filter((m) => m.beat >= p.startBeat - 1e-6 && m.beat < p.endBeat);
             if (notes.at(-1)?.beat !== n.beat) return null;
             return notes.length > 1 && notes.every((m) => this.voice.lit.has(m.beat)) ? p.index : null;
+        },
+        /**
+         * A scored take as your ghost (game/ghost.js): a guest's is kept on the device when it beats the
+         * one kept; signed in, it waits for the board to say it's your new best (ghostResult).
+         */
+        offerGhost(track, percent, startSeconds) {
+            const where = this.ghostWhere;
+            if (!where || !track?.hz || !game()) return;
+            const ghost = { ...encodeGhost(track, { startSeconds }), score: Math.round(percent), keyOffset: this.project.transpose || 0 };
+            if (account.me) {
+                this.pendingGhost = { where, ghost };
+                return;
+            }
+            if (keepDeviceGhost(where, ghost)) this.ghostTake = ghost;
+        },
+        /** The board's answer to a take: a new best keeps its line as your ghost, with your account. */
+        async ghostResult(result) {
+            const pending = this.pendingGhost;
+            this.pendingGhost = null;
+            if (!pending || !result?.counted || !result.improved) return;
+            const ghost = { ...pending.ghost, score: result.best };
+            try {
+                await saveGhost(pending.where, ghost);
+                if (this.ghostKeyNow === Object.values(pending.where).join(':')) this.ghostTake = ghost;
+            } catch (error) {
+                console.warn('The ghost was not kept', error);
+            }
         },
         /** The phrase a note is in (its row), or null. */
         phraseOf(n) {
@@ -1064,6 +1140,8 @@ export const SingView = {
                     return;
                 }
                 this.recorded = { ...this.recorded, report: { score, track, change, improved: bleed ? [] : improved, bleed } };
+                if (score.status === 'scored' && !bleed) this.offerGhost(track, score.percent, part.offsetSeconds + (part.nudgeSeconds || 0));
+                if (score.status === 'scored' && !bleed && this.ghostWhere) stampDaily(this.ghostWhere.templateId, this.ghostWhere.partKey); // today's challenge taken
                 if (score.status === 'scored' && !bleed) {
                     remember({ percent: score.percent, insights: score.insights, tendency: score.tendency }).catch((error) => console.error('Not remembered', error));
                     if (score.percent >= 90) countDone('excellentTakes', { add: 1 }).catch((error) => console.error('Not counted', error));

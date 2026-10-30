@@ -22,6 +22,15 @@ const RTL = new Set(['ar', 'he', 'fa', 'ur']);
 
 export const locale = reactive({ lang: 'en', dir: 'ltr', messages: {}, english: {}, pseudo: false });
 
+// A first visit (no service worker yet) starts with lesson 1's own words, a quarter of en.json
+// (locales/lesson1/en.json, written by tool/preload_list.py from the modules main.js imports), and
+// the rest follows (allWords): when the page is idle, before a view loaded later, or for a key the
+// short list doesn't have. Read by a flow: the keys a short list was missing (it should be none).
+const FIRST_WORDS = '/locales/lesson1/en.json';
+let partial = false;
+let allLoading = null;
+export const words = { missed: [] };
+
 /** A key for t() that's chosen at run time: tk() marks it, so the key check can find it. */
 export const tk = (key) => key;
 
@@ -29,6 +38,12 @@ export const tk = (key) => key;
 export function t(key, values = {}) {
     const message = lookup(locale.messages, key);
     const english = lookup(locale.english, key);
+    if (typeof message !== 'string' && typeof english !== 'string' && partial) {
+        // Only lesson 1's words so far: the rest are on their way, and the screen re-renders with them.
+        if (!words.missed.includes(key)) words.missed.push(key);
+        allWords();
+        return '';
+    }
     if (typeof message !== 'string' && typeof english !== 'string') {
         // Never a raw key on screen: the words may be older than the code (an old copy kept by a
         // browser after a deploy). They're fetched again, past every cache, and the screen
@@ -65,8 +80,10 @@ function lookup(messages, key) {
  * Loads the person's language: the one they chose, or the browser's first that we have, falling
  * back to English. Sets <html lang> and dir.
  */
-export async function loadLanguage(wanted = preferredLanguages()) {
-    locale.english = await fetchMessages('en');
+export async function loadLanguage(wanted = preferredLanguages(), { lessonFirst = false } = {}) {
+    // lessonFirst: a first visit's start (main.js), with lesson 1's own words; the rest, later.
+    partial = lessonFirst;
+    locale.english = partial ? await getJson(FIRST_WORDS).catch(() => ((partial = false), fetchMessages('en'))) : await fetchMessages('en');
     let chosen = 'en';
     let messages = locale.english;
     for (const lang of wanted) {
@@ -86,6 +103,22 @@ export async function loadLanguage(wanted = preferredLanguages()) {
     locale.messages = messages;
     document.documentElement.lang = chosen;
     document.documentElement.dir = locale.dir;
+}
+
+/** All of en.json, after a first visit started with lesson 1's words (resolves at once otherwise, and on failure). */
+export function allWords() {
+    if (!partial) return Promise.resolve();
+    allLoading ??= fetchMessages('en')
+        .then((english) => {
+            if (locale.messages === locale.english) locale.messages = english;
+            locale.english = english;
+            partial = false;
+        })
+        .catch((error) => {
+            allLoading = null; // tried again next time something needs it
+            console.error('The rest of the words did not load', error);
+        });
+    return allLoading;
 }
 
 /** Settings: remember the person's choice (later also stored on the account). */
@@ -117,6 +150,7 @@ export function refreshWords() {
             const messages = locale.lang === 'en' ? english : await fetchMessages(locale.lang, { fresh: true }).catch(() => locale.messages);
             locale.english = english;
             locale.messages = messages;
+            partial = false;
         } catch (error) {
             console.error('The words could not be fetched again', error);
         } finally {
@@ -127,9 +161,13 @@ export function refreshWords() {
 }
 
 async function fetchMessages(lang, { fresh = false } = {}) {
-    const response = await fetch(`/locales/${encodeURIComponent(lang)}.json`, fresh ? { cache: 'reload' } : {});
+    return getJson(`/locales/${encodeURIComponent(lang)}.json`, fresh ? { cache: 'reload' } : {});
+}
+
+async function getJson(path, options = {}) {
+    const response = await fetch(path, options);
     if (!response.ok) {
-        throw new Error(`No messages for ${lang}`);
+        throw new Error(`No messages at ${path}`);
     }
     return response.json();
 }

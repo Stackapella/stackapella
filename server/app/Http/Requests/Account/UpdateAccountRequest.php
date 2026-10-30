@@ -47,6 +47,13 @@ final class UpdateAccountRequest extends FormRequest
             'publicProfile' => ['sometimes', 'boolean'],
             // Hide profile: shown to others as "Anonymous" (docs/hide-profile-plan.md).
             'hideProfile' => ['sometimes', 'boolean'],
+            // Game mode's arcade initials on the boards: three letters, none on the blocked list.
+            'initials' => ['sometimes', 'nullable', 'string', 'regex:/^[A-Za-z]{3}$/', function (string $attribute, mixed $value, \Closure $fail): void {
+                if (is_string($value) && in_array(strtoupper($value), (array) config('initials.blocked'), true)) {
+                    $fail(__('validation.initials_blocked'));
+                }
+            }],
+            'boardsName' => ['sometimes', 'in:name,initials'],
             // Ideas: whether the writer hears of new voices by email (the bell either way).
             'ideaEmails' => ['sometimes', 'boolean'],
             // Push to the apps: which of the bell's kinds, and quiet hours in their time zone.

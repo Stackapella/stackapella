@@ -1,0 +1,49 @@
+{
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "templateVersion",
+                "scoringVersion",
+                "score",
+                "rate",
+                "startSeconds",
+                "keyOffset",
+                "pitches"
+            ],
+            "properties": {
+                "templateVersion": {
+                    "type": "integer"
+                },
+                "scoringVersion": {
+                    "type": "integer"
+                },
+                "score": {
+                    "type": "integer",
+                    "description": "The score of the take it traces: their best on that board when it was kept."
+                },
+                "rate": {
+                    "type": "integer",
+                    "description": "Frames a second (20)."
+                },
+                "startSeconds": {
+                    "type": "number",
+                    "description": "The song position of the first frame."
+                },
+                "keyOffset": {
+                    "type": "integer"
+                },
+                "pitches": {
+                    "type": "string",
+                    "description": "Base64 of little-endian Int16: MIDI times 100 a frame, 0 for no pitch. At most 2,400 frames (120 seconds)."
+                }
+            }
+        }
+    }
+}

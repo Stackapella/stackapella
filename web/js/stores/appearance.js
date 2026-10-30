@@ -58,18 +58,51 @@ export async function setSkin(skin) {
     if (appearance.skin !== was) count(appearance.skin === 'game' ? 'game_on' : 'game_off');
     if (window.stackapellaTheme?.choose) window.stackapellaTheme.choose({ skin: appearance.skin });
     else local.set(KEY, JSON.stringify({ ...(stored() ?? {}), skin: appearance.skin, at: Date.now() }));
-    if (!account.me) return;
-    saving++;
+    if (account.me) await toAccount({ skin: appearance.skin });
+}
+
+let waiting = null; // the choices not yet sent, merged: the latest of each field
+let sending = null; // the save on its way, if any
+const UNSENT = 'stackapella.appearanceUnsent'; // choices the account hasn't confirmed yet, kept through a reload
+
+function unsent() {
     try {
-        account.me = (await api.account.update({ appearance: { skin: appearance.skin } })).data;
-    } catch (error) {
-        console.warn('Game mode was not saved to the account', error); // kept here; sent with the next choice
-    } finally {
-        saving--;
+        const kept = JSON.parse(local.get(UNSENT) || 'null');
+        return kept && typeof kept === 'object' ? kept : null;
+    } catch {
+        return null; // unreadable: nothing waiting
     }
 }
 
-let saving = 0; // choices on their way to the account
+/**
+ * Sends the look to the account one save at a time, the latest choice of each field: Game mode
+ * flipped twice in a second used to send two saves at once, and the first to reach the account
+ * could be the last kept. What isn't confirmed yet is also kept on the device, so a page left (or
+ * offline) before the save gets there sends it on the next load instead of taking the account's
+ * older look (the arranger's funnel run: flipped off and on, then reloaded, it came back serious).
+ */
+function toAccount(fields) {
+    waiting = { ...(waiting ?? {}), ...fields };
+    local.set(UNSENT, JSON.stringify({ ...(unsent() ?? {}), ...fields }));
+    sending ??= (async () => {
+        try {
+            while (waiting && account.me) {
+                const appearance = waiting;
+                waiting = null;
+                try {
+                    account.me = (await api.account.update({ appearance })).data;
+                    if (!waiting) local.remove(UNSENT); // confirmed, with nothing newer behind it
+                } catch (error) {
+                    console.warn('The look was not saved to the account', error); // kept here; sent with the next choice
+                }
+            }
+        } finally {
+            sending = null;
+            waiting = null;
+        }
+    })();
+    return sending;
+}
 
 /**
  * Game mode's own light or dark (dark until chosen): kept on this device, apart from serious mode's,
@@ -104,15 +137,7 @@ export async function setAppearance({ mode = appearance.mode ?? 'dark', colour =
     const choice = { mode, gameMode: appearance.gameMode, colour: colour ?? null, accent: accent ?? null, customAccent: custom };
     if (window.stackapellaTheme?.choose) window.stackapellaTheme.choose(choice);
     else local.set(KEY, JSON.stringify({ ...choice, at: Date.now() }));
-    if (!account.me) return;
-    saving++;
-    try {
-        account.me = (await api.account.update({ appearance: { mode, ...(colour ? { colour } : {}), accent: accent ?? null, ...(custom ? { customAccent: custom } : {}) } })).data;
-    } catch (error) {
-        console.warn('The look was not saved to the account', error); // kept here; sent with the next choice
-    } finally {
-        saving--;
-    }
+    if (account.me) await toAccount({ mode, ...(colour ? { colour } : {}), accent: accent ?? null, ...(custom ? { customAccent: custom } : { customAccent: undefined }) });
 }
 
 /**
@@ -122,7 +147,15 @@ export async function setAppearance({ mode = appearance.mode ?? 'dark', colour =
  */
 export function adoptAccountAppearance(theirs) {
     // null until chosen (contract/api.md, account.show's `appearance`).
-    if (!theirs || saving) return; // an answer to this device's own save, with another choice on its way
+    if (sending) return; // an answer to this device's own save, with another choice on its way
+    // Choices this device made that never reached the account (the page left first, or offline):
+    // they're newer than the account's, so they go now, and the account's look waits.
+    const left = unsent();
+    if (left) {
+        if (account.me) toAccount(left);
+        return;
+    }
+    if (!theirs) return;
     const mine = stored() ?? {};
     // Game mode follows the account too (an appearance saved before it reads as game).
     const skin = theirs.skin === 'serious' ? 'serious' : 'game';

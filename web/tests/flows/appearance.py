@@ -118,6 +118,28 @@ def journey(f):
     assert theme(f) == "midnight-dark", theme(f)
     f.run("localStorage.removeItem('stackapella.appearance'); window.stackapellaTheme.apply();")
 
+    # Signed in, Game mode flipped off and on again within a second (journey_qa's settings stage):
+    # the account keeps the last choice, so the next load is still game mode.
+    f.go("/settings?api=mock&as=member&scenario=", "document.querySelector('[data-game-mode]')")
+    f.run("const a = await import('/js/stores/appearance.js'); await a.setSkin('game');")
+    f.run("document.querySelector('[data-game-toggle]').click()")
+    f.wait("document.documentElement.dataset.skin === 'serious'", what="serious, at the first tap")
+    f.js("new Promise((r) => setTimeout(r, 1000))")
+    f.run("document.querySelector('[data-game-toggle]').click()")
+    f.wait("document.documentElement.dataset.skin === 'game'", what="game again, at the second")
+    # Away at once, before the second save can reach the account (the arranger's run): the next
+    # load sends it then, rather than take the account's older serious.
+    f.go("/?api=mock&as=member&scenario=", "document.querySelector('#app header')")
+    f.js("new Promise((r) => setTimeout(r, 2500))")
+    assert f.js("document.documentElement.dataset.skin") == "game", "game mode after leaving at once"
+    assert f.js("JSON.parse(sessionStorage.getItem('stackapella.mockAppearance') || '{}').skin") == "game", "and the account has it now"
+    f.go("/settings?api=mock&as=member&scenario=", "document.querySelector('[data-game-mode]')")
+    assert f.js("document.documentElement.dataset.skin") == "game", "game mode, once both saves are in"
+    f.go("/?api=mock&as=member&scenario=", "document.querySelector('#app header')")
+    f.js("new Promise((r) => setTimeout(r, 1500))")
+    assert f.js("document.documentElement.dataset.skin") == "game", "still game mode on the next load"
+    f.run("localStorage.removeItem('stackapella.appearance'); sessionStorage.removeItem('stackapella.mockAppearance'); window.stackapellaTheme.apply();")
+
 
 if __name__ == "__main__":
     run("appearance", journey)

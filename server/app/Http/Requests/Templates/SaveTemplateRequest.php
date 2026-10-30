@@ -38,4 +38,19 @@ final class SaveTemplateRequest extends FormRequest
             'parentId' => ['nullable', 'string', 'max:80'],
         ];
     }
+
+    /**
+     * The template exactly as sent, read from the body itself: the API's string cleaning (empty
+     * strings to null, trimmed) would refuse an empty description or credit and change a lyric's
+     * spaces. The rest of the request is cleaned as usual.
+     *
+     * @return array<string, mixed>
+     */
+    public function template(): array
+    {
+        $body = json_decode($this->getContent(), true);
+        $template = is_array($body) ? ($body['template'] ?? null) : null;
+
+        return is_array($template) ? $template : (array) $this->validated('template');
+    }
 }

@@ -190,13 +190,23 @@ export const HeadphonesDialog = {
     components: { Modal, Icon },
     // speakerOption: the course can go on without headphones (it quiets what plays under the voice).
     // action: the primary's words (Start recording, unless the screen says otherwise).
-    props: { speakerOption: Boolean, action: { type: String, default: '' } },
+    // simple: a lesson's ask (onboarding review 2, 8): two buttons and why, the kinds and timing left to Settings.
+    props: { speakerOption: Boolean, action: { type: String, default: '' }, simple: Boolean },
     emits: ['ok', 'close', 'speaker'],
     data: () => ({ never: false, picked: audio.route === 'bluetooth' ? 'bluetooth' : 'wired', primary, secondary }),
     setup: () => ({ measuredFor, KINDS: { wired: { name: tk('headphones.wired'), line: tk('headphones.wiredLine') }, bluetooth: { name: tk('headphones.bluetooth'), line: tk('headphones.bluetoothLine') } } }),
     // 102.png: the two kinds as radio cards, Ready or Needs timing check; Don't ask again, Not now, Start recording.
     template: `
-        <Modal :title="t('headphones.title')" :subtitle="t('headphones.body')" wide @close="$emit('close')">
+        <Modal v-if="simple" :title="t('headphones.title')" @close="$emit('close')">
+            <div class="space-y-5" data-headphones data-headphones-simple>
+                <p class="text-cream">{{ t('headphones.lessonBody') }}</p>
+                <div class="grid grid-cols-2 gap-3">
+                    <button type="button" :class="secondary" @click="$emit('speaker')">{{ t('headphones.none') }}</button>
+                    <button type="button" :class="primary" data-autofocus @click="$emit('ok', false)">{{ action || t('headphones.on') }}</button>
+                </div>
+            </div>
+        </Modal>
+        <Modal v-else :title="t('headphones.title')" :subtitle="t('headphones.body')" wide @close="$emit('close')">
             <div class="space-y-5" data-headphones>
                 <div class="space-y-2" role="radiogroup" :aria-label="t('headphones.kind')">
                     <button v-for="(kind, name) in KINDS" :key="name" type="button" role="radio" :aria-checked="picked === name ? 'true' : 'false'" class="radio-card w-full items-center gap-4 p-4" @click="pick(name)">

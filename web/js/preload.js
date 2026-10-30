@@ -1,6 +1,6 @@
-// Vue and lesson 1's modules, fetched early on a visit the service worker doesn't control yet (the
-// first). Without these the browser finds the modules one import at a time, a round trip for each
-// level; with them it asks for all of them at once (no bundling: the files stay as they are). With
+// Vue, lesson 1's modules and its words, fetched early on a visit the service worker doesn't control
+// yet (the first). Without these the browser finds the modules one import at a time, a round trip
+// for each level; with them it asks for all of them at once (no bundling: the files stay). With
 // the service worker in control, the imports come from its cache, and a preload beside them would
 // be a second fetch that's never used (Chrome: "cross-world service worker resource mismatch"). A
 // classic script after the import map, so the preloads never come before it.
@@ -14,6 +14,8 @@
         document.head.append(link);
     };
     preload('https://cdn.jsdelivr.net/npm/vue@3.5.44/dist/vue.esm-browser.prod.js', { integrity: 'sha384-Yy+wUwjypE8OL2+tZ7lLLMsIVMFBXibFJCdzCWWWXnuVVdiuS3gViCyubnRyWnSP', crossOrigin: 'anonymous' });
+    // Lesson 1's words (js/i18n.js fetches them on a first visit): asked for now, not after the modules.
+    preload('/locales/lesson1/en.json', { rel: 'preload', as: 'fetch', crossOrigin: 'anonymous' });
     // Every module js/main.js imports, nearest first: written by tool/preload_list.py from the
     // import graph, and tool/test.sh fails when it's stale. main.js itself is the page's own script.
     // preload_list.py: begin
@@ -27,8 +29,6 @@
         '/js/stores/session.js',
         '/js/components/ui.js',
         '/js/components/confirm.js',
-        '/js/views/projects.js',
-        '/js/views/auth.js',
         '/js/stores/plan.js',
         '/js/components/cloud.js',
         '/js/views/learn.js',
@@ -49,6 +49,9 @@
         '/js/usage.js',
         '/js/funnel.js',
         '/js/lazy.js',
+        '/js/components/screen-loading.js',
+        '/js/stores/learning.js',
+        '/js/courses.js',
         '/js/screen-name.js',
         '/js/storage.js',
         '/js/theme.js',
@@ -62,31 +65,14 @@
         '/js/practice.js',
         '/js/stores/projects.js',
         '/js/synth.js',
-        '/js/stores/learning.js',
         '/js/sync.js',
         '/js/patch.js',
         '/js/trim.js',
         '/js/share.js',
         '/js/polish.js',
         '/js/stores/prefs.js',
+        '/js/game/chip.js',
         '/js/components/icon.js',
-        '/js/hosts.js',
-        '/js/home.js',
-        '/js/components/home.js',
-        '/js/game/title-screen.js',
-        '/js/game/effects.js',
-        '/js/components/session-wrap.js',
-        '/js/components/beta.js',
-        '/js/components/form.js',
-        '/js/components/appearance.js',
-        '/js/creator.js',
-        '/js/stores/templates.js',
-        '/js/components/create/save.js',
-        '/js/components/dialogs.js',
-        '/js/components/plus-moment.js',
-        '/js/components/card-menu.js',
-        '/js/turnstile.js',
-        '/js/components/invite-card.js',
         '/js/skin.js',
         '/js/course.js',
         '/js/theory.js',
@@ -97,6 +83,7 @@
         '/js/components/exercise.js',
         '/js/components/listening.js',
         '/js/components/chord-moment.js',
+        '/js/components/session-wrap.js',
         '/js/components/then-and-now.js',
         '/js/components/voice-card.js',
         '/js/components/learn-visual.js',
@@ -106,31 +93,26 @@
         '/js/results.js',
         '/js/celebrate.js',
         '/js/components/share-result.js',
-        '/js/courses.js',
         '/js/lesson-steps.js',
         '/js/game/title-card.js',
         '/js/sharpen.js',
+        '/js/game/effects.js',
         '/js/mic-check.js',
         '/js/components/level-meter.js',
         '/js/components/mic.js',
         '/js/wav.js',
+        '/js/stores/templates.js',
+        '/js/badges.js',
+        '/js/game/badge-news.js',
         '/engine/engine.js',
         '/js/instrument-parts.js',
         '/js/instruments.js',
-        '/js/badges.js',
         '/js/logo-mark.js',
-        '/js/workout.js',
-        '/js/reminders.js',
-        '/js/quality.js',
-        '/js/beta.js',
-        '/js/game-toggle.js',
-        '/js/accent-colours.js',
-        '/js/listen.js',
-        '/js/listening.js',
-        '/js/pitch-display.js',
-        '/js/components/gems.js',
         '/js/camera.js',
+        '/js/components/gems.js',
         '/js/glass.js',
+        '/js/listen.js',
+        '/js/components/dialogs.js',
         '/js/components/key-control.js',
         '/js/game/hud.js',
         '/js/game/popups.js',
@@ -139,9 +121,14 @@
         '/js/style-scores.js',
         '/js/harmony.js',
         '/js/creator-audio.js',
+        '/js/listening.js',
+        '/js/pitch-display.js',
+        '/js/reminders.js',
         '/engine/clock.js',
         '/js/game/tally.js',
         '/js/keep-song.js',
+        '/js/components/plus-moment.js',
+        '/js/hosts.js',
         '/js/result-card.js',
         '/js/components/wave-lane.js',
         '/js/components/choose.js',
@@ -153,7 +140,6 @@
         '/js/vibrato.js',
         '/js/pitch-skills.js',
         '/js/ring.js',
-        '/js/game/chip.js',
         '/js/course-clips.js',
     ];
     // preload_list.py: end

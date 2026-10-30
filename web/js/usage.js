@@ -24,10 +24,11 @@ for (const kind of [...FUNNEL, ...ASKED]) KINDS.add(kind);
 for (const kind of [
     'open_game', 'open_serious', 'game_on', 'game_off',
     'sharpen_up', 'then_now', 'keep_song', 'fact_source',
-    'hum_start', 'hum_click', 'hum_tap',
+    'hum_start', 'hum_click', 'hum_tap', 'hum_found', 'hum_saved',
     'take_use', 'take_undo', 'track_add', 'track_rename', 'exp_song', 'exp_practice', 'exp_stems',
     'share_note', 'card_named', 'su_progress', 'su_reminders', 'su_share', 'su_boards', 'card_day2',
     'sug_melody', 'sug_part', 'sug_switch',
+    'daily_viewed', 'daily_sung',
 ]) KINDS.add(kind);
 // Kinds with a detail, `<prefix>:<id>`: a Plus course's lessons by course, the free course by lesson.
 // The server keeps only ids the courses have.

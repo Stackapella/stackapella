@@ -22,6 +22,15 @@
             <p class="s-lede">{{ __('site.courses.index.lead') }}</p>
         </section>
 
+        {{-- The free course first, to its own page. --}}
+        <section class="s-wrap s-sec" aria-labelledby="group-free">
+            <h2 id="group-free" class="s-kick">{{ __('site.courses.index.free_kick') }}</h2>
+            <a href="/features/course" class="s-card s-freecourse">
+                <span class="s-freecourse-stack" aria-hidden="true">@foreach ([1, 2, 3, 4] as $n)<b class="s-v{{ $n }}"></b>@endforeach</span>
+                <span><b>{{ __('site.courses.index.free_name') }}</b><span>{{ __('site.courses.index.free_summary') }}</span></span>
+            </a>
+        </section>
+
         @foreach ($groups as $key => $group)
             <section class="s-wrap s-sec" aria-labelledby="group-{{ $key }}">
                 <div class="s-headrow">

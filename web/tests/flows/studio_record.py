@@ -77,6 +77,8 @@ def journey(f):
     f.press("r")
     f.wait(f"!{SESSION}.session.recording && ({PARTS}[0].keptTakes ?? []).length === 1", timeout=20, what="the take recorded over, kept")
     f.wait_text(t(f, "studio.takes.undoPrevious"))
+    f.run("document.querySelector('[data-studio-notice]')?.scrollIntoView({ block: 'center' })")
+    f.shot("notice-undo")
     assert f.js(f"{PARTS}[0].keptTakes[0].takeId") == first_take, "the kept take is the one recorded over"
     f.run(f"{row_first}.querySelector('button[aria-expanded]').click()")
     f.wait(f"{row_first}.querySelectorAll('[data-take]').length === 1", what="the row's takes: the kept one")

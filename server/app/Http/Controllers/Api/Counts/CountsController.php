@@ -42,7 +42,8 @@ final class CountsController extends Controller
 
     public function show(Request $request, RecordCounts $counts): JsonResponse
     {
-        $days = in_array((int) $request->query('days', '30'), [7, 30, 90], true) ? (int) $request->query('days', '30') : 30;
+        // 1: today so far (UTC), for the page's near-live view.
+        $days = in_array((int) $request->query('days', '30'), [1, 7, 30, 90], true) ? (int) $request->query('days', '30') : 30;
 
         return response()->json(['data' => $counts->summary($days)]);
     }

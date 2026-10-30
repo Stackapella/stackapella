@@ -42,8 +42,7 @@ final class OwnTemplatesController extends Controller
 
     public function save(SaveTemplateRequest $request, string $template, OwnTemplates $templates, #[CurrentUser] User $user): JsonResponse
     {
-        /** @var array<string, mixed> $json */
-        $json = $request->input('template');
+        $json = $request->template();
         $visibility = $request->validated('visibility');
         $optIn = $request->validated('libraryOptIn');
         /** @var array{song: string, source?: string|null, ownWork: bool}|null $declaration */

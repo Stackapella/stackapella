@@ -96,7 +96,7 @@ export const SelfCheck = {
             </section>
             <p class="text-sm text-muted" data-selfcheck-honest>{{ t('selfcheck.honest') }}</p>
             <p v-if="error" class="text-sm text-bad" role="alert">{{ error }}</p>
-            <HeadphonesDialog v-if="asking" speaker-option :action="t('headphones.on')" @ok="headphonesOn" @speaker="useSpeaker" @close="asking = false" />
+            <HeadphonesDialog v-if="asking" speaker-option simple :action="t('headphones.on')" @ok="headphonesOn" @speaker="useSpeaker" @close="asking = false" />
         </div>`,
     computed: {
         model: (vm) => vm.exercise.model,

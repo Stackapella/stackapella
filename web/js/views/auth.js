@@ -220,7 +220,7 @@ export const AuthView = {
                             <template #default="f"><PasswordInput :id="f.id" ref="password" v-model="form.password" :autocomplete="mode === 'signup' ? 'new-password' : 'current-password'" :describedby="f.describedby" :invalid="f.invalid" /></template>
                         </Field>
                         <!-- Left empty by people; bots fill it in. -->
-                        <div class="absolute -left-[9999px]" aria-hidden="true"><label>{{ t('auth.nickname') }}<input v-model="form.nickname" tabindex="-1" autocomplete="off" /></label></div>
+                        <div class="absolute -start-[9999px]" aria-hidden="true"><label>{{ t('auth.nickname') }}<input v-model="form.nickname" tabindex="-1" autocomplete="off" /></label></div>
                         <!-- When you were born, month and year only: 13 and over can make an account, 18 opens the adult features. -->
                         <BirthDate v-if="mode === 'signup'" v-model:month="form.birthMonth" v-model:year="form.birthYear" :hint="t('auth.born.why')" :error="bornError || ''" />
                         <TurnstileBox v-if="config?.turnstileSiteKey && (mode === 'signup' || step === 'password')" :key="turnstileKey" :site-key="config.turnstileSiteKey" @token="turnstile = $event" @failed="turnstileFailed" />

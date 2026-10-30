@@ -8,6 +8,7 @@
 import { reactive } from 'vue';
 import { tk } from '../i18n.js';
 import { DAILY_XP_CAP, XP, dayOf } from '../course.js';
+import { STRICTNESS } from '../scoring.js';
 
 export const POPUP_SECONDS = 1.2;
 export const QUIET_START = 2; // seconds into a take before the first
@@ -16,7 +17,7 @@ export const BONUS_FROM = 10; // the combo bonus: a note lit while a run of this
 export const SAY_GAP = 6; // seconds: with no phrase to go by, a screen reader hears at most one pop-up this often
 
 /** The pop-ups' words, by kind. */
-export const WORDS = { combo: tk('game.popup.combo'), phrase: tk('game.popup.phrase'), bonus: tk('game.popup.bonus') };
+export const WORDS = { combo: tk('game.popup.combo'), phrase: tk('game.popup.phrase'), bonus: tk('game.popup.bonus'), hold: tk('game.popup.hold') };
 
 /**
  * How much combo bonus today's cap still has room for once the exercise's own award is in (its
@@ -25,6 +26,31 @@ export const WORDS = { combo: tk('game.popup.combo'), phrase: tk('game.popup.phr
 export function bonusRoom(progress, at = Date.now()) {
     const today = progress?.xp?.days?.[dayOf(at)] ?? 0;
     return Math.max(0, DAILY_XP_CAP - today - XP.exercise - XP.star);
+}
+
+export const HOLD_SECONDS = 1.5; // a note this long or longer can be "held"
+const HOLD_SUNG = 0.8; // of its time with your voice on it
+const HOLD_TUNED = 0.85; // of those readings in tune
+const HOLD_TAIL = 0.25; // seconds at its end, every reading in tune: held to the end
+const HOLD_GAP = 0.1; // seconds: a longer gap between readings is time not sung
+
+const folded = (midi, target) => target + ((((midi - target) % 12) + 18) % 12) - 6; // any octave counts, as in the score
+
+/**
+ * "Held it!": a long note (`start` to `end` in song seconds, sounding `pitch`) sung through and in
+ * tune to its end, judged from the live line's own points (livevoice.js, `{ seconds, midi, alpha }`)
+ * at the scorer's standard tolerance. Pure.
+ */
+export function heldToEnd(points, { start, end, pitch }, tolerance = STRICTNESS.standard) {
+    if (end - start < HOLD_SECONDS) return false;
+    const inside = points.filter((p) => p.seconds >= start && p.seconds < end && p.alpha === 1 && p.midi !== null);
+    if (inside.length < 2) return false;
+    let sung = 0;
+    for (let i = 1; i < inside.length; i++) sung += Math.min(HOLD_GAP, inside[i].seconds - inside[i - 1].seconds);
+    if (sung < (end - start) * HOLD_SUNG) return false;
+    const tuned = (p) => Math.abs(folded(p.midi, pitch) - pitch) * 100 <= tolerance;
+    const tail = inside.filter((p) => p.seconds >= end - HOLD_TAIL);
+    return tail.length > 0 && tail.every(tuned) && inside.filter(tuned).length >= inside.length * HOLD_TUNED;
 }
 
 /** Whether a combo of `count` earns a pop-up: 10, 20, 30... */

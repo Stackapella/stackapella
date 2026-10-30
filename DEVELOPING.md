@@ -19,6 +19,8 @@ stackapella.com sets `IS_NEXUS=true`.
 - PHP 8.3 or 8.4 with `gd`, `intl`, `pdo_mysql`, `bcmath`, `pcntl` and `zip`; Composer. There's
   no npm.
 - MySQL 8.4 (MySQL only: SQLite and MariaDB aren't supported).
+- The MySQL client tools (`mysqldump` and `mysql`), for the nightly backup and the restore drill;
+  set `MYSQL_CLIENT_PATH` in `.env` when they aren't on the PATH.
 - ffmpeg: takes, shared harmonies and share videos are encoded on the server.
 - **HTTPS.** Browsers give a page the microphone, AudioWorklet, the service worker, passkeys and
   push notifications only in a secure context. `localhost` counts, for trying it out.
@@ -35,18 +37,26 @@ stackapella.com sets `IS_NEXUS=true`.
 **Install:**
 
 ```bash
+sh server/tool/content.sh fetch   # the courses and songs (their own repo), at the commit .do/content.lock pins
 cd server
 composer install --no-dev
-cp .env.example .env              # the database, the storage buckets, mail, APP_URL, and SELF_HOSTED=true
+cp .env.example .env              # the database, the storage buckets, mail, APP_URL (https), and SELF_HOSTED=true
+# also in .env: SESSION_SECURE_COOKIE=true, and your own SQIDS_ALPHABET (never the default, and
+# never changed once links are out)
 php artisan key:generate
-# set your own SQIDS_ALPHABET in .env: never the default, and never change it once links are out
 php artisan migrate --force
 php artisan app:templates:sync    # the songs, into the catalogue
 php artisan app:doctor            # every readiness check, with its fix
 ```
 
+The courses and songs aren't in this repository: `content.sh fetch` downloads the commit
+`.do/content.lock` pins and checks it against its sha256 (it needs `curl`). Run it again, then
+`app:templates:sync`, after an update that changes the lock.
+
 Point your web server's root at `server/public` (the server serves the app from `web/` beside
-it), and start the two processes above.
+it), and start the two processes above. The doctor's remaining checks then pass as the install
+runs: the scheduler's first beat, and the first nightly backup (`php artisan app:backup:run` makes
+one now).
 
 **`SELF_HOSTED=true`** (`server/config/selfhost.php`) makes it yours:
 - **Everything is unlocked:** every account has every Plus feature, with no plans and no licence

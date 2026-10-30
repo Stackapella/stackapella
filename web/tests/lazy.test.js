@@ -8,8 +8,15 @@ const quickly = (promise) => Promise.race([promise, new Promise((resolve) => set
 
 test('lazy: the same build loads the view', async () => {
     let reloads = 0;
-    const load = lazyView(async () => 'view', { reload: () => reloads++, check: async () => {}, state: { ready: false } });
-    assert((await load()) === 'view' && reloads === 0, 'loaded, no reload');
+    let checks = 0;
+    const load = lazyView(async () => 'view', { reload: () => reloads++, check: async () => checks++, state: { ready: false, loaded: 'b1' } });
+    assert((await load()) === 'view' && reloads === 0 && checks === 1, 'asked, loaded, no reload');
+});
+
+test('lazy: a page just opened (its build not known yet) loads the view without asking', async () => {
+    let checks = 0;
+    const load = lazyView(async () => 'home', { reload: () => {}, check: async () => checks++, state: { ready: false, loaded: null } });
+    assert((await load()) === 'home' && checks === 0, 'no version round trip before the first view');
 });
 
 test('lazy: a newer build on the server reloads instead of importing into an old page', async () => {
@@ -29,4 +36,19 @@ test('lazy: a view that fails to load reloads once, then says so', async () => {
     await load().catch((error) => (thrown = error));
     assert(thrown instanceof SyntaxError && reloads === 1, 'the second throws, no loop');
     tabStorage.remove('stackapella.reloadedFor');
+});
+
+test('lazy: a view fetched ahead opens at once, without asking the server again', async () => {
+    let checks = 0;
+    let imports = 0;
+    const load = lazyView(async () => (imports++, 'settings'), { reload: () => {}, check: async () => checks++, state: { ready: false, loaded: 'b1' }, words: async () => {} });
+    await load.prefetch();
+    assert((await load()) === 'settings' && imports === 1 && checks === 0, 'imported once, ahead, and opened with no version round trip');
+});
+
+test('lazy: nothing is fetched ahead once a newer version is waiting', async () => {
+    let imports = 0;
+    const load = lazyView(async () => imports++, { reload: () => {}, check: async () => {}, state: { ready: true, loaded: 'b1' } });
+    await load.prefetch();
+    assert(imports === 0, 'the next open reloads instead');
 });

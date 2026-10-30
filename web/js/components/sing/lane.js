@@ -32,6 +32,7 @@ export const Lane = {
         hint: { type: String, default: null }, // 'higher' or 'lower', shown with an arrow at the head
         hintText: { type: String, default: '' }, // the hint in words, as a chip beside the head (the recording stage)
         trail: { type: String, default: null }, // your voice's ribbon and dot, if not in your colour (game mode's on-fire run)
+        ghost: { type: Array, default: () => [] }, // game mode's ghost: your best take's line to race
     },
     template: `<div class="relative h-full w-full"><canvas ref="canvas" class="touch-pan-y block h-full w-full" aria-hidden="true"></canvas></div>`,
     watch: {

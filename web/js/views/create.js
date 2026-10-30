@@ -433,6 +433,7 @@ export const CreateView = {
                 clearTimeout(this.autosave);
                 this.dirty = false;
                 await discardDraft(d.id);
+                if (d.mode === 'hum') count('hum_saved'); // a hummed tune kept as a song
                 toast(record.state === 'limit' || record.state === 'invalid' ? t('create.savedHereOnly') : t('create.saved'));
                 navigate(`/t/${record.id}`, { replace: true });
             } catch (error) {

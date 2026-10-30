@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Site;
 
 use App\Support\Flags;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 /**
@@ -13,6 +14,9 @@ use Tests\TestCase;
  */
 final class CoachLineTest extends TestCase
 {
+    // It turns coaching on: rolled back after, so no later test finds it on.
+    use RefreshDatabase;
+
     public function test_the_site_says_no_app_replaces_a_coach_and_coaching_in_the_app_is_soon(): void
     {
         $core = e(__('pages.landing.coach_note'));

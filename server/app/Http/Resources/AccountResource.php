@@ -47,6 +47,9 @@ final class AccountResource extends JsonResource
             'publicProfile' => $user->public_profile_at !== null,
             // Hide profile: others see "Anonymous", with no handle, picture or profile page.
             'hideProfile' => (bool) ($user->getAttributes()['hide_profile'] ?? false),
+            // Game mode's boards: their arcade initials, and whether boards show them or the name.
+            'initials' => $user->getAttributes()['initials'] ?? null,
+            'boardsName' => (string) ($user->getAttributes()['boards_name'] ?? 'name'),
             'ideaEmails' => (bool) ($user->getAttributes()['idea_emails'] ?? true),
             // Push to the apps (account.devices.push.update): each bell kind, on unless turned off.
             'pushTypes' => (object) AppPushes::settings($user)['types'],

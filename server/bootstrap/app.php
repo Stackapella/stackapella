@@ -9,6 +9,7 @@ use App\Http\Controllers\Ops\SecurityTxtController;
 use App\Http\Controllers\PreviewLinkController;
 use App\Http\Controllers\Public\CoachesPageController;
 use App\Http\Controllers\Public\CoachPageController;
+use App\Http\Controllers\Public\ComparePagesController;
 use App\Http\Controllers\Public\CoursePagesController;
 use App\Http\Controllers\Public\DocumentPagesController;
 use App\Http\Controllers\Public\EmbedHarmonyController;
@@ -107,6 +108,8 @@ return Application::configure(basePath: dirname(__DIR__))
             // What it does and who it's for (docs/public-site-plan.md).
             Route::get('/features', [FeaturePagesController::class, 'index'])->middleware(['nexus', 'throttle:public-pages'])->name('features.index');
             Route::get('/features/{slug}', [FeaturePagesController::class, 'show'])->where('slug', '[a-z0-9-]{1,40}')->middleware(['nexus', 'throttle:public-pages'])->name('features.page');
+            Route::get('/compare', [ComparePagesController::class, 'index'])->middleware(['nexus', 'throttle:public-pages'])->name('compare.index');
+            Route::get('/compare/{slug}', [ComparePagesController::class, 'show'])->where('slug', '[a-z0-9-]{1,40}')->middleware(['nexus', 'throttle:public-pages'])->name('compare.page');
             Route::get('/about', [SitePagesController::class, 'about'])->middleware(['nexus', 'throttle:public-pages'])->name('about.page');
             Route::get('/how-it-works', [SitePagesController::class, 'howItWorks'])->middleware(['nexus', 'throttle:public-pages'])->name('how.page');
             Route::get('/press', [SitePagesController::class, 'press'])->middleware(['nexus', 'throttle:public-pages'])->name('press.page');

@@ -13,12 +13,14 @@ import { betaWaiting, homeBands, sangThisWeek } from '../home.js';
 import { creditsFor, loadCatalogue } from '../stores/catalogue.js';
 import { toRaw } from 'vue';
 import { canCreateProject, countsToLimit, createProject, deleteProject, FREE_PROJECT_LIMIT, LimitReached, loadProjects, projects, saveProject, shownTitle, startFromTemplate } from '../stores/projects.js';
+import { ideas, ideasOpen } from '../stores/ideas.js';
 import { learning } from '../stores/learning.js';
 import { account } from '../stores/account.js';
 import { canStart, lengthBeats, listTemplates, loadTemplate, onDraftsChange, partsFor, singerOptions, templatePartName } from '../templates.js';
 import { formatTime, keyLabel, PART_COLORS } from '../theme.js';
 import { HomeBand, HomeCourses, HomeLead, SongCover, WeekCard, WorkoutStrip } from '../components/home.js';
 import { PlayerChip } from '../game/title-screen.js';
+import { DailyTag, daily, loadDaily } from '../game/daily.js';
 import { effect } from '../game/effects.js';
 import { InstallCard } from '../components/install.js';
 import { FirstWeek, RemindAsk } from '../components/session-wrap.js';
@@ -55,8 +57,8 @@ const SONG_FILTERS = { all: tk('home.songs.filter.all'), free: tk('home.songs.fi
 const playableDraft = (draft) => (draft.template?.tempo && draft.template.parts?.some((p) => p.guide?.notes?.length) ? draft.template : null);
 
 export const ProjectsView = {
-    components: { PlayerChip, CardMenu, HomeCourses, ThemeSwitch, Icon, Logo, TemplateDialog, HomeLead, HomeBand, SongCover, InstallCard, WeekCard, WorkoutStrip, StatusChip, Modal, Notice, PlusMoment, RemindAsk, FirstWeek },
-    setup: () => ({ session, mine, friendlyProblem, canStart, projects, account, learning, shownTitle, FREE_PROJECT_LIMIT, formatTime, timeAgo, PART_COLORS, lengthBeats, partsFor, keyLabel, DIFFICULTY, creditsFor, navigate, BAND_COLORS, BETA_STATUS, publicSiteUrl, SONG_FILTERS, effect }),
+    components: { PlayerChip, DailyTag, CardMenu, HomeCourses, ThemeSwitch, Icon, Logo, TemplateDialog, HomeLead, HomeBand, SongCover, InstallCard, WeekCard, WorkoutStrip, StatusChip, Modal, Notice, PlusMoment, RemindAsk, FirstWeek },
+    setup: () => ({ ideas, session, mine, friendlyProblem, canStart, projects, account, learning, shownTitle, FREE_PROJECT_LIMIT, formatTime, timeAgo, PART_COLORS, lengthBeats, partsFor, keyLabel, DIFFICULTY, creditsFor, navigate, BAND_COLORS, BETA_STATUS, publicSiteUrl, SONG_FILTERS, effect, daily }),
     data: () => ({ locked: false, clip: null, templates: [], openTemplate: null, singers: 4, previewing: false, preparingPreview: false, starting: false, groups: null, betaParts: null, avatarFailed: false, making: false, importProblems: null, limitOpen: false, songsOpen: tabStorage.get('stackapella.songsOpen') === '1', songColumns: songColumns(), songFilter: 'all', newing: false, showInfo: false, previewOf: null, playingSong: null, renaming: null, newName: '' }),
     template: `
         <div class="mx-auto min-h-dvh max-w-6xl px-4 pb-16 pt-[max(1rem,env(safe-area-inset-top))] md:px-8">
@@ -122,8 +124,10 @@ export const ProjectsView = {
                                 </div>
                             </template>
                             <ul id="home-songs" class="gap-3" :class="songsOpen ? 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4' : '-mx-4 flex snap-x scroll-px-4 overflow-x-auto px-4 [scrollbar-width:none] md:mx-0 md:grid md:grid-cols-3 md:overflow-visible md:px-0 lg:grid-cols-4'">
-                                <li v-for="item in shownSongs" :key="item.key" class="group relative" :class="songsOpen ? '' : 'w-40 shrink-0 snap-start md:w-auto'" data-song-card>
-                                    <button type="button" type="button" class="flex w-full flex-col gap-2 rounded-3xl p-1 text-start hover:bg-raised/50" @click="infoSong(item.tpl)">
+                                <li v-for="item in shownSongs" :key="item.key" class="group relative" :class="songsOpen ? '' : 'w-40 shrink-0 snap-start md:w-auto'" data-song-card :data-daily="effect('daily') && daily.today?.templateId === item.tpl.id ? '' : null">
+                                    <!-- Game mode's daily challenge: today's song card wears its tag (docs/game-elements-plan.md) -->
+                                    <DailyTag v-if="effect('daily') && daily.today?.templateId === item.tpl.id" :challenge="daily.today" />
+                                    <button type="button" class="flex w-full flex-col gap-2 rounded-3xl p-1 text-start hover:bg-raised/50" @click="infoSong(item.tpl)">
                                         <span class="relative block">
                                             <SongCover :voices="item.tpl.parts.map((p) => p.key)" :seed="seedOf(item.tpl.id)" />
                                             <!-- The tags at the top left; the top right is the preview's Play. -->
@@ -231,6 +235,11 @@ export const ProjectsView = {
                         <span class="grid size-10 shrink-0 place-items-center rounded-full bg-accent text-accent-ink"><Icon name="mic" :size="20" /></span>
                         <span><span class="block font-bold text-cream">{{ t('home.new.record') }}</span><span class="text-sm text-muted">{{ full ? t('home.projects.full', { limit: FREE_PROJECT_LIMIT }) : t('home.new.recordHint') }}</span></span>
                     </button>
+                    <!-- Ideas (docs/ideas-app-plan.md), once open: someone's tune, waiting for your voice -->
+                    <a v-if="ideas.open" href="/ideas" class="card-interactive flex w-full items-start gap-3 p-4 text-start" data-new-ideas @click.prevent="navigate('/ideas')">
+                        <span class="grid size-10 shrink-0 place-items-center rounded-full bg-accent text-accent-ink"><Icon name="note" :size="20" /></span>
+                        <span><span class="block font-bold text-cream">{{ t('home.new.ideas') }}</span><span class="text-sm text-muted">{{ t('home.new.ideasHint') }}</span></span>
+                    </a>
                 </div>
             </Modal>
             <Modal v-if="making" :title="t('create.home.make')" @close="making = false">
@@ -357,6 +366,7 @@ export const ProjectsView = {
         },
     },
     created() {
+        loadDaily(); // game mode's daily challenge (it checks game mode and its switch)
         loadProjects();
         loadMine().catch((error) => console.warn('Your templates not loaded', error));
         if (account.me) this.loadGroups();
@@ -393,6 +403,10 @@ export const ProjectsView = {
         this.stopDrafts?.();
     },
     watch: {
+        /** Ideas is asked about once the new-song sheet opens (closed, the server answers 404). */
+        newing(open) {
+            if (open) ideasOpen();
+        },
         'account.me.betaSinger': {
             immediate: true,
             handler(singer) {

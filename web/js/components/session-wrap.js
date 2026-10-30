@@ -20,6 +20,7 @@ import { sk } from '../skin.js';
 
 const GOALS = [2, 3, 5];
 const SUGGESTED = 3;
+export const INSTALL_ASKED = 'stackapella.installAskedOn'; // the day the wrap offered install (one ask a session)
 const NOT_NOW = 'stackapella.keepAsk'; // { nots, at }: how many times the ask was put off, and the last time
 const AGAIN_AFTER = 3 * 24 * 3600 * 1000;
 const MOST_NOT_NOWS = 3;
@@ -58,12 +59,14 @@ export const SessionWrap = {
             <div class="space-y-2" data-wrap-goal>
                 <p :id="'wrap-goal-' + $.uid" class="font-semibold text-cream">{{ t('wrap.goal') }}</p>
                 <div class="seg flex sm:w-fit" role="radiogroup" :aria-labelledby="'wrap-goal-' + $.uid">
-                    <button v-for="g in GOALS" :key="g" type="button" role="radio" :aria-checked="shownGoal === g ? 'true' : 'false'" class="seg-option flex-1 sm:flex-none" @click="chooseGoal(g)">{{ t('wrap.days', { count: g }) }}</button>
+                    <button v-for="g in GOALS" :key="g" type="button" role="radio" :aria-checked="chosenGoal === g ? 'true' : 'false'" class="seg-option flex-1 sm:flex-none" :class="suggested === g ? 'ring-2 ring-inset ring-accent/60' : ''" :data-suggested="suggested === g ? '' : null" @click="chooseGoal(g)">{{ t('wrap.days', { count: g }) }}</button>
                 </div>
                 <p v-if="goal" class="text-sm text-muted" role="status">{{ t('wrap.goalKept', { count: goal }) }}</p>
+                <p v-else-if="suggested" class="text-sm text-muted">{{ t('wrap.goalSuggested', { count: suggested }) }}</p>
             </div>
             <div v-if="ask" class="space-y-3 border-t border-line pt-4" data-wrap-keep :data-ask="ask">
-                <p class="font-semibold text-cream">{{ ask === 'account' ? sk('wrap.accountSerious', 'wrap.account', { stars }) : sk('wrap.installSerious', 'wrap.install', { stars }) }}</p>
+                <!-- Keeping what's here is only at stake where the browser may clear a site's data (Safari on iPhone and iPad, after a week away); elsewhere installing is said for what it is. -->
+                <p class="font-semibold text-cream">{{ ask === 'account' ? sk('wrap.accountSerious', 'wrap.account', { stars }) : ask === 'iphone' ? sk('wrap.installSerious', 'wrap.install', { stars }) : t('wrap.installApp') }}</p>
                 <p v-if="ask === 'iphone'" class="text-sm text-muted">{{ t('install.iphone') }}</p>
                 <p v-else-if="ask === 'mac'" class="text-sm text-muted">{{ t('install.mac') }}</p>
                 <div class="flex flex-wrap items-center gap-3">
@@ -74,9 +77,13 @@ export const SessionWrap = {
             </div>
         </section>`,
     computed: {
-        /** The goal shown chosen: the one tapped (here or before on this device), else 3 (shown, never kept until a tap). */
-        shownGoal() {
-            return this.goal ?? (funnelRecord().firsts.f_goal ? learning.progress.goal : SUGGESTED);
+        /** The goal chosen: the one tapped, here or before on this device; null until then. */
+        chosenGoal() {
+            return this.goal ?? (funnelRecord().firsts.f_goal ? learning.progress.goal : null);
+        },
+        /** Until one is chosen, 3 is suggested: an outline, never shown as chosen (onboarding review 2, 15). */
+        suggested() {
+            return this.chosenGoal === null ? SUGGESTED : null;
         },
         ask() {
             return this.due && !this.answered ? keepAskFor() : null;
@@ -86,7 +93,10 @@ export const SessionWrap = {
         ask: {
             handler(ask) {
                 if (ask === 'account') askShown('account');
-                else if (ask) askShown('install');
+                else if (ask) {
+                    askShown('install');
+                    local.set(INSTALL_ASKED, new Date().toDateString()); // Home's install card waits for another day
+                }
             },
             immediate: true,
         },

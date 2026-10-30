@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Support\Pages;
 
 use App\Models\Template;
+use App\Support\Flags;
 use App\Support\Http\Hosts;
 use App\Support\Site\ComingSoon;
 use App\Support\Site\Drawings;
@@ -52,9 +53,10 @@ final class Landing
     }
 
     /**
-     * The links into the app, carrying `ref` so the app records it at sign-up.
+     * The links into the app, carrying `ref` so the app records it at sign-up, and whether the
+     * footer links the comparison pages (the compare_pages switch).
      *
-     * @return array{start: string, app: string, plus: string, create: string}
+     * @return array{start: string, app: string, plus: string, create: string, compare: bool}
      */
     public static function links(?string $ref): array
     {
@@ -65,6 +67,7 @@ final class Landing
             'app' => $with('/'),
             'plus' => $with('/plus?from=landing'),
             'create' => $with('/create'),
+            'compare' => app(Flags::class)->on('compare_pages'),
         ];
     }
 

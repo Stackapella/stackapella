@@ -6,7 +6,10 @@ namespace App\Http\Controllers\Api\Boards;
 
 use App\Actions\Boards\Boards;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Boards\DailyBoardRequest;
+use App\Http\Requests\Boards\GhostRequest;
 use App\Http\Requests\Boards\SubmitScoreRequest;
+use App\Models\Ghost;
 use App\Models\User;
 use Illuminate\Container\Attributes\CurrentUser;
 use Illuminate\Http\JsonResponse;
@@ -57,6 +60,60 @@ final class BoardsController extends Controller
         $viewer = $request->user();
 
         return response()->json(['data' => $this->boards->open($viewer instanceof User ? $viewer : null, $token)]);
+    }
+
+    /**
+     * boards.daily.show: the daily challenge's board. Anyone: someone signed out gets the pick
+     * without its entries.
+     */
+    public function daily(DailyBoardRequest $request): JsonResponse
+    {
+        $viewer = $request->user();
+        $scope = $request->validated('scope');
+
+        return response()->json(['data' => $this->boards->daily($viewer instanceof User ? $viewer : null, $request->day(), is_string($scope) ? $scope : 'global')]);
+    }
+
+    /**
+     * boards.ghost.show: the pitch line of their own best take on a part.
+     */
+    public function ghost(string $template, string $part, #[CurrentUser] User $user): JsonResponse
+    {
+        $ghost = $this->boards->ghost($user, $template, $part);
+
+        // None kept yet: an empty answer, not an error.
+        return response()->json(['data' => $ghost !== null ? self::ghostFields($ghost) : null]);
+    }
+
+    /**
+     * boards.ghost.update: keep it, for their current best only.
+     */
+    public function keepGhost(GhostRequest $request, string $template, string $part, #[CurrentUser] User $user): JsonResponse
+    {
+        $ghost = $this->boards->keepGhost($user, $template, $part, [
+            'templateVersion' => (int) $request->validated('templateVersion'), 'scoringVersion' => (int) $request->validated('scoringVersion'), 'score' => (int) $request->validated('score'),
+            'rate' => (int) $request->validated('rate'), 'startSeconds' => (float) $request->validated('startSeconds'), 'keyOffset' => (int) $request->validated('keyOffset'), 'pitches' => $request->pitches(),
+        ]);
+
+        return response()->json(['data' => self::ghostFields($ghost)]);
+    }
+
+    /**
+     * @return array{templateVersion: int, scoringVersion: int, score: int, rate: int, startSeconds: float, keyOffset: int, pitches: string}
+     */
+    private static function ghostFields(Ghost $ghost): array
+    {
+        $version = $ghost->getRelation('templateVersion');
+
+        return [
+            'templateVersion' => (int) $version->version,
+            'scoringVersion' => $ghost->scoring_version,
+            'score' => $ghost->score,
+            'rate' => $ghost->rate,
+            'startSeconds' => (float) $ghost->start_seconds,
+            'keyOffset' => $ghost->key_offset,
+            'pitches' => base64_encode($ghost->pitches),
+        ];
     }
 
     public function accept(string $token, #[CurrentUser] User $user): JsonResponse

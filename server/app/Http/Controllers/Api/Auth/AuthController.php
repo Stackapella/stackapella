@@ -83,6 +83,13 @@ final class AuthController extends Controller
             'experiment' => app(Funnel::class)->current(),
             // Whether coaches can apply (the coach_signup switch), for the app's and the site's Apply.
             'coachSignup' => $flags->on('coach_signup'),
+            // Hum a tune in the app (the your_tune switch, which also turns the site's page to "now").
+            'humTune' => $flags->on('your_tune'),
+            // Ideas in the app (the ideas switch), so the app never probes ideas.list while it's closed.
+            'ideas' => $flags->on('ideas'),
+            // The Plus courses (the plus_courses switch), for a signed-out visitor too, who can try
+            // a live course's free first lesson (account.plusCourses adds staff before it opens).
+            'plusCourses' => $flags->on('plus_courses'),
             // The browser error reporter's DSN (public by design: its envelopes come to /log/errors).
             'sentryDsn' => is_string($dsn = config('sentry.browser_dsn')) && $dsn !== '' ? $dsn : null,
         ]]);

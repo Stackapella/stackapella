@@ -28,6 +28,8 @@ test('plus courses: a course keeps its own lessons, apart from the free course\'
 test('plus courses: staff see a live course before launch; the feature opens it to everyone', () => {
     const live = { id: 'vibrato', status: 'live' };
     assert(!courseVisible(live, null), 'signed out: none yet');
+    assert(!courseVisible(live, null, { plusCourses: false }), 'signed out, the feature off: none');
+    assert(courseVisible(live, null, { plusCourses: true }), 'signed out, the feature on: a guest can try it');
     assert(!courseVisible(live, { plan: 'plus', staff: null }), 'Plus alone, before launch: hidden');
     assert(courseVisible(live, { plan: 'free', staff: 'admin' }), 'staff, any plan');
     assert(courseVisible(live, { plan: 'free', staff: null, plusCourses: true }), 'once the feature is on');

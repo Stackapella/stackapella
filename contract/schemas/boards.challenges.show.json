@@ -33,7 +33,7 @@
                         "string",
                         "null"
                     ],
-                    "description": "The challenger's name; null for someone signed out or under 18."
+                    "description": "The challenger as the boards show them: their name, or their initials when they show initials (always someone under 18); null for someone signed out, or under 18 with no initials."
                 }
             }
         }

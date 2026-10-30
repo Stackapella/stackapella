@@ -575,6 +575,34 @@ def settings(f):
         clear_projects(f)
 
 
+def hum_a_tune(f):
+    """Making your own song, Hum a tune: two lines of Amazing Grace hummed in free time (the
+    arranger's fixture, played into the mic over loopback), written down with Line 1 again, Line 2
+    again, Play it and Use a click. Staff until it's switched on, so the mock account is an admin."""
+    if not wanted("create--hum"):
+        return
+    light_first(f)
+    f.go("/?api=mock&scenario=&as=admin", "document.querySelector('[data-new-song]')")
+    f.mic_checked()
+    f.run("document.querySelector('[data-new-song]').click()")
+    f.click(t(f, "home.new.make"), "[data-new-sheet] button")
+    f.wait("document.querySelector('[data-new-hum]')", what="Hum a tune")
+    f.run("document.querySelector('[data-new-hum]').click()")
+    f.wait("location.pathname.startsWith('/create') && document.querySelector('[data-hum-tune]')", what="the hum step")
+    f.js(f"{AUDIO}.unlock()")
+    f.js(f"{AUDIO}.engine.setLoopback(true)")
+    f.run("document.querySelector('[data-hum-record]').click()")
+    f.wait("document.querySelector('[data-hum-tune]')?.dataset.state === 'recording'", what="humming")
+    f.run(f"""const {{ engine }} = {AUDIO}; const bytes = await (await fetch('/tests/fixtures/hum-two-lines.wav')).arrayBuffer();
+        const decoded = await engine.ctx.decodeAudioData(bytes); engine.preview(decoded.getChannelData(0), decoded.sampleRate);""")
+    f.js("new Promise((r) => setTimeout(r, 20500))")
+    f.run("document.querySelector('[data-hum-stop]').click()")
+    f.wait("document.querySelector('[data-hum-tune]')?.dataset.state === 'idle' && document.querySelector('[data-hum-found]')", timeout=60, what="the tune written down")
+    f.js(f"{AUDIO}.engine.setLoopback(false)")
+    shoot(f, "create--hum", scroll="window.scrollTo(0, 0)")
+    clear_projects(f)
+
+
 def phone(f):
     getting_started(f)
     your_voice(f)
@@ -583,6 +611,7 @@ def phone(f):
     fact_card(f)
     studio_phone(f)
     settings(f)
+    hum_a_tune(f)
     compress()
 
 

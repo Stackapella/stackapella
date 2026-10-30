@@ -117,7 +117,7 @@ final class BoardsTest extends TestCase
         $board = $this->getJson('/api/boards/amazing-grace/alto?scope=global');
         $this->assertMatchesContract($board, 'boards.show', 200);
         $this->assertSame(['Ana Ruiz'], array_column((array) $board->json('data.entries'), 'name'));
-        $this->actingAs($ben)->getJson('/api/boards/amazing-grace/alto?scope=global')->assertJsonPath('data.you', ['score' => 70, 'rank' => null]);
+        $this->actingAs($ben)->getJson('/api/boards/amazing-grace/alto?scope=global')->assertJsonPath('data.you', ['score' => 70, 'rank' => null, 'initials' => null]);
 
         UserBlock::query()->forceCreate(['blocker_id' => $ben->id, 'blocked_id' => $ana->id]);
         $this->getJson('/api/boards/amazing-grace/alto?scope=global')->assertJsonCount(0, 'data.entries');
@@ -155,14 +155,15 @@ final class BoardsTest extends TestCase
         $this->assertSame(2, BoardConnection::query()->count());
         $this->assertMatchesContract($this->postJson('/api/boards/challenges/nope/accept'), 'boards.challenges.accept', 404);
 
-        // Friends see each other on any song's friends' board; a teen in the same group by first name.
+        // Friends see each other on any song's friends' board; a teen in the same group by initials (game mode's;
+        // none chosen yet, so the app shows "???").
         $group = Group::factory()->create(['director_id' => $ana->id]);
         GroupMember::factory()->create(['group_id' => $group->id, 'user_id' => $teen->id]);
         foreach ([[$ben, 77], [$teen, 88]] as [$who, $score]) {
             $this->actingAs($who)->postJson('/api/boards/scores', $this->score($score))->assertOk();
         }
-        $names = array_column((array) $this->actingAs($ana)->getJson('/api/boards/amazing-grace/alto?scope=friends')->json('data.entries'), 'name');
-        $this->assertSame(['Teo', 'Ben Ode'], $names);
+        $entries = (array) $this->actingAs($ana)->getJson('/api/boards/amazing-grace/alto?scope=friends')->json('data.entries');
+        $this->assertSame([[null, null], ['Ben Ode', null]], array_map(fn (array $e): array => [$e['name'], $e['initials']], $entries));
     }
 
     public function test_the_admin_takes_a_score_off_or_resets_a_person_and_both_are_audited(): void

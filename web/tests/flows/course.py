@@ -77,10 +77,10 @@ def journey(f):
     f.wait(f"!{AUDIO}.engine.playing", timeout=20, what="heard")
     f.click_t("course.continue")
     f.click_t("course.tap.try")
-    # Wait for me: each note plays and holds until it's found (headphones first, asked once a visit).
-    # Over loopback the held note is what the mic hears, so each lights in turn and the next plays.
-    f.wait_text(t(f, "headphones.title"))
-    f.click_t("headphones.on")
+    # Wait for me: each note plays and waits until it's found. Never a headphones question here (nothing
+    # sounds under you, onboarding review 2, 8): unanswered, each note plays a moment then goes quiet.
+    f.js("new Promise((r) => setTimeout(r, 800))")
+    assert not f.js("!!document.querySelector('[data-headphones]')"), "no headphones question in Wait for me"
     # The Wait for me view (80.png): the note's pills, its bar, and no Stop.
     f.wait("document.querySelector('[data-wait-lane]') && document.querySelector('[data-wait-pills]')", what="Wait for me's lane and pills")
     f.wait("document.querySelectorAll('[data-wait-pills] li svg').length >= 1", what="a note found (its pill ticked)")

@@ -471,12 +471,14 @@ export class Engine {
      * With `record`, it also records from the frame `fromSeconds` plays on plus `latencyFrames`,
      * until stop(); `onChunk` receives the recording as it arrives (for a live waveform). Beats count
      * from beat 0, with `pickupBeats` before bar 1, so accents fall on the bar lines.
+     * `countInSounds` (`{ accent, normal }` AudioBuffers) replaces the count-in's two clicks (game mode's
+     * chip blips); the metronome and cue clicks after it are always the plain ones.
      *
      * `leadSeconds` is how far ahead of the audio clock the first sound is placed. After the mic
      * has just opened, a longer lead lets iOS finish switching its audio session before the first
      * click, instead of on it.
      */
-    play({ fromSeconds = 0, toSeconds = null, bpm = null, beatsPerBar = 4, pickupBeats = 0, countInBeats = 0, metronome = false, loop = null, repeat = null, record = false, latencyFrames = 0, onChunk = null, leadSeconds = LEAD_SECONDS }) {
+    play({ fromSeconds = 0, toSeconds = null, bpm = null, beatsPerBar = 4, pickupBeats = 0, countInBeats = 0, countInSounds = null, metronome = false, loop = null, repeat = null, record = false, latencyFrames = 0, onChunk = null, leadSeconds = LEAD_SECONDS }) {
         this.stopSources();
         this.nowPlaying('playing');
         const sr = this.ctx.sampleRate;
@@ -487,8 +489,9 @@ export class Engine {
         if (beat) {
             const startSeconds = loop?.startSeconds ?? repeat?.phrases[0]?.startSeconds ?? fromSeconds;
             const fromBeat = Math.round((startSeconds * sr) / grid.beatFrames);
+            const sounds = countInSounds ?? this.clicks; // game mode's chip blips, for the count-in only
             for (let i = 0; i < countInBeats; i++) {
-                this.scheduleBuffer(this.isBarLine(fromBeat - countInBeats + i, grid) ? this.clicks.accent : this.clicks.normal, first + i * beat, 1, this.playBus, first);
+                this.scheduleBuffer(this.isBarLine(fromBeat - countInBeats + i, grid) ? sounds.accent : sounds.normal, first + i * beat, 1, this.playBus, first);
             }
         }
         this.timeline = {

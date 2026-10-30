@@ -310,6 +310,8 @@ Route::middleware('auth')->group(function (): void {
 // Support (contact and diagnostics) needs no account; notices are read by their private link too.
 // A challenge link, before it's accepted: anyone holding it, signed in or not.
 Route::get('/boards/challenges/{token}', [BoardsController::class, 'open'])->middleware('throttle:invite-links')->name('boards.challenges.show');
+// Game mode's daily challenge: anyone sees the day's pick, the signed in its board.
+Route::get('/boards/daily', [BoardsController::class, 'daily'])->middleware('throttle:public-pages')->name('boards.daily.show');
 // Anonymous usage counts: no session, no CSRF (a beacon), nothing kept but the day's numbers.
 Route::post('/counts', [CountsController::class, 'store'])->withoutMiddleware([StartSession::class, ShareErrorsFromSession::class, PreventRequestForgery::class, GrantBetaPass::class])->middleware('throttle:counts')->name('counts.create');
 Route::post('/support', [SupportController::class, 'store'])->middleware(['throttle:support', 'shield'])->name('support.create');
@@ -354,6 +356,8 @@ Route::middleware('auth')->group(function (): void {
     // Part leaderboards (docs/decisions.md, "part leaderboards"): free, signed in.
     Route::post('/boards/scores', [BoardsController::class, 'submit'])->middleware('throttle:board-scores')->name('boards.scores.submit');
     Route::get('/boards/{template}/{part}', [BoardsController::class, 'show'])->where('part', '[a-z0-9_-]{1,32}')->name('boards.show');
+    Route::get('/boards/{template}/{part}/ghost', [BoardsController::class, 'ghost'])->where('part', '[a-z0-9_-]{1,32}')->name('boards.ghost.show');
+    Route::put('/boards/{template}/{part}/ghost', [BoardsController::class, 'keepGhost'])->where('part', '[a-z0-9_-]{1,32}')->middleware('throttle:board-scores')->name('boards.ghost.update');
     Route::put('/boards/global', [BoardsController::class, 'global'])->name('boards.global.update');
     Route::post('/boards/challenges', [BoardsController::class, 'challenge'])->middleware('throttle:board-challenges')->name('boards.challenges.create');
     Route::post('/boards/challenges/{token}/accept', [BoardsController::class, 'accept'])->middleware('throttle:invite-links')->name('boards.challenges.accept');

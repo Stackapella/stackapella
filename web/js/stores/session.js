@@ -35,6 +35,7 @@ import { compress, DEFAULT_ROOM, impulseResponse, levelGains, limit, polishRende
 import { prefs } from './prefs.js';
 import { local } from '../storage.js';
 import { count } from '../usage.js';
+import { chipCountIn } from '../game/chip.js';
 
 export const GUIDE_PEAKS_RATE = 48000; // guide outlines are made at 48 kHz (stores/projects.js)
 export const FRAMES_PER_PEAK = 512;
@@ -985,6 +986,7 @@ export async function startRecording({ fromStart = false } = {}) {
         beatsPerBar: perBar,
         pickupBeats: session.pickup,
         countInBeats: (session.countInBeats = session.project.countInBars ? session.project.countInBars * perBar + intoBar : 0),
+        countInSounds: chipCountIn(), // game mode with Game sounds on: chip blips (the take's own clicks stay)
         metronome: session.project.metronome && !!session.project.bpm,
         record: true,
         latencyFrames: audio.latencyFrames ?? 0,

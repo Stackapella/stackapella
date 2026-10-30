@@ -24,6 +24,8 @@
         "label": "Counting in"
     },
     "common": {
+        "loading": "Opening",
+        "loadingScreen": "Opening {screen}",
         "backToProjects": "Back to your songs",
         "saving": "Saving",
         "saved": "Saved",
@@ -332,7 +334,8 @@
         "needsCheck": "Needs timing check",
         "dontAsk": "Don't ask again",
         "notNow": "Not now",
-        "start": "Start recording"
+        "start": "Start recording",
+        "lessonBody": "Something plays under you in this step. Headphones keep it out of your mic; without them, it plays quieter so the mic hears only you."
     },
     "export": {
         "title": "Export the mix",
@@ -518,7 +521,9 @@
             },
             "waitingCount": "{count} waiting",
             "unreadCount": "{count} unread",
-            "groupCount": "{count} to look at"
+            "groupCount": "{count} to look at",
+            "ideas": "Ideas",
+            "ideasHint": "Tunes waiting for a review before the shelf"
         },
         "home": {
             "title": "Admin",
@@ -1379,8 +1384,10 @@
             "countryUnknown": "Not known",
             "today": "Today",
             "noneToday": "Nothing counted yet today",
-            "totalsToday": "Each moment, today",
-            "countriesWeek": "Top countries, last 7 days",
+            "totalsToday": "Each moment, today so far (UTC)",
+            "updated": "Updated {when}",
+            "notUpdated": "Couldn't update. Last updated {when}",
+            "refresh": "Refresh",
             "course": "Course",
             "lesson": "Lesson",
             "started": "Started",
@@ -1411,6 +1418,8 @@
                 "open_game": "Opened with Game mode on",
                 "open_serious": "Opened with Game mode off",
                 "game_on": "Game mode turned on",
+                "daily_viewed": "Daily challenge opened",
+                "daily_sung": "Daily challenge sung",
                 "game_off": "Game mode turned off",
                 "sharpen_up": "Sharpen up started",
                 "then_now": "Then and now played",
@@ -1435,7 +1444,9 @@
                 "card_day2": "Welcome back card shown",
                 "sug_melody": "Melody suggested",
                 "sug_part": "Another part suggested",
-                "sug_switch": "Suggested part changed"
+                "sug_switch": "Suggested part changed",
+                "hum_found": "Hummed tunes written down",
+                "hum_saved": "Hummed tunes saved"
             }
         },
         "funnel": {
@@ -1530,6 +1541,20 @@
                 "vibrato": "Vibrato"
             },
             "noneAdded": "None of this session's clips could be added: they're taken or no longer in the courses."
+        },
+        "ideas": {
+            "intro": "A new writer's first two tunes, and any that reports held, oldest first.",
+            "none": "No tunes waiting for review",
+            "failed": "The tunes waiting for review didn't load.",
+            "heldSince": "held since {when}",
+            "reports": "{count, plural, one {# report} other {# reports}}",
+            "newWriter": "New writer",
+            "approve": "Approve",
+            "hide": "Hide",
+            "hideTitle": "Hide \"{title}\"?",
+            "hideHint": "It leaves the shelf. Its writer is told, with your note, and can ask for another look.",
+            "approved": "\"{title}\" is on the shelf.",
+            "hidden": "\"{title}\" is hidden."
         }
     },
     "styleguide": {
@@ -1967,7 +1992,9 @@
         "say": {
             "turn": "Your turn",
             "getReady": "Get ready. You start on {note}.",
-            "step": "Now: {step}"
+            "step": "Now: {step}",
+            "countIn": "Count-in, then sing",
+            "recording": "Recording"
         },
         "chooser": {
             "title": "How do you want to sing?",
@@ -2351,7 +2378,7 @@
             "month": "Month",
             "year": "Year",
             "why": "Month and year only, so Stackapella suits your age. We never show it to anyone.",
-            "firstWhy": "We ask everyone before creating an account. This isn't shown on your profile.",
+            "firstWhy": "So Stackapella suits your age (a few things are for 18 and over). Month and year only, never shown on your profile.",
             "adultWhy": "This is for 18 and over, so we ask once. This isn't shown on your profile.",
             "notAdult": "This one is for 18 and over, so it isn't open to you yet. Everything else is."
         },
@@ -2540,6 +2567,10 @@
             "betaTakes": "Beta takes not sent",
             "action": "Delete everything",
             "failed": "This device couldn't be cleared. Close the app's other tabs, then try again."
+        },
+        "ideaEmails": {
+            "title": "Email me when someone sings my tune",
+            "hint": "At most one email a day for each tune you shared as an idea."
         }
     },
     "version": {
@@ -2583,7 +2614,11 @@
         "restartFailed": "The course couldn't restart. Try again.",
         "flipFirst": "This is set from where your voice flips. Until the siren in lesson 1 finds it, it's set a little above your comfortable note.",
         "restartBodySerious": "Your lessons in {course} go back to the start. Your other courses stay.",
-        "about": "About this course"
+        "about": "About this course",
+        "guest": {
+            "title": "Save your progress",
+            "body": "Make a free account and this lesson of {course} is kept, on every device you sign in on."
+        }
     },
     "choose": {
         "round": "Round {round} of {total}",
@@ -2715,7 +2750,7 @@
         "continue": "Continue",
         "finish": "Finish",
         "next": "Next lesson",
-        "replay": "Play again",
+        "replay": "Sing it again",
         "start": "Start singing",
         "phase": {
             "listen": "Listen",
@@ -2905,7 +2940,9 @@
             "make": "Make a harmony",
             "makeHint": "Sing it, write it or start from chords: it's arranged in parts for you.",
             "record": "Just record",
-            "recordHint": "An empty studio, no notes: record your own parts."
+            "recordHint": "An empty studio, no notes: record your own parts.",
+            "ideas": "Sing someone's tune",
+            "ideasHint": "Tunes people wrote, waiting for real voices. Add yours to one."
         },
         "yours": {
             "written": "Written by you",
@@ -2946,7 +2983,7 @@
             }
         },
         "projects": {
-            "used": "{used} of {limit} free songs used",
+            "used": "{used} of {limit} songs made on the free plan",
             "getPlus": "Get Plus",
             "full": "The free plan holds {limit}.",
             "fromCourse": "From the course"
@@ -3673,7 +3710,8 @@
         "stop": "Stop sharing",
         "stopTitle": "Stop sharing \"{title}\"?",
         "stopped": "Sharing stopped. The link no longer works.",
-        "share": "Share"
+        "share": "Share",
+        "makeAccount": "Make a free account to share"
     },
     "create": {
         "title": "Make your own",
@@ -4195,7 +4233,8 @@
             "bpm": "Beats a minute",
             "bpmUnit": "BPM",
             "slower": "Slower",
-            "faster": "Faster"
+            "faster": "Faster",
+            "rhythmOff": "Rhythm not quite right?"
         }
     },
     "template": {
@@ -4988,7 +5027,10 @@
         "listeningShort": "I'm listening.",
         "tapToStart": "Tap anywhere to start listening",
         "noMic": "We need your mic to hear you.",
-        "micAgain": "Try the mic again"
+        "micAgain": "Try the mic again",
+        "lower": "Lower",
+        "higher": "Higher",
+        "micLevel": "Your mic"
     },
     "learnVisual": {
         "breathLabel": "Breathe in for 4, out on \"sss\" for 6, with the picture",
@@ -5105,7 +5147,7 @@
         "heard": "Quick one: how did you hear about Stackapella?",
         "upNext": "Up next",
         "upNextMinutes": "Up next · {minutes} min",
-        "playAgainStars": "Play again for more stars",
+        "playAgainStars": "Sing it again for more stars",
         "unitDone": "That's every lesson open to you for now. The course map shows what's next.",
         "end": {
             "done": "Lesson done.",
@@ -5387,21 +5429,32 @@
             "sounds": "Game sounds",
             "soundsHint": "Short 16-bit sounds between takes, never while you sing.",
             "hud": "Score strip",
-            "hudHint": "Lit, combo and time above the notes while you sing.",
+            "hudHint": "Sing's clock, progress and combo in arcade type.",
             "popups": "Bonus pop-ups",
-            "popupsHint": "\"10 in a row!\" and \"Phrase clear\" in the score strip when you earn them.",
+            "popupsHint": "\"10 in a row!\", \"Phrase clear\" and your combo bonus, beside the combo.",
             "titles": "Title cards and READY?",
             "titlesHint": "A lesson opens like a level, and READY? comes before the count-in.",
             "celebrations": "Celebrations",
             "celebrationsHint": "Stage clear's tally, NEW RECORD, and new badges and levels.",
             "title": "Title screen",
-            "titleHint": "Home as the arcade's title screen, with Player 1 and Press start.",
+            "titleHint": "Home's course card as a stage, P1 in your chip and Press start.",
             "stages": "Stage select map",
             "stagesHint": "The unit you're in, drawn as a path on a map.",
             "versus": "Versus screens",
             "versusHint": "A friend's challenge opens with both scores, head to head.",
             "select": "Character select",
-            "selectHint": "Choosing a part looks like a fighting game's select screen."
+            "selectHint": "Choosing a part looks like a fighting game's select screen.",
+            "ghost": "Ghost of your best",
+            "ghostHint": "Your best take of a part, as a faint line on the lane to race.",
+            "initials": "Initials on the boards",
+            "initialsHint": "Arcade style: three letters instead of your name.",
+            "initialsYoung": "Under 18, the boards show initials only, never your name.",
+            "initialsYours": "Your initials",
+            "initialsNone": "None yet",
+            "initialsChange": "Change",
+            "initialsChoose": "Choose",
+            "daily": "Daily challenge",
+            "dailyHint": "Today's song and part for everyone, with its own board."
         },
         "hud": {
             "ready": "Ready?"
@@ -5409,13 +5462,37 @@
         "popup": {
             "combo": "{count} in a row!",
             "phrase": "Phrase clear",
-            "bonus": "Combo bonus +{count}"
+            "bonus": "Combo bonus +{count}",
+            "hold": "Held it!"
         },
         "workout": {
             "title": "Training mode"
         },
         "done": {
             "continue": "Continue?"
+        },
+        "daily": {
+            "tag": "Today",
+            "title": "Today's challenge",
+            "board": "Today's board",
+            "first": "No one's on today's board yet. Be the first.",
+            "signIn": "Sign in to go on today's board.",
+            "take": "Take the challenge",
+            "failed": "The challenge couldn't start. Try again.",
+            "endsHours": "{hours, plural, one {Ends in # hour} other {Ends in # hours}}",
+            "endsMinutes": "{minutes, plural, one {Ends in # minute} other {Ends in # minutes}}",
+            "rank": "#{rank} on today's board",
+            "stamped": "Took the daily challenge"
+        },
+        "initials": {
+            "title": "Enter your initials",
+            "hint": "Three letters for the boards, arcade style. Use the arrows or type them.",
+            "up": "Letter {number}: back one",
+            "down": "Letter {number}: on one",
+            "letter": "Letter {number}",
+            "save": "Save",
+            "failed": "Those weren't saved. Try again.",
+            "enter": "Enter your initials"
         },
         "replay": "Replay",
         "breath": {
@@ -5501,9 +5578,11 @@
             "days": "{count, plural, one {1 day sung} other {# days sung}}",
             "lessons": "{count, plural, one {1 lesson} other {# lessons}}",
             "note": "note {note}",
-            "range": "range {low} to {high}",
+            "range": "range sung so far {low} to {high}",
             "done": "Got it"
-        }
+        },
+        "installApp": "Install the app: it opens like an app, with no browser bar.",
+        "goalSuggested": "{count, plural, one {# day a week is a good start. Tap one to keep it.} other {# days a week is a good start. Tap one to keep it.}}"
     },
     "voiceCard": {
         "title": "Unit 1 done: your voice",
@@ -5621,6 +5700,38 @@
                 "notFound": "This song can't be shared as an idea. Back it up again, then try.",
                 "other": "It didn't share. Try again in a moment."
             }
+        },
+        "add": {
+            "title": "Add your voice to {name}'s tune",
+            "what": "Your {part} joins the tune for everyone to hear, credited to you. Sing it again later and the new one replaces it.",
+            "rights": "My part joins this tune, credited to me, under the rules for public songs' voices.",
+            "go": "Add my voice",
+            "again": "Try again",
+            "sending": "Adding...",
+            "sent": "Added. Your {part} will be on the tune in a minute.",
+            "see": "See the tune",
+            "signIn": "Sign in to add your voice: it's credited to your name.",
+            "refused": {
+                "adult": "Adding your voice to someone's tune is for people 18 or over.",
+                "email": "Verify your email first: open the link we sent you, then try again.",
+                "closed": "Ideas aren't open yet.",
+                "gone": "This tune isn't taking voices any more.",
+                "limit": "That's a lot of voices for one hour. Try again a little later.",
+                "lost": "This take isn't on this device any more. Sing it again, then add it.",
+                "other": "Your voice wasn't added. Try again in a moment."
+            }
         }
+    },
+    "reset": {
+        "title": "Start fresh on this device",
+        "body": "Everything this app keeps on this device goes, and the next visit is a first one. Your account isn't touched: what's backed up comes back when you sign in again.",
+        "also": "Also",
+        "alsoWhat": "progress, settings, look, the app's files",
+        "signedIn": "You're signed in as {email}: you'll be signed out on this device.",
+        "signedOut": "You're not signed in on this device.",
+        "keep": "Keep everything",
+        "go": "Start fresh",
+        "going": "Clearing...",
+        "failed": "This device wasn't cleared: you may be offline. Try again when you're back online."
     }
 }

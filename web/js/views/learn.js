@@ -62,7 +62,7 @@ export const LearnView = {
     // one: js/lesson-steps.js's `earlier`), emptied on replay and gone when the lesson closes.
     // `sharpen`: this lesson's place in a Sharpen up session (`{ place, total, start, nextId }`), or null.
     data: () => ({ sharpen: null, guiding: false, step: 0, result: null, done: null, ran: false, checking: false, error: null, askHeard: false, tip: null, used: false, skippedHome: false, noSound: false, skipped: false, micPermission: null, noteClip: null, kept: { results: {}, takes: {} }, titleCard: null }),
-    setup: () => ({ learning, STEP_KIND, localized, PART_COLORS, TIP_WORDS, HEARD, game, sk }),
+    setup: () => ({ account, learning, STEP_KIND, localized, PART_COLORS, TIP_WORDS, HEARD, game, sk }),
     template: `
         <div class="min-h-dvh bg-ink">
             <!-- Game mode's title card, the first time a lesson opens (docs/game-elements-plan.md) -->
@@ -108,11 +108,12 @@ export const LearnView = {
                             <button type="button" class="chip tap-44 text-muted hover:text-cream" @click="askHeard = false">{{ t('course.heard.skip') }}</button>
                         </div>
                     </div>
+                    <!-- One primary way on (onboarding review 2, 7): Next lesson; sharing and singing again are quieter. -->
                     <div class="flex flex-wrap justify-center gap-3">
+                        <button type="button" class="btn-primary order-first basis-full sm:order-last sm:basis-auto" @click="continueOn">{{ next ? t('course.next') : t('course.backToCourse') }}</button>
                         <!-- Your note, to share (onboarding step 6): the most shareable fact of the first session. -->
                         <ShareResult :label="t('results.share.note')" :note="noteShare" :entry="entry" :lesson-title="localized(entry.lesson.title)" :unit-title="localized(entry.unit.title)" :color="color" />
-                        <button type="button" class="btn-secondary" @click="replay">{{ done.stars < 3 && game() ? t('results.playAgainStars') : t('course.replay') }}</button>
-                        <button type="button" class="btn-primary" @click="continueOn">{{ next ? t('course.next') : t('course.backToCourse') }}</button>
+                        <button type="button" class="btn-ghost" @click="replay">{{ done.stars < 3 && game() ? t('results.playAgainStars') : t('course.replay') }}</button>
                     </div>
                 </section>
                 <!-- Lesson complete (ux-spec 5.8, 50.png and 51.png) -->
@@ -122,12 +123,19 @@ export const LearnView = {
                     <KeepSong v-if="entry.lesson.keepSong" class="mt-6" :lesson="entry.lesson" :kept="kept" :base="stepBase" />
                     <!-- The first session's wrap (onboarding step 5): what it gave, your week, one way to keep it. -->
                     <SessionWrap v-if="wrap" :lessons="wrap.lessons" :stars="wrap.stars" />
+                    <!-- A guest's free lesson of a Plus course (Hillel let guests try one, 2026-10-30): kept here, and in an account once made. -->
+                    <section v-if="entry.course && !account.me" class="w-full space-y-3 rounded-3xl border border-edge bg-panel p-5 text-start" aria-labelledby="guest-save-title" data-guest-save>
+                        <h2 id="guest-save-title" class="font-bold text-cream">{{ t('courses.guest.title') }}</h2>
+                        <p class="text-sm text-muted">{{ t('courses.guest.body', { course: localized(entry.course.title) }) }}</p>
+                        <a :href="guestSignUp" class="btn-primary btn-sm" data-guest-signup @click.prevent="navigate(guestSignUp)">{{ t('wrap.makeAccount') }}</a>
+                    </section>
                     <!-- The free course's first unit done (onboarding step 6): your voice card, to keep and share. -->
                     <VoiceCard v-if="voiceCardShown" :entry="entry" :lesson-title="localized(entry.lesson.title)" :unit-title="localized(entry.unit.title)" :color="color" />
                     <!-- The lesson's fact card (docs/courses-ideas.md, idea 1): below the stars and the wraps, in both skins. -->
                     <FactCard v-if="entry.lesson?.fact" :fact="entry.lesson.fact" />
                     <!-- Share where the celebration is (onboarding step 4): on two or three stars, with the take that earned them. -->
-                    <div v-if="done.stars >= 2 && takeResult" class="flex justify-center" data-end-share>
+                    <!-- Not beside the session wrap (one keep-it ask beside the goal): it comes back on the next lesson's end. -->
+                    <div v-if="done.stars >= 2 && takeResult && !wrap" class="flex justify-center" data-end-share>
                         <ShareResult :label="game() ? t('boards.challenge.button') : t('results.share.result')" :result="takeResult" :entry="entry" :lesson-title="localized(entry.lesson.title)" :unit-title="localized(entry.unit.title)" :color="color" />
                     </div>
                     <p v-if="done.tip && TIP_WORDS[done.tip]" class="max-w-prose text-sm text-cream">{{ t('course.done.tip') }} {{ t(TIP_WORDS[done.tip]) }}</p>
@@ -198,7 +206,8 @@ export const LearnView = {
                     <!-- The foot, pinned: Back in glass, and the way on (or past) at the end. A sung step (128.png):
                          Skip, quiet, and a wide Continue that waits until it's done. -->
                     <div class="sticky bottom-0 z-10 -mx-4 flex flex-wrap items-center justify-between gap-3 bg-ink/95 px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 backdrop-blur">
-                        <button v-if="sungStep" type="button" class="link-quiet min-h-11 px-2 text-sm" @click="skip">{{ t('course.skip') }}</button>
+                        <!-- Skip only while there's something to skip: once the step is done, Back (onboarding review 2, 12). -->
+                        <button v-if="sungStep && !canGoOn" type="button" class="link-quiet min-h-11 px-2 text-sm" @click="skip">{{ t('course.skip') }}</button>
                         <button v-else type="button" class="btn-secondary" @click="step === 0 ? goBack('/') : go(step - 1)">{{ t('common.back') }}</button>
                         <!-- Finding your note, there's nothing to press until a note is held (or skipped): a hint, not a dead button. -->
                         <button v-if="current.kind === 'home' && !canGoOn" type="button" class="link-quiet min-h-11 text-sm" @click="skipHome">{{ noSound ? t('micCheck.skipSetup') : t('course.home.skip') }}</button>
@@ -220,7 +229,7 @@ export const LearnView = {
         entry(vm) {
             const entry = learning.loaded ? findLesson(vm.id) : null;
             if (!entry?.course) return entry;
-            return courseVisible(learning.catalogue.find((c) => c.id === entry.course.id), account.me) ? entry : null;
+            return courseVisible(learning.catalogue.find((c) => c.id === entry.course.id), account.me, account.config) ? entry : null;
         },
         /** The progress this lesson's course reads: a Plus course's own lessons, or the free course's. */
         courseProgress: (vm) => (vm.entry?.course ? courseView(learning.progress, vm.entry.course.id) : learning.progress),
@@ -239,6 +248,10 @@ export const LearnView = {
         /** The lesson that finds your note, for the reminder when it was skipped. */
         homeLesson: () => learning.course?.units[0]?.lessons.find((l) => l.findsHome)?.id ?? null,
         /** A Plus unit's lesson, for someone without Plus. */
+        /** A guest's sign-up from a Plus course's free lesson: the progress reason, then back to the course. */
+        guestSignUp() {
+            return `/signin?mode=signup&for=progress&next=${encodeURIComponent(`/learn/c/${this.entry?.course?.id ?? ''}`)}`;
+        },
         plusOnly: (vm) => (vm.access ? vm.access.plusOnly : !!vm.entry?.unit.plus && !vm.plus),
         /** Finished the last free unit's challenge, on the free plan: where the course goes next. */
         keepGoing(vm) {
@@ -381,9 +394,13 @@ export const LearnView = {
             this.beginSharpen();
             this.showTitle();
         },
-        /** A take's stars popping in (two or three): their sound as the last lands. */
+        /**
+         * A take's result: its stars' sound as the last lands (two or three), and focus on its
+         * heading, so a screen reader says the measure and Tab goes on to Listen back and the rest.
+         */
         takeResult(now, before) {
             if (now && !before && now.stars >= 2) starsSound(now.stars, 0.35 + (now.stars - 1) * 0.3);
+            if (now && !before) this.$nextTick(() => document.querySelector('[data-result-heading]')?.focus({ preventScroll: true }));
         },
         step() {
             this.$nextTick(() => this.$refs.heading?.focus({ preventScroll: true }));

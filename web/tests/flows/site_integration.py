@@ -15,7 +15,7 @@ from cdp import Chrome  # noqa: E402
 
 # The landing (as everyone and as a mudeo singer), a page of each kind, and the pages other agents
 # share the frame with. SitePagesTest renders every one of the rest.
-PAGES = ["/", "/?ref=mudeo", "/how-it-works", "/courses", "/courses/barbershop", "/features", "/features/learn-a-part", "/features/gallery", "/for/choir-directors", "/about", "/press", "/whats-new", "/guides", "/guides/how-to-sing-harmony", "/legal/privacy", "/songs", "/songs/amazing-grace", "/pricing", "/help", "/help/mic", "/help/getting-started"]
+PAGES = ["/", "/?ref=mudeo", "/how-it-works", "/courses", "/courses/barbershop", "/courses/yodeling", "/courses/counterpoint", "/courses/vibrato", "/courses/breath-and-stamina", "/courses/perfect-your-pitch", "/courses/ear-training", "/courses/folk-and-early-music", "/courses/pop-and-country", "/courses/improvising-harmony", "/features", "/features/course", "/compare", "/compare/howli", "/compare/cyberbass-and-choralia", "/features/learn-a-part", "/features/gallery", "/for/choir-directors", "/about", "/press", "/whats-new", "/guides", "/guides/how-to-sing-harmony", "/legal/privacy", "/songs", "/songs/amazing-grace", "/pricing", "/help", "/help/mic", "/help/getting-started"]
 THEMES = [f"{family}-{mode}" for family in ("warm", "midnight", "graphite", "stage") for mode in ("light", "dark")]
 WIDTHS = [320, 375, 390, 768, 1440, 1920]
 # The serious skin in every theme, then the game skin once (the site keeps game mode dark).

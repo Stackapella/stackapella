@@ -190,6 +190,11 @@ async function stateful(operation, params, body, cases, query = {}) {
         }
         return respond(200, { data });
     }
+    // Ideas (its server flag, as auth.config says it): open in the mock, closed with ideas.list:not_found.
+    if (operation === 'auth.config') {
+        const { data } = await example('auth.config.200.json');
+        return respond(200, { data: { ...data, ideas: !scenarios().includes('ideas.list:not_found') } });
+    }
     // Who's signed in, and what that allows.
     const as = tabStorage.get('stackapella.mockAs') || 'member';
     const accountAs = async (who) => {
@@ -202,6 +207,10 @@ async function stateful(operation, params, body, cases, query = {}) {
         // Hide profile, as this tab last set it.
         const hidden = tabStorage.get('stackapella.mockHideProfile');
         if (hidden !== null) data.hideProfile = hidden === '1';
+        // Initials on the boards, as this tab last set them; `young` is under 18 (initials only).
+        const naming = JSON.parse(tabStorage.get('stackapella.mockInitials') || '{}');
+        Object.assign(data, naming);
+        if (who === 'young') Object.assign(data, { isAdult: false, boardsName: 'initials' });
         // `plus` and `singerPlus` are on Plus; `singer` and `singerPlus` are beta singers.
         return { data: { ...data, appearance, betaSinger: who === 'singer' || who === 'singerPlus', plan: who === 'plus' || who === 'singerPlus' ? 'plus' : data.plan, staff: who === 'admin' ? 'admin' : null } };
     };
@@ -235,6 +244,15 @@ async function stateful(operation, params, body, cases, query = {}) {
         const { appearance, ...rest } = body;
         const account = await accountAs(as);
         return respond(200, { data: { ...account.data, ...rest } });
+    }
+    if (operation === 'account.update' && ('initials' in (body ?? {}) || 'boardsName' in (body ?? {})) && as !== 'signedOut') {
+        // As the server: three letters A to Z, never one of its blocked combinations (the mock's sample: XXX).
+        const naming = JSON.parse(tabStorage.get('stackapella.mockInitials') || '{}');
+        const initials = 'initials' in body ? body.initials : naming.initials ?? null;
+        if (initials !== null && (!/^[A-Z]{3}$/.test(initials) || initials === 'XXX')) return respond(422, { message: 'Unprocessable Content.', code: 'validation_failed', errors: { initials: ['Choose other letters.'] } }); // i18n-ignore: the server's words
+        if (body.boardsName === 'initials' && !initials) return respond(422, { message: 'Unprocessable Content.', code: 'validation_failed', errors: { boardsName: ['Choose your initials first.'] } }); // i18n-ignore: the server's words
+        tabStorage.set('stackapella.mockInitials', JSON.stringify({ initials, boardsName: body.boardsName ?? naming.boardsName ?? 'name' }));
+        return respond(200, await accountAs(as));
     }
     if (operation.startsWith('account.') && as === 'signedOut') return signedOut();
     if (operation.startsWith('beta.') && !['beta.invite.show', 'beta.agreement.show'].includes(operation)) {

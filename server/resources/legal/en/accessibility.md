@@ -22,7 +22,9 @@ Every main screen (home, the course and a lesson, the workout, a song and Sing, 
 sheets, Settings, sign-in and Contact us) is checked automatically on every change to the app: at
 phone, tablet and desktop widths, in light and dark, in both looks (game and serious), and with
 reduced motion on. We also go through it by keyboard. These are our own checks, not a formal audit
-or certification. This statement was last updated on 30 October 2026.
+or certification. What a screen reader announces while you sing, and where focus goes, is checked by
+automated tests; we haven't yet tried it with VoiceOver or TalkBack on real phones. This statement
+was last updated on 30 October 2026.
 
 ## What the app does
 
@@ -35,8 +37,10 @@ or certification. This statement was last updated on 30 October 2026.
 - **Screen readers:** every button, link and field has a name, and every picture has a text
   alternative. Each screen has one main region, its headings never skip a level, and its heading is
   also the tab's title. When you move to a new screen, focus moves to its heading, so your screen
-  reader says where you are. Feedback while you sing, like "Hearing you", "On the note" and your
-  score, is announced as it changes. In the song editor, notes also have a list view.
+  reader says where you are. While you sing, it speaks plainly and only when it matters: lesson 1
+  says what it hears once it settles, then names your note in one line; Sing says the count-in once
+  and when recording starts, never every beat; and after a take, focus moves to its result, so the
+  measure is read first. In the song editor, notes also have a list view.
 - **Not by colour alone:** your pitch is also given in words and note names, like "Now G4, next
   F#4" and "On the note", and each part's colour is picked to stay distinct.
 - **Reduced motion:** if your device asks for less motion, the app's animations (celebrations,

@@ -72,7 +72,8 @@ def main():
     port = free_port()
     server = serve(port)
     time.sleep(0.8)
-    f = flow.Flow(f"http://127.0.0.1:{port}", "desktop", "offline")
+    size, skin = os.environ.get("OFFLINE_SIZE", "desktop"), os.environ.get("OFFLINE_SKIN", "game")
+    f = flow.Flow(f"http://127.0.0.1:{port}", size, "offline", skin)
     report, failures = [], []
     try:
         # Online, once: the app and its worker, a song from the catalogue started, one of your own.
@@ -113,6 +114,12 @@ def main():
         for kind, name, path, then in screens:
             seen = look(f, path, then=then)
             report.append((name, seen))
+            if os.environ.get("OUT") and name in ("plus", "studio"):  # the UI guide's offline screens
+                # The line that says so, in view.
+                f.run("[...document.querySelectorAll('#app p, #app h2, #app [role=status], #app [role=alert]')].find((e) => /offline|connection|online|can.t reach/i.test(e.textContent))?.scrollIntoView({ block: 'center' })")
+                time.sleep(0.5)
+                Path(os.environ["OUT"]).expanduser().mkdir(parents=True, exist_ok=True)
+                f.chrome.screenshot(str(Path(os.environ["OUT"]).expanduser() / f"offline-{name}-{size}{'' if skin == 'game' else '-serious'}.png"))
             if seen["words"] < 40:
                 failures.append(f"{name}: a blank screen offline ({seen['line'] or 'nothing on it'})")
             elif kind == "says" and not seen["offline"]:

@@ -17,6 +17,7 @@ import { Icon } from './icon.js';
 import { courseSummary, courseVisible } from '../courses.js';
 import { game, sk } from '../skin.js';
 import { effect } from '../game/effects.js';
+import { stamped } from '../game/daily.js';
 import { daysSinceArrival } from '../funnel.js';
 import { count } from '../usage.js';
 import { midiName } from '../dsp.js';
@@ -103,16 +104,17 @@ export const CourseStats = {
 export const LessonPath = {
     components: { Icon },
     props: { unit: { type: Object, required: true }, current: { type: String, default: null } },
-    setup: () => ({ learning, localized }),
+    setup: () => ({ learning, localized, game }),
     template: `
         <ol class="flex items-center" :aria-label="t('home.lead.path')" data-lesson-path>
             <template v-for="(lesson, i) in unit.lessons" :key="lesson.id">
                 <li v-if="i" class="mx-1.5 h-0.5 min-w-3 flex-1 rounded-full" :style="{ background: stars(unit.lessons[i - 1]) ? color : 'var(--color-line)' }" aria-hidden="true"></li>
                 <li class="shrink-0">
-                    <!-- Glass gems (2.6a): done and the one now; the rest hollow; the challenge a diamond. -->
-                    <button type="button" class="grid place-items-center transition" :class="[lesson.id === current ? 'size-12' : 'size-9', lesson.challenge && !stars(lesson) ? 'rotate-45 rounded-lg' : 'rounded-full', stars(lesson) || lesson.id === current ? 'gem' : 'border-2 border-line bg-ink text-muted']" :style="lesson.id === current ? { boxShadow: '0 0 0 6px color-mix(in srgb, var(--color-accent) 22%, transparent)' } : null"
+                    <!-- Glass gems (2.6a): done and the one now; the rest hollow; the challenge a diamond. Serious mode is
+                         calm (onboarding review 2, 11): flat nodes, and the challenge a plain ring. -->
+                    <button type="button" class="grid place-items-center transition" :class="[lesson.id === current ? 'size-12' : 'size-9', lesson.challenge && !stars(lesson) && game() ? 'rotate-45 rounded-lg' : 'rounded-full', stars(lesson) || lesson.id === current ? (game() ? 'gem' : 'bg-accent text-accent-ink') : lesson.challenge && !game() ? 'border-2 border-cream bg-ink text-cream' : 'border-2 border-line bg-ink text-muted']" :style="lesson.id === current ? { boxShadow: '0 0 0 6px color-mix(in srgb, var(--color-accent) 22%, transparent)' } : null"
                         :aria-label="t('course.lessonLabel', { title: localized(lesson.title), stars: stars(lesson) })" :aria-current="lesson.id === current ? 'step' : null" @click="navigate('/learn/' + lesson.id)">
-                        <Icon :name="stars(lesson) ? 'check' : lesson.id === current ? 'play' : lesson.challenge ? 'starFilled' : 'note'" :size="lesson.id === current ? 20 : 15" :class="lesson.challenge && !stars(lesson) ? '-rotate-45' : ''" />
+                        <Icon :name="stars(lesson) ? 'check' : lesson.id === current ? 'play' : lesson.challenge && game() ? 'starFilled' : 'note'" :size="lesson.id === current ? 20 : 15" :class="lesson.challenge && !stars(lesson) && game() ? '-rotate-45' : ''" />
                     </button>
                 </li>
             </template>
@@ -325,7 +327,7 @@ const DAY_NAMES = [tk('course.day.monLong'), tk('course.day.tueLong'), tk('cours
 export const WeekCard = {
     components: { GoalRing, Icon },
     props: { bare: Boolean }, // inside the course card on a wide screen: no card of its own
-    setup: () => ({ learning, DAY_LETTERS, DAY_NAMES, navigate, game }),
+    setup: () => ({ learning, DAY_LETTERS, DAY_NAMES, navigate, game, stamped }),
     template: `
         <section class="space-y-5" :class="bare ? '' : 'card p-5'" :aria-label="t('home.week.title')">
             <div class="flex items-center gap-4">
@@ -333,9 +335,10 @@ export const WeekCard = {
                 <div class="min-w-0"><p class="font-bold text-cream">{{ game() ? t('home.week.title') : t('home.week.practised') }}</p><p class="text-sm text-muted">{{ game() ? t('home.week.goal', { count: learning.progress.goal }) : t('home.week.daysThisWeek', { count: sungDays }) }}</p></div>
             </div>
             <ol class="grid grid-cols-7 gap-1.5" :aria-label="t('home.week.days')">
-                <li v-for="(d, i) in days" :key="d.day" class="flex flex-col items-center gap-1.5"  data-week-day :data-day-done="d.done ? '' : null" :data-day-today="d.today ? '' : null">
+                <li v-for="(d, i) in days" :key="d.day" class="flex flex-col items-center gap-1.5"  data-week-day :data-day-done="d.done ? '' : null" :data-day-today="d.today ? '' : null" :data-daily-stamp="stamped(d.day) ? '' : null">
                     <span class="relative h-1.5 w-full overflow-hidden rounded-full" :class="d.today ? 'bg-cream/25' : 'bg-line'"><span class="absolute inset-y-0 start-0 rounded-full bg-accent" :style="{ width: d.share * 100 + '%' }"></span></span>
                     <span class="text-[10px] font-semibold" :class="d.today ? 'text-cream' : 'text-muted'" :aria-label="d.done ? t('home.week.dayDone', { day: t(DAY_NAMES[i]) }) : t('home.week.dayNot', { day: t(DAY_NAMES[i]) })">{{ t(DAY_LETTERS[i]) }}</span>
+                    <span v-if="stamped(d.day)" class="sr-only">{{ t('game.daily.stamped') }}</span>
                 </li>
             </ol>
             <div v-if="game()" class="border-t border-line pt-4">
@@ -462,7 +465,7 @@ export const HomeCourses = {
             const me = account.me;
             const plus = me?.plan === 'plus';
             return (learning.catalogue ?? []).map((entry) => {
-                const open = courseVisible(entry, me) && !!learning.courses?.[entry.id];
+                const open = courseVisible(entry, me, account.config) && !!learning.courses?.[entry.id];
                 const summary = open ? courseSummary(learning.courses[entry.id], learning.progress) : null;
                 const status = !open ? t('courses.soon') : summary.started ? t('courses.progress', { done: summary.done, total: summary.total }) : plus || me?.staff ? t('courses.lessons', { count: summary.total }) : t('courses.plusFirstFree');
                 return { entry, open, status };

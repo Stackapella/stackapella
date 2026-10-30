@@ -235,6 +235,8 @@ return [
         'course_open' => 'Open on Plus',
         'course_open_line' => 'Open now on Plus. Its first lesson is free for everyone.',
         'course_try' => 'Try the first lesson free',
+        'course_join_open' => 'On Plus, with the first lesson free.',
+        'course_join_note' => 'No account needed to try it. Saving your progress takes a free account.',
         'course_plus' => 'See Plus',
         // The coaches' page once coach sign-up opens (the coach_signup flag): the directory stays hidden.
         'coach_apply' => 'Apply to coach',
@@ -1479,7 +1481,9 @@ return [
                     [
                         'Where to start',
                         [
-                            'On the home page, tap "New song", the first card in Your songs, then "Make a harmony". Choose "Sing it", "Start from chords", "Write it", or "Open a file" (a song exported from Stackapella).',
+                            // Hum a tune is named only once the your_tune switch shows its card in the app.
+                            ['text' => 'On the home page, tap "New song", the first card in Your songs, then "Make a harmony". Choose "Sing it", "Start from chords", "Hum a tune", "Write it", or "Open a file" (a song exported from Stackapella).', 'flag' => 'your_tune'],
+                            ['text' => 'On the home page, tap "New song", the first card in Your songs, then "Make a harmony". Choose "Sing it", "Start from chords", "Write it", or "Open a file" (a song exported from Stackapella).', 'unless' => 'your_tune'],
                             'Your draft saves as you go. Leave any time, and find it in Your songs, marked "Draft", with Resume and Discard.',
                             'To turn a song you\'ve recorded into a template, open its **Song settings**, then **Save as template**.',
                         ],
@@ -1492,6 +1496,19 @@ return [
                             'Sing the tune line by line, with **Play the key note** to hear the key\'s home note first. A bar of clicks counts you in; stop when you\'re done, or just go quiet. If you have a lower voice, say so, and we write the tune where it belongs.',
                             'Check the notes we found: tap any note to hear it, then move it higher or lower, split it, or join it with the next. Where a note looks like a slip (an octave away from its neighbours, or outside the key), we say why and offer **Fix it**, or **Fix the 3 we can** for all of them at once, and **Undo** puts them back.',
                         ],
+                    ],
+                    [
+                        'Hum a tune',
+                        [
+                            'Choose **Hum a tune**, then **Start humming**. Hum or sing your tune in your own time, up to 60 seconds, with no words needed, and tap **Done** when you\'ve finished. Breathe between lines: that\'s how we find them.',
+                            'Rather hum to a steady beat? Before you start, turn on **Use a click** and set its **Beats a minute** with Slower and Faster. Off, you hum in your own time.',
+                            'We write down what you hummed, with its tempo, time and key. **Play it** to hear it back. If one line went wrong, tap that line, like **Line 2 again**, and hum just that line: the rest stays as it was. **Hum it again** starts over.',
+                            'Rhythm not quite right? Tap **Tap along**, then tap **Tap on each beat** (or press Space) on every beat while your hum plays back, and we line the bars up. When we\'re not sure of the beat, we ask you to tap along.',
+                            ['shot' => 'create--hum', 'alt' => 'Hum your tune, after humming two lines of Amazing Grace: 16 notes at 80 BPM in 3/4, key of G, drawn on the lane, then Line 1 again, Line 2 again and Next: Notes.'],
+                            'Then, at **Notes**, fix any note in the note editor: drag it to move it, or drag an end to change its length. At **The other parts**, choose **Suggest them**, **Write them** or **Just the tune**. Then name it and save it, as below.',
+                        ],
+                        // Shown once the your_tune switch is on, like the app's Hum a tune card.
+                        'flag' => 'your_tune',
                     ],
                     [
                         'Write it',

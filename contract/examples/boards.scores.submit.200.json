@@ -4,6 +4,11 @@
         "why": null,
         "best": 87,
         "improved": true,
-        "before": 82
+        "before": 82,
+        "daily": {
+            "counted": true,
+            "best": 88,
+            "rank": 2
+        }
     }
 }

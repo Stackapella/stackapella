@@ -54,6 +54,12 @@ Schedule::command('app:accounts:prune')
     ->withoutOverlapping(30)
     ->runInBackground();
 
+Schedule::command('app:boards:prune-daily')
+    ->name('boards-prune-daily')
+    ->dailyAt('03:40')
+    ->withoutOverlapping(30)
+    ->runInBackground();
+
 Schedule::command('app:leagues:weekly')
     ->name('leagues-weekly')
     ->weeklyOn(1, '00:10')

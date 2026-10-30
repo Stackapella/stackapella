@@ -21,6 +21,9 @@
                 "sentryDsn",
                 "usageCounts",
                 "coachSignup",
+                "humTune",
+                "ideas",
+                "plusCourses",
                 "experiment"
             ],
             "properties": {
@@ -90,6 +93,18 @@
                 "coachSignup": {
                     "type": "boolean",
                     "description": "Coaches can apply (the coach_signup switch); the directory that lists them is a separate switch."
+                },
+                "humTune": {
+                    "type": "boolean",
+                    "description": "Hum a tune is on in the app (the your_tune switch, which also turns the site's /features/your-tune page to \"now\")."
+                },
+                "ideas": {
+                    "type": "boolean",
+                    "description": "Ideas is on (the ideas switch): the shelf of tunes waiting for voices, and sharing a song as an idea. While false the app shows no Ideas."
+                },
+                "plusCourses": {
+                    "type": "boolean",
+                    "description": "The Plus courses are live (the plus_courses switch): anyone, signed out too, can try a live course's free first lesson. account.plusCourses is the same switch, plus staff before it opens."
                 },
                 "experiment": {
                     "type": [

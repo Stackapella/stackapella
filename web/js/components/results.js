@@ -20,6 +20,7 @@ import { Switch } from './controls.js';
 import { Icon } from './icon.js';
 import { LearnVisual } from './learn-visual.js';
 import { CountUp, tallyOn } from '../game/tally.js';
+import { BadgeLine } from '../game/badge-news.js';
 
 // The serious heading: the percent on pitch, unless a course's own measure names it (its `label`, "{percent}% ringing").
 const ON_PITCH = tk('results.onPitch');
@@ -70,7 +71,7 @@ export const NoteKeyboard = {
 };
 
 export const NoteResult = {
-    components: { Icon, NoteKeyboard, StarDiscs },
+    components: { BadgeLine, Icon, NoteKeyboard, StarDiscs },
     props: { home: { type: Number, required: true }, range: { type: Object, required: true }, line: { type: Object, required: true }, stars: Number, xp: Number, fresh: Boolean },
     template: `
         <div class="flex w-full flex-col items-center gap-5 text-center" data-note-result>
@@ -78,6 +79,7 @@ export const NoteResult = {
                 <StarDiscs :stars="stars" :fresh="fresh" />
                 <span v-if="xp && game()" class="font-bold text-muted">{{ t('results.xp', { xp }) }}</span>
             </div>
+            <BadgeLine v-if="game()" />
             <p class="text-muted">{{ t('results.note.yours') }}</p>
             <div class="flex items-center gap-5">
                 <p class="text-8xl font-extrabold leading-none tracking-tight text-accent-strong md:text-9xl" translate="no" data-note>{{ midiName(Math.round(home)) }}</p>
@@ -112,7 +114,7 @@ export const TakeResult = {
             <div class="flex items-start justify-between gap-4 md:col-span-2">
                 <div class="min-w-0">
                     <!-- Serious mode: the measure, not the praise (docs/skins-plan.md). -->
-                    <h2 class="text-4xl font-extrabold tracking-tight text-cream">{{ game() || result.percent == null ? t(result.word) : t(result.label?.key ?? ON_PITCH, { percent: Math.round(result.percent) }) }}</h2>
+                    <h2 tabindex="-1" class="text-4xl font-extrabold tracking-tight text-cream outline-none" data-result-heading>{{ game() || result.percent == null ? t(result.word) : t(result.label?.key ?? ON_PITCH, { percent: Math.round(result.percent) }) }}</h2>
                     <p class="mt-1 text-cream">{{ t(result.line.key, result.line.values) }}</p>
                 </div>
                 <StarDiscs :stars="result.stars" :fresh="result.stars >= 2" class="shrink-0" />
@@ -128,11 +130,14 @@ export const TakeResult = {
                 </div>
                 <Switch v-if="canGuide" class="mt-2" :on="guideOn" :label="t('results.withGuide')" :hint="t('results.withGuideHint')" data-with-guide @change="setGuide" />
                 <div class="relative mt-3 overflow-hidden rounded-2xl bg-ink/50">
-                    <span class="absolute start-2 top-1.5 text-[11px] text-muted" aria-hidden="true">{{ t('results.chartSharp') }}</span>
-                    <span class="absolute bottom-1.5 start-2 text-[11px] text-muted" aria-hidden="true">{{ t('results.chartFlat') }}</span>
+                    <!-- Up the chart is pitch: Sharp and Flat for one note, Higher and Lower for a tune (onboarding review 2, 13:
+                         on-pitch notes of a tune looked sharp or flat). -->
+                    <span class="absolute start-2 top-1.5 text-[11px] text-muted" aria-hidden="true">{{ oneNote ? t('results.chartSharp') : t('listening.higher') }}</span>
+                    <span class="absolute bottom-1.5 start-2 text-[11px] text-muted" aria-hidden="true">{{ oneNote ? t('results.chartFlat') : t('listening.lower') }}</span>
                     <svg :viewBox="'0 0 ' + CHART.width + ' ' + CHART.height" class="block h-auto w-full" role="img" :aria-label="t('results.chartLabel', { percent: result.percent })">
                         <g v-for="(band, i) in bands" :key="'b' + i">
-                            <rect :x="band.x" :y="band.y" :width="band.w" :height="band.h" class="fill-accent/15" />
+                            <!-- The on-pitch band: filled firmly enough to show in the light themes too (onboarding review 2, 13). -->
+                            <rect :x="band.x" :y="band.y" :width="band.w" :height="band.h" class="fill-accent/25" />
                             <line :x1="band.x" :x2="band.x + band.w" :y1="band.y" :y2="band.y" class="stroke-accent" stroke-width="1" stroke-dasharray="4 3" />
                             <line :x1="band.x" :x2="band.x + band.w" :y1="band.y + band.h" :y2="band.y + band.h" class="stroke-accent" stroke-width="1" stroke-dasharray="4 3" />
                         </g>
@@ -180,6 +185,9 @@ export const TakeResult = {
         targetLabel() {
             const names = [...new Set(this.result.target.map((n) => midiName(n.pitch)))];
             return names.length === 1 ? t('results.target', { note: names[0] }) : '';
+        },
+        oneNote() {
+            return new Set(this.result.target.map((n) => n.pitch)).size === 1;
         },
         bands() {
             const half = (this.result.cents ?? 50) / 100;
@@ -252,7 +260,7 @@ const PATH_WORDS = { done: tk('results.path.done'), now: tk('results.path.now'),
 export const HEARD = { friend: tk('course.heard.friend'), tiktok: tk('course.heard.tiktok'), instagram: tk('course.heard.instagram'), youtube: tk('course.heard.youtube'), app_store: tk('course.heard.appStore'), other: tk('course.heard.other') };
 
 export const LessonEnd = {
-    components: { Icon, LearnVisual, StarDiscs, CountUp },
+    components: { BadgeLine, Icon, LearnVisual, StarDiscs, CountUp },
     // done: finishLesson's outcome and more ({ stars, xp, level, levelledUp, word, line, fresh, streak, place, total, sharpened });
     // path: results.js unitPath; next: { lesson, minutes, visual, line } or null; askHeard: the chips, once.
     props: { done: { type: Object, required: true }, path: { type: Array, required: true }, next: { type: Object, default: null }, askHeard: Boolean },
@@ -273,6 +281,7 @@ export const LessonEnd = {
                         <li v-if="done.streak >= 2 && game()" class="chip font-bold text-part-ink-1">{{ t('results.streak', { count: done.streak }) }}</li>
                         <li class="chip text-muted" data-end-place>{{ tally && Number.isFinite(done.unit) ? t('game.tally.clear', { unit: done.unit, lesson: done.place }) : t('results.lessonOf', { place: done.place, total: done.total }) }}</li>
                     </ul>
+                    <BadgeLine v-if="game()" />
                     <p v-if="done.levelledUp && game()" class="rounded-full bg-raised px-4 py-2 font-semibold text-cream" data-level-up>{{ t('course.done.level', { level: done.level.level, name: t(done.level.name) }) }}</p>
                 </div>
                 <ol class="flex items-start" :aria-label="t('results.pathLabel')">

@@ -12,7 +12,8 @@ use Tests\TestCase;
  * Launch day flips switches, not words (docs/launch-plan.md): a Plus course opens with the
  * plus_courses flag and its status in web/course/courses.json (and the plans then list the Plus
  * courses), and Hum a tune's page takes its
- * present-tense words once it's live, with sharing as an idea still coming.
+ * present-tense words once it's live, with sharing as an idea still coming, and its help section
+ * appears with it.
  */
 final class LaunchSwitchesTest extends TestCase
 {
@@ -27,7 +28,7 @@ final class LaunchSwitchesTest extends TestCase
         app(Flags::class)->set('plus_courses', 'on', null, 'Opening the Plus courses');
 
         $this->get('/courses/vibrato')->assertOk()
-            ->assertSee(__('pages.site.course_open_line'))
+            ->assertSee(__('pages.site.course_join_open'))
             ->assertSee(__('pages.site.course_try'))
             ->assertSee('/learn/c/vibrato', false);
         $this->get('/courses/'.$this->aCourseStillComing())->assertOk()
@@ -76,6 +77,21 @@ final class LaunchSwitchesTest extends TestCase
     }
 
     /** A course the catalogue still lists as coming, so the test holds as courses go live. */
+    public function test_the_help_explains_hum_a_tune_only_once_its_switch_is_on(): void
+    {
+        $this->get('/help/create')->assertOk()
+            ->assertDontSee('Hum a tune')
+            ->assertDontSee('id="hum-a-tune"', false)
+            ->assertSee('Start from chords');
+
+        app(Flags::class)->set('your_tune', 'on', null, 'Opening Hum a tune');
+
+        $this->get('/help/create')->assertOk()
+            ->assertSee('id="hum-a-tune"', false)
+            ->assertSee('"Start from chords", "Hum a tune"')
+            ->assertSee('Start humming');
+    }
+
     private function aCourseStillComing(): string
     {
         $catalogue = json_decode((string) file_get_contents(dirname(base_path()).'/web/course/plus/courses.json'), true);

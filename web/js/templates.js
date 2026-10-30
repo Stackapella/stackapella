@@ -201,6 +201,8 @@ function wordStartBefore(note, part, others) {
 }
 
 /** Checks a template thoroughly and returns it; throws a TemplateError naming every problem. */
+const NOTE_FIELDS = new Set(['beat', 'length', 'pitch', 'lyric', 'br']); // contract/schemas/template.json, $defs.note
+
 /**
  * A template made by the creator, put right before it's kept or sent (Hillel's 422 on a Start from
  * chords song): a note without a whole-number pitch goes (a rest, where a transcription once left a
@@ -211,7 +213,12 @@ export function repairTemplate(template) {
     let changed = false;
     const parts = template.parts.map((part) => {
         if (part.guide?.type !== 'notes') return part;
-        const notes = part.guide.notes.filter((n) => Number.isFinite(n.pitch)).map((n) => (Number.isInteger(n.pitch) ? n : { ...n, pitch: Math.round(n.pitch) }));
+        // Only the schema's fields: the creator's working marks (Check's `sure`, a hum's) never leave
+        // the device, as the account refuses a note with any other field.
+        const notes = part.guide.notes.filter((n) => Number.isFinite(n.pitch)).map((n) => {
+            const fit = Number.isInteger(n.pitch) ? n : { ...n, pitch: Math.round(n.pitch) };
+            return Object.keys(fit).every((key) => NOTE_FIELDS.has(key)) ? fit : Object.fromEntries(Object.entries(fit).filter(([key]) => NOTE_FIELDS.has(key)));
+        });
         const moved = notes.length !== part.guide.notes.length || notes.some((n, i) => n !== part.guide.notes[i]);
         const pitches = notes.map((n) => n.pitch);
         const range = pitches.length ? { low: Math.min(...pitches), high: Math.max(...pitches) } : part.range;

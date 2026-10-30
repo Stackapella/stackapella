@@ -10,8 +10,8 @@ import { addPractice, addXp, countDay, dayOf, emptyProgress, levelFor, mergeProg
 import { account } from './account.js';
 import { BADGES, newBadges, tally, withBadges } from '../badges.js';
 import { playSound } from '../sounds.js';
-import { formatList, t } from '../i18n.js';
-import { toast } from '../components/ui.js';
+import { t } from '../i18n.js';
+import { sayBadges } from '../game/badge-news.js';
 import { count, countFor } from '../usage.js';
 import { askYes, first, goalMet } from '../funnel.js';
 import { courseLessons, courseOf, recordCourseLesson, restartedCourseProgress } from '../courses.js';
@@ -81,13 +81,19 @@ export function loadPlusCourses() {
     return coursesLoading;
 }
 
-/** The Plus courses: the catalogue, and each live course's lessons (a missing one is left out). */
+/**
+ * The Plus courses: the catalogue, and each live course's lessons (a missing one is left out), each
+ * kept as it arrives, so a course's page shows once its own file is in (Hillel's "blank for a
+ * second": on a slow line, all of them is a few megabytes).
+ */
 async function loadCourses() {
     const catalogue = (await getJson('/course/plus/courses.json'))?.courses ?? [];
-    const live = catalogue.filter((c) => c.status === 'live' && c.file);
-    const files = await Promise.all(live.map((c) => getJson(`/course/plus/${c.file}`)));
     learning.catalogue = catalogue;
-    learning.courses = Object.fromEntries(live.map((c, i) => [c.id, files[i]]).filter(([, data]) => data));
+    const live = catalogue.filter((c) => c.status === 'live' && c.file);
+    await Promise.all(live.map(async (c) => {
+        const data = await getJson(`/course/plus/${c.file}`);
+        if (data) learning.courses[c.id] = data;
+    }));
 }
 
 async function save(progress) {
@@ -98,14 +104,13 @@ async function save(progress) {
     // Badges earned by this change: kept once each, and said (between exercises, never mid-take).
     const earned = newBadges(progress);
     progress = withBadges(progress, earned);
-    // Several at once (a first lesson often brings three): one toast, so they never stack over the stars.
+    // Several at once (a first lesson often brings three): said together, never stacked over the stars.
     const names = earned.map((id) => t(BADGES.find((b) => b.id === id).name));
     // Kept in either skin; said only in game mode (docs/skins-plan.md: serious mode shows no badges).
     const said = document.documentElement.dataset.skin !== 'serious';
     if (names.length || (progress.weeks?.streak ?? 0) > (learning.progress?.weeks?.streak ?? 0)) playSound('special');
-    // tone 'badge': game mode's item get (a gem held up, docs/game-elements-plan.md); the same toast otherwise.
-    if (said && names.length === 1) toast(t('badges.new', { name: names[0] }), { seconds: 6, tone: 'badge' });
-    else if (said && names.length) toast(t('badges.newMany', { names: formatList(names) }), { seconds: 7, tone: 'badge' });
+    // One celebration at a time (game/badge-news.js): in a lesson, said once at its end; else one short toast.
+    if (said) sayBadges(names);
     goalMet(weekRing(progress).met); // the funnel: the weekly goal met in the first week
     learning.progress = progress;
     try {

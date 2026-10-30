@@ -212,6 +212,10 @@ def journey(f):
     assert f.js(f"JSON.stringify({STORE}.learning.progress.lessons)") == free_before, "the free course's lessons are untouched"
     f.go("/learn/c/vibrato", "document.querySelector('[data-up-next]')")
     f.wait_text("The easy long note")  # Up next moved on
+    # The site links a course by its slug, which may differ from its id: perfect-your-pitch is pitch.
+    f.go("/learn/c/perfect-your-pitch", "document.querySelector('[data-up-next]') || document.querySelector('main h1')")
+    f.wait("document.querySelector('[data-up-next]')", what="the course found by its slug")
+    f.go("/learn/c/vibrato", "document.querySelector('[data-up-next]')")
 
     # Restart this course: a styled confirm naming it, then only its lessons go.
     f.click_t("courses.restart")

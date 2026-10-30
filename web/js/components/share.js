@@ -45,7 +45,11 @@ export const ShareSheet = {
     setup: () => ({ account, STEPS, navigate, timeAgo }),
     template: `
         <Modal :title="title ? t('share.titleOf', { title }) : t('share.title')" :title-is-content="!!title" wide :dismissable="stage !== 'working'" @close="$emit('close')">
-            <p v-if="!account.me" class="text-cream">{{ t('share.signIn') }} <a href="/signin?mode=signup&for=share" class="link" @click.prevent="signIn">{{ t('wrap.makeAccount') }}</a></p>
+            <!-- A guest: the way on is a real button, and sign-up keeps the reason (onboarding review 2, 9). -->
+            <div v-if="!account.me" class="space-y-4" data-share-guest>
+                <p class="text-cream">{{ t('share.signIn') }}</p>
+                <a href="/signin?mode=signup&for=share" class="btn-primary" data-share-signup @click.prevent="signIn">{{ t('share.makeAccount') }}</a>
+            </div>
 
             <form v-else-if="stage === 'choose'" class="space-y-5" data-share @submit.prevent="share">
                 <!-- What they'll see: the title (edit it in place), the parts, the length -->

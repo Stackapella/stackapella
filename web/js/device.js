@@ -45,3 +45,23 @@ export async function deleteEverythingHere() {
         }
     }
 }
+
+/**
+ * A true first visit, for testing on a phone (/reset): everything here as above, and the app's
+ * own files too: every Cache Storage cache and the service worker, so the next load fetches and
+ * installs the app as a new visitor's would.
+ */
+export async function startFresh() {
+    await deleteEverythingHere();
+    try {
+        if (globalThis.caches) await Promise.all((await caches.keys()).map((name) => caches.delete(name)));
+    } catch (error) {
+        console.warn('The app files were not cleared', error?.message ?? error);
+    }
+    try {
+        const registrations = (await navigator.serviceWorker?.getRegistrations?.()) ?? [];
+        await Promise.all(registrations.map((r) => r.unregister()));
+    } catch (error) {
+        console.warn('The service worker was not removed', error?.message ?? error);
+    }
+}

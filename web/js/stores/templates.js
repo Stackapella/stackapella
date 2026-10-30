@@ -139,16 +139,23 @@ async function send(record, { retried = false } = {}) {
             // The account refused this version: said once, with its reason, and not sent again
             // until the template changes (a 422 used to be resent on every sync).
             console.warn('The account refused the template', error.errors);
-            return keep({ ...now, state: 'invalid', invalid: { reasons: problemsIn(error), for: JSON.stringify(now.template) } });
+            return keep({ ...now, state: 'invalid', invalid: { reasons: problemsIn(error), for: JSON.stringify(now.template), round: REFUSAL_ROUND } });
         }
         if (!STATES[error.code] && error.status !== 0 && error.code !== 'offline') console.warn('The template was not saved to the account', error);
         return keep({ ...now, state: STATES[error.code] ?? (error.status === 0 || error.code === 'offline' ? 'offline' : now.state === 'saved' ? 'offline' : 'device') });
     }
 }
 
-/** Refused by the account (422) and not changed since: waits for an edit instead of going again. */
-function refusedAsItIs(record) {
-    return record.state === 'invalid' && record.invalid?.for === JSON.stringify(repairTemplate(record.template).template);
+/**
+ * Each time a server fix should let past refusals through, this goes up by one: every refusal from
+ * an earlier round is tried once more at the next signed-in sync, and a fresh one waits as before.
+ * 1 (2026-10-30): the account refused "" as the description or credits (fixed on the server).
+ */
+export const REFUSAL_ROUND = 1;
+
+/** Refused by the account (422) in this round and not changed since: waits for an edit instead of going again. */
+export function refusedAsItIs(record) {
+    return record.state === 'invalid' && record.invalid?.round === REFUSAL_ROUND && record.invalid?.for === JSON.stringify(repairTemplate(record.template).template);
 }
 
 async function keep(record) {

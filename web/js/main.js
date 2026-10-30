@@ -3,13 +3,11 @@ import { watchErrors } from './errors.js';
 import { setDraftsFor } from './templates.js';
 import { api, apiEvents } from './api.js';
 import { storageEvents } from './db.js';
-import { formatDate, formatNumber, loadLanguage, t, timeAgo } from './i18n.js';
+import { allWords, formatDate, formatNumber, loadLanguage, localized, t, timeAgo, tk } from './i18n.js';
 import { navigate, route } from './router.js';
 import { session } from './stores/session.js';
 import { toast, Toasts } from './components/ui.js';
 import { ConfirmHost } from './components/confirm.js';
-import { ProjectsView } from './views/projects.js';
-import { AuthView } from './views/auth.js';
 import { watchPlan } from './stores/plan.js';
 import { CloudConflicts } from './components/cloud.js';
 import { LearnView } from './views/learn.js';
@@ -30,44 +28,61 @@ import { loadOutbox, outbox, sendAll } from './beta-outbox.js';
 import { count } from './usage.js';
 import { arrive, first } from './funnel.js';
 import { lazyView } from './lazy.js';
+import { LOADING_DELAY_MS, screenLoading } from './components/screen-loading.js';
+import { learning, loadPlusCourses } from './stores/learning.js';
+import { courseVisible } from './courses.js';
 import { nameScreens } from './screen-name.js';
 
 // Views load when they're opened, from the same version as the page (js/lazy.js reloads otherwise).
+// While one loads, its frame shows after a moment (components/screen-loading.js), never a blank page.
+const ahead = new Map(); // each view's loader, for fetching it ahead (below)
+function screen(load, frame = {}) {
+    const loader = lazyView(load);
+    const view = defineAsyncComponent({ loader, loadingComponent: screenLoading(frame), delay: LOADING_DELAY_MS });
+    ahead.set(view, loader);
+    return view;
+}
+const plusCourseTitle = () => localized(learning.catalogue.find((c) => c.id === route.params.id)?.title) || t('courses.title');
 // The admin and the styleguide load only when opened (and are never precached for singers).
 const AdminView = defineAsyncComponent(lazyView(() => import('./admin/shell.js').then((m) => m.AdminView)));
 const StyleguideView = defineAsyncComponent(lazyView(() => import('./admin/styleguide.js').then((m) => m.StyleguideView)));
 // The views a first visit's lesson never needs load when they're opened (a phone on a slow line gets to
 // its first note sooner).
-const StudioView = defineAsyncComponent(lazyView(() => import('./views/studio.js').then((m) => m.StudioView)));
-const SingView = defineAsyncComponent(lazyView(() => import('./views/sing.js').then((m) => m.SingView)));
-const SettingsView = defineAsyncComponent(lazyView(() => import('./views/settings.js').then((m) => m.SettingsView)));
-const StorageView = defineAsyncComponent(lazyView(() => import('./views/storage.js').then((m) => m.StorageView)));
-const VoiceView = defineAsyncComponent(lazyView(() => import('./views/voice.js').then((m) => m.VoiceView)));
-const WorkoutView = defineAsyncComponent(lazyView(() => import('./views/workout.js').then((m) => m.WorkoutView)));
-const PlusView = defineAsyncComponent(lazyView(() => import('./views/plus.js').then((m) => m.PlusView)));
-const RemindersView = defineAsyncComponent(lazyView(() => import('./views/reminders.js').then((m) => m.RemindersView)));
-const CourseView = defineAsyncComponent(lazyView(() => import('./views/course.js').then((m) => m.CourseView)));
-const PlusCourseView = defineAsyncComponent(lazyView(() => import('./views/plus-course.js').then((m) => m.PlusCourseView)));
-const BetaView = defineAsyncComponent(lazyView(() => import('./views/beta.js').then((m) => m.BetaView)));
+// The home and sign-in too (the coordinator's first-load step): lesson 1, the landing's Start, needs neither.
+const ProjectsView = screen(() => import('./views/projects.js').then((m) => m.ProjectsView), { home: true });
+const AuthView = screen(() => import('./views/auth.js').then((m) => m.AuthView));
+const StudioView = screen(() => import('./views/studio.js').then((m) => m.StudioView));
+const SingView = screen(() => import('./views/sing.js').then((m) => m.SingView));
+const SettingsView = screen(() => import('./views/settings.js').then((m) => m.SettingsView), { title: tk('settings.title') });
+const StorageView = screen(() => import('./views/storage.js').then((m) => m.StorageView), { title: tk('cloud.storage.title') });
+const VoiceView = screen(() => import('./views/voice.js').then((m) => m.VoiceView), { title: tk('voice.title') });
+const WorkoutView = screen(() => import('./views/workout.js').then((m) => m.WorkoutView));
+const PlusView = screen(() => import('./views/plus.js').then((m) => m.PlusView), { title: tk('plus.title') });
+const RemindersView = screen(() => import('./views/reminders.js').then((m) => m.RemindersView), { title: tk('reminders.title') });
+const CourseView = screen(() => import('./views/course.js').then((m) => m.CourseView), { title: tk('course.hub.title') });
+const PlusCourseView = screen(() => import('./views/plus-course.js').then((m) => m.PlusCourseView), { title: plusCourseTitle });
+const BetaView = screen(() => import('./views/beta.js').then((m) => m.BetaView));
 // The creator and a template's page load when they're opened (most visits never need them).
-const CreateView = defineAsyncComponent(lazyView(() => import('./views/create.js').then((m) => m.CreateView)));
-const TemplateView = defineAsyncComponent(lazyView(() => import('./views/template.js').then((m) => m.TemplateView)));
-const JoinView = defineAsyncComponent(lazyView(() => import('./views/join.js').then((m) => m.JoinView)));
-const EarlyView = defineAsyncComponent(lazyView(() => import('./views/early.js').then((m) => m.EarlyView)));
-const GroupsView = defineAsyncComponent(lazyView(() => import('./views/groups.js').then((m) => m.GroupsView)));
-const ChallengeView = defineAsyncComponent(lazyView(() => import('./views/challenge.js').then((m) => m.ChallengeView)));
-const GroupView = defineAsyncComponent(lazyView(() => import('./views/groups.js').then((m) => m.GroupView)));
-const ChoirJoinView = defineAsyncComponent(lazyView(() => import('./views/groups.js').then((m) => m.ChoirJoinView)));
+const CreateView = screen(() => import('./views/create.js').then((m) => m.CreateView));
+const TemplateView = screen(() => import('./views/template.js').then((m) => m.TemplateView));
+const JoinView = screen(() => import('./views/join.js').then((m) => m.JoinView));
+const EarlyView = screen(() => import('./views/early.js').then((m) => m.EarlyView));
+const GroupsView = screen(() => import('./views/groups.js').then((m) => m.GroupsView));
+const ChallengeView = screen(() => import('./views/challenge.js').then((m) => m.ChallengeView));
+const GroupView = screen(() => import('./views/groups.js').then((m) => m.GroupView));
+const ChoirJoinView = screen(() => import('./views/groups.js').then((m) => m.ChoirJoinView));
 // Songs arriving from the old address (docs/app-subdomain-plan.md).
-const MovedView = defineAsyncComponent(lazyView(() => import('./views/moved.js').then((m) => m.MovedView)));
-const ContactView = defineAsyncComponent(lazyView(() => import('./views/contact.js').then((m) => m.ContactView)));
+const MovedView = screen(() => import('./views/moved.js').then((m) => m.MovedView));
+const ContactView = screen(() => import('./views/contact.js').then((m) => m.ContactView), { title: tk('contact.title') });
 // Ideas (docs/ideas-app-plan.md), behind the server's flag: the shelf and one tune.
-const IdeasView = defineAsyncComponent(lazyView(() => import('./views/ideas.js').then((m) => m.IdeasView)));
-const IdeaView = defineAsyncComponent(lazyView(() => import('./views/ideas.js').then((m) => m.IdeaView)));
+// Start fresh on this device (/start-fresh): for testing on a phone, linked from nowhere (/reset is the password reset's).
+const ResetView = screen(() => import('./views/reset.js').then((m) => m.ResetView));
+const IdeasView = screen(() => import('./views/ideas.js').then((m) => m.IdeasView));
+const IdeaView = screen(() => import('./views/ideas.js').then((m) => m.IdeaView));
 const FIRST_INSTALL_WAIT_MS = 15000; // a timer for when to install, never for audio
 
 const App = {
-    components: { ProjectsView, StudioView, SingView, AuthView, SettingsView, StorageView, VoiceView, WorkoutView, PlusView, RemindersView, CloudConflicts, LearnView, CourseView, PlusCourseView, BirthHost, NewVersion, AdminView, StyleguideView, BetaView, CreateView, TemplateView, JoinView, EarlyView, GroupsView, GroupView, ChoirJoinView, MovedView, ContactView, IdeasView, IdeaView, Toasts, ConfirmHost, MicHelpHost, MicCheckHost, ChallengeView },
+    components: { ProjectsView, StudioView, SingView, AuthView, SettingsView, StorageView, VoiceView, WorkoutView, PlusView, RemindersView, CloudConflicts, LearnView, CourseView, PlusCourseView, BirthHost, NewVersion, AdminView, StyleguideView, BetaView, CreateView, TemplateView, JoinView, EarlyView, GroupsView, GroupView, ChoirJoinView, MovedView, ContactView, IdeasView, IdeaView, ResetView, Toasts, ConfirmHost, MicHelpHost, MicCheckHost, ChallengeView },
     setup: () => ({ route }),
     template: `
         <AdminView v-if="route.name === 'admin'" />
@@ -89,6 +104,7 @@ const App = {
         <MovedView v-else-if="route.name === 'moved'" />
         <ContactView v-else-if="route.name === 'contact'" />
         <IdeasView v-else-if="route.name === 'ideas'" />
+        <ResetView v-else-if="route.name === 'fresh'" />
         <IdeaView v-else-if="route.name === 'idea'" :key="'idea-' + route.params.id" :id="route.params.id" />
         <AuthView v-else-if="route.name === 'auth'" :key="route.params.page" />
         <SettingsView v-else-if="route.name === 'settings'" />
@@ -127,8 +143,30 @@ document.cookie = `sa_app=1; Max-Age=31536000; Path=/; SameSite=Lax${location.pr
 // fetched, so no request's referrer carries it, and waits in the tab for its screen.
 keepLinkToken();
 
-// Words first: every screen reads them through t() (docs/architecture.md, "Languages").
-await loadLanguage().catch((error) => console.error('The words did not load', error));
+// Words first: every screen reads them through t() (docs/architecture.md, "Languages"). A first
+// visit (no service worker yet, as js/preload.js decides) starts with lesson 1's own words, and
+// fetches the rest once the page has loaded and the browser is idle.
+const lessonFirst = !navigator.serviceWorker?.controller;
+await loadLanguage(undefined, { lessonFirst }).catch((error) => console.error('The words did not load', error));
+// Then (Hillel: "when I click some pages (ie settings or a course) the screen is blank for a second"),
+// the screens most often opened next are fetched ahead, one at a time while the browser is idle, so
+// they open at once: after the words, once the first screen is up (timers for the page, never audio).
+const whenIdle = (run) => ('requestIdleCallback' in window ? requestIdleCallback(run, { timeout: 8000 }) : setTimeout(run, 1000));
+async function fetchAhead() {
+    await allWords();
+    const ahead1 = (view) => new Promise((done) => whenIdle(() => ahead.get(view).prefetch().then(done)));
+    for (const view of [ProjectsView, SettingsView, CourseView]) await ahead1(view);
+    // A Plus course's page and the courses' data, when Plus courses show (asked now: the account has
+    // loaded). Guests see them too once auth.config says so (courses.js courseVisible).
+    const config = await loadAuthConfig().catch(() => null);
+    if (courseVisible({ status: 'live' }, account.me, config)) {
+        await ahead1(PlusCourseView);
+        await new Promise((done) => whenIdle(() => loadPlusCourses().then(done)));
+    }
+    for (const view of [SingView, StudioView]) await ahead1(view);
+}
+const afterLoad = (run) => (document.readyState === 'complete' ? whenIdle(run) : window.addEventListener('load', () => whenIdle(run), { once: true }));
+afterLoad(fetchAhead);
 const app = createApp(App);
 app.directive('fill', fill);
 watchErrors(app); // to Sentry through /log/errors, once auth.config gives the DSN

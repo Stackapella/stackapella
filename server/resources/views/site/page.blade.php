@@ -13,6 +13,10 @@
 
 @section('content')
     <x-site.header :app-url="$links['app']" />
+    {{-- A feature with its own designed page (site/features/<slug>) uses that instead. --}}
+    @if (view()->exists('site.features.'.$page['slug']))
+        @include('site.features.'.$page['slug'])
+    @else
     <main>
         <section class="s-wrap s-featurehead" aria-labelledby="page-h">
             <div @class(['s-split', 's-solo' => $hero === null && empty($page['pic'])])>
@@ -131,6 +135,7 @@
             </div>
         </section>
     </main>
+    @endif
     <x-site.footer />
 @endsection
 

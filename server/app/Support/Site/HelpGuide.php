@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Support\Site;
 
+use App\Support\Flags;
 use App\Support\Http\Hosts;
 use Illuminate\Support\Facades\Lang;
 use Illuminate\Support\Str;
@@ -17,6 +18,11 @@ use InvalidArgumentException;
  * A section is `[heading, items]`, with `'steps' => true` for a numbered list. An item is a line of
  * words (an app label in **bold**), `['shot' => '<id>', 'alt' => '...']` for a screenshot
  * (web/icons/help/<id>.png and <id>-dark.png, with webp), or `['tip' => '...']`.
+ *
+ * A feature behind a switch (config/flags.php): a section with `'flag' => '<switch>'` shows only
+ * while it's on (and stays out of the search); a line written `['text' => '...', 'flag' => '...']`
+ * shows only while it's on, `['text' => '...', 'unless' => '...']` only while it's off, each joining
+ * the run of lines like any other.
  */
 final class HelpGuide
 {
@@ -124,6 +130,9 @@ final class HelpGuide
         $seen = [];
         $sections = [];
         foreach ($raw as $section) {
+            if (! self::switchedOn((array) $section)) {
+                continue;
+            }
             $heading = (string) $section[0];
             $id = $base = Str::slug($heading) ?: 'section';
             for ($n = 2; isset($seen[$id]); $n++) {
@@ -135,6 +144,13 @@ final class HelpGuide
             $lines = [];
             $count = 0;
             foreach ([...(array) $section[1], null] as $item) {
+                // A switched line: its words while its switch allows, else nothing.
+                if (is_array($item) && isset($item['text'])) {
+                    if (! self::switchedOn($item)) {
+                        continue;
+                    }
+                    $item = (string) $item['text'];
+                }
                 if (is_string($item)) {
                     $lines[] = strtr($item, $replace);
                     $count++;
@@ -159,6 +175,18 @@ final class HelpGuide
         }
 
         return $sections;
+    }
+
+    /**
+     * Whether a section or a line shows: its `flag` switch on, and its `unless` switch off.
+     *
+     * @param  array<array-key, mixed>  $part
+     */
+    private static function switchedOn(array $part): bool
+    {
+        $flags = app(Flags::class);
+
+        return (! is_string($part['flag'] ?? null) || $flags->on($part['flag'])) && (! is_string($part['unless'] ?? null) || ! $flags->on($part['unless']));
     }
 
     /**

@@ -59,7 +59,8 @@ class Journey:
         self.f = f
         self.found = []
         self.times = []
-        self.look = THEMES.get((f.size, f.skin), "light")
+        # QA_LOOK=light|dark: one theme for every run (the UI guide lays the skins side by side).
+        self.look = os.environ.get("QA_LOOK") or THEMES.get((f.size, f.skin), "light")
         self.n = 0
         self.seen_errors = 0
 
@@ -81,7 +82,7 @@ class Journey:
             self.note(where, f"raw words on screen: {seen['raw']}")
         if seen["odd"]:
             self.note(where, f"shows {seen['odd']}")
-        if f.skin == "serious" and seen["stars"]:
+        if f.js("document.documentElement.dataset.skin") == "serious" and seen["stars"]:
             self.note(where, f"serious skin shows game words: {seen['stars']}")
         errors = [e for e in f.chrome.errors[self.seen_errors:] if "favicon" not in e and not any(x in e for x in f.expected_errors)]
         self.seen_errors = len(f.chrome.errors)
@@ -122,6 +123,15 @@ class Journey:
             (Path(out) / f"{self.f.size}-{self.f.skin}-{self.look}.json").write_text(json.dumps({"found": self.found, "times": self.times}, indent=1))
 
 
+MIC_PROMPT = """(() => {
+    const query = navigator.permissions?.query?.bind(navigator.permissions);
+    if (query) navigator.permissions.query = (d) => (d?.name === 'microphone' && !sessionStorage.getItem('qa.micAsked')
+        ? Promise.resolve({ state: 'prompt', onchange: null, addEventListener() {}, removeEventListener() {} }) : query(d));
+    const ask = navigator.mediaDevices?.getUserMedia?.bind(navigator.mediaDevices);
+    if (ask) navigator.mediaDevices.getUserMedia = (c) => { sessionStorage.setItem('qa.micAsked', '1'); return ask(c); };
+})();"""
+
+
 def journey(f):
     j = Journey(f)
     q = j.ready
@@ -133,6 +143,9 @@ def journey(f):
         f.run("localStorage.clear(); sessionStorage.clear(); await new Promise((r) => { const q = indexedDB.deleteDatabase('stackapella'); q.onsuccess = q.onerror = q.onblocked = r; });")
         f.go(start_url, "document.querySelector('main h1')")
         theme(f, j.look, "warm" if j.look == "light" else "stage")
+        # Headless Chrome allows the mic already; a new visitor's browser hasn't been asked, so the
+        # permission reads "prompt" until the app asks (then the fake mic answers as usual).
+        f.chrome.send("Page.addScriptToEvaluateOnNewDocument", {"source": MIC_PROMPT})
         f.go(start_url, "document.querySelector('main h1')")
         q("lesson 1's first step", "document.querySelector('main h1')")
         if f.js(f"!document.body.innerText.includes({I18N}.t('chordMoment.promise'))"):
@@ -214,8 +227,11 @@ def journey(f):
         if f.js(f"!document.body.innerText.includes({I18N}.t('results.hearTogether'))"):
             j.note("1-match: the take's result", "no Hear it together in unit 1")
         else:
-            f.click(t(f, "results.hearTogether"), "[data-take-result] button")
-            q("Hear it together plays", f"[...document.querySelectorAll('[data-take-result] button')].some((b) => b.getAttribute('aria-label') === {I18N}.t('studio.stop'))", timeout=6)
+            # The round play button: "Hear it together" with the guide on, else "Listen back".
+            f.run(f"const i = {I18N}; const labels = [i.t('results.hearTogether'), i.t('results.listenBack')]; [...document.querySelectorAll('[data-take-result] button[aria-label]')].find((b) => labels.includes(b.getAttribute('aria-label')))?.click()")
+            # Playing: the round button no longer offers to listen (it offers to stop).
+            listen = json.dumps([t(f, "results.hearTogether"), t(f, "results.listenBack")])
+            q("Hear it together plays", f"![...document.querySelectorAll('[data-take-result] button[aria-label]')].some((b) => {listen}.includes(b.getAttribute('aria-label')))", timeout=6)
             time.sleep(1.0)
             j.look_at("Hear it together", "hear-together")
             f.run(f"{AUDIO}.engine.stop?.()")
@@ -399,6 +415,8 @@ def journey(f):
             j.look_at("Settings, the other skin", "settings-other-skin")
             f.run(f"{toggle}.click()")
             q("Game mode switched back", f"document.documentElement.dataset.skin === {json.dumps(before)}", timeout=6)
+            # The quick off and on must leave the run's own skin, after a full load too (fixed in
+            # 2193bbb4: the account took an older look over the device's newer choice).
 
     def day_two():
         # The next day: the device arrived and sang yesterday.
@@ -408,6 +426,8 @@ def journey(f):
             localStorage.setItem('stackapella.funnel', JSON.stringify(f));
             const p = learning.progress; const lessons = Object.fromEntries(Object.entries(p.lessons).map(([k, v]) => [k, {{ ...v, at: v.at - day }}]));
             const moved = {{ ...p, lessons, startedAt: (p.startedAt ?? Date.now()) - day }};
+            const store = await import('/js/db.js');
+            for (const project of await store.all('projects')) await store.put('projects', {{ ...project, updatedAt: (project.updatedAt ?? Date.now()) - day }});
             const plain = JSON.parse(JSON.stringify(moved)); learning.progress = plain;
             const db = await import('/js/db.js'); await db.put('learning', plain, 'progress');""")
         f.go("/?api=mock&scenario=&as=member", "document.querySelector('#app header')")
@@ -422,14 +442,36 @@ def journey(f):
             f.run(f"[...document.querySelectorAll('h2, h3, p')].find((e) => e.textContent.includes({remind!r}))?.scrollIntoView({{ block: 'center' }})")
             j.look_at("day 2's reminders offer", "day2-remind")
         else:
-            j.times.append(("day 2's reminders offer", "not shown"))
+            install = f.js("document.body.innerText.includes('Install')")
+            j.times.append(("day 2's reminders offer", "waits while Home offers install (expected)" if install else "not shown"))
         f.click_t("course.continue")
         if q("day 2's next lesson", "location.pathname.startsWith('/learn/') && document.querySelector('main h1')"):
             j.look_at("day 2's next lesson", "day2-lesson")
 
+    def day_seven():
+        # A week on: the device arrived seven days ago, and Home shows the first week's card.
+        f.run(f"""const day = 86400000; const {{ learning }} = {STORE};
+            const f = JSON.parse(localStorage.getItem('stackapella.funnel') || '{{}}');
+            const d = new Date(Date.now() - 7 * day); f.arrived = new Date(d - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+            localStorage.setItem('stackapella.funnel', JSON.stringify(f));
+            const p = learning.progress; const moved = {{ ...p, startedAt: Date.now() - 7 * day }};
+            const store = await import('/js/db.js');
+            for (const project of await store.all('projects')) await store.put('projects', {{ ...project, updatedAt: (project.updatedAt ?? Date.now()) - 6 * day }});
+            const plain = JSON.parse(JSON.stringify(moved)); learning.progress = plain;
+            const db = await import('/js/db.js'); await db.put('learning', plain, 'progress');""")
+        f.go("/?api=mock&scenario=&as=member", "document.querySelector('#app header')")
+        if not q("day 7's Home", "document.querySelector('#lead-title')"):
+            return
+        if q("day 7's first-week card", "document.querySelector('[data-first-week]')", timeout=8):
+            f.run("document.querySelector('[data-first-week]').scrollIntoView({ block: 'center' })")
+        j.look_at("day 7's Home", "day7-week")
+
+    skip = set(os.environ.get("QA_SKIP", "").split(","))
     for name, fn in [("arrival", arrive), ("lesson 1", lesson1), ("lesson 2", lesson2), ("lesson 3", lesson3), ("home", home),
                      ("library song", library_song), ("share as a guest", share_guest), ("sign up", sign_up),
-                     ("share signed in", share_signed_in), ("settings", settings), ("day 2", day_two)]:
+                     ("share signed in", share_signed_in), ("settings", settings), ("day 2", day_two), ("day 7", day_seven)]:
+        if name in skip:
+            continue
         print(f"     {name}")
         j.stage(name, fn)
         j.save()

@@ -55,8 +55,10 @@ export const InstallCard = {
             return this.songs ? Date.now() - this.safeDismissedAt < WEEK : this.offerDismissed;
         },
         shown() {
-            return !this.installed && !this.dismissed && !!(install.prompt || this.iphone || this.mac);
+            return !this.installed && !this.dismissed && !this.askedToday && !!(install.prompt || this.iphone || this.mac);
         },
+        /** The session wrap offered install today: one ask a session, so this card waits for another day. */
+        askedToday: () => local.get('stackapella.installAskedOn') === new Date().toDateString(),
     },
     watch: {
         // The funnel: the install ask, counted the first time this device sees it.

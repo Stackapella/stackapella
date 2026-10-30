@@ -110,6 +110,88 @@ return [
                         'body' => 'Units 1 to 7 are free. Plus opens the rest of the course, starting with unit 8, Expression. The course never locks the songs: you can sing any song you have, any time.',
                     ],
                 ],
+                // The designed page (site/features/course): its own sections and words.
+                'eyebrow' => 'The free course · 8 units, 32 lessons',
+                'hero_title' => 'From your first note to four-part harmony.',
+                'hero_lead' => 'Start by finding a note that\'s easy for your voice. Short lessons take you through steady notes, moving notes and a whole tune, then into harmony: thirds, a round, the bass and the tenor, until you sing every part of Amazing Grace yourself.',
+                'hero_facts' => ['Units 1 to 7 free', 'No account needed to start', 'No reading music'],
+                'see_lessons' => 'See the lessons',
+                'titles' => [
+                    'outcomes' => 'By the end, you can',
+                    'lesson' => 'How a lesson goes',
+                    'units' => 'The map, unit by unit',
+                    'stack' => 'The whole song is you',
+                    'try' => 'Try this now: your comfortable note',
+                    'facts' => 'Did you know?',
+                    'who' => 'Who it\'s for',
+                    'need' => 'What you need',
+                    'safety' => 'Singing it safely',
+                    'faq' => 'Questions',
+                    'related' => 'Then, on Plus',
+                ],
+                'outcomes' => [
+                    'Find a comfortable note, and match the notes you hear.',
+                    'Hold a steady note, move between notes, and sing a whole tune.',
+                    'Sing harmony: a third above a tune, a round, then the bass and the tenor.',
+                    'Sing all four parts of Amazing Grace yourself, and hear them come together.',
+                ],
+                'lesson' => [
+                    ['Learn', 'One idea at a time, drawn so you can see it.'],
+                    ['Sing', 'Your notes light up on the lane as you hit them.'],
+                    ['Hear yourself', ['game' => 'Up to three stars and XP, and a weekly goal. Play again for more.', 'serious' => 'How close you were, as a share of notes on pitch. Sing it again whenever you like.']],
+                ],
+                'units_say' => [
+                    'Your comfortable note, matching notes, higher and lower, breathing, and five notes sung back.',
+                    'Holding a note, against a drone, on different vowels, and for eight beats.',
+                    'Steps up and down, small jumps, and the opening of Ode to Joy.',
+                    'Following the words, phrasing, and the first verse of Amazing Grace.',
+                    'Humming against a drone, finding the third, a round, two parts in thirds, and recording the round\'s second voice.',
+                    'Holding your own note, the bass line, the tenor, and recording the bass of Amazing Grace.',
+                    'Hearing the blend, then all four parts of Amazing Grace.',
+                    'Loud and soft, a gentle vibrato, high notes, shaping a line, and Danny Boy.',
+                ],
+                'plus_unit' => 'Plus',
+                'stack' => [
+                    'lead' => 'In unit 7 you sing all four parts of Amazing Grace, one at a time, each over the ones before, and hear them together. Every voice in the chord is yours.',
+                    'body' => 'The app lines your parts up exactly in time, so the song sounds like a choir of you.',
+                ],
+                'try' => [
+                    'lead' => 'Lesson 1, without the app. It takes a minute.',
+                    'steps' => [
+                        'Hum a note: not too high, not too low.',
+                        'Find where it\'s easy: no push, no strain.',
+                        'Sing it on "oo", soft and steady, and hold it for a few seconds.',
+                        'That\'s your comfortable note. Every voice has an easy note, and there\'s no wrong one.',
+                    ],
+                    'after' => 'In the app, lesson 1 hears your note, names it, and shows the parts that may suit your voice.',
+                ],
+                'facts' => [
+                    ['Your vocal folds open and close once for every wave of a note: about 110 times a second in a typical man\'s speaking voice, about 210 in a woman\'s.', 'Titze, Principles of Voice Production (1994)', ''],
+                    ['John Newton, a slave-ship captain who became a clergyman, wrote Amazing Grace for his New Year\'s Day sermon in 1773; words and tune met in print in 1835.', 'Hymnology Archive, Amazing Grace', 'https://www.hymnologyarchive.com/amazing-grace'],
+                    ['In 1951 Les Paul layered take after take of Mary Ford\'s voice on one tape for "How High the Moon", nine weeks a US number one.', 'Sound on Sound, Classic Tracks: How High The Moon', 'https://www.soundonsound.com/techniques/classic-tracks-les-paul-mary-ford-how-high-moon'],
+                ],
+                'who' => [
+                    'Anyone who wants to sing, starting from the very first note.',
+                    'Singers who can carry a tune and want to learn harmony.',
+                    'Choir singers who want to hold their own part.',
+                ],
+                'need' => [
+                    'A quiet spot and a few minutes a day.',
+                    'Headphones for the harmony units, so the other parts stay out of your recording.',
+                    'No reading music, and no account to start.',
+                ],
+                'safety' => [
+                    'Keep everything easy: stop if anything tightens or hurts.',
+                    'Find your note with no push and no strain, soft and steady.',
+                    'No app can replace a real voice teacher.',
+                ],
+                'faq' => [
+                    ['Is it really free?', 'Units 1 to 7 are free, from your first note to all four parts of Amazing Grace. Plus opens unit 8, Expression, and the Plus courses.'],
+                    ['Do I need an account?', 'No. You can start without one, and your progress stays on this device. A free account saves it to your account.'],
+                    ['Can I learn harmony if I\'ve never sung?', 'Yes, that\'s what it\'s for. The first units find your voice and steady your notes before any harmony.'],
+                    ['Do I need to read music?', 'No. You learn every part by ear, with the notes drawn as shapes on a lane.'],
+                ],
+                'related' => ['vibrato', 'ear-training', 'barbershop'],
             ],
 
             'studio' => [
@@ -1177,8 +1259,1012 @@ return [
     // The courses coming to Plus (docs/plus-courses-plan.md; Hillel, 2026-10-29: "All 27 now"): /courses and
     // /courses/<slug>, each Coming soon. `needs` names the listening the app can't do yet, `health` the
     // plan's care for loud or high singing. Nothing promised beyond the plan.
+    // The comparison pages (/compare, /compare/<slug>; docs/compare-pages-plan.md), unlisted behind the
+    // compare_pages switch until the lawyer (H14) and Hillel say go. for_lawyer: comparative advertising
+    // and the use of other products' names, as the plan lists. Every claim about another product is
+    // from its own listing or site, seen 2026-10-30 (docs/compare-sources.md); our own cells are shared.
+    'compare' => [
+        'index' => [
+            'title' => 'Stackapella compared with other harmony and singing apps',
+            'description' => 'Honest, dated side-by-side notes on Stackapella and other apps for learning and singing harmony, each with its sources.',
+            'eyebrow' => 'Compare',
+            'headline' => 'How Stackapella compares',
+            'lead' => 'Side-by-side notes on other apps for learning and singing harmony, from each one\'s own listing or website. Each page says where the other fits better, too.',
+        ],
+        'common' => [
+            'asof' => 'As of October 2026',
+            'seen' => 'Seen 30 October 2026, on each product\'s own listing or website.',
+            'us' => 'Stackapella',
+            'rows' => [
+                'runs' => 'Where it runs',
+                'price' => 'Price',
+                'learn' => 'Learn a part by ear, with live pitch feedback',
+                'stack' => 'Record your own parts, stacked in time',
+                'suggest' => 'Harmony parts suggested for your own tune',
+                'course' => 'A course from first note to harmony',
+                'choir' => 'Choir tools',
+                'import' => 'Bring in sheet music (MusicXML or MIDI)',
+                'languages' => 'Languages',
+                'open' => 'Open source',
+            ],
+            'cells' => [
+                'runs' => 'In any modern browser, on phones and computers. It installs like an app; there\'s no app-store app yet',
+                'price' => 'Free to start. Plus is :price_month a month or :price_year a year',
+                'learn' => 'Yes: hear each part from a guide voice, then sing it while your notes light up as you hit them',
+                'stack' => 'Yes: record each part over the ones before, lined up in time',
+                'suggest' => 'Yes: sing a tune, and alto, tenor and bass are suggested to fit it',
+                'course' => 'Yes: a free course from your first note to four-part harmony, and Plus courses on skills and styles',
+                'choir' => 'Choir groups and practice tracks',
+                'import' => 'Not yet: sing a tune, write it in the note editor, or open a Stackapella file',
+                'languages' => 'English',
+                'open' => 'Yes, under the Attribution Assurance License',
+            ],
+            'titles' => [
+                'for' => 'Who each is for',
+                'for_them' => ':name is for',
+                'for_us' => 'Stackapella is for',
+                'table' => 'Side by side',
+                'fits' => 'Where each fits better',
+                'fits_them' => 'Where :name fits better',
+                'fits_us' => 'Where Stackapella fits better',
+                'moving' => 'Moving over',
+                'faq' => 'Questions',
+                'try' => 'Try Stackapella',
+                'sources' => 'Sources',
+            ],
+            'not_stated' => '"Not stated" means we couldn\'t find it in the product\'s own listing or website, not that it\'s missing.',
+            'try_body' => 'Start with your comfortable note. No account needed, and the course\'s first seven units are free.',
+            'names' => 'Product names belong to their owners. Stackapella isn\'t connected with any of these products or their makers.',
+            'source' => 'Source :n',
+        ],
+        'pages' => [
+            'howli' => [
+                'name' => 'Howli',
+                'title' => 'Stackapella and Howli compared, as of October 2026',
+                'description' => 'How Stackapella and Howli compare for learning and singing harmony: where each runs, prices, feedback, recording, courses and importing music, with sources.',
+                'summary' => 'Both teach harmony parts with live pitch feedback.',
+                'headline' => 'Stackapella and Howli',
+                'lead' => 'Both help you learn harmony parts with live pitch feedback, and record them. Howli is an iPhone and Android app with a lifetime price and 45 languages. Stackapella runs in your browser, with a free course and harmony suggested for your own tunes.',
+                'them_for' => [
+                    'Singers who want an app on iPhone or Android.',
+                    'Anyone who\'d rather buy once: it has a lifetime price.',
+                    'Bringing in your own arrangement as MusicXML or MIDI.',
+                ],
+                'us_for' => [
+                    'Starting from your very first note, with a free course to four-part harmony.',
+                    'Getting alto, tenor and bass suggested for a tune you sing.',
+                    'Singing in a browser on any phone or computer, and practising with a choir.',
+                ],
+                'columns' => ['Howli'],
+                'cells' => [
+                    'runs' => [
+                        [
+                            'iPhone and Android apps, and a free song editor on the web',
+                            [1, 2, 3],
+                        ],
+                    ],
+                    'price' => [
+                        [
+                            'Free up to a daily limit. Unlimited: $3.99 a month, $14.99 a year, or $24.99 once (App Store)',
+                            [1],
+                        ],
+                    ],
+                    'learn' => [
+                        [
+                            'Yes: hear each part, then sing it with live pitch feedback',
+                            [1, 2],
+                        ],
+                    ],
+                    'stack' => [
+                        [
+                            'Yes: record each part, two to six layers',
+                            [1],
+                        ],
+                    ],
+                    'suggest' => [
+                        [
+                            'Not stated: you write the parts or import them',
+                            [1],
+                        ],
+                    ],
+                    'course' => [
+                        [
+                            'Not stated',
+                            [],
+                        ],
+                    ],
+                    'choir' => [
+                        [
+                            'Not stated. Duets with a friend, and song codes to share an arrangement',
+                            [1, 2],
+                        ],
+                    ],
+                    'import' => [
+                        [
+                            'Yes: MusicXML and MIDI, in its web editor',
+                            [1],
+                        ],
+                    ],
+                    'languages' => [
+                        [
+                            '45',
+                            [1],
+                        ],
+                    ],
+                    'open' => [
+                        [
+                            'Not stated',
+                            [],
+                        ],
+                    ],
+                ],
+                'fits_them' => [
+                    'You want an app from the App Store or Google Play.',
+                    'You\'d like to pay once, or sing in one of its 45 languages.',
+                    'You already have an arrangement as MusicXML or MIDI.',
+                ],
+                'fits_us' => [
+                    'You\'re new to singing and want a course that starts at the first note.',
+                    'You want harmony parts suggested for a tune of your own.',
+                    'You sing with a choir and want its groups and practice tracks.',
+                ],
+                'faq' => [
+                    [
+                        'Does Stackapella work on Android?',
+                        'Yes, in the browser on Android phones, and it installs like an app. There\'s no app-store app yet.',
+                    ],
+                    [
+                        'Can I bring MusicXML or MIDI into Stackapella?',
+                        'Not yet. You can sing or write a tune in the note editor, or open a Stackapella file.',
+                    ],
+                    [
+                        'Is Stackapella free?',
+                        'Yes, to start: the course\'s first seven units, from your first note to all four parts of Amazing Grace, and your own songs. Plus is :price_month a month or :price_year a year.',
+                    ],
+                ],
+                'sources' => [
+                    [
+                        'Howli on the App Store',
+                        'https://apps.apple.com/us/app/howli-learn-to-sing-harmonies/id6762453643',
+                    ],
+                    ['Howli on Google Play', 'https://play.google.com/store/apps/details?id=com.howli.howli'],
+                    ['get-howli.com', 'https://get-howli.com/'],
+                ],
+            ],
+            'harmony-helper' => [
+                'name' => 'Harmony Helper',
+                'title' => 'Stackapella and Harmony Helper compared, as of October 2026',
+                'description' => 'How Stackapella and Harmony Helper compare for learning harmony parts: where each runs, prices, pitch feedback, songbooks, courses and recording, with sources.',
+                'summary' => 'Both show your pitch while you sing a harmony part.',
+                'headline' => 'Stackapella and Harmony Helper',
+                'lead' => 'Both show your pitch while you sing a harmony part. Harmony Helper is an iPhone, iPad and Android app from RWS Global, built around songbooks that directors share with their singers. Stackapella runs in your browser, with a free course and your own recorded parts stacked into a song.',
+                'them_for' => [
+                    'Singers whose director shares songs through a Harmony Helper songbook.',
+                    'RWS Global partners and their performers.',
+                    'Songs with up to 12 parts.',
+                ],
+                'us_for' => [
+                    'Learning harmony from your very first note, with a free course.',
+                    'Recording every part yourself and hearing them stacked.',
+                    'Singing or writing your own tune and getting parts suggested.',
+                ],
+                'columns' => ['Harmony Helper'],
+                'cells' => [
+                    'runs' => [
+                        [
+                            'iPhone, iPad and Android apps, and a web portal for songbooks',
+                            [1, 2, 3],
+                        ],
+                    ],
+                    'price' => [
+                        [
+                            'A free app and free songbook songs. RWS says it\'s available exclusively to RWS Global partners',
+                            [1, 3],
+                        ],
+                    ],
+                    'learn' => [
+                        [
+                            'Yes: real-time pitch and timing feedback, with part volume controls',
+                            [1, 3],
+                        ],
+                    ],
+                    'stack' => [
+                        [
+                            'Not stated',
+                            [],
+                        ],
+                    ],
+                    'suggest' => [
+                        [
+                            'Not stated',
+                            [],
+                        ],
+                    ],
+                    'course' => [
+                        [
+                            'A guided five-step method for learning and holding harmonies',
+                            [1, 3],
+                        ],
+                    ],
+                    'choir' => [
+                        [
+                            'Yes: directors create songbooks and share them with performers or students',
+                            [3],
+                        ],
+                    ],
+                    'import' => [
+                        [
+                            'Not stated. Its sheet-music scanner ended in December 2024',
+                            [1],
+                        ],
+                    ],
+                    'languages' => [
+                        [
+                            'Not stated',
+                            [],
+                        ],
+                    ],
+                    'open' => [
+                        [
+                            'Not stated',
+                            [],
+                        ],
+                    ],
+                ],
+                'fits_them' => [
+                    'Your director already shares songs through its songbooks.',
+                    'You\'re with an RWS Global production or partner.',
+                    'You need up to 12 parts.',
+                ],
+                'fits_us' => [
+                    'You\'re new to singing and want a course from the first note.',
+                    'You want to record every part of a song yourself.',
+                    'You want to make your own song and get parts suggested.',
+                ],
+                'moving' => 'Coming from Harmony Helper? Stackapella can\'t open its songbooks. Start with the free course, or a public-domain song from the library, or sing your own tune and get its parts suggested.',
+                'faq' => [
+                    [
+                        'Can Stackapella open Harmony Helper songbooks?',
+                        'No. Its library has public-domain songs to start with, and you can sing, hum or write your own.',
+                    ],
+                    [
+                        'Does Stackapella work on iPad and Android?',
+                        'Yes, in the browser, and it installs like an app. There\'s no app-store app yet.',
+                    ],
+                    [
+                        'Is Stackapella free?',
+                        'Yes, to start: the course\'s first seven units, from your first note to all four parts of Amazing Grace, and your own songs. Plus is :price_month a month or :price_year a year.',
+                    ],
+                ],
+                'sources' => [
+                    [
+                        'Harmony Helper on the App Store',
+                        'https://apps.apple.com/us/app/harmony-helper/id1283704743',
+                    ],
+                    [
+                        'Harmony Helper on Google Play',
+                        'https://play.google.com/store/apps/details?id=com.harmonyhelperapp.practice',
+                    ],
+                    ['RWS Global, Harmony Helper', 'https://www.rwsglobal.com/harmony-helper'],
+                ],
+            ],
+            'sing-harmonies' => [
+                'name' => 'Sing Harmonies',
+                'title' => 'Stackapella and Sing Harmonies compared, as of October 2026',
+                'description' => 'How Stackapella and Sing Harmonies compare for learning harmony by ear: where each runs, prices, the singers you hear, pitch feedback and recording, with sources.',
+                'summary' => 'Both teach harmony parts by ear, one singer at a time.',
+                'headline' => 'Stackapella and Sing Harmonies',
+                'lead' => 'Sing Harmonies lets you solo, soften or silence each of four singers in its arrangements, on iPhone and iPad. Its maker has said the app is being phased out. Stackapella runs in your browser, listens as you sing, and lets you record every part yourself.',
+                'them_for' => [
+                    'Learning its arrangements of pop and folk songs by ear.',
+                    'Hearing four singers, each at full, soft or silent.',
+                    'Paying once for the app and each song.',
+                ],
+                'us_for' => [
+                    'Feedback on your pitch as you sing your part.',
+                    'Recording every part yourself and hearing them together.',
+                    'Public-domain songs in four parts, and your own songs.',
+                ],
+                'columns' => ['Sing Harmonies'],
+                'cells' => [
+                    'runs' => [
+                        [
+                            'iPhone and iPad. No longer on Google Play',
+                            [1, 2],
+                        ],
+                    ],
+                    'price' => [
+                        [
+                            '$1.99 with three songs; more songs $0.99 each',
+                            [1],
+                        ],
+                    ],
+                    'learn' => [
+                        [
+                            'By ear: solo or mute any of the four singers. Live pitch feedback: not stated',
+                            [1],
+                        ],
+                    ],
+                    'stack' => [
+                        [
+                            'Not stated',
+                            [],
+                        ],
+                    ],
+                    'suggest' => [
+                        [
+                            'Not stated: its songs come from its own catalogue',
+                            [1],
+                        ],
+                    ],
+                    'course' => [
+                        [
+                            'Not stated',
+                            [],
+                        ],
+                    ],
+                    'choir' => [
+                        [
+                            'Not stated',
+                            [],
+                        ],
+                    ],
+                    'import' => [
+                        [
+                            'Not stated',
+                            [],
+                        ],
+                    ],
+                    'languages' => [
+                        [
+                            'English',
+                            [1],
+                        ],
+                    ],
+                    'open' => [
+                        [
+                            'Not stated',
+                            [],
+                        ],
+                    ],
+                ],
+                'fits_them' => [
+                    'You already own its songs and know the app.',
+                    'You want to hear four real singers in its arrangements.',
+                ],
+                'fits_us' => [
+                    'You want feedback on your pitch as you sing.',
+                    'You want to record every part yourself.',
+                    'You want new songs, including your own.',
+                ],
+                'moving' => 'Coming from Sing Harmonies? Its maker\'s own notes say no new songs since August 2024, the Android app was removed in November 2024, and in January 2026 the app still worked on the newest iOS. Stackapella\'s library has public-domain songs in four parts, and you can sing or write your own.',
+                'faq' => [
+                    [
+                        'Can I bring my Sing Harmonies songs over?',
+                        'No, its arrangements stay in its app. Stackapella\'s library has public-domain songs arranged in four parts, like Amazing Grace, and you can make your own.',
+                    ],
+                    [
+                        'Does Stackapella work on Android?',
+                        'Yes, in the browser on Android phones, and it installs like an app.',
+                    ],
+                    [
+                        'Is Stackapella free?',
+                        'Yes, to start: the course\'s first seven units, from your first note to all four parts of Amazing Grace, and your own songs. Plus is :price_month a month or :price_year a year.',
+                    ],
+                ],
+                'sources' => [
+                    [
+                        'Sing Harmonies on the App Store',
+                        'https://apps.apple.com/us/app/sing-harmonies/id378913608',
+                    ],
+                    ['singharmonies.com, with its maker\'s notes', 'https://www.singharmonies.com/'],
+                ],
+            ],
+            'acapella' => [
+                'name' => 'Acapella',
+                'title' => 'Stackapella and Acapella compared, as of October 2026',
+                'description' => 'How Stackapella and Acapella from PicPlayPost compare: where each runs, prices, recording your own parts, video, pitch feedback and learning, with sources.',
+                'summary' => 'Both record your own voice in layers.',
+                'headline' => 'Stackapella and Acapella',
+                'lead' => 'Acapella, from PicPlayPost, is an iPhone and iPad app for recording yourself in multi-frame music videos up to 10 minutes long, and collaborating with friends. Stackapella is for learning harmony: it teaches each part by ear, listens as you sing, and stacks your parts in time.',
+                'them_for' => [
+                    'Making split-screen music videos of yourself.',
+                    'Making music videos with friends.',
+                    'Recording songs up to 10 minutes long.',
+                ],
+                'us_for' => [
+                    'Learning a part by ear, with feedback on your pitch.',
+                    'A free course from your first note to four-part harmony.',
+                    'Parts suggested for your own tune, and share videos with the words.',
+                ],
+                'columns' => ['Acapella'],
+                'cells' => [
+                    'runs' => [
+                        [
+                            'iPhone and iPad. Android: not stated by its maker',
+                            [1, 2],
+                        ],
+                    ],
+                    'price' => [
+                        [
+                            'Free with in-app purchases: Singing App Pro $9.99 a month, Multitrack Editor Pro $47.99 a year, packs from $0.99 to $7.99',
+                            [1],
+                        ],
+                    ],
+                    'learn' => [
+                        [
+                            'Not stated',
+                            [],
+                        ],
+                    ],
+                    'stack' => [
+                        [
+                            'Yes: multitrack, multi-frame videos, up to 10 minutes',
+                            [1, 2],
+                        ],
+                    ],
+                    'suggest' => [
+                        [
+                            'Not stated',
+                            [],
+                        ],
+                    ],
+                    'course' => [
+                        [
+                            'Not stated',
+                            [],
+                        ],
+                    ],
+                    'choir' => [
+                        [
+                            'Not stated. Make music with friends',
+                            [1, 2],
+                        ],
+                    ],
+                    'import' => [
+                        [
+                            'Not stated',
+                            [],
+                        ],
+                    ],
+                    'languages' => [
+                        [
+                            '11',
+                            [1],
+                        ],
+                    ],
+                    'open' => [
+                        [
+                            'Not stated',
+                            [],
+                        ],
+                    ],
+                ],
+                'fits_them' => [
+                    'You want a video of yourself in a grid of frames.',
+                    'You\'re making music videos with friends.',
+                ],
+                'fits_us' => [
+                    'You want to learn harmony parts, with feedback as you sing.',
+                    'You want parts suggested for a tune of your own.',
+                    'You sing with a choir.',
+                ],
+                'faq' => [
+                    [
+                        'Does Stackapella make videos?',
+                        'Yes: a share video of your song, with the words shown as they\'re sung. It\'s your audio with the words, not a grid of faces.',
+                    ],
+                    [
+                        'Does Stackapella work on Android?',
+                        'Yes, in the browser on Android phones, and it installs like an app.',
+                    ],
+                    [
+                        'Is Stackapella free?',
+                        'Yes, to start: the course\'s first seven units, from your first note to all four parts of Amazing Grace, and your own songs. Plus is :price_month a month or :price_year a year.',
+                    ],
+                ],
+                'sources' => [
+                    ['Acapella on the App Store', 'https://apps.apple.com/us/app/-/id924635678'],
+                    ['Mixcord, Acapella', 'https://www.mixcord.co/pages/acapella-singing-app'],
+                ],
+            ],
+            'yousician' => [
+                'name' => 'Yousician',
+                'title' => 'Stackapella and Yousician singing compared, as of October 2026',
+                'description' => 'How Stackapella and Yousician\'s singing lessons compare: where each runs, prices, pitch feedback, courses, harmony and recording, with sources.',
+                'summary' => 'Both have singing lessons that listen to your pitch.',
+                'headline' => 'Stackapella and Yousician',
+                'lead' => 'Yousician teaches singing in a guided course that listens to your pitch, alongside guitar and bass. Stackapella is about harmony: learning a part while the others play, and recording every part yourself.',
+                'them_for' => [
+                    'A guided singing course, from first-time singers to pros.',
+                    'Learning guitar or bass in the same app.',
+                    'Apps for iOS, Android, Mac and PC.',
+                ],
+                'us_for' => [
+                    'Harmony first: learning one part while the others play.',
+                    'Recording every part yourself, stacked in time.',
+                    'Parts suggested for your own tune, and choir groups.',
+                ],
+                'columns' => ['Yousician'],
+                'cells' => [
+                    'runs' => [
+                        [
+                            'iOS, Android, Mac and PC',
+                            [2],
+                        ],
+                    ],
+                    'price' => [
+                        [
+                            'One Instrument: $19.99 a month or $119.99 a year. Premium Plus: $29.99 a month, or $159.99 or $179.99 a year (App Store)',
+                            [1],
+                        ],
+                    ],
+                    'learn' => [
+                        [
+                            'Live pitch feedback on your singing: yes. "Harmony" is listed as a lesson topic',
+                            [1, 2],
+                        ],
+                    ],
+                    'stack' => [
+                        [
+                            'Not stated',
+                            [],
+                        ],
+                    ],
+                    'suggest' => [
+                        [
+                            'Not stated',
+                            [],
+                        ],
+                    ],
+                    'course' => [
+                        [
+                            'Yes: a guided learning path',
+                            [1],
+                        ],
+                    ],
+                    'choir' => [
+                        [
+                            'Not stated',
+                            [],
+                        ],
+                    ],
+                    'import' => [
+                        [
+                            'Not stated',
+                            [],
+                        ],
+                    ],
+                    'languages' => [
+                        [
+                            '10',
+                            [1],
+                        ],
+                    ],
+                    'open' => [
+                        [
+                            'Not stated',
+                            [],
+                        ],
+                    ],
+                ],
+                'fits_them' => [
+                    'You want a broad singing course, or to learn guitar or bass too.',
+                    'You want an app on Mac or PC.',
+                ],
+                'fits_us' => [
+                    'You want to learn harmony parts and sing them with others.',
+                    'You want to record every part of a song yourself.',
+                    'You want parts suggested for your own tune.',
+                ],
+                'faq' => [
+                    [
+                        'Can I learn solo singing in Stackapella?',
+                        'Its free course starts with your first note, steady notes and a whole tune before any harmony, and Plus courses cover skills like vibrato, breath and pitch. Its focus is harmony.',
+                    ],
+                    [
+                        'Does Stackapella work on a computer?',
+                        'Yes, in any modern browser, on a computer or a phone.',
+                    ],
+                    [
+                        'Is Stackapella free?',
+                        'Yes, to start: the course\'s first seven units, from your first note to all four parts of Amazing Grace, and your own songs. Plus is :price_month a month or :price_year a year.',
+                    ],
+                ],
+                'sources' => [
+                    [
+                        'Yousician on the App Store',
+                        'https://apps.apple.com/us/app/yousician-learn-guitar-bass/id959883039',
+                    ],
+                    ['yousician.com/voice', 'https://yousician.com/voice'],
+                ],
+            ],
+            'smule' => [
+                'name' => 'Smule',
+                'title' => 'Stackapella and Smule compared, as of October 2026',
+                'description' => 'How Stackapella and Smule compare: where each runs, prices, songs, duets, pitch guides, learning harmony and recording your own parts, with sources.',
+                'summary' => 'Both let you sing in layers, for different ends.',
+                'headline' => 'Stackapella and Smule',
+                'lead' => 'Smule is for singing songs with others: duets and group performances from a catalogue of over 15 million songs, with pitch guides. Stackapella is for learning harmony and recording every part yourself, from public-domain songs and your own.',
+                'them_for' => [
+                    'Singing popular songs from a very large catalogue.',
+                    'Duets and group performances with other singers.',
+                    'Live karaoke sessions.',
+                ],
+                'us_for' => [
+                    'Learning a harmony part by ear, with feedback on your pitch.',
+                    'Recording every part of a song yourself.',
+                    'A free course from your first note to four-part harmony.',
+                ],
+                'columns' => ['Smule'],
+                'cells' => [
+                    'runs' => [
+                        [
+                            'iPhone, iPad, Apple TV and Android. Web: not stated',
+                            [1, 2],
+                        ],
+                    ],
+                    'price' => [
+                        [
+                            'Join duets free. VIP: $5.99 to $12.99, or $7.99 a week (App Store)',
+                            [1, 2],
+                        ],
+                    ],
+                    'learn' => [
+                        [
+                            'Pitch guides while you sing. Learning a harmony part: not stated',
+                            [1, 2],
+                        ],
+                    ],
+                    'stack' => [
+                        [
+                            'Layered group songs',
+                            [2],
+                        ],
+                    ],
+                    'suggest' => [
+                        [
+                            'Not stated',
+                            [],
+                        ],
+                    ],
+                    'course' => [
+                        [
+                            'Not stated',
+                            [],
+                        ],
+                    ],
+                    'choir' => [
+                        [
+                            'Not stated. Duets, group performances and live sessions',
+                            [2],
+                        ],
+                    ],
+                    'import' => [
+                        [
+                            'Not stated',
+                            [],
+                        ],
+                    ],
+                    'languages' => [
+                        [
+                            '14',
+                            [1],
+                        ],
+                    ],
+                    'open' => [
+                        [
+                            'Not stated',
+                            [],
+                        ],
+                    ],
+                ],
+                'fits_them' => [
+                    'You want to sing popular songs with other people.',
+                    'You want duets, groups and live sessions.',
+                ],
+                'fits_us' => [
+                    'You want to learn to hold a harmony part.',
+                    'You want to record every part yourself.',
+                    'You want a course that starts at your first note.',
+                ],
+                'faq' => [
+                    [
+                        'Does Stackapella have popular songs?',
+                        'Its library is public-domain songs, like Amazing Grace, and you can make your own. It doesn\'t license popular songs.',
+                    ],
+                    [
+                        'Can I sing with friends in Stackapella?',
+                        'Yes: share a song by link so friends can learn it part by part, and choirs can use groups.',
+                    ],
+                    [
+                        'Is Stackapella free?',
+                        'Yes, to start: the course\'s first seven units, from your first note to all four parts of Amazing Grace, and your own songs. Plus is :price_month a month or :price_year a year.',
+                    ],
+                ],
+                'sources' => [
+                    ['Smule on the App Store', 'https://apps.apple.com/us/app/smule-sing-duet/id509993510'],
+                    [
+                        'Smule on Google Play',
+                        'https://play.google.com/store/apps/details?id=com.smule.singandroid',
+                    ],
+                ],
+            ],
+            'choirmate' => [
+                'name' => 'ChoirMate',
+                'title' => 'Stackapella and ChoirMate compared, as of October 2026',
+                'description' => 'How Stackapella and ChoirMate compare for choirs: where each runs, prices, practising your part, pitch feedback, choir tools and sheet music, with sources.',
+                'summary' => 'Both help choir singers practise their parts.',
+                'headline' => 'Stackapella and ChoirMate',
+                'lead' => 'ChoirMate runs a choir: members, set lists, calendar and attendance, messages and files, with a Track Mixer to practise your part. Stackapella helps each singer learn their part: it listens as you sing, and has choir groups and practice tracks.',
+                'them_for' => [
+                    'Choir directors who want rehearsals, attendance and messages in one place.',
+                    'Set lists, sheet music and audio files for the whole choir.',
+                    'Practising in the car with CarPlay, or on an Apple Watch.',
+                ],
+                'us_for' => [
+                    'Each singer getting feedback on their pitch while they learn.',
+                    'A course that teaches singers to hold a harmony part.',
+                    'Recording every part yourself, stacked in time.',
+                ],
+                'columns' => ['ChoirMate'],
+                'cells' => [
+                    'runs' => [
+                        [
+                            'iPhone, iPad, Apple Watch and Android, and a web version',
+                            [1, 2, 5],
+                        ],
+                    ],
+                    'price' => [
+                        [
+                            'Free for up to 50 people. Choir plans $26.67 or $53.33 a month. Premium for one singer $4.99 a month (App Store)',
+                            [3, 1],
+                        ],
+                    ],
+                    'learn' => [
+                        [
+                            'By ear: its Track Mixer solos or mutes parts. Live pitch feedback: not stated',
+                            [4],
+                        ],
+                    ],
+                    'stack' => [
+                        [
+                            'Not stated. Members can make recordings',
+                            [1, 6],
+                        ],
+                    ],
+                    'suggest' => [
+                        [
+                            'Not stated',
+                            [],
+                        ],
+                    ],
+                    'course' => [
+                        [
+                            'Not stated',
+                            [],
+                        ],
+                    ],
+                    'choir' => [
+                        [
+                            'Yes: members, set lists, calendar and attendance, polls, messages and files',
+                            [1, 3],
+                        ],
+                    ],
+                    'import' => [
+                        [
+                            'Sheet music as PDF. MIDI must be converted to audio first',
+                            [5],
+                        ],
+                    ],
+                    'languages' => [
+                        [
+                            '15 (App Store)',
+                            [1],
+                        ],
+                    ],
+                    'open' => [
+                        [
+                            'Not stated',
+                            [],
+                        ],
+                    ],
+                ],
+                'fits_them' => [
+                    'You run a choir and want its rehearsals, people and files in one place.',
+                    'You want set lists, CarPlay and Apple Watch.',
+                ],
+                'fits_us' => [
+                    'You want each singer to get feedback on their pitch.',
+                    'You want singers to learn harmony from the first note.',
+                    'You want to record every part of a song yourself.',
+                ],
+                'faq' => [
+                    [
+                        'Can I use both?',
+                        'Yes. Many choirs keep their rosters and files in one place and practise parts in another.',
+                    ],
+                    [
+                        'Does Stackapella have choir tools?',
+                        'Choir groups and practice tracks, so a director can share songs and each singer can learn their part. It doesn\'t do attendance, calendars or messages.',
+                    ],
+                    [
+                        'Is Stackapella free?',
+                        'Yes, to start: the course\'s first seven units, from your first note to all four parts of Amazing Grace, and your own songs. Plus is :price_month a month or :price_year a year.',
+                    ],
+                ],
+                'sources' => [
+                    ['ChoirMate on the App Store', 'https://apps.apple.com/us/app/choirmate/id1495545798'],
+                    [
+                        'ChoirMate on Google Play',
+                        'https://play.google.com/store/apps/details?id=com.choirmate.app',
+                    ],
+                    ['ChoirMate plans', 'https://www.choirmate.com/subscription-plans'],
+                    ['ChoirMate, Track Mixer', 'https://www.choirmate.com/blog/track-mixer'],
+                    ['ChoirMate FAQ', 'https://www.choirmate.com/faq'],
+                    ['choirmate.com', 'https://www.choirmate.com/'],
+                ],
+            ],
+            'cyberbass-and-choralia' => [
+                'name' => 'CyberBass and Choralia',
+                'title' => 'Stackapella, CyberBass and Choralia compared, as of October 2026',
+                'description' => 'How Stackapella compares with CyberBass and Choralia, the free choir practice-track sites: prices, practising your part, pitch feedback, courses and recording, with sources.',
+                'summary' => 'All three help choir singers learn their part by ear.',
+                'headline' => 'Stackapella and CyberBass and Choralia',
+                'lead' => 'CyberBass and Choralia are free websites of practice tracks for choral works, with your own part brought forward. Stackapella teaches the parts of shorter songs by ear and listens as you sing.',
+                'them_for' => [
+                    'Choir singers learning a major choral work, like a requiem.',
+                    'Free practice tracks, with no account.',
+                    'Your part louder, or on its own with a click (Choralia).',
+                ],
+                'us_for' => [
+                    'Feedback on your pitch as you sing your part.',
+                    'A free course from your first note to four-part harmony.',
+                    'Recording every part yourself, and your own songs.',
+                ],
+                'columns' => ['CyberBass', 'Choralia'],
+                'cells' => [
+                    'runs' => [
+                        [
+                            'Web',
+                            [1],
+                        ],
+                        [
+                            'Web: listen, or download MP3s',
+                            [5],
+                        ],
+                    ],
+                    'price' => [
+                        [
+                            'Free online. MP3 sets and CDs for sale',
+                            [2, 3],
+                        ],
+                        [
+                            'Free. Its licence asks for a donation, often 5 to 50 euros a work',
+                            [5, 6],
+                        ],
+                    ],
+                    'learn' => [
+                        [
+                            'By ear: your part with the others quieter, with a speed control and an A-B loop. Live pitch feedback: not stated',
+                            [1, 4],
+                        ],
+                        [
+                            'By ear: your part with a click, or louder in the mix. Live pitch feedback: not stated',
+                            [5],
+                        ],
+                    ],
+                    'stack' => [
+                        [
+                            'Not stated',
+                            [],
+                        ],
+                        [
+                            'Not stated',
+                            [],
+                        ],
+                    ],
+                    'suggest' => [
+                        [
+                            'Not stated',
+                            [],
+                        ],
+                        [
+                            'Not stated',
+                            [],
+                        ],
+                    ],
+                    'course' => [
+                        [
+                            'Not stated',
+                            [],
+                        ],
+                        [
+                            'Not stated',
+                            [],
+                        ],
+                    ],
+                    'choir' => [
+                        [
+                            'Not stated. Choirs are encouraged to link to it',
+                            [2],
+                        ],
+                        [
+                            'Not stated. Choirs may share the files under its licence',
+                            [6],
+                        ],
+                    ],
+                    'import' => [
+                        [
+                            'Not stated',
+                            [],
+                        ],
+                        [
+                            'Not stated',
+                            [],
+                        ],
+                    ],
+                    'languages' => [
+                        [
+                            'Not stated',
+                            [],
+                        ],
+                        [
+                            'Its site is in 4 languages',
+                            [5],
+                        ],
+                    ],
+                    'open' => [
+                        [
+                            'Not stated',
+                            [],
+                        ],
+                        [
+                            'Not stated',
+                            [],
+                        ],
+                    ],
+                ],
+                'fits_them' => [
+                    'You\'re learning a large choral work your choir is singing.',
+                    'You want free tracks with no account.',
+                ],
+                'fits_us' => [
+                    'You want feedback on your pitch as you learn.',
+                    'You want a course that teaches harmony from the first note.',
+                    'You want to record every part yourself.',
+                ],
+                'faq' => [
+                    [
+                        'Does Stackapella have major choral works?',
+                        'Not as a catalogue: its library is shorter public-domain songs, and a director can add the choir\'s own songs.',
+                    ],
+                    [
+                        'Do I need an account?',
+                        'No, to start the free course. A free account keeps your songs and progress.',
+                    ],
+                    [
+                        'Is Stackapella free?',
+                        'Yes, to start: the course\'s first seven units, from your first note to all four parts of Amazing Grace, and your own songs. Plus is :price_month a month or :price_year a year.',
+                    ],
+                ],
+                'sources' => [
+                    ['CyberBass FAQ', 'https://cyberbass.org/CommonContent/cbFAQs.htm'],
+                    ['CyberBass, supporting it', 'https://cyberbass.org/CommonContent/cbPledge.htm'],
+                    ['CyberBass CDs', 'https://cyberbass.org/CommonContent/cbPurchaseCD.htm'],
+                    ['CyberBass player', 'https://cyberbass.org/CommonContent/cbPlayer.htm'],
+                    ['choralia.net', 'https://choralia.net/'],
+                    ['Choralia FAQ and contacts', 'https://choralia.net/contacts.html'],
+                ],
+            ],
+        ],
+    ],
     'courses' => [
         'index' => [
+            // The free course, listed first, to its own page (/features/course).
+            'free_kick' => 'Free',
+            'free_name' => 'Free: from your first note to four-part harmony',
+            'free_summary' => '8 units and 32 lessons, from finding your comfortable note to singing all four parts of Amazing Grace. Units 1 to 7 are free.',
             'title' => 'Singing courses coming to Stackapella Plus',
             'description' => '27 deeper courses for your voice, coming to Stackapella Plus: counterpoint, vibrato, range, sight-singing, scat, barbershop, whistling, beatboxing and more.',
             'headline' => 'Courses coming to Plus',
@@ -1198,7 +2284,7 @@ return [
                 'name' => 'Counterpoint',
                 'summary' => 'Drones, rounds, descants, and lines that fit together.',
                 'title' => 'Counterpoint course',
-                'description' => 'Drones, rounds, descants, and lines that fit together. A harmony course coming to Stackapella Plus, in short lessons.',
+                'description' => 'Drones, rounds, descants, and lines that fit together. A harmony course on Stackapella Plus, in short lessons, with the first lesson free.',
                 'headline' => 'Sing lines that fit together',
                 'lead' => 'Counterpoint is two or more tunes sung at once, each a melody of its own, fitting together. The course goes from a drone to rounds, descants and note-against-note lines.',
                 'learn' => ['Holding your line against a drone', 'Rounds and partner songs', 'Descants above a tune', 'Note against note: which intervals ring, and how lines move'],
@@ -1207,13 +2293,85 @@ return [
                 'safety' => ['Don\'t sing louder to hear yourself: listen more instead.', 'Wired headphones, or one ear lifted, help you hear your own voice.', 'Stop if anything tightens, tickles or hurts. Don\'t practise when hoarse.'],
                 'songs' => [['Row, Row, Row Your Boat', 'Traditional, public domain'], ['Are You Sleeping', 'Traditional, 18th century, public domain'], ['Ode to Joy', 'Public domain melody (1824)'], ['O Come, All Ye Faithful', 'Hymn tune (1740s), public domain'], ['The canon, the descant and the slow lines', 'Written for the course']],
                 'shots' => ['Counterpoint\'s first lesson, Be a round: singing Row, Row, Row on the lane while the other voices\' notes come in two bars apart.', 'Your choice, in unit 5: at each note of the slow line, every note that fits lights up, and you choose which one to sing.'],
+                // The designed page (site/courses/counterpoint): its own sections and words.
+                'app' => 'counterpoint',
+                'eyebrow' => 'A Plus course · 22 lessons',
+                'hero_title' => 'Hold your own line.',
+                'hero_lead' => 'Counterpoint is two or more tunes sung at once, each a melody of its own, fitting together. You start by leading a round, and finish by writing your own line against a melody.',
+                'hero_facts' => ['22 lessons, 2 to 4 minutes each', 'About 70 minutes in all', 'No reading music'],
+                'see_lessons' => 'See the lessons',
+                'titles' => [
+                    'outcomes' => 'By the end, you can',
+                    'move' => 'Three ways two lines can move',
+                    'units' => 'From a round to your own line',
+                    'try' => 'Try this now: be a round',
+                    'inside' => 'What the app listens for',
+                    'facts' => 'In the margins',
+                    'who' => 'Who it\'s for',
+                    'need' => 'What you need',
+                    'safety' => 'Singing it safely',
+                    'faq' => 'Questions',
+                    'join' => 'Start the round',
+                    'related' => 'Good with this course',
+                ],
+                'outcomes' => [
+                    'Keep your own line while other voices pull at your ear: drones, rounds and canons.',
+                    'Sing a descant over a tune, and two songs at once as partner songs.',
+                    'Hear which notes sound smooth together and which rub, and how two lines move.',
+                    'Choose your own notes against a slow melody, and write a counterpoint by the old rules.',
+                ],
+                'move' => [
+                    'lead' => 'Two voices can move the same way, opposite ways, or one can hold while the other moves. Opposite ways keeps them most independent.',
+                    'kinds' => [['Same way', 'Both lines rise or fall together.'], ['Opposite ways', 'One rises while the other falls.'], ['One holds', 'One line stays put while the other moves.']],
+                    'smooth' => 'In this style, unisons, thirds, fifths, sixths and octaves sound smooth; seconds, fourths and sevenths rub, and a rub wants to move.',
+                ],
+                'units_say' => [
+                    'Lead a round, follow which voice moved, hold a drone and a repeating pattern.',
+                    'Come in second, sing a round in minor, a canon a bar behind, and the middle seat.',
+                    'Call and response, a slow line under a tune, a descant above it, and two songs at once.',
+                    'Smooth and rubbing notes, the ways lines move, and the first two species.',
+                    'Choose your notes, hold one into a rub and let it fall, then write a counterpoint.',
+                ],
+                'try' => [
+                    'lead' => 'You need your phone\'s voice recorder and a quiet room. Headphones help.',
+                    'steps' => [
+                        'Record yourself singing Row, Row, Row Your Boat twice through.',
+                        'Play it back. When it reaches "Gently down the stream", start singing from the top.',
+                        'Keep your own line going while your recording sings different words against you.',
+                        'If it pulls you onto its notes, listen more and sing no louder: that\'s the skill.',
+                    ],
+                    'after' => 'Lesson 1 does this with three voices joining you two bars apart, then plays a round where all four voices are you.',
+                ],
+                'facts' => [
+                    ['Row, Row, Row Your Boat was in print by 1852, though its early tune differs from today\'s.', 'Wikipedia, Row, Row, Row Your Boat', 'https://en.wikipedia.org/wiki/Row,_Row,_Row_Your_Boat'],
+                    ['Pachelbel\'s Canon is a true canon: three violins two bars apart, over a bass that repeats.', 'Wikipedia, Pachelbel\'s Canon', 'https://en.wikipedia.org/wiki/Pachelbel%27s_Canon'],
+                    ['Fux\'s fourth species is all suspensions: notes tied over, rubbing on the strong beat, then falling a step.', 'Open Music Theory, Fourth species', 'https://viva.pressbooks.pub/openmusictheory/chapter/fourth-species-counterpoint/'],
+                ],
+                'who' => [
+                    'Choir singers who get pulled onto the tune or the loudest part.',
+                    'Anyone who enjoys rounds and wants to hold the hardest seat.',
+                    'Songwriters and arrangers who want to write a second line that stands on its own.',
+                ],
+                'need' => [
+                    'Headphones, wired if you have them, so you hear your own voice against the others.',
+                    'A few minutes a day.',
+                    'No reading music: the notes are shapes on a lane, and the rules come one at a time.',
+                ],
+                'faq' => [
+                    ['How long does it take?', '22 lessons of 2 to 4 minutes each, about 70 minutes in all. Each unit ends in a challenge, and you can take it at your own pace.'],
+                    ['Is it safe for my voice?', 'Yes. The course never asks you to sing louder to be heard: you listen more instead. Stop if anything tightens or hurts, and rest after a long sitting. It isn\'t a substitute for a voice teacher.'],
+                    ['Do I need to read music?', 'No. You hear each line from a guide voice and see its notes as shapes on a lane. The rules of counterpoint are explained as you meet them.'],
+                    ['Is this music theory?', 'It\'s singing first. You learn why some notes rub and how lines move by hearing and singing them, then use the same rules to choose your own notes.'],
+                    ['What does it cost?', 'The first lesson is free, with no account needed. The rest of the course is part of Plus. Saving your progress takes a free account.'],
+                ],
+                'related' => ['improvising-harmony', 'barbershop', 'ear-training'],
             ],
             'vibrato' => [
                 'group' => 'skills',
                 'name' => 'Vibrato',
                 'summary' => 'A straight tone first, then finding the wave and letting it happen.',
                 'title' => 'Vibrato course',
-                'description' => 'A straight tone first, then finding the wave and letting it happen. A singing skills course coming to Stackapella Plus, in short lessons.',
+                'description' => 'A straight tone first, then finding the wave and letting it happen. A singing skills course on Stackapella Plus, in short lessons, with the first lesson free.',
                 'headline' => 'Find your vibrato',
                 'lead' => 'Vibrato is a gentle, regular wave in your pitch. It comes from an easy throat and steady breath, not from pushing. The course starts with a straight tone, then finds the wave and lets it happen.',
                 'learn' => ['A steady straight tone, the way choirs tune', 'Finding the wave: its speed and its width', 'Letting it happen, a moment into a long note', 'Choosing it: when a song wants vibrato, and when it doesn\'t'],
@@ -1222,6 +2380,83 @@ return [
                 'safety' => ['Keep your jaw, tongue and belly still: a wave is never shaken in. Sing at a medium volume, in the middle of your voice.', 'Stop if anything tightens, tickles or hurts. Don\'t practise when hoarse or ill.', 'If your voice shakes when you speak too, that isn\'t vibrato. A doctor can check it.'],
                 'songs' => [['Amazing Grace', 'Public domain hymn (words 1779, tune 1829)'], ['Shenandoah', 'Traditional, public domain'], ['The Water Is Wide', 'Traditional, public domain']],
                 'shots' => ['Vibrato\'s first lesson, Swing your voice: a wavy line, and three steps: hum softly, swing up and down, then settle on one easy note.', 'A calm, straight line: a held "oo" drawn flat along its target, and Hear yourself saying "Straight for 4 of 4 seconds."'],
+                // The designed page (site/courses/vibrato): its own sections and words.
+                'app' => 'vibrato',
+                'eyebrow' => 'A Plus course · 17 lessons',
+                'hero_title' => 'Let the wave come.',
+                'hero_lead' => 'Vibrato is a gentle, regular wave in your pitch. It isn\'t pushed: it grows from an easy note, steady breath and a free throat. You start straight, learn what a wave feels like, let yours happen, then choose when to use it.',
+                'hero_facts' => ['17 lessons, about 3 minutes each', 'Under an hour in all', 'No reading music'],
+                'see_lessons' => 'See the lessons',
+                'titles' => [
+                    'outcomes' => 'By the end, you can',
+                    'kinds' => 'Straight, a wave, a wobble',
+                    'gentle' => 'Never force it',
+                    'units' => 'From a straight note to your own wave',
+                    'try' => 'Try this now: swing your voice',
+                    'inside' => 'What the app listens for',
+                    'facts' => 'About the wave',
+                    'who' => 'Who it\'s for',
+                    'need' => 'What you need',
+                    'safety' => 'Singing it safely',
+                    'faq' => 'Questions',
+                    'join' => 'Let it happen',
+                    'related' => 'Good with this course',
+                ],
+                'outcomes' => [
+                    'Hold a calm, straight note, the way choirs tune their chords.',
+                    'Hear the difference between a straight tone, an even wave and a wobble.',
+                    'Steer a wave slow and quick, wide and small, so you know what it feels like.',
+                    'Let a natural vibrato happen a moment into a long note, and choose when a song wants it.',
+                ],
+                'kinds' => [
+                    ['Straight', 'A calm, steady line. It\'s how chords ring, and it\'s light, never a held throat.'],
+                    ['A wave', 'An even, gentle wave. Classical singers\' vibrato usually runs about 5.5 to 7 a second.'],
+                    ['A wobble', 'Slow, wide and uneven. It sounds unsteady, and the course never calls it vibrato.'],
+                ],
+                'kinds_body' => 'The app draws your voice as you sing, so you can see a wave you can\'t yet hear in yourself.',
+                'gentle' => [
+                    'lead' => 'Vibrato grows by itself from an easy note, sung softly. Never force a wave, or shake it from your jaw or throat.',
+                    'points' => ['An easy volume, in the middle of your voice.', 'Jaw, tongue and belly still.', 'Steered wave drills about five minutes at a time, then a rest.', 'If your voice shakes when you speak too, that isn\'t vibrato. A doctor can check it.'],
+                ],
+                'units_say' => [
+                    'Swing your voice, an easy long note, a calm straight line, and hearing the difference.',
+                    'Steer a wave: slow to quicker, smaller, echoing the guide, then on a tune.',
+                    'Let the wave settle on its own, on easy vowels, then in Shenandoah.',
+                    'Choose it: start straight and let it bloom, on and off, and The Water Is Wide.',
+                ],
+                'try' => [
+                    'lead' => 'Softly, in the middle of your voice. Stop if anything tightens or hurts.',
+                    'steps' => [
+                        'Hum softly on "mm", at a comfortable note.',
+                        'Swing your hum slowly up a little and back down, like a gentle swing, a few times.',
+                        'Then settle on one easy note and hold it, calm and straight. Keep your jaw and belly still.',
+                        'If a small wave comes by itself near the end, let it. If it doesn\'t, that\'s fine too.',
+                    ],
+                    'after' => 'Lesson 1 draws your swing as a wave on the screen, then listens to your easy note and tells you if a natural vibrato showed up.',
+                ],
+                'facts' => [
+                    ['Classical singers\' vibrato usually runs about 5.5 to 7 a second.', 'Prame, JASA (1994)', 'https://doi.org/10.1121/1.410141'],
+                    ['On a held note, listeners hear the pitch at the middle of the wave.', 'Shonle and Horan, JASA (1980)', 'https://doi.org/10.1121/1.383733'],
+                    ['Vibrato comes with regular pulses in the muscles that stretch your vocal folds.', 'Hsiao, Solomon, Luschei and Titze, J. Voice (1994)', 'https://iro.uiowa.edu/esploro/outputs/journalArticle/Modulation-of-fundamental-frequency-by-laryngeal/9984719752102771'],
+                ],
+                'who' => [
+                    'Singers whose long notes sound flat and lifeless, or shaky.',
+                    'Choir singers who need a straight tone, and soloists who want a wave: you learn both.',
+                    'Anyone who has wondered whether they have a vibrato, and what to do about it.',
+                ],
+                'need' => [
+                    'A quiet spot where you can sing softly.',
+                    'A few minutes at a time: the wave drills are short on purpose.',
+                    'No reading music: you see your voice as a line and the guide as a ribbon.',
+                ],
+                'faq' => [
+                    ['How long does it take?', '17 lessons of about 3 minutes each, under an hour in all. A natural vibrato can take longer to settle than the course does, so come back to the later lessons.'],
+                    ['Is it safe for my voice?', 'Yes, sung softly. Never force a wave or shake it from your jaw or throat, keep the steered drills short, and stop if anything tightens or hurts. If your voice shakes when you speak too, that isn\'t vibrato: a doctor can check it. It isn\'t a substitute for a voice teacher.'],
+                    ['Do I need to read music?', 'No. You hear each exercise from a guide and see your own voice drawn as a line.'],
+                    ['What if no vibrato comes?', 'That\'s fine. The course never demands one: a calm, straight tone always counts, and an uneven wave is never called vibrato. Many voices find their wave later, from the same easy note.'],
+                    ['What does it cost?', 'The first lesson is free, with no account needed. The rest of the course is part of Plus. Saving your progress takes a free account.'],
+                ],
+                'related' => ['breath-and-stamina', 'perfect-your-pitch', 'pop-and-country'],
             ],
             'range-and-registers' => [
                 'group' => 'skills',
@@ -1252,7 +2487,7 @@ return [
                 'name' => 'Breath and stamina',
                 'summary' => 'Long phrases, support and quiet starts.',
                 'title' => 'Breath and stamina course',
-                'description' => 'Long phrases, support and quiet starts. A singing skills course coming to Stackapella Plus, in short lessons.',
+                'description' => 'Long phrases, support and quiet starts. A singing skills course on Stackapella Plus, in short lessons, with the first lesson free.',
                 'headline' => 'Breath for long phrases',
                 'lead' => 'Breath that lasts to the end of the line: long phrases, steady support, and notes that start softly and in tune.',
                 'learn' => ['Breathing low and easy', 'Long phrases, steady to the end', 'Quiet starts, in tune from the first moment'],
@@ -1261,6 +2496,83 @@ return [
                 'safety' => ['Never hold your breath before you sing, and stop while it\'s still easy.', 'With asthma, a heart or lung condition, or in pregnancy, keep holds short and easy.', 'A cough, wheeze, tight chest or feeling lightheaded means stop.'],
                 'songs' => [['Swing Low, Sweet Chariot', 'Spiritual, public domain'], ['Ah! vous dirai-je, maman', 'French tune (1761), public domain'], ['Simple Gifts', 'Public domain (1848)']],
                 'shots' => ['Breath and stamina\'s first lesson, The long note: a breathing flower, and why a long note is about letting the air out slowly.', 'A first hold of "oo": a bar showing 2.9 steady seconds, and Hear yourself saying it stayed steady and stopped while it was easy.'],
+                // The designed page (site/courses/breath-and-stamina): its own sections and words.
+                'app' => 'breath',
+                'eyebrow' => 'A Plus course · 15 lessons',
+                'hero_title' => 'Steady to the end.',
+                'hero_lead' => 'A long note isn\'t about big lungs. It\'s letting the air out slowly and stopping while it\'s still easy. You learn to breathe low and wide, end a note on purpose, start one on the breath, and catch quick breaths without going flat.',
+                'hero_facts' => ['15 lessons, about 3 minutes each', 'Goals capped at 15 seconds', 'No reading music'],
+                'see_lessons' => 'See the lessons',
+                'titles' => [
+                    'outcomes' => 'By the end, you can',
+                    'ending' => 'A long note is about its ending',
+                    'easy' => 'Easy, never gasping',
+                    'units' => 'One breath at a time',
+                    'try' => 'Try this now: the long note',
+                    'inside' => 'What the app listens for',
+                    'facts' => 'About breathing',
+                    'who' => 'Who it\'s for',
+                    'need' => 'What you need',
+                    'safety' => 'Singing it safely',
+                    'faq' => 'Questions',
+                    'join' => 'Take a breath',
+                    'related' => 'Good with this course',
+                ],
+                'outcomes' => [
+                    'Breathe low and wide, and keep your ribs from closing too fast.',
+                    'Hold a long note steady to the end, and stop it on purpose while it\'s still easy.',
+                    'Start a note on the breath, with no hold and no hard catch.',
+                    'Plan your breaths, and catch quick ones without going flat, in Simple Gifts.',
+                ],
+                'ending' => [
+                    'lead' => 'As the air runs low, a held note slides flat: pitch rises and falls with the air pressure under your vocal folds. So the skill isn\'t holding longer. It\'s ending on purpose.',
+                    'out' => ['Running out', 'Held until the air is gone: the end sags and cracks.'],
+                    'purpose' => ['Ending on purpose', 'Stopped while it\'s still steady: a clean finish, and air left for the next line.'],
+                    'body' => 'The course measures your steady seconds and how your note ended. Holding longer than your own goal earns nothing more.',
+                ],
+                'easy' => [
+                    'lead' => 'Breathe low and wide, never gasp, and stop while it\'s still easy. Never squeeze out the last drop.',
+                    'points' => ['Never hold your breath before you sing, and never lock your stomach.', 'At least three easy breaths between holds, and at most three long holds in a row.', 'With asthma, a lung or heart condition, or in pregnancy, keep holds short and easy.', 'A cough, wheeze, tight chest or feeling lightheaded means stop. Sit for long holds if you\'ve ever felt lightheaded.'],
+                ],
+                'units_say' => [
+                    'A long note that ends on purpose, wide ribs, a long line and an easy hold.',
+                    'An even stream of air: a buzz, a trill up the hill, a planned ending, and a chord of your own.',
+                    'Notes that start on the breath, short bouncy ones, and Ah, vous dirai-je.',
+                    'Quick breaths, planned breaths, breathing in turns, and Simple Gifts\' first verse.',
+                ],
+                'try' => [
+                    'lead' => 'Sit or stand tall and easy. Stop if you feel lightheaded.',
+                    'steps' => [
+                        'Hum a few easy slides, low to high and back, to warm up.',
+                        'Breathe in low and wide, without lifting your shoulders.',
+                        'Sing a comfortable note on "oo", soft and steady, and count the seconds in your head.',
+                        'Stop while it\'s still steady, before the air runs out. Next time, aim for one more steady second, still ending on purpose.',
+                    ],
+                    'after' => 'Lesson 1 holds your note over a drone, draws your steady seconds as a bar, and tells you how your note ended.',
+                ],
+                'facts' => [
+                    ['Appoggio comes from the Italian appoggiare, to lean: your breathing muscles lean against each other, so the ribs stay wide while you sing.', 'Rider University, The Breathing Mechanism for Singing', 'https://explore.rider.edu/sites/default/files/files/vthc-a-review-of-the-breathing-mechanism-for-singing-part2.pdf'],
+                    ['Voice clinics use lip trills and straw singing: partly closing the mouth sends some air pressure back toward the vocal folds, helping them vibrate easily.', 'Titze, J. Speech Lang. Hear. Res. (2006)', 'https://pubs.asha.org/doi/abs/10.1044/1092-4388(2006/035)'],
+                    ['Pitch rises and falls with the air pressure under your vocal folds, so as the air runs low, a held note slides flat.', 'Titze, JASA (1989)', 'https://iro.uiowa.edu/esploro/outputs/journalArticle/On-the-relation-between-subglottal-pressure/9984719749002771'],
+                ],
+                'who' => [
+                    'Singers who run out of air at the end of a line, or go flat on long notes.',
+                    'Choir singers who want to breathe without breaking the phrase.',
+                    'Anyone who gasps or lifts their shoulders to breathe.',
+                ],
+                'need' => [
+                    'A quiet spot, and a chair if you\'d like to sit for long holds.',
+                    'A few minutes a day: the lessons keep holds short and rests between them.',
+                    'No reading music: you see your steady seconds as a bar.',
+                ],
+                'faq' => [
+                    ['How long does it take?', '15 lessons of about 3 minutes each. Breath grows with practice over days, so a lesson a day suits it well.'],
+                    ['Is it safe for my voice?', 'Yes, the way the course asks: breathe low and easy, stop while it\'s still easy, and never hold your breath first. With asthma, a lung or heart condition, or in pregnancy, keep holds short and easy, and stop for a cough, wheeze, tight chest or lightheadedness. It isn\'t a substitute for a voice teacher.'],
+                    ['Do I need to read music?', 'No. You hear each exercise from a guide and see your note drawn as you sing.'],
+                    ['Will it make my lungs bigger?', 'No. It\'s not about lung size: it\'s about letting the air out slowly and evenly, and ending on purpose. That\'s what the course trains.'],
+                    ['What does it cost?', 'The first lesson is free, with no account needed. The rest of the course is part of Plus. Saving your progress takes a free account.'],
+                ],
+                'related' => ['vibrato', 'perfect-your-pitch', 'folk-and-early-music'],
             ],
             'diction' => [
                 'group' => 'skills',
@@ -1288,7 +2600,7 @@ return [
                 'name' => 'Ear training',
                 'summary' => 'Intervals, chords, major and minor, by ear.',
                 'title' => 'Ear training course',
-                'description' => 'Intervals, chords, major and minor, by ear. A singing skills course coming to Stackapella Plus, in short lessons.',
+                'description' => 'Intervals, chords, major and minor, by ear. A singing skills course on Stackapella Plus, in short lessons, with the first lesson free.',
                 'headline' => 'Hear it, name it, sing it',
                 'lead' => 'Hear an interval or a chord and know what it is: the ear that makes harmony easier.',
                 'learn' => ['Intervals by ear', 'Major and minor', 'Chords, and which note you sing in them'],
@@ -1297,13 +2609,94 @@ return [
                 'safety' => ['Short, easy notes at a medium volume, in the middle of your voice.', 'Stop if anything tightens or hurts. Don\'t practise when hoarse or ill.'],
                 'songs' => [['Oh When the Saints', 'Spiritual, public domain'], ['Amazing Grace', 'Public domain hymn (words 1779, tune 1829)'], ['Twinkle, Twinkle', 'French tune (1761), public domain'], ['Ode to Joy', 'Public domain melody (1824)'], ['Frère Jacques', 'Traditional, public domain'], ['Greensleeves', 'Anonymous, 16th century, public domain'], ['My Bonnie Lies over the Ocean', 'Traditional, public domain'], ['Swing Low, Sweet Chariot', 'Spiritual, public domain'], ['This Old Man', 'Traditional, public domain'], ['O Come, All Ye Faithful', '18th-century tune, public domain']],
                 'shots' => ['Ear training\'s first lesson, Song starts: three leaps from songs you know, Oh When the Saints, Amazing Grace and Twinkle, Twinkle.', 'Echoing the song-start leaps on the Bullseye board: a dart in the centre, each landing in cents, and Hear it right to hear the leap.'],
+                // The designed page (site/courses/ear-training): its own sections and words.
+                'app' => 'ear',
+                'eyebrow' => 'A Plus course · 17 lessons',
+                'hero_title' => 'Hear it, then sing it.',
+                'hero_lead' => 'Hear how far apart two notes are, whether a chord is major or minor, and where home is, then sing it back. You start from leaps you already carry in songs you know, and every lesson ends in singing.',
+                'hero_facts' => ['17 lessons, 3 to 4 minutes each', 'Every lesson ends in singing', 'No reading music'],
+                'see_lessons' => 'See the lessons',
+                'titles' => [
+                    'outcomes' => 'By the end, you can',
+                    'leaps' => 'Leaps you already carry',
+                    'colour' => 'Bright or dark',
+                    'units' => 'From song starts to the bass line',
+                    'try' => 'Try this now: song starts',
+                    'inside' => 'What the app listens for',
+                    'facts' => 'About listening',
+                    'who' => 'Who it\'s for',
+                    'need' => 'What you need',
+                    'safety' => 'Singing it safely',
+                    'faq' => 'Questions',
+                    'join' => 'Open your ears',
+                    'related' => 'Good with this course',
+                ],
+                'outcomes' => [
+                    'Hear and sing leaps of three, four and five, from songs you already know.',
+                    'Tell half steps from whole steps, big threes from small ones, and leaps up from leaps down.',
+                    'Hear whether a chord is major or minor, and sing the third that decides it.',
+                    'Feel where home is, and sing a chord\'s root, the way a bass does.',
+                ],
+                'leaps' => [
+                    'lead' => 'You don\'t start from theory. You start from the openings of songs you know, each one a leap, and keep each leap with its song.',
+                    'kinds' => [
+                        ['A leap of three', 'Oh When the Saints', 'From "Oh" up to "when": do to mi.'],
+                        ['A leap of four', 'Amazing Grace', 'From "A-" up to "-ma-": so below to do.'],
+                        ['A leap of five', 'Twinkle, Twinkle', 'From the first "-kle" up to the next "twin-": do to so.'],
+                    ],
+                    'body' => 'Leaps are named in plain words first, with do re mi beside them and the textbook name, like "major third", small.',
+                ],
+                'colour' => [
+                    'lead' => 'A chord\'s middle note, its third, decides whether it sounds major or minor: bright or dark. Lower it a half step and the whole chord changes colour.',
+                    'major' => ['Major', 'do, mi, so'],
+                    'minor' => ['Minor', 'do, me, so ("may")'],
+                ],
+                'units_say' => [
+                    'Leaps from songs you know: up or down, step or leap, three or five.',
+                    'Four or five, half and whole steps, big and small threes, six and eight, and leaps down.',
+                    'Bright or dark: hear a chord\'s third and sing it, in chords and in tunes.',
+                    'Feel home after a phrase, sing a chord\'s root, and then a bass line.',
+                ],
+                'try' => [
+                    'lead' => 'Three songs you probably know, and the leap that opens each one.',
+                    'steps' => [
+                        'Sing "Oh when the saints" and stop on "when". From "Oh" up to "when" is a leap of three.',
+                        'Sing "Amazing grace" and stop on "-ma-". From "A-" up to "-ma-" is a leap of four.',
+                        'Sing "Twinkle, twinkle". From the first "-kle" up to the second "twin-" is a leap of five.',
+                        'Now hum any easy note, and try each leap up from it, thinking of its song.',
+                    ],
+                    'after' => 'Lesson 1 plays each song\'s opening, then each leap on its own, and every leap you sing back lands as a dart on the board. At the end, your leap plays over the guide\'s note: that\'s harmony.',
+                ],
+                'facts' => [
+                    ['Twinkle\'s tune was first printed in France in 1761. The alphabet song uses the same tune.', 'Wikipedia, Ah! vous dirai-je, maman', 'https://en.wikipedia.org/wiki/Ah!_vous_dirai-je,_maman'],
+                    ['Mahler turned Frère Jacques into a slow minor march in the third movement of his First Symphony.', 'Wikipedia, Symphony No. 1 (Mahler)', 'https://en.wikipedia.org/wiki/Symphony_No._1_(Mahler)'],
+                    ['Phones barely carry the lowest notes of a deep voice, yet you still hear its pitch: your brain fills in the missing fundamental.', 'Wikipedia, Missing fundamental', 'https://en.wikipedia.org/wiki/Missing_fundamental'],
+                ],
+                'who' => [
+                    'Singers who can follow a guide but can\'t yet hear where a harmony goes.',
+                    'Anyone who has wondered what "a third" or "minor" actually sounds like.',
+                    'Choir singers who want to find their note from the chord, not the piano.',
+                ],
+                'need' => [
+                    'A quiet spot and a few minutes a day.',
+                    'Headphones help you hear the guide clearly.',
+                    'No reading music and no theory: leaps are named in plain words.',
+                ],
+                'faq' => [
+                    ['How long does it take?', '17 lessons of 3 to 4 minutes each. Ears grow with repetition, so a lesson a day suits it well.'],
+                    ['Do I need to know the interval names?', 'No. Leaps are named in plain words first, like "a leap of three", with do re mi beside them and the textbook name, like "minor third", small.'],
+                    ['Is it only listening?', 'No. Listening rounds teach, and never give stars. Every lesson ends in singing, and your stars come from the leaps you sing.'],
+                    ['Is it safe for my voice?', 'Yes. The notes are short and easy, at a medium volume in the middle of your voice. Stop if anything tightens or hurts. It isn\'t a substitute for a teacher.'],
+                    ['What does it cost?', 'The first lesson is free, with no account needed. The rest of the course is part of Plus. Saving your progress takes a free account.'],
+                ],
+                'related' => ['perfect-your-pitch', 'improvising-harmony', 'barbershop'],
             ],
             'perfect-your-pitch' => [
                 'group' => 'skills',
                 'name' => 'Perfect your pitch',
                 'summary' => 'Land on a note cleanly, hold it steady, and tune to a drone.',
                 'title' => 'Perfect your pitch course',
-                'description' => 'Land on a note cleanly, hold it steady, and tune to a drone. A singing skills course coming to Stackapella Plus, in short lessons.',
+                'description' => 'Land on a note cleanly, hold it steady, and tune to a drone. A singing skills course on Stackapella Plus, in short lessons, with the first lesson free.',
                 'headline' => 'Hit the note',
                 'lead' => 'Land on the note, hold it steady, and tune to a drone until it rings.',
                 'learn' => ['Landing cleanly on a note', 'Holding it steady', 'Tuning to a drone'],
@@ -1312,6 +2705,83 @@ return [
                 'safety' => ['Pitch comes from breath and listening, never from squeezing: tightening pushes you sharp.', 'Keep headphones at a moderate volume, with one ear off.', 'Stop if anything tightens, tickles or hurts. Don\'t practise when hoarse or ill.'],
                 'songs' => [['The Westminster chimes', 'Public domain (1793)'], ['Red River Valley', 'Traditional, public domain'], ['Amazing Grace', 'Public domain hymn (words 1779, tune 1829)'], ['Ode to Joy', 'Public domain melody (1824), sung on "loo"']],
                 'shots' => ['Perfect your pitch\'s first lesson, Bullseye: land right on a note, don\'t slide into it, in three steps: listen, think it, land on "dah".', 'The Bullseye board after two echoes: both darts in the centre, between Sharp and Flat, and "2 of 2 landed within 25 cents."'],
+                // The designed page (site/courses/perfect-your-pitch): its own sections and words.
+                'app' => 'pitch',
+                'eyebrow' => 'A Plus course · 17 lessons',
+                'hero_title' => 'Land right on it.',
+                'hero_lead' => 'Most of singing in tune is landing on a note cleanly, holding it steady, and tuning to what\'s around you. You hear a note, land on it like a dart, lock to a drone until it rings, and carry your own note in your head.',
+                'hero_facts' => ['17 lessons, about 3 minutes each', 'Under an hour in all', 'No reading music'],
+                'see_lessons' => 'See the lessons',
+                'titles' => [
+                    'outcomes' => 'By the end, you can',
+                    'relative' => 'The kind of pitch you can train',
+                    'ring' => 'Tuning by the beats',
+                    'units' => 'From the bullseye to your own note',
+                    'try' => 'Try this now: a clean landing',
+                    'inside' => 'What the app listens for',
+                    'facts' => 'About pitch',
+                    'who' => 'Who it\'s for',
+                    'need' => 'What you need',
+                    'safety' => 'Singing it safely',
+                    'faq' => 'Questions',
+                    'join' => 'Take aim',
+                    'related' => 'Good with this course',
+                ],
+                'outcomes' => [
+                    'Land on a note cleanly, without scooping up into it.',
+                    'Lock to a drone until it rings, and hear the beats slow as you get close.',
+                    'Hold your note while the chords change and a part close to yours pulls at your ear.',
+                    'Find your own note with nothing given, and start a song from it.',
+                ],
+                'relative' => [
+                    'lead' => 'This course trains relative pitch: hearing each note against another, and landing on it. Absolute pitch, naming a note with nothing to compare, is rare, and the course doesn\'t promise it.',
+                    'body' => 'Relative pitch is what harmony needs. Your own comfortable note becomes an anchor you carry, and every note of the scale is a step from it.',
+                ],
+                'ring' => [
+                    'lead' => 'Two notes a little apart beat: a slow wah-wah. The beats slow down as you get closer, and stop when you\'re there.',
+                    'body' => 'The beat rate is exactly the gap between the two notes: two notes 3 hertz apart beat three times a second.',
+                    'apart' => 'A little apart: beats',
+                    'there' => 'Right there: still',
+                ],
+                'units_say' => [
+                    'Land like a dart, clean instead of scooped, then think a note before you leap to it.',
+                    'Lock to a drone: hear the ring, the octave and fifth, coming back, and no sag.',
+                    'Hold your note while chords change and parts pull, then stack yourself.',
+                    'Your note from memory, kept in mind, every note from your anchor, and a song you start yourself.',
+                ],
+                'try' => [
+                    'lead' => 'You need a held note: a keyboard app, a tuning app\'s drone, or a recording of one note.',
+                    'steps' => [
+                        'Play a comfortable note and listen. Then stop the sound.',
+                        'Hear it in your head for a moment before you sing.',
+                        'Sing "dah", starting right on the note: no slide up into it.',
+                        'If you started low and slid up, that\'s a scoop: think the note, breathe, and start right on it.',
+                    ],
+                    'after' => 'In lesson 1 the guide sings each note, and each echo lands as a dart on the board as you finish it. After two rounds, you hear how much closer you moved.',
+                ],
+                'facts' => [
+                    ['In Indian classical music a tanpura plays only a drone, the home note and its fifth, under the whole performance, and the singer chooses that home note.', 'Wikipedia, Tanpura', 'https://en.wikipedia.org/wiki/Tanpura'],
+                    ['In a 2006 study, conservatory students who grew up speaking Mandarin, a tone language, were far more likely to have absolute pitch than American students.', 'Deutsch et al., JASA (2006)', 'https://doi.org/10.1121/1.2151799'],
+                    ['The Westminster chimes were written in 1793 for Great St Mary\'s Church, Cambridge, and are said to grow from a phrase of Handel\'s Messiah.', 'Wikipedia, Westminster Quarters', 'https://en.wikipedia.org/wiki/Westminster_Quarters'],
+                ],
+                'who' => [
+                    'Singers who\'ve been told they\'re a little sharp or flat, or who scoop into notes.',
+                    'Choir singers who drift when the chords change or a neighbour sings close by.',
+                    'Anyone who wants to start a song in tune without a note to help.',
+                ],
+                'need' => [
+                    'Headphones for the drone lessons, one ear off, at a moderate volume.',
+                    'A quiet spot and a few minutes a day.',
+                    'No reading music: your notes land as darts, and the drone is a sound to tune to.',
+                ],
+                'faq' => [
+                    ['How long does it take?', '17 lessons of about 3 minutes each, under an hour in all. Pitch settles with practice, so short, regular sessions help most.'],
+                    ['Will this give me perfect pitch?', 'No. It trains relative pitch: landing on a note, holding it steady and tuning to a drone. That\'s what singing in tune and harmony need. Absolute pitch is rare, and the course doesn\'t promise it.'],
+                    ['Is it safe for my voice?', 'Yes. Pitch comes from breath and listening, never from squeezing: tightening pushes you sharp. Keep headphones at a moderate volume, and stop if anything tightens or hurts. It isn\'t a substitute for a voice teacher.'],
+                    ['Do I need to read music?', 'No. You hear each note, sing it back, and see where it landed.'],
+                    ['What does it cost?', 'The first lesson is free, with no account needed. The rest of the course is part of Plus. Saving your progress takes a free account.'],
+                ],
+                'related' => ['ear-training', 'vibrato', 'barbershop'],
             ],
             'scat' => [
                 'group' => 'harmony',
@@ -1328,7 +2798,7 @@ return [
                 'name' => 'Barbershop and tags',
                 'summary' => 'Ringing chords tuned closer than a piano can, the four barbershop parts, and original tags.',
                 'title' => 'Barbershop and tags course',
-                'description' => 'Ringing chords tuned closer than a piano can, the four barbershop parts, and original tags. A harmony course coming to Stackapella Plus, in short lessons.',
+                'description' => 'Ringing chords tuned closer than a piano can, the four barbershop parts, and original tags. A harmony course on Stackapella Plus, in short lessons, with the first lesson free.',
                 'headline' => 'Barbershop and tags',
                 'lead' => 'Four voices tuned so closely the chord rings, each barbershop part in turn, and short original endings, called tags, with every part yours to sing.',
                 'learn' => ['Tuning a chord until it rings', 'Singing each of the four barbershop parts', 'Tags and the post'],
@@ -1337,6 +2807,96 @@ return [
                 'safety' => ['Straight, not squeezed: sing medium-soft, and if your throat tightens, let a little wave back in.', 'The tenor stays light and soft; the bass never presses down, chin level.', 'Wear headphones: through a speaker the mic hears the chord too. Stop if anything hurts.'],
                 'songs' => [['Down by the Old Mill Stream', 'Song from 1910, its chorus, public domain; the barbershop parts written for the course'], ['The swipe, the post and the tag', 'Written for the course']],
                 'shots' => ['A chord that rings, the first lesson: hear four straight voices ring, then a hole in the chord where the top note, mi, is yours.', 'Holding mi until it rings: 100% on pitch, a steady A3 for five seconds, and Hear it together with the chord.'],
+                // The designed page (site/courses/barbershop): its own sections and words.
+                'app' => 'barbershop',
+                'eyebrow' => 'A Plus course · 16 lessons',
+                'hero_title' => 'Make a chord ring.',
+                'hero_lead' => 'Four voices, tuned so close the chord hums. Learn to hear the ring and lock your note into it, sing every seat in a quartet, and finish with tags: the short, ringing endings barbershoppers sing just for the chords.',
+                'hero_facts' => ['16 lessons, a few minutes each', 'Headphones on', 'No reading music'],
+                'see_lessons' => 'See the lessons',
+                'titles' => [
+                    'outcomes' => 'By the last tag, you can',
+                    'ring' => 'Ringing, not beating',
+                    'seats' => 'Four seats, four jobs',
+                    'units' => 'From one chord to a tag of your own',
+                    'try' => 'Find the ring',
+                    'inside' => 'What the app hears',
+                    'facts' => 'Three things barbershoppers know',
+                    'before' => 'Before you sing',
+                    'who' => 'Who it\'s for',
+                    'need' => 'What you need',
+                    'safety' => 'Singing it safely',
+                    'faq' => 'Questions',
+                    'join' => 'Pull up a chair',
+                    'related' => 'Also on the bill',
+                ],
+                'outcomes' => [
+                    'Hear a chord beat, then tune your note until it rings.',
+                    'Place the third and the seventh where barbershop does: lower than the piano.',
+                    'Sing every seat in the quartet: lead, tenor, baritone and bass.',
+                    'Sing a swipe, hold a post, and stack a tag in two voices, both yours.',
+                ],
+                'ring' => [
+                    'lead' => 'When two notes are a little out of tune with each other, the sound wobbles: you hear beats. Tune one of them and the wobble slows, then stops. That\'s the ring.',
+                    'body' => 'Barbershop tunes its chords closer than a piano can. The third sits 14 cents below the piano\'s, and the seventh about 31 cents below (a cent is a hundredth of a semitone). The course hears how far you are from the ring, and which way.',
+                    'beating' => 'Beating: a little out',
+                    'ringing' => 'Ringing: locked',
+                    // The needle's three marks, and the two numbers set large.
+                    'meter' => ['Low', 'Ring', 'High'],
+                    'numbers' => [['14', 'cents', 'The third, below where the piano plays it'], ['31', 'cents', 'The seventh, about this far below the piano\'s']],
+                ],
+                'seats' => [
+                    ['Tenor', 'Floats above the lead, light and soft: the quietest voice in the quartet.'],
+                    ['Lead', 'Sings the tune, the second voice from the top. The other three tune to the lead.'],
+                    ['Baritone', 'Sings the note the chord still needs, crossing the lead: above it one moment, under it the next.'],
+                    ['Bass', 'The floor: roots and fifths. Never pushed down for depth, chin level.'],
+                ],
+                'seats_note' => 'In unit 3 you sing each seat in the chorus of Down by the Old Mill Stream, with the other three as guides.',
+                'units_say' => [
+                    'Hear a chord lock, sing on a straight tone, and find the voice that\'s out.',
+                    'Build a chord from its floor up to the barbershop seventh, tuned low.',
+                    'Lead, bass, tenor and baritone, each in turn, then a seat with no practice first.',
+                    'A swipe, a post, and a tag where both voices are you.',
+                ],
+                'try' => [
+                    'lead' => 'Two minutes, one held note to tune to: a keyboard app, a drone from a tuning app, or a friend humming.',
+                    'steps' => [
+                        'Play or hum a low note and keep it going. Call it do.',
+                        'Sing mi, the third note of do re mi, on a straight "oo" with no wave in your voice.',
+                        'Listen for a slow wobble in the sound. Slide your note down, very slightly, until the wobble slows and stops.',
+                        'That stillness is the ring. Hold it for a breath, then rest.',
+                    ],
+                    'after' => 'Lesson 1 does this with three tuned voices around you, and tells you after each hold how close you came, in cents.',
+                ],
+                'facts' => [
+                    ['Barbershop harmony has deep roots in Black American quartet singing of the late 1800s.', 'Abbott, American Music (1992)', 'https://www.jstor.org/stable/3051597'],
+                    ['When four voices lock, the overtones can seem to add a voice nobody sings. Barbershoppers call it the fifth voice.', 'Barbershop Harmony Society, the language of barbershop', 'https://www.barbershop.org/intro-to-barbershop-learning-the-language-of-barbershop'],
+                    ['Early Black quartets called finding a close chord by ear "cracking up a chord". Their slides from chord to chord were called swipes.', 'Abbott, American Music (1992)', 'https://www.jstor.org/stable/3051597'],
+                ],
+                'who' => [
+                    'Singers who\'ve sung a harmony part before, in the free course or anywhere else, and want their chords to ring.',
+                    'Choir and a cappella singers who\'d like to try every part of a quartet, not just their own.',
+                    'Anyone curious about barbershop who has never had three other singers to try it with.',
+                ],
+                'need' => [
+                    'Headphones. Ringing needs them: through a speaker, the mic hears the chord too.',
+                    'A quiet spot and a few minutes a day.',
+                    'No reading music: you learn every part by ear, from a guide voice.',
+                ],
+                'faq' => [
+                    ['How long does it take?', '16 short lessons. At one or two a day, you\'re singing tags in about two weeks.'],
+                    ['Do I need three other singers?', 'No. The app sings the other three, tuned to ring. In the last lesson, two of the voices are you.'],
+                    ['Is it safe for my voice?', 'Yes, sung the course\'s way: straight, not squeezed, medium-soft, in short holds. Stop if anything tightens or hurts. It isn\'t a voice teacher.'],
+                    ['Do I need to read music?', 'No. You learn each part by ear from a guide voice, and see its notes as shapes.'],
+                    ['What does it cost?', 'Lesson 1 is free, with no account needed. The rest is part of Plus; saving your progress takes a free account.'],
+                ],
+                'related' => ['improvising-harmony', 'counterpoint', 'ear-training'],
+                // The show bill's running labels, one a section.
+                'kicks' => ['bill' => 'Tonight\'s bill', 'ring' => 'The ring', 'chairs' => 'The four chairs', 'set' => 'The set list', 'warm' => 'Warm-up', 'shop' => 'From the shop', 'before' => 'House rules', 'fine' => 'The fine print', 'encore' => 'Encore'],
+                'act_n' => 'No. :n',
+                'set_n' => 'Set :n',
+                'try_first' => 'Start here.',
+                'encore' => ['title' => 'Pull up a chair.', 'body' => 'Lesson 1 takes a few minutes: three voices tuned and waiting, and a gap in the chord that\'s yours to fill.'],
             ],
             'gospel-runs' => [
                 'group' => 'harmony',
@@ -1353,7 +2913,7 @@ return [
                 'name' => 'Yodeling',
                 'summary' => 'Quick flips between chest and head voice.',
                 'title' => 'Yodeling course',
-                'description' => 'Quick flips between chest and head voice. A styles course coming to Stackapella Plus, in short lessons.',
+                'description' => 'Quick flips between chest and head voice. A styles course on Stackapella Plus, in short lessons, with the first lesson free.',
                 'headline' => 'Yodeling',
                 'lead' => 'The quick flip between chest voice and head voice, clean and on pitch.',
                 'learn' => ['Chest voice and head voice', 'The flip, slow then quick', 'A yodel on a tune'],
@@ -1362,13 +2922,93 @@ return [
                 'safety' => ['The flip is a light flick, never a hard catch or a crack.', 'Land every downward flip lightly, at speaking volume.', 'About five minutes of flips at a time, then a rest.'],
                 'songs' => [['Home on the Range', 'Traditional, 1870s, public domain'], ['Red River Valley', 'Traditional, 1890s, public domain'], ['The yodel refrains', 'Written for the course']],
                 'shots' => ['Find the flip: your siren drawn over the ribbon, the jumps marked, and a note that your voice flipped around E4.', 'Flip or slide, a listening round: two clips to play, and the question of which one flipped.'],
+                // The designed page (site/courses/yodeling): its own sections and words.
+                'app' => 'yodel',
+                'eyebrow' => 'A Plus course · 16 lessons',
+                'hero_title' => 'Find the flip.',
+                'hero_lead' => 'Herders called across valleys with a voice that flips, and the flip is already in yours. You find it, make it on purpose, keep it clean and light, and put it into a song.',
+                'hero_facts' => ['16 lessons, five minutes or less each', 'About 30 minutes in all', 'No reading music'],
+                'see_lessons' => 'See the trail',
+                'art' => ['head' => 'Head voice', 'chest' => 'Chest voice'],
+                'titles' => [
+                    'outcomes' => 'By the end, you can',
+                    'voices' => 'Two voices, and the flip between them',
+                    'light' => 'Light, never loud',
+                    'units' => 'The trail, stage by stage',
+                    'try' => 'Try this now: find your flip',
+                    'inside' => 'What the app listens for',
+                    'facts' => 'From the valleys',
+                    'who' => 'Who it\'s for',
+                    'need' => 'What you need',
+                    'safety' => 'Singing it safely',
+                    'faq' => 'Questions',
+                    'join' => 'Call across the valley',
+                    'related' => 'Good with this course',
+                ],
+                'outcomes' => [
+                    'Find where your voice flips between chest voice and head voice, and flip on purpose.',
+                    'Tell a clean flip from a slide, by ear.',
+                    'Switch vowels at the flip, open below and narrow above, and land the way down lightly.',
+                    'Yodel in rhythm over changing chords, and roll several flips on one breath, in Home on the Range and Red River Valley.',
+                ],
+                'voices' => [
+                    'lead' => 'Your voice has two sounds. Chest voice is low and speaking-like; head voice is high, light and hooty. A yodel jumps between them, and the jump is the flip.',
+                    'flip' => 'A flip jumps straight from one note to the other.',
+                    'slide' => 'A slide passes through every note in between.',
+                    'flip_label' => 'Flip',
+                    'slide_label' => 'Slide',
+                    'body' => 'The app hears the jump in pitch, not which voice made it: you learn to hear that part yourself.',
+                ],
+                'light' => [
+                    'lead' => 'A good flip is a light flick, never a hard catch or a crack. The valley carries the sound, so you never need to push.',
+                    'points' => ['Medium volume, all the way up.', 'Land every downward flip lightly, at speaking volume.', 'About five minutes of flips at a time, then a rest.', 'Voices that are still breaking should wait before yodeling.'],
+                ],
+                'units_say' => [
+                    'Find your flip, hear your two voices, and tell a flip from a slide.',
+                    'An open vowel below and a narrow one above, a light way down, and bigger leaps.',
+                    'Yodels that fit the chord, a cowboy lope, and Home on the Range.',
+                    'Several flips on one breath, at three speeds, then Red River Valley.',
+                ],
+                'try' => [
+                    'lead' => 'Somewhere quiet, at a medium volume. Stop if anything tightens or tickles.',
+                    'steps' => [
+                        'Say "ho" in your speaking voice. That\'s your chest voice.',
+                        'Now hoot like an owl, high and light: "hoo". That\'s your head voice.',
+                        'On a quiet "oo", slide slowly from low to high like a siren, then back down. Do it three times.',
+                        'Somewhere in the middle your voice jumps. That\'s your flip. Go only as high as feels easy, and keep the top light, never louder.',
+                    ],
+                    'after' => 'Lesson 1 draws your siren as you sing, marks where your voice flipped, then has you make the flip on purpose.',
+                ],
+                'facts' => [
+                    ['Yodeling isn\'t only Alpine: the Mbuti of the Congo weave yodels into their songs, and Hawaiian falsetto singers make a yodel of the break.', 'Wikipedia, Yodeling', 'https://en.wikipedia.org/wiki/Yodeling'],
+                    ['"Yodel" comes from the German jodeln, to call out the syllable "jo".', 'Wikipedia, Yodeling', 'https://en.wikipedia.org/wiki/Yodeling'],
+                    ['Switzerland\'s first national yodeling festival was held in Basel in 1924.', 'Historisches Lexikon der Schweiz, Jodel', 'https://hls-dhs-dss.ch/de/articles/011891'],
+                ],
+                'who' => [
+                    'Singers whose voice cracks on high notes and who\'d like to make that flip on purpose.',
+                    'Fans of folk, country and cowboy songs who want the yodel tag.',
+                    'Anyone curious, with a voice that has finished breaking.',
+                ],
+                'need' => [
+                    'A quiet spot where you can sing at a medium volume.',
+                    'A few minutes at a time: the lessons are short on purpose.',
+                    'No reading music: you learn every yodel by ear, from a guide.',
+                ],
+                'faq' => [
+                    ['How long does it take?', '16 lessons of five minutes or less, about 30 minutes in all. Flips tire a voice, so one or two lessons a day is plenty.'],
+                    ['Is it safe for my voice?', 'Yes, sung lightly. Keep every flip light and at a medium volume, land gently on the way down, and stop if anything tightens, tickles or hurts. Voices that are still breaking should wait before yodeling. It isn\'t a substitute for a voice teacher.'],
+                    ['Do I need to read music?', 'No. You hear each yodel from a guide and see its notes as shapes on a lane.'],
+                    ['What if I can\'t find my flip?', 'The flip is already in your voice, and lesson 1 starts by finding where it is, with a slow siren. Keep it quiet and light: a push makes it harder to find.'],
+                    ['What does it cost?', 'The first lesson is free, with no account needed. The rest of the course is part of Plus. Saving your progress takes a free account.'],
+                ],
+                'related' => ['vibrato', 'pop-and-country', 'folk-and-early-music'],
             ],
             'folk-and-early-music' => [
                 'group' => 'styles',
                 'name' => 'Folk and early music',
                 'summary' => 'A plain, steady tone, modes and drones.',
                 'title' => 'Folk and early music course',
-                'description' => 'A plain, steady tone, modes and drones. A styles course coming to Stackapella Plus, in short lessons.',
+                'description' => 'A plain, steady tone, modes and drones. A styles course on Stackapella Plus, in short lessons, with the first lesson free.',
                 'headline' => 'Folk and early music',
                 'lead' => 'A plain, steady tone, the old modes, and singing over a drone.',
                 'learn' => ['A plain, steady tone', 'Modes: the old scales', 'Singing over a drone'],
@@ -1377,6 +3017,83 @@ return [
                 'safety' => ['A plain tone is a relaxed sigh, never a held or squeezed throat.', 'Shanties invite shouting: sing strong, not loud, and keep the top notes light.', 'Ornaments come from the breath, light and small, with the jaw still.'],
                 'songs' => [['Drunken Sailor', 'Sea shanty, traditional, public domain'], ['Barbara Allen', 'Traditional ballad, its tune from an 1891 printing, public domain'], ['Old Joe Clark', 'Appalachian, traditional, public domain (the chorus)'], ['Ut queant laxis', 'Latin hymn, 8th century, public domain (its six syllables)'], ['Wondrous Love', 'American shape-note hymn, about 1840, public domain']],
                 'shots' => ['Join the crew: the shanty\'s first line at your own pace, each note waiting on the lane until you find it.', 'Ring with the drone: two clips to compare, and an answer explaining the quick wobble of a note a little high.'],
+                // The designed page (site/courses/folk-and-early-music): its own sections and words.
+                'app' => 'folk',
+                'eyebrow' => 'A Plus course · 16 lessons',
+                'hero_title' => 'Tell it plainly.',
+                'hero_lead' => 'A plain, storytelling voice over a drone, the old scales that make a tune sound old, the small ornaments folk singers add, and a ballad sung on your own, with nothing underneath, without sliding off key.',
+                'hero_facts' => ['16 lessons, about 3 minutes each', 'About 40 minutes in all', 'Every tune public domain'],
+                'see_lessons' => 'See the lessons',
+                'titles' => [
+                    'outcomes' => 'By the end, you can',
+                    'modes' => 'The old scales',
+                    'ornaments' => 'Small ornaments',
+                    'units' => 'From a shanty to a ballad alone',
+                    'try' => 'Try this now: join the crew',
+                    'inside' => 'What the app listens for',
+                    'facts' => 'From the old books',
+                    'who' => 'Who it\'s for',
+                    'need' => 'What you need',
+                    'safety' => 'Singing it safely',
+                    'faq' => 'Questions',
+                    'join' => 'Join the crew',
+                    'related' => 'Good with this course',
+                ],
+                'outcomes' => [
+                    'Sing a plain, steady tone that rings with a drone.',
+                    'Hear and sing the old scales: Dorian\'s bright note and Mixolydian\'s soft note.',
+                    'Add a flick and a turn where they fit, light and small.',
+                    'Sing a ballad on your own and keep your key with nothing underneath.',
+                ],
+                'modes' => [
+                    'lead' => 'A tune sounds old when one note of its scale is different from the major and minor we\'re used to. You hear the difference by ear: no theory needed.',
+                    'bright' => ['The bright note', 'Dorian: a minor tune with one note higher, its sixth. Drunken Sailor is in it.'],
+                    'soft' => ['The soft note', 'Mixolydian: a major tune with one note lower, its seventh. Old Joe Clark is in it.'],
+                ],
+                'ornaments' => [
+                    'lead' => 'Folk singers decorate a tune with small, quick touches, light and from the breath, with the plain voice between them.',
+                    'flick' => ['A flick', 'A quick touch of the next note up before the main one. Real flicks are under a tenth of a second, so you practise them slower.'],
+                    'turn' => ['A turn', 'Above, the note, below, the note: on "youth" in Barbara Allen.'],
+                ],
+                'units_say' => [
+                    'A shanty over a drone, the ring of a true note, and Barbara Allen told plainly.',
+                    'The bright note and the soft note, telling the modes apart, and Drunken Sailor end to end.',
+                    'A flick from above, a turn, hearing where they go, and a decorated ballad.',
+                    'Where do re mi come from, lining out, a ballad on your own, and an encore.',
+                ],
+                'try' => [
+                    'lead' => 'A sea shanty from the 1830s. Strong, not loud.',
+                    'steps' => [
+                        'Sing the first line of Drunken Sailor: "What shall we do with a drunken sailor?"',
+                        'Sing it plainly, like telling a story: no wobble on the long notes.',
+                        'Keep the top notes light. A shanty invites shouting: sing strong, not loud.',
+                        'If you can, sing it over one held low note from a tuning app, and listen for the ring.',
+                    ],
+                    'after' => 'Lesson 1 sings the verse over a drone, and you echo it line by line. Then your verse plays with the guide singing along over the drone: a crew of two.',
+                ],
+                'facts' => [
+                    ['On 2 January 1666, Samuel Pepys wrote in his diary of hearing the actress Elizabeth Knipp sing Barbara Allen.', 'Pepys\'s diary, 2 January 1665/66', 'https://www.pepysdiary.com/diary/1666/01/02/'],
+                    ['In Byzantine chant, some singers hold one low note under the melody, a sung drone called the ison.', 'Wikipedia, Ison (music)', 'https://en.wikipedia.org/wiki/Ison_(music)'],
+                    ['A Highland bagpipe\'s chanter plays the soft seventh too: its scale is close to the Mixolydian.', 'Wikipedia, Great Highland bagpipe', 'https://en.wikipedia.org/wiki/Great_Highland_bagpipe'],
+                ],
+                'who' => [
+                    'Singers drawn to ballads, shanties, early music and chant.',
+                    'Anyone whose voice wobbles on long notes, or drifts off key when singing alone.',
+                    'Choir singers curious why old tunes sound the way they do.',
+                ],
+                'need' => [
+                    'A quiet spot, and a voice in the middle of its range.',
+                    'Headphones help you hear the drone and yourself.',
+                    'No reading music: every tune is taught by ear, in your own key.',
+                ],
+                'faq' => [
+                    ['How long does it take?', '16 lessons of about 3 minutes each, about 40 minutes in all.'],
+                    ['What are modes?', 'The old scales that make a tune sound old. Dorian is a minor scale with one note higher, the bright note; Mixolydian is a major scale with one note lower, the soft note. You learn them by ear, over a drone.'],
+                    ['Is it safe for my voice?', 'Yes. A plain tone is a relaxed sigh, never a held or squeezed throat. Sing at a medium volume in the middle of your voice, strong rather than loud, and stop if anything tightens, tickles or hurts. It isn\'t a substitute for a teacher.'],
+                    ['Do I need to read music?', 'No. You hear each exercise from a guide and see your notes land on the lane as you sing.'],
+                    ['What does it cost?', 'The first lesson is free, with no account needed. The rest of the course is part of Plus. Saving your progress takes a free account.'],
+                ],
+                'related' => ['counterpoint', 'yodeling', 'breath-and-stamina'],
             ],
             'musical-theatre' => [
                 'group' => 'styles',
@@ -1394,7 +3111,7 @@ return [
                 'name' => 'Pop and country styling',
                 'summary' => 'Slides, cries and twang.',
                 'title' => 'Pop and country styling course',
-                'description' => 'Slides, cries and twang. A styles course coming to Stackapella Plus, in short lessons.',
+                'description' => 'Slides, cries and twang. A styles course on Stackapella Plus, in short lessons, with the first lesson free.',
                 'headline' => 'Pop and country styling',
                 'lead' => 'The touches that make a pop or country line sound like one: slides, cries and twang.',
                 'learn' => ['Slides into notes', 'Cries and breaks', 'Twang'],
@@ -1403,6 +3120,91 @@ return [
                 'safety' => ['Keep every move small and light, at medium volume in the middle of your voice.', 'Twang is narrow and bright, never pressed: stop if your throat feels squeezed.', 'Breathy means a little air, not a whisper; keep water nearby.'],
                 'songs' => [['Down in the Valley', 'Traditional American, public domain'], ['Bury Me Not on the Lone Prairie', 'Traditional cowboy song, words 1910, tune 1839, public domain'], ['Aura Lee', 'Song from 1861, its original words, public domain'], ['Beautiful Dreamer', 'Song from 1864, its first line, public domain']],
                 'shots' => ['Plain to styled, the first lesson: Down in the Valley with a scoop into "val-", sung small and light.', 'Three colours: hear the breathy model, record yourself, then compare, with a note that tone isn\'t scored yet.'],
+                // The designed page (site/courses/pop-and-country): its own sections and words.
+                'app' => 'pop',
+                'eyebrow' => 'A Plus course · 16 lessons',
+                'hero_title' => 'Same notes, your sound.',
+                'hero_lead' => 'A plain tune and a styled one are the same notes. The difference is a few small moves: a scoop up into a note, a fall-off at its end, a slide, a little cry, and a tone colour to suit the song. And the taste to use them sparingly.',
+                'hero_facts' => ['16 lessons, 2 to 4 minutes each', 'About 40 minutes in all', 'Over real chords'],
+                'see_lessons' => 'See the lessons',
+                'titles' => [
+                    'outcomes' => 'By the end, you can',
+                    'moves' => 'Four small moves',
+                    'light' => 'Small and light',
+                    'units' => 'From plain to your record',
+                    'try' => 'Try this now: plain to styled',
+                    'inside' => 'What the app listens for',
+                    'facts' => 'From the record shelf',
+                    'who' => 'Who it\'s for',
+                    'need' => 'What you need',
+                    'safety' => 'Singing it safely',
+                    'faq' => 'Questions',
+                    'join' => 'Make it yours',
+                    'related' => 'Good with this course',
+                ],
+                'outcomes' => [
+                    'Scoop up into a note, and let a note\'s end fall off, on purpose.',
+                    'Slide between notes, and add a little cry, light and quick.',
+                    'Try three tone colours, breathy, bright and twang, and choose one for a song.',
+                    'Style a plain line your own way, using the moves sparingly.',
+                ],
+                'moves' => [
+                    'lead' => 'The app draws your voice as a line, so you can see each move as you make it. Use them sparingly: on the long notes and the line ends.',
+                    'kinds' => [
+                        ['The scoop', 'Start a little below a note and slide up into it, on purpose.'],
+                        ['The fall-off', 'Let a note\'s end drop away, with the breath still steady.'],
+                        ['The slide', 'Glide smoothly from one note to the next, on one breath.'],
+                        ['The little cry', 'A quick flick up into your lighter voice and straight back down.'],
+                    ],
+                ],
+                'light' => [
+                    'lead' => 'Every move is small and light, at a medium volume in the middle of your voice. Stop if anything tightens, tickles or hurts.',
+                    'points' => [
+                        'Breathy means a little air, not a whisper. Keep water nearby.',
+                        'Bright comes from the vowel and a slight smile, not from more volume or higher notes. This isn\'t belting.',
+                        'Twang is narrow and bright, never pressed: start from a light "nyeh", and stop if your throat feels squeezed.',
+                        'The cry is a light flick, never a hard catch, and a fall-off never collapses into a creak.',
+                    ],
+                ],
+                'units_say' => [
+                    'Plain to styled, the scoop, the fall-off, and Down in the Valley styled.',
+                    'The slide, the little cry, hearing which move is which, and Lone Prairie.',
+                    'Breathy, bright and twang, a crooner\'s Aura Lee, a country edge, and your colour.',
+                    'Where the moves go, answering back, Beautiful Dreamer your way, and your record.',
+                ],
+                'try' => [
+                    'lead' => 'One line of Down in the Valley, sung twice. Small and slow.',
+                    'steps' => [
+                        'Sing "Down in the valley" plainly, every note straight.',
+                        'Sing it again with a scoop into "val-": start a little below the note and slide up into it.',
+                        'Keep the scoop small and slow. It should sound meant, not missed.',
+                        'Record both takes on your phone and listen to them back to back: same notes, different song.',
+                    ],
+                    'after' => 'Lesson 1 hears your scoop into "val-" and each note\'s pitch, and plays your plain and styled takes back.',
+                ],
+                'facts' => [
+                    ['Hank Williams was famous for a quick flick into the lighter voice: his Lovesick Blues of 1949 yodels on "cry" and on every syllable of "lonesome".', 'Wikipedia, Lovesick Blues', 'https://en.wikipedia.org/wiki/Lovesick_Blues'],
+                    ['Aura Lee\'s 1861 tune came back in 1956 as the melody of Love Me Tender.', 'Wikipedia, Aura Lea', 'https://en.wikipedia.org/wiki/Aura_Lea'],
+                    ['In the late 1950s Neal Matthews Jr. of the Jordanaires began writing vocal parts as numbers. Nashville\'s studios still chart songs that way.', 'Wikipedia, Nashville Number System', 'https://en.wikipedia.org/wiki/Nashville_Number_System'],
+                ],
+                'who' => [
+                    'Singers whose lines sound correct but plain.',
+                    'Anyone who loves pop, country or crooners and wants to sing in that style.',
+                    'Harmony singers who want their part to match a styled lead.',
+                ],
+                'need' => [
+                    'A quiet spot, and water nearby.',
+                    'Headphones help you hear the chords and yourself.',
+                    'No reading music: you see your voice drawn as a line.',
+                ],
+                'faq' => [
+                    ['How long does it take?', '16 lessons of 2 to 4 minutes each, about 40 minutes in all.'],
+                    ['Is this belting?', 'No. Bright comes from the vowel and a slight smile, not from more volume or higher notes, and every move stays small and light.'],
+                    ['Will I sound like a particular singer?', 'No recording is imitated and no living singer is named as a model: styles are described, and you style a line your own way.'],
+                    ['Does it score my tone?', 'Not yet. It hears your scoops, fall-offs, slides and the shape of a cry, and each note\'s pitch. Your tone colour is yours to judge, by comparing your takes.'],
+                    ['What does it cost?', 'The first lesson is free, with no account needed. The rest of the course is part of Plus. Saving your progress takes a free account.'],
+                ],
+                'related' => ['vibrato', 'yodeling', 'folk-and-early-music'],
             ],
             'a-cappella-bass' => [
                 'group' => 'harmony',
@@ -1493,7 +3295,7 @@ return [
                 'name' => 'Improvising a harmony',
                 'summary' => 'Hear a tune and invent a part on the spot.',
                 'title' => 'Improvising a harmony course',
-                'description' => 'Hear a tune and invent a part on the spot. A harmony course coming to Stackapella Plus, in short lessons.',
+                'description' => 'Hear a tune and invent a part on the spot. A harmony course on Stackapella Plus, in short lessons, with the first lesson free.',
                 'headline' => 'Improvise a harmony',
                 'lead' => 'Hear a tune, then invent a part above or below it on the spot.',
                 'learn' => ['Chord tones', 'A part above, a part below', 'Making it up as the tune goes'],
@@ -1502,6 +3304,85 @@ return [
                 'safety' => ['Stop if anything tightens or hurts, and don\'t sing when you\'re hoarse.', 'Above a loud tune, go lighter rather than strain to match it.', 'The tune plays under your voice; wired or one-ear headphones help you hear yourself.'],
                 'songs' => [['Michael, Row the Boat Ashore', 'Traditional, public domain'], ['Home on the Range', 'Traditional, 1870s, public domain (the chorus)'], ['Swing Low, Sweet Chariot', 'Spiritual, published 1872, public domain (the chorus)'], ['Red River Valley', 'Traditional, 1870s, public domain'], ['The harmony lines', 'Written for the course']],
                 'shots' => ['The first lesson\'s card: sing the tune\'s next chord tone up, mostly a third and a fourth over so, best with headphones.', 'The part above Michael, Row the Boat Ashore on the note lane, every harmony note lit with its word.'],
+                // The designed page (site/courses/improvising-harmony): its own sections and words.
+                'app' => 'improvising-harmony',
+                'eyebrow' => 'A Plus course · 16 lessons',
+                'hero_title' => 'Make up a part.',
+                'hero_lead' => 'Hear a tune and sing a second part to it on the spot, above or below, without copying it. Every harmony note starts lit, then the lights fade, until you\'re making it up by ear.',
+                'hero_facts' => ['16 lessons, 2 to 4 minutes each', 'About 55 minutes in all', 'Best with headphones'],
+                'see_lessons' => 'See the lessons',
+                'titles' => [
+                    'outcomes' => 'By the end, you can',
+                    'rule' => 'The next chord tone up',
+                    'lights' => 'From lights to no lights',
+                    'units' => 'From a part above to a trio of you',
+                    'try' => 'Try this now: a part above',
+                    'inside' => 'What the app listens for',
+                    'facts' => 'About harmony singing',
+                    'who' => 'Who it\'s for',
+                    'need' => 'What you need',
+                    'safety' => 'Singing it safely',
+                    'faq' => 'Questions',
+                    'join' => 'Find your part',
+                    'related' => 'Good with this course',
+                ],
+                'outcomes' => [
+                    'Sing a part above a tune: the next chord tone up.',
+                    'Sing a part below, and rescue yourself when it rubs: hold, then step.',
+                    'Choose any note of the chord, and move against the tune.',
+                    'Harmonise with no lights at all, even a high tenor above the lead.',
+                ],
+                'rule' => [
+                    'lead' => 'The simplest harmony is the tune\'s next chord tone up. Over most notes that\'s a third. Over so it\'s a fourth, because the third above so, ti, rubs against the chord.',
+                    'third' => ['Over most notes', 'A third up: over mi, sing so.'],
+                    'fourth' => ['Over so', 'A fourth up, to do: ti would rub.'],
+                    'body' => 'It\'s the real folk and bluegrass tenor rule, and it leads straight to any chord tone. Lost? Hold your note until it rubs, then step.',
+                ],
+                'lights' => [
+                    ['Every note lit', 'Each harmony note lights up on the lane, so you learn the shape.'],
+                    ['Lights fading', 'The lights fade over a line, and you carry on by ear.'],
+                    ['You choose', 'Every note of the chord lights up, and you pick one.'],
+                    ['Lights off', 'Only the chords are left. The part is yours.'],
+                ],
+                'units_say' => [
+                    'A third above, why so takes a fourth, harmony or the tune, and Home on the Range.',
+                    'A part below, hold then step off, answering in harmony, and Steal Away.',
+                    'The chord\'s three notes, close then against, and your own harmony to Swing Low.',
+                    'Lights at the changes, lights off, a tenor above in Simple Gifts, and a trio of you.',
+                ],
+                'try' => [
+                    'lead' => 'You need the tune playing while you sing: a recording of yourself works.',
+                    'steps' => [
+                        'Record yourself singing the first line of Michael, Row the Boat Ashore.',
+                        'Play it back, and on the long notes, "row" and "shore", hum a little higher than the tune until it sounds sweet with it: about a third up.',
+                        'If you find yourself on the tune\'s own note, hold yours and listen: harmony sounds like two notes at once.',
+                        'Lost? Hold your note until it rubs, then step.',
+                    ],
+                    'after' => 'Lesson 1 lights every harmony note on the lane above the tune, then plays your part with the tune: Hear it together.',
+                ],
+                'facts' => [
+                    ['Medieval English singers called two voices moving mostly in thirds "gymel", from the Latin for twin.', 'Britannica, Gymel', 'https://www.britannica.com/art/gymel'],
+                    ['In shape-note singing from The Sacred Harp (1844), the tune is in the tenor, with parts sung above and below it.', 'New Georgia Encyclopedia, Sacred Harp', 'https://www.georgiaencyclopedia.org/articles/arts-culture/sacred-harp/'],
+                    ['Bluegrass is named after Bill Monroe\'s Blue Grass Boys, and Monroe often sang the high tenor above the lead.', 'Wikipedia, Bill Monroe', 'https://en.wikipedia.org/wiki/Bill_Monroe'],
+                ],
+                'who' => [
+                    'Singers who can learn a written part but freeze when asked to make one up.',
+                    'Anyone who sings along with friends, at church or round a campfire, and wants to add a harmony.',
+                    'Choir singers who want to hear where their part fits in the chord.',
+                ],
+                'need' => [
+                    'Headphones, wired or one ear off: on a speaker, the tune rests while you sing.',
+                    'A quiet spot and a few minutes a day.',
+                    'No reading music: the notes that fit light up on the lane.',
+                ],
+                'faq' => [
+                    ['How long does it take?', '16 lessons of 2 to 4 minutes each, about 55 minutes in all.'],
+                    ['What if I keep singing the tune?', 'That\'s the most common pull, and the app says when the tune pulled you onto its note. Headphones help. Lost? Hold your note until it rubs, then step.'],
+                    ['Do I need to know chords?', 'No. The notes that fit light up, and the course teaches the three notes of a chord as you go.'],
+                    ['Is it safe for my voice?', 'Yes. Above a loud tune, go lighter rather than strain to match it. Stop if anything tightens or hurts, and don\'t sing when you\'re hoarse. It isn\'t a substitute for a teacher.'],
+                    ['What does it cost?', 'The first lesson is free, with no account needed. The rest of the course is part of Plus. Saving your progress takes a free account.'],
+                ],
+                'related' => ['ear-training', 'counterpoint', 'barbershop'],
             ],
             'character-voices' => [
                 'group' => 'styles',

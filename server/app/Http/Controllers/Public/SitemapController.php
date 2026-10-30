@@ -35,6 +35,11 @@ final class SitemapController extends Controller
             $urls[] = $base.$path;
         }
 
+        // The comparison pages, once their switch is on.
+        foreach (SitePages::comparePaths() as $path) {
+            $urls[] = $base.$path;
+        }
+
         foreach (Template::query()->listed()->whereNotNull('current_version_id')->orderBy('slug')->pluck('slug') as $slug) {
             $urls[] = $base.'/songs/'.$slug;
         }

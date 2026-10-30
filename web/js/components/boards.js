@@ -19,6 +19,9 @@ import { Modal, toast } from './ui.js';
 import { SCORING_VERSION } from '../scoring.js';
 import { PITCH_DETECTOR_VERSION } from '../pitchtrack.js';
 import { NewRecord } from '../game/record.js';
+import { InitialsPicker, boardName, byInitials } from '../game/initials.js';
+import { dailyFor } from '../game/daily.js';
+import { count as countDaily } from '../usage.js';
 import { effect } from '../game/effects.js';
 
 const ASKED = 'stackapella.boards.asked'; // the worldwide question, asked once on this device
@@ -52,6 +55,12 @@ export async function submitScore({ templateId, templateVersion, partKey, score,
         appVersion: APP_VERSION,
         ...(takeId ? { takeId } : {}),
     };
+    // Game mode's daily challenge: a take of the day's song part, started from it, goes on its board too.
+    const day = dailyFor(templateId, partKey);
+    if (day) {
+        body.daily = day;
+        countDaily('daily_sung');
+    }
     return (await call('boards.scores.submit', { body })).data;
 }
 
@@ -117,11 +126,11 @@ export const ReportName = {
     props: { entry: { type: Object, required: true }, partName: { type: String, required: true } },
     emits: ['close'],
     data: () => ({ reason: 'offensive', note: '', website: '', busy: false }),
-    setup: () => ({ REASONS }),
+    setup: () => ({ REASONS, boardName }),
     template: `
         <Modal :title="t('boards.report.title')" @close="$emit('close')">
             <form class="space-y-4" data-board-report @submit.prevent="send">
-                <p class="text-cream">{{ t('boards.report.who', { name: entry.name, part: partName }) }}</p>
+                <p class="text-cream">{{ t('boards.report.who', { name: boardName(entry), part: partName }) }}</p>
                 <fieldset class="space-y-3">
                     <legend class="label">{{ t('boards.report.why') }}</legend>
                     <label v-for="(label, r) in REASONS" :key="r" class="check-row"><input v-model="reason" type="radio" :value="r" class="radio" /> {{ t(label) }}</label>
@@ -158,15 +167,19 @@ export const ReportName = {
 
 /** After a recorded take of a song's part: your best and where you stand, or why it didn't count. */
 export const TakeBest = {
-    components: { GlobalSheet, NewRecord },
+    components: { GlobalSheet, NewRecord, InitialsPicker },
     props: { templateId: { type: String, required: true }, templateVersion: { type: Number, required: true }, partKey: { type: String, required: true }, partName: { type: String, required: true }, songTitle: { type: String, required: true }, score: { type: Number, required: true }, keyOffset: { type: Number, default: 0 }, guideMuted: Boolean, takeId: { type: String, default: null } },
-    data: () => ({ result: null, friends: null, global: null, asking: false, challenging: false }),
-    setup: () => ({ WHY }),
+    emits: ['result'], // the board's answer (game mode's ghost keeps a new best's line)
+    data: () => ({ result: null, friends: null, global: null, asking: false, challenging: false, naming: false }),
+    setup: () => ({ WHY, account }),
     template: `
         <div v-if="result" class="space-y-1 text-sm" data-take-best>
-            <p v-if="result.counted" class="text-cream"><b data-best>{{ t('boards.best', { score: result.best }) }}</b><!-- Game mode's NEW RECORD in place of "a new best" (docs/game-elements-plan.md): only on a best the board counted --><NewRecord v-if="recordShown" :best="result.best" :before="result.before ?? null" /><span v-else-if="result.improved" class="text-muted"> · {{ t('boards.newBest') }}</span><span v-if="rankLine" class="text-muted"> · {{ rankLine }}</span>
+            <p v-if="result.counted" class="text-cream"><b data-best>{{ t('boards.best', { score: result.best }) }}</b><!-- Game mode's NEW RECORD in place of "a new best" (docs/game-elements-plan.md): only on a best the board counted --><NewRecord v-if="recordShown" :best="result.best" :before="result.before ?? null" /><span v-else-if="result.improved" class="text-muted"> · {{ t('boards.newBest') }}</span><span v-if="rankLine" class="text-muted"> · {{ rankLine }}</span><span v-if="result.daily?.counted" class="text-muted" data-daily-rank> · {{ t('game.daily.rank', { rank: result.daily.rank }) }}</span>
                 <button type="button" class="link ms-2" :disabled="challenging" @click="challenge">{{ t('boards.challenge.button') }}</button></p>
             <p v-else class="text-muted">{{ WHY[result.why] ? t(WHY[result.why]) : t('boards.why.other') }}</p>
+            <!-- Game mode's arcade initials, offered on a new record (docs/game-elements-plan.md) -->
+            <button v-if="recordShown && account.me && account.me.boardsName !== 'initials'" type="button" class="link" data-enter-initials @click="naming = true">{{ t('game.initials.enter') }}</button>
+            <InitialsPicker v-if="naming" @close="naming = false" />
             <GlobalSheet v-if="asking" @close="asking = false" />
         </div>`,
     computed: {
@@ -189,6 +202,7 @@ export const TakeBest = {
             if (!(error instanceof ApiError)) console.warn('The score was not sent', error);
             return; // an old app or offline: the take's own result says enough
         }
+        this.$emit('result', this.result);
         if (!this.result.counted) return;
         const [friends, global] = await Promise.allSettled([boardOf(this.templateId, this.partKey, 'friends'), boardOf(this.templateId, this.partKey, 'global')]);
         this.friends = friends.status === 'fulfilled' ? friends.value : null;
@@ -232,7 +246,7 @@ export const PartBoard = {
     components: { ReportName },
     props: { templateId: { type: String, required: true }, partKey: { type: String, required: true }, partName: { type: String, required: true } },
     data: () => ({ open: false, scope: 'friends', board: null, failed: false, viewed: false, reporting: null, version: null }),
-    setup: () => ({ account }),
+    setup: () => ({ account, boardName, byInitials }),
     template: `
         <div class="text-sm" data-part-board>
             <button type="button" class="link" :aria-expanded="open" @click="toggle">{{ t('boards.title', { part: partName }) }}</button>
@@ -248,10 +262,10 @@ export const PartBoard = {
                     <ol v-else class="space-y-1.5" :aria-label="t('boards.title', { part: partName })">
                         <li v-for="e in board.entries" :key="e.id ?? e.rank + e.name" class="group flex items-center gap-3 rounded-xl px-2 py-1.5" :class="e.you ? 'bg-accent/10' : ''">
                             <span class="grid size-7 shrink-0 place-items-center rounded-full text-xs font-bold" :class="e.rank <= 3 ? 'gem' : 'text-muted'">{{ e.rank }}</span>
-                            <span class="min-w-0 flex-1 truncate text-cream" translate="no">{{ e.you ? t('boards.you', { name: e.name }) : e.name }}</span>
+                            <span class="min-w-0 flex-1 truncate text-cream" translate="no" :data-initials="byInitials(e) ? '' : null">{{ e.you ? t('boards.you', { name: boardName(e) }) : boardName(e) }}</span>
                             <span class="font-bold tabular-nums text-cream">{{ e.score }}</span>
                             <span class="hidden w-16 text-end text-muted sm:inline">{{ day(e.at) }}</span>
-                            <button v-if="!e.you && e.id" type="button" class="tap-44 text-xs text-muted hover:text-cream [@media(hover:hover)]:opacity-0 group-hover:opacity-100 focus-visible:opacity-100" :aria-label="t('boards.report.button', { name: e.name })" data-report-entry @click="reporting = e">{{ t('boards.report.short') }}</button>
+                            <button v-if="!e.you && e.id" type="button" class="tap-44 text-xs text-muted hover:text-cream [@media(hover:hover)]:opacity-0 group-hover:opacity-100 focus-visible:opacity-100" :aria-label="t('boards.report.button', { name: boardName(e) })" data-report-entry @click="reporting = e">{{ t('boards.report.short') }}</button>
                         </li>
                     </ol>
                     <p v-if="board && board.you && !board.entries.some((e) => e.you)" class="text-muted">{{ board.you.rank ? t('boards.yourPlace', { rank: board.you.rank, score: board.you.score }) : t('boards.yourBest', { score: board.you.score }) }}</p>

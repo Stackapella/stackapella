@@ -2,7 +2,8 @@
 // phrases in square and triangle waves for the moments around singing. Game sounds is off until
 // chosen in Settings. Every note is scheduled on the AudioContext clock, quietly under the app's
 // other sounds, and a cue never plays while the engine plays anything (a take, a scored turn, a
-// count-in): the mic must hear only the voice; one already scheduled stops if the engine starts.
+// count-in): the mic must hear only the voice; one already scheduled stops if the engine starts. The
+// count-in itself can be chip blips (chipCountIn), played by the engine in place of its clicks.
 
 import { engine } from '../audio.js';
 import { effect } from './effects.js';
@@ -100,6 +101,35 @@ export function cue(name, { at = null } = {}) {
         requestAnimationFrame(watch);
     }
     return sound;
+}
+
+// The count-in's chip blips (Game sounds on): the engine schedules them in place of its two clicks on
+// the audio clock, for the count-in only, so nothing chip-like sounds once the take starts. About the
+// click's own energy (a 0.7 sine gone in 30 ms), so the count-in is no louder than before.
+const BLIP_LEVEL = 0.22;
+const BLIP_DECAY = 40; // per second
+const countIns = new Map(); // by sample rate
+
+/** A chip blip as samples: a square wave at `midi`, decaying over `seconds`. Pure. */
+export function blip(sampleRate, midi, seconds, level = BLIP_LEVEL) {
+    const out = new Float32Array(Math.round(seconds * sampleRate));
+    const period = sampleRate / hz(midi);
+    for (let i = 0; i < out.length; i++) {
+        const fade = Math.min(1, (out.length - i) / (0.004 * sampleRate)); // no click at its end
+        out[i] = (i % period < period / 2 ? level : -level) * Math.exp((-i / sampleRate) * BLIP_DECAY) * fade;
+    }
+    return out;
+}
+
+/**
+ * Game mode's count-in, with Game sounds on: `{ accent, normal }` buffers for the engine's count-in
+ * (a high blip on the bar line, a lower one on the other beats), else null for its plain clicks.
+ */
+export function chipCountIn() {
+    if (!effect('sounds') || !engine.ctx) return null;
+    const rate = engine.ctx.sampleRate;
+    if (!countIns.has(rate)) countIns.set(rate, { accent: engine.toBuffer(blip(rate, 84, 0.07), rate), normal: engine.toBuffer(blip(rate, 79, 0.05), rate) });
+    return countIns.get(rate);
 }
 
 /** A run of cues one after another (a tally's ticks, then its end): each starts as the one before ends. */

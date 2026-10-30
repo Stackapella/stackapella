@@ -53,6 +53,9 @@ return [
     'coach_signup' => ['kind' => 'feature', 'values' => ['off', 'on']],
     // Hum a tune's page and the landing's line about it (docs/launch-plan.md: on at launch).
     'your_tune' => ['kind' => 'feature', 'values' => ['off', 'on']],
+    // The comparison pages (docs/compare-pages-plan.md): /compare and /compare/<slug> answer either
+    // way, but stay out of search and the sitemap, with no footer link, until it's on.
+    'compare_pages' => ['kind' => 'feature', 'values' => ['off', 'on']],
     'event_schedule' => ['kind' => 'feature', 'values' => ['off', 'on']],
     // The open-source launch (docs/open-source-plan.md, 5.1): /open-source, /selfhost, the
     // self-hosting terms and every mention of it on the site. Off until the repos are public:

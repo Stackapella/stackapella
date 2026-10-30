@@ -18,6 +18,11 @@
 
 @section('content')
     <x-site.header :app-url="$links['app']" />
+    {{-- A course with its own designed page (site/courses/<slug>: its look, hero and sections built
+         around the topic, from the shared parts in site/courses/_*) gets it; the rest, this one. --}}
+    @if (view()->exists('site.courses.'.$page['slug']))
+        @include('site.courses.'.$page['slug'])
+    @else
     <main>
         <section class="s-wrap s-featurehead" aria-labelledby="page-h">
             <div class="s-split">
@@ -148,5 +153,6 @@
             </ul>
         </section>
     </main>
+    @endif
     <x-site.footer />
 @endsection

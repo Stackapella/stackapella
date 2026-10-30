@@ -268,8 +268,8 @@ export const Exercise = {
                 <button v-if="waiting.searching > 2 * HINT_AFTER" type="button" class="btn-ghost btn-sm" @click="skipNote">{{ t('course.skipNote') }}</button>
             </div>
             <p v-if="error" class="text-center text-sm text-bad" role="alert">{{ error }}</p>
-            <p v-if="speaker && soundsUnder" class="text-center text-sm text-muted">{{ mode === 'try' ? t('course.speakerTry') : exercise.turn === false ? t('course.speakerUnder') : t('course.speakerPlay') }}</p>
-            <HeadphonesDialog v-if="asking" speaker-option :action="t('headphones.on')" @ok="headphonesOn" @speaker="useSpeaker" @close="asking = false" />
+            <p v-if="speaker && soundsUnder && (mode !== 'try' || answered())" class="text-center text-sm text-muted">{{ mode === 'try' ? t('course.speakerTry') : exercise.turn === false ? t('course.speakerUnder') : t('course.speakerPlay') }}</p>
+            <HeadphonesDialog v-if="asking" speaker-option simple :action="t('headphones.on')" @ok="headphonesOn" @speaker="useSpeaker" @close="asking = false" />
             <!-- Waiting for you needs no Stop: Hear the note again, or Start over. -->
             <div v-if="mode === 'try' && (running || waitDone)" class="flex flex-wrap justify-center gap-3">
                 <button v-if="waitNote && !waitDone" type="button" class="btn-secondary" @click="playNote(waitIndex)"><Icon name="play" :size="16" /> {{ t('course.wait.hear', { note: name(waitNote.pitch) }) }}</button>
@@ -477,6 +477,8 @@ export const Exercise = {
         [...engine.parts.keys()].filter((id) => id.startsWith('ex:')).forEach((id) => engine.removePart(id));
     },
     methods: {
+        /** Asked about headphones this visit (or told not to ask): the speaker's line is said only then (storage, so read each time). */
+        answered: () => listening() !== null,
         /** Whether a brick's whole word (its syllable or its note's name) fits it. */
         labelFits(n) {
             return n.length * this.pxPerBeat - 2 >= String(this.noteWord(n)).length * (this.labelled ? 7 : LABEL_CHAR_PX) + LABEL_PAD_PX;
@@ -752,11 +754,14 @@ export const Exercise = {
             this.bonus = 0;
             this.hud.clear(0);
             this.withGuide = false;
-            if (this.mode !== 'listen' && this.soundsUnder && !listening()) {
+            // Wait for me (try) is never asked: unanswered, it goes as through a speaker, each note playing
+            // and then quiet while you sing, which suits any setup (onboarding review 2, 8: lesson 2 asked
+            // with nothing playing under you).
+            if (this.mode !== 'listen' && this.mode !== 'try' && this.soundsUnder && !listening()) {
                 this.asking = true;
                 return;
             }
-            this.speaker = listening() === 'speaker';
+            this.speaker = listening() === 'speaker' || (this.mode === 'try' && !listening());
             try {
                 await unlock();
                 if (this.mode !== 'listen' && !(await readyMic())) return;

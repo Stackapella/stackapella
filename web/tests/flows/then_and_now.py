@@ -8,6 +8,7 @@ bullseye finales (Ear, Perfect your pitch) their own "Then: n of n". Phone size,
     FLOW_SKINS=game,serious OUT=~/Code/shots-review/then-and-now PORT=8300 tool/flows.sh then_and_now
 """
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -20,7 +21,7 @@ from plus_courses import picture, t  # noqa: E402
 STORE = "(await import('/js/stores/learning.js'))"
 ROUTER = "(await import('/js/router.js'))"
 AUDIO = "(await import('/js/audio.js'))"
-COURSES = ["folk", "pop", "yodel", "barbershop", "counterpoint", "improvising-harmony", "ear", "pitch"]
+COURSES = os.environ.get("THEN_AND_NOW_COURSES", "folk,pop,yodel,barbershop,counterpoint,improvising-harmony,ear,pitch").split(",")
 ONE_NOTE = {"tempo": 72, "notes": [{"beat": 2, "length": 3, "step": 0, "lyric": "oo"}], "turn": False, "drone": {"step": 0}}
 ECHOES = {"tempo": 90, "echoes": [0, 0], "drone": {"step": 0}, "generous": True}
 

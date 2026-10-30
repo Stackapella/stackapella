@@ -26,6 +26,11 @@ final class SyncTemplates extends Command
 
         $this->line(count($report['unchanged']).' unchanged.');
 
+        // No song files at all: the courses and songs live in their own repo, fetched first.
+        if ($report['added'] === [] && $report['unchanged'] === [] && $report['problems'] === []) {
+            $this->warn('No songs found. Fetch them first: sh server/tool/content.sh fetch (from the repo root), then run this again.');
+        }
+
         foreach ($report['carried'] as $carried) {
             $this->info("Carried over {$carried}");
         }

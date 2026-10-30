@@ -15,6 +15,9 @@
         "sentryDsn": null,
         "usageCounts": true,
         "coachSignup": true,
+        "humTune": false,
+        "ideas": false,
+        "plusCourses": true,
         "experiment": null
     }
 }

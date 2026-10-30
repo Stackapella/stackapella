@@ -68,6 +68,8 @@ export const HumTuneStep = {
                 <p>{{ t('create.hum.unsure') }}</p>
                 <button type="button" class="btn-secondary btn-sm mt-3" :disabled="state === 'tapping'" data-hum-tap-start @click="tapAlong">{{ state === 'tapping' ? t('create.hum.tapping', { count: formatNumber(taps.length) }) : t('create.hum.tapAlong') }}</button>
             </Notice>
+            <!-- Sure of the beat, it can still be wrong on a rough hum (docs/hum-a-tune-plan.md): Tap along stays one quiet tap away. -->
+            <p v-else-if="melody && !tapped && state === 'idle'" class="text-sm text-muted" data-hum-tap-quiet>{{ t('create.hum.rhythmOff') }} <button type="button" class="link" @click="tapAlong">{{ t('create.hum.tapAlong') }}</button></p>
             <button v-if="state === 'tapping'" type="button" class="btn-primary btn-lg w-full" data-hum-tap @pointerdown.prevent="tap">{{ t('create.hum.tap') }}</button>
             <Notice v-if="problem" :tone="problem.tone"><p>{{ problem.text }}</p><MicPicker v-if="problem.kind === 'silent' && audio.mic" class="mt-3" /></Notice>
             <p v-if="micProblem" class="text-sm text-bad" role="alert">{{ micProblem }}</p>
@@ -189,6 +191,7 @@ export const HumTuneStep = {
                 this.melody = humToMelody(heard.events, beats?.length >= 2 ? { beats } : {});
                 this.tapped = !!beats?.length;
                 this.$emit('tune', { melody: this.melody, octave });
+                if (this.melody.notes.length) count('hum_found'); // a tune written down (Hillel's start, found, saved)
                 this.problem = heard.noisy ? { kind: 'noisy', tone: 'warn', text: t('create.sing.noisy') } : null;
             } catch (error) {
                 console.error('The tune was not written down', error);

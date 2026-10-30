@@ -24,6 +24,8 @@
         "staff",
         "publicProfile",
         "hideProfile",
+        "initials",
+        "boardsName",
         "gallery",
         "ideaEmails",
         "pushTypes",
@@ -248,6 +250,21 @@
         "hideProfile": {
             "type": "boolean",
             "description": "Hide profile: everyone else sees \"Anonymous\", with no handle, picture or profile page (profiles.show 404), in the gallery, shared song pages, link previews, boards, leagues and bells. People in a shared song, a choir group or coaching with them still see the name, and admins the real person. It never blocks sharing, recording or listing in the gallery. Overrides publicProfile while on (which keeps its value)."
+        },
+        "initials": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "description": "Three letters A to Z for the boards (game mode's arcade initials), or null."
+        },
+        "boardsName": {
+            "type": "string",
+            "enum": [
+                "name",
+                "initials"
+            ],
+            "description": "What the boards and challenges show: their name or their initials. Under 18 it's always initials."
         },
         "gallery": {
             "type": "object",

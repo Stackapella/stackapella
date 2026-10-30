@@ -13,7 +13,7 @@ use Illuminate\Http\Request;
 final class Hosts
 {
     /** Paths that belong to the public site (everything else is the app's). */
-    public const PUBLIC_PATHS = ['songs', 'songs/*', 'guides/*', 'legal/*', 'pricing', 'how-it-works', 'courses', 'courses/*', 'help', 'help/*', 'features', 'features/*', 'for/*', 'guides', 'about', 'press', 'open-source', 'selfhost', 'self-host', 'self-host-stackapella', 'whats-new', 'h/*', 'embed/*', 'oembed', 'coaches', 'coach/*', '@*', 'explore', 'ideas/*', 'choirs/*', 'sitemap.xml', 'unsubscribe/*'];
+    public const PUBLIC_PATHS = ['songs', 'songs/*', 'guides/*', 'legal/*', 'pricing', 'how-it-works', 'courses', 'courses/*', 'help', 'help/*', 'features', 'features/*', 'compare', 'compare/*', 'for/*', 'guides', 'about', 'press', 'open-source', 'selfhost', 'self-host', 'self-host-stackapella', 'whats-new', 'h/*', 'embed/*', 'oembed', 'coaches', 'coach/*', '@*', 'explore', 'ideas/*', 'choirs/*', 'sitemap.xml', 'unsubscribe/*'];
 
     /** Paths either host answers: health, webhooks, the error tunnel, robots, security.txt (RFC
      * 9116 scopes it to the host it's fetched from), and the static files the public pages load

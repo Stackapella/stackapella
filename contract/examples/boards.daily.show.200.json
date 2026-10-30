@@ -1,0 +1,39 @@
+{
+    "data": {
+        "date": "2026-10-30",
+        "templateId": "michael-row",
+        "templateVersion": 2,
+        "partKey": "tenor",
+        "scope": "global",
+        "endsAt": "2026-10-31T00:00:00Z",
+        "days": [
+            "2026-10-28",
+            "2026-10-30"
+        ],
+        "entries": [
+            {
+                "id": "Kd7Pq2",
+                "rank": 1,
+                "name": null,
+                "initials": "ZED",
+                "score": 94,
+                "at": "2026-10-30T08:12:00Z",
+                "you": false
+            },
+            {
+                "id": "Wm4Rt8",
+                "rank": 2,
+                "name": "Ana Ruiz",
+                "initials": null,
+                "score": 88,
+                "at": "2026-10-30T09:40:00Z",
+                "you": true
+            }
+        ],
+        "you": {
+            "score": 88,
+            "rank": 2,
+            "initials": null
+        }
+    }
+}

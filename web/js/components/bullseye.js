@@ -284,7 +284,7 @@ export const BullseyeStep = {
 
             <p v-if="error" class="text-center text-sm text-bad" role="alert">{{ error }}</p>
             <p v-if="speaker && exercise.drone" class="text-center text-sm text-muted">{{ t('course.speakerUnder') }}</p>
-            <HeadphonesDialog v-if="asking" speaker-option :action="t('headphones.on')" @ok="headphonesOn" @speaker="useSpeaker" @close="asking = false" />
+            <HeadphonesDialog v-if="asking" speaker-option simple :action="t('headphones.on')" @ok="headphonesOn" @speaker="useSpeaker" @close="asking = false" />
             <div class="flex flex-col items-center gap-5">
                 <KeyControl v-if="musicKey && !running && !scoring" class="w-full" :music-key="musicKey" :can-lower="canLower" :can-higher="canHigher" @lower="$emit('lower')" @higher="$emit('higher')" />
                 <button type="button" class="group flex flex-col items-center gap-2 disabled:opacity-50" :disabled="scoring" @click="running ? stop() : start()">

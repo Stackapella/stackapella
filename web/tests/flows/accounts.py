@@ -57,8 +57,19 @@ def journey(f):
     f.type("textarea", "Alto, and learning the tenor.")
     f.run("document.querySelector('form').requestSubmit()")
     f.wait_text(t(f, "settings.saved"))
+    # Typing while the fresh account loads: the person's words stay (the fresh account used to refill the form over them).
+    f.run("(await import('/js/router.js')).navigate('/')")
+    f.wait("document.querySelector('#lead-title')", what="home")
+    f.run("const { api } = await import('/js/api.js'); const show = api.account.show; window.__accountShow = show; api.account.show = async (...a) => { await new Promise((r) => setTimeout(r, 1500)); return show(...a); };")
+    f.run("(await import('/js/router.js')).navigate('/settings')")
+    f.wait("document.querySelector('input[autocomplete=username]')?.value", what="the handle field, from the kept account")
+    f.type("input[autocomplete=name]", "Ada while loading")
+    f.js("new Promise((r) => setTimeout(r, 2500))")  # the fresh account in (1.5 s late)
+    assert f.js("document.querySelector('input[autocomplete=name]').value") == "Ada while loading", "what was typed was overwritten"
+    f.run("const { api } = await import('/js/api.js'); api.account.show = window.__accountShow;")
     f.go("/settings?api=mock&scenario=account.handle.check:", "document.querySelector('form')")
-    f.wait("document.querySelector('input[autocomplete=username]')", what="the handle field")
+    # The profile in the field first, so typing isn't overwritten when it loads.
+    f.wait("document.querySelector('input[autocomplete=username]')?.value", what="the handle field, with the profile's handle")
     f.type("input[autocomplete=username]", "stackapella_official")
     f.wait_text(t(f, "settings.handle.reserved"))
     # A change that needs a recent sign-in.

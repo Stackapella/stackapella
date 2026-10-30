@@ -31,6 +31,10 @@ for f in $(find web/js -name '*.js'); do
     node --check "$T/m.mjs" 2> /dev/null || { echo "$f doesn't parse as modules do; not pushing." >&2; rm -rf "$T"; exit 1; }
 done
 rm -rf "$T"
+# The app must start in a real browser with a clean console: the suites never load the views, and
+# a live site can't take a build that doesn't start (launch night shipped two).
+PORT=8497 FLOW_SIZES=desktop bash web/tool/flows.sh console_clean > /dev/null 2>&1 \
+    || { echo "The app doesn't start cleanly in a browser (flows.sh console_clean); not pushing." >&2; exit 1; }
 (cd server && php artisan migrate --force > /dev/null)
 out=$(sh server/tool/test.sh --compact 2>&1) || { printf '%s\n' "$out" | tail -5 >&2; echo "The server suite failed; not pushing $H." >&2; exit 1; }
 printf '%s\n' "$out" | tail -1

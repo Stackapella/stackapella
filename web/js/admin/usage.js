@@ -1,24 +1,28 @@
 // Usage (decision 2026-10-28, "anonymous usage counts"; contract: admin.counts.show): how much the
 // app is used, guests included, from the anonymous daily totals and nothing else (no one's path, no
-// unique visitors). Today, or over 7, 30 or 90 days: each moment's total split by guest and account,
+// unique visitors). Today so far (UTC, near live: Hillel's "on admin usage support seeing closer to
+// realtime data", refreshed every 30 seconds while the page is in view), or over 7, 30 or 90 days:
+// each moment's total split by guest and account,
 // laid out by area (Hillel: "update the admin usage page with all of the new stuff, ie courses,
 // etc"), the courses by course and lesson, one moment day by day and week by week, and the top
 // countries. Plain bars, no charts library.
 
 import { api } from '../api.js';
-import { formatDate, formatNumber, locale, localized, t, tk } from '../i18n.js';
+import { formatDate, formatNumber, locale, localized, t, timeAgo, tk } from '../i18n.js';
 import { EmptyState } from '../components/form.js';
 import { LoadFailed, loadInto } from './common.js';
 
-// 1 is Today: the server keeps ranges of 7, 30 or 90 days, so today is read from the last 7.
+// 1 is Today: today so far, UTC.
 const WINDOWS = [1, 7, 30, 90];
+const REFRESH_MS = 30000; // while the page is in view (a timer for the page, never for audio)
+const TICK_MS = 1000; // how long ago it was updated, counting up
 // The moments counted (js/usage.js; sign-ups the server counts itself), by area, each in the order a person meets them.
 const AREAS = [
     { key: 'everyday', title: tk('admin.usage.area.everyday'), kinds: ['app_open', 'sign_up', 'lesson_start', 'lesson_done', 'unit_done', 'song_created', 'take_recorded', 'harmonise_used', 'export_done', 'share_created', 'result_shared'] },
-    { key: 'skins', title: tk('admin.usage.area.skins'), kinds: ['open_game', 'open_serious', 'game_on', 'game_off'] },
+    { key: 'skins', title: tk('admin.usage.area.skins'), kinds: ['open_game', 'open_serious', 'game_on', 'game_off', 'daily_viewed', 'daily_sung'] },
     { key: 'plus', title: tk('admin.usage.area.plus'), kinds: ['sharpen_up', 'then_now', 'keep_song', 'fact_source'], courses: true },
     { key: 'free', title: tk('admin.usage.area.free'), kinds: [], lessons: true },
-    { key: 'hum', title: tk('admin.usage.area.hum'), kinds: ['hum_start', 'hum_click', 'hum_tap'] },
+    { key: 'hum', title: tk('admin.usage.area.hum'), kinds: ['hum_start', 'hum_found', 'hum_saved', 'hum_click', 'hum_tap'] },
     { key: 'studio', title: tk('admin.usage.area.studio'), kinds: ['take_use', 'take_undo', 'track_add', 'track_rename', 'exp_song', 'exp_practice', 'exp_stems'] },
     { key: 'onboarding', title: tk('admin.usage.area.onboarding'), kinds: ['share_note', 'card_named', 'su_progress', 'su_reminders', 'su_share', 'su_boards', 'card_day2'] },
     { key: 'melody', title: tk('admin.usage.area.melody'), kinds: ['sug_melody', 'sug_part', 'sug_switch'] },
@@ -38,12 +42,16 @@ const KINDS = {
     open_game: tk('admin.usage.kind.open_game'),
     open_serious: tk('admin.usage.kind.open_serious'),
     game_on: tk('admin.usage.kind.game_on'),
+    daily_viewed: tk('admin.usage.kind.daily_viewed'),
+    daily_sung: tk('admin.usage.kind.daily_sung'),
     game_off: tk('admin.usage.kind.game_off'),
     sharpen_up: tk('admin.usage.kind.sharpen_up'),
     then_now: tk('admin.usage.kind.then_now'),
     keep_song: tk('admin.usage.kind.keep_song'),
     fact_source: tk('admin.usage.kind.fact_source'),
     hum_start: tk('admin.usage.kind.hum_start'),
+    hum_found: tk('admin.usage.kind.hum_found'),
+    hum_saved: tk('admin.usage.kind.hum_saved'),
     hum_click: tk('admin.usage.kind.hum_click'),
     hum_tap: tk('admin.usage.kind.hum_tap'),
     take_use: tk('admin.usage.kind.take_use'),
@@ -89,10 +97,18 @@ function daysBack(count, now = new Date()) {
 const percent = (value, most) => (most ? Math.max(value ? 2 : 0, Math.round((value / most) * 100)) : 0);
 const getJson = (path) => fetch(path).then((r) => (r.ok ? r.json() : null)).catch(() => null);
 
+/** "Updated 12 seconds ago": seconds under a minute, then as the app says times. */
+function updatedAgo(at, now) {
+    const seconds = Math.max(0, Math.round((now - at) / 1000));
+    if (seconds < 5) return t('common.justNow');
+    if (seconds < 60) return new Intl.RelativeTimeFormat(locale.lang, { numeric: 'auto' }).format(-seconds, 'second');
+    return timeAgo(at, now);
+}
+
 export const UsageSection = {
     components: { EmptyState, LoadFailed },
     props: { me: { type: Object, required: true } },
-    data: () => ({ days: 30, kind: 'app_open', counts: null, failed: false, loadingMore: false, cursor: null, course: null, catalogue: [] }),
+    data: () => ({ days: 1, kind: 'app_open', counts: null, failed: false, loadingMore: false, cursor: null, course: null, catalogue: [], updatedAt: null, now: Date.now(), refreshing: false, staleSince: null }),
     setup: () => ({ WINDOWS, AREAS, KINDS, formatNumber, countryOf, percent }),
     template: `
         <section class="space-y-8" aria-labelledby="usage-h">
@@ -101,8 +117,14 @@ export const UsageSection = {
                     <h1 id="usage-h" class="text-3xl font-extrabold tracking-tight text-cream">{{ t('admin.usage.title') }}</h1>
                     <p class="mt-1 max-w-prose text-muted">{{ t('admin.usage.intro') }}</p>
                 </div>
-                <div class="seg flex" role="radiogroup" :aria-label="t('admin.usage.range')">
-                    <button v-for="d in WINDOWS" :key="d" type="button" role="radio" :aria-checked="days === d" class="seg-option" @click="setDays(d)">{{ d === 1 ? t('admin.usage.today') : t('admin.usage.days', { count: d }) }}</button>
+                <div class="flex flex-col items-start gap-2 sm:items-end">
+                    <div class="seg flex" role="radiogroup" :aria-label="t('admin.usage.range')">
+                        <button v-for="d in WINDOWS" :key="d" type="button" role="radio" :aria-checked="days === d" class="seg-option" @click="setDays(d)">{{ d === 1 ? t('admin.usage.today') : t('admin.usage.days', { count: d }) }}</button>
+                    </div>
+                    <p v-if="updatedAt" class="flex flex-wrap items-center gap-x-3 text-sm text-muted" data-usage-updated>
+                        <span>{{ staleSince ? t('admin.usage.notUpdated', { when: updated }) : t('admin.usage.updated', { when: updated }) }}</span>
+                        <button type="button" class="btn-ghost btn-sm" :aria-busy="refreshing ? 'true' : null" :disabled="refreshing" @click="refresh"><span v-if="refreshing" class="spinner"></span>{{ t('admin.usage.refresh') }}</button>
+                    </p>
                 </div>
             </div>
             <LoadFailed v-if="failed" :message="failed" @retry="load" />
@@ -163,7 +185,7 @@ export const UsageSection = {
                 </section>
 
                 <section class="space-y-3" aria-labelledby="countries-h">
-                    <h2 id="countries-h" class="text-lg font-bold text-cream">{{ days === 1 ? t('admin.usage.countriesWeek') : t('admin.usage.countries') }}</h2>
+                    <h2 id="countries-h" class="text-lg font-bold text-cream">{{ t('admin.usage.countries') }}</h2>
                     <ul class="divide-y divide-line rounded-2xl border border-line" data-usage-countries>
                         <li v-for="c in countries" :key="c.country ?? 'none'" class="grid grid-cols-[minmax(0,12rem)_1fr_auto] items-center gap-4 px-4 py-2.5 text-sm">
                             <span class="truncate" :class="c.country ? 'text-cream' : 'text-muted'">{{ countryOf(c.country) }}</span>
@@ -225,12 +247,31 @@ export const UsageSection = {
             const unknown = all.find((c) => !c.country);
             return unknown ? [...known, unknown] : known;
         },
+        updated() {
+            return this.updatedAt ? updatedAgo(this.updatedAt, this.now) : '';
+        },
     },
     created() {
         this.load();
         // The courses' names for their rows, from the files the app itself reads.
         getJson('/course/course.json').then((course) => (this.course = course));
         getJson('/course/plus/courses.json').then((plus) => (this.catalogue = plus?.courses ?? []));
+    },
+    mounted() {
+        // Near live: every 30 seconds while the page is in view; paused when it's hidden, and caught up on coming back.
+        this.ticker = setInterval(() => document.visibilityState === 'visible' && (this.now = Date.now()), TICK_MS);
+        this.poller = setInterval(() => document.visibilityState === 'visible' && this.refresh(), REFRESH_MS);
+        this.onVisible = () => {
+            if (document.visibilityState !== 'visible') return;
+            this.now = Date.now();
+            if (this.updatedAt && this.now - this.updatedAt >= REFRESH_MS) this.refresh();
+        };
+        document.addEventListener('visibilitychange', this.onVisible);
+    },
+    unmounted() {
+        clearInterval(this.ticker);
+        clearInterval(this.poller);
+        document.removeEventListener('visibilitychange', this.onVisible);
     },
     methods: {
         sum(kind) {
@@ -257,12 +298,34 @@ export const UsageSection = {
             this.load();
         },
         async load() {
-            // The answer is one object, not a page: loadInto's list shape, wrapped. Today is read from the last 7 days.
-            await loadInto(this, 'counts', async () => ({ data: (await api.admin.counts.show({ days: Math.max(WEEK, this.days) })).data }));
+            // The answer is one object, not a page: loadInto's list shape, wrapped.
+            await loadInto(this, 'counts', async () => ({ data: (await api.admin.counts.show({ days: this.days })).data }));
+            if (!this.failed) this.fresh();
             // Day by day opens on the busiest moment, unless the one chosen has counts.
             if (this.total(this.kind)) return;
             const busiest = Object.keys(KINDS).reduce((best, k) => (this.total(k) > this.total(best) ? k : best), this.kind);
             this.kind = busiest;
+        },
+        /** The same numbers again, quietly: the page stays as it is, and a failed refresh says so and keeps them. */
+        async refresh() {
+            if (this.refreshing || this.failed || !this.counts) return;
+            this.refreshing = true;
+            const days = this.days;
+            try {
+                const counts = (await api.admin.counts.show({ days })).data;
+                if (days !== this.days) return; // the range changed meanwhile: its own load answers
+                this.counts = counts;
+                this.fresh();
+            } catch (error) {
+                console.info('Usage did not refresh', error?.message ?? error);
+                this.staleSince ??= Date.now();
+            } finally {
+                this.refreshing = false;
+            }
+        },
+        fresh() {
+            this.updatedAt = this.now = Date.now();
+            this.staleSince = null;
         },
     },
 };

@@ -52,7 +52,7 @@ export function chordMix(clip, note) {
 export const ChordMoment = {
     components: { Icon },
     props: { clip: { type: Object, required: true }, note: { type: Number, required: true }, color: { type: String, required: true } },
-    data: () => ({ playing: false, heard: false }),
+    data: () => ({ playing: false, heard: false, sweep: null }), // sweep: { seconds, after } while the chord plays
     setup: () => ({ midiName }),
     template: `
         <section class="w-full max-w-xl rounded-3xl border border-edge bg-panel p-5" aria-labelledby="chord-moment-title" data-chord-moment :data-playing="playing ? 'true' : 'false'">
@@ -63,7 +63,10 @@ export const ChordMoment = {
             <ol class="mt-4 space-y-2" :aria-label="t('chordMoment.lanes')">
                 <li v-for="lane in lanes" :key="lane.pitch" class="flex items-center gap-3">
                     <span class="w-14 shrink-0 text-xs font-semibold" :class="lane.yours ? 'text-cream' : 'text-muted'">{{ lane.yours ? t('chordMoment.you') : t('chordMoment.guide') }}</span>
-                    <span class="h-2.5 flex-1 rounded-full transition-opacity duration-500" :style="{ background: lane.yours ? color : 'var(--color-muted)', opacity: lane.yours ? 1 : playing || heard ? 0.75 : 0.3 }" aria-hidden="true"></span>
+                    <span class="relative h-2.5 flex-1 overflow-hidden rounded-full transition-opacity duration-500" :style="{ background: lane.yours ? color : 'var(--color-muted)', opacity: lane.yours ? 1 : playing || heard ? 0.75 : 0.3 }" aria-hidden="true">
+                        <!-- Playing: a light sweeps across, for as long as the chord sounds (a transition, never a timer). -->
+                        <span class="absolute inset-y-0 start-0 bg-white/45 motion-reduce:hidden" :style="sweep ? { width: '100%', transition: 'width ' + sweep.seconds + 's linear ' + sweep.after + 's' } : { width: '0%', transition: 'none' }" data-chord-sweep></span>
+                    </span>
                     <span class="w-9 shrink-0 text-end text-xs tabular-nums text-muted" translate="no">{{ midiName(Math.round(lane.pitch)) }}</span>
                 </li>
             </ol>
@@ -92,12 +95,16 @@ export const ChordMoment = {
             source.onended = () => {
                 if (this.left) return;
                 this.playing = false;
+                this.sweep = null;
                 this.heard = true;
                 first('f_chord'); // the funnel: the chord moment played to its end
             };
             this.source = source;
             source.start(engine.ctx.currentTime + after);
             this.playing = true;
+            this.sweep = null;
+            const seconds = samples.length / sampleRate;
+            requestAnimationFrame(() => requestAnimationFrame(() => this.playing && (this.sweep = { seconds, after }))); // drawn at 0 first, so it moves
         },
     },
 };

@@ -1,3 +1,4 @@
+import { REFUSAL_ROUND, refusedAsItIs } from '/js/stores/templates.js';
 import { lengthBeats, listTemplates, loadTemplate, lyricLines, phrases, repairTemplate, TemplateError, templatePartName, validateTemplate } from '/js/templates.js';
 import { renderGuide } from '/js/guides.js';
 import { detectPitch, hzToMidi } from '/js/dsp.js';
@@ -242,4 +243,21 @@ test('templates: a barbershop song validates and names its parts; a mix of the t
         refused = error;
     }
     assert(refused instanceof TemplateError && /never a mix/.test(refused.message), `a soprano with a lead: ${refused?.message}`);
+});
+
+test('templates: a repair keeps only the schema fields of a note (the working sure mark never goes up)', () => {
+    const template = { id: 'x', version: 1, title: 'T', tempo: 80, key: 'C', timeSignature: '4/4', parts: [{ key: 'soprano', range: { low: 60, high: 62 }, guide: { type: 'notes', notes: [{ beat: 0, length: 1, pitch: 60, lyric: 'mm', br: true, sure: false }, { beat: 1, length: 1, pitch: 62 }] } }] };
+    const { template: fixed, changed } = repairTemplate(template);
+    assert(changed, 'changed');
+    assert(JSON.stringify(fixed.parts[0].guide.notes[0]) === JSON.stringify({ beat: 0, length: 1, pitch: 60, lyric: 'mm', br: true }), JSON.stringify(fixed.parts[0].guide.notes[0]));
+    assert(fixed.parts[0].guide.notes[1] === template.parts[0].guide.notes[1], 'a clean note is the same note');
+});
+
+test('templates: a refusal from an earlier round is sent once more; one from this round waits for an edit', () => {
+    const template = { id: 'x', version: 1, title: 'T', tempo: 80, key: 'C', timeSignature: '4/4', parts: [{ key: 'soprano', range: { low: 60, high: 60 }, guide: { type: 'notes', notes: [{ beat: 0, length: 1, pitch: 60 }] } }] };
+    const refused = (round) => ({ state: 'invalid', template, invalid: { reasons: ['$.description: expected string, got null'], for: JSON.stringify(template), ...(round === undefined ? {} : { round }) } });
+    assert(!refusedAsItIs(refused(undefined)), 'an old refusal, from before rounds, goes again');
+    assert(!refusedAsItIs(refused(REFUSAL_ROUND - 1)), 'one from an earlier round goes again');
+    assert(refusedAsItIs(refused(REFUSAL_ROUND)), 'one from this round waits');
+    assert(!refusedAsItIs({ ...refused(REFUSAL_ROUND), template: { ...template, title: 'Changed' } }), 'a changed song goes again');
 });

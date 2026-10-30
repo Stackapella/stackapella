@@ -49,7 +49,7 @@ export const CourseMap = {
                             <span v-if="i > 0" class="absolute end-1/2 top-7 h-0.5 w-full -translate-y-1/2" :style="{ background: stars(unit.lessons[i - 1]) ? colorOf(unit) : 'var(--color-line)' }" aria-hidden="true"></span>
                             <button type="button" class="relative z-[1] grid size-14 place-items-center transition disabled:cursor-not-allowed" :class="[nodeClass(unit, lesson), pickedId(u) === lesson.id ? 'ring-2 ring-cream ring-offset-2 ring-offset-panel' : '']" :style="nodeStyle(unit, lesson)" :disabled="locked(u, unit, lesson)"
                                 :aria-label="game() ? t('course.lessonLabel', { title: localized(lesson.title), stars: stars(lesson) }) : stars(lesson) ? t('course.lessonDone', { title: localized(lesson.title) }) : localized(lesson.title)" :aria-current="lesson.id === current ? 'step' : null" :aria-pressed="pickedId(u) === lesson.id ? 'true' : 'false'" @click="pick(u, lesson.id)">
-                                <Icon :name="stars(lesson) ? 'check' : lesson.id === current ? 'play' : lesson.challenge ? 'starFilled' : 'note'" :size="20" :class="lesson.challenge && !stars(lesson) && lesson.id !== current ? '-rotate-45' : ''" />
+                                <Icon :name="stars(lesson) ? 'check' : lesson.id === current ? 'play' : lesson.challenge && game() ? 'starFilled' : 'note'" :size="20" :class="lesson.challenge && !stars(lesson) && lesson.id !== current && game() ? '-rotate-45' : ''" />
                             </button>
                             <span v-if="game()" class="flex gap-1" aria-hidden="true"><span v-for="s in 3" :key="s" class="size-1.5 rounded-full" :style="{ background: s <= stars(lesson) ? colorOf(unit) : 'var(--color-line)' }"></span></span>
                             <span class="line-clamp-2 px-1 text-xs" :class="pickedId(u) === lesson.id ? 'font-bold text-cream' : 'text-muted'" translate="no">{{ localized(lesson.title) }}</span>
@@ -149,13 +149,15 @@ export const CourseMap = {
             return this.paint(PART_COLORS[((unit.colour ?? 4) - 1) % PART_COLORS.length]);
         },
         nodeClass(unit, lesson) {
-            const shape = lesson.challenge && !this.stars(lesson) && lesson.id !== this.current ? 'rotate-45 rounded-xl' : 'rounded-full';
-            if (this.stars(lesson)) return `gem ${shape}`;
+            // Serious mode is calm (onboarding review 2, 11): flat nodes, and the challenge a plain ring, never a diamond.
+            const shape = lesson.challenge && !this.stars(lesson) && lesson.id !== this.current && game() ? 'rotate-45 rounded-xl' : 'rounded-full';
+            if (this.stars(lesson)) return game() ? `gem ${shape}` : `${shape}`;
+            if (lesson.challenge && !game() && lesson.id !== this.current) return `${shape} border-2 border-cream bg-ink text-cream`;
             if (lesson.id === this.current) return `${shape} border-2 border-accent bg-ink text-cream`;
             return `${shape} border-2 border-line bg-ink text-muted`;
         },
         nodeStyle(unit, lesson) {
-            if (this.stars(lesson)) return { '--gem': this.colorOf(unit), '--gem-ink': this.paintText(this.colorOf(unit)) };
+            if (this.stars(lesson)) return game() ? { '--gem': this.colorOf(unit), '--gem-ink': this.paintText(this.colorOf(unit)) } : { background: this.colorOf(unit), color: this.paintText(this.colorOf(unit)) };
             if (lesson.id === this.current) return { boxShadow: '0 0 0 5px color-mix(in srgb, var(--color-accent) 25%, transparent)' };
             return null;
         },

@@ -73,7 +73,7 @@ export const ContactView = {
                             </div>
                         </div>
                         <!-- Left empty by people; bots fill it in. -->
-                        <div class="absolute -left-[9999px]" aria-hidden="true"><label>{{ t('auth.nickname') }}<input v-model="website" tabindex="-1" autocomplete="off" /></label></div>
+                        <div class="absolute -start-[9999px]" aria-hidden="true"><label>{{ t('auth.nickname') }}<input v-model="website" tabindex="-1" autocomplete="off" /></label></div>
                         <TurnstileBox v-if="config?.turnstileSiteKey" :key="turnstileKey" :site-key="config.turnstileSiteKey" @token="turnstile = $event" @failed="turnstile = null" />
                         <Notice v-if="refusal" tone="bad">{{ refusal }}</Notice>
                     </div>
