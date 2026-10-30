@@ -11,7 +11,7 @@ from flow import run  # noqa: E402
 from game_frames import dark, light  # noqa: E402
 
 ROWS = "document.querySelectorAll('[data-game-effect]')"
-NAMES = ["sounds", "hud", "popups", "titles", "celebrations", "title", "stages", "versus", "select", "ghost", "daily"]
+NAMES = ["sounds", "hud", "popups", "titles", "celebrations", "title", "stages", "versus", "select", "ghost", "daily", "monthly"]
 
 
 def on(f, name):

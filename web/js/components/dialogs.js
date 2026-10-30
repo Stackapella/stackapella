@@ -429,16 +429,21 @@ export const MicDialog = {
  * Export (Hillel's 83.png): what to export first (the whole song, a practice track, or each part
  * in a ZIP), then how it sounds (Polished with its room, the piano chords), then the file (its name
  * with the extension, WAV or MP3). A muted part is said, with Include it. Plus choices can be picked:
- * a line says so and the button becomes Get Plus. The foot says what you'll get.
+ * a line says so and the button becomes Get Plus. The foot says what you'll get. A song with written
+ * parts can also go out as sheet music (docs/sheet-music-plan.md): the score or one part, as MusicXML
+ * or MIDI, never Plus.
  */
+const SHEET_FORMATS = { musicxml: 'MusicXML', midi: 'MIDI' }; // format names, never translated
+
 export const ExportDialog = {
     components: { Modal, Switch },
     setup: () => ({ formatList, formatTime }),
-    // parts: [{ id, name, muted }]; seconds: the song's length, for the size.
-    props: { title: { type: String, default: '' }, defaultName: String, busy: Boolean, credits: { type: Array, default: () => [] }, hasChords: Boolean, parts: { type: Array, default: () => [] }, seconds: { type: Number, default: 0 }, sampleRate: { type: Number, default: 48000 } },
+    // parts: [{ id, name, muted }]; seconds: the song's length, for the size. scoreParts: the song's
+    // written parts ([{ key, name }]), for sheet music; none, and it isn't offered.
+    props: { title: { type: String, default: '' }, defaultName: String, busy: Boolean, credits: { type: Array, default: () => [] }, hasChords: Boolean, parts: { type: Array, default: () => [] }, scoreParts: { type: Array, default: () => [] }, seconds: { type: Number, default: 0 }, sampleRate: { type: Number, default: 48000 } },
     emits: ['export', 'close', 'upgrade', 'unmute'],
     data() {
-        return { name: this.defaultName, format: 'wav', chords: false, polish: prefs.polish, room: prefs.room, what: 'song', partId: this.parts[0]?.id ?? null, kind: 'without', clicks: true, field, label, primary, secondary, ROOM_CHOICES };
+        return { name: this.defaultName, format: 'wav', chords: false, polish: prefs.polish, room: prefs.room, what: 'song', partId: this.parts[0]?.id ?? null, kind: 'without', clicks: true, sheetFormat: 'musicxml', sheetPart: '', field, label, primary, secondary, ROOM_CHOICES, SHEET_FORMATS };
     },
     template: `
         <Modal :title="title ? t('export.titleOf', { title }) : t('export.title')" :title-is-content="!!title" @close="$emit('close')">
@@ -456,7 +461,14 @@ export const ExportDialog = {
                         </label>
                         <label class="check-row"><input v-model="kind" type="radio" value="without" class="radio" /><span>{{ t('export.without') }}<span class="block text-xs text-muted">{{ t('export.withoutHint') }}</span></span></label>
                         <label class="check-row"><input v-model="kind" type="radio" value="louder" class="radio" /><span>{{ t('export.louder') }}<span class="block text-xs text-muted">{{ t('export.louderHint') }}</span></span></label>
+                        <label class="check-row"><input v-model="kind" type="radio" value="split" class="radio" /><span>{{ t('export.split') }}<span class="block text-xs text-muted">{{ t('export.splitHint') }}</span></span></label>
+                        <label class="check-row"><input v-model="kind" type="radio" value="alone" class="radio" /><span>{{ t('export.alone') }}<span class="block text-xs text-muted">{{ t('export.aloneHint') }}</span></span></label>
                         <label class="check-row"><input v-model="clicks" type="checkbox" class="checkbox" />{{ t('export.clicks') }}</label>
+                    </div>
+                    <div v-if="what === 'sheet' && scoreParts.length > 1" class="rounded-2xl border border-line p-3.5">
+                        <label :class="label">{{ t('export.sheetParts') }}
+                            <select v-model="sheetPart" :class="field" data-sheet-part><option value="">{{ t('export.sheetAll') }}</option><option v-for="p in scoreParts" :key="p.key" :value="p.key">{{ p.name }}</option></select>
+                        </label>
                     </div>
                 </fieldset>
                 <!-- A part muted in the studio isn't in the mix: said, with a one-tap fix -->
@@ -464,14 +476,14 @@ export const ExportDialog = {
                     <span>{{ t('export.mutedPart', { name: p.name }) }}</span>
                     <button type="button" class="btn-secondary btn-sm" @click="$emit('unmute', p.id)">{{ t('export.includeIt') }}</button>
                 </p>
-                <fieldset class="space-y-2">
+                <fieldset v-if="what !== 'sheet'" class="space-y-2">
                     <legend class="mb-2 text-sm font-semibold text-muted">{{ t('export.sound') }}</legend>
                     <div class="divide-y divide-line rounded-2xl border border-line">
                         <div class="space-y-3 p-4">
                             <Switch :on="polish" :label="t('polish.name')" :hint="t('export.polishedHint')" @change="polish = $event" />
                             <div v-if="polish" class="flex items-center gap-3">
                                 <span class="text-sm text-muted">{{ t('polish.room.label') }}</span>
-                                <div class="seg flex flex-1 flex-wrap rounded-3xl" role="radiogroup" :aria-label="t('polish.room.label')">
+                                <div class="seg flex flex-1 rounded-3xl" role="radiogroup" :aria-label="t('polish.room.label')">
                                     <button v-for="choice in ROOM_CHOICES" :key="choice.value" type="button" role="radio" :aria-checked="room === choice.value ? 'true' : 'false'" class="seg-option flex-1 whitespace-nowrap" @click="room = choice.value">{{ t(choice.label) }}</button>
                                 </div>
                             </div>
@@ -484,21 +496,24 @@ export const ExportDialog = {
                     <div class="flex flex-wrap gap-2">
                         <label class="relative block w-full min-w-0">
                             <span class="sr-only">{{ t('export.fileName') }}</span>
-                            <input v-model="name" maxlength="80" class="input pe-16" />
+                            <input v-model="name" maxlength="80" :class="['input', what === 'sheet' && sheetFormat === 'musicxml' ? 'pe-20' : 'pe-16']" />
                             <span class="input-icon end-[18px] text-sm" translate="no">.{{ extension }}</span>
                         </label>
-                        <div v-if="what !== 'stems'" class="seg ms-auto flex" role="radiogroup" :aria-label="t('export.format')">
+                        <div v-if="what === 'sheet'" class="seg ms-auto flex" role="radiogroup" :aria-label="t('export.format')">
+                            <button v-for="f in ['musicxml', 'midi']" :key="f" type="button" role="radio" :aria-checked="sheetFormat === f ? 'true' : 'false'" class="seg-option" @click="sheetFormat = f" translate="no">{{ SHEET_FORMATS[f] }}</button>
+                        </div>
+                        <div v-else-if="what !== 'stems'" class="seg ms-auto flex" role="radiogroup" :aria-label="t('export.format')">
                             <button v-for="f in ['wav', 'mp3']" :key="f" type="button" role="radio" :aria-checked="format === f ? 'true' : 'false'" class="seg-option flex items-center gap-1.5" @click="format = f" translate="no">{{ f.toUpperCase() }}<span v-if="f === 'mp3' && !plus" class="chip-accent">{{ t('home.plus') }}</span></button>
                         </div>
                     </div>
-                    <p class="text-xs text-muted">{{ what === 'stems' ? t('export.stemsHint') : format === 'mp3' ? t('export.mp3Hint') : t('export.wavHint') }}</p>
+                    <p class="text-xs text-muted">{{ what === 'sheet' ? (sheetFormat === 'midi' ? t('export.midiHint') : t('export.musicxmlHint')) : what === 'stems' ? t('export.stemsHint') : format === 'mp3' ? t('export.mp3Hint') : t('export.wavHint') }}</p>
                 </fieldset>
                 <p v-if="locked" class="text-sm text-cream" role="status">{{ what === 'stems' ? t('plus.moment.stems') : t('plus.moment.mp3') }}</p>
-                <p v-if="credits.length" class="text-sm text-cream">{{ t('export.credits', { names: formatList(credits) }) }}</p>
+                <p v-if="credits.length && what !== 'sheet'" class="text-sm text-cream">{{ t('export.credits', { names: formatList(credits) }) }}</p>
                 <div class="flex flex-wrap items-center gap-3 border-t border-line pt-4">
                     <span class="me-auto text-xs tabular-nums text-muted" translate="no">{{ summary }}</span>
                     <button type="button" :class="secondary" @click="$emit('close')">{{ t('common.cancel') }}</button>
-                    <button type="submit" :class="primary" :disabled="busy">{{ busy ? t('export.mixing') : locked ? t('plus.subscribe') : t('export.exportAs', { format: extension.toUpperCase() }) }}</button>
+                    <button type="submit" :class="primary" :disabled="busy">{{ busy ? t('export.mixing') : locked ? t('plus.subscribe') : t('export.exportAs', { format: formatName }) }}</button>
                 </div>
             </form>
         </Modal>`,
@@ -509,21 +524,28 @@ export const ExportDialog = {
                 { value: 'song', name: t('export.song'), hint: t('export.songHint', { count: this.parts.length }) },
                 ...(this.parts.length > 1 ? [{ value: 'track', name: t('export.track'), hint: t('export.trackHint') }] : []),
                 ...(this.parts.length > 1 ? [{ value: 'stems', name: t('export.stems'), hint: t('export.stemsChoice'), plus: true }] : []),
+                ...(this.scoreParts.length ? [{ value: 'sheet', name: t('export.sheet'), hint: t('export.sheetHint') }] : []),
             ];
         },
         mutedParts() {
             return this.what === 'song' ? this.parts.filter((p) => p.muted) : [];
         },
-        /** The file it makes: a ZIP of WAVs for each part, else the format picked. */
+        /** The file it makes: a ZIP of WAVs for each part, sheet music's .musicxml or .mid, else the format picked. */
         extension() {
+            if (this.what === 'sheet') return this.sheetFormat === 'midi' ? 'mid' : 'musicxml';
             return this.what === 'stems' ? 'zip' : this.format;
+        },
+        formatName() {
+            return this.what === 'sheet' ? SHEET_FORMATS[this.sheetFormat] : this.extension.toUpperCase();
         },
         /** MP3 and each part are Plus (docs/features.md): picked, a line says so and the button is Get Plus. */
         locked() {
+            if (this.what === 'sheet') return false;
             return exportNeedsPlus(this.what === 'stems' ? 'stems' : this.format);
         },
         /** "WAV · about 6.5 MB · 0:37": stereo 16-bit at the mix's rate, MP3 at about 128 kbps, each recorded part a mono WAV at its own. */
         summary() {
+            if (this.what === 'sheet') return t('export.sheetSummary', { format: this.formatName, count: this.sheetPart ? 1 : this.scoreParts.length });
             const seconds = this.seconds || 0;
             const stems = this.parts.reduce((sum, p) => sum + (p.sampleRate ?? 0) * 2, 0);
             const bytes = this.what === 'stems' ? seconds * stems : this.format === 'mp3' ? seconds * 16000 : seconds * this.sampleRate * 4;
@@ -536,6 +558,10 @@ export const ExportDialog = {
             Object.assign(prefs, { polish: this.polish, room: this.room });
             if (this.locked) {
                 this.$emit('upgrade', this.what === 'stems' ? 'stems' : this.format);
+                return;
+            }
+            if (this.what === 'sheet') {
+                this.$emit('export', { name: this.name.trim() || t('export.defaultName'), format: this.sheetFormat, sheet: { partKey: this.sheetPart || null } });
                 return;
             }
             const track = this.what === 'track' && this.partId ? { partId: this.partId, kind: this.kind, click: this.clicks } : null;

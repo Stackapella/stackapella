@@ -15,7 +15,9 @@ until curl -s https://app.stackapella.com/up | grep -q "\"build\":\"$H"; do
     fi
     sleep 20
 done
-echo "Live: $H. Running the launch smoke..."
+echo "Live: $H. Waiting a minute for every instance and cache to settle..."
+sleep 60
+echo "Running the launch smoke..."
 if python3 -I web/tool/launch_smoke.py > /tmp/stackapella-smoke.log 2>&1; then
     tail -1 /tmp/stackapella-smoke.log
     echo "Deploy $H is healthy."

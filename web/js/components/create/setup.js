@@ -57,7 +57,7 @@ export const TempoStep = {
                 <legend class="sr-only">{{ t('create.tempo.signature') }}</legend>
                 <div class="flex flex-wrap items-center justify-between gap-3">
                     <p class="text-lg font-bold text-cream" aria-hidden="true">{{ t('create.tempo.signature') }}</p>
-                    <div class="seg flex flex-wrap">
+                    <div class="seg flex">
                         <label v-for="(label, s) in SIGNATURES" :key="s" class="seg-option tap-44">
                             <input type="radio" class="sr-only" name="signature" :value="s" :checked="draft.template.timeSignature === s" @change="setTemplate({ timeSignature: s })" />{{ t(label) }}
                         </label>

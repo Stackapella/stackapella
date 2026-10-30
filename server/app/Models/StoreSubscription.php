@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Actions\Counts\RecordCounts;
 use Database\Factories\StoreSubscriptionFactory;
 use Illuminate\Database\Eloquent\Attributes\UseFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -63,6 +64,32 @@ final class StoreSubscription extends Model
 
     /** Only which subscription it is, when a row is made; the rest is the server's own. */
     protected $fillable = ['store', 'original_id'];
+
+    /**
+     * Growth's "Plus started" (a daily number only): a real store subscription that starts running,
+     * new or after it had ended. A renewal out of grace isn't a start, nor a store's test purchase.
+     */
+    protected static function booted(): void
+    {
+        self::created(static function (self $subscription): void {
+            if ($subscription->status === self::ACTIVE) {
+                $subscription->countStart();
+            }
+        });
+        self::updated(static function (self $subscription): void {
+            if ($subscription->wasChanged('status') && $subscription->status === self::ACTIVE
+                && ! in_array($subscription->getPrevious()['status'] ?? null, [self::ACTIVE, self::GRACE, self::RETRYING], true)) {
+                $subscription->countStart();
+            }
+        });
+    }
+
+    private function countStart(): void
+    {
+        if ($this->environment === 'Production') {
+            app(RecordCounts::class)->server('plus_started', true, null);
+        }
+    }
 
     protected $hidden = ['purchase_token'];
 

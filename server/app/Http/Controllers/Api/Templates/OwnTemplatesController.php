@@ -14,6 +14,7 @@ use App\Http\Resources\Templates\OwnTemplateResource;
 use App\Models\Template;
 use App\Models\User;
 use App\Support\Http\CursorList;
+use App\Support\Templates\Imported;
 use App\Support\Usage\Plans;
 use Illuminate\Container\Attributes\CurrentUser;
 use Illuminate\Http\JsonResponse;
@@ -48,7 +49,9 @@ final class OwnTemplatesController extends Controller
         /** @var array{song: string, source?: string|null, ownWork: bool}|null $declaration */
         $declaration = $request->validated('declaration');
         $parent = $request->validated('parentId');
-        $saved = $templates->save($user, $template, $json, is_string($visibility) ? $visibility : null, $optIn === null ? null : (bool) $optIn, $declaration, is_string($parent) ? $parent : null);
+        $copiedFrom = $request->validated('copiedFrom');
+        $saved = $templates->save($user, $template, $json, is_string($visibility) ? $visibility : null, $optIn === null ? null : (bool) $optIn, $declaration, is_string($parent) ? $parent : null,
+            imported: $request->validated('source') === Imported::SOURCE, copiedFrom: is_string($copiedFrom) ? $copiedFrom : null);
 
         return $this->template($saved);
     }

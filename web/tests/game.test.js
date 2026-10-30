@@ -278,6 +278,15 @@ test('game sounds: the count-in as chip blips, no louder than the click, only wi
     }
 });
 
+test('game share card: NEW RECORD only when a take beats a best from an earlier try', async () => {
+    const { beatsBest } = await import('/js/stores/learning.js');
+    assert(!beatsBest(undefined, 90), 'a first try is never a record');
+    assert(!beatsBest({ stars: 1, bestPercent: null }, 90), 'no best kept yet: not a record');
+    assert(beatsBest({ stars: 2, bestPercent: 80 }, 91), 'beat it: a record');
+    assert(!beatsBest({ stars: 3, bestPercent: 91 }, 91), 'equal is not a record');
+    assert(!beatsBest({ stars: 3, bestPercent: 95 }, null), 'no percent: not a record');
+});
+
 test('game fonts: added once, from Google Fonts', () => {
     const doc = document.implementation.createHTMLDocument('fonts');
     loadGameFonts(doc);

@@ -15,6 +15,7 @@ use App\Models\User;
 use App\Support\Flags;
 use App\Support\Gallery\Gallery;
 use App\Support\Gallery\GalleryViews;
+use App\Support\Templates\Imported;
 use App\Support\Trust\TrustLevel;
 use Illuminate\Contracts\Pagination\CursorPaginator;
 use Illuminate\Database\Eloquent\Builder;
@@ -101,6 +102,11 @@ final class Library
 
         return DB::transaction(function () use ($user, $uuid, $declaration, $ip): Template {
             $template = Template::query()->where('slug', $uuid)->where('owner_id', $user->id)->whereNull('deleted_at')->lockForUpdate()->first() ?? throw new Refusal(404, 'not_found');
+
+            if ($template->isImported()) {
+                Imported::refuse();
+            }
+
             $stored = self::declaration($declaration);
             $first = $template->published_at === null;
             $already = $template->isPublic();

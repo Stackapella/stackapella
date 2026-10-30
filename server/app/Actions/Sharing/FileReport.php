@@ -25,6 +25,7 @@ use App\Models\User;
 use App\Support\Gallery\Gallery;
 use App\Support\Ids;
 use App\Support\Sharing\HarmonyFiles;
+use App\Support\Templates\Catalogue;
 use App\Support\Trust\IpHash;
 use App\Support\Trust\SecurityLog;
 use App\Support\Trust\TrustLevel;
@@ -192,9 +193,12 @@ final class FileReport
      */
     private function template(?User $user, array $data, string $ip): void
     {
-        $template = Template::query()->where('slug', (string) ($data['templateId'] ?? ''))->whereNotNull('owner_id')->where('visibility', 'public')->whereNull('hidden_at')->whereNull('deleted_at')->first();
+        $template = Template::query()->where('slug', (string) ($data['templateId'] ?? ''))->whereNotNull('owner_id')->whereNull('hidden_at')->whereNull('deleted_at')->first();
+        // The library's, or a song made from imported sheet music that the reporter sings in a choir group.
+        $reachable = $template !== null && (($template->isPublic() && app(Library::class)->isOpen())
+            || ($template->isImported() && $user !== null && app(Catalogue::class)->inGroup($template, $user)));
 
-        if ($template === null || ! app(Library::class)->isOpen()) {
+        if (! $reachable) {
             throw new Refusal(404, 'not_found');
         }
 

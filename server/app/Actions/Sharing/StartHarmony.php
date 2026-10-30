@@ -17,6 +17,7 @@ use App\Models\User;
 use App\Support\Ids;
 use App\Support\Moderation\TextFilter;
 use App\Support\Storage\Uploads;
+use App\Support\Templates\Imported;
 use App\Support\Trust\TrustLevel;
 use App\Support\Usage\Plans;
 use DateTimeInterface;
@@ -103,6 +104,12 @@ final class StartHarmony
         $version = $project->template_slug !== null
             ? TemplateVersion::query()->whereHas('template', fn ($query) => $query->where('slug', $project->template_slug))->where('version', $project->template_version)->first()
             : null;
+
+        // Sung from imported sheet music: kept to the singer, never a link anyone can open.
+        if ($data['visibility'] === Harmony::UNLISTED && (Imported::project($project) || $version?->template?->isImported() === true)) {
+            Imported::refuse();
+        }
+
         $title = trim((string) ($data['title'] ?? ''));
 
         $harmony = new Harmony([

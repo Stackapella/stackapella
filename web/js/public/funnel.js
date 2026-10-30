@@ -3,7 +3,9 @@
 // localStorage so it stays the same), and every Start link carries it as from=start&v=<experiment>-<arm>
 // for the app to adopt. ?v= on the page only previews an arm: it goes on the links but is never counted. The
 // first Start on this device sends one anonymous count, f_site_start, as a beacon to our own server
-// (no ID, no cookie), and nothing at all while counts are off.
+// (no ID, no cookie), and nothing at all while counts are off. Every page load sends site_visit too,
+// once, and both carry the page's ?ref= as source, which the server groups (counts.sources) and never
+// keeps as written.
 
 import { OPERATIONS } from '../api.js';
 
@@ -11,6 +13,8 @@ const config = JSON.parse(document.querySelector('[data-funnel]')?.textContent ?
 const experiment = config.experiment;
 const forced = new URLSearchParams(location.search).get('v');
 const SENT = 'stackapella.funnel.siteStart';
+const ref = new URLSearchParams(location.search).get('ref');
+const source = ref && /^[a-z0-9_-]{1,40}$/i.test(ref) ? ref.toLowerCase() : null;
 
 function read(key) {
     try {
@@ -58,14 +62,18 @@ for (const link of starts) {
 // is known not to be it, so the landing never promises what the app won't do.
 for (const el of document.querySelectorAll('[data-variant-except]')) el.hidden = !variant || variant === el.dataset.variantExcept;
 
+function beacon(body) {
+    // As js/usage.js sends its counts: a beacon to counts.create, so leaving the page still sends.
+    navigator.sendBeacon?.(OPERATIONS['counts.create'][1], new Blob([JSON.stringify(body)], { type: 'application/json' }));
+}
+
 if (config.counts) {
+    beacon({ events: [{ kind: 'site_visit' }], signedIn: false, ...(source ? { source } : {}) });
     for (const link of starts) {
         link.addEventListener('click', () => {
             if (read(SENT)) return;
             write(SENT, '1');
-            const body = { events: [{ kind: 'f_site_start' }], signedIn: false, ...(variant && !forced ? { variant } : {}) };
-            // As js/usage.js sends its counts: a beacon to counts.create, so leaving the page still sends.
-            navigator.sendBeacon?.(OPERATIONS['counts.create'][1], new Blob([JSON.stringify(body)], { type: 'application/json' }));
+            beacon({ events: [{ kind: 'f_site_start' }], signedIn: false, ...(variant && !forced ? { variant } : {}), ...(source ? { source } : {}) });
         });
     }
 }

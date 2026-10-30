@@ -29,6 +29,8 @@ final class RecordCountsRequest extends FormRequest
             'signedIn' => ['nullable', 'boolean'],
             // The funnel's experiment arm ("onb1-b"); one the server doesn't know is counted without it.
             'variant' => ['nullable', 'string', 'max:40'],
+            // Where the device came from: its stored ?ref= tag, grouped by the server (never kept as sent).
+            'source' => ['nullable', 'string', 'max:40'],
         ];
     }
 }

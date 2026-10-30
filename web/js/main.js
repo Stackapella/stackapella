@@ -19,7 +19,7 @@ import { MicCheckHost } from './components/mic-check.js';
 import './game/fonts.js'; // game mode's two fonts, fetched only once it's on
 import { checkVersion, newVersionFound, version, watchVersion } from './version.js';
 import { listenForInstall } from './components/install.js';
-import { fill, radioArrows } from './components/controls.js';
+import { fill, fitSegments, radioArrows } from './components/controls.js';
 import { account, keepLinkToken, loadAccount, loadAuthConfig, rememberRef } from './stores/account.js';
 import { signedInSync, startSync } from './stores/cloud.js';
 import { adoptAccountAppearance, appearance, game } from './stores/appearance.js';
@@ -32,6 +32,7 @@ import { LOADING_DELAY_MS, screenLoading } from './components/screen-loading.js'
 import { learning, loadPlusCourses } from './stores/learning.js';
 import { courseVisible } from './courses.js';
 import { nameScreens } from './screen-name.js';
+import { COOL_DOWN } from './stores/learning.js';
 
 // Views load when they're opened, from the same version as the page (js/lazy.js reloads otherwise).
 // While one loads, its frame shows after a moment (components/screen-loading.js), never a blank page.
@@ -83,7 +84,7 @@ const FIRST_INSTALL_WAIT_MS = 15000; // a timer for when to install, never for a
 
 const App = {
     components: { ProjectsView, StudioView, SingView, AuthView, SettingsView, StorageView, VoiceView, WorkoutView, PlusView, RemindersView, CloudConflicts, LearnView, CourseView, PlusCourseView, BirthHost, NewVersion, AdminView, StyleguideView, BetaView, CreateView, TemplateView, JoinView, EarlyView, GroupsView, GroupView, ChoirJoinView, MovedView, ContactView, IdeasView, IdeaView, ResetView, Toasts, ConfirmHost, MicHelpHost, MicCheckHost, ChallengeView },
-    setup: () => ({ route }),
+    setup: () => ({ route, COOL_DOWN }),
     template: `
         <AdminView v-if="route.name === 'admin'" />
         <!-- Every screen's one main landmark (the admin has its own shell). -->
@@ -115,6 +116,8 @@ const App = {
         <RemindersView v-else-if="route.name === 'reminders'" />
         <CourseView v-else-if="route.name === 'course'" />
         <LearnView v-else-if="route.name === 'learn'" :key="'learn-' + route.params.id" :id="route.params.id" />
+        <!-- Voice care's cool-down (docs/voice-care-plan.md): a standalone, unscored lesson. -->
+        <LearnView v-else-if="route.name === 'cooldown'" key="cooldown" :id="COOL_DOWN" />
         <PlusCourseView v-else-if="route.name === 'plusCourse'" :key="'course-' + route.params.id" :id="route.params.id" />
         <ProjectsView v-else />
         </main>
@@ -183,6 +186,7 @@ count(game() ? 'open_game' : 'open_serious'); // and in which skin
 rememberRef();
 listenForInstall();
 radioArrows();
+fitSegments(); // a segmented control too wide for its row becomes a grid, never a wrapped pill
 loadAccount();
 // The funnel (js/funnel.js): this open counted as an arrival or a return, with the experiment's arm
 // drawn on a first open while one enrols. Without the settings, no arm: the open still counts.

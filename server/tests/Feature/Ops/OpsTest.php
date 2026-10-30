@@ -279,8 +279,8 @@ final class OpsTest extends TestCase
         $clean = ScrubEvent::event($event);
 
         $this->assertSame(['method' => 'POST', 'url' => 'https://stackapella.test/api/x', 'headers' => ['User-Agent' => 'UA']], $clean?->getRequest());
-        $this->assertSame('42', $clean?->getUser()?->getId());
-        $this->assertNull($clean?->getUser()?->getEmail());
+        // No person at all: no id, no address, no IP.
+        $this->assertNull($clean?->getUser());
         $this->assertSame('Failed for [email] from [ip] with token=[secret]', $clean?->getMessage());
 
         $frame = new Frame('handle', 'app/Actions/Support/SupportInbox.php', 40, null, null, ['email' => 'ana@example.com']);

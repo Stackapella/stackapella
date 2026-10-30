@@ -12,17 +12,22 @@ use Illuminate\Support\Facades\DB;
  */
 final class RecordCounts
 {
+    /** Kinds that keep where the device came from (with the funnel's): the landing's visits. */
+    public const SOURCED = ['site_visit'];
+
     /**
      * A funnel or ask kind (Funnel::kinds()) also keeps the device's experiment arm, when it names
-     * a configured one, and then no country, so an experiment's cells stay coarse.
+     * a configured one, and a funnel kind or a landing visit its source, grouped (self::source());
+     * either one, and the row keeps no country, so those cells stay coarse.
      *
      * @param  list<array{kind: string, n?: int}>  $events
      */
-    public function handle(array $events, bool $signedIn, ?string $country, ?string $variant = null): void
+    public function handle(array $events, bool $signedIn, ?string $country, ?string $variant = null, ?string $ref = null): void
     {
         $funnel = Funnel::kinds();
         $kinds = [...(array) config('counts.kinds'), ...$funnel, ...self::detailedKinds()];
         $variant = $variant !== null && Funnel::knownVariant($variant) ? $variant : '';
+        $source = self::source($ref);
         $max = (int) config('counts.max_n');
         $totals = [];
 
@@ -39,8 +44,27 @@ final class RecordCounts
 
         foreach ($totals as $kind => $n) {
             $arm = in_array($kind, $funnel, true) ? $variant : '';
-            DB::statement('insert into usage_counts (day, kind, audience, country, variant, count) values (?, ?, ?, ?, ?, ?) on duplicate key update count = count + ?', [$day, $kind, $audience, $arm !== '' ? '' : ($country ?? ''), $arm, $n, $n]);
+            $from = in_array($kind, $funnel, true) || in_array($kind, self::SOURCED, true) ? $source : '';
+            DB::statement('insert into usage_counts (day, kind, audience, country, variant, source, count) values (?, ?, ?, ?, ?, ?, ?) on duplicate key update count = count + ?', [$day, $kind, $audience, $arm !== '' || $from !== '' ? '' : ($country ?? ''), $arm, $from, $n, $n]);
         }
+    }
+
+    /**
+     * Where a device came from, from its ?ref= tag, grouped: a campaign's tag as written (config
+     * counts.sources), "harmony" for a shared harmony's (h-*), "coach" for a coach's link (c-*),
+     * "other" for any other, and '' for none. Never the tag itself, so no id is kept.
+     */
+    public static function source(?string $ref): string
+    {
+        $ref = strtolower(trim((string) $ref));
+
+        return match (true) {
+            $ref === '' => '',
+            in_array($ref, (array) config('counts.sources'), true) => $ref,
+            str_starts_with($ref, 'h-') => 'harmony',
+            str_starts_with($ref, 'c-') => 'coach',
+            default => 'other',
+        };
     }
 
     /**

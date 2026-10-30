@@ -9,7 +9,7 @@ import { guideGain, peakDbfs, rmsDbfs } from '../levels.js';
 import { goBack, navigate } from '../router.js';
 import * as sessionStore from '../stores/session.js';
 import { FRAMES_PER_PEAK, GUIDE_PEAKS_RATE, session } from '../stores/session.js';
-import { lengthBeats, lyricLines, partsFor, slotName } from '../templates.js';
+import { lengthBeats, lyricLines, partsFor, slotName, templatePartName } from '../templates.js';
 import { beatsPerBar, defaultPartName, formatTime, keyLabel, PART_COLORS } from '../theme.js';
 import { encodeWav } from '../wav.js';
 import { ExportDialog, HeadphonesDialog, MicDialog, PartDialog, ProjectDialog, RangeDialog, TimingDialog } from '../components/dialogs.js';
@@ -30,6 +30,8 @@ import { VoiceNote } from '../components/voice-note.js';
 import { confirmAction } from '../components/confirm.js';
 import { TrimSheet } from '../components/trim.js';
 import { encodeMp3 } from '../mp3.js';
+import { asSung, toMusicXML } from '../musicxml.js';
+import { toMidi } from '../midi.js';
 import { ShareSheet } from '../components/share.js';
 import { CountIn } from '../components/count-in.js';
 import { TogetherSheet } from '../components/together.js';
@@ -323,7 +325,7 @@ export const StudioView = {
                 @close="closeReport" @again="recordAgain" @loop="loopFromReport" @hear="hearAsLearners" @send="sendTake" />
             <TellHillel v-if="dialog === 'tell'" :context="tellContext" @close="dialog = null" />
             <MicDialog v-if="dialog === 'mic'" @close="dialog = null" @timing="openAudioDialog('timing')" />
-            <ExportDialog v-if="dialog === 'export'" :title="shownTitle(project)" :seconds="contentLength" :parts="exportParts" :default-name="exportName" :sample-rate="engine.sampleRate" @unmute="(id) => update(parts.find((p) => p.id === id), { muted: false })" :credits="voiceCredits" :has-chords="!!project.template?.chords?.length" :busy="exporting" @close="dialog = null" @export="exportMix" @upgrade="navigate('/plus?from=' + $event)" />
+            <ExportDialog v-if="dialog === 'export'" :title="shownTitle(project)" :seconds="contentLength" :parts="exportParts" :default-name="exportName" :sample-rate="engine.sampleRate" @unmute="(id) => update(parts.find((p) => p.id === id), { muted: false })" :credits="voiceCredits" :has-chords="!!project.template?.chords?.length" :score-parts="scoreParts" :busy="exporting" @close="dialog = null" @export="exportMix" @upgrade="navigate('/plus?from=' + $event)" />
             <PartDialog v-if="dialog === 'part' && dialogPart" :theirs="sessionStore.mine(dialogPart) ? null : (dialogPart.createdBy?.name ?? project.shared?.owner?.name ?? '')" :part="dialogPart" :shown-name="nameOf(dialogPart)" :color="paint(dialogPart.color)" :voice="guideVoices[dialogPart.id] ?? null" :recording="recording" @voice="chooseVoice(dialogPart, $event)" :slot="!!dialogPart.templatePartKey" :recorded="hasTake(dialogPart)" @close="dialog = null" @update="update(dialogPart, $event)" @rerecord="rerecord(dialogPart)" @delete="removePart(dialogPart)" @clear="clearTakeOf(dialogPart)" @practise="dialog = null; singPart(dialogPart)" @trim="openTrim(dialogPart)" :harmonise="!project.template && !project.beta && !project.shared" @harmonise="harmonise(dialogPart)" />
             <TrimSheet v-if="dialog === 'trim' && dialogPart" :part="dialogPart" :name="nameOf(dialogPart)" :color="paint(dialogPart.color)" :beat-seconds="60 / (project.bpm || 90)" :playing="playing" :can-line-up="parts.filter(hasTake).length > 1"
                 @trim="trim(dialogPart, $event)" @play-start="hearEdge(dialogPart, 'start')" @play-end="hearEdge(dialogPart, 'end')" @play-trimmed="hearTrimmed(dialogPart)" @stop="stopPlayback" @line-up="lineUp" @close="closeTrim(dialogPart)" />
@@ -390,6 +392,11 @@ export const StudioView = {
         /** The parts a practice track can be made for. */
         exportParts() {
             return this.parts.map((p) => ({ id: p.id, name: this.nameOf(p), muted: !!p.muted, sampleRate: hasTake(p) ? p.sampleRate : null }));
+        },
+        /** The song's written parts this project sings, for Export's sheet music; none for a song of your own. */
+        scoreParts() {
+            const used = new Set(this.parts.map((p) => p.templatePartKey).filter(Boolean));
+            return (this.project.template?.parts ?? []).filter((p) => used.has(p.key) && p.guide?.notes?.length).map((p) => ({ key: p.key, name: templatePartName(p) }));
         },
         meta() {
             const p = this.project;
@@ -1236,12 +1243,17 @@ export const StudioView = {
 
         // ---- Export ----
 
-        async exportMix({ name, format = 'wav', chords = false, room = null, track = null }) {
+        async exportMix({ name, format = 'wav', chords = false, room = null, track = null, sheet = null }) {
             this.exporting = true;
             try {
                 const comment = this.voiceCredits.length ? t('export.credits', { names: formatList(this.voiceCredits) }) : null;
                 let file;
-                if (format === 'stems') {
+                if (sheet) {
+                    // Sheet music (docs/sheet-music-plan.md): in the key and at the speed it's sung here.
+                    const song = asSung(this.project.template, { transpose: this.project.transpose || 0, tempo: this.project.bpm });
+                    const partKeys = sheet.partKey ? [sheet.partKey] : this.scoreParts.map((p) => p.key);
+                    file = format === 'midi' ? new Blob([toMidi(song, { partKeys })], { type: 'audio/midi' }) : new Blob([toMusicXML(song, { partKeys })], { type: 'application/vnd.recordare.musicxml+xml' });
+                } else if (format === 'stems') {
                     const rendered = sessionStore.renderStems();
                     const names = fileNames(rendered.map(({ part }) => `${name} - ${this.nameOf(part)}.wav`));
                     const stems = await Promise.all(rendered.map(async ({ samples, sampleRate }, i) => ({ name: names[i], bytes: new Uint8Array(await encodeWav([samples], sampleRate).arrayBuffer()) })));
@@ -1251,13 +1263,13 @@ export const StudioView = {
                     file = format === 'mp3' ? await encodeMp3(rendered.channels, rendered.sampleRate) : encodeWav(rendered.channels, rendered.sampleRate, { comment });
                 }
                 const url = URL.createObjectURL(file);
-                const link = Object.assign(document.createElement('a'), { href: url, download: `${name}.${format === 'stems' ? 'zip' : format}` });
+                const link = Object.assign(document.createElement('a'), { href: url, download: `${name}.${{ stems: 'zip', midi: 'mid' }[format] ?? format}` });
                 document.body.append(link);
                 link.click();
                 link.remove();
                 setTimeout(() => URL.revokeObjectURL(url), 60000);
                 count('export_done');
-                count(format === 'stems' ? 'exp_stems' : track ? 'exp_practice' : 'exp_song'); // by kind: the song, a practice track, every part
+                count(sheet ? 'exp_sheet' : format === 'stems' ? 'exp_stems' : track ? 'exp_practice' : 'exp_song'); // by kind: the song, a practice track, every part, sheet music
                 this.dialog = null;
             } catch (error) {
                 console.error('Export failed', error);

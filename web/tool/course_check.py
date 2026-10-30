@@ -138,6 +138,22 @@ def keep_song(where, k, steps):
         problem(where, "keepSong's chords is words")
 
 
+def unscored(where, lesson):
+    """A practice-only lesson (the cool-down): nothing in it is scored, and its end has a line."""
+    if lesson["unscored"] is not True:
+        problem(where, "unscored is true or absent")
+    if not is_words(lesson.get("endLine")):
+        problem(where, "an unscored lesson needs an endLine")
+    if "minutes" in lesson and not (isinstance(lesson["minutes"], int) and 0 < lesson["minutes"] <= 5):
+        problem(where, "minutes is a whole number from 1 to 5")
+    for i, step in enumerate(lesson.get("steps", [])):
+        ex = step.get("exercise") if isinstance(step.get("exercise"), dict) else {}
+        if step.get("kind") in ("play", "record", "use", "home") or "score" in ex or "measures" in step:
+            problem(f"{where} step {i + 1}", "an unscored lesson has no scored step")
+        if any(seg.get("scored") is not False for seg in ex.get("target", [])):
+            problem(f"{where} step {i + 1}", "every target in an unscored lesson is scored: false")
+
+
 def course(path, seen, clip_ids, unplayable, facts):
     data = json.loads(path.read_text())
     name = path.relative_to(WEB / "course")
@@ -161,6 +177,10 @@ def course(path, seen, clip_ids, unplayable, facts):
                 fact(where, lesson["fact"], facts, str(name))
             if "keepSong" in lesson:
                 keep_song(where, lesson["keepSong"], lesson.get("steps", []))
+            if lesson.get("unscored"):
+                unscored(where, lesson)
+            elif "endLine" in lesson:
+                problem(where, "endLine belongs to an unscored lesson")
             flutter = set()
             for i, step in enumerate(lesson.get("steps", [])):
                 at = f"{where} step {i + 1}"
@@ -191,6 +211,8 @@ def main():
     clips_path = WEB / "course" / "plus" / "clips.json"
     clip_ids = {c["id"] for c in json.loads(clips_path.read_text())["clips"]} if clips_path.exists() else set()
     files = [WEB / "course" / "course.json"]
+    if (WEB / "course" / "cooldown.json").exists():
+        files.append(WEB / "course" / "cooldown.json")  # the cool-down: one unscored lesson
     catalogue = WEB / "course" / "plus" / "courses.json"
     if catalogue.exists():
         files += [WEB / "course" / "plus" / c["file"] for c in json.loads(catalogue.read_text())["courses"] if c.get("file")]

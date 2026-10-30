@@ -28,7 +28,7 @@ final class LaunchSwitchesTest extends TestCase
         app(Flags::class)->set('plus_courses', 'on', null, 'Opening the Plus courses');
 
         $this->get('/courses/vibrato')->assertOk()
-            ->assertSee(__('pages.site.course_join_open'))
+            ->assertSee((string) __('site.courses.pages.vibrato.close'))
             ->assertSee(__('pages.site.course_try'))
             ->assertSee('/learn/c/vibrato', false);
         $this->get('/courses/'.$this->aCourseStillComing())->assertOk()

@@ -19,7 +19,7 @@ import { courseLessons, courseOf, recordCourseLesson, restartedCourseProgress } 
 export const KEY_REACH = 6; // Lower and Higher go this many semitones either way from the note that fits
 // `course` is the free course; `catalogue` lists the Plus courses and `courses` holds each live one's
 // data by id (js/courses.js, docs/plus-courses-build-plan.md).
-export const learning = reactive({ progress: emptyProgress(), course: null, catalogue: [], courses: {}, coursesLoaded: false, loaded: false, failed: false, epoch: 0, undoUntil: null });
+export const learning = reactive({ progress: emptyProgress(), course: null, catalogue: [], courses: {}, coursesLoaded: false, cooldown: null, loaded: false, failed: false, epoch: 0, undoUntil: null });
 
 const UNDO_DAYS = 30;
 
@@ -70,6 +70,20 @@ export function loadLearning() {
 const getJson = (path) => fetch(path).then((r) => (r.ok ? r.json() : null)).catch(() => null);
 
 let coursesLoading = null;
+let coolLoading = null;
+
+/** The cool-down's lesson id (course/cooldown.json, the courses lead's): /cooldown opens it. */
+export const COOL_DOWN = 'cool-down-1';
+
+/** The cool-down (voice care's 2-minute, unscored lesson), loaded once, on its own page. */
+export function loadCooldown() {
+    coolLoading ??= getJson('/course/cooldown.json').then((data) => {
+        learning.cooldown = data;
+        if (!data) coolLoading = null; // not here (offline, or not yet in the content): asked again next time
+        return data;
+    });
+    return coolLoading;
+}
 /**
  * The Plus courses, loaded once, by the pages that show them (a phone on a slow line opens its
  * first lesson without them): resolves once `learning.courses` and the catalogue are in.
@@ -236,14 +250,21 @@ export function allLessons() {
 export function findLesson(id) {
     const free = allLessons().find((entry) => entry.lesson.id === id);
     if (free) return { ...free, course: null };
+    // The cool-down (docs/voice-care-plan.md): one standalone, unscored lesson, outside every course.
+    const cool = learning.cooldown?.units?.[0];
+    if (cool?.lessons?.[0]?.id === id) return { unit: cool, unitIndex: 0, lesson: cool.lessons[0], index: 0, course: null, cooldown: true };
     const course = courseOf(learning.courses, id);
     const entry = course ? courseLessons(course).find((l) => l.lesson.id === id) : null;
     return entry ? { ...entry, course } : null;
 }
 
+/** A new record: `percent` beat a lesson's best kept from an earlier try (a first try is never a record). */
+export const beatsBest = (had, percent) => had?.bestPercent !== null && had?.bestPercent !== undefined && percent !== null && percent !== undefined && percent > had.bestPercent;
+
 /**
  * A lesson finished with its result: the best stars kept, XP added (with the day's cap), and the
- * practice time counted toward the weekly goal. Returns what to celebrate.
+ * practice time counted toward the weekly goal. Returns what to celebrate (`newBest`: it beat the
+ * lesson's best percent from an earlier try).
  */
 export async function finishLesson(lessonId, { percent, onTime = true, timing = 'estimated', seconds = 0, stars = null, bonus = 0 }) {
     const level = levelFor(learning.progress.xp.total).level;
@@ -253,6 +274,7 @@ export async function finishLesson(lessonId, { percent, onTime = true, timing = 
     const unitDone = (progress) => !!entry && entry.unit.lessons.every((l) => kept(progress)[l.id]);
     const unitWasDone = unitDone(learning.progress);
     const earned = stars ?? starsFor({ percent, onTime, timing });
+    const newBest = beatsBest(kept(learning.progress)[lessonId], percent);
     let progress = entry?.course ? recordCourseLesson(learning.progress, entry.course.id, lessonId, { stars: earned, percent }) : recordLesson(learning.progress, lessonId, { stars: earned, percent });
     const xp = addXp(progress, { kind: 'exercise', stars: earned, bonus });
     progress = addPractice(xp.progress, seconds);
@@ -269,7 +291,7 @@ export async function finishLesson(lessonId, { percent, onTime = true, timing = 
         if (entry && learning.course?.units?.[0] === entry.unit && unitDone(progress)) first('f_unit1');
     }
     const now = levelFor(progress.xp.total);
-    return { stars: earned, xp: xp.gained, level: now, levelledUp: now.level > level };
+    return { stars: earned, xp: xp.gained, level: now, levelledUp: now.level > level, newBest };
 }
 
 const COUNTED = { part: 'parts', harmony: 'harmonies' };

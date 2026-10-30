@@ -25,7 +25,8 @@ final class CountsController extends Controller
             /** @var list<array{kind: string, n?: int}> $events */
             $events = array_values((array) $request->validated('events'));
             $variant = $request->validated('variant');
-            $counts->handle($events, $request->boolean('signedIn'), Country::of($request), is_string($variant) ? $variant : null);
+            $source = $request->validated('source');
+            $counts->handle($events, $request->boolean('signedIn'), Country::of($request), is_string($variant) ? $variant : null, is_string($source) ? $source : null);
 
             // Someone who came from the mudeo email starting to sing: once a browser visit, a
             // number only (the visit's cookie holds no person).

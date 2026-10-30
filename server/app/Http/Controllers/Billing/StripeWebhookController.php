@@ -8,6 +8,7 @@ use App\Actions\Billing\BillingEvents;
 use App\Actions\Books\Books;
 use App\Actions\Books\Ledger;
 use App\Actions\Coaching\Engagements;
+use App\Actions\Counts\RecordCounts;
 use App\Models\Engagement;
 use App\Models\StripeEvent;
 use App\Models\User;
@@ -109,8 +110,14 @@ final class StripeWebhookController extends WebhookController
             return $this->successMethod();
         }
 
-        $response = parent::handleCustomerSubscriptionCreated($payload) ?? $this->successMethod();
         $user = $this->owner($payload);
+        // Counted once, when Cashier first records it (Stripe may send the event again).
+        $new = $user !== null && ! $user->subscriptions()->where('stripe_id', (string) ($payload['data']['object']['id'] ?? ''))->exists();
+        $response = parent::handleCustomerSubscriptionCreated($payload) ?? $this->successMethod();
+
+        if ($new && in_array($payload['data']['object']['status'] ?? null, ['active', 'trialing'], true)) {
+            app(RecordCounts::class)->server('plus_started', true, null);
+        }
 
         if ($user !== null) {
             app(BillingEvents::class)->subscriptionStarted($user, (array) $payload['data']['object']);

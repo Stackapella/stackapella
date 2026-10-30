@@ -9,6 +9,8 @@
             2
         ],
         "libraryOptIn": false,
+        "imported": false,
+        "rightsConfirmedAt": null,
         "library": null,
         "parent": null,
         "readOnly": false,

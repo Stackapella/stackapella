@@ -24,6 +24,7 @@ use App\Http\Controllers\Api\Admin\EventScheduleController as AdminEventSchedule
 use App\Http\Controllers\Api\Admin\FlagsController;
 use App\Http\Controllers\Api\Admin\FunnelController as AdminFunnel;
 use App\Http\Controllers\Api\Admin\GalleryController as AdminGallery;
+use App\Http\Controllers\Api\Admin\GrowthController as AdminGrowth;
 use App\Http\Controllers\Api\Admin\IdeasController as AdminIdeas;
 use App\Http\Controllers\Api\Admin\LibraryController as AdminLibrary;
 use App\Http\Controllers\Api\Admin\LimitsController;
@@ -527,6 +528,8 @@ Route::middleware(['auth', 'editor', 'second-factor'])->prefix('admin')->name('a
         Route::get('/network', [AdminNetwork::class, 'show'])->name('network.show');
         Route::get('/counts', [CountsController::class, 'show'])->name('counts.show');
         Route::get('/funnel', AdminFunnel::class)->name('funnel.show');
+        Route::get('/growth', [AdminGrowth::class, 'overview'])->name('growth.show');
+        Route::get('/sources', [AdminGrowth::class, 'sources'])->name('sources.show');
         Route::get('/diagnostics/country', [AdminDiagnostics::class, 'country'])->name('diagnostics.country');
         Route::get('/boards/flags', [AdminBoards::class, 'flags'])->name('boards.flags.list');
         Route::post('/boards/scores/{score}/review', [AdminBoards::class, 'review'])->name('boards.scores.review');

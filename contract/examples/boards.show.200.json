@@ -1,5 +1,7 @@
 {
     "data": {
+        "period": "all",
+        "endsAt": null,
         "templateId": "amazing-grace",
         "templateVersion": 3,
         "partKey": "alto",

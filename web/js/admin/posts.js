@@ -58,7 +58,7 @@ export const PostsSection = {
         <div class="space-y-6">
             <div class="flex flex-wrap items-end justify-between gap-3">
                 <h1 class="text-2xl font-extrabold tracking-tight text-cream">{{ t('admin.nav.posts') }}</h1>
-                <div class="seg flex flex-wrap" role="radiogroup" :aria-label="t('admin.posts.show')">
+                <div class="seg flex" role="radiogroup" :aria-label="t('admin.posts.show')">
                     <button v-for="(word, s) in FILTERS" :key="s" type="button" role="radio" :aria-checked="status === s" class="seg-option" @click="status = s; load()">{{ t(word) }}</button>
                 </div>
             </div>

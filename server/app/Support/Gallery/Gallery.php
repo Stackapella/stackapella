@@ -10,6 +10,7 @@ use App\Models\Harmony;
 use App\Models\User;
 use App\Models\UserBlock;
 use App\Support\Flags;
+use App\Support\Templates\Imported;
 use App\Support\Trust\TrustLevel;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -128,7 +129,9 @@ final class Gallery
         $harmony->loadMissing('user');
 
         return $harmony->isLive() && $harmony->user !== null && self::adult($harmony->user) && ! $harmony->user->isSuspended()
-            && ($harmony->may_feature_at !== null || $this->isListed($harmony)) && Consents::allAgreed($harmony);
+            && ($harmony->may_feature_at !== null || $this->isListed($harmony)) && Consents::allAgreed($harmony)
+            // Sung from imported sheet music: never public, whatever was set before.
+            && ! Imported::harmony($harmony);
     }
 
     /**

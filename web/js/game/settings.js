@@ -22,6 +22,7 @@ const ROWS = [
     { name: 'select', label: tk('game.settings.select'), hint: tk('game.settings.selectHint') },
     { name: 'ghost', label: tk('game.settings.ghost'), hint: tk('game.settings.ghostHint') },
     { name: 'daily', label: tk('game.settings.daily'), hint: tk('game.settings.dailyHint') },
+    { name: 'monthly', label: tk('game.settings.monthly'), hint: tk('game.settings.monthlyHint') },
 ];
 
 export const GameElements = {

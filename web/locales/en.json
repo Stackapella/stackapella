@@ -348,12 +348,16 @@
         "song": "The whole song",
         "songHint": "{count, plural, one {The part, as you hear it.} other {All # parts, mixed as you hear them.}}",
         "track": "Practice track",
-        "trackHint": "One part louder, or left out, for learning it.",
+        "trackHint": "One part louder, left out, in one ear or on its own, for learning it.",
         "trackPart": "The part to practise",
         "without": "Everything but this part",
         "withoutHint": "Sing your part over the others.",
         "louder": "This part louder",
         "louderHint": "Your part stands out, with the others quieter behind it.",
+        "split": "Split ears",
+        "splitHint": "Your part in your left ear, the others in your right. For both earbuds or headphones.",
+        "alone": "This part alone",
+        "aloneHint": "Just your part, to learn the notes.",
         "clicks": "With a click and a bar of count-in",
         "format": "Format",
         "stems": "Each part separately",
@@ -371,7 +375,14 @@
         "wavHint": "WAV: full quality, for editing or a CD.",
         "mp3Hint": "MP3: smaller, for sending and phones.",
         "exportAs": "Export {format}",
-        "summary": "{format} · about {size} · {time}"
+        "summary": "{format} · about {size} · {time}",
+        "sheet": "Sheet music",
+        "sheetHint": "The notes and words, for MuseScore and other notation apps.",
+        "sheetParts": "Parts",
+        "sheetAll": "Every part (the score)",
+        "musicxmlHint": "MusicXML: the notes, words and chords, to open in MuseScore, Dorico, Sibelius or Finale.",
+        "midiHint": "MIDI: the notes and words, for a keyboard app or a recording app.",
+        "sheetSummary": "{format} · {count, plural, one {# part} other {# parts}}"
     },
     "part": {
         "practise": "Practise this part",
@@ -498,8 +509,6 @@
             "feedbackHint": "What singers told you with Tell Hillel, with the song and the place.",
             "reports": "Reports",
             "reportsHint": "Reported links and held titles",
-            "mudeo": "mudeo email",
-            "mudeoHint": "The one email to mudeo's old users, and the early-access link",
             "support": "Support",
             "supportHint": "Messages from Contact us, and your replies.",
             "links": "Links",
@@ -523,7 +532,12 @@
             "unreadCount": "{count} unread",
             "groupCount": "{count} to look at",
             "ideas": "Ideas",
-            "ideasHint": "Tunes waiting for a review before the shelf"
+            "ideasHint": "Tunes waiting for a review before the shelf",
+            "growth": "Overview",
+            "growthHint": "Today at a glance: who arrived, how far they got, where they came from, and the experiment.",
+            "campaigns": "Campaigns",
+            "campaignsHint": "The mudeo email to mudeo's old users, and the early-access link.",
+            "mudeo": "mudeo email"
         },
         "home": {
             "title": "Admin",
@@ -1435,6 +1449,8 @@
                 "exp_song": "Song exported",
                 "exp_practice": "Practice track exported",
                 "exp_stems": "Each part exported separately",
+                "exp_sheet": "Sheet music exported (MusicXML or MIDI)",
+                "sheet_import": "Songs made from sheet music",
                 "share_note": "Shared with their note",
                 "card_named": "Name put on a share card",
                 "su_progress": "Signed up to keep progress",
@@ -1452,32 +1468,17 @@
         "funnel": {
             "title": "Funnel",
             "intro": "How far new devices get, each step counted once per device from the anonymous daily counts: never who, never in what order.",
-            "which": "Show",
             "everyone": "Every device",
             "devices": "Devices",
             "arm": "Arm {arm}",
-            "started": "Started {date}",
             "notStarted": "Planned, not started",
-            "enrolling": "Still enrolling",
-            "enrolledUntil": "Enrolled until {date}",
-            "plannedPerArm": "{count} arrivals planned per arm",
-            "primary": "Read by: {step}",
-            "guardrail": "Guardrail: {step}",
-            "primaryTag": "Primary",
-            "guardrailTag": "Guardrail",
             "splitBad": "The arms did not split 50/50 ({shares}, p {p}). That is a bug in how devices are put in arms, not a result: fix it before reading anything here.",
             "notEnough": "Not enough yet: {arrivals} of the {planned} arrivals planned for each arm. Differences this early are mostly noise.",
-            "tooSoon": "Enrolment is done, but day-2 and first-week returns are not all in until {date}. Read it then.",
             "span": "{from} to {to}",
             "steps": "Each step, as a share of arrivals",
-            "difference": "B minus A",
-            "interval": "({low} to {high})",
-            "stepsNote": "Arrivals are the first opens (from anywhere, and from the site's Start). Each other step is counted once per device, so its share is of all arrivals.",
-            "stepsNoteArms": "The difference is in percentage points, with its 95% interval: green or red only when the interval leaves out 0.",
             "asks": "Each ask, said yes to",
             "yesOf": "{yes} of {shown}",
             "step": {
-                "title": "Step",
                 "f_site_start": "Start tapped on the site",
                 "f_arrive": "Arrived",
                 "f_arrive_start": "Arrived from the site's Start",
@@ -1509,7 +1510,92 @@
                 "share": "Share",
                 "goal": "Choose a weekly goal",
                 "remind": "Turn on reminders"
-            }
+            },
+            "show": "Show",
+            "experimentOption": "Experiment {id} (A and B)",
+            "experiment": {
+                "onb1": "chord first (B) against lesson 1 as it is (A)"
+            },
+            "armName": {
+                "onb1": {
+                    "a": "lesson 1 as it is",
+                    "b": "chord first"
+                }
+            },
+            "armNamed": "{arm}, {name}",
+            "whatItChanges": "{id}: {what}.",
+            "readBy": "Read by: {step}.",
+            "guardrailIs": "Guardrail: {step}.",
+            "enrollingSince": "Enrolling since {date}",
+            "enrolledFromTo": "Enrolled {from} to {to}",
+            "arrivalsPerArm": "{list} arrivals (planned {planned} each)",
+            "and": " and ",
+            "splitOk": "the arms split evenly (p {p}, a check that devices were put in arms fairly, not a result)",
+            "readFrom": "ready to read from {date}",
+            "readyNow": "ready to read",
+            "differenceLegend": "Difference: B minus A, in points, with its 95% range",
+            "primaryMark": "(primary)",
+            "pts": "{points} pts",
+            "range": "{low} to {high}",
+            "lostHere": "lost here: {shares}"
+        },
+        "growth": {
+            "title": "Growth",
+            "introToday": "Today so far (UTC), from the anonymous counts.",
+            "introDays": "{from} to {to} (UTC), from the anonymous counts.",
+            "today": "Today",
+            "failed": "The growth numbers didn't load.",
+            "tile": {
+                "arrivals": "In the app",
+                "lesson1": "Lesson 1 sung",
+                "signedUp": "Signed up",
+                "plusStarted": "Plus started"
+            },
+            "versus": "{diff} vs {against}",
+            "same": "same as {against}",
+            "yesterday": "yesterday",
+            "lastWeekday": "last {weekday}",
+            "ofArrivals": "of arrivals",
+            "steps": "How far they got",
+            "stepsToday": "How far they got today",
+            "step": {
+                "visits": "Landing visits",
+                "start": "Pressed Start",
+                "arrivals": "In the app",
+                "lesson1": "Lesson 1 sung",
+                "unit1": "Unit 1 done",
+                "signedUp": "Signed up",
+                "plusStarted": "Plus started"
+            },
+            "didntGoOn": "{share} didn't go on",
+            "stepsNote": "Each step is counted once per device. Every share is of landing visits.",
+            "openFunnel": "Open the Funnel",
+            "sources": "Where they came from",
+            "col": {
+                "source": "Source",
+                "arrivals": "In the app",
+                "lesson1": "Lesson 1",
+                "day2": "Back on day 2"
+            },
+            "source": {
+                "none": "No tag (search and direct)",
+                "harmony": "Shared harmonies",
+                "coach": "Coaches' links",
+                "other": "Other tags",
+                "small": "{count, plural, one {# small source} other {# small sources}}"
+            },
+            "sourcesNote": "From the ?ref= tag on our own links. Sources under 5 are folded into one row.",
+            "sourcesNoteToday": "The last 7 days, so day 2 can count. From the ?ref= tag on our own links; sources under 5 are folded into one row.",
+            "experiment": "Experiment {id}",
+            "startsOn": "Starts {date}",
+            "enrollingDay": "Enrolling, day {day} of {of}",
+            "arrivalsOfPlanned": "{arrivals} of {planned} arrivals per arm",
+            "readFrom": "read from {date}",
+            "ready": "Ready to read",
+            "notReady": "Not ready to read",
+            "primaryStep": "Read by: {step}",
+            "few": "few so far",
+            "tilesToday": "Today so far, against yesterday and the same day last week:"
         },
         "clipMessage": {
             "to_record": "Hi {name}, a short course clip is ready for you to record: {clip} Open your link and tap Learn and record.",
@@ -1989,6 +2075,12 @@
             "card": "Get ready",
             "inBeats": "{count, plural, one {Your turn in # beat} other {Your turn in # beats}}"
         },
+        "ladder": {
+            "label": "Build up to speed",
+            "hint": "On your own, on a looped phrase: it starts at 70%, then goes up 5% each round you sing cleanly, to full speed.",
+            "up": "Up to {percent}%",
+            "upToSpeed": "Up to speed"
+        },
         "say": {
             "turn": "Your turn",
             "getReady": "Get ready. You start on {note}.",
@@ -2097,6 +2189,8 @@
             "medium": "Medium",
             "loud": "Loud",
             "speakers": "No headphones: the others play softer while you record, so less of them reaches your mic. Headphones give a cleaner take.",
+            "split": "Split ears",
+            "splitHint": "Your part in your left ear, the others in your right.",
             "offShort": "Off",
             "yourGuide": "your guide",
             "everyOther": "every other part",
@@ -2923,6 +3017,9 @@
             "sung": "Sung {date}",
             "hear": "Hear {which}",
             "none": "Sing this course's first lesson on this device, and its take will play here beside today's."
+        },
+        "cooldown": {
+            "end": "That's it for today. Your voice recovers overnight."
         }
     },
     "install": {
@@ -5232,6 +5329,17 @@
         }
     },
     "boards": {
+        "heading": "Leaderboard",
+        "hide": "Hide the {part} leaderboard",
+        "youTag": "You",
+        "col": {
+            "rank": "#",
+            "singer": "Singer",
+            "score": "Score",
+            "date": "Date"
+        },
+        "month": "This month",
+        "monthEmpty": "No one's on this month's board yet. Be the first.",
         "versions": {
             "earlier": "Earlier arrangements:",
             "version": "Version {version}",
@@ -5299,7 +5407,6 @@
         "everyone": "Everyone",
         "failed": "The board couldn't load.",
         "empty": "Be the first on this part.",
-        "you": "{name} (you)",
         "yourPlace": "You: #{rank}, {score}",
         "yourBest": "Your best: {score}",
         "notOnGlobal": "You're not on the worldwide board. Turn it on in Settings.",
@@ -5431,11 +5538,11 @@
             "hud": "Score strip",
             "hudHint": "Sing's clock, progress and combo in arcade type.",
             "popups": "Bonus pop-ups",
-            "popupsHint": "\"10 in a row!\", \"Phrase clear\" and your combo bonus, beside the combo.",
+            "popupsHint": "\"10 in a row!\", \"Phrase clear\", \"Held it!\" and your combo bonus, beside the combo.",
             "titles": "Title cards and READY?",
             "titlesHint": "A lesson opens like a level, and READY? comes before the count-in.",
             "celebrations": "Celebrations",
-            "celebrationsHint": "Stage clear's tally, NEW RECORD, and new badges and levels.",
+            "celebrationsHint": "Stage clear's tally, NEW RECORD, new badges and levels, and your share card in arcade type.",
             "title": "Title screen",
             "titleHint": "Home's course card as a stage, P1 in your chip and Press start.",
             "stages": "Stage select map",
@@ -5454,7 +5561,9 @@
             "initialsChange": "Change",
             "initialsChoose": "Choose",
             "daily": "Daily challenge",
-            "dailyHint": "Today's song and part for everyone, with its own board."
+            "dailyHint": "Today's song and part for everyone, with its own board.",
+            "monthly": "Monthly boards",
+            "monthlyHint": "A This month board beside Friends and Everyone, so a new singer can place."
         },
         "hud": {
             "ready": "Ready?"
@@ -5733,5 +5842,15 @@
         "go": "Start fresh",
         "going": "Clearing...",
         "failed": "This device wasn't cleared: you may be offline. Try again when you're back online."
+    },
+    "voiceCare": {
+        "twenty": "{minutes} minutes sung today. A 2-minute cool-down helps, and a voice recovers overnight.",
+        "twentyGame": "Big session: {minutes} minutes sung! Cool down for 2 minutes, then let your voice rest till tomorrow.",
+        "forty": "{minutes} minutes sung today. That's a lot for one day: a cool-down, then rest.",
+        "fortyGame": "{minutes} minutes! Your voice has earned a rest. Cool down, and come back tomorrow.",
+        "coolDown": "Cool down, 2 min",
+        "mapLine": "Sung a lot today?",
+        "settingsTitle": "Voice-care notes",
+        "settingsHint": "A quiet line after 20 and 40 minutes of singing in a day, with a 2-minute cool-down. Counted only on this device, never sent."
     }
 }

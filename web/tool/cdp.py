@@ -211,14 +211,20 @@ class Chrome:
                 os.killpg(self.process.pid, sig)
             except ProcessLookupError:
                 break  # the whole group has gone
+            except PermissionError:
+                # A sandbox that won't signal a group (the landing agent's): the browser alone, as before.
+                try:
+                    self.process.send_signal(sig)
+                except ProcessLookupError:
+                    break
             try:
                 self.process.wait(timeout=wait)
             except subprocess.TimeoutExpired:
                 continue
             try:
                 os.killpg(self.process.pid, 0)  # helpers still there after the browser went?
-            except ProcessLookupError:
-                break
+            except (ProcessLookupError, PermissionError):
+                break  # gone, or not ours to check
         if getattr(self, "watchdog", None) and self.watchdog.poll() is None:
             self.watchdog.kill()
         if self.own_profile:

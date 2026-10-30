@@ -68,7 +68,7 @@ export const SaveStep = {
                         </Field>
                         <fieldset>
                             <legend class="label">{{ t('create.save.difficulty') }}</legend>
-                            <div class="seg mt-2 flex-wrap">
+                            <div class="seg mt-2">
                                 <label v-for="(label, key) in DIFFICULTY" :key="key" class="seg-option tap-44">
                                     <input type="radio" class="sr-only" name="difficulty" :value="key" :checked="draft.template.difficulty === key" @change="setTemplate({ difficulty: key })" />{{ t(label) }}
                                 </label>

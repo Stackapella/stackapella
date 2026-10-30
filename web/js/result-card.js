@@ -13,6 +13,9 @@ export const SIZES = { post: { width: 1080, height: 1350 }, story: { width: 1080
 const MARK = [['#ff9139', 294], ['#ffea6b', 217.56], ['#45eca4', 258.72], ['#968dfd', 182.28]];
 const STAR = 'M12 3.8 14.5 8.9 20.1 9.7 16.1 13.6 17.1 19.2 12 16.5 6.9 19.2 7.9 13.6 3.9 9.7 9.5 8.9Z';
 const FONT = 'Figtree, system-ui, sans-serif'; // i18n-ignore: a font stack
+// Game mode's arcade card (game/fonts.js): Bungee for the word and NEW RECORD, Press Start 2P for the score line.
+const DISPLAY = 'Bungee, Figtree, system-ui, sans-serif'; // i18n-ignore: a font stack
+const HUD = '"Press Start 2P", ui-monospace, monospace'; // i18n-ignore: a font stack
 
 /** The theme's colours as the page has them now. */
 function theme() {
@@ -24,6 +27,8 @@ function theme() {
         cream: read('--color-cream', '#f4eee6'),
         muted: read('--color-muted', '#a59c92'),
         accent: read('--color-accent', '#ff79da'),
+        yellow: read('--ge-yellow', '#ffd84a'),
+        parts: [1, 2, 3, 4].map((i) => read(`--color-part-ink-${i}`, MARK[i - 1][0])), // the parts' ink: readable on the theme's ground
         light: document.documentElement.dataset.theme === 'light' || (!document.documentElement.dataset.theme && matchMedia('(prefers-color-scheme: light)').matches),
     };
 }
@@ -70,12 +75,12 @@ function rounded(g, x, y, w, h, r) {
 }
 
 /** Text that fits `max` wide: smaller until it does (never below `least`). */
-function fitText(g, text, x, y, { size, weight = 800, max, least = size * 0.6, color, align = 'left' }) {
+function fitText(g, text, x, y, { size, weight = 800, max, least = size * 0.6, color, align = 'left', family = FONT }) {
     let px = size;
-    g.font = `${weight} ${px}px ${FONT}`;
+    g.font = `${weight} ${px}px ${family}`;
     while (px > least && g.measureText(text).width > max) {
         px -= 2;
-        g.font = `${weight} ${px}px ${FONT}`;
+        g.font = `${weight} ${px}px ${family}`;
     }
     g.fillStyle = color;
     g.textAlign = align;
@@ -134,10 +139,28 @@ function brand(g, { x, y, colors, tagline, site }) {
     g.restore();
 }
 
+/** NEW RECORD in the game's display type, its letters in the four parts' ink in turn (as on screen, game/record.js). */
+function recordWord(g, text, cx, y, max, inks) {
+    let px = 76;
+    g.font = `400 ${px}px ${DISPLAY}`;
+    while (px > 40 && g.measureText(text).width > max) g.font = `400 ${(px -= 2)}px ${DISPLAY}`;
+    let x = cx - g.measureText(text).width / 2;
+    g.save();
+    g.textAlign = 'left';
+    let n = 0;
+    for (const char of text) {
+        g.fillStyle = char === ' ' ? 'transparent' : inks[n++ % inks.length];
+        g.fillText(char, x, y);
+        x += g.measureText(char).width;
+    }
+    g.restore();
+}
+
 /**
  * Draws the card. `words`: { word, line, stats, lesson, unit, challenge, tagline, site } (already in
- * the person's language); `result` the take's result (stars, dots, target, cents); `color` the part's.
- * Returns a PNG Blob.
+ * the person's language), and in game mode `arcade` (the game's type and a CRT's faint lines) with
+ * `record` (NEW RECORD, only when this take beat an earlier best); `result` the take's result
+ * (stars, dots, target, cents); `color` the part's. Returns a PNG Blob.
  */
 export async function drawResultCard({ size = 'post', words, result, color }) {
     const { width, height } = SIZES[size];
@@ -146,6 +169,8 @@ export async function drawResultCard({ size = 'post', words, result, color }) {
     canvas.height = height;
     const g = canvas.getContext('2d');
     await Promise.all([document.fonts?.load(`800 96px ${FONT}`), document.fonts?.load(`500 32px ${FONT}`)]).catch((error) => console.info('Figtree not ready; the card uses the system font', error?.message ?? error));
+    const arcade = !!words.arcade;
+    if (arcade) await Promise.all([document.fonts?.load(`400 96px ${DISPLAY}`), document.fonts?.load(`400 30px ${HUD}`)]).catch((error) => console.info('The game fonts are not ready; the card uses Figtree', error?.message ?? error));
     const colors = theme();
     const pad = 84;
     const story = size === 'story';
@@ -158,17 +183,29 @@ export async function drawResultCard({ size = 'post', words, result, color }) {
     glow.addColorStop(1, 'rgba(0,0,0,0)');
     g.fillStyle = glow;
     g.fillRect(0, 0, width, height);
+    if (arcade) {
+        // A CRT's faint lines across the ground.
+        g.fillStyle = colors.light ? 'rgba(40,25,10,0.035)' : 'rgba(255,255,255,0.03)';
+        for (let line = 0; line < height; line += 6) g.fillRect(0, line, width, 2);
+    }
 
     let y = story ? 360 : 170;
+    const recordRoom = arcade && words.record ? 130 : 0;
+    if (recordRoom) {
+        recordWord(g, words.record, width / 2, y - 40, width - pad * 2, colors.parts);
+        y += recordRoom;
+    }
     // The stars, the middle one biggest (game mode's; serious mode's card is the measure alone).
     if (words.stars !== false) {
         const stars = result.stars ?? 0;
         [[-1, 78], [0, 108], [1, 78]].forEach(([at, r], i) => gemDisc(g, width / 2 + at * 230, y + (i === 1 ? 0 : 30), r, colors.accent, { earned: i < stars, light: colors.light, star: STAR }));
         y += 250;
     } else y += 120;
-    fitText(g, words.word, width / 2, y, { size: 120, max: width - pad * 2, color: colors.cream, align: 'center' });
+    if (arcade) fitText(g, words.word.toLocaleUpperCase(), width / 2, y, { size: 112, weight: 400, max: width - pad * 2, color: colors.cream, align: 'center', family: DISPLAY });
+    else fitText(g, words.word, width / 2, y, { size: 120, max: width - pad * 2, color: colors.cream, align: 'center' });
     y += 76;
-    fitText(g, words.stats, width / 2, y, { size: 44, weight: 600, max: width - pad * 2, color: colors.cream, align: 'center' });
+    if (arcade) fitText(g, words.stats.toLocaleUpperCase(), width / 2, y, { size: 30, weight: 400, least: 16, max: width - pad * 2, color: colors.yellow, align: 'center', family: HUD });
+    else fitText(g, words.stats, width / 2, y, { size: 44, weight: 600, max: width - pad * 2, color: colors.cream, align: 'center' });
     y += 58;
     fitText(g, words.lesson, width / 2, y, { size: 34, weight: 500, max: width - pad * 2, color: colors.muted, align: 'center' });
     if (words.by) {
@@ -178,7 +215,7 @@ export async function drawResultCard({ size = 'post', words, result, color }) {
 
     // The pitch trace on a panel.
     y += story ? 90 : 60;
-    const panelH = story ? 660 : 400;
+    const panelH = (story ? 660 : 400) - recordRoom;
     g.fillStyle = colors.panel;
     rounded(g, pad, y, width - pad * 2, panelH, 40);
     g.fill();
@@ -186,7 +223,8 @@ export async function drawResultCard({ size = 'post', words, result, color }) {
     y += panelH;
 
     // The challenge, then the brand at the foot.
-    if (words.challenge) fitText(g, words.challenge, width / 2, y + (story ? 190 : 110), { size: 56, max: width - pad * 2, color: colors.accent, align: 'center' });
+    if (words.challenge && arcade) fitText(g, words.challenge.toLocaleUpperCase(), width / 2, y + (story ? 190 : 110), { size: 38, weight: 400, least: 18, max: width - pad * 2, color: colors.accent, align: 'center', family: HUD });
+    else if (words.challenge) fitText(g, words.challenge, width / 2, y + (story ? 190 : 110), { size: 56, max: width - pad * 2, color: colors.accent, align: 'center' });
     brand(g, { x: pad, y: height - pad - 60, colors, tagline: words.tagline, site: words.site });
 
     return new Promise((resolve, reject) => canvas.toBlob((blob) => (blob ? resolve(blob) : reject(new Error('The card could not be drawn'))), 'image/png'));
@@ -204,6 +242,8 @@ export async function drawNoteCard({ size = 'post', words, color }) {
     canvas.height = height;
     const g = canvas.getContext('2d');
     await Promise.all([document.fonts?.load(`800 96px ${FONT}`), document.fonts?.load(`500 32px ${FONT}`)]).catch((error) => console.info('Figtree not ready; the card uses the system font', error?.message ?? error));
+    const arcade = !!words.arcade;
+    if (arcade) await Promise.all([document.fonts?.load(`400 96px ${DISPLAY}`), document.fonts?.load(`400 30px ${HUD}`)]).catch((error) => console.info('The game fonts are not ready; the card uses Figtree', error?.message ?? error));
     const colors = theme();
     const pad = 84;
     const middle = size === 'story' ? 820 : 600;

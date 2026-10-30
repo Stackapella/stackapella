@@ -52,23 +52,50 @@ const points = (n) => {
     return `${rounded > 0 ? '+' : ''}${formatNumber(rounded)}`;
 };
 
+// Experiment arms (docs/admin-growth-plan.md): A blue and B orange, a pair told apart with colour
+// blindness on light and dark, used for the arms only and always with their letters.
+export const ARM_COLORS = { a: '#3b82f6', b: '#d97706', all: 'var(--color-accent)' };
+// What each experiment changes, and its arms' names (the server sends ids only); an unknown one is its id.
+const EXPERIMENTS = { onb1: tk('admin.funnel.experiment.onb1') };
+const ARM_NAMES = { 'onb1:a': tk('admin.funnel.armName.onb1.a'), 'onb1:b': tk('admin.funnel.armName.onb1.b') };
+const MARK_POINTS = 10; // the range mark spans -10 to +10 points
+// The main path, in order: each of these reached only by those who reached the one before, so what
+// was lost between them is meaningful. Side steps (a skipped note, a share, a reminder) aren't on it.
+const PATH = ['f_mic', 'f_note', 'f_lesson1', 'f_lesson2', 'f_lesson3', 'f_unit1'];
+
+/** Arrivals per arm ({ a: 1480, b: 1502 }), both ways in counted: what an experiment is sized by. */
+export function arrivalsByArm(report) {
+    const by = {};
+    for (const step of report?.steps ?? []) if (ARRIVALS.includes(step.kind)) for (const a of step.arms) by[a.arm] = (by[a.arm] ?? 0) + a.total;
+    return by;
+}
+
+/** How many of the step before didn't reach this one, as a share, or null where steps don't follow one another. */
+export function lostBetween(before, after) {
+    if (!(before > 0) || after === null || after === undefined || after > before) return null;
+    return 1 - after / before;
+}
+
 export const FunnelSection = {
     components: { LoadFailed, Notice },
     props: { me: { type: Object, required: true } },
     data: () => ({ experiment: null, days: 30, report: null, failed: false, loadingMore: false, cursor: null }),
-    setup: () => ({ RANGES, STEPS, ASKS, ARRIVALS, formatNumber, rateOf, points, day }),
+    setup: () => ({ RANGES, STEPS, ASKS, ARRIVALS, ARM_COLORS, MARK_POINTS, formatNumber, rateOf, points, day }),
     template: `
-        <section class="space-y-8" aria-labelledby="funnel-h">
+        <section class="space-y-6" aria-labelledby="funnel-h">
             <div class="flex flex-wrap items-end justify-between gap-4">
                 <div>
                     <h1 id="funnel-h" class="text-3xl font-extrabold tracking-tight text-cream">{{ t('admin.funnel.title') }}</h1>
                     <p class="mt-1 max-w-prose text-muted">{{ t('admin.funnel.intro') }}</p>
                 </div>
-                <div class="flex flex-wrap gap-3">
-                    <div class="seg flex" role="radiogroup" :aria-label="t('admin.funnel.which')" data-funnel-experiments>
-                        <button type="button" role="radio" :aria-checked="experiment === null" class="seg-option" @click="choose(null)">{{ t('admin.funnel.everyone') }}</button>
-                        <button v-for="e in experiments" :key="e.id" type="button" role="radio" :aria-checked="experiment === e.id" class="seg-option" translate="no" @click="choose(e.id)">{{ e.id }}</button>
-                    </div>
+                <div class="flex flex-wrap items-end gap-3">
+                    <label class="space-y-1 text-sm text-muted">
+                        <span class="block">{{ t('admin.funnel.show') }}</span>
+                        <select class="input w-auto" :value="experiment ?? ''" data-funnel-experiments @change="choose($event.target.value || null)">
+                            <option value="">{{ t('admin.funnel.everyone') }}</option>
+                            <option v-for="e in experiments" :key="e.id" :value="e.id">{{ t('admin.funnel.experimentOption', { id: e.id }) }}</option>
+                        </select>
+                    </label>
                     <div v-if="experiment === null" class="seg flex" role="radiogroup" :aria-label="t('admin.usage.range')">
                         <button v-for="d in RANGES" :key="d" type="button" role="radio" :aria-checked="days === d" class="seg-option" @click="setDays(d)">{{ t('admin.usage.days', { count: d }) }}</button>
                     </div>
@@ -77,53 +104,65 @@ export const FunnelSection = {
             <LoadFailed v-if="failed" :message="failed" @retry="load" />
             <p v-else-if="!report" class="text-muted" role="status">{{ t('admin.loading') }}</p>
             <template v-else>
-                <div v-if="chosen" class="space-y-3" data-funnel-about>
+                <!-- One status card: what it changes, what it's read by, how it's going. -->
+                <div v-if="chosen" class="card space-y-1.5 p-4" data-funnel-about>
+                    <p class="text-cream"><b>{{ t('admin.funnel.whatItChanges', { id: chosen.id, what: changes(chosen.id) }) }}</b> {{ readBy }}</p>
                     <p class="text-sm text-muted">{{ about }}</p>
-                    <Notice v-if="report.split && !report.split.ok" tone="bad" data-funnel-split>{{ t('admin.funnel.splitBad', { shares: shares, p: report.split.pValue }) }}</Notice>
-                    <Notice v-if="!report.enough" tone="warn" data-funnel-early>{{ t('admin.funnel.notEnough', { arrivals: formatNumber(fewestArrivals), planned: formatNumber(chosen.plannedPerArm) }) }}</Notice>
-                    <Notice v-else-if="tooSoon" tone="warn" data-funnel-early>{{ t('admin.funnel.tooSoon', { date: day(chosen.readFrom) }) }}</Notice>
                 </div>
-                <p class="text-sm text-muted">{{ t('admin.funnel.span', { from: day(report.from), to: day(report.to) }) }}</p>
+                <Notice v-if="chosen && report.split && !report.split.ok" tone="bad" data-funnel-split>{{ t('admin.funnel.splitBad', { shares: shares, p: report.split.pValue }) }}</Notice>
+                <Notice v-if="chosen && !report.enough" tone="warn" data-funnel-early>{{ t('admin.funnel.notEnough', { arrivals: formatNumber(fewestArrivals), planned: formatNumber(chosen.plannedPerArm) }) }}</Notice>
+                <p v-if="!chosen" class="text-sm text-muted">{{ t('admin.funnel.span', { from: day(report.from), to: day(report.to) }) }}</p>
+                <p v-else class="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted" data-funnel-legend>
+                    <span v-for="arm in arms" :key="arm" class="flex items-center gap-1.5"><span class="size-2.5 rounded-sm" :style="{ background: ARM_COLORS[arm] }" aria-hidden="true"></span>{{ armLabel(arm) }}</span>
+                    <span>{{ t('admin.funnel.differenceLegend') }}</span>
+                </p>
 
-                <section class="space-y-3" aria-labelledby="steps-h">
-                    <h2 id="steps-h" class="text-lg font-bold text-cream">{{ t('admin.funnel.steps') }}</h2>
-                    <div class="overflow-x-auto rounded-2xl border border-line">
-                        <table class="w-full text-sm" data-funnel-steps>
-                            <thead class="text-start text-xs text-muted">
-                                <tr class="border-b border-line">
-                                    <th scope="col" class="px-4 py-2.5 text-start font-semibold">{{ t('admin.funnel.step.title') }}</th>
-                                    <th v-for="arm in arms" :key="arm" scope="col" class="px-4 py-2.5 text-end font-semibold" translate="no">{{ arm === 'all' ? t('admin.funnel.devices') : t('admin.funnel.arm', { arm: arm.toUpperCase() }) }}</th>
-                                    <th v-if="arms.length === 2" scope="col" class="px-4 py-2.5 text-end font-semibold">{{ t('admin.funnel.difference') }}</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-line">
-                                <tr v-for="s in report.steps" :key="s.kind" :class="{ 'bg-raised': s.kind === chosen?.primary }">
-                                    <th scope="row" class="min-w-44 px-4 py-2.5 text-start font-normal text-cream">{{ stepName(s.kind) }} <span v-if="s.kind === chosen?.primary" class="ms-1 text-xs font-semibold text-accent">{{ t('admin.funnel.primaryTag') }}</span><span v-else-if="s.kind === chosen?.guardrail" class="ms-1 text-xs font-semibold text-warn">{{ t('admin.funnel.guardrailTag') }}</span></th>
-                                    <td v-for="a in s.arms" :key="a.arm" class="whitespace-nowrap px-4 py-2.5 text-end tabular-nums text-cream">{{ formatNumber(a.total) }} <span v-if="!ARRIVALS.includes(s.kind)" class="text-muted">{{ rateOf(a.rate) }}</span></td>
-                                    <td v-if="arms.length === 2" class="whitespace-nowrap px-4 py-2.5 text-end tabular-nums" :class="real(s.difference) ? (s.difference.points > 0 ? 'text-good' : 'text-bad') : 'text-muted'">
-                                        <template v-if="s.difference">{{ points(s.difference.points) }} <span class="text-xs">{{ t('admin.funnel.interval', { low: points(s.difference.low), high: points(s.difference.high) }) }}</span></template>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                    <p class="text-xs text-muted">{{ t('admin.funnel.stepsNote') }}<template v-if="arms.length === 2"> {{ t('admin.funnel.stepsNoteArms') }}</template></p>
+                <!-- Each step's share of arrivals as a bar, an arm a bar, and what was lost between steps. -->
+                <section class="card p-4 md:p-5" aria-labelledby="steps-h">
+                    <h2 id="steps-h" class="sr-only">{{ t('admin.funnel.steps') }}</h2>
+                    <ol class="divide-y divide-line" data-funnel-steps>
+                        <li v-for="(s, i) in report.steps" :key="s.kind" class="py-3" :data-kind="s.kind">
+                            <div class="grid gap-x-4 gap-y-2 md:grid-cols-[12rem_1fr_7rem_5rem] md:items-center">
+                                <p class="font-semibold text-cream">{{ stepName(s.kind) }}<span v-if="s.kind === chosen?.primary"> {{ t('admin.funnel.primaryMark') }}</span></p>
+                                <div class="space-y-1.5">
+                                    <div v-for="a in s.arms" :key="a.arm" class="flex items-center gap-2">
+                                        <span v-if="arms.length > 1" class="w-3 text-xs font-bold text-cream" translate="no">{{ a.arm.toUpperCase() }}</span>
+                                        <div class="h-2.5 min-w-0 flex-1 overflow-hidden rounded-full bg-raised" aria-hidden="true"><div class="h-full rounded-full" :style="{ width: Math.min(100, Math.max(a.rate ? 1 : 0, (a.rate ?? 0) * 100)) + '%', background: ARM_COLORS[a.arm] ?? ARM_COLORS.all }"></div></div>
+                                        <span class="w-24 text-end text-sm tabular-nums text-cream">{{ ARRIVALS.includes(s.kind) && arms.length === 1 ? formatNumber(a.total) : rateOf(a.rate) }}</span>
+                                    </div>
+                                </div>
+                                <p v-if="arms.length === 2" class="text-end text-sm tabular-nums" data-funnel-difference>
+                                    <template v-if="s.difference"><b class="text-cream">{{ t('admin.funnel.pts', { points: points(s.difference.points) }) }}</b><span class="block text-xs text-muted">{{ t('admin.funnel.range', { low: points(s.difference.low), high: points(s.difference.high) }) }}</span></template>
+                                    <span v-else class="text-muted">-</span>
+                                </p>
+                                <!-- The 95% range around zero, -10 to +10 points (wider screens). -->
+                                <svg v-if="arms.length === 2" class="hidden md:block" viewBox="0 0 80 16" width="80" height="16" aria-hidden="true">
+                                    <template v-if="s.difference">
+                                        <line x1="40" x2="40" y1="2" y2="14" class="stroke-muted" stroke-width="1" />
+                                        <line :x1="markAt(s.difference.low)" :x2="markAt(s.difference.high)" y1="8" y2="8" class="stroke-cream" stroke-width="2" stroke-linecap="round" />
+                                        <circle :cx="markAt(s.difference.points)" cy="8" r="3.5" class="fill-cream" />
+                                    </template>
+                                </svg>
+                            </div>
+                            <p v-if="lostLine(i)" class="mt-2 text-xs text-muted" data-funnel-lost>{{ lostLine(i) }}</p>
+                        </li>
+                    </ol>
                 </section>
 
-                <section class="space-y-3" aria-labelledby="asks-h">
+                <section class="card space-y-3 p-4 md:p-5" aria-labelledby="asks-h">
                     <h2 id="asks-h" class="text-lg font-bold text-cream">{{ t('admin.funnel.asks') }}</h2>
-                    <div class="overflow-x-auto rounded-2xl border border-line">
+                    <div>
                         <table class="w-full text-sm" data-funnel-asks>
                             <thead class="text-xs text-muted">
                                 <tr class="border-b border-line">
-                                    <th scope="col" class="px-4 py-2.5 text-start font-semibold">{{ t('admin.funnel.ask.title') }}</th>
-                                    <th v-for="arm in arms" :key="arm" scope="col" class="px-4 py-2.5 text-end font-semibold" translate="no">{{ arm === 'all' ? t('admin.funnel.devices') : t('admin.funnel.arm', { arm: arm.toUpperCase() }) }}</th>
+                                    <th scope="col" class="py-2.5 pe-4 text-start font-semibold">{{ t('admin.funnel.ask.title') }}</th>
+                                    <th v-for="arm in arms" :key="arm" scope="col" class="px-2 py-2.5 text-end font-semibold sm:px-4" translate="no">{{ arm === 'all' ? t('admin.funnel.devices') : t('admin.funnel.arm', { arm: arm.toUpperCase() }) }}</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-line">
                                 <tr v-for="a in report.asks" :key="a.ask">
-                                    <th scope="row" class="px-4 py-2.5 text-start font-normal text-cream">{{ ASKS[a.ask] ? t(ASKS[a.ask]) : a.ask }}</th>
-                                    <td v-for="arm in a.arms" :key="arm.arm" class="whitespace-nowrap px-4 py-2.5 text-end tabular-nums text-cream">{{ t('admin.funnel.yesOf', { yes: formatNumber(arm.yes), shown: formatNumber(arm.shown) }) }} <span class="text-muted">{{ rateOf(arm.rate) }}</span></td>
+                                    <th scope="row" class="py-2.5 pe-4 text-start font-normal text-cream">{{ ASKS[a.ask] ? t(ASKS[a.ask]) : a.ask }}</th>
+                                    <td v-for="arm in a.arms" :key="arm.arm" class="px-2 py-2.5 text-end tabular-nums text-cream sm:px-4">{{ t('admin.funnel.yesOf', { yes: formatNumber(arm.yes), shown: formatNumber(arm.shown) }) }} <span class="block text-muted sm:inline">{{ rateOf(arm.rate) }}</span></td>
                                 </tr>
                             </tbody>
                         </table>
@@ -143,22 +182,27 @@ export const FunnelSection = {
         },
         /** The arm with the fewest arrivals: enough to read once even it has the planned number. */
         fewestArrivals() {
-            const arrivals = this.arms.map((arm) => this.report.steps.filter((s) => ARRIVALS.includes(s.kind)).reduce((sum, s) => sum + (s.arms.find((a) => a.arm === arm)?.total ?? 0), 0));
+            const arrivals = Object.values(arrivalsByArm(this.report));
             return arrivals.length ? Math.min(...arrivals) : 0;
         },
         /** Day-2 and week-1 returns need a week after enrolment stops. */
         tooSoon() {
             return !this.chosen?.readFrom || new Date().toISOString().slice(0, 10) < this.chosen.readFrom;
         },
-        /** When it started, whether it still enrols, the planned arrivals and the steps it's read by. */
+        /** "Read by: Lesson 3. Guardrail: Lesson 2." */
+        readBy() {
+            const e = this.chosen;
+            return [t('admin.funnel.readBy', { step: this.stepName(e.primary) }), e.guardrail ? t('admin.funnel.guardrailIs', { step: this.stepName(e.guardrail) }) : null].filter(Boolean).join(' ');
+        },
+        /** When it enrolled, its arrivals per arm, whether the arms split evenly (a bucketing check) and when it can be read. */
         about() {
             const e = this.chosen;
+            const arrivals = Object.values(arrivalsByArm(this.report)).map(formatNumber);
             return [
-                e.start ? t('admin.funnel.started', { date: day(e.start) }) : t('admin.funnel.notStarted'),
-                e.enrolling ? t('admin.funnel.enrolling') : e.enrolUntil ? t('admin.funnel.enrolledUntil', { date: day(e.enrolUntil) }) : null,
-                t('admin.funnel.plannedPerArm', { count: formatNumber(e.plannedPerArm) }),
-                t('admin.funnel.primary', { step: this.stepName(e.primary) }),
-                e.guardrail ? t('admin.funnel.guardrail', { step: this.stepName(e.guardrail) }) : null,
+                !e.start ? t('admin.funnel.notStarted') : e.enrolling ? t('admin.funnel.enrollingSince', { date: day(e.start) }) : t('admin.funnel.enrolledFromTo', { from: day(e.start), to: day(e.enrolUntil) }),
+                t('admin.funnel.arrivalsPerArm', { list: arrivals.join(t('admin.funnel.and')), planned: formatNumber(e.plannedPerArm) }),
+                this.report.split?.ok ? t('admin.funnel.splitOk', { p: this.report.split.pValue }) : null,
+                e.readFrom ? (this.tooSoon ? t('admin.funnel.readFrom', { date: day(e.readFrom) }) : t('admin.funnel.readyNow')) : null,
             ]
                 .filter(Boolean)
                 .join(' · ');
@@ -171,6 +215,29 @@ export const FunnelSection = {
         this.load();
     },
     methods: {
+        changes(id) {
+            return EXPERIMENTS[id] ? t(EXPERIMENTS[id]) : id;
+        },
+        /** "A, lesson 1 as it is" where the arm is named, else "A". */
+        armLabel(arm) {
+            const name = ARM_NAMES[`${this.chosen?.id}:${arm}`];
+            return name ? t('admin.funnel.armNamed', { arm: arm.toUpperCase(), name: t(name) }) : arm.toUpperCase();
+        },
+        /** Where a difference in points sits on the range mark, -10 to +10 across 80 (clamped). */
+        markAt(value) {
+            return 40 + (Math.max(-MARK_POINTS, Math.min(MARK_POINTS, value)) / MARK_POINTS) * 36;
+        },
+        /** "lost here: A 18%, B 18%" under a step, only where the next step follows from it. */
+        lostLine(i) {
+            const here = this.report.steps[i];
+            const at = PATH.indexOf(here.kind);
+            const next = at >= 0 ? this.report.steps.find((s) => s.kind === PATH[at + 1]) : null;
+            if (!next) return null;
+            const lost = here.arms.map((a) => [a.arm, lostBetween(a.rate, next.arms.find((b) => b.arm === a.arm)?.rate)]);
+            if (lost.some(([, share]) => share === null)) return null;
+            const shares = lost.map(([arm, share]) => (this.arms.length > 1 ? `${arm.toUpperCase()} ${rateOf(share)}` : rateOf(share))).join(', ');
+            return t('admin.funnel.lostHere', { shares });
+        },
         stepName(kind) {
             return STEPS[kind] ? t(STEPS[kind]) : kind;
         },

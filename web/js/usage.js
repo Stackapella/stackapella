@@ -2,14 +2,14 @@
 // a few moments are counted, guests included, and sent as a batch of daily totals to our own
 // server: each kind and how many, and whether someone was signed in. Nothing else: no ID and no
 // device details. The onboarding funnel (js/funnel.js; Hillel's "Yes") adds its firsts and asks,
-// kept on the device only to count each once, and a variant ("onb1-b") that half of all devices
-// share. A batch goes when the browser is idle, and when the page is hidden or closed
+// kept on the device only to count each once, a variant ("onb1-b") that half of all devices share,
+// and the ?ref= tag the device arrived with (a source many share, never an identifier). A batch goes when the browser is idle, and when the page is hidden or closed
 // (sendBeacon); offline or refused, it's simply dropped. Off when the server
 // says so (auth.config.usageCounts: a self-hosted install, unless its owner turned it on).
 
 import { OPERATIONS } from './api.js';
 import { mockWanted } from './api-mock.js';
-import { account } from './stores/account.js';
+import { account, ref } from './stores/account.js';
 import { variant as funnelVariant } from './funnel.js';
 
 // Sign-ups are counted by the server itself (every way in, web and apps), so the app never sends one.
@@ -25,7 +25,7 @@ for (const kind of [
     'open_game', 'open_serious', 'game_on', 'game_off',
     'sharpen_up', 'then_now', 'keep_song', 'fact_source',
     'hum_start', 'hum_click', 'hum_tap', 'hum_found', 'hum_saved',
-    'take_use', 'take_undo', 'track_add', 'track_rename', 'exp_song', 'exp_practice', 'exp_stems',
+    'take_use', 'take_undo', 'track_add', 'track_rename', 'exp_song', 'exp_practice', 'exp_stems', 'exp_sheet', 'sheet_import',
     'share_note', 'card_named', 'su_progress', 'su_reminders', 'su_share', 'su_boards', 'card_day2',
     'sug_melody', 'sug_part', 'sug_switch',
     'daily_viewed', 'daily_sung',
@@ -76,7 +76,8 @@ export function send({ leaving = false } = {}) {
         return;
     }
     const variant = funnelVariant(); // this device's experiment arm, or the landing's for this visit
-    const body = JSON.stringify({ events: batch(), signedIn: !!account.me, ...(variant ? { variant } : {}) });
+    const source = ref(); // the stored ?ref= tag many people share, grouped by the server: Growth's sources
+    const body = JSON.stringify({ events: batch(), signedIn: !!account.me, ...(variant ? { variant } : {}), ...(source ? { source } : {}) });
     if (mockWanted()) {
         (globalThis.countsSent ??= []).push(JSON.parse(body)); // the flows read what would have gone
         return;

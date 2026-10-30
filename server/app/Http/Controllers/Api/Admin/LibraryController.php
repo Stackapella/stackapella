@@ -59,7 +59,8 @@ final class LibraryController extends Controller
 
     private static function find(string $uuid): Template
     {
-        // Public, or hidden whatever its owner set it to since (so it can still be shown again).
-        return Template::query()->where('slug', $uuid)->whereNotNull('owner_id')->where(fn ($q) => $q->where('visibility', 'public')->orWhereNotNull('hidden_at'))->whereNull('deleted_at')->first() ?? throw new Refusal(404, 'not_found');
+        // Public, or hidden whatever its owner set it to since (so it can still be shown again), or
+        // made from imported sheet music, private or in a group (a copyright takedown reaches it).
+        return Template::query()->where('slug', $uuid)->whereNotNull('owner_id')->where(fn ($q) => $q->where('visibility', 'public')->orWhereNotNull('hidden_at')->orWhereNotNull('imported_at'))->whereNull('deleted_at')->first() ?? throw new Refusal(404, 'not_found');
     }
 }

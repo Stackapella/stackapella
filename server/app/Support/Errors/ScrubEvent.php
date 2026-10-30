@@ -7,12 +7,12 @@ namespace App\Support\Errors;
 use Sentry\Breadcrumb;
 use Sentry\Event;
 use Sentry\EventHint;
-use Sentry\UserDataBag;
 
 /**
  * What Sentry may see (docs/backend-plan.md A3): the error, where in our code, and which route,
  * never anything about a person or their singing. Requests lose their body, cookies, headers
- * (but the user agent) and query; the person is only their id; addresses, tokens and IPs in
+ * (but the user agent) and query; no person at all, not even an id (Hillel: no IDs kept to
+ * follow anyone, and Sentry is a third party); addresses, tokens and IPs in
  * messages and paths are masked; stack frames carry no arguments; breadcrumbs carry only their category and a masked message.
  */
 final class ScrubEvent
@@ -31,8 +31,7 @@ final class ScrubEvent
             ]);
         }
 
-        $user = $event->getUser();
-        $event->setUser($user?->getId() !== null ? UserDataBag::createFromUserIdentifier($user->getId()) : null);
+        $event->setUser(null);
         $event->setExtra([]);
         if ($event->getMessage() !== null) {
             $event->setMessage(self::mask($event->getMessage()));

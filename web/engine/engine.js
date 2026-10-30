@@ -29,6 +29,7 @@ export class Engine {
         this.loopback = false;
         this.parts = new Map(); // id -> { buffer, offsetSeconds, gain, pan }
         this.scheduled = [];
+        this.startFrames = new WeakMap(); // each scheduled source's first frame, so a later start can cancel only what comes after it
         this.capture = null;
         this.captureId = 0;
         this.playing = null; // { startTime, fromSeconds }
@@ -406,6 +407,17 @@ export class Engine {
         this.addPart(id, this.toBuffer(samples, sampleRate), mix, 0);
     }
 
+    /**
+     * A new recording or render for a part, keeping its gain and pan (and so whatever is playing
+     * through them now): sources scheduled from here on use it, those already scheduled keep theirs.
+     * The tempo ladder's next speed, ready for the loop's next pass.
+     */
+    replaceBuffer(id, samples, sampleRate) {
+        const part = this.parts.get(id);
+        if (part) part.buffer = this.toBuffer(samples, sampleRate);
+        return !!part;
+    }
+
     addPart(id, buffer, mix, offsetSeconds) {
         this.removePart(id);
         const gain = this.ctx.createGain();
@@ -478,11 +490,15 @@ export class Engine {
      * has just opened, a longer lead lets iOS finish switching its audio session before the first
      * click, instead of on it.
      */
-    play({ fromSeconds = 0, toSeconds = null, bpm = null, beatsPerBar = 4, pickupBeats = 0, countInBeats = 0, countInSounds = null, metronome = false, loop = null, repeat = null, record = false, latencyFrames = 0, onChunk = null, leadSeconds = LEAD_SECONDS }) {
-        this.stopSources();
+    play({ fromSeconds = 0, toSeconds = null, bpm = null, beatsPerBar = 4, pickupBeats = 0, countInBeats = 0, countInSounds = null, metronome = false, loop = null, repeat = null, record = false, latencyFrames = 0, onChunk = null, leadSeconds = LEAD_SECONDS, startFrame = null }) {
+        // `startFrame` (a context frame ahead of now, such as passEnd()): this run begins there,
+        // seamlessly after what is playing, which carries on until then (the tempo ladder's next
+        // speed at a loop's end). Only what was scheduled from that frame on is cancelled.
+        if (startFrame === null) this.stopSources();
+        else this.stopSourcesFrom(startFrame);
         this.nowPlaying('playing');
         const sr = this.ctx.sampleRate;
-        const first = Math.ceil((this.ctx.currentTime + leadSeconds) * sr);
+        const first = startFrame ?? Math.ceil((this.ctx.currentTime + leadSeconds) * sr);
         const beat = bpm ? Math.round((sr * 60) / bpm) : 0;
         const start = first + (beat ? countInBeats * beat : 0);
         const grid = { beatFrames: bpm ? (sr * 60) / bpm : 0, beatsPerBar, pickupBeats };
@@ -604,6 +620,7 @@ export class Engine {
                 source.start(when, (from - partFrom) / sr);
             }
             this.scheduled.push(source);
+            this.startFrames.set(source, seg.atFrame + from - seg.from);
         });
         if (seg.cueFrames) {
             // The cue before your turn: one accented click, so you know when to come in.
@@ -697,6 +714,35 @@ export class Engine {
         return null;
     }
 
+    /** Stops only the sources scheduled to start at `frame` or later; the rest play on. */
+    stopSourcesFrom(frame) {
+        this.scheduled = this.scheduled.filter((source) => {
+            const at = this.startFrames.get(source);
+            if (at === undefined || at < frame) return true;
+            try {
+                source.stop();
+            } catch (error) {
+                console.debug('A source was already stopped', error?.message ?? error);
+            }
+            return false;
+        });
+    }
+
+    /**
+     * The context frame where the stretch heard now ends: a loop's pass, a listen or a turn (null
+     * when nothing finite plays). The tempo ladder starts the next speed there (play's startFrame).
+     */
+    passEnd(heard = heardTime(this.ctx)) {
+        const t = this.timeline;
+        if (!t || !this.playing) return null;
+        const frame = heard * this.ctx.sampleRate;
+        for (const seg of t.scheduled) {
+            const end = seg.atFrame + seg.to - seg.from;
+            if (frame >= seg.atFrame - seg.cueFrames && frame < end) return Number.isFinite(end) ? end : null;
+        }
+        return null;
+    }
+
     stopSources() {
         this.scheduled.forEach((source) => {
             try {
@@ -730,6 +776,7 @@ export class Engine {
             source.start(earliest / sr, skip);
         }
         this.scheduled.push(source);
+        this.startFrames.set(source, Math.max(frame, earliest));
     }
 
     // ---- Capture ------------------------------------------------------------------------------

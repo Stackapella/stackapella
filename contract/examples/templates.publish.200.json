@@ -9,6 +9,8 @@
             2
         ],
         "libraryOptIn": false,
+        "imported": false,
+        "rightsConfirmedAt": null,
         "library": {
             "status": "held",
             "creator": {

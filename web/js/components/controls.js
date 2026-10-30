@@ -116,6 +116,34 @@ export const Checkbox = {
  * Home and End go to the ends. A group with its own keys (Segmented, the theme sheet) handles them
  * first and stops them here.
  */
+/**
+ * Never a wrapped segmented control: every `.seg` on the page is watched, and one whose options don't
+ * fit on a row (on a phone, or with longer words in another language) gets `seg-stack`, a grid of
+ * equal segments, two by two, or one column for an odd count. Measured on its own row each time its
+ * size changes, so it goes back to a row when there's room. Installed once, in main.js.
+ */
+export function fitSegments(root = document.body) {
+    const fit = (seg) => {
+        seg.classList.remove('seg-stack', 'seg-stack-1');
+        if (seg.scrollWidth <= seg.clientWidth + 1) return;
+        seg.classList.add('seg-stack');
+        if (seg.children.length % 2) seg.classList.add('seg-stack-1');
+    };
+    const sizes = new ResizeObserver((entries) => entries.forEach((entry) => fit(entry.target)));
+    const watched = new WeakSet();
+    const watch = (node) => {
+        const all = node.matches?.('.seg') ? [node] : [...(node.querySelectorAll?.('.seg') ?? [])];
+        for (const seg of all) {
+            if (watched.has(seg)) continue;
+            watched.add(seg);
+            sizes.observe(seg);
+            fit(seg);
+        }
+    };
+    watch(root);
+    new MutationObserver((changes) => changes.forEach((change) => change.addedNodes.forEach(watch))).observe(root, { childList: true, subtree: true });
+}
+
 export function radioArrows(root = document) {
     root.addEventListener('keydown', (event) => {
         if (event.defaultPrevented || event.altKey || event.ctrlKey || event.metaKey) return;

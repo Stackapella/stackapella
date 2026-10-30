@@ -1,0 +1,45 @@
+{
+    "data": {
+        "from": "2026-10-24",
+        "to": "2026-10-30",
+        "sources": [
+            {
+                "source": "none",
+                "visits": 610,
+                "arrivals": 180,
+                "lesson1": 120,
+                "signedUp": 30,
+                "day2": 44,
+                "week1": 20
+            },
+            {
+                "source": "hn",
+                "visits": 240,
+                "arrivals": 95,
+                "lesson1": 51,
+                "signedUp": 12,
+                "day2": 18,
+                "week1": 7
+            },
+            {
+                "source": "harmony",
+                "visits": 0,
+                "arrivals": 31,
+                "lesson1": 22,
+                "signedUp": 9,
+                "day2": 12,
+                "week1": 6
+            },
+            {
+                "source": "small",
+                "sources": 3,
+                "visits": 12,
+                "arrivals": 7,
+                "lesson1": 4,
+                "signedUp": 1,
+                "day2": 1,
+                "week1": 0
+            }
+        ]
+    }
+}

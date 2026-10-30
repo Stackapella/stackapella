@@ -131,10 +131,11 @@ final class TemplatesController extends Controller
             $song->isPublic() && $library->isListed($song) => 'public',
             // A tune shared as an idea: anyone may sing it while it's listed.
             app(Ideas::class)->isListedFor($song) => 'idea',
-            $song->visibility === 'unlisted' || $song->isPublic() => 'link',
+            ($song->visibility === 'unlisted' || $song->isPublic()) && ! $song->isImported() => 'link',
             $user !== null && $catalogue->inGroup($song, $user) => 'group',
-            // A singer on (or the owner of) a project made from it: the song they're singing.
-            $user !== null && $this->inProject($song, $user) => 'project',
+            // A singer on (or the owner of) a project made from it: the song they're singing. Not
+            // an imported one: that stays with its owner and their choir groups.
+            $user !== null && ! $song->isImported() && $this->inProject($song, $user) => 'project',
             default => throw new Refusal(404, 'not_found'),
         };
 

@@ -13,6 +13,7 @@ use App\Models\DailyScore;
 use App\Models\Ghost;
 use App\Models\Group;
 use App\Models\GroupMember;
+use App\Models\MonthlyScore;
 use App\Models\PartScore;
 use App\Models\Project;
 use App\Models\ProjectMember;
@@ -146,9 +147,22 @@ final class Boards
             $this->tellBeatenFriends($user, $result['row'], $result['before'] ?? null);
         }
 
+        // The month's board keeps its own best: a counted score that isn't an all-time best can be this month's.
+        self::keepMonthly($user, $version, $s['partKey'], (int) $s['scoringVersion'], $score);
+
         // `before`: their best on this board before this take, for the game's "up from" (whatever
         // device set it); null on a first score or one that didn't count.
         return ['counted' => $result['counted'], 'why' => $result['why'], 'best' => $result['best'], 'improved' => $result['improved'], 'before' => $result['before'] ?? null, 'daily' => $this->toDaily($user, $s, $template, $version, $score)];
+    }
+
+    /**
+     * This month's best on a part (UTC), raised by a better counted score.
+     */
+    private static function keepMonthly(User $user, TemplateVersion $version, string $part, int $scoring, int $score): void
+    {
+        DB::statement('insert into monthly_scores (month, user_id, template_version_id, part_key, scoring_version, score, recorded_at, created_at, updated_at) values (?, ?, ?, ?, ?, ?, ?, ?, ?) as new
+            on duplicate key update recorded_at = if(new.score > monthly_scores.score, new.recorded_at, monthly_scores.recorded_at), score = greatest(monthly_scores.score, new.score), updated_at = new.updated_at',
+            [MonthlyScore::thisMonth(), $user->id, $version->id, $part, $scoring, $score, now(), now(), now()]);
     }
 
     /**
@@ -401,8 +415,12 @@ final class Boards
      *
      * @return array<string, mixed>
      */
-    public function show(User $viewer, string $templateId, string $part, string $scope, ?int $versionNumber = null): array
+    public function show(User $viewer, string $templateId, string $part, string $scope, ?int $versionNumber = null, string $period = 'all'): array
     {
+        if ($period === 'month' && $versionNumber !== null) {
+            throw ValidationException::withMessages(['period' => __('validation.board_month_version')]);
+        }
+
         $template = $this->template($templateId);
         $current = $template->currentVersion ?? throw new Refusal(404, 'not_found');
         $scored = PartScore::query()->where('template_id', $template->id)->where('part_key', $part)->where('scoring_version', (int) config('boards.scoring_version'))->whereNull('hidden_at')
@@ -427,11 +445,17 @@ final class Boards
             $rows->whereIn('user_id', [$viewer->id, ...$this->friendIds($viewer)])->whereHas('user', fn ($q) => $q->whereNull('suspended_at'));
         }
 
+        if ($period === 'month') {
+            return [...$this->month($viewer, $template, $version, $part, $scope, $rows), 'olderVersions' => $older->pluck('version')->map(fn ($v): int => (int) $v)->values()->all()];
+        }
+
         $ranked = $rows->orderByDesc('score')->orderBy('recorded_at')->orderBy('id')->get()->values();
         $mine = $ranked->search(fn (PartScore $row): bool => $row->user_id === $viewer->id);
         $own = PartScore::query()->where('user_id', $viewer->id)->where('template_version_id', $version->id)->where('part_key', $part)->where('scoring_version', (int) config('boards.scoring_version'))->value('score');
 
         return [
+            'period' => 'all',
+            'endsAt' => null,
             'templateId' => $template->slug,
             'templateVersion' => $version->version,
             'partKey' => $part,
@@ -584,8 +608,9 @@ final class Boards
     public function reset(User $admin, User $person, string $note, ?string $ip): int
     {
         $count = PartScore::query()->where('user_id', $person->id)->delete();
-        // Their day's boards and ghosts trace those scores, so they go too.
+        // Their day's and month's boards and ghosts trace those scores, so they go too.
         DailyScore::query()->where('user_id', $person->id)->delete();
+        MonthlyScore::query()->where('user_id', $person->id)->delete();
         Ghost::query()->where('user_id', $person->id)->delete();
         AuditLog::record('boards.scores_reset', $person, $admin, after: ['scores' => $count], reason: $note, ip: $ip);
 
@@ -611,6 +636,45 @@ final class Boards
             ->merge(GroupMember::query()->whereIn('group_id', $groups)->pluck('user_id'));
 
         return array_values(array_diff($ids->map(fn ($id): int => (int) $id)->unique()->all(), [$user->id], self::blocked($user)));
+    }
+
+    /**
+     * This month's board: each person's best this month among those the all-time board would show
+     * (the same scope, blocks, holds and bins), ranked; an entry's id is their part-board entry's,
+     * so "Report this name" works the same.
+     *
+     * @param  Builder<PartScore>  $visible
+     * @return array<string, mixed>
+     */
+    private function month(User $viewer, Template $template, TemplateVersion $version, string $part, string $scope, Builder $visible): array
+    {
+        $scoring = (int) config('boards.scoring_version');
+        $parts = (clone $visible)->get(['id', 'user_id'])->keyBy('user_id');
+        $ranked = MonthlyScore::query()->with('user')->where('month', MonthlyScore::thisMonth())->where('template_version_id', $version->id)->where('part_key', $part)
+            ->where('scoring_version', $scoring)->whereIn('user_id', $parts->keys())->orderByDesc('score')->orderBy('recorded_at')->orderBy('id')->get()->values();
+        $own = MonthlyScore::query()->where('month', MonthlyScore::thisMonth())->where('user_id', $viewer->id)->where('template_version_id', $version->id)->where('part_key', $part)->where('scoring_version', $scoring)->value('score');
+        $at = $ranked->search(fn (MonthlyScore $row): bool => $row->user_id === $viewer->id);
+
+        return [
+            'period' => 'month',
+            'endsAt' => now()->utc()->startOfMonth()->addMonth()->toIso8601ZuluString(),
+            'templateId' => $template->slug,
+            'templateVersion' => $version->version,
+            'partKey' => $part,
+            'scope' => $scope,
+            'scoringVersion' => $scoring,
+            'entries' => $ranked->take((int) config('boards.top'))->map(fn (MonthlyScore $row, int $i): array => [
+                'id' => $parts->get($row->user_id)?->sqid() ?? '',
+                'rank' => $i + 1,
+                ...self::shown($row->user, $scope),
+                'score' => $row->score,
+                'at' => $row->recorded_at->utc()->toIso8601ZuluString(),
+                'you' => $row->user_id === $viewer->id,
+            ])->values()->all(),
+            'you' => $own !== null ? ['score' => (int) $own, 'rank' => $at !== false ? $at + 1 : null, 'initials' => self::initials($viewer)] : null,
+            'onGlobal' => ($viewer->getAttributes()['board_global_at'] ?? null) !== null,
+            'current' => true,
+        ];
     }
 
     /**

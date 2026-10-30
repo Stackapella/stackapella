@@ -286,5 +286,6 @@ return [
     'initials_required' => 'Choose your initials first.',
     'daily_date' => 'One of the last seven days.',
     'ghost_pitches' => 'At most 120 seconds.',
+    'board_month_version' => 'This month\'s board is the current arrangement\'s only.',
 
 ];

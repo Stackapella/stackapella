@@ -16,6 +16,7 @@ use App\Models\User;
 use App\Support\Contract\SchemaChecker;
 use App\Support\Moderation\TextFilter;
 use App\Support\Templates\Catalogue;
+use App\Support\Templates\Imported;
 use App\Support\Templates\TemplateRules;
 use App\Support\Trust\TrustLevel;
 use App\Support\Usage\Plans;
@@ -44,15 +45,22 @@ final class OwnTemplates
      * @param  array<string, mixed>  $data  the template JSON
      * @param  array{song: string, source?: string|null, ownWork: bool}|null  $declaration
      */
-    public function save(User $user, string $uuid, array $data, ?string $visibility, ?bool $libraryOptIn, ?array $declaration = null, ?string $parentId = null): Template
+    public function save(User $user, string $uuid, array $data, ?string $visibility, ?bool $libraryOptIn, ?array $declaration = null, ?string $parentId = null, bool $imported = false, ?string $copiedFrom = null): Template
     {
         $this->check($uuid, $data);
+        // A copy of an imported song is imported too, with the original's rights confirmation.
+        $import = $imported ? ['imported_at' => now(), 'rights_confirmed_at' => now()] : null;
+
+        if ($copiedFrom !== null) {
+            $original = $this->openable($user, $copiedFrom);
+            $import ??= $original->isImported() ? ['imported_at' => $original->imported_at, 'rights_confirmed_at' => $original->rights_confirmed_at] : null;
+        }
 
         try {
-            return DB::transaction(fn (): Template => $this->store($user, $uuid, $data, $visibility, $libraryOptIn, $declaration, $parentId));
+            return DB::transaction(fn (): Template => $this->store($user, $uuid, $data, $visibility, $libraryOptIn, $declaration, $parentId, $import));
         } catch (UniqueConstraintViolationException) {
             // The same template sent twice at once: the other request made it.
-            return DB::transaction(fn (): Template => $this->store($user, $uuid, $data, $visibility, $libraryOptIn, $declaration, $parentId));
+            return DB::transaction(fn (): Template => $this->store($user, $uuid, $data, $visibility, $libraryOptIn, $declaration, $parentId, $import));
         }
     }
 
@@ -61,6 +69,10 @@ final class OwnTemplates
         return DB::transaction(function () use ($user, $uuid, $visibility, $libraryOptIn): Template {
             Owned::lockAccount($user);
             $template = $this->mine($user, $uuid, lock: true);
+
+            if ($template->isImported() && (in_array($visibility, ['unlisted', 'public'], true) || $libraryOptIn === true)) {
+                Imported::refuse();
+            }
 
             // One past the free limit after a downgrade stays where it was: it isn't shared further.
             if ($visibility === 'unlisted' && $template->visibility !== 'unlisted' && $this->plans->templateReadOnly($user, $template)) {
@@ -121,8 +133,9 @@ final class OwnTemplates
     /**
      * @param  array<string, mixed>  $data
      * @param  array{song: string, source?: string|null, ownWork: bool}|null  $declaration
+     * @param  array{imported_at: mixed, rights_confirmed_at: mixed}|null  $import
      */
-    private function store(User $user, string $uuid, array $data, ?string $visibility, ?bool $libraryOptIn, ?array $declaration, ?string $parentId): Template
+    private function store(User $user, string $uuid, array $data, ?string $visibility, ?bool $libraryOptIn, ?array $declaration, ?string $parentId, ?array $import = null): Template
     {
         Owned::lockAccount($user);
 
@@ -170,6 +183,15 @@ final class OwnTemplates
             $template->forceFill(['owner_id' => $user->id, 'visibility' => $visibility ?? 'private', 'library_opt_in' => $libraryOptIn ?? false, 'parent_id' => $parentId !== null ? $this->parent($user, $parentId)->id : null]);
         }
 
+        // Imported: marked once and for good (a later save never clears it), and never shared beyond its groups.
+        if ($import !== null && ! $template->isImported()) {
+            $template->forceFill($import);
+        }
+
+        if ($template->isImported() && (in_array($visibility ?? $template->visibility, ['unlisted', 'public'], true) || ($libraryOptIn ?? $template->library_opt_in) === true || $parentId !== null)) {
+            Imported::refuse();
+        }
+
         if ($template->isPublic() && $visibility !== null && $visibility !== 'public') {
             $template->forceFill(['featured_at' => null]);
         }
@@ -183,6 +205,24 @@ final class OwnTemplates
         Library::facets($template, $version);
 
         return $template;
+    }
+
+    /**
+     * The template "Make a copy" copies: one of theirs, or one they may open (our songs they may
+     * start, the library's, or a choir group's). Anything else is as if it weren't there.
+     */
+    private function openable(User $user, string $slug): Template
+    {
+        $original = Template::query()->where('slug', $slug)->whereNull('deleted_at')->first();
+        $catalogue = app(Catalogue::class);
+        $allowed = $original !== null && match (true) {
+            $original->owner_id === $user->id => true,
+            $original->hidden_at !== null => false,
+            $original->isOfficial() => $catalogue->mayStart($original, $user),
+            default => ($original->isPublic() && app(Library::class)->isOpen()) || $catalogue->inGroup($original, $user),
+        };
+
+        return $allowed ? $original : throw new Refusal(404, 'not_found');
     }
 
     /**

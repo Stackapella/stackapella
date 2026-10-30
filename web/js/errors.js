@@ -1,8 +1,9 @@
 // Error reporting (Hillel's Sentry, without its SDK): uncaught errors, unhandled rejections and Vue's
 // errors go to Sentry as envelopes through our own tunnel (POST /log/errors, which forwards only our
 // browser DSN, so connect-src stays 'self'). What's sent is the error, the build, the browser and
-// the screen's address with any token taken out; the account's id only when signed in. Never a
-// name, an email, words people wrote, lyrics or audio. Nothing is sent without a DSN
+// the screen's address with any token taken out. Never who it was: no account id, name, email or IP
+// (Hillel: no IDs kept to follow anyone, and Sentry is a third party), nor words people wrote,
+// lyrics or audio. Nothing is sent without a DSN
 // (auth.config's sentryDsn), offline, more than MAX_A_PAGE times, or twice for the same error.
 
 import { APP_VERSION } from './api.js';
@@ -54,7 +55,7 @@ export function framesOf(stack) {
 }
 
 /** The event JSON for an error: its type, message and frames, and what it happened in. */
-export function eventFor(error, { mechanism = 'onerror', context = null, path = location.pathname, ua = navigator.userAgent, accountId = null, release = APP_VERSION, build = null } = {}) {
+export function eventFor(error, { mechanism = 'onerror', context = null, path = location.pathname, ua = navigator.userAgent, release = APP_VERSION, build = null } = {}) {
     const type = error?.name || 'Error';
     const value = String(error?.message ?? error ?? '').slice(0, 1000);
     const { browser, os } = describeBrowser(ua);
@@ -69,7 +70,6 @@ export function eventFor(error, { mechanism = 'onerror', context = null, path = 
         request: { url: `${location.origin}${scrubPath(path)}` },
         contexts: { browser, os },
         tags: { route: scrubPath(path), ...(context ? { vue: context } : {}) },
-        ...(accountId ? { user: { id: accountId } } : {}),
     };
 }
 
@@ -81,8 +81,11 @@ export function envelopeFor(event, dsn) {
 
 /** Whether an error isn't ours to report: an extension's, a resize loop, an aborted fetch. */
 export function isNoise(error) {
-    const text = `${error?.name ?? ''}: ${error?.message ?? error ?? ''}`;
-    if (NOISE.some((r) => r.test(text))) return true;
+    const message = String(error?.message ?? error ?? '');
+    const text = `${error?.name ?? ''}: ${message}`;
+    // Tested on the message alone too: "Script error." (a cross-origin script's, or an extension's or an
+    // in-app browser's, its details hidden) comes as { name: 'Error', message: 'Script error.' }.
+    if (NOISE.some((r) => r.test(text) || r.test(message))) return true;
     return EXTENSION.test(String(error?.stack ?? '')) || EXTENSION.test(String(error?.filename ?? ''));
 }
 
@@ -103,7 +106,7 @@ export function report(error, { mechanism = 'onerror', context = null } = {}) {
     if (sent.has(key)) return;
     sent.add(key);
     count++;
-    send(envelopeFor(eventFor(error, { mechanism, context, accountId: account.me?.id ?? null, build: version.loaded }), dsn));
+    send(envelopeFor(eventFor(error, { mechanism, context, build: version.loaded }), dsn));
 }
 
 /** Listens for what isn't caught: window errors, unhandled rejections, and Vue's own (with the component). */

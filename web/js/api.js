@@ -169,6 +169,8 @@ export const OPERATIONS = {
     'counts.create': ['POST', '/api/counts'],
     'admin.counts.show': ['GET', '/api/admin/counts'],
     'admin.funnel.show': ['GET', '/api/admin/funnel'],
+    'admin.growth.show': ['GET', '/api/admin/growth'],
+    'admin.sources.show': ['GET', '/api/admin/sources'],
     'admin.people.show': ['GET', '/api/admin/people/{id}'],
     'admin.people.suspend': ['POST', '/api/admin/people/{id}/suspend'],
     'admin.people.unsuspend': ['POST', '/api/admin/people/{id}/unsuspend'],
@@ -756,6 +758,8 @@ export const api = {
         funnel: {
             show: ({ experiment, days } = {}) => call('admin.funnel.show', { query: { experiment, days } }),
         },
+        growth: { show: ({ days } = {}) => call('admin.growth.show', { query: { days } }) },
+        sources: { show: ({ days } = {}) => call('admin.sources.show', { query: { days } }) },
         storeTesters: {
             list: () => call('admin.storeTesters.list'),
         },

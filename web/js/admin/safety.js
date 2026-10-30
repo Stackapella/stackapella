@@ -80,7 +80,7 @@ const SwitchesTab = {
                         </div>
                         <StatusChip :tone="flag.value === flag.values[0] ? 'muted' : flag.kind === 'switch' ? 'warn' : 'good'" :label="valueLabel(flag.value)" />
                     </div>
-                    <div class="seg mt-4 flex-wrap" role="group" :aria-label="t('admin.switches.setNamed', { name: nameOf(flag) })">
+                    <div class="seg mt-4" role="group" :aria-label="t('admin.switches.setNamed', { name: nameOf(flag) })">
                         <button v-for="value in flag.values" :key="value" type="button" class="seg-option"
                             :aria-pressed="value === flag.value" @click="value !== flag.value && ask(flag, value)">{{ valueLabel(value) }}</button>
                     </div>

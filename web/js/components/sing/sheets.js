@@ -30,6 +30,7 @@ export const SettingsSheet = {
     props: {
         speed: { type: Number, default: 1 },
         speedNote: { type: String, default: '' }, // the kind note when slowing means the practice voice
+        ladder: Boolean, // Build up to speed (the tempo ladder)
         bpm: { type: Number, default: 0 }, // the song's tempo at full speed
         hasChords: Boolean,
         chords: Boolean,
@@ -43,7 +44,7 @@ export const SettingsSheet = {
         partName: { type: String, default: '' }, // a phone's part picker (the header's chip on a wide screen)
         partColor: { type: String, default: '' },
     },
-    emits: ['part', 'toggle', 'level', 'view', 'speed', 'chords', 'chords-level', 'chords-sound', 'voices', 'reset', 'close'],
+    emits: ['part', 'toggle', 'level', 'view', 'speed', 'ladder', 'chords', 'chords-level', 'chords-sound', 'voices', 'split', 'reset', 'close'],
     setup: () => ({ VIEWS, SPEEDS, NOTE_STYLES, STYLE_LABELS, SHORTCUTS, prefs, BAND_STYLES, styleOf }),
     // 67.png: Display (Show, Note names with a sample, the keyboard, the other parts), Practice (Speed
     // with the tempo it plays at, Chords underneath, Guide voices), Controls (shortcuts and their keys).
@@ -56,7 +57,7 @@ export const SettingsSheet = {
                     <span class="min-w-0 flex-1"><span class="block text-xs font-bold uppercase tracking-[0.14em] text-muted">{{ t('sing.yourPart.title') }}</span><span class="block font-semibold text-cream" translate="no">{{ partName }}</span></span>
                     <Icon name="chevron" :size="18" class="shrink-0 -rotate-90 text-muted rtl:rotate-90" />
                 </button>
-                <HearingSection v-bind="hearing" :recording="recording" :class="partName && !recording ? 'max-sm:pt-6' : ''" @toggle="$emit('toggle', $event)" @level="$emit('level', $event)" @voices="$emit('voices')" />
+                <HearingSection v-bind="hearing" :recording="recording" :class="partName && !recording ? 'max-sm:pt-6' : ''" @toggle="$emit('toggle', $event)" @level="$emit('level', $event)" @voices="$emit('voices')" @split="$emit('split', $event)" />
                 <template v-if="!recording">
                 <section class="space-y-5 px-6 py-6" :aria-label="t('sing.settings.display')">
                     <p class="text-xs font-bold uppercase tracking-[0.14em] text-muted" aria-hidden="true">{{ t('sing.settings.display') }}</p>
@@ -85,6 +86,7 @@ export const SettingsSheet = {
                         <p class="mt-2 text-xs text-muted">{{ t('sing.settings.fullSpeedRecording') }}</p>
                         <p v-if="speedNote" class="mt-1 text-sm text-muted">{{ speedNote }}</p>
                     </fieldset>
+                    <Switch :on="ladder" :label="t('sing.ladder.label')" :hint="t('sing.ladder.hint')" data-ladder @change="$emit('ladder', $event)" />
                     <div v-if="hasChords" class="space-y-3">
                         <Switch :on="chords" :label="t('sing.chords.title')" :hint="t('sing.chords.hint')" @change="$emit('chords', $event)" />
                         <div v-if="chords" class="flex flex-wrap items-center gap-3">

@@ -78,7 +78,8 @@ final class ModerateLibrary
             return;
         }
 
-        $copyright = Report::query()->whereMorphedTo('reportable', $template)->where('status', Report::OPEN)->where('reason', 'copyright')->exists();
+        // An imported song is only ever taken down for its rights: a copyright notice.
+        $copyright = $template->isImported() || Report::query()->whereMorphedTo('reportable', $template)->where('status', Report::OPEN)->where('reason', 'copyright')->exists();
         $template->timestamps = false;
         $template->forceFill(['hidden_at' => now(), 'held_at' => null, 'featured_at' => null])->save();
         $template->timestamps = true;

@@ -20,6 +20,7 @@ import { SafetySection } from './safety.js';
 import { SingersSection } from './singers.js';
 import { PeopleSection } from './people.js';
 import { UsageSection } from './usage.js';
+import { OverviewSection } from './growth.js';
 import { FunnelSection } from './funnel.js';
 import { SupportSection } from './support.js';
 import { LinksSection } from './links.js';
@@ -46,14 +47,15 @@ const SECTIONS = [
     { name: 'reports', group: 'today', path: '/admin/reports', label: tk('admin.nav.reports'), hint: tk('admin.nav.reportsHint'), icon: 'alert', role: 'admin' },
     { name: 'people', group: 'people', path: '/admin/people', label: tk('admin.nav.people'), hint: tk('admin.nav.peopleHint'), icon: 'list', role: 'admin' },
     { name: 'singers', group: 'people', path: '/admin/singers', label: tk('admin.nav.singers'), hint: tk('admin.nav.singersHint'), icon: 'headphones', role: 'admin' },
+    { name: 'links', group: 'people', path: '/admin/links', label: tk('admin.nav.links'), hint: tk('admin.nav.linksHint'), icon: 'arrow', role: 'admin' },
     { name: 'safety', group: 'people', path: '/admin/safety', label: tk('admin.nav.safety'), hint: tk('admin.nav.safetyHint'), icon: 'shield', role: 'admin' },
     { name: 'guides', group: 'content', path: '/admin/guides', label: tk('admin.nav.guides'), hint: tk('admin.nav.guidesHint'), icon: 'note', role: 'editor' },
     { name: 'ideas', group: 'content', path: '/admin/ideas', label: tk('admin.nav.ideas'), hint: tk('admin.nav.ideasHint'), icon: 'mic', role: 'admin' },
     { name: 'posts', group: 'content', path: '/admin/posts', label: tk('admin.nav.posts'), hint: tk('admin.nav.postsHint'), icon: 'sparkle', role: 'admin', count: (c) => c.posts, words: tk('admin.posts.waitingCount') },
-    { name: 'usage', group: 'growth', path: '/admin/usage', label: tk('admin.nav.usage'), hint: tk('admin.nav.usageHint'), icon: 'sparkle', role: 'admin' },
+    { name: 'growth', group: 'growth', path: '/admin/growth', label: tk('admin.nav.growth'), hint: tk('admin.nav.growthHint'), icon: 'sparkle', role: 'admin' },
     { name: 'funnel', group: 'growth', path: '/admin/funnel', label: tk('admin.nav.funnel'), hint: tk('admin.nav.funnelHint'), icon: 'list', role: 'admin' },
-    { name: 'links', group: 'growth', path: '/admin/links', label: tk('admin.nav.links'), hint: tk('admin.nav.linksHint'), icon: 'arrow', role: 'admin' },
-    { name: 'mudeo', group: 'growth', path: '/admin/mudeo', label: tk('admin.nav.mudeo'), hint: tk('admin.nav.mudeoHint'), icon: 'arrow', role: 'admin' },
+    { name: 'usage', group: 'growth', path: '/admin/usage', label: tk('admin.nav.usage'), hint: tk('admin.nav.usageHint'), icon: 'sparkle', role: 'admin' },
+    { name: 'mudeo', group: 'growth', path: '/admin/mudeo', label: tk('admin.nav.campaigns'), hint: tk('admin.nav.campaignsHint'), icon: 'arrow', role: 'admin' },
     { name: 'audit', group: 'system', path: '/admin/audit', label: tk('admin.nav.audit'), hint: tk('admin.nav.auditHint'), icon: 'list', role: 'admin' },
 ];
 
@@ -109,7 +111,7 @@ const HomeSection = {
 };
 
 export const AdminView = {
-    components: { Icon, Logo, Notice, HomeSection, SafetySection, AuditSection, ReviewSection, SingersSection, GuidesSection, FeedbackSection, ReportsSection, IdeasSection, MudeoSection, SupportSection, LinksSection, PeopleSection, PostsSection, UsageSection, FunnelSection },
+    components: { Icon, Logo, Notice, HomeSection, SafetySection, AuditSection, ReviewSection, SingersSection, GuidesSection, FeedbackSection, ReportsSection, IdeasSection, MudeoSection, SupportSection, LinksSection, PeopleSection, PostsSection, OverviewSection, UsageSection, FunnelSection },
     data: () => ({ me: null, failed: false, overview: null }),
     setup: () => ({ route, socialWaiting, formatNumber }),
     template: `
@@ -150,6 +152,7 @@ export const AdminView = {
                 <ReviewSection v-else-if="current === 'review'" :me="me" />
                 <SingersSection v-else-if="current === 'singers'" :me="me" />
                 <PeopleSection v-else-if="current === 'people'" :me="me" />
+                <OverviewSection v-else-if="current === 'growth'" :me="me" />
                 <UsageSection v-else-if="current === 'usage'" :me="me" />
                 <FunnelSection v-else-if="current === 'funnel'" :me="me" />
                 <GuidesSection v-else-if="current === 'guides'" :me="me" />

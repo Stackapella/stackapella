@@ -2,6 +2,7 @@
 // path) or as the whole song (the Stage with words or the staff, or the Notes lane), over the same
 // session as the studio (js/stores/session.js), which stays the mixer and editor. At /p/<id>/sing.
 
+import { VoiceCareLine } from '../components/voice-care.js';
 import { game } from '../skin.js';
 import { toRefs } from 'vue';
 import { audio, closeMic, engine, openMic } from '../audio.js';
@@ -62,6 +63,7 @@ import { TrimSheet } from '../components/trim.js';
 import { heardSpan } from '../trim.js';
 import { TakeBest } from '../components/boards.js';
 
+const LADDER_CLEAN = 0.8; // Build up to speed: a round is clean with this share of its notes lit
 const PHASE = {
     listening: tk('sing.phase.listening'),
     getReady: tk('sing.phase.getReady'),
@@ -80,7 +82,7 @@ const FIT_WORDS = { fits: tk('sing.fitsYourRange'), lower: tk('sing.fitsYourRang
 
 export const SingView = {
     mixins: [RecordSetup],
-    components: { PopupSlot, TakeBest, IdeaVoice, PhraseStage, Chooser, Stage, RecordingStage, Lane, NowCard, Coach, StepDone, JustRecorded, LineBar, ModeBar, SingHeader, Transport, TurnBand, PartSheet, SettingsSheet, HeadphonesDialog, TimingDialog, RangeDialog, Icon, VoiceNote, ResingSheet, ResungCard, TrimSheet, WhatsNext, LockedBanner, ShareSheet },
+    components: { VoiceCareLine, PopupSlot, TakeBest, IdeaVoice, PhraseStage, Chooser, Stage, RecordingStage, Lane, NowCard, Coach, StepDone, JustRecorded, LineBar, ModeBar, SingHeader, Transport, TurnBand, PartSheet, SettingsSheet, HeadphonesDialog, TimingDialog, RangeDialog, Icon, VoiceNote, ResingSheet, ResungCard, TrimSheet, WhatsNext, LockedBanner, ShareSheet },
     props: { id: { type: String, required: true } },
     setup: () => ({ ...toRefs(session), audio, formatTime, shownTitle, prefs, game, effect }),
     data: () => ({ crt: false, ghostTake: null, pendingGhost: null, hud: popupQueue(), viewPicked: false, readied: null, combo: 0, hintState: { hint: null }, voice: voiceFollower(), dialog: null, choosing: false, recorded: null, said: '', suggested: null, celebrated: null, lining: false, lined: null, resingPlanned: null, resung: null, takeNumbers: {}, fitSuggestion: null }),
@@ -138,6 +140,8 @@ export const SingView = {
                                     :part-name="nameOf(recorded.part)" :song-title="shownTitle(project)" :score="recorded.report.score.percent" :key-offset="project.transpose ?? 0" :guide-muted="!guideHeard" :take-id="recorded.part.takeId ?? null" />
                                 <!-- A song started from an idea's tune (docs/ideas-app-plan.md): add this take to it -->
                                 <IdeaVoice v-if="project.idea && recorded.part.templatePartKey" :key="'idea-' + recorded.part.id + '-' + (recorded.part.takeId ?? '')" :idea="project.idea" :part="recorded.part" :part-name="nameOf(recorded.part)" />
+                                <!-- Voice care: one quiet line after a long day's singing (docs/voice-care-plan.md) -->
+                                <VoiceCareLine :key="'care-' + recorded.part.id + '-' + (recorded.part.takeId ?? '')" />
                                 <WhatsNext v-if="recorded.everyPart" :current="{ id: project.template.id, difficulty: project.template.difficulty }" />
                             </template>
                         </JustRecorded>
@@ -175,9 +179,9 @@ export const SingView = {
                     :turn="way === 'parts' && phase === 'turn' && !recording" :bpm="way === 'whole' ? Math.round((project.bpm || project.template.tempo) * (practice.speed ?? 1)) : 0" :slower="canSlower" :faster="canFaster" @tempo="stepTempo" @play="transportPlay" @record="recordPart" @loop="loop" @again="repeatPhrase(here)" />
             </template>
 
-            <SettingsSheet v-if="dialog === 'settings'" :hearing="{ rows: hearingRows, guideLevel: hearingLevel, speakers, voices: voicesLabel }" :part-name="partName" :part-color="paint(focusPart.color)" @part="dialog = 'part'" :view="view" @view="setView" :recording="recording" @toggle="toggleHearing" @level="setGuideLevel" :speed="practice.speed ?? 1" :speed-note="speedNote" :has-chords="!!project.template.chords?.length" :chords="!!practice.chords"
+            <SettingsSheet v-if="dialog === 'settings'" :hearing="{ rows: hearingRows, guideLevel: hearingLevel, speakers, voices: voicesLabel, split: !!practice.split }" :part-name="partName" :part-color="paint(focusPart.color)" @part="dialog = 'part'" :view="view" @view="setView" :recording="recording" @toggle="toggleHearing" @level="setGuideLevel" :speed="practice.speed ?? 1" :speed-note="speedNote" :has-chords="!!project.template.chords?.length" :chords="!!practice.chords"
                 :chords-level="practice.chordsLevel ?? 0.5" :chords-sound="practice.chordsSound ?? 'gentle'" :color="paint(focusPart.color)" :bpm="project.bpm || project.template.tempo" :sample="noteSample"
-                @reset="resetSettings" @speed="setSpeed" @chords="setChords" @chords-level="(v) => setPracticeValue('chordsLevel', v)" @chords-sound="setChordsSound" @voices="dialog = 'part'" @close="dialog = null" />
+                @reset="resetSettings" @speed="setSpeed" @chords="setChords" @chords-level="(v) => setPracticeValue('chordsLevel', v)" @split="(v) => setPracticeValue('split', v)" :ladder="!!practice.ladder" @ladder="setLadder" @chords-sound="setChordsSound" @voices="dialog = 'part'" @close="dialog = null" />
             <PartSheet v-if="dialog === 'part'" :parts="partSheet" :focus-id="focusPart?.id" :voice="focusPart ? guideVoices[focusPart.id] ?? null : null" :key-note="keyNote" :way="way" :disabled="recording"
                 @select="selectPart" @voice="chooseVoice" @range="dialog = 'range'" @way="switchWay" @close="dialog = null" />
             <ShareSheet v-if="dialog === 'share'" :title="project.title || ''" :parts="sharedParts" @close="dialog = null" />
@@ -189,6 +193,10 @@ export const SingView = {
             <RangeDialog v-if="dialog === 'range' && project" :template="project.template" :transpose="project.transpose || 0" @close="dialog = null" @use="useRange" />
         </div>`,
     computed: {
+        /** Build up to speed applies: on your own, on a looped phrase, playing (not recording). */
+        onLadder() {
+            return !!this.practice?.ladder && this.way === 'parts' && this.coach.step === 'own' && this.practice.phrase !== null && this.playing && !this.recording;
+        },
         /** Game mode's on-fire run (docs/game-elements-plan.md, idea 19): 10 or more in a row, your voice's trail turns pink. */
         ghostKeyNow() {
             return this.ghostWhere ? Object.values(this.ghostWhere).join(':') : null;
@@ -582,6 +590,15 @@ export const SingView = {
         /** A phrase played through to its end counts once (each round of a loop too). */
         position(now, before) {
             this.hearVoice(now);
+            // The ladder: once the turn's last note has passed, the round is judged (once).
+            if (this.onLadder && this.phase === 'turn' && !this.rungJudged) {
+                const phrase = this.phraseList[this.practice.phrase];
+                const last = Math.max(...this.notes.filter((n) => n.beat >= phrase.startBeat - 1e-6 && n.beat < phrase.endBeat - 1e-6).map((n) => n.beat + n.length));
+                if (Number.isFinite(last) && now >= last * this.beatSeconds) {
+                    this.rungJudged = true;
+                    this.judgeRung();
+                }
+            }
             // Re-singing stops by itself a moment after the join.
             if (this.recording && session.patching && now >= session.patching.plan.to + 0.3 && !this.busy) {
                 this.finishRecording();
@@ -614,6 +631,12 @@ export const SingView = {
         /** On your own: a turn sung through to its end counts (Guide back on, Again or Pause don't). */
         phase(now, before) {
             if (this.way === 'parts' && before === 'turn' && now === 'listen' && this.coach.step === 'own' && this.practice.phrase !== null) this.count(this.practice.phrase);
+            // The ladder judges each turn on its own: the phrase's notes start it unlit.
+            if (now === 'turn' && this.onLadder) {
+                const phrase = this.phraseList[this.practice.phrase];
+                for (const n of this.notes) if (n.beat >= phrase.startBeat - 1e-6 && n.beat < phrase.endBeat - 1e-6) this.voice.lit.delete(n.beat);
+                this.rungJudged = false;
+            }
         },
         turn(now) {
             if (now && this.playing) this.say(t('sing.say.turn'));
@@ -1003,7 +1026,38 @@ export const SingView = {
             await sessionStore.setChordsSound(sound);
         },
         async setSpeed(speed) {
+            if (this.practice.ladder) sessionStore.setPractice('ladder', false); // a speed chosen by hand ends the ladder
             await sessionStore.setSpeed(speed);
+        },
+        /**
+         * Build up to speed (the tempo ladder): it starts at 70%, and on your own, on a looped phrase,
+         * each round you sing cleanly (80% of its notes lit) goes up 5% at the round's end, to full
+         * speed; a round that isn't clean stays where it is, never lower. The next speed renders ahead.
+         */
+        async setLadder(on) {
+            sessionStore.setPractice('ladder', on);
+            if (!on) return;
+            await sessionStore.setSpeed(sessionStore.LADDER.start);
+            this.readyNextRung();
+        },
+        readyNextRung() {
+            const next = sessionStore.nextRung(this.practice.speed ?? 1);
+            if (next) sessionStore.renderAtSpeed(next);
+        },
+        /** Your turn on the ladder is over (its last note passed): clean, and the next speed starts at the turn's end. */
+        judgeRung() {
+            const phrase = this.phraseList[this.practice.phrase];
+            const notes = this.notes.filter((n) => n.beat >= phrase.startBeat - 1e-6 && n.beat < phrase.endBeat - 1e-6);
+            if (!notes.length) return;
+            const lit = notes.filter((n) => this.voice.lit.has(n.beat)).length / notes.length;
+            if (lit < LADDER_CLEAN || !sessionStore.nextRung(this.practice.speed ?? 1)) return;
+            const end = engine.passEnd();
+            if (end === null || !sessionStore.climb(end)) return; // not ready, or too late: the next round tries again
+            const percent = Math.round((this.practice.speed ?? 1) * 100);
+            const words = percent >= 100 ? t('sing.ladder.upToSpeed') : t('sing.ladder.up', { percent });
+            toast(words);
+            this.say(words);
+            this.readyNextRung();
         },
         firstNote() {
             sessionStore.startingNote();

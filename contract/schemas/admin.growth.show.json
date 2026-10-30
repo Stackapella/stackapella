@@ -1,0 +1,94 @@
+{
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "date",
+                "from",
+                "to",
+                "tiles",
+                "steps"
+            ],
+            "properties": {
+                "date": {
+                    "type": "string",
+                    "description": "Today (UTC), YYYY-MM-DD."
+                },
+                "from": {
+                    "type": "string"
+                },
+                "to": {
+                    "type": "string"
+                },
+                "tiles": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "key",
+                            "today",
+                            "yesterday",
+                            "lastWeek"
+                        ],
+                        "properties": {
+                            "key": {
+                                "type": "string",
+                                "enum": [
+                                    "arrivals",
+                                    "lesson1",
+                                    "signedUp",
+                                    "plusStarted"
+                                ]
+                            },
+                            "today": {
+                                "type": "integer"
+                            },
+                            "yesterday": {
+                                "type": "integer"
+                            },
+                            "lastWeek": {
+                                "type": "integer",
+                                "description": "The same weekday last week."
+                            }
+                        }
+                    }
+                },
+                "steps": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "key",
+                            "total"
+                        ],
+                        "properties": {
+                            "key": {
+                                "type": "string",
+                                "enum": [
+                                    "visits",
+                                    "start",
+                                    "arrivals",
+                                    "lesson1",
+                                    "unit1",
+                                    "signedUp",
+                                    "plusStarted"
+                                ]
+                            },
+                            "total": {
+                                "type": "integer"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

@@ -33,10 +33,10 @@ final class BoardsController extends Controller
 
     public function show(Request $request, string $template, string $part, #[CurrentUser] User $user): JsonResponse
     {
-        $request->validate(['scope' => ['required', 'in:global,friends'], 'version' => ['sometimes', 'integer', 'min:1']]);
+        $request->validate(['scope' => ['required', 'in:global,friends'], 'version' => ['sometimes', 'integer', 'min:1'], 'period' => ['sometimes', 'in:all,month']]);
         $version = $request->query('version');
 
-        return response()->json(['data' => $this->boards->show($user, $template, $part, (string) $request->query('scope'), is_numeric($version) ? (int) $version : null)]);
+        return response()->json(['data' => $this->boards->show($user, $template, $part, (string) $request->query('scope'), is_numeric($version) ? (int) $version : null, (string) $request->query('period', 'all'))]);
     }
 
     public function global(Request $request, #[CurrentUser] User $user): JsonResponse

@@ -208,6 +208,13 @@ def audit(f):
         f.run("[...document.querySelectorAll('#home-songs [data-song-card]')].find((c) => c.textContent.includes('Amazing Grace')).querySelector('button').click()")
         f.wait("document.querySelector('[role=dialog]')?.innerText.includes('Amazing Grace')", what="the song")
     visit("song", "/?api=mock&scenario=&as=member", "document.querySelector('#lead-title')", song_dialog)
+
+    def part_board():
+        # Game mode's part leaderboard, open (components/boards.js): one card with a table.
+        f.run("document.querySelectorAll('[data-part-board] button')[1].click()")
+        f.wait("document.querySelector('[data-board-entry]')", what="the part's leaderboard")
+
+    visit("song-page", "/t/amazing-grace?api=mock&scenario=&as=member", "document.querySelector('[data-part-board] button')", part_board)
     grace = new_song(f)
     visit("chooser", f"/p/{grace}/sing?api=mock&as=member", "document.querySelector('h1')", lambda: f.wait_text(t(f, "sing.chooser.title")))
     if screen("sing"):
@@ -241,6 +248,11 @@ def audit(f):
                 if screen(name):
                     from_menu(f, key)
                     check(f, name, failures)
+                    # Export's sheet music, with its part list and MusicXML | MIDI (docs/sheet-music-plan.md).
+                    if name == "export":
+                        f.run("document.querySelector('[data-export] input[name=what][value=sheet]').click()")
+                        f.wait("document.querySelector('[data-sheet-part]')", what="sheet music's parts")
+                        check(f, "export-sheet", failures)
                     close_sheet(f)
         except (AssertionError, TimeoutError) as error:
             failures.append(f"studio {f.size[1:]}px: couldn't open: {error}")

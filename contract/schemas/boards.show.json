@@ -9,6 +9,8 @@
             "type": "object",
             "additionalProperties": false,
             "required": [
+                "period",
+                "endsAt",
                 "templateId",
                 "templateVersion",
                 "partKey",
@@ -21,6 +23,22 @@
                 "olderVersions"
             ],
             "properties": {
+                "period": {
+                    "type": "string",
+                    "enum": [
+                        "all",
+                        "month"
+                    ],
+                    "description": "`all`: everyone's best ever; `month`: each person's best this calendar month (UTC)."
+                },
+                "endsAt": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "format": "date-time",
+                    "description": "With `month`, the next month's first midnight (UTC), when it starts over; null for `all`."
+                },
                 "templateId": {
                     "type": "string"
                 },

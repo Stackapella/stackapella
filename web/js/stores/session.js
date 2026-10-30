@@ -8,6 +8,7 @@
 // Everything audible is scheduled by the engine on the audio clock; the tick loop only reads the
 // position for the screen.
 
+import { addSung, flushSung } from '../voice-day.js';
 import { computed, markRaw, reactive } from 'vue';
 import * as db from '../db.js';
 import { first } from '../funnel.js';
@@ -76,6 +77,7 @@ const kept = {
     samples: new Map(), // part id -> its take's samples
     guides: new Map(), // slot id -> rendered guide samples
     guidesKey: null,
+    rung: null, // the tempo ladder's next speed, rendered ahead ({ id, speed, ready, result })
     guidesReady: null,
     guidesRate: null,
     guideOffsets: new Map(), // slot id -> where its guide starts, in seconds (a real voice can start late)
@@ -200,6 +202,7 @@ export function closeSession() {
     kept.samples = new Map();
     kept.guides = new Map();
     kept.guidesKey = null;
+    kept.rung = null;
     kept.guidesReady = null;
     kept.guideOffsets = new Map();
     kept.failedVoices = new Set();
@@ -293,16 +296,22 @@ export async function ready() {
  */
 export function prepareGuides(sampleRate) {
     if (!session.project) return Promise.resolve(); // closed meanwhile (left before it finished opening)
+    const key = guidesKey(sampleRate);
+    if (kept.guidesKey === key) return kept.guidesReady; // done, or still rendering: wait for it
+    kept.guidesKey = key;
+    kept.guidesReady = renderGuides(key, sampleRate);
+    return kept.guidesReady;
+}
+
+/** What the guides are rendered for: the project, the rate, the key, the speed, the voices and the chords. */
+function guidesKey(sampleRate) {
     const voices = session.parts.filter((p) => p.templatePartKey).map((p) => {
         const urls = voiceChoice(p).recordings.map((r) => (kept.failedVoices.has(r.url) ? `${r.url}:failed` : r.url));
         return `${p.templatePartKey}=${urls.length ? urls.join('+') : 'synth'}`;
     }).join(',');
     const chords = session.project.template?.chords?.length ? styleOf(session.practice?.chordsSound) : 'none';
-    const key = `${session.openedId}:${sampleRate}:${session.project.transpose || 0}:${voices}:${chords}`;
-    if (kept.guidesKey === key) return kept.guidesReady; // done, or still rendering: wait for it
-    kept.guidesKey = key;
-    kept.guidesReady = renderGuides(key, sampleRate);
-    return kept.guidesReady;
+    // The speed too: a slower practice voice (and chords) render again, at that speed.
+    return `${session.openedId}:${sampleRate}:${session.project.transpose || 0}:${session.practice?.speed ?? 1}:${voices}:${chords}`;
 }
 
 /**
@@ -319,12 +328,11 @@ export function chosenVoices(practice, partKey) {
  * What a slot's guide should be: the chosen real voices (else the default) when they apply, with the
  * reason when one exists but the synth plays instead. `versions` are every voice on offer.
  */
-function voiceChoice(slot) {
+function voiceChoice(slot, speed = session.practice?.speed ?? 1) {
     const template = session.project.template;
     const found = session.project.beta ? betaVoice(slot) : versionsFor(template.id, slot.templatePartKey);
     if (!found) return { recordings: [], why: null, credit: null, versions: [], chosen: [] };
     const transpose = session.project.transpose || 0;
-    const speed = session.practice?.speed ?? 1;
     const chosen = chosenVoices(session.practice, slot.templatePartKey);
     const synth = chosen.includes('synth');
     // Ids no longer published drop out; with none left, the default.
@@ -375,8 +383,8 @@ async function renderGuides(key, sampleRate) {
 }
 
 /** One slot's guide: its real voice when it applies and loads, otherwise the synth. */
-async function renderOne(part, { template, transpose, sampleRate, voices }) {
-    const choice = voiceChoice(part);
+async function renderOne(part, { template, transpose, sampleRate, voices, speed = session.practice?.speed ?? 1 }) {
+    const choice = voiceChoice(part, speed);
     const about = { credit: choice.credit, credits: choice.credits ?? [], versions: choice.versions, chosen: choice.chosen };
     if (choice.recordings.length && choice.recordings.every((r) => !kept.failedVoices.has(r.url))) {
         try {
@@ -401,7 +409,7 @@ async function renderOne(part, { template, transpose, sampleRate, voices }) {
     }
     const failed = choice.recordings.some((r) => kept.failedVoices.has(r.url));
     voices[part.id] = { kind: 'synth', ...about, why: failed ? 'failed' : choice.why, url: null, offsetSeconds: 0 };
-    const samples = await renderGuide({ templateId: template.id, templateVersion: template.version, part: templatePart(part), tempo: template.tempo, transpose, speed: session.practice?.speed ?? 1, sampleRate });
+    const samples = await renderGuide({ templateId: template.id, templateVersion: template.version, part: templatePart(part), tempo: template.tempo, transpose, speed, sampleRate });
     return { samples, sampleRate, offsetSeconds: 0 };
 }
 
@@ -458,7 +466,8 @@ export function levels() {
         // What you hear turns parts off for the visit, recording included, and sets your guide's level.
         slots = slots.map((p) => ({ ...p, muted: session.hearing.off.includes(p.id), solo: false, volume: 1 }));
         practice = session.reviewing ? { ...practice, mode: 'listen', withOthers: true, compare: true } : { ...practice, withOthers: practice.sing?.way === 'whole', compare: false };
-        practice = { ...practice, guideLevel: session.hearing.guideLevel };
+        // Split ears is for headphones: on a speaker it would only put the music on one side of the room.
+        practice = { ...practice, guideLevel: session.hearing.guideLevel, split: !!practice.split && !onSpeakers() };
     }
     return voiceLevels(slots, practice, { recordingId: session.rerecordId, melody: melodyKey(), othersLevel: onSpeakers() ? SPEAKERS_UNDER : 1, recordGuide: session.screen === 'sing' && session.hearing.recordGuide, hearRecorded: mixing });
 }
@@ -550,7 +559,7 @@ export function voiceMix(voiceId, all = levels()) {
     const guideOf = voiceId.endsWith(':guide') ? voiceId.slice(0, -':guide'.length) : null;
     // Hear it polished spreads the parts a little by voice, the lowest in the middle (as the export does).
     const owner = part ?? (guideOf ? session.parts.find((p) => p.id === guideOf) : null);
-    const pan = polishedNow() && owner ? Math.max(-1, Math.min(1, level.pan + partSpread(owner, all))) : level.pan;
+    const pan = polishedNow() && owner && level.spread !== 0 ? Math.max(-1, Math.min(1, level.pan + partSpread(owner, all))) : level.pan;
     // A trimmed take plays its kept stretch from where that stretch always sat (trimming never moves the singing).
     return { ...level, pan, offsetSeconds: part ? part.offsetSeconds + (part.nudgeSeconds || 0) + trimsOf(part).start / part.sampleRate : kept.guideOffsets.get(guideOf) ?? 0 };
 }
@@ -824,6 +833,94 @@ export async function listenThenRepeat() {
     syncMix();
     session.playing = true;
     tick();
+}
+
+// ---- The tempo ladder (docs/practice-tracks-plan.md, "Build up to speed") ------------------------
+
+/** Build up to speed: it starts here, and each clean round goes up a step, to full speed. */
+export const LADDER = { start: 0.7, step: 0.05 };
+const CLIMB_MARGIN_SECONDS = 0.12; // the next speed starts no nearer to now than this, or waits a round
+
+/** The ladder's next speed after `speed`, or null at full speed. */
+export function nextRung(speed) {
+    return speed >= 1 ? null : Math.min(1, Math.round((speed + LADDER.step) * 100) / 100);
+}
+
+/**
+ * Renders the guides (and the chords) at `speed` beside the ones playing, so the ladder's next speed
+ * is ready before a clean round asks for it. Asked again for the same speed, the same render.
+ */
+export function renderAtSpeed(speed) {
+    const id = session.openedId;
+    if (kept.rung?.id === id && kept.rung.speed === speed) return kept.rung.ready;
+    const sampleRate = engine.sampleRate;
+    const rung = { id, speed, result: null, ready: null };
+    rung.ready = (async () => {
+        const template = session.project.template;
+        const transpose = session.project.transpose || 0;
+        const voices = {};
+        const rendered = [];
+        // One part after another, as renderGuides does (decoding every voice at once is heavy on a phone).
+        for (const part of session.parts.filter((p) => templatePart(p))) {
+            rendered.push({ part, ...(await renderOne(part, { template, transpose, sampleRate, voices, speed })) });
+            if (kept.rung !== rung) return null; // another speed, or another song, took over
+        }
+        const backing = template.chords?.length ? await songBand(template, { transpose, speed, sampleRate, style: styleOf(session.practice?.chordsSound) }) : null;
+        if (kept.rung !== rung) return null;
+        rung.result = { speed, sampleRate, rendered, backing, voices };
+        return rung.result;
+    })().catch((error) => {
+        console.error('The next speed did not render', error);
+        if (kept.rung === rung) kept.rung = null;
+        return null;
+    });
+    kept.rung = rung;
+    return rung.ready;
+}
+
+/**
+ * Up a step at `startFrame` (the end of the turn heard now, engine.passEnd()): the next speed's
+ * guides take the parts' places without a stop (what plays now keeps its own), and listen, then
+ * repeat goes on from that frame at the new tempo, on the audio clock. False, and nothing changes,
+ * when the next speed isn't rendered yet or the frame is too near: the ladder waits a round.
+ */
+export function climb(startFrame) {
+    const rung = kept.rung?.id === session.openedId ? kept.rung.result : null;
+    const focus = session.focusPart;
+    const phrase = session.phraseList[session.practice?.phrase ?? -1];
+    if (!rung || !focus || !phrase || session.recording || !kept.repeating || !session.playing) return false;
+    if (startFrame / engine.sampleRate - engine.ctx.currentTime < CLIMB_MARGIN_SECONDS) return false;
+    session.practice.speed = rung.speed;
+    for (const { part, samples, offsetSeconds } of rung.rendered) {
+        kept.guides.set(part.id, samples);
+        kept.guideOffsets.set(part.id, offsetSeconds);
+        part.guidePeaks = markRaw(toPeaks(samples, FRAMES_PER_PEAK));
+        part.guidePeaksRate = rung.sampleRate;
+        part.guideSeconds = offsetSeconds + samples.length / rung.sampleRate;
+        if (!engine.replaceBuffer(guideId(part.id), samples, rung.sampleRate)) engine.setPart(guideId(part.id), samples, rung.sampleRate, voiceMix(guideId(part.id)));
+    }
+    kept.backing = rung.backing ? markRaw(rung.backing) : null;
+    if (rung.backing && !engine.replaceBuffer(BACKING, rung.backing, rung.sampleRate)) engine.setPart(BACKING, rung.backing, rung.sampleRate, voiceMix(BACKING));
+    session.guideVoices = rung.voices;
+    // Kept as the guides at this speed, so ready() finds them and never rebuilds the parts mid-run.
+    kept.guidesRate = rung.sampleRate;
+    kept.guidesKey = guidesKey(rung.sampleRate);
+    kept.guidesReady = Promise.resolve();
+    session.guidesVersion++;
+    engine.projectId = `${session.project.id}:${session.guidesVersion}`;
+    kept.rung = null;
+    const next = session.phraseList[session.practice.phrase]; // the same phrase, in seconds at the new tempo
+    engine.play({
+        bpm: session.tempo,
+        beatsPerBar: beatsPerBar(session.project.timeSignature),
+        pickupBeats: session.pickup,
+        metronome: session.project.metronome,
+        repeat: { phrases: [next], mute: [guideId(focus.id), focus.id], cueBeats: 1, cycle: true },
+        startFrame,
+    });
+    syncMix(); // the new offsets, and at full speed the takes back in place of their guides
+    savePractice();
+    return true;
 }
 
 /** Plays the focus part's first note (of the selected phrase, or of the part). */
@@ -1210,6 +1307,11 @@ export async function storeTake(part, fields, samples) {
     syncMix();
     await persist(() => savePart(plainPart(part), samples));
     count('take_recorded'); // after it's saved: a save that fails isn't a take
+    // Voice care's day (on this device only): a take's length is time sung.
+    if (part.sampleRate && samples?.length) {
+        addSung(samples.length / part.sampleRate);
+        flushSung();
+    }
     first('f_take'); // the funnel: this device's first take
     if (session.parts.filter((p) => p.frames > 0).length >= 2) first('f_harmony'); // and its first song of two parts sung
 }
@@ -1323,7 +1425,8 @@ const CHORDS_UNDER = 0.5; // Export's piano chords, as loud as Sing's chords sta
 /** The mix as heard, for export: the chords left out unless `chords` (they're "a cappella" by default). */
 /**
  * The mix for Export: as heard, or polished in `room`; or a practice track (feature 12) of
- * `track.partId`, 'without' it or with it 'louder', with a click and a bar of count-in if asked.
+ * `track.partId`: 'without' it, with it 'louder', 'split' between the ears or it 'alone', with a
+ * click and a bar of count-in if asked.
  */
 export async function renderMix({ chords = false, room = null, track = null, only = null, mix: asMixed = false, sampleRate = engine.sampleRate } = {}) {
     if (!(await ready())) throw new Error('The project was closed');
@@ -1430,7 +1533,7 @@ async function polishedMix(all, room, lengthSeconds, sampleRate, piano = null) {
             if (!level?.audible || !playing) continue;
             const samples = id === part.id ? trimmedSamples(kept.samples.get(part.id), part.sampleRate, trimsOf(part)) : playing.buffer.getChannelData(0);
             const sampleRate = id === part.id ? part.sampleRate : playing.buffer.sampleRate;
-            voices.push({ samples, sampleRate, offsetSeconds: voiceMix(id, all).offsetSeconds, volume: level.volume, pan: level.pan, spread: partSpread(part, all), audible: true, melody: isMelody(part) });
+            voices.push({ samples, sampleRate, offsetSeconds: voiceMix(id, all).offsetSeconds, volume: level.volume, pan: level.pan, spread: level.spread ?? partSpread(part, all), audible: true, melody: isMelody(part) });
         }
     }
     if (piano) voices.push({ samples: piano.samples, sampleRate: piano.sampleRate, offsetSeconds: 0, volume: CHORDS_UNDER, pan: 0, spread: 0, audible: true, under: true });

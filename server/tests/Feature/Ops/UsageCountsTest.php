@@ -33,7 +33,7 @@ final class UsageCountsTest extends TestCase
         $this->assertSame(['account', 'account'], array_column($rows, 'audience'));
         $this->assertSame(['NL', 'NL'], array_column($rows, 'country'));
         // The table has room for nothing else.
-        $this->assertSame(['id', 'day', 'kind', 'audience', 'country', 'variant', 'count'], Schema::getColumnListing('usage_counts'));
+        $this->assertSame(['id', 'day', 'kind', 'audience', 'country', 'variant', 'count', 'source'], Schema::getColumnListing('usage_counts'));
 
         // A guest, with no country known: their own row, the same day's numbers adding up.
         $this->flushHeaders();

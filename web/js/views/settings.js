@@ -23,6 +23,7 @@ import { setGlobal } from '../components/boards.js';
 import { sk } from '../skin.js';
 import { deleteEverythingHere, deviceSummary } from '../device.js';
 import { ideas, ideasOpen } from '../stores/ideas.js';
+import { setNotes, voiceCare } from '../voice-day.js';
 
 const AVATAR_BYTES = 2 * 1024 * 1024;
 const AVATAR_SIDE = 3000;
@@ -88,7 +89,7 @@ export const SettingsView = {
         editing: null, // 'email' or 'password': its change open under its row
         section: 'profile', // the section in view, marked in the sidebar
     }),
-    setup: () => ({ ideas, learning, prefs, account, METHODS, HANDLE_REASONS, EXPORT, formatDate, formatBytes, SECTIONS, SECTION_WORDS, appearanceSummary, selfHosted, CREDIT_SITE, sk }),
+    setup: () => ({ voiceCare, setNotes, ideas, learning, prefs, account, METHODS, HANDLE_REASONS, EXPORT, formatDate, formatBytes, SECTIONS, SECTION_WORDS, appearanceSummary, selfHosted, CREDIT_SITE, sk }),
     template: `
         <div class="min-h-dvh bg-ink px-4 pb-16 pt-[max(0.5rem,env(safe-area-inset-top))] md:px-8">
             <div class="mx-auto w-full max-w-5xl">
@@ -221,6 +222,8 @@ export const SettingsView = {
                         <a v-if="account.me" href="/settings/reminders" class="flex items-center justify-between gap-4 p-5 hover:bg-raised/50" @click.prevent="navigate('/settings/reminders')"><span class="min-w-0"><span class="block font-semibold text-cream">{{ t('reminders.title') }}</span><span class="block text-sm text-muted">{{ t('reminders.settingsHint') }}</span></span><Icon name="chevron" :size="18" class="shrink-0 -rotate-90 text-muted rtl:rotate-90" /></a>
                         <a v-if="account.me" href="/groups" class="flex items-center justify-between gap-4 p-5 hover:bg-raised/50" @click.prevent="navigate('/groups')"><span class="min-w-0"><span class="block font-semibold text-cream">{{ t('groups.title') }}</span><span class="block text-sm text-muted">{{ t('groups.settingsHint') }}</span></span><Icon name="chevron" :size="18" class="shrink-0 -rotate-90 text-muted rtl:rotate-90" /></a>
                         <div class="py-3 pe-3 ps-5" data-sounds><Switch :on="prefs.sounds" :label="t('settings.device.sounds')" :hint="sk('settings.device.soundsHintSerious', 'settings.device.soundsHint')" @change="(on) => (prefs.sounds = on)" /></div>
+                        <!-- Voice care (docs/voice-care-plan.md): the 20 and 40 minute notes, on by default; the cool-down stays either way. -->
+                        <div class="py-3 pe-3 ps-5" data-voice-notes><Switch :on="voiceCare.notesOn" :label="t('voiceCare.settingsTitle')" :hint="t('voiceCare.settingsHint')" @change="setNotes" /></div>
                         <div class="flex flex-wrap items-center justify-between gap-4 p-5" data-restart>
                             <div class="min-w-0 flex-1"><p class="font-semibold text-cream">{{ t('settings.course.restart') }}</p><p class="text-sm text-muted">{{ learning.undoUntil ? t('settings.course.restartedUntil', { date: formatDate(learning.undoUntil, { day: 'numeric', month: 'long' }) }) : sk('settings.course.restartHintSerious', 'settings.course.restartHint') }}</p></div>
                             <button v-if="learning.undoUntil" type="button" class="btn-secondary btn-sm shrink-0" :disabled="restarting" @click="undoRestartCourse">{{ t('common.undo') }}</button>

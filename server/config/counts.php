@@ -25,6 +25,10 @@ return [
         'app_open', 'lesson_start', 'lesson_done', 'unit_done', 'song_created', 'take_recorded', 'share_created', 'harmonise_used', 'export_done', 'sign_up', 'result_shared', 'leaderboard_viewed', 'challenge_accepted',
         // Game mode: the day's challenge seen and sung.
         'daily_viewed', 'daily_sung',
+        // Growth: the landing's own script, once a page load (a bot that runs no script isn't counted).
+        'site_visit',
+        // Sheet music: a song made from an imported score (exports are exp_sheet, MusicXML or MIDI).
+        'sheet_import',
         // The skins: app_open split by the skin in use, and the Game mode switch.
         'open_game', 'open_serious', 'game_on', 'game_off',
         // Plus extras.
@@ -32,7 +36,7 @@ return [
         // Hum a tune.
         'hum_start', 'hum_click', 'hum_tap', 'hum_found', 'hum_saved',
         // The studio (export_done stays the total of the three exports).
-        'take_use', 'take_undo', 'track_add', 'track_rename', 'exp_song', 'exp_practice', 'exp_stems',
+        'take_use', 'take_undo', 'track_add', 'track_rename', 'exp_song', 'exp_practice', 'exp_stems', 'exp_sheet',
         // Onboarding: the asks that made an account, by reason, and the day-2 card.
         'share_note', 'card_named', 'su_progress', 'su_reminders', 'su_share', 'su_boards', 'card_day2',
         // Melody first: what the app suggested, and whether the singer changed it.
@@ -52,7 +56,12 @@ return [
     // Kinds only the server counts, never taken from counts.create: the mudeo email's link opened in
     // a browser, and someone who came from it making a first song or finishing a lesson (Hillel,
     // 2026-10-29: "Anonymous totals").
-    'server_kinds' => ['mudeo_visit', 'mudeo_used'],
+    'server_kinds' => ['mudeo_visit', 'mudeo_used', 'plus_started'],
+
+    // Growth's sources (docs/admin-growth-plan.md): the campaign tags of our own ?ref= links, kept
+    // as written. Any other tag is grouped (h-* "harmony", c-* "coach", else "other"), so no
+    // harmony's or coach's id, and no one-off tag, is ever kept. A new campaign adds its tag here.
+    'sources' => ['hn', 'mudeo', 'songs', 'song-page', 'reddit', 'producthunt', 'newsletter', 'press'],
     // The onboarding funnel (App\Actions\Counts\Funnel, docs/onboarding-review.md section 4): each a
     // device's first, counted once per device by the app (f_site_start by the landing), in the
     // funnel's order. Arrivals are f_arrive plus f_arrive_start (one or the other, never both).

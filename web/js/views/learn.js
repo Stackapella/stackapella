@@ -4,6 +4,7 @@
 // it, Record) makes or reopens the course's own copy of it, and Sing brings the learner back here.
 // In a Sharpen up session (js/sharpen.js) a lesson opens at its scored part and goes on to the next.
 
+import { VoiceCareLine } from '../components/voice-care.js';
 import { markRaw } from 'vue';
 import { game, sk } from '../skin.js';
 import { arrivedToday, first, variant } from '../funnel.js';
@@ -12,7 +13,7 @@ import { api } from '../api.js';
 import { account } from '../stores/account.js';
 import { goBack, navigate } from '../router.js';
 import { addXp, nextLesson, strictnessFor, starsFor, unitOpen, voiceType } from '../course.js';
-import { finishLesson, findLesson, KEY_REACH, learning, loadLearning, loadPlusCourses, noteSung, practised, remember, setCoursePersonal, setHome, setLessonKey } from '../stores/learning.js';
+import { COOL_DOWN, finishLesson, findLesson, KEY_REACH, loadCooldown, learning, loadLearning, loadPlusCourses, noteSung, practised, remember, setCoursePersonal, setHome, setLessonKey } from '../stores/learning.js';
 import { keyName } from '../theory.js';
 import { keepScore } from '../stores/cloud.js';
 import { audio, closeMic, engine } from '../audio.js';
@@ -56,7 +57,7 @@ const DEFAULT_HOME = 57; // A3, where most untrained voices are comfortable, unt
 const FLIP_UNTIL_FOUND = 5; // semitones above the comfortable note, until the course finds the singer's flip
 
 export const LearnView = {
-    components: { ChordMoment, SessionWrap, ThenAndNow, VoiceCard, FactCard, Exercise, InAppCard, KeepSong, LearnVisual, LessonEnd, NoteFinder, NoteResult, TakeResult, Icon, Logo, ShareResult, TitleCard },
+    components: { VoiceCareLine, ChordMoment, SessionWrap, ThenAndNow, VoiceCard, FactCard, Exercise, InAppCard, KeepSong, LearnVisual, LessonEnd, NoteFinder, NoteResult, TakeResult, Icon, Logo, ShareResult, TitleCard },
     props: { id: { type: String, required: true } },
     // `kept`: this visit's sung steps, their results and takes by step index (a later step may build on
     // one: js/lesson-steps.js's `earlier`), emptied on replay and gone when the lesson closes.
@@ -117,8 +118,15 @@ export const LearnView = {
                     </div>
                 </section>
                 <!-- Lesson complete (ux-spec 5.8, 50.png and 51.png) -->
+                <!-- An unscored lesson's end (the cool-down): its own line and one way on, no stars. -->
+                <section v-else-if="done && done.unscored" class="flex flex-col items-center gap-6 py-10 text-center" data-unscored-end>
+                    <h1 ref="heading" tabindex="-1" class="text-3xl font-extrabold tracking-tight text-cream outline-none">{{ localized(entry.lesson.endLine) || t('course.cooldown.end') }}</h1>
+                    <button type="button" class="btn-primary" data-unscored-done @click="goBack(courseHome)">{{ t('common.done') }}</button>
+                </section>
                 <template v-else-if="done">
                     <LessonEnd ref="end" :done="done" :path="path" :next="upNext" :ask-heard="askHeard" @next="continueOn" @replay="replay" @heard="saveHeard" @skip-heard="askHeard = false" />
+                    <!-- Voice care (docs/voice-care-plan.md): one quiet line after a long day's singing, the cool-down a tap away. -->
+                    <VoiceCareLine class="mx-auto mt-4 max-w-prose text-center" />
                     <!-- Keep the finale (js/keep-song.js): a finale that opts in, kept as a song in Sing. -->
                     <KeepSong v-if="entry.lesson.keepSong" class="mt-6" :lesson="entry.lesson" :kept="kept" :base="stepBase" />
                     <!-- The first session's wrap (onboarding step 5): what it gave, your week, one way to keep it. -->
@@ -136,7 +144,7 @@ export const LearnView = {
                     <!-- Share where the celebration is (onboarding step 4): on two or three stars, with the take that earned them. -->
                     <!-- Not beside the session wrap (one keep-it ask beside the goal): it comes back on the next lesson's end. -->
                     <div v-if="done.stars >= 2 && takeResult && !wrap" class="flex justify-center" data-end-share>
-                        <ShareResult :label="game() ? t('boards.challenge.button') : t('results.share.result')" :result="takeResult" :entry="entry" :lesson-title="localized(entry.lesson.title)" :unit-title="localized(entry.unit.title)" :color="color" />
+                        <ShareResult :label="game() ? t('boards.challenge.button') : t('results.share.result')" :result="takeResult" :record="!!done.newBest" :entry="entry" :lesson-title="localized(entry.lesson.title)" :unit-title="localized(entry.unit.title)" :color="color" />
                     </div>
                     <p v-if="done.tip && TIP_WORDS[done.tip]" class="max-w-prose text-sm text-cream">{{ t('course.done.tip') }} {{ t(TIP_WORDS[done.tip]) }}</p>
                     <!-- The free course's last lesson: the celebration first, then the way on (an upgrade moment). -->
@@ -243,7 +251,7 @@ export const LearnView = {
         plusLink: (vm) => (vm.entry?.course ? '/plus' : '/plus?from=course_unit7'),
         /** A Learn step with a picture: side by side on a wide screen. */
         split: (vm) => !vm.done && vm.current?.kind === 'learn' && !!vm.current.visual,
-        open: (vm) => !!vm.entry && (vm.access ? vm.access.open : unitOpen(learning.course.units, vm.entry.unitIndex, learning.progress)),
+        open: (vm) => !!vm.entry && (vm.entry.cooldown || (vm.access ? vm.access.open : unitOpen(learning.course.units, vm.entry.unitIndex, learning.progress))),
         plus: () => account.me?.plan === 'plus',
         /** The lesson that finds your note, for the reminder when it was skipped. */
         homeLesson: () => learning.course?.units[0]?.lessons.find((l) => l.findsHome)?.id ?? null,
@@ -413,7 +421,8 @@ export const LearnView = {
             .then((status) => (this.micPermission = status.state))
             .catch((error) => console.info('The mic permission could not be read', error?.message ?? error));
         await loadLearning();
-        if (!this.entry) await loadPlusCourses(); // a Plus course's lesson: its course first
+        if (this.id === COOL_DOWN) await loadCooldown(); // voice care's cool-down, outside every course
+        else if (!this.entry) await loadPlusCourses(); // a Plus course's lesson: its course first
         // Back from Sing: where the learner was in this lesson.
         const kept = Number(tabStorage.get(`stackapella.lesson.${this.id}`));
         if (kept && this.entry && kept < this.entry.lesson.steps.length) {
@@ -436,7 +445,8 @@ export const LearnView = {
         /** Game mode's title card ("Stage 2-3"), once a lesson on this device, as it begins. */
         showTitle() {
             const entry = this.entry;
-            if (!entry || !this.open || this.step !== 0 || this.sharpen || !effect('titles') || titleSeen(entry.lesson.id)) return;
+            // Never on the cool-down: it's no stage of the game (unscored, outside every course).
+            if (!entry || entry.lesson.unscored || !this.open || this.step !== 0 || this.sharpen || !effect('titles') || titleSeen(entry.lesson.id)) return;
             markTitleSeen(entry.lesson.id);
             this.titleCard = { unit: entry.unitIndex + 1, lesson: entry.index + 1, unitTitle: localized(entry.unit.title), lessonTitle: localized(entry.lesson.title), colour: this.color };
         },
@@ -488,6 +498,7 @@ export const LearnView = {
         /** A run with the mic: its time counts toward the week's goal at once. */
         practised(seconds) {
             this.guiding = false; // a guided take has ended: back to the kept result
+            if (this.entry?.lesson.unscored) return; // the cool-down is never part of progress
             practised(seconds).catch((error) => console.error('Practice time not counted', error));
         },
         go(step) {
@@ -544,6 +555,13 @@ export const LearnView = {
          * to score (learning, practising in a song) is done when it's done.
          */
         async finish() {
+            // Unscored (the cool-down): no stars, XP, progress or celebration, just its own last line.
+            if (this.entry.lesson.unscored) {
+                tabStorage.set(`stackapella.lesson.${this.id}`, '');
+                this.done = { unscored: true };
+                this.$nextTick(() => this.$refs.heading?.focus({ preventScroll: true }));
+                return;
+            }
             const scoredStep = [...this.entry.lesson.steps].reverse().find((s) => isScored(s.kind));
             const percent = scoredStep ? this.result?.percent ?? null : null;
             tabStorage.set(`stackapella.lesson.${this.id}`, '');

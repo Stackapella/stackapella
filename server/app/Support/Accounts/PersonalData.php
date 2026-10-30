@@ -115,6 +115,7 @@ final class PersonalData
         'invoice_ninja_connections.user_id' => [null, "Staff's books connection."],
         'invoice_ninja_records.user_id' => [null, "The books' copy of a payment, which is in coaching.json or the Plus records."],
         'league_members.user_id' => ['records/leagues.json', null],
+        'monthly_scores.user_id' => ['records/monthly-scores.json', null],
         'mudeo_batches.created_by' => [null, "Staff's own actions."],
         'notices.decided_by' => [null, "Staff's own actions."],
         'notices.user_id' => ['records/notices-and-appeals.json', null],

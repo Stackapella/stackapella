@@ -74,7 +74,8 @@ final class Catalogue
      */
     public function inGroup(Template $template, User $user): bool
     {
-        $this->grouped[$user->id] ??= array_values(GroupSong::query()->whereHas('group.members', fn ($query) => $query->where('user_id', $user->id))->pluck('template_id')->map(fn (mixed $id): int => (int) $id)->all());
+        // Not one taken down (hidden): that's gone from its groups too.
+        $this->grouped[$user->id] ??= array_values(GroupSong::query()->whereHas('group.members', fn ($query) => $query->where('user_id', $user->id))->whereHas('template', fn ($query) => $query->whereNull('hidden_at'))->pluck('template_id')->map(fn (mixed $id): int => (int) $id)->all());
 
         return in_array($template->id, $this->grouped[$user->id], true);
     }

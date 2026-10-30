@@ -33,6 +33,10 @@ final class OwnTemplateResource extends JsonResource
             'version' => $versions === [] ? 0 : max($versions),
             'versions' => $versions,
             'libraryOptIn' => $template->library_opt_in,
+            // Made from imported sheet music: private to its owner and their choir groups, and when
+            // the singer confirmed the rights.
+            'imported' => $template->isImported(),
+            'rightsConfirmedAt' => $template->rights_confirmed_at?->utc()->toIso8601ZuluString(),
             // In the library (N3): its status, creator, uses and rating; null while not public.
             'library' => app(Library::class)->view($template, $template->owner),
             'parent' => Library::parent($template),

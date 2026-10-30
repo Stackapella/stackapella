@@ -1,0 +1,70 @@
+{
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "from",
+                "to",
+                "sources"
+            ],
+            "properties": {
+                "from": {
+                    "type": "string"
+                },
+                "to": {
+                    "type": "string"
+                },
+                "sources": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "source",
+                            "visits",
+                            "arrivals",
+                            "lesson1",
+                            "signedUp",
+                            "day2",
+                            "week1"
+                        ],
+                        "properties": {
+                            "source": {
+                                "type": "string",
+                                "description": "A campaign tag as written, harmony, coach, other, none, or small (the folded row)."
+                            },
+                            "sources": {
+                                "type": "integer",
+                                "description": "On the small row only: how many sources it folds."
+                            },
+                            "visits": {
+                                "type": "integer"
+                            },
+                            "arrivals": {
+                                "type": "integer"
+                            },
+                            "lesson1": {
+                                "type": "integer"
+                            },
+                            "signedUp": {
+                                "type": "integer"
+                            },
+                            "day2": {
+                                "type": "integer"
+                            },
+                            "week1": {
+                                "type": "integer"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

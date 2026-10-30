@@ -78,6 +78,11 @@
 }
 
 @layer base {
+    /* A fieldset is as wide as its widest unbreakable content by default (min-content): a row of
+       choices made a whole sheet wider than a phone. As wide as its place, like any block. */
+    fieldset {
+        min-width: 0;
+    }
     html {
         color-scheme: dark;
         -webkit-tap-highlight-color: transparent;
@@ -635,10 +640,22 @@ select:disabled {
    the small lift. role=radio with aria-checked, or aria-pressed, or .is-on marks the chosen one;
    the arrow keys move the choice (components/controls.js, Segmented). */
 @utility seg {
-    @apply inline-flex max-w-full items-center gap-0.5 p-1;
+    /* min-w-0: in a flex row it may shrink below its words, so a squeeze shows as its own overflow (fitSegments) instead of pushing out of the row. */
+    @apply inline-flex max-w-full min-w-0 items-center gap-0.5 p-1;
     border-radius: var(--r-control);
     background-color: var(--fill-2);
 }
+
+/* A segmented control never wraps (Hillel's 84.png: "Chapel" alone on a second row inside the pill).
+   When its options don't fit on one row, js/components/controls.js fitSegments adds seg-stack: equal
+   segments two by two, or one under another for an odd count, each on its own line, never squeezed. */
+.seg.seg-stack {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+}
+.seg.seg-stack.seg-stack-1 { grid-template-columns: minmax(0, 1fr); }
+.seg.seg-stack > .seg-option { width: 100%; min-width: 0; white-space: normal; text-align: center; padding-block: 0.375rem; }
 
 /* Just the segmented control's track, for a group laid out its own way (a grid). */
 @utility seg-bg {
@@ -2463,305 +2480,1105 @@ select:disabled {
     .cp-bb-fine { grid-template-columns: minmax(0, .8fr) minmax(0, 1.4fr); gap: 56px; align-items: start; }
 }
 
-/* Yodeling (site/courses/yodeling): the Alps. A morning sky over three ranges (snow on two peaks), a
-   sun, the yodel as a line flipping between chest voice and head voice with its echo across the
-   valley, and a ridge under the hero and over joining. The units are signed like the yellow walking
-   signs; the facts are postcards. Game skin: the same range at night, the line in neon. */
-.cp-yodel { --yo-sky: #dcebf7; --yo-far: #a9bfd6; --yo-mid: #7896b8; --yo-near: #3f6f52; --yo-snow: #ffffff; --yo-sun: #f4b13a; --yo-line: #d9472b; --yo-sign: #f2c200; --yo-sign-ink: #1d1d1b;
-    --cp-a: #2e7d4f; --cp-a-ink: #fff; --cp-a-text: #1f6b3e; }
-:root:not([data-theme$="-light"]) .cp-yodel { --yo-sky: #16263d; --yo-far: #2d405e; --yo-mid: #233350; --yo-near: #1d3a2c; --yo-snow: #dfe8f5; --yo-sun: #f4c35c; --yo-line: #ff7a52; --cp-a-text: #8fe0ad; }
-:root[data-skin="game"] .cp-yodel { --yo-sky: #0d1530; --yo-far: #1f2a4d; --yo-mid: #182141; --yo-near: #13293a; --yo-snow: #c9d6ff; --yo-sun: #ffd84a; --yo-line: #3be7ff; --cp-a: #45e3a5; --cp-a-ink: #04140d; --cp-a-text: #45e3a5; }
-.cp-yodel .cp-hero { background: linear-gradient(180deg, var(--yo-sky), color-mix(in srgb, var(--yo-sky) 55%, var(--color-ink))); }
-.cp-yo-near { fill: var(--yo-near); }
-:root[data-skin="game"] body.s-arcade .cp-yodel .cp-hero { background: linear-gradient(180deg, var(--a-bg), var(--yo-sky)); }
-.cp-yo-art { display: grid; place-items: center; }
-.cp-yo-svg { width: min(100%, 540px); height: auto; overflow: visible; }
-.cp-yo-sun { fill: var(--yo-sun); }
-.cp-yo-echo path { fill: none; stroke: var(--yo-line); stroke-width: 2.5; stroke-linecap: round; opacity: .35; }
-.cp-yo-echo path:nth-child(2) { opacity: .22; } .cp-yo-echo path:nth-child(3) { opacity: .12; }
-.cp-yo-guide { fill: none; stroke: var(--color-cream); stroke-width: 1.5; stroke-dasharray: 4 6; opacity: .35; }
-.cp-yo-label { font: 700 15px/1 Figtree, system-ui, sans-serif; fill: var(--color-cream); }
-:root[data-skin="game"] body.s-arcade .cp-yo-label { font: 400 11px/1 "Press Start 2P", ui-monospace, monospace; text-transform: uppercase; }
-.cp-yo-line { fill: none; stroke: var(--yo-line); stroke-width: 5; stroke-linejoin: round; stroke-linecap: round; }
-:root[data-skin="game"] body.s-arcade .cp-yo-line { filter: drop-shadow(0 0 6px var(--yo-line)); }
-.cp-yo-flip { fill: var(--color-panel); stroke: var(--yo-line); stroke-width: 3; }
-.cp-yo-far { fill: var(--yo-far); } .cp-yo-mid { fill: var(--yo-mid); } .cp-yo-near { fill: var(--yo-near); } .cp-yo-snow { fill: var(--yo-snow); }
-.cp-yo-range { display: block; width: 100%; height: 110px; margin-top: 8px; }
-.cp-yodel .cp-hero { padding-bottom: 0; }
-.cp-yo-ridge { display: block; width: 100%; height: 28px; margin-top: -27px; position: relative; }
-.cp-yo-ridge path { fill: var(--color-ink); }
-:root[data-skin="game"] body.s-arcade .cp-yo-ridge path { fill: var(--a-bg); }
-.cp-yo-ridge-top { margin-top: -27px; }
-.cp-yodel .cp-join .cp-yo-ridge path { fill: var(--color-panel); }
-:root[data-skin="game"] body.s-arcade .cp-yodel .cp-join .cp-yo-ridge path { fill: var(--a-bg-2, var(--a-panel)); }
-@media (prefers-reduced-motion: no-preference) {
-    .cp-yo-echo path { animation: cp-yo-echo 3s ease-out infinite; }
-    .cp-yo-echo path:nth-child(2) { animation-delay: .4s; } .cp-yo-echo path:nth-child(3) { animation-delay: .8s; }
-}
-@keyframes cp-yo-echo { 0%, 100% { opacity: .08; } 30% { opacity: .5; } }
-.cp-fig .cp-yo-line { stroke-width: 4; }
-.cp-yo-slide { stroke: var(--color-muted); }
-.cp-yodel { --cp-care: var(--yo-sun); }
-.cp-yodel .cp-unit-n { display: inline-flex; padding: 5px 20px 5px 10px; background: var(--yo-sign); color: var(--yo-sign-ink); clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 50%, calc(100% - 12px) 100%, 0 100%); }
-:root[data-skin="game"] body.s-arcade .cp-yodel .cp-unit-n { color: var(--yo-sign-ink); }
-.cp-yodel .cp-fact { border-radius: 8px; position: relative; padding-top: 30px; }
-.cp-yodel .cp-fact::after { content: ""; position: absolute; top: 14px; inset-inline-end: 14px; width: 30px; height: 36px; border: 2px dashed color-mix(in srgb, var(--cp-a) 55%, transparent); border-radius: 3px; }
-.cp-yodel .cp-fact p:first-child { padding-inline-end: 40px; }
-@media (min-width: 900px) {
-    .cp-yo-range { height: 200px; margin-top: -40px; }
-    .cp-yo-ridge { height: 40px; margin-top: -39px; }
-    .cp-yo-ridge-top { margin-top: -39px; }
-}
+/* Yodeling (site/courses/yodeling): a Swiss alpine trail (docs/course-pages-polish.md). Serious skin:
+   an old Alpine travel poster, flat ranges layered in a blue haze, a sun with its halo and drifting
+   clouds, a meadow with a path, a chalet and pines; the yodel a ribbon flipping between two voice
+   lines and echoing smaller across the valley; every running label a yellow hiking sign. Type in
+   heavy, tight capitals like a poster's. Game skin: the same valley as a neon night, ridges lit, the
+   ribbon glowing. Each section has its own composition. */
+.cp-yodel { --yo-sky: #cfe6f5; --yo-sky-2: #f6efe0; --yo-far: #9fb8d4; --yo-mid: #6d8fb6; --yo-near: #3f7a52; --yo-snow: #ffffff; --yo-sun: #f4b13a; --yo-line: #d9472b; --yo-line-2: #f08a3c; --yo-sign: #f2c200; --yo-sign-ink: #1d1d1b; --yo-pine: #2c5a3c; --yo-roof: #b5452f; --yo-wall: #f3e7cf;
+    --cp-a: #2e7d4f; --cp-a-ink: #fff; --cp-a-text: #1f6b3e; --cp-care: var(--yo-sign); }
+:root:not([data-theme$="-light"]) .cp-yodel { --yo-sky: #142740; --yo-sky-2: #1b1712; --yo-far: #2d405e; --yo-mid: #233350; --yo-near: #1d3a2c; --yo-snow: #dfe8f5; --yo-sun: #f4c35c; --yo-line: #ff7a52; --yo-line-2: #ffb36b; --yo-pine: #163323; --yo-roof: #8a3424; --yo-wall: #3a2f24; --cp-a-text: #8fe0ad; }
+:root[data-skin="game"] .cp-yodel { --yo-sky: #0d1530; --yo-sky-2: #07040f; --yo-far: #1f2a4d; --yo-mid: #182141; --yo-near: #13293a; --yo-snow: #c9d6ff; --yo-sun: #ffd84a; --yo-line: #3be7ff; --yo-line-2: #ff5fd2; --yo-pine: #0c2a2f; --yo-roof: #ff5fd2; --yo-wall: #1b1036; --cp-a: #45e3a5; --cp-a-ink: #04140d; --cp-a-text: #45e3a5; }
 
-/* Counterpoint (site/courses/counterpoint): a music manuscript. Parchment with faint ruling, a serif
-   hand for the headings (the serious skin; the game keeps its own), rubric red for the counterpoint
-   and ink for the cantus, the hero lead's first letter in red, and the facts as notes in the margin.
-   Game skin: the same score in gold and cyan on the night screen. */
-.cp-counterpoint { --cp-paper: #f3ead7; --cp-ink: #3a2a1a; --cp-rubric: #a3262a; --cp-a: var(--cp-rubric); --cp-a-ink: #fff; --cp-a-text: #9a2226; --cp-serif: ui-serif, "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif; }
-:root:not([data-theme$="-light"]) .cp-counterpoint { --cp-paper: #1f1912; --cp-ink: #e8dcc4; --cp-rubric: #e0624f; --cp-a-text: #f08a78; }
-:root[data-skin="game"] .cp-counterpoint { --cp-paper: #0f0c1c; --cp-ink: #ffd84a; --cp-rubric: #3be7ff; --cp-a: #3be7ff; --cp-a-ink: #04141a; --cp-a-text: #3be7ff; }
-.cp-counterpoint .cp-hero { background:
-    repeating-linear-gradient(180deg, transparent 0 31px, color-mix(in srgb, var(--cp-ink) 6%, transparent) 31px 32px),
-    radial-gradient(80% 90% at 70% 40%, color-mix(in srgb, var(--cp-paper) 100%, transparent), color-mix(in srgb, var(--cp-paper) 55%, var(--color-ink))); }
-:root[data-skin="game"] body.s-arcade .cp-counterpoint .cp-hero { background: radial-gradient(70% 80% at 70% 40%, color-mix(in srgb, #3be7ff 10%, var(--a-bg)), var(--a-bg)); }
-:root:not([data-skin="game"]) .cp-counterpoint :is(.cp-hero h1, .s-title) { font-family: var(--cp-serif); font-weight: 700; letter-spacing: -0.015em; }
-:root:not([data-skin="game"]) .cp-counterpoint .cp-hero h1 { font-style: italic; }
-.cp-cp-lede::first-letter { float: left; margin: 4px 10px 0 0; font-family: var(--cp-serif); font-size: 3.3em; line-height: .8; font-weight: 700; color: var(--cp-a-text); }
-:root[data-skin="game"] body.s-arcade .cp-cp-lede::first-letter { font-family: var(--a-display); font-weight: 400; }
-.cp-cp-art { display: grid; place-items: center; }
-.cp-cp-svg { width: min(100%, 560px); height: auto; overflow: visible; }
-.cp-cp-staff { fill: none; stroke: var(--cp-ink); stroke-width: 1.4; opacity: .45; }
-.cp-cp-bar { fill: none; stroke: var(--cp-ink); stroke-width: 1.4; opacity: .3; }
-.cp-cp-path { fill: none; stroke-width: 2; stroke-dasharray: 3 5; opacity: .5; }
-.cp-cp-hi { stroke: var(--cp-rubric); } .cp-cp-lo { stroke: var(--cp-ink); }
-.cp-cp-whole { fill: none; stroke: var(--cp-ink); stroke-width: 3.5; }
-.cp-cp-note { fill: var(--cp-rubric); }
-.cp-cp-stem { stroke: var(--cp-rubric); stroke-width: 2.5; }
-.cp-cp-slur { fill: none; stroke: var(--cp-rubric); stroke-width: 2; opacity: .55; }
-:root[data-skin="game"] body.s-arcade :is(.cp-cp-note, .cp-cp-stem) { filter: drop-shadow(0 0 5px var(--cp-rubric)); }
-:root[data-skin="game"] body.s-arcade .cp-cp-whole { filter: drop-shadow(0 0 5px var(--cp-ink)); }
+/* Type: poster capitals and the yellow trail sign. */
+.cp-yodel .cp-hero h1 { text-transform: uppercase; font-weight: 900; letter-spacing: -0.04em; font-size: clamp(48px, 12vw, 104px); line-height: .9; }
+.cp-yo-title { margin-top: 12px; font-size: clamp(32px, 6vw, 56px); line-height: 1; font-weight: 900; letter-spacing: -0.035em; text-wrap: balance; }
+:root[data-skin="game"] body.s-arcade .cp-yodel .cp-yo-title { font-family: var(--a-display); font-weight: 400; letter-spacing: .01em; text-transform: uppercase; }
+.cp-yo-sign { display: inline-flex; align-items: center; min-height: 30px; padding: 5px 26px 5px 12px; background: var(--yo-sign); color: var(--yo-sign-ink); font-size: 12.5px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 50%, calc(100% - 14px) 100%, 0 100%); }
+.cp-yo-sign-sm { min-height: 26px; font-size: 11.5px; }
+:root[data-skin="game"] body.s-arcade .cp-yo-sign { font-family: "Press Start 2P", ui-monospace, monospace; font-size: 9px; letter-spacing: .04em; color: var(--yo-sign-ink); }
+.cp-yodel .s-lede { max-width: 54ch; }
+
+/* The hero: sky, ribbon and the valley. */
+.cp-yo-hero { position: relative; overflow: hidden; padding-bottom: 0; background: linear-gradient(180deg, var(--yo-sky), color-mix(in srgb, var(--yo-sky) 55%, var(--yo-sky-2)) 70%); }
+:root[data-skin="game"] body.s-arcade .cp-yo-hero { background: linear-gradient(180deg, var(--a-bg), var(--yo-sky) 75%); }
+.cp-yo-hero .cp-hero-grid { position: relative; z-index: 1; }
+.cp-yo-sky { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.cp-yo-sun { fill: var(--yo-sun); } .cp-yo-sunhalo { fill: var(--yo-sun); opacity: .16; }
+.cp-yo-cloud ellipse { fill: #fff; opacity: .75; }
+:root:not([data-theme$="-light"]) .cp-yo-cloud ellipse, :root[data-skin="game"] .cp-yo-cloud ellipse { opacity: .08; }
+.cp-yo-art { display: grid; place-items: center; }
+.cp-yo-svg { width: min(100%, 560px); height: auto; overflow: visible; }
+.cp-yo-guide { fill: none; stroke: var(--color-cream); stroke-width: 1.5; stroke-dasharray: 4 7; opacity: .3; }
+.cp-yo-line { fill: none; stroke: var(--yo-line); stroke-width: 7; stroke-linejoin: round; stroke-linecap: round; }
+.cp-yo-echo-1, .cp-yo-echo-2 { fill: none; stroke: var(--yo-line-2); stroke-width: 7; stroke-linejoin: round; stroke-linecap: round; }
+.cp-yo-echo-1 { opacity: .35; } .cp-yo-echo-2 { opacity: .16; }
+.cp-yo-flip { fill: var(--color-panel); stroke: var(--yo-line); stroke-width: 3; }
+.cp-yo-tag path { fill: var(--yo-sign); }
+.cp-yo-tag text { font: 800 12px/1 Figtree, system-ui, sans-serif; letter-spacing: .04em; text-transform: uppercase; fill: var(--yo-sign-ink); }
+:root[data-skin="game"] body.s-arcade .cp-yo-line { filter: drop-shadow(0 0 7px var(--yo-line)); }
+:root[data-skin="game"] body.s-arcade :is(.cp-yo-echo-1, .cp-yo-echo-2) { filter: drop-shadow(0 0 6px var(--yo-line-2)); }
+.cp-yo-range { position: relative; z-index: 0; display: block; width: 100%; height: 150px; margin-top: 8px; }
+.cp-yo-far { fill: var(--yo-far); } .cp-yo-mid { fill: var(--yo-mid); } .cp-yo-near { fill: var(--yo-near); } .cp-yo-snow { fill: var(--yo-snow); }
+.cp-yo-haze-1 { stop-color: var(--yo-sky); stop-opacity: 0; } .cp-yo-haze-2 { stop-color: var(--yo-sky); stop-opacity: .55; }
+.cp-yo-path { fill: none; stroke: var(--yo-wall); stroke-width: 4; stroke-dasharray: 2 8; stroke-linecap: round; }
+.cp-yo-roof { fill: var(--yo-roof); } .cp-yo-wall { fill: var(--yo-wall); } .cp-yo-door { fill: var(--yo-pine); }
+.cp-yo-pine { fill: var(--yo-pine); }
+:root[data-skin="game"] body.s-arcade :is(.cp-yo-far, .cp-yo-mid) { stroke: #3be7ff; stroke-width: 1.5; stroke-opacity: .5; }
+:root[data-skin="game"] body.s-arcade .cp-yo-near { stroke: #45e3a5; stroke-width: 1.5; stroke-opacity: .6; }
 @media (prefers-reduced-motion: no-preference) {
-    .cp-cp-hi.cp-cp-path { animation: cp-cp-flow 12s linear infinite; }
-    .cp-cp-lo.cp-cp-path { animation: cp-cp-flow 18s linear infinite reverse; }
+    .cp-yo-cloud-1 { animation: cp-yo-drift 40s linear infinite alternate; }
+    .cp-yo-cloud-2 { animation: cp-yo-drift 55s linear infinite alternate-reverse; }
+    .cp-yo-echo-1 { animation: cp-yo-echo 3.2s ease-out infinite; }
+    .cp-yo-echo-2 { animation: cp-yo-echo 3.2s ease-out .5s infinite; }
 }
-@keyframes cp-cp-flow { to { stroke-dashoffset: -96; } }
-.cp-cp-moves { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; margin-top: 24px; }
-.cp-cp-move { margin: 0; display: grid; grid-template-columns: 120px minmax(0, 1fr); gap: 16px; align-items: center; padding: 16px 18px; border-radius: 18px; background: var(--color-panel); border: 1px solid var(--cp-line); }
+@keyframes cp-yo-drift { to { transform: translateX(120px); } }
+@keyframes cp-yo-echo { 0%, 100% { opacity: .06; } 35% { opacity: .42; } }
+
+/* Trailhead: the outcomes as four waymarks in a row. */
+.cp-yo-goals { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0; margin-top: 26px; border-top: 3px solid var(--yo-sign-ink); }
+:root:not([data-theme$="-light"]) .cp-yo-goals, :root[data-skin="game"] .cp-yo-goals { border-color: var(--yo-sign); }
+.cp-yo-goals li { display: grid; grid-template-columns: 56px minmax(0, 1fr); gap: 14px; align-items: start; padding: 18px 0; border-bottom: 1px solid var(--cp-line); }
+.cp-yo-goal-n { font-size: 44px; line-height: .9; font-weight: 900; letter-spacing: -0.04em; color: var(--cp-a-text); font-variant-numeric: tabular-nums; }
+:root[data-skin="game"] body.s-arcade .cp-yo-goal-n { font-family: var(--a-display); font-weight: 400; text-shadow: 0 0 14px var(--cp-a-text); }
+.cp-yo-goals p { font-size: 18px; line-height: 1.4; font-weight: 650; padding-top: 6px; }
+
+/* Two voices: a jump between ledges, a slide down a slope. */
+.cp-yo-ledge svg { max-height: 120px; }
+.cp-yo-rock { fill: color-mix(in srgb, var(--yo-mid) 55%, var(--color-panel)); }
+.cp-yo-grass { fill: none; stroke: var(--yo-near); stroke-width: 6; stroke-linecap: round; }
+.cp-yo-jump { stroke-width: 4; stroke-dasharray: 5 6; }
+.cp-yo-slide { stroke: var(--color-muted); stroke-width: 4; }
+
+/* Mountain rules: four pictograms on the dark band. */
+.cp-yo-rules .cp-yo-sign { color: var(--yo-sign-ink); }
+.cp-yo-picto { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 26px; }
+.cp-yo-picto li { display: grid; gap: 12px; align-content: start; padding: 18px; border-radius: 18px; background: color-mix(in srgb, var(--color-cream) 6%, transparent); font-size: 15.5px; line-height: 1.45; }
+.cp-yo-picto svg { width: 48px; height: 48px; padding: 6px; border-radius: 12px; background: var(--yo-sign); fill: var(--yo-sign-ink); }
+.cp-yo-picto-line { fill: none; stroke: var(--yo-sign-ink); stroke-width: 3.2; stroke-linecap: round; stroke-linejoin: round; }
+
+/* The trail: a map of four huts up a mountain, then the stages. */
+.cp-yo-trailsec { background: linear-gradient(180deg, color-mix(in srgb, var(--yo-sky) 40%, transparent), transparent 60%); }
+:root[data-skin="game"] body.s-arcade .cp-yo-trailsec { background: linear-gradient(180deg, color-mix(in srgb, #3be7ff 8%, transparent), transparent 60%); }
+.cp-yo-map { display: block; width: 100%; max-width: 600px; height: auto; margin: 22px auto 0; overflow: visible; }
+.cp-yo-map-mtn { fill: color-mix(in srgb, var(--yo-mid) 40%, var(--color-panel)); }
+:root[data-skin="game"] body.s-arcade .cp-yo-map-mtn { fill: var(--yo-far); stroke: #3be7ff; stroke-width: 2; stroke-opacity: .6; }
+.cp-yo-map-path { fill: none; stroke: var(--yo-line); stroke-width: 4; stroke-dasharray: 3 9; stroke-linecap: round; }
+.cp-yo-hut circle { fill: var(--yo-sign); stroke: var(--yo-sign-ink); stroke-width: 3; }
+.cp-yo-hut text { font: 900 20px/1 Figtree, system-ui, sans-serif; text-anchor: middle; fill: var(--yo-sign-ink); }
+.cp-yo-flag { fill: var(--yo-line); stroke: var(--yo-sign-ink); stroke-width: 2; }
+@media (prefers-reduced-motion: no-preference) { .cp-yo-map-path { animation: cp-yo-walk 2.4s linear infinite; } }
+@keyframes cp-yo-walk { to { stroke-dashoffset: -24; } }
+.cp-yo-stages { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; margin-top: 26px; }
+.cp-yo-stage { padding: 20px; border-radius: 22px; background: var(--color-panel); border: 1px solid var(--cp-line); }
+.cp-yo-stage h3 { margin-top: 12px; font-size: 21px; font-weight: 850; letter-spacing: -0.02em; }
+.cp-yo-lessons { margin-top: 12px; display: grid; gap: 6px; font-size: 15px; counter-reset: lesson; }
+.cp-yo-lessons li { counter-increment: lesson; display: flex; gap: 10px; align-items: baseline; }
+.cp-yo-lessons li::before { content: counter(lesson); display: inline-grid; place-items: center; min-width: 22px; height: 22px; border-radius: 99px; font-size: 11.5px; font-weight: 800; background: color-mix(in srgb, var(--cp-a) 14%, transparent); color: var(--cp-a-text); }
+
+/* First steps: the try-this on red and white trail blazes. */
+.cp-yo-steps { display: grid; gap: 12px; margin-top: 24px; }
+.cp-yo-steps li { display: grid; grid-template-columns: 46px minmax(0, 1fr); gap: 14px; align-items: start; padding: 16px 18px; border-radius: 18px; background: var(--color-panel); border: 1px solid var(--cp-line); }
+.cp-yo-step-first { border-color: color-mix(in srgb, var(--yo-line) 45%, transparent) !important; background: color-mix(in srgb, var(--yo-line) 7%, var(--color-panel)) !important; }
+.cp-yo-blaze { display: grid; place-items: center; width: 46px; height: 46px; border-radius: 6px; background: linear-gradient(180deg, #fff 0 30%, #d42a2a 30% 70%, #fff 70%); box-shadow: inset 0 0 0 1px #0002; }
+.cp-yo-blaze b { display: grid; place-items: center; width: 24px; height: 24px; border-radius: 99px; background: #fff; color: #b21f1f; font-size: 14px; font-weight: 900; }
+:root[data-skin="game"] body.s-arcade .cp-yo-blaze { box-shadow: 0 0 14px -2px #ff4d6d; }
+.cp-yo-steps p { font-size: 16.5px; line-height: 1.5; padding-top: 10px; }
+.cp-yo-start { display: block; font-size: 12px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: var(--cp-a-text); }
+
+/* Postcards: the facts with a stamp and a postmark. */
+.cp-yo-cards { display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px; margin-top: 26px; }
+.cp-yo-card { position: relative; min-height: 210px; padding: 24px 96px 22px 22px; border-radius: 8px; background: color-mix(in srgb, var(--yo-wall) 70%, var(--color-panel)); border: 1px solid var(--cp-line); box-shadow: 0 18px 34px -24px #000; }
+.cp-yo-card:nth-child(2) { transform: rotate(.7deg); } .cp-yo-card:nth-child(3) { transform: rotate(-.6deg); }
+:root[data-skin="game"] body.s-arcade .cp-yo-card { background: var(--a-panel); border-color: #45e3a5; box-shadow: 0 0 22px -12px #45e3a5; }
+.cp-yo-stamp { position: absolute; top: 16px; inset-inline-end: 16px; width: 56px; height: 66px; }
+.cp-yo-stamp-edge { fill: #fff; stroke: var(--yo-line); stroke-width: 2; stroke-dasharray: 3 3; }
+.cp-yo-stamp-sky { fill: var(--yo-sky); } .cp-yo-stamp-mtn { fill: var(--yo-mid); } .cp-yo-stamp-snow { fill: #fff; }
+.cp-yo-postmark { position: absolute; bottom: 20px; inset-inline-end: 18px; width: 72px; height: 24px; fill: none; stroke: var(--color-muted); stroke-width: 1.5; opacity: .5; }
+.cp-yo-card-text { position: relative; font-size: 18px; line-height: 1.45; font-weight: 650; color: var(--color-cream); }
+.cp-yo-card-src { margin-top: 16px; padding-inline-end: 72px; font-size: 12.5px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--color-muted); }
+.cp-yo-card-src a { color: inherit; text-underline-offset: 3px; }
+.cp-yo-card-src a:hover, .cp-yo-card-src a:focus-visible { color: var(--cp-a-text); }
+
+/* Your pack: who it's for, a packing list and the songs. */
+.cp-yo-pack-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 26px; margin-top: 26px; }
+.cp-yo-pack h3 { font-size: 13px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: var(--cp-a-text); }
+.cp-yo-pack .s-ticks { margin-top: 12px; font-size: 15.5px; }
+.cp-yo-packlist { padding: 20px; border-radius: 18px; background: var(--color-panel); border: 1px solid var(--cp-line); }
+.cp-yo-packlist ul { margin-top: 12px; display: grid; gap: 10px; font-size: 15.5px; line-height: 1.45; }
+.cp-yo-packlist li { display: grid; grid-template-columns: 20px minmax(0, 1fr); gap: 10px; }
+.cp-yo-box { width: 18px; height: 18px; margin-top: 2px; border-radius: 4px; border: 2px solid var(--cp-a-text); position: relative; }
+.cp-yo-box::after { content: ""; position: absolute; inset: 2px 5px 5px; border: solid var(--cp-a-text); border-width: 0 2px 2px 0; transform: rotate(45deg); }
+.cp-yo-songs { margin-top: 12px; display: grid; gap: 10px; font-size: 15.5px; line-height: 1.45; }
+.cp-yo-songs span { color: var(--color-muted); }
+
+/* Before you set off: the questions beside their heading. */
+.cp-yo-fine { display: grid; grid-template-columns: minmax(0, 1fr); gap: 18px; }
+
+/* The summit: the close, with the valley's echo. */
+.cp-yo-summit { position: relative; background: linear-gradient(180deg, color-mix(in srgb, var(--yo-line) 18%, var(--yo-sky-2)), var(--yo-sky-2)); }
+:root[data-skin="game"] body.s-arcade .cp-yo-summit { background: linear-gradient(180deg, color-mix(in srgb, #ff5fd2 16%, var(--a-bg)), var(--a-bg)); }
+.cp-yo-summit-range { display: block; width: 100%; height: 70px; background: var(--color-ink); }
+.cp-yo-summit-range path { fill: color-mix(in srgb, var(--yo-line) 18%, var(--yo-sky-2)); }
+:root[data-skin="game"] body.s-arcade .cp-yo-summit-range { background: var(--a-bg); }
+:root[data-skin="game"] body.s-arcade .cp-yo-summit-range path { fill: color-mix(in srgb, #ff5fd2 16%, var(--a-bg)); stroke: #ff5fd2; stroke-width: 1.5; }
+.cp-yo-summit-in { text-align: center; display: grid; justify-items: center; }
+.cp-yo-summit .cp-yo-title { font-size: clamp(40px, 8vw, 80px); }
+.cp-yo-echo-word { display: block; font-size: .5em; opacity: .4; margin-top: 4px; }
+.cp-yo-echo-word-2 { font-size: .3em; opacity: .2; }
+.cp-yo-summit .s-lede { margin-inline: auto; margin-top: 14px; }
+.cp-yo-summit .cp-join-btns, .cp-yo-summit .cp-related { justify-content: center; }
+
+@media (min-width: 900px) {
+    .cp-yo-range { height: 230px; margin-top: -60px; }
+    .cp-yo-goals { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 24px; border-top: 0; }
+    .cp-yo-goals li { grid-template-columns: minmax(0, 1fr); border-bottom: 0; border-top: 3px solid var(--yo-sign-ink); padding-top: 16px; }
+    :root:not([data-theme$="-light"]) .cp-yo-goals li, :root[data-skin="game"] .cp-yo-goals li { border-color: var(--yo-sign); }
+    .cp-yo-goal-n { font-size: 64px; }
+    .cp-yo-picto { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+    .cp-yo-stages { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+    .cp-yo-steps { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+    .cp-yo-cards { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; }
+    .cp-yo-pack-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 32px; }
+    .cp-yo-fine { grid-template-columns: minmax(0, .8fr) minmax(0, 1.4fr); gap: 56px; align-items: start; }
+}
+@media (min-width: 1200px) { .cp-yo-stages { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+
+/* Counterpoint (site/courses/counterpoint): a treatise in the manner of Fux's Gradus ad Parnassum
+   (docs/course-pages-polish.md). Parchment, an italic serif display, rubric red and gold, chapter
+   heads in small caps with a fleuron, roman numerals in the margin, illuminated initials, and facts
+   as glosses beside a ruled column (serious skin). The hero is a page at a slant with a round on
+   three staves and a quill. Game skin: the same score lit on a dark stage, gold, pink and cyan. */
+.cp-counterpoint { --cp-paper: #f3ead7; --cp-paper-2: #e6d6b6; --cp-ink: #3a2a1a; --cp-rubric: #a3262a; --cp-gold: #b08a2e; --cp-a: var(--cp-rubric); --cp-a-ink: #fff; --cp-a-text: #9a2226; --cp-serif: ui-serif, "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif; }
+:root:not([data-theme$="-light"]) .cp-counterpoint { --cp-paper: #241d15; --cp-paper-2: #1a140e; --cp-ink: #ecdfc6; --cp-rubric: #e0624f; --cp-gold: #d9b45a; --cp-a-text: #f08a78; }
+:root[data-skin="game"] .cp-counterpoint { --cp-paper: #120c22; --cp-paper-2: #0a0716; --cp-ink: #3be7ff; --cp-rubric: #ff5fd2; --cp-gold: #ffd84a; --cp-a: #ffd84a; --cp-a-ink: #1a1400; --cp-a-text: #ffd84a; }
+
+/* Type. */
+.cp-cp-kick { display: inline-flex; gap: 8px; align-items: center; font-size: 13px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--cp-a-text); }
+:root:not([data-skin="game"]) .cp-cp-kick { font-family: var(--cp-serif); font-variant: small-caps; text-transform: none; font-size: 17px; letter-spacing: .08em; }
+.cp-cp-kick span { color: var(--cp-gold); }
+:root[data-skin="game"] body.s-arcade .cp-cp-kick { font-family: "Press Start 2P", ui-monospace, monospace; font-size: 9.5px; letter-spacing: .06em; }
+:root:not([data-skin="game"]) .cp-counterpoint :is(.cp-hero h1, .cp-cp-title) { font-family: var(--cp-serif); font-weight: 700; font-style: italic; letter-spacing: -0.01em; text-wrap: balance; }
+:root:not([data-skin="game"]) .cp-counterpoint .cp-hero h1 { font-size: clamp(46px, 11vw, 92px); line-height: .98; }
+.cp-cp-title { margin-top: 10px; font-size: clamp(32px, 6vw, 54px); line-height: 1.04; font-weight: 800; letter-spacing: -0.02em; text-wrap: balance; }
+:root[data-skin="game"] body.s-arcade .cp-counterpoint .cp-cp-title { font-family: var(--a-display); font-weight: 400; text-transform: uppercase; letter-spacing: .01em; }
+.cp-cp-lede::first-letter { float: left; margin: 6px 10px 0 0; padding: 4px 10px; font-family: var(--cp-serif); font-size: 3.2em; line-height: .8; font-weight: 700; color: var(--cp-paper); background: var(--cp-rubric); border: 2px solid var(--cp-gold); }
+:root[data-skin="game"] body.s-arcade .cp-cp-lede::first-letter { font-family: var(--a-display); font-weight: 400; color: #1a0414; box-shadow: 0 0 16px var(--cp-rubric); }
+.cp-cp-num { font-family: var(--cp-serif); font-weight: 700; font-style: italic; color: var(--cp-rubric); font-variant-numeric: oldstyle-nums; }
+:root[data-skin="game"] body.s-arcade .cp-cp-num { font-family: var(--a-display); font-style: normal; font-weight: 400; color: var(--cp-gold); }
+
+/* The hero: the page and its round. */
+.cp-cp-hero { background: radial-gradient(80% 90% at 72% 40%, color-mix(in srgb, var(--cp-gold) 14%, var(--color-ink)), var(--color-ink) 70%); }
+:root[data-skin="game"] body.s-arcade .cp-cp-hero { background: radial-gradient(70% 80% at 70% 40%, color-mix(in srgb, #ff5fd2 14%, var(--a-bg)), var(--a-bg)); }
+.cp-cp-art { display: grid; place-items: center; }
+.cp-cp-svg { width: min(100%, 580px); height: auto; overflow: visible; }
+.cp-cp-page-1 { stop-color: var(--cp-paper); } .cp-cp-page-2 { stop-color: var(--cp-paper-2); }
+:root[data-skin="game"] body.s-arcade .cp-cp-sheet { stroke: #3be7ff; stroke-width: 1.5; stroke-opacity: .5; }
+.cp-cp-staff { fill: none; stroke: var(--cp-ink); stroke-width: 1.1; opacity: .4; }
+.cp-cp-bar { fill: none; stroke: var(--cp-ink); stroke-width: 1.2; opacity: .3; }
+.cp-cp-brace { fill: none; stroke: var(--cp-ink); stroke-width: 5; opacity: .6; }
+.cp-cp-note.cp-cp-v1 { fill: var(--cp-ink); } .cp-cp-note.cp-cp-v2 { fill: var(--cp-rubric); } .cp-cp-note.cp-cp-v3 { fill: var(--cp-gold); }
+.cp-cp-stem { stroke-width: 1.8; } .cp-cp-stem.cp-cp-v1 { stroke: var(--cp-ink); } .cp-cp-stem.cp-cp-v2 { stroke: var(--cp-rubric); } .cp-cp-stem.cp-cp-v3 { stroke: var(--cp-gold); }
+.cp-cp-flourish { fill: none; stroke: var(--cp-rubric); stroke-width: 2; stroke-linecap: round; opacity: .6; }
+.cp-cp-feather { fill: color-mix(in srgb, var(--cp-paper) 70%, #fff); stroke: var(--cp-ink); stroke-width: 1.5; opacity: .95; }
+.cp-cp-shaft { fill: none; stroke: var(--cp-ink); stroke-width: 1.5; }
+.cp-cp-nib { stroke: var(--cp-ink); stroke-width: 3; stroke-linecap: round; }
+:root[data-skin="game"] body.s-arcade :is(.cp-cp-note, .cp-cp-stem) { filter: drop-shadow(0 0 4px currentColor); }
+:root[data-skin="game"] body.s-arcade .cp-cp-note.cp-cp-v1 { color: #3be7ff; } :root[data-skin="game"] body.s-arcade .cp-cp-note.cp-cp-v2 { color: #ff5fd2; } :root[data-skin="game"] body.s-arcade .cp-cp-note.cp-cp-v3 { color: #ffd84a; }
+:root[data-skin="game"] body.s-arcade .cp-cp-feather { fill: #1b1036; stroke: #ffd84a; }
+@media (prefers-reduced-motion: no-preference) {
+    .cp-cp-note, .cp-cp-stem { animation: cp-cp-ink 9s ease-out infinite both; }
+    .cp-cp-v2 { animation-delay: .9s; } .cp-cp-v3 { animation-delay: 1.8s; }
+    .cp-cp-quill { animation: cp-cp-write 9s ease-in-out infinite; }
+}
+@keyframes cp-cp-ink { 0% { opacity: 0; } 10%, 100% { opacity: 1; } }
+@keyframes cp-cp-write { 0%, 100% { transform: translate(410px, 250px) rotate(-38deg); } 50% { transform: translate(400px, 246px) rotate(-35deg); } }
+
+/* Chapter I: the argument, numerals in the margin. */
+.cp-cp-points { margin-top: 24px; display: grid; gap: 0; }
+.cp-cp-points li { display: grid; grid-template-columns: 54px minmax(0, 1fr); gap: 12px; align-items: baseline; padding: 16px 0; border-bottom: 1px solid color-mix(in srgb, var(--cp-rubric) 30%, transparent); }
+.cp-cp-points li:first-child { border-top: 1px solid color-mix(in srgb, var(--cp-rubric) 30%, transparent); }
+.cp-cp-points .cp-cp-num { font-size: 30px; line-height: 1; text-align: end; }
+.cp-cp-points p { font-size: 19px; line-height: 1.45; }
+:root:not([data-skin="game"]) .cp-cp-points p { font-family: var(--cp-serif); font-size: 20px; }
+
+/* Chapter II: of motion, the figures beside the table. */
+.cp-cp-motion { background: color-mix(in srgb, var(--cp-paper) 55%, transparent); }
+:root[data-skin="game"] body.s-arcade .cp-cp-motion { background: color-mix(in srgb, #3be7ff 5%, transparent); }
+.cp-cp-motion .s-lede { max-width: 58ch; }
+.cp-cp-motion-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 22px; margin-top: 26px; }
+.cp-cp-moves { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; }
+.cp-cp-move { margin: 0; display: grid; grid-template-columns: 120px minmax(0, 1fr); gap: 16px; align-items: center; padding: 14px 16px; border-radius: 14px; background: var(--color-panel); border: 1px solid var(--cp-line); }
 .cp-cp-move svg { display: block; width: 100%; height: auto; }
-.cp-cp-move .cp-cp-path { stroke-dasharray: none; opacity: 1; stroke-width: 2.5; }
+.cp-cp-path { fill: none; stroke-width: 2.5; }
+.cp-cp-hi { stroke: var(--cp-rubric); } .cp-cp-lo { stroke: var(--cp-ink); }
 .cp-cp-dot-hi { fill: var(--cp-rubric); } .cp-cp-dot-lo { fill: var(--cp-ink); }
 .cp-cp-move figcaption { font-size: 15px; line-height: 1.45; color: var(--color-muted); }
-.cp-cp-move figcaption b { display: block; font-size: 17px; color: var(--color-cream); }
-:root:not([data-skin="game"]) .cp-counterpoint .cp-cp-move figcaption b { font-family: var(--cp-serif); }
-.cp-cp-smooth { margin-top: 20px; font-size: 16px; line-height: 1.55; color: var(--color-muted); max-width: 70ch; }
+.cp-cp-move figcaption .cp-cp-num { margin-inline-end: 6px; font-size: 18px; }
+.cp-cp-move figcaption b { font-size: 17px; color: var(--color-cream); }
+:root:not([data-skin="game"]) .cp-cp-move figcaption b { font-family: var(--cp-serif); }
+.cp-cp-table { padding: 22px; border: 3px double color-mix(in srgb, var(--cp-rubric) 55%, transparent); background: var(--color-panel); }
+.cp-cp-table h3 { font-size: 18px; font-weight: 700; }
+:root:not([data-skin="game"]) .cp-cp-table h3 { font-family: var(--cp-serif); font-style: italic; font-size: 21px; }
+.cp-cp-table dl { margin-top: 14px; display: grid; gap: 12px; }
+.cp-cp-table dl > div { display: grid; grid-template-columns: 74px minmax(0, 1fr); gap: 10px; align-items: baseline; padding-bottom: 12px; border-bottom: 1px solid var(--cp-line); }
+.cp-cp-table dt { font-size: 12.5px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+.cp-cp-smooth-row dt { color: var(--cp-a-text); } .cp-cp-rub-row dt { color: var(--color-muted); }
+.cp-cp-table dd { display: flex; flex-wrap: wrap; gap: 6px; }
+.cp-cp-table dd span { padding: 3px 10px; border-radius: 99px; font-size: 14.5px; font-weight: 650; }
+.cp-cp-smooth-row dd span { background: color-mix(in srgb, var(--cp-rubric) 12%, transparent); }
+.cp-cp-rub-row dd span { background: transparent; border: 1px dashed var(--color-muted); }
+.cp-cp-table p { margin-top: 12px; font-size: 15px; line-height: 1.5; color: var(--color-muted); }
+
+/* Chapter III: the lessons, a page per book. */
+.cp-cp-books { margin-top: 26px; display: grid; gap: 16px; }
+.cp-cp-book { padding: 24px 22px 20px; background: linear-gradient(180deg, color-mix(in srgb, var(--cp-paper) 70%, var(--color-panel)), var(--color-panel)); border: 1px solid var(--cp-line); box-shadow: 0 16px 34px -28px #000; }
+:root[data-skin="game"] body.s-arcade .cp-cp-book { background: var(--a-panel); border-color: color-mix(in srgb, #3be7ff 40%, transparent); }
+.cp-cp-book-n { font-size: 12px; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; color: var(--cp-a-text); }
+:root:not([data-skin="game"]) .cp-cp-book-n { font-family: var(--cp-serif); font-variant: small-caps; text-transform: none; font-size: 16px; letter-spacing: .1em; }
+.cp-cp-book h3 { margin-top: 6px; font-size: 24px; font-weight: 800; letter-spacing: -0.01em; }
+:root:not([data-skin="game"]) .cp-cp-book h3 { font-family: var(--cp-serif); font-weight: 700; font-size: 26px; }
+:root:not([data-skin="game"]) .cp-cp-book h3::first-letter { color: var(--cp-rubric); font-size: 1.35em; }
+.cp-cp-book-say { margin-top: 6px; font-size: 15.5px; line-height: 1.5; color: var(--color-muted); }
+.cp-cp-lessons { margin-top: 12px; display: grid; gap: 4px; font-size: 15.5px; }
+.cp-cp-lessons li { padding-inline-start: 22px; position: relative; }
+.cp-cp-lessons li::before { content: "¶" / ""; position: absolute; inset-inline-start: 0; color: var(--cp-rubric); font-family: var(--cp-serif); }
+
+/* Chapter IV: the exercise, the round as entries in time. */
+.cp-cp-exercise-head { display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px; align-items: center; }
+.cp-cp-entries { margin: 0; padding: 18px; border-radius: 16px; background: var(--color-panel); border: 1px solid var(--cp-line); }
+.cp-cp-entries svg { display: block; width: 100%; height: auto; }
+.cp-cp-time { stroke: var(--color-line); stroke-width: 2; }
+.cp-cp-entry.cp-cp-v1 { fill: color-mix(in srgb, var(--cp-ink) 70%, transparent); } .cp-cp-entry.cp-cp-v2 { fill: var(--cp-rubric); } .cp-cp-entry.cp-cp-v3 { fill: var(--cp-gold); }
+.cp-cp-entry-start { fill: var(--color-panel); }
+.cp-cp-entries figcaption { margin-top: 10px; font-size: 14.5px; color: var(--color-muted); }
+.cp-cp-steps { margin-top: 24px; display: grid; gap: 12px; }
+.cp-cp-steps li { display: grid; grid-template-columns: 40px minmax(0, 1fr); gap: 12px; align-items: baseline; padding: 16px 18px; border-radius: 14px; background: var(--color-panel); border: 1px solid var(--cp-line); }
+.cp-cp-step-first { border-color: color-mix(in srgb, var(--cp-rubric) 45%, transparent) !important; background: color-mix(in srgb, var(--cp-rubric) 7%, var(--color-panel)) !important; }
+.cp-cp-steps .cp-cp-num { font-size: 22px; text-align: end; }
+.cp-cp-steps p { font-size: 16.5px; line-height: 1.5; }
+.cp-cp-start { display: block; font-size: 12px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: var(--cp-a-text); }
+
+/* In the margins: glosses beside a ruled column. */
+.cp-cp-margins { display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px; }
+.cp-cp-glosses { display: grid; gap: 0; border-inline-start: 2px solid color-mix(in srgb, var(--cp-rubric) 50%, transparent); }
+.cp-cp-gloss { display: grid; grid-template-columns: 34px minmax(0, 1fr); gap: 4px 12px; padding: 18px 0 18px 18px; border-bottom: 1px solid var(--cp-line); }
+.cp-cp-hand { grid-row: span 2; font-size: 24px; line-height: 1; color: var(--cp-rubric); }
+.cp-cp-gloss-text { font-size: 18px; line-height: 1.45; }
+:root:not([data-skin="game"]) .cp-cp-gloss-text { font-family: var(--cp-serif); font-style: italic; font-size: 19px; }
+.cp-cp-gloss-src { font-size: 12.5px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--color-muted); }
+.cp-cp-gloss-src a { color: inherit; text-underline-offset: 3px; }
+.cp-cp-gloss-src a:hover, .cp-cp-gloss-src a:focus-visible { color: var(--cp-a-text); }
+
+/* To the reader: one framed page. */
+.cp-cp-reader { padding: 30px 22px; background: var(--color-panel); border: 3px double color-mix(in srgb, var(--cp-ink) 40%, transparent); box-shadow: 0 0 0 6px var(--color-panel), 0 0 0 7px var(--cp-line); }
+:root[data-skin="game"] body.s-arcade .cp-cp-reader { border-color: #ffd84a; box-shadow: 0 0 0 6px var(--a-bg), 0 0 0 7px #ff5fd2; }
+.cp-cp-reader-cols { margin-top: 22px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 22px; }
+.cp-cp-reader h3 { font-size: 13px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: var(--cp-a-text); }
+.cp-cp-reader ul { margin-top: 10px; display: grid; gap: 8px; font-size: 15.5px; line-height: 1.5; }
+.cp-cp-reader-cols li { padding-inline-start: 18px; position: relative; }
+.cp-cp-reader-cols li::before { content: "❧" / ""; position: absolute; inset-inline-start: 0; color: var(--cp-gold); font-size: 13px; }
+.cp-cp-songs { margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--cp-line); }
+.cp-cp-songs b { font-weight: 700; }
+:root:not([data-skin="game"]) .cp-cp-songs b { font-family: var(--cp-serif); font-style: italic; font-size: 17px; }
+.cp-cp-songs span { color: var(--color-muted); }
+
+/* Questions beside their heading, and finis. */
+.cp-cp-fine { display: grid; grid-template-columns: minmax(0, 1fr); gap: 18px; }
+.cp-cp-finis { background: radial-gradient(70% 90% at 50% 100%, color-mix(in srgb, var(--cp-rubric) 12%, var(--color-ink)), var(--color-ink) 70%); }
+:root[data-skin="game"] body.s-arcade .cp-cp-finis { background: radial-gradient(70% 90% at 50% 100%, color-mix(in srgb, #ff5fd2 18%, var(--a-bg)), var(--a-bg) 70%); }
+.cp-cp-finis-in { text-align: center; display: grid; justify-items: center; }
+.cp-cp-tail { width: 200px; height: 36px; margin-bottom: 10px; }
+.cp-cp-tail path:first-child { fill: none; stroke: var(--cp-gold); stroke-width: 1.5; }
+.cp-cp-tail path:nth-child(2), .cp-cp-tail circle { fill: var(--cp-rubric); }
+.cp-cp-finis .cp-cp-title { font-size: clamp(42px, 8vw, 80px); }
+.cp-cp-finis .s-lede { margin-inline: auto; margin-top: 14px; }
+.cp-cp-finis .cp-join-btns, .cp-cp-finis .cp-related { justify-content: center; }
 .cp-counterpoint .cp-unit-n { color: var(--cp-a-text); }
-:root:not([data-skin="game"]) .cp-counterpoint .cp-unit h3 { font-family: var(--cp-serif); font-size: 21px; }
-.cp-counterpoint .cp-fact { background: transparent; border: 0; border-top: 1px solid var(--cp-line); border-radius: 0; padding-inline: 4px; }
-.cp-counterpoint .cp-fact::before { content: "\2767" / ""; font-size: 22px; line-height: 1; color: var(--cp-a-text); }
-:root:not([data-skin="game"]) .cp-counterpoint .cp-fact p:first-child { font-family: var(--cp-serif); font-style: italic; font-weight: 500; font-size: 18px; }
-:root[data-skin="game"] body.s-arcade .cp-counterpoint .cp-fact { background: transparent; border-color: var(--a-line); }
+
 @media (min-width: 900px) {
-    .cp-cp-moves { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
-    .cp-cp-move { grid-template-columns: minmax(0, 1fr); }
+    .cp-cp-art { margin-inline-end: -56px; }
+    .cp-cp-svg { width: min(100%, 680px); }
+    .cp-cp-points { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 40px; }
+    .cp-cp-points li:nth-child(2) { border-top: 1px solid color-mix(in srgb, var(--cp-rubric) 30%, transparent); }
+    .cp-cp-motion-grid { grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 32px; align-items: start; }
+    .cp-cp-books { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+    .cp-cp-book:last-child { grid-column: 1 / -1; }
+    .cp-cp-exercise-head { grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 40px; }
+    .cp-cp-steps { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+    .cp-cp-margins { grid-template-columns: minmax(0, .8fr) minmax(0, 1.6fr); gap: 48px; align-items: start; }
+    .cp-cp-reader { padding: 40px 44px; }
+    .cp-cp-reader-cols { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 32px; }
+    .cp-cp-fine { grid-template-columns: minmax(0, .8fr) minmax(0, 1.4fr); gap: 56px; align-items: start; }
 }
 
-/* Vibrato (site/courses/vibrato): a voice drawn as a line, the way the app draws it. Lavender light, a
-   violet line in the guide's ribbon, straight at first and then blooming into an even wave, a slow
-   pulse running along it, and wavy rules over the facts. Game skin: magenta on the night screen. */
-.cp-vibrato { --vi-sky: #f1ecfb; --vi-line: #6d3fc8; --vi-ribbon: color-mix(in srgb, #6d3fc8 14%, transparent); --cp-a: #6d3fc8; --cp-a-ink: #fff; --cp-a-text: #5b2fb0; --cp-care: #c7b0ff; }
-:root:not([data-theme$="-light"]) .cp-vibrato { --vi-sky: #1d1630; --vi-line: #b99bff; --vi-ribbon: color-mix(in srgb, #b99bff 16%, transparent); --cp-a-text: #c7b0ff; --cp-care: #c7b0ff; }
-:root[data-skin="game"] .cp-vibrato { --vi-sky: #1a0b2a; --vi-line: #ff5fd2; --vi-ribbon: color-mix(in srgb, #3be7ff 14%, transparent); --cp-a: #ff5fd2; --cp-a-ink: #1a0414; --cp-a-text: #ff8fe0; --cp-care: #ff8fe0; }
-.cp-vibrato .cp-hero { background: radial-gradient(90% 90% at 75% 45%, var(--vi-sky), color-mix(in srgb, var(--vi-sky) 45%, var(--color-ink))); }
-:root[data-skin="game"] body.s-arcade .cp-vibrato .cp-hero { background: radial-gradient(70% 80% at 72% 45%, var(--vi-sky), var(--a-bg)); }
+/* Vibrato (site/courses/vibrato): still water at dawn (docs/course-pages-polish.md). A lavender sky
+   with a low sun, mist on far hills, the sun's shimmer on the water and reeds at its edge; the voice
+   drawn on the surface, straight then blooming into an even wave, ripples widening where it begins.
+   Light, thin headlines with tight tracking, and quiet tracked labels. Game skin: a synthwave lake,
+   the sun striped, the water a grid, the wave cyan. */
+.cp-vibrato { --vi-sky-1: #e9e1f7; --vi-sky-2: #fbe2d2; --vi-sun: #f7a96b; --vi-hills: #c6b6e6; --vi-water-1: #c9bbe9; --vi-water-2: #8f7cc4; --vi-line: #5b2fb0; --vi-reed: #4a3a6b;
+    --cp-a: #6d3fc8; --cp-a-ink: #fff; --cp-a-text: #5b2fb0; --cp-care: #c7b0ff; }
+:root:not([data-theme$="-light"]) .cp-vibrato { --vi-sky-1: #1d1630; --vi-sky-2: #3a2440; --vi-sun: #f0a070; --vi-hills: #2c2246; --vi-water-1: #2a2048; --vi-water-2: #120d22; --vi-line: #c7b0ff; --vi-reed: #0f0b1c; --cp-a-text: #c7b0ff; }
+:root[data-skin="game"] .cp-vibrato { --vi-sky-1: #1a0b2a; --vi-sky-2: #4a0f4f; --vi-sun: #ff5fd2; --vi-hills: #2a0d4d; --vi-water-1: #12082a; --vi-water-2: #05030c; --vi-line: #3be7ff; --vi-reed: #05030c; --cp-a: #ff5fd2; --cp-a-ink: #1a0414; --cp-a-text: #ff8fe0; --cp-care: #ff8fe0; }
+
+/* Type: light and calm. */
+.cp-vi-kick { font-size: 12.5px; font-weight: 600; letter-spacing: .26em; text-transform: uppercase; color: var(--cp-a-text); }
+:root[data-skin="game"] body.s-arcade .cp-vi-kick { font-family: "Press Start 2P", ui-monospace, monospace; font-size: 9.5px; letter-spacing: .1em; }
+:root:not([data-skin="game"]) .cp-vibrato .cp-hero h1 { font-weight: 300; font-size: clamp(48px, 11vw, 96px); line-height: .98; letter-spacing: -0.045em; }
+.cp-vi-title { margin-top: 12px; font-size: clamp(32px, 6vw, 56px); line-height: 1.04; font-weight: 300; letter-spacing: -0.04em; text-wrap: balance; }
+:root[data-skin="game"] body.s-arcade .cp-vibrato .cp-vi-title { font-family: var(--a-display); font-weight: 400; letter-spacing: .01em; text-transform: uppercase; }
+.cp-vibrato .s-lede { max-width: 54ch; }
+
+/* The hero: the lake. */
+.cp-vi-hero { background: linear-gradient(180deg, color-mix(in srgb, var(--vi-sky-1) 70%, var(--color-ink)), var(--color-ink)); }
+:root[data-skin="game"] body.s-arcade .cp-vi-hero { background: radial-gradient(70% 80% at 72% 40%, color-mix(in srgb, #ff5fd2 14%, var(--a-bg)), var(--a-bg)); }
 .cp-vi-art { display: grid; place-items: center; }
-.cp-vi-svg { width: min(100%, 560px); height: auto; overflow: visible; }
-.cp-vi-ribbon { fill: var(--vi-ribbon); }
-.cp-vi-rows { fill: none; stroke: var(--vi-line); stroke-width: 1; opacity: .14; }
-.cp-vi-mid { fill: none; stroke: var(--vi-line); stroke-width: 1.5; stroke-dasharray: 3 7; opacity: .35; }
-.cp-vi-line { fill: none; stroke: var(--vi-line); stroke-width: 4.5; stroke-linejoin: round; stroke-linecap: round; }
-.cp-vi-pulse { fill: none; stroke: var(--color-cream); stroke-width: 4.5; stroke-linecap: round; stroke-dasharray: 0 1200; opacity: 0; }
-.cp-vi-bloom { fill: var(--color-panel); stroke: var(--vi-line); stroke-width: 3; }
-.cp-vi-head { fill: var(--vi-line); }
-:root[data-skin="game"] body.s-arcade :is(.cp-vi-line, .cp-vi-head) { filter: drop-shadow(0 0 6px var(--vi-line)); }
+.cp-vi-svg { width: 100%; max-width: 620px; height: auto; border-radius: 28px; box-shadow: 0 30px 60px -36px color-mix(in srgb, var(--vi-line) 60%, #000); }
+.cp-vi-sky-1 { stop-color: var(--vi-sky-1); } .cp-vi-sky-2 { stop-color: var(--vi-sky-2); }
+.cp-vi-water-1 { stop-color: var(--vi-water-1); } .cp-vi-water-2 { stop-color: var(--vi-water-2); }
+.cp-vi-sun circle { fill: var(--vi-sun); }
+.cp-vi-sun-cuts { stroke: var(--vi-sky-2); stroke-width: 0; }
+:root[data-skin="game"] body.s-arcade .cp-vi-sun-cuts { stroke-width: 4; }
+:root[data-skin="game"] body.s-arcade .cp-vi-sun circle { filter: drop-shadow(0 0 18px #ff5fd2); }
+.cp-vi-hills { fill: var(--vi-hills); }
+.cp-vi-mist { fill: #fff; opacity: .28; }
+:root:not([data-theme$="-light"]) .cp-vi-mist, :root[data-skin="game"] .cp-vi-mist { opacity: .06; }
+.cp-vi-grid path { fill: none; stroke: #3be7ff; stroke-width: 1; opacity: 0; }
+:root[data-skin="game"] body.s-arcade .cp-vi-grid path { opacity: .35; }
+.cp-vi-shimmer path { stroke: color-mix(in srgb, var(--vi-sun) 80%, #fff); stroke-width: 3; stroke-linecap: round; opacity: .7; }
+.cp-vi-ripples ellipse { fill: none; stroke: color-mix(in srgb, var(--vi-line) 50%, #fff); stroke-width: 1.5; opacity: .5; }
+.cp-vi-line { fill: none; stroke: var(--vi-line); stroke-width: 4; stroke-linejoin: round; stroke-linecap: round; }
+.cp-vi-pulse { fill: none; stroke: #fff; stroke-width: 4; stroke-linecap: round; stroke-dasharray: 0 1200; opacity: 0; }
+.cp-vi-bloom { fill: #fff; stroke: var(--vi-line); stroke-width: 3; }
+.cp-vi-reeds path { fill: none; stroke: var(--vi-reed); stroke-width: 3; stroke-linecap: round; }
+.cp-vi-reeds ellipse { fill: var(--vi-reed); }
+:root[data-skin="game"] body.s-arcade .cp-vi-line { filter: drop-shadow(0 0 7px var(--vi-line)); }
 @media (prefers-reduced-motion: no-preference) {
     .cp-vi-pulse { stroke-dasharray: 26 1200; opacity: .7; animation: cp-vi-pulse 5s linear infinite; }
-    .cp-vi-head { animation: cp-vi-breathe 2.4s ease-in-out infinite; transform-origin: 520px 130px; }
+    .cp-vi-ripples ellipse { transform-box: fill-box; transform-origin: center; animation: cp-vi-ripple 4.5s ease-out infinite; }
+    .cp-vi-ripples ellipse:nth-child(2) { animation-delay: 1.5s; } .cp-vi-ripples ellipse:nth-child(3) { animation-delay: 3s; }
+    .cp-vi-shimmer path { animation: cp-vi-shimmer 3s ease-in-out infinite alternate; }
+    .cp-vi-shimmer path:nth-child(even) { animation-delay: 1.2s; }
 }
 @keyframes cp-vi-pulse { from { stroke-dashoffset: 30; } to { stroke-dashoffset: -760; } }
-@keyframes cp-vi-breathe { 50% { transform: scale(1.25); } }
-.cp-vi-kind .cp-vi-line { stroke-width: 3; }
-.cp-vi-kind-1 .cp-vi-line { stroke: var(--color-cream); }
-.cp-vi-kind-3 .cp-vi-line { stroke: var(--color-muted); }
+@keyframes cp-vi-ripple { 0% { transform: scale(.4); opacity: .7; } 100% { transform: scale(1.3); opacity: 0; } }
+@keyframes cp-vi-shimmer { to { opacity: .25; transform: translateX(6px); } }
+
+/* Still water: the outcomes in a calm row. */
+.cp-vi-aims { margin-top: 26px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 0; }
+.cp-vi-aims li { display: grid; grid-template-columns: 52px minmax(0, 1fr); gap: 14px; align-items: baseline; padding: 18px 0; border-bottom: 1px solid var(--cp-line); }
+.cp-vi-aim-n { font-size: 14px; font-weight: 600; letter-spacing: .14em; color: var(--cp-a-text); font-variant-numeric: tabular-nums; }
+.cp-vi-aims p { font-size: 20px; line-height: 1.4; font-weight: 400; letter-spacing: -0.01em; }
+
+/* Three surfaces: still, rippled and choppy water. */
+.cp-vi-pools { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; margin-top: 26px; }
+.cp-vi-pool { margin: 0; display: grid; grid-template-columns: 130px minmax(0, 1fr); gap: 16px; align-items: center; padding: 14px 18px 14px 14px; border-radius: 20px; background: var(--color-panel); border: 1px solid var(--cp-line); }
+.cp-vi-pool svg { display: block; width: 100%; height: auto; padding: 10px 6px; border-radius: 14px; background: linear-gradient(180deg, color-mix(in srgb, var(--vi-water-1) 70%, var(--color-panel)), color-mix(in srgb, var(--vi-water-2) 40%, var(--color-panel))); }
+.cp-vi-pool .cp-vi-line { stroke-width: 3; }
+.cp-vi-pool-1 .cp-vi-line { stroke: var(--color-cream); }
+.cp-vi-pool-3 .cp-vi-line { stroke: var(--color-muted); }
+.cp-vi-pool figcaption { font-size: 15px; line-height: 1.45; color: var(--color-muted); }
+.cp-vi-pool figcaption b { display: block; font-size: 18px; font-weight: 500; color: var(--color-cream); }
+
+/* Calm water: never force it, beside the lead. */
+.cp-vi-calm { position: relative; overflow: hidden; }
+.cp-vi-calm-rings { position: absolute; inset-inline-end: -120px; top: 20px; width: 520px; height: 260px; pointer-events: none; }
+.cp-vi-calm-rings ellipse { fill: none; stroke: var(--cp-care); stroke-width: 1.2; opacity: .2; }
+.cp-vi-calm-grid { position: relative; display: grid; grid-template-columns: minmax(0, 1fr); gap: 26px; }
+.cp-vi-calm .cp-vi-kick { color: var(--cp-care); }
+.cp-vi-calm-points { display: grid; gap: 14px; font-size: 16.5px; line-height: 1.5; }
+.cp-vi-calm-points li { display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 12px; }
+.cp-vi-drop { width: 14px; height: 14px; margin-top: 5px; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); background: var(--cp-care); }
+
+/* Stepping stones: the units across the water, then cards that step. */
+.cp-vi-stones { display: block; width: 100%; max-width: 640px; height: auto; margin: 22px 0 0; }
+.cp-vi-stone-water { fill: none; stroke: color-mix(in srgb, var(--vi-line) 40%, transparent); stroke-width: 2; stroke-dasharray: 6 8; }
+.cp-vi-stone-ring { fill: none; stroke: color-mix(in srgb, var(--vi-line) 35%, transparent); stroke-width: 1.5; }
+.cp-vi-stone { fill: color-mix(in srgb, var(--vi-hills) 70%, var(--color-panel)); stroke: var(--vi-line); stroke-width: 2; }
+.cp-vi-stone-n { font: 600 20px/1 Figtree, system-ui, sans-serif; text-anchor: middle; fill: var(--vi-line); }
+:root[data-skin="game"] body.s-arcade .cp-vi-stone { filter: drop-shadow(0 0 8px #3be7ff); }
+.cp-vi-steps { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; margin-top: 18px; }
+.cp-vi-step { padding: 20px; border-radius: 26px; background: var(--color-panel); border: 1px solid var(--cp-line); }
+.cp-vi-step-n { font-size: 12px; font-weight: 600; letter-spacing: .2em; text-transform: uppercase; color: var(--cp-a-text); }
+.cp-vi-step h3 { margin-top: 8px; font-size: 22px; font-weight: 500; letter-spacing: -0.02em; }
+.cp-vi-lessons { margin-top: 12px; display: grid; gap: 6px; font-size: 15px; }
+.cp-vi-lessons li { padding-inline-start: 16px; position: relative; }
+.cp-vi-lessons li::before { content: ""; position: absolute; inset-inline-start: 0; top: .6em; width: 7px; height: 7px; border-radius: 99px; border: 1.5px solid var(--cp-a-text); }
+
+/* Wade in: the try-this with ripple numbers. */
+.cp-vi-try { display: grid; gap: 12px; margin-top: 24px; }
+.cp-vi-try li { display: grid; grid-template-columns: 48px minmax(0, 1fr); gap: 14px; align-items: start; padding: 16px 18px; border-radius: 20px; background: var(--color-panel); border: 1px solid var(--cp-line); }
+.cp-vi-try-first { border-color: color-mix(in srgb, var(--vi-line) 45%, transparent) !important; background: color-mix(in srgb, var(--vi-line) 7%, var(--color-panel)) !important; }
+.cp-vi-ring-n { display: grid; place-items: center; width: 48px; height: 48px; border-radius: 99px; box-shadow: 0 0 0 2px color-mix(in srgb, var(--vi-line) 25%, transparent), 0 0 0 8px color-mix(in srgb, var(--vi-line) 8%, transparent); }
+.cp-vi-ring-n b { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 99px; background: var(--cp-a); color: var(--cp-a-ink); font-size: 15px; font-weight: 600; }
+.cp-vi-try p { font-size: 16.5px; line-height: 1.5; padding-top: 12px; }
+.cp-vi-start { display: block; font-size: 12px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--cp-a-text); }
+
+/* Ripples: the facts. */
+.cp-vi-cards { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; margin-top: 26px; }
+.cp-vi-card { padding: 22px; border-radius: 26px; background: linear-gradient(180deg, color-mix(in srgb, var(--vi-sky-1) 60%, var(--color-panel)), var(--color-panel)); border: 1px solid var(--cp-line); }
+:root[data-skin="game"] body.s-arcade .cp-vi-card { background: var(--a-panel); border-color: color-mix(in srgb, #3be7ff 45%, transparent); }
+.cp-vi-card-rings { width: 80px; height: 30px; }
+.cp-vi-card-rings ellipse { fill: none; stroke: var(--vi-line); stroke-width: 1.5; opacity: .6; }
+.cp-vi-card-text { margin-top: 10px; font-size: 19px; line-height: 1.4; font-weight: 400; letter-spacing: -0.01em; color: var(--color-cream); }
+.cp-vi-card-src { margin-top: 14px; font-size: 12.5px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--color-muted); }
+.cp-vi-card-src a { color: inherit; text-underline-offset: 3px; }
+.cp-vi-card-src a:hover, .cp-vi-card-src a:focus-visible { color: var(--cp-a-text); }
+
+/* On the bank: who, what you need, the songs and singing safely. */
+.cp-vi-bank-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 26px; margin-top: 26px; }
+.cp-vi-bank h3 { font-size: 12.5px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: var(--cp-a-text); }
+.cp-vi-bank .s-ticks { margin-top: 12px; font-size: 15.5px; }
+.cp-vi-songs { padding: 22px; border-radius: 22px; background: var(--color-panel); border: 1px solid var(--cp-line); }
+.cp-vi-songs ul { margin-top: 10px; display: grid; gap: 8px; font-size: 15px; line-height: 1.45; }
+.cp-vi-songs span { color: var(--color-muted); }
+.cp-vi-songs h3 + ul + h3 { margin-top: 20px; }
+.cp-vi-safety li { padding-inline-start: 18px; position: relative; color: var(--color-muted); }
+.cp-vi-safety li::before { content: ""; position: absolute; inset-inline-start: 0; top: .55em; width: 8px; height: 8px; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); background: var(--cp-a-text); }
+
+/* Questions and the close. */
+.cp-vi-fine { display: grid; grid-template-columns: minmax(0, 1fr); gap: 18px; }
+.cp-vi-close { background: linear-gradient(180deg, var(--color-ink), color-mix(in srgb, var(--vi-sky-1) 55%, var(--color-ink))); }
+:root[data-skin="game"] body.s-arcade .cp-vi-close { background: linear-gradient(180deg, var(--a-bg), color-mix(in srgb, #ff5fd2 18%, var(--a-bg))); }
+.cp-vi-close-in { text-align: center; display: grid; justify-items: center; }
+.cp-vi-close .cp-vi-title { font-size: clamp(42px, 8vw, 84px); }
+.cp-vi-close .s-lede { margin-inline: auto; margin-top: 14px; }
+.cp-vi-close-btns { position: relative; display: grid; place-items: center; width: 100%; max-width: 520px; margin-top: 14px; }
+.cp-vi-close-rings { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.cp-vi-close-rings ellipse { fill: none; stroke: var(--vi-line); stroke-width: 1.2; opacity: .25; }
+@media (prefers-reduced-motion: no-preference) {
+    .cp-vi-close-rings ellipse { transform-box: fill-box; transform-origin: center; animation: cp-vi-ripple 5s ease-out infinite; }
+    .cp-vi-close-rings ellipse:nth-child(2) { animation-delay: 1.6s; } .cp-vi-close-rings ellipse:nth-child(3) { animation-delay: 3.2s; }
+}
+.cp-vi-close .cp-join-btns, .cp-vi-close .cp-related { justify-content: center; position: relative; }
 .cp-vibrato .cp-unit-n { color: var(--cp-a-text); }
-.cp-vibrato .cp-fact::before { content: "\00a0\00a0\00a0\00a0\00a0\00a0\00a0\00a0\00a0\00a0\00a0\00a0\00a0\00a0" / ""; width: max-content; font-size: 15px; line-height: 1; text-decoration: underline wavy var(--cp-a-text); text-decoration-thickness: 2px; text-underline-offset: 2px; }
 
-/* Breath and stamina (site/courses/breath-and-stamina): air. A pale sky with slow streams of breath, a
-   held note that ends on a clean stop (the sag it would have had, faint beside it) and the breath
-   bar in steady seconds; the unit numbers and facts as round bubbles. Game skin: cyan and green. */
-.cp-breath { --br-sky: #e4f4f3; --br-air: #7cc4c0; --br-note: #127a74; --br-fill: #1a9a8f; --cp-a: #0f7a72; --cp-a-ink: #fff; --cp-a-text: #0b6b64; --cp-care: #7fe0d3; }
-:root:not([data-theme$="-light"]) .cp-breath { --br-sky: #0f2428; --br-air: #3f8f8c; --br-note: #5fd4c6; --br-fill: #2fb3a5; --cp-a-text: #7fe0d3; --cp-care: #7fe0d3; }
-:root[data-skin="game"] .cp-breath { --br-sky: #08182a; --br-air: #3be7ff; --br-note: #3be7ff; --br-fill: #45e3a5; --cp-a: #45e3a5; --cp-a-ink: #04140d; --cp-a-text: #45e3a5; --cp-care: #45e3a5; }
-.cp-breath .cp-hero { background: linear-gradient(180deg, var(--br-sky), color-mix(in srgb, var(--br-sky) 50%, var(--color-ink))); }
-:root[data-skin="game"] body.s-arcade .cp-breath .cp-hero { background: linear-gradient(180deg, var(--a-bg), var(--br-sky)); }
+@media (min-width: 900px) {
+    .cp-vi-aims { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 48px; }
+    .cp-vi-aims li:nth-child(-n+2) { border-top: 1px solid var(--cp-line); }
+    .cp-vi-pools { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+    .cp-vi-pool { grid-template-columns: minmax(0, 1fr); padding: 16px; }
+    .cp-vi-calm-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 64px; align-items: center; }
+    .cp-vi-steps { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+    .cp-vi-step:nth-child(even) { margin-top: 36px; }
+    .cp-vi-try { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+    .cp-vi-cards { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
+    .cp-vi-bank-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 32px; }
+    .cp-vi-fine { grid-template-columns: minmax(0, .8fr) minmax(0, 1.4fr); gap: 56px; align-items: start; }
+}
+@media (min-width: 900px) and (max-width: 1199px) { .cp-vi-steps { grid-template-columns: repeat(2, minmax(0, 1fr)); } .cp-vi-step:nth-child(even) { margin-top: 0; } }
+
+/* Breath and stamina (site/courses/breath-and-stamina): a voyage under sail
+   (docs/course-pages-polish.md). Breath is the wind for the voice. A pale sky with gulls and a
+   string of signal flags, the sea in bands, a sailboat whose sail is filled by streams of breath, a
+   chart ruler counting steady seconds; tracked nautical capitals and signal-flag squares as the
+   running markers. Game skin: a night sea, the boat in neon. */
+.cp-breath { --br-sky-1: #dcefef; --br-sky-2: #f4f1e6; --br-sea: #2a7f86; --br-sea-2: #1d5f68; --br-sail: #fffdf6; --br-hull: #b5452f; --br-ink: #18343a; --br-air: #7cc4c0; --br-fill: #1a9a8f; --br-yellow: #f2c200; --br-blue: #1f4f9e;
+    --cp-a: #0f7a72; --cp-a-ink: #fff; --cp-a-text: #0b6b64; --cp-care: #7fe0d3; }
+:root:not([data-theme$="-light"]) .cp-breath { --br-sky-1: #0f2428; --br-sky-2: #1a1712; --br-sea: #12454b; --br-sea-2: #0a2c31; --br-sail: #e9e4d6; --br-hull: #c7553c; --br-ink: #e9e4d6; --br-air: #3f8f8c; --br-fill: #2fb3a5; --cp-a-text: #7fe0d3; }
+:root[data-skin="game"] .cp-breath { --br-sky-1: #08182a; --br-sky-2: #05030c; --br-sea: #0a1c3a; --br-sea-2: #050d1f; --br-sail: #0d1530; --br-hull: #ff5fd2; --br-ink: #3be7ff; --br-air: #3be7ff; --br-fill: #45e3a5; --br-yellow: #ffd84a; --br-blue: #3be7ff; --cp-a: #45e3a5; --cp-a-ink: #04140d; --cp-a-text: #45e3a5; --cp-care: #45e3a5; }
+
+/* Type: tracked nautical capitals, and the signal flags. */
+.cp-br-kick { display: inline-flex; gap: 10px; align-items: center; font-size: 12.5px; font-weight: 800; letter-spacing: .24em; text-transform: uppercase; color: var(--cp-a-text); }
+:root[data-skin="game"] body.s-arcade .cp-br-kick { font-family: "Press Start 2P", ui-monospace, monospace; font-size: 9.5px; letter-spacing: .08em; }
+.cp-br-flag { flex: none; width: 18px; height: 16px; border: 1px solid #0002; }
+.cp-br-flag-a, .cp-br-sig-a { background: linear-gradient(90deg, #fff 0 50%, var(--br-blue) 50%); fill: var(--br-blue); }
+.cp-br-flag-b, .cp-br-sig-b { background: var(--br-hull); fill: var(--br-hull); }
+.cp-br-flag-c, .cp-br-sig-c { background: linear-gradient(180deg, var(--br-blue) 0 33%, #fff 33% 66%, var(--br-hull) 66%); fill: var(--br-yellow); }
+.cp-br-flag-d, .cp-br-sig-d { background: linear-gradient(180deg, var(--br-yellow) 0 50%, var(--br-blue) 50%); fill: var(--br-fill); }
+:root:not([data-skin="game"]) .cp-breath .cp-hero h1 { font-weight: 800; font-size: clamp(46px, 11vw, 92px); line-height: .96; letter-spacing: -0.04em; }
+.cp-br-title { margin-top: 12px; font-size: clamp(32px, 6vw, 54px); line-height: 1.03; font-weight: 800; letter-spacing: -0.035em; text-wrap: balance; }
+:root[data-skin="game"] body.s-arcade .cp-breath .cp-br-title { font-family: var(--a-display); font-weight: 400; letter-spacing: .01em; text-transform: uppercase; }
+.cp-breath .s-lede { max-width: 56ch; }
+
+/* The hero: the boat on the sea. */
+.cp-br-hero { background: radial-gradient(80% 90% at 72% 40%, color-mix(in srgb, var(--br-sky-1) 80%, var(--color-ink)), var(--color-ink) 75%); }
+:root[data-skin="game"] body.s-arcade .cp-br-hero { background: radial-gradient(70% 80% at 72% 40%, color-mix(in srgb, #3be7ff 12%, var(--a-bg)), var(--a-bg)); }
 .cp-br-art { display: grid; place-items: center; }
-.cp-br-svg { width: min(100%, 560px); height: auto; overflow: visible; }
-.cp-br-air path { fill: none; stroke: var(--br-air); stroke-width: 3; stroke-linecap: round; stroke-dasharray: 60 22; opacity: .55; }
-.cp-br-air path:nth-child(3) { opacity: .3; }
-.cp-br-note { fill: none; stroke: var(--br-note); stroke-width: 6; stroke-linecap: round; }
-.cp-br-stop { fill: none; stroke: var(--br-note); stroke-width: 4; stroke-linecap: round; }
-.cp-br-sag { fill: none; stroke: var(--color-muted); stroke-width: 3; stroke-dasharray: 4 6; stroke-linecap: round; stroke-linejoin: round; opacity: .55; }
-.cp-br-solid { stroke-dasharray: none; stroke-width: 5; opacity: 1; }
-.cp-br-track { fill: color-mix(in srgb, var(--br-note) 14%, transparent); }
+.cp-br-svg { width: 100%; max-width: 620px; height: auto; border-radius: 28px; box-shadow: 0 30px 60px -36px color-mix(in srgb, var(--br-sea) 70%, #000); }
+.cp-br-sky-1 { stop-color: var(--br-sky-1); } .cp-br-sky-2 { stop-color: var(--br-sky-2); }
+.cp-br-line { fill: none; stroke: var(--br-ink); stroke-width: 1.5; opacity: .6; }
+.cp-br-sig { stroke: #0003; stroke-width: 1; }
+.cp-br-gull { fill: none; stroke: var(--br-ink); stroke-width: 2; stroke-linecap: round; opacity: .7; }
+.cp-br-sea { fill: var(--br-sea); }
+.cp-br-wave { fill: none; stroke: color-mix(in srgb, #fff 45%, var(--br-sea)); stroke-width: 2.5; stroke-linecap: round; opacity: .7; }
+.cp-br-wave-2 { opacity: .45; } .cp-br-wave-3 { opacity: .25; }
+.cp-br-air path { fill: none; stroke: var(--br-air); stroke-width: 3; stroke-linecap: round; stroke-dasharray: 48 18; opacity: .8; }
+.cp-br-mast { fill: none; stroke: var(--br-ink); stroke-width: 4; stroke-linecap: round; }
+.cp-br-sail { fill: var(--br-sail); stroke: var(--br-ink); stroke-width: 2.5; stroke-linejoin: round; }
+.cp-br-jib { fill: color-mix(in srgb, var(--br-sail) 85%, var(--br-sea)); stroke: var(--br-ink); stroke-width: 2.5; stroke-linejoin: round; }
+.cp-br-hull { fill: var(--br-hull); stroke: var(--br-ink); stroke-width: 2.5; stroke-linejoin: round; }
+.cp-br-pennant { fill: var(--br-yellow); }
+.cp-br-track { fill: color-mix(in srgb, #fff 18%, var(--br-sea-2)); }
 .cp-br-fill { fill: var(--br-fill); }
-.cp-br-ticks { fill: none; stroke: var(--color-muted); stroke-width: 2; opacity: .5; }
-:root[data-skin="game"] body.s-arcade :is(.cp-br-note, .cp-br-stop, .cp-br-fill) { filter: drop-shadow(0 0 6px var(--br-note)); }
+.cp-br-ticks { fill: none; stroke: color-mix(in srgb, #fff 55%, var(--br-sea)); stroke-width: 2; }
+:root[data-skin="game"] body.s-arcade :is(.cp-br-sail, .cp-br-jib, .cp-br-hull, .cp-br-mast) { filter: drop-shadow(0 0 5px #3be7ff); }
+:root[data-skin="game"] body.s-arcade .cp-br-fill { filter: drop-shadow(0 0 8px #45e3a5); }
 @media (prefers-reduced-motion: no-preference) {
-    .cp-br-air path { animation: cp-br-air 7s linear infinite; }
-    .cp-br-air path:nth-child(2) { animation-duration: 9s; } .cp-br-air path:nth-child(3) { animation-duration: 11s; }
-    .cp-br-fill { animation: cp-br-fill 6s ease-in-out infinite; transform-origin: 40px 224px; }
+    .cp-br-air path { animation: cp-br-air 4s linear infinite; }
+    .cp-br-air path:nth-child(2) { animation-duration: 5s; } .cp-br-air path:nth-child(3) { animation-duration: 6s; }
+    .cp-br-boat { animation: cp-br-bob 4s ease-in-out infinite; }
+    .cp-br-wave { animation: cp-br-roll 6s ease-in-out infinite alternate; }
+    .cp-br-fill { transform-box: fill-box; transform-origin: left center; animation: cp-br-count 7s ease-in-out infinite; }
 }
-@keyframes cp-br-air { to { stroke-dashoffset: -164; } }
-@keyframes cp-br-fill { 0% { transform: scaleX(.1); } 55%, 85% { transform: scaleX(1); } 100% { transform: scaleX(.1); } }
-.cp-breath .cp-unit-n { color: var(--cp-a-text); }
-.cp-breath .cp-fact { position: relative; overflow: hidden; }
-.cp-breath .cp-fact::after { content: ""; position: absolute; inset-block-start: -18px; inset-inline-end: -18px; width: 86px; height: 86px; pointer-events: none;
-    background: radial-gradient(circle at 30% 70%, color-mix(in srgb, var(--br-fill) 22%, transparent) 0 14px, transparent 15px), radial-gradient(circle at 62% 42%, color-mix(in srgb, var(--br-fill) 16%, transparent) 0 22px, transparent 23px); }
-.cp-breath .cp-fact p:first-child { padding-inline-end: 36px; }
+@keyframes cp-br-air { to { stroke-dashoffset: -132; } }
+@keyframes cp-br-bob { 0%, 100% { transform: translate(300px, 120px) rotate(0); } 50% { transform: translate(300px, 124px) rotate(1.2deg); } }
+@keyframes cp-br-roll { to { transform: translateX(-24px); } }
+@keyframes cp-br-count { 0% { transform: scaleX(.08); } 60%, 88% { transform: scaleX(1); } 100% { transform: scaleX(.08); } }
 
-/* Perfect your pitch (site/courses/perfect-your-pitch): a target. Rings in navy tints on a pale gold
-   ground, notes landed as darts (one in the gold bull), the drone's steady wave beneath, a scale as a
-   ladder of uneven steps from a gold anchor, and beats that slow to stillness. Game skin: cyan rings,
-   a gold bull and magenta darts. */
-.cp-pitch { --pt-sky: #f7f1df; --pt-navy: #1d2f5e; --pt-gold: #c99a1e; --pt-ring-a: #1d2f5e; --pt-ring-b: #fffaf0; --pt-bull: #d2432f; --pt-dart: #c99a1e; --pt-wave: #1d2f5e;
-    --cp-a: #1d2f5e; --cp-a-ink: #fff; --cp-a-text: #23386f; --cp-care: #f0c95a; }
-:root:not([data-theme$="-light"]) .cp-pitch { --pt-sky: #121a33; --pt-gold: #e6b93a; --pt-ring-a: #2c4688; --pt-ring-b: #1b2547; --pt-bull: #ef6a52; --pt-dart: #f0c95a; --pt-wave: #8fa6e0; --cp-a: #2c4688; --cp-a-text: #f0c95a; --cp-care: #f0c95a; }
-:root[data-skin="game"] .cp-pitch { --pt-sky: #0b1230; --pt-gold: #ffd84a; --pt-ring-a: color-mix(in srgb, #3be7ff 22%, transparent); --pt-ring-b: color-mix(in srgb, #3be7ff 6%, transparent); --pt-bull: #ff5fd2; --pt-dart: #ffd84a; --pt-wave: #3be7ff; --cp-a: #ffd84a; --cp-a-ink: #1a1400; --cp-a-text: #ffd84a; --cp-care: #ffd84a; }
-.cp-pitch .cp-hero { background: radial-gradient(80% 90% at 72% 45%, var(--pt-sky), color-mix(in srgb, var(--pt-sky) 50%, var(--color-ink))); }
-:root[data-skin="game"] body.s-arcade .cp-pitch .cp-hero { background: radial-gradient(70% 80% at 70% 45%, var(--pt-sky), var(--a-bg)); }
-.cp-pt-art { display: grid; place-items: center; }
-.cp-pt-svg { width: min(100%, 520px); height: auto; overflow: visible; }
-.cp-pt-ring-a { fill: var(--pt-ring-a); } .cp-pt-ring-b { fill: var(--pt-ring-b); }
-.cp-pt-bull { fill: var(--pt-bull); }
-.cp-pt-board { filter: drop-shadow(0 10px 22px color-mix(in srgb, var(--pt-navy) 22%, transparent)); }
-:root[data-skin="game"] body.s-arcade :is(.cp-pt-ring-a, .cp-pt-ring-b) { stroke: color-mix(in srgb, #3be7ff 45%, transparent); stroke-width: 1.5; }
-.cp-pt-tip { fill: var(--pt-dart); stroke: #fff; stroke-width: 2.5; }
-.cp-pt-tail { fill: none; stroke: var(--pt-dart); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
-:root[data-skin="game"] body.s-arcade .cp-pt-dart { filter: drop-shadow(0 0 5px var(--pt-dart)); }
-:root[data-skin="game"] body.s-arcade .cp-pt-bull { filter: drop-shadow(0 0 8px var(--pt-bull)); }
-:root[data-skin="game"] body.s-arcade .cp-pt-board { filter: none; }
-.cp-pt-drone { fill: none; stroke: var(--pt-wave); stroke-width: 3; stroke-linecap: round; opacity: .6; }
-@media (prefers-reduced-motion: no-preference) {
-    .cp-pt-dart { animation: cp-pt-land 6s ease-out infinite both; }
-    .cp-pt-dart:nth-of-type(3) { animation-delay: .4s; } .cp-pt-dart:nth-of-type(4) { animation-delay: .8s; } .cp-pt-dart:nth-of-type(5) { animation-delay: 1.2s; }
+/* Bearings: the outcomes. */
+.cp-br-aims { margin-top: 26px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; }
+.cp-br-aims li { display: grid; grid-template-columns: 48px minmax(0, 1fr); gap: 14px; align-items: center; padding: 16px 18px; border-radius: 16px; background: var(--color-panel); border: 1px solid var(--cp-line); }
+.cp-br-aim-n { display: grid; place-items: center; width: 48px; height: 48px; border-radius: 99px; border: 3px solid var(--cp-a-text); font-size: 20px; font-weight: 800; color: var(--cp-a-text); position: relative; }
+.cp-br-aim-n::after { content: ""; position: absolute; inset: 4px; border-radius: 99px; border: 1px dashed color-mix(in srgb, var(--cp-a-text) 50%, transparent); }
+.cp-br-aims p { font-size: 17.5px; line-height: 1.4; font-weight: 600; }
+
+/* Coming in: a slack sail against a boat reaching harbour. */
+.cp-br-endsec { background: linear-gradient(180deg, transparent, color-mix(in srgb, var(--br-sky-1) 45%, transparent)); }
+:root[data-skin="game"] body.s-arcade .cp-br-endsec { background: linear-gradient(180deg, transparent, color-mix(in srgb, #3be7ff 6%, transparent)); }
+.cp-br-ends { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; margin-top: 26px; }
+.cp-br-end { margin: 0; padding: 18px; border-radius: 22px; background: var(--color-panel); border: 1px solid var(--cp-line); }
+.cp-br-end svg { display: block; width: 100%; height: auto; border-radius: 14px; background: linear-gradient(180deg, color-mix(in srgb, var(--br-sky-1) 70%, var(--color-panel)) 0 77%, var(--br-sea) 77%); }
+.cp-br-slack { fill: color-mix(in srgb, var(--br-sail) 80%, var(--color-muted)); }
+.cp-br-sag { fill: none; stroke: var(--color-muted); stroke-width: 2; stroke-dasharray: 3 6; }
+.cp-br-pier { fill: color-mix(in srgb, var(--br-hull) 60%, var(--br-ink)); }
+.cp-br-air-one { fill: none; stroke: var(--br-air); stroke-width: 3; stroke-linecap: round; }
+.cp-br-end figcaption { margin-top: 12px; font-size: 15px; line-height: 1.45; color: var(--color-muted); }
+.cp-br-end figcaption b { display: block; font-size: 18px; color: var(--color-cream); }
+.cp-br-end-good { border-color: color-mix(in srgb, var(--br-fill) 50%, transparent); }
+
+/* Fair weather: singing safely, as signal flags. */
+.cp-br-weather .cp-br-kick { color: var(--cp-care); }
+.cp-br-signals { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; margin-top: 26px; }
+.cp-br-signals li { display: grid; grid-template-columns: 34px minmax(0, 1fr); gap: 14px; align-items: start; padding: 16px 18px; border-radius: 16px; background: color-mix(in srgb, var(--color-cream) 6%, transparent); font-size: 16px; line-height: 1.5; }
+.cp-br-sigtile { width: 34px; height: 28px; border: 1px solid #0003; }
+
+/* The voyage: a chart of four ports, then the legs. */
+.cp-br-chart { display: block; width: 100%; max-width: 720px; height: auto; margin: 22px 0 0; border-radius: 18px; background: color-mix(in srgb, var(--br-sky-1) 55%, var(--color-panel)); }
+:root[data-skin="game"] body.s-arcade .cp-br-chart { background: color-mix(in srgb, #3be7ff 6%, var(--a-panel)); }
+.cp-br-grid { fill: none; stroke: color-mix(in srgb, var(--br-sea) 25%, transparent); stroke-width: 1; }
+.cp-br-route { fill: none; stroke: var(--br-hull); stroke-width: 3; stroke-dasharray: 4 8; stroke-linecap: round; }
+.cp-br-port circle { fill: var(--color-panel); stroke: var(--br-ink); stroke-width: 3; }
+.cp-br-port text { font: 800 17px/1 Figtree, system-ui, sans-serif; text-anchor: middle; fill: var(--br-ink); }
+.cp-br-compass circle { fill: none; stroke: var(--br-ink); stroke-width: 1.5; } .cp-br-compass path { fill: var(--br-hull); }
+@media (prefers-reduced-motion: no-preference) { .cp-br-route { animation: cp-br-sail 2.4s linear infinite; } }
+@keyframes cp-br-sail { to { stroke-dashoffset: -24; } }
+.cp-br-legs { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; margin-top: 20px; }
+.cp-br-leg { padding: 20px; border-radius: 20px; background: var(--color-panel); border: 1px solid var(--cp-line); }
+.cp-br-leg-n { font-size: 12px; font-weight: 800; letter-spacing: .2em; text-transform: uppercase; color: var(--br-hull); }
+:root:not([data-theme$="-light"]) .cp-br-leg-n { color: var(--cp-a-text); }
+.cp-br-leg h3 { margin-top: 8px; font-size: 21px; font-weight: 800; letter-spacing: -0.02em; }
+.cp-br-lessons { margin-top: 12px; display: grid; gap: 6px; font-size: 15px; counter-reset: l; }
+.cp-br-lessons li { counter-increment: l; display: flex; gap: 10px; }
+.cp-br-lessons li::before { content: counter(l); flex: none; display: grid; place-items: center; width: 22px; height: 22px; border-radius: 4px; background: color-mix(in srgb, var(--cp-a) 14%, transparent); color: var(--cp-a-text); font-size: 11.5px; font-weight: 800; }
+
+/* Cast off: the try-this, numbered on rope knots. */
+.cp-br-try { display: grid; gap: 12px; margin-top: 24px; }
+.cp-br-try li { display: grid; grid-template-columns: 46px minmax(0, 1fr); gap: 14px; align-items: start; padding: 16px 18px; border-radius: 18px; background: var(--color-panel); border: 1px solid var(--cp-line); }
+.cp-br-try-first { border-color: color-mix(in srgb, var(--br-fill) 50%, transparent) !important; background: color-mix(in srgb, var(--br-fill) 8%, var(--color-panel)) !important; }
+.cp-br-knot { display: grid; place-items: center; width: 46px; height: 46px; border-radius: 99px; background: var(--color-panel); border: 4px double color-mix(in srgb, var(--br-hull) 70%, var(--br-ink)); font-size: 18px; font-weight: 800; color: var(--cp-a-text); }
+.cp-br-try p { font-size: 16.5px; line-height: 1.5; padding-top: 10px; }
+.cp-br-start { display: block; font-size: 12px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: var(--cp-a-text); }
+
+/* The ship's log: the facts as entries on ruled paper. */
+.cp-br-log { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0; margin-top: 26px; padding: 8px 22px; border-radius: 8px; background: repeating-linear-gradient(180deg, var(--color-panel) 0 31px, color-mix(in srgb, var(--br-sea) 18%, var(--color-panel)) 31px 32px); border: 1px solid var(--cp-line); box-shadow: 0 18px 36px -28px #000; }
+:root[data-skin="game"] body.s-arcade .cp-br-log { background: var(--a-panel); border-color: color-mix(in srgb, #3be7ff 40%, transparent); }
+.cp-br-entry { padding: 18px 0; border-bottom: 2px solid color-mix(in srgb, var(--br-hull) 30%, transparent); }
+.cp-br-entry:last-child { border-bottom: 0; }
+.cp-br-entry-n { font-size: 12px; font-weight: 800; letter-spacing: .2em; text-transform: uppercase; color: var(--br-hull); }
+:root:not([data-theme$="-light"]) .cp-br-entry-n { color: var(--cp-a-text); }
+.cp-br-entry-text { margin-top: 6px; font-size: 18px; line-height: 1.5; font-weight: 600; color: var(--color-cream); }
+.cp-br-entry-src { margin-top: 8px; font-size: 12.5px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--color-muted); }
+.cp-br-entry-src a { color: inherit; text-underline-offset: 3px; }
+.cp-br-entry-src a:hover, .cp-br-entry-src a:focus-visible { color: var(--cp-a-text); }
+
+/* The crew list: who, what you need and the songs. */
+.cp-br-crew-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 26px; margin-top: 26px; }
+.cp-br-crew h3 { font-size: 12.5px; font-weight: 800; letter-spacing: .18em; text-transform: uppercase; color: var(--cp-a-text); }
+.cp-br-crew .s-ticks { margin-top: 12px; font-size: 15.5px; }
+.cp-br-hold { padding: 20px; border-radius: 18px; background: var(--color-panel); border: 1px solid var(--cp-line); }
+.cp-br-hold ul { margin-top: 10px; display: grid; gap: 8px; font-size: 15.5px; line-height: 1.45; }
+.cp-br-hold span { color: var(--color-muted); }
+
+/* Questions and set sail. */
+.cp-br-fine { display: grid; grid-template-columns: minmax(0, 1fr); gap: 18px; }
+.cp-br-close { background: linear-gradient(180deg, color-mix(in srgb, var(--br-sky-1) 80%, var(--color-ink)), var(--color-ink)); }
+:root[data-skin="game"] body.s-arcade .cp-br-close { background: radial-gradient(70% 90% at 50% 100%, color-mix(in srgb, #3be7ff 16%, var(--a-bg)), var(--a-bg)); color: var(--color-cream); }
+.cp-br-close-sea { display: block; width: 100%; height: 60px; background: var(--color-ink); }
+.cp-br-close-sea path { fill: color-mix(in srgb, var(--br-sky-1) 80%, var(--color-ink)); }
+:root[data-skin="game"] body.s-arcade .cp-br-close-sea { background: var(--a-bg); } :root[data-skin="game"] body.s-arcade .cp-br-close-sea path { fill: color-mix(in srgb, #3be7ff 10%, var(--a-bg)); stroke: #3be7ff; }
+.cp-br-close-in { text-align: center; display: grid; justify-items: center; }
+.cp-br-close .cp-br-title { font-size: clamp(42px, 8vw, 84px); }
+.cp-br-close .s-lede { margin-inline: auto; margin-top: 14px; }
+.cp-br-close .cp-join-btns, .cp-br-close .cp-related { justify-content: center; }
+.cp-breath .cp-unit-n { color: var(--cp-a-text); }
+
+@media (min-width: 900px) {
+    .cp-br-aims { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+    .cp-br-ends { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+    .cp-br-signals { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+    .cp-br-legs { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+    .cp-br-try { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+    .cp-br-crew-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 32px; }
+    .cp-br-fine { grid-template-columns: minmax(0, .8fr) minmax(0, 1.4fr); gap: 56px; align-items: start; }
 }
-@keyframes cp-pt-land { 0% { opacity: 0; transform: translate(30px, -30px); } 8%, 90% { opacity: 1; transform: none; } 100% { opacity: 0; } }
-.cp-pt-ladder svg { max-width: 360px; margin-inline: auto; }
+@media (min-width: 1200px) { .cp-br-legs { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+
+/* Perfect your pitch (site/courses/perfect-your-pitch): an archery range (docs/course-pages-polish.md).
+   A summer range with sky, a tree line, mown grass with distance lines, a target face in the five
+   ring colours on its stand, arrows in the gold, a wind flag and an archer at full draw; heavy
+   italic headlines like a sports poster, and tracked labels with a gold dot. Game skin: neon rings
+   and glowing arrows on a night range. */
+.cp-pitch { --pt-sky-1: #cfe6f5; --pt-sky-2: #f2efe2; --pt-trees: #4c7a46; --pt-grass: #8fbd5a; --pt-line: #f6f3e6; --pt-wood: #8a5a32; --pt-ink: #1c2338;
+    --pt-gold: #f5c518; --pt-red: #e03a3a; --pt-blue: #1f8fd6; --pt-black: #1b1b1b; --pt-white: #f7f7f2; --pt-navy: #1d2f5e;
+    --cp-a: #1d2f5e; --cp-a-ink: #fff; --cp-a-text: #23386f; --cp-care: #f0c95a; }
+:root:not([data-theme$="-light"]) .cp-pitch { --pt-sky-1: #172443; --pt-sky-2: #1e1a14; --pt-trees: #1d3324; --pt-grass: #2f4a26; --pt-line: #9fb68a; --pt-wood: #6a4428; --pt-ink: #e9e6da; --cp-a: #2c4688; --cp-a-text: #f0c95a; }
+:root[data-skin="game"] .cp-pitch { --pt-sky-1: #0b1230; --pt-sky-2: #05030c; --pt-trees: #0c2a2f; --pt-grass: #07121f; --pt-line: #3be7ff; --pt-wood: #ff5fd2; --pt-ink: #3be7ff; --pt-gold: #ffd84a; --pt-red: #ff5fd2; --pt-blue: #3be7ff; --pt-black: #0b0718; --pt-white: #1b1036; --cp-a: #ffd84a; --cp-a-ink: #1a1400; --cp-a-text: #ffd84a; --cp-care: #ffd84a; }
+
+/* Type: sports-poster italics and tracked labels. */
+.cp-pt-kick { display: inline-flex; gap: 8px; align-items: center; font-size: 12.5px; font-weight: 800; letter-spacing: .22em; text-transform: uppercase; color: var(--cp-a-text); }
+.cp-pt-kick::before { content: ""; width: 10px; height: 10px; border-radius: 99px; background: var(--pt-gold); box-shadow: 0 0 0 3px var(--pt-red); }
+:root[data-skin="game"] body.s-arcade .cp-pt-kick { font-family: "Press Start 2P", ui-monospace, monospace; font-size: 9.5px; letter-spacing: .08em; }
+:root:not([data-skin="game"]) .cp-pitch .cp-hero h1 { font-weight: 900; font-style: italic; font-size: clamp(48px, 11vw, 96px); line-height: .92; letter-spacing: -0.045em; }
+.cp-pt-title { margin-top: 12px; font-size: clamp(32px, 6vw, 56px); line-height: 1.02; font-weight: 900; font-style: italic; letter-spacing: -0.04em; text-wrap: balance; }
+:root[data-skin="game"] body.s-arcade .cp-pitch .cp-pt-title { font-family: var(--a-display); font-weight: 400; font-style: normal; letter-spacing: .01em; text-transform: uppercase; }
+.cp-pitch .s-lede { max-width: 56ch; }
+
+/* The hero: the range. */
+.cp-pt-hero { background: radial-gradient(80% 90% at 72% 40%, color-mix(in srgb, var(--pt-sky-1) 80%, var(--color-ink)), var(--color-ink) 75%); }
+:root[data-skin="game"] body.s-arcade .cp-pt-hero { background: radial-gradient(70% 80% at 72% 40%, color-mix(in srgb, #ffd84a 10%, var(--a-bg)), var(--a-bg)); }
+.cp-pt-art { display: grid; place-items: center; }
+.cp-pt-svg { width: 100%; max-width: 620px; height: auto; border-radius: 28px; box-shadow: 0 30px 60px -36px color-mix(in srgb, var(--pt-navy) 70%, #000); }
+.cp-pt-sky-1 { stop-color: var(--pt-sky-1); } .cp-pt-sky-2 { stop-color: var(--pt-sky-2); }
+.cp-pt-trees { fill: var(--pt-trees); }
+.cp-pt-grass { fill: var(--pt-grass); }
+.cp-pt-lines { fill: none; stroke: var(--pt-line); stroke-width: 2.5; opacity: .6; }
+.cp-pt-pole { stroke: var(--pt-ink); stroke-width: 3; }
+.cp-pt-windflag { fill: var(--pt-gold); stroke: var(--pt-ink); stroke-width: 1.5; }
+.cp-pt-stand { fill: none; stroke: var(--pt-wood); stroke-width: 7; stroke-linecap: round; }
+.cp-pt-ring { stroke: #0003; stroke-width: .8; }
+.cp-pt-w, .cp-pt-w2 { fill: var(--pt-white); } .cp-pt-k, .cp-pt-k2 { fill: var(--pt-black); } .cp-pt-b, .cp-pt-b2 { fill: var(--pt-blue); } .cp-pt-r, .cp-pt-r2 { fill: var(--pt-red); } .cp-pt-g, .cp-pt-g2 { fill: var(--pt-gold); }
+.cp-pt-k2 { stroke: color-mix(in srgb, #fff 40%, transparent); }
+:root[data-skin="game"] body.s-arcade .cp-pt-ring { fill: transparent; stroke-width: 2.2; }
+:root[data-skin="game"] body.s-arcade :is(.cp-pt-w, .cp-pt-w2) { stroke: #fdf4ff; } :root[data-skin="game"] body.s-arcade :is(.cp-pt-k, .cp-pt-k2) { stroke: #8f7cc4; }
+:root[data-skin="game"] body.s-arcade :is(.cp-pt-b, .cp-pt-b2) { stroke: #3be7ff; filter: drop-shadow(0 0 4px #3be7ff); } :root[data-skin="game"] body.s-arcade :is(.cp-pt-r, .cp-pt-r2) { stroke: #ff5fd2; filter: drop-shadow(0 0 4px #ff5fd2); }
+:root[data-skin="game"] body.s-arcade :is(.cp-pt-g, .cp-pt-g2) { fill: #ffd84a; stroke: #ffd84a; filter: drop-shadow(0 0 8px #ffd84a); }
+.cp-pt-shaft { fill: none; stroke: var(--pt-ink); stroke-width: 3; stroke-linecap: round; }
+.cp-pt-fletch { fill: var(--pt-red); }
+.cp-pt-head { fill: var(--pt-ink); }
+.cp-pt-body { fill: var(--pt-ink); }
+.cp-pt-limb { fill: none; stroke: var(--pt-ink); stroke-width: 7; stroke-linecap: round; stroke-linejoin: round; }
+.cp-pt-bow { fill: none; stroke: var(--pt-wood); stroke-width: 5; stroke-linecap: round; }
+.cp-pt-string { fill: none; stroke: var(--pt-ink); stroke-width: 1.2; opacity: .8; }
+:root[data-skin="game"] body.s-arcade :is(.cp-pt-limb, .cp-pt-body) { filter: drop-shadow(0 0 4px #3be7ff); }
+@media (prefers-reduced-motion: no-preference) {
+    .cp-pt-arrow { animation: cp-pt-hit 6s ease-out infinite both; }
+    .cp-pt-arrow:nth-of-type(2) { animation-delay: .5s; } .cp-pt-arrow:nth-of-type(3) { animation-delay: 1s; }
+    .cp-pt-windflag { transform-box: fill-box; transform-origin: left center; animation: cp-pt-flutter 2.2s ease-in-out infinite alternate; }
+}
+@keyframes cp-pt-hit { 0% { opacity: 0; } 6%, 100% { opacity: 1; } }
+@keyframes cp-pt-flutter { to { transform: scaleY(.8) skewY(4deg); } }
+
+/* Aim: the outcomes beside little targets. */
+.cp-pt-goals { margin-top: 26px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; }
+.cp-pt-goals li { display: grid; grid-template-columns: 40px 22px minmax(0, 1fr); gap: 12px; align-items: center; padding: 16px 18px; border-radius: 16px; background: var(--color-panel); border: 1px solid var(--cp-line); }
+.cp-pt-mini { width: 40px; height: 40px; }
+.cp-pt-goal-n { font-size: 22px; font-weight: 900; font-style: italic; color: var(--cp-a-text); }
+.cp-pt-goals p { font-size: 17.5px; line-height: 1.4; font-weight: 600; }
+
+/* The anchor point: the scale climbing from your anchor. */
+.cp-pt-ladder svg { max-width: 380px; margin-inline: auto; }
 .cp-pt-rung { fill: none; stroke: var(--color-line); stroke-width: 1.5; }
-.cp-pt-anchor { fill: var(--pt-gold); }
+.cp-pt-anchor-dot { fill: var(--pt-gold); stroke: var(--pt-red); stroke-width: 3; }
 .cp-pt-step { fill: var(--pt-navy); }
-:root:not([data-theme$="-light"]) .cp-pt-step, :root[data-skin="game"] .cp-pt-step { fill: var(--pt-wave); }
+:root:not([data-theme$="-light"]) .cp-pt-step, :root[data-skin="game"] .cp-pt-step { fill: var(--pt-blue); }
+.cp-pt-reach { fill: none; stroke: var(--pt-gold); stroke-width: 1.4; stroke-dasharray: 3 4; opacity: .7; }
+
+/* On target: tuning by the beats, with the gap set large. */
+.cp-pt-ringsec .cp-pt-kick { color: var(--cp-care); }
 .cp-pt-beats { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 14px; margin-top: 26px; max-width: 760px; }
 .cp-pt-beat { margin: 0; padding: 16px 18px; border-radius: 16px; background: color-mix(in srgb, var(--color-cream) 6%, transparent); }
 .cp-pt-beat svg { display: block; width: 100%; height: auto; }
 .cp-pt-beat polyline { fill: none; stroke: var(--color-muted); stroke-width: 1.6; stroke-linejoin: round; }
 .cp-pt-there polyline { stroke: var(--cp-care); stroke-width: 2.2; }
 .cp-pt-beat figcaption { margin-top: 10px; font-size: 15px; font-weight: 650; }
-.cp-pitch .s-ink .cp-fig-note { color: color-mix(in srgb, var(--color-cream) 78%, var(--color-ink)); }
-.cp-pitch .cp-unit-n { color: var(--cp-a-text); }
-.cp-pitch .cp-try { background: color-mix(in srgb, var(--pt-gold) 12%, transparent); border-color: color-mix(in srgb, var(--pt-gold) 45%, transparent); }
-.cp-pitch .cp-fact { position: relative; }
-.cp-pitch .cp-fact::after { content: ""; position: absolute; top: 16px; inset-inline-end: 16px; width: 26px; height: 26px; border-radius: 99px; pointer-events: none;
-    background: radial-gradient(circle, var(--pt-bull) 0 3px, var(--pt-ring-b) 3.5px 6px, var(--pt-ring-a) 6.5px 9px, var(--pt-ring-b) 9.5px 11px, var(--pt-ring-a) 11.5px 13px, transparent 13.5px); }
-.cp-pitch .cp-fact p:first-child { padding-inline-end: 34px; }
+.cp-pt-big { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 18px; align-items: center; margin-top: 26px; max-width: 760px; font-size: 16.5px; line-height: 1.55; color: color-mix(in srgb, var(--color-cream) 82%, var(--color-ink)); }
+.cp-pt-big b { font-size: 96px; line-height: .8; font-weight: 900; font-style: italic; color: var(--cp-care); }
+:root[data-skin="game"] body.s-arcade .cp-pt-big b { font-family: var(--a-display); font-style: normal; font-weight: 400; text-shadow: 0 0 18px #ffd84a; }
 
-/* Ear training (site/courses/ear-training): listening, drawn. Warm coral on a pale ground, the scale's
-   uneven rungs, three leaps arcing up from a teal home note and sound rippling out from it; on the
-   dark band, a chord's third dropping a half step, its old place a ghost. Game skin: gold home, cyan
-   leaps. */
-.cp-ear { --ea-sky: #fdf0ea; --ea-home: #1f8a8a; --ea-to: #e0603f; --cp-a: #c94a2c; --cp-a-ink: #fff; --cp-a-text: #a83a20; --cp-care: #ff9b80; }
-:root:not([data-theme$="-light"]) .cp-ear { --ea-sky: #2a1914; --ea-home: #4fd1c5; --ea-to: #ff8a6b; --cp-a-text: #ff9b80; }
-:root[data-skin="game"] .cp-ear { --ea-sky: #1a0d24; --ea-home: #ffd84a; --ea-to: #3be7ff; --cp-a: #3be7ff; --cp-a-ink: #04141a; --cp-a-text: #3be7ff; --cp-care: #3be7ff; }
-.cp-ear .cp-hero { background: radial-gradient(85% 90% at 70% 55%, var(--ea-sky), color-mix(in srgb, var(--ea-sky) 45%, var(--color-ink))); }
-:root[data-skin="game"] body.s-arcade .cp-ear .cp-hero { background: radial-gradient(70% 80% at 70% 50%, var(--ea-sky), var(--a-bg)); }
+/* Four ends: the units as score cards. */
+.cp-pt-ends { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; margin-top: 26px; }
+.cp-pt-end { padding: 20px; border-radius: 18px; background: var(--color-panel); border: 1px solid var(--cp-line); }
+.cp-pt-end-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-bottom: 12px; border-bottom: 2px solid var(--pt-gold); }
+.cp-pt-end-n { font-size: 13px; font-weight: 900; font-style: italic; letter-spacing: .12em; text-transform: uppercase; color: var(--cp-a-text); }
+.cp-pt-end-face { width: 56px; height: 56px; }
+.cp-pt-hole { fill: var(--pt-ink); }
+:root[data-skin="game"] body.s-arcade .cp-pt-hole { fill: #fff; }
+.cp-pt-end h3 { margin-top: 12px; font-size: 21px; font-weight: 900; font-style: italic; letter-spacing: -0.02em; }
+.cp-pt-lessons { margin-top: 12px; display: grid; gap: 6px; font-size: 15px; counter-reset: a; }
+.cp-pt-lessons li { counter-increment: a; display: flex; gap: 10px; align-items: baseline; }
+.cp-pt-lessons li::before { content: counter(a); flex: none; display: grid; place-items: center; width: 22px; height: 22px; border-radius: 99px; background: var(--pt-gold); color: #1a1400; font-size: 11.5px; font-weight: 900; box-shadow: 0 0 0 2px var(--pt-red); }
+
+/* First arrows: the try-this on ring numbers. */
+.cp-pt-try { display: grid; gap: 12px; margin-top: 24px; }
+.cp-pt-try li { display: grid; grid-template-columns: 46px minmax(0, 1fr); gap: 14px; align-items: start; padding: 16px 18px; border-radius: 18px; background: var(--color-panel); border: 1px solid var(--cp-line); }
+.cp-pt-try-first { border-color: color-mix(in srgb, var(--pt-gold) 70%, transparent) !important; background: color-mix(in srgb, var(--pt-gold) 10%, var(--color-panel)) !important; }
+.cp-pt-ring-n { display: grid; place-items: center; width: 46px; height: 46px; border-radius: 99px; font-size: 16px; font-weight: 900; color: #1a1400; background: radial-gradient(circle, #fff 0 13px, var(--pt-gold) 13.5px 16px, var(--pt-red) 16.5px 19px, var(--pt-blue) 19.5px 22px, var(--pt-black) 22.5px); }
+.cp-pt-try p { font-size: 16.5px; line-height: 1.5; padding-top: 10px; }
+.cp-pt-start { display: block; font-size: 12px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: var(--cp-a-text); }
+
+/* From the range: the facts, each under an arrow. */
+.cp-pt-cards { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; margin-top: 26px; }
+.cp-pt-card { padding: 20px 22px; border-radius: 18px; background: var(--color-panel); border: 1px solid var(--cp-line); }
+.cp-pt-card-arrow { width: 120px; height: 20px; }
+.cp-pt-card-text { margin-top: 10px; font-size: 18px; line-height: 1.45; font-weight: 600; color: var(--color-cream); }
+.cp-pt-card-src { margin-top: 12px; font-size: 12.5px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--color-muted); }
+.cp-pt-card-src a { color: inherit; text-underline-offset: 3px; }
+.cp-pt-card-src a:hover, .cp-pt-card-src a:focus-visible { color: var(--cp-a-text); }
+
+/* Your kit: who, what you need, singing safely and the songs. */
+.cp-pt-kit-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 26px; margin-top: 26px; }
+.cp-pt-kit h3 { font-size: 12.5px; font-weight: 800; letter-spacing: .18em; text-transform: uppercase; color: var(--cp-a-text); }
+.cp-pt-kit .s-ticks { margin-top: 12px; font-size: 15.5px; }
+.cp-pt-rules { padding: 22px; border-radius: 18px; background: var(--pt-navy); color: #f7f3e6; }
+:root[data-skin="game"] body.s-arcade .cp-pt-rules { background: var(--a-panel); color: var(--color-cream); box-shadow: inset 0 0 0 2px #ffd84a; }
+.cp-pt-rules h3 { color: #f5c518; }
+:root[data-skin="game"] body.s-arcade .cp-pt-rules h3 { color: #ffd84a; }
+.cp-pt-rules ul { margin-top: 10px; display: grid; gap: 8px; font-size: 15px; line-height: 1.5; }
+.cp-pt-rules ul + h3 { margin-top: 20px; }
+.cp-pt-songs span { opacity: .8; }
+
+/* Questions and the close. */
+.cp-pt-fine { display: grid; grid-template-columns: minmax(0, 1fr); gap: 18px; }
+.cp-pt-close { background: radial-gradient(70% 90% at 50% 100%, color-mix(in srgb, var(--pt-gold) 22%, var(--color-ink)), var(--color-ink) 70%); }
+:root[data-skin="game"] body.s-arcade .cp-pt-close { background: radial-gradient(70% 90% at 50% 100%, color-mix(in srgb, #ffd84a 16%, var(--a-bg)), var(--a-bg) 70%); }
+.cp-pt-close-in { text-align: center; display: grid; justify-items: center; }
+.cp-pt-close-face { width: 110px; height: 110px; margin-bottom: 8px; }
+@media (prefers-reduced-motion: no-preference) { .cp-pt-close-face { animation: cp-pt-pulse 3s ease-in-out infinite; } }
+@keyframes cp-pt-pulse { 50% { transform: scale(1.05); } }
+.cp-pt-close .cp-pt-title { font-size: clamp(44px, 8vw, 86px); }
+.cp-pt-close .s-lede { margin-inline: auto; margin-top: 14px; }
+.cp-pt-close .cp-join-btns, .cp-pt-close .cp-related { justify-content: center; }
+.cp-pitch .cp-unit-n { color: var(--cp-a-text); }
+
+@media (min-width: 900px) {
+    .cp-pt-goals { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+    .cp-pt-ends { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+    .cp-pt-try { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+    .cp-pt-cards { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
+    .cp-pt-kit-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 32px; }
+    .cp-pt-fine { grid-template-columns: minmax(0, .8fr) minmax(0, 1.4fr); gap: 56px; align-items: start; }
+}
+@media (min-width: 1200px) { .cp-pt-ends { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+
+/* Ear training (site/courses/ear-training): a birder's field guide to intervals
+   (docs/course-pages-polish.md). A tree at dawn whose branches sit at the scale's heights, a home bird
+   on the low branch and three higher, the leaps arcing between them; a field guide's serif headings,
+   small-caps labels and numbered plates. Game skin: a neon night forest with glowing birds. */
+.cp-ear { --ea-sky-1: #fde9d9; --ea-sky-2: #e8f1e3; --ea-sun: #f7b267; --ea-hill: #9cc28a; --ea-wood: #7a5236; --ea-leaf: #5f9a5b; --ea-home: #1f8a8a; --ea-c1: #e0603f; --ea-c2: #d9932a; --ea-c3: #b4467a; --ea-paper: #fbf6ea; --ea-serif: ui-serif, "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+    --cp-a: #c94a2c; --cp-a-ink: #fff; --cp-a-text: #a83a20; --cp-care: #ff9b80; }
+:root:not([data-theme$="-light"]) .cp-ear { --ea-sky-1: #2a1914; --ea-sky-2: #13221a; --ea-sun: #e89a55; --ea-hill: #1f3a24; --ea-wood: #5a3b26; --ea-leaf: #2d5a2e; --ea-home: #4fd1c5; --ea-c1: #ff8a6b; --ea-c2: #f2b056; --ea-c3: #e07aa8; --ea-paper: #221c16; --cp-a-text: #ff9b80; }
+:root[data-skin="game"] .cp-ear { --ea-sky-1: #1a0d24; --ea-sky-2: #05030c; --ea-sun: #ff5fd2; --ea-hill: #0c2a2f; --ea-wood: #3be7ff; --ea-leaf: #45e3a5; --ea-home: #ffd84a; --ea-c1: #3be7ff; --ea-c2: #ff5fd2; --ea-c3: #45e3a5; --ea-paper: #120c22; --cp-a: #3be7ff; --cp-a-ink: #04141a; --cp-a-text: #3be7ff; --cp-care: #3be7ff; }
+
+/* Type: a field guide's serif and small caps. */
+.cp-ear-kick { font-size: 13px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--cp-a-text); }
+:root:not([data-skin="game"]) .cp-ear-kick { font-family: var(--ea-serif); font-variant: small-caps; text-transform: none; font-size: 17px; letter-spacing: .1em; }
+:root[data-skin="game"] body.s-arcade .cp-ear-kick { font-family: "Press Start 2P", ui-monospace, monospace; font-size: 9.5px; letter-spacing: .08em; }
+:root:not([data-skin="game"]) .cp-ear :is(.cp-hero h1, .cp-ear-title) { font-family: var(--ea-serif); font-weight: 700; letter-spacing: -0.015em; text-wrap: balance; }
+:root:not([data-skin="game"]) .cp-ear .cp-hero h1 { font-size: clamp(46px, 11vw, 90px); line-height: .98; }
+.cp-ear-title { margin-top: 10px; font-size: clamp(32px, 6vw, 54px); line-height: 1.04; font-weight: 800; letter-spacing: -0.02em; text-wrap: balance; }
+:root[data-skin="game"] body.s-arcade .cp-ear .cp-ear-title { font-family: var(--a-display); font-weight: 400; letter-spacing: .01em; text-transform: uppercase; }
+.cp-ear .s-lede { max-width: 56ch; }
+
+/* The hero: the tree at dawn. */
+.cp-ear-hero { background: radial-gradient(80% 90% at 72% 40%, color-mix(in srgb, var(--ea-sky-1) 75%, var(--color-ink)), var(--color-ink) 75%); }
+:root[data-skin="game"] body.s-arcade .cp-ear-hero { background: radial-gradient(70% 80% at 72% 40%, color-mix(in srgb, #45e3a5 10%, var(--a-bg)), var(--a-bg)); }
 .cp-ear-art { display: grid; place-items: center; }
-.cp-ear-svg { width: min(100%, 540px); height: auto; overflow: visible; }
-.cp-ear-rung { fill: none; stroke: var(--color-cream); stroke-width: 1.2; opacity: .16; }
-.cp-ear-ripple path { fill: none; stroke: var(--ea-home); stroke-width: 3; stroke-linecap: round; opacity: .45; }
-.cp-ear-ripple path:nth-child(2) { opacity: .28; } .cp-ear-ripple path:nth-child(3) { opacity: .14; }
-.cp-ear-arc { fill: none; stroke: var(--ea-to); stroke-width: 4; stroke-linecap: round; stroke-dasharray: 2 9; }
-.cp-ear-to { fill: var(--ea-to); }
-.cp-ear-home { fill: var(--ea-home); }
-:root[data-skin="game"] body.s-arcade :is(.cp-ear-to, .cp-ear-home, .cp-ear-arc) { filter: drop-shadow(0 0 5px currentColor); color: var(--ea-to); }
+.cp-ear-svg { width: 100%; max-width: 620px; height: auto; border-radius: 28px; box-shadow: 0 30px 60px -36px color-mix(in srgb, var(--ea-wood) 70%, #000); }
+.cp-ear-sky-1 { stop-color: var(--ea-sky-1); } .cp-ear-sky-2 { stop-color: var(--ea-sky-2); }
+.cp-ear-sun { fill: var(--ea-sun); opacity: .85; }
+.cp-ear-hill { fill: var(--ea-hill); }
+.cp-ear-trunk { fill: none; stroke: var(--ea-wood); stroke-width: 18; stroke-linecap: round; }
+.cp-ear-branch { fill: none; stroke: var(--ea-wood); stroke-width: 5; stroke-linecap: round; }
+.cp-ear-branch-thin { stroke-width: 3; }
+.cp-ear-leaves ellipse { fill: var(--ea-leaf); opacity: .85; }
+.cp-ear-song path { fill: none; stroke: var(--ea-home); stroke-width: 3; stroke-linecap: round; opacity: .5; }
+.cp-ear-arc { fill: none; stroke: var(--ea-c1); stroke-width: 3; stroke-linecap: round; stroke-dasharray: 2 8; }
+.cp-ear-bird { color: var(--ea-c1); }
+.cp-ear-home { color: var(--ea-home); } .cp-ear-c1 { color: var(--ea-c1); } .cp-ear-c2 { color: var(--ea-c2); } .cp-ear-c3 { color: var(--ea-c3); }
+.cp-ear-beak { fill: #f2b84b; } .cp-ear-eye { fill: #fff; } .cp-ear-legs { stroke: #6b4a2a; stroke-width: 1.6; }
+:root[data-skin="game"] body.s-arcade .cp-ear-bird { filter: drop-shadow(0 0 6px currentColor); }
+:root[data-skin="game"] body.s-arcade :is(.cp-ear-trunk, .cp-ear-branch) { stroke-width: 2; filter: drop-shadow(0 0 4px #3be7ff); }
 @media (prefers-reduced-motion: no-preference) {
-    .cp-ear-ripple path { animation: cp-ear-ripple 2.8s ease-out infinite; }
-    .cp-ear-ripple path:nth-child(2) { animation-delay: .35s; } .cp-ear-ripple path:nth-child(3) { animation-delay: .7s; }
+    .cp-ear-song path { animation: cp-ear-song 2.6s ease-out infinite; }
+    .cp-ear-song path:nth-child(2) { animation-delay: .35s; } .cp-ear-song path:nth-child(3) { animation-delay: .7s; }
     .cp-ear-arc { animation: cp-ear-arc 1.6s linear infinite; }
 }
-@keyframes cp-ear-ripple { 0%, 100% { opacity: .08; } 30% { opacity: .55; } }
-@keyframes cp-ear-arc { to { stroke-dashoffset: -22; } }
-.cp-ear-leap svg { max-height: 110px; }
-.cp-ear-leap figcaption i { display: block; font-style: normal; font-weight: 650; color: var(--cp-a-text); }
-.cp-ear-chord { margin: 0; padding: 16px; border-radius: 18px; background: color-mix(in srgb, var(--color-cream) 6%, transparent); text-align: center; }
-.cp-ear-chord svg { display: block; width: 100%; max-height: 150px; }
-.cp-ear-note { fill: color-mix(in srgb, var(--color-cream) 70%, transparent); }
-.cp-ear-third { fill: var(--cp-care); }
-.cp-ear-ghost { fill: none; stroke: var(--color-cream); stroke-width: 2; stroke-dasharray: 3 4; opacity: .5; }
-.cp-ear-chord figcaption { margin-top: 10px; font-size: 15px; line-height: 1.4; }
-.cp-ear-chord figcaption b { display: block; font-size: 17px; }
-.cp-ear .cp-unit-n { color: var(--cp-a-text); }
-.cp-ear .cp-fact::before { content: ""; width: 34px; height: 18px; border: 3px solid var(--ea-to); border-bottom: 0; border-radius: 34px 34px 0 0; }
+@keyframes cp-ear-song { 0%, 100% { opacity: .08; } 30% { opacity: .6; } }
+@keyframes cp-ear-arc { to { stroke-dashoffset: -20; } }
 
-/* Folk and early music (site/courses/folk-and-early-music): a broadside ballad sheet. Rag paper,
-   printer's ink and a madder red, a woodcut ship on the sea inside a printed double rule, the tune
-   in shape notes across the sky and the drone's line beneath; a sturdy serif (serious skin), the
-   facts as clippings marked with a printer's hand. Game skin: gold ink and magenta on the night. */
-.cp-folk { --fo-paper: #f3ebd9; --fo-ink: #2a2118; --fo-red: #9b3a28; --cp-a: #9b3a28; --cp-a-ink: #fff; --cp-a-text: #8a3122; --cp-care: #f0a58f; --fo-serif: ui-serif, "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif; }
-:root:not([data-theme$="-light"]) .cp-folk { --fo-paper: #1e1914; --fo-ink: #e9dcc2; --fo-red: #e07a5f; --cp-a-text: #f0a58f; }
-:root[data-skin="game"] .cp-folk { --fo-paper: #0f0c1c; --fo-ink: #ffd84a; --fo-red: #ff5fd2; --cp-a: #ff5fd2; --cp-a-ink: #1a0414; --cp-a-text: #ff8fe0; --cp-care: #ffd84a; }
-.cp-folk .cp-hero { background: radial-gradient(90% 90% at 70% 45%, var(--fo-paper), color-mix(in srgb, var(--fo-paper) 55%, var(--color-ink))); }
-:root[data-skin="game"] body.s-arcade .cp-folk .cp-hero { background: radial-gradient(70% 80% at 70% 45%, color-mix(in srgb, #ff5fd2 10%, var(--a-bg)), var(--a-bg)); }
-:root:not([data-skin="game"]) .cp-folk :is(.cp-hero h1, .s-title) { font-family: var(--fo-serif); font-weight: 800; letter-spacing: -0.01em; }
-:root:not([data-skin="game"]) .cp-folk .cp-eyebrow { font-variant: small-caps; letter-spacing: .12em; }
+/* Your life list: the outcomes, ticked off like sightings. */
+.cp-ear-ticks { margin-top: 24px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 0; }
+.cp-ear-ticks li { display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: 14px; align-items: baseline; padding: 16px 0; border-bottom: 1px dashed color-mix(in srgb, var(--ea-wood) 40%, transparent); }
+.cp-ear-box { width: 20px; height: 20px; border: 2px solid var(--cp-a-text); border-radius: 4px; position: relative; top: 3px; }
+.cp-ear-box::after { content: ""; position: absolute; inset: 1px 5px 5px; border: solid var(--cp-a-text); border-width: 0 2.5px 2.5px 0; transform: rotate(45deg); }
+.cp-ear-ticks p { font-size: 19px; line-height: 1.45; }
+:root:not([data-skin="game"]) .cp-ear-ticks p { font-family: var(--ea-serif); font-size: 20px; }
+
+/* The field guide: three plates. */
+.cp-ear-plates { display: grid; grid-template-columns: minmax(0, 1fr); gap: 18px; margin-top: 26px; }
+.cp-ear-plate { margin: 0; padding: 20px 20px 22px; background: var(--ea-paper); border: 1px solid color-mix(in srgb, var(--ea-wood) 30%, transparent); box-shadow: inset 0 0 0 6px var(--ea-paper), inset 0 0 0 7px color-mix(in srgb, var(--ea-wood) 25%, transparent), 0 16px 34px -26px #000; }
+:root[data-skin="game"] body.s-arcade .cp-ear-plate { background: var(--a-panel); box-shadow: inset 0 0 0 2px color-mix(in srgb, #45e3a5 50%, transparent); }
+.cp-ear-plate-n { font-size: 12px; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; color: var(--color-muted); }
+:root:not([data-skin="game"]) .cp-ear-plate-n { font-family: var(--ea-serif); font-variant: small-caps; text-transform: none; font-size: 15px; }
+.cp-ear-plate svg { display: block; width: 100%; height: auto; margin-top: 6px; }
+.cp-ear-plate figcaption { margin-top: 12px; display: grid; gap: 2px; font-size: 15px; line-height: 1.45; color: var(--color-muted); }
+.cp-ear-plate figcaption b { font-size: 19px; color: var(--color-cream); }
+:root:not([data-skin="game"]) .cp-ear-plate figcaption b { font-family: var(--ea-serif); font-size: 21px; }
+.cp-ear-plate figcaption i { font-style: italic; font-weight: 650; color: var(--cp-a-text); }
+
+/* Day and dusk: major and minor. */
+.cp-ear-colour .cp-ear-kick { color: var(--cp-care); }
+.cp-ear-sky { margin: 0; padding: 14px; border-radius: 18px; text-align: center; }
+.cp-ear-major { background: #fff1e0 linear-gradient(180deg, #ffe6c8, #fff6e8); color: #3a2a1a; }
+.cp-ear-minor { background: #2b2448 linear-gradient(180deg, #3a3060, #1c1830); color: #efe8ff; }
+:root[data-skin="game"] body.s-arcade .cp-ear-major { background: #2a1500 linear-gradient(180deg, #3a1d00, #1a0d00); color: #ffe9a8; }
+.cp-ear-sky svg { display: block; width: 100%; max-height: 160px; }
+.cp-ear-major .cp-ear-orb { fill: #f7a35c; } .cp-ear-minor .cp-ear-orb { fill: #e9e4ff; }
+.cp-ear-note { fill: currentColor; opacity: .55; }
+.cp-ear-major .cp-ear-third { fill: #e0603f; } .cp-ear-minor .cp-ear-third { fill: #b9a4ff; }
+.cp-ear-ghost { fill: none; stroke: currentColor; stroke-width: 2; stroke-dasharray: 3 4; opacity: .5; }
+.cp-ear-sky figcaption { margin-top: 8px; font-size: 15px; line-height: 1.4; }
+.cp-ear-sky figcaption b { display: block; font-size: 18px; }
+.cp-ear-major :is(figcaption, figcaption b) { color: #3a2a1a; } .cp-ear-minor :is(figcaption, figcaption b) { color: #efe8ff; }
+:root[data-skin="game"] body.s-arcade .cp-ear-major :is(figcaption, figcaption b) { color: #ffe9a8; }
+
+/* Field trips: the units, each with its sightings. */
+.cp-ear-triplist { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; margin-top: 26px; }
+.cp-ear-trip { padding: 20px; border-radius: 20px; background: var(--color-panel); border: 1px solid var(--cp-line); }
+.cp-ear-trip-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; padding-bottom: 10px; border-bottom: 1px dashed var(--cp-line); }
+.cp-ear-trip-n { font-size: 12.5px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: var(--cp-a-text); }
+.cp-ear-sightings { display: flex; gap: 3px; }
+.cp-ear-sightings svg { width: 22px; height: 17px; }
+.cp-ear-trip h3 { margin-top: 12px; font-size: 21px; font-weight: 800; }
+:root:not([data-skin="game"]) .cp-ear-trip h3 { font-family: var(--ea-serif); font-weight: 700; font-size: 23px; }
+.cp-ear-lessons { margin-top: 12px; display: grid; gap: 6px; font-size: 15px; }
+.cp-ear-lessons li { padding-inline-start: 18px; position: relative; }
+.cp-ear-lessons li::before { content: ""; position: absolute; inset-inline-start: 0; top: .45em; width: 10px; height: 10px; border-radius: 99px 99px 99px 0; background: var(--cp-a-text); opacity: .6; }
+
+/* In the field: the try-this. */
+.cp-ear-steps { display: grid; gap: 12px; margin-top: 24px; }
+.cp-ear-steps li { display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 14px; align-items: start; padding: 16px 18px; border-radius: 18px; background: var(--color-panel); border: 1px solid var(--cp-line); }
+.cp-ear-step-first { border-color: color-mix(in srgb, var(--ea-c1) 45%, transparent) !important; background: color-mix(in srgb, var(--ea-c1) 7%, var(--color-panel)) !important; }
+.cp-ear-step-n { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50% 50% 50% 8px; background: var(--ea-home); color: #fff; font-size: 17px; font-weight: 800; }
+:root[data-skin="game"] body.s-arcade .cp-ear-step-n { color: #1a1400; }
+.cp-ear-steps p { font-size: 16.5px; line-height: 1.5; padding-top: 9px; }
+.cp-ear-start { display: block; font-size: 12px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: var(--cp-a-text); }
+
+/* Field notes: the facts on notebook paper. */
+.cp-ear-notebook { margin-top: 26px; display: grid; gap: 0; padding: 10px 24px 10px 54px; border-radius: 8px; background: repeating-linear-gradient(180deg, var(--ea-paper) 0 31px, color-mix(in srgb, var(--ea-home) 22%, var(--ea-paper)) 31px 32px); border: 1px solid var(--cp-line); position: relative; box-shadow: 0 18px 36px -28px #000; }
+.cp-ear-notebook::before { content: ""; position: absolute; inset-block: 0; inset-inline-start: 36px; width: 2px; background: color-mix(in srgb, var(--ea-c1) 55%, transparent); }
+:root[data-skin="game"] body.s-arcade .cp-ear-notebook { background: var(--a-panel); }
+.cp-ear-notebook li { padding: 16px 0; border-bottom: 1px solid color-mix(in srgb, var(--ea-wood) 20%, transparent); }
+.cp-ear-notebook li:last-child { border-bottom: 0; }
+.cp-ear-note-text { font-size: 18px; line-height: 1.5; color: var(--color-cream); }
+:root:not([data-skin="game"]) .cp-ear-note-text { font-family: var(--ea-serif); font-style: italic; font-size: 19px; }
+.cp-ear-note-src { margin-top: 6px; font-size: 12.5px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--color-muted); }
+.cp-ear-note-src a { color: inherit; text-underline-offset: 3px; }
+.cp-ear-note-src a:hover, .cp-ear-note-src a:focus-visible { color: var(--cp-a-text); }
+
+/* Your field kit. */
+.cp-ear-kit-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 26px; margin-top: 26px; }
+.cp-ear-kit h3 { font-size: 12.5px; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; color: var(--cp-a-text); }
+.cp-ear-kit .s-ticks { margin-top: 12px; font-size: 15.5px; }
+.cp-ear-kit-gap { margin-top: 22px; }
+.cp-ear-songs { padding: 20px; border-radius: 18px; background: var(--color-panel); border: 1px solid var(--cp-line); }
+.cp-ear-songs ul { margin-top: 10px; display: grid; gap: 8px; font-size: 15px; line-height: 1.45; }
+.cp-ear-songs span { color: var(--color-muted); }
+
+/* Questions and the close. */
+.cp-ear-fine { display: grid; grid-template-columns: minmax(0, 1fr); gap: 18px; }
+.cp-ear-close { background: radial-gradient(70% 90% at 50% 100%, color-mix(in srgb, var(--ea-sun) 20%, var(--color-ink)), var(--color-ink) 70%); }
+:root[data-skin="game"] body.s-arcade .cp-ear-close { background: radial-gradient(70% 90% at 50% 100%, color-mix(in srgb, #45e3a5 14%, var(--a-bg)), var(--a-bg) 70%); }
+.cp-ear-close-in { text-align: center; display: grid; justify-items: center; }
+.cp-ear-close-art { width: min(100%, 260px); height: auto; margin-bottom: 8px; }
+.cp-ear-close .cp-ear-title { font-size: clamp(42px, 8vw, 84px); }
+.cp-ear-close .s-lede { margin-inline: auto; margin-top: 14px; }
+.cp-ear-close .cp-join-btns, .cp-ear-close .cp-related { justify-content: center; }
+.cp-ear .cp-unit-n { color: var(--cp-a-text); }
+
+@media (min-width: 900px) {
+    .cp-ear-ticks { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 48px; }
+    .cp-ear-plates { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; }
+    .cp-ear-triplist { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+    .cp-ear-steps { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+    .cp-ear-kit-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 32px; }
+    .cp-ear-fine { grid-template-columns: minmax(0, .8fr) minmax(0, 1.4fr); gap: 56px; align-items: start; }
+}
+
+/* Folk and early music (site/courses/folk-and-early-music): a broadside, printed and pasted on a
+   tavern wall (docs/course-pages-polish.md). Rag paper and printer's ink with a madder red, the sheet
+   tacked to wooden boards with a woodcut of a ship on a hatched sea, the tune in shape notes across
+   its head; a sturdy serif, small caps, printer's ornaments and double rules (serious skin). Game
+   skin: a neon tavern, gold ink and magenta. */
+.cp-folk { --fo-paper: #f3ebd9; --fo-paper-2: #e8dcc0; --fo-ink: #2a2118; --fo-red: #9b3a28; --fo-wood: #6e4a2e; --fo-wood-2: #5a3b23; --cp-a: #9b3a28; --cp-a-ink: #fff; --cp-a-text: #8a3122; --cp-care: #f0a58f; --fo-serif: ui-serif, "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif; }
+:root:not([data-theme$="-light"]) .cp-folk { --fo-paper: #ece2cb; --fo-paper-2: #ddd0b3; --fo-ink: #2a2118; --fo-wood: #3a281a; --fo-wood-2: #2e2014; --cp-a-text: #f0a58f; }
+:root[data-skin="game"] .cp-folk { --fo-paper: #120c22; --fo-paper-2: #0a0716; --fo-ink: #ffd84a; --fo-red: #ff5fd2; --fo-wood: #1b1036; --fo-wood-2: #140b28; --cp-a: #ff5fd2; --cp-a-ink: #1a0414; --cp-a-text: #ff8fe0; --cp-care: #ffd84a; }
+
+/* Type. */
+.cp-fo-kick { display: inline-flex; gap: 8px; align-items: center; font-size: 13px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--cp-a-text); }
+:root:not([data-skin="game"]) .cp-fo-kick { font-family: var(--fo-serif); font-variant: small-caps; text-transform: none; font-size: 17px; letter-spacing: .1em; }
+.cp-fo-kick span { color: var(--fo-red); font-size: .8em; }
+:root[data-skin="game"] body.s-arcade .cp-fo-kick { font-family: "Press Start 2P", ui-monospace, monospace; font-size: 9.5px; letter-spacing: .06em; }
+:root:not([data-skin="game"]) .cp-folk :is(.cp-hero h1, .cp-fo-title) { font-family: var(--fo-serif); font-weight: 800; letter-spacing: -0.01em; text-wrap: balance; }
+:root:not([data-skin="game"]) .cp-folk .cp-hero h1 { font-size: clamp(46px, 11vw, 92px); line-height: .96; }
+.cp-fo-title { margin-top: 10px; font-size: clamp(32px, 6vw, 54px); line-height: 1.04; font-weight: 800; letter-spacing: -0.02em; text-wrap: balance; }
+:root[data-skin="game"] body.s-arcade .cp-folk .cp-fo-title { font-family: var(--a-display); font-weight: 400; letter-spacing: .01em; text-transform: uppercase; }
+.cp-fo-num { font-family: var(--fo-serif); font-weight: 800; color: var(--fo-red); }
+:root[data-skin="game"] body.s-arcade .cp-fo-num { font-family: var(--a-display); font-weight: 400; color: var(--cp-care); }
+.cp-folk .s-lede { max-width: 56ch; }
+
+/* The hero: the broadside on the tavern wall. */
+.cp-fo-hero { background: radial-gradient(80% 90% at 72% 40%, color-mix(in srgb, var(--fo-paper) 30%, var(--color-ink)), var(--color-ink) 75%); }
+:root[data-skin="game"] body.s-arcade .cp-fo-hero { background: radial-gradient(70% 80% at 70% 40%, color-mix(in srgb, #ff5fd2 12%, var(--a-bg)), var(--a-bg)); }
 .cp-fo-art { display: grid; place-items: center; }
-.cp-fo-svg { width: min(100%, 500px); height: auto; }
+.cp-fo-wall { position: relative; width: 100%; max-width: 560px; padding: 28px 24px; border-radius: 22px; background: repeating-linear-gradient(180deg, var(--fo-wood) 0 46px, var(--fo-wood-2) 46px 48px), linear-gradient(90deg, #0003, transparent 30%, #0002); background-blend-mode: multiply; box-shadow: inset 0 0 40px #0006; }
+:root[data-skin="game"] body.s-arcade .cp-fo-wall { box-shadow: inset 0 0 0 2px #ff5fd2, 0 0 30px -10px #ff5fd2; }
+.cp-fo-svg { display: block; width: 100%; height: auto; transform: rotate(-1.6deg); filter: drop-shadow(0 14px 16px #0007); }
+.cp-fo-paper { fill: var(--fo-paper); }
 .cp-fo-rule { fill: none; stroke: var(--fo-ink); stroke-width: 3; }
-.cp-fo-thin { stroke-width: 1.2; }
-.cp-fo-sun { fill: none; stroke: var(--fo-red); stroke-width: 3; stroke-dasharray: 2 5; }
+.cp-fo-thin { stroke-width: 1; }
+.cp-fo-staffline { stroke: var(--fo-ink); stroke-width: 1; opacity: .4; }
 .cp-fo-shape { fill: var(--fo-ink); }
-.cp-fo-hull { fill: var(--fo-ink); }
+.cp-fo-frame { fill: none; stroke: var(--fo-ink); stroke-width: 2.5; }
+.cp-fo-sun { fill: none; stroke: var(--fo-red); stroke-width: 3; stroke-dasharray: 2 5; }
+.cp-fo-cloud { fill: var(--fo-paper-2); stroke: var(--fo-ink); stroke-width: 1.6; }
+.cp-fo-gull { fill: none; stroke: var(--fo-ink); stroke-width: 1.8; stroke-linecap: round; }
 .cp-fo-mast { stroke: var(--fo-ink); stroke-width: 4; }
-.cp-fo-sail { fill: var(--fo-paper); stroke: var(--fo-ink); stroke-width: 3; stroke-linejoin: round; }
-.cp-fo-hatch { fill: none; stroke: var(--fo-ink); stroke-width: 1.4; opacity: .7; }
+.cp-fo-sail { stroke: var(--fo-ink); stroke-width: 2.4; stroke-linejoin: round; }
+.cp-fo-sail-plain { fill: var(--fo-paper-2); }
+.cp-fo-hatchline { stroke: var(--fo-ink); stroke-width: 1.2; }
 .cp-fo-flag { fill: var(--fo-red); }
-.cp-fo-wave { fill: none; stroke: var(--fo-ink); stroke-width: 2.5; }
-.cp-fo-drone { stroke: var(--fo-red); stroke-width: 5; stroke-linecap: round; }
-:root[data-skin="game"] body.s-arcade :is(.cp-fo-shape, .cp-fo-drone) { filter: drop-shadow(0 0 5px currentColor); color: var(--fo-ink); }
+.cp-fo-hull { fill: var(--fo-ink); }
+.cp-fo-sea { stroke: none; }
+.cp-fo-wave { fill: none; stroke: var(--fo-ink); stroke-width: 2.2; }
+.cp-fo-orn-rule { fill: none; stroke: var(--fo-ink); stroke-width: 1.5; }
+.cp-fo-diamond { fill: var(--fo-red); }
+.cp-fo-tack { position: absolute; width: 14px; height: 14px; border-radius: 99px; background: radial-gradient(circle at 35% 35%, #f2e3b0, #8a6a2a 70%); box-shadow: 0 2px 3px #0008; }
+.cp-fo-tack-11 { top: 34px; left: 38px; } .cp-fo-tack-12 { top: 26px; right: 40px; } .cp-fo-tack-21 { bottom: 26px; left: 34px; } .cp-fo-tack-22 { bottom: 34px; right: 36px; }
+:root[data-skin="game"] body.s-arcade :is(.cp-fo-shape, .cp-fo-hull, .cp-fo-mast) { filter: drop-shadow(0 0 4px #ffd84a); }
 @media (prefers-reduced-motion: no-preference) {
     .cp-fo-wave { animation: cp-fo-sea 4s ease-in-out infinite alternate; }
     .cp-fo-wave + .cp-fo-wave { animation-direction: alternate-reverse; }
-    .cp-fo-drone { animation: cp-fo-drone 3s ease-in-out infinite; }
 }
-@keyframes cp-fo-sea { to { transform: translateX(-14px); } }
-@keyframes cp-fo-drone { 50% { opacity: .55; } }
-.cp-fo-mode svg { max-height: 140px; }
+@keyframes cp-fo-sea { to { transform: translateX(-12px); } }
+
+/* The ballad: the outcomes as stanzas. */
+.cp-fo-stanzas { margin-top: 24px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 0; }
+.cp-fo-stanzas li { display: grid; grid-template-columns: 54px minmax(0, 1fr); gap: 12px; align-items: baseline; padding: 16px 0; border-bottom: 1px solid color-mix(in srgb, var(--fo-red) 25%, transparent); }
+.cp-fo-stanzas .cp-fo-num { font-size: 22px; text-align: end; }
+.cp-fo-stanzas p { font-size: 19px; line-height: 1.45; }
+:root:not([data-skin="game"]) .cp-fo-stanzas p { font-family: var(--fo-serif); font-size: 20px; font-style: italic; }
+
+/* The old modes: the two scales in woodcut frames. */
+.cp-fo-mode { margin: 0; padding: 18px; background: var(--color-panel); border: 3px double color-mix(in srgb, var(--fo-ink) 40%, transparent); }
+:root[data-skin="game"] body.s-arcade .cp-fo-mode { border-color: #ffd84a; }
+.cp-fo-mode svg { display: block; width: 100%; max-height: 150px; }
 .cp-fo-base { stroke: var(--color-line); stroke-width: 1.5; }
 .cp-fo-step { fill: var(--color-cream); }
 .cp-fo-changed { fill: var(--fo-red); }
 .cp-fo-ghost { fill: none; stroke: var(--color-muted); stroke-width: 2; stroke-dasharray: 3 3; }
-.cp-fo-orns { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; margin-top: 26px; max-width: 860px; }
-.cp-fo-orn { margin: 0; padding: 16px 18px; border-radius: 16px; background: color-mix(in srgb, var(--color-cream) 6%, transparent); }
-.cp-fo-orn svg { display: block; width: 100%; max-width: 320px; height: auto; }
+.cp-fo-mode figcaption { margin-top: 10px; font-size: 15px; line-height: 1.45; color: var(--color-muted); }
+.cp-fo-mode figcaption b { display: block; font-size: 18px; color: var(--color-cream); }
+:root:not([data-skin="game"]) .cp-fo-mode figcaption b { font-family: var(--fo-serif); }
+
+/* Grace notes: the ornaments. */
+.cp-fo-grace .cp-fo-kick { color: var(--cp-care); }
+.cp-fo-orns { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; margin-top: 26px; max-width: 900px; }
+.cp-fo-orn { margin: 0; padding: 18px 20px; border-radius: 16px; background: color-mix(in srgb, var(--color-cream) 6%, transparent); }
+.cp-fo-orn svg { display: block; width: 100%; max-width: 360px; height: auto; }
 .cp-fo-blk { fill: color-mix(in srgb, var(--color-cream) 45%, transparent); }
 .cp-fo-orn-hi { fill: var(--cp-care); }
 .cp-fo-orn figcaption { margin-top: 10px; font-size: 15px; line-height: 1.45; color: color-mix(in srgb, var(--color-cream) 80%, var(--color-ink)); }
-.cp-fo-orn figcaption b { display: block; font-size: 17px; color: var(--color-cream); }
+.cp-fo-orn figcaption b { display: block; font-size: 18px; color: var(--color-cream); }
+
+/* Four verses: the units as printed columns. */
+.cp-fo-sheet { margin-top: 26px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 0; padding: 10px 24px; background: var(--fo-paper); color: var(--fo-ink); border: 3px double color-mix(in srgb, var(--fo-ink) 50%, transparent); box-shadow: 0 18px 36px -26px #000; }
+:root[data-skin="game"] body.s-arcade .cp-fo-sheet { background: var(--a-panel); color: var(--color-cream); border-color: #ffd84a; }
+.cp-fo-col { padding: 20px 0; border-bottom: 1px solid color-mix(in srgb, var(--fo-ink) 25%, transparent); }
+.cp-fo-col:last-child { border-bottom: 0; }
+.cp-fo-col-n { font-family: var(--fo-serif); font-size: 15px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--fo-red); }
+:root[data-skin="game"] body.s-arcade .cp-fo-col-n { font-family: "Press Start 2P", ui-monospace, monospace; font-size: 9px; color: #ff8fe0; }
+.cp-fo-col h3 { margin-top: 6px; font-size: 22px; font-weight: 800; }
+:root:not([data-skin="game"]) .cp-fo-col h3 { font-family: var(--fo-serif); font-size: 24px; }
+.cp-fo-col-say { margin-top: 6px; font-size: 15px; line-height: 1.5; opacity: .8; }
+.cp-fo-lessons { margin-top: 10px; display: grid; gap: 4px; font-size: 15.5px; }
+.cp-fo-lessons li { padding-inline-start: 16px; position: relative; }
+.cp-fo-lessons li::before { content: "✶" / ""; position: absolute; inset-inline-start: 0; font-size: 10px; top: 4px; color: var(--fo-red); }
+.cp-fo-sheet .s-free { color: #1f5a1f; }
+:root[data-skin="game"] body.s-arcade .cp-fo-sheet .s-free { color: inherit; }
+
+/* Strike up: the try-this. */
+.cp-fo-steps { margin-top: 24px; display: grid; gap: 12px; }
+.cp-fo-steps li { display: grid; grid-template-columns: 46px minmax(0, 1fr); gap: 12px; align-items: baseline; padding: 16px 18px; border-radius: 6px; background: var(--color-panel); border: 1px solid var(--cp-line); }
+.cp-fo-step-first { border: 2px solid color-mix(in srgb, var(--fo-red) 55%, transparent) !important; }
+.cp-fo-steps .cp-fo-num { font-size: 24px; text-align: end; }
+.cp-fo-steps p { font-size: 16.5px; line-height: 1.5; }
+.cp-fo-start { display: block; font-size: 12px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: var(--cp-a-text); }
+
+/* On the tavern wall: taped clippings. */
+.cp-fo-clippings { margin-top: 30px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 26px; }
+.cp-fo-clip { position: relative; padding: 26px 22px 20px; background: var(--fo-paper); color: var(--fo-ink); box-shadow: 0 16px 30px -22px #000; clip-path: polygon(0 2%, 4% 0, 30% 1%, 60% 0, 96% 1%, 100% 4%, 99% 40%, 100% 96%, 96% 100%, 50% 99%, 4% 100%, 0 96%, 1% 50%); }
+.cp-fo-clip:nth-child(1) { transform: rotate(-1.2deg); } .cp-fo-clip:nth-child(3) { transform: rotate(1deg); }
+:root[data-skin="game"] body.s-arcade .cp-fo-clip { background: var(--a-panel); color: var(--color-cream); clip-path: none; box-shadow: inset 0 0 0 2px #ff5fd2; }
+.cp-fo-tape { position: absolute; top: 6px; left: 50%; width: 80px; height: 16px; margin-left: -40px; background: color-mix(in srgb, #f6e7a8 70%, transparent); transform: rotate(-3deg); }
+.cp-fo-clip-text { font-size: 18px; line-height: 1.5; }
+:root:not([data-skin="game"]) .cp-fo-clip-text { font-family: var(--fo-serif); font-size: 19px; }
+.cp-fo-clip-src { margin-top: 12px; font-size: 12.5px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; opacity: .7; }
+.cp-fo-clip-src a { color: inherit; text-underline-offset: 3px; }
+.cp-fo-clip-src a:hover, .cp-fo-clip-src a:focus-visible { color: var(--fo-red); opacity: 1; }
+
+/* For the singer. */
+.cp-fo-singer-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 26px; margin-top: 26px; }
+.cp-fo-singer h3 { font-size: 12.5px; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; color: var(--cp-a-text); }
+.cp-fo-singer .s-ticks { margin-top: 12px; font-size: 15.5px; }
+.cp-fo-gap { margin-top: 22px; }
+.cp-fo-songs { padding: 20px; background: var(--color-panel); border: 3px double var(--cp-line); }
+.cp-fo-songs ul { margin-top: 10px; display: grid; gap: 8px; font-size: 15px; line-height: 1.45; }
+:root:not([data-skin="game"]) .cp-fo-songs b { font-family: var(--fo-serif); font-style: italic; font-size: 17px; }
+.cp-fo-songs span { color: var(--color-muted); }
+
+/* Questions and the close. */
+.cp-fo-fine { display: grid; grid-template-columns: minmax(0, 1fr); gap: 18px; }
+.cp-fo-close { background: radial-gradient(70% 90% at 50% 100%, color-mix(in srgb, var(--fo-red) 14%, var(--color-ink)), var(--color-ink) 70%); }
+:root[data-skin="game"] body.s-arcade .cp-fo-close { background: radial-gradient(70% 90% at 50% 100%, color-mix(in srgb, #ff5fd2 18%, var(--a-bg)), var(--a-bg) 70%); }
+.cp-fo-close-in { text-align: center; display: grid; justify-items: center; }
+.cp-fo-close-orn { width: 200px; height: 36px; margin-bottom: 8px; }
+.cp-fo-close .cp-fo-title { font-size: clamp(42px, 8vw, 84px); }
+.cp-fo-close .s-lede { margin-inline: auto; margin-top: 14px; }
+.cp-fo-close .cp-join-btns, .cp-fo-close .cp-related { justify-content: center; }
 .cp-folk .cp-unit-n { color: var(--cp-a-text); }
-:root:not([data-skin="game"]) .cp-folk .cp-unit-n { font-variant: small-caps; letter-spacing: .1em; }
-:root:not([data-skin="game"]) .cp-folk .cp-unit h3 { font-family: var(--fo-serif); font-size: 21px; }
-.cp-folk .cp-fact { border-radius: 4px; border-style: dashed; }
-.cp-folk .cp-fact::before { content: "\261E" / ""; font-size: 26px; line-height: 1; color: var(--cp-a-text); }
-:root:not([data-skin="game"]) .cp-folk .cp-fact p:first-child { font-family: var(--fo-serif); font-size: 17.5px; }
-@media (min-width: 700px) { .cp-fo-orns { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+@media (min-width: 900px) {
+    .cp-fo-stanzas { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 48px; }
+    .cp-fo-orns { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+    .cp-fo-sheet { grid-template-columns: repeat(2, minmax(0, 1fr)); padding: 10px 0; }
+    .cp-fo-col { padding: 22px 28px; border-bottom: 0; border-inline-start: 1px solid color-mix(in srgb, var(--fo-ink) 25%, transparent); }
+    .cp-fo-col:nth-child(odd) { border-inline-start: 0; }
+    .cp-fo-col:nth-child(-n+2) { border-bottom: 1px solid color-mix(in srgb, var(--fo-ink) 25%, transparent); }
+    .cp-fo-steps { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+    .cp-fo-clippings { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 28px; }
+    .cp-fo-singer-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 32px; }
+    .cp-fo-fine { grid-template-columns: minmax(0, .8fr) minmax(0, 1.4fr); gap: 56px; align-items: start; }
+}
+@media (min-width: 1200px) {
+    .cp-fo-sheet { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .cp-fo-col, .cp-fo-col:nth-child(odd) { border-inline-start: 1px solid color-mix(in srgb, var(--fo-ink) 25%, transparent); }
+    .cp-fo-col:first-child { border-inline-start: 0; }
+    .cp-fo-col:nth-child(-n+2) { border-bottom: 0; }
+}
 
 /* Pop and country styling (site/courses/pop-and-country): a record. A sunset, a vinyl disc turning
    slowly, and a voice line sweeping across it with a scoop and a fall-off; the four moves drawn as
@@ -4089,6 +4906,17 @@ body:has(.s-heroslot) .s-top > .gt--pill { display: none !important; }
 .ge-initial.is-now .ge-initial-letter { box-shadow: 0 0 0 2px var(--color-accent); color: var(--color-accent); }
 .ge-initial-letter:focus-visible { outline: 2px solid var(--ring, var(--color-accent)); outline-offset: 2px; }
 [data-skin='game'] [data-initials] { font: 400 0.75rem/1.6 var(--ge-hud); letter-spacing: 0.08em; color: var(--ge-yellow); }
+/* A part's leaderboard as one card (Hillel's mockup 1a, components/boards.js): the part as a tag, a small
+   switch, a table whose first place wears a gold circle, your row tinted with a YOU tag. Game mode only. */
+[data-skin='game'] .ge-board-part { display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.15rem 0.55rem; border-radius: 9999px; background: color-mix(in srgb, var(--ge-yellow) 16%, transparent); color: var(--color-cream); font-size: 0.8125rem; font-weight: 700; }
+[data-skin='game'] .ge-board-scope .seg-option { min-height: 2rem; padding-inline: 0.8rem; font-size: 0.8125rem; }
+@media (max-width: 30rem) { [data-skin='game'] .ge-board-scope .seg-option { padding-inline: 0.6rem; font-size: 0.75rem; } }
+[data-skin='game'] .ge-board-rank { display: inline-grid; place-items: center; width: 1.75rem; height: 1.75rem; border-radius: 50%; background: var(--color-raised); color: var(--color-cream); font-size: 0.75rem; font-weight: 800; }
+[data-skin='game'] .ge-board-rank.is-first { background: var(--ge-fill-y); color: var(--ge-fill-y-ink); }
+[data-skin='game'] .ge-board-you > td { background: color-mix(in srgb, var(--color-accent) 12%, transparent); box-shadow: inset 0 1px 0 color-mix(in srgb, var(--color-accent) 30%, transparent), inset 0 -1px 0 color-mix(in srgb, var(--color-accent) 30%, transparent); }
+[data-skin='game'] .ge-board-you > td:first-child { box-shadow: inset 1px 1px 0 color-mix(in srgb, var(--color-accent) 30%, transparent), inset 0 -1px 0 color-mix(in srgb, var(--color-accent) 30%, transparent); }
+[data-skin='game'] .ge-board-you > td:last-child { box-shadow: inset -1px 1px 0 color-mix(in srgb, var(--color-accent) 30%, transparent), inset 0 -1px 0 color-mix(in srgb, var(--color-accent) 30%, transparent); }
+[data-skin='game'] .ge-board-you-tag { flex-shrink: 0; padding: 0.05rem 0.4rem; border: 1px solid color-mix(in srgb, var(--color-accent) 70%, transparent); border-radius: 9999px; color: var(--color-accent); font-size: 0.6875rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; }
 
 /* The daily challenge, a reskin of the day's song card on Home: an all-round ring in the score yellow
    and a "Today's challenge" tag on it (a button beside the card's own, so it never nests). */

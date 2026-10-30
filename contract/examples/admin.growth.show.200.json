@@ -1,0 +1,63 @@
+{
+    "data": {
+        "date": "2026-10-30",
+        "from": "2026-10-30",
+        "to": "2026-10-30",
+        "tiles": [
+            {
+                "key": "arrivals",
+                "today": 42,
+                "yesterday": 38,
+                "lastWeek": 30
+            },
+            {
+                "key": "lesson1",
+                "today": 25,
+                "yesterday": 20,
+                "lastWeek": 17
+            },
+            {
+                "key": "signedUp",
+                "today": 6,
+                "yesterday": 4,
+                "lastWeek": 3
+            },
+            {
+                "key": "plusStarted",
+                "today": 1,
+                "yesterday": 0,
+                "lastWeek": 1
+            }
+        ],
+        "steps": [
+            {
+                "key": "visits",
+                "total": 160
+            },
+            {
+                "key": "start",
+                "total": 55
+            },
+            {
+                "key": "arrivals",
+                "total": 42
+            },
+            {
+                "key": "lesson1",
+                "total": 25
+            },
+            {
+                "key": "unit1",
+                "total": 9
+            },
+            {
+                "key": "signedUp",
+                "total": 6
+            },
+            {
+                "key": "plusStarted",
+                "total": 1
+            }
+        ]
+    }
+}

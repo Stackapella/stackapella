@@ -9,6 +9,8 @@
         "version",
         "versions",
         "libraryOptIn",
+        "imported",
+        "rightsConfirmedAt",
         "readOnly",
         "recordings",
         "createdAt",
@@ -45,6 +47,18 @@
         },
         "libraryOptIn": {
             "type": "boolean"
+        },
+        "imported": {
+            "type": "boolean",
+            "description": "Made from imported sheet music: private to its owner and the choir groups it's added to; it can't be unlisted, public, in the library, an idea or opted in, and nothing sung from it can be shared (422 imported_private)."
+        },
+        "rightsConfirmedAt": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "format": "date-time",
+            "description": "When the singer confirmed they have the rights to the sheet music; null when not imported."
         },
         "readOnly": {
             "type": "boolean",

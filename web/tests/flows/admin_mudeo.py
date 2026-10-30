@@ -44,6 +44,9 @@ def journey(f):
     f.go("/early/k3Jd8sQw2mZx7Lp9Vb4nRt6yHc1Ga5Ue0FiOoPqA?api=mock&as=signedOut", "document.querySelector('h1')")
     f.wait_text(t(f, "invite.headline"))
     f.shot("early")
+    # Start singing leads; making an account is the second choice, behind its own button.
+    f.click_t("early.makeAccount")
+    f.wait("document.querySelector('#invite-email')", what="the account form")
     f.type("#invite-email", "sam@example.com")
     f.click(t(f, "invite.accept"), "button")
     f.wait_text(t(f, "invite.sent.title"))

@@ -60,7 +60,29 @@ def journey(f):
     f.wait("document.querySelector('[data-hearing]')", what="What you hear")
     shown = f.js("document.querySelector('[data-hearing]').innerText.includes((await import('/js/i18n.js')).t('sing.settings.voices'))")
     assert not shown, "Guide voices shows with no real voice to choose"
+    # Split ears (practice tracks, slice 2): only with headphones, off until turned on; then your part left, the others right.
+    audio = "(await import('/js/audio.js'))"
+    f.run(f"{audio}.chooseRoute('speakers')")
+    f.wait("!document.querySelector('[data-split-ears]')", what="no Split ears on a speaker")
+    f.run(f"{audio}.chooseRoute('wired')")
+    f.wait("document.querySelector('[data-split-ears][role=switch]')?.getAttribute('aria-checked') === 'false'", what="Split ears, off, with headphones")
+    f.run("document.querySelector('[data-split-ears][role=switch]').click()")
+    pans = f.js("""(async () => { const s = await import('/js/stores/session.js'); const levels = s.levels(); const focus = s.session.practice.focus;
+        const mine = levels.get(focus + ':guide')?.pan; const other = [...levels.entries()].find(([id]) => id.endsWith(':guide') && !id.startsWith(focus))?.[1].pan;
+        return { split: s.session.practice.split, mine, other }; })()""")
+    assert pans == {"split": True, "mine": -1, "other": 1}, pans
+    f.shot("split-ears")
+    f.run("document.querySelector('[data-split-ears][role=switch]').click()")
     f.press("Escape")
+    # Slow practice renders the guides again at that speed (they once kept full speed under a slower tempo).
+    guide = f"(async () => {{ const s = {SESSION}; await s.ready(); return s.session.parts.find((p) => p.templatePartKey).guideSeconds; }})()"
+    f.js("(await import('/js/audio.js')).unlock()")
+    full = f.js(guide)
+    f.js(f"(async () => {{ await {SESSION}.setSpeed(0.85); return true; }})()")
+    slow = f.js(guide)
+    assert abs(slow - full / 0.85) < 0.5, f"at 85% the guide lasts {slow:.2f} s, at full speed {full:.2f} s"
+    f.js(f"(async () => {{ await {SESSION}.setSpeed(1); return true; }})()")
+    assert abs(f.js(guide) - full) < 0.05, "back at full speed"
     f.sing_view("words")
     top_right = f.js("""(() => { const s = document.querySelector('header [data-settings-open]').getBoundingClientRect();
         return s.top < 80 && innerWidth - s.right < 40; })()""")

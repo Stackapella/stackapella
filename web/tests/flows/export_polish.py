@@ -1,7 +1,7 @@
 """Make it sound good and practice tracks (features 1 and 12): a project with two recorded parts at
 very different levels. Export with Make it sound good on (in a Hall) gives a WAV at -14 LUFS with
 nothing above -1 dBFS; a practice track of the quiet part, "Everything but this part" with a click,
-is longer by a bar of count-in. Hear it polished puts the room under the parts while playing.
+is longer by a bar of count-in; "Split ears" puts the chosen part in the left channel. Hear it polished puts the room under the parts while playing.
 """
 import json
 import sys
@@ -95,6 +95,22 @@ def journey(f):
     f.wait("window.downloads.length === 2", timeout=60, what="the practice track")
     track = f.js(READ)
     assert abs(track["seconds"] - song["seconds"] - 2) < 0.01, f"a bar (2 s at 120 bpm in 4/4) longer: {track} vs {song}"
+
+    # Split ears (practice tracks, slice 1): the loud part as "my part", left; the quiet one right; no click.
+    SIDES = READ.replace("return { lufs", "const rms = (c) => Math.sqrt(c.reduce((s, v) => s + v * v, 0) / c.length); return { left: rms(channels[0]), right: rms(channels[1]), lufs")
+    menu(f, "studio.export")
+    f.wait_text(t(f, "export.track"))
+    f.click_t("export.track")
+    f.run("const s = document.querySelector('[role=dialog] select'); s.value = s.options[0].value; s.dispatchEvent(new Event('change'))")
+    f.run("document.querySelector('[role=dialog] input[value=split]').click()")
+    f.run("const c = document.querySelector('[role=dialog] input[type=checkbox]'); if (c.checked) c.click();")
+    # Polished levels every part to the same loudness first; dry, the loud part stays loud, so its side shows.
+    f.run("const p = document.querySelector('[data-export] [role=switch]'); if (p.getAttribute('aria-checked') === 'true') p.click();")
+    f.shot("track-split")
+    f.run("document.querySelector('[role=dialog] form').requestSubmit()")
+    f.wait("window.downloads.length === 3", timeout=60, what="the split-ears track")
+    sides = f.js(SIDES)
+    assert sides["left"] > 5 * sides["right"], f"the loud part should be in the left ear: {sides}"
 
     # Hear it polished (the transport's Polished on a wide screen): the room goes under the parts.
     polish(f)

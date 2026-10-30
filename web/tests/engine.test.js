@@ -116,6 +116,38 @@ test('engine: a loop plays its stretch end to end, every part in step, sample fo
     engine.removePart('b');
 });
 
+test('engine: a run started at a loop\'s end takes over there, sample for sample, the pass before it played out (the tempo ladder)', async () => {
+    const sr = engine.sampleRate;
+    const slow = harmonyPart(sr, { notes: [60, 64], bpm: 100 });
+    const fast = harmonyPart(sr, { notes: [62, 65], bpm: 120 });
+    engine.setPart('a', slow, sr, mix);
+    const before = { startSeconds: 0.25, endSeconds: 1.0 };
+    const after = { startSeconds: 0.2, endSeconds: 0.8 }; // the same phrase, a faster speed: shorter
+    try {
+        const playing = engine.play({ loop: before });
+        const start = Math.round(playing.startTime * sr);
+        const passFrames = Math.round(before.endSeconds * sr) - Math.round(before.startSeconds * sr);
+        const nextFrames = Math.round(after.endSeconds * sr) - Math.round(after.startSeconds * sr);
+        const capturing = engine.startCapture(start, start + passFrames + nextFrames, null);
+        await untilAudioTime(playing.startTime + 0.1);
+        const end = engine.passEnd();
+        assert(end === start + passFrames, `the first pass ends at ${start + passFrames}, not ${end}`);
+        // The faster guide in place of the slow one; the pass heard now keeps its own (already scheduled).
+        assert(engine.replaceBuffer('a', fast, sr), 'the part is there to replace');
+        engine.play({ loop: after, startFrame: end });
+        const captured = (await capturing).samples;
+        const was = Math.round(before.startSeconds * sr);
+        const now = Math.round(after.startSeconds * sr);
+        const first = Float32Array.from({ length: passFrames }, (_, i) => slow[was + i] * Math.SQRT1_2);
+        const second = Float32Array.from({ length: nextFrames }, (_, i) => fast[now + i] * Math.SQRT1_2);
+        close(worstDifference(captured.subarray(0, passFrames), first), 0, 1e-5, 'the slow pass, to its end');
+        close(worstDifference(captured.subarray(passFrames, passFrames + nextFrames), second), 0, 1e-5, 'the fast pass from the next frame, nothing doubled');
+    } finally {
+        await engine.stop();
+        engine.removePart('a');
+    }
+});
+
 test('engine: listen, then repeat plays the phrase, a cue beat, then your turn without your guide', async () => {
     const sr = engine.sampleRate;
     const guide = harmonyPart(sr, { notes: [64, 65], bpm: 120 });

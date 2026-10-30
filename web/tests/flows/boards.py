@@ -90,11 +90,11 @@ def journey(f):
         return
     f.go("/t/amazing-grace?api=mock&scenario=&as=member", "document.querySelector('[data-part-board] button')")
     f.run("document.querySelector('[data-part-board] button').click()")
-    f.wait("document.querySelectorAll('[data-part-board] ol li').length === 2", what="the friends' board")
+    f.wait("document.querySelectorAll('[data-part-board] [data-board-entry]').length === 2", what="the friends' board")
     f.run("document.querySelector('[data-part-board]').scrollIntoView({ block: 'center' })")
     keep(f, "board", "boards-song-board")
     f.click_t("boards.everyone")
-    f.wait("document.querySelectorAll('[data-part-board] ol li').length === 2", what="the worldwide board")
+    f.wait("document.querySelectorAll('[data-part-board] [data-board-entry]').length === 2", what="the worldwide board")
     # Report this name: on someone else's entry only, a reason, then thanks.
     assert f.js("document.querySelectorAll('[data-report-entry]').length") == 1, "Report on every name but yours"
     f.run(ANSWER % json.dumps({"reports.create": {}}))

@@ -65,11 +65,14 @@ export async function submitScore({ templateId, templateVersion, partKey, score,
 }
 
 /**
- * A part's board: `{ entries, you, onGlobal, current, olderVersions, ... }`; scope 'friends' or
- * 'global'; `version` an earlier arrangement's board (read only), else the current one.
+ * A part's board: `{ entries, you, onGlobal, current, olderVersions, ... }`; scope 'friends',
+ * 'global' or (game mode) 'month', everyone's bests this month; `version` an earlier arrangement's
+ * board (read only), else the current one.
  */
 export async function boardOf(templateId, partKey, scope, version = null) {
-    return (await call('boards.show', { params: { template: templateId, part: partKey }, query: { scope, ...(version ? { version } : {}) } })).data;
+    // Game mode's "This month" (game/effects.js, monthly): everyone's bests set this month.
+    const query = scope === 'month' ? { scope: 'global', period: 'month' } : { scope, ...(version ? { version } : {}) };
+    return (await call('boards.show', { params: { template: templateId, part: partKey }, query })).data;
 }
 
 /** Shows your best score on the worldwide boards, or stops (18 and over only). */
@@ -242,41 +245,73 @@ export const TakeBest = {
  * A part's board on the song page: Friends or Everyone, the top ten and your place. A song whose
  * arrangement changed lists its earlier arrangements' boards, each read only.
  */
+const SCOPE_WORDS = { friends: tk('boards.friends'), global: tk('boards.everyone'), month: tk('boards.month') };
+
 export const PartBoard = {
     components: { ReportName },
-    props: { templateId: { type: String, required: true }, partKey: { type: String, required: true }, partName: { type: String, required: true } },
+    props: { templateId: { type: String, required: true }, partKey: { type: String, required: true }, partName: { type: String, required: true }, color: { type: String, default: null } },
     data: () => ({ open: false, scope: 'friends', board: null, failed: false, viewed: false, reporting: null, version: null }),
-    setup: () => ({ account, boardName, byInitials }),
+    setup: () => ({ account, boardName, byInitials, SCOPE_WORDS }),
+    // Hillel's mockup 1a: one card, "Leaderboard" with the part as a tag and a small switch to its
+    // right, then a table (#, singer, score, date) with your row marked YOU, the earlier arrangements at its foot.
     template: `
         <div class="text-sm" data-part-board>
-            <button type="button" class="link" :aria-expanded="open" @click="toggle">{{ t('boards.title', { part: partName }) }}</button>
-            <div v-if="open" class="mt-3 space-y-3 rounded-2xl border border-line p-4">
+            <button v-if="!open" type="button" class="link inline-flex min-h-6 items-center" aria-expanded="false" @click="toggle">{{ t('boards.title', { part: partName }) }}</button>
+            <section v-else class="ge-board mt-1 space-y-3 rounded-2xl border border-line bg-panel p-4" :aria-label="t('boards.title', { part: partName })">
+                <div class="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
+                    <button type="button" class="flex items-center gap-2 text-start" aria-expanded="true" :aria-label="t('boards.hide', { part: partName })" @click="toggle">
+                        <span class="text-base font-bold text-cream">{{ t('boards.heading') }}</span>
+                        <span class="ge-board-part"><span class="size-2 rounded-full" :style="{ background: color ?? 'currentColor' }" aria-hidden="true"></span>{{ partName }}</span>
+                    </button>
+                    <div v-if="account.me" class="seg ge-board-scope" role="radiogroup" :aria-label="t('boards.scope')">
+                        <button v-for="s in scopes" :key="s" type="button" role="radio" :aria-checked="scope === s" class="seg-option tap-44" :data-board-scope="s" @click="choose(s)">{{ t(SCOPE_WORDS[s]) }}</button>
+                    </div>
+                </div>
                 <p v-if="!account.me" class="text-muted">{{ t('boards.guest') }} <a href="/signin" class="link" @click.prevent="signIn">{{ t('boards.makeAccount') }}</a></p>
                 <template v-else>
-                    <div class="seg flex" role="radiogroup" :aria-label="t('boards.scope')">
-                        <button v-for="s in ['friends', 'global']" :key="s" type="button" role="radio" :aria-checked="scope === s" class="seg-option flex-1" @click="choose(s)">{{ s === 'friends' ? t('boards.friends') : t('boards.everyone') }}</button>
-                    </div>
                     <p v-if="failed" class="text-muted" role="status">{{ t('boards.failed') }}</p>
                     <p v-else-if="!board" class="text-muted" role="status">{{ t('boards.loading') }}</p>
-                    <p v-else-if="!board.entries.length" class="text-cream">{{ t('boards.empty') }}</p>
-                    <ol v-else class="space-y-1.5" :aria-label="t('boards.title', { part: partName })">
-                        <li v-for="e in board.entries" :key="e.id ?? e.rank + e.name" class="group flex items-center gap-3 rounded-xl px-2 py-1.5" :class="e.you ? 'bg-accent/10' : ''">
-                            <span class="grid size-7 shrink-0 place-items-center rounded-full text-xs font-bold" :class="e.rank <= 3 ? 'gem' : 'text-muted'">{{ e.rank }}</span>
-                            <span class="min-w-0 flex-1 truncate text-cream" translate="no" :data-initials="byInitials(e) ? '' : null">{{ e.you ? t('boards.you', { name: boardName(e) }) : boardName(e) }}</span>
-                            <span class="font-bold tabular-nums text-cream">{{ e.score }}</span>
-                            <span class="hidden w-16 text-end text-muted sm:inline">{{ day(e.at) }}</span>
-                            <button v-if="!e.you && e.id" type="button" class="tap-44 text-xs text-muted hover:text-cream [@media(hover:hover)]:opacity-0 group-hover:opacity-100 focus-visible:opacity-100" :aria-label="t('boards.report.button', { name: boardName(e) })" data-report-entry @click="reporting = e">{{ t('boards.report.short') }}</button>
-                        </li>
-                    </ol>
+                    <p v-else-if="!board.entries.length" class="text-cream">{{ scope === 'month' ? t('boards.monthEmpty') : t('boards.empty') }}</p>
+                    <table v-else class="w-full table-fixed border-separate border-spacing-y-1">
+                        <thead>
+                            <tr class="text-[11px] font-semibold uppercase tracking-wider text-muted">
+                                <th scope="col" class="w-10 px-1 text-start font-semibold">{{ t('boards.col.rank') }}</th>
+                                <th scope="col" class="px-2 text-start font-semibold">{{ t('boards.col.singer') }}</th>
+                                <th scope="col" class="w-14 px-2 text-end font-semibold">{{ t('boards.col.score') }}</th>
+                                <th scope="col" class="hidden w-20 px-2 text-end font-semibold sm:table-cell">{{ t('boards.col.date') }}</th>
+                                <th scope="col" class="w-14 p-0"><span class="sr-only">{{ t('boards.report.short') }}</span></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr v-for="e in board.entries" :key="e.id ?? e.rank + e.name" class="group" :class="e.you ? 'ge-board-you' : ''" data-board-entry :data-you="e.you ? '' : null">
+                                <td class="rounded-s-xl px-1 py-2"><span class="ge-board-rank" :class="e.rank === 1 ? 'is-first' : ''">{{ e.rank }}</span></td>
+                                <td class="overflow-hidden px-2 py-2">
+                                    <span class="flex min-w-0 items-center gap-2">
+                                        <span class="truncate font-semibold text-cream" translate="no" :data-initials="byInitials(e) ? '' : null">{{ boardName(e) }}</span>
+                                        <span v-if="e.you" class="ge-board-you-tag">{{ t('boards.youTag') }}</span>
+                                    </span>
+                                </td>
+                                <td class="px-2 py-2 text-end text-base font-bold tabular-nums text-cream">{{ e.score }}</td>
+                                <td class="hidden whitespace-nowrap px-2 py-2 text-end text-muted sm:table-cell">{{ day(e.at) }}</td>
+                                <td class="rounded-e-xl py-2 pe-2 text-end">
+                                    <button v-if="!e.you && e.id" type="button" class="tap-44 inline-flex min-h-6 items-center px-1 text-xs text-muted hover:text-cream [@media(hover:hover)]:opacity-0 group-hover:opacity-100 focus-visible:opacity-100" :aria-label="t('boards.report.button', { name: boardName(e) })" data-report-entry @click="reporting = e">{{ t('boards.report.short') }}</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
                     <p v-if="board && board.you && !board.entries.some((e) => e.you)" class="text-muted">{{ board.you.rank ? t('boards.yourPlace', { rank: board.you.rank, score: board.you.score }) : t('boards.yourBest', { score: board.you.score }) }}</p>
-                    <p v-if="board && scope === 'global' && !board.onGlobal && account.me.isAdult" class="text-muted">{{ t('boards.notOnGlobal') }}</p>
-                    <p v-if="version" class="text-muted" data-board-version>{{ t('boards.versions.readOnly', { version }) }} <button type="button" class="link" @click="showVersion(null)">{{ t('boards.versions.back') }}</button></p>
-                    <p v-else-if="board?.olderVersions?.length" class="text-muted" data-board-versions>{{ t('boards.versions.earlier') }}
-                        <template v-for="(v, i) in board.olderVersions" :key="v"><template v-if="i">, </template><button type="button" class="link" @click="showVersion(v)">{{ t('boards.versions.version', { version: v }) }}</button></template></p>
+                    <p v-if="board && scope !== 'friends' && !board.onGlobal && account.me.isAdult" class="text-muted">{{ t('boards.notOnGlobal') }}</p>
+                    <p v-if="version" class="border-t border-line pt-3 text-muted" data-board-version>{{ t('boards.versions.readOnly', { version }) }} <button type="button" class="link inline-flex min-h-6 items-center" @click="showVersion(null)">{{ t('boards.versions.back') }}</button></p>
+                    <p v-else-if="board?.olderVersions?.length && scope !== 'month'" class="border-t border-line pt-3 text-muted" data-board-versions>{{ t('boards.versions.earlier') }}
+                        <template v-for="(v, i) in board.olderVersions" :key="v"><template v-if="i">, </template><button type="button" class="link inline-flex min-h-6 items-center" @click="showVersion(v)">{{ t('boards.versions.version', { version: v }) }}</button></template></p>
                     <ReportName v-if="reporting" :entry="reporting" :part-name="partName" @close="reporting = null" />
                 </template>
-            </div>
+            </section>
         </div>`,
+    computed: {
+        /** Friends and Everyone; in game mode with Monthly boards on, This month too. */
+        scopes: () => (effect('monthly') ? ['friends', 'global', 'month'] : ['friends', 'global']),
+    },
     methods: {
         day(at) {
             return formatDate(at, { month: 'short', day: 'numeric' });
@@ -290,6 +325,7 @@ export const PartBoard = {
         },
         choose(scope) {
             this.scope = scope;
+            if (scope === 'month') this.version = null; // a month is the current arrangement's
             this.load();
         },
         /** An earlier arrangement's board, or (null) back to the current one. */

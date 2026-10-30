@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Templates;
 
+use App\Support\Templates\Imported;
 use Illuminate\Foundation\Http\FormRequest;
 
 /**
@@ -36,6 +37,11 @@ final class SaveTemplateRequest extends FormRequest
             'declaration.source' => ['exclude_without:declaration', 'nullable', 'string', 'max:300'],
             'declaration.ownWork' => ['exclude_without:declaration', 'required', 'accepted'],
             'parentId' => ['nullable', 'string', 'max:80'],
+            // Made from sheet music the singer brought: they confirm they have the rights to it.
+            'source' => ['nullable', 'string', 'in:'.Imported::SOURCE],
+            'rightsConfirmed' => ['required_if:source,'.Imported::SOURCE, 'accepted_if:source,'.Imported::SOURCE],
+            // "Make a copy": the template it copies, so a copy of an imported song stays one.
+            'copiedFrom' => ['nullable', 'string', 'max:80'],
         ];
     }
 

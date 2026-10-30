@@ -12,6 +12,7 @@ import { drawNoteCard, drawResultCard, SIZES } from '../result-card.js';
 import { count } from '../usage.js';
 import { askShown, askYes, first } from '../funnel.js';
 import { game } from '../skin.js';
+import { effect } from '../game/effects.js';
 import { local } from '../storage.js';
 import { account } from '../stores/account.js';
 
@@ -24,7 +25,7 @@ export const ShareResult = {
     components: { Icon, Modal },
     // result: the take's (stars, percent, word, line, dots, target, cents); entry: the lesson's { unit, unitIndex, lesson }.
     // note: lesson 1's note card instead of a take's ({ name: 'A3', line }), onboarding step 6.
-    props: { label: { type: String, default: null }, note: { type: Object, default: null }, result: { type: Object, default: null }, entry: { type: Object, required: true }, lessonTitle: { type: String, required: true }, unitTitle: { type: String, required: true }, color: { type: String, required: true } },
+    props: { label: { type: String, default: null }, note: { type: Object, default: null }, result: { type: Object, default: null }, record: Boolean, entry: { type: Object, required: true }, lessonTitle: { type: String, required: true }, unitTitle: { type: String, required: true }, color: { type: String, required: true } },
     data: () => ({ open: false, size: 'post', preview: null, blob: null, busy: false, failed: false, name: '' }),
     setup: () => ({ SIZES }),
     template: `
@@ -63,7 +64,9 @@ export const ShareResult = {
             const stats = r.lit !== undefined && r.target?.length > 1 ? t('results.share.statsLit', { percent: r.percent, lit: r.lit, count: r.target.length }) : t('results.share.stats', { percent: r.percent });
             // Serious mode (docs/skins-plan.md row 17): the measure, with no stars and no dare.
             if (!game()) return { word: t('results.onPitch', { percent: Math.round(r.percent) }), stats: r.lit !== undefined && r.target?.length > 1 ? t('results.share.litOf', { lit: r.lit, count: r.target.length }) : '', lesson: `${this.unitTitle} · ${this.lessonTitle}`, by, stars: false, challenge: null, tagline: t('results.share.tagline'), site };
-            return { word: t(r.word), stats, lesson: `${this.unitTitle} · ${this.lessonTitle}`, by, challenge: t('results.share.challenge'), tagline: t('results.share.tagline'), site };
+            // Game mode's arcade card (Celebrations switch): the same words in the game's type, NEW RECORD when it is one.
+            const arcade = effect('celebrations') ? { arcade: true, record: this.record ? t('game.record.title') : null } : {};
+            return { word: t(r.word), stats, lesson: `${this.unitTitle} · ${this.lessonTitle}`, by, challenge: t('results.share.challenge'), tagline: t('results.share.tagline'), site, ...arcade };
         },
         /** The lesson itself when a newcomer could start it; else the app. */
         link() {

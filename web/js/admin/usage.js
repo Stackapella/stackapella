@@ -23,7 +23,7 @@ const AREAS = [
     { key: 'plus', title: tk('admin.usage.area.plus'), kinds: ['sharpen_up', 'then_now', 'keep_song', 'fact_source'], courses: true },
     { key: 'free', title: tk('admin.usage.area.free'), kinds: [], lessons: true },
     { key: 'hum', title: tk('admin.usage.area.hum'), kinds: ['hum_start', 'hum_found', 'hum_saved', 'hum_click', 'hum_tap'] },
-    { key: 'studio', title: tk('admin.usage.area.studio'), kinds: ['take_use', 'take_undo', 'track_add', 'track_rename', 'exp_song', 'exp_practice', 'exp_stems'] },
+    { key: 'studio', title: tk('admin.usage.area.studio'), kinds: ['take_use', 'take_undo', 'track_add', 'track_rename', 'exp_song', 'exp_practice', 'exp_stems', 'exp_sheet', 'sheet_import'] },
     { key: 'onboarding', title: tk('admin.usage.area.onboarding'), kinds: ['share_note', 'card_named', 'su_progress', 'su_reminders', 'su_share', 'su_boards', 'card_day2'] },
     { key: 'melody', title: tk('admin.usage.area.melody'), kinds: ['sug_melody', 'sug_part', 'sug_switch'] },
 ];
@@ -61,6 +61,8 @@ const KINDS = {
     exp_song: tk('admin.usage.kind.exp_song'),
     exp_practice: tk('admin.usage.kind.exp_practice'),
     exp_stems: tk('admin.usage.kind.exp_stems'),
+    exp_sheet: tk('admin.usage.kind.exp_sheet'),
+    sheet_import: tk('admin.usage.kind.sheet_import'),
     share_note: tk('admin.usage.kind.share_note'),
     card_named: tk('admin.usage.kind.card_named'),
     su_progress: tk('admin.usage.kind.su_progress'),
@@ -98,7 +100,7 @@ const percent = (value, most) => (most ? Math.max(value ? 2 : 0, Math.round((val
 const getJson = (path) => fetch(path).then((r) => (r.ok ? r.json() : null)).catch(() => null);
 
 /** "Updated 12 seconds ago": seconds under a minute, then as the app says times. */
-function updatedAgo(at, now) {
+export function updatedAgo(at, now) {
     const seconds = Math.max(0, Math.round((now - at) / 1000));
     if (seconds < 5) return t('common.justNow');
     if (seconds < 60) return new Intl.RelativeTimeFormat(locale.lang, { numeric: 'auto' }).format(-seconds, 'second');

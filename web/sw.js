@@ -107,10 +107,14 @@ const SHELL = [
     '/js/views/ideas.js',
     '/js/stores/ideas.js',
     '/js/views/reset.js',
+    '/js/voice-day.js',
+    '/js/components/voice-care.js',
     '/js/components/share-idea.js',
     '/js/components/idea-voice.js',
     '/js/components/exercise.js',
     '/course/course.json',
+    '/course/cooldown.json',
+    '/course/cooldown.json',
     '/course/plus/courses.json',
     '/course/plus/vibrato/course.json',
     '/course/plus/folk/course.json',
@@ -159,6 +163,8 @@ const SHELL = [
     '/js/share.js',
     '/js/transcribe.js',
     '/js/hum.js',
+    '/js/midi.js',
+    '/js/musicxml.js',
     '/js/lyrics.js',
     '/js/arrange.js',
     '/js/creator.js',
@@ -279,7 +285,7 @@ const SHELL = [
 
 // The app's own addresses (every route in router.js; tests/sw-routes.test.js keeps them in step);
 // every other page is the server's.
-const APP_ROUTE = /^\/(?:$|index\.html$|p\/[\w-]+(?:\/sing)?\/?$|styleguide\/?$|beta(?:\/[\w-]*)?\/?$|signin(?:\/link)?\/?$|settings(?:\/reminders)?\/?$|storage\/?$|voice\/?$|workout\/?$|plus\/?$|learn(?:\/c)?(?:\/[\w-]+)?\/?$|verify\/?$|reset\/?$|email\/(?:confirm|revert)\/?$|create(?:\/[\w-]+)?\/?$|t\/[\w-]+\/?$|(?:join|early|invite|choir|challenge)\/[\w-]+\/?$|groups(?:\/[\w-]+)?\/?$|ideas(?:\/[\w-]+)?\/?$|start-fresh\/?$|moved\/?$|contact\/?$|admin(?:\/(?!sign-in|sign-out|second-factor)[\w-]+(?:\/[\w-]+)?)?\/?$)/;
+const APP_ROUTE = /^\/(?:$|index\.html$|p\/[\w-]+(?:\/sing)?\/?$|styleguide\/?$|beta(?:\/[\w-]*)?\/?$|signin(?:\/link)?\/?$|settings(?:\/reminders)?\/?$|storage\/?$|voice\/?$|workout\/?$|plus\/?$|learn(?:\/c)?(?:\/[\w-]+)?\/?$|verify\/?$|reset\/?$|email\/(?:confirm|revert)\/?$|create(?:\/[\w-]+)?\/?$|t\/[\w-]+\/?$|(?:join|early|invite|choir|challenge)\/[\w-]+\/?$|groups(?:\/[\w-]+)?\/?$|ideas(?:\/[\w-]+)?\/?$|start-fresh\/?$|cooldown\/?$|moved\/?$|contact\/?$|admin(?:\/(?!sign-in|sign-out|second-factor)[\w-]+(?:\/[\w-]+)?)?\/?$)/;
 
 /**
  * Caches every file of the app, or none: a file that fails (a folder the server doesn't serve, say)

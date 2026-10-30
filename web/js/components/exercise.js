@@ -6,6 +6,7 @@
 // next is placed on the audio clock. Everything that sounds is scheduled on the audio clock by the
 // engine; the screen only reads the position and the mic.
 
+import { addSung, flushSung } from '../voice-day.js';
 import { audio, engine, leadSeconds, unlock } from '../audio.js';
 import { readyMic } from '../mic-check.js';
 import { chartDots, holdPercent, longestHold } from '../results.js';
@@ -727,6 +728,7 @@ export const Exercise = {
                 const frame = engine.inputFrame();
                 const reading = frame ? trackFrame(frame, engine.sampleRate, { minClarity: LISTEN_CLARITY }) : null;
                 this.live = reading?.hz ? hzToMidi(reading.hz) : null;
+                this.voiced(reading);
                 const { state, event } = heardFrame(this.waiting, this.laid.guide, this.live, dt, cents);
                 if (event) {
                     const found = state.found.at(-1);
@@ -830,6 +832,7 @@ export const Exercise = {
                 const frame = live ? engine.inputFrame() : null;
                 const reading = frame ? trackFrame(frame, engine.sampleRate, { minClarity: LISTEN_CLARITY }) : null;
                 this.live = reading?.hz ? hzToMidi(reading.hz) : null;
+                this.voiced(reading);
                 const at = target.findIndex((n) => this.beatNow >= n.beat && this.beatNow < n.beat + n.length);
                 const landed = at >= 0 && this.live !== null && !this.coldTurn && !this.lightsOff && !this.lit.has(firstTarget + at) ? this.landedOn(at, cents) : null;
                 if (landed !== null) {
@@ -855,7 +858,15 @@ export const Exercise = {
         singWithGuide() {
             this.start({ guided: true });
         },
+        /** Voice care's day (js/voice-day.js): the time between readings counts while a voice is heard. */
+        voiced(reading) {
+            const now = performance.now();
+            if (reading?.hz && this.voicedAt) addSung(Math.min(0.1, (now - this.voicedAt) / 1000));
+            this.voicedAt = now;
+        },
         async stop() {
+            this.voicedAt = null;
+            flushSung();
             cancelAnimationFrame(this.frame);
             const finished = this.mode === 'try' ? !!this.waiting?.done : this.position >= this.laid.end * this.beatSeconds - 0.6;
             if (this.mode === 'try') this.waitFoundAll = finished;

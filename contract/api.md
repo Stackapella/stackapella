@@ -502,6 +502,8 @@ Each operation is one function in `web/js/api.js` named after it, and one route 
 | `admin.network.show` | `GET /api/admin/network` | An admin | L |
 | `admin.counts.show` | `GET /api/admin/counts` | An admin | L |
 | `admin.funnel.show` | `GET /api/admin/funnel` | An admin | L |
+| `admin.growth.show` | `GET /api/admin/growth` | An admin | L |
+| `admin.sources.show` | `GET /api/admin/sources` | An admin | L |
 | `admin.diagnostics.country` | `GET /api/admin/diagnostics/country` | An admin | L |
 | `admin.network.update` | `PUT /api/admin/network/{feature}` | An admin, in sudo | L |
 
@@ -2548,6 +2550,7 @@ Start sharing a mix. `partId` must be one of the project's parts (`409 part_miss
 | 422 | `validation_failed` | `error.json` | `harmonies.create.validation_failed.json` |
 | 423 | `paused` | `error.json` | `harmonies.create.paused.json` |
 | 429 | `rate_limited` | `error.json` | `harmonies.create.rate_limited.json` |
+| 422 | `imported_private` | `error.json` | `harmonies.create.imported_private.json` |
 
 #### `harmonies.complete`
 
@@ -2607,6 +2610,7 @@ opens ("The gallery (N1)"): `403 adult_required`, `403 trust_required`, `409 pro
 | 422 | `validation_failed` | `error.json` | `harmonies.update.validation_failed.json` |
 | 423 | `paused` | `error.json` | `harmonies.update.paused.json` |
 | 429 | `rate_limited` | `error.json` | `harmonies.update.rate_limited.json` |
+| 422 | `imported_private` | `error.json` | `harmonies.update.imported_private.json` |
 
 #### `harmonies.delete`
 
@@ -2790,6 +2794,17 @@ templates stay soprano, alto, tenor and bass, or barbershop's tenor, lead, barit
 `builder` record (the progression, sound, mix and sections), checked and kept as sent. `visibility` and `libraryOptIn` are optional after the
 first save (they stay as they were).
 
+**Imported sheet music:** a song made from a score the singer brought sends `"source": "sheet-music"`
+with `"rightsConfirmed": true` (required with that source; the server keeps when, as
+`rightsConfirmedAt`, and nothing about the file). "Make a copy" sends `"copiedFrom": "<the template's
+id>"` (one the person may open, else `404`): a copy of an imported song is imported too. An imported
+song is marked for good (`imported`), and stays private to its owner and the choir groups it's added
+to: `visibility` `unlisted` or `public`, `libraryOptIn` true, or a `parentId` are refused with `422`
+`imported_private`, as are `templates.update` to those, `templates.publish`, `ideas.create`, an
+unlisted `harmonies.create` or a `harmonies.update` to unlisted, the gallery or the featured shelf
+for anything sung from it, and `invites.create` on a project made from it. An admin can take it down
+(`admin.library.decide` `hide`, for a copyright notice).
+
 | Status | Code | Schema | Example |
 |---|---|---|---|
 | 200 |  | `templates.mine.item.json` | `templates.save.200.json` |
@@ -2799,6 +2814,7 @@ first save (they stay as they were).
 | 404 | `not_found` | `error.json` | `templates.save.not_found.json` |
 | 409 | `version_exists` | `error.json` | `templates.save.version_exists.json` |
 | 422 | `validation_failed` | `error.json` | `templates.save.validation_failed.json` |
+| 422 | `imported_private` | `error.json` | `templates.save.imported_private.json` |
 
 #### `templates.update`
 
@@ -2811,6 +2827,7 @@ Who may open it, and the library opt-in. **Request:** `{ "visibility": "unlisted
 | 403 | `template_limit` | `error.json` | `templates.update.template_limit.json` |
 | 404 | `not_found` | `error.json` | `templates.update.not_found.json` |
 | 422 | `validation_failed` | `error.json` | `templates.update.validation_failed.json` |
+| 422 | `imported_private` | `error.json` | `templates.update.imported_private.json` |
 
 #### `templates.delete`
 
@@ -2943,6 +2960,7 @@ hash.
 | 403 | `owner_only` | `error.json` | `invites.create.owner_only.json` |
 | 404 | `not_found` | `error.json` | `invites.create.not_found.json` |
 | 409 | `binned` | `error.json` | `invites.create.binned.json` |
+| 422 | `imported_private` | `error.json` | `invites.create.imported_private.json` |
 
 #### `invites.list`
 
@@ -4667,7 +4685,10 @@ not on it), and null when `daily` wasn't sent.
 
 #### `boards.show`
 
-**Request:** `?scope=global` or `friends`, and optionally `?version=` (an earlier version of the
+**Request:** `?scope=global` or `friends`, optionally `?period=month` (`all`, the default: each
+person's best ever; `month`: each person's best counted score this calendar month, UTC, on the
+current arrangement, the same people, holds and bins as the all-time board, with `endsAt` the next
+month's first midnight; `422` with `?version=`), and optionally `?version=` (an earlier version of the
 song: its board, read only; `404` when it has no entries on this part). The top 10 and their own
 best and place; `current` says whether it's the song's current arrangement, and `olderVersions`
 lists the earlier versions with entries on this part, newest first. Each entry (and `you`) has
@@ -4678,6 +4699,7 @@ someone under 18) shows them, with `name` null; null initials with a null name, 
 |---|---|---|---|
 | 200 | | `boards.show.json` | `boards.show.200.json` |
 | 404 | `not_found` | `error.json` | `boards.show.not_found.json` |
+| 422 | `validation_failed` | `error.json` | `boards.show.validation_failed.json` |
 
 #### `boards.global.update`
 
@@ -4882,6 +4904,7 @@ already public answers it as it is (its declaration updated).
 | 409 | `profile_required` | `error.json` | `templates.publish.profile_required.json` |
 | 422 | `validation_failed` | `error.json` | `templates.publish.validation_failed.json` |
 | 429 | `rate_limited` | `error.json` | `templates.publish.rate_limited.json` |
+| 422 | `imported_private` | `error.json` | `templates.publish.imported_private.json` |
 
 #### `templates.unpublish`
 
@@ -5046,6 +5069,7 @@ waits for review again.
 | 409 | `ideas_closed` | `error.json` | `ideas.create.ideas_closed.json` |
 | 422 | `validation_failed` | `error.json` | `ideas.create.validation_failed.json` |
 | 429 | `rate_limited` | `error.json` | `ideas.create.rate_limited.json` |
+| 422 | `imported_private` | `error.json` | `ideas.create.imported_private.json` |
 
 #### `ideas.delete`
 
@@ -5723,6 +5747,14 @@ it only on funnel and ask kinds and only when it names a configured experiment's
 is counted with no variant), and a row with a variant keeps no country. An unknown kind is dropped
 on its own: the rest of the batch still counts.
 
+**Where they came from** (Admin > Growth's sources): the request may also carry `"source"`, the
+device's stored `?ref=` tag as it is (at most 40 characters). The server never keeps it as sent: it
+keeps a campaign's tag as written when it's on our list (config/counts.php `sources`), `harmony` for
+a shared harmony's (`h-*`), `coach` for a coach's link (`c-*`), `other` for any other tag, and none
+without one, and only on funnel kinds and `site_visit` (the landing's own script, once a page
+load); a row with a source keeps no country. `plus_started` is counted by the server itself when a
+subscription starts (any store): the app doesn't send it.
+
 | Status | Code | Schema | Example |
 |---|---|---|---|
 | 204 | | | |
@@ -5746,6 +5778,33 @@ below p 0.001 means a bucketing bug, not a result). `asks` is each ask's shown a
 | Status | Code | Schema | Example |
 |---|---|---|---|
 | 200 | | `admin.funnel.show.json` | `admin.funnel.show.200.json` |
+
+#### `admin.growth.show`
+
+Admin > Growth's Overview (docs/admin-growth-plan.md). **Request:** `?days=1` (today so far, UTC;
+the default), `7` or `30`. `tiles` is each of `arrivals` (`f_arrive` plus `f_arrive_start`),
+`lesson1` (`f_lesson1`), `signedUp` (the server's `sign_up`) and `plusStarted` (`plus_started`):
+its count today, yesterday and the same weekday last week (UTC), whatever `days` says. `steps` is
+"how far they got" in order, each one's total over the period: `visits` (`site_visit`), `start`
+(`f_site_start`), `arrivals`, `lesson1`, `unit1` (`f_unit1`), `signedUp`, `plusStarted`. Daily
+totals only.
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 200 | | `admin.growth.show.json` | `admin.growth.show.200.json` |
+
+#### `admin.sources.show`
+
+Admin > Growth's Sources, and the Overview's table. **Request:** `?days=1`, `7` (the default), `30`
+or `90`. `sources` is each source (a campaign tag as written, `harmony`, `coach`, `other`, or `none`
+for no tag; see `counts.create`) with its `visits`, `arrivals`, `lesson1`, `signedUp` (the
+device's own `f_account`, which carries its source), `day2` (`f_day2`) and `week1` (`f_week1`) over
+the period, most arrivals first. Sources with fewer than 5 arrivals are folded into one last row,
+`source` `small`, with `sources` saying how many, so a tiny source never stands for a person.
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 200 | | `admin.sources.show.json` | `admin.sources.show.200.json` |
 
 #### `admin.counts.show`
 

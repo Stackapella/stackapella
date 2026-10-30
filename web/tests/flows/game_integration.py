@@ -1,7 +1,7 @@
 """Game mode's server features end to end, against the real server (API=http://127.0.0.1:8000
 tool/flows.sh game_integration): a new adult account in game mode finds today's challenge on Home
 (the server's own pick) with yesterday's, taken, stamped from the server's `days`, opens the day's
-board and takes the challenge into Sing, where the ghost of
+board and takes the challenge into Sing; finds its best this month on a part's This month board, where the ghost of
 its best take is asked for (none yet: a quiet empty state, no console error); then chooses initials
 in Settings and shows them on the boards. Any console error but sign-in's own fails it, so a 500 on
 the day's board or a 404 for a ghost not kept yet shows here before it reaches the live site.
@@ -18,6 +18,15 @@ from accounts_integration import LOG, PASSWORD, sign_in  # noqa: E402
 
 SERVER = LOG.parents[2]
 TAG = "document.querySelector('[data-game-daily]')"
+BOARD = """const { createApp, h } = await import('vue');
+    const { t } = await import('/js/i18n.js');
+    const { PartBoard } = await import('/js/components/boards.js');
+    const box = Object.assign(document.createElement('div'), { id: 'board-test', className: 'card m-4 p-4' });
+    document.querySelector('#app').prepend(box);
+    const app = createApp({ render: () => h(PartBoard, { templateId: 'amazing-grace', partKey: 'alto', partName: 'Alto' }) });
+    app.config.globalProperties.t = t;
+    app.mount(box);
+    box.querySelector('button').click();"""
 SHEET = "document.querySelector('[data-game-daily-sheet]')"
 ROW = "document.querySelector('[data-game-initials-row]')"
 
@@ -61,6 +70,21 @@ def journey(f):
     f.wait("performance.getEntriesByType('resource').some((r) => /\\/api\\/boards\\/[^/]+\\/[^/]+\\/ghost/.test(r.name))", timeout=20, what="the ghost asked for")
     time.sleep(1.0)
     f.shot("sing")
+
+    # This month: a best set this month on Amazing Grace's alto shows on that part's This month board.
+    month_seed = (f'$t = App\\Models\\Template::where("slug", "amazing-grace")->firstOrFail(); App\\Models\\User::whereKey({user_id})->update(["board_global_at" => now()]); '
+                  f'App\\Models\\PartScore::factory()->create(["user_id" => {user_id}, "template_id" => $t->id, "template_version_id" => $t->current_version_id, "part_key" => "alto", "score" => 83]); '
+                  f'App\\Models\\MonthlyScore::factory()->create(["user_id" => {user_id}, "template_version_id" => $t->current_version_id, "part_key" => "alto", "score" => 83]);')
+    subprocess.run(["php", "artisan", "tinker", "--execute", month_seed], cwd=SERVER, check=True, capture_output=True)
+    f.go("/?api=real", "document.querySelector('#app header')")
+    f.run(BOARD)
+    f.wait("document.querySelector('#board-test [data-board-scope=month]')", timeout=15, what="This month in the board's switch")
+    f.run("document.querySelector('#board-test [data-board-scope=month]').click()")
+    f.wait("document.querySelector('#board-test [data-board-scope=month]').getAttribute('aria-checked') === 'true' && document.querySelector('#board-test [data-board-entry]')", timeout=15, what="this month's board, from the server")
+    mine = f.js("[...document.querySelectorAll('#board-test [data-board-entry]')].find((li) => li.hasAttribute('data-you'))?.innerText ?? ''")
+    assert "83" in mine, f"your best this month on the board: {mine!r}"
+    f.shot("this-month")
+    f.run("document.querySelector('#board-test').remove()")
 
     # Initials on the boards, saved to the account.
     f.go("/settings?api=real", "document.querySelector('#game-heading')")

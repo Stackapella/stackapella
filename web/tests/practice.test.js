@@ -25,6 +25,17 @@ test('practice: muting your own part silences it, take or guide (the review\'s m
     assert(!heard(voiceLevels([slot('a', { muted: true }), slot('b')], { ...listen, compare: false })).includes('a:guide'), 'muted, your guide is silent');
 });
 
+test('practice: split ears puts your part left and the others right, the chords in the middle', () => {
+    const slots = [slot('a'), slot('b', { frames: 9 }), slot('c')];
+    const p = { ...PRACTICE_DEFAULTS, focus: 'a', mode: 'singAlong', withOthers: true, chords: true, split: true };
+    const levels = voiceLevels(slots, p);
+    assert(levels.get('a:guide').pan === -1 && levels.get('b').pan === 1 && levels.get('c:guide').pan === 1 && levels.get(BACKING).pan === 0, JSON.stringify([...levels]));
+    assert(voiceLevels(slots, { ...p, split: false }).get('b').pan === 0, 'off by default: as they were');
+    const recording = voiceLevels(slots, { ...PRACTICE_DEFAULTS, split: true }, { recordingId: 'b' });
+    assert(recording.get('b:guide') === undefined || recording.get('b').pan === -1, 'recording: the part being recorded is yours');
+    assert(recording.get('a:guide').pan === 1, 'recording: the others right');
+});
+
 test('practice: Listen plays your guide alone, or with the others', () => {
     const slots = [slot('a'), slot('b', { frames: 9 }), slot('c')];
     const p = { ...PRACTICE_DEFAULTS, focus: 'a', mode: 'listen' };
@@ -98,6 +109,16 @@ test('practice tracks: everything but my part leaves it out; my part louder puts
     assert(!without.get('a').audible && !without.get('a:guide').audible && without.get('b').audible, 'mine is silent, the others play');
     const louder = trackLevels(levels, 'a', 'louder');
     assert(louder.get('a').volume > 1 && louder.get('b').volume < 0.8 && louder.get(BACKING).volume === 0.5, 'mine forward, the others back, the chords as they were');
+});
+
+test('practice tracks: split ears puts my part left and the others right, with no spread; alone leaves only mine', () => {
+    const levels = new Map([['a', { audible: true, volume: 1, pan: 0.2 }], ['a:guide', { audible: false, volume: 1, pan: 0 }], ['b', { audible: true, volume: 0.8, pan: -0.3 }], [BACKING, { audible: true, volume: 0.5, pan: 0 }]]);
+    const split = trackLevels(levels, 'a', 'split');
+    assert(split.get('a').pan === -1 && split.get('a:guide').pan === -1 && split.get('a').spread === 0, 'mine hard left, unspread');
+    assert(split.get('b').pan === 1 && split.get('b').volume === 0.8 && split.get('b').audible, 'the others hard right, as loud as they were');
+    assert(split.get(BACKING).pan === 0, 'the chords stay in the middle');
+    const alone = trackLevels(levels, 'a', 'alone');
+    assert(alone.get('a').audible && alone.get('a').volume === 1 && !alone.get('b').audible && !alone.get(BACKING).audible, 'only mine plays, as loud as it was');
 });
 
 test('practice tracks: a bar of count-in, then a click on every beat, the singing moved by exactly that bar', () => {

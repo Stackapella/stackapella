@@ -19,6 +19,8 @@ export const PRACTICE_DEFAULTS = {
     guideLevel: 0.35, // Sing along: how loud your guide is
     compare: false, // hear your take where your guide would be
     spread: false, // pan the guides apart, to tell them apart
+    split: false, // Split ears: your part left, the others right (headphones only)
+    ladder: false, // Build up to speed: 70%, then up 5% each clean round on your own
     phrase: null, // index of the selected phrase
     loop: false, // loop the selected phrase
     speed: 1,
@@ -130,6 +132,13 @@ export function voiceLevels(slots, practice = PRACTICE_DEFAULTS, { recordingId =
     }
     // The chords underneath: on when chosen, at their own level, never recorded into a take.
     levels.set(BACKING, { audible: !!practice.chords, volume: (practice.chordsLevel ?? 0.5) * under, pan: 0 });
+    // Split ears (headphones only; the caller decides): your part in your left ear, the others in your
+    // right, the chords in the middle, as the practice track of the same name.
+    const yours = focus ?? slots.find((s) => s.id === recordingId);
+    if (practice.split && yours) {
+        const mine = new Set([yours.id, guideId(yours.id)]);
+        for (const [id, level] of levels) if (id !== BACKING) levels.set(id, { ...level, pan: mine.has(id) ? -1 : 1 });
+    }
     return levels;
 }
 
@@ -147,15 +156,18 @@ export function nextSlot(slots, template, afterId = null) {
 // ---- Practice tracks (docs/more-features-plan.md, feature 12) -------------------------------------
 
 /**
- * The levels for a practice track of `partId`: 'without' (everything but my part, to sing along to)
- * or 'louder' (my part forward, the others back: the part-predominant track choirs use).
+ * The levels for a practice track of `partId`: 'without' (everything but my part, to sing along to),
+ * 'louder' (my part forward, the others back: the part-predominant track choirs use), 'split' (my
+ * part in the left ear and the others in the right, the barbershop "part left" track: no spread
+ * from Polished, so each stays on its side) or 'alone' (just my part, to learn the notes).
  */
 export function trackLevels(levels, partId, kind) {
     const mine = new Set([partId, guideId(partId)]);
     const out = new Map();
     for (const [id, level] of levels) {
-        if (!mine.has(id)) out.set(id, kind === 'louder' && id !== BACKING ? { ...level, volume: level.volume * 0.5 } : level);
-        else out.set(id, kind === 'without' ? { ...level, audible: false } : { ...level, volume: level.volume * 1.4 });
+        if (kind === 'split') out.set(id, id === BACKING ? level : { ...level, pan: mine.has(id) ? -1 : 1, spread: 0 });
+        else if (!mine.has(id)) out.set(id, kind === 'alone' ? { ...level, audible: false } : kind === 'louder' && id !== BACKING ? { ...level, volume: level.volume * 0.5 } : level);
+        else out.set(id, kind === 'without' ? { ...level, audible: false } : kind === 'louder' ? { ...level, volume: level.volume * 1.4 } : level);
     }
     return out;
 }

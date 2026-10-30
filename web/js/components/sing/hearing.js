@@ -20,8 +20,9 @@ export const HearingSection = {
         recording: Boolean, // your guide is off while recording unless you turn it on
         speakers: Boolean,
         voices: { type: String, default: '' }, // who sings your guide
+        split: Boolean, // Split ears (shown only with headphones)
     },
-    emits: ['toggle', 'level', 'voices'],
+    emits: ['toggle', 'level', 'voices', 'split'],
     setup: () => ({ LEVELS }),
     template: `
         <section class="space-y-5 px-6 pb-6" :aria-label="t('sing.hear.title')" data-hearing>
@@ -39,6 +40,7 @@ export const HearingSection = {
                 <Icon name="chevron" :size="18" class="shrink-0 -rotate-90 text-muted rtl:rotate-90" />
             </button>
             </template>
+            <Switch v-if="!speakers" :on="split" :label="t('sing.hear.split')" :hint="t('sing.hear.splitHint')" data-split-ears @change="$emit('split', $event)" />
             <p v-if="speakers" class="rounded-xl bg-ink/40 p-3 text-sm text-cream" data-speakers>{{ t('sing.hear.speakers') }}</p>
         </section>`,
 };

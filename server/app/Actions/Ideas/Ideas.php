@@ -16,6 +16,7 @@ use App\Support\Gallery\Bell;
 use App\Support\Gallery\Gallery;
 use App\Support\Gallery\GalleryViews;
 use App\Support\Moderation\TextFilter;
+use App\Support\Templates\Imported;
 use App\Support\Templates\PersonsTemplate;
 use App\Support\Trust\TrustLevel;
 use Illuminate\Contracts\Pagination\CursorPaginator;
@@ -82,6 +83,10 @@ final class Ideas
             // Hidden by Hillel in the library: not one to share.
             if ($template->hidden_at !== null) {
                 throw new Refusal(404, 'not_found');
+            }
+
+            if ($template->isImported()) {
+                Imported::refuse();
             }
 
             $existing = Idea::query()->where('template_id', $template->id)->first();

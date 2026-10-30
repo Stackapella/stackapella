@@ -12,6 +12,7 @@ use App\Services\Social\SocialPoster;
 use App\Support\Gallery\Gallery;
 use App\Support\Moderation\TextFilter;
 use App\Support\Sharing\HarmonyFiles;
+use App\Support\Templates\Imported;
 use App\Support\Trust\TrustLevel;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -36,6 +37,13 @@ final class UpdateHarmony
             User::query()->whereKey($harmony->user_id)->lockForUpdate()->first(['id']);
             $locked = Harmony::query()->with('user')->whereKey($harmony->id)->lockForUpdate()->firstOrFail();
             $renamed = false;
+
+            // Sung from imported sheet music: never a link, the gallery or the featured shelf.
+            $sharing = ($data['visibility'] ?? null) === Harmony::UNLISTED || ($data['inGallery'] ?? false) === true || ($data['mayFeature'] ?? false) === true || ($data['featuredFillId'] ?? null) !== null;
+
+            if ($sharing && Imported::harmony($locked)) {
+                Imported::refuse();
+            }
 
             if (array_key_exists('title', $data)) {
                 $title = trim((string) $data['title']);

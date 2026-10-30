@@ -92,7 +92,7 @@ export const TemplateView = {
                             </button>
                             <button type="button" class="glass-bubble relative z-10 grid size-11 shrink-0 place-items-center rounded-full text-cream" :aria-label="playingPart === part.key ? t('studio.stop') : t('template.hearPart', { part: templatePartName(part) })" @click="hearPart(part)"><Icon :name="playingPart === part.key ? 'stop' : 'play'" :size="16" /></button>
                             <!-- The part's leaderboard (components/boards.js), above the row's hit area so it never picks the part -->
-                            <PartBoard v-if="game() && template.id && !template.course" class="relative z-10 basis-full ps-8" :template-id="template.id" :part-key="part.key" :part-name="templatePartName(part)" />
+                            <PartBoard v-if="game() && template.id && !template.course" class="relative z-10 min-w-0 basis-full sm:ps-8" :template-id="template.id" :part-key="part.key" :part-name="templatePartName(part)" :color="paint(part.color ?? PART_COLORS[i % PART_COLORS.length])" />
                         </li>
                     </ul>
                     <p class="flex flex-wrap items-center justify-between gap-2 text-xs text-muted">

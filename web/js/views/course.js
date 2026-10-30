@@ -3,6 +3,7 @@
 
 import { localized, t, tk } from '../i18n.js';
 import { navigate } from '../router.js';
+import { inFirstWeek } from '../components/voice-care.js';
 import { levelFor, nextLesson, voiceType, weekDays, weekRing } from '../course.js';
 import { lessonMinutes } from '../results.js';
 import { account } from '../stores/account.js';
@@ -29,7 +30,7 @@ const XP_A_LESSON = 25; // a lesson's XP at three stars: "about two lessons" to 
  */
 export const CourseView = {
     components: { CourseMap, Icon, MoreCourses, SessionWrap, WhatsNext },
-    setup: () => ({ learning, localized, GOALS, DAY_LETTERS, account, lessonMinutes, XP_A_LESSON, game }),
+    setup: () => ({ inFirstWeek, learning, localized, GOALS, DAY_LETTERS, account, lessonMinutes, XP_A_LESSON, game }),
     computed: {
         next() {
             return learning.course ? nextLesson(learning.course.units, learning.progress, { plus: account.me?.plan === 'plus' }) : null;
@@ -132,6 +133,8 @@ export const CourseView = {
             <SessionWrap v-if="wrap" class="mt-4" :lessons="wrap.lessons" :stars="wrap.stars" />
             <WhatsNext v-if="learning.loaded && !waiting" class="mt-6" />
             <CourseMap class="mt-6" />
+            <!-- Voice care's cool-down (docs/voice-care-plan.md): a quiet way in, never a card. -->
+            <p v-if="!inFirstWeek()" class="mt-6 text-sm text-muted" data-cooldown-link>{{ t('voiceCare.mapLine') }} <a href="/cooldown" class="link" @click.prevent="navigate('/cooldown')">{{ t('voiceCare.coolDown') }}</a></p>
             <MoreCourses class="mt-10" />
         </div>`,
     methods: { navigate, setGoal },

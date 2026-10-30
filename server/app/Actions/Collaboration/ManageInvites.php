@@ -10,6 +10,7 @@ use App\Models\Project;
 use App\Models\ProjectInvite;
 use App\Models\ProjectMember;
 use App\Models\User;
+use App\Support\Templates\Imported;
 use App\Support\Usage\Plans;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -32,6 +33,11 @@ final class ManageInvites
             Owned::lockAccount($user);
             $project = $this->owned->project($user, $projectUuid, lock: true);
             Owned::live($project);
+
+            // A song made from imported sheet music stays with its singer (and their choir groups).
+            if (Imported::project($project)) {
+                Imported::refuse();
+            }
 
             if ($this->taken($project) >= $this->plans->singerLimit($user)) {
                 throw new Refusal(403, 'invite_limit');

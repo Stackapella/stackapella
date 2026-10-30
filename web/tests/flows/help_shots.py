@@ -367,7 +367,10 @@ def fact_card(f):
     f.wait("document.querySelector('[data-lesson-end] [data-fact]') || document.querySelector('[data-fact]')", what="the fact card")
     celebration_over(f)
     time.sleep(1.5)
-    shoot(f, "your-voice--fact", scroll="window.scrollTo(0, 0); const card = document.querySelector('[data-fact]').getBoundingClientRect(); window.scrollBy(0, Math.max(0, card.bottom - innerHeight + 24));")
+    # Down to the fact card, but never past the stars: every gem stays whole, with room above it.
+    shoot(f, "your-voice--fact", scroll="""window.scrollTo(0, 0); const card = document.querySelector('[data-fact]').getBoundingClientRect();
+        const gems = document.querySelector('[data-lesson-end] .gem').parentElement.getBoundingClientRect();
+        window.scrollBy(0, Math.max(0, Math.min(card.bottom - innerHeight + 24, gems.top - 24)));""")
     f.run("const k = JSON.parse(localStorage.getItem('stackapella.funnel') || '{}'); delete k.arrived; localStorage.setItem('stackapella.funnel', JSON.stringify(k));")
 
 

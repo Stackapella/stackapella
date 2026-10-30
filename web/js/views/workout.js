@@ -7,6 +7,7 @@
 // Done, it counts the day toward the weekly goal with its XP. Free: one a day; Plus: as many as you
 // like (docs/features.md).
 
+import { VoiceCareLine } from '../components/voice-care.js';
 import { nextTick } from 'vue';
 import { PageHeader } from '../components/page.js';
 import { midiName } from '../dsp.js';
@@ -36,7 +37,7 @@ const WHY = {
 };
 
 export const WorkoutView = {
-    components: { PageHeader, Exercise, Icon },
+    components: { VoiceCareLine, PageHeader, Exercise, Icon },
     data: () => ({ plan: null, step: 0, round: 0, running: false, previewing: false, previewRound: 0, done: 0, ran: false, sang: false, skippedAll: false, finished: false, xp: 0 }),
     setup: () => ({ learning, navigate, goBack, TITLES, WHY, SHIFT_LIMIT, REST, midiName, game, sk }),
     template: `
@@ -68,6 +69,7 @@ export const WorkoutView = {
                 <span class="mx-auto grid size-14 place-items-center rounded-full bg-part-4 text-part-text-4"><Icon name="star" :size="28" /></span>
                 <h2 class="text-xl font-bold text-cream">{{ t('workout.doneTitle') }}</h2>
                 <p class="text-muted">{{ skippedAll ? t('workout.skippedAll') : xp && game() ? t('workout.doneXp', { xp }) : t('workout.doneHint') }}</p>
+                <VoiceCareLine />
                 <button v-if="plan.song" type="button" class="btn-primary" @click="navigate('/p/' + plan.song.projectId + '/sing')">{{ t('workout.song', { title: plan.song.title }) }}</button>
                 <button type="button" class="btn-go" @click="navigate('/learn')">{{ t('workout.toCourse') }}</button>
             </section>
