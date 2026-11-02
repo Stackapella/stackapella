@@ -16,7 +16,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 
 /**
- * admin.beta.guides.*: every template's real voices, per part.
+ * admin.beta.guides.*: every template's real voices, per part; admin.beta.needs.show: only what needs Hillel.
  */
 final class GuidesController extends Controller
 {
@@ -25,6 +25,11 @@ final class GuidesController extends Controller
         $slug = $request->query('template');
 
         return response()->json(['data' => $overview->templates(is_string($slug) ? $slug : null)]);
+    }
+
+    public function needs(GuideOverview $overview): JsonResponse
+    {
+        return response()->json(['data' => $overview->summary()]);
     }
 
     public function default(Request $request, TemplateGuide $guide, ManageGuides $manage, #[CurrentUser] User $admin): BetaGuideResource
@@ -36,7 +41,8 @@ final class GuidesController extends Controller
 
     public function destroy(Request $request, TemplateGuide $guide, ManageGuides $manage, #[CurrentUser] User $admin): Response
     {
-        $manage->remove($guide, $admin, $request->ip());
+        $request->validate(['abuse' => ['sometimes', 'boolean']]);
+        $manage->remove($guide, $admin, $request->ip(), abuse: $request->boolean('abuse'));
 
         return response()->noContent();
     }

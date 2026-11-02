@@ -1,0 +1,93 @@
+{
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "week",
+                "month",
+                "weeks",
+                "previous"
+            ],
+            "properties": {
+                "week": {
+                    "type": "integer",
+                    "description": "Active singers in the last 7 days, now."
+                },
+                "month": {
+                    "type": "integer",
+                    "description": "Active singers in the last 30 days, now."
+                },
+                "weeks": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "to",
+                            "week",
+                            "month"
+                        ],
+                        "properties": {
+                            "to": {
+                                "type": "string",
+                                "description": "The last day of the 7 (UTC, YYYY-MM-DD)."
+                            },
+                            "week": {
+                                "type": [
+                                    "integer",
+                                    "null"
+                                ]
+                            },
+                            "month": {
+                                "type": [
+                                    "integer",
+                                    "null"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "previous": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "to",
+                            "week",
+                            "month"
+                        ],
+                        "properties": {
+                            "to": {
+                                "type": "string",
+                                "description": "The last day of the 7 (UTC, YYYY-MM-DD)."
+                            },
+                            "week": {
+                                "type": [
+                                    "integer",
+                                    "null"
+                                ]
+                            },
+                            "month": {
+                                "type": [
+                                    "integer",
+                                    "null"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "timezone": {
+                    "type": "string",
+                    "description": "The timezone the days are in (a PHP name; UTC unless set)."
+                }
+            }
+        }
+    }
+}

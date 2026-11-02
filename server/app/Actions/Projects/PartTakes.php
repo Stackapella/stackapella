@@ -84,6 +84,12 @@ final class PartTakes
             $take = Take::query()->with('part', 'project')->whereKey($found->id)->lockForUpdate()->firstOrFail();
             Owned::live($take->project);
 
+            // Someone who left the project (or was removed) no longer changes it, their old takes
+            // included (as CompleteTake; security review, 2026-11-01).
+            if ($take->project->user_id !== $user->id && Owned::role($user, $take->project) === null) {
+                throw new Refusal(404, 'not_found');
+            }
+
             if ($take->binned_at !== null) {
                 return;
             }

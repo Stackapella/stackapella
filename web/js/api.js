@@ -9,7 +9,7 @@
 // `?api=mock` on this machine answers from the contract's own examples (api-mock.js) instead of a
 // server, so screens are built and tested against the same JSON the backend is checked against.
 
-import { mockFetch, mockWanted } from './api-mock.js';
+import { mockWanted } from './api-mode.js';
 
 /** The app's version, sent as X-App-Version; the server answers 426 when it's too old. */
 export const APP_VERSION = '2026.10.26';
@@ -150,6 +150,7 @@ export const OPERATIONS = {
     'admin.beta.singers.forget': ['POST', '/api/admin/beta/singers/{id}/forget'],
     'admin.beta.assignments.create': ['POST', '/api/admin/beta/singers/{id}/assignments'],
     'admin.beta.assignments.delete': ['DELETE', '/api/admin/beta/assignments/{id}'],
+    'admin.beta.assignments.again': ['POST', '/api/admin/beta/assignments/{id}/again'],
     'admin.beta.submissions.list': ['GET', '/api/admin/beta/submissions'],
     'admin.beta.submissions.show': ['GET', '/api/admin/beta/submissions/{id}'],
     'admin.beta.submissions.open': ['POST', '/api/admin/beta/submissions/{id}/open'],
@@ -159,8 +160,10 @@ export const OPERATIONS = {
     'admin.beta.submissions.reject': ['POST', '/api/admin/beta/submissions/{id}/reject'],
     'admin.beta.submissions.publish': ['POST', '/api/admin/beta/submissions/{id}/publish'],
     'admin.beta.guides.list': ['GET', '/api/admin/beta/guides'],
+    'admin.beta.needs.show': ['GET', '/api/admin/beta/needs'],
     'admin.beta.guides.default': ['POST', '/api/admin/beta/guides/{id}/default'],
     'admin.beta.guides.delete': ['DELETE', '/api/admin/beta/guides/{id}'],
+    'admin.beta.clips.delete': ['DELETE', '/api/admin/beta/clips/{slot}'],
     'admin.beta.feedback.list': ['GET', '/api/admin/beta/feedback'],
     'admin.beta.feedback.read': ['POST', '/api/admin/beta/feedback/{id}/read'],
     // M3: accounts and sign-in, and the admin's People.
@@ -169,8 +172,35 @@ export const OPERATIONS = {
     'counts.create': ['POST', '/api/counts'],
     'admin.counts.show': ['GET', '/api/admin/counts'],
     'admin.funnel.show': ['GET', '/api/admin/funnel'],
+    'voices.wanted': ['GET', '/api/voices/wanted'],
+    'voices.join': ['POST', '/api/voices/join'],
+    'voices.summary': ['GET', '/api/voices/summary'],
+    'voices.claims.list': ['GET', '/api/voices/claims'],
+    'voices.claims.create': ['POST', '/api/voices/claims'],
+    'voices.claims.delete': ['DELETE', '/api/voices/claims/{id}'],
     'admin.growth.show': ['GET', '/api/admin/growth'],
+    'admin.experiments.list': ['GET', '/api/admin/experiments'],
+    'admin.experiments.create': ['POST', '/api/admin/experiments'],
+    'admin.experiments.update': ['PATCH', '/api/admin/experiments/{id}'],
     'admin.sources.show': ['GET', '/api/admin/sources'],
+    'admin.active.show': ['GET', '/api/admin/active'],
+    'admin.reach.show': ['GET', '/api/admin/reach'],
+    'admin.revenue.show': ['GET', '/api/admin/revenue'],
+    'admin.cohorts.show': ['GET', '/api/admin/cohorts'],
+    'admin.churn.show': ['GET', '/api/admin/churn'],
+    'admin.activity.show': ['GET', '/api/admin/activity'],
+    'admin.search.show': ['GET', '/api/admin/search'],
+    'admin.codeWatch.list': ['GET', '/api/admin/code-watch'],
+    'admin.codeWatch.update': ['PATCH', '/api/admin/code-watch/{id}'],
+    'admin.school.list': ['GET', '/api/admin/school'],
+    'admin.school.show': ['GET', '/api/admin/school/{id}'],
+    'admin.school.update': ['PATCH', '/api/admin/school/{id}'],
+    'admin.school.redemptions.end': ['POST', '/api/admin/school/redemptions/{id}/end'],
+    'admin.school.teachers.update': ['PATCH', '/api/admin/school/teachers/{id}'],
+    'school.classes.list': ['GET', '/api/school/classes'],
+    'school.classes.create': ['POST', '/api/school/classes'],
+    'school.classes.update': ['PATCH', '/api/school/classes/{id}'],
+    'school.redeem': ['POST', '/api/school/redeem'],
     'admin.people.show': ['GET', '/api/admin/people/{id}'],
     'admin.people.suspend': ['POST', '/api/admin/people/{id}/suspend'],
     'admin.people.unsuspend': ['POST', '/api/admin/people/{id}/unsuspend'],
@@ -390,7 +420,8 @@ export class ApiError extends Error {
     }
 }
 
-const transport = { fetch: (...args) => (mockWanted() ? mockFetch(...args) : fetch(...args)) };
+// The mock is imported only when it's wanted, so production never downloads it.
+const transport = { fetch: (...args) => (mockWanted() ? import('./api-mock.js').then((m) => m.mockFetch(...args)) : fetch(...args)) };
 
 /** Tests only: answer with another fetch. */
 export function useTransport(fetchLike) {
@@ -612,6 +643,12 @@ export const api = {
     inviteLink: {
         show: (code) => call('inviteLink.show', { params: { code } }),
     },
+    voices: {
+        wanted: ({ kind, skill } = {}) => call('voices.wanted', { query: { kind, skill } }),
+        join: (body) => call('voices.join', { body }),
+        summary: () => call('voices.summary'),
+        claims: { list: () => call('voices.claims.list'), create: (item) => call('voices.claims.create', { body: { item } }), delete: (id) => call('voices.claims.delete', { params: { id } }) },
+    },
     admin: {
         me: () => call('admin.me'),
         library: { held: op('admin.library.held'), decide: op('admin.library.decide'), feature: op('admin.library.feature') },
@@ -695,6 +732,7 @@ export const api = {
         },
         overview: () => call('admin.overview'),
         beta: {
+            removeClip: (slot, body) => call('admin.beta.clips.delete', { params: { slot }, body }),
             // The course clips beta singers record (web/course/plus/clips.json), for the admin.
             clips: { list: () => call('admin.beta.clips.list') },
             singers: {
@@ -709,6 +747,7 @@ export const api = {
             assignments: {
                 create: (singerId, { templateId, partKey, clipId, minutes }) => call('admin.beta.assignments.create', { params: { id: singerId }, body: clipId ? { clipId, minutes } : { templateId, partKey, minutes } }),
                 delete: (id) => call('admin.beta.assignments.delete', { params: { id } }),
+                again: (id, { note } = {}) => call('admin.beta.assignments.again', { params: { id }, body: note ? { note } : {} }),
             },
             submissions: {
                 list: ({ status, template, part, singer, cursor } = {}) => call('admin.beta.submissions.list', { query: { status, template, part, singer, cursor } }),
@@ -717,13 +756,15 @@ export const api = {
                 adjust: (id, fields) => call('admin.beta.submissions.adjust', { params: { id }, body: fields }),
                 accept: (id, { makeDefault = true } = {}) => call('admin.beta.submissions.accept', { params: { id }, body: { makeDefault } }),
                 retake: (id, { note, beat = null }) => call('admin.beta.submissions.retake', { params: { id }, body: { note, beat } }),
-                reject: (id, { note = null } = {}) => call('admin.beta.submissions.reject', { params: { id }, body: { note } }),
+                // abuse: refused for abuse (the volunteer can't claim again; contract, Lend your voice slice 3).
+                reject: (id, { note = null, abuse = false } = {}) => call('admin.beta.submissions.reject', { params: { id }, body: abuse ? { note, abuse: true } : { note } }),
                 publish: (id) => call('admin.beta.submissions.publish', { params: { id } }),
             },
             guides: {
                 list: ({ template } = {}) => call('admin.beta.guides.list', { query: { template } }),
+                needs: () => call('admin.beta.needs.show'),
                 default: (id) => call('admin.beta.guides.default', { params: { id } }),
-                delete: (id) => call('admin.beta.guides.delete', { params: { id } }),
+                delete: (id, body = {}) => call('admin.beta.guides.delete', { params: { id }, body }),
             },
             feedback: {
                 list: ({ unread, cursor } = {}) => call('admin.beta.feedback.list', { query: { unread: unread ? 1 : undefined, cursor } }),
@@ -759,7 +800,30 @@ export const api = {
             show: ({ experiment, days } = {}) => call('admin.funnel.show', { query: { experiment, days } }),
         },
         growth: { show: ({ days } = {}) => call('admin.growth.show', { query: { days } }) },
+        experiments: {
+            list: () => call('admin.experiments.list'),
+            create: (body) => call('admin.experiments.create', { body }),
+            update: (id, body) => call('admin.experiments.update', { params: { id }, body }),
+        },
         sources: { show: ({ days } = {}) => call('admin.sources.show', { query: { days } }) },
+        active: { show: () => call('admin.active.show') },
+        reach: { show: () => call('admin.reach.show') },
+        revenue: { show: () => call('admin.revenue.show') },
+        cohorts: { show: () => call('admin.cohorts.show') },
+        churn: { show: () => call('admin.churn.show') },
+        activity: { show: () => call('admin.activity.show') },
+        search: { show: () => call('admin.search.show') },
+        codeWatch: {
+            list: () => call('admin.codeWatch.list'),
+            update: (id, body) => call('admin.codeWatch.update', { params: { id }, body }),
+        },
+        school: {
+            list: () => call('admin.school.list'),
+            show: (id) => call('admin.school.show', { params: { id } }),
+            update: (id, fields) => call('admin.school.update', { params: { id }, body: fields }),
+            endRedemption: (id, fields = {}) => call('admin.school.redemptions.end', { params: { id }, body: fields }),
+            updateTeacher: (id, body) => call('admin.school.teachers.update', { params: { id }, body }),
+        },
         storeTesters: {
             list: () => call('admin.storeTesters.list'),
         },
@@ -771,11 +835,11 @@ export const api = {
     auth: {
         config: () => call('auth.config'),
         register: (fields) => call('auth.register', { body: fields }),
-        verify: (token) => call('auth.verify', { body: { token } }),
+        verify: (token, extra = {}) => call('auth.verify', { body: { token, ...extra } }),
         // Sign in by a link sent by email: always 202 (it never says whether an address has an account).
         link: {
             send: ({ email, intended = null, invite = null, early = null, turnstileToken = null }) => call('auth.link.send', { body: { email, intended, invite, early, turnstileToken } }),
-            open: (token) => call('auth.link.open', { body: { token } }),
+            open: (token, extra = {}) => call('auth.link.open', { body: { token, ...extra } }),
         },
         verification: {
             resend: ({ email, turnstileToken = null }) => call('auth.verification.resend', { body: { email, turnstileToken } }),
@@ -850,6 +914,15 @@ export const api = {
         revoke: (id) => call('invites.revoke', { params: { id } }),
         show: (token) => call('invites.show', { params: { token } }),
         accept: (token) => call('invites.accept', { params: { token } }),
+    },
+    // The school offer (docs/school-offer-plan.md): a teacher's class codes, and a student's redeem.
+    school: {
+        classes: {
+            list: () => call('school.classes.list'),
+            create: (fields) => call('school.classes.create', { body: fields }),
+            update: (id, fields) => call('school.classes.update', { params: { id }, body: fields }),
+        },
+        redeem: (fields) => call('school.redeem', { body: fields }),
     },
     groups: {
         list: () => call('groups.list'),
@@ -958,7 +1031,7 @@ export const api = {
             show: () => call('beta.me.show'),
         },
         agreement: {
-            show: ({ lang } = {}) => call('beta.agreement.show', { query: { lang } }),
+            show: ({ lang, for: who } = {}) => call('beta.agreement.show', { query: { lang, for: who } }), // for: 'volunteer', Lend your voice's
         },
         consent: {
             create: ({ version, adult, creditMode }) => call('beta.consent.create', { body: { version, adult, creditMode } }),

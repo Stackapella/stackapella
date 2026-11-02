@@ -22,6 +22,15 @@ return [
         'choose' => 'The voices: :url',
     ],
     // A song's part lost its recorded voice (ManageGuides::remove): Hillel chooses another.
+    'voice_reported' => [
+        'subject' => 'Stackapella: a recorded voice was reported',
+        'title' => 'A recorded voice was reported',
+        'guide' => 'The :part voice in :song.',
+        'clip' => 'The course clip :slot.',
+        'reason' => 'Why: :reason.',
+        'reasons' => ['copyright' => 'someone else\'s recording', 'offensive' => 'offensive', 'spam' => 'spam', 'personal' => 'personal information', 'other' => 'something else'],
+        'look' => 'Listen and decide (remove it, for abuse if it is): :url',
+    ],
     'voice_lost' => [
         'subject' => 'Stackapella: :song lost its :part voice',
         'title' => 'A part lost its voice',
@@ -83,4 +92,11 @@ return [
         ],
         'all_clear' => 'Nothing is waiting, and everything is working.',
     ],
+    // An experiment closed on a guardrail (app:experiments:guard).
+    'experiment_guard' => [
+        'subject' => 'Experiment :id closed: B was worse on a guardrail',
+        'title' => 'Experiment :id is closed',
+        'line' => ':kind: B minus A is :points points (99% range :low to :high). New devices aren\'t drawn, and those in B are back on the current app.',
+    ],
+
 ];

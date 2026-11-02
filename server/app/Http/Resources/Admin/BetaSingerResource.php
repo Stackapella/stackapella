@@ -64,7 +64,7 @@ final class BetaSingerResource extends JsonResource
             'consent' => [
                 'version' => $singer->consent_version,
                 'acceptedAt' => $singer->consented_at?->utc()->toIso8601ZuluString(),
-                'current' => $singer->hasConsented((int) config('beta.agreement_version')),
+                'current' => $singer->hasConsented($singer->agreementVersion()),
             ],
             'credit' => ['mode' => $singer->credit_mode?->value, 'name' => $singer->credit()],
             'account' => $singer->user !== null ? ['id' => $singer->user->sqid(), 'email' => $singer->user->email] : null,

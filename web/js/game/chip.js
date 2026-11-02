@@ -21,6 +21,7 @@ export const CUES = {
     levelUp: [[72, 0, 0.06, 'square'], [79, 0.06, 0.06, 'square'], [84, 0.12, 0.06, 'square'], [88, 0.18, 0.06, 'square'], [91, 0.24, 0.06, 'square'], [96, 0.3, 0.3, 'square']],
     gotIt: [[79, 0, 0.1, 'square'], [81, 0.11, 0.1, 'square'], [83, 0.22, 0.1, 'square'], [86, 0.33, 0.45, 'square'], [55, 0.33, 0.45, 'triangle']],
     challenger: [[64, 0, 0.1, 'square'], [71, 0.14, 0.22, 'square']],
+    stageClear: [[72, 0, 0.08, 'square'], [76, 0.09, 0.08, 'square'], [79, 0.18, 0.08, 'square'], [84, 0.27, 0.1, 'square'], [79, 0.38, 0.07, 'square'], [84, 0.46, 0.38, 'square'], [48, 0.46, 0.38, 'triangle'], [55, 0.46, 0.38, 'triangle']],
 };
 
 const LEVEL = 0.06; // a square wave is loud for its size: well under the app's sounds (0.4)

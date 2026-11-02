@@ -40,7 +40,7 @@ export const TrimSheet = {
                     <div class="relative rounded-2xl bg-ink p-2 select-none touch-none">
                         <canvas ref="canvas" class="block h-24 w-full cursor-ew-resize" aria-hidden="true" @pointerdown="grab" @pointermove="drag" @pointerup="drop" @pointercancel="drop"></canvas>
                     </div>
-                    <p class="mt-1.5 flex justify-between text-xs tabular-nums text-muted"><span>{{ formatTime(0) }}</span><span class="font-semibold text-cream">{{ t('trim.keeping', { kept: seconds(keptFrames), total: seconds(part.frames) }) }}</span><span>{{ seconds(part.frames) }}</span></p>
+                    <p data-ui="facts" class="mt-1.5 flex justify-between text-xs tabular-nums text-muted"><span>{{ formatTime(0) }}</span><span class="font-semibold text-cream">{{ t('trim.keeping', { kept: seconds(keptFrames), total: seconds(part.frames) }) }}</span><span>{{ seconds(part.frames) }}</span></p>
                 </div>
                 <div class="grid gap-3 sm:grid-cols-2">
                     <div v-for="edge in ['start', 'end']" :key="edge" class="space-y-3 rounded-2xl border border-line p-3" :data-edge="edge">

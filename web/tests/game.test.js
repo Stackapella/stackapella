@@ -3,9 +3,9 @@
 // take's first 2 seconds, show one at a time and tell a screen reader once a phrase; and a chip cue
 // never sounds while the engine plays.
 import { appearance } from '/js/stores/appearance.js';
-import { EFFECTS, effect, effects } from '/js/game/effects.js';
+import { EFFECTS, effect, effects, offList } from '/js/game/effects.js';
 import { countAt, run, sequence } from '/js/game/motion.js';
-import { POPUP_SECONDS, SAY_GAP, bonusRoom, comboMilestone, heldToEnd, popupQueue } from '/js/game/popups.js';
+import { POPUP_SECONDS, SAY_GAP, bonusRate, bonusRoom, comboMilestone, heldToEnd, popupQueue, rateRaised } from '/js/game/popups.js';
 import { CUES, blip, chipCountIn, cue, cueAllowed, cueLength } from '/js/game/chip.js';
 import { GAME_FONTS, loadGameFonts } from '/js/game/fonts.js';
 import { letters } from '/js/game/record.js';
@@ -287,6 +287,59 @@ test('game share card: NEW RECORD only when a take beats a best from an earlier 
     assert(!beatsBest({ stars: 3, bestPercent: 95 }, null), 'no percent: not a record');
 });
 
+test('game boards: a song page offers its leaderboard only where the server keeps one', async () => {
+    const { hasBoards } = await import('/js/views/template.js');
+    assert(hasBoards({ own: true, grant: 'own', visibility: 'public' }), 'your own public song: a board');
+    assert(!hasBoards({ own: true, grant: 'own', visibility: 'private' }) && !hasBoards({ own: true, grant: 'own', visibility: 'unlisted' }), 'your own private or unlisted song: none');
+    assert(['free', 'plus', 'month', 'kept', 'beta', 'admin', 'singer', 'public'].every((grant) => hasBoards({ own: false, grant })), 'our library and public songs: a board');
+    assert(['link', 'group', 'project', 'idea'].every((grant) => !hasBoards({ own: false, grant })), 'a link, a group, a project or an idea: none (either kind)');
+    assert(hasBoards({ own: false, grant: 'group', boards: true }) && !hasBoards({ own: false, grant: 'free', boards: false }), "the server's own say (templates.show boards) wins over the grant");
+});
+
+test('game arcade screen: only in game mode, with its switch on, on every screen but the admin\'s and the styleguide', async () => {
+    const { OUTSIDE_ROUTES, arcadeOn } = await import('/js/game/arcade.js');
+    const { route } = await import('/js/router.js');
+    const was = route.name;
+    const kept = effects.arcade;
+    try {
+        effects.arcade = true;
+        route.name = 'projects';
+        await inSkin('game', () => assert(!OUTSIDE_ROUTES.has('projects') && arcadeOn(), 'Home, in game mode: on'));
+        await inSkin('serious', () => assert(!arcadeOn(), 'never in serious mode'));
+        effects.arcade = false;
+        await inSkin('game', () => assert(!arcadeOn(), 'its switch off: today\'s look'));
+        effects.arcade = true;
+        route.name = 'admin';
+        await inSkin('game', () => assert(!arcadeOn(), 'not on the admin\'s tools'));
+        route.name = 'settings';
+        await inSkin('game', () => assert(arcadeOn(), 'Settings and every other screen: on'));
+    } finally {
+        effects.arcade = kept;
+        route.name = was;
+    }
+});
+
+test('game feel: the combo bonus\'s rate goes up with the run, said once each time it does', () => {
+    assert([0, 9, 10, 19, 20, 29, 30, 45].map(bonusRate).join() === '0,0,1,1,2,2,3,3', 'nothing under 10, then 1, 2 from 20, 3 from 30 and no more');
+    assert([10, 20, 30, 40].filter(rateRaised).join() === '20,30', '"Bonus x2!" at 20 and x3 at 30 only');
+});
+
+test('game feel: Game effects off quiets every arcade moment at once, and leaves the arcade look', async () => {
+    const kept = { ...effects };
+    try {
+        await inSkin('game', () => {
+            effects.all = false;
+            assert(!effect('popups') && !effect('celebrations') && !effect('daily'), 'the moments off');
+            assert(effect('arcade') === effects.arcade, 'the look as its own switch says');
+            assert(offList().split(' ').includes('popups') && !offList().split(' ').includes('arcade'), 'the CSS reskins follow');
+            effects.all = true;
+            assert(effect('popups'), 'back on');
+        });
+    } finally {
+        Object.assign(effects, kept);
+    }
+});
+
 test('game fonts: added once, from Google Fonts', () => {
     const doc = document.implementation.createHTMLDocument('fonts');
     loadGameFonts(doc);
@@ -316,12 +369,12 @@ test('game title cards: once a lesson on this device', () => {
     }
 });
 
-test('game stage map: the special stage\'s target is the course\'s own two-star line, and the path snakes down', () => {
+test('game stage map: the special stage\'s target is the course\'s own two-star line, and the path curves gently down the left', () => {
     const line = twoStarPercent();
     assert(starsFor({ percent: line }) === 2 && starsFor({ percent: line - 1 }) < 2, `two stars from ${line}%`);
     const stops = [0, 1, 2, 3, 4].map(nodeAt);
     assert(stops.every((s, i) => i === 0 || s.y > stops[i - 1].y), 'each stop below the last');
-    assert(stops.some((s) => s.x < 50) && stops.some((s) => s.x > 50), 'from side to side');
+    assert(stops.every((s) => s.x < 40) && new Set(stops.map((s) => s.x)).size > 2, 'a gentle curve on the left, so every title fits to its right');
     assert(segment(stops[0], stops[1]).startsWith(`M ${stops[0].x} ${stops[0].y} C`), 'a curve from stop to stop');
 });
 
@@ -401,4 +454,13 @@ test('game ghost: a guest keeps only their best on the device, a few at most', a
         if (kept === null) localStorage.removeItem('stackapella.ghosts');
         else localStorage.setItem('stackapella.ghosts', kept);
     }
+});
+
+test('game: the combo rules are one source, in the app and on a public page', async () => {
+    const pure = await import('/js/game/combo.js');
+    const app = await import('/js/game/popups.js');
+    assert(pure.bonusRate === app.bonusRate && pure.comboMilestone === app.comboMilestone && pure.rateRaised === app.rateRaised, 'popups.js re-exports combo.js');
+    const queue = pure.makePopupQueue();
+    queue.clear(0);
+    assert(queue.offer({ kind: 'combo', count: 10 }, 3) && queue.now?.kind === 'combo', 'a plain queue for a page without Vue');
 });

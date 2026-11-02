@@ -1,0 +1,9 @@
+{
+    "message": "Unprocessable Content.",
+    "code": "validation_failed",
+    "errors": {
+        "arms": [
+            "Arms a and b (and c), in order, with weights adding up to 100."
+        ]
+    }
+}

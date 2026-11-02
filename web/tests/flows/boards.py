@@ -1,7 +1,7 @@
 """Part leaderboards (components/boards.js, views/challenge.js), the minimum, against the mock: a
 counted take shows your best and your place among friends, and an adult is asked once about the
 worldwide board; a take that doesn't count says why; under 18 is never asked; the song page's board
-for a part, Friends and Everyone, with "Be the first on this part" when it's empty and "Make an
+for a part, Friends and Everyone, with an empty state for each board (what it is, how to get on it) and "Make an
 account to compete" for a guest; a challenge link opens the challenge and drops you into the part;
 Settings has the worldwide switch. Screenshots for Hillel go to NEW_UI when it's set.
 """
@@ -12,7 +12,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
-from flow import SHOTS, run  # noqa: E402
+from flow import SHOTS, SIZES, run  # noqa: E402
 from help_shots import t  # noqa: E402
 
 NEW_UI = os.environ.get("NEW_UI")
@@ -91,7 +91,23 @@ def journey(f):
     f.go("/t/amazing-grace?api=mock&scenario=&as=member", "document.querySelector('[data-part-board] button')")
     f.run("document.querySelector('[data-part-board] button').click()")
     f.wait("document.querySelectorAll('[data-part-board] [data-board-entry]').length === 2", what="the friends' board")
+    # The button pressed is replaced by the card's own: focus moves to it, never lost to the page.
+    f.wait("document.activeElement?.getAttribute('aria-expanded') === 'true' && !!document.activeElement.closest('[data-part-board]')", what="focus on the open board's button")
     f.run("document.querySelector('[data-part-board]').scrollIntoView({ block: 'center' })")
+    # The switch stays one row, even at a phone's width in the arcade type.
+    tops = f.js("[...document.querySelectorAll('[data-part-board] [data-board-scope]')].map((b) => Math.round(b.getBoundingClientRect().top))")
+    assert len(set(tops)) == 1, f"the board's switch stacked: {tops}"
+    # Every short name shows whole, even on a 360 px phone: the YOU tag wraps under it rather than cutting it.
+    narrow = SIZES[f.size][2]
+    if narrow:
+        f.chrome.send("Emulation.setDeviceMetricsOverride", {"width": 360, "height": 780, "deviceScaleFactor": 2, "mobile": True})
+        f.js("new Promise((r) => setTimeout(r, 300))")
+    cut = f.js("[...document.querySelectorAll('[data-part-board] [data-board-entry] [translate=no]')].filter((n) => n.scrollWidth > n.clientWidth + 1).map((n) => n.textContent)")
+    assert not cut, f"names cut short on the board: {cut}"
+    if narrow:
+        w, h, _ = SIZES[f.size]
+        f.chrome.send("Emulation.setDeviceMetricsOverride", {"width": w, "height": h, "deviceScaleFactor": 2, "mobile": True})
+        f.js("new Promise((r) => setTimeout(r, 300))")
     keep(f, "board", "boards-song-board")
     f.click_t("boards.everyone")
     f.wait("document.querySelectorAll('[data-part-board] [data-board-entry]').length === 2", what="the worldwide board")
@@ -113,22 +129,40 @@ def journey(f):
     f.wait("document.querySelector('[data-board-versions]')", what="back to the current board")
     f.run(ANSWER % json.dumps({"boards.show": {"data": {"templateId": "amazing-grace", "templateVersion": 3, "partKey": "alto", "scope": "friends", "scoringVersion": 1, "entries": [], "you": None, "onGlobal": False}}}))
     f.click_t("boards.friends")
-    f.wait_text(t(f, "boards.empty"))
+    # Empty: each board says what it is and how to get on it (no friends yet is not "be the first").
+    f.wait("document.querySelector('[data-board-empty][data-scope=friends]')", what="the friends' empty state")
+    f.wait_text(t(f, "boards.emptyFriends.title"))
     keep(f, "empty", "boards-song-empty")
+    f.click_t("boards.everyone")
+    f.wait("document.querySelector('[data-board-empty][data-scope=global]')", what="everyone's empty state")
+    f.wait_text(t(f, "boards.empty"))
+    f.run(ANSWER % "{}")
+
+    # A song the boards don't keep (templates.show's boards false): no board link at all.
+    f.run("""const api = await import('/js/api.js'); const { mockFetch } = await import('/js/api-mock.js');
+        api.useTransport(async (url, init = {}) => { const answer = await mockFetch(url, init); if (init.operation !== 'templates.show') return answer;
+            const json = await answer.json(); json.data.grant = 'link'; json.data.boards = false; return new Response(JSON.stringify(json), { status: 200, headers: { 'Content-Type': 'application/json' } }); });
+        const { navigate } = await import('/js/router.js'); navigate('/'); await new Promise((r) => setTimeout(r, 300)); navigate('/t/amazing-grace');""")
+    f.wait("document.querySelector('main h1, h1') && location.pathname === '/t/amazing-grace'", what="the song by its link")
+    f.js("new Promise((r) => setTimeout(r, 800))")
+    assert not f.js("!!document.querySelector('[data-part-board]')"), "no board link on a song the boards don't keep"
     f.run(ANSWER % "{}")
 
     # A guest: Make an account to compete, on the song page only.
     f.go("/t/amazing-grace?api=mock&scenario=&as=signedOut", "document.querySelector('[data-part-board] button')")
     f.run("document.querySelector('[data-part-board] button').click()")
-    f.wait_text(t(f, "boards.guest"))
+    # A guest: the account wall, its reason and a way in.
+    f.wait("document.querySelector('[data-part-board] [data-account-wall][data-reason=boards]')", what="the boards' account wall")
+    f.wait_text(t(f, "wall.boards"))
 
     # A challenge link: who and what, then Sing the part, accepted and into the song.
     f.go("/challenge/demo-token?api=mock&scenario=&as=member", "document.querySelector('[data-challenge] h1')")
     f.wait_text(t(f, "boards.challenge.from", {"name": "Ana Ruiz", "score": 91, "part": "Alto", "song": "Amazing Grace"}))
     keep(f, "challenge", "boards-challenge")
     f.run("window.mockCalls = [];")
-    sing_button = f"[...document.querySelectorAll('[data-challenge] button')].find((b) => b.textContent.trim() === {json.dumps(t(f, 'boards.challenge.sing', {'part': 'Alto'}))})"
-    f.wait(sing_button, what="Sing the part (after game mode's challenger banner)")
+    # Accept (game mode) or Sing the part (serious): the same button, [data-challenge-accept].
+    sing_button = "document.querySelector('[data-challenge-accept]')"
+    f.wait(sing_button, what="Accept, or Sing the part")
     f.run(f"{sing_button}.click()")
     f.wait("/^\\/p\\/[\\w-]+\\/sing/.test(location.pathname)", timeout=20, what="the song, on that part")
     assert f.js("window.mockCalls.includes('boards.challenges.accept')"), "a signed-in singer accepts the challenge"

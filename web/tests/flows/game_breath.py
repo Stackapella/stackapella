@@ -19,8 +19,10 @@ def journey(f):
     f.run("sessionStorage.setItem('stackapella.lesson.br-1-challenge', '1')")
     f.run(f"{ROUTER}.navigate('/learn/br-1-challenge')")
     f.wait("document.querySelector('[data-breath-goal]') || document.querySelector('main h1')", what="the lesson")
-    if not f.js("!!document.querySelector('[data-breath-goal]')"):
-        f.click(f.js("(await import('/js/i18n.js')).t('course.continue')"))  # on to the hold
+    # On to the hold, unless the lesson has already moved there itself (a race under load: it can resume on step 2
+    # between this check and the press).
+    words = f.js("(await import('/js/i18n.js')).t('course.continue')")
+    f.run(f"if (!document.querySelector('[data-breath-goal]')) [...document.querySelectorAll('button')].find((b) => b.textContent.trim() === {words!r})?.click()")
     f.wait("document.querySelector('[data-breath-goal]')", what="the goal mark")
     if f.skin == "serious":
         assert f.js(f"!{LABEL}"), "serious mode: today's bar"

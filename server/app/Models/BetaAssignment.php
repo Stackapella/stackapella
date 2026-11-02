@@ -24,6 +24,10 @@ use Illuminate\Support\Carbon;
  * @property string|null $part_key
  * @property int|null $course_clip_id
  * @property int|null $minutes
+ * @property Carbon|null $claimed_at Lend your voice: a volunteer took it themselves
+ * @property Carbon|null $expires_at held until then, released if nothing was sent
+ * @property Carbon|null $asked_again_at Hillel asked for this part again (the song changed)
+ * @property string|null $asked_again_note what he said
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property-read BetaSinger $singer
@@ -49,6 +53,9 @@ final class BetaAssignment extends Model
     {
         return [
             'minutes' => 'integer',
+            'claimed_at' => 'datetime',
+            'expires_at' => 'datetime',
+            'asked_again_at' => 'datetime',
         ];
     }
 
@@ -99,6 +106,16 @@ final class BetaAssignment extends Model
      * Is a take of this part the default real voice on the template's current version?
      * Needs submissions.guide and template loaded.
      */
+    /**
+     * Asked to record this part again, with no take sent since: My parts shows it as a retake.
+     */
+    public function askedAgain(): bool
+    {
+        $latest = $this->latestSubmission;
+
+        return $this->asked_again_at !== null && ($latest === null || $latest->created_at === null || $latest->created_at->lt($this->asked_again_at));
+    }
+
     public function isTheVoice(): bool
     {
         foreach ($this->submissions as $submission) {

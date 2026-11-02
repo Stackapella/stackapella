@@ -4,8 +4,11 @@ import { assert, test } from './harness.js';
 import { addSung, flushSung, markShown, noteDue, setNotes, sungToday } from '../js/voice-day.js';
 
 const KEY = 'stackapella.voiceDay';
-const NOON = new Date(2026, 9, 30, 12).getTime();
-const NEXT_DAY = new Date(2026, 9, 31, 0, 5).getTime();
+// Today's noon and just after tomorrow's midnight, from the real clock: addSung stamps Date.now(), so
+// a fixed date would stop matching it the day after.
+const now = new Date();
+const NOON = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 12).getTime();
+const NEXT_DAY = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 5).getTime();
 
 function fresh(seconds = 0, shown = []) {
     localStorage.setItem(KEY, JSON.stringify({ day: new Date(NOON).toDateString(), sungSeconds: seconds, shown }));

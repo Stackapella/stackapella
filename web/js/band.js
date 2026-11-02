@@ -8,8 +8,9 @@
 import { PIECES, synthGroove } from './instrument-parts.js';
 import { renderNotes } from './instruments.js';
 import { renderBacking, voicing } from './synth.js';
+import { styleOf } from './band-style.js';
 
-export const STYLES = ['gentle', 'pop', 'swing'];
+export { STYLES, styleOf } from './band-style.js';
 // Which sample set plays each track in each style.
 const SETS = {
     gentle: { keys: 'piano', bass: 'upright-bass', drums: 'brushes' },
@@ -20,9 +21,6 @@ const LEVELS = { keys: 0.7, bass: 0.85, drums: 0.45 };
 const SWING = 2 / 3; // a swung off-beat lands two thirds of the way through the beat
 const GM = Object.fromEntries(Object.entries(PIECES).map(([note, piece]) => [piece, Number(note)]));
 const pc = (n) => ((n % 12) + 12) % 12;
-
-/** The style a stored value means: the three styles, and the old pad and piano as Gentle. */
-export const styleOf = (value) => (STYLES.includes(value) ? value : 'gentle');
 
 /** The chord sounding at a beat (each until the next). */
 function chordAt(chords, beat) {

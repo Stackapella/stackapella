@@ -14,6 +14,7 @@ use App\Models\User;
 use App\Support\Accounts\AddressLimits;
 use App\Support\Accounts\EmailTokens;
 use App\Support\Accounts\Sessions;
+use App\Support\Accounts\UnconfirmedAccounts;
 use App\Support\Trust\SecurityLog;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
@@ -41,7 +42,8 @@ final class ChangeEmail
         // An address someone else has looks the same (pending), but gets nothing, and the link
         // couldn't be used anyway. Every send counts toward the address's caps.
         $token = $this->tokens->issue($user, EmailToken::EMAIL_CHANGE, $email, 24);
-        $taken = User::query()->where('email', $email)->exists();
+        // An unconfirmed sign-up with it doesn't count: confirming frees the address from it.
+        $taken = User::query()->where('email', $email)->whereNotIn('id', UnconfirmedAccounts::query()->select('id'))->exists();
 
         if (! $taken && ! EmailSuppression::isSuppressed($email) && $this->limits->allows('verification-email', $email)) {
             Mail::to($email)->send(new ConfirmNewEmail($token));
@@ -56,6 +58,9 @@ final class ChangeEmail
     {
         $row = $this->tokens->redeem($token, EmailToken::EMAIL_CHANGE);
         $user = $row->user;
+
+        // The new address proven: a stranger's unconfirmed sign-up with it goes first.
+        UnconfirmedAccounts::release(User::query()->where('email', $row->email)->whereKeyNot($user->id)->exists() ? $row->email : null);
 
         if (User::query()->where('email', $row->email)->whereKeyNot($user->id)->exists()) {
             throw new Refusal(410, 'link_expired');

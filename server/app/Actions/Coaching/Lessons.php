@@ -656,6 +656,11 @@ final class Lessons
             return false;
         }
 
+        // Held so a chargeback can still be met (Hillel: "Hold 7 days"); the deadlines pay it later.
+        if ($engagement->ended_at !== null && Engagements::heldUntil($engagement, $engagement->ended_at)->isFuture()) {
+            return false;
+        }
+
         $share = $engagement->price_cents - $engagement->fee_cents - intdiv($engagement->refunded_cents * ($engagement->price_cents - $engagement->fee_cents), max(1, $engagement->price_cents));
 
         if ($share <= 0) {
@@ -670,7 +675,7 @@ final class Lessons
                 throw new RuntimeException("A lesson's share can't move yet (no charge or no account): {$engagement->sqid()}.");
             }
 
-            $transfer = $this->stripe->transfer($share, (string) $engagement->currency, $account, $charge, $engagement->sqid(), "release-lesson-{$engagement->id}");
+            $transfer = $this->stripe->transfer($share, (string) $engagement->currency, $account, $charge, $engagement->sqid(), "release-lesson-{$engagement->id}".($engagement->transfer_reversed_at !== null ? '-after-dispute' : ''));
         } catch (Throwable $e) {
             report($e);
 

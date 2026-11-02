@@ -12,6 +12,12 @@
 //   row (the hero's mixer) holding [data-pick], a radio that brings that voice forward (louder, and
 //   "You": the row gets s-is-you), and [data-toggle], a switch that only turns it on or off;
 // - [data-set="<part key>|all"]: a button that leaves only that voice on, or all of them;
+// - optional, for the Studio page's mixer: [data-level="<part key>"], a range input (0 to 1, 1 when
+//   missing) setting that voice's level; [data-solo="<part key>"], a button (aria-pressed) that
+//   solos it: while any voice is soloed only the soloed ones sound, whatever their switches say, and
+//   each voice silenced by a solo gets data-silent; [data-pan="<part key>"], a range input (-1 left
+//   to 1 right) placing it. A voice gets a panner only when it has a pan control (a panner at the
+//   centre is 3 dB quieter than the plain mono voice, so the other players sound as they always have);
 // - [data-beat] (with data-length for a note, each voice's bars): data-lit while it sounds,
 //   data-sung once it has; a word (no length) is lit until the next word starts;
 // - [data-time]: "0:06 / 0:18".
@@ -21,6 +27,7 @@
 
 import { heardTime } from '../../engine/clock.js';
 import { renderGuide } from '../guides.js';
+import { catalogueGuides, placed, realVoice } from './app-voices.js';
 
 const START_AHEAD = 0.1; // seconds: room to start every voice on the same frame
 const SWITCH = 0.012; // the time constant of a voice's switch, about 50 ms to silence
@@ -34,6 +41,17 @@ const BRING = 0.05; // the time constant of bringing a voice forward: about 150 
 
 let context = null;
 const players = [];
+
+/**
+ * A voice's gain: 0 when it isn't heard (switched off, or another voice soloed; a solo wins over the
+ * switch, and two solos sound together), else 1, or FORWARD and BACK when one voice is brought
+ * forward, times its fader (0 to 1). Pure (the tests check it).
+ */
+export function voiceLevel(key, { on, soloed, forward, fader = 1 }) {
+    const heard = soloed.size ? soloed.has(key) : on;
+    if (!heard) return 0;
+    return (forward === null ? 1 : key === forward ? FORWARD : BACK) * fader;
+}
 
 for (const root of document.querySelectorAll('[data-player]')) {
     const player = setUp(root);
@@ -82,7 +100,17 @@ function setUp(root) {
     }));
     // The voice brought forward, when the player has a choice of one (the hero's mixer).
     let forward = picks.size ? ([...picks].find(([, el]) => el.getAttribute('aria-checked') === 'true')?.[0] ?? null) : null;
-    const level = (key) => (!on.get(key) ? 0 : forward === null ? 1 : key === forward ? FORWARD : BACK);
+    // The Studio's controls, when the player has them.
+    const control = (name) => new Map([...root.querySelectorAll(`[data-${name}]`)].map((el) => [el.dataset[name], el]));
+    const levels = control('level');
+    const solos = control('solo');
+    const pans = control('pan');
+    const soloed = new Set([...solos].filter(([, el]) => el.getAttribute('aria-pressed') === 'true').map(([key]) => key));
+    const fader = (key) => {
+        const value = Number(levels.get(key)?.value ?? 1);
+        return Number.isFinite(value) ? Math.min(1, Math.max(0, value)) : 1;
+    };
+    const level = (key) => voiceLevel(key, { on: on.get(key), soloed, forward, fader: fader(key) });
 
     let play = null; // { start, master, gains, sources }
     let pending = null; // the press whose voices are still rendering; Stop or another player cancels it
@@ -123,6 +151,23 @@ function setUp(root) {
         if (!gain) return;
         gain.cancelScheduledValues(context.currentTime);
         gain.setTargetAtTime(level(key), context.currentTime, constant);
+    }
+
+    function placeOf(key) {
+        const value = Number(pans.get(key)?.value ?? 0);
+        return Number.isFinite(value) ? Math.min(1, Math.max(-1, value)) : 0;
+    }
+
+    function showSolos() {
+        for (const [key, el] of solos) el.setAttribute('aria-pressed', String(soloed.has(key)));
+        for (const [key, el] of voices) el.toggleAttribute('data-silent', soloed.size > 0 && !soloed.has(key));
+    }
+
+    function solo(key) {
+        if (soloed.has(key)) soloed.delete(key);
+        else soloed.add(key);
+        showSolos();
+        for (const other of on.keys()) ramp(other, SWITCH);
     }
 
     function switchTo(key, now) {
@@ -174,7 +219,19 @@ function setUp(root) {
                 part: { key: part.key, guide: { notes: part.notes } },
                 tempo: song.tempo,
                 sampleRate: context.sampleRate,
+                human: 'full', // a demo to listen to: sung as a person sings, every variation (js/synth.js)
             })));
+            // A part with a real voice for this version of the song sings with it (the same voices Sing plays), cut to the line.
+            const guides = (await catalogueGuides(song.song, { version: song.version })) ?? {};
+            await Promise.all(song.parts.map(async (part, i) => {
+                if (!guides[part.key]) return;
+                try {
+                    const voice = await realVoice(guides[part.key], context);
+                    rendered[i] = placed(voice.samples, voice.offsetSeconds, context.sampleRate, rendered[i].length);
+                } catch (error) {
+                    console.warn('A real voice could not load: the synth sings it', error);
+                }
+            }));
             await resumed;
             if (pending !== press) return; // stopped, or another player started, while it rendered
             pending = null;
@@ -183,6 +240,7 @@ function setUp(root) {
             master.connect(context.destination);
             const at = context.currentTime + START_AHEAD;
             const gains = new Map();
+            const panners = new Map();
             const sources = song.parts.map((part, i) => {
                 const samples = rendered[i];
                 const buffer = context.createBuffer(1, Math.max(1, samples.length), context.sampleRate);
@@ -191,12 +249,19 @@ function setUp(root) {
                 source.buffer = buffer;
                 const gain = context.createGain();
                 gain.gain.value = level(part.key);
-                source.connect(gain).connect(master);
+                if (pans.has(part.key) && context.createStereoPanner) {
+                    const panner = context.createStereoPanner();
+                    panner.pan.value = placeOf(part.key);
+                    panners.set(part.key, panner);
+                    source.connect(gain).connect(panner).connect(master);
+                } else {
+                    source.connect(gain).connect(master);
+                }
                 source.start(at);
                 gains.set(part.key, gain);
                 return source;
             });
-            const current = { start: at, master, gains, sources, stop };
+            const current = { start: at, master, gains, panners, sources, stop };
             play = current;
             // The longest voice ending ends the play.
             const last = sources.reduce((a, b) => (b.buffer.length > a.buffer.length ? b : a));
@@ -268,9 +333,23 @@ function setUp(root) {
         });
     }
 
+    // The Studio's controls may sit inside a voice's row, which switches on a click: theirs stay theirs.
+    for (const el of [...levels.values(), ...solos.values(), ...pans.values()]) el.addEventListener('click', (event) => event.stopPropagation());
+    for (const [key, el] of levels) el.addEventListener('input', () => ramp(key, SWITCH));
+    for (const [key, el] of solos) el.addEventListener('click', () => solo(key));
+    for (const [key, el] of pans) {
+        el.addEventListener('input', () => {
+            const pan = play?.panners.get(key)?.pan;
+            if (!pan) return;
+            pan.cancelScheduledValues(context.currentTime);
+            pan.setTargetAtTime(placeOf(key), context.currentTime, SWITCH);
+        });
+    }
+
     root.setAttribute('data-ready', '');
     label(false);
     showSets();
+    showSolos();
     show(0);
     return { stop };
 }

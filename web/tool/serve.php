@@ -128,6 +128,11 @@ if (($_SERVER['HTTP_IF_NONE_MATCH'] ?? '') === '"'.md5_file($file).'"') {
     http_response_code(304);
     return true;
 }
+// Text compressed as production's edge sends it (Cloudflare's gzip), so a throttled line in a flow
+// (tests/flows/slow_phone.py) carries the bytes a singer's phone would.
+if (preg_match('/\bgzip\b/', $_SERVER['HTTP_ACCEPT_ENCODING'] ?? '') && in_array(pathinfo($file, PATHINFO_EXTENSION), ['html', 'js', 'css', 'json', 'md', 'webmanifest', 'svg'], true)) {
+    ob_start('ob_gzhandler');
+}
 readfile($file);
 
 return true;

@@ -20,7 +20,7 @@ export const NewRecord = {
     setup: () => ({ letters }),
     // Inline, in the place of the best line's "a new best" (Hillel: "reskinned these elements").
     template: `
-        <span class="ge-record" :class="landed ? 'is-landed' : ''" data-game-record @click="land"><span class="text-muted"> · </span><span class="ge-record-word" role="status" :aria-label="t('game.record.title')"><span v-for="(l, i) in letters(t('game.record.title'))" :key="i" aria-hidden="true" :class="l.space ? 'ge-record-space' : 'ge-record-letter ge-c' + l.colour" :style="{ '--i': i }">{{ l.char }}</span></span><span v-if="before !== null && before < best" class="ge-record-line"> {{ t('game.record.from', { before }) }}</span></span>`,
+        <span class="ge-record" :class="landed ? 'is-landed' : ''" data-game-record @click="land"><span class="text-muted" data-sep> · </span><span class="ge-record-word" role="status" :aria-label="t('game.record.title')"><span v-for="(l, i) in letters(t('game.record.title'))" :key="i" aria-hidden="true" :class="l.space ? 'ge-record-space' : 'ge-record-letter ge-c' + l.colour" :style="{ '--i': i }">{{ l.char }}</span></span><span v-if="before !== null && before < best" class="ge-record-line"> {{ t('game.record.from', { before }) }}</span></span>`,
     mounted() {
         this.sound = cue('record');
         // The drop and the wave run in CSS; this only marks when they're done, so a tap can land them sooner.

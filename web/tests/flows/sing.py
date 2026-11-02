@@ -154,6 +154,11 @@ def journey(f):
     assert t(f, "sing.chooser.yourPart") not in f.js("document.body.innerText"), "the part picker asked again"
     assert f.js("!!document.querySelector('[data-way=parts] [data-last-time]') && !document.querySelector('[data-way=whole] [data-last-time]')"), "part by part isn't marked Last time"
     f.run("document.querySelector(\'[data-way=whole]\').click()")  # the way starts at once
+    # Game mode shows the character select with that part pre-picked (Hillel, 2026-11-01): one tap confirms it.
+    if f.skin == "game":
+        f.wait("document.querySelector('[data-game-select] .ge-portrait.is-picked')", what="the character select, the part pre-picked")
+        f.run("document.querySelector('[data-game-select] .ge-portrait.is-picked').click()")
+        f.wait("!document.querySelector('[data-game-select]')", what="locked in")
     # The round's alto (comes in at bar 3), whichever part fitted: the header's part changes it.
     f.run(f"const s = {SESSION}; s.practise(s.session.parts.find((p) => p.templatePartKey === 'alto'))")
     f.wait("document.querySelector('main')", what="the stage")
@@ -178,6 +183,8 @@ def journey(f):
     f.click_t("sing.settings.open")
     f.wait("document.querySelector('[role=dialog]')", what="Settings")
     f.shot("settings")
+    # Off by default, so never rendered until asked (the band is the slow part of a song's guides on a phone).
+    assert not f.js(f"{AUDIO}.engine.parts.has('backing')"), "the chords were rendered while off"
     f.click_t("sing.chords.title", )
     f.wait(f"{AUDIO}.engine.parts.has('backing')", timeout=20, what="the chords rendered")
     f.press("Escape")

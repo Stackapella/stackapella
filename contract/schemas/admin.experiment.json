@@ -1,0 +1,161 @@
+{
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "id",
+        "what",
+        "hypothesis",
+        "arms",
+        "metric",
+        "guardrails",
+        "audience",
+        "excludes",
+        "plannedPerArm",
+        "startsOn",
+        "endsOn",
+        "readFrom",
+        "status",
+        "winner",
+        "createdAt"
+    ],
+    "properties": {
+        "id": {
+            "type": "string",
+            "description": "Lower case, stable; also the arm prefix (\"short1-b\")."
+        },
+        "what": {
+            "type": "string"
+        },
+        "hypothesis": {
+            "type": "string"
+        },
+        "arms": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                    "arm",
+                    "weight"
+                ],
+                "properties": {
+                    "arm": {
+                        "type": "string",
+                        "enum": [
+                            "a",
+                            "b",
+                            "c"
+                        ]
+                    },
+                    "weight": {
+                        "type": "integer",
+                        "description": "Its share of new devices, out of 100."
+                    }
+                }
+            },
+            "description": "a (always today's app), b, and maybe c; weights add up to 100."
+        },
+        "metric": {
+            "type": "string",
+            "description": "The step it's read by: a funnel or ask kind."
+        },
+        "guardrails": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            },
+            "description": "Up to three that mustn't drop."
+        },
+        "audience": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "new": {
+                    "type": "boolean",
+                    "description": "Only a device with no course started and no account."
+                },
+                "skin": {
+                    "type": "string",
+                    "enum": [
+                        "game",
+                        "serious"
+                    ]
+                },
+                "size": {
+                    "type": "string",
+                    "enum": [
+                        "phone",
+                        "desktop"
+                    ]
+                },
+                "signedIn": {
+                    "type": "boolean"
+                },
+                "firstWeek": {
+                    "type": "boolean",
+                    "description": "May enrol a singer in their first week (needs Hillel's OK)."
+                }
+            }
+        },
+        "excludes": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            },
+            "description": "Experiments a device in this one may not also be in."
+        },
+        "plannedPerArm": {
+            "type": "integer",
+            "description": "The sample it's read at (fixed horizon)."
+        },
+        "startsOn": {
+            "type": [
+                "string",
+                "null"
+            ]
+        },
+        "endsOn": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "description": "Enrolment's last day; it stops once this has passed."
+        },
+        "readFrom": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "description": "A week after enrolment stops: when it can be read."
+        },
+        "status": {
+            "type": "string",
+            "enum": [
+                "draft",
+                "running",
+                "reading",
+                "decided",
+                "closed"
+            ]
+        },
+        "winner": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "enum": [
+                "a",
+                "b",
+                "c",
+                null
+            ]
+        },
+        "createdAt": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "format": "date-time"
+        }
+    }
+}

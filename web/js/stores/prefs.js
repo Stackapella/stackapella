@@ -12,7 +12,7 @@ const KEY = 'stackapella.singPrefs';
 // 'studio'), marked in the chooser. guideLevel: your guide in Sing (What you hear), Medium.
 // chordLabels: the song builder's chord cards, named in 'letters', 'numbers' or 'numerals'.
 // hearWithGuide: a lesson's Listen back plays your take with the guide singing along under it.
-const DEFAULTS = { noteNames: 'letters', keyboard: true, showOthers: true, hearPolished: false, room: 'small', polish: true, shortcuts: true, sounds: true, singWay: null, singLast: null, guideLevel: 0.35, chordLabels: 'letters', hearWithGuide: null };
+const DEFAULTS = { noteNames: 'letters', keyboard: true, showOthers: true, hearPolished: false, room: 'small', polish: true, shortcuts: true, sounds: true, singWay: null, singLast: null, guideLevel: 0.35, chordLabels: 'letters', hearWithGuide: null, tuningMeter: false, readNames: 'solfege' };
 const OLD_SING_WAY = 'stackapella.singWay'; // where the chooser kept it before it was a setting
 
 function read() {

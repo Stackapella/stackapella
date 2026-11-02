@@ -24,6 +24,10 @@ import urllib.request
 from pathlib import Path
 
 CHROME = os.environ.get("CHROME", "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome")
+# Chrome plays into its own silent output, whose clock runs on Chrome's timer, so an AudioContext keeps
+# time even when the Mac's audio daemon (coreaudiod) stalls, which hung every run. STK_AUDIO_DEVICE=1 uses
+# the real output device instead, for a check that needs the hardware's own latency.
+AUDIO_FLAGS = [] if os.environ.get("STK_AUDIO_DEVICE") == "1" else ["--disable-audio-output"]
 CLOSE_SECONDS = 5  # a polite close, then forced
 
 
@@ -111,7 +115,7 @@ class Chrome:
              "--remote-debugging-port=0", "--autoplay-policy=no-user-gesture-required",
              "--use-fake-ui-for-media-stream", "--use-fake-device-for-media-stream",
              "--host-resolver-rules=MAP *.stackapella.test 127.0.0.1",  # two hosts of one domain, for the flows that cross them
-             "about:blank"],
+             *AUDIO_FLAGS, "about:blank"],
             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, start_new_session=True,
         )
         self.closed = False

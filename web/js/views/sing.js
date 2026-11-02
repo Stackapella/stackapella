@@ -3,12 +3,13 @@
 // session as the studio (js/stores/session.js), which stays the mixer and editor. At /p/<id>/sing.
 
 import { VoiceCareLine } from '../components/voice-care.js';
+import { TimingLine } from '../components/timing-line.js';
 import { game } from '../skin.js';
 import { toRefs } from 'vue';
 import { audio, closeMic, engine, openMic } from '../audio.js';
 import { follow, hintStep, voiceFollower } from '../livevoice.js';
 import { formatList, t, tk } from '../i18n.js';
-import { BACKING, GUIDE_LEVELS, guideId, hasTake } from '../practice.js';
+import { BACKING, DRONE, GUIDE_LEVELS, guideId, hasTake } from '../practice.js';
 import { RecordSetup } from '../record-setup.js';
 import { goBack, navigate } from '../router.js';
 import { clefFor, currentPhrase, nextStep, nowText, partSaying, practised, progressOf, staffLayout, stepDone, timelineAt, toStep } from '../sing.js';
@@ -46,6 +47,9 @@ import { SCORING_VERSION } from '../scoring.js';
 import { run } from '../game/motion.js';
 import { PartSheet, SettingsSheet } from '../components/sing/sheets.js';
 import { chordName, noteLabel } from '../notes.js';
+import { chordAt, ringReading } from '../tuning.js';
+import { RING } from '../ring.js';
+import { RingMeter } from '../components/sing/ring-meter.js';
 import { prefs } from '../stores/prefs.js';
 import { voiceNote, VoiceNote } from '../components/voice-note.js';
 import { ResingSheet, ResungCard } from '../components/sing/resing.js';
@@ -82,10 +86,10 @@ const FIT_WORDS = { fits: tk('sing.fitsYourRange'), lower: tk('sing.fitsYourRang
 
 export const SingView = {
     mixins: [RecordSetup],
-    components: { VoiceCareLine, PopupSlot, TakeBest, IdeaVoice, PhraseStage, Chooser, Stage, RecordingStage, Lane, NowCard, Coach, StepDone, JustRecorded, LineBar, ModeBar, SingHeader, Transport, TurnBand, PartSheet, SettingsSheet, HeadphonesDialog, TimingDialog, RangeDialog, Icon, VoiceNote, ResingSheet, ResungCard, TrimSheet, WhatsNext, LockedBanner, ShareSheet },
+    components: { RingMeter, VoiceCareLine, TimingLine, PopupSlot, TakeBest, IdeaVoice, PhraseStage, Chooser, Stage, RecordingStage, Lane, NowCard, Coach, StepDone, JustRecorded, LineBar, ModeBar, SingHeader, Transport, TurnBand, PartSheet, SettingsSheet, HeadphonesDialog, TimingDialog, RangeDialog, Icon, VoiceNote, ResingSheet, ResungCard, TrimSheet, WhatsNext, LockedBanner, ShareSheet },
     props: { id: { type: String, required: true } },
     setup: () => ({ ...toRefs(session), audio, formatTime, shownTitle, prefs, game, effect }),
-    data: () => ({ crt: false, ghostTake: null, pendingGhost: null, hud: popupQueue(), viewPicked: false, readied: null, combo: 0, hintState: { hint: null }, voice: voiceFollower(), dialog: null, choosing: false, recorded: null, said: '', suggested: null, celebrated: null, lining: false, lined: null, resingPlanned: null, resung: null, takeNumbers: {}, fitSuggestion: null }),
+    data: () => ({ crt: false, ghostTake: null, pendingGhost: null, hud: popupQueue(), viewPicked: false, readied: null, combo: 0, hintState: { hint: null }, voice: voiceFollower(), dialog: null, choosing: false, recorded: null, said: '', suggested: null, celebrated: null, lining: false, lined: null, resingPlanned: null, resung: null, takeNumbers: {}, fitSuggestion: null, ring: null, ringChord: '' }),
     template: `
         <div class="flex h-dvh flex-col bg-ink">
             <p class="sr-only" aria-live="polite">{{ said }}</p>
@@ -142,6 +146,8 @@ export const SingView = {
                                 <IdeaVoice v-if="project.idea && recorded.part.templatePartKey" :key="'idea-' + recorded.part.id + '-' + (recorded.part.takeId ?? '')" :idea="project.idea" :part="recorded.part" :part-name="nameOf(recorded.part)" />
                                 <!-- Voice care: one quiet line after a long day's singing (docs/voice-care-plan.md) -->
                                 <VoiceCareLine :key="'care-' + recorded.part.id + '-' + (recorded.part.takeId ?? '')" />
+                                <!-- A fresh timing check, offered over Bluetooth after a reconnect or many takes (components/timing-line.js) -->
+                                <TimingLine :key="'timing-' + recorded.part.id + '-' + (recorded.part.takeId ?? '')" @check="dialog = 'timing'" />
                                 <WhatsNext v-if="recorded.everyPart" :current="{ id: project.template.id, difficulty: project.template.difficulty }" />
                             </template>
                         </JustRecorded>
@@ -152,6 +158,8 @@ export const SingView = {
                             <div class="flex min-h-0 flex-1">
                                 <div class="flex min-h-0 flex-1 flex-col gap-2 pt-2">
                                     <NowCard class="mx-4 md:mx-6" :note="nowCard.note" :word="nowCard.word" :next="nowCard.next" :color="paint(focusPart.color)" :outlined="turn" :hint="turn ? hintState.hint : null" />
+                                    <!-- Tune the chord (docs/tune-chord-plan.md): a held chord note against its pure tuning, when Sing's settings turn it on -->
+                                    <RingMeter v-if="shownRing" class="mx-4 md:mx-6" :reading="shownRing" :chord="ringChord" :color="paint(focusPart.color)" />
                                     <!-- The combo, and in game mode the bonus pop-ups beside it (docs/game-elements-plan.md) -->
                                     <div v-if="turn && game() && (combo >= 3 || (effect('popups') && hud.now))" class="mx-4 flex min-h-8 items-center gap-3 md:mx-6">
                                         <p v-if="combo >= 3" class="self-start rounded-full bg-raised px-3 py-1 text-sm font-semibold text-cream" data-combo>{{ t('course.combo', { count: combo }) }}</p>
@@ -166,6 +174,7 @@ export const SingView = {
                         <Stage v-else :line="currentLine" :next="nextLine" :position="position" :color="paint(focusPart.color)" :turn="turn" :recording="recording" :now-text="now.state === 'singing' ? nowLine : ''" :sings="sings" :coming-up="comingUp" :line-of="way === 'whole' && !recording ? lineOf : ''"  :start="firstNoteShown ? firstNoteInfo : null" @hear-note="firstNote"
                             :get-ready="getReady ? { beatsLeft: getReady.beatsLeft, beatsPerBar: getReady.beatsPerBar } : null"
                             :staff="view === 'staff' || !hasWords ? staffNow : null" :current="staffCurrent" :words="hasWords" :tuning="stageTuning" :hint="turn ? hintState.hint : null">
+                            <RingMeter v-if="shownRing" class="w-full max-w-md" :reading="shownRing" :chord="ringChord" :color="paint(focusPart.color)" />
                             <!-- Option D: a slim strip of the same lane over the big words, on your turn. -->
                             <div v-if="turn" class="h-32 w-full shrink-0"><Lane :notes="notes" :words="[]" :others="[]" :transpose="project.transpose || 0" :beat-seconds="beatSeconds" :position="position"
                                 :color="paint(focusPart.color)" :state="recording ? 'recording' : 'turn'" :note-name="laneName" :keyboard="false" :voice="voice.points" :lit="voice.lit" :hits="voice.hits" :trail="onFire ? 'var(--ge-fire)' : null" :ghost="ghostLine" :hint="hintState.hint" /></div>
@@ -179,11 +188,11 @@ export const SingView = {
                     :turn="way === 'parts' && phase === 'turn' && !recording" :bpm="way === 'whole' ? Math.round((project.bpm || project.template.tempo) * (practice.speed ?? 1)) : 0" :slower="canSlower" :faster="canFaster" @tempo="stepTempo" @play="transportPlay" @record="recordPart" @loop="loop" @again="repeatPhrase(here)" />
             </template>
 
-            <SettingsSheet v-if="dialog === 'settings'" :hearing="{ rows: hearingRows, guideLevel: hearingLevel, speakers, voices: voicesLabel, split: !!practice.split }" :part-name="partName" :part-color="paint(focusPart.color)" @part="dialog = 'part'" :view="view" @view="setView" :recording="recording" @toggle="toggleHearing" @level="setGuideLevel" :speed="practice.speed ?? 1" :speed-note="speedNote" :has-chords="!!project.template.chords?.length" :chords="!!practice.chords"
+            <SettingsSheet v-if="dialog === 'settings'" :hearing="{ rows: hearingRows, guideLevel: hearingLevel, speakers, voices: voicesLabel, split: !!practice.split }" :part-name="partName" :part-color="paint(focusPart.color)" @part="dialog = 'part'" :view="view" @view="setView" :recording="recording" @toggle="toggleHearing" @level="setGuideLevel" :speed="practice.speed ?? 1" :speed-note="speedNote" :has-chords="!!project.template.chords?.length" :chords="!!practice.chords" :drone="practice.drone ?? 'off'" :drone-level="practice.droneLevel ?? 0.4" @drone="setDrone" @drone-level="(v) => setPracticeValue('droneLevel', v)"
                 :chords-level="practice.chordsLevel ?? 0.5" :chords-sound="practice.chordsSound ?? 'gentle'" :color="paint(focusPart.color)" :bpm="project.bpm || project.template.tempo" :sample="noteSample"
                 @reset="resetSettings" @speed="setSpeed" @chords="setChords" @chords-level="(v) => setPracticeValue('chordsLevel', v)" @split="(v) => setPracticeValue('split', v)" :ladder="!!practice.ladder" @ladder="setLadder" @chords-sound="setChordsSound" @voices="dialog = 'part'" @close="dialog = null" />
-            <PartSheet v-if="dialog === 'part'" :parts="partSheet" :focus-id="focusPart?.id" :voice="focusPart ? guideVoices[focusPart.id] ?? null : null" :key-note="keyNote" :way="way" :disabled="recording"
-                @select="selectPart" @voice="chooseVoice" @range="dialog = 'range'" @way="switchWay" @close="dialog = null" />
+            <PartSheet v-if="dialog === 'part'" :parts="partSheet" :focus-id="focusPart?.id" :voice="focusPart ? guideVoices[focusPart.id] ?? null : null" :key-note="keyNote" :way="way" :disabled="recording" :lend="lendLine"
+                @select="selectPart" @voice="chooseVoice" @range="dialog = 'range'" @way="switchWay" @close="dialog = null" @lend="openVoices" />
             <ShareSheet v-if="dialog === 'share'" :title="project.title || ''" :parts="sharedParts" @close="dialog = null" />
             <TrimSheet v-if="dialog === 'trim' && recorded" :part="recorded.part" :name="nameOf(recorded.part)" :color="paint(recorded.part.color)" :beat-seconds="60 / (project.bpm || 90)" :playing="playing"
                 @trim="trim" @play-start="hearEdge('start')" @play-end="hearEdge('end')" @play-trimmed="hearTrimmed" @stop="stopHearing" @close="closeTrim" />
@@ -234,6 +243,10 @@ export const SingView = {
         guideHeard: () => session.guideHeard,
         hearingChanged: () => session.hearing.off.length > 0 || session.hearing.recordGuide || session.hearing.guideLevel !== GUIDE_LEVELS.medium,
         speakers: () => audio.route === 'speakers',
+        /** The ring meter's reading on your turn (never over the speakers: the guides would reach the mic). */
+        shownRing() {
+            return this.turn && prefs.tuningMeter && !this.speakers ? this.ring : null;
+        },
         way: (vm) => vm.practice?.sing?.way ?? null,
         view: (vm) => vm.practice?.sing?.view ?? 'words',
         partName: (vm) => (vm.focusPart ? vm.nameOf(vm.focusPart) : ''),
@@ -392,6 +405,17 @@ export const SingView = {
             const yours = voice?.kind === 'real' && voice.credit ? t('part.sungBy', { name: voice.credit }) : t('part.practiceVoice');
             return t('sing.settings.voicesOf', { part: this.partName, voice: yours });
         },
+        /**
+         * Lend your voice (docs/lend-your-voice-plan.md, "Where"): your part of a library song still sung by
+         * the practice voice says so quietly in Your part, behind the switch, signed in, never in the account's first week.
+         */
+        lendLine() {
+            const me = account.me;
+            // The claim's own rule: an account a week old or more, and never someone under 18.
+            const weekOld = me?.createdAt && Date.now() - Date.parse(me.createdAt) >= 7 * 86400000;
+            if (!account.config?.lendVoice || !weekOld || !me.isAdult || this.project?.beta || this.project?.course || !this.project?.template?.id || !this.focusPart?.templatePartKey) return false;
+            return !this.guideVoices[this.focusPart.id]?.versions?.length;
+        },
         /** Your part's sheet: each part with its range and its guide's voice. */
         partSheet() {
             return this.partChoices.map((c) => {
@@ -542,6 +566,7 @@ export const SingView = {
             if (heard.length > 1 && heard.length === others.length) items.push(t('sing.hear.everyOther'));
             else items.push(...heard.map((p) => this.nameOf(p)));
             if (all.get(BACKING)?.audible) items.push(t('sing.hear.chords'));
+            if (all.get(DRONE)?.audible) items.push(t('sing.hear.drone'));
             if (!items.length) return t('sing.hear.recordingNone');
             const line = t(this.speakers ? HEAR_RECORDING.softer : HEAR_RECORDING.headphones, { list: formatList(items) });
             return mine?.audible ? line : `${line} ${t('sing.hear.guideOffRecording')}`;
@@ -766,6 +791,7 @@ export const SingView = {
             const before = this.voice.offset ?? null;
             this.voice = follow(this.voice, { seconds, hz: clear ? reading.hz : 0, shownHz: this.voiced ? reading.hz : 0, loudness: reading.loudness }, note ? { beat: note.beat, pitch: note.pitch + (this.project.transpose || 0) } : null);
             // The words' hint, from the line's centre over the last 0.3 s (never on a vibrato).
+            this.readRing(note, seconds);
             const recent = this.voice.points.filter((p) => p.seconds > seconds - 0.3 && p.alpha === 1);
             const centre = recent.length ? recent.reduce((sum, p) => sum + p.midi, 0) / recent.length : null;
             const cents = note && centre !== null && seconds - recent.at(-1).seconds < 0.1 ? (centre - (note.pitch + (this.project.transpose || 0))) * 100 : null;
@@ -794,6 +820,21 @@ export const SingView = {
                 }
             }
             this.hud.tick(seconds);
+        },
+        /**
+         * Tune the chord: on a note held a beat or more inside a chord, your voice against its pure
+         * tuning (js/tuning.js). Read only when Sing's settings show it, and never over the speakers.
+         */
+        readRing(note, seconds) {
+            if (!prefs.tuningMeter || this.speakers || !note || note.length < RING.held) {
+                this.ring = null;
+                return;
+            }
+            const transpose = this.project.transpose || 0;
+            const chord = chordAt(this.project.template, note.beat, { focusKey: this.focusPart?.templatePartKey });
+            const bs = this.beatSeconds;
+            this.ring = chord ? ringReading(this.voice.points, { now: seconds, note: { start: note.beat * bs, end: (note.beat + note.length) * bs, pitch: note.pitch + transpose }, chord, transpose }) : null;
+            this.ringChord = this.ring ? chordName(chord, transpose, this.project.key || this.project.template.key) : '';
         },
         /** Game mode's "Phrase clear": `n` was its phrase's last note and every note of the phrase lit; its index, else null. */
         phraseCleared(n) {
@@ -837,6 +878,11 @@ export const SingView = {
         /** The lane names sounding pitches (transposed already), your way. */
         laneName(midi) {
             return this.noteName({ pitch: midi - (this.project.transpose || 0) });
+        },
+        /** Your part sheet's Lend yours?: the Wanted voices list (Settings' Lend your voice). */
+        openVoices() {
+            this.dialog = null;
+            navigate('/voices');
         },
         async chooseVoice(voice) {
             if (this.focusPart) await sessionStore.setVoice(this.focusPart, voice);
@@ -979,7 +1025,8 @@ export const SingView = {
             this.setView('words');
             if ((this.practice.speed ?? 1) !== 1) await this.setSpeed(1);
             if (this.practice.chords) await this.setChords(false);
-            Object.assign(prefs, { noteNames: 'letters', keyboard: true, showOthers: true, shortcuts: true });
+            if ((this.practice.drone ?? 'off') !== 'off') await this.setDrone('off');
+            Object.assign(prefs, { noteNames: 'letters', keyboard: true, showOthers: true, shortcuts: true, tuningMeter: false });
             sessionStore.resetHearing();
         },
         /** N: the next phrase, ready (it plays with Play). */
@@ -1001,8 +1048,13 @@ export const SingView = {
             sessionStore.setMode(this.practice.mode === 'own' ? 'singAlong' : 'own');
         },
         async setChords(on) {
-            if (on) await sessionStore.ready(); // the chords render with the guides
+            if (on) await sessionStore.ensureChords(); // rendered now, the first time they're wanted
             sessionStore.setPractice('chords', on);
+        },
+        /** A drone to tune against (docs/tune-chord-plan.md): Off, Key note or The chord. */
+        async setDrone(mode) {
+            if (mode !== 'off') await sessionStore.ready();
+            await sessionStore.setDrone(mode);
         },
         /** What you hear's toggles. Yours is your guide: on in On your own means Sing along (as Guide back on was). */
         async toggleHearing(id) {

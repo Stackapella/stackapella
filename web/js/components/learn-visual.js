@@ -41,7 +41,7 @@ export const BreathVisual = {
                 </span>
             </figcaption>
             </div>
-            <p class="mt-2 flex justify-center gap-5 text-sm text-muted" aria-hidden="true">
+            <p data-ui="facts" class="mt-2 flex justify-center gap-5 text-sm text-muted" aria-hidden="true">
                 <span>{{ t('learnVisual.inFor', { seconds: 4 }) }}</span><span>{{ t('learnVisual.outFor', { seconds: 6 }) }}</span>
             </p>
         </figure>`,

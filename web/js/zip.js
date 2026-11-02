@@ -1,5 +1,6 @@
-// A ZIP of files, stored as they are (no compression: WAVs barely shrink), for Stems: each part
-// on its own in one download. Plain code, no library.
+// A ZIP of files, stored as they are (no compression: WAVs barely shrink), for Stems (each part
+// on its own in one download) and the device backup; and reading one back (stored or deflated, by
+// the browser's own DecompressionStream). Plain code, no library.
 
 const CRC_TABLE = (() => {
     const table = new Uint32Array(256);
@@ -73,4 +74,42 @@ export function zip(files) {
     end.setUint32(12, size, true);
     end.setUint32(16, offset, true);
     return new Blob([...local, ...central, new Uint8Array(end.buffer)], { type: 'application/zip' });
+}
+
+/**
+ * The files in a ZIP's bytes, by name: [{ name, read() }], where read() gives the bytes (stored or
+ * deflated; null for any other method). Null when the bytes aren't a ZIP.
+ */
+export function unzip(bytes) {
+    const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+    let eocd = -1;
+    for (let i = bytes.length - 22; i >= Math.max(0, bytes.length - 65557); i--) {
+        if (view.getUint32(i, true) === 0x06054b50) {
+            eocd = i;
+            break;
+        }
+    }
+    if (eocd < 0) return null;
+    const count = view.getUint16(eocd + 10, true);
+    let p = view.getUint32(eocd + 16, true);
+    const entries = [];
+    for (let i = 0; i < count && p + 46 <= bytes.length && view.getUint32(p, true) === 0x02014b50; i++) {
+        const method = view.getUint16(p + 10, true);
+        const size = view.getUint32(p + 20, true);
+        const nameLength = view.getUint16(p + 28, true);
+        const extra = view.getUint16(p + 30, true);
+        const comment = view.getUint16(p + 32, true);
+        const at = view.getUint32(p + 42, true);
+        const read = async () => {
+            const start = at + 30 + view.getUint16(at + 26, true) + view.getUint16(at + 28, true);
+            const data = bytes.slice(start, start + size);
+            if (method === 0) return data;
+            if (method !== 8) return null;
+            const stream = new Blob([data]).stream().pipeThrough(new DecompressionStream('deflate-raw'));
+            return new Uint8Array(await new Response(stream).arrayBuffer());
+        };
+        entries.push({ name: new TextDecoder().decode(bytes.slice(p + 46, p + 46 + nameLength)), read });
+        p += 46 + nameLength + extra + comment;
+    }
+    return entries;
 }

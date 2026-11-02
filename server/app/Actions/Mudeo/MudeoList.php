@@ -14,9 +14,10 @@ use App\Models\MudeoBatch;
 use App\Models\MudeoContact;
 use App\Models\Setting;
 use App\Models\User;
-use App\Support\Accounts\EarlyAccess;
 use App\Support\Http\Hosts;
 use App\Support\Ids;
+use App\Support\Pages\MudeoArrival;
+use App\Support\Stats\ReportDay;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -290,11 +291,13 @@ final class MudeoList
      */
     private function days(array $links): array
     {
-        $since = now()->subDays(59)->startOfDay();
+        $since = ReportDay::now()->subDays(59)->startOfDay();
         $sent = $bounced = $visits = $used = $joined = [];
 
-        foreach (MudeoBatch::query()->where('sent_at', '>=', $since)->whereNull('undone_at')->get(['sent_at', 'delivered', 'bounced', 'failed']) as $batch) {
-            $day = $batch->sent_at->toDateString();
+        $zone = ReportDay::zone();
+
+        foreach (MudeoBatch::query()->where('sent_at', '>=', $since->copy()->utc())->whereNull('undone_at')->get(['sent_at', 'delivered', 'bounced', 'failed']) as $batch) {
+            $day = $batch->sent_at->copy()->setTimezone($zone)->toDateString();
             $sent[$day] = ($sent[$day] ?? 0) + $batch->delivered + $batch->bounced + $batch->failed;
             $bounced[$day] = ($bounced[$day] ?? 0) + $batch->bounced;
         }
@@ -307,8 +310,9 @@ final class MudeoList
             }
         }
 
-        foreach (User::query()->whereIn('early_access_link_id', $links)->where('created_at', '>=', $since)->selectRaw('date(created_at) as day, count(*) as n')->groupBy('day')->get() as $row) {
-            $joined[(string) $row->getAttribute('day')] = (int) $row->getAttribute('n');
+        foreach (User::query()->whereIn('early_access_link_id', $links)->where('created_at', '>=', $since->copy()->utc())->pluck('created_at') as $at) {
+            $day = $at->copy()->setTimezone($zone)->toDateString();
+            $joined[$day] = ($joined[$day] ?? 0) + 1;
         }
 
         $dates = array_unique(array_map('strval', [...array_keys($sent), ...array_keys($visits), ...array_keys($used), ...array_keys($joined)]));
@@ -374,6 +378,15 @@ final class MudeoList
     }
 
     /**
+     * The email's link, now the site is open: its landing, with the mudeo ref (MudeoArrival shows
+     * the welcome and counts the visit). Links already sent (/early/<code>) are sent on to it.
+     */
+    public static function link(): string
+    {
+        return Hosts::publicUrl().'/?ref='.MudeoArrival::REF;
+    }
+
+    /**
      * SendMudeoBatch's work: one email to each of the batch's people not yet sent, each recorded
      * the moment it goes, so a retry after the worker dies never mails anyone twice. A bounce
      * Cloudflare reports takes the address off the list; one that couldn't go, or wasn't reached
@@ -382,7 +395,7 @@ final class MudeoList
      */
     public function deliver(MudeoBatch $batch, int $seconds = 240): void
     {
-        $link = EarlyAccess::url(EarlyAccess::current());
+        $link = self::link();
         $until = microtime(true) + $seconds;
         $error = null;
         $contacts = MudeoContact::query()->where('mudeo_batch_id', $batch->id)->whereNull('sent_at')->whereNull('bounced_at')->whereNull('opted_out_at')->orderBy('id')->get();
@@ -443,7 +456,7 @@ final class MudeoList
         self::ensureReady();
 
         $address = (string) $admin->email;
-        Mail::to($address)->send(new MudeoInvite(self::firstName($admin->name), EarlyAccess::url(EarlyAccess::current()), Hosts::public(URL::signedRoute('mudeo.unsubscribe', ['contact' => 'test'], absolute: false))));
+        Mail::to($address)->send(new MudeoInvite(self::firstName($admin->name), self::link(), Hosts::public(URL::signedRoute('mudeo.unsubscribe', ['contact' => 'test'], absolute: false))));
         AuditLog::record('mudeo.test_sent', null, $admin, ip: $ip);
 
         return $address;

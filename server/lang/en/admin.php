@@ -5,6 +5,11 @@ declare(strict_types=1);
 return [
     'sign_out' => 'Sign out',
 
+    'beta' => [
+        // The note a beta singer sees when Hillel asks for their part again without writing one.
+        'asked_again' => 'The song changed: please record your part again.',
+    ],
+
     'sign_in' => [
         'title' => 'Sign in to admin',
         'intro' => 'Use the Google account that runs Stackapella. You\'ll confirm it\'s you with your passkey next.',

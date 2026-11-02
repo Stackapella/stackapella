@@ -39,7 +39,8 @@ export const Chooser = {
         return { picked: null, last: this.way ?? prefs.singLast ?? null, partStep: false, always: !!remembered, installHint: /iPhone|iPad/.test(navigator.userAgent) && !(navigator.standalone || matchMedia?.('(display-mode: standalone)').matches) };
     },
     template: `
-        <div class="mx-auto flex w-full max-w-4xl flex-col gap-6 px-4 py-6 md:py-10">
+        <!-- Its header at the top; on a desktop the choices sit in the middle of the height, not over an empty half (docs/design-rules.md). -->
+        <div class="mx-auto flex w-full max-w-4xl flex-col gap-6 px-4 py-6 md:flex-1 md:py-10">
             <header class="flex items-center gap-3">
                 <button type="button" class="glass-bubble grid size-11 shrink-0 place-items-center rounded-full text-cream" :aria-label="t('common.back')" @click="partStep ? back() : $emit('back')"><Icon name="back" :size="20" /></button>
                 <div class="min-w-0 flex-1">
@@ -48,14 +49,15 @@ export const Chooser = {
                 </div>
                 <p v-if="facts" class="shrink-0 tabular-nums text-xs text-muted sm:text-sm">{{ facts }}</p>
             </header>
+            <div class="flex flex-col gap-6 md:my-auto md:pb-10">
 
             <template v-if="!partStep">
                 <div>
                     <h1 ref="heading" tabindex="-1" class="text-3xl font-extrabold tracking-tight text-cream outline-none md:text-4xl">{{ t('sing.chooser.title') }}</h1>
                     <p class="mt-1 text-muted">{{ t('sing.chooser.intro') }}</p>
                 </div>
-                <!-- Hillel: three equal choices, each a large button that starts that way at once. -->
-                <div class="grid gap-4 md:grid-cols-3">
+                <!-- Hillel: three equal choices, each a large button that starts that way at once (equal rows when stacked too, whatever a browser's line breaks). -->
+                <div class="grid auto-rows-fr gap-4 md:grid-cols-3">
                     <button v-for="w in WAYS" :key="w" type="button" class="card-interactive flex flex-col gap-4 p-5 text-start" :data-way="w" @click="choose(w)">
                         <span class="flex items-center gap-3">
                             <span class="flex-1 text-lg font-bold text-cream">{{ t(LABELS[w]) }}</span>
@@ -93,7 +95,7 @@ export const Chooser = {
                     <p class="mt-1 text-muted">{{ t('sing.chooser.yourPartHint') }}</p>
                 </div>
                 <!-- Game mode's character select (docs/game-elements-plan.md): the same parts and the same choice -->
-                <PartSelect v-if="effect('select')" :parts="parts" :transpose="transpose" :suggested="suggested" @choose="(slotId) => $emit('choose', { way: picked, slotId })" />
+                <PartSelect v-if="effect('select')" :parts="parts" :transpose="transpose" :suggested="focus?.slot.id ?? suggested" @choose="(slotId) => $emit('choose', { way: picked, slotId })" />
                 <ul v-else class="grid gap-3 md:grid-cols-2">
                     <li v-for="part in parts" :key="part.slot.id">
                         <button type="button" class="card-interactive flex w-full items-center gap-4 p-4 text-start" @click="$emit('choose', { way: picked, slotId: part.slot.id })">
@@ -108,6 +110,7 @@ export const Chooser = {
                 </ul>
                 <button type="button" class="btn-secondary self-start" @click="$emit('range')"><Icon name="mic" :size="16" /> {{ t('sing.chooser.checkRange') }}</button>
             </template>
+            </div>
         </div>`,
     setup: () => ({ midiName, WAYS, LABELS, HINTS, effect }),
     computed: {
@@ -149,7 +152,9 @@ export const Chooser = {
             }
             this.picked = way;
             prefs.singWay = this.always ? way : null;
-            if (this.focus) {
+            // Game mode's character select is shown even when Sing knows your part, with that part pre-selected: one
+            // tap to confirm or change (Hillel, 2026-11-01). Serious mode goes straight in.
+            if (this.focus && !effect('select')) {
                 this.$emit('choose', { way: this.picked, slotId: this.focus.slot.id });
                 return;
             }

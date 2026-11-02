@@ -23,13 +23,14 @@
                 "style": "vibrato",
                 "voices": "any",
                 "courseTitle": "Vibrato"
-            }
+            },
+            "askedAgain": null
         },
         {
             "id": "Uv4Wx6",
             "template": {
                 "id": "michael-row",
-                "version": 2,
+                "version": 6,
                 "title": "Michael, Row the Boat Ashore",
                 "key": "D",
                 "tempo": 96,
@@ -66,13 +67,14 @@
                 }
             ],
             "kind": "part",
-            "clip": null
+            "clip": null,
+            "askedAgain": null
         },
         {
             "id": "Ab3Cd9",
             "template": {
                 "id": "amazing-grace",
-                "version": 3,
+                "version": 4,
                 "title": "Amazing Grace",
                 "key": "G",
                 "tempo": 80,
@@ -109,13 +111,14 @@
                 }
             ],
             "kind": "part",
-            "clip": null
+            "clip": null,
+            "askedAgain": null
         },
         {
             "id": "Ef5Gh2",
             "template": {
                 "id": "silent-night",
-                "version": 1,
+                "version": 6,
                 "title": "Silent Night",
                 "key": "Bb",
                 "tempo": 66,
@@ -128,13 +131,14 @@
             "latestSubmission": null,
             "guides": [],
             "kind": "part",
-            "clip": null
+            "clip": null,
+            "askedAgain": null
         },
         {
             "id": "Jk2Mn5",
             "template": {
                 "id": "ode-to-joy",
-                "version": 2,
+                "version": 6,
                 "title": "Ode to Joy",
                 "key": "G",
                 "tempo": 100,
@@ -159,7 +163,8 @@
             },
             "guides": [],
             "kind": "part",
-            "clip": null
+            "clip": null,
+            "askedAgain": null
         }
     ]
 }

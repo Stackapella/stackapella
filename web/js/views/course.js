@@ -2,7 +2,7 @@
 // and its lessons. The home's course card is the way in (components/home.js); this is the map behind it.
 
 import { localized, t, tk } from '../i18n.js';
-import { navigate } from '../router.js';
+import { goBack, navigate } from '../router.js';
 import { inFirstWeek } from '../components/voice-care.js';
 import { levelFor, nextLesson, voiceType, weekDays, weekRing } from '../course.js';
 import { lessonMinutes } from '../results.js';
@@ -81,7 +81,7 @@ export const CourseView = {
     template: `
         <div class="mx-auto min-h-dvh max-w-4xl px-4 pb-16 pt-[max(1rem,env(safe-area-inset-top))] md:px-8">
             <header class="flex items-center gap-3 py-4">
-                <button type="button" class="glass-bubble grid size-11 shrink-0 place-items-center rounded-full text-cream" :aria-label="t('home.back')" @click="navigate('/')"><Icon name="back" :size="20" /></button>
+                <button type="button" class="glass-bubble grid size-11 shrink-0 place-items-center rounded-full text-cream" :aria-label="t('home.back')" @click="goBack('/')"><Icon name="back" :size="20" /></button>
                 <div class="min-w-0 flex-1">
                     <p class="text-sm text-muted">{{ t('course.hub.eyebrow') }}</p>
                     <h1 class="truncate text-xl font-bold text-cream">{{ t('course.hub.title') }}</h1>
@@ -105,7 +105,7 @@ export const CourseView = {
                     <div class="mt-auto pt-4"><a href="/workout" class="btn-go" @click.prevent="navigate('/workout')">{{ t('course.hub.begin') }}</a></div>
                 </section>
             </div>
-            <section v-if="learning.loaded" class="card mt-4 grid grid-cols-[minmax(0,1fr)] gap-6 p-4 sm:p-6" :class="game() ? 'md:grid-cols-2' : ''" :aria-label="t('home.week.days')">
+            <section v-if="learning.loaded" class="card mt-4 grid grid-cols-[minmax(0,1fr)] gap-6 p-4 sm:p-6 md:has-[>*+*]:grid-cols-2" :aria-label="t('home.week.days')">
                 <div class="space-y-4">
                     <div class="flex flex-wrap items-baseline justify-between gap-x-3"><h2 class="font-bold text-cream">{{ t('home.week.days') }}</h2><span class="text-sm text-muted">{{ t('course.hub.daysOf', { done: ring.done, goal: ring.goal }) }}</span></div>
                     <ol class="grid grid-cols-7 gap-1 sm:gap-2">
@@ -137,5 +137,5 @@ export const CourseView = {
             <p v-if="!inFirstWeek()" class="mt-6 text-sm text-muted" data-cooldown-link>{{ t('voiceCare.mapLine') }} <a href="/cooldown" class="link" @click.prevent="navigate('/cooldown')">{{ t('voiceCare.coolDown') }}</a></p>
             <MoreCourses class="mt-10" />
         </div>`,
-    methods: { navigate, setGoal },
+    methods: { goBack, navigate, setGoal },
 };

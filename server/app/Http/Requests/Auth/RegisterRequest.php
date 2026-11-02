@@ -41,6 +41,8 @@ final class RegisterRequest extends FormRequest
     public function rules(): array
     {
         return [
+            // An app's own secret for its sign-up (the web's is a cookie): SignUpBrowser.
+            'signupKey' => ['sometimes', 'nullable', 'string', 'min:20', 'max:128'],
             'name' => ['required', 'string', 'max:80', new NoLinks, new OneLine],
             'email' => ['required', 'string', 'email:rfc', 'max:255'],
             'password' => ['required', 'string', new StrongPassword],

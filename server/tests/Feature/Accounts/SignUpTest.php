@@ -71,6 +71,33 @@ final class SignUpTest extends TestCase
         $this->assertMatchesContract($this->getJson('/api/auth/config')->assertJsonPath('data.sentryDsn', 'https://key@o1.ingest.sentry.io/2'), 'auth.config', 200);
     }
 
+    public function test_a_confirm_link_opened_outside_the_sign_up_starts_the_account_fresh(): void
+    {
+        // A stranger signs up with Ada's address and a password of theirs (security review, 2026-11-01).
+        $this->postJson('/api/auth/register', $this->form())->assertStatus(202);
+        $token = $this->verifyToken('ada@example.com');
+
+        // Ada opens the link from her inbox, in her own browser: the address is hers now, and nothing
+        // the stranger set stays, the password above all.
+        // Asked first ("Sign in as ada@example.com?"), then a fresh start.
+        $this->assertMatchesContract($this->postJson('/api/auth/verify', ['token' => $token]), 'auth.verify', 409);
+        $verified = $this->postJson('/api/auth/verify', ['token' => $token, 'confirm' => true]);
+        $this->assertMatchesContract($verified, 'auth.verify', 200);
+        $verified->assertJsonPath('data.emailVerified', true)->assertJsonPath('data.methods.password', false);
+        $ada = User::query()->where('email', 'ada@example.com')->firstOrFail();
+        $this->assertNull($ada->password);
+        $this->assertSame('', $ada->name);
+        $this->assertNull($ada->age_confirmed_at);
+        auth()->forgetGuards();
+        $this->postJson('/api/auth/sign-in', ['email' => 'ada@example.com', 'password' => self::PASSWORD])->assertUnauthorized();
+
+        // An app keeps its own sign-up by sending the same key back with the code.
+        $this->app['auth']->guard('web')->logout();
+        $key = str_repeat('k', 32);
+        $this->postJson('/api/auth/register', [...$this->form(), 'email' => 'bea@example.com', 'signupKey' => $key])->assertStatus(202)->assertCookieMissing('sa_signup');
+        $this->postJson('/api/auth/verify', ['token' => $this->verifyToken('bea@example.com'), 'signupKey' => $key])->assertOk()->assertJsonPath('data.methods.password', true);
+    }
+
     public function test_signing_up_sends_a_link_that_verifies_and_signs_in_once(): void
     {
         $response = $this->postJson('/api/auth/register', $this->form());
@@ -84,7 +111,8 @@ final class SignUpTest extends TestCase
         $this->assertSame(1, SecurityEvent::query()->where('type', SecurityEventType::SignUp)->count());
 
         $token = $this->verifyToken('ada@example.com');
-        $verified = $this->postJson('/api/auth/verify', ['token' => $token]);
+        // Back in the browser that signed up (its sign-up cookie): the password stays.
+        $verified = $this->withCredentials()->withCookie('sa_signup', (string) $response->getCookie('sa_signup')?->getValue())->postJson('/api/auth/verify', ['token' => $token]);
 
         $this->assertMatchesContract($verified, 'auth.verify', 200);
         $verified->assertJsonPath('data.emailVerified', true)->assertJsonPath('data.methods.password', true)->assertJsonPath('data.handle', null);

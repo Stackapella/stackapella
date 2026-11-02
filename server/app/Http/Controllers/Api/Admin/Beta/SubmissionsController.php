@@ -100,7 +100,7 @@ final class SubmissionsController extends Controller
 
     public function reject(DecideSubmissionRequest $request, BetaSubmission $submission, ReviewSubmission $review, #[CurrentUser] User $admin): JsonResponse
     {
-        return $this->respond($review->reject($submission, $request->validated('note'), $admin, $request->ip()));
+        return $this->respond($review->reject($submission, $request->validated('note'), $admin, $request->ip(), $request->boolean('abuse')));
     }
 
     public function publish(Request $request, BetaSubmission $submission, ReviewSubmission $review, #[CurrentUser] User $admin): JsonResponse

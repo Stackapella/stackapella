@@ -2,6 +2,7 @@
     "data": {
         "id": "Pq7Rm2",
         "name": "Sarah Kim",
+        "volunteer": false,
         "consent": {
             "version": 1,
             "acceptedAt": "2026-10-26T15:02:00Z",

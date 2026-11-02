@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Mail\Account;
 
+use App\Support\Http\Hosts;
 use App\Support\Mail\Bold;
 
 /**
@@ -21,7 +22,7 @@ final class TrialEnding extends AccountMail
 
     protected function url(): string
     {
-        return url('/settings/plus');
+        return Hosts::appLink('/settings/plus');
     }
 
     protected function lines(): array

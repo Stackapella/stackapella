@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Api\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Support\Admin\Overview;
+use App\Support\Stats\ReportDay;
 use Illuminate\Http\JsonResponse;
 
 /**
@@ -15,6 +16,6 @@ final class OverviewController extends Controller
 {
     public function __invoke(Overview $overview): JsonResponse
     {
-        return response()->json(['data' => $overview->numbers()]);
+        return response()->json(['data' => [...$overview->numbers(), 'timezone' => ReportDay::zone()]]);
     }
 }

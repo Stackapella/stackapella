@@ -9,6 +9,7 @@ use App\Enums\SecurityEventType;
 use App\Exceptions\Refusal;
 use App\Models\User;
 use App\Support\Accounts\EarlyAccess;
+use App\Support\Accounts\UnconfirmedAccounts;
 use App\Support\Flags;
 use App\Support\Sharing\ShareSignUps;
 use App\Support\Trust\SecurityLog;
@@ -51,6 +52,8 @@ final class SignInWithProvider
             }
 
             $email = $email !== null ? strtolower($email) : null;
+            // Google or Apple vouches for the address: a stranger's unconfirmed sign-up with it goes.
+            UnconfirmedAccounts::release($email);
             $emailFree = $email !== null && ! User::query()->where('email', $email)->exists();
 
             $user = new User(['name' => $name !== '' ? $name : (string) $email, 'locale' => $locale]);

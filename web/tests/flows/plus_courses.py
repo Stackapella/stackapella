@@ -40,7 +40,7 @@ def picture(f, shot_id, scroll="window.scrollTo(0, 0)"):
 
 def journey(f):
     f.go("/?api=mock&scenario=&as=member", "document.querySelector('#app header')")
-    f.run("localStorage.setItem('stackapella.installDismissed', '1');")
+    f.run("localStorage.setItem('stackapella.asks', JSON.stringify({ stopped: ['install'] }));")
 
     # A member, before launch: nothing shows, and the addresses read as not here.
     f.go("/learn", "document.querySelector('[data-course-map]')")
@@ -52,14 +52,14 @@ def journey(f):
 
     # Staff: the band, with Vibrato and not a course still coming soon (whichever the catalogue has).
     f.go("/?api=mock&scenario=&as=admin", "document.querySelector('#app header')")
-    f.go("/learn", "document.querySelector('[data-more-courses] [data-course=vibrato]')")
+    f.go("/learn", "document.querySelector('[data-more-courses] [data-course-row=vibrato]')")
     soon = f.js("(await import('/js/stores/learning.js')).learning.catalogue.find((c) => c.status === 'soon')?.id ?? null")
     assert soon, "the catalogue has a course still coming soon to check"
-    assert not f.js(f"!!document.querySelector('[data-course={soon}]')"), f"a course coming soon ({soon}) stays hidden"
+    assert not f.js(f"!!document.querySelector('[data-course={soon}], [data-course-row={soon}]')"), f"a course coming soon ({soon}) stays hidden"
     f.wait_text(t(f, "courses.preview"))
     f.no_sideways("the Learn hub with More courses")
     picture(f, "plus-courses-band", "document.querySelector('[data-more-courses]').scrollIntoView({ block: 'start' }); window.scrollBy(0, -16)")
-    f.click(t(f, "courses.start"), "[data-more-courses] [data-course=vibrato] a")  # other courses may be live too
+    f.run("document.querySelector('[data-more-courses] [data-course-row=vibrato] a').click()")  # other courses may be live too
     f.wait("location.pathname === '/learn/c/vibrato'", what="the course page")
     f.wait("document.querySelector('[data-up-next]') && document.querySelector('[data-course-map]')", what="Up next and the map")
     # About this course: the course's own page on the site.
@@ -230,8 +230,8 @@ def journey(f):
     f.go("/learn", "document.querySelector('[data-course-map]')")
     f.wait(f"!!{ACCOUNT}.me", what="the member's account")
     f.js(f"{ACCOUNT}.me.plusCourses = true")
-    f.wait("document.querySelector('[data-more-courses] [data-course=vibrato]')", what="the band once the feature is on")
-    f.wait_text(t(f, "courses.tryFree"))
+    f.wait("document.querySelector('[data-more-courses] [data-course-row=vibrato]')", what="the band once the feature is on")
+    f.wait_text(t(f, "courses.moreLine"))  # the free first lesson, said once for every course
     f.run(f"(await import('/js/router.js')).navigate('/learn/vib-1-swing')")
     f.wait_text("You're about to see your voice draw a wave")
     f.run(f"(await import('/js/router.js')).navigate('/learn/vib-1-easy')")

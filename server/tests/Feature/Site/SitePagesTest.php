@@ -58,7 +58,7 @@ final class SitePagesTest extends TestCase
             $page->assertSee('class="s-wrap s-top"', false)->assertSee('s-footer', false);
             $page->assertSee('<link rel="canonical" href="'.rtrim((string) config('app.url'), '/').$path.'">', false);
             $this->assertMatchesRegularExpression('/<title>[^<]*Stackapella[^<]*<\/title>/', $html, "{$path}: titled with the name");
-            $this->assertStringNotContainsStringIgnoringCase('mudeo', $html, "{$path}: nothing about mudeo");
+            $this->assertStringNotContainsStringIgnoringCase('mudeo', self::withoutTheMaker($html), "{$path}: nothing about mudeo");
         }
 
         foreach ([...SitePages::FEATURES] as $slug) {
@@ -162,11 +162,38 @@ final class SitePagesTest extends TestCase
     public function test_about_tells_mudeos_story_only_to_mudeos_singers(): void
     {
         $everyone = (string) $this->get('/about')->assertOk()->assertSee(__('site.about.company'))->getContent();
-        $this->assertStringNotContainsStringIgnoringCase('mudeo', $everyone);
+        // Who made this names mudeo for everyone, as one of Hillel's three tries (Hillel, 2026-10-30);
+        // the letter to mudeo's singers stays theirs alone.
+        $this->assertStringContainsString(__('site.about.maker.steps.1.title'), $everyone);
+        $this->assertStringNotContainsStringIgnoringCase('mudeo', self::withoutTheMaker($everyone));
 
         $this->get('/about?ref=mudeo')->assertOk()->assertSee(__('site.about.mudeo.heading'));
         $this->withUnencryptedCookie(MudeoArrival::COOKIE, '1')->get('/about')->assertSee(__('site.about.mudeo.heading'))
             ->assertHeader('Cache-Control', 'no-cache, private');
+    }
+
+    public function test_about_says_who_made_it_with_followed_links_and_videos_that_open_on_youtube(): void
+    {
+        $html = (string) $this->get('/about')->assertOk()
+            ->assertSee(__('site.about.maker.heading'))
+            ->assertSee('<a href="https://invoiceninja.com" rel="noopener" class="s-lk">Invoice Ninja</a>', false)
+            ->assertSee('<a href="https://eventschedule.com" rel="noopener" class="s-lk">Event Schedule</a>', false)
+            ->assertSee('href="https://www.youtube.com/watch?v=DIYLPU__dmk" target="_blank" rel="noopener" aria-label="Watch Music Maker Pro for the iPhone on YouTube, opens in a new tab"', false)
+            ->assertSee('href="https://www.youtube.com/watch?v=QFmrgkIwAds" target="_blank" rel="noopener"', false)
+            ->getContent();
+
+        // Our own stills, lazy and sized; nothing from YouTube loads with the page.
+        $this->assertSame(2, preg_match_all('/<img src="\/icons\/about\/[a-z-]+\.jpg" width="960" height="540" alt="" loading="lazy">/', $html));
+        $this->assertDoesNotMatchRegularExpression('/<iframe|ytimg|youtube\.com\/embed|nofollow/i', $html);
+        foreach (['music-maker-pro', 'mudeo-flutter-show'] as $still) {
+            $this->assertFileExists(dirname(base_path())."/web/icons/about/{$still}.jpg");
+        }
+    }
+
+    /** A page without About's Who made this, which names mudeo for everyone (Hillel, 2026-10-30). */
+    private static function withoutTheMaker(string $html): string
+    {
+        return (string) preg_replace('/<section class="s-wrap s-sec s-maker".*?<\/section>/s', '', $html);
     }
 
     public function test_the_press_kit_and_whats_new(): void
@@ -451,8 +478,9 @@ final class SitePagesTest extends TestCase
         $this->get('/courses/barbershop')->assertOk()
             ->assertSee((string) Lang::get('site.courses.pages.barbershop.titles.inside'))
             ->assertSee('Down by the Old Mill Stream')
-            ->assertDontSee('Sweet Adeline')
             ->assertDontSee('classic tags');
+        // The history names the women's society, Sweet Adelines; the song "Sweet Adeline" isn't sung.
+        $this->assertStringNotContainsString('Sweet Adeline', (string) json_encode(Lang::get('site.courses.pages.barbershop.songs')));
     }
 
     public function test_the_course_groups_follow_the_apps_catalogue_and_keep_every_course(): void

@@ -5,12 +5,13 @@
 import { tk } from '../i18n.js';
 import { game } from '../stores/appearance.js';
 import { Switch } from '../components/controls.js';
-import { effects } from './effects.js';
+import { effects, LOOKS } from './effects.js';
 import { api } from '../api.js';
 import { account } from '../stores/account.js';
 import { InitialsPicker } from './initials.js';
 
 const ROWS = [
+    { name: 'all', label: tk('game.settings.all'), hint: tk('game.settings.allHint') },
     { name: 'sounds', label: tk('game.settings.sounds'), hint: tk('game.settings.soundsHint') },
     { name: 'hud', label: tk('game.settings.hud'), hint: tk('game.settings.hudHint') },
     { name: 'popups', label: tk('game.settings.popups'), hint: tk('game.settings.popupsHint') },
@@ -23,18 +24,32 @@ const ROWS = [
     { name: 'ghost', label: tk('game.settings.ghost'), hint: tk('game.settings.ghostHint') },
     { name: 'daily', label: tk('game.settings.daily'), hint: tk('game.settings.dailyHint') },
     { name: 'monthly', label: tk('game.settings.monthly'), hint: tk('game.settings.monthlyHint') },
+    { name: 'arcade', label: tk('game.settings.arcade'), hint: tk('game.settings.arcadeHint') },
+    { name: 'scanlines', label: tk('game.settings.scanlines'), hint: tk('game.settings.scanlinesHint') },
 ];
 
 export const GameElements = {
     components: { Switch, InitialsPicker },
-    setup: () => ({ game, effects, ROWS, account }),
+    // Two groups (docs/appearance-review.md): the look (what the screen looks like, which Game effects leaves alone),
+    // then the arcade moments, Game effects first as the group's own switch.
+    setup: () => ({ game, effects, account, LOOKS, LOOK_ROWS: ROWS.filter((r) => LOOKS.includes(r.name)), MOMENT_ROWS: ROWS.filter((r) => !LOOKS.includes(r.name)) }),
     data: () => ({ naming: false, saving: false }),
     template: `
-        <div v-if="game()" class="space-y-2" data-game-elements>
-            <p class="px-1 text-sm text-muted">{{ t('game.settings.intro') }}</p>
-            <div class="card divide-y divide-line overflow-hidden">
-                <div v-for="row in ROWS" :key="row.name" class="py-3 pe-3 ps-5" :data-game-effect="row.name">
+        <div v-if="game()" class="space-y-5" data-game-elements>
+          <div class="space-y-2">
+            <p class="label px-1">{{ t('game.settings.lookTitle') }}</p>
+            <div class="card divide-y divide-line overflow-hidden" data-game-look>
+                <div v-for="row in LOOK_ROWS" :key="row.name" class="py-3 pe-3 ps-5" :data-game-effect="row.name">
                     <Switch :on="effects[row.name]" :label="t(row.label)" :hint="t(row.hint)" @change="(on) => (effects[row.name] = on)" />
+                </div>
+            </div>
+          </div>
+          <div class="space-y-2">
+            <p class="label px-1">{{ t('game.settings.momentsTitle') }}</p>
+            <p class="px-1 text-sm text-muted">{{ t('game.settings.intro') }}</p>
+            <div class="card divide-y divide-line overflow-hidden" data-game-moments>
+                <div v-for="row in MOMENT_ROWS" :key="row.name" class="py-3 pe-3 ps-5" :class="row.name === 'all' ? 'bg-raised/50' : ''" :data-game-effect="row.name">
+                    <Switch :on="effects[row.name]" :label="t(row.label)" :hint="t(row.hint)" :disabled="!effects.all && row.name !== 'all'" @change="(on) => (effects[row.name] = on)" />
                 </div>
                 <!-- Initials on the boards (docs/game-server-spec.md, section 2): signed in; under 18, always -->
                 <template v-if="account.me">
@@ -48,6 +63,7 @@ export const GameElements = {
                     </div>
                 </template>
             </div>
+          </div>
             <InitialsPicker v-if="naming" @close="naming = false" />
         </div>`,
     methods: {

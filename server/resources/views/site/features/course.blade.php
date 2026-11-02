@@ -40,6 +40,8 @@
         </div>
     </section>
 
+    @include('site._demo-section')
+
     <section class="s-wrap s-sec cp-first" aria-labelledby="outcomes-h">
         <h2 id="outcomes-h" class="s-kick">{{ $page['titles']['outcomes'] }}</h2>
         <ol class="cp-outcomes">

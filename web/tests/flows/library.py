@@ -18,7 +18,7 @@ PLAY = "document.querySelector('[role=dialog] [data-song-play]')"
 
 def journey(f):
     f.go("/?api=mock&scenario=&as=member", "document.querySelector('#home-songs [data-song-card]')")
-    f.run("localStorage.setItem('stackapella.installDismissed', '1');")
+    f.run("localStorage.setItem('stackapella.asks', JSON.stringify({ stopped: ['install'] }));")
     clear_projects(f)
     light_first(f)
     if f.size == "desktop":

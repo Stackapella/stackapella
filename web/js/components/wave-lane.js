@@ -96,6 +96,16 @@ export function measuredLine(part, total) {
     return { key: even === 'uneven' ? LINE.unevenWave : LINE[even], values: { rate: rate(m.hz), cents: width(m.width) } };
 }
 
+/**
+ * The notes a scored take widens the range with: a course scorer's own steady notes when it gives
+ * them (Range and registers' span; learn.js clamps those to a tone), else the step's note; none when
+ * nothing was heard.
+ */
+export function sungOf(score, pitch) {
+    if (score.percent === null) return [];
+    return score.sung?.length ? score.sung : [pitch];
+}
+
 export const WaveLane = {
     components: { HeadphonesDialog, Icon, KeyControl },
     props: {
@@ -128,8 +138,9 @@ export const WaveLane = {
                 <div class="flex items-center gap-3">
                     <button v-if="take" type="button" class="grid size-11 shrink-0 place-items-center rounded-full glass-bubble-solid" :aria-label="playing ? t('studio.stop') : t('wave.hearYourself')" @click="listenBack"><Icon :name="playing ? 'stop' : 'play'" :size="18" /></button>
                     <div class="min-w-0">
-                        <p class="font-bold text-cream">{{ result.percent === null ? t('course.notHeard') : t('wave.hearYourself') }}</p>
-                        <p v-if="line" class="text-sm text-cream" data-wave-line>{{ t(line.key, line.values) }}</p>
+                        <!-- A registered scorer's own line, unheard, says what to try (Humming's "try it on a hum"); the lane's own measures keep "not heard". -->
+                        <p class="font-bold text-cream" :data-wave-unheard="result.percent === null && result.ownLine ? '' : null">{{ result.percent === null ? (result.ownLine ? t(result.ownLine.key, result.ownLine.values) : t('course.notHeard')) : t('wave.hearYourself') }}</p>
+                        <p v-if="line && !(result.percent === null && result.ownLine)" class="text-sm text-cream" data-wave-line>{{ t(line.key, line.values) }}</p>
                     </div>
                 </div>
                 <p v-if="result.tip && TIP[result.tip]" class="text-sm text-muted" data-wave-tip>{{ t(TIP[result.tip]) }}</p>
@@ -263,7 +274,7 @@ export const WaveLane = {
             // An earlier step's take beneath this one (your own voice to sing with); never through a speaker while you sing.
             const under = this.exercise.under ? this.earlier?.takes?.[this.exercise.under.step] : null;
             if (under && !(mode === 'sing' && this.speaker)) engine.setPart('ex:under', under.samples, under.sampleRate, { volume: 0.7, pan: 0, audible: true, offsetSeconds: 0 });
-            if (mode === 'listen') engine.setPart('ex:guide', renderPart(guideNotes(this.plan, this.pitch), { bpm, sampleRate: sr }), sr, { volume: 0.9, pan: 0, audible: true, offsetSeconds: 0 });
+            if (mode === 'listen') engine.setPart('ex:guide', renderPart(guideNotes(this.plan, this.pitch), { bpm, sampleRate: sr, human: 'guide' }), sr, { volume: 0.9, pan: 0, audible: true, offsetSeconds: 0 });
             this.result = mode === 'sing' ? null : this.result;
             this.take = mode === 'sing' ? null : this.take;
             this.trace = [];
@@ -360,6 +371,7 @@ export const WaveLane = {
                     score.percent = own.percent;
                     score.tip = own.tip ?? score.tip;
                     score.personal = own.personal ?? null; // a value the course keeps (a flip note, a baseline)
+                    score.sung = own.sung ?? null; // steady notes that widen the range the app keeps (Range and registers' span): see sungOf
                     score.ownLine = own.line ?? null; // the course's own words for what it measured
                     score.label = own.label ?? null; // and its name for the percent (the result's heading)
                 }
@@ -375,7 +387,7 @@ export const WaveLane = {
                 }
                 this.result = score;
                 await this.keepOrCompare(score);
-                this.$emit('done', { percent: score.percent, tip: score.tip, measure: score.measure, parts: score.parts, sung: score.percent === null ? [] : [this.pitch], insights: [], take: this.take, personal: score.personal ?? null, line: score.ownLine ?? null, label: score.label ?? null, minStars: this.exercise.generous && score.percent !== null ? 2 : null });
+                this.$emit('done', { percent: score.percent, tip: score.tip, measure: score.measure, parts: score.parts, sung: sungOf(score, this.pitch), insights: [], take: this.take, personal: score.personal ?? null, line: score.ownLine ?? null, label: score.label ?? null, minStars: this.exercise.generous && score.percent !== null ? 2 : null });
             } catch (error) {
                 console.error('Scoring failed', error);
                 this.$emit('done', { percent: null, sung: [] });

@@ -44,7 +44,7 @@ final class RegisterWithPassword
     /**
      * @param  array{month: int, year: int}  $birth  when they were born (Age)
      */
-    public function handle(string $name, string $email, string $password, ?string $ref, string $locale, ?string $ip, array $birth, ?string $invite = null, ?string $early = null, ?string $country = null): void
+    public function handle(string $name, string $email, string $password, ?string $ref, string $locale, ?string $ip, array $birth, ?string $invite = null, ?string $early = null, ?string $country = null, ?string $browserHash = null): void
     {
         $email = strtolower(trim($email));
         $existing = User::query()->where('email', $email)->first();
@@ -95,7 +95,8 @@ final class RegisterWithPassword
         app(RecordCounts::class)->handle([['kind' => 'sign_up']], true, $country);
 
         if ($this->limits->allows('verification-email', $email) && ! EmailSuppression::isSuppressed($email)) {
-            Mail::to($email)->send(new VerifyEmailAddress($this->tokens->issue($user, EmailToken::VERIFY, $email, 24), $user->name));
+            // Bound to the browser or app that signed up (SignUpBrowser).
+            Mail::to($email)->send(new VerifyEmailAddress($this->tokens->issue($user, EmailToken::VERIFY, $email, 24, browserHash: $browserHash), $user->name));
         }
     }
 }

@@ -26,8 +26,9 @@ def t(f, key, values=None):
 def progress(f, lessons, xp):
     """Puts course progress on the device, as if earned."""
     starred = {lesson: {"stars": 2, "bestPercent": 80, "at": 0} for lesson in lessons}
-    f.run(f"""const {{ emptyProgress }} = await import('/js/course.js'); const db = await import('/js/db.js');
-        const day = new Date().toISOString().slice(0, 10);
+    # Today in the singer's own time zone, as the app counts it (a UTC date is yesterday after local midnight).
+    f.run(f"""const {{ emptyProgress, dayOf }} = await import('/js/course.js'); const db = await import('/js/db.js');
+        const day = dayOf();
         await db.put('learning', {{ ...emptyProgress(), startedAt: Date.now(), lessons: {json.dumps(starred)}, xp: {{ total: {xp}, days: {{}} }}, practice: {{ [day]: 600 }} }}, 'progress');""")
 
 

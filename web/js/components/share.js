@@ -29,6 +29,7 @@ const REFUSED = {
     paused: tk('share.refused.paused'),
     rate_limited: tk('share.refused.limit'),
     harmony_failed: tk('share.refused.failed'),
+    imported_private: tk('share.refused.imported'),
     harmony_unavailable: tk('share.refused.unavailable'),
     offline: tk('common.offline'),
     slow: tk('share.refused.slow'),
@@ -53,7 +54,7 @@ export const ShareSheet = {
 
             <form v-else-if="stage === 'choose'" class="space-y-5" data-share @submit.prevent="share">
                 <!-- What they'll see: the title (edit it in place), the parts, the length -->
-                <div class="flex items-center gap-4 rounded-[18px] bg-(--fill) p-4">
+                <div class="flex items-center gap-4 rounded-tile bg-(--fill) p-4">
                     <span class="flex size-14 shrink-0 flex-col justify-center gap-1 rounded-xl bg-raised px-2.5" aria-hidden="true"><span v-for="(p, i) in shownParts" :key="i" class="block h-1 rounded-full" :style="{ background: p.color, width: (90 - i * 15) + '%' }"></span></span>
                     <div class="min-w-0 flex-1">
                         <label class="sr-only" for="share-title">{{ t('share.name') }}</label>
@@ -72,7 +73,7 @@ export const ShareSheet = {
                     </div>
                 </fieldset>
                 <Switch :on="polish" :label="t('polish.name')" :hint="t('share.polishedHint')" class="rounded-2xl border border-line py-2 pe-2 ps-4" @change="polish = $event" />
-                <p class="flex gap-2.5 text-sm text-muted"><Icon name="info" :size="18" class="mt-0.5 shrink-0" />{{ t('share.anyone') }}</p>
+                <p data-ui="facts" class="flex gap-2.5 text-sm text-muted"><Icon name="info" :size="18" class="mt-0.5 shrink-0" />{{ t('share.anyone') }}</p>
                 <div v-if="before" class="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-dashed border-line px-4 py-3 text-sm text-cream" data-shared-before>
                     <span>{{ t('share.sharedBefore', { when: timeAgo(before.createdAt) }) }}</span>
                     <button type="button" class="btn-secondary btn-sm" @click="useBefore">{{ t('share.useThat') }}</button>

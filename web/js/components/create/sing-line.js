@@ -100,7 +100,7 @@ export const SingStep = {
                         <!-- Hillel: "offer to play the key note first". Held two seconds in the guide's voice; never a step you must take. -->
                         <button v-if="draft.octave !== null" type="button" class="btn-ghost btn-sm" :disabled="busy" data-key-note @click="playKeyNote"><Icon name="note" :size="16" /> {{ t('create.sing.keyNote', { note: keyNote.name }) }}</button>
                     </template>
-                    <p class="ms-auto flex flex-wrap items-center gap-2 text-sm text-muted">
+                    <p data-ui="facts" class="ms-auto flex flex-wrap items-center gap-2 text-sm text-muted">
                         <span>{{ draft.octave === null ? t('create.sing.chooseVoice') : t('create.sing.tip', { bpm: draft.template.tempo }) }}</span>
                         <button type="button" class="btn-ghost btn-sm" :disabled="busy" @click="$emit('tempo')">{{ t('create.sing.changeTempo') }}</button>
                     </p>

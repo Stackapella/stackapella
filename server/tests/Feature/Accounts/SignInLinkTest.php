@@ -48,7 +48,13 @@ final class SignInLinkTest extends TestCase
         $this->assertFalse(User::query()->where('email', 'ana@example.com')->exists());
         $this->assertSame(hash('sha256', $token), SignInLink::query()->sole()->token_hash);
 
-        $opened = $this->postJson('/api/auth/link/open', ['token' => $token]);
+        // Opened in another browser than the one that asked: "Sign in as ana@example.com?" first, and
+        // the link isn't used up by asking (Hillel: "Yes, add the confirm screen").
+        $asked = $this->postJson('/api/auth/link/open', ['token' => $token]);
+        $this->assertMatchesContract($asked, 'auth.link.open', 409);
+        $asked->assertJsonPath('code', 'confirm_sign_in')->assertJsonPath('email', 'ana@example.com');
+        $this->assertGuest();
+        $opened = $this->postJson('/api/auth/link/open', ['token' => $token, 'confirm' => true]);
         $this->assertMatchesContract($opened, 'auth.link.open', 200);
         $opened->assertJsonPath('created', true)->assertJsonPath('intended', '/choir/abc123')->assertJsonPath('needsProfile', true)
             ->assertJsonPath('data.email', 'ana@example.com')->assertJsonPath('data.emailVerified', true);
@@ -59,6 +65,23 @@ final class SignInLinkTest extends TestCase
         $this->postJson('/api/auth/link/open', ['token' => $token])->assertJsonPath('code', 'link_used');
     }
 
+    public function test_a_link_opens_straight_away_only_in_the_browser_that_asked_and_with_nobody_else_signed_in(): void
+    {
+        User::factory()->create(['email' => 'kim@example.com']);
+        $sent = $this->postJson('/api/auth/link', ['email' => 'kim@example.com'])->assertStatus(202);
+        $cookie = (string) $sent->getCookie('sa_link')?->getValue();
+        $token = $this->tokenSentTo('kim@example.com');
+
+        // Someone else signed in here: asked, even in the same browser.
+        $this->actingAs(User::factory()->create());
+        $this->withCredentials()->withCookie('sa_link', $cookie)->postJson('/api/auth/link/open', ['token' => $token])->assertStatus(409)->assertJsonPath('code', 'confirm_sign_in');
+
+        // Back in the browser that asked, nobody signed in: straight in.
+        auth()->forgetGuards();
+        $this->app['auth']->guard('web')->logout();
+        $this->withCredentials()->withCookie('sa_link', $cookie)->postJson('/api/auth/link/open', ['token' => $token])->assertOk();
+    }
+
     public function test_an_existing_account_is_signed_in_and_the_answer_never_says_which(): void
     {
         $kim = User::factory()->create(['email' => 'kim@example.com', 'name' => 'Kim', 'birth_month' => 5, 'birth_year' => 1990]);
@@ -67,7 +90,7 @@ final class SignInLinkTest extends TestCase
         $this->assertSame($known->json(), $unknown->json());
         $this->assertSame($known->status(), $unknown->status());
 
-        $opened = $this->postJson('/api/auth/link/open', ['token' => $this->tokenSentTo('kim@example.com')]);
+        $opened = $this->postJson('/api/auth/link/open', ['token' => $this->tokenSentTo('kim@example.com'), 'confirm' => true]);
         // Another site is never where it goes.
         $opened->assertOk()->assertJsonPath('created', false)->assertJsonPath('intended', '/')->assertJsonPath('needsProfile', false);
         $this->assertAuthenticatedAs($kim);
@@ -112,7 +135,7 @@ final class SignInLinkTest extends TestCase
         // Later (the address's limits count the verification email too).
         $this->travel(5)->minutes();
         $this->postJson('/api/auth/link', ['email' => 'ana@example.com'])->assertStatus(202);
-        $opened = $this->postJson('/api/auth/link/open', ['token' => $this->tokenSentTo('ana@example.com')]);
+        $opened = $this->postJson('/api/auth/link/open', ['token' => $this->tokenSentTo('ana@example.com'), 'confirm' => true]);
         $opened->assertOk()->assertJsonPath('created', false)->assertJsonPath('needsProfile', true)->assertJsonPath('data.name', '')->assertJsonPath('data.birthGiven', false);
 
         // Their password no longer opens it.
@@ -139,7 +162,7 @@ final class SignInLinkTest extends TestCase
         $token = $this->tokenSentTo('ada@example.com');
         $ada->forceFill(['suspended_at' => now()])->save();
 
-        $this->assertMatchesContract($this->postJson('/api/auth/link/open', ['token' => $token]), 'auth.link.open', 403);
+        $this->assertMatchesContract($this->postJson('/api/auth/link/open', ['token' => $token, 'confirm' => true]), 'auth.link.open', 403);
         $this->assertGuest();
     }
 }

@@ -21,14 +21,14 @@ use Illuminate\Mail\Mailables\Headers;
 final class MudeoInvite extends Mailable
 {
     /** The email's words, in order (lang/en/mudeo.php, "mail"). */
-    public const PARAGRAPHS = ['paragraph_1', 'paragraph_2', 'paragraph_3', 'paragraph_4'];
+    public const PARAGRAPHS = ['paragraph_1', 'paragraph_2', 'paragraph_3'];
 
-    public const POINTS = ['point_1', 'point_2', 'point_3', 'point_4', 'point_5', 'point_6'];
+    public const POINTS = ['point_1', 'point_2', 'point_3', 'point_4'];
 
     /** After the points, before the invitation and its link. */
     public const BEFORE_INVITE = ['after_0'];
 
-    public const AFTER = ['after_1', 'after_3'];
+    public const AFTER = ['after_1'];
 
     /** Under a divider at the end: the P.S. */
     public const POSTSCRIPT = ['after_2'];

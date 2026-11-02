@@ -34,7 +34,9 @@ return [
     |
     */
 
-    'lifetime' => (int) env('SESSION_LIFETIME', 120),
+    // Never shorter than the admin's idle limit (config/admin.php), whatever the host sets: the
+    // admin session lives in this one, so a shorter one would end it early.
+    'lifetime' => max((int) env('SESSION_LIFETIME', 120), (int) (env('ADMIN_IDLE_TIMEOUT') ?: 480)),
 
     'expire_on_close' => env('SESSION_EXPIRE_ON_CLOSE', false),
 

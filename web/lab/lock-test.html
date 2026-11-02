@@ -1,0 +1,206 @@
+<!doctype html>
+<!--
+  The practice playlist's iPhone test (docs/practice-playlist-plan.md, slice 1's spike): does a set of
+  songs keep playing with the phone locked, does the next song start by itself, can a song render while
+  locked, and which lock-screen buttons show and work. Unlinked, never indexed, never cached by the
+  service worker; it sends nothing anywhere (no counts, no data, no account). Remove it after the test.
+
+  The songs are rendered offline (OfflineAudioContext, so every note is placed on the render's own
+  clock) and played in order by one media element; between songs, its `ended` event starts the next.
+  No timers schedule any sound.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Lock screen test</title>
+<style>
+    :root { color-scheme: light dark; --ink: #f4efe6; --muted: #b9b2a6; --bg: #141210; --panel: #221f1b; --good: #6ad08f; --bad: #ff8a7a; }
+    @media (prefers-color-scheme: light) { :root { --ink: #1d1a16; --muted: #5d564c; --bg: #faf6ef; --panel: #efe8dc; --good: #16733a; --bad: #b3261e; } }
+    body { margin: 0; padding: 20px 16px 40px; background: var(--bg); color: var(--ink); font: 17px/1.45 -apple-system, system-ui, sans-serif; }
+    h1 { font-size: 24px; margin: 0 0 4px; }
+    ol { padding-inline-start: 22px; margin: 8px 0 16px; color: var(--muted); }
+    button { font: inherit; font-weight: 700; padding: 14px 22px; border-radius: 999px; border: 0; background: var(--ink); color: var(--bg); min-height: 48px; }
+    button:disabled { opacity: 0.5; }
+    .card { background: var(--panel); border-radius: 16px; padding: 14px 16px; margin-top: 16px; }
+    .answers p { margin: 4px 0; }
+    .yes { color: var(--good); font-weight: 700; }
+    .no { color: var(--bad); font-weight: 700; }
+    .wait { color: var(--muted); }
+    #log { font: 14px/1.5 ui-monospace, Menlo, monospace; white-space: pre-wrap; margin: 0; }
+</style>
+</head>
+<body>
+<h1>Lock screen test</h1>
+<p>For the practice playlist: about 70 seconds.</p>
+<ol>
+    <li>Turn the sound up, then tap Start.</li>
+    <li>When Song 1 plays, lock the phone.</li>
+    <li>On the lock screen, try the buttons: pause, play, next, back, and drag the bar.</li>
+    <li>Wait until Song 3 has played, unlock, and screenshot this page (scroll for the rest).</li>
+</ol>
+<button id="start" type="button">Start</button>
+<audio id="player" preload="auto"></audio>
+
+<div class="card answers" aria-live="polite">
+    <p>Where: <b id="where"></b></p>
+    <p>Kept playing while locked: <span id="a-locked" class="wait">not yet</span></p>
+    <p>Next song started by itself while locked: <span id="a-next" class="wait">not yet</span></p>
+    <p>A song rendered while locked: <span id="a-render" class="wait">not yet</span></p>
+    <p>Lock-screen buttons used: <span id="a-buttons" class="wait">none yet</span></p>
+</div>
+<div class="card"><pre id="log"></pre></div>
+
+<script>
+const audio = document.getElementById('player');
+const SONGS = 3;
+const SECONDS = 20;
+const tracks = [];
+const used = new Set();
+let index = 0;
+let lockedAt = null;
+const started = Date.now();
+
+const standalone = matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+document.getElementById('where').textContent = `${standalone ? 'the installed app' : 'the browser'}, ${navigator.userAgent.match(/OS (\d+[_\d]*)/)?.[1]?.replace(/_/g, '.') ?? navigator.platform}`;
+
+const clock = () => new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+const locked = () => document.visibilityState === 'hidden';
+function say(words) {
+    const log = document.getElementById('log');
+    log.textContent = `${clock()}  ${words}${locked() ? '  (locked)' : ''}\n` + log.textContent;
+}
+function answer(id, yes, words) {
+    const el = document.getElementById(id);
+    el.className = yes ? 'yes' : 'no';
+    el.textContent = words;
+}
+
+/** A WAV file from a rendered buffer (mono, 16 bit). */
+function wav(buffer) {
+    const data = buffer.getChannelData(0);
+    const view = new DataView(new ArrayBuffer(44 + data.length * 2));
+    const text = (at, s) => [...s].forEach((c, i) => view.setUint8(at + i, c.charCodeAt(0)));
+    text(0, 'RIFF'); view.setUint32(4, 36 + data.length * 2, true); text(8, 'WAVE'); text(12, 'fmt ');
+    view.setUint32(16, 16, true); view.setUint16(20, 1, true); view.setUint16(22, 1, true);
+    view.setUint32(24, buffer.sampleRate, true); view.setUint32(28, buffer.sampleRate * 2, true);
+    view.setUint16(32, 2, true); view.setUint16(34, 16, true); text(36, 'data'); view.setUint32(40, data.length * 2, true);
+    data.forEach((v, i) => view.setInt16(44 + i * 2, Math.max(-1, Math.min(1, v)) * 0x7fff, true));
+    return new Blob([view], { type: 'audio/wav' });
+}
+
+/** One song: a short tune, each a little higher than the last, rendered offline. */
+async function render(song) {
+    const began = performance.now();
+    const whileLocked = locked();
+    const rate = 22050;
+    const ctx = new OfflineAudioContext(1, SECONDS * rate, rate);
+    [0, 2, 4, 5, 7, 5, 4, 2].forEach((step, i) => {
+        const tone = ctx.createOscillator();
+        const level = ctx.createGain();
+        tone.frequency.value = 220 * 2 ** ((step + song * 3) / 12);
+        level.gain.setValueAtTime(0.2, i * 2.5);
+        level.gain.linearRampToValueAtTime(0, i * 2.5 + 2.3);
+        tone.connect(level).connect(ctx.destination);
+        tone.start(i * 2.5);
+        tone.stop(i * 2.5 + 2.4);
+    });
+    const url = URL.createObjectURL(wav(await ctx.startRendering()));
+    const ms = Math.round(performance.now() - began);
+    say(`Song ${song + 1} ready (rendered in ${ms} ms)`);
+    if (whileLocked) answer('a-render', true, `yes, Song ${song + 1} in ${ms} ms`);
+    return url;
+}
+
+function play(i) {
+    index = i;
+    audio.src = tracks[i];
+    audio.play().catch((error) => say(`Song ${i + 1} would not start: ${error.name}`));
+    navigator.mediaSession && (navigator.mediaSession.metadata = new MediaMetadata({ title: `Song ${i + 1}`, artist: 'Alto · Lock screen test', album: 'Stackapella' }));
+    // The last song renders only now: if the phone is locked, can it?
+    if (i === SONGS - 2 && !tracks[SONGS - 1]) {
+        const askedLocked = locked();
+        render(SONGS - 1).then((url) => (tracks[SONGS - 1] = url), (error) => {
+            say(`Song ${SONGS} could not render: ${error.name}`);
+            if (askedLocked) answer('a-render', false, 'no, it failed while locked');
+        });
+    }
+}
+
+audio.addEventListener('playing', () => {
+    say(`Song ${index + 1} playing`);
+    if (index > 0 && locked()) answer('a-next', true, `yes, Song ${index + 1} at ${clock()}`);
+});
+audio.addEventListener('pause', () => !audio.ended && say(`Song ${index + 1} paused at ${audio.currentTime.toFixed(0)} s`));
+audio.addEventListener('ended', () => {
+    say(`Song ${index + 1} finished`);
+    if (lockedAt && locked()) answer('a-locked', true, `yes, Song ${index + 1} played to its end`);
+    if (index + 1 >= SONGS) return say('The set is done');
+    if (tracks[index + 1]) play(index + 1);
+    else {
+        say(`Song ${index + 2} wasn't ready`);
+        if (locked()) answer('a-next', false, `no, Song ${index + 2} wasn't ready`);
+    }
+});
+audio.addEventListener('error', () => say(`The player stopped: ${audio.error?.message || audio.error?.code}`));
+document.addEventListener('visibilitychange', () => {
+    if (locked()) {
+        lockedAt = Date.now();
+        say(`Locked (or left), Song ${index + 1} at ${audio.currentTime.toFixed(0)} s, ${audio.paused ? 'paused' : 'playing'}`);
+    } else {
+        say(`Back, Song ${index + 1} at ${audio.currentTime.toFixed(0)} s, ${audio.paused ? 'paused' : 'playing'}`);
+        if (lockedAt && document.getElementById('a-locked').className === 'wait') answer('a-locked', false, 'no: nothing finished while locked');
+    }
+});
+
+let last = -1;
+audio.addEventListener('timeupdate', () => {
+    try {
+        if (audio.duration) navigator.mediaSession?.setPositionState({ duration: audio.duration, position: Math.min(audio.currentTime, audio.duration), playbackRate: 1 });
+    } catch (error) {
+        if (last < 0) say(`The lock screen's bar can't be set: ${error.name}`);
+    }
+    last = audio.currentTime;
+});
+
+// The lock screen's buttons: each one says it was pressed, then does its job.
+const BUTTONS = {
+    play: ['Play', () => audio.play()],
+    pause: ['Pause', () => audio.pause()],
+    previoustrack: ['Back', () => play(Math.max(0, index - 1))],
+    nexttrack: ['Next', () => (tracks[index + 1] ? play(index + 1) : say('No next song yet'))],
+    seekto: ['Dragged the bar', (details) => (audio.currentTime = details.seekTime)],
+    seekbackward: ['Back 10 s', () => (audio.currentTime = Math.max(0, audio.currentTime - 10))],
+    seekforward: ['Ahead 10 s', () => (audio.currentTime = Math.min(audio.duration || SECONDS, audio.currentTime + 10))],
+};
+if ('mediaSession' in navigator) {
+    for (const [action, [name, run]] of Object.entries(BUTTONS)) {
+        try {
+            navigator.mediaSession.setActionHandler(action, (details) => {
+                say(`Lock screen: ${name}`);
+                used.add(name);
+                answer('a-buttons', true, [...used].join(', '));
+                run(details);
+            });
+        } catch {
+            say(`This phone has no "${name}" button for web pages`);
+        }
+    }
+} else {
+    say('This browser has no lock-screen controls for web pages (no Media Session)');
+}
+
+document.getElementById('start').addEventListener('click', async (event) => {
+    event.target.disabled = true;
+    audio.src = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=';
+    audio.play().catch(() => {}); // the tap lets this player make sound from now on
+    say('Getting the songs ready');
+    tracks[0] = await render(0);
+    tracks[1] = await render(1);
+    play(0);
+});
+say(`Opened (lock-screen controls: ${'mediaSession' in navigator ? 'yes' : 'no'})`);
+</script>
+</body>
+</html>

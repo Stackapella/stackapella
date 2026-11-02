@@ -48,7 +48,7 @@ final class SitePages
     }
 
     /** Who it's for. */
-    public const FOR = ['beginners', 'choir-singers', 'choir-directors', 'a-cappella', 'songwriters', 'instrumentalists', 'friends-and-family', 'coaches'];
+    public const FOR = ['beginners', 'choir-singers', 'choir-directors', 'worship-teams', 'music-teachers', 'voice-teachers', 'a-cappella', 'songwriters', 'instrumentalists', 'friends-and-family', 'coaches'];
 
     /** The feature pages that play a song's line in the mixer, as the landing's hero. */
     public const WITH_MIXER = ['learn-a-part', 'studio'];
@@ -275,7 +275,7 @@ final class SitePages
     public const WIDE_TILES = ['learn-a-part', 'choirs'];
 
     /** Each "for" page's icon in the "Who it's for" band. */
-    private const FOR_ICONS = ['beginners' => 'spark', 'choir-singers' => 'book', 'choir-directors' => 'users', 'a-cappella' => 'mic', 'songwriters' => 'hum', 'instrumentalists' => 'slot', 'friends-and-family' => 'link', 'coaches' => 'coach'];
+    private const FOR_ICONS = ['beginners' => 'spark', 'choir-singers' => 'book', 'choir-directors' => 'users', 'worship-teams' => 'sound', 'music-teachers' => 'book', 'voice-teachers' => 'mic', 'a-cappella' => 'mic', 'songwriters' => 'hum', 'instrumentalists' => 'slot', 'friends-and-family' => 'link', 'coaches' => 'coach'];
 
     /**
      * The "Who it's for" band: each "for" page's name, one line, address and icon.

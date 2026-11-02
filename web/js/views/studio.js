@@ -1,5 +1,5 @@
 import { toRaw, toRefs } from 'vue';
-import { styleOf } from '../band.js';
+import { styleOf } from '../band-style.js';
 import { audio, closeMic, engine, unlock } from '../audio.js';
 import { midiName } from '../dsp.js';
 import { formatList, formatNumber, t, timeAgo, tk } from '../i18n.js';
@@ -24,6 +24,7 @@ import { keptKey, rememberSettings, saveProject, shownTitle } from '../stores/pr
 import { api } from '../api.js';
 import * as db from '../db.js';
 import { syncNow } from '../stores/cloud.js';
+import { loadMine, mine } from '../stores/templates.js';
 import { staysOnDevice } from '../sync.js';
 import { toast, Waveform } from '../components/ui.js';
 import { VoiceNote } from '../components/voice-note.js';
@@ -36,7 +37,7 @@ import { ShareSheet } from '../components/share.js';
 import { CountIn } from '../components/count-in.js';
 import { TogetherSheet } from '../components/together.js';
 import { paint } from '../colors.js';
-import { AddVoice, GhostRow, SetupChoices, StudioNotice, VoiceRow } from '../components/studio.js';
+import { AddVoice, GhostRow, PartsProgress, SetupChoices, StudioNotice, VoiceRow } from '../components/studio.js';
 import { MicLevel } from '../components/sing/frame.js';
 import { session as tabStorage } from '../storage.js';
 import { account } from '../stores/account.js';
@@ -64,7 +65,7 @@ const PAN_SIDE = { left: tk('studio.row.panLeft'), right: tk('studio.row.panRigh
 
 export const StudioView = {
     mixins: [RecordSetup],
-    components: { CountIn, LyricsLane, Icon, Waveform, ProjectDialog, HeadphonesDialog, TimingDialog, ExportDialog, PartDialog, MicDialog, RangeDialog, NotesView, BetaBanner, BetaReport, SoundCheck, TellHillel, VoiceNote, TrimSheet, LockedBanner, ShareSheet, TogetherSheet, AddVoice, GhostRow, StudioNotice, SetupChoices, VoiceRow, MicLevel },
+    components: { CountIn, LyricsLane, Icon, Waveform, ProjectDialog, HeadphonesDialog, TimingDialog, ExportDialog, PartDialog, MicDialog, RangeDialog, NotesView, BetaBanner, BetaReport, SoundCheck, TellHillel, VoiceNote, TrimSheet, LockedBanner, ShareSheet, TogetherSheet, AddVoice, GhostRow, StudioNotice, SetupChoices, VoiceRow, MicLevel, PartsProgress },
     props: { id: { type: String, required: true } },
     setup: () => ({ ...toRefs(session), sessionStore, audio, defaultPartName, formatTime, shownTitle, PART_COLORS, roundButton, hasTake, GUIDE_PEAKS_RATE, FRAMES_PER_PEAK, togglePlay, templatePart, prefs, betaBar, count }),
     data: () => ({
@@ -107,19 +108,20 @@ export const StudioView = {
                         <!-- The mic (53.png): a live dot, green while it's open, and the device's name. -->
                         <button type="button" class="hidden max-w-64 items-center gap-2 rounded-full border py-2 pe-4 ps-3 text-sm hover:bg-raised md:flex" :class="audio.mic && (audio.latencyFrames === null || audio.latencyEstimated) ? 'border-warn/60 text-cream' : 'border-edge text-cream'" :title="audio.mic ? t('studio.chooseMic') : t('studio.mic.idle')" data-mic-button @click="openAudioDialog('mic')">
                             <span class="size-2 shrink-0 rounded-full" :class="audio.mic ? 'bg-good shadow-[0_0_8px_var(--color-good)]' : 'bg-line'" aria-hidden="true"></span><span class="truncate" translate="no">{{ micLabel }}</span><span v-if="audio.mic && (audio.latencyFrames === null || audio.latencyEstimated)" class="shrink-0 text-warn">· {{ t('studio.checkTiming') }}</span><span v-else-if="audio.mic" class="shrink-0 text-muted">· {{ t('studio.mic.live') }}</span>
+                            <MicLevel v-if="audio.mic" class="ms-1 shrink-0 text-good" />
                         </button>
-                        <button v-if="canTogether" type="button" class="btn-secondary btn-sm hidden items-center gap-2 lg:flex" :class="people.length > 1 ? 'pe-3 ps-1' : ''" @click="dialog = 'together'">
+                        <button v-if="canTogether" type="button" class="btn-ghost btn-sm hidden items-center gap-2 lg:flex" :class="people.length > 1 ? 'pe-3 ps-1' : ''" @click="dialog = 'together'">
                             <span v-if="people.length > 1" class="grid size-7 place-items-center rounded-full bg-part-1 text-xs font-bold text-part-text-1" aria-hidden="true">{{ initial }}</span>{{ people.length > 1 ? togetherLabel : t('studio.inviteSingers') }}
                         </button>
-                        <button v-if="!project.beta && parts.some(hasTake)" type="button" class="btn-secondary btn-sm hidden md:flex" @click="dialog = 'share'">{{ t('share.title') }}</button>
-                        <button v-if="!project.beta" type="button" class="btn-secondary btn-sm hidden items-center gap-1.5 md:flex" :disabled="!parts.length" @click="dialog = 'export'"><Icon name="download" :size="16" /> {{ t('studio.export') }}</button>
+                        <button v-if="!project.beta && !fromSheetMusic && parts.some(hasTake)" type="button" class="btn-ghost btn-sm hidden md:flex" @click="dialog = 'share'">{{ t('share.title') }}</button>
+                        <button v-if="!project.beta" type="button" class="btn-ghost btn-sm hidden items-center gap-1.5 md:flex" :disabled="!parts.length" @click="dialog = 'export'"><Icon name="download" :size="16" /> {{ t('studio.export') }}</button>
                         <button v-if="!project.shared" type="button" class="hidden size-10 place-items-center rounded-full glass-bubble text-cream md:grid" :aria-label="t('studio.menu.settings')" :title="t('studio.menu.settings')" @click="dialog = 'settings'"><Icon name="sliders" :size="18" /></button>
-                        <button v-if="isTemplate && !project.beta" type="button" class="btn-primary btn-sm flex items-center gap-1.5" @click="navigate('/p/' + id + '/sing')"><Icon name="note" :size="16" /> {{ t('sing.open') }}</button>
+                        <button v-if="isTemplate && !project.beta" type="button" class="btn-secondary btn-sm flex items-center gap-1.5" @click="navigate('/p/' + id + '/sing')"><Icon name="note" :size="16" /> {{ t('sing.open') }}</button>
                         <details class="relative md:hidden">
                             <summary class="list-none rounded-full border border-line p-2 text-cream hover:bg-raised" :aria-label="t('common.more')"><Icon name="more" /></summary>
                             <div class="absolute end-0 z-30 mt-2 w-60 rounded-2xl border border-line bg-raised p-1.5 shadow-xl">
                                 <button v-if="isTemplate && !project.beta" type="button" class="block w-full rounded-xl px-3 py-2.5 text-start text-cream hover:bg-panel" @click="menu('sing', $event)">{{ t('studio.menu.learn') }}</button>
-                                <button v-if="!project.beta && parts.some(hasTake)" type="button" class="block w-full rounded-xl px-3 py-2.5 text-start text-cream hover:bg-panel" @click="menu('share', $event)">{{ t('share.title') }}</button>
+                                <button v-if="!project.beta && !fromSheetMusic && parts.some(hasTake)" type="button" class="block w-full rounded-xl px-3 py-2.5 text-start text-cream hover:bg-panel" @click="menu('share', $event)">{{ t('share.title') }}</button>
                                 <button type="button" class="block w-full rounded-xl px-3 py-2.5 text-start text-cream hover:bg-panel disabled:opacity-40" :disabled="!parts.length" @click="menu('export', $event)">{{ t('studio.export') }}</button>
                                 <button v-if="!project.shared" type="button" class="block w-full rounded-xl px-3 py-2.5 text-start text-cream hover:bg-panel" @click="menu('settings', $event)">{{ t('studio.menu.settings') }}</button>
                                 <button type="button" class="block w-full rounded-xl px-3 py-2.5 text-start text-cream hover:bg-panel" @click="menu('mic', $event)">{{ t('studio.menu.micAndTiming') }}</button>
@@ -138,7 +140,7 @@ export const StudioView = {
                 <BetaBanner v-if="project.beta && betaPart" :part-name="nameOf(betaPart)" :song="shownTitle(project)" :note="project.beta.note" :phrase="notePhrase" :looping="loopedPhrase !== null && loopedPhrase === notePhrase" :bar="betaBar" :can-send="hasTake(betaPart) && !recording"
                     @parts="leave" @send="openReport" @loop="loopPhrase" @tell="dialog = 'tell'" />
                 <!-- A phrase looping (from the banner or the report): said, with the way out (Escape too). -->
-                <p v-if="loopedPhrase !== null" class="mx-3 mt-1 flex flex-wrap items-center gap-3 rounded-2xl bg-raised px-4 py-2.5 text-sm text-cream md:mx-5" role="status" data-loop-on>
+                <p v-if="loopedPhrase !== null" data-ui="facts" class="mx-3 mt-1 flex flex-wrap items-center gap-3 rounded-2xl bg-raised px-4 py-2.5 text-sm text-cream md:mx-5" role="status" data-loop-on>
                     <Icon name="loop" :size="16" class="text-accent" /><span class="flex-1">{{ t('studio.loop.on', { number: loopedPhrase + 1 }) }}</span>
                     <button type="button" class="btn-secondary btn-sm" aria-pressed="true" data-loop-off @click="endLoop">{{ t('studio.loop.off') }}</button>
                 </p>
@@ -153,8 +155,9 @@ export const StudioView = {
                 <!-- The stack of voices -->
                 <div class="flex min-h-0 flex-1">
                     <div class="relative flex min-h-0 flex-1 flex-col">
+                        <PartsProgress v-if="parts.length" class="mx-4 mt-1 md:hidden" :parts="progressParts" />
                         <div class="mx-3 mt-2 flex md:mx-5" dir="ltr">
-                            <div class="hidden shrink-0 truncate pe-3 ps-1 text-xs md:block md:w-[373px]" data-summary><template v-if="parts.length"><span class="font-bold text-cream">{{ t('studio.partCount', { count: parts.length }) }}</span><span class="text-muted"> · {{ yoursSummary }}</span></template></div>
+                            <div class="hidden shrink-0 pe-3 ps-1 md:block md:w-[373px]" data-summary><PartsProgress v-if="parts.length" :parts="progressParts" /></div>
                             <div ref="ruler" class="relative mx-2 h-7 flex-1 cursor-pointer md:me-[9px] md:ms-0" @pointerdown="seekFrom($event)">
                                 <span v-for="mark in marks" :key="mark.at" class="absolute top-0 h-full border-s border-line ps-1 pt-1 text-[10px] text-muted md:text-[11px]" :style="{ left: (mark.at / length * 100) + '%' }">{{ mark.label }}</span>
                                 <span class="pointer-events-none absolute -bottom-1 size-3 -translate-x-1/2 rounded-full" :class="recording ? 'bg-record' : 'bg-cream'" :style="{ left: (Math.max(0, position) / length * 100) + '%' }" aria-hidden="true"></span>
@@ -170,7 +173,7 @@ export const StudioView = {
                                 <!-- The tracks: they share the height on a tall window (88 to 150 px each), with one playhead across them. -->
                                 <div v-if="parts.length" class="relative flex flex-col gap-2 md:flex-1" data-tracks>
                                 <template v-for="part in parts" :key="part.id">
-                                    <VoiceRow :name="nameOf(part)" :letter="letterOf(part)" :color="paint(part.color)" :tags="tagsOf(part)" :when="whenOf(part)" :guide="!hasTake(part)"
+                                    <VoiceRow :name="nameOf(part)" :letter="letterOf(part)" :color="paint(part.color)" :status="statusOf(part)" :bars="barLines" :guide="!hasTake(part)"
                                         :solo="part.solo" :muted="part.muted" :audible="isAudible(part)" :open="openRow === part.id" :recording="recording && rerecordId === part.id"
                                         :position="position" :length-seconds="length" :volume="part.volume" :pan="part.pan" :tall="rowFocus === part.id || (recording && rerecordId === part.id)"
                                         :pickable="!project.beta && !recording && sessionStore.mine(part)" :picked="picked?.id === part.id" :data-next-track="picked?.id === part.id && !recording ? '' : null" :class="openRow === part.id ? 'md:flex-none' : 'md:max-h-[150px] md:min-h-[88px] md:flex-1'"
@@ -179,7 +182,7 @@ export const StudioView = {
                                         <template #lane>
                                             <template v-if="recording && rerecordId === part.id">
                                                 <div v-if="part.guidePeaks" class="absolute inset-0 opacity-30"><Waveform :peaks="part.guidePeaks" :frames-per-peak="FRAMES_PER_PEAK" :sample-rate="part.guidePeaksRate || GUIDE_PEAKS_RATE" :offset-seconds="guideVoices[part.id]?.offsetSeconds || 0" :length-seconds="length" :color="paint(part.color)" dim /></div>
-                                                <div class="absolute inset-0"><Waveform :peaks="livePeaks" :frames-per-peak="512" :sample-rate="engine.sampleRate" :offset-seconds="recordFrom" :length-seconds="length" :color="paint(part.color)" :version="live?.count ?? 0" /></div>
+                                                <div class="absolute inset-0"><Waveform :peaks="livePeaks" :frames-per-peak="512" :sample-rate="engine.sampleRate" :offset-seconds="recordFrom" :length-seconds="length" :color="'var(--color-record)'" :version="live?.count ?? 0" /></div>
                                             </template>
                                             <Waveform v-else-if="hasTake(part)" :peaks="part.peaks" :frames-per-peak="part.framesPerPeak" :sample-rate="part.sampleRate"
                                                 :offset-seconds="part.offsetSeconds + (part.nudgeSeconds || 0)" :length-seconds="length" :color="paint(part.color)"
@@ -223,7 +226,7 @@ export const StudioView = {
                                                 <!-- Takes (Hillel: "keep all takes so users can swap to try. You'd see the takes by expanding the row"). -->
                                                 <section v-if="hasTake(part) && takesOf(part).length" class="space-y-1.5" :aria-labelledby="'takes-' + part.id" data-takes>
                                                     <h3 :id="'takes-' + part.id" class="text-xs font-semibold text-muted">{{ t('studio.takes.title') }}</h3>
-                                                    <ul class="divide-y divide-line rounded-[14px] bg-(--fill)">
+                                                    <ul class="divide-y divide-line rounded-inset bg-(--fill)">
                                                         <li class="flex flex-wrap items-center gap-x-3 gap-y-1 px-3 py-2" data-take-current>
                                                             <span class="min-w-0 flex-1"><span class="block font-semibold text-cream">{{ t('studio.takes.current') }}</span><span class="block text-xs text-muted">{{ takeLine({ at: part.recordedAt, seconds: part.sampleRate ? part.frames / part.sampleRate : 0, pitch: part.score?.pitchPercent ?? null }) }}</span></span>
                                                         </li>
@@ -272,7 +275,7 @@ export const StudioView = {
                                     <button v-if="parts.length + planned < 7" type="button" class="btn-secondary self-start" data-add-track @click="planned++; count('track_add')"><Icon name="plus" :size="16" /> {{ t('studio.row.addTrack') }}</button>
                                 </template>
 
-                                <p v-if="!parts.length" class="flex flex-wrap items-center justify-center gap-x-2 px-2 text-center text-sm text-muted">{{ t('studio.add.orLearn') }} <button type="button" class="btn-ghost btn-sm" @click="navigate('/')">{{ t('studio.add.pickSong') }}</button></p>
+                                <p v-if="!parts.length" data-ui="facts" class="flex flex-wrap items-center justify-center gap-x-2 px-2 text-center text-sm text-muted">{{ t('studio.add.orLearn') }} <button type="button" class="btn-ghost btn-sm" @click="navigate('/')">{{ t('studio.add.pickSong') }}</button></p>
                             </div>
                         </div>
                         <div v-if="preparing" class="pointer-events-none absolute inset-x-0 top-12 mx-auto w-fit rounded-full bg-raised px-4 py-2 text-sm text-cream shadow-lg">{{ t('studio.preparingGuides') }}</div>
@@ -311,6 +314,7 @@ export const StudioView = {
                             </button>
                             <div class="ms-auto hidden md:block">
                                 <SetupChoices compact :headphones="headphones" :count-in="project.countInBars" :click="!!project.metronome" :polished="parts.some(hasTake) ? prefs.hearPolished : null" @headphones="setHeadphones" @count-in="setCountIn" @click="setClick" @polished="toggleHearPolished" />
+                                <p v-if="!headphones" class="mt-1.5 text-end text-xs text-muted" data-bleed>{{ t('studio.bleed') }}</p>
                             </div>
                         </template>
                     </div>
@@ -421,7 +425,13 @@ export const StudioView = {
         },
         /** Sing together: on projects that can go to the account (not a beta or a lesson's song). */
         canTogether() {
-            return !this.project.beta && !this.project.course && !this.project.shared?.removed;
+            return !this.project.beta && !this.project.course && !this.project.shared?.removed && !this.fromSheetMusic;
+        },
+        /** A song made from sheet music stays with its singer and their choir groups: no share link or invites (the account refuses them). */
+        fromSheetMusic() {
+            const id = this.project.template?.id;
+            const record = id ? mine.list.find((r) => r.id === id) : null;
+            return !!(record && (record.source === 'sheet-music' || record.imported));
         },
         togetherLabel() {
             const names = [...new Set(this.parts.filter((p) => p.createdBy && p.createdBy.id !== account.me?.id).map((p) => p.createdBy.name))];
@@ -442,11 +452,16 @@ export const StudioView = {
         noTrack() {
             return this.pickId === NONE && this.isTemplate && !this.recording && !this.betaPart;
         },
-        /** "none recorded by you yet", "2 recorded by you", "all recorded by you". */
-        yoursSummary() {
-            const yours = this.parts.filter((p) => hasTake(p) && sessionStore.mine(p)).length;
-            if (!yours) return t('studio.summary.noneYet');
-            return yours === this.parts.length ? t('studio.summary.allYours') : t('studio.summary.yours', { count: yours });
+        /** The parts' progress (PartsProgress): each in its colour, recorded or not. */
+        progressParts() {
+            return this.parts.map((p) => ({ id: p.id, color: this.paint(p.color), recorded: hasTake(p) }));
+        },
+        /** Where every bar starts, as percents of the lanes: the faint lines through each track. */
+        barLines() {
+            if (!this.barSeconds || !this.length) return [];
+            const out = [];
+            for (let at = this.pickup * this.beatSeconds; at < this.length; at += this.barSeconds) out.push((at / this.length) * 100);
+            return out.length > 200 ? [] : out; // a very long song: the ruler is enough
         },
         playheadShare() {
             return Math.max(0, Math.min(1, Math.max(0, this.position) / this.length));
@@ -563,6 +578,7 @@ export const StudioView = {
         },
     },
     async created() {
+        loadMine(); // your own songs, to know one made from sheet music (no share link or invites)
         await sessionStore.openSession(this.id);
         sessionStore.setScreen('studio');
         // Home's More menu: Share or Invite someone to sing opens here, on its sheet.
@@ -674,18 +690,21 @@ export const StudioView = {
             return (this.nameOf(part).trim()[0] ?? '?').toUpperCase();
         },
         /** Who sings a row: You, a friend's name, or the guide (a real voice, the practice voice). */
-        tagsOf(part) {
-            if (this.recording && this.rerecordId === part.id) return [{ text: t('studio.row.recording'), tone: 'rec' }];
+        /**
+         * The line under a track's name (Hillel's 85.png), in plain words: "Your take · 1 hour ago" (a
+         * friend's name in place of Your take), "Guide · up next" for the armed track, "Guide · not
+         * recorded", or "Recording".
+         */
+        statusOf(part) {
+            if (this.recording && this.rerecordId === part.id) return { text: t('studio.row.recording'), tone: 'rec' };
             const friend = part.createdBy && part.createdBy.id !== account.me?.id ? part.createdBy.name : null;
-            if (!hasTake(part)) return [...(friend ? [{ text: friend, tone: 'friend' }] : []), { text: this.badge(part), tone: 'guide' }];
-            // A lesson's voices kept as recorded parts (Keep the finale, courses-harmony): said as such, not "Your take".
-            if (part.fromLesson) return [{ text: t('studio.badge.fromLesson'), tone: 'guide' }];
-            return [{ text: friend ?? t('studio.badge.yourTake'), tone: friend ? 'friend' : 'you' }];
-        },
-        /** "Recorded 1 hour ago", under a track's name (81.png). */
-        whenOf(part) {
+            if (!hasTake(part)) {
+                const state = this.picked?.id === part.id ? t('studio.status.upNext') : t('studio.status.notRecorded');
+                return { text: `${friend ?? this.badge(part)} · ${state}`, tone: 'guide' };
+            }
+            const who = part.fromLesson ? t('studio.badge.fromLesson') : friend ?? t('studio.badge.yourTake');
             const at = part.recordedAt ?? null;
-            return hasTake(part) && at ? t('studio.row.recordedAgo', { ago: timeAgo(at) }) : '';
+            return { text: at ? `${who} · ${timeAgo(at)}` : who, tone: 'take' };
         },
         toggleRow(part) {
             this.openRow = this.openRow === part.id ? null : part.id;
@@ -1247,6 +1266,15 @@ export const StudioView = {
             this.exporting = true;
             try {
                 const comment = this.voiceCredits.length ? t('export.credits', { names: formatList(this.voiceCredits) }) : null;
+                if (sheet && format === 'print') {
+                    // Printable parts (docs/sheet-music-plan.md, slice 2): their own page, in the key and speed sung here.
+                    const keys = sheet.partKey ? [sheet.partKey] : this.scoreParts.map((p) => p.key);
+                    count('export_done');
+                    count('exp_sheet');
+                    this.dialog = null;
+                    navigate(`/p/${this.id}/print?parts=${keys.join(',')}${sheet.partKey ? '&cue=1' : ''}`);
+                    return;
+                }
                 let file;
                 if (sheet) {
                     // Sheet music (docs/sheet-music-plan.md): in the key and at the speed it's sung here.
@@ -1256,11 +1284,13 @@ export const StudioView = {
                 } else if (format === 'stems') {
                     const rendered = sessionStore.renderStems();
                     const names = fileNames(rendered.map(({ part }) => `${name} - ${this.nameOf(part)}.wav`));
-                    const stems = await Promise.all(rendered.map(async ({ samples, sampleRate }, i) => ({ name: names[i], bytes: new Uint8Array(await encodeWav([samples], sampleRate).arrayBuffer()) })));
+                    const stems = await Promise.all(rendered.map(async ({ samples, sampleRate }, i) => ({ name: names[i], bytes: new Uint8Array(await encodeWav([samples], sampleRate, { comment }).arrayBuffer()) })));
+                    // The real voices' credits with the files too, where every tool can read them.
+                    if (comment) stems.push({ name: fileNames([`${name} - ${t('export.creditsFile')}.txt`])[0], bytes: new TextEncoder().encode(`${comment}\n`) });
                     file = zip(stems);
                 } else {
                     const rendered = await sessionStore.renderMix({ chords, room, track });
-                    file = format === 'mp3' ? await encodeMp3(rendered.channels, rendered.sampleRate) : encodeWav(rendered.channels, rendered.sampleRate, { comment });
+                    file = format === 'mp3' ? await encodeMp3(rendered.channels, rendered.sampleRate, { comment }) : encodeWav(rendered.channels, rendered.sampleRate, { comment });
                 }
                 const url = URL.createObjectURL(file);
                 const link = Object.assign(document.createElement('a'), { href: url, download: `${name}.${{ stems: 'zip', midi: 'mid' }[format] ?? format}` });

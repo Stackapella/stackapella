@@ -319,6 +319,13 @@ final class SocialPostsTest extends TestCase
         $this->artisan('app:social:month')->assertSuccessful();
         $this->artisan('app:social:month')->assertSuccessful();
         $this->assertSame(2, SocialPost::query()->where('occasion', SocialPost::MONTH.':'.now()->format('Y-m'))->count());
+
+        // A missed first day is caught within the week, still once, keyed by its own month.
+        SocialPost::query()->delete();
+        $this->travel(3)->days();
+        $this->artisan('app:social:month')->assertSuccessful();
+        $this->artisan('app:social:month')->assertSuccessful();
+        $this->assertSame(2, SocialPost::query()->count());
     }
 
     public function test_nothing_is_proposed_before_launch_and_waiting_posts_that_cant_go_are_cleared(): void

@@ -18,7 +18,7 @@ final class RecordConsent
 {
     public function handle(BetaSinger $singer, int $version, CreditMode $creditMode): BetaSinger
     {
-        if ($version !== (int) config('beta.agreement_version')) {
+        if ($version !== $singer->agreementVersion()) {
             throw new Refusal(409, 'agreement_changed');
         }
 

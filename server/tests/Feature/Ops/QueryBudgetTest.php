@@ -251,6 +251,30 @@ final class QueryBudgetTest extends TestCase
         }, 12);
     }
 
+    public function test_the_admin_analytics_pages(): void
+    {
+        $admin = User::factory()->admin()->create();
+        // People who sang, practised, paid in a store, with a day of counts: none of it per row.
+        $people = function (int $n): void {
+            foreach (range(1, $n) as $i) {
+                $person = $this->adult();
+                $project = Project::factory()->create(['user_id' => $person->id]);
+                $part = Part::factory()->create(['project_id' => $project->id]);
+                Take::factory()->create(['part_id' => $part->id, 'project_id' => $project->id, 'user_id' => $person->id]);
+                StoreSubscription::factory()->create(['user_id' => $person->id]);
+                DB::table('usage_counts')->insertOrIgnore(['day' => now()->subDays($i)->toDateString(), 'kind' => 'app_open', 'audience' => 'guest', 'country' => '', 'variant' => '', 'source' => '', 'count' => $i]);
+            }
+        };
+
+        foreach (['/api/admin/overview' => 30, '/api/admin/growth?days=84' => 12, '/api/admin/reach' => 14, '/api/admin/active' => 18, '/api/admin/revenue' => 15, '/api/admin/churn' => 13, '/api/admin/cohorts' => 17, '/api/admin/activity' => 24] as $path => $ceiling) {
+            $this->assertFlat($path, $people, function () use ($admin, $path): TestResponse {
+                $this->actingAsAdmin($admin);
+
+                return $this->getJson($path);
+            }, $ceiling);
+        }
+    }
+
     public function test_billing_and_learning(): void
     {
         $user = $this->adult();

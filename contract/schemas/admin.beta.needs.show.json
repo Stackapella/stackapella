@@ -1,0 +1,72 @@
+{
+    "$id": "admin.beta.needs.show.json",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "review",
+                "templates"
+            ],
+            "properties": {
+                "review": {
+                    "type": "integer",
+                    "description": "Takes waiting for review on current versions, in all."
+                },
+                "templates": {
+                    "type": "array",
+                    "description": "Reviewed songs with a part that needs Hillel (takes to review, changed, or no singer), by title; a song with nothing to do is left out.",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "id",
+                            "version",
+                            "title",
+                            "parts"
+                        ],
+                        "properties": {
+                            "id": {
+                                "type": "string"
+                            },
+                            "version": {
+                                "type": "integer"
+                            },
+                            "title": {
+                                "type": "string"
+                            },
+                            "parts": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "additionalProperties": false,
+                                    "required": [
+                                        "key",
+                                        "name",
+                                        "needs"
+                                    ],
+                                    "properties": {
+                                        "key": {
+                                            "type": "string"
+                                        },
+                                        "name": {
+                                            "type": "string"
+                                        },
+                                        "needs": {
+                                            "$ref": "admin.beta.part-needs.json"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

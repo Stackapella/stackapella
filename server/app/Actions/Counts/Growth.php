@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Actions\Counts;
 
+use App\Support\Stats\ReportDay;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -25,18 +26,24 @@ final class Growth
     /** A source with fewer arrivals than this is folded into one row, so a tiny one never stands for a person. */
     public const FOLD_UNDER = 5;
 
+    /** Under this many, a tile's change is noise ("+18%" from 11 to 13): the Overview says "few so far". */
+    public const LOW_SAMPLE = 20;
+
     /**
-     * admin.growth.show: the tiles (today, yesterday and the same weekday last week, UTC) and each
-     * step's total over the last `$days` days.
+     * admin.growth.show: each tile's count over the last `$days` days (`current`), the same length
+     * just before (`previous`) and the same days a week back (`weekAgo`), whether it's too few to
+     * read (`lowSample`), and still today, yesterday and the same weekday last week; and each step's
+     * total over the period.
      *
-     * @return array{date: string, from: string, to: string, tiles: list<array{key: string, today: int, yesterday: int, lastWeek: int}>, steps: list<array{key: string, total: int}>}
+     * @return array{date: string, from: string, to: string, tiles: list<array{key: string, today: int, yesterday: int, lastWeek: int, current: int, previous: int, weekAgo: int, lowSample: bool}>, steps: list<array{key: string, total: int}>}
      */
     public function overview(int $days): array
     {
-        $today = now()->utc()->startOfDay();
+        $today = ReportDay::now()->startOfDay();
         $from = $today->copy()->subDays($days - 1);
         $kinds = array_values(array_unique(array_merge(...array_values(self::TILES), ...array_values(self::STEPS))));
-        $since = min($from, $today->copy()->subDays(7))->toDateString();
+        // Back far enough for the period before and the period a week back.
+        $since = min($from->copy()->subDays($days), $from->copy()->subDays(7))->toDateString();
 
         /** @var array<string, array<string, int>> $byDay [date][kind] => total */
         $byDay = [];
@@ -48,8 +55,24 @@ final class Growth
         $on = static fn (string $date, array $of): int => array_sum(array_map(static fn (string $kind): int => $byDay[$date][$kind] ?? 0, $of));
         $tiles = [];
 
+        // A period's total: the `$days` days ending `$ago` days before today.
+        $over = static function (int $ago, array $of) use ($today, $days, $on): int {
+            $total = 0;
+
+            for ($i = 0; $i < $days; $i++) {
+                $total += $on($today->copy()->subDays($ago + $i)->toDateString(), $of);
+            }
+
+            return $total;
+        };
+
         foreach (self::TILES as $key => $of) {
-            $tiles[] = ['key' => $key, 'today' => $on($today->toDateString(), $of), 'yesterday' => $on($today->copy()->subDay()->toDateString(), $of), 'lastWeek' => $on($today->copy()->subDays(7)->toDateString(), $of)];
+            $current = $over(0, $of);
+            $tiles[] = [
+                'key' => $key,
+                'today' => $on($today->toDateString(), $of), 'yesterday' => $on($today->copy()->subDay()->toDateString(), $of), 'lastWeek' => $on($today->copy()->subDays(7)->toDateString(), $of),
+                'current' => $current, 'previous' => $over($days, $of), 'weekAgo' => $over(7, $of), 'lowSample' => $current < self::LOW_SAMPLE,
+            ];
         }
 
         $dates = array_filter(array_keys($byDay), static fn (string $date): bool => $date >= $from->toDateString());
@@ -70,7 +93,7 @@ final class Growth
      */
     public function sources(int $days): array
     {
-        $today = now()->utc()->startOfDay();
+        $today = ReportDay::now()->startOfDay();
         $from = $today->copy()->subDays($days - 1)->toDateString();
         $kinds = array_values(array_unique(array_merge(...array_values(self::COLUMNS))));
 

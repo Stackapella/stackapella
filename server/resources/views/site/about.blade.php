@@ -1,5 +1,6 @@
 {{-- About (/about), in the redesign's sections: Hillel's own note on why Stackapella exists (his
-     words, signed, approved as is) in a reading column; its promises on the ink band (Hillel: yes);
+     words, signed, approved as is) in a reading column; who made it, his three music apps and two
+     old videos (Hillel, 2026-10-30); its promises on the ink band (Hillel: yes);
      the company as facts; that it's open source (once the open_source flag is on); for mudeo's
      singers alone (MudeoArrival), where it came from; and the last word. --}}
 @extends('public.layout')
@@ -24,6 +25,34 @@
                 @endforeach
                 <p class="s-sig">{{ $signature }}</p>
             </article>
+        </section>
+
+        {{-- Who made this (Hillel's words, 2026-10-30): his two companies as plain followed links, his
+             three music apps as a short story, and two old videos as player-like cards with our own
+             stills that open YouTube in a new tab (no embed, nothing loaded from YouTube). --}}
+        <section class="s-wrap s-sec s-maker" aria-labelledby="maker-h">
+            <h2 id="maker-h" class="s-title">{{ __('site.about.maker.heading') }}</h2>
+            <p class="s-lede s-maker-intro">{{ __('site.about.maker.intro_start') }} <a href="https://invoiceninja.com" rel="noopener" class="s-lk">{{ __('site.about.maker.invoice_ninja') }}</a> {{ __('site.about.maker.intro_and') }} <a href="https://eventschedule.com" rel="noopener" class="s-lk">{{ __('site.about.maker.event_schedule') }}</a>{{ __('site.about.maker.intro_end') }}</p>
+            <ol class="s-howsteps s-maker-steps">
+                @foreach ((array) \Illuminate\Support\Facades\Lang::get('site.about.maker.steps') as $step)
+                    <li class="s-v{{ $loop->iteration }}"><span class="s-disc" aria-hidden="true">{{ $loop->iteration }}</span><div><h3>{{ $step['title'] }}</h3><p>{{ $step['body'] }}</p></div></li>
+                @endforeach
+            </ol>
+            @php($videos = ['music_maker_pro' => ['https://www.youtube.com/watch?v=DIYLPU__dmk', '/icons/about/music-maker-pro.jpg'], 'mudeo_show' => ['https://www.youtube.com/watch?v=QFmrgkIwAds', '/icons/about/mudeo-flutter-show.jpg']])
+            <ul class="s-maker-videos">
+                @foreach ((array) \Illuminate\Support\Facades\Lang::get('site.about.maker.videos') as $key => $video)
+                    <li>
+                        <a class="s-video" href="{{ $videos[$key][0] }}" target="_blank" rel="noopener" aria-label="{{ __('site.about.maker.watch', ['title' => $video['title']]) }}">
+                            <span class="s-video-frame">
+                                <img src="{{ $videos[$key][1] }}" width="960" height="540" alt="" loading="lazy">
+                                <span class="s-video-play" aria-hidden="true"><x-site.icon name="play" size="30" /></span>
+                                <span class="s-video-len">{{ $video['length'] }}</span>
+                            </span>
+                            <span class="s-video-title">{{ $video['title'] }}</span>
+                        </a>
+                    </li>
+                @endforeach
+            </ul>
         </section>
 
         <section class="s-ink" aria-labelledby="promises-h">

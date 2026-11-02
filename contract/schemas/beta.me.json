@@ -12,6 +12,7 @@
             "required": [
                 "id",
                 "name",
+                "volunteer",
                 "consent",
                 "credit",
                 "voiceOfParts",
@@ -26,6 +27,10 @@
                 },
                 "name": {
                     "type": "string"
+                },
+                "volunteer": {
+                    "type": "boolean",
+                    "description": "Lend your voice: an unpaid volunteer (their agreement is beta.agreement.show?for=volunteer), not an invited, paid beta singer."
                 },
                 "consent": {
                     "type": "object",

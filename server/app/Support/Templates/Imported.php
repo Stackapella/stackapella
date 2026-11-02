@@ -6,9 +6,11 @@ namespace App\Support\Templates;
 
 use App\Exceptions\Refusal;
 use App\Models\Harmony;
+use App\Models\Notice;
 use App\Models\Project;
 use App\Models\Template;
 use App\Models\TemplateVersion;
+use App\Models\User;
 use Illuminate\Support\Facades\Context;
 
 /**
@@ -20,6 +22,20 @@ use Illuminate\Support\Facades\Context;
 final class Imported
 {
     public const SOURCE = 'sheet-music';
+
+    /** Upheld copyright takedowns after which an account can't make songs from sheet music (the copyright policy). */
+    public const REPEAT_LIMIT = 3;
+
+    /**
+     * Someone's copyright takedowns that stand (a harmony or a template taken down for a copyright
+     * notice, not reversed on appeal), for the repeat-infringer rule.
+     */
+    public static function takedowns(User $user): int
+    {
+        return Notice::query()->where('user_id', $user->id)->where('rule', 'copyright')
+            ->whereIn('kind', [Notice::HARMONY_HIDDEN, Notice::HARMONY_REMOVED, Notice::TEMPLATE_HIDDEN])
+            ->where(fn ($q) => $q->whereNull('decision')->orWhere('decision', '!=', Notice::REVERSED))->count();
+    }
 
     public static function refuse(): never
     {

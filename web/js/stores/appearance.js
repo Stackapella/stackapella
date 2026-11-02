@@ -40,7 +40,14 @@ export const appearance = reactive({ mode: stored()?.mode ?? null, gameMode: sto
 document.addEventListener('stackapella:theme', (event) => {
     appearance.theme = event.detail;
     appearance.skin = document.documentElement.dataset.skin === 'serious' ? 'serious' : 'game';
-    appearance.gameMode = window.stackapellaTheme?.chosen?.().gameMode ?? null;
+    const chosen = window.stackapellaTheme?.chosen?.() ?? {};
+    appearance.gameMode = chosen.gameMode ?? null;
+    // Every choice, not just the skin's: light or dark chosen elsewhere (the account, another tab) showed stale here
+    // (the panel said "Dark" on a light page).
+    if ('mode' in chosen) appearance.mode = chosen.mode ?? null;
+    if ('colour' in chosen) appearance.colour = chosen.colour ?? null;
+    if ('accent' in chosen) appearance.accent = chosen.accent ?? null;
+    if ('customAccent' in chosen) appearance.customAccent = chosen.customAccent ?? null;
     appearance.version++;
 });
 
@@ -64,6 +71,10 @@ export async function setSkin(skin) {
 let waiting = null; // the choices not yet sent, merged: the latest of each field
 let sending = null; // the save on its way, if any
 const UNSENT = 'stackapella.appearanceUnsent'; // choices the account hasn't confirmed yet, kept through a reload
+// When this device's look and the account's last agreed (a time): a choice made after it, here or on
+// the other host (the shared cookie), is newer than the account's and goes to it, never undone by it.
+const SYNCED = 'stackapella.appearanceSynced';
+const agreed = (at = Date.now()) => local.set(SYNCED, String(at));
 
 function unsent() {
     try {
@@ -91,7 +102,10 @@ function toAccount(fields) {
                 waiting = null;
                 try {
                     account.me = (await api.account.update({ appearance })).data;
-                    if (!waiting) local.remove(UNSENT); // confirmed, with nothing newer behind it
+                    if (!waiting) {
+                        local.remove(UNSENT); // confirmed, with nothing newer behind it
+                        agreed();
+                    }
                 } catch (error) {
                     console.warn('The look was not saved to the account', error); // kept here; sent with the next choice
                 }
@@ -157,12 +171,21 @@ export function adoptAccountAppearance(theirs) {
     }
     if (!theirs) return;
     const mine = stored() ?? {};
+    const synced = local.get(SYNCED);
+    const decision = accountOrDevice(mine, theirs, synced === null ? null : Number(synced));
+    if (decision === 'same') return agreed(mine.at || Date.now());
+    if (decision === 'device') {
+        // Chosen here (or on the other host) since the two last agreed: it goes to the account.
+        if (account.me) toAccount(lookOf(mine));
+        return;
+    }
     // Game mode follows the account too (an appearance saved before it reads as game).
     const skin = theirs.skin === 'serious' ? 'serious' : 'game';
     if (skin !== appearance.skin) {
         appearance.skin = skin;
         window.stackapellaTheme?.choose?.({ skin });
     }
+    agreed();
     if (!theirs.mode) return; // only the skin chosen on the account: this device's look stays
     const same = (mine.mode ?? null) === (theirs.mode ?? null) && (mine.colour ?? null) === (theirs.colour ?? null) && (mine.accent ?? null) === (theirs.accent ?? null) && (mine.customAccent ?? null) === (theirs.customAccent ?? null);
     if (same) return;
@@ -171,4 +194,27 @@ export function adoptAccountAppearance(theirs) {
     Object.assign(appearance, choice);
     if (window.stackapellaTheme?.choose) window.stackapellaTheme.choose(choice);
     else local.set(KEY, JSON.stringify({ ...choice, at: Date.now() }));
+    agreed();
+}
+
+/** The account's fields for this device's choice: the skin, and the look once one is chosen. */
+function lookOf(mine) {
+    const look = { skin: mine.skin === 'serious' ? 'serious' : 'game' };
+    if (!mine.mode) return look;
+    return { ...look, mode: mine.mode, colour: mine.colour ?? null, accent: mine.accent ?? null, ...(mine.accent === 'custom' && mine.customAccent ? { customAccent: mine.customAccent } : {}) };
+}
+
+/**
+ * Whose look stands, signed in: 'same' (nothing to do), 'device' (this device's choice is newer than
+ * the last time the two agreed, so it goes to the account) or 'account' (the account's is taken).
+ * A device that has never agreed with the account (`synced` null) takes the account's, as a new
+ * device does. Pure, for the tests.
+ */
+export function accountOrDevice(mine, theirs, synced) {
+    const skin = (x) => (x?.skin === 'serious' ? 'serious' : 'game');
+    const look = (x) => [x?.mode ?? null, x?.colour ?? null, x?.accent ?? null, x?.accent === 'custom' ? x?.customAccent ?? null : null].join('|');
+    const same = skin(mine) === skin(theirs) && (!theirs?.mode || look(mine) === look(theirs));
+    if (same) return 'same';
+    if (synced !== null && (mine?.at || 0) > synced) return 'device';
+    return 'account';
 }

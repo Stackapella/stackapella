@@ -1,0 +1,36 @@
+{
+    "data": {
+        "items": [
+            {
+                "id": "song:amazing-grace:tenor",
+                "kind": "song",
+                "skill": "any",
+                "templateId": "amazing-grace",
+                "title": "Amazing Grace",
+                "partKey": "tenor",
+                "partName": "Tenor"
+            },
+            {
+                "id": "clip:yodel-flip-1",
+                "kind": "clip",
+                "skill": "yodel",
+                "clipId": "yodel-flip-1",
+                "course": "yodeling",
+                "sing": "Flip from chest to head voice on \"yo-dl\".",
+                "seconds": 4.0,
+                "style": "yodel",
+                "voices": "any"
+            }
+        ],
+        "skills": [
+            {
+                "id": "any",
+                "words": "Any singer: an easy, steady voice"
+            },
+            {
+                "id": "yodel",
+                "words": "A yodeler, or a singer who flips cleanly between chest and head voice on purpose"
+            }
+        ]
+    }
+}

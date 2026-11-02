@@ -4,6 +4,7 @@
 // 16-bit WAV by a presigned PUT, then complete), lined up from the tune's beat zero, and a new one
 // replaces theirs. Sent at once with Try again on a failure (a lost one is sung again, not queued).
 
+import { AccountWall } from './account-wall.js';
 import { ApiError, api, uploadTo } from '../api.js';
 import * as db from '../db.js';
 import { t, tk } from '../i18n.js';
@@ -34,7 +35,7 @@ export function ideaTake(samples, { offsetSeconds = 0, nudgeSeconds = 0, sampleR
 }
 
 export const IdeaVoice = {
-    components: { Icon, Notice },
+    components: { AccountWall, Icon, Notice },
     props: { idea: { type: Object, required: true }, part: { type: Object, required: true }, partName: { type: String, required: true } },
     data: () => ({ rights: false, state: 'idle', error: null }),
     setup: () => ({ account }),
@@ -46,8 +47,7 @@ export const IdeaVoice = {
                 <a :href="'/ideas/' + idea.id" class="btn-secondary btn-sm" @click.prevent="navigate('/ideas/' + idea.id)">{{ t('ideas.add.see') }}</a>
             </template>
             <template v-else-if="!account.me">
-                <p class="text-sm text-muted">{{ t('ideas.add.signIn') }}</p>
-                <a :href="signIn" class="btn-primary btn-sm" @click.prevent="navigate(signIn)">{{ t('auth.signIn') }}</a>
+                <AccountWall reason="voice" bare />
             </template>
             <form v-else class="space-y-3" @submit.prevent="send">
                 <p class="text-sm text-muted">{{ t('ideas.add.what', { part: partName }) }}</p>
@@ -56,11 +56,6 @@ export const IdeaVoice = {
                 <button type="submit" class="btn-primary btn-sm" :disabled="!rights || state === 'sending'">{{ state === 'sending' ? t('ideas.add.sending') : error ? t('ideas.add.again') : t('ideas.add.go') }}</button>
             </form>
         </section>`,
-    computed: {
-        signIn() {
-            return `/signin?next=${encodeURIComponent(location.pathname)}`;
-        },
-    },
     methods: {
         navigate,
         async send() {

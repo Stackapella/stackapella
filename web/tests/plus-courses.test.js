@@ -4,6 +4,7 @@
 import { courseLessons, courseOf, courseSummary, courseView, courseVisible, lessonAccess, lessonAfter, lessonFree, mergeCourses, nextInCourse, recordCourseLesson, restartedCourseProgress } from '/js/courses.js';
 import { emptyProgress, mergeProgress, recordLesson } from '/js/course.js';
 import { stepOf } from '/js/lesson-steps.js';
+import { partsFor, validateTemplate } from '/js/templates.js';
 import { assert, test } from './harness.js';
 
 const course = {
@@ -97,7 +98,7 @@ test('plus courses: the course files are well formed, every lesson id unique and
                 assert(!seen.has(lesson.id), `${lesson.id}: unique across every course`);
                 seen.add(lesson.id);
                 assert(lesson.title?.en && lesson.steps.length > 0, `${lesson.id}: a title and steps`);
-                for (const step of lesson.steps) assert((['learn', 'try', 'play', 'home'].includes(step.kind) || !!stepOf(step.kind)), `${lesson.id}: a known step (${step.kind})`);
+                for (const step of lesson.steps) assert((['learn', 'try', 'play', 'home', 'record'].includes(step.kind) || !!stepOf(step.kind)), `${lesson.id}: a known step (${step.kind})`);
             }
         }
     }
@@ -162,7 +163,7 @@ test('plus courses: the catalogue lists all 27 in Home\'s and the site\'s three 
     const { courses } = await (await fetch('/course/plus/courses.json')).json();
     assert(courses.length === 27, `27 courses: ${courses.length}`);
     assert(new Set(courses.map((c) => c.id)).size === 27 && new Set(courses.map((c) => c.slug)).size === 27, 'ids and slugs unique');
-    for (const [group, count] of [['skills', 10], ['harmony', 8], ['styles', 9]]) {
+    for (const [group, count] of [['skills', 9], ['harmony', 9], ['styles', 9]]) { // nine a group (Hillel, 2026-10-30)
         const inGroup = courses.filter((c) => c.group === group).sort((a, b) => a.order - b.order);
         assert(inGroup.length === count && inGroup.every((c, i) => c.order === i + 1), `${group}: ${count}, ordered from 1 (${inGroup.map((c) => c.order)})`);
         assert(inGroup.slice(0, 3).every((c) => c.launch), `${group}: its three launch courses first`);
@@ -204,4 +205,18 @@ test('plus courses: a real singer\'s clip makes its round playable, and a record
     assert(playableRounds([waiting], { 'pop.breathy': { url: 'https://example.com/a.m4a' } }).length === 1, 'recorded: played');
     assert(modelBeats({ notes: [], seconds: 5 }, 60) === 5 && modelBeats({ seconds: 3 }, 120) === 6, 'seconds at the tempo');
     assert(courseOfSlot('pop.breathy') === 'pop' && courseOfSlot('vibrato.natural') === 'vibrato', 'a slot names its course');
+});
+
+test('plus courses: a record step\'s own song (courseSong) is a valid song, with the part and singers it names', async () => {
+    const { courses } = await (await fetch('/course/plus/courses.json')).json();
+    for (const entry of courses.filter((c) => c.file)) {
+        const data = await (await fetch(`/course/plus/${entry.file}`)).json();
+        const folder = entry.file.replace(/[^/]*$/, '');
+        for (const step of data.units.flatMap((u) => u.lessons.flatMap((l) => l.steps)).filter((s) => s.kind === 'record' && s.courseSong)) {
+            const song = validateTemplate(await (await fetch(`/course/plus/${folder}${step.courseSong}`)).json());
+            assert(step.courseSong.endsWith(`/${song.id}.json`), `${step.courseSong}: its id is ${song.id}`);
+            const keys = partsFor(song, step.singers).map((p) => p.key);
+            assert(step.part === 'all' || [step.part].flat().every((k) => keys.includes(k)), `${step.courseSong}: ${step.part} is sung by ${step.singers} singers (${keys})`);
+        }
+    }
 });

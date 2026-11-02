@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Actions\Counts;
 
+use App\Support\Stats\ReportDay;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -20,12 +21,16 @@ final class RecordCounts
      * a configured one, and a funnel kind or a landing visit its source, grouped (self::source());
      * either one, and the row keeps no country, so those cells stay coarse.
      *
+     * Each funnel step also counts once for every experiment arm the device names (`variants`), in
+     * experiment_counts: a daily total per arm, apart from the everyday totals.
+     *
      * @param  list<array{kind: string, n?: int}>  $events
+     * @param  list<string>  $variants
      */
-    public function handle(array $events, bool $signedIn, ?string $country, ?string $variant = null, ?string $ref = null): void
+    public function handle(array $events, bool $signedIn, ?string $country, ?string $variant = null, ?string $ref = null, array $variants = []): void
     {
         $funnel = Funnel::kinds();
-        $kinds = [...(array) config('counts.kinds'), ...$funnel, ...self::detailedKinds()];
+        $kinds = [...(array) config('counts.kinds'), ...$funnel, ...self::detailedKinds(), Funnel::ENROLLED];
         $variant = $variant !== null && Funnel::knownVariant($variant) ? $variant : '';
         $source = self::source($ref);
         $max = (int) config('counts.max_n');
@@ -34,18 +39,27 @@ final class RecordCounts
         foreach (array_slice($events, 0, (int) config('counts.max_events')) as $event) {
             if (in_array($event['kind'], $kinds, true)) {
                 // A funnel kind is a device's first: once a request, whatever `n` says.
-                $cap = in_array($event['kind'], $funnel, true) ? 1 : $max;
+                $cap = in_array($event['kind'], [...$funnel, Funnel::ENROLLED], true) ? 1 : $max;
                 $totals[$event['kind']] = min($cap, ($totals[$event['kind']] ?? 0) + max(1, min($cap, (int) ($event['n'] ?? 1))));
             }
         }
 
-        $day = now()->toDateString();
+        $day = ReportDay::today();
         $audience = $signedIn ? 'account' : 'guest';
 
-        foreach ($totals as $kind => $n) {
+        foreach (array_diff_key($totals, [Funnel::ENROLLED => true]) as $kind => $n) {
             $arm = in_array($kind, $funnel, true) ? $variant : '';
             $from = in_array($kind, $funnel, true) || in_array($kind, self::SOURCED, true) ? $source : '';
             DB::statement('insert into usage_counts (day, kind, audience, country, variant, source, count) values (?, ?, ?, ?, ?, ?, ?) on duplicate key update count = count + ?', [$day, $kind, $audience, $arm !== '' || $from !== '' ? '' : ($country ?? ''), $arm, $from, $n, $n]);
+        }
+
+        // The experiments' own counts: funnel steps only, for arms the registry knows (onb1 keeps `variant`).
+        $arms = array_slice(array_values(array_unique(array_filter($variants, static fn (string $v): bool => ! str_starts_with($v, Funnel::LEGACY.'-') && Funnel::knownVariant($v)))), 0, 4);
+
+        foreach ($arms === [] ? [] : array_intersect_key($totals, array_flip([...$funnel, Funnel::ENROLLED])) as $kind => $n) {
+            foreach ($arms as $arm) {
+                DB::statement('insert into experiment_counts (day, variant, kind, audience, count) values (?, ?, ?, ?, ?) on duplicate key update count = count + ?', [$day, $arm, $kind, $audience, $n, $n]);
+            }
         }
     }
 
@@ -81,7 +95,8 @@ final class RecordCounts
             return $kinds;
         }
 
-        $ids = ['plus_courses' => self::plusCourses(), 'free_lessons' => self::freeLessons()];
+        // A song's course (web/course/songs) counts its lessons as a Plus course's do.
+        $ids = ['plus_courses' => [...self::plusCourses(), ...self::songCourses()], 'free_lessons' => self::freeLessons()];
         $kinds = [];
 
         foreach ((array) config('counts.detailed') as $prefix => $source) {
@@ -99,6 +114,19 @@ final class RecordCounts
     private static function plusCourses(): array
     {
         $file = dirname(base_path()).'/web/course/plus/courses.json';
+        $list = is_file($file) ? json_decode((string) file_get_contents($file), true) : null;
+
+        return array_values(array_filter(array_map(static fn (mixed $c): ?string => is_array($c) && is_string($c['id'] ?? null) ? $c['id'] : null, is_array($list) ? (array) ($list['courses'] ?? []) : [])));
+    }
+
+    /**
+     * The song courses' ids (web/course/songs/index.json), staff-only ones too.
+     *
+     * @return list<string>
+     */
+    public static function songCourses(): array
+    {
+        $file = dirname(base_path()).'/web/course/songs/index.json';
         $list = is_file($file) ? json_decode((string) file_get_contents($file), true) : null;
 
         return array_values(array_filter(array_map(static fn (mixed $c): ?string => is_array($c) && is_string($c['id'] ?? null) ? $c['id'] : null, is_array($list) ? (array) ($list['courses'] ?? []) : [])));
@@ -134,7 +162,7 @@ final class RecordCounts
             return;
         }
 
-        DB::statement('insert into usage_counts (day, kind, audience, country, count) values (?, ?, ?, ?, 1) on duplicate key update count = count + 1', [now()->toDateString(), $kind, $signedIn ? 'account' : 'guest', $country ?? '']);
+        DB::statement('insert into usage_counts (day, kind, audience, country, count) values (?, ?, ?, ?, 1) on duplicate key update count = count + 1', [ReportDay::today(), $kind, $signedIn ? 'account' : 'guest', $country ?? '']);
     }
 
     /**
@@ -145,7 +173,7 @@ final class RecordCounts
      */
     public function summary(int $days): array
     {
-        $since = now()->subDays($days - 1)->toDateString();
+        $since = ReportDay::now()->subDays($days - 1)->toDateString();
         $base = static fn () => DB::table('usage_counts')->where('day', '>=', $since);
         $split = "sum(case when audience = 'guest' then count else 0 end) as guest, sum(case when audience = 'account' then count else 0 end) as account";
 

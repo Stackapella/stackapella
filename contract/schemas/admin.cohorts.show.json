@@ -1,0 +1,65 @@
+{
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "months",
+                "timezone"
+            ],
+            "properties": {
+                "months": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "month",
+                            "signedUp",
+                            "finishedSong",
+                            "secondSong",
+                            "active",
+                            "plus",
+                            "medianDaysToFirstSong"
+                        ],
+                        "properties": {
+                            "month": {
+                                "type": "string"
+                            },
+                            "signedUp": {
+                                "type": "integer"
+                            },
+                            "finishedSong": {
+                                "type": "integer"
+                            },
+                            "secondSong": {
+                                "type": "integer"
+                            },
+                            "active": {
+                                "type": "integer"
+                            },
+                            "plus": {
+                                "type": "integer"
+                            },
+                            "medianDaysToFirstSong": {
+                                "type": [
+                                    "number",
+                                    "null"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "timezone": {
+                    "type": "string",
+                    "description": "The timezone the days and months are in."
+                }
+            }
+        }
+    }
+}

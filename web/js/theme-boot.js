@@ -99,13 +99,28 @@
         } catch (error) {
             own = {}; // storage blocked: the cookie, or today's look
         }
-        try {
-            const cookie = document.cookie.split('; ').find((c) => c.startsWith('sa_theme='));
-            shared = cookie ? JSON.parse(decodeURIComponent(cookie.slice(9))) || {} : {};
-        } catch (error) {
-            shared = {}; // unreadable: this address's own
-        }
+        shared = sharedChoices().reduce((newest, c) => ((c.at || 0) > (newest.at || 0) ? c : newest), {});
         return (shared.at || 0) > (own.at || 0) ? shared : own;
+    }
+    // Every `sa_theme` this page can read: the shared one (.stackapella.com) and an older host-only one
+    // from before the cookie was shared can both be there, in either order, so the newest wins, never
+    // the first listed.
+    function sharedChoices() {
+        return document.cookie.split('; ').filter((c) => c.startsWith('sa_theme=')).map((c) => {
+            try {
+                return JSON.parse(decodeURIComponent(c.slice(9))) || {};
+            } catch (error) {
+                return {}; // unreadable: as if it weren't there
+            }
+        });
+    }
+    const cookieDomain = () => document.querySelector('meta[name="theme-cookie-domain"]')?.getAttribute('content');
+    /** Writes the shared cookie; with a shared domain, the host-only one from before goes, so one is left. */
+    function writeCookie(choice) {
+        const domain = cookieDomain();
+        const secure = location.protocol === 'https:' ? '; secure' : '';
+        document.cookie = 'sa_theme=' + encodeURIComponent(JSON.stringify(choice)) + '; path=/; max-age=31536000; samesite=lax' + (domain ? '; domain=' + domain : '') + secure;
+        if (domain) document.cookie = 'sa_theme=; path=/; max-age=0; samesite=lax' + secure;
     }
     function apply() {
         const choice = chosen();
@@ -157,10 +172,15 @@
         } catch (error) {
             // Storage blocked: the cookie still carries it.
         }
-        const domain = document.querySelector('meta[name="theme-cookie-domain"]')?.getAttribute('content');
-        document.cookie = 'sa_theme=' + encodeURIComponent(JSON.stringify(choice)) + '; path=/; max-age=31536000; samesite=lax' + (domain ? '; domain=' + domain : '') + (location.protocol === 'https:' ? '; secure' : '');
+        writeCookie(choice);
         apply();
         return choice;
+    }
+    // Two `sa_theme`s (a host-only one left from before the shared domain): the newest is kept as the
+    // shared one, and the other goes.
+    if (cookieDomain() && sharedChoices().length > 1) {
+        const newest = sharedChoices().reduce((n, c) => ((c.at || 0) > (n.at || 0) ? c : n), {});
+        if (newest.at) writeCookie(newest);
     }
     apply();
     system.addEventListener('change', apply);

@@ -109,7 +109,7 @@ export const CreateView = {
                     <p class="truncate text-sm text-muted">{{ draft ? t('create.frame.stepOf', { step: stepIndex + 1, total: steps.length }) : t('create.title') }}</p>
                     <h1 class="truncate text-xl font-bold tracking-tight text-cream">{{ draft ? t(STEP_NAMES[draft.step]) : t('create.title') }}</h1>
                 </div>
-                <p v-if="savedAt" class="flex shrink-0 items-center gap-2 text-sm text-muted" role="status"><span class="size-2 rounded-full bg-accent" aria-hidden="true"></span>{{ t('create.draftSaved') }}</p>
+                <p v-if="savedAt" data-ui="facts" class="flex shrink-0 items-center gap-2 text-sm text-muted" role="status"><span class="size-2 rounded-full bg-accent" aria-hidden="true"></span>{{ t('create.draftSaved') }}</p>
             </header>
             <p v-if="failed" class="card p-6 text-cream" role="alert">{{ failed }}</p>
             <section v-else-if="unclear" class="card space-y-4 p-6" role="status">
@@ -253,7 +253,7 @@ export const CreateView = {
                 let draft;
                 if (query.get('copy')) {
                     const song = await loadTemplate(query.get('copy'));
-                    draft = newDraft('copy', copyOf(song, t('create.copyTitle', { title: song.title })));
+                    draft = newDraft('copy', copyOf(song, t('create.copyTitle', { title: song.title })), { copiedFrom: query.get('copy') });
                 } else if (query.get('edit')) {
                     const own = await ownTemplate(query.get('edit'));
                     if (!own) throw new Error('not_yours');
@@ -429,7 +429,7 @@ export const CreateView = {
             this.saving = true;
             try {
                 const d = this.draft;
-                const record = await saveTemplate(this.finished, { visibility: d.authorship === 'other' ? 'private' : d.visibility, libraryOptIn: d.authorship === 'other' ? false : d.libraryOptIn });
+                const record = await saveTemplate(this.finished, { visibility: d.authorship === 'other' ? 'private' : d.visibility, libraryOptIn: d.authorship === 'other' ? false : d.libraryOptIn, copiedFrom: d.copiedFrom ?? null });
                 clearTimeout(this.autosave);
                 this.dirty = false;
                 await discardDraft(d.id);

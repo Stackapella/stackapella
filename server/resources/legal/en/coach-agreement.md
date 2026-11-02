@@ -16,7 +16,9 @@ app. The short version comes first; the full terms follow.
   what you sell. Stackapella hosts the tools and handles the payments.
 - **Getting paid.** Singers pay Stackapella through Stripe. Stackapella keeps a commission of
   15% of each sale and sends you the rest through your Stripe Express account:
-  - a take review: once you've delivered it;
+  - a take review or a live lesson: 7 days after you've delivered it (14 in your first 30 days as
+    a coach), so a chargeback can be met; if the singer's bank reverses the payment, your share is
+    taken back, and paid again if the dispute is won;
   - monthly coaching: each month, as the singer's payment comes in;
   - an exercise pack: at the moment it's bought.
 - **Refunds.** A singer gets a full refund if you decline a review, don't answer within 48 hours, or

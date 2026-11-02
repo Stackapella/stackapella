@@ -1,6 +1,6 @@
-"""Home's Plus courses (Hillel: "add the styles/harmony etc parts to the main app page"): at the
-bottom of Home, a row per group (Singing skills, Harmony, Styles): its three
-launch courses and "Show more" for the rest to come. A live course an
+"""Home's Plus courses (Hillel: "add the styles/harmony etc parts to the main app page"; trimmed
+2026-10-30 to one row): at the bottom of Home, one row of three, the course under way first, and
+All courses (the Learn page has every one). A live course an
 account can see (staff now; everyone once plus_courses is on) opens its page; the rest say Coming
 soon. Game mode calls the band Bonus stages, serious mode Courses.
 """
@@ -35,20 +35,15 @@ def journey(f):
     f.wait("document.querySelector('[data-course-card=vibrato] a')", what="Vibrato open for staff")
     f.js("document.querySelector('[data-home-courses]').scrollIntoView({ block: 'start' })")
     f.shot("courses")
-    groups = f.js("[...document.querySelectorAll('[data-course-group]')].map((g) => g.dataset.courseGroup)")
-    assert groups == ["skills", "harmony", "styles"], f"the groups: {groups}"
-    assert not f.js("document.querySelector('[data-course-featured]')"), "a featured double-width tile is back"
-    skills = f.js("[...document.querySelectorAll('[data-course-group=skills] [data-course-card]')].map((c) => c.dataset.courseCard)")
-    assert skills == ["vibrato", "pitch", "breath"], f"Singing skills shows {skills}"
-    # Each row: its three launch courses, then Show more opens the rest in place, and closes them again.
-    rows = f.js("[...document.querySelectorAll('[data-course-group]')].map((g) => g.querySelectorAll('[data-course-card]').length)")
-    assert rows == [3, 3, 3], f"three a row: {rows}"
-    more = "document.querySelector('[data-course-group=styles] [data-course-more]')"
-    f.run(f"{more}.click()")
-    f.wait("document.querySelectorAll('[data-course-group=styles] [data-course-card]').length > 3", what="Show more opening the row")
-    f.shot("courses-open")
-    f.run(f"{more}.click()")
-    f.wait("document.querySelectorAll('[data-course-group=styles] [data-course-card]').length === 3", what="Show fewer")
+    # One row of three, the open ones first (the featured Vibrato leading), and All courses to the Learn page.
+    shown = f.js(f"{CARDS}.map((c) => c.dataset.courseCard)")
+    assert len(shown) == 3 and shown[0] == "vibrato", f"one row of three, Vibrato first: {shown}"
+    assert f.js("!!document.querySelector('[data-all-courses]')"), "All courses"
+    # A course under way comes first.
+    f.run("""const s = await import('/js/stores/learning.js'); await s.loadLearning();
+        const p = s.learning.progress; s.learning.progress = { ...p, courses: { ...(p.courses ?? {}), counterpoint: { lessons: { [Object.keys((await s.loadPlusCourses(), s.learning.courses.counterpoint.units[0].lessons.reduce((o, l) => ({ ...o, [l.id]: 1 }), {})))[0]]: { stars: 2, bestPercent: 80, at: Date.now() } } } } };""")
+    f.wait(f"{CARDS}[0]?.dataset.courseCard === 'counterpoint'", what="the course under way first")
+    f.shot("courses-under-way")
     # Below the song library.
     assert f.js("document.querySelector('[data-home-courses]').getBoundingClientRect().top > document.querySelector('section[aria-labelledby=band-songs]').getBoundingClientRect().top"), "the courses aren't below the library"
     f.run("document.querySelector('[data-course-card=vibrato] a').click()")
@@ -65,6 +60,13 @@ def journey(f):
     welcome = t(f, "home.lead.welcomeYesterday", {"note": "A3", "stars": 5}) if f.skin == "game" else t(f, "home.lead.welcomeYesterdaySerious", {"note": "A3", "lessons": 2})
     assert f.js("document.querySelector('[data-welcome]').textContent.trim()") == welcome, f.js("document.querySelector('[data-welcome]').textContent")
     f.shot("welcome-back")
+    # Day 2: Start workout is the strip's primary button again.
+    f.wait("document.querySelector('[data-start-workout]')", what="the workout's Start")
+    assert f.js("document.querySelector('[data-start-workout]').classList.contains('btn-primary')"), "day 2: Start workout is primary"
+    # The day the course started (the lead's F20): Continue lesson is the one primary action, so Start is secondary.
+    f.run("""const db = await import('/js/db.js'); const kept = await db.get('learning', 'progress'); await db.put('learning', { ...kept, startedAt: Date.now() - 60000 }, 'progress');""")
+    f.go("/?api=mock&scenario=&as=member", "document.querySelector('[data-start-workout]')")
+    assert f.js("document.querySelector('[data-start-workout]').classList.contains('btn-secondary')"), "day 0: Start workout is secondary"
     # Day 7 (onboarding step 11): the first week's card, its plain facts, put away with Got it.
     f.run("""const day = 86400000; const d = new Date(Date.now() - 7 * day); const arrived = new Date(d - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
         localStorage.setItem('stackapella.funnel', JSON.stringify({ firsts: {}, variant: null, arrived }));

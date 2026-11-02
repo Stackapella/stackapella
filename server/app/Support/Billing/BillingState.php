@@ -72,6 +72,8 @@ final class BillingState
         $store = StoreSubscription::query()->with('user')->where('user_id', $user->id)->whereIn('status', [StoreSubscription::ACTIVE, StoreSubscription::GRACE])->get()
             ->filter(fn (StoreSubscription $row): bool => $row->plusUntil()?->isFuture() === true)->sortByDesc(fn (StoreSubscription $row): int => (int) $row->plusUntil()?->getTimestamp())->first();
         $paidUntil = $user->getAttributes()['plus_paid_until'] ?? null;
+        $schoolUntil = $user->getAttributes()['school_plus_until'] ?? null;
+        $school = is_string($schoolUntil) && $schoolUntil > now()->toDateTimeString();
 
         $status = match (true) {
             $valid && $subscription->onTrial() => 'trialing',
@@ -83,10 +85,22 @@ final class BillingState
             default => 'none',
         };
 
-        // Offline, Plus lasts the offline days, or only to its end when nothing renews it.
+        // Where Plus comes from now: the web, a store, a coach's, an invoice, a class code, or the demo.
+        $source = ! $plus ? null : match (true) {
+            // Canceled on the web but renewing in a store: the store's Plus is the one that lasts.
+            $valid && ! ($subscription->onGracePeriod() && $store?->will_renew === true) => 'stripe',
+            $store !== null => $store->store,
+            ($user->getAttributes()['coach_active_at'] ?? null) !== null => 'coach',
+            is_string($paidUntil) && $paidUntil > now()->toDateTimeString() => 'invoice',
+            $school => 'school',
+            default => 'demo',
+        };
+
+        // Offline, Plus lasts the offline days, or only to its end when nothing renews it (a class
+        // code's year never renews).
         $offlineUntil = $plus ? now()->addDays((int) config('billing.offline_days')) : null;
         $renews = ($valid && $endsAt === null) || $store?->will_renew === true;
-        $ends = collect([$endsAt, $store?->plusUntil()])->filter()->max();
+        $ends = collect([$endsAt, $store?->plusUntil(), $source === 'school' ? $user->school_plus_until : null])->filter()->max();
 
         if ($offlineUntil !== null && ! $renews && $ends !== null && $ends->lt($offlineUntil)) {
             $offlineUntil = Carbon::instance($ends);
@@ -108,15 +122,8 @@ final class BillingState
         return [
             'plan' => $plus ? 'plus' : 'free',
             'status' => $status,
-            // Where Plus comes from now: the web, a store, a coach's, an invoice, or the demo.
-            'source' => ! $plus ? null : match (true) {
-                // Canceled on the web but renewing in a store: the store's Plus is the one that lasts.
-                $valid && ! ($subscription->onGracePeriod() && $store?->will_renew === true) => 'stripe',
-                $store !== null => $store->store,
-                ($user->getAttributes()['coach_active_at'] ?? null) !== null => 'coach',
-                is_string($paidUntil) && $paidUntil > now()->toDateTimeString() => 'invoice',
-                default => 'demo',
-            },
+            // Where Plus comes from now: the web, a store, a coach's, an invoice, a class code, or the demo.
+            'source' => $source,
             'store' => $store !== null ? [
                 'store' => $store->store,
                 'productId' => $store->product_id,
@@ -127,6 +134,8 @@ final class BillingState
             ] : null,
             // The apps set it as Apple's appAccountToken and Google's obfuscatedAccountId.
             'storeAccountToken' => (string) $user->store_account_token,
+            // A class code's free year, when it's the Plus in use (docs/school-offer-plan.md).
+            'schoolUntil' => $source === 'school' ? $this->iso($user->school_plus_until) : null,
             'subscription' => $valid && is_string($interval) && is_string($currency) ? [
                 'interval' => $interval,
                 'currency' => $currency,

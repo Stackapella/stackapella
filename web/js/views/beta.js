@@ -45,7 +45,7 @@ export function browserCanRecord(ua = navigator.userAgent, has = window) {
     return basics && !old;
 }
 
-const Agreement = {
+export const Agreement = {
     props: { agreement: { type: Object, required: true } },
     setup: () => ({ boldSegments }),
     template: `
@@ -129,7 +129,7 @@ export const BetaView = {
     }),
     setup: () => ({ STATUS, STYLE_WORDS, LINK_ENDED, REFUSED, catalogue, account, templatePartName, formatDate, formatList, keyLabel, outbox, discard, betaBar, timeAgo }),
     template: `
-        <div class="min-h-dvh bg-ink">
+        <div data-ui="screen" class="min-h-dvh bg-ink">
             <header class="border-b border-line">
                 <div class="mx-auto flex max-w-3xl items-center gap-3 px-4 pb-3 pt-[max(0.75rem,env(safe-area-inset-top))]">
                     <Logo :size="20" /><span class="chip-accent">{{ t('beta.badge') }}</span>
@@ -225,7 +225,7 @@ export const BetaView = {
                 <section v-else-if="step === 'parts'" class="space-y-6">
                     <div class="space-y-3">
                         <h1 class="text-3xl font-extrabold tracking-tight text-cream">{{ t('beta.parts.title') }}</h1>
-                        <p v-if="parts?.length" class="flex flex-wrap gap-2 text-xs font-semibold text-cream">
+                        <p v-if="parts?.length" data-ui="facts" class="flex flex-wrap gap-2 text-xs font-semibold text-cream">
                             <span v-if="groups.retakes" class="flex items-center gap-1.5 rounded-full border border-line px-3 py-1"><span class="size-1.5 rounded-full bg-warn" aria-hidden="true"></span>{{ t('beta.parts.count.retake', { count: groups.retakes }) }}</span>
                             <span v-if="groups.coming.length" class="flex items-center gap-1.5 rounded-full border border-line px-3 py-1"><span class="size-1.5 rounded-full bg-muted" aria-hidden="true"></span>{{ t('beta.parts.count.coming', { count: groups.coming.length }) }}</span>
                             <span v-if="groups.library.length" class="flex items-center gap-1.5 rounded-full border border-line px-3 py-1"><span class="size-1.5 rounded-full bg-good" aria-hidden="true"></span>{{ t('beta.parts.count.library', { count: groups.library.length }) }}</span>
@@ -260,12 +260,12 @@ export const BetaView = {
                                         </div>
                                         <StatusChip :tone="chipOf(part).tone" :label="t(chipOf(part).label)" />
                                     </div>
-                                    <!-- Hillel's note, as a note: who, when, and what he said. -->
-                                    <div v-if="part.status === 'retake' && part.latestSubmission?.adminNote" class="flex gap-3 rounded-2xl bg-raised p-3">
+                                    <!-- Hillel's note, as a note: who, when, and what he said (asked again for a changed part: that note, in place of the take's). -->
+                                    <div v-if="part.status === 'retake' && noteOf(part)" class="flex gap-3 rounded-2xl bg-raised p-3" :data-asked-again="part.askedAgain ? '' : null">
                                         <span class="grid size-8 shrink-0 place-items-center rounded-full bg-panel text-xs font-bold text-cream" aria-hidden="true">H</span>
                                         <div class="min-w-0">
-                                            <p class="text-xs text-muted">{{ part.latestSubmission.adminNoteAt ? t('beta.parts.noteFrom', { when: timeAgo(Date.parse(part.latestSubmission.adminNoteAt)) }) : t('beta.parts.hillelSays') }}</p>
-                                            <p class="text-sm text-cream" translate="no">{{ part.latestSubmission.adminNote }}</p>
+                                            <p class="text-xs text-muted">{{ noteOf(part).at ? t('beta.parts.noteFrom', { when: timeAgo(Date.parse(noteOf(part).at)) }) : t('beta.parts.hillelSays') }}</p>
+                                            <p class="text-sm text-cream" translate="no">{{ noteOf(part).text }}</p>
                                         </div>
                                     </div>
                                     <p v-if="part.status === 'rejected' && part.latestSubmission?.adminNote" class="text-sm text-muted" translate="no">{{ part.latestSubmission.adminNote }}</p>
@@ -406,6 +406,12 @@ export const BetaView = {
         window.removeEventListener('online', this.onOnline);
     },
     methods: {
+        /** Hillel's note on a retake: asked again for a changed part (that note, while set), else the take's. */
+        noteOf(part) {
+            if (part.askedAgain?.note) return { text: part.askedAgain.note, at: part.askedAgain.at };
+            const sub = part.latestSubmission;
+            return sub?.adminNote ? { text: sub.adminNote, at: sub.adminNoteAt } : null;
+        },
         partName(part) {
             return templatePartName({ key: part.partKey, name: part.partKey });
         },
@@ -423,7 +429,7 @@ export const BetaView = {
         /** For each retake with a note pinned to a beat, the phrase that beat is in (Practise phrase N). */
         async findPhrases() {
             const found = {};
-            for (const part of (this.parts ?? []).filter((p) => p.status === 'retake' && Number.isFinite(p.latestSubmission?.adminNoteBeat))) {
+            for (const part of (this.parts ?? []).filter((p) => p.status === 'retake' && !p.askedAgain && Number.isFinite(p.latestSubmission?.adminNoteBeat))) {
                 try {
                     const template = await loadTemplate(part.template.id);
                     const index = phrases(template).findIndex((ph) => part.latestSubmission.adminNoteBeat >= ph.startBeat && part.latestSubmission.adminNoteBeat < ph.endBeat);

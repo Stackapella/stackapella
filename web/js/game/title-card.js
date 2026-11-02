@@ -1,5 +1,6 @@
 // A lesson's title card (docs/game-elements-plan.md; the proposal's board 04, after Sonic 2): the
 // first time a lesson opens on this device, bands in the unit's colour slide in with "Stage 2-3", the
+// (and, as `clear`, a unit's stage clear: "Stage 2 clear!" with the unit's name and a new level when one came with it)
 // unit's name and the lesson's, hold, and slide away, 1.2 s in all. A tap or any key ends it at once
 // (the tap stops here: it never also presses the button under the card), and nothing waits on it. Reduced motion: the card shows still, then goes. Not on a repeat visit.
 
@@ -11,6 +12,7 @@ import { run } from './motion.js';
 const KEY = 'stackapella.titlesSeen';
 export const TITLE_MS = 1200;
 export const STILL_MS = 800;
+export const CLEAR_MS = 2200; // a stage clear holds a little longer
 
 function seen() {
     try {
@@ -40,22 +42,25 @@ export const TitleCard = {
         lessonTitle: { type: String, required: true },
         colour: { type: String, required: true },
         ms: { type: Number, default: TITLE_MS }, // how long it shows (reduced motion: STILL_MS)
+        clear: Boolean, // a unit's stage clear, when its last lesson is first done
+        level: { type: Number, default: null }, // the level reached with it, if one was
     },
     emits: ['done'],
     data: () => ({ still: still() }),
     setup: () => ({ formatNumber }),
     template: `
-        <div class="ge-title" :class="still ? 'is-still' : ''" :style="{ '--ge-unit': colour }" aria-hidden="true" data-game-title @click.stop.prevent="end">
+        <div class="ge-title" :class="[still ? 'is-still' : '', clear ? 'ge-title--clear' : '']" :style="{ '--ge-unit': colour }" aria-hidden="true" data-game-title :data-game-clear="clear ? '' : null" @click.stop.prevent="end">
             <div class="ge-title-band">
                 <span class="ge-title-stripes"><i></i><i></i><i></i><i></i></span>
             </div>
             <div class="ge-title-foot"><span class="ge-title-unit">{{ t('game.title.unit', { number: unit }) }}</span></div>
             <div class="ge-title-name">
-                <span class="ge-title-stage">{{ t('game.title.stage', { unit, lesson }) }}</span>
+                <span class="ge-title-stage">{{ clear ? t('game.title.clear', { unit }) : t('game.title.stage', { unit, lesson }) }}</span>
                 <b translate="no">{{ unitTitle }}</b>
-                <i><span>{{ t('game.title.lesson', { number: lesson }) }}</span> · <span translate="no">{{ lessonTitle }}</span></i>
+                <i v-if="clear && level" data-game-level-up>{{ t('game.title.levelUp', { level: formatNumber(level) }) }}</i>
+                <i v-else-if="!clear"><span>{{ t('game.title.lesson', { number: lesson }) }}</span> · <span translate="no">{{ lessonTitle }}</span></i>
             </div>
-            <span class="ge-title-act">{{ formatNumber(lesson) }}</span>
+            <span class="ge-title-act">{{ formatNumber(clear ? unit : lesson) }}</span>
         </div>`,
     mounted() {
         this.going = run(this.still ? Math.min(this.ms, STILL_MS) : this.ms, () => {}, { motion: true });

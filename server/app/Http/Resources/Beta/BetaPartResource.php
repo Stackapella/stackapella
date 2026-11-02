@@ -52,6 +52,7 @@ final class BetaPartResource extends JsonResource
                 'recordable' => $clip->retired_at === null,
                 'latestSubmission' => $latest !== null ? BetaSubmissionResource::fields($latest) : null,
                 'guides' => [],
+                'askedAgain' => null,
                 'clip' => [...CourseClips::brief($clip), 'courseTitle' => CourseClips::courseTitle($clip->course_id)],
             ];
         }
@@ -76,11 +77,13 @@ final class BetaPartResource extends JsonResource
             'partKey' => $assignment->part_key,
             // How to use vibrato on this part (docs/vibrato-plan.md): the part's own, else the song's.
             'style' => self::style($data, (string) $assignment->part_key),
-            'status' => PartStatus::of($latest, $this->guides->contains(fn (TemplateGuide $guide): bool => $guide->submission?->beta_assignment_id === $assignment->id)),
+            'status' => PartStatus::of($latest, $this->guides->contains(fn (TemplateGuide $guide): bool => $guide->submission?->beta_assignment_id === $assignment->id), $assignment->askedAgain()),
             'recordable' => (bool) $version?->reviewed,
             'latestSubmission' => $latest !== null ? BetaSubmissionResource::fields($latest) : null,
             // `mine`: this singer's own take, told apart from another singer's on the same part.
             'guides' => $this->guides->map(static fn (TemplateGuide $guide): array => [...GuideRecording::of($guide), 'mine' => $guide->submission?->assignment->beta_singer_id === $assignment->beta_singer_id])->values()->all(),
+            // Hillel asked for this part again because the song changed: his note, shown with the retake.
+            'askedAgain' => $assignment->askedAgain() ? ['note' => (string) $assignment->asked_again_note, 'at' => $assignment->asked_again_at?->utc()->toIso8601ZuluString()] : null,
             'clip' => null,
         ];
     }

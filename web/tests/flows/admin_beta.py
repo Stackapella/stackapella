@@ -4,6 +4,7 @@ picked on the chart, another take asked for, then a second visit refused kindly 
 inviting a singer (the link shown once) and copying a status message; the real voices per part
 and its progress; and the feedback inbox. (pseudo_language.py checks their words.)
 """
+import json
 import sys
 from pathlib import Path
 
@@ -22,6 +23,15 @@ def t(f, key, values=None):
 def journey(f):
     f.go("/admin?api=mock&scenario=", "document.querySelector('main')")
     f.wait_text(t(f, "admin.home.beta"))
+    # What needs you now, first on Home: songs, then parts with their chips.
+    f.wait("document.querySelector('[data-admin-needs] [data-needs-part]')", what="what needs you now")
+    assert f.js("document.querySelector('main section[data-admin-needs]') === document.querySelector('main section')"), "what needs you comes first"
+    assert f.js("!!document.querySelector('[data-admin-needs] [data-needs-part=soprano] [data-needs-changed]') && !!document.querySelector('[data-admin-needs] [data-needs-part=soprano] [data-needs-unassigned]')"), "soprano changed, no singer"
+    assert f.js("document.querySelector('[data-admin-needs] [data-needs-part=tenor] [data-needs-takes]')?.textContent.trim()") == t(f, "admin.needs.takes", {"count": 1}), "tenor's take to review"
+    # A song where no part has a singer says so once.
+    f.run("""const { needs, noSingers } = await import('/js/admin/needs.js');
+        needs.data = { ...needs.data, templates: [...needs.data.templates, { id: 'silent-night', version: 1, title: 'Silent Night', parts: ['soprano', 'alto'].map((key) => ({ key, name: key, needs: { voiced: false, review: [], changed: false, unassigned: true, singers: [] } })) }] };""")
+    f.wait("document.querySelector('[data-needs-song=silent-night] [data-needs-no-singers]') && !document.querySelector('[data-needs-song=silent-night] [data-needs-part]')", what="no singers yet, said once")
     f.shot("home")
 
     # The queue, then the take.
@@ -50,6 +60,14 @@ def journey(f):
     f.run("const range = document.querySelector('input[type=range]'); range.value = 20; range.dispatchEvent(new Event('input')); range.dispatchEvent(new Event('change'));")
     f.click_t("admin.review.saveFixes")
     f.wait_text(t(f, "admin.review.fixesSaved"))
+    # Rejecting offers "Refused for abuse" apart from a normal no (Lend your voice: no more claims); cancelled here.
+    f.click_t("admin.review.reject")
+    f.wait("document.querySelector('[data-reject-abuse]')", what="the abuse choice")
+    f.run("document.querySelector('[data-reject-abuse]').click()")
+    f.wait("[...document.querySelectorAll('[role=dialog] button[type=submit]')].some((b) => b.textContent.trim() === " + json.dumps(t(f, "admin.review.refuseAbuse")) + ")", what="the button says what it does")
+    f.shot("reject-abuse")
+    f.click_t("common.cancel")
+    f.wait("!document.querySelector('[data-reject-abuse]')", what="cancelled")
     # A phrase picked on the chart, then another take asked for, pinned to it.
     f.run("const svg = document.querySelector('main svg[role=img]'); const box = svg.getBoundingClientRect(); svg.dispatchEvent(new MouseEvent('click', { clientX: box.left + box.width * 0.3, clientY: box.top + 20, bubbles: true }));")
     f.click_t("admin.review.askRetake")
@@ -98,10 +116,23 @@ def journey(f):
 
     # Real voices: the default switched, and each version's pitch score.
     f.click_t("admin.nav.group.content")
+    count = t(f, "admin.needs.navCount", {"count": 1})
+    f.wait(f"[...document.querySelectorAll('[aria-label]')].some((e) => e.getAttribute('aria-label') === {json.dumps(count)})", what="the nav counting the part that needs a voice")
     f.click_t("admin.nav.guides")
     f.wait_text(t(f, "admin.guides.progress", {"done": 2, "total": 4}))
     f.wait_text(t(f, "admin.review.onPitch", {"percent": 91}))
     f.shot("guides")
+    # Each part's needs, and Ask again for a singer who recorded an older version: one tap, or with a note.
+    f.wait("document.querySelector('[data-part-needs] [data-ask-again]')", what="Ask again")
+    f.run("document.querySelector('[data-needs-singer=As3Kd9] [data-ask-again]').click()")
+    f.wait_text(t(f, "admin.needs.asked", {"name": "Ana Ruiz"}))
+    f.wait("document.querySelector('[data-needs-singer=As3Kd9] [data-ask-note]') && !document.querySelector('[data-needs-singer=As3Kd9] [data-ask-again][disabled]')", what="ready again")
+    f.run("document.querySelector('[data-needs-singer=As3Kd9] [data-ask-note]').click()")
+    f.type("[data-ask-note-text]", "The tune moved in bar 3.")
+    f.shot("guides-ask-again")
+    f.run("document.querySelector('[data-needs-singer=As3Kd9] form').requestSubmit()")
+    f.wait("!document.querySelector('[data-ask-note-text]')", what="the note sent")
+    assert f.js("(globalThis.mockCalls ?? []).filter((o) => o === 'admin.beta.assignments.again').length") == 2, "asked again twice: in one tap, then with a note"
 
     # Feedback: marked read.
     f.click_t("admin.nav.group.today")

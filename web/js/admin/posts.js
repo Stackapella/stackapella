@@ -72,7 +72,7 @@ export const PostsSection = {
                             <p class="font-bold text-cream">{{ t(NETWORKS[post.network] ?? post.network) }} · {{ OCCASIONS[post.occasion] ? t(OCCASIONS[post.occasion]) : post.occasion }}</p>
                             <p class="text-sm text-muted">
                                 <template v-if="post.about.kind === 'gone'">{{ t('admin.posts.gone') }}</template>
-                                <template v-else>{{ post.about.kind === 'song' ? t('admin.posts.aboutSong') : t('admin.posts.aboutHarmony') }} <a v-if="linkIn(post.text)" :href="linkIn(post.text)" target="_blank" rel="noopener" class="link" translate="no">{{ post.about.title }}</a><span v-else translate="no">{{ post.about.title }}</span></template>
+                                <template v-else>{{ post.about.kind === 'song' ? t('admin.posts.aboutSong') : t('admin.posts.aboutHarmony') }} <a v-if="linkIn(post.text)" :href="linkIn(post.text)" target="_blank" rel="noopener" class="link tap-44" translate="no">{{ post.about.title }}</a><span v-else translate="no">{{ post.about.title }}</span></template>
                                 · {{ when(post.createdAt) }}
                             </p>
                         </div>
@@ -81,7 +81,7 @@ export const PostsSection = {
                     <!-- The post as it will read, its own words: never HTML. -->
                     <p class="whitespace-pre-line rounded-2xl bg-raised p-4 text-cream [overflow-wrap:anywhere]" translate="no">{{ post.text }}</p>
                     <p v-if="post.status === 'queued' && post.scheduledFor" class="text-sm text-muted">{{ t('admin.posts.goesAt', { when: when(post.scheduledFor) }) }}</p>
-                    <p v-if="post.status === 'posted'" class="text-sm text-muted">{{ t('admin.posts.postedAt', { when: when(post.postedAt) }) }} <a v-if="post.url" :href="post.url" target="_blank" rel="noopener" class="link">{{ t('admin.posts.view') }}</a></p>
+                    <p v-if="post.status === 'posted'" class="text-sm text-muted">{{ t('admin.posts.postedAt', { when: when(post.postedAt) }) }} <a v-if="post.url" :href="post.url" target="_blank" rel="noopener" class="link tap-44">{{ t('admin.posts.view') }}</a></p>
                     <p v-if="post.status === 'failed' && post.error" class="text-sm text-bad" translate="no">{{ post.error }}</p>
                     <div v-if="['awaiting', 'queued', 'failed'].includes(post.status)" class="flex flex-wrap gap-3">
                         <button v-if="post.status === 'awaiting'" type="button" class="btn-primary btn-sm" :disabled="busy === post.id" data-approve @click="act(post, 'approve')">{{ t('admin.posts.approve') }}</button>

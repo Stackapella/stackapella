@@ -35,6 +35,8 @@ final class CoachingSafetyTest extends TestCase
     {
         parent::setUp();
 
+        // These follow the money with no hold; the 7 and 14 day hold has its own test (CoachShareHoldTest).
+        config(['coaching.hold_days' => 0, 'coaching.new_coach_hold_days' => 0]);
         $this->fakeConnect();
     }
 

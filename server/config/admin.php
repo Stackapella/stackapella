@@ -38,11 +38,13 @@ return [
     'second_factor_required' => (bool) (env('ADMIN_2FA_REQUIRED') ?? true),
 
     /*
-     * Admin sessions: idle and absolute limits, in minutes. SESSION_LIFETIME must be at least the
-     * idle limit.
+     * Admin sessions: idle and absolute limits, in minutes (Hillel: "can you make my session in the
+     * admin section last longer"): a working day idle, a week at most, still this browser only and
+     * ended by any sign-in or sign-out. Sudo (below) stays short whatever these are.
+     * SESSION_LIFETIME must be at least the idle limit (the doctor checks).
      */
-    'idle_timeout' => (int) (env('ADMIN_IDLE_TIMEOUT') ?: 240),
-    'max_lifetime' => (int) (env('ADMIN_MAX_LIFETIME') ?: 720),
+    'idle_timeout' => (int) (env('ADMIN_IDLE_TIMEOUT') ?: 480),
+    'max_lifetime' => (int) (env('ADMIN_MAX_LIFETIME') ?: 10080),
 
     /*
      * Sudo: sensitive actions (switches, limits, the blocklist, money, deletes) need a second-factor
@@ -55,5 +57,9 @@ return [
      * point at which every admin is emailed.
      */
     'max_second_factor_attempts' => 5,
+
+    // The timezone Admin's counts and analytics decide a "day" in (the day a count is filed
+    // under, today, finished days, weeks and months). A PHP timezone name; UTC when unset or unknown.
+    'report_timezone' => env('ADMIN_REPORT_TIMEZONE') ?: 'UTC',
 
 ];

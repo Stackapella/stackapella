@@ -1,164 +1,247 @@
-// Growth's Overview (docs/admin-growth-plan.md, slice 2; contract: admin.growth.show,
-// admin.sources.show, admin.funnel.show): the page Hillel opens each morning. Four tiles (in the
-// app, lesson 1 sung, signed up, Plus started), each against yesterday and the same day last week,
-// said with an arrow, a sign and words (never colour alone), and "few so far" under 20; how far
-// they got, as one bar a step with what didn't go on between; where they came from, small sources
-// folded into one row so a tiny one never stands for a person; and the running experiment in one
-// card. Today so far (UTC), refreshed every 30 seconds while in view, like Usage; or 7 or 30 days.
-// Anonymous daily totals only: nothing follows a device.
+// Growth's Overview (docs/admin-growth-plan.md, slice 2, as Hillel redrew it on 2026-10-30; contract:
+// admin.growth.show, admin.sources.show, admin.funnel.show): the page Hillel opens each morning. Four
+// cards of one layout (In the app, Lesson 1 sung, Signed up, Plus started): the number, its share of
+// arrivals, then against yesterday and the same weekday last week in labelled rows, up or down said
+// with an arrow and a sign as well as colour, and a Low sample tag under 20. How far they got: a row a
+// step with its devices and share, and between steps how many didn't continue (or, where the next step
+// isn't a part of the one before, how many fewer), the biggest real drop in red and said so. Where they
+// came from, always over the last 7 days so day 2 can count, small sources folded into one row so a
+// tiny one never stands for a person. And the running experiment. Today so far (UTC), refreshed every
+// 30 seconds while in view, like Usage; or 7 or 30 days. Anonymous daily totals only.
 
 import { api } from '../api.js';
 import { formatDate, formatNumber, t, tk } from '../i18n.js';
 import { navigate } from '../router.js';
-import { LoadFailed } from './common.js';
+import { change, FEW, LoadFailed, zoneName } from './common.js';
+
+export { change };
+import { ReachChart } from './reach.js';
 import { updatedAgo } from './usage.js';
 import { ARM_COLORS, arrivalsByArm, lostBetween } from './funnel.js';
 
-const RANGES = [1, 7, 30];
+const RANGES = [1, 7, 30, 84]; // 84: 12 weeks, the people chart a week at a time
 const REFRESH_MS = 30000; // while the page is in view (a timer for the page, never for audio)
 const TICK_MS = 1000;
-const FEW = 20; // under this, a change is said as a number, never a percentage (it'd be noise)
 const TILES = { arrivals: tk('admin.growth.tile.arrivals'), lesson1: tk('admin.growth.tile.lesson1'), signedUp: tk('admin.growth.tile.signedUp'), plusStarted: tk('admin.growth.tile.plusStarted') };
-const SHARE_OF_ARRIVALS = ['lesson1', 'signedUp'];
+const SHARE_OF_ARRIVALS = ['lesson1', 'signedUp', 'plusStarted'];
 const STEPS = { visits: tk('admin.growth.step.visits'), start: tk('admin.growth.step.start'), arrivals: tk('admin.growth.step.arrivals'), lesson1: tk('admin.growth.step.lesson1'), unit1: tk('admin.growth.step.unit1'), signedUp: tk('admin.growth.step.signedUp'), plusStarted: tk('admin.growth.step.plusStarted') };
 // Where the next step is a part of the one before, so a loss between them is real: arrivals also come
 // straight to the app, and signing up can come before Unit 1.
 const FOLLOWS = new Set(['visits>start', 'arrivals>lesson1', 'lesson1>unit1', 'signedUp>plusStarted']);
 const SOURCES = { none: tk('admin.growth.source.none'), harmony: tk('admin.growth.source.harmony'), coach: tk('admin.growth.source.coach'), other: tk('admin.growth.source.other') };
-const COLUMNS = { arrivals: tk('admin.growth.col.arrivals'), lesson1: tk('admin.growth.col.lesson1'), day2: tk('admin.growth.col.day2') };
+const COLUMNS = { arrivals: tk('admin.growth.col.arrivals'), lesson1: tk('admin.growth.col.lesson1'), day2: tk('admin.growth.col.day2Return') };
+const DROPS = { real: tk('admin.growth.didntContinue'), fewer: tk('admin.growth.fewer') };
+const SOURCE_DAYS = 7; // the Overview's sources: always a week, so day-2 returns have had time to come in
 
 const pct = (share) => `${formatNumber(Math.round(share * 1000) / 10)}%`;
 const day = (date) => (date ? formatDate(`${date}T12:00:00Z`, { month: 'short', day: 'numeric' }) : '');
 
-/** "↑ +18% vs yesterday", "↓ -2 vs last Thu" (under 20, the number), "same as yesterday": words, a sign and an arrow. */
-export function change(now, before, against) {
-    if (now === before) return { arrow: '', text: t('admin.growth.same', { against }) };
-    const arrow = now > before ? '↑' : '↓';
-    const diff = before >= FEW ? `${now > before ? '+' : ''}${formatNumber(Math.round(((now - before) / before) * 100))}%` : `${now > before ? '+' : ''}${formatNumber(now - before)}`;
-    return { arrow, text: t('admin.growth.versus', { diff, against }) };
+
+/** A campaign tag as written ("hn"), never translated; our own groupings and the fold are words. */
+export const isTag = (source) => !SOURCES[source] && source !== 'small';
+
+export function sourceName(row) {
+    if (row.source === 'small') return t('admin.growth.source.small', { count: row.sources ?? 0 });
+    return SOURCES[row.source] ? t(SOURCES[row.source]) : row.source;
+}
+
+/** The Overview's shorter name for no tag, with what it means beneath ("No tag", "Search and direct"). */
+const SHORT = { none: [tk('admin.growth.source.noneName'), tk('admin.growth.source.noneHint')] };
+
+/** Sources sorted by a column, the folded row last whatever the sort; `rate` sorts by share of arrivals. */
+export function sortSources(rows, by, rate = false) {
+    const value = (row) => (rate ? (row.arrivals ? row[by] / row.arrivals : -1) : row[by] ?? 0);
+    return [...rows].sort((a, b) => Number(a.source === 'small') - Number(b.source === 'small') || value(b) - value(a));
 }
 
 export const OverviewSection = {
-    components: { LoadFailed },
+    components: { LoadFailed, ReachChart },
     props: { me: { type: Object, required: true } },
-    data: () => ({ days: 1, growth: null, sources: null, funnel: null, failed: false, sortBy: 'arrivals', updatedAt: null, now: Date.now(), refreshing: false, staleSince: null }),
-    setup: () => ({ RANGES, FEW, TILES, STEPS, COLUMNS, ARM_COLORS, formatNumber, pct, day, navigate }),
+    data: () => ({ days: 1, growth: null, sources: null, funnel: null, failed: false, sortBy: 'day2', updatedAt: null, now: Date.now(), refreshing: false, staleSince: null }),
+    setup: () => ({ zoneName, RANGES, FEW, TILES, STEPS, COLUMNS, SHORT, ARM_COLORS, formatNumber, pct, day, navigate }),
     template: `
         <section class="space-y-6" aria-labelledby="growth-h" data-growth>
-            <div class="flex flex-wrap items-end justify-between gap-4">
-                <div>
+            <div class="flex flex-wrap items-start justify-between gap-4">
+                <div class="min-w-0">
                     <h1 id="growth-h" class="text-3xl font-extrabold tracking-tight text-cream">{{ t('admin.growth.title') }}</h1>
-                    <p class="mt-1 flex flex-wrap items-center gap-x-2 text-sm text-muted">
-                        <span>{{ days === 1 ? t('admin.growth.introToday') : t('admin.growth.introDays', { from: day(growth?.from), to: day(growth?.to) }) }}</span>
-                        <span v-if="days === 1 && updatedAt" class="inline-flex flex-wrap items-center gap-x-2" data-growth-updated><span>· {{ staleSince ? t('admin.usage.notUpdated', { when: updated }) : t('admin.usage.updated', { when: updated }) }}</span>
-                            <button type="button" class="btn-ghost btn-sm" :aria-busy="refreshing ? 'true' : null" :disabled="refreshing" @click="refresh">{{ t('admin.usage.refresh') }}</button></span>
+                    <p class="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted">
+                        <span>{{ days === 1 ? t('admin.growth.introToday', { zone: zoneName(growth?.timezone) }) : t('admin.growth.introDays', { from: day(growth?.from), to: day(growth?.to), zone: zoneName(growth?.timezone) }) }}</span>
+                        <span v-if="updatedAt" class="inline-flex flex-wrap items-center gap-x-2" data-growth-updated>
+                            <span class="hidden sm:inline" aria-hidden="true">·</span>
+                            <span class="inline-flex items-center gap-1.5"><span class="size-1.5 rounded-full" :class="staleSince ? 'bg-warn' : 'bg-good'" aria-hidden="true"></span>{{ staleSince ? t('admin.usage.notUpdated', { when: updated }) : t('admin.usage.updated', { when: updated }) }}</span>
+                            <button type="button" class="btn-secondary btn-sm" :aria-busy="refreshing ? 'true' : null" :disabled="refreshing" @click="refresh">{{ t('admin.usage.refresh') }}</button>
+                        </span>
                     </p>
                 </div>
                 <div class="seg flex" role="radiogroup" :aria-label="t('admin.usage.range')">
-                    <button v-for="d in RANGES" :key="d" type="button" role="radio" :aria-checked="days === d" class="seg-option" @click="setDays(d)">{{ d === 1 ? t('admin.growth.today') : t('admin.usage.days', { count: d }) }}</button>
+                    <button v-for="d in RANGES" :key="d" type="button" role="radio" :aria-checked="days === d" class="seg-option" @click="setDays(d)">{{ d === 1 ? t('admin.growth.today') : d === 84 ? t('admin.growth.weeks12') : t('admin.usage.days', { count: d }) }}</button>
                 </div>
             </div>
             <LoadFailed v-if="failed" :message="failed" @retry="load" />
             <p v-else-if="!growth" class="text-muted" role="status">{{ t('admin.loading') }}</p>
             <template v-else>
-                <!-- Four tiles: today, against yesterday and the same day last week, whatever the range. -->
-                <p v-if="days !== 1" class="-mb-3 text-sm text-muted" data-growth-tiles-today>{{ t('admin.growth.tilesToday') }}</p>
-                <ul class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4" data-growth-tiles>
-                    <li v-for="tile in growth.tiles" :key="tile.key" class="card space-y-1.5 p-4" :data-tile="tile.key">
-                        <p class="text-sm text-muted">{{ TILES[tile.key] ? t(TILES[tile.key]) : tile.key }}</p>
-                        <p class="text-3xl font-extrabold tabular-nums text-cream">{{ formatNumber(tile.today) }}<span v-if="tile.today < FEW" class="ms-2 text-sm font-normal text-muted" data-few>{{ t('admin.growth.few') }}</span></p>
-                        <p class="text-sm text-muted"><template v-for="c in [change(tile.today, tile.yesterday, t('admin.growth.yesterday')), change(tile.today, tile.lastWeek, lastWeekday)]" :key="c.text"><span class="me-3 inline-block" data-change><span v-if="c.arrow" class="me-1" aria-hidden="true">{{ c.arrow }}</span>{{ c.text }}</span></template></p>
-                        <p v-if="shareOfArrivals(tile)" class="text-sm text-muted"><b class="text-cream">{{ shareOfArrivals(tile) }}</b> {{ t('admin.growth.ofArrivals') }}</p>
+                <!-- Four cards of one layout: the period, against the one before and the same days a week back. -->
+                <ul class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4" data-growth-tiles>
+                    <li v-for="tile in growth.tiles" :key="tile.key" class="card flex flex-col p-5" :data-tile="tile.key">
+                        <div class="flex items-start justify-between gap-2">
+                            <p class="text-sm text-muted">{{ TILES[tile.key] ? t(TILES[tile.key]) : tile.key }}</p>
+                            <span v-if="lowSample(tile)" class="shrink-0 rounded-md border border-line px-1.5 py-0.5 text-xs text-muted" data-few>{{ t('admin.growth.lowSample') }}</span>
+                        </div>
+                        <p class="mt-2 flex flex-wrap items-baseline gap-x-2.5">
+                            <span class="text-4xl font-extrabold tabular-nums text-cream">{{ formatNumber(count(tile)) }}</span>
+                            <span v-if="shareOfArrivals(tile)" class="text-sm text-muted" data-share><b class="font-semibold text-cream">{{ shareOfArrivals(tile) }}</b> {{ t('admin.growth.ofArrivals') }}</span>
+                        </p>
+                        <div class="mt-auto pt-4"><dl class="space-y-1 border-t border-line pt-3 text-sm">
+                            <div v-for="row in tileRows(tile)" :key="row.label" class="flex items-center justify-between gap-3" data-change :data-dir="row.dir">
+                                <dt class="text-muted">{{ row.label }}</dt>
+                                <dd class="font-semibold tabular-nums" :class="row.dir === 'up' ? 'text-good' : row.dir === 'down' ? 'text-bad' : 'text-muted'"><span v-if="row.dir !== 'same'" class="me-1" aria-hidden="true">{{ row.dir === 'up' ? '↑' : '↓' }}</span>{{ row.text }}</dd>
+                            </div>
+                        </dl></div>
                     </li>
                 </ul>
 
-                <div class="grid gap-6 lg:grid-cols-[1.4fr_1fr]">
-                    <!-- How far they got: a bar a step, and what didn't go on between. -->
-                    <section class="card space-y-3 p-4 md:p-5" aria-labelledby="growth-steps-h" data-growth-steps>
-                        <div class="flex flex-wrap items-baseline justify-between gap-2">
-                            <h2 id="growth-steps-h" class="text-lg font-bold text-cream">{{ days === 1 ? t('admin.growth.stepsToday') : t('admin.growth.steps') }}</h2>
-                            <a href="/admin/funnel" class="link text-sm" @click.prevent="navigate('/admin/funnel')">{{ t('admin.growth.openFunnel') }}</a>
+                <!-- People using the app (Hillel: signed in against guests), week by week against the 12 weeks before. -->
+                <ReachChart :days="days" />
+
+                <div class="grid items-start gap-6 lg:grid-cols-[1.05fr_1fr]">
+                    <!-- How far they got: a row a step, and between steps how many didn't continue. -->
+                    <section class="card min-w-0 scroll-mt-36 p-5 md:p-6" aria-labelledby="growth-steps-h" data-growth-steps>
+                        <div class="flex flex-wrap items-start justify-between gap-2">
+                            <div>
+                                <h2 id="growth-steps-h" class="text-lg font-bold text-cream">{{ days === 1 ? t('admin.growth.stepsToday') : t('admin.growth.steps') }}</h2>
+                                <p class="text-sm text-muted">{{ t('admin.growth.stepsSub') }}</p>
+                            </div>
+                            <a href="/admin/funnel" class="link tap-44 inline-flex min-h-6 items-center gap-1 text-sm" @click.prevent="navigate('/admin/funnel')">{{ t('admin.growth.openFunnel') }}<span aria-hidden="true" class="rtl:-scale-x-100">→</span></a>
                         </div>
-                        <ol class="space-y-1">
-                            <li v-for="(s, i) in growth.steps" :key="s.key" :data-step="s.key">
-                                <div class="grid grid-cols-[8rem_1fr_4.5rem] items-center gap-3">
-                                    <p class="text-sm text-cream">{{ STEPS[s.key] ? t(STEPS[s.key]) : s.key }}</p>
-                                    <div class="h-3 overflow-hidden rounded-full bg-raised" aria-hidden="true"><div class="h-full rounded-full bg-accent" :style="{ width: barWidth(s.total) + '%' }"></div></div>
-                                    <p class="text-end text-sm tabular-nums"><b class="text-cream">{{ formatNumber(s.total) }}</b><span v-if="i > 0 && firstStep" class="block text-xs text-muted">{{ pct(s.total / firstStep) }}</span></p>
+                        <div class="-mx-1 mt-4 overflow-x-auto px-1">
+                            <table class="w-full text-sm">
+                                <thead class="text-xs font-semibold uppercase tracking-wider text-muted">
+                                    <tr>
+                                        <th scope="col" class="pb-2 text-start font-semibold">{{ t('admin.growth.col.step') }}</th>
+                                        <th scope="col" class="pb-2"><span class="sr-only">{{ t('admin.growth.col.bar') }}</span></th>
+                                        <th scope="col" class="pb-2 ps-3 text-end font-semibold">{{ t('admin.growth.col.devices') }}</th>
+                                        <th scope="col" class="pb-2 ps-3 text-end font-semibold">{{ t('admin.growth.col.share') }}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <template v-for="(s, i) in growth.steps" :key="s.key">
+                                        <tr :data-step="s.key">
+                                            <th scope="row" class="h-9 pe-3 text-start font-normal text-cream sm:whitespace-nowrap">{{ STEPS[s.key] ? t(STEPS[s.key]) : s.key }}</th>
+                                            <td class="w-full"><div class="h-2.5 overflow-hidden rounded-full bg-raised" aria-hidden="true"><div class="h-full rounded-full bg-accent" :style="{ width: barWidth(s.total) + '%' }"></div></div></td>
+                                            <td class="ps-3 text-end font-bold tabular-nums text-cream">{{ formatNumber(s.total) }}</td>
+                                            <td class="ps-3 text-end tabular-nums text-muted">{{ firstStep ? pct(s.total / firstStep) : '-' }}</td>
+                                        </tr>
+                                        <tr v-if="drops[i]" class="text-xs" data-growth-lost :data-biggest="drops[i].biggest ? '' : null">
+                                            <td></td>
+                                            <td colspan="3" class="pb-1.5" :class="drops[i].biggest ? 'font-semibold text-bad' : 'text-muted'"><span aria-hidden="true">↓ </span>{{ drops[i].words }}<span class="text-muted"> · {{ t('admin.growth.devicesCount', { count: drops[i].devices }) }}</span><span v-if="drops[i].biggest" class="sr-only"> {{ t('admin.growth.biggestDrop') }}</span></td>
+                                        </tr>
+                                    </template>
+                                </tbody>
+                            </table>
+                        </div>
+                    </section>
+
+                    <div class="min-w-0 space-y-6">
+                        <!-- Where they came from: always the last 7 days; small sources folded, so a tiny one never stands for a person. -->
+                        <section class="card scroll-mt-36 p-5 md:p-6" aria-labelledby="growth-sources-h" data-growth-sources>
+                            <div class="flex flex-wrap items-start justify-between gap-2">
+                                <div>
+                                    <h2 id="growth-sources-h" class="text-lg font-bold text-cream">{{ t('admin.growth.sources') }}</h2>
+                                    <p class="text-sm text-muted">{{ t('admin.growth.sourcesSub') }}</p>
                                 </div>
-                                <p v-if="didntGoOn(i)" class="ms-[8.75rem] text-xs text-muted" data-growth-lost><span aria-hidden="true">↓ </span>{{ didntGoOn(i) }}</p>
-                            </li>
-                        </ol>
-                        <p class="text-xs text-muted">{{ t('admin.growth.stepsNote') }}</p>
-                    </section>
+                                <span class="shrink-0 rounded-md border border-warn/50 px-2 py-0.5 text-xs font-semibold text-warn" data-growth-last7>{{ t('admin.growth.last7') }}</span>
+                            </div>
+                            <p v-if="!sources" class="mt-4 text-sm text-muted" role="status">{{ t('admin.loading') }}</p>
+                            <div v-else class="-mx-1 mt-4 overflow-x-auto px-1">
+                                <table class="w-full text-sm">
+                                    <thead class="text-xs font-semibold uppercase tracking-wider text-muted">
+                                        <tr class="border-b border-line">
+                                            <th scope="col" class="pb-2 pe-2 text-start font-semibold">{{ t('admin.growth.col.source') }}</th>
+                                            <th v-for="(label, key) in COLUMNS" :key="key" scope="col" class="pb-2 ps-3 text-end font-semibold" :aria-sort="sortBy === key ? 'descending' : 'none'">
+                                                <button type="button" class="tap-44 inline-flex min-h-6 items-center gap-1 uppercase tracking-wider" :data-sort="key" @click="sortBy = key">{{ t(label) }}<span v-if="sortBy === key" aria-hidden="true">↓</span></button>
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-line">
+                                        <tr v-for="row in sortedSources" :key="row.source" :data-source="row.source">
+                                            <th scope="row" class="py-2.5 pe-2 text-start font-normal text-cream">
+                                                <template v-if="SHORT[row.source]">{{ t(SHORT[row.source][0]) }}<span class="block text-xs text-muted">{{ t(SHORT[row.source][1]) }}</span></template>
+                                                <span v-else :translate="isTag(row.source) ? 'no' : null">{{ sourceName(row) }}</span>
+                                            </th>
+                                            <td class="ps-3 text-end tabular-nums text-cream">{{ formatNumber(row.arrivals) }}</td>
+                                            <td class="ps-3 text-end tabular-nums text-cream">{{ formatNumber(row.lesson1) }}</td>
+                                            <td class="ps-3">
+                                                <span class="flex items-center justify-end gap-2.5">
+                                                    <span class="hidden h-1.5 w-12 shrink-0 overflow-hidden rounded-full bg-raised sm:block" aria-hidden="true"><span class="block h-full rounded-full bg-accent" :style="{ width: (row.arrivals ? Math.min(100, (row.day2 / row.arrivals) * 100) : 0) + '%' }"></span></span>
+                                                    <b class="w-12 text-end tabular-nums text-cream">{{ row.arrivals ? pct(row.day2 / row.arrivals) : '-' }}</b>
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="mt-4 flex flex-wrap items-end justify-between gap-2">
+                                <p class="max-w-prose text-xs text-muted">{{ t('admin.growth.sourcesFoot') }}</p>
+                                <a href="/admin/sources" class="link tap-44 inline-flex min-h-6 items-center gap-1 text-sm" data-growth-all-sources @click.prevent="navigate('/admin/sources')">{{ t('admin.growth.allSources') }}<span aria-hidden="true" class="rtl:-scale-x-100">→</span></a>
+                            </div>
+                        </section>
 
-                    <!-- Where they came from: small sources folded, so a tiny one never stands for a person. -->
-                    <section class="card space-y-3 p-4 md:p-5" aria-labelledby="growth-sources-h" data-growth-sources>
-                        <h2 id="growth-sources-h" class="text-lg font-bold text-cream">{{ t('admin.growth.sources') }}</h2>
-                        <p v-if="!sources" class="text-sm text-muted" role="status">{{ t('admin.loading') }}</p>
-                        <table v-else class="w-full text-sm">
-                            <thead class="text-xs text-muted">
-                                <tr class="border-b border-line">
-                                    <th scope="col" class="py-2 pe-2 text-start font-semibold">{{ t('admin.growth.col.source') }}</th>
-                                    <th v-for="(label, key) in COLUMNS" :key="key" scope="col" class="px-1 py-2 text-end font-semibold" :aria-sort="sortBy === key ? 'descending' : 'none'">
-                                        <button type="button" class="inline-flex min-h-6 items-center gap-1" :data-sort="key" @click="sortBy = key">{{ t(label) }}<span v-if="sortBy === key" aria-hidden="true">↓</span></button>
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-line">
-                                <tr v-for="row in sortedSources" :key="row.source" :data-source="row.source">
-                                    <th scope="row" class="py-2 pe-2 text-start font-normal text-cream" :translate="isTag(row.source) ? 'no' : null">{{ sourceName(row) }}</th>
-                                    <td class="px-1 py-2 text-end tabular-nums text-cream">{{ formatNumber(row.arrivals) }}</td>
-                                    <td class="px-1 py-2 text-end tabular-nums text-cream">{{ formatNumber(row.lesson1) }}</td>
-                                    <td class="px-1 py-2 text-end tabular-nums text-cream">{{ row.arrivals ? pct(row.day2 / row.arrivals) : '-' }}</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                        <p class="text-xs text-muted">{{ days === 1 ? t('admin.growth.sourcesNoteToday') : t('admin.growth.sourcesNote') }}</p>
-                    </section>
+                        <!-- The running experiment, in one card; the Funnel has the rest. -->
+                        <section v-if="experiment" class="card space-y-3 p-5 md:p-6" aria-labelledby="growth-exp-h" data-growth-experiment>
+                            <div class="flex flex-wrap items-start justify-between gap-3">
+                                <div>
+                                    <h2 id="growth-exp-h" class="text-lg font-bold text-cream">{{ t('admin.growth.experiment', { id: experiment.id }) }}</h2>
+                                    <p class="text-sm text-muted">{{ experimentLine }}</p>
+                                </div>
+                                <span class="shrink-0 rounded-md border border-line px-2 py-0.5 text-xs text-muted" data-growth-readable>{{ !started ? t('admin.funnel.notStarted') : readable ? t('admin.growth.ready') : t('admin.growth.notReady') }}</span>
+                            </div>
+                            <p class="text-sm text-cream">{{ t('admin.growth.primaryStep', { step: primaryName }) }}</p>
+                            <div v-if="started" class="space-y-1.5">
+                                <div v-for="a in primaryArms" :key="a.arm" class="flex items-center gap-2">
+                                    <span class="w-3 text-xs font-bold text-cream" translate="no">{{ a.arm.toUpperCase() }}</span>
+                                    <div class="h-2.5 min-w-0 flex-1 overflow-hidden rounded-full bg-raised" aria-hidden="true"><div class="h-full rounded-full" :style="{ width: Math.max(1, (a.rate ?? 0) * 100) + '%', background: ARM_COLORS[a.arm] ?? ARM_COLORS.all }"></div></div>
+                                    <span class="w-14 text-end text-sm tabular-nums text-cream">{{ pct(a.rate ?? 0) }}</span>
+                                </div>
+                            </div>
+                            <a href="/admin/funnel" class="link tap-44 inline-flex min-h-6 items-center gap-1 text-sm" @click.prevent="navigate('/admin/funnel')">{{ t('admin.growth.openFunnel') }}<span aria-hidden="true" class="rtl:-scale-x-100">→</span></a>
+                        </section>
+                    </div>
                 </div>
-
-                <!-- The running experiment, in one card; the Funnel has the rest. -->
-                <section v-if="experiment" class="card space-y-3 p-4 md:p-5" aria-labelledby="growth-exp-h" data-growth-experiment>
-                    <div class="flex flex-wrap items-start justify-between gap-3">
-                        <div>
-                            <h2 id="growth-exp-h" class="text-lg font-bold text-cream">{{ t('admin.growth.experiment', { id: experiment.id }) }}</h2>
-                            <p class="text-sm text-muted">{{ experimentLine }}</p>
-                        </div>
-                        <span class="chip text-xs" data-growth-readable>{{ !started ? t('admin.funnel.notStarted') : readable ? t('admin.growth.ready') : t('admin.growth.notReady') }}</span>
-                    </div>
-                    <p class="text-sm text-cream">{{ t('admin.growth.primaryStep', { step: primaryName }) }}</p>
-                    <div v-if="started" class="space-y-1.5">
-                        <div v-for="a in primaryArms" :key="a.arm" class="flex items-center gap-2">
-                            <span class="w-3 text-xs font-bold text-cream" translate="no">{{ a.arm.toUpperCase() }}</span>
-                            <div class="h-2.5 min-w-0 flex-1 overflow-hidden rounded-full bg-raised" aria-hidden="true"><div class="h-full rounded-full" :style="{ width: Math.max(1, (a.rate ?? 0) * 100) + '%', background: ARM_COLORS[a.arm] ?? ARM_COLORS.all }"></div></div>
-                            <span class="w-14 text-end text-sm tabular-nums text-cream">{{ pct(a.rate ?? 0) }}</span>
-                        </div>
-                    </div>
-                    <a href="/admin/funnel" class="link text-sm" @click.prevent="navigate('/admin/funnel')">{{ t('admin.growth.openFunnel') }}</a>
-                </section>
             </template>
         </section>`,
     computed: {
         updated() {
             return this.updatedAt ? updatedAgo(this.updatedAt, this.now) : '';
         },
-        /** "last Thu": the same weekday a week ago (UTC). */
+        /** The same weekday a week ago (UTC), for the cards' second row. */
         lastWeekday() {
-            const weekday = formatDate(new Date(Date.now() - 7 * 86400000), { weekday: 'short', timeZone: 'UTC' });
-            return t('admin.growth.lastWeekday', { weekday });
+            return formatDate(new Date(Date.now() - 7 * 86400000), { weekday: 'short', timeZone: 'UTC' });
+        },
+        /**
+         * Between each step and the next: how many didn't continue (FOLLOWS: the next is a part of the
+         * one before), or how many fewer (it isn't, so it's not a loss); the biggest real drop marked.
+         */
+        drops() {
+            const steps = this.growth?.steps ?? [];
+            const drops = steps.map((here, i) => {
+                const next = steps[i + 1];
+                const lost = next ? lostBetween(here.total, next.total) : null;
+                if (lost === null) return null;
+                const real = FOLLOWS.has(`${here.key}>${next.key}`);
+                return { lost, real, devices: here.total - next.total, words: t(real ? DROPS.real : DROPS.fewer, { share: pct(lost) }) };
+            });
+            const biggest = Math.max(0, ...drops.filter((d) => d?.real).map((d) => d.lost));
+            return drops.map((d) => d && { ...d, biggest: d.real && biggest > 0 && d.lost === biggest });
         },
         firstStep() {
             return this.growth?.steps?.[0]?.total ?? 0;
         },
-        arrivalsToday() {
-            return this.growth?.tiles?.find((tile) => tile.key === 'arrivals')?.today ?? 0;
+        arrivals() {
+            const tile = this.growth?.tiles?.find((t) => t.key === 'arrivals');
+            return tile ? this.count(tile) : 0;
         },
         sortedSources() {
-            const rows = this.sources?.sources ?? [];
-            const value = (row) => (this.sortBy === 'day2' ? (row.arrivals ? row.day2 / row.arrivals : -1) : row[this.sortBy] ?? 0);
-            // The folded row stays last, whatever the sort.
-            return [...rows].sort((a, b) => Number(a.source === 'small') - Number(b.source === 'small') || value(b) - value(a));
+            return sortSources(this.sources?.sources ?? [], this.sortBy, this.sortBy === 'day2');
         },
         experiment() {
             const report = this.funnel;
@@ -218,24 +301,30 @@ export const OverviewSection = {
         document.removeEventListener('visibilitychange', this.onVisible);
     },
     methods: {
-        change,
-        isTag: (source) => !SOURCES[source] && source !== 'small',
-        sourceName(row) {
-            if (row.source === 'small') return t('admin.growth.source.small', { count: row.sources ?? 0 });
-            return SOURCES[row.source] ? t(SOURCES[row.source]) : row.source;
+        isTag,
+        sourceName,
+        /** A card's number: the period's total (admin.growth.show's `current`), or today's from an older server. */
+        count: (tile) => tile.current ?? tile.today,
+        lowSample: (tile) => tile.lowSample ?? (tile.current ?? tile.today) < FEW,
+        /**
+         * A card's rows. Today: against yesterday and the same weekday last week. Seven days: against
+         * the seven before (a week back is the same days). Thirty: against the thirty before, and the
+         * thirty ending a week ago.
+         */
+        tileRows(tile) {
+            const now = this.count(tile);
+            const before = tile.previous ?? tile.yesterday;
+            const weekAgo = tile.weekAgo ?? tile.lastWeek;
+            if (this.days === 1) return [{ label: t('admin.growth.vsYesterday'), ...change(now, before) }, { label: t('admin.growth.vsLastWeekday', { weekday: this.lastWeekday }), ...change(now, weekAgo) }];
+            const rows = [{ label: this.days === 84 ? t('admin.growth.vsWeeksBefore') : t('admin.growth.vsDaysBefore', { count: this.days }), ...change(now, before) }];
+            if (this.days !== 7) rows.push({ label: t('admin.growth.vsWeekEarlier'), ...change(now, weekAgo) });
+            return rows;
         },
         shareOfArrivals(tile) {
-            return SHARE_OF_ARRIVALS.includes(tile.key) && this.arrivalsToday ? pct(tile.today / this.arrivalsToday) : '';
+            return SHARE_OF_ARRIVALS.includes(tile.key) && this.arrivals ? pct(this.count(tile) / this.arrivals) : '';
         },
         barWidth(total) {
             return this.firstStep ? Math.max(total ? 1 : 0, Math.min(100, (total / this.firstStep) * 100)) : 0;
-        },
-        /** "75% didn't go on", between steps where the next is a part of the one before (FOLLOWS). */
-        didntGoOn(i) {
-            const here = this.growth.steps[i];
-            const next = this.growth.steps[i + 1];
-            const lost = next && FOLLOWS.has(`${here.key}>${next.key}`) ? lostBetween(here.total, next.total) : null;
-            return lost === null ? '' : t('admin.growth.didntGoOn', { share: pct(lost) });
         },
         setDays(days) {
             this.days = days;
@@ -243,8 +332,8 @@ export const OverviewSection = {
         },
         async fetchAll() {
             const days = this.days;
-            // Sources over a week at least: today's arrivals can't have come back on day 2 yet.
-            const [growth, sources, list] = await Promise.all([api.admin.growth.show({ days }), api.admin.sources.show({ days: days === 1 ? 7 : days }), api.admin.funnel.show({ days: 7 })]);
+            // Sources always over the last week: today's arrivals can't have come back on day 2 yet.
+            const [growth, sources, list] = await Promise.all([api.admin.growth.show({ days }), api.admin.sources.show({ days: SOURCE_DAYS }), api.admin.funnel.show({ days: 7 })]);
             const running = list.data.experiments?.find((e) => e.enrolling) ?? list.data.experiments?.at(-1) ?? null;
             const funnel = !running ? null : list.data.experiment === running.id ? list.data : (await api.admin.funnel.show({ experiment: running.id })).data;
             return { days, growth: growth.data, sources: sources.data, funnel };

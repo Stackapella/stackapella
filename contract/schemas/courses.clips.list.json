@@ -40,6 +40,13 @@
                             "string",
                             "null"
                         ]
+                    },
+                    "creditStyle": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "description": "The clip's style (its sing.style, such as beatbox or yodel), for \"Beatbox by\" instead of \"Sung by\"."
                     }
                 }
             }

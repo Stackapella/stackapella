@@ -80,16 +80,29 @@ final class GrowthTest extends TestCase
     {
         $row = fn (int $ago, string $kind, int $n, string $source = ''): array => ['day' => now()->utc()->subDays($ago)->toDateString(), 'kind' => $kind, 'audience' => 'guest', 'country' => '', 'variant' => '', 'source' => $source, 'count' => $n];
         DB::table('usage_counts')->insert([
-            $row(0, 'f_arrive', 10), $row(0, 'f_arrive_start', 2, 'hn'), $row(1, 'f_arrive', 8), $row(7, 'f_arrive', 5), $row(8, 'f_arrive', 99),
+            $row(0, 'f_arrive', 10), $row(0, 'f_arrive_start', 2, 'hn'), $row(1, 'f_arrive', 8), $row(7, 'f_arrive', 5), $row(8, 'f_arrive', 99), $row(90, 'f_arrive', 7),
             $row(0, 'site_visit', 40), $row(3, 'site_visit', 60), $row(0, 'sign_up', 3), $row(0, 'plus_started', 1),
         ]);
         $this->actingAsAdmin();
 
         $today = $this->getJson('/api/admin/growth');
         $this->assertMatchesContract($today, 'admin.growth.show', 200);
-        $today->assertJsonPath('data.tiles.0', ['key' => 'arrivals', 'today' => 12, 'yesterday' => 8, 'lastWeek' => 5])
+        $today->assertJsonPath('data.tiles.0', ['key' => 'arrivals', 'today' => 12, 'yesterday' => 8, 'lastWeek' => 5, 'current' => 12, 'previous' => 8, 'weekAgo' => 5, 'lowSample' => true])
             ->assertJsonPath('data.steps.0', ['key' => 'visits', 'total' => 40])->assertJsonPath('data.steps.2', ['key' => 'arrivals', 'total' => 12]);
         $this->getJson('/api/admin/growth?days=7')->assertJsonPath('data.steps.0.total', 100)->assertJsonPath('data.steps.2.total', 20)->assertJsonPath('data.tiles.0.today', 12);
+
+        // Each tile over the chosen period, the period before, and a week back.
+        $today->assertJsonPath('data.tiles.0.current', 12)->assertJsonPath('data.tiles.0.previous', 8)->assertJsonPath('data.tiles.0.weekAgo', 5)->assertJsonPath('data.tiles.0.lowSample', true);
+        $week = $this->getJson('/api/admin/growth?days=7');
+        $this->assertMatchesContract($week, 'admin.growth.show', 200);
+        $week->assertJsonPath('data.tiles.0.current', 20)->assertJsonPath('data.tiles.0.previous', 104)->assertJsonPath('data.tiles.0.weekAgo', 104)->assertJsonPath('data.tiles.0.lowSample', false)
+            ->assertJsonPath('data.tiles.2', ['key' => 'signedUp', 'today' => 3, 'yesterday' => 0, 'lastWeek' => 0, 'current' => 3, 'previous' => 0, 'weekAgo' => 0, 'lowSample' => true]);
+
+        // 12 weeks: the 84 days to today, the 84 before, and the same 84 a week back.
+        $weeks = $this->getJson('/api/admin/growth?days=84');
+        $this->assertMatchesContract($weeks, 'admin.growth.show', 200);
+        $weeks->assertJsonPath('data.from', now()->utc()->subDays(83)->toDateString())
+            ->assertJsonPath('data.tiles.0.current', 124)->assertJsonPath('data.tiles.0.previous', 7)->assertJsonPath('data.tiles.0.weekAgo', 111);
     }
 
     public function test_sources_are_most_arrivals_first_with_the_small_ones_folded_last(): void

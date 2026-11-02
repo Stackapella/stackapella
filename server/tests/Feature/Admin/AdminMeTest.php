@@ -100,7 +100,7 @@ final class AdminMeTest extends TestCase
     public function test_an_idle_admin_session_ends(): void
     {
         $this->actingAsAdmin();
-        $this->travel(241)->minutes();
+        $this->travel(config('admin.idle_timeout') + 1)->minutes();
 
         $this->assertMatchesContract($this->getJson('/api/admin/me'), 'admin.me', 401);
     }

@@ -1,0 +1,127 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Tests\Feature\Voices;
+
+use App\Actions\Templates\SyncOfficialTemplates;
+use App\Models\BetaAssignment;
+use App\Models\BetaSinger;
+use App\Models\CourseClip;
+use App\Models\User;
+use App\Support\Flags;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
+
+/**
+ * Lend your voice (docs/lend-your-voice-plan.md, slice 1): the Wanted voices, joining as an unpaid
+ * volunteer with its own agreement, and claims held a while; then it's the beta singers' pipeline.
+ */
+final class LendVoiceTest extends TestCase
+{
+    use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        app(SyncOfficialTemplates::class)->handle();
+        CourseClip::factory()->create(['slot' => 'yodel.flip', 'course_id' => 'yodeling', 'brief' => ['sing' => ['en' => 'Flip on "yo-dl"'], 'pitch' => null, 'seconds' => 4.0, 'style' => 'yodel', 'voices' => 'any', 'used' => [], 'skill' => 'yodel']]);
+        CourseClip::factory()->create(['slot' => 'vibrato.held', 'brief' => ['sing' => ['en' => 'One held "ah"'], 'pitch' => null, 'seconds' => 3.0, 'style' => 'vibrato', 'voices' => 'any', 'used' => [], 'skill' => 'vibrato']]);
+    }
+
+    private function singer(string $name = 'Ana Ruiz', array $with = []): User
+    {
+        $user = User::factory()->create(['name' => $name, 'adult_confirmed_at' => now(), 'birth_year' => 1990, 'birth_month' => 5, 'created_at' => now()->subDays(30), ...$with])->fresh() ?? throw new \LogicException;
+        $this->actingAs($user);
+
+        return $user;
+    }
+
+    private function join(): void
+    {
+        $this->postJson('/api/voices/join', ['agreementVersion' => 1, 'credit' => 'name', 'linksProfile' => false])->assertOk();
+    }
+
+    public function test_it_is_closed_until_the_switch_is_on(): void
+    {
+        $this->singer();
+        $this->assertMatchesContract($this->getJson('/api/voices/wanted'), 'voices.wanted', 404);
+        $this->getJson('/api/auth/config')->assertJsonPath('data.lendVoice', false);
+    }
+
+    public function test_the_wanted_list_is_parts_and_clips_with_no_real_voice_by_skill(): void
+    {
+        app(Flags::class)->set('lend_voice', 'on', null, 'Open');
+        $this->singer();
+
+        $wanted = $this->getJson('/api/voices/wanted');
+        $this->assertMatchesContract($wanted, 'voices.wanted', 200);
+        $ids = array_column((array) $wanted->json('data.items'), 'id');
+        $this->assertContains('song:amazing-grace:tenor', $ids);
+        $this->assertContains('clip:yodel.flip', $ids);
+        $yodel = (array) $this->getJson('/api/voices/wanted?skill=yodel')->json('data.items');
+        $this->assertContains('clip:yodel.flip', array_column($yodel, 'id'));
+        $this->assertSame(['yodel'], array_values(array_unique(array_column($yodel, 'skill'))));
+        $this->assertNotContains('clip:yodel.flip', array_column((array) $this->getJson('/api/voices/wanted?kind=songs')->json('data.items'), 'id'));
+    }
+
+    public function test_only_an_adult_with_a_confirmed_email_past_their_first_week_joins(): void
+    {
+        app(Flags::class)->set('lend_voice', 'on', null, 'Open');
+        $this->singer('New Comer', ['created_at' => now()->subDays(2)]);
+        $this->assertMatchesContract($this->postJson('/api/voices/join', ['agreementVersion' => 1, 'credit' => 'name']), 'voices.join', 403);
+        $this->singer('No Email', ['email_verified_at' => null]);
+        $this->postJson('/api/voices/join', ['agreementVersion' => 1, 'credit' => 'name'])->assertForbidden()->assertJsonPath('code', 'email_unverified');
+        $this->singer('Not Said', ['adult_confirmed_at' => null]);
+        $this->postJson('/api/voices/join', ['agreementVersion' => 1, 'credit' => 'name'])->assertForbidden();
+
+        $paid = $this->singer('Paid Singer');
+        BetaSinger::factory()->create(['user_id' => $paid->id, 'accepted_at' => now()]);
+        $this->assertMatchesContract($this->postJson('/api/voices/join', ['agreementVersion' => 1, 'credit' => 'name']), 'voices.join', 409);
+
+        $this->singer('Ana Ruiz');
+        $this->assertMatchesContract($this->postJson('/api/voices/join', ['agreementVersion' => 2, 'credit' => 'name']), 'voices.join', 409);
+        $joined = $this->postJson('/api/voices/join', ['agreementVersion' => 1, 'credit' => 'anonymous']);
+        $this->assertMatchesContract($joined, 'voices.join', 200);
+        $joined->assertJsonPath('data.volunteer', true)->assertJsonPath('data.consent.version', 1)->assertJsonPath('data.consent.current', 1);
+        $this->getJson('/api/beta/agreement?for=volunteer')->assertOk()->assertJsonPath('data.title', 'Lend your voice');
+    }
+
+    public function test_a_claim_is_one_persons_for_a_while_and_then_back_on_the_list(): void
+    {
+        app(Flags::class)->set('lend_voice', 'on', null, 'Open');
+        $ana = $this->singer();
+        $this->assertMatchesContract($this->postJson('/api/voices/claims', ['item' => 'clip:yodel.flip']), 'voices.claims.create', 403);
+        $this->join();
+
+        $made = $this->postJson('/api/voices/claims', ['item' => 'clip:yodel.flip']);
+        $this->assertMatchesContract($made, 'voices.claims.create', 201);
+        $made->assertJsonPath('data.ending', false)->assertJsonPath('data.take', null);
+        $this->assertMatchesContract($this->getJson('/api/voices/claims'), 'voices.claims.list', 200);
+        // It's theirs to record, as a beta singer's part, and nobody else's to claim.
+        $this->getJson('/api/beta/parts')->assertOk()->assertJsonCount(1, 'data');
+        $this->assertNotContains('clip:yodel.flip', array_column((array) $this->getJson('/api/voices/wanted')->json('data.items'), 'id'));
+
+        $this->singer('Ben Ode');
+        $this->join();
+        $this->assertMatchesContract($this->postJson('/api/voices/claims', ['item' => 'clip:yodel.flip']), 'voices.claims.create', 409);
+        foreach (['song:amazing-grace:alto', 'song:amazing-grace:tenor', 'song:amazing-grace:bass'] as $item) {
+            $this->postJson('/api/voices/claims', ['item' => $item])->assertCreated();
+        }
+        $this->postJson('/api/voices/claims', ['item' => 'clip:vibrato.held'])->assertStatus(409)->assertJsonPath('code', 'claim_limit');
+
+        // Given back, it's wanted again.
+        $this->actingAs($ana);
+        $this->assertMatchesContract($this->deleteJson('/api/voices/claims/'.BetaAssignment::query()->whereNotNull('course_clip_id')->sole()->sqid()), 'voices.claims.delete', 204);
+        $this->assertContains('clip:yodel.flip', array_column((array) $this->getJson('/api/voices/wanted')->json('data.items'), 'id'));
+
+        // A claim says it's ending from day 10, and runs out at 14 with nothing sent.
+        $this->postJson('/api/voices/claims', ['item' => 'clip:yodel.flip'])->assertCreated();
+        $this->travel(11)->days();
+        $this->getJson('/api/voices/claims')->assertJsonPath('data.0.ending', true);
+        $this->travel(4)->days();
+        $this->getJson('/api/voices/claims')->assertJsonCount(0, 'data');
+        $this->artisan('app:voices:release')->expectsOutputToContain('Released 4')->assertSuccessful();
+        $this->assertContains('clip:yodel.flip', array_column((array) $this->getJson('/api/voices/wanted')->json('data.items'), 'id'));
+    }
+}

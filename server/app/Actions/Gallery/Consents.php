@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Actions\Gallery;
 
 use App\Exceptions\Refusal;
+use App\Jobs\RedrawPersonsCards;
 use App\Models\Harmony;
 use App\Models\HarmonyConsent;
 use App\Models\User;
@@ -63,6 +64,8 @@ final class Consents
         });
 
         Bell::tell($harmony->user_id, 'consent_answer', $user, $harmony);
+        // Their name and picture on its card follow the answer (HarmonyFacts::singers).
+        RedrawPersonsCards::dispatch($user->id);
 
         if (! $agree) {
             app(HarmonyFiles::class)->dropGuidesUnlessPublic($harmony);

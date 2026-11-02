@@ -61,9 +61,14 @@ def journey(f):
             const s = await import('/js/stores/session.js');
             s.session.practice.chords = false;
             const sum = (r) => r.channels[0].reduce((total, v) => total + v * v, 0);
-            return [sum(await s.renderMix({ chords: false })), sum(await s.renderMix({ chords: true }))];
+            const [a, b] = [await s.renderMix({ chords: false }), await s.renderMix({ chords: true })];
+            if (a.channels[0].length !== b.channels[0].length) throw new Error(`the renders differ in length: ${a.channels[0].length} and ${b.channels[0].length}`);
+            // The piano alone: what the chords add, sample by sample (a sum of the whole mix also counts
+            // how the piano happens to line up with the voices, which moves whenever a note does).
+            return [sum(a), b.channels[0].reduce((total, v, i) => total + (v - (a.channels[0][i] ?? 0)) ** 2, 0)];
         })()""")
-        assert energy[1] > energy[0] * 1.02, f"the chords added nothing: {energy}"
+        # The piano sits under the voices (CHORDS_UNDER): its own energy at least 0.2% of theirs (0.59% for Amazing Grace today).
+        assert energy[1] > energy[0] * 0.002, f"the chords added nothing: {energy}"
 
     # Record: a song's next part without a take (the soprano) over loopback, then undo it.
     f.click_t("studio.recordNamed", {"name": soprano})

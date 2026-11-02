@@ -24,9 +24,12 @@
 
 import { LanePainter } from '../lane-painter.js';
 import { renderPart } from '../synth.js';
-import { midiName } from '../dsp.js';
+import { hzToMidi, midiName } from '../dsp.js';
 import { token } from '../colors.js';
-import { expressiveTrack, noteResults, renderTrack } from './take.js';
+import { trackInWorker, VOICED_CLARITY } from '../pitchtrack.js';
+import { follow, voiceFollower } from '../livevoice.js';
+import { catalogueGuides, realVoice } from '../public/app-voices.js';
+import { expressiveTrack, renderTrack } from './take.js';
 
 const ZOOMS = [10, 6, 3.5]; // seconds across: zoomed out, the app's own, zoomed in
 const UNDER = 0.22; // the other parts, quietly under the take
@@ -69,8 +72,9 @@ export function mount(el, { take: takeUrl, zoom = 1, trail = null, trailGlow = n
             const within = (n) => n.beat < toBeat && Number.isFinite(n.pitch);
             const part = template.parts.find((p) => p.key === take.part);
             const notes = part.guide.notes.filter(within);
-            const track = take.track ?? expressiveTrack(notes, { tempo: template.tempo, flat: take.flat ?? [] });
-            const results = noteResults(notes, track, { tempo: template.tempo });
+            // The bundled take's own voice, for when the app's voices can't load; what is drawn and scored is what plays.
+            const made = take.track ?? expressiveTrack(notes, { tempo: template.tempo, flat: take.flat ?? [], human: 'full' });
+            const results = notes.map((n) => ({ beat: n.beat, hit: false, inTune: [] })); // scored once its voice is heard (hear())
             const others = template.parts.filter((p) => p.key !== take.part && p.kind !== 'instrument');
             // Top to bottom as the song lists them (SATB, or barbershop's tenor, lead, baritone and bass).
             const voices = template.parts.filter((p) => p.kind !== 'instrument').map((p) => p.key);
@@ -79,7 +83,8 @@ export function mount(el, { take: takeUrl, zoom = 1, trail = null, trailGlow = n
                 take,
                 template,
                 notes,
-                track,
+                made,
+                track: [],
                 results,
                 duration: Math.max(...notes.map((n) => n.beat + n.length)) * (60 / template.tempo) + 0.6,
                 // The parts either side of yours, faint, with their names at the edge (▲ Soprano, ▼ Tenor).
@@ -87,7 +92,8 @@ export function mount(el, { take: takeUrl, zoom = 1, trail = null, trailGlow = n
                     .filter((p) => Math.abs(voices.indexOf(p.key) - mine) === 1)
                     .map((p) => ({ key: p.key, name: p.name, notes: p.guide.notes.filter(within), above: voices.indexOf(p.key) < mine })),
                 voices,
-                under: others.map((p) => p.guide.notes.filter(within)),
+                underKeys: others.map((p) => p.key),
+                parts: Object.fromEntries(template.parts.map((p) => [p.key, p.guide.notes.filter(within)])),
             };
             painter.set({ notes, words: notes.filter((n) => n.lyric).map((n) => ({ beat: n.beat, text: n.lyric })), beatSeconds: 60 / template.tempo, noteName: midiName, keyboard: true, state: 'turn', secondsShown: ZOOMS[state.zoom] });
             colour();
@@ -146,8 +152,23 @@ export function mount(el, { take: takeUrl, zoom = 1, trail = null, trailGlow = n
      * The take and the parts under it, from `offset`, all started on the audio clock together; muted,
      * only the picture plays (call it from anywhere: no sound, so no click needed).
      */
-    async function play_() {
+    /**
+     * Starts once (Hillel: "i clicked again and ended up with 2 demos playing"): a press while the take is still
+     * loading or starting waits for that same start, never a second set of voices.
+     */
+    function play_() {
+        if (state.starting) return state.starting;
+        if (state.playing) return Promise.resolve();
         if (!state.muted) state.ctx ??= unlock(); // before any await: still inside the click
+        emit('state', { playing: false, ready: state.ready, muted: state.muted, starting: true });
+        state.starting = start_().finally(() => {
+            state.starting = null;
+            if (!state.playing) emit('state', { playing: false, ready: state.ready, muted: state.muted, starting: false });
+        });
+        return state.starting;
+    }
+
+    async function start_() {
         await load();
         if (state.playing) return;
         if (state.muted) {
@@ -179,15 +200,57 @@ export function mount(el, { take: takeUrl, zoom = 1, trail = null, trailGlow = n
         state.frame = requestAnimationFrame(tick);
     }
 
-    /** The take's sound (its recording, else made from its track) and the other parts' guides, as buffers. */
+    /**
+     * Every part's voice as the app serves it now (Hillel: "as people record it the audio should update everywhere"):
+     * the song's current guides from the public catalogue (templates.catalogue), a real voice where a part has one
+     * for this version of the song, the app's own synth where it doesn't. If the catalogue can't be read, the bundled
+     * take sings the part followed. Then the voice that plays the part followed is heard with the app's own tracker and
+     * Sing's own light (hear()), so the lane shows what that voice really earns.
+     */
     async function buffers(rate) {
-        const make = (samples, gain) => {
-            const buffer = state.ctx.createBuffer(1, Math.max(1, samples.length), rate);
-            buffer.copyToChannel(samples, 0);
+        const make = (samples, gain, offsetSeconds = 0) => {
+            const lead = Math.max(0, Math.round(offsetSeconds * rate));
+            const skip = Math.max(0, Math.round(-offsetSeconds * rate));
+            const buffer = state.ctx.createBuffer(1, Math.max(1, lead + samples.length - skip), rate);
+            buffer.copyToChannel(samples.subarray(Math.min(skip, samples.length)), 0, lead);
             return { buffer, gain };
         };
-        const voice = song.take.audio ? { buffer: await state.ctx.decodeAudioData(await (await fetch(song.take.audio)).arrayBuffer()), gain: 1 } : make(renderTrack(song.track, rate), 1);
-        return [voice, ...song.under.map((notes) => make(renderPart(notes, { bpm: song.template.tempo, sampleRate: rate }), UNDER))];
+        const guides = await catalogueGuides(song.take.song, song.template);
+        const synth = (key, i) => renderPart(song.parts[key], { bpm: song.template.tempo, sampleRate: rate, human: 'full', seed: 40 + i });
+        const real = (guide) => realVoice(guide, state.ctx);
+        const voiceOf = async (key, i) => {
+            if (guides?.[key]) {
+                try {
+                    return await real(guides[key]);
+                } catch (error) {
+                    console.warn('A real voice could not load: the synth sings it', error);
+                }
+            }
+            if (!guides && key === song.take.part) return song.take.audio ? { samples: (await state.ctx.decodeAudioData(await (await fetch(song.take.audio)).arrayBuffer())).getChannelData(0), offsetSeconds: 0 } : { samples: renderTrack(song.made, rate, { human: 'full' }), offsetSeconds: 0 };
+            return { samples: synth(key, i), offsetSeconds: 0 };
+        };
+        const keys = [song.take.part, ...song.underKeys];
+        const voices = await Promise.all(keys.map((key, i) => voiceOf(key, i)));
+        await hear(voices[0], rate);
+        return voices.map((v, i) => make(v.samples, i === 0 ? 1 : UNDER, v.offsetSeconds));
+    }
+
+    /** The part followed, heard as Sing hears a singer: the tracker's readings through Sing's own light (livevoice.js). */
+    async function hear({ samples, offsetSeconds }, rate) {
+        const tracked = await trackInWorker(samples, rate);
+        const beat = 60 / song.template.tempo;
+        let voice = voiceFollower();
+        const track = [];
+        for (let i = 0; i < tracked.hz.length; i++) {
+            const seconds = offsetSeconds + i / tracked.rate;
+            const hz = tracked.hz[i];
+            const clear = hz > 0 && tracked.clarity[i] >= VOICED_CLARITY ? hz : 0;
+            const note = song.notes.find((n) => seconds >= n.beat * beat && seconds < (n.beat + n.length) * beat);
+            voice = follow(voice, { seconds, hz: clear, shownHz: hz > 0 ? hz : 0, loudness: tracked.loudness[i] }, note ? { beat: note.beat, pitch: note.pitch } : null);
+            if (clear) track.push({ seconds, midi: hzToMidi(clear), level: Math.max(0.15, Math.min(1, (tracked.loudness[i] + 50) / 40)) });
+        }
+        song.track = track;
+        song.results = song.notes.map((n) => ({ beat: n.beat, hit: voice.lit.has(n.beat), inTune: voice.hits.get(n.beat) ?? [] }));
     }
 
     function pause() {
@@ -296,7 +359,7 @@ export function mount(el, { take: takeUrl, zoom = 1, trail = null, trailGlow = n
     const api = {
         play: play_,
         pause,
-        toggle: () => (state.playing ? pause() : play_()),
+        toggle: () => (state.starting ? state.starting : state.playing ? pause() : play_()),
         /** The take's time now, in seconds (read off the audio clock while playing). */
         time: () => position(),
         duration: () => song?.duration ?? 0,

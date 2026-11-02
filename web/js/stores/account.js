@@ -2,11 +2,35 @@
 // record (docs/roadmap.md, M3): signed out, `account.me` is null and everything else works. The
 // server's session cookie is the sign-in; this only remembers what account.show said.
 
-import { reactive } from 'vue';
+import { reactive, watch } from 'vue';
 import { api, ApiError } from '../api.js';
+import { mockWanted } from '../api-mode.js';
 import { local, session as tabStorage } from '../storage.js';
 
-export const account = reactive({ me: null, loaded: false, config: null });
+// The signed-in account, kept on the device (Hillel, 2026-11-02: "keep it on the device"), so a screen
+// opened offline shows who's signed in. It's what account.show answered (name, plan, settings): never a
+// password or a token (the session cookie is the sign-in). Online, the server decides: a 401 clears it.
+// Gone the moment no one is signed in (sign-out, a deleted account, every session ended), and with
+// Start fresh (device.js clears every stackapella. key). Not with the mock, so test runs never share it.
+const KEPT = 'stackapella.account';
+
+function keptAccount() {
+    if (mockWanted()) return null;
+    try {
+        return JSON.parse(local.get(KEPT) || 'null');
+    } catch (error) {
+        console.info('The kept account was unreadable', error?.message ?? error);
+        return null;
+    }
+}
+
+export const account = reactive({ me: keptAccount(), loaded: false, config: null });
+
+watch(() => account.me, (me) => {
+    if (mockWanted()) return;
+    if (me) local.set(KEPT, JSON.stringify(me));
+    else local.remove(KEPT);
+}, { deep: true });
 
 let loading = null;
 

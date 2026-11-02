@@ -3,6 +3,7 @@
 // anyone it refuses to them. Every admin route is also checked on the server: hiding a screen is
 // never the protection. This code loads only when /admin is opened, and is never precached.
 
+import { nextTick } from 'vue';
 import { api, adminSignOut } from '../api.js';
 import { formatDate, formatNumber, t, tk } from '../i18n.js';
 import { navigate, route } from '../router.js';
@@ -20,13 +21,22 @@ import { SafetySection } from './safety.js';
 import { SingersSection } from './singers.js';
 import { PeopleSection } from './people.js';
 import { UsageSection } from './usage.js';
-import { OverviewSection } from './growth.js';
+import { change, OverviewSection } from './growth.js';
+import { SourcesSection } from './sources.js';
+import { RevenueSection } from './revenue.js';
+import { SearchSection } from './search.js';
+import { CohortsSection } from './cohorts.js';
+import { ActivitySection } from './activity.js';
+import { SchoolSection } from './school.js';
+import { CodeWatchSection } from './code-watch.js';
+import { ExperimentsSection } from './experiments.js';
 import { FunnelSection } from './funnel.js';
 import { SupportSection } from './support.js';
 import { LinksSection } from './links.js';
 import { PostsSection, socialWaiting } from './posts.js';
 import { sendToSignIn } from './auth.js';
 import { StoreTestersCard } from './testers.js';
+import { NeedsCard, loadNeeds, needs, partsNeeding } from './needs.js';
 
 // The menu in five groups (Hillel: "please re-org the menu header in admin"): what needs you today,
 // the people, the content, how it's growing, and the system. The header shows the groups, then the
@@ -48,23 +58,34 @@ const SECTIONS = [
     { name: 'people', group: 'people', path: '/admin/people', label: tk('admin.nav.people'), hint: tk('admin.nav.peopleHint'), icon: 'list', role: 'admin' },
     { name: 'singers', group: 'people', path: '/admin/singers', label: tk('admin.nav.singers'), hint: tk('admin.nav.singersHint'), icon: 'headphones', role: 'admin' },
     { name: 'links', group: 'people', path: '/admin/links', label: tk('admin.nav.links'), hint: tk('admin.nav.linksHint'), icon: 'arrow', role: 'admin' },
+    { name: 'school', group: 'people', path: '/admin/school', label: tk('admin.nav.school'), hint: tk('admin.nav.schoolHint'), icon: 'list', role: 'admin' },
     { name: 'safety', group: 'people', path: '/admin/safety', label: tk('admin.nav.safety'), hint: tk('admin.nav.safetyHint'), icon: 'shield', role: 'admin' },
-    { name: 'guides', group: 'content', path: '/admin/guides', label: tk('admin.nav.guides'), hint: tk('admin.nav.guidesHint'), icon: 'note', role: 'editor' },
+    { name: 'guides', group: 'content', path: '/admin/guides', label: tk('admin.nav.guides'), hint: tk('admin.nav.guidesHint'), icon: 'note', role: 'editor', count: (c) => c.needs, words: tk('admin.needs.navCount') },
     { name: 'ideas', group: 'content', path: '/admin/ideas', label: tk('admin.nav.ideas'), hint: tk('admin.nav.ideasHint'), icon: 'mic', role: 'admin' },
     { name: 'posts', group: 'content', path: '/admin/posts', label: tk('admin.nav.posts'), hint: tk('admin.nav.postsHint'), icon: 'sparkle', role: 'admin', count: (c) => c.posts, words: tk('admin.posts.waitingCount') },
     { name: 'growth', group: 'growth', path: '/admin/growth', label: tk('admin.nav.growth'), hint: tk('admin.nav.growthHint'), icon: 'sparkle', role: 'admin' },
+    { name: 'revenue', group: 'growth', path: '/admin/revenue', label: tk('admin.nav.revenue'), hint: tk('admin.nav.revenueHint'), icon: 'sparkle', role: 'admin' },
+    { name: 'cohorts', group: 'growth', path: '/admin/cohorts', label: tk('admin.nav.cohorts'), hint: tk('admin.nav.cohortsHint'), icon: 'list', role: 'admin' },
+    { name: 'activity', group: 'growth', path: '/admin/activity', label: tk('admin.nav.activity'), hint: tk('admin.nav.activityHint'), icon: 'wave', role: 'admin' },
+    { name: 'search', group: 'growth', path: '/admin/search', label: tk('admin.nav.search'), hint: tk('admin.nav.searchHint'), icon: 'arrow', role: 'admin' },
     { name: 'funnel', group: 'growth', path: '/admin/funnel', label: tk('admin.nav.funnel'), hint: tk('admin.nav.funnelHint'), icon: 'list', role: 'admin' },
+    { name: 'experiments', group: 'growth', path: '/admin/experiments', label: tk('admin.nav.experiments'), hint: tk('admin.nav.experimentsHint'), icon: 'split', role: 'admin' },
+    { name: 'sources', group: 'growth', path: '/admin/sources', label: tk('admin.nav.sources'), hint: tk('admin.nav.sourcesHint'), icon: 'arrow', role: 'admin' },
     { name: 'usage', group: 'growth', path: '/admin/usage', label: tk('admin.nav.usage'), hint: tk('admin.nav.usageHint'), icon: 'sparkle', role: 'admin' },
     { name: 'mudeo', group: 'growth', path: '/admin/mudeo', label: tk('admin.nav.campaigns'), hint: tk('admin.nav.campaignsHint'), icon: 'arrow', role: 'admin' },
     { name: 'audit', group: 'system', path: '/admin/audit', label: tk('admin.nav.audit'), hint: tk('admin.nav.auditHint'), icon: 'list', role: 'admin' },
+    { name: 'code-watch', group: 'system', path: '/admin/code-watch', label: tk('admin.nav.codeWatch'), hint: tk('admin.nav.codeWatchHint'), icon: 'shield', role: 'admin' },
 ];
 
 const HomeSection = {
-    components: { Icon, StatusChip, StoreTestersCard },
+    components: { Icon, NeedsCard, StatusChip, StoreTestersCard },
     props: { me: { type: Object, required: true }, groups: { type: Array, required: true }, overview: { type: Object, default: null } },
+    setup: () => ({ formatNumber }),
     template: `
         <div class="space-y-6">
             <h1 class="text-2xl font-extrabold tracking-tight text-cream">{{ t('admin.home.title') }}</h1>
+            <!-- First after a deploy: what needs you to get real voices live (admin/needs.js). -->
+            <NeedsCard />
             <section class="card p-6" aria-labelledby="me-heading">
                 <h2 id="me-heading" class="text-lg font-bold text-cream">{{ t('admin.home.signedInAs', { name: me.name }) }}</h2>
                 <p class="mt-1 text-sm text-muted" translate="no">{{ me.email }}</p>
@@ -73,10 +94,30 @@ const HomeSection = {
                     <StatusChip :tone="sudo ? 'good' : 'muted'" :label="sudo ? t('admin.home.sudoUntil', { time: formatDate(me.sudoUntil, { timeStyle: 'short' }) }) : t('admin.home.noSudo')" />
                 </div>
             </section>
+            <!-- Growth at a glance (docs/admin-analytics-plan.md, slice 1): Growth Overview's cards, the last 7 days
+                 against the 7 before where the server sends them, and the songs finished so far. -->
+            <section v-if="overview?.growth && me.role === 'admin'" class="space-y-3" aria-labelledby="home-growth-heading" data-home-growth>
+                <div class="flex flex-wrap items-baseline justify-between gap-2">
+                    <h2 id="home-growth-heading" class="text-lg font-bold text-cream">{{ t('admin.home.growth.title') }}</h2>
+                    <a href="/admin/growth" class="link tap-44 inline-flex min-h-6 items-center gap-1 text-sm" @click.prevent="navigate('/admin/growth')">{{ t('admin.home.growth.open') }}<span aria-hidden="true" class="rtl:-scale-x-100">→</span></a>
+                </div>
+                <ul class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                    <li v-for="tile in growthTiles" :key="tile.key" class="card flex flex-col p-5" :data-tile="tile.key">
+                        <p class="text-sm text-muted">{{ tile.label }}</p>
+                        <p class="mt-2 text-4xl font-extrabold tabular-nums text-cream">{{ formatNumber(tile.value) }}</p>
+                        <div class="mt-auto pt-4"><dl class="space-y-1 border-t border-line pt-3 text-sm">
+                            <div class="flex items-center justify-between gap-3" data-change :data-dir="tile.dir">
+                                <dt class="text-muted">{{ tile.against }}</dt>
+                                <dd class="font-semibold tabular-nums" :class="tile.dir === 'up' ? 'text-good' : tile.dir === 'down' ? 'text-bad' : 'text-muted'"><span v-if="tile.dir === 'up' || tile.dir === 'down'" class="me-1" aria-hidden="true">{{ tile.dir === 'up' ? '↑' : '↓' }}</span>{{ tile.text }}</dd>
+                            </div>
+                        </dl></div>
+                    </li>
+                </ul>
+            </section>
             <section v-if="overview" class="card p-6" aria-labelledby="beta-heading">
                 <h2 id="beta-heading" class="text-lg font-bold text-cream">{{ t('admin.home.beta') }}</h2>
                 <dl class="mt-3 grid grid-cols-2 gap-4 sm:grid-cols-3">
-                    <div v-for="stat in stats" :key="stat.label"><dt class="text-sm text-muted">{{ stat.label }}</dt><dd class="text-2xl font-extrabold text-cream"><a v-if="stat.path" :href="stat.path" class="hover:text-accent" @click.prevent="navigate(stat.path)">{{ stat.value }}</a><template v-else>{{ stat.value }}</template></dd></div>
+                    <div v-for="stat in stats" :key="stat.label"><dt class="text-sm text-muted">{{ stat.label }}</dt><dd class="text-2xl font-extrabold text-cream"><a v-if="stat.path" :href="stat.path" class="tap-44 hover:text-accent" @click.prevent="navigate(stat.path)">{{ stat.value }}</a><template v-else>{{ stat.value }}</template></dd></div>
                 </dl>
             </section>
             <StoreTestersCard v-if="me.role === 'admin'" />
@@ -96,6 +137,24 @@ const HomeSection = {
         sudo() {
             return this.me.sudoUntil && new Date(this.me.sudoUntil) > new Date();
         },
+        /** The last 7 days (with the change on the 7 before, once the server sends `growth.previous`), then all-time songs. */
+        growthTiles() {
+            const g = this.overview.growth;
+            const h = this.overview.harmonies ?? {};
+            const week = (key, label) => {
+                const before = g.previous?.[key];
+                const moved = typeof before === 'number' ? change(g[key] ?? 0, before) : { dir: 'none', text: '-' };
+                return { key, label: t(label), value: g[key] ?? 0, against: t('admin.home.growth.vsWeekBefore'), ...moved };
+            };
+            const total = (key, label) => ({ key, label: t(label), value: h[key] ?? 0, against: t('admin.home.growth.allTime'), dir: 'none', text: '' });
+            return [
+                week('signUps', tk('admin.home.growth.signUps')),
+                week('upgrades', tk('admin.home.growth.upgrades')),
+                week('activeSingers', tk('admin.home.growth.active')),
+                total('finished', tk('admin.home.growth.finished')),
+                total('secondSongs', tk('admin.home.growth.second')),
+            ];
+        },
         stats() {
             const b = this.overview.beta;
             return [
@@ -111,38 +170,50 @@ const HomeSection = {
 };
 
 export const AdminView = {
-    components: { Icon, Logo, Notice, HomeSection, SafetySection, AuditSection, ReviewSection, SingersSection, GuidesSection, FeedbackSection, ReportsSection, IdeasSection, MudeoSection, SupportSection, LinksSection, PeopleSection, PostsSection, OverviewSection, UsageSection, FunnelSection },
+    components: { Icon, Logo, Notice, HomeSection, SafetySection, AuditSection, ReviewSection, SingersSection, GuidesSection, FeedbackSection, ReportsSection, IdeasSection, MudeoSection, SupportSection, LinksSection, PeopleSection, PostsSection, OverviewSection, SourcesSection, RevenueSection, SearchSection, SchoolSection, CohortsSection, ActivitySection, CodeWatchSection, ExperimentsSection, UsageSection, FunnelSection },
     data: () => ({ me: null, failed: false, overview: null }),
     setup: () => ({ route, socialWaiting, formatNumber }),
     template: `
         <div class="min-h-dvh bg-ink">
+            <!-- One bar (Hillel's redesign, 2026-10-30): the groups with what's waiting in them, then Back to app
+                 and the account. Calm in both skins. A phone puts the groups on their own scrolling row. -->
             <header class="sticky top-0 z-30 border-b border-line bg-ink/90 backdrop-blur">
-                <div class="container-page flex min-h-14 flex-wrap items-center gap-x-3 gap-y-1 py-2">
-                    <a href="/admin" class="flex shrink-0 items-center gap-2" @click.prevent="navigate('/admin')"><Logo :size="20" /><span class="font-bold text-muted">{{ t('admin.title') }}</span></a>
-                    <nav v-if="me" class="order-last w-full space-y-1 pb-1" :aria-label="t('admin.title')">
-                        <!-- The groups, each with what's waiting in it; then the open group's screens. Calm in both skins. -->
-                        <ul class="-mx-1 flex gap-1 overflow-x-auto px-1 [scrollbar-width:none]" data-nav-groups>
+                <div class="container-page flex min-h-14 flex-wrap items-center gap-x-5 gap-y-1 py-2 md:flex-nowrap">
+                    <a href="/admin" class="flex shrink-0 items-center gap-2" @click.prevent="navigate('/admin')"><Logo :size="20" /><span class="rounded-md border border-line px-1.5 py-0.5 text-xs font-semibold text-muted">{{ t('admin.title') }}</span></a>
+                    <nav v-if="me" class="order-last -mx-1 w-full min-w-0 md:order-none md:mx-0 md:w-auto" :aria-label="t('admin.nav.groupsLabel')">
+                        <ul class="flex gap-1 overflow-x-auto px-1 pb-1 [scrollbar-width:none] md:px-0 md:pb-0" data-nav-groups>
                             <li v-for="g in groups" :key="g.key" class="shrink-0">
-                                <a :href="g.sections[0].path" class="inline-flex min-h-9 items-center gap-1.5 rounded-full px-3.5 text-sm font-semibold transition" :class="group === g.key ? 'bg-(--fill-2) text-cream' : 'text-muted hover:bg-(--fill) hover:text-cream'" :aria-current="group === g.key ? 'true' : null" @click.prevent="navigate(g.sections[0].path)">
-                                    {{ t(g.label) }}<span v-if="g.count" class="rounded-full bg-(--fill-3) px-1.5 text-xs font-bold text-cream tabular-nums" :aria-label="t('admin.nav.groupCount', { count: g.count })" data-group-count>{{ formatNumber(g.count) }}</span>
-                                </a>
-                            </li>
-                        </ul>
-                        <ul class="-mx-1 flex gap-1 overflow-x-auto px-1 [scrollbar-width:none]" data-nav-sections>
-                            <li v-for="s in shown" :key="s.name" class="shrink-0">
-                                <a :href="s.path" class="inline-flex min-h-9 items-center gap-1.5 rounded-full px-3 text-sm font-medium transition" :class="current === s.name ? 'bg-(--fill) text-cream' : 'text-muted hover:text-cream'" :aria-current="current === s.name ? 'page' : null" @click.prevent="navigate(s.path)">
-                                    <Icon :name="s.icon" :size="16" /> {{ t(s.label) }}<span v-if="countOf(s)" class="rounded-full bg-(--fill-3) px-1.5 text-xs font-bold text-cream tabular-nums" :aria-label="t(s.words, { count: countOf(s) })" :data-nav-count="s.name === 'posts' ? '' : null">{{ formatNumber(countOf(s)) }}{{ s.name === 'posts' && socialWaiting.more ? '+' : '' }}</span>
+                                <a :href="g.sections[0].path" class="inline-flex min-h-9 items-center gap-1.5 rounded-lg px-3 text-sm font-medium transition" :class="group === g.key ? 'bg-(--fill-2) text-cream' : 'text-muted hover:bg-(--fill) hover:text-cream'" :aria-current="group === g.key ? 'true' : null" @click.prevent="navigate(g.sections[0].path)">
+                                    {{ t(g.label) }}<span v-if="g.count" class="min-w-5 rounded-full bg-accent px-1.5 text-center text-xs font-bold text-accent-ink tabular-nums" :aria-label="t('admin.nav.groupCount', { count: g.count })" data-group-count>{{ formatNumber(g.count) }}</span>
                                 </a>
                             </li>
                         </ul>
                     </nav>
-                    <div class="ms-auto flex items-center gap-2">
-                        <span v-if="me" class="hidden text-sm text-muted md:inline" translate="no">{{ me.name }}</span>
-                        <a href="/" class="btn-ghost btn-sm" @click.prevent="toApp">{{ t('admin.backToApp') }}</a>
-                        <button v-if="me" type="button" class="btn-ghost btn-sm" @click="signOut">{{ t('admin.signOut') }}</button>
+                    <div class="ms-auto flex shrink-0 items-center gap-2">
+                        <a href="/" class="btn-ghost btn-sm" :aria-label="t('admin.backToApp')" @click.prevent="toApp"><span class="hidden sm:inline">{{ t('admin.backToApp') }}</span><span aria-hidden="true" class="sm:ms-1 rtl:-scale-x-100">↗</span></a>
+                        <!-- The account: its initials, opening its name and Sign out. -->
+                        <details v-if="me" ref="account" class="relative" @keydown.escape="closeAccount">
+                            <summary class="grid size-9 cursor-pointer list-none place-items-center rounded-full bg-(--fill-2) text-xs font-bold text-cream [&::-webkit-details-marker]:hidden" :aria-label="t('admin.accountMenu', { name: me.name })" data-admin-account><span aria-hidden="true" translate="no">{{ initials }}</span></summary>
+                            <div class="absolute end-0 top-full z-40 mt-2 w-56 space-y-2 rounded-2xl border border-line bg-panel p-3 shadow-xl">
+                                <p class="truncate text-sm font-semibold text-cream" translate="no">{{ me.name }}</p>
+                                <button type="button" class="btn-ghost btn-sm w-full justify-start" @click="signOut">{{ t('admin.signOut') }}</button>
+                            </div>
+                        </details>
                     </div>
                 </div>
             </header>
+            <!-- The open group's pages, as underline tabs (plain links: Tab reaches each, Enter opens it). -->
+            <nav v-if="me && shown.length > 1" class="container-page pt-6" :aria-label="t('admin.nav.pagesLabel', { group: t(groupLabel) })">
+                <div class="border-b border-line">
+                    <ul class="-mb-px flex gap-6 overflow-x-auto [scrollbar-width:none]" data-nav-sections>
+                        <li v-for="s in shown" :key="s.name" class="shrink-0">
+                            <a :href="s.path" class="inline-flex min-h-11 items-center gap-1.5 border-b-2 text-sm font-medium transition" :class="current === s.name ? 'border-accent text-cream' : 'border-transparent text-muted hover:text-cream'" :aria-current="current === s.name ? 'page' : null" @click.prevent="navigate(s.path)">
+                                {{ t(s.label) }}<span v-if="countOf(s)" class="min-w-5 rounded-full bg-accent px-1.5 text-center text-xs font-bold text-accent-ink tabular-nums" :aria-label="t(s.words, { count: countOf(s) })" :data-nav-count="s.name === 'posts' ? '' : null">{{ formatNumber(countOf(s)) }}{{ s.name === 'posts' && socialWaiting.more ? '+' : '' }}</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
             <main class="container-page py-8">
                 <p v-if="!me && !failed" class="text-muted" role="status">{{ t('admin.loading') }}</p>
                 <Notice v-else-if="failed" tone="bad">{{ t('admin.loadFailed') }} <button type="button" class="link" @click="load">{{ t('common.tryAgain') }}</button></Notice>
@@ -153,6 +224,14 @@ export const AdminView = {
                 <SingersSection v-else-if="current === 'singers'" :me="me" />
                 <PeopleSection v-else-if="current === 'people'" :me="me" />
                 <OverviewSection v-else-if="current === 'growth'" :me="me" />
+                <SourcesSection v-else-if="current === 'sources'" :me="me" />
+                <RevenueSection v-else-if="current === 'revenue'" :me="me" />
+                <SearchSection v-else-if="current === 'search'" :me="me" />
+                <CohortsSection v-else-if="current === 'cohorts'" :me="me" />
+                <ActivitySection v-else-if="current === 'activity'" :me="me" />
+                <SchoolSection v-else-if="current === 'school'" :me="me" />
+                <CodeWatchSection v-else-if="current === 'code-watch'" :me="me" />
+                <ExperimentsSection v-else-if="current === 'experiments'" :me="me" />
                 <UsageSection v-else-if="current === 'usage'" :me="me" />
                 <FunnelSection v-else-if="current === 'funnel'" :me="me" />
                 <GuidesSection v-else-if="current === 'guides'" :me="me" />
@@ -182,6 +261,14 @@ export const AdminView = {
         shown() {
             return this.groups.find((g) => g.key === this.group)?.sections ?? [];
         },
+        groupLabel() {
+            return GROUPS.find((g) => g.key === this.group)?.label ?? GROUPS[0].label;
+        },
+        /** The account's initials for the bar (as the app makes them from a name). */
+        initials() {
+            const words = (this.me?.name ?? '').trim().split(/\s+/).filter(Boolean);
+            return (words.length > 1 ? words[0][0] + words.at(-1)[0] : (words[0] ?? '?').slice(0, 2)).toUpperCase();
+        },
         current() {
             const asked = route.params.section ?? 'home';
             return this.sections.some((s) => s.name === asked) ? asked : 'home';
@@ -189,8 +276,12 @@ export const AdminView = {
     },
     watch: {
         // The counts follow what was just done (a take decided, feedback read).
-        current() {
-            if (this.me) this.loadOverview();
+        current: {
+            immediate: true,
+            handler() {
+                if (this.me) this.loadOverview();
+                this.revealNav();
+            },
         },
     },
     created() {
@@ -198,10 +289,15 @@ export const AdminView = {
     },
     methods: {
         navigate,
+        /** A phone's rows of groups and sections scroll: the open ones are brought into view, never cut off. */
+        revealNav() {
+            nextTick(() => document.querySelectorAll('[data-nav-sections] [aria-current=page], [data-nav-groups] [aria-current=true]').forEach((el) => el.scrollIntoView({ block: 'nearest', inline: 'nearest' })));
+        },
         async load() {
             this.failed = false;
             try {
                 this.me = (await api.admin.me()).data;
+                this.revealNav();
                 if (this.me.role === 'admin') socialWaiting.refresh(); // the nav's count
                 this.loadOverview();
             } catch (error) {
@@ -214,14 +310,20 @@ export const AdminView = {
         /** The home's numbers, and the nav's counts (what's waiting and unread). */
         async loadOverview() {
             try {
+                loadNeeds().then(() => this.revealNav()); // the Guides count: parts that need you (admin/needs.js)
                 this.overview = (await api.admin.overview()).data;
+                this.revealNav(); // the counts widened the rows
             } catch (error) {
                 console.warn('The overview failed to load', error); // the admin works without it
             }
         },
         countOf(s) {
             const b = this.overview?.beta;
-            return s.count?.({ waiting: b?.waiting ?? 0, unread: b?.unreadFeedback ?? 0, posts: socialWaiting.count ?? 0 }) ?? 0;
+            return s.count?.({ waiting: b?.waiting ?? 0, unread: b?.unreadFeedback ?? 0, posts: socialWaiting.count ?? 0, needs: partsNeeding(needs.data) }) ?? 0;
+        },
+        closeAccount() {
+            this.$refs.account?.removeAttribute('open');
+            this.$refs.account?.querySelector('summary')?.focus();
         },
         /** Back to the app (the projects page); the admin stays signed in. */
         toApp() {

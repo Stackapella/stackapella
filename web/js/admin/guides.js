@@ -10,11 +10,12 @@ import { EmptyState, StatusChip } from '../components/form.js';
 import { Icon } from '../components/icon.js';
 import { toast } from '../components/ui.js';
 import { ChangeSheet, LoadFailed, loadInto, refused, when } from './common.js';
+import { PartNeeds } from './needs.js';
 
 export const GuidesSection = {
-    components: { ChangeSheet, EmptyState, LoadFailed, StatusChip, Icon },
+    components: { ChangeSheet, EmptyState, LoadFailed, PartNeeds, StatusChip, Icon },
     props: { me: { type: Object, required: true } },
-    data: () => ({ songs: null, failed: false, playing: null, removing: null, busy: false, errors: null }),
+    data: () => ({ songs: null, failed: false, playing: null, removing: null, busy: false, errors: null, abuse: false, clips: null }),
     setup: () => ({ templatePartName, when }),
     template: `
         <div class="space-y-6">
@@ -46,6 +47,7 @@ export const GuidesSection = {
                                 <li v-for="guide in part.guides" :key="guide.id" class="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
                                     <button type="button" class="btn-ghost btn-sm" :aria-pressed="playing?.id === guide.id" :aria-label="playing?.id === guide.id ? t('studio.stop') : t('admin.guides.play', { name: who(guide) })" @click="play(guide)"><Icon :name="playing?.id === guide.id ? 'stop' : 'play'" :size="14" /></button>
                                     <span class="min-w-0 flex-1 text-cream"><span translate="no">{{ who(guide) }}</span> <span class="text-muted">· {{ when(guide.publishedAt) }}<template v-if="guide.pitchPercent !== null && guide.pitchPercent !== undefined"> · {{ t('admin.review.onPitch', { percent: guide.pitchPercent }) }}</template></span></span>
+                                    <StatusChip v-if="guide.reports" tone="warn" :label="t('admin.guides.reports', { count: guide.reports })" data-guide-reports />
                                     <StatusChip v-if="isBest(part, guide)" tone="info" :label="t('admin.guides.best')" />
                                     <StatusChip v-if="guide.isDefault" tone="good" :label="t('admin.guides.default')" />
                                     <template v-else-if="isAdmin">
@@ -55,12 +57,27 @@ export const GuidesSection = {
                                     <button v-if="isAdmin" type="button" class="btn-ghost btn-sm text-bad" @click="ask(song, guide)">{{ t('admin.guides.remove') }}</button>
                                 </li>
                             </ul>
+                            <!-- What this part needs (takes to review, changed, no singer) and its singers, with Ask again. -->
+                            <PartNeeds v-if="part.needs" :needs="part.needs" :me="me" @asked="load" />
                         </li>
                     </ul>
                 </li>
             </ul>
-            <ChangeSheet v-if="removing" :title="t('admin.guides.removeTitle', { name: who(removing.guide) })" :me="me" :busy="busy" :errors="errors" :reasoned="false" @close="removing = null" @confirm="remove">
-                <p class="text-cream">{{ t('admin.guides.removeBody') }}</p>
+            <!-- The course clips lent voices sang (Lend your voice's moderation): each with its reports and Remove. -->
+            <section v-if="clips?.length" class="card p-5" aria-labelledby="guides-clips-h" data-admin-clips>
+                <h2 id="guides-clips-h" class="text-lg font-bold text-cream">{{ t('admin.guides.clips') }}</h2>
+                <ul class="mt-3 divide-y divide-line text-sm">
+                    <li v-for="clip in clips" :key="clip.id" class="flex flex-wrap items-center gap-x-3 gap-y-1 py-2.5" :data-admin-clip="clip.id">
+                        <span class="min-w-0 flex-1"><span class="font-semibold text-cream" translate="no">{{ clip.id }}</span> <span class="text-muted" translate="no">· {{ clip.assignee?.name ?? t('admin.guides.anonymous') }}</span></span>
+                        <StatusChip v-if="clip.reports" tone="warn" :label="t('admin.guides.reports', { count: clip.reports })" />
+                        <button v-if="isAdmin" type="button" class="btn-ghost btn-sm text-bad" @click="askClip(clip)">{{ t('admin.guides.remove') }}</button>
+                    </li>
+                </ul>
+            </section>
+            <ChangeSheet v-if="removing" :title="removing.clip ? t('admin.guides.removeTitle', { name: removing.clip.assignee?.name ?? removing.clip.id }) : t('admin.guides.removeTitle', { name: who(removing.guide) })" :me="me" :busy="busy" :errors="errors" :reasoned="false" @close="removing = null" @confirm="remove">
+                <p class="text-cream">{{ removing.clip ? t('admin.guides.removeClipBody') : t('admin.guides.removeBody') }}</p>
+                <!-- For abuse: the volunteer who sang it can't lend their voice again. -->
+                <label class="check-row"><input v-model="abuse" type="checkbox" class="checkbox" data-remove-abuse /> <span>{{ t('admin.guides.forAbuse') }}<span class="block text-sm text-muted">{{ t('admin.guides.forAbuseHelp') }}</span></span></label>
             </ChangeSheet>
         </div>`,
     computed: {
@@ -74,6 +91,8 @@ export const GuidesSection = {
     },
     methods: {
         load() {
+            // The published course clips, beside the songs (a list that won't load just isn't shown).
+            api.admin.beta.clips.list().then(({ data }) => (this.clips = (data ?? []).filter((c) => c.status === 'published')), (error) => console.warn('Clips did not load', error));
             return loadInto(this, 'songs', () => api.admin.beta.guides.list());
         },
         withVoice(song) {
@@ -122,12 +141,20 @@ export const GuidesSection = {
         },
         ask(song, guide) {
             this.errors = null;
+            this.abuse = false;
             this.removing = { song, guide };
+        },
+        askClip(clip) {
+            this.errors = null;
+            this.abuse = false;
+            this.removing = { clip };
         },
         async remove() {
             this.busy = true;
             try {
-                await api.admin.beta.guides.delete(this.removing.guide.id);
+                const body = this.abuse ? { abuse: true } : {};
+                if (this.removing.clip) await api.admin.beta.removeClip(this.removing.clip.id, body);
+                else await api.admin.beta.guides.delete(this.removing.guide.id, body);
                 this.removing = null;
                 toast(t('admin.guides.removed'));
                 await this.load(); // an alternate may now be the default

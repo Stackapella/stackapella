@@ -71,6 +71,10 @@
         </div>
     </section>
 
+    <section class="s-wrap cp-dk-demosec cp-ear-demosec" aria-labelledby="demo-h">
+        @include('site.courses._ear-leap')
+    </section>
+
     <section class="s-wrap s-sec cp-ear-life" aria-labelledby="outcomes-h">
         <p class="cp-ear-kick">{{ $page['kicks']['life'] }}</p>
         <h2 id="outcomes-h" class="cp-ear-title">{{ $page['titles']['outcomes'] }}</h2>
@@ -239,4 +243,5 @@
             @include('site.courses._related')
         </div>
     </section>
+    <script type="module" src="/js/public/ear-training.js"></script>
 </main>

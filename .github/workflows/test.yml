@@ -1,10 +1,10 @@
 name: tests
 
-# Run by hand (Actions > tests > Run workflow, or `gh workflow run tests`) while the build settles.
-# Hillel turns pushes to main back on once the code is stable:
-#   push:
-#     branches: [main]
+# Runs on every push (Hillel, 2026-10-31: "please auto run CI tests on push"). server/tool/push-beta.sh
+# pushes a commit to `release` first and only lets it reach main (which deploys) once this is green.
 on:
+  push:
+    branches: [release]
   workflow_dispatch:
   pull_request:
 

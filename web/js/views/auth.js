@@ -5,6 +5,7 @@
 // beta invite carried through a sign-up.
 
 import { count } from '../usage.js';
+import { CreditLine } from '../components/credit.js';
 import { api, ApiError } from '../api.js';
 import { formatWait, t, tk } from '../i18n.js';
 import { goBack, navigate, route } from '../router.js';
@@ -13,7 +14,7 @@ import { local, session as tabStorage } from '../storage.js';
 
 // What an ask was for (`?for=`), as sign-up's title: the reason in the person's words.
 const SIGN_UP = tk('auth.signUpTitle');
-const REASONS = { progress: tk('auth.reason.progress'), reminders: tk('auth.reason.reminders'), share: tk('auth.reason.share'), boards: tk('auth.reason.boards') };
+const REASONS = { progress: tk('auth.reason.progress'), reminders: tk('auth.reason.reminders'), share: tk('auth.reason.share'), boards: tk('auth.reason.boards'), songs: tk('auth.reason.songs'), daily: tk('auth.reason.daily'), friends: tk('auth.reason.friends'), groups: tk('auth.reason.groups'), voice: tk('auth.reason.voice'), plus: tk('auth.reason.plus'), template: tk('auth.reason.template'), sheet: tk('auth.reason.sheet'), settings: tk('auth.reason.settings'), week: tk('auth.reason.week'), unit: tk('auth.reason.unit'), risk: tk('auth.reason.risk'), school: tk('auth.reason.school') };
 import { TurnstileBox } from '../turnstile.js';
 import { Field, Notice } from '../components/form.js';
 import { Icon, Logo } from '../components/icon.js';
@@ -56,7 +57,7 @@ const PasswordInput = {
 };
 
 export const AuthView = {
-    components: { BirthDate, Field, InviteAccept, Notice, Icon, Logo, PasswordInput, TurnstileBox },
+    components: { CreditLine, BirthDate, Field, InviteAccept, Notice, Icon, Logo, PasswordInput, TurnstileBox },
     data() {
         const q = new URLSearchParams(location.search);
         // A beta invite waits in the tab (the beta page put it there); never in the address bar.
@@ -89,12 +90,13 @@ export const AuthView = {
             profile: false, // sign in by email made a new account: a bit about you first
             intended: '/', // where sign in by email goes next
             linkProblem: null, // used | expired
+            confirming: null, // { email, again }: a sign-in to confirm first (409 confirm_sign_in)
             revertedEmail: null,
             startedAt: performance.now(),
         };
     },
     template: `
-        <div class="min-h-dvh bg-ink px-4 py-8 md:py-16">
+        <div data-ui="screen" class="min-h-dvh bg-ink px-4 py-8 md:py-16">
             <div class="mx-auto flex w-full max-w-md flex-col gap-6">
                 <header class="flex items-center justify-between gap-3">
                     <a href="/" @click.prevent="navigate('/')"><Logo /></a>
@@ -114,21 +116,33 @@ export const AuthView = {
                     </div>
                 </template>
 
+                <!-- A sign-in link for another account than this browser's, or asked for elsewhere (login CSRF): ask first. -->
+                <section v-else-if="confirming" class="flex flex-col gap-5" data-confirm-sign-in>
+                    <div>
+                        <h1 ref="heading" tabindex="-1" class="text-3xl font-extrabold tracking-tight text-cream outline-none">{{ t('auth.confirm.title', { email: confirming.email }) }}</h1>
+                        <p class="mt-2 text-muted">{{ account.me ? t('auth.confirm.switch', { current: account.me.email ?? account.me.name, email: confirming.email }) : t('auth.confirm.elsewhere') }}</p>
+                    </div>
+                    <div class="flex flex-col gap-3 sm:flex-row">
+                        <button type="button" class="btn-primary btn-lg" :disabled="busy" data-confirm-yes @click="confirmSignIn">{{ busy ? t('auth.working') : t('auth.confirm.yes') }}</button>
+                        <button type="button" class="btn-secondary btn-lg" :disabled="busy" data-confirm-no @click="navigate('/')">{{ account.me ? t('auth.confirm.stay', { current: account.me.email ?? account.me.name }) : t('auth.confirm.no') }}</button>
+                    </div>
+                </section>
+                <!-- A bit about you: a new account from a link (or one that started fresh in another browser) -->
+                <form v-else-if="profile && (page === 'signin/link' || page === 'verify')" class="flex flex-col gap-5" novalidate @submit.prevent="saveProfile">
+                    <div>
+                        <h1 ref="heading" tabindex="-1" class="text-3xl font-extrabold tracking-tight text-cream outline-none">{{ t('auth.profile.title') }}</h1>
+                        <p class="mt-2 text-muted">{{ t('auth.profile.intro') }}</p>
+                    </div>
+                    <Field :label="t('auth.name')" :help="t('auth.nameHelp')" :error="errors?.name" required v-slot="f">
+                        <input :id="f.id" v-model="form.name" autocomplete="name" required maxlength="80" class="input" :aria-describedby="f.describedby" :aria-invalid="f.invalid" />
+                    </Field>
+                    <BirthDate v-model:month="form.birthMonth" v-model:year="form.birthYear" :hint="t('auth.born.why')" :error="bornError || ''" />
+                    <Notice v-if="refusal && refusalCode !== 'too_young'" tone="bad">{{ refusal }}</Notice>
+                    <button type="submit" class="btn-primary btn-lg w-full" :disabled="busy || !form.name.trim() || !(form.birthMonth && form.birthYear)">{{ busy ? t('auth.working') : t('auth.continue') }}</button>
+                </form>
                 <!-- Sign in by email: the link from the email, then (a new account) a bit about you -->
                 <template v-else-if="page === 'signin/link'">
-                    <p v-if="busy && !profile" class="text-muted" role="status">{{ t('auth.checkingLink') }}</p>
-                    <form v-else-if="profile" class="flex flex-col gap-5" novalidate @submit.prevent="saveProfile">
-                        <div>
-                            <h1 ref="heading" tabindex="-1" class="text-3xl font-extrabold tracking-tight text-cream outline-none">{{ t('auth.profile.title') }}</h1>
-                            <p class="mt-2 text-muted">{{ t('auth.profile.intro') }}</p>
-                        </div>
-                        <Field :label="t('auth.name')" :help="t('auth.nameHelp')" :error="errors?.name" required v-slot="f">
-                            <input :id="f.id" v-model="form.name" autocomplete="name" required maxlength="80" class="input" :aria-describedby="f.describedby" :aria-invalid="f.invalid" />
-                        </Field>
-                        <BirthDate v-model:month="form.birthMonth" v-model:year="form.birthYear" :hint="t('auth.born.why')" :error="bornError || ''" />
-                        <Notice v-if="refusal && refusalCode !== 'too_young'" tone="bad">{{ refusal }}</Notice>
-                        <button type="submit" class="btn-primary btn-lg w-full" :disabled="busy || !form.name.trim() || !(form.birthMonth && form.birthYear)">{{ busy ? t('auth.working') : t('auth.continue') }}</button>
-                    </form>
+                    <p v-if="busy" class="text-muted" role="status">{{ t('auth.checkingLink') }}</p>
                     <template v-else-if="linkProblem === 'expired'">
                         <h1 ref="heading" tabindex="-1" class="text-3xl font-extrabold tracking-tight text-cream outline-none">{{ t('auth.link.expiredTitle') }}</h1>
                         <p class="text-muted">{{ t('auth.link.expiredBody') }}</p>
@@ -200,7 +214,7 @@ export const AuthView = {
                             {{ t(PROVIDERS[p]) }}<span v-if="p === last" class="ms-2 text-xs font-normal text-muted">{{ t('auth.lastUsed') }}</span>
                         </button>
                     </div>
-                    <p v-if="hasPassword && providers.length && (mode === 'signup' || step === 'email')" class="flex items-center gap-3 text-sm text-muted"><span class="h-px flex-1 bg-line"></span>{{ t('auth.orEmail') }}<span class="h-px flex-1 bg-line"></span></p>
+                    <p v-if="hasPassword && providers.length && (mode === 'signup' || step === 'email')" data-ui="facts" class="flex items-center gap-3 text-sm text-muted"><span class="h-px flex-1 bg-line"></span>{{ t('auth.orEmail') }}<span class="h-px flex-1 bg-line"></span></p>
                     <form v-if="hasPassword" class="flex flex-col gap-5" novalidate @submit.prevent="submit">
                         <Field v-if="mode === 'signup'" :label="t('auth.name')" :help="t('auth.nameHelp')" :error="errors?.name" required v-slot="f">
                             <input :id="f.id" v-model="form.name" autocomplete="name" required maxlength="80" class="input" :aria-describedby="f.describedby" :aria-invalid="f.invalid" />
@@ -232,13 +246,14 @@ export const AuthView = {
                     <p v-else class="text-center text-sm text-muted">{{ t('auth.signupsSoon') }}</p>
                 </template>
             </div>
+            <CreditLine />
         </div>`,
     setup: () => ({ REASONS, SIGN_UP, PROVIDERS, DONE: {
         verified: { title: tk('auth.verified.title'), body: tk('auth.verified.body') },
         reset: { title: tk('auth.reset.done'), body: tk('auth.reset.doneBody') },
         confirmed: { title: tk('auth.confirmed.title'), body: tk('auth.confirmed.body') },
         reverted: { title: tk('auth.revert.title'), body: tk('auth.revert.body') },
-    }, formatWait }),
+    }, formatWait, account }),
     computed: {
         page: () => route.params.page ?? 'signin',
         last: () => lastMethod(),
@@ -269,7 +284,7 @@ export const AuthView = {
             (error) => console.warn('The sign-in settings did not load', error),
         );
         if (this.page === 'signin/link') await this.openLink();
-        else if (this.page === 'verify') await this.useLink(() => api.auth.verify(this.token), 'verified');
+        else if (this.page === 'verify') await this.useLink((extra) => api.auth.verify(this.token, extra), 'verified');
         else if (this.page === 'email/confirm') await this.useLink(() => api.account.email.confirm(this.token), 'confirmed');
         else if (this.page === 'email/revert') await this.useLink(() => api.account.email.revert(this.token), 'reverted');
     },
@@ -451,37 +466,60 @@ export const AuthView = {
                 this.newCheck();
             }
         },
-        async useLink(request, done) {
+        async useLink(request, done, extra = {}) {
             if (!this.token) {
                 this.refusal = t(REFUSED.link_expired);
                 return;
             }
             this.busy = true;
             try {
-                const { data } = await request();
+                const { data } = await request(extra);
+                this.confirming = null;
                 if (done === 'reverted') {
                     this.revertedEmail = data.email;
                     account.me = null; // every session ended, this one too
                 } else {
                     signedIn(data);
                 }
+                // Verified in another browser than the one that signed up: the account starts fresh, so
+                // its name and age are asked again (contract/api.md, auth.verify).
+                if (done === 'verified' && !data.name) {
+                    this.intended = '/';
+                    this.profile = true;
+                    return;
+                }
                 this.done = done;
             } catch (error) {
+                if (this.askFirst(error, () => this.useLink(request, done, { confirm: true }))) return;
                 this.refuse(error);
             } finally {
                 this.busy = false;
                 this.$nextTick(() => this.$refs.heading?.focus());
             }
         },
+        /**
+         * A link for another account than this browser's, or asked for in another browser: the server
+         * answers 409 confirm_sign_in without using it up, and the person says yes first. True when asked.
+         */
+        askFirst(error, again) {
+            if (!(error instanceof ApiError && error.code === 'confirm_sign_in')) return false;
+            this.confirming = { email: error.body?.email ?? '', again };
+            return true;
+        },
+        async confirmSignIn() {
+            const again = this.confirming?.again;
+            if (again) await again();
+        },
         /** Sign in by email: the link signs in (or makes the account), then on to where it was for. */
-        async openLink() {
+        async openLink(extra = {}) {
             if (!this.token) {
                 this.linkProblem = 'expired';
                 return;
             }
             this.busy = true;
             try {
-                const answer = await api.auth.link.open(this.token);
+                const answer = await api.auth.link.open(this.token, extra);
+                this.confirming = null;
                 signedIn(answer.data, 'email');
                 this.intended = safeNext(answer.intended);
                 if (answer.needsProfile) {
@@ -491,6 +529,7 @@ export const AuthView = {
                     navigate(this.intended, { replace: true });
                 }
             } catch (error) {
+                if (this.askFirst(error, () => this.openLink({ confirm: true }))) return;
                 if (error instanceof ApiError && error.code === 'link_used') this.linkProblem = 'used';
                 else if (error instanceof ApiError && error.code === 'link_expired') this.linkProblem = 'expired';
                 else this.refuse(error);

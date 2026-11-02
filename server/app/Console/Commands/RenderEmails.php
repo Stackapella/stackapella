@@ -6,6 +6,7 @@ namespace App\Console\Commands;
 
 use App\Mail\Account\AccountMail;
 use App\Mail\Account\AlreadyHaveAnAccount;
+use App\Mail\Account\ClassCodesReady;
 use App\Mail\Account\ConfirmNewEmail;
 use App\Mail\Account\EmailChanging;
 use App\Mail\Account\ExportReady;
@@ -29,6 +30,7 @@ use App\Notifications\Admin\OpsAlert;
 use App\Notifications\Admin\SecondFactorAdded;
 use App\Notifications\Admin\SecondFactorLocked;
 use App\Notifications\Admin\SecondFactorReset;
+use App\Support\Http\Hosts;
 use App\Support\Mail\EmailSkin;
 use Illuminate\Console\Command;
 use Illuminate\Mail\Mailable;
@@ -166,8 +168,8 @@ final class RenderEmails extends Command
         ];
 
         return [
-            ['mudeo-new', 'The mudeo email (sent once, by Hillel, in batches)', 'A mudeo singer on the list', fn () => $this->mail(new MudeoInvite('Ana', 'https://stackapella.com/early/ABCD1234', 'https://stackapella.com/mudeo/unsubscribe/abc?signature=def'))],
-            ['mudeo-no-name', 'The same, without a first name', 'A mudeo singer on the list', fn () => $this->mail(new MudeoInvite(null, 'https://stackapella.com/early/ABCD1234', 'https://stackapella.com/mudeo/unsubscribe/abc?signature=def'))],
+            ['mudeo-new', 'The mudeo email (sent once, by Hillel, in batches)', 'A mudeo singer on the list', fn () => $this->mail(new MudeoInvite('Ana', Hosts::public('/?ref=mudeo'), Hosts::public('/mudeo/unsubscribe/abc?signature=def')))],
+            ['mudeo-no-name', 'The same, without a first name', 'A mudeo singer on the list', fn () => $this->mail(new MudeoInvite(null, Hosts::public('/?ref=mudeo'), Hosts::public('/mudeo/unsubscribe/abc?signature=def')))],
             ['verify', 'After signing up with a password (and when asked again)', 'The person signing up', fn () => $this->mail(new VerifyEmailAddress('token', 'Ana'))],
             ['verify-no-name', 'The same, when no name was given', 'The person signing up', fn () => $this->mail(new VerifyEmailAddress('token', ''))],
             ['sign-in-link', 'Signing in by email', 'Whoever asks to sign in by email', fn () => $this->mail(new SignInLinkMail('token'))],
@@ -178,13 +180,14 @@ final class RenderEmails extends Command
             ['new-sign-in', 'A sign-in on a new browser', 'The account', fn () => $this->mail(new NewSignIn($browser))],
             ['new-sign-in-app', 'A sign-in on a new app device', 'The account', fn () => $this->mail(new NewSignIn('the Stackapella app on an iPhone', true))],
             ['recovered-by-support', 'Support moved the account to a new address', 'The old address', fn () => $this->mail(new RecoveredBySupport('ana.new@example.com'))],
-            ['export-ready', 'Download my data is ready', 'Whoever asked', fn () => $this->mail(new ExportReady('https://stackapella.com/account/export/abc', '3 November'))],
+            ['export-ready', 'Download my data is ready', 'Whoever asked', fn () => $this->mail(new ExportReady(Hosts::appLink('/account/export'), '3 November'))],
+            ['class-codes-ready', 'Admin approves a teacher (once)', 'The teacher', fn () => $this->mail(new ClassCodesReady('Ana Ruiz'))],
             ['trial-ending', 'Three days before a Plus trial ends', 'A Plus subscriber on a trial', fn () => $this->mail(new TrialEnding('1 November'))],
             ['payment-failed', 'A Plus renewal payment failed', 'A Plus subscriber', fn () => $this->mail(new PaymentFailed)],
-            ['notice-suspended', 'A suspended account\'s statement of reasons', 'A suspended person', fn () => $this->mail(new NoticeIssued(__('notices.kinds.account_suspended'), __('notices.rules.terms'), 'https://app.stackapella.com/notice?token=abc', 'Links to a spam site in every song title.'))],
+            ['notice-suspended', 'A suspended account\'s statement of reasons', 'A suspended person', fn () => $this->mail(new NoticeIssued(__('notices.kinds.account_suspended'), __('notices.rules.terms'), Hosts::appLink('/notice?token=abc'), 'Links to a spam site in every song title.'))],
             ['notice-decided', 'The answer to a review they asked for', 'Whoever asked for the review', fn () => $this->mail(new NoticeDecided(Notice::KEPT, 'The links were to a spam site.'))],
-            ['idea-voices', 'New voices on their idea (at most daily per idea)', 'The idea\'s writer', fn () => $this->mail(new IdeaVoicesMail('Ana', 'Sunday morning', [['name' => 'Ben', 'part' => 'Alto']], false, 'https://stackapella.com/ideas/abc', 'https://stackapella.com/unsubscribe/abc'))],
-            ['idea-complete', 'Every part of their idea is sung', 'The idea\'s writer', fn () => $this->mail(new IdeaVoicesMail('Ana', 'Sunday morning', [['name' => 'Ben', 'part' => 'Alto'], ['name' => 'Chen', 'part' => 'Tenor']], true, 'https://stackapella.com/ideas/abc', 'https://stackapella.com/unsubscribe/abc'))],
+            ['idea-voices', 'New voices on their idea (at most daily per idea)', 'The idea\'s writer', fn () => $this->mail(new IdeaVoicesMail('Ana', 'Sunday morning', [['name' => 'Ben', 'part' => 'Alto']], false, Hosts::public('/ideas/abc'), Hosts::public('/unsubscribe/abc')))],
+            ['idea-complete', 'Every part of their idea is sung', 'The idea\'s writer', fn () => $this->mail(new IdeaVoicesMail('Ana', 'Sunday morning', [['name' => 'Ben', 'part' => 'Alto'], ['name' => 'Chen', 'part' => 'Tenor']], true, Hosts::public('/ideas/abc'), Hosts::public('/unsubscribe/abc')))],
             ['support-answer', 'A reply to a support message', 'Whoever wrote to support', fn () => $this->mail(new SupportAnswer($reply, 'Ana'))],
             ['support-answer-no-account', 'The same, to someone without an account', 'Whoever wrote to support', fn () => $this->mail(new SupportAnswer($reply, null))],
             ['admin-signed-in', 'An admin signs in', 'The admins', fn () => $this->notify(new AdminSignedIn($admin, 'google', 'Mozilla/5.0 (Macintosh) Safari/605.1.15'))],

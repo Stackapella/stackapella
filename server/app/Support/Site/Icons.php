@@ -36,7 +36,8 @@ final class Icons
         'slot' => '<path d="M4 7h16M4 12h9M4 17h16"/><path d="M16 12h4" stroke-dasharray="1.5 2.5"/>',
         'flag' => '<path d="M5 21V4M5 4h11l-2 4 2 4H5"/>',
         'book' => '<path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5zM4 20.5A2.5 2.5 0 0 0 6.5 23H20v-5"/>',
-        'coach' => '<circle cx="9" cy="7.5" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M17 9.5c1.5 1 1.5 4 0 5M19.5 7.5c3 2.5 3 7.5 0 10"/>',
+        // A microphone with two sound arcs (Hillel: no drawn people, ever).
+        'coach' => '<rect x="5" y="3" width="6" height="10" rx="3"/><path d="M2.5 10.5a5.5 5.5 0 0 0 11 0M8 16v4M5 20h6"/><path d="M16.5 8.5c1.3 1.2 1.3 3.8 0 5M19.3 6c2.7 2.6 2.7 7.4 0 10"/>',
         'vote' => '<path d="M7 11V20M7 11l4-7c1.5 0 2.5 1 2.2 2.6L12.7 9H19a1.5 1.5 0 0 1 1.5 1.8l-1.6 7.5A2 2 0 0 1 17 20H7M3 11h4v9H3z"/>',
         'plus' => '<path d="M12 5v14M5 12h14"/>',
         'minus' => '<path d="M5 12h14"/>',
@@ -49,7 +50,8 @@ final class Icons
         // The networks' own marks (Simple Icons, CC0), filled.
         'x' => '<path fill="currentColor" stroke="none" d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>',
         'bluesky' => '<path fill="currentColor" stroke="none" d="M5.202 2.857C7.954 4.922 10.913 9.11 12 11.358c1.087-2.247 4.046-6.436 6.798-8.501C20.783 1.366 24 .213 24 3.883c0 .732-.42 6.156-.667 7.037-.856 3.061-3.978 3.842-6.755 3.37 4.854.826 6.089 3.562 3.422 6.299-5.065 5.196-7.28-1.304-7.847-2.97-.104-.305-.152-.448-.153-.327 0-.121-.05.022-.153.327-.568 1.666-2.782 8.166-7.847 2.97-2.667-2.737-1.432-5.473 3.422-6.3-2.777.473-5.899-.308-6.755-3.369C.42 10.04 0 4.615 0 3.883c0-3.67 3.217-2.517 5.202-1.026"/>',
-        'users' => '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><circle cx="17" cy="9" r="2.5"/><path d="M16 14a5 5 0 0 1 5.5 5"/>',
+        // Voices together: three stacked parts, as the logo has them (no drawn people, ever).
+        'users' => '<rect x="3" y="4.5" width="12" height="4" rx="2"/><rect x="7" y="10" width="14" height="4" rx="2"/><rect x="4.5" y="15.5" width="10" height="4" rx="2"/>',
     ];
 
     public static function svg(string $name, int $size = 20): HtmlString

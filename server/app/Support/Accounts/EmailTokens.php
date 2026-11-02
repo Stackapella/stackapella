@@ -19,7 +19,7 @@ final class EmailTokens
     /**
      * @return string the token to put in the link
      */
-    public function issue(User $user, string $purpose, string $email, int $hours, bool $onlyNewest = true): string
+    public function issue(User $user, string $purpose, string $email, int $hours, bool $onlyNewest = true, ?string $browserHash = null): string
     {
         // Only the newest link of each kind works (but every undo link keeps working: ChangeEmail).
         if ($onlyNewest) {
@@ -28,7 +28,7 @@ final class EmailTokens
 
         $token = Str::random(48);
         $row = new EmailToken(['purpose' => $purpose, 'email' => strtolower($email), 'expires_at' => now()->addHours($hours)]);
-        $row->forceFill(['user_id' => $user->id, 'token_hash' => hash('sha256', $token)])->save();
+        $row->forceFill(['user_id' => $user->id, 'token_hash' => hash('sha256', $token), 'browser_hash' => $browserHash])->save();
 
         return $token;
     }
@@ -36,6 +36,14 @@ final class EmailTokens
     /**
      * Use a token up, or refuse it.
      */
+    /** A token that would still redeem, without using it: for the confirm step. */
+    public function peek(string $token, string $purpose): ?EmailToken
+    {
+        $row = EmailToken::query()->with('user')->where('token_hash', hash('sha256', $token))->where('purpose', $purpose)->first();
+
+        return $row !== null && $row->used_at === null && $row->expires_at->isFuture() ? $row : null;
+    }
+
     public function redeem(string $token, string $purpose): EmailToken
     {
         return DB::transaction(function () use ($token, $purpose): EmailToken {

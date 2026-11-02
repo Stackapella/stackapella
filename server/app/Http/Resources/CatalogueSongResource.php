@@ -6,6 +6,7 @@ namespace App\Http\Resources;
 
 use App\Models\Template;
 use App\Models\TemplateGuide;
+use App\Support\Templates\SongShape;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Collection;
@@ -45,6 +46,9 @@ final class CatalogueSongResource extends JsonResource
         $data = $version->data ?? [];
         /** @var list<array{key: string, name: string, range: array{low: int, high: int}}> $parts */
         $parts = (array) ($data['parts'] ?? []);
+        // Each part's coarse shape for Home's covers (no notes, no words): a little arithmetic on
+        // the notes, cheaper than a cache lookup a song.
+        $shapes = SongShape::of($data);
 
         return [
             'id' => $template->slug,
@@ -68,6 +72,7 @@ final class CatalogueSongResource extends JsonResource
                 'key' => $part['key'],
                 'name' => $part['name'],
                 'range' => ['low' => $part['range']['low'], 'high' => $part['range']['high']],
+                'shape' => $shapes[$part['key']] ?? [],
                 'guide' => ($guide = $this->versions($version?->id, $part['key'])->firstWhere('is_default', true)) !== null ? GuideRecording::of($guide) : null,
                 // Every published version, for the learner's choice of voice (the default first).
                 'versions' => $this->versions($version?->id, $part['key'])->map(static fn (TemplateGuide $g): array => [...GuideRecording::of($g), 'default' => $g->is_default])->values()->all(),

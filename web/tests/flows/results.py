@@ -132,7 +132,7 @@ def journey(f):
             assert f.js("JSON.parse(localStorage.getItem('stackapella.funnel')).firsts.f_goal") is True, "the goal not counted"
             f.run("document.querySelector('[data-wrap-not-now]').click()")
             f.wait("!document.querySelector('[data-wrap-keep]')", what="Not now")
-            assert f.js("JSON.parse(localStorage.getItem('stackapella.keepAsk')).nots") == 1, "Not now not kept"
+            assert f.js("JSON.parse(localStorage.getItem('stackapella.asks')).nots") == 1, "Not now not kept"
             # Unit 1 done (onboarding item 6): your voice card, the note, the easy range and Share.
             assert not f.js("!!document.querySelector('[data-voice-card]')"), "the voice card before the unit is done"
             f.run("const { learning } = await import('/js/stores/learning.js'); learning.progress = { ...learning.progress, lessons: { ...learning.progress.lessons, '1-breath': { stars: 2, bestPercent: 80, at: Date.now() }, '1-challenge': { stars: 3, bestPercent: 92, at: Date.now() } } };")

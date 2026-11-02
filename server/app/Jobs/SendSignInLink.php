@@ -25,10 +25,10 @@ final class SendSignInLink implements ShouldQueue
     /** @var list<int> */
     public array $backoff = [10, 60];
 
-    public function __construct(public readonly string $email, public readonly ?string $intended, public readonly ?string $invite, public readonly ?string $early, public readonly ?string $ip) {}
+    public function __construct(public readonly string $email, public readonly ?string $intended, public readonly ?string $invite, public readonly ?string $early, public readonly ?string $ip, public readonly ?string $browserHash = null) {}
 
     public function handle(SignInByLink $links): void
     {
-        $links->send($this->email, $this->intended, $this->invite, $this->early, $this->ip);
+        $links->send($this->email, $this->intended, $this->invite, $this->early, $this->ip, $this->browserHash);
     }
 }

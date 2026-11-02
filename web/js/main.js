@@ -12,6 +12,7 @@ import { watchPlan } from './stores/plan.js';
 import { CloudConflicts } from './components/cloud.js';
 import { LearnView } from './views/learn.js';
 import { cameBackFromSignIn } from './components/account.js';
+import { LaunchCredit } from './components/credit.js';
 import { BirthHost } from './components/birth.js';
 import { NewVersion } from './components/version.js';
 import { MicHelpHost } from './components/mic-help.js';
@@ -25,8 +26,9 @@ import { signedInSync, startSync } from './stores/cloud.js';
 import { adoptAccountAppearance, appearance, game } from './stores/appearance.js';
 import { paint, paintInk, paintText } from './colors.js';
 import { loadOutbox, outbox, sendAll } from './beta-outbox.js';
-import { count } from './usage.js';
+import { count, countReach } from './usage.js';
 import { arrive, first } from './funnel.js';
+import { daysAway } from './asks.js';
 import { lazyView } from './lazy.js';
 import { LOADING_DELAY_MS, screenLoading } from './components/screen-loading.js';
 import { learning, loadPlusCourses } from './stores/learning.js';
@@ -43,10 +45,11 @@ function screen(load, frame = {}) {
     ahead.set(view, loader);
     return view;
 }
-const plusCourseTitle = () => localized(learning.catalogue.find((c) => c.id === route.params.id)?.title) || t('courses.title');
+const plusCourseTitle = () => (route.name === 'songCourse' ? localized(learning.courses[`song-${route.params.id}`]?.title) || t('songCourse.eyebrow') : localized(learning.catalogue.find((c) => c.id === route.params.id)?.title) || t('courses.title'));
 // The admin and the styleguide load only when opened (and are never precached for singers).
 const AdminView = defineAsyncComponent(lazyView(() => import('./admin/shell.js').then((m) => m.AdminView)));
 const StyleguideView = defineAsyncComponent(lazyView(() => import('./admin/styleguide.js').then((m) => m.StyleguideView)));
+const StyleguideGameView = defineAsyncComponent(lazyView(() => import('./admin/styleguide-game.js').then((m) => m.StyleguideGameView)));
 // The views a first visit's lesson never needs load when they're opened (a phone on a slow line gets to
 // its first note sooner).
 // The home and sign-in too (the coordinator's first-load step): lesson 1, the landing's Start, needs neither.
@@ -54,14 +57,18 @@ const ProjectsView = screen(() => import('./views/projects.js').then((m) => m.Pr
 const AuthView = screen(() => import('./views/auth.js').then((m) => m.AuthView));
 const StudioView = screen(() => import('./views/studio.js').then((m) => m.StudioView));
 const SingView = screen(() => import('./views/sing.js').then((m) => m.SingView));
+const PrintView = screen(() => import('./views/print.js').then((m) => m.PrintView));
 const SettingsView = screen(() => import('./views/settings.js').then((m) => m.SettingsView), { title: tk('settings.title') });
 const StorageView = screen(() => import('./views/storage.js').then((m) => m.StorageView), { title: tk('cloud.storage.title') });
 const VoiceView = screen(() => import('./views/voice.js').then((m) => m.VoiceView), { title: tk('voice.title') });
 const WorkoutView = screen(() => import('./views/workout.js').then((m) => m.WorkoutView));
 const PlusView = screen(() => import('./views/plus.js').then((m) => m.PlusView), { title: tk('plus.title') });
 const RemindersView = screen(() => import('./views/reminders.js').then((m) => m.RemindersView), { title: tk('reminders.title') });
+const ClassesView = screen(() => import('./views/school.js').then((m) => m.ClassesView), { title: tk('school.classes.title') });
+const ClassJoinView = screen(() => import('./views/school.js').then((m) => m.ClassJoinView), { title: tk('school.join.title') });
 const CourseView = screen(() => import('./views/course.js').then((m) => m.CourseView), { title: tk('course.hub.title') });
 const PlusCourseView = screen(() => import('./views/plus-course.js').then((m) => m.PlusCourseView), { title: plusCourseTitle });
+const ReadLinesView = screen(() => import('./views/read-lines.js').then((m) => m.ReadLinesView));
 const BetaView = screen(() => import('./views/beta.js').then((m) => m.BetaView));
 // The creator and a template's page load when they're opened (most visits never need them).
 const CreateView = screen(() => import('./views/create.js').then((m) => m.CreateView));
@@ -75,23 +82,30 @@ const ChoirJoinView = screen(() => import('./views/groups.js').then((m) => m.Cho
 // Songs arriving from the old address (docs/app-subdomain-plan.md).
 const MovedView = screen(() => import('./views/moved.js').then((m) => m.MovedView));
 const ContactView = screen(() => import('./views/contact.js').then((m) => m.ContactView), { title: tk('contact.title') });
+// A teacher's warm-up from a link (docs/warmup-builder-plan.md): only a link opens it.
+const WarmupView = screen(() => import('./views/warmup.js').then((m) => m.WarmupView), { title: tk('warmup.title') });
 // Ideas (docs/ideas-app-plan.md), behind the server's flag: the shelf and one tune.
 // Start fresh on this device (/start-fresh): for testing on a phone, linked from nowhere (/reset is the password reset's).
 const ResetView = screen(() => import('./views/reset.js').then((m) => m.ResetView));
 const IdeasView = screen(() => import('./views/ideas.js').then((m) => m.IdeasView));
+const VoicesView = screen(() => import('./views/voices.js').then((m) => m.VoicesView));
 const IdeaView = screen(() => import('./views/ideas.js').then((m) => m.IdeaView));
 const FIRST_INSTALL_WAIT_MS = 15000; // a timer for when to install, never for audio
 
 const App = {
-    components: { ProjectsView, StudioView, SingView, AuthView, SettingsView, StorageView, VoiceView, WorkoutView, PlusView, RemindersView, CloudConflicts, LearnView, CourseView, PlusCourseView, BirthHost, NewVersion, AdminView, StyleguideView, BetaView, CreateView, TemplateView, JoinView, EarlyView, GroupsView, GroupView, ChoirJoinView, MovedView, ContactView, IdeasView, IdeaView, ResetView, Toasts, ConfirmHost, MicHelpHost, MicCheckHost, ChallengeView },
+    components: { LaunchCredit, ReadLinesView, ProjectsView, StudioView, SingView, PrintView, AuthView, SettingsView, StorageView, VoiceView, WorkoutView, PlusView, RemindersView, ClassesView, ClassJoinView, CloudConflicts, LearnView, CourseView, PlusCourseView, BirthHost, NewVersion, AdminView, StyleguideView, StyleguideGameView, BetaView, CreateView, TemplateView, JoinView, EarlyView, GroupsView, GroupView, ChoirJoinView, MovedView, ContactView, WarmupView, IdeasView, IdeaView, VoicesView, ResetView, Toasts, ConfirmHost, MicHelpHost, MicCheckHost, ChallengeView },
     setup: () => ({ route, COOL_DOWN }),
     template: `
+        <!-- A self-hosted install's credit, as the licence asks, on whichever screen the app opens (components/credit.js). -->
+        <LaunchCredit v-if="route.name !== 'admin'" />
         <AdminView v-if="route.name === 'admin'" />
         <!-- Every screen's one main landmark (the admin has its own shell). -->
         <main v-else id="main">
         <StudioView v-if="route.name === 'studio'" :key="route.params.id" :id="route.params.id" />
         <SingView v-else-if="route.name === 'sing'" :key="'sing-' + route.params.id" :id="route.params.id" />
+        <PrintView v-else-if="route.name === 'print'" :key="'print-' + route.params.id" :id="route.params.id" />
         <StyleguideView v-else-if="route.name === 'styleguide'" />
+        <StyleguideGameView v-else-if="route.name === 'styleguideGame'" />
         <BetaView v-else-if="route.name === 'beta'" :token="route.params.token ?? null" />
         <CreateView v-else-if="route.name === 'create'" :draft-id="route.params.draft ?? null" />
         <TemplateView v-else-if="route.name === 'template'" :key="'t-' + route.params.id" :id="route.params.id" />
@@ -104,7 +118,9 @@ const App = {
         <ChoirJoinView v-else-if="route.name === 'choir'" :key="'c-' + route.params.token" :token="route.params.token" />
         <MovedView v-else-if="route.name === 'moved'" />
         <ContactView v-else-if="route.name === 'contact'" />
+        <WarmupView v-else-if="route.name === 'warmup'" />
         <IdeasView v-else-if="route.name === 'ideas'" />
+        <VoicesView v-else-if="route.name === 'voices'" />
         <ResetView v-else-if="route.name === 'fresh'" />
         <IdeaView v-else-if="route.name === 'idea'" :key="'idea-' + route.params.id" :id="route.params.id" />
         <AuthView v-else-if="route.name === 'auth'" :key="route.params.page" />
@@ -114,11 +130,15 @@ const App = {
         <WorkoutView v-else-if="route.name === 'workout'" />
         <PlusView v-else-if="route.name === 'plus'" />
         <RemindersView v-else-if="route.name === 'reminders'" />
+        <ClassesView v-else-if="route.name === 'classes'" />
+        <ClassJoinView v-else-if="route.name === 'classJoin'" :key="'class-' + (route.params.code ?? '')" :code="route.params.code ?? ''" />
         <CourseView v-else-if="route.name === 'course'" />
         <LearnView v-else-if="route.name === 'learn'" :key="'learn-' + route.params.id" :id="route.params.id" />
         <!-- Voice care's cool-down (docs/voice-care-plan.md): a standalone, unscored lesson. -->
         <LearnView v-else-if="route.name === 'cooldown'" key="cooldown" :id="COOL_DOWN" />
         <PlusCourseView v-else-if="route.name === 'plusCourse'" :key="'course-' + route.params.id" :id="route.params.id" />
+        <ReadLinesView v-else-if="route.name === 'readLines'" />
+        <PlusCourseView v-else-if="route.name === 'songCourse'" :key="'song-' + route.params.id" :id="route.params.id" song />
         <ProjectsView v-else />
         </main>
         <BirthHost />
@@ -180,6 +200,7 @@ Object.assign(app.config.globalProperties, { t, formatNumber, formatDate, timeAg
 app.mount('#app');
 nameScreens(); // each screen's heading as the tab's title, and focus on it after a move
 count('app_open'); // each time the app is opened (a load): anonymous, with no ID (js/usage.js)
+countReach(); // and once a day, a week and a month on this device (app_day, app_week, app_month)
 count(game() ? 'open_game' : 'open_serious'); // and in which skin
 
 // Who's signed in (never needed to learn or record), and what a Google or Apple sign-in came back with.
@@ -197,6 +218,7 @@ loadAuthConfig().then(
         arrive();
     },
 );
+daysAway(); // this visit's gap since the last, read before today replaces it (the Safari loss card, js/asks.js)
 if (window.matchMedia?.('(display-mode: standalone)').matches || navigator.standalone === true) first('f_install'); // opened as the installed app
 watch(() => account.me?.id, (id) => id && first('f_account'), { immediate: true });
 watch(() => account.me?.name, (name) => name && first('f_name'), { immediate: true });

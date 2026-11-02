@@ -1,0 +1,241 @@
+{
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "connected",
+                "syncedAt",
+                "from",
+                "to",
+                "error",
+                "totals",
+                "pages",
+                "queries",
+                "toImprove",
+                "sitemaps",
+                "rules"
+            ],
+            "properties": {
+                "connected": {
+                    "type": "boolean"
+                },
+                "syncedAt": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "from": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "to": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "error": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "totals": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                        "clicks",
+                        "impressions",
+                        "ctr"
+                    ],
+                    "properties": {
+                        "clicks": {
+                            "type": "integer"
+                        },
+                        "impressions": {
+                            "type": "integer"
+                        },
+                        "ctr": {
+                            "type": "number"
+                        }
+                    }
+                },
+                "pages": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "key",
+                            "clicks",
+                            "impressions",
+                            "ctr",
+                            "position"
+                        ],
+                        "properties": {
+                            "key": {
+                                "type": "string",
+                                "description": "The page's URL, or the search."
+                            },
+                            "clicks": {
+                                "type": "integer"
+                            },
+                            "impressions": {
+                                "type": "integer"
+                            },
+                            "ctr": {
+                                "type": "number",
+                                "description": "0 to 1."
+                            },
+                            "position": {
+                                "type": "number",
+                                "description": "The average position, 1 at the top."
+                            }
+                        }
+                    }
+                },
+                "queries": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "key",
+                            "clicks",
+                            "impressions",
+                            "ctr",
+                            "position"
+                        ],
+                        "properties": {
+                            "key": {
+                                "type": "string",
+                                "description": "The page's URL, or the search."
+                            },
+                            "clicks": {
+                                "type": "integer"
+                            },
+                            "impressions": {
+                                "type": "integer"
+                            },
+                            "ctr": {
+                                "type": "number",
+                                "description": "0 to 1."
+                            },
+                            "position": {
+                                "type": "number",
+                                "description": "The average position, 1 at the top."
+                            }
+                        }
+                    }
+                },
+                "toImprove": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "key",
+                            "clicks",
+                            "impressions",
+                            "ctr",
+                            "position",
+                            "reasons"
+                        ],
+                        "properties": {
+                            "key": {
+                                "type": "string",
+                                "description": "The page's URL, or the search."
+                            },
+                            "clicks": {
+                                "type": "integer"
+                            },
+                            "impressions": {
+                                "type": "integer"
+                            },
+                            "ctr": {
+                                "type": "number",
+                                "description": "0 to 1."
+                            },
+                            "position": {
+                                "type": "number",
+                                "description": "The average position, 1 at the top."
+                            },
+                            "reasons": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string",
+                                    "enum": [
+                                        "lowCtr",
+                                        "nearTop"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                "sitemaps": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "path",
+                            "errors",
+                            "warnings",
+                            "lastDownloaded"
+                        ],
+                        "properties": {
+                            "path": {
+                                "type": "string"
+                            },
+                            "errors": {
+                                "type": "integer"
+                            },
+                            "warnings": {
+                                "type": "integer"
+                            },
+                            "lastDownloaded": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "rules": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                        "minImpressions",
+                        "lowCtr",
+                        "nearTop"
+                    ],
+                    "properties": {
+                        "minImpressions": {
+                            "type": "integer"
+                        },
+                        "lowCtr": {
+                            "type": "number"
+                        },
+                        "nearTop": {
+                            "type": "array",
+                            "items": {
+                                "type": "number"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

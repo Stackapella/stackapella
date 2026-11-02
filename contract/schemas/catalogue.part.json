@@ -7,7 +7,8 @@
         "name",
         "range",
         "guide",
-        "versions"
+        "versions",
+        "shape"
     ],
     "properties": {
         "key": {
@@ -50,6 +51,16 @@
                 "$ref": "guide.recording.json"
             },
             "description": "Every published version of this part, the default first, then the newest: a learner may choose any as their guide. Empty for a song the caller can't start."
+        },
+        "shape": {
+            "type": "array",
+            "description": "The part's coarse shape for Home's song covers (web/js/song-shape.js's rules): one `[start, end, lean]` (three integers) a phrase, in time order, at most 24. start and end are 0 to 1000 of the song's span; lean is the phrase's height against the part's middle, -6 to 6 semitones. No notes, no words; [] when the part has no notes.",
+            "items": {
+                "type": "array",
+                "items": {
+                    "type": "integer"
+                }
+            }
         }
     },
     "title": "One part of a song in the catalogue: never its notes"

@@ -15,7 +15,8 @@ use App\Models\User;
 use Illuminate\Validation\ValidationException;
 
 /**
- * The parts a singer is asked to record: add one, or take one off before they've sent a take.
+ * The parts a singer is asked to record: add one, take one off before they've sent a take, or ask
+ * for one again when the song changed.
  */
 final class AssignPart
 {
@@ -43,6 +44,33 @@ final class AssignPart
         AuditLog::record('beta.assigned', $assignment, $actor, after: ['template' => $template->slug, 'part' => $partKey], ip: $ip);
 
         return $assignment->setRelation('template', $template)->setRelation('latestSubmission', null)->setRelation('submissions', collect());
+    }
+
+    /**
+     * Ask for a song's part again (a new version changed it): My parts shows it as a retake with
+     * Hillel's note until a take comes. A volunteer's claim is held again for its usual days.
+     */
+    public function askAgain(BetaAssignment $assignment, ?string $note, User $actor, ?string $ip = null): BetaAssignment
+    {
+        if ($assignment->template_id === null) {
+            throw new Refusal(409, 'not_a_part');
+        }
+
+        $singer = $assignment->singer;
+
+        if ($singer->revoked_at !== null || $singer->forgotten_at !== null || $singer->volunteer_blocked_at !== null) {
+            throw new Refusal(409, 'singer_gone');
+        }
+
+        $note = trim((string) $note);
+        $assignment->forceFill([
+            'asked_again_at' => now(),
+            'asked_again_note' => $note !== '' ? $note : __('admin.beta.asked_again'),
+            'expires_at' => $assignment->claimed_at !== null ? now()->addDays((int) config('beta.claim_days')) : $assignment->expires_at,
+        ])->save();
+        AuditLog::record('beta.asked_again', $assignment, $actor, after: ['part' => $assignment->part_key, 'note' => $assignment->asked_again_note], ip: $ip);
+
+        return $assignment;
     }
 
     public function remove(BetaAssignment $assignment, User $actor, ?string $ip = null): void

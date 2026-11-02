@@ -19,6 +19,8 @@
     @else
     <main>
         <section class="s-wrap s-featurehead" aria-labelledby="page-h">
+            {{-- A page whose live demo is itself the mixer (the Studio's) shows its picture here, not a second player. --}}
+            @php($hero = in_array($page['demo']['kind'] ?? null, ['mixer', 'studio', 'stack'], true) ? null : $hero)
             <div @class(['s-split', 's-solo' => $hero === null && empty($page['pic'])])>
                 <div>
                     <nav class="s-crumb" aria-label="{{ __('pages.site.crumb') }}">
@@ -57,6 +59,8 @@
                 @endif
             </div>
         </section>
+
+        @include('site._demo-section')
 
         {{-- The sections with a drawing: words beside it, alternating sides; the last on the ink band. --}}
         @foreach ($page['rows'] as $section)

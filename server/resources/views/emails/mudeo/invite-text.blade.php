@@ -13,10 +13,7 @@
 {!! \App\Support\Mail\Bold::plain($line) !!}
 
 @endforeach
-{!! __('mudeo.mail.invited') !!}
-{!! __('mudeo.mail.invite') !!}
 {!! __('mudeo.mail.button') !!}: {!! $link !!}
-{!! __('mudeo.mail.card_line') !!}
 
 @foreach ($after as $line)
 {!! \App\Support\Mail\Bold::plain($line) !!}

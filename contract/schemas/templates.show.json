@@ -13,7 +13,8 @@
                 "template",
                 "voices",
                 "grant",
-                "freeUntil"
+                "freeUntil",
+                "boards"
             ],
             "properties": {
                 "template": {
@@ -55,6 +56,10 @@
                 "library": {
                     "$ref": "library.json",
                     "description": "Only for a public template (N3): its creator, for the credits in exports, and its uses and rating."
+                },
+                "boards": {
+                    "type": "boolean",
+                    "description": "Whether its parts have leaderboards (boards.show answers): our songs, and a person's own song while it's public (Boards' own rule). The app shows a part's Leaderboard link only when true."
                 }
             }
         }

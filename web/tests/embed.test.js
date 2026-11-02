@@ -33,3 +33,12 @@ test('embed: the voice sounds for as long as its track, and is silent in its res
     const sung = samples.subarray(2 * 8000, 3 * 8000);
     assert(Math.max(...sung.map(Math.abs)) > 0.05, 'silent while singing');
 });
+
+test('embed: a real voice is placed at its offset into the song, padded or cut to the line', async () => {
+    const { placed } = await import('/js/public/app-voices.js');
+    const voice = Float32Array.from([1, 2, 3, 4]);
+    assert(placed(voice, 0.5, 4).join() === '0,0,1,2,3,4', 'half a second of silence first at 4 frames a second');
+    assert(placed(voice, -0.5, 4).join() === '3,4', 'a voice starting before the song is cut at its start');
+    assert(placed(voice, 0, 4, 6).join() === '1,2,3,4,0,0', 'padded to the line');
+    assert(placed(voice, 0.25, 4, 3).join() === '0,1,2', 'cut to the line');
+});

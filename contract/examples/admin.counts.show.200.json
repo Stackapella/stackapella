@@ -34,6 +34,7 @@
                 "guest": 58,
                 "account": 122
             }
-        ]
+        ],
+        "timezone": "UTC"
     }
 }

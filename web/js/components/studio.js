@@ -64,8 +64,9 @@ export const VoiceRow = {
         name: { type: String, required: true },
         letter: { type: String, required: true },
         color: { type: String, required: true },
-        tags: { type: Array, default: () => [] }, // [{ text, tone: 'you' | 'friend' | 'guide' | 'rec' }]
-        when: { type: String, default: '' },
+        // Hillel's 85.png: one line under the name, in plain words ("Your take · 1 hour ago", "Guide · up next").
+        status: { type: Object, default: null }, // { text, tone: 'take' | 'guide' | 'rec' }
+        bars: { type: Array, default: () => [] }, // where each bar starts, as percents of the lane: faint lines through it
         guide: Boolean, // no take yet: the letter is an outline
         solo: Boolean,
         muted: Boolean,
@@ -83,7 +84,7 @@ export const VoiceRow = {
     emits: ['toggle', 'solo', 'mute', 'volume', 'pan', 'seek', 'pick'],
     data: () => ({ nameId: `voice-${++rows}` }),
     template: `
-        <section class="flex flex-col rounded-2xl border bg-raised/30 p-2 transition md:flex-row md:items-stretch md:gap-3" :class="recording ? 'border-record ring-2 ring-record/40' : open ? 'border-cream/30 bg-raised/60' : 'border-line'" :aria-labelledby="nameId" data-track>
+        <section class="flex flex-col rounded-2xl border bg-raised/30 p-2 transition md:flex-row md:items-stretch md:gap-3" :class="recording ? 'border-record ring-2 ring-record/40' : picked ? 'border-record ring-2 ring-record/25' : open ? 'border-cream/30 bg-raised/60' : 'border-line'" :aria-labelledby="nameId" data-track>
             <!-- A container: Solo and Mute say their names wherever the row has room (Hillel), S and M only when it's narrow. -->
             <div class="@container flex flex-col justify-center gap-2 md:w-[352px] md:shrink-0">
                 <div class="flex items-center gap-2.5">
@@ -94,7 +95,6 @@ export const VoiceRow = {
                     <button type="button" class="flex min-w-0 flex-1 items-center gap-2 text-start" :aria-expanded="open" @click="$emit('toggle')">
                         <span class="size-2.5 shrink-0 rounded-full" :style="{ background: color }" aria-hidden="true"></span>
                         <span :id="nameId" class="truncate font-bold text-cream" translate="no" data-track-name>{{ name }}</span>
-                        <span v-for="(tag, i) in tags" :key="i" class="shrink-0 rounded-md px-1.5 py-px text-[11px] font-semibold" :class="tag.tone === 'rec' ? 'bg-record text-record-label' : tag.tone === 'guide' ? 'bg-ink/60 text-muted' : ''" :style="tag.tone === 'you' || tag.tone === 'friend' ? { background: 'color-mix(in srgb, ' + color + ' 14%, transparent)', color: paintInk(color) } : null" translate="no">{{ tag.text }}</span>
                         <span v-if="muted" class="shrink-0 text-xs text-muted">{{ t('studio.muted') }}</span>
                     </button>
                     <slot name="meter" />
@@ -102,13 +102,16 @@ export const VoiceRow = {
                     <button type="button" class="tap-44 grid h-8 min-w-8 shrink-0 place-items-center rounded-lg px-1.5 text-xs font-bold transition @[19rem]:px-2.5" :class="muted ? 'bg-cream text-ink' : !audible ? 'border border-cream/60 bg-cream/25 text-cream' : 'glass-bubble text-cream'" :aria-pressed="muted" :aria-label="t('studio.muteNamed', { name })" :aria-describedby="!muted && !audible ? nameId + '-solo' : null" :data-implied-mute="!muted && !audible ? '' : null" data-mute @click="$emit('mute')"><span class="@[19rem]:hidden" aria-hidden="true">{{ t('studio.row.muteShort') }}</span><span class="hidden @[19rem]:inline" aria-hidden="true">{{ t('studio.row.mute') }}</span></button>
                     <span v-if="!muted && !audible" :id="nameId + '-solo'" class="sr-only">{{ t('studio.silentBySolo') }}</span>
                 </div>
-                <p v-if="when" class="-mt-1.5 truncate ps-[2.625rem] text-xs text-muted" data-when>{{ when }}</p>
+                <p v-if="status" class="-mt-1.5 truncate text-xs" :class="[pickable ? 'ps-[2.625rem]' : 'ps-5', status.tone === 'take' ? 'text-good' : status.tone === 'rec' ? 'text-record' : 'text-muted']" translate="no" data-status>{{ status.text }}</p>
             </div>
             <div class="flex min-w-0 flex-1 flex-col">
                 <!-- Time runs left to right in every language, as on a staff. -->
                 <div dir="ltr" class="relative mt-2 shrink-0 cursor-pointer overflow-hidden rounded-lg bg-ink/40 transition md:mt-0 md:h-auto md:min-h-14 md:flex-1 md:shrink" :class="[tall || open ? 'h-20' : 'h-14', audible ? '' : 'opacity-50 grayscale']" data-lane @pointerdown="$emit('seek', $event)">
+                    <span v-for="at in bars" :key="at" class="pointer-events-none absolute inset-y-0 w-px bg-cream/10" :style="{ left: at + '%' }" aria-hidden="true"></span>
                     <slot name="lane" />
-                    <span v-if="picked && !recording" class="pointer-events-none absolute end-2 top-2 flex items-center gap-1.5 rounded-full bg-record px-2.5 py-1 text-[11px] font-bold text-record-label" data-ready><span class="size-1.5 rounded-full bg-record-label" aria-hidden="true"></span>{{ t('studio.readyToRecord') }}</span>
+                    <!-- A guide's lane, dimmed (the Waveform's dim) and said: what plays until there's a take. -->
+                    <span v-if="guide && !recording" class="pointer-events-none absolute bottom-1 start-2 hidden text-[10px] md:block font-semibold uppercase tracking-[0.14em] text-muted" aria-hidden="true" data-guide-label>{{ t('studio.guideLabel') }}</span>
+                    <span v-if="picked && !recording" class="pointer-events-none absolute end-2 top-2 flex items-center gap-1.5 rounded-full bg-record px-2.5 py-1 text-[11px] font-bold text-record-label" data-ready><span class="size-1.5 rounded-full bg-record-label" aria-hidden="true"></span>{{ t('studio.armed') }}</span>
                     <!-- A phone's playhead, per lane (wider screens draw one line across every track). -->
                     <span class="pointer-events-none absolute inset-y-0 w-0.5 md:hidden" :class="recording ? 'bg-record' : 'bg-cream'" :style="{ left: playhead + '%' }" aria-hidden="true"></span>
                 </div>
@@ -118,6 +121,24 @@ export const VoiceRow = {
     computed: {
         playhead() {
             return Math.max(0, Math.min(100, (Math.max(0, this.position) / this.lengthSeconds) * 100));
+        },
+    },
+};
+
+/**
+ * The parts' progress over the tracks (Hillel's 85.png): "Parts", one segment a part in its colour
+ * once it has a take, and "2 of 4 recorded". `parts`: [{ id, color, recorded }].
+ */
+export const PartsProgress = {
+    props: { parts: { type: Array, required: true } },
+    template: `
+        <div data-parts-progress>
+            <p data-ui="facts" class="flex items-baseline justify-between gap-3 text-xs text-muted"><span>{{ t('studio.progress.label') }}</span><span class="tabular-nums">{{ t('studio.progress.recorded', { done, total: parts.length }) }}</span></p>
+            <div class="mt-1.5 flex gap-1" aria-hidden="true"><span v-for="p in parts" :key="p.id" class="h-1 flex-1 rounded-full" :style="{ background: p.recorded ? p.color : 'var(--fill-2)' }"></span></div>
+        </div>`,
+    computed: {
+        done() {
+            return this.parts.filter((p) => p.recorded).length;
         },
     },
 };
@@ -152,7 +173,7 @@ export const AddVoice = {
                 <p class="mt-2 max-w-lg text-muted">{{ first ? t('studio.add.firstHint') : after ? t('studio.add.hint', { name: after }) : t('studio.add.hintPlain') }}</p>
                 <!-- A phone has no room for these in the transport: the mic and the choices here. -->
                 <div class="mt-4 space-y-3 md:hidden">
-                    <p class="flex flex-wrap items-center gap-2 text-sm text-muted">
+                    <p data-ui="facts" class="flex flex-wrap items-center gap-2 text-sm text-muted">
                         <Icon name="mic" :size="16" /><span translate="no">{{ mic }}</span><MicLevel v-if="hearing" :color="color" />
                         <button type="button" class="btn-ghost btn-sm" @click="$emit('mic')">{{ t('studio.add.change') }}</button>
                     </p>

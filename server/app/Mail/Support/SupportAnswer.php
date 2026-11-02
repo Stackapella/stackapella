@@ -6,6 +6,7 @@ namespace App\Mail\Support;
 
 use App\Mail\Account\AccountMail;
 use App\Models\SupportReply;
+use App\Support\Http\Hosts;
 use App\Support\Mail\Bold;
 
 /**
@@ -23,7 +24,7 @@ final class SupportAnswer extends AccountMail
 
     protected function url(): string
     {
-        return url('/help');
+        return Hosts::public('/help');
     }
 
     protected function lines(): array

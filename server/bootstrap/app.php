@@ -28,6 +28,7 @@ use App\Http\Controllers\UnsubscribeController;
 use App\Http\Controllers\WebAppController;
 use App\Http\Middleware\AuthenticateAppDevice;
 use App\Http\Middleware\CheckAppVersion;
+use App\Http\Middleware\CountForeignOrigins;
 use App\Http\Middleware\EnsureAdmin;
 use App\Http\Middleware\EnsureAgeAnswered;
 use App\Http\Middleware\EnsureBetaSinger;
@@ -51,6 +52,7 @@ use App\Http\Middleware\Shield;
 use App\Services\EventSchedule\EventScheduleError;
 use App\Support\Accounts\BetaPass;
 use App\Support\Admin\IntendedUrl;
+use App\Support\Admin\StaffDevice;
 use App\Support\Http\ApiError;
 use App\Support\Pages\MudeoArrival;
 use Illuminate\Auth\AuthenticationException;
@@ -184,6 +186,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'throttle:api',
             NoStore::class,
             GrantBetaPass::class,
+            // Code watch: another website calling the API, a domain's daily count, after the answer.
+            CountForeignOrigins::class,
         ]);
 
         // Laravel's order, except that a too-old app is told so first, and the limiters count
@@ -220,7 +224,7 @@ return Application::configure(basePath: dirname(__DIR__))
         // sign-in returns by a cross-site POST, checked by its own state cookie.
         // Read by the app shell's coming-soon gate, which runs without the cookie middleware: the
         // beta pass is signed by us, and the app's own marker holds nothing.
-        $middleware->encryptCookies(except: [BetaPass::COOKIE, MudeoArrival::COOKIE, MudeoArrival::USED_COOKIE, 'sa_app']);
+        $middleware->encryptCookies(except: [BetaPass::COOKIE, MudeoArrival::COOKIE, MudeoArrival::USED_COOKIE, StaffDevice::COOKIE, 'sa_app']);
 
         // Reports also come from the public site's pages, across origins and without the app's
         // XSRF cookie (docs/app-subdomain-plan.md, "Report from a shared page").

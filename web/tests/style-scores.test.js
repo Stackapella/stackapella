@@ -7,7 +7,7 @@ import { trackTake } from '/js/pitchtrack.js';
 import { bendAt, renderPart } from '/js/synth.js';
 import { fadeOut, layout, noteToGive } from '/js/components/exercise.js';
 import { scoreTake } from '/js/scoring.js';
-import { cryIn, fallOff, settleFlip, styleBend, flipPercent, flipPoint, flips, keyDrift, movesHeard, scoopInto, slideInto, styledMoves } from '/js/style-scores.js';
+import { cryIn, fallOff, flipKeyBase, settleFlip, styleBend, flipPercent, flipPoint, flips, keyDrift, movesHeard, scoopInto, slideInto, steadyRange, styledMoves } from '/js/style-scores.js';
 import { PLAY_SCORERS } from '/js/lesson-scores.js';
 import { assert, test } from './harness.js';
 import { sing } from './fixtures.js';
@@ -159,17 +159,35 @@ test('flip point: a dropout across the jump still counts, an octave slip doesn\'
     assert(onset.jumps.length === 0, `an onset: ${JSON.stringify(onset.jumps)}`);
 });
 
-test('settle flip: one siren\'s flip waits for a second to agree; flips outside 3 to 15 above, or near the top of what was reached, aren\'t believed', () => {
+test('settle flip: one siren\'s flip waits for a second siren to agree; flips outside 3 to 17 above, or near the top of what was reached, aren\'t believed', () => {
     const down = (middle, reach = 14) => ({ jumps: [{ direction: 'down', middle }], reach });
     const first = settleFlip([], down(7));
     assert(first.flip === null && first.seen.length === 1, JSON.stringify(first));
     const second = settleFlip(first.seen, down(7.5));
     assert(second.flip === 7 || second.flip === 8, JSON.stringify(second));
     assert(settleFlip([7], down(12)).flip === null, 'two that disagree confirm nothing');
-    assert(settleFlip([], down(1)).seen.length === 0 && settleFlip([], down(16, 20)).seen.length === 0, 'outside 3 to 15: not believed');
-    assert(settleFlip([], down(11, 12)).seen.length === 0, 'too near the top of the siren: the hook\'s top wasn\'t sung');
-    const twoInOne = settleFlip([], { jumps: [{ direction: 'down', middle: 13 }, { direction: 'down', middle: 13.5 }], reach: 17 });
-    assert(twoInOne.flip === 13 || twoInOne.flip === 14, `two downward flips in one siren agree: ${JSON.stringify(twoInOne)}`);
+    assert(settleFlip([], down(1)).seen.length === 0 && settleFlip([], down(18, 22)).seen.length === 0, 'outside 3 to 17: not believed');
+    assert(settleFlip([16], down(16.5, 18.5)).flip === 16 || settleFlip([16], down(16.5, 18.5)).flip === 17, 'a high flip, 16 above, from the high siren, is believed');
+    assert(settleFlip([], down(11, 12.5)).seen.length === 0, 'too near the top of the siren: the hook\'s top wasn\'t sung');
+    const twoInOne = settleFlip([], { jumps: [{ direction: 'down', middle: 13 }, { direction: 'down', middle: 13.6 }, { direction: 'up', middle: 15 }], reach: 17 });
+    assert(twoInOne.flip === null && twoInOne.seen.length === 1 && twoInOne.seen[0] === 13.3, `two downward flips in one siren are one reading: ${JSON.stringify(twoInOne)}`);
+    assert(settleFlip(twoInOne.seen, down(14, 17)).flip !== null, 'and a second siren confirms it');
+});
+
+test('flip key: a song tag moves at most a few semitones from the flip, into the line\'s key, else its V, else its IV, never more than a fourth above the flip', () => {
+    const pc = (n) => ((n % 12) + 12) % 12;
+    assert(flipKeyBase(14, 0) === 14, 'flip 14, line on the comfortable note: the tag\'s home (12) is already in the key');
+    assert(flipKeyBase(7, 0) === 9, `flip 7: no home in the line's key within reach, so the tag moves up two, its home on the V: ${flipKeyBase(7, 0)}`);
+    assert(flipKeyBase(12, -2) === 12, 'flip 12, line two below the comfortable note: home 10 is the line\'s own');
+    for (let key = -6; key <= 6; key++) {
+        for (let flip = 3; flip <= 17; flip++) {
+            const at = flipKeyBase(flip, key);
+            const move = at - flip;
+            assert(move >= -1 && move <= 3, `flip ${flip}, key ${key}: moved ${move}`);
+            assert([0, 7, 5].includes(pc(at - 2 - key)), `flip ${flip}, key ${key}: home ${at - 2} isn't in I, V or IV`);
+            if ([0, 1, -1, 2, 3].some((m) => pc(flip + m - 2 - key) === 0)) assert(pc(at - 2 - key) === 0, `flip ${flip}, key ${key}: the line's own key was in reach`);
+        }
+    }
 });
 
 const NOTE = { beat: 1, length: 1, pitch: 60 }; // one second at 60, after a second's silence
@@ -259,12 +277,14 @@ test('moves: the guide\'s own scoop, fall-off, slide and cry are each heard by t
     assert(!scoopInto(plain, note(), { beatSeconds: 1 }) && !fallOff(plain, note(), { beatSeconds: 1 }) && !cryIn(plain, note(), { beatSeconds: 1 }), 'a plain note has no move');
 });
 
-test('flip finder: a siren that jumps keeps the flip with the course and says where; one that glides says that\'s fine', () => {
+test('flip finder: two sirens that jump in the same place keep the flip with the course and say where; one that glides says that\'s fine', () => {
     const home = 57;
     const notes = [{ beat: 0, length: 12, pitch: home }];
     const target = [{ start: 1, end: 13, pitch: home }];
     const jumping = track([[1, 0], [1, home - 3, home + 5], [1, home + 9, home + 12], [1, home + 12, home + 9], [1, home + 5, home - 3], [1, home - 3, home + 5], [1, home + 9, home + 12], [1, home + 12, home + 9], [1, home + 5, home - 3], [4, home - 3]]);
-    const found = PLAY_SCORERS.flipFinder({ track: jumping, target, notes, exercise: { step: 0 } });
+    const twice = PLAY_SCORERS.flipFinder({ track: jumping, target, notes, exercise: { step: 0 } });
+    assert(twice.percent === 85 && twice.personal.flip === undefined && twice.personal.flipSeen.length === 1, `twice up and down in one siren is one reading: ${JSON.stringify(twice)}`);
+    const found = PLAY_SCORERS.flipFinder({ track: jumping, target, notes, exercise: { step: 0 }, personal: twice.personal });
     assert(found.percent === 100 && found.personal?.flip === 7, JSON.stringify(found));
     assert(found.line.key === 'styles.flip.found' && found.line.values.note, JSON.stringify(found.line));
     const once = PLAY_SCORERS.flipFinder({ track: track([[1, 0], [1, home - 3, home + 5], [1, home + 9, home + 12], [1, home + 12, home + 9], [1, home + 5, home - 3], [8, home - 3]]), target, notes, exercise: { step: 0 } });
@@ -277,6 +297,45 @@ test('flip finder: a siren that jumps keeps the flip with the course and says wh
     assert(silent.percent === null, 'not sung: nothing to judge');
 });
 
+test('easy range: a slide\'s lowest and highest steady notes; a scoop or a crack at the top isn\'t counted', () => {
+    // Down from A3 to rest on E3, then up to rest on D4 with a 0.2 s crack to F4 at the very top.
+    const slide = track([[0.5, 57], [1, 57, 52], [0.6, 52], [1.5, 52, 62], [0.5, 62], [0.2, 65], [0.3, 0]]);
+    const found = steadyRange(slide, { from: 0, to: 10 });
+    assert(found?.low === 52 && found.high === 62, `E3 to D4, not the cracked F4: ${JSON.stringify(found)}`);
+    assert(steadyRange(track([[2, 50, 70]]), { from: 0, to: 2 }) === null, 'a slide that never rests has no steady note');
+    assert(steadyRange(track([[0.25, 60], [0.25, 0], [0.25, 60]]), { from: 0, to: 1 }) === null, 'held under 0.3 s, broken by silence: not steady');
+    const wobble = track([[0.5, 60, 60.4], [0.5, 60.4, 59.6]]);
+    assert(steadyRange(wobble, { from: 0, to: 1 })?.low === 60, 'a wobble within a quarter tone is still steady');
+});
+
+test('span: the easy range said as notes, sent to the range the app keeps; scored on the slide, never on how far', () => {
+    const target = [{ start: 0, end: 6, pitch: 57 }];
+    const notes = [{ beat: 0, length: 6, pitch: 57 }];
+    const wide = PLAY_SCORERS.span({ track: track([[0.5, 57], [1, 57, 45], [0.8, 45], [2, 45, 67], [0.8, 67], [0.9, 67, 57]]), target, notes, exercise: { step: 0 } });
+    const narrow = PLAY_SCORERS.span({ track: track([[0.5, 57], [1, 57, 55], [0.8, 55], [2, 55, 60], [0.8, 60], [0.9, 60, 57]]), target, notes, exercise: { step: 0 } });
+    assert(wide.percent === 100 && narrow.percent === 100, 'a wider range earns nothing more');
+    assert(wide.sung[0] === 45 && wide.sung[1] === 67 && wide.line.key === 'styles.range.easy' && wide.line.values.low === 'A2' && wide.line.values.high === 'G4', JSON.stringify(wide));
+    // Up and straight back down, never resting (its turn moves more than a quarter tone in 0.3 s).
+    const restless = PLAY_SCORERS.span({ track: track([[2, 50, 70], [2, 70, 50], [1, 50, 60], [1, 0]]), target, notes, exercise: { step: 0 } });
+    assert(restless.percent === 70 && !restless.sung && restless.line.key === 'styles.range.none', JSON.stringify(restless));
+    assert(PLAY_SCORERS.span({ track: track([[6, 0]]), target, notes, exercise: { step: 0 } }).percent === null, 'not sung: nothing to judge');
+});
+
+test('smooth: a siren with no jump is the top score; a jump says where, to go lighter just before it', () => {
+    const home = 57;
+    const target = [{ start: 0, end: 12, pitch: home }];
+    const notes = [{ beat: 0, length: 12, pitch: home }];
+    const glide = PLAY_SCORERS.smooth({ track: track([[1, home - 3], [3, home - 3, home + 12], [3, home + 12, home - 3], [5, home - 3]]), target, notes, exercise: { step: 0 } });
+    assert(glide.percent === 100 && glide.line.key === 'styles.range.smooth', JSON.stringify(glide));
+    const jump = track([[1, home - 3], [1, home - 3, home + 5], [1, home + 9, home + 12], [3, home + 12, home - 3], [6, home - 3]]);
+    const once = PLAY_SCORERS.smooth({ track: jump, target, notes, exercise: { step: 0 } });
+    assert(once.percent === 60 && once.line.key === 'styles.range.jumped' && once.line.values.note === 'E4', `one jump, D4 to F#4, near E4: ${JSON.stringify(once)}`);
+    assert(PLAY_SCORERS.smooth({ track: jump, target, notes, exercise: { step: 0, generous: true } }).percent === 75, 'generous: a kinder score for one jump');
+    const twice = PLAY_SCORERS.smooth({ track: track([[1, home - 3], [1, home - 3, home + 5], [1, home + 9, home + 12], [1, home + 12, home + 9], [1, home + 5, home - 3], [7, home - 3]]), target, notes, exercise: { step: 0 } });
+    assert(twice.percent === 40 && twice.line.key === 'styles.range.jumpedMore' && twice.line.values.count === 2, JSON.stringify(twice));
+    assert(PLAY_SCORERS.smooth({ track: track([[12, 0]]), target, notes, exercise: { step: 0 } }).percent === null, 'not sung: nothing to judge');
+});
+
 test('styles: every result line names words that exist, and a flip lesson says how the way down went', async () => {
     const { t } = await import('/js/i18n.js');
     const rate = 48000;
@@ -284,7 +343,7 @@ test('styles: every result line names words that exist, and a flip lesson says h
     const slidDown = trackTake(sing(rate, { notes: hook, bpm: 60, legato: 350 }), rate);
     const result = PLAY_SCORERS.flip({ track: slidDown, notes: hook, beatSeconds: 1, strictness: 'standard', exercise: {} });
     assert(result.line?.key === 'styles.flip.countDown' && t(result.line.key, result.line.values) !== result.line.key, `the flip line: ${JSON.stringify(result.line)}`);
-    for (const key of ['styles.keyDrift.held', 'styles.keyDrift.low', 'styles.keyDrift.high', 'styles.flip.count', 'styles.moves.asked', 'styles.moves.yours', 'styles.moves.none', 'styles.moves.tooMany']) {
+    for (const key of ['styles.keyDrift.held', 'styles.keyDrift.low', 'styles.keyDrift.high', 'styles.flip.count', 'styles.moves.asked', 'styles.moves.yours', 'styles.moves.none', 'styles.moves.tooMany', 'styles.range.easy', 'styles.range.one', 'styles.range.none', 'styles.range.smooth', 'styles.range.jumped', 'styles.range.jumpedMore']) {
         assert(t(key, { cents: 30, intervals: 90, clean: 2, count: 2, down: 1, matched: 1, asked: 2 }) !== key, `${key} has words`);
     }
 });
@@ -303,7 +362,7 @@ test('flip point: through the tracker, a rendered siren with a four-semitone jum
     const gaps = [];
     let run = 0;
     for (const hz of tracked.hz) { if (hz > 0) { if (run) gaps.push(run); run = 0; } else run++; }
-    assert(found.flip !== null && found.flip >= 6 && found.flip <= 8 && settleFlip([], found).flip !== null, `flip ${found.flip}, jumps ${JSON.stringify(found.jumps.map((j) => [j.direction, Math.round(j.middle * 10) / 10]))}, dropouts ${JSON.stringify(gaps)}`);
+    assert(found.flip !== null && found.flip >= 6 && found.flip <= 8 && settleFlip(settleFlip([], found).seen, found).flip !== null, `flip ${found.flip}, jumps ${JSON.stringify(found.jumps.map((j) => [j.direction, Math.round(j.middle * 10) / 10]))}, dropouts ${JSON.stringify(gaps)}`);
 });
 
 test('exercise: a note\'s style is laid out as the guide\'s bend, a note\'s own bend and head voice pass through, and plain notes are untouched', () => {

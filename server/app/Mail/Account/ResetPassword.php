@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Mail\Account;
 
+use App\Support\Http\Hosts;
+
 /**
  * The reset link, sent when the person asks for one.
  */
@@ -18,6 +20,6 @@ final class ResetPassword extends AccountMail
 
     protected function url(): string
     {
-        return url('/reset?token='.rawurlencode($this->token).'&email='.rawurlencode($this->email));
+        return Hosts::appLink('/reset?token='.rawurlencode($this->token).'&email='.rawurlencode($this->email));
     }
 }

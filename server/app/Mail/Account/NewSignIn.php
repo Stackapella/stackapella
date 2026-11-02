@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Mail\Account;
 
+use App\Support\Http\Hosts;
 use App\Support\Mail\Bold;
 
 /**
@@ -22,7 +23,7 @@ final class NewSignIn extends AccountMail
 
     protected function url(): string
     {
-        return url('/account/password');
+        return Hosts::appLink('/account/password');
     }
 
     protected function lines(): array

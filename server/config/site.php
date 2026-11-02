@@ -24,6 +24,20 @@ return [
     // pages say legal@stackapella.com, shown as this.
     'legal_email' => env('SITE_LEGAL_EMAIL') ?: 'legal@stackapella.com',
 
+    // The DMCA designated agent, as registered with the US Copyright Office (dmca.copyright.gov):
+    // the copyright page names them, and sheet music import can't be switched on without them
+    // (the doctor says). Empty until Hillel registers (launch checklist H17).
+    'dmca_agent' => [
+        'name' => (string) env('DMCA_AGENT_NAME', ''),
+        'address' => (string) env('DMCA_AGENT_ADDRESS', ''),
+        'phone' => (string) env('DMCA_AGENT_PHONE', ''),
+        'email' => (string) env('DMCA_AGENT_EMAIL', ''),
+    ],
+
+    // Which wording of the import's rights confirmation the singer agreed to, kept with the song;
+    // bumped (with the app's words) whenever the wording changes.
+    'import_rights_version' => 'import-rights-v1',
+
     // Who makes it, as About and the press kit name him, linked to his site (Hillel, 2026-10-27).
     'founder' => env('SITE_FOUNDER') ?: 'Hillel Coren',
     'founder_url' => env('SITE_FOUNDER_URL') ?: 'https://hillel.dev',

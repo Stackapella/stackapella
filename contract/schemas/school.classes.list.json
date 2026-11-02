@@ -1,0 +1,76 @@
+{
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                    "id",
+                    "name",
+                    "code",
+                    "url",
+                    "seats",
+                    "used",
+                    "status",
+                    "expiresAt",
+                    "closedAt",
+                    "createdAt"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "code": {
+                        "type": "string",
+                        "description": "As shown: KQ7M-3XPA."
+                    },
+                    "url": {
+                        "type": "string",
+                        "description": "The /class/<code> link that opens the app's join screen."
+                    },
+                    "seats": {
+                        "type": "integer"
+                    },
+                    "used": {
+                        "type": "integer",
+                        "description": "Seats used: a count only, never who."
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "open",
+                            "full",
+                            "expired",
+                            "closed",
+                            "pending"
+                        ]
+                    },
+                    "expiresAt": {
+                        "type": "string"
+                    },
+                    "closedAt": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "createdAt": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    }
+                }
+            }
+        }
+    }
+}

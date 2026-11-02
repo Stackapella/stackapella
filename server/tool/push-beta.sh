@@ -7,12 +7,11 @@ set -eu
 cd "$(dirname "$0")/../.."
 [ -z "$(git status --porcelain)" ] || { echo "The checkout isn't clean; not pushing." >&2; exit 1; }
 git fetch -q origin
-if ! git diff --quiet origin/main HEAD -- web/css/input.css; then
-    (cd web && sh tool/tailwind.sh > /dev/null)
-    if ! git diff --quiet -- web/css/app.css; then
-        git commit -q -m "App: the stylesheet is rebuilt" -- web/css/app.css
-    fi
-fi
+# Always rebuilt (under a second): new utility classes in a JS template change it too, not only
+# input.css, and CI fails a stale app.css (2026-10-31).
+# Through the land lock, so an agent's ff-merge never races this commit (2026-11-01).
+sh server/tool/land-lock.sh sh -c '(cd web && sh tool/tailwind.sh > /dev/null) && { git diff --quiet -- web/css/app.css || git commit -q -m "App: the stylesheet is rebuilt" -- web/css/app.css; }' \
+    || { echo "Rebuilding the stylesheet failed; not pushing." >&2; exit 1; }
 # The courses and songs come from their own repo at the commit .do/content.lock pins.
 sh server/tool/content.sh link > /dev/null || { echo "Linking the pinned content failed; not pushing." >&2; exit 1; }
 H=$(git rev-parse HEAD)
@@ -39,6 +38,21 @@ PORT=8497 FLOW_SIZES=desktop bash web/tool/flows.sh console_clean > /dev/null 2>
 out=$(sh server/tool/test.sh --compact 2>&1) || { printf '%s\n' "$out" | tail -5 >&2; echo "The server suite failed; not pushing $H." >&2; exit 1; }
 printf '%s\n' "$out" | tail -1
 # Agents may land more commits meanwhile: only the tested commit goes out; they wait for the next run.
+# CI gates production (Hillel, 2026-10-31: "make sure tests pass before we push to prod"): the commit
+# goes to the `release` branch first (a plain push: main only moves forward, so release does too),
+# GitHub Actions runs the tests workflow on it, and only a green run lets the same commit reach main,
+# which App Platform deploys.
+git push -q origin "$H:refs/heads/release" || { echo "Couldn't push $H to release; not pushing." >&2; exit 1; }
+echo "CI is running on $H (the release branch)..."
+RUN=""; i=0
+while [ -z "$RUN" ] && [ "$i" -lt 30 ]; do
+    sleep 10; i=$((i + 1))
+    RUN=$(gh run list --workflow test.yml --branch release --commit "$H" --limit 1 --json databaseId --jq '.[0].databaseId // empty' 2> /dev/null)
+done
+[ -n "$RUN" ] || { echo "CI never started for $H; not pushing." >&2; exit 1; }
+gh run watch "$RUN" --exit-status --interval 30 > /dev/null 2>&1 \
+    || { echo "CI failed for $H (gh run view $RUN --log-failed); not pushing." >&2; exit 1; }
+echo "CI passed for $H"
 git push -q origin "$H:main"
 echo "Pushed $H"
 # Every agent's branch is backed up too (backup/agent/*, overwritten each time), so unlanded work is

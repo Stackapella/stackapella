@@ -6,6 +6,7 @@
 // link, to copy or share), and Edit, Make a copy, Export file and Delete. Anyone with the link of an
 // unlisted one, or a choir group it's shared with, can learn it; anyone else hears it isn't here.
 
+import { AccountWall } from '../components/account-wall.js';
 import { markRaw } from 'vue';
 import { PageHeader } from '../components/page.js';
 import { api } from '../api.js';
@@ -43,10 +44,19 @@ const STATES = {
 };
 const DIFFICULTY = { beginner: tk('templates.difficulty.beginner'), intermediate: tk('templates.difficulty.intermediate'), advanced: tk('templates.difficulty.advanced') };
 
+// The boards keep a song that's ours (no owner) or public (the server's Boards::template), as
+// templates.show says (`boards`). From a server too old to say, the grants that are always one of
+// those: our library's and a public listing's (a group's, a project's, an idea's or a link's can be
+// either, so they get none: a working board hidden, never a broken one shown).
+const BOARD_GRANTS = new Set(['free', 'plus', 'month', 'kept', 'beta', 'admin', 'singer', 'template', 'public']);
+
+/** Whether a song page offers its leaderboard: your own song when it's public; else as templates.show says (`boards`), or by its grant from a server too old to say. */
+export const hasBoards = ({ own, grant, visibility, boards = null }) => (own ? visibility === 'public' : typeof boards === 'boolean' ? boards : BOARD_GRANTS.has(grant));
+
 export const TemplateView = {
-    components: { Field, Icon, PageHeader, PlusMoment, PartBoard, ShareIdea },
+    components: { AccountWall, Field, Icon, PageHeader, PlusMoment, PartBoard, ShareIdea },
     props: { id: { type: String, required: true } },
-    data: () => ({ template: null, missing: false, failed: false, singers: 4, picked: null, player: null, playingPart: null, starting: false, changing: false, limitOpen: false, details: { description: '', words: '', tune: '' }, backingUp: false }),
+    data: () => ({ template: null, grant: null, boards: null, missing: false, failed: false, singers: 4, picked: null, player: null, playingPart: null, starting: false, changing: false, limitOpen: false, details: { description: '', words: '', tune: '' }, backingUp: false }),
     setup: () => ({ STATES, DIFFICULTY, account, keyLabel, midiName, templatePartName, singerOptions, formatTime, goBack, paint, PART_COLORS, game }),
     template: `
         <div class="mx-auto flex min-h-dvh max-w-3xl flex-col px-4 pb-16 pt-[max(1rem,env(safe-area-inset-top))] md:px-8">
@@ -78,7 +88,7 @@ export const TemplateView = {
                         </div>
                     </div>
                     <ul class="space-y-2" role="radiogroup" aria-labelledby="pick-heading">
-                        <li v-for="(part, i) in shownParts" :key="part.key" class="relative flex flex-wrap items-center gap-3 rounded-[18px] p-3 transition" :class="picked === part.key ? 'bg-(--sel-wash) shadow-[inset_0_0_0_2px_var(--selected)]' : 'bg-(--fill) hover:bg-(--fill-2)'">
+                        <li v-for="(part, i) in shownParts" :key="part.key" class="relative flex flex-wrap items-center gap-3 rounded-tile p-3 transition" :class="picked === part.key ? 'bg-(--sel-wash) shadow-[inset_0_0_0_2px_var(--selected)]' : 'bg-(--fill) hover:bg-(--fill-2)'">
                             <button type="button" role="radio" :aria-checked="picked === part.key ? 'true' : 'false'" class="flex min-w-0 flex-1 items-center gap-3 text-start after:absolute after:inset-0 after:rounded-[inherit]" @click="picked = part.key">
                                 <span class="radio-mark" aria-hidden="true"></span>
                                 <span class="w-28 shrink-0 sm:w-32">
@@ -92,10 +102,10 @@ export const TemplateView = {
                             </button>
                             <button type="button" class="glass-bubble relative z-10 grid size-11 shrink-0 place-items-center rounded-full text-cream" :aria-label="playingPart === part.key ? t('studio.stop') : t('template.hearPart', { part: templatePartName(part) })" @click="hearPart(part)"><Icon :name="playingPart === part.key ? 'stop' : 'play'" :size="16" /></button>
                             <!-- The part's leaderboard (components/boards.js), above the row's hit area so it never picks the part -->
-                            <PartBoard v-if="game() && template.id && !template.course" class="relative z-10 min-w-0 basis-full sm:ps-8" :template-id="template.id" :part-key="part.key" :part-name="templatePartName(part)" :color="paint(part.color ?? PART_COLORS[i % PART_COLORS.length])" />
+                            <PartBoard v-if="game() && template.id && !template.course && !imported && onBoards" class="relative z-10 min-w-0 basis-full sm:ps-8" :template-id="template.id" :part-key="part.key" :part-name="templatePartName(part)" :color="paint(part.color ?? PART_COLORS[i % PART_COLORS.length])" />
                         </li>
                     </ul>
-                    <p class="flex flex-wrap items-center justify-between gap-2 text-xs text-muted">
+                    <p data-ui="facts" class="flex flex-wrap items-center justify-between gap-2 text-xs text-muted">
                         <span>{{ t('template.oneEach') }}</span>
                         <span v-if="yourRange" class="flex items-center gap-1.5"><span class="h-2.5 w-4 rounded border border-dashed border-muted/70" aria-hidden="true"></span>{{ t('template.yourRange') }}</span>
                     </p>
@@ -123,7 +133,7 @@ export const TemplateView = {
                                 <button type="submit" class="btn-primary" :disabled="backingUp">{{ backingUp ? t('common.saving') : t('template.backUp') }}</button>
                             </form>
                         </template>
-                        <p v-else-if="!account.me" class="text-sm text-muted">{{ t('template.signInHint') }} <a href="/signin" class="link" @click.prevent="navigate('/signin?next=/t/' + id)">{{ t('auth.signIn') }}</a></p>
+                        <AccountWall v-else-if="!account.me" reason="template" :next="'/t/' + id" bare />
                         <p v-else-if="record.state === 'saved'" class="text-sm text-muted">{{ t('template.savedHint') }}</p>
                     </div>
                     <!-- Share as an idea (docs/ideas-app-plan.md): a backed-up song of your own, once Ideas is open -->
@@ -144,7 +154,8 @@ export const TemplateView = {
                     <div class="flex flex-wrap items-center gap-3">
                         <button type="button" class="btn-secondary" :disabled="record.state === 'readOnly'" @click="navigate('/create?edit=' + id)">{{ t('template.edit') }}</button>
                         <button type="button" class="btn-secondary" @click="navigate('/create?copy=' + id)">{{ t('template.copy') }}</button>
-                        <button type="button" class="btn-ghost" @click="exportIt"><Icon name="download" :size="16" /> {{ t('template.export') }}</button>
+                        <!-- A song made from sheet music has no template file: it stays an import (docs/sheet-music-patent-notes.md) -->
+                        <button v-if="!imported" type="button" class="btn-ghost" @click="exportIt"><Icon name="download" :size="16" /> {{ t('template.export') }}</button>
                         <button type="button" class="btn-ghost ms-auto text-bad" @click="remove">{{ t('template.delete') }}</button>
                     </div>
                 </section>
@@ -152,11 +163,18 @@ export const TemplateView = {
             <PlusMoment v-if="limitOpen" :title="t('plus.moment.projectTitle')" :text="t('plus.moment.projectLimit')" full from="project_limit" @close="limitOpen = false" />
         </div>`,
     computed: {
+        /** Whether this song has boards: the server keeps them for our songs and public ones, never a private or unlisted one. */
+        onBoards() {
+            return hasBoards({ own: this.grant === 'own', grant: this.grant, visibility: this.record?.visibility, boards: this.boards });
+        },
         record() {
             return mine.list.find((r) => r.id === this.id) ?? null;
         },
         otherAuthor() {
             return this.template?.licence?.words === LICENCE.other;
+        },
+        imported() {
+            return !!(this.record?.source === 'sheet-music' || this.record?.imported);
         },
         shownParts() {
             return this.template ? partsFor(this.template, this.singers) : [];
@@ -210,7 +228,10 @@ export const TemplateView = {
         try {
             await loadMine();
             const own = await ownTemplate(this.id);
-            this.template = own ?? validateTemplate((await api.templates.show(this.id)).data.template);
+            const shown = own ? null : (await api.templates.show(this.id)).data;
+            this.template = own ?? validateTemplate(shown.template);
+            this.grant = own ? 'own' : shown.grant;
+            this.boards = own ? null : shown.boards ?? null;
             this.singers = Math.max(...singerOptions(this.template));
             this.pickBest();
         } catch (error) {

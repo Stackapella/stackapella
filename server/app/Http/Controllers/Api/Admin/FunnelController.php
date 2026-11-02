@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Api\Admin;
 
 use App\Actions\Counts\Funnel;
 use App\Http\Controllers\Controller;
+use App\Support\Stats\ReportDay;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -20,6 +21,6 @@ final class FunnelController extends Controller
         $days = in_array((int) $request->query('days', '30'), [7, 30, 90], true) ? (int) $request->query('days', '30') : 30;
         $experiment = $request->query('experiment');
 
-        return response()->json(['data' => $funnel->report(is_string($experiment) ? $experiment : null, $days)]);
+        return response()->json(['data' => [...$funnel->report(is_string($experiment) ? $experiment : null, $days), 'timezone' => ReportDay::zone()]]);
     }
 }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Actions\Beta;
 
+use App\Actions\Voices\VolunteerAbuse;
 use App\Enums\SubmissionStatus;
 use App\Exceptions\Refusal;
 use App\Jobs\PublishGuide;
@@ -89,9 +90,16 @@ final class ReviewSubmission
         return $this->decide($submission, SubmissionStatus::Retake, $note, $beat, $actor, $ip);
     }
 
-    public function reject(BetaSubmission $submission, ?string $note, User $actor, ?string $ip = null): BetaSubmission
+    public function reject(BetaSubmission $submission, ?string $note, User $actor, ?string $ip = null, bool $abuse = false): BetaSubmission
     {
-        return $this->decide($submission, SubmissionStatus::Rejected, $note, null, $actor, $ip);
+        $decided = $this->decide($submission, SubmissionStatus::Rejected, $note, null, $actor, $ip);
+
+        // Refused for abuse (someone else's recording, a sample, offensive): a volunteer can't claim again.
+        if ($abuse) {
+            VolunteerAbuse::block($decided->loadMissing('assignment.singer'), $actor, $ip);
+        }
+
+        return $decided;
     }
 
     private function decide(BetaSubmission $submission, SubmissionStatus $status, ?string $note, ?float $beat, User $actor, ?string $ip): BetaSubmission

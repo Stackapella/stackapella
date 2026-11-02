@@ -14,6 +14,15 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "tool"))
 from cdp import Chrome  # noqa: E402
 
+# FLOW_BROWSER=firefox or safari runs a flow in that browser over WebDriver BiDi (tool/bidi.py), for
+# the cross-browser pass; Chrome is the default and the gate.
+BROWSER = os.environ.get("FLOW_BROWSER", "chrome")
+if BROWSER != "chrome":
+    from bidi import BROWSERS  # noqa: E402
+    if BROWSER not in BROWSERS:
+        sys.exit(f"FLOW_BROWSER={BROWSER}: chrome, " + " or ".join(BROWSERS))
+    Chrome = BROWSERS[BROWSER]  # noqa: F811
+
 SIZES = {"phone": (390, 844, True), "desktop": (1440, 900, False), "small": (375, 667, True), "laptop": (1050, 700, False), "narrow": (360, 780, True)}  # small, laptop, narrow: FLOW_SIZES=small
 SHOTS = Path(__file__).resolve().parent / "shots"
 
@@ -27,6 +36,8 @@ class Flow:
         self.size = size
         self.skin = skin
         self.name = name if skin == "game" else f"{name}-{skin}"
+        if BROWSER != "chrome":
+            self.name = f"{self.name}-{BROWSER}"
         self.chrome = Chrome(None, width, height, mobile)
         if skin != "game":
             # The skin (docs/skins-plan.md) chosen before any page script runs, as theme-boot reads it, and
@@ -62,10 +73,13 @@ class Flow:
         return self.run(f"const el = document.querySelector({json.dumps(selector)}); el.value = {json.dumps(text)}; el.dispatchEvent(new Event('input', {{ bubbles: true }}));")
 
     def wait(self, condition, timeout=20, what=None):
+        """Polls `condition` until it's true. It may be (or end in) a promise: its value is what counts,
+        so `x && loadIt().then((v) => v.ok)` waits for `v.ok` (a promise itself is always truthy)."""
         deadline = time.time() + timeout
         while time.time() < deadline:
             try:
-                if self.js(f"!!({condition})"):
+                # Each poll capped, so a promise that never settles fails at `timeout` instead of hanging.
+                if self.js(f"!!(await Promise.race([({condition}), new Promise((r) => setTimeout(() => r(false), 5000))]))"):
                     return self
             except RuntimeError:
                 pass
@@ -92,7 +106,9 @@ class Flow:
         return self
 
     def go_on(self):
-        """Clicks a lesson's way on (Continue, Finish, or "Turn on my mic" before the note step)."""
+        """Clicks a lesson's way on (Continue, Finish, or "Turn on my mic" before the note step), once
+        it's there: a lesson an experiment varies waits up to 1.5 s for its arm (js/experiments.js)."""
+        self.wait("document.querySelector('[data-go-on]:not(:disabled)')", what="the way on")
         self.run("document.querySelector('[data-go-on]:not(:disabled)').click()")
         return self
 

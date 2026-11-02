@@ -50,8 +50,11 @@ final class BackupRun extends Command
             Storage::disk('backup')->writeStream($name, $stream);
             is_resource($stream) && fclose($stream);
 
-            if (now()->day === 1 || Storage::disk('backup')->files('db/monthly') === []) {
-                Storage::disk('backup')->copy($name, 'db/monthly/'.now()->format('Y-m').'.sql.gz');
+            // This month's copy, the first day it's missing (so a failed 1st is made up the next day).
+            $monthly = 'db/monthly/'.now()->format('Y-m').'.sql.gz';
+
+            if (! Storage::disk('backup')->exists($monthly)) {
+                Storage::disk('backup')->copy($name, $monthly);
             }
         } catch (Throwable $e) {
             report($e);

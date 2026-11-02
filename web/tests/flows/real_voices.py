@@ -42,6 +42,18 @@ def journey(f):
     f.click_t("studio.row.voice")
     f.wait("document.querySelector('[role=dialog] fieldset')", what="the guide voice choice")
     f.shot("voice-choice")
+    # Report this voice (Lend your voice's moderation): a button beside it that never picks it, a
+    # reason, sent with the voice's guide id.
+    f.run("""const api = await import('/js/api.js'); const { mockFetch } = await import('/js/api-mock.js'); window.reported = null;
+        api.useTransport(async (url, init = {}) => { if (init.operation === 'reports.create') { window.reported = JSON.parse(init.body); return new Response(null, { status: 204 }); } return mockFetch(url, init); });""")
+    chosen = f.js("[...document.querySelectorAll('[role=dialog] fieldset input')][0].checked")
+    f.run("document.querySelector('[data-report-voice]').click()")
+    f.wait("document.querySelector('[data-voice-report]')", what="the report sheet")
+    assert f.js("[...document.querySelectorAll('[role=dialog] fieldset input')][0].checked") == chosen, "reporting picked the voice"
+    f.run("document.querySelector('[data-voice-report] input[value=offensive]').click(); document.querySelector('[data-voice-report] button[type=submit]').click()")
+    f.wait("window.reported", what="the report sent")
+    assert f.js("window.reported.guideId") and f.js("window.reported.reason") == "offensive", f.js("window.reported")
+    f.wait("!document.querySelector('[data-voice-report]')", what="the sheet closed")
     f.run("[...document.querySelectorAll('[role=dialog] fieldset input')][1].click()")
     f.wait(f"(async () => {{ const s = {SESSION}; const alto = s.parts.find((p) => p.templatePartKey === 'alto'); return s.guideVoices[alto.id].why === 'chosen'; }})()", what="the practice voice chosen")
     f.run("[...document.querySelectorAll('[role=dialog] fieldset input')][0].click()")

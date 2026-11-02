@@ -47,7 +47,7 @@ def sing_wave(f):
 
 def journey(f):
     f.go("/?api=mock&scenario=&as=admin", "document.querySelector('#app header')")
-    f.run("localStorage.setItem('stackapella.installDismissed', '1'); sessionStorage.setItem('stackapella.headphones', '1');")
+    f.run("localStorage.setItem('stackapella.asks', JSON.stringify({ stopped: ['install'] })); sessionStorage.setItem('stackapella.headphones', '1');")
     f.mic_checked()
     f.go("/learn/c/vibrato", "document.querySelector('[data-course-map]')")
     picture(f, "vibrato-course-page")

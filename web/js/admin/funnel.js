@@ -12,7 +12,8 @@ import { LoadFailed, loadInto } from './common.js';
 const RANGES = [7, 30, 90];
 const ARRIVALS = ['f_arrive', 'f_arrive_start'];
 // Each step's name (config/counts.php `funnel`, in its order); a kind not named here shows as its code.
-const STEPS = {
+export const STEPS = {
+    exp_enrol: tk('admin.funnel.step.exp_enrol'),
     f_site_start: tk('admin.funnel.step.f_site_start'),
     f_arrive: tk('admin.funnel.step.f_arrive'),
     f_arrive_start: tk('admin.funnel.step.f_arrive_start'),
@@ -35,6 +36,8 @@ const STEPS = {
     f_day2: tk('admin.funnel.step.f_day2'),
     f_week1: tk('admin.funnel.step.f_week1'),
     f_goal_met: tk('admin.funnel.step.f_goal_met'),
+    f_day7: tk('admin.funnel.step.f_day7'),
+    f_plus: tk('admin.funnel.step.f_plus'),
 };
 const ASKS = {
     install: tk('admin.funnel.ask.install'),
@@ -78,12 +81,14 @@ export function lostBetween(before, after) {
 
 export const FunnelSection = {
     components: { LoadFailed, Notice },
-    props: { me: { type: Object, required: true } },
-    data: () => ({ experiment: null, days: 30, report: null, failed: false, loadingMore: false, cursor: null }),
+    // fixed: one experiment's steps alone, inside the Experiments page (its own card says the rest).
+    props: { me: { type: Object, required: true }, fixed: { type: String, default: null } },
+    emits: ['report'],
+    data: (vm) => ({ experiment: vm.fixed, days: 30, report: null, failed: false, loadingMore: false, cursor: null }),
     setup: () => ({ RANGES, STEPS, ASKS, ARRIVALS, ARM_COLORS, MARK_POINTS, formatNumber, rateOf, points, day }),
     template: `
-        <section class="space-y-6" aria-labelledby="funnel-h">
-            <div class="flex flex-wrap items-end justify-between gap-4">
+        <section class="space-y-6" :aria-labelledby="fixed ? null : 'funnel-h'" :aria-label="fixed ? t('admin.experiments.results') : null">
+            <div v-if="!fixed" class="flex flex-wrap items-end justify-between gap-4">
                 <div>
                     <h1 id="funnel-h" class="text-3xl font-extrabold tracking-tight text-cream">{{ t('admin.funnel.title') }}</h1>
                     <p class="mt-1 max-w-prose text-muted">{{ t('admin.funnel.intro') }}</p>
@@ -105,7 +110,7 @@ export const FunnelSection = {
             <p v-else-if="!report" class="text-muted" role="status">{{ t('admin.loading') }}</p>
             <template v-else>
                 <!-- One status card: what it changes, what it's read by, how it's going. -->
-                <div v-if="chosen" class="card space-y-1.5 p-4" data-funnel-about>
+                <div v-if="chosen && !fixed" class="card space-y-1.5 p-4" data-funnel-about>
                     <p class="text-cream"><b>{{ t('admin.funnel.whatItChanges', { id: chosen.id, what: changes(chosen.id) }) }}</b> {{ readBy }}</p>
                     <p class="text-sm text-muted">{{ about }}</p>
                 </div>
@@ -256,6 +261,7 @@ export const FunnelSection = {
         async load() {
             // The answer is one object, not a page: loadInto's list shape, wrapped.
             await loadInto(this, 'report', async () => ({ data: (await api.admin.funnel.show(this.experiment ? { experiment: this.experiment } : { days: this.days })).data }));
+            if (this.report) this.$emit('report', this.report);
         },
     },
 };

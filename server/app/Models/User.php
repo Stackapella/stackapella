@@ -80,6 +80,7 @@ use Laravel\Passkeys\PasskeyAuthenticatable;
  * @property string|null $apple_web_refresh_token
  * @property string|null $store_account_token
  * @property Carbon|null $store_plus_until
+ * @property Carbon|null $school_plus_until a class code's free year (docs/school-offer-plan.md)
  * @property Carbon|null $store_tester_at
  * @property list<int>|null $reminder_days
  * @property string|null $reminder_time
@@ -213,6 +214,7 @@ final class User extends Authenticatable implements PasskeyUser
             'apple_refresh_token' => 'encrypted',
             'apple_web_refresh_token' => 'encrypted',
             'store_plus_until' => 'datetime',
+            'school_plus_until' => 'datetime',
             'store_tester_at' => 'datetime',
             'reminder_days' => 'array',
             'reminder_sent_on' => 'date',
@@ -223,6 +225,21 @@ final class User extends Authenticatable implements PasskeyUser
             'trust_level_override' => 'integer',
             'trust_lowered_until' => 'datetime',
         ];
+    }
+
+    /**
+     * The time zone this person's dates are written in (an email's "until 12 November"): the one
+     * their device last told us, else their reminders', else UTC.
+     */
+    public function zone(): string
+    {
+        foreach ([$this->timezone, $this->reminder_timezone] as $zone) {
+            if (is_string($zone) && in_array($zone, \DateTimeZone::listIdentifiers(), true)) {
+                return $zone;
+            }
+        }
+
+        return 'UTC';
     }
 
     /**

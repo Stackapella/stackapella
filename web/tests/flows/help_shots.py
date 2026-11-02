@@ -211,6 +211,7 @@ def recording_starts(f):
         if f.js(f"document.body.innerText.includes({I18N}.t('headphones.start'))"):
             f.click_t("headphones.start")
         elif f.js("!!document.querySelector('[role=dialog] select')"):
+            f.wait_text(t(f, "timing.skip"))  # the dialog's footer may still be coming
             f.click_t("timing.skip")
         f.wait(f"{AUDIO}.engine.playing?.recording || document.querySelector('[role=dialog] select') || document.body.innerText.includes({I18N}.t('headphones.start'))", timeout=20, what="the next setup step")
     f.wait(f"{AUDIO}.engine.playing?.recording", timeout=20, what="recording")
@@ -225,7 +226,7 @@ def celebration_over(f):
 def getting_started(f):
     # A first visit: nothing on this device yet, and the browser's own install offer held back.
     home_page(f, "signedOut")
-    f.run("localStorage.setItem('stackapella.installDismissed', '1');")
+    f.run("localStorage.setItem('stackapella.asks', JSON.stringify({ stopped: ['install'] }));")
     if wanted("getting-started--home"):
         light_first(f)
         home_page(f, "signedOut")
@@ -622,7 +623,7 @@ def phone(f):
 
 def desktop(f):
     f.go("/?api=mock&scenario=&as=member", "document.querySelector('#app header')")
-    f.run("localStorage.setItem('stackapella.installDismissed', '1');")
+    f.run("localStorage.setItem('stackapella.asks', JSON.stringify({ stopped: ['install'] }));")
     f.mic_checked()
     clear_projects(f)
     if wanted("settings--page"):

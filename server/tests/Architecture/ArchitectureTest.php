@@ -173,6 +173,7 @@ final class ArchitectureTest extends TestCase
         'Mail/Account/RecoveredBySupport.php' => 'the old address, when support helped its owner back in',
         'Mail/Account/TrialEnding.php' => 'a Plus subscriber, before their trial turns into a charge',
         'Mail/Account/PaymentFailed.php' => 'a Plus subscriber whose payment failed',
+        'Mail/Account/ClassCodesReady.php' => 'a teacher, once, when Admin first approves them',
         // The one written exception (docs/decisions.md, "telling mudeo's users"): once, never again.
         'Mail/Ideas/IdeaVoicesMail.php' => 'an idea\'s writer, when people sing it: at most once a day per idea, with a setting and one-click unsubscribe (Hillel, 2026-10-27)',
         'Mail/Mudeo/MudeoInvite.php' => 'each of mudeo\'s old users, once, by Hillel\'s batch button (or the admin, as a test)',

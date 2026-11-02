@@ -17,6 +17,10 @@ def journey(f):
     f.go("/admin?api=mock&scenario=", "document.querySelector('main')")
     name = f.js(f"{I18N}.t('admin.home.signedInAs', {{ name: 'Hillel Coren' }})")
     f.wait_text(name)
+    # The last 7 days (docs/admin-analytics-plan.md, slice 1): the overview's growth and songs as cards.
+    f.wait("document.querySelectorAll('[data-home-growth] [data-tile]').length === 5", what="the growth cards")
+    tiles = f.js("Object.fromEntries([...document.querySelectorAll('[data-home-growth] [data-tile]')].map((c) => [c.dataset.tile, c.querySelector('.text-4xl').textContent.trim()]))")
+    assert tiles == {"signUps": "40", "upgrades": "6", "activeSingers": "85", "finished": "12", "secondSongs": "3"}, tiles
     f.shot("home")
     f.click_t("admin.nav.safety")
     f.wait("document.querySelectorAll('[role=tab]').length === 4", what="the tabs")
@@ -50,8 +54,8 @@ def journey(f):
     f.wait("document.querySelector('table')", what="the events")
     f.shot("events")
     f.click_t("admin.nav.group.system")
-    f.click_t("admin.nav.audit")
-    f.wait("document.querySelector('table')", what="the audit log")
+    f.click_t("admin.nav.group.system")  # the System group opens on the audit log
+    f.wait("document.querySelector('table, [data-audit-cards]')", what="the audit log")
     f.shot("audit")
     # A change outside sudo goes to the second factor, and back here after.
     f.go("/admin/safety?api=mock&scenario=admin.flags.update:sudo_required", "document.querySelectorAll('[aria-pressed]').length > 1")

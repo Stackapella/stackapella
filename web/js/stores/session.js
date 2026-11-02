@@ -12,16 +12,18 @@ import { addSung, flushSung } from '../voice-day.js';
 import { computed, markRaw, reactive } from 'vue';
 import * as db from '../db.js';
 import { first } from '../funnel.js';
-import { audio, engine, leadSeconds, unlock } from '../audio.js';
+import { audio, engine, leadSeconds, tookTake, unlock } from '../audio.js';
 import { click, isSilent, peaks as toPeaks } from '../dsp.js';
 import { renderGuide } from '../guides.js';
-import { bandFor, renderBand, styleOf } from '../band.js';
+import { styleOf } from '../band-style.js';
+import { lazyView } from '../lazy.js';
 import { guideKey, loadRecordedGuide, mixVoices, recordingApplies } from '../recorded-guides.js';
 import { loadCatalogue, versionsFor } from './catalogue.js';
 import { t } from '../i18n.js';
-import { BACKING, GUIDE_LEVELS, guideId, hasTake, nextSlot, PRACTICE_DEFAULTS, SPEAKERS_UNDER, trackLevels, voiceLevels, withClicks } from '../practice.js';
+import { BACKING, DRONE, GUIDE_LEVELS, guideId, hasTake, nextSlot, PRACTICE_DEFAULTS, SPEAKERS_UNDER, trackLevels, voiceLevels, withClicks } from '../practice.js';
 import { clearTake, deleteKeptTake, deletePart, makeSlot, openProject, savePart, saveProject, useKeptTake } from './projects.js';
 import { renderPart } from '../synth.js';
+import { droneNotes } from '../drone.js';
 import { lengthBeats, lyricLines, partsFor, phrases as templatePhrases } from '../templates.js';
 import { beatsPerBar, defaultPartName, PART_COLORS, transposeKey } from '../theme.js';
 import { toast } from '../components/ui.js';
@@ -80,6 +82,8 @@ const kept = {
     rung: null, // the tempo ladder's next speed, rendered ahead ({ id, speed, ready, result })
     guidesReady: null,
     guidesRate: null,
+    drone: null, // the drone's samples (docs/tune-chord-plan.md), at the guides' rate and speed
+    droneMode: null, // the kind they are ('key' or 'chord')
     guideOffsets: new Map(), // slot id -> where its guide starts, in seconds (a real voice can start late)
     failedVoices: new Set(), // real voices' URLs that didn't load this time (offline): retried when online
     rendering: 0, // renders in flight (an open-time one and a Play-time one can overlap)
@@ -284,6 +288,7 @@ export async function ready() {
             if (guide) engine.setPart(guideId(part.id), guide, kept.guidesRate, voiceMix(guideId(part.id)));
         }
         if (kept.backing) engine.setPart(BACKING, kept.backing, kept.guidesRate, voiceMix(BACKING));
+        if (kept.drone) engine.setPart(DRONE, kept.drone, kept.guidesRate, voiceMix(DRONE));
         engine.projectId = loaded;
     }
     syncMix();
@@ -371,7 +376,10 @@ async function renderGuides(key, sampleRate) {
             part.guidePeaksRate = sampleRate;
             part.guideSeconds = rendered[i].offsetSeconds + rendered[i].samples.length / sampleRate;
         });
-        kept.backing = template.chords?.length ? markRaw(await songBand(template, { transpose, speed: session.practice?.speed ?? 1, sampleRate, style: styleOf(session.practice?.chordsSound) })) : null;
+        // The chords underneath only when they're on (off by default): the band is the slow part on a phone.
+        kept.backing = template.chords?.length && session.practice?.chords ? markRaw(await songBand(template, { transpose, speed: session.practice?.speed ?? 1, sampleRate, style: styleOf(session.practice?.chordsSound) })) : null;
+        kept.drone = renderDrone(session.practice?.drone, { sampleRate, speed: session.practice?.speed ?? 1 });
+        kept.droneMode = kept.drone ? session.practice.drone : null;
         if (kept.guidesKey !== key) return;
         session.guideVoices = voices;
         kept.guidesRate = sampleRate;
@@ -754,6 +762,24 @@ export function setPractice(field, value) {
     savePractice();
 }
 
+/**
+ * The chords underneath, rendered when they're first turned on (the guides leave them out while they're
+ * off) and added to what's playing, with no restart.
+ */
+export async function ensureChords() {
+    const id = session.openedId;
+    const template = session.project?.template;
+    if (!template?.chords?.length || kept.backing) return;
+    await ready(); // the guides first, at the engine's rate
+    if (!stillOpen(id) || kept.backing) return;
+    const key = kept.guidesKey;
+    const sampleRate = kept.guidesRate ?? engine.sampleRate;
+    const backing = markRaw(await songBand(template, { transpose: session.project.transpose || 0, speed: session.practice?.speed ?? 1, sampleRate, style: styleOf(session.practice?.chordsSound) }));
+    if (!stillOpen(id) || kept.guidesKey !== key || kept.backing) return; // rendered again meanwhile
+    kept.backing = backing;
+    if (!engine.replaceBuffer(BACKING, backing, sampleRate)) engine.setPart(BACKING, backing, sampleRate, voiceMix(BACKING));
+}
+
 /** The chords' style (js/band.js: gentle, pop or swing): rendered again, so playback stops first. */
 export async function setChordsSound(sound) {
     const id = session.openedId;
@@ -764,6 +790,40 @@ export async function setChordsSound(sound) {
     if (!stillOpen(id)) return;
     if (engine.unlocked) await ready();
     else await prepareGuides(GUIDE_PEAKS_RATE);
+}
+
+/**
+ * The drone for `mode` ('key' or 'chord'; docs/tune-chord-plan.md) at the guides' key and `speed`: a
+ * steady straight tone under the song's lowest note, so it doesn't follow the part you pick. Null
+ * when off, or for a song without chords asked for the chord.
+ */
+function renderDrone(mode, { sampleRate, speed = 1 }) {
+    const template = session.project?.template;
+    if (!template || !mode || mode === 'off') return null;
+    const lowest = Math.min(...template.parts.flatMap((p) => (p.guide?.notes ?? []).map((n) => n.pitch)));
+    const notes = droneNotes(template, mode, { around: Number.isFinite(lowest) ? lowest : 55 });
+    return notes.length ? markRaw(renderPart(notes, { bpm: template.tempo, sampleRate, transpose: session.project.transpose || 0, speed })) : null;
+}
+
+/**
+ * Drone: 'off', 'key' or 'chord'. On and off are live (the mix); a new kind renders the drone again
+ * (only it), so playback stops first, as a change of the chords' sound does.
+ */
+export async function setDrone(mode) {
+    const id = session.openedId;
+    if (!session.isTemplate || session.recording) return;
+    const kind = mode !== 'off' && mode !== kept.droneMode; // a drone not rendered yet: render it
+    if (kind && session.playing) await stopPlayback();
+    session.practice.drone = mode;
+    savePractice();
+    if (!stillOpen(id)) return;
+    if (kind) {
+        const sampleRate = kept.guidesRate ?? engine.sampleRate;
+        kept.drone = renderDrone(mode, { sampleRate, speed: session.practice.speed ?? 1 });
+        kept.droneMode = kept.drone ? mode : null;
+        if (kept.drone && engine.ctx && engine.projectId?.startsWith(session.project.id) && !engine.replaceBuffer(DRONE, kept.drone, sampleRate)) engine.setPart(DRONE, kept.drone, sampleRate, voiceMix(DRONE));
+    }
+    syncMix();
 }
 
 /** Slow practice (1, 0.85 or 0.7): the guides render again at that speed, so playback stops first. */
@@ -865,9 +925,11 @@ export function renderAtSpeed(speed) {
             rendered.push({ part, ...(await renderOne(part, { template, transpose, sampleRate, voices, speed })) });
             if (kept.rung !== rung) return null; // another speed, or another song, took over
         }
-        const backing = template.chords?.length ? await songBand(template, { transpose, speed, sampleRate, style: styleOf(session.practice?.chordsSound) }) : null;
+        const backing = template.chords?.length && session.practice?.chords ? await songBand(template, { transpose, speed, sampleRate, style: styleOf(session.practice?.chordsSound) }) : null;
+        const droneMode = session.practice?.drone;
+        const drone = renderDrone(droneMode, { sampleRate, speed });
         if (kept.rung !== rung) return null;
-        rung.result = { speed, sampleRate, rendered, backing, voices };
+        rung.result = { speed, sampleRate, rendered, backing, drone, droneMode: drone ? droneMode : null, voices };
         return rung.result;
     })().catch((error) => {
         console.error('The next speed did not render', error);
@@ -901,6 +963,9 @@ export function climb(startFrame) {
     }
     kept.backing = rung.backing ? markRaw(rung.backing) : null;
     if (rung.backing && !engine.replaceBuffer(BACKING, rung.backing, rung.sampleRate)) engine.setPart(BACKING, rung.backing, rung.sampleRate, voiceMix(BACKING));
+    kept.drone = rung.drone;
+    kept.droneMode = rung.droneMode;
+    if (rung.drone && !engine.replaceBuffer(DRONE, rung.drone, rung.sampleRate)) engine.setPart(DRONE, rung.drone, rung.sampleRate, voiceMix(DRONE));
     session.guideVoices = rung.voices;
     // Kept as the guides at this speed, so ready() finds them and never rebuilds the parts mid-run.
     kept.guidesRate = rung.sampleRate;
@@ -1135,6 +1200,7 @@ export async function finishRecording({ interrupted = false } = {}) {
         session.patching = null;
         return { kind: 'silent' };
     }
+    tookTake(); // toward offering a fresh timing check (audio.js recheckDue)
     if (session.patching) {
         // A re-sung phrase: nothing is saved yet; the screen offers it in place (patchedTake).
         const { partId, plan } = session.patching;
@@ -1433,6 +1499,7 @@ export async function renderMix({ chords = false, room = null, track = null, onl
     let all = asMixed ? mixLevels() : levels();
     // Sing's chords never go in a file; Export's "Piano chords underneath" adds the song's own, on piano.
     all.set(BACKING, { audible: false, volume: 0, pan: 0 });
+    all.set(DRONE, { audible: false, volume: 0, pan: 0 }); // a drone is for practice, never in a file
     if (track) all = trackLevels(all, track.partId, track.kind);
     if (only) all = onlyTake(all, only);
     const piano = chords ? await pianoChords() : null;
@@ -1505,11 +1572,16 @@ export function renderStems() {
  * Make it sound good (js/polish.js): every audible voice as heard (a take's kept stretch, or a
  * guide), dry, in the parts' order, levelled, compressed, spread and in `room`, at -14 LUFS.
  */
+// The band isn't in a first lesson's modules (band-style.js): loaded when a song's chords first play,
+// from this page's own version (js/lazy.js: a newer one waiting reloads, never mixes).
+const loadBand = lazyView(() => import('../band.js'));
+
 /**
  * A template song's chords played by the band (js/band.js) in `style`: Sing's chords underneath
  * (keys, bass, and the groove in Pop and Swing), or with `tracks` just some of it.
  */
 async function songBand(template, { transpose = 0, speed = 1, sampleRate, style = 'gentle', tracks = ['keys', 'bass', 'drums'] }) {
+    const { bandFor, renderBand } = await loadBand();
     const endBeat = Math.max(...template.parts.map((p) => p.guide.notes.reduce((end, n) => Math.max(end, n.beat + n.length), 0)));
     const band = bandFor(template.chords, { endBeat, perBar: beatsPerBar(template.timeSignature), style });
     return renderBand(band, { bpm: template.tempo, sampleRate, endBeat, style, transpose, speed, drums: style !== 'gentle', tracks });

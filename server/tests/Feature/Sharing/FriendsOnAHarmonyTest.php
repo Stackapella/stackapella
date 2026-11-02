@@ -7,6 +7,7 @@ namespace Tests\Feature\Sharing;
 use App\Actions\Users\DeleteAccount;
 use App\Jobs\ProcessTake;
 use App\Models\Harmony;
+use App\Models\HarmonyConsent;
 use App\Models\Take;
 use App\Models\User;
 use App\Support\Sharing\HarmonyFacts;
@@ -66,7 +67,12 @@ final class FriendsOnAHarmonyTest extends TestCase
 
         $this->assertSame([$sam->id], $both->singer_ids);
         $this->assertSame([], $mine->singer_ids);
+        // A friend is named on the share only once they've agreed, as an adult (security review, 2026-11-01).
+        $this->assertSame('Sung by Ana Ruiz and '.__('sharing.a_singer'), app(HarmonyFacts::class)->singersLine($both));
+        $sam->forceFill(['adult_confirmed_at' => now()])->save();
+        HarmonyConsent::factory()->create(['harmony_id' => $both->id, 'user_id' => $sam->id, 'status' => HarmonyConsent::AGREED]);
         $this->assertSame('Sung by Ana Ruiz and Sam Lee', app(HarmonyFacts::class)->singersLine($both));
+        HarmonyConsent::query()->where('harmony_id', $both->id)->delete();
 
         foreach (['mayFeature', 'inGallery'] as $yes) {
             $refused = $this->patchJson('/api/harmonies/'.$both->public_id, [$yes => true]);

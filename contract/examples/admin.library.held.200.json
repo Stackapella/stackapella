@@ -85,7 +85,8 @@
             "reports": {
                 "count": 0,
                 "reasons": []
-            }
+            },
+            "imported": false
         }
     ]
 }

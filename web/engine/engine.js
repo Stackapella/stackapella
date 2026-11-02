@@ -500,6 +500,7 @@ export class Engine {
         const sr = this.ctx.sampleRate;
         const first = startFrame ?? Math.ceil((this.ctx.currentTime + leadSeconds) * sr);
         const beat = bpm ? Math.round((sr * 60) / bpm) : 0;
+        // The quiet bar before the first note is borrowed breath, so it sits on the same clock as the song.
         const start = first + (beat ? countInBeats * beat : 0);
         const grid = { beatFrames: bpm ? (sr * 60) / bpm : 0, beatsPerBar, pickupBeats };
         if (beat) {

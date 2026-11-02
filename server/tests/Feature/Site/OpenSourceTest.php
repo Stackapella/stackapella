@@ -59,14 +59,18 @@ final class OpenSourceTest extends TestCase
         $this->get('/sitemap.xml')->assertSee('/open-source')->assertSee('/selfhost')->assertSee('/legal/self-hosting-terms');
     }
 
-    public function test_the_licences_credit_shows_once_open_and_always_on_a_self_hosted_install(): void
+    public function test_the_licences_credit_shows_once_open_and_always_on_a_self_hosted_install_but_never_on_stackapella_com(): void
     {
         $credit = 'href="'.OpenSource::CREDIT_URL.'"';
 
         $this->get('/about')->assertOk()->assertDontSee($credit, false)->assertDontSee(__('pages.nav.credit'));
 
         app(Flags::class)->set('open_source', 'on', null, 'The repos are public');
-        $this->get('/about')->assertSee($credit, false)->assertSee(__('pages.nav.credit'));
+        $this->get('/about')->assertOk()->assertDontSee($credit, false)->assertDontSee(__('pages.nav.credit'));
+
+        config(['app.is_nexus' => false]);
+        $this->get('/legal/terms')->assertSee($credit, false)->assertSee(__('pages.nav.credit'));
+        config(['app.is_nexus' => true]);
 
         app(Flags::class)->set('open_source', 'off', null, 'A fresh install');
         config(['selfhost.enabled' => true, 'site.founder' => 'Someone Else']);

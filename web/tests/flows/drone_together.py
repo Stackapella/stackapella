@@ -1,7 +1,9 @@
-"""Unit 2's drone (onboarding step 7, "you and one other note, ringing"): after a take against the
-drone, the result's Listen back is Hear it together, your take with the drone under it. Sung over
-loopback: a held tone stands in for a voice.
+"""Unit 2's drone (onboarding step 7, "you and one other note, ringing"): the first step with sound
+under you, so it asks about headphones; after a take against the drone, the result's Listen back is
+Hear it together, your take with the drone under it. Sung over loopback: a held tone stands in for a
+voice.
 """
+import json
 import sys
 from pathlib import Path
 
@@ -13,18 +15,23 @@ I18N = "(await import('/js/i18n.js'))"
 
 
 def journey(f):
-    # Unit 1 done (unit 2 opens after it), the note found, headphones on, straight to the sung step.
+    # Unit 1 done (unit 2 opens after it), the note found, nothing said about headphones yet, straight to the sung step.
     f.go("/", "document.querySelector('#app header')")
     f.mic_checked()
     f.run("""const { emptyProgress } = await import('/js/course.js'); const db = await import('/js/db.js');
         const done = { stars: 3, bestPercent: 95, at: Date.now() };
         const lessons = Object.fromEntries(['1-comfortable', '1-match', '1-high-low', '1-breath', '1-challenge'].map((id) => [id, done]));
         await db.put('learning', { ...emptyProgress(), startedAt: Date.now() - 86400000, home: 57, range: { low: 50, high: 64 }, lessons }, 'progress');
-        sessionStorage.setItem('stackapella.lesson.2-drone', '1'); sessionStorage.setItem('stackapella.headphones', '1');""")
+        sessionStorage.setItem('stackapella.lesson.2-drone', '1'); sessionStorage.removeItem('stackapella.headphones'); localStorage.removeItem('stackapella.headphones.never');""")
     f.go("/learn/2-drone", "document.querySelector('main h1')")
     f.js(f"{AUDIO}.unlock()")
     f.js(f"{AUDIO}.engine.setLoopback(true)")
     f.click_t("course.tap.sing")
+    # The first step with sound under you asks about headphones (lesson 2's Wait for me never does).
+    on = json.dumps(f.js(f"{I18N}.t('headphones.on')"))
+    f.wait(f"[...document.querySelectorAll('[role=dialog] button')].some((b) => b.textContent.includes({on}))", what="the headphones question")
+    f.shot("headphones-ask")
+    f.run(f"[...document.querySelectorAll('[role=dialog] button')].find((b) => b.textContent.includes({on})).click()")
     f.wait(f"{AUDIO}.engine.playing?.recording", what="recording")
     f.run(f"""const {{ engine }} = {AUDIO}; const {{ renderPart }} = await import('/js/synth.js');
         engine.preview(renderPart([{{ beat: 0, length: 9, pitch: 57 }}], {{ bpm: 72, sampleRate: engine.sampleRate }}), engine.sampleRate);""")

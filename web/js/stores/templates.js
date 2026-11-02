@@ -8,7 +8,7 @@
 import { reactive } from 'vue';
 import * as db from '../db.js';
 import { api, ApiError } from '../api.js';
-import { mockWanted } from '../api-mock.js';
+import { mockWanted } from '../api-mode.js';
 import { repairTemplate, validateTemplate } from '../templates.js';
 import { account } from './account.js';
 
@@ -77,9 +77,12 @@ export async function ownTemplate(id) {
 
 /**
  * Saves a template: on the device at once, then to the account. A change to one already on the
- * account is a new version. Returns the record.
+ * account is a new version. Returns the record. A song made from sheet music says so (`source`,
+ * with the singer's confirmation of their right to use it), and a copy names what it copied
+ * (`copiedFrom`): both go with its first save, so the account keeps an import private
+ * (docs/sheet-music-patent-notes.md, section 4).
  */
-export async function saveTemplate(template, { visibility = null, libraryOptIn = null } = {}) {
+export async function saveTemplate(template, { visibility = null, libraryOptIn = null, source = null, copiedFrom = null } = {}) {
     validateTemplate(template);
     const before = await db.get('templates', template.id);
     const next = JSON.parse(JSON.stringify(template)); // plain: the screens pass Vue's reactive copies
@@ -97,6 +100,9 @@ export async function saveTemplate(template, { visibility = null, libraryOptIn =
         libraryOptIn: libraryOptIn ?? before?.libraryOptIn ?? false,
         savedVersion: before?.savedVersion ?? 0,
         state: before?.state ?? 'device',
+        ...(source ?? before?.source ? { source: source ?? before.source } : {}),
+        ...(copiedFrom ?? before?.copiedFrom ? { copiedFrom: copiedFrom ?? before.copiedFrom } : {}),
+        ...(before?.imported ? { imported: true } : {}),
         pending: true, // something to send: a version, or who may open it
         deleted: false,
         createdAt: before?.createdAt ?? Date.now(),
@@ -109,6 +115,12 @@ export async function saveTemplate(template, { visibility = null, libraryOptIn =
 }
 
 /** Sends one template's latest version (and who may open it) to the account. */
+/** What only a template's first save carries: where it came from (an import, a copy). */
+function firstSave(record) {
+    if (record.savedVersion) return {};
+    return { ...(record.source ? { source: record.source, rightsConfirmed: true } : {}), ...(record.copiedFrom ? { copiedFrom: record.copiedFrom } : {}) };
+}
+
 async function send(record, { retried = false } = {}) {
     // Put right first (a note without a pitch, chords past the end), and kept that way.
     const repaired = repairTemplate(record.template);
@@ -119,13 +131,13 @@ async function send(record, { retried = false } = {}) {
     try {
         const changed = record.template.version > (record.savedVersion ?? 0);
         const { data } = changed
-            ? await api.templates.save(record.id, { changeId: crypto.randomUUID(), template: record.template, visibility: record.visibility, libraryOptIn: record.libraryOptIn })
+            ? await api.templates.save(record.id, { changeId: crypto.randomUUID(), template: record.template, visibility: record.visibility, libraryOptIn: record.libraryOptIn, ...firstSave(record) })
             : await api.templates.update(record.id, { visibility: record.visibility, libraryOptIn: record.libraryOptIn });
         // Kept onto the record as it is now: a save made while this was on its way stays, and is
         // still to send when it's newer than what went.
         const now = (await db.get('templates', record.id)) ?? record;
         const newer = JSON.stringify(now.template) !== JSON.stringify(record.template) || now.visibility !== record.visibility || now.libraryOptIn !== record.libraryOptIn;
-        return keep({ ...now, savedVersion: data.version, state: data.readOnly ? 'readOnly' : 'saved', pending: newer, ...(newer ? {} : { visibility: data.visibility, libraryOptIn: data.libraryOptIn }) });
+        return keep({ ...now, savedVersion: data.version, state: data.readOnly ? 'readOnly' : 'saved', pending: newer, ...(data.imported ? { imported: true } : {}), ...(newer ? {} : { visibility: data.visibility, libraryOptIn: data.libraryOptIn }) });
     } catch (error) {
         if (!(error instanceof ApiError)) throw error;
         const now = (await db.get('templates', record.id)) ?? record;
@@ -239,7 +251,9 @@ async function syncMine() {
             const record = here.get(item.id);
             const unsent = record?.pending;
             if (record && (unsent || item.version <= record.savedVersion)) {
-                if (record.state !== 'saved' && !unsent) await db.put('templates', { ...record, state: item.readOnly ? 'readOnly' : 'saved' });
+                const settled = record.state !== 'saved' && !unsent;
+                const marked = item.imported && !record.imported; // a copy the account marked as an import
+                if (settled || marked) await db.put('templates', { ...record, ...(settled ? { state: item.readOnly ? 'readOnly' : 'saved' } : {}), ...(marked ? { imported: true } : {}) });
                 continue;
             }
             const { data } = await api.templates.show(item.id);
@@ -248,6 +262,7 @@ async function syncMine() {
                 template: validateTemplate(data.template),
                 visibility: item.visibility,
                 libraryOptIn: item.libraryOptIn,
+                ...(item.imported ? { imported: true } : {}),
                 savedVersion: item.version,
                 state: item.readOnly ? 'readOnly' : 'saved',
                 pending: false,

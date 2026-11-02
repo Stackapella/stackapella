@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Api\Auth;
 use App\Actions\Counts\RecordCounts;
 use App\Http\Controllers\Controller;
 use App\Support\Accounts\EarlyAccess;
+use App\Support\Admin\StaffDevice;
 use App\Support\Pages\MudeoArrival;
 use App\Support\Trust\Country;
 use Illuminate\Http\JsonResponse;
@@ -24,7 +25,7 @@ final class EarlyAccessController extends Controller
         $response = response()->json(['data' => ['status' => $status]]);
 
         // The mudeo email's link opened: counted once a browser visit, as a number only.
-        if ($status === 'open' && $request->cookies->get(MudeoArrival::COOKIE) !== '1') {
+        if ($status === 'open' && $request->cookies->get(MudeoArrival::COOKIE) !== '1' && ! StaffDevice::is($request)) {
             $counts->server('mudeo_visit', $request->user() !== null, Country::of($request));
         }
 

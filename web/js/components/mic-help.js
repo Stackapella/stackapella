@@ -38,7 +38,7 @@ export const MicHelpHost = {
                     <LevelMeter :db="db" />
                 </template>
                 <template v-else>
-                    <p v-if="advice.showSteps || chosen" class="flex flex-wrap items-baseline gap-x-2 text-sm text-muted">
+                    <p v-if="advice.showSteps || chosen" data-ui="facts" class="flex flex-wrap items-baseline gap-x-2 text-sm text-muted">
                         <span><span v-for="(part, i) in setupParts" :key="i" :class="part.bold ? 'font-bold text-cream' : ''">{{ part.text }}</span></span>
                         <button type="button" class="tap-44 font-semibold text-accent-strong" :aria-expanded="picking ? 'true' : 'false'" @click="picking = !picking">{{ t('micHelp.change') }}</button>
                     </p>

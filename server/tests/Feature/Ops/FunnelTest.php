@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Ops;
 
+use App\Actions\Counts\Funnel;
+use App\Models\Experiment;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -20,9 +22,19 @@ final class FunnelTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        config(['counts.enabled' => true, 'proxies.behind_app_platform' => true, 'selfhost.behind_cloudflare' => true, 'counts.experiments' => [
-            ['id' => 'onb1', 'arms' => ['a', 'b'], 'start' => now()->subDays(3)->toDateString(), 'end' => null, 'plannedPerArm' => 4, 'primary' => 'f_lesson3', 'guardrail' => 'f_lesson2'],
-        ]]);
+        config(['counts.enabled' => true, 'proxies.behind_app_platform' => true, 'selfhost.behind_cloudflare' => true]);
+        $this->onb1(['starts_on' => now()->subDays(3)->toDateString(), 'planned_per_arm' => 4]);
+    }
+
+    /**
+     * The registry's onb1 (the migration put it there), changed as a test needs.
+     *
+     * @param  array<string, mixed>  $with
+     */
+    private function onb1(array $with): void
+    {
+        Experiment::query()->where('key', 'onb1')->update($with);
+        Cache::forget(Funnel::CACHE);
         Cache::forget('funnel.current');
     }
 
@@ -64,15 +76,13 @@ final class FunnelTest extends TestCase
         $this->getJson('/api/auth/config')->assertJsonPath('data.experiment.enrol', true);
 
         // Its end day passes: no new devices join; a week later it's over.
-        config(['counts.experiments.0.end' => now()->subDay()->toDateString()]);
-        Cache::forget('funnel.current');
+        $this->onb1(['ends_on' => now()->subDay()->toDateString()]);
         $this->getJson('/api/auth/config')->assertJsonPath('data.experiment.enrol', false);
         $this->travel(8)->days();
         Cache::forget('funnel.current');
         $this->getJson('/api/auth/config')->assertJsonPath('data.experiment', null);
 
-        config(['counts.experiments' => [['id' => 'onb1', 'arms' => ['a', 'b'], 'start' => null, 'end' => null, 'plannedPerArm' => 4, 'primary' => 'f_lesson3', 'guardrail' => null]]]);
-        Cache::forget('funnel.current');
+        $this->onb1(['starts_on' => null, 'ends_on' => null, 'guardrails' => json_encode([])]);
         $this->getJson('/api/auth/config')->assertJsonPath('data.experiment', null);
     }
 
@@ -90,8 +100,8 @@ final class FunnelTest extends TestCase
         $this->assertMatchesContract($shown, 'admin.funnel.show', 200);
         $shown->assertJsonPath('data.experiment', 'onb1')
             ->assertJsonPath('data.split.ok', true)
-            ->assertJsonPath('data.enough', true)
-            ->assertJsonPath('data.experiments.0.enrolling', true);
+            ->assertJsonPath('data.enough', true);
+        $this->assertTrue(collect((array) $shown->json('data.experiments'))->firstWhere('id', 'onb1')['enrolling']);
 
         $lesson3 = collect((array) $shown->json('data.steps'))->firstWhere('kind', 'f_lesson3');
         $this->assertSame([0.25, 0.4], array_column($lesson3['arms'], 'rate'));

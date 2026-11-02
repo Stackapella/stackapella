@@ -168,6 +168,16 @@ Each operation is one function in `web/js/api.js` named after it, and one route 
 | `beta.invite.show` | `GET /api/beta/invites/{token}` | Anyone with an invite link | M2 |
 | `beta.invite.accept` | `POST /api/beta/invites/{token}/accept` | Anyone signed in, with the link | M2 |
 | `beta.me.show` | `GET /api/beta/me` | A beta singer | M2 |
+| `voices.summary` | `GET /api/voices/summary` | Anyone | L |
+| `voices.wanted` | `GET /api/voices/wanted` | Anyone signed in | L |
+| `voices.join` | `POST /api/voices/join` | Anyone signed in | L |
+| `voices.claims.list` | `GET /api/voices/claims` | Anyone signed in | L |
+| `voices.claims.create` | `POST /api/voices/claims` | Anyone signed in | L |
+| `voices.claims.delete` | `DELETE /api/voices/claims/{id}` | Anyone signed in | L |
+| `school.classes.list` | `GET /api/school/classes` | Anyone signed in | L |
+| `school.classes.create` | `POST /api/school/classes` | Anyone signed in | L |
+| `school.classes.update` | `PATCH /api/school/classes/{id}` | Anyone signed in | L |
+| `school.redeem` | `POST /api/school/redeem` | Anyone signed in | L |
 | `beta.agreement.show` | `GET /api/beta/agreement` | Anyone signed in | M2 |
 | `beta.consent.create` | `POST /api/beta/consent` | A beta singer | M2 |
 | `beta.credit.update` | `PUT /api/beta/credit` | A beta singer who has consented | M2 |
@@ -185,6 +195,7 @@ Each operation is one function in `web/js/api.js` named after it, and one route 
 | `admin.beta.singers.forget` | `POST /api/admin/beta/singers/{id}/forget` | An admin, in sudo | M2 |
 | `admin.beta.assignments.create` | `POST /api/admin/beta/singers/{id}/assignments` | An admin | M2 |
 | `admin.beta.assignments.delete` | `DELETE /api/admin/beta/assignments/{id}` | An admin | M2 |
+| `admin.beta.assignments.again` | `POST /api/admin/beta/assignments/{id}/again` | An admin | L |
 | `admin.beta.submissions.list` | `GET /api/admin/beta/submissions` | An admin or editor | M2 |
 | `admin.beta.submissions.show` | `GET /api/admin/beta/submissions/{id}` | An admin or editor | M2 |
 | `admin.beta.submissions.open` | `POST /api/admin/beta/submissions/{id}/open` | An admin or editor | M2 |
@@ -194,7 +205,9 @@ Each operation is one function in `web/js/api.js` named after it, and one route 
 | `admin.beta.submissions.reject` | `POST /api/admin/beta/submissions/{id}/reject` | An admin | M2 |
 | `admin.beta.submissions.publish` | `POST /api/admin/beta/submissions/{id}/publish` | An admin | M2 |
 | `admin.beta.guides.list` | `GET /api/admin/beta/guides` | An admin or editor | M2 |
+| `admin.beta.needs.show` | `GET /api/admin/beta/needs` | An admin or editor | L |
 | `admin.beta.clips.list` | `GET /api/admin/beta/clips` | An admin or editor | L |
+| `admin.beta.clips.delete` | `DELETE /api/admin/beta/clips/{slot}` | An admin, in sudo | L |
 | `admin.beta.bar.show` | `GET /api/admin/beta/bar` | An admin | M2 |
 | `admin.beta.bar.update` | `PATCH /api/admin/beta/bar` | An admin | M2 |
 | `admin.beta.guides.default` | `POST /api/admin/beta/guides/{id}/default` | An admin | M2 |
@@ -351,7 +364,7 @@ Each operation is one function in `web/js/api.js` named after it, and one route 
 | `teacher.links.show` | `GET /api/teacher/{token}` | Anyone with the link | M8 |
 | `teacher.links.accept` | `POST /api/teacher/{token}` | Anyone signed in, with the link | M8 |
 | `admin.coaching.applications.list` | `GET /api/admin/coaching/applications` | An admin | M8 |
-| `admin.coaching.applications.decide` | `POST /api/admin/coaching/applications/{id}` | An admin | M8 |
+| `admin.coaching.applications.decide` | `POST /api/admin/coaching/applications/{id}` | An admin, in sudo | M8 |
 | `admin.coaching.coaches.update` | `PUT /api/admin/coaching/coaches/{id}` | An admin, in sudo | M8 |
 | `admin.coaching.packs.list` | `GET /api/admin/coaching/packs` | An admin | M8 |
 | `admin.coaching.packs.decide` | `POST /api/admin/coaching/packs/{id}` | An admin | M8 |
@@ -380,7 +393,7 @@ Each operation is one function in `web/js/api.js` named after it, and one route 
 | `invoiceNinja.records.retry` | `POST /api/coach/invoice-ninja/records/{id}/retry` | An approved coach, connected | M10 |
 | `admin.social.list` | `GET /api/admin/social` | An admin | M10 |
 | `admin.social.feature` | `POST /api/admin/social/harmonies/{id}` | An admin | M10 |
-| `admin.social.approve` | `POST /api/admin/social/{id}/approve` | An admin | M10 |
+| `admin.social.approve` | `POST /api/admin/social/{id}/approve` | An admin, in sudo | M10 |
 | `admin.social.cancel` | `POST /api/admin/social/{id}/cancel` | An admin | M10 |
 | `admin.social.retry` | `POST /api/admin/social/{id}/retry` | An admin | M10 |
 | `admin.books.show` | `GET /api/admin/books` | An admin | M10 |
@@ -502,10 +515,33 @@ Each operation is one function in `web/js/api.js` named after it, and one route 
 | `admin.network.show` | `GET /api/admin/network` | An admin | L |
 | `admin.counts.show` | `GET /api/admin/counts` | An admin | L |
 | `admin.funnel.show` | `GET /api/admin/funnel` | An admin | L |
+| `admin.experiments.list` | `GET /api/admin/experiments` | An admin | L |
+| `admin.experiments.create` | `POST /api/admin/experiments` | An admin, in sudo | L |
+| `admin.experiments.update` | `PATCH /api/admin/experiments/{id}` | An admin, in sudo | L |
+| `admin.school.list` | `GET /api/admin/school` | An admin | L |
+| `admin.school.show` | `GET /api/admin/school/{id}` | An admin | L |
+| `admin.school.update` | `PATCH /api/admin/school/{id}` | An admin, in sudo | L |
+| `admin.school.redemptions.end` | `POST /api/admin/school/redemptions/{id}/end` | An admin, in sudo | L |
+| `admin.school.teachers.update` | `PATCH /api/admin/school/teachers/{id}` | An admin, in sudo | L |
 | `admin.growth.show` | `GET /api/admin/growth` | An admin | L |
 | `admin.sources.show` | `GET /api/admin/sources` | An admin | L |
+| `admin.active.show` | `GET /api/admin/active` | An admin | L |
+| `admin.reach.show` | `GET /api/admin/reach` | An admin | L |
+| `admin.revenue.show` | `GET /api/admin/revenue` | An admin | L |
+| `admin.cohorts.show` | `GET /api/admin/cohorts` | An admin | L |
+| `admin.churn.show` | `GET /api/admin/churn` | An admin | L |
+| `admin.activity.show` | `GET /api/admin/activity` | An admin | L |
+| `admin.codeWatch.list` | `GET /api/admin/code-watch` | An admin | L |
+| `admin.codeWatch.update` | `PATCH /api/admin/code-watch/{id}` | An admin | L |
+| `admin.search.show` | `GET /api/admin/search` | An admin | L |
 | `admin.diagnostics.country` | `GET /api/admin/diagnostics/country` | An admin | L |
 | `admin.network.update` | `PUT /api/admin/network/{feature}` | An admin, in sudo | L |
+
+**Days in Admin's counts and analytics** (`counts.create`'s filing, `admin.counts.show`,
+`admin.funnel.show`, `admin.growth.show`, `admin.sources.show`, `admin.active.show`,
+`admin.reach.show`, `admin.revenue.show`'s months, `admin.overview`) are in the server's report
+timezone (`ADMIN_REPORT_TIMEZONE`, UTC unless set), and each of those answers carries it as
+`timezone`, so a screen can say which. Days filed before it was set stay as filed.
 
 **Every `admin.*` operation** may also answer `401 unauthenticated`, `403 not_admin` and `403
 second_factor_required`, as `admin.me` does, and one marked "in sudo" answers `403 sudo_required`
@@ -553,13 +589,15 @@ Every switch and dark feature, in the order of `server/config/flags.php`. **Requ
 
 Turn a switch on or off, or open a dark feature. **Request:** `{ "value": "on", "reason": "A wave
 of bot sign-ups" }`: `value` is one of the flag's `values`; `reason` is required (up to 500
-characters).
+characters). `sheet_import` goes on only once the DMCA agent is set (`DMCA_AGENT_*`), else
+`409 dmca_agent_missing`.
 
 | Status | Code | Schema | Example |
 |---|---|---|---|
 | 200 | | `admin.flags.update.json` | `admin.flags.update.200.json` |
 | 404 | `not_found` | `error.json` | `admin.flags.update.not_found.json` |
 | 422 | `validation_failed` | `error.json` | `admin.flags.update.validation_failed.json` |
+| 409 | `dmca_agent_missing` | `error.json` | `admin.flags.update.dmca_agent_missing.json` |
 
 #### `admin.limits.list`
 
@@ -832,6 +870,166 @@ Accepting again from the same account answers `200`. **Request:** none. Limited 
 | 410 | `invite_expired` | `error.json` | `beta.invite.accept.invite_expired.json` |
 | 410 | `invite_revoked` | `error.json` | `beta.invite.accept.invite_revoked.json` |
 
+### School codes
+
+The school offer (docs/school-offer-plan.md), behind `auth.config`'s `schools`; while it's off every
+operation here is `404 not_found`. A teacher (signed in, a confirmed email, 18 or over) makes class
+codes; a student who redeems one gets Plus free for 365 days, once per account. Teacher-led, with no
+groups: the teacher sees a code's seats used, never who used them. A class is `{ id, name, code
+(as shown, KQ7M-3XPA), url (the /class/<code> link to the app's join screen), seats, used (as of the
+start of today, the report timezone: it updates once a day, so a teacher can't watch who joins),
+status (open, full, expired, closed, or pending: the teacher isn't approved yet), expiresAt,
+closedAt, createdAt }`. A teacher's codes work once Admin approves them (`admin.school.teachers.update`),
+and all their codes together take at most their seat allowance (300 unless Admin raises it; an open
+code takes its seats, a closed one only those used): beyond it, `409 school_seat_allowance`.
+
+#### `school.classes.list`
+
+The teacher's own codes, newest first.
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 200 | | `school.classes.list.json` | `school.classes.list.200.json` |
+| 404 | `not_found` | `error.json` | `school.classes.list.not_found.json` |
+
+#### `school.classes.create`
+
+**Request:** `{ "name": "Period 3 choir", "seats": 30 }` (name 1 to 80 characters, seats 1 to 60). It
+takes students for 120 days. At most 5 open codes and 150 open seats a teacher
+(`409 school_too_many_codes`).
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 201 | | `school.class.json` | `school.classes.create.201.json` |
+| 403 | `email_unverified` | `error.json` | `school.classes.create.email_unverified.json` |
+| 403 | `adult_required` | `error.json` | `school.classes.create.adult_required.json` |
+| 403 | `age_unconfirmed` | `error.json` | `school.classes.create.age_unconfirmed.json` |
+| 404 | `not_found` | `error.json` | `school.classes.create.not_found.json` |
+| 409 | `school_too_many_codes` | `error.json` | `school.classes.create.school_too_many_codes.json` |
+| 409 | `school_seat_allowance` | `error.json` | `school.classes.create.school_seat_allowance.json` |
+
+#### `school.classes.update`
+
+**Request:** any of `{ "name", "seats", "action": "close" }`. Seats never below seats used
+(`409 school_seats_below_used`), and within the open-seat limit. Closing stops new students; the
+years already given run on. Someone else's code is `404`.
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 200 | | `school.class.json` | `school.classes.update.200.json` |
+| 404 | `not_found` | `error.json` | `school.classes.update.not_found.json` |
+| 409 | `school_seats_below_used` | `error.json` | `school.classes.update.school_seats_below_used.json` |
+| 409 | `school_too_many_codes` | `error.json` | `school.classes.update.school_too_many_codes.json` |
+| 409 | `school_seat_allowance` | `error.json` | `school.classes.update.school_seat_allowance.json` |
+
+#### `school.redeem`
+
+**Request:** `{ "code": "KQ7M-3XPA" }` (any case, dash or not). **Answer:** the billing state
+(`billing.show`), now `source` `school` with `schoolUntil`. An unknown, expired or closed code is
+`404 school_code_unknown`, as is a pending teacher's; a full one `409 school_code_full`. Once per account, ever
+(`409 school_already_redeemed`); never the teacher's own code (`409 school_own_code`); not on top of Plus already (`409 school_already_plus`). 10 tries
+an hour per account, then `429 rate_limited`.
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 200 | | `billing.show.json` | `school.redeem.200.json` |
+| 403 | `age_unconfirmed` | `error.json` | `school.redeem.age_unconfirmed.json` |
+| 404 | `not_found` | `error.json` | `school.redeem.not_found.json` |
+| 404 | `school_code_unknown` | `error.json` | `school.redeem.school_code_unknown.json` |
+| 409 | `school_own_code` | `error.json` | `school.redeem.school_own_code.json` |
+| 409 | `school_already_redeemed` | `error.json` | `school.redeem.school_already_redeemed.json` |
+| 409 | `school_already_plus` | `error.json` | `school.redeem.school_already_plus.json` |
+| 409 | `school_code_full` | `error.json` | `school.redeem.school_code_full.json` |
+| 429 | `rate_limited` | `error.json` | `school.redeem.rate_limited.json` |
+
+### Lend your voice
+
+Volunteers record the songs' parts and lessons' clips that still play the synth
+(docs/lend-your-voice-plan.md), behind `auth.config`'s `lendVoice`; while it's off every operation
+here is `404`. A volunteer is a beta singer (`beta.me.show`'s `volunteer`), unpaid, with the
+volunteers' agreement (`beta.agreement.show?for=volunteer`): once they've claimed something, it's
+in `beta.parts.list` and recorded and sent as a beta singer's part, and Hillel reviews it there.
+To lend a voice: signed in, a confirmed email (`403 email_unverified`), 18 or over (`403
+adult_required`), an account at least 7 days old (`403 account_too_new`), and never refused for abuse
+(`403 volunteer_blocked`: a take rejected, or a published voice removed, for abuse; refusals for
+quality don't count). A published song voice or clip can be reported (`reports.create` with
+`guideId` or `clipSlot`); reports alone never hide one: the first emails the admins.
+
+#### `voices.summary`
+
+For marketing's public Lend your voice page (slice 5): `songParts` and `clips` still wanting a real
+voice (as `voices.wanted` lists them, held ones apart), and `lent`, the volunteers' voices published
+now. Counts only. **Request:** none. `404` while the switch is off.
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 200 | | `voices.summary.json` | `voices.summary.200.json` |
+| 404 | `not_found` | `error.json` | `voices.summary.not_found.json` |
+
+#### `voices.wanted`
+
+What's wanted: each reviewed library song's part with no real voice, and each lesson clip still on
+the synth, that nobody holds (a claim, an invited singer's part, or a take waiting for review).
+**Request:** `?kind=songs` or `clips` (optional), `?skill=` (a key of `skills`, optional). `skills`
+is each clip skill's words for a claimant.
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 200 | | `voices.wanted.json` | `voices.wanted.200.json` |
+| 404 | `not_found` | `error.json` | `voices.wanted.not_found.json` |
+
+#### `voices.join`
+
+Become a volunteer. **Request:** `{ "agreementVersion": 1, "credit": "name" | "anonymous",
+"linksProfile": true }` (the credit links their public profile only when they have one and choose
+it). The version and the time are kept. An invited, paid beta singer can't (`409 beta_singer`).
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 200 | | `beta.me.json` | `voices.join.200.json` |
+| 403 | `email_unverified` | `error.json` | `voices.join.email_unverified.json` |
+| 403 | `adult_required` | `error.json` | `voices.join.adult_required.json` |
+| 403 | `account_too_new` | `error.json` | `voices.join.account_too_new.json` |
+| 404 | `not_found` | `error.json` | `voices.join.not_found.json` |
+| 409 | `agreement_changed` | `error.json` | `voices.join.agreement_changed.json` |
+| 409 | `beta_singer` | `error.json` | `voices.join.beta_singer.json` |
+| 403 | `volunteer_blocked` | `error.json` | `voices.join.volunteer_blocked.json` |
+
+#### `voices.claims.list`
+
+Their claims still held, soonest ending first. **Request:** none.
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 200 | | `voices.claims.list.json` | `voices.claims.list.200.json` |
+| 404 | `not_found` | `error.json` | `voices.claims.list.not_found.json` |
+
+#### `voices.claims.create`
+
+Claim one wanted item, held 14 days (then, with nothing sent, it goes back on the list), at most
+3 at once (`409 claim_limit`); one someone else holds, or now voiced, is `409 not_wanted`.
+**Request:** `{ "item": "clip:yodel-flip-1" }` (an id from `voices.wanted`).
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 201 | | `voices.claims.create.json` | `voices.claims.create.201.json` |
+| 403 | `not_volunteer` | `error.json` | `voices.claims.create.not_volunteer.json` |
+| 403 | `account_too_new` | `error.json` | `voices.claims.create.account_too_new.json` |
+| 404 | `not_found` | `error.json` | `voices.claims.create.not_found.json` |
+| 409 | `claim_limit` | `error.json` | `voices.claims.create.claim_limit.json` |
+| 409 | `not_wanted` | `error.json` | `voices.claims.create.not_wanted.json` |
+| 403 | `volunteer_blocked` | `error.json` | `voices.claims.create.volunteer_blocked.json` |
+
+#### `voices.claims.delete`
+
+Give a claim back: gone if nothing was sent, else ended, its takes staying for the review.
+**Request:** none.
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 204 | | | |
+| 404 | `not_found` | `error.json` | `voices.claims.delete.not_found.json` |
+
 #### `beta.me.show`
 
 The signed-in singer: the welcome, consent and My parts read it. **Request:** none.
@@ -844,7 +1042,8 @@ The signed-in singer: the welcome, consent and My parts read it. **Request:** no
 
 The beta agreement, current version, as text blocks the app shows with `{{ }}` (never HTML).
 `reviewed: false` means the lawyer hasn't checked it yet: the app says it's a draft. **Request:**
-`?lang=` (optional; English, the only language at launch, otherwise).
+`?lang=` (optional; English, the only language at launch, otherwise), and `?for=volunteer` for
+the volunteers' agreement (Lend your voice) instead.
 
 | Status | Code | Schema | Example |
 |---|---|---|---|
@@ -930,6 +1129,7 @@ whose `pitchPercent` is missing or under `bar.pitchPercent`, or whose `timingPer
 | 403 | `not_yours` | `error.json` | `beta.submissions.create.not_yours.json` |
 | 403 | `not_recordable` | `error.json` | `beta.submissions.create.not_recordable.json` |
 | 409 | `template_changed` | `error.json` | `beta.submissions.create.template_changed.json` |
+| 409 | `claim_ended` | `error.json` | `beta.submissions.create.claim_ended.json` |
 | 422 | `below_bar` | `error.json` | `beta.submissions.create.below_bar.json` |
 | 422 | `validation_failed` | `error.json` | `beta.submissions.create.validation_failed.json` |
 
@@ -959,7 +1159,9 @@ Tell Hillel. **Request:** `{ "text": "...", "templateId": "amazing-grace", "part
 
 #### `admin.overview`
 
-The numbers that matter, from our own records (never analytics). **Request:** none.
+The numbers that matter, from our own records (never analytics). **Request:** none. `growth` is
+the last 7 days; `growth.previous` (when present) the same three over the 7 days before (8 to 14
+days back), for the change.
 
 | Status | Code | Schema | Example |
 |---|---|---|---|
@@ -1055,6 +1257,21 @@ Take a part off the singer's list; refused once they've sent a take for it. **Re
 |---|---|---|---|
 | 204 | | | |
 | 409 | `has_submissions` | `error.json` | `admin.beta.assignments.delete.has_submissions.json` |
+
+#### `admin.beta.assignments.again`
+
+Ask the singer for a song's part again, because a new version changed it: their My parts shows it
+as a retake with the note (`beta.part`'s `askedAgain`) until they send a take. A volunteer's claim is
+held again for its usual days. **Request:** `{ "note": "The tune moved in bar 3." }`, optional (at
+most 500 characters; without one the singer reads "The song changed: please record your part
+again."). Refused for a course clip (`not_a_part`) and for a singer whose invite was revoked, who
+asked to be forgotten, or who was blocked for abuse (`singer_gone`).
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 200 |  | `admin.beta.assignment.create.json` | `admin.beta.assignments.again.200.json` |
+| 409 | `not_a_part` | `error.json` | `admin.beta.assignments.again.not_a_part.json` |
+| 409 | `singer_gone` | `error.json` | `admin.beta.assignments.again.singer_gone.json` |
 
 #### `admin.beta.submissions.list`
 
@@ -1164,6 +1381,19 @@ Audited.
 | 200 |  | `admin.beta.bar.json` | `admin.beta.bar.update.200.json` |
 | 422 | `validation_failed` | `error.json` | `admin.beta.bar.update.validation_failed.json` |
 
+#### `admin.beta.clips.delete`
+
+A course clip's published voice comes down (Lend your voice, slice 3): the synth plays again, its
+reports are upheld, audited. **Request:** `{ "abuse": true }` (optional): removed for abuse, the
+volunteer who sang it can't claim again (`volunteer_blocked`). `admin.beta.guides.delete` takes the
+same `abuse`, and `admin.beta.submissions.reject` too (a rejection for abuse). Guides' and clips' rows
+in the lists carry `reports`, their open reports.
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 204 | | | |
+| 404 | `not_found` | `error.json` | `admin.beta.clips.delete.not_found.json` |
+
 #### `admin.beta.clips.list`
 
 Every course clip (Hillel: "re-use the singer feature in admin to request singers to record these
@@ -1180,11 +1410,25 @@ missing parts"): the short real-voice clips a course step plays, defined by the 
 #### `admin.beta.guides.list`
 
 Every template's real voices, per part (default first, then alternates), and how many are left
-from older versions: "3 of 4 parts are real voices". **Request:** `?template=` (optional).
+from older versions: "3 of 4 parts are real voices". Each part's `needs` says what needs Hillel on
+the current version: takes to review, a voice that didn't carry (`changed`: record again), no
+singer who can still record it (`unassigned`), and each singer asked for it (`previous` marks who
+recorded it for an older version, for `admin.beta.assignments.again`). **Request:** `?template=`
+(optional).
 
 | Status | Code | Schema | Example |
 |---|---|---|---|
 | 200 |  | `admin.beta.guides.list.json` | `admin.beta.guides.list.200.json` |
+
+#### `admin.beta.needs.show`
+
+"What needs me now", for the top of Admin > Beta: only the reviewed songs with a part that has takes
+to review, is `changed`, or is `unassigned`, each part's `needs` as in `admin.beta.guides.list`, and
+the number of takes waiting in all. **Request:** none.
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 200 |  | `admin.beta.needs.show.json` | `admin.beta.needs.show.200.json` |
 
 #### `admin.beta.guides.default`
 
@@ -1287,10 +1531,16 @@ sends nothing. `usageCounts` says whether to send the anonymous usage counts (`c
 it's false the app shows no Ideas, and reads this rather than asking the ideas operations.
 `plusCourses` says whether the Plus courses are live (the `plus_courses` switch), so a signed-out
 visitor can try a live course's free first lesson; `account.plusCourses` is the same switch, plus
-staff before it opens.
+staff before it opens. `sheetImport` says whether sheet music import is on (the `sheet_import`
+switch, off until its server rules are live; staff see it before). `lendVoice` says whether Lend
+your voice is on (the `lend_voice` switch).
 `experiment` is the funnel's running A/B test, `{ "id": "onb1", "arms": ["a", "b"], "enrol": true }`,
 or null: a new device draws an arm (`crypto.getRandomValues`) at its first open only while `enrol`
 is true, keeps it on the device, and sends `"<id>-<arm>"` as `counts.create`'s `variant`.
+`experiments` is every running experiment in the registry (`admin.experiments.list`), each
+`{ id, arms: [{ arm, weight }], enrol, audience, excludes }`: the app draws an arm when the screen
+that differs first shows, if the device fits `audience` and isn't in one it `excludes`, and keeps
+the arm label on the device (never an id). `experiment` stays onb1's until it ends.
 **Request:** none.
 
 | Status | Code | Schema | Example |
@@ -1300,7 +1550,8 @@ is true, keeps it on the device, and sends `"<id>-<arm>"` as `counts.create`'s `
 #### `auth.register`
 
 Make an account with an email and a password. It isn't signed in yet: the verification link does
-that. **Request:** `{ "name": "Ada", "email": "ada@example.com", "password": "...",
+that. **`signupKey`** (optional, 20 to 128 characters): an app's own secret for this sign-up, sent again with `auth.app.verify`; without it the web gets the `sa_signup` cookie instead (`auth.verify`).
+**Request:** `{ "name": "Ada", "email": "ada@example.com", "password": "...",
 "birthMonth": 5, "birthYear": 1990, "ref": "hn", "elapsedMs": 41250, "nickname": "",
 "invite": null, "turnstileToken": null }`:
 - `birthMonth` (1 to 12) and `birthYear`: when they were born ("When were you born?", month and
@@ -1369,6 +1620,12 @@ the account and:
 unknown; `403 suspended`; `423 paused` when sign-ups closed after it was sent and nothing it
 carries opens them.
 
+**`confirm`** (Hillel: "Yes, add the confirm screen"): opened while another account is signed in
+here, or in another browser than the one that asked for it (the `sa_link` cookie `auth.link.send`
+sets; for `auth.verify`, the sign-up's), it answers `409 confirm_sign_in` with the account's `email`,
+without using the link up: the app asks "Sign in as kim@example.com?", and sends the token again with
+`"confirm": true` on a yes.
+
 | Status | Code | Schema | Example |
 |---|---|---|---|
 | 200 |  | `auth.link.open.json` | `auth.link.open.200.json` |
@@ -1377,16 +1634,29 @@ carries opens them.
 | 410 | `link_expired` | `error.json` | `auth.link.open.link_expired.json` |
 | 422 | `validation_failed` | `error.json` | `auth.link.open.validation_failed.json` |
 | 423 | `paused` | `error.json` | `auth.link.open.paused.json` |
+| 409 | `confirm_sign_in` | `error.json` | `auth.link.open.confirm_sign_in.json` |
 
 #### `auth.verify`
 
 The link in the verification email: verifies the address and signs the person in. **Request:**
 `{ "token": "..." }`. A link lasts 24 hours and works once.
+The link is bound to the browser or app that signed up (or asked for the resend): the web's
+`sa_signup` cookie, which `auth.register` sets, or an app's `signupKey`, sent with `auth.register`
+(and `auth.resend`) and again here. Opened anywhere else, it still verifies the address but the
+account starts fresh: the password, name and age the sign-up gave are dropped (`methods.password`
+false, the profile asked again), so a stranger who signed up with someone's address keeps no way in.
+
+**`confirm`** (Hillel: "Yes, add the confirm screen"): opened while another account is signed in
+here, or in another browser than the one that asked for it (the `sa_link` cookie `auth.link.send`
+sets; for `auth.verify`, the sign-up's), it answers `409 confirm_sign_in` with the account's `email`,
+without using the link up: the app asks "Sign in as kim@example.com?", and sends the token again with
+`"confirm": true` on a yes.
 
 | Status | Code | Schema | Example |
 |---|---|---|---|
 | 200 |  | `account.show.json` | `auth.verify.200.json` |
 | 410 | `link_expired` | `error.json` | `auth.verify.link_expired.json` |
+| 409 | `confirm_sign_in` | `error.json` | `auth.verify.confirm_sign_in.json` |
 
 #### `auth.verification.resend`
 
@@ -1451,7 +1721,10 @@ signs out every other session.
 
 #### `account.show`
 
-The signed-in account. **Request:** none.
+The signed-in account. **Request:** none. `admin` is true only for someone who passes the whole
+admin gate in this session (the database flag, a Google id on the admin list, and a verified Google
+sign-in now), for the app's Admin link; editors and everyone else get false. It's a convenience:
+`/admin` checks the gate itself.
 
 | Status | Code | Schema | Example |
 |---|---|---|---|
@@ -1726,6 +1999,8 @@ invalid_token` otherwise). Each identity token signs in once.
 The verification link (`/verify?token=...`) opens the app, which verifies the address and signs
 in on this device. Sign-up itself is `auth.register`. **Request:** `{ "token": "...", "device": {
 ... } }`. A link lasts 24 hours and works once.
+Send `"signupKey"`, the app's own secret (20 to 128 characters) it sent with `auth.register`: without
+it the account starts fresh, as `auth.verify` explains.
 
 | Status | Code | Schema | Example |
 |---|---|---|---|
@@ -2168,6 +2443,10 @@ answers `409 version_conflict` with the server's copy in `current`: the app merg
 the most XP) and saves again. Progress from an older `epoch` (from before the course was started
 over, or its undo; no `epoch` counts as 0) answers `409 learning_reset` with `current`: the device
 replaces its progress with it, never merges, then saves again.
+The server keeps `progress` as sent (it never merges or drops a key). `progress.warmups` is the
+kept warm-ups (docs/warmup-builder-plan.md): `[{ code, name, keptAt, removedAt? }]`, at most 40,
+merged by the app by `code`, the newest of `keptAt` and `removedAt` winning; starting the course
+over keeps them.
 
 | Status | Code | Schema | Example |
 |---|---|---|---|
@@ -2240,7 +2519,8 @@ portal's `url` (in the installed app, the system browser).
 
 A song's full template (`template.json`: notes, words, parts) with its parts' published voices, for
 the current version or `?version=` (a project made on an older one), and why the caller may have it
-(`grant`). It sends an `ETag`: a `304`, or the same song again the same day, doesn't count toward
+(`grant`), and whether its parts have leaderboards (`boards`: our songs, and a person's own song
+while it's public). It sends an `ETag`: a `304`, or the same song again the same day, doesn't count toward
 the daily cap (`plus-downloads`, per account, or per network signed out; past it, `429`, and Hillel
 is told). **Request:** `?version=` (optional).
 
@@ -2669,6 +2949,8 @@ title). It's kept 7 days (`expiresAt`), then `expired`: make it again. `failed` 
 Report a shared harmony, with or without an account (the Report button on `/h/<id>`; the DSA's
 notice route). **Request:** `{ "harmonyId": "<id>", "reason": "copyright", "note": "...",
 "website": "" }`:
+- in place of `harmonyId`: `guideId` (a song part's recorded voice, as `templates.show` gives it)
+  or `clipSlot` (a course clip's voice): recorded for the admins, never hidden by reports alone;
 - in place of `harmonyId`, once the gallery is open (N1): `commentId` (a comment; two different
   people's reports hold it for review) or `handle` (a public profile); once the library is open
   (N3), `templateId` (a public template; enough people's reports hold it for review, as for a
@@ -2803,7 +3085,9 @@ to: `visibility` `unlisted` or `public`, `libraryOptIn` true, or a `parentId` ar
 `imported_private`, as are `templates.update` to those, `templates.publish`, `ideas.create`, an
 unlisted `harmonies.create` or a `harmonies.update` to unlisted, the gallery or the featured shelf
 for anything sung from it, and `invites.create` on a project made from it. An admin can take it down
-(`admin.library.decide` `hide`, for a copyright notice).
+(`admin.library.decide` `hide`, for a copyright notice; a reported one is listed in
+`admin.library.held`, with `imported` true). Someone with three copyright takedowns that stand (the
+copyright policy's repeat-infringer rule) can't make a new one: `403 import_blocked`.
 
 | Status | Code | Schema | Example |
 |---|---|---|---|
@@ -2811,10 +3095,12 @@ for anything sung from it, and `invites.create` on a project made from it. An ad
 | 403 | `email_unverified` | `error.json` | `templates.save.email_unverified.json` |
 | 403 | `template_limit` | `error.json` | `templates.save.template_limit.json` |
 | 403 | `template_read_only` | `error.json` | `templates.save.template_read_only.json` |
+| 403 | `import_blocked` | `error.json` | `templates.save.import_blocked.json` |
 | 404 | `not_found` | `error.json` | `templates.save.not_found.json` |
 | 409 | `version_exists` | `error.json` | `templates.save.version_exists.json` |
 | 422 | `validation_failed` | `error.json` | `templates.save.validation_failed.json` |
 | 422 | `imported_private` | `error.json` | `templates.save.imported_private.json` |
+| 403 | `import_closed` | `error.json` | `templates.save.import_closed.json` |
 
 #### `templates.update`
 
@@ -4748,8 +5034,12 @@ days, else `422`) and `?scope=global` (default) or `friends`. Answers the day's 
 next midnight, UTC), that day's top 10 (`entries`, named as `boards.show`'s, empty for someone signed
 out) and their own best and place that day (`you`, or null). `days` is the dates in the 7 days
 ending on `date` on which they took the challenge, oldest first, for Home's stamps (their own
-history: a held score counts, one taken off or binned doesn't; `[]` signed out). The scores come
-from `boards.scores.submit` with `daily`.
+history: a held score counts, one taken off or binned doesn't; `[]` signed out). `cup` is the
+weekly cup for `date`'s ISO week (Monday to Sunday, UTC): each person's daily bests that week added
+up, as each day's board shows them (scope, holds, bins), top 10 with `points` and `days`, ties to
+more days then the earlier last score; an entry's `id` is their part-board entry on their latest
+day (for Report); `you` is their own points and days and place, or null; entries are empty signed
+out. The scores come from `boards.scores.submit` with `daily`.
 
 | Status | Code | Schema | Example |
 |---|---|---|---|
@@ -5730,22 +6020,33 @@ account, address, browser or cookie, and the request starts no session, so the a
 `{ "events": [{ "kind": "lesson_done", "n": 2 }], "signedIn": true }`. `kind` is one of `app_open`,
 `lesson_start`, `lesson_done`, `unit_done`, `song_created`, `take_recorded`, `share_created`,
 `harmonise_used`, `export_done`, `result_shared` (a lesson's result card shared), `leaderboard_viewed`,
-`challenge_accepted`, `sign_up` (counted
+`challenge_accepted`, `app_day`, `app_week` and `app_month` (each device once a UTC day, ISO week
+and month, at its first open in it, from the date it last sent one, kept on the device), `sign_up` (counted
 by the server itself for every new account: the app doesn't send it), and the usage page's own (config/counts.php `kinds`: the skins, Plus extras, Hum a tune, the studio, onboarding's asks and melody first), and `<prefix>:<id>` for a course or lesson: `pl_s:` and `pl_d:` with a Plus course's `id` (web/course/plus/courses.json), `fl_s:` and `fl_d:` with a free lesson's `id` (web/course/course.json), counted only for a real id (others are dropped); `n` is 1 to 20 (more counts as
 20); at most 20 events a request, 30 requests a minute from one connection (then 429).
+A request carrying the `sa_staff` cookie (an admin's device: set when an admin passes the second
+factor, value `1`, no ID) is answered 204 and counts nothing, experiment arms included.
 
 **The onboarding funnel** (docs/onboarding-review.md, section 4): each a device's first, counted once
 per device by the app, the landing's Start by the site: `f_site_start`, `f_arrive` or
 `f_arrive_start` (one or the other, never both: arrivals are their sum), `f_mic`, `f_note`,
 `f_note_skip`, `f_lesson1`, `f_chord`, `f_lesson2`, `f_lesson3`, `f_unit1`, `f_goal`, `f_install`,
 `f_name`, `f_account`, `f_share`, `f_remind`, `f_take`, `f_harmony`, `f_day2`, `f_week1`,
-`f_goal_met`; and each ask (`install`, `account`, `name`, `share`, `goal`, `remind`) as
+`f_goal_met`, `f_day7` (back on day 7) and `f_plus` (Plus started on this device); and each ask (`install`, `account`, `name`, `share`, `goal`, `remind`) as
 `ask_<name>_shown` (first time only) and `ask_<name>_yes`. With them the request may carry the
 device's experiment arm (each funnel kind counts once a request, whatever `n` says), `"variant": "onb1-b"` (`auth.config`'s `experiment` id, a dash, the arm):
 `{ "events": [{ "kind": "f_lesson1" }], "signedIn": false, "variant": "onb1-b" }`. The server keeps
 it only on funnel and ask kinds and only when it names a configured experiment's arm (anything else
 is counted with no variant), and a row with a variant keeps no country. An unknown kind is dropped
 on its own: the rest of the batch still counts.
+
+**Experiments** (the registry, `auth.config`'s `experiments`): the request may carry `"variants":
+["short1-b"]`, at most four, the arms of the experiments this device has been drawn into and seen
+(`<id>-<arm>`; onb1 keeps `variant`). Each funnel kind in the batch also counts once for each arm
+the registry knows, as a daily total per arm and audience (no country), apart from the everyday
+totals. When the app draws an arm it sends `{ "kind": "exp_enrol" }` with that arm in `variants`,
+once: an arm's denominator. `admin.funnel.show?experiment=<id>` reads those counts for any
+experiment but onb1, with `exp_enrol` as its first step and arrivals.
 
 **Where they came from** (Admin > Growth's sources): the request may also carry `"source"`, the
 device's stored `?ref=` tag as it is (at most 40 characters). The server never keeps it as sent: it
@@ -5782,9 +6083,12 @@ below p 0.001 means a bucketing bug, not a result). `asks` is each ask's shown a
 #### `admin.growth.show`
 
 Admin > Growth's Overview (docs/admin-growth-plan.md). **Request:** `?days=1` (today so far, UTC;
-the default), `7` or `30`. `tiles` is each of `arrivals` (`f_arrive` plus `f_arrive_start`),
+the default), `7`, `30` or `84` (12 weeks). `tiles` is each of `arrivals` (`f_arrive` plus `f_arrive_start`),
 `lesson1` (`f_lesson1`), `signedUp` (the server's `sign_up`) and `plusStarted` (`plus_started`):
-its count today, yesterday and the same weekday last week (UTC), whatever `days` says. `steps` is
+its count today, yesterday and the same weekday last week (UTC), whatever `days` says; and over the
+period itself, `current` (the `days` days ending today), `previous` (the same length just before)
+and `weekAgo` (the same days a week back), with `lowSample` true while `current` is under 20 (too
+few to read a change). `steps` is
 "how far they got" in order, each one's total over the period: `visits` (`site_visit`), `start`
 (`f_site_start`), `arrivals`, `lesson1`, `unit1` (`f_unit1`), `signedUp`, `plusStarted`. Daily
 totals only.
@@ -5805,6 +6109,244 @@ the period, most arrivals first. Sources with fewer than 5 arrivals are folded i
 | Status | Code | Schema | Example |
 |---|---|---|---|
 | 200 | | `admin.sources.show.json` | `admin.sources.show.200.json` |
+
+#### `admin.active.show`
+
+Admin > Growth's active singers over time (docs/admin-analytics-plan.md, slice 1). **Request:**
+none. `week` and `month` are the singers active (signed in, and recorded, practised or had a
+lesson; see "What we count") in the last 7 and 30 days, now. `weeks` is the chart's 12 points,
+oldest first, each the 7 days (`week`) and 30 days (`month`) ending on `to`, a week apart, the last
+ending yesterday (UTC); `previous` is the 12 points before, to draw against. Each day is worked out
+once, hourly after it ends, and the last 24 weeks were filled from takes, scores and lessons; a
+point not worked out yet is `null`. Counts only, never who.
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 200 | | `admin.active.show.json` | `admin.active.show.200.json` |
+
+#### `admin.reach.show`
+
+Admin > Growth's chart of people using the app, signed in against guests (Hillel, 2026-10-31),
+from the anonymous daily counts only (`counts.create`; `guest` or `account` is the batch's
+`signedIn`). We keep no IDs, so none of these is unique people over a stretch of days.
+**Request:** none. Finished days only (UTC).
+- `days`: each day from the first of `previous` to yesterday, oldest first: `opens` (`app_open`, every
+  load of the app) and `devices` (`app_day`, each device once that day, guest or signed in as it
+  first opened that day), null before `app_day` was counted (its first day may be partial).
+- `weeks`: the last 12 ISO weeks (Monday to Sunday, UTC), the last being the week yesterday is in,
+  so far; oldest first; and `previous` the 12 before. `days` is a week's finished days (7, or fewer
+  for the last). `opens` and `devices` are the average day over the days its kind was counted
+  (one decimal), leaving out the kind's first day, which may be partial; `devices` is null for a
+  week with none. `reach` (`app_week`, each device once that week: real weekly reach) is the week's
+  total, so far for the last, and null for a week not counted from its Monday.
+- `today`: today so far (UTC), as one of `days` (which are finished days only), for Growth's Today.
+
+| 200 | | `admin.reach.show.json` | `admin.reach.show.200.json` |
+
+#### `admin.revenue.show`
+
+Admin > Growth's Revenue (docs/admin-analytics-plan.md, slice 2), from our own tables. **Request:**
+none. Money is `{ currency, cents }` per currency as stored (lower case), never converted, and a
+currency with nothing in it is left out.
+- `mrr`: what web subscriptions bill a month now: paying, cancelling (still paid to the end) and
+  past due, at the plan's list price in the currency of the person's first Checkout; an annual
+  plan counts a twelfth. `arr` is twelve times it, and `monthAgo` the `mrr` 30 days ago.
+- `unpriced`: billed subscriptions in none of it, because we don't know their price: every App
+  Store and Google Play one (a store doesn't say what a subscriber pays) and any web one whose
+  currency or plan isn't known.
+- `subscribers`: today's, one row per `state` (`paying`, `trialing`, `pastDue`, `cancelling`: an
+  end date set), `store` (`web`, `apple`, `google`; production purchases only) and `plan`
+  (`month`, `year`, `unknown`), with its `count`. Rows with no one are left out.
+- `months`: the last 12 calendar months (UTC), oldest first, the current one so far: `mrr` and
+  `unpriced` at its end (now, for this month), `new` (subscriptions whose first payment came that
+  month: a trial converting, or a store purchase) and `lost` (paid ones that ended that month).
+  Past months are worked out from each subscription's start, trial end and end.
+- `oneOff`: coaching (`kind` `coaching`: reviews, lessons, packages) and pack sales (`packs`) by
+  `month` and `currency`: `payments` (sales), `gross` (what singers paid, refunds taken off) and
+  `ours` (our commission). A coach's backfilled sales are theirs, never counted.
+Counts under 5 are shown as they are; the page draws no percentage on them.
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 200 | | `admin.revenue.show.json` | `admin.revenue.show.200.json` |
+
+#### `admin.cohorts.show`
+
+Results by sign-up month (docs/admin-analytics-plan.md, slice 3), from our own tables, admins
+left out. **Request:** none. `months` is the last 12 calendar months (the report timezone), oldest
+first: `signedUp` (accounts made that month), and of them `finishedSong` (a finished song; see
+"What we count"), `secondSong` (finished songs from two templates or more), `active` (active in the
+last 30 days), `plus` (ever paid: the web, a store or an invoice; a class code's year doesn't
+count), and `medianDaysToFirstSong` (from sign-up to the first finished song's last part, one
+decimal; null with none). Counts under 5 come as they are.
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 200 | | `admin.cohorts.show.json` | `admin.cohorts.show.200.json` |
+
+#### `admin.churn.show`
+
+Churn and trials (slice 4), rebuilt from each subscription's dates like `admin.revenue.show`.
+**Request:** none. `months` (the last 12, oldest first): `payingAtStart` (web subscriptions billed
+and store ones running when the month began), `lost` by store (`web`, `apple`, `google`: paid
+subscriptions that ended that month), `trialsEnded` (web trials whose trial ended that month) and
+`trialsConverted` (of them, those that went on to pay). A cancellation's reason and a resumed
+subscription aren't recorded, so they aren't here.
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 200 | | `admin.churn.show.json` | `admin.churn.show.200.json` |
+
+#### `admin.activity.show`
+
+Admin's activity page (slice 5), from our own records, admins left out. **Request:** none. `feed`:
+the latest 50 of `sign_up`, `trial_started`, `plus_started` and `plus_ended` (with `detail` the
+store: `web`, `apple` or `google`), `coaching_sale` (no person; `detail` the currency and amount)
+and `school_year`, newest first, each `{ at, kind, person: { id, name } or null, detail }`.
+`hours`: the last 24 hours (UTC hours, the current one so far), each `{ hour, takes, scores,
+signUps }`. `features`: the last 30 days of the anonymous counts' feature kinds, guest and account.
+`limits`: free accounts, and those at (`projectsAtLimit`) or one below (`projectsNearLimit`) the
+free plan's `projectLimit`.
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 200 | | `admin.activity.show.json` | `admin.activity.show.200.json` |
+
+#### `admin.codeWatch.list`
+
+Admin > Code watch (docs/code-watch-plan.md): public repositories holding our marker strings
+(`kind` `marker`, `key` owner/repo, found by a weekly GitHub code search) and other websites calling
+our API (`kind` `domain`, listed once a day passes 20 calls, with `calls` over the last 30 days).
+Undismissed first, then the latest seen. `setup` says how many markers are set and whether the
+search has its token. Only repository names and domains: nothing about any person.
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 200 | | `admin.codeWatch.list.json` | `admin.codeWatch.list.200.json` |
+
+#### `admin.codeWatch.update`
+
+**Request:** any of `{ "dismissed": true | false, "note": "up to 1000" | null }`.
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 200 | | `admin.codeWatch.hit.json` | `admin.codeWatch.update.200.json` |
+| 404 | `not_found` | `error.json` | `admin.codeWatch.update.not_found.json` |
+
+#### `admin.search.show`
+
+Admin > Growth > Search (docs/search-console.md): Google Search Console's numbers for our public
+pages, synced once a day (05:40 UTC) for the last 28 days, ending 3 days ago (Google's lag).
+**Request:** none. `connected` is false until `SEARCH_CONSOLE_CREDENTIALS` is set (then everything
+else is empty or null); `syncedAt`, `from` and `to` are the last good sync's, and `error` the last
+failed sync's message (the last good numbers stay). `totals` is over every page. `pages` and
+`queries` are the 50 with the most clicks, each `{ key, clicks, impressions, ctr, position }`
+(`key` the page's URL or the search; `ctr` 0 to 1; `position` the average, 1 at the top).
+`toImprove` is the pages marketing works through (titles, descriptions, content): at least
+`rules.minImpressions` impressions and a CTR under `rules.lowCtr` (`lowCtr`) or a position between
+`rules.nearTop` (`nearTop`: close to the first page's top), most impressions first, at most 25,
+each with its `reasons`. `sitemaps` is each submitted sitemap's `path`, `errors`, `warnings` and
+`lastDownloaded`. Totals Google gives us; nothing about any visitor.
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 200 | | `admin.search.show.json` | `admin.search.show.200.json` |
+
+#### `admin.school.list`
+
+Admin > School (docs/school-offer-plan.md): every class code, newest first (at most 500), each `{ id,
+name, code, teacher: { id, name, email, approved, seatAllowance, seatsTaken } or null (a deleted
+teacher's), seats, used (live), status,
+createdAt, expiresAt, closedAt, closedBy (teacher or admin) }`.
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 200 | | `admin.school.list.json` | `admin.school.list.200.json` |
+
+#### `admin.school.show`
+
+One code with its `redemptions`, newest first: `{ id, user: { id, name, email }, at, plusUntil,
+endedAt }`.
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 200 | | `admin.school.show.json` | `admin.school.show.200.json` |
+| 404 | `not_found` | `error.json` | `admin.school.show.not_found.json` |
+
+#### `admin.school.update`
+
+**Request:** `{ "action": "close", "reason": "optional, up to 300" }`. Audited.
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 200 | | `admin.school.row.json` | `admin.school.update.200.json` |
+| 404 | `not_found` | `error.json` | `admin.school.update.not_found.json` |
+
+#### `admin.school.redemptions.end`
+
+One student's school year ends now (misuse); the seat stays used. **Request:** `{ "reason":
+"optional" }`. Audited.
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 200 | | `admin.school.redemptions.end.json` | `admin.school.redemptions.end.200.json` |
+| 404 | `not_found` | `error.json` | `admin.school.redemptions.end.not_found.json` |
+
+#### `admin.school.teachers.update`
+
+Approve a teacher (their codes start working), take it back (their codes stop taking students), or
+set their seat allowance. **Request:** any of `{ "approved": true | false, "seatAllowance": 0 to 5000,
+"reason": "optional, up to 300" }`, `{id}` the teacher's account. Audited. **Answer:** the teacher,
+as in `admin.school.list`.
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 200 | | `admin.school.teacher.json` | `admin.school.teachers.update.200.json` |
+| 404 | `not_found` | `error.json` | `admin.school.teachers.update.not_found.json` |
+
+#### `admin.experiments.list`
+
+Admin > Experiments (docs/experiments-plan.md): the registry, newest first. An experiment's
+`status` is `draft` (not started), `running` (new devices join), `reading` (enrolment stopped; read
+from `readFrom`, a week on), `decided` (a `winner` named) or `closed`. Its results are
+`admin.funnel.show?experiment=<id>`. **Request:** none.
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 200 | | `admin.experiments.list.json` | `admin.experiments.list.200.json` |
+
+#### `admin.experiments.create`
+
+A new experiment, as a draft. **Request:** `id` (lower case, `^[a-z][a-z0-9-]{1,23}$`, unique),
+`what`, `hypothesis`, `arms` (`[{ "arm": "a", "weight": 50 }, { "arm": "b", "weight": 50 }]`: a, b
+and maybe c, in order, adding up to 100; a is always today's app), `metric` and `guardrails` (up to
+three; a funnel or ask kind), `audience` (any of `new`,
+`skin`, `size`, `signedIn`, `firstWeek`), `excludes` (other experiments' ids) and `plannedPerArm`.
+Audited.
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 201 | | `admin.experiments.item.json` | `admin.experiments.create.201.json` |
+| 422 | `validation_failed` | `error.json` | `admin.experiments.create.validation_failed.json` |
+
+#### `admin.experiments.update`
+
+Its fields (as create's, without `id`; only while a draft, else `409 experiment_started`) and/or one
+step, `action`: `start` (a draft starts today: `409 experiment_not_draft` otherwise), `stop` (a
+running one stops enrolling at once: `409 experiment_not_running`), `decide` with `winner` (once
+it's `reading`: `409 experiment_not_reading`), or `close` (not while a draft or running: `409
+experiment_running`). Audited; the app sees a change within the minute.
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 200 | | `admin.experiments.item.json` | `admin.experiments.update.200.json` |
+| 404 | `not_found` | `error.json` | `admin.experiments.update.not_found.json` |
+| 409 | `experiment_started` | `error.json` | `admin.experiments.update.experiment_started.json` |
+| 409 | `experiment_not_draft` | `error.json` | `admin.experiments.update.experiment_not_draft.json` |
+| 409 | `experiment_not_running` | `error.json` | `admin.experiments.update.experiment_not_running.json` |
+| 409 | `experiment_not_reading` | `error.json` | `admin.experiments.update.experiment_not_reading.json` |
+| 409 | `experiment_running` | `error.json` | `admin.experiments.update.experiment_running.json` |
+| 422 | `validation_failed` | `error.json` | `admin.experiments.update.validation_failed.json` |
 
 #### `admin.counts.show`
 

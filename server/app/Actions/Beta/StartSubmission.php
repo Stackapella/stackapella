@@ -28,8 +28,13 @@ final class StartSubmission
      */
     public function handle(BetaSinger $singer, BetaAssignment $assignment, array $take): array
     {
-        if (! $singer->hasConsented((int) config('beta.agreement_version'))) {
+        if (! $singer->hasConsented($singer->agreementVersion())) {
             throw new Refusal(403, 'consent_required');
+        }
+
+        // A volunteer's claim that ran out takes no more takes (it's back on the Wanted list).
+        if ($assignment->claimed_at !== null && $assignment->expires_at !== null && $assignment->expires_at->lte(now())) {
+            throw new Refusal(409, 'claim_ended');
         }
 
         if ($assignment->beta_singer_id !== $singer->id) {

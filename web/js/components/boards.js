@@ -7,12 +7,13 @@
 // name on a board can be reported (reports.create's boardEntryId): two people's reports hold it off
 // the worldwide board until an admin looks.
 
+import { AccountWall } from './account-wall.js';
+import { Icon } from './icon.js';
 import { APP_VERSION, ApiError, call } from '../api.js';
 import { formatDate, t, tk } from '../i18n.js';
 import { account } from '../stores/account.js';
 import { audio } from '../audio.js';
 import { local } from '../storage.js';
-import { navigate } from '../router.js';
 import { count } from '../usage.js';
 import { Modal, toast } from './ui.js';
 // What the scores were made with (a new scorer or pitch detector starts new boards).
@@ -23,6 +24,7 @@ import { InitialsPicker, boardName, byInitials } from '../game/initials.js';
 import { dailyFor } from '../game/daily.js';
 import { count as countDaily } from '../usage.js';
 import { effect } from '../game/effects.js';
+import { game } from '../skin.js';
 
 const ASKED = 'stackapella.boards.asked'; // the worldwide question, asked once on this device
 const OUTPUT = { speakers: 'speaker', wired: 'wired', bluetooth: 'bluetooth' };
@@ -174,10 +176,16 @@ export const TakeBest = {
     props: { templateId: { type: String, required: true }, templateVersion: { type: Number, required: true }, partKey: { type: String, required: true }, partName: { type: String, required: true }, songTitle: { type: String, required: true }, score: { type: Number, required: true }, keyOffset: { type: Number, default: 0 }, guideMuted: Boolean, takeId: { type: String, default: null } },
     emits: ['result'], // the board's answer (game mode's ghost keeps a new best's line)
     data: () => ({ result: null, friends: null, global: null, asking: false, challenging: false, naming: false }),
-    setup: () => ({ WHY, account }),
+    setup: () => ({ WHY, account, game }),
     template: `
         <div v-if="result" class="space-y-1 text-sm" data-take-best>
-            <p v-if="result.counted" class="text-cream"><b data-best>{{ t('boards.best', { score: result.best }) }}</b><!-- Game mode's NEW RECORD in place of "a new best" (docs/game-elements-plan.md): only on a best the board counted --><NewRecord v-if="recordShown" :best="result.best" :before="result.before ?? null" /><span v-else-if="result.improved" class="text-muted"> · {{ t('boards.newBest') }}</span><span v-if="rankLine" class="text-muted"> · {{ rankLine }}</span><span v-if="result.daily?.counted" class="text-muted" data-daily-rank> · {{ t('game.daily.rank', { rank: result.daily.rank }) }}</span>
+            <!-- Game mode: the result as a block (frontend2's split: the score large, the new best, the ranks on their own line, Challenge a friend as a button). -->
+            <div v-if="result.counted && game()" class="space-y-2" data-ui="take-best">
+                <p class="flex flex-wrap items-center gap-x-3 gap-y-2 text-cream"><b data-best>{{ t('boards.best', { score: result.best }) }}</b><NewRecord v-if="recordShown" :best="result.best" :before="result.before ?? null" /><span v-else-if="result.improved" class="chip-accent">{{ t('boards.newBest') }}</span></p>
+                <p v-if="rankLine || result.daily?.counted" class="text-muted" data-ui="take-ranks"><span v-if="rankLine">{{ rankLine }}</span><span v-if="result.daily?.counted" data-daily-rank><template v-if="rankLine"> · </template>{{ t('game.daily.rank', { rank: result.daily.rank }) }}</span></p>
+                <button type="button" class="btn-secondary btn-sm" :disabled="challenging" @click="challenge">{{ t('boards.challenge.button') }}</button>
+            </div>
+            <p v-else-if="result.counted" class="text-cream"><b data-best>{{ t('boards.best', { score: result.best }) }}</b><!-- Game mode's NEW RECORD in place of "a new best" (docs/game-elements-plan.md): only on a best the board counted --><NewRecord v-if="recordShown" :best="result.best" :before="result.before ?? null" /><span v-else-if="result.improved" class="text-muted"> · {{ t('boards.newBest') }}</span><span v-if="rankLine" class="text-muted"> · {{ rankLine }}</span><span v-if="result.daily?.counted" class="text-muted" data-daily-rank> · {{ t('game.daily.rank', { rank: result.daily.rank }) }}</span>
                 <button type="button" class="link ms-2" :disabled="challenging" @click="challenge">{{ t('boards.challenge.button') }}</button></p>
             <p v-else class="text-muted">{{ WHY[result.why] ? t(WHY[result.why]) : t('boards.why.other') }}</p>
             <!-- Game mode's arcade initials, offered on a new record (docs/game-elements-plan.md) -->
@@ -246,32 +254,45 @@ export const TakeBest = {
  * arrangement changed lists its earlier arrangements' boards, each read only.
  */
 const SCOPE_WORDS = { friends: tk('boards.friends'), global: tk('boards.everyone'), month: tk('boards.month') };
+// Each board's empty state: what it is, and how to get on it.
+const EMPTY = {
+    friends: { title: tk('boards.emptyFriends.title'), how: tk('boards.emptyFriends.how') },
+    global: { title: tk('boards.empty'), how: tk('boards.emptyGlobalHow') },
+    month: { title: tk('boards.monthEmpty'), how: tk('boards.emptyMonthHow') },
+    version: { title: tk('boards.emptyVersion'), how: tk('boards.emptyVersionHow') },
+};
 
 export const PartBoard = {
-    components: { ReportName },
+    components: { AccountWall, Icon, ReportName },
     props: { templateId: { type: String, required: true }, partKey: { type: String, required: true }, partName: { type: String, required: true }, color: { type: String, default: null } },
     data: () => ({ open: false, scope: 'friends', board: null, failed: false, viewed: false, reporting: null, version: null }),
-    setup: () => ({ account, boardName, byInitials, SCOPE_WORDS }),
+    setup: () => ({ account, boardName, byInitials, SCOPE_WORDS, EMPTY }),
     // Hillel's mockup 1a: one card, "Leaderboard" with the part as a tag and a small switch to its
     // right, then a table (#, singer, score, date) with your row marked YOU, the earlier arrangements at its foot.
     template: `
         <div class="text-sm" data-part-board>
-            <button v-if="!open" type="button" class="link inline-flex min-h-6 items-center" aria-expanded="false" @click="toggle">{{ t('boards.title', { part: partName }) }}</button>
+            <button v-if="!open" ref="opener" type="button" class="link inline-flex min-h-6 items-center" aria-expanded="false" @click="toggle">{{ t('boards.title', { part: partName }) }}</button>
             <section v-else class="ge-board mt-1 space-y-3 rounded-2xl border border-line bg-panel p-4" :aria-label="t('boards.title', { part: partName })">
                 <div class="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
-                    <button type="button" class="flex items-center gap-2 text-start" aria-expanded="true" :aria-label="t('boards.hide', { part: partName })" @click="toggle">
-                        <span class="text-base font-bold text-cream">{{ t('boards.heading') }}</span>
+                    <!-- Its name is what it shows (the heading and the part), expanded; never a different spoken name. -->
+                    <button ref="closer" type="button" class="flex min-h-6 items-center gap-2 text-start" aria-expanded="true" @click="toggle">
+                        <span class="text-base font-bold text-cream" data-ui="board-title">{{ t('boards.heading') }}</span>
                         <span class="ge-board-part"><span class="size-2 rounded-full" :style="{ background: color ?? 'currentColor' }" aria-hidden="true"></span>{{ partName }}</span>
                     </button>
-                    <div v-if="account.me" class="seg ge-board-scope" role="radiogroup" :aria-label="t('boards.scope')">
-                        <button v-for="s in scopes" :key="s" type="button" role="radio" :aria-checked="scope === s" class="seg-option tap-44" :data-board-scope="s" @click="choose(s)">{{ t(SCOPE_WORDS[s]) }}</button>
+                    <!-- One row always: the whole width on a phone, the options sharing it (never stacked). -->
+                    <div v-if="account.me" class="seg ge-board-scope flex w-full sm:w-auto" role="radiogroup" :aria-label="t('boards.scope')">
+                        <button v-for="s in scopes" :key="s" type="button" role="radio" :aria-checked="scope === s" class="seg-option tap-44 min-w-0 flex-1 whitespace-normal leading-tight sm:flex-none" :data-board-scope="s" @click="choose(s)">{{ t(SCOPE_WORDS[s]) }}</button>
                     </div>
                 </div>
-                <p v-if="!account.me" class="text-muted">{{ t('boards.guest') }} <a href="/signin" class="link" @click.prevent="signIn">{{ t('boards.makeAccount') }}</a></p>
+                <AccountWall v-if="!account.me" reason="boards" bare />
                 <template v-else>
                     <p v-if="failed" class="text-muted" role="status">{{ t('boards.failed') }}</p>
                     <p v-else-if="!board" class="text-muted" role="status">{{ t('boards.loading') }}</p>
-                    <p v-else-if="!board.entries.length" class="text-cream">{{ scope === 'month' ? t('boards.monthEmpty') : t('boards.empty') }}</p>
+                    <!-- Empty: what it is and how to get on it, per board; nothing drawn. -->
+                    <div v-else-if="!board.entries.length" class="ge-board-empty rounded-xl border border-dashed border-line px-4 py-5 text-center" data-board-empty :data-scope="scope">
+                        <p class="font-semibold text-cream" data-ui="board-empty-title">{{ t(EMPTY[version ? 'version' : scope].title) }}</p>
+                        <p class="mx-auto mt-1 max-w-sm text-muted">{{ t(EMPTY[version ? 'version' : scope].how, { part: partName }) }}</p>
+                    </div>
                     <table v-else class="w-full table-fixed border-separate border-spacing-y-1">
                         <thead>
                             <tr class="text-[11px] font-semibold uppercase tracking-wider text-muted">
@@ -279,22 +300,22 @@ export const PartBoard = {
                                 <th scope="col" class="px-2 text-start font-semibold">{{ t('boards.col.singer') }}</th>
                                 <th scope="col" class="w-14 px-2 text-end font-semibold">{{ t('boards.col.score') }}</th>
                                 <th scope="col" class="hidden w-20 px-2 text-end font-semibold sm:table-cell">{{ t('boards.col.date') }}</th>
-                                <th scope="col" class="w-14 p-0"><span class="sr-only">{{ t('boards.report.short') }}</span></th>
+                                <th scope="col" class="w-11 p-0"><span class="sr-only">{{ t('boards.report.short') }}</span></th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr v-for="e in board.entries" :key="e.id ?? e.rank + e.name" class="group" :class="e.you ? 'ge-board-you' : ''" data-board-entry :data-you="e.you ? '' : null">
                                 <td class="rounded-s-xl px-1 py-2"><span class="ge-board-rank" :class="e.rank === 1 ? 'is-first' : ''">{{ e.rank }}</span></td>
                                 <td class="overflow-hidden px-2 py-2">
-                                    <span class="flex min-w-0 items-center gap-2">
-                                        <span class="truncate font-semibold text-cream" translate="no" :data-initials="byInitials(e) ? '' : null">{{ boardName(e) }}</span>
+                                    <span class="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
+                                        <span class="max-w-full shrink-0 truncate font-semibold text-cream" translate="no" :data-initials="byInitials(e) ? '' : null">{{ boardName(e) }}</span>
                                         <span v-if="e.you" class="ge-board-you-tag">{{ t('boards.youTag') }}</span>
                                     </span>
                                 </td>
-                                <td class="px-2 py-2 text-end text-base font-bold tabular-nums text-cream">{{ e.score }}</td>
+                                <td class="px-2 py-2 text-end text-base font-bold tabular-nums text-cream" data-ui="board-score">{{ e.score }}</td>
                                 <td class="hidden whitespace-nowrap px-2 py-2 text-end text-muted sm:table-cell">{{ day(e.at) }}</td>
                                 <td class="rounded-e-xl py-2 pe-2 text-end">
-                                    <button v-if="!e.you && e.id" type="button" class="tap-44 inline-flex min-h-6 items-center px-1 text-xs text-muted hover:text-cream [@media(hover:hover)]:opacity-0 group-hover:opacity-100 focus-visible:opacity-100" :aria-label="t('boards.report.button', { name: boardName(e) })" data-report-entry @click="reporting = e">{{ t('boards.report.short') }}</button>
+                                    <button v-if="!e.you && e.id" type="button" class="tap-44 inline-grid size-8 place-items-center rounded-full text-muted hover:bg-raised hover:text-cream" :aria-label="t('boards.report.button', { name: boardName(e) })" :title="t('boards.report.short')" data-report-entry @click="reporting = e"><Icon name="more" :size="16" /></button>
                                 </td>
                             </tr>
                         </tbody>
@@ -316,12 +337,11 @@ export const PartBoard = {
         day(at) {
             return formatDate(at, { month: 'short', day: 'numeric' });
         },
-        signIn() {
-            navigate(`/signin?mode=signup&for=boards&next=${encodeURIComponent(location.pathname)}`);
-        },
         toggle() {
             this.open = !this.open;
             if (this.open && account.me && !this.board) this.load();
+            // The button pressed is replaced by the other one: focus goes to it, never lost to the page.
+            this.$nextTick(() => (this.open ? this.$refs.closer : this.$refs.opener)?.focus());
         },
         choose(scope) {
             this.scope = scope;

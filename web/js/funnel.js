@@ -5,23 +5,26 @@
 // no one) and the day it arrived; none of it leaves the device except as part of a daily total
 // (js/usage.js, counts.create). No ID, no path, nothing about anyone.
 
+import { watch } from 'vue';
 import { local, session as tabStorage } from './storage.js';
 import { count } from './usage.js';
+import { account } from './stores/account.js';
 
 const KEY = 'stackapella.funnel';
 const LANDING_VARIANT = 'stackapella.landingVariant'; // ?v= from the landing's Start, for the visit
-export const ASKS = ['install', 'account', 'name', 'share', 'goal', 'remind'];
+// The account nudges' asks (docs/account-nudges-plan.md, section 6) are acct_*: N1 to N4, Settings and P4.
+export const ASKS = ['install', 'account', 'name', 'share', 'goal', 'remind', 'acct_week', 'acct_songs', 'acct_unit', 'acct_risk', 'acct_settings', 'acct_course'];
 const DAY = 86400000;
 
-/** What this device has kept: { firsts: { kind: true }, variant: 'onb1-b' | null, arrived: 'YYYY-MM-DD' | null }. */
+/** What this device has kept: { firsts: { kind: true }, variant: 'onb1-b' | null, arrived: 'YYYY-MM-DD' | null, free: bool }. */
 function kept() {
     try {
         const k = JSON.parse(local.get(KEY) || 'null');
-        if (k && typeof k === 'object') return { firsts: k.firsts ?? {}, variant: k.variant ?? null, arrived: k.arrived ?? null };
+        if (k && typeof k === 'object') return { firsts: k.firsts ?? {}, variant: k.variant ?? null, arrived: k.arrived ?? null, free: !!k.free };
     } catch (error) {
         console.info('The funnel record was unreadable; starting again', error?.message ?? error);
     }
-    return { firsts: {}, variant: null, arrived: null };
+    return { firsts: {}, variant: null, arrived: null, free: false };
 }
 
 function keep(record) {
@@ -48,6 +51,11 @@ export function first(kind) {
 /** An ask (install, account, name, share, goal, remind) was shown: counted the first time. */
 export function askShown(name) {
     if (ASKS.includes(name)) first(`ask_${name}_shown`);
+}
+
+/** An ask was put off: a plain daily total each time (the annoyance readout), for the account nudges. */
+export function askNot(name) {
+    if (ASKS.includes(name) && name.startsWith('acct_')) count(`ask_${name}_not`);
 }
 
 /** An ask was said yes to: counted the first time. */
@@ -85,6 +93,23 @@ export function arrive({ experiment = null, query = new URLSearchParams(location
     const days = Math.round((Date.parse(today(at)) - Date.parse(record.arrived)) / DAY);
     if (days === 1) first('f_day2');
     if (days >= 1 && days <= 6) first('f_week1');
+    if (days === 6) first('f_day7'); // back on day 7: the experiments' longer return
+    if (days >= 14 && days <= 20) first('f_day14'); // back in the third week: keep1's guardrail
+}
+
+/**
+ * The account's plan as this device sees it: Plus started here (f_plus, an experiment's guardrail, as
+ * the server's own count can't know an arm) once an account this device saw on the free plan turns
+ * Plus; signing in to one already on Plus counts nothing.
+ */
+export function planSeen(plan) {
+    const record = kept();
+    if (plan === 'plus') {
+        if (record.free) first('f_plus');
+    } else if (plan && !record.free) {
+        record.free = true;
+        keep(record);
+    }
 }
 
 /** The weekly goal met: a funnel step only in the device's first week (days 1 to 7). */
@@ -109,3 +134,6 @@ export function arrivedToday(at = Date.now()) {
 export function funnelRecord() {
     return kept();
 }
+
+// The account's plan as it's read (signed in, a refresh after checkout): f_plus when it turns Plus here.
+watch(() => account.me?.plan ?? null, planSeen);

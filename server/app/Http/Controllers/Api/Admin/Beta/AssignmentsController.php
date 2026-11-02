@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Api\Admin\Beta;
 
 use App\Actions\Beta\AssignPart;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\Beta\AskAgainRequest;
 use App\Http\Requests\Admin\Beta\StoreAssignmentRequest;
 use App\Http\Resources\Admin\BetaAssignmentResource;
 use App\Models\BetaAssignment;
@@ -44,6 +45,14 @@ final class AssignmentsController extends Controller
         );
 
         return response()->json(['data' => BetaAssignmentResource::fields($assignment)], 201);
+    }
+
+    public function again(AskAgainRequest $request, BetaAssignment $assignment, AssignPart $assign, #[CurrentUser] User $admin): JsonResponse
+    {
+        $note = $request->validated('note');
+        $assign->askAgain($assignment, is_string($note) ? $note : null, $admin, $request->ip());
+
+        return response()->json(['data' => BetaAssignmentResource::fields($assignment->refresh()->load(['template', 'clip', 'latestSubmission', 'submissions.guide']))]);
     }
 
     public function destroy(Request $request, BetaAssignment $assignment, AssignPart $assign, #[CurrentUser] User $admin): Response

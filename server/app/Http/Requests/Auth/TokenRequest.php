@@ -23,6 +23,8 @@ final class TokenRequest extends FormRequest
     {
         return [
             'token' => ['required', 'string', 'max:200'],
+            // Yes to "Sign in as x@y?" (auth.link.open, auth.verify).
+            'confirm' => ['sometimes', 'boolean'],
         ];
     }
 }

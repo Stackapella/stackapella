@@ -5,7 +5,7 @@
 import { reactive } from 'vue';
 import * as db from '../db.js';
 import { api } from '../api.js';
-import { mockWanted } from '../api-mock.js';
+import { mockWanted } from '../api-mode.js';
 import { addPractice, addXp, countDay, dayOf, emptyProgress, levelFor, mergeProgress, recordLesson, restartedCourse, starsFor, weekRing } from '../course.js';
 import { account } from './account.js';
 import { BADGES, newBadges, tally, withBadges } from '../badges.js';
@@ -19,7 +19,7 @@ import { courseLessons, courseOf, recordCourseLesson, restartedCourseProgress } 
 export const KEY_REACH = 6; // Lower and Higher go this many semitones either way from the note that fits
 // `course` is the free course; `catalogue` lists the Plus courses and `courses` holds each live one's
 // data by id (js/courses.js, docs/plus-courses-build-plan.md).
-export const learning = reactive({ progress: emptyProgress(), course: null, catalogue: [], courses: {}, coursesLoaded: false, cooldown: null, loaded: false, failed: false, epoch: 0, undoUntil: null });
+export const learning = reactive({ progress: emptyProgress(), course: null, catalogue: [], courses: {}, coursesLoaded: false, songs: null, cooldown: null, loaded: false, failed: false, epoch: 0, undoUntil: null });
 
 const UNDO_DAYS = 30;
 
@@ -108,6 +108,39 @@ async function loadCourses() {
         const data = await getJson(`/course/plus/${c.file}`);
         if (data) learning.courses[c.id] = data;
     }));
+}
+
+let songsLoading = null;
+
+/**
+ * The song courses (docs/song-courses-plan.md): their catalogue, course/songs/index.json, loaded
+ * once when a song's page or one of their lessons asks; never with the Plus courses, so they show
+ * nowhere else.
+ */
+export function loadSongCourses() {
+    songsLoading ??= getJson('/course/songs/index.json').then((data) => {
+        learning.songs = data?.courses ?? [];
+        if (!data) songsLoading = null; // offline, say: the next ask tries again
+    });
+    return songsLoading;
+}
+
+/**
+ * One song's course, found by its song's template id or by one of its lesson ids, loaded into
+ * `learning.courses` beside the Plus courses (so findLesson finds its lessons): its catalogue entry,
+ * or null when that song has no course.
+ */
+export async function loadSongCourse({ template = null, lessonId = null }) {
+    await loadSongCourses();
+    const entry = [...learning.songs]
+        .sort((a, b) => b.prefix.length - a.prefix.length)
+        .find((c) => (template && c.template === template) || (lessonId && lessonId.startsWith(`${c.prefix}-`)));
+    if (!entry) return null;
+    if (!learning.courses[entry.id]) {
+        const data = await getJson(`/course/songs/${entry.file}`);
+        if (data) learning.courses[entry.id] = data;
+    }
+    return learning.courses[entry.id] ? entry : null;
 }
 
 async function save(progress) {
@@ -387,6 +420,11 @@ export async function pickRange(low, high) {
     if (knownRange()) return false;
     await setRange(low, high, { source: 'picked' });
     return true;
+}
+
+/** The kept warm-ups (js/stores/warmups.js), kept with the progress so they follow the account. */
+export async function setWarmups(list) {
+    await save({ ...learning.progress, warmups: list });
 }
 
 export async function setGoal(days) {

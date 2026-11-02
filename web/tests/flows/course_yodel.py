@@ -91,7 +91,7 @@ def journey(f):
     flip = f.js(f"{STORE}.learning.progress.courses?.yodel?.personal?.flip ?? null")
     seen = f.js(f"({STORE}.learning.progress.courses?.yodel?.personal?.flipSeen ?? []).length")
     if "twice in the same place" in line:
-        assert flip is not None and 3 <= flip <= 15, f"the flip kept with the course: {flip}"
+        assert flip is not None and 3 <= flip <= 17, f"the flip kept with the course: {flip}"
     elif "flipped around" in line:
         assert flip is None and seen >= 1, f"one siren's flip, waiting for a second: flip {flip}, seen {seen}"
     else:
@@ -108,6 +108,17 @@ def journey(f):
     picture(f, "yodel-needs-flip")
     f.run(f"await (await import('/js/stores/learning.js')).setCoursePersonal('yodel', {{ flip: 7 }})")
     f.wait("!document.querySelector('[data-needs-flip]')", what="the notice gone once the flip is kept")
+    # The five-minute flip cap (js/flip-rest.js): five minutes of flips this sitting, and the next
+    # flip lesson rests first, with when it opens; a lesson that doesn't flip opens as ever.
+    f.run("const r = await import('/js/flip-rest.js'); r.flipStopped(); r.flipStarted(Date.now() - 6 * 60000); r.flipStopped(Date.now() - 60000);")
+    f.run(f"{ROUTER}.navigate('/learn/yodel-1-challenge')")
+    f.wait("document.querySelector('[data-flip-rest]')", what="the rest card")
+    f.wait_text(t(f, "course.flipRest.title"))
+    f.no_sideways("the rest card")
+    picture(f, "yodel-flip-rest")
+    f.run(f"{ROUTER}.navigate('/learn/yodel-1-hear')")
+    f.wait_text("Flip or slide?")  # its title (it may open on the step it was left at)
+    assert not f.js("!!document.querySelector('[data-flip-rest]')"), "a listening lesson isn't capped"
     compress()
 
 

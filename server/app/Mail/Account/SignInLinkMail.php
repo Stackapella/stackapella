@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Mail\Account;
 
+use App\Support\Http\Hosts;
+
 /**
  * The sign-in link (auth.link.send): one button that signs in, or makes the account for an address
  * that has none. Its words never say which.
@@ -19,6 +21,6 @@ final class SignInLinkMail extends AccountMail
 
     protected function url(): string
     {
-        return rtrim((string) config('app.url'), '/').'/signin/link?'.http_build_query(['token' => $this->token]);
+        return Hosts::appLink('/signin/link?'.http_build_query(['token' => $this->token]));
     }
 }

@@ -133,13 +133,30 @@ def journey(f):
     # part, and their pages never call the admin's operations.
     f.go("/beta?api=mock&scenario=&as=singer", "document.querySelector('main h1')")
     f.wait("document.querySelector('main ul li')", what="My parts again")
+    # Asked again for a changed part: Hillel's note in place of the last take's, until a new take is sent.
+    f.run("""const api = await import('/js/api.js'); const { mockFetch } = await import('/js/api-mock.js');
+        api.useTransport(async (url, init = {}) => {
+            const answer = await mockFetch(url, init);
+            if (init.operation !== 'beta.parts.list') return answer;
+            const json = await answer.json();
+            const part = json.data.find((p) => p.status === 'retake');
+            part.askedAgain = { note: 'The tune moved in bar 3.', at: new Date().toISOString() };
+            return new Response(JSON.stringify(json), { status: 200, headers: { 'Content-Type': 'application/json' } });
+        });
+        const { navigate } = await import('/js/router.js'); navigate('/settings'); await new Promise((r) => setTimeout(r, 300)); navigate('/beta');""")
+    f.wait("document.querySelector('[data-asked-again]')?.textContent.includes('The tune moved in bar 3.')", what="the asked-again note")
+    assert "Lovely tone." not in f.js("document.querySelector('[data-asked-again]').textContent"), "the take's note shown with the asked-again one"
+    f.shot("my-parts-asked-again")
+    f.run("(await import('/js/api.js')).useTransport((await import('/js/api-mock.js')).mockFetch)")
     for path in ("/beta", "/settings"):
         if path != "/beta":
             f.go(f"{path}?api=mock&scenario=&as=singer", "document.querySelector('#app *')")
             f.wait("document.querySelector('form') || document.querySelector('main')", what=path)
         money = f.js(r"(document.body.innerText.match(/[$€£₪¥]\s?\d|\d[.,]\d\d\s?(USD|EUR|GBP|ILS)|\b(USD|EUR|GBP|ILS)\b/) || [null])[0]")
         assert money is None, f"{path} shows money to a singer: {money}"
-        minutes = f.js(r"(document.body.innerText.match(/\bminutes?\b|\bmin\b/i) || [null])[0]")
+        # Voice care's own setting ("a note after 20 and 40 minutes of singing") is about singing time, not paid minutes.
+        minutes = f.js(r"""(() => { const care = [...document.querySelectorAll('[data-voice-notes]')]; care.forEach((e) => (e.style.display = 'none'));
+            const found = (document.body.innerText.match(/\bminutes?\b|\bmin\b/i) || [null])[0]; care.forEach((e) => (e.style.display = '')); return found; })()""")
         assert minutes is None, f"{path} shows the minutes per part to a singer: {minutes}"
         admin = f.js("(globalThis.mockCalls ?? []).filter((op) => op.startsWith('admin.'))")
         assert not admin, f"{path} called the admin's operations: {admin}"

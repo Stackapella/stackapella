@@ -20,7 +20,7 @@
 // unit-tested; the melody is the soprano (a tune written low is moved up an octave, as a low voice
 // sings it an octave down).
 
-import { beatsPerBar } from './theme.js';
+import { beatsPerBar } from './theory.js';
 
 // A chord's tones by quality: every quality a template's chords may have (js/notes.js, the schema), so
 // a song's own chords (Michael Row's sus2, Happy Birthday's 6) voice as written. The third, or what
@@ -40,9 +40,12 @@ const PALETTES = {
     dorian: { simple: [[0, 'min', 0.3], [5, 'maj', 0.15], [10, 'maj', 0.15], [7, 'min', 0.05]], warm: [[3, 'maj', 0.1], [2, 'min', 0.05]] },
 };
 // Where each part may sing (MIDI), the middle it sits best around, and Bright's higher inner parts.
-const RANGES = { alto: [55, 74], tenor: [48, 67], bass: [40, 60] };
+// The app's beginner ranges (js/theory.js VOICE_RANGES; docs/arrangements-voicings-plan.md, "Singable
+// by a beginner", rule 4): a song a person makes is as easy to sing as the library's.
+const RANGES = { alto: [55, 72], tenor: [48, 65], bass: [40, 60] };
+const BASS_EASY = [41, 58]; // the beginner bass; RANGES lets it a semitone lower and a tone higher at a cost
 const BASS_FLOOR = 36; // C2: where a bass goes when E2 up has no root under a low tune
-const BRIGHT = { alto: [57, 76], tenor: [52, 69] };
+const BRIGHT = { alto: [57, 74], tenor: [52, 65] }; // higher inner parts, within the beginner ranges
 const CENTRES = { alto: 64, tenor: 57, bass: 50 };
 const BRIGHT_CENTRES = { alto: 66, tenor: 60, bass: 50 };
 export const STYLES = ['simple', 'warm', 'bright'];
@@ -117,7 +120,7 @@ function outerParallels(prevSlot, prev, slot, cur) {
     if (same(prev, cur) || prevSlot.last === slot.first) return 0;
     const was = pc(prevSlot.last - prev.root);
     const now = pc(slot.first - cur.root);
-    return (was === 0 && now === 0) || (was === 7 && now === 7) ? 0.6 : 0;
+    return (was === 0 && now === 0) || (was === 7 && now === 7) ? 2 : 0;
 }
 
 /**
@@ -228,13 +231,15 @@ export function chooseChords(melody, { key, timeSignature = '4/4', pickupBeats =
 // ---- Voicing ---------------------------------------------------------------------------------------
 
 /** Every way to voice a chord under a soprano note (or none: `soprano` null): alto, tenor and bass, in range, nothing crossing. */
-function voicingsFor(chord, { soprano, lowest, style, first, last, warm, lower = 0 }) {
+function voicingsFor(chord, { soprano, lowest, style, first, last, leading, given, lower = 0 }) {
     const tones = tonesOf(chord);
     const [aLow, aHigh] = ((style === 'bright' && BRIGHT.alto) || RANGES.alto).map((p, i) => (i ? p : p - lower));
     const [tLow, tHigh] = ((style === 'bright' && BRIGHT.tenor) || RANGES.tenor).map((p, i) => (i ? p : p - lower));
     const [bLow, bHigh] = RANGES.bass;
-    // The bass: the root, or (Warm, inside the song, a major or minor chord) the third; well under the tune.
-    const bassTones = [tones[0], ...(warm && !first && !last && ['maj', 'min'].includes(chord.quality) ? [tones[1]] : [])];
+    // The bass: the root, or (inside the song, a major or minor chord) the third, which Warm likes and
+    // the other styles take to get out of parallel fifths or octaves with the tune; never the leading
+    // tone; well under the tune. Chords the singer chose keep their roots, except in Warm.
+    const bassTones = [tones[0], ...(!first && !last && (!given || style === 'warm') && ['maj', 'min'].includes(chord.quality) && tones[1] !== leading ? [tones[1]] : [])];
     const bassTop = Math.max(bLow + 7, Math.min(bHigh, lowest - 12));
     const pitches = (classes, low, high) => {
         const out = [];
@@ -285,8 +290,11 @@ function standing(v, s, chord, { leading, style, first, last, lowest }) {
     else if (![pc(v.a), pc(v.t), pc(v.b)].includes(tones[1]) && !(tones[1] === leading && pc(s) === leading)) cost += 8;
     if (tones.length === 4 && !count(tones[3])) cost += 2; // no seventh
     else if (!count(tones[2])) cost += 0.6; // no fifth
-    if (count(leading) > 1) cost += 8;
+    if (count(leading) > 1) cost += 16;
     if (chord.quality === 'maj' && count(tones[1]) > 1) cost += 1.2; // a doubled major third
+    // A bass may reach E2 or C4 when nothing else avoids a parallel, but a beginner's is F2 to Bb3.
+    if (v.b < BASS_EASY[0]) cost += 3 * (BASS_EASY[0] - v.b);
+    if (v.b > BASS_EASY[1]) cost += 3 * (v.b - BASS_EASY[1]);
     if (s !== null && s - v.a > 12) cost += 6;
     if (v.a - v.t > 12) cost += 6;
     if (v.t - v.b > 19) cost += 3;
@@ -303,19 +311,16 @@ function standing(v, s, chord, { leading, style, first, last, lowest }) {
 }
 
 /** What moving from one voicing to the next costs: leaps, parallels, unresolved tendencies. */
+/** What an alto's or tenor's move of `leap` semitones costs: a little a semitone, more from a fourth, a lot past a fifth or for a tritone. */
+const leapCost = (leap) => 0.35 * leap + (leap >= 5 ? 2.5 : 0) + (leap >= 7 ? 2 : 0) + (leap > 7 ? (leap > 9 ? 25 : 15) : 0) + (leap === 6 ? 20 : 0);
+
 function moving(p, ps, q, qs, prevChord, chord, leading) {
     // `ps` is the tune's note just before the change, `qs` its note on it.
-    let cost = 0.35 * (Math.abs(q.a - p.a) + Math.abs(q.t - p.t)) + 0.15 * Math.abs(q.b - p.b);
-    for (const [x, y] of [[p.a, q.a], [p.t, q.t]]) {
-        const leap = Math.abs(y - x);
-        if (leap >= 5) cost += 2.5;
-        if (leap >= 7) cost += 2;
-        if (leap > 7) cost += leap > 9 ? 25 : 15;
-        if (leap === 6) cost += 20; // a tritone is hard to sing
-    }
+    let cost = leapCost(Math.abs(q.a - p.a)) + leapCost(Math.abs(q.t - p.t)) + 0.15 * Math.abs(q.b - p.b);
     const bassLeap = Math.abs(q.b - p.b);
-    if (bassLeap > 7) cost += 1.5;
-    if (bassLeap === 6) cost += 3;
+    if (bassLeap > 7) cost += 4; // a bass leaps a fourth or fifth to the next root; more is hard
+    else if (bassLeap === 7) cost += 0.6; // and of the two, the fourth
+    if ([6, 10, 11].includes(bassLeap)) cost += 8; // a tritone or seventh is hard to sing
     // Parallel fifths and octaves between any two voices (the tune too, when there is one).
     const before = [...(ps === null ? [] : [ps]), p.a, p.t, p.b];
     const after = [...(qs === null ? [] : [qs]), q.a, q.t, q.b];
@@ -333,7 +338,7 @@ function moving(p, ps, q, qs, prevChord, chord, leading) {
     // V to I: the leading tone rises to the tonic (an inner voice may fall to the fifth), the seventh falls.
     if (prevChord.step === 7 && prevChord.quality !== 'min' && chord.step === 0) {
         for (const [x, y] of [[p.a, q.a], [p.t, q.t]]) {
-            if (pc(x) === leading && y !== x + 1 && y !== x - 4) cost += 4;
+            if (pc(x) === leading && y !== x + 1 && y !== x - 4) cost += 12;
             if (TONES[prevChord.quality].length === 4 && pc(x) === tonesOf(prevChord)[3] && !(y < x && x - y <= 2)) cost += 4;
         }
     }
@@ -353,20 +358,41 @@ export function arrange(melody, options) {
     const inside = (slot) => melody.filter((n) => n.beat < slot.endBeat - EPSILON && n.beat + n.length > slot.beat + EPSILON);
 
     const perBar = beatsPerBar(options.timeSignature ?? '4/4');
-    const strong = (beat) => onEvery(beat - (options.pickupBeats ?? 0), perBar);
+    // As the chords are chosen: the bar's first beat, and the third in 4/4.
+    const strong = (beat) => onEvery(beat - (options.pickupBeats ?? 0), perBar) || (perBar === 4 && onEvery(beat - (options.pickupBeats ?? 0), 2));
     const below = (tones, ceiling, floor) => {
         for (let p = ceiling; p > floor; p--) if (tones.includes(pc(p))) return p;
+        return null;
+    };
+    const nearest = (tones, from, floor, ceiling) => {
+        for (let d = 1; d < 12; d++) for (const p of [from - d, from + d]) if (p > floor && p < ceiling && tones.includes(pc(p))) return p;
         return null;
     };
     const altoFloor = ((style === 'bright' && BRIGHT.alto) || RANGES.alto)[0];
     // The alto and tenor of a voicing on one note of the tune: the alto moves under it (to the chord's
     // third first, within a sixth, unless the bass has the third), the tenor under the alto.
-    const placeUnder = (v, tones, pitch, firm) => {
-        const clashes = (p) => p >= pitch || (firm && [1, 2].includes(pitch - p));
+    const placeUnder = (v, chordTones, pitch, firm) => {
+        // The tune on the leading tone: the alto and tenor leave it to the tune (never doubled).
+        const tones = pc(pitch) === leading && chordTones.length > 2 ? chordTones.filter((x) => x !== leading) : chordTones;
+        const doubled = (p) => pc(p) === leading && pc(pitch) === leading;
+        const clashes = (p) => p >= pitch || doubled(p) || (firm && [1, 2].includes(pitch - p));
+        // Failing room over the tenor: under it, the tenor then going under the alto.
+        const underTenor = (tones, ceiling, floor) => {
+            for (let p = ceiling; p > floor; p--) if (tones.includes(pc(p)) && !clashes(p) && below(tones, p - 1, v.b) !== null) return p;
+            return null;
+        };
         let a = v.a;
-        if (clashes(a)) a = (pc(v.b) === tones[1] ? null : below([tones[1]], pitch - 3, Math.max(v.t, altoFloor - 1, pitch - 10))) ?? below(tones, pitch - 3, Math.max(v.t, altoFloor - 1)) ?? below(tones, pitch - 1, v.t) ?? below(tones, pitch - 1, v.b) ?? Math.min(a, pitch - 1);
+        if (clashes(a)) a = (pc(v.b) === tones[1] ? null : below([tones[1]], pitch - 3, Math.max(v.t, altoFloor - 1, pitch - 10))) ?? below(tones, pitch - 3, Math.max(v.t, altoFloor - 1)) ?? underTenor(tones, pitch - 3, Math.max(v.b, altoFloor - 1)) ?? below(tones, pitch - 1, v.t) ?? below(tones, pitch - 1, v.b) ?? Math.min(a, pitch - 1);
         let t = v.t;
-        if (t >= a) t = below(tones, a - 1, v.b) ?? Math.min(t, a - 1);
+        // Off the tune's leading tone, to the chord's nearest other note (never a tritone away and back).
+        if (doubled(t) && t < a) t = nearest(tones, t, v.b, a) ?? t;
+        if (t >= a || doubled(t)) t = below(tones, a - 1, v.b) ?? Math.min(t, a - 1);
+        // Still on it, with no room below the alto: the tenor takes the alto's note, the alto the chord's next one up.
+        if (doubled(t) && !doubled(a)) {
+            let up = a + 1;
+            while (up < pitch && (!tones.includes(pc(up)) || pc(up) === pc(a) || clashes(up))) up++;
+            if (up < pitch) [a, t] = [up, a];
+        }
         return { a, t };
     };
 
@@ -378,7 +404,7 @@ export function arrange(melody, options) {
         const held = notes.filter((n) => n.length >= 0.5 - EPSILON);
         const lowest = Math.min(...(held.length ? held : notes).map((n) => n.pitch));
         const chord = { ...slot.options[slot.choice], step: slot.step };
-        const context = { soprano, lowest, style, first: i === 0, last: i === slots.length - 1, warm: style === 'warm', leading };
+        const context = { soprano, lowest, style, first: i === 0, last: i === slots.length - 1, leading, given: !!options.chords };
         // A tune too low to sit over: the alto and tenor go a little lower, then sit under its first note only.
         let choices = voicingsFor(chord, context);
         // None with the third (a narrow gap under the tune): the lower ones too.
@@ -393,7 +419,18 @@ export function arrange(melody, options) {
         const firstNote = notes.find((n) => n.beat <= from + EPSILON && n.beat + n.length > from + EPSILON) ?? notes[0];
         const lastNote = notes.at(-1);
         choices = choices.map((v) => ({ ...v, start: { ...v, ...placeUnder(v, tonesOf(chord), firstNote.pitch, firmOf(firstNote)) }, end: { ...v, ...placeUnder(v, tonesOf(chord), lastNote.pitch, firmOf(lastNote)) } }));
-        return { slot, notes, from, soprano, last: notes.at(-1).pitch, chord, choices, cost: choices.map((v) => standing(v.start ?? v, soprano, chord, context)) };
+        // And what the alto and tenor do inside the slot, following the tune: leaps past a fifth or a
+        // tritone (smaller ones stay free, or the duet loses its third), a doubled leading tone, the third gone.
+        const within = (v) => {
+            const sung = notes.slice(notes.indexOf(firstNote));
+            const path = sung.map((n) => placeUnder(v, tonesOf(chord), n.pitch, firmOf(n)));
+            return path.slice(1).reduce((sum, q, k) => {
+                const heard = [sung[k + 1].pitch, q.a, q.t, v.b].map(pc);
+                const leaps = [[path[k].a, q.a], [path[k].t, q.t]].reduce((c, [x, y]) => c + (Math.abs(y - x) > 7 ? 15 : Math.abs(y - x) === 6 ? 20 : 0), 0);
+                return sum + leaps + (heard.filter((x) => x === leading).length > 1 ? 16 : 0) + (heard.includes(third) ? 0 : 4);
+            }, 0);
+        };
+        return { slot, notes, from, soprano, last: notes.at(-1).pitch, chord, choices, cost: choices.map((v) => standing(v.start ?? v, soprano, chord, context) + within(v)) };
     });
     let total = events[0].cost.slice();
     const back = [];
@@ -430,6 +467,38 @@ export function arrange(melody, options) {
         bass.push({ beat: e.from, length: to - e.from, pitch, ...(startsLine ? { lyric: 'oo', br: true } : {}) });
     });
 
+    // The bass breathes where the tune does (rule 1): over each rest before a new line it stops, and
+    // starts its "oo" again with the line.
+    for (let i = 1; i < melody.length; i++) {
+        const n = melody[i];
+        if (!n.br) continue;
+        const restFrom = melody[i - 1].beat + melody[i - 1].length;
+        if (restFrom > n.beat - EPSILON) continue;
+        for (let j = 0; j < bass.length; j++) {
+            const b = bass[j];
+            const end = b.beat + b.length;
+            if (end <= restFrom + EPSILON || b.beat >= n.beat - EPSILON) continue;
+            if (b.beat < restFrom - EPSILON) {
+                b.length = restFrom - b.beat;
+                if (end > n.beat + EPSILON) bass.splice(j + 1, 0, { beat: n.beat, length: end - n.beat, pitch: b.pitch, lyric: 'oo', br: true });
+            } else {
+                // It started inside the rest: it starts with the line instead.
+                b.length = end - n.beat;
+                b.beat = n.beat;
+                b.lyric = 'oo';
+                b.br = true;
+            }
+        }
+    }
+    // A sliver left by a breath (under half a beat) becomes part of the rest.
+    for (let j = bass.length - 1; j >= 0; j--) if (bass[j].length < 0.5 - EPSILON && bass.length > 1) bass.splice(j, 1);
+    // Its "oo" starts again only after a breath: the first note, and any note after a rest.
+    bass.forEach((b, j) => {
+        delete b.lyric;
+        delete b.br;
+        if (!j || b.beat - (bass[j - 1].beat + bass[j - 1].length) > EPSILON) Object.assign(b, { lyric: 'oo', br: true });
+    });
+
     // The alto and tenor, note for note with the tune (split where the chord changes under a note),
     // holding the slot's voicing; a note moves only to stay under the tune, or off a second against
     // a long or strong note of it.
@@ -451,10 +520,54 @@ export function arrange(melody, options) {
                 const prev = line.at(-1);
                 // A held vowel on the same pitch is one note.
                 if (prev && !words.lyric && !words.br && prev.pitch === pitch && Math.abs(prev.beat + prev.length - beat) < 1e-6) prev.length += length;
-                else line.push({ beat, length, pitch, ...words });
+                else line.push({ beat, length, pitch, ...words, ...(c ? { firm, tones } : {}) });
             }
         }
     }
+    // One note a syllable (rule 5): a note on no syllable (the tune's own melisma, or the chord
+    // changing under a tune note) is held from the note before when that note still sounds well
+    // with the tune (no second, tritone or seventh, no doubled leading tone, a chord tone on a firm
+    // beat) and the move after it makes no parallel fifth or octave with any other part.
+    const soundAt = (line, beat) => line.findLast((n) => n.beat <= beat + EPSILON && n.beat + n.length > beat + EPSILON)?.pitch ?? null;
+    const onsets = [...new Set([melody, alto, tenor, bass].flatMap((l) => l.map((n) => n.beat)))].sort((x, y) => x - y);
+    const nextOnset = (beat) => onsets.find((b) => b > beat + EPSILON) ?? null;
+    for (const [line, others] of [[alto, () => [melody, tenor, bass]], [tenor, () => [melody, alto, bass]]]) {
+        for (let i = 1; i < line.length; i++) {
+            const [prev, n] = [line[i - 1], line[i]];
+            const tones = n.tones;
+            const firm = n.firm;
+            delete n.tones;
+            delete n.firm;
+            if (n.lyric || n.br || Math.abs(prev.beat + prev.length - n.beat) > EPSILON) continue;
+            const q = prev.pitch;
+            const s = soundAt(melody, n.beat);
+            if (s === null || q >= s || [1, 2, 6, 10, 11].includes(pc(s - q)) || (pc(q) === leading && pc(s) === leading)) continue;
+            if (firm && tones && !tones.includes(pc(q))) continue;
+            // Never at the cost of the chord's third, and a leading tone moves on (it resolves).
+            if (tones && ![s, q, ...others().slice(1).map((o) => soundAt(o, n.beat))].some((x) => x !== null && pc(x) === tones[1])) continue;
+            if (pc(q) === leading) continue;
+            // Clear of its neighbours: the alto over the tenor, the tenor between the alto and the bass.
+            const [over, under] = line === alto ? [s, soundAt(tenor, n.beat)] : [soundAt(alto, n.beat), soundAt(bass, n.beat)];
+            if ((over !== null && q >= over) || (under !== null && q <= under)) continue;
+            // The move after the hold, against every other part.
+            const after = line[i + 1];
+            if (after && Math.abs(n.beat + n.length - after.beat) < EPSILON) {
+                const before = onsets.findLast((b) => b < after.beat - EPSILON);
+                const parallel = others().some((o) => {
+                    const [y0, y1] = [soundAt(o, before), soundAt(o, after.beat)];
+                    if (y0 === null || y1 === null || y0 === y1 || q === after.pitch) return false;
+                    const [was, now] = [pc(q - y0), pc(after.pitch - y1)];
+                    return was === now && (now === 0 || now === 7) && Math.sign(after.pitch - q) === Math.sign(y1 - y0);
+                });
+                if (parallel) continue;
+            }
+            prev.length += n.length;
+            line.splice(i, 1);
+            i--;
+        }
+        line.forEach((n) => { delete n.tones; delete n.firm; });
+    }
+    void nextOnset;
     return { chords, slots, parts: { alto, tenor, bass }, warnings: parallels(melody, bass) };
 }
 
@@ -469,7 +582,7 @@ export function voiceChords(chords, { key, style = 'simple', endBeat }) {
     const leading = pc(key.tonic + 11);
     const events = chords.map((c, i) => {
         const chord = { root: c.root, quality: c.quality, step: pc(c.root - key.tonic) };
-        const context = { soprano: null, lowest: 127, style, first: i === 0, last: i === chords.length - 1, warm: style === 'warm', leading };
+        const context = { soprano: null, lowest: 127, style, first: i === 0, last: i === chords.length - 1, leading, given: true };
         const choices = voicingsFor(chord, context);
         return { chord, choices, cost: choices.map((v) => standing(v, null, chord, context)) };
     });
@@ -524,6 +637,31 @@ export function parallels(melody, bass) {
     return out;
 }
 
+/**
+ * A breath before each new line (`br`) of a tune that runs straight into it (docs/arrangements-
+ * voicings-plan.md, "Singable by a beginner", rule 1): the line's last note gives up the time, half a
+ * beat at least kept, a full beat and 0.6 s after a line of 8 seconds or more, else half a beat and
+ * 0.5 s, up to a quarter beat. Notes in order; a new array.
+ */
+export function breathe(notes, tempo) {
+    const out = notes.map((n) => ({ ...n }));
+    const seconds = 60 / tempo;
+    let start = out[0]?.beat ?? 0;
+    for (let i = 1; i < out.length; i++) {
+        const [prev, n] = [out[i - 1], out[i]];
+        const gap = n.beat - (prev.beat + prev.length);
+        const sung = (prev.beat + prev.length - start) * seconds;
+        const [beats, secs] = sung >= 8 - 1e-6 ? [1, 0.6] : [0.5, 0.5];
+        const need = Math.max(beats, Math.ceil(secs / seconds * 4 - 1e-9) / 4);
+        if (n.br && gap < need - EPSILON) {
+            const take = Math.min(need - gap, prev.length - 0.5);
+            if (take > EPSILON) prev.length = Math.round((prev.length - take) * 10000) / 10000;
+        }
+        if (n.br || n.beat - (prev.beat + prev.length) >= need - EPSILON) start = n.beat;
+    }
+    return out;
+}
+
 /** The middle of a melody's pitches (by length): where it sits. */
 function middle(notes) {
     const sorted = [...notes].sort((a, b) => a.pitch - b.pitch);
@@ -539,9 +677,10 @@ function middle(notes) {
  */
 export function harmonize(template, { style = 'simple', choices = {}, key, chords = null } = {}) {
     const tune = template.parts.find((p) => p.melody) ?? template.parts[0];
-    // A tune written low (sung by a low voice) goes up an octave to be the soprano; it's sung an octave down.
-    const lift = middle(tune.guide.notes) < 57 ? 12 : 0;
-    const melody = tune.guide.notes.map((n) => (lift ? { ...n, pitch: n.pitch + lift } : n));
+    // A tune written low (sung by a low voice: a barbershop lead's) goes up an octave to be the soprano,
+    // so three parts fit under it; it's sung an octave down. Under C4 in the middle, there's no room.
+    const lift = middle(tune.guide.notes) < 60 ? 12 : 0;
+    const melody = breathe(tune.guide.notes.map((n) => ({ ...n, pitch: n.pitch + lift })), template.tempo ?? 90);
     const phraseEnds = template.sections.flatMap((s) => s.phrases.map(([, end]) => end));
     const result = arrange(melody, { key, timeSignature: template.timeSignature, pickupBeats: template.pickupBeats, style, phraseEnds, choices, chords });
     const part = (k, name, notes) => ({ key: k, name, range: { low: Math.min(...notes.map((n) => n.pitch)), high: Math.max(...notes.map((n) => n.pitch)) }, guide: { type: 'notes', notes } });

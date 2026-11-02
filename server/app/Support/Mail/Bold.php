@@ -20,7 +20,10 @@ final class Bold
     /**
      * @param  string  $colour  the text colour of the email's skin (EmailSkin)
      */
-    public static function line(string $line, string $colour = '#211a15'): HtmlString
+    /**
+     * @param  array<string, string>  $links  a phrase in the line, and where it goes (the HTML only)
+     */
+    public static function line(string $line, string $colour = '#211a15', array $links = [], string $linkColour = '#c2410c'): HtmlString
     {
         $parts = explode('*', $line);
         $html = '';
@@ -28,6 +31,10 @@ final class Bold
         foreach ($parts as $i => $part) {
             $part = e(self::restore($part));
             $html .= $i % 2 === 1 ? '<strong class="sa-text" style="font-weight:700;color:'.e($colour).';">'.$part.'</strong>' : $part;
+        }
+
+        foreach ($links as $phrase => $url) {
+            $html = str_replace(e($phrase), '<a href="'.e($url).'" style="color:'.e($linkColour).';">'.e($phrase).'</a>', $html);
         }
 
         return new HtmlString($html);

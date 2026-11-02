@@ -38,6 +38,19 @@ def journey(f):
     f.go("/?api=mock&as=signedOut", "document.querySelector('#app header')")
     assert f.js("document.documentElement.dataset.theme") == "midnight-dark", f.js("document.documentElement.dataset.theme")
     assert f.js("!document.documentElement.dataset.accent"), "the theme's own accent again"
+    # Hillel (2026-11-01, live): a host-only sa_theme left on the app's host from before the cookie was
+    # shared sits beside the shared one and is listed first; the newer choice made on the site wins.
+    f.run("document.cookie = 'sa_theme=' + encodeURIComponent(JSON.stringify({ skin: 'game', mode: 'dark', at: 1 })) + '; path=/'; localStorage.clear();")
+    assert f.js("document.cookie.split('; ').filter((c) => c.startsWith('sa_theme=')).length") == 2, "the stale host-only cookie beside the shared one"
+    f.base = site
+    f.go("/?api=mock&as=signedOut", "document.querySelector('#app header')")
+    f.run(META + "window.stackapellaTheme.choose({ skin: 'serious' });")
+    f.base = app
+    f.go("/?api=mock&as=signedOut", "document.querySelector('#app header')")
+    assert f.js("document.documentElement.dataset.skin") == "serious", "game mode turned off on the site, still on in the app: " + f.js("document.cookie")
+    # A choice in the app (with the shared domain) leaves one sa_theme: the host-only one goes.
+    f.run(META + "window.stackapellaTheme.choose({ skin: 'game' });")
+    assert f.js("document.cookie.split('; ').filter((c) => c.startsWith('sa_theme=')).length") == 1, f.js("document.cookie")
     f.run("document.cookie = 'sa_theme=; path=/; max-age=0; domain=.stackapella.test'; localStorage.clear();")
 
 

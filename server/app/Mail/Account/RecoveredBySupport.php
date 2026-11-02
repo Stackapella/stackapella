@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Mail\Account;
 
+use App\Support\Http\Hosts;
 use App\Support\Mail\Bold;
 
 /**
@@ -21,7 +22,7 @@ final class RecoveredBySupport extends AccountMail
 
     protected function url(): string
     {
-        return url('/');
+        return Hosts::appLink('/');
     }
 
     protected function lines(): array

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Actions\Beta\AcceptInvite;
+use App\Actions\Mudeo\MudeoList;
 use App\Http\Controllers\Public\InfoPagesController;
 use App\Http\Middleware\SecurityHeaders;
 use App\Models\EarlyAccessLink;
@@ -31,13 +32,20 @@ final class WebAppController extends Controller
     private const TOKEN_PAGES = ['beta/*', 'early/*', 'invite/*', 'join/*', 'verify', 'reset', 'email/confirm', 'email/revert', 'notice'];
 
     /** The folders and files of /web the app is made of. Tests, tools and the spike are not served. */
-    private const SERVED = ['js/', 'engine/', 'css/', 'icons/', 'sounds/', 'templates/', 'locales/', 'course/', 'sw.js', 'manifest.webmanifest', 'favicon.ico'];
+    private const SERVED = ['js/', 'engine/', 'css/', 'icons/', 'sounds/', 'templates/', 'locales/', 'course/', 'lab/', 'sw.js', 'manifest.webmanifest', 'favicon.ico'];
+
+    /**
+     * Hillel's test pages (web/lab, for now the locked-iPhone playlist test, docs/practice-playlist-plan.md):
+     * static, sending nothing, never indexed or kept, with only their own inline script allowed.
+     */
+    private const LAB_CSP = "default-src 'self'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; media-src 'self' blob: data:; base-uri 'none'; form-action 'none'; frame-ancestors 'none'";
 
     private const TYPES = [
         'js' => 'text/javascript; charset=utf-8',
         'mjs' => 'text/javascript; charset=utf-8',
         'css' => 'text/css; charset=utf-8',
         'json' => 'application/json',
+        'html' => 'text/html; charset=utf-8',
         'webmanifest' => 'application/manifest+json',
         'svg' => 'image/svg+xml',
         'png' => 'image/png',
@@ -80,6 +88,12 @@ final class WebAppController extends Controller
             return config('app.coming_soon') && ! BetaPass::valid($request)
                 ? response()->view('coming-soon', [], 200, ['Cache-Control' => 'no-cache', 'Vary' => 'Cookie'])
                 : app(InfoPagesController::class)->landing($request);
+        }
+
+        // The mudeo email's early-access links, already sent: since launch, the same arrival as the
+        // email's link now (the site's landing with the mudeo ref), never "this link has closed".
+        if (! config('app.coming_soon') && $request->is('early/*') && config('app.is_nexus') === true) {
+            return redirect()->away(MudeoList::link(), 301);
         }
 
         if (config('app.coming_soon') && ! $this->mayEnterBeforeLaunch($request)) {
@@ -202,6 +216,12 @@ final class WebAppController extends Controller
         $response->headers->set('Cloudflare-CDN-Cache-Control', 'no-store');
 
         $response->setAutoEtag();
+
+        if ($prefix === 'lab/') {
+            $response->headers->set('Cache-Control', 'no-store');
+            $response->headers->set('X-Robots-Tag', 'noindex, nofollow');
+            $response->headers->set('Content-Security-Policy', self::LAB_CSP);
+        }
 
         return $response;
     }

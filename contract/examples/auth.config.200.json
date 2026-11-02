@@ -18,6 +18,32 @@
         "humTune": false,
         "ideas": false,
         "plusCourses": true,
-        "experiment": null
+        "sheetImport": false,
+        "lendVoice": false,
+        "experiment": null,
+        "experiments": [
+            {
+                "id": "short1",
+                "arms": [
+                    {
+                        "arm": "a",
+                        "weight": 50
+                    },
+                    {
+                        "arm": "b",
+                        "weight": 50
+                    }
+                ],
+                "enrol": true,
+                "audience": {
+                    "new": true,
+                    "firstWeek": true
+                },
+                "excludes": [
+                    "onb1"
+                ]
+            }
+        ],
+        "schools": false
     }
 }

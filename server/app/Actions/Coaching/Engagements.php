@@ -19,6 +19,7 @@ use App\Models\User;
 use App\Services\Coaching\CoachingGateway;
 use App\Support\Accounts\Age;
 use App\Support\Ids;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
@@ -275,7 +276,11 @@ final class Engagements
 
         if ($engagement !== null) {
             DB::transaction(function () use ($engagement): void {
+                $engagement = Engagement::query()->whereKey($engagement->id)->lockForUpdate()->firstOrFail();
                 $engagement->forceFill(['disputed_at' => now()])->save();
+                // A share already paid is taken back from the coach's account (Hillel: "reverse on
+                // dispute"); if Stripe can't (the coach already paid it out), Hillel sees it in the queue.
+                $this->reverseShare($engagement);
                 $by = $engagement->singer_id ?? $engagement->coach_id;
 
                 if ($by !== null) {
@@ -283,6 +288,49 @@ final class Engagements
                     $report->forceFill(['engagement_id' => $engagement->id, 'user_id' => $by])->save();
                 }
             });
+        }
+    }
+
+    /**
+     * A dispute the platform won: the coach is paid after all, by the next deadlines run (Hillel).
+     */
+    public function disputeWon(string $chargeId): void
+    {
+        Engagement::query()->where('stripe_charge', $chargeId)->whereNotNull('disputed_at')->update(['disputed_at' => null, 'updated_at' => now()]);
+    }
+
+    /**
+     * How long a coach's share waits after delivery: 7 days, or 14 when the coach had been coaching
+     * under 30 days then.
+     */
+    public static function heldUntil(Engagement $engagement, Carbon $delivered): Carbon
+    {
+        $since = User::query()->whereKey($engagement->coach_id)->value('coach_active_at');
+        $new = $since !== null && Carbon::parse((string) $since)->gt($delivered->copy()->subDays((int) config('coaching.new_coach_days')));
+
+        return $delivered->copy()->addDays((int) config($new ? 'coaching.new_coach_hold_days' : 'coaching.hold_days'));
+    }
+
+    /** The coach's share of a sale: its price less our fee, less their part of any refund. */
+    public static function share(Engagement $engagement): int
+    {
+        return $engagement->price_cents - $engagement->fee_cents - intdiv($engagement->refunded_cents * ($engagement->price_cents - $engagement->fee_cents), max(1, $engagement->price_cents));
+    }
+
+    /** Called under the engagement's lock. */
+    private function reverseShare(Engagement $engagement): void
+    {
+        if ($engagement->stripe_transfer === null) {
+            return;
+        }
+
+        try {
+            $this->stripe->reverseTransfer($engagement->stripe_transfer, max(0, self::share($engagement)), "reverse-dispute-{$engagement->id}");
+            $engagement->forceFill(['stripe_transfer' => null, 'transfer_reversed_at' => now()])->save();
+            // So a dispute won releases it again (a review's items are what the deadlines release).
+            ReviewItem::query()->where('engagement_id', $engagement->id)->whereNotNull('released_at')->update(['released_at' => null, 'updated_at' => now()]);
+        } catch (Throwable $e) {
+            report($e);
         }
     }
 
@@ -481,7 +529,8 @@ final class Engagements
             $each(fn (): bool => $this->refundInFull($late, $late->status === Engagement::REQUESTED ? 'no_answer' : 'missed_deadline', [$late->status]) !== null, 'refunded');
         }
 
-        $window = now()->subMinutes((int) config('coaching.unsend_minutes'));
+        // The shortest hold; each review's own (a new coach's is longer) is checked as it's released.
+        $window = now()->subDays((int) config('coaching.hold_days'))->min(now()->subMinutes((int) config('coaching.unsend_minutes')));
 
         foreach (ReviewItem::query()->where('status', ReviewItem::DELIVERED)->whereNull('released_at')->where('delivered_at', '<', $window)->get() as $review) {
             $each(fn (): bool => $this->release($review), 'released');
@@ -564,6 +613,11 @@ final class Engagements
                 return false;
             }
 
+            // Held so a chargeback can still be met: 7 days, 14 in a coach's first 30.
+            if ($item->delivered_at !== null && self::heldUntil($engagement, $item->delivered_at)->isFuture()) {
+                return false;
+            }
+
             $account = CoachProfile::query()->where('user_id', $engagement->coach_id)->value('stripe_account_id');
             $charge = $engagement->stripe_charge ?? ($engagement->stripe_payment_intent !== null ? $this->stripe->chargeOf($engagement->stripe_payment_intent) : null);
 
@@ -574,7 +628,9 @@ final class Engagements
             }
 
             $share = $engagement->price_cents - $engagement->fee_cents - intdiv($engagement->refunded_cents * ($engagement->price_cents - $engagement->fee_cents), max(1, $engagement->price_cents));
-            $transfer = $share > 0 ? $this->stripe->transfer($share, (string) $engagement->currency, $account, $charge, $engagement->sqid(), "release-review-{$item->id}") : null;
+            // After a dispute won, a new transfer (the first was taken back).
+            $key = "release-review-{$item->id}".($engagement->transfer_reversed_at !== null ? '-after-dispute' : '');
+            $transfer = $share > 0 ? $this->stripe->transfer($share, (string) $engagement->currency, $account, $charge, $engagement->sqid(), $key) : null;
             $engagement->forceFill(['stripe_charge' => $charge, 'stripe_transfer' => $transfer])->save();
             $item->forceFill(['released_at' => now()])->save();
 

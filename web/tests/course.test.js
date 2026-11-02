@@ -1,6 +1,6 @@
 // The course's rules (js/course.js): stars at each boundary, units opening at two thirds of the stars,
 // XP with the daily cap, levels, and the weekly goal across a missed week (no penalty).
-import { addPractice, addXp, countDay, emptyProgress, levelFor, mergeProgress, nextLesson, recordLesson, restartedCourse, starsFor, starsToOpen, strictnessFor, unitOpen, weekRing, weeksInARow, xpForLevel } from '/js/course.js';
+import { addPractice, addXp, cappedWidening, countDay, emptyProgress, levelFor, mergeProgress, nextLesson, recordLesson, restartedCourse, starsFor, starsToOpen, strictnessFor, unitOpen, weekRing, weeksInARow, xpForLevel } from '/js/course.js';
 import { FREE_SONGS } from '/js/templates.js';
 import { assert, test } from './harness.js';
 
@@ -153,3 +153,13 @@ test('course: starting over clears the lessons and the early opens, and keeps th
     assert(Object.keys(before.lessons).length === 1, 'the progress it was given is unchanged');
 });
 
+
+test('course: a slide widens the range by at most a tone at either end; a range not yet known takes it as sung', () => {
+    const range = { low: 55, high: 72 };
+    assert(cappedWidening(range, [55, 77]).join() === '55,74', 'five over the top widens it by two');
+    assert(cappedWidening(range, [48, 70]).join() === '53,70', 'a held growl seven below: by two');
+    assert(cappedWidening(range, [57, 71]).join() === '57,71', 'inside the range: as sung (noteSung never narrows)');
+    assert(cappedWidening(null, [45, 79]).join() === '45,79', 'no range yet: as sung');
+    const twice = cappedWidening({ low: 55, high: 74 }, [55, 77]);
+    assert(twice[1] === 76, 'a second slide grows it another tone');
+});

@@ -79,7 +79,7 @@ def main():
         # Online, once: the app and its worker, a song from the catalogue started, one of your own.
         home_page(f, "member")
         f.wait("navigator.serviceWorker.controller", timeout=30, what="the service worker in control")
-        f.run("localStorage.setItem('stackapella.installDismissed', '1');")
+        f.run("localStorage.setItem('stackapella.asks', JSON.stringify({ stopped: ['install'] }));")
         grace = new_song(f)
         f.go(f"/p/{grace}?api=mock&as=member", "document.querySelectorAll('canvas').length > 3")
         f.js(f"{AUDIO}.unlock()")
@@ -174,7 +174,9 @@ def carried_over(f):
     sw = WEB / "sw.js"
     original = sw.read_text()
     try:
-        sw.write_text(re.sub(r"const CACHE = '([^']+)';", r"const CACHE = '\1-next';", original, count=1))
+        changed = re.sub(r"const CACHE = (['`])([^'`]+)\1;", r"const CACHE = \1\2-next\1;", original, count=1)
+        assert changed != original, "sw.js's CACHE line wasn't found to change"
+        sw.write_text(changed)
         f.run("await (await navigator.serviceWorker.getRegistration()).update();")
         f.wait(f"caches.keys().then((keys) => keys.length === 1 && !{json.dumps(before)}.includes(keys[0]))", timeout=30, what="the new version in charge")
         assert f.js(f"caches.match({lame}).then((hit) => !!hit)"), "the encoder was lost with the old version"

@@ -14,6 +14,7 @@ use App\Http\Resources\Templates\LibraryItemResource;
 use App\Models\Report;
 use App\Models\Template;
 use App\Models\User;
+use App\Support\Gallery\GalleryViews;
 use Illuminate\Container\Attributes\CurrentUser;
 use Illuminate\Http\JsonResponse;
 
@@ -25,16 +26,22 @@ final class LibraryController extends Controller
 {
     public function held(): JsonResponse
     {
-        $templates = Template::query()->with(['currentVersion', 'owner', 'parent.owner'])
-            ->where('visibility', 'public')->whereNotNull('held_at')->whereNull('hidden_at')->whereNull('deleted_at')
-            ->orderBy('held_at')->limit(100)->get();
+        // The library's held templates, and any song made from imported sheet music with an open
+        // report (private or in a group, it's never held in the library, but a notice must reach here).
+        $openReport = static fn ($q) => $q->selectRaw('1')->from('reports')->where('reportable_type', (new Template)->getMorphClass())->whereColumn('reportable_id', 'templates.id')->where('status', Report::OPEN);
+        $templates = Template::query()->with(['currentVersion', 'owner', 'parent.owner'])->whereNull('hidden_at')->whereNull('deleted_at')
+            ->where(fn ($q) => $q->where(fn ($q) => $q->where('visibility', 'public')->whereNotNull('held_at'))->orWhere(fn ($q) => $q->whereNotNull('imported_at')->whereExists($openReport)))
+            ->orderByRaw('coalesce(held_at, updated_at)')->limit(100)->get();
         $reports = Report::query()->where('reportable_type', (new Template)->getMorphClass())->whereIn('reportable_id', $templates->pluck('id'))->where('status', Report::OPEN)->get()->groupBy('reportable_id');
 
         return response()->json(['data' => array_values($templates->map(static fn (Template $template): array => [
             ...LibraryItemResource::of($template, null),
-            'creator' => [...(app(Library::class)->view($template, null)['creator'] ?? []), 'id' => $template->owner?->sqid()],
+            // The library's view of its creator, or (a private imported song has none) the person as public pages show them.
+            'creator' => [...(app(Library::class)->view($template, null)['creator'] ?? GalleryViews::person($template->owner)), 'id' => $template->owner?->sqid()],
             'declaration' => $template->declaration,
             'heldAt' => $template->held_at?->utc()->toIso8601ZuluString(),
+            // Made from imported sheet music: private to its owner and their choir groups.
+            'imported' => $template->isImported(),
             'reports' => [
                 'count' => ($reports->get($template->id) ?? collect())->count(),
                 'reasons' => array_values(($reports->get($template->id) ?? collect())->pluck('reason')->unique()->sort()->values()->all()),

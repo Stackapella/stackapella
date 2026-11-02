@@ -41,13 +41,17 @@ final class SecurityHeaders
         $isApp = $request->attributes->get(self::APP_PAGE) === true || $request->is('sw.js');
         $isAdmin = $request->is('admin', 'admin/*', 'api/admin/*');
         $isEmbed = $request->is('embed/*');
+        // A public page that listens: Perfect your pitch's page lets a visitor try the pitch meter, and
+        // the Course feature and beginners' pages try "Find your comfortable note" (the mic opens only
+        // on a Listen tap; the pitch is worked out on the device, nothing recorded or sent).
+        $listens = $request->is('courses/perfect-your-pitch', 'features/course', 'for/beginners');
 
         $headers->set('X-Content-Type-Options', 'nosniff');
         if (! $headers->has('Referrer-Policy')) {
             $headers->set('Referrer-Policy', 'strict-origin-when-cross-origin');
         }
         $headers->set('Cross-Origin-Opener-Policy', 'same-origin-allow-popups');
-        $headers->set('Permissions-Policy', ($isApp ? 'microphone=(self)' : 'microphone=()').', camera=(), geolocation=(), payment=(), publickey-credentials-get=(self), publickey-credentials-create=(self)');
+        $headers->set('Permissions-Policy', ($isApp || $listens ? 'microphone=(self)' : 'microphone=()').', camera=(), geolocation=(), payment=(), publickey-credentials-get=(self), publickey-credentials-create=(self)');
         if (! $isEmbed) {
             $headers->set('X-Frame-Options', $isAdmin ? 'DENY' : 'SAMEORIGIN');
         }
@@ -122,8 +126,9 @@ final class SecurityHeaders
             // The landing's film and its poster may come from their own CDN host (site.showreel).
             'img-src' => array_values(array_unique(array_filter(["'self'", 'data:', $media, Showreel::origin()]))),
             'media-src' => array_values(array_unique(array_filter(["'self'", $media, Showreel::origin()]))),
-            // The public site's pages send Report to the app's host (docs/app-subdomain-plan.md).
-            'connect-src' => array_values(array_unique(["'self'", ...(Hosts::split() ? [Hosts::appUrl()] : [])])),
+            // The public site's pages send Report to the app's host (docs/app-subdomain-plan.md), and the
+            // landing's lane fetches a part's guide from the media CDN to score it (an <audio> can't be tracked).
+            'connect-src' => array_values(array_unique(array_filter(["'self'", $media, ...(Hosts::split() ? [Hosts::appUrl()] : [])]))),
             'object-src' => ["'none'"],
             'base-uri' => ["'self'"],
             // Signing in posts here and is redirected to Google; browsers apply form-action to it.

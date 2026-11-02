@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Public;
 
 use App\Actions\Counts\Funnel;
+use App\Actions\Counts\RecordCounts;
 use App\Http\Controllers\Controller;
+use App\Support\Admin\StaffDevice;
 use App\Support\Http\Hosts;
 use App\Support\Pages\Landing;
 use App\Support\Pages\MudeoArrival;
@@ -14,6 +16,7 @@ use App\Support\Site\ComingSoon;
 use App\Support\Site\HelpGuide;
 use App\Support\Site\OpenSource;
 use App\Support\Site\SitePages;
+use App\Support\Trust\Country;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -41,6 +44,11 @@ final class InfoPagesController extends Controller
         $ref = Landing::ref($request->query('ref'));
         $mudeo = MudeoArrival::is($request, $ref);
         $ref ??= $mudeo ? MudeoArrival::REF : null;
+
+        // The mudeo email's link opened: counted once a browser visit, as a number only.
+        if ($mudeo && $request->cookies->get(MudeoArrival::COOKIE) !== '1' && ! StaffDevice::is($request)) {
+            app(RecordCounts::class)->server('mudeo_visit', $request->user() !== null, Country::of($request));
+        }
         $price = Prices::of(Prices::currency($request));
         $plans = Landing::plans();
 

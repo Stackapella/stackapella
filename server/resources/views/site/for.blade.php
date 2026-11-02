@@ -58,6 +58,8 @@
             </div>
         </section>
 
+        @include('site._demo-section')
+
         @if ($page['notes'] !== [])
             <section class="s-wrap s-sec" aria-label="{{ $page['headline'] }}">
                 <div class="s-details">

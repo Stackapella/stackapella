@@ -1,0 +1,69 @@
+{
+    "data": {
+        "review": 1,
+        "templates": [
+            {
+                "id": "amazing-grace",
+                "version": 2,
+                "title": "Amazing Grace",
+                "parts": [
+                    {
+                        "key": "soprano",
+                        "name": "Soprano",
+                        "needs": {
+                            "voiced": false,
+                            "review": [],
+                            "changed": true,
+                            "unassigned": true,
+                            "singers": [
+                                {
+                                    "assignment": "As3Kd9",
+                                    "singer": {
+                                        "id": "Lm2Vb8",
+                                        "name": "Ana Ruiz"
+                                    },
+                                    "status": "accepted",
+                                    "open": false,
+                                    "previous": true,
+                                    "askedAgainAt": null
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "key": "tenor",
+                        "name": "Tenor",
+                        "needs": {
+                            "voiced": false,
+                            "review": [
+                                {
+                                    "submission": "Wq8Zn3",
+                                    "status": "submitted",
+                                    "singer": {
+                                        "id": "Rt6Hc1",
+                                        "name": "Ben Ode"
+                                    }
+                                }
+                            ],
+                            "changed": false,
+                            "unassigned": false,
+                            "singers": [
+                                {
+                                    "assignment": "Bx5Pt2",
+                                    "singer": {
+                                        "id": "Rt6Hc1",
+                                        "name": "Ben Ode"
+                                    },
+                                    "status": "submitted",
+                                    "open": true,
+                                    "previous": false,
+                                    "askedAgainAt": null
+                                }
+                            ]
+                        }
+                    }
+                ]
+            }
+        ]
+    }
+}

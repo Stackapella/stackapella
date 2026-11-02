@@ -15,14 +15,19 @@ use App\Exceptions\Refusal;
 use App\Models\Choir;
 use App\Models\ChoirVoice;
 use App\Models\Comment;
+use App\Models\CourseClip;
 use App\Models\Harmony;
 use App\Models\Idea;
 use App\Models\Notice;
 use App\Models\Report;
 use App\Models\SongRequest;
 use App\Models\Template;
+use App\Models\TemplateGuide;
 use App\Models\User;
+use App\Notifications\Admin\OpsAlert;
+use App\Support\Admin\Admins;
 use App\Support\Gallery\Gallery;
+use App\Support\Http\Hosts;
 use App\Support\Ids;
 use App\Support\Sharing\HarmonyFiles;
 use App\Support\Templates\Catalogue;
@@ -30,6 +35,7 @@ use App\Support\Trust\IpHash;
 use App\Support\Trust\SecurityLog;
 use App\Support\Trust\TrustLevel;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Notification;
 
 /**
  * reports.create: anyone may report a shared harmony, signed in or not (the DSA's notice route,
@@ -137,6 +143,12 @@ final class FileReport
 
         if (($data['choirVoiceId'] ?? null) !== null) {
             $this->choirVoice($user, $data, $ip);
+
+            return;
+        }
+
+        if (($data['guideId'] ?? null) !== null || ($data['clipSlot'] ?? null) !== null) {
+            $this->recordedVoice($user, $data, $ip);
 
             return;
         }
@@ -260,6 +272,57 @@ final class FileReport
         });
 
         $this->securityLog->record(SecurityEventType::Report, $user, $ip, ['idea' => $idea->public_id, 'reason' => $data['reason']]);
+    }
+
+    /**
+     * A song part's recorded voice or a course clip's (Lend your voice, slice 3): recorded for
+     * Hillel, never hidden by reports alone (each was reviewed before it went out); the first report
+     * of one emails the admins, who remove it in Admin > Guides or Clips.
+     *
+     * @param  array{guideId?: string|null, clipSlot?: string|null, reason: string, note?: string|null, website?: mixed}  $data
+     */
+    private function recordedVoice(?User $user, array $data, string $ip): void
+    {
+        $voice = ($data['guideId'] ?? null) !== null
+            ? TemplateGuide::query()->with('templateVersion.template')->whereKey(Ids::decode((string) $data['guideId']) ?? 0)->first()
+            : CourseClip::query()->where('slot', (string) ($data['clipSlot'] ?? ''))->whereNotNull('media_key')->first();
+
+        if ($voice === null) {
+            throw new Refusal(404, 'not_found');
+        }
+
+        if (($data['website'] ?? null) !== null && $data['website'] !== '') {
+            return;
+        }
+
+        $report = new Report(['reason' => $data['reason'], 'note' => trim((string) ($data['note'] ?? ''))]);
+        $report->forceFill([
+            'reportable_type' => $voice->getMorphClass(),
+            'reportable_id' => $voice->getKey(),
+            'reporter_id' => $user?->id,
+            'reporter_key' => $user !== null ? hash_hmac('sha256', 'user|'.$user->id, (string) config('app.key')) : IpHash::of($ip),
+            'ip_hash' => IpHash::of($ip),
+            'status' => Report::OPEN,
+        ]);
+
+        $first = DB::transaction(function () use ($report, $voice): bool {
+            if (Report::query()->insertOrIgnore([array_merge($report->getAttributes(), ['created_at' => now(), 'updated_at' => now()])]) === 0) {
+                return false;
+            }
+
+            return Report::query()->where('reportable_type', $voice->getMorphClass())->where('reportable_id', $voice->getKey())->where('status', Report::OPEN)->count() === 1;
+        });
+
+        $this->securityLog->record(SecurityEventType::Report, $user, $ip, [$voice instanceof CourseClip ? 'clip' : 'guide' => $voice instanceof CourseClip ? $voice->slot : $voice->getKey(), 'reason' => $data['reason']]);
+
+        if ($first && ($to = app(Admins::class)->all())->isNotEmpty()) {
+            $what = $voice instanceof CourseClip ? __('ops.voice_reported.clip', ['slot' => $voice->slot]) : __('ops.voice_reported.guide', ['song' => (string) $voice->templateVersion?->template?->title, 'part' => $voice->part_key]);
+            Notification::send($to, new OpsAlert(__('ops.voice_reported.subject'), __('ops.voice_reported.title'), [
+                $what,
+                __('ops.voice_reported.reason', ['reason' => __('ops.voice_reported.reasons.'.$data['reason'])]),
+                __('ops.voice_reported.look', ['url' => Hosts::appUrl().'/admin/'.($voice instanceof CourseClip ? 'clips' : 'guides')]),
+            ]));
+        }
     }
 
     /**

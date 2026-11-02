@@ -63,7 +63,7 @@ A flow is a journey through the app, run at both sizes. It uses `tests/flows/flo
 | `f.go(path, wait)` | Opens a page and waits for a JS condition |
 | `f.click(text)` / `f.click_t(key, values)` | Clicks the button or link with that text, or with the words `t(key)` gives (works in any language) |
 | `f.type(selector, text)` | Types into a field (and tells Vue) |
-| `f.wait(js, what=...)` / `f.wait_text(text)` | Waits for a condition, or for words on the page |
+| `f.wait(js, what=...)` / `f.wait_text(text)` | Waits for a condition (a promise's answer counts, so `x.then((v) => v.ok)` waits for `v.ok`), or for words on the page |
 | `f.js(expression)` / `f.run(statements)` | Runs JavaScript in the page; `await import('/js/audio.js')` reaches the app's own modules |
 | `f.shot(label)` | Saves a screenshot to `tests/flows/shots/` |
 | `f.expected_errors.append(text)` | A console error the journey causes on purpose (any other fails the flow) |
@@ -105,6 +105,13 @@ step that timed out; the screenshot of the failure is in `tests/flows/shots/`.
   and fails on any text that didn't come through `t()`. Add new screens to it.
 - **Audio in a flow:** `(await import('/js/audio.js')).engine.setLoopback(true)` after
   `unlock()`, as `tests/flows/record_interrupted.py` does. Headless Chrome has a fake mic.
+- **No audio device needed:** headless Chrome plays into its own silent output (`--disable-audio-output`,
+  `tool/cdp.py`), whose clock runs on Chrome's timer, so `tool/test.sh` and the flows keep time even when the
+  Mac's coreaudiod stalls. `STK_AUDIO_DEVICE=1` uses the real output, for a check that needs its latency.
+- **Other browsers:** `FLOW_BROWSER=firefox tool/flows.sh <name>` (headless) or `FLOW_BROWSER=safari`
+  (a real window, one at a time; its mic is a synthetic tone, as its prompt can't be answered). Both
+  speak WebDriver BiDi through `tool/bidi.py`; a flow that sends a Chrome-only DevTools call (network
+  throttling, mouse events) fails saying so in them.
 
 ## A mock scenario
 

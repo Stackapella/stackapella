@@ -70,7 +70,9 @@ one now).
 
 Each optional service (Google and Apple sign-in,
 Turnstile, Sentry, web push with `php artisan app:reminders:keys`, Stripe, Event Schedule, Invoice
-Ninja, X and Bluesky) stays out of the way until its keys are in `.env`.
+Ninja, X and Bluesky, Google Search Console) stays out of the way until its keys are in `.env`.
+`ADMIN_REPORT_TIMEZONE` sets the day Admin's numbers count in (UTC when empty), and sheet music
+import stays off until your DMCA agent is in `DMCA_AGENT_*`.
 
 **What a fresh install connects to:** nothing is reported to us, and there's no third-party
 analytics and no licence check. The server contacts your storage and mail provider, and each optional service only once
@@ -99,27 +101,35 @@ songs until you add your own, no guides and no what's new.
 You need PHP 8.3 or 8.4 and Composer (Herd's are fine), and MySQL 8.4 (DBngin, or any local MySQL).
 There's no npm, ever.
 
-1. Make a database: `CREATE DATABASE stackapella CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;`
-   (the tests make their own, named from `DB_TEST_DATABASE`).
-2. Set up the server:
+1. Make a database (the tests make their own, named from `DB_TEST_DATABASE`). DBngin's and
+   Herd's `mysql` client isn't on the PATH, so name it in full (DBngin's is in
+   `/Users/Shared/DBngin/mysql/<version>/bin/`, a MySQL install's in `/usr/local/mysql/bin/`):
+   ```bash
+   mysql -h 127.0.0.1 -P 3306 -u root -p -e "CREATE DATABASE stackapella CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+   ```
+   Set `MYSQL_CLIENT_PATH` in `.env` to that folder too, for the backup commands.
+2. Fetch the courses and songs first: the demo data is built on them. They live in their own repo
+   ([hillelcoren/stackapella-courses](https://github.com/hillelcoren/stackapella-courses)); from the
+   repo root, `sh server/tool/content.sh link` copies in the commit `.do/content.lock` pins (the first
+   time it clones that repo to `~/Code/stackapella-courses-content`; run it again after a pull that
+   changes the lock). To try your own changes to them, point it at your checkout:
+   `CONTENT_DIR=~/Code/content-<you> sh server/tool/content.sh link` (it copies, so run it again
+   after a change).
+3. Set up the server:
    ```bash
    cd server
    composer install
-   cp .env.example .env            # then set DB_PORT, DB_USERNAME and DB_PASSWORD for your MySQL
+   cp .env.example .env            # then set DB_PORT, DB_USERNAME and DB_PASSWORD for your MySQL,
+                                   # and the demo lists below
    php artisan key:generate
    php artisan migrate
-   php artisan db:seed             # the demo admin, editor, beta singers and accounts
+   php artisan db:seed             # the songs into the catalogue, then the demo admin, editor, beta singers and accounts
    ```
-3. Fetch the courses and songs, which live in their own repo
-   ([hillelcoren/stackapella-courses](https://github.com/hillelcoren/stackapella-courses)), at the
-   commit `.do/content.lock` pins: `sh server/tool/content.sh link` (from the repo root; again after
-   a pull that changes the lock). To try your own changes to them, point it at your checkout:
-   `CONTENT_DIR=~/Code/content-<you> sh server/tool/content.sh link` (it copies, so run it again
-   after a change).
-4. For `/dev/login` to sign you in as the demo admin, `.env` needs the demo lists:
+   For `/dev/login` to sign you in as the demo admin, `.env` needs the demo lists:
    `ADMIN_GOOGLE_IDS=dev-admin`, `ADMIN_EMAILS=hillel@example.com`, `EDITOR_GOOGLE_IDS=dev-editor`,
-   `EDITOR_EMAILS=editor@example.com`.
-5. Before you send a change, scan it for secrets with gitleaks, as [CONTRIBUTING.md](CONTRIBUTING.md)
+   `EDITOR_EMAILS=editor@example.com`. Seeded before step 2, the catalogue is empty and the demo
+   has no songs: run step 2, then `php artisan migrate:fresh --seed`.
+4. Before you send a change, scan it for secrets with gitleaks, as [CONTRIBUTING.md](CONTRIBUTING.md)
    says.
 
 Everyday commands, from `server/`:
@@ -140,8 +150,8 @@ php artisan app:flag              # the switches for an attack and the dark feat
   (`una@example.com`) hasn't verified, and `/verify?token=demo-verify-link-for-the-flow-scripts-0001`
   verifies her. Emails go to the log locally (`MAIL_MAILER=log`), links and all.
 - **Cloud save (M4):** Ada has a demo project (`5b3a9c2e-1f4d-4a6b-8c7e-2d9f0a1b3c4e`) with a recorded
-  alto and a take in the bin. Takes become FLAC on the `long` queue (keep `php artisan queue:work
-  --queue=long,default` running), and `php artisan app:bin:purge` empties the bin (daily in
+  alto and a take in the bin. Takes become FLAC on the `long` queue (keep `php artisan queue:work database_long
+  --queue=long --timeout=300` and `php artisan schedule:work` running, as in production), and `php artisan app:bin:purge` empties the bin (daily in
   production).
 - **Plus (M5):** `plus@example.com` (password `demo-password-for-the-flows`) has Plus without Stripe;
   Silent Night is the demo's song of the month. Billing runs against Stripe's test mode only
@@ -185,6 +195,14 @@ php artisan app:flag              # the switches for an attack and the dark feat
   song's finishers and the network panel (nightly in production). The songs, guides and legal
   pages are `/songs`, `/guides/<slug>` and `/legal/<page>`; nothing is indexed until
   `SITE_INDEXING=true` (at launch, on the launch domain only).
+- **Admin's day, Search Console and the DMCA agent:** Admin's counts, analytics and the morning
+  digest decide a day in `ADMIN_REPORT_TIMEZONE` (a PHP timezone name; empty is UTC). Admin >
+  Growth > Search fills from Google Search Console once `SEARCH_CONSOLE_CREDENTIALS` (a service
+  account's JSON, base64) and `SEARCH_CONSOLE_PROPERTY` are set (`php artisan app:search-console:sync`
+  nightly; `app:pull-search-console` prints it locally). Making a song from imported sheet music
+  stays off until the designated agent is in `DMCA_AGENT_NAME`, `_ADDRESS`, `_PHONE` and `_EMAIL`
+  (docs/sheet-import-legal.md). `CODE_WATCH_*` is Stackapella's own watch for copies of its code;
+  leave it empty.
 - **Sign in with Google or Apple** needs `GOOGLE_CLIENT_*` and `APPLE_*` in `.env`; shield mode needs
   `TURNSTILE_SITE_KEY` and `TURNSTILE_SECRET` (`php artisan app:flag shield_mode on --reason="..."`).
 - **Signing in for real** (on the beta domain): `/admin/sign-in`, Google, then a passkey or an
@@ -209,7 +227,7 @@ tool/tailwind.sh                     # builds css/app.css (the first run downloa
 php -S localhost:8081 tool/serve.php
 # open http://localhost:8081 (localhost counts as secure, so the mic works)
 
-# with the real API (Laravel on :8000, see the server's README):
+# with the real API (Laravel on :8000, see "Running the server" above):
 API=http://127.0.0.1:8000 PHP_CLI_SERVER_WORKERS=4 php -S localhost:8081 tool/serve.php
 ```
 
@@ -220,7 +238,10 @@ API=http://127.0.0.1:8000 PHP_CLI_SERVER_WORKERS=4 php -S localhost:8081 tool/se
   checks (words, the offline list, only `api.js` calling `/api`).
 - `tool/flows.sh` runs the flow scripts (`tests/flows/*.py`): whole journeys through the app at
   phone and desktop size, with screenshots in `tests/flows/shots/`. With
-  `API=http://127.0.0.1:8000` in front, they run against the real server.
+  `API=http://127.0.0.1:8000` in front, they run against the real server. `FLOW_BROWSER=firefox`
+  runs them in headless Firefox and `FLOW_BROWSER=safari` in Safari (it opens a window, and needs
+  Safari > Settings > Developer > Allow remote automation), both through `tool/bidi.py`.
+  `tool/flows.sh slow_phone` measures the first lesson and Sing on a slowed CPU and line.
 - **How to add a test, a flow script or a mock scenario:** [web/tests/README.md](web/tests/README.md).
 - **The mock API:** add `?api=mock` to any address on this machine, and `?scenario=` for a
   refusal (`?scenario=rate_limited`, or `?scenario=admin.flags.update:sudo_required` for one
@@ -233,8 +254,8 @@ API=http://127.0.0.1:8000 PHP_CLI_SERVER_WORKERS=4 php -S localhost:8081 tool/se
   `expose share http://localhost:8081` (Expose ships with Herd), then open the `https://` address
   in Safari. To install it, use Share, then Add to Home Screen.
 
-Projects live in the browser (IndexedDB) until the backend exists, so each browser and device
-has its own.
+A guest's projects live in the browser (IndexedDB), so each browser and device has its own;
+signed in, they're also saved to the server and follow the account.
 
 ### Words and languages
 

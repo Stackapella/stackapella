@@ -86,6 +86,19 @@ final class Landing
     }
 
     /**
+     * Any official song's opening line in the hero's shape (a feature page's demo; a view may not
+     * query), or null when there's no such song.
+     *
+     * @return array{song: string, title: string, version: int, tempo: float, beats: float, length: string, you: string, parts: list<array{key: string, name: string, color: int, range: array{low: int, high: int}, notes: list<array{beat: float, length: float, pitch: int}>}>, words: list<array{beat: float, text: string, joins: bool}>}|null
+     */
+    public static function lineOf(string $slug): ?array
+    {
+        $template = Template::query()->official()->with('currentVersion')->where('slug', $slug)->first();
+
+        return $template !== null ? self::line($template) : null;
+    }
+
+    /**
      * A song's opening line in the hero's shape, for any song's page: its first phrases, up to the
      * first phrase end at least LINE_SECONDS in (or `$end`), with "you" the part asked for, else
      * the melody (Hillel: "Melody first", as the app and both heroes do), else the first part.

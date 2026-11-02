@@ -15,6 +15,7 @@ use App\Support\Gallery\Gallery;
 use App\Support\Gallery\GalleryViews;
 use App\Support\Trust\TrustLevel;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -199,7 +200,12 @@ final class Leagues
         $closed = 0;
 
         foreach (League::query()->with('members.user')->where('week', '<', $week->toDateString())->whereNull('closed_at')->get() as $league) {
-            DB::transaction(function () use ($league): void {
+            $done = DB::transaction(function () use ($league): bool {
+                // Re-read under its lock: a second run finds it closed and promotes nobody twice.
+                if (League::query()->whereKey($league->id)->whereNull('closed_at')->lockForUpdate()->first() === null) {
+                    return false;
+                }
+
                 $learning = UserLearning::query()->whereIn('user_id', $league->members->pluck('user_id'))->get()->keyBy('user_id');
 
                 foreach ($league->members as $member) {
@@ -215,11 +221,19 @@ final class Leagues
                 }
 
                 $league->forceFill(['closed_at' => now()])->save();
+
+                return true;
             });
-            $closed++;
+            $closed += $done ? 1 : 0;
         }
 
-        $this->form($week);
+        // This week's leagues, once: run daily, so a missed Monday is caught the next day, and one
+        // at a time, so two runs never place anyone twice.
+        Cache::lock('leagues:form', 300)->block(30, function () use ($week): void {
+            if (! League::query()->where('week', $week->toDateString())->exists()) {
+                $this->form($week);
+            }
+        });
 
         return $closed;
     }

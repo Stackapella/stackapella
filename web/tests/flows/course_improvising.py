@@ -41,7 +41,7 @@ LESSONS = {
 def open_improvising(f):
     """Staff, with Improvising a harmony shown as if it were live (it stays "soon" until every lesson plays)."""
     f.go("/?api=mock&scenario=&as=admin", "document.querySelector('#app header')")
-    f.run("localStorage.setItem('stackapella.installDismissed', '1');")
+    f.run("localStorage.setItem('stackapella.asks', JSON.stringify({ stopped: ['install'] }));")
     f.go("/learn", "document.querySelector('[data-course-map]')")
     f.wait(f"{STORE}.learning.catalogue.some((c) => c.id === 'improvising-harmony')", what="the catalogue")
     f.run(f"""
@@ -54,7 +54,7 @@ def open_improvising(f):
 
 def journey(f):
     open_improvising(f)
-    f.wait("document.querySelector('[data-more-courses] [data-course=improvising-harmony]')", what="Improvising in More courses")
+    f.wait("document.querySelector('[data-more-courses] [data-course-row=improvising-harmony]')", what="Improvising in More courses")
     f.run(f"{ROUTER}.navigate('/learn/c/improvising-harmony')")
     f.wait("document.querySelector('[data-up-next]') && document.querySelector('[data-course-map]')", what="Up next and the map")
     f.wait_text("A part above")

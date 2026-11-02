@@ -26,6 +26,11 @@ return [
     'accept_hours' => 48,
     'turnaround_days' => [2, 7],
     'unsend_minutes' => 10,
+    // A coach's share of a review or lesson moves this long after it's delivered (Hillel: "Hold 7
+    // days, reverse on dispute"), longer in a coach's first days, so a chargeback can be met.
+    'hold_days' => 7,
+    'new_coach_hold_days' => 14,
+    'new_coach_days' => 30,
     // The coach's access to what was sent ends this long after an engagement ends.
     'access_days' => 90,
     'rating_edit_days' => 30,

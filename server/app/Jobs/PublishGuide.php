@@ -9,6 +9,7 @@ use App\Models\BetaSinger;
 use App\Models\BetaSubmission;
 use App\Models\CourseClip;
 use App\Models\TemplateGuide;
+use App\Models\TemplateVersion;
 use App\Services\Audio\Ffmpeg;
 use App\Services\DigitalOcean\CdnPurge;
 use Illuminate\Bus\Queueable;
@@ -92,7 +93,7 @@ final class PublishGuide implements ShouldQueue
         file_put_contents($in, Storage::disk('private')->readStream($submission->master_key));
 
         try {
-            $ffmpeg->encodeGuide($in, $out, $rate, $from, max($from + 1, $to), $gain);
+            $ffmpeg->encodeGuide($in, $out, $rate, $from, max($from + 1, $to), $gain, mutes: $this->mutes($submission, $rate, $offsetFrames, max(1, $to - $from)));
 
             $key = 'guides/'.Str::lower(Str::random(32)).'.m4a';
             Storage::disk('media')->put($key, (string) file_get_contents($out), ['visibility' => 'public', 'ContentType' => 'audio/mp4', 'CacheControl' => 'public, max-age=31536000, immutable']);
@@ -208,5 +209,38 @@ final class PublishGuide implements ShouldQueue
     public function failed(): void
     {
         BetaSubmission::query()->whereKey($this->submissionId)->update(['publish_status' => 'failed']);
+    }
+
+    /**
+     * A carried take's rests (song beats) as spans of the guide's own seconds: beat 0 is the take's
+     * frame 0, and the guide starts at `$offsetFrames` of song time.
+     *
+     * @return list<array{0: float, 1: float}>
+     */
+    private function mutes(BetaSubmission $submission, int $rate, int $offsetFrames, int $frames): array
+    {
+        $rests = array_values(array_filter((array) $submission->rests, 'is_array'));
+        $data = TemplateVersion::query()->whereKey($submission->template_version_id)->value('data');
+        $tempo = (float) (is_array($data) ? ($data['tempo'] ?? 0) : 0);
+
+        if ($rests === [] || $tempo <= 0) {
+            return [];
+        }
+
+        $beat = 60 / $tempo;
+        $start = $offsetFrames / $rate;
+        $end = $frames / $rate;
+        $spans = [];
+
+        foreach ($rests as $rest) {
+            $from = max(0.0, (float) $rest[0] * $beat - $start);
+            $to = min($end, (float) $rest[1] * $beat - $start);
+
+            if ($to > $from) {
+                $spans[] = [round($from, 4), round($to, 4)];
+            }
+        }
+
+        return $spans;
     }
 }

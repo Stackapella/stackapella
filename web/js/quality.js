@@ -147,7 +147,8 @@ export function checkTake(samples, sampleRate, { notes, beatSeconds, startSecond
         return { checks: [{ code: 'silent', tone: 'bad' }], score: null, phrases, notes, scores: { pitchPercent: null, timingPercent: null, timingMs: null, clipping: false, noise: level.noise, bleed: false, phrases: [] } };
     }
     track ??= trackTake(samples, sampleRate);
-    const score = scoreTake(track, notes, { beatSeconds, startSeconds, phrases, timing, strictness, steadyMs });
+    // Held to the guide bar: a close note is half, not graded (that's for learners: scoring.js noteCredit).
+    const score = scoreTake(track, notes, { beatSeconds, startSeconds, phrases, timing, strictness, steadyMs, graded: false });
     const bleed = bleedCheck(samples, sampleRate, { notes, beatSeconds, startSeconds, track });
     const checks = [];
     if (level.quiet) checks.push({ code: 'quiet', tone: 'warn' });

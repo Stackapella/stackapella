@@ -40,6 +40,7 @@ use Illuminate\Support\Carbon;
  * @property string|null $stripe_payment_intent
  * @property string|null $stripe_charge
  * @property string|null $stripe_transfer
+ * @property Carbon|null $transfer_reversed_at a share taken back for a dispute
  * @property string|null $stripe_subscription
  * @property Carbon|null $accept_by
  * @property Carbon|null $due_at
@@ -115,7 +116,7 @@ final class Engagement extends Model
             'fee_cents' => 'integer',
             'refunded_cents' => 'integer',
             'period_refunded_cents' => 'integer',
-            'disputed_at' => 'datetime',
+            'disputed_at' => 'datetime', 'transfer_reversed_at' => 'datetime',
             'turnaround_days' => 'integer',
             'reviews_per_month' => 'integer',
             'reviews_left' => 'integer',

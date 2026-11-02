@@ -29,6 +29,7 @@ use App\Support\Accounts\Age;
 use App\Support\Accounts\BetaPass;
 use App\Support\Accounts\Sessions;
 use App\Support\Accounts\SignInSession;
+use App\Support\Accounts\SignUpBrowser;
 use App\Support\Flags;
 use App\Support\Media\Instruments;
 use App\Support\Trust\Blocklist;
@@ -81,6 +82,9 @@ final class AuthController extends Controller
             // The funnel's running A/B experiment (App\Actions\Counts\Funnel): a new device draws an arm
             // at its first open while `enrol` is true. Null when none runs or counts are off.
             'experiment' => app(Funnel::class)->current(),
+            // Every running experiment, for the app's experiment(id) (docs/experiments-plan.md): its
+            // arms and weights, whether new devices still join, who may, and which it excludes.
+            'experiments' => app(Funnel::class)->running(),
             // Whether coaches can apply (the coach_signup switch), for the app's and the site's Apply.
             'coachSignup' => $flags->on('coach_signup'),
             // Hum a tune in the app (the your_tune switch, which also turns the site's page to "now").
@@ -90,6 +94,11 @@ final class AuthController extends Controller
             // The Plus courses (the plus_courses switch), for a signed-out visitor too, who can try
             // a live course's free first lesson (account.plusCourses adds staff before it opens).
             'plusCourses' => $flags->on('plus_courses'),
+            // Sheet music import in the app (the sheet_import switch); staff see it before (account).
+            'sheetImport' => $flags->on('sheet_import'),
+            // Lend your voice (the lend_voice switch): volunteers claim the missing real voices.
+            'lendVoice' => $flags->on('lend_voice'),
+            'schools' => $flags->on('schools'),
             // The browser error reporter's DSN (public by design: its envelopes come to /log/errors).
             'sentryDsn' => is_string($dsn = config('sentry.browser_dsn')) && $dsn !== '' ? $dsn : null,
         ]]);
@@ -113,18 +122,28 @@ final class AuthController extends Controller
         $elapsedMs = $request->validated('elapsedMs');
         $tooQuick = is_int($elapsedMs) && $elapsedMs < 2000;
 
+        // The browser (or app) that signs up: its confirm link keeps the password only back here.
+        [$browserHash, $cookie] = SignUpBrowser::start($request);
+
         if ($request->validated('nickname') === null && ! $tooQuick) {
             $invite = $request->validated('invite');
             $early = $request->validated('early');
-            $register->handle((string) $request->validated('name'), (string) $request->validated('email'), (string) $request->validated('password'), $request->validated('ref'), app()->getLocale(), $request->ip(), $birth, is_string($invite) && $invite !== '' ? $invite : null, is_string($early) && $early !== '' ? $early : null, Country::of($request));
+            $register->handle((string) $request->validated('name'), (string) $request->validated('email'), (string) $request->validated('password'), $request->validated('ref'), app()->getLocale(), $request->ip(), $birth, is_string($invite) && $invite !== '' ? $invite : null, is_string($early) && $early !== '' ? $early : null, Country::of($request), $browserHash);
         }
 
-        return $this->checkEmail();
+        $answer = $this->checkEmail();
+
+        return $cookie !== null ? $answer->withCookie($cookie) : $answer;
     }
 
     public function verify(TokenRequest $request, VerifyEmail $verify, AcceptInvite $acceptInvite): AccountResource
     {
-        $user = $verify->handle((string) $request->validated('token'));
+        // "Sign in as x@y?" first, when another account is signed in here or it's opened elsewhere.
+        if (! $request->boolean('confirm') && ($email = $verify->confirmFor((string) $request->validated('token'), $request->user(), SignUpBrowser::hash($request))) !== null) {
+            throw new Refusal(409, 'confirm_sign_in', ['email' => $email]);
+        }
+
+        $user = $verify->handle((string) $request->validated('token'), SignUpBrowser::hash($request));
         $this->signInSession->start($request, $user, 'verify');
         // The beta invite the sign-up carried, now that the address is proven.
         $acceptInvite->pending($user);
@@ -134,7 +153,7 @@ final class AuthController extends Controller
 
     public function resend(EmailRequest $request, ResendVerification $resend): JsonResponse
     {
-        $resend->handle((string) $request->validated('email'), $request->ip());
+        $resend->handle((string) $request->validated('email'), $request->ip(), SignUpBrowser::hash($request));
 
         return $this->checkEmail();
     }

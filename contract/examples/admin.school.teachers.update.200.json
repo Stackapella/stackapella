@@ -1,0 +1,11 @@
+{
+    "data": {
+        "id": "Zx81Qw2e",
+        "name": "Ms Rivera",
+        "email": "teacher@example.com",
+        "approved": true,
+        "seatAllowance": 300,
+        "seatsTaken": 30
+    }
+}
+

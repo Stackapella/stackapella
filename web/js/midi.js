@@ -44,6 +44,8 @@ export function toMidi(template, { partKeys = null } = {}) {
     if (!parts.length) throw new Error('No written parts to export');
     const metre = metreOf(template.timeSignature);
     const perBeat = Math.round(metre.quarters * TICKS);
+    // MIDI's time 0 is bar 1's downbeat: an upbeat starts the bar's missing beats in, so the bars line up.
+    const upbeat = template.pickupBeats ? Math.round((metre.perBar - template.pickupBeats) * perBeat) : 0;
     const sig = keySignature(template.key || 'C');
     const fifths = sig.type === 'flat' ? -sig.count : sig.count;
     const microseconds = Math.round(60000000 / (template.tempo * metre.quarters)); // a quarter note's length
@@ -63,8 +65,8 @@ export function toMidi(template, { partKeys = null } = {}) {
             { at: 0, order: 1, bytes: [0xc0 | channel, 52] }, // choir aahs
         ];
         for (const n of part.guide.notes) {
-            const on = Math.round(n.beat * perBeat);
-            const off = Math.max(on + 1, Math.round((n.beat + n.length) * perBeat));
+            const on = upbeat + Math.round(n.beat * perBeat);
+            const off = Math.max(on + 1, upbeat + Math.round((n.beat + n.length) * perBeat));
             if (n.lyric) events.push({ at: on, order: 2, bytes: meta(0x05, utf8(n.lyric.replace(/-$/, ''))) });
             events.push({ at: on, order: 3, bytes: [0x90 | channel, n.pitch, 80] });
             events.push({ at: off, order: 1, bytes: [0x80 | channel, n.pitch, 0] }); // offs before the next note's on

@@ -1,6 +1,7 @@
 <?php
 
 declare(strict_types=1);
+use App\Support\Http\Hosts;
 
 /*
 |--------------------------------------------------------------------------
@@ -17,7 +18,9 @@ return [
     'public_url' => env('PUBLIC_URL'),
 
     // The beta pass is read on both hosts before launch (".stackapella.com"); unset, the host's own.
-    'pass_domain' => env('BETA_PASS_DOMAIN'),
+    // Unset, it's worked out from the two hosts' shared parent (Hillel, 2026-10-31: game mode turned
+    // off on the landing didn't reach the app, because production never set it).
+    'pass_domain' => env('BETA_PASS_DOMAIN') ?: Hosts::sharedCookieDomain(is_string(env('APP_URL')) ? env('APP_URL') : null, is_string(env('PUBLIC_URL')) ? env('PUBLIC_URL') : null),
 
     // The public site's old hosts (beta.stackapella.com once PUBLIC_URL is stackapella.com): never
     // a blanket redirect, because they still serve what can't move by redirect. Old installs keep

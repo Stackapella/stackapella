@@ -21,6 +21,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Validation\ValidationException;
+use Throwable;
 
 /**
  * The admin's actions on someone's account (docs/backend-plan.md A2, "people"; the operations
@@ -89,10 +90,18 @@ final class ManagePerson
             }
 
             $this->billing->refund($payment['paymentIntent'], $cents, 'plus-refund-'.$payment['paymentIntent'].'-'.$payment['refunded'].'-'.$cents);
-            $this->billingEvents->endPlusNow($person, 'refunded');
+            // Recorded the moment the money moves, so a retry finds it (the memo) and it's audited
+            // even if ending Plus fails after.
             AuditLog::record('person.plus_refunded', $person, $admin, after: ['amountCents' => $cents, 'currency' => $payment['currency']], reason: $note, ip: $ip);
             $result = ['amountCents' => $cents, 'currency' => $payment['currency'], 'refundedCents' => $payment['refunded'] + $cents, 'paidCents' => $payment['cents']];
             Cache::put($memo, $result, now()->addMinutes(10));
+
+            try {
+                $this->billingEvents->endPlusNow($person, 'refunded');
+            } catch (Throwable $e) {
+                // Stripe may have cancelled it already (its webhook then ends Plus); the refund stands.
+                report($e);
+            }
 
             return $result;
         });

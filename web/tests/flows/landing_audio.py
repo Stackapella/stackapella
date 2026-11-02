@@ -40,25 +40,31 @@ def plays(f, label):
     f.shot(label)
     f.run(f"{PLAYER}.click();")
     # The game skin, come on with no press (as a page opened in game mode): the hero's slot is the
-    # cabinet, and the app's own lane plays the take by itself with no sound, with "Press for sound".
+    # cabinet, resting on the lane's first frame under PRESS START (Hillel: never by itself).
     cab = "document.querySelector('[data-cabinet]')"
     sound = "document.querySelector('[data-cab-sound]')"
+    start = "document.querySelector('[data-cab-press]')"
     f.run("window.stackapellaTheme?.choose({ skin: 'game' }); document.documentElement.dataset.skin = 'game';")
     f.wait("document.querySelector('[data-cab-lane] canvas')", timeout=20, what=f"{label}: the cabinet's lane")
-    f.wait(f"{cab}.hasAttribute('data-playing') && !{sound}.hidden", timeout=20, what=f"{label}: the take playing by itself, quietly")
-    f.shot(label + "-game-quiet")
-    # A press brings the sound in, carrying on from where it is.
-    f.run(f"{sound}.click();")
-    f.wait(f"{sound}.hidden && {cab}.hasAttribute('data-playing')", timeout=20, what=f"{label}: the take playing with sound")
+    f.wait(f"{start} && !{start}.hidden", timeout=20, what=f"{label}: PRESS START")
+    time.sleep(1)
+    assert f.js(f"!{cab}.hasAttribute('data-playing')"), f"{label}: the take started by itself"
+    assert f.js(f"{start}.getAttribute('aria-label')"), f"{label}: PRESS START has no name"
+    f.shot(label + "-game-press-start")
+    # One press starts it with sound.
+    f.run(f"{start}.click();")
+    f.wait(f"{sound}.hidden && {cab}.hasAttribute('data-playing') && {start}.hidden", timeout=20, what=f"{label}: the take playing with sound")
     time.sleep(1.2)
     assert f.js("document.querySelector('[data-cab-time]').textContent") != "0:00", f"{label}: the take's time didn't move"
     f.shot(label + "-game")
-    # Game mode off by its toggle stops it; on again by the toggle (a press) plays it with sound.
+    # Game mode off by its toggle stops it; on again it rests under PRESS START, and a press plays it with sound.
     toggle = "document.querySelector('.gt--hero')"
     f.run(f"{toggle}.click();")
     f.wait(f"document.documentElement.dataset.skin === 'serious' && !{cab}.hasAttribute('data-playing')", timeout=10, what=f"{label}: Game mode off stops the take")
     f.run(f"{toggle}.click();")
-    f.wait(f"document.documentElement.dataset.skin === 'game' && {cab}.hasAttribute('data-playing') && {sound}.hidden", timeout=20, what=f"{label}: Game mode on plays the take with sound")
+    f.wait(f"document.documentElement.dataset.skin === 'game' && !{start}.hidden && !{cab}.hasAttribute('data-playing')", timeout=20, what=f"{label}: Game mode on rests under PRESS START")
+    f.run(f"{start}.click();")
+    f.wait(f"{cab}.hasAttribute('data-playing') && {sound}.hidden", timeout=20, what=f"{label}: PRESS START plays the take with sound")
     f.run("document.querySelector('[data-cab-play]').click();")
     f.wait(f"!{cab}.hasAttribute('data-playing')", timeout=10, what=f"{label}: the take paused")
 

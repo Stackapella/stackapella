@@ -7,6 +7,7 @@
 // - /groups/<id>: a group (the director's view, or a member's).
 // - /choir/<token>: the group's link: what it is, and Join.
 
+import { AccountWall } from '../components/account-wall.js';
 import { PageHeader } from '../components/page.js';
 import { api } from '../api.js';
 import { formatDate, locale, t, tk } from '../i18n.js';
@@ -56,8 +57,11 @@ const Frame = {
     props: { title: { type: String, required: true }, back: { type: String, default: '/' }, titleIsContent: Boolean },
     template: `
         <div class="mx-auto flex min-h-dvh max-w-3xl flex-col px-4 pb-16 pt-[max(0.5rem,env(safe-area-inset-top))] md:px-8">
-            <PageHeader :title="title" :back="back" :title-is-content="titleIsContent"><template #aside><slot name="aside" /></template></PageHeader>
-            <slot />
+            <!-- A short page (a few groups) sits in the middle of a desktop's height, its title with it; a long one runs from the top as before. -->
+            <div class="md:my-auto md:pb-16">
+                <PageHeader :title="title" :back="back" :title-is-content="titleIsContent"><template #aside><slot name="aside" /></template></PageHeader>
+                <slot />
+            </div>
         </div>`,
 };
 
@@ -72,13 +76,13 @@ const AdultCheck = {
 };
 
 export const GroupsView = {
-    components: { Frame, EmptyState, Field, Icon, Modal, Notice, AdultCheck },
+    components: { AccountWall, Frame, EmptyState, Field, Icon, Modal, Notice, AdultCheck },
     data: () => ({ groups: null, failed: null, making: false, name: '', adult: false, busy: false, error: null }),
     setup: () => ({ account, navigate }),
     template: `
         <Frame :title="t('groups.title')">
             <template #aside><button v-if="account.me" type="button" class="btn-primary btn-sm" @click="making = true"><Icon name="plus" :size="16" /> {{ t('groups.start') }}</button></template>
-            <Notice v-if="account.loaded && !account.me" tone="info">{{ t('groups.signIn') }} <a href="/signin?next=/groups" class="link" @click.prevent="navigate('/signin?next=/groups')">{{ t('auth.signIn') }}</a></Notice>
+            <AccountWall v-if="account.loaded && !account.me" reason="groups" next="/groups" />
             <p v-else-if="failed" class="card p-6 text-cream" role="alert">{{ failed }}</p>
             <p v-else-if="!groups" class="text-muted" role="status">{{ t('create.loading') }}</p>
             <EmptyState v-else-if="!groups.length" icon="list" :title="t('groups.none')" :body="t('groups.noneHint')">
@@ -198,7 +202,7 @@ export const GroupView = {
                             </div>
                             <!-- The part strip: each of the song's own parts, who covers it and how far they've got. -->
                             <ul v-if="partsOf(song).length" class="grid grid-cols-2 gap-2 sm:grid-cols-[repeat(auto-fit,minmax(8.5rem,1fr))]" :aria-label="t('groups.whoSings')">
-                                <li v-for="(p, i) in partsOf(song)" :key="p.key" class="rounded-[18px] bg-(--fill) p-3 text-sm">
+                                <li v-for="(p, i) in partsOf(song)" :key="p.key" class="rounded-tile bg-(--fill) p-3 text-sm">
                                     <span class="flex items-center gap-2 font-semibold text-cream"><span class="size-2.5 shrink-0 rounded-full" :style="{ background: paint(p.color ?? PART_COLORS[i % PART_COLORS.length]) }" aria-hidden="true"></span><span class="truncate">{{ templatePartName(p) }}</span></span>
                                     <span v-for="m in coverOf(song, p.key)" :key="m.id" class="mt-1.5 block">
                                         <span class="block truncate font-semibold text-cream" translate="no">{{ m.name }}</span>

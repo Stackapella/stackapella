@@ -44,7 +44,7 @@ LESSONS = {
 def open_ear(f):
     """Staff, with Ear training shown as if it were live (it stays "soon" until every lesson plays)."""
     f.go("/?api=mock&scenario=&as=admin", "document.querySelector('#app header')")
-    f.run("localStorage.setItem('stackapella.installDismissed', '1');")
+    f.run("localStorage.setItem('stackapella.asks', JSON.stringify({ stopped: ['install'] }));")
     f.go("/learn", "document.querySelector('[data-course-map]')")
     f.wait(f"{STORE}.learning.catalogue.some((c) => c.id === 'ear')", what="the catalogue")
     f.run(f"""
@@ -57,7 +57,7 @@ def open_ear(f):
 
 def journey(f):
     open_ear(f)
-    f.wait("document.querySelector('[data-more-courses] [data-course=ear]')", what="Ear training in More courses")
+    f.wait("document.querySelector('[data-more-courses] [data-course-row=ear]')", what="Ear training in More courses")
     f.run(f"{ROUTER}.navigate('/learn/c/ear')")
     f.wait("document.querySelector('[data-up-next]') && document.querySelector('[data-course-map]')", what="Up next and the map")
     f.wait_text("Song starts")

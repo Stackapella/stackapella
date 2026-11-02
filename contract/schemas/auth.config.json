@@ -24,7 +24,11 @@
                 "humTune",
                 "ideas",
                 "plusCourses",
-                "experiment"
+                "sheetImport",
+                "lendVoice",
+                "experiment",
+                "experiments",
+                "schools"
             ],
             "properties": {
                 "methods": {
@@ -106,6 +110,14 @@
                     "type": "boolean",
                     "description": "The Plus courses are live (the plus_courses switch): anyone, signed out too, can try a live course's free first lesson. account.plusCourses is the same switch, plus staff before it opens."
                 },
+                "sheetImport": {
+                    "type": "boolean",
+                    "description": "Sheet music import is on in the app (the sheet_import switch); staff see it before."
+                },
+                "lendVoice": {
+                    "type": "boolean",
+                    "description": "Lend your voice is on (the lend_voice switch): volunteers claim the songs' and lessons' missing real voices."
+                },
                 "experiment": {
                     "type": [
                         "object",
@@ -133,6 +145,96 @@
                         }
                     },
                     "description": "The funnel's running A/B experiment (admin.funnel.show), or null when none runs or usage counts are off. A device sends \"<id>-<arm>\" as counts.create's variant."
+                },
+                "experiments": {
+                    "type": "array",
+                    "description": "Every running experiment (docs/experiments-plan.md), for the app's experiment(id): drawn when the screen that differs first shows, kept on the device as an arm label, never an id. `experiment` stays onb1's until it ends.",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "id",
+                            "arms",
+                            "enrol",
+                            "audience",
+                            "excludes"
+                        ],
+                        "properties": {
+                            "id": {
+                                "type": "string"
+                            },
+                            "arms": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "additionalProperties": false,
+                                    "required": [
+                                        "arm",
+                                        "weight"
+                                    ],
+                                    "properties": {
+                                        "arm": {
+                                            "type": "string",
+                                            "enum": [
+                                                "a",
+                                                "b",
+                                                "c"
+                                            ]
+                                        },
+                                        "weight": {
+                                            "type": "integer",
+                                            "description": "Its share of new devices, out of 100."
+                                        }
+                                    }
+                                }
+                            },
+                            "enrol": {
+                                "type": "boolean",
+                                "description": "New devices may still join."
+                            },
+                            "audience": {
+                                "type": "object",
+                                "additionalProperties": false,
+                                "properties": {
+                                    "new": {
+                                        "type": "boolean",
+                                        "description": "Only a device with no course started and no account."
+                                    },
+                                    "skin": {
+                                        "type": "string",
+                                        "enum": [
+                                            "game",
+                                            "serious"
+                                        ]
+                                    },
+                                    "size": {
+                                        "type": "string",
+                                        "enum": [
+                                            "phone",
+                                            "desktop"
+                                        ]
+                                    },
+                                    "signedIn": {
+                                        "type": "boolean"
+                                    },
+                                    "firstWeek": {
+                                        "type": "boolean",
+                                        "description": "May enrol a singer in their first week (needs Hillel's OK)."
+                                    }
+                                }
+                            },
+                            "excludes": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                },
+                "schools": {
+                    "type": "boolean",
+                    "description": "The school offer's class codes are open (docs/school-offer-plan.md)."
                 }
             }
         }

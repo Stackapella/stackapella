@@ -9,8 +9,9 @@
 import { hzToCents } from './pitchtrack.js';
 
 /** How close counts as on pitch, in cents, by strictness. */
-// Bump with any change to how a take is scored: scores carry it, and a new number starts new leaderboards.
-export const SCORING_VERSION = 1;
+// Bump with any change to how a take's pitch percent is scored (what the boards rank): scores carry it, and a
+// new number starts new leaderboards. The timing score isn't ranked, so a timing-only change keeps it.
+export const SCORING_VERSION = 2; // 2: a close note counts by how near (Hillel: much easier for beginners)
 export const STRICTNESS = { relaxed: 50, standard: 35, precise: 20 };
 
 const SCOOP_CENTS = 100; // starting more than a semitone away...
@@ -22,12 +23,16 @@ const ENTRY_WINDOW = [-0.25, 0.4]; // where to look for an entry around the note
 const STEADY_MIN_FRAMES = 22; // shorter notes can't tell vibrato from wavering: not judged
 const LIVE_GAP_SECONDS = 0.06; // a dropped reading this short doesn't break a held note
 const HEARD_SHARE = 0.4; // a note needs this share of its middle voiced to be scored
-const ON_TIME_MS = 80; // entries within this are on time
-const STEADY_MS = 90; // for the timing score: entries and note changes within this of the beat (by default)
+const ON_TIME_MS = 120; // entries within this are on time (80 until Hillel's "much easier", 2026-11-01)
+const STEADY_MS = 120; // for the timing score: entries and note changes within this of the beat (by default; 90 before 2026-11-01)
 const CHANGE_WINDOW = [-0.25, 0.3]; // where to look for a change of note around its start
 const OFFSET_FORGIVEN_MS = 100; // an even offset up to this isn't held against the timing score
 const TIMED_AT_LEAST = 3; // fewer timed moments than this: no timing score
 const BREATH_BEATS = 0.5; // the last half beat before a new line (a `br` note) is a breath
+// A line started after a breath (a `br` note, or the take's first) may come in this much late and still be
+// on time (Zvi, a beta bass: a real breath takes longer than the half beat a part leaves). Early isn't forgiven,
+// and the onsets inside a line are judged as before.
+const BREATH_LATE_MS = 300;
 
 /**
  * Scores a take. `track` is from trackTake(); `notes` are the part's ({ beat, length, pitch });
@@ -57,7 +62,19 @@ export function sungEnd(notes, i) {
     return end - Math.min(breath, note.length / 2);
 }
 
-export function scoreTake(track, notes, { beatSeconds, startSeconds = 0, transpose = 0, strictness = 'standard', timing = 'measured', phrases = [], steadyMs = STEADY_MS } = {}) {
+/**
+ * A scored note's share of the percent: lit is whole; close counts by how near it is, whole at the lit
+ * band's edge down to half at twice the band (35 to 70 cents by default); not yet and unheard nothing.
+ * `graded` false (a guide's check, held to the guide bar) keeps close at half.
+ */
+export function noteCredit(note, tolerance = STRICTNESS.standard, graded = true) {
+    if (note.level === 'lit') return 1;
+    if (note.level !== 'close' || note.cents === null) return 0;
+    if (!graded) return 0.5; // a guide's check (quality.js): close is half, as before
+    return 1 - 0.5 * Math.min(1, Math.max(0, (Math.abs(note.cents) - tolerance) / tolerance));
+}
+
+export function scoreTake(track, notes, { beatSeconds, startSeconds = 0, transpose = 0, strictness = 'standard', timing = 'measured', phrases = [], steadyMs = STEADY_MS, graded = true } = {}) {
     const tolerance = STRICTNESS[strictness] ?? STRICTNESS.standard;
     // Each note ends where its singing does: a breath before a new line isn't held against anyone.
     const timed = notes.map((note, i) => ({
@@ -78,34 +95,41 @@ export function scoreTake(track, notes, { beatSeconds, startSeconds = 0, transpo
     if (scored.length < Math.max(1, notes.length * 0.3)) {
         return { ...base, status: 'unheard', percent: null, word: null, tendency: null, registers: null, entryMs: null, timingPercent: null, scoops: 0, wavering: 0, phrases: [], insights: [], wentWell: [], tips: [] };
     }
-    const lit = scored.filter((r) => r.level === 'lit').length;
-    const close = scored.filter((r) => r.level === 'close').length;
     // In a heard take, a note not heard counts as not yet (the course review: two of five notes sung
     // well isn't 100%). Notes the take doesn't cover to their end (stopped early) don't count either way.
     const takeEnd = track.hz.length / track.rate;
     const counted = results.filter((r, i) => r.level !== 'unheard' || timed[i].end <= takeEnd);
-    // Close counts half: effort shows, and a take that's all close isn't 0%.
-    const percent = Math.round(((lit + close / 2) / counted.length) * 100);
+    // A close note counts by how near it is (effort shows, and a beginner a little flat gets most of the
+    // credit); a take that's all close isn't 0%.
+    const points = counted.reduce((sum, r) => sum + noteCredit(r, tolerance, graded), 0);
+    const percent = Math.round((points / counted.length) * 100);
     // Tendencies come from the notes nearly there; one note far off doesn't set the advice.
     const near = scored.filter((r) => r.level !== 'notYet');
     const tendency = near.length ? median(near.map((r) => r.cents)) : 0;
     const registers = byRegister(near.length ? near : scored);
-    const entries = results.filter((r) => r.entryMs !== null).map((r) => r.entryMs);
-    const entryMs = entries.length ? median(entries) : null;
     const scoops = scored.filter((r) => r.scoop).length;
     const wavering = scored.filter((r) => r.steady === false).length;
     // The timing: entries and changes of note against the beat (or, estimated, the singer's usual offset).
-    const moments = timing === 'none' ? [] : results.flatMap((r) => [r.entryMs, r.changeMs].filter((ms) => ms !== null).map((ms) => ({ index: r.index, ms })));
+    // An entry on a line's first note after a breath (a `br` note past the first) is `line`: lateness there is the breath.
+    const raw = results.flatMap((r) => [
+        r.entryMs === null ? null : { index: r.index, ms: r.entryMs, entry: true, line: r.index > 0 && !!notes[r.index].br },
+        r.changeMs === null ? null : { index: r.index, ms: r.changeMs, entry: false, line: false },
+    ].filter(Boolean));
     // Steady is against the singer's own usual offset (a take that's evenly a little late lines up
     // with a shift), up to OFFSET_FORGIVEN_MS when the latency was measured; estimated, any offset.
-    const usual = moments.length ? median(moments.map((t) => t.ms)) : 0;
+    const usual = raw.length ? median(raw.map((t) => t.ms)) : 0;
     const reference = timing === 'measured' ? Math.max(-OFFSET_FORGIVEN_MS, Math.min(OFFSET_FORGIVEN_MS, usual)) : usual;
+    // A breath's lateness, up to BREATH_LATE_MS past the singer's usual, isn't held against anyone.
+    const forgive = (t) => (t.line && t.ms > reference ? Math.max(reference, t.ms - BREATH_LATE_MS) : t.ms);
+    const entries = raw.filter((t) => t.entry).map(forgive);
+    const entryMs = entries.length ? median(entries) : null;
+    const moments = timing === 'none' ? [] : raw.map((t) => ({ index: t.index, ms: forgive(t) }));
     const steadyShare = (list, least = TIMED_AT_LEAST) => (list.length >= least ? Math.round((list.filter((t) => Math.abs(t.ms - reference) <= steadyMs).length / list.length) * 100) : null);
     const timingPercent = steadyShare(moments);
     const phraseResults = phrases.map(([startBeat, endBeat], index) => {
         const within = (i) => notes[i].beat >= startBeat - 1e-9 && notes[i].beat < endBeat - 1e-9;
         const inside = counted.filter((r) => within(r.index));
-        const points = inside.reduce((sum, r) => sum + (r.level === 'lit' ? 1 : r.level === 'close' ? 0.5 : 0), 0);
+        const points = inside.reduce((sum, r) => sum + noteCredit(r, tolerance, graded), 0);
         const mine = moments.filter((t) => within(t.index));
         // A phrase's lean: late or early when most of its timed moments miss the same way.
         const off = mine.filter((t) => Math.abs(t.ms - reference) > steadyMs);
@@ -161,7 +185,10 @@ function scoreNote(track, note, { tolerance }) {
     // start. The search never reaches back into the note before.
     if (note.afterRest) {
         const window = frames(track, Math.max(note.start + ENTRY_WINDOW[0], note.previousEnd + 0.05), note.start + ENTRY_WINDOW[1]);
-        const onset = window.find((f, i, all) => f.hz && (i === 0 || !all[i - 1].hz) && all.slice(i, i + 3).every((g) => g.hz));
+        // Silence first: singing straight on through a breath mark (still voiced as the window opens) is no
+        // entry to time, never an early one.
+        const voicedBefore = (f) => !!track.hz[Math.round(f.time * track.rate) - 1];
+        const onset = window.find((f, i, all) => f.hz && (i === 0 ? !voicedBefore(f) : !all[i - 1].hz) && all.slice(i, i + 3).every((g) => g.hz));
         if (onset) result.entryMs = Math.round((onset.time + ONSET_BIAS - note.start) * 1000);
     }
     // A change of note (joined to the one before, a semitone or more away): when the voice crosses

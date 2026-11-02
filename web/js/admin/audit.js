@@ -5,6 +5,7 @@ import { api } from '../api.js';
 import { formatDate, t, tk } from '../i18n.js';
 import { EmptyState, Notice } from '../components/form.js';
 import { explain, sendToSignIn } from './auth.js';
+import { screen } from './common.js';
 
 const FILTERS = [
     { value: '', label: tk('admin.audit.all') },
@@ -33,6 +34,16 @@ export const AuditSection = {
             <Notice v-if="failed" tone="bad">{{ failed }} <button type="button" class="link" @click="load()">{{ t('common.tryAgain') }}</button></Notice>
             <p v-else-if="!entries" class="text-muted" role="status">{{ t('admin.loading') }}</p>
             <EmptyState v-else-if="!entries.length" icon="list" :title="t('admin.audit.none')" />
+            <!-- A phone: each entry stacked (the table needs a wide screen). -->
+            <ul v-else-if="phone" class="card divide-y divide-line" data-audit-cards>
+                <li v-for="entry in entries" :key="entry.id" class="space-y-1 p-4 text-sm">
+                    <p class="flex flex-wrap items-baseline justify-between gap-x-3"><code class="text-xs text-cream" translate="no">{{ entry.action }}</code><time class="text-xs text-muted" :datetime="entry.createdAt">{{ formatDate(entry.createdAt, { dateStyle: 'medium', timeStyle: 'short' }) }}</time></p>
+                    <p class="text-cream" translate="no">{{ entry.actor?.name ?? t('admin.system') }}<code v-if="entry.subject" class="ms-2 break-all text-xs text-muted" translate="no">{{ entry.subject.type }} {{ entry.subject.id }}</code></p>
+                    <p v-if="entry.reason" class="text-cream" translate="no">{{ entry.reason }}</p>
+                    <p v-if="entry.before" class="break-all text-xs text-muted">{{ t('admin.audit.before') }} <code translate="no">{{ short(entry.before) }}</code></p>
+                    <p v-if="entry.after" class="break-all text-xs text-muted">{{ t('admin.audit.after') }} <code translate="no">{{ short(entry.after) }}</code></p>
+                </li>
+            </ul>
             <div v-else class="card overflow-x-auto">
                 <table class="data-table">
                     <thead><tr><th>{{ t('admin.when') }}</th><th>{{ t('admin.who') }}</th><th>{{ t('admin.audit.action') }}</th><th>{{ t('admin.audit.subject') }}</th><th>{{ t('admin.details') }}</th></tr></thead>
@@ -53,6 +64,9 @@ export const AuditSection = {
             </div>
             <button v-if="cursor && !failed" type="button" class="btn-secondary" :disabled="loadingMore" @click="load(true)">{{ loadingMore ? t('admin.loading') : t('admin.loadMore') }}</button>
         </div>`,
+    computed: {
+        phone: () => screen.phone,
+    },
     created() {
         this.load();
     },

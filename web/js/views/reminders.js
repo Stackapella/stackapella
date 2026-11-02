@@ -3,6 +3,7 @@
 // The browser asks for permission only when they're turned on, from the tap. The push's link
 // "Turn off" lands here.
 
+import { AccountWall } from '../components/account-wall.js';
 import { PageHeader } from '../components/page.js';
 import { formatDate, t } from '../i18n.js';
 import { goBack, navigate } from '../router.js';
@@ -20,14 +21,14 @@ const TIMES = Array.from({ length: 96 }, (_, i) => `${String(Math.floor(i / 4)).
 const GOAL_DAYS = { 2: [2, 5], 3: [1, 3, 5], 5: [1, 2, 3, 4, 5] };
 
 export const RemindersView = {
-    components: { PageHeader, Notice, Logo, Switch },
+    components: { AccountWall, PageHeader, Notice, Logo, Switch },
     data: () => ({ reminder: null, days: [1, 3, 5], time: '18:30', busy: false, notice: null, failed: false }),
     setup: () => ({ account, navigate, goBack, TIMES, supported: pushSupported(), install: needsInstall() }),
     template: `
-        <div class="min-h-dvh bg-ink px-4 pb-16 pt-[max(0.5rem,env(safe-area-inset-top))] md:px-8">
+        <div data-ui="screen" class="min-h-dvh bg-ink px-4 pb-16 pt-[max(0.5rem,env(safe-area-inset-top))] md:px-8">
             <div class="mx-auto flex w-full max-w-2xl flex-col gap-4 md:gap-6">
                 <PageHeader :title="t('reminders.title')" back="/settings"><template #aside><span v-if="onHere" class="text-sm text-muted" role="status">{{ busy ? t('common.saving') : t('common.saved') }}</span></template></PageHeader>
-                <Notice v-if="!account.me" tone="info">{{ t('reminders.signIn') }} <button type="button" class="link" @click="navigate('/signin?mode=signup&for=reminders&next=/settings/reminders')">{{ t('wrap.makeAccount') }}</button></Notice>
+                <AccountWall v-if="!account.me" reason="reminders" next="/settings/reminders" />
                 <Notice v-else-if="install" tone="info">{{ t('reminders.install') }}</Notice>
                 <Notice v-else-if="!supported" tone="info">{{ t('reminders.unsupported') }}</Notice>
                 <p v-else-if="!reminder && !failed" class="text-muted" role="status">{{ t('settings.loading') }}</p>

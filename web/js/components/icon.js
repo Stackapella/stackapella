@@ -29,6 +29,10 @@ const paths = {
     timing: '<circle cx="12" cy="13" r="7.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 9v4.5l2.5 1.5M10 3.5h4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>',
     loop: '<path d="M17 4.5 20 7.5l-3 3M20 7.5H8.5a4.5 4.5 0 0 0-4.5 4.5M7 19.5l-3-3 3-3M4 16.5h11.5a4.5 4.5 0 0 0 4.5-4.5" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>',
     repeat: '<path d="M4 7h11M4 12h7M4 17h5" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/><path d="M15 13.5v6l5-3-5-3Z" fill="currentColor"/>',
+    // Make your own's ways in (Hillel's 93.png): a hash for chords, a wave for a hummed tune, an arrow down for a file.
+    hash: '<path d="M10 4 8 20M16 4l-2 16M4.5 9h16M3.5 15h16" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>',
+    wave: '<path d="M3 12c1.5-4.5 3-4.5 4.5 0s3 4.5 4.5 0 3-4.5 4.5 0 3 4.5 4.5 0" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>',
+    arrowDown: '<path d="M12 4.5v14m-5.5-5.5 5.5 5.5 5.5-5.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>',
     note: '<path d="M9 18.5V6l10-2v12.5" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/><circle cx="6.5" cy="18.5" r="2.5" fill="currentColor"/><circle cx="16.5" cy="16.5" r="2.5" fill="currentColor"/>',
     arrow: '<path d="M5 12h13m-5-5.5L18.5 12 13 17.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>',
     alert: '<circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 7.5v5.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="16.3" r="1.2" fill="currentColor"/>',
@@ -64,6 +68,6 @@ export const Logo = {
     template: `
         <span class="inline-flex items-center gap-2 font-extrabold text-cream">
             <span class="block shrink-0 [&>svg]:size-full" :style="{ width: size + 'px', height: size + 'px' }" aria-hidden="true" v-html="LOGO_MARK"></span>
-            <span class="text-[18px] tracking-[-0.01em]" translate="no">Stackapella</span>
+            <span class="text-[18px] tracking-[-0.01em]" translate="no" data-ui="wordmark">Stackapella</span>
         </span>`,
 };

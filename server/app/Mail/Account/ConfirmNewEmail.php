@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Mail\Account;
 
+use App\Support\Http\Hosts;
+
 /**
  * To the new address, when the person changes their email.
  */
@@ -18,6 +20,6 @@ final class ConfirmNewEmail extends AccountMail
 
     protected function url(): string
     {
-        return url('/email/confirm?token='.$this->token);
+        return Hosts::appLink('/email/confirm?token='.$this->token);
     }
 }

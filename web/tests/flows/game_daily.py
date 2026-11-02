@@ -14,12 +14,16 @@ from game_frames import dark, light  # noqa: E402
 from help_shots import clear_projects, t  # noqa: E402
 
 TAG = "document.querySelector('[data-game-daily]')"
+# A new singer's first week shows no challenge (Hillel's rule): the course started `days` ago.
+STARTED = """const {{ emptyProgress }} = await import('/js/course.js'); const db = await import('/js/db.js');
+    const kept = (await db.get('learning', 'progress')) ?? emptyProgress();
+    await db.put('learning', {{ ...kept, startedAt: Date.now() - {days} * 86400000 }}, 'progress');"""
 TODAY = """const api = await import('/js/api.js'); const { mockFetch } = await import('/js/api-mock.js');
     const today = new Date().toISOString().slice(0, 10);
     api.useTransport(async (url, init = {}) => {
         const answer = await mockFetch(url, init);
         if (init.operation !== 'boards.daily.show') return answer;
-        const json = await answer.json(); json.data.date = today;
+        const json = await answer.json(); json.data.date = today; if ('cupFake' in window) { if (window.cupFake) json.data.cup = window.cupFake; else delete json.data.cup; }
         return new Response(JSON.stringify(json), { status: 200, headers: { 'Content-Type': 'application/json' } });
     });"""
 
@@ -38,13 +42,28 @@ WEEK = """const { createApp, h } = await import('vue');
     app.mount(box);"""
 
 
+CUP = """window.cupFake = { week: '2026-W44', startsOn: '2026-10-26', endsAt: new Date(Date.now() + 3 * 86400000).toISOString(),
+    entries: [{ id: 'c1', rank: 1, name: null, initials: 'ZED', points: 312, days: 4, you: false }, { id: 'c2', rank: 2, name: 'Ana Ruiz', initials: null, points: 270, days: 3, you: true }],
+    you: { points: 270, days: 3, rank: 2 } };"""
+
+
 def journey(f):
     f.go("/?api=mock&scenario=&as=member", "document.querySelector('#app header')")
     f.run("localStorage.removeItem('stackapella.gameEffects'); sessionStorage.removeItem('stackapella.daily')")
     clear_projects(f)
+    # In the first week: no challenge on Home, in either skin.
+    f.run(STARTED.format(days=2))
+    f.go("/", "document.querySelector('[data-song-card]')")
+    f.run(TODAY)
+    f.run("const d = await import('/js/game/daily.js'); d.daily.today = null; d.daily.asked = null; await d.loadDaily();")
+    f.run("await new Promise((r) => setTimeout(r, 500))")
+    assert f.js(f"!{TAG} && !document.querySelector('[data-daily]')"), "week one: no challenge"
+    # The week over: the challenge on its song's card (game mode).
+    f.run(STARTED.format(days=8))
     f.go("/", "document.querySelector('[data-song-card]')")
     # Today's date on the example's challenge (the example is dated), then loaded again.
     f.run(TODAY)
+    f.run("window.cupFake = null")  # first, a server with no cup to send
     f.run("const d = await import('/js/game/daily.js'); d.daily.today = null; d.daily.asked = null; await d.loadDaily();")
     if f.skin == "serious":
         f.run("await new Promise((r) => setTimeout(r, 800))")
@@ -58,6 +77,7 @@ def journey(f):
     f.wait("document.querySelector('[data-game-daily-sheet]')", what="the day's board")
     words = f.js("document.querySelector('[data-game-daily-sheet]').innerText")
     assert "ZED" in words, f"an entry by initials: {words}"
+    assert f.js("!document.querySelector('[data-daily-view]')"), "no cup from the server: no choice"
     f.shot("sheet")
     light(f)
     f.shot("sheet-light")
@@ -72,6 +92,24 @@ def journey(f):
         api.useTransport(async (url, init = {}) => { if (init.operation !== 'boards.scores.submit') return mockFetch(url, init); body = JSON.parse(init.body ?? 'null'); return new Response(JSON.stringify({ data: { counted: true, why: null, best: 80, improved: true, before: null, daily: { counted: true, best: 80, rank: 3 } } }), { status: 200, headers: { 'Content-Type': 'application/json' } }); });
         await b.submitScore({ templateId: 'michael-row', templateVersion: 2, partKey: 'tenor', score: 80, guideMuted: true }); return body; })()""")
     assert sent.get("daily") == f.js("new Date().toISOString().slice(0, 10)"), f"daily sent: {json.dumps(sent)[:200]}"
+    # The week's cup: a choice inside the day's board (never a Home row), only when the server sends one.
+    f.go("/", "document.querySelector('[data-song-card]')")
+    f.run(TODAY)
+    f.run(CUP)
+    f.run("const d = await import('/js/game/daily.js'); d.daily.today = null; d.daily.asked = null; await d.loadDaily();")
+    f.wait(TAG, what="today's challenge again")
+    f.run(f"{TAG}.click()")
+    f.wait("document.querySelector('[data-daily-view=cup]')", what="the cup's choice in the sheet")
+    f.run("document.querySelector('[data-daily-view=cup]').click()")
+    f.wait("document.querySelector('[data-daily-cup] li')", what="the cup's entries")
+    cup = f.js("document.querySelector('[data-daily-cup]').innerText")
+    assert "ZED" in cup and "312" in cup, f"the cup's entries: {cup}"
+    f.shot("cup")
+    light(f)
+    f.shot("cup-light")
+    dark(f)
+    f.press("Escape")
+    f.run("window.cupFake = null")
     # The days you took it: stamped on Home's week bulbs (a reskin), today and the server's days.
     f.go("/", "document.querySelector('[data-song-card]')")
     f.run(WEEK)

@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Pages;
 
+use App\Actions\Counts\Funnel;
 use App\Enums\TemplateAccess;
+use App\Models\Experiment;
 use App\Models\Flag;
 use App\Models\Template;
 use App\Models\TemplateVersion;
@@ -147,7 +149,9 @@ final class LandingPageTest extends TestCase
 
         // While onb1 enrols, the control arm gets no chord moment: the line waits, hidden, for the
         // page to learn this device's arm (js/public/funnel.js).
-        config(['counts.enabled' => true, 'counts.experiments' => [['id' => 'onb1', 'what' => 'The chord moment', 'arms' => ['a', 'b'], 'start' => now()->toDateString(), 'end' => null, 'plannedPerArm' => 10, 'primary' => 'f_lesson3', 'guardrail' => 'f_lesson2']]]);
+        config(['counts.enabled' => true]);
+        Experiment::query()->where('key', 'onb1')->update(['starts_on' => now()->toDateString(), 'planned_per_arm' => 10]);
+        Cache::forget(Funnel::CACHE);
         Cache::forget('funnel.current');
         $this->get('/')->assertOk()->assertSee('hidden data-variant-except="onb1-a"', false);
     }

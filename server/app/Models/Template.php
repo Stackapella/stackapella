@@ -38,6 +38,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $hidden_at
  * @property Carbon|null $imported_at
  * @property Carbon|null $rights_confirmed_at
+ * @property string|null $rights_statement
  * @property Carbon|null $featured_at
  * @property Carbon|null $idea_review_at
  * @property string|null $difficulty

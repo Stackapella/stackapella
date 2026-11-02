@@ -213,7 +213,9 @@ final class Boards
         }
 
         $pick = Daily::pick($date) ?? throw new Refusal(404, 'not_found');
-        $ranked = $viewer !== null ? $this->dailyRanked($viewer, $date, $pick, $scope) : collect();
+        // Who they blocked or who blocked them, read once for the day's board and the cup.
+        $blocked = $viewer !== null ? self::blocked($viewer) : [];
+        $ranked = $viewer !== null ? $this->dailyRanked($viewer, $date, $pick, $scope, $blocked) : collect();
         $ids = $ranked->isEmpty() ? collect() : PartScore::query()->where('template_version_id', $pick['version']->id)->where('part_key', $pick['part'])
             ->where('scoring_version', (int) config('boards.scoring_version'))->whereIn('user_id', $ranked->pluck('user_id'))->get()->keyBy('user_id');
         $own = $viewer !== null ? DailyScore::query()->where('date', $date)->where('user_id', $viewer->id)->where('template_version_id', $pick['version']->id)->value('score') : null;
@@ -226,6 +228,7 @@ final class Boards
             'scope' => $scope,
             'endsAt' => Daily::endsAt($date),
             'days' => $viewer !== null ? $this->stampDays($viewer, $date) : [],
+            'cup' => $this->cup($viewer, $date, $scope, $blocked),
             'entries' => $ranked->take((int) config('boards.top'))->map(fn (DailyScore $row, int $i): array => [
                 // The singer's part-board entry, so "Report this name" works the same here.
                 'id' => $ids->get($row->user_id)?->sqid() ?? '',
@@ -260,6 +263,83 @@ final class Boards
     }
 
     /**
+     * The weekly cup: the ISO week (Monday to Sunday, UTC) of `$date`, each person's daily bests
+     * added up, so turning up each day counts as much as singing well. A day counts only as its
+     * board shows it (dailyRanked: scope, blocks, holds, bins). Ties go to more days, then the
+     * earlier last score. An entry's id is the person's part-board entry on their latest day, for
+     * "Report this name".
+     *
+     * @param  list<int>  $blocked
+     * @return array<string, mixed>
+     */
+    private function cup(?User $viewer, string $date, string $scope, array $blocked): array
+    {
+        $day = CarbonImmutable::createFromFormat('!Y-m-d', $date, 'UTC') ?? CarbonImmutable::now('UTC')->startOfDay();
+        $monday = $day->startOfWeek(CarbonImmutable::MONDAY);
+        $cup = ['week' => $monday->format('o-\WW'), 'startsOn' => $monday->toDateString(), 'endsAt' => $monday->addWeek()->toIso8601ZuluString(), 'entries' => [], 'you' => null];
+
+        if ($viewer === null) {
+            return $cup;
+        }
+
+        $to = $day->min(CarbonImmutable::now('UTC'))->toDateString();
+        /** @var array<int, array{user: User, points: int, days: int, last: CarbonImmutable, version: int, part: string}> $totals */
+        $totals = [];
+
+        foreach ($this->weekRows($viewer, $monday->toDateString(), $to, $scope, blocked: $blocked)->sortBy('date') as $row) {
+            $was = $totals[$row->user_id] ?? ['points' => 0, 'days' => 0];
+            $totals[$row->user_id] = ['user' => $row->user, 'points' => $was['points'] + $row->score, 'days' => $was['days'] + 1, 'last' => CarbonImmutable::instance($row->recorded_at), 'version' => $row->template_version_id, 'part' => $row->part_key];
+        }
+
+        // Each entry's id: their part-board entry on their latest day.
+        $parts = $totals === [] ? collect() : PartScore::query()->whereIn('user_id', array_keys($totals))->where('scoring_version', (int) config('boards.scoring_version'))->get(['id', 'user_id', 'template_version_id', 'part_key']);
+        $idOf = static fn (array $t): string => $parts->first(static fn (PartScore $p): bool => $p->user_id === $t['user']->id && $p->template_version_id === $t['version'] && $p->part_key === $t['part'])?->sqid() ?? '';
+        // Their own days, on their own history (as the stamps): held or not on the global board.
+        $own = $this->weekRows($viewer, $monday->toDateString(), $to, $scope, onlyMine: true);
+        $mine = ['points' => (int) $own->sum('score'), 'days' => $own->count()];
+
+        $ranked = array_values($totals);
+        usort($ranked, static fn (array $a, array $b): int => [$b['points'], $b['days'], $a['last']->getTimestamp()] <=> [$a['points'], $a['days'], $b['last']->getTimestamp()]);
+        $place = array_search($viewer->id, array_map(static fn (array $t): int => $t['user']->id, $ranked), true);
+
+        $cup['entries'] = array_map(fn (array $t, int $i): array => [
+            'id' => $idOf($t),
+            'rank' => $i + 1,
+            ...self::shown($t['user'], $scope),
+            'points' => $t['points'],
+            'days' => $t['days'],
+            'you' => $t['user']->id === $viewer->id,
+        ], array_slice($ranked, 0, (int) config('boards.top')), array_keys(array_slice($ranked, 0, (int) config('boards.top'))));
+        $cup['you'] = $mine['days'] > 0 ? ['points' => $mine['points'], 'days' => $mine['days'], 'rank' => $place !== false ? $place + 1 : null] : null;
+
+        return $cup;
+    }
+
+    /**
+     * The week's daily scores as the day boards show them (dailyRanked's rules, in one query: each
+     * row's part score on its day's song, not taken off or binned, and on the global board not
+     * held, unless it's the viewer's), or only the viewer's own (their history, held or not).
+     *
+     * @param  list<int>|null  $blocked
+     * @return Collection<int, DailyScore>
+     */
+    private function weekRows(User $viewer, string $from, string $to, string $scope, bool $onlyMine = false, ?array $blocked = null): Collection
+    {
+        $visible = PartScore::query()->selectRaw('1')->whereColumn('part_scores.user_id', 'daily_scores.user_id')->whereColumn('part_scores.template_version_id', 'daily_scores.template_version_id')
+            ->whereColumn('part_scores.part_key', 'daily_scores.part_key')->where('part_scores.scoring_version', (int) config('boards.scoring_version'))->whereNull('part_scores.hidden_at')
+            ->whereDoesntHave('take', fn ($q) => $q->whereNotNull('binned_at'))
+            ->when($scope === 'global' && ! $onlyMine, fn ($q) => $q->where(fn ($q) => $q->where(self::notHeld(...))->orWhere('part_scores.user_id', $viewer->id)));
+
+        return DailyScore::query()->with('user')->whereBetween('date', [$from, $to])->whereExists($visible)
+            ->when($onlyMine,
+                fn ($q) => $q->where('user_id', $viewer->id),
+                fn ($q) => $q->whereNotIn('user_id', $blocked ?? self::blocked($viewer))->when($scope === 'global',
+                    fn ($q) => $q->whereHas('user', fn ($u) => $u->whereNotNull('board_global_at')->whereNotNull('adult_confirmed_at')->whereNull('suspended_at')),
+                    fn ($q) => $q->whereIn('user_id', [$viewer->id, ...$this->friendIds($viewer)])->whereHas('user', fn ($u) => $u->whereNull('suspended_at'))))
+            ->get()->values();
+    }
+
+    /**
      * Their place on a day's board, or null when it doesn't show them.
      *
      * @param  Collection<int, DailyScore>  $ranked
@@ -276,9 +356,10 @@ final class Boards
      * that song is on the board (not hidden, not held, its take not binned), global or friends.
      *
      * @param  array{template: Template, version: TemplateVersion, part: string}  $pick
+     * @param  list<int>|null  $blocked
      * @return Collection<int, DailyScore>
      */
-    private function dailyRanked(User $viewer, string $date, array $pick, string $scope): Collection
+    private function dailyRanked(User $viewer, string $date, array $pick, string $scope, ?array $blocked = null): Collection
     {
         $visible = PartScore::query()->where('template_version_id', $pick['version']->id)->where('part_key', $pick['part'])
             ->where('scoring_version', (int) config('boards.scoring_version'))->whereNull('hidden_at')
@@ -287,7 +368,7 @@ final class Boards
             ->pluck('user_id');
 
         return DailyScore::query()->with('user')->where('date', $date)->where('template_version_id', $pick['version']->id)->where('part_key', $pick['part'])
-            ->whereIn('user_id', $visible)->whereNotIn('user_id', self::blocked($viewer))
+            ->whereIn('user_id', $visible)->whereNotIn('user_id', $blocked ?? self::blocked($viewer))
             ->when($scope === 'global',
                 fn ($q) => $q->whereHas('user', fn ($u) => $u->whereNotNull('board_global_at')->whereNotNull('adult_confirmed_at')->whereNull('suspended_at')),
                 fn ($q) => $q->whereIn('user_id', [$viewer->id, ...$this->friendIds($viewer)])->whereHas('user', fn ($u) => $u->whereNull('suspended_at')))

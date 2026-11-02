@@ -38,7 +38,7 @@ export const MicCheck = {
             <div class="flex h-10 items-end gap-1" role="meter" aria-valuemin="0" aria-valuemax="100" :aria-valuenow="levelNow" :aria-label="t('mic.level')">
                 <span v-for="(v, i) in bars" :key="i" class="min-w-0 flex-1 rounded-sm transition-[height] duration-75" :class="state === 'ok' ? 'bg-good' : v ? 'bg-muted/60' : 'bg-raised'" :style="{ height: Math.max(12, v * 100) + '%' }"></span>
             </div>
-            <p class="flex min-h-6 items-center gap-2 text-sm font-semibold" :class="state === 'ok' ? 'text-good' : 'text-cream'" aria-live="polite" data-mic-check-status>
+            <p data-ui="facts" class="flex min-h-6 items-center gap-2 text-sm font-semibold" :class="state === 'ok' ? 'text-good' : 'text-cream'" aria-live="polite" data-mic-check-status>
                 <span v-if="state === 'ok'" class="size-2 shrink-0 rounded-full bg-good" aria-hidden="true"></span>
                 {{ state === 'ok' ? t('micCheck.soundsGood') : state === 'flat' ? t('micCheck.flat', { name }) : state === 'quiet' ? t('micCheck.quietly', { name }) : t('micCheck.say') }}
             </p>

@@ -1,0 +1,58 @@
+{
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "id",
+        "item",
+        "title",
+        "partKey",
+        "claimedAt",
+        "expiresAt",
+        "ending",
+        "take"
+    ],
+    "properties": {
+        "id": {
+            "type": "string"
+        },
+        "item": {
+            "type": "string",
+            "description": "The wanted item's id it claims."
+        },
+        "title": {
+            "type": "string"
+        },
+        "partKey": {
+            "type": [
+                "string",
+                "null"
+            ]
+        },
+        "claimedAt": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "format": "date-time"
+        },
+        "expiresAt": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "format": "date-time",
+            "description": "Held until then; with nothing sent, it goes back on the list."
+        },
+        "ending": {
+            "type": "boolean",
+            "description": "From day 10: the app says it's ending (in the app only, no email)."
+        },
+        "take": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "description": "The latest take's status (beta.parts.list's), or null."
+        }
+    }
+}

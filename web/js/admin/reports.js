@@ -41,7 +41,7 @@ export const ReportsSection = {
                 <li v-for="item in items" :key="item.harmony.id" class="card space-y-4 p-5">
                     <div class="flex flex-wrap items-start justify-between gap-3">
                         <div class="min-w-0">
-                            <a :href="item.harmony.pageUrl" target="_blank" rel="noopener" class="font-bold text-cream hover:underline" translate="no">{{ item.harmony.title || t('project.untitled') }}</a>
+                            <a :href="item.harmony.pageUrl" target="_blank" rel="noopener" class="tap-44 font-bold text-cream hover:underline" translate="no">{{ item.harmony.title || t('project.untitled') }}</a>
                             <p class="text-sm text-muted"><span translate="no">{{ item.harmony.owner?.name ?? '' }}</span><template v-if="item.harmony.ownerTakedowns"> · {{ t('admin.reports.takedowns', { count: item.harmony.ownerTakedowns }) }}</template><template v-if="item.firstReportedAt"> · {{ t('admin.reports.firstReported', { when: when(item.firstReportedAt) }) }}</template></p>
                         </div>
                         <div class="flex flex-wrap gap-2">

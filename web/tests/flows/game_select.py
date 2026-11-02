@@ -15,23 +15,34 @@ from help_shots import SESSION, clear_projects, new_song, t  # noqa: E402
 SELECT = "document.querySelector('[data-game-select]')"
 
 
-def part_step(f):
+def part_step(f, select=True):
     clear_projects(f)
     song = new_song(f)
     f.go(f"/p/{song}/sing", "document.querySelector('[data-way=whole]')")
+    # Game mode shows the character select even when Sing has picked your part (Hillel, 2026-11-01), with that part
+    # pre-selected; serious mode goes straight in on the part it picked.
+    f.wait(f"(async () => {{ const s = {SESSION}; return !!s.session?.parts?.length; }})()", what="the song's parts")
+    picked = f.js(f"(async () => {{ const s = {SESSION}; return s.session.practice?.focus ?? null; }})()")
     f.run("document.querySelector('[data-way=whole]').click()")
-    f.wait_text(t(f, "sing.chooser.yourPart"))
+    if f.skin == "game" and (select or not picked):
+        f.wait_text(t(f, "sing.chooser.yourPart"))
+    elif picked:
+        f.wait("!document.querySelector('[data-way]')", what="straight in on the part Sing picked")
+    return picked
 
 
 def journey(f):
     f.go("/voice?api=mock&as=signedOut", "document.querySelector('#app header, #app main')")
     f.run("localStorage.removeItem('stackapella.gameEffects'); localStorage.removeItem('stackapella.singPrefs')")
-    part_step(f)
+    picked = part_step(f)
     if f.skin == "serious":
-        assert f.js(f"!{SELECT}"), "serious mode: today's list"
+        assert f.js(f"!{SELECT}"), "serious mode: no character select"
         clear_projects(f)
         return
     f.wait(SELECT, what="the character select")
+    if picked:
+        shown = f.js(f"{SELECT}.querySelector('[aria-current=true]')?.dataset.slot")
+        assert shown == picked, f"the part Sing picked is pre-selected, one tap to confirm: {shown} vs {picked}"
     assert f.js(f"{SELECT}.querySelectorAll('.ge-portrait').length") == 4, "four portraits"
     assert f.js("!document.querySelector('[data-game-stats]')"), "no stats card: each portrait has its own"
     notes = f.js(f"(async () => {{ const s = {SESSION}; return s.templatePart(s.session.parts.filter((p) => p.templatePartKey)[0]).guide.notes.filter((n) => Number.isFinite(n.pitch)).length; }})()")
@@ -56,7 +67,7 @@ def journey(f):
     f.wait(f"!!{SESSION}.session.practice?.focus", timeout=10, what="a part chosen")
     # The switch off: today's list.
     f.run("(await import('/js/game/effects.js')).effects.select = false")
-    part_step(f)
+    part_step(f, select=False)
     assert f.js(f"!{SELECT}"), "the switch turns it off"
     print(f"    picked {picked}")
     f.run("localStorage.removeItem('stackapella.gameEffects')")

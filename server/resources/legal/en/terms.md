@@ -148,6 +148,22 @@ page. It's for people 18 and over with a confirmed email address.
   hour) leaves it out. Deleting your account does the same. We may take a voice out under section
   12.
 
+## 4f. Lend your voice
+
+If you lend your voice (record a part or a lesson clip that still plays our practice voice), the
+Lend your voice agreement applies as well, and in short:
+
+- **Only your own voice.** No samples, and no one else's recordings. You record only the library's
+  public-domain songs and our own lesson material.
+- **What you let us do.** You give Stackapella a licence to use, edit (trim, level and mix) and
+  distribute your recording in the app, on the site, in exports and in the apps.
+- **Stopping.** Ask us, or delete your account, and we stop using it from then on. Copies already
+  inside people's projects and exports stay.
+- **Unpaid.** Nothing is paid, and nothing is guaranteed to be used.
+- **Abuse.** A take refused for abuse (someone else's recording, a sample, offensive content) ends
+  your claiming; a published one can be reported, and we take it down if it breaks these rules.
+- **18 or over**, with a confirmed email, and not in your first week.
+
 ## 5. Our songs, arrangements and guides
 
 The songs in our library are in the public domain, or are our own originals. The arrangements,
@@ -184,6 +200,10 @@ ours: the singers agreed to them being used by Stackapella only.
   account moves to the free plan.
 - **Refunds:** see the refund policy. In the EU and the UK you have a 14-day right of withdrawal,
   explained there.
+- **School codes:** a teacher can make class codes for their students. A student who redeems one
+  gets Plus free for one year from that day, once per account. Codes are for the teacher's own
+  students and can't be sold or posted publicly. We may close a code, or end the free year it gave,
+  if it's misused. Teachers must be 18 or over, and their codes work once we've approved them.
 
 ## 7. The free plan, and moving back to it
 

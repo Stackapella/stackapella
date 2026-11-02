@@ -56,7 +56,7 @@ export const PartSelect = {
         <ul class="ge-select-grid" data-game-select @keydown="key">
             <li v-for="(part, i) in parts" :key="part.slot.id">
                 <button ref="portrait" type="button" class="ge-portrait" :class="[i === cursor ? 'is-picked' : '', i === cursor && blinking ? 'is-blinking' : '', locking === i ? 'is-locking' : '']" :style="{ '--ge-part': paint(part.slot.color) }"
-                    :data-slot="part.slot.id" @click="lock(i)" @focus="cursor = i" @pointerenter="cursor = i">
+                    :data-slot="part.slot.id" :aria-current="i === cursor ? 'true' : null" @click="lock(i)" @focus="cursor = i" @pointerenter="cursor = i">
                     <span v-if="i === cursor" class="ge-1p" aria-hidden="true">{{ t('game.select.cursor') }}</span>
                     <span class="ge-portrait-letter" aria-hidden="true" translate="no">{{ part.name.slice(0, 1) }}</span>
                     <span class="gem ge-portrait-gem" :style="{ '--gem': paint(part.slot.color) }" aria-hidden="true"></span>

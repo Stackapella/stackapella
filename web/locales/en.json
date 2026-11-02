@@ -13,6 +13,14 @@
             "once": "Your voice flipped around {note}. The app hears the jump in pitch, not which voice made it, so one more siren will make sure.",
             "none": "No flip yet, and that's fine: many voices blend. If there's another siren, try its top lighter, like an owl's hoo. If not, the yodels sit a little above your note and only the notes are scored until a flip is found; you can sing Find the flip again any time."
         },
+        "range": {
+            "easy": "Your easy range today: {low} to {high}.",
+            "one": "It held steady on {low}. Slide again, slower, resting where it's easy.",
+            "none": "Slide again, slower, and stay where it's easy.",
+            "smooth": "Smooth all the way: no jump.",
+            "jumped": "It flipped near {note}. Go lighter just before it next time.",
+            "jumpedMore": "It jumped {count, plural, one {once} other {# times}}, near {notes}. Lighter and slower through them."
+        },
         "moves": {
             "asked": "We heard {matched} of the {asked, plural, one {# move} other {# moves}} asked for.",
             "yours": "We heard {count, plural, one {# move} other {# moves}} of yours. Meant more? We may have missed a small one.",
@@ -102,7 +110,7 @@
         "recordNamed": "Record {name}",
         "recordNew": "Record new part",
         "pickup": "Pickup",
-        "barBeat": "Bar {bar}, beat {beat}",
+        "barBeat": "Bar {bar} · Beat {beat}",
         "exportName": "{title} (arr. {arranger})",
         "nowForSingers": "Now for {count} singers.",
         "keyChangedTakesStay": "Your recorded parts stay in the key you sang them in. Re-record them to match the new key.",
@@ -158,7 +166,6 @@
             "muteShort": "M",
             "solo": "Solo",
             "mute": "Mute",
-            "recordedAgo": "Recorded {ago}",
             "rename": "Rename",
             "renameLabel": "Track name",
             "pan": "Pan",
@@ -186,17 +193,22 @@
         "rerecordNamed": "Retake {name}",
         "pickNamed": "Record on {name}",
         "pickFirst": "Pick a track to record",
-        "summary": {
-            "noneYet": "none recorded by you yet",
-            "yours": "{count} recorded by you",
-            "allYours": "all recorded by you"
-        },
         "mic": {
             "live": "listening",
             "idle": "opens when you play or record"
         },
         "lyricsLane": "Words",
-        "readyToRecord": "Ready to record",
+        "armed": "Armed",
+        "guideLabel": "Guide",
+        "bleed": "Without headphones, the guide may bleed into your take.",
+        "status": {
+            "upNext": "up next",
+            "notRecorded": "not recorded"
+        },
+        "progress": {
+            "label": "Parts",
+            "recorded": "{done} of {total} recorded"
+        },
         "loop": {
             "on": "Looping phrase {number}",
             "off": "Stop looping"
@@ -258,7 +270,12 @@
         "useEstimate": "Use an estimate",
         "interrupted": "The timing check stopped before it finished. Try again.",
         "requiredForGuides": "Guides need a measured delay, so learners' parts line up exactly.",
-        "mic": "Microphone"
+        "mic": "Microphone",
+        "recheck": {
+            "reconnect": "Headphones reconnected? Bluetooth timing can change when they do. A 10-second check keeps your next take in time.",
+            "takes": "Bluetooth timing can drift over a long session. A 10-second check keeps your takes in time.",
+            "check": "Check timing"
+        }
     },
     "parts": {
         "soprano": "Soprano",
@@ -342,6 +359,7 @@
         "defaultName": "Stackapella mix",
         "fileName": "File name",
         "mixing": "Mixing",
+        "creditsFile": "credits",
         "credits": "Real voices: {names}",
         "credit": "{part}: {name}",
         "what": "What to export",
@@ -382,7 +400,62 @@
         "sheetAll": "Every part (the score)",
         "musicxmlHint": "MusicXML: the notes, words and chords, to open in MuseScore, Dorico, Sibelius or Finale.",
         "midiHint": "MIDI: the notes and words, for a keyboard app or a recording app.",
-        "sheetSummary": "{format} · {count, plural, one {# part} other {# parts}}"
+        "sheetSummary": "{format} · {count, plural, one {# part} other {# parts}}",
+        "print": "Print",
+        "printHint": "Opens the parts on a page to print, or to save as a PDF.",
+        "printButton": "Print"
+    },
+    "print": {
+        "print": "Print or save as PDF",
+        "hint": "In the print window, choose your printer, or Save as PDF.",
+        "missing": "This song isn't on this device.",
+        "system": "Line {number} of the score",
+        "wordsBy": "Words: {name}",
+        "tuneBy": "Tune: {name}",
+        "arrangedBy": "Arranged by {name}",
+        "tune": "Tune",
+        "partWithTune": "{part}, with the tune above"
+    },
+    "sheet": {
+        "title": "Bring in sheet music",
+        "titleOf": "Bring in {title}",
+        "lines": "{count, plural, one {The file has one line. What does it sing?} other {The file has # lines. Pick up to {most} and say what each sings.}}",
+        "to": "to",
+        "notes": "{count, plural, one {# note} other {# notes}}",
+        "singsAs": "Sings as",
+        "leaveOut": "Leave it out",
+        "twoAtOnce": "{count, plural, one {Two notes at once in one place. Sing:} other {Two notes at once in # places. Sing:}}",
+        "top": "The top notes",
+        "bottom": "The bottom notes",
+        "wordsFrom": "Words from",
+        "noWords": "The file has no words, so every part sings \"oo\". You can add words after.",
+        "private": "The song stays private: just you, and choir groups you add it to.",
+        "rights": "I have the right to use this music for my own practice or my choir's.",
+        "make": "Make the song",
+        "track": "Track {number}",
+        "unnamed": "A part with no name",
+        "lineVoice": "{name}, voice {number}",
+        "lineChannel": "{name}, channel {number}",
+        "problem": {
+            "tooMany": "Up to {most} lines: leave the others out.",
+            "twice": "Each voice can be sung by one line only.",
+            "mixed": "Pick soprano, alto, tenor and bass, or barbershop's tenor, lead, baritone and bass, not both."
+        },
+        "notice": {
+            "repeats": "{count, plural, one {A repeat is written out in full.} other {# repeats are written out in full.}}",
+            "jumps": "D.C., D.S. and coda signs aren't followed: the song is sung straight through.",
+            "verses": "Only verse 1's words are kept. The file has {count}.",
+            "metreChanges": "The metre changes later on. The first one is kept.",
+            "tempoChanges": "The speed changes later on. The first one is kept.",
+            "graces": "{count, plural, one {A grace note is left out.} other {# grace notes are left out.}}",
+            "metreWritten": "Its {from} is written as {to}, which sounds the same."
+        },
+        "error": {
+            "unreadable": "That file isn't sheet music we can read. Try MusicXML (.musicxml or .mxl) or MIDI.",
+            "metre": "Its metre ({metre}) can't be sung here yet.",
+            "empty": "We couldn't find any notes in that file.",
+            "signIn": "Bringing in sheet music needs a free account. Your songs and progress come with you."
+        }
     },
     "part": {
         "practise": "Practise this part",
@@ -536,8 +609,258 @@
             "growth": "Overview",
             "growthHint": "Today at a glance: who arrived, how far they got, where they came from, and the experiment.",
             "campaigns": "Campaigns",
-            "campaignsHint": "The mudeo email to mudeo's old users, and the early-access link.",
-            "mudeo": "mudeo email"
+            "campaignsHint": "The mudeo email to mudeo's old users, and who came from it.",
+            "mudeo": "mudeo email",
+            "sources": "Sources",
+            "sourcesHint": "Where singers came from, by the ?ref= tag on our links, and how far each source's arrivals got.",
+            "revenue": "Revenue",
+            "revenueHint": "MRR and ARR in each currency, subscribers by state, store and plan, and one-off income.",
+            "search": "Search",
+            "searchHint": "Google Search for the site: the pages to improve, and clicks and views by page and search.",
+            "codeWatch": "Code watch",
+            "codeWatchHint": "Public copies of our code (by its marker strings) and other websites calling our API.",
+            "cohorts": "Cohorts",
+            "cohortsHint": "Each month's sign-ups: how many finished a song, a second, are active and went Plus.",
+            "activity": "Activity",
+            "activityHint": "What happened lately, the last 24 hours, what's used, and free accounts at their limit.",
+            "school": "School codes",
+            "schoolHint": "Teachers' class codes, who redeemed them, and closing or ending one against misuse.",
+            "groupsLabel": "Admin sections",
+            "pagesLabel": "{group} pages",
+            "experiments": "Experiments",
+            "experimentsHint": "A/B tests: what each one changes, how it is read, and the verdict once it can be read."
+        },
+        "reach": {
+            "title": "People using the app",
+            "account": "Signed in",
+            "guest": "Guests",
+            "before": "The 12 weeks before",
+            "byWeek": "Devices that used the app each week",
+            "byWeekNote": "Each device counted once a week, signed in or as a guest. Not unique people: we keep no IDs, so one person on a phone and a laptop counts twice.",
+            "byDay": "Devices that used the app, a day on average, each week",
+            "byDayNote": "Each device counted once a day. Not unique people: we keep no IDs. Devices a week take over once whole weeks are counted.",
+            "opens": "App opens a day, on average, each week",
+            "opensNote": "Every time the app loads, so not people or devices: one singer can open it many times. Devices a day and a week take over once they're counted.",
+            "chart": "People using the app in each of the last 12 weeks",
+            "weekPending": "The week to {to}: not counted yet",
+            "weekLabel": "The week to {to}: {account} signed in, {guest} guests.",
+            "weekSoFarLabel": "This week so far, to {to}: {account} signed in, {guest} guests.",
+            "soFar": "{to}, so far",
+            "weekBefore": "12 weeks earlier {total} ({change}).",
+            "dayDevices": "Devices that used the app each day",
+            "dayOpens": "App opens each day",
+            "todaySoFar": "Today so far",
+            "lastDay": "{day}, the last whole day",
+            "weekdayBefore": "{weekday} a week before",
+            "rowWords": "{account} signed in, {guest} guests",
+            "notCounted": "not counted",
+            "daysBefore": "{count, plural, one {The day before} other {# days earlier}}",
+            "dayLabel": "{to}: {account} signed in, {guest} guests.",
+            "dayBefore": "{count} days earlier {total} ({change}).",
+            "failed": "People using the app didn't load."
+        },
+        "codeWatch": {
+            "title": "Code watch",
+            "intro": "Public repositories holding our marker strings (a weekly GitHub search) and other websites calling our API (listed past 20 calls a day). Names and domains only, never a person.",
+            "failed": "Code watch didn't load.",
+            "setup": "{count, plural, one {1 marker} other {# markers}} searched for each week.",
+            "noSearch": "The GitHub search has no token yet, so repositories aren't searched (docs/code-watch-plan.md).",
+            "noMarkers": "No marker strings are set, so there's nothing to search for (docs/code-watch-plan.md).",
+            "kind": {
+                "marker": "Repository with our markers",
+                "domain": "Website calling our API"
+            },
+            "open": "To look at ({count})",
+            "dismissed": "Dismissed ({count})",
+            "noneOpen": "Nothing new.",
+            "noneDismissed": "None dismissed.",
+            "seen": "First seen {first}, last {last}",
+            "calls": "{count} calls in 30 days",
+            "note": "Note",
+            "addNote": "Add a note",
+            "editNote": "Change the note",
+            "dismiss": "Dismiss",
+            "restore": "Bring back",
+            "notSaved": "That wasn't saved. Try again."
+        },
+        "cohorts": {
+            "title": "Cohorts",
+            "intro": "The people who signed up each month ({zone} time) and how far they got since. Admins left out. Under 20 sign-ups, a step is a count only.",
+            "failed": "Cohorts didn't load.",
+            "col": {
+                "month": "Signed up in",
+                "signedUp": "Signed up",
+                "finished": "Finished a song",
+                "second": "A second song",
+                "active": "Active (30 days)",
+                "plus": "Went Plus",
+                "days": "Days to a first song"
+            },
+            "key": "Went Plus: ever paid, on the web, a store or an invoice (a school year doesn't count). Days to a first song: the median, among those who finished one."
+        },
+        "activity": {
+            "title": "Activity",
+            "intro": "From our own records ({zone} time), admins left out.",
+            "failed": "Activity didn't load.",
+            "hours": "The last 24 hours",
+            "takes": "Takes",
+            "scores": "Scores",
+            "signUps": "Sign-ups",
+            "total": "{count} in all",
+            "hourLabel": "{hour}: {takes} takes, {scores} scores, {signUps} sign-ups",
+            "limits": "Free accounts and their song limit",
+            "freeAccounts": "Free accounts",
+            "atLimit": "At {limit} songs",
+            "nearLimit": "One song away",
+            "limitsHint": "The ones a Plus moment is for: at the limit they meet it when they make their next song.",
+            "feed": "Lately",
+            "none": "Nothing yet.",
+            "kind": {
+                "signUp": "Signed up",
+                "trial": "Started a trial",
+                "plus": "Started Plus",
+                "plusEnded": "Plus ended",
+                "coaching": "Coaching sale",
+                "school": "School year",
+                "other": "Something else"
+            },
+            "features": "Used in 30 days",
+            "split": "{account} accounts, {guest} guests",
+            "accounts": "Accounts",
+            "guests": "Guests"
+        },
+        "school": {
+            "title": "School codes",
+            "intro": "Every class code teachers made (Plus free for a year for their students). Teachers see only seats used; who redeemed a code is here, for misuse only.",
+            "failed": "The class codes didn't load.",
+            "none": "No class codes yet.",
+            "col": {
+                "code": "Code",
+                "teacher": "Teacher",
+                "seats": "Seats",
+                "made": "Made",
+                "state": "State"
+            },
+            "noTeacher": "Deleted account",
+            "seatsOf": "{used} of {seats}",
+            "detailLine": "{name} · made {made} · takes students until {until}",
+            "noStudents": "No one has redeemed it.",
+            "deleted": "Deleted account",
+            "redeemed": "Redeemed {at}, Plus until {until}",
+            "endedOn": "School Plus ended {date}",
+            "close": "Close the code",
+            "closeTitle": "Close {code}?",
+            "closeBody": "No one else can redeem it. Students who did keep their year unless you end it.",
+            "closed": "Closed.",
+            "end": "End their Plus",
+            "endTitle": "End {name}'s school Plus?",
+            "endBody": "Their account goes back to the free plan now. Only for misuse.",
+            "ended": "Ended.",
+            "waiting": "Waiting",
+            "waitingLong": "Waiting for approval: their codes don't work yet",
+            "approved": "Approved",
+            "allowance": "{taken} of {allowance} seats given out",
+            "approve": "Approve",
+            "approveTitle": "Approve {name} as a teacher?",
+            "approveBody": "Their class codes start taking students now.",
+            "approvedToast": "Approved.",
+            "moreSeats": "Allow more seats",
+            "seatsTitle": "Allow {name} more seats?",
+            "seatsBody": "Seats in all, over every code they make: an open code counts its seats, a closed one only those used.",
+            "allowanceLabel": "Seats allowed",
+            "seatsToast": "Seats changed."
+        },
+        "search": {
+            "title": "Search",
+            "intro": "Google Search for the public site, the 28 days from {from} to {to} (Search Console's numbers are a few days behind).",
+            "introPlain": "Google Search for the public site, the last 28 days.",
+            "offTitle": "Not connected yet",
+            "offBody": "Search Console's numbers show here once its credentials are set on the server (how: {doc}).",
+            "lastFailed": "The last sync failed ({error}). These are the last good numbers.",
+            "synced": "Synced {when}",
+            "clicks": "Clicks",
+            "impressions": "Times shown",
+            "ctr": "Click rate",
+            "improve": "Pages to improve",
+            "improveWhy": "Pages shown at least {min} times that few people click (under {low}), or that rank {from} to {to}, just off the top: a clearer title and description, or a little more on the page, can lift them.",
+            "improveNone": "Nothing to improve by these rules yet.",
+            "reason": {
+                "lowCtr": "Few clicks for its views",
+                "nearTop": "Close to the top"
+            },
+            "top": "The top 50",
+            "byPage": "By page",
+            "byQuery": "By search",
+            "none": "Nothing yet.",
+            "col": {
+                "page": "Page",
+                "query": "Search",
+                "clicks": "Clicks",
+                "impressions": "Shown",
+                "ctr": "Click rate",
+                "position": "Position"
+            },
+            "sitemaps": "Sitemaps",
+            "sitemapLine": "{errors, plural, one {1 error} other {# errors}}, {warnings, plural, one {1 warning} other {# warnings}}",
+            "read": "read {when}",
+            "notRead": "not read yet",
+            "failed": "Search didn't load."
+        },
+        "revenue": {
+            "title": "Revenue",
+            "intro": "From our own subscription and payment records. Each currency stays as it is, never converted.",
+            "mrr": "Monthly recurring revenue",
+            "arr": "Annual recurring revenue",
+            "arrHow": "MRR times 12. Annual plans count as a twelfth a month.",
+            "unpriced": "+ {count, plural, one {1 store subscription} other {# store subscriptions}}, price not known",
+            "vsMonthAgo": "{currency} against 30 days ago",
+            "subscribers": "{count, plural, one {1 subscriber} other {# subscribers}}",
+            "byState": "By state",
+            "byStore": "By store",
+            "byPlan": "By plan",
+            "none": "None yet",
+            "state": {
+                "paying": "Paying",
+                "trialing": "On a trial",
+                "pastDue": "Payment failed",
+                "cancelling": "Cancelling"
+            },
+            "store": {
+                "web": "Web (Stripe)",
+                "apple": "App Store",
+                "google": "Google Play"
+            },
+            "plan": {
+                "month": "Monthly",
+                "year": "Yearly",
+                "unknown": "Not known"
+            },
+            "months": "The last 12 months",
+            "monthsSub": "MRR at each month's end (this month so far), with subscribers gained and lost.",
+            "monthsKey": "Bars: MRR. Under them: new subscribers (+) and lost ones (-).",
+            "currency": "Currency",
+            "monthLabel": "{month}: MRR {mrr}, {new} new, {lost} lost.",
+            "oneOff": "One-off income",
+            "noOneOff": "No coaching or pack sales yet.",
+            "kind": {
+                "coaching": "Coaching",
+                "packs": "Packs"
+            },
+            "col": {
+                "month": "Month",
+                "kind": "What",
+                "payments": "Payments",
+                "gross": "Gross",
+                "ours": "Ours",
+                "payingAtStart": "Paying at start",
+                "lost": "Lost",
+                "trials": "Trials"
+            },
+            "churn": "Churn and trials",
+            "churnSub": "Each month: paying subscribers at its start, those lost by store, and trials that ended and became Plus.",
+            "churnKey": "Why people left and who came back aren't recorded, so they aren't here.",
+            "trialsLine": "{converted} of {ended} became Plus",
+            "failed": "Revenue didn't load."
         },
         "home": {
             "title": "Admin",
@@ -551,7 +874,18 @@
             "consentedOf": "{consented} of {singers}",
             "realVoices": "Parts with real voices",
             "partsOf": "{done} of {total}",
-            "guides": "Real voices published"
+            "guides": "Real voices published",
+            "growth": {
+                "title": "The last 7 days",
+                "open": "Growth",
+                "signUps": "Sign-ups",
+                "upgrades": "Plus started",
+                "active": "Active singers",
+                "finished": "Songs finished",
+                "second": "Singers with a second song",
+                "vsWeekBefore": "Against the 7 days before",
+                "allTime": "So far"
+            }
         },
         "safety": {
             "tab": {
@@ -930,6 +1264,11 @@
             "retakeSent": "Asked. They'll see your note in My parts.",
             "reject": "Not this one",
             "rejectTitle": "Don't use this take?",
+            "rejectKind": "Why",
+            "rejectNormal": "Not this one (a normal no)",
+            "rejectAbuse": "Refused for abuse",
+            "rejectAbuseHelp": "For abuse only: the volunteer can't claim to lend their voice again.",
+            "refuseAbuse": "Refuse for abuse",
             "rejectNote": "A kind note",
             "rejectNoteHelp": "They see it in My parts.",
             "rejected": "Marked as not used",
@@ -955,6 +1294,34 @@
             "clipAsked": "What they were asked:",
             "clipSeconds": "(about {seconds} s)"
         },
+        "needs": {
+            "title": "What needs you now",
+            "navCount": "{count, plural, one {1 part needs a voice} other {# parts need a voice}}",
+            "failed": "What needs you didn't load.",
+            "none": "Nothing needs you: every part has a voice or a singer on it.",
+            "takes": "{count, plural, one {1 take to review} other {# takes to review}}",
+            "changed": "Changed: needs recording again",
+            "unassigned": "No singer",
+            "findSinger": "Ask a singer",
+            "toGuides": "All voices",
+            "noSingers": "{count, plural, one {No singer yet} other {No singers yet for its # parts}}",
+            "askAgain": "Ask again",
+            "withNote": "With a note",
+            "noteLabel": "A note for {name}",
+            "notePlaceholder": "The song changed: please record your part again.",
+            "send": "Ask again",
+            "asked": "Asked {name} again.",
+            "askedAt": "asked again {when}",
+            "previous": "recorded an older version",
+            "status": {
+                "toRecord": "to record",
+                "submitted": "take sent",
+                "inReview": "in review",
+                "retake": "asked for another take",
+                "accepted": "accepted",
+                "rejected": "refused"
+            }
+        },
         "guides": {
             "intro": "Each part plays its default voice to learners, in the original key at full speed; the synth plays everywhere else.",
             "none": "No songs yet",
@@ -974,6 +1341,12 @@
             "remove": "Remove",
             "removeTitle": "Remove {name}'s voice?",
             "removeBody": "It comes off the app now. The part plays an alternate if there is one, otherwise the synth. Copies people exported can't be reached.",
+            "removeClipBody": "It comes off the app now. The lesson plays its own notes, or describes the sound, until another clip is recorded.",
+            "forAbuse": "Removed for abuse",
+            "forAbuseHelp": "The volunteer who sang it can't lend their voice again.",
+            "reports": "{count, plural, one {1 report} other {# reports}}",
+            "clips": "Course clips",
+            "anonymous": "Anonymous",
             "removed": "Removed",
             "best": "Best on pitch"
         },
@@ -1071,7 +1444,7 @@
             "byAdmin": "My decision"
         },
         "mudeo": {
-            "intro": "One personal email to mudeo's old users, sent through the app 50 at a time, with the early-access link. There's no follow-up.",
+            "intro": "One personal email to mudeo's old users, sent through the app 50 at a time, linking to the site. There's no follow-up.",
             "newsNotSetUp": "The sending address (mudeo.stackapella.com) isn't set up yet. It opens once a test passes SPF, DKIM and DMARC.",
             "postalMissing": "The postal address for the email's footer isn't set yet. Nothing can go until it is.",
             "countsTitle": "The list",
@@ -1127,7 +1500,7 @@
             },
             "linkTitle": "The early-access link",
             "linkHint": "The link in the email. It lets mudeo's people make an account while sign-ups are paused. It's never shown anywhere public.",
-            "joined": "{joined} of {cap} joined through it.",
+            "joined": "{joined} of {cap} joined through the old early-access link. New arrivals come through the site instead (above).",
             "open": "Open",
             "paused": "Paused",
             "linkCap": "How many it can let in",
@@ -1160,7 +1533,8 @@
             "markSent": "Mark these {count} as sent",
             "undo": "Undo the last batch",
             "undoTitle": "Undo the last batch?",
-            "undoBody": "Its people go back on the list, as not sent. Only for a batch from your own email that didn't go."
+            "undoBody": "Its people go back on the list, as not sent. Only for a batch from your own email that didn't go.",
+            "since": "Since the email: {visits} opened the site from it, {used} started singing, {joined} made an account through the old early-access link."
         },
         "preview": {
             "title": "The preview link",
@@ -1398,7 +1772,7 @@
             "countryUnknown": "Not known",
             "today": "Today",
             "noneToday": "Nothing counted yet today",
-            "totalsToday": "Each moment, today so far (UTC)",
+            "totalsToday": "Each moment, today so far ({zone} time)",
             "updated": "Updated {when}",
             "notUpdated": "Couldn't update. Last updated {when}",
             "refresh": "Refresh",
@@ -1419,6 +1793,9 @@
             },
             "kind": {
                 "app_open": "App opened",
+                "app_day": "Devices using the app that day",
+                "app_week": "Devices using the app that week",
+                "app_month": "Devices using the app that month",
                 "sign_up": "Signed up",
                 "lesson_start": "Lesson started",
                 "lesson_done": "Lesson finished",
@@ -1500,7 +1877,10 @@
                 "f_harmony": "A song of two parts",
                 "f_day2": "Back the next day",
                 "f_week1": "Back within a week",
-                "f_goal_met": "Weekly goal met in week one"
+                "f_goal_met": "Weekly goal met in week one",
+                "exp_enrol": "Joined the experiment",
+                "f_day7": "Back on day 7",
+                "f_plus": "Plus started here"
             },
             "ask": {
                 "title": "Ask",
@@ -1541,9 +1921,10 @@
         },
         "growth": {
             "title": "Growth",
-            "introToday": "Today so far (UTC), from the anonymous counts.",
-            "introDays": "{from} to {to} (UTC), from the anonymous counts.",
+            "introToday": "Today so far ({zone} time), anonymous counts",
+            "introDays": "{from} to {to} ({zone} time), anonymous counts",
             "today": "Today",
+            "weeks12": "12 weeks",
             "failed": "The growth numbers didn't load.",
             "tile": {
                 "arrivals": "In the app",
@@ -1551,10 +1932,7 @@
                 "signedUp": "Signed up",
                 "plusStarted": "Plus started"
             },
-            "versus": "{diff} vs {against}",
-            "same": "same as {against}",
-            "yesterday": "yesterday",
-            "lastWeekday": "last {weekday}",
+            "same": "same",
             "ofArrivals": "of arrivals",
             "steps": "How far they got",
             "stepsToday": "How far they got today",
@@ -1567,25 +1945,28 @@
                 "signedUp": "Signed up",
                 "plusStarted": "Plus started"
             },
-            "didntGoOn": "{share} didn't go on",
-            "stepsNote": "Each step is counted once per device. Every share is of landing visits.",
-            "openFunnel": "Open the Funnel",
+            "openFunnel": "Open Funnel",
             "sources": "Where they came from",
             "col": {
                 "source": "Source",
                 "arrivals": "In the app",
                 "lesson1": "Lesson 1",
-                "day2": "Back on day 2"
+                "day2": "Back on day 2",
+                "step": "Step",
+                "bar": "Bar",
+                "devices": "Devices",
+                "share": "Share",
+                "day2Return": "Day-2 return"
             },
             "source": {
                 "none": "No tag (search and direct)",
                 "harmony": "Shared harmonies",
                 "coach": "Coaches' links",
                 "other": "Other tags",
-                "small": "{count, plural, one {# small source} other {# small sources}}"
+                "small": "{count, plural, one {# small source} other {# small sources}}",
+                "noneName": "No tag",
+                "noneHint": "Search and direct"
             },
-            "sourcesNote": "From the ?ref= tag on our own links. Sources under 5 are folded into one row.",
-            "sourcesNoteToday": "The last 7 days, so day 2 can count. From the ?ref= tag on our own links; sources under 5 are folded into one row.",
             "experiment": "Experiment {id}",
             "startsOn": "Starts {date}",
             "enrollingDay": "Enrolling, day {day} of {of}",
@@ -1594,8 +1975,35 @@
             "ready": "Ready to read",
             "notReady": "Not ready to read",
             "primaryStep": "Read by: {step}",
-            "few": "few so far",
-            "tilesToday": "Today so far, against yesterday and the same day last week:"
+            "allSources": "All sources",
+            "lowSample": "Low sample",
+            "vsYesterday": "vs yesterday",
+            "vsLastWeekday": "vs last {weekday}",
+            "stepsSub": "Once per device; shares are of landing visits",
+            "didntContinue": "{share} didn't continue",
+            "fewer": "{share} fewer",
+            "devicesCount": "{count, plural, one {# device} other {# devices}}",
+            "biggestDrop": "(the biggest drop)",
+            "sourcesSub": "From ?ref= on our own links",
+            "last7": "Always last 7 days",
+            "sourcesFoot": "Fixed to 7 days so day-2 returns have time to count. Sources under 5 devices are folded into one row.",
+            "vsDaysBefore": "vs the {count} days before",
+            "vsWeeksBefore": "vs the 12 weeks before",
+            "vsWeekEarlier": "vs a week earlier"
+        },
+        "sources": {
+            "title": "Sources",
+            "intro": "{from} to {to} ({zone} time), from the anonymous counts.",
+            "introLoading": "Where singers came from, from the anonymous counts.",
+            "none": "No arrivals in this period yet.",
+            "failed": "The sources didn't load.",
+            "sortBy": "Sort by",
+            "col": {
+                "signedUp": "Signed up",
+                "week1": "Back in week 1"
+            },
+            "note": "A source is the ?ref= tag on our own links: campaigns as written, shared harmonies and coaches' links as one row each. Sources under 5 arrivals are folded into one row. Each step after In the app is its share of that source's arrivals.",
+            "returnsNote": "Back on day 2 and in week 1 need a day or a week after arriving, so the newest arrivals pull them down. Read them over 30 or 90 days."
         },
         "clipMessage": {
             "to_record": "Hi {name}, a short course clip is ready for you to record: {clip} Open your link and tap Learn and record.",
@@ -1641,7 +2049,134 @@
             "hideHint": "It leaves the shelf. Its writer is told, with your note, and can ask for another look.",
             "approved": "\"{title}\" is on the shelf.",
             "hidden": "\"{title}\" is hidden."
+        },
+        "accountMenu": "Your account, {name}",
+        "experiments": {
+            "title": "Experiments",
+            "intro": "Each test compares today's app (A) with one change (B). It's read once, when its planned sample and read date are reached: looking before then is fine, acting on it isn't.",
+            "option": "{id} ({status})",
+            "new": "New experiment",
+            "none": "No experiments yet. A new one starts as a draft.",
+            "failed": "The experiments didn't load.",
+            "results": "Results by arm",
+            "status": {
+                "draft": "Draft",
+                "running": "Running",
+                "reading": "Reading",
+                "decided": "Decided",
+                "closed": "Closed"
+            },
+            "action": {
+                "start": "Start",
+                "stop": "Stop enrolling",
+                "decide": "Decide",
+                "close": "Close"
+            },
+            "actionWhat": {
+                "start": "Start {id} today: new devices that match start joining A or B.",
+                "stop": "Stop {id} enrolling: no new devices join, and the steps keep coming in until it can be read.",
+                "decide": "Name the winner of {id}. The losing arm's code and content then come out.",
+                "close": "Close {id}: it's done and kept for the record."
+            },
+            "arms": "Arms",
+            "armsLine": "{arms} (A is today's app)",
+            "readBy": "Read by",
+            "guardrails": "Guardrails",
+            "noGuardrails": "None",
+            "who": "Who",
+            "planned": "Planned",
+            "perArm": "{count} devices per arm",
+            "when": "When",
+            "notStarted": "Not started",
+            "started": "Started {date}",
+            "ended": "stopped enrolling {date}",
+            "readFrom": "read from {date}",
+            "notIn": "{who}; never with {ids}",
+            "audience": {
+                "new": "New devices",
+                "firstWeek": "A new singer's first week (Hillel's OK)",
+                "signedIn": "Signed in",
+                "serious": "Serious mode",
+                "game": "Game mode",
+                "phone": "Phones",
+                "desktop": "Desktops",
+                "everyone": "Everyone"
+            },
+            "edit": "Edit the draft",
+            "winner": "Winner: {arm}",
+            "winnerPick": "The winner",
+            "verdict": {
+                "draft": "A draft: nothing is counted until it starts.",
+                "running": "Running: no verdict until it stops enrolling and can be read.",
+                "notYet": "Not ready to read: wait for {date} and {count} devices per arm.",
+                "readDate": "its read date",
+                "better": "B is likely better: its range is above zero and no guardrail is worse.",
+                "worse": "B is likely worse: keep A.",
+                "none": "No clear difference: the range includes zero. Keep A, or test something bolder.",
+                "guardrail": "B is worse on a guardrail ({step}): don't ship it."
+            },
+            "refused": {
+                "started": "It has started since: a running experiment's fields can't change.",
+                "notDraft": "It has already started.",
+                "notRunning": "It isn't running any more.",
+                "notReading": "It can't be decided yet: stop it enrolling first.",
+                "running": "Stop it enrolling before closing it."
+            },
+            "newTitle": "New experiment",
+            "editTitle": "Edit the draft",
+            "created": "{id} is saved as a draft.",
+            "saved": "{id} is saved.",
+            "done": "{id} is updated.",
+            "field": {
+                "id": "Name",
+                "idHelp": "Short and lower case, like short1. It's also each arm's tag (short1-b).",
+                "what": "What B changes",
+                "hypothesis": "Why it might help",
+                "hypothesisHelp": "One sentence: what you expect, and which step shows it.",
+                "metric": "Read by",
+                "guardrails": "Guardrails, up to {most}: steps that mustn't drop",
+                "audience": "Who may join",
+                "firstWeekNote": "A new singer's first week stays as it is unless Hillel agrees to test it.",
+                "excludes": "Never with these (they change the same screen)",
+                "planned": "The sample it's read at",
+                "base": "The step's rate today (%)",
+                "lift": "Smallest change worth finding (points)",
+                "needs": "About {count} devices per arm, at 95% confidence and 80% power.",
+                "needsNone": "Give a rate between 1 and 98, and a change that keeps it under 99.",
+                "perArm": "Devices per arm",
+                "useIt": "Use it"
+            }
         }
+    },
+    "styleguideGame": {
+        "title": "Game mode styleguide",
+        "intro": "The arcade screen's tokens and pieces in every state, each with the class or hook it is styled by. New game screens are checked against this page.",
+        "mode": "Theme",
+        "dark": "Dark",
+        "light": "Light",
+        "rules": "Rules",
+        "ruleSkins": "Every screen works in both skins: game mode's arcade look and serious mode's calm one. Serious mode never sees these rules.",
+        "ruleTokens": "Style with the tokens (the arcade-tokens block in input.css) and the shared pieces and hooks here, never a selector that reaches into one screen's markup.",
+        "ruleGlass": "Glass and gloss are for the note gems only. Everything else is flat: square edges, hard shadows.",
+        "rulePeople": "No drawn people: no figures, silhouettes or avatars. Initials and objects only.",
+        "ruleWords": "The words stay the same in both skins, from the translation files. Contrast stays AA in dark and light.",
+        "sample": "Sing harmony, one part at a time",
+        "facePixel": "Headings, labels and buttons",
+        "faceScreen": "Everything people read",
+        "faceDisplay": "The public site's marquee words",
+        "h1": "Learn to sing harmony",
+        "h2": "Breathing for singing",
+        "h3": "Your songs",
+        "body": "Short lessons with a guide voice. Your notes light up as you hit them.",
+        "shapes": "Frames, shadows and grounds",
+        "shapesHelp": "The stage frame, an outline, the hard drop shadows (a press sinks by --arc-press), the dotted ground with and without its scanlines, and the hazard stripes of an ask.",
+        "buttonsHelp": "Square, in pixel type, with a hard shadow that a press sinks into. Press one to see it.",
+        "chips": "Chips, tags and the player",
+        "cards": "Cards",
+        "gems": "Gems and bars",
+        "gemsHelp": "The note gems are the only glass. Bars are flat blocks.",
+        "library": "Bands, cartridges and rows",
+        "libraryHelp": "A band's title in its tone, songs as cartridges (a hover lifts one and a cursor blinks), their tags in tones, and rows in a frame with player slots. Scanlines have their own switch in Settings."
     },
     "styleguide": {
         "eyebrow": "Design system",
@@ -2075,6 +2610,49 @@
             "card": "Get ready",
             "inBeats": "{count, plural, one {Your turn in # beat} other {Your turn in # beats}}"
         },
+        "ring": {
+            "piano": "piano",
+            "pure": "pure",
+            "pianoAndPure": "piano and pure",
+            "what": "{degree} of {chord}: {where}",
+            "pureUnder": "pure is {cents} cents under the piano",
+            "pureOver": "pure is {cents} cents over the piano",
+            "pureSame": "the piano's pitch is pure",
+            "ringing": "Ringing",
+            "close": "Close: {cents} cents",
+            "high": "{cents} cents high of pure",
+            "low": "{cents} cents low of pure",
+            "steady": "Steady the tone to tune it",
+            "degree": {
+                "root": "Root",
+                "third": "Third",
+                "fifth": "Fifth",
+                "seventh": "Seventh",
+                "sixth": "Sixth",
+                "ninth": "Ninth",
+                "fourth": "Fourth"
+            },
+            "whatLesson": "{degree}: {where}",
+            "lessonDegree": {
+                "root": "The root",
+                "third": "The third",
+                "fifth": "The fifth",
+                "seventh": "The seventh",
+                "sixth": "The sixth",
+                "ninth": "The ninth",
+                "fourth": "The fourth"
+            }
+        },
+        "drone": {
+            "title": "Drone",
+            "off": "Off",
+            "key": "Key note",
+            "chord": "The chord",
+            "hint": "A steady note underneath to tune against.",
+            "keyHint": "The song's key note and its fifth, steady under every line.",
+            "chordHint": "Each chord held under you, tuned pure, so it rings when you're in tune.",
+            "level": "Drone level"
+        },
         "ladder": {
             "label": "Build up to speed",
             "hint": "On your own, on a looped phrase: it starts at 70%, then goes up 5% each round you sing cleanly, to full speed.",
@@ -2195,6 +2773,7 @@
             "yourGuide": "your guide",
             "everyOther": "every other part",
             "chords": "the chords",
+            "drone": "the drone",
             "recording": "Hearing {list}.",
             "recordingSofter": "Hearing {list}, softer: no headphones.",
             "recordingNone": "Nothing plays while you record: your guide and every other part are off."
@@ -2248,6 +2827,8 @@
             "keyboard": "Keyboard down the side",
             "others": "Other parts on the lane",
             "othersHint": "Faint outlines above and below yours.",
+            "ring": "Tuning in held chords",
+            "ringHint": "On a note held in a chord, how close you are to ringing: pure, not just the piano's pitch. With headphones.",
             "voices": "Guide voices",
             "shortcuts": "Keyboard shortcuts",
             "shortcutsHint": "Space always plays, even with shortcuts off. R records in the studio too.",
@@ -2487,18 +3068,37 @@
             "usedTitle": "This link was already used",
             "usedBody": "Each sign-in link works once. Sign in again."
         },
+        "confirm": {
+            "title": "Sign in as {email}?",
+            "switch": "You're signed in as {current} in this browser. Signing in with this link switches it to {email}.",
+            "elsewhere": "This link was asked for in another browser. Sign in here only if you asked for it.",
+            "yes": "Yes, sign in",
+            "no": "Don't sign in",
+            "stay": "Stay as {current}"
+        },
         "reason": {
             "progress": "Save your progress with a free account",
             "reminders": "Reminders need an account, so we know where to send them",
             "share": "To share a link that stays yours, make a free account",
-            "boards": "Make a free account to compete"
+            "boards": "Make a free account to compete",
+            "songs": "Keep your songs with a free account",
+            "daily": "Make a free account for today's board",
+            "friends": "Make a free account to sing with friends",
+            "groups": "Make a free account for choir groups",
+            "voice": "Make a free account to add your voice",
+            "plus": "Make a free account for Plus",
+            "template": "Keep your song with a free account",
+            "sheet": "Make a free account to bring in sheet music",
+            "settings": "Make a free account",
+            "week": "Keep your first week with a free account",
+            "unit": "Keep your progress with a free account",
+            "risk": "Keep your work safe with a free account",
+            "school": "Make a free account to join your class"
         }
     },
     "settings": {
         "title": "Settings",
         "loading": "Loading your account",
-        "signedOut": "You're not signed in",
-        "signedOutHint": "Sign in to see your account.",
         "nameCredit": "This is also the name learners see on the guides you sang.",
         "handle": {
             "label": "Handle",
@@ -2665,6 +3265,28 @@
         "ideaEmails": {
             "title": "Email me when someone sings my tune",
             "hint": "At most one email a day for each tune you shared as an idea."
+        },
+        "install": {
+            "title": "Install the app",
+            "inApp": "{app}'s browser can't install apps. Open this page in Safari or Chrome first: tap the menu (··· or the share button), then Open in browser.",
+            "menu": "Use your browser's menu: Install app, or Add to Home screen. Firefox on a computer can't install apps; Chrome, Edge or Safari can."
+        },
+        "guest": {
+            "title": "You're singing without an account",
+            "tally": "On this device only: {lessons, plural, one {# lesson} other {# lessons}} and {songs, plural, one {# song} other {# songs}}.",
+            "nothing": "Everything you sing is kept on this device.",
+            "adds": "A free account keeps them, opens them on any device, and lets you share, join a choir group and get reminders.",
+            "backupWhy": "Rather not make an account? A backup file keeps your lessons and songs, to restore here or on another device.",
+            "backup": "Download a backup",
+            "backupMaking": "Making your backup",
+            "backupMade": "Your backup is downloading. Keep the file somewhere safe.",
+            "backupFailed": "The backup couldn't be made. Try again.",
+            "restore": "Restore from a backup",
+            "restoring": "Restoring",
+            "restored": "Restored from your backup: {songs, plural, one {# song} other {# songs}} and {lessons, plural, one {# lesson} other {# lessons}}.",
+            "notBackup": "That file isn't a Stackapella backup.",
+            "newerBackup": "That backup is from a newer Stackapella. Refresh the app, then try again.",
+            "restoreFailed": "The backup couldn't be restored. Try again."
         }
     },
     "version": {
@@ -2673,24 +3295,30 @@
         "notNow": "Not now",
         "saving": "Saving first"
     },
+    "songCourse": {
+        "eyebrow": "Learn it step by step",
+        "open": "Learn it step by step",
+        "line": "Your part a line or two at a time, then with the others, then on your own.",
+        "notHere": "This song has no step by step course yet.",
+        "backToSong": "Back to Home"
+    },
     "courses": {
         "eyebrow": "Course",
         "title": "Courses",
         "more": "More courses",
         "moreLine": "Deeper courses with Plus. The first lesson of each is free.",
-        "homeTitle": "Courses",
-        "homeTitleGame": "Bonus stages",
-        "homeLine": "Deeper courses with Plus. The first lesson of each is free.",
-        "soon": "Coming soon",
-        "plusFirstFree": "Plus · first lesson free",
-        "showMore": "Show more",
-        "showFewer": "Show fewer",
-        "moreComing": "{count, plural, one {1 more coming} other {# more coming}}",
+        "moreLinePlus": "Deeper courses, all open to you with Plus.",
+        "yours": "Your courses",
+        "progressShort": "{done} of {total}",
+        "soonShort": "Coming soon:",
         "group": {
-            "skills": "Singing skills",
-            "harmony": "Harmony",
+            "skills": "Your voice",
+            "harmony": "Harmony and a cappella",
             "styles": "Styles"
         },
+        "homeTitle": "Courses",
+        "homeTitleGame": "Bonus stages",
+        "soon": "Coming soon",
         "lessons": "{count, plural, one {# lesson} other {# lessons}}",
         "progress": "{done} of {total} lessons",
         "start": "Start",
@@ -2712,7 +3340,8 @@
         "guest": {
             "title": "Save your progress",
             "body": "Make a free account and this lesson of {course} is kept, on every device you sign in on."
-        }
+        },
+        "allCourses": "All courses"
     },
     "choose": {
         "round": "Round {round} of {total}",
@@ -2821,6 +3450,22 @@
         }
     },
     "course": {
+        "fitClosest": "None of the parts quite fits your range, even with the key moved. {part} is the closest.",
+        "read": {
+            "look": "Look: {seconds}",
+            "names": "Names",
+            "label": "The line to read: {notes}",
+            "hearFirst": "Hear it first",
+            "hearing": "Playing the line",
+            "heardFirst": "Heard first: the top score needs a cold read.",
+            "counting": "Count: {beat}",
+            "measured": "{pitch}% on pitch, {timing}% on time.",
+            "style": {
+                "solfege": "do re mi",
+                "letters": "C D E",
+                "numbers": "1 2 3"
+            }
+        },
         "level": {
             "1": "First notes",
             "5": "Steady voice",
@@ -2833,6 +3478,10 @@
         "noLesson": "That lesson isn't in the course.",
         "locked": "This lesson opens once you've earned enough stars before it.",
         "backToCourse": "Back to the course",
+        "flipRest": {
+            "title": "Rest your voice",
+            "line": "That's about five minutes of flips, the most at a time. Flip lessons open again at {time}; the course's other lessons are open now."
+        },
         "step": {
             "learn": "Learn",
             "try": "Try",
@@ -2886,7 +3535,7 @@
         "weeksInARow": "{count, plural, one {# week in a row} other {# weeks in a row}}",
         "unit": "Unit {number}",
         "plus": "Plus",
-        "lessonLabel": "{title}, {stars, plural, =0 {not started} one {# star} other {# stars}}",
+        "lessonLabel": "{title}, {stars, plural, =0 {not started} other {# of 3 stars}}",
         "heard": {
             "skip": "Skip",
             "friend": "A friend",
@@ -2942,6 +3591,7 @@
             "label": "Wait for me: {note}, the bar {percent}% full"
         },
         "stepCount": "{step} of {total}",
+        "slower": "Slower",
         "day": {
             "mon": "M",
             "tue": "T",
@@ -2973,6 +3623,8 @@
             "toLevel": "{xp} XP to Level {level}, {lessons, plural, one {about one lesson} other {about # lessons}}."
         },
         "startLesson": "Start lesson",
+        "lessonNumber": "Lesson {number}",
+        "exercises": "{count, plural, one {# exercise} other {# exercises}}",
         "aboutMin": "~{minutes} min",
         "fact": {
             "heading": "Did you know?",
@@ -3029,8 +3681,16 @@
         "button": "Install",
         "later": "Not now",
         "safeTitle": "Your songs are only on this device",
-        "safe": "Install the app so they're kept safe: browsers can clear a website's storage, but not an installed app's.",
-        "mac": "In Safari: choose File, then Add to Dock."
+        "safe": "Install the app so they're kept safer: Chrome keeps an installed app's storage longer than a website's.",
+        "mac": "In Safari: choose File, then Add to Dock.",
+        "whySafari": "It opens like an app, with no browser bar. It keeps its own storage, apart from Safari's.",
+        "signInThere": "It starts fresh, so sign in there and your account comes along.",
+        "riskTitle": "Safari may clear this",
+        "risk": "It deletes a website's data after 7 days without a visit, and these are only here: {what}.",
+        "riskLessons": "{count, plural, one {1 lesson} other {# lessons}}",
+        "riskSongs": "{count, plural, one {1 song} other {# songs}}",
+        "keepHere": "{songs, plural, one {1 song} other {# songs}}, {takes, plural, one {1 take} other {# takes}}. A free account keeps a copy and opens them on any device.",
+        "keepSafari": "Safari can clear a website's data after 7 days without a visit, and an app added from Safari starts fresh. A free account keeps a copy and opens them on any device."
     },
     "home": {
         "new": {
@@ -3056,7 +3716,9 @@
             "nameLabel": "Song name",
             "notPlayed": "That didn't play. Open it in the studio to hear it.",
             "empty": "Nothing yet. Learn one from the library, or start your own.",
-            "newHint": "Start blank or from a library song"
+            "newHint": "Start blank or from a library song",
+            "seeAll": "{count, plural, one {See your song} other {See all # of your songs}}",
+            "showFewer": "Show fewer"
         },
         "plus": "Plus",
         "seeAll": "See all",
@@ -3077,13 +3739,25 @@
                 "free": "Free",
                 "plus": "Plus",
                 "label": "Which songs"
-            }
+            },
+            "browseAllCount": "{count, plural, one {Browse the # song} other {Browse all # songs}}"
         },
         "projects": {
             "used": "{used} of {limit} songs made on the free plan",
             "getPlus": "Get Plus",
             "full": "The free plan holds {limit}.",
             "fromCourse": "From the course"
+        },
+        "today": {
+            "gap": "Good to see you. Ease back in: today's workout starts with a warm-up.",
+            "gapGo": "Warm up",
+            "stuck": "This lesson takes a few tries. Try it a little slower?",
+            "stuckGo": "Try it slower",
+            "done": "You can sing a whole song in harmony, every part yourself. What next?",
+            "doneSong": "Sing {title}",
+            "doneCourse": "Try {title}",
+            "daily": "Today's challenge is up.",
+            "dailyGo": "See the challenge"
         },
         "lead": {
             "title": "Learn to sing harmony, one part at a time.",
@@ -3128,6 +3802,8 @@
             "start": "Start workout",
             "warmUpWhat": "Up and down, then hold",
             "focusWhat": "A steady long note",
+            "read": "Read",
+            "readWhat": "A new line from the stave",
             "insight": {
                 "flatHigh": "Reaching the high notes",
                 "sharpHigh": "Easing the high notes",
@@ -3137,8 +3813,10 @@
                 "late": "Coming in on time",
                 "early": "Waiting for the beat",
                 "wavering": "Steady breath support"
-            }
-        }
+            },
+            "stepLine": "{step}: {what}"
+        },
+        "admin": "Admin"
     },
     "confirm": {
         "dontAsk": "Don't ask again",
@@ -3212,7 +3890,6 @@
             "title": "Storage",
             "notLoaded": "Couldn't load your storage just now.",
             "syncNow": "Sync now",
-            "signedOut": "Your songs are on this device only. Sign in to keep them in your account and open them anywhere.",
             "noProjects": "No songs yet.",
             "songsOf": "{used} of {limit} songs",
             "songsCount": "{count, plural, one {# song} other {# songs}}",
@@ -3504,16 +4181,108 @@
         "stillToEarn": "Still to earn",
         "goal": "{have} / {need}"
     },
+    "warmup": {
+        "title": "Warm-up",
+        "from": "A warm-up from your teacher",
+        "untitled": "A warm-up",
+        "about": "On {sound}, {rounds, plural, one {# round} other {# rounds}}, about {minutes, plural, one {# minute} other {# minutes}}.",
+        "safety": "Keep it easy: stop if anything tightens.",
+        "ready": "Starts on {note}, from your comfortable note, a half step up each round and back down.",
+        "startingHint": "Lower or higher, if it doesn't sit well for your voice.",
+        "sing": "Sing it",
+        "again": "Sing it again",
+        "roundResult": "Round {number}: {lit} of {count} notes on pitch.",
+        "roundUnheard": "Round {number}: we couldn't hear you.",
+        "done": "Warm-up done.",
+        "keep": "Add to my warm-ups",
+        "kept": "Kept: pick it in today's workout",
+        "brokenTitle": "This warm-up link is incomplete",
+        "brokenHint": "Ask whoever sent it for the whole link. Meanwhile, today's workout starts with a warm-up of its own.",
+        "toWorkout": "Today's workout",
+        "sound": {
+            "ah": "ah",
+            "ee": "ee",
+            "oo": "oo",
+            "oh": "oh",
+            "hum": "a hum",
+            "trill": "a lip trill"
+        },
+        "make": {
+            "title": "Make a warm-up",
+            "settingsHint": "For your students or your choir: a link they sing in their own range.",
+            "pattern": "Pattern",
+            "patternHint": "Start from one of these, or tap notes in: up to {count} notes, a beat each, the last one held.",
+            "startFrom": "Start from",
+            "preset": {
+                "five": "Five-note scale",
+                "three": "Three notes",
+                "arpeggio": "Arpeggio",
+                "nine": "Nine-note scale"
+            },
+            "yourPattern": "Your pattern",
+            "empty": "Tap the notes below to add them.",
+            "addNote": "Add a note",
+            "add": "Add {note}",
+            "remove": "Take out note {number}, {note}",
+            "low": "low",
+            "high": "high",
+            "lowNote": "low {note}",
+            "highNote": "high {note}",
+            "count": "{count} of {most} notes",
+            "clear": "Clear",
+            "how": "How it's sung",
+            "sound": "Sound",
+            "sounds": {
+                "ah": "ah",
+                "ee": "ee",
+                "oo": "oo",
+                "oh": "oh",
+                "hum": "hum",
+                "trill": "lip trill"
+            },
+            "speed": "Speed",
+            "slow": "Slow",
+            "medium": "Medium",
+            "quick": "Quick",
+            "start": "Starts",
+            "startOn": "On each singer's comfortable note.",
+            "startBelow": "{count, plural, one {A half step} other {# half steps}} below each singer's comfortable note.",
+            "startAbove": "{count, plural, one {A half step} other {# half steps}} above each singer's comfortable note.",
+            "climb": "Climbs",
+            "climbNone": "One round, where it starts.",
+            "climbUp": "Up {count, plural, one {a half step} other {# half steps}}, a half step a round, then back down: {rounds} rounds.",
+            "fewer": "Fewer",
+            "more": "More",
+            "name": "Name (optional)",
+            "nameHint": "A short name for the warm-up, not for a person. Shown to whoever opens the link; it's only in the link, so we never see it.",
+            "lasts": "{rounds, plural, one {# round} other {# rounds}}, about {minutes, plural, one {# minute} other {# minutes}}.",
+            "hear": "Hear it",
+            "share": "Share link",
+            "shareText": "Warm up with me: {name}",
+            "linkTitle": "Your warm-up's link",
+            "copy": "Copy link",
+            "copied": "Link copied",
+            "copyFailed": "Couldn't copy. Select the link and copy it.",
+            "try": "Try it yourself",
+            "linkHint": "Anyone with the link can sing it, no account needed. Change anything and it's a new link.",
+            "fromLesson": "Or start from a lesson:",
+            "pickLesson": "Pick a lesson",
+            "qr": "The link as a QR code",
+            "qrHint": "For a class: show it on the board and students scan it with their phone's camera."
+        }
+    },
     "workout": {
         "title": "Today's workout",
         "card": "Five to eight minutes, made for you: a warm-up, something to work on, and a lesson to review when one needs it.",
         "step": {
             "warmUp": "Warm up",
             "weakSpot": "Something to work on",
-            "review": "A review"
+            "review": "A review",
+            "read": "Read a line"
         },
         "warmUpTitle": "{climb, plural, =3 {Three notes up and down, then hold} =5 {Five notes up and down, then hold} other {# notes up and down, then hold}}",
         "warmUpHint": "Sing \"ah\" for the scale and \"oo\" for the long note. Each round starts a half step higher.",
+        "readHint": "Look first, then sing it cold: it's new every time, at the level you've reached in Sight-singing.",
         "roundsLabel": "Rounds",
         "stepOf": "Step {step} of {count}",
         "round": "Round {number}",
@@ -3537,6 +4306,7 @@
         "why": {
             "steady": "Hold each note steady, as long as it lasts.",
             "review": "From \"{lesson}\": a few more stars are waiting.",
+            "read": "Read a new line from the stave.",
             "flatHigh": "Your high notes have been a little flat lately: these climb, with breath behind them.",
             "sharpHigh": "Your high notes have been a little sharp lately: these climb, with a relaxed jaw.",
             "flatOverall": "You've been a little flat lately: hold each note against the drone.",
@@ -3555,7 +4325,9 @@
         "usedTitle": "Today's workout is done",
         "usedHint": "Come back tomorrow for a new one. With Plus, you can do as many as you like.",
         "morePlus": "More workouts with Plus",
-        "skippedAll": "Nothing was sung this time, so it doesn't count yet. Today's workout is still here whenever you're ready."
+        "skippedAll": "Nothing was sung this time, so it doesn't count yet. Today's workout is still here whenever you're ready.",
+        "warmUpChoice": "Warm-up",
+        "warmUpOurs": "Today's usual"
     },
     "plus": {
         "title": "Stackapella Plus",
@@ -3643,7 +4415,6 @@
             "wavNote": "{polished} or as recorded"
         },
         "notLoaded": "Couldn't load the prices just now. Try again in a moment.",
-        "signInFirst": "Sign in first, so Plus is yours on every device.",
         "verifyFirst": "Confirm your email first: the link is in your inbox.",
         "alreadyPlus": "You're already on Plus.",
         "trialUsed": "This account has had its free trial. You can subscribe without it.",
@@ -3683,7 +4454,6 @@
     },
     "reminders": {
         "title": "Practice reminders",
-        "signIn": "Reminders need an account, so we know where to send them.",
         "install": "On an iPhone or iPad, reminders need Stackapella on your home screen: tap Share, then Add to Home Screen, and open it from there.",
         "unsupported": "This browser can't show reminders. Try Chrome, Edge, Firefox or Safari.",
         "notLoaded": "Couldn't load your reminders just now.",
@@ -3783,7 +4553,8 @@
             "title": "Links aren't allowed in the name. Try another.",
             "generic": "Couldn't share just now. Try again in a moment.",
             "slow": "Slow practice is on. Go back to full speed to share the harmony as it sounds.",
-            "singersMustAgree": "Featuring needs everyone who sang on it to agree."
+            "singersMustAgree": "Featuring needs everyone who sang on it to agree.",
+            "imported": "A song made from sheet music stays private, so it can't be shared by link."
         },
         "feature": "Stackapella may feature it on our X and Bluesky",
         "featureHint": "Credited to you, after Hillel listens. Everyone who sang on it agrees first. Untick any time: nothing more is posted, and its voices stop being guides.",
@@ -4210,6 +4981,7 @@
         },
         "home": {
             "make": "Make your own",
+            "makeHint": "Choose how to start your arrangement.",
             "untitled": "Untitled song",
             "resume": "Resume",
             "discard": "Discard",
@@ -4222,12 +4994,13 @@
             "writeHint": "Put the notes and words in yourself, in the note editor.",
             "import": "Open a file",
             "importHint": "A template you or a friend exported from Stackapella.",
+            "importHintSheet": "A Stackapella template, or sheet music: MusicXML or MIDI.",
             "importUnreadable": "That file isn't a Stackapella template.",
             "importBroken": "That template has a few problems:",
             "openAnyway": "Open it in the editor to fix",
             "imported": "\"{title}\" is under Your templates.",
             "chords": "Start from chords",
-            "chordsHint": "Pick a feel, hum over it, and the chords become the harmony",
+            "chordsHint": "Pick a feel, hum over it, and the chords become the harmony.",
             "hum": "Hum a tune",
             "humHint": "Hum it in your own time. We write down the notes and suggest a harmony."
         },
@@ -4350,7 +5123,6 @@
         },
         "limitHint": "The free plan keeps one template in your account; this one stays on this device. Plus keeps them all.",
         "unverifiedHint": "Confirm your email address, and it saves to your account.",
-        "signInHint": "It lives on this device. Sign in to keep it in your account and share it by link.",
         "edit": "Edit",
         "copy": "Make a copy",
         "delete": "Delete",
@@ -4383,7 +5155,6 @@
         "title": "Sing together",
         "hint": "Friends you invite record their own parts and hear everyone else's. You stay in charge of the key, tempo and title.",
         "singerHint": "You sing in {owner}'s song: add and change your own parts, and hear everyone's. {owner} keeps the song's settings.",
-        "signIn": "Sign in to sing with friends.",
         "notLoaded": "Who's in it didn't load. Try again in a moment.",
         "who": "Who's singing",
         "you": "(you)",
@@ -4407,6 +5178,7 @@
         "until": "until {date}",
         "revoke": "Take it back",
         "limit": "This song has all the singers the free plan allows (2). Plus allows 20.",
+        "imported": "A song made from sheet music stays with you and your choir groups, so it can't take invites.",
         "notMade": "The link wasn't made just now. Try again in a moment.",
         "addMine": "Add a part to sing as yours",
         "add": "Add",
@@ -4447,14 +5219,39 @@
         "leadPart": "Join {owner} on {title} and sing the {part}."
     },
     "appearance": {
+        "arcade": {
+            "stage": {
+                "dark": "Arcade blue",
+                "darkSays": "Indigo screen",
+                "light": "Daylight",
+                "lightSays": "Bright white"
+            },
+            "warm": {
+                "dark": "Warm cabinet",
+                "darkSays": "Amber on brown",
+                "light": "Arcade cream",
+                "lightSays": "Warm paper"
+            },
+            "midnight": {
+                "dark": "Midnight",
+                "darkSays": "Neon blue",
+                "light": "Sky",
+                "lightSays": "Soft blue"
+            },
+            "graphite": {
+                "dark": "Graphite",
+                "darkSays": "Steel grey",
+                "light": "Paper",
+                "lightSays": "Cool grey"
+            }
+        },
         "gameMode": {
             "label": "Game mode",
-            "onHint": "XP, stars, badges, combos and high scores, in the arcade look.",
-            "offHint": "Off: a plain practice tool with just your measures. Nothing you've earned is lost."
+            "onHint": "XP, stars, badges, combos and high scores, in the arcade look."
         },
         "title": "Appearance",
         "mode": {
-            "title": "Mode",
+            "title": "Light or dark",
             "light": "Light",
             "dark": "Dark",
             "systemDark": "Your device is dark right now, so this is dark.",
@@ -4536,7 +5333,6 @@
         "title": "Choir groups",
         "start": "Start a group",
         "startHint": "Your singers join by a link you send them, learn the songs you share, and you see who has learned their part. Your Plus covers the group: members join free.",
-        "signIn": "Sign in to start or join a choir group.",
         "none": "No groups yet",
         "noneHint": "Start one for your choir, or ask your director for the group's link.",
         "directedBy": "Directed by {name}",
@@ -5328,9 +6124,82 @@
             "swing": "Piano on the back beats, a walking bass and brushes."
         }
     },
+    "school": {
+        "classes": {
+            "title": "Class codes",
+            "intro": "Give your students Plus free for a year. Make a code for each class and share its link; each student who joins with it gets a year of Plus on their own account. You see how many seats are used, never who joined.",
+            "new": "Make a class code",
+            "name": "Class name (only you see it)",
+            "namePlaceholder": "Period 3 choir",
+            "seats": "Seats",
+            "newHint": "Up to 60 seats a code. A code takes students for 120 days, until it's full, or until you close it.",
+            "make": "Make the code",
+            "made": "Your code {code} is ready. Share its link with your class.",
+            "madePending": "Your code {code} is made. It starts working once we've approved you as a teacher, usually within a day.",
+            "yours": "Your codes",
+            "none": "No codes yet.",
+            "failed": "Your codes didn't load.",
+            "seatsUsed": "{used} of {seats} seats used",
+            "until": "takes students until {date}",
+            "closedOn": "closed {date}",
+            "endedOn": "stopped taking students {date}",
+            "copy": "Share the link",
+            "shareLine": "Join our class on Stackapella: Plus free for a year.",
+            "shareText": "Join our class on Stackapella with the code {code}: {url}",
+            "copied": "Link copied",
+            "copyFailed": "The link couldn't be copied.",
+            "change": "Change",
+            "close": "Close the code",
+            "closeTitle": "Close {name}'s code?",
+            "closeBody": "No one else can join with it. Students who joined keep their year of Plus.",
+            "closeAction": "Close the code",
+            "pending": "We check each teacher before their first codes work, usually within a day. You can share the link once it says Taking students.",
+            "daily": "Seats used update once a day.",
+            "privacy": "Students use Stackapella on their own: no groups, chat or sharing with the class, and you never see who joined or how they're doing. Assign a song by sharing its link, as anyone can."
+        },
+        "state": {
+            "pending": "Waiting for approval",
+            "open": "Taking students",
+            "full": "Full",
+            "closed": "Closed",
+            "expired": "Ended"
+        },
+        "join": {
+            "title": "Join your class",
+            "heading": "Plus free for a year, from your class",
+            "what": "Your teacher's class code gives you a year of Plus on your own account: every course and song, with nothing to pay.",
+            "terms": "Once per account. After the year it goes back to the free plan; nothing you made is lost.",
+            "code": "Class code",
+            "placeholder": "ABCD-2345",
+            "button": "Get Plus for a year",
+            "done": "You have Plus",
+            "doneUntil": "Free from your class until {date}.",
+            "doneAfter": "After that it goes back to the free plan, and everything you made stays.",
+            "start": "Start singing",
+            "off": "Class codes aren't open yet."
+        },
+        "settings": {
+            "teacherHint": "For teachers: Plus free for a year for your students",
+            "plusUntil": "Plus free from your class until {date}",
+            "haveCode": "Have a class code?"
+        },
+        "error": {
+            "adult": "Class codes are for teachers, so they need an account for someone 18 or over.",
+            "email": "Confirm your email address first; then you can make class codes.",
+            "age": "Add your birth month and year in Settings first, so we know Plus is right for your age.",
+            "tooMany": "You have as many open codes or seats as one teacher can (5 codes, 150 seats). Close one, or write to us for more.",
+            "belowUsed": "That's fewer seats than students who've joined.",
+            "allowance": "That's more seats than a teacher can give out (300 in all, counting your codes). Write to us if your school needs more.",
+            "alreadyRedeemed": "This account has already had its free school year.",
+            "alreadyPlus": "You already have Plus, so a class code isn't needed. Keep using your own plan.",
+            "unknown": "That code isn't open. Check it with your teacher.",
+            "full": "That class is full. Ask your teacher to add seats.",
+            "tooFast": "Too many tries. Wait an hour, then try again.",
+            "other": "That didn't work. Try again in a moment."
+        }
+    },
     "boards": {
         "heading": "Leaderboard",
-        "hide": "Hide the {part} leaderboard",
         "youTag": "You",
         "col": {
             "rank": "#",
@@ -5339,7 +6208,15 @@
             "date": "Date"
         },
         "month": "This month",
-        "monthEmpty": "No one's on this month's board yet. Be the first.",
+        "monthEmpty": "No one's on this month's board yet.",
+        "emptyMonthHow": "It starts again on the 1st. Sing the {part} part this month and your best is the one to beat.",
+        "emptyFriends": {
+            "title": "None of your friends has sung this part yet",
+            "how": "Friends are people you've sung with, met in a group or challenged. Sing the {part} part, then challenge one from your result."
+        },
+        "emptyGlobalHow": "Sing the {part} part with headphones on and your best score goes here.",
+        "emptyVersion": "No one sang this arrangement",
+        "emptyVersionHow": "Its board is read only now.",
         "versions": {
             "earlier": "Earlier arrangements:",
             "version": "Version {version}",
@@ -5410,8 +6287,6 @@
         "yourPlace": "You: #{rank}, {score}",
         "yourBest": "Your best: {score}",
         "notOnGlobal": "You're not on the worldwide board. Turn it on in Settings.",
-        "guest": "Make an account to compete.",
-        "makeAccount": "Make an account",
         "settings": {
             "title": "Show my best scores worldwide",
             "hint": "Your profile name and best score for each part, on the worldwide boards. Friends always see them."
@@ -5533,6 +6408,8 @@
     "game": {
         "settings": {
             "intro": "Game mode's extras, one at a time. With reduced motion on your device, they stay still.",
+            "all": "Game effects",
+            "allHint": "Every arcade moment below at once. Turn it off for a quiet rehearsal; the arcade look stays.",
             "sounds": "Game sounds",
             "soundsHint": "Short 16-bit sounds between takes, never while you sing.",
             "hud": "Score strip",
@@ -5563,7 +6440,13 @@
             "daily": "Daily challenge",
             "dailyHint": "Today's song and part for everyone, with its own board.",
             "monthly": "Monthly boards",
-            "monthlyHint": "A This month board beside Friends and Everyone, so a new singer can place."
+            "monthlyHint": "A This month board beside Friends and Everyone, so a new singer can place.",
+            "arcade": "Arcade screen",
+            "arcadeHint": "Pixel type, square edges, chunky buttons and the dotted screen, like a 90s cabinet.",
+            "lookTitle": "The look",
+            "momentsTitle": "Arcade moments",
+            "scanlines": "Scanlines",
+            "scanlinesHint": "Faint lines across the arcade screen, like an old monitor."
         },
         "hud": {
             "ready": "Ready?"
@@ -5572,7 +6455,11 @@
             "combo": "{count} in a row!",
             "phrase": "Phrase clear",
             "bonus": "Combo bonus +{count}",
-            "hold": "Held it!"
+            "hold": "Held it!",
+            "rate": "Bonus x{count}!",
+            "rateChip": "x{count}",
+            "rateChipLabel": "{count} times the bonus",
+            "streak": "Streak! {count} days"
         },
         "workout": {
             "title": "Training mode"
@@ -5580,18 +6467,32 @@
         "done": {
             "continue": "Continue?"
         },
+        "arcade": {
+            "stage": "Stage {number}",
+            "hi": "Hi {score}",
+            "hiLabel": "Stage {stage}. Your high score: {xp} XP",
+            "slot": "P{number}"
+        },
         "daily": {
             "tag": "Today",
             "title": "Today's challenge",
             "board": "Today's board",
             "first": "No one's on today's board yet. Be the first.",
-            "signIn": "Sign in to go on today's board.",
             "take": "Take the challenge",
             "failed": "The challenge couldn't start. Try again.",
             "endsHours": "{hours, plural, one {Ends in # hour} other {Ends in # hours}}",
             "endsMinutes": "{minutes, plural, one {Ends in # minute} other {Ends in # minutes}}",
             "rank": "#{rank} on today's board",
-            "stamped": "Took the daily challenge"
+            "stamped": "Took the daily challenge",
+            "which": "Which board",
+            "today": "Today",
+            "cup": "This week's cup",
+            "cupHow": "Each day's best added up, Monday to Sunday.",
+            "cupDays": "{count, plural, one {# day} other {# days}}",
+            "cupEmpty": "No one's in this week's cup yet. Today's challenge starts it.",
+            "cupYou": "You: #{rank}, {points} points",
+            "cupYours": "You: {points} points this week",
+            "endsDays": "{days, plural, one {Ends in # day} other {Ends in # days}}"
         },
         "initials": {
             "title": "Enter your initials",
@@ -5607,8 +6508,13 @@
         "breath": {
             "goal": "Goal"
         },
+        "today": {
+            "gap": "CONTINUE? A quick warm-up gets your voice back in the game.",
+            "stuck": "Tough stage. Try it a little slower?",
+            "done": "Course clear! Pick your next song.",
+            "daily": "Today's challenge is live. Beat the board?"
+        },
         "home": {
-            "player": "Player 1",
             "p1": "P1",
             "level": "Lv {level}",
             "pressStart": "Press start",
@@ -5618,22 +6524,25 @@
         "title": {
             "stage": "Stage {unit}-{lesson}",
             "unit": "Unit {number}",
-            "lesson": "Lesson {number}"
+            "lesson": "Lesson {number}",
+            "clear": "Stage {unit} clear!",
+            "levelUp": "Level {level}!"
         },
         "tally": {
             "clear": "Stage {unit}-{lesson} clear"
         },
         "versus": {
-            "challenger": "Here comes a new challenger!",
-            "sent": "{name} sent you",
-            "sentSomeone": "Someone sent you",
-            "them": "Challenger",
+            "challenger": "You've been challenged!",
+            "incoming": "Incoming",
+            "players": "1P vs 2P",
+            "challengesYou": "Challenges you",
+            "song": "Song",
+            "toBeat": "To beat",
+            "accept": "Accept",
+            "notNow": "Not now",
             "someone": "Someone",
-            "vs": "VS",
-            "you": "You",
             "none": "No score yet",
-            "yoursSr": "Your best on this part: {score}",
-            "rule": "Beat {score} on your own, in the song's key, at full speed, with the guide off."
+            "yoursSr": "Your best on this part: {score}"
         },
         "map": {
             "here": "You are here",
@@ -5672,14 +6581,12 @@
         "titleNoNote": "Session one: {lessons} lessons, {stars} stars.",
         "goal": "How many days a week shall we aim for?",
         "goalKept": "{count, plural, one {1 day a week} other {# days a week}}. You can change it on the course page.",
-        "install": "Keep your note, your {stars} stars and your level: install the app.",
         "account": "Save your progress (your note, your {stars} stars and your level) with a free account.",
         "makeAccount": "Make a free account",
         "remindTitle": "Want a nudge on your practice days?",
         "remindWhy": "One a day at most, at a time you pick.",
         "titleSerious": "Session one: your note {note}, {lessons} lessons.",
         "titleNoNoteSerious": "Session one: {lessons} lessons.",
-        "installSerious": "Keep your note and your progress: install the app.",
         "accountSerious": "Save your progress (your note and your lessons) with a free account.",
         "days": "{count} days",
         "week": {
@@ -5688,7 +6595,13 @@
             "lessons": "{count, plural, one {1 lesson} other {# lessons}}",
             "note": "note {note}",
             "range": "range sung so far {low} to {high}",
-            "done": "Got it"
+            "done": "Got it",
+            "keep": "Keep this week: {what}, on any device. It's free.",
+            "keepNote": "your note",
+            "keepStars": "{count, plural, one {1 star} other {# stars}}",
+            "keepLevel": "level {level}",
+            "keepLessons": "{count, plural, one {1 lesson} other {# lessons}}",
+            "keepSongs": "your songs"
         },
         "installApp": "Install the app: it opens like an app, with no browser bar.",
         "goalSuggested": "{count, plural, one {# day a week is a good start. Tap one to keep it.} other {# days a week is a good start. Tap one to keep it.}}"
@@ -5703,6 +6616,18 @@
         },
         "note": "Your comfortable note is {note}. Sing a few more lessons and we'll know which parts suit you.",
         "share": "Share your voice"
+    },
+    "readLines": {
+        "eyebrow": "Sharpen up",
+        "title": "Fresh lines",
+        "line": "New lines to read, endless, at the level you've reached and in your range.",
+        "start": "Read fresh lines",
+        "hint": "A new line every time. Look first, then sing it cold.",
+        "count": "Line {count}",
+        "scored": "{percent}% on pitch.",
+        "unheard": "We couldn't hear you that time.",
+        "next": "Next line",
+        "notYet": "Fresh lines open once you've sung a lesson of Sight-singing."
     },
     "sharpen": {
         "title": "Sharpen up",
@@ -5819,7 +6744,6 @@
             "sending": "Adding...",
             "sent": "Added. Your {part} will be on the tune in a minute.",
             "see": "See the tune",
-            "signIn": "Sign in to add your voice: it's credited to your name.",
             "refused": {
                 "adult": "Adding your voice to someone's tune is for people 18 or over.",
                 "email": "Verify your email first: open the link we sent you, then try again.",
@@ -5852,5 +6776,100 @@
         "mapLine": "Sung a lot today?",
         "settingsTitle": "Voice-care notes",
         "settingsHint": "A quiet line after 20 and 40 minutes of singing in a day, with a 2-minute cool-down. Counted only on this device, never sent."
+    },
+    "voices": {
+        "title": "Lend your voice",
+        "settingsHint": "Record a song part or a lesson clip that still plays the synth.",
+        "off": "Lend your voice isn't open yet.",
+        "isBetaSinger": "You already sing for Stackapella: your parts are on your beta page.",
+        "toYourParts": "Your parts",
+        "intro": "Some song parts and lesson clips still play a synth voice. Record one, and once Hillel accepts it, everyone learning hears your voice there.",
+        "point": {
+            "unpaid": "It's unpaid, and nothing is promised to be used.",
+            "review": "Every take is checked on your phone, then reviewed by Hillel before anyone hears it.",
+            "yours": "Only your own voice: never a sample or someone else's recording."
+        },
+        "agreement": "The Lend your voice agreement",
+        "credit": "How you're credited",
+        "creditName": "By name ({name})",
+        "creditAnonymous": "Anonymously",
+        "agree": "I agree, and lend my voice",
+        "joined": "You're in. Pick something to record.",
+        "held": "Yours to record",
+        "until": "Yours until {date}",
+        "ending": "Ends {date}: record it soon, or it goes back on the list",
+        "sent": "Sent, waiting for Hillel's review",
+        "record": "Record it",
+        "release": "Let it go",
+        "releaseTitle": "Let it go?",
+        "releaseBody": "{title} goes back on the list for someone else.",
+        "wanted": "Wanted voices",
+        "show": "Show",
+        "kind": {
+            "all": "All",
+            "songs": "Song parts",
+            "clips": "Lesson clips"
+        },
+        "skill": "Skill",
+        "anySkill": "Any skill",
+        "none": "Nothing wanted here right now.",
+        "songPart": "A song part",
+        "clip": "A lesson clip, about {seconds} s",
+        "claim": "Claim it",
+        "claimed": "It's yours for 14 days. Record it from your parts.",
+        "failed": "That didn't work. Try again in a moment.",
+        "refused": {
+            "email": "Confirm your email first: we sent you a link.",
+            "adult": "Lending your voice is for people 18 or over.",
+            "tooNew": "Your account needs to be a week old first.",
+            "betaSinger": "You already sing for Stackapella as a beta singer.",
+            "agreement": "The agreement just changed: read the new one, then agree again.",
+            "limit": "You can hold 3 at a time: record or let one go first.",
+            "taken": "Someone else just claimed that one.",
+            "notVolunteer": "Agree to the Lend your voice agreement first.",
+            "blocked": "You can't lend your voice any more: a take or a voice of yours was taken down for abuse. Write to us if you think that's a mistake."
+        },
+        "report": {
+            "title": "Report this voice",
+            "short": "Report",
+            "button": "Report {who}",
+            "why": "What's wrong?",
+            "reasons": {
+                "personal": "It's someone recorded without their OK, or private information",
+                "offensive": "It's offensive or hateful",
+                "copyright": "It's someone else's recording",
+                "spam": "It's spam",
+                "other": "Something else"
+            },
+            "note": "Anything we should know (optional)",
+            "what": "We look at every report. A report alone doesn't take a voice down.",
+            "send": "Send the report",
+            "thanks": "Thanks, we'll take a look.",
+            "gone": "That voice has already gone.",
+            "failed": "The report didn't send. Try again."
+        },
+        "partLine": "No real voice yet.",
+        "partLineLink": "Lend yours?",
+        "creditBy": {
+            "beatbox": "Beatbox by {name}",
+            "yodel": "Yodel by {name}",
+            "vibrato": "Vibrato by {name}",
+            "hum": "Hummed by {name}",
+            "trill": "Lip trill by {name}"
+        }
+    },
+    "wall": {
+        "boards": "Leaderboards need a free account, so your scores are yours.",
+        "daily": "Today's board needs a free account, so your score is yours.",
+        "reminders": "Reminders need a free account, so we know where to send them.",
+        "friends": "Singing with friends needs a free account, so they know it's you.",
+        "groups": "Choir groups need a free account, so your director knows it's you.",
+        "voice": "Adding your voice needs a free account: it's credited to your name.",
+        "plus": "Plus needs a free account, so it's yours on every device.",
+        "template": "It lives on this device. A free account keeps it and shares it by link.",
+        "songs": "Your songs are on this device only. A free account keeps a copy and opens them on any device.",
+        "school": "Your year of Plus goes on your account, so make a free one (or sign in) first.",
+        "comes": "Your songs and progress come with you.",
+        "haveAccount": "I have an account"
     }
 }

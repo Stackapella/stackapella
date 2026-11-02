@@ -81,6 +81,13 @@ return [
         'cdn_endpoint_id' => env('DIGITALOCEAN_CDN_ENDPOINT_ID'),
     ],
 
+    // Google Search Console, read-only (docs/search-console.md): the service account's JSON key, as
+    // is or base64-encoded, and the property it was added to. Off until the key is set.
+    'search_console' => [
+        'credentials' => env('SEARCH_CONSOLE_CREDENTIALS'),
+        'property' => env('SEARCH_CONSOLE_PROPERTY', 'sc-domain:stackapella.com'),
+    ],
+
     // Cloudflare Turnstile, shown only while shield mode is on.
     'turnstile' => [
         'site_key' => env('TURNSTILE_SITE_KEY'),

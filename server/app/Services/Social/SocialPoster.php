@@ -92,6 +92,7 @@ final class SocialPoster
 
         if ($claimed === 1) {
             PostToSocial::dispatch($post->id)->delay(now()->addSeconds(self::UNDO_SECONDS));
+            AuditLog::record('social.approved', null, $admin, after: ['post' => $post->id, 'network' => $post->network]);
         }
 
         return $post->refresh();

@@ -26,6 +26,7 @@ use App\Models\TemplateVersion;
 use App\Models\User;
 use App\Models\UserLearning;
 use App\Support\Http\Hosts;
+use App\Support\Ids;
 use App\Support\Push\AppPushes;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -110,6 +111,7 @@ final class BuildExport implements ShouldQueue
             'appearance' => $user->appearance,
             'ideaEmails' => (bool) ($user->getAttributes()['idea_emails'] ?? true),
             'storePlusUntil' => $user->store_plus_until?->utc()->toIso8601ZuluString(),
+            'schoolPlusUntil' => $user->school_plus_until?->utc()->toIso8601ZuluString(),
             'emailVerifiedAt' => $user->email_verified_at?->utc()->toIso8601ZuluString(),
             'hideProfile' => (bool) ($user->getAttributes()['hide_profile'] ?? false),
             'initials' => $user->getAttributes()['initials'] ?? null,
@@ -291,11 +293,18 @@ final class BuildExport implements ShouldQueue
         is_resource($stream) && fclose($stream);
         @unlink($path);
 
+        // The account (or its request) was deleted while this ran: the file goes, and nobody is emailed.
+        if (! DataExport::query()->whereKey($export->id)->exists() || ! User::query()->whereKey($user->id)->exists()) {
+            Storage::disk('private')->delete($key);
+
+            return;
+        }
+
         $expiresAt = now()->addDays(DataExport::DAYS);
         $export->forceFill(['status' => 'ready', 'file_key' => $key, 'ready_at' => now(), 'expires_at' => $expiresAt])->save();
 
         if ($user->email !== null) {
-            Mail::to($user->email)->send(new ExportReady(url('/account/export'), $expiresAt->copy()->settings(['locale' => $user->locale])->isoFormat('LL')));
+            Mail::to($user->email)->send(new ExportReady(Hosts::appLink('/account/export'), $expiresAt->copy()->setTimezone($user->zone())->settings(['locale' => $user->locale])->isoFormat('LL')));
         }
     }
 
@@ -366,8 +375,11 @@ final class BuildExport implements ShouldQueue
 
         return [
             'pitch-history' => $lazy(DB::table('scores')->where('user_id', $id)->orderBy('id')->select(['take_uuid', 'template_slug', 'template_version', 'part_key', 'lesson', 'recorded_at', 'summary'])),
-            'support-messages' => $lazy(DB::table('support_messages')->where(fn ($query) => $query->where('user_id', $id)->when($user->email !== null, fn ($q) => $q->orWhere('email', $user->email)))->orderBy('id')->select(['id', 'email', 'category', 'body', 'context', 'status', 'answered_at', 'closed_at', 'created_at'])),
-            'support-replies' => $lazy(DB::table('support_replies')->whereIn('support_message_id', DB::table('support_messages')->where('user_id', $id)->when($user->email !== null, fn ($q) => $q->orWhere('email', $user->email))->select('id'))->orderBy('id')->select(['support_message_id', 'body', 'created_at'])),
+            // Each message's reference is its Sqid, never our own number (which would say how many there are).
+            'support-messages' => DB::table('support_messages')->where(fn ($query) => $query->where('user_id', $id)->when($user->email !== null, fn ($q) => $q->orWhere('email', $user->email)))->orderBy('id')->select(['id', 'email', 'category', 'body', 'context', 'status', 'answered_at', 'closed_at', 'created_at'])->lazy(500)
+                ->map(static fn (stdClass $m): array => ['id' => Ids::encode((int) $m->id), ...array_diff_key((array) $m, ['id' => true])]),
+            'support-replies' => DB::table('support_replies')->whereIn('support_message_id', DB::table('support_messages')->where('user_id', $id)->when($user->email !== null, fn ($q) => $q->orWhere('email', $user->email))->select('id'))->orderBy('id')->select(['support_message_id', 'body', 'created_at'])->lazy(500)
+                ->map(static fn (stdClass $r): array => ['message' => Ids::encode((int) $r->support_message_id), 'body' => $r->body, 'createdAt' => $r->created_at]),
             'notices-and-appeals' => $lazy(DB::table('notices')->where('user_id', $id)->orderBy('id')->select(['kind', 'rule', 'note', 'automatic', 'appeal_text', 'appealed_at', 'decision', 'decision_note', 'decided_at', 'created_at'])),
             'reports-you-sent' => $lazy(DB::table('reports')->where('reporter_id', $id)->orderBy('id')->select(['reportable_type', 'reason', 'note', 'status', 'resolved_at', 'created_at'])),
             'coaching-problems-you-reported' => $lazy(DB::table('engagement_reports')->where('user_id', $id)->orderBy('id')->select(['text', 'resolved_at', 'created_at'])),
@@ -435,6 +447,10 @@ final class BuildExport implements ShouldQueue
                 'recordedAt' => $score->recorded_at,
             ]),
             'board-friends' => DB::table('board_connections')->join('users', 'users.id', '=', 'board_connections.friend_id')->where('board_connections.user_id', $id)->orderBy('board_connections.id')->select(['users.name', 'board_connections.source', 'board_connections.created_at'])->lazy(500)->map(static fn (stdClass $c): array => ['name' => $c->name, 'source' => $c->source, 'since' => $c->created_at]),
+            // A teacher's class codes (seats used, never who), and a student's free year: the code and
+            // dates only, as the class's name is the teacher's (docs/school-offer-plan.md).
+            'school-classes' => DB::table('school_classes')->where('teacher_id', $id)->orderBy('id')->select(['name', 'code', 'seats', 'expires_at', 'closed_at', 'created_at'])->lazy(500)->map(static fn (stdClass $c): array => ['name' => $c->name, 'code' => $c->code, 'seats' => $c->seats, 'expiresAt' => $c->expires_at, 'closedAt' => $c->closed_at, 'createdAt' => $c->created_at]),
+            'school-year' => DB::table('school_redemptions')->join('school_classes', 'school_classes.id', '=', 'school_redemptions.school_class_id')->where('school_redemptions.user_id', $id)->orderBy('school_redemptions.id')->select(['school_classes.code', 'school_redemptions.created_at', 'school_redemptions.plus_until', 'school_redemptions.ended_at'])->lazy(500)->map(static fn (stdClass $r): array => ['code' => $r->code, 'redeemedAt' => $r->created_at, 'plusUntil' => $r->plus_until, 'endedAt' => $r->ended_at]),
             'board-challenges' => DB::table('board_challenges')->join('templates', 'templates.id', '=', 'board_challenges.template_id')->where('board_challenges.user_id', $id)->orderBy('board_challenges.id')->select(['templates.slug', 'board_challenges.part_key', 'board_challenges.created_at'])->lazy(500)->map(static fn (stdClass $c): array => ['song' => $c->slug, 'part' => $c->part_key, 'createdAt' => $c->created_at]),
             // Game mode: their daily-challenge scores (kept 30 days) and the ghosts of their bests.
             'daily-scores' => DB::table('daily_scores')->join('templates', 'templates.id', '=', 'daily_scores.template_id')->where('daily_scores.user_id', $id)->orderBy('daily_scores.id')->select(['daily_scores.date', 'templates.slug', 'daily_scores.part_key', 'daily_scores.score', 'daily_scores.recorded_at'])->lazy(500)->map(static fn (stdClass $d): array => ['date' => $d->date, 'song' => $d->slug, 'part' => $d->part_key, 'score' => (int) $d->score, 'recordedAt' => $d->recorded_at]),

@@ -11,6 +11,7 @@ use App\Models\User;
 use App\Support\Accounts\AddressLimits;
 use App\Support\Accounts\EmailTokens;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
 
 /**
  * Send the verification link again: only to an unverified account with a password, within the
@@ -20,7 +21,7 @@ final class ResendVerification
 {
     public function __construct(private readonly EmailTokens $tokens, private readonly AddressLimits $limits) {}
 
-    public function handle(string $email, ?string $ip = null): void
+    public function handle(string $email, ?string $ip = null, ?string $browserHash = null): void
     {
         $email = strtolower(trim($email));
         $user = User::query()->where('email', $email)->whereNull('email_verified_at')->whereNotNull('password')->first();
@@ -30,6 +31,9 @@ final class ResendVerification
         }
 
         // To the account's own address, never the one typed (docs/security-review.md).
-        Mail::to((string) $user->email)->send(new VerifyEmailAddress($this->tokens->issue($user, EmailToken::VERIFY, (string) $user->email, 24), $user->name));
+        // Bound like the sign-up's (SignUpBrowser): to the secret the asker holds, else to one nobody
+        // holds, so a link asked for without it starts the account fresh. Never unbound.
+        $bound = $browserHash ?? hash('sha256', Str::random(48));
+        Mail::to((string) $user->email)->send(new VerifyEmailAddress($this->tokens->issue($user, EmailToken::VERIFY, (string) $user->email, 24, browserHash: $bound), $user->name));
     }
 }

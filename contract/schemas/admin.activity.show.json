@@ -1,0 +1,154 @@
+{
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "feed",
+                "hours",
+                "features",
+                "limits",
+                "timezone"
+            ],
+            "properties": {
+                "feed": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "at",
+                            "kind",
+                            "person",
+                            "detail"
+                        ],
+                        "properties": {
+                            "at": {
+                                "type": "string"
+                            },
+                            "kind": {
+                                "type": "string",
+                                "enum": [
+                                    "sign_up",
+                                    "trial_started",
+                                    "plus_started",
+                                    "plus_ended",
+                                    "coaching_sale",
+                                    "school_year"
+                                ]
+                            },
+                            "person": {
+                                "type": [
+                                    "object",
+                                    "null"
+                                ],
+                                "additionalProperties": false,
+                                "required": [
+                                    "id",
+                                    "name"
+                                ],
+                                "properties": {
+                                    "id": {
+                                        "type": "string"
+                                    },
+                                    "name": {
+                                        "type": "string"
+                                    }
+                                }
+                            },
+                            "detail": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "hours": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "hour",
+                            "takes",
+                            "scores",
+                            "signUps"
+                        ],
+                        "properties": {
+                            "hour": {
+                                "type": "string"
+                            },
+                            "takes": {
+                                "type": "integer"
+                            },
+                            "scores": {
+                                "type": "integer"
+                            },
+                            "signUps": {
+                                "type": "integer"
+                            }
+                        }
+                    }
+                },
+                "features": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "kind",
+                            "guest",
+                            "account"
+                        ],
+                        "properties": {
+                            "kind": {
+                                "type": "string"
+                            },
+                            "guest": {
+                                "type": "integer"
+                            },
+                            "account": {
+                                "type": "integer"
+                            }
+                        }
+                    }
+                },
+                "limits": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                        "freeAccounts",
+                        "projectsAtLimit",
+                        "projectsNearLimit",
+                        "projectLimit"
+                    ],
+                    "properties": {
+                        "freeAccounts": {
+                            "type": "integer"
+                        },
+                        "projectsAtLimit": {
+                            "type": "integer"
+                        },
+                        "projectsNearLimit": {
+                            "type": "integer"
+                        },
+                        "projectLimit": {
+                            "type": "integer"
+                        }
+                    }
+                },
+                "timezone": {
+                    "type": "string",
+                    "description": "The timezone the days and months are in."
+                }
+            }
+        }
+    }
+}

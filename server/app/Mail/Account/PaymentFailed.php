@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Mail\Account;
 
+use App\Support\Http\Hosts;
+
 /**
  * When a Plus payment fails: Plus carries on while Stripe tries again.
  */
@@ -16,7 +18,7 @@ final class PaymentFailed extends AccountMail
 
     protected function url(): string
     {
-        return url('/settings/plus');
+        return Hosts::appLink('/settings/plus');
     }
 
     protected function lines(): array

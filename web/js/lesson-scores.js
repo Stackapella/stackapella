@@ -16,9 +16,9 @@ import { RING, ringTake } from './ring.js';
 const SPEAKER_MOST = 85; // a ring step through a speaker: two stars at most
 import { scoreTake } from './scoring.js';
 import { holdsPercent, pitchAt, speciesPercent } from './harmony.js';
-import { DRIFT_FULL, flipPercent, flipPoint, flips, settleFlip, keyDrift as lineKeyDrift, pitchParts, styledMoves } from './style-scores.js';
+import { DRIFT_FULL, flipPercent, flipPoint, flips, settleFlip, keyDrift as lineKeyDrift, pitchParts, steadyRange, styledMoves } from './style-scores.js';
 import { midiName } from './dsp.js';
-import { formatNumber, t, tk } from './i18n.js';
+import { formatList, formatNumber, t, tk } from './i18n.js';
 
 /** A straight tone on every held note: the Vibrato course's measure, for any course's play step. */
 function straight({ track, target }) {
@@ -35,6 +35,8 @@ const STYLE_LINES = {
     flips: tk('styles.flip.count'), flipsDown: tk('styles.flip.countDown'), pitchOnly: tk('styles.flip.pitchOnly'),
     found: tk('styles.flip.found'), once: tk('styles.flip.once'), none: tk('styles.flip.none'),
     asked: tk('styles.moves.asked'), yours: tk('styles.moves.yours'), noMoves: tk('styles.moves.none'), tooMany: tk('styles.moves.tooMany'),
+    span: tk('styles.range.easy'), spanOne: tk('styles.range.one'), spanNone: tk('styles.range.none'),
+    smooth: tk('styles.range.smooth'), jumped: tk('styles.range.jumped'), jumpedMore: tk('styles.range.jumpedMore'),
 };
 const SIREN_HEARD = 0.4; // of the siren's readings voiced, or it wasn't sung enough to look for a flip
 
@@ -67,12 +69,49 @@ function flipFinder({ track, target, notes, exercise, personal = {} }) {
     return { percent: 70, personal: kept, line: { key: STYLE_LINES.none, values: {} } };
 }
 
+/** A wave step's slide or siren: its seconds, and whether enough of it was sung to judge. */
+function sirenSpan(track, target) {
+    const from = target[0].start;
+    const to = target[target.length - 1].end;
+    const span = track.hz.slice(Math.round(from * track.rate), Math.round(to * track.rate));
+    return { from, to, heard: span.length > 0 && span.filter((hz) => hz > 0).length / span.length >= SIREN_HEARD };
+}
+
+/**
+ * Your easy range, from a slide (Range and registers: docs/courses/range-registers.md): its lowest and
+ * highest steady notes, said as notes and added to the range the app keeps (`sung`, through
+ * noteSung). Scored on singing the slide, never on how far it went: nobody is rewarded for pushing.
+ */
+function span({ track, target }) {
+    const { from, to, heard } = sirenSpan(track, target);
+    if (!heard) return { percent: null };
+    const found = steadyRange(track, { from, to });
+    if (!found) return { percent: 70, line: { key: STYLE_LINES.spanNone, values: {} } };
+    const values = { low: midiName(found.low), high: midiName(found.high) };
+    return { percent: 100, sung: [found.low, found.high], line: { key: found.low === found.high ? STYLE_LINES.spanOne : STYLE_LINES.span, values } };
+}
+
+/**
+ * Across the break without a jump (Range and registers' unit 4): Yodeling's flipPoint read the other
+ * way, no jump the top score; a jump says where, so the next try goes lighter just before it.
+ */
+function smooth({ track, target, notes, exercise }) {
+    const { from, to, heard } = sirenSpan(track, target);
+    if (!heard) return { percent: null };
+    const home = notes[0].pitch - (exercise.step ?? 0);
+    const { jumps } = flipPoint(track, { home, from, to });
+    if (!jumps.length) return { percent: 100, line: { key: STYLE_LINES.smooth, values: {} } };
+    const where = [...new Set(jumps.map((j) => midiName(Math.round(home + j.middle))))];
+    if (jumps.length === 1) return { percent: exercise.generous ? 75 : 60, line: { key: STYLE_LINES.jumped, values: { note: where[0] } } };
+    return { percent: exercise.generous ? 55 : 40, line: { key: STYLE_LINES.jumpedMore, values: { count: jumps.length, notes: formatList(where) } } };
+}
+
 /** Yodel flips: half the stars for clean flips on every leap between joined notes, half for the notes' pitch (yodeling). */
 function flip({ track, notes, beatSeconds, strictness, exercise, personal }) {
     const score = scoreTake(track, notes, { beatSeconds, strictness, timing: 'none' });
     // Set from the flip note before one is found (a fallback a little above your note): the leaps may
     // not cross your flip, so only the notes are starred, and the line says why.
-    if (exercise?.base === 'flip' && personal && personal.flip === undefined) {
+    if ((exercise?.base === 'flip' || exercise?.base === 'flipKey') && personal && personal.flip === undefined) {
         return { percent: score.status === 'scored' ? score.percent : null, line: { key: STYLE_LINES.pitchOnly, values: {} } };
     }
     const found = flips(track, notes, { beatSeconds });
@@ -190,7 +229,47 @@ function partring(args) {
     return { percent: rung.percent === null || rung.percent === undefined ? pitch : Math.round((pitch + rung.percent) / 2), line: rung.line, label: { key: tk('ring.labelPart') } };
 }
 
+const READ_STEADY_MS = 150; // a read note's start counts as on time within this of its beat (generous: a reader, not a drummer)
+const READ_TIMING_SHARE = 0.3; // with rhythm on, timing's share of the score; pitch keeps the rest
+
+/**
+ * Sight-singing (docs/sight-singing-plan.md): a line read from the stave, scored on each note's
+ * pitch; with `staff.rhythm` (unit 3 on), also on when each note starts (30%), measured against the
+ * timing check (or estimated). With no timing to go on, pitch alone, so a slow but true reader isn't
+ * punished for what couldn't be heard.
+ */
+function read({ track, notes, beatSeconds, strictness, exercise, timing = 'estimated' }) {
+    const pitch = scoreTake(track, notes, { beatSeconds, startSeconds: 0, strictness: strictness ?? 'relaxed', timing });
+    if (pitch.status !== 'scored') return { percent: null };
+    if (!exercise?.staff?.rhythm) return { percent: pitch.percent };
+    const timed = readTiming(pitch.notes, notes, timing);
+    if (timed === null) return { percent: pitch.percent };
+    const percent = Math.round(pitch.percent * (1 - READ_TIMING_SHARE) + timed * READ_TIMING_SHARE);
+    return { percent, line: { key: tk('course.read.measured'), values: { pitch: Math.round(pitch.percent), timing: Math.round(timed) } } };
+}
+
+/**
+ * A read line's timing: of the notes that start something (a new pitch, or after a rest) and were
+ * sung, the share that started within READ_STEADY_MS of their beat, against the singer's usual offset
+ * (up to 100 ms of it forgiven when the latency was measured, as the shared scorer does). A note
+ * whose start wasn't heard near its beat (a rhythm misread: held too long, come in late) counts as
+ * off. Null with fewer than three such notes heard, when there's nothing to judge.
+ */
+function readTiming(results, notes, timing) {
+    const starts = results.filter((r) => r.level !== 'unheard' && r.index > 0 && (notes[r.index].beat > notes[r.index - 1].beat + notes[r.index - 1].length + 1e-6 || notes[r.index].pitch !== notes[r.index - 1].pitch));
+    if (starts.length < 3) return null;
+    const heard = starts.map((r) => r.entryMs ?? r.changeMs).filter((ms) => ms !== null && ms !== undefined).sort((a, b) => a - b);
+    const usual = heard.length ? heard[heard.length >> 1] : 0;
+    const reference = timing === 'measured' ? Math.max(-100, Math.min(100, usual)) : usual;
+    const onTime = starts.filter((r) => {
+        const ms = r.entryMs ?? r.changeMs;
+        return ms !== null && ms !== undefined && Math.abs(ms - reference) <= READ_STEADY_MS;
+    }).length;
+    return Math.round((onTime / starts.length) * 100);
+}
+
 export const PLAY_SCORERS = {
+    read, // sight-singing: a line read from the stave, on each note's pitch
     species, // a line you chose against a cantus, three stars only by the rules (counterpoint's unit 5)
     holds: ({ dots, target }) => ({ percent: holdsPercent(dots, target) }), // several holds with breaths between, each judged on its own (counterpoint's pedals)
     straight, // every note of a second or more held straight (folk, choirs, barbershop)
@@ -206,6 +285,8 @@ export const PLAY_SCORERS = {
     keyDrift, // a line sung on its own: intervals alone and the key held (folk's unit 4)
     flip, // yodel flips between joined notes, clean or slid, and the notes' pitch (yodeling)
     flipFinder, // where your voice flips, from a siren (yodeling's first lesson)
+    span, // your easy range, from a slide (range and registers)
+    smooth, // across the break without a jump (range and registers)
     styled, // scoops, fall-offs, slides and cries asked for (or chosen), and pitch (pop and country)
     ring, // Barbershop: held chord notes against their pure targets
     partring, // Barbershop: a part on pitch and its held chords ringing

@@ -14,7 +14,8 @@ import { localized, t } from '../i18n.js';
 import { renderBacking, renderPart } from '../synth.js';
 import { Icon } from './icon.js';
 import { styleBend } from '../style-scores.js';
-import { clipBuffer, publishedFor } from '../course-clips.js';
+import { clipBuffer, clipCredit, publishedFor } from '../course-clips.js';
+import { ReportVoice } from './report-voice.js';
 
 const LETTERS = ['A', 'B', 'C', 'D'];
 
@@ -51,7 +52,7 @@ export function choosePercent(rounds, answers) {
 }
 
 export const Choose = {
-    components: { Icon },
+    components: { Icon, ReportVoice },
     inheritAttrs: false, // the lesson view passes a sung step's props (the key, strictness): not used here
     props: {
         exercise: { type: Object, required: true },
@@ -59,8 +60,8 @@ export const Choose = {
         color: { type: String, default: 'var(--color-part-4)' },
     },
     emits: ['done', 'practised'],
-    data: () => ({ round: 0, answers: [], picked: null, playing: null, finished: false, recorded: {} }),
-    setup: () => ({ localized, LETTERS }),
+    data: () => ({ round: 0, answers: [], picked: null, playing: null, finished: false, recorded: {}, reporting: null }),
+    setup: () => ({ localized, LETTERS, clipCredit }),
     template: `
         <div class="space-y-5" data-choose>
             <p class="tabular-nums text-xs font-bold uppercase tracking-[0.14em] text-muted">{{ t('choose.round', { round: Math.min(round + 1, rounds.length), total: rounds.length }) }}</p>
@@ -70,7 +71,7 @@ export const Choose = {
                 <ul class="grid gap-3" :class="current.clips.length > 2 ? 'sm:grid-cols-3' : 'sm:grid-cols-2'">
                     <li v-for="(clip, i) in current.clips" :key="round + '-' + i" class="flex items-center gap-3 rounded-2xl border p-3" :class="clipClass(i)" :data-clip="i">
                         <button type="button" class="grid size-12 shrink-0 place-items-center rounded-full glass-bubble-solid" :aria-label="t('choose.hear', { name: clipName(clip, i) })" @click="play(i)"><Icon :name="playing === i ? 'stop' : 'play'" :size="18" /></button>
-                        <span class="min-w-0 flex-1"><span class="block font-bold text-cream" translate="no">{{ clipName(clip, i) }}</span><span v-if="clip.clip && recorded[clip.clip]?.credit" class="block text-xs text-muted" translate="no">{{ t('choose.sungBy', { name: recorded[clip.clip].credit }) }}</span></span>
+                        <span class="min-w-0 flex-1"><span class="block font-bold text-cream" translate="no">{{ clipName(clip, i) }}</span><span v-if="clip.clip && recorded[clip.clip]?.credit" class="block text-xs text-muted" translate="no">{{ clipCredit(recorded[clip.clip]) }} <button type="button" class="link-quiet" :aria-label="t('voices.report.button', { who: clipCredit(recorded[clip.clip]) })" data-report-clip @click.stop="reporting = clip.clip">{{ t('voices.report.short') }}</button></span></span>
                         <button v-if="!current.options" type="button" class="btn-secondary btn-sm" :disabled="picked !== null" @click="answer(i)">{{ t('choose.this') }}</button>
                     </li>
                 </ul>
@@ -88,6 +89,7 @@ export const Choose = {
                 <p class="text-sm text-muted">{{ right === rounds.length ? t('choose.allRight') : t('choose.again') }}</p>
                 <button type="button" class="btn-secondary btn-sm" @click="restart">{{ t('choose.playAgain') }}</button>
             </div>
+            <ReportVoice v-if="reporting" :clip-slot="reporting" :who="clipCredit(recorded[reporting])" @close="reporting = null" />
         </div>`,
     computed: {
         rounds: (vm) => playableRounds(vm.exercise.rounds ?? [], vm.recorded),

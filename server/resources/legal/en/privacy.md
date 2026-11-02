@@ -118,9 +118,22 @@ you choose to share.
   your quiet hours.
 - Turn either off at any time, in Settings.
 
+**If you lend your voice** (only if you do)
+- Your recordings and their checks (as a beta singer's), your credit choice (your name or
+  anonymous, and whether it links your public profile), when you accepted the agreement, and your
+  claims. A recording we use is kept while it's in use; ask us, or delete your account, and we stop
+  using it (copies already in people's projects and exports stay).
+- The credit you chose is shown with your recording in the app, in exports and on the song or
+  course page.
+
 **Beta singers** (only if you're one)
 - Your name, email, notes, credit, rate and payments, and your submissions: the recordings, your
   device and mic, and their scores.
+
+**If you join a class, or make class codes** (the school offer)
+- A student: which class code you used and when, to count its seats and stop misuse. Your teacher
+  sees only how many seats are used, never who used them. It's deleted with your account.
+- A teacher: the codes you make, their names and seats.
 
 ## Who can see what
 
@@ -184,9 +197,16 @@ Our storage is in DigitalOcean's New York region, so your data is held in the Un
 - **sa_pass (before launch only):** Lets beta testers in. Kept until launch.
 - **sa_app:** Remembers you've used the app, so the home address opens it. Kept a year.
 - **sa_theme:** Remembers the look you chose. Kept a year.
+- **sa_mic:** Remembers the name of the mic you chose (such as "MacBook Pro Microphone"), so the site and the app pick the same one. Nothing else is in it, and our server never reads or keeps it. Kept a year.
 - **sa_mudeo:** Remembers you came from mudeo, to show its welcome. Kept until you close the browser.
 - **sa_mudeo_used:** Set once someone who came from mudeo starts singing, so our daily count of how
   many did counts them once. Holds nothing about you. Kept until you close the browser.
+- **sa_signup:** Set when you sign up with a password, so the confirm link keeps your sign-up only
+  in the browser you used. Holds a random code, nothing about you. Kept two days.
+- **sa_link:** Set when you ask for a sign-in link, so opening it in another browser asks you first
+  whose account it is. Holds a random code, nothing about you. Kept an hour.
+- **sa_staff (our own staff only):** Set on a device when one of our admins signs in to Admin, so our
+  anonymous counts leave out our own use. Its value is only "1", with no ID. Kept a year.
 - **Apple's sign-in check (stackapella_apple):** Checks a Sign in with Apple came from you. Kept 10 minutes.
 
 The app also keeps your songs, recordings, settings and its own files in your browser's storage,

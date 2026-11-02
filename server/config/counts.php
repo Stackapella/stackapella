@@ -29,6 +29,11 @@ return [
         'site_visit',
         // Sheet music: a song made from an imported score (exports are exp_sheet, MusicXML or MIDI).
         'sheet_import',
+        // People using the app (docs/admin-analytics-plan.md): each device once a UTC day, ISO week
+        // and month, from the date it last counted (kept on the device, never an ID).
+        'app_day', 'app_week', 'app_month',
+        // The practice playlist (docs/practice-playlist-plan.md): a set started, Repeat my part used.
+        'set_play', 'set_repeat',
         // The skins: app_open split by the skin in use, and the Game mode switch.
         'open_game', 'open_serious', 'game_on', 'game_off',
         // Plus extras.
@@ -39,6 +44,13 @@ return [
         'take_use', 'take_undo', 'track_add', 'track_rename', 'exp_song', 'exp_practice', 'exp_stems', 'exp_sheet',
         // Onboarding: the asks that made an account, by reason, and the day-2 card.
         'share_note', 'card_named', 'su_progress', 'su_reminders', 'su_share', 'su_boards', 'card_day2',
+        // The account nudges (docs/account-nudges-plan.md): an account made, by what asked for it,
+        // and each ask's "Not now" (its shown and yes are asks below).
+        'su_week', 'su_songs', 'su_unit', 'su_risk', 'su_groups', 'su_friends', 'su_voice', 'su_plus', 'su_template', 'su_sheet', 'su_settings', 'su_daily', 'su_school',
+        'ask_acct_week_not', 'ask_acct_songs_not', 'ask_acct_unit_not', 'ask_acct_risk_not', 'ask_acct_settings_not', 'ask_acct_course_not',
+        // Home after week one (docs/home-returning-plan.md, experiment ret1): each Today line shown and tapped.
+        'home_today_gap_shown', 'home_today_gap_tap', 'home_today_done_shown', 'home_today_done_song_tap', 'home_today_done_course_tap',
+        'home_today_stuck_shown', 'home_today_stuck_tap', 'home_today_daily_shown', 'home_today_daily_tap',
         // Melody first: what the app suggested, and whether the singer changed it.
         'sug_melody', 'sug_part', 'sug_switch',
     ],
@@ -68,19 +80,18 @@ return [
     'funnel' => [
         'f_site_start', 'f_arrive', 'f_arrive_start', 'f_mic', 'f_note', 'f_note_skip', 'f_lesson1', 'f_chord', 'f_lesson2', 'f_lesson3', 'f_unit1',
         'f_goal', 'f_install', 'f_name', 'f_account', 'f_share', 'f_remind', 'f_take', 'f_harmony', 'f_day2', 'f_week1', 'f_goal_met',
+        // Experiments' longer reads (docs/experiments-plan.md, slice 4): back on day 7, and Plus
+        // started on this device (the server's plus_started can't know a device's arm).
+        'f_day7', 'f_plus',
+        // Back on any of days 14 to 20 (keep1's guardrail).
+        'f_day14',
     ],
 
     // The asks, each counted as ask_<name>_shown (first time only) and ask_<name>_yes.
-    'asks' => ['install', 'account', 'name', 'share', 'goal', 'remind'],
+    'asks' => ['install', 'account', 'name', 'share', 'goal', 'remind', 'acct_week', 'acct_songs', 'acct_unit', 'acct_risk', 'acct_settings', 'acct_course'],
 
-    // The A/B experiments, one at a time, oldest first. A device draws an arm at f_arrive while one
-    // enrols (from `start` until `end` passes: set `end` once Admin > Funnel says the planned
-    // sample is in, as the counts alone never stop it) and sends
-    // "<id>-<arm>" with its funnel counts. `start` null: planned, not running. Read it from a week
-    // after enrolment stops (day-2 and week-1 returns need it), never before.
-    'experiments' => [
-        ['id' => 'onb1', 'what' => 'The chord moment after lesson 1\'s note', 'arms' => ['a', 'b'], 'start' => null, 'end' => null, 'plannedPerArm' => 1500, 'primary' => 'f_lesson3', 'guardrail' => 'f_lesson2'],
-    ],
+    // The A/B experiments are in the registry (the experiments table, Admin > Experiments;
+    // docs/experiments-plan.md), not here. A test is read by, and guarded with, funnel steps.
 
     // At most this many of one kind, and this many kinds, in one request.
     'max_n' => 20,

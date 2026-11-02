@@ -10,6 +10,8 @@ use App\Models\User;
 use App\Support\Accounts\PasswordFailures;
 use App\Support\Accounts\Sessions;
 use App\Support\Trust\SecurityLog;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
 
 /**
@@ -18,6 +20,9 @@ use Illuminate\Support\Facades\Password;
  */
 final class ResetPassword
 {
+    /** A bcrypt hash of nothing anyone knows, checked to spend the same time when there's no token. */
+    private const NOTHING = '$2y$12$ZjiPVEDCn1KVtDeWxvt1huorO20LGrk.Nwk/2J1WrRdsYwuVy6qNu';
+
     public function __construct(private readonly Sessions $sessions, private readonly PasswordFailures $failures, private readonly SecurityLog $securityLog) {}
 
     public function handle(string $email, string $token, string $password, ?string $ip): User
@@ -25,7 +30,15 @@ final class ResetPassword
         $user = User::query()->where('email', strtolower(trim($email)))->first();
         $broker = Password::broker();
 
-        if ($user === null || ! $broker->tokenExists($user, $token)) {
+        // The same work either way (docs/agents/backend.md, "No enumeration"): with no account, or no
+        // reset waiting, a bcrypt check against nothing, as checking a real token costs.
+        $waiting = $user !== null && DB::table((string) config('auth.passwords.users.table'))->where('email', $user->email)->exists();
+
+        if (! $waiting) {
+            Hash::check($token, self::NOTHING);
+        }
+
+        if ($user === null || ! $waiting || ! $broker->tokenExists($user, $token)) {
             throw new Refusal(410, 'link_expired');
         }
 

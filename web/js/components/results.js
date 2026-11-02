@@ -8,6 +8,7 @@
 //   did you hear" chips (once), and the Up next card with the next lesson's own picture.
 
 import { game } from '../skin.js';
+import { effect } from '../game/effects.js';
 import { heardTime } from '../../engine/clock.js';
 import { engine } from '../audio.js';
 import { hearNotes } from '../creator-audio.js';
@@ -109,7 +110,7 @@ export const TakeResult = {
     data: () => ({ playing: false, elapsed: 0 }),
     setup: () => ({ CHART, midiName, formatTime, prefs, game, ON_PITCH }),
     template: `
-        <section class="grid gap-5 md:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] md:items-start md:gap-6" data-take-result :aria-label="t(result.word)">
+        <section class="grid grid-cols-[minmax(0,1fr)] gap-5 md:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] md:items-start md:gap-6" data-take-result :aria-label="t(result.word)">
             <!-- The stars always in view at the top, beside the word -->
             <div class="flex items-start justify-between gap-4 md:col-span-2">
                 <div class="min-w-0">
@@ -144,14 +145,14 @@ export const TakeResult = {
                         <rect v-for="(dot, i) in points" :key="i" :x="dot.x - 3.5" :y="dot.y - 3" width="7" height="6" rx="3" :class="dot.in ? 'fill-accent' : 'fill-muted/60'" />
                     </svg>
                 </div>
-                <p class="mt-2 flex justify-between gap-3 text-xs text-muted" aria-hidden="true"><span>{{ t('results.chartStart') }}</span><span>{{ t('results.chartLegend') }}</span><span>{{ t('results.chartEnd') }}</span></p>
+                <p data-ui="facts" class="mt-2 flex justify-between gap-3 text-xs text-muted" aria-hidden="true"><span>{{ t('results.chartStart') }}</span><span>{{ t('results.chartLegend') }}</span><span>{{ t('results.chartEnd') }}</span></p>
             </div>
             <div class="space-y-4">
                 <dl class="grid grid-cols-3 gap-3">
-                    <div class="rounded-2xl border border-edge bg-panel p-3"><dt class="sr-only">{{ t('results.stat.onPitch') }}</dt><dd><span class="block text-2xl font-extrabold tabular-nums text-cream">{{ t('results.stat.percent', { percent: result.percent }) }}</span><span class="text-xs text-muted">{{ t('results.stat.onPitch') }}</span></dd></div>
-                    <div v-if="result.hold && result.target.length === 1" class="rounded-2xl border border-edge bg-panel p-3"><dt class="sr-only">{{ t('results.stat.hold') }}</dt><dd><span class="block text-2xl font-extrabold tabular-nums text-cream">{{ t('results.stat.seconds', { seconds: result.hold }) }}</span><span class="text-xs text-muted">{{ t('results.stat.hold') }}</span></dd></div>
-                    <div v-else-if="result.lit !== undefined && result.target.length > 1" class="rounded-2xl border border-edge bg-panel p-3"><dt class="sr-only">{{ t('results.stat.lit') }}</dt><dd><span class="block text-2xl font-extrabold tabular-nums text-cream">{{ t('results.stat.litOf', { lit: result.lit, count: result.target.length }) }}</span><span class="text-xs text-muted">{{ t('results.stat.lit') }}</span></dd></div>
-                    <div v-if="xp && game()" class="rounded-2xl border border-edge bg-panel p-3"><dt class="sr-only">{{ t('results.stat.xpEarned') }}</dt><dd><span class="block text-2xl font-extrabold tabular-nums text-cream">{{ t('results.stat.plus', { xp }) }}</span><span class="text-xs text-muted">{{ t('results.stat.xpEarned') }}</span></dd></div>
+                    <div class="min-w-0 rounded-2xl border border-edge bg-panel p-3"><dt class="sr-only">{{ t('results.stat.onPitch') }}</dt><dd><span class="block text-2xl font-extrabold tabular-nums text-cream">{{ t('results.stat.percent', { percent: result.percent }) }}</span><span class="block break-words text-xs text-muted">{{ t('results.stat.onPitch') }}</span></dd></div>
+                    <div v-if="result.hold && result.target.length === 1" class="min-w-0 rounded-2xl border border-edge bg-panel p-3"><dt class="sr-only">{{ t('results.stat.hold') }}</dt><dd><span class="block text-2xl font-extrabold tabular-nums text-cream">{{ t('results.stat.seconds', { seconds: result.hold }) }}</span><span class="block break-words text-xs text-muted">{{ t('results.stat.hold') }}</span></dd></div>
+                    <div v-else-if="result.lit !== undefined && result.target.length > 1" class="min-w-0 rounded-2xl border border-edge bg-panel p-3"><dt class="sr-only">{{ t('results.stat.lit') }}</dt><dd><span class="block text-2xl font-extrabold tabular-nums text-cream">{{ t('results.stat.litOf', { lit: result.lit, count: result.target.length }) }}</span><span class="block break-words text-xs text-muted">{{ t('results.stat.lit') }}</span></dd></div>
+                    <div v-if="xp && game()" class="min-w-0 rounded-2xl border border-edge bg-panel p-3"><dt class="sr-only">{{ t('results.stat.xpEarned') }}</dt><dd><span class="block text-2xl font-extrabold tabular-nums text-cream">{{ t('results.stat.plus', { xp }) }}</span><span class="block break-words text-xs text-muted">{{ t('results.stat.xpEarned') }}</span></dd></div>
                 </dl>
                 <p v-if="nextGoal" class="text-sm text-muted">{{ t('results.nextGoal', { seconds: nextGoal }) }}</p>
             </div>
@@ -265,9 +266,10 @@ export const LessonEnd = {
     // path: results.js unitPath; next: { lesson, minutes, visual, line } or null; askHeard: the chips, once.
     props: { done: { type: Object, required: true }, path: { type: Array, required: true }, next: { type: Object, default: null }, askHeard: Boolean },
     emits: ['next', 'replay', 'heard', 'skipHeard'],
-    setup: () => ({ localized, HEARD, PATH_WORDS, game, ON_PITCH }),
+    setup: () => ({ localized, HEARD, PATH_WORDS, game, ON_PITCH, effect }),
     template: `
-        <section class="grid w-full gap-8 md:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] md:items-center md:gap-12" data-lesson-end>
+        <!-- One centred panel (Hillel, 2026-10-31: "this screen isn't laid out well"): the result and what's next in the same frame, a line between. -->
+        <section class="mx-auto grid w-full max-w-4xl gap-8 rounded-stage border border-edge bg-panel p-5 md:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] md:items-center md:gap-10 md:p-8" data-lesson-end data-ui="stage">
             <div class="flex flex-col gap-6">
                 <div class="flex flex-col items-center gap-4 text-center md:items-start md:text-start">
                     <StarDiscs ref="stars" :stars="done.stars" big :fresh="done.fresh" />
@@ -278,7 +280,9 @@ export const LessonEnd = {
                         <!-- Game mode's stage clear (docs/game-elements-plan.md): the XP counts up to the real number -->
                         <li v-if="game() && tally" class="chip font-bold text-cream" data-end-xp><CountUp :to="done.xp || 0" v-slot="{ n }">{{ done.xp ? t('results.xp', { xp: n }) : t('course.done.capped') }}</CountUp></li>
                         <li v-else-if="game()" class="chip font-bold text-cream" data-end-xp>{{ done.xp ? t('results.xp', { xp: done.xp }) : t('course.done.capped') }}</li>
-                        <li v-if="done.streak >= 2 && game()" class="chip font-bold text-part-ink-1">{{ t('results.streak', { count: done.streak }) }}</li>
+                        <!-- Game feel slice 2: on the day's first lesson end the streak chip is Streak!, popping in once, in the row with the others -->
+                        <li v-if="done.streak >= 2 && game() && done.streakNew && effect('popups')" class="chip ge-streak-chip font-bold" data-end-streak data-game-popup="streak">{{ t('game.popup.streak', { count: done.streak }) }}</li>
+                        <li v-else-if="done.streak >= 2 && game()" class="chip font-bold text-part-ink-1" data-end-streak>{{ t('results.streak', { count: done.streak }) }}</li>
                         <li class="chip text-muted" data-end-place>{{ tally && Number.isFinite(done.unit) ? t('game.tally.clear', { unit: done.unit, lesson: done.place }) : t('results.lessonOf', { place: done.place, total: done.total }) }}</li>
                     </ul>
                     <BadgeLine v-if="game()" />
@@ -311,10 +315,10 @@ export const LessonEnd = {
                     </div>
                 </div>
             </div>
-            <aside class="overflow-hidden rounded-3xl border border-edge bg-panel" :aria-label="t('results.upNext')">
+            <aside class="border-t border-line pt-6 md:border-s md:border-t-0 md:ps-10 md:pt-0" :aria-label="t('results.upNext')" data-end-next>
                 <template v-if="next">
-                    <div v-if="next.visual" class="p-5 pb-0"><LearnVisual :type="next.visual" class="mx-auto max-w-[16rem]" /></div>
-                    <div class="space-y-3 p-5">
+                    <div v-if="next.visual" class="pb-3"><LearnVisual :type="next.visual" class="mx-auto max-w-[16rem]" /></div>
+                    <div class="space-y-3">
                         <p class="text-xs font-bold uppercase tracking-[0.14em] text-accent-strong">{{ t('results.upNextMinutes', { minutes: next.minutes }) }}</p>
                         <h2 class="text-2xl font-extrabold tracking-tight text-cream" translate="no">{{ localized(next.lesson.title) }}</h2>
                         <p v-if="next.line" class="text-muted" translate="no">{{ localized(next.line) }}</p>
@@ -322,7 +326,7 @@ export const LessonEnd = {
                         <button type="button" class="btn-ghost w-full" @click="$emit('replay')">{{ done.stars < 3 && game() ? t('results.playAgainStars') : t('course.replay') }}</button>
                     </div>
                 </template>
-                <div v-else class="space-y-3 p-5">
+                <div v-else class="space-y-3">
                     <p class="text-cream">{{ done.sharpened ? t('sharpen.done') : t('results.unitDone') }}</p>
                     <button type="button" class="btn-primary btn-lg w-full" @click="$emit('next')">{{ t('course.backToCourse') }}</button>
                     <button type="button" class="btn-ghost w-full" @click="$emit('replay')">{{ done.stars < 3 && game() ? t('results.playAgainStars') : t('course.replay') }}</button>

@@ -1,0 +1,115 @@
+{
+    "data": {
+        "months": [
+            {
+                "month": "2025-12",
+                "signedUp": 0,
+                "finishedSong": 0,
+                "secondSong": 0,
+                "active": 0,
+                "plus": 0,
+                "medianDaysToFirstSong": null
+            },
+            {
+                "month": "2026-01",
+                "signedUp": 0,
+                "finishedSong": 0,
+                "secondSong": 0,
+                "active": 0,
+                "plus": 0,
+                "medianDaysToFirstSong": null
+            },
+            {
+                "month": "2026-02",
+                "signedUp": 0,
+                "finishedSong": 0,
+                "secondSong": 0,
+                "active": 0,
+                "plus": 0,
+                "medianDaysToFirstSong": null
+            },
+            {
+                "month": "2026-03",
+                "signedUp": 0,
+                "finishedSong": 0,
+                "secondSong": 0,
+                "active": 0,
+                "plus": 0,
+                "medianDaysToFirstSong": null
+            },
+            {
+                "month": "2026-04",
+                "signedUp": 0,
+                "finishedSong": 0,
+                "secondSong": 0,
+                "active": 0,
+                "plus": 0,
+                "medianDaysToFirstSong": null
+            },
+            {
+                "month": "2026-05",
+                "signedUp": 0,
+                "finishedSong": 0,
+                "secondSong": 0,
+                "active": 0,
+                "plus": 0,
+                "medianDaysToFirstSong": null
+            },
+            {
+                "month": "2026-06",
+                "signedUp": 0,
+                "finishedSong": 0,
+                "secondSong": 0,
+                "active": 0,
+                "plus": 0,
+                "medianDaysToFirstSong": null
+            },
+            {
+                "month": "2026-07",
+                "signedUp": 0,
+                "finishedSong": 0,
+                "secondSong": 0,
+                "active": 0,
+                "plus": 0,
+                "medianDaysToFirstSong": null
+            },
+            {
+                "month": "2026-08",
+                "signedUp": 0,
+                "finishedSong": 0,
+                "secondSong": 0,
+                "active": 0,
+                "plus": 0,
+                "medianDaysToFirstSong": null
+            },
+            {
+                "month": "2026-09",
+                "signedUp": 40,
+                "finishedSong": 12,
+                "secondSong": 3,
+                "active": 20,
+                "plus": 0,
+                "medianDaysToFirstSong": 1.5
+            },
+            {
+                "month": "2026-10",
+                "signedUp": 80,
+                "finishedSong": 24,
+                "secondSong": 6,
+                "active": 40,
+                "plus": 1,
+                "medianDaysToFirstSong": 1.5
+            },
+            {
+                "month": "2026-11",
+                "signedUp": 120,
+                "finishedSong": 36,
+                "secondSong": 9,
+                "active": 60,
+                "plus": 2,
+                "medianDaysToFirstSong": 1.5
+            }
+        ],
+        "timezone": "UTC"
+    }
+}

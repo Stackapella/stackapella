@@ -24,7 +24,7 @@ def page(f, shot_id, path, ready="document.querySelector('main h1, main h2, #app
 def journey(f):
     assert OUT, "the atlas needs OUT=<dir>"
     f.go(f"/?{MEMBER}", "document.querySelector('#app header')")
-    f.run("localStorage.setItem('stackapella.installDismissed', '1');")
+    f.run("localStorage.setItem('stackapella.asks', JSON.stringify({ stopped: ['install'] }));")
     clear_projects(f)
     song = new_song(f)
     page(f, "home--signed-in", f"/?{MEMBER}")

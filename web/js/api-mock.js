@@ -18,17 +18,7 @@
 import { OPERATIONS } from './api.js';
 import { session as tabStorage } from './storage.js';
 
-const THIS_MACHINE = () => ['localhost', '127.0.0.1'].includes(location.hostname) || location.hostname.endsWith('.test');
-
-/** Whether calls go to the mock: asked for with ?api=mock, on this machine only. */
-export function mockWanted() {
-    if (!THIS_MACHINE()) return false;
-    const params = new URLSearchParams(location.search);
-    if (params.has('api')) tabStorage.set('stackapella.api', params.get('api') === 'mock' ? 'mock' : '');
-    if (params.has('scenario')) tabStorage.set('stackapella.scenario', params.get('scenario'));
-    if (params.has('as')) tabStorage.set('stackapella.mockAs', params.get('as'));
-    return tabStorage.get('stackapella.api') === 'mock';
-}
+export { mockWanted } from './api-mode.js';
 
 function scenarios() {
     return (tabStorage.get('stackapella.scenario') ?? '').split(',').map((s) => s.trim()).filter(Boolean);
@@ -193,7 +183,14 @@ async function stateful(operation, params, body, cases, query = {}) {
     // Ideas (its server flag, as auth.config says it): open in the mock, closed with ideas.list:not_found.
     if (operation === 'auth.config') {
         const { data } = await example('auth.config.200.json');
-        return respond(200, { data: { ...data, ideas: !scenarios().includes('ideas.list:not_found') } });
+        // Only the experiments a flow asks for (stackapella.mockExperiments, this tab): the example's running
+        // one would draw an arm at random on every mock page, so no flow could know which lesson it gets.
+        const experiments = JSON.parse(tabStorage.get('stackapella.mockExperiments') || '[]');
+        // Lend your voice switched on for a flow (stackapella.mockLendVoice, this tab).
+        const lendVoice = tabStorage.get('stackapella.mockLendVoice') === '1' || !!data.lendVoice;
+        // A self-hosted install, for this tab (`stackapella.mockSelfHosted`): the licence's credit shows.
+        const selfHosted = tabStorage.get('stackapella.mockSelfHosted') === '1' || !!data.selfHosted;
+        return respond(200, { data: { ...data, ideas: !scenarios().includes('ideas.list:not_found'), experiments, lendVoice, selfHosted } });
     }
     // Who's signed in, and what that allows.
     const as = tabStorage.get('stackapella.mockAs') || 'member';
@@ -211,8 +208,11 @@ async function stateful(operation, params, body, cases, query = {}) {
         const naming = JSON.parse(tabStorage.get('stackapella.mockInitials') || '{}');
         Object.assign(data, naming);
         if (who === 'young') Object.assign(data, { isAdult: false, boardsName: 'initials' });
-        // `plus` and `singerPlus` are on Plus; `singer` and `singerPlus` are beta singers.
-        return { data: { ...data, appearance, betaSinger: who === 'singer' || who === 'singerPlus', plan: who === 'plus' || who === 'singerPlus' ? 'plus' : data.plan, staff: who === 'admin' ? 'admin' : null } };
+        // Fields a flow sets for this tab (`stackapella.mockAccount`, JSON: createdAt, isAdult and the like).
+        Object.assign(data, JSON.parse(tabStorage.get('stackapella.mockAccount') || '{}'));
+        // `plus` and `singerPlus` are on Plus; `singer` and `singerPlus` are beta singers; `editor` is
+        // staff without the admin gate (`admin` is true only for `admin`, as the server says it).
+        return { data: { ...data, appearance, betaSinger: who === 'singer' || who === 'singerPlus', plan: who === 'plus' || who === 'singerPlus' ? 'plus' : data.plan, staff: who === 'admin' ? 'admin' : who === 'editor' ? 'editor' : null, admin: who === 'admin' } };
     };
     const signedOut = () => respond(401, { message: 'unauthenticated', code: 'unauthenticated' });
     if (operation === 'auth.signout' || operation === 'auth.signout.everywhere') {
@@ -268,10 +268,13 @@ async function stateful(operation, params, body, cases, query = {}) {
             tabStorage.set('stackapella.mockFresh', '1');
             return respond(200, await fresh('beta.invite.accept.200.json'));
         }
+        // A volunteer (Lend your voice: stackapella.mockVolunteer, set once voices.join answers) is a beta singer too.
+        if (operation === 'beta.me.show' && tabStorage.get('stackapella.mockVolunteer') === '1') return respond(200, { data: { ...(await fresh('beta.me.show.200.json')).data, volunteer: true } });
         if (as !== 'singer' && as !== 'singerPlus') return respond(403, { message: 'not_beta_singer', code: 'not_beta_singer' });
         if (operation === 'beta.me.show') return respond(200, await fresh('beta.me.show.200.json'));
         if (operation === 'beta.consent.create') tabStorage.set('stackapella.mockFresh', '');
     }
+    if (operation === 'voices.join' && !scenarios().some((s) => s.startsWith('voices.join:'))) tabStorage.set('stackapella.mockVolunteer', '1');
     if (operation === 'beta.parts.list') {
         // As the catalogue: the parts' real voices play the local fixture.
         const parts = await example('beta.parts.list.200.json');

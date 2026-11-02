@@ -1,0 +1,44 @@
+{
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "id",
+                "name",
+                "email",
+                "approved",
+                "seatAllowance",
+                "seatsTaken"
+            ],
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "approved": {
+                    "type": "boolean"
+                },
+                "seatAllowance": {
+                    "type": "integer"
+                },
+                "seatsTaken": {
+                    "type": "integer"
+                }
+            }
+        }
+    }
+}

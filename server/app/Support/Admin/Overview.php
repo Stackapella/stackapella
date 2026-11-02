@@ -12,6 +12,7 @@ use App\Models\Template;
 use App\Models\TemplateGuide;
 use App\Models\User;
 use App\Support\Stats\Counts;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -39,11 +40,31 @@ final class Overview
             ],
             // Counted from our own records (docs/decisions.md, L).
             'harmonies' => Counts::songs(),
-            'growth' => [
-                'signUps' => User::query()->where('created_at', '>', now()->subWeek())->count(),
-                'upgrades' => DB::table('subscriptions')->where('type', 'default')->whereIn('stripe_status', ['active', 'past_due'])->where('created_at', '>', now()->subWeek())->count(),
-                'activeSingers' => Counts::activeSingers(),
-            ],
+            'growth' => self::growth(),
+        ];
+    }
+
+    /**
+     * The last 7 days and the 7 before, leaving out the admins' own accounts.
+     *
+     * @return array{signUps: int, upgrades: int, activeSingers: int, previous: array{signUps: int, upgrades: int, activeSingers: int}}
+     */
+    private static function growth(): array
+    {
+        $admins = Counts::admins();
+        $signUps = fn (Carbon $from, Carbon $to): int => User::query()->where('is_admin', false)->where('created_at', '>', $from)->where('created_at', '<=', $to)->count();
+        $upgrades = fn (Carbon $from, Carbon $to): int => DB::table('subscriptions')->where('type', 'default')->whereIn('stripe_status', ['active', 'past_due'])
+            ->whereNotIn('user_id', $admins)->where('created_at', '>', $from)->where('created_at', '<=', $to)->count();
+        $now = now();
+        $weekAgo = now()->subWeek();
+        $twoWeeksAgo = now()->subWeeks(2);
+
+        return [
+            'signUps' => $signUps($weekAgo, $now),
+            'upgrades' => $upgrades($weekAgo, $now),
+            'activeSingers' => Counts::activeSingers(),
+            // The 7 days before (8 to 14 days back), for the cards' change.
+            'previous' => ['signUps' => $signUps($twoWeeksAgo, $weekAgo), 'upgrades' => $upgrades($twoWeeksAgo, $weekAgo), 'activeSingers' => Counts::activeSingers($twoWeeksAgo, $weekAgo)],
         ];
     }
 }

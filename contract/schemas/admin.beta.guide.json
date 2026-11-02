@@ -44,6 +44,10 @@
                 "null"
             ],
             "description": "That version's take score, to compare a part's versions."
+        },
+        "reports": {
+            "type": "integer",
+            "description": "Open reports on this voice."
         }
     }
 }

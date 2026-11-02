@@ -34,7 +34,7 @@ export const ContactView = {
     data: () => ({ topic: 'recording', message: '', email: '', details: true, detailsChosen: false, showSent: false, website: '', busy: false, sent: null, errors: null, refusal: null, config: null, turnstile: null, turnstileKey: 0 }),
     setup: () => ({ TOPICS, account, navigate }),
     template: `
-        <div class="min-h-dvh bg-ink px-4 pb-16 pt-[max(0.5rem,env(safe-area-inset-top))] md:px-8">
+        <div data-ui="screen" class="min-h-dvh bg-ink px-4 pb-16 pt-[max(0.5rem,env(safe-area-inset-top))] md:px-8">
             <div class="mx-auto flex w-full max-w-2xl flex-col gap-4 md:gap-6">
                 <PageHeader :title="t('contact.title')" back="/settings" />
                 <p class="-mt-3 text-muted md:-mt-5">{{ t('contact.intro') }}</p>

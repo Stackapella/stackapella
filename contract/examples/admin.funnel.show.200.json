@@ -682,6 +682,7 @@
                 "arm": "b",
                 "total": 31
             }
-        ]
+        ],
+        "timezone": "UTC"
     }
 }

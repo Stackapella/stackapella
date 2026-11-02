@@ -9,7 +9,26 @@
                 {
                     "key": "soprano",
                     "name": "Soprano",
-                    "guides": []
+                    "guides": [],
+                    "needs": {
+                        "voiced": false,
+                        "review": [],
+                        "changed": true,
+                        "unassigned": true,
+                        "singers": [
+                            {
+                                "assignment": "As3Kd9",
+                                "singer": {
+                                    "id": "Lm2Vb8",
+                                    "name": "Ana Ruiz"
+                                },
+                                "status": "accepted",
+                                "open": false,
+                                "previous": true,
+                                "askedAgainAt": null
+                            }
+                        ]
+                    }
                 },
                 {
                     "key": "alto",
@@ -37,12 +56,59 @@
                             "publishedAt": "2026-10-26T15:51:00Z",
                             "pitchPercent": 91
                         }
-                    ]
+                    ],
+                    "needs": {
+                        "voiced": true,
+                        "review": [],
+                        "changed": false,
+                        "unassigned": false,
+                        "singers": [
+                            {
+                                "assignment": "Cn4Rw7",
+                                "singer": {
+                                    "id": "Pq7Rm2",
+                                    "name": "Sarah Kim"
+                                },
+                                "status": "accepted",
+                                "open": true,
+                                "previous": false,
+                                "askedAgainAt": null
+                            }
+                        ]
+                    }
                 },
                 {
                     "key": "tenor",
                     "name": "Tenor",
-                    "guides": []
+                    "guides": [],
+                    "needs": {
+                        "voiced": false,
+                        "review": [
+                            {
+                                "submission": "Wq8Zn3",
+                                "status": "submitted",
+                                "singer": {
+                                    "id": "Rt6Hc1",
+                                    "name": "Ben Ode"
+                                }
+                            }
+                        ],
+                        "changed": false,
+                        "unassigned": false,
+                        "singers": [
+                            {
+                                "assignment": "Bx5Pt2",
+                                "singer": {
+                                    "id": "Rt6Hc1",
+                                    "name": "Ben Ode"
+                                },
+                                "status": "submitted",
+                                "open": true,
+                                "previous": false,
+                                "askedAgainAt": null
+                            }
+                        ]
+                    }
                 },
                 {
                     "key": "bass",
@@ -67,7 +133,14 @@
                             "publishedAt": "2026-10-26T15:51:00Z",
                             "pitchPercent": 91
                         }
-                    ]
+                    ],
+                    "needs": {
+                        "voiced": true,
+                        "review": [],
+                        "changed": false,
+                        "unassigned": false,
+                        "singers": []
+                    }
                 }
             ],
             "olderGuides": 0

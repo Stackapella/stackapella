@@ -1,6 +1,6 @@
 """The install card (docs/operations-plan.md, "Keeping songs safe"): with the browser's offer to
 install (headless Chrome offers it on localhost), the home offers it; "Not now" ends the plain offer. Once a song is recorded the card says
-the songs are only on this device, and "Not now" holds it back for a week. Installing calls the
+the songs are only on this device. Every "Not now" holds back all the asks for 14 days (js/asks.js). Installing calls the
 browser's own prompt.
 """
 import sys
@@ -14,11 +14,14 @@ OFFER = """(() => { const e = new Event('beforeinstallprompt'); e.prompt = () =>
     e.userChoice = Promise.resolve({ outcome: 'dismissed' }); window.dispatchEvent(e); })()"""
 CARD = "document.querySelector('#install-title')?.textContent ?? ''"
 HOME = "/?api=mock&scenario=&as=signedOut"
+# Days pass for the ask ledger: the last Not now and today's ask moved back.
+LATER = """(() => { const l = JSON.parse(localStorage.getItem('stackapella.asks')); l.notAt -= {days} * 86400000; l.day = null;
+    localStorage.setItem('stackapella.asks', JSON.stringify(l)); })()"""
 
 
 def journey(f):
     f.go(HOME, "document.querySelector('#app header')")
-    f.run("localStorage.removeItem('stackapella.installDismissed'); localStorage.removeItem('stackapella.safeCardDismissed')")
+    f.run("for (const k of ['asks', 'installDismissed', 'safeCardDismissed', 'keepAsk', 'remindAsk', 'installAskedOn']) localStorage.removeItem('stackapella.' + k)")
     f.go(HOME, "document.querySelector('#app header')")
     f.wait("true", what="loaded")
     time.sleep(1)  # Chrome offers to install here for real; ours replaces it, to see the call
@@ -34,21 +37,29 @@ def journey(f):
     f.run(OFFER)
     time.sleep(0.5)
     assert not f.js("!!document.querySelector('#install-title')"), "the plain offer stays away"
-    # A recorded song: the card comes back with what's at stake.
+    # A recorded song, 15 days on: the card comes back with what's at stake.
+    f.run(LATER.replace("{days}", "15"))
     f.run("""(async () => { const s = await import('/js/stores/projects.js'); const p = await s.createProject({ title: 'Safe test' });
         await s.savePart({ id: crypto.randomUUID(), projectId: p.id, name: 'Lead', color: '#f59e6b', order: 0, volume: 1, pan: 0, muted: false, solo: false,
             offsetSeconds: 0, frames: 4800, sampleRate: 48000, peaks: [0.2, 0.4], createdAt: Date.now() }, new Float32Array(4800));
         await s.loadProjects(); window.safeProject = p.id; })()""")
     f.wait("window.safeProject", what="a recorded project")
+    f.go(HOME, "document.querySelector('#app header')")
+    f.run(OFFER)
     f.wait(f"{CARD} === (await import('/js/i18n.js')).t('install.safeTitle')", what="install.safeTitle")
     f.shot("songs")
     f.click_t("install.later")
     f.go(HOME, "document.querySelector('#app header')")
     f.run(OFFER)
     time.sleep(0.5)
-    assert not f.js("!!document.querySelector('#install-title')"), "held back for a week"
-    # A week later it's back.
-    f.run("localStorage.setItem('stackapella.safeCardDismissed', String(Date.now() - 8 * 24 * 3600 * 1000))")
+    assert not f.js("!!document.querySelector('#install-title')"), "held back"
+    f.run(LATER.replace("{days}", "13"))
+    f.go(HOME, "document.querySelector('#app header')")
+    f.run(OFFER)
+    time.sleep(0.5)
+    assert not f.js("!!document.querySelector('#install-title')"), "held back for 14 days"
+    # 14 days on it's back.
+    f.run(LATER.replace("{days}", "2"))
     f.go(HOME, "document.querySelector('#app header')")
     f.run(OFFER)
     f.wait(f"{CARD} === (await import('/js/i18n.js')).t('install.safeTitle')", what="install.safeTitle")

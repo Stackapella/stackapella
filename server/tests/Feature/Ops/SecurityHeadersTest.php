@@ -55,10 +55,19 @@ final class SecurityHeadersTest extends TestCase
         $this->assertSame(["'self'", 'https://fonts.gstatic.com'], $csp['font-src']);
         $this->assertContains('https://media.stackapella.test', $csp['img-src']);
         $this->assertContains('https://media.stackapella.test', $csp['media-src']);
+        // The landing's lane fetches a guide from the CDN to score it.
+        $this->assertContains('https://media.stackapella.test', $csp['connect-src']);
         $this->assertSame(["'none'"], $csp['object-src']);
         $this->assertSame(["'self'"], $csp['frame-ancestors']);
         $page->assertHeader('X-Frame-Options', 'SAMEORIGIN')->assertHeader('X-Content-Type-Options', 'nosniff');
         $this->assertStringStartsWith('microphone=()', (string) $page->headers->get('Permissions-Policy'));
+        // Perfect your pitch's page lets a visitor try the pitch meter, and the Course feature and
+        // beginners' pages "Find your comfortable note"; no other public page listens.
+        foreach (['/courses/perfect-your-pitch', '/features/course', '/for/beginners'] as $listens) {
+            $this->assertStringStartsWith('microphone=(self)', (string) $this->get($listens)->headers->get('Permissions-Policy'), $listens);
+        }
+        $this->assertStringStartsWith('microphone=()', (string) $this->get('/features/studio')->headers->get('Permissions-Policy'));
+        $this->assertStringStartsWith('microphone=()', (string) $this->get('/courses/vibrato')->headers->get('Permissions-Policy'));
     }
 
     public function test_the_app_allows_its_pinned_libraries_the_microphone_and_the_instruments(): void

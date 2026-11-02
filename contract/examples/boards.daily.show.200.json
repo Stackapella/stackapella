@@ -34,6 +34,36 @@
             "score": 88,
             "rank": 2,
             "initials": null
+        },
+        "cup": {
+            "week": "2026-W44",
+            "startsOn": "2026-10-26",
+            "endsAt": "2026-11-02T00:00:00Z",
+            "entries": [
+                {
+                    "id": "Kd7Pq2",
+                    "rank": 1,
+                    "name": null,
+                    "initials": "ZED",
+                    "points": 272,
+                    "days": 3,
+                    "you": false
+                },
+                {
+                    "id": "Wm4Rt8",
+                    "rank": 2,
+                    "name": "Ana Ruiz",
+                    "initials": null,
+                    "points": 180,
+                    "days": 2,
+                    "you": true
+                }
+            ],
+            "you": {
+                "points": 180,
+                "days": 2,
+                "rank": 2
+            }
         }
     }
 }

@@ -12,6 +12,7 @@ use App\Models\PartScore;
 use App\Models\Template;
 use App\Models\User;
 use App\Support\Boards\Daily;
+use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Artisan;
 use Tests\TestCase;
@@ -99,6 +100,42 @@ final class GameBoardsTest extends TestCase
         PartScore::query()->where('user_id', $ben->id)->where('part_key', $part)->update(['hidden_at' => now()]);
         $this->assertSame(['Ana Ruiz'], array_column((array) $this->actingAs($ana)->getJson('/api/boards/daily')->json('data.entries'), 'name'));
         $this->actingAs($ben)->getJson('/api/boards/daily')->assertJsonPath('data.days', []);
+    }
+
+    public function test_the_weekly_cup_adds_up_each_days_best_and_turning_up_counts(): void
+    {
+        $this->travelTo(CarbonImmutable::parse('2026-10-28 12:00:00', 'UTC'));
+        $ana = $this->person();
+        $ben = $this->person(name: 'Ben Ode');
+        $cy = $this->person(name: 'Cy Lee');
+        $sang = function (User $who, string $date, int $score): void {
+            $pick = Daily::pick($date);
+            $this->assertNotNull($pick);
+            if (! PartScore::query()->where(['user_id' => $who->id, 'template_version_id' => $pick['version']->id, 'part_key' => $pick['part']])->exists()) {
+                PartScore::factory()->create(['user_id' => $who->id, 'template_id' => $pick['template']->id, 'template_version_id' => $pick['version']->id, 'part_key' => $pick['part'], 'score' => $score]);
+            }
+            DailyScore::factory()->for($who)->create(['date' => $date, 'template_id' => $pick['template']->id, 'template_version_id' => $pick['version']->id, 'part_key' => $pick['part'], 'score' => $score, 'recorded_at' => $date.' 10:00:00']);
+        };
+        // Ana turns up three days at 60; Ben sings 95 once; Cy twice at 90, last week too.
+        foreach (['2026-10-26', '2026-10-27', '2026-10-28'] as $date) {
+            $sang($ana, $date, 60);
+        }
+        $sang($ben, '2026-10-27', 95);
+        $sang($cy, '2026-10-20', 90);
+        $sang($cy, '2026-10-26', 90);
+        $sang($cy, '2026-10-28', 90);
+
+        $board = $this->actingAs($ben)->getJson('/api/boards/daily');
+        $this->assertMatchesContract($board, 'boards.daily.show', 200);
+        $board->assertJsonPath('data.cup.week', '2026-W44')->assertJsonPath('data.cup.startsOn', '2026-10-26')->assertJsonPath('data.cup.endsAt', '2026-11-02T00:00:00Z')
+            ->assertJsonPath('data.cup.you', ['points' => 95, 'days' => 1, 'rank' => 3]);
+        $this->assertSame([['Ana Ruiz', 180, 3], ['Cy Lee', 180, 2], ['Ben Ode', 95, 1]], array_map(fn (array $e): array => [$e['name'], $e['points'], $e['days']], (array) $board->json('data.cup.entries')));
+        // An entry's id is their part-board entry, for "Report this name".
+        $this->assertNotSame('', $board->json('data.cup.entries.0.id'));
+
+        // Signed out: the week, no one's names.
+        auth()->forgetGuards();
+        $this->getJson('/api/boards/daily')->assertJsonPath('data.cup.entries', [])->assertJsonPath('data.cup.you', null)->assertJsonPath('data.cup.week', '2026-W44');
     }
 
     public function test_only_the_last_week_can_be_looked_at_and_a_past_day_takes_no_scores(): void

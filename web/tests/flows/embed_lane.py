@@ -23,7 +23,8 @@ def journey(f):
     f.wait("window.__notes.length >= 7", timeout=20, what="the first line's notes reported")
     notes = f.js("window.__notes.map((n) => n.word + ':' + (n.hit ? 'hit' : 'miss'))")
     print(f"    notes: {notes}")
-    assert "the:miss" in notes and sum(1 for n in notes if n.endswith(":miss")) == 1, f"only 'the' should miss: {notes}"
+    # The landing's take is in tune (ac9b6024: no deliberate wrong note any more): every word lights.
+    assert notes and all(n.endswith(":hit") for n in notes), f"every note should light: {notes}"
     assert f.js(f"{LANE}.zoom(0)") == 0 and f.js(f"{LANE}.zoom(2)") == 2, "zoom out and in"
     f.shot("zoomed-in")
     f.run(f"{LANE}.pause()")

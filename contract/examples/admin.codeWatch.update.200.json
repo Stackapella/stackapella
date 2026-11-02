@@ -1,0 +1,13 @@
+{
+    "data": {
+        "id": "Pq12Zx",
+        "kind": "domain",
+        "key": "example.net",
+        "url": "https://example.net",
+        "firstSeenAt": "2026-11-03T14:00:00Z",
+        "lastSeenAt": "2026-11-09T18:20:00Z",
+        "calls": 214,
+        "dismissedAt": "2026-11-10T09:00:00Z",
+        "note": "Credits us in the footer."
+    }
+}

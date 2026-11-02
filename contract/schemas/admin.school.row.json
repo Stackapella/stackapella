@@ -1,0 +1,117 @@
+{
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "id",
+                "name",
+                "code",
+                "teacher",
+                "seats",
+                "used",
+                "status",
+                "createdAt",
+                "expiresAt",
+                "closedAt",
+                "closedBy"
+            ],
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "code": {
+                    "type": "string"
+                },
+                "teacher": {
+                    "type": [
+                        "object",
+                        "null"
+                    ],
+                    "additionalProperties": false,
+                    "required": [
+                        "id",
+                        "name",
+                        "email",
+                        "approved",
+                        "seatAllowance",
+                        "seatsTaken"
+                    ],
+                    "properties": {
+                        "id": {
+                            "type": "string"
+                        },
+                        "name": {
+                            "type": "string"
+                        },
+                        "email": {
+                            "type": [
+                                "string",
+                                "null"
+                            ]
+                        },
+                        "approved": {
+                            "type": "boolean"
+                        },
+                        "seatAllowance": {
+                            "type": "integer"
+                        },
+                        "seatsTaken": {
+                            "type": "integer"
+                        }
+                    }
+                },
+                "seats": {
+                    "type": "integer"
+                },
+                "used": {
+                    "type": "integer"
+                },
+                "status": {
+                    "type": "string",
+                    "enum": [
+                        "open",
+                        "full",
+                        "expired",
+                        "closed",
+                        "pending"
+                    ]
+                },
+                "createdAt": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "expiresAt": {
+                    "type": "string"
+                },
+                "closedAt": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "closedBy": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "enum": [
+                        "teacher",
+                        "admin",
+                        null
+                    ]
+                }
+            }
+        }
+    }
+}

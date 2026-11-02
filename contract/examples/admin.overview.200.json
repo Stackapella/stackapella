@@ -16,7 +16,13 @@
         "growth": {
             "signUps": 40,
             "upgrades": 6,
-            "activeSingers": 85
-        }
+            "activeSingers": 85,
+            "previous": {
+                "signUps": 31,
+                "upgrades": 4,
+                "activeSingers": 78
+            }
+        },
+        "timezone": "UTC"
     }
 }

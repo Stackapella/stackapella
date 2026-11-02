@@ -427,7 +427,7 @@ const SingerCard = {
                 <div class="flex gap-2"><dt class="text-muted">{{ t('admin.singers.owed') }}</dt><dd class="text-cream">{{ money(singer.owedCents, singer.currency) }} <span class="text-muted">{{ t('admin.singers.paidSoFar', { amount: money(singer.paidCents, singer.currency) }) }}</span></dd></div>
                 <div v-if="singer.expiresAt" class="flex gap-2"><dt class="text-muted">{{ t('admin.singers.expires') }}</dt><dd class="text-cream"><time :datetime="singer.expiresAt">{{ formatDate(singer.expiresAt) }}</time></dd></div>
             </dl>
-            <dl v-if="singer.stats" class="mt-4 grid grid-cols-2 gap-3 rounded-[18px] bg-(--fill) p-3 text-sm sm:grid-cols-5">
+            <dl v-if="singer.stats" class="mt-4 grid grid-cols-2 gap-3 rounded-tile bg-(--fill) p-3 text-sm sm:grid-cols-5">
                 <div><dt class="text-xs text-muted">{{ t('admin.singers.stat.takes') }}</dt><dd class="text-lg font-bold text-cream">{{ formatNumber(singer.stats.takes) }}</dd></div>
                 <div><dt class="text-xs text-muted">{{ t('admin.singers.stat.accepted') }}</dt><dd class="text-lg font-bold text-cream">{{ formatNumber(singer.stats.accepted) }}</dd></div>
                 <div><dt class="text-xs text-muted">{{ t('admin.singers.stat.retakes') }}</dt><dd class="text-lg font-bold text-cream">{{ formatNumber(singer.stats.retakes) }}</dd></div>

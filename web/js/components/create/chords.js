@@ -269,11 +269,11 @@ export const ChordsKeyStep = {
                                 <span v-for="m in CHART.marks" :key="m" class="absolute -translate-x-1/2 first:translate-x-0 last:-translate-x-full" :style="{ insetInlineStart: pos(m) + '%' }">{{ midiName(m) }}</span>
                             </div>
                         </div>
-                        <p v-if="span" class="flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted">
+                        <p v-if="span" data-ui="facts" class="flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted">
                             <span class="flex items-center gap-1.5"><span class="h-2 w-3.5 rounded-sm bg-muted/50" aria-hidden="true"></span>{{ t('create.chords.yourVoice') }}</span>
                             <span class="flex items-center gap-1.5"><span class="h-2 w-3.5 rounded-sm bg-accent" aria-hidden="true"></span>{{ t('create.chords.theTune', { low: midiName(span.low), high: midiName(span.high) }) }}</span>
                         </p>
-                        <p v-if="span" class="flex items-center gap-2 text-sm font-semibold" :class="fit === 'fits' ? 'text-good' : 'text-warn'"><span class="size-2 shrink-0 rounded-full" :class="fit === 'fits' ? 'bg-good' : 'bg-warn'" aria-hidden="true"></span>{{ verdict }}</p>
+                        <p v-if="span" data-ui="facts" class="flex items-center gap-2 text-sm font-semibold" :class="fit === 'fits' ? 'text-good' : 'text-warn'"><span class="size-2 shrink-0 rounded-full" :class="fit === 'fits' ? 'bg-good' : 'bg-warn'" aria-hidden="true"></span>{{ verdict }}</p>
                     </div>
                 </div>
 

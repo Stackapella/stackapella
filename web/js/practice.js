@@ -29,6 +29,8 @@ export const PRACTICE_DEFAULTS = {
     chords: false, // the chords underneath (a template with chords)
     chordsLevel: 0.5,
     chordsSound: 'pad', // or 'piano'
+    drone: 'off', // a drone to tune against (docs/tune-chord-plan.md): 'off', 'key' or 'chord'
+    droneLevel: 0.4,
 };
 
 /** Sing along's guide, as What you hear offers it (Medium is the default). */
@@ -42,6 +44,9 @@ export const MELODY_UNDER = 0.6;
 
 /** The chords' voice in the engine. */
 export const BACKING = 'backing';
+
+/** The drone's voice in the engine (Sing only: never in the studio, a take or a file). */
+export const DRONE = 'drone';
 
 export function guideId(slotId) {
     return `${slotId}:guide`;
@@ -132,12 +137,14 @@ export function voiceLevels(slots, practice = PRACTICE_DEFAULTS, { recordingId =
     }
     // The chords underneath: on when chosen, at their own level, never recorded into a take.
     levels.set(BACKING, { audible: !!practice.chords, volume: (practice.chordsLevel ?? 0.5) * under, pan: 0 });
+    // The drone: on when chosen in Sing, in the middle, at its own level; the studio's mix leaves it out.
+    levels.set(DRONE, { audible: !!practice.drone && practice.drone !== 'off' && !hearRecorded, volume: (practice.droneLevel ?? 0.4) * under, pan: 0 });
     // Split ears (headphones only; the caller decides): your part in your left ear, the others in your
     // right, the chords in the middle, as the practice track of the same name.
     const yours = focus ?? slots.find((s) => s.id === recordingId);
     if (practice.split && yours) {
         const mine = new Set([yours.id, guideId(yours.id)]);
-        for (const [id, level] of levels) if (id !== BACKING) levels.set(id, { ...level, pan: mine.has(id) ? -1 : 1 });
+        for (const [id, level] of levels) if (id !== BACKING && id !== DRONE) levels.set(id, { ...level, pan: mine.has(id) ? -1 : 1 });
     }
     return levels;
 }
@@ -165,8 +172,8 @@ export function trackLevels(levels, partId, kind) {
     const mine = new Set([partId, guideId(partId)]);
     const out = new Map();
     for (const [id, level] of levels) {
-        if (kind === 'split') out.set(id, id === BACKING ? level : { ...level, pan: mine.has(id) ? -1 : 1, spread: 0 });
-        else if (!mine.has(id)) out.set(id, kind === 'alone' ? { ...level, audible: false } : kind === 'louder' && id !== BACKING ? { ...level, volume: level.volume * 0.5 } : level);
+        if (kind === 'split') out.set(id, id === BACKING || id === DRONE ? level : { ...level, pan: mine.has(id) ? -1 : 1, spread: 0 });
+        else if (!mine.has(id)) out.set(id, kind === 'alone' ? { ...level, audible: false } : kind === 'louder' && id !== BACKING && id !== DRONE ? { ...level, volume: level.volume * 0.5 } : level);
         else out.set(id, kind === 'without' ? { ...level, audible: false } : kind === 'louder' ? { ...level, volume: level.volume * 1.4 } : level);
     }
     return out;

@@ -28,12 +28,13 @@ final class OpenSource
     }
 
     /**
-     * Whether the public pages show the licence's credit: once we say we're open source, and always
-     * on a self-hosted install (config/selfhost.php), whatever its flags say.
+     * Whether the public pages show the licence's credit: always on a self-hosted install
+     * (config/selfhost.php), whatever its flags say, and on any other install once we say we're open
+     * source. Never on stackapella.com itself (Hillel, 2026-10-31: the credit is for copies, not us).
      */
     public static function credited(): bool
     {
-        return (bool) config('selfhost.enabled') || self::on();
+        return (bool) config('selfhost.enabled') || (self::on() && ! (bool) config('app.is_nexus'));
     }
 
     /** The credit's address as it's shown: stackapella.com. */

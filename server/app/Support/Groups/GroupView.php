@@ -70,7 +70,8 @@ final class GroupView
     }
 
     /**
-     * Each assignment's status, from the members' own projects: in a few queries for everyone.
+     * Each assignment's status, from the members' own projects begun since it was assigned: in a few
+     * queries for everyone.
      *
      * @param  Collection<int, GroupAssignment>  $assignments
      * @param  Collection<int, GroupSong>  $songs
@@ -83,13 +84,16 @@ final class GroupView
         }
 
         $slugs = $songs->mapWithKeys(fn (GroupSong $song): array => [$song->id => $song->template->slug]);
-        $projects = Project::query()->whereIn('user_id', $assignments->pluck('user_id')->unique())->whereIn('template_slug', $slugs->values())->whereNull('binned_at')->get(['id', 'user_id', 'template_slug', 'updated_at']);
+        $projects = Project::query()->whereIn('user_id', $assignments->pluck('user_id')->unique())->whereIn('template_slug', $slugs->values())->whereNull('binned_at')->get(['id', 'user_id', 'template_slug', 'created_at', 'updated_at']);
         $parts = Part::query()->whereIn('project_id', $projects->pluck('id'))->whereNotNull('current_take_id')->get(['id', 'project_id', 'template_part_key', 'current_take_id']);
         $takes = Take::query()->whereIn('id', $parts->pluck('current_take_id'))->where('status', Take::READY)->whereNull('binned_at')->get(['id', 'ready_at'])->keyBy('id');
         $result = [];
 
         foreach ($assignments as $assignment) {
-            $theirs = $projects->where('user_id', $assignment->user_id)->where('template_slug', $slugs[$assignment->group_song_id] ?? null);
+            // Only what they started for it (from the assignment on): practice from before stays
+            // their own (security review, 2026-11-01).
+            $theirs = $projects->where('user_id', $assignment->user_id)->where('template_slug', $slugs[$assignment->group_song_id] ?? null)
+                ->filter(fn (Project $project): bool => $assignment->created_at === null || $project->created_at === null || $project->created_at->gte($assignment->created_at));
             $recorded = $parts->whereIn('project_id', $theirs->pluck('id'))->where('template_part_key', $assignment->part_key)
                 ->map(fn (Part $part): ?Take => $takes->get($part->current_take_id))->filter()->sortByDesc('ready_at')->first();
 

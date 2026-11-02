@@ -77,7 +77,8 @@ final class AuditLog extends Model
             'before' => $before,
             'after' => $after,
             'reason' => $reason,
-            'ip_hash' => $ip !== null ? IpHash::of($ip) : null,
+            // Staff's own actions only: a member's address, even hashed, would follow them forever.
+            'ip_hash' => $ip !== null && $actor !== null && ($actor->is_admin || $actor->is_editor) ? IpHash::of($ip) : null,
         ])->save();
 
         return $log;

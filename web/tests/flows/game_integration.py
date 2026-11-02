@@ -18,6 +18,10 @@ from accounts_integration import LOG, PASSWORD, sign_in  # noqa: E402
 
 SERVER = LOG.parents[2]
 TAG = "document.querySelector('[data-game-daily]')"
+# A new singer's first week shows no challenge (Hillel's rule): the course started `days` ago.
+STARTED = """const {{ emptyProgress }} = await import('/js/course.js'); const db = await import('/js/db.js');
+    const kept = (await db.get('learning', 'progress')) ?? emptyProgress();
+    await db.put('learning', {{ ...kept, startedAt: Date.now() - {days} * 86400000 }}, 'progress');"""
 BOARD = """const { createApp, h } = await import('vue');
     const { t } = await import('/js/i18n.js');
     const { PartBoard } = await import('/js/components/boards.js');
@@ -48,7 +52,14 @@ def journey(f):
     f.wait(f"(await import('/js/stores/account.js')).account.me?.email === {json.dumps(email)}", timeout=20, what="signed in")
     f.mic_checked()
 
+    # Past a new singer's first week (Home holds the challenge back until then: views/projects.js).
+    f.go("/?api=real", "document.querySelector('#app header')")
+    f.run("""const { learning, loadLearning } = await import('/js/stores/learning.js'); await loadLearning();
+        const plain = JSON.parse(JSON.stringify({ ...learning.progress, startedAt: Date.now() - 10 * 86400000 }));
+        learning.progress = plain; const db = await import('/js/db.js'); await db.put('learning', plain, 'progress');""")
     # Today's challenge: the server's pick, on its song's card.
+    f.go("/?api=real", "document.querySelector('#app header')")
+    f.run(STARTED.format(days=8))  # past a new singer's first week
     f.go("/?api=real", "document.querySelector('#app header')")
     f.wait(TAG, timeout=20, what="today's challenge on its card")
     pick = f.js("JSON.parse(JSON.stringify((await import('/js/game/daily.js')).daily.today))")
@@ -61,6 +72,12 @@ def journey(f):
     f.run(f"{TAG}.click()")
     f.wait(f"{SHEET} && !document.querySelector('[data-daily-take]').disabled", timeout=20, what="the day's board, its song loaded")
     f.shot("board")
+    # This week's cup, from the real server: the choice inside the day's board, then its view.
+    f.wait("document.querySelector('[data-daily-view=cup]')", timeout=10, what="the cup's choice")
+    f.run("document.querySelector('[data-daily-view=cup]').click()")
+    f.wait("document.querySelector('[data-daily-view=cup]').getAttribute('aria-checked') === 'true'", what="the cup chosen")
+    f.shot("cup")
+    f.run("document.querySelector('[data-daily-view=today]').click()")
 
     # Take the challenge: into Sing on the day's part, where the ghost is asked for.
     f.run("document.querySelector('[data-daily-take]').click()")
@@ -81,7 +98,8 @@ def journey(f):
     f.wait("document.querySelector('#board-test [data-board-scope=month]')", timeout=15, what="This month in the board's switch")
     f.run("document.querySelector('#board-test [data-board-scope=month]').click()")
     f.wait("document.querySelector('#board-test [data-board-scope=month]').getAttribute('aria-checked') === 'true' && document.querySelector('#board-test [data-board-entry]')", timeout=15, what="this month's board, from the server")
-    mine = f.js("[...document.querySelectorAll('#board-test [data-board-entry]')].find((li) => li.hasAttribute('data-you'))?.innerText ?? ''")
+    # Your row in the top ten, or (behind earlier runs' seeded singers) your place under it.
+    mine = f.js("[...document.querySelectorAll('#board-test [data-board-entry]')].find((li) => li.hasAttribute('data-you'))?.innerText ?? document.querySelector('#board-test section').innerText")
     assert "83" in mine, f"your best this month on the board: {mine!r}"
     f.shot("this-month")
     f.run("document.querySelector('#board-test').remove()")

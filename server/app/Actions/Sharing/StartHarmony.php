@@ -186,6 +186,16 @@ final class StartHarmony
             throw new Refusal(409, 'mix_mismatch');
         }
 
+        // Anyone who ever sang in it counts as a singer to ask, not only those on the current takes:
+        // the mix is made on the device and could hold a replaced take's voice (security review,
+        // 2026-11-01).
+        $ever = Take::query()->where('project_id', $project->id)->when($part !== null, fn ($query) => $query->where('part_id', $part?->id))
+            ->whereNotNull('recorded_by')->where('recorded_by', '!=', $project->user_id)->distinct()->pluck('recorded_by');
+
+        foreach ($ever as $id) {
+            $singers[(int) $id] = (int) $id;
+        }
+
         ksort($singers);
         sort($takes);
 

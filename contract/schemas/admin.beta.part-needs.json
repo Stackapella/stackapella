@@ -1,0 +1,136 @@
+{
+    "$id": "admin.beta.part-needs.json",
+    "type": "object",
+    "additionalProperties": false,
+    "title": "What one part of a song needs from Hillel now, on its current version",
+    "required": [
+        "voiced",
+        "review",
+        "changed",
+        "unassigned",
+        "singers"
+    ],
+    "properties": {
+        "voiced": {
+            "type": "boolean",
+            "description": "A real voice leads this part on the current version."
+        },
+        "review": {
+            "type": "array",
+            "description": "Takes of this part waiting for review on the current version, oldest first.",
+            "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                    "submission",
+                    "status",
+                    "singer"
+                ],
+                "properties": {
+                    "submission": {
+                        "type": "string",
+                        "description": "The take's id, for admin.beta.submissions.show."
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "submitted",
+                            "in_review"
+                        ]
+                    },
+                    "singer": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "id",
+                            "name"
+                        ],
+                        "properties": {
+                            "id": {
+                                "type": "string"
+                            },
+                            "name": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "changed": {
+            "type": "boolean",
+            "description": "No voice on the current version, but one was recorded (or accepted) for an older version: the part changed, so it needs recording again. A voice that only gained a breath carries over by itself."
+        },
+        "unassigned": {
+            "type": "boolean",
+            "description": "No voice on the current version and no singer who can still give it one (every singer asked for it was refused, has gone, or sent a take for an older version and hasn't been asked again)."
+        },
+        "singers": {
+            "type": "array",
+            "description": "Each singer asked for this part, in the order they were asked.",
+            "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                    "assignment",
+                    "singer",
+                    "status",
+                    "open",
+                    "previous",
+                    "askedAgainAt"
+                ],
+                "properties": {
+                    "assignment": {
+                        "type": "string",
+                        "description": "The assignment's id, for admin.beta.assignments.again."
+                    },
+                    "singer": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "id",
+                            "name"
+                        ],
+                        "properties": {
+                            "id": {
+                                "type": "string"
+                            },
+                            "name": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "to_record",
+                            "submitted",
+                            "in_review",
+                            "retake",
+                            "guide",
+                            "accepted",
+                            "rejected"
+                        ],
+                        "description": "As My parts shows it (retake while asked again); guide is never set here: voiced says that."
+                    },
+                    "open": {
+                        "type": "boolean",
+                        "description": "Can still give the current version a voice: to record, asked again, or a take sent for it."
+                    },
+                    "previous": {
+                        "type": "boolean",
+                        "description": "Recorded this part for an older version (the one-tap ask again is for them)."
+                    },
+                    "askedAgainAt": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time",
+                        "description": "When Hillel asked again, while no take has come since."
+                    }
+                }
+            }
+        }
+    }
+}

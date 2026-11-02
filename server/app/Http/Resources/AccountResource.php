@@ -8,6 +8,7 @@ use App\Models\BetaSinger;
 use App\Models\EmailToken;
 use App\Models\User;
 use App\Support\Accounts\Age;
+use App\Support\Admin\AdminGate;
 use App\Support\Flags;
 use App\Support\Gallery\Gallery;
 use App\Support\Legal\Terms;
@@ -72,6 +73,10 @@ final class AccountResource extends JsonResource
             // A live beta singer: the app shows "Your beta parts" and sends waiting takes.
             // A display hint only (the admin's version badge); nothing is granted by it.
             'staff' => $user->is_admin ? 'admin' : ($user->is_editor ? 'editor' : null),
+            // The Admin link: only for someone passing the whole admin gate in this session (the
+            // database flag, the listed Google id, and a verified Google sign-in now). A convenience:
+            // /admin checks the gate itself.
+            'admin' => app(AdminGate::class)->isAdmin($user, $request->hasSession() ? $request->session() : null),
             // Whether the app shows the Plus courses: everyone once plus_courses is on, staff before.
             // The terms of use they agreed to, and the current version (a new one asks once).
             'terms' => Terms::of($user),

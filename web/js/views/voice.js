@@ -225,7 +225,7 @@ export const VoiceView = {
     data: () => ({ history: null, failed: false, titles: {}, group: 'all', measuring: false, changing: false }),
     setup: () => ({ learning, account, navigate, goBack, BADGES, GROUPS, GROUP_WORDS, GROUP_COLORS, SUITS, FIND, SAMPLE, formatDate, formatNumber, game }),
     template: `
-        <div class="min-h-dvh bg-ink px-4 pb-16 pt-[max(0.5rem,env(safe-area-inset-top))] md:px-8">
+        <div data-ui="screen" class="min-h-dvh bg-ink px-4 pb-16 pt-[max(0.5rem,env(safe-area-inset-top))] md:px-8">
             <div class="mx-auto flex w-full max-w-3xl flex-col gap-6 md:gap-8">
                 <PageHeader :title="t('voice.title')" back="/learn">
                     <template v-if="game()" #aside><span class="tabular-nums text-sm text-muted">{{ t('voice.levelXp', { level: level.level, xp: formatNumber(xp) }) }}</span></template>

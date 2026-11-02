@@ -37,7 +37,8 @@ def journey(f):
         await store.savePart({ id: crypto.randomUUID(), projectId: p.id, name: 'Lead', color: '#f2a06b', order: 0, volume: 1, pan: 0, muted: false, solo: false, createdAt: Date.now(),
             offsetSeconds: 0, nudgeSeconds: 0, sampleRate: 48000, frames: s.length, framesPerPeak: 512, peaks: peaks(s, 512) }, s);
         return p.id; })()""")
-    f.run("localStorage.setItem('stackapella.appearance', JSON.stringify({ mode: 'light', colour: 'midnight', at: Date.now() }));")
+    # Light in both skins (game mode keeps its own), the skin this run shows kept as it is.
+    f.run("localStorage.setItem('stackapella.appearance', JSON.stringify({ ...JSON.parse(localStorage.getItem('stackapella.appearance') || '{}'), mode: 'light', gameMode: 'light', colour: 'midnight', at: Date.now() }));")
     f.wait("!!navigator.serviceWorker.controller", what="the old address's service worker")
     found, bring, moved = t(f, "moving.found", {"count": 1}), t(f, "moving.bring"), t(f, "moving.moved")  # the moving page has no app modules
     # Its moving page.
@@ -57,7 +58,11 @@ def journey(f):
     assert titles == "Already here,Carried over", titles
     frames = f.js(f"(async () => {{ const db = await import('/js/db.js'); const parts = await db.allBy('parts', 'projectId', {json.dumps(moved_id)}); return (await db.getAudio(parts[0].id)).length; }})()")
     assert frames == 48000, f"the take came across: {frames}"
-    assert f.js("document.documentElement.dataset.theme") == "midnight-light", "the look came across"
+    # (A serious-mode run's new address already has a look, the skin this harness sets before any page
+    # script, and what's there stays: only the game run can see the look come across.)
+    if f.skin == "game":
+        theme = f.js("document.documentElement.dataset.theme")
+        assert theme == "midnight-light", f"the look came across: {theme}"
     f.base = old
 
 

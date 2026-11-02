@@ -102,6 +102,12 @@ final class LeaguesTest extends TestCase
         $this->assertSame(1, $people[0]->refresh()->league_tier);
         $this->assertSame(1, $idle->refresh()->league_tier);
 
+        // Run again (it runs daily now): nobody moves up twice, and nobody is placed twice.
+        $this->artisan('app:leagues:weekly')->assertSuccessful();
+        $this->assertSame(2, $over->refresh()->league_tier);
+        $this->assertSame(2, $people[6]->refresh()->league_tier);
+        $this->assertSame(1, LeagueMember::query()->whereIn('league_id', League::query()->where('week', '2026-11-09')->select('id'))->where('user_id', $people[6]->id)->count());
+
         // This week's leagues are formed by tier, and Monday says how last week went.
         $this->assertSame(2, League::query()->where('week', '2026-11-09')->count());
         $this->actingAs($people[6]);

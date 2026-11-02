@@ -1,0 +1,2 @@
+{{-- A claim's numbered notes, pointing at the page's Sources list (#src-n): $keys name entries of the
+     page's $sources ([key => [label, url]]), numbered in that list's order. --}}@php($ids = array_keys($sources))@php($ns = array_map(fn (string $key): int => array_search($key, $ids, true) + 1, $keys))@php(sort($ns))@foreach ($ns as $n)<sup class="s-cite"><a href="#src-{{ $n }}" aria-label="{{ __('pages.site.cite', ['n' => $n]) }}">{{ $n }}</a></sup>@endforeach

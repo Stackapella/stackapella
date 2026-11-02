@@ -5,7 +5,7 @@
 
 import { call } from '../api.js';
 import { t } from '../i18n.js';
-import { navigate } from '../router.js';
+import { goBack, navigate } from '../router.js';
 import { account, loadAccount } from '../stores/account.js';
 import { startFromTemplate } from '../stores/projects.js';
 import { loadTemplate, templatePartName } from '../templates.js';
@@ -23,15 +23,23 @@ export const ChallengeView = {
     template: `
         <!-- Game mode's versus (docs/game-elements-plan.md): the same challenge, head to head -->
         <Versus v-if="effect('versus') && challenge && template && part && !failed" :by="challenge.by" :score="challenge.score" :song="template.title" :part="partName"
-            :colour="colour" :yours="yours" :me="account.me?.name ?? ''" :heading="heading" :busy="busy" @sing="sing" />
+            :colour="colour" :yours="yours" :me="account.me?.name ?? ''" :heading="heading" :busy="busy" @sing="sing" @later="later" />
         <main v-else class="mx-auto flex min-h-dvh max-w-xl flex-col justify-center gap-5 px-4 py-10" data-challenge>
             <p v-if="failed" class="card p-6 text-cream" role="alert">{{ failed }}</p>
             <p v-else-if="!challenge || !template" class="text-muted" role="status">{{ t('boards.loading') }}</p>
             <template v-else>
+                <!-- The same layout, calm (serious mode, or the Versus screens switch off): no intro; a score only in game mode. -->
                 <p class="text-sm font-semibold uppercase tracking-widest text-accent">{{ game() ? t('boards.challenge.eyebrow') : t('boards.challenge.eyebrowSerious') }}</p>
                 <h1 class="text-3xl font-extrabold tracking-tight text-cream">{{ heading }}</h1>
+                <dl class="card grid gap-4 p-5 sm:grid-cols-2" data-challenge-card>
+                    <div><dt class="text-xs font-semibold uppercase tracking-widest text-muted">{{ t('game.versus.song') }}</dt><dd class="mt-1 text-xl font-bold text-cream" translate="no">{{ template.title }}</dd><dd class="mt-2"><span class="chip" translate="no">{{ partName }}</span></dd></div>
+                    <div v-if="game()"><dt class="text-xs font-semibold uppercase tracking-widest text-muted">{{ t('game.versus.toBeat') }}</dt><dd class="mt-1 text-3xl font-extrabold tabular-nums text-cream">{{ challenge.score }}</dd></div>
+                </dl>
                 <p v-if="game()" class="text-muted">{{ t('boards.challenge.how') }}</p>
-                <button type="button" class="btn-primary btn-lg self-start" :disabled="busy" @click="sing">{{ t('boards.challenge.sing', { part: partName }) }}</button>
+                <div class="flex flex-wrap items-center gap-4">
+                    <button type="button" class="btn-primary btn-lg" :disabled="busy" data-challenge-accept @click="sing">{{ t('boards.challenge.sing', { part: partName }) }}</button>
+                    <a href="/" class="link-quiet tap-44" data-challenge-later @click.prevent="later">{{ t('game.versus.notNow') }}</a>
+                </div>
             </template>
         </main>`,
     computed: {
@@ -66,6 +74,10 @@ export const ChallengeView = {
         }
     },
     methods: {
+        /** Not now: back where the link was opened from (Home when opened cold), never the intro again. */
+        later() {
+            goBack('/');
+        },
         /** Accepted (signed in), then the song starts on that part. */
         async sing() {
             this.busy = true;

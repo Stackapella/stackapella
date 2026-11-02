@@ -11,7 +11,7 @@ from flow import run  # noqa: E402
 from game_frames import dark, light  # noqa: E402
 
 ROWS = "document.querySelectorAll('[data-game-effect]')"
-NAMES = ["sounds", "hud", "popups", "titles", "celebrations", "title", "stages", "versus", "select", "ghost", "daily", "monthly"]
+NAMES = ["arcade", "scanlines", "all", "sounds", "hud", "popups", "titles", "celebrations", "title", "stages", "versus", "select", "ghost", "daily", "monthly"]  # the look, then the moments
 
 
 def on(f, name):
@@ -26,7 +26,7 @@ def journey(f):
     f.run("localStorage.removeItem('stackapella.gameEffects')")
     f.go("/settings?api=mock&as=signedOut", f"{ROWS}.length === {len(NAMES)}")
     assert f.js(f"[...{ROWS}].map((r) => r.dataset.gameEffect)") == NAMES, "every switch, in order"
-    assert not on(f, "sounds") and all(on(f, n) for n in NAMES[1:]), "game sounds off, the rest on"
+    assert not on(f, "sounds") and all(on(f, n) for n in NAMES if n != "sounds"), "game sounds off, the rest on"
     f.run("document.getElementById('game').scrollIntoView()")
     f.no_sideways("the game switches")
     f.shot("game-dark")
@@ -38,6 +38,14 @@ def journey(f):
     f.run("document.getElementById('game').scrollIntoView()")
     f.shot("game-light")
     dark(f)
+    # Game effects, the master switch: off quiets every moment at once (their switches greyed), the arcade look stays.
+    f.run("document.querySelector('[data-game-effect=all] [role=switch]').click()")
+    f.wait("document.documentElement.dataset.gameOff.split(' ').includes('popups')", what="the moments off")
+    assert not f.js("document.documentElement.dataset.gameOff.split(' ').includes('arcade')"), "the arcade look stays"
+    assert not f.js("document.documentElement.dataset.gameOff.split(' ').includes('scanlines')"), "its scanlines stay too (a look, not a moment)"
+    assert f.js("document.querySelector('[data-game-effect=popups] [role=switch]').disabled || document.querySelector('[data-game-effect=popups] [role=switch]').getAttribute('aria-disabled') === 'true'"), "their switches greyed"
+    f.run("document.getElementById('game').scrollIntoView()")
+    f.shot("game-effects-off")
     f.run("localStorage.removeItem('stackapella.gameEffects')")
 
 

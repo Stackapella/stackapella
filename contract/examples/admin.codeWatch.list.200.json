@@ -1,0 +1,32 @@
+{
+    "data": {
+        "hits": [
+            {
+                "id": "Kd83Lq",
+                "kind": "marker",
+                "key": "someone/copied-app",
+                "url": "https://github.com/someone/copied-app",
+                "firstSeenAt": "2026-11-02T06:10:00Z",
+                "lastSeenAt": "2026-11-09T06:10:00Z",
+                "calls": null,
+                "dismissedAt": null,
+                "note": null
+            },
+            {
+                "id": "Pq12Zx",
+                "kind": "domain",
+                "key": "example.net",
+                "url": "https://example.net",
+                "firstSeenAt": "2026-11-03T14:00:00Z",
+                "lastSeenAt": "2026-11-09T18:20:00Z",
+                "calls": 214,
+                "dismissedAt": null,
+                "note": "Credits us in the footer."
+            }
+        ],
+        "setup": {
+            "markers": 4,
+            "search": true
+        }
+    }
+}

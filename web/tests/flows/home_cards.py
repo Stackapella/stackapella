@@ -21,7 +21,7 @@ def items(f):
 
 def journey(f):
     f.go("/?api=mock&scenario=&as=member", "document.querySelector('[data-new-song]')")
-    f.run("localStorage.setItem('stackapella.installDismissed', '1');")
+    f.run("localStorage.setItem('stackapella.asks', JSON.stringify({ stopped: ['install'] }));")
     clear_projects(f)
     light_first(f)
     song = new_song(f)
@@ -30,6 +30,9 @@ def journey(f):
         const tpl = await loadTemplate('happy-birthday');
         mine.list.push({ id: 'cards-written', state: 'device', updatedAt: Date.now() - 3600e3, template: { ...tpl, id: 'cards-written', title: 'My Birthday' } });
         mine.drafts.push({ id: 'cards-draft', updatedAt: Date.now() - 7200e3, template: { title: 'Evening Song' } });""")
+    # Past the first week Home shows the two latest beside New song (Hillel, 2026-10-30), and See all the rest.
+    f.wait(f"document.querySelectorAll('{YOURS} [data-card-menu]').length === 2 && document.querySelector('[data-yours-all]')", what="the two latest, and See all")
+    f.run("document.querySelector('[data-yours-all]').click()")
     f.wait(f"document.querySelectorAll('{YOURS} [data-card-menu]').length === 3", what="a recording, a written song and a draft")
     light_first(f)
     title = f.js(f"{SESSION}.session.project?.title || (await import('/js/stores/projects.js')).projects.list.find((p) => p.id === '{song}').title")

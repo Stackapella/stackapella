@@ -53,6 +53,14 @@ return [
     'coach_signup' => ['kind' => 'feature', 'values' => ['off', 'on']],
     // Hum a tune's page and the landing's line about it (docs/launch-plan.md: on at launch).
     'your_tune' => ['kind' => 'feature', 'values' => ['off', 'on']],
+    // Sheet music import (docs/sheet-music-plan.md): off until the server's guardrails are live.
+    'sheet_import' => ['kind' => 'feature', 'values' => ['off', 'on']],
+    // Lend your voice (docs/lend-your-voice-plan.md): volunteers claim the songs' and lessons'
+    // missing real voices. Off until Hillel has reviewed the agreement and the terms.
+    'lend_voice' => ['kind' => 'feature', 'values' => ['off', 'on']],
+    // The school offer (docs/school-offer-plan.md): teachers' class codes for a free year of Plus.
+    // Off until Hillel has read its terms and privacy lines.
+    'schools' => ['kind' => 'feature', 'values' => ['off', 'on']],
     // The comparison pages (docs/compare-pages-plan.md): /compare and /compare/<slug> answer either
     // way, but stay out of search and the sitemap, with no footer link, until it's on.
     'compare_pages' => ['kind' => 'feature', 'values' => ['off', 'on']],

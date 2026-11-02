@@ -6,6 +6,7 @@
 // the anonymous daily counts. The days you took it are stamped on Home's week bulbs (a reskin): from
 // this device (its last 14 dates), and from the server's `days` when signed in.
 
+import { AccountWall } from '../components/account-wall.js';
 import { reactive } from 'vue';
 import { call } from '../api.js';
 import { formatNumber, t } from '../i18n.js';
@@ -87,33 +88,55 @@ export function dailyFor(templateId, partKey) {
     }
 }
 
-/** Hours and minutes until the challenge ends (the next UTC midnight), as words. */
+/** Days, hours or minutes until the challenge (or the week's cup) ends, as words. */
 export function endsIn(endsAt, now = Date.now()) {
     const minutes = Math.max(0, Math.round((Date.parse(endsAt) - now) / 60000));
+    if (minutes >= 48 * 60) return t('game.daily.endsDays', { days: Math.floor(minutes / (24 * 60)) });
     return minutes >= 60 ? t('game.daily.endsHours', { hours: formatNumber(Math.floor(minutes / 60)) }) : t('game.daily.endsMinutes', { minutes: formatNumber(minutes) });
 }
 
-/** The day's board and Take the challenge, in a sheet. */
+/** The day's board and Take the challenge, in a sheet; with the week's cup (its days added up) a choice inside it. */
 export const DailySheet = {
-    components: { Modal },
+    components: { AccountWall, Modal },
     props: { challenge: { type: Object, required: true } },
     emits: ['close'],
-    data: () => ({ board: null, song: null, starting: false, failed: false }),
+    data: () => ({ board: null, song: null, starting: false, failed: false, view: 'today' }),
     setup: () => ({ account, boardName, byInitials, endsIn }),
     template: `
         <Modal :title="t('game.daily.title')" @close="$emit('close')">
             <div class="space-y-4" data-game-daily-sheet>
                 <p v-if="song" class="ge-daily-what"><span translate="no">{{ song.title }}</span> · <span translate="no">{{ partName }}</span></p>
                 <p v-else class="ge-daily-what text-muted" aria-hidden="true">···</p>
-                <p class="text-sm text-muted">{{ endsIn(challenge.endsAt) }}</p>
-                <ol v-if="board?.entries?.length" class="space-y-1" :aria-label="t('game.daily.board')">
-                    <li v-for="e in board.entries" :key="e.id ?? e.rank" class="flex items-center gap-3 rounded-xl px-2 py-1.5" :class="e.you ? 'bg-accent/10' : ''">
-                        <span class="w-6 text-end tabular-nums text-muted">{{ e.rank }}</span>
-                        <span class="min-w-0 flex-1 truncate text-cream" translate="no" :data-initials="byInitials(e) ? '' : null">{{ boardName(e) }}</span>
-                        <span class="tabular-nums font-semibold text-cream">{{ e.score }}</span>
-                    </li>
-                </ol>
-                <p v-else class="text-sm text-muted">{{ account.me ? t('game.daily.first') : t('game.daily.signIn') }}</p>
+                <!-- The week's cup (its days added up), inside the day's board: a choice here, never a new Home row. -->
+                <div v-if="challenge.cup" class="seg flex" role="radiogroup" :aria-label="t('game.daily.which')">
+                    <button v-for="v in ['today', 'cup']" :key="v" type="button" role="radio" :aria-checked="view === v" class="seg-option flex-1" :data-daily-view="v" @click="view = v">{{ v === 'today' ? t('game.daily.today') : t('game.daily.cup') }}</button>
+                </div>
+                <template v-if="view === 'cup' && challenge.cup">
+                    <p class="text-sm text-muted">{{ t('game.daily.cupHow') }} {{ endsIn(challenge.cup.endsAt) }}</p>
+                    <ol v-if="challenge.cup.entries.length" class="space-y-1" :aria-label="t('game.daily.cup')" data-daily-cup>
+                        <li v-for="e in challenge.cup.entries" :key="e.id ?? e.rank" class="flex items-center gap-3 rounded-xl px-2 py-1.5" :class="e.you ? 'bg-accent/10' : ''">
+                            <span class="w-6 text-end tabular-nums text-muted">{{ e.rank }}</span>
+                            <span class="min-w-0 flex-1 truncate text-cream" translate="no" :data-initials="byInitials(e) ? '' : null">{{ boardName(e) }}</span>
+                            <span class="text-xs text-muted">{{ t('game.daily.cupDays', { count: e.days }) }}</span>
+                            <span class="tabular-nums font-semibold text-cream">{{ e.points }}</span>
+                        </li>
+                    </ol>
+                    <p v-else-if="account.me" class="text-sm text-muted">{{ t('game.daily.cupEmpty') }}</p>
+                    <AccountWall v-else reason="daily" bare />
+                    <p v-if="challenge.cup.you && !challenge.cup.entries.some((e) => e.you)" class="text-sm text-muted">{{ challenge.cup.you.rank ? t('game.daily.cupYou', { rank: challenge.cup.you.rank, points: challenge.cup.you.points }) : t('game.daily.cupYours', { points: challenge.cup.you.points }) }}</p>
+                </template>
+                <template v-else>
+                    <p class="text-sm text-muted">{{ endsIn(challenge.endsAt) }}</p>
+                    <ol v-if="board?.entries?.length" class="space-y-1" :aria-label="t('game.daily.board')">
+                        <li v-for="e in board.entries" :key="e.id ?? e.rank" class="flex items-center gap-3 rounded-xl px-2 py-1.5" :class="e.you ? 'bg-accent/10' : ''">
+                            <span class="w-6 text-end tabular-nums text-muted">{{ e.rank }}</span>
+                            <span class="min-w-0 flex-1 truncate text-cream" translate="no" :data-initials="byInitials(e) ? '' : null">{{ boardName(e) }}</span>
+                            <span class="tabular-nums font-semibold text-cream">{{ e.score }}</span>
+                        </li>
+                    </ol>
+                    <p v-else-if="account.me" class="text-sm text-muted">{{ t('game.daily.first') }}</p>
+                    <AccountWall v-else reason="daily" bare />
+                </template>
                 <p v-if="failed" class="text-sm text-bad" role="alert">{{ t('game.daily.failed') }}</p>
                 <button type="button" class="btn-primary w-full" :disabled="starting || !song" data-daily-take @click="take">{{ t('game.daily.take') }}</button>
             </div>

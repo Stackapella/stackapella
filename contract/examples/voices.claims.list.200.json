@@ -1,0 +1,14 @@
+{
+    "data": [
+        {
+            "id": "Kd7Pq2",
+            "item": "clip:yodel-flip-1",
+            "title": "Flip from chest to head voice on \"yo-dl\".",
+            "partKey": null,
+            "claimedAt": "2026-11-01T10:00:00Z",
+            "expiresAt": "2026-11-15T10:00:00Z",
+            "ending": false,
+            "take": null
+        }
+    ]
+}

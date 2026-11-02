@@ -32,6 +32,7 @@ def journey(f):
     f.run("document.querySelector(\'[data-way=parts]\').click()")  # the way starts at once
     f.wait_text(t(f, "sing.chooser.yourPart"))
     f.run(f"[...document.querySelectorAll('main button, .card-interactive')].find((b) => b.textContent.includes({alto!r})).click()")
+    f.wait_text(t(f, "sing.coach.skipToRecord"))  # game mode shows the part a beat first
     f.click_t("sing.coach.skipToRecord")
     f.js(f"{AUDIO}.unlock()")
     f.js(f"{AUDIO}.engine.setLoopback(true)")

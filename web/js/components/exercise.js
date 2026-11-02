@@ -28,13 +28,18 @@ import { local, session as tabStorage } from '../storage.js';
 import { game } from '../skin.js';
 import { effect } from '../game/effects.js';
 import { PopupSlot } from '../game/hud.js';
-import { BONUS_FROM, bonusRoom, comboMilestone, popupQueue } from '../game/popups.js';
+import { BONUS_FROM, bonusRate, bonusRoom, comboMilestone, popupQueue, rateRaised } from '../game/popups.js';
 import { heardFrame, HINT_AFTER, HOLD_TO_LIGHT, praise, startWaiting } from '../waitforme.js';
 import { counted, learning } from '../stores/learning.js';
 import { PLAY_SCORERS } from '../lesson-scores.js';
 import { keepFirstTake } from './then-and-now.js';
+import { ReadStave } from '../lesson-steps.js'; // loaded when a staff step needs it
+import { chipCountIn } from '../game/chip.js';
 import { styleBend } from '../style-scores.js';
 import { compareLines, openChoices, pitchAt, pulls, resolveChoices, speciesChecks } from '../harmony.js';
+import { chordAt, ringReading } from '../tuning.js';
+import { RING } from '../ring.js';
+import { RingMeter } from './sing/ring-meter.js';
 
 const PHASE = { listen: tk('course.phase.listen'), turn: tk('course.phase.turn'), wait: tk('course.phase.wait') };
 const PRAISE = { nice: tk('course.praise.nice'), perfect: tk('course.praise.perfect') };
@@ -50,6 +55,7 @@ const PARTNER_COLOR = 'var(--color-muted)'; // another voice's notes on the lane
 const MIX_PEAK = 0.95; // Hear it together never clips
 const GIVEN_NOTE_LEVEL = 0.35; // Give me my note: quietly, under your voice
 const GENEROUS_STARS = 2; // a first lesson's fair, finished go
+const HEARD_FIRST_MOST = 89; // a take heard first (sight-singing): just under the top score (js/course.js starsFor's 90)
 const DRONE_UNDER = 0.45; // the drone, under your take in Hear it together
 const UNDER_VOLUME = 0.7; // an earlier take of yours, under this one and in Hear it together
 const PARTNER_VOLUME = 0.5; // partner lines about 6 dB under the guide: listen more, never sing louder to hear yourself
@@ -113,6 +119,13 @@ export function noteToGive(target, beatNow) {
     return target.find((n) => n.beat + n.length > beatNow) ?? null;
 }
 
+/** A ring reading against another pure target (`pure`, cents from the piano's pitch): judged again as ringReading does. */
+export function judged(reading) {
+    const off = reading.cents - reading.pure;
+    const state = reading.state === 'waved' ? 'waved' : Math.abs(off) <= RING.locked ? 'ringing' : Math.abs(off) <= RING.close ? 'close' : 'off';
+    return { ...reading, off, state };
+}
+
 /** The notes the learner sings: all but the listen-only ones. */
 function sungNotes(notes) {
     return notes.some((n) => n.listenOnly) ? notes.filter((n) => !n.listenOnly) : notes;
@@ -168,7 +181,7 @@ function listening() {
 }
 
 export const Exercise = {
-    components: { Gems, Icon, HeadphonesDialog, KeyControl, PopupSlot },
+    components: { Gems, Icon, HeadphonesDialog, KeyControl, PopupSlot, ReadStave, RingMeter },
     props: {
         exercise: { type: Object, required: true },
         base: { type: Number, required: true }, // the learner's comfortable note (MIDI)
@@ -201,7 +214,7 @@ export const Exercise = {
     // done: { percent, word, tips, sung } after a run (sung: the target notes lit, for the range);
     // practised: the seconds of a run with the mic, for the weekly goal.
     emits: ['done', 'practised', 'lower', 'higher'],
-    data: () => ({ width: 0, running: false, scoring: false, position: 0, live: null, lit: new Set(), hitAt: {}, waitFoundAll: false, error: null, asking: false, speaker: listening() === 'speaker', waiting: null, cheer: null, combo: 0, bonus: 0, hud: popupQueue(), chosen: {}, revealed: false, weakTakes: 0, withGuide: false }),
+    data: () => ({ width: 0, running: false, scoring: false, position: 0, live: null, lit: new Set(), hitAt: {}, waitFoundAll: false, error: null, asking: false, speaker: listening() === 'speaker', waiting: null, cheer: null, combo: 0, bonus: 0, hud: popupQueue(), chosen: {}, revealed: false, weakTakes: 0, withGuide: false, lead: 0, heardFirst: false, hearing: false, ring: null }),
     template: `
         <div class="space-y-4">
             <!-- The lane (Hillel's arcade pass, ux-spec 5.7c): the exercise framed tight and centred, its
@@ -226,7 +239,7 @@ export const Exercise = {
                             <span class="relative" translate="no">{{ name(waitNote.pitch) }}</span>
                         </div>
                         <div v-if="running && liveWait !== null" class="gem absolute size-5 -translate-x-1/2 -translate-y-1/2 rounded-full" :style="{ left: beadX + '%', top: waitY(liveWait) + 'px', '--gem': 'var(--color-cream)' }" aria-hidden="true"></div>
-                        <p v-if="running && !onNote" class="absolute start-3 top-3 flex items-center gap-2 rounded-full bg-raised px-3 py-1 text-xs font-bold text-cream" role="status">
+                        <p v-if="running && !onNote" data-ui="facts" class="absolute start-3 top-3 flex items-center gap-2 rounded-full bg-raised px-3 py-1 text-xs font-bold text-cream" role="status">
                             {{ t('course.wait.waiting') }}<span v-if="waiting?.direction" class="text-accent-strong">· {{ waiting.direction === 'higher' ? t('course.wait.slideUp') : t('course.wait.comeDown') }}</span>
                         </p>
                     </template>
@@ -239,6 +252,8 @@ export const Exercise = {
                     <p class="text-sm text-muted">{{ waitLine }}</p>
                 </div>
             </template>
+            <!-- Sight-singing (docs/sight-singing-plan.md): a step with \`staff\` is read from a stave, not the lane -->
+            <ReadStave v-else-if="staffStep" :notes="laid.target" :home="base" :tempo="exercise.tempo ?? 72" :time="exercise.staff.time ?? '4/4'" :pickup="exercise.staff.pickup ?? 0" :music-key="exercise.song || exercise.staff.pickup !== undefined ? musicKey : null" :names="exercise.staff.names ?? 'on'" :lit="staffLit" :look="running && lookLeft > 0 ? lookLeft : null" :counting="running && lookLeft <= 0 && lead > 0 ? countBeat : null" :color="color" />
             <div v-else class="lane-stage relative overflow-hidden rounded-2xl border border-line bg-ink" :style="{ height: height + 'px' }" role="img" :aria-label="label">
                 <template v-if="labelled">
                     <template v-for="p in pitchesUsed" :key="'l' + p">
@@ -259,9 +274,12 @@ export const Exercise = {
                 <span v-if="cheer" :key="cheer.at" class="pointer-events-none absolute -translate-x-1/2 rounded-full bg-cream px-2 py-0.5 text-xs font-bold text-ink" :class="cheer.still ? '' : 'cheer-pop'" :style="{ left: cheer.x + 'px', top: cheer.y + 'px' }">{{ t(PRAISE[cheer.word]) }}</span>
                 <div v-if="running && live !== null && !coldTurn" class="gem absolute size-4 -translate-x-1/2 -translate-y-1/2 rounded-full" :style="{ left: x(beatNow) + 'px', top: y(liveShown) + 'px', '--gem': color }"></div>
             </div>
+            <!-- Tune the chord (exercise.tuning, ux-spec 5.10c): a held chord note against its pure tuning, a view only, never scored; hidden through a speaker -->
+            <RingMeter v-if="running && ring" class="mx-auto w-full max-w-md" :reading="ring" :color="color" data-lesson-ring />
             <p v-if="mode !== 'try'" class="min-h-6 text-center text-sm font-semibold" :style="{ color: phaseKey === 'listen' ? null : color }" :class="phaseKey === 'listen' ? 'text-muted' : ''" aria-live="polite">{{ running ? (restLabel && beatNow < restBeats ? restLabel : t(PHASE[phaseKey])) : scoring ? t('course.scoring') : '' }}</p>
             <div v-if="running && combo >= COMBO_SHOWN && game()" class="flex items-center justify-center gap-4 text-sm">
-                <span class="rounded-full bg-raised px-3 py-1 font-semibold text-cream" data-combo>{{ t('course.combo', { count: combo }) }}</span>
+                <span class="whitespace-nowrap rounded-full bg-raised px-3 py-1 font-semibold text-cream" data-combo>{{ t('course.combo', { count: combo }) }}</span>
+                <span v-if="earnsBonus && bonusRate(combo) >= 2" class="ge-rate whitespace-nowrap" data-bonus-rate><span aria-hidden="true">{{ t('game.popup.rateChip', { count: bonusRate(combo) }) }}</span><span class="sr-only">{{ t('game.popup.rateChipLabel', { count: bonusRate(combo) }) }}</span></span>
                 <!-- Game mode's bonus pop-ups beside the combo, never on the lane (docs/game-elements-plan.md) -->
                 <PopupSlot v-if="effect('popups')" :queue="hud" />
             </div>
@@ -285,11 +303,14 @@ export const Exercise = {
                 </button>
                 <!-- After two weak takes, a take with the guide singing too, unscored (the pitch course's review). -->
                 <button v-if="mode === 'play' && weakTakes >= 2 && !running && !scoring" type="button" class="btn-ghost btn-sm" data-sing-with-guide @click="singWithGuide">{{ t('course.withGuide') }}</button>
+                <!-- Hear it first (sight-singing): the line played as written before you read it; the take then can't take the top score. -->
+                <button v-if="mode === 'play' && exercise.hearFirst && !running && !scoring" type="button" class="btn-ghost btn-sm" :disabled="hearing" data-hear-first @click="hearItFirst">{{ hearing ? t('course.read.hearing') : t('course.read.hearFirst') }}</button>
+                <p v-if="mode === 'play' && exercise.hearFirst && heardFirst && !running" class="text-sm text-muted" role="status">{{ t('course.read.heardFirst') }}</p>
                 <button v-if="mode === 'play' && exercise.giveNote && running && phaseKey === 'turn' && !speaker" type="button" class="btn-ghost btn-sm" data-give-note @click="giveNote">{{ t('course.giveNote') }}</button>
                 <p v-if="withGuide && running" class="text-sm text-muted" role="status">{{ t('course.withGuideNote') }}</p>
             </div>
         </div>`,
-    setup: () => ({ PHASE, PRAISE, COMBO_SHOWN, HINT_AFTER, gemInk, game, effect }),
+    setup: () => ({ PHASE, PRAISE, COMBO_SHOWN, HINT_AFTER, gemInk, game, effect, bonusRate }),
     computed: {
         /** The lane's notes as bricks (js/glass.js), one canvas for all of them. */
         laneBricks() {
@@ -320,6 +341,27 @@ export const Exercise = {
         laid: (vm) => layout(vm.exercise, vm.base),
         beatSeconds: (vm) => 60 / (vm.exercise.tempo ?? 72),
         beatNow: (vm) => vm.position / vm.beatSeconds,
+        /** A sight-singing step (`staff`): read from a stave instead of the lane. */
+        staffStep: (vm) => !!vm.exercise.staff && vm.mode !== 'try',
+        /** A reading line's count-in (`staff.count`, in the time's own beats), clicked on the audio clock after the look. */
+        countBeats: (vm) => (vm.staffStep ? Math.max(0, Math.min(8, vm.exercise.staff.count ?? 0)) : 0),
+        /** The look still left before the count-in starts (seconds). */
+        lookLeft: (vm) => vm.lead - vm.countBeats * vm.beatSeconds,
+        /** The count-in's beat being clicked now: 1, 2, 3, 4. */
+        countBeat: (vm) => Math.min(vm.countBeats, vm.countBeats - Math.ceil(vm.lead / vm.beatSeconds - 1e-6) + 1),
+        /**
+         * On a stave, the note sounding or to sing now, lit as the clock reaches it (not by pitch: a cold
+         * read is judged after): the guide's while it plays the line (hear it, then sing it), then yours.
+         */
+        staffLit() {
+            if (!this.running || this.lead > 0) return -1;
+            const at = (notes) => notes.findIndex((n) => this.beatNow >= n.beat && this.beatNow < n.beat + n.length);
+            if (this.phaseKey === 'listen') {
+                const heard = this.laid.guide.filter((n) => !n.listenOnly);
+                return heard.length === this.laid.target.length ? at(heard) : -1;
+            }
+            return at(this.laid.target);
+        },
         /** What's drawn: the notes heard, and (for a turn) the notes to sing back; trying, just the notes. */
         shown() {
             if (this.mode === 'try') return this.laid.guide;
@@ -445,6 +487,8 @@ export const Exercise = {
             return this.beatNow < this.laid.turnFrom - 1e-6 ? 'listen' : 'turn';
         },
         /** Something plays while the learner sings: through a speaker, the mic would hear it too. */
+        /** The ring meter shows on a scored take of a `tuning` step, never through a speaker (the mic hears the chord too). */
+        tuning: (vm) => !!vm.exercise.tuning && vm.mode === 'play' && !vm.speaker,
         soundsUnder: (vm) => vm.mode === 'try' || !!vm.exercise.drone || !!vm.exercise.chords || !!vm.exercise.with?.length,
         /** The round button's icon says what it does (Hillel): Play to hear, the mic to sing. */
         startIcon: (vm) => (vm.mode === 'listen' ? 'play' : 'mic'),
@@ -461,6 +505,10 @@ export const Exercise = {
             const notes = this.laid.target.map((n) => (n.choices ? t('harmony.laneChoice', { notes: n.choices.map((c) => this.name(c)).join(t('harmony.laneOr')) }) : this.name(n.pitch))).join(', ');
             return [t('course.notesLabel', { notes }), voices].filter(Boolean).join(' ');
         },
+    },
+    created() {
+        // The staff reader loads on demand (lesson-steps.js): fetched now, so it's there before a count-in, in any screen.
+        if (this.exercise?.staff) ReadStave.prefetch();
     },
     mounted() {
         // The lane's width, kept as it changes: read once at the first render it was 0 (the box not
@@ -604,16 +652,19 @@ export const Exercise = {
         },
         /** "Nice!" or "Perfect!" over a note just found (still, with reduced motion). */
         /**
-         * The combo bonus (docs/game-elements-plan.md; the coordinator's rule): each note lit while a run
-         * of 10 or more holds adds 1 XP to this exercise's award, in either skin (XP is the same in both);
-         * game mode's pop-ups say "10 in a row!" and "Combo bonus +N" at each tenth. `at`: seconds in.
+         * The combo bonus (docs/game-elements-plan.md; the coordinator's rule; docs/game-feel-plan.md): each
+         * note lit while a run of 10 or more holds adds the bonus's rate in XP to this exercise's award (1,
+         * then 2 from 20 in a row and 3 from 30), in either skin (XP is the same in both); game mode's
+         * pop-ups say "10 in a row!", "Bonus x2!" as the rate goes up, and "Combo bonus +N". `at`: seconds in.
          */
         comboStep(at) {
             const milestone = effect('popups') && comboMilestone(this.combo);
-            if (milestone) this.hud.offer({ kind: 'combo', count: this.combo }, at);
+            // Where the bonus is paid, its rate going up says "Bonus x2!" in the combo's place (20 and 30 in a row).
+            const raised = this.earnsBonus && rateRaised(this.combo);
+            if (milestone) this.hud.offer(raised ? { kind: 'rate', count: bonusRate(this.combo) } : { kind: 'combo', count: this.combo }, at);
             // Only where the bonus is paid (a lesson's own step, `earnsBonus`), never the workout's rounds.
             if (!this.earnsBonus || this.combo < BONUS_FROM) return;
-            this.bonus++;
+            this.bonus += bonusRate(this.combo);
             // Said only as far as today's cap still pays it; seen, not announced (its combo was).
             const shown = Math.min(this.bonus, bonusRoom(learning.progress));
             if (milestone && shown > 0) this.hud.offer({ kind: 'bonus', count: shown, quiet: true }, at);
@@ -638,7 +689,7 @@ export const Exercise = {
             const note = this.laid.guide[index];
             // Through a speaker, the note plays for a beat and goes quiet, so the mic hears only you.
             const length = this.speaker ? Math.min(note.length, 1) : HELD_BEATS;
-            engine.setPart('ex:guide', renderPart([{ beat: 0, length, pitch: note.pitch }], { bpm, sampleRate: sr }), sr, { volume: 0.7, pan: 0, audible: true, offsetSeconds: 0 });
+            engine.setPart('ex:guide', renderPart([{ beat: 0, length, pitch: note.pitch }], { bpm, sampleRate: sr, human: 'guide' }), sr, { volume: 0.7, pan: 0, audible: true, offsetSeconds: 0 });
             if (this.exercise.drone && !this.speaker) {
                 engine.setPart('ex:drone', renderPart([{ beat: 0, length: HELD_BEATS, pitch: this.base + this.exercise.drone.step }], { bpm, sampleRate: sr }), sr, { volume: 0.45, pan: 0, audible: true, offsetSeconds: 0 });
             }
@@ -658,7 +709,7 @@ export const Exercise = {
         setPartners(until, { bpm, sampleRate }) {
             (this.laid.partners ?? []).forEach((line, i) => {
                 const notes = line.notes.filter((n) => n.beat < until).map((n) => ({ ...n, length: Math.min(n.length, until - n.beat) }));
-                if (notes.length) engine.setPart(`ex:with${i}`, renderPart(notes, { bpm, sampleRate }), sampleRate, { volume: line.volume, pan: 0, audible: true, offsetSeconds: 0 });
+                if (notes.length) engine.setPart(`ex:with${i}`, renderPart(notes, { bpm, sampleRate, human: 'guide', seed: 20 + i }), sampleRate, { volume: line.volume, pan: 0, audible: true, offsetSeconds: 0 });
             });
         },
         /**
@@ -788,7 +839,7 @@ export const Exercise = {
             }
             // The guide sings the notes to listen to, and any listen-only ones (heardNotes).
             const heard = this.withGuide ? [...heardNotes(this.laid, this.exercise, this.mode), ...target] : heardNotes(this.laid, this.exercise, this.mode);
-            if (heard.length) engine.setPart('ex:guide', renderPart(heard, { bpm, sampleRate: sr }), sr, { volume: this.mode === 'try' ? 0.6 : 1, pan: 0, audible: true, offsetSeconds: 0 });
+            if (heard.length) engine.setPart('ex:guide', renderPart(heard, { bpm, sampleRate: sr, human: 'guide' }), sr, { volume: this.mode === 'try' ? 0.6 : 1, pan: 0, audible: true, offsetSeconds: 0 });
             // Through a speaker, the drone and chords rest while a scored turn is sung: the mic must hear only the voice.
             const under = this.speaker && this.mode === 'play' ? this.laid.turnFrom : end;
             const drone = droneSpan(this.laid, this.exercise, under);
@@ -809,13 +860,20 @@ export const Exercise = {
             this.hitAt = {};
             this.chosen = {};
             this.revealed = false;
+            this.ring = null;
+            this.ringPoints = [];
             this.running = true;
             this.startedAt = performance.now();
             const record = this.mode === 'play' && !this.withGuide; // trying (or singing with the guide) is unscored: the live line reads the mic itself
             // Trying along through a speaker, the mic hears the guide as well: no notes light then.
             // Singing with the guide lights nothing: no combo, cheers or badges from a guided run.
             const live = this.mode !== 'listen' && !(this.speaker && this.mode === 'try') && !this.withGuide;
-            engine.play({ fromSeconds: 0, bpm, record, latencyFrames: audio.latencyFrames ?? engine.estimatedLatencyFrames(), leadSeconds: leadSeconds() });
+            // A reading line shows still for its `look` seconds first, on the audio clock (the lead before beat 0).
+            const look = this.staffStep ? Math.max(0, Math.min(10, this.exercise.staff.look ?? 4)) : 0;
+            // Rhythm (`staff.count`): a count-in after the look, clicks (game mode's blips) on the audio clock before beat 0.
+            const time = String(this.exercise.staff?.time ?? '4/4').split('/').map(Number);
+            const beatsPerBar = time[1] === 8 ? time[0] / 3 : time[0];
+            engine.play({ fromSeconds: 0, bpm, record, latencyFrames: audio.latencyFrames ?? engine.estimatedLatencyFrames(), leadSeconds: leadSeconds() + look, countInBeats: this.countBeats, countInSounds: this.countBeats ? chipCountIn() : null, beatsPerBar });
             const cents = STRICTNESS[this.strictness] ?? STRICTNESS.relaxed;
             const firstTarget = this.shown.length - target.length;
             const counted = new Set(); // the target notes already gone by
@@ -823,6 +881,7 @@ export const Exercise = {
                 const position = engine.positionSeconds();
                 if (position === null) return;
                 this.position = Math.max(0, position);
+                this.lead = position < 0 ? -position : 0; // the look before a reading line starts
                 this.hud.tick(this.position);
                 if (this.position >= end * this.beatSeconds) {
                     this.stop();
@@ -834,6 +893,7 @@ export const Exercise = {
                 this.live = reading?.hz ? hzToMidi(reading.hz) : null;
                 this.voiced(reading);
                 const at = target.findIndex((n) => this.beatNow >= n.beat && this.beatNow < n.beat + n.length);
+                if (this.tuning) this.readRing(at >= 0 ? target[at] : null);
                 const landed = at >= 0 && this.live !== null && !this.coldTurn && !this.lightsOff && !this.lit.has(firstTarget + at) ? this.landedOn(at, cents) : null;
                 if (landed !== null) {
                     this.lit = new Set([...this.lit, firstTarget + at]);
@@ -854,9 +914,88 @@ export const Exercise = {
             };
             this.frame = requestAnimationFrame(tick);
         },
+        /**
+         * Hear it first (sight-singing's `hearFirst`): the line played as written, once, on the audio
+         * clock. The next take can't take the top score (said on its result), then it's back to cold.
+         */
+        async hearItFirst() {
+            if (this.running || this.hearing) return;
+            try {
+                await unlock();
+            } catch (error) {
+                console.warn('Audio not ready', error);
+                return;
+            }
+            const sr = engine.sampleRate;
+            const bpm = this.exercise.tempo ?? 72;
+            const target = this.laid.target;
+            const from = target[0]?.beat ?? 0;
+            [...engine.parts.keys()].forEach((id) => engine.removePart(id));
+            engine.projectId = null;
+            engine.setPart('ex:hear', renderPart(target.map((n) => ({ ...n, beat: n.beat - from })), { bpm, sampleRate: sr }), sr, { volume: 1, pan: 0, audible: true, offsetSeconds: 0 });
+            this.heardFirst = true;
+            this.hearing = true;
+            const end = (target.at(-1).beat + target.at(-1).length - from) * (60 / bpm);
+            engine.play({ fromSeconds: 0, bpm, leadSeconds: leadSeconds() });
+            const watch = async () => {
+                const at = engine.positionSeconds();
+                if (at === null || at >= end + 0.3) {
+                    this.hearing = false;
+                    engine.removePart('ex:hear');
+                    try {
+                        await engine.stop();
+                    } catch (error) {
+                        console.warn('Hear it first stopped early', error);
+                    }
+                    return;
+                }
+                this.frame = requestAnimationFrame(watch);
+            };
+            this.frame = requestAnimationFrame(watch);
+        },
         /** Sing it with the guide: the next take has the guide singing your notes too, and isn't scored. */
         singWithGuide() {
             this.start({ guided: true });
+        },
+        /**
+         * Tune the chord in a lesson (exercise.tuning): the held note (a beat or more) against its pure
+         * target in the step's chord, from the last second of your voice, as Sing's meter reads it.
+         * A note's own `cents` is its target when it has one, since that's what the step scores.
+         */
+        readRing(note) {
+            const seconds = this.position;
+            this.ringPoints.push({ seconds, midi: this.live ?? 0, alpha: this.live === null ? 0 : 1 });
+            while (this.ringPoints[0].seconds < seconds - 1) this.ringPoints.shift();
+            const chord = note && !note.listenOnly && note.length >= RING.held ? this.chordAt(note.beat) : null;
+            if (!chord) {
+                this.ring = null;
+                return;
+            }
+            const piano = Math.round(note.pitch);
+            const bs = this.beatSeconds;
+            const reading = ringReading(this.ringPoints, { now: seconds, note: { start: note.beat * bs, end: (note.beat + note.length) * bs, pitch: piano }, chord });
+            const own = Math.round((note.pitch - piano) * 100);
+            this.ring = reading && own !== 0 ? judged({ ...reading, pure: own }) : reading;
+        },
+        /**
+         * The chord under `beat` (pitch classes): the step's `chords` (written from C, sung in the
+         * learner's key), else what the partner lines and your note sing there, else the drone's note
+         * as a root (so a held fifth or octave reads against it).
+         */
+        chordAt(beat) {
+            const key = ((Math.round(this.base) % 12) + 12) % 12;
+            const chords = this.exercise.chords ?? [];
+            if (chords.length) {
+                const c = chords.filter((ch) => ch.beat <= beat + 1e-6).at(-1);
+                return c ? { root: (c.root + key) % 12, quality: c.quality, bass: c.bass == null ? null : (c.bass + key) % 12 } : null;
+            }
+            if (this.laid.partners?.length) {
+                // The partner lines and your own note together (a barbershop seventh is yours: without it, a triad).
+                const lines = [...this.laid.partners.map((p) => p.notes), this.laid.target];
+                return chordAt({ parts: lines.map((notes, i) => ({ key: `line-${i}`, guide: { notes: notes.map((n) => ({ ...n, pitch: Math.round(n.pitch) })) } })) }, beat);
+            }
+            if (this.exercise.drone) return { root: (((Math.round(this.base) + this.exercise.drone.step) % 12) + 12) % 12, quality: 'maj', bass: null };
+            return null;
         },
         /** Voice care's day (js/voice-day.js): the time between readings counts while a voice is heard. */
         voiced(reading) {
@@ -915,7 +1054,7 @@ export const Exercise = {
                 // A held note (score: 'hold'): stars for how long and how steadily, not just its middle.
                 // A course's own measure (js/lesson-scores.js) has the first say when the step names one.
                 const scorer = PLAY_SCORERS[this.exercise.score];
-                const own = scorer && score.status === 'scored' ? scorer({ track, dots, target, notes, beatSeconds: this.beatSeconds, strictness: this.strictness, exercise: this.exercise, personal: this.personal, speaker: this.speaker }) : null;
+                const own = scorer && score.status === 'scored' ? scorer({ track, dots, target, notes, beatSeconds: this.beatSeconds, strictness: this.strictness, exercise: this.exercise, personal: this.personal, speaker: this.speaker, timing: audio.latencyFrames != null ? 'measured' : 'estimated' }) : null;
                 const measured = score.status !== 'scored' ? null : own ? own.percent : this.exercise.score === 'hold' ? holdPercent(dots, target) : score.percent;
                 const percent = measured;
                 // A first lesson's kinder stars (`generous`) on the default measure: a fair, finished go
@@ -927,7 +1066,12 @@ export const Exercise = {
                 this.weakTakes = percent === null || percent < WEAK_TAKE ? this.weakTakes + 1 : 0;
                 // Then and now: lesson 1's first heard take, kept on this device for the course's finale.
                 if (this.exercise.keep && percent !== null) keepFirstTake(this.exercise.keep, take).catch((error) => console.error('Then and now not kept', error));
-                this.$emit('done', { offerGuide: this.weakTakes >= 2, percent, word: score.word, tips: own?.tip ? [own.tip, ...(score.tips ?? [])] : score.tips ?? [], insights: score.insights ?? [], tendency: score.tendency ?? null, comboBonus: this.bonus, sung, chart, vibrato, harmony: this.harmonyOf(track, notes, ownLine), take: { samples: take.samples, sampleRate: take.sampleRate }, personal: own?.personal ?? null, line: own?.line ?? null, label: own?.label ?? null, minStars });
+                // Heard first: this take can't take the top score, and its result says why (no "stars": both skins).
+                const heardFirst = this.heardFirst;
+                this.heardFirst = false;
+                // The percent itself is held under the top score, so the number and the score agree in both skins.
+                const shownPercent = heardFirst && percent !== null ? Math.min(percent, HEARD_FIRST_MOST) : percent;
+                this.$emit('done', { maxStars: heardFirst ? 2 : null, heardFirst, offerGuide: this.weakTakes >= 2, percent: shownPercent, word: score.word, tips: own?.tip ? [own.tip, ...(score.tips ?? [])] : score.tips ?? [], insights: score.insights ?? [], tendency: score.tendency ?? null, comboBonus: this.bonus, sung, chart, vibrato, harmony: this.harmonyOf(track, notes, ownLine), take: { samples: take.samples, sampleRate: take.sampleRate }, personal: own?.personal ?? null, line: own?.line ?? null, label: own?.label ?? null, minStars });
             } catch (error) {
                 console.error('Scoring failed', error);
                 this.$emit('done', { percent: null, sung });

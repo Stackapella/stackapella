@@ -97,7 +97,7 @@ final class BillingEvents
     public function trialEnding(User $user, ?int $trialEnd): void
     {
         if ($user->email !== null && $user->email_verified_at !== null) {
-            Mail::to($user->email)->send(new TrialEnding(Carbon::createFromTimestamp($trialEnd ?? now()->addDays(3)->getTimestamp())->settings(['locale' => $user->locale])->isoFormat('LL')));
+            Mail::to($user->email)->send(new TrialEnding(Carbon::createFromTimestamp($trialEnd ?? now()->addDays(3)->getTimestamp())->setTimezone($user->zone())->settings(['locale' => $user->locale])->isoFormat('LL')));
         }
     }
 

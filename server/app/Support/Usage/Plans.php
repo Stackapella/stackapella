@@ -45,11 +45,12 @@ final class Plans
         // (Read from the row as loaded: a user made in memory may not carry the column yet.)
         $paidUntil = $user->getAttributes()['plus_paid_until'] ?? null;
         $storeUntil = $user->getAttributes()['store_plus_until'] ?? null;
+        $schoolUntil = $user->getAttributes()['school_plus_until'] ?? null;
         $now = now()->toDateTimeString();
 
-        // Plus by choice (demo), free for an active coach, paid by invoice until a date, bought in
-        // an app (the stores' latest day), or by Stripe.
-        return $user->plan === 'plus' || ($user->getAttributes()['coach_active_at'] ?? null) !== null || (is_string($paidUntil) && $paidUntil > $now) || (is_string($storeUntil) && $storeUntil > $now) || $user->subscribed('default') ? 'plus' : 'free';
+        // Plus by choice (demo), free for an active coach, paid by invoice until a date, a class
+        // code's free year, bought in an app (the stores' latest day), or by Stripe.
+        return $user->plan === 'plus' || ($user->getAttributes()['coach_active_at'] ?? null) !== null || (is_string($paidUntil) && $paidUntil > $now) || (is_string($schoolUntil) && $schoolUntil > $now) || (is_string($storeUntil) && $storeUntil > $now) || $user->subscribed('default') ? 'plus' : 'free';
     }
 
     public function isPlus(User $user): bool

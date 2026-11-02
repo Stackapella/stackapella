@@ -80,7 +80,7 @@ final class LegalText
         }
 
         // The legal address is a setting (SITE_LEGAL_EMAIL), so the texts name it as it's set.
-        $text = is_file($path) ? str_replace('legal@stackapella.com', (string) config('site.legal_email'), (string) file_get_contents($path)) : '';
+        $text = is_file($path) ? str_replace(['legal@stackapella.com', ':dmca_agent'], [(string) config('site.legal_email'), DmcaAgent::line()], (string) file_get_contents($path)) : '';
 
         if (! is_file($path) || preg_match('/^---\n(.*?)\n---\n(.*)$/s', $text, $parts) !== 1) {
             throw new RuntimeException("No legal text [{$name}], or it has no front matter.");

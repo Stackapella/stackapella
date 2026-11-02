@@ -28,7 +28,7 @@ final class CourseResetTest extends TestCase
 
     private function progress(int $stars): array
     {
-        return ['version' => 1, 'home' => 57, 'range' => ['low' => 53, 'high' => 69], 'lessons' => ['u1-l1' => ['stars' => $stars, 'bestPercent' => 90, 'at' => 1]], 'testedOut' => ['u2'], 'xp' => ['total' => 120, 'days' => []], 'goal' => 3];
+        return ['version' => 1, 'home' => 57, 'range' => ['low' => 53, 'high' => 69], 'lessons' => ['u1-l1' => ['stars' => $stars, 'bestPercent' => 90, 'at' => 1]], 'testedOut' => ['u2'], 'bosses' => ['u1' => ['best' => 92, 'beatAt' => 1]], 'xp' => ['total' => 120, 'days' => []], 'goal' => 3];
     }
 
     public function test_a_reset_reaches_every_device_and_an_older_ones_progress_is_never_merged_back(): void
@@ -39,7 +39,7 @@ final class CourseResetTest extends TestCase
         // Device A starts the course over: the lessons go, the note, range and XP stay.
         $reset = $this->postJson('/api/account/learning/reset', ['changeId' => $change = (string) Str::uuid()]);
         $this->assertMatchesContract($reset, 'account.learning.reset', 200);
-        $reset->assertJsonPath('data.epoch', 1)->assertJsonPath('data.progress.lessons', [])->assertJsonPath('data.progress.testedOut', [])->assertJsonPath('data.progress.home', 57)->assertJsonPath('data.progress.xp.total', 120);
+        $reset->assertJsonPath('data.epoch', 1)->assertJsonPath('data.progress.lessons', [])->assertJsonPath('data.progress.testedOut', [])->assertJsonPath('data.progress.bosses', [])->assertJsonPath('data.progress.home', 57)->assertJsonPath('data.progress.xp.total', 120);
         $this->assertNotNull($reset->json('data.undoUntil'));
         // Sent again (a lost reply): the same, not a second reset.
         $this->postJson('/api/account/learning/reset', ['changeId' => $change])->assertJsonPath('data.epoch', 1);
@@ -74,7 +74,7 @@ final class CourseResetTest extends TestCase
         $this->save(3, [...$this->progress(1), 'xp' => ['total' => 300, 'days' => []], 'badges' => ['first-week']], epoch: 2)->assertOk();
 
         $undone = $this->postJson('/api/account/learning/reset/undo', ['changeId' => (string) Str::uuid()])->assertOk();
-        $undone->assertJsonPath('data.progress.lessons.u1-l1.stars', 3)->assertJsonPath('data.progress.testedOut', ['u2'])
+        $undone->assertJsonPath('data.progress.lessons.u1-l1.stars', 3)->assertJsonPath('data.progress.testedOut', ['u2'])->assertJsonPath('data.progress.bosses.u1', ['best' => 92, 'beatAt' => 1])
             ->assertJsonPath('data.progress.xp.total', 300)->assertJsonPath('data.progress.badges', ['first-week']);
     }
 

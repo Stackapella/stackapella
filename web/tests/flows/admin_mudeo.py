@@ -22,6 +22,9 @@ def journey(f):
     f.wait_text(t(f, "admin.mudeo.countsTitle"))
     f.wait_text("3,790")
     f.wait_text(t(f, "admin.mudeo.today", {"sent": "150", "cap": "200"}))
+    # Who came from it: the site opened from its link, singing started, the old early link's accounts.
+    since = f.js("document.querySelector('[data-mudeo-since]')?.textContent ?? ''")
+    assert "31" in since and "3 started" in since and "4 made" in since, since
     f.shot("counts")
     f.click_t("admin.mudeo.test")
     f.wait_text(t(f, "admin.mudeo.testSent", {"email": ""}).split("{")[0].strip()[:20])

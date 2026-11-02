@@ -23,6 +23,8 @@ final class AppVerifyRequest extends FormRequest
     {
         return [
             'token' => ['required', 'string', 'max:200'],
+            // The app's own secret from its sign-up (SignUpBrowser): without it the account starts fresh.
+            'signupKey' => ['sometimes', 'nullable', 'string', 'min:20', 'max:128'],
             ...AppDeviceRules::rules(),
         ];
     }

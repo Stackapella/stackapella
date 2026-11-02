@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Mail\Account;
 
+use App\Support\Http\Hosts;
 use App\Support\Mail\Bold;
 
 /**
@@ -20,7 +21,7 @@ final class VerifyEmailAddress extends AccountMail
 
     protected function url(): string
     {
-        return url('/verify?token='.$this->token);
+        return Hosts::appLink('/verify?token='.$this->token);
     }
 
     /**

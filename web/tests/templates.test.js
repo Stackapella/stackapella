@@ -213,7 +213,10 @@ test('guides: the practice voice leaves a breath before each new line', async ()
     const samples = await renderGuide({ templateId: 'breath-test', templateVersion: 1, part, tempo: 60, sampleRate: rate });
     const loudest = (from, to) => samples.slice(Math.round(from * rate), Math.round(to * rate)).reduce((m, v) => Math.max(m, Math.abs(v)), 0);
     assert(loudest(1.0, 1.4) > 0.05, 'the note before the breath sounds');
-    assert(loudest(1.6, 1.95) < 0.001, `a breath before the new line: ${loudest(1.6, 1.95)}`);
+    // The gap is a breath, not singing: at most a soft inhale (the human voice's), with no pitch.
+    assert(loudest(1.6, 1.95) < loudest(1.0, 1.4) / 5, `a breath before the new line: ${loudest(1.6, 1.95)}`);
+    const gap = samples.slice(Math.round(1.62 * rate), Math.round(1.62 * rate) + 2048);
+    assert(!detectPitch(gap, rate)?.hz, 'no voice in the breath');
     assert(loudest(3.6, 3.95) > 0.05, 'no breath where the next note is no new line');
 });
 

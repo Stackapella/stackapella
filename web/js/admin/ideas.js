@@ -35,7 +35,7 @@ export const IdeasSection = {
                 <li v-for="idea in items" :key="idea.id" class="card space-y-3 p-5" :data-held-idea="idea.id">
                     <div class="flex flex-wrap items-start justify-between gap-3">
                         <div class="min-w-0">
-                            <a :href="'/ideas/' + idea.id" target="_blank" rel="noopener" class="font-bold text-cream hover:underline" translate="no">{{ idea.title }}</a>
+                            <a :href="'/ideas/' + idea.id" target="_blank" rel="noopener" class="tap-44 font-bold text-cream hover:underline" translate="no">{{ idea.title }}</a>
                             <p class="text-sm text-muted"><span translate="no">{{ idea.writer.name }}</span> · {{ t('admin.ideas.heldSince', { when: when(idea.heldAt) }) }}</p>
                         </div>
                         <StatusChip v-if="idea.reports?.count" tone="warn" :label="t('admin.ideas.reports', { count: idea.reports.count })" />

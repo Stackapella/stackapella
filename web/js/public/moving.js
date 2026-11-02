@@ -52,7 +52,8 @@ async function forgetHere() {
 }
 
 function go() {
-    location.replace(appUrl);
+    // The fragment never reaches a server, so it's added here (a warm-up's code, a song's place).
+    location.replace(appUrl + location.hash);
 }
 
 const el = (tag, attrs = {}, ...children) => {

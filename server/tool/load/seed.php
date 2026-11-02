@@ -15,8 +15,11 @@ declare(strict_types=1);
  * Uses the factories, so it needs the dev packages (never run on a server).
  */
 
+use App\Actions\Counts\ActiveSingers;
+use App\Models\CheckoutSession;
 use App\Models\Choir;
 use App\Models\ChoirVoice;
+use App\Models\CoachingPayment;
 use App\Models\Comment;
 use App\Models\Group;
 use App\Models\GroupMember;
@@ -26,7 +29,9 @@ use App\Models\HarmonyLike;
 use App\Models\Idea;
 use App\Models\IdeaVoice;
 use App\Models\Part;
+use App\Models\PartScore;
 use App\Models\Project;
+use App\Models\StoreSubscription;
 use App\Models\Take;
 use App\Models\Template;
 use App\Models\TemplateVersion;
@@ -38,6 +43,7 @@ use App\Support\Sharing\HarmonyFiles;
 use Illuminate\Contracts\Console\Kernel;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 require __DIR__.'/../../vendor/autoload.php';
 $app = require __DIR__.'/../../bootstrap/app.php';
@@ -160,6 +166,60 @@ foreach ($people->random(400) as $n => $singer) {
     ChoirVoice::factory()->create(['choir_id' => $choir->id, 'user_id' => $singer->id, 'part_key' => ['soprano', 'alto', 'tenor', 'bass'][$n % 4], 'in_mix_at' => now()]);
 }
 $say('the virtual choir');
+
+// Admin's numbers (docs/performance.md, the 2026-11-01 pass): 180 days of the anonymous daily
+// counts, practice scores, leaderboard scores, subscriptions and coaching sales.
+$kinds = array_values(array_unique([...(array) config('counts.kinds'), ...(array) config('counts.funnel')]));
+$rows = [];
+foreach (range(0, 179) as $ago) {
+    $day = now()->subDays($ago)->toDateString();
+    foreach ($kinds as $kind) {
+        foreach (['guest', 'account'] as $audience) {
+            foreach (['GB', 'US', 'DE', 'IL', 'FR', 'CA', 'AU', ''] as $country) {
+                $rows[] = ['day' => $day, 'kind' => $kind, 'audience' => $audience, 'country' => $country, 'variant' => '', 'source' => '', 'count' => random_int(0, 40)];
+                if (count($rows) >= 2000) {
+                    DB::table('usage_counts')->insertOrIgnore($rows);
+                    $rows = [];
+                }
+            }
+        }
+    }
+}
+DB::table('usage_counts')->insertOrIgnore($rows);
+$say('180 days of daily counts');
+
+$ids = $people->pluck('id')->all();
+$rows = [];
+foreach (range(1, 20000 * $scale) as $i) {
+    $at = now()->subMinutes(random_int(0, 60 * 24 * 60))->toDateTimeString();
+    $rows[] = ['uuid' => (string) Str::uuid(), 'user_id' => $ids[array_rand($ids)], 'take_uuid' => null, 'template_slug' => 'amazing-grace', 'template_version' => 1, 'part_key' => 'alto', 'lesson' => null, 'recorded_at' => $at, 'summary' => '{"pitchPercent":80}', 'created_at' => $at];
+    if (count($rows) >= 2000) {
+        DB::table('scores')->insert($rows);
+        $rows = [];
+    }
+}
+DB::table('scores')->insert($rows);
+$say('practice scores');
+
+if ($grace !== null && $grace->current_version_id !== null) {
+    foreach ($people->random(min(1200, $people->count())) as $singer) {
+        PartScore::factory()->create(['user_id' => $singer->id, 'template_id' => $grace->id, 'template_version_id' => $grace->current_version_id, 'part_key' => 'alto']);
+    }
+    $say('leaderboard scores');
+}
+
+foreach ($people->random(400 * $scale) as $n => $subscriber) {
+    $created = now()->subDays(random_int(1, 300));
+    DB::table('subscriptions')->insert(['user_id' => $subscriber->id, 'type' => 'default', 'stripe_id' => 'sub_'.Str::random(14), 'stripe_status' => $n % 9 === 0 ? 'canceled' : ($n % 13 === 0 ? 'trialing' : 'active'), 'stripe_price' => $n % 3 === 0 ? 'price_year' : 'price_month', 'quantity' => 1,
+        'trial_ends_at' => $n % 4 === 0 ? $created->copy()->addDays(7) : null, 'ends_at' => $n % 9 === 0 ? $created->copy()->addDays(60) : null, 'created_at' => $created, 'updated_at' => $created]);
+    CheckoutSession::factory()->create(['user_id' => $subscriber->id, 'currency' => ['usd', 'eur', 'gbp'][$n % 3], 'completed_at' => $created]);
+}
+StoreSubscription::factory()->count(100 * $scale)->create();
+CoachingPayment::factory()->count(300 * $scale)->create(['paid_at' => fn () => now()->subDays(random_int(0, 360))]);
+$say('subscriptions and sales');
+
+app(ActiveSingers::class)->fill();
+$say('the active singers snapshot');
 
 $tokens = $heavy->map(fn (User $owner): string => app(AppTokens::class)->issue($owner, ['name' => 'Load test', 'platform' => 'ios'], 'password', '127.0.0.1')['accessToken']);
 fwrite(STDERR, sprintf("Done in %.0f s: %d people, %d projects, %d takes, %d harmonies.\n", microtime(true) - $started, User::query()->count(), Project::query()->count(), Take::query()->count(), Harmony::query()->count()));

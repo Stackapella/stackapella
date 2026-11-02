@@ -1,0 +1,1633 @@
+{
+    "data": {
+        "days": [
+            {
+                "day": "2026-05-11",
+                "opens": {
+                    "guest": 40,
+                    "account": 12
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-05-12",
+                "opens": {
+                    "guest": 41,
+                    "account": 13
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-05-13",
+                "opens": {
+                    "guest": 42,
+                    "account": 14
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-05-14",
+                "opens": {
+                    "guest": 43,
+                    "account": 15
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-05-15",
+                "opens": {
+                    "guest": 44,
+                    "account": 16
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-05-16",
+                "opens": {
+                    "guest": 45,
+                    "account": 12
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-05-17",
+                "opens": {
+                    "guest": 46,
+                    "account": 13
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-05-18",
+                "opens": {
+                    "guest": 47,
+                    "account": 14
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-05-19",
+                "opens": {
+                    "guest": 48,
+                    "account": 15
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-05-20",
+                "opens": {
+                    "guest": 40,
+                    "account": 16
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-05-21",
+                "opens": {
+                    "guest": 41,
+                    "account": 12
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-05-22",
+                "opens": {
+                    "guest": 42,
+                    "account": 13
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-05-23",
+                "opens": {
+                    "guest": 43,
+                    "account": 14
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-05-24",
+                "opens": {
+                    "guest": 44,
+                    "account": 15
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-05-25",
+                "opens": {
+                    "guest": 45,
+                    "account": 16
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-05-26",
+                "opens": {
+                    "guest": 46,
+                    "account": 12
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-05-27",
+                "opens": {
+                    "guest": 47,
+                    "account": 13
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-05-28",
+                "opens": {
+                    "guest": 48,
+                    "account": 14
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-05-29",
+                "opens": {
+                    "guest": 40,
+                    "account": 15
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-05-30",
+                "opens": {
+                    "guest": 41,
+                    "account": 16
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-05-31",
+                "opens": {
+                    "guest": 42,
+                    "account": 12
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-06-01",
+                "opens": {
+                    "guest": 43,
+                    "account": 13
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-06-02",
+                "opens": {
+                    "guest": 44,
+                    "account": 14
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-06-03",
+                "opens": {
+                    "guest": 45,
+                    "account": 15
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-06-04",
+                "opens": {
+                    "guest": 46,
+                    "account": 16
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-06-05",
+                "opens": {
+                    "guest": 47,
+                    "account": 12
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-06-06",
+                "opens": {
+                    "guest": 48,
+                    "account": 13
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-06-07",
+                "opens": {
+                    "guest": 40,
+                    "account": 14
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-06-08",
+                "opens": {
+                    "guest": 41,
+                    "account": 15
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-06-09",
+                "opens": {
+                    "guest": 42,
+                    "account": 16
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-06-10",
+                "opens": {
+                    "guest": 43,
+                    "account": 12
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-06-11",
+                "opens": {
+                    "guest": 44,
+                    "account": 13
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-06-12",
+                "opens": {
+                    "guest": 45,
+                    "account": 14
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-06-13",
+                "opens": {
+                    "guest": 46,
+                    "account": 15
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-06-14",
+                "opens": {
+                    "guest": 47,
+                    "account": 16
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-06-15",
+                "opens": {
+                    "guest": 48,
+                    "account": 12
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-06-16",
+                "opens": {
+                    "guest": 40,
+                    "account": 13
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-06-17",
+                "opens": {
+                    "guest": 41,
+                    "account": 14
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-06-18",
+                "opens": {
+                    "guest": 42,
+                    "account": 15
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-06-19",
+                "opens": {
+                    "guest": 43,
+                    "account": 16
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-06-20",
+                "opens": {
+                    "guest": 44,
+                    "account": 12
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-06-21",
+                "opens": {
+                    "guest": 45,
+                    "account": 13
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-06-22",
+                "opens": {
+                    "guest": 46,
+                    "account": 14
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-06-23",
+                "opens": {
+                    "guest": 47,
+                    "account": 15
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-06-24",
+                "opens": {
+                    "guest": 48,
+                    "account": 16
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-06-25",
+                "opens": {
+                    "guest": 40,
+                    "account": 12
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-06-26",
+                "opens": {
+                    "guest": 41,
+                    "account": 13
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-06-27",
+                "opens": {
+                    "guest": 42,
+                    "account": 14
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-06-28",
+                "opens": {
+                    "guest": 43,
+                    "account": 15
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-06-29",
+                "opens": {
+                    "guest": 44,
+                    "account": 16
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-06-30",
+                "opens": {
+                    "guest": 45,
+                    "account": 12
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-07-01",
+                "opens": {
+                    "guest": 46,
+                    "account": 13
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-07-02",
+                "opens": {
+                    "guest": 47,
+                    "account": 14
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-07-03",
+                "opens": {
+                    "guest": 48,
+                    "account": 15
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-07-04",
+                "opens": {
+                    "guest": 40,
+                    "account": 16
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-07-05",
+                "opens": {
+                    "guest": 41,
+                    "account": 12
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-07-06",
+                "opens": {
+                    "guest": 42,
+                    "account": 13
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-07-07",
+                "opens": {
+                    "guest": 43,
+                    "account": 14
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-07-08",
+                "opens": {
+                    "guest": 44,
+                    "account": 15
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-07-09",
+                "opens": {
+                    "guest": 45,
+                    "account": 16
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-07-10",
+                "opens": {
+                    "guest": 46,
+                    "account": 12
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-07-11",
+                "opens": {
+                    "guest": 47,
+                    "account": 13
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-07-12",
+                "opens": {
+                    "guest": 48,
+                    "account": 14
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-07-13",
+                "opens": {
+                    "guest": 40,
+                    "account": 15
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-07-14",
+                "opens": {
+                    "guest": 41,
+                    "account": 16
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-07-15",
+                "opens": {
+                    "guest": 42,
+                    "account": 12
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-07-16",
+                "opens": {
+                    "guest": 43,
+                    "account": 13
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-07-17",
+                "opens": {
+                    "guest": 44,
+                    "account": 14
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-07-18",
+                "opens": {
+                    "guest": 45,
+                    "account": 15
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-07-19",
+                "opens": {
+                    "guest": 46,
+                    "account": 16
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-07-20",
+                "opens": {
+                    "guest": 47,
+                    "account": 12
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-07-21",
+                "opens": {
+                    "guest": 48,
+                    "account": 13
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-07-22",
+                "opens": {
+                    "guest": 40,
+                    "account": 14
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-07-23",
+                "opens": {
+                    "guest": 41,
+                    "account": 15
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-07-24",
+                "opens": {
+                    "guest": 42,
+                    "account": 16
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-07-25",
+                "opens": {
+                    "guest": 43,
+                    "account": 12
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-07-26",
+                "opens": {
+                    "guest": 44,
+                    "account": 13
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-07-27",
+                "opens": {
+                    "guest": 45,
+                    "account": 14
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-07-28",
+                "opens": {
+                    "guest": 46,
+                    "account": 15
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-07-29",
+                "opens": {
+                    "guest": 47,
+                    "account": 16
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-07-30",
+                "opens": {
+                    "guest": 48,
+                    "account": 12
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-07-31",
+                "opens": {
+                    "guest": 40,
+                    "account": 13
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-08-01",
+                "opens": {
+                    "guest": 41,
+                    "account": 14
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-08-02",
+                "opens": {
+                    "guest": 42,
+                    "account": 15
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-08-03",
+                "opens": {
+                    "guest": 43,
+                    "account": 16
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-08-04",
+                "opens": {
+                    "guest": 44,
+                    "account": 12
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-08-05",
+                "opens": {
+                    "guest": 45,
+                    "account": 13
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-08-06",
+                "opens": {
+                    "guest": 46,
+                    "account": 14
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-08-07",
+                "opens": {
+                    "guest": 47,
+                    "account": 15
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-08-08",
+                "opens": {
+                    "guest": 48,
+                    "account": 16
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-08-09",
+                "opens": {
+                    "guest": 40,
+                    "account": 12
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-08-10",
+                "opens": {
+                    "guest": 41,
+                    "account": 13
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-08-11",
+                "opens": {
+                    "guest": 42,
+                    "account": 14
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-08-12",
+                "opens": {
+                    "guest": 43,
+                    "account": 15
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-08-13",
+                "opens": {
+                    "guest": 44,
+                    "account": 16
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-08-14",
+                "opens": {
+                    "guest": 45,
+                    "account": 12
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-08-15",
+                "opens": {
+                    "guest": 46,
+                    "account": 13
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-08-16",
+                "opens": {
+                    "guest": 47,
+                    "account": 14
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-08-17",
+                "opens": {
+                    "guest": 48,
+                    "account": 15
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-08-18",
+                "opens": {
+                    "guest": 40,
+                    "account": 16
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-08-19",
+                "opens": {
+                    "guest": 41,
+                    "account": 12
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-08-20",
+                "opens": {
+                    "guest": 42,
+                    "account": 13
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-08-21",
+                "opens": {
+                    "guest": 43,
+                    "account": 14
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-08-22",
+                "opens": {
+                    "guest": 44,
+                    "account": 15
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-08-23",
+                "opens": {
+                    "guest": 45,
+                    "account": 16
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-08-24",
+                "opens": {
+                    "guest": 46,
+                    "account": 12
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-08-25",
+                "opens": {
+                    "guest": 47,
+                    "account": 13
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-08-26",
+                "opens": {
+                    "guest": 48,
+                    "account": 14
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-08-27",
+                "opens": {
+                    "guest": 40,
+                    "account": 15
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-08-28",
+                "opens": {
+                    "guest": 41,
+                    "account": 16
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-08-29",
+                "opens": {
+                    "guest": 42,
+                    "account": 12
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-08-30",
+                "opens": {
+                    "guest": 43,
+                    "account": 13
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-08-31",
+                "opens": {
+                    "guest": 44,
+                    "account": 14
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-09-01",
+                "opens": {
+                    "guest": 45,
+                    "account": 15
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-09-02",
+                "opens": {
+                    "guest": 46,
+                    "account": 16
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-09-03",
+                "opens": {
+                    "guest": 47,
+                    "account": 12
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-09-04",
+                "opens": {
+                    "guest": 48,
+                    "account": 13
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-09-05",
+                "opens": {
+                    "guest": 40,
+                    "account": 14
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-09-06",
+                "opens": {
+                    "guest": 41,
+                    "account": 15
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-09-07",
+                "opens": {
+                    "guest": 42,
+                    "account": 16
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-09-08",
+                "opens": {
+                    "guest": 43,
+                    "account": 12
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-09-09",
+                "opens": {
+                    "guest": 44,
+                    "account": 13
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-09-10",
+                "opens": {
+                    "guest": 45,
+                    "account": 14
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-09-11",
+                "opens": {
+                    "guest": 46,
+                    "account": 15
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-09-12",
+                "opens": {
+                    "guest": 47,
+                    "account": 16
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-09-13",
+                "opens": {
+                    "guest": 48,
+                    "account": 12
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-09-14",
+                "opens": {
+                    "guest": 40,
+                    "account": 13
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-09-15",
+                "opens": {
+                    "guest": 41,
+                    "account": 14
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-09-16",
+                "opens": {
+                    "guest": 42,
+                    "account": 15
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-09-17",
+                "opens": {
+                    "guest": 43,
+                    "account": 16
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-09-18",
+                "opens": {
+                    "guest": 44,
+                    "account": 12
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-09-19",
+                "opens": {
+                    "guest": 45,
+                    "account": 13
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-09-20",
+                "opens": {
+                    "guest": 46,
+                    "account": 14
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-09-21",
+                "opens": {
+                    "guest": 47,
+                    "account": 15
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-09-22",
+                "opens": {
+                    "guest": 48,
+                    "account": 16
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-09-23",
+                "opens": {
+                    "guest": 40,
+                    "account": 12
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-09-24",
+                "opens": {
+                    "guest": 41,
+                    "account": 13
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-09-25",
+                "opens": {
+                    "guest": 42,
+                    "account": 14
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-09-26",
+                "opens": {
+                    "guest": 43,
+                    "account": 15
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-09-27",
+                "opens": {
+                    "guest": 44,
+                    "account": 16
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-09-28",
+                "opens": {
+                    "guest": 45,
+                    "account": 12
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-09-29",
+                "opens": {
+                    "guest": 46,
+                    "account": 13
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-09-30",
+                "opens": {
+                    "guest": 47,
+                    "account": 14
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-10-01",
+                "opens": {
+                    "guest": 48,
+                    "account": 15
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-10-02",
+                "opens": {
+                    "guest": 40,
+                    "account": 16
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-10-03",
+                "opens": {
+                    "guest": 41,
+                    "account": 12
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-10-04",
+                "opens": {
+                    "guest": 42,
+                    "account": 13
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-10-05",
+                "opens": {
+                    "guest": 43,
+                    "account": 14
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-10-06",
+                "opens": {
+                    "guest": 44,
+                    "account": 15
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-10-07",
+                "opens": {
+                    "guest": 45,
+                    "account": 16
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-10-08",
+                "opens": {
+                    "guest": 46,
+                    "account": 12
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-10-09",
+                "opens": {
+                    "guest": 47,
+                    "account": 13
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-10-10",
+                "opens": {
+                    "guest": 48,
+                    "account": 14
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-10-11",
+                "opens": {
+                    "guest": 40,
+                    "account": 15
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-10-12",
+                "opens": {
+                    "guest": 41,
+                    "account": 16
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-10-13",
+                "opens": {
+                    "guest": 42,
+                    "account": 12
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-10-14",
+                "opens": {
+                    "guest": 43,
+                    "account": 13
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-10-15",
+                "opens": {
+                    "guest": 44,
+                    "account": 14
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-10-16",
+                "opens": {
+                    "guest": 45,
+                    "account": 15
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-10-17",
+                "opens": {
+                    "guest": 46,
+                    "account": 16
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-10-18",
+                "opens": {
+                    "guest": 47,
+                    "account": 12
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-10-19",
+                "opens": {
+                    "guest": 48,
+                    "account": 13
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-10-20",
+                "opens": {
+                    "guest": 40,
+                    "account": 14
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-10-21",
+                "opens": {
+                    "guest": 41,
+                    "account": 15
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-10-22",
+                "opens": {
+                    "guest": 42,
+                    "account": 16
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-10-23",
+                "opens": {
+                    "guest": 43,
+                    "account": 12
+                },
+                "devices": null
+            },
+            {
+                "day": "2026-10-24",
+                "opens": {
+                    "guest": 44,
+                    "account": 13
+                },
+                "devices": {
+                    "guest": 21,
+                    "account": 9
+                }
+            },
+            {
+                "day": "2026-10-25",
+                "opens": {
+                    "guest": 45,
+                    "account": 14
+                },
+                "devices": {
+                    "guest": 21,
+                    "account": 9
+                }
+            }
+        ],
+        "weeks": [
+            {
+                "from": "2026-08-03",
+                "to": "2026-08-09",
+                "days": 7,
+                "opens": {
+                    "guest": 50.3,
+                    "account": 16.3
+                },
+                "devices": null,
+                "reach": null
+            },
+            {
+                "from": "2026-08-10",
+                "to": "2026-08-16",
+                "days": 7,
+                "opens": {
+                    "guest": 50.9,
+                    "account": 16.5
+                },
+                "devices": null,
+                "reach": null
+            },
+            {
+                "from": "2026-08-17",
+                "to": "2026-08-23",
+                "days": 7,
+                "opens": {
+                    "guest": 51.5,
+                    "account": 16.7
+                },
+                "devices": null,
+                "reach": null
+            },
+            {
+                "from": "2026-08-24",
+                "to": "2026-08-30",
+                "days": 7,
+                "opens": {
+                    "guest": 52.1,
+                    "account": 16.9
+                },
+                "devices": null,
+                "reach": null
+            },
+            {
+                "from": "2026-08-31",
+                "to": "2026-09-06",
+                "days": 7,
+                "opens": {
+                    "guest": 52.7,
+                    "account": 17.1
+                },
+                "devices": null,
+                "reach": null
+            },
+            {
+                "from": "2026-09-07",
+                "to": "2026-09-13",
+                "days": 7,
+                "opens": {
+                    "guest": 53.3,
+                    "account": 17.3
+                },
+                "devices": null,
+                "reach": null
+            },
+            {
+                "from": "2026-09-14",
+                "to": "2026-09-20",
+                "days": 7,
+                "opens": {
+                    "guest": 53.9,
+                    "account": 17.5
+                },
+                "devices": null,
+                "reach": null
+            },
+            {
+                "from": "2026-09-21",
+                "to": "2026-09-27",
+                "days": 7,
+                "opens": {
+                    "guest": 54.5,
+                    "account": 17.7
+                },
+                "devices": null,
+                "reach": null
+            },
+            {
+                "from": "2026-09-28",
+                "to": "2026-10-04",
+                "days": 7,
+                "opens": {
+                    "guest": 55.1,
+                    "account": 17.9
+                },
+                "devices": null,
+                "reach": null
+            },
+            {
+                "from": "2026-10-05",
+                "to": "2026-10-11",
+                "days": 7,
+                "opens": {
+                    "guest": 55.7,
+                    "account": 18.1
+                },
+                "devices": null,
+                "reach": null
+            },
+            {
+                "from": "2026-10-12",
+                "to": "2026-10-18",
+                "days": 7,
+                "opens": {
+                    "guest": 56.3,
+                    "account": 18.3
+                },
+                "devices": null,
+                "reach": null
+            },
+            {
+                "from": "2026-10-19",
+                "to": "2026-10-25",
+                "days": 6,
+                "opens": {
+                    "guest": 56.9,
+                    "account": 18.5
+                },
+                "devices": null,
+                "reach": null
+            }
+        ],
+        "previous": [
+            {
+                "from": "2026-05-11",
+                "to": "2026-05-17",
+                "days": 7,
+                "opens": {
+                    "guest": 43.1,
+                    "account": 13.9
+                },
+                "devices": null,
+                "reach": null
+            },
+            {
+                "from": "2026-05-18",
+                "to": "2026-05-24",
+                "days": 7,
+                "opens": {
+                    "guest": 43.7,
+                    "account": 14.1
+                },
+                "devices": null,
+                "reach": null
+            },
+            {
+                "from": "2026-05-25",
+                "to": "2026-05-31",
+                "days": 7,
+                "opens": {
+                    "guest": 44.3,
+                    "account": 14.3
+                },
+                "devices": null,
+                "reach": null
+            },
+            {
+                "from": "2026-06-01",
+                "to": "2026-06-07",
+                "days": 7,
+                "opens": {
+                    "guest": 44.9,
+                    "account": 14.5
+                },
+                "devices": null,
+                "reach": null
+            },
+            {
+                "from": "2026-06-08",
+                "to": "2026-06-14",
+                "days": 7,
+                "opens": {
+                    "guest": 45.5,
+                    "account": 14.7
+                },
+                "devices": null,
+                "reach": null
+            },
+            {
+                "from": "2026-06-15",
+                "to": "2026-06-21",
+                "days": 7,
+                "opens": {
+                    "guest": 46.1,
+                    "account": 14.9
+                },
+                "devices": null,
+                "reach": null
+            },
+            {
+                "from": "2026-06-22",
+                "to": "2026-06-28",
+                "days": 7,
+                "opens": {
+                    "guest": 46.7,
+                    "account": 15.1
+                },
+                "devices": null,
+                "reach": null
+            },
+            {
+                "from": "2026-06-29",
+                "to": "2026-07-05",
+                "days": 7,
+                "opens": {
+                    "guest": 47.3,
+                    "account": 15.3
+                },
+                "devices": null,
+                "reach": null
+            },
+            {
+                "from": "2026-07-06",
+                "to": "2026-07-12",
+                "days": 7,
+                "opens": {
+                    "guest": 47.9,
+                    "account": 15.5
+                },
+                "devices": null,
+                "reach": null
+            },
+            {
+                "from": "2026-07-13",
+                "to": "2026-07-19",
+                "days": 7,
+                "opens": {
+                    "guest": 48.5,
+                    "account": 15.7
+                },
+                "devices": null,
+                "reach": null
+            },
+            {
+                "from": "2026-07-20",
+                "to": "2026-07-26",
+                "days": 7,
+                "opens": {
+                    "guest": 49.1,
+                    "account": 15.9
+                },
+                "devices": null,
+                "reach": null
+            },
+            {
+                "from": "2026-07-27",
+                "to": "2026-08-02",
+                "days": 7,
+                "opens": {
+                    "guest": 49.7,
+                    "account": 16.1
+                },
+                "devices": null,
+                "reach": null
+            }
+        ],
+        "today": {
+            "day": "2026-11-01",
+            "opens": {
+                "guest": 19,
+                "account": 6
+            },
+            "devices": null
+        },
+        "timezone": "UTC"
+    }
+}

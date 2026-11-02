@@ -4,9 +4,14 @@ declare(strict_types=1);
 
 namespace App\Actions\Courses;
 
+use App\Actions\Voices\VolunteerAbuse;
+use App\Models\AuditLog;
 use App\Models\BetaAssignment;
 use App\Models\BetaSinger;
 use App\Models\CourseClip;
+use App\Models\Report;
+use App\Models\User;
+use App\Services\DigitalOcean\CdnPurge;
 use Illuminate\Support\Facades\Storage;
 
 /**
@@ -18,6 +23,8 @@ use Illuminate\Support\Facades\Storage;
  */
 final class CourseClips
 {
+    public function __construct(private readonly CdnPurge $cdn) {}
+
     /**
      * Loads clips.json: new slots made, changed briefs updated, slots gone from the file retired
      * (kept for what was recorded). A missing file is no clips. Answers the problems, by slot.
@@ -69,6 +76,8 @@ final class CourseClips
                     'seconds' => (float) $clip['seconds'],
                     'style' => $clip['style'] ?? null,
                     'voices' => $clip['voices'] ?? 'any',
+                    // Who can sing it (the file's `skills`): Lend your voice offers it to them.
+                    'skill' => is_string($clip['skill'] ?? null) ? $clip['skill'] : 'any',
                     'used' => array_values($clip['used'] ?? []),
                 ],
                 'retired_at' => null,
@@ -102,7 +111,7 @@ final class CourseClips
     /**
      * courses.clips.list: a course's published clips, for its steps.
      *
-     * @return list<array{slot: string, url: string, durationSeconds: float, credit: string|null, creditHandle: string|null}>
+     * @return list<array{slot: string, url: string, durationSeconds: float, credit: string|null, creditHandle: string|null, creditStyle: string|null}>
      */
     public function published(string $courseId): array
     {
@@ -116,6 +125,9 @@ final class CourseClips
                     'durationSeconds' => round((int) $clip->frames / max(1, (int) $clip->sample_rate), 2),
                     'credit' => $singer instanceof BetaSinger ? $singer->credit() : null,
                     'creditHandle' => $singer instanceof BetaSinger ? $singer->creditHandle() : null,
+                    // The clip's style (the slot's `sing.style`, such as beatbox or yodel), so the app
+                    // can say "Beatbox by" instead of "Sung by".
+                    'creditStyle' => is_string($clip->brief['style'] ?? null) ? $clip->brief['style'] : null,
                 ];
             })->all());
     }
@@ -128,9 +140,12 @@ final class CourseClips
     public function forAdmin(): array
     {
         $assignments = BetaAssignment::query()->with(['singer', 'latestSubmission'])->whereNotNull('course_clip_id')->get()->groupBy('course_clip_id');
+        // Open reports on each clip's voice (Lend your voice's moderation).
+        $reports = Report::query()->where('reportable_type', (new CourseClip)->getMorphClass())->where('status', Report::OPEN)
+            ->selectRaw('reportable_id, count(*) as n')->groupBy('reportable_id')->pluck('n', 'reportable_id');
 
         return array_values(CourseClip::query()->with('submission.assignment.singer.user')->orderByRaw('retired_at is not null')->orderBy('course_id')->orderBy('slot')->get()
-            ->map(static function (CourseClip $clip) use ($assignments): array {
+            ->map(static function (CourseClip $clip) use ($assignments, $reports): array {
                 /** @var BetaAssignment|null $latest the newest assignment of it */
                 $latest = $assignments->get($clip->id)?->sortByDesc('id')->first();
                 $sent = $latest?->latestSubmission !== null;
@@ -139,6 +154,7 @@ final class CourseClips
                 return [
                     ...self::brief($clip),
                     'retired' => $clip->retired_at !== null,
+                    'reports' => (int) ($reports[$clip->id] ?? 0),
                     'status' => match (true) {
                         $clip->media_key !== null => 'published',
                         $sent => 'submitted',
@@ -158,6 +174,29 @@ final class CourseClips
     /**
      * A course's name, from its catalogue entry (web/course/plus/courses.json), else its id.
      */
+    /**
+     * admin.beta.clips.delete: a clip's published voice comes down (the synth plays again), audited;
+     * for abuse, the volunteer who sang it can't claim again (Lend your voice, slice 3).
+     */
+    public function remove(CourseClip $clip, User $admin, bool $abuse, ?string $ip): void
+    {
+        $key = $clip->media_key;
+
+        if ($key === null) {
+            return;
+        }
+
+        if ($abuse) {
+            VolunteerAbuse::block($clip->submission()->with('assignment.singer')->first(), $admin, $ip);
+        }
+
+        AuditLog::record('beta.clip_removed', null, $admin, before: ['slot' => $clip->slot, 'media_key' => $key, 'submission' => $clip->beta_submission_id], reason: $abuse ? 'abuse' : null, ip: $ip);
+        $clip->forceFill(['media_key' => null, 'sample_rate' => null, 'frames' => null, 'published_at' => null, 'beta_submission_id' => null])->save();
+        VolunteerAbuse::settleReports($clip);
+        Storage::disk('media')->delete($key);
+        $this->cdn->forget([$key]);
+    }
+
     public static function courseTitle(string $courseId): string
     {
         static $titles = null;

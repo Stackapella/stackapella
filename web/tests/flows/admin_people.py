@@ -35,7 +35,7 @@ def journey(f):
             return [...document.querySelectorAll('[data-people] li a')].every((row) => [...row.children].map((c) => Math.round(c.getBoundingClientRect().left)).join() === head.join()); })()""")
         assert lined, "every row lines up with the header"
     nav = json.dumps(t(f, "admin.nav.people"))
-    assert f.js(f"[...document.querySelectorAll('header nav a')].some((a) => a.textContent.trim() === {nav} && a.getAttribute('aria-current') === 'page')"), "People in the nav, current"
+    assert f.js(f"[...document.querySelectorAll('nav a')].some((a) => a.textContent.trim() === {nav} && a.getAttribute('aria-current') === 'page')"), "People in the nav, current"
     f.shot("list")
     # The filters and sort reach the API as its query.
     f.run("const { api } = await import('/js/api.js'); const list = api.admin.people.list; api.admin.people.list = (query) => { window.peopleQuery = query; return list(query); };")

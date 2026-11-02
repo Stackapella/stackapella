@@ -72,11 +72,14 @@ final class OpsTest extends TestCase
     public function test_alerts_go_once_past_their_line_and_the_digest_says_whats_waiting(): void
     {
         Notification::fake();
+        $this->travelTo(now()->utc()->setTime(8, 30));
         $admin = $this->admin();
         config(['ops.alerts.sign_ups_an_hour' => 2]);
 
         foreach ([1, 2, 3] as $i) {
             SecurityEvent::factory()->create(['type' => SecurityEventType::SignUp]);
+            // The digest's yesterday is the report day before today, whole.
+            SecurityEvent::factory()->create(['type' => SecurityEventType::SignUp, 'created_at' => now()->subDay()->setTime(12, 0)]);
         }
 
         $this->artisan('app:alerts')->assertSuccessful();
@@ -85,6 +88,8 @@ final class OpsTest extends TestCase
 
         $this->artisan('app:digest --print')->expectsOutputToContain('Yesterday: 3 sign-ups')->assertSuccessful();
         $this->artisan('app:digest')->assertSuccessful();
+        // Hourly, but once a day: a second run sends nothing.
+        $this->artisan('app:digest')->expectsOutput('Not due.')->assertSuccessful();
         Notification::assertSentToTimes($admin, OpsAlert::class, 2);
     }
 

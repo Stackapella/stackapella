@@ -31,7 +31,8 @@
                 "required": [
                     "key",
                     "name",
-                    "guides"
+                    "guides",
+                    "needs"
                 ],
                 "properties": {
                     "key": {
@@ -45,6 +46,9 @@
                         "items": {
                             "$ref": "admin.beta.guide.json"
                         }
+                    },
+                    "needs": {
+                        "$ref": "admin.beta.part-needs.json"
                     }
                 }
             }

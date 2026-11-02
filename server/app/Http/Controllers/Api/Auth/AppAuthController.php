@@ -23,6 +23,7 @@ use App\Models\User;
 use App\Services\Auth\ProviderTokens;
 use App\Support\Accounts\AppTokens;
 use App\Support\Accounts\SignInSession;
+use App\Support\Accounts\SignUpBrowser;
 use App\Support\Trust\Blocklist;
 use App\Support\Trust\Country;
 use App\Support\Trust\SecurityLog;
@@ -91,7 +92,7 @@ final class AppAuthController extends Controller
 
     public function verify(AppVerifyRequest $request, VerifyEmail $verify, AcceptInvite $acceptInvite): JsonResponse
     {
-        $user = $verify->handle((string) $request->validated('token'));
+        $user = $verify->handle((string) $request->validated('token'), SignUpBrowser::hash($request));
         // The beta invite the sign-up carried, now that the address is proven.
         $acceptInvite->pending($user);
 

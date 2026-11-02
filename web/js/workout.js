@@ -5,6 +5,7 @@
 // steps in semitones from your comfortable note), and the runner (js/views/workout.js) plays them.
 
 import { dayOf } from './course.js';
+import { readingLine } from './reading-lines.js';
 
 /** The weak spot each insight points to, and the exercise that works on it. */
 const DRILLS = {
@@ -55,9 +56,12 @@ export function weakSpot(recent = []) {
  * `{ projectId, title }` (the song you're learning, to sing a phrase of) or null.
  * - `progress`: the course progress (range, home, lessons and their stars, recent takes);
  * - `lessons`: the course's lessons as `{ id, exercise }` for those with a scored exercise;
- * - `learning`: `{ projectId, title }` of the song most recently sung, or null.
+ * - `learning`: `{ projectId, title }` of the song most recently sung, or null;
+ * - `reading`: `{ level, day }` once Sight-singing is started (js/reading-lines.js readingLevel), else
+ *   null: then a new line to read takes the review's place on every other day (never an extra step,
+ *   so the workout keeps its length).
  */
-export function pickWorkout(progress, lessons, learning = null) {
+export function pickWorkout(progress, lessons, learning = null, reading = null) {
     const warm = warmUp(progress.range, progress.home);
     const steps = [{ kind: 'warmUp', exercise: warm.exercise, climb: warm.climb, rounds: WARM_UP_ROUNDS }];
     const insight = weakSpot(progress.recent);
@@ -67,7 +71,9 @@ export function pickWorkout(progress, lessons, learning = null) {
         .map((l) => ({ ...l, stars: progress.lessons?.[l.id]?.stars ?? 0 }))
         .filter((l) => l.stars > 0 && l.stars < 3)
         .sort((a, b) => a.stars - b.stars)[0];
-    if (review) steps.push({ kind: 'review', lessonId: review.id, exercise: review.exercise });
+    if (review && reading?.level && reading.day % 2 === 0) {
+        steps.push({ kind: 'read', exercise: readingLine({ level: reading.level, seed: reading.day, home: progress.home ?? 57, range: progress.range ?? null }) });
+    } else if (review) steps.push({ kind: 'review', lessonId: review.id, exercise: review.exercise });
     return { steps, song: learning };
 }
 

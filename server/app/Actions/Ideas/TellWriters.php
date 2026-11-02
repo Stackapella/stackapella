@@ -11,6 +11,7 @@ use App\Models\IdeaVoice;
 use App\Models\User;
 use App\Support\Gallery\GalleryViews;
 use App\Support\Http\Hosts;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\URL;
 
@@ -28,25 +29,42 @@ final class TellWriters
         $ideas = Idea::query()->with(['user', 'template.currentVersion'])
             ->where(fn ($news) => $news->whereHas('voices', fn ($voices) => $voices->where('status', IdeaVoice::READY)->whereNull('hidden_at')->whereNull('notified_at'))
                 ->orWhere(fn ($done) => $done->whereNotNull('complete_told_at')->whereNull('complete_emailed_at')))
-            ->where(fn ($query) => $query->whereNull('emailed_at')->orWhere('emailed_at', '<=', now()->subDay()))
+            // Once a day (five minutes' slack, so an hourly run doesn't slip an hour each day).
+            ->where(fn ($query) => $query->whereNull('emailed_at')->orWhere('emailed_at', '<=', now()->subDay()->addMinutes(5)))
             ->get();
 
         foreach ($ideas as $idea) {
-            $voices = IdeaVoice::query()->with('user')->where('idea_id', $idea->id)->where('status', IdeaVoice::READY)->whereNull('hidden_at')->whereNull('notified_at')->orderBy('id')->get();
             $writer = $idea->user;
-            // Read afresh with the voices: "complete" goes once, in the first email after it is.
-            $idea->refresh();
-            $completed = $idea->complete_told_at !== null && $idea->complete_emailed_at === null;
-            IdeaVoice::query()->whereKey($voices->pluck('id'))->update(['notified_at' => now()]);
+            // Claimed under the idea's lock: a second run (a slow one outliving its lock) finds the
+            // voices told and the email sent, and sends nothing again.
+            $claimed = DB::transaction(function () use ($idea): ?array {
+                $locked = Idea::query()->whereKey($idea->id)->lockForUpdate()->first();
 
-            // Their own voices on their own tune aren't news to them.
-            $news = $voices->reject(fn (IdeaVoice $voice): bool => $voice->user_id === $idea->user_id);
+                if ($locked === null || ($locked->emailed_at !== null && $locked->emailed_at->gt(now()->subDay()->addMinutes(5)))) {
+                    return null;
+                }
 
-            if ($news->isEmpty() && ! $completed) {
+                $voices = IdeaVoice::query()->with('user')->where('idea_id', $idea->id)->where('status', IdeaVoice::READY)->whereNull('hidden_at')->whereNull('notified_at')->orderBy('id')->get();
+                // "complete" goes once, in the first email after it is.
+                $completed = $locked->complete_told_at !== null && $locked->complete_emailed_at === null;
+                IdeaVoice::query()->whereKey($voices->pluck('id'))->update(['notified_at' => now()]);
+                // Their own voices on their own tune aren't news to them.
+                $news = $voices->reject(fn (IdeaVoice $voice): bool => $voice->user_id === $locked->user_id);
+
+                if ($news->isEmpty() && ! $completed) {
+                    return null;
+                }
+
+                $locked->forceFill(['emailed_at' => now(), 'complete_emailed_at' => $completed ? now() : $locked->complete_emailed_at])->save();
+
+                return [$news, $completed];
+            });
+
+            if ($claimed === null) {
                 continue;
             }
 
-            $idea->forceFill(['emailed_at' => now(), 'complete_emailed_at' => $completed ? now() : $idea->complete_emailed_at])->save();
+            [$news, $completed] = $claimed;
 
             if (! $writer->idea_emails || $writer->email === null || EmailSuppression::isSuppressed($writer->email) || $writer->isSuspended()) {
                 continue;
@@ -59,7 +77,7 @@ final class TellWriters
                 $idea->template->title,
                 array_values($news->map(fn (IdeaVoice $voice): array => ['name' => GalleryViews::person($voice->user)['name'], 'part' => mb_strtolower($parts[$voice->part_key] ?? __('ideas.mail.a_part')), 'played' => in_array($voice->part_key, $instruments, true)])->all()),
                 $completed,
-                Hosts::app('/ideas/'.$idea->public_id),
+                Hosts::public('/ideas/'.$idea->public_id),
                 self::unsubscribeUrl($writer),
             ));
             $sent++;

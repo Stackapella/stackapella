@@ -43,7 +43,7 @@ LESSONS = {
 def open_barbershop(f):
     """Staff, with Barbershop and tags shown as if it were live (it stays "soon" until every lesson plays)."""
     f.go("/?api=mock&scenario=&as=admin", "document.querySelector('#app header')")
-    f.run("localStorage.setItem('stackapella.installDismissed', '1');")
+    f.run("localStorage.setItem('stackapella.asks', JSON.stringify({ stopped: ['install'] }));")
     f.go("/learn", "document.querySelector('[data-course-map]')")
     f.wait(f"{STORE}.learning.catalogue.some((c) => c.id === 'barbershop')", what="the catalogue")
     f.run(f"""
@@ -56,7 +56,7 @@ def open_barbershop(f):
 
 def journey(f):
     open_barbershop(f)
-    f.wait("document.querySelector('[data-more-courses] [data-course=barbershop]')", what="Barbershop in More courses")
+    f.wait("document.querySelector('[data-more-courses] [data-course-row=barbershop]')", what="Barbershop in More courses")
     f.run(f"{ROUTER}.navigate('/learn/c/barbershop')")
     f.wait("document.querySelector('[data-up-next]') && document.querySelector('[data-course-map]')", what="Up next and the map")
     f.wait_text("A chord that rings")
@@ -107,6 +107,22 @@ def journey(f):
     f.js(f"{AUDIO}.engine.setLoopback(false)")
     f.no_sideways("the take's result")
     picture(f, "barbershop-ring-result")
+
+    # Stack the tag (once the content has it): a record step on the course's own song, which opens in
+    # Sing as a four-part song, lead first, with the lead and the baritone to record.
+    if f.js(f"{STORE}.learning.courses.barbershop.units.flatMap((u) => u.lessons).some((l) => l.id === 'bb-4-stack')"):
+        f.run(f"{ROUTER}.navigate('/learn/bb-4-stack')")
+        f.wait_text("Our tag")
+        f.no_sideways("Stack the tag")
+        f.click_t("course.continue")
+        f.wait_text(t(f, "course.recordIn"))
+        picture(f, "barbershop-stack")
+        f.click_t("course.recordIn")
+        f.wait("location.pathname.endsWith('/sing')", what="Sing on the tag")
+        made = f.js("((t) => t ? `${t.id} ${t.parts.length}` : 'none')((await import('/js/stores/projects.js')).projects.all.find((p) => p.course?.lessonId === 'bb-4-stack')?.template)")
+        assert made == "one-more-song 4", f"the course's own song in Sing: {made}"
+        f.no_sideways("the tag in Sing")
+        picture(f, "barbershop-stack-sing")
     compress()
 
 

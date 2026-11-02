@@ -10,7 +10,7 @@
 import { api } from '../api.js';
 import { formatDate, formatNumber, locale, localized, t, timeAgo, tk } from '../i18n.js';
 import { EmptyState } from '../components/form.js';
-import { LoadFailed, loadInto } from './common.js';
+import { LoadFailed, loadInto, zoneName } from './common.js';
 
 // 1 is Today: today so far, UTC.
 const WINDOWS = [1, 7, 30, 90];
@@ -18,7 +18,7 @@ const REFRESH_MS = 30000; // while the page is in view (a timer for the page, ne
 const TICK_MS = 1000; // how long ago it was updated, counting up
 // The moments counted (js/usage.js; sign-ups the server counts itself), by area, each in the order a person meets them.
 const AREAS = [
-    { key: 'everyday', title: tk('admin.usage.area.everyday'), kinds: ['app_open', 'sign_up', 'lesson_start', 'lesson_done', 'unit_done', 'song_created', 'take_recorded', 'harmonise_used', 'export_done', 'share_created', 'result_shared'] },
+    { key: 'everyday', title: tk('admin.usage.area.everyday'), kinds: ['app_open', 'app_day', 'app_week', 'app_month', 'sign_up', 'lesson_start', 'lesson_done', 'unit_done', 'song_created', 'take_recorded', 'harmonise_used', 'export_done', 'share_created', 'result_shared'] },
     { key: 'skins', title: tk('admin.usage.area.skins'), kinds: ['open_game', 'open_serious', 'game_on', 'game_off', 'daily_viewed', 'daily_sung'] },
     { key: 'plus', title: tk('admin.usage.area.plus'), kinds: ['sharpen_up', 'then_now', 'keep_song', 'fact_source'], courses: true },
     { key: 'free', title: tk('admin.usage.area.free'), kinds: [], lessons: true },
@@ -27,8 +27,11 @@ const AREAS = [
     { key: 'onboarding', title: tk('admin.usage.area.onboarding'), kinds: ['share_note', 'card_named', 'su_progress', 'su_reminders', 'su_share', 'su_boards', 'card_day2'] },
     { key: 'melody', title: tk('admin.usage.area.melody'), kinds: ['sug_melody', 'sug_part', 'sug_switch'] },
 ];
-const KINDS = {
+export const KINDS = {
     app_open: tk('admin.usage.kind.app_open'),
+    app_day: tk('admin.usage.kind.app_day'),
+    app_week: tk('admin.usage.kind.app_week'),
+    app_month: tk('admin.usage.kind.app_month'),
     sign_up: tk('admin.usage.kind.sign_up'),
     lesson_start: tk('admin.usage.kind.lesson_start'),
     lesson_done: tk('admin.usage.kind.lesson_done'),
@@ -111,7 +114,7 @@ export const UsageSection = {
     components: { EmptyState, LoadFailed },
     props: { me: { type: Object, required: true } },
     data: () => ({ days: 1, kind: 'app_open', counts: null, failed: false, loadingMore: false, cursor: null, course: null, catalogue: [], updatedAt: null, now: Date.now(), refreshing: false, staleSince: null }),
-    setup: () => ({ WINDOWS, AREAS, KINDS, formatNumber, countryOf, percent }),
+    setup: () => ({ WINDOWS, AREAS, KINDS, formatNumber, countryOf, percent, zoneName }),
     template: `
         <section class="space-y-8" aria-labelledby="usage-h">
             <div class="flex flex-wrap items-end justify-between gap-4">
@@ -134,7 +137,7 @@ export const UsageSection = {
             <EmptyState v-else-if="!anything" icon="list" :title="days === 1 ? t('admin.usage.noneToday') : t('admin.usage.none')" />
             <template v-else>
                 <div class="flex flex-wrap items-baseline justify-between gap-2">
-                    <h2 class="text-lg font-bold text-cream">{{ days === 1 ? t('admin.usage.totalsToday') : t('admin.usage.totals', { count: days }) }}</h2>
+                    <h2 class="text-lg font-bold text-cream">{{ days === 1 ? t('admin.usage.totalsToday', { zone: zoneName(counts?.timezone) }) : t('admin.usage.totals', { count: days }) }}</h2>
                     <p class="flex gap-4 text-sm text-muted"><span><i class="me-1.5 inline-block size-2.5 rounded-full bg-accent align-middle"></i>{{ t('admin.usage.accounts') }}</span><span><i class="me-1.5 inline-block size-2.5 rounded-full bg-cream/40 align-middle"></i>{{ t('admin.usage.guests') }}</span></p>
                 </div>
                 <div class="grid items-start gap-6 xl:grid-cols-2" data-usage-totals>

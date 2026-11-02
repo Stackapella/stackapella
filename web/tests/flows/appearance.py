@@ -119,7 +119,10 @@ def journey(f):
     f.run("localStorage.removeItem('stackapella.appearance'); window.stackapellaTheme.apply();")
 
     # Signed in, Game mode flipped off and on again within a second (journey_qa's settings stage):
-    # the account keeps the last choice, so the next load is still game mode.
+    # the account keeps the last choice, so the next load is still game mode. Game runs only: a
+    # serious run's harness writes serious as a fresh choice on every load, and the newest choice wins.
+    if f.skin != "game":
+        return
     f.go("/settings?api=mock&as=member&scenario=", "document.querySelector('[data-game-mode]')")
     f.run("const a = await import('/js/stores/appearance.js'); await a.setSkin('game');")
     f.run("document.querySelector('[data-game-toggle]').click()")

@@ -1,8 +1,8 @@
 // The onboarding funnel (js/funnel.js): each step counted once per device, the experiment's arm
 // drawn on the first open while one enrols (and sent with the counts), and the day-2 and first-week
 // returns counted from the day the device arrived.
-import { arrive, askShown, askYes, first, funnelRecord, goalMet, variant } from '/js/funnel.js';
-import { count, send } from '/js/usage.js';
+import { arrive, askShown, askYes, first, funnelRecord, goalMet, planSeen, variant } from '/js/funnel.js';
+import { count, countEnrol, send } from '/js/usage.js';
 import { account } from '/js/stores/account.js';
 import { local, session } from '/js/storage.js';
 import { assert, test } from './harness.js';
@@ -107,5 +107,38 @@ test('funnel: a return the next day counts day 2 and week 1; later opens count n
         goalMet(true, monday + 8 * DAY);
         n = kinds(await sent());
         assert(n.f_arrive === 1 && !n.f_day2 && !n.f_week1 && !n.f_goal_met, `after the first week, neither: ${JSON.stringify(n)}`);
+    });
+});
+
+test('funnel: day 7 is its own return, counted once', async () => {
+    await sending(async (sent) => {
+        const monday = Date.parse('2026-11-02T20:00:00');
+        arrive({ at: monday });
+        arrive({ at: monday + 6 * DAY });
+        arrive({ at: monday + 6 * DAY + 3600000 });
+        const n = kinds(await sent());
+        assert(n.f_day7 === 1 && n.f_week1 === 1 && !n.f_day2, JSON.stringify(n));
+    });
+});
+
+test('funnel: Plus started here counts once an account seen on the free plan turns Plus; one already Plus never does', async () => {
+    await sending(async (sent) => {
+        planSeen('plus');
+        assert(!kinds(await sent()).f_plus, 'signed in already on Plus: nothing');
+        planSeen('free');
+        planSeen('plus');
+        planSeen('plus');
+        assert(kinds(await sent()).f_plus === 1, 'free, then Plus: once');
+    });
+});
+
+test('experiments: an arm just drawn goes alone with only that arm, the rest of the batch apart', async () => {
+    await sending(async (sent) => {
+        count('app_open');
+        countEnrol('short1-b');
+        const bodies = await sent();
+        const enrol = bodies.find((b) => b.events.some((e) => e.kind === 'exp_enrol'));
+        assert(enrol && enrol.events.length === 1 && JSON.stringify(enrol.variants) === '["short1-b"]', `exp_enrol alone: ${JSON.stringify(bodies)}`);
+        assert(bodies.some((b) => b.events.some((e) => e.kind === 'app_open') && !b.events.some((e) => e.kind === 'exp_enrol')), 'the rest apart');
     });
 });

@@ -78,9 +78,10 @@ test('scoring: a scoop up into an entry is flagged, and not when there is none',
     assert(score({}).notes.every((n) => !n.scoop), 'false scoops');
 });
 
-test('scoring: entries 80 ms late are measured', () => {
-    const result = score({ lateMs: 80 });
-    close(result.entryMs, 80, 15, 'the entries');
+test('scoring: entries 150 ms late are measured (120 ms counts as on time)', () => {
+    const result = score({ lateMs: 150 });
+    close(result.entryMs, 150, 15, 'the entries');
+    assert(!score({ lateMs: 100 }).insights.includes('late'), '100 ms is on time for a singer');
     assert(result.insights.includes('late'), result.insights.join());
     close(score({}).entryMs, 0, 15, 'on time');
     assert(stars(result).stars < 3 || result.percent < 90, 'late entries cost the third star');
@@ -105,7 +106,8 @@ test('scoring: phrases get their own results, and stars change at 70% and 90%', 
     assert(stars({ status: 'scored', percent: 69, timing: 'measured' }).stars === 1, '69%');
     assert(stars({ status: 'scored', percent: 70, timing: 'measured' }).stars === 2, '70%');
     assert(stars({ status: 'scored', percent: 90, timing: 'measured', entryMs: 20 }).stars === 3, '90%');
-    assert(stars({ status: 'scored', percent: 90, timing: 'measured', entryMs: 120 }).stars === 2, '90% but late');
+    assert(stars({ status: 'scored', percent: 90, timing: 'measured', entryMs: 150 }).stars === 2, '90% but late');
+    assert(stars({ status: 'scored', percent: 90, timing: 'measured', entryMs: 110 }).stars === 3, '110 ms is on time');
 });
 
 test('scoring: a take recorded from later in the song lines up by its start', () => {
@@ -169,8 +171,13 @@ test('scoring: vibrato on short notes is not called wavering, and a take all clo
     const track = trackTake(sing(rate, { notes: eighths, bpm: 140, vibrato: { hz: 5.5, cents: 35 } }), rate);
     const result = scoreTake(track, eighths, { beatSeconds: 60 / 140 });
     assert(result.wavering === 0 && !result.insights.includes('wavering'), `${result.wavering} wavering`);
+    // Close counts by how near: 50 cents off (the band is 35) gets most of the credit, 65 about half.
     const allClose = score({ cents: 50 });
-    assert(allClose.notes.every((n) => n.level === 'close') && allClose.percent === 50, `${allClose.percent}%`);
+    assert(allClose.notes.every((n) => n.level === 'close') && allClose.percent >= 75 && allClose.percent <= 82, `50 cents: ${allClose.percent}%`);
+    const nearer = score({ cents: 40 });
+    const further = score({ cents: 65 });
+    assert(nearer.percent > allClose.percent && allClose.percent > further.percent && further.percent >= 50, `40: ${nearer.percent}%, 65: ${further.percent}%`);
+    assert(scoreTake(trackTake(sing(rate, { notes: tune, bpm, cents: 50 }), rate), tune, { beatSeconds, graded: false }).percent === 50, 'a guide check keeps close at half');
 });
 
 test('scoring: live, a dropped reading or two does not break a held note', () => {
@@ -208,4 +215,33 @@ test('scoring: a singer who breathes before each new line is lit throughout, and
     assert(result.notes.every((n) => n.level === 'lit'), result.notes.map((n) => n.level).join());
     assert(result.notes[3].entryMs !== null, 'the new line is an entry');
     close(result.notes[3].entryMs, 0, 40, 'timed from the voice after the breath');
+});
+
+test("scoring: a line's first note may come in a little late after a breath; inside a line, timing is judged as before (Zvi)", () => {
+    // Four lines of a held, joined part (as Amazing Grace's lower parts), each new line after a breath (`br`).
+    const line = (at) => [{ beat: at, length: 2, pitch: 55, br: true }, { beat: at + 2, length: 1, pitch: 57 }, { beat: at + 3, length: 2, pitch: 55 }, { beat: at + 5, length: 1, pitch: 60 }, { beat: at + 6, length: 2, pitch: 57 }];
+    const part = [0, 8, 16, 24].flatMap(line);
+    // The singer takes a full breath: the line's last note stops a beat early, and the next line starts late.
+    const sung = (lateMs) => part.map((n, i) => (part[i + 1]?.br ? { ...n, length: n.length - 1 } : n)).map((n) => ({ ...n, late: n.br && n.beat > 0 ? lateMs : 0 }));
+    const take = (lateMs) => trackTake(sing(rate, { notes: sung(lateMs), bpm, legato: 60, lateMs: (n) => n.late }), rate);
+    const options = { beatSeconds, phrases: [[0, 8], [8, 16], [16, 24], [24, 32]] };
+    const late = scoreTake(take(250), part, options);
+    assert(late.status === 'scored' && late.percent >= 90, `in tune: ${late.percent}%`);
+    assert(late.timingPercent === 100, `250 ms late into each line after a full breath is on time: ${late.timingPercent}%`);
+    assert(late.entryMs !== null && late.entryMs <= 80, `the usual entry is on time: ${late.entryMs} ms`);
+    assert(!late.insights.includes('late'), late.insights.join());
+    // The same late entries where the part has no breath marked are late.
+    const unmarked = scoreTake(take(250), part.map(({ br, ...n }) => n), options);
+    assert(unmarked.timingPercent < 100, `no breath marked: ${unmarked.timingPercent}%`);
+    // Too late (half a second) or early still counts against the timing.
+    const early = scoreTake(take(-200), part, options);
+    assert(early.timingPercent < 100, `200 ms early into a line: ${early.timingPercent}%`);
+});
+
+test("scoring: singing straight on through a breath mark isn't an early entry", () => {
+    const part = [{ beat: 0, length: 3, pitch: 55 }, { beat: 3, length: 3, pitch: 57, br: true }, { beat: 6, length: 3, pitch: 55 }, { beat: 9, length: 3, pitch: 59, br: true }, { beat: 12, length: 3, pitch: 55 }];
+    const through = scoreTake(trackTake(sing(rate, { notes: part, bpm, legato: 60 }), rate), part, { beatSeconds });
+    assert(through.status === 'scored' && through.percent >= 90, `${through.percent}%`);
+    assert(through.entryMs === null || through.entryMs > -80, `no early entry read from the held voice: ${through.entryMs} ms`);
+    assert(!through.insights.includes('early'), through.insights.join());
 });

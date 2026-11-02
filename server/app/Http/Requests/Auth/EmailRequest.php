@@ -22,6 +22,8 @@ final class EmailRequest extends FormRequest
     public function rules(): array
     {
         return [
+            // An app's own secret for its sign-up (the web's is a cookie): SignUpBrowser.
+            'signupKey' => ['sometimes', 'nullable', 'string', 'min:20', 'max:128'],
             'email' => ['required', 'string', 'email:rfc', 'max:255'],
             'turnstileToken' => ['nullable', 'string', 'max:4000'],
         ];

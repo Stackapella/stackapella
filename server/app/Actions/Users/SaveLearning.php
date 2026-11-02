@@ -47,9 +47,10 @@ final class SaveLearning
         });
     }
 
-    /** What "Start the course over" clears: the lessons and their stars, and units opened early.
-     * The comfortable note, the range, XP, practice, the goal and badges stay. */
-    public const RESET_CLEARS = ['lessons' => [], 'testedOut' => []];
+    /** What "Start the course over" clears: the lessons and their stars, units opened early, and
+     * the units' boss rounds (docs/boss-round-plan.md). The comfortable note, the range, XP,
+     * practice, the goal and badges stay. */
+    public const RESET_CLEARS = ['lessons' => [], 'testedOut' => [], 'bosses' => []];
 
     public const UNDO_DAYS = 30;
 

@@ -6,6 +6,7 @@ namespace App\Http\Middleware;
 
 use App\Models\User;
 use App\Support\Admin\SecondFactor;
+use App\Support\Admin\StaffDevice;
 use App\Support\Http\ApiError;
 use Closure;
 use Illuminate\Http\Request;
@@ -30,7 +31,14 @@ final class EnsureSecondFactor
         $user = $request->user();
 
         if ($this->secondFactor->passedThisSession($request->session(), $user)) {
-            return $next($request);
+            $response = $next($request);
+
+            // This device is an admin's: the anonymous counts leave it out from now on.
+            if (! StaffDevice::is($request)) {
+                $response->headers->setCookie(StaffDevice::cookie($request));
+            }
+
+            return $response;
         }
 
         if ($request->is('api/*') || $request->expectsJson()) {

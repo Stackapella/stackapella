@@ -6,7 +6,7 @@
 import { reactive } from 'vue';
 import * as db from '../db.js';
 import { api } from '../api.js';
-import { mockWanted } from '../api-mock.js';
+import { mockWanted } from '../api-mode.js';
 import { encodeWav } from '../wav.js';
 import { createSync } from '../sync.js';
 import { account, loadAccount } from './account.js';
@@ -101,11 +101,17 @@ let started = false;
 export function startSync() {
     if (started) return;
     started = true;
-    window.addEventListener('online', () => sync.run());
-    document.addEventListener('visibilitychange', () => {
-        if (document.visibilityState !== 'visible') return;
+    // Opened offline, the account couldn't be checked (it lives in memory only), so the app knows no one
+    // and nothing syncs: back online, or back in view, it's checked again first, then the outbox goes.
+    const resume = async () => {
+        if (!account.me && navigator.onLine) await loadAccount({ fresh: true });
         sync.run();
         syncLearning().catch((error) => console.warn('Course progress did not sync', error));
+    };
+    window.addEventListener('online', () => resume().catch((error) => console.warn('Sync did not resume', error)));
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState !== 'visible') return;
+        resume().catch((error) => console.warn('Sync did not resume', error));
     });
     setInterval(() => document.visibilityState === 'visible' && sync.run(), 60_000);
 }

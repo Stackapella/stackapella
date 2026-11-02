@@ -3,7 +3,9 @@ and each Plus course in web/course/plus/courses.json. It fails on an unknown ste
 word that isn't a { "en": ... } object, a lesson id used twice, a clip slot missing from
 web/course/plus/clips.json, or a lesson's fact (the "Did you know?" card) that's malformed, more than two
 a unit, or told in two courses; and it counts the lessons an app can't play yet (Flutter's "open this
-lesson on the web"). Prints one line; `--apps` lists those lessons. Python's standard library only.
+lesson on the web"). A song course's exercise (course/songs, `song`) must name a song that's here, one
+of its parts and phrases it has, and never carry notes of its own. Prints one line; `--apps` lists
+those lessons. Python's standard library only.
 """
 import json
 import re
@@ -12,6 +14,10 @@ from pathlib import Path
 
 WEB = Path(__file__).resolve().parent.parent
 FORMAT = json.loads((WEB / "course" / "format" / "steps.json").read_text())
+# Where the songs are: the free four and the library (a song held out of the library fails its lessons).
+SONG_DIRS = [WEB / "templates", WEB.parent / "server" / "database" / "templates"]
+_experiments = WEB / "course" / "format" / "experiments.json"
+EXPERIMENTS = set(json.loads(_experiments.read_text())["experiments"]) if _experiments.exists() else set()
 STARS = re.compile(r"\bstars?\b", re.IGNORECASE)  # only game mode shows stars (docs/decisions.md)
 KEBAB = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 # A fact told twice: two facts in different courses sharing two names or years ("Beethoven", "1824").
@@ -21,6 +27,7 @@ COMMON = {"Did", "The", "In", "A", "An", "It", "Its", "This", "Today", "His", "H
           "At", "On", "Your", "You", "From", "After", "Before", "Since", "About", "Many", "Most", "Some", "One", "Two", "Three",
           "Four", "Five", "Like", "And", "But", "For", "As", "Not", "With"}
 problems = []
+songs = {}
 
 
 def problem(where, what):
@@ -60,9 +67,101 @@ def notes(where, items, web_only):
         web_only.update(k for k in n if k in FORMAT["note"]["webOnly"])
 
 
+def template(song_id):
+    """A song's template by id, or None when it isn't here."""
+    if song_id not in songs:
+        path = next((d / f"{song_id}.json" for d in SONG_DIRS if (d / f"{song_id}.json").exists()), None)
+        songs[song_id] = json.loads(path.read_text()) if path else None
+    return songs[song_id]
+
+
+def song(where, s):
+    """An exercise's notes from a song: { template, part, phrases, with? }."""
+    if not isinstance(s, dict):
+        problem(where, "song must be { template, part, phrases }")
+        return
+    known(where + " song", s, ["template", "part", "phrases", "with"])
+    t = template(s.get("template"))
+    if t is None:
+        problem(where, f"song '{s.get('template')}' isn't one of the songs")
+        return
+    if s.get("part") not in {p["key"] for p in t["parts"]}:
+        problem(where, f"song '{t['id']}' has no part '{s.get('part')}'")
+    count = sum(len(section["phrases"]) for section in t["sections"])
+    phrases = s.get("phrases")
+    if not (isinstance(phrases, list) and phrases and all(isinstance(i, int) and 0 <= i < count for i in phrases)):
+        problem(where, f"song '{t['id']}' phrases must be a list of its {count} phrases (from 0)")
+    if s.get("with", "others") != "others":
+        problem(where, "song's with can only be others")
+
+
+BAR = {"4/4": 4, "3/4": 3, "2/4": 2, "6/8": 3}  # a bar in quarter-note beats
+
+
+def course_song(where, folder, step):
+    """A record step's own song (`courseSong`): a template in the course's own folder, songs/<id>.json."""
+    name = step.get("courseSong")
+    if "template" in step:
+        problem(where, "a record step has template or courseSong, never both")
+    if not isinstance(name, str) or not re.fullmatch(r"songs/[a-z0-9-]+\.json", name):
+        problem(where, "courseSong must be songs/<id>.json, in the course's own folder")
+        return
+    path = folder / name
+    if not path.exists():
+        problem(where, f"courseSong '{name}' isn't in the course's folder")
+        return
+    try:
+        t = json.loads(path.read_text())
+    except ValueError as error:
+        problem(where, f"courseSong '{name}' isn't JSON: {error}")
+        return
+    if t.get("id") != path.stem:
+        problem(where, f"courseSong '{name}': its id must be '{path.stem}'")
+    parts = {p.get("key"): p for p in t.get("parts") or []}
+    if not parts:
+        problem(where, f"courseSong '{name}' has no parts")
+    for key, part in parts.items():
+        span = part.get("range") or {}
+        for n in (part.get("guide") or {}).get("notes") or []:
+            if not isinstance(n.get("pitch"), int) or not span.get("low", 0) <= n["pitch"] <= span.get("high", 127):
+                problem(where, f"courseSong '{name}' part {key}: a note outside its range")
+                break
+    wanted = step.get("part") if isinstance(step.get("part"), list) else [step.get("part")]
+    if step.get("part") != "all" and (not wanted or any(k not in parts for k in wanted)):
+        problem(where, f"part '{step.get('part')}' isn't one of courseSong '{name}''s parts (a part, a list of parts, or all)")
+    voicing = (t.get("voicings") or {}).get(str(step.get("singers")))
+    if voicing and step.get("part") != "all" and any(k not in voicing for k in wanted):
+        problem(where, f"part '{step.get('part')}' isn't sung by {step.get('singers')} singers in courseSong '{name}'")
+    singers = step.get("singers")
+    if singers is not None and str(singers) not in (t.get("voicings") or {}):
+        problem(where, f"singers {singers}: courseSong '{name}' has no voicing for it")
+
+
+def stave(where, staff, notes):
+    """A line read from the stave (Sight-singing): its names, look, count-in, time and rhythm."""
+    ok = (isinstance(staff, dict) and set(staff) <= {"names", "look", "count", "time", "rhythm"}
+          and staff.get("names", "on") in ("on", "faint", "off")
+          and isinstance(staff.get("look", 4), (int, float)) and 0 <= staff.get("look", 4) <= 10
+          and isinstance(staff.get("count", 0), int) and 0 <= staff.get("count", 0) <= 8
+          and staff.get("time", "4/4") in BAR and isinstance(staff.get("rhythm", False), bool))
+    if not ok:
+        return problem(where, "staff is { names: on | faint | off, look: 0 to 10, count: 0 to 8, time: 4/4 | 3/4 | 2/4 | 6/8, rhythm }")
+    end = max((n.get("beat", 0) + n.get("length", 0) for n in notes), default=0)
+    bar = BAR[staff.get("time", "4/4")]
+    if staff.get("time") and end % bar:
+        problem(where, f"a {staff['time']} line fills whole bars: it ends at beat {end:g}")
+
+
 def exercise(where, ex, spec, web_only, clip_ids):
     if spec == "play":
         known(where + " exercise", ex, FORMAT["play"]["fields"])
+        staff = ex.get("staff")
+        if staff is not None:
+            stave(where, staff, ex.get("notes") or [])
+        if "song" in ex:
+            song(where, ex["song"])
+            if "notes" in ex:
+                problem(where, "an exercise has song or notes, never both")
         web_only.update(k for k in ex if k in FORMAT["play"]["webOnly"])
         notes(where, ex.get("notes"), web_only)
         notes(where, ex.get("answer") if isinstance(ex.get("answer"), list) else [], web_only)
@@ -113,7 +212,8 @@ def fact(where, f, facts, course_name):
             problem(where, "a fact has an em dash")
         if STARS.search(word):
             problem(where, "a fact says stars")
-    names = {w for w in NAME.findall(text) if not (len(w.split()) == 1 and w in COMMON)}
+    # One letter alone is a note name or an initial ("F, C, G", "W. E. B."), never a name to match.
+    names = {w for w in NAME.findall(text) if len(w) > 1 and not (len(w.split()) == 1 and w in COMMON)}
     distinct = f.get("distinct", [])
     if not (isinstance(distinct, list) and all(isinstance(d, str) for d in distinct)):
         problem(where, "a fact's distinct is a list of fact ids")
@@ -154,6 +254,20 @@ def unscored(where, lesson):
             problem(f"{where} step {i + 1}", "every target in an unscored lesson is scored: false")
 
 
+def variant(where, key, value, lesson):
+    """An A/B arm's steps for a lesson: keyed "<experiment id>-<arm>", the id in course/format/experiments.json."""
+    m = re.match(r"^([a-z0-9]+(?:-[a-z0-9]+)*)-([b-z])$", str(key))
+    if not m or m.group(1) not in EXPERIMENTS:
+        problem(where, f"variant '{key}' isn't '<experiment>-<arm>' for an experiment in course/format/experiments.json")
+        return False
+    if not (isinstance(value, dict) and set(value) <= {"steps", "minutes"} and isinstance(value.get("steps"), list) and value["steps"]):
+        problem(where, f"variant '{key}' is {{ steps, minutes? }} with at least one step")
+        return False
+    if lesson.get("findsHome") and not any(s.get("kind") == "home" for s in value["steps"]):
+        problem(where, f"variant '{key}' drops the step that finds the singer's note")
+    return True
+
+
 def course(path, seen, clip_ids, unplayable, facts):
     data = json.loads(path.read_text())
     name = path.relative_to(WEB / "course")
@@ -182,40 +296,98 @@ def course(path, seen, clip_ids, unplayable, facts):
             elif "endLine" in lesson:
                 problem(where, "endLine belongs to an unscored lesson")
             flutter = set()
-            for i, step in enumerate(lesson.get("steps", [])):
-                at = f"{where} step {i + 1}"
-                kind = FORMAT["kinds"].get(step.get("kind"))
-                if not kind:
-                    problem(at, f"unknown step kind '{step.get('kind')}'")
-                    continue
-                known(at, step, kind["fields"])
-                web_only = set()
-                if "exercise" in step:
-                    exercise(at, step["exercise"], kind.get("exercise", "play"), web_only, clip_ids)
-                if "listen" in step:
-                    exercise(at, step["listen"], "play", web_only, clip_ids)
-                ex = step.get("exercise") if isinstance(step.get("exercise"), dict) else {}
-                if ex.get("thenAndNow") and ex["thenAndNow"] not in kept:
-                    problem(at, f"thenAndNow '{ex['thenAndNow']}' isn't kept by an earlier lesson of this course")
-                if kind["flutter"] != "yes":
-                    flutter.add(f"{step['kind']} ({kind['flutter']})")
-                flutter.update(f"play.{k}" for k in web_only)
+            # The lesson's steps, then each A/B variant's (docs/experiments.md), checked the same way.
+            step_lists = [("", lesson.get("steps", []))]
+            for key, value in (lesson.get("variants") or {}).items():
+                if variant(where, key, value, lesson):
+                    step_lists.append((f" {key}", value["steps"]))
+            for label, steps in step_lists:
+                flutter |= check_steps(f"{where}{label}", steps, path, clip_ids, kept)
             kept.update(s["exercise"]["keep"] for s in lesson.get("steps", []) if isinstance(s.get("exercise"), dict) and s["exercise"].get("keep"))
             if flutter:
                 unplayable[lid] = sorted(flutter)
+        if "boss" in unit:
+            boss(f"{name} {unit.get('id')}", unit["boss"], seen, path, clip_ids)
     return lessons
+
+
+BOSS_KINDS = ("play",)  # a boss is one go: a record step would leave it for Sing
+
+
+def boss(where, b, seen, path, clip_ids):
+    """A unit's boss round (docs/boss-round-plan.md): { id, title, steps }, beside the unit's lessons
+    and never in them; 2 to 4 sung steps of the kinds that exist (play, record), checked as a lesson's
+    are, with no keep or Then and now (a boss starts nothing and compares nothing)."""
+    if not isinstance(b, dict):
+        problem(where, "boss must be { id, title, steps }")
+        return
+    known(where + " boss", b, ["id", "title", "steps"])
+    bid = b.get("id")
+    if not isinstance(bid, str) or not re.fullmatch(r"[a-z0-9]+(-[a-z0-9]+)*-boss", bid):
+        problem(where, "a boss's id is the unit's prefix and number then -boss, as 3-boss")
+    elif bid in seen:
+        problem(where, f"boss id '{bid}' used twice")
+    else:
+        seen.add(bid)
+    words(where + " boss", {"title": b.get("title")})
+    steps = b.get("steps")
+    if not isinstance(steps, list) or not 2 <= len(steps) <= 4:
+        problem(where, "a boss has 2 to 4 steps")
+        return
+    for i, step in enumerate(steps):
+        if step.get("kind") not in BOSS_KINDS:
+            problem(f"{where} boss step {i + 1}", f"a boss's steps are sung: {', '.join(BOSS_KINDS)}")
+        ex = step.get("exercise") if isinstance(step.get("exercise"), dict) else {}
+        if ex.get("keep") or ex.get("thenAndNow"):
+            problem(f"{where} boss step {i + 1}", "a boss keeps nothing and plays no Then and now")
+    words(where + " boss", {"steps": steps})
+    check_steps(f"{where} boss", steps, path, clip_ids, set())
+
+
+def check_steps(where, steps, path, clip_ids, kept):
+    """Each step's kind and fields, its song and exercise; returns what Flutter can't play yet."""
+    flutter = set()
+    for i, step in enumerate(steps):
+        at = f"{where} step {i + 1}"
+        kind = FORMAT["kinds"].get(step.get("kind"))
+        if not kind:
+            problem(at, f"unknown step kind '{step.get('kind')}'")
+            continue
+        known(at, step, kind["fields"])
+        if "template" in step and template(step["template"]) is None:
+            problem(at, f"song '{step['template']}' isn't one of the songs")
+        if "courseSong" in step:
+            course_song(at, path.parent, step)
+        web_only = set()
+        if "exercise" in step:
+            exercise(at, step["exercise"], kind.get("exercise", "play"), web_only, clip_ids)
+        if "listen" in step:
+            exercise(at, step["listen"], "play", web_only, clip_ids)
+        ex = step.get("exercise") if isinstance(step.get("exercise"), dict) else {}
+        if ex.get("thenAndNow") and ex["thenAndNow"] not in kept:
+            problem(at, f"thenAndNow '{ex['thenAndNow']}' isn't kept by an earlier lesson of this course")
+        if kind["flutter"] != "yes":
+            flutter.add(f"{step['kind']} ({kind['flutter']})")
+        flutter.update(f"play.{k}" for k in web_only)
+    return flutter
 
 
 def main():
     seen, unplayable, facts = set(), {}, {}
     clips_path = WEB / "course" / "plus" / "clips.json"
-    clip_ids = {c["id"] for c in json.loads(clips_path.read_text())["clips"]} if clips_path.exists() else set()
+    clips = json.loads(clips_path.read_text()) if clips_path.exists() else {"clips": []}
+    clip_ids = {c["id"] for c in clips["clips"]}
+    for c in clips["clips"] if "skills" in clips else []:  # Lend your voice: each slot names the skill it needs, from the list's own skills
+        if c.get("skill") not in clips["skills"]:
+            problem(f"clips.json {c.get('id')}", f"skill '{c.get('skill')}' isn't one of the list's skills")
     files = [WEB / "course" / "course.json"]
     if (WEB / "course" / "cooldown.json").exists():
         files.append(WEB / "course" / "cooldown.json")  # the cool-down: one unscored lesson
     catalogue = WEB / "course" / "plus" / "courses.json"
     if catalogue.exists():
         files += [WEB / "course" / "plus" / c["file"] for c in json.loads(catalogue.read_text())["courses"] if c.get("file")]
+    # The song courses (tools/song_course.py), one a song; their index.json isn't a course.
+    files += sorted(f for f in (WEB / "course" / "songs").glob("*.json") if f.name != "index.json")
     lessons = sum(course(f, seen, clip_ids, unplayable, facts) for f in files if f.exists())
     told = list(facts.items())
     for i, (a, fa) in enumerate(told):

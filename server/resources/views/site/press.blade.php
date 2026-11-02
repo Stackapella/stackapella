@@ -15,7 +15,7 @@
             <h1 id="page-h">{{ __('site.press.headline') }}</h1>
             <p class="s-lede">{{ __('site.press.lead') }}</p>
             <div class="s-actions s-actions-row">
-                <a href="mailto:{{ config('site.contact_email') }}" class="btn-primary btn-lg">{{ __('site.press_words.contact') }}: {{ config('site.contact_email') }}</a>
+                <a href="mailto:{{ config('site.contact_email') }}" class="btn-primary btn-lg s-press-contact">{{ __('site.press_words.contact') }}: {{ config('site.contact_email') }}</a>
             </div>
         </section>
         <section class="s-wrap s-sec" aria-label="{{ __('site.press.headline') }}">

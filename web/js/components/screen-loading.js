@@ -21,7 +21,7 @@ export function screenLoading({ title = null, home = false } = {}) {
             },
         },
         template: `
-            <div class="min-h-dvh bg-ink px-4 pb-16 pt-[max(0.5rem,env(safe-area-inset-top))] md:px-8" aria-busy="true" data-screen-loading>
+            <div data-ui="screen" class="min-h-dvh bg-ink px-4 pb-16 pt-[max(0.5rem,env(safe-area-inset-top))] md:px-8" aria-busy="true" data-screen-loading>
                 <div class="mx-auto w-full max-w-5xl">
                     <header class="flex min-h-18 items-center gap-3 py-4">
                         <Logo v-if="home" />

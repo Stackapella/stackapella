@@ -23,6 +23,7 @@ use App\Support\Sharing\HarmonyFiles;
 use App\Support\Stats\Counts;
 use App\Support\Stats\NetworkReadiness;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
@@ -127,6 +128,9 @@ final class CountsAndPagesTest extends TestCase
 
     public function test_the_network_panel_counts_opt_ins_and_tells_the_digest_when_a_status_changes(): void
     {
+        // A fixed morning, so the digest's hour below is always an hour on (never a jump across days
+        // that outlives the admin's session, whatever the clock says when the suite runs).
+        $this->travelTo(Carbon::parse('2026-11-10 07:30:00', 'UTC'));
         $owner = User::factory()->create(['adult_confirmed_at' => now()]);
         // Opted in, but never able to list: private, hidden, a minor's, a suspended owner's.
         Harmony::factory()->private()->create(['project_id' => null, 'user_id' => $owner->id, 'gallery_opt_in_at' => now()]);
@@ -147,7 +151,7 @@ final class CountsAndPagesTest extends TestCase
         $network = app(NetworkReadiness::class);
         $this->assertSame(0, $network->recount());
 
-        $this->actingAsAdmin();
+        $admin = $this->actingAsAdmin();
         $shown = $this->getJson('/api/admin/network');
         $this->assertMatchesContract($shown, 'admin.network.show', 200);
         $shown->assertJsonPath('data.0.key', 'N1')->assertJsonPath('data.0.status', 'collecting')->assertJsonPath('data.0.numbers.0.value', 1);
@@ -163,8 +167,11 @@ final class CountsAndPagesTest extends TestCase
         $said = 'The network panel: The gallery is now ready to open (harmonies 1 of 1, singers 1 of 1).';
         $this->artisan('app:digest --print')->expectsOutputToContain($said)->assertSuccessful();
         $this->assertSame([$said], NetworkReadiness::changes());
+        // The digest goes from 07:00 (report time).
+        $this->travelTo(now()->utc()->setTime(8, 30));
         $this->artisan('app:digest')->assertSuccessful();
         $this->assertSame([], NetworkReadiness::changes());
+        $this->actingAsAdmin($admin);
 
         // Opened by its flag.
         app(Flags::class)->set('gallery', 'on', null, 'Opening the gallery');

@@ -30,9 +30,8 @@ def journey(f):
     f.wait_text(t(f, "sing.chooser.yourPart"))
     f.shot("asked-once")
     f.click("Alto")
-    f.wait(f"{PROGRESS}.then((p) => p.source === 'picked')", what="the part kept as the range")
-    kept = f.js(PROGRESS)
-    assert kept["range"] == {"low": 59, "high": 71}, f"Amazing Grace's alto range kept: {kept}"
+    # (Game mode saves its own progress as Sing opens, so the range settles a moment later: waited for, not read once.)
+    f.wait(f"{PROGRESS}.then((p) => p.source === 'picked' && p.range?.low === 59 && p.range?.high === 71)", what="Amazing Grace's alto range kept as the range")
 
     # The next song: on a part that fits, no picker. Nothing sung yet, so the melody first (Hillel,
     # "Melody first"), in this alto range's own octave.

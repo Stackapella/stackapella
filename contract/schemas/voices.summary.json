@@ -1,0 +1,29 @@
+{
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "songParts",
+                "clips",
+                "lent"
+            ],
+            "properties": {
+                "songParts": {
+                    "type": "integer"
+                },
+                "clips": {
+                    "type": "integer"
+                },
+                "lent": {
+                    "type": "integer"
+                }
+            }
+        }
+    }
+}

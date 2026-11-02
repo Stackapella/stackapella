@@ -69,6 +69,25 @@ final class SecondFactorTest extends TestCase
         $this->assertSame(1, SecurityEvent::query()->where('type', SecurityEventType::AdminSignIn)->count());
     }
 
+    public function test_the_sign_in_mail_goes_only_from_an_address_the_admin_has_not_used(): void
+    {
+        Notification::fake();
+        $admin = User::factory()->admin()->create();
+        $factor = app(SecondFactor::class);
+        $sign = function (string $ip) use ($factor, $admin): void {
+            session()->driver()->flush();
+            $factor->markPassed(session()->driver(), $admin, 'code', 'Safari', $ip);
+        };
+
+        $sign('203.0.113.7');
+        $sign('203.0.113.7');
+        Notification::assertSentToTimes($admin, AdminSignedIn::class, 1);
+
+        $sign('198.51.100.4');
+        Notification::assertSentToTimes($admin, AdminSignedIn::class, 2);
+        $this->assertSame(3, SecurityEvent::query()->where('type', SecurityEventType::AdminSignIn)->count());
+    }
+
     public function test_a_wrong_setup_code_is_refused(): void
     {
         $this->signedInWithoutSecondFactor();

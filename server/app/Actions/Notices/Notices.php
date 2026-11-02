@@ -24,6 +24,7 @@ use App\Models\IdeaVoice;
 use App\Models\Notice;
 use App\Models\Template;
 use App\Models\User;
+use App\Support\Http\Hosts;
 use App\Support\Ids;
 use App\Support\Sharing\HarmonyFacts;
 use Illuminate\Database\Eloquent\Model;
@@ -57,7 +58,7 @@ final class Notices
 
         // A suspended account can't sign in to read it: the notice comes by email, with its link.
         if ($kind === Notice::ACCOUNT_SUSPENDED && $user->email !== null) {
-            Mail::to($user->email)->queue((new NoticeIssued(__('notices.kinds.'.$kind), __('notices.rules.'.$rule), url('/notice?'.http_build_query(['token' => $token])), $notice->note))->afterCommit());
+            Mail::to($user->email)->queue((new NoticeIssued(__('notices.kinds.'.$kind), __('notices.rules.'.$rule), Hosts::appLink('/notice?'.http_build_query(['token' => $token])), $notice->note))->afterCommit());
         }
 
         return $notice;

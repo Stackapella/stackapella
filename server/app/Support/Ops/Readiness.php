@@ -13,7 +13,11 @@ use App\Models\SocialPost;
 use App\Models\Template;
 use App\Services\Audio\Ffmpeg;
 use App\Services\EventSchedule\EventSchedule;
+use App\Services\Google\SearchConsoleClient;
 use App\Services\Social\SocialPoster;
+use App\Support\Admin\Search;
+use App\Support\Flags;
+use App\Support\Legal\DmcaAgent;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
@@ -40,7 +44,7 @@ final class Readiness
 
     public const DRILL = 'ops.restore_drill';
 
-    public function __construct(private readonly Ffmpeg $ffmpeg, private readonly EventSchedule $eventSchedule, private readonly SocialPoster $poster) {}
+    public function __construct(private readonly Ffmpeg $ffmpeg, private readonly EventSchedule $eventSchedule, private readonly SocialPoster $poster, private readonly SearchConsoleClient $searchConsoleClient, private readonly Search $search) {}
 
     /**
      * @return list<Check>
@@ -57,6 +61,11 @@ final class Readiness
         $checks[] = Check::when(str_starts_with((string) config('app.url'), 'https://') || ! $production, 'config', 'url', 'App address', (string) config('app.url'), 'APP_URL isn\'t https.', 'Set APP_URL to the https address.');
         $checks[] = Check::when((bool) config('session.secure') || ! $production, 'config', 'secure-cookies', 'Secure cookies', 'Sent over https only.', 'SESSION_SECURE_COOKIE is off: the session cookie could travel over plain http.', 'Set SESSION_SECURE_COOKIE=true.');
         $checks[] = Check::when((bool) config('app.sqids_alphabet_set') || ! $production, 'config', 'sqids', 'Link alphabet', 'Set.', 'SQIDS_ALPHABET isn\'t set, or is the default: ids and links use the alphabet in the public source.', 'Set SQIDS_ALPHABET once, before launch, and never change it'.($selfHosted ? '.' : ' (docs/runbook.md, "The secrets").'));
+        // The admin session lives in the session: one that ends sooner cuts it short.
+        $checks[] = Check::when((int) config('session.lifetime') >= (int) config('admin.idle_timeout'), 'config', 'admin-session', 'Admin session', 'Idle '.(int) config('admin.idle_timeout').' minutes, at most '.(int) config('admin.max_lifetime').'.', 'SESSION_LIFETIME ('.(int) config('session.lifetime').') is shorter than the admin\'s idle limit ('.(int) config('admin.idle_timeout').').', 'Set SESSION_LIFETIME to at least ADMIN_IDLE_TIMEOUT.');
+        // Who can be an admin: the count only, never the ids.
+        $admins = count((array) config('admin.admin_google_ids'));
+        $checks[] = Check::when($admins === 1 || ($selfHosted && $admins > 0), 'config', 'admins', 'Admins', "{$admins} Google id on the admin list.", $admins === 0 ? 'No Google id on the admin list: nobody can reach the admin.' : "{$admins} Google ids on the admin list: is each one meant to be there?", 'Check ADMIN_GOOGLE_IDS.', $admins === 0 ? Check::FAIL : Check::WARN);
         $checks[] = Check::when((string) config('app.timezone') === 'UTC', 'config', 'timezone', 'Time zone', 'UTC.', 'The app isn\'t on UTC: stored times would shift.', 'Set APP_TIMEZONE=UTC.');
 
         // The database and the queue.
@@ -110,6 +119,11 @@ final class Readiness
 
         $checks[] = Check::when(! $production || ((string) config('services.turnstile.site_key') !== '' && (string) config('services.turnstile.secret') !== ''), 'config', 'turnstile', 'Turnstile', 'Keys set.', 'No Turnstile keys: shield mode can\'t ask for a challenge when sign-ups or reports surge.', 'Set TURNSTILE_SITE_KEY and TURNSTILE_SECRET.', Check::WARN);
 
+        // Sheet music import (docs/sheet-import-legal.md): on only once the DMCA agent is named.
+        if (! $selfHosted) {
+            $checks[] = $this->sheetImport();
+        }
+
         if (! $selfHosted) {
             $this->ours($checks, $production);
         } elseif ($this->eventSchedule->configured()) {
@@ -153,6 +167,40 @@ final class Readiness
     }
 
     /**
+     * Whether sheet music import can be switched on safely: the DMCA agent is set and named on the
+     * copyright page (its takedown path, its rights record and its guardrails are in the code).
+     * Not legal advice: it checks what the lawyer's list needs from the site.
+     */
+    private function sheetImport(): Check
+    {
+        $on = app(Flags::class)->on('sheet_import');
+        $agent = DmcaAgent::registered();
+        $page = is_file(resource_path('legal/en/copyright.md')) && str_contains((string) file_get_contents(resource_path('legal/en/copyright.md')), ':dmca_agent');
+        $ready = $agent && $page;
+
+        return match (true) {
+            $on && $ready => Check::pass('legal', 'sheet-import', 'Sheet music import', 'On; the DMCA agent is named on the copyright page.'),
+            $on => new Check('legal', 'sheet-import', 'Sheet music import', Check::FAIL, 'On, but the DMCA agent isn\'t set: the copyright page can\'t name them.', 'Set DMCA_AGENT_NAME, _ADDRESS, _PHONE and _EMAIL as registered, or switch sheet_import off.'),
+            $ready => Check::pass('legal', 'sheet-import', 'Sheet music import', 'Off; ready to switch on (the DMCA agent is named on the copyright page).'),
+            default => new Check('legal', 'sheet-import', 'Sheet music import', Check::WARN, 'Off, and not ready to switch on: no DMCA agent set.', 'Register the agent at dmca.copyright.gov, then set DMCA_AGENT_NAME, _ADDRESS, _PHONE and _EMAIL.'),
+        };
+    }
+
+    /** Search Console (docs/search-console.md): off and quiet until its key is set. */
+    private function searchConsole(): Check
+    {
+        $state = $this->search->state();
+        $label = 'Search Console';
+
+        return match (true) {
+            ! $this->searchConsoleClient->configured() => new Check('integrations', 'search_console', $label, Check::WARN, 'Not set up: Admin > Growth > Search stays empty.', 'Follow docs/search-console.md, then set SEARCH_CONSOLE_CREDENTIALS.'),
+            is_string($state['error'] ?? null) => new Check('integrations', 'search_console', $label, Check::WARN, 'The last sync failed: '.$state['error'], 'Check the service account is a user on '.$this->searchConsoleClient->property().' (docs/search-console.md).'),
+            ! isset($state['at']) => new Check('integrations', 'search_console', $label, Check::WARN, 'Set up, not synced yet.', 'It syncs daily at 05:40 UTC, or run php artisan app:search-console:sync.'),
+            default => Check::pass('integrations', 'search_console', $label, 'Synced '.$state['at'].'.'),
+        };
+    }
+
+    /**
      * Stackapella's own services: payments, Event Schedule, its books and its X and Bluesky. Not
      * checked on a self-hosted install.
      *
@@ -175,6 +223,7 @@ final class Readiness
         $networks = array_keys($this->poster->networks());
         $failedPosts = SocialPost::query()->where('status', SocialPost::FAILED)->where('updated_at', '>', now()->subWeek())->count();
         $checks[] = Check::when(count($networks) === 2 && $failedPosts === 0, 'integrations', 'social', 'Our X and Bluesky', 'Both set up.', count($networks) < 2 ? ($networks === [] ? 'Neither has its keys.' : 'Only '.($networks[0] === 'x' ? 'X' : 'Bluesky').' has its keys.') : "{$failedPosts} posts failed this week.", count($networks) < 2 ? 'Set the X_* and BLUESKY_* keys (item 37).' : 'Retry them in /admin, Posts.', Check::WARN);
+        $checks[] = $this->searchConsole();
     }
 
     /**

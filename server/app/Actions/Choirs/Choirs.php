@@ -73,7 +73,9 @@ final class Choirs
      */
     public static function heard(Choir $choir): Builder
     {
-        return ChoirVoice::query()->where('choir_id', $choir->id ?? 0)->where('status', ChoirVoice::READY)->whereNull('hidden_at')->whereNull('held_at');
+        // A suspended singer's voice isn't heard (as on the public pages).
+        return ChoirVoice::query()->where('choir_id', $choir->id ?? 0)->where('status', ChoirVoice::READY)->whereNull('hidden_at')->whereNull('held_at')
+            ->whereHas('user', fn ($user) => $user->whereNull('suspended_at'));
     }
 
     /**

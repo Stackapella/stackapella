@@ -1,0 +1,218 @@
+{
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "mrr",
+                "arr",
+                "monthAgo",
+                "unpriced",
+                "subscribers",
+                "months",
+                "oneOff"
+            ],
+            "properties": {
+                "mrr": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "currency",
+                            "cents"
+                        ],
+                        "properties": {
+                            "currency": {
+                                "type": "string"
+                            },
+                            "cents": {
+                                "type": "integer"
+                            }
+                        }
+                    }
+                },
+                "arr": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "currency",
+                            "cents"
+                        ],
+                        "properties": {
+                            "currency": {
+                                "type": "string"
+                            },
+                            "cents": {
+                                "type": "integer"
+                            }
+                        }
+                    }
+                },
+                "monthAgo": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "currency",
+                            "cents"
+                        ],
+                        "properties": {
+                            "currency": {
+                                "type": "string"
+                            },
+                            "cents": {
+                                "type": "integer"
+                            }
+                        }
+                    }
+                },
+                "unpriced": {
+                    "type": "integer"
+                },
+                "subscribers": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "state",
+                            "store",
+                            "plan",
+                            "count"
+                        ],
+                        "properties": {
+                            "state": {
+                                "type": "string",
+                                "enum": [
+                                    "paying",
+                                    "trialing",
+                                    "pastDue",
+                                    "cancelling"
+                                ]
+                            },
+                            "store": {
+                                "type": "string",
+                                "enum": [
+                                    "web",
+                                    "apple",
+                                    "google"
+                                ]
+                            },
+                            "plan": {
+                                "type": "string",
+                                "enum": [
+                                    "month",
+                                    "year",
+                                    "unknown"
+                                ]
+                            },
+                            "count": {
+                                "type": "integer"
+                            }
+                        }
+                    }
+                },
+                "months": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "month",
+                            "mrr",
+                            "unpriced",
+                            "new",
+                            "lost"
+                        ],
+                        "properties": {
+                            "month": {
+                                "type": "string",
+                                "description": "YYYY-MM (UTC)."
+                            },
+                            "mrr": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "additionalProperties": false,
+                                    "required": [
+                                        "currency",
+                                        "cents"
+                                    ],
+                                    "properties": {
+                                        "currency": {
+                                            "type": "string"
+                                        },
+                                        "cents": {
+                                            "type": "integer"
+                                        }
+                                    }
+                                }
+                            },
+                            "unpriced": {
+                                "type": "integer"
+                            },
+                            "new": {
+                                "type": "integer"
+                            },
+                            "lost": {
+                                "type": "integer"
+                            }
+                        }
+                    }
+                },
+                "oneOff": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "month",
+                            "kind",
+                            "currency",
+                            "payments",
+                            "gross",
+                            "ours"
+                        ],
+                        "properties": {
+                            "month": {
+                                "type": "string"
+                            },
+                            "kind": {
+                                "type": "string",
+                                "enum": [
+                                    "coaching",
+                                    "packs"
+                                ]
+                            },
+                            "currency": {
+                                "type": "string"
+                            },
+                            "payments": {
+                                "type": "integer"
+                            },
+                            "gross": {
+                                "type": "integer"
+                            },
+                            "ours": {
+                                "type": "integer"
+                            }
+                        }
+                    }
+                },
+                "timezone": {
+                    "type": "string",
+                    "description": "The timezone the days are in (a PHP name; UTC unless set)."
+                }
+            }
+        }
+    }
+}

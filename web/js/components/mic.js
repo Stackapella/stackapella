@@ -22,7 +22,7 @@ export function micError(error, retry = null) {
 export const WirelessNote = {
     components: { Icon },
     template: `
-        <p class="flex gap-3 rounded-2xl border border-part-6/40 bg-part-6/10 p-3 text-sm text-cream" role="note">
+        <p data-ui="facts" class="flex gap-3 rounded-2xl border border-part-6/40 bg-part-6/10 p-3 text-sm text-cream" role="note">
             <Icon name="headphones" :size="18" class="mt-0.5 shrink-0 text-part-6" />
             <span>{{ t('mic.wirelessNote') }}</span>
         </p>`,

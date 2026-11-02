@@ -46,7 +46,7 @@ ADVANCE = r"""(() => {
 def open_all(f, as_="admin"):
     """Signed in, with every launch course loaded and shown as live (some may still be coming)."""
     f.go(f"/?api=mock&scenario=&as={as_}", "document.querySelector('#app header')")
-    f.run("localStorage.setItem('stackapella.installDismissed', '1');")
+    f.run("localStorage.setItem('stackapella.asks', JSON.stringify({ stopped: ['install'] }));")
     f.go("/learn", "document.querySelector('[data-course-map]')")
     f.wait(f"{STORE}.learning.catalogue.length > 0", what="the catalogue")
     f.run(f"""

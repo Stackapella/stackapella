@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace App\Actions\Counts;
 
-use Carbon\CarbonImmutable;
+use App\Models\Experiment;
+use App\Support\Stats\ReportDay;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
@@ -18,6 +19,21 @@ final class Funnel
 {
     /** The arrival kinds: a device's first open, sent as one or the other. */
     public const ARRIVALS = ['f_arrive', 'f_arrive_start'];
+
+    /**
+     * A device drawn into an experiment's arm, when the screen that differs first shows: an arm's
+     * denominator, as arrivals are onb1's (counted only in experiment_counts, with `variants`).
+     */
+    public const ENROLLED = 'exp_enrol';
+
+    /** The experiment auth.config's `experiment` (one, drawn at a device's first open) still carries. */
+    public const LEGACY = 'onb1';
+
+    /** Every experiment, cached a few minutes and forgotten whenever Admin changes one. */
+    public const CACHE = 'experiments.all';
+
+    /** Enrolled per arm before the guardrail check may stop a test (fewer, and it's too noisy to say). */
+    public const GUARD_MIN_PER_ARM = 50;
 
     /** A split this unlikely under 50/50 is a bug, not a result (a sample ratio mismatch). */
     private const SPLIT_P = 0.001;
@@ -44,15 +60,56 @@ final class Funnel
      */
     public static function knownVariant(string $variant): bool
     {
-        foreach ((array) config('counts.experiments') as $experiment) {
-            foreach ((array) $experiment['arms'] as $arm) {
-                if ($variant === $experiment['id'].'-'.$arm) {
+        foreach (self::registry() as $experiment) {
+            foreach ($experiment->armNames() as $arm) {
+                if ($variant === $experiment->key.'-'.$arm) {
                     return true;
                 }
             }
         }
 
         return false;
+    }
+
+    /**
+     * The registry (Admin, Experiments), oldest first.
+     *
+     * @return list<Experiment>
+     */
+    public static function registry(): array
+    {
+        // The rows, not the models: the cache keeps plain data.
+        /** @var list<array<string, mixed>> $rows */
+        $rows = Cache::remember(self::CACHE, 300, static fn (): array => Experiment::query()->orderBy('id')->get()->map(static fn (Experiment $e): array => $e->getAttributes())->all());
+
+        return array_values(Experiment::hydrate($rows)->all());
+    }
+
+    /**
+     * auth.config's `experiments`: every one running (enrolling, or read later but its arms still
+     * shown), for the app's experiment(id): who may join, and how.
+     *
+     * @return list<array{id: string, arms: list<array{arm: string, weight: int}>, enrol: bool, audience: array<string, bool|string>, excludes: list<string>}>
+     */
+    public function running(): array
+    {
+        if (config('counts.enabled') !== true) {
+            return [];
+        }
+
+        $today = ReportDay::today();
+        $running = [];
+
+        foreach (self::registry() as $experiment) {
+            $status = $experiment->status();
+            $readFrom = $experiment->readFrom();
+
+            if ($experiment->starts_on !== null && $experiment->starts_on->toDateString() <= $today && in_array($status, [Experiment::RUNNING, Experiment::READING], true) && ($readFrom === null || $today <= $readFrom)) {
+                $running[] = ['id' => $experiment->key, 'arms' => array_values($experiment->arms), 'enrol' => $experiment->enrolling(), 'audience' => (array) $experiment->audience, 'excludes' => array_values($experiment->excludes)];
+            }
+        }
+
+        return $running;
     }
 
     /**
@@ -70,9 +127,10 @@ final class Funnel
         /** @var array{id: string, arms: list<string>, enrol: bool}|false $current */
         $current = Cache::remember('funnel.current', 300, function (): array|false {
             foreach ($this->experiments() as $experiment) {
-                $today = now()->toDateString();
+                $today = ReportDay::today();
 
-                if ($experiment['start'] !== null && $experiment['start'] <= $today && ($experiment['readFrom'] === null || $today <= $experiment['readFrom'])) {
+                // Only onb1: the app draws it at a device's first open; any other is in `experiments`.
+                if ($experiment['id'] === self::LEGACY && $experiment['start'] !== null && $experiment['start'] <= $today && ($experiment['readFrom'] === null || $today <= $experiment['readFrom'])) {
                     return ['id' => $experiment['id'], 'arms' => $experiment['arms'], 'enrol' => $experiment['enrolling']];
                 }
             }
@@ -94,27 +152,20 @@ final class Funnel
      */
     public function experiments(): array
     {
-        $today = now()->toDateString();
         $list = [];
 
-        foreach (array_reverse((array) config('counts.experiments')) as $experiment) {
-            $arms = array_values(array_map('strval', (array) $experiment['arms']));
-            $start = $experiment['start'] ?? null;
-            $end = $experiment['end'] ?? null;
-            $planned = (int) ($experiment['plannedPerArm'] ?? 0);
-            $until = $start !== null && $end !== null && $end < $today ? $end : null;
-
+        foreach (array_reverse(self::registry()) as $experiment) {
             $list[] = [
-                'id' => (string) $experiment['id'],
-                'arms' => $arms,
-                'start' => $start,
-                'end' => $end,
-                'enrolUntil' => $until,
-                'readFrom' => $until !== null ? CarbonImmutable::parse($until)->addDays(7)->toDateString() : null,
-                'plannedPerArm' => $planned,
-                'primary' => (string) $experiment['primary'],
-                'guardrail' => $experiment['guardrail'] ?? null,
-                'enrolling' => $start !== null && $start <= $today && $until === null,
+                'id' => $experiment->key,
+                'arms' => $experiment->armNames(),
+                'start' => $experiment->starts_on?->toDateString(),
+                'end' => $experiment->ends_on?->toDateString(),
+                'enrolUntil' => $experiment->enrolUntil(),
+                'readFrom' => $experiment->readFrom(),
+                'plannedPerArm' => $experiment->planned_per_arm,
+                'primary' => $experiment->metric,
+                'guardrail' => $experiment->guardrails[0] ?? null,
+                'enrolling' => $experiment->enrolling(),
             ];
         }
 
@@ -132,7 +183,11 @@ final class Funnel
     {
         $experiments = $this->experiments();
         $experiment = collect($experiments)->firstWhere('id', $experimentId);
-        $query = DB::table('usage_counts')->whereIn('kind', [...self::ARRIVALS, ...self::kinds()]);
+        // onb1's arms are on usage_counts (`variant`), counted from arrival; every other experiment's
+        // are in experiment_counts, counted from enrolment (exp_enrol).
+        $registry = $experiment !== null && $experiment['id'] !== self::LEGACY;
+        $arrivalKinds = $registry ? [self::ENROLLED] : self::ARRIVALS;
+        $query = DB::table($registry ? 'experiment_counts' : 'usage_counts')->whereIn('kind', [...$arrivalKinds, ...self::kinds()]);
 
         if ($experiment !== null) {
             $arms = $experiment['arms'];
@@ -140,7 +195,7 @@ final class Funnel
             $armOf = static fn (\stdClass $row): string => substr((string) $row->variant, strlen($experiment['id']) + 1);
         } else {
             $arms = ['all'];
-            $query->where('day', '>=', now()->subDays($days - 1)->toDateString());
+            $query->where('day', '>=', ReportDay::now()->subDays($days - 1)->toDateString());
             $armOf = static fn (\stdClass $row): string => 'all';
         }
 
@@ -158,12 +213,12 @@ final class Funnel
         }
 
         $count = static fn (string $kind, string $arm): int => array_sum($totals[$kind][$arm] ?? []);
-        $arrivals = array_combine($arms, array_map(static fn (string $arm): int => array_sum(array_map(static fn (string $kind): int => $count($kind, $arm), self::ARRIVALS)), $arms));
+        $arrivals = array_combine($arms, array_map(static fn (string $arm): int => array_sum(array_map(static fn (string $kind): int => $count($kind, $arm), $arrivalKinds)), $arms));
         $rate = static fn (int $n, int $of): ?float => $of > 0 ? round($n / $of, 4) : null;
 
         $steps = [];
 
-        foreach ((array) config('counts.funnel') as $kind) {
+        foreach ([...($registry ? [self::ENROLLED] : []), ...(array) config('counts.funnel')] as $kind) {
             $steps[] = [
                 'kind' => $kind,
                 'arms' => array_map(static fn (string $arm): array => [
@@ -173,7 +228,7 @@ final class Funnel
                     'total' => $count($kind, $arm),
                     'rate' => $rate($count($kind, $arm), $arrivals[$arm]),
                 ], $arms),
-                'difference' => count($arms) === 2 && ! in_array($kind, self::ARRIVALS, true)
+                'difference' => count($arms) === 2 && ! in_array($kind, $arrivalKinds, true)
                     ? self::difference($count($kind, $arms[0]), $arrivals[$arms[0]], $count($kind, $arms[1]), $arrivals[$arms[1]])
                     : null,
             ];
@@ -204,8 +259,8 @@ final class Funnel
         return [
             'experiments' => $experiments,
             'experiment' => $experiment['id'] ?? null,
-            'from' => $experiment !== null ? ($dates[0] ?? $experiment['start']) : now()->subDays($days - 1)->toDateString(),
-            'to' => $experiment !== null ? ($dates[count($dates) - 1] ?? $experiment['start']) : now()->toDateString(),
+            'from' => $experiment !== null ? ($dates[0] ?? $experiment['start']) : ReportDay::now()->subDays($days - 1)->toDateString(),
+            'to' => $experiment !== null ? ($dates[count($dates) - 1] ?? $experiment['start']) : ReportDay::today(),
             'split' => $experiment !== null && count($arms) === 2 ? self::split($arms, $arrivals) : null,
             'enough' => $experiment !== null && $experiment['plannedPerArm'] > 0 && $arrivals !== [] && min($arrivals) >= $experiment['plannedPerArm'],
             'steps' => $steps,
@@ -215,12 +270,45 @@ final class Funnel
     }
 
     /**
+     * A two-arm registry experiment's guardrails where B is worse than A beyond chance at 99% (the
+     * plan's one early stop; docs/experiments-plan.md), once each arm has enough enrolled to say.
+     *
+     * @return list<array{kind: string, points: float, low: float, high: float}>
+     */
+    public function guardrailsWorse(Experiment $experiment): array
+    {
+        if ($experiment->key === self::LEGACY || count($experiment->arms) !== 2) {
+            return [];
+        }
+
+        $report = $this->report($experiment->key, 30);
+        $arrivals = array_map(static fn (array $arm): int => (int) $arm['arrivals'], (array) ($report['split']['arms'] ?? []));
+
+        if (count($arrivals) !== 2 || min($arrivals) < self::GUARD_MIN_PER_ARM) {
+            return [];
+        }
+
+        $worse = [];
+
+        foreach ($experiment->guardrails as $kind) {
+            $step = collect((array) $report['steps'])->firstWhere('kind', $kind);
+            $difference = is_array($step) ? self::difference((int) $step['arms'][0]['total'], $arrivals[0], (int) $step['arms'][1]['total'], $arrivals[1], 2.576) : null;
+
+            if ($difference !== null && $difference['high'] < 0) {
+                $worse[] = ['kind' => $kind, ...$difference];
+            }
+        }
+
+        return $worse;
+    }
+
+    /**
      * The second arm's rate minus the first's, in percentage points, with its 95% interval (a
      * two-proportion normal interval). Null until both arms have arrivals.
      *
      * @return array{points: float, low: float, high: float}|null
      */
-    private static function difference(int $a, int $ofA, int $b, int $ofB): ?array
+    public static function difference(int $a, int $ofA, int $b, int $ofB, float $z = 1.96): ?array
     {
         if ($ofA < 1 || $ofB < 1) {
             return null;
@@ -232,7 +320,7 @@ final class Funnel
         $se = sqrt($pa * (1 - $pa) / $ofA + $pb * (1 - $pb) / $ofB);
         $d = $pb - $pa;
 
-        return ['points' => round($d * 100, 2), 'low' => round(($d - 1.96 * $se) * 100, 2), 'high' => round(($d + 1.96 * $se) * 100, 2)];
+        return ['points' => round($d * 100, 2), 'low' => round(($d - $z * $se) * 100, 2), 'high' => round(($d + $z * $se) * 100, 2)];
     }
 
     /**

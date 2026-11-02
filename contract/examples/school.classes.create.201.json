@@ -1,0 +1,14 @@
+{
+    "data": {
+        "id": "Ab3dEf9h",
+        "name": "Period 3 choir",
+        "code": "KQ7M-3XPA",
+        "url": "https://stackapella.com/class/KQ7M-3XPA",
+        "seats": 30,
+        "used": 0,
+        "status": "open",
+        "expiresAt": "2027-03-01T10:00:00Z",
+        "closedAt": null,
+        "createdAt": "2026-11-01T10:00:00Z"
+    }
+}

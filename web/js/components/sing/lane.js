@@ -75,7 +75,7 @@ export const NowCard = {
             </div>
             <div class="min-w-0 flex-1">
                 <p v-if="word" class="truncate text-2xl font-extrabold text-cream" translate="no">{{ t('sing.card.word', { word }) }}</p>
-                <p v-if="hint" class="flex items-center gap-1.5 text-sm font-bold text-cream" role="status"><span class="grid size-5 place-items-center rounded-full text-[10px] text-ink" :style="{ background: color }" aria-hidden="true">{{ hint === 'higher' ? '▲' : '▼' }}</span>{{ hint === 'higher' ? t('sing.hint.higher') : t('sing.hint.lower') }}</p>
+                <p v-if="hint" data-ui="facts" class="flex items-center gap-1.5 text-sm font-bold text-cream" role="status"><span class="grid size-5 place-items-center rounded-full text-[10px] text-ink" :style="{ background: color }" aria-hidden="true">{{ hint === 'higher' ? '▲' : '▼' }}</span>{{ hint === 'higher' ? t('sing.hint.higher') : t('sing.hint.lower') }}</p>
                 <p v-else class="truncate text-sm text-muted">{{ next }}</p>
             </div>
         </div>`,

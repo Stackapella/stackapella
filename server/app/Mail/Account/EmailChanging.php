@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Mail\Account;
 
+use App\Support\Http\Hosts;
 use App\Support\Mail\Bold;
 
 /**
@@ -20,7 +21,7 @@ final class EmailChanging extends AccountMail
 
     protected function url(): string
     {
-        return url('/email/revert?token='.$this->revertToken);
+        return Hosts::appLink('/email/revert?token='.$this->revertToken);
     }
 
     protected function lines(): array

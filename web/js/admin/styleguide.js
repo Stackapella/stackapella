@@ -25,7 +25,7 @@ export const StyleguideView = {
     data: () => ({ allowed: false, sheet: false, name: 'Amazing Grace', email: 'not an email', about: 'I sing alto in a community choir.', handle: 'sam.sings', link: 'https://stackapella.com/s/k3v9qa', choice: 'two', songs: ['Amazing Grace', 'Silent Night'], sounds: true, others: false, view: 'notes', singers: 4, bpm: 96, level: 70, adult: true, beats: 4, chips: ['alto'], month: 3, year: new Date().getFullYear() - 9 }), // i18n-ignore
     setup: () => ({ TOKENS, ICONS, PART_COLORS, KINDS, CHIPS, formatNumber }),
     template: `
-        <div class="min-h-dvh bg-ink">
+        <div data-ui="screen" class="min-h-dvh bg-ink">
             <div v-if="allowed" class="container-page space-y-14 py-10">
                 <header>
                     <Logo />

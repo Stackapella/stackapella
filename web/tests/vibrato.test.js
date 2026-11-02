@@ -3,7 +3,7 @@
 // bloom found, and the three percents the Vibrato course stars on. Then the same through the real
 // pitch tracker, on a sung voice with and without vibrato.
 import { bloomPercent, centsOf, freePercent, isNaturalVibrato, kindOf, measureHold, peaksOf, scoreWave, straightPercent, targetAt, targetPlan, wavePercent } from '/js/vibrato.js';
-import { guideNotes, measuredLine } from '/js/components/wave-lane.js';
+import { guideNotes, measuredLine, sungOf } from '/js/components/wave-lane.js';
 import { renderPart } from '/js/synth.js';
 import { trackTake } from '/js/pitchtrack.js';
 import { sing } from './fixtures.js';
@@ -179,4 +179,11 @@ test('vibrato lane: a contour (path) is ridden or not, and its line says how muc
     const missed = scoreWave(flat.track, plan, { midi: 57 });
     assert(missed.percent < 70, `a straight note on a siren: ${missed.percent}`);
     close(targetAt(plan, 2 + 2).cents, 500, 1, 'the top of the siren, a fourth up');
+});
+
+test('wave lane: a take widens the range with a scorer\'s own steady notes, else the step\'s note, and none when unheard', () => {
+    assert(sungOf({ percent: 100, sung: [45, 67] }, 57).join() === '45,67', 'span\'s low and high, not the target');
+    assert(sungOf({ percent: 80, sung: null }, 57).join() === '57', 'a lane measure: the step\'s note, as before');
+    assert(sungOf({ percent: 80, sung: [] }, 57).join() === '57', 'an empty list counts as none given');
+    assert(sungOf({ percent: null, sung: [45, 67] }, 57).length === 0, 'not heard: nothing widens');
 });

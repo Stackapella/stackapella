@@ -3,55 +3,47 @@
 // modal): what the session gave ("your note A3, 3 lessons, 8 stars"), the weekly goal chosen rather
 // than given (3 looks chosen, nothing is kept until a tap), and exactly one keep-it ask for this
 // device: install where it can (Chrome's one tap, the iPhone's Share then Add to Home Screen, the
-// Mac's Add to Dock), else an account. "Not now" is a real answer: kept on this device, the ask
-// comes back no sooner than three days later, and after three it stops asking.
+// Mac's Add to Dock), else an account. "Not now" is a real answer, kept in the ask ledger (js/asks.js):
+// every ask waits 14 days, and after three Not nows they stop.
 
 import { navigate } from '../router.js';
-import { t } from '../i18n.js';
+import { formatList, t } from '../i18n.js';
 import { midiName } from '../dsp.js';
 import { local } from '../storage.js';
+import { askDue, askNotNow, askSeen } from '../asks.js';
 import { account } from '../stores/account.js';
 import { learning, setGoal } from '../stores/learning.js';
-import { askShown, askYes, daysSinceArrival, first, funnelRecord } from '../funnel.js';
+import { askNot, askShown, askYes, daysSinceArrival, first, funnelRecord } from '../funnel.js';
 import { install, installed, iphone, macSafari } from './install.js';
 import { loadReminder, pushSupported } from '../reminders.js';
 import { Icon } from './icon.js';
-import { sk } from '../skin.js';
+import { game, sk } from '../skin.js';
+import { experiment } from '../experiments.js';
+import { levelFor } from '../course.js';
+import { signUpFor } from './account-wall.js';
 
 const GOALS = [2, 3, 5];
 const SUGGESTED = 3;
-export const INSTALL_ASKED = 'stackapella.installAskedOn'; // the day the wrap offered install (one ask a session)
-const NOT_NOW = 'stackapella.keepAsk'; // { nots, at }: how many times the ask was put off, and the last time
-const AGAIN_AFTER = 3 * 24 * 3600 * 1000;
-const MOST_NOT_NOWS = 3;
-
-function notNows() {
-    try {
-        const kept = JSON.parse(local.get(NOT_NOW) || 'null');
-        return kept && typeof kept === 'object' ? { nots: kept.nots ?? 0, at: kept.at ?? 0 } : { nots: 0, at: 0 };
-    } catch (error) {
-        console.info('The keep-it answer was unreadable', error?.message ?? error);
-        return { nots: 0, at: 0 };
-    }
-}
-
-/** Whether the keep-it ask may show now: not after three Not nows, nor within three days of one. */
-export function keepAskDue(kept = notNows(), now = Date.now()) {
-    return kept.nots < MOST_NOT_NOWS && (!kept.nots || now - kept.at >= AGAIN_AFTER);
-}
-
-/** Which keep-it ask fits this device: 'prompt' (one tap), 'iphone', 'mac', 'account', or null. */
+/**
+ * Which keep-it ask fits this device: 'prompt' (one tap), 'iphone', 'mac', 'account', or null. On
+ * Safari an added app keeps its own storage, apart from Safari's (docs/account-nudges-plan.md, F1),
+ * so installing keeps nothing that's here: a guest is asked for the account, and only someone
+ * signed in (whose account comes along) is offered the app.
+ */
 export function keepAskFor({ isInstalled = installed(), prompt = !!install.prompt, isIphone = iphone(), isMac = macSafari(), signedIn = !!account.me } = {}) {
     if (!isInstalled && prompt) return 'prompt';
-    if (!isInstalled && isIphone) return 'iphone';
-    if (!isInstalled && isMac) return 'mac';
+    if (!isInstalled && signedIn && isIphone) return 'iphone';
+    if (!isInstalled && signedIn && isMac) return 'mac';
     return signedIn ? null : 'account';
 }
+
+/** The ledger's name (and the funnel's) for a keep-it ask. */
+const ledgerName = (ask) => (ask === 'account' ? 'account' : 'install');
 
 export const SessionWrap = {
     components: { Icon },
     props: { lessons: { type: Number, required: true }, stars: { type: Number, required: true } },
-    data: () => ({ goal: null, due: keepAskDue(), answered: false }),
+    data: () => ({ goal: null, answered: false }),
     setup: () => ({ GOALS, SUGGESTED, learning, midiName, sk }),
     template: `
         <section class="w-full space-y-5 rounded-3xl border border-edge bg-panel p-5 text-start" aria-labelledby="wrap-title" data-session-wrap>
@@ -65,10 +57,10 @@ export const SessionWrap = {
                 <p v-else-if="suggested" class="text-sm text-muted">{{ t('wrap.goalSuggested', { count: suggested }) }}</p>
             </div>
             <div v-if="ask" class="space-y-3 border-t border-line pt-4" data-wrap-keep :data-ask="ask">
-                <!-- Keeping what's here is only at stake where the browser may clear a site's data (Safari on iPhone and iPad, after a week away); elsewhere installing is said for what it is. -->
-                <p class="font-semibold text-cream">{{ ask === 'account' ? sk('wrap.accountSerious', 'wrap.account', { stars }) : ask === 'iphone' ? sk('wrap.installSerious', 'wrap.install', { stars }) : t('wrap.installApp') }}</p>
-                <p v-if="ask === 'iphone'" class="text-sm text-muted">{{ t('install.iphone') }}</p>
-                <p v-else-if="ask === 'mac'" class="text-sm text-muted">{{ t('install.mac') }}</p>
+                <!-- Installing is said for what it is, never as a way to keep what's here: on Safari an added app starts fresh, so a guest there is asked for the account. -->
+                <p class="font-semibold text-cream">{{ ask === 'account' ? sk('wrap.accountSerious', 'wrap.account', { stars }) : t('wrap.installApp') }}</p>
+                <p v-if="ask === 'iphone'" class="text-sm text-muted">{{ t('install.iphone') }} {{ t('install.signInThere') }}</p>
+                <p v-else-if="ask === 'mac'" class="text-sm text-muted">{{ t('install.mac') }} {{ t('install.signInThere') }}</p>
                 <div class="flex flex-wrap items-center gap-3">
                     <button v-if="ask === 'prompt'" type="button" class="btn-primary" data-wrap-install @click="installNow"><Icon name="download" :size="16" /> {{ t('install.button') }}</button>
                     <button v-else-if="ask === 'account'" type="button" class="btn-primary" data-wrap-account @click="makeAccount">{{ t('wrap.makeAccount') }}</button>
@@ -86,17 +78,16 @@ export const SessionWrap = {
             return this.chosenGoal === null ? SUGGESTED : null;
         },
         ask() {
-            return this.due && !this.answered ? keepAskFor() : null;
+            const ask = this.answered ? null : keepAskFor();
+            return ask && askDue(ledgerName(ask)) ? ask : null;
         },
     },
     watch: {
         ask: {
             handler(ask) {
-                if (ask === 'account') askShown('account');
-                else if (ask) {
-                    askShown('install');
-                    local.set(INSTALL_ASKED, new Date().toDateString()); // Home's install card waits for another day
-                }
+                if (!ask) return;
+                askShown(ledgerName(ask));
+                askSeen(ledgerName(ask)); // today's one ask: Home's cards wait for another day
             },
             immediate: true,
         },
@@ -126,25 +117,22 @@ export const SessionWrap = {
             navigate('/signin?mode=signup&for=progress');
         },
         notNow() {
-            const kept = notNows();
-            local.set(NOT_NOW, JSON.stringify({ nots: kept.nots + 1, at: Date.now() }));
+            askNotNow(ledgerName(this.ask));
             this.answered = true;
         },
     },
 };
 
-const REMIND_NOT_NOW = 'stackapella.remindAsk'; // as the keep-it ask's: how many times put off, and the last time
-
 /**
  * Back on another day of the first week (onboarding step 7), the reminders offer, where install is
  * done or can't be (Home's install card offers install itself): "Want a nudge on your practice
  * days?". A guest makes an account first (reminders need one), signed in it's the reminders screen.
- * Not now as the wrap's: three days, and never after three.
+ * Not now as every ask's (js/asks.js): 14 days, and never after three.
  */
 export const RemindAsk = {
     data: () => ({ due: false, answered: false }),
     template: `
-        <section v-if="shown" class="flex flex-wrap items-center gap-4 rounded-3xl border border-edge bg-panel p-5" aria-labelledby="remind-ask-title" data-remind-ask>
+        <section v-if="shown" class="flex flex-wrap items-center gap-4 rounded-3xl border border-edge bg-panel p-5" aria-labelledby="remind-ask-title" data-remind-ask data-ask>
             <div class="min-w-52 flex-1">
                 <h2 id="remind-ask-title" class="font-bold text-cream">{{ t('wrap.remindTitle') }}</h2>
                 <p class="text-sm text-muted">{{ t('wrap.remindWhy') }}</p>
@@ -161,7 +149,7 @@ export const RemindAsk = {
          * arrive after the page opens, so it's watched.
          */
         installAsks() {
-            return !installed() && local.get('stackapella.installDismissed') !== '1' && !!(install.prompt || iphone() || macSafari());
+            return !installed() && askDue('install') && !!(install.prompt || iphone() || macSafari());
         },
         shown() {
             return this.due && !this.answered && !this.installAsks;
@@ -170,14 +158,16 @@ export const RemindAsk = {
     watch: {
         shown: {
             handler(shown) {
-                if (shown) askShown('remind');
+                if (!shown) return;
+                askShown('remind');
+                askSeen('remind');
             },
             immediate: true,
         },
     },
     async created() {
         const days = daysSinceArrival();
-        if (days === null || days < 1 || days > 6 || !pushSupported() || !keepAskDue(this.kept())) return;
+        if (days === null || days < 1 || days > 6 || !pushSupported() || !askDue('remind')) return;
         if (account.me) {
             const reminder = await loadReminder().catch(() => null);
             if (reminder?.thisDevice || reminder?.enabled) return;
@@ -185,21 +175,11 @@ export const RemindAsk = {
         this.due = true;
     },
     methods: {
-        kept() {
-            try {
-                const kept = JSON.parse(local.get(REMIND_NOT_NOW) || 'null');
-                return kept && typeof kept === 'object' ? { nots: kept.nots ?? 0, at: kept.at ?? 0 } : { nots: 0, at: 0 };
-            } catch (error) {
-                console.info('The reminders answer was unreadable', error?.message ?? error);
-                return { nots: 0, at: 0 };
-            }
-        },
         yes() {
             navigate(account.me ? '/settings/reminders' : '/signin?mode=signup&for=reminders&next=/settings/reminders');
         },
         notNow() {
-            const kept = this.kept();
-            local.set(REMIND_NOT_NOW, JSON.stringify({ nots: kept.nots + 1, at: Date.now() }));
+            askNotNow('remind');
             this.answered = true;
         },
     },
@@ -212,39 +192,109 @@ const WEEK_SEEN = 'stackapella.firstWeekSeen'; // the first week's card, put awa
  * first week (until the tenth), what the week gave: "Your first week: 3 days sung, 11 lessons, note
  * A3, range G2 to D4." Plain facts in both skins (game mode's rewards stay where they are). Put away
  * with Got it, for good.
+ *
+ * keep1 (docs/account-nudges-plan.md, N1 and section 6): for a guest with something to keep (3
+ * lessons with stars, or a song recorded) on days 7 to 13, the card is the experiment's exposure.
+ * Both arms see it until day 13; arm b adds the keep row ("Keep this week: your note, 86 stars and
+ * level 3, on any device. It's free.") with Make a free account and Not now, which puts the whole
+ * card away (in place of Got it). Within the ask ledger's caps; never in week one.
  */
 export const FirstWeek = {
+    props: { songs: { type: Boolean, default: false } }, // a song recorded on this device
     data: () => ({ seen: local.get(WEEK_SEEN) === '1' }),
-    setup: () => ({ learning }),
+    setup: () => ({ learning, sk }),
     template: `
-        <section v-if="facts" class="flex flex-wrap items-center gap-4 rounded-3xl border border-edge bg-panel p-5" aria-labelledby="first-week-title" data-first-week>
-            <div class="min-w-52 flex-1">
-                <h2 id="first-week-title" class="font-bold text-cream">{{ t('wrap.week.title') }}</h2>
-                <p class="text-sm text-cream">{{ facts }}</p>
+        <section v-if="shown" class="rounded-3xl border border-edge bg-panel p-5" aria-labelledby="first-week-title" data-first-week>
+            <div class="flex flex-wrap items-center gap-4">
+                <div class="min-w-52 flex-1">
+                    <h2 id="first-week-title" class="font-bold text-cream">{{ t('wrap.week.title') }}</h2>
+                    <p class="text-sm text-cream">{{ facts }}</p>
+                </div>
+                <button v-if="!keep" type="button" class="tap-44 btn-ghost btn-sm" data-first-week-done @click="done">{{ t('wrap.week.done') }}</button>
             </div>
-            <button type="button" class="tap-44 btn-ghost btn-sm" data-first-week-done @click="done">{{ t('wrap.week.done') }}</button>
+            <div v-if="keep" class="mt-4 space-y-3 border-t border-line pt-4" data-first-week-keep>
+                <p class="text-cream">{{ keepLine }}</p>
+                <div class="flex flex-wrap items-center gap-3">
+                    <button type="button" class="btn-secondary" data-first-week-account @click="makeAccount">{{ t('wrap.makeAccount') }}</button>
+                    <button type="button" class="tap-44 btn-ghost btn-sm" data-first-week-not-now @click="notNow">{{ t('install.later') }}</button>
+                </div>
+            </div>
         </section>`,
     computed: {
+        days: () => daysSinceArrival(),
+        /** Lessons with stars since this device arrived, as the week's facts count them. */
+        weekLessons() {
+            const since = Date.parse(funnelRecord().arrived);
+            return Object.values(learning.progress.lessons ?? {}).filter((l) => l?.stars && l.at >= since).length;
+        },
         facts() {
-            const days = daysSinceArrival();
-            if (this.seen || days === null || days < 6 || days > 9) return null;
+            if (this.seen || this.days === null) return null;
             const arrived = funnelRecord().arrived;
             const sung = Object.keys(learning.progress.practice ?? {}).filter((day) => day >= arrived && (learning.progress.practice[day] ?? 0) > 0).length;
-            const since = Date.parse(arrived);
-            const lessons = Object.values(learning.progress.lessons ?? {}).filter((l) => l?.stars && l.at >= since).length;
-            if (!sung && !lessons) return null;
+            if (!sung && !this.weekLessons) return null;
             const home = learning.progress.home;
             const range = learning.progress.range;
-            const parts = [t('wrap.week.days', { count: sung }), t('wrap.week.lessons', { count: lessons })];
+            const parts = [t('wrap.week.days', { count: sung }), t('wrap.week.lessons', { count: this.weekLessons })];
             if (home !== null) parts.push(t('wrap.week.note', { note: midiName(Math.round(home)) }));
             if (range && range.high > range.low) parts.push(t('wrap.week.range', { low: midiName(range.low), high: midiName(range.high) }));
             return parts.join(', ') + '.';
+        },
+        /** Lessons with stars, ever: three of them (or a song) is something worth keeping. */
+        starred() {
+            return Object.values(learning.progress.lessons ?? {}).filter((l) => l?.stars);
+        },
+        /** keep1's arm, drawn only for a guest it's for (at exposure): 'a', 'b', or null. */
+        arm() {
+            if (account.me || !account.loaded || this.seen || !this.facts || this.days < 7 || this.days > 13) return null;
+            if (this.starred.length < 3 && !this.songs) return null;
+            if (!askDue('acct_week')) return null;
+            const { arm, ready } = experiment('keep1');
+            return ready ? arm : null;
+        },
+        shown() {
+            return !!this.facts && ((this.days >= 6 && this.days <= 9) || !!this.arm);
+        },
+        keep() {
+            return this.arm === 'b';
+        },
+        /** "Keep this week: your note, 86 stars and level 3, on any device. It's free." (serious: lessons, no stars). */
+        keepLine() {
+            const what = [];
+            if (learning.progress.home !== null) what.push(t('wrap.week.keepNote'));
+            if (this.starred.length) {
+                if (!game()) what.push(t('wrap.week.keepLessons', { count: this.starred.length }));
+                else {
+                    what.push(t('wrap.week.keepStars', { count: this.starred.reduce((sum, l) => sum + l.stars, 0) }));
+                    what.push(t('wrap.week.keepLevel', { level: levelFor(learning.progress.xp?.total ?? 0).level }));
+                }
+            }
+            if (this.songs) what.push(t('wrap.week.keepSongs'));
+            return t('wrap.week.keep', { what: formatList(what) });
+        },
+    },
+    watch: {
+        keep: {
+            handler(keep) {
+                if (!keep) return;
+                askShown('acct_week');
+                askSeen('acct_week');
+            },
+            immediate: true,
         },
     },
     methods: {
         done() {
             local.set(WEEK_SEEN, '1');
             this.seen = true;
+        },
+        makeAccount() {
+            askYes('acct_week');
+            navigate(signUpFor('week', '/'));
+        },
+        notNow() {
+            askNot('acct_week');
+            askNotNow('acct_week');
+            this.done();
         },
     },
 };

@@ -44,6 +44,8 @@ final class HostsTest extends TestCase
         // An app page an old install might open shows the moving page, which brings its songs along.
         $this->get(self::SITE.'/p/0b8f4c2e-1111-4a5b-9c3d-2e7f8a9b0c1d')->assertOk()->assertViewIs('public.moving')->assertViewHas('appUrl', self::APP.'/p/0b8f4c2e-1111-4a5b-9c3d-2e7f8a9b0c1d')->assertHeader('X-Robots-Tag', 'noindex');
         $this->get(self::SITE.'/admin')->assertRedirect(self::APP.'/admin');
+        // A teacher's warm-up link (/warmup#code): a straight redirect, which keeps the #code (the moving page would drop it).
+        $this->get(self::SITE.'/warmup')->assertStatus(301)->assertRedirect(self::APP.'/warmup');
         $this->post(self::SITE.'/auth/google')->assertStatus(308);
         $this->get(self::SITE.'/verify?token=x')->assertRedirect(self::APP.'/verify?token=x');
         // An old install's start (/?app) is the app, and the public pages' files load on both.
@@ -148,7 +150,7 @@ final class HostsTest extends TestCase
         $this->withHeaders(['Origin' => self::SITE])->postJson(self::APP.'/api/reports', ['harmonyId' => 'nope', 'reason' => 'spam'])->assertNotFound()->assertHeader('Access-Control-Allow-Origin', self::SITE);
 
         // The public pages may reach the app's host for it.
-        $this->assertStringContainsString("connect-src 'self' ".self::APP, (string) $this->get(self::SITE.'/pricing')->headers->get('Content-Security-Policy'));
+        $this->assertMatchesRegularExpression("#connect-src 'self'[^;]* ".preg_quote(self::APP, '#').'(;| )#', (string) $this->get(self::SITE.'/pricing')->headers->get('Content-Security-Policy'));
     }
 
     public function test_before_launch_the_public_root_shows_the_landing_only_to_pass_holders(): void

@@ -170,12 +170,14 @@ test('sheet music: MIDI holds every part on its own track, notes at their beats 
         const { division, tracks } = readMidi(toMidi(song));
         const written = song.parts.filter((p) => p.guide?.notes?.length);
         assert(division === TICKS && tracks.length === written.length + 1, `${song.id}: ${tracks.length} tracks`);
-        const perBeat = metreOf(song.timeSignature).quarters * TICKS;
+        const metre = metreOf(song.timeSignature);
+        const perBeat = metre.quarters * TICKS;
+        const upbeat = song.pickupBeats ? (metre.perBar - song.pickupBeats) * perBeat : 0; // bar 1's downbeat is tick 0
         written.forEach((part, i) => {
             const t = tracks[i + 1];
             assert(t.name === part.name, `${song.id}: track ${i + 1} named ${t.name}`);
             assert(t.ons.length === part.guide.notes.length, `${song.id}, ${part.key}: ${t.ons.length} notes of ${part.guide.notes.length}`);
-            part.guide.notes.forEach((n, k) => assert(t.ons[k].pitch === n.pitch && Math.abs(t.ons[k].tick - n.beat * perBeat) <= 1, `${song.id}, ${part.key}, note ${k}`));
+            part.guide.notes.forEach((n, k) => assert(t.ons[k].pitch === n.pitch && Math.abs(t.ons[k].tick - upbeat - n.beat * perBeat) <= 1, `${song.id}, ${part.key}, note ${k}`));
             assert(t.lyrics.length === part.guide.notes.filter((n) => n.lyric).length, `${song.id}, ${part.key}: the words`);
         });
     }

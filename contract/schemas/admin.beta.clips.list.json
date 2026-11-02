@@ -133,6 +133,10 @@
                                 ]
                             }
                         }
+                    },
+                    "reports": {
+                        "type": "integer",
+                        "description": "Open reports on this clip's voice."
                     }
                 }
             }

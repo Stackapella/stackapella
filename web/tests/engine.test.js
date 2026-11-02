@@ -129,8 +129,14 @@ test('engine: a run started at a loop\'s end takes over there, sample for sample
         const passFrames = Math.round(before.endSeconds * sr) - Math.round(before.startSeconds * sr);
         const nextFrames = Math.round(after.endSeconds * sr) - Math.round(after.startSeconds * sr);
         const capturing = engine.startCapture(start, start + passFrames + nextFrames, null);
-        await untilAudioTime(playing.startTime + 0.1);
-        const end = engine.passEnd();
+        // Once the pass is heard (the clock less the output's latency, which a busy machine makes long),
+        // well before it ends.
+        await untilAudioTime(playing.startTime);
+        let end = engine.passEnd();
+        while (end === null && engine.ctx.currentTime < playing.startTime + 0.6) {
+            await pause(20);
+            end = engine.passEnd();
+        }
         assert(end === start + passFrames, `the first pass ends at ${start + passFrames}, not ${end}`);
         // The faster guide in place of the slow one; the pass heard now keeps its own (already scheduled).
         assert(engine.replaceBuffer('a', fast, sr), 'the part is there to replace');

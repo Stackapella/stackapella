@@ -14,6 +14,7 @@ use App\Models\TemplateRecording;
 use App\Models\TemplateVersion;
 use App\Models\User;
 use App\Support\Contract\SchemaChecker;
+use App\Support\Flags;
 use App\Support\Moderation\TextFilter;
 use App\Support\Templates\Catalogue;
 use App\Support\Templates\Imported;
@@ -49,11 +50,24 @@ final class OwnTemplates
     {
         $this->check($uuid, $data);
         // A copy of an imported song is imported too, with the original's rights confirmation.
-        $import = $imported ? ['imported_at' => now(), 'rights_confirmed_at' => now()] : null;
+        $import = $imported ? ['imported_at' => now(), 'rights_confirmed_at' => now(), 'rights_statement' => (string) config('site.import_rights_version')] : null;
 
         if ($copiedFrom !== null) {
             $original = $this->openable($user, $copiedFrom);
-            $import ??= $original->isImported() ? ['imported_at' => $original->imported_at, 'rights_confirmed_at' => $original->rights_confirmed_at] : null;
+            $import ??= $original->isImported() ? ['imported_at' => $original->imported_at, 'rights_confirmed_at' => $original->rights_confirmed_at, 'rights_statement' => $original->rights_statement] : null;
+        }
+
+        // A new song from sheet music only while import is on (staff try it before), never by
+        // calling the API around the app's switch (docs/sheet-import-legal.md).
+        $existing = Template::query()->where('slug', $uuid)->where('owner_id', $user->id)->whereNotNull('imported_at')->exists();
+
+        if ($imported && $copiedFrom === null && ! $existing && ! app(Flags::class)->on('sheet_import') && ! $user->is_admin && ! $user->is_editor) {
+            throw new Refusal(403, 'import_closed');
+        }
+
+        // A repeat infringer (the copyright policy) makes no new songs from sheet music.
+        if ($import !== null && Imported::takedowns($user) >= Imported::REPEAT_LIMIT && ! Template::query()->where('slug', $uuid)->where('owner_id', $user->id)->whereNotNull('imported_at')->exists()) {
+            throw new Refusal(403, 'import_blocked');
         }
 
         try {

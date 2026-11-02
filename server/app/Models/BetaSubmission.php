@@ -45,6 +45,7 @@ use Illuminate\Support\Carbon;
  * @property int $trim_start_ms
  * @property int $trim_end_ms
  * @property string $gain_db
+ * @property list<array{0: float, 1: float}>|null $rests spans of song beats silenced in its guide (a breath a later version added)
  * @property string|null $admin_note
  * @property string|null $admin_note_beat
  * @property int|null $reviewed_by
@@ -90,6 +91,7 @@ final class BetaSubmission extends Model
     protected function casts(): array
     {
         return [
+            'rests' => 'array',
             'status' => SubmissionStatus::class,
             'sample_rate' => 'integer',
             'frames' => 'integer',

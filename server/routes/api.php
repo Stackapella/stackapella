@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\Account\LearningController;
 use App\Http\Controllers\Api\Admin\AuditController;
 use App\Http\Controllers\Api\Admin\Beta\AssignmentsController as AdminBetaAssignments;
 use App\Http\Controllers\Api\Admin\Beta\BarController as AdminBetaBar;
+use App\Http\Controllers\Api\Admin\Beta\ClipRemovalController;
 use App\Http\Controllers\Api\Admin\Beta\ClipsController as AdminBetaClips;
 use App\Http\Controllers\Api\Admin\Beta\FeedbackController as AdminBetaFeedback;
 use App\Http\Controllers\Api\Admin\Beta\GuidesController as AdminBetaGuides;
@@ -17,10 +18,12 @@ use App\Http\Controllers\Api\Admin\BoardsController as AdminBoards;
 use App\Http\Controllers\Api\Admin\BooksController as AdminBooks;
 use App\Http\Controllers\Api\Admin\CoachDirectoryController as AdminCoachDirectory;
 use App\Http\Controllers\Api\Admin\CoachingController as AdminCoaching;
+use App\Http\Controllers\Api\Admin\CodeWatchController as AdminCodeWatch;
 use App\Http\Controllers\Api\Admin\DiagnosticsController as AdminDiagnostics;
 use App\Http\Controllers\Api\Admin\DisputesController;
 use App\Http\Controllers\Api\Admin\EarlyAccessController as AdminEarlyAccess;
 use App\Http\Controllers\Api\Admin\EventScheduleController as AdminEventSchedule;
+use App\Http\Controllers\Api\Admin\ExperimentsController as AdminExperiments;
 use App\Http\Controllers\Api\Admin\FlagsController;
 use App\Http\Controllers\Api\Admin\FunnelController as AdminFunnel;
 use App\Http\Controllers\Api\Admin\GalleryController as AdminGallery;
@@ -34,6 +37,7 @@ use App\Http\Controllers\Api\Admin\NetworkController as AdminNetwork;
 use App\Http\Controllers\Api\Admin\OverviewController;
 use App\Http\Controllers\Api\Admin\PeopleController;
 use App\Http\Controllers\Api\Admin\ReportsController as AdminReports;
+use App\Http\Controllers\Api\Admin\SchoolController as AdminSchool;
 use App\Http\Controllers\Api\Admin\SecurityEventsController;
 use App\Http\Controllers\Api\Admin\SocialController as AdminSocial;
 use App\Http\Controllers\Api\Admin\SupportController as AdminSupport;
@@ -81,6 +85,7 @@ use App\Http\Controllers\Api\Projects\SyncController;
 use App\Http\Controllers\Api\Projects\TakesController;
 use App\Http\Controllers\Api\Projects\UsageController;
 use App\Http\Controllers\Api\Requests\RequestsController as RequestsApi;
+use App\Http\Controllers\Api\School\SchoolController as SchoolApi;
 use App\Http\Controllers\Api\Sharing\HarmoniesController;
 use App\Http\Controllers\Api\Sharing\ReportsController as SharingReports;
 use App\Http\Controllers\Api\Sharing\VideosController;
@@ -88,6 +93,7 @@ use App\Http\Controllers\Api\Support\SupportController;
 use App\Http\Controllers\Api\Templates\FinishersController;
 use App\Http\Controllers\Api\Templates\OwnTemplatesController;
 use App\Http\Controllers\Api\TemplatesController;
+use App\Http\Controllers\Api\Voices\VoicesController;
 use App\Http\Middleware\GrantBetaPass;
 use App\Http\Middleware\PreventRequestForgery;
 use Illuminate\Session\Middleware\StartSession;
@@ -416,6 +422,27 @@ Route::get('/ideas/{idea}', [IdeasApi::class, 'show'])->where('idea', '[A-Za-z0-
 Route::get('/templates/{template}/finishers', FinishersController::class)->name('templates.finishers');
 Route::get('/templates/{template}', [TemplatesController::class, 'show'])->name('templates.show');
 
+// Lend your voice (docs/lend-your-voice-plan.md, the lend_voice switch): the Wanted voices, joining
+// as a volunteer, and claims; recording a claim is the beta singers' routes below.
+// Lend your voice's public numbers, for marketing's page (slice 5): counts only, while it's on.
+Route::get('/voices/summary', [VoicesController::class, 'summary'])->middleware(['throttle:public-pages', 'revalidate'])->name('voices.summary');
+Route::middleware('auth')->prefix('voices')->name('voices.')->group(function (): void {
+    Route::get('/wanted', [VoicesController::class, 'wanted'])->name('wanted');
+    Route::post('/join', [VoicesController::class, 'join'])->middleware('age')->name('join');
+    Route::get('/claims', [VoicesController::class, 'claims'])->name('claims.list');
+    Route::post('/claims', [VoicesController::class, 'claim'])->name('claims.create');
+    Route::delete('/claims/{claim}', [VoicesController::class, 'release'])->name('claims.delete');
+});
+
+// The school offer (docs/school-offer-plan.md, the schools switch): a teacher's class codes, and a
+// student redeeming one for a free year of Plus.
+Route::middleware('auth')->prefix('school')->name('school.')->group(function (): void {
+    Route::get('/classes', [SchoolApi::class, 'index'])->name('classes.list');
+    Route::post('/classes', [SchoolApi::class, 'store'])->middleware('age')->name('classes.create');
+    Route::patch('/classes/{class}', [SchoolApi::class, 'update'])->name('classes.update');
+    Route::post('/redeem', [SchoolApi::class, 'redeem'])->middleware(['age', 'throttle:school-redeem'])->name('redeem');
+});
+
 // The beta singers: an invite attaches the singer to their own account; then their parts and takes.
 Route::prefix('beta')->name('beta.')->group(function (): void {
     Route::get('/invites/{token}', [InvitesController::class, 'show'])->middleware('throttle:beta-link')->name('invite.show');
@@ -445,6 +472,7 @@ Route::middleware(['auth', 'editor', 'second-factor'])->prefix('admin')->name('a
         Route::post('/submissions/{submission}/open', [AdminBetaSubmissions::class, 'open'])->name('submissions.open');
         Route::post('/submissions/{submission}/retake', [AdminBetaSubmissions::class, 'retake'])->name('submissions.retake');
         Route::get('/guides', [AdminBetaGuides::class, 'index'])->name('guides.list');
+        Route::get('/needs', [AdminBetaGuides::class, 'needs'])->name('needs.show');
         Route::get('/clips', AdminBetaClips::class)->name('clips.list');
         Route::get('/feedback', [AdminBetaFeedback::class, 'index'])->name('feedback.list');
         Route::post('/feedback/{feedback}/read', [AdminBetaFeedback::class, 'read'])->name('feedback.read');
@@ -461,12 +489,14 @@ Route::middleware(['auth', 'editor', 'second-factor'])->prefix('admin')->name('a
             Route::post('/singers/{singer}/forget', [AdminBetaSingers::class, 'forget'])->middleware('sudo')->name('singers.forget');
             Route::post('/singers/{singer}/assignments', [AdminBetaAssignments::class, 'store'])->name('assignments.create');
             Route::delete('/assignments/{assignment}', [AdminBetaAssignments::class, 'destroy'])->name('assignments.delete');
+            Route::post('/assignments/{assignment}/again', [AdminBetaAssignments::class, 'again'])->name('assignments.again');
             Route::patch('/submissions/{submission}', [AdminBetaSubmissions::class, 'adjust'])->name('submissions.adjust');
             Route::post('/submissions/{submission}/accept', [AdminBetaSubmissions::class, 'accept'])->name('submissions.accept');
             Route::post('/submissions/{submission}/reject', [AdminBetaSubmissions::class, 'reject'])->name('submissions.reject');
             Route::post('/submissions/{submission}/publish', [AdminBetaSubmissions::class, 'publish'])->name('submissions.publish');
             Route::post('/guides/{guide}/default', [AdminBetaGuides::class, 'default'])->name('guides.default');
             Route::delete('/guides/{guide}', [AdminBetaGuides::class, 'destroy'])->middleware('sudo')->name('guides.delete');
+            Route::delete('/clips/{clip}', ClipRemovalController::class)->where('clip', '[A-Za-z0-9_.:-]{1,80}')->middleware('sudo')->name('clips.delete');
         });
     });
 
@@ -484,7 +514,7 @@ Route::middleware(['auth', 'editor', 'second-factor'])->prefix('admin')->name('a
         Route::get('/billing/disputes', DisputesController::class)->name('billing.disputes.list');
         Route::get('/reports', [AdminReports::class, 'index'])->name('reports.list');
         Route::get('/coaching/applications', [AdminCoaching::class, 'applications'])->name('coaching.applications.list');
-        Route::post('/coaching/applications/{application}', [AdminCoaching::class, 'decide'])->name('coaching.applications.decide');
+        Route::post('/coaching/applications/{application}', [AdminCoaching::class, 'decide'])->middleware('sudo')->name('coaching.applications.decide');
         Route::put('/coaching/coaches/{coach}', [AdminCoaching::class, 'coach'])->middleware('sudo')->name('coaching.coaches.update');
         Route::get('/coaching/packs', [AdminCoaching::class, 'packs'])->name('coaching.packs.list');
         Route::post('/coaching/packs/{pack}', [AdminCoaching::class, 'decidePack'])->name('coaching.packs.decide');
@@ -528,8 +558,25 @@ Route::middleware(['auth', 'editor', 'second-factor'])->prefix('admin')->name('a
         Route::get('/network', [AdminNetwork::class, 'show'])->name('network.show');
         Route::get('/counts', [CountsController::class, 'show'])->name('counts.show');
         Route::get('/funnel', AdminFunnel::class)->name('funnel.show');
+        Route::get('/experiments', [AdminExperiments::class, 'index'])->name('experiments.list');
+        Route::get('/school', [AdminSchool::class, 'index'])->name('school.list');
+        Route::get('/school/{class}', [AdminSchool::class, 'show'])->name('school.show');
+        Route::patch('/school/{class}', [AdminSchool::class, 'update'])->middleware('sudo')->name('school.update');
+        Route::post('/school/redemptions/{redemption}/end', [AdminSchool::class, 'end'])->middleware('sudo')->name('school.redemptions.end');
+        Route::patch('/school/teachers/{teacher}', [AdminSchool::class, 'teacher'])->middleware('sudo')->name('school.teachers.update');
+        Route::post('/experiments', [AdminExperiments::class, 'store'])->middleware('sudo')->name('experiments.create');
+        Route::patch('/experiments/{experiment}', [AdminExperiments::class, 'update'])->where('experiment', '[a-z][a-z0-9-]{1,23}')->middleware('sudo')->name('experiments.update');
         Route::get('/growth', [AdminGrowth::class, 'overview'])->name('growth.show');
         Route::get('/sources', [AdminGrowth::class, 'sources'])->name('sources.show');
+        Route::get('/active', [AdminGrowth::class, 'active'])->name('active.show');
+        Route::get('/reach', [AdminGrowth::class, 'reach'])->name('reach.show');
+        Route::get('/revenue', [AdminGrowth::class, 'revenue'])->name('revenue.show');
+        Route::get('/search', [AdminGrowth::class, 'search'])->name('search.show');
+        Route::get('/cohorts', [AdminGrowth::class, 'cohorts'])->name('cohorts.show');
+        Route::get('/churn', [AdminGrowth::class, 'churn'])->name('churn.show');
+        Route::get('/activity', [AdminGrowth::class, 'activity'])->name('activity.show');
+        Route::get('/code-watch', [AdminCodeWatch::class, 'index'])->name('codeWatch.list');
+        Route::patch('/code-watch/{hit}', [AdminCodeWatch::class, 'update'])->where('hit', '[A-Za-z0-9]{1,20}')->name('codeWatch.update');
         Route::get('/diagnostics/country', [AdminDiagnostics::class, 'country'])->name('diagnostics.country');
         Route::get('/boards/flags', [AdminBoards::class, 'flags'])->name('boards.flags.list');
         Route::post('/boards/scores/{score}/review', [AdminBoards::class, 'review'])->name('boards.scores.review');
@@ -544,7 +591,7 @@ Route::middleware(['auth', 'editor', 'second-factor'])->prefix('admin')->name('a
         Route::post('/appeals/{notice}', [AdminSupport::class, 'decide'])->middleware('sudo')->name('appeals.decide');
         Route::get('/social', [AdminSocial::class, 'index'])->name('social.list');
         Route::post('/social/harmonies/{harmony}', [AdminSocial::class, 'feature'])->name('social.feature');
-        Route::post('/social/{post}/approve', [AdminSocial::class, 'approve'])->name('social.approve');
+        Route::post('/social/{post}/approve', [AdminSocial::class, 'approve'])->middleware('sudo')->name('social.approve');
         Route::post('/social/{post}/cancel', [AdminSocial::class, 'cancel'])->name('social.cancel');
         Route::post('/social/{post}/retry', [AdminSocial::class, 'retry'])->name('social.retry');
         Route::get('/books', [AdminBooks::class, 'show'])->name('books.show');

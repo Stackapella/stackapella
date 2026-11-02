@@ -10,7 +10,9 @@ import { game } from '../stores/appearance.js';
 const KEY = 'stackapella.gameEffects';
 
 /** The switches in Settings' order, with their defaults. */
-export const EFFECTS = { sounds: false, hud: true, popups: true, titles: true, celebrations: true, title: true, stages: true, versus: true, select: true, ghost: true, daily: true, monthly: true };
+export const EFFECTS = { all: true, sounds: false, hud: true, popups: true, titles: true, celebrations: true, title: true, stages: true, versus: true, select: true, ghost: true, daily: true, monthly: true, arcade: true, scanlines: true };
+/** Looks, not moments: the master switch leaves them be. */
+export const LOOKS = ['arcade', 'scanlines'];
 
 function read() {
     let kept = {};
@@ -27,13 +29,13 @@ export const effects = reactive(read());
 watch(effects, () => local.set(KEY, JSON.stringify(effects)), { deep: true });
 
 /** The switches that are off, as <html data-game-off="hud title">, so a reskin in CSS follows them too. */
-export const offList = (all = effects) => Object.keys(EFFECTS).filter((name) => !all[name]).join(' ');
+export const offList = (all = effects) => Object.keys(EFFECTS).filter((name) => !all[name] || (!all.all && !LOOKS.includes(name))).join(' ');
 watch(effects, () => (document.documentElement.dataset.gameOff = offList()), { deep: true, immediate: true });
 
-/** Whether `name` shows now: game mode on and its switch on. */
+/** Whether `name` shows now: game mode on, its switch on, and Game effects (`all`, the master switch) on; the arcade look and its scanlines are looks, not moments, so the master leaves them be. */
 export function effect(name) {
     if (!(name in EFFECTS)) throw new Error(`No game effect called ${name}`);
-    return game() && effects[name];
+    return game() && effects[name] && (effects.all || LOOKS.includes(name));
 }
 
 const REDUCE = window.matchMedia?.('(prefers-reduced-motion: reduce)');

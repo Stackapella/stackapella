@@ -188,20 +188,28 @@ const DecideSheet = {
     components: { Modal, Field },
     props: { kind: { type: String, required: true }, busy: Boolean },
     emits: ['close', 'confirm'],
-    data: () => ({ makeDefault: true, note: '' }),
+    data: () => ({ makeDefault: true, note: '', abuse: false }),
     template: `
         <Modal :title="kind === 'accept' ? t('admin.review.acceptTitle') : t('admin.review.rejectTitle')" :dismissable="!busy" @close="$emit('close')">
-            <form class="space-y-5" @submit.prevent="$emit('confirm', kind === 'accept' ? { makeDefault } : { note: note.trim() || null })">
+            <form class="space-y-5" @submit.prevent="$emit('confirm', kind === 'accept' ? { makeDefault } : { note: note.trim() || null, abuse })">
                 <template v-if="kind === 'accept'">
                     <p class="text-cream">{{ t('admin.review.acceptBody') }}</p>
                     <label class="check-row"><input v-model="makeDefault" type="checkbox" class="checkbox" /> <span>{{ t('admin.review.makeDefault') }}<span class="block text-sm text-muted">{{ t('admin.review.makeDefaultHelp') }}</span></span></label>
                 </template>
-                <Field v-else :label="t('admin.review.rejectNote')" :help="t('admin.review.rejectNoteHelp')" v-slot="f">
-                    <textarea :id="f.id" v-model="note" rows="3" maxlength="1000" class="input" :aria-describedby="f.describedby"></textarea>
-                </Field>
+                <template v-else>
+                    <!-- A normal "not this one", or refused for abuse (Lend your voice: they can't claim again). -->
+                    <fieldset class="space-y-2" data-reject-kind>
+                        <legend class="label">{{ t('admin.review.rejectKind') }}</legend>
+                        <label class="check-row"><input v-model="abuse" type="radio" :value="false" class="radio" /> <span>{{ t('admin.review.rejectNormal') }}</span></label>
+                        <label class="check-row"><input v-model="abuse" type="radio" :value="true" class="radio" data-reject-abuse /> <span>{{ t('admin.review.rejectAbuse') }}<span class="block text-sm text-muted">{{ t('admin.review.rejectAbuseHelp') }}</span></span></label>
+                    </fieldset>
+                    <Field :label="t('admin.review.rejectNote')" :help="t('admin.review.rejectNoteHelp')" v-slot="f">
+                        <textarea :id="f.id" v-model="note" rows="3" maxlength="1000" class="input" :aria-describedby="f.describedby"></textarea>
+                    </Field>
+                </template>
                 <div class="flex justify-end gap-3">
                     <button type="button" class="btn-secondary" :disabled="busy" @click="$emit('close')">{{ t('common.cancel') }}</button>
-                    <button type="submit" :class="kind === 'accept' ? 'btn-primary' : 'btn-danger'" :disabled="busy">{{ busy ? t('common.saving') : kind === 'accept' ? t('admin.review.accept') : t('admin.review.reject') }}</button>
+                    <button type="submit" :class="kind === 'accept' ? 'btn-primary' : 'btn-danger'" :disabled="busy">{{ busy ? t('common.saving') : kind === 'accept' ? t('admin.review.accept') : abuse ? t('admin.review.refuseAbuse') : t('admin.review.reject') }}</button>
                 </div>
             </form>
         </Modal>`,
@@ -231,7 +239,7 @@ const ReviewTake = {
     }),
     setup: () => ({ STATUS, PUBLISH, FAILURE, TENDENCY, ADJUST, templatePartName, takeTitle, singerName, formatDate, formatNumber, when }),
     template: `
-        <div class="space-y-6">
+        <div class="space-y-6" :class="item ? 'max-sm:pb-40' : ''">
             <a :href="backHref" class="btn-ghost btn-sm" @click.prevent="back"><Icon name="back" :size="16" /> {{ t('admin.review.backToQueue') }}</a>
             <LoadFailed v-if="failed" :message="failed" @retry="load" />
             <p v-else-if="!item" class="text-muted" role="status">{{ t('admin.loading') }}</p>
@@ -255,8 +263,9 @@ const ReviewTake = {
 
                 <section class="card space-y-4 p-5" :aria-label="t('admin.review.listen')">
                     <div class="flex flex-wrap items-center gap-3">
-                        <button type="button" class="btn-primary" :disabled="!ready" @click="toggle"><Icon :name="playing ? 'stop' : 'play'" :size="18" /> {{ playing ? t('studio.stop') : t('admin.review.play') }}</button>
-                        <div v-if="notesMatch" class="seg" role="group" :aria-label="t('admin.review.thisPart')">
+                        <!-- A phone has these in the bar at the bottom, in reach of a thumb. -->
+                        <button type="button" class="btn-primary max-sm:hidden" :disabled="!ready" @click="toggle"><Icon :name="playing ? 'stop' : 'play'" :size="18" /> {{ playing ? t('studio.stop') : t('admin.review.play') }}</button>
+                        <div v-if="notesMatch" class="seg max-sm:hidden" role="group" :aria-label="t('admin.review.thisPart')">
                             <button type="button" class="seg-option" :aria-pressed="hear === 'take'" @click="setHear('take')">{{ t('admin.review.hearTake') }}</button>
                             <button type="button" class="seg-option" :aria-pressed="hear === 'synth'" @click="setHear('synth')">{{ t('admin.review.hearSynth') }}</button>
                         </div>
@@ -316,8 +325,8 @@ const ReviewTake = {
 
                 <section class="card flex flex-wrap items-center gap-3 p-5" :aria-label="t('admin.review.decide')">
                     <template v-if="decidable">
-                        <button v-if="isAdmin" type="button" class="btn-primary" :disabled="busy" @click="ask('accept')"><Icon name="check" :size="16" /> {{ t('admin.review.accept') }}</button>
-                        <button type="button" class="btn-secondary" :disabled="busy" @click="ask('retake')">{{ t('admin.review.askRetake') }}</button>
+                        <button v-if="isAdmin" type="button" class="btn-primary max-sm:hidden" :disabled="busy" @click="ask('accept')"><Icon name="check" :size="16" /> {{ t('admin.review.accept') }}</button>
+                        <button type="button" class="btn-secondary max-sm:hidden" :disabled="busy" @click="ask('retake')">{{ t('admin.review.askRetake') }}</button>
                         <button v-if="isAdmin" type="button" class="btn-ghost" :disabled="busy" @click="ask('reject')">{{ t('admin.review.reject') }}</button>
                     </template>
                     <template v-else-if="item.status === 'accepted'">
@@ -331,6 +340,22 @@ const ReviewTake = {
                     </span>
                 </section>
             </template>
+            <!-- A phone (Hillel reviews from his): play, this part's take or the synth, and the decision in one bar
+                 at the bottom, in reach of one thumb. Reject, Previous and the fixes stay on the page. -->
+            <div v-if="item" class="fixed inset-x-0 bottom-0 z-30 space-y-2 border-t border-line bg-panel px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:hidden" data-review-bar>
+                <div class="flex items-center gap-2">
+                    <button type="button" class="btn-primary min-h-12 flex-1" :disabled="!ready" @click="toggle"><Icon :name="playing ? 'stop' : 'play'" :size="18" /> {{ playing ? t('studio.stop') : t('admin.review.play') }}</button>
+                    <div v-if="notesMatch" class="seg shrink-0" role="group" :aria-label="t('admin.review.thisPart')">
+                        <button type="button" class="seg-option min-h-11" :aria-pressed="hear === 'take'" @click="setHear('take')">{{ t('admin.review.hearTake') }}</button>
+                        <button type="button" class="seg-option min-h-11" :aria-pressed="hear === 'synth'" @click="setHear('synth')">{{ t('admin.review.hearSynth') }}</button>
+                    </div>
+                </div>
+                <div v-if="decidable" class="flex items-center gap-2">
+                    <button v-if="isAdmin" type="button" class="btn-secondary min-h-12 flex-1" :disabled="busy" @click="ask('accept')"><Icon name="check" :size="16" /> {{ t('admin.review.accept') }}</button>
+                    <button type="button" class="btn-secondary min-h-12 flex-1" :disabled="busy" @click="ask('retake')">{{ t('admin.review.askRetake') }}</button>
+                    <button type="button" class="btn-ghost min-h-12 min-w-12 shrink-0" :disabled="!nextId" :aria-label="t('admin.review.next')" @click="go(nextId)"><Icon name="chevron" :size="18" class="-rotate-90 rtl:rotate-90" /></button>
+                </div>
+            </div>
             <RetakeSheet v-if="sheet === 'retake'" :phrases="phrases" :picked="picked" :busy="busy" :errors="errors" @close="sheet = null" @send="retake" />
             <DecideSheet v-if="sheet === 'accept' || sheet === 'reject'" :kind="sheet" :busy="busy" @close="sheet = null" @confirm="decide" />
         </div>`,

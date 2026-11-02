@@ -12,7 +12,8 @@
         "guides",
         "style",
         "kind",
-        "clip"
+        "clip",
+        "askedAgain"
     ],
     "properties": {
         "id": {
@@ -185,6 +186,27 @@
                 "voices",
                 "courseTitle"
             ]
+        },
+        "askedAgain": {
+            "type": [
+                "object",
+                "null"
+            ],
+            "additionalProperties": false,
+            "required": [
+                "note",
+                "at"
+            ],
+            "description": "Hillel asked for this part again because the song changed (status is then retake): his note, shown in place of the last take's note, until a new take is sent. Null for a clip.",
+            "properties": {
+                "note": {
+                    "type": "string"
+                },
+                "at": {
+                    "type": "string",
+                    "format": "date-time"
+                }
+            }
         }
     },
     "title": "A part a beta singer was asked to record"

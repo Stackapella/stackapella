@@ -16,6 +16,7 @@ use App\Http\Requests\Admin\StoreTesterRequest;
 use App\Http\Resources\Admin\AccountAdminResource;
 use App\Models\User;
 use App\Services\Billing\BillingGateway;
+use App\Support\Admin\PlusQuery;
 use App\Support\Http\CursorList;
 use Illuminate\Container\Attributes\CurrentUser;
 use Illuminate\Database\Eloquent\Builder;
@@ -56,10 +57,7 @@ final class PeopleController extends Controller
      */
     private static function plus(Builder $query): void
     {
-        $now = now();
-        $query->where('plan', 'plus')->orWhereNotNull('coach_active_at')->orWhere('plus_paid_until', '>', $now)->orWhere('store_plus_until', '>', $now)
-            ->orWhereExists(fn ($q) => $q->selectRaw('1')->from('subscriptions')->whereColumn('subscriptions.user_id', 'users.id')->where('type', 'default')
-                ->where(fn ($s) => $s->whereIn('stripe_status', ['active', 'trialing', 'past_due'])->whereNull('ends_at')->orWhere('ends_at', '>', $now)));
+        PlusQuery::apply($query);
     }
 
     /**

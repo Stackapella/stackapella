@@ -1,11 +1,17 @@
 // What the admin's screens share: dates, refusals, lists that load in pages, and the sheet every
 // change goes through (a reason, the sudo note, the server's field messages).
 
+import { reactive } from 'vue';
 import { ApiError } from '../api.js';
-import { formatDate, t } from '../i18n.js';
+import { formatDate, formatNumber, t } from '../i18n.js';
 import { Field, Notice } from '../components/form.js';
 import { Modal, toast } from '../components/ui.js';
 import { explain, inSudo, sendToSignIn } from './auth.js';
+
+/** A phone's width (under Tailwind's sm): where a wide table becomes a card a row. Follows the window. */
+const PHONE = window.matchMedia('(max-width: 639px)');
+export const screen = reactive({ phone: PHONE.matches });
+PHONE.addEventListener('change', (event) => (screen.phone = event.matches));
 
 /** "Oct 26, 2026, 2:05 PM" for a time the API sends. */
 export function when(time) {
@@ -100,3 +106,27 @@ export const ChangeSheet = {
         </Modal>`,
 };
 
+export const FEW = 20; // under this, a change is said as a number, never a percentage (it'd be noise); the server's lowSample agrees
+
+/** A tile's change against an earlier day: `+11%` from 20 up, `+2` under it (a percentage would be noise), or the same. */
+export function change(now, before) {
+    if (now === before) return { dir: 'same', text: t('admin.growth.same') };
+    const sign = now > before ? '+' : '';
+    const text = before >= FEW ? `${sign}${formatNumber(Math.round(((now - before) / before) * 100))}%` : `${sign}${formatNumber(now - before)}`;
+    return { dir: now > before ? 'up' : 'down', text };
+}
+
+/**
+ * The report's time zone (the server's `timezone`, a zone id such as "Europe/London"; never written
+ * in the web's code) as people say it: the city, "London", or "UTC". An id the browser doesn't know
+ * is said as it is.
+ */
+export function zoneName(zone) {
+    if (!zone || zone === 'UTC' || zone === 'Etc/UTC') return 'UTC';
+    try {
+        new Intl.DateTimeFormat('en', { timeZone: zone }); // a zone the browser knows
+    } catch {
+        return zone;
+    }
+    return zone.split('/').at(-1).replaceAll('_', ' ');
+}

@@ -1,8 +1,9 @@
-// The course map (docs/vocal-coaching-plan.md, "The course map"; Hillel's 62.png): the units as
-// collapsible cards, the one you're in open. Each has its eyebrow in the unit's colour, its title,
-// its stars so far with a bar, and its path of lessons as glass gems in the unit's colour (done
-// ticked, the one now with a play ring in your accent, the rest hollow, the challenge a star), three
-// star dots under each, and the picked lesson's row (its line, the minutes, Start). A unit still
+// The course map (docs/vocal-coaching-plan.md, "The course map"; Hillel's 62.png, then 98.png): the
+// units as collapsible cards, the one you're in open. Each has its eyebrow in the unit's colour, its
+// title, its bar the card's width with its count beside it, and its path of lessons as glass gems in
+// the unit's colour (done ticked, the one now with a play ring in your accent, the rest hollow, the
+// challenge a star), and the picked lesson's card (its number, title, line, minutes and exercises,
+// and Start lesson, Sing it again or why it's locked), the one you're on at first. A unit still
 // closed says how many stars open it. The library and Sing are never behind it.
 
 import { localized, t } from '../i18n.js';
@@ -13,7 +14,7 @@ import { account } from '../stores/account.js';
 import { learning, loadLearning } from '../stores/learning.js';
 import { PART_COLORS } from '../theme.js';
 import { Icon } from './icon.js';
-import { courseView, lessonAccess, lessonFree, nextInCourse } from '../courses.js';
+import { lessonAccess, lessonFree, nextInCourse, openView, songCourse } from '../courses.js';
 import { StageMap } from '../game/stage-map.js';
 import { effect } from '../game/effects.js';
 import { game } from '../skin.js';
@@ -21,24 +22,27 @@ import { game } from '../skin.js';
 export const CourseMap = {
     components: { Icon, StageMap },
     // A Plus course's data (js/courses.js); the free course when none.
-    props: { course: { type: Object, default: null } },
+    props: { course: { type: Object, default: null }, focusUnit: { type: String, default: null } }, // focusUnit: a song course's part, picked on the song page
     data: () => ({ expanded: null, picked: {} }),
     setup: () => ({ learning, localized, lessonMinutes, effect, game }),
     template: `
         <ol v-if="units.length" class="space-y-4" data-course-map>
             <li v-for="(unit, u) in units" :key="unit.id" class="card overflow-hidden" :data-unit="unit.id">
-                <button type="button" class="flex w-full flex-wrap items-center justify-between gap-3 p-5 text-start" :aria-expanded="isOpen(u) ? 'true' : 'false'" @click="toggle(u)">
-                    <span class="min-w-0">
-                        <span class="block tabular-nums text-xs font-bold uppercase tracking-[0.14em]" :style="{ color: paintInk(colorOf(unit)) }">{{ t('course.unit', { number: u + 1 }) }}</span>
-                        <span class="block text-xl font-extrabold tracking-tight" :class="open(u) ? 'text-cream' : 'text-muted'" translate="no">{{ localized(unit.title) }}</span>
-                    </span>
-                    <span class="flex items-center gap-3">
-                        <span v-if="plusUnit(unit)" class="chip-accent">{{ t('course.plus') }}</span>
-                        <span v-else class="w-32 text-end">
-                            <span class="block tabular-nums text-xs text-muted">{{ game() ? (open(u) ? t('course.mapStars', { stars: starsIn(unit), max: maxStars(unit) }) : t('course.mapToOpen', { stars: starsIn(units[u - 1]), need: starsToOpen(units[u - 1]) })) : open(u) ? t('course.mapLessons', { done: lessonsDone(unit), total: unit.lessons.length }) : t('course.mapOpensAfter', { number: u }) }}</span>
-                            <span class="mt-1.5 block h-1 overflow-hidden rounded-full bg-raised"><span class="block h-full rounded-full bg-accent" :style="{ width: barShare(u) * 100 + '%' }"></span></span>
+                <!-- Hillel's 98.png: the unit's eyebrow and title, then its bar the card's width with the count beside it; a chevron opens and closes the unit. -->
+                <button type="button" class="block w-full p-5 text-start" :aria-expanded="isOpen(u) ? 'true' : 'false'" data-unit-head @click="toggle(u)">
+                    <span class="flex items-start justify-between gap-3">
+                        <span class="min-w-0">
+                            <span class="block tabular-nums text-xs font-bold uppercase tracking-[0.14em]" :style="{ color: paintInk(colorOf(unit)) }">{{ t('course.unit', { number: u + 1 }) }}</span>
+                            <span class="block text-xl font-extrabold tracking-tight" :class="open(u) ? 'text-cream' : 'text-muted'" translate="no">{{ localized(unit.title) }}</span>
                         </span>
-                        <Icon :name="isOpen(u) ? 'minus' : 'plus'" :size="16" class="text-muted" />
+                        <span class="flex shrink-0 items-center gap-2">
+                            <span v-if="plusUnit(unit)" class="chip-accent">{{ t('course.plus') }}</span>
+                            <Icon name="chevron" :size="18" class="text-muted motion-safe:transition" :class="isOpen(u) ? 'rotate-180' : ''" />
+                        </span>
+                    </span>
+                    <span v-if="!plusUnit(unit)" class="mt-3 flex items-center gap-3">
+                        <span class="block h-1.5 flex-1 overflow-hidden rounded-full bg-raised"><span class="block h-full rounded-full bg-accent" :style="{ width: barShare(u) * 100 + '%' }"></span></span>
+                        <span class="shrink-0 tabular-nums text-xs text-muted">{{ game() ? (open(u) ? t('course.mapStars', { stars: starsIn(unit), max: maxStars(unit) }) : t('course.mapToOpen', { stars: starsIn(units[u - 1]), need: starsToOpen(units[u - 1]) })) : open(u) ? t('course.mapLessons', { done: lessonsDone(unit), total: unit.lessons.length }) : t('course.mapOpensAfter', { number: u }) }}</span>
                     </span>
                 </button>
                 <div v-if="isOpen(u)" class="border-t border-edge px-5 pb-5 pt-6">
@@ -55,13 +59,14 @@ export const CourseMap = {
                             <span class="line-clamp-2 px-1 text-xs" :class="pickedId(u) === lesson.id ? 'font-bold text-cream' : 'text-muted'" translate="no">{{ localized(lesson.title) }}</span>
                         </li>
                     </ol>
-                    <div v-if="pickedLesson(u)" class="mt-5 flex flex-wrap items-center gap-4 border-t border-line pt-4" data-picked-lesson>
-                        <div class="min-w-0 flex-1">
-                            <p class="font-bold text-cream" translate="no">{{ localized(pickedLesson(u).title) }}</p>
-                            <p v-if="lineOf(pickedLesson(u))" class="text-sm text-muted" translate="no">{{ localized(lineOf(pickedLesson(u))) }}</p>
-                        </div>
-                        <span class="tabular-nums text-sm text-muted">{{ t('course.aboutMin', { minutes: lessonMinutes(pickedLesson(u)) }) }}</span>
-                        <button type="button" class="btn-primary" :disabled="locked(u, unit, pickedLesson(u))" @click="navigate('/learn/' + pickedLesson(u).id)">{{ stars(pickedLesson(u)) ? t('course.replay') : t('course.startLesson') }}</button>
+                    <!-- The picked lesson's card (Hillel's 98.png), the one you're on at first, so Start lesson stays one tap from the map. -->
+                    <div v-if="pickedLesson(u)" class="mt-6 rounded-2xl border border-line bg-raised/40 p-5 outline-none" tabindex="-1" role="group" :aria-label="localized(pickedLesson(u).title)" data-picked-lesson>
+                        <p class="tabular-nums text-xs font-bold uppercase tracking-[0.14em] text-muted">{{ t('course.lessonNumber', { number: lessonIndex(u) + 1 }) }}</p>
+                        <p class="mt-1 text-xl font-extrabold tracking-tight text-cream" translate="no">{{ localized(pickedLesson(u).title) }}</p>
+                        <p v-if="lineOf(pickedLesson(u))" class="mt-2 text-sm text-muted" translate="no">{{ localized(lineOf(pickedLesson(u))) }}</p>
+                        <p class="mt-3 tabular-nums text-xs text-muted">{{ t('course.aboutMin', { minutes: lessonMinutes(pickedLesson(u)) }) }} · {{ t('course.exercises', { count: exercisesIn(pickedLesson(u)) }) }}</p>
+                        <p v-if="locked(u, unit, pickedLesson(u))" class="mt-4 text-sm text-muted" data-lesson-locked>{{ lockedWhy(u, unit) }}</p>
+                        <button v-else type="button" class="btn-primary mt-4 w-full" @click="navigate('/learn/' + pickedLesson(u).id)">{{ stars(pickedLesson(u)) ? t('course.replay') : t('course.startLesson') }}</button>
                     </div>
                 </div>
             </li>
@@ -74,10 +79,10 @@ export const CourseMap = {
         staff: () => !!account.me?.staff,
         units: (vm) => (vm.course ? vm.course.units : learning.course?.units ?? []),
         /** The progress the map reads: a Plus course's own lessons, or the free course's. */
-        progress: (vm) => (vm.course ? courseView(learning.progress, vm.course.id) : learning.progress),
+        progress: (vm) => (vm.course ? openView(learning.progress, vm.course) : learning.progress), // a song course's units all open
         /** The lesson to do next, marked on the map with a play ring. */
         current() {
-            if (this.course) return nextInCourse(this.course, learning.progress)?.lesson.id ?? null;
+            if (this.course) return nextInCourse(this.course, learning.progress, this.focusUnit)?.lesson.id ?? null;
             return learning.course ? nextLesson(learning.course.units, learning.progress, { plus: this.plus })?.lesson.id ?? null : null;
         },
         /** The unit you're in: open at first. */
@@ -113,7 +118,7 @@ export const CourseMap = {
         },
         /** The Plus chip on a unit's head: a Plus unit of the free course, or a Plus course's unit with no free lesson. */
         plusUnit(unit) {
-            if (this.plus || (this.course && this.staff)) return false;
+            if (this.plus || (this.course && (this.staff || songCourse(this.course)))) return false;
             return this.course ? !unit.lessons.some((l) => lessonFree(this.course, l.id)) : !!unit.plus;
         },
         isOpen(u) {
@@ -122,8 +127,19 @@ export const CourseMap = {
         toggle(u) {
             this.expanded = this.isOpen(u) ? -1 : u;
         },
+        /** A lesson picked on the path: its card shows it, and the focus moves there (keyboard and screen readers). */
         pick(u, id) {
             this.picked = { ...this.picked, [u]: id };
+            this.$nextTick(() => this.$el.querySelector(`[data-unit="${this.units[u].id}"] [data-picked-lesson]`)?.focus());
+        },
+        lessonIndex(u) {
+            return this.units[u].lessons.findIndex((l) => l.id === this.pickedId(u));
+        },
+        /** The steps you sing in (every step but the Learn ones), of the lesson as written: the map never draws an experiment's arm (lessonFor), the lesson does when it opens. */
+        exercisesIn: (lesson) => lesson.steps.filter((s) => s.kind !== 'learn').length,
+        /** Why a lesson can't be started now: its unit closed, or Plus's (locked's only reason inside an open unit). */
+        lockedWhy(u, unit) {
+            return this.open(u) ? t('course.plusOnly') : t('course.locked');
         },
         pickedId(u) {
             const unit = this.units[u];

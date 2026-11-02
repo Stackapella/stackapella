@@ -109,7 +109,8 @@
             <div class="s-wrap">
                 <div class="s-courses-head">
                     <div>
-                        <p class="s-kick">{{ __('pages.pricing.courses_eyebrow') }} <x-site.soon /></p>
+                        @php($anyOpen = collect(\App\Support\Site\SitePages::COURSES)->contains(fn (string $slug): bool => \App\Support\Site\SitePages::courseOpen($slug)))
+                        <p class="s-kick">{{ __('pages.pricing.courses_eyebrow') }}@unless ($anyOpen) <x-site.soon />@endunless</p>
                         <h2 id="courses-h" class="s-title">{{ __('pages.pricing.courses_title') }}</h2>
                     </div>
                     <div class="s-courses-lead">
@@ -118,12 +119,14 @@
                     </div>
                 </div>
                 <div class="s-courses">
-                    @foreach ((array) \Illuminate\Support\Facades\Lang::get('pages.pricing.courses') as [$group, $courses])
+                    {{-- The groups as /courses has them (the catalogue's, SitePages::courseGroups), each course's name and line from its page. --}}
+                    @foreach (\App\Support\Site\SitePages::courseGroups() as $group)
                         <section class="s-card3d s-v{{ $loop->iteration }}" aria-labelledby="courses-{{ $loop->iteration }}">
-                            <header><h3 id="courses-{{ $loop->iteration }}"><i aria-hidden="true"></i>{{ $group }}</h3><span>{{ trans_choice('pages.pricing.courses_count', count($courses)) }}</span></header>
+                            <header><h3 id="courses-{{ $loop->iteration }}"><i aria-hidden="true"></i>{{ $group['name'] }}</h3><span>{{ trans_choice('pages.pricing.courses_count', count($group['courses'])) }}</span></header>
                             <ol>
-                                @foreach ($courses as [$name, $line])
-                                    <li><span aria-hidden="true">{{ str_pad((string) $loop->iteration, 2, '0', STR_PAD_LEFT) }}</span><div><b>{{ $name }}</b><p>{{ $line }}</p></div></li>
+                                @foreach ($group['courses'] as $slug)
+                                    @php($courseOpen = \App\Support\Site\SitePages::courseOpen($slug))
+                                    <li @class(['s-course-soon' => ! $courseOpen])><span aria-hidden="true">{{ str_pad((string) $loop->iteration, 2, '0', STR_PAD_LEFT) }}</span><div><b>@if ($courseOpen)<a href="/courses/{{ $slug }}">{{ __('site.courses.pages.'.$slug.'.name') }}</a> <span class="s-soon s-open">{{ __('pages.site.course_open') }}</span>@else{{ __('site.courses.pages.'.$slug.'.name') }}@endif</b><p>{{ __('site.courses.pages.'.$slug.'.summary') }}</p></div></li>
                                 @endforeach
                             </ol>
                         </section>

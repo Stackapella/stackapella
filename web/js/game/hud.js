@@ -12,7 +12,7 @@ export const PopupSlot = {
     setup: () => ({ WORDS, still }),
     template: `
         <span class="ge-slot" data-game-slot>
-            <span v-if="queue.now" :key="queue.now.id" class="ge-pop" :class="[queue.now.kind === 'combo' ? '' : 'ge-pop--pink', still() ? 'ge-pop--still' : '']" aria-hidden="true" :data-game-popup="queue.now.kind">
+            <span v-if="queue.now" :key="queue.now.id" class="ge-pop" :class="[['combo', 'rate'].includes(queue.now.kind) ? '' : 'ge-pop--pink', still() ? 'ge-pop--still' : '']" aria-hidden="true" :data-game-popup="queue.now.kind">
                 <span class="ge-burst"></span>
                 <span class="ge-pop-text">{{ t(WORDS[queue.now.kind], { count: queue.now.count ?? 0 }) }}</span>
             </span>

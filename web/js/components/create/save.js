@@ -10,6 +10,7 @@ import { t, tk } from '../../i18n.js';
 import { navigate } from '../../router.js';
 import { exportFile } from '../../creator.js';
 import { canCreateProject, FREE_PROJECT_LIMIT, LimitReached, startFromTemplate } from '../../stores/projects.js';
+import { mine } from '../../stores/templates.js';
 import { singerOptions, templatePartName } from '../../templates.js';
 import { keyLabel } from '../../theme.js';
 import { Field, Notice } from '../form.js';
@@ -116,7 +117,7 @@ export const SaveStep = {
                     </Notice>
                     <div class="flex flex-wrap gap-3">
                         <button type="button" class="btn-secondary" :disabled="trying || problemsBut('title').length > 0" @click="tryIt"><Icon name="play" :size="18" /> {{ t('create.save.try') }}</button>
-                        <button type="button" class="btn-ghost" :disabled="problemsBut('title').length > 0" @click="exportIt"><Icon name="download" :size="18" /> {{ t('create.save.export') }}</button>
+                        <button v-if="!fromSheetMusic" type="button" class="btn-ghost" :disabled="problemsBut('title').length > 0" @click="exportIt"><Icon name="download" :size="18" /> {{ t('create.save.export') }}</button>
                     </div>
                 </form>
 
@@ -142,7 +143,7 @@ export const SaveStep = {
                                 <span class="chip">{{ t('create.frame.summary.tempo', { bpm: draft.template.tempo, signature: draft.template.timeSignature }) }}</span>
                                 <span class="chip">{{ keyLabel(draft.template.key) }}</span>
                             </div>
-                            <p class="flex items-center gap-2 border-t border-line pt-3 text-sm text-muted"><span class="size-2 rounded-full" :class="draft.visibility === 'unlisted' ? 'bg-accent' : 'bg-muted'" aria-hidden="true"></span>{{ draft.visibility === 'unlisted' ? t('create.save.unlisted') : t('create.save.onlyYou') }}</p>
+                            <p data-ui="facts" class="flex items-center gap-2 border-t border-line pt-3 text-sm text-muted"><span class="size-2 rounded-full" :class="draft.visibility === 'unlisted' ? 'bg-accent' : 'bg-muted'" aria-hidden="true"></span>{{ draft.visibility === 'unlisted' ? t('create.save.unlisted') : t('create.save.onlyYou') }}</p>
                         </div>
                     </div>
                     <ul class="space-y-1.5 text-sm" :aria-label="t('create.save.needs')">
@@ -155,6 +156,11 @@ export const SaveStep = {
             </div>
         </section>`,
     computed: {
+        /** A song made from sheet music, or a change or copy of one: no template file, so it stays an import. */
+        fromSheetMusic() {
+            const from = mine.list.find((r) => r.id === (this.draft.editing ?? this.draft.copiedFrom));
+            return !!(from && (from.source === 'sheet-music' || from.imported));
+        },
         /** What Save needs, ticked off as it's done. */
         checklist() {
             return [

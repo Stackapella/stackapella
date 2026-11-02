@@ -22,6 +22,8 @@ final class DecideSubmissionRequest extends FormRequest
     public function rules(): array
     {
         return [
+            // A rejection for abuse (someone else's recording, a sample, offensive): a volunteer can't claim again.
+            'abuse' => ['sometimes', 'boolean'],
             'makeDefault' => ['sometimes', 'boolean'],
             'note' => [$this->routeIs('admin.beta.submissions.retake') ? 'required' : 'nullable', 'string', 'max:1000'],
             'beat' => ['nullable', 'numeric', 'min:0', 'max:99999'],

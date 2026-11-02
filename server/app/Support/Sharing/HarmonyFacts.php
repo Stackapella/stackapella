@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Support\Sharing;
 
 use App\Models\Harmony;
+use App\Models\HarmonyConsent;
 use App\Models\TemplateGuide;
 use App\Models\User;
 use App\Support\Gallery\Gallery;
@@ -33,13 +34,17 @@ final class HarmonyFacts
     public function singers(Harmony $harmony): array
     {
         // The owner first, then the friends who sang on it, in the order they joined Stackapella.
-        $others = ($harmony->singer_ids ?? []) === [] ? [] : User::query()->whereKey($harmony->singer_ids)->orderBy('id')->get(['id', 'name', 'avatar_key', 'hide_profile'])->all();
+        $others = ($harmony->singer_ids ?? []) === [] ? [] : User::query()->whereKey($harmony->singer_ids)->orderBy('id')->get(['id', 'name', 'avatar_key', 'hide_profile', 'adult_confirmed_at'])->all();
+        // A friend is named, with their picture, only once they've agreed for this song (which needs
+        // them 18 or over): the link may be embedded anywhere (security review, 2026-11-01).
+        $agreed = $others === [] ? [] : HarmonyConsent::query()->where('harmony_id', $harmony->id)->where('status', HarmonyConsent::AGREED)->pluck('user_id')->flip()->all();
+        $named = static fn (User $singer): bool => $singer->id === $harmony->user_id || (isset($agreed[$singer->id]) && Gallery::adult($singer));
 
         return array_map(static fn (User $singer): array => [
             // A name is shown on a public page, a card and a video: "Anonymous" for a hidden
             // profile, and one with a link or a word-list match is never drawn there.
-            'name' => Gallery::hidden($singer) ? __('sharing.anonymous') : (TextFilter::hasLink($singer->name) || TextFilter::holds($singer->name) ? __('sharing.a_singer') : $singer->name),
-            'avatarUrl' => $singer->avatar_key !== null && ! Gallery::hidden($singer) ? Storage::disk('media')->url($singer->avatar_key) : null,
+            'name' => ! $named($singer) ? __('sharing.a_singer') : (Gallery::hidden($singer) ? __('sharing.anonymous') : (TextFilter::hasLink($singer->name) || TextFilter::holds($singer->name) ? __('sharing.a_singer') : $singer->name)),
+            'avatarUrl' => $named($singer) && $singer->avatar_key !== null && ! Gallery::hidden($singer) ? Storage::disk('media')->url($singer->avatar_key) : null,
         ], [$harmony->user, ...$others]);
     }
 

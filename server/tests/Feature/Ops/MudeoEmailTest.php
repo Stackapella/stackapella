@@ -19,6 +19,7 @@ use App\Support\Flags;
 use App\Support\Pages\MudeoArrival;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Queue;
@@ -40,6 +41,16 @@ final class MudeoEmailTest extends TestCase
     private function code(EarlyAccessLink $link): string
     {
         return substr(EarlyAccess::url($link), strrpos(EarlyAccess::url($link), '/') + 1);
+    }
+
+    public function test_the_emails_link_counts_one_visit_a_browser(): void
+    {
+        config(['counts.enabled' => true]);
+        $first = $this->get('/?ref=mudeo')->assertOk();
+        $this->assertSame(1, (int) DB::table('usage_counts')->where('kind', 'mudeo_visit')->sum('count'));
+        $this->withUnencryptedCookie(MudeoArrival::COOKIE, '1')->get('/?ref=mudeo')->assertOk();
+        $this->assertSame(1, (int) DB::table('usage_counts')->where('kind', 'mudeo_visit')->sum('count'));
+        $this->assertNotNull($first->getCookie(MudeoArrival::COOKIE, false));
     }
 
     public function test_the_link_lets_people_in_while_sign_ups_are_paused_and_marks_them(): void
@@ -89,9 +100,9 @@ final class MudeoEmailTest extends TestCase
         $link->refresh()->forceFill(['cap' => $link->joined])->save();
         $this->getJson('/api/early/'.$code)->assertJsonPath('data.status', 'full');
 
-        // The page is the app's, kept out of search and with no referrer.
-        $page = $this->get('/early/'.$code);
-        $page->assertOk()->assertHeader('X-Robots-Tag', 'noindex, nofollow')->assertHeader('Referrer-Policy', 'no-referrer');
+        // Since launch, a link already sent goes to the email's own arrival, open, full or gone.
+        $this->get('/early/'.$code)->assertStatus(301)->assertRedirect(MudeoList::link());
+        $this->get('/early/no-such-code')->assertStatus(301)->assertRedirect(MudeoList::link());
     }
 
     public function test_the_admin_pauses_raises_and_replaces_the_link(): void
@@ -232,19 +243,21 @@ final class MudeoEmailTest extends TestCase
         $this->assertSame('contact@stackapella.test', $ana['reply_to']);
         $this->assertSame('mudeo is now Stackapella, and it finally does what mudeo couldn\'t', $ana['subject']);
         $this->assertStringStartsWith('Hi Ana,', trim((string) $ana['text']));
-        // Hillel's words in order: the four paragraphs, the six points, the browser line, then the
-        // invitation and its link, then the rest. Bold in the HTML, plain in the text.
+        // Hillel's words in order (the shorter email): the three paragraphs, the four points, the
+        // open-source line, the button and its link, then the rest. Bold in the HTML, plain in the text.
         $text = (string) $ana['text'];
-        $order = ['who made mudeo', 'closed a few months ago', 'audio only', 'from your very first note', '- Find your voice in a minute.', '- Sing with friends.', 'with nothing to install', 'invited in early', 'Try Stackapella: '.EarlyAccess::url(EarlyAccess::current()), 'shape what comes next', 'I read every message.', 'P.S. Your mudeo videos:', 'This is the only email we\'ll send.'];
+        $order = ['who made mudeo', 'closed a few months ago', 'audio only', 'teaches you to sing harmony', '- Learn a part', '- Sing with friends', 'open source', 'github.com/stackapella/stackapella', 'Try Stackapella: '.MudeoList::link(), 'I read every message.', 'P.S. If you\'d like a copy of your mudeo videos', 'This is the only email we\'ll send.'];
         $at = array_map(static fn (string $words): int|false => strpos($text, $words), $order);
         $this->assertNotContains(false, $at, 'Every part of the email is in its text.');
         $this->assertSame($at, array_values(collect($at)->sort()->all()), 'The email\'s parts are in Hillel\'s order.');
         $this->assertStringNotContainsString('*', $text);
-        $this->assertStringContainsString('Find your voice in a minute.</strong>', (string) $ana['html']);
+        $this->assertStringContainsString('Learn a part</strong>', (string) $ana['html']);
+        $this->assertStringContainsString('<a href="https://github.com/stackapella/stackapella"', (string) $ana['html']);
         $this->assertStringContainsString('free to start</strong>', (string) $ana['html']);
         $this->assertStringContainsString('>Try Stackapella</a>', (string) $ana['html']);
         $this->assertStringContainsString('Sent to ana@singers.stackapella.com because you had a mudeo account.', $text);
-        $this->assertStringContainsString(EarlyAccess::url(EarlyAccess::current()), (string) $ana['text']);
+        $this->assertStringContainsString('https://stackapella.test/?ref=mudeo', MudeoList::link());
+        $this->assertStringContainsString(MudeoList::link(), (string) $ana['text']);
         $this->assertStringContainsString('1 Harmony Lane, Springfield', (string) $ana['html']);
         $this->assertStringNotContainsString('<img', (string) $ana['html']);
         $this->assertSame('List-Unsubscribe=One-Click', $ana['headers']['List-Unsubscribe-Post']);

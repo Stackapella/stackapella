@@ -35,6 +35,8 @@ use Illuminate\Support\Carbon;
  * @property CreditMode|null $credit_mode
  * @property bool $credit_links_profile
  * @property int|null $hourly_rate_cents
+ * @property bool $volunteer Lend your voice: unpaid, joined by themselves (no invite link)
+ * @property Carbon|null $volunteer_blocked_at refused or removed for abuse: can't claim (Lend your voice)
  * @property string|null $currency
  * @property Carbon|null $last_seen_at
  * @property int|null $created_by
@@ -72,6 +74,8 @@ final class BetaSinger extends Model
             'accepted_at' => 'datetime',
             'consented_at' => 'datetime',
             'consent_version' => 'integer',
+            'volunteer' => 'boolean',
+            'volunteer_blocked_at' => 'datetime',
             'credit_mode' => CreditMode::class,
             'credit_links_profile' => 'boolean',
             'hourly_rate_cents' => 'integer',
@@ -85,6 +89,14 @@ final class BetaSinger extends Model
     public function assignments(): HasMany
     {
         return $this->hasMany(BetaAssignment::class);
+    }
+
+    /**
+     * The agreement this singer must have accepted: the beta agreement, or a volunteer's own.
+     */
+    public function agreementVersion(): int
+    {
+        return (int) config($this->volunteer ? 'beta.volunteer_agreement_version' : 'beta.agreement_version');
     }
 
     public function hasConsented(int $version): bool

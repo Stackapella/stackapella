@@ -269,18 +269,26 @@ final class StripeWebhookController extends WebhookController
      */
     protected function handleChargeDisputeClosed(array $payload): Response
     {
-        return $this->dispute($payload);
+        // Won: a coach's held or taken-back share is paid after all.
+        $charge = $payload['data']['object']['charge'] ?? null;
+
+        if (is_string($charge) && ($payload['data']['object']['status'] ?? null) === 'won') {
+            app(Engagements::class)->disputeWon($charge);
+        }
+
+        return $this->dispute($payload, coaching: false);
     }
 
     /**
      * @param  array<string, mixed>  $payload
      */
-    private function dispute(array $payload): Response
+    private function dispute(array $payload, bool $coaching = true): Response
     {
-        // A chargeback on coaching: the coach's share never moves after it, and Hillel sees it.
+        // A chargeback on coaching: the coach's share never moves after it, and Hillel sees it (a
+        // closed dispute doesn't mark it again: a win has just cleared it).
         $charge = $payload['data']['object']['charge'] ?? null;
 
-        if (is_string($charge)) {
+        if ($coaching && is_string($charge)) {
             app(Engagements::class)->disputed($charge);
         }
 

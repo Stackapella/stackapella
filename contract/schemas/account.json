@@ -22,6 +22,7 @@
         "createdAt",
         "betaSinger",
         "staff",
+        "admin",
         "publicProfile",
         "hideProfile",
         "initials",
@@ -242,6 +243,10 @@
                 null
             ],
             "description": "A display hint (the admin's version badge): nothing is granted by it, and admin operations check for themselves."
+        },
+        "admin": {
+            "type": "boolean",
+            "description": "Show the Admin link: true only for someone passing the whole admin gate in this session (the database flag, the listed Google id and a verified Google sign-in now). Editors and everyone else: false. /admin checks the gate itself."
         },
         "publicProfile": {
             "type": "boolean",

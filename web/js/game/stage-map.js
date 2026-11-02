@@ -1,9 +1,10 @@
 // Stage select on a map (docs/game-elements-plan.md; the proposal's board 07, after Super Mario
-// World's overworld and Sonic 2's special stage): the open unit's lessons as nodes on a winding
-// dotted path, the dots lit in the unit's colour up to the lesson you're on, "You are here" over it
-// (a slow pulse, still with reduced motion), and the unit's challenge as a special stage with its
-// two-star target said first ("70% on pitch for two stars", the course's own rule). The other units
-// stay a list. Picking a node works as the list's does: the course map shows its row underneath.
+// World's overworld and Sonic 2's special stage; Hillel's 98.png): the open unit's lessons as nodes on
+// a dotted path that curves gently down the left, each title to its node's right (so no title covers
+// a node), the dots lit in the unit's colour up to the lesson you're on. Over a title, "You are here"
+// or "Special stage"; under it, the stars earned. The unit's challenge is a special stage with its
+// two-star target said ("70% on pitch for two stars", the course's own rule). Picking a node works as
+// the list's does: the course map shows its card underneath.
 
 import { formatNumber, localized } from '../i18n.js';
 import { starsFor } from '../course.js';
@@ -11,7 +12,7 @@ import { Icon } from '../components/icon.js';
 import { cue } from './chip.js';
 
 const ROW = 104; // px between nodes, top to bottom
-const XS = [20, 72, 80, 28]; // percent across: a snake down the map
+const XS = [12, 24, 30, 24, 14]; // percent across: a gentle curve down the left, the titles to the right
 
 /** Where node `i` sits: `{ x }` percent across, `{ y }` px down. */
 export const nodeAt = (i) => ({ x: XS[i % XS.length], y: 44 + i * ROW });
@@ -51,8 +52,7 @@ export const StageMap = {
                 <path v-for="(node, i) in nodes.slice(1)" :key="node.id" :d="segment(nodeAt(i), nodeAt(i + 1))" :class="nodes[i].stars ? 'is-lit' : ''" vector-effect="non-scaling-stroke" />
             </svg>
             <ol :aria-label="t('home.lead.path')">
-                <li v-for="(node, i) in nodes" :key="node.id" class="ge-map-stop" :class="nodeAt(i).x > 50 ? 'is-end' : ''" :style="{ insetInlineStart: nodeAt(i).x + '%', top: nodeAt(i).y + 'px' }">
-                    <span v-if="node.current" class="ge-map-here" aria-hidden="true">{{ t('game.map.here') }}</span>
+                <li v-for="(node, i) in nodes" :key="node.id" class="ge-map-stop" :style="{ insetInlineStart: nodeAt(i).x + '%', top: nodeAt(i).y + 'px' }">
                     <button type="button" class="ge-map-node" :class="[node.stars ? 'is-done' : '', node.current ? 'is-now' : '', node.challenge ? 'is-special' : '', node.picked ? 'is-picked' : '']" :disabled="node.locked"
                         :aria-label="t('game.map.node', { number: formatNumber(i + 1), label: node.locked ? t('game.map.locked', { title: localized(node.title) }) : t('course.lessonLabel', { title: localized(node.title), stars: node.stars }) })" :aria-current="node.current ? 'step' : null" :aria-pressed="node.picked ? 'true' : 'false'" @click="pick(node.id)">
                         <Icon v-if="node.stars" name="check" :size="20" />
@@ -60,9 +60,10 @@ export const StageMap = {
                         <span v-else class="ge-map-num">{{ formatNumber(i + 1) }}</span>
                     </button>
                     <span class="ge-map-label">
-                        <span v-if="node.stars" class="ge-map-stars" aria-hidden="true"><i v-for="s in 3" :key="s" :class="s <= node.stars ? 'is-on' : ''">★</i></span>
-                        <span v-if="node.challenge" class="ge-map-special">{{ t('game.map.special') }}</span>
+                        <span v-if="node.current" class="ge-map-here" aria-hidden="true">{{ t('game.map.here') }}</span>
+                        <span v-else-if="node.challenge" class="ge-map-special">{{ t('game.map.special') }}</span>
                         <span class="ge-map-title" translate="no">{{ localized(node.title) }}</span>
+                        <span v-if="node.stars" class="ge-map-stars" aria-hidden="true"><i v-for="s in 3" :key="s" :class="s <= node.stars ? 'is-on' : ''">★</i></span>
                         <span v-if="node.challenge && node.stars < 2" class="ge-map-target">{{ t('game.map.target', { percent: twoStarPercent() }) }}</span>
                     </span>
                 </li>

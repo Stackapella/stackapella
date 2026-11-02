@@ -1,0 +1,35 @@
+{
+    "data": {
+        "id": "Ab3dEf9h",
+        "name": "Period 3 choir",
+        "code": "KQ7M-3XPA",
+        "teacher": {
+            "id": "Zx81Qw2e",
+            "name": "Ms Rivera",
+            "email": "teacher@example.com",
+            "approved": true,
+            "seatAllowance": 300,
+            "seatsTaken": 30
+        },
+        "seats": 30,
+        "used": 12,
+        "status": "open",
+        "createdAt": "2026-11-01T10:00:00Z",
+        "expiresAt": "2027-03-01T10:00:00Z",
+        "closedAt": null,
+        "closedBy": null,
+        "redemptions": [
+            {
+                "id": "Rd77Pq1a",
+                "user": {
+                    "id": "Us55Kk3b",
+                    "name": "Sam",
+                    "email": "student@example.com"
+                },
+                "at": "2026-11-02T08:00:00Z",
+                "plusUntil": "2027-11-02T08:00:00Z",
+                "endedAt": null
+            }
+        ]
+    }
+}

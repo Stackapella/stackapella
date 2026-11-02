@@ -33,6 +33,24 @@ export function courseView(progress, courseId) {
     return { ...progress, lessons: courseLessonsKept(progress, courseId), testedOut: [] };
 }
 
+/**
+ * A song course (docs/song-courses-plan.md): one song, a unit a part. Every unit is open from the
+ * start (learning the bass needn't wait on the melody), and it's open to anyone who may start the
+ * song, so it has no Plus-only lessons: the song itself is the gate.
+ */
+export const songCourse = (course) => !!course?.id?.startsWith('song-');
+
+/** courseView, with every unit of a song course open (counted as tested out). */
+export function openView(progress, course) {
+    const view = courseView(progress, course.id);
+    return songCourse(course) ? { ...view, testedOut: course.units.map((u) => u.id) } : view;
+}
+
+/** A song course's catalogue entry is seen when it's live, or by staff while it's reviewed. */
+export function songCourseVisible(entry, me) {
+    return entry?.status === 'live' || (entry?.status === 'staff' && !!me?.staff);
+}
+
 /** A course lesson's result kept, the best so far, in that course's own place. Returns a new progress. */
 export function recordCourseLesson(progress, courseId, lessonId, result, at = Date.now()) {
     const kept = recordLesson({ lessons: courseLessonsKept(progress, courseId) }, lessonId, result, at).lessons;
@@ -101,13 +119,18 @@ export function lessonFree(course, lessonId) {
 export function lessonAccess(course, lessonId, progress, { plus = false, staff = false } = {}) {
     const entry = courseLessons(course).find((l) => l.lesson.id === lessonId);
     if (!entry) return { open: false, plusOnly: false };
-    const plusOnly = !plus && !staff && !lessonFree(course, lessonId);
-    return { open: staff || unitOpen(course.units, entry.unitIndex, courseView(progress, course.id)), plusOnly };
+    const plusOnly = !plus && !staff && !songCourse(course) && !lessonFree(course, lessonId);
+    return { open: staff || unitOpen(course.units, entry.unitIndex, openView(progress, course)), plusOnly };
 }
 
-/** The lesson to do next in a course, as course.js's nextLesson picks it. */
-export function nextInCourse(course, progress) {
-    return course ? nextLesson(course.units, courseView(progress, course.id), { plus: true }) : null;
+/**
+ * The lesson to do next in a course, as course.js's nextLesson picks it; with `unitId` (a song
+ * course's part), the next in that unit.
+ */
+export function nextInCourse(course, progress, unitId = null) {
+    if (!course) return null;
+    const units = unitId ? course.units.filter((u) => u.id === unitId) : [];
+    return nextLesson(units.length ? units : course.units, openView(progress, course), { plus: true });
 }
 
 /** A course's card: lessons done of all, and the stars. */

@@ -56,6 +56,15 @@ return [
             'note' => 'Cancel before then: it takes a moment, online.',
             'because' => 'you started a Plus trial on Stackapella',
         ],
+        'class_codes_ready' => [
+            'subject' => 'Your Stackapella class codes work now',
+            'title' => 'Your class codes work now',
+            'body' => 'We\'ve approved you as a teacher. Each student who redeems one of your codes gets Plus free for a year. Codes are for your own students only, so please don\'t post them publicly.',
+            'button' => 'See your class codes',
+            'note_lead' => 'Not a teacher?',
+            'note' => 'Reply to this email and we\'ll take it back.',
+            'because' => 'you asked for class codes on Stackapella',
+        ],
         'payment_failed' => [
             'subject' => 'Your Stackapella Plus payment didn\'t go through',
             'title' => 'We couldn\'t take your payment',

@@ -23,7 +23,7 @@ def journey(f):
     f.go("/?api=mock&scenario=&as=admin", "document.querySelector('#app header')")
     f.mic_checked()
     f.go("/?api=mock&scenario=&as=admin", "document.querySelector('#app header')")
-    f.run("localStorage.setItem('stackapella.installDismissed', '1');")
+    f.run("localStorage.setItem('stackapella.asks', JSON.stringify({ stopped: ['install'] }));")
     f.go("/learn", "document.querySelector('[data-course-map]')")
     f.wait(f"{STORE}.learning.courses?.counterpoint || {STORE}.learning.catalogue.some((c) => c.id === 'counterpoint')", what="Counterpoint")
     # The last unit opens on the unit before's stars: every earlier lesson done first.

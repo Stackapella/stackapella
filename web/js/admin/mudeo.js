@@ -166,6 +166,8 @@ export const MudeoSection = {
                     <dl class="grid grid-cols-2 gap-3 sm:grid-cols-5">
                         <div v-for="c in counts" :key="c.label" class="rounded-2xl bg-raised p-3"><dt class="text-xs text-muted">{{ c.label }}</dt><dd class="text-2xl font-extrabold tabular-nums text-cream">{{ formatNumber(c.value) }}</dd></div>
                     </dl>
+                    <!-- Since the email went out (the last 60 days, daily totals): the site opened from it, singing started, and accounts through the old early-access link. -->
+                    <p v-if="since.visits || since.used || since.joined" class="text-sm text-cream" data-mudeo-since>{{ t('admin.mudeo.since', { visits: formatNumber(since.visits), used: formatNumber(since.used), joined: formatNumber(since.joined) }) }}</p>
                     <p class="text-sm" :class="list.sentToday >= dailyCap ? 'text-bad' : list.sentToday >= warnAt ? 'text-warn' : 'text-muted'" role="status">{{ t('admin.mudeo.today', { sent: formatNumber(list.sentToday), cap: formatNumber(dailyCap) }) }}<template v-if="list.sentToday >= dailyCap"> {{ t('admin.mudeo.capReached') }}</template><template v-else-if="list.sentToday >= warnAt"> {{ t('admin.mudeo.nearCap') }}</template></p>
                     <form v-if="'dailyCap' in list" class="flex flex-wrap items-end gap-3" @submit.prevent="saveCap">
                         <label class="block text-sm text-muted">{{ t('admin.mudeo.cap') }}
@@ -236,7 +238,7 @@ export const MudeoSection = {
                 </section>
 
                 <details class="card p-5">
-                    <summary class="cursor-pointer font-bold text-cream">{{ t('admin.mudeo.fallbackTitle') }}</summary>
+                    <summary class="cursor-pointer py-2.5 font-bold text-cream">{{ t('admin.mudeo.fallbackTitle') }}</summary>
                     <div class="mt-4 space-y-3">
                         <p class="text-sm text-muted">{{ t('admin.mudeo.fallbackHint') }}</p>
                         <button type="button" class="btn-secondary btn-sm" :disabled="!!busy" @click="loadNext">{{ t('admin.mudeo.showNext') }}</button>
@@ -257,6 +259,10 @@ export const MudeoSection = {
             </template>
         </div>`,
     computed: {
+        /** The email's arrivals over the days the server sends: site visits from its link, singing started, and accounts through the old early link. */
+        since() {
+            return (this.list?.days ?? []).reduce((sum, d) => ({ visits: sum.visits + (d.visits ?? 0), used: sum.used + (d.used ?? 0), joined: sum.joined + (d.joined ?? 0) }), { visits: 0, used: 0, joined: 0 });
+        },
         sudo: (vm) => inSudo(vm.me),
         dailyCap() {
             return this.list?.dailyCap ?? this.list?.limit ?? 200;

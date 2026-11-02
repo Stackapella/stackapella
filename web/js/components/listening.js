@@ -105,7 +105,7 @@ export const NoteFinder = {
                     <p class="sr-only" aria-live="polite">{{ spoken }}</p>
                     <p v-if="nudge" class="text-sm text-muted" role="status">{{ t(nudge) }}</p>
                     <!-- The first voice on a new mic is the mic check too: one hum, not two asks. -->
-                    <p v-else-if="micWorks" class="flex items-center gap-2 text-sm text-good" role="status" data-mic-works><Icon name="check" :size="16" />{{ t('micCheck.gotYou') }}</p>
+                    <p v-else-if="micWorks" data-ui="facts" class="flex items-center gap-2 text-sm text-good" role="status" data-mic-works><Icon name="check" :size="16" />{{ t('micCheck.gotYou') }}</p>
                     <PitchBar :pitch="shown" :alpha="markerAlpha" :view="view" :hold="hold" :color="color" :label="barLabel" plain />
                     <div v-if="listeningNow" class="flex w-full max-w-sm items-center gap-3"><span class="shrink-0 text-xs text-muted">{{ t('listening.micLevel') }}</span><LevelMeter :db="db" /></div>
                     <button v-if="phase === 'blocked'" type="button" class="btn-secondary" @click="start"><Icon name="mic" :size="18" /> {{ t('listening.micAgain') }}</button>

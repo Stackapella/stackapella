@@ -28,8 +28,8 @@ envs:
   - { key: SESSION_DRIVER, value: database }
   - { key: SESSION_SECURE_COOKIE, value: 'true' }
   - { key: SESSION_ENCRYPT, value: 'true' }
-  # At least the admin's idle limit (config/admin.php, 240 minutes).
-  - { key: SESSION_LIFETIME, value: '240' }
+  # At least the admin's idle limit (config/admin.php, 480 minutes).
+  - { key: SESSION_LIFETIME, value: '480' }
   - { key: MEDIA_DISK, value: spaces_media }
   - { key: PRIVATE_DISK, value: spaces_private }
   - { key: BACKUP_DISK, value: spaces_backup }
@@ -67,7 +67,7 @@ workers:
     source_dir: /
     instance_size_slug: apps-s-1vcpu-0.5gb
     instance_count: 1
-    run_command: sh -c 'cd /app/server && php artisan optimize && php artisan schedule:clear-cache && exec php artisan schedule:work'
+    run_command: sh -c 'cd /app/server && php artisan optimize && exec php artisan schedule:work'
     envs:
       - { key: APP_BUILD, value: '${_self.COMMIT_HASH}' }
 

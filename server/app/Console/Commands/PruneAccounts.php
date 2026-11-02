@@ -12,6 +12,7 @@ use App\Models\HandleHold;
 use App\Models\SignInLink;
 use App\Models\SupportMessage;
 use App\Models\UserDevice;
+use App\Support\Accounts\UnconfirmedAccounts;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Storage;
 
@@ -39,6 +40,8 @@ final class PruneAccounts extends Command
         AppPush::query()->where('created_at', '<', now()->subDays(7))->delete();
         $apps = AppDevice::query()->where(fn ($query) => $query->where('revoked_at', '<', now()->subDays(30))->orWhere('refresh_expires_at', '<', now()->subDays(30)))->delete();
         $support = SupportMessage::query()->where('updated_at', '<', now()->subMonths(SupportMessage::KEEP_MONTHS))->delete();
+        // Password sign-ups never confirmed in 14 days (they can't sign in, so they hold nothing).
+        $unconfirmed = UnconfirmedAccounts::prune();
 
         $exports = 0;
         DataExport::query()
@@ -48,7 +51,7 @@ final class PruneAccounts extends Command
                 $exports += DataExport::query()->whereKey($rows->modelKeys())->delete();
             });
 
-        $this->info("Deleted {$tokens} email links, {$holds} handle holds, {$exports} exports, {$devices} browsers, {$apps} app sign-ins and {$support} support messages.");
+        $this->info("Deleted {$tokens} email links, {$holds} handle holds, {$exports} exports, {$devices} browsers, {$apps} app sign-ins, {$support} support messages and {$unconfirmed} unconfirmed accounts.");
 
         return self::SUCCESS;
     }

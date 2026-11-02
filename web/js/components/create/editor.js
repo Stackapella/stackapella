@@ -100,7 +100,7 @@ export const EditorStep = {
                 <div v-if="!phone && mode === 'notes'" class="seg flex" role="radiogroup" :aria-label="t('create.edit.tool')">
                     <button v-for="k in ['draw', 'select']" :key="k" type="button" role="radio" :aria-checked="tool === k" class="seg-option tap-44" @click="tool = k">{{ k === 'draw' ? t('create.edit.draw') : t('create.edit.select') }}</button>
                 </div>
-                <label v-if="!phone" class="flex items-center gap-1.5 rounded-full border border-edge px-3 py-1.5 text-sm text-muted">{{ t('create.edit.snap') }}
+                <label v-if="!phone" class="flex items-center gap-1.5 rounded-full border border-edge px-3 py-1.5 text-sm text-muted"><span class="sr-only 2xl:not-sr-only">{{ t('create.edit.snap') }}</span>
                     <select v-model.number="gridIndex" class="bg-transparent font-semibold text-cream">
                         <option v-for="(g, i) in grids" :key="i" :value="i">{{ t(g.label) }}</option>
                     </select>
@@ -108,8 +108,8 @@ export const EditorStep = {
                 <div class="seg flex" role="radiogroup" :aria-label="t('create.edit.view')">
                     <button v-for="v in ['lane', 'staff']" :key="v" type="button" role="radio" :aria-checked="view === v" class="seg-option tap-44" @click="view = v">{{ v === 'lane' ? t('create.edit.lane') : t('create.edit.staff') }}</button>
                 </div>
-                <button type="button" class="btn-ghost btn-sm" :disabled="!history.length" :aria-label="t('common.undo')" :title="t('common.undo')" @click="undo"><Icon name="undo" :size="16" /><span class="hidden xl:inline">{{ t('common.undo') }}</span></button>
-                <button type="button" class="btn-ghost btn-sm" :disabled="!future.length" :aria-label="t('create.edit.redo')" :title="t('create.edit.redo')" @click="redo"><Icon name="redo" :size="16" /><span class="hidden xl:inline">{{ t('create.edit.redo') }}</span></button>
+                <button type="button" class="btn-ghost btn-sm" :disabled="!history.length" :aria-label="t('common.undo')" :title="t('common.undo')" @click="undo"><Icon name="undo" :size="16" /><span class="hidden 2xl:inline">{{ t('common.undo') }}</span></button>
+                <button type="button" class="btn-ghost btn-sm" :disabled="!future.length" :aria-label="t('create.edit.redo')" :title="t('create.edit.redo')" @click="redo"><Icon name="redo" :size="16" /><span class="hidden 2xl:inline">{{ t('create.edit.redo') }}</span></button>
                 <span class="ms-auto"></span>
                 <button v-if="!phone && !helpOpen" type="button" class="btn-ghost btn-sm" @click="helpOpen = true">{{ t('create.edit.showHelp') }}</button>
                 <!-- ?: the keys on a computer; on a phone (no keys), how to fix notes there. -->

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Templates;
 
+use App\Actions\Templates\SyncOfficialTemplates;
 use App\Jobs\ProcessTemplateRecording;
 use App\Models\Template;
 use App\Models\TemplateRecording;
@@ -74,6 +75,21 @@ final class OwnTemplatesTest extends TestCase
 
         // It never joins the catalogue.
         $this->assertNotContains($id, array_column((array) $this->getJson('/api/templates')->json('data'), 'id'));
+    }
+
+    public function test_a_song_says_whether_its_parts_have_leaderboards(): void
+    {
+        app(SyncOfficialTemplates::class)->handle();
+        $this->as(User::factory()->create());
+        $this->getJson('/api/templates/amazing-grace')->assertOk()->assertJsonPath('data.boards', true);
+
+        $id = (string) Str::uuid();
+        $this->save($id, $this->template($id))->assertOk();
+        $own = $this->getJson('/api/templates/'.$id);
+        $this->assertMatchesContract($own, 'templates.show', 200);
+        $own->assertJsonPath('data.boards', false);
+        Template::query()->where('slug', $id)->update(['visibility' => 'public']);
+        $this->getJson('/api/templates/'.$id)->assertJsonPath('data.boards', true);
     }
 
     public function test_an_empty_description_and_credits_are_kept_as_sent(): void

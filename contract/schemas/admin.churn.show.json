@@ -1,0 +1,71 @@
+{
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "months",
+                "timezone"
+            ],
+            "properties": {
+                "months": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "month",
+                            "payingAtStart",
+                            "lost",
+                            "trialsEnded",
+                            "trialsConverted"
+                        ],
+                        "properties": {
+                            "month": {
+                                "type": "string"
+                            },
+                            "payingAtStart": {
+                                "type": "integer"
+                            },
+                            "lost": {
+                                "type": "object",
+                                "additionalProperties": false,
+                                "required": [
+                                    "web",
+                                    "apple",
+                                    "google"
+                                ],
+                                "properties": {
+                                    "web": {
+                                        "type": "integer"
+                                    },
+                                    "apple": {
+                                        "type": "integer"
+                                    },
+                                    "google": {
+                                        "type": "integer"
+                                    }
+                                }
+                            },
+                            "trialsEnded": {
+                                "type": "integer"
+                            },
+                            "trialsConverted": {
+                                "type": "integer"
+                            }
+                        }
+                    }
+                },
+                "timezone": {
+                    "type": "string",
+                    "description": "The timezone the days and months are in."
+                }
+            }
+        }
+    }
+}

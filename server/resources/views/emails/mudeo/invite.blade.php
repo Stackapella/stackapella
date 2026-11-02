@@ -18,13 +18,11 @@
         @endforeach
     </table>
     @foreach ($beforeInvite as $line)
-        <p class="sa-text" style="margin:0 0 16px;color:{{ $p['text'] }};">@include('emails._words', ['line' => $line])</p>
+        <p class="sa-text" style="margin:0 0 16px;color:{{ $p['text'] }};">{{ \App\Support\Mail\Bold::line($line, $p['text'], [__('mudeo.mail.github') => __('mudeo.mail.github_url')], $p['link']) }}</p>
     @endforeach
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:6px 0 20px;">
         <tr>
             <td class="sa-inset" style="background:{{ $p['inset'] }};border:1px solid {{ $p['line'] }};border-radius:14px;padding:20px 20px 16px;">
-                <p class="sa-text" style="margin:0 0 6px;font-size:17px;font-weight:800;color:{{ $p['text'] }};">{{ __('mudeo.mail.invited') }}</p>
-                <p class="sa-text" style="margin:0 0 14px;font-size:15px;color:{{ $p['text'] }};">{{ __('mudeo.mail.invite') }}</p>
                 <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 10px;">
                     <tr>
                         <td bgcolor="{{ $p['button'] }}" style="background:{{ $p['button'] }};border-radius:999px;">
@@ -32,7 +30,6 @@
                         </td>
                     </tr>
                 </table>
-                <p class="sa-muted" style="margin:0 0 6px;font-size:13px;color:{{ $p['muted'] }};">{{ __('mudeo.mail.card_line') }}</p>
                 <p class="sa-muted" style="margin:0;font-size:12px;line-height:1.5;color:{{ $p['muted'] }};word-break:break-all;">{{ __('emails.paste') }} <a href="{{ $link }}" style="color:{{ $p['link'] }};">{{ $link }}</a></p>
             </td>
         </tr>

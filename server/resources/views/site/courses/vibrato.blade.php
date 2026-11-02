@@ -1,12 +1,13 @@
-{{-- Vibrato (/courses/vibrato), its own page: still water at dawn (docs/course-pages-polish.md). A
-     straight note is a still lake, and vibrato is the ripple that comes by itself. Serious skin: a
-     lavender sky, a low sun, mist on far hills, the sun's shimmer on the water and reeds at its edge;
-     light, thin headlines. Game skin: a synthwave lake, its sun striped and its water a grid. The
-     voice is drawn on the water's surface, straight, then blooming into an even wave, with ripples
-     widening from where it begins. Then: still water (what you'll be able to do), three surfaces
-     (straight, a wave, a wobble), calm water (never force it), stepping stones (the units), wade in
-     (try this), what the app hears, ripples (facts), on the bank (who, what you need, the songs),
-     questions and let it come. The art is wordless. Words: lang/en/site.php courses.pages.vibrato. --}}
+{{-- Vibrato (/courses/vibrato), its own page, after Hillel's design (shots-review/designs/hillel/
+     vibrato-improve, 2026-10-31): still water at dawn, calm and light. A straight note is a still lake,
+     and vibrato is the ripple that comes by itself. Serious skin: a lavender sky, a low sun on the water
+     and the voice drawn on it, straight then blooming into a wave; thin headlines, white cards. Game
+     skin: a synthwave lake, its sun striped and its water a grid. Then: three surfaces (straight, a wave,
+     a wobble, each playable: the featured demo, js/public/vibrato.js), by the end (the outcomes),
+     stepping stones (the units, from the course file), wade in (lesson 1's steps beside the live deck,
+     your own wave from two sliders), under the surface (what the app hears, and the cited facts), on the
+     bank (who, what you need, the songs, and never force it), questions and let it come. No drawn
+     people. Words: lang/en/site.php courses.pages.vibrato. --}}
 @php($bloom = '40,282 ')
 @php($kinds = ['8,32 152,32', '', ''])
 @foreach (range(0, 300, 4) as $t)
@@ -18,8 +19,16 @@
     @php($kinds[1] .= (8 + $t).','.round(32 - 10 * sin(M_PI * $t / 10), 1).' ')
     @php($kinds[2] .= (8 + $t).','.round(32 - $swing * sin($turn), 1).' ')
 @endforeach
-@php($stones = [[70, 82, 34], [200, 64, 30], [330, 86, 36], [460, 66, 32]])
-<main class="cp cp-vibrato">
+@php($grow = '')
+@foreach (range(0, 900, 6) as $t)
+    @php($swell = min(1, max(0, $t - 160) / 700))
+    @php($grow .= ($t ? 'L' : 'M').$t.' '.round(20 - $swell * 14 * sin(M_PI * $t / 18), 1))
+@endforeach
+@php($demo = $page['demo'])
+@php($tryUrl = \App\Support\Http\Hosts::app('/learn/c/'.$page['app']))
+<main class="cp cp-vibrato" data-vi-demo
+    data-straight="{{ $demo['say_straight'] }}" data-wave="{{ $demo['say_wave'] }}" data-wobble="{{ $demo['say_wobble'] }}" data-own="{{ $demo['say_own'] }}"
+    data-after="{{ $demo['after'] }}" data-rate-out="{{ $demo['rate_out'] }}" data-width-out="{{ $demo['width_out'] }}">
     <section class="cp-hero cp-vi-hero" aria-labelledby="page-h">
         <div class="s-wrap cp-hero-grid">
             <div class="cp-hero-copy">
@@ -44,7 +53,7 @@
                     <defs>
                         <linearGradient id="vi-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" class="cp-vi-sky-1" /><stop offset="1" class="cp-vi-sky-2" /></linearGradient>
                         <linearGradient id="vi-water" x1="0" y1="0" x2="0" y2="1"><stop offset="0" class="cp-vi-water-1" /><stop offset="1" class="cp-vi-water-2" /></linearGradient>
-                        <clipPath id="vi-frame"><rect width="600" height="380" rx="28" /></clipPath>
+                        <clipPath id="vi-frame"><rect width="600" height="380" rx="28" class="cp-vi-frame" /></clipPath>
                         <clipPath id="vi-sun-cut"><rect x="360" y="90" width="140" height="122" /></clipPath>
                     </defs>
                     <g clip-path="url(#vi-frame)">
@@ -72,14 +81,37 @@
                             <ellipse cx="18" cy="248" rx="4" ry="14" /><ellipse cx="44" cy="266" rx="4" ry="13" /><ellipse cx="566" cy="260" rx="4" ry="14" />
                         </g>
                     </g>
+                    <text x="34" y="360" class="cp-vi-art-tag">{{ $page['art'][0] }}</text>
+                    <text x="566" y="360" class="cp-vi-art-tag cp-vi-art-tag-end">{{ $page['art'][1] }}</text>
                 </svg>
             </div>
         </div>
     </section>
 
+    <section class="s-wrap s-sec cp-vi-surfaces" aria-labelledby="kinds-h">
+        <div class="cp-vi-surfaces-head">
+            <p class="cp-vi-kick">{{ $page['kicks']['surfaces'] }}</p>
+            <h2 id="kinds-h" class="cp-vi-title">{{ $page['titles']['kinds'] }}</h2>
+            <p class="cp-vi-body">{{ $page['kinds_body'] }}</p>
+            <p class="cp-vi-say" role="status" data-vi-say>{{ $demo['ready'] }}</p>
+        </div>
+        <ul class="cp-vi-pools">
+            @foreach ((array) $page['kinds'] as [$kind, $what])
+                @php($key = ['straight', 'wave', 'wobble'][$loop->index])
+                <li class="cp-vi-pool cp-vi-pool-{{ $loop->iteration }}">
+                    <svg viewBox="0 0 160 64" aria-hidden="true"><polyline points="{{ $kinds[$loop->index] }}" class="cp-vi-line" /></svg>
+                    <div>
+                        <h3>{{ $kind }}</h3>
+                        <p>{{ $what }}</p>
+                        <button type="button" class="cp-vi-hear" data-vi-play="{{ $key }}" data-play="{{ $demo['hear'] }}" data-stop="{{ $demo['stop'] }}" aria-pressed="false" aria-label="{{ $demo['hear'] }}: {{ $kind }}"><span class="cp-vi-hear-icon" aria-hidden="true"></span><span data-label>{{ $demo['hear'] }}</span></button>
+                    </div>
+                </li>
+            @endforeach
+        </ul>
+    </section>
+
     <section class="s-wrap s-sec cp-vi-still" aria-labelledby="outcomes-h">
-        <p class="cp-vi-kick">{{ $page['kicks']['still'] }}</p>
-        <h2 id="outcomes-h" class="cp-vi-title">{{ $page['titles']['outcomes'] }}</h2>
+        <h2 id="outcomes-h" class="cp-vi-kick">{{ $page['titles']['outcomes'] }}</h2>
         <ol class="cp-vi-aims">
             @foreach ((array) $page['outcomes'] as $outcome)
                 <li><span class="cp-vi-aim-n" aria-hidden="true">0{{ $loop->iteration }}</span><p>{{ $outcome }}</p></li>
@@ -87,116 +119,115 @@
         </ol>
     </section>
 
-    <section class="s-wrap s-sec cp-vi-surfaces" aria-labelledby="kinds-h">
-        <p class="cp-vi-kick">{{ $page['kicks']['surfaces'] }}</p>
-        <h2 id="kinds-h" class="cp-vi-title">{{ $page['titles']['kinds'] }}</h2>
-        <div class="cp-vi-pools">
-            @foreach ((array) $page['kinds'] as [$kind, $what])
-                <figure class="cp-vi-pool cp-vi-pool-{{ $loop->iteration }}">
-                    <svg viewBox="0 0 160 64" aria-hidden="true"><polyline points="{{ $kinds[$loop->index] }}" class="cp-vi-line" /></svg>
-                    <figcaption><b>{{ $kind }}</b> {{ $what }}</figcaption>
-                </figure>
-            @endforeach
-        </div>
-        <p class="cp-fig-note">{{ $page['kinds_body'] }}</p>
-    </section>
-
-    <section class="s-ink cp-vi-calm" aria-labelledby="gentle-h">
-        <svg class="cp-vi-calm-rings" viewBox="0 0 400 200" aria-hidden="true"><ellipse cx="200" cy="100" rx="60" ry="14" /><ellipse cx="200" cy="100" rx="120" ry="28" /><ellipse cx="200" cy="100" rx="190" ry="44" /></svg>
-        <div class="s-wrap s-sec cp-vi-calm-grid">
-            <div>
-                <p class="cp-vi-kick">{{ $page['kicks']['calm'] }}</p>
-                <h2 id="gentle-h" class="cp-vi-title">{{ $page['titles']['gentle'] }}</h2>
-                <p class="s-lede">{{ $page['gentle']['lead'] }}</p>
-            </div>
-            <ul class="cp-vi-calm-points">
-                @foreach ((array) $page['gentle']['points'] as $point)
-                    <li><span class="cp-vi-drop" aria-hidden="true"></span>{{ $point }}</li>
-                @endforeach
-            </ul>
-        </div>
-    </section>
-
     @if ($outline !== null)
-        <section class="s-wrap s-sec cp-vi-stonesec" aria-labelledby="units-h">
-            <p class="cp-vi-kick">{{ $page['kicks']['stones'] }}</p>
-            <div class="cp-head">
-                <h2 id="units-h" class="cp-vi-title">{{ $page['titles']['units'] }}</h2>
-                <p class="cp-head-note">{{ __('pages.site.course_size', ['units' => count($outline['units']), 'lessons' => $outline['lessons']]) }}</p>
+        <section class="cp-vi-stonesec" aria-labelledby="units-h">
+            <div class="s-wrap s-sec">
+                <p class="cp-vi-kick">{{ $page['kicks']['stones'] }}</p>
+                <div class="cp-vi-head">
+                    <h2 id="units-h" class="cp-vi-title">{{ $page['titles']['units'] }}</h2>
+                    <p class="cp-vi-count">{{ __('pages.site.course_size', ['units' => count($outline['units']), 'lessons' => $outline['lessons']]) }}</p>
+                </div>
+                <svg viewBox="0 0 900 40" preserveAspectRatio="none" class="cp-vi-grow" aria-hidden="true"><path d="{{ $grow }}" /></svg>
+                <ol class="cp-vi-steps">
+                    @foreach ($outline['units'] as $unit)
+                        @php($stage = __('pages.site.course_stage', ['n' => $loop->iteration]))
+                        @php($unitName = __('pages.site.course_unit', ['n' => $loop->iteration]))
+                        <li class="cp-vi-step">
+                            <p class="cp-vi-step-n"><span class="cp-vi-step-dot" aria-hidden="true">{{ $loop->iteration }}</span><x-site.skin :game="$stage" :serious="$unitName" /></p>
+                            <h3>{{ $unit['title'] }}</h3>
+                            @isset($page['units_say'][$loop->index])
+                                <p class="cp-vi-step-say">{{ $page['units_say'][$loop->index] }}</p>
+                            @endisset
+                            <ol class="cp-vi-lessons">
+                                @foreach ($unit['lessons'] as $lesson)
+                                    <li><span>{{ $lesson }}</span>@if ($loop->parent->first && $loop->first)<span class="cp-vi-free">{{ __('pages.site.course_free') }}</span>@endif</li>
+                                @endforeach
+                            </ol>
+                        </li>
+                    @endforeach
+                </ol>
             </div>
-            <svg viewBox="0 0 540 130" class="cp-vi-stones" aria-hidden="true">
-                <path d="M0 96 Q 135 80 270 96 T 540 96" class="cp-vi-stone-water" />
-                @foreach ($stones as [$x, $y, $r])
-                    <ellipse cx="{{ $x }}" cy="{{ $y + 18 }}" rx="{{ $r + 18 }}" ry="9" class="cp-vi-stone-ring" />
-                    <ellipse cx="{{ $x }}" cy="{{ $y }}" rx="{{ $r }}" ry="{{ $r * .62 }}" class="cp-vi-stone" />
-                    <text x="{{ $x }}" y="{{ $y + 7 }}" class="cp-vi-stone-n">{{ $loop->iteration }}</text>
-                @endforeach
-            </svg>
-            <ol class="cp-vi-steps">
-                @foreach ($outline['units'] as $unit)
-                    @php($stage = __('pages.site.course_stage', ['n' => $loop->iteration]))
-                    @php($unitName = __('pages.site.course_unit', ['n' => $loop->iteration]))
-                    <li class="cp-vi-step">
-                        <p class="cp-vi-step-n"><x-site.skin :game="$stage" :serious="$unitName" /></p>
-                        <h3>{{ $unit['title'] }}</h3>
-                        @isset($page['units_say'][$loop->index])
-                            <p class="cp-unit-say">{{ $page['units_say'][$loop->index] }}</p>
-                        @endisset
-                        <ol class="cp-vi-lessons">
-                            @foreach ($unit['lessons'] as $lesson)
-                                <li>{{ $lesson }}@if ($loop->parent->first && $loop->first) <span class="s-free">{{ __('pages.site.course_free') }}</span>@endif</li>
-                            @endforeach
-                        </ol>
-                    </li>
-                @endforeach
-            </ol>
         </section>
     @endif
 
     <section class="s-wrap s-sec cp-vi-wade" aria-labelledby="try-h">
-        <p class="cp-vi-kick">{{ $page['kicks']['wade'] }}</p>
-        <h2 id="try-h" class="cp-vi-title">{{ $page['titles']['try'] }}</h2>
-        <p class="s-lede">{{ $page['try']['lead'] }}</p>
-        <ol class="cp-vi-try">
-            @foreach ((array) $page['try']['steps'] as $step)
-                <li @class(['cp-vi-try-first' => $loop->first])><span class="cp-vi-ring-n" aria-hidden="true"><b>{{ $loop->iteration }}</b></span><p>@if ($loop->first)<b class="cp-vi-start">{{ $page['try_first'] }}</b> @endif{{ $step }}</p></li>
-            @endforeach
-        </ol>
-        <p class="cp-fig-note">{{ $page['try']['after'] }}</p>
+        <div>
+            <p class="cp-vi-kick">{{ $demo['wade_kick'] }}</p>
+            <h2 id="try-h" class="cp-vi-title">{{ $page['titles']['try'] }}</h2>
+            <p class="cp-vi-body">{{ $page['try']['lead'] }}</p>
+            <ol class="cp-vi-try">
+                @foreach ((array) $page['try']['steps'] as $step)
+                    <li @class(['cp-vi-try-first' => $loop->first])><span class="cp-vi-try-n" aria-hidden="true">{{ $loop->iteration }}</span><p>{{ $step }}</p></li>
+                @endforeach
+            </ol>
+        </div>
+        <div>
+            <div class="cp-vi-deck">
+                <p class="cp-vi-deck-bar"><span class="cp-vi-live"><span class="cp-vi-rec" aria-hidden="true"></span>{{ $demo['kick'] }}</span><span>{{ $demo['lesson'] }}</span></p>
+                <h3 class="cp-vi-deck-h">{{ $demo['own'] }}</h3>
+                <svg viewBox="0 0 600 220" preserveAspectRatio="none" class="cp-vi-deck-wave" aria-hidden="true">
+                    <path d="M20 20 H580 M20 200 H580" class="cp-vi-deck-staff" />
+                    <path d="M20 110 H580" class="cp-vi-deck-staff cp-vi-deck-centre" />
+                    <path d="M20 110 H580" class="cp-vi-deck-trace" data-vi-trace />
+                </svg>
+                <div class="cp-vi-sliders">
+                    <label class="cp-vi-slider"><span>{{ $demo['rate'] }} <output data-vi-rate-out></output></span><input type="range" min="0" max="8" step="0.5" value="6" data-vi-rate></label>
+                    <label class="cp-vi-slider"><span>{{ $demo['width'] }} <output data-vi-width-out></output></span><input type="range" min="0" max="150" step="5" value="50" data-vi-width></label>
+                </div>
+                <p class="cp-vi-deck-btns"><button type="button" class="cp-vi-hear cp-vi-hear-big" data-vi-play="own" data-play="{{ $demo['own_play'] }}" data-stop="{{ $demo['stop'] }}" aria-pressed="false"><span class="cp-vi-hear-icon" aria-hidden="true"></span><span data-label>{{ $demo['own_play'] }}</span></button></p>
+                <p class="cp-vi-say cp-vi-deck-say" aria-hidden="true" data-vi-say></p>
+            </div>
+            <p class="cp-vi-note">{{ $page['try']['after'] }}</p>
+        </div>
     </section>
 
-    @include('site.courses._inside')
-
-    <section class="s-wrap s-sec cp-vi-facts" aria-labelledby="facts-h">
-        <p class="cp-vi-kick">{{ $page['kicks']['ripples'] }}</p>
-        <h2 id="facts-h" class="cp-vi-title">{{ $page['titles']['facts'] }}</h2>
-        <ul class="cp-vi-cards">
-            @foreach ((array) $page['facts'] as [$text, $source, $url])
-                <li class="cp-vi-card">
-                    <svg viewBox="0 0 80 30" class="cp-vi-card-rings" aria-hidden="true"><ellipse cx="40" cy="15" rx="10" ry="3" /><ellipse cx="40" cy="15" rx="24" ry="7" /><ellipse cx="40" cy="15" rx="38" ry="12" /></svg>
-                    <p class="cp-vi-card-text">{{ $text }}</p>
-                    <p class="cp-vi-card-src">@if ($url)<a href="{{ $url }}" rel="noopener">{{ $source }}</a>@else{{ $source }}@endif</p>
-                </li>
-            @endforeach
-        </ul>
+    <section class="cp-vi-under" aria-labelledby="inside-h">
+        <div class="s-wrap s-sec cp-vi-under-grid">
+            <div>
+                <p class="cp-vi-kick">{{ $page['kicks']['under'] }}</p>
+                <h2 id="inside-h" class="cp-vi-title">{{ $page['titles']['inside'] }}</h2>
+                <p class="cp-vi-body">{{ $page['measures'] }}</p>
+                <p class="cp-vi-note"><x-site.say :text="$page['scoring']" /></p>
+            </div>
+            <ul class="cp-vi-cards" aria-label="{{ $page['titles']['facts'] }}">
+                @foreach ((array) $page['facts'] as [$text, $source, $url])
+                    <li class="cp-vi-card">
+                        <p class="cp-vi-card-text">{{ $text }}</p>
+                        <p class="cp-vi-card-src">@if ($url)<a href="{{ $url }}" rel="noopener">{{ $source }}</a>@else{{ $source }}@endif</p>
+                    </li>
+                @endforeach
+            </ul>
+        </div>
     </section>
 
     <section class="s-wrap s-sec cp-vi-bank" aria-labelledby="bank-h">
         <p class="cp-vi-kick">{{ $page['kicks']['bank'] }}</p>
         <h2 id="bank-h" class="cp-vi-title">{{ $page['titles']['bank'] }}</h2>
         <div class="cp-vi-bank-grid">
-            <div><h3>{{ $page['titles']['who'] }}</h3><ul class="s-ticks">@foreach ((array) $page['who'] as $line)<li><x-site.icon name="check" size="18" />{{ $line }}</li>@endforeach</ul></div>
-            <div><h3>{{ $page['titles']['need'] }}</h3><ul class="s-ticks">@foreach ((array) $page['need'] as $line)<li><x-site.icon name="check" size="18" />{{ $line }}</li>@endforeach</ul></div>
-            <div class="cp-vi-songs">
+            <div><h3>{{ $page['titles']['who'] }}</h3><ul class="cp-vi-ticks">@foreach ((array) $page['who'] as $item)<li><x-site.icon name="check" size="16" /><span>{{ $item }}</span></li>@endforeach</ul></div>
+            <div><h3>{{ $page['titles']['need'] }}</h3><ul class="cp-vi-ticks">@foreach ((array) $page['need'] as $item)<li><x-site.icon name="check" size="16" /><span>{{ $item }}</span></li>@endforeach</ul></div>
+            <div>
                 <h3>{{ __('pages.site.course_songs') }}</h3>
-                <ul>
+                <ul class="cp-vi-songs">
                     @foreach ((array) $page['songs'] as [$song, $credit])
-                        <li><b translate="no">{{ $song }}</b> <span>{{ $credit }}</span></li>
+                        <li><b translate="no">{{ $song }}</b><span>{{ $credit }}</span></li>
                     @endforeach
                 </ul>
-                <h3>{{ $page['titles']['safety'] }}</h3>
-                <ul class="cp-vi-safety">@foreach ((array) $page['safety'] as $line)<li>{{ $line }}</li>@endforeach</ul>
             </div>
+        </div>
+        <div class="cp-vi-calm">
+            <div>
+                <h3 class="cp-vi-kick">{{ $page['titles']['safety'] }}</h3>
+                <p class="cp-vi-calm-h">{{ $page['titles']['gentle'] }}</p>
+                <p class="cp-vi-body">{{ $page['gentle']['lead'] }}</p>
+            </div>
+            <ul class="cp-vi-calm-points">
+                @php($calm = (array) $page['safety'])
+                @php(array_splice($calm, 1, 0, [$page['gentle']['points'][2]]))
+                @foreach ($calm as $point)
+                    <li>{{ $point }}</li>
+                @endforeach
+            </ul>
         </div>
     </section>
 
@@ -212,24 +243,22 @@
         <div class="s-wrap s-sec cp-vi-close-in">
             <p class="cp-vi-kick">{{ $page['kicks']['close'] }}</p>
             <h2 id="join-h" class="cp-vi-title">{{ $page['titles']['join'] }}</h2>
-            <p class="s-lede">{{ $open ? $page['close'] : __('pages.site.course_soon') }}</p>
+            <p class="cp-vi-body">{{ $open ? $page['close'] : __('pages.site.course_soon') }}</p>
+            <p class="cp-join-btns">
+                @if ($open)
+                    <a href="{{ $tryUrl }}" class="btn-primary btn-lg">{{ __('pages.site.course_try') }} <x-site.icon name="arrow" size="18" /></a>
+                    <a href="/pricing" class="btn-secondary btn-lg">{{ __('pages.site.course_plus') }}</a>
+                @else
+                    <a href="{{ $links['start'] }}" class="btn-primary btn-lg">{{ __('pages.site.course_start') }} <x-site.icon name="arrow" size="18" /></a>
+                    <a href="/courses" class="btn-secondary btn-lg">{{ __('pages.site.course_all') }}</a>
+                @endif
+            </p>
             @if ($open)
-                <p class="cp-join-note">{{ __('pages.site.course_join_note') }}</p>
+                <p class="cp-vi-note">{{ __('pages.site.course_join_note') }}</p>
             @endif
-            <div class="cp-vi-close-btns">
-                <svg viewBox="0 0 400 120" class="cp-vi-close-rings" aria-hidden="true"><ellipse cx="200" cy="60" rx="110" ry="26" /><ellipse cx="200" cy="60" rx="160" ry="38" /><ellipse cx="200" cy="60" rx="196" ry="50" /></svg>
-                <p class="cp-join-btns">
-                    @if ($open)
-                        <a href="{{ \App\Support\Http\Hosts::app('/learn/c/'.$page['app']) }}" class="btn-primary btn-lg">{{ __('pages.site.course_try') }} <x-site.icon name="arrow" size="18" /></a>
-                        <a href="/pricing" class="btn-secondary btn-lg">{{ __('pages.site.course_plus') }}</a>
-                    @else
-                        <a href="{{ $links['start'] }}" class="btn-primary btn-lg">{{ __('pages.site.course_start') }} <x-site.icon name="arrow" size="18" /></a>
-                        <a href="/courses" class="btn-secondary btn-lg">{{ __('pages.site.course_all') }}</a>
-                    @endif
-                </p>
-            </div>
-            <h3 class="cp-vi-kick cp-related-h">{{ $page['titles']['related'] }}</h3>
+            <h3 class="cp-vi-kick cp-vi-related-h">{{ $page['titles']['related'] }}</h3>
             @include('site.courses._related')
         </div>
     </section>
+    <script type="module" src="/js/public/vibrato.js"></script>
 </main>

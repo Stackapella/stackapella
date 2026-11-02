@@ -9,9 +9,10 @@ import { api, ApiError } from '../api.js';
 import { formatDate, t, tk } from '../i18n.js';
 import { navigate } from '../router.js';
 import { account, loadAccount, loadAuthConfig, providerSignIn, selfHosted, signOut } from '../stores/account.js';
-import { EmptyState, Field, Notice, StatusChip } from '../components/form.js';
+import { Field, Notice, StatusChip } from '../components/form.js';
 import { PageHeader } from '../components/page.js';
 import { Icon, Logo } from '../components/icon.js';
+import { InstallRow } from '../components/install.js';
 import { Modal, toast } from '../components/ui.js';
 import { anySkipped, askAgain, confirmAction } from '../components/confirm.js';
 import { learning, loadLearning, restartCourse, undoRestart } from '../stores/learning.js';
@@ -22,8 +23,11 @@ import { prefs } from '../stores/prefs.js';
 import { setGlobal } from '../components/boards.js';
 import { sk } from '../skin.js';
 import { deleteEverythingHere, deviceSummary } from '../device.js';
+import { signInTo, signUpFor } from '../components/account-wall.js';
 import { ideas, ideasOpen } from '../stores/ideas.js';
 import { setNotes, voiceCare } from '../voice-day.js';
+import { session } from '../storage.js';
+import { loadBilling, plan } from '../stores/plan.js';
 
 const AVATAR_BYTES = 2 * 1024 * 1024;
 const AVATAR_SIDE = 3000;
@@ -60,6 +64,7 @@ function refusalText(error) {
 }
 
 // The licence's credit names the site as written, in every language.
+const RESTORED = 'stackapella.restored'; // a restore's counts, shown once the app has reloaded with them
 const CREDIT_SITE = 'stackapella.com'; // i18n-ignore: an address
 
 // The sections, in order (87.png), and their names.
@@ -67,9 +72,12 @@ const SECTIONS = ['profile', 'account', 'game', 'practice', 'plan', 'data', 'dev
 const SECTION_WORDS = { profile: tk('settings.nav.profile'), account: tk('settings.nav.account'), game: tk('settings.nav.game'), practice: tk('settings.nav.practice'), plan: tk('settings.nav.plan'), data: tk('settings.nav.data'), device: tk('settings.nav.device') };
 
 export const SettingsView = {
-    components: { GameElements, GameModeSwitch, PageHeader, ThemeSwitch, Field, Notice, StatusChip, EmptyState, Icon, Logo, Modal, SyncStatus, Switch },
+    components: { InstallRow, GameElements, GameModeSwitch, PageHeader, ThemeSwitch, Field, Notice, StatusChip, Icon, Logo, Modal, SyncStatus, Switch },
     data: () => ({
+        hereSongs: null, // a guest's songs on this device (the Settings card's tally)
+        backup: null, // 'making' or 'restoring' a backup file, while it runs
         restarting: false,
+        avatarFailed: null, // the photo URL that wouldn't load: the letter shows instead
         profile: null,
         profileFrom: null, // the account values the form was last filled with
         handleCheck: null,
@@ -91,27 +99,43 @@ export const SettingsView = {
     }),
     setup: () => ({ voiceCare, setNotes, ideas, learning, prefs, account, METHODS, HANDLE_REASONS, EXPORT, formatDate, formatBytes, SECTIONS, SECTION_WORDS, appearanceSummary, selfHosted, CREDIT_SITE, sk }),
     template: `
-        <div class="min-h-dvh bg-ink px-4 pb-16 pt-[max(0.5rem,env(safe-area-inset-top))] md:px-8">
+        <div data-ui="screen" class="min-h-dvh bg-ink px-4 pb-16 pt-[max(0.5rem,env(safe-area-inset-top))] md:px-8">
             <div class="mx-auto w-full max-w-5xl">
                 <!-- How it looks is the header's Theme button, here as on every screen (Hillel's call). -->
                 <PageHeader :title="t('settings.title')" back="/"><template #aside><ThemeSwitch /></template></PageHeader>
                 <div class="mt-4 flex gap-8 md:mt-6">
                     <!-- The sections (87.png): on a wide screen, beside them; the one in view marked -->
-                    <nav v-if="account.me && profile" class="sticky top-6 hidden w-48 shrink-0 self-start md:block" :aria-label="t('settings.title')">
+                    <nav v-if="account.me && profile" class="sticky top-6 hidden w-56 shrink-0 self-start md:block" :aria-label="t('settings.title')">
                         <ul class="space-y-1">
                             <li v-for="key in SECTIONS" :key="key"><a :href="'#' + key" class="block rounded-xl px-3 py-2 text-sm font-semibold transition" :class="section === key ? 'bg-raised text-cream' : 'text-muted hover:text-cream'" :aria-current="section === key ? 'true' : null" @click.prevent="jump(key)">{{ t(SECTION_WORDS[key]) }}</a></li>
                         </ul>
                     </nav>
                     <div class="flex min-w-0 max-w-2xl flex-1 flex-col gap-8">
                 <p v-if="!account.loaded" class="text-muted" role="status">{{ t('settings.loading') }}</p>
-                <EmptyState v-else-if="!account.me" icon="lock" :title="t('settings.signedOut')" :body="t('settings.signedOutHint')">
-                    <button type="button" class="btn-primary" @click="navigate('/signin?next=/settings')">{{ t('auth.signIn') }}</button>
-                </EmptyState>
+                <!-- A guest (docs/account-nudges-plan.md, card D): what's on this device, what an account adds, and the way in. -->
+                <section v-else-if="!account.me" class="card space-y-4 p-5 md:p-6" aria-labelledby="guest-heading" data-guest-settings>
+                    <h2 id="guest-heading" class="text-xl font-bold text-cream">{{ t('settings.guest.title') }}</h2>
+                    <p class="text-cream" data-guest-tally>{{ guestTally }}</p>
+                    <p class="text-muted">{{ t('settings.guest.adds') }}</p>
+                    <div class="flex flex-wrap items-center gap-x-5 gap-y-3">
+                        <a :href="signUp" class="btn-primary" data-wall-sign-up @click.prevent="navigate(signUp)">{{ t('wrap.makeAccount') }}</a>
+                        <a :href="signIn" class="link tap-44 text-sm" data-wall-sign-in @click.prevent="navigate(signIn)">{{ t('wall.haveAccount') }}</a>
+                    </div>
+                    <!-- Hillel's answer 3: an account-free way to keep it all, quiet under the way in. -->
+                    <div class="space-y-1 border-t border-line pt-4" data-backup>
+                        <p class="text-sm text-muted">{{ t('settings.guest.backupWhy') }}</p>
+                        <div class="flex flex-wrap items-center gap-x-5">
+                            <button type="button" class="link tap-44 text-sm" :disabled="backup !== null" data-backup-download @click="downloadBackup">{{ backup === 'making' ? t('settings.guest.backupMaking') : t('settings.guest.backup') }}</button>
+                            <label class="link tap-44 inline-flex cursor-pointer items-center text-sm" data-backup-restore>{{ backup === 'restoring' ? t('settings.guest.restoring') : t('settings.guest.restore') }}<input type="file" accept=".zip,application/zip" class="sr-only" :disabled="backup !== null" @change="restoreFrom"></label>
+                        </div>
+                    </div>
+                </section>
                 <template v-else-if="profile">
                     <!-- Profile -->
                     <form id="profile" ref="profile" class="card scroll-mt-6 space-y-5 p-5 md:p-6" data-section @submit.prevent="saveProfile" :aria-label="t('settings.nav.profile')">
                         <div class="flex items-center gap-4">
-                            <img v-if="account.me.avatarUrl" :src="account.me.avatarUrl" alt="" class="size-14 rounded-full object-cover" />
+                            <!-- A photo that won't load (offline, or gone from the store) shows the letter, as Home does. -->
+                            <img v-if="account.me.avatarUrl && avatarFailed !== account.me.avatarUrl" :src="account.me.avatarUrl" alt="" class="size-14 rounded-full object-cover" @error="avatarFailed = account.me.avatarUrl" />
                             <span v-else class="grid size-14 place-items-center rounded-full bg-part-1 text-xl font-extrabold text-part-text-1" aria-hidden="true">{{ (account.me.name || '?').slice(0, 1) }}</span>
                             <div class="min-w-0 space-y-1.5">
                                 <p class="truncate font-bold text-cream" translate="no">{{ account.me.name }}</p>
@@ -209,7 +233,7 @@ export const SettingsView = {
 
                 <!-- Game mode (Hillel: "a section in the settings (not at the top)"), signed in or not. -->
                 <section v-if="account.loaded" id="game" class="scroll-mt-6 space-y-3" data-section aria-labelledby="game-heading">
-                    <h2 id="game-heading" class="text-lg font-bold text-cream">{{ t('settings.nav.game') }}</h2>
+                    <h2 id="game-heading" class="sr-only">{{ t('settings.nav.game') }}</h2><!-- the Game mode row under it says it: no second heading -->
                     <div class="card px-5 py-3"><GameModeSwitch /></div>
                     <GameElements />
                 </section>
@@ -221,6 +245,10 @@ export const SettingsView = {
                         <div class="flex items-center justify-between gap-4 p-5"><div class="min-w-0"><p class="font-semibold text-cream">{{ t('appearance.title') }}</p><p class="text-sm text-muted">{{ appearanceSummary() }}</p></div><ThemeSwitch /></div>
                         <a v-if="account.me" href="/settings/reminders" class="flex items-center justify-between gap-4 p-5 hover:bg-raised/50" @click.prevent="navigate('/settings/reminders')"><span class="min-w-0"><span class="block font-semibold text-cream">{{ t('reminders.title') }}</span><span class="block text-sm text-muted">{{ t('reminders.settingsHint') }}</span></span><Icon name="chevron" :size="18" class="shrink-0 -rotate-90 text-muted rtl:rotate-90" /></a>
                         <a v-if="account.me" href="/groups" class="flex items-center justify-between gap-4 p-5 hover:bg-raised/50" @click.prevent="navigate('/groups')"><span class="min-w-0"><span class="block font-semibold text-cream">{{ t('groups.title') }}</span><span class="block text-sm text-muted">{{ t('groups.settingsHint') }}</span></span><Icon name="chevron" :size="18" class="shrink-0 -rotate-90 text-muted rtl:rotate-90" /></a>
+                        <!-- A warm-up for students (docs/warmup-builder-plan.md): made here, shared as a link; no account needed. -->
+                        <a href="/warmup" class="flex items-center justify-between gap-4 p-5 hover:bg-raised/50" data-make-warmup @click.prevent="navigate('/warmup')"><span class="min-w-0"><span class="block font-semibold text-cream">{{ t('warmup.make.title') }}</span><span class="block text-sm text-muted">{{ t('warmup.make.settingsHint') }}</span></span><Icon name="chevron" :size="18" class="shrink-0 -rotate-90 text-muted rtl:rotate-90" /></a>
+                        <!-- Class codes for teachers (docs/school-offer-plan.md): Plus for a year for their students; adults only. -->
+                        <a v-if="config?.schools && account.me && account.me.isAdult !== false" href="/settings/classes" class="flex items-center justify-between gap-4 p-5 hover:bg-raised/50" data-class-codes @click.prevent="navigate('/settings/classes')"><span class="min-w-0"><span class="block font-semibold text-cream">{{ t('school.classes.title') }}</span><span class="block text-sm text-muted">{{ t('school.settings.teacherHint') }}</span></span><Icon name="chevron" :size="18" class="shrink-0 -rotate-90 text-muted rtl:rotate-90" /></a>
                         <div class="py-3 pe-3 ps-5" data-sounds><Switch :on="prefs.sounds" :label="t('settings.device.sounds')" :hint="sk('settings.device.soundsHintSerious', 'settings.device.soundsHint')" @change="(on) => (prefs.sounds = on)" /></div>
                         <!-- Voice care (docs/voice-care-plan.md): the 20 and 40 minute notes, on by default; the cool-down stays either way. -->
                         <div class="py-3 pe-3 ps-5" data-voice-notes><Switch :on="voiceCare.notesOn" :label="t('voiceCare.settingsTitle')" :hint="t('voiceCare.settingsHint')" @change="setNotes" /></div>
@@ -242,17 +270,18 @@ export const SettingsView = {
                         <h2 id="plan-heading" class="text-lg font-bold text-cream">{{ t('settings.nav.plan') }}</h2>
                         <div class="card space-y-5 p-5">
                             <div class="flex flex-wrap items-start justify-between gap-3">
-                                <div class="min-w-0"><p class="font-bold text-cream">{{ account.me.plan === 'plus' ? t('settings.plan.plusName') : t('settings.plan.freeName') }}</p><p class="text-sm text-muted">{{ selfHosted() ? t('settings.plan.included') : account.me.plan === 'plus' ? t('settings.plan.plus') : t('settings.plan.freeLine') }}</p></div>
-                                <a v-if="!selfHosted()" href="/plus?from=settings" class="btn-sm shrink-0" :class="account.me.plan === 'plus' ? 'btn-secondary' : 'btn-primary'" @click.prevent="navigate('/plus?from=settings')">{{ account.me.plan === 'plus' ? t('plus.manage') : t('settings.plan.seePlus') }}</a>
+                                <div class="min-w-0"><p class="font-bold text-cream">{{ account.me.plan === 'plus' ? t('settings.plan.plusName') : t('settings.plan.freeName') }}</p><p class="text-sm text-muted">{{ selfHosted() ? t('settings.plan.included') : schoolUntil ? t('school.settings.plusUntil', { date: formatDate(schoolUntil) }) : account.me.plan === 'plus' ? t('settings.plan.plus') : t('settings.plan.freeLine') }}</p>
+                                    <a v-if="config?.schools && account.me.plan !== 'plus' && !selfHosted()" href="/class" class="link mt-1 inline-flex min-h-6 items-center text-sm" data-have-code @click.prevent="navigate('/class')">{{ t('school.settings.haveCode') }}</a></div>
+                                <a v-if="!selfHosted() && !schoolUntil" href="/plus?from=settings" class="btn-sm shrink-0" :class="account.me.plan === 'plus' ? 'btn-secondary' : 'btn-primary'" @click.prevent="navigate('/plus?from=settings')">{{ account.me.plan === 'plus' ? t('plus.manage') : t('settings.plan.seePlus') }}</a>
                             </div>
                             <div v-if="usage" class="grid gap-5 sm:grid-cols-2">
                                 <div v-if="usage.projects.limit !== null" class="space-y-2">
-                                    <p class="flex justify-between text-sm"><span class="font-semibold text-cream">{{ t('settings.plan.songs') }}</span><span class="tabular-nums text-muted">{{ t('settings.plan.ofLimit', { used: usage.projects.used, limit: usage.projects.limit }) }}</span></p>
+                                    <p data-ui="facts" class="flex justify-between text-sm"><span class="font-semibold text-cream">{{ t('settings.plan.songs') }}</span><span class="tabular-nums text-muted">{{ t('settings.plan.ofLimit', { used: usage.projects.used, limit: usage.projects.limit }) }}</span></p>
                                     <div class="flex gap-1" aria-hidden="true"><span v-for="i in usage.projects.limit" :key="i" class="h-1.5 flex-1 rounded-full" :class="i <= usage.projects.used ? 'bg-good' : 'bg-raised'"></span></div>
                                     <p class="text-xs text-muted">{{ songsLeftLine }}</p>
                                 </div>
                                 <div class="space-y-2">
-                                    <p class="flex justify-between text-sm"><span class="font-semibold text-cream">{{ t('settings.plan.storage') }}</span><span class="tabular-nums text-muted">{{ t('settings.plan.ofLimit', { used: formatBytes(usage.storage.usedBytes), limit: formatBytes(usage.storage.limitBytes) }) }}</span></p>
+                                    <p data-ui="facts" class="flex justify-between text-sm"><span class="font-semibold text-cream">{{ t('settings.plan.storage') }}</span><span class="tabular-nums text-muted">{{ t('settings.plan.ofLimit', { used: formatBytes(usage.storage.usedBytes), limit: formatBytes(usage.storage.limitBytes) }) }}</span></p>
                                     <div class="h-1.5 overflow-hidden rounded-full bg-raised" role="meter" aria-valuemin="0" aria-valuemax="100" :aria-valuenow="storagePercent" :aria-label="t('cloud.meter.label')"><div class="h-full rounded-full" :class="storagePercent >= 80 ? 'bg-warn' : 'bg-good'" :style="{ width: Math.max(2, storagePercent) + '%' }"></div></div>
                                     <a href="/storage" class="link text-xs" @click.prevent="navigate('/storage')">{{ t('cloud.meter.see') }}</a>
                                 </div>
@@ -288,11 +317,18 @@ export const SettingsView = {
                 <!-- This device: everything kept in this browser, deleted at once; signed in or not (a guest keeps the most here). -->
                 <section v-if="account.loaded" id="device" class="scroll-mt-6 space-y-3" data-section aria-labelledby="device-heading" data-wipe>
                     <h2 id="device-heading" class="text-lg font-bold text-cream">{{ t('settings.nav.device') }}</h2>
+                    <InstallRow />
                     <div class="card flex flex-wrap items-center justify-between gap-4 p-5">
                         <div class="min-w-0 flex-1"><p class="font-semibold text-cream">{{ t('settings.wipe.title') }}</p><p class="text-sm text-muted">{{ account.me ? t('settings.wipe.hint') : t('settings.wipe.hintGuest') }}</p></div>
                         <button type="button" class="btn-ghost btn-sm shrink-0 text-bad" :disabled="busy === 'wipe'" data-wipe-start @click="wipeDevice">{{ t('settings.wipe.button') }}</button>
                     </div>
                 </section>
+                <!-- Lend your voice (docs/lend-your-voice-plan.md): no new tab, a row here, while its switch is on -->
+                <a v-if="account.me && account.config?.lendVoice" href="/voices" class="card-interactive flex items-center gap-4 p-5" data-lend-voice @click.prevent="navigate('/voices')">
+                    <span class="grid size-10 shrink-0 place-items-center rounded-full bg-raised text-cream" aria-hidden="true"><Icon name="mic" :size="20" /></span>
+                    <span class="min-w-0 flex-1"><span class="block font-bold text-cream">{{ t('voices.title') }}</span><span class="block text-sm text-muted">{{ t('voices.settingsHint') }}</span></span>
+                    <Icon name="arrow" :size="18" class="text-muted" />
+                </a>
                 <a href="/contact?from=/settings" class="card-interactive flex items-center gap-4 p-5" @click.prevent="navigate('/contact?from=/settings')">
                     <span class="grid size-10 shrink-0 place-items-center rounded-full bg-raised text-cream" aria-hidden="true"><Icon name="info" :size="20" /></span>
                     <span class="min-w-0 flex-1"><span class="block font-bold text-cream">{{ t('contact.title') }}</span><span class="block text-sm text-muted">{{ t('settings.contactHint') }}</span></span>
@@ -322,6 +358,16 @@ export const SettingsView = {
             </Modal>
         </div>`,
     computed: {
+        signUp: () => signUpFor('settings', '/settings'),
+        signIn: () => signInTo('/settings'),
+        /** A guest's tally: what's kept only here (or that nothing is yet). */
+        /** Plus from a class code: until when (billing state's schoolUntil), else null. */
+        schoolUntil: () => (plan.billing?.source === 'school' ? plan.billing.schoolUntil ?? null : null),
+        guestTally() {
+            const lessons = Object.keys(learning.progress.lessons ?? {}).length;
+            const songs = this.hereSongs ?? 0;
+            return lessons || songs ? t('settings.guest.tally', { lessons, songs }) : t('settings.guest.nothing');
+        },
         storagePercent() {
             const st = this.usage?.storage;
             return st?.limitBytes ? Math.min(100, Math.round((st.usedBytes / st.limitBytes) * 100)) : 0;
@@ -342,12 +388,22 @@ export const SettingsView = {
         },
     },
     async created() {
+        const restored = session.get(RESTORED);
+        if (restored) {
+            session.remove(RESTORED);
+            const { songs = 0, lessons = 0 } = JSON.parse(restored) ?? {};
+            toast(t('settings.guest.restored', { songs, lessons }), { seconds: 8 });
+        }
         if (account.me) this.reset();
-        loadAuthConfig().then((config) => (this.config = config), (error) => console.warn('Sign-in settings not loaded', error));
+        loadAuthConfig().then((config) => {
+            this.config = config;
+            if (config?.schools && account.me) loadBilling(); // a school year's end date, for the plan line
+        }, (error) => console.warn('Sign-in settings not loaded', error));
         loadLearning().catch((error) => console.warn('Course progress not loaded', error));
         ideasOpen();
         await loadAccount({ fresh: true });
         this.reset({ keepEdits: true }); // anything typed while it loaded stays
+        if (!account.me) deviceSummary().then((s) => (this.hereSongs = s.songs), (error) => console.warn('What is on this device not counted', error));
         if (account.me) this.loadExport();
         if (account.me) api.usage.show().then(({ data }) => (this.usage = data), (error) => console.warn('Storage not loaded', error));
     },
@@ -367,6 +423,38 @@ export const SettingsView = {
         this.sections?.disconnect();
     },
     methods: {
+        async downloadBackup() {
+            this.backup = 'making';
+            try {
+                const { backupName, makeBackup } = await import('../backup.js');
+                const url = URL.createObjectURL(await makeBackup());
+                Object.assign(document.createElement('a'), { href: url, download: backupName() }).click();
+                setTimeout(() => URL.revokeObjectURL(url), 60000);
+                toast(t('settings.guest.backupMade'));
+            } catch (error) {
+                console.warn('The backup was not made', error);
+                toast(t('settings.guest.backupFailed'), { tone: 'error' });
+            } finally {
+                this.backup = null;
+            }
+        },
+        /** A backup file chosen: added to what's here, then the app reloads to show it all. */
+        async restoreFrom(event) {
+            const file = event.target.files?.[0];
+            event.target.value = '';
+            if (!file) return;
+            this.backup = 'restoring';
+            try {
+                const { readBackup, restoreBackup } = await import('../backup.js');
+                const restored = await restoreBackup(await readBackup(new Uint8Array(await file.arrayBuffer())));
+                session.set(RESTORED, JSON.stringify(restored));
+                location.reload();
+            } catch (error) {
+                if (!error?.code) console.warn('The backup was not restored', error);
+                toast(error?.code === 'not_backup' ? t('settings.guest.notBackup') : error?.code === 'newer_backup' ? t('settings.guest.newerBackup') : t('settings.guest.restoreFailed'), { tone: 'error' });
+                this.backup = null;
+            }
+        },
         /** Start the course over: asked once, plainly, then undoable for 30 days (here, and in the toast). */
         async restartCourseAsk() {
             const sure = await confirmAction({ title: t('settings.course.confirmTitle'), body: t('settings.course.confirmBody'), action: t('settings.course.startOver') });

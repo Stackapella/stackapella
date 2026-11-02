@@ -69,7 +69,7 @@ final class InvitesTest extends TestCase
         $singer = $this->invite();
 
         $this->postJson('/api/auth/register', ['name' => 'Sarah Kim', 'email' => 'sarah@example.com', 'password' => 'a-fine-long-passphrase-42', 'birthMonth' => 5, 'birthYear' => 1990, 'elapsedMs' => 30000])->assertStatus(423);
-        $this->postJson('/api/auth/register', ['name' => 'Sarah Kim', 'email' => 'sarah@example.com', 'password' => 'a-fine-long-passphrase-42', 'birthMonth' => 5, 'birthYear' => 1990, 'elapsedMs' => 30000, 'invite' => self::TOKEN])->assertStatus(202);
+        $signedUp = $this->postJson('/api/auth/register', ['name' => 'Sarah Kim', 'email' => 'sarah@example.com', 'password' => 'a-fine-long-passphrase-42', 'birthMonth' => 5, 'birthYear' => 1990, 'elapsedMs' => 30000, 'invite' => self::TOKEN])->assertStatus(202);
 
         $token = '';
         Mail::assertQueued(VerifyEmailAddress::class, function (VerifyEmailAddress $mail) use (&$token): bool {
@@ -78,8 +78,8 @@ final class InvitesTest extends TestCase
             return true;
         });
 
-        // Opened in another browser: the server remembered the invite.
-        $verified = $this->postJson('/api/auth/verify', ['token' => $token]);
+        // The server remembered the invite (the link back in the browser that signed up).
+        $verified = $this->withCredentials()->withCookie('sa_signup', (string) $signedUp->getCookie('sa_signup')?->getValue())->postJson('/api/auth/verify', ['token' => $token]);
         $this->assertMatchesContract($verified, 'auth.verify', 200);
         $verified->assertJsonPath('data.betaSinger', true);
         $this->assertSame(User::query()->where('email', 'sarah@example.com')->value('id'), $singer->refresh()->user_id);

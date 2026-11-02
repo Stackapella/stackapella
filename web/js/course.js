@@ -5,6 +5,7 @@
 
 import { tk } from './i18n.js';
 import { mergeCourses } from './courses.js';
+import { mergeWarmups } from './warmup.js';
 
 /** A learner's progress as stored (db.js `learning`, key 'progress'). */
 export function emptyProgress() {
@@ -95,6 +96,19 @@ export function nextLesson(units, progress, { plus = false } = {}) {
         }
     }
     return last;
+}
+
+/** How far one slide may widen the range at either end, in semitones (Range and registers' span). */
+export const WIDEN_PER_TAKE = 2;
+
+/**
+ * A slide's steady notes (`[low, high]`), held to at most WIDEN_PER_TAKE past the range already
+ * known at either end, so one strained top note or a held growl can't move every key at once;
+ * repeated slides still grow it, a tone at a time. With no range yet, the notes as sung.
+ */
+export function cappedWidening(range, [low, high], cap = WIDEN_PER_TAKE) {
+    if (!range) return [low, high];
+    return [Math.max(low, range.low - cap), Math.min(high, range.high + cap)];
 }
 
 /** A lesson's result kept: the best stars and percent so far. Returns a new progress. */
@@ -249,6 +263,8 @@ export function mergeProgress(mine, theirs) {
         lessons,
         // The Plus courses', lesson by lesson (only once either side has one, so nothing else changes).
         ...(mine.courses || theirs.courses ? { courses: mergeCourses(mine.courses, theirs.courses) } : {}),
+        // Kept warm-ups (docs/warmup-builder-plan.md, slice 4), only once either side has one.
+        ...(mine.warmups || theirs.warmups ? { warmups: mergeWarmups(mine.warmups, theirs.warmups) } : {}),
         keys: { ...theirs.keys, ...mine.keys },
         testedOut: [...new Set([...(mine.testedOut ?? []), ...(theirs.testedOut ?? [])])],
         xp: { total: Math.max(mine.xp?.total ?? 0, theirs.xp?.total ?? 0, sum), days },

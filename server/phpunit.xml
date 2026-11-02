@@ -38,6 +38,9 @@
         <env name="MAIL_MAILER" value="array" force="true"/>
         <env name="QUEUE_CONNECTION" value="sync" force="true"/>
         <env name="SESSION_DRIVER" value="array" force="true"/>
+        <!-- A real key in a developer's .env must never reach the tests (they fake Google). -->
+        <env name="SEARCH_CONSOLE_CREDENTIALS" value="" force="true"/>
+        <env name="ADMIN_REPORT_TIMEZONE" value="" force="true"/>
         <env name="SESSION_SECURE_COOKIE" value="false" force="true"/>
         <env name="MEDIA_DISK" value="media_local" force="true"/>
         <env name="PRIVATE_DISK" value="private_local" force="true"/>

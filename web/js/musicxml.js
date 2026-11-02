@@ -40,14 +40,20 @@ export function valuesFor(duration) {
     return out;
 }
 
-/** The clef for a part: bass clef for a bass, treble with an 8 below for a low voice, else treble. */
-function clefOf(part) {
-    if (part.key === 'bass') return '<clef><sign>F</sign><line>4</line></clef>';
+/** A part's clef, as the Staff names them: bass for a bass, treble with an 8 below for a low voice, else treble. */
+export function clefNameOf(part) {
+    if (part.key === 'bass') return 'bass';
     const notes = part.guide?.notes ?? [];
     const middle = notes.length ? [...notes].map((n) => n.pitch).sort((a, b) => a - b)[notes.length >> 1] : 67;
-    if (['tenor', 'lead', 'baritone'].includes(part.key) || middle < 58) return '<clef><sign>G</sign><line>2</line><clef-octave-change>-1</clef-octave-change></clef>';
-    return '<clef><sign>G</sign><line>2</line></clef>';
+    return ['tenor', 'lead', 'baritone'].includes(part.key) || middle < 58 ? 'treble8' : 'treble';
 }
+
+const CLEF_XML = {
+    bass: '<clef><sign>F</sign><line>4</line></clef>',
+    treble8: '<clef><sign>G</sign><line>2</line><clef-octave-change>-1</clef-octave-change></clef>',
+    treble: '<clef><sign>G</sign><line>2</line></clef>',
+};
+const clefOf = (part) => CLEF_XML[clefNameOf(part)];
 
 /** Where a part's words go: MusicXML's single, begin, middle or end, from our hyphens ("val-" goes on). */
 function syllables(notes) {
@@ -76,12 +82,15 @@ function harmonyXml(chord, key, offset) {
 }
 
 /**
- * One part's measures: its notes on the grid, rests between, split at bar lines and tied, with its
- * words, breath marks and (for the melody) the chords. `bars`: [{ start, length }] in divisions.
+ * One part's bars as what's written in each (for this writer and the printed parts, js/print-score.js):
+ * its notes on the grid and the rests between, split at bar lines into note values and tied, with
+ * the words and breath marks. `bars`: [{ start, length }] in divisions. Each bar is a list of items,
+ * `{ at, d, type, dot, triplet, rest, pitch, tieIn, tieOut, word, breath, note }` (`at` from the bar's
+ * start, `note` the written note's index, the same on each tied piece), and its chords (for the
+ * melody), `{ at, chord }`.
  */
-function partMeasures(part, template, bars, { first, melody }) {
+export function measuresOf(part, template, bars, { melody = false } = {}) {
     const scale = metreOf(template.timeSignature).quarters * DIVISIONS;
-    const key = template.key || 'C';
     const notes = [...(part.guide?.notes ?? [])].sort((a, b) => a.beat - b.beat);
     const words = syllables(notes);
     // The part as events: a note or a rest, start and end in divisions.
@@ -91,20 +100,45 @@ function partMeasures(part, template, bars, { first, melody }) {
         const start = Math.round(n.beat * scale);
         const end = Math.max(start + 1, Math.round((n.beat + n.length) * scale));
         if (start > at) events.push({ start: at, end: start, rest: true });
-        events.push({ start: Math.max(start, at), end, pitch: n.pitch, word: words[i], breath: !!notes[i + 1]?.br });
+        events.push({ start: Math.max(start, at), end, pitch: n.pitch, word: words[i], breath: !!notes[i + 1]?.br, note: i });
         at = end;
     });
     const songEnd = bars.at(-1).start + bars.at(-1).length;
     if (at < songEnd) events.push({ start: at, end: songEnd, rest: true });
     const chords = melody ? [...(template.chords ?? [])].map((c) => ({ ...c, at: Math.round(c.beat * scale) })) : [];
+    return bars.map((bar) => {
+        const end = bar.start + bar.length;
+        const items = [];
+        const barChords = [];
+        for (const ev of events) {
+            const from = Math.max(ev.start, bar.start);
+            const to = Math.min(ev.end, end);
+            if (to <= from) continue;
+            // The chords that change in this stretch, over the note that starts it.
+            for (const chord of chords.filter((c) => c.at >= from && c.at < to)) barChords.push({ at: chord.at - bar.start, offset: chord.at - from, chord });
+            let x = from - bar.start;
+            const values = valuesFor(to - from);
+            values.forEach((value, v) => {
+                const tieIn = !ev.rest && (from > ev.start || v > 0);
+                const tieOut = !ev.rest && (to < ev.end || v < values.length - 1);
+                items.push({ at: x, ...value, rest: !!ev.rest, pitch: ev.pitch ?? null, tieIn, tieOut, word: !ev.rest && !tieIn ? ev.word : null, breath: !ev.rest && ev.breath && !tieOut, note: ev.note ?? null });
+                x += value.d;
+            });
+        }
+        return { items, chords: barChords };
+    });
+}
+
+/** One part's measures as MusicXML, from measuresOf, with the attributes and tempo in the first. */
+function partMeasures(part, template, bars, { first, melody }) {
+    const key = template.key || 'C';
     const metre = metreOf(template.timeSignature);
     const fifths = (() => {
         const sig = keySignature(key);
         return sig.type === 'flat' ? -sig.count : sig.count;
     })();
-
-    return bars.map((bar, b) => {
-        const end = bar.start + bar.length;
+    return measuresOf(part, template, bars, { melody }).map(({ items, chords }, b) => {
+        const bar = bars[b];
         let xml = `<measure number="${b + (bars[0].pickup ? 0 : 1)}"${bar.pickup ? ' implicit="yes"' : ''}>`;
         if (b === 0) {
             xml += `<attributes><divisions>${DIVISIONS}</divisions><key><fifths>${fifths}</fifths><mode>${/m$/.test(key) ? 'minor' : 'major'}</mode></key>`
@@ -114,31 +148,23 @@ function partMeasures(part, template, bars, { first, melody }) {
                 xml += `<direction placement="above"><direction-type><metronome>${unit}<per-minute>${template.tempo}</per-minute></metronome></direction-type><sound tempo="${Math.round(template.tempo * metre.quarters)}"/></direction>`;
             }
         }
-        for (const ev of events) {
-            const from = Math.max(ev.start, bar.start);
-            const to = Math.min(ev.end, end);
-            if (to <= from) continue;
-            // The chords that change in this stretch, over the note that starts it.
-            for (const chord of chords.filter((c) => c.at >= from && c.at < to)) xml += harmonyXml(chord, key, chord.at - from);
-            const values = valuesFor(to - from);
-            values.forEach((value, v) => {
-                const tieIn = from > ev.start || v > 0;
-                const tieOut = to < ev.end || v < values.length - 1;
-                xml += '<note>';
-                xml += ev.rest ? '<rest/>' : pitchXml(ev.pitch, key);
-                xml += `<duration>${value.d}</duration>`;
-                if (!ev.rest && tieIn) xml += '<tie type="stop"/>';
-                if (!ev.rest && tieOut) xml += '<tie type="start"/>';
-                xml += `<type>${value.type}</type>${value.dot ? '<dot/>' : ''}`;
-                if (value.triplet) xml += '<time-modification><actual-notes>3</actual-notes><normal-notes>2</normal-notes></time-modification>';
-                const marks = [];
-                if (!ev.rest && tieIn) marks.push('<tied type="stop"/>');
-                if (!ev.rest && tieOut) marks.push('<tied type="start"/>');
-                if (!ev.rest && ev.breath && !tieOut) marks.push('<articulations><breath-mark/></articulations>');
-                if (marks.length) xml += `<notations>${marks.join('')}</notations>`;
-                if (!ev.rest && ev.word && !tieIn) xml += `<lyric number="1"><syllabic>${ev.word.syllabic}</syllabic><text>${escape(ev.word.text)}</text></lyric>`;
-                xml += '</note>';
-            });
+        for (const item of items) {
+            // A chord sits over the first note value of the stretch where it changes.
+            for (const c of chords.filter((c) => c.at - c.offset === item.at)) xml += harmonyXml(c.chord, key, c.offset);
+            xml += '<note>';
+            xml += item.rest ? '<rest/>' : pitchXml(item.pitch, key);
+            xml += `<duration>${item.d}</duration>`;
+            if (item.tieIn) xml += '<tie type="stop"/>';
+            if (item.tieOut) xml += '<tie type="start"/>';
+            xml += `<type>${item.type}</type>${item.dot ? '<dot/>' : ''}`;
+            if (item.triplet) xml += '<time-modification><actual-notes>3</actual-notes><normal-notes>2</normal-notes></time-modification>';
+            const marks = [];
+            if (item.tieIn) marks.push('<tied type="stop"/>');
+            if (item.tieOut) marks.push('<tied type="start"/>');
+            if (item.breath) marks.push('<articulations><breath-mark/></articulations>');
+            if (marks.length) xml += `<notations>${marks.join('')}</notations>`;
+            if (item.word) xml += `<lyric number="1"><syllabic>${item.word.syllabic}</syllabic><text>${escape(item.word.text)}</text></lyric>`;
+            xml += '</note>';
         }
         if (b === bars.length - 1) xml += '<barline location="right"><bar-style>light-heavy</bar-style></barline>';
         return xml + '</measure>';

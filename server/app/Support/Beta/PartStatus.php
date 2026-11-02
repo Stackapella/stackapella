@@ -16,9 +16,14 @@ final class PartStatus
 {
     /**
      * @param  bool  $isTheVoice  a take of this part is the default real voice on the current version
+     * @param  bool  $askedAgain  Hillel asked for the part again (the song changed), and no take came since
      */
-    public static function of(?BetaSubmission $latest, bool $isTheVoice): string
+    public static function of(?BetaSubmission $latest, bool $isTheVoice, bool $askedAgain = false): string
     {
+        if ($askedAgain) {
+            return 'retake';
+        }
+
         return match ($latest?->status) {
             null, SubmissionStatus::Uploading, SubmissionStatus::Failed => 'to_record',
             SubmissionStatus::Processing, SubmissionStatus::Submitted => 'submitted',

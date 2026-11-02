@@ -12,6 +12,7 @@ use App\Models\Template;
 use App\Models\User;
 use App\Support\Flags;
 use App\Support\Gallery\Gallery;
+use App\Support\Ops\Readiness;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
 use Illuminate\Testing\TestResponse;
@@ -33,6 +34,19 @@ final class ImportedTemplatesTest extends TestCase
     {
         parent::setUp();
         app(SyncOfficialTemplates::class)->handle();
+        // Import is on here; closed, it's refused (test_a_new_import_waits_for_the_switch...).
+        app(Flags::class)->set('sheet_import', 'on', null, 'Testing import');
+    }
+
+    public function test_a_new_import_waits_for_the_switch_and_turns_on_only_with_the_agent_named(): void
+    {
+        app(Flags::class)->set('sheet_import', 'off', null, 'Closed');
+        $this->actingAs($this->adult());
+        $this->assertMatchesContract($this->save((string) Str::uuid(), ['source' => 'sheet-music', 'rightsConfirmed' => true]), 'templates.save', 403);
+
+        config(['site.dmca_agent' => ['name' => '', 'address' => '', 'phone' => '', 'email' => '']]);
+        $this->actingAsAdmin();
+        $this->assertMatchesContract($this->putJson('/api/admin/flags/sheet_import', ['value' => 'on', 'reason' => 'Ready']), 'admin.flags.update', 409);
     }
 
     private function adult(string $name = 'Ana Ruiz', string $plan = 'plus'): User
@@ -81,6 +95,36 @@ final class ImportedTemplatesTest extends TestCase
         $this->save((string) Str::uuid(), ['copiedFrom' => $theirs->slug])->assertNotFound();
         // A plain song isn't.
         $this->save((string) Str::uuid())->assertOk()->assertJsonPath('data.imported', false)->assertJsonPath('data.rightsConfirmedAt', null);
+    }
+
+    public function test_the_rights_wording_is_kept_and_a_repeat_infringer_makes_no_new_import(): void
+    {
+        $ana = $this->adult();
+        $id = $this->imported();
+        $this->assertSame('import-rights-v1', Template::query()->where('slug', $id)->value('rights_statement'));
+
+        // Three copyright takedowns that stand: no new import (one reversed on appeal doesn't count).
+        Notice::factory()->count(3)->create(['user_id' => $ana->id, 'kind' => Notice::TEMPLATE_HIDDEN, 'rule' => 'copyright']);
+        $this->assertMatchesContract($this->save((string) Str::uuid(), ['source' => 'sheet-music', 'rightsConfirmed' => true]), 'templates.save', 403);
+        // A new version of one they already have is still theirs to save.
+        $this->save($id, [], 2)->assertOk();
+        Notice::query()->where('user_id', $ana->id)->first()?->forceFill(['decision' => Notice::REVERSED])->save();
+        $this->save((string) Str::uuid(), ['source' => 'sheet-music', 'rightsConfirmed' => true])->assertOk();
+    }
+
+    public function test_the_copyright_page_names_the_agent_and_the_doctor_says_when_import_can_go_on(): void
+    {
+        $status = fn (): ?string => collect(app(Readiness::class)->run())->firstWhere('key', 'sheet-import')?->status;
+        app(Flags::class)->set('sheet_import', 'off', null, 'Not yet');
+        $this->get('/legal/copyright')->assertOk()->assertSee('being registered with the US Copyright Office');
+        $this->assertSame('warn', $status());
+        app(Flags::class)->set('sheet_import', 'on', null, 'Too soon');
+        $this->assertSame('fail', $status());
+
+        config(['site.dmca_agent' => ['name' => 'Copyright Agent', 'address' => 'PO Box 1, Example City', 'phone' => '+1 555 0100', 'email' => 'copyright@example.com']]);
+        $this->assertSame('pass', $status());
+        $this->get('/legal/copyright')->assertOk()->assertSee('Our designated agent: Copyright Agent, PO Box 1, Example City, telephone +1 555 0100, copyright@example.com.')
+            ->assertDontSee(':dmca_agent');
     }
 
     public function test_an_imported_song_is_never_unlisted_public_published_or_an_idea(): void
@@ -136,7 +180,11 @@ final class ImportedTemplatesTest extends TestCase
         $this->getJson('/api/templates/'.$id)->assertNotFound();
         $this->postJson('/api/reports', ['templateId' => $id, 'reason' => 'copyright'])->assertNotFound();
 
+        // The report reaches the admin's queue, though the song is private to its group.
         $this->actingAsAdmin();
+        $held = $this->getJson('/api/admin/library/held');
+        $this->assertMatchesContract($held, 'admin.library.held', 200);
+        $this->assertSame([[$id, true]], array_map(fn (array $t): array => [$t['id'], $t['imported']], (array) $held->json('data')));
         $this->postJson('/api/admin/library/'.$id, ['decision' => 'hide', 'note' => 'A copyright notice from the publisher.'])->assertOk();
         $this->assertSame('copyright', Notice::query()->where('user_id', $director->id)->where('kind', Notice::TEMPLATE_HIDDEN)->value('rule'));
         $this->actingAs($member)->getJson('/api/templates/'.$id)->assertNotFound();

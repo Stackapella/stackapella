@@ -19,7 +19,7 @@ LINE = "document.querySelector('[data-badge-line]')"
 def journey(f):
     f.go("/?api=mock&scenario=&as=signedOut", "document.querySelector('#app header')")
     f.run("localStorage.removeItem('stackapella.gameEffects'); await new Promise((r) => { const q = indexedDB.deleteDatabase('stackapella'); q.onsuccess = q.onerror = q.onblocked = r; });")
-    f.go("/learn/1-comfortable?api=mock&scenario=&as=signedOut", "document.querySelector('main h1')")
+    f.go("/learn/1-comfortable?api=mock&scenario=&as=signedOut&x=short1-a", "document.querySelector('main h1')")
     f.js(f"{AUDIO}.unlock()")
     f.js(f"{AUDIO}.engine.setLoopback(true)")
     f.go_on()

@@ -112,6 +112,8 @@ final class TemplatesController extends Controller
             'voices' => $voices->map(fn (TemplateGuide $g): array => [...GuideRecording::of($g), 'default' => $g->is_default])->all(),
             'grant' => $grant,
             'freeUntil' => $grant === 'month' ? $song->free_until?->copy()->endOfDay()->utc()->toIso8601ZuluString() : null,
+            // Our songs always have part boards.
+            'boards' => true,
         ]])->setEtag(trim($etag, '"'));
     }
 
@@ -156,7 +158,7 @@ final class TemplatesController extends Controller
             return response()->noContent(304)->setEtag(trim($etag, '"'));
         }
 
-        return response()->json(['data' => PersonsTemplate::payload($version, $recordings, $grant, $shelf)])->setEtag(trim($etag, '"'));
+        return response()->json(['data' => [...PersonsTemplate::payload($version, $recordings, $grant, $shelf), 'boards' => $song->isPublic()]])->setEtag(trim($etag, '"'));
     }
 
     private function inProject(Template $song, User $user): bool

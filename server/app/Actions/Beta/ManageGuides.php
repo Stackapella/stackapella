@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Actions\Beta;
 
+use App\Actions\Voices\VolunteerAbuse;
 use App\Models\AuditLog;
 use App\Models\TemplateGuide;
 use App\Models\TemplateVersion;
@@ -43,8 +44,15 @@ final class ManageGuides
     /**
      * @param  'not_public'|'hidden'|'deleted'|'removed'|'forgotten'  $why
      */
-    public function remove(TemplateGuide $guide, ?User $actor, ?string $ip = null, string $why = 'removed'): void
+    public function remove(TemplateGuide $guide, ?User $actor, ?string $ip = null, string $why = 'removed', bool $abuse = false): void
     {
+        // Removed for abuse: a volunteer who sang it can't claim again; its reports are dealt with.
+        if ($abuse && $actor !== null) {
+            VolunteerAbuse::block($guide->submission()->with('assignment.singer')->first(), $actor, $ip);
+        }
+
+        VolunteerAbuse::settleReports($guide);
+
         $next = DB::transaction(function () use ($guide, $actor, $ip): ?TemplateGuide {
             AuditLog::record('beta.guide_removed', $guide, $actor, before: ['part' => $guide->part_key, 'media_key' => $guide->media_key, 'submission' => $guide->beta_submission_id], ip: $ip);
             $guide->delete();

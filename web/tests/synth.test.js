@@ -1,5 +1,6 @@
 import { detectPitch, hzToMidi, midiName, rankParts, suggestTranspose } from '/js/dsp.js';
 import { beatToSeconds, renderPart } from '/js/synth.js';
+import { trackTake } from '/js/pitchtrack.js';
 import { assert, close, test } from './harness.js';
 
 const sr = 48000;
@@ -158,4 +159,54 @@ test('synth: a note\'s bend glides as asked and jumps where two points share a t
     const head = renderPart([{ beat: 0, length: 1, pitch: 69, vibrato: { cents: 0 }, voice: 'head' }], { bpm: 60, sampleRate: sr });
     assert(edge(head) < edge(oo), `head voice purer: ${edge(head).toFixed(3)} vs ${edge(oo).toFixed(3)}`);
     close(hzToCents(trackTake(head, sr).hz[50], 69), 0, 10, 'and on its pitch');
+});
+
+// The human voice (Hillel: "too perfect"): seeded, so the same every time; the guide tier keeps the
+// held part of every note within about 5 cents (it teaches pitch), the full tier within a quarter of
+// a semitone (never a wrong note), and neither is machine-steady.
+const LINE = [55, 57, 59, 60, 62, 60, 59, 57].map((pitch, i) => ({ beat: i * 2, length: 1.8, pitch }));
+
+/** Each note's held part (after its first 0.15 s, before its last 0.12 s), smoothed over a vibrato cycle: the worst, and how much the pitch moves. */
+function heldPitch(samples, notes, bpm) {
+    const track = trackTake(samples, sr);
+    const beat = 60 / bpm;
+    let worst = 0;
+    let moves = 0;
+    for (const n of notes) {
+        const cents = [];
+        for (let i = Math.ceil((n.beat * beat + 0.15) * track.rate); i < ((n.beat + n.length) * beat - 0.12) * track.rate; i++) {
+            if (track.hz[i] <= 0) continue;
+            const c = 1200 * Math.log2(track.hz[i] / (440 * 2 ** ((n.pitch - 69) / 12)));
+            cents.push(c - 1200 * Math.round(c / 1200)); // an octave misread is the tracker's, not the voice's
+        }
+        const w = Math.round(0.2 * track.rate);
+        for (let i = 0; i + w <= cents.length; i++) worst = Math.max(worst, Math.abs(cents.slice(i, i + w).reduce((a, b) => a + b, 0) / w));
+        moves = Math.max(moves, Math.max(...cents) - Math.min(...cents));
+    }
+    return { worst, moves };
+}
+
+test('human voice: the guide tier stays within 5 cents on each held note, and still moves', () => {
+    const samples = renderPart(LINE, { bpm: 90, sampleRate: sr, human: 'guide', seed: 3 });
+    const { worst, moves } = heldPitch(samples, LINE, 90);
+    assert(worst <= 5, `the guide drifts ${worst.toFixed(1)} cents on a held note`);
+    assert(moves >= 8, `the guide is machine-steady: it moves ${moves.toFixed(1)} cents`);
+});
+
+test('human voice: the full tier varies more, but never by a wrong note (within 30 cents held)', () => {
+    const samples = renderPart(LINE, { bpm: 90, sampleRate: sr, human: 'full', seed: 3 });
+    const { worst, moves } = heldPitch(samples, LINE, 90);
+    assert(worst <= 30, `the demo voice drifts ${worst.toFixed(1)} cents on a held note`);
+    assert(moves >= 25, `the demo voice moves only ${moves.toFixed(1)} cents: too perfect`);
+});
+
+test('human voice: the same seed sings the same, another seed differently; a course note keeps its own vibrato', () => {
+    const a = renderPart(LINE, { bpm: 90, sampleRate: sr, human: 'full', seed: 5 });
+    const b = renderPart(LINE, { bpm: 90, sampleRate: sr, human: 'full', seed: 5 });
+    const c = renderPart(LINE, { bpm: 90, sampleRate: sr, human: 'full', seed: 6 });
+    assert(a.length === b.length && a.every((v, i) => v === b[i]), 'repeatable');
+    assert(a.some((v, i) => Math.abs(v - c[i]) > 1e-3), 'a different seed, a different take');
+    const straight = [{ beat: 0, length: 4, pitch: 60, vibrato: { cents: 0 } }];
+    const { moves } = heldPitch(renderPart(straight, { bpm: 60, sampleRate: sr, human: 'full', seed: 5 }), straight, 60);
+    assert(moves <= 6, `a straight tone asked for by a course wobbles ${moves.toFixed(1)} cents`);
 });

@@ -54,6 +54,10 @@
         "billing": {
             "type": "object",
             "description": "A 409 store_linked_elsewhere only: billing.show's data, so the app shows where it stands."
+        },
+        "email": {
+            "type": "string",
+            "description": "A 409 confirm_sign_in only: the account a link would sign into, to ask \"Sign in as ...?\"."
         }
     }
 }

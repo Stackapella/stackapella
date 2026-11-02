@@ -54,11 +54,17 @@ function rendered(key, message, here) {
     return cache.get(key);
 }
 
-/** The guide audio for `part` of `template` (from `templateVersion`), as a Float32Array. */
-export function renderGuide({ templateId, templateVersion, part, tempo, transpose = 0, speed = 1, sampleRate }) {
+/**
+ * The guide audio for `part` of `template` (from `templateVersion`), as a Float32Array, sung as a
+ * person sings (js/synth.js, the human voice): `human` 'guide' in the app (its held notes stay on
+ * pitch, it teaches them), 'full' for the public pages' players. Seeded by the song and part, so the
+ * same render every time.
+ */
+export function renderGuide({ templateId, templateVersion, part, tempo, transpose = 0, speed = 1, sampleRate, human = 'guide' }) {
     if (part.kind === 'instrument') return renderInstrument({ templateId, templateVersion, part, tempo, transpose, speed, sampleRate });
-    const key = `${templateId}@${templateVersion}:${part.key}:${transpose}:${speed}:${sampleRate}:breaths`;
-    const options = { bpm: tempo, sampleRate, transpose, speed };
+    const key = `${templateId}@${templateVersion}:${part.key}:${transpose}:${speed}:${sampleRate}:breaths:${human}`;
+    const seed = [...`${templateId}:${part.key}`].reduce((sum, c) => (sum * 31 + c.charCodeAt(0)) >>> 0, 7);
+    const options = { bpm: tempo, sampleRate, transpose, speed, human, seed };
     // Plain copies: Vue's reactive objects can't be posted to a worker. Each note ends where its
     // singing does: before a new line (`br`) the voice breathes, the gap scoring forgives (a beta
     // singer: "in the tones, there is no place for breath"). Instruments play on.

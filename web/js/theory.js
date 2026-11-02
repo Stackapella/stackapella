@@ -8,6 +8,11 @@
 const tk = (key) => key; // marks a word key for the i18n check (this module imports nothing)
 
 const pc = (n) => ((n % 12) + 12) % 12;
+
+/** Beats per bar for counting in and the metronome (6/8 counts in dotted quarters: 2). */
+export function beatsPerBar(timeSignature) {
+    return { '4/4': 4, '3/4': 3, '6/8': 2, '2/4': 2 }[timeSignature] ?? 4;
+}
 const DEGREES = { I: 0, II: 2, III: 4, IV: 5, V: 7, VI: 9, VII: 11 };
 // A chord's tones by quality, in semitones from its root.
 export const QUALITIES = {

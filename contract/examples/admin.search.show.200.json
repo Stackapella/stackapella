@@ -1,0 +1,92 @@
+{
+    "data": {
+        "connected": true,
+        "syncedAt": "2026-11-01T05:40:12Z",
+        "from": "2026-10-02",
+        "to": "2026-10-29",
+        "error": null,
+        "totals": {
+            "clicks": 412,
+            "impressions": 18350,
+            "ctr": 0.0225
+        },
+        "pages": [
+            {
+                "key": "https://stackapella.com/",
+                "clicks": 220,
+                "impressions": 5100,
+                "ctr": 0.0431,
+                "position": 6.2
+            },
+            {
+                "key": "https://stackapella.com/courses/perfect-your-pitch",
+                "clicks": 61,
+                "impressions": 2900,
+                "ctr": 0.021,
+                "position": 9.4
+            },
+            {
+                "key": "https://stackapella.com/songs/amazing-grace",
+                "clicks": 18,
+                "impressions": 2400,
+                "ctr": 0.0075,
+                "position": 14.8
+            }
+        ],
+        "queries": [
+            {
+                "key": "stackapella",
+                "clicks": 150,
+                "impressions": 420,
+                "ctr": 0.3571,
+                "position": 1.1
+            },
+            {
+                "key": "barbershop harmony practice",
+                "clicks": 22,
+                "impressions": 1300,
+                "ctr": 0.0169,
+                "position": 11.3
+            }
+        ],
+        "toImprove": [
+            {
+                "key": "https://stackapella.com/courses/perfect-your-pitch",
+                "clicks": 61,
+                "impressions": 2900,
+                "ctr": 0.021,
+                "position": 9.4,
+                "reasons": [
+                    "nearTop"
+                ]
+            },
+            {
+                "key": "https://stackapella.com/songs/amazing-grace",
+                "clicks": 18,
+                "impressions": 2400,
+                "ctr": 0.0075,
+                "position": 14.8,
+                "reasons": [
+                    "lowCtr",
+                    "nearTop"
+                ]
+            }
+        ],
+        "sitemaps": [
+            {
+                "path": "https://stackapella.com/sitemap.xml",
+                "errors": 0,
+                "warnings": 0,
+                "lastDownloaded": "2026-10-31T22:14:03.000Z"
+            }
+        ],
+        "rules": {
+            "minImpressions": 50,
+            "lowCtr": 0.02,
+            "nearTop": [
+                8,
+                20
+            ]
+        }
+    }
+}

@@ -179,7 +179,7 @@ export const JustRecorded = {
                                 <text :x="n.x + 7" :y="chipY(n) + 12.5" font-size="11" font-weight="700" class="fill-part-text-1" translate="no">{{ n.label }}</text>
                             </g>
                         </svg>
-                        <p v-if="chart" class="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted" aria-hidden="true">
+                        <p v-if="chart" data-ui="facts" class="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted" aria-hidden="true">
                             <span class="flex items-center gap-1.5"><span class="h-2 w-4 rounded-full" :style="{ background: color }"></span>{{ t('sing.review.legendTarget') }}</span>
                             <span class="flex items-center gap-1.5"><span class="h-0.5 w-4 rounded-full bg-cream"></span>{{ t('sing.review.legendYou') }}</span>
                             <span class="flex items-center gap-1.5"><span class="h-2 w-4 rounded-full border-2 border-part-1"></span>{{ t('sing.review.legendTrouble') }}</span>

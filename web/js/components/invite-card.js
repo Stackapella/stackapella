@@ -124,7 +124,7 @@ export const InviteAccept = {
             <TurnstileBox v-if="config?.turnstileSiteKey" :key="turnstileKey" :site-key="config.turnstileSiteKey" @token="turnstile = $event" @failed="turnstile = null" />
             <button type="submit" class="btn-primary btn-lg w-full" :disabled="busy">{{ busy ? t('auth.working') : button || t('invite.accept') }}</button>
             <template v-if="providers.length">
-                <p class="flex items-center gap-3 text-sm text-muted"><span class="h-px flex-1 bg-line"></span>{{ t('invite.orWith') }}<span class="h-px flex-1 bg-line"></span></p>
+                <p data-ui="facts" class="flex items-center gap-3 text-sm text-muted"><span class="h-px flex-1 bg-line"></span>{{ t('invite.orWith') }}<span class="h-px flex-1 bg-line"></span></p>
                 <div class="grid grid-cols-2 gap-3">
                     <button v-for="p in providers" :key="p" type="button" class="btn-secondary min-h-11 justify-center" @click="provider(p)">{{ t(PROVIDERS[p]) }}</button>
                 </div>

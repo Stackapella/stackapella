@@ -37,7 +37,10 @@ SLOW = 4.0  # seconds a screen may take to be ready before it's noted as slow
 BEAT = 60 / 72
 
 CHECK = r"""(() => {
+    // The Game mode switch's own hint names what game mode adds (XP, stars): that's no skin leak.
+    const hints = [...document.querySelectorAll('[data-game-toggle] .gt-hint')]; hints.forEach((e) => (e.style.display = 'none'));
     const text = document.body.innerText;
+    hints.forEach((e) => (e.style.display = ''));
     const raw = (text.match(/\b(course|courses|results|wrap|home|sing|studio|share|settings|auth|install|chordMoment|micCheck|library|template|together|appearance|game|report|reminders|boards|plus|choose|exercise|headphones|timing|parts)\.[a-z][A-Za-z]+(\.[A-Za-z]+)*\b/g) || []).filter((k) => !/\.(com|json|js|md|app)$/.test(k));
     const odd = (text.match(/\bundefined\b|\bNaN\b|\[object Object\]|\{[a-z]+\}/g) || []);
     const stars = (text.match(/\b\d+\s*stars?\b|\bstars?\b|★|\bXP\b|\bcombo\b|\bstreak\b/gi) || []);
@@ -298,7 +301,8 @@ def journey(f):
         time.sleep(1.0)
         if f.js(f"document.body.innerText.includes({I18N}.t('sing.chooser.yourPart'))"):
             j.look_at("the part picker", "part-picker")
-            f.run("document.querySelector('main .card-interactive, main [data-part]')?.click()")
+            # Serious lists the parts as cards; game mode's character select chooses on a portrait's tap.
+            f.run("document.querySelector('main .card-interactive, main [data-part], main [data-game-select] [data-slot]')?.click()")
         if not q("Sing's coach", "document.querySelector('[data-coach]')"):
             return
         j.look_at("Sing's coach", "coach")
@@ -345,10 +349,16 @@ def journey(f):
         f.run(f"{button}.click()")
         if q("Share asks a guest to sign in", f"document.body.innerText.includes({I18N}.t('share.signIn'))", timeout=8):
             j.look_at("Share as a guest", "share-guest")
+            # Its own button, as a guest would: sign-up then says the share is why (for=share).
+            if q("the share's sign-up button", "!!document.querySelector('[data-share-signup]')", timeout=4):
+                f.run("document.querySelector('[data-share-signup]').click()")
+                return
         f.press("Escape")
 
     def sign_up():
-        f.run(f"{ROUTER}.navigate('/signin?mode=signup')")
+        if f.js("location.pathname") != "/signin":
+            f.run(f"{ROUTER}.navigate('/signin?mode=signup')")
+        q("sign-up says why: the share", f"document.querySelector('#app h1')?.textContent.trim() === {I18N}.t('auth.reason.share')", timeout=6)
         if not q("the sign-up form", "document.querySelector('form input[autocomplete=name]')"):
             return
         j.look_at("Sign up", "signup")

@@ -12,6 +12,14 @@ declare(strict_types=1);
  *   php tool/load/profile.php <an access token from seed.php> [runs]
  */
 
+use App\Actions\Counts\ActiveSingers;
+use App\Actions\Counts\Funnel;
+use App\Actions\Counts\Growth;
+use App\Actions\Counts\Reach;
+use App\Actions\Counts\RecordCounts;
+use App\Support\Admin\Insights;
+use App\Support\Admin\Overview;
+use App\Support\Admin\Revenue;
 use Illuminate\Contracts\Http\Kernel;
 use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Http\Request;
@@ -45,6 +53,13 @@ $reads = [
     ['usage.show', '/api/usage', true],
     ['bin.list', '/api/bin', true],
     ['groups.list', '/api/groups', true],
+    // The 2026-11-01 pass: Sing, the boards and the courses.
+    ['templates.show', '/api/templates/amazing-grace', false],
+    ['templates.show, signed in', '/api/templates/amazing-grace', true],
+    ['templates.finishers', '/api/templates/amazing-grace/finishers', false],
+    ['boards.show', '/api/boards/amazing-grace/alto', true],
+    ['boards.daily.show', '/api/boards/daily', false],
+    ['courses.clips.list', '/api/courses/vibrato/clips', false],
 ];
 
 $queries = [];
@@ -84,4 +99,38 @@ foreach ($reads as [$name, $path, $signedIn]) {
     printf("%-32s %6d %8.1f %8d %8.1f %5d/%5.1f %9d  %s\n", $name, $response->getStatusCode(), $times[intdiv(count($times), 2)], count($queries), array_sum(array_column($queries, 0)),
         count($cache), array_sum(array_column($cache, 0)),
         strlen((string) $response->getContent()), isset($queries[0]) ? sprintf('%.1f ms: %s', $queries[0][0], mb_substr(preg_replace('/\s+/', ' ', $queries[0][1]) ?? '', 0, 110)) : '');
+}
+
+// Admin's analytics (the 2026-11-01 pass): signed in through Google and a second factor, so timed
+// here through their actions, which hold all their queries.
+$admin = [
+    'admin.overview' => fn () => app(Overview::class)->numbers(),
+    'admin.growth.show (7)' => fn () => app(Growth::class)->overview(7),
+    'admin.growth.show (84)' => fn () => app(Growth::class)->overview(84),
+    'admin.sources.show (30)' => fn () => app(Growth::class)->sources(30),
+    'admin.funnel.show (30)' => fn () => app(Funnel::class)->report(null, 30),
+    'admin.counts.show (30)' => fn () => app(RecordCounts::class)->summary(30),
+    'admin.reach.show' => fn () => app(Reach::class)->show(),
+    'admin.active.show' => fn () => app(ActiveSingers::class)->show(),
+    'admin.revenue.show' => fn () => app(Revenue::class)->show(),
+    'admin.churn.show' => fn () => app(Revenue::class)->churn(),
+    'admin.cohorts.show' => fn () => app(Insights::class)->cohorts(),
+    'admin.activity.show' => fn () => app(Insights::class)->activity(),
+];
+
+printf("\n%-32s %8s %8s %8s  %s\n", 'admin action', 'ms', 'queries', 'db ms', 'slowest query');
+foreach ($admin as $name => $run) {
+    $times = [];
+    foreach (range(0, $runs) as $i) {
+        $queries = [];
+        $start = hrtime(true);
+        $run();
+        if ($i > 0) {
+            $times[] = (hrtime(true) - $start) / 1e6;
+        }
+    }
+    sort($times);
+    usort($queries, static fn (array $a, array $b): int => $b[0] <=> $a[0]);
+    printf("%-32s %8.1f %8d %8.1f  %s\n", $name, $times[intdiv(count($times), 2)], count($queries), array_sum(array_column($queries, 0)),
+        isset($queries[0]) ? sprintf('%.1f ms: %s', $queries[0][0], mb_substr(preg_replace('/\s+/', ' ', $queries[0][1]) ?? '', 0, 110)) : '');
 }

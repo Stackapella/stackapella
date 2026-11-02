@@ -179,7 +179,7 @@
           },
           {
            "beat": 10,
-           "length": 2,
+           "length": 1,
            "lyric": "sound",
            "pitch": 62
           },
@@ -221,7 +221,7 @@
           },
           {
            "beat": 19,
-           "length": 5,
+           "length": 4,
            "lyric": "me.",
            "pitch": 74
           },
@@ -275,7 +275,7 @@
           },
           {
            "beat": 34,
-           "length": 2,
+           "length": 1,
            "lyric": "found,",
            "pitch": 62
           },
@@ -364,7 +364,7 @@
       "tempo": 80,
       "timeSignature": "3/4",
       "title": "Amazing Grace",
-      "version": 3,
+      "version": 4,
       "voicings": {
        "2": [
         "soprano",
@@ -393,13 +393,13 @@
        "root": 7
       },
       {
-       "bass": null,
+       "bass": 11,
        "beat": 1,
        "quality": "maj",
        "root": 7
       },
       {
-       "bass": null,
+       "bass": 11,
        "beat": 4,
        "quality": "maj",
        "root": 7
@@ -414,16 +414,16 @@
        "bass": null,
        "beat": 10,
        "quality": "maj",
-       "root": 2
+       "root": 7
       },
       {
-       "bass": null,
+       "bass": 11,
        "beat": 13,
        "quality": "maj",
        "root": 7
       },
       {
-       "bass": null,
+       "bass": 11,
        "beat": 16,
        "quality": "maj",
        "root": 7
@@ -462,7 +462,7 @@
        "bass": null,
        "beat": 34,
        "quality": "maj",
-       "root": 2
+       "root": 7
       },
       {
        "bass": null,
@@ -569,7 +569,7 @@
          },
          {
           "beat": 10,
-          "length": 2,
+          "length": 1,
           "lyric": "sound",
           "pitch": 62
          },
@@ -611,7 +611,7 @@
          },
          {
           "beat": 19,
-          "length": 5,
+          "length": 4,
           "lyric": "me.",
           "pitch": 74
          },
@@ -665,7 +665,7 @@
          },
          {
           "beat": 34,
-          "length": 2,
+          "length": 1,
           "lyric": "found,",
           "pitch": 62
          },
@@ -748,13 +748,13 @@
           "beat": 4,
           "length": 2,
           "lyric": "grace,",
-          "pitch": 59
+          "pitch": 62
          },
          {
           "beat": 6,
           "length": 1,
           "lyric": "how",
-          "pitch": 59
+          "pitch": 62
          },
          {
           "beat": 7,
@@ -770,16 +770,16 @@
          },
          {
           "beat": 10,
-          "length": 2,
+          "length": 1,
           "lyric": "sound",
-          "pitch": 57
+          "pitch": 59
          },
          {
           "beat": 12,
           "br": true,
           "length": 1,
           "lyric": "that",
-          "pitch": 57
+          "pitch": 59
          },
          {
           "beat": 13,
@@ -813,7 +813,7 @@
          },
          {
           "beat": 22,
-          "length": 2,
+          "length": 1,
           "pitch": 67
          },
          {
@@ -831,14 +831,9 @@
          },
          {
           "beat": 27,
-          "length": 0.5,
+          "length": 1,
           "lyric": "was",
           "pitch": 67
-         },
-         {
-          "beat": 27.5,
-          "length": 0.5,
-          "pitch": 71
          },
          {
           "beat": 28,
@@ -866,16 +861,16 @@
          },
          {
           "beat": 34,
-          "length": 2,
+          "length": 1,
           "lyric": "found,",
-          "pitch": 57
+          "pitch": 59
          },
          {
           "beat": 36,
           "br": true,
           "length": 1,
           "lyric": "was",
-          "pitch": 57
+          "pitch": 59
          },
          {
           "beat": 37,
@@ -914,7 +909,7 @@
        "name": "Alto",
        "range": {
         "high": 71,
-        "low": 57
+        "low": 59
        }
       },
       {
@@ -965,16 +960,16 @@
          },
          {
           "beat": 10,
-          "length": 2,
+          "length": 1,
           "lyric": "sound",
-          "pitch": 54
+          "pitch": 55
          },
          {
           "beat": 12,
           "br": true,
           "length": 1,
           "lyric": "that",
-          "pitch": 54
+          "pitch": 55
          },
          {
           "beat": 13,
@@ -1008,7 +1003,7 @@
          },
          {
           "beat": 22,
-          "length": 2,
+          "length": 1,
           "pitch": 59
          },
          {
@@ -1056,16 +1051,16 @@
          },
          {
           "beat": 34,
-          "length": 2,
+          "length": 1,
           "lyric": "found,",
-          "pitch": 54
+          "pitch": 55
          },
          {
           "beat": 36,
           "br": true,
           "length": 1,
           "lyric": "was",
-          "pitch": 54
+          "pitch": 55
          },
          {
           "beat": 37,
@@ -1104,7 +1099,7 @@
        "name": "Tenor",
        "range": {
         "high": 60,
-        "low": 54
+        "low": 55
        }
       },
       {
@@ -1120,12 +1115,12 @@
          {
           "beat": 1,
           "length": 3,
-          "pitch": 43
+          "pitch": 47
          },
          {
           "beat": 4,
           "length": 3,
-          "pitch": 43
+          "pitch": 47
          },
          {
           "beat": 7,
@@ -1134,22 +1129,25 @@
          },
          {
           "beat": 10,
+          "length": 1,
+          "pitch": 43
+         },
+         {
+          "beat": 12,
           "br": true,
-          "length": 3,
+          "length": 1,
           "lyric": "oo",
-          "pitch": 50
+          "pitch": 43
          },
          {
           "beat": 13,
-          "br": true,
           "length": 3,
-          "lyric": "oo",
-          "pitch": 43
+          "pitch": 47
          },
          {
           "beat": 16,
           "length": 3,
-          "pitch": 43
+          "pitch": 47
          },
          {
           "beat": 19,
@@ -1158,16 +1156,19 @@
          },
          {
           "beat": 22,
+          "length": 1,
+          "pitch": 55
+         },
+         {
+          "beat": 24,
           "br": true,
-          "length": 3,
+          "length": 1,
           "lyric": "oo",
           "pitch": 55
          },
          {
           "beat": 25,
-          "br": true,
           "length": 3,
-          "lyric": "oo",
           "pitch": 55
          },
          {
@@ -1182,16 +1183,19 @@
          },
          {
           "beat": 34,
+          "length": 1,
+          "pitch": 43
+         },
+         {
+          "beat": 36,
           "br": true,
-          "length": 3,
+          "length": 1,
           "lyric": "oo",
-          "pitch": 50
+          "pitch": 43
          },
          {
           "beat": 37,
-          "br": true,
           "length": 3,
-          "lyric": "oo",
           "pitch": 43
          },
          {
@@ -1251,7 +1255,7 @@
      "tempo": 80,
      "timeSignature": "3/4",
      "title": "Amazing Grace",
-     "version": 3,
+     "version": 4,
      "voicings": {
       "2": [
        "soprano",
@@ -1448,7 +1452,7 @@
           },
           {
            "beat": 10,
-           "length": 2,
+           "length": 1,
            "lyric": "sound",
            "pitch": 62
           },
@@ -1490,7 +1494,7 @@
           },
           {
            "beat": 19,
-           "length": 5,
+           "length": 4,
            "lyric": "me.",
            "pitch": 74
           },
@@ -1544,7 +1548,7 @@
           },
           {
            "beat": 34,
-           "length": 2,
+           "length": 1,
            "lyric": "found,",
            "pitch": 62
           },
@@ -1633,7 +1637,7 @@
       "tempo": 80,
       "timeSignature": "3/4",
       "title": "Amazing Grace",
-      "version": 3,
+      "version": 4,
       "voicings": {
        "2": [
         "soprano",
@@ -1838,7 +1842,7 @@
          },
          {
           "beat": 10,
-          "length": 2,
+          "length": 1,
           "lyric": "sound",
           "pitch": 62
          },
@@ -1880,7 +1884,7 @@
          },
          {
           "beat": 19,
-          "length": 5,
+          "length": 4,
           "lyric": "me.",
           "pitch": 74
          },
@@ -1934,7 +1938,7 @@
          },
          {
           "beat": 34,
-          "length": 2,
+          "length": 1,
           "lyric": "found,",
           "pitch": 62
          },
@@ -2039,7 +2043,7 @@
          },
          {
           "beat": 10,
-          "length": 2,
+          "length": 1,
           "lyric": "sound",
           "pitch": 57
          },
@@ -2082,7 +2086,7 @@
          },
          {
           "beat": 22,
-          "length": 2,
+          "length": 1,
           "pitch": 67
          },
          {
@@ -2100,14 +2104,9 @@
          },
          {
           "beat": 27,
-          "length": 0.5,
+          "length": 1,
           "lyric": "was",
           "pitch": 67
-         },
-         {
-          "beat": 27.5,
-          "length": 0.5,
-          "pitch": 71
          },
          {
           "beat": 28,
@@ -2135,7 +2134,7 @@
          },
          {
           "beat": 34,
-          "length": 2,
+          "length": 1,
           "lyric": "found,",
           "pitch": 57
          },
@@ -2234,7 +2233,7 @@
          },
          {
           "beat": 10,
-          "length": 2,
+          "length": 1,
           "lyric": "sound",
           "pitch": 54
          },
@@ -2277,7 +2276,7 @@
          },
          {
           "beat": 22,
-          "length": 2,
+          "length": 1,
           "pitch": 59
          },
          {
@@ -2325,7 +2324,7 @@
          },
          {
           "beat": 34,
-          "length": 2,
+          "length": 1,
           "lyric": "found,",
           "pitch": 54
          },
@@ -2403,16 +2402,19 @@
          },
          {
           "beat": 10,
+          "length": 1,
+          "pitch": 50
+         },
+         {
+          "beat": 12,
           "br": true,
-          "length": 3,
+          "length": 1,
           "lyric": "oo",
           "pitch": 50
          },
          {
           "beat": 13,
-          "br": true,
           "length": 3,
-          "lyric": "oo",
           "pitch": 52
          },
          {
@@ -2427,16 +2429,19 @@
          },
          {
           "beat": 22,
+          "length": 1,
+          "pitch": 55
+         },
+         {
+          "beat": 24,
           "br": true,
-          "length": 3,
+          "length": 1,
           "lyric": "oo",
           "pitch": 55
          },
          {
           "beat": 25,
-          "br": true,
           "length": 3,
-          "lyric": "oo",
           "pitch": 55
          },
          {
@@ -2451,16 +2456,19 @@
          },
          {
           "beat": 34,
+          "length": 1,
+          "pitch": 50
+         },
+         {
+          "beat": 36,
           "br": true,
-          "length": 3,
+          "length": 1,
           "lyric": "oo",
           "pitch": 50
          },
          {
           "beat": 37,
-          "br": true,
           "length": 3,
-          "lyric": "oo",
           "pitch": 52
          },
          {
@@ -2520,7 +2528,7 @@
      "tempo": 80,
      "timeSignature": "3/4",
      "title": "Amazing Grace",
-     "version": 3,
+     "version": 4,
      "voicings": {
       "2": [
        "soprano",
@@ -2717,7 +2725,7 @@
           },
           {
            "beat": 10,
-           "length": 2,
+           "length": 1,
            "lyric": "sound",
            "pitch": 62
           },
@@ -2759,7 +2767,7 @@
           },
           {
            "beat": 19,
-           "length": 5,
+           "length": 4,
            "lyric": "me.",
            "pitch": 74
           },
@@ -2813,7 +2821,7 @@
           },
           {
            "beat": 34,
-           "length": 2,
+           "length": 1,
            "lyric": "found,",
            "pitch": 62
           },
@@ -2902,7 +2910,7 @@
       "tempo": 80,
       "timeSignature": "3/4",
       "title": "Amazing Grace",
-      "version": 3,
+      "version": 4,
       "voicings": {
        "2": [
         "soprano",
@@ -2931,13 +2939,13 @@
        "root": 7
       },
       {
-       "bass": null,
+       "bass": 11,
        "beat": 1,
        "quality": "maj",
        "root": 7
       },
       {
-       "bass": null,
+       "bass": 11,
        "beat": 4,
        "quality": "maj",
        "root": 7
@@ -2952,16 +2960,16 @@
        "bass": null,
        "beat": 10,
        "quality": "maj",
-       "root": 2
+       "root": 7
       },
       {
-       "bass": null,
+       "bass": 11,
        "beat": 13,
        "quality": "maj",
        "root": 7
       },
       {
-       "bass": null,
+       "bass": 11,
        "beat": 16,
        "quality": "maj",
        "root": 7
@@ -3000,7 +3008,7 @@
        "bass": null,
        "beat": 34,
        "quality": "maj",
-       "root": 2
+       "root": 7
       },
       {
        "bass": null,
@@ -3107,7 +3115,7 @@
          },
          {
           "beat": 10,
-          "length": 2,
+          "length": 1,
           "lyric": "sound",
           "pitch": 62
          },
@@ -3149,7 +3157,7 @@
          },
          {
           "beat": 19,
-          "length": 5,
+          "length": 4,
           "lyric": "me.",
           "pitch": 74
          },
@@ -3203,7 +3211,7 @@
          },
          {
           "beat": 34,
-          "length": 2,
+          "length": 1,
           "lyric": "found,",
           "pitch": 62
          },
@@ -3286,13 +3294,13 @@
           "beat": 4,
           "length": 2,
           "lyric": "grace,",
-          "pitch": 59
+          "pitch": 62
          },
          {
           "beat": 6,
           "length": 1,
           "lyric": "how",
-          "pitch": 59
+          "pitch": 62
          },
          {
           "beat": 7,
@@ -3308,16 +3316,16 @@
          },
          {
           "beat": 10,
-          "length": 2,
+          "length": 1,
           "lyric": "sound",
-          "pitch": 57
+          "pitch": 59
          },
          {
           "beat": 12,
           "br": true,
           "length": 1,
           "lyric": "that",
-          "pitch": 57
+          "pitch": 59
          },
          {
           "beat": 13,
@@ -3351,7 +3359,7 @@
          },
          {
           "beat": 22,
-          "length": 2,
+          "length": 1,
           "pitch": 67
          },
          {
@@ -3369,14 +3377,9 @@
          },
          {
           "beat": 27,
-          "length": 0.5,
+          "length": 1,
           "lyric": "was",
           "pitch": 67
-         },
-         {
-          "beat": 27.5,
-          "length": 0.5,
-          "pitch": 71
          },
          {
           "beat": 28,
@@ -3404,16 +3407,16 @@
          },
          {
           "beat": 34,
-          "length": 2,
+          "length": 1,
           "lyric": "found,",
-          "pitch": 57
+          "pitch": 59
          },
          {
           "beat": 36,
           "br": true,
           "length": 1,
           "lyric": "was",
-          "pitch": 57
+          "pitch": 59
          },
          {
           "beat": 37,
@@ -3452,7 +3455,7 @@
        "name": "Alto",
        "range": {
         "high": 71,
-        "low": 57
+        "low": 59
        }
       },
       {
@@ -3503,16 +3506,16 @@
          },
          {
           "beat": 10,
-          "length": 2,
+          "length": 1,
           "lyric": "sound",
-          "pitch": 54
+          "pitch": 55
          },
          {
           "beat": 12,
           "br": true,
           "length": 1,
           "lyric": "that",
-          "pitch": 54
+          "pitch": 55
          },
          {
           "beat": 13,
@@ -3546,7 +3549,7 @@
          },
          {
           "beat": 22,
-          "length": 2,
+          "length": 1,
           "pitch": 59
          },
          {
@@ -3594,16 +3597,16 @@
          },
          {
           "beat": 34,
-          "length": 2,
+          "length": 1,
           "lyric": "found,",
-          "pitch": 54
+          "pitch": 55
          },
          {
           "beat": 36,
           "br": true,
           "length": 1,
           "lyric": "was",
-          "pitch": 54
+          "pitch": 55
          },
          {
           "beat": 37,
@@ -3642,7 +3645,7 @@
        "name": "Tenor",
        "range": {
         "high": 60,
-        "low": 54
+        "low": 55
        }
       },
       {
@@ -3658,12 +3661,12 @@
          {
           "beat": 1,
           "length": 3,
-          "pitch": 43
+          "pitch": 47
          },
          {
           "beat": 4,
           "length": 3,
-          "pitch": 43
+          "pitch": 47
          },
          {
           "beat": 7,
@@ -3672,22 +3675,25 @@
          },
          {
           "beat": 10,
+          "length": 1,
+          "pitch": 43
+         },
+         {
+          "beat": 12,
           "br": true,
-          "length": 3,
+          "length": 1,
           "lyric": "oo",
-          "pitch": 50
+          "pitch": 43
          },
          {
           "beat": 13,
-          "br": true,
           "length": 3,
-          "lyric": "oo",
-          "pitch": 43
+          "pitch": 47
          },
          {
           "beat": 16,
           "length": 3,
-          "pitch": 43
+          "pitch": 47
          },
          {
           "beat": 19,
@@ -3696,16 +3702,19 @@
          },
          {
           "beat": 22,
+          "length": 1,
+          "pitch": 55
+         },
+         {
+          "beat": 24,
           "br": true,
-          "length": 3,
+          "length": 1,
           "lyric": "oo",
           "pitch": 55
          },
          {
           "beat": 25,
-          "br": true,
           "length": 3,
-          "lyric": "oo",
           "pitch": 55
          },
          {
@@ -3720,16 +3729,19 @@
          },
          {
           "beat": 34,
+          "length": 1,
+          "pitch": 43
+         },
+         {
+          "beat": 36,
           "br": true,
-          "length": 3,
+          "length": 1,
           "lyric": "oo",
-          "pitch": 50
+          "pitch": 43
          },
          {
           "beat": 37,
-          "br": true,
           "length": 3,
-          "lyric": "oo",
           "pitch": 43
          },
          {
@@ -3789,7 +3801,7 @@
      "tempo": 80,
      "timeSignature": "3/4",
      "title": "Amazing Grace",
-     "version": 3,
+     "version": 4,
      "voicings": {
       "2": [
        "soprano",
@@ -4072,7 +4084,7 @@
           },
           {
            "beat": 10,
-           "length": 2,
+           "length": 1,
            "lyric": "sound",
            "pitch": 62
           },
@@ -4114,7 +4126,7 @@
           },
           {
            "beat": 19,
-           "length": 5,
+           "length": 4,
            "lyric": "me.",
            "pitch": 74
           },
@@ -4168,7 +4180,7 @@
           },
           {
            "beat": 34,
-           "length": 2,
+           "length": 1,
            "lyric": "found,",
            "pitch": 62
           },
@@ -4257,7 +4269,7 @@
       "tempo": 80,
       "timeSignature": "3/4",
       "title": "Amazing Grace",
-      "version": 3,
+      "version": 4,
       "voicings": {
        "2": [
         "soprano",
@@ -4444,7 +4456,7 @@
          },
          {
           "beat": 10,
-          "length": 2,
+          "length": 1,
           "lyric": "sound",
           "pitch": 62
          },
@@ -4486,7 +4498,7 @@
          },
          {
           "beat": 19,
-          "length": 5,
+          "length": 4,
           "lyric": "me.",
           "pitch": 74
          },
@@ -4540,7 +4552,7 @@
          },
          {
           "beat": 34,
-          "length": 2,
+          "length": 1,
           "lyric": "found,",
           "pitch": 62
          },
@@ -4645,7 +4657,7 @@
          },
          {
           "beat": 10,
-          "length": 2,
+          "length": 1,
           "lyric": "sound",
           "pitch": 59
          },
@@ -4672,17 +4684,17 @@
           "beat": 16,
           "length": 2,
           "lyric": "wretch",
-          "pitch": 62
+          "pitch": 59
          },
          {
           "beat": 18,
           "length": 1,
           "lyric": "like",
-          "pitch": 62
+          "pitch": 59
          },
          {
           "beat": 19,
-          "length": 5,
+          "length": 4,
           "lyric": "me.",
           "pitch": 66
          },
@@ -4701,14 +4713,9 @@
          },
          {
           "beat": 27,
-          "length": 0.5,
+          "length": 1,
           "lyric": "was",
           "pitch": 67
-         },
-         {
-          "beat": 27.5,
-          "length": 0.5,
-          "pitch": 71
          },
          {
           "beat": 28,
@@ -4736,7 +4743,7 @@
          },
          {
           "beat": 34,
-          "length": 2,
+          "length": 1,
           "lyric": "found,",
           "pitch": 59
          },
@@ -4835,7 +4842,7 @@
          },
          {
           "beat": 10,
-          "length": 2,
+          "length": 1,
           "lyric": "sound",
           "pitch": 55
          },
@@ -4872,7 +4879,7 @@
          },
          {
           "beat": 19,
-          "length": 5,
+          "length": 4,
           "lyric": "me.",
           "pitch": 57
          },
@@ -4921,7 +4928,7 @@
          },
          {
           "beat": 34,
-          "length": 2,
+          "length": 1,
           "lyric": "found,",
           "pitch": 55
          },
@@ -4994,21 +5001,24 @@
          },
          {
           "beat": 10,
+          "length": 1,
+          "pitch": 43
+         },
+         {
+          "beat": 12,
           "br": true,
-          "length": 6,
+          "length": 4,
           "lyric": "oo",
           "pitch": 43
          },
          {
           "beat": 16,
-          "br": true,
           "length": 3,
-          "lyric": "oo",
           "pitch": 43
          },
          {
           "beat": 19,
-          "length": 5,
+          "length": 4,
           "pitch": 50
          },
          {
@@ -5035,16 +5045,19 @@
          },
          {
           "beat": 34,
+          "length": 1,
+          "pitch": 43
+         },
+         {
+          "beat": 36,
           "br": true,
-          "length": 6,
+          "length": 4,
           "lyric": "oo",
           "pitch": 43
          },
          {
           "beat": 40,
-          "br": true,
           "length": 2,
-          "lyric": "oo",
           "pitch": 50
          },
          {
@@ -5099,7 +5112,7 @@
      "tempo": 80,
      "timeSignature": "3/4",
      "title": "Amazing Grace",
-     "version": 3,
+     "version": 4,
      "voicings": {
       "2": [
        "soprano",
@@ -5168,8 +5181,14 @@
         "root": 7
        },
        {
-        "bass": null,
+        "bass": 0,
         "beat": 16,
+        "quality": "dom7",
+        "root": 2
+       },
+       {
+        "bass": null,
+        "beat": 18,
         "quality": "maj",
         "root": 0
        },
@@ -5182,7 +5201,7 @@
        {
         "bass": null,
         "beat": 21,
-        "quality": "maj",
+        "quality": "dom7",
         "root": 2
        },
        {
@@ -5255,7 +5274,7 @@
           },
           {
            "beat": 4,
-           "length": 2,
+           "length": 1,
            "lyric": "you,",
            "pitch": 66
           },
@@ -5292,7 +5311,7 @@
           },
           {
            "beat": 10,
-           "length": 2,
+           "length": 1,
            "lyric": "you,",
            "pitch": 67
           },
@@ -5329,13 +5348,13 @@
           },
           {
            "beat": 16,
-           "length": 1,
+           "length": 0.5,
            "lyric": "friend,",
            "pitch": 66
           },
           {
-           "beat": 17,
-           "length": 1,
+           "beat": 16.5,
+           "length": 0.5,
            "pitch": 64
           },
           {
@@ -5418,7 +5437,7 @@
       "tempo": 100,
       "timeSignature": "3/4",
       "title": "Happy Birthday",
-      "version": 4,
+      "version": 6,
       "voicings": {
        "2": [
         "soprano",
@@ -5471,7 +5490,7 @@
        "root": 7
       },
       {
-       "bass": null,
+       "bass": 11,
        "beat": 13,
        "quality": "maj",
        "root": 7
@@ -5483,7 +5502,7 @@
        "root": 2
       },
       {
-       "bass": null,
+       "bass": 11,
        "beat": 19,
        "quality": "maj",
        "root": 7
@@ -5558,7 +5577,7 @@
          },
          {
           "beat": 4,
-          "length": 2,
+          "length": 1,
           "lyric": "you,",
           "pitch": 66
          },
@@ -5595,7 +5614,7 @@
          },
          {
           "beat": 10,
-          "length": 2,
+          "length": 1,
           "lyric": "you,",
           "pitch": 67
          },
@@ -5632,13 +5651,13 @@
          },
          {
           "beat": 16,
-          "length": 1,
+          "length": 0.5,
           "lyric": "friend,",
           "pitch": 66
          },
          {
-          "beat": 17,
-          "length": 1,
+          "beat": 16.5,
+          "length": 0.5,
           "pitch": 64
          },
          {
@@ -5709,25 +5728,25 @@
           "beat": 1,
           "length": 1,
           "lyric": "birth-",
-          "pitch": 60
+          "pitch": 55
          },
          {
           "beat": 2,
           "length": 1,
           "lyric": "day",
-          "pitch": 60
+          "pitch": 55
          },
          {
           "beat": 3,
           "length": 1,
           "lyric": "to",
-          "pitch": 60
+          "pitch": 55
          },
          {
           "beat": 4,
-          "length": 2,
+          "length": 1,
           "lyric": "you,",
-          "pitch": 57
+          "pitch": 62
          },
          {
           "beat": 6,
@@ -5762,7 +5781,7 @@
          },
          {
           "beat": 10,
-          "length": 2,
+          "length": 1,
           "lyric": "you,",
           "pitch": 59
          },
@@ -5799,7 +5818,7 @@
          },
          {
           "beat": 16,
-          "length": 2,
+          "length": 1,
           "lyric": "friend,",
           "pitch": 62
          },
@@ -5847,7 +5866,7 @@
        "name": "Alto",
        "range": {
         "high": 62,
-        "low": 57
+        "low": 55
        }
       },
       {
@@ -5886,9 +5905,9 @@
          },
          {
           "beat": 4,
-          "length": 2,
+          "length": 1,
           "lyric": "you,",
-          "pitch": 54
+          "pitch": 57
          },
          {
           "beat": 6,
@@ -5923,7 +5942,7 @@
          },
          {
           "beat": 10,
-          "length": 2,
+          "length": 1,
           "lyric": "you,",
           "pitch": 55
          },
@@ -5944,23 +5963,23 @@
           "beat": 13,
           "length": 1,
           "lyric": "birth-",
-          "pitch": 59
+          "pitch": 55
          },
          {
           "beat": 14,
           "length": 1,
           "lyric": "day",
-          "pitch": 59
+          "pitch": 55
          },
          {
           "beat": 15,
           "length": 1,
           "lyric": "dear",
-          "pitch": 59
+          "pitch": 55
          },
          {
           "beat": 16,
-          "length": 2,
+          "length": 1,
           "lyric": "friend,",
           "pitch": 57
          },
@@ -5969,31 +5988,31 @@
           "br": true,
           "length": 0.75,
           "lyric": "Hap-",
-          "pitch": 57
+          "pitch": 54
          },
          {
           "beat": 18.75,
           "length": 0.25,
           "lyric": "py",
-          "pitch": 57
+          "pitch": 54
          },
          {
           "beat": 19,
           "length": 1,
           "lyric": "birth-",
-          "pitch": 59
+          "pitch": 55
          },
          {
           "beat": 20,
           "length": 1,
           "lyric": "day",
-          "pitch": 59
+          "pitch": 55
          },
          {
           "beat": 21,
           "length": 1,
           "lyric": "to",
-          "pitch": 59
+          "pitch": 55
          },
          {
           "beat": 22,
@@ -6007,7 +6026,7 @@
        "key": "tenor",
        "name": "Tenor",
        "range": {
-        "high": 59,
+        "high": 57,
         "low": 52
        }
       },
@@ -6028,45 +6047,54 @@
          },
          {
           "beat": 4,
+          "length": 1,
+          "pitch": 50
+         },
+         {
+          "beat": 6,
           "br": true,
-          "length": 3,
+          "length": 1,
           "lyric": "oo",
           "pitch": 50
          },
          {
           "beat": 7,
-          "br": true,
           "length": 3,
-          "lyric": "oo",
           "pitch": 50
          },
          {
           "beat": 10,
+          "length": 1,
+          "pitch": 43
+         },
+         {
+          "beat": 12,
           "br": true,
-          "length": 3,
+          "length": 1,
           "lyric": "oo",
           "pitch": 43
          },
          {
           "beat": 13,
-          "br": true,
           "length": 3,
-          "lyric": "oo",
-          "pitch": 43
+          "pitch": 47
          },
          {
           "beat": 16,
+          "length": 1,
+          "pitch": 50
+         },
+         {
+          "beat": 18,
           "br": true,
-          "length": 3,
+          "length": 1,
           "lyric": "oo",
           "pitch": 50
          },
          {
           "beat": 19,
-          "br": true,
           "length": 3,
-          "lyric": "oo",
-          "pitch": 43
+          "pitch": 47
          },
          {
           "beat": 22,
@@ -6115,7 +6143,7 @@
      "tempo": 100,
      "timeSignature": "3/4",
      "title": "Happy Birthday",
-     "version": 4,
+     "version": 6,
      "voicings": {
       "2": [
        "soprano",
@@ -6184,8 +6212,14 @@
         "root": 7
        },
        {
-        "bass": null,
+        "bass": 0,
         "beat": 16,
+        "quality": "dom7",
+        "root": 2
+       },
+       {
+        "bass": null,
+        "beat": 18,
         "quality": "maj",
         "root": 0
        },
@@ -6198,7 +6232,7 @@
        {
         "bass": null,
         "beat": 21,
-        "quality": "maj",
+        "quality": "dom7",
         "root": 2
        },
        {
@@ -6271,7 +6305,7 @@
           },
           {
            "beat": 4,
-           "length": 2,
+           "length": 1,
            "lyric": "you,",
            "pitch": 66
           },
@@ -6308,7 +6342,7 @@
           },
           {
            "beat": 10,
-           "length": 2,
+           "length": 1,
            "lyric": "you,",
            "pitch": 67
           },
@@ -6345,13 +6379,13 @@
           },
           {
            "beat": 16,
-           "length": 1,
+           "length": 0.5,
            "lyric": "friend,",
            "pitch": 66
           },
           {
-           "beat": 17,
-           "length": 1,
+           "beat": 16.5,
+           "length": 0.5,
            "pitch": 64
           },
           {
@@ -6434,7 +6468,7 @@
       "tempo": 100,
       "timeSignature": "3/4",
       "title": "Happy Birthday",
-      "version": 4,
+      "version": 6,
       "voicings": {
        "2": [
         "soprano",
@@ -6463,7 +6497,7 @@
        "root": 7
       },
       {
-       "bass": 4,
+       "bass": null,
        "beat": 1,
        "quality": "maj",
        "root": 0
@@ -6481,7 +6515,7 @@
        "root": 2
       },
       {
-       "bass": null,
+       "bass": 11,
        "beat": 10,
        "quality": "maj",
        "root": 7
@@ -6574,7 +6608,7 @@
          },
          {
           "beat": 4,
-          "length": 2,
+          "length": 1,
           "lyric": "you,",
           "pitch": 66
          },
@@ -6611,7 +6645,7 @@
          },
          {
           "beat": 10,
-          "length": 2,
+          "length": 1,
           "lyric": "you,",
           "pitch": 67
          },
@@ -6648,13 +6682,13 @@
          },
          {
           "beat": 16,
-          "length": 1,
+          "length": 0.5,
           "lyric": "friend,",
           "pitch": 66
          },
          {
-          "beat": 17,
-          "length": 1,
+          "beat": 16.5,
+          "length": 0.5,
           "pitch": 64
          },
          {
@@ -6725,23 +6759,23 @@
           "beat": 1,
           "length": 1,
           "lyric": "birth-",
-          "pitch": 60
+          "pitch": 55
          },
          {
           "beat": 2,
           "length": 1,
           "lyric": "day",
-          "pitch": 60
+          "pitch": 55
          },
          {
           "beat": 3,
           "length": 1,
           "lyric": "to",
-          "pitch": 60
+          "pitch": 55
          },
          {
           "beat": 4,
-          "length": 2,
+          "length": 1,
           "lyric": "you,",
           "pitch": 62
          },
@@ -6778,7 +6812,7 @@
          },
          {
           "beat": 10,
-          "length": 2,
+          "length": 1,
           "lyric": "you,",
           "pitch": 59
          },
@@ -6815,7 +6849,7 @@
          },
          {
           "beat": 16,
-          "length": 2,
+          "length": 1,
           "lyric": "friend,",
           "pitch": 62
          },
@@ -6863,7 +6897,7 @@
        "name": "Alto",
        "range": {
         "high": 62,
-        "low": 57
+        "low": 55
        }
       },
       {
@@ -6886,23 +6920,23 @@
           "beat": 1,
           "length": 1,
           "lyric": "birth-",
-          "pitch": 55
+          "pitch": 52
          },
          {
           "beat": 2,
           "length": 1,
           "lyric": "day",
-          "pitch": 55
+          "pitch": 52
          },
          {
           "beat": 3,
           "length": 1,
           "lyric": "to",
-          "pitch": 55
+          "pitch": 52
          },
          {
           "beat": 4,
-          "length": 2,
+          "length": 1,
           "lyric": "you,",
           "pitch": 57
          },
@@ -6939,7 +6973,7 @@
          },
          {
           "beat": 10,
-          "length": 2,
+          "length": 1,
           "lyric": "you,",
           "pitch": 55
          },
@@ -6976,7 +7010,7 @@
          },
          {
           "beat": 16,
-          "length": 2,
+          "length": 1,
           "lyric": "friend,",
           "pitch": 57
          },
@@ -6985,13 +7019,13 @@
           "br": true,
           "length": 0.75,
           "lyric": "Hap-",
-          "pitch": 57
+          "pitch": 54
          },
          {
           "beat": 18.75,
           "length": 0.25,
           "lyric": "py",
-          "pitch": 57
+          "pitch": 54
          },
          {
           "beat": 19,
@@ -7024,7 +7058,7 @@
        "name": "Tenor",
        "range": {
         "high": 57,
-        "low": 54
+        "low": 52
        }
       },
       {
@@ -7040,48 +7074,57 @@
          {
           "beat": 1,
           "length": 3,
-          "pitch": 40
+          "pitch": 48
          },
          {
           "beat": 4,
+          "length": 1,
+          "pitch": 50
+         },
+         {
+          "beat": 6,
           "br": true,
-          "length": 3,
+          "length": 1,
           "lyric": "oo",
           "pitch": 50
          },
          {
           "beat": 7,
-          "br": true,
           "length": 3,
-          "lyric": "oo",
           "pitch": 50
          },
          {
           "beat": 10,
-          "br": true,
-          "length": 3,
-          "lyric": "oo",
-          "pitch": 43
+          "length": 1,
+          "pitch": 47
          },
          {
-          "beat": 13,
+          "beat": 12,
           "br": true,
-          "length": 3,
+          "length": 1,
           "lyric": "oo",
           "pitch": 47
          },
          {
-          "beat": 16,
-          "br": true,
+          "beat": 13,
           "length": 3,
+          "pitch": 47
+         },
+         {
+          "beat": 16,
+          "length": 1,
+          "pitch": 50
+         },
+         {
+          "beat": 18,
+          "br": true,
+          "length": 1,
           "lyric": "oo",
           "pitch": 50
          },
          {
           "beat": 19,
-          "br": true,
           "length": 3,
-          "lyric": "oo",
           "pitch": 47
          },
          {
@@ -7096,7 +7139,7 @@
        "name": "Bass",
        "range": {
         "high": 50,
-        "low": 40
+        "low": 43
        }
       }
      ],
@@ -7131,7 +7174,7 @@
      "tempo": 100,
      "timeSignature": "3/4",
      "title": "Happy Birthday",
-     "version": 4,
+     "version": 6,
      "voicings": {
       "2": [
        "soprano",
@@ -7200,8 +7243,14 @@
         "root": 7
        },
        {
-        "bass": null,
+        "bass": 0,
         "beat": 16,
+        "quality": "dom7",
+        "root": 2
+       },
+       {
+        "bass": null,
+        "beat": 18,
         "quality": "maj",
         "root": 0
        },
@@ -7214,7 +7263,7 @@
        {
         "bass": null,
         "beat": 21,
-        "quality": "maj",
+        "quality": "dom7",
         "root": 2
        },
        {
@@ -7287,7 +7336,7 @@
           },
           {
            "beat": 4,
-           "length": 2,
+           "length": 1,
            "lyric": "you,",
            "pitch": 66
           },
@@ -7324,7 +7373,7 @@
           },
           {
            "beat": 10,
-           "length": 2,
+           "length": 1,
            "lyric": "you,",
            "pitch": 67
           },
@@ -7361,13 +7410,13 @@
           },
           {
            "beat": 16,
-           "length": 1,
+           "length": 0.5,
            "lyric": "friend,",
            "pitch": 66
           },
           {
-           "beat": 17,
-           "length": 1,
+           "beat": 16.5,
+           "length": 0.5,
            "pitch": 64
           },
           {
@@ -7450,7 +7499,7 @@
       "tempo": 100,
       "timeSignature": "3/4",
       "title": "Happy Birthday",
-      "version": 4,
+      "version": 6,
       "voicings": {
        "2": [
         "soprano",
@@ -7479,7 +7528,7 @@
        "root": 7
       },
       {
-       "bass": null,
+       "bass": 4,
        "beat": 1,
        "quality": "maj",
        "root": 0
@@ -7503,7 +7552,7 @@
        "root": 7
       },
       {
-       "bass": null,
+       "bass": 11,
        "beat": 13,
        "quality": "maj",
        "root": 7
@@ -7515,7 +7564,7 @@
        "root": 2
       },
       {
-       "bass": null,
+       "bass": 11,
        "beat": 19,
        "quality": "maj",
        "root": 7
@@ -7590,7 +7639,7 @@
          },
          {
           "beat": 4,
-          "length": 2,
+          "length": 1,
           "lyric": "you,",
           "pitch": 66
          },
@@ -7627,7 +7676,7 @@
          },
          {
           "beat": 10,
-          "length": 2,
+          "length": 1,
           "lyric": "you,",
           "pitch": 67
          },
@@ -7664,13 +7713,13 @@
          },
          {
           "beat": 16,
-          "length": 1,
+          "length": 0.5,
           "lyric": "friend,",
           "pitch": 66
          },
          {
-          "beat": 17,
-          "length": 1,
+          "beat": 16.5,
+          "length": 0.5,
           "pitch": 64
          },
          {
@@ -7757,9 +7806,9 @@
          },
          {
           "beat": 4,
-          "length": 2,
+          "length": 1,
           "lyric": "you,",
-          "pitch": 57
+          "pitch": 62
          },
          {
           "beat": 6,
@@ -7794,7 +7843,7 @@
          },
          {
           "beat": 10,
-          "length": 2,
+          "length": 1,
           "lyric": "you,",
           "pitch": 59
          },
@@ -7831,7 +7880,7 @@
          },
          {
           "beat": 16,
-          "length": 2,
+          "length": 1,
           "lyric": "friend,",
           "pitch": 62
          },
@@ -7902,25 +7951,25 @@
           "beat": 1,
           "length": 1,
           "lyric": "birth-",
-          "pitch": 52
+          "pitch": 55
          },
          {
           "beat": 2,
           "length": 1,
           "lyric": "day",
-          "pitch": 52
+          "pitch": 55
          },
          {
           "beat": 3,
           "length": 1,
           "lyric": "to",
-          "pitch": 52
+          "pitch": 55
          },
          {
           "beat": 4,
-          "length": 2,
+          "length": 1,
           "lyric": "you,",
-          "pitch": 54
+          "pitch": 57
          },
          {
           "beat": 6,
@@ -7955,7 +8004,7 @@
          },
          {
           "beat": 10,
-          "length": 2,
+          "length": 1,
           "lyric": "you,",
           "pitch": 55
          },
@@ -7976,23 +8025,23 @@
           "beat": 13,
           "length": 1,
           "lyric": "birth-",
-          "pitch": 59
+          "pitch": 55
          },
          {
           "beat": 14,
           "length": 1,
           "lyric": "day",
-          "pitch": 59
+          "pitch": 55
          },
          {
           "beat": 15,
           "length": 1,
           "lyric": "dear",
-          "pitch": 59
+          "pitch": 55
          },
          {
           "beat": 16,
-          "length": 2,
+          "length": 1,
           "lyric": "friend,",
           "pitch": 57
          },
@@ -8001,31 +8050,31 @@
           "br": true,
           "length": 0.75,
           "lyric": "Hap-",
-          "pitch": 57
+          "pitch": 54
          },
          {
           "beat": 18.75,
           "length": 0.25,
           "lyric": "py",
-          "pitch": 57
+          "pitch": 54
          },
          {
           "beat": 19,
           "length": 1,
           "lyric": "birth-",
-          "pitch": 59
+          "pitch": 55
          },
          {
           "beat": 20,
           "length": 1,
           "lyric": "day",
-          "pitch": 59
+          "pitch": 55
          },
          {
           "beat": 21,
           "length": 1,
           "lyric": "to",
-          "pitch": 59
+          "pitch": 55
          },
          {
           "beat": 22,
@@ -8039,8 +8088,8 @@
        "key": "tenor",
        "name": "Tenor",
        "range": {
-        "high": 59,
-        "low": 52
+        "high": 57,
+        "low": 54
        }
       },
       {
@@ -8056,49 +8105,58 @@
          {
           "beat": 1,
           "length": 3,
-          "pitch": 48
+          "pitch": 40
          },
          {
           "beat": 4,
+          "length": 1,
+          "pitch": 50
+         },
+         {
+          "beat": 6,
           "br": true,
-          "length": 3,
+          "length": 1,
           "lyric": "oo",
           "pitch": 50
          },
          {
           "beat": 7,
-          "br": true,
           "length": 3,
-          "lyric": "oo",
           "pitch": 50
          },
          {
           "beat": 10,
+          "length": 1,
+          "pitch": 43
+         },
+         {
+          "beat": 12,
           "br": true,
-          "length": 3,
+          "length": 1,
           "lyric": "oo",
           "pitch": 43
          },
          {
           "beat": 13,
-          "br": true,
           "length": 3,
-          "lyric": "oo",
-          "pitch": 43
+          "pitch": 47
          },
          {
           "beat": 16,
+          "length": 1,
+          "pitch": 50
+         },
+         {
+          "beat": 18,
           "br": true,
-          "length": 3,
+          "length": 1,
           "lyric": "oo",
           "pitch": 50
          },
          {
           "beat": 19,
-          "br": true,
           "length": 3,
-          "lyric": "oo",
-          "pitch": 43
+          "pitch": 47
          },
          {
           "beat": 22,
@@ -8112,7 +8170,7 @@
        "name": "Bass",
        "range": {
         "high": 50,
-        "low": 43
+        "low": 40
        }
       }
      ],
@@ -8147,7 +8205,7 @@
      "tempo": 100,
      "timeSignature": "3/4",
      "title": "Happy Birthday",
-     "version": 4,
+     "version": 6,
      "voicings": {
       "2": [
        "soprano",
@@ -8208,8 +8266,14 @@
         "root": 7
        },
        {
-        "bass": null,
+        "bass": 0,
         "beat": 16,
+        "quality": "dom7",
+        "root": 2
+       },
+       {
+        "bass": null,
+        "beat": 18,
         "quality": "maj",
         "root": 0
        },
@@ -8222,7 +8286,7 @@
        {
         "bass": null,
         "beat": 21,
-        "quality": "maj",
+        "quality": "dom7",
         "root": 2
        },
        {
@@ -8278,8 +8342,14 @@
         "root": 7
        },
        {
-        "bass": null,
+        "bass": 0,
         "beat": 16,
+        "quality": "dom7",
+        "root": 2
+       },
+       {
+        "bass": null,
+        "beat": 18,
         "quality": "maj",
         "root": 0
        },
@@ -8292,7 +8362,7 @@
        {
         "bass": null,
         "beat": 21,
-        "quality": "maj",
+        "quality": "dom7",
         "root": 2
        },
        {
@@ -8365,7 +8435,7 @@
           },
           {
            "beat": 4,
-           "length": 2,
+           "length": 1,
            "lyric": "you,",
            "pitch": 66
           },
@@ -8402,7 +8472,7 @@
           },
           {
            "beat": 10,
-           "length": 2,
+           "length": 1,
            "lyric": "you,",
            "pitch": 67
           },
@@ -8439,13 +8509,13 @@
           },
           {
            "beat": 16,
-           "length": 1,
+           "length": 0.5,
            "lyric": "friend,",
            "pitch": 66
           },
           {
-           "beat": 17,
-           "length": 1,
+           "beat": 16.5,
+           "length": 0.5,
            "pitch": 64
           },
           {
@@ -8528,7 +8598,7 @@
       "tempo": 100,
       "timeSignature": "3/4",
       "title": "Happy Birthday",
-      "version": 4,
+      "version": 6,
       "voicings": {
        "2": [
         "soprano",
@@ -8589,6 +8659,12 @@
       {
        "bass": null,
        "beat": 16,
+       "quality": "dom7",
+       "root": 2
+      },
+      {
+       "bass": null,
+       "beat": 18,
        "quality": "maj",
        "root": 0
       },
@@ -8601,7 +8677,7 @@
       {
        "bass": null,
        "beat": 21,
-       "quality": "maj",
+       "quality": "dom7",
        "root": 2
       },
       {
@@ -8674,7 +8750,7 @@
          },
          {
           "beat": 4,
-          "length": 2,
+          "length": 1,
           "lyric": "you,",
           "pitch": 66
          },
@@ -8711,7 +8787,7 @@
          },
          {
           "beat": 10,
-          "length": 2,
+          "length": 1,
           "lyric": "you,",
           "pitch": 67
          },
@@ -8748,13 +8824,13 @@
          },
          {
           "beat": 16,
-          "length": 1,
+          "length": 0.5,
           "lyric": "friend,",
           "pitch": 66
          },
          {
-          "beat": 17,
-          "length": 1,
+          "beat": 16.5,
+          "length": 0.5,
           "pitch": 64
          },
          {
@@ -8841,9 +8917,9 @@
          },
          {
           "beat": 4,
-          "length": 2,
+          "length": 1,
           "lyric": "you,",
-          "pitch": 62
+          "pitch": 60
          },
          {
           "beat": 6,
@@ -8874,13 +8950,13 @@
           "beat": 9,
           "length": 1,
           "lyric": "to",
-          "pitch": 62
+          "pitch": 60
          },
          {
           "beat": 10,
-          "length": 2,
+          "length": 1,
           "lyric": "you,",
-          "pitch": 62
+          "pitch": 59
          },
          {
           "beat": 12,
@@ -8917,11 +8993,6 @@
           "beat": 16,
           "length": 1,
           "lyric": "friend,",
-          "pitch": 64
-         },
-         {
-          "beat": 17,
-          "length": 1,
           "pitch": 60
          },
          {
@@ -8941,7 +9012,7 @@
           "beat": 19,
           "length": 1,
           "lyric": "birth-",
-          "pitch": 67
+          "pitch": 62
          },
          {
           "beat": 20,
@@ -8967,7 +9038,7 @@
        "key": "alto",
        "name": "Alto",
        "range": {
-        "high": 67,
+        "high": 66,
         "low": 59
        }
       },
@@ -9007,7 +9078,7 @@
          },
          {
           "beat": 4,
-          "length": 2,
+          "length": 1,
           "lyric": "you,",
           "pitch": 57
          },
@@ -9016,37 +9087,37 @@
           "br": true,
           "length": 0.75,
           "lyric": "Hap-",
-          "pitch": 57
+          "pitch": 54
          },
          {
           "beat": 6.75,
           "length": 0.25,
           "lyric": "py",
-          "pitch": 57
+          "pitch": 54
          },
          {
           "beat": 7,
           "length": 1,
           "lyric": "birth-",
-          "pitch": 57
+          "pitch": 54
          },
          {
           "beat": 8,
           "length": 1,
           "lyric": "day",
-          "pitch": 57
+          "pitch": 54
          },
          {
           "beat": 9,
           "length": 1,
           "lyric": "to",
-          "pitch": 57
+          "pitch": 54
          },
          {
           "beat": 10,
-          "length": 2,
+          "length": 1,
           "lyric": "you,",
-          "pitch": 59
+          "pitch": 55
          },
          {
           "beat": 12,
@@ -9083,31 +9154,26 @@
           "beat": 16,
           "length": 1,
           "lyric": "friend,",
-          "pitch": 60
-         },
-         {
-          "beat": 17,
-          "length": 1,
-          "pitch": 55
+          "pitch": 57
          },
          {
           "beat": 18,
           "br": true,
           "length": 0.75,
           "lyric": "Hap-",
-          "pitch": 60
+          "pitch": 55
          },
          {
           "beat": 18.75,
           "length": 0.25,
           "lyric": "py",
-          "pitch": 60
+          "pitch": 55
          },
          {
           "beat": 19,
           "length": 1,
           "lyric": "birth-",
-          "pitch": 62
+          "pitch": 59
          },
          {
           "beat": 20,
@@ -9119,7 +9185,7 @@
           "beat": 21,
           "length": 1,
           "lyric": "to",
-          "pitch": 57
+          "pitch": 60
          },
          {
           "beat": 22,
@@ -9133,7 +9199,7 @@
        "key": "tenor",
        "name": "Tenor",
        "range": {
-        "high": 62,
+        "high": 60,
         "low": 52
        }
       },
@@ -9159,37 +9225,48 @@
          },
          {
           "beat": 4,
+          "length": 1,
+          "pitch": 50
+         },
+         {
+          "beat": 6,
           "br": true,
-          "length": 6,
+          "length": 4,
           "lyric": "oo",
           "pitch": 50
          },
          {
           "beat": 10,
+          "length": 1,
+          "pitch": 43
+         },
+         {
+          "beat": 12,
           "br": true,
-          "length": 3,
+          "length": 1,
           "lyric": "oo",
           "pitch": 43
          },
          {
           "beat": 13,
-          "br": true,
           "length": 3,
-          "lyric": "oo",
           "pitch": 43
          },
          {
           "beat": 16,
+          "length": 1,
+          "pitch": 50
+         },
+         {
+          "beat": 18,
           "br": true,
-          "length": 3,
+          "length": 1,
           "lyric": "oo",
           "pitch": 48
          },
          {
           "beat": 19,
-          "br": true,
           "length": 2,
-          "lyric": "oo",
           "pitch": 55
          },
          {
@@ -9244,7 +9321,7 @@
      "tempo": 100,
      "timeSignature": "3/4",
      "title": "Happy Birthday",
-     "version": 4,
+     "version": 6,
      "voicings": {
       "2": [
        "soprano",
@@ -9295,6 +9372,12 @@
         "root": 10
        },
        {
+        "bass": 2,
+        "beat": 12,
+        "quality": "maj",
+        "root": 10
+       },
+       {
         "bass": null,
         "beat": 14,
         "quality": "maj",
@@ -9319,6 +9402,18 @@
         "root": 5
        },
        {
+        "bass": 5,
+        "beat": 25,
+        "quality": "min7",
+        "root": 7
+       },
+       {
+        "bass": null,
+        "beat": 26,
+        "quality": "maj",
+        "root": 5
+       },
+       {
         "bass": null,
         "beat": 28,
         "quality": "maj",
@@ -9336,7 +9431,7 @@
        "tune": "traditional spiritual (1867)",
        "words": "traditional spiritual (Slave Songs of the United States, 1867)"
       },
-      "description": "The spiritual, for 2 to 4 singers: a short, easy tune with a \"Hallelujah!\" to answer. The soprano sings the melody, the alto moves beneath it, the bass holds the roots on \"oo\", and the tenor fills the chord.",
+      "description": "The spiritual, for 2 to 4 singers: a short, easy tune with a \"Hallelujah!\" to answer. The soprano sings the melody, the alto stays close by, mostly on one held note, the bass holds the roots on \"oo\", and the tenor fills the chord.",
       "difficulty": "beginner",
       "genre": [
        "spiritual",
@@ -9425,7 +9520,7 @@
           },
           {
            "beat": 14,
-           "length": 2,
+           "length": 1,
            "lyric": "jah!",
            "pitch": 72
           },
@@ -9468,12 +9563,13 @@
           },
           {
            "beat": 22,
-           "length": 2,
+           "length": 1,
            "lyric": "shore,",
            "pitch": 67
           },
           {
            "beat": 24,
+           "br": true,
            "length": 1,
            "lyric": "Hal-",
            "pitch": 65
@@ -9536,7 +9632,7 @@
       "tempo": 92,
       "timeSignature": "4/4",
       "title": "Michael, Row the Boat Ashore",
-      "version": 4,
+      "version": 6,
       "voicings": {
        "2": [
         "soprano",
@@ -9589,7 +9685,7 @@
        "root": 5
       },
       {
-       "bass": null,
+       "bass": 2,
        "beat": 10,
        "quality": "maj",
        "root": 10
@@ -9660,7 +9756,7 @@
       "tune": "traditional spiritual (1867)",
       "words": "traditional spiritual (Slave Songs of the United States, 1867)"
      },
-     "description": "The spiritual, for 2 to 4 singers: a short, easy tune with a \"Hallelujah!\" to answer. The soprano sings the melody, the alto moves beneath it, the bass holds the roots on \"oo\", and the tenor fills the chord.",
+     "description": "The spiritual, for 2 to 4 singers: a short, easy tune with a \"Hallelujah!\" to answer. The soprano sings the melody, the alto stays close by, mostly on one held note, the bass holds the roots on \"oo\", and the tenor fills the chord.",
      "difficulty": "beginner",
      "genre": [
       "spiritual",
@@ -9749,7 +9845,7 @@
          },
          {
           "beat": 14,
-          "length": 2,
+          "length": 1,
           "lyric": "jah!",
           "pitch": 72
          },
@@ -9792,12 +9888,13 @@
          },
          {
           "beat": 22,
-          "length": 2,
+          "length": 1,
           "lyric": "shore,",
           "pitch": 67
          },
          {
           "beat": 24,
+          "br": true,
           "length": 1,
           "lyric": "Hal-",
           "pitch": 65
@@ -9898,11 +9995,11 @@
           "beat": 10,
           "length": 4,
           "lyric": "lu-",
-          "pitch": 62
+          "pitch": 65
          },
          {
           "beat": 14,
-          "length": 2,
+          "length": 1,
           "lyric": "jah!",
           "pitch": 64
          },
@@ -9945,12 +10042,13 @@
          },
          {
           "beat": 22,
-          "length": 2,
+          "length": 1,
           "lyric": "shore,",
           "pitch": 64
          },
          {
           "beat": 24,
+          "br": true,
           "length": 1,
           "lyric": "Hal-",
           "pitch": 60
@@ -10054,7 +10152,7 @@
          },
          {
           "beat": 14,
-          "length": 2,
+          "length": 1,
           "lyric": "jah!",
           "pitch": 55
          },
@@ -10097,12 +10195,13 @@
          },
          {
           "beat": 22,
-          "length": 2,
+          "length": 1,
           "lyric": "shore,",
           "pitch": 55
          },
          {
           "beat": 24,
+          "br": true,
           "length": 1,
           "lyric": "Hal-",
           "pitch": 57
@@ -10173,7 +10272,7 @@
          {
           "beat": 10,
           "length": 2,
-          "pitch": 46
+          "pitch": 50
          },
          {
           "beat": 12,
@@ -10182,7 +10281,7 @@
          },
          {
           "beat": 14,
-          "length": 2,
+          "length": 1,
           "pitch": 48
          },
          {
@@ -10204,12 +10303,14 @@
          },
          {
           "beat": 22,
-          "length": 2,
+          "length": 1,
           "pitch": 48
          },
          {
           "beat": 24,
+          "br": true,
           "length": 2,
+          "lyric": "oo",
           "pitch": 53
          },
          {
@@ -10261,7 +10362,7 @@
      "tempo": 92,
      "timeSignature": "4/4",
      "title": "Michael, Row the Boat Ashore",
-     "version": 4,
+     "version": 6,
      "voicings": {
       "2": [
        "soprano",
@@ -10312,6 +10413,12 @@
         "root": 10
        },
        {
+        "bass": 2,
+        "beat": 12,
+        "quality": "maj",
+        "root": 10
+       },
+       {
         "bass": null,
         "beat": 14,
         "quality": "maj",
@@ -10336,6 +10443,18 @@
         "root": 5
        },
        {
+        "bass": 5,
+        "beat": 25,
+        "quality": "min7",
+        "root": 7
+       },
+       {
+        "bass": null,
+        "beat": 26,
+        "quality": "maj",
+        "root": 5
+       },
+       {
         "bass": null,
         "beat": 28,
         "quality": "maj",
@@ -10353,7 +10472,7 @@
        "tune": "traditional spiritual (1867)",
        "words": "traditional spiritual (Slave Songs of the United States, 1867)"
       },
-      "description": "The spiritual, for 2 to 4 singers: a short, easy tune with a \"Hallelujah!\" to answer. The soprano sings the melody, the alto moves beneath it, the bass holds the roots on \"oo\", and the tenor fills the chord.",
+      "description": "The spiritual, for 2 to 4 singers: a short, easy tune with a \"Hallelujah!\" to answer. The soprano sings the melody, the alto stays close by, mostly on one held note, the bass holds the roots on \"oo\", and the tenor fills the chord.",
       "difficulty": "beginner",
       "genre": [
        "spiritual",
@@ -10442,7 +10561,7 @@
           },
           {
            "beat": 14,
-           "length": 2,
+           "length": 1,
            "lyric": "jah!",
            "pitch": 72
           },
@@ -10485,12 +10604,13 @@
           },
           {
            "beat": 22,
-           "length": 2,
+           "length": 1,
            "lyric": "shore,",
            "pitch": 67
           },
           {
            "beat": 24,
+           "br": true,
            "length": 1,
            "lyric": "Hal-",
            "pitch": 65
@@ -10553,7 +10673,7 @@
       "tempo": 92,
       "timeSignature": "4/4",
       "title": "Michael, Row the Boat Ashore",
-      "version": 4,
+      "version": 6,
       "voicings": {
        "2": [
         "soprano",
@@ -10677,7 +10797,7 @@
       "tune": "traditional spiritual (1867)",
       "words": "traditional spiritual (Slave Songs of the United States, 1867)"
      },
-     "description": "The spiritual, for 2 to 4 singers: a short, easy tune with a \"Hallelujah!\" to answer. The soprano sings the melody, the alto moves beneath it, the bass holds the roots on \"oo\", and the tenor fills the chord.",
+     "description": "The spiritual, for 2 to 4 singers: a short, easy tune with a \"Hallelujah!\" to answer. The soprano sings the melody, the alto stays close by, mostly on one held note, the bass holds the roots on \"oo\", and the tenor fills the chord.",
      "difficulty": "beginner",
      "genre": [
       "spiritual",
@@ -10766,7 +10886,7 @@
          },
          {
           "beat": 14,
-          "length": 2,
+          "length": 1,
           "lyric": "jah!",
           "pitch": 72
          },
@@ -10809,12 +10929,13 @@
          },
          {
           "beat": 22,
-          "length": 2,
+          "length": 1,
           "lyric": "shore,",
           "pitch": 67
          },
          {
           "beat": 24,
+          "br": true,
           "length": 1,
           "lyric": "Hal-",
           "pitch": 65
@@ -10924,7 +11045,7 @@
          },
          {
           "beat": 14,
-          "length": 2,
+          "length": 1,
           "lyric": "jah!",
           "pitch": 64
          },
@@ -10967,12 +11088,13 @@
          },
          {
           "beat": 22,
-          "length": 2,
+          "length": 1,
           "lyric": "shore,",
           "pitch": 64
          },
          {
           "beat": 24,
+          "br": true,
           "length": 1,
           "lyric": "Hal-",
           "pitch": 60
@@ -11081,7 +11203,7 @@
          },
          {
           "beat": 14,
-          "length": 2,
+          "length": 1,
           "lyric": "jah!",
           "pitch": 55
          },
@@ -11124,12 +11246,13 @@
          },
          {
           "beat": 22,
-          "length": 2,
+          "length": 1,
           "lyric": "shore,",
           "pitch": 55
          },
          {
           "beat": 24,
+          "br": true,
           "length": 1,
           "lyric": "Hal-",
           "pitch": 57
@@ -11209,7 +11332,7 @@
          },
          {
           "beat": 14,
-          "length": 2,
+          "length": 1,
           "pitch": 48
          },
          {
@@ -11231,12 +11354,14 @@
          },
          {
           "beat": 22,
-          "length": 2,
+          "length": 1,
           "pitch": 48
          },
          {
           "beat": 24,
+          "br": true,
           "length": 2,
+          "lyric": "oo",
           "pitch": 53
          },
          {
@@ -11288,7 +11413,7 @@
      "tempo": 92,
      "timeSignature": "4/4",
      "title": "Michael, Row the Boat Ashore",
-     "version": 4,
+     "version": 6,
      "voicings": {
       "2": [
        "soprano",
@@ -11339,6 +11464,12 @@
         "root": 10
        },
        {
+        "bass": 2,
+        "beat": 12,
+        "quality": "maj",
+        "root": 10
+       },
+       {
         "bass": null,
         "beat": 14,
         "quality": "maj",
@@ -11363,6 +11494,18 @@
         "root": 5
        },
        {
+        "bass": 5,
+        "beat": 25,
+        "quality": "min7",
+        "root": 7
+       },
+       {
+        "bass": null,
+        "beat": 26,
+        "quality": "maj",
+        "root": 5
+       },
+       {
         "bass": null,
         "beat": 28,
         "quality": "maj",
@@ -11380,7 +11523,7 @@
        "tune": "traditional spiritual (1867)",
        "words": "traditional spiritual (Slave Songs of the United States, 1867)"
       },
-      "description": "The spiritual, for 2 to 4 singers: a short, easy tune with a \"Hallelujah!\" to answer. The soprano sings the melody, the alto moves beneath it, the bass holds the roots on \"oo\", and the tenor fills the chord.",
+      "description": "The spiritual, for 2 to 4 singers: a short, easy tune with a \"Hallelujah!\" to answer. The soprano sings the melody, the alto stays close by, mostly on one held note, the bass holds the roots on \"oo\", and the tenor fills the chord.",
       "difficulty": "beginner",
       "genre": [
        "spiritual",
@@ -11469,7 +11612,7 @@
           },
           {
            "beat": 14,
-           "length": 2,
+           "length": 1,
            "lyric": "jah!",
            "pitch": 72
           },
@@ -11512,12 +11655,13 @@
           },
           {
            "beat": 22,
-           "length": 2,
+           "length": 1,
            "lyric": "shore,",
            "pitch": 67
           },
           {
            "beat": 24,
+           "br": true,
            "length": 1,
            "lyric": "Hal-",
            "pitch": 65
@@ -11580,7 +11724,7 @@
       "tempo": 92,
       "timeSignature": "4/4",
       "title": "Michael, Row the Boat Ashore",
-      "version": 4,
+      "version": 6,
       "voicings": {
        "2": [
         "soprano",
@@ -11633,7 +11777,7 @@
        "root": 5
       },
       {
-       "bass": null,
+       "bass": 2,
        "beat": 10,
        "quality": "maj",
        "root": 10
@@ -11704,7 +11848,7 @@
       "tune": "traditional spiritual (1867)",
       "words": "traditional spiritual (Slave Songs of the United States, 1867)"
      },
-     "description": "The spiritual, for 2 to 4 singers: a short, easy tune with a \"Hallelujah!\" to answer. The soprano sings the melody, the alto moves beneath it, the bass holds the roots on \"oo\", and the tenor fills the chord.",
+     "description": "The spiritual, for 2 to 4 singers: a short, easy tune with a \"Hallelujah!\" to answer. The soprano sings the melody, the alto stays close by, mostly on one held note, the bass holds the roots on \"oo\", and the tenor fills the chord.",
      "difficulty": "beginner",
      "genre": [
       "spiritual",
@@ -11793,7 +11937,7 @@
          },
          {
           "beat": 14,
-          "length": 2,
+          "length": 1,
           "lyric": "jah!",
           "pitch": 72
          },
@@ -11836,12 +11980,13 @@
          },
          {
           "beat": 22,
-          "length": 2,
+          "length": 1,
           "lyric": "shore,",
           "pitch": 67
          },
          {
           "beat": 24,
+          "br": true,
           "length": 1,
           "lyric": "Hal-",
           "pitch": 65
@@ -11942,11 +12087,11 @@
           "beat": 10,
           "length": 4,
           "lyric": "lu-",
-          "pitch": 62
+          "pitch": 65
          },
          {
           "beat": 14,
-          "length": 2,
+          "length": 1,
           "lyric": "jah!",
           "pitch": 64
          },
@@ -11989,12 +12134,13 @@
          },
          {
           "beat": 22,
-          "length": 2,
+          "length": 1,
           "lyric": "shore,",
           "pitch": 64
          },
          {
           "beat": 24,
+          "br": true,
           "length": 1,
           "lyric": "Hal-",
           "pitch": 60
@@ -12098,7 +12244,7 @@
          },
          {
           "beat": 14,
-          "length": 2,
+          "length": 1,
           "lyric": "jah!",
           "pitch": 55
          },
@@ -12141,12 +12287,13 @@
          },
          {
           "beat": 22,
-          "length": 2,
+          "length": 1,
           "lyric": "shore,",
           "pitch": 55
          },
          {
           "beat": 24,
+          "br": true,
           "length": 1,
           "lyric": "Hal-",
           "pitch": 57
@@ -12217,7 +12364,7 @@
          {
           "beat": 10,
           "length": 2,
-          "pitch": 46
+          "pitch": 50
          },
          {
           "beat": 12,
@@ -12226,7 +12373,7 @@
          },
          {
           "beat": 14,
-          "length": 2,
+          "length": 1,
           "pitch": 48
          },
          {
@@ -12248,12 +12395,14 @@
          },
          {
           "beat": 22,
-          "length": 2,
+          "length": 1,
           "pitch": 48
          },
          {
           "beat": 24,
+          "br": true,
           "length": 2,
+          "lyric": "oo",
           "pitch": 53
          },
          {
@@ -12305,7 +12454,7 @@
      "tempo": 92,
      "timeSignature": "4/4",
      "title": "Michael, Row the Boat Ashore",
-     "version": 4,
+     "version": 6,
      "voicings": {
       "2": [
        "soprano",
@@ -12348,6 +12497,12 @@
         "root": 10
        },
        {
+        "bass": 2,
+        "beat": 12,
+        "quality": "maj",
+        "root": 10
+       },
+       {
         "bass": null,
         "beat": 14,
         "quality": "maj",
@@ -12368,6 +12523,18 @@
        {
         "bass": null,
         "beat": 24,
+        "quality": "maj",
+        "root": 5
+       },
+       {
+        "bass": 5,
+        "beat": 25,
+        "quality": "min7",
+        "root": 7
+       },
+       {
+        "bass": null,
+        "beat": 26,
         "quality": "maj",
         "root": 5
        },
@@ -12412,6 +12579,12 @@
         "root": 10
        },
        {
+        "bass": 2,
+        "beat": 12,
+        "quality": "maj",
+        "root": 10
+       },
+       {
         "bass": null,
         "beat": 14,
         "quality": "maj",
@@ -12436,6 +12609,18 @@
         "root": 5
        },
        {
+        "bass": 5,
+        "beat": 25,
+        "quality": "min7",
+        "root": 7
+       },
+       {
+        "bass": null,
+        "beat": 26,
+        "quality": "maj",
+        "root": 5
+       },
+       {
         "bass": null,
         "beat": 28,
         "quality": "maj",
@@ -12453,7 +12638,7 @@
        "tune": "traditional spiritual (1867)",
        "words": "traditional spiritual (Slave Songs of the United States, 1867)"
       },
-      "description": "The spiritual, for 2 to 4 singers: a short, easy tune with a \"Hallelujah!\" to answer. The soprano sings the melody, the alto moves beneath it, the bass holds the roots on \"oo\", and the tenor fills the chord.",
+      "description": "The spiritual, for 2 to 4 singers: a short, easy tune with a \"Hallelujah!\" to answer. The soprano sings the melody, the alto stays close by, mostly on one held note, the bass holds the roots on \"oo\", and the tenor fills the chord.",
       "difficulty": "beginner",
       "genre": [
        "spiritual",
@@ -12542,7 +12727,7 @@
           },
           {
            "beat": 14,
-           "length": 2,
+           "length": 1,
            "lyric": "jah!",
            "pitch": 72
           },
@@ -12585,12 +12770,13 @@
           },
           {
            "beat": 22,
-           "length": 2,
+           "length": 1,
            "lyric": "shore,",
            "pitch": 67
           },
           {
            "beat": 24,
+           "br": true,
            "length": 1,
            "lyric": "Hal-",
            "pitch": 65
@@ -12653,7 +12839,7 @@
       "tempo": 92,
       "timeSignature": "4/4",
       "title": "Michael, Row the Boat Ashore",
-      "version": 4,
+      "version": 6,
       "voicings": {
        "2": [
         "soprano",
@@ -12695,6 +12881,12 @@
       },
       {
        "bass": null,
+       "beat": 12,
+       "quality": "maj",
+       "root": 10
+      },
+      {
+       "bass": null,
        "beat": 14,
        "quality": "maj",
        "root": 5
@@ -12719,6 +12911,18 @@
       },
       {
        "bass": null,
+       "beat": 25,
+       "quality": "min7",
+       "root": 7
+      },
+      {
+       "bass": null,
+       "beat": 26,
+       "quality": "maj",
+       "root": 5
+      },
+      {
+       "bass": null,
        "beat": 28,
        "quality": "maj",
        "root": 0
@@ -12735,7 +12939,7 @@
       "tune": "traditional spiritual (1867)",
       "words": "traditional spiritual (Slave Songs of the United States, 1867)"
      },
-     "description": "The spiritual, for 2 to 4 singers: a short, easy tune with a \"Hallelujah!\" to answer. The soprano sings the melody, the alto moves beneath it, the bass holds the roots on \"oo\", and the tenor fills the chord.",
+     "description": "The spiritual, for 2 to 4 singers: a short, easy tune with a \"Hallelujah!\" to answer. The soprano sings the melody, the alto stays close by, mostly on one held note, the bass holds the roots on \"oo\", and the tenor fills the chord.",
      "difficulty": "beginner",
      "genre": [
       "spiritual",
@@ -12824,7 +13028,7 @@
          },
          {
           "beat": 14,
-          "length": 2,
+          "length": 1,
           "lyric": "jah!",
           "pitch": 72
          },
@@ -12867,12 +13071,13 @@
          },
          {
           "beat": 22,
-          "length": 2,
+          "length": 1,
           "lyric": "shore,",
           "pitch": 67
          },
          {
           "beat": 24,
+          "br": true,
           "length": 1,
           "lyric": "Hal-",
           "pitch": 65
@@ -12977,7 +13182,7 @@
          },
          {
           "beat": 14,
-          "length": 2,
+          "length": 1,
           "lyric": "jah!",
           "pitch": 69
          },
@@ -13020,12 +13225,13 @@
          },
          {
           "beat": 22,
-          "length": 2,
+          "length": 1,
           "lyric": "shore,",
           "pitch": 64
          },
          {
           "beat": 24,
+          "br": true,
           "length": 1,
           "lyric": "Hal-",
           "pitch": 60
@@ -13034,7 +13240,7 @@
           "beat": 25,
           "length": 1,
           "lyric": "le-",
-          "pitch": 60
+          "pitch": 58
          },
          {
           "beat": 26,
@@ -13060,7 +13266,7 @@
        "name": "Alto",
        "range": {
         "high": 69,
-        "low": 60
+        "low": 58
        }
       },
       {
@@ -13129,7 +13335,7 @@
          },
          {
           "beat": 14,
-          "length": 2,
+          "length": 1,
           "lyric": "jah!",
           "pitch": 65
          },
@@ -13172,12 +13378,13 @@
          },
          {
           "beat": 22,
-          "length": 2,
+          "length": 1,
           "lyric": "shore,",
           "pitch": 55
          },
          {
           "beat": 24,
+          "br": true,
           "length": 1,
           "lyric": "Hal-",
           "pitch": 57
@@ -13186,7 +13393,7 @@
           "beat": 25,
           "length": 1,
           "lyric": "le-",
-          "pitch": 57
+          "pitch": 53
          },
          {
           "beat": 26,
@@ -13212,7 +13419,7 @@
        "name": "Tenor",
        "range": {
         "high": 65,
-        "low": 55
+        "low": 53
        }
       },
       {
@@ -13232,32 +13439,52 @@
          },
          {
           "beat": 10,
-          "length": 4,
+          "length": 2,
+          "pitch": 58
+         },
+         {
+          "beat": 12,
+          "length": 2,
           "pitch": 58
          },
          {
           "beat": 14,
+          "length": 1,
+          "pitch": 53
+         },
+         {
+          "beat": 16,
           "br": true,
-          "length": 6,
+          "length": 4,
           "lyric": "oo",
           "pitch": 53
          },
          {
           "beat": 20,
-          "br": true,
           "length": 2,
-          "lyric": "oo",
           "pitch": 46
          },
          {
           "beat": 22,
-          "length": 2,
+          "length": 1,
           "pitch": 48
          },
          {
           "beat": 24,
-          "length": 4,
-          "pitch": 53
+          "br": true,
+          "length": 1,
+          "lyric": "oo",
+          "pitch": 41
+         },
+         {
+          "beat": 25,
+          "length": 1,
+          "pitch": 43
+         },
+         {
+          "beat": 26,
+          "length": 2,
+          "pitch": 41
          },
          {
           "beat": 28,
@@ -13276,7 +13503,7 @@
        "name": "Bass",
        "range": {
         "high": 58,
-        "low": 46
+        "low": 41
        }
       }
      ],
@@ -13303,7 +13530,7 @@
      "tempo": 92,
      "timeSignature": "4/4",
      "title": "Michael, Row the Boat Ashore",
-     "version": 4,
+     "version": 6,
      "voicings": {
       "2": [
        "soprano",
@@ -13814,7 +14041,6 @@
           },
           {
            "beat": 8,
-           "br": true,
            "length": 1,
            "lyric": "Bro-",
            "pitch": 67
@@ -13827,12 +14053,13 @@
           },
           {
            "beat": 10,
-           "length": 2,
+           "length": 1,
            "lyric": "John?",
            "pitch": 70
           },
           {
            "beat": 12,
+           "br": true,
            "length": 1,
            "lyric": "Bro-",
            "pitch": 67
@@ -13845,7 +14072,7 @@
           },
           {
            "beat": 14,
-           "length": 2,
+           "length": 1,
            "lyric": "John?",
            "pitch": 70
           },
@@ -13924,7 +14151,6 @@
           },
           {
            "beat": 24,
-           "br": true,
            "length": 1,
            "lyric": "ding,",
            "pitch": 63
@@ -13937,12 +14163,13 @@
           },
           {
            "beat": 26,
-           "length": 2,
+           "length": 1,
            "lyric": "dong,",
            "pitch": 63
           },
           {
            "beat": 28,
+           "br": true,
            "length": 1,
            "lyric": "ding,",
            "pitch": 63
@@ -13955,7 +14182,7 @@
           },
           {
            "beat": 30,
-           "length": 2,
+           "length": 1,
            "lyric": "dong.",
            "pitch": 63
           },
@@ -14010,7 +14237,6 @@
           },
           {
            "beat": 40,
-           "br": true,
            "length": 1,
            "lyric": "Bro-",
            "pitch": 67
@@ -14023,12 +14249,13 @@
           },
           {
            "beat": 42,
-           "length": 2,
+           "length": 1,
            "lyric": "John?",
            "pitch": 70
           },
           {
            "beat": 44,
+           "br": true,
            "length": 1,
            "lyric": "Bro-",
            "pitch": 67
@@ -14041,7 +14268,7 @@
           },
           {
            "beat": 46,
-           "length": 2,
+           "length": 1,
            "lyric": "John?",
            "pitch": 70
           },
@@ -14120,7 +14347,6 @@
           },
           {
            "beat": 56,
-           "br": true,
            "length": 1,
            "lyric": "ding,",
            "pitch": 63
@@ -14133,12 +14359,13 @@
           },
           {
            "beat": 58,
-           "length": 2,
+           "length": 1,
            "lyric": "dong,",
            "pitch": 63
           },
           {
            "beat": 60,
+           "br": true,
            "length": 1,
            "lyric": "ding,",
            "pitch": 63
@@ -14240,7 +14467,7 @@
       "tempo": 100,
       "timeSignature": "4/4",
       "title": "Are You Sleeping (round)",
-      "version": 3,
+      "version": 4,
       "voicings": {
        "2": [
         "soprano",
@@ -14275,7 +14502,7 @@
        "root": 3
       },
       {
-       "bass": null,
+       "bass": 0,
        "beat": 4,
        "quality": "maj",
        "root": 8
@@ -14308,7 +14535,7 @@
        "bass": null,
        "beat": 14,
        "quality": "maj",
-       "root": 10
+       "root": 3
       },
       {
        "bass": null,
@@ -14317,43 +14544,43 @@
        "root": 10
       },
       {
-       "bass": null,
+       "bass": 7,
        "beat": 18,
        "quality": "maj",
        "root": 3
       },
       {
-       "bass": null,
+       "bass": 7,
        "beat": 20,
-       "quality": "dom7",
-       "root": 10
+       "quality": "maj",
+       "root": 3
       },
       {
-       "bass": null,
+       "bass": 7,
        "beat": 22,
        "quality": "maj",
        "root": 3
       },
       {
-       "bass": null,
+       "bass": 7,
        "beat": 24,
        "quality": "maj",
        "root": 3
       },
       {
-       "bass": null,
+       "bass": 7,
        "beat": 26,
        "quality": "maj",
        "root": 3
       },
       {
-       "bass": null,
+       "bass": 7,
        "beat": 28,
        "quality": "maj",
        "root": 3
       },
       {
-       "bass": null,
+       "bass": 7,
        "beat": 30,
        "quality": "maj",
        "root": 3
@@ -14365,7 +14592,7 @@
        "root": 8
       },
       {
-       "bass": null,
+       "bass": 7,
        "beat": 34,
        "quality": "maj",
        "root": 3
@@ -14404,7 +14631,7 @@
        "bass": null,
        "beat": 46,
        "quality": "maj",
-       "root": 10
+       "root": 3
       },
       {
        "bass": null,
@@ -14413,37 +14640,37 @@
        "root": 10
       },
       {
-       "bass": null,
+       "bass": 7,
        "beat": 50,
        "quality": "maj",
        "root": 3
       },
       {
-       "bass": null,
+       "bass": 7,
        "beat": 52,
-       "quality": "dom7",
-       "root": 10
+       "quality": "maj",
+       "root": 3
       },
       {
-       "bass": null,
+       "bass": 7,
        "beat": 54,
        "quality": "maj",
        "root": 3
       },
       {
-       "bass": null,
+       "bass": 7,
        "beat": 56,
        "quality": "maj",
        "root": 3
       },
       {
-       "bass": null,
+       "bass": 7,
        "beat": 58,
        "quality": "maj",
        "root": 3
       },
       {
-       "bass": null,
+       "bass": 7,
        "beat": 60,
        "quality": "maj",
        "root": 3
@@ -14537,7 +14764,6 @@
          },
          {
           "beat": 8,
-          "br": true,
           "length": 1,
           "lyric": "Bro-",
           "pitch": 67
@@ -14550,12 +14776,13 @@
          },
          {
           "beat": 10,
-          "length": 2,
+          "length": 1,
           "lyric": "John?",
           "pitch": 70
          },
          {
           "beat": 12,
+          "br": true,
           "length": 1,
           "lyric": "Bro-",
           "pitch": 67
@@ -14568,7 +14795,7 @@
          },
          {
           "beat": 14,
-          "length": 2,
+          "length": 1,
           "lyric": "John?",
           "pitch": 70
          },
@@ -14647,7 +14874,6 @@
          },
          {
           "beat": 24,
-          "br": true,
           "length": 1,
           "lyric": "ding,",
           "pitch": 63
@@ -14660,12 +14886,13 @@
          },
          {
           "beat": 26,
-          "length": 2,
+          "length": 1,
           "lyric": "dong,",
           "pitch": 63
          },
          {
           "beat": 28,
+          "br": true,
           "length": 1,
           "lyric": "ding,",
           "pitch": 63
@@ -14678,7 +14905,7 @@
          },
          {
           "beat": 30,
-          "length": 2,
+          "length": 1,
           "lyric": "dong.",
           "pitch": 63
          },
@@ -14733,7 +14960,6 @@
          },
          {
           "beat": 40,
-          "br": true,
           "length": 1,
           "lyric": "Bro-",
           "pitch": 67
@@ -14746,12 +14972,13 @@
          },
          {
           "beat": 42,
-          "length": 2,
+          "length": 1,
           "lyric": "John?",
           "pitch": 70
          },
          {
           "beat": 44,
+          "br": true,
           "length": 1,
           "lyric": "Bro-",
           "pitch": 67
@@ -14764,7 +14991,7 @@
          },
          {
           "beat": 46,
-          "length": 2,
+          "length": 1,
           "lyric": "John?",
           "pitch": 70
          },
@@ -14843,7 +15070,6 @@
          },
          {
           "beat": 56,
-          "br": true,
           "length": 1,
           "lyric": "ding,",
           "pitch": 63
@@ -14856,12 +15082,13 @@
          },
          {
           "beat": 58,
-          "length": 2,
+          "length": 1,
           "lyric": "dong,",
           "pitch": 63
          },
          {
           "beat": 60,
+          "br": true,
           "length": 1,
           "lyric": "ding,",
           "pitch": 63
@@ -14943,7 +15170,6 @@
          },
          {
           "beat": 8,
-          "br": true,
           "length": 1,
           "lyric": "Bro-",
           "pitch": 58
@@ -14956,12 +15182,13 @@
          },
          {
           "beat": 10,
-          "length": 2,
+          "length": 1,
           "lyric": "John?",
           "pitch": 62
          },
          {
           "beat": 12,
+          "br": true,
           "length": 1,
           "lyric": "Bro-",
           "pitch": 63
@@ -14974,9 +15201,9 @@
          },
          {
           "beat": 14,
-          "length": 2,
+          "length": 1,
           "lyric": "John?",
-          "pitch": 62
+          "pitch": 67
          },
          {
           "beat": 16,
@@ -15019,31 +15246,31 @@
           "beat": 20,
           "length": 0.5,
           "lyric": "morn-",
-          "pitch": 62
+          "pitch": 58
          },
          {
           "beat": 20.5,
           "length": 0.5,
           "lyric": "ing",
-          "pitch": 62
+          "pitch": 58
          },
          {
           "beat": 21,
           "length": 0.5,
           "lyric": "bells",
-          "pitch": 62
+          "pitch": 58
          },
          {
           "beat": 21.5,
           "length": 0.5,
           "lyric": "are",
-          "pitch": 62
+          "pitch": 58
          },
          {
           "beat": 22,
           "length": 1,
           "lyric": "ring-",
-          "pitch": 63
+          "pitch": 58
          },
          {
           "beat": 23,
@@ -15053,7 +15280,6 @@
          },
          {
           "beat": 24,
-          "br": true,
           "length": 1,
           "lyric": "ding,",
           "pitch": 55
@@ -15066,12 +15292,13 @@
          },
          {
           "beat": 26,
-          "length": 2,
+          "length": 1,
           "lyric": "dong,",
-          "pitch": 58
+          "pitch": 55
          },
          {
           "beat": 28,
+          "br": true,
           "length": 1,
           "lyric": "ding,",
           "pitch": 55
@@ -15084,9 +15311,9 @@
          },
          {
           "beat": 30,
-          "length": 2,
+          "length": 1,
           "lyric": "dong.",
-          "pitch": 58
+          "pitch": 55
          },
          {
           "beat": 32,
@@ -15139,7 +15366,6 @@
          },
          {
           "beat": 40,
-          "br": true,
           "length": 1,
           "lyric": "Bro-",
           "pitch": 58
@@ -15152,12 +15378,13 @@
          },
          {
           "beat": 42,
-          "length": 2,
+          "length": 1,
           "lyric": "John?",
           "pitch": 62
          },
          {
           "beat": 44,
+          "br": true,
           "length": 1,
           "lyric": "Bro-",
           "pitch": 63
@@ -15170,9 +15397,9 @@
          },
          {
           "beat": 46,
-          "length": 2,
+          "length": 1,
           "lyric": "John?",
-          "pitch": 62
+          "pitch": 67
          },
          {
           "beat": 48,
@@ -15215,31 +15442,31 @@
           "beat": 52,
           "length": 0.5,
           "lyric": "morn-",
-          "pitch": 62
+          "pitch": 58
          },
          {
           "beat": 52.5,
           "length": 0.5,
           "lyric": "ing",
-          "pitch": 62
+          "pitch": 58
          },
          {
           "beat": 53,
           "length": 0.5,
           "lyric": "bells",
-          "pitch": 62
+          "pitch": 58
          },
          {
           "beat": 53.5,
           "length": 0.5,
           "lyric": "are",
-          "pitch": 62
+          "pitch": 58
          },
          {
           "beat": 54,
           "length": 1,
           "lyric": "ring-",
-          "pitch": 63
+          "pitch": 58
          },
          {
           "beat": 55,
@@ -15249,7 +15476,6 @@
          },
          {
           "beat": 56,
-          "br": true,
           "length": 1,
           "lyric": "ding,",
           "pitch": 55
@@ -15262,12 +15488,13 @@
          },
          {
           "beat": 58,
-          "length": 2,
+          "length": 1,
           "lyric": "dong,",
-          "pitch": 58
+          "pitch": 55
          },
          {
           "beat": 60,
+          "br": true,
           "length": 1,
           "lyric": "ding,",
           "pitch": 55
@@ -15290,7 +15517,7 @@
        "key": "alto",
        "name": "Alto",
        "range": {
-        "high": 63,
+        "high": 67,
         "low": 55
        }
       },
@@ -15348,7 +15575,6 @@
          },
          {
           "beat": 8,
-          "br": true,
           "length": 1,
           "lyric": "Bro-",
           "pitch": 55
@@ -15361,12 +15587,13 @@
          },
          {
           "beat": 10,
-          "length": 2,
+          "length": 1,
           "lyric": "John?",
           "pitch": 53
          },
          {
           "beat": 12,
+          "br": true,
           "length": 1,
           "lyric": "Bro-",
           "pitch": 55
@@ -15379,40 +15606,40 @@
          },
          {
           "beat": 14,
-          "length": 2,
+          "length": 1,
           "lyric": "John?",
-          "pitch": 53
+          "pitch": 58
          },
          {
           "beat": 16,
           "br": true,
           "length": 0.5,
           "lyric": "Morn-",
-          "pitch": 53
+          "pitch": 58
          },
          {
           "beat": 16.5,
           "length": 0.5,
           "lyric": "ing",
-          "pitch": 53
+          "pitch": 58
          },
          {
           "beat": 17,
           "length": 0.5,
           "lyric": "bells",
-          "pitch": 53
+          "pitch": 58
          },
          {
           "beat": 17.5,
           "length": 0.5,
           "lyric": "are",
-          "pitch": 53
+          "pitch": 58
          },
          {
           "beat": 18,
           "length": 1,
           "lyric": "ring-",
-          "pitch": 55
+          "pitch": 58
          },
          {
           "beat": 19,
@@ -15424,41 +15651,40 @@
           "beat": 20,
           "length": 0.5,
           "lyric": "morn-",
-          "pitch": 53
+          "pitch": 51
          },
          {
           "beat": 20.5,
           "length": 0.5,
           "lyric": "ing",
-          "pitch": 53
+          "pitch": 51
          },
          {
           "beat": 21,
           "length": 0.5,
           "lyric": "bells",
-          "pitch": 53
+          "pitch": 51
          },
          {
           "beat": 21.5,
           "length": 0.5,
           "lyric": "are",
-          "pitch": 53
+          "pitch": 51
          },
          {
           "beat": 22,
           "length": 1,
           "lyric": "ring-",
-          "pitch": 55
+          "pitch": 51
          },
          {
           "beat": 23,
           "length": 1,
           "lyric": "ing,",
-          "pitch": 55
+          "pitch": 51
          },
          {
           "beat": 24,
-          "br": true,
           "length": 1,
           "lyric": "ding,",
           "pitch": 51
@@ -15471,12 +15697,13 @@
          },
          {
           "beat": 26,
-          "length": 2,
+          "length": 1,
           "lyric": "dong,",
-          "pitch": 55
+          "pitch": 51
          },
          {
           "beat": 28,
+          "br": true,
           "length": 1,
           "lyric": "ding,",
           "pitch": 51
@@ -15489,46 +15716,46 @@
          },
          {
           "beat": 30,
-          "length": 2,
+          "length": 1,
           "lyric": "dong.",
-          "pitch": 55
+          "pitch": 51
          },
          {
           "beat": 32,
           "br": true,
           "length": 1,
           "lyric": "Are",
-          "pitch": 56
+          "pitch": 51
          },
          {
           "beat": 33,
           "length": 1,
           "lyric": "you",
-          "pitch": 56
+          "pitch": 51
          },
          {
           "beat": 34,
           "length": 1,
           "lyric": "sleep-",
-          "pitch": 55
+          "pitch": 51
          },
          {
           "beat": 35,
           "length": 1,
           "lyric": "ing,",
-          "pitch": 55
+          "pitch": 51
          },
          {
           "beat": 36,
           "length": 1,
           "lyric": "are",
-          "pitch": 56
+          "pitch": 51
          },
          {
           "beat": 37,
           "length": 1,
           "lyric": "you",
-          "pitch": 56
+          "pitch": 51
          },
          {
           "beat": 38,
@@ -15544,7 +15771,6 @@
          },
          {
           "beat": 40,
-          "br": true,
           "length": 1,
           "lyric": "Bro-",
           "pitch": 55
@@ -15557,12 +15783,13 @@
          },
          {
           "beat": 42,
-          "length": 2,
+          "length": 1,
           "lyric": "John?",
           "pitch": 53
          },
          {
           "beat": 44,
+          "br": true,
           "length": 1,
           "lyric": "Bro-",
           "pitch": 55
@@ -15575,40 +15802,40 @@
          },
          {
           "beat": 46,
-          "length": 2,
+          "length": 1,
           "lyric": "John?",
-          "pitch": 53
+          "pitch": 58
          },
          {
           "beat": 48,
           "br": true,
           "length": 0.5,
           "lyric": "Morn-",
-          "pitch": 53
+          "pitch": 58
          },
          {
           "beat": 48.5,
           "length": 0.5,
           "lyric": "ing",
-          "pitch": 53
+          "pitch": 58
          },
          {
           "beat": 49,
           "length": 0.5,
           "lyric": "bells",
-          "pitch": 53
+          "pitch": 58
          },
          {
           "beat": 49.5,
           "length": 0.5,
           "lyric": "are",
-          "pitch": 53
+          "pitch": 58
          },
          {
           "beat": 50,
           "length": 1,
           "lyric": "ring-",
-          "pitch": 55
+          "pitch": 58
          },
          {
           "beat": 51,
@@ -15620,41 +15847,40 @@
           "beat": 52,
           "length": 0.5,
           "lyric": "morn-",
-          "pitch": 53
+          "pitch": 51
          },
          {
           "beat": 52.5,
           "length": 0.5,
           "lyric": "ing",
-          "pitch": 53
+          "pitch": 51
          },
          {
           "beat": 53,
           "length": 0.5,
           "lyric": "bells",
-          "pitch": 53
+          "pitch": 51
          },
          {
           "beat": 53.5,
           "length": 0.5,
           "lyric": "are",
-          "pitch": 53
+          "pitch": 51
          },
          {
           "beat": 54,
           "length": 1,
           "lyric": "ring-",
-          "pitch": 55
+          "pitch": 51
          },
          {
           "beat": 55,
           "length": 1,
           "lyric": "ing,",
-          "pitch": 55
+          "pitch": 51
          },
          {
           "beat": 56,
-          "br": true,
           "length": 1,
           "lyric": "ding,",
           "pitch": 51
@@ -15667,12 +15893,13 @@
          },
          {
           "beat": 58,
-          "length": 2,
+          "length": 1,
           "lyric": "dong,",
-          "pitch": 55
+          "pitch": 51
          },
          {
           "beat": 60,
+          "br": true,
           "length": 1,
           "lyric": "ding,",
           "pitch": 51
@@ -15695,7 +15922,7 @@
        "key": "tenor",
        "name": "Tenor",
        "range": {
-        "high": 56,
+        "high": 58,
         "low": 51
        }
       },
@@ -15717,7 +15944,7 @@
          {
           "beat": 4,
           "length": 2,
-          "pitch": 44
+          "pitch": 48
          },
          {
           "beat": 6,
@@ -15726,25 +15953,25 @@
          },
          {
           "beat": 8,
+          "length": 2,
+          "pitch": 51
+         },
+         {
+          "beat": 10,
+          "length": 1,
+          "pitch": 46
+         },
+         {
+          "beat": 12,
           "br": true,
           "length": 2,
           "lyric": "oo",
           "pitch": 51
          },
          {
-          "beat": 10,
-          "length": 2,
-          "pitch": 46
-         },
-         {
-          "beat": 12,
-          "length": 2,
-          "pitch": 51
-         },
-         {
           "beat": 14,
-          "length": 2,
-          "pitch": 46
+          "length": 1,
+          "pitch": 51
          },
          {
           "beat": 16,
@@ -15756,39 +15983,39 @@
          {
           "beat": 18,
           "length": 2,
-          "pitch": 51
+          "pitch": 43
          },
          {
           "beat": 20,
           "length": 2,
-          "pitch": 46
+          "pitch": 43
          },
          {
           "beat": 22,
           "length": 2,
-          "pitch": 51
+          "pitch": 43
          },
          {
           "beat": 24,
-          "br": true,
           "length": 2,
-          "lyric": "oo",
-          "pitch": 39
+          "pitch": 43
          },
          {
           "beat": 26,
-          "length": 2,
-          "pitch": 51
+          "length": 1,
+          "pitch": 43
          },
          {
           "beat": 28,
+          "br": true,
           "length": 2,
-          "pitch": 39
+          "lyric": "oo",
+          "pitch": 43
          },
          {
           "beat": 30,
-          "length": 2,
-          "pitch": 51
+          "length": 1,
+          "pitch": 43
          },
          {
           "beat": 32,
@@ -15800,7 +16027,7 @@
          {
           "beat": 34,
           "length": 2,
-          "pitch": 51
+          "pitch": 43
          },
          {
           "beat": 36,
@@ -15814,25 +16041,25 @@
          },
          {
           "beat": 40,
+          "length": 2,
+          "pitch": 51
+         },
+         {
+          "beat": 42,
+          "length": 1,
+          "pitch": 46
+         },
+         {
+          "beat": 44,
           "br": true,
           "length": 2,
           "lyric": "oo",
           "pitch": 51
          },
          {
-          "beat": 42,
-          "length": 2,
-          "pitch": 46
-         },
-         {
-          "beat": 44,
-          "length": 2,
-          "pitch": 51
-         },
-         {
           "beat": 46,
-          "length": 2,
-          "pitch": 46
+          "length": 1,
+          "pitch": 51
          },
          {
           "beat": 48,
@@ -15844,34 +16071,34 @@
          {
           "beat": 50,
           "length": 2,
-          "pitch": 51
+          "pitch": 43
          },
          {
           "beat": 52,
           "length": 2,
-          "pitch": 46
+          "pitch": 43
          },
          {
           "beat": 54,
           "length": 2,
-          "pitch": 51
+          "pitch": 43
          },
          {
           "beat": 56,
-          "br": true,
           "length": 2,
-          "lyric": "oo",
-          "pitch": 39
+          "pitch": 43
          },
          {
           "beat": 58,
-          "length": 2,
-          "pitch": 51
+          "length": 1,
+          "pitch": 43
          },
          {
           "beat": 60,
+          "br": true,
           "length": 2,
-          "pitch": 39
+          "lyric": "oo",
+          "pitch": 43
          },
          {
           "beat": 62,
@@ -15885,7 +16112,7 @@
        "name": "Bass",
        "range": {
         "high": 51,
-        "low": 39
+        "low": 43
        }
       }
      ],
@@ -15962,7 +16189,7 @@
      "tempo": 100,
      "timeSignature": "4/4",
      "title": "Are You Sleeping (round)",
-     "version": 3,
+     "version": 4,
      "voicings": {
       "2": [
        "soprano",
@@ -16473,7 +16700,6 @@
           },
           {
            "beat": 8,
-           "br": true,
            "length": 1,
            "lyric": "Bro-",
            "pitch": 67
@@ -16486,12 +16712,13 @@
           },
           {
            "beat": 10,
-           "length": 2,
+           "length": 1,
            "lyric": "John?",
            "pitch": 70
           },
           {
            "beat": 12,
+           "br": true,
            "length": 1,
            "lyric": "Bro-",
            "pitch": 67
@@ -16504,7 +16731,7 @@
           },
           {
            "beat": 14,
-           "length": 2,
+           "length": 1,
            "lyric": "John?",
            "pitch": 70
           },
@@ -16583,7 +16810,6 @@
           },
           {
            "beat": 24,
-           "br": true,
            "length": 1,
            "lyric": "ding,",
            "pitch": 63
@@ -16596,12 +16822,13 @@
           },
           {
            "beat": 26,
-           "length": 2,
+           "length": 1,
            "lyric": "dong,",
            "pitch": 63
           },
           {
            "beat": 28,
+           "br": true,
            "length": 1,
            "lyric": "ding,",
            "pitch": 63
@@ -16614,7 +16841,7 @@
           },
           {
            "beat": 30,
-           "length": 2,
+           "length": 1,
            "lyric": "dong.",
            "pitch": 63
           },
@@ -16669,7 +16896,6 @@
           },
           {
            "beat": 40,
-           "br": true,
            "length": 1,
            "lyric": "Bro-",
            "pitch": 67
@@ -16682,12 +16908,13 @@
           },
           {
            "beat": 42,
-           "length": 2,
+           "length": 1,
            "lyric": "John?",
            "pitch": 70
           },
           {
            "beat": 44,
+           "br": true,
            "length": 1,
            "lyric": "Bro-",
            "pitch": 67
@@ -16700,7 +16927,7 @@
           },
           {
            "beat": 46,
-           "length": 2,
+           "length": 1,
            "lyric": "John?",
            "pitch": 70
           },
@@ -16779,7 +17006,6 @@
           },
           {
            "beat": 56,
-           "br": true,
            "length": 1,
            "lyric": "ding,",
            "pitch": 63
@@ -16792,12 +17018,13 @@
           },
           {
            "beat": 58,
-           "length": 2,
+           "length": 1,
            "lyric": "dong,",
            "pitch": 63
           },
           {
            "beat": 60,
+           "br": true,
            "length": 1,
            "lyric": "ding,",
            "pitch": 63
@@ -16899,7 +17126,7 @@
       "tempo": 100,
       "timeSignature": "4/4",
       "title": "Are You Sleeping (round)",
-      "version": 3,
+      "version": 4,
       "voicings": {
        "2": [
         "soprano",
@@ -16934,7 +17161,7 @@
        "root": 0
       },
       {
-       "bass": null,
+       "bass": 0,
        "beat": 4,
        "quality": "maj",
        "root": 8
@@ -16976,10 +17203,10 @@
        "root": 10
       },
       {
-       "bass": 7,
+       "bass": null,
        "beat": 18,
-       "quality": "maj",
-       "root": 3
+       "quality": "min",
+       "root": 0
       },
       {
        "bass": null,
@@ -17012,10 +17239,10 @@
        "root": 3
       },
       {
-       "bass": 7,
+       "bass": null,
        "beat": 30,
-       "quality": "maj",
-       "root": 3
+       "quality": "min",
+       "root": 0
       },
       {
        "bass": null,
@@ -17072,10 +17299,10 @@
        "root": 10
       },
       {
-       "bass": 7,
+       "bass": null,
        "beat": 50,
-       "quality": "maj",
-       "root": 3
+       "quality": "min",
+       "root": 0
       },
       {
        "bass": null,
@@ -17196,7 +17423,6 @@
          },
          {
           "beat": 8,
-          "br": true,
           "length": 1,
           "lyric": "Bro-",
           "pitch": 67
@@ -17209,12 +17435,13 @@
          },
          {
           "beat": 10,
-          "length": 2,
+          "length": 1,
           "lyric": "John?",
           "pitch": 70
          },
          {
           "beat": 12,
+          "br": true,
           "length": 1,
           "lyric": "Bro-",
           "pitch": 67
@@ -17227,7 +17454,7 @@
          },
          {
           "beat": 14,
-          "length": 2,
+          "length": 1,
           "lyric": "John?",
           "pitch": 70
          },
@@ -17306,7 +17533,6 @@
          },
          {
           "beat": 24,
-          "br": true,
           "length": 1,
           "lyric": "ding,",
           "pitch": 63
@@ -17319,12 +17545,13 @@
          },
          {
           "beat": 26,
-          "length": 2,
+          "length": 1,
           "lyric": "dong,",
           "pitch": 63
          },
          {
           "beat": 28,
+          "br": true,
           "length": 1,
           "lyric": "ding,",
           "pitch": 63
@@ -17337,7 +17564,7 @@
          },
          {
           "beat": 30,
-          "length": 2,
+          "length": 1,
           "lyric": "dong.",
           "pitch": 63
          },
@@ -17392,7 +17619,6 @@
          },
          {
           "beat": 40,
-          "br": true,
           "length": 1,
           "lyric": "Bro-",
           "pitch": 67
@@ -17405,12 +17631,13 @@
          },
          {
           "beat": 42,
-          "length": 2,
+          "length": 1,
           "lyric": "John?",
           "pitch": 70
          },
          {
           "beat": 44,
+          "br": true,
           "length": 1,
           "lyric": "Bro-",
           "pitch": 67
@@ -17423,7 +17650,7 @@
          },
          {
           "beat": 46,
-          "length": 2,
+          "length": 1,
           "lyric": "John?",
           "pitch": 70
          },
@@ -17502,7 +17729,6 @@
          },
          {
           "beat": 56,
-          "br": true,
           "length": 1,
           "lyric": "ding,",
           "pitch": 63
@@ -17515,12 +17741,13 @@
          },
          {
           "beat": 58,
-          "length": 2,
+          "length": 1,
           "lyric": "dong,",
           "pitch": 63
          },
          {
           "beat": 60,
+          "br": true,
           "length": 1,
           "lyric": "ding,",
           "pitch": 63
@@ -17602,7 +17829,6 @@
          },
          {
           "beat": 8,
-          "br": true,
           "length": 1,
           "lyric": "Bro-",
           "pitch": 58
@@ -17615,12 +17841,13 @@
          },
          {
           "beat": 10,
-          "length": 2,
+          "length": 1,
           "lyric": "John?",
           "pitch": 62
          },
          {
           "beat": 12,
+          "br": true,
           "length": 1,
           "lyric": "Bro-",
           "pitch": 63
@@ -17633,7 +17860,7 @@
          },
          {
           "beat": 14,
-          "length": 2,
+          "length": 1,
           "lyric": "John?",
           "pitch": 62
          },
@@ -17672,7 +17899,7 @@
           "beat": 19,
           "length": 1,
           "lyric": "ing,",
-          "pitch": 58
+          "pitch": 60
          },
          {
           "beat": 20,
@@ -17712,7 +17939,6 @@
          },
          {
           "beat": 24,
-          "br": true,
           "length": 1,
           "lyric": "ding,",
           "pitch": 55
@@ -17725,12 +17951,13 @@
          },
          {
           "beat": 26,
-          "length": 2,
+          "length": 1,
           "lyric": "dong,",
           "pitch": 55
          },
          {
           "beat": 28,
+          "br": true,
           "length": 1,
           "lyric": "ding,",
           "pitch": 55
@@ -17743,7 +17970,7 @@
          },
          {
           "beat": 30,
-          "length": 2,
+          "length": 1,
           "lyric": "dong.",
           "pitch": 55
          },
@@ -17798,7 +18025,6 @@
          },
          {
           "beat": 40,
-          "br": true,
           "length": 1,
           "lyric": "Bro-",
           "pitch": 58
@@ -17811,12 +18037,13 @@
          },
          {
           "beat": 42,
-          "length": 2,
+          "length": 1,
           "lyric": "John?",
           "pitch": 62
          },
          {
           "beat": 44,
+          "br": true,
           "length": 1,
           "lyric": "Bro-",
           "pitch": 63
@@ -17829,7 +18056,7 @@
          },
          {
           "beat": 46,
-          "length": 2,
+          "length": 1,
           "lyric": "John?",
           "pitch": 62
          },
@@ -17868,7 +18095,7 @@
           "beat": 51,
           "length": 1,
           "lyric": "ing,",
-          "pitch": 58
+          "pitch": 60
          },
          {
           "beat": 52,
@@ -17908,7 +18135,6 @@
          },
          {
           "beat": 56,
-          "br": true,
           "length": 1,
           "lyric": "ding,",
           "pitch": 55
@@ -17921,12 +18147,13 @@
          },
          {
           "beat": 58,
-          "length": 2,
+          "length": 1,
           "lyric": "dong,",
           "pitch": 55
          },
          {
           "beat": 60,
+          "br": true,
           "length": 1,
           "lyric": "ding,",
           "pitch": 55
@@ -18007,7 +18234,6 @@
          },
          {
           "beat": 8,
-          "br": true,
           "length": 1,
           "lyric": "Bro-",
           "pitch": 55
@@ -18020,12 +18246,13 @@
          },
          {
           "beat": 10,
-          "length": 2,
+          "length": 1,
           "lyric": "John?",
           "pitch": 53
          },
          {
           "beat": 12,
+          "br": true,
           "length": 1,
           "lyric": "Bro-",
           "pitch": 55
@@ -18038,40 +18265,40 @@
          },
          {
           "beat": 14,
-          "length": 2,
+          "length": 1,
           "lyric": "John?",
-          "pitch": 58
+          "pitch": 53
          },
          {
           "beat": 16,
           "br": true,
           "length": 0.5,
           "lyric": "Morn-",
-          "pitch": 58
+          "pitch": 56
          },
          {
           "beat": 16.5,
           "length": 0.5,
           "lyric": "ing",
-          "pitch": 58
+          "pitch": 56
          },
          {
           "beat": 17,
           "length": 0.5,
           "lyric": "bells",
-          "pitch": 58
+          "pitch": 56
          },
          {
           "beat": 17.5,
           "length": 0.5,
           "lyric": "are",
-          "pitch": 58
+          "pitch": 56
          },
          {
           "beat": 18,
           "length": 1,
           "lyric": "ring-",
-          "pitch": 58
+          "pitch": 60
          },
          {
           "beat": 19,
@@ -18083,41 +18310,40 @@
           "beat": 20,
           "length": 0.5,
           "lyric": "morn-",
-          "pitch": 53
+          "pitch": 58
          },
          {
           "beat": 20.5,
           "length": 0.5,
           "lyric": "ing",
-          "pitch": 53
+          "pitch": 58
          },
          {
           "beat": 21,
           "length": 0.5,
           "lyric": "bells",
-          "pitch": 53
+          "pitch": 58
          },
          {
           "beat": 21.5,
           "length": 0.5,
           "lyric": "are",
-          "pitch": 53
+          "pitch": 58
          },
          {
           "beat": 22,
           "length": 1,
           "lyric": "ring-",
-          "pitch": 51
+          "pitch": 58
          },
          {
           "beat": 23,
           "length": 1,
           "lyric": "ing,",
-          "pitch": 51
+          "pitch": 55
          },
          {
           "beat": 24,
-          "br": true,
           "length": 1,
           "lyric": "ding,",
           "pitch": 51
@@ -18130,12 +18356,13 @@
          },
          {
           "beat": 26,
-          "length": 2,
+          "length": 1,
           "lyric": "dong,",
           "pitch": 51
          },
          {
           "beat": 28,
+          "br": true,
           "length": 1,
           "lyric": "ding,",
           "pitch": 51
@@ -18148,7 +18375,7 @@
          },
          {
           "beat": 30,
-          "length": 2,
+          "length": 1,
           "lyric": "dong.",
           "pitch": 51
          },
@@ -18203,7 +18430,6 @@
          },
          {
           "beat": 40,
-          "br": true,
           "length": 1,
           "lyric": "Bro-",
           "pitch": 55
@@ -18216,12 +18442,13 @@
          },
          {
           "beat": 42,
-          "length": 2,
+          "length": 1,
           "lyric": "John?",
           "pitch": 53
          },
          {
           "beat": 44,
+          "br": true,
           "length": 1,
           "lyric": "Bro-",
           "pitch": 55
@@ -18234,40 +18461,40 @@
          },
          {
           "beat": 46,
-          "length": 2,
+          "length": 1,
           "lyric": "John?",
-          "pitch": 58
+          "pitch": 53
          },
          {
           "beat": 48,
           "br": true,
           "length": 0.5,
           "lyric": "Morn-",
-          "pitch": 58
+          "pitch": 56
          },
          {
           "beat": 48.5,
           "length": 0.5,
           "lyric": "ing",
-          "pitch": 58
+          "pitch": 56
          },
          {
           "beat": 49,
           "length": 0.5,
           "lyric": "bells",
-          "pitch": 58
+          "pitch": 56
          },
          {
           "beat": 49.5,
           "length": 0.5,
           "lyric": "are",
-          "pitch": 58
+          "pitch": 56
          },
          {
           "beat": 50,
           "length": 1,
           "lyric": "ring-",
-          "pitch": 58
+          "pitch": 60
          },
          {
           "beat": 51,
@@ -18279,41 +18506,40 @@
           "beat": 52,
           "length": 0.5,
           "lyric": "morn-",
-          "pitch": 53
+          "pitch": 58
          },
          {
           "beat": 52.5,
           "length": 0.5,
           "lyric": "ing",
-          "pitch": 53
+          "pitch": 58
          },
          {
           "beat": 53,
           "length": 0.5,
           "lyric": "bells",
-          "pitch": 53
+          "pitch": 58
          },
          {
           "beat": 53.5,
           "length": 0.5,
           "lyric": "are",
-          "pitch": 53
+          "pitch": 58
          },
          {
           "beat": 54,
           "length": 1,
           "lyric": "ring-",
-          "pitch": 51
+          "pitch": 58
          },
          {
           "beat": 55,
           "length": 1,
           "lyric": "ing,",
-          "pitch": 51
+          "pitch": 55
          },
          {
           "beat": 56,
-          "br": true,
           "length": 1,
           "lyric": "ding,",
           "pitch": 51
@@ -18326,12 +18552,13 @@
          },
          {
           "beat": 58,
-          "length": 2,
+          "length": 1,
           "lyric": "dong,",
           "pitch": 51
          },
          {
           "beat": 60,
+          "br": true,
           "length": 1,
           "lyric": "ding,",
           "pitch": 51
@@ -18354,7 +18581,7 @@
        "key": "tenor",
        "name": "Tenor",
        "range": {
-        "high": 58,
+        "high": 60,
         "low": 51
        }
       },
@@ -18376,7 +18603,7 @@
          {
           "beat": 4,
           "length": 2,
-          "pitch": 44
+          "pitch": 48
          },
          {
           "beat": 6,
@@ -18385,24 +18612,24 @@
          },
          {
           "beat": 8,
+          "length": 2,
+          "pitch": 51
+         },
+         {
+          "beat": 10,
+          "length": 1,
+          "pitch": 46
+         },
+         {
+          "beat": 12,
           "br": true,
           "length": 2,
           "lyric": "oo",
           "pitch": 51
          },
          {
-          "beat": 10,
-          "length": 2,
-          "pitch": 46
-         },
-         {
-          "beat": 12,
-          "length": 2,
-          "pitch": 51
-         },
-         {
           "beat": 14,
-          "length": 2,
+          "length": 1,
           "pitch": 46
          },
          {
@@ -18415,7 +18642,7 @@
          {
           "beat": 18,
           "length": 2,
-          "pitch": 43
+          "pitch": 48
          },
          {
           "beat": 20,
@@ -18429,25 +18656,25 @@
          },
          {
           "beat": 24,
+          "length": 2,
+          "pitch": 43
+         },
+         {
+          "beat": 26,
+          "length": 1,
+          "pitch": 48
+         },
+         {
+          "beat": 28,
           "br": true,
           "length": 2,
           "lyric": "oo",
           "pitch": 43
          },
          {
-          "beat": 26,
-          "length": 2,
-          "pitch": 48
-         },
-         {
-          "beat": 28,
-          "length": 2,
-          "pitch": 43
-         },
-         {
           "beat": 30,
-          "length": 2,
-          "pitch": 43
+          "length": 1,
+          "pitch": 48
          },
          {
           "beat": 32,
@@ -18473,24 +18700,24 @@
          },
          {
           "beat": 40,
+          "length": 2,
+          "pitch": 51
+         },
+         {
+          "beat": 42,
+          "length": 1,
+          "pitch": 46
+         },
+         {
+          "beat": 44,
           "br": true,
           "length": 2,
           "lyric": "oo",
           "pitch": 51
          },
          {
-          "beat": 42,
-          "length": 2,
-          "pitch": 46
-         },
-         {
-          "beat": 44,
-          "length": 2,
-          "pitch": 51
-         },
-         {
           "beat": 46,
-          "length": 2,
+          "length": 1,
           "pitch": 46
          },
          {
@@ -18503,7 +18730,7 @@
          {
           "beat": 50,
           "length": 2,
-          "pitch": 43
+          "pitch": 48
          },
          {
           "beat": 52,
@@ -18517,19 +18744,19 @@
          },
          {
           "beat": 56,
-          "br": true,
           "length": 2,
-          "lyric": "oo",
           "pitch": 43
          },
          {
           "beat": 58,
-          "length": 2,
+          "length": 1,
           "pitch": 48
          },
          {
           "beat": 60,
+          "br": true,
           "length": 2,
+          "lyric": "oo",
           "pitch": 43
          },
          {
@@ -18621,7 +18848,7 @@
      "tempo": 100,
      "timeSignature": "4/4",
      "title": "Are You Sleeping (round)",
-     "version": 3,
+     "version": 4,
      "voicings": {
       "2": [
        "soprano",
@@ -19132,7 +19359,6 @@
           },
           {
            "beat": 8,
-           "br": true,
            "length": 1,
            "lyric": "Bro-",
            "pitch": 67
@@ -19145,12 +19371,13 @@
           },
           {
            "beat": 10,
-           "length": 2,
+           "length": 1,
            "lyric": "John?",
            "pitch": 70
           },
           {
            "beat": 12,
+           "br": true,
            "length": 1,
            "lyric": "Bro-",
            "pitch": 67
@@ -19163,7 +19390,7 @@
           },
           {
            "beat": 14,
-           "length": 2,
+           "length": 1,
            "lyric": "John?",
            "pitch": 70
           },
@@ -19242,7 +19469,6 @@
           },
           {
            "beat": 24,
-           "br": true,
            "length": 1,
            "lyric": "ding,",
            "pitch": 63
@@ -19255,12 +19481,13 @@
           },
           {
            "beat": 26,
-           "length": 2,
+           "length": 1,
            "lyric": "dong,",
            "pitch": 63
           },
           {
            "beat": 28,
+           "br": true,
            "length": 1,
            "lyric": "ding,",
            "pitch": 63
@@ -19273,7 +19500,7 @@
           },
           {
            "beat": 30,
-           "length": 2,
+           "length": 1,
            "lyric": "dong.",
            "pitch": 63
           },
@@ -19328,7 +19555,6 @@
           },
           {
            "beat": 40,
-           "br": true,
            "length": 1,
            "lyric": "Bro-",
            "pitch": 67
@@ -19341,12 +19567,13 @@
           },
           {
            "beat": 42,
-           "length": 2,
+           "length": 1,
            "lyric": "John?",
            "pitch": 70
           },
           {
            "beat": 44,
+           "br": true,
            "length": 1,
            "lyric": "Bro-",
            "pitch": 67
@@ -19359,7 +19586,7 @@
           },
           {
            "beat": 46,
-           "length": 2,
+           "length": 1,
            "lyric": "John?",
            "pitch": 70
           },
@@ -19438,7 +19665,6 @@
           },
           {
            "beat": 56,
-           "br": true,
            "length": 1,
            "lyric": "ding,",
            "pitch": 63
@@ -19451,12 +19677,13 @@
           },
           {
            "beat": 58,
-           "length": 2,
+           "length": 1,
            "lyric": "dong,",
            "pitch": 63
           },
           {
            "beat": 60,
+           "br": true,
            "length": 1,
            "lyric": "ding,",
            "pitch": 63
@@ -19558,7 +19785,7 @@
       "tempo": 100,
       "timeSignature": "4/4",
       "title": "Are You Sleeping (round)",
-      "version": 3,
+      "version": 4,
       "voicings": {
        "2": [
         "soprano",
@@ -19593,7 +19820,7 @@
        "root": 3
       },
       {
-       "bass": null,
+       "bass": 0,
        "beat": 4,
        "quality": "maj",
        "root": 8
@@ -19626,7 +19853,7 @@
        "bass": null,
        "beat": 14,
        "quality": "maj",
-       "root": 10
+       "root": 3
       },
       {
        "bass": null,
@@ -19635,49 +19862,49 @@
        "root": 10
       },
       {
-       "bass": null,
+       "bass": 7,
        "beat": 18,
        "quality": "maj",
        "root": 3
       },
       {
-       "bass": null,
+       "bass": 7,
        "beat": 20,
-       "quality": "dom7",
-       "root": 10
+       "quality": "maj",
+       "root": 3
       },
       {
-       "bass": null,
+       "bass": 7,
        "beat": 22,
        "quality": "maj",
        "root": 3
       },
       {
-       "bass": null,
+       "bass": 7,
        "beat": 24,
        "quality": "maj",
        "root": 3
       },
       {
-       "bass": null,
+       "bass": 7,
        "beat": 26,
        "quality": "maj",
        "root": 3
       },
       {
-       "bass": null,
+       "bass": 7,
        "beat": 28,
        "quality": "maj",
        "root": 3
       },
       {
-       "bass": null,
+       "bass": 7,
        "beat": 30,
        "quality": "maj",
        "root": 3
       },
       {
-       "bass": null,
+       "bass": 0,
        "beat": 32,
        "quality": "maj",
        "root": 8
@@ -19689,7 +19916,7 @@
        "root": 3
       },
       {
-       "bass": null,
+       "bass": 0,
        "beat": 36,
        "quality": "maj",
        "root": 8
@@ -19722,7 +19949,7 @@
        "bass": null,
        "beat": 46,
        "quality": "maj",
-       "root": 10
+       "root": 3
       },
       {
        "bass": null,
@@ -19731,37 +19958,37 @@
        "root": 10
       },
       {
-       "bass": null,
+       "bass": 7,
        "beat": 50,
        "quality": "maj",
        "root": 3
       },
       {
-       "bass": null,
+       "bass": 7,
        "beat": 52,
-       "quality": "dom7",
-       "root": 10
+       "quality": "maj",
+       "root": 3
       },
       {
-       "bass": null,
+       "bass": 7,
        "beat": 54,
        "quality": "maj",
        "root": 3
       },
       {
-       "bass": null,
+       "bass": 7,
        "beat": 56,
        "quality": "maj",
        "root": 3
       },
       {
-       "bass": null,
+       "bass": 7,
        "beat": 58,
        "quality": "maj",
        "root": 3
       },
       {
-       "bass": null,
+       "bass": 7,
        "beat": 60,
        "quality": "maj",
        "root": 3
@@ -19855,7 +20082,6 @@
          },
          {
           "beat": 8,
-          "br": true,
           "length": 1,
           "lyric": "Bro-",
           "pitch": 67
@@ -19868,12 +20094,13 @@
          },
          {
           "beat": 10,
-          "length": 2,
+          "length": 1,
           "lyric": "John?",
           "pitch": 70
          },
          {
           "beat": 12,
+          "br": true,
           "length": 1,
           "lyric": "Bro-",
           "pitch": 67
@@ -19886,7 +20113,7 @@
          },
          {
           "beat": 14,
-          "length": 2,
+          "length": 1,
           "lyric": "John?",
           "pitch": 70
          },
@@ -19965,7 +20192,6 @@
          },
          {
           "beat": 24,
-          "br": true,
           "length": 1,
           "lyric": "ding,",
           "pitch": 63
@@ -19978,12 +20204,13 @@
          },
          {
           "beat": 26,
-          "length": 2,
+          "length": 1,
           "lyric": "dong,",
           "pitch": 63
          },
          {
           "beat": 28,
+          "br": true,
           "length": 1,
           "lyric": "ding,",
           "pitch": 63
@@ -19996,7 +20223,7 @@
          },
          {
           "beat": 30,
-          "length": 2,
+          "length": 1,
           "lyric": "dong.",
           "pitch": 63
          },
@@ -20051,7 +20278,6 @@
          },
          {
           "beat": 40,
-          "br": true,
           "length": 1,
           "lyric": "Bro-",
           "pitch": 67
@@ -20064,12 +20290,13 @@
          },
          {
           "beat": 42,
-          "length": 2,
+          "length": 1,
           "lyric": "John?",
           "pitch": 70
          },
          {
           "beat": 44,
+          "br": true,
           "length": 1,
           "lyric": "Bro-",
           "pitch": 67
@@ -20082,7 +20309,7 @@
          },
          {
           "beat": 46,
-          "length": 2,
+          "length": 1,
           "lyric": "John?",
           "pitch": 70
          },
@@ -20161,7 +20388,6 @@
          },
          {
           "beat": 56,
-          "br": true,
           "length": 1,
           "lyric": "ding,",
           "pitch": 63
@@ -20174,12 +20400,13 @@
          },
          {
           "beat": 58,
-          "length": 2,
+          "length": 1,
           "lyric": "dong,",
           "pitch": 63
          },
          {
           "beat": 60,
+          "br": true,
           "length": 1,
           "lyric": "ding,",
           "pitch": 63
@@ -20261,7 +20488,6 @@
          },
          {
           "beat": 8,
-          "br": true,
           "length": 1,
           "lyric": "Bro-",
           "pitch": 58
@@ -20274,12 +20500,13 @@
          },
          {
           "beat": 10,
-          "length": 2,
+          "length": 1,
           "lyric": "John?",
           "pitch": 62
          },
          {
           "beat": 12,
+          "br": true,
           "length": 1,
           "lyric": "Bro-",
           "pitch": 63
@@ -20292,9 +20519,9 @@
          },
          {
           "beat": 14,
-          "length": 2,
+          "length": 1,
           "lyric": "John?",
-          "pitch": 62
+          "pitch": 67
          },
          {
           "beat": 16,
@@ -20337,31 +20564,31 @@
           "beat": 20,
           "length": 0.5,
           "lyric": "morn-",
-          "pitch": 62
+          "pitch": 58
          },
          {
           "beat": 20.5,
           "length": 0.5,
           "lyric": "ing",
-          "pitch": 62
+          "pitch": 58
          },
          {
           "beat": 21,
           "length": 0.5,
           "lyric": "bells",
-          "pitch": 62
+          "pitch": 58
          },
          {
           "beat": 21.5,
           "length": 0.5,
           "lyric": "are",
-          "pitch": 62
+          "pitch": 58
          },
          {
           "beat": 22,
           "length": 1,
           "lyric": "ring-",
-          "pitch": 63
+          "pitch": 58
          },
          {
           "beat": 23,
@@ -20371,7 +20598,6 @@
          },
          {
           "beat": 24,
-          "br": true,
           "length": 1,
           "lyric": "ding,",
           "pitch": 58
@@ -20384,12 +20610,13 @@
          },
          {
           "beat": 26,
-          "length": 2,
+          "length": 1,
           "lyric": "dong,",
           "pitch": 58
          },
          {
           "beat": 28,
+          "br": true,
           "length": 1,
           "lyric": "ding,",
           "pitch": 58
@@ -20402,7 +20629,7 @@
          },
          {
           "beat": 30,
-          "length": 2,
+          "length": 1,
           "lyric": "dong.",
           "pitch": 58
          },
@@ -20457,7 +20684,6 @@
          },
          {
           "beat": 40,
-          "br": true,
           "length": 1,
           "lyric": "Bro-",
           "pitch": 58
@@ -20470,12 +20696,13 @@
          },
          {
           "beat": 42,
-          "length": 2,
+          "length": 1,
           "lyric": "John?",
           "pitch": 62
          },
          {
           "beat": 44,
+          "br": true,
           "length": 1,
           "lyric": "Bro-",
           "pitch": 63
@@ -20488,9 +20715,9 @@
          },
          {
           "beat": 46,
-          "length": 2,
+          "length": 1,
           "lyric": "John?",
-          "pitch": 62
+          "pitch": 67
          },
          {
           "beat": 48,
@@ -20533,31 +20760,31 @@
           "beat": 52,
           "length": 0.5,
           "lyric": "morn-",
-          "pitch": 62
+          "pitch": 58
          },
          {
           "beat": 52.5,
           "length": 0.5,
           "lyric": "ing",
-          "pitch": 62
+          "pitch": 58
          },
          {
           "beat": 53,
           "length": 0.5,
           "lyric": "bells",
-          "pitch": 62
+          "pitch": 58
          },
          {
           "beat": 53.5,
           "length": 0.5,
           "lyric": "are",
-          "pitch": 62
+          "pitch": 58
          },
          {
           "beat": 54,
           "length": 1,
           "lyric": "ring-",
-          "pitch": 63
+          "pitch": 58
          },
          {
           "beat": 55,
@@ -20567,7 +20794,6 @@
          },
          {
           "beat": 56,
-          "br": true,
           "length": 1,
           "lyric": "ding,",
           "pitch": 58
@@ -20580,12 +20806,13 @@
          },
          {
           "beat": 58,
-          "length": 2,
+          "length": 1,
           "lyric": "dong,",
           "pitch": 58
          },
          {
           "beat": 60,
+          "br": true,
           "length": 1,
           "lyric": "ding,",
           "pitch": 58
@@ -20608,7 +20835,7 @@
        "key": "alto",
        "name": "Alto",
        "range": {
-        "high": 63,
+        "high": 67,
         "low": 55
        }
       },
@@ -20666,7 +20893,6 @@
          },
          {
           "beat": 8,
-          "br": true,
           "length": 1,
           "lyric": "Bro-",
           "pitch": 55
@@ -20679,12 +20905,13 @@
          },
          {
           "beat": 10,
-          "length": 2,
+          "length": 1,
           "lyric": "John?",
           "pitch": 53
          },
          {
           "beat": 12,
+          "br": true,
           "length": 1,
           "lyric": "Bro-",
           "pitch": 55
@@ -20697,40 +20924,40 @@
          },
          {
           "beat": 14,
-          "length": 2,
+          "length": 1,
           "lyric": "John?",
-          "pitch": 53
+          "pitch": 58
          },
          {
           "beat": 16,
           "br": true,
           "length": 0.5,
           "lyric": "Morn-",
-          "pitch": 53
+          "pitch": 58
          },
          {
           "beat": 16.5,
           "length": 0.5,
           "lyric": "ing",
-          "pitch": 53
+          "pitch": 58
          },
          {
           "beat": 17,
           "length": 0.5,
           "lyric": "bells",
-          "pitch": 53
+          "pitch": 58
          },
          {
           "beat": 17.5,
           "length": 0.5,
           "lyric": "are",
-          "pitch": 53
+          "pitch": 58
          },
          {
           "beat": 18,
           "length": 1,
           "lyric": "ring-",
-          "pitch": 55
+          "pitch": 58
          },
          {
           "beat": 19,
@@ -20742,25 +20969,25 @@
           "beat": 20,
           "length": 0.5,
           "lyric": "morn-",
-          "pitch": 53
+          "pitch": 55
          },
          {
           "beat": 20.5,
           "length": 0.5,
           "lyric": "ing",
-          "pitch": 53
+          "pitch": 55
          },
          {
           "beat": 21,
           "length": 0.5,
           "lyric": "bells",
-          "pitch": 53
+          "pitch": 55
          },
          {
           "beat": 21.5,
           "length": 0.5,
           "lyric": "are",
-          "pitch": 53
+          "pitch": 55
          },
          {
           "beat": 22,
@@ -20776,7 +21003,6 @@
          },
          {
           "beat": 24,
-          "br": true,
           "length": 1,
           "lyric": "ding,",
           "pitch": 55
@@ -20789,12 +21015,13 @@
          },
          {
           "beat": 26,
-          "length": 2,
+          "length": 1,
           "lyric": "dong,",
           "pitch": 55
          },
          {
           "beat": 28,
+          "br": true,
           "length": 1,
           "lyric": "ding,",
           "pitch": 55
@@ -20807,7 +21034,7 @@
          },
          {
           "beat": 30,
-          "length": 2,
+          "length": 1,
           "lyric": "dong.",
           "pitch": 55
          },
@@ -20862,7 +21089,6 @@
          },
          {
           "beat": 40,
-          "br": true,
           "length": 1,
           "lyric": "Bro-",
           "pitch": 55
@@ -20875,12 +21101,13 @@
          },
          {
           "beat": 42,
-          "length": 2,
+          "length": 1,
           "lyric": "John?",
           "pitch": 53
          },
          {
           "beat": 44,
+          "br": true,
           "length": 1,
           "lyric": "Bro-",
           "pitch": 55
@@ -20893,40 +21120,40 @@
          },
          {
           "beat": 46,
-          "length": 2,
+          "length": 1,
           "lyric": "John?",
-          "pitch": 53
+          "pitch": 58
          },
          {
           "beat": 48,
           "br": true,
           "length": 0.5,
           "lyric": "Morn-",
-          "pitch": 53
+          "pitch": 58
          },
          {
           "beat": 48.5,
           "length": 0.5,
           "lyric": "ing",
-          "pitch": 53
+          "pitch": 58
          },
          {
           "beat": 49,
           "length": 0.5,
           "lyric": "bells",
-          "pitch": 53
+          "pitch": 58
          },
          {
           "beat": 49.5,
           "length": 0.5,
           "lyric": "are",
-          "pitch": 53
+          "pitch": 58
          },
          {
           "beat": 50,
           "length": 1,
           "lyric": "ring-",
-          "pitch": 55
+          "pitch": 58
          },
          {
           "beat": 51,
@@ -20938,25 +21165,25 @@
           "beat": 52,
           "length": 0.5,
           "lyric": "morn-",
-          "pitch": 53
+          "pitch": 55
          },
          {
           "beat": 52.5,
           "length": 0.5,
           "lyric": "ing",
-          "pitch": 53
+          "pitch": 55
          },
          {
           "beat": 53,
           "length": 0.5,
           "lyric": "bells",
-          "pitch": 53
+          "pitch": 55
          },
          {
           "beat": 53.5,
           "length": 0.5,
           "lyric": "are",
-          "pitch": 53
+          "pitch": 55
          },
          {
           "beat": 54,
@@ -20972,7 +21199,6 @@
          },
          {
           "beat": 56,
-          "br": true,
           "length": 1,
           "lyric": "ding,",
           "pitch": 55
@@ -20985,12 +21211,13 @@
          },
          {
           "beat": 58,
-          "length": 2,
+          "length": 1,
           "lyric": "dong,",
           "pitch": 55
          },
          {
           "beat": 60,
+          "br": true,
           "length": 1,
           "lyric": "ding,",
           "pitch": 55
@@ -21013,7 +21240,7 @@
        "key": "tenor",
        "name": "Tenor",
        "range": {
-        "high": 56,
+        "high": 58,
         "low": 51
        }
       },
@@ -21035,7 +21262,7 @@
          {
           "beat": 4,
           "length": 2,
-          "pitch": 44
+          "pitch": 48
          },
          {
           "beat": 6,
@@ -21044,25 +21271,25 @@
          },
          {
           "beat": 8,
+          "length": 2,
+          "pitch": 51
+         },
+         {
+          "beat": 10,
+          "length": 1,
+          "pitch": 46
+         },
+         {
+          "beat": 12,
           "br": true,
           "length": 2,
           "lyric": "oo",
           "pitch": 51
          },
          {
-          "beat": 10,
-          "length": 2,
-          "pitch": 46
-         },
-         {
-          "beat": 12,
-          "length": 2,
-          "pitch": 51
-         },
-         {
           "beat": 14,
-          "length": 2,
-          "pitch": 46
+          "length": 1,
+          "pitch": 51
          },
          {
           "beat": 16,
@@ -21074,46 +21301,46 @@
          {
           "beat": 18,
           "length": 2,
-          "pitch": 51
+          "pitch": 43
          },
          {
           "beat": 20,
           "length": 2,
-          "pitch": 46
+          "pitch": 43
          },
          {
           "beat": 22,
           "length": 2,
-          "pitch": 51
+          "pitch": 43
          },
          {
           "beat": 24,
-          "br": true,
           "length": 2,
-          "lyric": "oo",
-          "pitch": 39
+          "pitch": 43
          },
          {
           "beat": 26,
-          "length": 2,
-          "pitch": 51
+          "length": 1,
+          "pitch": 43
          },
          {
           "beat": 28,
+          "br": true,
           "length": 2,
-          "pitch": 39
+          "lyric": "oo",
+          "pitch": 43
          },
          {
           "beat": 30,
-          "length": 2,
-          "pitch": 51
+          "length": 1,
+          "pitch": 43
          },
          {
           "beat": 32,
           "br": true,
           "length": 2,
           "lyric": "oo",
-          "pitch": 44
+          "pitch": 48
          },
          {
           "beat": 34,
@@ -21123,7 +21350,7 @@
          {
           "beat": 36,
           "length": 2,
-          "pitch": 44
+          "pitch": 48
          },
          {
           "beat": 38,
@@ -21132,25 +21359,25 @@
          },
          {
           "beat": 40,
+          "length": 2,
+          "pitch": 51
+         },
+         {
+          "beat": 42,
+          "length": 1,
+          "pitch": 46
+         },
+         {
+          "beat": 44,
           "br": true,
           "length": 2,
           "lyric": "oo",
           "pitch": 51
          },
          {
-          "beat": 42,
-          "length": 2,
-          "pitch": 46
-         },
-         {
-          "beat": 44,
-          "length": 2,
-          "pitch": 51
-         },
-         {
           "beat": 46,
-          "length": 2,
-          "pitch": 46
+          "length": 1,
+          "pitch": 51
          },
          {
           "beat": 48,
@@ -21162,34 +21389,34 @@
          {
           "beat": 50,
           "length": 2,
-          "pitch": 51
+          "pitch": 43
          },
          {
           "beat": 52,
           "length": 2,
-          "pitch": 46
+          "pitch": 43
          },
          {
           "beat": 54,
           "length": 2,
-          "pitch": 51
+          "pitch": 43
          },
          {
           "beat": 56,
-          "br": true,
           "length": 2,
-          "lyric": "oo",
-          "pitch": 39
+          "pitch": 43
          },
          {
           "beat": 58,
-          "length": 2,
-          "pitch": 51
+          "length": 1,
+          "pitch": 43
          },
          {
           "beat": 60,
+          "br": true,
           "length": 2,
-          "pitch": 39
+          "lyric": "oo",
+          "pitch": 43
          },
          {
           "beat": 62,
@@ -21203,7 +21430,7 @@
        "name": "Bass",
        "range": {
         "high": 51,
-        "low": 39
+        "low": 43
        }
       }
      ],
@@ -21280,7 +21507,7 @@
      "tempo": 100,
      "timeSignature": "4/4",
      "title": "Are You Sleeping (round)",
-     "version": 3,
+     "version": 4,
      "voicings": {
       "2": [
        "soprano",
@@ -22189,7 +22416,6 @@
           },
           {
            "beat": 8,
-           "br": true,
            "length": 1,
            "lyric": "Bro-",
            "pitch": 67
@@ -22202,12 +22428,13 @@
           },
           {
            "beat": 10,
-           "length": 2,
+           "length": 1,
            "lyric": "John?",
            "pitch": 70
           },
           {
            "beat": 12,
+           "br": true,
            "length": 1,
            "lyric": "Bro-",
            "pitch": 67
@@ -22220,7 +22447,7 @@
           },
           {
            "beat": 14,
-           "length": 2,
+           "length": 1,
            "lyric": "John?",
            "pitch": 70
           },
@@ -22299,7 +22526,6 @@
           },
           {
            "beat": 24,
-           "br": true,
            "length": 1,
            "lyric": "ding,",
            "pitch": 63
@@ -22312,12 +22538,13 @@
           },
           {
            "beat": 26,
-           "length": 2,
+           "length": 1,
            "lyric": "dong,",
            "pitch": 63
           },
           {
            "beat": 28,
+           "br": true,
            "length": 1,
            "lyric": "ding,",
            "pitch": 63
@@ -22330,7 +22557,7 @@
           },
           {
            "beat": 30,
-           "length": 2,
+           "length": 1,
            "lyric": "dong.",
            "pitch": 63
           },
@@ -22385,7 +22612,6 @@
           },
           {
            "beat": 40,
-           "br": true,
            "length": 1,
            "lyric": "Bro-",
            "pitch": 67
@@ -22398,12 +22624,13 @@
           },
           {
            "beat": 42,
-           "length": 2,
+           "length": 1,
            "lyric": "John?",
            "pitch": 70
           },
           {
            "beat": 44,
+           "br": true,
            "length": 1,
            "lyric": "Bro-",
            "pitch": 67
@@ -22416,7 +22643,7 @@
           },
           {
            "beat": 46,
-           "length": 2,
+           "length": 1,
            "lyric": "John?",
            "pitch": 70
           },
@@ -22495,7 +22722,6 @@
           },
           {
            "beat": 56,
-           "br": true,
            "length": 1,
            "lyric": "ding,",
            "pitch": 63
@@ -22508,12 +22734,13 @@
           },
           {
            "beat": 58,
-           "length": 2,
+           "length": 1,
            "lyric": "dong,",
            "pitch": 63
           },
           {
            "beat": 60,
+           "br": true,
            "length": 1,
            "lyric": "ding,",
            "pitch": 63
@@ -22615,7 +22842,7 @@
       "tempo": 100,
       "timeSignature": "4/4",
       "title": "Are You Sleeping (round)",
-      "version": 3,
+      "version": 4,
       "voicings": {
        "2": [
         "soprano",
@@ -23008,7 +23235,6 @@
          },
          {
           "beat": 8,
-          "br": true,
           "length": 1,
           "lyric": "Bro-",
           "pitch": 67
@@ -23021,12 +23247,13 @@
          },
          {
           "beat": 10,
-          "length": 2,
+          "length": 1,
           "lyric": "John?",
           "pitch": 70
          },
          {
           "beat": 12,
+          "br": true,
           "length": 1,
           "lyric": "Bro-",
           "pitch": 67
@@ -23039,7 +23266,7 @@
          },
          {
           "beat": 14,
-          "length": 2,
+          "length": 1,
           "lyric": "John?",
           "pitch": 70
          },
@@ -23118,7 +23345,6 @@
          },
          {
           "beat": 24,
-          "br": true,
           "length": 1,
           "lyric": "ding,",
           "pitch": 63
@@ -23131,12 +23357,13 @@
          },
          {
           "beat": 26,
-          "length": 2,
+          "length": 1,
           "lyric": "dong,",
           "pitch": 63
          },
          {
           "beat": 28,
+          "br": true,
           "length": 1,
           "lyric": "ding,",
           "pitch": 63
@@ -23149,7 +23376,7 @@
          },
          {
           "beat": 30,
-          "length": 2,
+          "length": 1,
           "lyric": "dong.",
           "pitch": 63
          },
@@ -23204,7 +23431,6 @@
          },
          {
           "beat": 40,
-          "br": true,
           "length": 1,
           "lyric": "Bro-",
           "pitch": 67
@@ -23217,12 +23443,13 @@
          },
          {
           "beat": 42,
-          "length": 2,
+          "length": 1,
           "lyric": "John?",
           "pitch": 70
          },
          {
           "beat": 44,
+          "br": true,
           "length": 1,
           "lyric": "Bro-",
           "pitch": 67
@@ -23235,7 +23462,7 @@
          },
          {
           "beat": 46,
-          "length": 2,
+          "length": 1,
           "lyric": "John?",
           "pitch": 70
          },
@@ -23314,7 +23541,6 @@
          },
          {
           "beat": 56,
-          "br": true,
           "length": 1,
           "lyric": "ding,",
           "pitch": 63
@@ -23327,12 +23553,13 @@
          },
          {
           "beat": 58,
-          "length": 2,
+          "length": 1,
           "lyric": "dong,",
           "pitch": 63
          },
          {
           "beat": 60,
+          "br": true,
           "length": 1,
           "lyric": "ding,",
           "pitch": 63
@@ -23414,7 +23641,6 @@
          },
          {
           "beat": 8,
-          "br": true,
           "length": 1,
           "lyric": "Bro-",
           "pitch": 58
@@ -23427,12 +23653,13 @@
          },
          {
           "beat": 10,
-          "length": 2,
+          "length": 1,
           "lyric": "John?",
           "pitch": 63
          },
          {
           "beat": 12,
+          "br": true,
           "length": 1,
           "lyric": "Bro-",
           "pitch": 63
@@ -23445,9 +23672,9 @@
          },
          {
           "beat": 14,
-          "length": 2,
+          "length": 1,
           "lyric": "John?",
-          "pitch": 67
+          "pitch": 63
          },
          {
           "beat": 16,
@@ -23524,7 +23751,6 @@
          },
          {
           "beat": 24,
-          "br": true,
           "length": 1,
           "lyric": "ding,",
           "pitch": 58
@@ -23537,12 +23763,13 @@
          },
          {
           "beat": 26,
-          "length": 2,
+          "length": 1,
           "lyric": "dong,",
           "pitch": 58
          },
          {
           "beat": 28,
+          "br": true,
           "length": 1,
           "lyric": "ding,",
           "pitch": 58
@@ -23555,7 +23782,7 @@
          },
          {
           "beat": 30,
-          "length": 2,
+          "length": 1,
           "lyric": "dong.",
           "pitch": 58
          },
@@ -23610,7 +23837,6 @@
          },
          {
           "beat": 40,
-          "br": true,
           "length": 1,
           "lyric": "Bro-",
           "pitch": 58
@@ -23623,12 +23849,13 @@
          },
          {
           "beat": 42,
-          "length": 2,
+          "length": 1,
           "lyric": "John?",
           "pitch": 63
          },
          {
           "beat": 44,
+          "br": true,
           "length": 1,
           "lyric": "Bro-",
           "pitch": 63
@@ -23641,9 +23868,9 @@
          },
          {
           "beat": 46,
-          "length": 2,
+          "length": 1,
           "lyric": "John?",
-          "pitch": 67
+          "pitch": 63
          },
          {
           "beat": 48,
@@ -23720,7 +23947,6 @@
          },
          {
           "beat": 56,
-          "br": true,
           "length": 1,
           "lyric": "ding,",
           "pitch": 58
@@ -23733,12 +23959,13 @@
          },
          {
           "beat": 58,
-          "length": 2,
+          "length": 1,
           "lyric": "dong,",
           "pitch": 58
          },
          {
           "beat": 60,
+          "br": true,
           "length": 1,
           "lyric": "ding,",
           "pitch": 58
@@ -23819,7 +24046,6 @@
          },
          {
           "beat": 8,
-          "br": true,
           "length": 1,
           "lyric": "Bro-",
           "pitch": 55
@@ -23832,12 +24058,13 @@
          },
          {
           "beat": 10,
-          "length": 2,
+          "length": 1,
           "lyric": "John?",
           "pitch": 55
          },
          {
           "beat": 12,
+          "br": true,
           "length": 1,
           "lyric": "Bro-",
           "pitch": 55
@@ -23846,13 +24073,13 @@
           "beat": 13,
           "length": 1,
           "lyric": "ther",
-          "pitch": 58
+          "pitch": 53
          },
          {
           "beat": 14,
-          "length": 2,
+          "length": 1,
           "lyric": "John?",
-          "pitch": 58
+          "pitch": 55
          },
          {
           "beat": 16,
@@ -23929,7 +24156,6 @@
          },
          {
           "beat": 24,
-          "br": true,
           "length": 1,
           "lyric": "ding,",
           "pitch": 55
@@ -23942,12 +24168,13 @@
          },
          {
           "beat": 26,
-          "length": 2,
+          "length": 1,
           "lyric": "dong,",
           "pitch": 55
          },
          {
           "beat": 28,
+          "br": true,
           "length": 1,
           "lyric": "ding,",
           "pitch": 55
@@ -23960,7 +24187,7 @@
          },
          {
           "beat": 30,
-          "length": 2,
+          "length": 1,
           "lyric": "dong.",
           "pitch": 55
          },
@@ -24015,7 +24242,6 @@
          },
          {
           "beat": 40,
-          "br": true,
           "length": 1,
           "lyric": "Bro-",
           "pitch": 55
@@ -24028,12 +24254,13 @@
          },
          {
           "beat": 42,
-          "length": 2,
+          "length": 1,
           "lyric": "John?",
           "pitch": 55
          },
          {
           "beat": 44,
+          "br": true,
           "length": 1,
           "lyric": "Bro-",
           "pitch": 55
@@ -24042,13 +24269,13 @@
           "beat": 45,
           "length": 1,
           "lyric": "ther",
-          "pitch": 58
+          "pitch": 53
          },
          {
           "beat": 46,
-          "length": 2,
+          "length": 1,
           "lyric": "John?",
-          "pitch": 58
+          "pitch": 55
          },
          {
           "beat": 48,
@@ -24125,7 +24352,6 @@
          },
          {
           "beat": 56,
-          "br": true,
           "length": 1,
           "lyric": "ding,",
           "pitch": 55
@@ -24138,12 +24364,13 @@
          },
          {
           "beat": 58,
-          "length": 2,
+          "length": 1,
           "lyric": "dong,",
           "pitch": 55
          },
          {
           "beat": 60,
+          "br": true,
           "length": 1,
           "lyric": "ding,",
           "pitch": 55
@@ -24207,9 +24434,7 @@
          },
          {
           "beat": 8,
-          "br": true,
           "length": 1,
-          "lyric": "oo",
           "pitch": 51
          },
          {
@@ -24219,12 +24444,14 @@
          },
          {
           "beat": 10,
-          "length": 2,
+          "length": 1,
           "pitch": 51
          },
          {
           "beat": 12,
+          "br": true,
           "length": 1,
+          "lyric": "oo",
           "pitch": 51
          },
          {
@@ -24234,7 +24461,7 @@
          },
          {
           "beat": 14,
-          "length": 2,
+          "length": 1,
           "pitch": 51
          },
          {
@@ -24271,9 +24498,7 @@
          },
          {
           "beat": 24,
-          "br": true,
           "length": 1,
-          "lyric": "oo",
           "pitch": 51
          },
          {
@@ -24283,12 +24508,14 @@
          },
          {
           "beat": 26,
-          "length": 2,
+          "length": 1,
           "pitch": 51
          },
          {
           "beat": 28,
+          "br": true,
           "length": 1,
+          "lyric": "oo",
           "pitch": 51
          },
          {
@@ -24298,7 +24525,7 @@
          },
          {
           "beat": 30,
-          "length": 2,
+          "length": 1,
           "pitch": 51
          },
          {
@@ -24335,9 +24562,7 @@
          },
          {
           "beat": 40,
-          "br": true,
           "length": 1,
-          "lyric": "oo",
           "pitch": 51
          },
          {
@@ -24347,12 +24572,14 @@
          },
          {
           "beat": 42,
-          "length": 2,
+          "length": 1,
           "pitch": 51
          },
          {
           "beat": 44,
+          "br": true,
           "length": 1,
+          "lyric": "oo",
           "pitch": 51
          },
          {
@@ -24362,7 +24589,7 @@
          },
          {
           "beat": 46,
-          "length": 2,
+          "length": 1,
           "pitch": 51
          },
          {
@@ -24399,9 +24626,7 @@
          },
          {
           "beat": 56,
-          "br": true,
           "length": 1,
-          "lyric": "oo",
           "pitch": 51
          },
          {
@@ -24411,12 +24636,14 @@
          },
          {
           "beat": 58,
-          "length": 2,
+          "length": 1,
           "pitch": 51
          },
          {
           "beat": 60,
+          "br": true,
           "length": 1,
+          "lyric": "oo",
           "pitch": 51
          },
          {
@@ -24513,7 +24740,7 @@
      "tempo": 100,
      "timeSignature": "4/4",
      "title": "Are You Sleeping (round)",
-     "version": 3,
+     "version": 4,
      "voicings": {
       "2": [
        "soprano",
@@ -24654,42 +24881,42 @@
          {
           "beat": 0,
           "length": 1,
-          "pitch": 57
+          "pitch": 69
          },
          {
           "beat": 1,
           "length": 1,
-          "pitch": 55
+          "pitch": 67
          },
          {
           "beat": 2,
           "length": 1,
-          "pitch": 57
+          "pitch": 69
          },
          {
           "beat": 3,
           "length": 1,
-          "pitch": 59
+          "pitch": 71
          },
          {
           "beat": 4,
           "length": 1,
-          "pitch": 57
+          "pitch": 69
          },
          {
           "beat": 5,
           "length": 1,
-          "pitch": 55
+          "pitch": 67
          },
          {
           "beat": 6,
           "length": 1,
-          "pitch": 57
+          "pitch": 69
          },
          {
           "beat": 7,
           "length": 1,
-          "pitch": 57
+          "pitch": 69
          }
         ],
         "type": "notes"
@@ -24698,8 +24925,8 @@
        "melody": true,
        "name": "Soprano",
        "range": {
-        "high": 59,
-        "low": 55
+        "high": 71,
+        "low": 67
        }
       },
       {
@@ -24707,28 +24934,8 @@
         "notes": [
          {
           "beat": 0,
-          "length": 1,
-          "pitch": 55
-         },
-         {
-          "beat": 1,
-          "length": 1,
-          "pitch": 52
-         },
-         {
-          "beat": 2,
-          "length": 3,
-          "pitch": 55
-         },
-         {
-          "beat": 5,
-          "length": 1,
-          "pitch": 52
-         },
-         {
-          "beat": 6,
-          "length": 2,
-          "pitch": 55
+          "length": 8,
+          "pitch": 64
          }
         ],
         "type": "notes"
@@ -24736,8 +24943,8 @@
        "key": "alto",
        "name": "Alto",
        "range": {
-        "high": 55,
-        "low": 52
+        "high": 64,
+        "low": 64
        }
       },
       {
@@ -24745,28 +24952,8 @@
         "notes": [
          {
           "beat": 0,
-          "length": 1,
-          "pitch": 52
-         },
-         {
-          "beat": 1,
-          "length": 1,
-          "pitch": 48
-         },
-         {
-          "beat": 2,
-          "length": 3,
-          "pitch": 52
-         },
-         {
-          "beat": 5,
-          "length": 1,
-          "pitch": 48
-         },
-         {
-          "beat": 6,
-          "length": 2,
-          "pitch": 52
+          "length": 8,
+          "pitch": 55
          }
         ],
         "type": "notes"
@@ -24774,8 +24961,8 @@
        "key": "tenor",
        "name": "Tenor",
        "range": {
-        "high": 52,
-        "low": 48
+        "high": 55,
+        "low": 55
        }
       },
       {
@@ -24786,12 +24973,12 @@
           "br": true,
           "length": 4,
           "lyric": "oo",
-          "pitch": 36
+          "pitch": 48
          },
          {
           "beat": 4,
           "length": 4,
-          "pitch": 36
+          "pitch": 48
          }
         ],
         "type": "notes"
@@ -24799,8 +24986,8 @@
        "key": "bass",
        "name": "Bass",
        "range": {
-        "high": 36,
-        "low": 36
+        "high": 48,
+        "low": 48
        }
       }
      ],
@@ -24958,42 +25145,42 @@
          {
           "beat": 0,
           "length": 1,
-          "pitch": 57
+          "pitch": 69
          },
          {
           "beat": 1,
           "length": 1,
-          "pitch": 55
+          "pitch": 67
          },
          {
           "beat": 2,
           "length": 1,
-          "pitch": 57
+          "pitch": 69
          },
          {
           "beat": 3,
           "length": 1,
-          "pitch": 59
+          "pitch": 71
          },
          {
           "beat": 4,
           "length": 1,
-          "pitch": 57
+          "pitch": 69
          },
          {
           "beat": 5,
           "length": 1,
-          "pitch": 55
+          "pitch": 67
          },
          {
           "beat": 6,
           "length": 1,
-          "pitch": 57
+          "pitch": 69
          },
          {
           "beat": 7,
           "length": 1,
-          "pitch": 57
+          "pitch": 69
          }
         ],
         "type": "notes"
@@ -25002,8 +25189,8 @@
        "melody": true,
        "name": "Soprano",
        "range": {
-        "high": 59,
-        "low": 55
+        "high": 71,
+        "low": 67
        }
       },
       {
@@ -25011,28 +25198,8 @@
         "notes": [
          {
           "beat": 0,
-          "length": 1,
-          "pitch": 56
-         },
-         {
-          "beat": 1,
-          "length": 1,
-          "pitch": 53
-         },
-         {
-          "beat": 2,
-          "length": 3,
-          "pitch": 56
-         },
-         {
-          "beat": 5,
-          "length": 1,
-          "pitch": 53
-         },
-         {
-          "beat": 6,
-          "length": 2,
-          "pitch": 56
+          "length": 8,
+          "pitch": 65
          }
         ],
         "type": "notes"
@@ -25040,8 +25207,8 @@
        "key": "alto",
        "name": "Alto",
        "range": {
-        "high": 56,
-        "low": 53
+        "high": 65,
+        "low": 65
        }
       },
       {
@@ -25049,28 +25216,8 @@
         "notes": [
          {
           "beat": 0,
-          "length": 1,
-          "pitch": 53
-         },
-         {
-          "beat": 1,
-          "length": 1,
-          "pitch": 49
-         },
-         {
-          "beat": 2,
-          "length": 3,
-          "pitch": 53
-         },
-         {
-          "beat": 5,
-          "length": 1,
-          "pitch": 49
-         },
-         {
-          "beat": 6,
-          "length": 2,
-          "pitch": 53
+          "length": 8,
+          "pitch": 56
          }
         ],
         "type": "notes"
@@ -25078,8 +25225,8 @@
        "key": "tenor",
        "name": "Tenor",
        "range": {
-        "high": 53,
-        "low": 49
+        "high": 56,
+        "low": 56
        }
       },
       {
@@ -25090,12 +25237,12 @@
           "br": true,
           "length": 4,
           "lyric": "oo",
-          "pitch": 37
+          "pitch": 49
          },
          {
           "beat": 4,
           "length": 4,
-          "pitch": 37
+          "pitch": 49
          }
         ],
         "type": "notes"
@@ -25103,8 +25250,8 @@
        "key": "bass",
        "name": "Bass",
        "range": {
-        "high": 37,
-        "low": 37
+        "high": 49,
+        "low": 49
        }
       }
      ],
@@ -25262,42 +25409,42 @@
          {
           "beat": 0,
           "length": 1,
-          "pitch": 57
+          "pitch": 69
          },
          {
           "beat": 1,
           "length": 1,
-          "pitch": 55
+          "pitch": 67
          },
          {
           "beat": 2,
           "length": 1,
-          "pitch": 57
+          "pitch": 69
          },
          {
           "beat": 3,
           "length": 1,
-          "pitch": 59
+          "pitch": 71
          },
          {
           "beat": 4,
           "length": 1,
-          "pitch": 57
+          "pitch": 69
          },
          {
           "beat": 5,
           "length": 1,
-          "pitch": 55
+          "pitch": 67
          },
          {
           "beat": 6,
           "length": 1,
-          "pitch": 57
+          "pitch": 69
          },
          {
           "beat": 7,
           "length": 1,
-          "pitch": 57
+          "pitch": 69
          }
         ],
         "type": "notes"
@@ -25306,8 +25453,8 @@
        "melody": true,
        "name": "Soprano",
        "range": {
-        "high": 59,
-        "low": 55
+        "high": 71,
+        "low": 67
        }
       },
       {
@@ -25316,7 +25463,7 @@
          {
           "beat": 0,
           "length": 8,
-          "pitch": 54
+          "pitch": 66
          }
         ],
         "type": "notes"
@@ -25324,8 +25471,8 @@
        "key": "alto",
        "name": "Alto",
        "range": {
-        "high": 54,
-        "low": 54
+        "high": 66,
+        "low": 66
        }
       },
       {
@@ -25334,7 +25481,7 @@
          {
           "beat": 0,
           "length": 8,
-          "pitch": 50
+          "pitch": 57
          }
         ],
         "type": "notes"
@@ -25342,8 +25489,8 @@
        "key": "tenor",
        "name": "Tenor",
        "range": {
-        "high": 50,
-        "low": 50
+        "high": 57,
+        "low": 57
        }
       },
       {
@@ -25354,12 +25501,12 @@
           "br": true,
           "length": 4,
           "lyric": "oo",
-          "pitch": 38
+          "pitch": 50
          },
          {
           "beat": 4,
           "length": 4,
-          "pitch": 38
+          "pitch": 50
          }
         ],
         "type": "notes"
@@ -25367,8 +25514,8 @@
        "key": "bass",
        "name": "Bass",
        "range": {
-        "high": 38,
-        "low": 38
+        "high": 50,
+        "low": 50
        }
       }
      ],
@@ -25526,42 +25673,42 @@
          {
           "beat": 0,
           "length": 1,
-          "pitch": 57
+          "pitch": 69
          },
          {
           "beat": 1,
           "length": 1,
-          "pitch": 55
+          "pitch": 67
          },
          {
           "beat": 2,
           "length": 1,
-          "pitch": 57
+          "pitch": 69
          },
          {
           "beat": 3,
           "length": 1,
-          "pitch": 59
+          "pitch": 71
          },
          {
           "beat": 4,
           "length": 1,
-          "pitch": 57
+          "pitch": 69
          },
          {
           "beat": 5,
           "length": 1,
-          "pitch": 55
+          "pitch": 67
          },
          {
           "beat": 6,
           "length": 1,
-          "pitch": 57
+          "pitch": 69
          },
          {
           "beat": 7,
           "length": 1,
-          "pitch": 57
+          "pitch": 69
          }
         ],
         "type": "notes"
@@ -25570,8 +25717,8 @@
        "melody": true,
        "name": "Soprano",
        "range": {
-        "high": 59,
-        "low": 55
+        "high": 71,
+        "low": 67
        }
       },
       {
@@ -25579,28 +25726,8 @@
         "notes": [
          {
           "beat": 0,
-          "length": 1,
-          "pitch": 55
-         },
-         {
-          "beat": 1,
-          "length": 1,
-          "pitch": 51
-         },
-         {
-          "beat": 2,
-          "length": 3,
-          "pitch": 55
-         },
-         {
-          "beat": 5,
-          "length": 1,
-          "pitch": 51
-         },
-         {
-          "beat": 6,
-          "length": 2,
-          "pitch": 55
+          "length": 8,
+          "pitch": 63
          }
         ],
         "type": "notes"
@@ -25608,8 +25735,8 @@
        "key": "alto",
        "name": "Alto",
        "range": {
-        "high": 55,
-        "low": 51
+        "high": 63,
+        "low": 63
        }
       },
       {
@@ -25617,28 +25744,8 @@
         "notes": [
          {
           "beat": 0,
-          "length": 1,
-          "pitch": 51
-         },
-         {
-          "beat": 1,
-          "length": 1,
-          "pitch": 46
-         },
-         {
-          "beat": 2,
-          "length": 3,
-          "pitch": 51
-         },
-         {
-          "beat": 5,
-          "length": 1,
-          "pitch": 46
-         },
-         {
-          "beat": 6,
-          "length": 2,
-          "pitch": 51
+          "length": 8,
+          "pitch": 55
          }
         ],
         "type": "notes"
@@ -25646,8 +25753,8 @@
        "key": "tenor",
        "name": "Tenor",
        "range": {
-        "high": 51,
-        "low": 46
+        "high": 55,
+        "low": 55
        }
       },
       {
@@ -25658,12 +25765,12 @@
           "br": true,
           "length": 4,
           "lyric": "oo",
-          "pitch": 39
+          "pitch": 51
          },
          {
           "beat": 4,
           "length": 4,
-          "pitch": 39
+          "pitch": 51
          }
         ],
         "type": "notes"
@@ -25671,8 +25778,8 @@
        "key": "bass",
        "name": "Bass",
        "range": {
-        "high": 39,
-        "low": 39
+        "high": 51,
+        "low": 51
        }
       }
      ],
@@ -25883,22 +25990,7 @@
         "notes": [
          {
           "beat": 0,
-          "length": 1,
-          "pitch": 62
-         },
-         {
-          "beat": 1,
-          "length": 1,
-          "pitch": 60
-         },
-         {
-          "beat": 2,
-          "length": 2,
-          "pitch": 62
-         },
-         {
-          "beat": 4,
-          "length": 4,
+          "length": 8,
           "pitch": 60
          }
         ],
@@ -25907,7 +25999,7 @@
        "key": "alto",
        "name": "Alto",
        "range": {
-        "high": 62,
+        "high": 60,
         "low": 60
        }
       },
@@ -25916,23 +26008,8 @@
         "notes": [
          {
           "beat": 0,
-          "length": 1,
-          "pitch": 60
-         },
-         {
-          "beat": 1,
-          "length": 1,
-          "pitch": 55
-         },
-         {
-          "beat": 2,
-          "length": 2,
-          "pitch": 60
-         },
-         {
-          "beat": 4,
-          "length": 4,
-          "pitch": 57
+          "length": 8,
+          "pitch": 50
          }
         ],
         "type": "notes"
@@ -25940,8 +26017,8 @@
        "key": "tenor",
        "name": "Tenor",
        "range": {
-        "high": 60,
-        "low": 55
+        "high": 50,
+        "low": 50
        }
       },
       {

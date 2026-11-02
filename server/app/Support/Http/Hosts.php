@@ -48,6 +48,31 @@ final class Hosts
         return $request->headers->get('Sec-Fetch-Site') !== 'cross-site' && $origin !== 'null';
     }
 
+    /**
+     * The cookie domain both hosts read (".stackapella.com" for app.stackapella.com and
+     * stackapella.com): the theme, the mic's name, the beta pass and mudeo's arrival are shared by
+     * it. Null on one host, or when the two share no parent domain of at least two labels.
+     */
+    public static function sharedCookieDomain(?string $appUrl, ?string $publicUrl): ?string
+    {
+        $app = parse_url((string) $appUrl, PHP_URL_HOST);
+        $public = parse_url((string) $publicUrl, PHP_URL_HOST);
+
+        if (! is_string($app) || ! is_string($public) || $app === $public) {
+            return null;
+        }
+
+        $a = explode('.', strtolower($app));
+        $p = explode('.', strtolower($public));
+        $common = [];
+        while ($a !== [] && $p !== [] && end($a) === end($p)) {
+            array_unshift($common, array_pop($a));
+            array_pop($p);
+        }
+
+        return count($common) >= 2 ? '.'.implode('.', $common) : null;
+    }
+
     public static function split(): bool
     {
         return self::host(self::publicUrl()) !== self::host(self::appUrl());
@@ -69,6 +94,16 @@ final class Hosts
     public static function app(string $path): string
     {
         return self::split() ? self::appUrl().'/'.ltrim($path, '/') : '/'.ltrim($path, '/');
+    }
+
+    /**
+     * An app page's address, always absolute on the app's host: for an email or anything else read
+     * away from our pages (url() would follow whichever host the request came in on, and the public
+     * host shows an app page as "moving").
+     */
+    public static function appLink(string $path): string
+    {
+        return self::appUrl().'/'.ltrim($path, '/');
     }
 
     /**

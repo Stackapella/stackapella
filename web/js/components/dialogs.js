@@ -1,5 +1,6 @@
+import { ReportVoice } from './report-voice.js';
 import { audio, chooseMic, chooseRoute, checkTiming, currentMicId, engine, looksWireless, measuredFor, micChoices, openMic, ROUTES } from '../audio.js';
-import { styleOf } from '../band.js';
+import { styleOf } from '../band-style.js';
 import { Switch } from './controls.js';
 import { formatBytes } from './cloud.js';
 import { hzToMidi, midiName, rankParts } from '../dsp.js';
@@ -19,7 +20,11 @@ import { Modal } from './ui.js';
 
 const RANGE_HOLD_SECONDS = 1; // a note held this long counts toward the range
 const reducedMotion = () => window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
-import { setRange } from '../stores/learning.js';
+import { learning, loadSongCourses, setRange } from '../stores/learning.js';
+import { account } from '../stores/account.js';
+import { songCourseVisible } from '../courses.js';
+import { navigate } from '../router.js';
+import { inFirstWeek } from './voice-care.js';
 import { prefs } from '../stores/prefs.js';
 import { exportNeedsPlus, isPlus } from '../stores/plan.js';
 
@@ -260,8 +265,9 @@ export const TimingDialog = {
                 <WirelessNote v-if="looksWireless(audio.mic?.label)" />
                 <div class="space-y-2">
                     <p id="timing-route" :class="label">{{ t('timing.routeQuestion') }}</p>
-                    <div class="seg grid grid-cols-3 rounded-2xl" role="radiogroup" aria-labelledby="timing-route">
-                        <button v-for="(route, name) in ROUTES" :key="name" type="button" role="radio" :aria-checked="audio.route === name ? 'true' : 'false'" class="seg-option px-2 py-2 leading-tight" @click="pickRoute(name)">{{ t(route.label) }}</button>
+                    <!-- A row of three, stacked by fitSegments (controls.js) when the words don't fit (a phone, the arcade font). -->
+                    <div class="seg w-full rounded-2xl" role="radiogroup" aria-labelledby="timing-route">
+                        <button v-for="(route, name) in ROUTES" :key="name" type="button" role="radio" :aria-checked="audio.route === name ? 'true' : 'false'" class="seg-option flex-1 px-2 py-2 leading-tight" @click="pickRoute(name)">{{ t(route.label) }}</button>
                     </div>
                     <p class="rounded-2xl bg-raised/60 px-4 py-3 text-cream" aria-live="polite">{{ t(ROUTES[audio.route]?.hint ?? ROUTES.wired.hint) }}</p>
                 </div>
@@ -494,26 +500,27 @@ export const ExportDialog = {
                 <fieldset class="space-y-2">
                     <legend class="mb-2 text-sm font-semibold text-muted">{{ t('export.file') }}</legend>
                     <div class="flex flex-wrap gap-2">
-                        <label class="relative block w-full min-w-0">
+                        <label v-if="!printing" class="relative block w-full min-w-0">
                             <span class="sr-only">{{ t('export.fileName') }}</span>
                             <input v-model="name" maxlength="80" :class="['input', what === 'sheet' && sheetFormat === 'musicxml' ? 'pe-20' : 'pe-16']" />
                             <span class="input-icon end-[18px] text-sm" translate="no">.{{ extension }}</span>
                         </label>
                         <div v-if="what === 'sheet'" class="seg ms-auto flex" role="radiogroup" :aria-label="t('export.format')">
                             <button v-for="f in ['musicxml', 'midi']" :key="f" type="button" role="radio" :aria-checked="sheetFormat === f ? 'true' : 'false'" class="seg-option" @click="sheetFormat = f" translate="no">{{ SHEET_FORMATS[f] }}</button>
+                            <button type="button" role="radio" :aria-checked="sheetFormat === 'print' ? 'true' : 'false'" class="seg-option" @click="sheetFormat = 'print'">{{ t('export.print') }}</button>
                         </div>
                         <div v-else-if="what !== 'stems'" class="seg ms-auto flex" role="radiogroup" :aria-label="t('export.format')">
                             <button v-for="f in ['wav', 'mp3']" :key="f" type="button" role="radio" :aria-checked="format === f ? 'true' : 'false'" class="seg-option flex items-center gap-1.5" @click="format = f" translate="no">{{ f.toUpperCase() }}<span v-if="f === 'mp3' && !plus" class="chip-accent">{{ t('home.plus') }}</span></button>
                         </div>
                     </div>
-                    <p class="text-xs text-muted">{{ what === 'sheet' ? (sheetFormat === 'midi' ? t('export.midiHint') : t('export.musicxmlHint')) : what === 'stems' ? t('export.stemsHint') : format === 'mp3' ? t('export.mp3Hint') : t('export.wavHint') }}</p>
+                    <p class="text-xs text-muted">{{ what === 'sheet' ? (printing ? t('export.printHint') : sheetFormat === 'midi' ? t('export.midiHint') : t('export.musicxmlHint')) : what === 'stems' ? t('export.stemsHint') : format === 'mp3' ? t('export.mp3Hint') : t('export.wavHint') }}</p>
                 </fieldset>
                 <p v-if="locked" class="text-sm text-cream" role="status">{{ what === 'stems' ? t('plus.moment.stems') : t('plus.moment.mp3') }}</p>
                 <p v-if="credits.length && what !== 'sheet'" class="text-sm text-cream">{{ t('export.credits', { names: formatList(credits) }) }}</p>
                 <div class="flex flex-wrap items-center gap-3 border-t border-line pt-4">
                     <span class="me-auto text-xs tabular-nums text-muted" translate="no">{{ summary }}</span>
                     <button type="button" :class="secondary" @click="$emit('close')">{{ t('common.cancel') }}</button>
-                    <button type="submit" :class="primary" :disabled="busy">{{ busy ? t('export.mixing') : locked ? t('plus.subscribe') : t('export.exportAs', { format: formatName }) }}</button>
+                    <button type="submit" :class="primary" :disabled="busy">{{ busy ? t('export.mixing') : locked ? t('plus.subscribe') : printing ? t('export.printButton') : t('export.exportAs', { format: formatName }) }}</button>
                 </div>
             </form>
         </Modal>`,
@@ -536,7 +543,12 @@ export const ExportDialog = {
             return this.what === 'stems' ? 'zip' : this.format;
         },
         formatName() {
+            if (this.printing) return t('export.print');
             return this.what === 'sheet' ? SHEET_FORMATS[this.sheetFormat] : this.extension.toUpperCase();
+        },
+        /** Sheet music's Print: the parts on a page to print (or save as a PDF), no file to name. */
+        printing() {
+            return this.what === 'sheet' && this.sheetFormat === 'print';
         },
         /** MP3 and each part are Plus (docs/features.md): picked, a line says so and the button is Get Plus. */
         locked() {
@@ -572,13 +584,13 @@ export const ExportDialog = {
 
 /** A part's settings: name, level, pan, timing nudge, re-record and delete. */
 export const PartDialog = {
-    components: { Modal, Icon },
+    components: { Modal, Icon, ReportVoice },
     // voice: the session's guideVoices entry for a template slot ({ kind, credit, why }), or null.
     // theirs: in a friend's project, the name of who sang this part (it's theirs to change), else null.
     props: { part: { type: Object, required: true }, shownName: { type: String, required: true }, color: { type: String, default: '' }, slot: Boolean, recorded: Boolean, harmonise: Boolean, voice: { type: Object, default: null }, recording: Boolean, theirs: { type: String, default: null } },
     emits: ['update', 'rerecord', 'delete', 'close', 'clear', 'practise', 'voice', 'trim', 'harmonise'],
     data() {
-        return { name: this.shownName, field, label, primary, secondary };
+        return { name: this.shownName, field, label, primary, secondary, reportingVoice: null };
     },
     template: `
         <!-- 107.png: Practise this part; the guide voice as radio cards; Mix (Volume, Pan, Timing with their values); Your take: Delete take, Trim, Re-record. -->
@@ -594,6 +606,8 @@ export const PartDialog = {
                             <span class="block font-semibold text-cream">{{ v.credit ? t('part.sungBy', { name: v.credit }) : t('part.sungByAnonymous') }}</span>
                             <span class="text-sm text-muted">{{ v.default ? t('part.defaultVoice') : t('part.otherVoice') }}<template v-if="voice.why === 'failed' && voice.chosen.includes(v.id)"> · {{ t('part.realVoiceFailed') }}</template></span>
                         </span>
+                        <!-- Report this voice (Lend your voice's moderation): a button in the card, so it never picks the voice. -->
+                        <button type="button" class="link-quiet ms-auto self-center text-sm" :aria-label="t('voices.report.button', { who: v.credit ? t('part.sungBy', { name: v.credit }) : t('part.sungByAnonymous') })" data-report-voice @click.prevent.stop="reportingVoice = v">{{ t('voices.report.short') }}</button>
                     </label>
                     <label class="radio-card">
                         <input type="radio" name="guideVoice" class="radio mt-px" :checked="voice.chosen.includes('synth') || blocked" @change="$emit('voice', 'synth')" />
@@ -631,7 +645,8 @@ export const PartDialog = {
                     <button v-if="theirs === null || slot" type="button" class="btn-secondary btn-sm" @click="$emit('rerecord')"><span class="inline-flex items-center gap-2"><span class="size-2 rounded-full bg-record" aria-hidden="true"></span> {{ theirs !== null ? t('together.singItToo') : !recorded ? t('practice.record') : t('part.rerecord') }}</span></button>
                 </div>
             </div>
-        </Modal>`,
+        </Modal>
+        <ReportVoice v-if="reportingVoice" :guide-id="reportingVoice.id" :who="reportingVoice.credit ? t('part.sungBy', { name: reportingVoice.credit }) : t('part.sungByAnonymous')" @close="reportingVoice = null" />`,
     computed: {
         /** The real voices can't play in this key, speed or version: the practice voice does. */
         blocked() {
@@ -693,7 +708,7 @@ export const RangeDialog = {
                     <div class="grid grid-cols-2 gap-2" data-range-steps>
                         <div>
                             <span class="block h-1 rounded-full bg-accent" aria-hidden="true"></span>
-                            <p class="mt-2 flex items-baseline justify-between gap-2 text-sm">
+                            <p data-ui="facts" class="mt-2 flex items-baseline justify-between gap-2 text-sm">
                                 <button v-if="step === 'high'" type="button" class="font-semibold text-cream hover:underline" @click="restart('low')">{{ t('range.lowestNote') }}</button>
                                 <span v-else class="font-semibold text-cream" aria-current="step">{{ t('range.lowestNote') }}</span>
                                 <span class="tabular-nums text-cream" translate="no">{{ low !== null ? midiName(low) : '' }}</span>
@@ -711,11 +726,11 @@ export const RangeDialog = {
                     </div>
                     <div class="h-1.5 overflow-hidden rounded-full bg-raised" aria-hidden="true"><div class="h-full rounded-full bg-accent transition-[width] duration-100" :style="{ width: hold * 100 + '%' }"></div></div>
                     <div>
-                        <div class="relative h-8 rounded-[10px] bg-(--fill)" role="img" :aria-label="shown === null ? t('listening.barEmpty') : t('listening.barAt', { note: midiName(shown) })">
+                        <div class="relative h-8 rounded-bar bg-(--fill)" role="img" :aria-label="shown === null ? t('listening.barEmpty') : t('listening.barAt', { note: midiName(shown) })">
                             <span v-if="best !== null" class="absolute inset-y-0 w-px bg-good/70" :style="{ left: stripAt(best) + '%' }" aria-hidden="true"></span>
                             <span v-if="shown !== null" class="absolute inset-y-1.5 w-1 -translate-x-1/2 rounded-full bg-accent" :style="{ left: stripAt(shown) + '%', opacity: markerAlpha }" aria-hidden="true"></span>
                         </div>
-                        <p class="mt-1 flex justify-between tabular-nums text-xs text-muted" translate="no" aria-hidden="true"><span v-for="n in STRIP_NAMES" :key="n">{{ n }}</span></p>
+                        <p data-ui="facts" class="mt-1 flex justify-between tabular-nums text-xs text-muted" translate="no" aria-hidden="true"><span v-for="n in STRIP_NAMES" :key="n">{{ n }}</span></p>
                     </div>
                     <LevelMeter :db="db" segments />
                     <p v-if="error" class="text-sm text-muted" role="status">{{ error }}</p>
@@ -733,7 +748,7 @@ export const RangeDialog = {
                 <template v-else>
                     <p class="text-cream">{{ t('range.yourRange', { low: midiName(low), high: midiName(high) }) }}</p>
                     <ul class="space-y-2 text-start">
-                        <li v-for="(r, i) in ranked" :key="r.part.key" class="flex items-center justify-between gap-3 rounded-[18px] p-3" :class="i === 0 ? 'bg-(--sel-wash) ring-2 ring-(--selected)' : 'bg-(--fill)'">
+                        <li v-for="(r, i) in ranked" :key="r.part.key" class="flex items-center justify-between gap-3 rounded-tile p-3" :class="i === 0 ? 'bg-(--sel-wash) ring-2 ring-(--selected)' : 'bg-(--fill)'">
                             <span>
                                 <span class="block font-semibold text-cream">{{ templatePartName(r.part) }}<span v-if="i === 0" class="ms-2 text-xs text-part-4">{{ t('range.bestForYou') }}</span></span>
                                 <span class="text-sm text-muted">{{ r.fits ? (r.transpose ? t('range.fitsIn', { key: keyName(r.transpose) }) : t('range.fitsAsWritten')) : t('range.stretch') }}</span>
@@ -838,7 +853,8 @@ export const RangeDialog = {
  * A song's Info (Hillel: simpler): what it is, its level, key and tempo, its parts and ranges (the
  * melody tagged), who wrote and sings it, and Start; How many singers, Check my range and Make a copy
  * behind More options, and Play (the harmony from its guides) beside Start. A Plus song without Plus:
- * its clip and the way to Plus.
+ * its clip and the way to Plus. A song with a course (docs/song-courses-plan.md) has Learn it step by
+ * step under them, quiet, for anyone who may start it, never in a new singer's first week.
  */
 export const TemplateDialog = {
     components: { Modal, Icon },
@@ -872,6 +888,7 @@ export const TemplateDialog = {
                         <button type="button" :class="[secondary, 'w-full justify-center']" :aria-label="t('templates.editLabel', { title: template.title })" data-song-edit @click="$emit('copy')">{{ t('template.edit') }}</button>
                         <button type="button" :class="[primary, 'w-full justify-center']" :disabled="full" data-song-start @click="$emit('start')">{{ t('templates.start') }}</button>
                     </div>
+                    <button v-if="hasCourse" type="button" class="btn-ghost btn-sm" data-song-course @click="learnIt"><Icon name="arrow" :size="16" /> {{ t('songCourse.open') }}</button>
                 </div>
                 <p v-if="full" class="text-sm text-muted">{{ t('templates.atLimit', { limit }) }} <a href="/plus?from=project_limit" class="link" @click.prevent="$emit('plus')">{{ t('export.seePlus') }}</a></p>
             </div>
@@ -883,6 +900,21 @@ export const TemplateDialog = {
         /** At the free plan's limit (Plus has none). */
         full() {
             return this.limit !== null && this.used >= this.limit;
+        },
+        /** The song has a course this account sees, and the first week is over (Hillel: keep it easy to use). */
+        hasCourse() {
+            return !this.locked && !inFirstWeek() && songCourseVisible(learning.songs?.find((c) => c.template === this.template.id), account.me);
+        },
+    },
+    created() {
+        // Only when the button could show: never in the first week, nor for a song that's locked.
+        if (!this.locked && !inFirstWeek()) loadSongCourses();
+    },
+    methods: {
+        /** Learn it step by step: the sheet closes (its preview stops) and the song's course opens. */
+        learnIt() {
+            this.$emit('close');
+            navigate(`/learn/s/${this.template.id}`);
         },
     },
 };

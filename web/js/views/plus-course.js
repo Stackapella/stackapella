@@ -3,13 +3,15 @@
 // replaces a teacher, and Restart this course. Once a few lessons are done, Sharpen up replays the
 // weakest (js/sharpen.js). The week, the level and the workout stay on /learn.
 // A course this account can't see (everyone but staff, until launch) reads as not here.
+// A song course (docs/song-courses-plan.md) shows here too, at /learn/s/<song id>: the same page for
+// one song, opened from that song's sheet on Home (a `?part=` the unit to start in), with no Sharpen up.
 
 import { localized, t } from '../i18n.js';
-import { navigate } from '../router.js';
+import { goBack, navigate } from '../router.js';
 import { account } from '../stores/account.js';
 import { game } from '../stores/appearance.js';
-import { learning, loadLearning, loadPlusCourses, restartPlusCourse } from '../stores/learning.js';
-import { courseSummary, courseVisible, lessonAccess, nextInCourse } from '../courses.js';
+import { learning, loadLearning, loadPlusCourses, loadSongCourse, restartPlusCourse } from '../stores/learning.js';
+import { courseSummary, courseVisible, lessonAccess, nextInCourse, songCourseVisible } from '../courses.js';
 import { lessonMinutes } from '../results.js';
 import { CourseMap } from '../components/course-map.js';
 import { confirmAction } from '../components/confirm.js';
@@ -19,21 +21,24 @@ import { PART_COLORS } from '../theme.js';
 import { sk } from '../skin.js';
 import { publicSiteUrl } from '../hosts.js';
 import { endSharpen, sharpenPicks, startSharpen } from '../sharpen.js';
+import { COURSE as READING, readingLevel } from '../reading-lines.js';
 
 export const PlusCourseView = {
     components: { CourseMap, Icon },
-    props: { id: { type: String, required: true } },
+    props: { id: { type: String, required: true }, song: Boolean }, // song: id is a song's, for its song course
     setup: () => ({ learning, localized, lessonMinutes }),
+    data: () => ({ songLooked: false, part: new URLSearchParams(location.search).get('part') }),
     template: `
         <div class="mx-auto min-h-dvh max-w-4xl px-4 pb-16 pt-[max(1rem,env(safe-area-inset-top))] md:px-8">
             <header class="flex items-center gap-3 py-4">
-                <button type="button" class="glass-bubble grid size-11 shrink-0 place-items-center rounded-full text-cream" :aria-label="t('home.back')" @click="navigate('/learn')"><Icon name="back" :size="20" /></button>
+                <button type="button" class="glass-bubble grid size-11 shrink-0 place-items-center rounded-full text-cream" :aria-label="t('home.back')" @click="goBack(song ? '/' : '/learn')"><Icon name="back" :size="20" /></button>
                 <div class="min-w-0 flex-1">
-                    <p class="text-sm text-muted">{{ t('courses.eyebrow') }}</p>
-                    <h1 class="truncate text-xl font-bold text-cream" translate="no">{{ course ? localized(entry.title) : t('courses.title') }}</h1>
+                    <p class="text-sm text-muted">{{ song ? t('songCourse.eyebrow') : t('courses.eyebrow') }}</p>
+                    <h1 class="truncate text-xl font-bold text-cream" translate="no">{{ course ? localized(song ? course.title : entry.title) : t('courses.title') }}</h1>
                 </div>
             </header>
-            <p v-if="!learning.loaded || (!learning.coursesLoaded && !course)" class="text-muted" role="status">{{ t('course.loading') }}</p>
+            <p v-if="!learning.loaded || (!(song ? songLooked : learning.coursesLoaded) && !course)" class="text-muted" role="status">{{ t('course.loading') }}</p>
+            <p v-else-if="!course && song" class="text-cream">{{ t('songCourse.notHere') }} <a href="/" class="link" @click.prevent="navigate('/')">{{ t('songCourse.backToSong') }}</a></p>
             <p v-else-if="!course" class="text-cream">{{ t('courses.notHere') }} <a href="/learn" class="link" @click.prevent="navigate('/learn')">{{ t('course.backToCourse') }}</a></p>
             <template v-else>
                 <section v-if="next" class="card p-6" :aria-label="t('course.hub.upNext')" data-up-next>
@@ -63,12 +68,21 @@ export const PlusCourseView = {
                     </ul>
                     <button type="button" class="btn-go mt-5" data-sharpen-start @click="sharpenUp">{{ t('sharpen.start') }}</button>
                 </section>
-                <p class="mt-4 text-sm text-muted" translate="no">{{ localized(entry.line) }} {{ t('courses.notTeacher') }}</p>
+                <!-- Sight-singing's Fresh lines (docs/sight-singing-plan.md, slice 5): endless new lines at the level reached, once started. -->
+                <section v-if="freshLines" class="card mt-4 flex flex-wrap items-center justify-between gap-4 p-6" :aria-label="t('readLines.title')" data-fresh-lines>
+                    <div class="min-w-0 flex-1">
+                        <p class="text-xs font-bold uppercase tracking-[0.14em]" :style="{ color: paintInk(colour) }">{{ t('readLines.eyebrow') }}</p>
+                        <h2 class="mt-1 text-xl font-bold text-cream">{{ t('readLines.title') }}</h2>
+                        <p class="mt-1 max-w-md text-sm text-muted">{{ t('readLines.line') }}</p>
+                    </div>
+                    <button type="button" class="btn-secondary" data-fresh-lines-start @click="navigate('/learn/c/' + READING + '/lines')">{{ t('readLines.start') }}</button>
+                </section>
+                <p class="mt-4 text-sm text-muted" translate="no">{{ song ? t('songCourse.line') : localized(entry.line) }} {{ t('courses.notTeacher') }}</p>
                 <!-- The course's own page on the site: what it covers, unit by unit, who wrote and checked it. -->
                 <a v-if="aboutUrl" :href="aboutUrl" target="_blank" rel="noopener" class="link mt-2 inline-flex items-center gap-1 text-sm" data-course-about>{{ t('courses.about') }} <Icon name="arrow" :size="14" /></a>
                 <!-- A course's own safety note (its catalogue entry's safety), where its singing needs one. -->
                 <p v-if="entry.safety" class="mt-2 rounded-2xl border border-line p-3 text-sm text-cream" role="note" translate="no" data-course-safety>{{ localized(entry.safety) }}</p>
-                <CourseMap class="mt-6" :course="course" />
+                <CourseMap class="mt-6" :course="course" :focus-unit="focusUnit" />
                 <div v-if="summary.started" class="mt-8 flex justify-center">
                     <button type="button" class="btn-ghost btn-sm" @click="restart">{{ t('courses.restart') }}</button>
                 </div>
@@ -80,16 +94,24 @@ export const PlusCourseView = {
             return this.entry?.id ?? this.id;
         },
         entry() {
+            // A song course: by its song's id, in the song courses' own catalogue.
+            if (this.song) return learning.songs?.find((c) => c.template === this.id) ?? null;
             // By id, or by the course's slug (the site's links, and links already shared, use either).
             return learning.catalogue.find((c) => c.id === this.id || c.slug === this.id) ?? null;
         },
         /** The course's data, when this account can see it. */
         course() {
-            return this.entry && courseVisible(this.entry, account.me, account.config) ? learning.courses[this.courseId] ?? null : null;
+            const visible = this.song ? songCourseVisible(this.entry, account.me) : courseVisible(this.entry, account.me, account.config);
+            return this.entry && visible ? learning.courses[this.courseId] ?? null : null;
+        },
+        /** A song course's unit for the part picked on the song's page, when it has one. */
+        focusUnit() {
+            const id = this.song && this.part ? `${this.courseId}-${this.part}` : null;
+            return id && this.course?.units.some((u) => u.id === id) ? id : null;
         },
         next() {
             if (!this.course) return null;
-            const found = nextInCourse(this.course, learning.progress);
+            const found = nextInCourse(this.course, learning.progress, this.focusUnit);
             return found ? { ...found, unitIndex: this.course.units.indexOf(found.unit) } : null;
         },
         /** Up next is past the free lesson, on the free plan: the Plus moment instead of Start. */
@@ -106,9 +128,14 @@ export const PlusCourseView = {
         summary() {
             return courseSummary(this.course, learning.progress);
         },
+        READING: () => READING,
+        /** Sight-singing's Fresh lines: once the course is started (and never in the first week). */
+        freshLines() {
+            return this.course?.id === READING && !this.song && !!readingLevel(learning.progress);
+        },
         /** Sharpen up's lessons (js/sharpen.js), once enough are done; none until then. */
         sharpen() {
-            return this.course ? sharpenPicks(this.course, learning.progress, { plus: account.me?.plan === 'plus', staff: !!account.me?.staff }) : [];
+            return this.course && !this.song ? sharpenPicks(this.course, learning.progress, { plus: account.me?.plan === 'plus', staff: !!account.me?.staff }) : [];
         },
         colour() {
             return this.paint(PART_COLORS[((this.entry?.colour ?? 4) - 1) % PART_COLORS.length]);
@@ -117,9 +144,14 @@ export const PlusCourseView = {
     created() {
         endSharpen(); // back on the course page: any session in this tab is over
         loadLearning();
-        loadPlusCourses();
+        if (this.song) {
+            loadSongCourse({ template: this.id })
+                .catch((error) => console.error('The song course could not load', error))
+                .finally(() => (this.songLooked = true));
+        } else loadPlusCourses();
     },
     methods: {
+        goBack,
         navigate,
         game, // serious mode shows no stars
         sk,
@@ -131,7 +163,7 @@ export const PlusCourseView = {
         },
         /** Restart this course: a styled confirm naming the course, then only its lessons go. */
         async restart() {
-            const name = localized(this.entry.title);
+            const name = localized(this.song ? this.course.title : this.entry.title);
             if (!(await confirmAction({ title: t('courses.restartTitle', { course: name }), body: sk('courses.restartBodySerious', 'courses.restartBody', { course: name }), action: t('courses.restartAction', { course: name }) }))) return;
             try {
                 await restartPlusCourse(this.courseId);

@@ -48,7 +48,7 @@ LESSONS = {
 def open_counterpoint(f):
     """Staff, with Counterpoint shown as if it were live (it stays "soon" until every lesson plays)."""
     f.go("/?api=mock&scenario=&as=admin", "document.querySelector('#app header')")
-    f.run("localStorage.setItem('stackapella.installDismissed', '1');")
+    f.run("localStorage.setItem('stackapella.asks', JSON.stringify({ stopped: ['install'] }));")
     f.go("/learn", "document.querySelector('[data-course-map]')")
     f.wait(f"{STORE}.learning.catalogue.some((c) => c.id === 'counterpoint')", what="the catalogue")
     f.run(f"""
@@ -61,7 +61,7 @@ def open_counterpoint(f):
 
 def journey(f):
     open_counterpoint(f)
-    f.wait("document.querySelector('[data-more-courses] [data-course=counterpoint]')", what="Counterpoint in More courses")
+    f.wait("document.querySelector('[data-more-courses] [data-course-row=counterpoint]')", what="Counterpoint in More courses")
     f.run(f"{ROUTER}.navigate('/learn/c/counterpoint')")
     f.wait("document.querySelector('[data-up-next]') && document.querySelector('[data-course-map]')", what="Up next and the map")
     f.wait_text("Be a round")

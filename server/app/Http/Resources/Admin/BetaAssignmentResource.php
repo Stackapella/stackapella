@@ -26,7 +26,7 @@ final class BetaAssignmentResource
             'partKey' => $assignment->part_key,
             'clipId' => $assignment->clip?->slot,
             'minutes' => $assignment->minutes,
-            'status' => PartStatus::of($assignment->latestSubmission, $assignment->isTheVoice()),
+            'status' => PartStatus::of($assignment->latestSubmission, $assignment->isTheVoice(), $assignment->askedAgain()),
         ];
     }
 }

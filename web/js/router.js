@@ -9,9 +9,11 @@ export const route = reactive({ name: 'projects', params: {} });
 
 const routes = [
     { name: 'sing', pattern: /^\/p\/([\w-]+)\/sing\/?$/, keys: ['id'] },
+    { name: 'print', pattern: /^\/p\/([\w-]+)\/print\/?$/, keys: ['id'] },
     { name: 'studio', pattern: /^\/p\/([\w-]+)\/?$/, keys: ['id'] },
     { name: 'admin', pattern: /^\/admin(?:\/([\w-]+))?(?:\/([\w-]+))?\/?$/, keys: ['section', 'id'] },
     { name: 'styleguide', pattern: /^\/styleguide\/?$/, keys: [] },
+    { name: 'styleguideGame', pattern: /^\/styleguide\/game\/?$/, keys: [] },
     { name: 'auth', pattern: /^\/(signin\/link|signin|verify|reset|email\/confirm|email\/revert)\/?$/, keys: ['page'] },
     { name: 'settings', pattern: /^\/settings\/?$/, keys: [] },
     { name: 'storage', pattern: /^\/storage\/?$/, keys: [] },
@@ -19,9 +21,13 @@ const routes = [
     { name: 'workout', pattern: /^\/workout\/?$/, keys: [] },
     { name: 'plus', pattern: /^\/plus\/?$/, keys: [] },
     { name: 'reminders', pattern: /^\/settings\/reminders\/?$/, keys: [] },
+    { name: 'classes', pattern: /^\/settings\/classes\/?$/, keys: [] }, // a teacher's class codes (views/school.js)
+    { name: 'classJoin', pattern: /^\/class(?:\/([\w-]+))?\/?$/, keys: ['code'] }, // a student joins with a class code
     { name: 'course', pattern: /^\/learn\/?$/, keys: [] },
     { name: 'learn', pattern: /^\/learn\/([\w-]+)\/?$/, keys: ['id'] },
+    { name: 'readLines', pattern: /^\/learn\/c\/sight-singing\/lines\/?$/, keys: [] },
     { name: 'plusCourse', pattern: /^\/learn\/c\/([\w-]+)\/?$/, keys: ['id'] },
+    { name: 'songCourse', pattern: /^\/learn\/s\/([\w-]+)\/?$/, keys: ['id'] }, // a song's course (docs/song-courses-plan.md)
     { name: 'beta', pattern: /^\/beta(?:\/([\w-]+))?\/?$/, keys: ['token'] },
     { name: 'create', pattern: /^\/create(?:\/([\w-]+))?\/?$/, keys: ['draft'] },
     { name: 'template', pattern: /^\/t\/([\w-]+)\/?$/, keys: ['id'] },
@@ -35,8 +41,10 @@ const routes = [
     { name: 'moved', pattern: /^\/moved\/?$/, keys: [] },
     { name: 'contact', pattern: /^\/contact\/?$/, keys: [] },
     { name: 'cooldown', pattern: /^\/cooldown\/?$/, keys: [] },
+    { name: 'warmup', pattern: /^\/warmup\/?$/, keys: [] }, // a teacher's warm-up: /warmup#<code> (js/warmup.js)
     { name: 'fresh', pattern: /^\/start-fresh\/?$/, keys: [] },
     { name: 'ideas', pattern: /^\/ideas\/?$/, keys: [] },
+    { name: 'voices', pattern: /^\/voices\/?$/, keys: [] }, // Lend your voice (views/voices.js)
     { name: 'idea', pattern: /^\/ideas\/([\w-]+)\/?$/, keys: ['id'] },
     { name: 'projects', pattern: /^\/?$/, keys: [] },
 ];
@@ -70,6 +78,15 @@ export function navigate(path, { replace = false } = {}) {
 export function goBack(fallback = '/') {
     if (history.state?.from) history.back();
     else navigate(fallback, { replace: true });
+}
+
+/**
+ * Back to `path` when that's where this page was opened from (the browser's own Back, so the history
+ * doesn't grow a loop), else to `path` itself.
+ */
+export function backTo(path) {
+    if (history.state?.from === path) history.back();
+    else navigate(path);
 }
 
 window.addEventListener('popstate', () => resolve(location.pathname));

@@ -29,7 +29,8 @@
                     "creator",
                     "declaration",
                     "heldAt",
-                    "reports"
+                    "reports",
+                    "imported"
                 ],
                 "properties": {
                     "id": {
@@ -206,6 +207,10 @@
                                 }
                             }
                         }
+                    },
+                    "imported": {
+                        "type": "boolean",
+                        "description": "Made from imported sheet music: private to its owner and their choir groups, here because it has an open report (a copyright notice reaches it); `hide` takes it down."
                     }
                 }
             }

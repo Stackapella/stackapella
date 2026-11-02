@@ -1105,6 +1105,7 @@
             }
         ],
         "grant": "month",
-        "freeUntil": "2026-10-31T23:59:59Z"
+        "freeUntil": "2026-10-31T23:59:59Z",
+        "boards": true
     }
 }

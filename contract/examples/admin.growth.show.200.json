@@ -8,25 +8,41 @@
                 "key": "arrivals",
                 "today": 42,
                 "yesterday": 38,
-                "lastWeek": 30
+                "lastWeek": 30,
+                "current": 42,
+                "previous": 38,
+                "weekAgo": 30,
+                "lowSample": false
             },
             {
                 "key": "lesson1",
                 "today": 25,
                 "yesterday": 20,
-                "lastWeek": 17
+                "lastWeek": 17,
+                "current": 25,
+                "previous": 20,
+                "weekAgo": 17,
+                "lowSample": false
             },
             {
                 "key": "signedUp",
                 "today": 6,
                 "yesterday": 4,
-                "lastWeek": 3
+                "lastWeek": 3,
+                "current": 6,
+                "previous": 4,
+                "weekAgo": 3,
+                "lowSample": true
             },
             {
                 "key": "plusStarted",
                 "today": 1,
                 "yesterday": 0,
-                "lastWeek": 1
+                "lastWeek": 1,
+                "current": 1,
+                "previous": 0,
+                "weekAgo": 1,
+                "lowSample": true
             }
         ],
         "steps": [
@@ -58,6 +74,7 @@
                 "key": "plusStarted",
                 "total": 1
             }
-        ]
+        ],
+        "timezone": "UTC"
     }
 }

@@ -18,7 +18,8 @@ import { showMicHelp } from '../mic-help.js';
 import { HeadphonesDialog } from './dialogs.js';
 import { local, session as tabStorage } from '../storage.js';
 import { renderClip } from './choose.js';
-import { clipBuffer, publishedFor } from '../course-clips.js';
+import { clipBuffer, clipCredit, publishedFor } from '../course-clips.js';
+import { ReportVoice } from './report-voice.js';
 
 /** Headphones on (this visit, or "don't remind me"), the speaker chosen, or not asked yet (null). */
 function listening() {
@@ -41,7 +42,7 @@ export function selfCheckDone(recorded, questions, answers) {
 }
 
 export const SelfCheck = {
-    components: { HeadphonesDialog, Icon },
+    components: { HeadphonesDialog, Icon, ReportVoice },
     inheritAttrs: false, // the lesson view passes a sung step's props (the key, strictness): not used here
     props: {
         exercise: { type: Object, required: true },
@@ -49,8 +50,8 @@ export const SelfCheck = {
         color: { type: String, default: 'var(--color-part-4)' },
     },
     emits: ['done', 'practised'],
-    data: () => ({ recording: false, take: null, playing: null, answers: {}, asking: false, progress: 0, error: null, published: null }),
-    setup: () => ({ localized }),
+    data: () => ({ recording: false, take: null, playing: null, answers: {}, asking: false, progress: 0, error: null, published: null, reporting: false }),
+    setup: () => ({ localized, clipCredit }),
     template: `
         <div class="space-y-5" data-selfcheck>
             <ol class="space-y-3">
@@ -58,7 +59,7 @@ export const SelfCheck = {
                 <li class="flex flex-wrap items-center gap-3 rounded-2xl border border-edge bg-panel p-4">
                     <span class="w-5 text-center text-xl font-extrabold tabular-nums text-accent-strong" aria-hidden="true">1</span>
                     <span class="min-w-0 flex-1"><span class="block font-bold text-cream">{{ t('selfcheck.model') }}</span>
-                        <span v-if="published?.credit" class="block text-xs text-muted" translate="no">{{ t('choose.sungBy', { name: published.credit }) }}</span>
+                        <span v-if="published?.credit" class="block text-xs text-muted" translate="no">{{ clipCredit(published) }} <button type="button" class="link-quiet" :aria-label="t('voices.report.button', { who: clipCredit(published) })" data-report-clip @click="reporting = true">{{ t('voices.report.short') }}</button></span>
                         <span v-else-if="!canHearModel && model.description" class="block text-sm text-muted" translate="no" data-selfcheck-described>{{ localized(model.description) }}</span></span>
                     <button v-if="canHearModel" type="button" class="btn-secondary btn-sm" :disabled="recording" @click="play('model')"><Icon :name="playing === 'model' ? 'stop' : 'play'" :size="14" /> {{ playing === 'model' ? t('studio.stop') : t('selfcheck.hear') }}</button>
                 </li>
@@ -97,6 +98,7 @@ export const SelfCheck = {
             <p class="text-sm text-muted" data-selfcheck-honest>{{ t('selfcheck.honest') }}</p>
             <p v-if="error" class="text-sm text-bad" role="alert">{{ error }}</p>
             <HeadphonesDialog v-if="asking" speaker-option simple :action="t('headphones.on')" @ok="headphonesOn" @speaker="useSpeaker" @close="asking = false" />
+            <ReportVoice v-if="reporting && published" :clip-slot="model.clip" :who="clipCredit(published)" @close="reporting = false" />
         </div>`,
     computed: {
         model: (vm) => vm.exercise.model,
@@ -174,7 +176,7 @@ export const SelfCheck = {
             if (this.model.chords && under > 0) engine.setPart('ex:chords', renderBacking(this.model.chords, { bpm, sampleRate: sr, endBeat: under, transpose: ((this.base % 12) + 12) % 12 }), sr, { volume: 0.8, pan: 0, audible: true, offsetSeconds: 0 });
             if (this.exercise.along && !speaker) {
                 const notes = this.model.notes.map((n) => ({ beat: n.beat + this.leadBeats, length: n.length, pitch: this.base + n.step, vibrato: n.vibrato ?? null }));
-                engine.setPart('ex:guide', renderPart(notes, { bpm, sampleRate: sr }), sr, { volume: 0.6, pan: 0, audible: true, offsetSeconds: 0 });
+                engine.setPart('ex:guide', renderPart(notes, { bpm, sampleRate: sr, human: 'guide' }), sr, { volume: 0.6, pan: 0, audible: true, offsetSeconds: 0 });
             }
             this.recording = true;
             this.startedAt = performance.now();

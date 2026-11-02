@@ -153,6 +153,11 @@ final class AppPushes
                 continue;
             }
 
+            // Claimed before it goes, so a second run (a slow one outliving its lock) never sends it again.
+            if (AppPush::query()->whereKey($push->id)->whereNull('sent_at')->whereNull('dropped_at')->update(['sent_at' => now(), 'outcome' => 'sending']) !== 1) {
+                continue;
+            }
+
             $sent = 0;
 
             foreach ($devices as $device) {

@@ -41,7 +41,7 @@ LESSONS = {
 def open_course(f, course):
     """Staff, with a course shown as if it were live (it stays "soon" until every lesson plays)."""
     f.go("/?api=mock&scenario=&as=admin", "document.querySelector('#app header')")
-    f.run("localStorage.setItem('stackapella.installDismissed', '1');")
+    f.run("localStorage.setItem('stackapella.asks', JSON.stringify({ stopped: ['install'] }));")
     f.go("/learn", "document.querySelector('[data-course-map]')")
     f.wait(f"{STORE}.learning.catalogue.some((c) => c.id === '{course}')", what="the catalogue")
     f.run(f"""
@@ -54,7 +54,7 @@ def open_course(f, course):
 
 def journey(f):
     open_course(f, 'folk')
-    f.wait("document.querySelector('[data-more-courses] [data-course=folk]')", what="Folk in More courses")
+    f.wait("document.querySelector('[data-more-courses] [data-course-row=folk]')", what="Folk in More courses")
     f.run(f"{ROUTER}.navigate('/learn/c/folk')")
     f.wait("document.querySelector('[data-up-next]') && document.querySelector('[data-course-map]')", what="Up next and the map")
     f.wait_text("Join the crew")

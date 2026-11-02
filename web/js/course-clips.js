@@ -5,6 +5,7 @@
 // The list is asked once per course and each recording decoded once.
 
 import { api } from './api.js';
+import { t, tk } from './i18n.js';
 import { engine } from './audio.js';
 
 const lists = new Map(); // course id: a promise of Map(slot: { url, durationSeconds, credit })
@@ -47,4 +48,20 @@ export function clipBuffer(url) {
             }));
     }
     return buffers.get(url);
+}
+
+// How a clip's singer is credited, by the clip's style (courses.clips.list `creditStyle`): "Beatbox by
+// Sam", "Yodel by Ana"; anything else is "Sung by".
+const CREDIT_STYLES = {
+    beatbox: tk('voices.creditBy.beatbox'),
+    yodel: tk('voices.creditBy.yodel'),
+    vibrato: tk('voices.creditBy.vibrato'),
+    hum: tk('voices.creditBy.hum'),
+    trill: tk('voices.creditBy.trill'),
+};
+
+/** A published clip's credit line ("Beatbox by Sam"), or '' for an anonymous one. */
+export function clipCredit(clip) {
+    if (!clip?.credit) return '';
+    return t(CREDIT_STYLES[clip.creditStyle] ?? tk('choose.sungBy'), { name: clip.credit });
 }

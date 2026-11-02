@@ -131,7 +131,10 @@ def popups(f):
     f.run("window.hudQueue.tick(9); window.hudQueue.offer({ kind: 'bonus', count: 11 }, 9)")
     f.wait("document.querySelector('#hud-test [data-game-popup=bonus]')", what="the combo bonus pop-up")
     frames(f, "popup-bonus", [300])
-    f.run("window.hudQueue.tick(15); window.hudQueue.offer({ kind: 'hold', phrase: 3 }, 15)")
+    f.run("window.hudQueue.tick(14); window.hudQueue.offer({ kind: 'rate', count: 2 }, 14)")
+    f.wait("document.querySelector('#hud-test [data-game-popup=rate]')", what="the bonus's rate going up")
+    frames(f, "popup-rate", [300])
+    f.run("window.hudQueue.tick(15.3); window.hudQueue.offer({ kind: 'hold', phrase: 3 }, 15.3)")
     f.wait("document.querySelector('#hud-test [data-game-popup=hold]')", what="the held-note pop-up")
     assert t(f, "game.popup.hold").upper() in f.js("document.querySelector('#hud-test [data-game-popup=hold]').innerText").upper(), "Held it!"
     frames(f, "popup-hold", [300])

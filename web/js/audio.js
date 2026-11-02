@@ -8,6 +8,7 @@ import { analyzeTrain, clickTrain, median } from './dsp.js';
 import { tk } from './i18n.js';
 import { local } from './storage.js';
 import { explainFirst } from './mic-help.js';
+import { pickByLabel, rememberMicLabel, rememberedMicLabel } from './mic-choice.js';
 
 export const engine = new Engine();
 
@@ -26,11 +27,14 @@ export const audio = reactive({
     latencyFrames: null,
     latencyEstimated: false,
     deviceChanged: false,
+    reconnected: false, // a device came or went while listening wirelessly: its timing may have moved (recheckDue)
     micOpenedAt: null, // the audio-clock time the mic last opened, for the settle before a count-in
 });
 
 /** How long after the mic opens before the first click: iOS switches its audio session then. */
 export const MIC_SETTLE_SECONDS = 0.8;
+/** A device change sooner than this after the mic opens is the opening's own, not a reconnect. */
+const RECONNECT_AFTER_OPEN = 3;
 
 const WIRELESS = /airpods|bluetooth|hands-?free|\bbt\b|wireless|beats|galaxy buds|pixel buds/i;
 const CONTINUITY = /iphone|ipad/i;
@@ -52,8 +56,16 @@ export function looksWireless(label, { appleMobile = isAppleMobile() } = {}) {
 
 engine.onDeviceChange = () => {
     audio.deviceChanged = true;
+    // A reconnect only with the mic open and settled: granting the mic, and iOS moving AirPods to
+    // hands-free as it opens, fire devicechange too (read on the audio clock, never a timer).
+    if (wirelessListening() && audio.micOpenedAt !== null && engine.ctx && engine.ctx.currentTime - audio.micOpenedAt > RECONNECT_AFTER_OPEN) audio.reconnected = true;
     refreshMics();
 };
+
+/** Listening or singing through something wireless: Bluetooth chosen, or a mic that looks wireless. */
+export function wirelessListening() {
+    return audio.route === 'bluetooth' || looksWireless(audio.mic?.label);
+}
 
 /** Re-reads the mics (a headset plugged in or out). Labels need mic permission first. */
 export async function refreshMics() {
@@ -133,6 +145,11 @@ export async function openMic(deviceId = local.get('stackapella.mic') || '') {
     }
     audio.mic = { deviceId: mic.deviceId, groupId: mic.settings.groupId, label: mic.label };
     audio.mics = await engine.listMics();
+    // Nothing chosen here yet: the mic chosen on the site (or in the app on another address), by name.
+    if (!deviceId) {
+        const named = pickByLabel(audio.mics, rememberedMicLabel());
+        if (named && named !== mic.deviceId) return openMic(named);
+    }
     if (deviceId) {
         local.set('stackapella.mic', mic.deviceId);
     }
@@ -165,6 +182,7 @@ export function leadSeconds() {
 export async function chooseMic(deviceId) {
     local.set('stackapella.mic', deviceId);
     await openMic(deviceId);
+    rememberMicLabel(audio.mic?.label); // the site picks the same mic by name (js/mic-choice.js)
 }
 
 export function chooseRoute(route) {
@@ -186,6 +204,39 @@ function loadLatency() {
     const saved = Number.parseInt(local.get(latencyKey()) ?? '', 10);
     audio.latencyFrames = Number.isFinite(saved) ? saved : null;
     audio.latencyEstimated = false;
+}
+
+/**
+ * A fresh timing check, offered (master plan 15b, an r/acappella reader's idea): a wireless timing can
+ * move when headphones reconnect, and drift over a long session. Only with a measured timing (an
+ * estimate is already offered the check). Returns 'reconnect', 'takes' or null.
+ */
+export const RECHECK_TAKES = 20;
+
+function takesKey() {
+    return latencyKey().replace('stackapella.latency.', 'stackapella.latencyTakes.');
+}
+
+function takesSince() {
+    return Number.parseInt(local.get(takesKey()) ?? '', 10) || 0;
+}
+
+/** A take recorded with this measured timing: counted toward the next offer. */
+export function tookTake() {
+    if (audio.latencyFrames === null || audio.latencyEstimated || !wirelessListening()) return;
+    local.set(takesKey(), String(takesSince() + 1));
+}
+
+export function recheckDue() {
+    if (audio.latencyFrames === null || audio.latencyEstimated || !wirelessListening()) return null;
+    if (audio.reconnected) return 'reconnect';
+    return takesSince() >= RECHECK_TAKES ? 'takes' : null;
+}
+
+/** Offered once: again only after another RECHECK_TAKES takes or the next reconnect. */
+export function recheckShown() {
+    audio.reconnected = false;
+    local.set(takesKey(), '0');
 }
 
 /** Records with the browser's own estimate (often tens of ms off) until a timing check is done. */
@@ -224,6 +275,7 @@ export async function checkTiming({ runs = 3, onProgress = () => {} } = {}) {
     audio.latencyFrames = frames;
     audio.latencyEstimated = false;
     audio.deviceChanged = false;
+    recheckShown(); // a fresh timing: the count starts again
     return {
         ok: true,
         ms: (frames * 1000) / sr,

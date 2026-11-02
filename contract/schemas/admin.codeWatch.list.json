@@ -1,0 +1,104 @@
+{
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "hits",
+                "setup"
+            ],
+            "properties": {
+                "hits": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "id",
+                            "kind",
+                            "key",
+                            "url",
+                            "firstSeenAt",
+                            "lastSeenAt",
+                            "calls",
+                            "dismissedAt",
+                            "note"
+                        ],
+                        "properties": {
+                            "id": {
+                                "type": "string"
+                            },
+                            "kind": {
+                                "type": "string",
+                                "enum": [
+                                    "marker",
+                                    "domain"
+                                ]
+                            },
+                            "key": {
+                                "type": "string"
+                            },
+                            "url": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            },
+                            "firstSeenAt": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            },
+                            "lastSeenAt": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            },
+                            "calls": {
+                                "type": [
+                                    "integer",
+                                    "null"
+                                ]
+                            },
+                            "dismissedAt": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            },
+                            "note": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "setup": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                        "markers",
+                        "search"
+                    ],
+                    "properties": {
+                        "markers": {
+                            "type": "integer"
+                        },
+                        "search": {
+                            "type": "boolean"
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

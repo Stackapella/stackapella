@@ -14,11 +14,13 @@ use App\Models\Block;
 use App\Models\ChoirVoice;
 use App\Models\CoachProfile;
 use App\Models\Comment;
+use App\Models\CourseClip;
 use App\Models\DataExport;
 use App\Models\EarlyAccessLink;
 use App\Models\EmailSuppression;
 use App\Models\EmailToken;
 use App\Models\Engagement;
+use App\Models\Experiment;
 use App\Models\Flag;
 use App\Models\FlagUser;
 use App\Models\HandleHold;
@@ -29,6 +31,7 @@ use App\Models\MudeoBatch;
 use App\Models\Notice;
 use App\Models\PartScore;
 use App\Models\Report;
+use App\Models\SchoolClass;
 use App\Models\SecurityEvent;
 use App\Models\Setting;
 use App\Models\ShareVideo;
@@ -137,6 +140,7 @@ final class AppServiceProvider extends ServiceProvider
             'beta_submission' => BetaSubmission::class,
             'beta_feedback' => BetaFeedback::class,
             'template_guide' => TemplateGuide::class,
+            'course_clip' => CourseClip::class,
             'admin_second_factor' => AdminSecondFactor::class,
             'audit_log' => AuditLog::class,
             'block' => Block::class,
@@ -165,6 +169,8 @@ final class AppServiceProvider extends ServiceProvider
             'choir_voice' => ChoirVoice::class,
             'song_request' => SongRequest::class,
             'part_score' => PartScore::class,
+            'experiment' => Experiment::class,
+            'school_class' => SchoolClass::class,
         ]);
 
         // The contract's envelope is { "data": ... }; lists add their own `meta`.

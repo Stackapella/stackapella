@@ -27,10 +27,8 @@ export const KEYS = ['C', 'C#', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb',
 
 export const TIME_SIGNATURES = ['4/4', '3/4', '6/8', '2/4'];
 
-/** Beats per bar for counting in and the metronome (6/8 counts in dotted quarters: 2). */
-export function beatsPerBar(timeSignature) {
-    return { '4/4': 4, '3/4': 3, '6/8': 2, '2/4': 2 }[timeSignature] ?? 4;
-}
+// Beats per bar lives in js/theory.js (no imports), so arrange.js reaches it without Vue.
+export { beatsPerBar } from './theory.js';
 
 const NOTES = ['C', 'C#', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B'];
 

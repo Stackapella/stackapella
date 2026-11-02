@@ -7,9 +7,11 @@ namespace App\Support\Admin;
 use App\Enums\SecurityEventType;
 use App\Models\AdminSecondFactor;
 use App\Models\AuditLog;
+use App\Models\SecurityEvent;
 use App\Models\User;
 use App\Notifications\Admin\AdminSignedIn;
 use App\Notifications\Admin\SecondFactorLocked;
+use App\Support\Trust\IpHash;
 use App\Support\Trust\SecurityLog;
 use Illuminate\Contracts\Session\Session;
 use Illuminate\Support\Carbon;
@@ -84,10 +86,23 @@ final class SecondFactor
         $session->put([self::SESSION_PASSED_AT => now()->getTimestamp(), self::SESSION_USER => (int) $user->getKey()]);
 
         if ($firstThisSession) {
-            Notification::send($this->admins->all(), new AdminSignedIn($user, $method, $userAgent));
+            // Only from an address this admin hasn't signed in from before (Hillel, 2026-11-01), known
+            // by the security log's keyed hash, which outlives the raw IP; an unknown IP always tells.
+            if (! $this->knownAddress($user, $ip)) {
+                Notification::send($this->admins->all(), new AdminSignedIn($user, $method, $userAgent));
+            }
             AuditLog::record('admin.second_factor_passed', $user, $user, after: ['method' => $method], ip: $ip);
             $this->securityLog->record(SecurityEventType::AdminSignIn, $user, $ip, ['method' => $method]);
         }
+    }
+
+    private function knownAddress(User $user, ?string $ip): bool
+    {
+        return $ip !== null && SecurityEvent::query()
+            ->where('type', SecurityEventType::AdminSignIn)
+            ->where('user_id', $user->getKey())
+            ->where('ip_hash', IpHash::of($ip))
+            ->exists();
     }
 
     public function newTotpSecret(): string

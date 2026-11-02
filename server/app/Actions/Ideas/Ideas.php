@@ -342,6 +342,8 @@ final class Ideas
         $voices = IdeaVoice::query()->with('user')->where('idea_id', $idea->id)->whereNull('hidden_at')
             ->when($blocked !== [], fn ($query) => $query->whereNotIn('user_id', $blocked))
             ->where(fn ($query) => $query->where('status', IdeaVoice::READY)->when($viewer !== null, fn ($mine) => $mine->orWhere('user_id', $viewer?->id)))
+            // A suspended singer's voice isn't heard (as on the public pages), their own apart.
+            ->where(fn ($query) => $query->whereHas('user', fn ($user) => $user->whereNull('suspended_at'))->when($viewer !== null, fn ($mine) => $mine->orWhere('user_id', $viewer?->id)))
             ->orderByDesc('id')->get();
         $version = $idea->template->currentVersion;
 

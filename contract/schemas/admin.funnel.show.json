@@ -315,6 +315,10 @@
                         }
                     },
                     "description": "Each day's totals per kind and arm, for a chart."
+                },
+                "timezone": {
+                    "type": "string",
+                    "description": "The timezone the days are in (a PHP name; UTC unless set)."
                 }
             }
         }

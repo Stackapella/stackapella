@@ -87,8 +87,33 @@
                         },
                         "activeSingers": {
                             "type": "integer"
+                        },
+                        "previous": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "required": [
+                                "signUps",
+                                "upgrades",
+                                "activeSingers"
+                            ],
+                            "properties": {
+                                "signUps": {
+                                    "type": "integer"
+                                },
+                                "upgrades": {
+                                    "type": "integer"
+                                },
+                                "activeSingers": {
+                                    "type": "integer"
+                                }
+                            },
+                            "description": "The same three over the 7 days before (8 to 14 days back)."
                         }
                     }
+                },
+                "timezone": {
+                    "type": "string",
+                    "description": "The timezone the days are in (a PHP name; UTC unless set)."
                 }
             }
         }

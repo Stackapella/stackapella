@@ -32,10 +32,12 @@ final class BetaMeResource extends JsonResource
         return [
             'id' => $singer->sqid(),
             'name' => $singer->name,
+            // Lend your voice: unpaid, and their agreement is the volunteers' (legal/lend-your-voice).
+            'volunteer' => $singer->volunteer,
             'consent' => [
                 'version' => $singer->consent_version,
                 'acceptedAt' => $singer->consented_at?->utc()->toIso8601ZuluString(),
-                'current' => (int) config('beta.agreement_version'),
+                'current' => $singer->agreementVersion(),
             ],
             // The name is the account's (changed in the profile); null while anonymous.
             'credit' => ['mode' => $singer->credit_mode?->value, 'name' => $singer->credit()],

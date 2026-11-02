@@ -11,11 +11,13 @@ AUDIO = "(await import('/js/audio.js'))"
 
 
 def journey(f):
-    f.go("/", "document.querySelectorAll('ul li button').length > 3")
-    f.run("[...document.querySelectorAll('ul li button')].find((b) => b.textContent.includes('Amazing Grace')).click()")
+    f.go("/?api=mock&scenario=&as=member", "document.querySelector('#home-songs [data-song-card]')")
+    f.wait("[...document.querySelectorAll('#home-songs [data-song-card]')].some((c) => c.textContent.includes('Amazing Grace'))", what="Amazing Grace in the library")
+    f.run("[...document.querySelectorAll('#home-songs [data-song-card]')].find((c) => c.textContent.includes('Amazing Grace')).querySelector('button').click()")
     f.wait("document.querySelector('[role=dialog]')", what="the song")
     f.js(f"{AUDIO}.unlock()")
-    f.click_t("templates.preview")
+    f.wait("document.querySelector('[data-song-play]')", what="Play")
+    f.run("document.querySelector('[data-song-play]').click()")
     f.wait(f"{AUDIO}.engine.playing && {AUDIO}.engine.positionSeconds() > 1.5", timeout=30, what="the preview playing")
     assert f.js(f"{AUDIO}.engine.parts.get('preview:tenor').mix.audible"), "the tenor isn't heard with 4 singers"
     before = f.js(f"{AUDIO}.engine.positionSeconds()")

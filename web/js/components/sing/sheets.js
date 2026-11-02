@@ -3,8 +3,8 @@
 // part (each part with its range and voice; yours opens to its voices and the kind note when the
 // real voice can't follow your key; check your range; learn it part by part or the whole song).
 
-import { styleOf } from '../../band.js';
-import { tk } from '../../i18n.js';
+import { styleOf } from '../../band-style.js';
+import { t, tk } from '../../i18n.js';
 import { NOTE_STYLES } from '../../notes.js';
 import { prefs } from '../../stores/prefs.js';
 import { Modal } from '../ui.js';
@@ -36,6 +36,8 @@ export const SettingsSheet = {
         chords: Boolean,
         chordsLevel: { type: Number, default: 0.5 },
         chordsSound: { type: String, default: 'pad' },
+        drone: { type: String, default: 'off' }, // a drone to tune against: 'off', 'key' or 'chord' (docs/tune-chord-plan.md)
+        droneLevel: { type: Number, default: 0.4 },
         view: { type: String, default: 'words' },
         sample: { type: String, default: '' }, // your part's first notes, named as chosen ("B♭2 C3 D3")
         color: { type: String, required: true },
@@ -44,7 +46,7 @@ export const SettingsSheet = {
         partName: { type: String, default: '' }, // a phone's part picker (the header's chip on a wide screen)
         partColor: { type: String, default: '' },
     },
-    emits: ['part', 'toggle', 'level', 'view', 'speed', 'ladder', 'chords', 'chords-level', 'chords-sound', 'voices', 'split', 'reset', 'close'],
+    emits: ['part', 'toggle', 'level', 'view', 'speed', 'ladder', 'chords', 'chords-level', 'chords-sound', 'drone', 'drone-level', 'voices', 'split', 'reset', 'close'],
     setup: () => ({ VIEWS, SPEEDS, NOTE_STYLES, STYLE_LABELS, SHORTCUTS, prefs, BAND_STYLES, styleOf }),
     // 67.png: Display (Show, Note names with a sample, the keyboard, the other parts), Practice (Speed
     // with the tempo it plays at, Chords underneath, Guide voices), Controls (shortcuts and their keys).
@@ -75,6 +77,8 @@ export const SettingsSheet = {
                     </fieldset>
                     <Switch :on="prefs.keyboard" :label="t('sing.settings.keyboard')" :hint="t('sing.settings.keyboardHint')" @change="prefs.keyboard = $event" />
                     <Switch :on="prefs.showOthers" :label="t('sing.settings.others')" :hint="t('sing.settings.othersHint')" @change="prefs.showOthers = $event" />
+                    <!-- Tune the chord's meter (docs/tune-chord-plan.md): off until turned on -->
+                    <Switch :on="!!prefs.tuningMeter" :label="t('sing.settings.ring')" :hint="t('sing.settings.ringHint')" data-ring-switch @change="prefs.tuningMeter = $event" />
                 </section>
                 <section class="space-y-5 px-6 py-6" :aria-label="t('sing.settings.practice')">
                     <p class="text-xs font-bold uppercase tracking-[0.14em] text-muted" aria-hidden="true">{{ t('sing.settings.practice') }}</p>
@@ -98,6 +102,17 @@ export const SettingsSheet = {
                             </label>
                         </div>
                     </div>
+                    <!-- A drone to tune against (docs/tune-chord-plan.md): the key's note, or each chord tuned pure -->
+                    <fieldset class="space-y-3" data-drone>
+                        <legend class="mb-2 font-semibold text-cream">{{ t('sing.drone.title') }}</legend>
+                        <div class="grid rounded-2xl border border-line p-1" :class="hasChords ? 'grid-cols-3' : 'grid-cols-2'">
+                            <button v-for="d in droneChoices" :key="d.value" type="button" class="min-h-10 rounded-xl text-sm font-semibold" :class="drone === d.value ? 'glass-bubble-solid' : 'text-muted hover:text-cream'" :aria-pressed="drone === d.value ? 'true' : 'false'" @click="$emit('drone', d.value)">{{ d.label }}</button>
+                        </div>
+                        <p class="text-xs text-muted">{{ drone === 'chord' ? t('sing.drone.chordHint') : drone === 'key' ? t('sing.drone.keyHint') : t('sing.drone.hint') }}</p>
+                        <label v-if="drone !== 'off'" class="flex items-center gap-2 text-sm text-muted">{{ t('sing.drone.level') }}
+                            <input v-fill type="range" min="0" max="1" step="0.05" :value="droneLevel" class="range flex-1" @input="$emit('drone-level', Number($event.target.value))" />
+                        </label>
+                    </fieldset>
                 </section>
                 <section class="space-y-4 px-6 pt-6" :aria-label="t('sing.settings.controls')">
                     <p class="text-xs font-bold uppercase tracking-[0.14em] text-muted" aria-hidden="true">{{ t('sing.settings.controls') }}</p>
@@ -110,6 +125,11 @@ export const SettingsSheet = {
                 </template>
             </div>
         </Modal>`,
+    computed: {
+        droneChoices() {
+            return [{ value: 'off', label: t('sing.drone.off') }, { value: 'key', label: t('sing.drone.key') }, ...(this.hasChords ? [{ value: 'chord', label: t('sing.drone.chord') }] : [])];
+        },
+    },
 };
 
 /**
@@ -125,8 +145,9 @@ export const PartSheet = {
         keyNote: { type: Object, default: null }, // { text, action, fit } when the real voice can't follow the key
         way: { type: String, default: 'whole' },
         disabled: Boolean,
+        lend: Boolean, // your part has no real voice yet: Lend your voice's quiet line
     },
-    emits: ['select', 'voice', 'range', 'way', 'close'],
+    emits: ['select', 'voice', 'range', 'way', 'close', 'lend'],
     template: `
         <Modal :title="t('sing.yourPart.title')" @close="$emit('close')">
             <div class="space-y-4">
@@ -157,6 +178,7 @@ export const PartSheet = {
                                 <p v-if="keyNote.fit" class="text-muted">{{ keyNote.fit }}</p>
                             </div>
                         </fieldset>
+                        <p v-if="p.slot.id === focusId && lend" class="px-3 pb-3 text-sm text-muted" data-lend-line>{{ t('voices.partLine') }} <button type="button" class="link min-h-11" @click="$emit('lend')">{{ t('voices.partLineLink') }}</button></p>
                     </li>
                 </ul>
                 <div class="flex flex-wrap items-center justify-between gap-3 pt-1">

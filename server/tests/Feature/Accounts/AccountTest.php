@@ -128,6 +128,36 @@ final class AccountTest extends TestCase
         $this->getJson('/api/account/handle?handle=ada_alto')->assertJsonPath('data.available', true);
     }
 
+    public function test_an_unconfirmed_sign_up_never_keeps_an_address_from_its_owner(): void
+    {
+        // A stranger's sign-up with Ada's address, never confirmed (Hillel: "Prune after 14 days, free
+        // on Google/Apple").
+        $squatter = User::factory()->withPassword()->create(['email' => 'ada@example.com', 'email_verified_at' => null]);
+        $ada = $this->signedIn(User::factory()->withPassword()->create(['email' => 'ada.old@example.com']), recently: true);
+
+        // Ada can still move her account to it: the link goes, and confirming frees the address.
+        $this->postJson('/api/account/email', ['email' => 'ada@example.com', 'password' => self::PASSWORD])->assertStatus(202);
+        $token = '';
+        Mail::assertQueued(ConfirmNewEmail::class, function (ConfirmNewEmail $mail) use (&$token): bool {
+            $token = $mail->token;
+
+            return $mail->hasTo('ada@example.com');
+        });
+        $this->postJson('/api/account/email/confirm', ['token' => $token])->assertOk();
+        $this->assertSame('ada@example.com', $ada->refresh()->email);
+        $this->assertNull(User::query()->find($squatter->id));
+
+        // Pruned after 14 days: unconfirmed password sign-ups only, never a confirmed or a Google one.
+        $old = User::factory()->withPassword()->create(['email' => 'old@example.com', 'email_verified_at' => null, 'created_at' => now()->subDays(15)]);
+        $fresh = User::factory()->withPassword()->create(['email' => 'fresh@example.com', 'email_verified_at' => null]);
+        $google = User::factory()->create(['email' => 'g@example.com', 'email_verified_at' => null, 'google_id' => 'g-1', 'created_at' => now()->subDays(30)]);
+        $this->artisan('app:accounts:prune')->expectsOutputToContain('1 unconfirmed accounts')->assertSuccessful();
+        $this->assertNull(User::query()->find($old->id));
+        $this->assertNotNull(User::query()->find($fresh->id));
+        $this->assertNotNull(User::query()->find($google->id));
+        $this->assertNotNull($ada->refresh());
+    }
+
     public function test_changing_the_email_confirms_the_new_address_and_tells_the_old_one(): void
     {
         $user = $this->signedIn(User::factory()->withPassword()->create(['email' => 'old@example.com']), recently: false);

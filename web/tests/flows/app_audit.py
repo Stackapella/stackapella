@@ -6,9 +6,9 @@ button and field, alt on every picture, no duplicate ids, no positive tabindex, 
 sideways scroll, AA contrast (disabled controls and words over the lane's canvas aside), no endless
 animation while idle, nothing focusable hidden from assistive tech, Tab kept inside an open sheet,
 and no page errors. The screens: the home, Learn and a lesson at each kind of step, a lesson's
-result, today's workout, a song and the Sing chooser, Sing's steps, the studio with a part's panel, Trim, Export and
-Share, Settings with How it looks, Reminders and Storage, sign-in and sign-up, Contact, and an
-invite. Anything that needs a live mic (a turn, a take) is left out; widths.py, contrast.py and
+result, today's workout, a song and the Sing chooser, Sing's steps and its settings sheet, the studio with a part's
+panel, Trim, Export and Share, Settings with How it looks, Reminders and Storage, the cool-down,
+admin's Growth pages, sign-in and sign-up, Contact, and an invite. Anything that needs a live mic (a turn, a take) is left out; widths.py, contrast.py and
 console_clean.py check their own corners more closely.
 
     PORT=8414 tool/flows.sh app_audit
@@ -127,6 +127,12 @@ def look(f, mode):
     f.wait(f"document.documentElement.dataset.theme === 'stage-{mode}'", what=f"stage-{mode}")
 
 
+# A fixture picked in Open a file, as the file picker would hand it over.
+OPEN_FILE = """const bytes = await (await fetch('/tests/fixtures/NAME')).arrayBuffer();
+    const files = new DataTransfer(); files.items.add(new File([bytes], 'NAME'));
+    const input = document.querySelector('[data-open-file]'); input.files = files.files; input.dispatchEvent(new Event('change'));"""
+
+
 def check(f, screen, failures):
     """The screen as it is now, in both looks."""
     for mode in MODES:
@@ -176,7 +182,7 @@ def audit(f):
     f.chrome.send("Emulation.setEmulatedMedia", {"features": [{"name": "prefers-reduced-motion", "value": "reduce"}]})
     f.expected_errors += ["/contract/examples/"]
     home_page(f, "member")
-    f.run("localStorage.setItem('stackapella.installDismissed', '1'); sessionStorage.setItem('stackapella.headphones', '1');")
+    f.run("localStorage.setItem('stackapella.asks', JSON.stringify({ stopped: ['install'] })); sessionStorage.setItem('stackapella.headphones', '1');")
     clear_projects(f)
 
     def visit(name, path, ready, then=None):
@@ -214,13 +220,37 @@ def audit(f):
         f.run("document.querySelectorAll('[data-part-board] button')[1].click()")
         f.wait("document.querySelector('[data-board-entry]')", what="the part's leaderboard")
 
-    visit("song-page", "/t/amazing-grace?api=mock&scenario=&as=member", "document.querySelector('[data-part-board] button')", part_board)
+    # Serious mode has no boards: the song page as it is.
+    if f.skin == "serious":
+        visit("song-page", "/t/amazing-grace?api=mock&scenario=&as=member", "document.querySelector('#app h1')")
+    else:
+        visit("song-page", "/t/amazing-grace?api=mock&scenario=&as=member", "document.querySelector('[data-part-board] button')", part_board)
+
+    # New song's Open a file with sheet music (docs/sheet-music-plan.md): the chorale's lines to choose from.
+    def sheet_import():
+        # Open a file takes sheet music for staff (the switch is off): wait for the account to say so.
+        f.wait("(await import('/js/stores/account.js')).account.me?.staff", what="the staff account")
+        f.run("document.querySelector('[data-new-song]').click()")
+        f.click(t(f, "home.new.make"), "[data-new-sheet] button")
+        f.wait("document.querySelector('[data-open-file]')", what="Open a file")
+        f.run(OPEN_FILE.replace("NAME", "old-hundredth.mxl"))
+        f.wait("document.querySelectorAll('[data-sheet-line]').length === 4", what="the chorale's lines")
+    visit("sheet-import", "/?api=mock&scenario=&as=admin", "document.querySelector('[data-new-song]')", sheet_import)
     grace = new_song(f)
     visit("chooser", f"/p/{grace}/sing?api=mock&as=member", "document.querySelector('h1')", lambda: f.wait_text(t(f, "sing.chooser.title")))
-    if screen("sing"):
+    # Printable parts (docs/sheet-music-plan.md, slice 2), without opening the browser's print.
+    visit("print", f"/p/{grace}/print?api=mock&as=member&auto=0", "document.querySelectorAll('[data-print-system]').length > 1")
+    if screen("sing") or screen("sing-settings"):
         try:
             into_part_by_part(f, grace)
-            check(f, "sing", failures)
+            if screen("sing"):
+                check(f, "sing", failures)
+            # Sing's settings sheet: with headphones, Split ears; and Build up to speed.
+            if screen("sing-settings"):
+                f.run("document.querySelector('[data-settings-open]').click()")
+                f.wait("document.querySelector('[role=dialog] [data-ladder]') && document.querySelector('[role=dialog] [data-split-ears]')", what="Sing's settings")
+                check(f, "sing-settings", failures)
+                close_sheet(f)
         except (AssertionError, TimeoutError) as error:
             failures.append(f"sing {f.size[1:]}px: couldn't open: {error}")
 
@@ -268,6 +298,17 @@ def audit(f):
     visit("appearance", "/settings?api=mock&scenario=&as=member", "document.querySelector('#app h1')", appearance)
     visit("reminders", "/settings/reminders?api=mock&scenario=&as=member", "document.querySelector('#app h1')")
     visit("storage", "/storage?api=mock&scenario=&as=member", "document.querySelector('#app h1')")
+
+    # The cool-down (voice care): an unscored lesson of its own.
+    visit("cooldown", "/cooldown?api=mock&scenario=&as=member", "document.querySelector('#app h1')")
+    # Admin's Growth: the Overview, the Funnel with an experiment's arms, and Sources.
+    visit("growth", "/admin/growth?api=mock&scenario=&as=admin", "document.querySelector('[data-growth-tiles] li')")
+
+    def experiment():
+        f.run("const s = document.querySelector('[data-funnel-experiments]'); s.value = 'onb1'; s.dispatchEvent(new Event('change'));")
+        f.wait("document.querySelector('[data-funnel-about]') && document.querySelector('[data-funnel-legend]')", what="the experiment's arms")
+    visit("funnel", "/admin/funnel?api=mock&scenario=&as=admin", "document.querySelector('[data-funnel-steps] li')", experiment)
+    visit("sources", "/admin/sources?api=mock&scenario=&as=admin", "document.querySelector('[data-sources-table] tbody tr')")
 
     visit("sign-in", "/signin?api=mock&scenario=&as=signedOut", "document.querySelector('#app h1')")
     visit("sign-up", "/signin?mode=signup&api=mock&scenario=&as=signedOut", "document.querySelector('#app h1')")

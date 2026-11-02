@@ -1,0 +1,108 @@
+{
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "items",
+                "skills"
+            ],
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "id",
+                            "kind",
+                            "skill"
+                        ],
+                        "properties": {
+                            "id": {
+                                "type": "string",
+                                "description": "What to claim: \"song:<templateId>:<partKey>\" or \"clip:<slot>\"."
+                            },
+                            "kind": {
+                                "type": "string",
+                                "enum": [
+                                    "song",
+                                    "clip"
+                                ]
+                            },
+                            "skill": {
+                                "type": "string",
+                                "description": "Who can sing it: a key of `skills` (\"any\" for every song part)."
+                            },
+                            "templateId": {
+                                "type": "string"
+                            },
+                            "title": {
+                                "type": "string"
+                            },
+                            "partKey": {
+                                "type": "string"
+                            },
+                            "partName": {
+                                "type": "string"
+                            },
+                            "clipId": {
+                                "type": "string"
+                            },
+                            "course": {
+                                "type": "string"
+                            },
+                            "sing": {
+                                "type": "string",
+                                "description": "What a clip sings, in words."
+                            },
+                            "seconds": {
+                                "type": "number"
+                            },
+                            "style": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            },
+                            "voices": {
+                                "type": [
+                                    "string",
+                                    "array"
+                                ],
+                                "items": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                },
+                "skills": {
+                    "type": "array",
+                    "description": "Each clip skill's words for a claimant (the courses' clips.json `skills`).",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "id",
+                            "words"
+                        ],
+                        "properties": {
+                            "id": {
+                                "type": "string"
+                            },
+                            "words": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

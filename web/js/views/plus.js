@@ -7,6 +7,7 @@
 // before anything is paid. On Plus: the plan as it stands, and Manage (Stripe's portal). Opened from
 // an upgrade moment (`?from=`), it says what led here first.
 
+import { AccountWall } from '../components/account-wall.js';
 import { PageHeader } from '../components/page.js';
 import { ApiError } from '../api.js';
 import { formatDate, formatNumber, t, tk } from '../i18n.js';
@@ -60,11 +61,11 @@ const CURRENCIES = ['usd', 'eur', 'gbp'];
 const STATUS = { trialing: tk('plus.status.trialing'), active: tk('plus.status.active'), past_due: tk('plus.status.pastDue'), canceled: tk('plus.status.canceled'), pending: tk('plus.status.pending') };
 
 export const PlusView = {
-    components: { PageHeader, Notice, Icon, Logo },
+    components: { AccountWall, PageHeader, Notice, Icon, Logo },
     data: () => ({ interval: 'year', currency: guessCurrency(), busy: false, notice: null, failed: false, everything: false }),
     setup: () => ({ account, selfHosted, plan, navigate, goBack, MOMENTS, GROUPS, CURRENCIES, STATUS, HIGHLIGHT_COLORS, formatDate, formatNumber }),
     template: `
-        <div class="min-h-dvh bg-ink px-4 pb-16 pt-[max(0.5rem,env(safe-area-inset-top))] md:px-8">
+        <div data-ui="screen" class="min-h-dvh bg-ink px-4 pb-16 pt-[max(0.5rem,env(safe-area-inset-top))] md:px-8">
             <div class="mx-auto flex w-full max-w-5xl flex-col gap-8 md:gap-12">
                 <PageHeader :title="t('plus.title')" back="/" />
                 <!-- A self-hosted install: everything is included, nothing to buy. -->
@@ -118,8 +119,9 @@ export const PlusView = {
                                     </span>
                                 </label>
                             </div>
-                            <p class="flex items-start gap-2 rounded-xl bg-accent/10 px-3 py-2.5 text-sm font-semibold text-cream"><Icon name="sparkle" :size="16" class="mt-0.5 shrink-0 text-accent" />{{ t('plus.launchPrice') }}</p>
-                            <Notice v-if="notice" :tone="notice.tone">{{ notice.text }} <button v-if="notice.signIn" type="button" class="link" @click="signIn">{{ t('auth.signIn') }}</button></Notice>
+                            <p data-ui="facts" class="flex items-start gap-2 rounded-xl bg-accent/10 px-3 py-2.5 text-sm font-semibold text-cream"><Icon name="sparkle" :size="16" class="mt-0.5 shrink-0 text-accent" />{{ t('plus.launchPrice') }}</p>
+                            <AccountWall v-if="notice?.signIn" reason="plus" />
+                            <Notice v-else-if="notice" :tone="notice.tone">{{ notice.text }}</Notice>
                             <button type="button" class="btn-primary btn-lg w-full" :disabled="busy || failed || (!!account.me && !plan.loaded)" @click="start">{{ buyLabel }}</button>
                             <p class="text-sm text-muted">{{ trialOffered ? t('plus.smallTrial', { days: plan.prices?.trial?.days ?? 7 }) : interval === 'year' ? t('plus.renewsYear') : t('plus.renewsMonth') }}</p>
                             <div class="flex flex-wrap items-center justify-between gap-3 border-t border-line pt-4">
@@ -244,13 +246,10 @@ export const PlusView = {
         money(cents) {
             return formatNumber(Math.floor(cents) / 100, { style: 'currency', currency: this.currency.toUpperCase() });
         },
-        signIn() {
-            navigate(`/signin?next=${encodeURIComponent(location.pathname + location.search)}`);
-        },
         async start() {
             this.notice = null;
             if (!account.me) {
-                this.notice = { tone: 'info', text: t('plus.signInFirst'), signIn: true };
+                this.notice = { signIn: true }; // the account wall, in the notice's place
                 return;
             }
             this.busy = true;

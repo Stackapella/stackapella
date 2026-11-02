@@ -7,6 +7,7 @@
 // One cache a build (the page registers /sw.js?build=<the server's build>): a new version installs a
 // whole set of its own beside the running one's, never overwriting files the running one serves, and
 // takes over only once all of it is in.
+// A half-cached app is a choir missing its altos: keep the old voices singing until the new ones arrive.
 const BUILD = new URL(self.location.href).searchParams.get('build') || 'dev';
 const CACHE = `stackapella-v12-${BUILD}`;
 const SHELL = [
@@ -24,6 +25,7 @@ const SHELL = [
     '/js/screen-name.js',
     '/locales/en.json',
     '/js/audio.js',
+    '/js/mic-choice.js',
     '/js/db.js',
     '/js/device.js',
     '/js/dsp.js',
@@ -47,6 +49,7 @@ const SHELL = [
     '/js/record-setup.js',
     '/js/api.js',
     '/js/api-mock.js',
+    '/js/api-mode.js',
     '/js/schema.js',
     '/js/recorded-guides.js',
     '/js/stores/catalogue.js',
@@ -64,6 +67,7 @@ const SHELL = [
     '/js/game/chip.js',
     '/js/game/fonts.js',
     '/js/game/settings.js',
+    '/js/game/combo.js',
     '/js/game/popups.js',
     '/js/game/hud.js',
     '/js/game/record.js',
@@ -78,14 +82,20 @@ const SHELL = [
     '/js/game/initials.js',
     '/js/game/daily.js',
     '/js/game/badge-news.js',
+    '/js/game/arcade.js',
     '/js/views/projects.js',
     '/js/views/studio.js',
     '/js/views/sing.js',
+    '/js/views/print.js',
+    '/js/views/read-lines.js',
+    '/js/components/score-system.js',
+    '/js/components/read-stave.js',
     '/js/views/learn.js',
     '/js/stores/learning.js',
     '/js/components/course-map.js',
     '/js/components/fact-card.js',
     '/js/components/more-courses.js',
+    '/js/components/course-card.js',
     '/js/components/bullseye.js',
     '/js/components/breath-hold.js',
     '/js/components/wave-lane.js',
@@ -95,20 +105,26 @@ const SHELL = [
     '/js/lesson-scores.js',
     '/js/courses.js',
     '/js/sharpen.js',
+    '/js/song-course.js',
     '/js/course-clips.js',
     '/js/vibrato.js',
     '/js/pitch-skills.js',
     '/js/ring.js',
     '/js/style-scores.js',
+    '/js/flip-rest.js',
     '/js/harmony.js',
     '/js/keep-song.js',
     '/js/components/keep-song.js',
     '/js/views/plus-course.js',
     '/js/views/ideas.js',
+    '/js/views/voices.js',
     '/js/stores/ideas.js',
     '/js/views/reset.js',
     '/js/voice-day.js',
+    '/js/experiments.js',
     '/js/components/voice-care.js',
+    '/js/components/timing-line.js',
+    '/js/components/credit.js',
     '/js/components/share-idea.js',
     '/js/components/idea-voice.js',
     '/js/components/exercise.js',
@@ -131,6 +147,9 @@ const SHELL = [
     '/js/views/workout.js',
     '/js/views/plus.js',
     '/js/views/reminders.js',
+    '/js/views/school.js',
+    '/js/components/report-voice.js',
+    '/js/qr.js',
     '/js/reminders.js',
     '/js/stores/plan.js',
     '/js/components/cloud.js',
@@ -139,8 +158,10 @@ const SHELL = [
     '/js/components/account.js',
     '/js/turnstile.js',
     '/js/components/install.js',
+    '/js/components/account-wall.js',
     '/js/components/voice-note.js',
     '/js/components/home.js',
+    '/js/components/home-today-line.js',
     '/js/components/confirm.js',
     '/js/listen.js',
     '/js/mic-check.js',
@@ -157,6 +178,11 @@ const SHELL = [
     '/js/report.js',
     '/js/badges.js',
     '/js/workout.js',
+    '/js/warmup.js',
+    '/js/song-shape.js',
+    '/js/stores/warmups.js',
+    '/js/views/warmup.js',
+    '/js/views/warmup-builder.js',
     '/js/mp3.js',
     '/js/zip.js',
     '/js/whatsnext.js',
@@ -165,6 +191,11 @@ const SHELL = [
     '/js/hum.js',
     '/js/midi.js',
     '/js/musicxml.js',
+    '/js/sheet-import.js',
+    '/js/print-score.js',
+    '/js/drone.js',
+    '/js/tuning.js',
+    '/js/reading-lines.js',
     '/js/lyrics.js',
     '/js/arrange.js',
     '/js/creator.js',
@@ -198,6 +229,7 @@ const SHELL = [
     '/js/components/create/roll.js',
     '/js/components/create/save.js',
     '/js/components/create/setup.js',
+    '/js/components/create/sheet-import.js',
     '/js/components/create/sing-line.js',
     '/js/stores/sharing.js',
     '/js/components/share.js',
@@ -209,6 +241,8 @@ const SHELL = [
     '/js/components/mic-help.js',
     '/js/components/chord-moment.js',
     '/js/components/session-wrap.js',
+    '/js/asks.js',
+    '/js/backup.js',
     '/js/components/screen-loading.js',
     '/js/components/then-and-now.js',
     '/js/components/voice-card.js',
@@ -220,6 +254,7 @@ const SHELL = [
     '/js/components/plus-moment.js',
     '/js/components/learn-visual.js',
     '/js/home.js',
+    '/js/home-today.js',
     '/js/views/course.js',
     '/js/components/version.js',
     '/js/components/page.js',
@@ -241,6 +276,7 @@ const SHELL = [
     '/js/components/sing/resing.js',
     '/js/components/sing/stage.js',
     '/js/components/sing/recording.js',
+    '/js/components/sing/ring-meter.js',
     '/js/components/birth.js',
     '/js/sounds.js',
     '/sounds/stars-1.mp3',
@@ -261,6 +297,7 @@ const SHELL = [
     '/js/errors.js',
     '/js/instruments.js',
     '/js/band.js',
+    '/js/band-style.js',
     '/js/instrument-parts.js',
     '/js/usage.js',
     '/js/result-card.js',
@@ -285,7 +322,7 @@ const SHELL = [
 
 // The app's own addresses (every route in router.js; tests/sw-routes.test.js keeps them in step);
 // every other page is the server's.
-const APP_ROUTE = /^\/(?:$|index\.html$|p\/[\w-]+(?:\/sing)?\/?$|styleguide\/?$|beta(?:\/[\w-]*)?\/?$|signin(?:\/link)?\/?$|settings(?:\/reminders)?\/?$|storage\/?$|voice\/?$|workout\/?$|plus\/?$|learn(?:\/c)?(?:\/[\w-]+)?\/?$|verify\/?$|reset\/?$|email\/(?:confirm|revert)\/?$|create(?:\/[\w-]+)?\/?$|t\/[\w-]+\/?$|(?:join|early|invite|choir|challenge)\/[\w-]+\/?$|groups(?:\/[\w-]+)?\/?$|ideas(?:\/[\w-]+)?\/?$|start-fresh\/?$|cooldown\/?$|moved\/?$|contact\/?$|admin(?:\/(?!sign-in|sign-out|second-factor)[\w-]+(?:\/[\w-]+)?)?\/?$)/;
+const APP_ROUTE = /^\/(?:$|index\.html$|p\/[\w-]+(?:\/(?:sing|print))?\/?$|styleguide(?:\/game)?\/?$|beta(?:\/[\w-]*)?\/?$|signin(?:\/link)?\/?$|settings(?:\/(?:reminders|classes))?\/?$|class(?:\/[\w-]+)?\/?$|storage\/?$|voice\/?$|workout\/?$|plus\/?$|learn(?:\/[cs])?(?:\/[\w-]+)?(?:\/lines)?\/?$|verify\/?$|reset\/?$|email\/(?:confirm|revert)\/?$|create(?:\/[\w-]+)?\/?$|t\/[\w-]+\/?$|(?:join|early|invite|choir|challenge)\/[\w-]+\/?$|groups(?:\/[\w-]+)?\/?$|ideas(?:\/[\w-]+)?\/?$|voices\/?$|start-fresh\/?$|cooldown\/?$|warmup\/?$|moved\/?$|contact\/?$|admin(?:\/(?!sign-in|sign-out|second-factor)[\w-]+(?:\/[\w-]+)?)?\/?$)/;
 
 /**
  * Caches every file of the app, or none: a file that fails (a folder the server doesn't serve, say)
@@ -324,7 +361,7 @@ self.addEventListener('install', (event) => {
  * version copies them from the old cache as it installs, instead of losing them until the next time
  * online.
  */
-const CARRIED = ['https://cdn.jsdelivr.net/npm/lamejs@1.2.1/lame.min.js'];
+const CARRIED = ['https://cdn.jsdelivr.net/npm/lamejs@1.2.1/lame.min.js', 'https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js'];
 
 /** The CARRIED files the old caches hold, copied into this version's. */
 async function carryOver(old) {

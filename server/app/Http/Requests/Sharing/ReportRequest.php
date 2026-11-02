@@ -25,15 +25,18 @@ final class ReportRequest extends FormRequest
         return [
             // One of: a shared harmony, a comment in the gallery, a public profile (N1), a template
             // in the library (N3), an idea (Ideas).
-            'harmonyId' => ['required_without_all:commentId,handle,templateId,ideaId,choirVoiceId,requestId,boardEntryId', 'nullable', 'string', 'max:32'],
-            'commentId' => ['required_without_all:harmonyId,handle,templateId,ideaId,choirVoiceId,requestId,boardEntryId', 'nullable', 'string', 'max:32'],
-            'handle' => ['required_without_all:harmonyId,commentId,templateId,ideaId,choirVoiceId,requestId,boardEntryId', 'nullable', 'string', 'max:30'],
-            'templateId' => ['required_without_all:harmonyId,commentId,handle,ideaId,choirVoiceId,requestId,boardEntryId', 'nullable', 'string', 'max:80'],
-            'requestId' => ['required_without_all:harmonyId,commentId,handle,templateId,ideaId,choirVoiceId,boardEntryId', 'nullable', 'string', 'max:32'],
-            'choirVoiceId' => ['required_without_all:harmonyId,commentId,handle,templateId,ideaId,requestId,boardEntryId', 'nullable', 'uuid'],
-            'ideaId' => ['required_without_all:harmonyId,commentId,handle,templateId,choirVoiceId,requestId,boardEntryId', 'nullable', 'string', 'max:32'],
+            'harmonyId' => ['required_without_all:commentId,handle,templateId,ideaId,choirVoiceId,requestId,boardEntryId,guideId,clipSlot', 'nullable', 'string', 'max:32'],
+            'commentId' => ['required_without_all:harmonyId,handle,templateId,ideaId,choirVoiceId,requestId,boardEntryId,guideId,clipSlot', 'nullable', 'string', 'max:32'],
+            'handle' => ['required_without_all:harmonyId,commentId,templateId,ideaId,choirVoiceId,requestId,boardEntryId,guideId,clipSlot', 'nullable', 'string', 'max:30'],
+            'templateId' => ['required_without_all:harmonyId,commentId,handle,ideaId,choirVoiceId,requestId,boardEntryId,guideId,clipSlot', 'nullable', 'string', 'max:80'],
+            'requestId' => ['required_without_all:harmonyId,commentId,handle,templateId,ideaId,choirVoiceId,boardEntryId,guideId,clipSlot', 'nullable', 'string', 'max:32'],
+            'choirVoiceId' => ['required_without_all:harmonyId,commentId,handle,templateId,ideaId,requestId,boardEntryId,guideId,clipSlot', 'nullable', 'uuid'],
+            'ideaId' => ['required_without_all:harmonyId,commentId,handle,templateId,choirVoiceId,requestId,boardEntryId,guideId,clipSlot', 'nullable', 'string', 'max:32'],
             // A name on a part leaderboard (signed in only).
-            'boardEntryId' => ['required_without_all:harmonyId,commentId,handle,templateId,ideaId,choirVoiceId,requestId', 'nullable', 'string', 'max:32'],
+            'boardEntryId' => ['required_without_all:harmonyId,commentId,handle,templateId,ideaId,choirVoiceId,requestId,guideId,clipSlot', 'nullable', 'string', 'max:32'],
+            // A song part's recorded voice (its guide's id), or a course clip's (its slot): Lend your voice.
+            'guideId' => ['required_without_all:harmonyId,commentId,handle,templateId,ideaId,choirVoiceId,requestId,boardEntryId,clipSlot', 'nullable', 'string', 'max:32'],
+            'clipSlot' => ['required_without_all:harmonyId,commentId,handle,templateId,ideaId,choirVoiceId,requestId,boardEntryId,guideId', 'nullable', 'string', 'max:80'],
             'reason' => ['required', 'string', 'in:'.implode(',', Report::REASONS)],
             'note' => ['nullable', 'string', 'max:500'],
             // The honeypot: anything in it is a bot, answered as any report is (never a 422).

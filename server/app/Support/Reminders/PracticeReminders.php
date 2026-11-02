@@ -65,8 +65,16 @@ final class PracticeReminders
                     continue;
                 }
 
+                // Claimed for the day before it goes, so a second run (a slow one outliving its lock)
+                // never sends today's again.
+                $today = $now->copy()->setTimezone((string) $user->reminder_timezone)->toDateString();
+                $claimed = User::query()->whereKey($user->id)->where(fn ($q) => $q->whereNull('reminder_sent_on')->orWhere('reminder_sent_on', '!=', $today))->update(['reminder_sent_on' => $today]);
+
+                if ($claimed !== 1) {
+                    continue;
+                }
+
                 $this->push($user, $public, $private);
-                $user->forceFill(['reminder_sent_on' => $now->copy()->setTimezone((string) $user->reminder_timezone)->toDateString()])->save();
                 $sent++;
             }
         });

@@ -22,6 +22,8 @@ python3 -I tool/dialog_check.py
 python3 -I tool/component_keys_check.py
 python3 -I tool/public_imports_check.py
 python3 -I tool/course_check.py
+python3 -I tool/experiments_check.py
+python3 -I tool/skin_check.py
 python3 -I tool/preload_list.py --check
 
 python3 -I tool/cdp.py eval "http://127.0.0.1:$PORT/tests/" "JSON.stringify(window.testReport)" --wait "window.testReport" --timeout 240 \

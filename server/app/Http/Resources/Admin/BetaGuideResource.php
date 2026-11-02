@@ -41,6 +41,8 @@ final class BetaGuideResource extends JsonResource
             'submissionId' => $guide->beta_submission_id !== null ? Ids::encode($guide->beta_submission_id) : null,
             'singer' => $singer !== null ? ['id' => $singer->sqid(), 'name' => $singer->name] : null,
             'publishedAt' => $guide->published_at->utc()->toIso8601ZuluString(),
+            // Open reports on it (Admin > Guides; set by GuideOverview, else 0).
+            'reports' => (int) ($guide->getAttributes()['open_reports'] ?? 0),
             // That version's own take score, to compare a part's versions at a glance.
             'pitchPercent' => is_numeric($pitch = $guide->submission?->scores['pitchPercent'] ?? null) ? (int) round((float) $pitch) : null,
         ];

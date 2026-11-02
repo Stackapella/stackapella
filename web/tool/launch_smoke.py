@@ -80,10 +80,25 @@ def page(chrome, url, what, wait="document.querySelector('h1')"):
         return False
 
 
+def choose_skin(chrome, public, skin):
+    """The skin kept for `public`, set on its own origin: robots.txt loaded there first, waited for (a cold
+    start just after a deploy can take seconds), and tried once more if the storage isn't ready yet."""
+    origin = json.dumps(f"https://{public}")
+    for attempt in (1, 2):
+        try:
+            chrome.goto(f"https://{public}/robots.txt", wait=f"location.origin === {origin} && document.readyState === 'complete'", timeout=60)
+            chrome.evaluate(f"localStorage.setItem('stackapella.appearance', JSON.stringify({{ skin: {json.dumps(skin)}, at: Date.now() }}))")
+            return
+        except (RuntimeError, TimeoutError) as error:
+            if attempt == 2:
+                raise
+            print(f"   (the {skin} skin couldn't be kept yet, trying again: {str(error)[:80]})")
+            time.sleep(2)
+
+
 def landing(chrome, public, app, now):
     for skin in ("game", "serious"):
-        chrome.goto(f"https://{public}/robots.txt")
-        chrome.evaluate(f"localStorage.setItem('stackapella.appearance', JSON.stringify({{ skin: {json.dumps(skin)}, at: Date.now() }}))")
+        choose_skin(chrome, public, skin)
         if not page(chrome, f"https://{public}/", f"the landing on {public} renders in the {skin} skin with no console errors"):
             continue
         shown = chrome.evaluate("document.documentElement.dataset.skin")

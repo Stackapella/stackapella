@@ -235,20 +235,59 @@ export function flipPoint(track, { home, from = 0, to = Infinity }) {
     return { flip: Math.round(flip), jumps, spread: Math.round(spread * 10) / 10, reach };
 }
 
-export const FLIP_RANGE = [3, 15]; // semitones above the comfortable note where a flip is believed
-export const FLIP_HEADROOM = 3; // and the voice reached at least this far above it, so the hook's top was sung
+export const STEADY_SECONDS = 0.3; // a note held this long counts toward your easy range
+export const STEADY_CENTS = 50; // within a quarter tone either way
+
+/**
+ * Range and registers' easy range (docs/courses/range-registers.md): the lowest and highest steady
+ * notes of a slide between `from` and `to` seconds, steady meaning STEADY_SECONDS or more within a
+ * quarter tone either way, so a scoop or a crack at the top isn't counted. Returns
+ * `{ low, high }` (whole notes, MIDI), or null when nothing was steady.
+ */
+export function steadyRange(track, { from = 0, to = Infinity }) {
+    const first = Math.max(0, Math.ceil(from * track.rate));
+    const last = Math.min(track.hz.length - 1, Math.floor(to * track.rate));
+    const size = Math.round(STEADY_SECONDS * track.rate);
+    let low = Infinity;
+    let high = -Infinity;
+    for (let i = first; i + size - 1 <= last; i++) {
+        let lo = Infinity;
+        let hi = -Infinity;
+        for (let k = i; k < i + size; k++) {
+            if (!(track.hz[k] > 0)) {
+                lo = Infinity;
+                break;
+            }
+            const m = 69 + 12 * Math.log2(track.hz[k] / 440);
+            lo = Math.min(lo, m);
+            hi = Math.max(hi, m);
+        }
+        if (lo === Infinity || hi - lo > 2 * STEADY_CENTS / 100) continue;
+        const centre = (lo + hi) / 2;
+        low = Math.min(low, centre);
+        high = Math.max(high, centre);
+    }
+    return low === Infinity ? null : { low: Math.round(low), high: Math.round(high) };
+}
+
+export const FLIP_RANGE = [3, 17]; // semitones above the comfortable note where a flip is believed (the high siren reaches 19)
+export const FLIP_HEADROOM = 2; // and the voice reached at least this far above it, so the hook's top (two above the flip) was sung
 export const FLIP_AGREE = 2; // two flips within this many semitones confirm each other
 
 /**
- * The flip kept with the course, from every siren so far: `seen` (the downward flips already kept)
- * plus this siren's downward jumps (`found` from flipPoint), each believed only inside FLIP_RANGE
- * and with FLIP_HEADROOM of reached voice above it. The flip is set once two agree within
- * FLIP_AGREE (the median of the biggest such group); until then it's null. Returns `{ flip, seen }`.
+ * The flip kept with the course, from every siren so far: `seen` (one reading per siren already
+ * kept) plus this siren's (`found` from flipPoint): the median of its downward jumps believed only
+ * inside FLIP_RANGE and with FLIP_HEADROOM of reached voice above. One siren gives one reading, so
+ * the flip is set only once two sirens agree within FLIP_AGREE (the median of the biggest such
+ * group); until then it's null. Returns `{ flip, seen }`.
  */
 export function settleFlip(seen, found) {
-    const fresh = found.jumps.filter((j) => j.direction === 'down').map((j) => Math.round(j.middle * 10) / 10)
-        .filter((m) => m >= FLIP_RANGE[0] && m <= FLIP_RANGE[1] && (found.reach === null || found.reach >= m + FLIP_HEADROOM));
-    const all = [...(seen ?? []), ...fresh].slice(-6);
+    const believed = found.jumps.filter((j) => j.direction === 'down').map((j) => j.middle)
+        .filter((m) => m >= FLIP_RANGE[0] && m <= FLIP_RANGE[1] && (found.reach === null || found.reach >= m + FLIP_HEADROOM))
+        .sort((x, y) => x - y);
+    const half = believed.length >> 1;
+    const reading = believed.length ? Math.round((believed.length % 2 ? believed[half] : (believed[half - 1] + believed[half]) / 2) * 10) / 10 : null;
+    const all = [...(seen ?? []), ...(reading === null ? [] : [reading])].slice(-6);
     let best = [];
     for (const m of all) {
         const group = all.filter((x) => Math.abs(x - m) <= FLIP_AGREE);
@@ -257,6 +296,26 @@ export function settleFlip(seen, found) {
     if (best.length < 2) return { flip: null, seen: all };
     const sorted = [...best].sort((x, y) => x - y);
     return { flip: Math.round(sorted[sorted.length >> 1]), seen: all };
+}
+
+export const FLIP_KEYS = [0, 7, 5]; // the song tag's key: the line's own, else its V, else its IV
+export const FLIP_KEY_MOVES = [0, 1, -1, 2, 3]; // semitones the tag may move from the flip: its top stays 1 to 5 above it
+
+/**
+ * Where a song's yodel tag sits (`base: 'flipKey'`), in semitones above the comfortable note: the
+ * flip note (`flip`), moved by the first of FLIP_KEY_MOVES that puts the tag's home note (two below
+ * its flip note, as in On the chord) in the line's key (`key`, the line's home note in semitones
+ * above the comfortable note), else in its V, else its IV. Five moves in a row always meet one of
+ * the three keys, so this never fails.
+ */
+export function flipKeyBase(flip, key = 0) {
+    const pc = (n) => ((n % 12) + 12) % 12;
+    for (const k of FLIP_KEYS) {
+        for (const move of FLIP_KEY_MOVES) {
+            if (pc(flip + move - 2 - key - k) === 0) return flip + move;
+        }
+    }
+    return flip;
 }
 
 export const MOVE_MIN_SECONDS = 0.5; // moves are judged only on notes this long: each keeps a centre for its pitch

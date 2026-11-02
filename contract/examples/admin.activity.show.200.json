@@ -1,0 +1,195 @@
+{
+    "data": {
+        "feed": [
+            {
+                "at": "2026-11-01T22:10:00Z",
+                "kind": "sign_up",
+                "person": {
+                    "id": "Us55Kk3b",
+                    "name": "Sam"
+                },
+                "detail": null
+            },
+            {
+                "at": "2026-11-01T21:02:00Z",
+                "kind": "plus_started",
+                "person": {
+                    "id": "Zx81Qw2e",
+                    "name": "Ada"
+                },
+                "detail": "apple"
+            },
+            {
+                "at": "2026-11-01T19:40:00Z",
+                "kind": "coaching_sale",
+                "person": null,
+                "detail": "USD 25.00"
+            }
+        ],
+        "hours": [
+            {
+                "hour": "2026-11-01T00:00:00Z",
+                "takes": 0,
+                "scores": 0,
+                "signUps": 1
+            },
+            {
+                "hour": "2026-11-01T01:00:00Z",
+                "takes": 1,
+                "scores": 1,
+                "signUps": 0
+            },
+            {
+                "hour": "2026-11-01T02:00:00Z",
+                "takes": 2,
+                "scores": 2,
+                "signUps": 0
+            },
+            {
+                "hour": "2026-11-01T03:00:00Z",
+                "takes": 3,
+                "scores": 3,
+                "signUps": 0
+            },
+            {
+                "hour": "2026-11-01T04:00:00Z",
+                "takes": 4,
+                "scores": 4,
+                "signUps": 0
+            },
+            {
+                "hour": "2026-11-01T05:00:00Z",
+                "takes": 0,
+                "scores": 5,
+                "signUps": 0
+            },
+            {
+                "hour": "2026-11-01T06:00:00Z",
+                "takes": 1,
+                "scores": 6,
+                "signUps": 1
+            },
+            {
+                "hour": "2026-11-01T07:00:00Z",
+                "takes": 2,
+                "scores": 0,
+                "signUps": 0
+            },
+            {
+                "hour": "2026-11-01T08:00:00Z",
+                "takes": 3,
+                "scores": 1,
+                "signUps": 0
+            },
+            {
+                "hour": "2026-11-01T09:00:00Z",
+                "takes": 4,
+                "scores": 2,
+                "signUps": 0
+            },
+            {
+                "hour": "2026-11-01T10:00:00Z",
+                "takes": 0,
+                "scores": 3,
+                "signUps": 0
+            },
+            {
+                "hour": "2026-11-01T11:00:00Z",
+                "takes": 1,
+                "scores": 4,
+                "signUps": 0
+            },
+            {
+                "hour": "2026-11-01T12:00:00Z",
+                "takes": 2,
+                "scores": 5,
+                "signUps": 1
+            },
+            {
+                "hour": "2026-11-01T13:00:00Z",
+                "takes": 3,
+                "scores": 6,
+                "signUps": 0
+            },
+            {
+                "hour": "2026-11-01T14:00:00Z",
+                "takes": 4,
+                "scores": 0,
+                "signUps": 0
+            },
+            {
+                "hour": "2026-11-01T15:00:00Z",
+                "takes": 0,
+                "scores": 1,
+                "signUps": 0
+            },
+            {
+                "hour": "2026-11-01T16:00:00Z",
+                "takes": 1,
+                "scores": 2,
+                "signUps": 0
+            },
+            {
+                "hour": "2026-11-01T17:00:00Z",
+                "takes": 2,
+                "scores": 3,
+                "signUps": 0
+            },
+            {
+                "hour": "2026-11-01T18:00:00Z",
+                "takes": 3,
+                "scores": 4,
+                "signUps": 1
+            },
+            {
+                "hour": "2026-11-01T19:00:00Z",
+                "takes": 4,
+                "scores": 5,
+                "signUps": 0
+            },
+            {
+                "hour": "2026-11-01T20:00:00Z",
+                "takes": 0,
+                "scores": 6,
+                "signUps": 0
+            },
+            {
+                "hour": "2026-11-01T21:00:00Z",
+                "takes": 1,
+                "scores": 0,
+                "signUps": 0
+            },
+            {
+                "hour": "2026-11-01T22:00:00Z",
+                "takes": 2,
+                "scores": 1,
+                "signUps": 0
+            },
+            {
+                "hour": "2026-11-01T23:00:00Z",
+                "takes": 3,
+                "scores": 2,
+                "signUps": 0
+            }
+        ],
+        "features": [
+            {
+                "kind": "harmonise_used",
+                "guest": 40,
+                "account": 22
+            },
+            {
+                "kind": "export_done",
+                "guest": 12,
+                "account": 30
+            }
+        ],
+        "limits": {
+            "freeAccounts": 180,
+            "projectsAtLimit": 14,
+            "projectsNearLimit": 21,
+            "projectLimit": 3
+        },
+        "timezone": "UTC"
+    }
+}

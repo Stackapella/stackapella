@@ -227,6 +227,11 @@ return [
     ],
 
     // Voices on ideas: twenty an hour.
+    // A class code's guesses (docs/school-offer-plan.md): 31^8 codes, and 10 tries an hour.
+    'school-redeem' => [
+        'account' => ['max' => 10, 'per' => 'hour', 'by' => 'account'],
+    ],
+
     'idea-voices' => [
         'account' => ['max' => 20, 'per' => 'hour', 'by' => 'account'],
     ],

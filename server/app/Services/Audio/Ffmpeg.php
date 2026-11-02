@@ -71,16 +71,22 @@ final class Ffmpeg
     /**
      * A guide for the CDN: frames [$from, $to) of the WAV, with short fades and a gain, as AAC
      * at 128 kbps in an MP4 whose edit list hides the encoder's priming, so it lines up exactly.
+     *
+     * @param  list<array{0: float, 1: float}>  $mutes  spans of the guide's own seconds to silence (a
+     *                                                  breath a later version added), each with 15 ms ramps
      */
-    public function encodeGuide(string $in, string $out, int $sampleRate, int $from, int $to, float $gainDb, int $fadeMs = 10): void
+    public function encodeGuide(string $in, string $out, int $sampleRate, int $from, int $to, float $gainDb, int $fadeMs = 10, array $mutes = []): void
     {
         $length = max(1, $to - $from);
         $fade = round(min($fadeMs / 1000, $length / $sampleRate / 4), 4);
         $outStart = round(($length / $sampleRate) - $fade, 6);
+        // Each span: 1 outside it, 0 inside, ramping over 15 ms at its edges; evaluated every 256 samples.
+        $silences = array_map(static fn (array $span): string => sprintf('clip(max((%.4f-t)/0.015,(t-%.4f)/0.015),0,1)', $span[0], $span[1]), $mutes);
 
         $filter = implode(',', [
             "atrim=start_sample={$from}:end_sample={$to}",
             'asetpts=PTS-STARTPTS',
+            ...($silences === [] ? [] : ['asetnsamples=n=256', "volume='".implode('*', $silences)."':eval=frame"]),
             "afade=t=in:st=0:d={$fade}",
             "afade=t=out:st={$outStart}:d={$fade}",
             'volume='.round($gainDb, 2).'dB',

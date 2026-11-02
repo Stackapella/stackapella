@@ -35,7 +35,11 @@
                             "key",
                             "today",
                             "yesterday",
-                            "lastWeek"
+                            "lastWeek",
+                            "current",
+                            "previous",
+                            "weekAgo",
+                            "lowSample"
                         ],
                         "properties": {
                             "key": {
@@ -56,6 +60,22 @@
                             "lastWeek": {
                                 "type": "integer",
                                 "description": "The same weekday last week."
+                            },
+                            "current": {
+                                "type": "integer",
+                                "description": "Over the period (`days`, ending today)."
+                            },
+                            "previous": {
+                                "type": "integer",
+                                "description": "The same number of days just before it."
+                            },
+                            "weekAgo": {
+                                "type": "integer",
+                                "description": "The same days a week back (Today: the same weekday last week; 7 days: the week before)."
+                            },
+                            "lowSample": {
+                                "type": "boolean",
+                                "description": "`current` is under 20: its change is noise, so the Overview says \"few so far\"."
                             }
                         }
                     }
@@ -87,6 +107,10 @@
                             }
                         }
                     }
+                },
+                "timezone": {
+                    "type": "string",
+                    "description": "The timezone the days are in (a PHP name; UTC unless set)."
                 }
             }
         }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Ops;
 
+use App\Actions\Counts\RecordCounts;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -64,6 +65,21 @@ final class UsageCountsTest extends TestCase
         }
         $this->assertMatchesContract($this->postJson('/api/counts', ['events' => [['kind' => 'app_open']]]), 'counts.create', 429);
         $this->assertSame(29, (int) DB::table('usage_counts')->sum('count'));
+    }
+
+    public function test_a_courses_lessons_count_by_its_id_and_an_unknown_id_is_dropped(): void
+    {
+        config(['counts.enabled' => true]);
+        $plus = (array) json_decode((string) file_get_contents(dirname(base_path()).'/web/course/plus/courses.json'), true);
+        $course = (string) ($plus['courses'][0]['id'] ?? '');
+        // A song's course counts too, once the content carries it (web/course/songs).
+        // A few of them: one request takes at most 20 events.
+        $songs = array_slice(RecordCounts::songCourses(), 0, 5);
+        $kinds = ['pl_s:'.$course, 'pl_s:no-such-course', ...array_map(static fn (string $id): string => 'pl_d:'.$id, $songs)];
+
+        $this->postJson('/api/counts', ['events' => array_map(static fn (string $kind): array => ['kind' => $kind], $kinds)])->assertNoContent();
+
+        $this->assertSame(['pl_s:'.$course, ...array_map(static fn (string $id): string => 'pl_d:'.$id, $songs)], DB::table('usage_counts')->orderBy('id')->pluck('kind')->all());
     }
 
     public function test_the_admin_sees_each_day_the_totals_and_the_countries(): void

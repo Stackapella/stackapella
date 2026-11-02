@@ -5,6 +5,7 @@
 // in it, adds a part of the song as their own, and leaves (keeping their parts for the project, or
 // taking them out). A project not yet on the account, or signed out, says what's needed first.
 
+import { AccountWall } from './account-wall.js';
 import { api } from '../api.js';
 import { formatDate, formatList, t } from '../i18n.js';
 import { navigate } from '../router.js';
@@ -17,7 +18,7 @@ import { Notice } from './form.js';
 import { Modal, toast } from './ui.js';
 
 export const TogetherSheet = {
-    components: { Icon, Modal, Notice },
+    components: { AccountWall, Icon, Modal, Notice },
     props: { project: { type: Object, required: true }, parts: { type: Array, default: () => [] } },
     emits: ['close', 'add-part', 'left'],
     data: () => ({ members: null, invites: [], failed: null, partKey: '', made: null, busy: false, removing: null, leaving: false, addKey: '', stored: null, saving: false }),
@@ -26,7 +27,7 @@ export const TogetherSheet = {
         <Modal :title="t('together.title')" :subtitle="singer ? '' : t('together.hint')" wide @close="$emit('close')">
             <div class="space-y-5">
                 <p v-if="singer" class="text-muted">{{ t('together.singerHint', { owner: project.shared.owner?.name ?? '' }) }}</p>
-                <Notice v-if="!account.me" tone="info">{{ t('together.signIn') }} <a href="/signin" class="link" @click.prevent="navigate('/signin?next=/p/' + project.id)">{{ t('auth.signIn') }}</a></Notice>
+                <AccountWall v-if="!account.me" reason="friends" :next="'/p/' + project.id" bare />
                 <!-- 106.png: first, save it to your account; then the invite link. -->
                 <template v-else-if="!onAccount">
                     <div class="rounded-2xl bg-raised/60 px-4 py-3" data-save-first>
@@ -165,7 +166,7 @@ export const TogetherSheet = {
                 this.made = (await api.invites.create(this.project.id, part ? { partKey: part.key, partName: templatePartName(part) } : {})).data;
                 this.invites = (await api.invites.list(this.project.id)).data;
             } catch (error) {
-                this.failed = error?.code === 'invite_limit' ? t('together.limit') : error?.code === 'offline' ? t('common.offline') : t('together.notMade');
+                this.failed = error?.code === 'invite_limit' ? t('together.limit') : error?.code === 'imported_private' ? t('together.imported') : error?.code === 'offline' ? t('common.offline') : t('together.notMade');
             } finally {
                 this.busy = false;
             }

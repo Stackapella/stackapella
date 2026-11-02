@@ -37,7 +37,9 @@ final class WebFoldersTest extends TestCase
         $nginx = $this->repo('.do/nginx.conf');
         $this->assertSame(1, preg_match('#location ~ \^/\(([^)]+)\)/ \{#', $nginx, $folders), 'nginx.conf has no static folders location.');
         $this->assertSame(1, preg_match('#location ~ \^/\(([^)]+)\)\$ \{#', $nginx, $files), 'nginx.conf has no static files location.');
-        $nginxFolders = explode('|', $folders[1]);
+        // The shared location's folders, and any with its own (web/lab: different headers).
+        preg_match_all('#location \^~ /([a-z0-9-]+)/ \{#', $nginx, $own);
+        $nginxFolders = [...explode('|', $folders[1]), ...$own[1]];
         $nginxFiles = array_map(static fn (string $file): string => str_replace('\\.', '.', $file), explode('|', $files[1]));
 
         foreach (scandir(app(AppShell::class)->webPath()) ?: [] as $entry) {

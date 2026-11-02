@@ -3,6 +3,7 @@
 // its current and older takes (Clear older takes, Delete song); and Recently deleted with countdowns,
 // what a restore will do said before the tap, Delete now and Restore.
 
+import { AccountWall } from '../components/account-wall.js';
 import { api, ApiError } from '../api.js';
 import { formatDate, t, timeAgo } from '../i18n.js';
 import { goBack, navigate } from '../router.js';
@@ -29,11 +30,11 @@ function restoreRefusal(error, usage) {
 }
 
 export const StorageView = {
-    components: { PageHeader, EmptyState, Notice, Icon, Logo, SyncStatus },
+    components: { AccountWall, PageHeader, EmptyState, Notice, Icon, Logo, SyncStatus },
     data: () => ({ usage: null, bin: null, failed: false, busy: null, notice: null, editable: [], openSong: null, kept: null }),
     setup: () => ({ account, cloud, projects, navigate, goBack, formatBytes, formatDate, shownTitle, selfHosted }),
     template: `
-        <div class="min-h-dvh bg-ink px-4 pb-16 pt-[max(0.5rem,env(safe-area-inset-top))] md:px-8">
+        <div data-ui="screen" class="min-h-dvh bg-ink px-4 pb-16 pt-[max(0.5rem,env(safe-area-inset-top))] md:px-8">
             <div class="mx-auto flex w-full max-w-2xl flex-col gap-8">
                 <PageHeader :title="t('cloud.storage.title')" back="/settings" />
 
@@ -52,7 +53,7 @@ export const StorageView = {
                         </div>
                         <div v-if="usage.projects.limit !== null" class="flex gap-1.5" aria-hidden="true"><span v-for="i in usage.projects.limit" :key="i" class="h-2 flex-1 rounded-full" :class="i <= usage.projects.used ? 'bg-good' : 'bg-raised'"></span></div>
                         <div class="space-y-2 border-t border-line pt-5">
-                            <p class="flex justify-between gap-3 text-sm"><span class="font-semibold text-cream">{{ t('cloud.storage.space') }}</span><span class="tabular-nums text-muted">{{ t('settings.plan.ofLimit', { used: formatBytes(usage.storage.usedBytes), limit: formatBytes(usage.storage.limitBytes) }) }}</span></p>
+                            <p data-ui="facts" class="flex justify-between gap-3 text-sm"><span class="font-semibold text-cream">{{ t('cloud.storage.space') }}</span><span class="tabular-nums text-muted">{{ t('settings.plan.ofLimit', { used: formatBytes(usage.storage.usedBytes), limit: formatBytes(usage.storage.limitBytes) }) }}</span></p>
                             <div class="flex h-2 overflow-hidden rounded-full bg-raised" role="meter" aria-valuemin="0" aria-valuemax="100" :aria-valuenow="spacePercent" :aria-label="t('cloud.meter.label')">
                                 <span v-for="song in spaceSongs" :key="song.id" class="h-full" :style="{ width: song.share * 100 + '%', background: song.color }"></span>
                             </div>
@@ -67,10 +68,7 @@ export const StorageView = {
                         <button type="button" class="btn-secondary btn-sm" :disabled="busy === 'sync'" @click="syncAgain">{{ t('cloud.storage.syncNow') }}</button>
                     </div>
                 </section>
-                <Notice v-else tone="info">
-                    {{ t('cloud.storage.signedOut') }}
-                    <button type="button" class="link ms-1" @click="navigate('/signin?next=/storage')">{{ t('auth.signIn') }}</button>
-                </Notice>
+                <AccountWall v-else reason="songs" next="/storage" />
 
                 <Notice v-if="notice" tone="bad">{{ notice }}</Notice>
 

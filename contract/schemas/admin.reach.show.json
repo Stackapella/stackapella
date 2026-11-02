@@ -1,0 +1,301 @@
+{
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "days",
+                "weeks",
+                "previous",
+                "today"
+            ],
+            "properties": {
+                "days": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "day",
+                            "opens",
+                            "devices"
+                        ],
+                        "properties": {
+                            "day": {
+                                "type": "string"
+                            },
+                            "opens": {
+                                "type": "object",
+                                "additionalProperties": false,
+                                "required": [
+                                    "guest",
+                                    "account"
+                                ],
+                                "properties": {
+                                    "guest": {
+                                        "type": "integer"
+                                    },
+                                    "account": {
+                                        "type": "integer"
+                                    }
+                                }
+                            },
+                            "devices": {
+                                "type": [
+                                    "object",
+                                    "null"
+                                ],
+                                "additionalProperties": false,
+                                "required": [
+                                    "guest",
+                                    "account"
+                                ],
+                                "properties": {
+                                    "guest": {
+                                        "type": "integer"
+                                    },
+                                    "account": {
+                                        "type": "integer"
+                                    }
+                                },
+                                "description": "app_day; null before it was counted."
+                            }
+                        }
+                    }
+                },
+                "weeks": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "from",
+                            "to",
+                            "days",
+                            "opens",
+                            "devices",
+                            "reach"
+                        ],
+                        "properties": {
+                            "from": {
+                                "type": "string",
+                                "description": "The ISO week's Monday (UTC)."
+                            },
+                            "to": {
+                                "type": "string",
+                                "description": "Its Sunday."
+                            },
+                            "days": {
+                                "type": "integer",
+                                "description": "Its finished days: 7, or fewer for the week yesterday is in."
+                            },
+                            "opens": {
+                                "type": "object",
+                                "additionalProperties": false,
+                                "required": [
+                                    "guest",
+                                    "account"
+                                ],
+                                "properties": {
+                                    "guest": {
+                                        "type": "number"
+                                    },
+                                    "account": {
+                                        "type": "number"
+                                    }
+                                },
+                                "description": "app_open: the average of its counted days' loads of the app."
+                            },
+                            "devices": {
+                                "type": [
+                                    "object",
+                                    "null"
+                                ],
+                                "additionalProperties": false,
+                                "required": [
+                                    "guest",
+                                    "account"
+                                ],
+                                "properties": {
+                                    "guest": {
+                                        "type": "number"
+                                    },
+                                    "account": {
+                                        "type": "number"
+                                    }
+                                },
+                                "description": "app_day: the average of its counted days' devices; null when none was counted."
+                            },
+                            "reach": {
+                                "type": [
+                                    "object",
+                                    "null"
+                                ],
+                                "additionalProperties": false,
+                                "required": [
+                                    "guest",
+                                    "account"
+                                ],
+                                "properties": {
+                                    "guest": {
+                                        "type": "integer"
+                                    },
+                                    "account": {
+                                        "type": "integer"
+                                    }
+                                },
+                                "description": "app_week: devices that opened the app that week, each once (so far, for the week yesterday is in); null for a week not counted from its Monday."
+                            }
+                        }
+                    }
+                },
+                "previous": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "from",
+                            "to",
+                            "days",
+                            "opens",
+                            "devices",
+                            "reach"
+                        ],
+                        "properties": {
+                            "from": {
+                                "type": "string",
+                                "description": "The ISO week's Monday (UTC)."
+                            },
+                            "to": {
+                                "type": "string",
+                                "description": "Its Sunday."
+                            },
+                            "days": {
+                                "type": "integer",
+                                "description": "Its finished days: 7, or fewer for the week yesterday is in."
+                            },
+                            "opens": {
+                                "type": "object",
+                                "additionalProperties": false,
+                                "required": [
+                                    "guest",
+                                    "account"
+                                ],
+                                "properties": {
+                                    "guest": {
+                                        "type": "number"
+                                    },
+                                    "account": {
+                                        "type": "number"
+                                    }
+                                },
+                                "description": "app_open: the average of its counted days' loads of the app."
+                            },
+                            "devices": {
+                                "type": [
+                                    "object",
+                                    "null"
+                                ],
+                                "additionalProperties": false,
+                                "required": [
+                                    "guest",
+                                    "account"
+                                ],
+                                "properties": {
+                                    "guest": {
+                                        "type": "number"
+                                    },
+                                    "account": {
+                                        "type": "number"
+                                    }
+                                },
+                                "description": "app_day: the average of its counted days' devices; null when none was counted."
+                            },
+                            "reach": {
+                                "type": [
+                                    "object",
+                                    "null"
+                                ],
+                                "additionalProperties": false,
+                                "required": [
+                                    "guest",
+                                    "account"
+                                ],
+                                "properties": {
+                                    "guest": {
+                                        "type": "integer"
+                                    },
+                                    "account": {
+                                        "type": "integer"
+                                    }
+                                },
+                                "description": "app_week: devices that opened the app that week, each once (so far, for the week yesterday is in); null for a week not counted from its Monday."
+                            }
+                        }
+                    }
+                },
+                "today": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                        "day",
+                        "opens",
+                        "devices"
+                    ],
+                    "properties": {
+                        "day": {
+                            "type": "string"
+                        },
+                        "opens": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "required": [
+                                "guest",
+                                "account"
+                            ],
+                            "properties": {
+                                "guest": {
+                                    "type": "integer"
+                                },
+                                "account": {
+                                    "type": "integer"
+                                }
+                            }
+                        },
+                        "devices": {
+                            "type": [
+                                "object",
+                                "null"
+                            ],
+                            "additionalProperties": false,
+                            "required": [
+                                "guest",
+                                "account"
+                            ],
+                            "properties": {
+                                "guest": {
+                                    "type": "integer"
+                                },
+                                "account": {
+                                    "type": "integer"
+                                }
+                            },
+                            "description": "app_day; null before it was counted."
+                        }
+                    },
+                    "description": "Today so far (UTC): not in days, which are finished."
+                },
+                "timezone": {
+                    "type": "string",
+                    "description": "The timezone the days are in (a PHP name; UTC unless set)."
+                }
+            }
+        }
+    }
+}

@@ -32,7 +32,7 @@ final class SignInByLink
 {
     public function __construct(private readonly AddressLimits $limits, private readonly Flags $flags, private readonly Sessions $sessions) {}
 
-    public function send(string $email, ?string $intended, ?string $invite, ?string $early, ?string $ip): void
+    public function send(string $email, ?string $intended, ?string $invite, ?string $early, ?string $ip, ?string $browserHash = null): void
     {
         $email = strtolower(trim($email));
         $user = User::query()->where('email', $email)->first();
@@ -51,11 +51,43 @@ final class SignInByLink
         (new SignInLink)->forceFill([
             'email' => $email,
             'token_hash' => hash('sha256', $token),
-            'context' => ['intended' => IntendedUrl::app($intended), 'invite' => $invite, 'early' => $early],
+            // The browser that asked (LinkBrowser): opened anywhere else, it asks before signing in.
+            'context' => ['intended' => IntendedUrl::app($intended), 'invite' => $invite, 'early' => $early, 'browser' => $browserHash],
             'expires_at' => now()->addMinutes(SignInLink::MINUTES),
         ])->save();
 
         Mail::to($email)->send(new SignInLinkMail($token));
+    }
+
+    /**
+     * A link that would still open (unused, in time), without using it: for the confirm step.
+     */
+    public function peek(string $token): ?SignInLink
+    {
+        $link = SignInLink::query()->where('token_hash', hash('sha256', $token))->first();
+
+        return $link !== null && $link->used_at === null && $link->expires_at->isFuture() ? $link : null;
+    }
+
+    /**
+     * Whose sign-in the person should confirm before this link opens (Hillel: "Yes, add the confirm
+     * screen"): its address, when another account is signed in here or the link was asked for in
+     * another browser; null when it can open straight away.
+     */
+    public function confirmFor(string $token, ?User $signedIn, ?string $browserHash): ?string
+    {
+        $link = $this->peek($token);
+
+        if ($link === null) {
+            return null;
+        }
+
+        $holder = User::query()->where('email', $link->email)->value('id');
+        $otherAccount = $signedIn !== null && $signedIn->id !== $holder;
+        $asked = $link->context['browser'] ?? null;
+        $elsewhere = is_string($asked) && ($browserHash === null || ! hash_equals($asked, $browserHash));
+
+        return $otherAccount || $elsewhere ? $link->email : null;
     }
 
     /**

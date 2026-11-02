@@ -17,7 +17,7 @@ HOME = "/?api=mock&scenario=&as=member"
 def journey(f):
     assert OUT, "the shots need OUT=<dir>"
     f.go(HOME, "document.querySelector('#app header')")
-    f.run("localStorage.setItem('stackapella.installDismissed', '1');")
+    f.run("localStorage.setItem('stackapella.asks', JSON.stringify({ stopped: ['install'] }));")
     clear_projects(f)
     f.go("/?api=mock&as=signedOut", "document.querySelector('[data-new-song]')")
     light_first(f)
