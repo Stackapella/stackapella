@@ -368,4 +368,28 @@ return [
         'tenor' => 'Sings the words in the middle of Burleigh\'s chords, C, B-flat, E-flat or D most of the time, stepping down D, D-flat, C under "Jordan, Deep, deep river" in the first refrain; in the verse it sings "Want to go" while the soprano and alto sing "Oh, don\'t you want to go", then sings "to that gospel feast" with them. Its highest note, a G, comes once, on "all" in "where all is peace?", and its lowest, an F, on the last "river".',
         'bass' => 'Sings Burleigh\'s bass line, on E-flat nearly a third of the time and on E-flat, B-flat, G or A-flat most of it, from its lowest note, an F, on "over" in the first refrain and on "want to cross" in the second, up to its highest, a B-flat, once, on "all" in "where all is peace?". At the close it moves B-flat, B natural, C, B-flat, A-flat, B-flat, E-flat under "is peace? Oh, deep river".',
     ],
+    'white-coral-bells' => [
+        'soprano' => 'Starts the round alone and sings both verses twice, from its low B-flat on "Lilies" and "That" up to its top D on "our" in "deck our garden walk" and on "the" in "when the fairies sing".',
+        'alto' => 'Sings the same tune at the same pitch, coming in four bars after the soprano: nothing new to learn.',
+        'tenor' => 'Sings the same tune an octave lower, for lower voices, coming in four bars after the alto.',
+        'bass' => 'Sings the same low tune as the tenor, coming in last, four bars after it, and finishing alone on "That could happen only when the fairies sing".',
+    ],
+    'londons-burning' => [
+        'soprano' => 'Starts the round alone and sings it three times through, up to its top C on every "Fire!" and every "pour", and down to the C an octave below on every "London\'s".',
+        'alto' => 'Sings the same tune at the same pitch, coming in two bars after the soprano, and stops with everyone on its last "Fire!".',
+        'tenor' => 'Sings the same tune an octave lower, for lower voices, coming in two bars after the alto, and stops with everyone on "engines".',
+        'bass' => 'Sings the same low tune as the tenor, coming in last, two bars after it, and stops with everyone on "burning".',
+    ],
+    'three-blind-mice' => [
+        'soprano' => 'Starts the round alone and sings it twice through, down to its low C on every "mice" and up to its top C on "all ran", "farmer\'s", "cut off their", "carving", "ever you" and "sight".',
+        'alto' => 'Sings the same tune at the same pitch, coming in four bars after the soprano: nothing new to learn.',
+        'tenor' => 'Sings the same tune an octave lower, for lower voices, coming in four bars after the alto.',
+        'bass' => 'Sings the same low tune as the tenor, coming in last, four bars after it, and finishing alone from "ever you see such a sight" to the last "As three blind mice".',
+    ],
+    'oh-how-lovely' => [
+        'soprano' => 'Starts the round alone and sings it three times through, up to its top C on each "sweetly", and down to its low E-flat on "O", at the end of "lovely" and of each "evening", and for the whole "Ding, dong" line.',
+        'alto' => 'Sings the same tune at the same pitch, coming in six bars after the soprano, just as it starts "When the bells are sweetly ringing".',
+        'tenor' => 'Sings the same tune an octave lower, for lower voices, coming in six bars after the alto, as the soprano reaches "Ding, dong".',
+        'bass' => 'Sings the same low tune as the tenor, coming in last, six bars after it, and finishing alone on the last "Ding, dong, ding, dong, ding, dong!".',
+    ],
 ];
