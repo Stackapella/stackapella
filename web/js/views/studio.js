@@ -205,7 +205,7 @@ export const StudioView = {
                                         <template #lane>
                                             <template v-if="recording && rerecordId === part.id">
                                                 <div v-if="part.guidePeaks" class="absolute inset-0 opacity-30"><Waveform :peaks="part.guidePeaks" :frames-per-peak="FRAMES_PER_PEAK" :sample-rate="part.guidePeaksRate || GUIDE_PEAKS_RATE" :offset-seconds="guideVoices[part.id]?.offsetSeconds || 0" :length-seconds="length" :color="paint(part.color)" dim /></div>
-                                                <div class="absolute inset-0"><Waveform :peaks="livePeaks" :frames-per-peak="512" :sample-rate="engine.sampleRate" :offset-seconds="recordFrom" :length-seconds="length" :color="'var(--color-record)'" :version="live?.count ?? 0" /></div>
+                                                <div class="absolute inset-0" data-live-wave><Waveform :peaks="livePeaks" :frames-per-peak="512" :sample-rate="engine.sampleRate" :offset-seconds="recordFrom" :length-seconds="length" :color="'var(--color-record)'" :version="live?.count ?? 0" /></div>
                                             </template>
                                             <Waveform v-else-if="hasTake(part)" :peaks="part.peaks" :frames-per-peak="part.framesPerPeak" :sample-rate="part.sampleRate"
                                                 :offset-seconds="part.offsetSeconds + (part.nudgeSeconds || 0)" :length-seconds="length" :color="paint(part.color)"
@@ -272,7 +272,7 @@ export const StudioView = {
                                 <VoiceRow v-if="live && !rerecordId" :name="liveName" :letter="liveName.slice(0, 1).toUpperCase()" :color="paint(live.color)" :tags="[{ text: t('studio.row.recording'), tone: 'rec' }]" :when="t('studio.row.overOthers')"
                                     recording tall :position="position" :length-seconds="length" data-recording-row @seek="() => {}">
                                     <template #meter><MicLevel color="var(--color-record)" /></template>
-                                    <template #lane><div class="absolute inset-0"><Waveform :peaks="livePeaks" :frames-per-peak="512" :sample-rate="engine.sampleRate" :offset-seconds="recordFrom" :length-seconds="length" :color="paint(live.color)" :version="live.count" /></div></template>
+                                    <template #lane><div class="absolute inset-0" data-live-wave><Waveform :peaks="livePeaks" :frames-per-peak="512" :sample-rate="engine.sampleRate" :offset-seconds="recordFrom" :length-seconds="length" :color="paint(live.color)" :version="live.count" /></div></template>
                                 </VoiceRow>
 
                                 <!-- The next voice to add -->

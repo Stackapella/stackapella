@@ -107,7 +107,7 @@ final class SongCollectionsTest extends TestCase
     /** @return array<string, array{string, string}> */
     public static function collections(): array
     {
-        return ['spirituals' => ['spirituals', 'spiritual'], 'sea shanties' => ['sea-shanties', 'sea shanty']];
+        return ['spirituals' => ['spirituals', 'spiritual'], 'sea shanties' => ['sea-shanties', 'sea shanty'], 'rounds' => ['rounds', 'round']];
     }
 
     #[DataProvider('collections')]
@@ -139,6 +139,39 @@ final class SongCollectionsTest extends TestCase
         $this->assertStringContainsString('Deep River', implode(' ', (array) __('site.collections.spirituals.intro')));
         $this->assertNotNull($deep);
         $this->assertStringContainsString('Burleigh', (string) json_encode(((array) $deep->currentVersion?->data)['credits'] ?? []));
+    }
+
+    public function test_a_round_card_tags_no_one_voice_the_melody_and_drops_its_round_from_the_title(): void
+    {
+        $rounds = app(SongCollections::class)->songs('rounds');
+        $this->assertNotSame([], $rounds);
+        foreach ($rounds as $round) {
+            $this->assertSame([], array_filter(array_column($round['parts'], 'melody')), $round['slug']);
+            $this->assertStringNotContainsStringIgnoringCase('(round)', $round['title'], $round['slug']);
+        }
+        // A song that isn't a round keeps its melody tag.
+        $hymn = app(SongCollections::class)->songs('hymns')[0];
+        $this->assertContains(true, array_column($hymn['parts'], 'melody'));
+    }
+
+    public function test_every_other_spiritual_is_our_own_arrangement_as_the_intro_says(): void
+    {
+        // The intro names Deep River as Burleigh's setting and says the rest are our own arrangements: another
+        // arranger's setting joining must change the words first.
+        foreach (app(SongCollections::class)->songs('spirituals') as $song) {
+            if ($song['slug'] === 'deep-river') {
+                continue;
+            }
+            $template = Template::query()->with('currentVersion')->where('slug', $song['slug'])->firstOrFail();
+            $this->assertStringStartsWith('Stackapella', (string) (((array) (((array) $template->currentVersion?->data)['credits'] ?? []))['arrangement'] ?? ''), $song['slug']);
+        }
+    }
+
+    public function test_the_rounds_intro_names_the_oldest_round_it_lists(): void
+    {
+        // "the oldest in Thomas Ravenscroft's Pammelia of 1609" (Hey, Ho, Nobody Home): it must be open and listed.
+        $this->assertStringContainsString('1609', implode(' ', (array) __('site.collections.rounds.intro')));
+        $this->assertContains('hey-ho-nobody-home', array_column(app(SongCollections::class)->songs('rounds'), 'slug'));
     }
 
     public function test_with_too_few_open_hymns_it_is_not_a_page(): void

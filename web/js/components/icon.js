@@ -71,7 +71,10 @@ export const Icon = {
  * On Christmas Eve and Christmas Day, by the device's own date (public/season.js hatDay; Hillel asked on 2026-11-10 for
  * the hat in the app and on the site at Christmas, and on its eve too), the mark wears the site's Santa hat
  * (icons/santa-hat.svg, Hillel's hat3e), in the site's own box (.s-brand > .s-hat) so the two are the same to the pixel:
- * worn on the mark's top-left corner, the tilt in the drawing, out of the flow so the mark and the name don't move. It comes first, so the mark stays the name's previous sibling
+ * worn on the mark's top-left corner, the tilt in the drawing, out of the flow so the mark and the name don't move. In
+ * game mode it's the site's pixel hat (icons/santa-hat-pixel.svg, a hard 2 px shadow), the same box, as the site's
+ * game mode draws it: both are on the page on a hat day and the skin shows one, as the site's CSS does (no import of the
+ * skin here: icon.js loads too early for it, a circular import). They come first, so the mark stays the name's previous sibling
  * (tests/flows/logo_match.py measures it so). The favicon and the app's icons stay as they are.
  */
 export const Logo = {
@@ -84,7 +87,10 @@ export const Logo = {
     },
     template: `
         <span class="relative inline-flex items-center gap-[9px] font-extrabold text-cream" data-ui="logo">
-            <img v-if="hat" src="/icons/santa-hat.svg" alt="" aria-hidden="true" class="pointer-events-none absolute max-w-none drop-shadow-[0_1px_1px_rgba(0,0,0,0.3)]" :style="hatBox" data-hat-christmas />
+            <template v-if="hat">
+                <img src="/icons/santa-hat.svg" alt="" aria-hidden="true" class="pointer-events-none absolute max-w-none drop-shadow-[0_1px_1px_rgba(0,0,0,0.3)] [[data-skin=game]_&]:hidden" :style="hatBox" data-hat-christmas />
+                <img src="/icons/santa-hat-pixel.svg" alt="" aria-hidden="true" class="pointer-events-none absolute hidden max-w-none drop-shadow-[0_2px_0_rgba(0,0,0,0.3)] [[data-skin=game]_&]:block" :style="hatBox" data-hat-christmas />
+            </template>
             <span class="block shrink-0 [&>svg]:size-full" :style="{ width: size + 'px', height: size + 'px' }" aria-hidden="true" v-html="LOGO_MARK"></span>
             <span class="text-[18px] tracking-[-0.01em] max-[359px]:sr-only" translate="no" data-ui="wordmark">Stackapella</span>
         </span>`,

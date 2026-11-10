@@ -21,6 +21,7 @@ const SHELL = [
     '/icons/icon.svg',
     '/icons/favicon.svg',
     '/icons/santa-hat.svg',
+    '/icons/santa-hat-pixel.svg',
     '/js/main.js',
     '/js/router.js',
     '/js/i18n.js',

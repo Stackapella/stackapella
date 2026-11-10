@@ -16,9 +16,9 @@ FAKE_DAY = """(() => {{ const Real = Date; const start = new Real({year}, {month
 LOGO = """JSON.stringify((() => {
   const word = document.querySelector('#app header [data-ui=wordmark]');
   const mark = word.previousElementSibling;
-  const hat = document.querySelector('#app header [data-hat-christmas]');
+  const hat = [...document.querySelectorAll('#app header [data-hat-christmas]')].find((e) => e.getClientRects().length) ?? null;  // the skin's
   const box = (e) => { const b = e.getBoundingClientRect(); return [Math.round(b.left), Math.round(b.top), Math.round(b.width), Math.round(b.height)]; };
-  return { mark: box(mark), word: box(word), markIsSvgBox: !!mark.querySelector('svg'), hat: hat && hat.getClientRects().length ? box(hat) : null };
+  return { mark: box(mark), word: box(word), markIsSvgBox: !!mark.querySelector('svg'), hat: hat && hat.getClientRects().length ? box(hat) : null, drawing: hat ? hat.getAttribute('src') : null };
 })())"""
 
 
@@ -50,6 +50,9 @@ def journey(f):
         # The site's box (.s-brand > .s-hat): 9 px out and 12 px above the 30 px mark's top-left, 39 by 42.
         want = [mark[0] - 9, mark[1] - 12, 39, 42]
         assert all(abs(a - b) <= 1 for a, b in zip(hat, want)), f"the hat isn't in the site's box: {hat}, want {want}"
+        # The site's drawing for the skin: its pixel hat in game mode (input.css, game's 6988aaa55), the drawn one in serious.
+        drawing = "/icons/santa-hat-pixel.svg" if f.skin == "game" else "/icons/santa-hat.svg"
+        assert dressed["drawing"] == drawing, f"the hat's drawing in {f.skin} mode: {dressed['drawing']}, want {drawing}"
         if date == 24:
             f.shot("home-christmas-eve")
     assert logo_on(f, (2026, 11, 26))["hat"] is None, "a hat on 26 December"

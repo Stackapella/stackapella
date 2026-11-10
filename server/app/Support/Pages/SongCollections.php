@@ -20,6 +20,7 @@ final class SongCollections
         'hymns' => ['hymn'],
         'spirituals' => ['spiritual'],
         'sea-shanties' => ['sea shanty'],
+        'rounds' => ['round'],
     ];
 
     /**

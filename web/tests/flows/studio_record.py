@@ -20,6 +20,20 @@ def t(f, key, values=None):
     return f.js(f"{I18N}.t({json.dumps(key)}, {json.dumps(values or {})})")
 
 
+# The take being recorded draws its live wave in a colour, never black on a dark theme (the showreel agent, 2026-11-10:
+# a take over a part passed var(--color-record), which a canvas can't read, so it drew black).
+LIVE_WAVE = """(() => { const c = document.querySelector('[data-live-wave] canvas'); if (!c) return 'no live wave';
+    const d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data; let drawn = 0, dark = 0;
+    for (let i = 0; i < d.length; i += 4) if (d[i + 3] > 128) { drawn++; if (d[i] + d[i + 1] + d[i + 2] < 90) dark++; }
+    return drawn ? { drawn, dark } : 'nothing drawn'; })()"""
+
+
+def live_wave_lit(f, what):
+    assert f.js("document.documentElement.dataset.theme").endswith("-dark"), "the live wave's check wants a dark theme"
+    live = f.js(LIVE_WAVE)
+    assert isinstance(live, dict) and live["dark"] < live["drawn"] * 0.1, f"{what}: the live wave is drawn black: {live}"
+
+
 def journey(f):
     home_page(f, "member")
     clear_projects(f)
@@ -35,6 +49,7 @@ def journey(f):
     f.press("r")
     heard_while_recording(f, "the first track", seconds=2)
     assert f.js(f"{SESSION}.session.recording && !document.querySelector('[data-studio-words]')"), "a song without words keeps a row for words"
+    live_wave_lit(f, "a new part's take")
     f.press("r")
     f.wait(f"!{SESSION}.session.recording && {PARTS}.length === 1", timeout=20, what="the first track kept")
     assert f.js(f"{PARTS}[0].name") == t(f, "parts.default.track", {"number": 1}), f.js(f"{PARTS}[0].name")
@@ -75,6 +90,7 @@ def journey(f):
     first_take = f.js(f"{PARTS}[0].takeId") or f.js(f"(async () => (await (await import('/js/db.js')).get('parts', {PARTS}[0].id)).takeId)()")
     f.press("r")
     heard_while_recording(f, "over Track 1", seconds=1)
+    live_wave_lit(f, "a take over Track 1 (the record colour)")
     f.press("r")
     f.wait(f"!{SESSION}.session.recording && ({PARTS}[0].keptTakes ?? []).length === 1", timeout=20, what="the take recorded over, kept")
     f.wait_text(t(f, "studio.takes.undoPrevious"))

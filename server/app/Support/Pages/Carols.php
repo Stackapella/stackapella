@@ -59,10 +59,13 @@ final class Carols
     public static function card(Template $template): array
     {
         $url = '/songs/'.$template->slug;
+        // In a round every voice sings the tune, so no one part is tagged the melody (the file marks its first voice).
+        $round = SongParts::round(array_values(array_filter((array) (((array) $template->currentVersion?->data)['genre'] ?? []), 'is_string')));
 
         return [
             'slug' => (string) $template->slug,
-            'title' => (string) $template->title,
+            // A round's without its "(round)", as /songs puts it: its card says round already.
+            'title' => $round ? SongParts::searchTitle((string) $template->title) : (string) $template->title,
             'url' => $url,
             'from' => self::from((string) $template->slug, (string) $template->title),
             // Its opening line to play, as /songs plays a song's: every open song plays for guests (Hillel,
@@ -72,7 +75,7 @@ final class Carols
             // (the UX review of Hillel's second mockup, 2026-11-10). Never a length: the files don't give one.
             'meta' => self::meta((array) $template->currentVersion?->data),
             'parts' => array_map(static fn (array $part): array => [
-                'key' => $part['key'], 'name' => $part['name'], 'melody' => $part['melody'],
+                'key' => $part['key'], 'name' => $part['name'], 'melody' => $part['melody'] && ! $round,
                 'lowName' => self::signs($part['lowName']), 'highName' => self::signs($part['highName']), 'url' => $url.'/'.$part['key'],
             ], SongParts::parts($template)),
         ];

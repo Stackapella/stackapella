@@ -1622,6 +1622,28 @@ return [
             'try_link' => 'Learn a shanty, free',
             'songs_link' => 'Sea shanties, part by part',
         ],
+        // Google's suggestions, 2026-11-10: "rounds to sing", "easy rounds to sing", "rounds to sing with kids", "rounds
+        // to sing in choir", "easy rounds for choir", "songs to sing in a round", "singing rounds for beginners". The courses lead
+        // checked the words against the seven round files (2026-11-10).
+        'rounds' => [
+            'title' => 'Easy Rounds to Sing: Learn Your Part Free',
+            'description' => 'Easy rounds to sing with kids, a choir or friends, free: learn the one tune by ear, hear each voice come in after the last, and sing along in your browser.',
+            'crumb' => 'Rounds',
+            'headline' => 'Rounds to sing,',
+            'headline_em' => 'voice by voice',
+            'lead' => 'Learn a round, then sing it with your kids, your choir or your friends. Free, in your browser, no account.',
+            'intro' => [
+                'In a round everyone sings the same tune, but not at the same time: the first voice starts, and each of the others starts from the beginning a little later, so the tune makes harmony with itself. There is only one tune to learn, which makes a round a good first step into singing harmony.',
+                'These are our own settings of rounds printed long ago, the oldest in Thomas Ravenscroft\'s Pammelia of 1609. Each is for 2 to 4 singers, the tenor and bass an octave lower, and each song\'s page says when it was printed and how far apart the voices come in.',
+            ],
+            'pick' => 'Pick a round',
+            'songbook' => 'The rounds',
+            'songbook_sub' => 'Pick your part, or press play to hear how each round begins.',
+            'songbook_part' => 'Showing your :part part in every round. Press play to hear it with the others.',
+            'list' => 'Rounds to sing in up to four parts',
+            'try_link' => 'Learn a round, free',
+            'songs_link' => 'Rounds, voice by voice',
+        ],
     ],
 
     'song_part' => [

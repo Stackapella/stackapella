@@ -122,8 +122,17 @@ export const Toasts = {
 
 /**
  * Draws a waveform as rounded vertical bars, the way the design does. `peaks` hold the loudest
- * sample per `framesPerPeak` frames; the canvas spans `lengthSeconds` of the timeline.
+ * sample per `framesPerPeak` frames; the canvas spans `lengthSeconds` of the timeline. `color` may be a CSS variable
+ * (`var(--color-record)`): a canvas can't read one, so it's resolved from the page at each draw and drawn again when the
+ * theme changes (the studio's live take drew black, unseen on a dark theme: the showreel agent, 2026-11-10).
  */
+/** A colour a canvas can use: a `var(--name)` (with an optional fallback) read from `el`'s computed style, else as given. */
+export function canvasColour(colour, el = document.documentElement) {
+    const match = /^var\(\s*(--[\w-]+)\s*(?:,\s*(.+))?\)$/.exec(colour?.trim() ?? '');
+    if (!match) return colour;
+    return getComputedStyle(el).getPropertyValue(match[1]).trim() || match[2]?.trim() || colour;
+}
+
 export const Waveform = {
     props: {
         peaks: { type: Object, default: null },
@@ -141,10 +150,13 @@ export const Waveform = {
     mounted() {
         this.observer = new ResizeObserver(() => this.draw());
         this.observer.observe(this.$refs.canvas);
+        this.onTheme = () => this.draw();
+        document.addEventListener('stackapella:theme', this.onTheme);
         this.draw();
     },
     unmounted() {
         this.observer.disconnect();
+        document.removeEventListener('stackapella:theme', this.onTheme);
     },
     watch: {
         $props: { deep: true, handler() { this.draw(); } },
@@ -172,7 +184,7 @@ export const Waveform = {
             const step = width < 500 ? 3 : 4; // a bar every few pixels, as in the design
             const barWidth = step - 1.5;
             const middle = height / 2;
-            g.fillStyle = this.color;
+            g.fillStyle = canvasColour(this.color, canvas);
             // Dimmed (a guide, a muted part): fainter on a dark page, less so on a light one, where pale bars wash out.
             const level = this.dim ? (document.documentElement.dataset.theme?.endsWith('-light') ? 0.5 : 0.3) : 1;
             const keptFrom = this.trimStartFrames / this.framesPerPeak;
