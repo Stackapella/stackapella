@@ -71,7 +71,7 @@ const OutreachList = {
     components: { EmptyState, Field, Icon, LoadFailed, Notice, StatusChip },
     props: { me: { type: Object, required: true } },
     data: () => ({ rows: null, summary: null, unfiled: [], failed: false, status: '', group: '', angle: '', q: '', adding: false, add: blank(), busy: false, errors: null, imported: null, filing: {} }),
-    setup: () => ({ STATUS, STATUSES, ANGLES, screen, day, formatNumber }),
+    setup: () => ({ STATUS, STATUSES, ANGLES, screen, day, formatNumber, when }),
     template: `
         <div class="space-y-6" data-outreach>
             <!-- What needs you, and today's sending: the cap and whether sending is set up. -->

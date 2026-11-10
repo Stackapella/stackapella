@@ -127,7 +127,7 @@ export const BetaView = {
         consentGeneral: null, // a consent refusal that isn't about one field
         retryMessage: '',
     }),
-    setup: () => ({ STATUS, STYLE_WORDS, LINK_ENDED, REFUSED, catalogue, account, templatePartName, formatDate, formatList, keyLabel, outbox, discard, betaBar, timeAgo }),
+    setup: () => ({ STATUS, STYLE_WORDS, LINK_ENDED, REFUSED, catalogue, account, templatePartName, formatDate, formatList, keyLabel, outbox, discard, betaBar, timeAgo, navigate }),
     template: `
         <div data-ui="screen" class="min-h-dvh bg-ink">
             <header class="border-b border-line">

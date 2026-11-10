@@ -201,7 +201,7 @@ export const ClassJoinView = {
     components: { AccountWall, AppScreen },
     props: { code: { type: String, default: '' } },
     data: () => ({ typed: '', joining: false, error: null, joined: null, schools: null }),
-    setup: () => ({ account, cleanCode }),
+    setup: () => ({ account, cleanCode, navigate }),
     template: `
         <AppScreen :title="t('school.join.title')" back="/" measure="max-w-xl" data-class-join>
             <div class="my-auto">

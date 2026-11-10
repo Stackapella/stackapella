@@ -25,6 +25,7 @@ python3 -I tool/offline_check.py
 python3 -I tool/api_check.py
 python3 -I tool/dialog_check.py
 python3 -I tool/component_keys_check.py
+python3 -I tool/template_names_check.py
 python3 -I tool/public_imports_check.py
 python3 -I tool/app_css.py --check
 python3 -I tool/course_check.py
