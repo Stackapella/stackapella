@@ -49,6 +49,13 @@ def journey(f):
     assert query == {"mode": "signup", "for": "course", "next": "/learn/1-match"}, json.dumps(query)
     assert f.js(f"({FIRSTS}).ask_acct_course_yes") is True, "Make a free account not counted yes"
     assert "acct_course" not in (f.js("localStorage.getItem('stackapella.asks')") or ""), "the wall wrote to the asks' ledger"
+    # Already have an account: the wall's sign-in link opens sign-in, back to this lesson after (Sentry, 2026-11-10: its
+    # template called navigate without having it, so the click did nothing and threw "navigate is not a function").
+    f.go("/learn/1-match", WALL)
+    f.run("document.querySelector('[data-wall-sign-in]').click()")
+    f.wait("location.pathname === '/signin'", what="sign-in from the wall")
+    query = f.js("Object.fromEntries(new URLSearchParams(location.search))")
+    assert query == {"next": "/learn/1-match"}, json.dumps(query)
     # The map's face of the same wall: lesson 1 starred, the map picks lesson 2, and its card asks for the
     # account, counted shown (this device's first shown reset to see it), and its button counted yes.
     f.run("""const { emptyProgress } = await import('/js/course.js'); const db = await import('/js/db.js');

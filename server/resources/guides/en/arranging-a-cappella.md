@@ -1,12 +1,12 @@
 ---
 title: A cappella arranging for beginners
-description: You can arrange a song for voices with a few simple ideas: start with the tune, put a bass on the roots, fill the chord, and keep every part singable.
+description: Write your first a cappella arrangement with a few simple ideas: start with the tune, put a bass on the roots, fill the chord, and keep every part singable.
 song: simple-gifts
-version: 1
+version: 2
 reviewed: false
 ---
 
-# A cappella arranging for beginners
+# How to arrange a cappella: a beginner's guide
 
 An a cappella arrangement is a song for voices alone: a tune, and a few parts that harmonise with
 it. You don't need years of theory to make a simple one, just a handful of ideas and your ears.

@@ -11,6 +11,8 @@ return [
         'part_link' => 'Learn the :part part (:low to :high)',
         'title' => ':title Harmony: Learn Every Part',
         'description' => 'Learn :title in harmony, part by part (:parts): a guide voice sings each one with you, then you stack your own voices. Free in your browser.',
+        'title_round' => ':title Round: Learn Every Part',
+        'description_round' => 'Sing :title as a round for 2 to 4 voices: everyone sings the same tune, entering in turn. Hear each entry, learn yours, then stack your own voices. Free.',
         'description_satb' => 'Learn :title in SATB harmony, part by part: soprano, alto, tenor and bass, each sung with you by a guide voice. Then stack your own voices. Free.',
         'words' => 'Words: :who',
         'tune' => 'Tune: :who',
@@ -1624,7 +1626,7 @@ return [
             ],
             'groups' => [
                 'title' => 'Choir groups',
-                'summary' => 'Share songs with your choir, give out parts, and see who has learned theirs.',
+                'summary' => 'Share songs with your choir, give out parts, and see who has started and recorded theirs.',
                 'sections' => [
                     [
                         'What a group is',

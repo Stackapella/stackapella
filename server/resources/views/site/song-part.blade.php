@@ -8,9 +8,11 @@
 @php($melody = $p['key'] === ($s['melodyPart'] ?? null))
 @php($fill = ['song' => $s['title'], 'part' => mb_strtolower($p['name']), 'key' => $s['key'], 'low' => $p['lowName'], 'high' => $p['highName']])
 @php($heading = __($melody ? 'site.song_part.headline_melody' : 'site.song_part.headline', $fill))
-@php($metaTitle = __($melody ? 'site.song_part.title_melody' : 'site.song_part.title', $fill))
+{{-- In the page's title and description a round is named without its "(round)"; the description says round. --}}
+@php($metaFill = [...$fill, 'song' => $songPart['round'] ? \App\Support\Pages\SongParts::searchTitle($s['title']) : $s['title']])
+@php($metaTitle = __($songPart['round'] ? 'site.song_part.title_round' : ($melody ? 'site.song_part.title_melody' : 'site.song_part.title'), $metaFill))
 {{-- SATB named where it's true (docs/search-content-plan.md, item 4): choirs search it. --}}
-@php($description = __($songPart['satb'] ? 'site.song_part.description_satb' : 'site.song_part.description', $fill))
+@php($description = __($songPart['round'] ? 'site.song_part.description_round' : ($songPart['satb'] ? 'site.song_part.description_satb' : 'site.song_part.description'), $metaFill))
 @extends('public.layout', ['title' => \App\Support\Site\SitePages::title($metaTitle)])
 
 @section('arcade')

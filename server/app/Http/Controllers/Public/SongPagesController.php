@@ -71,11 +71,16 @@ final class SongPagesController extends Controller
             'line' => $template->access === TemplateAccess::Plus ? null : Landing::line($template),
             'more' => $more,
             'meta' => [
-                'title' => __('pages.song.title', ['title' => $template->title]),
-                // SATB named where it's true (docs/search-content-plan.md, item 4): choirs search it.
-                'description' => SongParts::satb(array_column($song['parts'], 'key'))
-                    ? __('pages.song.description_satb', ['title' => $template->title])
-                    : __('pages.song.description', ['title' => $template->title, 'parts' => implode(', ', array_column($song['parts'], 'name'))]),
+                // A round says round (its searches do), never SATB or harmony; SATB named where it's true
+                // (docs/search-content-plan.md, item 4): choirs search it.
+                'title' => SongParts::round($song['genre'])
+                    ? __('pages.song.title_round', ['title' => SongParts::searchTitle((string) $template->title)])
+                    : __('pages.song.title', ['title' => $template->title]),
+                'description' => match (true) {
+                    SongParts::round($song['genre']) => __('pages.song.description_round', ['title' => SongParts::searchTitle((string) $template->title)]),
+                    SongParts::satb(array_column($song['parts'], 'key')) => __('pages.song.description_satb', ['title' => $template->title]),
+                    default => __('pages.song.description', ['title' => $template->title, 'parts' => implode(', ', array_column($song['parts'], 'name'))]),
+                },
                 'url' => $song['pageUrl'],
                 // The song's own card (made on the first visit; the landing's until then).
                 'image' => $cards->url($template, 'join'),

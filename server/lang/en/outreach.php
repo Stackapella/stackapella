@@ -15,7 +15,7 @@ return [
         ],
         'choir_groups' => [
             'subject' => 'Would you take a look at my singing app?',
-            'body' => "Hi,\n\nMy name is Hillel. I'm a singer and programmer and have been working on an app to help people (including myself) become better singers.\n\nFor a choir, each singer can learn their own part at home with a guide voice singing it alongside them and see how close they are to each note, and a director can share songs with the choir, give each singer a part and see who has practised.\n\nIf you send me a song your choir is rehearsing, I'll make part-by-part learning tracks for your singers, free (it needs to be public domain or your own arrangement).\n\nThe courses are all free, if you have the time to take a look I'd very much appreciate any feedback you have.\n\n:link\n\nCheers,\nHillel",
+            'body' => "Hi,\n\nMy name is Hillel. I'm a singer and programmer and have been working on an app to help people (including myself) become better singers.\n\nFor a choir, each singer can learn their own part at home with a guide voice singing it alongside them and see how close they are to each note, and a director can share songs with the choir, give each singer a part and see who has started and recorded it.\n\nIf you send me a song your choir is rehearsing, I'll make part-by-part learning tracks for your singers, free (it needs to be public domain or your own arrangement).\n\nThe courses are all free, if you have the time to take a look I'd very much appreciate any feedback you have.\n\n:link\n\nCheers,\nHillel",
         ],
         'course' => [
             'subject' => 'Would you take a look at my singing app?',

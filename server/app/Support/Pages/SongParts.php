@@ -141,6 +141,23 @@ final class SongParts
     public const SATB = ['soprano', 'alto', 'tenor', 'bass'];
 
     /**
+     * Whether a song is a round (its file's genre says so): everyone sings the same tune, entering in turn, so its pages
+     * say round, not SATB or harmony (the search plan: "row row row your boat round").
+     *
+     * @param  list<string>  $genres
+     */
+    public static function round(array $genres): bool
+    {
+        return in_array('round', array_map(static fn (string $g): string => strtolower(trim($g)), $genres), true);
+    }
+
+    /** A round's title as search puts it, without its "(round)" (the page says round itself). */
+    public static function searchTitle(string $title): string
+    {
+        return trim((string) preg_replace('/\s*\(round\)\s*$/i', '', $title));
+    }
+
+    /**
      * Whether a song's parts are SATB's four (SongParts::SATB), in order.
      *
      * @param  list<string>  $keys
@@ -195,7 +212,8 @@ final class SongParts
             ],
             'part' => $part,
             // Whether its parts are SATB's four, so the page can say so (docs/search-content-plan.md, item 4).
-            'satb' => self::satb(array_column($parts, 'key')),
+            'satb' => self::satb(array_column($parts, 'key')) && ! self::round(array_values(array_filter((array) ($data['genre'] ?? []), 'is_string'))),
+            'round' => self::round(array_values(array_filter((array) ($data['genre'] ?? []), 'is_string'))),
             'parts' => array_map(static fn (array $p): array => [
                 'key' => $p['key'], 'name' => $p['name'], 'melody' => $p['melody'], 'lowName' => $p['lowName'], 'highName' => $p['highName'],
                 'url' => $base.'/'.$p['key'], 'current' => $p['key'] === $key,

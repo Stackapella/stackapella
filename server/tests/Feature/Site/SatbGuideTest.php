@@ -69,6 +69,18 @@ final class SatbGuideTest extends TestCase
         $this->get('/guides/what-is-a-descant')->assertOk()->assertDontSee('id="guide-mixer"', false)->assertDontSee('/js/public/mixer.js', false);
     }
 
+    public function test_a_round_says_round_never_satb_or_harmony(): void
+    {
+        $this->get('/songs/row-row-row')->assertOk()
+            ->assertSee('<title>Row, Row, Row Your Boat Round: Learn Every Part', false)
+            ->assertSee('<meta name="description" content="'.e(__('pages.song.description_round', ['title' => 'Row, Row, Row Your Boat'])).'"', false)
+            ->assertDontSee('(round) Harmony', false);
+        $this->get('/songs/row-row-row/alto')->assertOk()
+            ->assertSee('Row, Row, Row Your Boat Round, Alto Part', false)
+            ->assertSee('the alto entry of Row, Row, Row Your Boat, a round', false)
+            ->assertDontSee('(SATB)', false);
+    }
+
     public function test_a_guide_without_the_panel_or_questions_has_neither(): void
     {
         $this->get('/guides/vocal-percussion')->assertOk()

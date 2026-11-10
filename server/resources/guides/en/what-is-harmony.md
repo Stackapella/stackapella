@@ -1,12 +1,12 @@
 ---
 title: What is harmony? A plain guide for singers
-description: Harmony is different notes sung at once that sound good together. Here's what that means, how chords work, and why it sounds so good.
+description: Harmony in music is different notes sung at once that sound good together. Here's what that means, how chords work, and why it sounds so good.
 song: happy-birthday
-version: 1
+version: 2
 reviewed: false
 ---
 
-# What is harmony?
+# What is harmony in music? A singer's guide
 
 Harmony is two or more different notes sung at the same time that sound good together. You've
 heard it all your life: in a choir, in a band's backing vocals, in a family singing round a table.

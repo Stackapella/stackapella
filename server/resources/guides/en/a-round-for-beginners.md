@@ -1,12 +1,12 @@
 ---
 title: A round: the easiest way to start singing harmony
-description: In a round, everyone sings the same tune, starting at different times, and the harmony happens by itself. It's the gentlest first step into singing in parts.
+description: How to sing a round: everyone sings the same tune, starting at different times, and the harmony happens by itself. The gentlest first step into parts.
 song: are-you-sleeping
-version: 1
+version: 2
 reviewed: false
 ---
 
-# A round: the easiest way to start singing harmony
+# How to sing a round: the easiest way to start singing harmony
 
 In a round, every voice sings the same tune, but each starts a little later. Because the tune is
 written to fit with itself, the harmony happens by itself: you only need to know one tune and
@@ -26,4 +26,5 @@ makes it easy, because what the others sing is something you already know.
 Record yourself singing the tune, then record it again starting a line later, and again. When you
 play them back together, you'll hear a round sung entirely by you.
 
-Try it with a round everyone knows.
+Try it with a round everyone knows, or with [Row, Row, Row Your Boat](/songs/row-row-row), whose four entries
+each have a page to learn on its own.

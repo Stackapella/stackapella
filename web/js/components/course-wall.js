@@ -23,7 +23,7 @@ const PROVIDERS = { google: tk('auth.google'), apple: tk('auth.apple') };
 
 export const CourseWall = {
     components: { Icon },
-    setup: () => ({ PROVIDERS }),
+    setup: () => ({ PROVIDERS, navigate }), // navigate: the template's sign-in link (Sentry, 2026-11-10: it wasn't there)
     props: {
         course: { type: Object, default: null }, // a course from the catalogue, or null for the free course
         lessonId: { type: String, required: true }, // the lesson it opens, to come back to after sign-up

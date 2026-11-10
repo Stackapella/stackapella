@@ -479,14 +479,14 @@ return [
 
             'choirs' => [
                 'group_start' => 'features-choirs',
-                'end' => ['title' => 'Bring your choir in.', 'body' => 'Share a song, give out the parts, and see who\'s ready.'],
+                'end' => ['title' => 'Bring your choir in.', 'body' => 'Share a song, give out the parts, and see who has started and recorded theirs.'],
                 'pic' => 'groups',
                 'name' => 'Choir groups',
                 'summary' => 'Directors share songs, assign parts and see who has recorded what.',
                 'title' => 'Choir groups: share songs and assign parts',
                 'description' => 'Directors share songs, give each singer a part, and see who has started and recorded it. Members learn at home with guide voices. Free, 18 and over.',
                 'headline' => 'Your choir, learning at home',
-                'lead' => 'Share a song with your choir, give everyone their part, and see who has it before rehearsal.',
+                'lead' => 'Share a song with your choir, give everyone their part, and see who has started and recorded it before rehearsal.',
                 'sections' => [
                     [
                         'pic' => 'assign',
@@ -494,7 +494,7 @@ return [
                         'body' => 'Invite members by link. Share any of our songs, or an arrangement you made yourself, and choose who sings what.',
                     ],
                     [
-                        'heading' => 'See who\'s ready',
+                        'heading' => 'See who has started',
                         'body' => 'For each part you assign, you see whether the singer hasn\'t started, has started, or has recorded it. You never see their recordings or their contact details.',
                     ],
                     [
@@ -509,7 +509,7 @@ return [
                 // The live demo (docs/demo-pages-plan.md): the director's view of a shared song, with a made-up choir.
                 'demo' => [
                     'kind' => 'choir',
-                    'title' => 'See who has their part',
+                    'title' => 'See who has recorded their part',
                     'lead' => 'A demo choir learning Amazing Grace before Thursday\'s rehearsal. Give the bass to someone, then move the week on and watch the parts come in.',
                     'start' => 'Open the director\'s view',
                     'caption' => 'The director\'s view of a shared song, as the app shows it, with made-up singers.',
@@ -696,7 +696,7 @@ return [
         'intermission' => 'Intermission',
         'kick' => 'For conductors and teachers',
         'title' => 'A serious tool for your singers.',
-        'lead' => 'Under the game is a practice tool built for rehearsals: every part to learn at home, honest feedback as they sing, and a place to see who has practised.',
+        'lead' => 'Under the game is a practice tool built for rehearsals: every part to learn at home, honest feedback as they sing, and a place to see who has started and recorded their part.',
         'quote' => 'Learn your part at home, so rehearsal is for singing together.',
         'items' => [
             ['Learning tracks for every part', 'Each part has a guide voice, in a key that fits and slower while it\'s new. Export a practice track with one part louder, or left out, for free.'],
@@ -826,9 +826,9 @@ return [
                 'try' => ['Write to Hillel', 'mailto::partners_email?subject=Learning%20tracks'],
                 'try_note' => 'Start a group, then ask for learning tracks from its page. Rather email? Write to Hillel with the song and your choir\'s parts.',
                 'name' => 'Directors and teachers',
-                'summary' => 'Learning tracks of your songs, and see who\'s ready.',
+                'summary' => 'Learning tracks of your songs, and see who has started.',
                 'title' => 'Choir learning tracks, one song free',
-                'description' => 'Ask for one song your choir is rehearsing and we\'ll make part-by-part learning tracks for your singers, free. You see who has learned their part.',
+                'description' => 'Ask for one song your choir is rehearsing and we\'ll make part-by-part learning tracks for your singers, free. You see who has started and recorded their part.',
                 'headline' => 'Rehearsals that start with the notes learned',
                 'lead' => 'Start a group for your choir, ask for one song you\'re rehearsing, and we\'ll make part-by-part learning tracks for your singers, free. Each singer learns their part at home, and you see who\'s ready.',
                 'sections' => [
@@ -889,7 +889,7 @@ return [
                 // The live demo (docs/demo-pages-plan.md): the director's view of a shared song, as on /features/choirs.
                 'demo' => [
                     'kind' => 'choir',
-                    'title' => 'See who has their part',
+                    'title' => 'See who has recorded their part',
                     'lead' => 'A demo choir learning Amazing Grace before Thursday\'s rehearsal. Give the bass to someone, then move the week on and watch the parts come in.',
                     'start' => 'Open the director\'s view',
                     'caption' => 'The director\'s view of a shared song, as the app shows it, with made-up singers.',
@@ -1561,6 +1561,8 @@ return [
         'title' => ':song :Part Part: Hear It, Learn It',
         'title_melody' => ':song Melody (:Part Part): Hear It, Learn It',
         'description' => 'Learn the :part part of :song by ear: hear it alone or with the other parts, and sing along as each note lights up. Range :low to :high. Free.',
+        'title_round' => ':song Round, :Part Part: Hear It, Learn It',
+        'description_round' => 'Learn the :part entry of :song, a round: hear it alone or with the other entries, and sing along as each note lights up. Range :low to :high. Free.',
         'description_satb' => 'Learn the :part part of :song (SATB) by ear: hear it alone or with the other three, and sing along as each note lights up. Range :low to :high. Free.',
         'crumb' => 'Where you are',
         'songs' => 'Songs',
