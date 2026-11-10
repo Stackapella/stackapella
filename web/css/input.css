@@ -2317,6 +2317,9 @@ select:disabled {
 .s-xcard .s-play { width: 44px; height: 44px; }
 .s-xcard .s-play svg { width: 18px; height: 18px; }
 .s-xcard h3 { font-size: 24px; line-height: 1.15; font-weight: 800; letter-spacing: -0.015em; text-wrap: balance; }
+.s-xcoll-in { padding-top: 32px; }
+.s-xcoll-intro { margin-top: 12px; max-width: 64ch; font-size: 16.5px; line-height: 1.6; color: var(--color-muted); }
+.s-songs-colls { display: flex; flex-wrap: wrap; gap: 8px 24px; }
 .s-xmeta { flex: 1; font-size: 14.5px; font-weight: 600; color: var(--color-muted); }
 /* Its parts as rows: the dot, the name (and MELODY), the range lined up, an arrow to the part's page. */
 .s-xparts { display: grid; gap: 6px; }

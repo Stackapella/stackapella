@@ -30,6 +30,7 @@ use App\Http\Controllers\Public\ReferencePagesController;
 use App\Http\Controllers\Public\SingTogetherPagesController;
 use App\Http\Controllers\Public\SitemapController;
 use App\Http\Controllers\Public\SitePagesController;
+use App\Http\Controllers\Public\SongCollectionPageController;
 use App\Http\Controllers\Public\SongPagesController;
 use App\Http\Controllers\Public\SongPartPagesController;
 use App\Http\Controllers\Public\ToolEmbedController;
@@ -69,6 +70,7 @@ use App\Support\Admin\IntendedUrl;
 use App\Support\Admin\StaffDevice;
 use App\Support\Http\ApiError;
 use App\Support\Pages\MudeoArrival;
+use App\Support\Pages\SongCollections;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Auth\Middleware\Authorize;
 use Illuminate\Contracts\Auth\Middleware\AuthenticatesRequests;
@@ -117,6 +119,8 @@ return Application::configure(basePath: dirname(__DIR__))
             Route::get('/songs', [SongPagesController::class, 'index'])->middleware(['nexus', 'throttle:public-pages'])->name('songs.index');
             // The Christmas carols page (App\Support\Pages\Carols), before a song's own address.
             Route::get('/songs/christmas-carols', CarolsPageController::class)->middleware(['nexus', 'throttle:public-pages'])->name('songs.carols');
+            // The song collections (App\Support\Pages\SongCollections: hymns), before a song's own address too.
+            Route::get('/songs/{collection}', SongCollectionPageController::class)->whereIn('collection', SongCollections::slugs())->middleware(['nexus', 'throttle:public-pages'])->name('songs.collection');
             Route::get('/songs/{slug}', [SongPagesController::class, 'show'])->where('slug', '[a-z0-9-]{1,80}')->middleware(['nexus', 'throttle:public-pages'])->name('songs.page');
             // Each part of a song (docs/seo-growth-plan.md): live, reviewed, public-domain songs only.
             Route::get('/songs/{slug}/{part}', [SongPartPagesController::class, 'show'])->where(['slug' => '[a-z0-9-]{1,80}', 'part' => '[a-z0-9-]{1,40}'])->middleware(['nexus', 'throttle:public-pages'])->name('songs.part');

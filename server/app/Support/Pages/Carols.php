@@ -44,26 +44,38 @@ final class Carols
                 continue;
             }
 
-            $url = '/songs/'.$template->slug;
-            $carols[] = [
-                'slug' => (string) $template->slug,
-                'title' => (string) $template->title,
-                'url' => $url,
-                'from' => self::from((string) $template->slug, (string) $template->title),
-                // Its opening line to play, as /songs plays a song's: every open song plays for guests (Hillel,
-                // 2026-11-08, "Yes, play for guests").
-                'line' => Landing::line($template),
-                // Its key, how much of it there is and its level, from the song file: "G major · Verse 1 · Beginner"
-                // (the UX review of Hillel's second mockup, 2026-11-10). Never a length: the files don't give one.
-                'meta' => self::meta((array) $template->currentVersion?->data),
-                'parts' => array_map(static fn (array $part): array => [
-                    'key' => $part['key'], 'name' => $part['name'], 'melody' => $part['melody'],
-                    'lowName' => self::signs($part['lowName']), 'highName' => self::signs($part['highName']), 'url' => $url.'/'.$part['key'],
-                ], SongParts::parts($template)),
-            ];
+            $carols[] = self::card($template);
         }
 
         return $carols;
+    }
+
+    /**
+     * A song as a card in a songbook (this page, and the collections, SongCollections): its title and page, where it
+     * comes from, its opening line to play, its line from the song file, and its parts, each to its own page.
+     *
+     * @return array{slug: string, title: string, url: string, from: string|null, line: array<string, mixed>|null, meta: list<string>, parts: list<array{key: string, name: string, melody: bool, lowName: string, highName: string, url: string}>}
+     */
+    public static function card(Template $template): array
+    {
+        $url = '/songs/'.$template->slug;
+
+        return [
+            'slug' => (string) $template->slug,
+            'title' => (string) $template->title,
+            'url' => $url,
+            'from' => self::from((string) $template->slug, (string) $template->title),
+            // Its opening line to play, as /songs plays a song's: every open song plays for guests (Hillel,
+            // 2026-11-08, "Yes, play for guests").
+            'line' => Landing::line($template),
+            // Its key, how much of it there is and its level, from the song file: "G major · Verse 1 · Beginner"
+            // (the UX review of Hillel's second mockup, 2026-11-10). Never a length: the files don't give one.
+            'meta' => self::meta((array) $template->currentVersion?->data),
+            'parts' => array_map(static fn (array $part): array => [
+                'key' => $part['key'], 'name' => $part['name'], 'melody' => $part['melody'],
+                'lowName' => self::signs($part['lowName']), 'highName' => self::signs($part['highName']), 'url' => $url.'/'.$part['key'],
+            ], SongParts::parts($template)),
+        ];
     }
 
     /**

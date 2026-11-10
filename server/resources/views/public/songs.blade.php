@@ -33,6 +33,10 @@
             @if (($carols ?? null) !== null)
                 <p class="s-songs-season"><a href="{{ $carols }}" class="s-lk">{{ __('site.carols.songs_link') }} <x-site.icon name="arrow" size="16" /></a></p>
             @endif
+            {{-- The song collections (SongCollections: hymns), each a plain link. --}}
+            @if (($collections ?? []) !== [])
+                <p class="s-songs-season s-songs-colls">@foreach ($collections as $collection)<a href="{{ $collection['path'] }}" class="s-lk">{{ __('site.collections.'.$collection['slug'].'.songs_link') }} <x-site.icon name="arrow" size="16" /></a>@endforeach</p>
+            @endif
         </section>
 
         @foreach ([['free', $all, __('pages.songs.free_title')]] as [$key, $group, $heading])

@@ -1,0 +1,67 @@
+{{-- A songbook (the carols page and the song collections, SongCollections): each song as a card, its number, an optional
+     place-and-year chip (`places`: a words key whose children are by song), its first line to play (mixer.js), its line
+     from the song file and its parts as rows to their pages; with an "I sing" filter that rings one part on every card
+     (js/public/carols.js). `songs` are Carols::card()s; `heading`, `sub` and `subPart` (":part") are the page's words. --}}
+@php($singParts = collect($songs)->flatMap(fn (array $song): array => $song['parts'])->unique('key')->mapWithKeys(fn (array $part): array => [$part['key'] => $part['name']])->all())
+        <section id="songbook" class="s-wrap s-xbook" aria-labelledby="book-h" data-songbook>
+            <div class="s-xbook-head">
+                <div>
+                    <h2 id="book-h">{{ $heading }}</h2>
+                    <p class="s-xbook-sub" data-book-sub data-any="{{ $sub }}" data-part="{{ $subPart }}">{{ $sub }}</p>
+                </div>
+                {{-- Plain buttons (a menu on a phone), remembered only while the page is open. --}}
+                <div class="s-xfilter">
+                    <span class="s-xfilter-k" id="sing-k">{{ __('site.carols.i_sing') }}</span>
+                    <div class="s-xfilter-seg" role="group" aria-labelledby="sing-k">
+                        <button type="button" data-sing="" aria-pressed="true">{{ __('site.carols.any_part') }}</button>
+                        @foreach ($singParts as $key => $name)
+                            <button type="button" data-sing="{{ $key }}" aria-pressed="false" class="s-v{{ $loop->iteration }}"><i aria-hidden="true"></i>{{ $name }}</button>
+                        @endforeach
+                    </div>
+                    <select class="s-xfilter-menu" aria-labelledby="sing-k" data-sing-menu>
+                        <option value="">{{ __('site.carols.any_part') }}</option>
+                        @foreach ($singParts as $key => $name)
+                            <option value="{{ $key }}">{{ $name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
+
+            <div class="s-xcards">
+                @foreach ($songs as $carol)
+                    <article id="carol-{{ $carol['slug'] }}" class="s-xcard s-xrib{{ $loop->index % 3 + 1 }}" aria-labelledby="carol-{{ $carol['slug'] }}-h" @if ($carol['line'] !== null) data-player @endif>
+                        <div class="s-xcard-top">
+                            <span class="s-xno s-xserif">{{ __('site.carols.number', ['n' => sprintf('%02d', $loop->iteration)]) }}</span>
+                            @if ($places !== null && trans()->has($places.'.'.$carol['slug']))
+                                <span class="s-xplace">{{ __($places.'.'.$carol['slug']) }}</span>
+                            @endif
+                            {{-- Its first line in every part, in the guide voices (mixer.js), one carol at a time. --}}
+                            @if ($carol['line'] !== null)
+                                <script type="application/json" data-song>@json($carol['line'])</script>
+                                <button type="button" class="s-play" data-play aria-label="{{ __('site.carols.play', ['song' => $carol['title']]) }}" data-label-play="{{ __('site.carols.play', ['song' => $carol['title']]) }}" data-label-stop="{{ __('site.carols.stop', ['song' => $carol['title']]) }}">
+                                    <span class="s-i-play"><x-site.icon name="play" size="16" /></span><span class="s-i-stop"><x-site.icon name="stop" size="16" /></span>
+                                </button>
+                            @endif
+                        </div>
+                        <h3 id="carol-{{ $carol['slug'] }}-h" translate="no">{{ $carol['title'] }}</h3>
+                        {{-- Its key, how much of it and its level, from the song file; its story is on its own page. --}}
+                        @if ($carol['meta'] !== [])
+                            <p class="s-xmeta">{{ implode(' · ', $carol['meta']) }}</p>
+                        @endif
+                        <ul class="s-xparts" aria-label="{{ __('site.carols.parts') }}">
+                            @foreach ($carol['parts'] as $part)
+                                <li>
+                                    <a href="{{ $part['url'] }}" class="s-xpart s-v{{ $loop->iteration }}" data-part-key="{{ $part['key'] }}">
+                                        <i aria-hidden="true"></i>
+                                        <span class="s-xpart-name"><b>{{ $part['name'] }}</b>@if ($part['melody'])<span class="s-xmel">{{ __('site.song_part.melody_tag') }}</span>@endif</span>
+                                        <span class="s-xrange" translate="no">{{ __('site.song_part.other_range', ['low' => $part['lowName'], 'high' => $part['highName']]) }}</span>
+                                        <x-site.icon name="arrow" size="16" />
+                                    </a>
+                                </li>
+                            @endforeach
+                        </ul>
+                        <a href="{{ $carol['url'] }}" class="s-lk s-xmore">{{ __('site.carols.song_page', ['song' => $carol['title']]) }} <x-site.icon name="arrow" size="16" /></a>
+                    </article>
+                @endforeach
+            </div>
+        </section>

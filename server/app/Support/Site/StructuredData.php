@@ -113,6 +113,26 @@ final class StructuredData
     }
 
     /**
+     * A song collection (/songs/<collection>, SongCollections): its songs as an ItemList, and the trail Songs, the
+     * collection.
+     *
+     * @param  list<array{title: string, url: string}>  $songs
+     * @return list<array<string, mixed>>
+     */
+    public static function collection(string $name, string $crumb, string $url, array $songs): array
+    {
+        return [
+            [
+                '@context' => 'https://schema.org',
+                '@type' => 'ItemList',
+                'name' => $name,
+                'itemListElement' => array_map(static fn (array $song, int $i): array => ['@type' => 'ListItem', 'position' => $i + 1, 'name' => $song['title'], 'url' => Hosts::publicUrl().$song['url']], $songs, array_keys($songs)),
+            ],
+            self::breadcrumbs([[(string) __('site.song_part.songs'), Hosts::publicUrl().'/songs'], [$crumb, $url]]),
+        ];
+    }
+
+    /**
      * The trail a page shows above its heading, as a list from the site's home: each step's name and
      * address, the last one this page.
      *

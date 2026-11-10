@@ -10,6 +10,7 @@ use App\Models\Template;
 use App\Support\Http\Hosts;
 use App\Support\Pages\Carols;
 use App\Support\Pages\Landing;
+use App\Support\Pages\SongCollections;
 use App\Support\Pages\SongPage;
 use App\Support\Pages\SongParts;
 use App\Support\Sharing\SongCards;
@@ -46,6 +47,8 @@ final class SongPagesController extends Controller
             'meta' => ['title' => __('pages.songs.title'), 'description' => __('pages.songs.description'), 'url' => Hosts::publicUrl().'/songs'],
             // In the carol season, the Christmas carols page, while a carol is open.
             'carols' => Carols::inSeason() && app(Carols::class)->songs() !== [] ? Carols::PATH : null,
+            // The song collections that are pages (SongCollections), each a link under the heading.
+            'collections' => app(SongCollections::class)->open(),
         ], 200, self::headers());
     }
 

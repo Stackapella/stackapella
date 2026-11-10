@@ -1557,6 +1557,31 @@ return [
         ],
     ],
 
+    // The song collections, /songs/<collection> (App\Support\Pages\SongCollections; docs/search-content-plan.md: pages
+    // for what choirs search, each checked for demand first): each one's words, the page there only with these.
+    'collections' => [
+        // Google's suggestions, 2026-11-10: "hymns satb", "easy hymns for choir", "hymns in 4 part harmony".
+        'hymns' => [
+            'title' => 'Hymns in SATB: Learn Your Part Free',
+            'description' => 'Well-loved hymns in four-part SATB harmony, free: learn your soprano, alto, tenor or bass part by ear, hear it with the others, and sing along.',
+            'crumb' => 'Hymns',
+            'headline' => 'Hymns in four parts,',
+            'headline_em' => 'part by part',
+            'lead' => 'Learn your part of a hymn before Sunday or rehearsal. Free, in your browser, no account.',
+            'intro' => [
+                'Every hymn here is public domain and set in four parts, soprano, alto, tenor and bass, with the tune in the soprano. Each card says its key and how hard it is.',
+                'Play a hymn\'s first line to hear all four parts together, then open your part to hear it alone or with the others under it, and sing along as each note lights up.',
+            ],
+            'pick' => 'Pick a hymn',
+            'songbook' => 'The hymns',
+            'songbook_sub' => 'Pick your part, or press play to hear a hymn\'s first line in every part.',
+            'songbook_part' => 'Showing your :part part in every hymn. Press play to hear it with the others.',
+            'list' => 'Hymns to learn in four parts',
+            'try_link' => 'Learn a hymn, free',
+            'songs_link' => 'Hymns, part by part',
+        ],
+    ],
+
     'song_part' => [
         'title' => ':song :Part Part: Hear It, Learn It',
         'title_melody' => ':song Melody (:Part Part): Hear It, Learn It',

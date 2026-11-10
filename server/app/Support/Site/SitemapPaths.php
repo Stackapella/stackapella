@@ -14,6 +14,7 @@ use App\Models\TemplateVersion;
 use App\Support\Pages\Carols;
 use App\Support\Pages\Lessons;
 use App\Support\Pages\Reference;
+use App\Support\Pages\SongCollections;
 use App\Support\Pages\SongParts;
 use App\Support\Pages\Warmups;
 use App\Support\Templates\Catalogue;
@@ -62,6 +63,10 @@ final class SitemapPaths
         // The Christmas carols page, while a carol is open.
         if (app(Carols::class)->songs() !== []) {
             $paths[] = Carols::PATH;
+        }
+        // The song collections that are pages (SongCollections: enough open songs).
+        foreach (app(SongCollections::class)->open() as $collection) {
+            $paths[] = $collection['path'];
         }
 
         // Ideas on the shelf and the choirs people have sung in, while each is open.
@@ -140,6 +145,12 @@ final class SitemapPaths
         $carols = app(Carols::class)->lastModified();
         if ($carols !== null) {
             $dates[Carols::PATH] = $carols;
+        }
+        foreach (app(SongCollections::class)->open() as $collection) {
+            $when = app(SongCollections::class)->lastModified($collection['slug']);
+            if ($when !== null) {
+                $dates[$collection['path']] = $when;
+            }
         }
 
         return $dates;
