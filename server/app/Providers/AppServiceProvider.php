@@ -57,6 +57,7 @@ use App\Services\InvoiceNinja\HttpInvoiceNinja;
 use App\Services\InvoiceNinja\InvoiceNinja;
 use App\Services\Mail\CloudflareTransport;
 use App\Support\Admin\AdminGate;
+use App\Support\Cache\RetryingDatabaseStore;
 use App\Support\Flags;
 use App\Support\Gallery\Gallery;
 use App\Support\Ops\TempFiles;
@@ -64,6 +65,8 @@ use App\Support\Templates\Catalogue;
 use App\Support\Trust\Limits;
 use App\Support\Usage\Plans;
 use App\Support\Web\AppShell;
+use Illuminate\Cache\Repository;
+use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Database\Connection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Relation;
@@ -71,6 +74,7 @@ use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Queue\Events\JobProcessing;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Log;
@@ -90,6 +94,22 @@ final class AppServiceProvider extends ServiceProvider
 
     public function register(): void
     {
+        // The database cache, built as Laravel's own `database` driver builds it, with the retrying store.
+        // Once every provider is registered, before any boots (the rate limiters ask for the cache).
+        $this->app->booting(static fn () => Cache::extend('database_retrying', function (Application $app, array $config): Repository {
+            $db = $app->make('db');
+            $store = new RetryingDatabaseStore(
+                $db->connection($config['connection'] ?? null),
+                (string) $config['table'],
+                (string) ($config['prefix'] ?? config('cache.prefix')),
+                (string) ($config['lock_table'] ?? 'cache_locks'),
+                serializableClasses: config('cache.serializable_classes'),
+            );
+            $store->setLockConnection($db->connection($config['lock_connection'] ?? $config['connection'] ?? null));
+
+            return Cache::repository($store, $config);
+        }));
+
         // Our webhook route (/webhooks/stripe, App\Http\Controllers\Billing\StripeWebhookController),
         // not Cashier's; Plus is kept while Stripe retries a payment; Stripe Tax works out the tax.
         Cashier::ignoreRoutes();

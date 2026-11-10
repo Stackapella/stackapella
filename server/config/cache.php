@@ -41,8 +41,9 @@ return [
             'serialize' => false,
         ],
 
+        // The database cache, retrying a write that loses a deadlock (App\Support\Cache\RetryingDatabaseStore).
         'database' => [
-            'driver' => 'database',
+            'driver' => 'database_retrying',
             'connection' => env('DB_CACHE_CONNECTION'),
             'table' => env('DB_CACHE_TABLE', 'cache'),
             'lock_connection' => env('DB_CACHE_LOCK_CONNECTION'),

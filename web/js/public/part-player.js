@@ -26,14 +26,17 @@ const clock = (seconds) => `${Math.floor(seconds / 60)}:${String(Math.floor(seco
  */
 export function mountPartPlayer(el, { slug, part, url = null, startUrl = '', words = {}, listen = null } = {}) {
     el.dataset.ui = 'part-player';
+    // One panel (Hillel's part page redesign, 2026-11-10: "it makes better use of space"): a header row first, so focus
+    // goes in the order it's seen (Play and the time at the left, the modes at the right, the real voice's choice beside
+    // them; under 640 px the modes take a line of their own), then the lane the panel's width, taller on a wide screen.
     el.innerHTML = `
-        <div class="relative h-56 overflow-hidden rounded-3xl bg-raised sm:h-72" data-ui="part-lane"></div>
-        <div class="mt-3" data-ui="part-modes"></div>
-        <div class="mt-3 flex flex-wrap items-center gap-x-4 gap-y-3">
-            <button type="button" class="btn-primary min-h-14 min-w-0 flex-1 gap-3 rounded-full text-[1.0625rem] sm:flex-none sm:px-8" data-ui="part-play"><span class="h-4 w-3.5 shrink-0 bg-current [clip-path:polygon(0_0,100%_50%,0_100%)]" aria-hidden="true" data-play-icon></span><span data-play-label></span></button>
+        <div class="flex flex-wrap items-center gap-x-4 gap-y-3" data-part-head>
+            <button type="button" class="btn-primary min-h-14 min-w-0 gap-3 rounded-full px-8 text-[1.0625rem]" data-ui="part-play"><span class="h-4 w-3.5 shrink-0 bg-current [clip-path:polygon(0_0,100%_50%,0_100%)]" aria-hidden="true" data-play-icon></span><span data-play-label></span></button>
             <span class="font-mono text-sm tabular-nums text-muted" data-ui="part-time">0:00</span>
-            <div class="hidden w-full sm:ml-auto sm:w-auto" data-ui="part-voice"></div>
+            <div class="w-full sm:ml-auto sm:w-auto" data-ui="part-modes"></div>
+            <div class="hidden w-full sm:w-auto" data-ui="part-voice"></div>
         </div>
+        <div class="relative mt-4 h-56 overflow-hidden rounded-3xl bg-raised sm:h-72 lg:h-96" data-ui="part-lane"></div>
         <p class="mt-3 min-h-5 text-sm text-muted" role="status" data-ui="part-status"></p>
         <a class="mt-1 inline-block py-2 text-sm font-semibold text-cream underline underline-offset-4 hover:text-[var(--primary)]" data-ui="part-open" hidden></a>`;
     const $ = (hook) => el.querySelector(`[data-ui="${hook}"]`);

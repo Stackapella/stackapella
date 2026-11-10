@@ -24,7 +24,8 @@ final class PruneCache extends Command
     {
         $store = (string) config('cache.default');
 
-        if (config("cache.stores.{$store}.driver") !== 'database') {
+        // Ours is `database_retrying` (App\Support\Cache\RetryingDatabaseStore): the same table.
+        if (! in_array(config("cache.stores.{$store}.driver"), ['database', 'database_retrying'], true)) {
             $this->info('The cache isn\'t the database: nothing to prune.');
 
             return self::SUCCESS;
