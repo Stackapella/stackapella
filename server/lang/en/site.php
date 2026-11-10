@@ -1580,6 +1580,48 @@ return [
             'try_link' => 'Learn a hymn, free',
             'songs_link' => 'Hymns, part by part',
         ],
+        // Google's suggestions, 2026-11-10: "spirituals for choir", "spirituals satb", "easy spirituals for choir",
+        // "african american spirituals satb". The courses lead checked the history (2026-11-10).
+        'spirituals' => [
+            'title' => 'Spirituals for Choir: Learn Your Part Free',
+            'description' => 'African American spirituals for choir in four-part SATB harmony, free: learn your part by ear, hear it with the others, and sing along in your browser.',
+            'crumb' => 'Spirituals',
+            'headline' => 'Spirituals for choir,',
+            'headline_em' => 'part by part',
+            'lead' => 'Learn your part of a spiritual before rehearsal. Free, in your browser, no account.',
+            'intro' => [
+                'Spirituals are songs first sung by enslaved African Americans. They were sung long before they were written down; the first printed collections came after emancipation, and the Fisk Jubilee Singers carried them across the United States from 1871 and to Europe from 1873. Composers such as Harry T. Burleigh later set them for concert singers and choirs.',
+                'Deep River is Burleigh\'s own setting, as G. Schirmer printed it in 1914; the rest are our own four-part arrangements of the traditional tunes and words. Each song\'s page tells where it comes from. Learn the words and their story as well as the notes.',
+            ],
+            'pick' => 'Pick a spiritual',
+            'songbook' => 'The spirituals',
+            'songbook_sub' => 'Pick your part, or press play to hear a spiritual\'s first line as the choir sings it.',
+            'songbook_part' => 'Showing your :part part in every spiritual. Press play to hear it with the others.',
+            'list' => 'Spirituals to learn in four parts',
+            'try_link' => 'Learn a spiritual, free',
+            'songs_link' => 'Spirituals, part by part',
+        ],
+        // Google's suggestions, 2026-11-10: "easy sea shanties to sing", "sea shanties to sing with friends", "best sea
+        // shanties to sing", "sea shanty songs for choir", "sea shanty harmony". The courses lead checked the history (2026-11-10).
+        'sea-shanties' => [
+            'title' => 'Sea Shanties in Harmony: Learn Your Part Free',
+            'description' => 'Sea shanties to sing in four-part harmony with friends or a choir, free: learn your part by ear, hear it with the others, and sing along in your browser.',
+            'crumb' => 'Sea shanties',
+            'headline' => 'Sea shanties,',
+            'headline_em' => 'part by part',
+            'lead' => 'Learn your part of a sea shanty, then sing it with friends or your choir. Free, in your browser, no account.',
+            'intro' => [
+                'Shanties were the work songs of sailing ships: the shantyman usually sang a line and the crew answered as they hauled on a rope or marched round the capstan, so the singing kept everyone pulling together.',
+                'These are our own four-part arrangements of the tunes and words that W. B. Whall, Cecil Sharp and R. R. Terry printed from 1913 to 1921, and each song\'s page says which job it was sung for.',
+            ],
+            'pick' => 'Pick a shanty',
+            'songbook' => 'The shanties',
+            'songbook_sub' => 'Pick your part, or press play to hear how each shanty begins.',
+            'songbook_part' => 'Showing your :part part in every shanty. Press play to hear it with the others.',
+            'list' => 'Sea shanties to sing in four parts',
+            'try_link' => 'Learn a shanty, free',
+            'songs_link' => 'Sea shanties, part by part',
+        ],
     ],
 
     'song_part' => [

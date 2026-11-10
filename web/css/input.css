@@ -2320,6 +2320,9 @@ select:disabled {
 .s-xcoll-in { padding-top: 32px; }
 .s-xcoll-intro { margin-top: 12px; max-width: 64ch; font-size: 16.5px; line-height: 1.6; color: var(--color-muted); }
 .s-songs-colls { display: flex; flex-wrap: wrap; gap: 8px 24px; }
+.s-songs-jump { display: flex; flex-wrap: wrap; gap: 6px 22px; margin-top: 18px; font-size: 15px; }
+.s-songs-jump a { min-height: 44px; display: inline-flex; align-items: center; }
+.s-songs-n { margin-left: 6px; color: var(--color-muted); font-weight: 600; }
 .s-xmeta { flex: 1; font-size: 14.5px; font-weight: 600; color: var(--color-muted); }
 /* Its parts as rows: the dot, the name (and MELODY), the range lined up, an arrow to the part's page. */
 .s-xparts { display: grid; gap: 6px; }
@@ -2327,7 +2330,9 @@ select:disabled {
 .s-xpart > i { width: 8px; height: 8px; border-radius: 50%; background: var(--c); }
 .s-xpart b { font-size: 15px; }
 .s-xpart > svg { color: var(--color-muted); }
-.s-xmel { margin-left: 6px; font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--ci); }
+/* The name and its melody tag wrap onto two lines when the row is short of room (the arcade font on a small phone), never under the range. */
+.s-xpart-name { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 6px; min-width: 0; }
+.s-xmel { font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--ci); }
 .s-xrange { font-size: 14px; color: var(--color-muted); font-variant-numeric: tabular-nums; }
 .s-xpart:hover, .s-xpart:focus-visible, .s-xpart[data-sung] { border-color: var(--color-cream); }
 .s-xpart[data-faded] { opacity: .4; }

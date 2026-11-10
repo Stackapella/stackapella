@@ -8,7 +8,6 @@ use App\Enums\TemplateAccess;
 use App\Http\Controllers\Controller;
 use App\Models\Template;
 use App\Support\Http\Hosts;
-use App\Support\Pages\Carols;
 use App\Support\Pages\Landing;
 use App\Support\Pages\SongCollections;
 use App\Support\Pages\SongPage;
@@ -40,15 +39,13 @@ final class SongPagesController extends Controller
         $songs = $catalogue->open();
 
         return response()->view('public.songs', [
-            'songs' => $songs->map(fn (Template $t): array => SongPage::of($t))->values()->all(),
+            'songs' => $all = array_values($songs->map(fn (Template $t): array => SongPage::of($t))->all()),
+            // The songs in groups (SongCollections::grouped): about 50 open is too many for one list.
+            'groups' => app(SongCollections::class)->grouped($all),
             // Each card's Play: a bundled song's opening line, by slug; any other song's notes come
             // only through the API, to an account (Hillel, 2026-10-27), so it has none.
             'lines' => $songs->mapWithKeys(fn (Template $t): array => [$t->slug => $t->access === TemplateAccess::Plus ? null : Landing::line($t)])->all(),
             'meta' => ['title' => __('pages.songs.title'), 'description' => __('pages.songs.description'), 'url' => Hosts::publicUrl().'/songs'],
-            // In the carol season, the Christmas carols page, while a carol is open.
-            'carols' => Carols::inSeason() && app(Carols::class)->songs() !== [] ? Carols::PATH : null,
-            // The song collections that are pages (SongCollections), each a link under the heading.
-            'collections' => app(SongCollections::class)->open(),
         ], 200, self::headers());
     }
 

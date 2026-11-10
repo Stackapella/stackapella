@@ -29,22 +29,25 @@
             <h1 id="page-h">{{ __('pages.songs.headline') }}</h1>
             <p class="s-lede">{{ __('pages.songs.lead') }}</p>
             <p class="s-countline">{{ __('pages.songs.count', ['count' => $all->count()]) }}</p>
-            {{-- The carol season (November to Twelfth Night): the Christmas carols page, part by part. --}}
-            @if (($carols ?? null) !== null)
-                <p class="s-songs-season"><a href="{{ $carols }}" class="s-lk">{{ __('site.carols.songs_link') }} <x-site.icon name="arrow" size="16" /></a></p>
-            @endif
-            {{-- The song collections (SongCollections: hymns), each a plain link. --}}
-            @if (($collections ?? []) !== [])
-                <p class="s-songs-season s-songs-colls">@foreach ($collections as $collection)<a href="{{ $collection['path'] }}" class="s-lk">{{ __('site.collections.'.$collection['slug'].'.songs_link') }} <x-site.icon name="arrow" size="16" /></a>@endforeach</p>
-            @endif
+            {{-- The groups below, one tap away (about 50 songs make a long page). --}}
+            <nav class="s-songs-jump" aria-label="{{ __('pages.songs.jump') }}">
+                @foreach ($groups as $group)
+                    <a href="#songs-{{ $group['key'] }}-h" class="s-lk">{{ __('pages.songs.groups.'.$group['key']) }}</a>
+                @endforeach
+            </nav>
         </section>
 
-        @foreach ([['free', $all, __('pages.songs.free_title')]] as [$key, $group, $heading])
-            @continue($group->isEmpty())
-            <section class="s-wrap s-sec" aria-labelledby="songs-{{ $key }}-h">
-                <h2 id="songs-{{ $key }}-h" class="s-kick">{{ $heading }}</h2>
+        {{-- The songs in groups (SongCollections::grouped), each with the page that collects it: the carols page, the hymns. --}}
+        @foreach ($groups as $group)
+            <section class="s-wrap s-sec" aria-labelledby="songs-{{ $group['key'] }}-h">
+                <div class="s-headrow">
+                    <h2 id="songs-{{ $group['key'] }}-h" class="s-kick">{{ __('pages.songs.groups.'.$group['key']) }} <span class="s-songs-n">{{ count($group['songs']) }}</span></h2>
+                    @if ($group['link'] !== null)
+                        <a href="{{ $group['link'] }}" class="s-arrow">{{ $group['key'] === 'christmas' ? __('site.carols.songs_link') : __('site.collections.'.$group['key'].'.songs_link') }} <x-site.icon name="arrow" size="16" /></a>
+                    @endif
+                </div>
                 <ul class="s-songs s-songs-2">
-                    @foreach ($group as $song)
+                    @foreach ($group['songs'] as $song)
                         <li @if (($lines[$song['slug']] ?? null) !== null) data-player @endif>
                             <a href="/songs/{{ $song['slug'] }}" class="s-song">
                                 <span class="s-row">

@@ -56,6 +56,12 @@ return [
         'eyebrow' => 'The songbook',
         'count' => ':count arrangements, every one free with an account.',
         'free_title' => 'Every song, free',
+        // /songs in groups (SongCollections::grouped), and the row that jumps to them.
+        'groups' => [
+            'christmas' => 'Christmas', 'rounds' => 'Rounds', 'spirituals' => 'Spirituals', 'hymns' => 'Hymns',
+            'sea-shanties' => 'Sea shanties', 'folk' => 'Folk songs', 'classical' => 'Classical and sacred', 'stage' => 'Barbershop, parlour and stage', 'more' => 'More songs',
+        ],
+        'jump' => 'Song groups',
         'play' => 'Play :title',
         'stop' => 'Stop :title',
         'open' => 'See the song',

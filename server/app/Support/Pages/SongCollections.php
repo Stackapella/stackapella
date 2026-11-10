@@ -18,6 +18,24 @@ final class SongCollections
     /** Each collection and the genres that put a song in it (a song file's genre, matched without case). */
     public const COLLECTIONS = [
         'hymns' => ['hymn'],
+        'spirituals' => ['spiritual'],
+        'sea-shanties' => ['sea shanty'],
+    ];
+
+    /**
+     * /songs in groups (the coordinator, 2026-11-10, as the library passed 40 open songs): each song in the first group,
+     * in this order, that one of its genres names, so a Christmas hymn sits with the Christmas songs and a round with the
+     * rounds; a song in none is under "more".
+     */
+    public const GROUPS = [
+        'christmas' => ['christmas', 'carol'],
+        'rounds' => ['round'],
+        'spirituals' => ['spiritual'],
+        'hymns' => ['hymn', 'gospel'],
+        'sea-shanties' => ['sea shanty'],
+        'folk' => ['folk', 'traditional', 'celebration'],
+        'classical' => ['classical', 'latin', 'choral'],
+        'stage' => ['barbershop', 'parlour song', 'early popular song', 'musical theatre'],
     ];
 
     /** Fewer open songs than this and the collection isn't a page (it would be thin). */
@@ -87,6 +105,47 @@ final class SongCollections
         }
 
         return $newest !== null ? Carbon::parse($newest)->utc()->toDateString() : null;
+    }
+
+    /**
+     * The /songs group a song's genres put it in (GROUPS, first match in order), or "more".
+     *
+     * @param  list<string>  $genres
+     */
+    public static function group(array $genres): string
+    {
+        $own = array_map(static fn (string $g): string => strtolower(trim($g)), $genres);
+        foreach (self::GROUPS as $key => $names) {
+            if (array_intersect($own, $names) !== []) {
+                return $key;
+            }
+        }
+
+        return 'more';
+    }
+
+    /**
+     * The songs, in /songs's groups: Christmas first in the carol season and last otherwise, then the rest in order,
+     * each with the page that collects it when there is one (the carols page only in its season); empty groups left out.
+     *
+     * @param  list<array<string, mixed>>  $songs  SongPage::of()s
+     * @return list<array{key: string, songs: list<array<string, mixed>>, link: string|null}>
+     */
+    public function grouped(array $songs): array
+    {
+        $order = array_keys(self::GROUPS);
+        $order = Carols::inSeason() ? $order : [...array_values(array_diff($order, ['christmas'])), 'christmas'];
+        $open = array_column($this->open(), 'path', 'slug');
+
+        $groups = [];
+        foreach ([...$order, 'more'] as $key) {
+            $in = array_values(array_filter($songs, static fn (array $song): bool => self::group(array_values(array_filter((array) ($song['genre'] ?? []), 'is_string'))) === $key));
+            if ($in !== []) {
+                $groups[] = ['key' => $key, 'songs' => $in, 'link' => $key === 'christmas' ? (Carols::inSeason() && app(Carols::class)->songs() !== [] ? Carols::PATH : null) : ($open[$key] ?? null)];
+            }
+        }
+
+        return $groups;
     }
 
     /** @param  list<string>  $genres */
