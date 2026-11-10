@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en" data-theme="stage-dark">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Vocal range test</title>
+    <!-- How a public page mounts the free vocal range test (js/public/tools/vocal-range-test.js): a box, the page's words,
+         mountRangeTest(). ?play=1 sings readings into it without a mic (window.__sing(midi, seconds)), for the flows. -->
+    <meta name="game-css" content="/css/site-game.css">
+    <link rel="stylesheet" href="/css/site.css">
+    <script src="/js/theme-boot.js"></script>
+    <script src="/js/game-css.js"></script>
+</head>
+<body class="bg-ink text-cream" data-tool-name="Vocal range test">
+    <main class="px-4">
+        <div id="range"></div>
+    </main>
+    <!-- The tools' frame (the brand row with the mark and the Theme button), so shots show the tool as its page does. -->
+    <script type="module" src="/tests/tool-frame.js"></script>
+    <script type="module">
+        import { mountRangeTest } from '/js/public/tools/vocal-range-test.js';
+        const words = {
+            intro: 'Sing your lowest comfortable note, then your highest. Hold each for a second.', warmUp: "Warm up first? Slide your voice up and down on an 'ng' for 30 seconds.",
+            start: 'Start', rangeValue: ':low to :high', lowTitle: 'Step 1: your lowest note', lowHow: "Sing 'ah' at a low note you can hold easily, then go lower, one note at a time. Hold each for a second.",
+            highTitle: 'Step 2: your highest note', highHow: 'Now go up the same way, one note at a time.', noStrain: 'Light and easy, no straining: stop at the first sign of strain.',
+            listening: 'Listening...', tooQuiet: "We couldn't hear enough: try again a little louder.", lowest: 'Lowest so far: :note', highest: 'Highest so far: :note',
+            done: 'Done', again: 'Again', heard: 'We heard :note', playIt: 'Play it', right: 'Sounds right', tryAgain: 'Not quite, try again',
+            falsetto: 'Did your top note use falsetto?', yes: 'Yes', no: 'No', notSure: 'Not sure', yourRange: 'Your range',
+            span: ':octaves and :notes (:semitones)', spanOctaves: ':octaves (:semitones)', spanNotes: ':notes (:semitones)',
+            octave: '1 octave', octaves: ':n octaves', note: '1 note', notes: ':n notes', semitones: ':n semitones',
+            fits: 'Your range fits the usual :type range.', choir: 'In a choir you would likely sing :part.',
+            caveat: 'Range is one clue. Where your voice feels easy and where it changes gear matter too; a teacher or choir director can confirm.',
+            whatIs: 'What is G2?', whatIsAnswer: 'The letter is the note and the number its octave: middle C is C4, and G2 is the G an octave and a fourth below it.',
+            bass: 'bass', baritone: 'baritone', tenor: 'tenor', alto: 'alto', mezzo: 'mezzo-soprano', soprano: 'soprano',
+            bassOrTenor2: 'Bass or Tenor 2', sopranoOrAlto: 'Soprano 2 or Alto 1',
+            more: 'More about your voice', compare: 'Your range against each voice type', comfortTitle: 'Your comfortable range (optional)',
+            comfortHow: "Sing 'Happy Birthday', or count to ten in a sung voice.", comfortStart: 'Start', comfortable: 'Comfortable: :low to :high',
+            falsettoNote: 'Your top note used falsetto, so your full-voice range ends a little lower.', options: 'Options', naming: 'Note names', letters: 'C D E',
+            fixedDo: 'Do Re Mi', save: 'Save on this device', saved: 'Saved on this device', history: 'Your saved results', retake: 'Retake it in a few weeks.',
+            share: 'Share my range', shareText: 'My range: :low to :high, :type range. Find yours:', copied: 'Copied',
+            cardTitle: 'My vocal range', cardChallenge: "What's yours?", cardTagline: 'Harmony, made by you.', cardSite: 'stackapella.com', cardSaved: 'Card saved, and the line copied',
+            manual: 'No mic? Pick your notes on the keyboard', manualHow: 'Tap a key to hear it: first your lowest note, then your highest.',
+            manualLow: 'Tap your lowest note', manualHigh: 'Now tap your highest note', restart: 'Start again', keyboard: 'Keyboard', noMic: 'Mic blocked: here is how to allow it', holding: 'Holding',
+            settingsTitle: 'Your voice and options', reset: 'Reset',
+        };
+        const fake = new URLSearchParams(location.search).has('play') && (async ({ onFrame }) => {
+            let at = 0;
+            window.__sing = (midi, seconds) => {
+                for (let i = 0; i < Math.round(seconds * 60); i++) onFrame({ at: (at += 1 / 60), hz: midi === null ? 0 : 440 * 2 ** ((midi - 69) / 12), loudness: midi === null ? -80 : -25 });
+            };
+            return { stop() {} };
+        });
+        window.__results = [];
+        window.__range = mountRangeTest(document.querySelector('#range'), { words, keySlot: document.querySelector('[data-tool-key]'), onResult: (r) => window.__results.push(r), onShared: () => (window.__shared = (window.__shared ?? 0) + 1), ...(fake ? { open: fake } : {}) });
+    </script>
+</body>
+</html>

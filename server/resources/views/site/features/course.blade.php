@@ -1,8 +1,8 @@
-{{-- The free course (/features/course), its own page: the course map. A winding road of eight stops in
+{{-- The beginner course (/features/course), its own page: the course map. A winding road of eight stops in
      the parts' four colours, ending in the four stacked bars of a song you sang every part of. What
      you'll be able to do, how a lesson goes (stars in the game skin, the plain measure in the
-     serious), the map unit by unit (unit 8 on Plus), the whole song is you, something to try now
-     (your comfortable note), three checked facts, who it's for, questions, the Plus courses that
+     serious), the map unit by unit (every unit free), the whole song is you, something to try now
+     (your comfortable note), three checked facts, who it's for, questions, the other courses that
      follow, and Start singing. Both skins; the art is wordless. Words: lang/en/site.php
      features.pages.course. --}}
 @php($outline = \App\Support\Site\SitePages::freeCourseOutline())
@@ -30,7 +30,7 @@
                 <svg viewBox="30 10 480 270" class="cp-fr-svg">
                     <polyline points="{{ implode(' ', array_map(fn ($p) => $p[0].','.$p[1], $stops)) }}" class="cp-fr-road" />
                     @foreach ($stops as [$x, $y])
-                        <circle cx="{{ $x }}" cy="{{ $y }}" r="{{ $loop->first ? 14 : 11 }}" class="cp-fr-stop s-v{{ $loop->index % 4 + 1 }}{{ $loop->last ? ' cp-fr-plus' : '' }}" />
+                        <circle cx="{{ $x }}" cy="{{ $y }}" r="{{ $loop->first ? 14 : 11 }}" class="cp-fr-stop s-v{{ $loop->index % 4 + 1 }}" />
                     @endforeach
                     @foreach ($bars as [$x, $y, $w])
                         <rect x="{{ $x }}" y="{{ $y }}" width="{{ $w }}" height="14" rx="7" class="cp-fr-bar s-v{{ $loop->iteration }}" />
@@ -72,7 +72,7 @@
                     @php($stage = __('pages.site.course_stage', ['n' => $loop->iteration]))
                     @php($unitName = __('pages.site.course_unit', ['n' => $loop->iteration]))
                     <li class="cp-unit">
-                        <p class="cp-unit-n"><x-site.skin :game="$stage" :serious="$unitName" />@if ($loop->iteration > 7) <span class="s-free cp-fr-plus-pill">{{ $page['plus_unit'] }}</span>@endif</p>
+                        <p class="cp-unit-n"><x-site.skin :game="$stage" :serious="$unitName" /></p>
                         <h3>{{ $unit['title'] }}</h3>
                         @isset($page['units_say'][$loop->index])
                             <p class="cp-unit-say">{{ $page['units_say'][$loop->index] }}</p>
@@ -125,6 +125,9 @@
         <h2 id="faq-h" class="s-title">{{ $page['titles']['faq'] }}</h2>
         @include('site.courses._faq')
     </section>
+
+    {{-- Each unit's own page to read (docs/seo-lesson-pages-plan.md; marketing placed it here, 2026-11-08). --}}
+    @include('site.courses._lesson-pages', ['course' => \App\Support\Pages\Lessons::FREE])
 
     <section class="cp-join" aria-labelledby="join-h">
         <div class="s-wrap s-sec">

@@ -4,9 +4,12 @@
      script in @section('scripts'). --}}
 <!DOCTYPE html>
 {{-- A page on the app's arcade screen (data-gs: the same layer and tokens as the app's game mode; it shows only in
-     the game skin): the landing, How it works, Pricing and Help (Hillel, 2026-10-31), and any page that opts in with
-     @section('arcade'). A calm page among them (a help article) keeps its reading type under the arcade header. --}}
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" dir="{{ __('meta.dir') }}" @if (request()->is('/', 'how-it-works', 'pricing', 'help', 'help/*', 'features', 'features/*', 'courses', 'courses/*') || $__env->hasSection('arcade')) data-gs @endif>
+     the game skin): the landing, How it works, Pricing and Help (Hillel, 2026-10-31), the songs (/songs, each song's
+     page, its parts, the carols) and the comparisons (game's arcade pass, 2026-11-10), About, the "for" pages, the
+     guides and What's new (the next pass, 2026-11-10), and any page that opts in with @section('arcade'). A calm page
+     among them (a help article, a guide) keeps its reading type under the arcade header. The legal pages stay off it
+     (docs/decisions.md). --}}
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" dir="{{ __('meta.dir') }}" @if (request()->is('/', 'how-it-works', 'pricing', 'help', 'help/*', 'features', 'features/*', 'courses', 'courses/*', 'songs', 'songs/*', 'compare', 'compare/*', 'about', 'for/*', 'guides', 'guides/*', 'whats-new') || $__env->hasSection('arcade')) data-gs @endif>
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -18,25 +21,46 @@
     @endif
     <title>{{ $title }}</title>
     <link rel="icon" href="/icons/favicon.svg" type="image/svg+xml">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    {{-- Figtree for reading; Bungee (headlines) and Press Start 2P (small HUD labels) for the site's
-         arcade look (Hillel, 2026-10-29: "love the 90's redesign"). --}}
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bungee&family=Figtree:wght@300..800&family=Press+Start+2P&family=VT323&display=swap">
+    {{-- Figtree for reading; Bungee (headlines) and Stackapella Pixel (small HUD labels) for the site's arcade look (Hillel,
+         2026-10-29: "love the 90's redesign"), all from our own address (css/input.css). Figtree's Latin half comes with
+         the page; the others load as a page uses them. --}}
+    <link rel="preload" as="font" type="font/woff2" href="/fonts/figtree-latin.woff2" crossorigin>
     <meta name="theme-color" content="#17120f">
     {{-- The theme the person chose anywhere (mode, colour and accent), before the page paints: shared
          with the app's host by a cookie on this domain (hosts.pass_domain; host-only without it). --}}
     @if (config('hosts.pass_domain'))
         <meta name="theme-cookie-domain" content="{{ config('hosts.pass_domain') }}">
     @endif
-    <script src="/js/theme-boot.js"></script>
-    <link rel="stylesheet" href="/css/app.css">
+    {{-- Each file asked for with its content's hash (?v=): nginx keeps this build's exact address a year, in the browser
+         and at the edge, as its bytes can't change under it; a new deploy's file has a new address
+         (App\Support\Http\StaticVersions, which also writes nginx's map). --}}
+    @php($web = (string) config('app.web_path'))
+    {{-- Game mode's own sheet (docs/css-split-plan.md, step 3): the game skin's rules, fetched only in game mode
+         (theme-boot.js preloads it) and linked right after site.css by game-css.js, so serious mode never loads them
+         and game mode never paints without them. --}}
+    <meta name="game-css" content="{{ \App\Support\Http\StaticVersions::url($web, '/css/site-game.css') }}">
+    <script src="{{ \App\Support\Http\StaticVersions::url($web, '/js/theme-boot.js') }}"></script>
+    <link rel="stylesheet" href="{{ \App\Support\Http\StaticVersions::url($web, '/css/site.css') }}">
+    <script src="{{ \App\Support\Http\StaticVersions::url($web, '/js/game-css.js') }}"></script>
+    {{-- The course pages' own rules (.cp-*), only where the page shows one (a course page, or a course demo on a "for",
+         guide or feature page) and only the courses it shows: /course-css/<prefixes>.css, courses.css less the other
+         courses' rules, in its order (App\Support\Site\CourseCss, docs/css-split-plan.md); the whole css/courses.css if
+         that ever fails. Read from what the page renders, so no view has to ask. --}}
+    @php($courseCss = \App\Support\Site\CourseCss::url($web, $__env->yieldContent('content').$__env->yieldContent('head')))
+    @if ($courseCss !== null)
+        <link rel="stylesheet" href="{{ $courseCss }}">
+    @endif
     @yield('head')
 </head>
 {{-- The arcade look on every public page; a page where people read or decide (help, legal, a guide)
      says @section('calm') and keeps the colours without the HUD type, glow or scanlines. --}}
 {{-- Help's index is where people pick a topic, so it takes the arcade look; its articles, where people read, stay calm. --}}
 <body @class(['min-h-dvh bg-ink font-sans text-cream antialiased s-arcade', 's-calm' => $__env->hasSection('calm') && ! request()->is('help')])>
+    {{-- Someone who came by an organization's outreach link (a known o- tag; Landing::links): one quiet
+         line to the partner offer, above everything else. Nobody else sees it. --}}
+    @if (is_string($links['partner'] ?? null) && ! request()->is('for/organizations'))
+        <p class="s-partnerbar"><span>{{ __('pages.site.partner_line') }}</span> <a href="{{ $links['partner'] }}" class="s-lk">{{ __('pages.site.partner_link') }}</a></p>
+    @endif
     @yield('content')
     @yield('scripts')
 </body>

@@ -26,9 +26,14 @@ def journey(f):
         f.wait("document.querySelector('[data-go-on]')", what=f"{course_id}: lesson 1 starts with no account")
         if course_id == "pitch":
             f.shot("lesson-1")
-            plus_only = f.js("(await import('/js/i18n.js')).t('courses.plusOnly')")
+            # From lesson 2, signed out: a free account to keep going (Hillel, 2026-11-06), never Plus or a price.
             f.go(f"/learn/{first[1]}", "document.querySelector('main')")
-            f.wait_text(plus_only)
+            f.wait("document.querySelector('[data-needs-account]')", what="lesson 2 asks a guest for a free account")
+            text = f.js("document.querySelector('[data-needs-account]').innerText")
+            assert "Plus" not in text and "$" not in text and "£" not in text and "€" not in text, f"no Plus or price: {text}"
+            href = f.js("document.querySelector('[data-needs-account] a.btn-primary').getAttribute('href')")
+            assert href.startswith("/signin?mode=signup&for=course&next="), href
+            f.shot("lesson-2-account")
     f.go("/learn/c/perfect-your-pitch", "document.querySelector('[data-up-next]')")
     f.shot("course")
 

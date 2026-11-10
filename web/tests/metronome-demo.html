@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en" data-theme="stage-dark">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Metronome</title>
+    <!-- How a public page mounts the free metronome (js/public/tools/metronome.js): a box, the page's words, mountMetronome(). -->
+    <meta name="game-css" content="/css/site-game.css">
+    <link rel="stylesheet" href="/css/site.css">
+    <script src="/js/theme-boot.js"></script>
+    <script src="/js/game-css.js"></script>
+</head>
+<body class="bg-ink text-cream" data-tool-name="Metronome">
+    <main class="px-4">
+        <div id="metronome"></div>
+    </main>
+    <!-- The tools' frame (the brand row with the mark and the Theme button), so shots show the tool as its page does. -->
+    <script type="module" src="/tests/tool-frame.js"></script>
+    <p class="mx-auto mt-6 max-w-xl text-sm text-muted">Text below the tool, to show the page keeps its own keys.</p>
+    <script type="module">
+        import { mountMetronome } from '/js/public/tools/metronome.js';
+        const words = {
+            play: 'Start', stop: 'Stop', tap: 'Tap', tempo: 'Tempo', bpm: 'BPM', slower: 'Slower', faster: 'Faster', markings: 'Tempo markings',
+            beats: 'Beats', subdivision: 'Subdivision', subNone: 'None', subEighths: 'Eighths', subTriplets: 'Triplets', subSixteenths: 'Sixteenths',
+            beatDot: 'Beat :n: :state', accent: 'Accent', normal: 'Normal', silent: 'Silent', more: 'More', done: 'Done', sound: 'Sound',
+            woodblock: 'Woodblock', click: 'Click', beep: 'Beep', soft: 'Soft wood', cowbell: 'Cowbell', volume: 'Volume', volAccent: 'Accent',
+            volBeat: 'Beat', volSub: 'Subdivision', countIn: 'Count-in', off: 'Off', oneBar: '1 bar', twoBars: '2 bars', counting: 'Count-in',
+            trainer: 'Speed trainer', trainerAdd: 'Add (BPM)', trainerEvery: 'Every (bars)', trainerMax: 'Up to (BPM)', silentBars: 'Silent bars',
+            silentPlay: 'Play (bars)', silentMute: 'Mute (bars)', timer: 'Timer', timerMinutes: 'minutes (0 is off)', timeUp: "Time's up",
+            grouping: 'Grouping', visual: 'Visual', visualDots: 'Beat dots', visualPulse: 'Soft full-screen pulse', presets: 'Presets',
+            presetName: 'Preset name', save: 'Save', remove: 'Remove :name', extend: 'Tempos up to 400',
+            fewerBeats: 'Fewer beats', moreBeats: 'More beats', playing: 'Playing', beatOf: 'Beat :n of :total', bar: 'Bar :n',
+            time: 'Time', beatsPerBar: ':n beats per bar', tapBeat: 'Tap a beat to accent or mute',
+            subNoneShort: 'Quarter', subEighthsShort: '8ths', subTripletsShort: 'Triplet', subSixteenthsShort: '16ths',
+            settingsTitle: 'Metronome settings', reset: 'Reset',
+        };
+        window.__metronome = mountMetronome(document.querySelector('#metronome'), { words, keySlot: document.querySelector('[data-tool-key]') });
+    </script>
+</body>
+</html>

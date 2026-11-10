@@ -1,25 +1,21 @@
 import { ReportVoice } from './report-voice.js';
-import { audio, chooseMic, chooseRoute, checkTiming, currentMicId, engine, looksWireless, measuredFor, micChoices, openMic, ROUTES } from '../audio.js';
+import { audio, checkClaps, chooseMic, chooseRoute, checkTiming, currentMicId, engine, looksWireless, measuredFor, micChoices, openMic, ROUTES } from '../audio.js';
+import { CLAP_CLICKS, CLAP_GAP_SECONDS } from '../timing-check.js';
 import { styleOf } from '../band-style.js';
 import { Switch } from './controls.js';
 import { formatBytes } from './cloud.js';
-import { hzToMidi, midiName, rankParts } from '../dsp.js';
-import { hear, LISTEN_CLARITY, listener } from '../listen.js';
-import { easeWindow, targetWindow, WIDE } from '../listening.js';
-import { pitchDisplay, stepDisplay } from '../pitch-display.js';
-import { trackFrame } from '../pitchtrack.js';
-import { PitchBar } from './listening.js';
+import { midiName, rankParts } from '../dsp.js';
+import { VoiceCapture } from './voice-capture.js';
 import { LevelMeter } from './level-meter.js';
-import { micDb, readyMic } from '../mic-check.js';
+import { micDb } from '../mic-check.js';
 import { formatList, formatNumber, t, tk } from '../i18n.js';
 import { lengthBeats, partsFor, singerOptions, templatePartName } from '../templates.js';
 import { formatTime, keyChoiceLabel, keyLabel, KEYS, PART_COLORS, TIME_SIGNATURES, transposeKey } from '../theme.js';
 import { Icon } from './icon.js';
-import { micError, MicPicker, WirelessNote } from './mic.js';
+import { micError, WirelessNote } from './mic.js';
 import { Modal } from './ui.js';
 
 const RANGE_HOLD_SECONDS = 1; // a note held this long counts toward the range
-const reducedMotion = () => window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
 import { learning, loadSongCourses, setRange } from '../stores/learning.js';
 import { account } from '../stores/account.js';
 import { songCourseVisible } from '../courses.js';
@@ -28,6 +24,8 @@ import { inFirstWeek } from './voice-care.js';
 import { prefs } from '../stores/prefs.js';
 import { exportNeedsPlus, isPlus } from '../stores/plan.js';
 
+// A song's pace in words for a new singer (no BPM: the design rules' first-week words).
+const TEMPO = { slow: tk('templates.tempo.slow'), steady: tk('templates.tempo.steady'), lively: tk('templates.tempo.lively') };
 const DIFFICULTY = { beginner: tk('templates.difficulty.beginner'), intermediate: tk('templates.difficulty.intermediate'), advanced: tk('templates.difficulty.advanced') };
 const ROOM_CHOICES = [
     { value: 'dry', label: tk('polish.room.dry') },
@@ -196,17 +194,19 @@ export const HeadphonesDialog = {
     // speakerOption: the course can go on without headphones (it quiets what plays under the voice).
     // action: the primary's words (Start recording, unless the screen says otherwise).
     // simple: a lesson's ask (onboarding review 2, 8): two buttons and why, the kinds and timing left to Settings.
-    props: { speakerOption: Boolean, action: { type: String, default: '' }, simple: Boolean },
+    // needed: a lesson that needs headphones (`headphones: "needed"`: what plays under you rests through a speaker), asked
+    // firmly but never a wall: the speaker stays a choice.
+    props: { speakerOption: Boolean, action: { type: String, default: '' }, simple: Boolean, needed: Boolean },
     emits: ['ok', 'close', 'speaker'],
     data: () => ({ never: false, picked: audio.route === 'bluetooth' ? 'bluetooth' : 'wired', primary, secondary }),
     setup: () => ({ measuredFor, KINDS: { wired: { name: tk('headphones.wired'), line: tk('headphones.wiredLine') }, bluetooth: { name: tk('headphones.bluetooth'), line: tk('headphones.bluetoothLine') } } }),
     // 102.png: the two kinds as radio cards, Ready or Needs timing check; Don't ask again, Not now, Start recording.
     template: `
-        <Modal v-if="simple" :title="t('headphones.title')" @close="$emit('close')">
-            <div class="space-y-5" data-headphones data-headphones-simple>
-                <p class="text-cream">{{ t('headphones.lessonBody') }}</p>
+        <Modal v-if="simple" :title="needed ? t('headphones.needed.title') : t('headphones.title')" @close="$emit('close')">
+            <div class="space-y-5" data-headphones data-headphones-simple :data-headphones-needed="needed ? '' : null">
+                <p class="text-cream">{{ needed ? t('headphones.needed.body') : t('headphones.lessonBody') }}</p>
                 <div class="grid grid-cols-2 gap-3">
-                    <button type="button" :class="secondary" @click="$emit('speaker')">{{ t('headphones.none') }}</button>
+                    <button type="button" :class="secondary" @click="$emit('speaker')">{{ needed ? t('headphones.needed.speaker') : t('headphones.none') }}</button>
                     <button type="button" :class="primary" data-autofocus @click="$emit('ok', false)">{{ action || t('headphones.on') }}</button>
                 </div>
             </div>
@@ -246,10 +246,14 @@ export const TimingDialog = {
     // required: a measured delay is needed (a beta guide), so there's no "use an estimate".
     props: { beforeRecording: Boolean, required: Boolean },
     emits: ['done', 'skip', 'close'],
-    data: () => ({ step: 'choose', progress: 0, result: null, db: null, details: false, error: null, audio, ROUTES, primary, secondary, field, label, formatNumber }),
+    data: () => ({ step: 'choose', progress: 0, result: null, db: null, details: false, error: null, clickTest: false, failedWhy: null, audio, ROUTES, primary, secondary, field, label, formatNumber }),
     setup: () => ({ micChoices, currentMicId, looksWireless }),
+    computed: {
+        /** Bluetooth's check is clap along (earbuds stop playing out of the ear); the click test stays a choice (the AirPods tip). */
+        clapping: (vm) => vm.audio.route === 'bluetooth' && !vm.clickTest,
+    },
     template: `
-        <Modal :title="t('timing.title')" :subtitle="step === 'choose' ? t('timing.intro') : ''" wide :dismissable="step !== 'measuring'" @close="$emit('close')">
+        <Modal :title="t('timing.title')" :subtitle="step !== 'choose' ? '' : clapping ? t('timing.clap.intro') : t('timing.intro')" wide :dismissable="step !== 'measuring'" @close="$emit('close')">
             <!-- 101.png: the mic with its level, what you record with as three choices and what to do for it, then Skip and Start the check. -->
             <div v-if="step === 'choose'" class="space-y-5" data-timing>
                 <div class="space-y-2">
@@ -269,20 +273,25 @@ export const TimingDialog = {
                     <div class="seg w-full rounded-2xl" role="radiogroup" aria-labelledby="timing-route">
                         <button v-for="(route, name) in ROUTES" :key="name" type="button" role="radio" :aria-checked="audio.route === name ? 'true' : 'false'" class="seg-option flex-1 px-2 py-2 leading-tight" @click="pickRoute(name)">{{ t(route.label) }}</button>
                     </div>
-                    <p class="rounded-2xl bg-raised/60 px-4 py-3 text-cream" aria-live="polite">{{ t(ROUTES[audio.route]?.hint ?? ROUTES.wired.hint) }}</p>
+                    <p class="rounded-2xl bg-raised/60 px-4 py-3 text-cream" aria-live="polite" data-timing-hint>{{ clapping ? t('timing.clap.hint') : t(ROUTES[audio.route]?.hint ?? ROUTES.wired.hint) }}</p>
+                    <!-- Bluetooth (docs/wireless-timing-plan.md): clap along, or the click test with ear detection off. -->
+                    <p v-if="audio.route === 'bluetooth'" class="text-sm text-muted" data-clap-tip>
+                        {{ t('timing.clap.tip') }}
+                        <button type="button" class="link ms-1" data-clap-switch @click="clickTest = !clickTest">{{ clickTest ? t('timing.clap.useClaps') : t('timing.clap.useClicks') }}</button>
+                    </p>
                 </div>
                 <p v-if="error" class="rounded-xl bg-record/15 p-3 text-sm text-cream">{{ error }}</p>
                 <div class="-mx-6 flex flex-wrap items-center justify-end gap-3 border-t border-line px-6 pt-5">
-                    <button v-if="beforeRecording && !required" type="button" class="me-auto min-h-11 text-sm text-muted underline hover:text-cream" @click="$emit('skip')">{{ t('timing.skip') }}</button>
+                    <button v-if="beforeRecording && !required" type="button" class="me-auto min-h-11 text-sm text-muted underline hover:text-cream" @click="$emit('skip')">{{ clapping ? t('timing.clap.skip') : t('timing.skip') }}</button>
                     <p v-if="required" class="me-auto text-sm text-muted">{{ t('timing.requiredForGuides') }}</p>
-                    <button type="button" :class="primary" @click="measure">{{ t('timing.start') }}</button>
+                    <button type="button" :class="primary" data-timing-start @click="clapping ? clapAlong() : measure()">{{ clapping ? t('timing.clap.start') : t('timing.start') }}</button>
                 </div>
             </div>
             <div v-else-if="step === 'measuring'" class="flex flex-col items-center gap-5 py-6 text-center">
                 <div class="flex h-16 items-center gap-1.5">
                     <span v-for="i in 9" :key="i" class="w-2 animate-pulse rounded-full bg-part-4" :style="{ height: (20 + ((i * 37) % 44)) + 'px', animationDelay: (i * 90) + 'ms' }"></span>
                 </div>
-                <p class="text-cream">{{ t('timing.listening') }}</p>
+                <p class="text-cream" data-timing-listening>{{ clapping ? t('timing.clap.listening') : t('timing.listening') }}</p>
                 <div class="h-2 w-full max-w-xs overflow-hidden rounded-full bg-ink"><div class="h-full rounded-full bg-part-4 transition-[width]" :style="{ width: progress * 100 + '%' }"></div></div>
             </div>
             <div v-else-if="step === 'result'" class="space-y-4 text-center">
@@ -291,8 +300,8 @@ export const TimingDialog = {
                 <button type="button" class="text-sm text-muted underline" @click="details = !details">{{ details ? t('timing.hideDetails') : t('timing.showDetails') }}</button>
                 <dl v-if="details" class="mx-auto grid max-w-xs grid-cols-2 gap-1 text-start text-sm text-muted">
                     <dt>{{ t('timing.measured') }}</dt><dd class="text-cream">{{ t('common.ms', { ms: formatNumber(result.ms, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }) }}</dd>
-                    <dt>{{ t('timing.spread') }}</dt><dd class="text-cream">{{ t('common.ms', { ms: formatNumber(result.spreadMs, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }) }}</dd>
-                    <dt>{{ t('timing.estimate') }}</dt><dd class="text-cream">{{ t('common.ms', { ms: formatNumber(result.estimateMs, { maximumFractionDigits: 1 }) }) }}</dd>
+                    <dt>{{ result.claps ? t('timing.clap.spread') : t('timing.spread') }}</dt><dd class="text-cream">{{ t('common.ms', { ms: formatNumber(result.spreadMs, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }) }}</dd>
+                    <dt>{{ result.claps ? t('timing.clap.estimate') : t('timing.estimate') }}</dt><dd class="text-cream">{{ t('common.ms', { ms: formatNumber(result.estimateMs, { maximumFractionDigits: 1 }) }) }}</dd>
                     <dt>{{ t('studio.menu.mic') }}</dt><dd class="truncate text-cream" translate="no">{{ audio.mic?.label }}</dd>
                 </dl>
                 <div class="flex justify-center gap-3 pt-2">
@@ -301,8 +310,8 @@ export const TimingDialog = {
                 </div>
             </div>
             <div v-else class="space-y-4 text-center">
-                <p class="text-cream">{{ t('timing.failed') }}</p>
-                <p class="text-sm text-muted">{{ t('timing.failedHint') }}</p>
+                <p class="text-cream" data-timing-failed>{{ failedWhy === 'uneven' ? t('timing.clap.uneven') : failedWhy === 'few' ? t('timing.clap.few') : t('timing.failed') }}</p>
+                <p v-if="!failedWhy" class="text-sm text-muted">{{ t('timing.failedHint') }}</p>
                 <div class="flex justify-center gap-3">
                     <button v-if="beforeRecording && !required" type="button" :class="secondary" @click="$emit('skip')">{{ t('timing.useEstimate') }}</button>
                     <button type="button" :class="primary" @click="step = 'choose'">{{ t('common.tryAgain') }}</button>
@@ -336,9 +345,33 @@ export const TimingDialog = {
         pickRoute(name) {
             chooseRoute(name);
         },
+        /** Clap along: the clicks play in the earbuds and the mic hears the claps; the bar follows the clicks (a picture, never a timer for sound). */
+        async clapAlong() {
+            this.step = 'measuring';
+            this.progress = 0;
+            this.failedWhy = null;
+            const started = performance.now();
+            const seconds = (CLAP_CLICKS + 1) * CLAP_GAP_SECONDS;
+            const tick = () => {
+                this.progress = Math.min(1, (performance.now() - started) / 1000 / seconds);
+                if (this.step === 'measuring') this.clapFrame = requestAnimationFrame(tick);
+            };
+            this.clapFrame = requestAnimationFrame(tick);
+            try {
+                this.result = await checkClaps();
+                this.failedWhy = this.result.ok ? null : this.result.reason;
+                this.step = this.result.ok ? 'result' : 'failed';
+            } catch (error) {
+                this.error = error?.name === 'AbortError' ? t('timing.interrupted') : micError(error);
+                this.step = 'choose';
+            } finally {
+                cancelAnimationFrame(this.clapFrame);
+            }
+        },
         async measure() {
             this.step = 'measuring';
             this.progress = 0;
+            this.failedWhy = null;
             try {
                 this.result = await checkTiming({ onProgress: (p) => (this.progress = p) });
                 this.step = this.result.ok ? 'result' : 'failed';
@@ -394,7 +427,8 @@ export const MicDialog = {
         timing() {
             if (audio.latencyFrames === null) return t('mic.notChecked');
             const ms = Math.round((audio.latencyFrames * 1000) / engine.sampleRate);
-            return audio.latencyEstimated ? t('mic.estimated', { ms }) : t('mic.measured', { ms });
+            if (!audio.latencyEstimated) return t('mic.measured', { ms });
+            return audio.latencyTypical ? t('mic.typical', { ms }) : t('mic.estimated', { ms });
         },
     },
     async mounted() {
@@ -688,20 +722,16 @@ export const PartDialog = {
  * Range check: sing your lowest, then your highest comfortable note. Suggests the part that suits
  * your voice, and the key that fits it.
  */
-const STRIP_LOW = 36; // C2
-const STRIP_HIGH = 84; // C6
-
 export const RangeDialog = {
-    components: { Modal, Icon, LevelMeter, MicPicker, PitchBar },
+    components: { Modal, Icon, VoiceCapture },
     props: { template: { type: Object, required: true }, transpose: { type: Number, default: 0 }, parts: { type: Array, default: null } },
     emits: ['use', 'close'],
-    setup: () => ({ midiName, primary, secondary, transposeKey, templatePartName, micChoices, currentMicId, STRIP_NAMES: ['C2', 'C3', 'C4', 'C5', 'C6'] }), // i18n-ignore: note names
-    // The same listening as Find your note (js/listening.js): hands-free, the voice a marker gliding
-    // on a bar that zooms in, and each step's note the lowest (or highest) one held for a second.
-    data: () => ({ step: 'low', low: null, high: null, best: null, shown: null, markerAlpha: 1, view: { ...WIDE }, hold: 0, heard: false, db: null, error: null, showMic: false }),
+    setup: () => ({ midiName, primary, secondary, transposeKey, templatePartName, RANGE_HOLD_SECONDS }),
+    // The one capture everywhere (components/voice-capture.js): hands-free, and each step's note the lowest (or
+    // highest) one held for a second.
+    data: () => ({ step: 'low', low: null, high: null, best: null, error: null }),
     template: `
-        <!-- 108.png: the two steps as a bar; the prompt; the note big once held, with Got it; the hold
-             filling; where your voice is on C2 to C6; the mic, Try again and Next. -->
+        <!-- 108.png: the two steps as a bar, then the capture (the note in its ring, the zooming scale, the mic), and Next. -->
         <Modal :title="t('range.findTitle')" wide @close="$emit('close')">
             <div class="space-y-5" data-range :data-step="step">
                 <template v-if="step !== 'result'">
@@ -719,30 +749,10 @@ export const RangeDialog = {
                             <p class="mt-2 text-sm font-semibold" :class="step === 'high' ? 'text-cream' : 'text-muted'" :aria-current="step === 'high' ? 'step' : null">{{ t('range.highestNote') }}</p>
                         </div>
                     </div>
-                    <p class="text-lg font-bold text-cream">{{ step === 'low' ? t('range.singLowest') : t('range.singHighest') }}</p>
-                    <div class="text-center" aria-live="polite">
-                        <p class="text-6xl font-bold tabular-nums" :class="best !== null ? 'text-good' : shown !== null ? 'text-cream' : 'text-muted/40'" translate="no" data-range-note>{{ best !== null ? midiName(best) : shown !== null ? midiName(Math.round(shown)) : '·' }}</p>
-                        <p class="mt-1 min-h-5 text-sm font-semibold" :class="best !== null ? 'text-good' : 'text-muted'">{{ best !== null ? t('range.gotIt') : !heard ? t('listening.listeningShort') : t('listening.hearing') }}</p>
-                    </div>
-                    <div class="h-1.5 overflow-hidden rounded-full bg-raised" aria-hidden="true"><div class="h-full rounded-full bg-accent transition-[width] duration-100" :style="{ width: hold * 100 + '%' }"></div></div>
-                    <div>
-                        <div class="relative h-8 rounded-bar bg-(--fill)" role="img" :aria-label="shown === null ? t('listening.barEmpty') : t('listening.barAt', { note: midiName(shown) })">
-                            <span v-if="best !== null" class="absolute inset-y-0 w-px bg-good/70" :style="{ left: stripAt(best) + '%' }" aria-hidden="true"></span>
-                            <span v-if="shown !== null" class="absolute inset-y-1.5 w-1 -translate-x-1/2 rounded-full bg-accent" :style="{ left: stripAt(shown) + '%', opacity: markerAlpha }" aria-hidden="true"></span>
-                        </div>
-                        <p data-ui="facts" class="mt-1 flex justify-between tabular-nums text-xs text-muted" translate="no" aria-hidden="true"><span v-for="n in STRIP_NAMES" :key="n">{{ n }}</span></p>
-                    </div>
-                    <LevelMeter :db="db" segments />
+                    <VoiceCapture :key="step" :mode="step === 'low' ? 'lowest' : 'highest'" :hold-seconds="RANGE_HOLD_SECONDS" :best="best" color="var(--color-accent)" @held="held" @again="best = null" />
                     <p v-if="error" class="text-sm text-muted" role="status">{{ error }}</p>
-                    <div class="-mx-6 flex flex-wrap items-center gap-3 border-t border-line px-6 pt-5">
-                        <label class="me-auto flex min-w-0 items-center gap-1.5 text-sm text-muted">
-                            <Icon name="mic" :size="16" class="shrink-0" />
-                            <select class="min-h-11 max-w-52 truncate bg-transparent text-sm text-muted" :aria-label="t('studio.menu.mic')" :value="currentMicId()" @change="switchMic($event.target.value)">
-                                <option v-for="m in micChoices()" :key="m.deviceId" :value="m.deviceId" translate="no">{{ m.label }}</option>
-                            </select>
-                        </label>
-                        <button type="button" :class="secondary" @click="restart(step)">{{ t('range.tryAgain') }}</button>
-                        <button type="button" :class="primary" :disabled="best === null" @click="take">{{ t('range.next') }}</button>
+                    <div class="-mx-6 flex flex-wrap items-center justify-end gap-3 border-t border-line px-6 pt-5">
+                        <button type="button" :class="primary" :disabled="best === null" data-range-next @click="take">{{ t('range.next') }}</button>
                     </div>
                 </template>
                 <template v-else>
@@ -766,64 +776,15 @@ export const RangeDialog = {
             return rankParts({ low: this.low, high: this.high }, (this.parts ?? this.template.parts).filter((p) => p.kind !== 'instrument'));
         },
     },
-    async mounted() {
-        try {
-            if (!(await readyMic())) return;
-        } catch (error) {
-            micError(error, () => this.listen());
-            return;
-        }
-        this.listen();
-    },
-    unmounted() {
-        cancelAnimationFrame(this.frame);
-    },
     methods: {
         keyName(shift) {
             const total = shift;
             return t('project.shiftedKey', { key: keyLabel(transposeKey(this.template.key, total)), shift: formatNumber(total, { signDisplay: 'always' }) });
         },
-        listen() {
-            cancelAnimationFrame(this.frame);
-            let state = listener();
-            let last = performance.now();
-            let display = pitchDisplay();
-            const tick = () => {
-                const now = performance.now();
-                const dt = Math.min(0.1, (now - last) / 1000);
-                last = now;
-                const frame = engine.inputFrame();
-                if (frame && this.step !== 'result') {
-                    const reading = trackFrame(frame, engine.sampleRate, { minClarity: LISTEN_CLARITY });
-                    state = hear(state, reading, dt);
-                    this.db = reading.loudness;
-                    display = stepDisplay(display, { midi: reading.hz > 0 ? hzToMidi(reading.hz) : null, dt, mode: 'hold' });
-                    this.shown = display.shown;
-                    this.markerAlpha = display.alpha;
-                    this.heard = this.shown !== null;
-                    this.hold = Math.min(1, state.held / RANGE_HOLD_SECONDS);
-                    this.view = easeWindow(this.view, targetWindow(state.note, state.held), dt, { still: reducedMotion() });
-                    // A note held for a second counts: the lowest (or highest) of them is this step's.
-                    if (state.held >= RANGE_HOLD_SECONDS && state.note !== null) {
-                        const note = Math.round(state.note);
-                        this.best = this.best === null ? note : this.step === 'low' ? Math.min(this.best, note) : Math.max(this.best, note);
-                        this.error = null;
-                    }
-                }
-                this.frame = requestAnimationFrame(tick);
-            };
-            this.frame = requestAnimationFrame(tick);
-        },
-        /** Where a note sits on the strip under the note, C2 to C6, as a percentage. */
-        stripAt(midi) {
-            return Math.max(0, Math.min(100, ((midi - STRIP_LOW) / (STRIP_HIGH - STRIP_LOW)) * 100));
-        },
-        async switchMic(deviceId) {
-            try {
-                await chooseMic(deviceId);
-            } catch (error) {
-                micError(error);
-            }
+        /** A note held for a second: this step's note is the lowest (or highest) of them. */
+        held(note) {
+            this.best = this.best === null ? note : this.step === 'low' ? Math.min(this.best, note) : Math.max(this.best, note);
+            this.error = null;
         },
         restart(step) {
             this.step = step;
@@ -858,21 +819,21 @@ export const RangeDialog = {
  */
 export const TemplateDialog = {
     components: { Modal, Icon },
-    // locked: a Plus song without Plus (the catalogue's summary: no notes): its clip, and the way to Plus.
-    props: { template: { type: Object, required: true }, used: Number, limit: { type: Number, default: null }, previewing: Boolean, preparing: Boolean, credits: { type: Array, default: () => [] }, locked: Boolean, singers: { type: Number, default: 4 } },
-    emits: ['start', 'preview', 'close', 'plus', 'copy', 'singers'],
-    setup: () => ({ midiName, formatTime, formatNumber, primary, secondary, singerOptions, templatePartName, keyLabel, DIFFICULTY, formatList }),
+    // locked: a guest on a song that needs a free account (the catalogue's summary: no notes): its clip, and the way to an account.
+    props: { template: { type: Object, required: true }, previewing: Boolean, preparing: Boolean, credits: { type: Array, default: () => [] }, locked: Boolean, singers: { type: Number, default: 4 } },
+    emits: ['start', 'preview', 'close', 'signup', 'copy', 'singers'],
+    setup: () => ({ midiName, formatTime, formatNumber, primary, secondary, singerOptions, templatePartName, keyLabel, DIFFICULTY, formatList, TEMPO }),
     template: `
         <Modal :title="template.title" title-is-content wide @close="$emit('close')">
             <div class="space-y-5">
                 <p class="text-cream" translate="no">{{ template.description }}</p>
-                <p v-if="locked" class="font-semibold text-part-2">{{ t('plus.moment.plusSong') }}</p>
-                <p class="text-sm text-muted">{{ t(DIFFICULTY[template.difficulty] ?? DIFFICULTY.beginner) }} · {{ t('studio.meta.key', { key: keyLabel(template.key) }) }} · {{ t('studio.meta.bpm', { bpm: template.tempo }) }}<template v-if="!template.summary"> · {{ formatTime(seconds) }}</template></p>
+                <p v-if="locked" class="font-semibold text-part-2">{{ t('templates.needsAccount') }}</p>
+                <p class="text-sm text-muted">{{ t(DIFFICULTY[template.difficulty] ?? DIFFICULTY.beginner) }} · {{ t('studio.meta.key', { key: keyLabel(template.key) }) }} · {{ t(TEMPO[template.tempo <= 84 ? 'slow' : template.tempo <= 112 ? 'steady' : 'lively']) }}<template v-if="!template.summary"> · {{ formatTime(seconds) }}</template></p>
                 <p v-if="template.credits" class="text-xs text-muted">{{ [t('templates.credits', { words: template.credits.words, tune: template.credits.tune, arrangement: template.credits.arrangement }), template.reviewed ? '' : t('templates.draftNote')].filter(Boolean).join(' ') }}</p>
                 <p v-if="credits.length" class="text-sm text-cream">{{ t('templates.sungBy', { names: formatList(credits) }) }}</p>
                 <div v-if="locked" class="flex flex-wrap items-center gap-3">
                     <button v-if="template.previewUrl" type="button" :class="secondary" @click="$emit('preview')"><span class="inline-flex items-center gap-2"><Icon :name="previewing ? 'stop' : 'play'" :size="16" />{{ previewing ? t('studio.stop') : t('templates.previewClip') }}</span></button>
-                    <button type="button" :class="[primary, 'ms-auto']" @click="$emit('plus')">{{ t('templates.onPlus') }}</button>
+                    <button type="button" :class="[primary, 'ms-auto']" data-song-signup @click="$emit('signup')">{{ t('wrap.makeAccount') }}</button>
                 </div>
                 <div v-else class="space-y-3">
                     <!-- Hillel: "add back the 2/3/4 part toggle": how many sing it, from the song's own voicings; Start sings that many. -->
@@ -882,24 +843,20 @@ export const TemplateDialog = {
                             <button v-for="n in singerOptions(template)" :key="n" type="button" role="radio" class="seg-option tap-44" :aria-checked="singers === n ? 'true' : 'false'" @click="$emit('singers', n)">{{ formatNumber(n) }}</button>
                         </div>
                     </div>
-                    <!-- Hillel: "show 3 buttons: play, edit and start. edit is the make a copy option." The same width, in a row. -->
-                    <div class="grid grid-cols-3 gap-2 sm:gap-3">
+                    <!-- One primary (Hillel, 2026-11-02, the first-15-minutes review, superseding "3 buttons the same width"):
+                         Start full width first, then Play and Edit (Edit makes a copy), quieter, side by side. -->
+                    <button type="button" :class="[primary, 'w-full justify-center']" data-song-start @click="$emit('start')">{{ t('templates.start') }}</button>
+                    <div class="grid grid-cols-2 gap-2 sm:gap-3">
                         <button type="button" :class="[secondary, 'w-full justify-center']" :aria-pressed="previewing ? 'true' : 'false'" data-song-play @click="$emit('preview')"><span class="inline-flex items-center gap-2"><Icon :name="previewing ? 'stop' : 'play'" :size="16" />{{ preparing ? t('templates.preparing') : previewing ? t('studio.stop') : t('templates.play') }}</span></button>
-                        <button type="button" :class="[secondary, 'w-full justify-center']" :aria-label="t('templates.editLabel', { title: template.title })" data-song-edit @click="$emit('copy')">{{ t('template.edit') }}</button>
-                        <button type="button" :class="[primary, 'w-full justify-center']" :disabled="full" data-song-start @click="$emit('start')">{{ t('templates.start') }}</button>
+                        <button type="button" class="btn-ghost w-full justify-center" :aria-label="t('templates.editLabel', { title: template.title })" data-song-edit @click="$emit('copy')">{{ t('template.edit') }}</button>
                     </div>
                     <button v-if="hasCourse" type="button" class="btn-ghost btn-sm" data-song-course @click="learnIt"><Icon name="arrow" :size="16" /> {{ t('songCourse.open') }}</button>
                 </div>
-                <p v-if="full" class="text-sm text-muted">{{ t('templates.atLimit', { limit }) }} <a href="/plus?from=project_limit" class="link" @click.prevent="$emit('plus')">{{ t('export.seePlus') }}</a></p>
             </div>
         </Modal>`,
     computed: {
         seconds() {
             return this.template.summary ? 0 : (lengthBeats(this.template) * 60) / this.template.tempo;
-        },
-        /** At the free plan's limit (Plus has none). */
-        full() {
-            return this.limit !== null && this.used >= this.limit;
         },
         /** The song has a course this account sees, and the first week is over (Hillel: keep it easy to use). */
         hasCourse() {

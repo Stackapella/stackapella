@@ -1,5 +1,5 @@
 {{-- The game skin's own sections (Hillel: "two skins for one app"; the arcade mockup v2): Stage
-     select, the course's units as stages (web/course/course.json; 1 to 7 free, the rest Plus), and
+     select, the course's units as stages (web/course/course.json; every one free), and
      High scores, a part's leaderboard as the app shows it, with sample names and saying so. Hidden in
      the serious skin, which never talks stars, XP or boards (docs/skins-plan.md, 3). --}}
 @php($coursePath = dirname(base_path()).'/web/course/course.json')
@@ -14,7 +14,7 @@
             <li @class(['s-stage', 's-stage-plus' => $loop->iteration > 7])>
                 <span class="s-stage-n">{{ __('pages.landing.game.stage', ['n' => $loop->iteration]) }}</span>
                 <b>{{ $unit['title']['en'] ?? '' }}</b>
-                <span class="s-stage-foot"><span>{{ trans_choice('pages.landing.game.lessons', count((array) ($unit['lessons'] ?? []))) }}</span><span @class(['s-tag', 's-tag-plus' => $loop->iteration > 7])>{{ $loop->iteration > 7 ? __('pages.landing.game.plus') : __('pages.landing.game.free') }}</span></span>
+                <span class="s-stage-foot"><span>{{ trans_choice('pages.landing.game.lessons', count((array) ($unit['lessons'] ?? []))) }}</span><span class="s-tag">{{ __('pages.landing.game.free') }}</span></span>
             </li>
         @endforeach
     </ol>

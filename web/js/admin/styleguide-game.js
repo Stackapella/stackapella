@@ -54,7 +54,7 @@ export const StyleguideGameView = {
     },
     template: `
         <div data-ui="screen" class="min-h-dvh bg-ink">
-            <div v-if="allowed" class="container-page space-y-14 py-10" data-sg-game>
+            <div v-if="allowed" class="app-wrap space-y-14 py-10" data-sg-game>
                 <header class="flex flex-wrap items-end justify-between gap-6">
                     <div>
                         <Logo />
@@ -200,7 +200,7 @@ export const StyleguideGameView = {
                             <ul class="grid grid-cols-2 gap-3 md:grid-cols-4">
                                 <li v-for="n in 2" :key="n"><button type="button" class="flex w-full flex-col gap-2 rounded-3xl p-1 text-start" data-ui="cartridge">
                                     <span class="relative block"><SongCover :parts="4" :seed="n * 7" />
-                                        <span class="absolute start-3 top-3 flex flex-wrap gap-1"><span data-ui="tag" :data-tone="n === 1 ? 'cyan' : 'green'" class="rounded-full bg-raised px-2 py-0.5 text-[10px] font-bold text-accent-strong">{{ n === 1 ? t('home.songs.realVoices') : t('home.songs.freeMonth') }}</span><span v-if="n === 2" data-ui="tag" data-tone="pink" class="rounded-full bg-raised px-2 py-0.5 text-[10px] text-muted">{{ t('projects.draft') }}</span></span></span>
+                                        <span class="absolute start-3 top-3 flex flex-wrap gap-1"><span data-ui="tag" :data-tone="n === 1 ? 'cyan' : 'green'" class="rounded-full bg-raised px-2 py-0.5 text-[10px] font-bold text-accent-strong">{{ t('home.songs.realVoices') }}</span><span v-if="n === 2" data-ui="tag" data-tone="pink" class="rounded-full bg-raised px-2 py-0.5 text-[10px] text-muted">{{ t('projects.draft') }}</span></span></span>
                                     <span class="px-1 font-bold leading-tight text-cream" translate="no" data-ui="cartridge-title">{{ t('styleguideGame.h3') }}</span>
                                     <span class="px-1 text-xs text-muted">{{ t('styleguideGame.body') }}</span>
                                 </button></li>
@@ -224,6 +224,20 @@ export const StyleguideGameView = {
                         <span v-for="n in 4" :key="n" class="gem size-10 rounded-full" :style="{ '--gem': 'var(--color-part-' + n + ')' }"></span>
                         <span class="h-2.5 w-48 overflow-hidden rounded-full bg-raised" data-level-bar><span class="block h-full w-2/3 rounded-full bg-accent"></span></span>
                         <code class="text-xs text-muted" translate="no">{{ '.gem · [data-level-bar]' }}</code>
+                    </div>
+                </section>
+
+                <section aria-labelledby="sg-coins" data-sg-coins>
+                    <h2 id="sg-coins" class="text-2xl text-cream">{{ t('styleguideGame.coins') }}</h2>
+                    <p class="mt-2 max-w-prose text-sm text-muted">{{ t('styleguideGame.coinsHelp') }}</p>
+                    <div class="card mt-6 flex flex-wrap items-center gap-6 p-6">
+                        <span v-for="n in 4" :key="n" class="ge-map-node is-done" :style="{ '--ge-unit': 'var(--color-part-' + n + ')' }" aria-hidden="true"><Icon name="check" :size="20" /></span>
+                        <span class="ge-map-node is-now" aria-hidden="true">3</span>
+                        <span class="ge-map-node is-done is-picked" style="--ge-unit: var(--color-part-2)" aria-hidden="true"><Icon name="check" :size="20" /></span>
+                        <span class="ge-map-node" aria-hidden="true">4</span>
+                        <span class="ge-map-node is-special" aria-hidden="true"><Icon name="starFilled" :size="18" class="ge-map-star" /></span>
+                        <button type="button" class="ge-map-node" disabled :aria-label="t('styleguideGame.coinsLocked')">5</button>
+                        <code class="text-xs text-muted" translate="no">{{ '.ge-map-node · is-done · is-now · is-picked · is-special · :disabled' }}</code>
                     </div>
                 </section>
 
@@ -272,7 +286,9 @@ export const StyleguideGameView = {
     methods: {
         toast,
         /** The game skin with the arcade layer on, for this page only (nothing saved). */
-        show() {
+        async show() {
+            // Game mode's own stylesheet first (docs/css-split-plan.md, step 3): opened in serious mode, it isn't on the page.
+            await window.stackapellaTheme?.gameCss?.();
             const root = document.documentElement;
             this.mode = root.dataset.theme?.endsWith('-light') ? 'light' : 'dark';
             this.was = { skin: root.dataset.skin, theme: root.dataset.theme };

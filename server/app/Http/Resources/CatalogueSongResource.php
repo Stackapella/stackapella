@@ -62,8 +62,10 @@ final class CatalogueSongResource extends JsonResource
             'tempo' => $data['tempo'] ?? 0,
             'timeSignature' => (string) ($data['timeSignature'] ?? '4/4'),
             'reviewed' => (bool) $version?->reviewed,
-            'access' => $template->access->value,
-            'freeUntil' => $template->isFreeOn(now()) ? $template->free_until?->copy()->endOfDay()->utc()->toIso8601ZuluString() : null,
+            // free: the app bundles it, guests too; account: any signed-in account (2026-11-07).
+            'access' => $template->access->api(),
+            // The song of the month ended (2026-11-07); always null, for older apps.
+            'freeUntil' => null,
             'previewUrl' => $template->preview_key !== null ? Storage::disk('media')->url($template->preview_key) : null,
             // Which parts sing for each number of singers (the library card's "2 to 4 singers"); an
             // object always, {} when the song has none.

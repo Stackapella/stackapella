@@ -245,3 +245,135 @@ test("scoring: singing straight on through a breath mark isn't an early entry", 
     assert(through.entryMs === null || through.entryMs > -80, `no early entry read from the held voice: ${through.entryMs} ms`);
     assert(!through.insights.includes('early'), through.insights.join());
 });
+
+// ---- The scoring audit's round 2 (2026-11-08, bass-folk FLAG 4): a quick joined note, a little behind the beat ----
+
+/** A track (100 readings a second) of `notes` sung `late` s behind the beat, joined notes moving over `move` s. */
+function lateTrack(notes, { late = 0, move = 0.05, sing = {} } = {}) {
+    const R = 100;
+    const end = Math.max(...notes.map((n) => n.beat + n.length)) + late + 0.5;
+    const hz = new Float32Array(Math.ceil(end * R));
+    const sung = notes.map((n, i) => sing[i] ?? n.pitch);
+    for (let k = 0; k < hz.length; k++) {
+        const t = k / R - late;
+        const i = notes.findIndex((n) => t >= n.beat && t < n.beat + n.length);
+        if (i < 0) continue;
+        let midi = sung[i];
+        if (i > 0 && t - notes[i].beat < move) midi = sung[i - 1] + (sung[i] - sung[i - 1]) * ((t - notes[i].beat) / move);
+        hz[k] = 440 * 2 ** ((midi - 69) / 12);
+    }
+    return { rate: R, hz };
+}
+
+test('scoring: a flick sung as asked a little behind the beat is read from where the voice crossed onto it (lessons)', () => {
+    const born = [{ beat: 0, length: 1, pitch: 60 }, { beat: 1, length: 0.25, pitch: 62 }, { beat: 1.25, length: 0.75, pitch: 60 }, { beat: 2, length: 1, pitch: 64 }];
+    for (const late of [0.1, 0.12]) {
+        const read = scoreTake(lateTrack(born, { late }), born, { beatSeconds: 1, timing: 'none', strictness: 'relaxed', crossing: true });
+        assert(read.notes[1].level === 'lit', `the flick, ${late * 1000} ms behind: ${read.notes[1].level} (${read.notes[1].cents})`);
+    }
+    const none = scoreTake(lateTrack(born, { late: 0.1, sing: { 1: 60 } }), born, { beatSeconds: 1, timing: 'none', strictness: 'relaxed', crossing: true });
+    assert(none.notes[1].level !== 'lit', 'no flick sung: still not lit');
+    const onBeat = scoreTake(lateTrack(born), born, { beatSeconds: 1, timing: 'none', strictness: 'relaxed', crossing: true });
+    assert(onBeat.notes.every((n) => n.level === 'lit'), 'on the beat, as before');
+});
+
+// ---- A play step's `rhythm` (docs/play-timing-plan.md): pitch 70, timing 30; swing judged on its own grid ----
+
+/** A track of `notes` each sung from `at(note, i)` seconds (default its beat) to the next note's start, in tune. */
+function timedTrack(notes, beatSeconds, at = (n) => n.beat * beatSeconds) {
+    const R = 100;
+    const starts = notes.map((n, i) => at(n, i));
+    const end = (notes.at(-1).beat + notes.at(-1).length) * beatSeconds + 0.5;
+    const hz = new Float32Array(Math.ceil(end * R));
+    for (let k = 0; k < hz.length; k++) {
+        const t = k / R;
+        let i = -1;
+        for (let j = 0; j < notes.length; j++) if (t >= starts[j] && t < (j + 1 < notes.length ? starts[j + 1] : (notes[j].beat + notes[j].length) * beatSeconds)) i = j;
+        if (i >= 0) hz[k] = 440 * 2 ** ((notes[i].pitch - 69) / 12);
+    }
+    return { rate: R, hz };
+}
+
+test('rhythm: timing counts 30 with a measured latency, 15 through a speaker or estimated; none without rhythm', async () => {
+    const { withRhythm, rhythmSteadyMs } = await import('/js/lesson-scores.js');
+    const score = { status: 'scored', percent: 100, timingPercent: 50 };
+    assert(withRhythm(score, { rhythm: true, measured: true }).percent === 85, 'pitch 70, timing 30');
+    assert(withRhythm(score, { rhythm: true, measured: true, speaker: true }).percent === 93, 'through a speaker, timing at half weight');
+    assert(withRhythm(score, { rhythm: 'swing', measured: false }).percent === 93, 'latency only estimated, half weight');
+    assert(withRhythm(score, { rhythm: null, measured: true }) === null, 'no rhythm: pitch alone, as before');
+    assert(withRhythm({ ...score, timingPercent: null }, { rhythm: true, measured: true }) === null, 'too few moments to time: pitch alone');
+    const line = withRhythm({ ...score, percent: 96 }, { rhythm: true, measured: true }).line;
+    assert(line.values.pitch === 96 && line.values.timing === 50, 'the result says both');
+    assert(withRhythm(score, { rhythm: true, measured: true }).label.key === 'course.rhythm.label', 'the heading names pitch and time');
+    assert(rhythmSteadyMs(null, 0.75) === undefined && rhythmSteadyMs(true, 0.75) === 70 && rhythmSteadyMs('swing', 0.52) === 65 && rhythmSteadyMs(true, 0.3) === 60, 'an eighth of a beat, kept between 60 and 70 ms');
+});
+
+test('rhythm: a groove on the beat keeps its timing; a rushing, uneven one loses it', () => {
+    const beat = 0.5; // 120 bpm
+    const groove = [0, 1, 2, 3, 4, 5, 6, 7].map((b, i) => ({ beat: b, length: 1, pitch: i % 2 ? 50 : 43 }));
+    const onBeat = scoreTake(timedTrack(groove, beat), groove, { beatSeconds: beat, timing: 'measured' });
+    assert(onBeat.timingPercent === 100 && onBeat.percent >= 95, `on the beat: timing ${onBeat.timingPercent}`);
+    const uneven = scoreTake(timedTrack(groove, beat, (n, i) => n.beat * beat + (i % 2 ? -0.18 : 0.1)), groove, { beatSeconds: beat, timing: 'measured' });
+    assert(uneven.timingPercent <= 60 && uneven.percent >= 90, `rushing and dragging: timing ${uneven.timingPercent}, pitch ${uneven.percent}`);
+});
+
+test('rhythm: swing is judged against the swung notes as written; straight eighths are off', async () => {
+    const { rhythmOptions } = await import('/js/lesson-scores.js');
+    const beat = 0.75; // 80 bpm, as Scat's steps
+    const swung = [0, 2 / 3, 1, 5 / 3, 2, 8 / 3, 3, 11 / 3].map((b, i) => ({ beat: b, length: i % 2 ? 1 / 3 : 2 / 3, pitch: 60 + (i % 3) * 2 }));
+    const options = { beatSeconds: beat, timing: 'measured', ...rhythmOptions('swing', beat) };
+    const asSwung = scoreTake(timedTrack(swung, beat), swung, options);
+    const straight = scoreTake(timedTrack(swung, beat, (n) => Math.floor(n.beat * 2) / 2 * beat), swung, options);
+    const lateSwung = scoreTake(timedTrack(swung, beat, (n) => n.beat * beat + 0.06), swung, options);
+    assert(lateSwung.timingPercent === 100, `swung, evenly 60 ms behind: ${lateSwung.timingPercent}`);
+    assert(asSwung.timingPercent === 100, `swung as written: ${asSwung.timingPercent}`);
+    assert(straight.timingPercent <= 60, `straight eighths in a swing: ${straight.timingPercent}`);
+});
+
+test('rhythm: on the beat steps, a 150 ms lag and a real rush cost timing; 80 ms behind and a take too late to find don\'t escape', async () => {
+    const { rhythmOptions } = await import('/js/lesson-scores.js');
+    const beat = 0.682; // 88 bpm, as the bass grooves
+    const groove = Array.from({ length: 12 }, (_, i) => ({ beat: i, length: 1, pitch: i % 2 ? 50 : 43 }));
+    const options = { beatSeconds: beat, timing: 'measured', ...rhythmOptions(true, beat) };
+    const at = (lateMs) => (n) => n.beat * beat + lateMs / 1000;
+    assert(scoreTake(timedTrack(groove, beat), groove, options).timingPercent === 100, 'on the beat');
+    assert(scoreTake(timedTrack(groove, beat, at(80)), groove, options).timingPercent === 100, '80 ms behind, evenly: forgiven');
+    const lag = scoreTake(timedTrack(groove, beat, at(150)), groove, options).timingPercent;
+    assert(lag <= 50, `150 ms behind: ${lag}`);
+    const rush = scoreTake(timedTrack(groove, beat, (n, i) => n.beat * beat - (0.25 * i) / 11), groove, options).timingPercent;
+    assert(rush <= 70, `a rush from on time to 250 ms ahead reads as moving, not as one offset: ${rush}`);
+    const veryLate = scoreTake(timedTrack(groove, beat, at(300)), groove, options);
+    assert(veryLate.timingPercent !== null && veryLate.timingPercent <= 20, `300 ms behind: its unfound moments are misses (${veryLate.timingPercent})`);
+    const plain = scoreTake(timedTrack(groove, beat, at(150)), groove, { beatSeconds: beat, timing: 'measured' }).timingPercent;
+    assert(plain === 100, `a step without rhythm keeps the shared scorer's forgiveness: ${plain}`);
+});
+
+test('rhythm: the beat costs at most the third star, and never shuts a unit pitch alone would open', async () => {
+    const { withRhythm } = await import('/js/lesson-scores.js');
+    const at = (pitch, timing) => withRhythm({ status: 'scored', percent: pitch, timingPercent: timing }, { rhythm: true, measured: true }).percent;
+    assert(at(92, 0) === 70, `three stars on pitch, no beat: two stars at 70, not one at 64 (${at(92, 0)})`);
+    assert(at(100, 0) === 70, `a perfect pitch take, no beat: 70 (${at(100, 0)})`);
+    assert(at(100, 50) === 85, 'above the floor: as mixed');
+    assert(at(75, 0) === 70, `two stars on pitch, no beat: still two, at 70 (${at(75, 0)})`);
+    assert(at(75, 50) === 70, `two stars on pitch, an uneven beginner's beat (0.7 × 75 + 0.3 × 50 is 68, under the line): still two (${at(75, 50)})`);
+    assert(at(78, 90) === 82, 'two stars on pitch, a good beat: as mixed');
+    assert(at(60, 0) === 42, `one star on pitch: as mixed, no floor (${at(60, 0)})`);
+    assert(at(60, 100) === 72, 'a good beat still lifts a weak pitch, as before');
+});
+
+test('rhythm: a swing groove whose downbeats come in after rests keeps its timing when its joined off-beats are on time too', async () => {
+    const { rhythmOptions } = await import('/js/lesson-scores.js');
+    const { sing } = await import('./fixtures/singer.js');
+    // As Scat's sc-2-form: a swung pick-up after each rest (an entry), its off-beat and the downbeat after it joined.
+    const notes = [{ beat: 0, length: 2, pitch: 60 }];
+    for (let g = 0; g < 11; g++) notes.push({ beat: 3 + 4 * g, length: 2 / 3, pitch: 62 }, { beat: 3 + 4 * g + 2 / 3, length: 1 / 3, pitch: 64 }, { beat: 4 + 4 * g, length: 2, pitch: 62 });
+    const beat = 0.75; // 80 bpm
+    const options = { beatSeconds: beat, timing: 'measured', ...rhythmOptions('swing', beat), crossing: true };
+    for (const seed of [1, 4, 8]) {
+        // An entry reads at the voice's start, a joined change where it crosses, partway through the glide: a few tens of ms apart.
+        const timing = scoreTake(sing(notes, beat, 47 * beat, { lag: 0, onsetJitter: 0.025, seed }), notes, options).timingPercent;
+        assert(timing >= 90, `on time with the tracker's onset noise (seed ${seed}): ${timing}`);
+    }
+    const late = scoreTake(sing(notes, beat, 47 * beat, { lag: 0.15 }), notes, options).timingPercent;
+    assert(late <= 60, `150 ms behind still costs: ${late}`);
+});

@@ -23,7 +23,7 @@ if BROWSER != "chrome":
         sys.exit(f"FLOW_BROWSER={BROWSER}: chrome, " + " or ".join(BROWSERS))
     Chrome = BROWSERS[BROWSER]  # noqa: F811
 
-SIZES = {"phone": (390, 844, True), "desktop": (1440, 900, False), "small": (375, 667, True), "laptop": (1050, 700, False), "narrow": (360, 780, True)}  # small, laptop, narrow: FLOW_SIZES=small
+SIZES = {"phone": (390, 844, True), "desktop": (1440, 900, False), "small": (375, 667, True), "laptop": (1050, 700, False), "narrow": (360, 780, True), "se": (320, 568, True)}  # small, laptop, narrow: FLOW_SIZES=small
 SHOTS = Path(__file__).resolve().parent / "shots"
 
 
@@ -89,9 +89,20 @@ class Flow:
     def wait_text(self, text, timeout=20):
         return self.wait(f"document.body.innerText.includes({json.dumps(text)})", timeout, f'the text "{text}"')
 
-    def click(self, text, selector="button, a, [role=button], [role=radio], summary, label"):
-        """Clicks the first visible element of `selector` whose text or aria-label is `text`."""
-        found = self.js(f"""(() => {{
+    def click(self, text, selector="button, a, [role=button], [role=radio], summary, label", timeout=5):
+        """Clicks the first visible, enabled element of `selector` whose text or aria-label is `text`,
+        waiting up to `timeout` seconds for it: a button that renders or enables a moment late (a slower
+        phone run's Continue) is clicked, not failed on."""
+        deadline = time.time() + timeout
+        while True:
+            if self._click_now(text, selector):
+                return self
+            if time.time() >= deadline:
+                raise AssertionError(f'[{self.name}, {self.size}] no button or link "{text}"')
+            time.sleep(0.1)
+
+    def _click_now(self, text, selector):
+        return self.js(f"""(() => {{
             const want = {json.dumps(text)}.toLowerCase();
             const visible = (el) => !!(el.offsetWidth || el.offsetHeight || el.getClientRects().length);
             const named = (el) => [el.innerText, el.getAttribute('aria-label'), el.title].filter(Boolean).map((s) => s.trim().toLowerCase());
@@ -101,9 +112,6 @@ class Flow:
             el.click();
             return true;
         }})()""")
-        if not found:
-            raise AssertionError(f'[{self.name}, {self.size}] no button or link "{text}"')
-        return self
 
     def go_on(self):
         """Clicks a lesson's way on (Continue, Finish, or "Turn on my mic" before the note step), once
@@ -169,19 +177,9 @@ class Flow:
 
     def close(self):
         self.chrome.close()
-        errors = [e for e in self.chrome.errors if "favicon" not in e and not any(x in e for x in self.expected_errors) and not font_blip(e)]
+        errors = [e for e in self.chrome.errors if "favicon" not in e and not any(x in e for x in self.expected_errors)]
         if errors:
             raise AssertionError(f"[{self.name}, {self.size}] page errors: {errors}")
-
-
-# Google Fonts' own network blips (ERR_SOCKET_NOT_CONNECTED and the like) fail runs at random, and
-# the push gate runs these flows: a network failure from those two hosts only is ignored. A 404, a
-# blocked request or any other error from them still fails.
-FONT_HOSTS = ("https://fonts.googleapis.com/", "https://fonts.gstatic.com/")
-
-
-def font_blip(error):
-    return "net::ERR_" in error and any(host in error for host in FONT_HOSTS)
 
 
 def run(name, journey, sizes=("phone", "desktop")):

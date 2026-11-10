@@ -9,7 +9,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
 from flow import run  # noqa: E402
-from game_frames import dark, frames, light  # noqa: E402
+from game_frames import dark, every_theme, frames, light  # noqa: E402
 from help_shots import t  # noqa: E402
 
 END = "document.querySelector('[data-lesson-end]')"
@@ -50,6 +50,7 @@ def journey(f):
     frames(f, "end", [0, 300, 600, 900, 1300, 1800])
     f.wait(f"{XP}.includes('20')", timeout=5, what="the XP counted up to the real number")
     f.shot("end")
+    every_theme(f, "the lesson end's tally")
     light(f)
     f.shot("end-light")
     dark(f)

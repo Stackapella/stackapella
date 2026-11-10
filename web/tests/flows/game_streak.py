@@ -8,6 +8,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 from flow import run  # noqa: E402
 from help_shots import t  # noqa: E402
+from game_frames import every_theme  # noqa: E402
 
 POP = "document.querySelector('[data-game-popup=streak]')"
 
@@ -42,6 +43,7 @@ def journey(f):
     mount(f, False)
     assert f.js(f"!{POP} && !!document.querySelector('[data-end-streak]')"), "a later lesson the same day: the chip alone"
     f.no_sideways("the lesson end")
+    every_theme(f, "the lesson end")
 
 
 if __name__ == "__main__":

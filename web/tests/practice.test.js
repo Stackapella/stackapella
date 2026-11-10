@@ -92,6 +92,17 @@ test('practice: the next part follows the template order and skips recorded part
     assert(nextSlot(slots, { order: ['melody', 'bass', 'low'] }, 'bass')?.id === 'low', 'after bass');
 });
 
+test('practice: the next part suits the singer first, then the template order', () => {
+    const slots = [slot('soprano', { order: 0 }), slot('alto', { order: 1 }), slot('tenor', { order: 2, frames: 9 })];
+    const order = { order: ['soprano', 'alto', 'tenor'] };
+    // A singer around A3: the alto fits with a small shift, the soprano needs a big one.
+    const fit = (s) => ({ soprano: 10, alto: 1 })[s.id] ?? 99;
+    assert(nextSlot(slots, order, 'tenor', fit)?.id === 'alto', 'the alto, nearest their range, before the soprano');
+    assert(nextSlot(slots, order, 'tenor')?.id === 'soprano', 'no range known: the template order');
+    const tie = () => 0;
+    assert(nextSlot(slots, order, 'tenor', tie)?.id === 'soprano', 'a tie: the template order');
+});
+
 test('practice: while a part is recorded, the others play even in Listen', async () => {
     const { voiceLevels, PRACTICE_DEFAULTS, guideId } = await import('/js/practice.js');
     const slots = [

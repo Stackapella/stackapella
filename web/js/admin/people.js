@@ -15,6 +15,8 @@ import { toast } from '../components/ui.js';
 import { navigate, route } from '../router.js';
 import { ChangeSheet, errorsFrom, LoadFailed, loadInto, refused, when } from './common.js';
 import { EVENTS as EVENT_LABELS } from './safety.js';
+import { copyText } from './singers.js';
+import { account } from '../stores/account.js';
 
 const SUSPENDED = [
     { value: '', label: tk('admin.people.filter.everyone') },
@@ -44,7 +46,7 @@ const SORTS = [
 const SOURCES = { stripe: tk('admin.people.source.stripe'), apple: tk('admin.people.source.apple'), google: tk('admin.people.source.google'), coach: tk('admin.people.source.coach'), invoice: tk('admin.people.source.invoice'), demo: tk('admin.people.source.demo') };
 const TRUST = [0, 1, 2, 3];
 // What the server says when it refuses a change, for this screen's own refusals.
-const REFUSALS = { staff_account: tk('admin.people.refused.staff'), email_taken: tk('admin.people.refused.emailTaken'), no_payment: tk('admin.people.refused.noPayment') };
+const REFUSALS = { staff_account: tk('admin.people.refused.staff'), email_taken: tk('admin.people.refused.emailTaken'), no_payment: tk('admin.people.refused.noPayment'), email_unverified: tk('admin.people.refused.emailUnverified'), import_blocked: tk('admin.people.refused.importBlocked') };
 
 const day = (time) => (time ? formatDate(time, { dateStyle: 'medium' }) : '');
 // The list's columns: Person, Plan, Joined (and from where), Last active, Activity, Status (a fixed last column, so a chip never moves the others).
@@ -236,7 +238,7 @@ const PeopleList = {
 const PersonPage = {
     components: { ChangeSheet, Field, Icon, LoadFailed, Notice, StatusChip },
     props: { id: { type: String, required: true }, me: { type: Object, required: true } },
-    data: () => ({ person: null, failed: null, events: null, audit: null, sheet: null, busy: false, errors: null, level: '', email: '', amount: '' }),
+    data: () => ({ person: null, failed: null, events: null, audit: null, sheet: null, busy: false, errors: null, level: '', email: '', amount: '', copiedGiven: null, songFile: null, songFileName: '', rights: { confirmedBy: '', confirmedAt: '', wording: '', source: '' } }),
     setup: () => ({ TRUST, EVENT_LABELS, STAT_NAMES, chipsOf, planOf, ageOf, countryOf, day, when }),
     template: `
         <section class="space-y-6" aria-labelledby="person-h">
@@ -286,8 +288,25 @@ const PersonPage = {
                         <button v-if="!person.staff" type="button" class="btn-secondary btn-sm" @click="openSheet('recover')">{{ t('admin.people.recover') }}</button>
                         <button v-if="!person.plan || person.plan.source === 'stripe'" type="button" class="btn-secondary btn-sm" @click="openSheet('refund')">{{ t('admin.people.refund') }}</button>
                         <button type="button" class="btn-secondary btn-sm" @click="openSheet('boards')">{{ t('admin.people.boardsReset') }}</button>
+                        <!-- A partner's song, given to this person as their own private song (docs/partner-songs.md). -->
+                        <button type="button" class="btn-secondary btn-sm" data-give-song @click="openSheet('song')">{{ t('admin.people.giveSong') }}</button>
                         <button type="button" class="btn-secondary btn-sm" @click="openSheet('tester')">{{ person.storeTesterSince ? t('admin.people.testerOff') : t('admin.people.testerOn') }}</button>
                     </div>
+                </section>
+
+                <!-- The songs staff gave them (admin.people.show "given": ours, never their own private songs), each with
+                     the link to send them, newest first. -->
+                <section v-if="givenSongs.length" class="space-y-3" aria-labelledby="given-h" data-given-songs>
+                    <h2 id="given-h" class="text-lg font-bold text-cream">{{ t('admin.people.song.givenTitle') }}</h2>
+                    <div v-for="song in givenSongs" :key="song.id" class="card space-y-2 p-4" data-given-song>
+                        <p><span class="font-semibold text-cream">{{ song.title }}</span> <span class="text-sm text-muted">{{ song.givenBy ? t('admin.people.song.givenBy', { when: when(song.givenAt), name: song.givenBy.name }) : t('admin.people.song.givenOn', { when: when(song.givenAt) }) }}</span></p>
+                        <div class="flex flex-wrap items-center gap-2">
+                            <label class="sr-only" :for="'given-' + song.id">{{ t('admin.people.song.linkLabel', { title: song.title }) }}</label>
+                            <input :id="'given-' + song.id" :value="song.link" readonly class="input min-w-0 flex-1 font-mono text-sm" data-given-link @focus="$event.target.select()">
+                            <button type="button" class="btn-secondary btn-sm" data-copy-given @click="copyGiven(song)"><Icon :name="copiedGiven === song.id ? 'check' : 'list'" :size="16" /> {{ copiedGiven === song.id ? t('admin.copied') : t('admin.singers.copyLink') }}</button>
+                        </div>
+                    </div>
+                    <p class="help">{{ t('admin.people.song.linkHelp') }}</p>
                 </section>
 
                     <p v-if="person.plan && ['apple', 'google'].includes(person.plan.source)" class="text-sm text-muted">{{ t('admin.people.storeRefund') }}</p>
@@ -313,7 +332,7 @@ const PersonPage = {
                     </ul>
                 </section>
 
-                <ChangeSheet v-if="sheet" :title="sheetTitle" :me="me" :busy="busy" :errors="errors" :fields="['level', 'email', 'amountCents']" :reasoned="sheet !== 'tester'" :needs-sudo="sheet !== 'tester'" @close="sheet = null" @confirm="confirm">
+                <ChangeSheet v-if="sheet" :title="sheetTitle" :me="me" :busy="busy" :errors="errors" :fields="['level', 'email', 'amountCents', 'song', 'rights.confirmedBy', 'rights.confirmedAt', 'rights.wording', 'rights.source']" :reasoned="sheet !== 'tester' && sheet !== 'song'" :needs-sudo="sheet !== 'tester'" @close="sheet = null" @confirm="confirm">
                     <p class="text-cream">{{ sheetBody }}</p>
                     <Field v-if="sheet === 'trust'" :label="t('admin.people.trust')" :error="errors?.level" v-slot="f">
                         <select :id="f.id" v-model="level" class="input w-full" :aria-describedby="f.describedby">
@@ -324,6 +343,24 @@ const PersonPage = {
                     <Field v-if="sheet === 'recover'" :label="t('admin.people.newEmail')" :help="t('admin.people.newEmailHelp')" :error="errors?.email" required v-slot="f">
                         <input :id="f.id" v-model.trim="email" type="email" required class="input w-full" :aria-describedby="f.describedby" :aria-invalid="f.invalid" />
                     </Field>
+                    <!-- Give a song: the arranger's file, then the rights confirmation as the partner wrote it. -->
+                    <template v-if="sheet === 'song'">
+                        <Field :label="t('admin.people.song.file')" :help="songFile ? t('admin.people.song.picked', { title: songFile.title ?? '', name: songFileName }) : t('admin.people.song.fileHelp')" :error="errors?.song" required v-slot="f">
+                            <input :id="f.id" type="file" accept=".json,application/json" class="input w-full" :aria-describedby="f.describedby" data-song-file @change="pickSong" />
+                        </Field>
+                        <Field :label="t('admin.people.song.confirmedBy')" :help="t('admin.people.song.confirmedByHelp')" :error="errors?.['rights.confirmedBy']" required v-slot="f">
+                            <input :id="f.id" v-model.trim="rights.confirmedBy" required maxlength="200" class="input w-full" :aria-describedby="f.describedby" data-rights-by />
+                        </Field>
+                        <Field :label="t('admin.people.song.confirmedAt')" :error="errors?.['rights.confirmedAt']" required v-slot="f">
+                            <input :id="f.id" v-model="rights.confirmedAt" type="date" required class="input w-full" :aria-describedby="f.describedby" data-rights-at />
+                        </Field>
+                        <Field :label="t('admin.people.song.wording')" :help="t('admin.people.song.wordingHelp')" :error="errors?.['rights.wording']" required v-slot="f">
+                            <textarea :id="f.id" v-model.trim="rights.wording" rows="3" required maxlength="2000" class="input w-full" :aria-describedby="f.describedby" data-rights-wording></textarea>
+                        </Field>
+                        <Field :label="t('admin.people.song.source')" :help="t('admin.people.song.sourceHelp')" :error="errors?.['rights.source']" required v-slot="f">
+                            <input :id="f.id" v-model.trim="rights.source" required maxlength="300" class="input w-full" :aria-describedby="f.describedby" data-rights-source />
+                        </Field>
+                    </template>
                     <Field v-if="sheet === 'refund'" :label="t('admin.people.amount')" :help="t('admin.people.amountHelp')" :error="errors?.amountCents" required v-slot="f">
                         <input :id="f.id" v-model.trim="amount" type="text" inputmode="decimal" required class="input w-full" :aria-describedby="f.describedby" :aria-invalid="f.invalid" />
                     </Field>
@@ -331,6 +368,10 @@ const PersonPage = {
             </template>
         </section>`,
     computed: {
+        /** Songs given, each with a link to send: the API's /t/<id>, made whole on this host when it's a path. */
+        givenSongs() {
+            return (this.person?.given ?? []).map((song) => ({ ...song, link: song.url.startsWith('/') ? location.origin + song.url : song.url }));
+        },
         /** The person's numbers, each only when the server sends it (counts and totals, never contents). */
         statTiles() {
             const s = { ...(this.person?.stats ?? {}), ...(this.person?.counts ?? {}) };
@@ -364,6 +405,7 @@ const PersonPage = {
                 refund: t('admin.people.sheet.refund', { name }),
                 boards: t('admin.people.sheet.boards', { name }),
                 tester: this.person?.storeTesterSince ? t('admin.people.sheet.testerOff', { name }) : t('admin.people.sheet.testerOn', { name }),
+                song: t('admin.people.sheet.song', { name }),
             }[this.sheet];
         },
         sheetBody() {
@@ -375,6 +417,7 @@ const PersonPage = {
                 refund: t('admin.people.sheet.refundBody'),
                 boards: t('admin.people.sheet.boardsBody'),
                 tester: this.person?.storeTesterSince ? t('admin.people.sheet.testerOffBody') : t('admin.people.sheet.testerOnBody'),
+                song: t('admin.people.sheet.songBody'),
             }[this.sheet];
         },
     },
@@ -385,9 +428,13 @@ const PersonPage = {
         back() {
             navigate('/admin/people');
         },
+        async copyGiven(song) {
+            if (await copyText(song.link)) this.copiedGiven = song.id;
+        },
         async load() {
             this.failed = null;
             this.person = null;
+            this.copiedGiven = null;
             this.events = null;
             this.audit = null;
             try {
@@ -408,7 +455,26 @@ const PersonPage = {
             this.level = this.person.trustOverride === null ? '' : String(this.person.trustOverride);
             this.email = '';
             this.amount = '';
+            this.songFile = null;
+            this.songFileName = '';
+            this.rights = { confirmedBy: '', confirmedAt: new Date().toISOString().slice(0, 10), wording: '', source: '' };
             this.sheet = name;
+        },
+        /** The arranger's template file, read here and sent as it is (the server checks it). */
+        async pickSong(event) {
+            const file = event.target.files?.[0];
+            this.songFile = null;
+            this.songFileName = file?.name ?? '';
+            if (!file) return;
+            try {
+                const song = JSON.parse(await file.text());
+                if (!song || typeof song !== 'object' || Array.isArray(song)) throw new SyntaxError('not a template');
+                this.songFile = song;
+                if (this.errors?.song) this.errors = { ...this.errors, song: undefined };
+            } catch (error) {
+                console.info('The song file was unreadable', error?.message ?? error);
+                this.errors = { ...(this.errors ?? {}), song: [t('admin.people.song.unreadable')] };
+            }
         },
         async confirm(reason) {
             const id = this.person.id;
@@ -424,9 +490,21 @@ const PersonPage = {
                     refund: () => people.refund(id, { amountCents: Math.round(Number(this.amount.replace(',', '.')) * 100), note: reason }),
                     tester: () => people.storeTester.update(id, { tester: !this.person.storeTesterSince }),
                     boards: () => call('admin.boards.reset', { params: { id }, body: { reason } }),
+                    song: () => people.giveSong(id, { song: this.songFile, rights: { ...this.rights } }),
                 }[this.sheet];
+                if (this.sheet === 'song' && !this.songFile) {
+                    this.errors = { song: [t('admin.people.song.noFile')] };
+                    return;
+                }
                 const answer = (await request()).data;
-                if (this.sheet === 'refund' || this.sheet === 'boards') {
+                if (this.sheet === 'song') {
+                    toast(t('admin.people.song.given', { title: answer.title, name: this.person.name ?? '' }));
+                    // At the top of Songs given, with its link for the "your tracks are ready" email (an app page, so the app's address).
+                    const given = { id: answer.id, title: answer.title, url: `/t/${answer.id}`, givenAt: new Date().toISOString(), givenBy: account.me ? { id: account.me.id, name: account.me.name } : null };
+                    this.person = { ...this.person, given: [given, ...(this.person.given ?? []).filter((song) => song.id !== answer.id)] };
+                    this.$nextTick(() => document.getElementById('given-' + answer.id)?.focus()); // in view and selected, ready to copy
+                    this.songFile = null;
+                } else if (this.sheet === 'refund' || this.sheet === 'boards') {
                     toast(this.sheet === 'refund' ? t('admin.people.refunded') : t('admin.people.boardsRemoved'));
                 } else {
                     this.person = answer;

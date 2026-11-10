@@ -51,10 +51,13 @@ export function loadAccount({ fresh = false } = {}) {
     return loading;
 }
 
+let configLoading = null; // the one auth.config on its way: callers at once share it (app start asked twice)
+
 /** The sign-in screens' settings: the methods on offer, sign-ups open or paused, shield mode's key. */
-export async function loadAuthConfig() {
-    if (!account.config) account.config = (await api.auth.config()).data;
-    return account.config;
+export function loadAuthConfig() {
+    if (account.config) return Promise.resolve(account.config);
+    configLoading ??= api.auth.config().then(({ data }) => (account.config = data)).finally(() => (configLoading = null));
+    return configLoading;
 }
 
 /** A self-hosted install (auth.config.selfHosted): every account has Plus, and nothing offers it. */
@@ -107,14 +110,26 @@ export function linkToken(path = location.pathname) {
     }
 }
 
-/** Where people came from (`?ref=` on our links), kept for the sign-up. */
+// A ?ref= tag as the counts take it (RecordCounts::source, up to SOURCE_MAX 60): a campaign's tag, or an embed's
+// with the framing site's host (embed-choir.example.org, dots and all). The sign-up keeps only the plainer tags
+// (RegisterRequest: letters, digits and hyphens, up to 40), so an embed's goes to the counts alone.
+const REF = /^[A-Za-z0-9.-]{1,60}$/;
+const SIGN_UP_REF = /^[A-Za-z0-9-]{1,40}$/;
+
+/** Where people came from (`?ref=` on our links), kept for the counts and the sign-up. */
 export function rememberRef(search = location.search) {
     const ref = new URLSearchParams(search).get('ref');
-    if (ref && /^[A-Za-z0-9-]{1,40}$/.test(ref)) local.set('stackapella.ref', ref);
+    if (ref && REF.test(ref)) local.set('stackapella.ref', ref);
 }
 
 export function ref() {
     return local.get('stackapella.ref') || null;
+}
+
+/** The kept tag as the sign-up takes it, or null (an embed's, with its host, is for the counts only). */
+export function signUpRef() {
+    const kept = ref();
+    return kept && SIGN_UP_REF.test(kept) ? kept : null;
 }
 
 /**

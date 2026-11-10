@@ -6,10 +6,12 @@ namespace App\Http\Controllers\Api\Admin;
 
 use App\Actions\School\SchoolCodes;
 use App\Http\Controllers\Controller;
+use App\Models\OutreachTarget;
 use App\Models\SchoolClass;
 use App\Models\SchoolRedemption;
 use App\Models\SchoolTeacher;
 use App\Models\User;
+use App\Support\Ids;
 use Illuminate\Container\Attributes\CurrentUser;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -33,7 +35,7 @@ final class SchoolController extends Controller
 
     public function show(SchoolClass $class): JsonResponse
     {
-        $class->load(['teacher:id,name,email', 'teacherRecord', 'redemptions' => fn ($q) => $q->with('user:id,name,email')->latest('id')]);
+        $class->load(['teacher:id,name,email', 'teacherRecord', 'partner', 'redemptions' => fn ($q) => $q->with('user:id,name,email')->latest('id')]);
 
         return response()->json(['data' => [...self::row($class, $class->teacher_id !== null ? SchoolCodes::seatsTaken($class->teacher_id) : null), 'redemptions' => $class->redemptions->map(static fn (SchoolRedemption $r): array => [
             'id' => $r->sqid(),
@@ -46,12 +48,32 @@ final class SchoolController extends Controller
 
     public function update(Request $request, SchoolClass $class, #[CurrentUser] User $admin): JsonResponse
     {
-        $request->validate(['action' => ['required', 'in:close'], 'reason' => ['sometimes', 'nullable', 'string', 'max:300']]);
+        $request->validate(['action' => ['required', 'in:close,seats'], 'seats' => ['required_if:action,seats', 'integer', 'min:1', 'max:'.SchoolCodes::PARTNER_SEATS], 'reason' => ['sometimes', 'nullable', 'string', 'max:300']]);
         $reason = $request->input('reason');
 
-        $class = $this->codes->close($class, $admin, is_string($reason) ? $reason : null)->load(['teacher:id,name,email', 'teacherRecord']);
+        $class = ($request->input('action') === 'seats'
+            ? $this->codes->partnerSeats($class, $request->integer('seats'), $admin, is_string($reason) ? $reason : null)
+            : $this->codes->close($class, $admin, is_string($reason) ? $reason : null))->load(['teacher:id,name,email', 'teacherRecord', 'partner']);
 
         return response()->json(['data' => self::row($class, $class->teacher_id !== null ? SchoolCodes::seatsTaken($class->teacher_id) : null)]);
+    }
+
+    /**
+     * A partner code for an approved partner organization's members (docs/outreach-plan.md).
+     */
+    public function partner(Request $request, #[CurrentUser] User $admin): JsonResponse
+    {
+        $request->validate([
+            'name' => ['required', 'string', 'max:80'],
+            'seats' => ['required', 'integer', 'min:1', 'max:'.SchoolCodes::PARTNER_SEATS],
+            'days' => ['sometimes', 'integer', 'min:30', 'max:730'],
+            'targetId' => ['sometimes', 'nullable', 'string', 'max:40'],
+        ]);
+        $id = $request->input('targetId');
+        $target = is_string($id) ? OutreachTarget::query()->findOrFail(Ids::decode($id) ?? 0) : null;
+        $class = $this->codes->createPartner((string) $request->input('name'), $request->integer('seats'), $request->integer('days', SchoolCodes::PARTNER_DAYS), $target, $admin, $request->ip());
+
+        return response()->json(['data' => self::row($class->load('partner'), null)], 201);
     }
 
     /**
@@ -91,7 +113,9 @@ final class SchoolController extends Controller
     {
         return [
             'id' => $class->sqid(),
+            'kind' => $class->kind,
             'name' => $class->name,
+            'partner' => $class->partner !== null ? ['id' => $class->partner->sqid(), 'name' => $class->partner->name] : null,
             'code' => $class->shown(),
             'teacher' => $class->teacher !== null ? self::teacherView($class->teacher, $class->teacherRecord, $taken ?? 0) : null,
             'seats' => $class->seats,

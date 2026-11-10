@@ -42,7 +42,8 @@ def walk(entry):
 def main():
     problems = []
     # The public pages' modules, and the app pieces they embed (js/embed: the Sing lane on the landing).
-    for entry in sorted([*(WEB / "js" / "public").glob("*.js"), *(WEB / "js" / "embed").glob("*.js")]):
+    # The free tools' modules too (js/public/tools: page.js loads each by a name it builds, so the walk can't follow it).
+    for entry in sorted([*(WEB / "js" / "public").glob("*.js"), *(WEB / "js" / "public" / "tools").glob("*.js"), *(WEB / "js" / "embed").glob("*.js")]):
         for spec, chain in walk(entry):
             problems.append(f"{entry.relative_to(WEB)} reaches '{spec}': " + " -> ".join(str(p.relative_to(WEB)) for p in chain))
     for problem in problems:

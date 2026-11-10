@@ -14,6 +14,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 from flow import SHOTS, SIZES, run  # noqa: E402
 from help_shots import t  # noqa: E402
+from game_frames import every_theme  # noqa: E402
 
 NEW_UI = os.environ.get("NEW_UI")
 
@@ -93,6 +94,8 @@ def journey(f):
     f.wait("document.querySelectorAll('[data-part-board] [data-board-entry]').length === 2", what="the friends' board")
     # The button pressed is replaced by the card's own: focus moves to it, never lost to the page.
     f.wait("document.activeElement?.getAttribute('aria-expanded') === 'true' && !!document.activeElement.closest('[data-part-board]')", what="focus on the open board's button")
+    # One board on the page: the picked part's (docs/leaderboard-redesign-plan.md), no link under every part.
+    assert f.js("document.querySelectorAll('[data-part-board]').length") == 1, "a board under every part"
     f.run("document.querySelector('[data-part-board]').scrollIntoView({ block: 'center' })")
     # The switch stays one row, even at a phone's width in the arcade type.
     tops = f.js("[...document.querySelectorAll('[data-part-board] [data-board-scope]')].map((b) => Math.round(b.getBoundingClientRect().top))")
@@ -109,6 +112,7 @@ def journey(f):
         f.chrome.send("Emulation.setDeviceMetricsOverride", {"width": w, "height": h, "deviceScaleFactor": 2, "mobile": True})
         f.js("new Promise((r) => setTimeout(r, 300))")
     keep(f, "board", "boards-song-board")
+    every_theme(f, "the part's board")  # the arcade pass, at AA in all eight themes
     f.click_t("boards.everyone")
     f.wait("document.querySelectorAll('[data-part-board] [data-board-entry]').length === 2", what="the worldwide board")
     # Report this name: on someone else's entry only, a reason, then thanks.
@@ -127,12 +131,26 @@ def journey(f):
     f.wait_text(t(f, "boards.versions.readOnly", {"version": 2}))
     f.click_t("boards.versions.back")
     f.wait("document.querySelector('[data-board-versions]')", what="back to the current board")
-    f.run(ANSWER % json.dumps({"boards.show": {"data": {"templateId": "amazing-grace", "templateVersion": 3, "partKey": "alto", "scope": "friends", "scoringVersion": 1, "entries": [], "you": None, "onGlobal": False}}}))
+    # Further down than tenth: a gap row, then your own row marked You.
+    below = {"templateId": "amazing-grace", "templateVersion": 3, "partKey": "alto", "scope": "global", "scoringVersion": 1, "onGlobal": True,
+             "entries": [{"id": "e1", "rank": 1, "name": "Ana", "initials": None, "score": 95, "at": "2026-10-30T10:00:00Z", "you": False}],
+             "you": {"score": 71, "rank": 14, "initials": None}}
+    f.run(ANSWER % json.dumps({"boards.show": {"data": below}}))
+    f.click_t("boards.friends")
+    f.click_t("boards.everyone")
+    f.wait("document.querySelector('[data-part-board] [data-ui=board-gap]') && document.querySelector('[data-part-board] [data-you]')", what="your row after the gap")
+    assert f.js("document.querySelector('[data-part-board] [data-you] [data-ui=board-score]').textContent.trim()") == "71"
+    keep(f, "below", "boards-song-below")
+    every_theme(f, "the board with the gap")
+    f.run(ANSWER % json.dumps({"boards.show": {"data": {"templateId": "amazing-grace", "templateVersion": 3, "partKey": "alto", "scope": "friends", "scoringVersion": 1, "entries": [], "you": {"score": 87, "rank": None, "initials": None}, "onGlobal": False}}}))
     f.click_t("boards.friends")
     # Empty: each board says what it is and how to get on it (no friends yet is not "be the first").
     f.wait("document.querySelector('[data-board-empty][data-scope=friends]')", what="the friends' empty state")
     f.wait_text(t(f, "boards.emptyFriends.title"))
+    # With a best of yours on this part: Challenge a friend, right there.
+    f.wait("document.querySelector('[data-board-empty] [data-ui=board-challenge]')", what="Challenge a friend in the empty board")
     keep(f, "empty", "boards-song-empty")
+    every_theme(f, "the empty friends' board")
     f.click_t("boards.everyone")
     f.wait("document.querySelector('[data-board-empty][data-scope=global]')", what="everyone's empty state")
     f.wait_text(t(f, "boards.empty"))

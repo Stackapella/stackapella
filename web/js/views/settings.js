@@ -4,13 +4,13 @@
 // recent sign-in says so, with the way to sign in again.
 
 import { GameModeSwitch, ThemeSwitch } from '../components/appearance.js';
-import { GameElements } from '../game/settings.js';
+import { lazyComponent, setGlobal } from '../game/modules.js';
 import { api, ApiError } from '../api.js';
 import { formatDate, t, tk } from '../i18n.js';
 import { navigate } from '../router.js';
 import { account, loadAccount, loadAuthConfig, providerSignIn, selfHosted, signOut } from '../stores/account.js';
 import { Field, Notice, StatusChip } from '../components/form.js';
-import { PageHeader } from '../components/page.js';
+import { AppScreen } from '../components/page.js';
 import { Icon, Logo } from '../components/icon.js';
 import { InstallRow } from '../components/install.js';
 import { Modal, toast } from '../components/ui.js';
@@ -20,8 +20,9 @@ import { formatBytes, SyncStatus } from '../components/cloud.js';
 import { appearanceSummary } from '../components/appearance.js';
 import { Switch } from '../components/controls.js';
 import { prefs } from '../stores/prefs.js';
-import { setGlobal } from '../components/boards.js';
-import { sk } from '../skin.js';
+import { game, sk } from '../skin.js';
+
+const GameElements = lazyComponent('settings', 'GameElements'); // game mode's switches: loaded with game mode
 import { deleteEverythingHere, deviceSummary } from '../device.js';
 import { signInTo, signUpFor } from '../components/account-wall.js';
 import { ideas, ideasOpen } from '../stores/ideas.js';
@@ -72,7 +73,7 @@ const SECTIONS = ['profile', 'account', 'game', 'practice', 'plan', 'data', 'dev
 const SECTION_WORDS = { profile: tk('settings.nav.profile'), account: tk('settings.nav.account'), game: tk('settings.nav.game'), practice: tk('settings.nav.practice'), plan: tk('settings.nav.plan'), data: tk('settings.nav.data'), device: tk('settings.nav.device') };
 
 export const SettingsView = {
-    components: { InstallRow, GameElements, GameModeSwitch, PageHeader, ThemeSwitch, Field, Notice, StatusChip, Icon, Logo, Modal, SyncStatus, Switch },
+    components: { InstallRow, GameElements, GameModeSwitch, AppScreen, ThemeSwitch, Field, Notice, StatusChip, Icon, Logo, Modal, SyncStatus, Switch },
     data: () => ({
         hereSongs: null, // a guest's songs on this device (the Settings card's tally)
         backup: null, // 'making' or 'restoring' a backup file, while it runs
@@ -97,12 +98,11 @@ export const SettingsView = {
         editing: null, // 'email' or 'password': its change open under its row
         section: 'profile', // the section in view, marked in the sidebar
     }),
-    setup: () => ({ voiceCare, setNotes, ideas, learning, prefs, account, METHODS, HANDLE_REASONS, EXPORT, formatDate, formatBytes, SECTIONS, SECTION_WORDS, appearanceSummary, selfHosted, CREDIT_SITE, sk }),
+    setup: () => ({ voiceCare, setNotes, ideas, learning, prefs, account, METHODS, HANDLE_REASONS, EXPORT, formatDate, formatBytes, SECTIONS, SECTION_WORDS, appearanceSummary, selfHosted, CREDIT_SITE, sk, game }),
     template: `
-        <div data-ui="screen" class="min-h-dvh bg-ink px-4 pb-16 pt-[max(0.5rem,env(safe-area-inset-top))] md:px-8">
-            <div class="mx-auto w-full max-w-5xl">
-                <!-- How it looks is the header's Theme button, here as on every screen (Hillel's call). -->
-                <PageHeader :title="t('settings.title')" back="/"><template #aside><ThemeSwitch /></template></PageHeader>
+        <AppScreen :title="t('settings.title')" back="/" measure="" data-ui="screen" class="bg-ink">
+            <!-- How it looks is the header's Theme button, here as on every screen (Hillel's call). -->
+            <template #aside><ThemeSwitch /></template>
                 <div class="mt-4 flex gap-8 md:mt-6">
                     <!-- The sections (87.png): on a wide screen, beside them; the one in view marked -->
                     <nav v-if="account.me && profile" class="sticky top-6 hidden w-56 shrink-0 self-start md:block" :aria-label="t('settings.title')">
@@ -135,8 +135,8 @@ export const SettingsView = {
                     <form id="profile" ref="profile" class="card scroll-mt-6 space-y-5 p-5 md:p-6" data-section @submit.prevent="saveProfile" :aria-label="t('settings.nav.profile')">
                         <div class="flex items-center gap-4">
                             <!-- A photo that won't load (offline, or gone from the store) shows the letter, as Home does. -->
-                            <img v-if="account.me.avatarUrl && avatarFailed !== account.me.avatarUrl" :src="account.me.avatarUrl" alt="" class="size-14 rounded-full object-cover" @error="avatarFailed = account.me.avatarUrl" />
-                            <span v-else class="grid size-14 place-items-center rounded-full bg-part-1 text-xl font-extrabold text-part-text-1" aria-hidden="true">{{ (account.me.name || '?').slice(0, 1) }}</span>
+                            <img v-if="account.me.avatarUrl && avatarFailed !== account.me.avatarUrl" :src="account.me.avatarUrl" alt="" class="size-14 rounded-full object-cover" data-avatar @error="avatarFailed = account.me.avatarUrl" />
+                            <span v-else class="bubble bubble-lg grid size-14 place-items-center text-xl font-extrabold" style="--bubble: var(--color-part-1); --bubble-ink: var(--color-part-text-1)" aria-hidden="true" data-avatar>{{ (account.me.name || '?').slice(0, 1) }}</span>
                             <div class="min-w-0 space-y-1.5">
                                 <p class="truncate font-bold text-cream" translate="no">{{ account.me.name }}</p>
                                 <div class="flex flex-wrap gap-2">
@@ -235,7 +235,7 @@ export const SettingsView = {
                 <section v-if="account.loaded" id="game" class="scroll-mt-6 space-y-3" data-section aria-labelledby="game-heading">
                     <h2 id="game-heading" class="sr-only">{{ t('settings.nav.game') }}</h2><!-- the Game mode row under it says it: no second heading -->
                     <div class="card px-5 py-3"><GameModeSwitch /></div>
-                    <GameElements />
+                    <GameElements v-if="game()" />
                 </section>
 
                 <!-- Practice and appearance (signed in or not: the appearance and this device's sounds) -->
@@ -338,7 +338,6 @@ export const SettingsView = {
                 <p v-if="selfHosted()" class="text-center text-xs text-muted" data-credit><span translate="no">{{ t('settings.credit') }}</span> · <a href="https://stackapella.com" class="link-quiet" rel="noopener" translate="no">{{ CREDIT_SITE }}</a></p>
                     </div>
                 </div>
-            </div>
             <Modal v-if="confirmDelete" :title="t('settings.delete.title')" :dismissable="busy !== 'delete'" @close="confirmDelete = false">
                 <form class="space-y-4" @submit.prevent="deleteAccount">
                     <p class="text-cream">{{ t('settings.delete.body') }}</p>
@@ -356,7 +355,7 @@ export const SettingsView = {
                     </div>
                 </form>
             </Modal>
-        </div>`,
+        </AppScreen>`,
     computed: {
         signUp: () => signUpFor('settings', '/settings'),
         signIn: () => signInTo('/settings'),

@@ -58,7 +58,7 @@ final class BinProject
 
                 // Its takes count again once it's back.
                 if ($this->plans->storageUsed($user) + $this->plans->projectBytes($project) > $this->plans->storageLimit($user)) {
-                    throw new Refusal(403, 'storage_limit');
+                    throw $this->plans->storageFull($user);
                 }
 
                 $project->forceFill(['binned_at' => null, 'seq' => $this->seq->next($user)])->save();

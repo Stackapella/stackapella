@@ -11,7 +11,9 @@ import { paint } from '../../colors.js';
 import { prefs } from '../../stores/prefs.js';
 import { Gems } from '../gems.js';
 import { Icon } from '../icon.js';
-import { PartSelect } from '../../game/part-select.js';
+import { lazyComponent } from '../../game/modules.js';
+
+const PartSelect = lazyComponent('partSelect', 'PartSelect'); // game mode's only: loaded as it's first drawn (js/game/modules.js WITH_SING)
 import { effect } from '../../game/effects.js';
 
 const WAYS = ['parts', 'whole', 'studio'];
@@ -40,8 +42,10 @@ export const Chooser = {
     },
     template: `
         <!-- Its header at the top; on a desktop the choices sit in the middle of the height, not over an empty half (docs/design-rules.md). -->
-        <div class="mx-auto flex w-full max-w-4xl flex-col gap-6 px-4 py-6 md:flex-1 md:py-10">
-            <header class="flex items-center gap-3">
+        <div class="flex w-full flex-col md:flex-1">
+            <!-- Sing's own bar's place (frame.js SingHeader), Back near the window's edge: never further in than the site's logo
+                 (Hillel, 2026-11-10, docs/design-rules.md). The choices keep their column under it. -->
+            <header class="flex items-center gap-3 px-3 pb-2 pt-[max(0.75rem,env(safe-area-inset-top))] min-[900px]:px-6">
                 <button type="button" class="glass-bubble grid size-11 shrink-0 place-items-center rounded-full text-cream" :aria-label="t('common.back')" @click="partStep ? back() : $emit('back')"><Icon name="back" :size="20" /></button>
                 <div class="min-w-0 flex-1">
                     <p v-if="title" class="truncate text-sm text-muted" translate="no">{{ title }}</p>
@@ -49,6 +53,7 @@ export const Chooser = {
                 </div>
                 <p v-if="facts" class="shrink-0 tabular-nums text-xs text-muted sm:text-sm">{{ facts }}</p>
             </header>
+            <div class="mx-auto flex w-full max-w-4xl flex-1 flex-col gap-6 px-4 pb-6 pt-4 md:pb-10 md:pt-6">
             <div class="flex flex-col gap-6 md:my-auto md:pb-10">
 
             <template v-if="!partStep">
@@ -56,12 +61,15 @@ export const Chooser = {
                     <h1 ref="heading" tabindex="-1" class="text-3xl font-extrabold tracking-tight text-cream outline-none md:text-4xl">{{ t('sing.chooser.title') }}</h1>
                     <p class="mt-1 text-muted">{{ t('sing.chooser.intro') }}</p>
                 </div>
-                <!-- Hillel: three equal choices, each a large button that starts that way at once (equal rows when stacked too, whatever a browser's line breaks). -->
-                <div class="grid auto-rows-fr gap-4 md:grid-cols-3">
-                    <button v-for="w in WAYS" :key="w" type="button" class="card-interactive flex flex-col gap-4 p-5 text-start" :data-way="w" @click="choose(w)">
+                <!-- Each way a large button that starts it at once (equal rows when stacked too). Hillel, 2026-11-02 (the
+                     first-15-minutes review): Part by part is tagged for a first song, and the studio waits under More ways
+                     unless it's the way used last time. -->
+                <div class="grid auto-rows-fr gap-4" :class="shownWays.length === 3 ? 'md:grid-cols-3' : 'md:grid-cols-2'">
+                    <button v-for="w in shownWays" :key="w" type="button" class="card-interactive flex flex-col gap-4 p-5 text-start" :data-way="w" @click="choose(w)">
                         <span class="flex items-center gap-3">
                             <span class="flex-1 text-lg font-bold text-cream">{{ t(LABELS[w]) }}</span>
                             <span v-if="last === w" class="rounded-full bg-raised px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-muted" data-last-time>{{ t('sing.chooser.lastTime') }}</span>
+                            <span v-else-if="!last && w === 'parts'" class="rounded-full border border-accent px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-accent-strong" data-first-pick>{{ t('sing.chooser.firstPick') }}</span>
                         </span>
                         <!-- How it goes, drawn: a phrase at a time, every part straight through, or the studio's lanes. -->
                         <span class="relative block space-y-1.5 rounded-2xl border border-line bg-ink/40 p-3" aria-hidden="true">
@@ -86,6 +94,13 @@ export const Chooser = {
                         <span class="mt-auto tabular-nums text-xs text-muted">{{ w === 'parts' ? partsTime : w === 'whole' ? wholeTime : t('sing.chooser.studioTime') }}</span>
                     </button>
                 </div>
+                <details v-if="shownWays.length < WAYS.length" class="group" data-more-ways>
+                    <summary class="link-quiet inline-flex min-h-11 cursor-pointer list-none items-center gap-1.5 text-sm [&::-webkit-details-marker]:hidden">{{ t('sing.chooser.moreWays') }} <Icon name="chevron" :size="14" class="transition group-open:rotate-180" /></summary>
+                    <button type="button" class="card-interactive mt-2 flex w-full flex-col gap-1 p-4 text-start" data-way="studio" @click="choose('studio')">
+                        <span class="font-bold text-cream">{{ t(LABELS.studio) }}</span>
+                        <span class="text-sm text-muted">{{ t(HINTS.studio) }}</span>
+                    </button>
+                </details>
                 <p v-if="installHint" class="rounded-2xl border border-line p-4 text-sm text-muted">{{ t('sing.chooser.install') }}</p>
                 <label class="check-row"><input v-model="always" type="checkbox" class="checkbox" /> {{ t('sing.chooser.always') }}</label>
             </template>
@@ -111,9 +126,13 @@ export const Chooser = {
                 <button type="button" class="btn-secondary self-start" @click="$emit('range')"><Icon name="mic" :size="16" /> {{ t('sing.chooser.checkRange') }}</button>
             </template>
             </div>
-        </div>`,
+</div></div>`,
     setup: () => ({ midiName, WAYS, LABELS, HINTS, effect }),
     computed: {
+        /** The ways shown as cards: the studio only when it was the way used last time; else it's under More ways. */
+        shownWays() {
+            return this.last === 'studio' ? WAYS : WAYS.filter((w) => w !== 'studio');
+        },
         /** "B♭2–E♭3 · 90 BPM": your part's range in this key, and the tempo. */
         facts() {
             const r = this.focus?.range;

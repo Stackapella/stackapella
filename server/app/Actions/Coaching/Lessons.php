@@ -354,7 +354,8 @@ final class Lessons
 
         $unpaid = Engagement::query()->where('kind', Engagement::LESSON)->whereNull('stripe_transfer')->whereNull('disputed_at')
             ->where(fn ($query) => $query->where('status', Engagement::DELIVERED)->orWhere(fn ($q) => $q->where('status', Engagement::CANCELLED)->where('decline_reason', 'late_cancel')))
-            ->where('ended_at', '>', now()->subDays(30))->get();
+            // The last 30 days, or a share taken back by a dispute since won, however long ago.
+            ->where(fn ($query) => $query->where('ended_at', '>', now()->subDays(30))->orWhereNotNull('transfer_reversed_at'))->get();
 
         foreach ($unpaid as $engagement) {
             $each(fn (): bool => DB::transaction(fn (): bool => $this->transferShare(Engagement::query()->whereKey($engagement->id)->lockForUpdate()->firstOrFail())), 'transferred');

@@ -5,11 +5,12 @@
 
 import * as db from '../db.js';
 import { engine, unlock } from '../audio.js';
-import { formatDate, t } from '../i18n.js';
+import { formatDate, t, tk } from '../i18n.js';
 import { Icon } from './icon.js';
 import { count } from '../usage.js';
 
 const keyOf = (id) => `course:${id}`;
+const PART = { soprano: tk('results.voice.soprano'), alto: tk('results.voice.alto'), tenor: tk('results.voice.tenor'), bass: tk('results.voice.bass') }; // the part lesson 1 was sung as
 
 /** Keeps a step's first heard take: once, and never over an earlier one. True when it kept this one. */
 export async function keepFirstTake(id, take, store = db) {
@@ -28,22 +29,31 @@ export async function loadKept(id, store = db) {
     return kept && samples?.length ? { ...kept, samples } : null;
 }
 
+/** The first of `others` (`{ part, id }`, a course with parts) with a take kept here: its part, or null. */
+export async function keptPartOf(others, store = db) {
+    for (const other of others) if (await loadKept(other.id, store)) return other.part;
+    return null;
+}
+
 export const ThenAndNow = {
     components: { Icon },
     props: {
         id: { type: String, required: true },
         now: { type: Object, default: null }, // today's take: { samples, sampleRate }
+        // A course with parts (course-parts.js): the other parts' kept takes, `{ part, id }`, never compared across.
+        others: { type: Array, default: () => [] },
     },
-    data: () => ({ kept: undefined, playing: null }),
+    data: () => ({ kept: undefined, playing: null, wasPart: null }),
     template: `
         <section class="space-y-3 rounded-2xl border border-edge bg-panel p-4" aria-labelledby="then-and-now-title" data-then-and-now>
             <h2 id="then-and-now-title" class="font-bold text-cream">{{ t('course.then.title') }}</h2>
             <template v-if="kept">
                 <div v-for="row in rows" :key="row.id" class="flex items-center gap-3" :data-then-row="row.id">
-                    <button type="button" class="grid size-10 shrink-0 place-items-center rounded-full glass-bubble-solid" :aria-label="playing === row.id ? t('studio.stop') : t('course.then.hear', { which: row.name })" :disabled="!row.take" @click="hear(row)"><Icon :name="playing === row.id ? 'stop' : 'play'" :size="16" /></button>
+                    <button type="button" class="grid size-10 shrink-0 place-items-center bubble bubble-primary" data-disc="play" :aria-label="playing === row.id ? t('studio.stop') : t('course.then.hear', { which: row.name })" :disabled="!row.take" @click="hear(row)"><Icon :name="playing === row.id ? 'stop' : 'play'" :size="16" /></button>
                     <p class="min-w-0 text-sm"><span class="block font-semibold text-cream">{{ row.name }}</span><span v-if="row.line" class="text-muted">{{ row.line }}</span></p>
                 </div>
             </template>
+            <p v-else-if="kept === null && wasPart" class="text-sm text-muted" data-then-was-part>{{ t('course.then.wasPart', { part: PART[wasPart] ? t(PART[wasPart]) : wasPart }) }}</p>
             <p v-else-if="kept === null" class="text-sm text-muted">{{ t('course.then.none') }}</p>
         </section>`,
     computed: {
@@ -57,6 +67,8 @@ export const ThenAndNow = {
     async created() {
         try {
             this.kept = await loadKept(this.id);
+            // None of this part, but lesson 1 sung as another: say so, rather than compare across parts.
+            if (!this.kept) this.wasPart = await keptPartOf(this.others);
         } catch (error) {
             console.error('Then and now not loaded', error);
             this.kept = null;

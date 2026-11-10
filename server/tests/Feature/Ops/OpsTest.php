@@ -21,6 +21,7 @@ use Illuminate\Console\Scheduling\Event as ScheduledEvent;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
@@ -264,15 +265,21 @@ final class OpsTest extends TestCase
     public function test_expired_cache_rows_are_pruned_and_live_ones_kept(): void
     {
         config(['cache.default' => 'database']);
+        // The suite's database may be a dev one other processes write to as it runs (the push gate
+        // shares the main checkout's): their committed rows are visible here and expire on the real
+        // clock. Frozen in 2001, nothing of theirs is expired, so only this test's rows count; its
+        // keys are its own.
+        $this->travelTo(Carbon::parse('2001-01-01 12:00:00', 'UTC'));
+        $own = 'opstest-'.bin2hex(random_bytes(4)).':';
         DB::table('cache')->insert([
-            ['key' => 'limiter:ip:203.0.113.9', 'value' => 'i:1;', 'expiration' => now()->subMinute()->getTimestamp()],
-            ['key' => 'limiter:ip:203.0.113.10', 'value' => 'i:1;', 'expiration' => now()->addHour()->getTimestamp()],
+            ['key' => $own.'limiter:ip:203.0.113.9', 'value' => 'i:1;', 'expiration' => now()->subMinute()->getTimestamp()],
+            ['key' => $own.'limiter:ip:203.0.113.10', 'value' => 'i:1;', 'expiration' => now()->addHour()->getTimestamp()],
         ]);
-        DB::table('cache_locks')->insert(['key' => 'upload:x', 'owner' => 'o', 'expiration' => now()->subMinute()->getTimestamp()]);
+        DB::table('cache_locks')->insert(['key' => $own.'upload:x', 'owner' => 'o', 'expiration' => now()->subMinute()->getTimestamp()]);
 
         $this->artisan('app:cache:prune')->expectsOutputToContain('Deleted 2 expired')->assertSuccessful();
-        $this->assertSame(['limiter:ip:203.0.113.10'], DB::table('cache')->pluck('key')->all());
-        $this->assertSame(0, DB::table('cache_locks')->count());
+        $this->assertSame([$own.'limiter:ip:203.0.113.10'], DB::table('cache')->where('key', 'like', $own.'%')->pluck('key')->all());
+        $this->assertSame(0, DB::table('cache_locks')->where('key', 'like', $own.'%')->count());
     }
 
     public function test_sentry_sees_no_person_and_the_tunnel_forwards_only_our_dsn(): void

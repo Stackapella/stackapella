@@ -28,7 +28,16 @@ for flow in "${flows[@]}"; do
   if [[ "$flow" == *_integration.py && "${API:-mock}" == "mock" && $# -eq 0 ]]; then
     echo "skip $(basename "$flow" .py) (needs API=http://127.0.0.1:8000)"; continue
   fi
-  python3 -I "$flow" "http://127.0.0.1:$PORT" || status=1
+  # A hard limit per flow (FLOW_SECONDS, 20 minutes by default; the coordinator, 2026-11-09: results hung 2.5 hours on
+  # a stalled audio clock and held the land lock): past it the flow is sent TERM, which closes its browsers, and fails.
+  python3 -I "$flow" "http://127.0.0.1:$PORT" &
+  flow_pid=$!
+  # (set -e: every step of the watchdog's own end may fail harmlessly, so none of them may end the run.)
+  ( sleep "${FLOW_SECONDS:-1200}" && kill -TERM "$flow_pid" 2> /dev/null && echo "FAIL $(basename "$flow" .py): stopped after ${FLOW_SECONDS:-1200} s" ) 2> /dev/null &
+  watchdog=$!
+  wait "$flow_pid" || status=1
+  pkill -P "$watchdog" 2> /dev/null || true
+  wait "$watchdog" 2> /dev/null || true
 done
 [[ $status -eq 0 ]] && echo "flows passed" || echo "FLOWS FAILED"
 exit $status

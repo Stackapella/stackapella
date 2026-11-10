@@ -16,7 +16,7 @@ import { enrolledVariants } from './experiments.js';
 // Sign-ups are counted by the server itself (every way in, web and apps), so the app never sends one.
 export const KINDS = new Set(['app_open', 'app_day', 'app_week', 'app_month', 'lesson_start', 'lesson_done', 'unit_done', 'song_created', 'take_recorded', 'share_created', 'harmonise_used', 'export_done', 'result_shared']);
 // The funnel's steps and asks (docs/onboarding-review.md, section 4), each counted once per device by js/funnel.js.
-const FUNNEL = ['f_day7', 'f_plus', 'f_arrive', 'f_arrive_start', 'f_mic', 'f_note', 'f_note_skip', 'f_lesson1', 'f_chord', 'f_lesson2', 'f_lesson3', 'f_unit1', 'f_goal', 'f_install', 'f_name', 'f_account', 'f_share', 'f_remind', 'f_take', 'f_harmony', 'f_day2', 'f_week1', 'f_goal_met', 'f_day14'];
+const FUNNEL = ['f_day7', 'f_plus', 'f_arrive', 'f_arrive_start', 'f_mic', 'f_note', 'f_note_skip', 'f_lesson1', 'f_chord', 'f_lesson2', 'f_lesson3', 'f_unit1', 'f_goal', 'f_install', 'f_name', 'f_account', 'f_share', 'f_remind', 'f_take', 'f_harmony', 'f_day2', 'f_week1', 'f_goal_met', 'f_day14', 'f_course_lesson'];
 const NUDGES = ['acct_week', 'acct_songs', 'acct_unit', 'acct_risk', 'acct_settings', 'acct_course']; // the account nudges' asks
 const ASKED = ['install', 'account', 'name', 'share', 'goal', 'remind', ...NUDGES].flatMap((ask) => [`ask_${ask}_shown`, `ask_${ask}_yes`]);
 for (const kind of [...FUNNEL, ...ASKED]) KINDS.add(kind);
@@ -34,6 +34,7 @@ for (const kind of [
     ...NUDGES.map((ask) => `ask_${ask}_not`),
     'sug_melody', 'sug_part', 'sug_switch',
     'daily_viewed', 'daily_sung',
+    'school_redeemed',
     // Home's Today line (docs/home-returning-plan.md, experiment ret1): each case shown, and its taps.
     'home_today_gap_shown', 'home_today_gap_tap', 'home_today_stuck_shown', 'home_today_stuck_tap',
     'home_today_done_shown', 'home_today_done_song_tap', 'home_today_done_course_tap', 'home_today_daily_shown', 'home_today_daily_tap',

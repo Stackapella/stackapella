@@ -283,7 +283,7 @@ export function bloomPercent(cents, rate) {
     const needStraight = Math.min(BLOOM_STRAIGHT, BLOOM_SHARE * m.seconds);
     const straightFor = m.onset ?? m.seconds;
     const startScore = clamp01(straightFor / needStraight);
-    const bloomed = m.onset !== null && m.kind !== 'uneven' && m.seconds - m.onset >= BLOOM_SETTLED && m.hz >= VIBRATO_RATE[0] - 0.5;
+    const bloomed = m.onset !== null && !['uneven', 'wobble', 'tremble'].includes(m.kind) && m.seconds - m.onset >= BLOOM_SETTLED && m.hz >= VIBRATO_RATE[0] - 0.5; // a pushed wave, a wobble or a tremble isn't the bloom
     if (!bloomed) return { percent: Math.round(75 * startScore), straightFor, bloomed: false, measure: m };
     return { percent: Math.round(100 * (0.5 * startScore + 0.5)), straightFor, bloomed: true, measure: m };
 }
@@ -384,7 +384,7 @@ export function freePercent(cents, rate) {
     const heard = cents.filter((c) => c !== null).length / cents.length;
     const steady = clamp01(1 - Math.max(0, m.drift - DRIFT_MAX) / 40);
     let percent = Math.round(100 * (0.55 * clamp01(heard / 0.9) + 0.45 * steady));
-    if (m.kind === 'tremble' || m.kind === 'uneven') percent = Math.min(percent, 75);
+    if (m.kind === 'tremble' || m.kind === 'uneven' || m.kind === 'wobble') percent = Math.min(percent, 75); // a wobble is steering, which a free hold asks you to stop (scoring audit, 2026-11-08)
     return { percent, measure: m };
 }
 

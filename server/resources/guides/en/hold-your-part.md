@@ -1,19 +1,19 @@
 ---
-title: How to hold your harmony part
-description: The tune pulls at you when you sing harmony. Here's how to learn your part so well that you can hold it, and how to find your way back if you drift.
+title: How to sing harmony when you can only find the melody
+description: Keep sliding onto the tune when you sing harmony? Why the melody pulls you, and how to hold your part: learn it alone, add the tune quietly, then turn it up.
 song: silent-night
 version: 1
 reviewed: false
 ---
 
-# How to hold your harmony part
+# How to sing harmony when you can only find the melody
 
 Almost everyone who starts singing harmony hits the same problem. You know your part on its own,
 then the tune comes in, and a few notes later you're singing the tune. That's normal: the tune is
-louder in your head because you've heard it all your life. Holding your part is a skill, and you
-build it in steps.
+louder in your head because you've heard it all your life. It doesn't mean you can't sing harmony.
+Holding your part is a skill, and you build it in steps.
 
-## Learn it alone first
+## 1. Learn your part alone
 
 You can't hold a part you only half know. Before anything else plays, learn your part on its own
 until you could hum it from memory.
@@ -24,16 +24,20 @@ until you could hum it from memory.
 
 If this step feels slow, it's working. Most trouble with holding a part comes from skipping it.
 
-## Then add the tune, quietly
+## 2. Add the tune, quietly
 
 Now sing your part with the tune playing softly underneath. The tune will tug at you, but at a low
 volume you can still hear yourself clearly. Stay here until you can get through without slipping.
 
-## Then turn the tune up
+## 3. Turn the tune up
 
 Bring the tune and the other parts up, step by step, until they're as loud as your own part. Each
-time you turn them up, you'll feel the pull again for a little while, then it fades. When you can
-hold your part with everything at full volume, you've got it.
+time you turn them up, you'll feel the pull again for a little while, then it fades.
+
+## 4. Sing it with your part switched off
+
+Switch off your own part's guide and let everyone else carry on, tune included. When you can hold
+your part like that, at full volume, you've got it.
 
 ## Find your anchor notes
 

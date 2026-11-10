@@ -449,7 +449,7 @@ export class Engine {
     }
 
     /** `audible` is decided by the caller (mute and solo); changes apply at once, even mid-play. */
-    updatePart(id, { volume, pan, audible, offsetSeconds }) {
+    updatePart(id, { volume, pan, audible, offsetSeconds, lead = false }) {
         const part = this.parts.get(id);
         if (!part) {
             return;
@@ -458,7 +458,11 @@ export class Engine {
         part.gain.gain.setTargetAtTime(audible ? volume : 0, now, 0.01);
         part.pan.pan.setTargetAtTime(pan, now, 0.01);
         part.offsetSeconds = offsetSeconds;
-        part.mix = { volume, pan, audible };
+        // `lead`: a part that starts before beat 0 (a negative offset) may sound in the lead before a play's
+        // first note (the look and any count-in), as a reading line's drone does; every other part waits for
+        // beat 0. Opt-in, so a part with a negative offset for any other reason keeps its old timing.
+        part.lead = !!lead;
+        part.mix = { volume, pan, audible, lead: part.lead };
     }
 
     removePart(id) {
@@ -518,6 +522,9 @@ export class Engine {
             grid,
             metronome: metronome && beat > 0,
             open: null,
+            leadOpen: startFrame === null, // the first segment may let a `lead` part sound before it, from now on
+            // How far before it a `lead` part starts: the first segment is scheduled that much sooner, so a long lead isn't cut.
+            leadFrames: startFrame === null ? Math.max(0, ...[...this.parts.values()].filter((p) => p.lead).map((p) => -Math.round(p.offsetSeconds * sr))) : 0,
             finished: false,
         };
         this.playing = { startTime: start / sr, fromSeconds, countInStart: first / sr, recording: record };
@@ -579,7 +586,7 @@ export class Engine {
                 t.finished = true;
                 break;
             }
-            if (next.value.atFrame - next.value.cueFrames > horizon) {
+            if (next.value.atFrame - next.value.cueFrames - (t.leadOpen ? t.leadFrames : 0) > horizon) {
                 t.pending = next;
                 break;
             }
@@ -604,11 +611,14 @@ export class Engine {
         const t = this.timeline;
         const sr = this.ctx.sampleRate;
         const finite = Number.isFinite(seg.to);
+        // The lead before the first segment: a `lead` part may start in it, but never before now.
+        const leadFrom = t.leadOpen ? seg.from - Math.max(0, seg.atFrame - Math.ceil(this.ctx.currentTime * sr)) : seg.from;
+        t.leadOpen = false;
         this.parts.forEach((part, id) => {
             if (seg.mute?.has(id)) return;
             const partFrom = Math.round(part.offsetSeconds * sr);
             const partTo = partFrom + Math.round(part.buffer.duration * sr);
-            const from = Math.max(seg.from, partFrom);
+            const from = Math.max(part.lead ? leadFrom : seg.from, partFrom);
             const to = Math.min(seg.to, partTo);
             if (to <= from) return;
             const source = this.ctx.createBufferSource();

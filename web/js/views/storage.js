@@ -12,7 +12,7 @@ import { cloud, syncNow } from '../stores/cloud.js';
 import { loadProjects, projects, shownTitle } from '../stores/projects.js';
 import { formatBytes, SyncStatus } from '../components/cloud.js';
 import { EmptyState, Notice } from '../components/form.js';
-import { PageHeader } from '../components/page.js';
+import { AppScreen } from '../components/page.js';
 import { Icon, Logo } from '../components/icon.js';
 import { toast } from '../components/ui.js';
 import { confirmAction, deleteSong } from '../components/confirm.js';
@@ -30,13 +30,11 @@ function restoreRefusal(error, usage) {
 }
 
 export const StorageView = {
-    components: { AccountWall, PageHeader, EmptyState, Notice, Icon, Logo, SyncStatus },
+    components: { AccountWall, AppScreen, EmptyState, Notice, Icon, Logo, SyncStatus },
     data: () => ({ usage: null, bin: null, failed: false, busy: null, notice: null, editable: [], openSong: null, kept: null }),
     setup: () => ({ account, cloud, projects, navigate, goBack, formatBytes, formatDate, shownTitle, selfHosted }),
     template: `
-        <div data-ui="screen" class="min-h-dvh bg-ink px-4 pb-16 pt-[max(0.5rem,env(safe-area-inset-top))] md:px-8">
-            <div class="mx-auto flex w-full max-w-2xl flex-col gap-8">
-                <PageHeader :title="t('cloud.storage.title')" back="/settings" />
+        <AppScreen :title="t('cloud.storage.title')" back="/settings" measure="max-w-2xl" content-class="gap-8 pt-4" data-ui="screen" class="bg-ink">
 
                 <!-- The real limit first (88.png): the songs as slots, then the space split by song, then the sync line -->
                 <section v-if="account.me" class="card space-y-5 p-5 md:p-6" data-storage-hero>
@@ -49,7 +47,7 @@ export const StorageView = {
                                 <p class="text-3xl font-extrabold tracking-tight text-cream">{{ usage.projects.limit !== null ? t('cloud.storage.songsOf', { used: usage.projects.used, limit: usage.projects.limit }) : t('cloud.storage.songsCount', { count: usage.projects.used }) }}</p>
                                 <p v-if="usage.projects.limit !== null" class="text-sm text-cream/85">{{ t('settings.plan.songsLeft', { count: Math.max(0, usage.projects.limit - usage.projects.used) }) }}</p>
                             </div>
-                            <a v-if="usage.plan !== 'plus' && !selfHosted()" href="/plus?from=storage" class="btn-primary btn-sm shrink-0" @click.prevent="navigate('/plus?from=storage')">{{ t('cloud.storage.unlimited') }}</a>
+                            <a v-if="usage.plan !== 'plus' && !selfHosted()" href="/plus?from=storage_limit" class="btn-primary btn-sm shrink-0" @click.prevent="navigate('/plus?from=storage_limit')">{{ t('cloud.storage.moreRoom') }}</a>
                         </div>
                         <div v-if="usage.projects.limit !== null" class="flex gap-1.5" aria-hidden="true"><span v-for="i in usage.projects.limit" :key="i" class="h-2 flex-1 rounded-full" :class="i <= usage.projects.used ? 'bg-good' : 'bg-raised'"></span></div>
                         <div class="space-y-2 border-t border-line pt-5">
@@ -142,14 +140,13 @@ export const StorageView = {
                         </li>
                     </ul>
                 </section>
-            </div>
-        </div>`,
+        </AppScreen>`,
     computed: {
         editableLimit() {
             return this.usage?.projects.limit ?? 3;
         },
         /** Projects a free account can choose to keep editable (not a Plus song's, not the course's). */
-        choosable: () => projects.list.filter((p) => !p.course && p.version > 0 && p.readOnly !== 'plus_song'),
+        choosable: () => projects.list.filter((p) => !p.course && p.version > 0),
         overLimit() {
             return this.usage?.plan === 'free' && projects.list.some((p) => p.readOnly === 'limit');
         },

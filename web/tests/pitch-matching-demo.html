@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en" data-theme="stage-dark">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Pitch matching</title>
+    <!-- How a /tools page mounts the pitch matching game (js/public/tools/pitch-matching.js): a box, the page's words, mountPitchMatching().
+         ?sing=-8 stands in a singer who sings each note 8 cents flat once it's time (tests and shots). -->
+    <meta name="game-css" content="/css/site-game.css">
+    <link rel="stylesheet" href="/css/site.css">
+    <script src="/js/theme-boot.js"></script>
+    <script src="/js/game-css.js"></script>
+</head>
+<body class="bg-ink text-cream" data-tool-name="Pitch matching">
+    <main class="px-4">
+        <div id="game"></div>
+        <h1 class="mx-auto mt-8 max-w-[24.375rem] text-[28px] font-extrabold leading-tight tracking-tight md:text-[40px]">Pitch matching</h1>
+    </main>
+    <script type="module" src="/tests/tool-frame.js"></script>
+    <script type="module">
+        import { mountPitchMatching } from '/js/public/tools/pitch-matching.js';
+        import { audio, hz } from '/js/public/voices.js';
+        const words = {
+            playNote: 'Play note', asking: 'Asking for the mic', listen: 'Listen', wait: 'Wait', singNow: 'Sing now', singHint: 'Hold it steady',
+            holdIt: 'Hold it in your head', next: 'Next note', again: 'Hear it again', tryAgain: 'Try again', newRound: 'New round', settings: 'More', settingsTitle: 'Settings', reset: 'Reset', done: 'Done',
+            idleHint: 'Hear a note. Hold it in your head. Sing it back.', level: 'Level', easier: 'Easier', harder: 'Harder',
+            levelNoWait: 'Level :n: sing straight back', levelWait: 'Level :n: a :gap-second wait', low: 'Low voice', high: 'High voice', yours: 'Your range', voices: 'Your voice',
+            round: 'Note :n of :total', score: ':n / :total',
+            spot: 'Spot on', close: 'Close', nearly: 'Nearly', off: 'Off', centsFlat: ':n cents flat', centsSharp: ':n cents sharp', centsOn: 'right on it',
+            octaveLower: 'an octave lower, fine', octaveHigher: 'an octave higher, fine',
+            noNote: 'We didn\'t hear a note', noNoteHint: 'Sing a little louder, or come closer', denied: 'The mic is blocked', noMic: 'No mic to listen with',
+            roundDone: 'Round done: :n of :total.', best: 'Your best here: :best.',
+            noHeadphones: 'No headphones needed: the note stops before you sing, so a phone speaker is fine.', privacy: 'The mic opens on your first Play. Nothing is recorded or sent.',
+            honest: 'This isn\'t a perfect-pitch test: you always hear the note first. It tests singing a note back, and a low score is a starting point, not a verdict.',
+            strict: 'Strict octave: the note must be in the octave played', micLabel: 'Mic',
+            share: 'Share my round', shareText: 'I sang back :n of :total notes in tune. Can you?', cardTitle: 'Pitch matching', cardScore: ':n of :total', cardLine: 'notes sung back in tune', cardChallenge: 'Can you match it?',
+            cardTagline: 'Harmony, made by you.', cardSite: 'stackapella.com', cardSaved: 'Card saved, and the line copied',
+        };
+        const sing = Number(new URLSearchParams(location.search).get('sing'));
+        // A singer who sings the note asked for, `sing` cents off, every frame.
+        const singer = async ({ onFrame }) => {
+            const frames = [];
+            let goal = 60;
+            let raf = 0;
+            const tick = () => {
+                raf = requestAnimationFrame(tick);
+                const midi = goal + sing / 100;
+                const frame = { at: audio().currentTime, hz: hz(midi), midi, cents: sing, clear: true, loudness: -24, clarity: 0.95 };
+                frames.push(frame);
+                onFrame(frame);
+            };
+            raf = requestAnimationFrame(tick);
+            return { target: (m) => (goal = m), since: (at) => frames.filter((f) => f.at >= at), stop: () => cancelAnimationFrame(raf), deviceId: () => '', use: async () => {} };
+        };
+        window.__game = mountPitchMatching(document.querySelector('#game'), {
+            words, keySlot: document.querySelector('[data-tool-key]'), onLesson: () => (window.__lessons = (window.__lessons ?? 0) + 1), onShared: () => (window.__shared = (window.__shared ?? 0) + 1), ...(Number.isFinite(sing) && new URLSearchParams(location.search).has('sing') ? { open: singer } : {}),
+        });
+    </script>
+</body>
+</html>

@@ -90,6 +90,19 @@ final class SupportInbox
     }
 
     /**
+     * A tracks request's own fields, as groups.tracks.create kept them.
+     *
+     * @return array{groupId: string|null, group: string|null, piece: string, composer: string|null, voicing: string|null, rights: string|null, rightsConfirmedAt: string|null}
+     */
+    private static function tracks(SupportMessage $message): array
+    {
+        $tracks = (array) ($message->context['tracks'] ?? []);
+        $text = static fn (string $key): ?string => is_string($tracks[$key] ?? null) ? $tracks[$key] : null;
+
+        return ['groupId' => $text('groupId'), 'group' => $text('group'), 'piece' => $text('piece') ?? '', 'composer' => $text('composer'), 'voicing' => $text('voicing'), 'rights' => $text('rights'), 'rightsConfirmedAt' => $text('rightsConfirmedAt')];
+    }
+
+    /**
      * @return array<string, mixed>
      */
     public static function view(SupportMessage $message, bool $full = false): array
@@ -103,11 +116,14 @@ final class SupportInbox
             'preview' => mb_strimwidth($message->body, 0, 140, '...'),
             'createdAt' => $message->created_at?->utc()->toIso8601ZuluString(),
             'answeredAt' => $message->answered_at?->utc()->toIso8601ZuluString(),
+            // A director's learning tracks request: the group, the piece and their word on its rights, so Admin can
+            // give the song straight from the row (admin.people.songs.create to from.account).
+            ...($message->category === SupportMessage::TRACKS ? ['tracks' => self::tracks($message)] : []),
             ...($full ? [
                 'body' => $message->body,
                 'context' => $message->context,
                 'replies' => $message->replies->map(fn (SupportReply $r): array => ['body' => $r->body, 'by' => $r->admin !== null ? ['id' => $r->admin->sqid(), 'name' => $r->admin->name] : null, 'sentAt' => $r->created_at?->utc()->toIso8601ZuluString()])->values()->all(),
-                'savedReplies' => array_map(static fn (string $key): array => ['key' => $key, 'title' => (string) __('support.saved.'.$key.'.title'), 'body' => (string) __('support.saved.'.$key.'.body')], ['silent_mic', 'out_of_time', 'iphone', 'refunds', 'refunds_store', 'cancelling', 'lost_account']),
+                'savedReplies' => array_map(static fn (string $key): array => ['key' => $key, 'title' => (string) __('support.saved.'.$key.'.title'), 'body' => (string) __('support.saved.'.$key.'.body')], ['silent_mic', 'out_of_time', 'iphone', 'refunds', 'refunds_store', 'cancelling', 'lost_account', 'tracks_score']),
             ] : []),
         ];
     }

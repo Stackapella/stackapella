@@ -12,6 +12,7 @@ use App\Models\ShareVideo;
 use App\Models\SocialPost;
 use App\Models\Template;
 use App\Models\User;
+use App\Services\Social\SocialPoster;
 use App\Support\Sharing\HarmonyFiles;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Request;
@@ -306,26 +307,17 @@ final class SocialPostsTest extends TestCase
         $this->assertNull($x->url);
     }
 
-    public function test_the_song_of_the_month_is_proposed_on_its_first_free_day(): void
+    public function test_a_waiting_post_about_a_song_of_the_month_never_goes(): void
     {
+        // The song of the month ended (2026-11-07): one still waiting is cancelled at the tidy.
         $this->syncReviewed();
         SocialPost::query()->delete();
-        Template::query()->official()->where('slug', 'silent-night')->update(['free_from' => now()->addDay()->toDateString(), 'free_until' => now()->addMonth()->toDateString()]);
+        $song = Template::query()->official()->where('slug', 'silent-night')->firstOrFail();
+        $post = SocialPost::factory()->create(['postable_type' => $song->getMorphClass(), 'postable_id' => $song->id, 'network' => 'x', 'occasion' => SocialPost::MONTH.':2026-11', 'status' => SocialPost::AWAITING]);
 
-        $this->artisan('app:social:month')->assertSuccessful();
-        $this->assertSame(0, SocialPost::query()->count());
-
-        $this->travel(1)->days();
-        $this->artisan('app:social:month')->assertSuccessful();
-        $this->artisan('app:social:month')->assertSuccessful();
-        $this->assertSame(2, SocialPost::query()->where('occasion', SocialPost::MONTH.':'.now()->format('Y-m'))->count());
-
-        // A missed first day is caught within the week, still once, keyed by its own month.
-        SocialPost::query()->delete();
-        $this->travel(3)->days();
-        $this->artisan('app:social:month')->assertSuccessful();
-        $this->artisan('app:social:month')->assertSuccessful();
-        $this->assertSame(2, SocialPost::query()->count());
+        $this->assertNull(app(SocialPoster::class)->message($post, false));
+        app(SocialPoster::class)->tidy();
+        $this->assertSame(SocialPost::CANCELLED, $post->refresh()->status);
     }
 
     public function test_nothing_is_proposed_before_launch_and_waiting_posts_that_cant_go_are_cleared(): void

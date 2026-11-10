@@ -7,7 +7,7 @@
 import { api } from '../api.js';
 import { formatDate, formatNumber, t, tk } from '../i18n.js';
 import { Notice } from '../components/form.js';
-import { LoadFailed, loadInto } from './common.js';
+import { LoadFailed, loadInto, remembers } from './common.js';
 
 const RANGES = [7, 30, 90];
 const ARRIVALS = ['f_arrive', 'f_arrive_start'];
@@ -38,6 +38,8 @@ export const STEPS = {
     f_goal_met: tk('admin.funnel.step.f_goal_met'),
     f_day7: tk('admin.funnel.step.f_day7'),
     f_plus: tk('admin.funnel.step.f_plus'),
+    f_day14: tk('admin.funnel.step.f_day14'),
+    f_course_lesson: tk('admin.funnel.step.f_course_lesson'),
 };
 const ASKS = {
     install: tk('admin.funnel.ask.install'),
@@ -46,6 +48,17 @@ const ASKS = {
     share: tk('admin.funnel.ask.share'),
     goal: tk('admin.funnel.ask.goal'),
     remind: tk('admin.funnel.ask.remind'),
+    // The account nudges (docs/account-nudges-plan.md: N1 to N4, Settings) and the course wall, all and by place.
+    acct_week: tk('admin.funnel.ask.acct_week'),
+    acct_songs: tk('admin.funnel.ask.acct_songs'),
+    acct_unit: tk('admin.funnel.ask.acct_unit'),
+    acct_risk: tk('admin.funnel.ask.acct_risk'),
+    acct_settings: tk('admin.funnel.ask.acct_settings'),
+    acct_course: tk('admin.funnel.ask.acct_course'),
+    acct_course_home: tk('admin.funnel.ask.acct_course_home'),
+    acct_course_lesson: tk('admin.funnel.ask.acct_course_lesson'),
+    acct_course_map: tk('admin.funnel.ask.acct_course_map'),
+    acct_course_page: tk('admin.funnel.ask.acct_course_page'),
 };
 
 const day = (date) => (date ? formatDate(`${date}T12:00:00Z`, { month: 'short', day: 'numeric', year: 'numeric' }) : '');
@@ -57,7 +70,8 @@ const points = (n) => {
 
 // Experiment arms (docs/admin-growth-plan.md): A blue and B orange, a pair told apart with colour
 // blindness on light and dark, used for the arms only and always with their letters.
-export const ARM_COLORS = { a: '#3b82f6', b: '#d97706', all: 'var(--color-accent)' };
+// The arms' colours: teal and violet (input.css, --color-arm-a and -b); blue and orange mean up and down only in admin.
+export const ARM_COLORS = { a: 'var(--color-arm-a, #1f9e88)', b: 'var(--color-arm-b, #9a6be6)', all: 'var(--color-accent)' };
 // What each experiment changes, and its arms' names (the server sends ids only); an unknown one is its id.
 const EXPERIMENTS = { onb1: tk('admin.funnel.experiment.onb1') };
 const ARM_NAMES = { 'onb1:a': tk('admin.funnel.armName.onb1.a'), 'onb1:b': tk('admin.funnel.armName.onb1.b') };
@@ -80,6 +94,7 @@ export function lostBetween(before, after) {
 }
 
 export const FunnelSection = {
+    mixins: [remembers('funnel', { days: RANGES }, (vm) => vm.fixed === null)],
     components: { LoadFailed, Notice },
     // fixed: one experiment's steps alone, inside the Experiments page (its own card says the rest).
     props: { me: { type: Object, required: true }, fixed: { type: String, default: null } },

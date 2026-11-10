@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en" data-theme="stage-dark">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Reference card</title>
+    <!-- How a reference page (docs/seo-growth-plan.md, item 4) mounts its card (js/public/reference-cards.js): a box,
+         the page's words, the mount. ?card=interval&semis=4 (and &name=harmonicSeventh), ?card=chord&quality=dom7,
+         ?card=voice&type=tenor. -->
+    <meta name="game-css" content="/css/site-game.css">
+    <link rel="stylesheet" href="/css/site.css">
+    <script src="/js/theme-boot.js"></script>
+    <script src="/js/game-css.js"></script>
+</head>
+<body class="bg-ink text-cream" data-tool-name="Reference">
+    <main class="mx-auto max-w-3xl px-4 py-6">
+        <h1 class="mb-4 text-2xl font-bold" data-heading></h1>
+        <div id="card"></div>
+    </main>
+    <script type="module" src="/tests/tool-frame.js"></script>
+    <script type="module">
+        import { mountChordCard, mountIntervalCard, mountVoiceRangeCard } from '/js/public/reference-cards.js';
+        const q = new URLSearchParams(location.search);
+        const card = q.get('card') || 'interval';
+        const shared = { tuning: 'Tuning', equal: 'Equal', pure: 'Pure', lower: 'Lower the root', higher: 'Raise the root' };
+        const el = document.querySelector('#card');
+        const heading = document.querySelector('[data-heading]');
+        if (card === 'interval') {
+            heading.textContent = 'The major third';
+            window.__card = mountIntervalCard(el, { semis: Number(q.get('semis') ?? 4), name: q.get('name'), words: {
+                ...shared, up: 'Up', down: 'Down', together: 'Together', notes: ':low to :high', notesLabel: 'Notes',
+                equalLabel: 'On a piano', equalCents: ':cents cents', pureLabel: 'Pure, :ratio', pureCents: ':cents cents, :how',
+                pureNarrower: ':diff narrower', pureWider: ':diff wider', pureSame: 'the same',
+                keyboard: ':low and :high on a keyboard', staff: ':low and :high on a staff',
+            } });
+        } else if (card === 'chord') {
+            heading.textContent = 'The dominant seventh chord';
+            window.__card = mountChordCard(el, { quality: q.get('quality') || 'dom7', words: {
+                ...shared, together: 'Together', arpeggio: 'One at a time', chord: ':root:name', name: '7',
+                tones: { 0: 'Root', 3: 'Minor third', 4: 'Major third', 6: 'Diminished fifth', 7: 'Fifth', 8: 'Augmented fifth', 9: 'Sixth', 10: 'Seventh', 11: 'Major seventh', 2: 'Second', 5: 'Fourth' },
+                toneCents: ':note, :how', pureSame: 'no change when pure', pureNarrower: ':diff cents lower when pure', pureWider: ':diff cents higher when pure',
+                keyboard: ':chord on a keyboard: :notes', staff: ':chord on a staff: :notes',
+            } });
+        } else {
+            heading.textContent = 'The tenor voice';
+            window.__card = mountVoiceRangeCard(el, { type: q.get('type') || 'tenor', rangeTest: '/tools/vocal-range-test', words: {
+                lowest: 'Lowest', highest: 'Highest', scale: 'The notes between', range: ':low to :high', rangeLabel: 'Usual range',
+                partLabel: 'Choir part', part: { bass: 'Bass', bassOrTenor2: 'Bass or second tenor', tenor: 'Tenor', alto: 'Alto', sopranoOrAlto: 'Soprano or alto', soprano: 'Soprano' },
+                find: 'Find your own range', keyboard: 'The usual range, :range, on a keyboard', staff: ':range on a staff',
+            } });
+        }
+    </script>
+</body>
+</html>

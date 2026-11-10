@@ -5,6 +5,8 @@
 //   - an account ask at most once a week;
 //   - a Not now on any of them puts all of them away for 14 days;
 //   - three Not nows in all, and they stop for good (walls, Settings and the header link stay);
+//   - an ask seen and left unanswered waits a week before it shows again (Hillel, 2026-11-02: "ask
+//     once"; the install card had shown on every Home through a singer's first week);
 //   - the Safari loss card (acct_risk) is the one exception: at most once in 30 days, even after
 //     three Not nows (Hillel, 2026-10-30), still one ask a day.
 // Funnel counts stay in funnel.js (askShown, askYes); this only decides whether an ask may show.
@@ -17,11 +19,12 @@ export const SNOOZE = 14 * DAY;
 export const ACCOUNT_EVERY = 7 * DAY;
 export const RISK_EVERY = 30 * DAY;
 export const MOST_NOT_NOWS = 3;
+export const UNANSWERED_WAIT = 7 * DAY;
 
 /** Asks for an account, which share the weekly cap: the wrap's and Home's ("account"), and acct_*. */
 export const isAccountAsk = (name) => name === 'account' || name.startsWith('acct_');
 
-const empty = () => ({ day: null, today: null, nots: 0, notAt: 0, accountAt: 0, riskAt: 0, stopped: [] });
+const empty = () => ({ day: null, today: null, nots: 0, notAt: 0, accountAt: 0, riskAt: 0, stopped: [], seenAt: {} });
 
 function parse(raw, fallback) {
     try {
@@ -72,7 +75,7 @@ export function readLedger() {
         return ledger;
     }
     const kept = parse(raw, null);
-    return kept && typeof kept === 'object' ? { ...empty(), ...kept, stopped: Array.isArray(kept.stopped) ? kept.stopped : [] } : empty();
+    return kept && typeof kept === 'object' ? { ...empty(), ...kept, stopped: Array.isArray(kept.stopped) ? kept.stopped : [], seenAt: kept.seenAt && typeof kept.seenAt === 'object' ? kept.seenAt : {} } : empty();
 }
 
 function writeLedger(ledger) {
@@ -92,6 +95,8 @@ export function askAllowed(name, ledger, now = Date.now()) {
     if (ledger.nots >= MOST_NOT_NOWS) return false;
     if (ledger.nots && now - ledger.notAt < SNOOZE) return false;
     if (isAccountAsk(name) && ledger.accountAt && now - ledger.accountAt < ACCOUNT_EVERY) return false;
+    const seen = ledger.seenAt?.[name] ?? 0;
+    if (seen && dayOf(seen) !== dayOf(now) && now - seen < UNANSWERED_WAIT) return false; // seen and left: a week
     return true;
 }
 
@@ -102,6 +107,7 @@ export const askDue = (name, now = Date.now()) => askAllowed(name, readLedger(),
 export function withSeen(name, ledger, now = Date.now()) {
     const next = { ...ledger, day: dayOf(now), today: name };
     if (ledger.day === dayOf(now) && ledger.today === name) return next; // the same ask again today
+    next.seenAt = { ...(ledger.seenAt ?? {}), [name]: now };
     if (isAccountAsk(name) && name !== 'acct_risk') next.accountAt = now;
     if (name === 'acct_risk') next.riskAt = now;
     return next;

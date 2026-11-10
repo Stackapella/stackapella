@@ -9,7 +9,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
 from flow import run  # noqa: E402
-from game_frames import dark, light  # noqa: E402
+from game_frames import dark, every_theme, light  # noqa: E402
 from home import progress, t  # noqa: E402
 
 MAP = "document.querySelector('[data-game-map]')"
@@ -36,6 +36,7 @@ def journey(f):
     f.run(f"{MAP}.scrollIntoView({{ block: 'center' }})")
     f.no_sideways("the stage map")
     f.shot("map")
+    every_theme(f, "the stage map")
     # Picking a node shows its row.
     f.run(f"{MAP}.querySelectorAll('.ge-map-node')[1].click()")
     f.wait("document.querySelector('[data-picked-lesson]')?.innerText.length > 0", what="the picked lesson's row")

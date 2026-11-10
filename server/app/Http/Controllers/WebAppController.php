@@ -15,6 +15,7 @@ use App\Support\Accounts\BetaPass;
 use App\Support\Accounts\EarlyAccess;
 use App\Support\Http\ApiError;
 use App\Support\Http\Hosts;
+use App\Support\Pages\PageGone;
 use App\Support\Web\AppMeta;
 use App\Support\Web\AppShell;
 use Illuminate\Http\Request;
@@ -32,13 +33,7 @@ final class WebAppController extends Controller
     private const TOKEN_PAGES = ['beta/*', 'early/*', 'invite/*', 'join/*', 'verify', 'reset', 'email/confirm', 'email/revert', 'notice'];
 
     /** The folders and files of /web the app is made of. Tests, tools and the spike are not served. */
-    private const SERVED = ['js/', 'engine/', 'css/', 'icons/', 'sounds/', 'templates/', 'locales/', 'course/', 'lab/', 'sw.js', 'manifest.webmanifest', 'favicon.ico'];
-
-    /**
-     * Hillel's test pages (web/lab, for now the locked-iPhone playlist test, docs/practice-playlist-plan.md):
-     * static, sending nothing, never indexed or kept, with only their own inline script allowed.
-     */
-    private const LAB_CSP = "default-src 'self'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; media-src 'self' blob: data:; base-uri 'none'; form-action 'none'; frame-ancestors 'none'";
+    private const SERVED = ['js/', 'engine/', 'css/', 'icons/', 'sounds/', 'fonts/', 'templates/', 'locales/', 'course/', 'sw.js', 'tools-sw.js', 'manifest.webmanifest', 'favicon.ico'];
 
     private const TYPES = [
         'js' => 'text/javascript; charset=utf-8',
@@ -51,6 +46,9 @@ final class WebAppController extends Controller
         'png' => 'image/png',
         'ico' => 'image/x-icon',
         'wasm' => 'application/wasm',
+        // web/fonts: the web fonts, served from our own address.
+        'woff2' => 'font/woff2',
+        'ttf' => 'font/ttf',
         // web/sounds: the app's own short sounds.
         'mp3' => 'audio/mpeg',
         'wav' => 'audio/wav',
@@ -77,7 +75,7 @@ final class WebAppController extends Controller
         }
 
         // A missing file (an old cached link to /js/x.js) is a 404, not the app.
-        if (preg_match('#\.(js|css|json|png|svg|ico|webmanifest|wasm|map)$#', $path) === 1) {
+        if (preg_match('#\.(js|css|json|png|svg|ico|webmanifest|wasm|map|woff2|ttf)$#', $path) === 1) {
             abort(404);
         }
 
@@ -88,6 +86,12 @@ final class WebAppController extends Controller
             return config('app.coming_soon') && ! BetaPass::valid($request)
                 ? response()->view('coming-soon', [], 200, ['Cache-Control' => 'no-cache', 'Vary' => 'Cookie'])
                 : app(InfoPagesController::class)->landing($request);
+        }
+
+        // The public site's host never answers with the app's shell: an address of the site with no page
+        // behind it (a tool not live yet, a mistyped one) is a real 404, never a 200 search engines keep.
+        if ($path !== '' && Hosts::onPublicHost($request)) {
+            return PageGone::response();
         }
 
         // The mudeo email's early-access links, already sent: since launch, the same arrival as the
@@ -216,12 +220,6 @@ final class WebAppController extends Controller
         $response->headers->set('Cloudflare-CDN-Cache-Control', 'no-store');
 
         $response->setAutoEtag();
-
-        if ($prefix === 'lab/') {
-            $response->headers->set('Cache-Control', 'no-store');
-            $response->headers->set('X-Robots-Tag', 'noindex, nofollow');
-            $response->headers->set('Content-Security-Policy', self::LAB_CSP);
-        }
 
         return $response;
     }

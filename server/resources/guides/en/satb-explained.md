@@ -1,14 +1,14 @@
 ---
-title: SATB explained: soprano, alto, tenor and bass
-description: SATB stands for soprano, alto, tenor and bass, the four parts of most choir music. Here's what each part sings, their usual ranges, and where you fit.
+title: What Is SATB? Soprano, Alto, Tenor and Bass Explained
+description: SATB means soprano, alto, tenor and bass, the four parts of most choir music: what each part sings, its usual range to hear, and how to find yours.
 song: amazing-grace
-version: 1
+version: 4
 reviewed: false
 ---
 
-# SATB explained
+# What is SATB? Soprano, alto, tenor and bass explained
 
-**SATB** stands for soprano, alto, tenor and bass: the four parts most choir music is written
+**SATB** stands for soprano, alto, tenor and bass, the four parts most choir music is written
 for, from highest to lowest. Hymns, carols and many a cappella songs use them. Once you know what
 each part does, a page of choir music, or a recording of one, makes much more sense.
 
@@ -19,7 +19,7 @@ the C near the middle of a piano. The number goes up by one at each C, so C5 is 
 middle C, and C3 the one below.
 
 - **Soprano:** the highest part, roughly C4 to A5. It usually sings the tune.
-- **Alto:** below the soprano, roughly G3 to D5. It often sits close under the tune, filling in
+- **Alto:** below the soprano, roughly F3 to D5. It often sits close under the tune, filling in
   the chord.
 - **Tenor:** the higher of the two lower parts, roughly C3 to A4. It often sits in the middle of
   the chord, and sometimes gets the tune.
@@ -28,6 +28,9 @@ middle C, and C3 the one below.
 
 These are typical ranges, not rules. A part in a simple arrangement often uses only the middle of
 its range, and most songs never ask for the top or bottom notes.
+
+Not sure which range is yours? The free [vocal range test](/tools/vocal-range-test) finds your lowest and
+highest notes and the part that fits them.
 
 ## Who usually has the tune
 
@@ -58,7 +61,13 @@ Many voices don't fit neatly into four boxes, and that's normal.
   alto, or soprano on songs that don't climb too far.
 
 Some arrangements split a part in two, written as "Soprano 1" and "Soprano 2", or add a separate
-baritone line. The idea is the same: higher voices on the higher line, lower voices on the lower.
+baritone line. The idea is the same: higher voices on the higher line, lower voices on the lower. [Choir
+voicings explained](/guides/choir-voicings) covers SSA, SSAA, TTBB, SAB and the rest.
+
+## Hear the four parts on any chords
+
+Type a few chords into the free [four-part harmony generator](/tools/four-part-harmony) and it writes soprano,
+alto, tenor and bass for them, on a staff you can hear together or one part at a time.
 
 ## Written down
 

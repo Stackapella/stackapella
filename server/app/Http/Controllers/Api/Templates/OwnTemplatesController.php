@@ -35,7 +35,7 @@ final class OwnTemplatesController extends Controller
         $editable = $plans->editableTemplateIds($user);
 
         foreach ($page->items() as $template) {
-            $template->setAttribute('read_only', $editable !== null && ! $template->isPublic() && ! in_array($template->id, $editable, true));
+            $template->setAttribute('read_only', $editable !== null && Plans::counts($template) && ! in_array($template->id, $editable, true));
         }
 
         return CursorList::response($page, OwnTemplateResource::class, $request);

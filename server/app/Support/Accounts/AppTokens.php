@@ -24,7 +24,8 @@ use JsonException;
 /**
  * The native apps' tokens (the mobile agent's token-auth plan; contract/api.md, "The apps: device
  * tokens"): each sign-in in an app is a device with an access token (an hour) and a refresh
- * token (90 days from its last use, rotated on every refresh). Only their SHA-256 hashes are
+ * token (400 days from its last use, rotated on every refresh: signed in until they sign out, as
+ * the web's remember cookie). Only their SHA-256 hashes are
  * kept. For a minute, a retired refresh token gets the same pair its refresh gave (a reply lost on
  * a bad connection, or two refreshes at once), never a new one; after that it's taken as stolen,
  * and the device is signed out.
@@ -33,7 +34,7 @@ final class AppTokens
 {
     public const ACCESS_MINUTES = 60;
 
-    public const REFRESH_DAYS = 90;
+    public const REFRESH_DAYS = 400;
 
     /** How long a just-retired refresh token still works. */
     public const GRACE_SECONDS = 60;

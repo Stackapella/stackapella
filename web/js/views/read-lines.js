@@ -9,23 +9,17 @@ import { learning, loadLearning } from '../stores/learning.js';
 import { COURSE, readingLevel, readingLine } from '../reading-lines.js';
 import { Exercise } from '../components/exercise.js';
 import { Icon } from '../components/icon.js';
+import { AppScreen } from '../components/page.js';
 
 const DEFAULT_HOME = 57; // as a lesson's, until unit 1 finds the learner's own
 
 export const ReadLinesView = {
-    components: { Exercise, Icon },
+    components: { AppScreen, Exercise, Icon },
     setup: () => ({ learning }),
     data: () => ({ seed: Math.floor(Date.now() / 1000), result: null, count: 1 }),
     template: `
-        <div class="mx-auto min-h-dvh max-w-2xl px-4 pb-16 pt-[max(1rem,env(safe-area-inset-top))] md:px-8" data-read-lines>
-            <header class="flex items-center gap-3 py-4">
-                <button type="button" class="glass-bubble grid size-11 shrink-0 place-items-center rounded-full text-cream" :aria-label="t('home.back')" @click="navigate('/learn/c/' + COURSE)"><Icon name="back" :size="20" /></button>
-                <div class="min-w-0 flex-1">
-                    <p class="text-sm text-muted">{{ t('readLines.eyebrow') }}</p>
-                    <h1 class="truncate text-xl font-bold text-cream">{{ t('readLines.title') }}</h1>
-                </div>
-                <span v-if="level" class="tabular-nums text-sm text-muted">{{ t('readLines.count', { count }) }}</span>
-            </header>
+        <AppScreen :title="t('readLines.title')" :eyebrow="t('readLines.eyebrow')" :leave="() => navigate('/learn/c/' + COURSE)" :back-label="t('home.back')" measure="max-w-2xl" data-read-lines>
+            <template #aside><span v-if="level" class="tabular-nums text-sm text-muted">{{ t('readLines.count', { count }) }}</span></template>
             <p v-if="!learning.loaded" class="text-muted" role="status">{{ t('course.loading') }}</p>
             <p v-else-if="!level" class="text-cream">{{ t('readLines.notYet') }} <a :href="'/learn/c/' + COURSE" class="link" @click.prevent="navigate('/learn/c/' + COURSE)">{{ t('course.backToCourse') }}</a></p>
             <template v-else>
@@ -36,7 +30,7 @@ export const ReadLinesView = {
                     <button type="button" class="btn-primary" data-next-line @click="next">{{ t('readLines.next') }}</button>
                 </div>
             </template>
-        </div>`,
+        </AppScreen>`,
     computed: {
         COURSE: () => COURSE,
         level: () => readingLevel(learning.progress),

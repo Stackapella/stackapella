@@ -17,7 +17,7 @@ use Symfony\Component\HttpFoundation\Response;
  * Three kinds of page:
  * - the app (the PWA's index.html, marked by WebAppController): Vue compiles its templates in the
  *   browser, so 'unsafe-eval' is allowed here and only here (docs/conventions.md, "Templates and
- *   CSP"), with the pinned CDN, Google Fonts, and the microphone for our own origin;
+ *   CSP"), with the pinned CDN and the microphone for our own origin (the fonts are our own files);
  * - the server's own pages (admin sign-in, the second factor; later the public Blade pages): no
  *   'unsafe-eval', scripts from 'self' only;
  * - the API: JSON that is never a document, so nothing at all.
@@ -28,6 +28,24 @@ use Symfony\Component\HttpFoundation\Response;
 final class SecurityHeaders
 {
     public const APP_PAGE = 'stackapella.app_page';
+
+    /**
+     * The free tools that listen (config tools.listening: the tuner, the vocal range test and the audio
+     * latency test's mic round trip) open the mic on a tap, on the device only; no other tool may ask.
+     *
+     * @return list<string>
+     */
+    public static function listeningTools(): array
+    {
+        $listening = (array) config('tools.listening');
+        // An embedded tool that listens too (its framing page delegates the mic with allow="microphone").
+        $embedded = array_intersect($listening, (array) config('tools.embeddable'));
+
+        return array_values([
+            ...array_map(static fn (mixed $slug): string => 'tools/'.$slug, $listening),
+            ...array_map(static fn (mixed $slug): string => 'embed/tools/'.$slug, $embedded),
+        ]);
+    }
 
     public function __construct(private readonly AppShell $shell) {}
 
@@ -41,10 +59,11 @@ final class SecurityHeaders
         $isApp = $request->attributes->get(self::APP_PAGE) === true || $request->is('sw.js');
         $isAdmin = $request->is('admin', 'admin/*', 'api/admin/*');
         $isEmbed = $request->is('embed/*');
-        // A public page that listens: Perfect your pitch's page lets a visitor try the pitch meter, and
-        // the Course feature and beginners' pages try "Find your comfortable note" (the mic opens only
-        // on a Listen tap; the pitch is worked out on the device, nothing recorded or sent).
-        $listens = $request->is('courses/perfect-your-pitch', 'features/course', 'for/beginners');
+        // A public page that listens: Perfect your pitch's page lets a visitor try the pitch meter, the
+        // Course feature and beginners' pages try "Find your comfortable note", and the singing-in-tune
+        // guide's Bullseye echoes five notes (the mic opens only on a tap; the pitch is worked out on
+        // the device, nothing recorded or sent).
+        $listens = $request->is('courses/perfect-your-pitch', 'features/course', 'for/beginners', 'guides/singing-in-tune', ...self::listeningTools());
 
         $headers->set('X-Content-Type-Options', 'nosniff');
         if (! $headers->has('Referrer-Policy')) {
@@ -69,7 +88,7 @@ final class SecurityHeaders
             $headers->set('Content-Security-Policy', match (true) {
                 $request->is('api/*') => "default-src 'none'; frame-ancestors 'none'",
                 $isApp => $this->appPolicy($isAdmin),
-                default => $this->pagePolicy($isAdmin, $isEmbed),
+                default => $this->pagePolicy($isAdmin, $isEmbed, $request->is('embed/tools/*')),
             });
         }
 
@@ -89,15 +108,15 @@ final class SecurityHeaders
             // switching it on would lock everyone out of signing in.
             'script-src' => ["'self'", ...$this->shell->cdnSources(), "'unsafe-eval'", ...$this->shell->scriptHashes(), 'https://challenges.cloudflare.com'],
             'frame-src' => ['https://challenges.cloudflare.com'],
-            'style-src' => ["'self'", 'https://fonts.googleapis.com'],
+            'style-src' => ["'self'"],
             'style-src-attr' => ["'unsafe-inline'"],
-            'font-src' => ["'self'", 'https://fonts.gstatic.com'],
+            'font-src' => ["'self'"],
             // A harmony's own card (and admin's queue) is a signed link to the private bucket.
             'img-src' => array_filter(["'self'", 'data:', 'blob:', $media, $private]),
             'media-src' => array_filter(["'self'", 'blob:', $media, $private]),
-            // The service worker caches the pinned CDN files and the fonts; uploads go straight to
-            // the private bucket by a presigned PUT.
-            'connect-src' => array_filter(["'self'", ...$this->shell->cdnSources(), 'https://fonts.googleapis.com', 'https://fonts.gstatic.com', $media, $private]),
+            // The service worker caches the pinned CDN files; uploads go straight to the private
+            // bucket by a presigned PUT.
+            'connect-src' => array_filter(["'self'", ...$this->shell->cdnSources(), $media, $private]),
             'worker-src' => ["'self'", 'blob:'],
             'manifest-src' => ["'self'"],
             'object-src' => ["'none'"],
@@ -109,7 +128,7 @@ final class SecurityHeaders
         ]);
     }
 
-    private function pagePolicy(bool $isAdmin, bool $isEmbed = false): string
+    private function pagePolicy(bool $isAdmin, bool $isEmbed = false, bool $isToolEmbed = false): string
     {
         $media = $this->origin((string) config('filesystems.disks.media.url'));
         // A shared page's Report form shows Turnstile in shield mode, so reports keep coming in
@@ -119,10 +138,12 @@ final class SecurityHeaders
         return $this->build([
             'default-src' => ["'self'"],
             'script-src' => ["'self'", ...$turnstile],
-            'frame-src' => $turnstile === [] ? ["'none'"] : $turnstile,
-            'style-src' => ["'self'", 'https://fonts.googleapis.com'],
+            // Our own embeds may be framed by a page of ours (/tools/embed previews them); the admin and
+            // the embeds themselves frame nothing.
+            'frame-src' => $turnstile === [] ? ["'none'"] : ["'self'", ...$turnstile],
+            'style-src' => ["'self'"],
             'style-src-attr' => ["'unsafe-inline'"],
-            'font-src' => ["'self'", 'https://fonts.gstatic.com'],
+            'font-src' => ["'self'"],
             // The landing's film and its poster may come from their own CDN host (site.showreel).
             'img-src' => array_values(array_unique(array_filter(["'self'", 'data:', $media, Showreel::origin()]))),
             'media-src' => array_values(array_unique(array_filter(["'self'", $media, Showreel::origin()]))),
@@ -135,6 +156,8 @@ final class SecurityHeaders
             'form-action' => ["'self'", 'https://accounts.google.com', 'https://appleid.apple.com'],
             'frame-ancestors' => match (true) {
                 $isAdmin => ["'none'"],
+                // A free tool may be framed by any site at all (docs/seo-growth-plan.md, item 2).
+                $isToolEmbed => ['*'],
                 $isEmbed => ["'self'", 'https:'],
                 default => ["'self'"],
             },

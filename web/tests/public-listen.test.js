@@ -42,3 +42,28 @@ test('site mic: a dart lands within the lesson\'s 25 cents, a scoop isn\'t clean
     assert(late?.landed && late.clean, `silence first, then the note: ${JSON.stringify(late)}`);
     assert(dart([], 57) === null && dart(readings(1, () => null), 57) === null, 'nothing heard');
 });
+
+test('site mic: raw by default; a tool that sounds while it listens can ask for the browser\'s echo cancellation', async () => {
+    const { listen } = await import('/js/public/live-mic.js');
+    const media = navigator.mediaDevices;
+    const real = media.getUserMedia;
+    const asked = [];
+    // A stand-in mic: records what was asked for, then refuses, so nothing opens.
+    media.getUserMedia = async (constraints) => {
+        asked.push(constraints.audio);
+        throw Object.assign(new Error('test'), { name: 'NotAllowedError' });
+    };
+    try {
+        for (const cancelEcho of [false, true]) {
+            try {
+                await listen({ cancelEcho });
+            } catch (error) {
+                assert(error.reason === 'denied' && error.cause?.name === 'NotAllowedError', `refused: ${error.reason}`);
+            }
+        }
+    } finally {
+        media.getUserMedia = real;
+    }
+    assert(asked[0].echoCancellation === false && asked[0].noiseSuppression === false && asked[0].autoGainControl === false, `raw: ${JSON.stringify(asked[0])}`);
+    assert(asked[1].echoCancellation === true && asked[1].noiseSuppression === false && asked[1].autoGainControl === false, `echo cancelled, nothing else: ${JSON.stringify(asked[1])}`);
+});

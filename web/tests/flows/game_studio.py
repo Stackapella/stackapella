@@ -8,7 +8,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
 from flow import run  # noqa: E402
-from game_frames import dark, light  # noqa: E402
+from game_frames import dark, every_theme, light  # noqa: E402
 from help_shots import clear_projects, new_song  # noqa: E402
 
 TAG = "getComputedStyle(document.querySelector('[data-tracks] section [data-track-name]'), '::before').content"
@@ -29,6 +29,7 @@ def journey(f):
     assert ring != "none", "the armed track is ringed"
     f.no_sideways("the studio as players")
     f.shot("studio")
+    every_theme(f, "the studio's players")
     light(f)
     f.shot("studio-light")
     dark(f)

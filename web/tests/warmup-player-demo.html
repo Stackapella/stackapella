@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en" data-theme="stage-dark">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Warm-up</title>
+    <!-- How a /warmups/<exercise> page mounts the warm-up player (js/public/tools/warmup-player.js): a box, the page's
+         words and the exercise from the courses, mountWarmupPlayer(). ?id= picks the warm-up from /course/warmups.json. -->
+    <meta name="game-css" content="/css/site-game.css">
+    <link rel="stylesheet" href="/css/site.css">
+    <script src="/js/theme-boot.js"></script>
+    <script src="/js/game-css.js"></script>
+</head>
+<body class="bg-ink text-cream" data-tool-name="Warm-up">
+    <main class="px-4">
+        <div id="warmup"></div>
+        <h1 class="mx-auto mt-8 max-w-[24.375rem] text-[28px] font-extrabold leading-tight tracking-tight md:text-[40px]">Warm-up</h1>
+    </main>
+    <script type="module" src="/tests/tool-frame.js"></script>
+    <script type="module">
+        import { loadWarmup, mountWarmupPlayer } from '/js/public/tools/warmup-player.js';
+        const words = {
+            start: 'Start the warm-up', stop: 'Stop', settings: 'More', settingsTitle: 'Settings', reset: 'Reset', done: 'Done',
+            idleHint: 'It climbs a half step each round, then comes back down', voices: 'Your voice', low: 'Low', medium: 'Medium', high: 'High', yours: 'Your range',
+            tempo: 'Tempo', slower: 'Slower', faster: 'Faster', round: 'Round :n of :total', inKey: 'In :key',
+            listen: 'Listen', sing: 'Sing', singHint: 'Easy and light, no pushing', finished: 'Done', finishedHint: 'Your voice is ready',
+            span: ':low to :high', way: 'How to sing it', along: 'Sing along', echo: 'Hear it, then sing', times: 'Times through', timesValue: '×:n',
+            fewer: 'Fewer', oftener: 'More', climb: 'How far it climbs, in half steps', climbValue: '+:n', lower: 'Less', higher: 'Further',
+        };
+        // ?id=lip-trills: any warm-up in the courses lead's list (/course/warmups.json); oo-scale by default.
+        const id = new URLSearchParams(location.search).get('id') || 'oo-scale';
+        const warmup = await loadWarmup(id);
+        document.body.dataset.toolName = warmup.entry.name.en;
+        window.__warmup = mountWarmupPlayer(document.querySelector('#warmup'), { words, keySlot: document.querySelector('[data-tool-key]'), warmup });
+    </script>
+</body>
+</html>

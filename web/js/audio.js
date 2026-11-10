@@ -4,7 +4,7 @@
 import { reactive } from 'vue';
 import { first } from './funnel.js';
 import { Engine } from '../engine/engine.js';
-import { analyzeTrain, clickTrain, median } from './dsp.js';
+import { measureClaps, measureLatency } from './timing-check.js';
 import { tk } from './i18n.js';
 import { local } from './storage.js';
 import { explainFirst } from './mic-help.js';
@@ -26,6 +26,7 @@ export const audio = reactive({
     route: local.get('stackapella.route') || 'wired',
     latencyFrames: null,
     latencyEstimated: false,
+    latencyTypical: false, // the estimate is a typical wireless delay (wirelessTypicalMs), not the browser's own
     deviceChanged: false,
     reconnected: false, // a device came or went while listening wirelessly: its timing may have moved (recheckDue)
     micOpenedAt: null, // the audio-clock time the mic last opened, for the settle before a count-in
@@ -204,6 +205,7 @@ function loadLatency() {
     const saved = Number.parseInt(local.get(latencyKey()) ?? '', 10);
     audio.latencyFrames = Number.isFinite(saved) ? saved : null;
     audio.latencyEstimated = false;
+    audio.latencyTypical = false;
 }
 
 /**
@@ -239,9 +241,34 @@ export function recheckShown() {
     local.set(takesKey(), '0');
 }
 
-/** Records with the browser's own estimate (often tens of ms off) until a timing check is done. */
+// A typical wireless round trip, before any check (docs/wireless-timing-plan.md, 1; Hillel chose "Default +
+// clap-along"): AirPods add 43 to 95 ms over a speaker on Stephen Coyle's rig, on top of a browser's own 55 to 67 ms
+// speaker-to-mic round trip, so about 140 on Apple; Android's Bluetooth is slower and its own figure untrustworthy.
+export const WIRELESS_TYPICAL_MS = { apple: 140, android: 280, other: 250 };
+const MIC_INPUT_MS = 15; // the mic's own share, added to the browser's output figure
+
+/**
+ * The wireless round trip to assume (ms): on Apple the browser's outputLatency when it reads like Bluetooth (100 to
+ * 400 ms; Chrome includes the device's own delay, Safari 18.4+ AVAudioSession's) plus the mic's input, else the typical
+ * value for the platform. Android's figure is never used (its Bluetooth layer can report a fixed 200 ms).
+ */
+export function wirelessTypicalMs({ ua = navigator.userAgent, outputLatency = engine.ctx?.outputLatency } = {}) {
+    const android = /Android/i.test(ua);
+    const apple = !android && /iPhone|iPad|iPod|Macintosh|Mac OS X/.test(ua);
+    if (apple && Number.isFinite(outputLatency) && outputLatency >= 0.1 && outputLatency <= 0.4) return Math.round(outputLatency * 1000 + MIC_INPUT_MS);
+    return android ? WIRELESS_TYPICAL_MS.android : apple ? WIRELESS_TYPICAL_MS.apple : WIRELESS_TYPICAL_MS.other;
+}
+
+/** The delay takes are lined up by now: the one measured, else (listening wirelessly) a typical wireless one, else the browser's estimate. */
+export function latencyNow() {
+    if (audio.latencyFrames !== null) return audio.latencyFrames;
+    return wirelessListening() ? Math.round((wirelessTypicalMs() * engine.sampleRate) / 1000) : engine.estimatedLatencyFrames();
+}
+
+/** Records with an estimate until a timing check is done: a typical wireless delay when listening wirelessly, else the browser's own (often tens of ms off). */
 export function useEstimate() {
-    audio.latencyFrames = engine.estimatedLatencyFrames();
+    audio.latencyTypical = wirelessListening();
+    audio.latencyFrames = audio.latencyTypical ? Math.round((wirelessTypicalMs() * engine.sampleRate) / 1000) : engine.estimatedLatencyFrames();
     audio.latencyEstimated = true;
 }
 
@@ -254,33 +281,42 @@ export async function checkTiming({ runs = 3, onProgress = () => {} } = {}) {
         throw new DOMException('The mic was closed', 'AbortError');
     }
     const sr = engine.sampleRate;
-    const train = clickTrain(sr);
-    const maxLag = sr; // up to a second, for Bluetooth
-    const lags = [];
-    for (let run = 0; run < runs; run++) {
-        onProgress(run / runs);
-        const recording = await engine.measure(train.signal, { captureLength: train.signal.length + maxLag });
-        const result = analyzeTrain(recording, train, { maxLag });
-        if (result.reliable) {
-            lags.push(result.lagFrames);
-        }
-    }
-    onProgress(1);
-    if (lags.length === 0) {
+    const found = await measureLatency({ measure: (signal, captureLength) => engine.measure(signal, { captureLength }), sampleRate: sr, runs, onProgress });
+    if (!found) {
         return { ok: false };
     }
-    const frames = Math.round(median(lags));
-    const spreadMs = ((Math.max(...lags) - Math.min(...lags)) * 1000) / sr;
+    keepTiming(found.frames);
+    return {
+        ok: true,
+        ms: found.ms,
+        spreadMs: found.spreadMs,
+        runs: found.runs,
+        estimateMs: (engine.estimatedLatencyFrames() * 1000) / sr,
+    };
+}
+
+/** A measured round trip, kept for this mic and route. */
+function keepTiming(frames) {
     local.set(latencyKey(), String(frames));
     audio.latencyFrames = frames;
     audio.latencyEstimated = false;
+    audio.latencyTypical = false;
     audio.deviceChanged = false;
     recheckShown(); // a fresh timing: the count starts again
-    return {
-        ok: true,
-        ms: (frames * 1000) / sr,
-        spreadMs,
-        runs: lags.length,
-        estimateMs: (engine.estimatedLatencyFrames() * 1000) / sr,
-    };
+}
+
+/**
+ * Clap along (wireless): the singer claps on steady clicks heard in the earbuds, and the device's own mic hears the
+ * claps (js/timing-check.js measureClaps). Saved as the click test's is. `{ ok: false, reason }` when too few claps were
+ * heard ('few') or they were too uneven ('uneven').
+ */
+export async function checkClaps() {
+    if (!(await openMic())) {
+        throw new DOMException('The mic was closed', 'AbortError');
+    }
+    const sr = engine.sampleRate;
+    const found = await measureClaps({ measure: (signal, captureLength) => engine.measure(signal, { captureLength }), sampleRate: sr });
+    if (found.frames === null) return { ok: false, reason: found.reason };
+    keepTiming(found.frames);
+    return { ok: true, claps: found.claps, ms: found.ms, spreadMs: found.spreadMs, estimateMs: wirelessTypicalMs() };
 }

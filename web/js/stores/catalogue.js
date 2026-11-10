@@ -1,5 +1,5 @@
-// The song catalogue from the server (templates.catalogue): each song's current version and, for a
-// free song or the song of the month, its parts' real voices. Kept on the device for offline use;
+// The song catalogue from the server (templates.catalogue): each song's current version and its parts'
+// real voices. Kept on the device for offline use;
 // with neither, the bundled templates play with the synth (docs/beta-singers-plan.md, "Where the
 // player finds it"). The notes always come from the templates themselves (web/templates).
 

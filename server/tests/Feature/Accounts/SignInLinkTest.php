@@ -5,11 +5,13 @@ declare(strict_types=1);
 namespace Tests\Feature\Accounts;
 
 use App\Enums\BlockType;
+use App\Jobs\SendSignInLink;
 use App\Mail\Account\SignInLinkMail;
 use App\Models\Block;
 use App\Models\SignInLink;
 use App\Models\User;
 use App\Support\Flags;
+use Illuminate\Contracts\Queue\ShouldBeEncrypted;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
 use Tests\TestCase;
@@ -143,6 +145,11 @@ final class SignInLinkTest extends TestCase
         $this->flushSession();
         $this->postJson('/api/auth/sign-in', ['email' => 'ana@example.com', 'password' => 'a-fine-long-passphrase-42'])->assertStatus(401);
         $this->assertNull(User::query()->sole()->password);
+    }
+
+    public function test_the_queued_send_is_encrypted_as_it_carries_the_address_invite_and_ip(): void
+    {
+        $this->assertInstanceOf(ShouldBeEncrypted::class, new SendSignInLink('ada@example.com', null, 'invite', null, '203.0.113.9'));
     }
 
     public function test_empty_quiet_hours_are_refused_not_a_crash(): void

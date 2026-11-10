@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en" data-theme="stage-dark">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Tool variant</title>
+    <!-- How a variant page (docs/seo-growth-plan.md, item 3: the ukulele tuner, /tools/tanpura, the A432 forks) mounts a
+         tool with a preset: the tool's page puts `preset` in its data (site/tool.blade.php's data-tool-data), page.js
+         hands it to the mount. ?tool=tuner|drone|tuning-forks picks the tool, ?preset= the JSON. The tuner's words come
+         from its demo page; the drone and forks get the few words the flow reads. -->
+    <meta name="game-css" content="/css/site-game.css">
+    <link rel="stylesheet" href="/css/site.css">
+    <script src="/js/theme-boot.js"></script>
+    <script src="/js/game-css.js"></script>
+</head>
+<body class="bg-ink text-cream" data-tool-name="Tool">
+    <script>document.body.dataset.toolName = { tuner: 'Tuner', drone: 'Drone', 'tuning-forks': 'Tuning forks' }[new URLSearchParams(location.search).get('tool') || 'tuner'];</script>
+    <main class="px-4">
+        <div id="tool"></div>
+    </main>
+    <script type="module" src="/tests/tool-frame.js"></script>
+    <script type="module">
+        const query = new URLSearchParams(location.search);
+        const tool = query.get('tool') || 'tuner';
+        const preset = JSON.parse(query.get('preset') || 'null');
+        const mounts = { tuner: 'mountTuner', drone: 'mountDrone', 'tuning-forks': 'mountTuningForks' };
+        let words = {};
+        if (tool === 'tuner') {
+            const page = await fetch('/tests/tuner-demo.html').then((r) => r.text());
+            words = Function(`return ${page.slice(page.indexOf('const words = {') + 14, page.indexOf('};', page.indexOf('const words = {')) + 1)}`)();
+        } else if (tool === 'drone') {
+            words = { modes: { drone: 'Drone', tanpura: 'Tanpura' }, play: 'Play', stop: 'Stop', more: 'More', done: 'Done' };
+        } else {
+            const fork = (name, hz, tag) => ({ name, hz, tag, about: `${name}: ${tag}.` });
+            words = {
+                shelf: { a440: fork('A440', 440, 'Concert pitch'), a442: fork('A442', 442, 'Orchestras'), a432: fork('A432', 432, 'Alternative tuning'), c256: fork('C256', 256, 'Scientific pitch') },
+                more_forks: { a435: fork('A435', 435, 'Old French pitch') },
+                strike: 'Strike :name', strike_label: 'Strike :name', more: 'More', done: 'Done', idle: 'Tap to strike', custom_strike: 'Your own',
+            };
+        }
+        const module = await import(`/js/public/tools/${tool}.js`);
+        window.__tool = module[mounts[tool]](document.querySelector('#tool'), { words, keySlot: document.querySelector('[data-tool-key]'), ...(preset ? { preset } : {}) });
+        window.__ready = true;
+    </script>
+</body>
+</html>

@@ -19,7 +19,7 @@ data. Questions: contact@stackapella.com.
   keeping no ID, cookie or IP address that could follow anyone. The device keeps which onboarding
   steps it has already counted and, during a test, which of two versions it got; neither leaves the
   device except inside the anonymous daily totals. The app's
-  own code libraries load from jsDelivr and its fonts from Google Fonts; Cloudflare's bot check
+  own code libraries load from jsDelivr (its fonts are our own files); Cloudflare's bot check
   loads only while we're protecting the app from an attack.
 - **Your recordings stay on your device** until you sign in (then your projects are saved to your
   account, and kept in step across your devices), share them, add them to a choir or an idea, sing
@@ -71,6 +71,9 @@ We use these to run your account, keep it secure and contact you about it.
   scores.
 - Your practice: course progress, XP, badges, your weekly goal, and your league and its weekly XP.
 - Templates you make, and harmonies you share (their mix, share card and share video).
+- A song you make from sheet music you bring: when you confirmed you have the right to use the
+  music and which wording you confirmed, kept with the song, and any copyright takedowns of your
+  imports (three that stand stop new imports).
 - What you add for others: voices on a choir or an idea, parts you sing for an open part, likes,
   follows, blocks, comments, song requests and votes, ratings, and the notifications in your bell.
 
@@ -120,20 +123,23 @@ you choose to share.
 
 **If you lend your voice** (only if you do)
 - Your recordings and their checks (as a beta singer's), your credit choice (your name or
-  anonymous, and whether it links your public profile), when you accepted the agreement, and your
-  claims. A recording we use is kept while it's in use; ask us, or delete your account, and we stop
+  anonymous, and whether it links your public profile), when you accepted the agreement, your
+  claims, and whether a take refused for abuse stopped your claiming. A recording we use is kept while it's in use; ask us, or delete your account, and we stop
   using it (copies already in people's projects and exports stay).
 - The credit you chose is shown with your recording in the app, in exports and on the song or
   course page.
 
 **Beta singers** (only if you're one)
 - Your name, email, notes, credit, rate and payments, and your submissions: the recordings, your
-  device and mic, and their scores.
+  device and mic, their scores, and the notes we send you about them (a retake, or a part to
+  record again because the song changed).
 
-**If you join a class, or make class codes** (the school offer)
-- A student: which class code you used and when, to count its seats and stop misuse. Your teacher
-  sees only how many seats are used, never who used them. It's deleted with your account.
-- A teacher: the codes you make, their names and seats.
+**If you join a class, or make class codes** (the school offer, and our partners' member codes)
+- A student, or a member using a partner organization's code: which code you used and when, to
+  count its seats and stop misuse. Your teacher or the organization sees only how many seats are
+  used, never who used them. It's deleted with your account.
+- A teacher: the codes you make, their names and seats, and when we approved you. If you delete
+  your account, your codes close and their names go; your students keep the year they redeemed.
 
 ## Who can see what
 
@@ -180,7 +186,6 @@ you choose to share.
 - **Sentry (when set up):** Errors, with your account's id and browser type, never your name, address, IP or recordings. For fixing bugs.
 - **X, Bluesky:** What we post: a song, or a harmony its singer said yes to, with the singer's name and their handle there. For our own accounts.
 - **jsDelivr:** Your IP address, as the app's code libraries load. For delivering the app.
-- **Google Fonts:** Your IP address, as the app's and the pages' fonts load. For the look of the app and pages.
 
 No third-party analytics, no advertising, no tracking scripts.
 
@@ -197,6 +202,7 @@ Our storage is in DigitalOcean's New York region, so your data is held in the Un
 - **sa_pass (before launch only):** Lets beta testers in. Kept until launch.
 - **sa_app:** Remembers you've used the app, so the home address opens it. Kept a year.
 - **sa_theme:** Remembers the look you chose. Kept a year.
+- **sa_signed_in:** Lets our public site show "Open the app" instead of an invitation to try it, once you're signed in. Its value is only "1", with no ID: it says only that this browser is signed in, and our server looks at it only to know whether to set it again or remove it. Removed when you sign out. Kept up to five years while you stay signed in (most browsers keep a cookie at most about a year).
 - **sa_mic:** Remembers the name of the mic you chose (such as "MacBook Pro Microphone"), so the site and the app pick the same one. Nothing else is in it, and our server never reads or keeps it. Kept a year.
 - **sa_mudeo:** Remembers you came from mudeo, to show its welcome. Kept until you close the browser.
 - **sa_mudeo_used:** Set once someone who came from mudeo starts singing, so our daily count of how
@@ -259,7 +265,9 @@ Separately, we sent former mudeo users one email about Stackapella, with a one-c
 - Reports about you go; reports you made stay, without your name.
 - Your connections to Event Schedule and Apple are ended.
 - Your handle is held so nobody else can take it and pose as you.
-- If you sang guides for the library, they're removed from the app.
+- If you sang guides for the library, or lent your voice, they're removed from the app, with any
+  reports about them.
+- If you're a teacher, your class codes close and their names go; your students keep their year.
 
 ## Your rights
 

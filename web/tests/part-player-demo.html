@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en" data-theme="stage-dark">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Song part player</title>
+    <!-- How a song part page (site/song-part.blade.php) mounts its player (js/public/part-player.js): a box, the page's
+         words, mountPartPlayer(). Here the song comes from the bundled template (url) rather than the API.
+         ?sing=in|off stands in for the mic: it sings the part's own notes (in) or a tritone away (off), for the flows. -->
+    <meta name="game-css" content="/css/site-game.css">
+    <link rel="stylesheet" href="/css/site.css">
+    <script src="/js/theme-boot.js"></script>
+    <script src="/js/game-css.js"></script>
+</head>
+<body class="bg-ink text-cream">
+    <main class="mx-auto max-w-3xl px-4 py-8">
+        <h1 class="mb-4 text-2xl font-bold">Amazing Grace: Soprano</h1>
+        <div id="player"></div>
+    </main>
+    <script type="module">
+        import { mountPartPlayer } from '/js/public/part-player.js';
+        const words = {
+            hear: 'Your part', withOthers: 'With the others', sing: 'Sing it', hearShort: 'Part', withOthersShort: 'All', singShort: 'Sing', modes: 'How to play the part',
+            play: 'Play', pause: 'Pause', loading: 'Getting the voices ready', real: 'Real voice', synth: 'Synth', voice: "The part's voice",
+            micNote: 'Sing along: the mic listens only while it plays. Nothing is recorded.',
+            micDenied: "The mic is blocked. Allow it in your browser's settings to sing along.", micMissing: 'No mic found. Plug one in to sing along.',
+            micUnsupported: "This browser can't listen. Try Chrome, Safari or Firefox.", score: ':hit of :total notes lit',
+            open: 'Open this part in the app', unavailable: 'The player could not load. Open the part in the app instead.',
+            zoom: 'Zoom', zoomOut: 'Zoom out', zoomIn: 'Zoom in',
+        };
+        const sing = new URLSearchParams(location.search).get('sing');
+        let template = null;
+        // A stand-in mic: each frame, the note the part has now (in), or a tritone away (off), on the page's clock.
+        const listen = sing && (async ({ onFrame }) => {
+            template ??= await (await fetch('/templates/amazing-grace.json')).json();
+            const notes = template.parts.find((p) => p.key === 'soprano').guide.notes;
+            const beat = 60 / template.tempo;
+            let raf = requestAnimationFrame(function frame() {
+                const seconds = window.__player.time();
+                const note = notes.find((n) => seconds >= n.beat * beat && seconds < (n.beat + n.length) * beat);
+                const midi = note ? note.pitch + (sing === 'off' ? 6 : 0) : 0;
+                onFrame({ at: performance.now() / 1000, hz: note ? 440 * 2 ** ((midi - 69) / 12) : 0, loudness: note ? -20 : -70, clarity: note ? 0.95 : 0.1 });
+                raf = requestAnimationFrame(frame);
+            });
+            return { stop: () => cancelAnimationFrame(raf) };
+        });
+        window.__notes = [];
+        window.__player = mountPartPlayer(document.querySelector('#player'), {
+            slug: 'amazing-grace', part: 'soprano', url: '/templates/amazing-grace.json', startUrl: 'https://app.stackapella.com/?song=amazing-grace&part=soprano&ref=part-page',
+            words, ...(listen ? { listen } : {}),
+        });
+        window.__player.on('note', (n) => window.__notes.push(n));
+    </script>
+</body>
+</html>

@@ -1,7 +1,10 @@
 // The landing's film (pages/landing/_showreel.blade.php; server/resources/promo/showreel/README.md).
 // Nothing loads until the frame is in view and the page has been scrolled; then the cut matching the
-// theme plays muted and loops, and pauses when it leaves the screen or the tab hides. Pause and sound
-// are buttons on the picture; the captions show while the sound is on. A theme switch mid-play seeks
+// theme plays muted and loops, and pauses when it leaves the screen or the tab hides. Pause, captions
+// and sound are buttons on the picture. The captions show only when asked for, sound or not, remembered
+// on this device, and never on the picture: the track stays hidden and its cue is written in a line under
+// the film (Hillel, 2026-11-08: they covered the film's own words), the end card's credit left to the
+// card. The .vtt itself never changes (a new one would be a new film version on the CDN). A theme switch mid-play seeks
 // the other cut to the same moment and crossfades once it's ready (the CSS shows the cut named on
 // the frame; before the script runs, the theme's). Reduced motion or
 // Save-Data: the poster with a play button, and nothing loads until it's pressed. Phones get the
@@ -14,9 +17,19 @@ if (box) {
     const pauseButton = box.querySelector('[data-reel-pause]');
     const soundButton = box.querySelector('[data-reel-sound]');
     const startButton = box.querySelector('[data-reel-start]');
+    const ccButton = box.querySelector('[data-reel-cc]');
+    const captionLine = document.querySelector('[data-reel-caption]');
+    const CAPTIONS = 'stackapella.reelCaptions';
     const calm = matchMedia('(prefers-reduced-motion: reduce)').matches || navigator.connection?.saveData === true;
     const phone = matchMedia('(max-width: 767px)').matches;
-    const state = { inView: false, scrolled: false, started: !calm, held: false, sound: false };
+    const remembered = () => {
+        try {
+            return localStorage.getItem(CAPTIONS) === 'on';
+        } catch {
+            return false;
+        }
+    };
+    const state = { inView: false, scrolled: false, started: !calm, held: false, sound: false, captions: remembered() };
 
     const cutNow = () => (document.documentElement.dataset.theme?.endsWith('-light') ? 'light' : 'dark');
     let cut = cutNow();
@@ -29,15 +42,34 @@ if (box) {
         video.src = phone ? video.dataset.mobile : video.canPlayType('video/webm; codecs="vp9"') ? video.dataset.webm : video.dataset.mp4;
     };
 
-    const showCaptions = (video, on) => {
-        for (const track of video.textTracks) track.mode = on ? 'showing' : 'hidden';
+    /** The line under the film: the showing cut's cue now, without the end card's credit (the card says it). */
+    const writeCaption = () => {
+        const track = active().textTracks[0];
+        const text = [...(track?.activeCues ?? [])].map((cue) => cue.text).join('\n');
+        captionLine.textContent = text.split('\n').filter((line) => line.trim() && !/sung by/i.test(line)).join('\n');
     };
+    // Every cut's track stays hidden (its cues load, nothing is drawn on the picture); the line follows the showing one.
+    for (const video of Object.values(videos)) {
+        for (const track of video.textTracks) track.addEventListener('cuechange', () => video === active() && writeCaption());
+    }
+    const showCaptions = (video, on) => {
+        for (const track of video.textTracks) track.mode = 'hidden';
+        captionLine.hidden = !on;
+        if (on) writeCaption();
+    };
+
+    const paintCaptions = () => {
+        ccButton.setAttribute('aria-pressed', String(state.captions));
+        ccButton.setAttribute('aria-label', state.captions ? box.dataset.captionsOff : box.dataset.captionsOn);
+    };
+    paintCaptions();
+    captionLine.hidden = !state.captions; // its room from the start for someone who keeps captions on
 
     const play = () => {
         const video = active();
         load(video);
         video.muted = !state.sound;
-        showCaptions(video, state.sound);
+        showCaptions(video, state.captions);
         video.play().catch((error) => console.warn('The film did not play', error));
     };
 
@@ -64,6 +96,7 @@ if (box) {
             box.dataset.playing = '';
             pauseButton.hidden = false;
             soundButton.hidden = false;
+            ccButton.hidden = false;
         });
         video.addEventListener('pause', () => {
             if (video === active()) delete box.dataset.playing;
@@ -83,7 +116,17 @@ if (box) {
         soundButton.setAttribute('aria-pressed', String(state.sound));
         soundButton.setAttribute('aria-label', state.sound ? box.dataset.soundOff : box.dataset.soundOn);
         active().muted = !state.sound;
-        showCaptions(active(), state.sound);
+    });
+
+    ccButton.addEventListener('click', () => {
+        state.captions = !state.captions;
+        try {
+            localStorage.setItem(CAPTIONS, state.captions ? 'on' : 'off');
+        } catch {
+            // Storage refused (a private window): the choice holds for this visit.
+        }
+        paintCaptions();
+        showCaptions(active(), state.captions);
     });
 
     if (calm) {
@@ -131,7 +174,7 @@ if (box) {
             }
             cut = next;
             box.dataset.cut = cut;
-            showCaptions(to, state.sound);
+            showCaptions(to, state.captions);
             showCaptions(from, false);
             from.pause();
         };

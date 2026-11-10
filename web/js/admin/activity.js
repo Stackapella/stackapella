@@ -6,7 +6,7 @@
 
 import { api } from '../api.js';
 import { formatDate, formatNumber, t, tk } from '../i18n.js';
-import { LoadFailed, zoneName } from './common.js';
+import { LoadFailed, remembers, zoneName } from './common.js';
 import { KINDS as KIND_WORDS } from './usage.js';
 
 const EVENTS = {
@@ -27,6 +27,7 @@ const SERIES = [
 ];
 
 export const ActivitySection = {
+    mixins: [remembers('activity', { series: SERIES.map((s) => s.key) })],
     components: { LoadFailed },
     props: { me: { type: Object, required: true } },
     data: () => ({ report: null, failed: false, series: 'takes' }),

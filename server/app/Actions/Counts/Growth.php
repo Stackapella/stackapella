@@ -8,82 +8,19 @@ use App\Support\Stats\ReportDay;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Admin > Growth (docs/admin-growth-plan.md): the Overview's tiles and steps, and where people came
- * from. Read from the same anonymous daily totals as Usage and the Funnel: numbers per day, never a
+ * Admin > Growth (docs/admin-growth-plan.md): where people came from (the Overview is GrowthCompare's). Read from the same anonymous daily totals as Usage and the Funnel: numbers per day, never a
  * person.
  */
 final class Growth
 {
-    /** The Overview's tiles: each kind's count today, yesterday and the same weekday last week. */
-    private const TILES = ['arrivals' => Funnel::ARRIVALS, 'lesson1' => ['f_lesson1'], 'signedUp' => ['sign_up'], 'plusStarted' => ['plus_started']];
-
-    /** "How far they got", landing visit to Plus. */
-    private const STEPS = ['visits' => ['site_visit'], 'start' => ['f_site_start'], 'arrivals' => Funnel::ARRIVALS, 'lesson1' => ['f_lesson1'], 'unit1' => ['f_unit1'], 'signedUp' => ['sign_up'], 'plusStarted' => ['plus_started']];
-
     /** Sources' columns; signedUp is the device's own first sign-up here, which carries its source. */
-    private const COLUMNS = ['visits' => ['site_visit'], 'arrivals' => Funnel::ARRIVALS, 'lesson1' => ['f_lesson1'], 'signedUp' => ['f_account'], 'day2' => ['f_day2'], 'week1' => ['f_week1']];
+    private const COLUMNS = ['visits' => ['site_visit'], 'arrivals' => Funnel::ARRIVALS, 'lesson1' => ['f_lesson1'], 'courseLesson' => ['f_course_lesson'], 'signedUp' => ['f_account'], 'day2' => ['f_day2'], 'week1' => ['f_week1']];
 
     /** A source with fewer arrivals than this is folded into one row, so a tiny one never stands for a person. */
     public const FOLD_UNDER = 5;
 
     /** Under this many, a tile's change is noise ("+18%" from 11 to 13): the Overview says "few so far". */
     public const LOW_SAMPLE = 20;
-
-    /**
-     * admin.growth.show: each tile's count over the last `$days` days (`current`), the same length
-     * just before (`previous`) and the same days a week back (`weekAgo`), whether it's too few to
-     * read (`lowSample`), and still today, yesterday and the same weekday last week; and each step's
-     * total over the period.
-     *
-     * @return array{date: string, from: string, to: string, tiles: list<array{key: string, today: int, yesterday: int, lastWeek: int, current: int, previous: int, weekAgo: int, lowSample: bool}>, steps: list<array{key: string, total: int}>}
-     */
-    public function overview(int $days): array
-    {
-        $today = ReportDay::now()->startOfDay();
-        $from = $today->copy()->subDays($days - 1);
-        $kinds = array_values(array_unique(array_merge(...array_values(self::TILES), ...array_values(self::STEPS))));
-        // Back far enough for the period before and the period a week back.
-        $since = min($from->copy()->subDays($days), $from->copy()->subDays(7))->toDateString();
-
-        /** @var array<string, array<string, int>> $byDay [date][kind] => total */
-        $byDay = [];
-
-        foreach (DB::table('usage_counts')->whereIn('kind', $kinds)->where('day', '>=', $since)->selectRaw('day, kind, sum(count) as total')->groupBy('day', 'kind')->get() as $row) {
-            $byDay[(string) $row->day][(string) $row->kind] = (int) $row->total;
-        }
-
-        $on = static fn (string $date, array $of): int => array_sum(array_map(static fn (string $kind): int => $byDay[$date][$kind] ?? 0, $of));
-        $tiles = [];
-
-        // A period's total: the `$days` days ending `$ago` days before today.
-        $over = static function (int $ago, array $of) use ($today, $days, $on): int {
-            $total = 0;
-
-            for ($i = 0; $i < $days; $i++) {
-                $total += $on($today->copy()->subDays($ago + $i)->toDateString(), $of);
-            }
-
-            return $total;
-        };
-
-        foreach (self::TILES as $key => $of) {
-            $current = $over(0, $of);
-            $tiles[] = [
-                'key' => $key,
-                'today' => $on($today->toDateString(), $of), 'yesterday' => $on($today->copy()->subDay()->toDateString(), $of), 'lastWeek' => $on($today->copy()->subDays(7)->toDateString(), $of),
-                'current' => $current, 'previous' => $over($days, $of), 'weekAgo' => $over(7, $of), 'lowSample' => $current < self::LOW_SAMPLE,
-            ];
-        }
-
-        $dates = array_filter(array_keys($byDay), static fn (string $date): bool => $date >= $from->toDateString());
-        $steps = [];
-
-        foreach (self::STEPS as $key => $of) {
-            $steps[] = ['key' => $key, 'total' => array_sum(array_map(static fn (string $date): int => $on($date, $of), $dates))];
-        }
-
-        return ['date' => $today->toDateString(), 'from' => $from->toDateString(), 'to' => $today->toDateString(), 'tiles' => $tiles, 'steps' => $steps];
-    }
 
     /**
      * admin.sources.show: each source's visits and funnel steps over the last `$days` days, most
@@ -108,7 +45,7 @@ final class Growth
 
         foreach ($bySource as $source => $totals) {
             $sum = static fn (string $key): int => array_sum(array_map(static fn (string $kind): int => $totals[$kind] ?? 0, self::COLUMNS[$key]));
-            $rows[] = ['source' => $source === '' ? 'none' : (string) $source, 'visits' => $sum('visits'), 'arrivals' => $sum('arrivals'), 'lesson1' => $sum('lesson1'), 'signedUp' => $sum('signedUp'), 'day2' => $sum('day2'), 'week1' => $sum('week1')];
+            $rows[] = ['source' => $source === '' ? 'none' : (string) $source, 'visits' => $sum('visits'), 'arrivals' => $sum('arrivals'), 'lesson1' => $sum('lesson1'), 'courseLesson' => $sum('courseLesson'), 'signedUp' => $sum('signedUp'), 'day2' => $sum('day2'), 'week1' => $sum('week1')];
         }
 
         usort($rows, static fn (array $a, array $b): int => [$b['arrivals'], $a['source']] <=> [$a['arrivals'], $b['source']]);
@@ -116,10 +53,10 @@ final class Growth
         $small = array_values(array_filter($rows, static fn (array $row): bool => $row['arrivals'] < self::FOLD_UNDER));
 
         if ($small !== []) {
-            $folded = ['source' => 'small', 'sources' => count($small), 'visits' => 0, 'arrivals' => 0, 'lesson1' => 0, 'signedUp' => 0, 'day2' => 0, 'week1' => 0];
+            $folded = ['source' => 'small', 'sources' => count($small), 'visits' => 0, 'arrivals' => 0, 'lesson1' => 0, 'courseLesson' => 0, 'signedUp' => 0, 'day2' => 0, 'week1' => 0];
 
             foreach ($small as $row) {
-                foreach (['visits', 'arrivals', 'lesson1', 'signedUp', 'day2', 'week1'] as $key) {
+                foreach (['visits', 'arrivals', 'lesson1', 'courseLesson', 'signedUp', 'day2', 'week1'] as $key) {
                     $folded[$key] += $row[$key];
                 }
             }

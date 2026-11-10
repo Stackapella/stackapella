@@ -6,7 +6,7 @@ import { VoiceCareLine } from '../components/voice-care.js';
 import { TimingLine } from '../components/timing-line.js';
 import { game } from '../skin.js';
 import { toRefs } from 'vue';
-import { audio, closeMic, engine, openMic } from '../audio.js';
+import { audio, closeMic, engine, latencyNow, openMic } from '../audio.js';
 import { follow, hintStep, voiceFollower } from '../livevoice.js';
 import { formatList, t, tk } from '../i18n.js';
 import { BACKING, DRONE, GUIDE_LEVELS, guideId, hasTake } from '../practice.js';
@@ -25,6 +25,7 @@ import { slotName } from '../templates.js';
 import { newSinger, shownTitle } from '../stores/projects.js';
 import { beatsPerBar, formatTime } from '../theme.js';
 import { midiName, octaveFit, suggestPart, suggestTranspose } from '../dsp.js';
+import { realKeyFit } from '../real-key.js';
 import { HeadphonesDialog, RangeDialog, TimingDialog } from '../components/dialogs.js';
 import { Icon } from '../components/icon.js';
 import { Lane, NowCard } from '../components/sing/lane.js';
@@ -41,8 +42,9 @@ import { PopupSlot } from '../game/hud.js';
 import { effect } from '../game/effects.js';
 import { comboMilestone, heldToEnd, popupQueue } from '../game/popups.js';
 import { crtOnce } from '../game/crt.js';
-import { decodeGhost, encodeGhost, keepDeviceGhost, loadGhost, placeGhost, saveGhost } from '../game/ghost.js';
-import { stampDaily } from '../game/daily.js';
+import { ghost, ghostModule, lazyComponent, stampDaily } from '../game/modules.js';
+import { countSung } from '../daily-pick.js';
+import { DailyShare } from '../components/daily-share.js';
 import { SCORING_VERSION } from '../scoring.js';
 import { run } from '../game/motion.js';
 import { PartSheet, SettingsSheet } from '../components/sing/sheets.js';
@@ -65,7 +67,8 @@ import * as db from '../db.js';
 import { counted as countDone, learning, loadLearning, pickRange, remember } from '../stores/learning.js';
 import { TrimSheet } from '../components/trim.js';
 import { heardSpan } from '../trim.js';
-import { TakeBest } from '../components/boards.js';
+// The part's board after a take: game mode's only, loaded with game mode.
+const TakeBest = lazyComponent('boards', 'TakeBest');
 
 const LADDER_CLEAN = 0.8; // Build up to speed: a round is clean with this share of its notes lit
 const PHASE = {
@@ -73,6 +76,7 @@ const PHASE = {
     getReady: tk('sing.phase.getReady'),
     turn: tk('sing.phase.turn'),
     paused: tk('sing.phase.ready'),
+    pausedMid: tk('sing.phase.paused'), // stopped part of the way through
 };
 
 const HEAR_RECORDING = { headphones: tk('sing.hear.recording'), softer: tk('sing.hear.recordingSofter') };
@@ -82,16 +86,16 @@ const KEY_STEPS = 7; // Lower and Higher reach this many semitones from the song
 const FIT_SPAN = 7; // a range narrower than a fifth (one note found, say) doesn't choose a key
 
 /** What's said when a song opens on the part that suits your range: in your octave, or an octave off. */
-const FIT_WORDS = { fits: tk('sing.fitsYourRange'), lower: tk('sing.fitsYourRangeLower'), higher: tk('sing.fitsYourRangeHigher'), closest: tk('sing.closestPart') };
+const FIT_WORDS = { real: tk('sing.realKey'), fits: tk('sing.fitsYourRange'), lower: tk('sing.fitsYourRangeLower'), higher: tk('sing.fitsYourRangeHigher'), closest: tk('sing.closestPart') };
 
 export const SingView = {
     mixins: [RecordSetup],
-    components: { RingMeter, VoiceCareLine, TimingLine, PopupSlot, TakeBest, IdeaVoice, PhraseStage, Chooser, Stage, RecordingStage, Lane, NowCard, Coach, StepDone, JustRecorded, LineBar, ModeBar, SingHeader, Transport, TurnBand, PartSheet, SettingsSheet, HeadphonesDialog, TimingDialog, RangeDialog, Icon, VoiceNote, ResingSheet, ResungCard, TrimSheet, WhatsNext, LockedBanner, ShareSheet },
+    components: { DailyShare, RingMeter, VoiceCareLine, TimingLine, PopupSlot, TakeBest, IdeaVoice, PhraseStage, Chooser, Stage, RecordingStage, Lane, NowCard, Coach, StepDone, JustRecorded, LineBar, ModeBar, SingHeader, Transport, TurnBand, PartSheet, SettingsSheet, HeadphonesDialog, TimingDialog, RangeDialog, Icon, VoiceNote, ResingSheet, ResungCard, TrimSheet, WhatsNext, LockedBanner, ShareSheet },
     props: { id: { type: String, required: true } },
     setup: () => ({ ...toRefs(session), audio, formatTime, shownTitle, prefs, game, effect }),
     data: () => ({ crt: false, ghostTake: null, pendingGhost: null, hud: popupQueue(), viewPicked: false, readied: null, combo: 0, hintState: { hint: null }, voice: voiceFollower(), dialog: null, choosing: false, recorded: null, said: '', suggested: null, celebrated: null, lining: false, lined: null, resingPlanned: null, resung: null, takeNumbers: {}, fitSuggestion: null, ring: null, ringChord: '' }),
     template: `
-        <div class="flex h-dvh flex-col bg-ink">
+        <div class="flex h-dvh flex-col bg-ink" :data-paused="paused ? '' : null">
             <p class="sr-only" aria-live="polite">{{ said }}</p>
             <div v-if="missing" class="m-auto text-center">
                 <p class="text-cream">{{ t('studio.missing') }}</p>
@@ -137,11 +141,14 @@ export const SingView = {
                             :nudge-ms="nudgeMsOf(recorded.part)" :lining="lining" :lined="lined" :can-resing="phraseRows.length > 1" :color="paint(recorded.part.color)" :stack="recordedStack"
                             :score="recorded.report?.score ?? null" :notes="reportNotes" :track="recorded.report?.track ?? null" :beat-seconds="fullBeatSeconds" :offset-seconds="recorded.part.offsetSeconds + (recorded.part.nudgeSeconds || 0)"
                             :phrases="reportPhrases" :phrase-labels="phraseRows.map((p) => p.label)" :position="position" :length-seconds="lengthSeconds" :bleed="!!recorded.report?.bleed" :sung-by="sungBy"
-                            @hear="hearTake" @again="recordPart" @next="nextPart" @nudge="nudge" @nudged="nudged" @line-up="lineUp" @studio="openStudio" @resing="resingFrom" @trim="openTrim" :polished="prefs.hearPolished" @polish="hearPolished" @share="dialog = 'share'" @hear-phrase="hearPhrase">
+                            @hear="hearTake" @mute="toggleHearing" @again="recordPart" @next="nextPart" @nudge="nudge" @nudged="nudged" @line-up="lineUp" @studio="openStudio" @resing="resingFrom" @trim="openTrim" :polished="prefs.hearPolished" @polish="hearPolished" @share="dialog = 'share'" @hear-phrase="hearPhrase">
                             <template #report>
                                 <!-- The part's leaderboard (components/boards.js): your best, or why it didn't count; never a lesson's song -->
                                 <TakeBest v-if="game() && recorded.report?.score?.percent != null && !project.course && project.template?.id" :key="'best-' + recorded.part.id" @result="ghostResult" :template-id="project.template.id" :template-version="project.template.version" :part-key="recorded.part.templatePartKey"
                                     :part-name="nameOf(recorded.part)" :song-title="shownTitle(project)" :score="recorded.report.score.percent" :key-offset="project.transpose ?? 0" :guide-muted="!guideHeard" :take-id="recorded.part.takeId ?? null" />
+                                <!-- Today's challenge sung (docs/daily-challenge-plan.md): say so, and Share its card (both skins) -->
+                                <DailyShare v-if="project.template?.id && recorded.part.templatePartKey" :key="'daily-' + recorded.part.id + '-' + (recorded.part.takeId ?? '')" :template-id="project.template.id" :part-key="recorded.part.templatePartKey"
+                                    :title="shownTitle(project)" :part-name="nameOf(recorded.part)" :score="recorded.report?.score ?? null" :bleed="!!recorded.report?.bleed" :color="paint(recorded.part.color)" />
                                 <!-- A song started from an idea's tune (docs/ideas-app-plan.md): add this take to it -->
                                 <IdeaVoice v-if="project.idea && recorded.part.templatePartKey" :key="'idea-' + recorded.part.id + '-' + (recorded.part.takeId ?? '')" :idea="project.idea" :part="recorded.part" :part-name="nameOf(recorded.part)" />
                                 <!-- Voice care: one quiet line after a long day's singing (docs/voice-care-plan.md) -->
@@ -155,7 +162,7 @@ export const SingView = {
                             @next="setStep(nextStep(coach.step))" @again="onceMore" />
                         <PhraseStage v-else-if="phraseStage" v-bind="phraseStage" :names="pitchName" :color="paint(focusPart.color)" @first-note="firstNote" />
                         <template v-else-if="view === 'notes'">
-                            <div class="flex min-h-0 flex-1">
+                            <div class="flex min-h-0 flex-1" data-ui="sing-stage">
                                 <div class="flex min-h-0 flex-1 flex-col gap-2 pt-2">
                                     <NowCard class="mx-4 md:mx-6" :note="nowCard.note" :word="nowCard.word" :next="nowCard.next" :color="paint(focusPart.color)" :outlined="turn" :hint="turn ? hintState.hint : null" />
                                     <!-- Tune the chord (docs/tune-chord-plan.md): a held chord note against its pure tuning, when Sing's settings turn it on -->
@@ -221,8 +228,9 @@ export const SingView = {
         },
         /** Game mode's ghost (game/ghost.js): your best take's line, on your turn and while recording, where the part sits now. */
         ghostLine() {
-            if (!this.ghostTake || !this.turn || !effect('ghost')) return [];
-            return placeGhost(decodeGhost(this.ghostTake), this.notes, { keyOffset: this.ghostTake.keyOffset ?? 0, transpose: this.project.transpose || 0 });
+            const g = ghost(); // game/ghost.js, loaded with game mode
+            if (!g || !this.ghostTake || !this.turn || !effect('ghost')) return [];
+            return g.placeGhost(g.decodeGhost(this.ghostTake), this.notes, { keyOffset: this.ghostTake.keyOffset ?? 0, transpose: this.project.transpose || 0 });
         },
         /** The key moves while nothing's recorded in the song (a take would be left in the old key). */
         keyMovable: (vm) => !!vm.project?.template && !vm.parts.some(hasTake),
@@ -263,7 +271,7 @@ export const SingView = {
         /** The Stage's tuning meter: your voice now against the note (a reading from the last 0.2 s), or null. */
         stageTuning() {
             const last = this.voice.points.at(-1);
-            const latency = (audio.latencyFrames ?? engine.estimatedLatencyFrames?.() ?? 0) / (engine.sampleRate || 48000);
+            const latency = (latencyNow()) / (engine.sampleRate || 48000);
             const note = this.notes.find((n) => this.position - latency >= n.beat * this.beatSeconds && this.position - latency < (n.beat + n.length) * this.beatSeconds);
             if (!last || !note || this.position - latency - last.seconds > 0.2) return null;
             const cents = (last.midi - (note.pitch + (this.project.transpose || 0))) * 100;
@@ -346,7 +354,7 @@ export const SingView = {
         /** The recording stage: the share of your notes sung so far that were on pitch (lit), or null before the first. */
         onPitch() {
             if (!this.recording || this.countIn !== null) return null;
-            const latency = (audio.latencyFrames ?? engine.estimatedLatencyFrames?.() ?? 0) / (engine.sampleRate || 48000);
+            const latency = (latencyNow()) / (engine.sampleRate || 48000);
             const now = this.position - latency;
             const sung = this.notes.filter((n) => n.beat * this.beatSeconds >= this.recordFrom - 1e-6 && (n.beat + n.length) * this.beatSeconds <= now);
             return sung.length ? Math.round((100 * sung.filter((n) => this.voice.lit.has(n.beat)).length) / sung.length) : null;
@@ -394,8 +402,9 @@ export const SingView = {
             const speed = this.practice.speed ?? 1;
             return speed !== 1 ? t('sing.speedPercent', { percent: Math.round(speed * 100) }) : '';
         },
+        /** Under the speed control, plainly, when a part has a real voice (Hillel: "Full speed only, said plainly"). */
         speedNote() {
-            return Object.values(this.guideVoices).some((v) => v.why === 'speed') ? t('studio.realVoiceSpeed', { percent: Math.round((this.practice.speed ?? 1) * 100) }) : '';
+            return Object.values(this.guideVoices).some((v) => v.kind === 'real' || v.why === 'speed') ? t('sing.settings.realFullSpeed') : '';
         },
         /** Settings' Voices row: who sings your part's guide. */
         /** Settings' Guide voices, or '' (hidden) when no part has a real voice to choose (Hillel). */
@@ -442,10 +451,14 @@ export const SingView = {
         turn() {
             return this.recording || this.phase === 'turn' || (this.playing && this.way === 'whole' && this.practice.mode === 'own');
         },
+        /** Stopped part of the way through the song (not at its start or end, nor recording): game mode's pause reskin hooks on it. */
+        paused() {
+            return !this.playing && !this.recording && !this.recorded && !!this.way && !!this.focusPart && this.position > 0.5 && this.position < this.lengthSeconds - 0.5;
+        },
         chip() {
             if (this.recording && this.countIn !== null) return this.countIn ? countInText(this.countIn) : '';
             if (this.recording) return t('sing.phase.recording', { time: formatTime(Math.max(0, this.position - this.recordFrom)) });
-            if (!this.playing) return t(PHASE.paused);
+            if (!this.playing) return t(this.paused ? PHASE.pausedMid : PHASE.paused);
             if (this.getReady) return t(PHASE.getReady);
             return t(this.turn ? PHASE.turn : PHASE.listening);
         },
@@ -595,8 +608,8 @@ export const SingView = {
                 this.ghostTake = null;
                 this.pendingGhost = null;
                 if (!now || !game()) return;
-                const ghost = await loadGhost(this.ghostWhere);
-                if (this.ghostKeyNow === now) this.ghostTake = ghost;
+                const kept = await (await ghostModule()).loadGhost(this.ghostWhere);
+                if (this.ghostKeyNow === now) this.ghostTake = kept;
             },
             immediate: true,
         },
@@ -780,7 +793,7 @@ export const SingView = {
             this.heardAt = at;
             const frame = engine.inputFrame();
             if (!frame) return;
-            const latency = (audio.latencyFrames ?? engine.estimatedLatencyFrames()) / engine.sampleRate;
+            const latency = (latencyNow()) / engine.sampleRate;
             const seconds = now - latency;
             const note = this.notes.find((n) => seconds >= n.beat * this.beatSeconds && seconds < (n.beat + n.length) * this.beatSeconds);
             // Clarity hysteresis: a voice already showing stays through a borderline reading (it was
@@ -792,9 +805,13 @@ export const SingView = {
             this.voice = follow(this.voice, { seconds, hz: clear ? reading.hz : 0, shownHz: this.voiced ? reading.hz : 0, loudness: reading.loudness }, note ? { beat: note.beat, pitch: note.pitch + (this.project.transpose || 0) } : null);
             // The words' hint, from the line's centre over the last 0.3 s (never on a vibrato).
             this.readRing(note, seconds);
-            const recent = this.voice.points.filter((p) => p.seconds > seconds - 0.3 && p.alpha === 1);
+            // Only this note's own readings (the last note's pitch at a step once said "a little high" on a note
+            // sung true), and never on a note already lit: the hint and the lit notes judge alike.
+            const from = note ? Math.max(seconds - 0.3, note.beat * this.beatSeconds) : seconds - 0.3;
+            const recent = this.voice.points.filter((p) => p.seconds > from && p.alpha === 1);
             const centre = recent.length ? recent.reduce((sum, p) => sum + p.midi, 0) / recent.length : null;
-            const cents = note && centre !== null && seconds - recent.at(-1).seconds < 0.1 ? (centre - (note.pitch + (this.project.transpose || 0))) * 100 : null;
+            const lit = note && this.voice.lit.has(note.beat);
+            const cents = note && !lit && centre !== null && seconds - recent.at(-1).seconds < 0.1 ? (centre - (note.pitch + (this.project.transpose || 0))) * 100 : null;
             this.hintState = hintStep(this.hintState, { cents, dt: 0.02 });
             // Singing in another octave is fine: said once, kindly.
             if (this.voice.offset && this.voice.offset !== before && !this.octaveSaid) {
@@ -850,23 +867,24 @@ export const SingView = {
          */
         offerGhost(track, percent, startSeconds) {
             const where = this.ghostWhere;
-            if (!where || !track?.hz || !game()) return;
-            const ghost = { ...encodeGhost(track, { startSeconds }), score: Math.round(percent), keyOffset: this.project.transpose || 0 };
+            const g = ghost(); // game/ghost.js, loaded with game mode
+            if (!where || !track?.hz || !game() || !g) return;
+            const line = { ...g.encodeGhost(track, { startSeconds }), score: Math.round(percent), keyOffset: this.project.transpose || 0 };
             if (account.me) {
-                this.pendingGhost = { where, ghost };
+                this.pendingGhost = { where, ghost: line };
                 return;
             }
-            if (keepDeviceGhost(where, ghost)) this.ghostTake = ghost;
+            if (g.keepDeviceGhost(where, line)) this.ghostTake = line;
         },
         /** The board's answer to a take: a new best keeps its line as your ghost, with your account. */
         async ghostResult(result) {
             const pending = this.pendingGhost;
             this.pendingGhost = null;
             if (!pending || !result?.counted || !result.improved) return;
-            const ghost = { ...pending.ghost, score: result.best };
+            const line = { ...pending.ghost, score: result.best };
             try {
-                await saveGhost(pending.where, ghost);
-                if (this.ghostKeyNow === Object.values(pending.where).join(':')) this.ghostTake = ghost;
+                await (await ghostModule()).saveGhost(pending.where, line);
+                if (this.ghostKeyNow === Object.values(pending.where).join(':')) this.ghostTake = line;
             } catch (error) {
                 console.warn('The ghost was not kept', error);
             }
@@ -914,7 +932,10 @@ export const SingView = {
             const slot = this.parts.find((p) => p.id === slotId);
             this.sing({ way });
             sessionStore.practise(slot);
-            this.fitKey(slot).then(() => this.keepPicked(slot)).catch((error) => console.error('The key that fits was not found', error));
+            this.fitKey(slot).then((real) => {
+                if (real) toast(t(FIT_WORDS.real, { part: this.nameOf(slot) }), { seconds: 3 });
+                this.keepPicked(slot);
+            }).catch((error) => console.error('The key that fits was not found', error));
             if (way === 'whole' && this.practice.mode === 'own' && !hasTake(slot)) sessionStore.setMode('singAlong');
             this.choosing = false;
             this.recorded = null;
@@ -946,9 +967,9 @@ export const SingView = {
             // Melody first, counted: how often the part suggested is the melody, and (selectPart) changed.
             count(best.part.melody ? 'sug_melody' : 'sug_part');
             this.fitSuggestion = { id: slot.id, switched: false };
-            const words = !best.fits ? FIT_WORDS.closest : best.octave < 0 ? FIT_WORDS.lower : best.octave > 0 ? FIT_WORDS.higher : FIT_WORDS.fits;
-            toast(t(words, { part: this.nameOf(slot) }));
-            await this.fitKey(slot);
+            const real = await this.fitKey(slot);
+            const words = real ? FIT_WORDS.real : !best.fits ? FIT_WORDS.closest : best.octave < 0 ? FIT_WORDS.lower : best.octave > 0 ? FIT_WORDS.higher : FIT_WORDS.fits;
+            toast(t(words, { part: this.nameOf(slot) }), { seconds: best.fits || real ? 3 : 6 }); // a passing word: gone before the next screen
         },
         /** Lower or Higher (128.png): the whole song a semitone, guides, chords and scoring with it. */
         moveKey(direction) {
@@ -963,17 +984,27 @@ export const SingView = {
          * once per song and only before anything's recorded in it; Lower and Higher move it from there.
          */
         async fitKey(slot) {
-            if (this.practice.sing?.keyChosen || !this.keyMovable) return;
+            if (this.practice.sing?.keyChosen || !this.keyMovable) return false;
             this.sing({ keyChosen: true });
             await loadLearning();
             const range = learning.progress.range;
             const part = sessionStore.templatePart(slot)?.range;
-            if (!range || !part || range.high - range.low < FIT_SPAN) return;
+            if (!range || !part || range.high - range.low < FIT_SPAN) return false;
+            // A part with a real voice keeps the song's own key when the range covers it within two semitones
+            // (real-key.js, Hillel: "Prefer the real key"); true, so the line says so.
+            if (await realKeyFit(this.project.template, slot.templatePartKey, range)) {
+                if ((this.project.transpose || 0) !== 0) {
+                    this.project.transpose = 0;
+                    sessionStore.changeKey();
+                }
+                return true;
+            }
             // In the octave the part fits (an octave down, say), else the closest key.
             const { transpose } = octaveFit(range, part) ?? suggestTranspose(range, part);
-            if (transpose === (this.project.transpose || 0)) return;
+            if (transpose === (this.project.transpose || 0)) return false;
             this.project.transpose = transpose;
             sessionStore.changeKey();
+            return false;
         },
         useRange({ transpose, partId }) {
             this.sing({ keyChosen: true });
@@ -1248,6 +1279,7 @@ export const SingView = {
                 this.recorded = { ...this.recorded, report: { score, track, change, improved: bleed ? [] : improved, bleed } };
                 if (score.status === 'scored' && !bleed) this.offerGhost(track, score.percent, part.offsetSeconds + (part.nudgeSeconds || 0));
                 if (score.status === 'scored' && !bleed && this.ghostWhere) stampDaily(this.ghostWhere.templateId, this.ghostWhere.partKey); // today's challenge taken
+                if (score.status === 'scored' && !bleed && this.project.template?.id) countSung(this.project.template.id, key); // the challenge sung (any skin)
                 if (score.status === 'scored' && !bleed) {
                     remember({ percent: score.percent, insights: score.insights, tendency: score.tendency }).catch((error) => console.error('Not remembered', error));
                     if (score.percent >= 90) countDone('excellentTakes', { add: 1 }).catch((error) => console.error('Not counted', error));

@@ -10,8 +10,11 @@
 @section('head')
     {{-- The description search shows: the document's first paragraph, cut to length. --}}
     @php($first = collect($document['blocks'])->firstWhere('type', 'paragraph'))
-    <meta name="description" content="{{ \Illuminate\Support\Str::limit(str_replace('**', '', (string) ($first['text'] ?? $document['title'])), 155) }}">
+    @php($summary = \Illuminate\Support\Str::limit(str_replace('**', '', (string) ($first['text'] ?? $document['title'])), 155))
+    <meta name="description" content="{{ $summary }}">
     <meta property="og:title" content="{{ $meta['title'] }}">
+    <meta property="og:description" content="{{ $summary }}">
+    <meta name="twitter:card" content="summary_large_image">
     <meta property="og:url" content="{{ $meta['url'] }}">
     <meta property="og:type" content="article">
     <meta property="og:image" content="{{ \App\Support\Site\SitePages::image($meta['url']) }}">

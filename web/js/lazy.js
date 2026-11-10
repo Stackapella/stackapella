@@ -40,6 +40,8 @@ export function lazyView(load, { reload = () => location.reload(), check = check
             return never();
         }
     };
+    /** Whether the view is in (opened or fetched ahead), so a first use won't wait for it. */
+    loader.loaded = () => !!view;
     /** Imports the view ahead, unless a newer version is waiting (then the next open reloads, as above). A failure is left for that open. */
     loader.prefetch = async () => {
         if (view || state.ready) return;

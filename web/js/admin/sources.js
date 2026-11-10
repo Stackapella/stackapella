@@ -6,7 +6,7 @@
 
 import { api } from '../api.js';
 import { formatDate, formatNumber, t, tk } from '../i18n.js';
-import { LoadFailed, zoneName } from './common.js';
+import { LoadFailed, remembers, zoneName } from './common.js';
 import { isTag, sortSources, sourceName } from './growth.js';
 
 const RANGES = [7, 30, 90];
@@ -15,6 +15,8 @@ const RANGES = [7, 30, 90];
 const COLUMNS = [
     { key: 'arrivals', label: tk('admin.growth.col.arrivals'), rate: false },
     { key: 'lesson1', label: tk('admin.growth.col.lesson1'), rate: true },
+    // A first lesson finished in any course (f_course_lesson): a free tool's lesson line leads to another course's first lesson.
+    { key: 'courseLesson', label: tk('admin.sources.col.courseLesson'), rate: true },
     { key: 'signedUp', label: tk('admin.sources.col.signedUp'), rate: true },
     { key: 'day2', label: tk('admin.growth.col.day2'), rate: true },
     { key: 'week1', label: tk('admin.sources.col.week1'), rate: true },
@@ -24,6 +26,7 @@ const pct = (share) => `${formatNumber(Math.round(share * 1000) / 10)}%`;
 const day = (date) => (date ? formatDate(`${date}T12:00:00Z`, { month: 'short', day: 'numeric' }) : '');
 
 export const SourcesSection = {
+    mixins: [remembers('sources', { days: RANGES, sortBy: COLUMNS.map((c) => c.key) })],
     components: { LoadFailed },
     props: { me: { type: Object, required: true } },
     data: () => ({ days: 7, report: null, failed: false, sortBy: 'arrivals' }),

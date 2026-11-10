@@ -48,7 +48,8 @@ final class FeaturePagesController extends Controller
             'meta' => ['title' => SitePages::title((string) $page['title']), 'description' => (string) $page['description'], 'url' => Hosts::publicUrl().'/features/'.$slug],
             'area' => 'features',
             'page' => $page,
-            'links' => Landing::links(Landing::ref($request->query('ref'))),
+            // The beginner course's page tags its own way in, unless the visitor brought a tag (the coordinator, 2026-11-08).
+            'links' => Landing::links(Landing::ref($request->query('ref')) ?? ($slug === 'course' ? 'features-course' : null)),
             'hero' => in_array($slug, SitePages::WITH_MIXER, true) ? Landing::hero() : null,
             'cards' => SitePages::related($slug, shown: SitePages::picturesOf($page)),
             'draw' => SitePages::draw(),

@@ -8,6 +8,7 @@
                 "visits": 610,
                 "arrivals": 180,
                 "lesson1": 120,
+                "courseLesson": 144,
                 "signedUp": 30,
                 "day2": 44,
                 "week1": 20
@@ -17,6 +18,7 @@
                 "visits": 240,
                 "arrivals": 95,
                 "lesson1": 51,
+                "courseLesson": 61,
                 "signedUp": 12,
                 "day2": 18,
                 "week1": 7
@@ -26,6 +28,7 @@
                 "visits": 0,
                 "arrivals": 31,
                 "lesson1": 22,
+                "courseLesson": 26,
                 "signedUp": 9,
                 "day2": 12,
                 "week1": 6
@@ -36,6 +39,7 @@
                 "visits": 12,
                 "arrivals": 7,
                 "lesson1": 4,
+                "courseLesson": 5,
                 "signedUp": 1,
                 "day2": 1,
                 "week1": 0

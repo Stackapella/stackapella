@@ -11,14 +11,14 @@ import { toast } from '../components/ui.js';
 import { classState } from '../views/school.js';
 
 // What each change says before (the sheet) and after (a toast).
-const BODIES = { close: tk('admin.school.closeBody'), end: tk('admin.school.endBody'), approve: tk('admin.school.approveBody'), seats: tk('admin.school.seatsBody') };
-const DONE = { close: tk('admin.school.closed'), end: tk('admin.school.ended'), approve: tk('admin.school.approvedToast'), seats: tk('admin.school.seatsToast') };
+const BODIES = { close: tk('admin.school.closeBody'), end: tk('admin.school.endBody'), approve: tk('admin.school.approveBody'), seats: tk('admin.school.seatsBody'), partnerSeats: tk('admin.school.partnerSeatsBody') };
+const DONE = { close: tk('admin.school.closed'), end: tk('admin.school.ended'), approve: tk('admin.school.approvedToast'), seats: tk('admin.school.seatsToast'), partnerSeats: tk('admin.school.seatsToast') };
 const STATES = { pending: tk('school.state.pending'), open: tk('school.state.open'), full: tk('school.state.full'), closed: tk('school.state.closed'), expired: tk('school.state.expired') };
 
 export const SchoolSection = {
     components: { ChangeSheet, LoadFailed },
     props: { me: { type: Object, required: true } },
-    data: () => ({ codes: null, failed: false, chosen: null, detail: null, detailFailed: false, acting: null, busy: false, errors: null, seatAllowance: 300 }),
+    data: () => ({ codes: null, failed: false, chosen: null, detail: null, detailFailed: false, acting: null, busy: false, errors: null, seatAllowance: 300, partnerSeats: 30 }),
     setup: () => ({ STATES, classState, formatNumber }),
     template: `
         <section class="space-y-6" aria-labelledby="school-h" data-admin-school>
@@ -39,7 +39,8 @@ export const SchoolSection = {
                         </div>
                         <p class="shrink-0 text-end text-sm text-cream">{{ t(STATES[classState(c)]) }}<span class="block tabular-nums text-xs text-muted">{{ t('admin.school.seatsOf', { used: formatNumber(c.used ?? 0), seats: formatNumber(c.seats) }) }}</span></p>
                     </div>
-                    <p class="text-sm text-cream" translate="no">{{ c.teacher?.name ?? t('admin.school.noTeacher') }}<span v-if="c.teacher?.email" class="block break-all text-xs text-muted">{{ c.teacher.email }}</span></p>
+                    <p v-if="c.kind === 'partner'" class="text-sm text-cream" data-school-partner><span class="text-muted">{{ t('admin.school.partner') }}</span> <span translate="no">{{ c.partner?.name ?? '' }}</span></p>
+                    <p v-else class="text-sm text-cream" translate="no">{{ c.teacher?.name ?? t('admin.school.noTeacher') }}<span v-if="c.teacher?.email" class="block break-all text-xs text-muted">{{ c.teacher.email }}</span></p>
                     <p class="text-xs text-muted">{{ day(c.createdAt) }}</p>
                     <div v-if="c.teacher && c.teacher.approved === false" class="flex flex-wrap items-center gap-3 pt-1">
                         <span class="rounded-md border border-warn px-1.5 py-0.5 text-xs text-warn" data-teacher-waiting>{{ t('admin.school.waiting') }}</span>
@@ -61,7 +62,8 @@ export const SchoolSection = {
                     <tbody>
                         <tr v-for="c in codes" :key="c.id" class="border-t border-line align-top" :data-school-code="c.code">
                             <td class="py-2"><button type="button" class="link font-mono tracking-wider" translate="no" @click="pick(c)">{{ c.code }}</button><span class="block text-xs text-muted" translate="no">{{ c.name }}</span></td>
-                            <td class="py-2 ps-3 text-cream" translate="no">{{ c.teacher?.name ?? t('admin.school.noTeacher') }}<span v-if="c.teacher?.email" class="block break-all text-xs text-muted">{{ c.teacher.email }}</span><span v-if="c.teacher && c.teacher.approved === false" class="mt-1 inline-block rounded-md border border-warn px-1.5 py-0.5 text-xs text-warn" data-teacher-waiting>{{ t('admin.school.waiting') }}</span></td>
+                            <td v-if="c.kind === 'partner'" class="py-2 ps-3 text-cream" data-school-partner><span class="text-muted">{{ t('admin.school.partner') }}</span> <span translate="no">{{ c.partner?.name ?? '' }}</span></td>
+                            <td v-else class="py-2 ps-3 text-cream" translate="no">{{ c.teacher?.name ?? t('admin.school.noTeacher') }}<span v-if="c.teacher?.email" class="block break-all text-xs text-muted">{{ c.teacher.email }}</span><span v-if="c.teacher && c.teacher.approved === false" class="mt-1 inline-block rounded-md border border-warn px-1.5 py-0.5 text-xs text-warn" data-teacher-waiting>{{ t('admin.school.waiting') }}</span></td>
                             <td class="py-2 ps-3 text-end tabular-nums text-cream">{{ t('admin.school.seatsOf', { used: formatNumber(c.used ?? 0), seats: formatNumber(c.seats) }) }}</td>
                             <td class="py-2 ps-3 whitespace-nowrap text-muted">{{ day(c.createdAt) }}</td>
                             <td class="py-2 ps-3 text-cream">{{ t(STATES[classState(c)]) }}</td>
@@ -77,7 +79,10 @@ export const SchoolSection = {
                         <h2 id="school-detail-h" class="font-mono text-xl font-bold tracking-wider text-cream" translate="no">{{ chosen.code }}</h2>
                         <p class="text-sm text-muted">{{ t('admin.school.detailLine', { name: chosen.name, made: day(chosen.createdAt), until: day(chosen.expiresAt) }) }}</p>
                     </div>
-                    <button v-if="classState(chosen) !== 'closed'" type="button" class="btn-secondary btn-sm" data-school-close @click="acting = { kind: 'close', code: chosen }">{{ t('admin.school.close') }}</button>
+                    <div class="flex flex-wrap gap-2">
+                        <button v-if="chosen.kind === 'partner'" type="button" class="btn-secondary btn-sm" data-school-partner-seats @click="partnerSeats = chosen.seats; acting = { kind: 'partnerSeats', code: chosen }">{{ t('admin.school.changeSeats') }}</button>
+                        <button v-if="classState(chosen) !== 'closed'" type="button" class="btn-secondary btn-sm" data-school-close @click="acting = { kind: 'close', code: chosen }">{{ t('admin.school.close') }}</button>
+                    </div>
                 </div>
                 <!-- The teacher: approved or waiting (codes work only once approved), and their lifetime seats. -->
                 <div v-if="chosen.teacher" class="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-line p-4" data-school-teacher>
@@ -101,20 +106,28 @@ export const SchoolSection = {
                 </ul>
             </section>
 
-            <ChangeSheet v-if="acting" :title="sheetTitle" :me="me" :busy="busy" :errors="errors" :fields="['seatAllowance']" @close="acting = null; errors = null" @confirm="act">
+            <ChangeSheet v-if="acting" :title="sheetTitle" :me="me" :busy="busy" :errors="errors" :fields="['seatAllowance', 'seats']" @close="acting = null; errors = null" @confirm="act">
                 <p class="text-sm text-muted">{{ sheetBody }}</p>
                 <label v-if="acting.kind === 'seats'" class="block space-y-1.5"><span class="block text-sm font-semibold text-cream">{{ t('admin.school.allowanceLabel') }}</span>
                     <input v-model.number="seatAllowance" type="number" min="0" max="5000" required inputmode="numeric" class="input w-40" data-school-allowance>
                     <span v-if="errors?.seatAllowance" class="block text-sm text-bad">{{ errors.seatAllowance.join(' ') }}</span></label>
+                <label v-if="acting.kind === 'partnerSeats'" class="block space-y-1.5"><span class="block text-sm font-semibold text-cream">{{ t('admin.school.partnerSeatsLabel', { used: formatNumber(acting.code.used ?? 0) }) }}</span>
+                    <input v-model.number="partnerSeats" type="number" :min="minSeats" max="100000" required inputmode="numeric" class="input w-40" data-school-partner-seats-input>
+                    <span v-if="errors?.seats" class="block text-sm text-bad">{{ errors.seats.join(' ') }}</span></label>
             </ChangeSheet>
         </section>`,
     computed: {
         phone: () => screen.phone,
+        /** A partner code's seats never go under those used. */
+        minSeats() {
+            return Math.max(1, this.acting?.code?.used ?? 0);
+        },
         sheetTitle() {
             const a = this.acting;
             if (a.kind === 'close') return t('admin.school.closeTitle', { code: a.code.code });
             if (a.kind === 'end') return t('admin.school.endTitle', { name: a.redemption.user?.name ?? '' });
             if (a.kind === 'approve') return t('admin.school.approveTitle', { name: a.teacher.name ?? '' });
+            if (a.kind === 'partnerSeats') return t('admin.school.partnerSeatsTitle', { code: a.code.code });
             return t('admin.school.seatsTitle', { name: a.teacher.name ?? '' });
         },
         sheetBody() {
@@ -163,6 +176,7 @@ export const SchoolSection = {
                 if (kind === 'close') await api.admin.school.update(this.acting.code.id, { action: 'close', reason });
                 else if (kind === 'end') await api.admin.school.endRedemption(this.acting.redemption.id, { reason });
                 else if (kind === 'approve') await api.admin.school.updateTeacher(this.acting.teacher.id, { approved: true, reason });
+                else if (kind === 'partnerSeats') await api.admin.school.update(this.acting.code.id, { action: 'seats', seats: this.partnerSeats, reason });
                 else await api.admin.school.updateTeacher(this.acting.teacher.id, { seatAllowance: this.seatAllowance, reason });
                 toast(t(DONE[kind]));
                 this.acting = null;

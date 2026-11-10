@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en" data-theme="stage-dark">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Vocal key finder</title>
+    <!-- How a /tools page mounts the vocal key finder (js/public/tools/vocal-key-finder.js): a box, the page's words and
+         songs, mountKeyFinder(). ?range=48-69 stands in a range the range test saved (tests and shots). -->
+    <meta name="game-css" content="/css/site-game.css">
+    <link rel="stylesheet" href="/css/site.css">
+    <script src="/js/theme-boot.js"></script>
+    <script src="/js/game-css.js"></script>
+</head>
+<body class="bg-ink text-cream" data-tool-name="Vocal key finder">
+    <main class="px-4">
+        <div id="finder"></div>
+        <h1 class="mx-auto mt-8 max-w-[24.375rem] text-[28px] font-extrabold leading-tight tracking-tight md:text-[40px]">What key should I sing it in?</h1>
+    </main>
+    <script type="module" src="/tests/tool-frame.js"></script>
+    <script type="module">
+        import { mountKeyFinder } from '/js/public/tools/vocal-key-finder.js';
+        import { RANGE_STORE } from '/js/public/saved-range.js';
+        const words = {
+            songKey: 'Song key', lower: 'Lower', higher: 'Higher', modes: 'The song is', major: 'Major', minor: 'Minor',
+            yourVoice: 'Your voice', yourRange: 'Your range, :low to :high', theSong: 'The song', lowest: 'Lowest', highest: 'Highest',
+            pickSong: 'Pick a song', learnIt: 'Learn it in Stackapella', ownNotes: 'My own song: set its notes', bass: 'Bass', baritone: 'Baritone', tenor: 'Tenor', alto: 'Alto', mezzo: 'Mezzo', soprano: 'Soprano',
+            singIt: 'Sing it in', asWritten: 'Same key', shiftUp: ':n semitones up', shiftDown: ':n semitones down', octaveDown: 'an octave lower than written', octaveUp: 'an octave higher than written',
+            fits: 'Fits your voice', fitsHint: 'Every note in reach', stretch: 'A stretch', stretchTop: 'the top is :n over', stretchBottom: 'the bottom is :n under',
+            tooFar: 'Out of reach', tooFarHint: 'This song spans more than your range', guitar: 'Guitar: capo :n, play :shape shapes', guitarOpen: 'Guitar: no capo, :key is open chords',
+            range: ':low to :high', allKeys: 'All 12 keys', keyFits: 'fits', keyStretch: 'a stretch', keyNo: 'out of reach',
+            play: 'Hear it in :key', stop: 'Stop', settings: 'More', settingsTitle: 'Settings', reset: 'Reset', done: 'Done',
+            topOnce: 'The top note is only once (let it go 2 over)', noCapo: 'No guitar line', copy: 'Copy the answer', copied: 'Copied',
+            copyText: 'Sing it in :key (:shift). :guitar',
+        };
+        const q = new URLSearchParams(location.search).get('range');
+        if (q) {
+            const [low, high] = q.split('-').map(Number);
+            localStorage.setItem(RANGE_STORE, JSON.stringify({ history: [{ at: Date.now(), low, high }] }));
+        }
+        // Public-domain melodies, as a page passes its own list (their key, lowest and highest note).
+        const songs = [{ name: 'Amazing Grace (in G)', key: 'G', low: 62, high: 76, href: '/songs/amazing-grace' }, { name: 'Auld Lang Syne (in F)', key: 'F', low: 60, high: 74 }];
+        window.__finder = mountKeyFinder(document.querySelector('#finder'), { words, keySlot: document.querySelector('[data-tool-key]'), songs });
+    </script>
+</body>
+</html>

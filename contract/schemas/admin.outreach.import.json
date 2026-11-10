@@ -1,0 +1,53 @@
+{
+    "$id": "admin.outreach.import.json",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "added",
+                "updated",
+                "skipped"
+            ],
+            "properties": {
+                "added": {
+                    "type": "integer"
+                },
+                "updated": {
+                    "type": "integer"
+                },
+                "skipped": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "row",
+                            "name",
+                            "reason"
+                        ],
+                        "properties": {
+                            "row": {
+                                "type": "integer"
+                            },
+                            "name": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            },
+                            "reason": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

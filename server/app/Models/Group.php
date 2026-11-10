@@ -24,6 +24,8 @@ use Illuminate\Support\Carbon;
  * @property string|null $link_hash
  * @property string|null $link_token the join link's token, for the director to copy again
  * @property Carbon|null $link_created_at
+ * @property Carbon|null $rehearsal_on the next rehearsal as the director set it (a plain date)
+ * @property bool $rehearsal_weekly
  * @property int|null $es_connection_id
  * @property string|null $es_schedule
  * @property string|null $es_schedule_name
@@ -48,10 +50,15 @@ final class Group extends Model
 
     protected $hidden = ['link_token'];
 
+    /** @var array<string, mixed> */
+    protected $attributes = ['rehearsal_weekly' => false];
+
     protected function casts(): array
     {
         return [
             'link_created_at' => 'datetime',
+            'rehearsal_on' => 'date',
+            'rehearsal_weekly' => 'boolean',
             'link_token' => 'encrypted',
         ];
     }

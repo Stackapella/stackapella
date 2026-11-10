@@ -126,7 +126,7 @@ def journey(f):
     f.run(f"{ROUTER}.navigate('/learn/pp-3-chords')")
     f.wait("document.querySelector('[data-exercise]') || document.querySelector('canvas')", what="the play step")
     f.js(f"{AUDIO}.engine.setLoopback(true)")
-    f.run("document.querySelector('.glass-bubble-solid.size-20').closest('button').click()")
+    f.run("document.querySelector('[data-play-disc]').closest('button').click()")
     f.wait(f"{AUDIO}.engine.playing?.recording", what="weak take 1")
     # Play again's words: "for more stars" in the game skin, plain in the serious one.
     again = "results.playAgainStars" if f.js("document.documentElement.dataset.skin !== 'serious'") else "course.replay"

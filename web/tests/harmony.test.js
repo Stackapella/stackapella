@@ -3,7 +3,7 @@
 // fifths and octaves found, `choices` resolved to what was sung, and a pull onto a partner's note
 // told apart from a note simply sung off.
 import { awkwardLeap, compareLines, foldedCents, holdsPercent, speciesPercent, STARS_3, intervalClass, motionOf, openChoices, pitchAt, pulls, resolveChoices, speciesChecks, sungPitch } from '/js/harmony.js';
-import { droneSpan, Exercise, heardNotes, layout } from '/js/components/exercise.js';
+import { CALL_CLEAR_AFTER, CALL_CLEAR_BEFORE, droneSpan, Exercise, heardNotes, layout, speakerPartnerNotes, withoutCalls } from '/js/components/exercise.js';
 import { assert, close, test } from './harness.js';
 
 const RATE = 100;
@@ -141,6 +141,15 @@ test('exercise layout: an answer differs from the call, and listen-only notes ar
     const cold = droneSpan(echo, { guide: false, droneAfter: 2 }, 8);
     assert(cold.from === 3 && cold.to === 8, `the drone after 2 beats of the turn ${JSON.stringify(cold)}`);
     assert(droneSpan(echo, { guide: false }, 8).to === 1, 'a cold start without droneAfter: no drone in the turn');
+    // A reading line with no guide and droneAfter 0 (sight-singing): do through the lead (the look and any
+    // count-in) before beat 0, then on, unbroken; with no lead, from beat 0 as before.
+    const reading = layout({ notes: [{ beat: 0, length: 2, step: 0 }, { beat: 2, length: 2, step: 2 }], turn: false, guide: false }, HOME);
+    const lead = droneSpan(reading, { guide: false, droneAfter: 0 }, 4, 6);
+    assert(lead.from === -6 && lead.to === 4, `the drone through 6 beats of lead ${JSON.stringify(lead)}`);
+    assert(droneSpan(reading, { guide: false, droneAfter: 0 }, 4).from === 0, 'no lead: from beat 0');
+    assert(droneSpan(reading, { guide: false, droneAfter: 1 }, 4, 6).from === 1, 'a later droneAfter: never in the lead');
+    assert(droneSpan(echo, { guide: false, droneAfter: 0 }, 8, 6).from === echo.turnFrom, 'a turn after a call: the lead is the call\'s, not the drone\'s');
+    assert(droneSpan(reading, { droneAfter: 0 }, 4, 6).from === 0, 'with the guide: from beat 0, as always');
 });
 
 test('exercise layout: partner lines, written out or the sung line delayed (a round)', () => {
@@ -248,4 +257,69 @@ test('exercise lane label: hidden lights never named, choices all named, the fre
     assert(on.includes('C4') && on.includes('E4') && on.includes('G4'), `every choice named: ${on}`);
     const plain = label.call({ exercise: {}, mode: 'play', laid: { target: [{ pitch: 60 }] }, name: () => 'C4' });
     assert(!plain.includes('voices') && plain.includes('C4'), `a plain exercise as before: ${plain}`);
+});
+
+test('harmony: a choice listed in two octaves is read in the octave sung (the courses audit, harmony.md F6)', () => {
+    // Low do, so, high do (Improvising's [-7, 0, 5] over so = 67): high do sung is high do, low do sung is low do.
+    const target = [{ beat: 0, length: 1, pitch: 60, choices: [60, 67, 72] }, { beat: 1, length: 1, pitch: 60, choices: [60, 67, 72] }];
+    const resolved = resolveChoices(track([72, 60]), target, BEAT);
+    assert(resolved[0].chosen === 72, `high do sung: ${resolved[0].chosen}`);
+    assert(resolved[1].chosen === 60, `low do sung: ${resolved[1].chosen}`);
+    // A man an octave down from both still takes the nearer: 48 is nearer 60 than 72.
+    assert(resolveChoices(track([48]), [target[0]], BEAT)[0].chosen === 60, 'an octave below both: the lower');
+    // Live (exercise.js landedOn): the lit choice is the octave nearest the voice.
+    const ex = { laid: { target, partners: [] }, firstTarget: 0, shown: target, chosen: {}, exercise: {}, live: 72.1 };
+    ex.openChoicesAt = Exercise.methods.openChoicesAt.bind(ex);
+    assert(Exercise.methods.landedOn.call(ex, 0, 35) === 72, 'live on high do: high do lights');
+    ex.live = 60.1;
+    assert(Exercise.methods.landedOn.call(ex, 0, 35) === 60, 'live on low do: low do lights');
+});
+
+test('harmony: a choice step never leaves nothing lit, and only Counterpoint\'s steps dim (the courses audit, harmony.md F9)', () => {
+    // Every choice would break a rule after the note before: all stay lit rather than none.
+    // 67 over 60, then 69 over 62: parallel fifths, the only choice.
+    const none = openChoices([69], 62, { sung: 67, cantus: 60 });
+    assert(none.length === 1 && none[0] === 69, `nothing ruled out to nothing: ${JSON.stringify(none)}`);
+    // A step with chords (Improvising, Live looping) never dims, whatever the partner does; Counterpoint's still does.
+    const shown = [{ beat: 0, length: 1, pitch: 64, choices: [64] }, { beat: 1, length: 1, pitch: 69, choices: [65, 69, 71] }];
+    const partners = [{ notes: [{ beat: 0, length: 1, pitch: 60 }, { beat: 1, length: 1, pitch: 62 }] }];
+    const ex = (exercise) => {
+        const self = { laid: { target: shown, partners }, firstTarget: 0, shown, chosen: { 0: 64 }, exercise };
+        return Exercise.methods.openChoicesAt.call(self, 1);
+    };
+    assert(ex({ chords: [{ beat: 0, root: 0, quality: 'maj' }] }).length === 3, 'with chords: every choice lit');
+    assert(ex({ drone: true }).length === 3, 'over a drone: every choice lit');
+    assert(ex({}).length < 3, 'Counterpoint: the parallel fifth dims');
+});
+
+test('speaker calls: through a speaker, a partner\'s call in your rest keeps sounding, whole, and one near your notes rests', () => {
+    const bs = 0.5; // 120 bpm
+    // You answer at beats 4 to 5 and 10 to 11; the crew calls before the turn, between your answers, and too close to one.
+    const target = [{ beat: 4, length: 1, pitch: 60 }, { beat: 10, length: 1, pitch: 62 }];
+    const call = (beat, length = 1) => ({ beat, length, pitch: 55 });
+    const partner = [call(0, 2), call(2, 1), call(6), call(7), call(9.5, 0.25), call(12)];
+    const { notes, calls } = speakerPartnerNotes(partner, target, 4, bs);
+    const beats = notes.map((n) => n.beat);
+    assert(beats.includes(0) && beats.includes(2), 'before the turn, as before');
+    assert(beats.includes(6) && beats.includes(7), 'a joined call in your rest (6 to 8, clear of 5 and 10), kept whole');
+    assert(!beats.includes(9.5), `a call ending ${(10 - 9.75) * bs} s before your note rests (needs ${CALL_CLEAR_BEFORE} s)`);
+    assert(beats.includes(12), 'after your last note, clear by more than its margin');
+    assert(JSON.stringify(calls) === JSON.stringify([[6, 8], [12, 13]]), `the kept calls' spans: ${JSON.stringify(calls)}`);
+    // A run of joined notes that reaches into your note rests whole: never cut.
+    const run = speakerPartnerNotes([call(6), call(7), call(8), call(9)], target, 4, bs);
+    assert(run.notes.length === 0 && run.calls.length === 0, 'a call running up to your note rests, all of it');
+    // A call starting just after your note (a singer a little late is still on it).
+    assert(speakerPartnerNotes([call(5 + (CALL_CLEAR_AFTER / bs) / 2)], target, 4, bs).notes.length === 0, 'too soon after your note');
+    // With headphones (`until` the end): every note, as before.
+    assert(speakerPartnerNotes(partner, target, 20, bs).notes.length === partner.length, 'headphones: all of it');
+});
+
+test('speaker calls: the mic\'s hearing of a kept call is taken out of your take', () => {
+    const rate = 100;
+    const hz = new Float32Array(8 * rate).fill(220);
+    const out = withoutCalls({ rate, hz }, [[6, 8]], 0.5);
+    assert(out.hz[Math.round(2.9 * rate)] === 220 && out.hz[Math.round(3.1 * rate)] === 0, 'silent from the call\'s start (3 s)');
+    assert(out.hz[Math.round(4.1 * rate)] === 0 && out.hz[Math.round(4.2 * rate)] === 220, `and its tail (${CALL_CLEAR_AFTER} s past 4 s)`);
+    assert(hz[Math.round(3.5 * rate)] === 220, 'the take itself untouched');
+    assert(withoutCalls({ rate, hz }, [], 0.5).hz === hz, 'no calls: the same track');
 });

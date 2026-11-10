@@ -11,7 +11,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 from flow import run  # noqa: E402
 
 EXPERIMENT = {"id": "short1", "arms": [{"arm": "a", "weight": 50}, {"arm": "b", "weight": 50}], "enrol": True, "audience": {"firstWeek": True}}
-STEPS = "document.querySelectorAll('span.flex.w-24[aria-hidden=true] > span').length"
+STEPS = "document.querySelectorAll('[data-step-bars] > span').length"
 
 
 def open_lesson(f, kept, query=""):

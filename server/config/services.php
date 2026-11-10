@@ -88,6 +88,24 @@ return [
         'property' => env('SEARCH_CONSOLE_PROPERTY', 'sc-domain:stackapella.com'),
     ],
 
+    // IndexNow (Hillel, 2026-11-09: "Yes, build it"): our public pages whose words changed, sent to
+    // api.indexnow.org (which shares them with Bing, Yandex and the rest) while Admin's `indexnow`
+    // switch is on. The key is public by design (it's served at /<key>.txt); unset, it's worked out
+    // from APP_KEY, so nothing needs setting. At most daily_cap addresses a day.
+    'indexnow' => [
+        'key' => env('INDEXNOW_KEY'),
+        'endpoint' => env('INDEXNOW_ENDPOINT', 'https://api.indexnow.org/indexnow'),
+        'daily_cap' => (int) env('INDEXNOW_DAILY_CAP', 500),
+    ],
+
+    // The growth data pull (docs/growth-data.md): GET /api/internal/growth answers only a bearer
+    // token this long or longer (it's off without one), and app:pull-growth on a dev machine sends
+    // the same token, only to `url`'s host or a local one.
+    'growth_data' => [
+        'token' => env('GROWTH_DATA_TOKEN'),
+        'url' => env('GROWTH_DATA_URL', 'https://app.stackapella.com'),
+    ],
+
     // Cloudflare Turnstile, shown only while shield mode is on.
     'turnstile' => [
         'site_key' => env('TURNSTILE_SITE_KEY'),

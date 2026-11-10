@@ -14,6 +14,9 @@ return [
         'storage_gb_a_day' => 10,
         'limited_an_hour' => 1000,
         'suppressed_a_day' => 20,
+        // Emails (and other quick jobs) waiting over 5 minutes on the default queue: sign-up links late.
+        'mail_waiting' => 20,
+        'failed_jobs_an_hour' => 5,
     ],
 
     'alert_every_hours' => 6,

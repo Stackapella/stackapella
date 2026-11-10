@@ -10,7 +10,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
 from flow import run  # noqa: E402
-from game_frames import dark, light  # noqa: E402
+from game_frames import dark, every_theme, light  # noqa: E402
 from help_shots import t  # noqa: E402
 
 ROW = "document.querySelector('[data-game-initials-row]')"
@@ -49,6 +49,7 @@ def journey(f):
     f.wait(PICKER, what="the letter picker")
     f.run("document.getElementById('game')?.scrollIntoView()")
     f.shot("picker")
+    every_theme(f, "the initials picker")
     light(f)
     f.shot("picker-light")
     dark(f)

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Models\Concerns\HasSqid;
 use Database\Factories\UserBlockFactory;
 use Illuminate\Database\Eloquent\Attributes\UseFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -24,6 +25,8 @@ final class UserBlock extends Model
 {
     /** @use HasFactory<UserBlockFactory> */
     use HasFactory;
+
+    use HasSqid;
 
     protected $fillable = ['blocker_id', 'blocked_id', 'created_at'];
 

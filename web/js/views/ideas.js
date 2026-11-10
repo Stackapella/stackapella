@@ -6,14 +6,14 @@
 //   own; Report; and for its writer, held or hidden said plainly, Delete, and Remove on a voice.
 
 import { markRaw } from 'vue';
-import { PageHeader } from '../components/page.js';
+import { AppScreen } from '../components/page.js';
 import { ApiError, call } from '../api.js';
 import { midiName } from '../dsp.js';
 import { t, timeAgo, tk } from '../i18n.js';
 import { navigate } from '../router.js';
 import { account } from '../stores/account.js';
 import { deleteIdea, deleteVoice, ideas, ideasOpen, listIdeas, myIdeas, showIdea } from '../stores/ideas.js';
-import { canCreateProject, LimitReached, startFromTemplate } from '../stores/projects.js';
+import { startFromTemplate } from '../stores/projects.js';
 import { validateTemplate } from '../templates.js';
 import { playTemplate } from '../creator-audio.js';
 import { paint } from '../colors.js';
@@ -22,7 +22,6 @@ import { EmptyState, Notice } from '../components/form.js';
 import { Icon } from '../components/icon.js';
 import { Modal, toast } from '../components/ui.js';
 import { confirmAction } from '../components/confirm.js';
-import { PlusMoment } from '../components/plus-moment.js';
 
 const TABS = { open: tk('ideas.tabs.open'), complete: tk('ideas.tabs.complete'), mine: tk('ideas.tabs.mine') };
 const NEEDS = { soprano: tk('parts.soprano'), alto: tk('parts.alto'), tenor: tk('parts.tenor'), bass: tk('parts.bass') };
@@ -30,13 +29,13 @@ const partColor = (index) => paint(PART_COLORS[(index * 3) % PART_COLORS.length]
 
 /** The page's frame: the shared header, and the page. */
 const Frame = {
-    components: { PageHeader },
+    components: { AppScreen },
     props: { title: { type: String, required: true }, back: { type: String, default: '/' } },
     template: `
-        <div class="mx-auto flex min-h-dvh max-w-3xl flex-col px-4 pb-16 pt-[max(0.5rem,env(safe-area-inset-top))] md:px-8">
-            <PageHeader :title="title" :back="back"><template #aside><slot name="aside" /></template></PageHeader>
+        <AppScreen :title="title" :back="back" measure="max-w-3xl">
+            <template #aside><slot name="aside" /></template>
             <div class="mt-4 space-y-6"><slot /></div>
-        </div>`,
+        </AppScreen>`,
 };
 
 /** A tune on the shelf: its title, writer, note and parts (a filled dot has a voice). */
@@ -182,9 +181,9 @@ const ReportIdea = {
 };
 
 export const IdeaView = {
-    components: { Frame, EmptyState, Icon, Notice, ReportIdea, PlusMoment },
+    components: { Frame, EmptyState, Icon, Notice, ReportIdea },
     props: { id: { type: String, required: true } },
-    data: () => ({ idea: null, missing: false, failed: null, player: null, hearing: false, playingVoice: null, reporting: false, starting: null, limitOpen: false }),
+    data: () => ({ idea: null, missing: false, failed: null, player: null, hearing: false, playingVoice: null, reporting: false, starting: null }),
     setup: () => ({ account, partColor, midiName }),
     template: `
         <Frame :title="idea ? idea.title : t('ideas.title')" back="/ideas">
@@ -239,7 +238,6 @@ export const IdeaView = {
                 </div>
             </template>
             <ReportIdea v-if="reporting" :idea="idea" @close="reporting = false" />
-            <PlusMoment v-if="limitOpen" :title="t('plus.moment.projectTitle')" :text="t('plus.moment.projectLimit')" full from="project_limit" @close="limitOpen = false" />
         </Frame>`,
     computed: {
         song() {
@@ -315,21 +313,14 @@ export const IdeaView = {
         },
         /** Sing this part: the tune as a project of your own, on that part, carrying the idea. */
         async sing(part) {
-            if (!canCreateProject()) {
-                this.limitOpen = true;
-                return;
-            }
             this.starting = part.key;
             this.stopAll();
             try {
                 const project = await startFromTemplate(this.song, { singers: this.idea.voicing, focusKey: part.key, idea: { id: this.idea.id, writer: this.idea.writer.name, partKey: part.key } });
                 navigate(`/p/${project.id}/sing`);
             } catch (error) {
-                if (error instanceof LimitReached) this.limitOpen = true;
-                else {
-                    console.error('Singing the idea failed', error);
-                    toast(t('projects.couldNotStart'), { tone: 'error' });
-                }
+                console.error('Singing the idea failed', error);
+                toast(t('projects.couldNotStart'), { tone: 'error' });
             } finally {
                 this.starting = null;
             }

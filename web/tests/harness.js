@@ -20,6 +20,8 @@ export async function run() {
     const results = [];
     for (const t of tests) {
         const started = performance.now();
+        // The test running now, where a runner that gives up waiting can read it (tool/cdp.py names it in its timeout).
+        document.title = `Running: ${t.name}`;
         try {
             await t.body();
             results.push({ name: t.name, ok: true, ms: Math.round(performance.now() - started) });
@@ -28,6 +30,7 @@ export async function run() {
         }
         render(results);
     }
+    document.title = 'Stackapella tests';
     window.testReport = { passed: results.every((r) => r.ok), results, userAgent: navigator.userAgent };
     return window.testReport;
 }

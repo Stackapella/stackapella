@@ -23,6 +23,13 @@
                 "activeSingers": 78
             }
         },
-        "timezone": "UTC"
+        "outreach": {
+            "followUpsDue": 1,
+            "unreadReplies": 2,
+            "sendBySoon": 1
+        },
+        "timezone": "UTC",
+        "songsNotSynced": [],
+        "sitemapProblems": []
     }
 }

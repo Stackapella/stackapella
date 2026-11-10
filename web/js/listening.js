@@ -4,6 +4,7 @@
 // smoothed so it glides, the window that starts wide (the whole human range) and zooms in once the
 // pitch settles, the ticks to draw, and what a comfortable note says about the parts that may suit.
 
+import { SETTLE_SECONDS } from './capture-scale.js';
 import { midiName } from './dsp.js';
 import { tk } from './i18n.js';
 
@@ -11,8 +12,8 @@ import { tk } from './i18n.js';
 export const WIDE = { lo: 36, hi: 84 };
 /** Zoomed: this far either side of the settled note (an octave in all). */
 export const ZOOM_SEMITONES = 6;
-/** Held this long, the note has settled: zoom in. */
-export const SETTLE_SECONDS = 0.6;
+/** Held this long, the note has settled: zoom in (one value, with the note capture's scale). */
+export { SETTLE_SECONDS };
 const GLIDE_SECONDS = 0.18; // the marker's smoothing: it glides, never jitters
 const ZOOM_SECONDS = 0.35; // the window's easing
 

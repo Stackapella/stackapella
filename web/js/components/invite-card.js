@@ -25,23 +25,25 @@ export const InviteCard = {
         kind: { type: String, default: '' }, // the line under it: the kind of invite, its expiry
         lead: { type: String, default: '' },
         song: { type: String, default: 'amazing-grace' }, // the template drawn
-        part: { type: String, default: 'alto' }, // the part lit
+        part: { type: String, default: 'alto' }, // the part lit; null when none is picked yet (a choir's link), every part shown alike
         signIn: { type: String, default: '/signin' }, // where "I already have an account" goes
     },
     data: () => ({ parts: [] }),
     setup: () => ({ account, navigate }),
     template: `
-        <div class="mx-auto flex min-h-dvh w-full max-w-lg flex-col px-4 pb-10 pt-[max(1rem,env(safe-area-inset-top))]">
-            <header class="flex items-center justify-between gap-3 py-3">
-                <a href="/" @click.prevent="navigate('/')"><Logo /></a>
-                <a v-if="account.loaded && !account.me" :href="signIn" class="btn-secondary btn-sm min-h-11" @click.prevent="navigate(signIn)">{{ t('invite.haveAccount') }}</a>
+        <div class="flex min-h-dvh w-full flex-col">
+            <!-- The app's top bar on the site header's grid (app-wrap app-top): the logo where the site's is. -->
+            <header class="app-wrap app-top justify-between">
+                <a href="/" class="flex shrink-0" @click.prevent="navigate('/')"><Logo /></a>
+                <!-- At 320 px the words wrap inside the button rather than push the page sideways (WCAG 1.4.10). -->
+                <a v-if="account.loaded && !account.me" :href="signIn" class="btn-secondary btn-sm min-h-11 min-w-0 shrink py-1.5 text-center leading-tight whitespace-normal" @click.prevent="navigate(signIn)">{{ t('invite.haveAccount') }}</a>
             </header>
-            <div class="flex flex-1 items-center py-6">
+            <div class="mx-auto flex w-full max-w-lg flex-1 items-center px-4 pb-16 pt-6">
                 <section class="card w-full space-y-5 p-6 md:p-7">
                     <slot name="top">
                         <div v-if="from" class="flex items-center gap-3">
-                            <img v-if="avatar" :src="avatar" alt="" class="size-11 shrink-0 rounded-full object-cover" />
-                            <span v-else class="gem grid size-11 shrink-0 place-items-center rounded-full text-sm font-extrabold" style="--gem: var(--color-part-4); --gem-ink: var(--color-ink)" aria-hidden="true">{{ initials }}</span>
+                            <img v-if="avatar" :src="avatar" alt="" class="size-11 shrink-0 rounded-full object-cover" data-avatar />
+                            <span v-else class="bubble grid size-11 shrink-0 place-items-center text-sm font-extrabold" style="--bubble: var(--color-part-4); --bubble-ink: var(--color-part-text-4)" aria-hidden="true" data-avatar>{{ initials }}</span>
                             <span class="min-w-0">
                                 <span class="block font-bold text-cream" translate="no">{{ t('invite.from', { name: from }) }}</span>
                                 <span v-if="kind" class="block text-sm text-muted">{{ kind }}</span>
@@ -54,7 +56,7 @@ export const InviteCard = {
                         <div v-if="rows.length" class="relative space-y-1.5 rounded-2xl border border-line bg-ink/40 p-4" aria-hidden="true">
                             <Gems measure />
                             <div v-for="row in rows" :key="row.key" class="grid grid-cols-[4.5rem_1fr] items-center gap-3">
-                                <span class="truncate text-xs" :class="row.lit ? 'font-bold text-cream' : 'text-muted'">{{ row.name }}</span>
+                                <span class="truncate text-xs" :class="row.mine ? 'font-bold text-cream' : 'text-muted'">{{ row.name }}</span>
                                 <span class="relative block h-2.5">
                                     <span v-for="(n, i) in row.notes" :key="i" class="absolute top-0 h-2.5" :style="{ insetInlineStart: n.x + '%', width: n.w + '%' }">
                                         <span class="block h-full" :data-gem="row.color" :data-gem-state="row.lit ? null : 'faint'"></span>
@@ -76,7 +78,8 @@ export const InviteCard = {
             return this.parts.slice(0, 4).map((p, i) => ({
                 key: p.key,
                 name: templatePartName(p),
-                lit: p.key === this.part,
+                lit: this.part === null || p.key === this.part,
+                mine: p.key === this.part,
                 color: paint(p.color ?? PART_COLORS[i % PART_COLORS.length]),
                 notes: p.guide.notes.filter((n) => n.beat < BEATS).map((n) => ({ x: (n.beat / BEATS) * 100, w: Math.max(1.5, (Math.min(n.length, BEATS - n.beat) / BEATS) * 100 - 1) })),
             }));

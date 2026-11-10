@@ -11,14 +11,15 @@
     <meta property="og:title" content="{{ $meta['title'] }}">
     <meta property="og:description" content="{{ $meta['description'] }}">
     <meta property="og:url" content="{{ $meta['url'] }}">
-    <meta property="og:image" content="{{ \App\Support\Http\Hosts::public('/icons/og-landing.png') }}">
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="{{ \App\Support\Site\SitePages::image($meta['url']) }}">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta name="twitter:card" content="summary_large_image">
     <link rel="canonical" href="{{ $meta['url'] }}">
 @endsection
 
 @php($all = collect($songs))
-@php($month = $all->first(fn (array $s): bool => $s['freeThisMonth']))
-@php($free = $all->filter(fn (array $s): bool => ! $s['plus'] && $s !== $month)->values())
-@php($plus = $all->filter(fn (array $s): bool => $s['plus'])->values())
 
 @section('content')
     <x-site.header />
@@ -27,28 +28,14 @@
             <p class="s-eyebrow"><span class="s-dots" aria-hidden="true">@foreach ([1, 2, 3, 4] as $n)<b class="s-v{{ $n }}"></b>@endforeach</span><x-site.skin :game="__('pages.landing.game.songs_kick')" :serious="__('pages.songs.eyebrow')" /></p>
             <h1 id="page-h">{{ __('pages.songs.headline') }}</h1>
             <p class="s-lede">{{ __('pages.songs.lead') }}</p>
-            <p class="s-countline">{{ __('pages.songs.count', ['count' => $all->count(), 'free' => $all->where('plus', false)->count()]) }}</p>
+            <p class="s-countline">{{ __('pages.songs.count', ['count' => $all->count()]) }}</p>
+            {{-- The carol season (November to Twelfth Night): the Christmas carols page, part by part. --}}
+            @if (($carols ?? null) !== null)
+                <p class="s-songs-season"><a href="{{ $carols }}" class="s-lk">{{ __('site.carols.songs_link') }} <x-site.icon name="arrow" size="16" /></a></p>
+            @endif
         </section>
 
-        @if ($month !== null)
-            <section class="s-wrap s-sec" aria-labelledby="month-h">
-                <div class="s-split">
-                    <div>
-                        <p class="s-kick">{{ __('pages.songs.month') }}</p>
-                        <h2 id="month-h" class="s-title" translate="no">{{ $month['title'] }}</h2>
-                        <p class="s-lede">{{ __('pages.songs.month_body') }}</p>
-                        <p class="s-actions-l"><a href="{{ $month['startUrl'] }}" class="btn-primary btn-lg">{{ __('pages.song.start') }} <x-site.icon name="arrow" size="18" /></a> <a href="{{ $month['pageUrl'] }}" class="s-arrow" style="margin-inline-start: 18px">{{ __('pages.songs.open') }} <x-site.icon name="arrow" size="16" /></a></p>
-                    </div>
-                    @if (($lines[$month['slug']] ?? null) !== null)
-                        <x-site.mixer :song="$lines[$month['slug']]" id="month-mixer" />
-                    @else
-                        <div class="s-card3d s-monthcard" aria-hidden="true"><x-site.song-glyph :ranges="$month['ranges']" /></div>
-                    @endif
-                </div>
-            </section>
-        @endif
-
-        @foreach ([['free', $free, __('pages.songs.free_title')], ['plus', $plus, __('pages.songs.plus_title')]] as [$key, $group, $heading])
+        @foreach ([['free', $all, __('pages.songs.free_title')]] as [$key, $group, $heading])
             @continue($group->isEmpty())
             <section class="s-wrap s-sec" aria-labelledby="songs-{{ $key }}-h">
                 <h2 id="songs-{{ $key }}-h" class="s-kick">{{ $heading }}</h2>
@@ -58,7 +45,6 @@
                             <a href="/songs/{{ $song['slug'] }}" class="s-song">
                                 <span class="s-row">
                                     <x-site.song-glyph :ranges="$song['ranges']" />
-                                    @if ($song['freeThisMonth'])<span class="s-badge s-badge-free">{{ __('pages.song.free_month') }}</span>@endif
                                 </span>
                                 <span><span class="s-t" translate="no">{{ $song['title'] }}</span><span class="s-k">{{ __('pages.songs.parts', ['count' => count($song['parts'])]) }}@if ($song['genre'] !== []) · {{ ucfirst($song['genre'][0]) }}@endif</span></span>
                             </a>

@@ -1,0 +1,32 @@
+{
+    "$id": "blocks.row.json",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "blockId",
+        "handle",
+        "name",
+        "avatarUrl"
+    ],
+    "properties": {
+        "blockId": {
+            "type": "string",
+            "description": "The block itself: blocks.remove unblocks by it, someone without a public profile included."
+        },
+        "handle": {
+            "type": [
+                "string",
+                "null"
+            ]
+        },
+        "name": {
+            "type": "string"
+        },
+        "avatarUrl": {
+            "type": [
+                "string",
+                "null"
+            ]
+        }
+    }
+}

@@ -8,6 +8,8 @@
 let ctx = null;
 let wave = null;
 let head = null;
+let reed = null;
+let plucked = null;
 const live = new Set();
 
 // The "ah" vowel's overtones, loudest first, falling away: enough of them that the fourth to seventh
@@ -15,32 +17,67 @@ const live = new Set();
 const AH = [0, 1, 0.72, 0.58, 0.5, 0.38, 0.3, 0.24, 0.18, 0.13, 0.1, 0.07, 0.05];
 // Head voice (falsetto): nearly all its energy in the note itself, a hooty "oo".
 const OO = [0, 1, 0.14, 0.05, 0.02];
+// A pitch pipe's free reed: every harmonic, odd and even, falling slowly, a little nasal (a bump
+// around the fourth to sixth), so it buzzes the way the real one does.
+const REED = [0, 1, 0.82, 0.7, 0.74, 0.72, 0.6, 0.44, 0.36, 0.3, 0.26, 0.2, 0.17, 0.14, 0.11, 0.09, 0.07];
 
-export function audio() {
+// A plucked string with a buzzing bridge (a tanpura's jawari): bright, the upper partials almost as
+// strong as the low ones, so it shimmers.
+const PLUCK = [0, 1, 0.55, 0.62, 0.48, 0.52, 0.44, 0.46, 0.38, 0.4, 0.32, 0.33, 0.26, 0.27, 0.2, 0.2, 0.15, 0.15, 0.11, 0.1];
+
+// The timbres a voice can have (the tools, docs/tools-plan.md): the sung "ah" (the default), the
+// head voice's "oo", a pitch pipe's reed, a plucked string's buzz (tones.js pluck()), and two plain
+// waves for a pure tone (a tuning fork, a reference A).
+export const TIMBRES = ['ah', 'oo', 'reed', 'pluck', 'sine', 'triangle'];
+
+/** The AudioContext and its wave tables, made once (resumed only by audio(), inside a tap). */
+function create() {
     if (!ctx) {
         const Context = window.AudioContext || window.webkitAudioContext;
         ctx = new Context({ latencyHint: 'interactive' });
         const imag = new Float32Array(AH);
         wave = ctx.createPeriodicWave(new Float32Array(AH.length), imag);
         head = ctx.createPeriodicWave(new Float32Array(OO.length), new Float32Array(OO));
+        reed = ctx.createPeriodicWave(new Float32Array(REED.length), new Float32Array(REED));
+        plucked = ctx.createPeriodicWave(new Float32Array(PLUCK.length), new Float32Array(PLUCK));
         document.addEventListener('visibilitychange', () => {
             if (document.hidden) stopAll();
         });
     }
+    return ctx;
+}
+
+export function audio() {
+    create();
     if (ctx.state === 'suspended') ctx.resume();
     return ctx;
+}
+
+/**
+ * Makes the AudioContext ahead, suspended, once the page is idle: for a tool whose first tap sounds (the drone, the forks,
+ * the pitch pipe). Making one takes 80 to 130 ms on a slow phone, which held that tap's next paint near 200 ms (INP, the
+ * game agent's Core Web Vitals sweep, 2026-11-08); the tap then only resumes it, as a gesture allows. Not a timer for audio:
+ * nothing sounds from it.
+ */
+export function warmAudio() {
+    if (ctx || !(window.AudioContext || window.webkitAudioContext)) return;
+    if ('requestIdleCallback' in window) requestIdleCallback(create, { timeout: 3000 });
+    else setTimeout(create, 1000); // Safari has no requestIdleCallback: soon after load instead
 }
 
 export const hz = (midi, cents = 0) => 440 * 2 ** ((midi - 69 + cents / 100) / 12);
 
 // One sung tone: hz, an optional detune in cents, and a gentle vibrato (rate in Hz, depth in cents).
 // `attack` and `release` are the fade in and out's time constants in seconds: shorter for a quick,
-// clearly sounded note (Musical theatre's patter, Scat's swung eighths).
-export function voice(frequency, { cents = 0, level = 0.16, vibrato = null, at = null, attack = 0.06, release = 0.08 } = {}) {
+// clearly sounded note (Musical theatre's patter, Scat's swung eighths). `timbre` is one of TIMBRES.
+// A voice stops when the page is hidden, unless `keepWhenHidden` (a tool's drone, which a singer may
+// leave sounding while they read music in another tab).
+export function voice(frequency, { cents = 0, level = 0.16, vibrato = null, at = null, attack = 0.06, release = 0.08, timbre = 'ah', keepWhenHidden = false } = {}) {
     const c = audio();
     const start = at ?? c.currentTime + 0.03;
     const osc = c.createOscillator();
-    osc.setPeriodicWave(wave);
+    if (timbre === 'sine' || timbre === 'triangle') osc.type = timbre;
+    else osc.setPeriodicWave({ oo: head, reed, pluck: plucked }[timbre] ?? wave);
     osc.frequency.value = frequency;
     osc.detune.value = cents;
     const gain = c.createGain();
@@ -99,8 +136,10 @@ export function voice(frequency, { cents = 0, level = 0.16, vibrato = null, at =
             if (!after) live.delete(handle);
         },
     };
-    live.add(handle);
-    ended.then(() => live.delete(handle));
+    if (!keepWhenHidden) {
+        live.add(handle);
+        ended.then(() => live.delete(handle));
+    }
     return handle;
 }
 
@@ -184,6 +223,14 @@ export function chord(frequencies, options = {}) {
 
 export function stopAll() {
     for (const handle of [...live]) handle.stop();
+}
+
+// A sound made elsewhere (tones.js) that should stop with the page like a voice: a handle with
+// stop() and an `ended` promise.
+export function track(handle) {
+    live.add(handle);
+    handle.ended.then(() => live.delete(handle));
+    return handle;
 }
 
 export const reducedMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches;

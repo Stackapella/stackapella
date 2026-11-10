@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 /*
 |--------------------------------------------------------------------------
-| The official library (docs/pricing-plan.md, "Songs: four free, the library on Plus")
+| The official library (docs/pricing-plan.md: every song free with an account)
 |--------------------------------------------------------------------------
 |
 | php artisan app:templates:sync loads every official template into the catalogue (`templates` and
@@ -29,7 +29,8 @@ return [
     // it too, so the list never tells what one or two people did.
     'also_learned_min' => 5,
 
-    // The four free songs. Everything else is Plus, except the song of the month while it's free.
+    // The songs a guest sings without an account (the app bundles them). Every other library song
+    // is free with an account (2026-11-07); the site counts the library, not this list.
     'free' => ['amazing-grace', 'are-you-sleeping', 'michael-row', 'happy-birthday'],
 
     // The real-instrument samples on the media CDN (App\Support\Media\Instruments): off where none

@@ -8,7 +8,8 @@
 import { reactive } from 'vue';
 import { t, timeAgo } from '../i18n.js';
 import { local } from '../storage.js';
-import { deleteProject, shownTitle } from '../stores/projects.js';
+import { projectsStore } from '../lazy-stores.js';
+import { shownTitle } from '../project-title.js';
 import { formatTime } from '../theme.js';
 import { Modal, toast } from './ui.js';
 
@@ -96,7 +97,7 @@ export async function deleteSong(project) {
         cancel: t('confirm.keep'),
     });
     if (!sure) return false;
-    const undo = await deleteProject(project.id);
+    const undo = await (await projectsStore()).deleteProject(project.id);
     toast(t('confirm.deleteProject.done', { title }), { seconds: UNDO_SECONDS, actions: [{ label: t('common.undo'), run: undo }] });
     return true;
 }

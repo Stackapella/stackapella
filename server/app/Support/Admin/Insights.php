@@ -188,7 +188,10 @@ final class Insights
      */
     private function limits(): array
     {
-        $limit = (int) config('usage.plans.free.projects');
+        // No free project limit since 2026-11-07 (storage is the limit): none is at it, and the
+        // limit reads 0.
+        $configured = config('usage.plans.free.projects');
+        $limit = is_int($configured) ? $configured : PHP_INT_MAX;
         $free = User::query()->where('is_admin', false)->whereNot(PlusQuery::apply(...));
         $counts = DB::table('projects')->whereNull('binned_at')->whereIn('user_id', (clone $free)->select('id'))
             ->groupBy('user_id')->selectRaw('user_id, count(*) as n')->pluck('n')->map(fn (mixed $n): int => (int) $n);
@@ -197,7 +200,7 @@ final class Insights
             'freeAccounts' => (clone $free)->count(),
             'projectsAtLimit' => $counts->filter(fn (int $n): bool => $n >= $limit)->count(),
             'projectsNearLimit' => $counts->filter(fn (int $n): bool => $n === $limit - 1)->count(),
-            'projectLimit' => $limit,
+            'projectLimit' => is_int($configured) ? $configured : 0,
         ];
     }
 

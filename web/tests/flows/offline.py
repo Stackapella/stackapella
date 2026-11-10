@@ -57,7 +57,9 @@ def look(f, path, ready="document.querySelector('#app h1, #app h2, #app main')",
     """A screen offline: opened fresh (from the service worker), its look and its errors."""
     f.chrome.errors.clear()
     try:
-        f.chrome.goto(f.base + path, ready, timeout=15)
+        # 30 s: under a busy gate run the sign-in view's first offline paint took longer than 15 (game, 2026-11-05);
+        # a screen that's really blank still fails below, on its words.
+        f.chrome.goto(f.base + path, ready, timeout=30)
         if then:
             then()
         time.sleep(1)

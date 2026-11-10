@@ -222,7 +222,7 @@ def journey(f):
             if q("the headphones question", f"document.body.innerText.includes({I18N}.t('headphones.title'))", timeout=8):
                 j.look_at("the headphones question", "headphones")
                 f.click_t("headphones.on")
-            if q("Wait for me ends by itself", f"document.body.innerText.includes({I18N}.t('course.wait.done'))", timeout=30):
+            if q("Wait for me ends by itself", "document.querySelector('[data-wait-done]')", timeout=30):
                 j.look_at("Wait for me", "l2-try-done")
             f.click_t("course.continue")
         if not sing_turn("1-match", [57, 59, 54], 9):

@@ -14,7 +14,7 @@ def journey(f):
     f.expected_errors += ["/no-such-photo.jpg"]  # the photo that won't load, on purpose
     f.go("/settings?api=mock&scenario=&as=member", PROFILE)
     f.run("const { account } = await import('/js/stores/account.js'); account.me = { ...account.me, avatarUrl: '/no-such-photo.jpg' };")
-    f.wait(f"!{PROFILE}.querySelector('img') && {PROFILE}.querySelector('span.rounded-full')?.textContent.trim() === 'A'", what="the letter in place of a broken photo")
+    f.wait(f"!{PROFILE}.querySelector('img') && {PROFILE}.querySelector('span[data-avatar]')?.textContent.trim() === 'A'", what="the letter in place of a broken photo")
     f.shot("avatar-fallback")
 
 

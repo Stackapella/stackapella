@@ -8,6 +8,8 @@ use App\Actions\Templates\SyncOfficialTemplates;
 use App\Enums\TemplateAccess;
 use App\Models\Template;
 use App\Models\TemplateVersion;
+use App\Support\Ops\Readiness;
+use App\Support\Ops\SyncProblems;
 use App\Support\Templates\TemplateRules;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\File;
@@ -213,5 +215,54 @@ final class SyncTemplatesTest extends TestCase
 
         $this->artisan('app:templates:sync')->expectsOutputToContain('official templates are soprano, alto, tenor and bass')->assertFailed();
         $this->assertSame(0, Template::query()->count());
+    }
+
+    public function test_a_song_that_cant_load_is_skipped_and_said_everywhere_without_failing_the_deploy(): void
+    {
+        config(['templates.folders' => [$this->folder]]);
+        $song = (array) json_decode((string) file_get_contents(dirname(base_path()).'/web/templates/amazing-grace.json'), true);
+        $other = [...$song, 'id' => 'another-song', 'title' => 'Another song'];
+        File::put($this->folder.'/amazing-grace.json', (string) json_encode($song));
+        File::put($this->folder.'/another-song.json', (string) json_encode($other));
+        $this->artisan('app:templates:sync')->assertSuccessful();
+
+        // Sakura Sakura's slip (2026-11-09): notes changed under a published version.
+        $changed = $song;
+        $changed['parts'][0]['guide']['notes'][0]['pitch']++;
+        File::put($this->folder.'/amazing-grace.json', (string) json_encode($changed));
+        $other['description'] = 'Still loads.';
+        File::put($this->folder.'/another-song.json', (string) json_encode($other));
+
+        $this->artisan('app:templates:sync', ['--strict' => true])->assertFailed();
+        $this->artisan('app:templates:sync')->expectsOutputToContain('1 not synced')->assertSuccessful();
+
+        // The rest still loaded; the skipped song keeps its live music.
+        $this->assertSame('Still loads.', TemplateVersion::query()->whereHas('template', static fn ($q) => $q->where('slug', 'another-song'))->firstOrFail()->data['description']);
+        $this->assertSame($song['parts'][0]['guide']['notes'][0]['pitch'], TemplateVersion::query()->whereHas('template', static fn ($q) => $q->where('slug', 'amazing-grace'))->firstOrFail()->data['parts'][0]['guide']['notes'][0]['pitch']);
+
+        $line = "amazing-grace.json: version {$song['version']} of amazing-grace was published with different notes; give the change a new version number";
+        $this->assertSame([$line], SyncProblems::latest());
+        $check = collect(app(Readiness::class)->run())->firstWhere('key', 'sync');
+        $this->assertSame('fail', $check?->status);
+        $this->assertStringContainsString('1 song not synced', (string) $check?->message);
+        $this->get('/up')->assertOk()->assertJsonPath('status', 'ok')->assertJsonPath('songsNotSynced', [$line]);
+        $this->actingAsAdmin();
+        $this->assertMatchesContract($this->getJson('/api/admin/overview')->assertJsonPath('data.songsNotSynced', [$line]), 'admin.overview', 200);
+
+        // Fixed with a new version: the next sync is clean and says so everywhere.
+        File::put($this->folder.'/amazing-grace.json', (string) json_encode([...$changed, 'version' => $song['version'] + 1]));
+        $this->artisan('app:templates:sync', ['--strict' => true])->assertSuccessful();
+        $this->assertSame([], SyncProblems::latest());
+        $this->assertSame('pass', collect(app(Readiness::class)->run())->firstWhere('key', 'sync')?->status);
+        $this->get('/up')->assertJsonPath('songsNotSynced', []);
+    }
+
+    public function test_the_sync_still_fails_when_not_one_song_loads(): void
+    {
+        config(['templates.folders' => [$this->folder]]);
+        File::put($this->folder.'/broken.json', (string) json_encode(['id' => 'broken', 'version' => 1, 'tempo' => 900]));
+
+        $this->artisan('app:templates:sync')->assertFailed();
+        $this->assertCount(1, SyncProblems::latest());
     }
 }

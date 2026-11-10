@@ -5,11 +5,13 @@ and the four part colours stacked, as the mark has them. Warm dark behind. Then 
 mixer draws them. Run it again when a headline or the mark changes:
 
     cd server && python3 tool/link_cards.py
+    ONLY=tools-tuner python3 tool/link_cards.py   # just the named cards
 
 Needs Google Chrome and Pillow (no npm). The cards are committed; the site uses one when it's there.
 """
 import html
 import json
+import os
 import subprocess
 import sys
 import tempfile
@@ -110,6 +112,12 @@ def landing(tmp):
 
 def main():
     cards = json.loads(subprocess.check_output(["php", "artisan", "app:site:link-cards"], cwd=SERVER))
+    # ONLY=tools-tuner,tools (comma-separated keys) draws just those, for a page that's new, and touches no other card.
+    only = [k for k in os.environ.get("ONLY", "").split(",") if k]
+    if only:
+        cards = [c for c in cards if c["key"] in only]
+        if len(cards) != len(only):
+            raise SystemExit(f"ONLY names a card that isn't one: {only}")
     OUT.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory() as tmp:
         for card in cards:
@@ -117,7 +125,10 @@ def main():
             page.write_text(TEMPLATE.replace("{mark}", mark()).format(size=size_for(card["headline"]), eyebrow=html.escape(card["eyebrow"]), headline=html.escape(card["headline"])))
             shoot(page, OUT / f"{card['key']}.png", tmp, card["key"])
             print("drew", card["key"])
-        landing(tmp)
+        if not only:
+            landing(tmp)
+    if only:
+        return
     # Cards for pages that no longer exist go.
     keys = {c["key"] for c in cards}
     for old in OUT.glob("*.png"):

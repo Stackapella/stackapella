@@ -41,8 +41,7 @@ export const WhatsNext = {
             this.finishers = counts?.finishers ?? null;
             await loadProjects();
             const finished = projects.list.filter((p) => p.template && p.everyPart).map((p) => p.template.id);
-            const plus = account.me?.plan === 'plus';
-            const picked = whatsNext({ songs, current: this.current, range: learning.progress.range, finished, startable: (s) => canStart(s, plus) });
+            const picked = whatsNext({ songs, current: this.current, range: learning.progress.range, finished, startable: (s) => canStart(s, !!account.me) });
             // "People who finished this also learned...": first, when the counts have it.
             const also = (counts?.alsoLearned ?? []).map((a) => songs.find((s) => s.id === a.id)).find((s) => s && s.id !== this.current?.id && !picked.some((p) => p.song.id === s.id));
             this.items = also ? [{ kind: 'alsoLearned', song: also }, ...picked].slice(0, 3) : picked;

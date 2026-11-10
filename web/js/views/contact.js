@@ -16,7 +16,7 @@ import { TurnstileBox } from '../turnstile.js';
 import { Field, Notice } from '../components/form.js';
 import { Switch } from '../components/controls.js';
 import { Icon } from '../components/icon.js';
-import { PageHeader } from '../components/page.js';
+import { AppScreen } from '../components/page.js';
 
 // What it's about, and the support category each is sent as (contract/api.md support.create).
 const TOPICS = {
@@ -30,13 +30,11 @@ const REFUSED = { turnstile_required: tk('contact.refused.check'), turnstile_fai
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export const ContactView = {
-    components: { Field, Switch, Icon, Notice, PageHeader, TurnstileBox },
+    components: { Field, Switch, Icon, Notice, AppScreen, TurnstileBox },
     data: () => ({ topic: 'recording', message: '', email: '', details: true, detailsChosen: false, showSent: false, website: '', busy: false, sent: null, errors: null, refusal: null, config: null, turnstile: null, turnstileKey: 0 }),
     setup: () => ({ TOPICS, account, navigate }),
     template: `
-        <div data-ui="screen" class="min-h-dvh bg-ink px-4 pb-16 pt-[max(0.5rem,env(safe-area-inset-top))] md:px-8">
-            <div class="mx-auto flex w-full max-w-2xl flex-col gap-4 md:gap-6">
-                <PageHeader :title="t('contact.title')" back="/settings" />
+        <AppScreen :title="t('contact.title')" back="/settings" measure="max-w-2xl" content-class="gap-4 pt-4 md:gap-6" data-ui="screen" class="bg-ink">
                 <p class="-mt-3 text-muted md:-mt-5">{{ t('contact.intro') }}</p>
                 <section v-if="sent" class="card space-y-3 p-6" role="status">
                     <Icon name="check" :size="28" class="text-good" />
@@ -82,8 +80,7 @@ export const ContactView = {
                         <button type="submit" class="btn-primary" :disabled="busy || !!waiting">{{ busy ? t('contact.sending') : t('contact.send') }}</button>
                     </div>
                 </form>
-            </div>
-        </div>`,
+        </AppScreen>`,
     computed: {
         shownEmail() {
             return account.me?.email ?? this.email.trim();

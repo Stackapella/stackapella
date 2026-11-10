@@ -6,14 +6,16 @@
 import { closeMic, engine, unlock } from '../audio.js';
 import { CreditLine } from '../components/credit.js';
 import { api } from '../api.js';
-import { formatNumber, t, timeAgo, tk } from '../i18n.js';
+import { StorageMeter } from '../components/cloud.js';
+import { formatNumber, locale, t, timeAgo, tk } from '../i18n.js';
 import { renderGuide } from '../guides.js';
+import { partVoice } from '../guide-voice.js';
 import { publicSiteUrl } from '../hosts.js';
 import { navigate } from '../router.js';
 import { betaWaiting, homeBands, sangThisWeek } from '../home.js';
 import { creditsFor, loadCatalogue } from '../stores/catalogue.js';
 import { toRaw } from 'vue';
-import { canCreateProject, countsToLimit, createProject, deleteProject, FREE_PROJECT_LIMIT, LimitReached, loadProjects, projects, saveProject, shownTitle, startFromTemplate } from '../stores/projects.js';
+import { createProject, deleteProject, loadProjects, projects, saveProject, shownTitle, startFromTemplate } from '../stores/projects.js';
 import { ideas, ideasOpen } from '../stores/ideas.js';
 import { learning } from '../stores/learning.js';
 import { account, loadAccount } from '../stores/account.js';
@@ -21,8 +23,12 @@ import { canStart, lengthBeats, listTemplates, loadTemplate, onDraftsChange, par
 import { formatTime, keyLabel, PART_COLORS } from '../theme.js';
 import { HomeBand, HomeCourses, HomeLead, SongCover, WeekCard, WorkoutStrip } from '../components/home.js';
 import { PlayerChip } from '../game/title-screen.js';
-import { DailyTag, daily, loadDaily } from '../game/daily.js';
+import { dailyState, lazyComponent, loadDaily } from '../game/modules.js';
+
+const DailyTag = lazyComponent('daily', 'DailyTag'); // game mode's only: loaded with game mode
 import { effect } from '../game/effects.js';
+import { dailyOpen, loadPick } from '../daily-pick.js';
+import { game } from '../skin.js';
 import { inFirstWeek } from '../components/voice-care.js';
 import { InstallCard } from '../components/install.js';
 import { signUpFor } from '../components/account-wall.js';
@@ -42,8 +48,9 @@ import { friendlyProblem } from '../components/create/save.js';
 import { TemplateDialog } from '../components/dialogs.js';
 import { Icon, Logo } from '../components/icon.js';
 import { toast } from '../components/ui.js';
+import { learnGroupSong, myGroupParts } from '../group-songs.js';
+import { daysUntil, rehearsalDates } from '../rehearsal.js';
 import { confirmAction, deleteSong, UNDO_SECONDS } from '../components/confirm.js';
-import { PlusMoment } from '../components/plus-moment.js';
 import { CardMenu } from '../components/card-menu.js';
 import * as sessionStore from '../stores/session.js';
 import { session } from '../stores/session.js';
@@ -57,25 +64,25 @@ const PHONE_SONGS = 6; // cards in a phone's sideways band before See all
 const songColumns = () => (window.matchMedia('(min-width: 1024px)').matches ? 4 : window.matchMedia('(min-width: 768px)').matches ? 3 : 0);
 // Learn a harmony's filters (42.png): every song, yours, drafts (not yet checked), on Plus.
 // The library is the catalogue only (docs/home-create-plan.md): your own songs and drafts are in Your songs.
-const SONG_FILTERS = { all: tk('home.songs.filter.all'), free: tk('home.songs.filter.free'), plus: tk('home.songs.filter.plus') };
 
 /** A draft's template when it has a tune to play (a tempo and notes in a part), else null. */
 const playableDraft = (draft) => (draft.template?.tempo && draft.template.parts?.some((p) => p.guide?.notes?.length) ? draft.template : null);
 
 export const ProjectsView = {
-    components: { CreditLine, SheetImport, PlayerChip, DailyTag, CardMenu, HomeCourses, ThemeSwitch, Icon, Logo, TemplateDialog, HomeLead, HomeBand, SongCover, InstallCard, WeekCard, WorkoutStrip, StatusChip, Modal, Notice, PlusMoment, RemindAsk, FirstWeek },
-    setup: () => ({ ideas, session, mine, friendlyProblem, canStart, projects, account, learning, shownTitle, FREE_PROJECT_LIMIT, formatTime, timeAgo, PART_COLORS, lengthBeats, partsFor, keyLabel, DIFFICULTY, creditsFor, navigate, BAND_COLORS, BETA_STATUS, publicSiteUrl, SONG_FILTERS, effect, daily }),
-    data: () => ({ locked: false, clip: null, templates: [], openTemplate: null, singers: 4, previewing: false, preparingPreview: false, starting: false, groups: null, betaParts: null, avatarFailed: false, making: false, importProblems: null, sheetScore: null, sheetSaving: false, limitOpen: false, songsOpen: tabStorage.get('stackapella.songsOpen') === '1', yoursOpen: false, songColumns: songColumns(), songFilter: 'all', newing: false, showInfo: false, previewOf: null, playingSong: null, renaming: null, newName: '' }),
+    components: { StorageMeter, CreditLine, SheetImport, PlayerChip, DailyTag, CardMenu, HomeCourses, ThemeSwitch, Icon, Logo, TemplateDialog, HomeLead, HomeBand, SongCover, InstallCard, WeekCard, WorkoutStrip, StatusChip, Modal, Notice, RemindAsk, FirstWeek },
+    setup: () => ({ templatePartName, ideas, session, mine, friendlyProblem, canStart, projects, account, learning, shownTitle, formatTime, timeAgo, PART_COLORS, lengthBeats, partsFor, keyLabel, DIFFICULTY, creditsFor, navigate, BAND_COLORS, BETA_STATUS, publicSiteUrl, effect, dailyState }),
+    data: () => ({ storageUsage: null, locked: false, clip: null, templates: [], openTemplate: null, singers: 4, previewing: false, preparingPreview: false, starting: false, groups: null, choirParts: [], startingChoir: null, betaParts: null, avatarFailed: false, making: false, importProblems: null, sheetScore: null, sheetSaving: false, songsOpen: tabStorage.get('stackapella.songsOpen') === '1', yoursOpen: false, songColumns: songColumns(), newing: false, showInfo: false, previewOf: null, playingSong: null, renaming: null, newName: '' }),
     template: `
-        <div class="mx-auto min-h-dvh max-w-6xl px-4 pb-16 pt-[max(1rem,env(safe-area-inset-top))] md:px-8">
-            <header class="flex items-center justify-between gap-3 py-4">
+        <div class="min-h-dvh">
+            <!-- The app's top bar on the site header's grid (app-wrap app-top): the logo where the site's is. -->
+            <header class="app-wrap app-top justify-between">
                 <!-- The logo goes to the public site's landing page (Hillel's call); this page is the home. -->
-                <a :href="publicSiteUrl()" class="-m-2 rounded-xl p-2" :aria-label="t('home.toSite')"><Logo /></a>
+                <a :href="publicSiteUrl()" class="-m-2 flex rounded-xl p-2" :aria-label="t('home.toSite')"><Logo /></a>
                 <div class="flex min-w-0 items-center gap-2 sm:gap-3">
                 <ThemeSwitch v-if="account.loaded" />
                 <a v-if="account.me" href="/settings" data-ui="player" class="flex min-w-0 items-center gap-2 rounded-full glass-bubble p-1 text-sm font-semibold text-cream hover:bg-raised sm:pe-3" :aria-label="plus ? t('home.accountLinkPlus', { name: account.me.name }) : t('home.accountLink', { name: account.me.name })" @click.prevent="navigate('/settings')">
-                    <img v-if="account.me.avatarUrl && !avatarFailed" :src="account.me.avatarUrl" alt="" class="size-7 rounded-full object-cover" @error="avatarFailed = true" />
-                    <span v-else class="gem grid size-8 place-items-center rounded-full text-[11px] font-extrabold" aria-hidden="true">{{ initials }}</span>
+                    <img v-if="account.me.avatarUrl && !avatarFailed" :src="account.me.avatarUrl" alt="" class="size-7 rounded-full object-cover" data-avatar @error="avatarFailed = true" />
+                    <span v-else class="bubble bubble-sm grid size-8 place-items-center text-[11px] font-extrabold" aria-hidden="true" data-avatar>{{ initials }}</span>
                     <span class="hidden max-w-32 truncate sm:inline" translate="no">{{ account.me.name }}</span>
                     <!-- Game mode's title screen: you are P1, at your level (docs/game-elements-plan.md) -->
                     <PlayerChip v-if="effect('title') && learning.loaded && courseStarted" />
@@ -90,6 +97,10 @@ export const ProjectsView = {
                 </template>
                 </div>
             </header>
+            <!-- The content on the same row as the bar and the site's header (app-wrap, in px), so the logo, the controls and
+                 the cards share their edges at any width and any browser text size (Hillel, 2026-11-09: "the whole header is
+                 narrower"; a 72rem column grew past the 1200 px bar with Chrome's text set larger). -->
+            <div class="app-wrap pb-16 pt-4">
 
                         <!-- Hillel's Home design: the course card, the workout and your songs share one width, so their edges line up. -->
             <div class="mt-2 space-y-5">
@@ -102,6 +113,35 @@ export const ProjectsView = {
             </div>
             <div class="mt-10 space-y-10">
                 <div class="min-w-0 space-y-10">
+
+                    <!-- A choir member's parts to learn, first (docs/agents/handoff-frontend2.md, the groups review): only for someone given a part in a group, so nobody else's Home changes. -->
+                    <HomeBand v-if="choirParts.length" id="band-choir" tone="green" :title="t('groups.learnTitle')" :color="paint(BAND_COLORS.beta)">
+                        <template #aside><a href="/groups" class="btn-go" @click.prevent="navigate('/groups')">{{ t('home.seeAll') }}</a></template>
+                        <ul class="card divide-y divide-line px-4" data-ui="rows">
+                            <li v-for="c in choirParts" :key="c.groupId + c.templateId" class="flex flex-wrap items-center gap-3 py-3" data-choir-part>
+                                <a :href="'/groups/' + c.groupId" class="min-w-0 flex-1" @click.prevent="navigate('/groups/' + c.groupId)">
+                                    <span class="block truncate font-semibold text-cream" translate="no">{{ c.title }}</span>
+                                    <span class="block truncate text-sm text-muted">{{ templatePartName({ key: c.partKey, name: c.partKey }) }} · <span :class="c.status === 'started' ? 'text-warn' : ''">{{ t(c.status === 'started' ? 'groups.status.started' : 'groups.status.none') }}</span> · <span translate="no">{{ c.groupName }}</span><span v-if="choirSoon(c)" data-rehearsal-soon> · {{ choirSoon(c) }}</span></span>
+                                </a>
+                                <button type="button" class="btn-secondary btn-sm" :disabled="startingChoir === c.templateId" @click="learnChoirPart(c)">{{ c.status === 'started' ? t('groups.keepLearning') : t('groups.learnPart') }}</button>
+                            </li>
+                        </ul>
+                    </HomeBand>
+                    <!-- Someone in a group with nothing to learn yet (no part given, or a director): their choir sits here too, above the library, not at the foot of Home (the choir singer's first-run walk). Nobody outside a group sees either band. -->
+                    <HomeBand v-if="groups?.length && !choirParts.length" id="band-groups" tone="green" :title="t('groups.homeTitle')" :color="paint(BAND_COLORS.beta)">
+                        <template #aside><a href="/groups" class="btn-go" @click.prevent="navigate('/groups')">{{ t('home.seeAll') }}</a></template>
+                        <ul class="card divide-y divide-line px-4" data-ui="rows">
+                            <li v-for="(g, i) in groups" :key="g.id">
+                                <a :href="'/groups/' + g.id" class="flex items-center gap-3 py-3" @click.prevent="navigate('/groups/' + g.id)">
+                                    <!-- The arcade screen: each choir in a player slot (P1, P2, ...), a look only -->
+                                    <span v-if="effect('arcade')" class="gs-slot hidden" :data-slot="(i % 4) + 1" aria-hidden="true">{{ t('game.arcade.slot', { number: i + 1 }) }}</span>
+                                    <span class="min-w-0 flex-1 truncate font-semibold text-cream" translate="no">{{ g.name }}</span>
+                                    <span class="text-sm text-muted" data-ui="rows-count">{{ t('groups.songCount', { count: g.songs }) }}</span>
+                                    <Icon name="arrow" :size="18" class="text-muted" />
+                                </a>
+                            </li>
+                        </ul>
+                    </HomeBand>
 
                     <template v-for="band in order.bands" :key="band">
                         <HomeBand v-if="band === 'beta' && betaParts?.length" id="band-beta" :title="t('projects.betaParts')" :color="paint(BAND_COLORS.beta)">
@@ -130,21 +170,16 @@ export const ProjectsView = {
                             <template #aside>
                                 <!-- Hillel (2026-10-30): after the first week, three picked for your range and Browse all; the filter only while browsing. -->
                                 <button v-if="trimmed && !songsOpen" type="button" class="btn-go" aria-controls="home-songs" :aria-expanded="'false'" data-browse-all @click="openSongs(true)">{{ t('home.songs.browseAllCount', { count: allSongs.length }) }}</button>
-                                <div v-else class="seg inline-flex" role="radiogroup" :aria-label="t('home.songs.filter.label')">
-                                    <button v-for="(word, key) in SONG_FILTERS" :key="key" type="button" role="radio" :aria-checked="songFilter === key ? 'true' : 'false'" class="seg-option tap-44" @click="songFilter = key">{{ t(word) }}</button>
-                                </div>
                             </template>
                             <ul id="home-songs" class="gap-3" :class="(songsOpen ? 'grid grid-cols-2 md:grid-cols-3' : '-mx-4 flex snap-x scroll-px-4 overflow-x-auto px-4 [scrollbar-width:none] md:mx-0 md:grid md:grid-cols-3 md:overflow-visible md:px-0') + (trimmed ? '' : ' lg:grid-cols-4')">
-                                <li v-for="item in shownSongs" :key="item.key" class="group relative" :class="songsOpen ? '' : 'w-40 shrink-0 snap-start md:w-auto'" data-song-card :data-daily="dailyShown && daily.today?.templateId === item.tpl.id ? '' : null">
+                                <li v-for="item in shownSongs" :key="item.key" class="group relative" :class="songsOpen ? '' : 'w-40 shrink-0 snap-start md:w-auto'" data-song-card :data-daily="dailyShown && dailyState().today?.templateId === item.tpl.id ? '' : null">
                                     <!-- Game mode's daily challenge: today's song card wears its tag (docs/game-elements-plan.md) -->
-                                    <DailyTag v-if="dailyShown && daily.today?.templateId === item.tpl.id" :challenge="daily.today" />
+                                    <DailyTag v-if="dailyShown && dailyState().today?.templateId === item.tpl.id" :challenge="dailyState().today" />
                                     <button type="button" class="flex w-full flex-col gap-2 rounded-3xl p-1 text-start hover:bg-raised/50" data-ui="cartridge" @click="infoSong(item.tpl)">
                                         <span class="relative block">
                                             <SongCover :song="item.tpl" :voices="item.tpl.parts.map((p) => p.key)" :seed="seedOf(item.tpl.id)" />
                                             <!-- The tags at the top left; the top right is the preview's Play. -->
                                             <span class="absolute end-14 start-3 top-3 flex flex-wrap gap-1">
-                                                <span v-if="!canStart(item.tpl, plus)" data-ui="tag" data-tone="pink" class="rounded-full bg-raised px-2 py-0.5 text-[10px] font-bold text-accent-strong">{{ t('home.songs.plus') }}</span>
-                                                <span v-else-if="item.tpl.freeUntil" data-ui="tag" data-tone="green" class="rounded-full bg-raised px-2 py-0.5 text-[10px] font-bold text-accent-strong">{{ t('home.songs.freeMonth') }}</span>
                                                 <span v-if="creditsFor(item.tpl.id).length" data-ui="tag" data-tone="cyan" class="rounded-full bg-raised px-2 py-0.5 text-[10px] font-bold text-accent-strong">{{ t('home.songs.realVoices') }}</span>
                                                 <span v-else-if="!item.tpl.reviewed" data-ui="tag" data-tone="pink" class="rounded-full bg-raised px-2 py-0.5 text-[10px] text-muted">{{ t('projects.draft') }}</span>
                                             </span>
@@ -162,27 +197,22 @@ export const ProjectsView = {
                                     </button>
                                 </li>
                             </ul>
+                            <!-- The end of the full library: ask for the song that isn't here (song requests, N7; while it's on, and staff before). -->
+                            <p v-if="songsOpen && requestsOn" class="mt-4 text-center text-sm text-muted" data-request-song>{{ t('requests.notHere') }} <a href="/requests?ask" class="link tap-44" @click.prevent="navigate('/requests?ask')">{{ t('requests.askLink') }}</a></p>
                             <div v-if="songsOpen" class="mt-3 flex justify-center">
                                 <button type="button" class="btn-secondary btn-sm" aria-controls="home-songs" :aria-expanded="songsOpen ? 'true' : 'false'" @click="openSongs(!songsOpen)">{{ t('home.songs.showFewer') }}</button>
                             </div>
                         </HomeBand>
 
                         <HomeBand v-else-if="band === 'projects'" id="band-projects" :title="t('projects.title')" :color="paint(BAND_COLORS.projects)">
-                            <template #aside>
-                                <div v-if="!plus && !firstWeek" class="flex items-center gap-3" data-free-meter>
-                                    <span class="flex flex-col items-end gap-1.5">
-                                        <span class="text-sm text-muted">{{ t('home.projects.used', { used, limit: FREE_PROJECT_LIMIT }) }}</span>
-                                        <span class="flex gap-1" aria-hidden="true"><span v-for="i in FREE_PROJECT_LIMIT" :key="i" class="h-1 w-5 rounded-full" :class="i <= used ? 'bg-cream' : 'bg-line'"></span></span>
-                                    </span>
-                                    <a href="/plus?from=project_limit" class="btn-secondary btn-sm" @click.prevent="navigate('/plus?from=project_limit')">{{ t('home.projects.getPlus') }}</a>
-                                </div>
-                            </template>
+                            <!-- The free plan's limit is storage (Hillel, 2026-11-07): its meter here once it's 80% full, with the way to Plus. -->
+                            <StorageMeter v-if="storageNear" :usage="storageUsage" link class="mb-4" data-storage-meter />
                             <ul class="-mx-4 flex snap-x scroll-px-4 gap-3 overflow-x-auto px-4 [scrollbar-width:none] md:mx-0 md:grid md:grid-cols-3 md:overflow-visible md:px-0" :class="trimmed ? '' : 'lg:grid-cols-4'">
                                 <!-- Hillel: the first song is a blank one with a plus (New song), then yours (after the first week, the two latest, and See all). -->
                                 <li class="w-40 shrink-0 snap-start md:w-auto">
                                     <!-- Hillel's design: "+ New song" in a dashed card, how to start under it. -->
                                     <button type="button" class="flex w-full flex-col gap-2 rounded-3xl p-1 text-start hover:bg-raised/50" data-new-song @click="newing = true">
-                                        <span class="flex h-28 items-center justify-center gap-3 rounded-2xl border-[1.5px] border-dashed border-line font-bold text-cream"><span class="grid size-8 place-items-center rounded-full bg-cream text-ink" aria-hidden="true"><Icon name="plus" :size="18" /></span>{{ t('projects.new') }}</span>
+                                        <span class="flex h-28 items-center justify-center gap-3 rounded-2xl border-[1.5px] border-dashed border-line font-bold text-cream"><span class="bubble bubble-sm grid size-8 place-items-center" style="--bubble: var(--primary); --bubble-ink: var(--primary-ink)" aria-hidden="true" data-ui="plus-disc"><Icon name="plus" :size="18" /></span>{{ t('projects.new') }}</span>
                                         <span class="px-1 text-xs text-muted">{{ t('home.yours.newHint') }}</span>
                                     </button>
                                 </li>
@@ -207,20 +237,6 @@ export const ProjectsView = {
                         </HomeBand>
                     </template>
 
-                    <HomeBand v-if="groups?.length" id="band-groups" tone="green" :title="t('groups.homeTitle')" :color="paint(BAND_COLORS.beta)">
-                        <template #aside><a href="/groups" class="btn-go" @click.prevent="navigate('/groups')">{{ t('home.seeAll') }}</a></template>
-                        <ul class="card divide-y divide-line px-4" data-ui="rows">
-                            <li v-for="(g, i) in groups" :key="g.id">
-                                <a :href="'/groups/' + g.id" class="flex items-center gap-3 py-3" @click.prevent="navigate('/groups/' + g.id)">
-                                    <!-- The arcade screen: each choir in a player slot (P1, P2, ...), a look only -->
-                                    <span v-if="effect('arcade')" class="gs-slot hidden" :data-slot="(i % 4) + 1" aria-hidden="true">{{ t('game.arcade.slot', { number: i + 1 }) }}</span>
-                                    <span class="min-w-0 flex-1 truncate font-semibold text-cream" translate="no">{{ g.name }}</span>
-                                    <span class="text-sm text-muted" data-ui="rows-count">{{ t('groups.songCount', { count: g.songs }) }}</span>
-                                    <Icon name="arrow" :size="18" class="text-muted" />
-                                </a>
-                            </li>
-                        </ul>
-                    </HomeBand>
                     <!-- Hillel: the Plus courses at the bottom of Home, below the song library; not in a new singer's first week. -->
                     <HomeCourses v-if="!firstWeek" />
                 </div>
@@ -229,8 +245,8 @@ export const ProjectsView = {
                 </aside>
             </div>
 
-            <TemplateDialog v-if="openTemplate && showInfo" :template="openTemplate" :credits="creditsFor(openTemplate.id)" :used="used" :limit="plus ? null : FREE_PROJECT_LIMIT" :singers="singers" @singers="(n) => { singers = n; if (previewing && !locked) previewLevels(); }"
-                :previewing="previewing" :preparing="preparingPreview" @copy="navigate('/create?copy=' + openTemplate.id)" @close="closeTemplate" @preview="preview" @start="start()" :locked="locked" @plus="navigate(locked ? '/plus?from=plus_song' : '/plus?from=project_limit')" />
+            <TemplateDialog v-if="openTemplate && showInfo" :template="openTemplate" :credits="creditsFor(openTemplate.id)" :singers="singers" @singers="(n) => { singers = n; if (previewing && !locked) previewLevels(); }"
+                :previewing="previewing" :preparing="preparingPreview" @copy="navigate('/create?copy=' + openTemplate.id)" @close="closeTemplate" @preview="preview" @start="start()" :locked="locked" @signup="navigate(signUpForSong)" />
             <Modal v-if="renaming" :title="t('home.yours.renameTitle')" @close="renaming = null">
                 <form class="space-y-4" @submit.prevent="saveName">
                     <label class="block space-y-1"><span class="text-sm font-semibold text-cream">{{ t('home.yours.nameLabel') }}</span>
@@ -244,16 +260,16 @@ export const ProjectsView = {
             <Modal v-if="newing" :title="t('projects.new')" @close="newing = false">
                 <div class="space-y-3" data-new-sheet>
                     <button type="button" class="card-interactive flex w-full items-start gap-3 p-4 text-start" @click="makeOne">
-                        <span class="grid size-10 shrink-0 place-items-center rounded-full bg-accent text-accent-ink"><Icon name="sparkle" :size="20" /></span>
+                        <span class="bubble grid size-10 shrink-0 place-items-center"><Icon name="sparkle" :size="20" /></span>
                         <span><span class="block font-bold text-cream">{{ t('home.new.make') }}</span><span class="text-sm text-muted">{{ t('home.new.makeHint') }}</span></span>
                     </button>
                     <button type="button" class="card-interactive flex w-full items-start gap-3 p-4 text-start" @click="newProject">
-                        <span class="grid size-10 shrink-0 place-items-center rounded-full bg-accent text-accent-ink"><Icon name="mic" :size="20" /></span>
-                        <span><span class="block font-bold text-cream">{{ t('home.new.record') }}</span><span class="text-sm text-muted">{{ full ? t('home.projects.full', { limit: FREE_PROJECT_LIMIT }) : t('home.new.recordHint') }}</span></span>
+                        <span class="bubble grid size-10 shrink-0 place-items-center"><Icon name="mic" :size="20" /></span>
+                        <span><span class="block font-bold text-cream">{{ t('home.new.record') }}</span><span class="text-sm text-muted">{{ t('home.new.recordHint') }}</span></span>
                     </button>
                     <!-- Ideas (docs/ideas-app-plan.md), once open: someone's tune, waiting for your voice -->
                     <a v-if="ideas.open" href="/ideas" class="card-interactive flex w-full items-start gap-3 p-4 text-start" data-new-ideas @click.prevent="navigate('/ideas')">
-                        <span class="grid size-10 shrink-0 place-items-center rounded-full bg-accent text-accent-ink"><Icon name="note" :size="20" /></span>
+                        <span class="bubble grid size-10 shrink-0 place-items-center"><Icon name="note" :size="20" /></span>
                         <span><span class="block font-bold text-cream">{{ t('home.new.ideas') }}</span><span class="text-sm text-muted">{{ t('home.new.ideasHint') }}</span></span>
                     </a>
                 </div>
@@ -283,8 +299,8 @@ export const ProjectsView = {
                 </div>
             </Modal>
             <SheetImport v-if="sheetScore" :score="sheetScore" :busy="sheetSaving" @close="sheetScore = null" @make="makeFromSheet" />
-            <PlusMoment v-if="limitOpen" :title="t('plus.moment.projectTitle')" :text="t('plus.moment.projectLimit')" full from="project_limit" :other="t('plus.moment.makeRoom')" @close="limitOpen = false" @other="makeRoom" />
             <CreditLine />
+            </div>
         </div>`,
     computed: {
         /** Make your own's ways in, each with its own icon; Hum a tune only for staff or once the server switches it on. */
@@ -298,10 +314,14 @@ export const ProjectsView = {
             ];
         },
         plus: () => account.me?.plan === 'plus',
-        /** The free plan's projects all used: the new project card says so, and a tap brings the upgrade moment. */
-        full: (vm) => !vm.plus && vm.used >= FREE_PROJECT_LIMIT,
+        /** Every library song opens with an account (2026-11-07); a guest's locked song asks for a free one. */
+        signedIn: () => !!account.me,
+        signUpForSong: (vm) => `/signin?mode=signup&for=songs&next=${encodeURIComponent('/?song=' + (vm.openTemplate?.id ?? ''))}`,
+        /** Storage 80% full on the free plan, past the first week: Home shows the meter (usage.show, read once). */
+        storageNear: (vm) => !vm.plus && !vm.firstWeek && !!vm.storageUsage?.storage?.limitBytes && vm.storageUsage.storage.usedBytes / vm.storageUsage.storage.limitBytes >= 0.8,
         /** The projects that count toward the free plan's limit (the course's own don't). */
-        used: () => projects.list.filter(countsToLimit).length,
+        /** Songs of your own (not the course's, nor friends'): the first week reads it. */
+        used: () => projects.list.filter((p) => !p.course && !p.shared).length,
         /**
          * Open a file takes sheet music after the first week (the coordinator's default for import),
          * once the server's sheetImport switch is on (it keeps imports private), and for staff before.
@@ -310,8 +330,10 @@ export const ProjectsView = {
             return !this.firstWeek && !!(account.me?.staff || account.config?.sheetImport);
         },
         /** Game mode's daily challenge on its song's card: not in a new singer's first week (Hillel's rule), like voice care. */
+        /** Song requests (N7): while the switch is on, and for staff before. */
+        requestsOn: () => !!(account.config?.songRequests || account.me?.songRequests || account.me?.staff),
         dailyShown() {
-            return effect('daily') && !inFirstWeek();
+            return effect('daily') && !inFirstWeek(); // the song card's tag: past the first week, as before
         },
         /**
          * A new singer's first week (Hillel: "Yes, hide in week one"): Plus's courses and the free-song
@@ -340,8 +362,7 @@ export const ProjectsView = {
         },
         /** The library's cards: the catalogue, all of it or the Plus songs. */
         allSongs() {
-            const keep = (tpl) => this.songFilter === 'all' || canStart(tpl, false) === (this.songFilter === 'free');
-            return this.templates.filter(keep).map((tpl, n) => ({ kind: 'song', key: tpl.id, tpl, n }));
+            return this.templates.map((tpl, n) => ({ kind: 'song', key: tpl.id, tpl, n }));
         },
         /**
          * Your songs as one kind of card (Hillel: "make all the songs look the same"): a recording, a
@@ -357,7 +378,7 @@ export const ProjectsView = {
                 }
                 if (item.kind === 'written') {
                     const r = item.r;
-                    return { key: 'w-' + r.id, kind: 'written', title: r.template.title, named: true, tag: t('home.yours.written'), warn: false, meta: r.updatedAt ? t('projects.edited', { when: timeAgo(r.updatedAt) }) : '', parts: r.template.parts.length, song: r.template, open: () => navigate('/t/' + r.id), play: () => this.playWritten(r), menu: this.writtenActions(r) };
+                    return { key: 'w-' + r.id, kind: 'written', title: r.template.title, named: true, tag: r.imported || r.source === 'sheet-music' ? t('home.yours.sheet') : t('home.yours.written'), warn: false, meta: r.updatedAt ? t('projects.edited', { when: timeAgo(r.updatedAt) }) : '', parts: r.template.parts.length, song: r.template, open: () => navigate('/t/' + r.id), play: () => this.playWritten(r), menu: this.writtenActions(r) };
                 }
                 const d = item.d;
                 const playable = playableDraft(d);
@@ -394,9 +415,9 @@ export const ProjectsView = {
         picked() {
             const range = learning.progress.range;
             const outside = (tpl) => (range ? Math.min(99, ...(tpl.parts ?? []).filter((p) => p.range).map((p) => Math.max(0, range.low - p.range.low) + Math.max(0, p.range.high - range.high))) : 0);
-            const sorted = [...this.allSongs].sort((a, b) => Number(!canStart(a.tpl, this.plus)) - Number(!canStart(b.tpl, this.plus)) || outside(a.tpl) - outside(b.tpl) || a.n - b.n);
+            const sorted = [...this.allSongs].sort((a, b) => Number(!canStart(a.tpl, this.signedIn)) - Number(!canStart(b.tpl, this.signedIn)) || outside(a.tpl) - outside(b.tpl) || a.n - b.n);
             // Game mode's daily challenge: today's song is among the three (its TODAY tag is the way in), first when it wasn't.
-            const today = effect('daily') ? sorted.find((item) => item.tpl.id === daily.today?.templateId) : null;
+            const today = effect('daily') ? sorted.find((item) => item.tpl.id === dailyState().today?.templateId) : null;
             const three = sorted.slice(0, 3);
             return today && !three.includes(today) ? [today, ...three.slice(0, 2)] : three;
         },
@@ -423,8 +444,15 @@ export const ProjectsView = {
         },
     },
     created() {
-        if (!inFirstWeek()) loadDaily(); // game mode's daily challenge (it checks game mode and its switch)
+        // Today's challenge (docs/daily-challenge-plan.md): game mode's module with its board and stamps, serious mode the
+        // shared pick only (it never loads game mode's modules); in the first week only once it may be offered.
+        if (dailyOpen()) {
+            if (effect('daily')) loadDaily();
+            else if (!game()) loadPick();
+        }
         loadProjects();
+        // The storage meter's numbers, on the free plan only (one read; Plus has room to spare).
+        if (account.me && account.me.plan !== 'plus') api.usage.show().then(({ data }) => (this.storageUsage = data), (error) => console.warn('Storage not read', error));
         loadMine().catch((error) => console.warn('Your templates not loaded', error));
         if (account.me) this.loadGroups();
         // Friends' projects come to this device (the projects list hears the change).
@@ -436,11 +464,16 @@ export const ProjectsView = {
             .then((list) => {
                 this.templates = list;
                 // A link to a song (a shared harmony's "Learn this harmony", a song page's Start, What's next): it opens here.
-                const wanted = new URLSearchParams(location.search).get('song');
+                // A song part page's link names the part too (&part=alto): Start then gives you that part.
+                const query = new URLSearchParams(location.search);
+                const wanted = query.get('song');
                 const song = wanted && list.find((s) => s.id === wanted);
                 if (song) {
+                    const part = query.get('part');
+                    if (part && song.parts?.some((p) => p.key === part)) this.linkedPart = { song: song.id, part };
                     const url = new URL(location.href);
                     url.searchParams.delete('song');
+                    url.searchParams.delete('part');
                     history.replaceState(history.state, '', url.pathname + url.search);
                     // Once the account is known: a Plus member must never see the song as locked.
                     if (account.loaded) this.infoSong(song);
@@ -485,7 +518,6 @@ export const ProjectsView = {
         /** Shows every song, or two rows again; remembered for this visit only. */
         openSongs(open) {
             this.songsOpen = open;
-            if (!open) this.songFilter = 'all'; // the filter is a browsing tool: Home's three are never filtered
             tabStorage.set('stackapella.songsOpen', open ? '1' : '');
             if (!open) document.getElementById('band-songs')?.scrollIntoView({ block: 'nearest' });
         },
@@ -493,8 +525,30 @@ export const ProjectsView = {
         async loadGroups() {
             try {
                 this.groups = (await api.groups.list()).data;
+                if (account.me?.id) this.choirParts = await myGroupParts(account.me.id, this.groups);
             } catch (error) {
                 if (error?.code !== 'offline') console.warn('Choir groups not loaded', error);
+            }
+        },
+        /** The rehearsal in the week before it: "rehearsal Thursday", then "2 days to rehearsal" in the last three (never a nag). */
+        choirSoon(c) {
+            const next = rehearsalDates(c.rehearsal).next;
+            if (!next) return '';
+            const days = daysUntil(next);
+            if (days < 0 || days > 6) return '';
+            if (days <= 3) return t('groups.rehearsal.inDays', { days });
+            return t('groups.rehearsal.onDay', { day: new Intl.DateTimeFormat(locale.lang, { weekday: 'long' }).format(next) });
+        },
+        /** A part a choir director gave you: your copy of the song once begun, else a new one, on Sing. */
+        async learnChoirPart(c) {
+            this.startingChoir = c.templateId;
+            try {
+                navigate(`/p/${await learnGroupSong(c)}/sing`);
+            } catch (error) {
+                console.error('The choir song did not start', error);
+                toast(t('projects.couldNotStart'), { tone: 'error' });
+            } finally {
+                this.startingChoir = null;
             }
         },
         /** A beta singer's parts, for the band: quietly left out if they can't load. */
@@ -507,18 +561,18 @@ export const ProjectsView = {
         },
         partName: (part) => templatePartName({ key: part.partKey, name: part.partKey }),
         /**
-         * A song's details. One the app doesn't carry is fetched whole when it can be started (free,
-         * the song of the month, Plus); a Plus song without Plus opens with its clip and the way to Plus.
+         * A song's details. One the app doesn't carry is fetched whole when it can be started (every
+         * library song with an account); a guest's song that needs one opens with its clip and the way to a free account.
          */
         async pickTemplate(template) {
             let song = template;
-            this.locked = !canStart(template, this.plus);
+            this.locked = !canStart(template, this.signedIn);
             if (template.summary && !this.locked) {
                 toast(t('templates.loading'), { seconds: 2 });
                 try {
                     song = await loadTemplate(template.id);
                 } catch (error) {
-                    if (error?.code === 'plus_required') this.locked = true;
+                    if (error?.code === 'account_required') this.locked = true; // a guest's song that needs a free account
                     else {
                         console.error('The song did not load', error);
                         toast(error?.code === 'offline' ? t('common.offline') : t('projects.couldNotStart'), { tone: 'error' });
@@ -573,12 +627,18 @@ export const ProjectsView = {
             const t = this.openTemplate;
             await unlock();
             this.preparingPreview = true;
-            const guides = await Promise.all(t.parts.map((part) => renderGuide({ templateId: t.id, templateVersion: t.version, part, tempo: t.tempo, sampleRate: engine.sampleRate })));
+            // Each part's real voice where the song has one, as Sing and the landing play it (guide-voice.js), else the
+            // synth; one after another, as decoding every real voice at once can use hundreds of MB on a phone.
+            const guides = [];
+            for (const part of t.parts) {
+                guides.push(await partVoice(t, part, engine.sampleRate, () => renderGuide({ templateId: t.id, templateVersion: t.version, part, tempo: t.tempo, sampleRate: engine.sampleRate })));
+                if (this.openTemplate !== t) break;
+            }
             this.preparingPreview = false;
             if (this.openTemplate !== t) return; // closed while it rendered
             [...engine.parts.keys()].forEach((id) => engine.removePart(id));
             engine.projectId = null; // the studio reloads its own parts next time
-            t.parts.forEach((part, i) => engine.setPart(`preview:${part.key}`, guides[i], engine.sampleRate, { volume: 1, pan: 0, audible: true, offsetSeconds: 0 }));
+            t.parts.forEach((part, i) => engine.setPart(`preview:${part.key}`, guides[i].samples, engine.sampleRate, { volume: 1, pan: 0, audible: true, offsetSeconds: guides[i].offsetSeconds }));
             this.previewLevels();
             engine.play({});
             this.previewing = true;
@@ -643,7 +703,7 @@ export const ProjectsView = {
             const again = this.songOn(template.id);
             await this.stopSongs();
             if (again) return;
-            this.locked = !canStart(template, this.plus);
+            this.locked = !canStart(template, this.signedIn);
             this.openTemplate = template;
             this.previewOf = template.id;
             await this.preview();
@@ -712,19 +772,15 @@ export const ProjectsView = {
         },
         async start(range = null) {
             if (this.starting) return;
-            if (!canCreateProject()) {
-                this.limitOpen = true;
-                return;
-            }
             this.starting = true;
             this.stopPreview();
             try {
-                const project = await startFromTemplate(this.openTemplate, { singers: this.singers, ...(range ? { transpose: range.transpose, focusKey: range.partId, keyChosen: true } : {}) });
+                const linked = this.linkedPart?.song === this.openTemplate.id ? this.linkedPart.part : null; // the song part page's part
+                const project = await startFromTemplate(this.openTemplate, { singers: this.singers, ...(range ? { transpose: range.transpose, focusKey: range.partId, keyChosen: true } : linked ? { focusKey: linked } : {}) });
                 navigate(`/p/${project.id}/sing`); // a new template project starts by asking how to sing
             } catch (error) {
-                if (!(error instanceof LimitReached)) console.error('Starting a template failed', error);
-                if (error instanceof LimitReached) this.limitOpen = true;
-                else toast(t('projects.couldNotStart'), { tone: 'error' });
+                console.error('Starting a template failed', error);
+                toast(t('projects.couldNotStart'), { tone: 'error' });
             } finally {
                 this.starting = false;
             }
@@ -804,12 +860,6 @@ export const ProjectsView = {
             tabStorage.set('stackapella.import', JSON.stringify(this.importProblems.template));
             navigate('/create?draft=import');
         },
-        /** Make room: closes the moment and shows the projects, to delete one. */
-        makeRoom() {
-            this.limitOpen = false;
-            this.openTemplate = null;
-            this.$nextTick(() => document.getElementById('band-projects')?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
-        },
         /** New song's sheet: Make a harmony is the song builder's own choices. */
         makeOne() {
             this.newing = false;
@@ -817,23 +867,11 @@ export const ProjectsView = {
         },
         newProject() {
             this.newing = false;
-            if (!canCreateProject()) {
-                this.limitOpen = true;
-                return;
-            }
             this.create({}); // straight into the studio: named later, set as the last project was
         },
         async create(fields) {
-            try {
-                const project = await createProject(fields);
-                navigate(`/p/${project.id}`);
-            } catch (error) {
-                if (error instanceof LimitReached) {
-                    this.limitOpen = true;
-                } else {
-                    throw error;
-                }
-            }
+            const project = await createProject(fields);
+            navigate(`/p/${project.id}`);
         },
         async remove(project) {
             if (project.shared && !project.shared.removed) return this.leave(project, shownTitle(project));

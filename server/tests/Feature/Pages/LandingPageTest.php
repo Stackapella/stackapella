@@ -11,6 +11,7 @@ use App\Models\Flag;
 use App\Models\Template;
 use App\Models\TemplateVersion;
 use App\Support\Flags;
+use App\Support\Pages\Carols;
 use App\Support\Pages\Landing;
 use App\Support\Pages\MudeoArrival;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -110,8 +111,10 @@ final class LandingPageTest extends TestCase
 
         $page = $this->get('/')->assertOk();
 
-        // Hillel: a short catalogue looks thin; the song pages stay, for search and shared links.
-        $page->assertDontSee('href="/songs', false);
+        // Hillel: a short catalogue looks thin; the song pages stay, for search and shared links. The one exception is
+        // the carols page, linked in its season only (Hillel, 2026-11-10; CarolsPageTest proves the window).
+        preg_match_all('#href="(/songs[^"]*)"#', (string) $page->getContent(), $links);
+        $this->assertSame([], array_values(array_diff($links[1], [Carols::PATH])));
         $this->get('/pricing')->assertOk()->assertDontSee('href="/songs', false);
         $this->get('/songs')->assertOk();
     }
@@ -158,15 +161,27 @@ final class LandingPageTest extends TestCase
 
     public function test_the_plans_numbers_come_from_config(): void
     {
-        config(['usage.plans.free.projects' => 5, 'billing.trial_days' => 10, 'billing.prices.month' => 'price_m', 'billing.prices.year' => 'price_y']);
+        config(['usage.plans.free.storage_bytes' => 2 * 1024 ** 3, 'usage.plans.plus.storage_bytes' => 70 * 1024 ** 3, 'billing.trial_days' => 10, 'billing.prices.month' => 'price_m', 'billing.prices.year' => 'price_y']);
 
         $this->get('/')->assertOk()
-            ->assertSee('5 saved songs')
+            ->assertSee('2 GB for your recordings')->assertSee('70 GB for your recordings')
             ->assertSee(__('pages.landing.plans_get'))->assertSee(__('pages.landing.plans_trial', ['days' => 10]))
             ->assertSee('$3.33')->assertSee('$39.99')->assertSee('$0<', false);
 
         config(['billing.prices.month' => null]);
         $this->get('/')->assertSee(__('pages.landing.plans_paused'))->assertDontSee(__('pages.landing.plans_get'));
+    }
+
+    public function test_plus_says_who_it_is_for_and_leaves_choirs_to_the_learning_tracks(): void
+    {
+        foreach (['/', '/pricing'] as $path) {
+            $page = $this->get($path)->assertOk()->assertSee(__('pages.landing.plans_plus_for'))->assertSee(__('pages.landing.plans_free_for'));
+            foreach ((array) __('pages.landing.plans_plus_list') as [$gain]) {
+                $page->assertSee('<strong>'.e($gain).'</strong>', false);
+            }
+            // Said once, so Plus isn't taken for the choir offer.
+            $this->assertSame(1, substr_count((string) $page->getContent(), '<a href="/for/choir-directors">'.e(__('pages.landing.plans_choirs_link')).'</a>'));
+        }
     }
 
     public function test_hum_a_tune_is_on_the_way_until_it_opens_and_your_own_song_leads_into_the_creator(): void

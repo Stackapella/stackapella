@@ -9,7 +9,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
 from flow import run  # noqa: E402
-from game_frames import dark, frames, light  # noqa: E402
+from game_frames import dark, every_theme, frames, light  # noqa: E402
 from help_shots import SESSION, clear_projects, new_song, t  # noqa: E402
 
 SELECT = "document.querySelector('[data-game-select]')"
@@ -58,13 +58,30 @@ def journey(f):
     f.wait(f"{at} === {to}", what="the cursor moved")
     picked = f.js("document.querySelector('.ge-portrait.is-picked .ge-portrait-name').innerText")
     f.shot("select")
+    every_theme(f, "the part select")
     light(f)
     f.shot("select-light")
     dark(f)
-    # A tap chooses it: the song starts on that part.
-    f.run("document.querySelector('.ge-portrait.is-picked').click()")
+    # "Sing Tenor" names the part the cursor is on, the screen's one primary (first-15 review, item 10), and the key
+    # says what Busy and Leaps measure (item 11).
+    sing = f.js("document.querySelector('[data-select-sing]').innerText")
+    assert sing.upper() == t(f, "game.select.sing", {"part": picked}).upper(), f"the Sing button names the cursor's part: {sing} vs {picked}"
+    assert f.js("!!document.querySelector('[data-select-key]')"), "Busy and Leaps explained"
+    assert f.js("getComputedStyle(document.querySelector('.ge-portrait')).borderTopLeftRadius") == "0px", "square cards"
+    # The Sing button (phone) or a tap (desktop) chooses it: the song starts on that part.
+    f.run("document.querySelector('[data-select-sing]').click()" if f.size == "phone" else "document.querySelector('.ge-portrait.is-picked').click()")
     f.wait(f"!{SELECT}", timeout=5, what="locked in")
     f.wait(f"!!{SESSION}.session.practice?.focus", timeout=10, what="a part chosen")
+    # The select shows once per song start: another part from the header's part chip (Your part) changes the part and
+    # never brings the select back (the coordinator, 2026-11-02).
+    chosen = f.js(f"{SESSION}.session.practice.focus")
+    label = t(f, "sing.yourPart.open", {"part": picked})
+    f.run(f"[...document.querySelectorAll('button')].find((b) => b.getAttribute('aria-label') === {label!r}).click()")
+    f.wait("document.querySelectorAll('[role=dialog] button[aria-pressed]').length > 1", what="Your part")
+    f.run("document.querySelector('[role=dialog] button[aria-pressed=false]').click()")
+    f.wait(f"{SESSION}.session.practice.focus !== {chosen!r}", timeout=5, what="another part")
+    f.js("new Promise((r) => setTimeout(r, 1200))")
+    assert f.js(f"!{SELECT}"), "a later part change brings the select back"
     # The switch off: today's list.
     f.run("(await import('/js/game/effects.js')).effects.select = false")
     part_step(f, select=False)

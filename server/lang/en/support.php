@@ -5,6 +5,10 @@ declare(strict_types=1);
 // Hillel's saved replies in the support inbox (docs/operations-plan.md, "Saved replies"), drafted
 // for him to edit before sending. Plain text; a blank line starts a new paragraph.
 return [
+    // A director's learning tracks request, when they add no note of their own (the inbox's body).
+    'tracks' => [
+        'body' => 'Learning tracks, please: :piece.',
+    ],
     'saved' => [
         'silent_mic' => [
             'title' => 'The mic is silent',
@@ -29,6 +33,10 @@ return [
         'cancelling' => [
             'title' => 'Cancelling Plus',
             'body' => "Thanks for writing. You can cancel any time in the app: Settings, then Plan and storage, then Manage your plan. Plus stays on until the end of the period you've paid for, and nothing more is charged.\n\nIf you bought Plus in the App Store or Google Play, cancel it there instead: on an iPhone, Settings, then your name, then Subscriptions; on Android, Google Play, then Payments and subscriptions.",
+        ],
+        'tracks_score' => [
+            'title' => 'Learning tracks: send the score',
+            'body' => "Thanks for asking. I'd love to make learning tracks of this for your choir.\n\nPlease reply with the score: MusicXML is best (File, then Export, in MuseScore, Sibelius, Finale or Dorico), then a PDF of every page scanned flat, then phone photos, one page each, flat in daylight.\n\nAnd tell me which parts your choir sings, any repeats or cuts, your tempo and key if they differ from the page, and whether I may suggest breath marks.\n\nYou'll have the tracks in your account, ready to share with your group, within a working day of a good PDF or MusicXML.",
         ],
         'lost_account' => [
             'title' => 'A lost account',

@@ -51,7 +51,7 @@ export const SessionWrap = {
             <div class="space-y-2" data-wrap-goal>
                 <p :id="'wrap-goal-' + $.uid" class="font-semibold text-cream">{{ t('wrap.goal') }}</p>
                 <div class="seg flex sm:w-fit" role="radiogroup" :aria-labelledby="'wrap-goal-' + $.uid">
-                    <button v-for="g in GOALS" :key="g" type="button" role="radio" :aria-checked="chosenGoal === g ? 'true' : 'false'" class="seg-option flex-1 sm:flex-none" :class="suggested === g ? 'ring-2 ring-inset ring-accent/60' : ''" :data-suggested="suggested === g ? '' : null" @click="chooseGoal(g)">{{ t('wrap.days', { count: g }) }}</button>
+                    <button v-for="g in GOALS" :key="g" type="button" role="radio" :aria-checked="chosenGoal === g ? 'true' : 'false'" class="seg-option flex-1 sm:flex-none" :data-suggested="suggested === g ? '' : null" @click="chooseGoal(g)">{{ t('wrap.days', { count: g }) }}</button>
                 </div>
                 <p v-if="goal" class="text-sm text-muted" role="status">{{ t('wrap.goalKept', { count: goal }) }}</p>
                 <p v-else-if="suggested" class="text-sm text-muted">{{ t('wrap.goalSuggested', { count: suggested }) }}</p>
@@ -73,7 +73,8 @@ export const SessionWrap = {
         chosenGoal() {
             return this.goal ?? (funnelRecord().firsts.f_goal ? learning.progress.goal : null);
         },
-        /** Until one is chosen, 3 is suggested: an outline, never shown as chosen (onboarding review 2, 15). */
+        /** Until one is chosen, 3 is suggested in words only: nothing looks picked until it's tapped (onboarding review 2, 15;
+            Hillel, 2026-11-02: an outline on 3 still read as chosen). */
         suggested() {
             return this.chosenGoal === null ? SUGGESTED : null;
         },
@@ -152,7 +153,9 @@ export const RemindAsk = {
             return !installed() && askDue('install') && !!(install.prompt || iphone() || macSafari());
         },
         shown() {
-            return this.due && !this.answered && !this.installAsks;
+            // Signed in only: reminders need an account, and a guest's home already asks for one (the coordinator,
+            // 2026-11-08: hide it for guests rather than wall it).
+            return !!account.me && this.due && !this.answered && !this.installAsks;
         },
     },
     watch: {

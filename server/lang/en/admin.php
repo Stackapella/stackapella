@@ -5,6 +5,11 @@ declare(strict_types=1);
 return [
     'sign_out' => 'Sign out',
 
+    'school' => [
+        // A class whose teacher deleted their account: its name (which could hold theirs) goes.
+        'deleted_class' => 'A deleted account\'s class',
+    ],
+
     'beta' => [
         // The note a beta singer sees when Hillel asks for their part again without writing one.
         'asked_again' => 'The song changed: please record your part again.',

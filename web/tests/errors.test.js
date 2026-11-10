@@ -35,6 +35,8 @@ test('errors: extensions, resize loops and aborted fetches are noise; Firefox fr
     assert(!isNoise(new Error('real')), 'a real error');
     assert(isNoise({ name: 'TypeError', message: "undefined is not an object (evaluating 'window.__firefox__.reader')", stack: 'global code@https://stackapella.com/learn/1-comfortable:1:1' }), "Firefox for iOS's injected Reader View script");
     assert(isNoise({ name: 'ReferenceError', message: "Can't find variable: __gCrWeb" }), "Chrome for iOS's injected script");
+    assert(isNoise({ name: 'TypeError', message: "undefined is not an object (evaluating 'window.ethereum.selectedAddress = undefined')", stack: 'global code@https://app.stackapella.com/:1:16' }), "a crypto wallet browser's injected script (Sentry JAVASCRIPT-4)");
+    assert(!isNoise({ name: 'TypeError', message: "undefined is not an object (evaluating 'state.selected')", stack: 'global code@https://app.stackapella.com/:1:16' }), 'a real error on line 1 of our own page still reports');
     assert(isNoise({ name: 'Error', message: 'Script error.', filename: '', stack: '' }), "a cross-origin script's hidden error, as window.onerror gives it");
     assert(framesOf('play@https://h/js/a.js:3:4').length === 1, 'Firefox frames');
     assert(describeBrowser('Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) Version/18.0 Mobile/15E148 Safari/604.1').os.name === 'iOS', 'iOS');

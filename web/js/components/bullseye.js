@@ -7,10 +7,11 @@
 // came from. Never red: a dart outside ±50 is glass. Earlier darts (then and now) show faint
 // behind. The landings are pitch-skills.js's.
 
-import { audio, engine, leadSeconds, unlock } from '../audio.js';
+import { audio, engine, latencyNow, leadSeconds, unlock } from '../audio.js';
 import { readyMic } from '../mic-check.js';
 import { formatNumber, localized, t, tk } from '../i18n.js';
-import { trackFrame, trackInWorker } from '../pitchtrack.js';
+import { rangeFor, trackFrame, trackInWorker, WHISTLE_RANGE } from '../pitchtrack.js';
+import { foldTrack, sayFoldOnce, WHISTLE_CLEAN } from '../whistle.js';
 import { renderBacking, renderPart } from '../synth.js';
 import { Icon } from './icon.js';
 import { showMicHelp } from '../mic-help.js';
@@ -20,6 +21,8 @@ import { KeyControl } from './key-control.js';
 import { local, session as tabStorage } from '../storage.js';
 import { landing, landingPercent, NAMED_MISS, skillPercent } from '../pitch-skills.js';
 import * as db from '../db.js';
+import { ShareResult } from './share-result.js';
+import { claimShare } from '../share-moment.js';
 
 // Ring edges as fractions of the board's radius, and the cents each one stands for.
 export const RINGS = [
@@ -225,6 +228,22 @@ export function coldPercent(plan, landings, memories, kind, options = {}) {
     return credits.length ? Math.round(credits.reduce((a, b) => a + b, 0) / credits.length) : null;
 }
 
+/**
+ * A bullseye take's stars from its pitch track: where each answer landed (skillPercent 'landing'). A note sung from
+ * memory (`score: 'memory'`) is starred on how close it came, never on its start; `score: 'cold'` stars each answer's
+ * first note that way and the rest on landing. Pure, so the scoring guard (tests/score-guard.test.js) sings it too.
+ */
+export function scoreEchoTake({ track: heard, plan, exercise, base }) {
+    const beatSeconds = 60 / (exercise.tempo ?? 72);
+    const notes = plan.answers.map((n) => ({ beat: n.beat, length: n.length, pitch: base + n.step }));
+    // A whistle (`whistle`, js/whistle.js): moved down onto the answers by whole octaves, its start's scoop allowed for.
+    const { track, octaves: whistled } = exercise.whistle ? foldTrack(heard, notes.map((n) => ({ start: n.beat * beatSeconds, end: (n.beat + n.length) * beatSeconds, pitch: n.pitch }))) : { track: heard, octaves: 0 };
+    const options = { generous: !!exercise.generous, named: !!exercise.named, ...(exercise.whistle ? { clean: WHISTLE_CLEAN } : {}) };
+    const score = skillPercent('landing', track, notes, beatSeconds, options);
+    const percent = exercise.score === 'memory' || exercise.score === 'cold' ? coldPercent(plan, score.notes, skillPercent('memory', track, notes, beatSeconds).notes, exercise.score, options) : score.percent;
+    return { notes, score, percent, whistled };
+}
+
 /** Cents folded to the nearest octave (a difference near a tritone mustn't wrap to an octave off). */
 const fold = (c) => c - 1200 * Math.round(c / 1200);
 
@@ -232,7 +251,8 @@ const DIRECTION = { up: tk('bullseye.up'), down: tk('bullseye.down') };
 const STEP_WORDS = { listen: tk('bullseye.listen'), turn: tk('bullseye.turn'), lead: tk('bullseye.lead') };
 
 export const BullseyeStep = {
-    components: { Bullseye, HeadphonesDialog, Icon, KeyControl },
+    components: { Bullseye, HeadphonesDialog, Icon, KeyControl, ShareResult },
+    inject: { lessonShare: { default: null } },
     props: {
         exercise: { type: Object, required: true },
         base: { type: Number, required: true }, // the learner's comfortable note (MIDI)
@@ -240,7 +260,7 @@ export const BullseyeStep = {
         color: { type: String, default: 'var(--color-part-2)' },
         musicKey: { type: String, default: null },
         canLower: { type: Boolean, default: true },
-        canHigher: { type: Boolean, default: true },
+        canHigher: { type: Boolean, default: true }, higherShown: { type: Boolean, default: true },
         earlier: { type: Object, default: () => ({ results: {}, takes: {} }) }, // this visit's earlier steps (the lesson view's)
         personal: { type: Object, default: () => ({}) }, // the course's personal values (not used here yet)
     },
@@ -256,7 +276,7 @@ export const BullseyeStep = {
             <!-- Hear yourself: your take, and where each note landed, in words. -->
             <section v-if="result && !running" class="space-y-3 rounded-2xl border border-edge bg-panel p-4" data-bullseye-result>
                 <div class="flex items-center gap-3">
-                    <button v-if="take" type="button" class="grid size-11 shrink-0 place-items-center rounded-full glass-bubble-solid" :aria-label="playing ? t('studio.stop') : t('bullseye.hearYourself')" @click="listenBack()"><Icon :name="playing ? 'stop' : 'play'" :size="18" /></button>
+                    <button v-if="take" type="button" class="grid size-11 shrink-0 place-items-center bubble bubble-primary" data-disc="play" :aria-label="playing ? t('studio.stop') : t('bullseye.hearYourself')" @click="listenBack()"><Icon :name="playing ? 'stop' : 'play'" :size="18" /></button>
                     <div class="min-w-0">
                         <p class="font-bold text-cream">{{ result.percent === null ? t('course.notHeard') : t('bullseye.hearYourself') }}</p>
                         <p v-if="result.percent !== null" class="text-sm text-cream" data-bullseye-line>{{ t('bullseye.landed', { inside, count: heard.length }) }}</p>
@@ -277,6 +297,7 @@ export const BullseyeStep = {
                     <template v-if="thenKept">
                         <p class="min-w-0 flex-1 text-sm text-cream">{{ t('bullseye.thenNow', { then: insideOf(thenKept.landings), now: inside, count: heard.length }) }}</p>
                         <button type="button" class="btn-ghost btn-sm" @click="hearThen"><Icon name="play" :size="14" /> {{ t('bullseye.hearThen') }}</button>
+                        <ShareResult v-if="thenNowShare" :label="t('results.share.button')" :milestone="thenNowShare.milestone" :course-slug="thenNowShare.courseSlug" :color="thenNowShare.color" data-then-share />
                     </template>
                     <p v-else class="text-sm text-muted">{{ t('bullseye.thenNone') }}</p>
                 </div>
@@ -286,9 +307,9 @@ export const BullseyeStep = {
             <p v-if="speaker && exercise.drone" class="text-center text-sm text-muted">{{ t('course.speakerUnder') }}</p>
             <HeadphonesDialog v-if="asking" speaker-option simple :action="t('headphones.on')" @ok="headphonesOn" @speaker="useSpeaker" @close="asking = false" />
             <div class="flex flex-col items-center gap-5">
-                <KeyControl v-if="musicKey && !running && !scoring" class="w-full" :music-key="musicKey" :can-lower="canLower" :can-higher="canHigher" @lower="$emit('lower')" @higher="$emit('higher')" />
+                <KeyControl v-if="musicKey && !running && !scoring" class="w-full" :music-key="musicKey" :can-lower="canLower" :can-higher="canHigher" :higher-shown="higherShown" @lower="$emit('lower')" @higher="$emit('higher')" />
                 <button type="button" class="group flex flex-col items-center gap-2 disabled:opacity-50" :disabled="scoring" @click="running ? stop() : start()">
-                    <span class="grid size-20 place-items-center rounded-full glass-bubble-solid ring-8 ring-raised/70 transition group-hover:scale-105"><Icon :name="running ? 'stop' : 'mic'" :size="30" /></span>
+                    <span class="grid size-20 place-items-center transition group-hover:scale-105 bubble bubble-primary bubble-lg bubble-ringed" data-play-disc><Icon :name="running ? 'stop' : 'mic'" :size="30" /></span>
                     <span class="text-sm font-semibold text-cream">{{ running ? t('studio.stop') : result ? t('bullseye.again') : t('bullseye.start') }}</span>
                 </button>
             </div>
@@ -330,6 +351,18 @@ export const BullseyeStep = {
             return gain >= 3 ? gain : 0;
         },
         inside: (vm) => vm.heard.filter((l) => Math.abs(l.cents) <= 25).length,
+        /**
+         * Then and now with real progress (now beats then by 20 points or more): one quiet Share beside the line, the session's
+         * one invitation (js/share-moment.js), naming the lesson and linking to its public page (docs/design-rules.md).
+         */
+        thenNowShare(vm) {
+            const ctx = vm.lessonShare?.();
+            if (!ctx || !vm.thenKept || !vm.result) return null;
+            const then = Math.round((100 * vm.insideOf(vm.thenKept.landings)) / Math.max(1, vm.heard.length));
+            const now = Math.round((100 * vm.inside) / Math.max(1, vm.heard.length));
+            if (!(now - then >= 20) || !claimShare(`then:${ctx.lessonId}`)) return null;
+            return { milestone: { kind: 'thenNow', title: t('results.share.thenNow'), headline: ctx.lessonTitle, line: t('results.share.thenNowLine', { then, now }), text: t('results.share.thenNowText', { lesson: ctx.lessonTitle, then, now }), lessonId: ctx.lessonId }, courseSlug: ctx.courseSlug, color: ctx.color };
+        },
         slid: (vm) => vm.heard.filter((l) => l.start !== 'clean').length,
     },
     watch: {
@@ -400,7 +433,7 @@ export const BullseyeStep = {
             if (under && !this.speaker) engine.setPart('ex:under', under.samples, under.sampleRate, { volume: 0.7, pan: 0, audible: true, offsetSeconds: 0 });
             Object.assign(this, { result: null, take: null, landings: this.plan.answers.map(() => null), live: this.plan.answers.map(() => []), running: 'sing', lastGroup: 0 });
             this.startedAt = performance.now();
-            const latencyFrames = audio.latencyFrames ?? engine.estimatedLatencyFrames();
+            const latencyFrames = latencyNow();
             this.lag = 1024 / sr + latencyFrames / sr / 2; // the live reading's lag, taken off
             engine.play({ fromSeconds: 0, bpm, record: true, latencyFrames, leadSeconds: leadSeconds() });
             const tick = () => {
@@ -420,16 +453,19 @@ export const BullseyeStep = {
         hear() {
             const at = this.position - this.lag;
             const frame = engine.inputFrame();
-            const reading = frame ? trackFrame(frame, engine.sampleRate, { minClarity: LISTEN_CLARITY }) : null;
+            const reading = frame ? trackFrame(frame, engine.sampleRate, { ...(this.exercise.whistle ? WHISTLE_RANGE : {}), minClarity: LISTEN_CLARITY }) : null;
+            // A whistle's reading is moved to the answer's octave (its take is folded onto the answers the same way).
+            const cents = (c) => (this.exercise.whistle ? c - 1200 * Math.round(c / 1200) : c);
             this.plan.answers.forEach((n, i) => {
                 const before = this.plan.answers[i - 1];
                 // From a little before the note, but never inside the note before it (a group's notes join).
                 const from = Math.max(n.beat * this.beatSeconds - 0.25, before ? (before.beat + before.length) * this.beatSeconds : -Infinity);
                 const to = (n.beat + n.length) * this.beatSeconds;
-                if (at >= from && at < to) this.live[i].push({ at, cents: reading?.hz ? 1200 * Math.log2(reading.hz / (440 * 2 ** ((this.base + n.step - 69) / 12))) : null });
+                if (at >= from && at < to) this.live[i].push({ at, cents: reading?.hz ? cents(1200 * Math.log2(reading.hz / (440 * 2 ** ((this.base + n.step - 69) / 12)))) : null });
                 // A note sung from memory shows no dart until the reveal: a dart would warm the next cold try.
                 else if (!this.cold && at >= to && this.landings[i] === null && this.live[i].length > 2) {
-                    this.landings[i] = landing(this.live[i].map((r) => r.cents), liveRate(this.live[i]), { exact: !!this.exercise.named });
+                    const prev = before && Math.abs(before.beat + before.length - n.beat) < 1e-6 ? (before.step - n.step) * 100 : null; // joined: as skillPercent judges it
+                    this.landings[i] = landing(this.live[i].map((r) => r.cents), liveRate(this.live[i]), { exact: !!this.exercise.named, prev, ...(this.exercise.whistle ? { clean: WHISTLE_CLEAN } : {}) });
                     if (this.landings[i]) this.said = t('bullseye.saidOne', { n: i + 1, word: t(landingWord(this.landings[i].cents)), cents: this.cents(this.landings[i].cents) });
                 }
             });
@@ -448,20 +484,15 @@ export const BullseyeStep = {
             if (!take || !finished) return;
             this.scoring = true;
             try {
-                const track = await trackInWorker(take.samples, take.sampleRate);
-                const notes = this.plan.answers.map((n) => ({ beat: n.beat, length: n.length, pitch: this.base + n.step }));
-                // The darts again from the whole take (the live ones were a first look). A note sung
-                // from memory (`score: 'memory'`) is starred on how close it came, never on its start;
-                // `score: 'cold'` stars each answer's first note that way and the rest on landing.
-                const options = { generous: !!this.exercise.generous, named: !!this.exercise.named };
-                const score = skillPercent('landing', track, notes, this.beatSeconds, options);
-                const percent = this.exercise.score === 'memory' || this.exercise.score === 'cold' ? coldPercent(this.plan, score.notes, skillPercent('memory', track, notes, this.beatSeconds).notes, this.exercise.score, options) : score.percent;
+                const track = await trackInWorker(take.samples, take.sampleRate, rangeFor(this.exercise));
+                // The darts again from the whole take (the live ones were a first look).
+                const { notes, score, percent, whistled } = scoreEchoTake({ track, plan: this.plan, exercise: this.exercise, base: this.base });
                 this.landings = score.notes;
                 this.take = { samples: take.samples, sampleRate: take.sampleRate };
                 const slid = score.notes.filter((l) => l && l.start !== 'clean').length;
                 this.result = { percent };
                 await this.keepOrCompare(score.notes);
-                this.$emit('done', { percent, tip: slid >= Math.max(2, score.notes.length * 0.3) ? 'onsets' : null, landings: score.notes, sung: notes.filter((_, i) => score.notes[i] && Math.abs(score.notes[i].cents) <= 50).map((n) => n.pitch), insights: [], take: this.take });
+                this.$emit('done', { percent, tip: slid >= Math.max(2, score.notes.length * 0.3) ? 'onsets' : null, landings: score.notes, sung: notes.filter((_, i) => score.notes[i] && Math.abs(score.notes[i].cents) <= 50).map((n) => n.pitch), insights: [], take: this.take, foldSaid: sayFoldOnce(whistled) });
             } catch (error) {
                 console.error('Scoring failed', error);
                 this.result = { percent: null };

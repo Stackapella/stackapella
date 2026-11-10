@@ -1,0 +1,9 @@
+{
+    "message": "Unprocessable Content.",
+    "code": "validation_failed",
+    "errors": {
+        "outcome": [
+            "The selected outcome is invalid."
+        ]
+    }
+}

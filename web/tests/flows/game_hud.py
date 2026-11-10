@@ -10,7 +10,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 from flow import run  # noqa: E402
 from help_shots import AUDIO, SESSION, clear_projects, new_song, t  # noqa: E402
-from game_frames import dark, frames, light  # noqa: E402
+from game_frames import dark, every_theme, frames, light  # noqa: E402
 
 
 
@@ -57,15 +57,16 @@ def journey(f):
     assert (booted == "1") == (f.skin == "game"), f"the CRT boot in {f.skin}: {booted}"
     record(f, counting=f.skin == "game")
     if f.skin == "serious":
-        assert not f.js("getComputedStyle(document.querySelector('[data-take-time]')).fontFamily.includes('Press Start')"), "serious mode: today's recording stage"
+        assert not f.js("getComputedStyle(document.querySelector('[data-take-time]')).fontFamily.includes('Stackapella Pixel')"), "serious mode: today's recording stage"
         stop(f)
         clear_projects(f)
         return
     assert f.js("!document.querySelector('[data-game-hud]')"), "no strip added"
-    hud_font = "getComputedStyle(document.querySelector('[data-take-time]')).fontFamily.includes('Press Start')"
+    hud_font = "getComputedStyle(document.querySelector('[data-take-time]')).fontFamily.includes('Stackapella Pixel')"
     assert f.js(hud_font), "the take's clock in HUD digits"
     f.no_sideways("the reskinned recording stage")
     f.shot("recording-hud")
+    every_theme(f, "the recording HUD")
     light(f)
     f.shot("recording-hud-light")
     dark(f)

@@ -10,8 +10,11 @@ use App\Support\Http\Hosts;
 use App\Support\Legal\LegalText;
 use App\Support\Pages\Landing;
 use App\Support\Pages\SongPage;
+use App\Support\Pages\SongParts;
 use App\Support\Site\OpenSource;
+use App\Support\Templates\Catalogue;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Lang;
 use RuntimeException;
 
 /**
@@ -35,7 +38,14 @@ final class DocumentPagesController extends Controller
     public const GUIDES = [
         // In the order a beginner meets them: what it is, the parts, your voice, then practising.
         'what-is-harmony', 'satb-explained', 'find-your-voice-type', 'how-to-sing-harmony', 'find-your-part', 'hold-your-part',
-        'practise-a-choir-part', 'a-round-for-beginners', 'ear-training', 'singing-in-tune', 'breathing-basics', 'arranging-a-cappella',
+        'practise-a-choir-part', 'a-round-for-beginners', 'ear-training', 'singing-in-tune', 'practise-intonation-with-a-drone', 'breathing-basics', 'arranging-a-cappella',
+        // An a cappella group's drum kit (docs/search-content-plan.md, item 1): the search the dropped course was found for.
+        'vocal-percussion',
+        // The choir set (docs/search-content-plan.md, item 5), each checked for demand first: the voicings, a descant.
+        'choir-voicings', 'what-is-a-descant', 'find-your-starting-note',
+        // Written and checked on 2026-11-08 but never listed until now: sight-singing (retitled for the solfege
+        // searches, docs/search-content-plan.md) and vibrato.
+        'sight-reading-for-singers', 'how-to-sing-with-vibrato',
     ];
 
     /**
@@ -65,6 +75,8 @@ final class DocumentPagesController extends Controller
         }
 
         $song = $guide['song'] !== null ? Template::query()->listed()->whereNotNull('current_version_id')->with('currentVersion')->where('slug', $guide['song'])->first() : null;
+        // A guide names its song only while the site may show it (Catalogue::open()).
+        $song = $song !== null && Catalogue::isOpen($song) ? $song : null;
         $url = Hosts::publicUrl().'/guides/'.$slug;
         $songPage = $song !== null ? SongPage::of($song) : null;
         // The next guides, in the list's order after this one.
@@ -83,10 +95,20 @@ final class DocumentPagesController extends Controller
                     : [...$block, 'step' => null], $guide['blocks']),
                 'reviewed' => $guide['reviewed'],
                 'song' => $songPage,
+                // Its song's part pages while they're open (SongParts::hasPages), so the guide can point at each part.
+                'parts' => $song !== null && SongParts::hasPages($song) ? array_map(static fn (array $part): array => [
+                    'name' => $part['name'], 'url' => '/songs/'.$song->slug.'/'.$part['key'],
+                ], SongParts::parts($song)) : [],
+                // The guide's questions (pages.guides.faqs.<slug>), shown after its words, with FAQPage data.
+                'faq' => array_values(array_filter((array) Lang::get('pages.guides.faqs.'.$slug, []), 'is_array')),
+                // The section a panel of the four parts' ranges follows (pages.guides.ranges.after.<slug>), if any.
+                'ranges' => Lang::has('pages.guides.ranges.after.'.$slug) ? (string) Lang::get('pages.guides.ranges.after.'.$slug) : null,
                 'next' => array_map(fn (string $other): array => ['slug' => $other, 'title' => (string) ($this->read($text, $other, 'guides')['title'] ?? $other)], $next),
             ],
-            // The guide's own song plays beside it when it's free (a Plus song never shows its notes).
-            'line' => $song !== null && $songPage !== null && ! $songPage['plus'] ? Landing::line($song) : null,
+            // The guide's own song plays beside it whenever it's open ($song is null otherwise): Hillel's "Yes, play for
+            // guests" (2026-11-08) for every open song on a public page, as the part pages do (the coordinator,
+            // 2026-11-10). Before, only a bundled song played here (Hillel, 2026-10-27).
+            'line' => $song !== null ? Landing::line($song) : null,
             'meta' => ['title' => $guide['title'], 'description' => (string) $guide['description'], 'url' => $url],
         ], 200, self::headers());
     }

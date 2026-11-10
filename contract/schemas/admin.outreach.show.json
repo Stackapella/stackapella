@@ -1,0 +1,315 @@
+{
+    "$id": "admin.outreach.show.json",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "id",
+                "ref",
+                "name",
+                "group",
+                "country",
+                "reach",
+                "fit",
+                "contact",
+                "angle",
+                "sendBy",
+                "followUpNotBefore",
+                "sendNotBefore",
+                "tooEarly",
+                "timingNote",
+                "sendBySoon",
+                "pastSendBy",
+                "status",
+                "followUpFrom",
+                "followUpDue",
+                "lastSentAt",
+                "replies",
+                "unreadReplies",
+                "outcome",
+                "outcomeNote",
+                "notes",
+                "research",
+                "suppressed",
+                "partnerCodes",
+                "updatedAt",
+                "link",
+                "messages",
+                "replyLog",
+                "results"
+            ],
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "ref": {
+                    "type": "string",
+                    "description": "The organization's own ?ref= tag (o-...), which the anonymous counts add up."
+                },
+                "name": {
+                    "type": "string"
+                },
+                "group": {
+                    "type": "string"
+                },
+                "country": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "reach": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "fit": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "contact": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                        "email",
+                        "formUrl",
+                        "sourceUrl"
+                    ],
+                    "properties": {
+                        "email": {
+                            "type": [
+                                "string",
+                                "null"
+                            ]
+                        },
+                        "formUrl": {
+                            "type": [
+                                "string",
+                                "null"
+                            ]
+                        },
+                        "sourceUrl": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "description": "The organization's own page the contact was published on."
+                        }
+                    }
+                },
+                "angle": {
+                    "type": "string",
+                    "enum": [
+                        "school",
+                        "choir_groups",
+                        "course",
+                        "practice_tool"
+                    ]
+                },
+                "sendBy": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "description": "After this day (the report's), the first email's wording may be stale: Send needs staleOk."
+                },
+                "followUpNotBefore": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "description": "Its follow-up waits for this day."
+                },
+                "sendNotBefore": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "description": "The first email's earliest day (a busy week, spacing, a hold): Send before it needs earlyOk."
+                },
+                "tooEarly": {
+                    "type": "boolean"
+                },
+                "timingNote": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "description": "Why its dates are what they are, and checks to make on the day: shown where Send is."
+                },
+                "sendBySoon": {
+                    "type": "boolean",
+                    "description": "Its send-by day is within 3 days (or past) and the first email isn't sent."
+                },
+                "pastSendBy": {
+                    "type": "boolean"
+                },
+                "status": {
+                    "type": "string",
+                    "enum": [
+                        "to_research",
+                        "ready",
+                        "drafted",
+                        "sent",
+                        "replied",
+                        "partner",
+                        "closed",
+                        "do_not_contact"
+                    ]
+                },
+                "followUpFrom": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "format": "date-time",
+                    "description": "When the one follow-up may go; null when it never will (sent already, replied, closed or suppressed)."
+                },
+                "followUpDue": {
+                    "type": "boolean"
+                },
+                "lastSentAt": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "format": "date-time"
+                },
+                "replies": {
+                    "type": "integer"
+                },
+                "unreadReplies": {
+                    "type": "integer"
+                },
+                "outcome": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "enum": [
+                        "interested",
+                        "joined",
+                        "declined",
+                        "no_reply",
+                        "other",
+                        null
+                    ]
+                },
+                "outcomeNote": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "notes": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "research": {
+                    "type": [
+                        "object",
+                        "null"
+                    ],
+                    "additionalProperties": false,
+                    "required": [
+                        "note",
+                        "links"
+                    ],
+                    "description": "What marketing found about it, each specific with the page it came from (shown beside the draft written from it).",
+                    "properties": {
+                        "note": {
+                            "type": [
+                                "string",
+                                "null"
+                            ]
+                        },
+                        "links": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                },
+                "suppressed": {
+                    "type": "boolean",
+                    "description": "On the do-not-contact list (or said no): nothing can be drafted or sent."
+                },
+                "partnerCodes": {
+                    "type": "array",
+                    "description": "Its partner codes: seats and seats used only, never who.",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "id",
+                            "code",
+                            "seats",
+                            "used",
+                            "status",
+                            "expiresAt"
+                        ],
+                        "properties": {
+                            "id": {
+                                "type": "string"
+                            },
+                            "code": {
+                                "type": "string"
+                            },
+                            "seats": {
+                                "type": "integer"
+                            },
+                            "used": {
+                                "type": "integer"
+                            },
+                            "status": {
+                                "type": "string"
+                            },
+                            "expiresAt": {
+                                "type": "string",
+                                "format": "date-time"
+                            }
+                        }
+                    }
+                },
+                "updatedAt": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "format": "date-time"
+                },
+                "link": {
+                    "type": "string",
+                    "description": "Its own link: the angle's page with ?ref=<ref>."
+                },
+                "messages": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "admin.outreach.message.json"
+                    }
+                },
+                "replyLog": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "admin.outreach.reply.json"
+                    }
+                },
+                "results": {
+                    "$ref": "admin.outreach.counts.json"
+                }
+            }
+        }
+    }
+}

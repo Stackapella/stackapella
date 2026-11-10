@@ -18,7 +18,20 @@ return [
 
     // Where people write to us (docs/decisions.md: one address people can reply to). Each of these
     // is a setting, so a self-hosted install names its own (docs/open-source-plan.md, 5.5).
+    // The carols page's "a new carol opens every Monday" line shows until this date, the last Monday before Christmas
+    // in this year's plan (docs/library-next-songs.md), then goes by itself (App\Support\Pages\Carols::weekly).
+    // None since 2026-11-10: Hillel opened all six landed carols that week, so no carol opens weekly after it.
+    'carols_weekly_until' => null,
+    // When the carols are pushed each year (Hillel, 2026-11-10: "yes do the christmas page improvements"): the
+    // landing's one line and the seasonal links on choir pages show from this month-day to this one, then hide by
+    // themselves (App\Support\Pages\Carols::promoted). The carols page itself stays.
+    'carols_promoted' => ['from' => '11-01', 'until' => '12-26'],
+
     'contact_email' => env('SITE_CONTACT_EMAIL') ?: 'contact@stackapella.com',
+
+    // Where an organization writes about the partner offer (/for/organizations): the address Hillel
+    // picks for outreach replies, once he has; the contact address until then.
+    'partners_email' => env('SITE_PARTNERS_EMAIL') ?: 'contact@stackapella.com',
 
     // Legal questions, copyright notices and the coach agreement (Hillel, 2026-10-29): the legal
     // pages say legal@stackapella.com, shown as this.

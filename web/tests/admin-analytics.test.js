@@ -2,6 +2,8 @@
 // guests, and revenue's currencies (never converted) and subscriber counts.
 import { bestMeasure, dailyBars, todayPair, weekIn } from '/js/admin/reach.js';
 import { countsBy, mrrChanges } from '/js/admin/revenue.js';
+import { isTag, sourceName } from '/js/admin/growth.js';
+import { loadLanguage } from '/js/i18n.js';
 import { assert, test } from './harness.js';
 
 test('admin analytics: people using the app in the best measure every week has, signed in and guests', () => {
@@ -45,7 +47,13 @@ test('admin analytics: people using the app by day: each day beside the day a pe
     assert(week.measure === 'opens', 'no devices yet: opens');
     const month = dailyBars(days, 30);
     assert(month.bars.length === 20 && month.bars.every((b) => b.before === null), 'before the counts began: nothing to compare');
-    const pair = todayPair(days, { day: '2026-10-21', opens: { account: 3, guest: 4 }, devices: null });
+    // Today so far ends the chart, marked so, beside the day a period earlier.
+    const today = { day: '2026-10-21', opens: { account: 3, guest: 4 }, devices: null };
+    const withToday = dailyBars(days, 7, today);
+    assert(withToday.bars.length === 7 && withToday.bars.at(-1).key === '2026-10-21' && withToday.bars.at(-1).soFar && withToday.bars.at(-1).now.total === 7, JSON.stringify(withToday.bars.at(-1)));
+    assert(withToday.bars[0].key === '2026-10-15' && !withToday.bars[0].soFar && withToday.bars.at(-1).before.account === 14, 'each beside the day 7 earlier');
+    assert(dailyBars([...days, today], 7, today).bars.filter((b) => b.key === '2026-10-21').length === 1, 'today once, even when the days hold it');
+    const pair = todayPair(days, today);
     assert(pair.soFar && pair.now.total === 7 && pair.before.account === 14, JSON.stringify(pair));
     const fallback = todayPair(days, null);
     assert(!fallback.soFar && fallback.day === '2026-10-20' && fallback.before.account === 13, 'no today from the server: the last whole day');
@@ -63,4 +71,15 @@ test('admin: the report time zone said as a city, from the server, never written
     assert(zoneName('UTC') === 'UTC' && zoneName(null) === 'UTC', 'UTC, and UTC when not sent');
     assert(zoneName('America/New_York') === 'New York', zoneName('America/New_York'));
     assert(zoneName('Not/AZone') === 'Not/AZone', 'an unknown id as it is');
+});
+
+test('admin growth: a tool, an embed and the song part pages read as words; a campaign tag stays as written', async () => {
+    await loadLanguage(['en']);
+    const name = (source) => sourceName({ source });
+    assert(name('tool-tuner') === 'Tools: tuner' && !isTag('tool-tuner'), name('tool-tuner'));
+    assert(name('embed-choir.example.com') === 'Embed: choir.example.com' && !isTag('embed-choir.example.com'), name('embed-choir.example.com'));
+    assert(name('part-page') === 'Song part pages' && !isTag('part-page'), name('part-page'));
+    assert(name('profile') === "Singers' profiles" && !isTag('profile'), name('profile'));
+    assert(name('hn') === 'hn' && isTag('hn'), 'a campaign tag as written');
+    assert(name('none') === 'No tag (search and direct)' && !isTag('none'), name('none'));
 });

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Resources\Admin;
 
 use App\Enums\SecurityEventType;
+use App\Models\AuditLog;
 use App\Models\BetaSinger;
 use App\Models\Group;
 use App\Models\Harmony;
@@ -12,10 +13,12 @@ use App\Models\Project;
 use App\Models\Score;
 use App\Models\SecurityEvent;
 use App\Models\Take;
+use App\Models\Template;
 use App\Models\User;
 use App\Models\UserLearning;
 use App\Support\Billing\BillingState;
 use App\Support\Gallery\Gallery;
+use App\Support\Http\Hosts;
 use App\Support\Trust\TrustLevel;
 use App\Support\Usage\Plans;
 use Illuminate\Database\Eloquent\Builder;
@@ -57,9 +60,12 @@ final class AccountAdminResource extends JsonResource
             ->with('learning');
     }
 
+    /** The songs staff gave on the person page, newest first, at most this many. */
+    public const GIVEN_MAX = 50;
+
     /**
-     * The person page's own fields too: their plan and what they've made public (never their
-     * recordings, private songs or birth date).
+     * The person page's own fields too: their plan, what they've made public, and the songs staff
+     * gave them (never their recordings, their own private songs or birth date).
      */
     public function detailed(): self
     {
@@ -185,6 +191,39 @@ final class AccountAdminResource extends JsonResource
                 'publicHarmonies' => $public,
                 'groups' => Group::query()->where('director_id', $user->id)->orWhereHas('members', fn ($q) => $q->where('user_id', $user->id))->count(),
             ],
+            'given' => self::given($user),
         ];
+    }
+
+    /**
+     * The songs staff gave them through admin.people.songs.create (docs/choir-tracks-plan.md, stage 1), found by the
+     * audit row each give writes (templates.given), never by the rights record alone: a copy the person makes of a
+     * given song carries its rights record but is their own song. These are ours, made and given by staff, not the
+     * person's own private songs or recordings, so listing them keeps the person page's rule. Still in their
+     * account (not deleted), newest first: the title, the id and its /t link, when, and which staff member gave it
+     * (null once that account is gone).
+     *
+     * @return list<array{id: string, title: string, url: string, givenAt: string, givenBy: array{id: string, name: string}|null}>
+     */
+    private static function given(User $user): array
+    {
+        $gives = AuditLog::query()->with('actor')->where('action', 'templates.given')->where('subject_type', (new Template)->getMorphClass())
+            ->whereIn('subject_id', Template::query()->select('id')->where('owner_id', $user->id)->where('rights_statement', 'partner')->whereNull('deleted_at'))
+            ->orderByDesc('id')->limit(self::GIVEN_MAX)->get();
+        $templates = Template::query()->whereIn('id', $gives->pluck('subject_id'))->get(['id', 'slug', 'title'])->keyBy('id');
+
+        return array_values($gives->unique('subject_id')->map(static function (AuditLog $give) use ($templates): array {
+            /** @var Template $template */
+            $template = $templates[$give->subject_id];
+            $actor = $give->actor;
+
+            return [
+                'id' => $template->slug,
+                'title' => $template->title,
+                'url' => Hosts::app('/t/'.$template->slug),
+                'givenAt' => $give->created_at->utc()->toIso8601ZuluString(),
+                'givenBy' => $actor !== null ? ['id' => $actor->sqid(), 'name' => $actor->name] : null,
+            ];
+        })->all());
     }
 }

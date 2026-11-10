@@ -20,6 +20,12 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 from cdp import Chrome  # noqa: E402
 
+NO_COUNTS = """(() => { const drop = (u) => String(u ?? '').includes('/api/counts');
+    const beacon = navigator.sendBeacon?.bind(navigator);
+    if (beacon) navigator.sendBeacon = (u, d) => (drop(u) ? true : beacon(u, d));
+    const get = window.fetch.bind(window);
+    window.fetch = (i, o) => (drop(typeof i === 'string' ? i : i?.url) ? Promise.resolve(new Response('{}', { status: 202 })) : get(i, o)); })();"""
+
 THROTTLE = {"offline": False, "latency": 150, "downloadThroughput": 1.6e6 / 8, "uploadThroughput": 750e3 / 8}
 
 OBSERVE = """(() => { window.__lcp = 0; window.__fcp = 0;
@@ -36,6 +42,8 @@ TOTALS = """(() => { const nav = performance.getEntriesByType('navigation')[0];
 
 def fresh(width=390, height=844):
     chrome = Chrome(width=width, height=height, mobile=True)
+    # Nothing is sent: the app's anonymous counts are dropped in the page, so a timing run never shows in Growth.
+    chrome.send("Page.addScriptToEvaluateOnNewDocument", {"source": NO_COUNTS})
     chrome.send("Network.enable")
     chrome.send("Network.setCacheDisabled", {"cacheDisabled": True})
     chrome.send("Network.emulateNetworkConditions", THROTTLE)
@@ -64,13 +72,21 @@ def lesson(start):
     chrome = fresh()
     try:
         began = time.time()
-        chrome.goto(start, wait="document.querySelector('main h1') && document.querySelector('[data-go-on]')", timeout=120)
+        # Lesson 1 starts one of three ways (experiments and the mic's state choose): Continue, the mic moment's own button,
+        # or the note finder at once, waiting for a tap anywhere.
+        chrome.goto(start, wait="document.querySelector('main h1') && document.querySelector('[data-mic-first-go], [data-go-on], [data-listening]')", timeout=120)
         shown = (time.time() - began) * 1000
         totals = json.loads(chrome.evaluate(TOTALS))
         # The way on (Turn on my mic), then the note finder listening: the first note can be sung.
         tapped = time.time()
         # A tap with the browser's user activation (the mic and the audio need a person's gesture).
-        chrome.send("Runtime.evaluate", {"expression": "document.querySelector('[data-go-on]').click()", "userGesture": True})
+        button = chrome.evaluate("!!document.querySelector('[data-mic-first-go], [data-go-on]')")
+        if button:
+            chrome.send("Runtime.evaluate", {"expression": "document.querySelector('[data-mic-first-go], [data-go-on]').click()", "userGesture": True})
+        else:
+            # The note finder listens from a real tap (a pointerdown anywhere), which a script's click() isn't.
+            for kind in ("mousePressed", "mouseReleased"):
+                chrome.send("Input.dispatchMouseEvent", {"type": kind, "x": 195, "y": 400, "button": "left", "clickCount": 1})
         deadline = time.time() + 90
         phase = None
         while time.time() < deadline:
@@ -81,7 +97,8 @@ def lesson(start):
                 chrome.evaluate("document.querySelector('[data-mic-primer] button.btn-primary').click()")
             time.sleep(0.1)
         listening = (time.time() - tapped) * 1000
-        return {"shown": shown, "listening": listening if phase else None, **totals}
+        arm = chrome.evaluate("JSON.parse(localStorage.getItem('stackapella.experiments') || '{}').short1 ?? '-'")
+        return {"arm": arm, "shown": shown, "listening": listening if phase else None, **totals}
     finally:
         chrome.close()
 
@@ -107,7 +124,7 @@ def main():
         if result["start"]:
             path = lesson(result["start"])
             lessons.append(path)
-            print(f"  Start → lesson 1 shown {path['shown']:.0f} ms ({path['bytes'] / 1024:.0f} KB, {path['requests']} requests); tap → listening {path['listening'] or 0:.0f} ms", flush=True)
+            print(f"  [short1 {path['arm']}] Start → lesson 1 shown {path['shown']:.0f} ms ({path['bytes'] / 1024:.0f} KB, {path['requests']} requests); tap → listening {path['listening'] or 0:.0f} ms", flush=True)
     med = lambda key, rows: statistics.median(r[key] for r in rows if r.get(key) is not None)
     print("\nMedians (Slow 4G, 4x CPU, a fresh phone):")
     print(f"  landing: FCP {med('fcp', lands):.0f} ms, LCP {med('lcp', lands):.0f} ms, {med('bytes', lands) / 1024:.0f} KB, {med('requests', lands):.0f} requests")

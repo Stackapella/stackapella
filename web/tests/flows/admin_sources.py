@@ -43,6 +43,10 @@ def journey(f):
     sort_by(f, "lesson1")
     f.wait(f"{ROWS}.map((r) => r.dataset.source).join(',') === 'harmony,none,hn,small'", what="sorted by Lesson 1's share")
     assert "53.7%" in f.js(f"{ROWS}.find((r) => r.dataset.source === 'hn').innerText"), "hn's Lesson 1 share"
+    # Any lesson (a first lesson finished in any course) beside it, sorted the same way.
+    sort_by(f, "courseLesson")
+    f.wait(f"{ROWS}.map((r) => r.dataset.source).join(',') === 'harmony,none,hn,small'", what="sorted by Any lesson's share")
+    assert "64.2%" in f.js(f"{ROWS}.find((r) => r.dataset.source === 'hn').innerText"), "hn's Any lesson share"
     sort_by(f, "week1")
     f.wait(f"{ROWS}.map((r) => r.dataset.source).join(',') === 'harmony,none,hn,small'", what="sorted by week 1's share")
     f.no_sideways("the sources")

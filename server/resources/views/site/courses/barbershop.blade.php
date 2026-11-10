@@ -17,7 +17,7 @@
 {{-- The course's phrase (bb-3-lead, from beat 14): [beat, length, semitones from A3, cents], a voice a part. --}}
 @php($phrase = ['tenor' => [[0, .5, 2, 0], [.5, .5, 5, 0], [1, .5, 5, 0], [1.5, 3, 10, 0], [4.5, 3, 7, 0], [7.5, 4, 12, 2]], 'lead' => [[0, .5, -7, 0], [.5, .5, -2, 0], [1, .5, 2, 0], [1.5, 3, 5, 2], [4.5, 3, 4, 0], [7.5, 4, 3, -31]], 'baritone' => [[0, .5, 2, 0], [.5, .5, 2, 0], [1, .5, -2, 0], [1.5, 3, 2, -14], [4.5, 3, -2, 0], [7.5, 4, -3, -14]], 'bass' => [[0, .5, -14, 0], [.5, .5, -14, 0], [1, .5, -14, 0], [1.5, 3, -14, 0], [4.5, 3, -11, 0], [7.5, 4, -7, 0]]])
 @php($py = fn (float $step): float => round(84 + (12 - $step) * 11.5, 1))
-@php($tryUrl = $open ? \App\Support\Http\Hosts::app('/learn/c/'.$page['app']) : $links['start'])
+@php($tryUrl = $open ? $courseStart : $links['start'])
 @php($tryLabel = $open ? __('pages.site.course_try') : __('pages.site.course_start'))
 @php($num = 0)
 <main class="cp cp-barbershop cp-bb2" data-bb>

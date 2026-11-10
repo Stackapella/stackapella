@@ -9,6 +9,8 @@ use App\Support\Admin\AdminGate;
 use App\Support\Admin\SecondFactor;
 use App\Support\Web\AppShell;
 use Illuminate\Database\Events\QueryExecuted;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
 use Illuminate\Routing\Route;
 use Illuminate\Support\Facades\Event;
@@ -22,6 +24,9 @@ abstract class TestCase extends BaseTestCase
 {
     use AssertsContract;
 
+    /** @var list<string> What a test without a transaction wrote to the database (it must write nothing). */
+    private array $committed = [];
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -34,6 +39,25 @@ abstract class TestCase extends BaseTestCase
         Storage::fake('backup');
 
         Event::listen(QueryExecuted::class, static fn (QueryExecuted $query) => QueryGuard::query($query->sql));
+
+        // A test with no transaction commits whatever it writes into the run's database, for every later
+        // test to find (a page's rate-limit rows once broke OpsTest's cache prune): it must write nothing.
+        $uses = class_uses_recursive(static::class);
+
+        if (! isset($uses[RefreshDatabase::class]) && ! isset($uses[DatabaseTransactions::class])) {
+            Event::listen(QueryExecuted::class, function (QueryExecuted $query): void {
+                if (preg_match('/^\s*(insert|update|delete|replace|truncate)\b/i', $query->sql) === 1) {
+                    $this->committed[] = $query->sql;
+                }
+            });
+        }
+    }
+
+    protected function assertPostConditions(): void
+    {
+        parent::assertPostConditions();
+
+        $this->assertSame([], $this->committed, static::class.' writes to the database without a transaction: add RefreshDatabase.');
     }
 
     /**

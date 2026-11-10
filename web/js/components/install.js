@@ -110,7 +110,10 @@ export const InstallCard = {
         },
         /** Within the ask ledger's caps (js/asks.js): one ask a day, the 14-day snooze, and so on. */
         shown() {
-            return !!this.form && !this.answered && askDue(this.askName);
+            // Never on a brand-new guest's first home (the coordinator, 2026-11-08: Start singing and nothing competing):
+            // once a lesson is done or a song is kept here, or signed in.
+            const begun = !!account.me || this.starred > 0 || (this.here?.songs ?? 0) > 0;
+            return begun && !!this.form && !this.answered && askDue(this.askName);
         },
     },
     created() {

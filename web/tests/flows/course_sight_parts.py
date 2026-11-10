@@ -19,8 +19,9 @@ def journey(f):
     unit = f.js(f"{STORE}.learning.courses['sight-singing'].units.at(-1).id")
     assert unit == "ss-part-in-chord", f"unit 4 is the course's last: {unit}"
 
-    # Amazing Grace's first line, in its own key: the song's notes on the stave, names off.
-    open_step(f, "ss-4-signature", 1)
+    # Amazing Grace's second line, in its own key: the song's notes on the stave, names off (the first,
+    # step 2, has them faint so the singer can check the do they found).
+    open_step(f, "ss-4-signature", 3)
     f.wait("!document.querySelector('[data-song-step]')", what="the song's notes")
     assert f.js(NAMES) == 0, "names off in unit 4"
     f.no_sideways("a song read from the stave")

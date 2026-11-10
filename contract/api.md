@@ -70,9 +70,9 @@ Every error response has this shape (`schemas/error.json`):
 | Status | Code | When | The app |
 |---|---|---|---|
 | 400 | `bad_request` | A request the server can't read at all (broken JSON, for example), as opposed to one that fails validation | Says something went wrong, and to try again |
-| 401 | `unauthenticated` | Signed out, or the admin session ended | Asks the person to sign in |
+| 401 | `unauthenticated` | Signed out, or the admin session ended (the admin area only: the account stays signed in) | Asks the person to sign in |
 | 403 | `forbidden` | Not allowed, with no more specific code | Says it isn't allowed |
-| 403 | *(a specific code)* | A refusal with a reason: `not_admin`, `second_factor_required`, `sudo_required`, `blocked`, `project_limit`, `project_read_only`, `storage_limit`, `email_unverified`, `plus_required`, `consent_required`... | Words that code |
+| 403 | *(a specific code)* | A refusal with a reason: `not_admin`, `second_factor_required`, `sudo_required`, `blocked`, `project_limit`, `project_read_only`, `storage_limit`, `email_unverified`, `plus_required`, `account_required`, `consent_required`... | Words that code |
 | 404 | `not_found` | No such record, or one the person can't see | Says it's gone |
 | 409 | `version_conflict` | The record changed since the app read it (its `version`); `current` is the server's copy | Asks "Keep mine or Use theirs" (or merges, for a project's `settings`) |
 | 409 | *(a specific code)* | The record's state doesn't allow it: `binned`, `part_gone`, `project_missing`, `part_missing`, `upload_incomplete`, `upload_mismatch`... | Words or handles that code |
@@ -94,7 +94,8 @@ limited per network. The app reads it at start and when it comes to the front: a
 `build` from the one it loaded means a new version ("Reload"), and the admin's version badge shows
 `build`'s first 7 characters and `builtAt` in the person's time (`account.json`'s `staff` says
 who sees the badge). `status` is `degraded` when something needs a look, `error` (a `503`) when
-the database is down.
+the database is down. `songsNotSynced` lists (the first 5) songs the last deploy's sync couldn't
+load, each still on its live version; deploy-watch prints them, and it never changes `status`.
 
 ### Uploads (from M2)
 
@@ -272,7 +273,7 @@ Each operation is one function in `web/js/api.js` named after it, and one route 
 | `account.learning.update` | `PUT /api/account/learning` | Anyone signed in | M4 |
 | `account.learning.reset` | `POST /api/account/learning/reset` | Anyone signed in | Course |
 | `account.learning.undoReset` | `POST /api/account/learning/reset/undo` | Anyone signed in | Course |
-| `templates.show` | `GET /api/templates/{id}` | Anyone who may start the song (signed out too, for the song of the month) | M5 |
+| `templates.show` | `GET /api/templates/{id}` | Anyone signed in; signed out, the songs the app bundles and the open library songs | M5 |
 | `billing.prices` | `GET /api/billing/prices` | Anyone | M5 |
 | `billing.show` | `GET /api/billing` | Anyone signed in | M5 |
 | `billing.checkout` | `POST /api/billing/checkout` | Anyone signed in, verified | M5 |
@@ -325,6 +326,7 @@ Each operation is one function in `web/js/api.js` named after it, and one route 
 | `groups.join` | `POST /api/choir/{token}` | Anyone signed in, with the link | M7 |
 | `groups.members.delete` | `DELETE /api/groups/{id}/members/{memberId}` | The director, or the member themselves | M7 |
 | `groups.songs.create` | `POST /api/groups/{id}/songs` | The director | M7 |
+| `groups.tracks.create` | `POST /api/groups/{id}/tracks` | The director | L |
 | `groups.songs.delete` | `DELETE /api/groups/{id}/songs/{templateId}` | The director | M7 |
 | `groups.assignments.update` | `PUT /api/groups/{id}/songs/{templateId}/assignments` | The director | M7 |
 | `coach.application.show` | `GET /api/coach/application` | Anyone signed in | M8 |
@@ -414,6 +416,7 @@ Each operation is one function in `web/js/api.js` named after it, and one route 
 | `admin.appeals.list` | `GET /api/admin/appeals` | An admin | L |
 | `admin.appeals.decide` | `POST /api/admin/appeals/{id}` | An admin, in sudo | L |
 | `admin.people.payment` | `GET /api/admin/people/{id}/payment` | An admin | L |
+| `admin.people.songs.create` | `POST /api/admin/people/{id}/songs` | An admin, in sudo | L |
 | `admin.people.refund` | `POST /api/admin/people/{id}/refund` | An admin, in sudo | L |
 | `templates.finishers` | `GET /api/templates/{id}/finishers` | Anyone | L |
 | `explore.list` | `GET /api/explore` | Anyone | N1 |
@@ -429,6 +432,7 @@ Each operation is one function in `web/js/api.js` named after it, and one route 
 | `blocks.create` | `PUT /api/profiles/{handle}/block` | Anyone signed in | N1 |
 | `blocks.delete` | `DELETE /api/profiles/{handle}/block` | Anyone signed in | N1 |
 | `blocks.list` | `GET /api/account/blocks` | Anyone signed in | N1 |
+| `blocks.remove` | `DELETE /api/account/blocks/{id}` | Anyone signed in | N1 |
 | `harmonies.consent.ask` | `POST /api/harmonies/{id}/consent` | The owner | N1 |
 | `consentRequests.list` | `GET /api/consent-requests` | Anyone signed in | N1 |
 | `consentRequests.decide` | `POST /api/consent-requests/{id}` | The friend asked | N1 |
@@ -523,9 +527,26 @@ Each operation is one function in `web/js/api.js` named after it, and one route 
 | `admin.school.update` | `PATCH /api/admin/school/{id}` | An admin, in sudo | L |
 | `admin.school.redemptions.end` | `POST /api/admin/school/redemptions/{id}/end` | An admin, in sudo | L |
 | `admin.school.teachers.update` | `PATCH /api/admin/school/teachers/{id}` | An admin, in sudo | L |
+| `admin.school.partners.create` | `POST /api/admin/school/partners` | An admin, in sudo | L |
+| `admin.outreach.list` | `GET /api/admin/outreach` | An admin | L |
+| `admin.outreach.create` | `POST /api/admin/outreach` | An admin | L |
+| `admin.outreach.import` | `POST /api/admin/outreach/import` | An admin | L |
+| `admin.outreach.results` | `GET /api/admin/outreach/results` | An admin | L |
+| `admin.outreach.suppressions.create` | `POST /api/admin/outreach/suppressions` | An admin | L |
+| `admin.outreach.drafts.update` | `PATCH /api/admin/outreach/messages/{id}` | An admin | L |
+| `admin.outreach.drafts.delete` | `DELETE /api/admin/outreach/messages/{id}` | An admin | L |
+| `admin.outreach.drafts.send` | `POST /api/admin/outreach/messages/{id}/send` | An admin | L |
+| `admin.outreach.drafts.sent` | `POST /api/admin/outreach/messages/{id}/mark-sent` | An admin | L |
+| `admin.outreach.drafts.test` | `POST /api/admin/outreach/messages/{id}/test` | An admin | L |
+| `admin.outreach.replies.read` | `POST /api/admin/outreach/replies/{id}/read` | An admin | L |
+| `admin.outreach.show` | `GET /api/admin/outreach/{id}` | An admin | L |
+| `admin.outreach.update` | `PATCH /api/admin/outreach/{id}` | An admin | L |
+| `admin.outreach.drafts.create` | `POST /api/admin/outreach/{id}/drafts` | An admin | L |
+| `admin.outreach.replies.create` | `POST /api/admin/outreach/{id}/replies` | An admin | L |
 | `admin.growth.show` | `GET /api/admin/growth` | An admin | L |
 | `admin.sources.show` | `GET /api/admin/sources` | An admin | L |
 | `admin.active.show` | `GET /api/admin/active` | An admin | L |
+| `admin.groups.list` | `GET /api/admin/groups` | An admin | L |
 | `admin.reach.show` | `GET /api/admin/reach` | An admin | L |
 | `admin.revenue.show` | `GET /api/admin/revenue` | An admin | L |
 | `admin.cohorts.show` | `GET /api/admin/cohorts` | An admin | L |
@@ -685,8 +706,13 @@ Accounts, newest first, 50 a page. **Request:** `?q=` (part of an email, a handl
 (or `free`), `?role=singer` (a beta singer) or `tester` (a store tester), `?sort=newest` (or
 `active`: last seen first) and `?cursor=`, all optional. Each row has `adult` (true, false, or
 null with no birth date; never the date), `betaSinger` and `lastActiveAt`; the person page
-(`admin.people.show` and its actions) adds `plan` (`plus`, `source`, `until`) and `counts`
-(`publicHarmonies`, `groups`), never their recordings or private songs. `stats` is how much they use
+(`admin.people.show` and its actions) adds `plan` (`plus`, `source`, `until`), `counts`
+(`publicHarmonies`, `groups`) and `given`, never their recordings or private songs. `given` is the
+songs staff gave them through `admin.people.songs.create` and still in their account, newest first
+(at most 50): `id` (the template's, for `/t/<id>`), `title`, `url` (the app's `/t/<id>`), `givenAt`
+and `givenBy` (`id`, `name`; null once that staff account is gone). These are ours, made and given by
+staff: found by the give itself, so a copy the person makes of a given song (their own song, though
+it carries the rights record) never appears. `stats` is how much they use
 the app, as counts and times only: every row has `songs`, `lessonsDone`, `streakWeeks` and
 `lastActivity` (`kind`: `take`, `practice`, `song`, `share` or `sign_in`, and `at`; no titles); the
 person page adds `takes`, `stars`, `xp`, `level`, `practiceMinutes` (`lastWeek`, `total`) and
@@ -825,8 +851,9 @@ fallback. **Request:** none.
 
 Every song in the library, current versions only, for anyone (signed in or not). Never notes, words
 or part audio of a song the caller can't start: a part's `guide` and `versions` are filled only for
-a free song, the song of the month, and (from M5) a Plus account. The app's bundled templates are
-the offline fallback. **Request:** none.
+a song the app bundles (`access: "free"`) and, signed in, every song (`access: "account"`: every
+library song is free with an account since 2026-11-07). The app's bundled templates are the offline
+fallback. **Request:** none.
 
 **Voices** (Hillel's decision, "published versions"): every accepted recording of a part is a
 published version (`versions`, the default first, then the newest), and `guide` is the default
@@ -1008,6 +1035,7 @@ Their claims still held, soonest ending first. **Request:** none.
 
 Claim one wanted item, held 14 days (then, with nothing sent, it goes back on the list), at most
 3 at once (`409 claim_limit`); one someone else holds, or now voiced, is `409 not_wanted`.
+Limited (`voice-claims`, 6 a day).
 **Request:** `{ "item": "clip:yodel-flip-1" }` (an id from `voices.wanted`).
 
 | Status | Code | Schema | Example |
@@ -1019,6 +1047,7 @@ Claim one wanted item, held 14 days (then, with nothing sent, it goes back on th
 | 409 | `claim_limit` | `error.json` | `voices.claims.create.claim_limit.json` |
 | 409 | `not_wanted` | `error.json` | `voices.claims.create.not_wanted.json` |
 | 403 | `volunteer_blocked` | `error.json` | `voices.claims.create.volunteer_blocked.json` |
+| 429 | `rate_limited` | `error.json` | `voices.claims.create.rate_limited.json` |
 
 #### `voices.claims.delete`
 
@@ -1161,7 +1190,8 @@ Tell Hillel. **Request:** `{ "text": "...", "templateId": "amazing-grace", "part
 
 The numbers that matter, from our own records (never analytics). **Request:** none. `growth` is
 the last 7 days; `growth.previous` (when present) the same three over the 7 days before (8 to 14
-days back), for the change.
+days back), for the change. `outreach` (an admin's only; null for an editor) is for "What needs you
+now": outreach follow-ups due, replies unread, and first emails whose send-by day is near (`sendBySoon`).
 
 | Status | Code | Schema | Example |
 |---|---|---|---|
@@ -1907,7 +1937,8 @@ apps' only: the web's `api.js` doesn't have them.
 - **Every other operation answers a bearer request exactly as it answers a session:** the same
   request, responses and codes.
 - **A device** is one sign-in in an app: Settings' "Signed in on". Its **access token** (`sat_...`)
-  lasts an hour; its **refresh token** (`srt_...`) lasts 90 days from when it was last used, and
+  lasts an hour; its **refresh token** (`srt_...`) lasts 400 days from when it was last used (since
+  2026-11-09; was 90), and
   each `auth.app.refresh` replaces it. A replaced refresh token still works for 60 seconds (a lost
   answer, two requests racing); after that it signs the device out (`401 token_reused`). The
   server keeps only hashes of both.
@@ -2132,13 +2163,15 @@ projects never sync, and don't count toward the limit.
   once its part plays another `ready` take (so a replacement that never arrives leaves the old one
   playing), or once its part is deleted. Then they go for good. The bin doesn't count toward
   storage.
-- **Limits** (`usage.show`): the free plan's 3 projects (binned ones don't count) and its storage
-  allowance (1 GB; Plus: unlimited projects and 50 GB). `403 project_limit` and `403
-  storage_limit` say which. A project beyond the limit after a downgrade stays readable, and changes
-  to it answer `403 project_read_only` ("Plus and billing"); nothing is deleted. An unverified account (trust level 0)
+- **Limits** (`usage.show`): since 2026-11-07 the free plan's one limit is its storage allowance
+  (1 GB; Plus: 50 GB); no plan limits projects (`projects.limit` is null). `403 storage_limit` says
+  so, with `usedBytes` and `limitBytes` for the meter. (`403 project_limit` and `project_read_only`
+  `limit` come only on an install that sets a project limit: a project beyond it after a downgrade
+  stays readable, and changes to it answer `403 project_read_only`; nothing is deleted.) An unverified account (trust level 0)
   saves projects and parts, but its takes wait (`403 email_unverified`) until it's verified.
-- **Moving browser projects in** (first sign-in): the app saves each with `version: 0`; one past the
-  limit answers `403 project_limit` and stays on the device, marked "not saved to your account".
+- **Moving browser projects in** (first sign-in): the app saves each with `version: 0`; one past an
+  install's project limit answers `403 project_limit` and stays on the device, marked "not saved to
+  your account".
 - **Audio** goes up as a 16-bit mono WAV by presigned `PUT` ("Uploads"), at any rate from 8000 to
   192000 Hz, and comes down as FLAC (lossless, at the take's `sampleRate`: decode it at that rate,
   not the AudioContext's, so frame counts stay exact). Peaks are the absolute maximum of each
@@ -2495,23 +2528,27 @@ portal's `url` (in the installed app, the system browser).
 - **Plus is kept while a payment is retried** (`past_due`, until `pastDueUntil`); after the last
   retry fails, the account is free (`endedReason: payment_failed`). Cancelling (in the portal) keeps
   Plus to the end of the paid period (`canceled`, until `endsAt`).
-- **Nothing is deleted by a downgrade:** a project is `readOnly` `"limit"` (beyond the free limit:
-  the person picks which stay editable with `projects.editable.update`, the most recently edited by
-  default) or `"plus_song"` (made from a Plus song: back with Plus). A read-only project is
+- **Nothing is deleted by a downgrade:** since 2026-11-07 no plan limits projects and every library
+  song is free with an account, so a downgrade makes nothing read-only. On an install that sets a
+  project limit, a project beyond it is `readOnly` `"limit"` (the person picks which stay editable
+  with `projects.editable.update`, the most recently edited by default); `"plus_song"` is no longer
+  sent. A read-only project is
   readable, exportable as WAV, and still saves its practice `settings` (a `projects.save` that
   changes nothing else); any other change answers `403 project_read_only` with its `projectId` and
   `reason`, and the app keeps the entry in its outbox. A project becoming read-only or editable
   gets a new sync change number but keeps its `version`, so queued saves don't conflict.
-- **Plus songs** come from `templates.show`, never in the app's files: to a Plus account
-  (`grant: "plus"`), to anyone, signed out too, for the song of the month (`"month"`, with
-  `freeUntil`), and for good to anyone who started a project from a song while it was the song of
-  the month (`"kept"`: "finish your song"), to Hillel and the editor (`"admin"`, reviewing beta
-  takes and guides; never counted toward the daily cap), and to a beta singer for the songs they're
-  assigned (`"beta"`). Offline, a Plus song stays usable until
-  `billing.show`'s `plusOfflineUntil` (14 days after the last check, but never past the end of a
-  cancelled plan), then read-only until the app is online again.
-- **Refusals:** `403 plus_required` (a Plus song or feature on a free account), `403
-  project_read_only`, `403 email_unverified` (Checkout needs a verified address), `409
+- **Library songs** the app doesn't bundle come from `templates.show`, never in the app's files: to
+  any signed-in account (`grant: "account"`, every plan, since 2026-11-07), and to Hillel and the
+  editor (`"admin"`, reviewing beta takes and guides; never counted toward the daily cap). Signed
+  out, an open song (live, its current version reviewed, its words and tune public domain: the
+  songs the public site shows) plays for guests, its current version only (`grant: "open"`, under
+  the daily cap per network, `Cache-Control: private, no-cache` (kept by the browser, revalidated by its ETag); since 2026-11-08), so its
+  public part page plays its part. Any other library song signed out, or an open song's older
+  `?version=`, is `403 account_required`: the app asks for a free account. The song of the month ended:
+  `freeUntil` is always null. Offline, such a song stays usable until `billing.show`'s
+  `plusOfflineUntil` (14 days after the last check), then read-only until the app is online again.
+- **Refusals:** `403 plus_required` (a Plus feature on a free account: your own recorded guide),
+  `403 account_required` (a library song signed out), `403 project_read_only`, `403 email_unverified` (Checkout needs a verified address), `409
   already_plus`, `409 trial_used`, `409 no_subscription`, `423 paused` (Checkout paused during an
   attack, or before Stripe is set up), `429 rate_limited` (the Checkout limit, and the Plus download cap).
 
@@ -2527,7 +2564,7 @@ is told). **Request:** `?version=` (optional).
 | Status | Code | Schema | Example |
 |---|---|---|---|
 | 200 |  | `templates.show.json` | `templates.show.200.json` |
-| 403 | `plus_required` | `error.json` | `templates.show.plus_required.json` |
+| 403 | `account_required` | `error.json` | `templates.show.account_required.json` |
 | 404 | `not_found` | `error.json` | `templates.show.not_found.json` |
 | 429 | `rate_limited` | `error.json` | `templates.show.rate_limited.json` |
 
@@ -2562,14 +2599,15 @@ none.
 #### `billing.checkout`
 
 Start Checkout. **Request:** `{ "interval": "year", "currency": "usd", "trial": true, "moment":
-"plus_song" }`:
+"storage_limit" }`:
 - `interval` `month` or `year`; `currency` `usd`, `eur` or `gbp` (a returning subscriber keeps their
   first currency);
 - `trial` asks for the trial `billing.show` offers (its `trial.intervals`); one this account has
   had, or not offered for this interval, answers `409 trial_used`;
-- `moment` is the upgrade moment that led here, counted on the server, never in the browser:
-  `plus_song`, `course_unit7`, `workout`, `project_limit`, `storage_limit`, `mp3`, `stems`,
-  `history`, `gym`, `private_template`, `settings` or `plus_course` (anything else is kept as `other`);
+- `moment` is the upgrade moment that led here, counted on the server, never in the browser: since
+  2026-11-07 the solo extras only, `storage_limit`, `mp3`, `stems`, `guide` (your own recorded
+  guide), `private_template` or `settings` (anything else, an older app's `plus_song` too, is kept
+  as `other`);
 - `startNowConsent` (optional): true when the person ticked the consent to start at once. Where
   `billing.prices` says it's needed and it isn't true, `422 validation_failed` on
   `startNowConsent`. The server records it with the checkout (when, the words' version, the
@@ -2636,8 +2674,9 @@ from the stores' notifications after that; the app only reads billing.show. Answ
 #### `projects.editable.update`
 
 After a downgrade, which projects stay editable (at most the free limit; the rest are `readOnly:
-"limit"`). **Request:** `{ "ids": ["<project uuid>", "..."] }`. A `422` on `ids` for more than the
-limit, and on `ids.N` for an unknown, binned or Plus-song project.
+"limit"`). Only an install that sets a project limit uses it; with none, any ids are kept and
+nothing is read-only. **Request:** `{ "ids": ["<project uuid>", "..."] }`. A `422` on `ids` for more than the
+limit, and on `ids.N` for an unknown or binned project.
 
 | Status | Code | Schema | Example |
 |---|---|---|---|
@@ -2648,7 +2687,8 @@ limit, and on `ids.N` for an unknown, binned or Plus-song project.
 
 Keep an exercise's score summary in the history: numbers only, never audio. A take's report comes
 with the take itself (`takes.create`'s `scores`, kept under the take's id), so this is for scored
-exercises; a free account's are kept too, and `scores.list` shows the history once it's on Plus.
+exercises; every account's are kept, and `scores.list` shows the history to every account (free since
+2026-11-07).
 The same `id` again answers `200` as it is; the same `id` with another body is a `422` on `id`.
 **Request:** `{ "id": "<uuid>", "lesson": "u4.l2.ex1", "templateId": null, "templateVersion": null,
 "partKey": null, "recordedAt": "...", "summary": {...} }` (`summary` at most 16 KB, as the app
@@ -2661,14 +2701,13 @@ keeps it).
 
 #### `scores.list`
 
-The history (take reports and exercises), newest first, 100 a page. Plus. **Request:**
+The history (take reports and exercises), newest first, 100 a page, for every account. **Request:**
 `?templateId=&partKey=&lesson=&since=&cursor=`, all optional (`since`: kept after that time, for a
 device catching up).
 
 | Status | Code | Schema | Example |
 |---|---|---|---|
 | 200 |  | `scores.list.json` | `scores.list.200.json` |
-| 403 | `plus_required` | `error.json` | `scores.list.plus_required.json` |
 
 #### `reminders.show`
 
@@ -3079,7 +3118,9 @@ first save (they stay as they were).
 **Imported sheet music:** a song made from a score the singer brought sends `"source": "sheet-music"`
 with `"rightsConfirmed": true` (required with that source; the server keeps when, as
 `rightsConfirmedAt`, and nothing about the file). "Make a copy" sends `"copiedFrom": "<the template's
-id>"` (one the person may open, else `404`): a copy of an imported song is imported too. An imported
+id>"` (one the person may open, else `404`): a copy of an imported song is imported too, and
+only its owner may copy it (anyone else, such as a member of a group it's shared with, is `422`
+`imported_private`). An imported
 song is marked for good (`imported`), and stays private to its owner and the choir groups it's added
 to: `visibility` `unlisted` or `public`, `libraryOptIn` true, or a `parentId` are refused with `422`
 `imported_private`, as are `templates.update` to those, `templates.publish`, `ideas.create`, an
@@ -3129,7 +3170,7 @@ As before for the official songs. For a person's own template, `grant` is `own` 
 `link` (unlisted, anyone with the link), `group` (shared with a choir group the caller is in) or
 `project` (a singer on a project made from it, while that project isn't binned);
 `voices` holds the creator's recorded guides; `?version=` picks an older version. A choir group's
-Plus song gives its members `grant: "group"` too, while the group's director has Plus.
+library songs open to its members as to any account (`grant: "account"`).
 
 #### `templates.recordings.create`
 
@@ -3295,14 +3336,12 @@ invite, or one you've already joined, answers the project as it is. **Request:**
 
 #### Choir groups
 
-**A director's group** (Plus; `docs/pricing-plan.md`, "A choir plan"): members join by the group's
-link, the director shares songs (official, or their own templates) and assigns parts, and sees who
-has recorded theirs.
+**A director's group** (free for everyone since 2026-11-07, `docs/pricing-plan.md`: every singer
+is free): members join by the group's link, the director shares songs (official, or their own
+templates) and assigns parts, and sees who has recorded theirs.
 
-- **Who pays:** the director's Plus covers the group; members join free. While they're in it,
-  members may learn the group's songs, Plus songs included (`grant: "group"`), and their projects
-  from them stay editable, as long as the director has Plus (a lapsed director's group gets
-  `403 plus_required` for its Plus songs, as anyone without Plus would).
+- **No plan needed:** any adult account makes a group, and anyone with the link joins. No group
+  operation answers `plus_required`, and `readOnly` is always false (kept for older apps).
 - **Sizes:** up to 60 members a group, 5 groups a director (`403 group_limit`).
 - **18 and over, for now:** until Hillel decides how members under 18 take part, making or joining
   a group asks once that the person is 18 or over (`"adult": true` in the request, kept on the
@@ -3310,12 +3349,16 @@ has recorded theirs.
 - **What the director sees of members:** their name, each assignment's status (`none`, `started`
   when they have a project from the song, `recorded` once that project's part for the assigned
   `partKey` has a ready take) and when. Never their recordings or contact details.
-- **Leaving:** a member leaves, or the director removes them; their projects stay theirs (a Plus
-  song's project goes read-only again, unless they have Plus). If the director's Plus ends, the
-  group stays but is read-only: no new songs, members or assignments (`403 plus_required`), and
-  members keep learning what's shared until it's deleted.
+- **Leaving:** a member leaves, or the director removes them; their projects stay theirs.
 - **The group's link** (`/choir/<token>`) is one per group, made again by the director (the old one
   stops); no email from us.
+- **The next rehearsal** (`rehearsal`): a plain date the director sets, and whether it's weekly. The
+  server works out `next` and `previous` on read (nothing is scheduled, and nobody is sent anything);
+  a day counts as passed once it's over everywhere (12:00 UTC the next day), so the app may roll a
+  weekly one on by the device's own date. A group linked to Event Schedule keeps its events apart
+  from this. For the director, each song's `sinceRehearsal` counts the assigned members who began it
+  and who recorded their part since the previous rehearsal's day began (UTC): numbers only, null
+  for a member or before a first rehearsal.
 
 #### `groups.list`
 
@@ -3332,7 +3375,6 @@ The groups the person directs or sings in. **Request:** none.
 | Status | Code | Schema | Example |
 |---|---|---|---|
 | 201 |  | `groups.show.json` | `groups.create.201.json` |
-| 403 | `plus_required` | `error.json` | `groups.create.plus_required.json` |
 | 403 | `group_limit` | `error.json` | `groups.create.group_limit.json` |
 | 422 | `validation_failed` | `error.json` | `groups.create.validation_failed.json` |
 | 403 | `adult_required` | `error.json` | `groups.create.adult_required.json` |
@@ -3350,7 +3392,9 @@ member's assignments and their status; a member sees their own), and, for the di
 
 #### `groups.update`
 
-Rename it (director). **Request:** `{ "name": "..." }`.
+Rename it, or set its next rehearsal (director). **Request:** `{ "name": "...", "rehearsal": { "date":
+"2026-11-12", "weekly": true } }`, each optional but at least one; `"rehearsal": null` clears it. The
+date is a real `YYYY-MM-DD` from yesterday (UTC) to a year ahead (`422` with `errors["rehearsal.date"]`).
 
 | Status | Code | Schema | Example |
 |---|---|---|---|
@@ -3379,7 +3423,6 @@ offers Reset link). A member never sees it. **Request:** none.
 |---|---|---|---|
 | 201 |  | `group.link.json` | `groups.link.create.201.json` |
 | 403 | `director_only` | `error.json` | `groups.link.create.director_only.json` |
-| 403 | `plus_required` | `error.json` | `groups.link.create.plus_required.json` |
 
 #### `groups.join.show`
 
@@ -3393,14 +3436,13 @@ sing in it. **Request:** none.
 
 #### `groups.join`
 
-Join, signed in, with `{ "adult": true }` the first time. Already a member: the group as it is. A group whose director's Plus has ended takes no new members (`403 plus_required`). **Request:** none.
+Join, signed in, with `{ "adult": true }` the first time. Already a member: the group as it is. **Request:** none.
 
 | Status | Code | Schema | Example |
 |---|---|---|---|
 | 200 |  | `groups.show.json` | `groups.join.200.json` |
 | 403 | `age_unconfirmed` | `error.json` | `groups.join.age_unconfirmed.json` |
 | 403 | `group_full` | `error.json` | `groups.join.group_full.json` |
-| 403 | `plus_required` | `error.json` | `groups.join.plus_required.json` |
 | 404 | `not_found` | `error.json` | `groups.join.not_found.json` |
 | 403 | `adult_required` | `error.json` | `groups.join.adult_required.json` |
 
@@ -3424,8 +3466,28 @@ it is.
 |---|---|---|---|
 | 200 |  | `groups.show.json` | `groups.songs.create.200.json` |
 | 403 | `director_only` | `error.json` | `groups.songs.create.director_only.json` |
-| 403 | `plus_required` | `error.json` | `groups.songs.create.plus_required.json` |
 | 404 | `not_found` | `error.json` | `groups.songs.create.not_found.json` |
+
+#### `groups.tracks.create`
+
+Ask us for learning tracks of one piece the choir is rehearsing (docs/choir-tracks-plan.md, stage 1).
+It waits in the support inbox as a `tracks` message from the director's account (no other address is
+asked for), and the answer comes by email asking for the score: no score is sent or kept here.
+**Request:** `{ "piece": "God So Loved the World", "composer": "John Stainer", "voicing": "SATB",
+"rights": "public-domain", "rightsConfirmed": true, "note": "We sing it at Easter." }`. `piece` is
+needed (up to 200); `composer` (200), `voicing` (60) and `note` (2000) are optional. `rights` is
+`public-domain` (everyone whose work is used died over 70 years ago and it was printed before 1931)
+or `own-arrangement` (the director or a member arranged it, and the choir may use it), and
+`rightsConfirmed` must be `true`: the director's written word, kept with the request. Limited
+(`support`, 5 an hour).
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 201 |  | `support.received.json` | `groups.tracks.create.201.json` |
+| 403 | `director_only` | `error.json` | `groups.tracks.create.director_only.json` |
+| 404 | `not_found` | `error.json` | `groups.tracks.create.not_found.json` |
+| 422 | `validation_failed` | `error.json` | `groups.tracks.create.validation_failed.json` |
+| 429 | `rate_limited` | `error.json` | `groups.tracks.create.rate_limited.json` |
 
 #### `groups.songs.delete`
 
@@ -3447,7 +3509,6 @@ one part of a song.
 |---|---|---|---|
 | 200 |  | `groups.show.json` | `groups.assignments.update.200.json` |
 | 403 | `director_only` | `error.json` | `groups.assignments.update.director_only.json` |
-| 403 | `plus_required` | `error.json` | `groups.assignments.update.plus_required.json` |
 | 422 | `validation_failed` | `error.json` | `groups.assignments.update.validation_failed.json` |
 | 404 | `not_found` | `error.json` | `groups.assignments.update.not_found.json` |
 
@@ -4543,7 +4604,11 @@ months.
 
 #### `admin.support.list`
 
-**Request:** `?status=open` (the default), `answered`, `closed` or `all`; `?cursor=`.
+**Request:** `?status=open` (the default), `answered`, `closed` or `all`; `?category=` (one of
+`support.create`'s, or `tracks`: directors' learning tracks requests); `?cursor=`. A `tracks` message
+has `tracks`: `{groupId, group, piece, composer, voicing, rights, rightsConfirmedAt}`, so Admin can
+give the song from the row (`admin.people.songs.create` to `from.account`); `admin.support.show` has it
+too, and the saved reply `tracks_score` asks for the score.
 
 | Status | Code | Schema | Example |
 |---|---|---|---|
@@ -4615,6 +4680,26 @@ so the People screen reads it only when the refund panel opens. **Request:** non
 |---|---|---|---|
 | 200 |  | `admin.people.payment.json` | `admin.people.payment.200.json` |
 | 404 | `not_found` | `error.json` | `admin.people.payment.not_found.json` |
+
+
+#### `admin.people.songs.create`
+
+Give a partner's song to this account (docs/partner-songs.md): the template JSON the arranger prepared
+goes in as the owner's own song, imported and private, with the rights record from the partner's
+written confirmation. It then follows sheet import's guardrails (private to its owner and their
+groups, never public or in the library, reportable, taken down on a notice), whether or not
+`sheet_import` is on; the owner shares it with their group from the group page. **Request:** `{ "song":
+{ template JSON, as templates.save takes }, "rights": { "confirmedBy": "who, and their role", "confirmedAt":
+"when they confirmed", "wording": "the words they confirmed", "source": "where it is: their email and its date" } }`.
+Refused for an owner who hasn't confirmed their email (`email_unverified`) or a repeat infringer
+(`import_blocked`); a bad template is a `422`. In sudo. Audited.
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 201 |  | `admin.people.song.json` | `admin.people.songs.create.201.json` |
+| 403 | `email_unverified` | `error.json` | `admin.people.songs.create.email_unverified.json` |
+| 403 | `import_blocked` | `error.json` | `admin.people.songs.create.import_blocked.json` |
+| 422 | `validation_failed` | `error.json` | `admin.people.songs.create.validation_failed.json` |
 
 #### `admin.people.refund`
 
@@ -4767,13 +4852,14 @@ Follow a public profile; twice is once. 18 or over, not blocked. Limited (`follo
 
 #### `blocks.create`
 
-Block someone by their handle. Neither then sees the other's profile, harmonies or comments, follows between them end, and they can't follow or comment on each other. **Request:** none.
+Block someone by their handle. Neither then sees the other's profile, harmonies or comments, follows between them end, and they can't follow or comment on each other. Only a public profile: any other handle is `404 not_found`. Limited (`follows`, 50 an hour). **Request:** none.
 
 | Status | Code | Schema | Example |
 |---|---|---|---|
 | 204 | | | |
 | 404 | `not_found` | `error.json` | `blocks.create.not_found.json` |
 | 422 | `validation_failed` | `error.json` | `blocks.create.validation_failed.json` |
+| 429 | `rate_limited` | `error.json` | `blocks.create.rate_limited.json` |
 
 #### `blocks.delete`
 
@@ -4786,11 +4872,21 @@ Block someone by their handle. Neither then sees the other's profile, harmonies 
 
 #### `blocks.list`
 
-Everyone the caller blocked. **Request:** none.
+Everyone the caller blocked. Someone without a public profile (any more) is "A Stackapella singer", with no handle or picture. Each row's `blockId` unblocks it (`blocks.remove`), so that one stays unblockable. **Request:** none.
 
 | Status | Code | Schema | Example |
 |---|---|---|---|
 | 200 |  | `blocks.list.json` | `blocks.list.200.json` |
+
+#### `blocks.remove`
+
+Unblock by the block itself (a `blockId` from `blocks.list`), for someone whose profile is no longer
+public too (Hillel: "Make them unblockable"). Only the caller's own blocks. **Request:** none.
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 204 | | | |
+| 404 | `not_found` | `error.json` | `blocks.remove.not_found.json` |
 
 #### `harmonies.consent.ask`
 
@@ -5682,7 +5778,7 @@ Hidden, held and merged ones never show.
 
 **Request:** `{ "title": "Danny Boy", "writer": "Traditional", "why": "Our choir sings it at
 Christmas" }`. The same title already asked for (ignoring case, spaces and punctuation) is voted
-for instead, and answered as it is (`200`); a new one is `201`.
+for instead, and answered as it is (`200`); a new one is `201`. Limited (`song-requests`, 10 a day).
 
 | Status | Code | Schema | Example |
 |---|---|---|---|
@@ -6023,16 +6119,20 @@ account, address, browser or cookie, and the request starts no session, so the a
 `challenge_accepted`, `app_day`, `app_week` and `app_month` (each device once a UTC day, ISO week
 and month, at its first open in it, from the date it last sent one, kept on the device), `sign_up` (counted
 by the server itself for every new account: the app doesn't send it), and the usage page's own (config/counts.php `kinds`: the skins, Plus extras, Hum a tune, the studio, onboarding's asks and melody first), and `<prefix>:<id>` for a course or lesson: `pl_s:` and `pl_d:` with a Plus course's `id` (web/course/plus/courses.json), `fl_s:` and `fl_d:` with a free lesson's `id` (web/course/course.json), counted only for a real id (others are dropped); `n` is 1 to 20 (more counts as
-20); at most 20 events a request, 30 requests a minute from one connection (then 429).
+20); at most 20 events a request, 120 requests a minute from one connection (past it, the same `204`
+and nothing is counted: every sender is a beacon, and a browser logs a beacon's `429` as a console error).
 A request carrying the `sa_staff` cookie (an admin's device: set when an admin passes the second
-factor, value `1`, no ID) is answered 204 and counts nothing, experiment arms included.
+factor, value `1`, no ID) is answered 204 and counts nothing, experiment arms included. So is one
+whose user agent names a well-known crawler (config/counts.php `crawlers`); the agent isn't kept.
 
 **The onboarding funnel** (docs/onboarding-review.md, section 4): each a device's first, counted once
 per device by the app, the landing's Start by the site: `f_site_start`, `f_arrive` or
 `f_arrive_start` (one or the other, never both: arrivals are their sum), `f_mic`, `f_note`,
 `f_note_skip`, `f_lesson1`, `f_chord`, `f_lesson2`, `f_lesson3`, `f_unit1`, `f_goal`, `f_install`,
 `f_name`, `f_account`, `f_share`, `f_remind`, `f_take`, `f_harmony`, `f_day2`, `f_week1`,
-`f_goal_met`, `f_day7` (back on day 7) and `f_plus` (Plus started on this device); and each ask (`install`, `account`, `name`, `share`, `goal`, `remind`) as
+`f_goal_met`, `f_day7` (back on day 7), `f_plus` (Plus started on this device), `f_day14` (back on
+any of days 14 to 20) and `f_course_lesson` (a first lesson finished with a star in any course, the
+free one included); and each ask (`install`, `account`, `name`, `share`, `goal`, `remind`) as
 `ask_<name>_shown` (first time only) and `ask_<name>_yes`. With them the request may carry the
 device's experiment arm (each funnel kind counts once a request, whatever `n` says), `"variant": "onb1-b"` (`auth.config`'s `experiment` id, a dash, the arm):
 `{ "events": [{ "kind": "f_lesson1" }], "signedIn": false, "variant": "onb1-b" }`. The server keeps
@@ -6049,18 +6149,23 @@ once: an arm's denominator. `admin.funnel.show?experiment=<id>` reads those coun
 experiment but onb1, with `exp_enrol` as its first step and arrivals.
 
 **Where they came from** (Admin > Growth's sources): the request may also carry `"source"`, the
-device's stored `?ref=` tag as it is (at most 40 characters). The server never keeps it as sent: it
-keeps a campaign's tag as written when it's on our list (config/counts.php `sources`), `harmony` for
-a shared harmony's (`h-*`), `coach` for a coach's link (`c-*`), `other` for any other tag, and none
-without one, and only on funnel kinds and `site_visit` (the landing's own script, once a page
-load); a row with a source keeps no country. `plus_started` is counted by the server itself when a
+device's stored `?ref=` tag as it is (at most 60 characters). The server never keeps it as sent: it
+keeps a campaign's tag as written when it's on our list (config/counts.php `sources`), a free tool's
+(`tool-<slug>`, config/tools.php `slugs`) and an embedded tool's (`embed-<the embedding site's host>`)
+as written, `harmony` for
+a shared harmony's (`h-*`), `coach` for a coach's link (`c-*`), `profile` for a singer's public
+profile (`p-*`), `other` for any other tag, and none without one, and only on funnel kinds and `site_visit` (the landing's own script, once a page
+load); a row with a source keeps no country. Every public page's footer script sends one of
+`sv_home`, `sv_courses`, `sv_course`, `sv_lesson`, `sv_tools`, `sv_songs`, `sv_part`, `sv_guides` or `sv_other`
+once a page load (its section only, no source: App\Support\Site\SiteVisit), never on the app's host. A song part page sends `part_play` once a page load, at its player's
+first play (no song, part or path).
+`plus_started` is counted by the server itself when a
 subscription starts (any store): the app doesn't send it.
 
 | Status | Code | Schema | Example |
 |---|---|---|---|
 | 204 | | | |
 | 422 | `validation_failed` | `error.json` | `counts.create.validation_failed.json` |
-| 429 | `rate_limited` | `error.json` | `counts.create.rate_limited.json` |
 
 #### `admin.funnel.show`
 
@@ -6082,16 +6187,33 @@ below p 0.001 means a bucketing bug, not a result). `asks` is each ask's shown a
 
 #### `admin.growth.show`
 
-Admin > Growth's Overview (docs/admin-growth-plan.md). **Request:** `?days=1` (today so far, UTC;
-the default), `7`, `30` or `84` (12 weeks). `tiles` is each of `arrivals` (`f_arrive` plus `f_arrive_start`),
-`lesson1` (`f_lesson1`), `signedUp` (the server's `sign_up`) and `plusStarted` (`plus_started`):
-its count today, yesterday and the same weekday last week (UTC), whatever `days` says; and over the
-period itself, `current` (the `days` days ending today), `previous` (the same length just before)
-and `weekAgo` (the same days a week back), with `lowSample` true while `current` is under 20 (too
-few to read a change). `steps` is
-"how far they got" in order, each one's total over the period: `visits` (`site_visit`), `start`
-(`f_site_start`), `arrivals`, `lesson1`, `unit1` (`f_unit1`), `signedUp`, `plusStarted`. Daily
-totals only.
+Admin > Growth's Overview (docs/admin-growth-plan.md; the fair comparisons are
+docs/growth-compare-plan.md). **Request:** `?period=today` (the default), `7d`, `28d` (4 weeks),
+`month` (this month so far) or `12w`; the old `?days=1`, `7`, `30` or `84` still works (30 is the 4
+weeks now). Every window starts at a midnight and ends at the same clock time in the report zone
+(`period.cut`), so each period is compared with the one before cut at the same time (`comparisons[0]`,
+and at the month edge last month whole scaled to `scaledDays`), and Today and 7 days also with a usual
+one, the mean of the 4 before (`comparisons[1]`). `metrics` are `visits` (every `sv_*`), `arrivals`,
+`lesson1` (with its share of arrivals), `lessons` (`lesson_done`), `signUps` (with its share of
+arrivals), `asks` (the account asks said yes, with those shown as its rate's base), `day2` and `plus`:
+each `now` and each comparison's `expected`, its raw `base` and `k`, whether it was `estimated` (a cut
+day with no hourly counts: its total times a usual day's share by then), and the server's `verdict`
+(`up`, `down`, `maybeUp`, `maybeDown`, `same`, `tooFew` under 5, `none`, `new`, or `noHistory` with
+`comparesFrom`), `z` and `change` (a count under 20 expected, a whole percentage from 20, `times` past
++200%); a usual row adds `available` (2 to 4 windows) and its usual range `low` to `high`. A rate is
+compared only when its base is 30 or more on both sides. `sections` is each `sv_*` over the last 7
+days against the 7 before; `tracking` is the four headline numbers (`visits`, `arrivals`,
+`firstLessons` with its `measure`, `signUps`) over 7 days against a usual week, whatever the period.
+`period.dayShare` is a usual day's share of site visits in by now and `period.early` says it's under
+15% (Today). `hourlySince` is when hourly counting began, `countingSince` the first day of any count,
+`breaks` the counting changes inside the comparison (config counts.breaks). `chart` is the period's chart
+(the plan's section 11): Today by local hour, 7 days, 4 weeks and the month by day, 12 weeks by
+Monday-to-Sunday week, Visits and Arrivals each with the slot counts now and before and a projection
+the server works out (shown only once it can be said; never a verdict), and sign-ups as a strip. `tiles` and `steps` stay for an older web, the tiles now cut at the same time too: each
+of `arrivals`, `lesson1`, `signedUp` and `plusStarted`, `today` so far, `yesterday` and `lastWeek` by
+now, and over the period `current`, `previous` and `weekAgo`, each cut at the same time, with
+`lowSample` while `current` is under 20. `steps` is "how far they got" over the period: `visits`
+(`site_visit`), `start`, `arrivals`, `lesson1`, `unit1`, `signedUp`, `plusStarted`. Anonymous counts only.
 
 | Status | Code | Schema | Example |
 |---|---|---|---|
@@ -6101,8 +6223,8 @@ totals only.
 
 Admin > Growth's Sources, and the Overview's table. **Request:** `?days=1`, `7` (the default), `30`
 or `90`. `sources` is each source (a campaign tag as written, `harmony`, `coach`, `other`, or `none`
-for no tag; see `counts.create`) with its `visits`, `arrivals`, `lesson1`, `signedUp` (the
-device's own `f_account`, which carries its source), `day2` (`f_day2`) and `week1` (`f_week1`) over
+for no tag; see `counts.create`) with its `visits`, `arrivals`, `lesson1`, `courseLesson` (`f_course_lesson`, a first lesson in
+any course, the free one included), `signedUp` (the device's own `f_account`, which carries its source), `day2` (`f_day2`) and `week1` (`f_week1`) over
 the period, most arrivals first. Sources with fewer than 5 arrivals are folded into one last row,
 `source` `small`, with `sources` saying how many, so a tiny source never stands for a person.
 
@@ -6123,6 +6245,20 @@ point not worked out yet is `null`. Counts only, never who.
 | Status | Code | Schema | Example |
 |---|---|---|---|
 | 200 | | `admin.active.show.json` | `admin.active.show.200.json` |
+
+#### `admin.groups.list`
+
+Admin > Groups: each choir group's practice of its own songs, week by week (docs/choir-tracks-plan.md,
+"How we'll know"). **Request:** none. `groups` are the 100 most active (members who sang in the last
+two weeks), then the newest, of the 500 newest; `total` is every group. Each has its `name`, its
+`director` (`id`, `name`), `members` (the director left out), `songs` and `createdAt`, and `weeks`:
+the last 8, Monday to Sunday in the report timezone, oldest first, the current one last, each with
+`singers` (members who recorded a take or a scored run of one of the group's songs that week),
+`takes` and `scores`. Totals only: never which member.
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 200 | | `admin.groups.list.json` | `admin.groups.list.200.json` |
 
 #### `admin.reach.show`
 
@@ -6275,12 +6411,29 @@ endedAt }`.
 
 #### `admin.school.update`
 
-**Request:** `{ "action": "close", "reason": "optional, up to 300" }`. Audited.
+**Request:** `{ "action": "close", "reason": "optional, up to 300" }`, or a partner code's seats:
+`{ "action": "seats", "seats": 1 to 100000 }` (never below the seats used). Audited.
 
 | Status | Code | Schema | Example |
 |---|---|---|---|
 | 200 | | `admin.school.row.json` | `admin.school.update.200.json` |
 | 404 | `not_found` | `error.json` | `admin.school.update.not_found.json` |
+| 409 | `school_not_partner` | `error.json` | `admin.school.update.school_not_partner.json` |
+| 409 | `school_seats_below_used` | `error.json` | `admin.school.update.school_seats_below_used.json` |
+
+#### `admin.school.partners.create`
+
+A partner code (docs/outreach-plan.md, "The partner offer"): Admin's, for an approved partner
+organization's members, with the seats it needs (no lifetime cap) and no teacher to approve. Each
+member redeems once for a free year (the school codes' `school.redeem`), under-18s under the school
+rules; nobody, the partner included, learns who. Linked to its outreach organization (`targetId`),
+which becomes a `partner`. **Request:** `{ "name", "seats": 1 to 100000, "days": 30 to 730 (365),
+"targetId": "optional" }`. In sudo. Audited.
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 201 | | `admin.school.row.json` | `admin.school.partners.create.201.json` |
+| 422 | `validation_failed` | `error.json` | `admin.school.partners.create.validation_failed.json` |
 
 #### `admin.school.redemptions.end`
 
@@ -6303,6 +6456,206 @@ as in `admin.school.list`.
 |---|---|---|---|
 | 200 | | `admin.school.teacher.json` | `admin.school.teachers.update.200.json` |
 | 404 | `not_found` | `error.json` | `admin.school.teachers.update.not_found.json` |
+
+#### `admin.outreach.list`
+
+Admin > Growth > Outreach (docs/outreach-plan.md): the organizations Hillel may write to, by name.
+About organizations and their published role addresses, never our users. **Request:** any of
+`?status=` (a stored status, or `follow_up_due`), `?group=`, `?angle=`, `?q=` (name or address).
+`summary` has whether sending is set up (`configured`), the daily `cap` and `sentToday` (the report's
+day, by Send or marked sent), `followUpsDue`, `unreadReplies`, `unfiledReplies` and `sendBySoon` (first emails not sent whose send-by day is within 3 days or past); `unfiled` lists
+replies no organization matched, for filing with `admin.outreach.replies.read`.
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 200 |  | `admin.outreach.list.json` | `admin.outreach.list.200.json` |
+
+#### `admin.outreach.create`
+
+Add one organization. **Request:** `{ "name", "group", "angle": "school" | "choir_groups" | "course" |
+"practice_tool", "country": "US", "reach", "fit": "why it fits, in their own words", "contact": an
+email address or a contact form's web address, "source": "the page it was published on", "notes" }`
+(`source` is required with a contact: only published contacts). Its `ref` (`o-` and its name) is
+made here. It's `ready` once it has a contact and its source, else `to_research`. **Answer:** as in
+`admin.outreach.show`.
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 201 |  | `admin.outreach.show.json` | `admin.outreach.create.201.json` |
+| 422 | `validation_failed` | `error.json` | `admin.outreach.create.validation_failed.json` |
+
+#### `admin.outreach.import`
+
+The research list, as rows (the screen reads the file): `{ "rows": [ { ...admin.outreach.create's
+fields, "verified": false, "ref": "o-bhs", "research": { "note", "links": [up to 10 URLs] }, "sendBy": "2026-11-21", "sendNotBefore": "2026-11-12", "followUpNotBefore": "2026-11-25", "timingNote", "draft": { "subject", "body" }, "followUp": { "subject", "body" } } ] }`, at
+most 500. Each row is checked on its own; a bad one, a suppressed address, or an organization
+already being written to is left out with its reason. The same name and country updates one not
+emailed yet (its drafts replaced by the row's). `verified: false` (its contact not seen on the page yet) keeps it
+`to_research`. `ref` (optional, `o-` and up to 14 letters, digits or hyphens) is the organization's
+tag, kept for the sends before 2026-11-05 that carried it; without it, or when it's too long,
+malformed or taken, a short one is made from the name. Since 2026-11-05 (Hillel: "Make the URL just
+our domain, no extra tracking") a draft's words go exactly as written: no link is given a tag. A
+row's `draft` and `followUp` (written ahead, for Hillel to review) become its drafts.
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 200 |  | `admin.outreach.import.json` | `admin.outreach.import.200.json` |
+| 422 | `validation_failed` | `error.json` | `admin.outreach.import.validation_failed.json` |
+
+#### `admin.outreach.results`
+
+How it's going, by group and by angle: organizations, emailed, bounced, replied, a yes (`positive`:
+outcome interested or joined), `responseRate` (replied of emailed; null before any), and what their
+`?ref=` links brought from the anonymous counts (arrivals, first lessons, accounts made, school codes),
+summed only from organizations past five arrivals. `tracked` is how many of the emailed organizations'
+sent emails carried their tag (the sends before 2026-11-05): only those can be counted, so a row with
+some emailed and `tracked` 0 reads "not tracked". **Request:** none.
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 200 |  | `admin.outreach.results.json` | `admin.outreach.results.200.json` |
+
+#### `admin.outreach.suppressions.create`
+
+Never write to this address again (forever). The organization with it is marked `do_not_contact`.
+**Request:** `{ "email", "reason": "no_thanks" | "unsubscribe" | "complaint" | "bounce" | "manual", "note" }`.
+Outreach also refuses any address the app's own mail suppressed (a bounce or a complaint).
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 204 |  |  |  |
+| 422 | `validation_failed` | `error.json` | `admin.outreach.suppressions.create.validation_failed.json` |
+
+#### `admin.outreach.drafts.update`
+
+Edit a draft's `subject` or `body` (plain text, at most 10,000). **Request:** either or both.
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 200 |  | `admin.outreach.message.show.json` | `admin.outreach.drafts.update.200.json` |
+| 409 | `outreach_not_a_draft` | `error.json` | `admin.outreach.drafts.update.outreach_not_a_draft.json` |
+
+#### `admin.outreach.drafts.delete`
+
+Throw a draft away. **Request:** none.
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 204 |  |  |  |
+| 409 | `outreach_not_a_draft` | `error.json` | `admin.outreach.drafts.delete.outreach_not_a_draft.json` |
+
+#### `admin.outreach.drafts.send`
+
+Hillel pressed Send: this one email goes now, plain text from outreach's own sender, with Reply-To
+set for replies, or nothing does. Never a batch. Refused when sending isn't set up
+(`outreach_off`), it isn't a draft, the address or organization is suppressed, today's cap is
+reached (`outreach_daily_cap`), the same kind was sent already, a follow-up isn't due (ten days
+after the first, with no reply), or there's no address (`outreach_no_address`: a form-only
+organization uses `mark-sent`). `502 outreach_send_failed` when the provider refused it (still a
+draft). **Request:** `{ "staleOk": true }` to send a first email after its `sendBy` day (else `409 outreach_past_send_by`: its wording may be stale), and `{ "earlyOk": true }` before its `sendNotBefore` day (else `409 outreach_too_early`). **Answer:** as in `admin.outreach.show`.
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 200 |  | `admin.outreach.show.json` | `admin.outreach.drafts.send.200.json` |
+| 409 | `outreach_off` | `error.json` | `admin.outreach.drafts.send.outreach_off.json` |
+| 409 | `outreach_not_a_draft` | `error.json` | `admin.outreach.drafts.send.outreach_not_a_draft.json` |
+| 409 | `outreach_suppressed` | `error.json` | `admin.outreach.drafts.send.outreach_suppressed.json` |
+| 409 | `outreach_daily_cap` | `error.json` | `admin.outreach.drafts.send.outreach_daily_cap.json` |
+| 409 | `outreach_already_sent` | `error.json` | `admin.outreach.drafts.send.outreach_already_sent.json` |
+| 409 | `outreach_follow_up_not_due` | `error.json` | `admin.outreach.drafts.send.outreach_follow_up_not_due.json` |
+| 409 | `outreach_no_address` | `error.json` | `admin.outreach.drafts.send.outreach_no_address.json` |
+| 502 | `outreach_send_failed` | `error.json` | `admin.outreach.drafts.send.outreach_send_failed.json` |
+| 409 | `outreach_past_send_by` | `error.json` | `admin.outreach.drafts.send.outreach_past_send_by.json` |
+| 409 | `outreach_too_early` | `error.json` | `admin.outreach.drafts.send.outreach_too_early.json` |
+
+#### `admin.outreach.drafts.sent`
+
+Sent another way (the organization's contact form): recorded as sent under the same rules and cap.
+**Request:** `{ "staleOk": true }` to send a first email after its `sendBy` day (else `409 outreach_past_send_by`: its wording may be stale), and `{ "earlyOk": true }` before its `sendNotBefore` day (else `409 outreach_too_early`). **Answer:** as in `admin.outreach.show`.
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 200 |  | `admin.outreach.show.json` | `admin.outreach.drafts.sent.200.json` |
+| 409 | `outreach_not_a_draft` | `error.json` | `admin.outreach.drafts.sent.outreach_not_a_draft.json` |
+| 409 | `outreach_suppressed` | `error.json` | `admin.outreach.drafts.sent.outreach_suppressed.json` |
+| 409 | `outreach_daily_cap` | `error.json` | `admin.outreach.drafts.sent.outreach_daily_cap.json` |
+| 409 | `outreach_already_sent` | `error.json` | `admin.outreach.drafts.sent.outreach_already_sent.json` |
+| 409 | `outreach_follow_up_not_due` | `error.json` | `admin.outreach.drafts.sent.outreach_follow_up_not_due.json` |
+| 409 | `outreach_past_send_by` | `error.json` | `admin.outreach.drafts.sent.outreach_past_send_by.json` |
+| 409 | `outreach_too_early` | `error.json` | `admin.outreach.drafts.sent.outreach_too_early.json` |
+
+#### `admin.outreach.drafts.test`
+
+Send a test to yourself: the exact plain-text email (its subject with "[Test]" before it, its body,
+From and Reply-To, by the real sending path) to the signed-in admin's own address, and nowhere
+else. Never counted toward the daily cap, never marks the draft or the organization sent; logged as
+a test. 20 a day each (`429 outreach_test_limit`). **Request:** none.
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 200 |  | `admin.outreach.test.json` | `admin.outreach.drafts.test.200.json` |
+| 409 | `outreach_off` | `error.json` | `admin.outreach.drafts.test.outreach_off.json` |
+| 409 | `outreach_no_admin_email` | `error.json` | `admin.outreach.drafts.test.outreach_no_admin_email.json` |
+| 429 | `outreach_test_limit` | `error.json` | `admin.outreach.drafts.test.outreach_test_limit.json` |
+| 502 | `outreach_send_failed` | `error.json` | `admin.outreach.drafts.test.outreach_send_failed.json` |
+
+#### `admin.outreach.replies.read`
+
+Mark a reply read, and file one no organization matched: `{ "targetId" }` (optional). **Answer:** the reply.
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 200 |  | `admin.outreach.reply.show.json` | `admin.outreach.replies.read.200.json` |
+| 404 | `not_found` | `error.json` | `admin.outreach.replies.read.not_found.json` |
+
+#### `admin.outreach.show`
+
+One organization: its fields, the `link` every email carries (our plain domain, no `?ref=`), every
+email (drafts and sent, with delivered and bounced), its `replyLog` (each reply's text), and
+`results` from the anonymous counts (folded under five arrivals: `few`; `tracked` false when no sent
+email carried its tag, so nothing can be counted). **Request:** none.
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 200 |  | `admin.outreach.show.json` | `admin.outreach.show.200.json` |
+| 404 | `not_found` | `error.json` | `admin.outreach.show.not_found.json` |
+
+#### `admin.outreach.update`
+
+Change its fields, `status`, `notes`, `research` (`{ "note", "links" }`), `sendBy` and `followUpNotBefore` (`Y-m-d`, the report's days; the follow-up then waits for the later of ten days and that day), `outcome` (`interested`, `joined`, `declined`, `no_reply`,
+`other`) or `outcomeNote`. `declined` (or `do_not_contact`) puts the organization and its address
+on the do-not-contact list, for good. **Request:** any of `admin.outreach.create`'s fields and those.
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 200 |  | `admin.outreach.show.json` | `admin.outreach.update.200.json` |
+| 422 | `validation_failed` | `error.json` | `admin.outreach.update.validation_failed.json` |
+
+#### `admin.outreach.drafts.create`
+
+A draft from the organization's angle (short: who Hillel is, the app, the ask and our plain domain), or
+its one follow-up (`{ "kind": "follow_up" }`, after the first is sent), for Hillel to edit. An unsent
+draft of the same kind comes back instead of a second. **Request:** `{ "kind": "first" | "follow_up" }`
+(optional). **Answer:** as in `admin.outreach.show`.
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 201 |  | `admin.outreach.show.json` | `admin.outreach.drafts.create.201.json` |
+| 409 | `outreach_suppressed` | `error.json` | `admin.outreach.drafts.create.outreach_suppressed.json` |
+| 409 | `outreach_already_sent` | `error.json` | `admin.outreach.drafts.create.outreach_already_sent.json` |
+| 409 | `outreach_follow_up_not_due` | `error.json` | `admin.outreach.drafts.create.outreach_follow_up_not_due.json` |
+
+#### `admin.outreach.replies.create`
+
+Log a reply by hand (one that came to Hillel's own inbox): `{ "body", "from", "subject", "receivedAt" }`
+(only `body` needed; `from` defaults to their address). It marks them `replied`; a reply that starts
+with a no ("no thanks", "unsubscribe", "remove me"...) puts them on do not contact. Inbound replies
+come the same way through `/webhooks/outreach`. **Answer:** as in `admin.outreach.show`.
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 201 |  | `admin.outreach.show.json` | `admin.outreach.replies.create.201.json` |
+| 422 | `validation_failed` | `error.json` | `admin.outreach.replies.create.validation_failed.json` |
 
 #### `admin.experiments.list`
 

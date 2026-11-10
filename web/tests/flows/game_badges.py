@@ -9,7 +9,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
 from flow import run  # noqa: E402
-from game_frames import dark, light  # noqa: E402
+from game_frames import dark, every_theme, light  # noqa: E402
 from journey_qa import AUDIO, t, tone  # noqa: E402
 
 BADGE_TOAST = "document.querySelector('[data-toast-tone=badge]')"
@@ -41,9 +41,13 @@ def journey(f):
     words = f.js(f"{LINE}.innerText")
     assert f.js(f"document.querySelectorAll('[data-badge-line]').length") == 1, "one line"
     assert "," in words or " and " in words, f"merged: {words}"
+    # Several badges as a count, so the reward row stays one line and the way on in view (first-15 review, item 20).
+    assert f.js(f"{LINE}.getBoundingClientRect().height") < 48, "the badge line is one line"
+    assert f.js("!!document.querySelector('[data-reward-row]')"), "one reward row"
     time.sleep(1.8)
     assert f.js(f"!{BADGE_TOAST}"), "no badge toast over the result"
     f.shot("lesson1-result")
+    every_theme(f, "the first result")
     light(f)
     f.shot("lesson1-result-light")
     dark(f)

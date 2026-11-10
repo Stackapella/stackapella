@@ -66,6 +66,13 @@ def journey(f):
     f.press("Escape")
     f.click_t("course.next")
     f.wait("location.pathname === '/learn/1-match'", what="the next lesson")
+    # A guest is asked for a free account from lesson 2 (Hillel, 2026-11-06: "after lesson 1 of any course"), never a
+    # price; signed in (the mock's member), lesson 1's star comes along and lesson 2 opens.
+    f.wait("document.querySelector('[data-needs-account]')", what="lesson 2 asks a guest for a free account")
+    f.shot("account-ask")
+    f.go("/learn/1-match?api=mock&as=member", "document.querySelector('main h1')")
+    f.js(f"{AUDIO}.unlock()")  # the page loaded afresh: the loopback again
+    f.js(f"{AUDIO}.engine.setLoopback(true)")
     # The lane before anything is pressed: its notes spread across it (they once sat squashed in a
     # corner until Play redrew them).
     f.wait("document.querySelector('[role=img] .absolute.flex')", what="the lane's notes")
@@ -85,7 +92,7 @@ def journey(f):
     f.wait("document.querySelector('[data-wait-lane]') && document.querySelector('[data-wait-pills]')", what="Wait for me's lane and pills")
     f.wait("document.querySelectorAll('[data-wait-pills] li svg').length >= 1", what="a note found (its pill ticked)")
     f.shot("wait-for-me")
-    f.wait_text(t(f, "course.wait.done"), timeout=30)  # every note found: it ends by itself
+    f.wait("document.querySelector('[data-wait-done]')", timeout=30, what="every note found")  # it ends by itself
     f.click_t("course.continue")
     # Not in your range? (128.png): Lower moves this lesson's exercises a semitone, kept with the
     # course's progress; Higher puts it back.

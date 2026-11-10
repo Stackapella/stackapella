@@ -463,8 +463,6 @@ final class DemoSeeder extends Seeder
         $pia = User::query()->firstOrNew(['email' => 'plus@example.com']);
         $pia->fill(['name' => 'Pia with Plus (demo)', 'locale' => 'en']);
         $pia->forceFill(['password' => 'demo-password-for-the-flows', 'email_verified_at' => now(), 'age_confirmed_at' => now(), 'plan' => 'plus'])->save();
-
-        Template::query()->where('slug', 'silent-night')->update(['free_from' => now()->startOfMonth()->toDateString(), 'free_until' => now()->endOfMonth()->toDateString()]);
     }
 
     /**

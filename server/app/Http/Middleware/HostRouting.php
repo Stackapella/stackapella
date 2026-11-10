@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Http\Middleware;
 
+use App\Support\Http\AppRoutes;
 use App\Support\Http\Hosts;
+use App\Support\Pages\PageGone;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -48,6 +50,13 @@ final class HostRouting
             // An old install opens `/?app` (its start_url): that's the app, not the landing.
             if (($request->path() === '/' && ! $request->query->has('app')) || Hosts::isPublicPath($request) || $request->is('api', 'api/*')) {
                 return $next($request);
+            }
+
+            // An address that is neither a page of the site nor one of the app's: a real 404, never a
+            // 200 that search engines would keep (the moving page, or the app's shell).
+            // A file's address is left as it was: in production nginx answers the app's files first.
+            if (($request->isMethod('GET') || $request->isMethod('HEAD')) && ! AppRoutes::is($request) && preg_match('#\.[A-Za-z0-9]{1,8}$#', $request->path()) !== 1) {
+                return PageGone::response();
             }
 
             if ($request->isMethod('GET') && ! $request->is(...self::REDIRECTED) && ! $request->expectsJson() && is_file(resource_path('views/public/moving.blade.php'))) {

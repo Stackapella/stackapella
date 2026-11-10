@@ -3,21 +3,24 @@
 // beatSeconds, strictness, exercise }` (the take's pitch track, its chart dots, the target notes in
 // seconds, the notes in beats, the step's exercise) and returns `{ percent, tip? }`, percent null
 // when it couldn't be judged. It may add `line: { key, values }` (what it measured, said plainly),
-// `label: { key }` (its name for the percent, "{percent}% ringing", for the result's heading),
+// `label: { key, stat }` (its name for the percent, "{percent}% ringing", for the result's heading, and `stat` the
+// short caption under the percent in the result's tiles, "ringing", where "on pitch" would be wrong),
 // `personal` (a value the course keeps) and `minStars`. `speaker` is true when the take was sung
 // through a speaker, so what played under it rested while you sang (a chord to ring against wasn't
 // sounding): a measure that needs it says so rather than scoring. A
 // course agent registers its own here (with the lead); components/exercise.js asks this first.
 
-import { centsOf, straightPercent } from './vibrato.js';
+import { bandOf, centsOf, pathCents, straightPercent } from './vibrato.js';
 import { ENTRY_ON_TIME, RELEASE_ON_TIME, skillPercent } from './pitch-skills.js';
 import { RING, ringTake } from './ring.js';
 
 const SPEAKER_MOST = 85; // a ring step through a speaker: two stars at most
 import { scoreTake } from './scoring.js';
 import { holdsPercent, pitchAt, speciesPercent } from './harmony.js';
-import { DRIFT_FULL, flipPercent, flipPoint, flips, settleFlip, keyDrift as lineKeyDrift, pitchParts, steadyRange, styledMoves } from './style-scores.js';
+import { BREAK_EDGE, breaksIn, DRIFT_FULL, flipPercent, flipPoint, flips, settleFlip, keyDrift as lineKeyDrift, pitchParts, soundingFrames, steadyRange, styledMoves } from './style-scores.js';
 import { midiName } from './dsp.js';
+import { WHISTLE_CLEAN, whistleNoteOf } from './whistle.js';
+import { starsFor } from './course.js';
 import { formatList, formatNumber, t, tk } from './i18n.js';
 
 /** A straight tone on every held note: the Vibrato course's measure, for any course's play step. */
@@ -37,6 +40,8 @@ const STYLE_LINES = {
     asked: tk('styles.moves.asked'), yours: tk('styles.moves.yours'), noMoves: tk('styles.moves.none'), tooMany: tk('styles.moves.tooMany'),
     span: tk('styles.range.easy'), spanOne: tk('styles.range.one'), spanNone: tk('styles.range.none'),
     smooth: tk('styles.range.smooth'), jumped: tk('styles.range.jumped'), jumpedMore: tk('styles.range.jumpedMore'),
+    whistleFound: tk('styles.whistle.found'), whistleUnheard: tk('styles.whistle.unheard'),
+    whole: tk('styles.unbroken.whole'), stoppedOnce: tk('styles.unbroken.once'), stoppedMore: tk('styles.unbroken.more'), unheard: tk('styles.unbroken.unheard'),
 };
 const SIREN_HEARD = 0.4; // of the siren's readings voiced, or it wasn't sung enough to look for a flip
 
@@ -65,8 +70,11 @@ function flipFinder({ track, target, notes, exercise, personal = {} }) {
     const settled = settleFlip(personal.flipSeen, found);
     const kept = { flipSeen: settled.seen, ...(settled.flip !== null ? { flip: settled.flip } : {}) };
     if (settled.flip !== null) return { percent: 100, personal: kept, line: { key: STYLE_LINES.found, values: { note: midiName(home + settled.flip) } } };
-    if (settled.seen.length) return { percent: 85, personal: kept, line: { key: STYLE_LINES.once, values: { note: midiName(home + Math.round(settled.seen[settled.seen.length - 1])) } } };
-    return { percent: 70, personal: kept, line: { key: STYLE_LINES.none, values: {} } };
+    // Every heard siren earns its stars: the words say "Scored on singing the siren", and a light siren that blends
+    // is the safe take (the scoring audit, 2026-11-08: it scored 70, under a pushed one that cracked, 85). The line
+    // still says what was found.
+    if (settled.seen.length) return { percent: 100, personal: kept, line: { key: STYLE_LINES.once, values: { note: midiName(home + Math.round(settled.seen[settled.seen.length - 1])) } } };
+    return { percent: 100, personal: kept, line: { key: STYLE_LINES.none, values: {} } };
 }
 
 /** A wave step's slide or siren: its seconds, and whether enough of it was sung to judge. */
@@ -106,6 +114,69 @@ function smooth({ track, target, notes, exercise }) {
     return { percent: exercise.generous ? 55 : 40, line: { key: STYLE_LINES.jumpedMore, values: { count: jumps.length, notes: formatList(where) } } };
 }
 
+/**
+ * One unbroken sound along a path (Humming and lip trills: a lip trill, a hum or an "oo", whichever you make): how much
+ * of what was heard rode the ribbon, each reading folded to the octave nearest it, less for each break (breaksIn: a stop
+ * of BREAK_SECONDS, judged by loudness), never anything for height or length. The ends of each sounding stretch
+ * (BREAK_EDGE) aren't followed: a trill's start and release read an octave high. Not heard clearly is no score and no
+ * break, and says what to try. A trill's take is tracked at TRILL_CLARITY (`"trill": true`, js/pitchtrack.js rangeFor).
+ */
+function unbroken({ track, target, exercise }) {
+    const { from, to, heard } = sirenSpan(track, target);
+    const unheard = { percent: null, line: { key: STYLE_LINES.unheard, values: {} } };
+    if (!heard) return unheard;
+    const shapes = exercise.target ?? [];
+    const { first, sounding } = soundingFrames(track, { from, to });
+    const edge = Math.round(BREAK_EDGE * track.rate);
+    // Clear of every stop and of the take's own ends by `edge` frames.
+    const settled = (i) => {
+        for (let k = i - first - edge; k <= i - first + edge; k++) if (!sounding[k]) return false;
+        return true;
+    };
+    let inside = 0;
+    let voiced = 0;
+    target.forEach((span, s) => {
+        const segment = shapes[s];
+        if (!segment || segment.kind !== 'path') return;
+        const start = Math.max(0, Math.ceil(span.start * track.rate));
+        const cents = centsOf(track, { from: span.start, to: span.end, midi: span.pitch });
+        const band = bandOf(segment);
+        cents.forEach((c, k) => {
+            if (c === null || !Number.isFinite(c) || !settled(start + k)) return;
+            const want = pathCents(segment, k / track.rate);
+            voiced++;
+            if (Math.abs(c - 1200 * Math.round((c - want) / 1200) - want) <= band) inside++;
+        });
+    });
+    if (!voiced) return unheard;
+    const follow = Math.min(1, inside / voiced / 0.9);
+    const breaks = breaksIn(track, { from, to });
+    const where = (at) => {
+        const i = Math.max(0, target.findIndex((s) => at >= s.start && at < s.end));
+        const segment = shapes[i];
+        const cents = segment?.kind === 'path' ? pathCents(segment, at - target[i].start) : 0;
+        return midiName(Math.round(target[i].pitch + cents / 100));
+    };
+    const keep = breaks.length === 0 ? 1 : breaks.length === 1 ? (exercise.generous ? 0.85 : 0.75) : exercise.generous ? 0.7 : 0.55;
+    const percent = Math.round(100 * follow * keep);
+    if (!breaks.length) return { percent, line: { key: STYLE_LINES.whole, values: {} } };
+    const notes = [...new Set(breaks.map(where))];
+    if (breaks.length === 1) return { percent, line: { key: STYLE_LINES.stoppedOnce, values: { note: notes[0] } } };
+    return { percent, line: { key: STYLE_LINES.stoppedMore, values: { count: breaks.length, notes: formatList(notes) } } };
+}
+
+/**
+ * Your whistle note (Whistling's first lesson: a held note where your whistle comes easiest): the steady part's median,
+ * the scoop at its start left out (js/whistle.js whistleNoteOf), kept with the course (`personal.whistle`) for every step
+ * laid from it (`base: "whistle"`). Lenient: any second of steady whistle, a breathy one too, finds it and earns its
+ * stars; a later take of the step finds it again. Read from the take as heard (`heard`), not folded onto the line.
+ */
+function whistleNote({ track, heard = track, target }) {
+    const found = whistleNoteOf(heard, { from: target[0].start, to: target[target.length - 1].end });
+    if (!found) return { percent: null, line: { key: STYLE_LINES.whistleUnheard, values: {} } };
+    return { percent: 100, personal: { whistle: found.midi }, line: { key: STYLE_LINES.whistleFound, values: { note: midiName(found.midi) } } };
+}
+
 /** Yodel flips: half the stars for clean flips on every leap between joined notes, half for the notes' pitch (yodeling). */
 function flip({ track, notes, beatSeconds, strictness, exercise, personal }) {
     const score = scoreTake(track, notes, { beatSeconds, strictness, timing: 'none' });
@@ -130,7 +201,8 @@ function flip({ track, notes, beatSeconds, strictness, exercise, personal }) {
 function styled({ track, notes, beatSeconds, strictness, exercise }) {
     // The notes you sing: a call and response's `answer`, else the step's notes (each with its `style`).
     const styles = (exercise.answer ?? exercise.notes ?? []).map((n) => n.style ?? null);
-    const score = scoreTake(track, pitchParts(notes, styles, { beatSeconds, window: exercise.window }), { beatSeconds, strictness, timing: 'none' });
+    // Joined notes read from where the voice crossed onto them, as the default measure does: a slide's arrival isn't a miss.
+    const score = scoreTake(track, pitchParts(notes, styles, { beatSeconds, window: exercise.window }), { beatSeconds, strictness, timing: 'none', crossing: true });
     if (score.status !== 'scored') return { percent: null };
     const moves = styledMoves(track, notes, styles, { beatSeconds, window: exercise.window });
     const movesPercent = moves.asked ? (moves.matched / moves.asked) * 100 : moves.matched * 100;
@@ -143,9 +215,12 @@ function styled({ track, notes, beatSeconds, strictness, exercise }) {
 /** Each sung note's semitones from do (the answer, when the call differs; never a listen-only note), for lock's do-and-so rule. */
 const sungSteps = (exercise) => (exercise.answer ?? exercise.notes).filter((n) => !n.listenOnly).map((n) => n.step);
 
+/** A whistle's start scoops a little longer and is still clean (js/whistle.js WHISTLE_CLEAN). */
+const cleanFor = (exercise) => (exercise?.whistle ? { clean: WHISTLE_CLEAN } : {});
+
 /** A pitch skill (js/pitch-skills.js): Perfect your pitch, Breath and stamina, and any course's step. */
 const skill = (kind) => ({ track, notes, beatSeconds, exercise }) => {
-    const { percent, notes: measured } = skillPercent(kind, track, notes, beatSeconds, { generous: !!exercise.generous, steps: sungSteps(exercise) });
+    const { percent, notes: measured } = skillPercent(kind, track, notes, beatSeconds, { generous: !!exercise.generous, steps: sungSteps(exercise), ...cleanFor(exercise) });
     const slid = measured.filter((m) => m && m.start && m.start !== 'clean').length;
     return { percent, tip: kind === 'landing' && slid >= Math.max(2, measured.length * 0.3) ? 'onsets' : undefined, line: percent === null ? null : skillLine(kind, measured) };
 };
@@ -204,7 +279,7 @@ function ring(args) {
     const offsets = sung.map((n) => n.cents ?? 0);
     const { percent, notes } = ringTake(track, target, offsets, { generous: !!exercise.generous, skip: sung.map((n) => n.ring === false) });
     const last = notes.filter((m) => m && m.off !== null).at(-1);
-    const label = { key: tk('ring.label') }; // the heading: "92% ringing", never "on pitch"
+    const label = { key: tk('ring.label'), stat: tk('ring.stat') }; // the heading: "92% ringing", never "on pitch"
     if (!last) return { percent, label };
     // The line speaks for the whole take: a wave anywhere, or a held note not sung, before the last note's cents.
     if (notes.some((m) => m?.waved)) return { percent, label, line: { key: tk('ring.line.waved'), values: {} } };
@@ -226,7 +301,7 @@ function partring(args) {
     if (pitch === null) return { percent: null };
     const rung = ring(args);
     if (args.speaker) return rung;
-    return { percent: rung.percent === null || rung.percent === undefined ? pitch : Math.round((pitch + rung.percent) / 2), line: rung.line, label: { key: tk('ring.labelPart') } };
+    return { percent: rung.percent === null || rung.percent === undefined ? pitch : Math.round((pitch + rung.percent) / 2), line: rung.line, label: { key: tk('ring.labelPart'), stat: tk('ring.statPart') } };
 }
 
 const READ_STEADY_MS = 150; // a read note's start counts as on time within this of its beat (generous: a reader, not a drummer)
@@ -268,6 +343,131 @@ function readTiming(results, notes, timing) {
     return Math.round((onTime / starts.length) * 100);
 }
 
+// ---- A play step's `rhythm` (docs/play-timing-plan.md; Hillel's yes, 2026-11-08) ----
+
+const STAR_LINES = { 1: 0, 2: 70, 3: 90 }; // starsFor's lines: the least percent for each star
+export const RHYTHM_SHARE = 0.3; // `rhythm`: timing's share of the stars (as the stave's), pitch the rest...
+export const RHYTHM_SHARE_UNSURE = 0.15; // ...half that through a speaker, or with the latency only estimated
+
+export const RHYTHM_FORGIVEN_MS = 75; // a beat step forgives an even offset up to this (80 ms behind scores full, 150 ms doesn't)
+
+/**
+ * The timing window for a step's `rhythm`: an eighth of a beat, kept between 60 and 70 ms, straight or swing. With
+ * RHYTHM_FORGIVEN_MS forgiven, a take 80 ms behind (and a singer's ordinary jitter) still fits it at any tempo, and
+ * one 150 ms behind doesn't. Undefined (no rhythm) keeps scoreTake's default.
+ */
+export function rhythmSteadyMs(rhythm, beatSeconds) {
+    return rhythm ? Math.max(60, Math.min(70, Math.round((beatSeconds * 1000) / 8))) : undefined;
+}
+
+/**
+ * scoreTake's timing options for a step's `rhythm` (the courses lead's timing simulation, 2026-11-08): the window
+ * above; a smaller forgiven offset; the usual offset read from the opening moments, so a rush or a drag shows; a due
+ * moment not found counted as a miss, so a very late take can't escape; swing judged on its off-beats too.
+ * An empty object without rhythm.
+ */
+export function rhythmOptions(rhythm, beatSeconds) {
+    if (!rhythm) return {};
+    return { steadyMs: rhythmSteadyMs(rhythm, beatSeconds), forgiveMs: RHYTHM_FORGIVEN_MS, drift: true, countMissing: true, swing: rhythm === 'swing' };
+}
+
+/**
+ * A default-scored play step with `rhythm` (true or "swing"): pitch 70 and timing 30 (scoreTake's timingPercent),
+ * timing at half weight through a speaker or with only an estimated latency, so a device the app can't time well
+ * doesn't cost stars. Null when there's no rhythm, or too few timed moments to judge (pitch alone, as before).
+ */
+export function withRhythm(score, { rhythm = null, speaker = false, measured = false } = {}) {
+    if (!rhythm || score?.status !== 'scored' || score.percent === null || score.percent === undefined) return null;
+    const timing = score.timingPercent;
+    if (timing === null || timing === undefined) return null;
+    const share = speaker || !measured ? RHYTHM_SHARE_UNSURE : RHYTHM_SHARE;
+    // The beat never shuts a unit pitch alone would open (the courses lead, 2026-11-08): a take whose pitch earns two
+    // or three stars keeps at least two, its percent raised to that line so the number and the stars agree. The beat
+    // still decides the third star; a one-star pitch stays as mixed. (At first the floor was one star under the pitch's,
+    // and a unit of timed steps could shut on a beginner whose pitch earned two: 0.7 × 78 + 0.3 × 50 is 70, just under.)
+    const mixed = Math.round(score.percent * (1 - share) + timing * share);
+    const pitchStars = starsFor({ percent: score.percent, timing: 'none' });
+    const floor = pitchStars >= 2 ? STAR_LINES[Math.min(pitchStars, 2)] : 0;
+    return {
+        percent: Math.max(mixed, floor),
+        label: { key: tk('course.rhythm.label'), stat: tk('course.rhythm.stat') }, // the percent is pitch and time together, never "on pitch"
+        line: { key: tk('course.read.measured'), values: { pitch: Math.round(score.percent), timing: Math.round(timing) } },
+    };
+}
+
+// ---- A play step's `score: "legato"` (Classical singing basics: joined notes, the sound kept through each change) ----
+
+export const LEGATO_DIP_DB = 12; // a join breaks when the voice dips this far under the softer of its two notes
+const LEGATO_GAP_SECONDS = 0.06; // a take without loudness readings (a synthetic track): a gap this long breaks it
+const LEGATO_BEFORE = 0.2; // seconds of a join looked at before the written change...
+const LEGATO_AFTER = 0.3; // ...and after it (a singer a little behind changes late)
+const LEGATO_EDGE = 0.05; // never within this of a joined pair's outer ends (a rest after a short note isn't a break)
+export const LEGATO_SHARE = 0.3; // the joins' share of the stars, pitch (landing) the rest; half through a speaker
+
+/**
+ * Each join of `notes` (two notes with no rest between them), kept or broken. Judged by loudness, not by whether a
+ * pitch was read: the tracker's 43 ms window holds two pitches as it crosses a change, and reads nothing for up to
+ * 50 ms of a truly joined line (low voices most), while a sung break of 100 ms loses only 10 to 50 ms of readings
+ * (the voice's release and the tracker's smoothing) but dips 14 to 26 dB; a joined change dips 3 dB at most (the
+ * study, 2026-11-08: the app's own voices from G2 to E4, steps, fourths and octaves, 60 and 100 ms breaks). So a join
+ * breaks where the voice falls LEGATO_DIP_DB under the softer of its two notes (each one's median voiced level), whatever
+ * the mic's gain: measured locally, never against the whole take, so a diminuendo, a soft phrase or a sudden piano on
+ * the change (the coordinator, 2026-11-08: a classical course asks for dynamics) keeps its joins.
+ */
+export function legatoJoins(track, notes, beatSeconds) {
+    const at = (seconds) => Math.max(0, Math.min(track.hz.length - 1, Math.round(seconds * track.rate)));
+    const loud = track.loudness?.length === track.hz.length ? track.loudness : null;
+    /** A note's own level: the median loudness of its voiced readings, its ends left out; null with none. */
+    const level = (n) => {
+        const voiced = [];
+        for (let k = at(n.beat * beatSeconds + LEGATO_EDGE); k <= at((n.beat + n.length) * beatSeconds - LEGATO_EDGE); k++) if (track.hz[k] > 0 && Number.isFinite(loud[k])) voiced.push(loud[k]);
+        return voiced.length ? voiced.sort((x, y) => x - y)[voiced.length >> 1] : null;
+    };
+    const joins = [];
+    notes.forEach((b, i) => {
+        const a = notes[i - 1];
+        if (!a || Math.abs(a.beat + a.length - b.beat) > 1e-6) return;
+        const change = b.beat * beatSeconds;
+        const from = at(Math.max(change - LEGATO_BEFORE, a.beat * beatSeconds + LEGATO_EDGE));
+        const to = at(Math.min(change + LEGATO_AFTER, (b.beat + b.length) * beatSeconds - LEGATO_EDGE));
+        let broken;
+        const levels = loud ? [level(a), level(b)].filter((l) => l !== null) : [];
+        const reference = levels.length ? Math.min(...levels) : null;
+        if (reference !== null) {
+            let quietest = Infinity;
+            for (let k = from; k <= to; k++) quietest = Math.min(quietest, Number.isFinite(loud[k]) ? loud[k] : -Infinity);
+            broken = reference - quietest >= LEGATO_DIP_DB;
+        } else {
+            let run = 0;
+            let longest = 0;
+            for (let k = from; k <= to; k++) longest = Math.max(longest, (run = track.hz[k] > 0 ? 0 : run + 1));
+            broken = longest / track.rate > LEGATO_GAP_SECONDS;
+        }
+        joins.push({ index: i, broken });
+    });
+    return joins;
+}
+
+/**
+ * Joined notes (`score: "legato"`, a step whose words have no consonants: the courses lead's generator allows it only
+ * there): pitch as `landing` stars it, and the joins kept, `LEGATO_SHARE` of the stars (half through a speaker, as
+ * the beat's), so a beginner who breaks a few keeps most of the score. With no joins it's pitch alone.
+ */
+function legato({ track, notes, beatSeconds, exercise, speaker = false }) {
+    const pitch = skillPercent('landing', track, notes, beatSeconds, { generous: !!exercise.generous, steps: sungSteps(exercise), ...cleanFor(exercise) });
+    if (pitch.percent === null) return { percent: null };
+    const joins = legatoJoins(track, notes, beatSeconds);
+    if (!joins.length) return { percent: pitch.percent };
+    const broken = joins.filter((j) => j.broken).length;
+    const share = speaker ? LEGATO_SHARE / 2 : LEGATO_SHARE;
+    const kept = ((joins.length - broken) / joins.length) * 100;
+    return {
+        percent: Math.round(pitch.percent * (1 - share) + kept * share),
+        label: { key: tk('course.legato.label'), stat: tk('course.legato.stat') },
+        line: broken ? { key: tk('skills.legato.broken'), values: { broken: formatNumber(broken), count: formatNumber(joins.length) } } : { key: tk('skills.legato.kept'), values: {} },
+    };
+}
+
 export const PLAY_SCORERS = {
     read, // sight-singing: a line read from the stave, on each note's pitch
     species, // a line you chose against a cantus, three stars only by the rules (counterpoint's unit 5)
@@ -287,7 +487,10 @@ export const PLAY_SCORERS = {
     flipFinder, // where your voice flips, from a siren (yodeling's first lesson)
     span, // your easy range, from a slide (range and registers)
     smooth, // across the break without a jump (range and registers)
+    unbroken, // one unbroken lip trill, hum or "oo" along a path (humming and lip trills)
+    whistleNote, // your whistle note, from a held whistle (whistling's first lesson)
     styled, // scoops, fall-offs, slides and cries asked for (or chosen), and pitch (pop and country)
     ring, // Barbershop: held chord notes against their pure targets
     partring, // Barbershop: a part on pitch and its held chords ringing
+    legato, // Classical singing basics: notes joined, the sound kept through each change, and pitch
 };

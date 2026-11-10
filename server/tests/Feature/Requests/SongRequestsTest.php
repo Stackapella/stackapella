@@ -45,6 +45,22 @@ final class SongRequestsTest extends TestCase
         $closed->assertJsonPath('code', 'requests_closed');
     }
 
+    public function test_staff_try_requests_before_the_switch_opens_them(): void
+    {
+        $this->getJson('/api/auth/config')->assertJsonPath('data.songRequests', false);
+
+        // Hillel previews them while they're closed to everyone else (frontend2's screens).
+        $admin = $this->actingAsAdmin(User::factory()->admin()->create()->refresh());
+        $this->getJson('/api/account')->assertJsonPath('data.songRequests', true);
+        $this->postJson('/api/requests', ['title' => 'Danny Boy'])->assertCreated();
+        $this->getJson('/api/requests')->assertOk()->assertJsonCount(1, 'data');
+
+        $this->person('Ana');
+        $this->getJson('/api/account')->assertJsonPath('data.songRequests', false);
+        $this->getJson('/api/requests')->assertNotFound();
+        $this->assertNotNull($admin->id);
+    }
+
     public function test_people_ask_vote_and_the_same_title_is_a_vote(): void
     {
         $this->open();
@@ -85,6 +101,20 @@ final class SongRequestsTest extends TestCase
         $this->assertSame(['Shenandoah'], array_column((array) $this->getJson('/api/requests?q=shenan')->json('data'), 'title'));
         $this->assertSame(['Shenandoah', 'Danny Boy'], array_column((array) $this->getJson('/api/requests?sort=newest')->json('data'), 'title'));
         $this->assertMatchesContract($this->getJson('/api/requests?sort=loudest'), 'requests.list', 422);
+    }
+
+    public function test_asking_has_its_own_daily_limit_whatever_the_trust_level(): void
+    {
+        $this->open();
+        $this->actingAs(User::factory()->create(['trust_level_override' => 3])->fresh() ?? throw new \LogicException);
+
+        foreach (range(1, 10) as $n) {
+            $this->postJson('/api/requests', ['title' => 'Song number '.$n])->assertCreated();
+        }
+
+        $over = $this->postJson('/api/requests', ['title' => 'One too many']);
+        $this->assertMatchesContract($over, 'requests.create', 429);
+        $over->assertJsonPath('code', 'rate_limited');
     }
 
     public function test_hillel_merges_and_releases_and_everyone_who_wanted_it_hears(): void

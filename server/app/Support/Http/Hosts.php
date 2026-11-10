@@ -13,12 +13,12 @@ use Illuminate\Http\Request;
 final class Hosts
 {
     /** Paths that belong to the public site (everything else is the app's). */
-    public const PUBLIC_PATHS = ['songs', 'songs/*', 'guides/*', 'legal/*', 'pricing', 'how-it-works', 'courses', 'courses/*', 'help', 'help/*', 'features', 'features/*', 'compare', 'compare/*', 'for/*', 'guides', 'about', 'press', 'open-source', 'selfhost', 'self-host', 'self-host-stackapella', 'whats-new', 'h/*', 'embed/*', 'oembed', 'coaches', 'coach/*', '@*', 'explore', 'ideas/*', 'choirs/*', 'sitemap.xml', 'unsubscribe/*'];
+    public const PUBLIC_PATHS = ['songs', 'songs/*', 'guides/*', 'legal/*', 'pricing', 'how-it-works', 'courses', 'courses/*', 'help', 'help/*', 'features', 'features/*', 'compare', 'compare/*', 'integrations', 'integrations/*', 'for/*', 'guides', 'about', 'press', 'open-source', 'selfhost', 'self-host', 'self-host-stackapella', 'whats-new', 'h/*', 'embed/*', 'oembed', 'coaches', 'coach/*', '@*', 'explore', 'ideas/*', 'choirs/*', 'sitemap.xml', 'unsubscribe/*', 'tools', 'tools/*', 'warmups', 'warmups/*', 'intervals', 'intervals/*', 'chords', 'chords/*', 'voice-types', 'voice-types/*'];
 
     /** Paths either host answers: health, webhooks, the error tunnel, robots, security.txt (RFC
      * 9116 scopes it to the host it's fetched from), and the static files the public pages load
-     * too (styles, scripts, icons). */
-    public const SHARED_PATHS = ['up', 'webhooks/*', 'log/errors', 'robots.txt', '.well-known/security.txt', 'dev/upload/*', 'css/*', 'js/*', 'icons/*', 'favicon.ico'];
+     * too (styles, scripts, icons, and a page's course stylesheet, Public\CourseCssController). */
+    public const SHARED_PATHS = ['up', 'up/scheduler', 'webhooks/*', 'log/errors', 'robots.txt', '*.txt', '.well-known/security.txt', 'dev/upload/*', 'css/*', 'course-css/*', 'js/*', 'icons/*', 'favicon.ico', 'tools-sw.js'];
 
     public static function appUrl(): string
     {

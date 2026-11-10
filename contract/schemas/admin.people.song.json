@@ -1,0 +1,95 @@
+{
+    "$id": "admin.people.song.json",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "id",
+                "title",
+                "version",
+                "owner",
+                "visibility",
+                "imported",
+                "rights"
+            ],
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "integer"
+                },
+                "owner": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                        "id",
+                        "name"
+                    ],
+                    "properties": {
+                        "id": {
+                            "type": "string"
+                        },
+                        "name": {
+                            "type": [
+                                "string",
+                                "null"
+                            ]
+                        }
+                    }
+                },
+                "visibility": {
+                    "type": "string",
+                    "enum": [
+                        "private"
+                    ]
+                },
+                "imported": {
+                    "type": "boolean",
+                    "enum": [
+                        true
+                    ]
+                },
+                "rights": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                        "confirmedBy",
+                        "confirmedAt",
+                        "source"
+                    ],
+                    "properties": {
+                        "confirmedBy": {
+                            "type": [
+                                "string",
+                                "null"
+                            ]
+                        },
+                        "confirmedAt": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "format": "date-time"
+                        },
+                        "source": {
+                            "type": [
+                                "string",
+                                "null"
+                            ]
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

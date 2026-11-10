@@ -11,6 +11,8 @@ use App\Models\BetaSubmission;
 use App\Models\Template;
 use App\Models\TemplateGuide;
 use App\Models\User;
+use App\Support\Ops\SitemapProblems;
+use App\Support\Ops\SyncProblems;
 use App\Support\Stats\Counts;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -41,6 +43,10 @@ final class Overview
             // Counted from our own records (docs/decisions.md, L).
             'harmonies' => Counts::songs(),
             'growth' => self::growth(),
+            // Songs the last sync skipped, each still on its live version, for "What needs you now".
+            'songsNotSynced' => SyncProblems::latest(),
+            // What the weekly sitemap check found, the first few and how many more.
+            'sitemapProblems' => SitemapProblems::brief(),
         ];
     }
 

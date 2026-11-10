@@ -49,8 +49,10 @@ final class ProjectsTest extends TestCase
         $this->saveProject($id, 2, ['changeId' => $change, 'title' => 'Kept'])->assertOk()->assertJsonPath('data.version', 3);
     }
 
-    public function test_the_free_plan_holds_3_projects_and_the_bin_doesnt_count(): void
+    public function test_a_project_limit_where_set_holds_and_the_bin_doesnt_count(): void
     {
+        // No plan limits projects since 2026-11-07; an install may set one, and this is that machinery.
+        config(['usage.plans.free.projects' => 3]);
         $this->owner();
         $ids = [(string) Str::uuid(), (string) Str::uuid(), (string) Str::uuid()];
         foreach ($ids as $id) {

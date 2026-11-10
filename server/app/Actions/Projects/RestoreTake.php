@@ -46,7 +46,7 @@ final class RestoreTake
             $current = $part->current_take_id !== null ? Take::query()->whereKey($part->current_take_id)->first() : null;
 
             if ($take->binned_at !== null && $this->plans->storageUsed($owner) - ($current !== null && $current->binned_at === null ? $current->bytes() : 0) + $take->bytes() > $this->plans->storageLimit($owner)) {
-                throw new Refusal(403, 'storage_limit');
+                throw $this->plans->storageFull($owner);
             }
 
             $take->forceFill(['binned_at' => null, 'seq' => $this->seq->next($owner)])->save();

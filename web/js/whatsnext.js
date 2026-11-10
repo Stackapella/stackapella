@@ -1,6 +1,6 @@
 // What's next (docs/more-features-plan.md, feature 13): "the vision's measure is the second song".
 // After a finished harmony (and on the course map when no lesson waits), up to three songs, each
-// with why: one whose parts fit your range, one a step harder, and the song of the month. Pure.
+// with why: one whose parts fit your range, and one a step harder. Pure.
 
 import { suggestTranspose } from './dsp.js';
 
@@ -14,17 +14,17 @@ function fittingPart(song, range) {
 }
 
 /**
- * Up to three suggestions: `[{ kind: 'fits' | 'harder' | 'month', song, part? }]`, never the song
+ * Up to three suggestions: `[{ kind: 'fits' | 'harder', song, part? }]`, never the song
  * just sung or one already finished.
  * - `songs`: the shelf (listTemplates: full songs and the catalogue's summaries);
  * - `current`: the song just finished (its id and difficulty), or null;
  * - `range`: the learner's range ({ low, high } MIDI), or null;
  * - `finished`: ids of songs already finished;
- * - `startable(song)`: whether it can be started now (free, the song of the month, or Plus).
+ * - `startable(song)`: whether it can be started now (every song with an account; a guest's free songs).
  */
-export function whatsNext({ songs, current = null, range = null, finished = [], startable = () => true, now = Date.now() }) {
+export function whatsNext({ songs, current = null, range = null, finished = [], startable = () => true }) {
     const skip = new Set([current?.id, ...finished].filter(Boolean));
-    // Songs that can be started now come first (a free learner sees Plus songs only when nothing else fits).
+    // Songs that can be started now come first (a guest sees songs needing an account only when nothing else fits).
     const open = songs.filter((s) => !skip.has(s.id)).sort((a, b) => Number(startable(b)) - Number(startable(a)));
     const out = [];
     const taken = new Set();
@@ -41,7 +41,5 @@ export function whatsNext({ songs, current = null, range = null, finished = [], 
     // One step harder.
     const harder = LEVELS[Math.min(LEVELS.length - 1, LEVELS.indexOf(level) + 1)];
     add('harder', open.find((s) => s.difficulty === harder && !taken.has(s.id)));
-    // The song of the month.
-    add('month', open.find((s) => s.freeUntil && Date.parse(s.freeUntil) > now));
     return out.slice(0, 3);
 }

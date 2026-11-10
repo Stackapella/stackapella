@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en" data-theme="stage-dark">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Note frequencies</title>
+    <!-- How a /tools page mounts the note frequency chart (js/public/tools/note-frequencies.js): a box, the page's words, mountNoteFrequencies(). -->
+    <meta name="game-css" content="/css/site-game.css">
+    <link rel="stylesheet" href="/css/site.css">
+    <script src="/js/theme-boot.js"></script>
+    <script src="/js/game-css.js"></script>
+</head>
+<body class="bg-ink text-cream" data-tool-name="Note frequency chart">
+    <main class="px-4">
+        <div id="chart"></div>
+        <h1 class="mx-auto mt-8 max-w-[24.375rem] text-[28px] font-extrabold leading-tight tracking-tight md:text-[40px]">Note frequency chart</h1>
+    </main>
+    <script type="module" src="/tests/tool-frame.js"></script>
+    <script type="module">
+        import { mountNoteFrequencies } from '/js/public/tools/note-frequencies.js';
+        const words = {
+            find: 'Find a note or a frequency', findHint: 'A note (F#3) or a frequency (261.6)', noMatch: 'Not a note or a frequency we know',
+            compare: 'Compare two notes', pickSecond: 'Now tap a second note', playing: 'Playing',
+            play: 'Play :note', playBoth: 'Play both', stop: 'Stop', settings: 'More', settingsTitle: 'Settings', reset: 'Reset', done: 'Done',
+            hz: ':hz Hz', midi: 'MIDI :n', fromNote: ':cents cents from :note (:hz Hz)', noteCol: 'Note', hzCol: 'Hz', midiCol: 'MIDI',
+            allNotes: 'All notes', voiceNotes: 'Where voices live', range: ':low to :high', showAll: 'Show every note, :low to :high', showVoices: 'Show :low to :high only',
+            cents: ':n cents', semitones: ':n semitones', middleC: 'Middle C', tuningA: 'Tuning A',
+            lowest: ':type: lowest', highest: ':type: highest', yourLowest: 'Your lowest', yourHighest: 'Your highest',
+            bass: 'Bass', baritone: 'Baritone', tenor: 'Tenor', alto: 'Alto', mezzo: 'Mezzo', soprano: 'Soprano',
+            referenceLabel: 'A4 tuning', lower: 'Lower', higher: 'Higher', referenceChip: 'A4 = :hz Hz',
+            naming: 'Note names', letters: 'C D E', fixedDo: 'Do Re Mi', german: 'German (H)', accidentals: 'Black keys as', sharps: 'Sharps', flats: 'Flats',
+            middleCAsC3: 'Call middle C "C3", as some software does', copyTable: 'Copy the table', copied: 'Copied',
+        };
+        window.__chart = mountNoteFrequencies(document.querySelector('#chart'), { words, keySlot: document.querySelector('[data-tool-key]') });
+    </script>
+</body>
+</html>

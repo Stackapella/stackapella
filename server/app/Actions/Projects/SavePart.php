@@ -153,7 +153,7 @@ final class SavePart
             $current = $part->current_take_id !== null ? Take::query()->whereKey($part->current_take_id)->first() : null;
 
             if ($this->plans->storageUsed($user) - ($current !== null && $current->binned_at === null ? $current->bytes() : 0) + $take->bytes() > $this->plans->storageLimit($user)) {
-                throw new Refusal(403, 'storage_limit');
+                throw $this->plans->storageFull($user);
             }
 
             $take->forceFill(['binned_at' => null, 'seq' => $this->seq->next($user)])->save();

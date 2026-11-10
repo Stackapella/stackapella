@@ -5,6 +5,8 @@ import { midiName } from '../dsp.js';
 import { formatList, formatNumber, t, timeAgo, tk } from '../i18n.js';
 import { guideId, hasTake, nextSlot } from '../practice.js';
 import { joinSyllables, LyricsLane } from '../components/practice.js';
+import { KaraokeLine } from '../components/sing/stage.js';
+import { LineBar } from '../components/sing/frame.js';
 import { guideGain, peakDbfs, rmsDbfs } from '../levels.js';
 import { goBack, navigate } from '../router.js';
 import * as sessionStore from '../stores/session.js';
@@ -53,6 +55,8 @@ const roundButton = 'grid shrink-0 place-items-center rounded-full glass-bubble 
 // The session store's actions the template calls as they are.
 const { togglePlay, templatePart } = sessionStore;
 
+// Phones (under md) and short screens (under 720 px tall, a laptop with its browser bars): the page scrolls as one.
+const PAGE_SCROLL = window.matchMedia('(max-width: 767px), (max-height: 719px)');
 const NONE = 'none'; // pickId when the picked track was tapped again: nothing picked
 
 /**
@@ -65,10 +69,12 @@ const PAN_SIDE = { left: tk('studio.row.panLeft'), right: tk('studio.row.panRigh
 
 export const StudioView = {
     mixins: [RecordSetup],
-    components: { CountIn, LyricsLane, Icon, Waveform, ProjectDialog, HeadphonesDialog, TimingDialog, ExportDialog, PartDialog, MicDialog, RangeDialog, NotesView, BetaBanner, BetaReport, SoundCheck, TellHillel, VoiceNote, TrimSheet, LockedBanner, ShareSheet, TogetherSheet, AddVoice, GhostRow, StudioNotice, SetupChoices, VoiceRow, MicLevel, PartsProgress },
+    components: { CountIn, LyricsLane, KaraokeLine, LineBar, Icon, Waveform, ProjectDialog, HeadphonesDialog, TimingDialog, ExportDialog, PartDialog, MicDialog, RangeDialog, NotesView, BetaBanner, BetaReport, SoundCheck, TellHillel, VoiceNote, TrimSheet, LockedBanner, ShareSheet, TogetherSheet, AddVoice, GhostRow, StudioNotice, SetupChoices, VoiceRow, MicLevel, PartsProgress },
     props: { id: { type: String, required: true } },
-    setup: () => ({ ...toRefs(session), sessionStore, audio, defaultPartName, formatTime, shownTitle, PART_COLORS, roundButton, hasTake, GUIDE_PEAKS_RATE, FRAMES_PER_PEAK, togglePlay, templatePart, prefs, betaBar, count }),
+    setup: () => ({ ...toRefs(session), sessionStore, audio, defaultPartName, joinSyllables, formatTime, shownTitle, PART_COLORS, roundButton, hasTake, GUIDE_PEAKS_RATE, FRAMES_PER_PEAK, togglePlay, templatePart, prefs, betaBar, count }),
     data: () => ({
+        pageScroll: PAGE_SCROLL.matches, // phones and short screens: the page scrolls as one (docs/studio-words-plan.md, the banner room section)
+        dockHeight: 0, // the docked transport's height, the page's bottom padding
         recordsFromStart: true, // the studio always records from 0:00, Hillel's ask (record-setup.js)
         renaming: null, // the part whose name is being edited in its row
         accountTakes: {}, // part id -> the account's kept takes for it (parts.takes.list), once its row opens
@@ -86,15 +92,17 @@ export const StudioView = {
         pickId: null, // the part its circle picked to record (else the next to record)
     }),
     template: `
-        <div class="flex h-dvh flex-col bg-ink">
+        <!-- Phones and short screens (docs/studio-words-plan.md, the banner room section): the page scrolls as one, the transport docked at the
+             bottom and the ruler, lane and words sticky; taller screens keep the fixed column with its own tracks scroller. -->
+        <div class="flex flex-col bg-ink" :class="pageScroll ? 'min-h-dvh' : 'h-dvh'" :style="pageScroll ? { paddingBottom: dockHeight + 'px' } : null" :data-page-scroll="pageScroll ? '' : null">
             <div v-if="missing" class="m-auto text-center">
                 <p class="text-cream">{{ t('studio.missing') }}</p>
                 <button type="button" class="mt-4 rounded-full bg-cream px-5 py-2.5 font-semibold text-ink" @click="navigate('/')">{{ t('common.backToProjects') }}</button>
             </div>
-            <div v-else-if="project" class="relative flex min-h-0 flex-1 flex-col overflow-hidden">
+            <div v-else-if="project" class="relative flex flex-1 flex-col" :class="pageScroll ? '' : 'min-h-0 overflow-hidden'">
 
                 <!-- Header -->
-                <header class="flex items-center gap-3 px-3 pb-2 pt-[max(0.75rem,env(safe-area-inset-top))] md:px-5 md:py-3">
+                <header class="flex items-center gap-3 overflow-hidden px-3 pb-2 pt-[max(0.75rem,env(safe-area-inset-top))] md:py-3 min-[900px]:px-5">
                     <button type="button" class="grid size-10 shrink-0 place-items-center rounded-full glass-bubble text-cream" :aria-label="t('common.backToProjects')" @click="leave"><Icon name="back" :size="20" /></button>
                     <div class="min-w-0 flex-1">
                         <label class="sr-only" for="song-name">{{ t('project.nameLabel') }}</label>
@@ -110,7 +118,7 @@ export const StudioView = {
                             <span class="size-2 shrink-0 rounded-full" :class="audio.mic ? 'bg-good shadow-[0_0_8px_var(--color-good)]' : 'bg-line'" aria-hidden="true"></span><span class="truncate" translate="no">{{ micLabel }}</span><span v-if="audio.mic && (audio.latencyFrames === null || audio.latencyEstimated)" class="shrink-0 text-warn">· {{ t('studio.checkTiming') }}</span><span v-else-if="audio.mic" class="shrink-0 text-muted">· {{ t('studio.mic.live') }}</span>
                             <MicLevel v-if="audio.mic" class="ms-1 shrink-0 text-good" />
                         </button>
-                        <button v-if="canTogether" type="button" class="btn-ghost btn-sm hidden items-center gap-2 lg:flex" :class="people.length > 1 ? 'pe-3 ps-1' : ''" @click="dialog = 'together'">
+                        <button v-if="canTogether" type="button" class="btn-ghost btn-sm hidden items-center gap-2 md:flex" :class="people.length > 1 ? 'pe-3 ps-1' : ''" data-studio-invite @click="dialog = 'together'">
                             <span v-if="people.length > 1" class="grid size-7 place-items-center rounded-full bg-part-1 text-xs font-bold text-part-text-1" aria-hidden="true">{{ initial }}</span>{{ people.length > 1 ? togetherLabel : t('studio.inviteSingers') }}
                         </button>
                         <button v-if="!project.beta && !fromSheetMusic && parts.some(hasTake)" type="button" class="btn-ghost btn-sm hidden md:flex" @click="dialog = 'share'">{{ t('share.title') }}</button>
@@ -125,7 +133,7 @@ export const StudioView = {
                                 <button type="button" class="block w-full rounded-xl px-3 py-2.5 text-start text-cream hover:bg-panel disabled:opacity-40" :disabled="!parts.length" @click="menu('export', $event)">{{ t('studio.export') }}</button>
                                 <button v-if="!project.shared" type="button" class="block w-full rounded-xl px-3 py-2.5 text-start text-cream hover:bg-panel" @click="menu('settings', $event)">{{ t('studio.menu.settings') }}</button>
                                 <button type="button" class="block w-full rounded-xl px-3 py-2.5 text-start text-cream hover:bg-panel" @click="menu('mic', $event)">{{ t('studio.menu.micAndTiming') }}</button>
-                                <button v-if="canTogether" type="button" class="block w-full rounded-xl px-3 py-2.5 text-start text-cream hover:bg-panel" @click="menu('together', $event)">{{ t('together.title') }}</button>
+                                <button v-if="canTogether" type="button" class="block w-full rounded-xl px-3 py-2.5 text-start text-cream hover:bg-panel" @click="menu('together', $event)">{{ t('studio.inviteSingers') }}</button>
                                 <button v-if="parts.some(hasTake)" type="button" class="flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-start text-cream hover:bg-panel" :aria-pressed="prefs.hearPolished" @click="menu('polish', $event)"><Icon name="sparkle" :size="16" :class="prefs.hearPolished ? 'text-accent' : 'text-muted'" /> {{ t('polish.hear') }}</button>
                             </div>
                         </details>
@@ -137,7 +145,7 @@ export const StudioView = {
                     {{ project.shared.removed ? t('together.noLonger') : t('together.banner', { owner: project.shared.owner?.name ?? '' }) }}
                     <button v-if="!project.shared.removed" type="button" class="link ms-1" @click="dialog = 'together'">{{ t('together.who') }}</button>
                 </p>
-                <BetaBanner v-if="project.beta && betaPart" :part-name="nameOf(betaPart)" :song="shownTitle(project)" :note="project.beta.note" :phrase="notePhrase" :looping="loopedPhrase !== null && loopedPhrase === notePhrase" :bar="betaBar" :can-send="hasTake(betaPart) && !recording"
+                <BetaBanner v-if="project.beta && betaPart" :part-name="nameOf(betaPart)" :song="shownTitle(project)" :note="project.beta.note" :phrase="notePhrase" :looping="loopedPhrase !== null && loopedPhrase === notePhrase" :bar="betaBar" :can-send="hasTake(betaPart) && !recording" :recording="recording"
                     @parts="leave" @send="openReport" @loop="loopPhrase" @tell="dialog = 'tell'" />
                 <!-- A phrase looping (from the banner or the report): said, with the way out (Escape too). -->
                 <p v-if="loopedPhrase !== null" data-ui="facts" class="mx-3 mt-1 flex flex-wrap items-center gap-3 rounded-2xl bg-raised px-4 py-2.5 text-sm text-cream md:mx-5" role="status" data-loop-on>
@@ -153,9 +161,12 @@ export const StudioView = {
                 </div>
 
                 <!-- The stack of voices -->
-                <div class="flex min-h-0 flex-1">
-                    <div class="relative flex min-h-0 flex-1 flex-col">
-                        <PartsProgress v-if="parts.length" class="mx-4 mt-1 md:hidden" :parts="progressParts" />
+                <div class="flex flex-1" :class="pageScroll ? '' : 'min-h-0'">
+                    <div class="relative flex flex-1 flex-col" :class="pageScroll ? '' : 'min-h-0'">
+                        <!-- The parts bar (a phone's), the ruler, the lane and the words: one block that sticks under the top edge once
+                             the page scrolls, so nothing in it is ever half off the screen. -->
+                        <div ref="stickyTop" :class="pageScroll ? 'sticky top-[env(safe-area-inset-top)] z-20 bg-ink pb-1' : ''" data-sticky-words>
+                        <PartsProgress v-if="parts.length" class="mx-4 pt-1 md:hidden" :parts="progressParts" />
                         <div class="mx-3 mt-2 flex md:mx-5" dir="ltr">
                             <div class="hidden shrink-0 pe-3 ps-1 md:block md:w-[373px]" data-summary><PartsProgress v-if="parts.length" :parts="progressParts" /></div>
                             <div ref="ruler" class="relative mx-2 h-7 flex-1 cursor-pointer md:me-[9px] md:ms-0" @pointerdown="seekFrom($event)">
@@ -163,20 +174,32 @@ export const StudioView = {
                                 <span class="pointer-events-none absolute -bottom-1 size-3 -translate-x-1/2 rounded-full" :class="recording ? 'bg-record' : 'bg-cream'" :style="{ left: (Math.max(0, position) / length * 100) + '%' }" aria-hidden="true"></span>
                             </div>
                         </div>
-                        <!-- The words (81.png): each line where it's sung, the one now filled; a tap goes there. -->
+                        <!-- The words as a map (81.png; docs/studio-words-plan.md): on a wide screen each line where it's sung, the one
+                             now filled; on a phone, where lines are too narrow to read, Sing's line bar. A tap goes there. -->
                         <div v-if="laneLines.length" class="mx-3 mt-1 flex md:mx-5" dir="ltr">
                             <div class="hidden shrink-0 pe-3 ps-1 pt-1.5 text-xs text-muted md:block md:w-[373px]">{{ t('studio.lyricsLane') }}</div>
-                            <LyricsLane class="mx-2 flex-1 md:me-[9px] md:ms-0" :lines="laneLines" :length-seconds="length" :position="position" @seek="sessionStore.seek" />
+                            <LyricsLane class="mx-2 hidden flex-1 md:me-[9px] md:ms-0 md:block" :lines="laneLines" :length-seconds="length" :position="position" @seek="sessionStore.seek" />
+                            <LineBar class="mx-2 flex-1 md:hidden" compact :lines="laneLines.map((l) => ({ ...l, label: l.text }))" :position="position" @seek="sessionStore.seek" />
                         </div>
-                        <div ref="scroller" class="min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-3 pb-6 pt-2 md:px-5">
+                        <!-- The line at the playhead, read in full (Sing's KaraokeLine), whenever the song has words: stopped, counting in,
+                             playing and recording. Its height is kept, so Record moves nothing; quiet for a screen reader while recording. -->
+                        <div v-if="wordLines.length" class="mx-3 flex md:mx-5" dir="ltr" :aria-hidden="recording ? 'true' : null" data-studio-words>
+                            <div class="hidden shrink-0 md:block md:w-[373px]"></div>
+                            <div class="mx-2 flex h-[5.5rem] min-w-0 flex-1 flex-col justify-center gap-0.5 overflow-hidden px-2 md:me-[9px] md:ms-0 md:h-[4.5rem]">
+                                <KaraokeLine v-if="wordsNow" :line="wordsNow" :position="position" :color="wordsColor" :pill="recording" small class="line-clamp-2 text-xl font-bold leading-normal md:line-clamp-1 md:text-2xl md:leading-normal" data-now-words />
+                                <p class="truncate text-[15px] text-muted md:text-base" translate="no" data-next-words>{{ wordsNext ? joinSyllables(wordsNext.syllables) : '' }}</p>
+                            </div>
+                        </div>
+                        </div>
+                        <div ref="scroller" class="px-3 pb-6 pt-2 min-[900px]:px-5" :class="pageScroll ? 'overflow-x-clip' : 'min-h-0 flex-1 overflow-y-auto overflow-x-hidden'">
                             <div class="flex min-h-full flex-col gap-2">
                                 <!-- The tracks: they share the height on a tall window (88 to 150 px each), with one playhead across them. -->
                                 <div v-if="parts.length" class="relative flex flex-col gap-2 md:flex-1" data-tracks>
                                 <template v-for="part in parts" :key="part.id">
                                     <VoiceRow :name="nameOf(part)" :letter="letterOf(part)" :color="paint(part.color)" :status="statusOf(part)" :bars="barLines" :guide="!hasTake(part)"
                                         :solo="part.solo" :muted="part.muted" :audible="isAudible(part)" :open="openRow === part.id" :recording="recording && rerecordId === part.id"
-                                        :position="position" :length-seconds="length" :volume="part.volume" :pan="part.pan" :tall="rowFocus === part.id || (recording && rerecordId === part.id)"
-                                        :pickable="!project.beta && !recording && sessionStore.mine(part)" :picked="picked?.id === part.id" :data-next-track="picked?.id === part.id && !recording ? '' : null" :class="openRow === part.id ? 'md:flex-none' : 'md:max-h-[150px] md:min-h-[88px] md:flex-1'"
+                                        :position="position" :length-seconds="length" :volume="part.volume" :pan="part.pan" :tall="rowFocus === part.id || (recording && rerecordId === part.id && !pageScroll)"
+                                        :pickable="!project.beta && !recording && sessionStore.mine(part)" :picked="(project.beta ? betaPart?.id === part.id : picked?.id === part.id) && !recording" :data-next-track="picked?.id === part.id && !recording ? '' : null" :data-recording-row="recording && rerecordId === part.id ? '' : null" :data-beta-row="betaPart?.id === part.id ? '' : null" :class="openRow === part.id ? 'md:flex-none' : 'md:max-h-[150px] md:min-h-[88px] md:flex-1'"
                                         @toggle="toggleRow(part)" @solo="toggle(part, 'solo')" @mute="toggle(part, 'muted')" @volume="update(part, { volume: $event })" @pan="update(part, { pan: $event })" @seek="laneSeek($event)" @pick="togglePick(part)">
                                         <template #meter><MicLevel v-if="recording && rerecordId === part.id" color="var(--color-record)" /></template>
                                         <template #lane>
@@ -247,7 +270,7 @@ export const StudioView = {
 
                                 <!-- A new part, while it's recorded -->
                                 <VoiceRow v-if="live && !rerecordId" :name="liveName" :letter="liveName.slice(0, 1).toUpperCase()" :color="paint(live.color)" :tags="[{ text: t('studio.row.recording'), tone: 'rec' }]" :when="t('studio.row.overOthers')"
-                                    recording tall :position="position" :length-seconds="length" @seek="() => {}">
+                                    recording tall :position="position" :length-seconds="length" data-recording-row @seek="() => {}">
                                     <template #meter><MicLevel color="var(--color-record)" /></template>
                                     <template #lane><div class="absolute inset-0"><Waveform :peaks="livePeaks" :frames-per-peak="512" :sample-rate="engine.sampleRate" :offset-seconds="recordFrom" :length-seconds="length" :color="paint(live.color)" :version="live.count" /></div></template>
                                 </VoiceRow>
@@ -278,8 +301,8 @@ export const StudioView = {
                                 <p v-if="!parts.length" data-ui="facts" class="flex flex-wrap items-center justify-center gap-x-2 px-2 text-center text-sm text-muted">{{ t('studio.add.orLearn') }} <button type="button" class="btn-ghost btn-sm" @click="navigate('/')">{{ t('studio.add.pickSong') }}</button></p>
                             </div>
                         </div>
-                        <div v-if="preparing" class="pointer-events-none absolute inset-x-0 top-12 mx-auto w-fit rounded-full bg-raised px-4 py-2 text-sm text-cream shadow-lg">{{ t('studio.preparingGuides') }}</div>
-                        <div v-if="countIn !== null" class="pointer-events-none absolute inset-0 grid place-items-center bg-ink/40">
+                        <div v-if="preparing" class="pointer-events-none inset-x-0 top-12 mx-auto w-fit rounded-full bg-raised px-4 py-2 text-sm text-cream shadow-lg" :class="pageScroll ? 'fixed z-20' : 'absolute'">{{ t('studio.preparingGuides') }}</div>
+                        <div v-if="countIn !== null" class="pointer-events-none inset-0 grid place-items-center bg-ink/40" :class="pageScroll ? 'fixed z-40' : 'absolute'">
                             <CountIn :key="countIn" :beat="countIn" class="count-pop text-[140px] font-extrabold leading-none text-cream md:text-[200px]" />
                         </div>
                     </div>
@@ -288,10 +311,12 @@ export const StudioView = {
                         <ul class="space-y-2">
                             <li v-for="p in people" :key="p.name" class="flex items-center gap-2 text-sm text-cream" translate="no"><span class="grid size-7 place-items-center rounded-full bg-raised text-xs font-bold">{{ p.name.slice(0, 1) }}</span>{{ p.name }}<span v-if="p.you" class="text-muted">{{ t('together.you') }}</span></li>
                         </ul>
-                        <button v-if="canTogether" type="button" class="btn-ghost btn-sm" @click="dialog = 'together'">{{ t('together.title') }}</button>
+                        <button v-if="canTogether" type="button" class="btn-ghost btn-sm" @click="dialog = 'together'">{{ t('studio.inviteSingers') }}</button>
                     </aside>
                 </div>
 
+                <!-- The notice and the transport: docked at the bottom while the page scrolls (it's padded by their height). -->
+                <div ref="dock" :class="pageScroll ? 'fixed inset-x-0 bottom-0 z-30 bg-panel' : ''" data-studio-dock>
                 <StudioNotice />
                 <!-- Transport -->
                 <footer class="border-t border-line bg-panel px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 md:px-6 md:py-4" :class="recording ? 'bg-record/5' : ''">
@@ -307,10 +332,10 @@ export const StudioView = {
                         </template>
                         <template v-else>
                             <button type="button" :class="[roundButton, 'ms-auto size-11', playing || position > 0 ? '' : 'hidden md:grid']" :aria-label="playing ? t('studio.stop') : t('studio.rewind')" @click="stopOrRewind"><Icon :name="playing ? 'stop' : 'rewind'" :size="16" /></button>
-                            <button v-if="somethingToPlay" type="button" class="grid size-14 shrink-0 place-items-center rounded-full glass-bubble-solid transition" :aria-label="playing ? t('studio.pause') : t('studio.play')" @click="togglePlay"><Icon :name="playing ? 'pause' : 'play'" :size="26" /></button>
+                            <button v-if="somethingToPlay" type="button" class="grid size-14 shrink-0 place-items-center transition bubble bubble-lg bubble-primary" data-disc="play" :aria-label="playing ? t('studio.pause') : t('studio.play')" @click="togglePlay"><Icon :name="playing ? 'pause' : 'play'" :size="26" /></button>
                             <button type="button" class="flex min-w-0 flex-1 items-center gap-2 rounded-full glass-record py-2 pe-4 ps-2 font-semibold transition disabled:opacity-50 md:max-w-xs md:flex-none md:pe-7" :disabled="noTrack" data-record :class="playing || position > 0 ? '' : somethingToPlay ? 'ms-auto md:ms-0' : 'ms-auto md:flex-1'" @click="transportRecord">
                                 <span class="grid size-10 shrink-0 place-items-center rounded-full bg-ink/90 text-record"><Icon name="record" :size="16" /></span>
-                                <span class="truncate">{{ recordLabel }}</span>
+                                <span class="line-clamp-2 text-start leading-tight">{{ recordLabel }}</span>
                             </button>
                             <div class="ms-auto hidden md:block">
                                 <SetupChoices compact :headphones="headphones" :count-in="project.countInBars" :click="!!project.metronome" :polished="parts.some(hasTake) ? prefs.hearPolished : null" @headphones="setHeadphones" @count-in="setCountIn" @click="setClick" @polished="toggleHearPolished" />
@@ -319,6 +344,7 @@ export const StudioView = {
                         </template>
                     </div>
                 </footer>
+                </div>
             </div>
             <ProjectDialog v-if="dialog === 'settings'" :project="project" :can-template="!project.beta && parts.some(hasTake)" @close="dialog = null" @save="saveSettings" @range="dialog = 'range'" @template="navigate('/create?from=' + project.id)" />
             <HeadphonesDialog v-if="dialog === 'headphones'" @close="dialog = null" @ok="headphones = true; headphonesOn($event)" />
@@ -370,11 +396,47 @@ export const StudioView = {
          * with a word's start borrowed from the part that sang it ("A-" for an alto coming in on "maz-").
          */
         laneLines() {
+            return this.wordLines.map((line) => ({ startSeconds: line.startSeconds, endSeconds: line.endSeconds, text: joinSyllables(line.syllables) }));
+        },
+        /**
+         * Whose words show: the part being recorded, else the beta part, else the focused one (its own entries,
+         * docs/studio-words-plan.md); a part without words, the tune's.
+         */
+        wordsPart() {
             const template = this.project.template;
-            if (!template) return [];
-            const source = this.focusPart ? templatePart(this.focusPart) : template.parts.find((p) => p.melody) ?? template.parts[0];
-            const lines = this.focusPart && this.focusLines.length ? this.focusLines : source ? lyricLines(source, template.parts) : [];
-            return lines.map((line) => ({ startSeconds: line.startBeat * this.beatSeconds, endSeconds: line.endBeat * this.beatSeconds, text: joinSyllables(line.syllables) }));
+            if (!template) return null;
+            const chosen = (this.recording && this.parts.find((p) => p.id === this.rerecordId)) || this.betaPart || this.focusPart;
+            const own = chosen && templatePart(chosen);
+            if (own?.guide?.notes?.some((n) => n.lyric)) return { part: own, color: chosen.color }; // KaraokeLine paints it in the theme showing
+            const tune = template.parts.find((p) => p.melody) ?? template.parts[0];
+            return tune ? { part: tune, color: null } : null;
+        },
+        /** Its lines in seconds, each syllable timed (KaraokeLine's shape). */
+        wordLines() {
+            const source = this.wordsPart;
+            if (!source) return [];
+            return lyricLines(source.part, this.project.template.parts).map((line) => ({
+                startSeconds: line.startBeat * this.beatSeconds,
+                endSeconds: line.endBeat * this.beatSeconds,
+                syllables: line.syllables.map((syllable) => ({ ...syllable, seconds: syllable.beat * this.beatSeconds })),
+            }));
+        },
+        /** The line at the playhead: the one being sung, else the next to come (the count-in, between lines), else the last. */
+        wordsAt() {
+            const lines = this.wordLines;
+            const now = lines.findIndex((line) => this.position >= line.startSeconds - 0.02 && this.position < line.endSeconds);
+            if (now >= 0) return now;
+            const coming = lines.findIndex((line) => line.startSeconds > this.position);
+            return coming >= 0 ? coming : lines.length - 1;
+        },
+        wordsNow() {
+            return this.wordLines[this.wordsAt] ?? null;
+        },
+        wordsNext() {
+            return this.wordLines[this.wordsAt + 1] ?? null;
+        },
+        wordsColor() {
+            return this.wordsPart?.color ?? 'var(--color-accent)';
         },
         /** Who's in it (a friend's project, or one friends sing in): for the side panel. */
         people() {
@@ -420,8 +482,8 @@ export const StudioView = {
         /** The desktop lyrics lane only shows when words have room. */
         /** A song's first part without a take, in order: what Record records next. */
         nextToRecord() {
-            // The song's suggested order (as Next says after a take); in a friend's song, of your own parts.
-            return this.isTemplate ? nextSlot(this.parts.filter((p) => sessionStore.mine(p)), this.project.template) : null;
+            // The part nearest your range, then the song's suggested order (as Next says after a take); in a friend's song, of your own parts.
+            return this.isTemplate ? nextSlot(this.parts.filter((p) => sessionStore.mine(p)), this.project.template, null, sessionStore.rangeFit()) : null;
         },
         /** Sing together: on projects that can go to the account (not a beta or a lesson's song). */
         canTogether() {
@@ -598,6 +660,40 @@ export const StudioView = {
         if (this.isTemplate) sessionStore.refreshVoices();
     },
     watch: {
+        // A beta part (Hillel's screenshot): the row to record is in view before Record, under the banner.
+        'betaPart.id': {
+            handler(id) {
+                if (id) this.$nextTick(() => document.querySelector('[data-beta-row]')?.scrollIntoView({ block: 'nearest' }));
+            },
+            immediate: true,
+        },
+        // Record: the row being recorded comes into view (docs/studio-words-plan.md, a quick win).
+        // Record: the banner drops to one line, then the row being recorded comes under the sticky words (instant
+        // under reduced motion). Stop: the banner grows back above it, and the page keeps the row where it was.
+        recording(now) {
+            if (now) {
+                this.$nextTick(() => {
+                    this.observeEdges();
+                    const row = document.querySelector('[data-recording-row]');
+                    this.recordedRow = row;
+                    const instant = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+                    row?.scrollIntoView({ block: this.pageScroll ? 'start' : 'nearest', behavior: instant ? 'instant' : 'smooth' });
+                });
+                return;
+            }
+            const row = this.recordedRow;
+            this.recordedRow = null;
+            if (!this.pageScroll || !row?.isConnected) return;
+            const before = row.getBoundingClientRect().top;
+            this.$nextTick(() => {
+                if (!row.isConnected) return;
+                const moved = row.getBoundingClientRect().top - before;
+                if (Math.abs(moved) > 1) window.scrollBy({ top: moved, behavior: 'instant' });
+            });
+        },
+        pageScroll() {
+            this.$nextTick(() => this.observeEdges());
+        },
         // Opened again with another device's change: a dialog shows the part as it now is (or closes).
         reloads() {
             if (!this.dialogPart) return;
@@ -620,6 +716,11 @@ export const StudioView = {
         },
     },
     mounted() {
+        this.onPageScroll = (event) => (this.pageScroll = event.matches);
+        PAGE_SCROLL.addEventListener('change', this.onPageScroll);
+        // The dock and the sticky block's heights: the page's padding, and scroll-padding so focus is never under them.
+        this.edges = new ResizeObserver(() => this.measureEdges());
+        this.$nextTick(() => this.observeEdges());
         this.onKey = (event) => {
             if (this.dialog || event.metaKey || event.ctrlKey || ['INPUT', 'SELECT', 'TEXTAREA'].includes(event.target.tagName)) return;
             const key = event.key.toLowerCase();
@@ -640,6 +741,10 @@ export const StudioView = {
         engine.onInterrupt = this.onInterrupt;
     },
     updated() {
+        if (this.$refs.dock && this.edgesFor !== this.$refs.dock) {
+            this.edgesFor = this.$refs.dock;
+            this.observeEdges();
+        }
         if (this.$refs.scroller && !this.observing) {
             this.resize.observe(this.$refs.scroller);
             this.observing = true;
@@ -647,6 +752,9 @@ export const StudioView = {
         }
     },
     beforeUnmount() {
+        PAGE_SCROLL.removeEventListener('change', this.onPageScroll);
+        this.edges?.disconnect();
+        Object.assign(document.documentElement.style, { scrollPaddingTop: '', scrollPaddingBottom: '' });
         this.stopTake();
         document.removeEventListener('keydown', this.onKey);
         window.removeEventListener('online', this.onOnline);
@@ -857,6 +965,19 @@ export const StudioView = {
         /** The part's settings, where its guide voice is chosen. */
         dialogFor(part) {
             this.openPart(part);
+        },
+        /** Watches the dock and the sticky block (they come and go with the project and the page mode). */
+        observeEdges() {
+            if (!this.edges) return;
+            this.edges.disconnect();
+            for (const el of [this.$refs.dock, this.$refs.stickyTop]) if (el) this.edges.observe(el);
+            this.measureEdges();
+        },
+        measureEdges() {
+            const dock = this.$refs.dock?.offsetHeight ?? 0;
+            const sticky = this.$refs.stickyTop?.offsetHeight ?? 0;
+            this.dockHeight = this.pageScroll ? dock : 0;
+            Object.assign(document.documentElement.style, this.pageScroll ? { scrollPaddingTop: sticky + 8 + 'px', scrollPaddingBottom: dock + 8 + 'px' } : { scrollPaddingTop: '', scrollPaddingBottom: '' });
         },
         measureBox() {
             const ruler = this.$refs.ruler;

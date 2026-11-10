@@ -94,6 +94,20 @@ final class AdminGate
             && $now - (int) $startedAt <= (int) config('admin.max_lifetime') * 60;
     }
 
+    /**
+     * The admin area's elevation ended, never the account's sign-in: the fresh Google check, the
+     * second factor and the admin timestamps are forgotten, and the session gets a new id and
+     * token, so the next admin page asks for Google and the second factor again while the person
+     * stays signed in everywhere else, remember cookie and all.
+     */
+    public function endAdminSession(Session $session): void
+    {
+        $admin = array_filter(array_keys($session->all()), static fn (string $key): bool => str_starts_with($key, 'admin.'));
+        $session->forget([...$admin, self::SESSION_EMAIL, self::SESSION_FRESH]);
+        $session->migrate(true);
+        $session->regenerateToken();
+    }
+
     public static function userAgentHash(?string $userAgent): string
     {
         return hash('sha256', (string) $userAgent);

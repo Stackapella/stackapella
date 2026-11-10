@@ -34,10 +34,17 @@
         "reason": {
             "type": "string",
             "enum": [
-                "limit",
-                "plus_song"
+                "limit"
             ],
-            "description": "A 403 project_read_only only: why it's read-only."
+            "description": "A 403 project_read_only only: why it's read-only (limit: beyond a plan's project limit, where an install sets one)."
+        },
+        "usedBytes": {
+            "type": "integer",
+            "description": "A 403 storage_limit only: the bytes the account's takes use now, as usage.show's storage.usedBytes."
+        },
+        "limitBytes": {
+            "type": "integer",
+            "description": "A 403 storage_limit only: the plan's allowance, as usage.show's storage.limitBytes."
         },
         "sentToday": {
             "type": "integer",

@@ -101,16 +101,20 @@ function flow(prev, cur, style) {
 
 /**
  * Chords already chosen (the song builder's progression): each a slot to the next chord, with only
- * itself to choose, the ones under no singing left out. In chooseChords' form.
+ * itself to choose, the ones under no singing left out. In chooseChords' form. With `slashBass`, a
+ * slash chord's own bass is kept (the voicer tool); without, the bass is chosen as for any chord.
  */
-function givenChords(melody, given, key) {
+function givenChords(melody, given, key, slashBass = false) {
     const end = melody.reduce((e, n) => Math.max(e, n.beat + n.length), 0);
     const slots = given
-        .map((c, i) => ({ beat: c.beat, endBeat: given[i + 1]?.beat ?? end, options: [{ root: c.root, quality: c.quality }], choice: 0, step: pc(c.root - key.tonic), final: false }))
+        .map((c, i) => ({ beat: c.beat, endBeat: given[i + 1]?.beat ?? end, options: [{ root: c.root, quality: c.quality, ...(slashBass ? slash(c) : {}) }], choice: 0, step: pc(c.root - key.tonic), final: false }))
         .filter((s) => s.beat < end - EPSILON && melody.some((n) => n.beat < s.endBeat - EPSILON && n.beat + n.length > s.beat + EPSILON));
     if (slots.length) slots.at(-1).final = true;
-    return { chords: slots.map((s) => ({ beat: s.beat, ...s.options[0], bass: null })), slots };
+    return { chords: slots.map((s) => ({ beat: s.beat, bass: null, ...s.options[0] })), slots };
 }
+
+/** A given chord's own bass (a slash chord, "C/E"): `{ bass }` when it isn't the root, else nothing. */
+const slash = (c) => (Number.isInteger(c.bass) && pc(c.bass) !== pc(c.root) ? { bass: pc(c.bass) } : {});
 
 /**
  * Whether the tune and a root-position bass would move in parallel octaves or fifths at a change
@@ -129,8 +133,8 @@ function outerParallels(prevSlot, prev, slot, cur) {
  * `choice`. `key` is `{ tonic, mode }`; `phraseEnds` the beats where phrases end; `choices` maps a
  * slot to the option to use ("Try another chord"), and the rest are planned around it.
  */
-export function chooseChords(melody, { key, timeSignature = '4/4', pickupBeats = 0, style = 'simple', phraseEnds = [], choices = {}, chords: given = null }) {
-    if (given?.length) return givenChords(melody, given, key);
+export function chooseChords(melody, { key, timeSignature = '4/4', pickupBeats = 0, style = 'simple', phraseEnds = [], choices = {}, chords: given = null, slashBass = false }) {
+    if (given?.length) return givenChords(melody, given, key, slashBass);
     const mode = modeOf(melody, key);
     const palette = [...PALETTES[mode].simple, ...(style === 'warm' ? PALETTES[mode].warm : [])];
     const candidates = palette.map(([step, quality, prior]) => ({ root: pc(key.tonic + step), quality, prior, step }));
@@ -239,7 +243,8 @@ function voicingsFor(chord, { soprano, lowest, style, first, last, leading, give
     // The bass: the root, or (inside the song, a major or minor chord) the third, which Warm likes and
     // the other styles take to get out of parallel fifths or octaves with the tune; never the leading
     // tone; well under the tune. Chords the singer chose keep their roots, except in Warm.
-    const bassTones = [tones[0], ...(!first && !last && (!given || style === 'warm') && ['maj', 'min'].includes(chord.quality) && tones[1] !== leading ? [tones[1]] : [])];
+    // A slash chord's own bass is kept, whatever it is.
+    const bassTones = Number.isInteger(chord.bass) ? [chord.bass] : [tones[0], ...(!first && !last && (!given || style === 'warm') && ['maj', 'min'].includes(chord.quality) && tones[1] !== leading ? [tones[1]] : [])];
     const bassTop = Math.max(bLow + 7, Math.min(bHigh, lowest - 12));
     const pitches = (classes, low, high) => {
         const out = [];
@@ -273,12 +278,12 @@ function closeUnder(chord, soprano) {
     };
     const a = below(soprano - 1, tones);
     const t = below(a - 1, tones);
-    const b = below(Math.min(t - 1, RANGES.bass[1]), [tones[0]]);
+    const b = below(Math.min(t - 1, RANGES.bass[1]), [Number.isInteger(chord.bass) ? chord.bass : tones[0]]);
     return { a, t, b };
 }
 
 /** What a voicing costs on its own: a missing third, doubling, spacing, register, inversion. With no tune (`s` null), the three alone. */
-function standing(v, s, chord, { leading, style, first, last, lowest }) {
+function standing(v, s, chord, { leading, style, first, last, lowest, four = false }) {
     const tones = tonesOf(chord);
     const classes = [...(s === null ? [] : [pc(s)]), pc(v.a), pc(v.t), pc(v.b)];
     const count = (x) => classes.filter((c) => c === x).length;
@@ -287,11 +292,19 @@ function standing(v, s, chord, { leading, style, first, last, lowest }) {
     // The third: in the alto, tenor or bass (the tune moves off its note), and never missing.
     // (V's third is the leading tone: in the tune, the lower voices leave it alone.)
     if (!count(tones[1])) cost += 12;
-    else if (![pc(v.a), pc(v.t), pc(v.b)].includes(tones[1]) && !(tones[1] === leading && pc(s) === leading)) cost += 8;
+    else if (!four && ![pc(v.a), pc(v.t), pc(v.b)].includes(tones[1]) && !(tones[1] === leading && pc(s) === leading)) cost += 8;
     if (tones.length === 4 && !count(tones[3])) cost += 2; // no seventh
     else if (!count(tones[2])) cost += 0.6; // no fifth
     if (count(leading) > 1) cost += 16;
     if (chord.quality === 'maj' && count(tones[1]) > 1) cost += 1.2; // a doubled major third
+    if (four) {
+        // Always all four (a hymn's block chords, the voicer tool): the full chord, the root doubled, the
+        // third anywhere (the soprano holds its note, so it needn't move into a lower part).
+        if (tones.length === 3 && !count(tones[2])) cost += 2.4; // no fifth
+        if (count(tones[1]) > 1) cost += chord.quality === 'maj' ? 2 : 1.2; // a doubled third (a major one more)
+        if (count(tones[0]) > 2) cost += 2; // a tripled root
+        if (tones.length === 4 && count(tones[3]) > 1) cost += 4; // a doubled seventh
+    }
     // A bass may reach E2 or C4 when nothing else avoids a parallel, but a beginner's is F2 to Bb3.
     if (v.b < BASS_EASY[0]) cost += 3 * (BASS_EASY[0] - v.b);
     if (v.b > BASS_EASY[1]) cost += 3 * (v.b - BASS_EASY[1]);
@@ -299,8 +312,8 @@ function standing(v, s, chord, { leading, style, first, last, lowest }) {
     if (v.a - v.t > 12) cost += 6;
     if (v.t - v.b > 19) cost += 3;
     cost += 0.12 * Math.abs(v.a - centres.alto) + 0.12 * Math.abs(v.t - centres.tenor) + 0.1 * Math.abs(v.b - centres.bass);
-    if (pc(v.b) !== tones[0]) cost += last ? 40 : first ? 3 : style === 'warm' ? 0.7 : 1.5;
-    if (s === null) return cost;
+    if (pc(v.b) !== tones[0] && !Number.isInteger(chord.bass)) cost += last ? 40 : first ? 3 : style === 'warm' ? 0.7 : 1.5;
+    if (s === null || four) return cost;
     // For fewer singers: the third in the soprano or alto (three), and the alto in thirds and sixths under the tune (two).
     if (![pc(s), pc(v.a)].includes(tones[1])) cost += 6;
     if (lowest !== undefined && v.a >= lowest) cost += 1; // it moves down under a lower note of the slot
@@ -349,7 +362,10 @@ function moving(p, ps, q, qs, prevChord, chord, leading) {
  * Alto, tenor and bass for a melody: `{ chords, slots, parts: { alto, tenor, bass }, warnings }`.
  * The alto and tenor sing the melody's words with it, note for note, holding their chord's note;
  * the bass holds each chord on "oo". `warnings` lists the beats with parallel fifths or octaves
- * between the tune and the bass (with this voicing, normally none).
+ * between the tune and the bass (with this voicing, normally none). `slashBass: true` keeps a given
+ * slash chord's bass (`{ root, quality, bass }`, "G/B"). `four: true` voices block chords
+ * that all four always sing (the voicer tool): each chord complete with its root doubled, rather than
+ * keeping the third in the alto for the 2 and 3 singer versions.
  */
 export function arrange(melody, options) {
     const style = options.style ?? 'simple';
@@ -404,7 +420,7 @@ export function arrange(melody, options) {
         const held = notes.filter((n) => n.length >= 0.5 - EPSILON);
         const lowest = Math.min(...(held.length ? held : notes).map((n) => n.pitch));
         const chord = { ...slot.options[slot.choice], step: slot.step };
-        const context = { soprano, lowest, style, first: i === 0, last: i === slots.length - 1, leading, given: !!options.chords };
+        const context = { soprano, lowest, style, first: i === 0, last: i === slots.length - 1, leading, given: !!options.chords, four: options.four === true };
         // A tune too low to sit over: the alto and tenor go a little lower, then sit under its first note only.
         let choices = voicingsFor(chord, context);
         // None with the third (a narrow gap under the tune): the lower ones too.
@@ -581,7 +597,7 @@ export function arrange(melody, options) {
 export function voiceChords(chords, { key, style = 'simple', endBeat }) {
     const leading = pc(key.tonic + 11);
     const events = chords.map((c, i) => {
-        const chord = { root: c.root, quality: c.quality, step: pc(c.root - key.tonic) };
+        const chord = { root: c.root, quality: c.quality, ...slash(c), step: pc(c.root - key.tonic) };
         const context = { soprano: null, lowest: 127, style, first: i === 0, last: i === chords.length - 1, leading, given: true };
         const choices = voicingsFor(chord, context);
         return { chord, choices, cost: choices.map((v) => standing(v, null, chord, context)) };

@@ -1,7 +1,7 @@
 // The Plus courses (js/courses.js): each course's own progress, the gates (staff before launch,
 // lesson 1 free, units by stars), merging two devices, restarting one course, and the course files
 // themselves (every lesson id unique, prefixed, and shaped like the free course's).
-import { courseLessons, courseOf, courseSummary, courseView, courseVisible, lessonAccess, lessonAfter, lessonFree, mergeCourses, nextInCourse, recordCourseLesson, restartedCourseProgress } from '/js/courses.js';
+import { courseLessons, courseOf, courseSummary, courseView, courseVisible, guestLesson, GUEST_LESSONS, lessonAccess, lessonAfter, mergeCourses, nextInCourse, recordCourseLesson, restartedCourseProgress } from '/js/courses.js';
 import { emptyProgress, mergeProgress, recordLesson } from '/js/course.js';
 import { stepOf } from '/js/lesson-steps.js';
 import { partsFor, validateTemplate } from '/js/templates.js';
@@ -26,6 +26,13 @@ test('plus courses: a course keeps its own lessons, apart from the free course\'
     assert(view.lessons['vib-a'] && !view.lessons.a && view.testedOut.length === 0, 'the view holds only the course\'s lessons');
 });
 
+test('plus courses: while the account is still coming, nobody is read as a guest (no flash of courses for a member)', () => {
+    const live = { id: 'vibrato', status: 'live' };
+    assert(!courseVisible(live, null, { plusCourses: true }, false), 'the account not known yet: hidden, even with the guest feature on');
+    assert(courseVisible(live, null, { plusCourses: true }, true), 'known to be a guest: shown');
+    assert(!courseVisible(live, { plan: 'free', staff: null }, { plusCourses: true }, true), 'a member before launch: hidden, as before');
+});
+
 test('plus courses: staff see a live course before launch; the feature opens it to everyone', () => {
     const live = { id: 'vibrato', status: 'live' };
     assert(!courseVisible(live, null), 'signed out: none yet');
@@ -37,16 +44,18 @@ test('plus courses: staff see a live course before launch; the feature opens it 
     assert(!courseVisible({ id: 'counterpoint', status: 'soon' }, { staff: 'admin' }), 'a course coming soon stays hidden');
 });
 
-test('plus courses: lesson 1 is free, the rest need Plus; units open at two thirds of the stars', () => {
+test('courses: every lesson is free signed in; a guest sings lesson 1 and then makes a free account; units open at two thirds of the stars', () => {
     let p = emptyProgress();
-    assert(lessonFree(course, 'vib-a') && !lessonFree(course, 'vib-b'), 'only the first is free');
-    assert(lessonAccess(course, 'vib-a', p).open && !lessonAccess(course, 'vib-a', p).plusOnly, 'lesson 1 for anyone');
-    assert(lessonAccess(course, 'vib-b', p).plusOnly, 'lesson 2 needs Plus');
-    assert(!lessonAccess(course, 'vib-b', p, { plus: true }).plusOnly && !lessonAccess(course, 'vib-b', p, { staff: true }).plusOnly, 'Plus, or staff trying it');
-    assert(!lessonAccess(course, 'vib-d', p, { plus: true }).open, 'unit 2 waits for unit 1\'s stars');
+    // Hillel, 2026-11-06: "lets make all courses included with the free plan", then an account "after lesson 1 of any course".
+    assert(GUEST_LESSONS === 1 && guestLesson(course, 'vib-a') && !guestLesson(course, 'vib-b') && !guestLesson(course, 'nope'), 'a guest\'s lesson is the first');
+    assert(lessonAccess(course, 'vib-a', p).open && !lessonAccess(course, 'vib-a', p).needsAccount, 'lesson 1 for a guest');
+    assert(lessonAccess(course, 'vib-b', p).needsAccount, 'lesson 2 needs a free account, signed out');
+    assert(!lessonAccess(course, 'vib-b', p, { signedIn: true }).needsAccount && !lessonAccess(course, 'vib-b', p, { staff: true }).needsAccount, 'signed in on any plan, or staff');
+    assert(!('plusOnly' in lessonAccess(course, 'vib-b', p, { signedIn: true })), 'no lesson needs Plus');
+    assert(!lessonAccess(course, 'vib-d', p, { signedIn: true }).open, 'unit 2 waits for unit 1\'s stars');
     assert(lessonAccess(course, 'vib-d', p, { staff: true }).open, 'staff preview every unit');
     for (const id of ['vib-a', 'vib-b', 'vib-c']) p = recordCourseLesson(p, 'vibrato', id, { stars: 2, percent: 75 });
-    assert(lessonAccess(course, 'vib-d', p, { plus: true }).open, '6 of 9 opens it');
+    assert(lessonAccess(course, 'vib-d', p, { signedIn: true }).open, '6 of 9 opens it');
     // The free course's stars never open a Plus course's unit.
     let q = emptyProgress();
     for (const id of ['vib-a', 'vib-b', 'vib-c']) q = recordLesson(q, id, { stars: 3, percent: 95 });
@@ -59,9 +68,9 @@ test('plus courses: the next lesson, the lesson after, and the card\'s summary',
     assert(nextInCourse(course, p).lesson.id === 'vib-a', 'starts at lesson 1');
     p = recordCourseLesson(p, 'vibrato', 'vib-a', { stars: 1, percent: 50 });
     assert(nextInCourse(course, p).lesson.id === 'vib-b', 'then lesson 2');
-    assert(lessonAfter(course, 'vib-a', p) === null, 'free plan: nothing after the free lesson');
-    assert(lessonAfter(course, 'vib-a', p, { plus: true }).id === 'vib-b', 'Plus: lesson 2');
-    assert(lessonAfter(course, 'vib-c', p, { plus: true }) === null, 'unit 2 still closed');
+    // Next leads a guest on to lesson 2, where a free account is asked for (learn.js's needsAccount); signed in it simply opens.
+    assert(lessonAfter(course, 'vib-a', p).id === 'vib-b' && lessonAfter(course, 'vib-a', p, { signedIn: true }).id === 'vib-b', 'lesson 2, on any plan');
+    assert(lessonAfter(course, 'vib-c', p, { signedIn: true }) === null, 'unit 2 still closed');
     const s = courseSummary(course, p);
     assert(s.done === 1 && s.total === 5 && s.stars === 1 && s.started, `summary: ${JSON.stringify(s)}`);
     assert(courseOf({ vibrato: course }, 'vib-e') === course && courseOf({ vibrato: course }, 'a') === null, 'the course of a lesson');
@@ -113,7 +122,7 @@ test('plus courses: two devices\' progress keeps each Plus course, and adds noth
 });
 
 test('plus courses: listen and choose counts each round\'s first answer, and a clip is its notes over its drone', async () => {
-    const { choosePercent, playableRounds, renderClip } = await import('/js/components/choose.js');
+    const { choosePercent, playableRounds, renderClip } = await import('/js/ear-rounds.js');
     const waiting = { clips: [{ clip: 'breath.onset-hard' }, { notes: [{ beat: 0, length: 1, step: 0 }] }], answer: 0 };
     assert(playableRounds([waiting, { clips: [{ notes: [{ beat: 0, length: 1, step: 0 }] }], answer: 0 }]).length === 1, 'a round waiting for a recording is left out');
     const rounds = [{ answer: 0 }, { answer: 1 }, { answer: 2 }, { answer: 0 }];
@@ -163,7 +172,8 @@ test('plus courses: the catalogue lists all 27 in Home\'s and the site\'s three 
     const { courses } = await (await fetch('/course/plus/courses.json')).json();
     assert(courses.length === 27, `27 courses: ${courses.length}`);
     assert(new Set(courses.map((c) => c.id)).size === 27 && new Set(courses.map((c) => c.slug)).size === 27, 'ids and slugs unique');
-    for (const [group, count] of [['skills', 9], ['harmony', 9], ['styles', 9]]) { // nine a group (Hillel, 2026-10-30)
+    // Nine a group (Hillel, 2026-10-30), again since Beatboxing left (Hillel, 2026-11-08: "each section will have 9 courses"), with Learn your part for rehearsal (choir-part) in harmony.
+    for (const [group, count] of [['skills', 9], ['harmony', 9], ['styles', 9]]) {
         const inGroup = courses.filter((c) => c.group === group).sort((a, b) => a.order - b.order);
         assert(inGroup.length === count && inGroup.every((c, i) => c.order === i + 1), `${group}: ${count}, ordered from 1 (${inGroup.map((c) => c.order)})`);
         assert(inGroup.slice(0, 3).every((c) => c.launch), `${group}: its three launch courses first`);
@@ -197,7 +207,7 @@ test('plus courses: every clip a lesson names is a slot in clips.json, and each 
 });
 
 test('plus courses: a real singer\'s clip makes its round playable, and a recorded-only model takes its length from seconds', async () => {
-    const { playableRounds } = await import('/js/components/choose.js');
+    const { playableRounds } = await import('/js/ear-rounds.js');
     const { modelBeats } = await import('/js/components/selfcheck.js');
     const { courseOfSlot } = await import('/js/course-clips.js');
     const waiting = { clips: [{ clip: 'pop.breathy' }, { notes: [{ beat: 0, length: 1, step: 0 }] }], answer: 0 };

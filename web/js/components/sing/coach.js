@@ -8,6 +8,7 @@ import { tk } from '../../i18n.js';
 import { Gems, gemInk } from '../gems.js';
 import { Icon } from '../icon.js';
 import { KeyControl } from '../key-control.js';
+import { game } from '../../skin.js';
 
 const STEP = {
     listen: { name: tk('sing.coach.step.listen'), hint: tk('sing.coach.hint.listen'), action: tk('sing.coach.action.listen') },
@@ -33,7 +34,7 @@ export const Coach = {
         canHigher: { type: Boolean, default: true },
     },
     emits: ['action', 'phrase', 'step', 'other-part', 'lower', 'higher'],
-    setup: () => ({ STEP, STEPS }),
+    setup: () => ({ STEP, STEPS, game }),
     // 66.png: "Step 1 of 4" over the steps as bars, the step and its line, the key, Next; the phrases
     // as cards (the one you're on outlined in your colour); Choose another part and Skip to record.
     // The step's action is the transport's Play on a wide screen; a phone, with no transport while
@@ -66,7 +67,11 @@ export const Coach = {
                 <ol class="mt-3 space-y-2 pb-4" :aria-label="t('sing.coach.path')">
                     <li v-for="p in phrases" :key="p.index">
                         <button type="button" class="flex w-full items-center gap-3 rounded-2xl border p-3 text-start transition" :class="p.index === here ? '' : 'border-transparent hover:bg-raised/40'" :style="p.index === here ? { borderColor: color } : null" :aria-current="p.index === here ? 'true' : null" @click="$emit('phrase', p.index)">
-                            <span class="grid size-9 shrink-0 place-items-center rounded-full border-2 text-sm font-bold" :style="counts[p.index] ? { background: color, borderColor: color, color: paintText(color) } : p.index === here ? { borderColor: color, color: 'var(--color-cream)' } : { borderColor: 'var(--color-line)', color: 'var(--color-muted)' }">
+                            <span v-if="game()" class="grid size-9 shrink-0 place-items-center rounded-full border-2 text-sm font-bold" :style="counts[p.index] ? { background: color, borderColor: color, color: paintText(color) } : p.index === here ? { borderColor: color, color: 'var(--color-cream)' } : { borderColor: 'var(--color-line)', color: 'var(--color-muted)' }">
+                                <Icon v-if="counts[p.index]" name="check" :size="16" /><template v-else>{{ p.index + 1 }}</template>
+                            </span>
+                            <!-- Serious mode: bubbles (docs/bubble-circles-plan.md), done in the part's colour, here a clear one ringed in it. -->
+                            <span v-else class="bubble grid size-9 shrink-0 place-items-center text-sm font-bold" :class="counts[p.index] ? '' : 'bubble-clear'" :style="counts[p.index] ? { '--bubble': color, '--bubble-ink': paintText(color) } : p.index === here ? { '--bubble-ink': 'var(--color-cream)', borderColor: color } : null" :data-node="counts[p.index] ? 'done' : p.index === here ? 'now' : 'next'">
                                 <Icon v-if="counts[p.index]" name="check" :size="16" /><template v-else>{{ p.index + 1 }}</template>
                             </span>
                             <span class="min-w-0">

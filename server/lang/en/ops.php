@@ -57,6 +57,8 @@ return [
         'storage' => ':value GB of new takes in a day (the line is :limit GB).',
         'limited' => ':value requests refused by the limits in the last hour (the line is :limit).',
         'suppressed' => ':value addresses suppressed in a day (bounces or complaints; the line is :limit).',
+        'mail_waiting' => ':value emails and quick jobs waiting over 5 minutes (the line is :limit): sign-up links are late. Is the scheduler or the default worker running?',
+        'failed_jobs' => ':value jobs failed in the last hour (the line is :limit): see failed_jobs.',
     ],
     'network' => [
         'changed' => 'The network panel: :title is now :status (:numbers).',
@@ -72,6 +74,11 @@ return [
         'subject' => 'Stackapella digest for :date',
         'title' => 'Yesterday, and what\'s waiting',
         'yesterday' => 'Yesterday: :signups sign-ups, :plus started Plus, :shared harmonies shared.',
+        'sources' => 'Where new visitors came from: :list.',
+        'source' => ':source :arrivals (:accounts signed up)',
+        // A free tool's link (?ref=tool-tuner), as Growth names it.
+        'tool_source' => 'Tools: :name',
+        'other_sources' => 'others',
         'waiting' => [
             'support' => ':count support messages are past their answer time.',
             'appeals' => ':count people asked for a review.',

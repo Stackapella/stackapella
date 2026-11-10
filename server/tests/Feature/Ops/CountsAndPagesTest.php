@@ -22,6 +22,7 @@ use App\Support\Flags;
 use App\Support\Sharing\HarmonyFiles;
 use App\Support\Stats\Counts;
 use App\Support\Stats\NetworkReadiness;
+use App\Support\Templates\Catalogue;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Storage;
@@ -189,22 +190,53 @@ final class CountsAndPagesTest extends TestCase
         $this->assertSame(['key' => 'soprano', 'name' => 'Soprano', 'low' => 'C4', 'high' => 'F5'], $song['parts'][0]);
         $this->assertStringStartsWith('Silent night, Holy night', $song['words'][0]);
         $this->assertSame('/?song=silent-night&ref=song-page', $song['startUrl']);
-        $this->assertSame('Learn the harmony to Silent Night, part by part', $page->viewData('meta')['title']);
+        $this->assertSame('Silent Night Harmony: Learn Every Part', $page->viewData('meta')['title']);
         $this->assertSame('noindex', $page->headers->get('X-Robots-Tag'));
         $this->assertNull($page->headers->get('Set-Cookie'));
 
         $list = $this->get('/songs')->assertOk()->assertViewIs('public.songs');
         $this->assertSame(['amazing-grace', 'silent-night'], array_column($list->viewData('songs'), 'slug'));
-        // Each card's Play: a free song's opening line; a Plus song's notes stay in the app.
-        foreach ($list->viewData('songs') as $song) {
-            $line = $list->viewData('lines')[$song['slug']];
-            $song['plus'] ? $this->assertNull($line, $song['slug']) : $this->assertNotNull($line, $song['slug']);
-        }
+        // Each card's Play: a bundled song's opening line; any other song's notes come only to an
+        // account, through the API.
+        $this->assertNotNull($list->viewData('lines')['amazing-grace']);
+        $this->assertNull($list->viewData('lines')['silent-night']);
+        // Every library song is free with an account (2026-11-07): no song carries a plan.
+        $this->assertSame([], array_column($list->viewData('songs'), 'plus'));
 
         $this->get('/songs/nope')->assertNotFound()->assertViewIs('public.page-gone')->assertViewHas('links', ['app' => '/songs']);
         // A singer's own template has no page.
         Template::factory()->create(['slug' => 'mine', 'owner_id' => User::factory()->create()->id]);
         $this->get('/songs/mine')->assertNotFound();
+    }
+
+    public function test_a_song_waiting_for_its_monday_is_nowhere_on_the_site_until_it_is_reviewed(): void
+    {
+        // Amazing Grace is open; Away in a Manger waits (reviewed false), as the library's held songs do.
+        $folder = storage_path('framework/testing/templates-'.uniqid());
+        mkdir($folder, 0777, true);
+        foreach (['amazing-grace' => true, 'away-in-a-manger' => false] as $slug => $reviewed) {
+            $file = is_file(base_path('../web/templates/'.$slug.'.json')) ? base_path('../web/templates/'.$slug.'.json') : database_path('templates/'.$slug.'.json');
+            file_put_contents($folder.'/'.$slug.'.json', (string) json_encode([...(array) json_decode((string) file_get_contents($file), true), 'reviewed' => $reviewed]));
+        }
+        config(['templates.folders' => [$folder], 'ops.indexing' => true]);
+        app(SyncOfficialTemplates::class)->handle();
+
+        $seen = function (): array {
+            $list = array_column((array) $this->get('/songs')->assertOk()->viewData('songs'), 'slug');
+            $page = $this->get('/songs/away-in-a-manger')->status();
+            $sitemap = str_contains((string) $this->get('/sitemap.xml')->assertOk()->getContent(), '/songs/away-in-a-manger</loc>');
+            $more = array_column((array) $this->get('/songs/amazing-grace')->assertOk()->viewData('more'), 'slug');
+
+            return [$list, $page, $sitemap, $more, app(Catalogue::class)->songCount()];
+        };
+
+        $this->assertSame([['amazing-grace'], 404, false, [], 1], $seen());
+        $this->get('/songs/away-in-a-manger')->assertViewIs('public.page-gone');
+
+        // Its Monday: the moment it's reviewed, it's on the songbook, its page, the sitemap and the count.
+        $away = Template::query()->where('slug', 'away-in-a-manger')->firstOrFail();
+        TemplateVersion::query()->whereKey($away->current_version_id)->update(['reviewed' => true]);
+        $this->assertSame([['amazing-grace', 'away-in-a-manger'], 200, true, ['away-in-a-manger'], 2], $seen());
     }
 
     public function test_guides_and_legal_pages_come_from_their_text_as_blocks(): void
@@ -259,6 +291,8 @@ final class CountsAndPagesTest extends TestCase
         $everyone = (string) collect($groups)->first(fn (string $g): bool => str_starts_with($g, 'User-agent: *'));
         $previews = (string) collect($groups)->first(fn (string $g): bool => str_contains($g, 'User-agent: facebookexternalhit'));
         $this->assertStringContainsString('Disallow: /h/', $everyone);
+        // Cloudflare's email protection link, never a page of ours.
+        $this->assertStringContainsString('Disallow: /cdn-cgi/', $everyone);
         foreach (['Twitterbot', 'LinkedInBot', 'WhatsApp', 'Slackbot', 'Discordbot', 'redditbot'] as $bot) {
             $this->assertStringContainsString("User-agent: {$bot}\n", $previews);
         }

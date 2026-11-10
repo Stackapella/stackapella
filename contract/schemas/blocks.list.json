@@ -9,7 +9,7 @@
         "data": {
             "type": "array",
             "items": {
-                "$ref": "person.json"
+                "$ref": "blocks.row.json"
             }
         }
     }

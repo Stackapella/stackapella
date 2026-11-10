@@ -1,0 +1,113 @@
+{
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "groups",
+                "total",
+                "timezone"
+            ],
+            "properties": {
+                "groups": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "id",
+                            "name",
+                            "director",
+                            "members",
+                            "songs",
+                            "createdAt",
+                            "weeks"
+                        ],
+                        "properties": {
+                            "id": {
+                                "type": "string"
+                            },
+                            "name": {
+                                "type": "string"
+                            },
+                            "director": {
+                                "type": "object",
+                                "additionalProperties": false,
+                                "required": [
+                                    "id",
+                                    "name"
+                                ],
+                                "properties": {
+                                    "id": {
+                                        "type": "string"
+                                    },
+                                    "name": {
+                                        "type": "string"
+                                    }
+                                }
+                            },
+                            "members": {
+                                "type": "integer",
+                                "description": "Members, the director left out."
+                            },
+                            "songs": {
+                                "type": "integer"
+                            },
+                            "createdAt": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ],
+                                "format": "date-time"
+                            },
+                            "weeks": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "additionalProperties": false,
+                                    "required": [
+                                        "week",
+                                        "singers",
+                                        "takes",
+                                        "scores"
+                                    ],
+                                    "properties": {
+                                        "week": {
+                                            "type": "string",
+                                            "description": "The week's Monday (YYYY-MM-DD), in the report timezone."
+                                        },
+                                        "singers": {
+                                            "type": "integer",
+                                            "description": "Members who recorded a take or a scored run of one of the group's songs that week."
+                                        },
+                                        "takes": {
+                                            "type": "integer"
+                                        },
+                                        "scores": {
+                                            "type": "integer"
+                                        }
+                                    }
+                                },
+                                "description": "The last 8 weeks, oldest first, the current one last."
+                            }
+                        }
+                    },
+                    "description": "Totals only: never which member."
+                },
+                "total": {
+                    "type": "integer",
+                    "description": "Every group, shown or not."
+                },
+                "timezone": {
+                    "type": "string"
+                }
+            }
+        }
+    },
+    "$id": "admin.groups.list.json"
+}

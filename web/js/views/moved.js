@@ -14,8 +14,10 @@ export const MovedView = {
     components: { Icon, Logo, Notice },
     data: () => ({ stage: window.opener ? 'waiting' : 'file', received: 0, added: 0, error: null }),
     template: `
-        <div class="mx-auto flex min-h-dvh max-w-xl flex-col justify-center gap-6 px-6 py-16">
-            <Logo />
+        <div class="flex min-h-dvh flex-col">
+            <!-- The app's top bar on the site header's grid (app-wrap app-top): the logo where the site's is. -->
+            <header class="app-wrap app-top"><Logo /></header>
+            <div class="mx-auto flex w-full max-w-xl flex-1 flex-col justify-center gap-6 px-6 pb-16">
             <section class="card space-y-4 p-6 md:p-8" aria-live="polite">
                 <template v-if="stage === 'waiting' || stage === 'receiving'">
                     <h1 class="text-3xl font-extrabold tracking-tight text-cream">{{ t('moved.arriving') }}</h1>
@@ -35,6 +37,7 @@ export const MovedView = {
                     <a href="/" class="btn-ghost" @click.prevent="open">{{ t('moved.skip') }}</a>
                 </template>
             </section>
+            </div>
         </div>`,
     mounted() {
         if (!window.opener) return;

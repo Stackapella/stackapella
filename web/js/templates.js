@@ -38,18 +38,17 @@ export async function listTemplates({ drafts = showDrafts(), library = true } = 
     const index = await fetchJson('/templates/index.json');
     const bundled = await Promise.all(index.templates.map((id) => loadBundled(id)));
     if (!library) return bundled.filter((t) => t.reviewed || drafts); // only the songs the app carries
-    // The rest of the library (the Plus songs) from the catalogue, as summaries: never their notes.
+    // The rest of the library from the catalogue, as summaries (never their notes) until one is started.
     const { catalogue, loadCatalogue } = await import('./stores/catalogue.js');
     await loadCatalogue();
     const rest = catalogue.list.filter((entry) => !index.templates.includes(entry.id)).map(songSummary);
-    const access = new Map(catalogue.list.map((entry) => [entry.id, entry]));
-    const all = [...bundled.map((tpl) => ({ ...tpl, freeUntil: access.get(tpl.id)?.freeUntil ?? null })), ...rest];
+    const all = [...bundled, ...rest];
     return all.filter((t) => t.reviewed || drafts);
 }
 
 /**
  * A song the app doesn't carry, as the catalogue lists it: its title, parts and ranges, its preview
- * clip and whether it's free (`access`, `freeUntil` for the song of the month). `summary: true`:
+ * clip and whether a guest may start it (`access`). `summary: true`:
  * loadTemplate() fetches the song itself.
  */
 export function songSummary(entry) {
@@ -65,7 +64,6 @@ export function songSummary(entry) {
         timeSignature: entry.timeSignature,
         reviewed: entry.reviewed,
         access: entry.access,
-        freeUntil: entry.freeUntil ?? null,
         previewUrl: entry.previewUrl ?? null,
         parts: entry.parts.map((p) => ({ key: p.key, name: p.name, range: p.range })),
         voicings: entry.voicings ?? {}, // who sings for each number of singers: the card's "2 to 4"
@@ -73,9 +71,13 @@ export function songSummary(entry) {
     };
 }
 
-/** Whether a song can be started now: free, the song of the month, or on Plus. */
-export function canStart(song, plus) {
-    return !song.summary || plus || song.access === 'free' || (!!song.freeUntil && Date.parse(song.freeUntil) > Date.now());
+/**
+ * Whether a song can be started now: every library song with an account (Plus is for groups, Hillel
+ * 2026-11-07: "lets make the main thing pay to use in a group"); a guest, the free songs (the rest
+ * play their clip, and a free account starts them).
+ */
+export function canStart(song, signedIn) {
+    return !song.summary || signedIn || song.access === 'free';
 }
 
 // Before the launch (the server's `prelaunch`, remembered so the first list after opening is right)
@@ -113,8 +115,8 @@ export function showDrafts(host = location.hostname) {
 
 /**
  * A song in full: one the app carries (the four free songs), one of the person's own on this
- * device, else from the account (templates.show: on Plus, the song of the month, or one kept from
- * it; someone's own by its link or a choir group), which refuses with `plus_required`.
+ * device, else from the account (templates.show: every library song with an account since 2026-11-07;
+ * someone's own by its link or a choir group).
  */
 export async function loadTemplate(id) {
     const index = await fetchJson('/templates/index.json');

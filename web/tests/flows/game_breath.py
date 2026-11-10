@@ -8,7 +8,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 from flow import run  # noqa: E402
 from course_breath import ROUTER, STORE, open_breath  # noqa: E402
-from game_frames import dark, light  # noqa: E402
+from game_frames import dark, every_theme, light  # noqa: E402
 
 LABEL = "document.querySelector('[data-breath-goal] .ge-goal')"
 
@@ -33,6 +33,7 @@ def journey(f):
     assert box["above"] and box["left"] and box["right"] and box["overflow"] == "visible", box
     f.run("document.querySelector('[data-breath-bar]').scrollIntoView({ block: 'center' })")
     f.shot("meter-goal")
+    every_theme(f, "the breath meter")
     light(f)
     f.shot("meter-goal-light")
     dark(f)

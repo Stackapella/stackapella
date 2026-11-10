@@ -19,14 +19,17 @@ def t(f, key, values=None):
 
 
 def journey(f):
-    # The shelf: the song of the month, free this month.
+    # The shelf: every song open to an account, with no Plus tag (Hillel, 2026-11-07: Plus is for singing with others).
     f.go("/?api=mock&as=member", "document.querySelector('#band-songs')")
     f.wait_text("Silent Night")
-    f.wait_text(t(f, "home.songs.freeMonth"))
+    assert not f.js("[...document.querySelectorAll('#band-songs [data-ui=tag]')].some((t) => /plus/i.test(t.textContent))"), "no song says Plus"
 
-    # The Plus page from the second workout of the day.
-    f.go("/plus?api=mock&as=member&from=workout", "document.querySelector('h1')")
-    f.wait_text(t(f, "plus.moment.workout"))
+    # The Plus page from inviting a friend: singing with others first, then the extras for you.
+    f.go("/plus?api=mock&as=member&from=friend", "document.querySelector('h1')")
+    f.wait_text(t(f, "plus.moment.friend"))
+    f.wait_text(t(f, "plus.highlight.together"))
+    groups = f.js("[...document.querySelectorAll('table tbody th[colspan], table caption, h3')].map((e) => e.textContent.trim())")
+    print(f"    the table's groups: {groups}")
     f.wait_text(t(f, "plus.yearly"))
     f.run("const s = document.querySelector('select'); s.value = 'usd'; s.dispatchEvent(new Event('change'));")
     f.wait_text("$3.33")

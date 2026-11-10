@@ -6,9 +6,9 @@
 // link, to copy or share), and Edit, Make a copy, Export file and Delete. Anyone with the link of an
 // unlisted one, or a choir group it's shared with, can learn it; anyone else hears it isn't here.
 
-import { AccountWall } from '../components/account-wall.js';
+import { AccountWall, signInTo, signUpFor } from '../components/account-wall.js';
 import { markRaw } from 'vue';
-import { PageHeader } from '../components/page.js';
+import { AppScreen } from '../components/page.js';
 import { api } from '../api.js';
 import { midiName, suggestPart } from '../dsp.js';
 import { t, tk } from '../i18n.js';
@@ -17,10 +17,9 @@ import { exportFile, LICENCE } from '../creator.js';
 import { playTemplate } from '../creator-audio.js';
 import { lengthBeats, partsFor, singerOptions, templatePartName, validateTemplate } from '../templates.js';
 import { formatTime, keyLabel } from '../theme.js';
-import { canCreateProject, LimitReached, newSinger, startFromTemplate } from '../stores/projects.js';
+import { newSinger, startFromTemplate } from '../stores/projects.js';
 import { deleteTemplate, loadMine, mine, ownTemplate, saveTemplate, setVisibility } from '../stores/templates.js';
 import { knownRange, learning, loadLearning, pickRange } from '../stores/learning.js';
-import { PlusMoment } from '../components/plus-moment.js';
 import { account } from '../stores/account.js';
 import { confirmAction, UNDO_SECONDS } from '../components/confirm.js';
 import { paint } from '../colors.js';
@@ -30,7 +29,9 @@ import { Field } from '../components/form.js';
 import { Icon } from '../components/icon.js';
 import { ShareIdea } from '../components/share-idea.js';
 import { toast } from '../components/ui.js';
-import { PartBoard } from '../components/boards.js';
+import { lazyComponent } from '../game/modules.js';
+
+const PartBoard = lazyComponent('boards', 'PartBoard'); // game mode's only: loaded with game mode
 import { game } from '../skin.js';
 
 const STATES = {
@@ -41,6 +42,7 @@ const STATES = {
     readOnly: { tone: 'warn', label: tk('template.state.readOnly') },
     unverified: { tone: 'warn', label: tk('template.state.unverified') },
     invalid: { tone: 'warn', label: tk('template.state.invalid') },
+    importedPrivate: { tone: 'warn', label: tk('template.state.device') },
 };
 const DIFFICULTY = { beginner: tk('templates.difficulty.beginner'), intermediate: tk('templates.difficulty.intermediate'), advanced: tk('templates.difficulty.advanced') };
 
@@ -54,14 +56,21 @@ const BOARD_GRANTS = new Set(['free', 'plus', 'month', 'kept', 'beta', 'admin', 
 export const hasBoards = ({ own, grant, visibility, boards = null }) => (own ? visibility === 'public' : typeof boards === 'boolean' ? boards : BOARD_GRANTS.has(grant));
 
 export const TemplateView = {
-    components: { AccountWall, Field, Icon, PageHeader, PlusMoment, PartBoard, ShareIdea },
+    components: { AccountWall, Field, Icon, AppScreen, PartBoard, ShareIdea },
     props: { id: { type: String, required: true } },
-    data: () => ({ template: null, grant: null, boards: null, missing: false, failed: false, singers: 4, picked: null, player: null, playingPart: null, starting: false, changing: false, limitOpen: false, details: { description: '', words: '', tune: '' }, backingUp: false }),
-    setup: () => ({ STATES, DIFFICULTY, account, keyLabel, midiName, templatePartName, singerOptions, formatTime, goBack, paint, PART_COLORS, game }),
+    data: () => ({ directed: null, template: null, grant: null, boards: null, missing: false, failed: false, singers: 4, picked: null, player: null, playingPart: null, starting: false, changing: false, details: { description: '', words: '', tune: '' }, backingUp: false }),
+    setup: () => ({ STATES, DIFFICULTY, account, signInTo, signUpFor, keyLabel, midiName, templatePartName, singerOptions, formatTime, goBack, paint, PART_COLORS, game }),
     template: `
-        <div class="mx-auto flex min-h-dvh max-w-3xl flex-col px-4 pb-16 pt-[max(1rem,env(safe-area-inset-top))] md:px-8">
-            <PageHeader :title="template?.title ?? t('template.title')" :title-is-content="!!template" back="/" />
-            <p v-if="missing" class="card p-6 text-cream" role="alert">{{ t('template.missing') }}</p>
+        <AppScreen :title="template?.title ?? t('template.title')" :title-is-content="!!template" back="/" measure="max-w-3xl">
+            <!-- Signed out, a private song is a 404 too: a director opening their choir's song from an email, on a device they've never signed in on, signs in and comes back to it (docs/agents/handoff-frontend2.md, choir tracks stage 1) -->
+            <div v-if="missing && !account.me" class="card space-y-4 p-6" role="alert" data-template-sign-in>
+                <p class="text-cream">{{ t('template.signInToOpen') }}</p>
+                <div class="flex flex-wrap items-center gap-x-5 gap-y-3">
+                    <a :href="signInTo('/t/' + id)" class="btn-primary" @click.prevent="navigate(signInTo('/t/' + id))">{{ t('auth.signIn') }}</a>
+                    <a :href="signUpFor('template', '/t/' + id)" class="link tap-44 text-sm" @click.prevent="navigate(signUpFor('template', '/t/' + id))">{{ t('wrap.makeAccount') }}</a>
+                </div>
+            </div>
+            <p v-else-if="missing" class="card p-6 text-cream" role="alert">{{ t('template.missing') }}</p>
             <p v-else-if="failed" class="card p-6 text-cream" role="alert">{{ failed }}</p>
             <p v-else-if="!template" class="text-muted" role="status">{{ t('create.loading') }}</p>
             <div v-else class="space-y-8">
@@ -76,6 +85,16 @@ export const TemplateView = {
                     </ul>
                     <p v-if="credits" class="text-sm text-muted" translate="no">{{ credits }}</p>
                 </div>
+
+                <!-- A choir's own song (an import, private to you and your groups): sharing it with the choir comes first, since that's the only way it reaches the singers (docs/agents/handoff-frontend2.md, choir tracks stage 1) -->
+                <section v-if="choirSong" class="card space-y-3 p-5 md:p-6" aria-labelledby="choir-heading" data-share-choir>
+                    <h2 id="choir-heading" class="text-xl font-extrabold tracking-tight text-cream">{{ t('template.choir.title') }}</h2>
+                    <p class="text-sm text-muted">{{ t('template.choir.hint') }}</p>
+                    <div class="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+                        <a v-for="g in directed" :key="g.id" :href="'/groups/' + g.id + '?share=' + id" class="btn-primary" translate="no" @click.prevent="navigate('/groups/' + g.id + '?share=' + id)">{{ t('template.choir.shareWith', { name: g.name }) }}</a>
+                        <a v-if="!directed.length" :href="'/groups?start=1&share=' + id" class="btn-primary" @click.prevent="navigate('/groups?start=1&share=' + id)">{{ t('template.choir.start') }}</a>
+                    </div>
+                </section>
 
                 <section class="card space-y-4 p-5 md:p-6" aria-labelledby="pick-heading">
                     <div class="flex flex-wrap items-center justify-between gap-3">
@@ -101,8 +120,9 @@ export const TemplateView = {
                                 </span>
                             </button>
                             <button type="button" class="glass-bubble relative z-10 grid size-11 shrink-0 place-items-center rounded-full text-cream" :aria-label="playingPart === part.key ? t('studio.stop') : t('template.hearPart', { part: templatePartName(part) })" @click="hearPart(part)"><Icon :name="playingPart === part.key ? 'stop' : 'play'" :size="16" /></button>
-                            <!-- The part's leaderboard (components/boards.js), above the row's hit area so it never picks the part -->
-                            <PartBoard v-if="game() && template.id && !template.course && !imported && onBoards" class="relative z-10 min-w-0 basis-full sm:ps-8" :template-id="template.id" :part-key="part.key" :part-name="templatePartName(part)" :color="paint(part.color ?? PART_COLORS[i % PART_COLORS.length])" />
+                            <!-- The picked part's leaderboard (components/boards.js; docs/leaderboard-redesign-plan.md: one board, under
+                                 the part you picked), above the row's hit area so it never picks the part -->
+                            <PartBoard v-if="picked === part.key && game() && template.id && !template.course && !imported && onBoards" :key="'board-' + part.key" class="relative z-10 min-w-0 basis-full sm:ps-8" :song-title="template.title" :template-id="template.id" :part-key="part.key" :part-name="templatePartName(part)" :color="paint(part.color ?? PART_COLORS[i % PART_COLORS.length])" />
                         </li>
                     </ul>
                     <p data-ui="facts" class="flex flex-wrap items-center justify-between gap-2 text-xs text-muted">
@@ -110,17 +130,18 @@ export const TemplateView = {
                         <span v-if="yourRange" class="flex items-center gap-1.5"><span class="h-2.5 w-4 rounded border border-dashed border-muted/70" aria-hidden="true"></span>{{ t('template.yourRange') }}</span>
                     </p>
                     <div class="flex flex-wrap gap-3">
-                        <button type="button" class="btn-primary" :disabled="starting || !picked" @click="learn">{{ t('template.learnPart', { part: pickedName }) }} <Icon name="arrow" :size="16" /></button>
+                        <button type="button" :class="choirSong ? 'btn-secondary' : 'btn-primary'" :disabled="starting || !picked" @click="learn">{{ t('template.learnPart', { part: pickedName }) }} <Icon name="arrow" :size="16" /></button>
                         <button type="button" class="btn-secondary" @click="hear"><Icon :name="player && !playingPart ? 'stop' : 'play'" :size="16" /> {{ player && !playingPart ? t('studio.stop') : t('template.hearAll') }}</button>
                     </div>
                 </section>
 
                 <section v-if="record" class="space-y-4" aria-labelledby="yours-heading">
-                    <h2 id="yours-heading" class="text-xs font-bold uppercase tracking-widest text-muted">{{ t('template.yours') }}</h2>
+                    <h2 id="yours-heading" class="text-xs font-bold uppercase tracking-widest text-muted">{{ imported ? t('template.yoursImported') : t('template.yours') }}</h2>
                     <div class="card space-y-3 p-5" :class="record.state === 'saved' ? '' : 'border-warn/50'">
                         <p class="font-bold text-cream">{{ t(STATES[record.state]?.label ?? STATES.device.label) }}</p>
-                        <p v-if="record.state === 'limit'" class="text-sm text-muted">{{ t('template.limitHint') }} <a href="/plus?from=template_limit" class="link" @click.prevent="navigate('/plus?from=template_limit')">{{ t('export.seePlus') }}</a></p>
+                        <p v-if="record.state === 'limit'" class="text-sm text-muted">{{ t('template.limitHint') }} <a href="/plus?from=private_template" class="link" @click.prevent="navigate('/plus?from=private_template')">{{ t('export.seePlus') }}</a></p>
                         <p v-else-if="record.state === 'unverified'" class="text-sm text-muted">{{ t('template.unverifiedHint') }}</p>
+                        <p v-else-if="record.state === 'importedPrivate'" class="text-sm text-muted" data-template-imported-private>{{ t('template.importedHint') }}</p>
                         <template v-else-if="record.state === 'invalid'">
                             <p class="text-sm text-muted">{{ t('template.fillIn') }}</p>
                             <ul v-if="record.invalid?.reasons?.length" class="list-disc ps-5 text-sm text-muted" translate="no"><li v-for="(reason, i) in record.invalid.reasons" :key="i">{{ reason }}</li></ul>
@@ -137,8 +158,10 @@ export const TemplateView = {
                         <p v-else-if="record.state === 'saved'" class="text-sm text-muted">{{ t('template.savedHint') }}</p>
                     </div>
                     <!-- Share as an idea (docs/ideas-app-plan.md): a backed-up song of your own, once Ideas is open -->
-                    <ShareIdea v-if="account.me && record.state === 'saved' && !otherAuthor" :template="template" :template-id="id" />
-                    <fieldset v-if="account.me" class="grid gap-3 sm:grid-cols-2" :disabled="changing || otherAuthor">
+                    <ShareIdea v-if="account.me && record.state === 'saved' && !otherAuthor && !imported" :template="template" :template-id="id" />
+                    <!-- An import stays private to you and your groups (contract/api.md, imported_private): no idea, no link, so neither is offered -->
+                    <p v-if="account.me && imported" class="text-sm text-muted" data-template-choir-private>{{ t('template.choirPrivate') }}</p>
+                    <fieldset v-else-if="account.me" class="grid gap-3 sm:grid-cols-2" :disabled="changing || otherAuthor">
                         <legend class="sr-only">{{ t('create.save.visibility') }}</legend>
                         <label v-for="v in ['private', 'unlisted']" :key="v" class="radio-card">
                             <input type="radio" name="visibility" class="radio mt-px" :checked="(record.visibility === 'unlisted') === (v === 'unlisted')" @change="visibility(v)" />
@@ -160,8 +183,7 @@ export const TemplateView = {
                     </div>
                 </section>
             </div>
-            <PlusMoment v-if="limitOpen" :title="t('plus.moment.projectTitle')" :text="t('plus.moment.projectLimit')" full from="project_limit" @close="limitOpen = false" />
-        </div>`,
+        </AppScreen>`,
     computed: {
         /** Whether this song has boards: the server keeps them for our songs and public ones, never a private or unlisted one. */
         onBoards() {
@@ -175,6 +197,14 @@ export const TemplateView = {
         },
         imported() {
             return !!(this.record?.source === 'sheet-music' || this.record?.imported);
+        },
+        /** Your own imported song, signed in, once your groups are known: it reaches your choir only through a group. */
+        choirSong() {
+            return !!(this.groupsWanted && this.record?.state === 'saved' && this.directed);
+        },
+        /** Your groups are wanted for your own imported song, once you're known to be signed in (the account can come after the page). */
+        groupsWanted() {
+            return !!(this.grant === 'own' && this.imported && account.me?.id);
         },
         shownParts() {
             return this.template ? partsFor(this.template, this.singers) : [];
@@ -208,6 +238,9 @@ export const TemplateView = {
         canShare: () => typeof navigator.share === 'function',
     },
     watch: {
+        groupsWanted(wanted) {
+            if (wanted && this.directed === null) this.loadGroups();
+        },
         shownParts() {
             if (!this.shownParts.some((p) => p.key === this.picked)) this.pickBest();
         },
@@ -247,6 +280,14 @@ export const TemplateView = {
     },
     methods: {
         navigate,
+        /** The groups you direct, for Share it with your choir (quietly none if they can't load: the card then offers to start one). */
+        async loadGroups() {
+            try {
+                this.directed = (await api.groups.list()).data.filter((g) => g.role === 'director');
+            } catch (error) {
+                if (error?.code !== 'offline') console.warn('Your groups did not load', error);
+            }
+        },
         /** The part to suggest for your range (dsp.js suggestPart: the melody first for a new singer), else the melody. */
         async pickBest() {
             const parts = this.shownParts;
@@ -272,7 +313,7 @@ export const TemplateView = {
             await this.player?.stop();
             if (wasPlaying && was === only) return;
             const muted = only ? this.shownParts.filter((p) => p.key !== only).map((p) => p.key) : [];
-            const player = await playTemplate(this.template, { singers: this.singers, muted });
+            const player = await playTemplate(this.template, { singers: this.singers, muted, real: true }); // its real voices, as Sing plays them
             this.player = markRaw(player); // raw, so `this.player === player` below can be true (a reactive copy never is)
             this.playingPart = only;
             await player.done;
@@ -288,10 +329,6 @@ export const TemplateView = {
             return this.play(part.key);
         },
         async learn() {
-            if (!canCreateProject()) {
-                this.limitOpen = true;
-                return;
-            }
             this.starting = true;
             await this.player?.stop();
             try {
@@ -301,11 +338,8 @@ export const TemplateView = {
                 if (!this.yourRange && part?.range) await pickRange(part.range.low, part.range.high);
                 navigate(`/p/${project.id}/sing`);
             } catch (error) {
-                if (error instanceof LimitReached) this.limitOpen = true;
-                else {
-                    console.error('Starting the template failed', error);
-                    toast(t('projects.couldNotStart'), { tone: 'error' });
-                }
+                console.error('Starting the template failed', error);
+                toast(t('projects.couldNotStart'), { tone: 'error' });
             } finally {
                 this.starting = false;
             }

@@ -48,16 +48,16 @@ final class BillingTest extends TestCase
         $this->assertMatchesContract($none, 'billing.show', 200);
         $none->assertJsonPath('data.status', 'none')->assertJsonPath('data.plan', 'free')->assertJsonPath('data.plusOfflineUntil', null);
 
-        $checkout = $this->postJson('/api/billing/checkout', ['interval' => 'year', 'currency' => 'eur', 'trial' => true, 'moment' => 'plus_song']);
+        $checkout = $this->postJson('/api/billing/checkout', ['interval' => 'year', 'currency' => 'eur', 'trial' => true, 'moment' => 'storage_limit']);
         $this->assertMatchesContract($checkout, 'billing.checkout', 201);
         $this->assertStringStartsWith('https://checkout.stripe.com/', (string) $checkout->json('data.url'));
         $this->assertSame(7, $this->stripe->checkouts[0]['trialDays']);
         $this->assertTrue($this->stripe->checkouts[0]['collectCard'], 'The yearly trial takes a card up front.');
         $this->assertStringContainsString('/plus/return?session={CHECKOUT_SESSION_ID}', $this->stripe->checkouts[0]['successUrl']);
-        $this->assertSame('plus_song', CheckoutSession::query()->value('moment'));
-        // A Plus course's buy-Plus moment is one of ours too.
-        $this->postJson('/api/billing/checkout', ['interval' => 'year', 'currency' => 'eur', 'trial' => true, 'moment' => 'plus_course'])->assertCreated();
-        $this->assertSame('plus_course', CheckoutSession::query()->latest('id')->value('moment'));
+        $this->assertSame('storage_limit', CheckoutSession::query()->value('moment'));
+        // An older app's moment from before 2026-11-07 is kept as other.
+        $this->postJson('/api/billing/checkout', ['interval' => 'year', 'currency' => 'eur', 'trial' => true, 'moment' => 'plus_song'])->assertCreated();
+        $this->assertSame('other', CheckoutSession::query()->latest('id')->value('moment'));
 
         // Until the webhook comes: pending, for 30 minutes.
         $this->getJson('/api/billing')->assertJsonPath('data.status', 'pending');

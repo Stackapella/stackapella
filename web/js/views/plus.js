@@ -8,52 +8,47 @@
 // an upgrade moment (`?from=`), it says what led here first.
 
 import { AccountWall } from '../components/account-wall.js';
-import { PageHeader } from '../components/page.js';
+import { AppScreen } from '../components/page.js';
 import { ApiError } from '../api.js';
 import { formatDate, formatNumber, t, tk } from '../i18n.js';
 import { goBack, navigate, route } from '../router.js';
 import { account, selfHosted } from '../stores/account.js';
-import { countsToLimit, FREE_PROJECT_LIMIT, loadProjects, projects } from '../stores/projects.js';
-import { FREE_SONGS } from '../templates.js';
 import { checkout, guessCurrency, isPlus, loadBilling, loadPrices, plan, portal } from '../stores/plan.js';
 import { Notice } from '../components/form.js';
 import { Icon, Logo } from '../components/icon.js';
 
-// The upgrade moments (contract/api.md billing.checkout's `moment`) and what each says first.
+// The upgrade moments (contract/api.md billing.checkout's `moment`) and what each says first. Learning to
+// sing is free, with friends and choirs too, history included; the paid plan, Plus
+// is for using the app in a more professional capacity (Hillel, 2026-11-07; vision principle 8): never in
+// front of a course, song, workout, friend, group or your history.
 const MOMENTS = {
-    plus_song: tk('plus.moment.plusSong'),
-    course_unit7: tk('plus.moment.courseUnit7'),
-    workout: tk('plus.moment.workout'),
-    project_limit: tk('plus.moment.projectLimit'),
     storage_limit: tk('plus.moment.storageLimit'),
     mp3: tk('plus.moment.mp3'),
     stems: tk('plus.moment.stems'),
-    history: tk('plus.moment.history'),
+    private_template: tk('plus.moment.privateTemplate'),
 };
-// docs/features.md, "Free and Plus, side by side", in three groups. `free: null` is a dash (Free
-// hasn't it); a row the same on both shows only under Everything.
+// docs/features.md, "Free and Plus, side by side": the extras Plus adds for you, then what's free for every
+// singer. `free: null` is a dash (Free hasn't it); a row the same on both shows only under Everything.
 const GROUPS = [
-    { name: tk('plus.group.learn'), rows: [
-        { what: tk('plus.row.songs'), free: tk('plus.free.songs'), plus: tk('plus.plus.songs') },
-        { what: tk('plus.row.preview'), free: tk('plus.yes'), plus: tk('plus.yes') },
-        { what: tk('plus.row.course'), free: tk('plus.free.course'), plus: tk('plus.plus.course') },
-        { what: tk('plus.row.workout'), free: tk('plus.free.workout'), plus: tk('plus.plus.workout') },
-        { what: tk('plus.row.report'), free: tk('plus.yes'), plus: tk('plus.plus.report') },
-    ] },
-    { name: tk('plus.group.make'), rows: [
-        { what: tk('plus.row.projects'), free: tk('plus.free.projects'), plus: tk('plus.unlimited') },
+    { name: tk('plus.group.you'), rows: [
         { what: tk('plus.row.storage'), free: tk('plus.free.storage'), plus: tk('plus.plus.storage') },
-        { what: tk('plus.row.wav'), free: tk('plus.yes'), plus: tk('plus.yes'), note: tk('plus.row.wavNote') },
         { what: tk('plus.row.mp3'), free: null, plus: tk('plus.yes') },
         { what: tk('plus.row.stems'), free: tk('plus.free.stems'), plus: tk('plus.yes'), note: tk('plus.row.stemsNote') },
         { what: tk('plus.row.guides'), free: null, plus: tk('plus.yes') },
         { what: tk('plus.row.templates'), free: tk('plus.free.templates'), plus: tk('plus.unlimited') },
     ] },
-    { name: tk('plus.group.together'), rows: [
-        { what: tk('plus.row.friends'), free: tk('plus.free.friends'), plus: tk('plus.plus.friends') },
+    // Free for every singer (Hillel, 2026-11-06 and 11-07): the same on both, so only under Everything.
+    { name: tk('plus.group.free'), rows: [
+        { what: tk('plus.row.songs'), free: tk('plus.allSongs'), plus: tk('plus.allSongs') },
+        { what: tk('plus.row.course'), free: tk('plus.everyCourse'), plus: tk('plus.everyCourse') },
+        { what: tk('plus.row.workout'), free: tk('plus.asMany'), plus: tk('plus.asMany') },
+        { what: tk('plus.row.report'), free: tk('plus.plus.report'), plus: tk('plus.plus.report') },
+        { what: tk('plus.row.projects'), free: tk('plus.asFit'), plus: tk('plus.asFit') },
+        { what: tk('plus.row.friends'), free: tk('plus.yes'), plus: tk('plus.yes') },
+        { what: tk('plus.row.choir'), free: tk('plus.yes'), plus: tk('plus.yes') },
         { what: tk('plus.row.share'), free: tk('plus.yes'), plus: tk('plus.yes') },
-        { what: tk('plus.row.choir'), free: null, plus: tk('plus.yes') },
-        { what: tk('plus.row.teacher'), free: null, plus: tk('plus.yes') },
+        { what: tk('plus.row.preview'), free: tk('plus.yes'), plus: tk('plus.yes') },
+        { what: tk('plus.row.wav'), free: tk('plus.yes'), plus: tk('plus.yes'), note: tk('plus.row.wavNote') },
     ] },
 ];
 const HIGHLIGHT_COLORS = ['var(--color-part-2)', 'var(--color-part-3)', 'var(--color-part-4)'];
@@ -61,16 +56,14 @@ const CURRENCIES = ['usd', 'eur', 'gbp'];
 const STATUS = { trialing: tk('plus.status.trialing'), active: tk('plus.status.active'), past_due: tk('plus.status.pastDue'), canceled: tk('plus.status.canceled'), pending: tk('plus.status.pending') };
 
 export const PlusView = {
-    components: { AccountWall, PageHeader, Notice, Icon, Logo },
+    components: { AccountWall, AppScreen, Notice, Icon, Logo },
     data: () => ({ interval: 'year', currency: guessCurrency(), busy: false, notice: null, failed: false, everything: false }),
     setup: () => ({ account, selfHosted, plan, navigate, goBack, MOMENTS, GROUPS, CURRENCIES, STATUS, HIGHLIGHT_COLORS, formatDate, formatNumber }),
     template: `
-        <div data-ui="screen" class="min-h-dvh bg-ink px-4 pb-16 pt-[max(0.5rem,env(safe-area-inset-top))] md:px-8">
-            <div class="mx-auto flex w-full max-w-5xl flex-col gap-8 md:gap-12">
-                <PageHeader :title="t('plus.title')" back="/" />
+        <AppScreen :title="t('plus.title')" back="/" measure="" content-class="gap-8 md:gap-12" data-ui="screen" class="bg-ink">
                 <!-- A self-hosted install: everything is included, nothing to buy. -->
                 <p v-if="selfHosted()" class="card p-6 text-cream" role="status" data-self-hosted>{{ t('plus.included') }}</p>
-                <div v-if="!selfHosted()" class="-mt-4 grid gap-8 md:-mt-6 md:grid-cols-[minmax(0,1fr)_minmax(0,25rem)] md:gap-12">
+                <div v-if="!selfHosted()" class="mt-4 grid gap-8 md:mt-6 md:grid-cols-[minmax(0,1fr)_minmax(0,25rem)] md:gap-12">
                     <section class="space-y-6" aria-labelledby="plus-heading">
                         <p v-if="moment" class="font-semibold text-part-2">{{ t(MOMENTS[moment]) }}</p>
                         <h2 id="plus-heading" class="text-4xl font-extrabold tracking-tight text-cream md:text-5xl">{{ t('plus.headline') }}</h2>
@@ -158,18 +151,14 @@ export const PlusView = {
                         <p class="border-t border-line px-5 py-4 text-sm text-muted">{{ t('plus.footnote') }}</p>
                     </div>
                 </section>
-            </div>
-        </div>`,
+        </AppScreen>`,
     computed: {
         billing: () => plan.billing,
-        /** The three things Plus gets you, the second tied to the songs this account has saved. */
+        /** What Plus gets you (the room and the extras), and what stays free for every singer. */
         highlights() {
-            const saved = projects.list.filter(countsToLimit).length;
-            const onFree = !!account.me && !isPlus() && saved > 0;
             return [
-                { icon: 'note', title: t('plus.highlight.library'), text: t('plus.highlight.libraryText', { count: FREE_SONGS.length }) },
-                { icon: 'list', title: t('plus.highlight.songs'), text: onFree ? t('plus.highlight.songsYours', { count: Math.min(saved, FREE_PROJECT_LIMIT), limit: FREE_PROJECT_LIMIT }) : t('plus.highlight.songsText', { limit: FREE_PROJECT_LIMIT }) },
-                { icon: 'mic', title: t('plus.highlight.choir'), text: t('plus.highlight.choirText') },
+                { icon: 'list', title: t('plus.highlight.extras'), text: t('plus.highlight.extrasText') },
+                { icon: 'note', title: t('plus.highlight.free'), text: t('plus.highlight.freeText') },
             ];
         },
         /** Yearly's saving over twelve months of Monthly, in the currency shown. */
@@ -230,7 +219,6 @@ export const PlusView = {
         },
     },
     async created() {
-        if (!projects.loaded) loadProjects().catch((error) => console.warn('Projects not loaded', error));
         try {
             await loadPrices();
         } catch (error) {

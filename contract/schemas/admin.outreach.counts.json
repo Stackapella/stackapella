@@ -1,0 +1,48 @@
+{
+    "$id": "admin.outreach.counts.json",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "arrivals",
+        "lesson1",
+        "signedUp",
+        "schoolCodes",
+        "few",
+        "tracked"
+    ],
+    "properties": {
+        "arrivals": {
+            "type": [
+                "integer",
+                "null"
+            ]
+        },
+        "lesson1": {
+            "type": [
+                "integer",
+                "null"
+            ]
+        },
+        "signedUp": {
+            "type": [
+                "integer",
+                "null"
+            ]
+        },
+        "schoolCodes": {
+            "type": [
+                "integer",
+                "null"
+            ]
+        },
+        "few": {
+            "type": "boolean",
+            "description": "Fewer than 5 arrivals: the numbers are folded (null) so a handful never stands for a person."
+        },
+        "tracked": {
+            "type": "boolean",
+            "description": "A sent email carried the organization's ?ref= tag (the sends before 2026-11-05). False: its emails link to the plain domain, so nothing can be counted (the screen says \"not tracked\", not 0)."
+        }
+    },
+    "title": "What an organization's ?ref= link brought, from the anonymous counts (all days)"
+}

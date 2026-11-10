@@ -98,7 +98,7 @@ def journey(f):
     f.wait_text("Now hold mi for four beats")
     f.js(f"{AUDIO}.unlock()")
     f.js(f"{AUDIO}.engine.setLoopback(true)")
-    f.run("document.querySelector('.glass-bubble-solid.size-20').closest('button').click()")
+    f.run("document.querySelector('[data-play-disc]').closest('button').click()")
     f.click_t("headphones.on")
     f.wait(f"{AUDIO}.engine.playing?.recording", what="recording the take")
     f.wait("document.querySelector('[data-measured-line]')", timeout=40, what="the ring line")

@@ -12,9 +12,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ $title }} · {{ __('meta.brand') }}</title>
     <link rel="icon" href="/icons/favicon.svg" type="image/svg+xml">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@300..800&display=swap">
+    <link rel="preload" as="font" type="font/woff2" href="/fonts/figtree-latin.woff2" crossorigin>
     <link rel="stylesheet" href="/css/app.css">
     @stack('head')
 </head>

@@ -1,0 +1,462 @@
+{
+  "/js/public/tools/chord-trainer.js": [
+    "/js/public/tools/chord-trainer.js",
+    "/js/ear-rounds.js",
+    "/js/public/tools/ear-quiz.js",
+    "/js/public/tools/share-card.js",
+    "/js/whistle.js",
+    "/js/synth.js",
+    "/js/style-scores.js",
+    "/js/theory.js",
+    "/js/dsp.js",
+    "/js/public/piano.js",
+    "/js/public/tool-layout.js",
+    "/js/public/tool-prefs.js",
+    "/js/public/tones.js",
+    "/js/public/voices.js",
+    "/js/storage.js",
+    "/js/scoring.js",
+    "/js/pitchtrack.js"
+  ],
+  "/js/public/tools/chord-transposer.js": [
+    "/js/public/tools/chord-transposer.js",
+    "/js/notes.js",
+    "/js/theory.js",
+    "/js/public/tool-layout.js",
+    "/js/public/tool-prefs.js",
+    "/js/dsp.js"
+  ],
+  "/js/public/tools/drone.js": [
+    "/js/public/tools/drone.js",
+    "/js/dsp.js",
+    "/js/just.js",
+    "/js/notes.js",
+    "/js/public/tool-layout.js",
+    "/js/public/tones.js",
+    "/js/public/voices.js",
+    "/js/public/ticker.js",
+    "/js/public/tuner-reading.js",
+    "/js/public/tools/kit.js",
+    "/js/public/wake-lock.js",
+    "/js/pitch-display.js",
+    "/engine/clock.js",
+    "/js/public/tool-prefs.js",
+    "/js/public/demo-player.js"
+  ],
+  "/js/public/tools/ear-quiz.js": [
+    "/js/public/tools/ear-quiz.js",
+    "/js/ear-rounds.js",
+    "/js/dsp.js",
+    "/js/public/piano.js",
+    "/js/public/tool-layout.js",
+    "/js/public/tool-prefs.js",
+    "/js/public/tones.js",
+    "/js/public/voices.js",
+    "/js/public/tools/share-card.js",
+    "/js/whistle.js",
+    "/js/synth.js",
+    "/js/style-scores.js",
+    "/js/theory.js",
+    "/js/storage.js",
+    "/js/scoring.js",
+    "/js/pitchtrack.js"
+  ],
+  "/js/public/tools/interval-trainer.js": [
+    "/js/public/tools/interval-trainer.js",
+    "/js/ear-rounds.js",
+    "/js/public/tools/ear-quiz.js",
+    "/js/public/tools/share-card.js",
+    "/js/whistle.js",
+    "/js/synth.js",
+    "/js/style-scores.js",
+    "/js/theory.js",
+    "/js/dsp.js",
+    "/js/public/piano.js",
+    "/js/public/tool-layout.js",
+    "/js/public/tool-prefs.js",
+    "/js/public/tones.js",
+    "/js/public/voices.js",
+    "/js/storage.js",
+    "/js/scoring.js",
+    "/js/pitchtrack.js"
+  ],
+  "/js/public/tools/intonation-meter.js": [
+    "/js/public/tools/intonation-meter.js",
+    "/js/dsp.js",
+    "/js/just.js",
+    "/js/notes.js",
+    "/js/public/live-mic.js",
+    "/js/public/mic-pick.js",
+    "/js/public/tones.js",
+    "/js/public/tool-layout.js",
+    "/js/public/tool-prefs.js",
+    "/js/public/tuner-reading.js",
+    "/js/public/wake-lock.js",
+    "/js/public/voices.js",
+    "/js/mic-choice.js",
+    "/js/pitch-display.js"
+  ],
+  "/js/public/tools/latency-test.js": [
+    "/js/public/tools/latency-test.js",
+    "/engine/engine.js",
+    "/engine/clock.js",
+    "/js/dsp.js",
+    "/js/timing-check.js",
+    "/js/public/live-mic.js",
+    "/js/public/tool-layout.js",
+    "/js/public/tool-prefs.js",
+    "/js/public/tones.js",
+    "/js/public/voices.js"
+  ],
+  "/js/public/tools/metronome.js": [
+    "/js/public/tools/metronome.js",
+    "/engine/clock.js",
+    "/js/public/click-sounds.js",
+    "/js/public/ticker.js",
+    "/js/public/tool-prefs.js",
+    "/js/public/tool-layout.js",
+    "/js/public/tones.js",
+    "/js/public/voices.js",
+    "/js/public/wake-lock.js",
+    "/js/public/metronome-beats.js",
+    "/js/dsp.js"
+  ],
+  "/js/public/tools/mic-test.js": [
+    "/js/public/tools/mic-test.js",
+    "/js/public/demo-player.js",
+    "/js/public/live-mic.js",
+    "/js/public/mic-pick.js",
+    "/js/public/tones.js",
+    "/js/public/tool-layout.js",
+    "/js/public/voices.js",
+    "/js/mic-level.js",
+    "/js/notes.js",
+    "/js/public/tools/mic-check-reading.js",
+    "/js/dsp.js",
+    "/js/mic-choice.js",
+    "/js/listen.js"
+  ],
+  "/js/public/tools/note-frequencies.js": [
+    "/js/public/tools/note-frequencies.js",
+    "/js/dsp.js",
+    "/js/notes.js",
+    "/js/theory.js",
+    "/js/public/saved-range.js",
+    "/js/public/tones.js",
+    "/js/public/tool-layout.js",
+    "/js/public/tool-prefs.js",
+    "/js/public/voices.js",
+    "/js/public/tuner-reading.js",
+    "/js/pitch-display.js"
+  ],
+  "/js/public/tools/pitch-matching.js": [
+    "/js/public/tools/pitch-matching.js",
+    "/js/public/demo-player.js",
+    "/js/public/listen.js",
+    "/js/public/live-mic.js",
+    "/js/public/mic-pick.js",
+    "/js/public/saved-range.js",
+    "/js/public/tool-layout.js",
+    "/js/public/tool-prefs.js",
+    "/js/public/voices.js",
+    "/js/public/tools/pitch-matching-rounds.js",
+    "/js/public/tools/share-card.js",
+    "/js/pitch-skills.js",
+    "/js/dsp.js",
+    "/js/mic-choice.js",
+    "/js/vibrato.js",
+    "/js/synth.js"
+  ],
+  "/js/public/tools/pitch-pipe.js": [
+    "/js/public/tools/pitch-pipe.js",
+    "/js/dsp.js",
+    "/js/just.js",
+    "/js/notes.js",
+    "/js/public/tool-layout.js",
+    "/js/public/tuner-reading.js",
+    "/js/public/voices.js",
+    "/js/public/tools/kit.js",
+    "/js/pitch-display.js",
+    "/engine/clock.js",
+    "/js/public/tool-prefs.js",
+    "/js/public/demo-player.js"
+  ],
+  "/js/public/tools/satb-voicer.js": [
+    "/js/public/tools/satb-voicer.js",
+    "/js/arrange.js",
+    "/js/dsp.js",
+    "/js/notes.js",
+    "/js/public/staff.js",
+    "/js/public/tool-layout.js",
+    "/js/public/tool-prefs.js",
+    "/js/public/voices.js",
+    "/js/theory.js"
+  ],
+  "/js/public/tools/tap-tempo.js": [
+    "/js/public/tools/tap-tempo.js",
+    "/js/public/metronome-beats.js",
+    "/js/public/click-sounds.js",
+    "/js/public/tones.js",
+    "/js/public/voices.js",
+    "/js/public/tool-layout.js",
+    "/js/public/tool-prefs.js",
+    "/js/dsp.js"
+  ],
+  "/js/public/tools/tuner.js": [
+    "/js/public/tools/tuner.js",
+    "/js/public/live-mic.js",
+    "/js/public/tool-prefs.js",
+    "/js/public/tool-layout.js",
+    "/js/public/voices.js",
+    "/js/public/wake-lock.js",
+    "/js/dsp.js",
+    "/js/notes.js",
+    "/js/public/tuner-reading.js",
+    "/js/pitch-display.js"
+  ],
+  "/js/public/tools/tuning-forks.js": [
+    "/js/public/tools/tuning-forks.js",
+    "/js/dsp.js",
+    "/js/notes.js",
+    "/js/public/tool-layout.js",
+    "/js/public/tones.js",
+    "/js/public/voices.js",
+    "/js/public/tools/kit.js",
+    "/engine/clock.js",
+    "/js/public/tool-prefs.js",
+    "/js/public/demo-player.js"
+  ],
+  "/js/public/tools/vocal-key-finder.js": [
+    "/js/public/tools/vocal-key-finder.js",
+    "/js/dsp.js",
+    "/js/notes.js",
+    "/js/theory.js",
+    "/js/public/saved-range.js",
+    "/js/public/tool-layout.js",
+    "/js/public/tool-prefs.js",
+    "/js/public/voices.js"
+  ],
+  "/js/public/tools/vocal-range-test.js": [
+    "/js/public/tools/vocal-range-test.js",
+    "/js/public/live-mic.js",
+    "/js/public/tool-layout.js",
+    "/js/public/tool-prefs.js",
+    "/js/public/piano.js",
+    "/js/public/staff.js",
+    "/js/public/voices.js",
+    "/js/dsp.js",
+    "/js/listen.js",
+    "/js/public/tools/share-card.js",
+    "/js/notes.js",
+    "/js/theory.js"
+  ],
+  "/js/public/tools/warmup-player.js": [
+    "/js/public/tools/warmup-player.js",
+    "/js/dsp.js",
+    "/js/notes.js",
+    "/js/warmup.js",
+    "/js/public/piano.js",
+    "/js/public/saved-range.js",
+    "/js/public/tool-layout.js",
+    "/js/public/tool-prefs.js",
+    "/js/public/ticker.js",
+    "/js/public/voices.js"
+  ],
+  "/js/public/reference-cards.js": [
+    "/js/public/reference-cards.js",
+    "/js/just.js",
+    "/js/theory.js",
+    "/js/notes.js",
+    "/js/public/voices.js",
+    "/js/public/tones.js",
+    "/js/public/piano.js",
+    "/js/public/staff.js",
+    "/js/public/tool-layout.js",
+    "/js/dsp.js"
+  ],
+  "/js/public/a-cappella-bass.js": [
+    "/js/public/a-cappella-bass.js",
+    "/js/public/voices.js",
+    "/js/public/demo-player.js"
+  ],
+  "/js/public/barbershop.js": [
+    "/js/public/barbershop.js",
+    "/js/public/voices.js"
+  ],
+  "/js/public/belting.js": [
+    "/js/public/belting.js",
+    "/js/public/voices.js",
+    "/js/public/demo-player.js"
+  ],
+  "/js/public/breath-and-stamina.js": [
+    "/js/public/breath-and-stamina.js",
+    "/js/public/voices.js",
+    "/js/public/demo-player.js"
+  ],
+  "/js/public/cabinet.js": [
+    "/js/public/cabinet.js"
+  ],
+  "/js/public/carols.js": [
+    "/js/public/carols.js"
+  ],
+  "/js/public/counterpoint.js": [
+    "/js/public/counterpoint.js",
+    "/js/public/voices.js"
+  ],
+  "/js/public/demo-slot.js": [
+    "/js/public/demo-slot.js",
+    "/js/public/demo-player.js",
+    "/js/public/voices.js"
+  ],
+  "/js/public/diction.js": [
+    "/js/public/diction.js",
+    "/js/public/voices.js",
+    "/js/public/demo-player.js"
+  ],
+  "/js/public/ear-training.js": [
+    "/js/public/ear-training.js",
+    "/js/public/voices.js",
+    "/js/public/demo-player.js"
+  ],
+  "/js/public/folk-and-early-music.js": [
+    "/js/public/folk-and-early-music.js",
+    "/js/public/voices.js",
+    "/js/public/demo-player.js"
+  ],
+  "/js/public/funnel.js": [
+    "/js/public/funnel.js"
+  ],
+  "/js/public/gospel-runs.js": [
+    "/js/public/gospel-runs.js",
+    "/js/public/voices.js",
+    "/js/public/demo-player.js"
+  ],
+  "/js/public/guide-ranges.js": [
+    "/js/public/guide-ranges.js",
+    "/js/public/voices.js",
+    "/js/public/demo-player.js"
+  ],
+  "/js/public/harmony.js": [
+    "/js/public/harmony.js",
+    "/js/api.js",
+    "/js/turnstile.js",
+    "/js/colors.js",
+    "/js/api-mode.js",
+    "/js/storage.js"
+  ],
+  "/js/public/help-search.js": [
+    "/js/public/help-search.js"
+  ],
+  "/js/public/improvising-harmony.js": [
+    "/js/public/improvising-harmony.js",
+    "/js/public/voices.js",
+    "/js/public/demo-player.js"
+  ],
+  "/js/public/lesson-try.js": [
+    "/js/public/lesson-try.js"
+  ],
+  "/js/public/mixer.js": [
+    "/js/public/mixer.js",
+    "/engine/clock.js",
+    "/js/guides.js",
+    "/js/public/app-voices.js",
+    "/js/synth.js",
+    "/js/scoring.js",
+    "/js/recorded-guides.js",
+    "/js/pitchtrack.js",
+    "/js/db.js",
+    "/js/dsp.js"
+  ],
+  "/js/public/moving.js": [
+    "/js/public/moving.js",
+    "/js/move.js"
+  ],
+  "/js/public/musical-theatre.js": [
+    "/js/public/musical-theatre.js",
+    "/js/public/voices.js",
+    "/js/public/demo-player.js"
+  ],
+  "/js/public/other-languages.js": [
+    "/js/public/other-languages.js",
+    "/js/public/voices.js",
+    "/js/public/demo-player.js"
+  ],
+  "/js/public/perfect-your-pitch.js": [
+    "/js/public/perfect-your-pitch.js",
+    "/js/public/voices.js",
+    "/js/public/listen.js",
+    "/js/public/mic-pick.js",
+    "/js/public/demo-player.js",
+    "/js/pitch-skills.js",
+    "/js/public/live-mic.js",
+    "/js/mic-choice.js",
+    "/js/vibrato.js",
+    "/js/dsp.js",
+    "/js/synth.js"
+  ],
+  "/js/public/pop-and-country.js": [
+    "/js/public/pop-and-country.js",
+    "/js/public/voices.js",
+    "/js/public/demo-player.js"
+  ],
+  "/js/public/range-and-registers.js": [
+    "/js/public/range-and-registers.js",
+    "/js/public/voices.js",
+    "/js/public/demo-player.js"
+  ],
+  "/js/public/scat.js": [
+    "/js/public/scat.js",
+    "/js/public/voices.js",
+    "/js/public/demo-player.js"
+  ],
+  "/js/public/showreel.js": [
+    "/js/public/showreel.js"
+  ],
+  "/js/public/sight-singing.js": [
+    "/js/public/sight-singing.js",
+    "/js/public/voices.js",
+    "/js/public/demo-player.js"
+  ],
+  "/js/public/site.js": [
+    "/js/public/site.js",
+    "/js/public/game-toggle.js",
+    "/js/public/season.js"
+  ],
+  "/js/public/song-part-page.js": [
+    "/js/public/song-part-page.js",
+    "/js/public/part-player.js",
+    "/js/embed/lane.js",
+    "/js/public/tool-layout.js",
+    "/js/lane-painter.js",
+    "/js/synth.js",
+    "/js/dsp.js",
+    "/js/colors.js",
+    "/js/pitchtrack.js",
+    "/js/livevoice.js",
+    "/js/public/app-voices.js",
+    "/js/embed/take.js",
+    "/js/camera.js",
+    "/js/glass.js",
+    "/js/scoring.js",
+    "/js/pitch-display.js",
+    "/js/recorded-guides.js",
+    "/js/db.js"
+  ],
+  "/js/public/tools/embed-maker.js": [
+    "/js/public/tools/embed-maker.js"
+  ],
+  "/js/public/tools/page.js": [
+    "/js/public/tools/page.js",
+    "/js/public/theme-menu.js",
+    "/js/public/count.js"
+  ],
+  "/js/public/vibrato.js": [
+    "/js/public/vibrato.js",
+    "/js/public/voices.js",
+    "/js/public/demo-player.js"
+  ],
+  "/js/public/yodeling.js": [
+    "/js/public/yodeling.js",
+    "/js/public/voices.js"
+  ]
+}

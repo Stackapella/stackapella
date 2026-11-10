@@ -34,7 +34,8 @@
                             "other",
                             "diagnostics",
                             "bug",
-                            "idea"
+                            "idea",
+                            "tracks"
                         ]
                     },
                     "status": {
@@ -93,6 +94,66 @@
                             "null"
                         ],
                         "format": "date-time"
+                    },
+                    "tracks": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "groupId",
+                            "group",
+                            "piece",
+                            "composer",
+                            "voicing",
+                            "rights",
+                            "rightsConfirmedAt"
+                        ],
+                        "properties": {
+                            "groupId": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            },
+                            "group": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            },
+                            "piece": {
+                                "type": "string"
+                            },
+                            "composer": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            },
+                            "voicing": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            },
+                            "rights": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ],
+                                "enum": [
+                                    "public-domain",
+                                    "own-arrangement",
+                                    null
+                                ]
+                            },
+                            "rightsConfirmedAt": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ],
+                                "format": "date-time"
+                            }
+                        }
                     }
                 }
             }

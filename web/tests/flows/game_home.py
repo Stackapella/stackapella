@@ -10,7 +10,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
 from flow import run  # noqa: E402
-from game_frames import dark, frames, light  # noqa: E402
+from game_frames import dark, every_theme, frames, light  # noqa: E402
 from home import home, progress, t  # noqa: E402
 
 PRESS = "document.querySelector('[data-press-start]')"
@@ -39,6 +39,7 @@ def journey(f):
     f.no_sideways("the title screen")
     frames(f, "home", [0, 250, 600, 2600])
     f.shot("home")
+    every_theme(f, "the title screen")
     light(f)
     f.shot("home-light")
     dark(f)

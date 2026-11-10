@@ -28,7 +28,8 @@
                 "lendVoice",
                 "experiment",
                 "experiments",
-                "schools"
+                "schools",
+                "songRequests"
             ],
             "properties": {
                 "methods": {
@@ -109,6 +110,10 @@
                 "plusCourses": {
                     "type": "boolean",
                     "description": "The Plus courses are live (the plus_courses switch): anyone, signed out too, can try a live course's free first lesson. account.plusCourses is the same switch, plus staff before it opens."
+                },
+                "songRequests": {
+                    "type": "boolean",
+                    "description": "The song_requests switch: song requests are open to everyone."
                 },
                 "sheetImport": {
                     "type": "boolean",

@@ -434,3 +434,51 @@ function keyOptions(range, { mode, sections, headroom }) {
     const strip = (o) => o && { tonic: o.tonic, tonicMidi: o.tonicMidi, mode: o.mode, name: o.name, fits: o.fits };
     return { options, best, near, strip };
 }
+
+// The usual full ranges of the six voice types (docs/tools/competitors-tuner-metronome-range.md,
+// the range test), MIDI, as voice teachers give them for a singer without years of training: wider
+// than VOICE_RANGES, which are the comfortable parts the app writes for.
+export const VOICE_TYPES = {
+    bass: { low: 40, high: 64 }, // E2 to E4
+    baritone: { low: 43, high: 67 }, // G2 to G4
+    tenor: { low: 48, high: 69 }, // C3 to A4
+    alto: { low: 53, high: 74 }, // F3 to D5
+    mezzo: { low: 57, high: 77 }, // A3 to F5
+    soprano: { low: 60, high: 81 }, // C4 to A5
+};
+
+/**
+ * Which voice types a sung range (`{ low, high }`, MIDI) fits, best first: `[{ type, off, overlap }]`.
+ * The lowest note counts double: it tells the low voices apart best, and a top note is the one most
+ * often strained or sung in falsetto. `off` is that weighted distance in semitones, `overlap` the
+ * semitones the two ranges share (for the compare bars).
+ */
+export function voiceTypes(range) {
+    return Object.entries(VOICE_TYPES)
+        .map(([type, t]) => ({
+            type,
+            off: Math.abs(range.low - t.low) + 0.5 * Math.abs(range.high - t.high),
+            overlap: Math.max(0, Math.min(range.high, t.high) - Math.max(range.low, t.low)),
+        }))
+        .sort((a, b) => a.off - b.off || b.overlap - a.overlap);
+}
+
+// The choir parts each voice type usually sings (SATB, with the split parts a choir uses).
+export const CHOIR_PARTS = { bass: 'bass', baritone: 'bassOrTenor2', tenor: 'tenor', alto: 'alto', mezzo: 'sopranoOrAlto', soprano: 'soprano' };
+
+// ---- The guitar's capo ------------------------------------------------------------------------------
+
+const OPEN_SHAPES = { major: [0, 7, 2, 9, 4], minor: [9, 4, 2] }; // C G D A E, and Am Em Dm
+export const CAPO_MAX = 7;
+
+/**
+ * Where a guitarist puts the capo to play in `tonic` with open shapes (C G D A E, or Am Em Dm in
+ * minor): `{ capo, shape }`, the lowest fret that works, up to the 7th; null when none does.
+ */
+export function capoFor(tonic, minor = false, { maxFret = CAPO_MAX } = {}) {
+    for (let capo = 0; capo <= maxFret; capo++) {
+        const shape = (((tonic - capo) % 12) + 12) % 12;
+        if ((minor ? OPEN_SHAPES.minor : OPEN_SHAPES.major).includes(shape)) return { capo, shape };
+    }
+    return null;
+}

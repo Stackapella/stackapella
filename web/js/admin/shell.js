@@ -14,6 +14,7 @@ import { AuditSection } from './audit.js';
 import { FeedbackSection } from './feedback.js';
 import { ReportsSection } from './reports.js';
 import { IdeasSection } from './ideas.js';
+import { RequestsSection } from './requests.js';
 import { MudeoSection } from './mudeo.js';
 import { GuidesSection } from './guides.js';
 import { ReviewSection } from './review.js';
@@ -23,6 +24,7 @@ import { PeopleSection } from './people.js';
 import { UsageSection } from './usage.js';
 import { change, OverviewSection } from './growth.js';
 import { SourcesSection } from './sources.js';
+import { ChoirGroupsSection } from './choir-groups.js';
 import { RevenueSection } from './revenue.js';
 import { SearchSection } from './search.js';
 import { CohortsSection } from './cohorts.js';
@@ -30,13 +32,14 @@ import { ActivitySection } from './activity.js';
 import { SchoolSection } from './school.js';
 import { CodeWatchSection } from './code-watch.js';
 import { ExperimentsSection } from './experiments.js';
+import { OutreachSection } from './outreach.js';
 import { FunnelSection } from './funnel.js';
 import { SupportSection } from './support.js';
 import { LinksSection } from './links.js';
 import { PostsSection, socialWaiting } from './posts.js';
 import { sendToSignIn } from './auth.js';
 import { StoreTestersCard } from './testers.js';
-import { NeedsCard, loadNeeds, needs, partsNeeding } from './needs.js';
+import { NeedsCard, homeCount, loadNeeds, needs, partsNeeding } from './needs.js';
 
 // The menu in five groups (Hillel: "please re-org the menu header in admin"): what needs you today,
 // the people, the content, how it's growing, and the system. The header shows the groups, then the
@@ -50,18 +53,20 @@ const GROUPS = [
 ];
 
 const SECTIONS = [
-    { name: 'home', group: 'today', path: '/admin', label: tk('admin.nav.home'), hint: null, icon: 'home', role: 'editor' },
+    { name: 'home', group: 'today', path: '/admin', label: tk('admin.nav.home'), hint: null, icon: 'home', role: 'editor', count: (c) => c.home, words: tk('admin.needs.homeCount') },
     { name: 'review', group: 'today', path: '/admin/review', label: tk('admin.nav.review'), hint: tk('admin.nav.reviewHint'), icon: 'mic', role: 'editor', count: (c) => c.waiting, words: tk('admin.nav.waitingCount') },
     { name: 'feedback', group: 'today', path: '/admin/feedback', label: tk('admin.nav.feedback'), hint: tk('admin.nav.feedbackHint'), icon: 'info', role: 'editor', count: (c) => c.unread, words: tk('admin.nav.unreadCount') },
     { name: 'support', group: 'today', path: '/admin/support', label: tk('admin.nav.support'), hint: tk('admin.nav.supportHint'), icon: 'info', role: 'admin' },
     { name: 'reports', group: 'today', path: '/admin/reports', label: tk('admin.nav.reports'), hint: tk('admin.nav.reportsHint'), icon: 'alert', role: 'admin' },
     { name: 'people', group: 'people', path: '/admin/people', label: tk('admin.nav.people'), hint: tk('admin.nav.peopleHint'), icon: 'list', role: 'admin' },
     { name: 'singers', group: 'people', path: '/admin/singers', label: tk('admin.nav.singers'), hint: tk('admin.nav.singersHint'), icon: 'headphones', role: 'admin' },
+    { name: 'groups', group: 'people', path: '/admin/groups', label: tk('admin.nav.choirGroups'), hint: tk('admin.nav.choirGroupsHint'), icon: 'list', role: 'admin' },
     { name: 'links', group: 'people', path: '/admin/links', label: tk('admin.nav.links'), hint: tk('admin.nav.linksHint'), icon: 'arrow', role: 'admin' },
     { name: 'school', group: 'people', path: '/admin/school', label: tk('admin.nav.school'), hint: tk('admin.nav.schoolHint'), icon: 'list', role: 'admin' },
     { name: 'safety', group: 'people', path: '/admin/safety', label: tk('admin.nav.safety'), hint: tk('admin.nav.safetyHint'), icon: 'shield', role: 'admin' },
     { name: 'guides', group: 'content', path: '/admin/guides', label: tk('admin.nav.guides'), hint: tk('admin.nav.guidesHint'), icon: 'note', role: 'editor', count: (c) => c.needs, words: tk('admin.needs.navCount') },
     { name: 'ideas', group: 'content', path: '/admin/ideas', label: tk('admin.nav.ideas'), hint: tk('admin.nav.ideasHint'), icon: 'mic', role: 'admin' },
+    { name: 'requests', group: 'content', path: '/admin/requests', label: tk('admin.nav.requests'), hint: tk('admin.nav.requestsHint'), icon: 'list', role: 'admin' },
     { name: 'posts', group: 'content', path: '/admin/posts', label: tk('admin.nav.posts'), hint: tk('admin.nav.postsHint'), icon: 'sparkle', role: 'admin', count: (c) => c.posts, words: tk('admin.posts.waitingCount') },
     { name: 'growth', group: 'growth', path: '/admin/growth', label: tk('admin.nav.growth'), hint: tk('admin.nav.growthHint'), icon: 'sparkle', role: 'admin' },
     { name: 'revenue', group: 'growth', path: '/admin/revenue', label: tk('admin.nav.revenue'), hint: tk('admin.nav.revenueHint'), icon: 'sparkle', role: 'admin' },
@@ -69,6 +74,7 @@ const SECTIONS = [
     { name: 'activity', group: 'growth', path: '/admin/activity', label: tk('admin.nav.activity'), hint: tk('admin.nav.activityHint'), icon: 'wave', role: 'admin' },
     { name: 'search', group: 'growth', path: '/admin/search', label: tk('admin.nav.search'), hint: tk('admin.nav.searchHint'), icon: 'arrow', role: 'admin' },
     { name: 'funnel', group: 'growth', path: '/admin/funnel', label: tk('admin.nav.funnel'), hint: tk('admin.nav.funnelHint'), icon: 'list', role: 'admin' },
+    { name: 'outreach', group: 'growth', path: '/admin/outreach', label: tk('admin.nav.outreach'), hint: tk('admin.nav.outreachHint'), icon: 'arrow', role: 'admin', count: (c) => c.outreach, words: tk('admin.outreach.navCount') },
     { name: 'experiments', group: 'growth', path: '/admin/experiments', label: tk('admin.nav.experiments'), hint: tk('admin.nav.experimentsHint'), icon: 'split', role: 'admin' },
     { name: 'sources', group: 'growth', path: '/admin/sources', label: tk('admin.nav.sources'), hint: tk('admin.nav.sourcesHint'), icon: 'arrow', role: 'admin' },
     { name: 'usage', group: 'growth', path: '/admin/usage', label: tk('admin.nav.usage'), hint: tk('admin.nav.usageHint'), icon: 'sparkle', role: 'admin' },
@@ -85,7 +91,7 @@ const HomeSection = {
         <div class="space-y-6">
             <h1 class="text-2xl font-extrabold tracking-tight text-cream">{{ t('admin.home.title') }}</h1>
             <!-- First after a deploy: what needs you to get real voices live (admin/needs.js). -->
-            <NeedsCard />
+            <NeedsCard :outreach="overview?.outreach ?? null" :not-synced="overview?.songsNotSynced ?? []" :sitemap="overview?.sitemapProblems ?? []" />
             <section class="card p-6" aria-labelledby="me-heading">
                 <h2 id="me-heading" class="text-lg font-bold text-cream">{{ t('admin.home.signedInAs', { name: me.name }) }}</h2>
                 <p class="mt-1 text-sm text-muted" translate="no">{{ me.email }}</p>
@@ -102,13 +108,13 @@ const HomeSection = {
                     <a href="/admin/growth" class="link tap-44 inline-flex min-h-6 items-center gap-1 text-sm" @click.prevent="navigate('/admin/growth')">{{ t('admin.home.growth.open') }}<span aria-hidden="true" class="rtl:-scale-x-100">→</span></a>
                 </div>
                 <ul class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                    <li v-for="tile in growthTiles" :key="tile.key" class="card flex flex-col p-5" :data-tile="tile.key">
+                    <li v-for="tile in growthTiles" :key="tile.key" class="card flex flex-col p-4 sm:p-5" :data-tile="tile.key">
                         <p class="text-sm text-muted">{{ tile.label }}</p>
-                        <p class="mt-2 text-4xl font-extrabold tabular-nums text-cream">{{ formatNumber(tile.value) }}</p>
+                        <p class="mt-2 text-3xl font-extrabold tabular-nums text-cream sm:text-4xl" data-tile-value>{{ formatNumber(tile.value) }}</p>
                         <div class="mt-auto pt-4"><dl class="space-y-1 border-t border-line pt-3 text-sm">
                             <div class="flex items-center justify-between gap-3" data-change :data-dir="tile.dir">
                                 <dt class="text-muted">{{ tile.against }}</dt>
-                                <dd class="font-semibold tabular-nums" :class="tile.dir === 'up' ? 'text-good' : tile.dir === 'down' ? 'text-bad' : 'text-muted'"><span v-if="tile.dir === 'up' || tile.dir === 'down'" class="me-1" aria-hidden="true">{{ tile.dir === 'up' ? '↑' : '↓' }}</span>{{ tile.text }}</dd>
+                                <dd class="font-semibold tabular-nums" :class="tile.dir === 'up' ? 'text-up' : tile.dir === 'down' ? 'text-down' : 'text-muted'"><span v-if="tile.dir === 'up' || tile.dir === 'down'" class="me-1" aria-hidden="true">{{ tile.dir === 'up' ? '↑' : '↓' }}</span>{{ tile.text }}</dd>
                             </div>
                         </dl></div>
                     </li>
@@ -170,7 +176,7 @@ const HomeSection = {
 };
 
 export const AdminView = {
-    components: { Icon, Logo, Notice, HomeSection, SafetySection, AuditSection, ReviewSection, SingersSection, GuidesSection, FeedbackSection, ReportsSection, IdeasSection, MudeoSection, SupportSection, LinksSection, PeopleSection, PostsSection, OverviewSection, SourcesSection, RevenueSection, SearchSection, SchoolSection, CohortsSection, ActivitySection, CodeWatchSection, ExperimentsSection, UsageSection, FunnelSection },
+    components: { Icon, Logo, Notice, RequestsSection, HomeSection, SafetySection, AuditSection, ReviewSection, SingersSection, GuidesSection, FeedbackSection, ReportsSection, IdeasSection, MudeoSection, SupportSection, LinksSection, PeopleSection, PostsSection, OverviewSection, SourcesSection, ChoirGroupsSection, RevenueSection, SearchSection, SchoolSection, CohortsSection, ActivitySection, CodeWatchSection, ExperimentsSection, OutreachSection, UsageSection, FunnelSection },
     data: () => ({ me: null, failed: false, overview: null }),
     setup: () => ({ route, socialWaiting, formatNumber }),
     template: `
@@ -178,9 +184,10 @@ export const AdminView = {
             <!-- One bar (Hillel's redesign, 2026-10-30): the groups with what's waiting in them, then Back to app
                  and the account. Calm in both skins. A phone puts the groups on their own scrolling row. -->
             <header class="sticky top-0 z-30 border-b border-line bg-ink/90 backdrop-blur">
-                <div class="container-page flex min-h-14 flex-wrap items-center gap-x-5 gap-y-1 py-2 md:flex-nowrap">
-                    <a href="/admin" class="flex shrink-0 items-center gap-2" @click.prevent="navigate('/admin')"><Logo :size="20" /><span class="rounded-md border border-line px-1.5 py-0.5 text-xs font-semibold text-muted">{{ t('admin.title') }}</span></a>
-                    <nav v-if="me" class="order-last -mx-1 w-full min-w-0 md:order-none md:mx-0 md:w-auto" :aria-label="t('admin.nav.groupsLabel')">
+                <!-- The site header's grid (app-wrap; the logo's line 60 px, 80 from 900 px): the logo where the site's is. -->
+                <div class="app-wrap flex flex-wrap items-center gap-x-5 md:flex-nowrap">
+                    <a href="/admin" class="flex h-[60px] shrink-0 items-center gap-2 min-[900px]:h-20" @click.prevent="navigate('/admin')"><Logo /><span class="rounded-md border border-line px-1.5 py-0.5 text-xs font-semibold text-muted">{{ t('admin.title') }}</span></a>
+                    <nav v-if="me" class="order-last -mx-1 w-full min-w-0 pb-2 md:order-none md:mx-0 md:w-auto md:pb-0" :aria-label="t('admin.nav.groupsLabel')">
                         <ul class="flex gap-1 overflow-x-auto px-1 pb-1 [scrollbar-width:none] md:px-0 md:pb-0" data-nav-groups>
                             <li v-for="g in groups" :key="g.key" class="shrink-0">
                                 <a :href="g.sections[0].path" class="inline-flex min-h-9 items-center gap-1.5 rounded-lg px-3 text-sm font-medium transition" :class="group === g.key ? 'bg-(--fill-2) text-cream' : 'text-muted hover:bg-(--fill) hover:text-cream'" :aria-current="group === g.key ? 'true' : null" @click.prevent="navigate(g.sections[0].path)">
@@ -202,8 +209,10 @@ export const AdminView = {
                     </div>
                 </div>
             </header>
-            <!-- The open group's pages, as underline tabs (plain links: Tab reaches each, Enter opens it). -->
-            <nav v-if="me && shown.length > 1" class="container-page pt-6" :aria-label="t('admin.nav.pagesLabel', { group: t(groupLabel) })">
+            <!-- The open group's pages, as underline tabs (plain links: Tab reaches each, Enter opens it). The pages and
+                 their content on the bar's grid too (app-wrap: Hillel, 2026-11-10, "make the app and admin header and page
+                 width match the marketing site"), so the bar, the tabs, the content and the site share one edge. -->
+            <nav v-if="me && shown.length > 1" class="app-wrap pt-6" :aria-label="t('admin.nav.pagesLabel', { group: t(groupLabel) })">
                 <div class="border-b border-line">
                     <ul class="-mb-px flex gap-6 overflow-x-auto [scrollbar-width:none]" data-nav-sections>
                         <li v-for="s in shown" :key="s.name" class="shrink-0">
@@ -214,7 +223,7 @@ export const AdminView = {
                     </ul>
                 </div>
             </nav>
-            <main class="container-page py-8">
+            <main class="app-wrap py-8">
                 <p v-if="!me && !failed" class="text-muted" role="status">{{ t('admin.loading') }}</p>
                 <Notice v-else-if="failed" tone="bad">{{ t('admin.loadFailed') }} <button type="button" class="link" @click="load">{{ t('common.tryAgain') }}</button></Notice>
                 <HomeSection v-else-if="current === 'home'" :me="me" :groups="groups" :overview="overview" />
@@ -225,6 +234,7 @@ export const AdminView = {
                 <PeopleSection v-else-if="current === 'people'" :me="me" />
                 <OverviewSection v-else-if="current === 'growth'" :me="me" />
                 <SourcesSection v-else-if="current === 'sources'" :me="me" />
+                <ChoirGroupsSection v-else-if="current === 'groups'" :me="me" />
                 <RevenueSection v-else-if="current === 'revenue'" :me="me" />
                 <SearchSection v-else-if="current === 'search'" :me="me" />
                 <CohortsSection v-else-if="current === 'cohorts'" :me="me" />
@@ -232,12 +242,14 @@ export const AdminView = {
                 <SchoolSection v-else-if="current === 'school'" :me="me" />
                 <CodeWatchSection v-else-if="current === 'code-watch'" :me="me" />
                 <ExperimentsSection v-else-if="current === 'experiments'" :me="me" />
+                <OutreachSection v-else-if="current === 'outreach'" :me="me" />
                 <UsageSection v-else-if="current === 'usage'" :me="me" />
                 <FunnelSection v-else-if="current === 'funnel'" :me="me" />
                 <GuidesSection v-else-if="current === 'guides'" :me="me" />
                 <FeedbackSection v-else-if="current === 'feedback'" :me="me" />
                 <ReportsSection v-else-if="current === 'reports'" :me="me" />
                 <IdeasSection v-else-if="current === 'ideas'" :me="me" />
+                <RequestsSection v-else-if="current === 'requests'" :me="me" />
                 <SupportSection v-else-if="current === 'support'" :me="me" />
                 <LinksSection v-else-if="current === 'links'" :me="me" />
                 <PostsSection v-else-if="current === 'posts'" :me="me" />
@@ -319,7 +331,7 @@ export const AdminView = {
         },
         countOf(s) {
             const b = this.overview?.beta;
-            return s.count?.({ waiting: b?.waiting ?? 0, unread: b?.unreadFeedback ?? 0, posts: socialWaiting.count ?? 0, needs: partsNeeding(needs.data) }) ?? 0;
+            return s.count?.({ waiting: b?.waiting ?? 0, unread: b?.unreadFeedback ?? 0, posts: socialWaiting.count ?? 0, needs: partsNeeding(needs.data), outreach: (this.overview?.outreach?.followUpsDue ?? 0) + (this.overview?.outreach?.unreadReplies ?? 0), home: homeCount(this.overview) }) ?? 0;
         },
         closeAccount() {
             this.$refs.account?.removeAttribute('open');

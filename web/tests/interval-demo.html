@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en" data-theme="stage-dark">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Interval trainer</title>
+    <!-- How a /tools page mounts the interval trainer (js/public/tools/interval-trainer.js) on the tools' one layout, under the
+         frame (tests/tool-frame.js: the brand row with the tool's key control and the Theme button); the page's H1
+         and how-to follow below the tool. ?fresh forgets the kept settings. -->
+    <meta name="game-css" content="/css/site-game.css">
+    <link rel="stylesheet" href="/css/site.css">
+    <script src="/js/theme-boot.js"></script>
+    <script src="/js/game-css.js"></script>
+</head>
+<body class="bg-ink text-cream">
+    <main class="px-4">
+        <div id="trainer"></div>
+        <h1 class="mx-auto mt-8 max-w-[24.375rem] text-[28px] font-extrabold leading-tight tracking-tight md:text-[40px]">Interval trainer</h1>
+    </main>
+    <script type="module" src="/tests/tool-frame.js"></script>
+    <script type="module">
+        import { mountIntervalTrainer } from '/js/public/tools/interval-trainer.js';
+        const words = {
+            lastTen: ':right of the last 10 right', share: 'Share it', shareText: 'I named :right of my last :total intervals by ear (:level). Can you?', cardTitle: 'Interval ear training', cardScore: ':right of :total', cardLine: 'intervals named by ear', cardChallenge: 'Can you hear them?',
+            cardTagline: 'Harmony, made by you.', cardSite: 'stackapella.com', cardSaved: 'Card saved, and the line copied',
+            prompt: 'Which interval?', readySub: 'Tap Play to hear an interval', play: 'Play', again: 'Play it again', next: 'Next', answers: 'Your answer',
+            right: 'Right', youSaid: 'You said :answer', yours: 'Hear yours', rightOne: 'Hear the right one',
+            level: 'Level :n · :name', levelShort: 'Level', levelDown: 'An easier level', levelUp: 'A harder level',
+            toNext: ':right of the last 10 right · :need opens Level :level', topLevel: 'Top level', goLevel: 'On to Level :n: :name', ownSet: 'Your own set',
+            statRight: ':accuracy right', statStreak: ':accuracy right · :streak in a row',
+            settings: 'Settings', settingsTitle: 'Settings', reset: 'Reset', done: 'Done', practise: 'Intervals to practise', fixedRoot: 'Always start on the same note', playNotes: 'Play notes',
+            range: 'Range', from: 'From', to: 'To', needOne: 'Keep at least one to practise.',
+            results: 'Your results', heard: 'Heard', missed: 'Missed', accuracy: 'Right', keys: 'Keys: space plays, 1 to :last answer, A hears it again.', song: 'Think of :song.',
+            m2: 'Minor 2nd', M2: 'Major 2nd', m3: 'Minor 3rd', M3: 'Major 3rd', P4: 'Perfect 4th', TT: 'Tritone', P5: 'Perfect 5th',
+            m6: 'Minor 6th', M6: 'Major 6th', m7: 'Minor 7th', M7: 'Major 7th', P8: 'Octave',
+            up: 'Up', down: 'Down', together: 'Together', semitones: ':n semitones', showSemitones: 'Show semitones',
+            level1: 'Starter', level2: 'Thirds and sixths', level3: 'Sixths and sevenths', level4: 'Every interval in an octave',
+        };
+        if (new URLSearchParams(location.search).has('fresh')) Object.keys(localStorage).filter((k) => k.startsWith('stackapella.tools.')).forEach((k) => localStorage.removeItem(k));
+        window.__answers = [];
+        await new Promise((r) => (document.querySelector('[data-tool-key]') ? r() : requestAnimationFrame(r)));
+        window.__trainer = mountIntervalTrainer(document.querySelector('#trainer'), { words, keySlot: document.querySelector('[data-tool-key]'), onAnswer: (a) => window.__answers.push(a), onLesson: () => (window.__lessons = (window.__lessons ?? 0) + 1), onShared: () => (window.__shared = (window.__shared ?? 0) + 1), songs: {
+            up: { m2: 'Ode to Joy, from its second note', M2: 'Happy Birthday', m3: 'Greensleeves', M3: 'When the Saints Go Marching In', P4: 'Amazing Grace', P5: 'Twinkle, Twinkle, Little Star', M6: 'My Bonnie Lies over the Ocean' },
+            down: { M2: 'Mary Had a Little Lamb', m3: 'Jesus Loves Me', M3: 'Swing Low, Sweet Chariot' },
+        } });
+    </script>
+</body>
+</html>

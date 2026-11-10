@@ -22,14 +22,6 @@ final class WebAppTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_hillels_test_page_is_served_but_never_kept_or_indexed(): void
-    {
-        $page = $this->get('/lab/lock-test.html')->assertOk()->assertHeader('X-Robots-Tag', 'noindex, nofollow');
-        $this->assertStringStartsWith('text/html', (string) $page->headers->get('Content-Type'));
-        $this->assertStringContainsString('no-store', (string) $page->headers->get('Cache-Control'));
-        $this->assertStringContainsString("script-src 'unsafe-inline'", (string) $page->headers->get('Content-Security-Policy'));
-    }
-
     public function test_app_routes_answer_with_the_pwas_index(): void
     {
         foreach (['/?app', '/p/0b8f4c2e-1111-4a5b-9c3d-2e7f8a9b0c1d', '/sing', '/admin', '/admin/people'] as $path) {
@@ -202,7 +194,7 @@ final class WebAppTest extends TestCase
         $connect = (string) collect(explode(';', $csp))->first(fn (string $d): bool => str_starts_with(trim($d), 'connect-src'));
 
         $this->assertStringContainsString('https://cdn.jsdelivr.net', $connect);
-        $this->assertStringContainsString('https://fonts.gstatic.com', $connect);
+        $this->assertStringNotContainsString('fonts.g', $connect);
 
         // And neither it nor the shell is ever kept: not by the browser, not at Cloudflare's edge.
         foreach (['/sw.js', '/sing'] as $path) {

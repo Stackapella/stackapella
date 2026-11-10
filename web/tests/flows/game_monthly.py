@@ -8,7 +8,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
 from flow import run  # noqa: E402
-from game_frames import dark, light  # noqa: E402
+from game_frames import dark, every_theme, light  # noqa: E402
 from help_shots import t  # noqa: E402
 
 BOARD = """const { createApp, h } = await import('vue');
@@ -47,13 +47,16 @@ def journey(f):
         assert f.js(OPTIONS) == 2, "serious mode: Friends and Everyone only"
         return
     assert f.js(OPTIONS) == 3, "This month beside them"
-    assert f.js("document.querySelector('#board-test [data-board-scope=month]').textContent.trim()") == t(f, "boards.month")
+    # Shown as "Month", named "This month" (frontend2's leaderboard redesign, 6d44cedd).
+    month = f.js("(() => { const b = document.querySelector('#board-test [data-board-scope=month]'); return [b.textContent.trim(), b.getAttribute('aria-label')]; })()")
+    assert month == [t(f, "boards.monthShort"), t(f, "boards.month")], f"the month option's words: {month}"
     f.run("document.querySelector('#board-test [data-board-scope=month]').click()")
     f.wait("window.boardAsked.some((u) => u.includes('period=month') && u.includes('scope=global'))", what="this month's board asked for")
     f.wait("document.querySelector('#board-test [data-board-scope=month]').getAttribute('aria-checked') === 'true' && document.querySelector('#board-test [data-board-entry]')", what="this month's board")
     f.no_sideways("the board's three choices")
     f.run("window.scrollTo(0, 0)")
     f.shot("this-month")
+    every_theme(f, "this month's board")
     light(f)
     f.shot("this-month-light")
     dark(f)

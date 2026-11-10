@@ -22,6 +22,9 @@ use Symfony\Component\HttpFoundation\Response;
  */
 final class Limits
 {
+    /** A request attribute for the app's own renders of its pages, which no limit counts. */
+    public const UNLIMITED = 'limits.unlimited';
+
     private const OVERRIDES_CACHE = 'limits:overrides';
 
     public function __construct(private readonly SecurityLog $securityLog, private readonly TrustLevel $trust) {}
@@ -73,6 +76,13 @@ final class Limits
     public function for(string $limiter, Request $request): array
     {
         $rules = $this->all()[$limiter] ?? throw new InvalidArgumentException("No limiter named [{$limiter}] in config/limits.php.");
+
+        // Our own render of a page (app:sitemap:dates reads every sitemap page in a minute): an
+        // attribute set in-process, which no request from outside can carry.
+        if ($request->attributes->get(self::UNLIMITED) === true) {
+            return [];
+        }
+
         $user = $request->user();
         $user = $user instanceof User ? $user : null;
         $limits = [];
@@ -225,6 +235,14 @@ final class Limits
     private function refuse(string $limiter, string $rule, Request $request, ?User $user, array $headers): Response
     {
         $this->securityLog->rateLimited($limiter, $rule, $user, (string) $request->ip());
+
+        // Write-only counts (counts.create): past the limit nothing is counted, and the answer is the
+        // same 204 as ever, since every sender is a beacon that never reads it, and a browser logs a
+        // beacon's 429 as a console error a visitor would see.
+        if ($limiter === 'counts') {
+            return response()->noContent();
+        }
+
         $retryAfter = (int) ($headers['Retry-After'] ?? 60);
         $headers = array_map('strval', $headers);
 
@@ -232,6 +250,8 @@ final class Limits
             return ApiError::response(429, 'rate_limited', ['retryAfter' => $retryAfter], $headers);
         }
 
-        return response()->view('errors.429', ['minutes' => (int) ceil($retryAfter / 60)], 429, $headers);
+        // A page turned away is never a page to index ("Slow down a little" as a page's words): 429,
+        // Retry-After, and noindex in the header and the page.
+        return response()->view('errors.429', ['minutes' => (int) ceil($retryAfter / 60)], 429, [...$headers, 'X-Robots-Tag' => 'noindex']);
     }
 }

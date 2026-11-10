@@ -1,72 +1,92 @@
 # Harmony, made by you: the Stackapella showreel
 
-A 39-second film built as one HTML page, so every frame is code: no editing project, no stock
-footage, nothing to license. It tells Stackapella's story in the app's own look (Figtree, the glass
-gems, the arcade lanes and their pitch camera, the landing's mixer, the creator, the four-bar mark,
-the Stage and Warm themes), and **it has sound**: Amazing Grace's verse sung by the app's own guide
-voice (`web/js/synth.js`), one voice and then four, with the soft "oo" pad. It renders in two cuts on
-one timeline, dark (Stage) and light (Warm). After Event Schedule's showreel
-(`~/Code/eventschedule/resources/promo/showreel`), whose ideas it reuses.
+A 76.5-second film built as one HTML page: the drawn shots are code (Figtree, the glass gems, the
+arcade lanes and their pitch camera, the split screen, the share card, the four-bar mark), and between
+them the **real app**, captured from the mock app and the site's own pages and shown in a drawn phone
+or window. **Its sound is Amazing Grace sung by the app's real singers**: the song's four default
+real-voice guides from the public catalogue, the soprano alone and then a voice a phrase, then all four
+the second time through. It renders in two cuts on one timeline, dark (Stage) and light (Warm). After
+Event Schedule's showreel (`~/Code/eventschedule/resources/promo/showreel`), whose ideas it reuses.
 
-**Status (2026-10-28):**
-- **The film is final:** Hillel approved it (`docs/decisions.md`, "the showreel"), and both cuts, the
-  phone cuts, the posters, the audio and the captions are rendered. It plays in the landing's "See it
-  in action" band (`server/resources/views/pages/landing/_showreel.blade.php`,
-  `web/js/public/showreel.js`), which shows only once its videos can be reached.
-- **The launch cuts are final:** vertical, square and the Product Hunt thumbnail (below). They're
-  posted to the platforms directly, not served from the CDN.
-- **Waiting on Hillel's CDN keys:** the film's files go up with `php artisan app:showreel:upload`
-  (it reads `manifest.json`), then `SHOWREEL_URL` is set in production.
-- **Where the files are:** `server/public/videos/showreel/`, in the main checkout and in the
-  `agent/showreel` worktree (`~/Code/stackapella-showreel`). The videos, audio and GIF are
-  gitignored; `manifest.json`, `launch-manifest.json`, the posters and the `.vtt` are in git, and
-  every file matches its manifest's sha256. Re-rendering rebuilds them all (see Render).
+**Status (2026-11-08):** the second cut (`docs/showreel-v2-plan.md`, Hillel approved the plan and
+"the verse twice"). The first cut (39 s, the synth guide at 96 BPM) is in git history before it, with
+the launch cuts made from it.
+- **Where the files are:** `server/public/videos/showreel/`. The videos, audio, GIF, the captures and
+  the real voices are gitignored; `manifest.json`, `launch-manifest.json`, `captures.json`, the posters
+  and the `.vtt` are in git, and every file matches its manifest's sha256.
+- **On the CDN:** `php artisan app:showreel:upload` puts each render in its own folder,
+  `showreel/<version>/` (the manifest's hash); `SHOWREEL_URL` is already set in production, so a new
+  render needs only the upload (keys: Hillel's).
 
 ## Files
 
 | File | What it is |
 |---|---|
 | `showreel.html` | The shell: the stage, the preview player, and the film's length (`DUR`, which `render.py` reads). |
-| `film.css` | Every colour, as tokens (the app's palettes, `web/tool/palettes.json`), and the drawing of every object, the glass recipe included (`.gem`, copied from `web/css/input.css`). |
+| `film.css` | Every colour, as tokens (the app's palettes, `web/tool/palettes.json`), and the drawing of every object: the glass recipe (`.gem`, copied from `web/css/input.css`), and the phone and window that hold the app. |
 | `js/lib.js` | Maths, easing, and small DOM helpers that touch the DOM only on a change. |
-| `js/score.js` | The music: Amazing Grace from `web/templates/amazing-grace.json`, its beat, your voice as a pitch curve, and `CUE`, the beats the picture and the sound share. |
+| `js/score.js` | The music: Amazing Grace from `web/templates/amazing-grace.json`, twice, its beat, your voice as a pitch curve, `CUE` (the beats the picture and the sound share), the credit line and the captions. |
 | `js/stage.js` | The camera (a CSS 3D world), `project()` for what is painted in screen space, the sparkles, specks and grain, and the palette read from the tokens. |
-| `js/film.js` | The film. The world (lanes, mixer, creator, share card, end card) and `SHOTS`, the cut. |
-| `js/audio.js` | The soundtrack, mixed on an `OfflineAudioContext` from `renderPart` and `renderBacking`. |
-| `js/main.js` | `seek(t)` and the preview player, whose clock is the AudioContext's while it plays. |
-| `render.py` | Serves the page, drives headless Chrome over the DevTools protocol, encodes with ffmpeg. No packages but Pillow. |
+| `js/film.js` | The film. The world (lanes, share card, end card), the app layer, and `SHOTS`, the cut. |
+| `js/audio.js` | The soundtrack: the real voices, the app's pad (`renderBacking`) and chimes, mixed on an `OfflineAudioContext`. |
+| `js/breaths.js` | Ducks the singers' breaths between phrases: only the unpitched air in each part's rests. |
+| `js/main.js` | `seek(t)`, `settle()` and the preview player, whose clock is the AudioContext's while it plays. |
+| `render.py` | Serves the page, drives headless Chrome over the DevTools protocol, encodes with ffmpeg; `--voices` fetches the real voices. No packages but Pillow. |
+| `capture.py` | Captures the real app (stills and screencast recordings) for both cuts, into `captures/`, listed in `captures.json`. |
 | `blend.py` | Averages the motion-blur samples (Pillow). |
-| `fonts/` | Figtree 500, 700 and 800 (copies of the apps' bundled font, SIL Open Font License, `OFL.txt`). |
+| `fonts/` | Figtree 500, 700 and 800 (copies of the apps' bundled font, SIL Open Font License, `OFL.txt`), and game mode's Stackapella Pixel (`web/fonts/`, `OFL-pixel.txt`). |
 
 `seek(t)` draws the frame at time `t` as a pure function of `t`, so any frame renders on its own and
-renders the same twice. Nothing may remember the frame before.
+renders the same twice. Nothing may remember the frame before. An app shot loads its screen as an
+image; `settle()` resolves once it has decoded, and `render.py` waits for it before each grab.
 
 ## How the film is put together
 
-**The song is the clock.** Amazing Grace's verse is 48 beats with a one-beat pickup. The film holds
-four of its long notes longer, as fermatas, so the words on screen can be read: "me.", "found," and
-"now" a bar each (`STRETCH` in `js/score.js`; `m()` turns a beat of the template into one of the
-film), and the last chord two bars (`HOLD`), so the end card stays up. At 96 BPM those 63 beats
-last exactly 39.375 seconds, and the next loop's pickup ("A-") lands on the film's first frame.
-Every cut sits on a beat (0.625 s) or a half beat, and the four acts are the song's four phrases:
+**The song is the clock.** The real voices are recorded at the song's own 80 BPM and can't be
+stretched, so the film is the verse twice (48 beats each, the pickup included) and the last chord held
+two bars more under the pad: 102 beats, 76.5 seconds, and the next loop's pickup ("A-") lands on the
+film's first frame. Every cut sits on a beat (0.75 s) or a half beat, and each act is one of the song's
+phrases (9 s):
 
-| Phrase | Time | Act |
+| Time | Sung | Act |
 |---|---|---|
-| "Amazing grace, how sweet the sound" | 0:00 | One voice, learning it |
-| "that saved a wretch like me." | 0:07.5 | Stacking the other voices, then the mixer |
-| "I once was lost, but now am found," | 0:16.9 | Making your own: a hum, harmonised, with chords |
-| "was blind, but now I see." | 0:24.1 | Sharing it, friends singing; the end card, held to 0:37.5 |
+| 0:00 | "Amazing grace...", the soprano alone | Learn: the lanes close up, then Sing, notes lighting, in step with the song |
+| 0:09 | "that saved...", the alto joins | Stack: the studio with three parts sung, then the lanes from above |
+| 0:18 | "I once was lost...", the tenor joins | Game mode: the landing's own switch clicked; a CRT power-on into the arcade, and the film itself goes arcade: the take, Home's stage card |
+| 0:27 | "was blind...", the bass joins | Still the arcade: the split screen of four takes of you, the share card and friends joining; then a power-off |
+| 0:36 | all four, the second time | Courses: the courses page scrolling, the first lesson with no account |
+| 0:45 | | Tools, a bar each: the four named in a row, the one now big with a few words, its own panel on a card (tuner, drone, metronome, vocal range test) |
+| 0:54 | | Choirs: the director's group, a member's |
+| 1:03 | | Every day: the daily challenge; then everyone on the lanes, and on "see." the mark and the end card, held to 1:16.5 |
 
-There is one world, and each set (the lanes, the mixer, the creator, the share card) has its own
-place in it; the split screen of the four singers is drawn over it. Each act has its own look: the
-Learn act is close-ups on the dark stage, Stack tilts, goes top down, splits into four and runs
-along the beam, Make your own stands on a wash of the accent, and Share is the app's own UI (the
-mixer and the share card, square on, with a fingertip's taps). `SHOTS` in `js/film.js` is the cut: each shot says when it starts, which set it shows,
-where the camera is (and how it moves within the shot), and the act and line it carries. A shot
-runs until the next begins, and every cut is hard.
+**The arcade** (film.css, "GAME MODE"): from the switch to the end of the first pass the film follows game
+mode's guide, always the dark arcade (in the light cut too, as the app turns dark with game mode), and the CRT (`crt()` in film.js) switches it on and off on the beat.
+The app's recordings that know where in the song they began (`songAt` in captures.json) play in step with it.
+The singers' breaths between phrases are ducked (`js/breaths.js`).
 
 **Picture and sound share their beats** through `CUE` in `js/score.js`: when each voice joins, when
-the mark forms, when the chords land, when friends join. Move a cue and both follow.
+friends join, when the mark forms. Move a cue and both follow.
+
+## The real voices
+
+`python3 render.py --voices` asks the public catalogue (`GET https://stackapella.com/api/templates`,
+the call the app makes; `CATALOGUE=` to point it elsewhere) for Amazing Grace, refuses it if its version
+isn't the template's here (so the notes on screen are the ones sung), and downloads each part's default
+real voice from the public URL it lists into `voices/` with `voices.json` (their file details and
+credits). Nothing else is read from production, and the files are never committed. The end card and
+the captions credit them as the app does, a part at a time ("Soprano and alto sung by ..."); a singer
+who chose no credit is not named.
+
+## App footage
+
+`capture.py` films the real app for both cuts (`--cut=dark|light`, `--only=id,id`): the mock app
+(`API=mock php -S 127.0.0.1:<port> web/tool/serve.php`) and the site's pages (the Laravel server,
+`php -S 127.0.0.1:<port> server/tool/serve.php`), each on its own port (`--app=`, `--site=`). The dark
+cut films the app's dark themes, the light cut its light ones, in the skin each shot names. Stills are
+JPEGs; a recording is Chrome's screencast, resampled to 30 fps. A singing shot records the alto over
+loopback with the alto's own notes played in, so the lane lights as the app does for a singer; the
+tuner and range test hear a sung note through a stand-in mic. **Only made-up names**: the mock's people
+are renamed Maya, Sam and Leo in every shot, and no singer's credit is filmed.
 
 ## Preview
 
@@ -110,7 +130,7 @@ for th in dark light; do
   python3 render.py --mobile --theme=$th     # 960x540 30fps MP4
   python3 render.py --posters --theme=$th    # the poster: JPEG, and WebP at 960, 1440 and 1920
 done
-python3 render.py --audio                    # the soundtrack alone: WAV, M4A, Opus
+python3 render.py --audio                    # the soundtrack alone: WAV, M4A, Opus (run --voices first)
 python3 render.py --manifest                 # manifest.json: every file's name, size and sha256
 ```
 
@@ -127,22 +147,9 @@ before the reel plays, and all they see under reduced motion.
 
 ## Launch cuts
 
-The same source makes the launch's cuts (`--launch=`), each reframed rather than cropped: the line in
-the platform's safe area, the split screen laid out two by two under it, the end card's headline in
-two lines, and the shots that follow the playhead keeping it a third of the way across. Each is a
-few stretches of the film end to end (`EDIT` in `js/film.js`), joined where the music can take it,
-and ends on the opening note, so it loops. They are listed in `launch-manifest.json`.
-
-| File | What it is |
-|---|---|
-| `stackapella-launch-vertical.mp4` | 1080x1920 30fps, 18.7 s: Learn and Stack, then the end card |
-| `stackapella-launch-square.mp4` | 1080x1080 30fps, 15 s: "Amazing grace," then Stack, then the end card |
-| `stackapella-launch-thumb.gif` / `.mp4` | 240x240 20fps, a 3.75 s loop: the mark's four glass bars lit voice by voice, for Product Hunt |
-
-```bash
-for f in vertical square thumb; do python3 render.py --launch=$f; done; python3 render.py --manifest
-python3 render.py --format=vertical --stills=1.6,10.8 --out=stills    # stills of a format
-```
+The launch's cuts (vertical, square and the Product Hunt thumbnail, listed in `launch-manifest.json`)
+were made from the first film and posted as they are; this film is wide only (`--launch=vertical` and
+`square` refuse). They can be re-cut from this one if Hillel wants new ones.
 
 ## Where the outputs live
 
@@ -155,13 +162,15 @@ under 300 KB are committed beside it.
 
 - **Every line stays up long enough to read:** about 0.3 s a word plus a second, counted from when
   its rise is mostly done. `window.captions()` in the preview lists each line's time against that.
-- **Honest words only.** Every line is the site's or the app's own: "Learn a part with a guide
-  voice", "Your notes light up as you hit them", "Stack your own voices, exactly in time", "Sing the
-  part that suits you", "Share the whole harmony", "Invite friends to sing the other parts",
-  "Harmony, made by you.", "For one voice, or a whole choir." No numbers, no
-  prices, no em dashes, and nothing about any company but Stackapella.
+- **Honest words only.** Every line says what the app does, in the site's or the app's own words
+  where it has them ("Learn your harmony from a real singer.", "Your notes light up as you hit them.",
+  "Every course is free.", "Try the first lesson without an account.", "Tools for every practice.",
+  "Harmony, made by you.", "For one voice, or a whole choir."). Only what's live, never "coming
+  soon". No numbers, no prices, no em dashes, and nothing about any company but Stackapella.
+- **No drawn people**, and only made-up names on screen (Maya, Sam, Leo); a tap is a ring and a soft
+  disc, never a hand.
 - **The last frame is the first frame.** The last beat cuts back to the opening note, a beat early,
-  and everything that drifts is periodic over `DUR`. Check with stills at `0` and `39.37`.
+  and everything that drifts is periodic over `DUR`. Check with stills at `0` and `76.49`.
 - **Keep the top left for the line** each shot carries, at 76 px: it must read on a phone, where
   the picture is about 343 px wide and one film pixel is a sixth of a pixel.
 - **Keep both bottom corners clear.** The landing lays two glass buttons on the picture, inset
@@ -169,7 +178,7 @@ under 300 KB are committed beside it.
   each. That is 140 film px on a desktop and about 450 on a phone, so nothing that matters sits in
   the bottom 450 x 450 of either corner.
 - **The captions track** (`--vtt`, `stackapella-showreel.vtt`) gives each phrase's line of the hymn
-  and says what is heard. The guide voice sings on "oo", so a cue never claims the words are sung.
+  and says who joins; the bass sings on "oo", the others the words. The last cue carries the credit.
 
 ## On the landing
 

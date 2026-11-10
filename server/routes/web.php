@@ -15,6 +15,7 @@ use App\Http\Controllers\Dev\DevLoginController;
 use App\Http\Controllers\EventSchedule\WebhookController as EventScheduleWebhookController;
 use App\Http\Controllers\Ops\ErrorTunnelController;
 use App\Http\Controllers\Ops\MailWebhookController;
+use App\Http\Controllers\Ops\OutreachWebhookController;
 use App\Http\Middleware\PreventRequestForgery;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Support\Facades\Route;
@@ -80,6 +81,8 @@ Route::post('/webhooks/google-play', GooglePlayWebhookController::class)->withou
 // Event Schedule's appointment webhooks, one per connected schedule (each with its own secret).
 // Bounces and complaints from Cloudflare Email Service, by our Worker (signed).
 Route::post('/webhooks/mail', MailWebhookController::class)->withoutMiddleware([StartSession::class, ShareErrorsFromSession::class, PreventRequestForgery::class])->middleware('throttle:webhooks')->name('webhooks.mail');
+// Outreach's deliveries, bounces, complaints and replies, by the outreach subdomain's Worker (signed).
+Route::post('/webhooks/outreach', OutreachWebhookController::class)->withoutMiddleware([StartSession::class, ShareErrorsFromSession::class, PreventRequestForgery::class])->middleware('throttle:webhooks')->name('webhooks.outreach');
 
 // The browser's errors on their way to Sentry (only for our own DSN; no session).
 Route::post('/log/errors', ErrorTunnelController::class)->withoutMiddleware([StartSession::class, ShareErrorsFromSession::class, PreventRequestForgery::class])->middleware('throttle:error-reports')->name('log.errors');

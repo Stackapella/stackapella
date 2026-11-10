@@ -99,7 +99,8 @@ def journey(f):
     # Nothing else waiting on a learner: today's workout comes second (42.png: a strip of its steps).
     f.wait(f"{BANDS} === 'workout projects songs'", what="workout, Your songs, the library")
     f.wait("document.querySelector('section[aria-labelledby=band-groups]')", what="the choir groups the mock account sings in")
-    assert t(f, "home.projects.used", {"used": 0, "limit": 3}) in f.js("document.body.innerText"), "the meter"
+    # No song slots on Home any more: the free plan's limit is storage, its meter only once it's 80% full (2026-11-07).
+    assert not f.js("document.querySelector('[data-free-meter]')"), "no song slots"
     f.shot("mid-course")
 
     # 3. They sang in a project this week: it comes second, under a compact course band.
@@ -131,7 +132,7 @@ def journey(f):
     f.wait_text(t(f, "beta.status.retake"))
     # The Plus mark: beside the name from a tablet up; on a phone, in the account link's name.
     assert t(f, "home.plus") in f.js("document.querySelector('header').innerText + ' ' + document.querySelector('header a[href=\"/settings\"]').getAttribute('aria-label')"), "the Plus mark"
-    assert t(f, "home.projects.used", {"used": 1, "limit": 3}) not in f.js("document.body.innerText"), "no meter on Plus"
+    assert not f.js("document.querySelector('[data-storage-meter]')"), "no storage meter on Plus"
     f.shot("beta-singer-plus")
 
     f.run("const s = await import('/js/stores/projects.js'); await s.loadProjects(); for (const p of s.projects.all) await s.deleteProject(p.id);")

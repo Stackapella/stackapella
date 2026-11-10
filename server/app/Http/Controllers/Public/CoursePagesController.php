@@ -7,7 +7,9 @@ namespace App\Http\Controllers\Public;
 use App\Http\Controllers\Controller;
 use App\Support\Http\Hosts;
 use App\Support\Pages\Landing;
+use App\Support\Pages\Lessons;
 use App\Support\Site\SitePages;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Lang;
@@ -34,8 +36,21 @@ final class CoursePagesController extends Controller
         ], 200, SongPagesController::headers());
     }
 
-    public function show(Request $request, string $slug): Response
+    /**
+     * The free course has one canonical page (marketing, 2026-11-07); its lesson pages sit under /courses/harmony.
+     * The visitor's query goes with them (a shared link's ref).
+     */
+    public function free(Request $request): RedirectResponse
     {
+        return new RedirectResponse(Landing::withQuery($request, '/features/course'), 301);
+    }
+
+    public function show(Request $request, string $slug): Response|RedirectResponse
+    {
+        if (isset(SitePages::REMOVED_COURSES[$slug])) {
+            return redirect(Landing::withQuery($request, SitePages::REMOVED_COURSES[$slug]), 301);
+        }
+
         if (! in_array($slug, SitePages::courses(), true)) {
             return response()->view('public.page-gone', ['links' => ['app' => '/courses']], 404, SongPagesController::headers());
         }
@@ -49,6 +64,10 @@ final class CoursePagesController extends Controller
             'meta' => ['title' => SitePages::title((string) $page['title']), 'description' => (string) $page['description'], 'url' => Hosts::publicUrl().'/courses/'.$slug],
             'page' => $page,
             'links' => Landing::links(Landing::ref($request->query('ref'))),
+            // Start the first lesson: straight to it in the app, tagged as from this page unless the visitor brought a
+            // tag (the coordinator, 2026-11-08); a course without lesson pages opens its map.
+            'courseStart' => Lessons::firstLesson($slug, Landing::ref($request->query('ref')) ?? 'course-page')
+                ?? Hosts::app('/learn/c/'.(string) ($page['app'] ?? $slug).'?'.http_build_query(['ref' => Landing::ref($request->query('ref')) ?? 'course-page'])),
             'draw' => SitePages::draw(),
         ], 200, SongPagesController::headers());
     }

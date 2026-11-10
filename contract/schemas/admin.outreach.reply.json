@@ -1,0 +1,50 @@
+{
+    "$id": "admin.outreach.reply.json",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "id",
+        "targetId",
+        "fromEmail",
+        "subject",
+        "body",
+        "receivedAt",
+        "readAt"
+    ],
+    "properties": {
+        "id": {
+            "type": "string"
+        },
+        "targetId": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "description": "Null until filed: a reply from an address no organization had."
+        },
+        "fromEmail": {
+            "type": "string"
+        },
+        "subject": {
+            "type": [
+                "string",
+                "null"
+            ]
+        },
+        "body": {
+            "type": "string"
+        },
+        "receivedAt": {
+            "type": "string",
+            "format": "date-time"
+        },
+        "readAt": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "format": "date-time"
+        }
+    },
+    "title": "A reply, with its text (inbound mail, or logged by hand)"
+}

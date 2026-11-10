@@ -15,6 +15,7 @@ use App\Notifications\Admin\OpsAlert;
 use App\Support\Admin\Admins;
 use App\Support\Ops\Readiness;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
 
 /**
@@ -42,6 +43,8 @@ final class OpsAlerts extends Command
             'storage' => [(int) round(Take::query()->where('created_at', '>', now()->subDay())->sum('stored_bytes') / 1_000_000_000), $limits['storage_gb_a_day'], '/admin'],
             'limited' => [$events(SecurityEventType::RateLimited), $limits['limited_an_hour'], '/admin/security-events'],
             'suppressed' => [EmailSuppression::query()->where('suppressed_at', '>', now()->subDay())->count(), $limits['suppressed_a_day'], '/admin/flags'],
+            'mail_waiting' => [DB::table('jobs')->where('queue', 'default')->where('created_at', '<', now()->subMinutes(5)->getTimestamp())->count(), $limits['mail_waiting'], '/admin'],
+            'failed_jobs' => [DB::table('failed_jobs')->where('failed_at', '>', $hour)->count(), $limits['failed_jobs_an_hour'], '/admin'],
         ];
 
         $sent = (array) (Setting::query()->where('key', self::SENT)->first()->value ?? []);

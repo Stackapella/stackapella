@@ -73,9 +73,19 @@ final class GalleryController extends Controller
         return response()->json(['data' => $social->follow($user, $this->byHandle($handle), false)]);
     }
 
+    /**
+     * Only a public profile can be blocked by its handle, so a block can't confirm that a private
+     * account's handle exists (unblocking works for anyone).
+     */
     public function block(string $handle, Social $social, #[CurrentUser] User $user): Response
     {
-        $social->block($user, $this->byHandle($handle), true);
+        $other = $this->byHandle($handle);
+
+        if (! Gallery::hasPublicProfile($other)) {
+            throw new Refusal(404, 'not_found');
+        }
+
+        $social->block($user, $other, true);
 
         return response()->noContent();
     }
@@ -89,9 +99,37 @@ final class GalleryController extends Controller
 
     public function blocks(#[CurrentUser] User $user): JsonResponse
     {
-        $blocked = User::query()->whereIn('id', UserBlock::query()->where('blocker_id', $user->id)->select('blocked_id'))->orderBy('name')->get();
+        $rows = [];
 
-        return response()->json(['data' => array_values($blocked->map(fn (User $u): array => [...GalleryViews::person($u), 'handle' => $u->handle])->all())]);
+        foreach (UserBlock::query()->with('blocked')->where('blocker_id', $user->id)->get() as $block) {
+            $person = $block->blocked;
+
+            if ($person === null) {
+                continue;
+            }
+
+            // Someone without a public profile (any more) is shown as no one in particular, and is
+            // unblocked by the row's own id (Hillel: "Make them unblockable").
+            $rows[] = ['blockId' => $block->sqid(), ...(Gallery::hasPublicProfile($person) ? GalleryViews::person($person) : ['handle' => null, 'name' => __('sharing.a_singer'), 'avatarUrl' => null]), 'sort' => (string) $person->name];
+        }
+
+        usort($rows, static fn (array $a, array $b): int => strcmp($a['sort'], $b['sort']));
+
+        return response()->json(['data' => array_map(static fn (array $row): array => array_diff_key($row, ['sort' => true]), $rows)]);
+    }
+
+    /**
+     * Unblock by the block itself: works for someone whose profile is no longer public.
+     */
+    public function unblockById(UserBlock $block, #[CurrentUser] User $user): Response
+    {
+        if ($block->blocker_id !== $user->id) {
+            throw new Refusal(404, 'not_found');
+        }
+
+        $block->delete();
+
+        return response()->noContent();
     }
 
     public function comments(Request $request, string $harmony, Comments $comments): JsonResponse

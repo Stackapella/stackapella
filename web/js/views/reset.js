@@ -4,7 +4,7 @@
 // progress, settings, look, the app's files and its service worker) and opens the website as a
 // brand-new visitor. Signed in or not, and only ever this device: the account is never touched.
 
-import { PageHeader } from '../components/page.js';
+import { AppScreen } from '../components/page.js';
 import { t } from '../i18n.js';
 import { navigate } from '../router.js';
 import { publicSiteUrl } from '../hosts.js';
@@ -13,12 +13,11 @@ import { deviceSummary, startFresh } from '../device.js';
 import { Notice } from '../components/form.js';
 
 export const ResetView = {
-    components: { Notice, PageHeader },
+    components: { Notice, AppScreen },
     data: () => ({ summary: null, busy: false, failed: false }),
     setup: () => ({ account }),
     template: `
-        <div class="mx-auto flex min-h-dvh max-w-xl flex-col px-4 pb-16 pt-[max(0.5rem,env(safe-area-inset-top))] md:px-8" data-reset>
-            <PageHeader :title="t('reset.title')" back="/" />
+        <AppScreen :title="t('reset.title')" back="/" measure="max-w-xl" data-reset>
             <div class="mt-4 space-y-5">
                 <p class="text-cream">{{ t('reset.body') }}</p>
                 <dl class="space-y-2 rounded-2xl border border-line bg-panel p-4 text-sm">
@@ -31,7 +30,7 @@ export const ResetView = {
                     <button type="button" class="btn-danger" :disabled="busy" data-reset-go @click="go">{{ busy ? t('reset.going') : t('reset.go') }}</button>
                 </div>
             </div>
-        </div>`,
+        </AppScreen>`,
     computed: {
         rows() {
             const s = this.summary;

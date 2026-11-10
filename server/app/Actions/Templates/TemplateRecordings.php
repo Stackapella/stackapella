@@ -57,7 +57,7 @@ final class TemplateRecordings
             }
 
             if ($this->plans->storageUsed($user) + $data['bytes'] > $this->plans->storageLimit($user)) {
-                throw new Refusal(403, 'storage_limit');
+                throw $this->plans->storageFull($user);
             }
 
             $recording = new TemplateRecording(['part_key' => $data['partKey'], 'sample_rate' => $data['sampleRate'], 'frames' => $data['frames'], 'offset_frames' => $data['offsetFrames'], 'upload_bytes' => $data['bytes'], 'sha256' => strtolower($data['sha256'])]);

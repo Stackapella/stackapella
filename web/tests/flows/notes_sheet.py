@@ -73,7 +73,8 @@ def shots(f, mode):
 def journey(f):
     if f.size != "desktop":
         return
-    f.go("/", "document.querySelector('#app header')")
+    # Signed in: from lesson 2 a guest is asked for a free account (Hillel, 2026-11-06: "after lesson 1 of any course").
+    f.go("/?api=mock&as=member", "document.querySelector('#app header')")
     f.js(f"{AUDIO}.unlock()")
     for mode in ("dark", "light"):
         shots(f, mode)

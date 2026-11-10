@@ -98,6 +98,8 @@ final class AuthController extends Controller
             'sheetImport' => $flags->on('sheet_import'),
             // Lend your voice (the lend_voice switch): volunteers claim the missing real voices.
             'lendVoice' => $flags->on('lend_voice'),
+            // Song requests (the song_requests switch); staff see them before (account.songRequests).
+            'songRequests' => $flags->on('song_requests'),
             'schools' => $flags->on('schools'),
             // The browser error reporter's DSN (public by design: its envelopes come to /log/errors).
             'sentryDsn' => is_string($dsn = config('sentry.browser_dsn')) && $dsn !== '' ? $dsn : null,

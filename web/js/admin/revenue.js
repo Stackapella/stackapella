@@ -51,22 +51,22 @@ export const RevenueSection = {
             <p v-else-if="!report" class="text-muted" role="status">{{ t('admin.loading') }}</p>
             <template v-else>
                 <ul class="grid gap-3 sm:grid-cols-2">
-                    <li class="card flex flex-col p-5" data-tile="mrr">
+                    <li class="card flex flex-col p-4 sm:p-5" data-tile="mrr">
                         <p class="text-sm text-muted">{{ t('admin.revenue.mrr') }}</p>
-                        <p v-if="!changes.length" class="mt-2 text-4xl font-extrabold tabular-nums text-cream">{{ money(0, 'usd') }}</p>
-                        <p v-for="c in changes" :key="c.currency" class="mt-2 text-4xl font-extrabold tabular-nums text-cream" :data-currency="c.currency">{{ money(c.now, c.currency) }}</p>
+                        <p v-if="!changes.length" class="mt-2 text-3xl font-extrabold tabular-nums text-cream sm:text-4xl">{{ money(0, 'usd') }}</p>
+                        <p v-for="c in changes" :key="c.currency" class="mt-2 text-3xl font-extrabold tabular-nums text-cream sm:text-4xl" :data-currency="c.currency">{{ money(c.now, c.currency) }}</p>
                         <p v-if="report.unpriced" class="mt-1 text-sm text-muted" data-unpriced>{{ t('admin.revenue.unpriced', { count: report.unpriced }) }}</p>
                         <div v-if="changes.length" class="mt-auto pt-4"><dl class="space-y-1 border-t border-line pt-3 text-sm">
                             <div v-for="c in changes" :key="c.currency" class="flex items-center justify-between gap-3" data-change :data-dir="dir(c.diff)">
                                 <dt class="text-muted">{{ t('admin.revenue.vsMonthAgo', { currency: c.currency.toUpperCase() }) }}</dt>
-                                <dd class="font-semibold tabular-nums" :class="{ up: 'text-good', down: 'text-bad', same: 'text-muted' }[dir(c.diff)]"><span v-if="c.diff" class="me-1" aria-hidden="true">{{ dir(c.diff) === 'up' ? '↑' : '↓' }}</span>{{ moneyChange(c) }}</dd>
+                                <dd class="font-semibold tabular-nums" :class="{ up: 'text-up', down: 'text-down', same: 'text-muted' }[dir(c.diff)]"><span v-if="c.diff" class="me-1" aria-hidden="true">{{ dir(c.diff) === 'up' ? '↑' : '↓' }}</span>{{ moneyChange(c) }}</dd>
                             </div>
                         </dl></div>
                     </li>
-                    <li class="card flex flex-col p-5" data-tile="arr">
+                    <li class="card flex flex-col p-4 sm:p-5" data-tile="arr">
                         <p class="text-sm text-muted">{{ t('admin.revenue.arr') }}</p>
-                        <p v-if="!report.arr.length" class="mt-2 text-4xl font-extrabold tabular-nums text-cream">{{ money(0, 'usd') }}</p>
-                        <p v-for="a in report.arr" :key="a.currency" class="mt-2 text-4xl font-extrabold tabular-nums text-cream" :data-currency="a.currency">{{ money(a.cents, a.currency) }}</p>
+                        <p v-if="!report.arr.length" class="mt-2 text-3xl font-extrabold tabular-nums text-cream sm:text-4xl">{{ money(0, 'usd') }}</p>
+                        <p v-for="a in report.arr" :key="a.currency" class="mt-2 text-3xl font-extrabold tabular-nums text-cream sm:text-4xl" :data-currency="a.currency">{{ money(a.cents, a.currency) }}</p>
                         <p class="mt-auto pt-4 text-sm text-muted">{{ t('admin.revenue.arrHow') }}</p>
                     </li>
                 </ul>
@@ -103,7 +103,7 @@ export const RevenueSection = {
                         </li>
                     </ol>
                     <ol class="mt-1 grid grid-cols-12 gap-1.5 text-center text-xs tabular-nums sm:gap-2" aria-hidden="true">
-                        <li v-for="m in report.months" :key="m.month"><span class="block text-good">{{ m.new ? '+' + formatNumber(m.new) : '' }}</span><span class="block text-bad">{{ m.lost ? '-' + formatNumber(m.lost) : '' }}</span></li>
+                        <li v-for="m in report.months" :key="m.month"><span class="block text-up">{{ m.new ? '+' + formatNumber(m.new) : '' }}</span><span class="block text-down">{{ m.lost ? '-' + formatNumber(m.lost) : '' }}</span></li>
                     </ol>
                     <div class="mt-2 flex justify-between text-xs text-muted" aria-hidden="true"><span>{{ monthName(report.months[0]?.month) }}</span><span>{{ monthName(report.months.at(-1)?.month) }}</span></div>
                     <p class="mt-3 text-xs text-muted">{{ t('admin.revenue.monthsKey') }}</p>

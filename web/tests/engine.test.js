@@ -96,6 +96,38 @@ test('engine: parts stay silent during the count-in', async () => {
     engine.removePart('a');
 });
 
+test('engine: a lead part starts in the lead before beat 0, to the frame; any other part waits for beat 0', async () => {
+    const sr = engine.sampleRate;
+    engine.clicks.accent = engine.toBuffer(new Float32Array(1), sr); // silent clicks, so only parts could sound
+    engine.clicks.normal = engine.clicks.accent;
+    try {
+        // A reading line's drone: one second before beat 0 (inside a two-second count-in), then on into the line.
+        engine.setPart('drone', new Float32Array(sr * 2).fill(0.25), sr, { ...mix, offsetSeconds: -1, lead: true });
+        let playing = engine.play({ fromSeconds: 0, bpm: 120, countInBeats: 4 });
+        let countIn = await engine.startCapture(Math.round(playing.countInStart * sr), Math.round(playing.startTime * sr), null);
+        await engine.stop();
+        const level = countIn.samples[Math.round(sr * 1.5)]; // the part through its centre pan
+        assert(level > 0.1, `the lead part was silent in its second before beat 0 (${level})`);
+        assert(countIn.samples.slice(0, sr).every((v) => v === 0), 'the lead part sounded before its own start');
+        assert(countIn.samples.slice(sr).every((v) => Math.abs(v - level) < 1e-6), 'the lead part didn\'t start on its frame, or wavered');
+        // A long lead (a reading line's look of seconds, past the engine's three-second horizon): sounding from
+        // the count-in's first frame, never cut short by the segment being queued late.
+        engine.setPart('drone', new Float32Array(sr * 6).fill(0.25), sr, { ...mix, offsetSeconds: -4, lead: true });
+        playing = engine.play({ fromSeconds: 0, bpm: 120, countInBeats: 4, leadSeconds: 3.5 });
+        countIn = await engine.startCapture(Math.round(playing.countInStart * sr), Math.round(playing.startTime * sr), null);
+        await engine.stop();
+        assert(countIn.samples.every((v) => Math.abs(v - level) < 1e-6), 'a long lead was cut short');
+        // The same part without `lead`: as before, nothing before beat 0.
+        engine.setPart('drone', new Float32Array(sr * 2).fill(0.25), sr, { ...mix, offsetSeconds: -1 });
+        playing = engine.play({ fromSeconds: 0, bpm: 120, countInBeats: 4 });
+        countIn = await engine.startCapture(Math.round(playing.countInStart * sr), Math.round(playing.startTime * sr), null);
+        await engine.stop();
+        assert(countIn.samples.every((v) => v === 0), 'a part without lead sounded during the count-in');
+    } finally {
+        engine.removePart('drone');
+    }
+});
+
 test('engine: a loop plays its stretch end to end, every part in step, sample for sample', async () => {
     const sr = engine.sampleRate;
     const a = harmonyPart(sr, { notes: [60, 64, 67], bpm: 120 });

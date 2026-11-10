@@ -10,7 +10,6 @@ use App\Actions\Books\ForgetBuyer;
 use App\Actions\Choirs\Choirs;
 use App\Actions\Coaching\Engagements;
 use App\Actions\EventSchedule\Connections;
-use App\Actions\Groups\ManageGroups;
 use App\Actions\Ideas\Ideas;
 use App\Actions\Ideas\IdeaVoices;
 use App\Actions\Projects\Owned;
@@ -25,8 +24,6 @@ use App\Models\Comment;
 use App\Models\DataExport;
 use App\Models\Engagement;
 use App\Models\ExercisePack;
-use App\Models\Group;
-use App\Models\GroupMember;
 use App\Models\HandleHold;
 use App\Models\Harmony;
 use App\Models\HarmonyLike;
@@ -34,6 +31,7 @@ use App\Models\Part;
 use App\Models\Report;
 use App\Models\ReviewItem;
 use App\Models\ReviewMedia;
+use App\Models\SchoolClass;
 use App\Models\SignInLink;
 use App\Models\SongRequest;
 use App\Models\SongRequestVote;
@@ -63,10 +61,15 @@ use Laravel\Cashier\SubscriptionItem;
  */
 final class DeleteAccount
 {
-    public function __construct(private readonly ChangeAvatar $avatar, private readonly Sessions $sessions, private readonly SecurityLog $securityLog, private readonly ForgetSinger $forget, private readonly BillingGateway $gateway, private readonly DeleteHarmony $deleteHarmony, private readonly SyncSeq $seq, private readonly ManageGroups $groups, private readonly Engagements $engagements, private readonly Connections $eventSchedule, private readonly ForgetBuyer $forgetBuyer) {}
+    public function __construct(private readonly ChangeAvatar $avatar, private readonly Sessions $sessions, private readonly SecurityLog $securityLog, private readonly ForgetSinger $forget, private readonly BillingGateway $gateway, private readonly DeleteHarmony $deleteHarmony, private readonly SyncSeq $seq, private readonly Engagements $engagements, private readonly Connections $eventSchedule, private readonly ForgetBuyer $forgetBuyer) {}
 
     public function handle(User $user, ?string $ip): void
     {
+        // A teacher's codes close and lose the names they wrote (they can hold the teacher's own);
+        // students keep the year they redeemed.
+        SchoolClass::query()->where('teacher_id', $user->id)->whereNull('closed_at')->update(['closed_at' => now(), 'closed_by' => 'teacher']);
+        SchoolClass::query()->where('teacher_id', $user->id)->update(['name' => (string) __('admin.school.deleted_class'), 'updated_at' => now()]);
+
         // A beta singer's guides go with the account (Hillel's decision; payments stay on record).
         $singer = BetaSinger::query()->where('user_id', $user->id)->first();
 
@@ -181,9 +184,6 @@ final class DeleteAccount
             });
         }
 
-        // The groups they direct go with them: their members' devices hear what that changes.
-        $groupMembers = GroupMember::query()->whereIn('group_id', Group::query()->where('director_id', $user->id)->select('id'))->where('user_id', '!=', $user->id)->pluck('user_id')->all();
-
         // The parts they made on others' projects become the owners': the owners' devices hear it.
         foreach (Part::query()->with('project')->where('created_by', $user->id)->get() as $part) {
             DB::transaction(function () use ($part): void {
@@ -224,8 +224,6 @@ final class DeleteAccount
         });
 
         Storage::disk('private')->delete($exports);
-
-        $this->groups->refresh($groupMembers);
 
         // 100 a job: the bucket deletes one key per request, and a job has 60 seconds.
         foreach (array_chunk([...$recordings, ...$coaching], 100) as $keys) {

@@ -8,7 +8,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
 from flow import run  # noqa: E402
-from game_frames import frames  # noqa: E402
+from game_frames import every_theme, frames  # noqa: E402
 from help_shots import t  # noqa: E402
 
 CARD = "document.querySelector('[data-game-clear]')"
@@ -37,6 +37,7 @@ def journey(f):
     assert "Long notes" not in text, "a stage clear names the unit, not the lesson"
     frames(f, "stage-clear", [0, 300, 900])
     f.shot("stage-clear")
+    every_theme(f, "the stage clear card")
     f.run(f"{CARD}.click()")
     f.wait("window.cleared === 1 && !document.querySelector('[data-game-clear]') || window.cleared === 1", what="a tap ends it")
     mount(f, None)

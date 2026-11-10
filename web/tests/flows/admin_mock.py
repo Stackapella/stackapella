@@ -19,7 +19,7 @@ def journey(f):
     f.wait_text(name)
     # The last 7 days (docs/admin-analytics-plan.md, slice 1): the overview's growth and songs as cards.
     f.wait("document.querySelectorAll('[data-home-growth] [data-tile]').length === 5", what="the growth cards")
-    tiles = f.js("Object.fromEntries([...document.querySelectorAll('[data-home-growth] [data-tile]')].map((c) => [c.dataset.tile, c.querySelector('.text-4xl').textContent.trim()]))")
+    tiles = f.js("Object.fromEntries([...document.querySelectorAll('[data-home-growth] [data-tile]')].map((c) => [c.dataset.tile, c.querySelector('[data-tile-value]').textContent.trim()]))")
     assert tiles == {"signUps": "40", "upgrades": "6", "activeSingers": "85", "finished": "12", "secondSongs": "3"}, tiles
     f.shot("home")
     f.click_t("admin.nav.safety")

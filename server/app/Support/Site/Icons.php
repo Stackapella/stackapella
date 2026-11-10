@@ -14,6 +14,12 @@ use InvalidArgumentException;
 final class Icons
 {
     private const PATHS = [
+        // The free tools' directory (docs/tools/below-the-fold.md): marks and objects only, never a person or a hand.
+        'interval' => '<circle cx="6.5" cy="16.5" r="2.6"/><circle cx="17.5" cy="7.5" r="2.6"/><path d="M9.1 16.5h3.4V7.5h2.4"/>',
+        'chord' => '<circle cx="8.5" cy="7" r="2.6"/><circle cx="8.5" cy="12.5" r="2.6"/><circle cx="8.5" cy="18" r="2.6"/><path d="M11.1 18V3.5h6"/>',
+        'tap' => '<circle cx="12" cy="12" r="3.2" fill="currentColor" stroke="none"/><path d="M6.2 7.5a7.5 7.5 0 0 0 0 9M17.8 7.5a7.5 7.5 0 0 1 0 9"/>',
+        'range' => '<path d="M12 3.5v17M8 7.5l4-4 4 4M8 16.5l4 4 4-4"/>',
+        'lock' => '<rect x="5" y="11" width="14" height="10" rx="2.5"/><path d="M8.5 11V8a3.5 3.5 0 0 1 7 0v3"/>',
         'play' => '<path d="M8 5.5v13l11-6.5z" fill="currentColor" stroke="none"/>',
         'stop' => '<rect x="6.5" y="6.5" width="11" height="11" rx="2" fill="currentColor" stroke="none"/>',
         'pause' => '<rect x="7" y="5.5" width="3.5" height="13" rx="1" fill="currentColor" stroke="none"/><rect x="13.5" y="5.5" width="3.5" height="13" rx="1" fill="currentColor" stroke="none"/>',
@@ -67,6 +73,23 @@ final class Icons
      * Stackapella's mark (web/icons/icon.svg, drawn by web/tool/icons.py: four bars, one a voice, on
      * a black square), its own colours in every theme, the corners rounded as the app's header has it.
      */
+    /**
+     * The Santa hat on the mark (Hillel, 2026-11-10: "can you put a christmas hat on our logo?", then "only show the hat
+     * on the carols page and in the app and marketing on christmas"): web/icons/santa-hat.svg, the drawing the app's logo
+     * uses too, an object only. `$shown` puts it on now (the carols page through Christmas Day, Carols::countdown);
+     * otherwise it's there hidden, and js/public/season.js shows it on the visitor's own Christmas Day (their device's
+     * date, so the page cache doesn't matter).
+     */
+    public static function hat(bool $shown = false): HtmlString
+    {
+        $svg = (string) file_get_contents(dirname(base_path()).'/web/icons/santa-hat.svg');
+        // Drawn in the mark's own box (0 to 30 across and down) with room above and to the left, worn on its top-left
+        // corner, so it sits the same on the mark at any size.
+        $open = '<svg class="s-hat" width="39" height="42" viewBox="-9 -12 39 42" aria-hidden="true" focusable="false"'.($shown ? '' : ' hidden data-hat-christmas').'>';
+
+        return new HtmlString((string) preg_replace('/<svg [^>]*viewBox="-9 -12 39 42">/', $open, $svg, 1));
+    }
+
     public static function mark(int $size = 28): HtmlString
     {
         $svg = (string) file_get_contents(dirname(base_path()).'/web/icons/icon.svg');

@@ -5,8 +5,11 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use App\Support\Admin\Overview;
+use App\Support\Outreach\Outreach;
 use App\Support\Stats\ReportDay;
+use Illuminate\Container\Attributes\CurrentUser;
 use Illuminate\Http\JsonResponse;
 
 /**
@@ -14,8 +17,11 @@ use Illuminate\Http\JsonResponse;
  */
 final class OverviewController extends Controller
 {
-    public function __invoke(Overview $overview): JsonResponse
+    public function __invoke(Overview $overview, #[CurrentUser] User $user): JsonResponse
     {
-        return response()->json(['data' => [...$overview->numbers(), 'timezone' => ReportDay::zone()]]);
+        // Outreach is the admin's alone: its follow-ups due and replies unread, for "What needs you now".
+        $outreach = $user->is_admin ? ['followUpsDue' => Outreach::followUpsDue(), 'unreadReplies' => Outreach::unreadReplies(), 'sendBySoon' => Outreach::sendBySoonCount()] : null;
+
+        return response()->json(['data' => [...$overview->numbers(), 'outreach' => $outreach, 'timezone' => ReportDay::zone()]]);
     }
 }

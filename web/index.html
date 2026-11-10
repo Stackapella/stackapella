@@ -12,15 +12,16 @@
     <link rel="manifest" href="/manifest.webmanifest">
     <link rel="icon" href="/icons/favicon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@300..800&display=swap">
-    <!-- The staff's clefs and accidentals only (text=), so every phone has them. -->
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Music&display=block&text=%F0%9D%84%9E%F0%9D%84%A0%F0%9D%84%A2%E2%99%AF%E2%99%AD%E2%99%AE%F0%9D%84%AA%F0%9D%84%AB">
+    <!-- Figtree's Latin half, fetched with the page: its other faces (css/input.css) load only when a page uses them. -->
+    <link rel="preload" as="font" type="font/woff2" href="/fonts/figtree-latin.woff2" crossorigin>
     <!-- The chosen theme (light or dark, and a colour), set before the page paints. The app's game mode may be light (the site's never is). -->
     <meta name="stackapella-app" content="1">
+    <!-- Game mode's own sheet (docs/css-split-plan.md, step 3): fetched only in game mode (theme-boot.js preloads it) and
+         linked right after app.css by js/game-css.js, so serious mode never loads it and game mode never flashes without it. -->
+    <meta name="game-css" content="/css/app-game.css">
     <script src="/js/theme-boot.js"></script>
     <link rel="stylesheet" href="/css/app.css">
+    <script src="/js/game-css.js"></script>
     <!-- Libraries load from the CDN at a pinned version, refused if their bytes change (SRI). -->
     <script type="importmap">
     {
@@ -39,10 +40,15 @@
     <script src="/js/preload.js"></script>
     <!-- A browser too old for the import map (Safari before 16.4): a plain message, not a blank page. -->
     <script src="/js/old-browser.js" defer></script>
+    <!-- The app that never starts (its modules unreachable): a calm "couldn't load" with Reload, not a blank page. -->
+    <script src="/js/boot-watch.js" defer></script>
     <script type="module" src="/js/main.js"></script>
 </head>
 <body class="bg-ink font-sans text-cream antialiased">
-    <div id="app"></div>
+    <!-- Before the app draws (about 4 s on a slow phone's first visit, docs/agents/handoff-frontend.md): the logo, faded in
+         only if the app hasn't drawn within 0.4 s, so a quick load never flashes it. Vue replaces it when it mounts. The mark
+         is js/logo-mark.js's (web/tool/icons.py writes that one; tests/app-shell.test.js checks the two match). -->
+    <div id="app"><div class="app-splash" aria-hidden="true"><svg width='56' height='56' xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><rect width='24' height='24' rx='4' fill='#000000'/><rect x='3.50' y='7.14' width='17.00' height='1.70' rx='0.85' fill='#ff9139'/><rect x='3.50' y='9.81' width='12.58' height='1.70' rx='0.85' fill='#ffea6b'/><rect x='3.50' y='12.49' width='14.96' height='1.70' rx='0.85' fill='#45eca4'/><rect x='3.50' y='15.16' width='10.54' height='1.70' rx='0.85' fill='#968dfd'/></svg></div></div>
     <noscript>Stackapella needs JavaScript.</noscript>
 </body>
 </html>

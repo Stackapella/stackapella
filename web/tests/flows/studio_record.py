@@ -34,6 +34,7 @@ def journey(f):
     # The first track: "Track 1", and it sets the length.
     f.press("r")
     heard_while_recording(f, "the first track", seconds=2)
+    assert f.js(f"{SESSION}.session.recording && !document.querySelector('[data-studio-words]')"), "a song without words keeps a row for words"
     f.press("r")
     f.wait(f"!{SESSION}.session.recording && {PARTS}.length === 1", timeout=20, what="the first track kept")
     assert f.js(f"{PARTS}[0].name") == t(f, "parts.default.track", {"number": 1}), f.js(f"{PARTS}[0].name")

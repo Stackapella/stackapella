@@ -1,7 +1,7 @@
 {{-- /pricing: what each plan gets, as docs/features.md says, in the visitor's currency, from Hillel's
      Pricing design in the redesign's sections (docs/marketing-redesign-plan.md): the title with the
      Yearly or Monthly switch and the currency, Free and Plus (Hillel's plans design, Coming soon
-     while checkout is paused), the comparison in groups, the questions, the courses coming to Plus on the
+     while checkout is paused), the comparison in groups, the questions, the courses, all free, on the
      band below them, and the last word. --}}
 @extends('public.layout', ['title' => \App\Support\Site\SitePages::title($meta['title'])])
 
@@ -103,8 +103,10 @@
             </div>
         </section>
 
-        {{-- Courses coming to Plus (docs/plus-courses-plan.md; Hillel: below the table, as three lists on a
-             band): one Coming soon for the section, then each group's courses, numbered. --}}
+        {{-- The courses, all free (Hillel, 2026-11-06; docs/plus-courses-plan.md; Hillel: below the table, as three lists on a band), as the
+             app's own More courses list has them (ce5498af): each group's open courses as short rows, linked to
+             their pages, then the ones still to come in one quiet line. Open is the catalogue's own (live, with
+             plus_courses on), so the page is never ahead of the app. --}}
         <section class="s-ink" aria-labelledby="courses-h" data-plus-courses>
             <div class="s-wrap">
                 <div class="s-courses-head">
@@ -123,12 +125,18 @@
                     @foreach (\App\Support\Site\SitePages::courseGroups() as $group)
                         <section class="s-card3d s-v{{ $loop->iteration }}" aria-labelledby="courses-{{ $loop->iteration }}">
                             <header><h3 id="courses-{{ $loop->iteration }}"><i aria-hidden="true"></i>{{ $group['name'] }}</h3><span>{{ trans_choice('pages.pricing.courses_count', count($group['courses'])) }}</span></header>
-                            <ol>
-                                @foreach ($group['courses'] as $slug)
-                                    @php($courseOpen = \App\Support\Site\SitePages::courseOpen($slug))
-                                    <li @class(['s-course-soon' => ! $courseOpen])><span aria-hidden="true">{{ str_pad((string) $loop->iteration, 2, '0', STR_PAD_LEFT) }}</span><div><b>@if ($courseOpen)<a href="/courses/{{ $slug }}">{{ __('site.courses.pages.'.$slug.'.name') }}</a> <span class="s-soon s-open">{{ __('pages.site.course_open') }}</span>@else{{ __('site.courses.pages.'.$slug.'.name') }}@endif</b><p>{{ __('site.courses.pages.'.$slug.'.summary') }}</p></div></li>
-                                @endforeach
-                            </ol>
+                            @php($split = \App\Support\Site\SitePages::courseSplit($group['courses']))
+                            @if ($split['open'])
+                                <ul data-courses-open>
+                                    @foreach ($split['open'] as $slug)
+                                        <li><a href="/courses/{{ $slug }}"><b>{{ __('site.courses.pages.'.$slug.'.name') }}</b><span>{{ __('site.courses.pages.'.$slug.'.summary') }}</span></a></li>
+                                    @endforeach
+                                </ul>
+                            @endif
+                            {{-- Before any course opens, the eyebrow already says Coming soon: the line is just the names. --}}
+                            @if ($split['soon'] !== '')
+                                <p class="s-courses-soon" data-courses-soon>@if ($anyOpen)<b>{{ __('pages.nav.coming_soon') }}</b> @endif{{ $split['soon'] }}</p>
+                            @endif
                         </section>
                     @endforeach
                 </div>

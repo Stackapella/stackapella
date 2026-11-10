@@ -7,7 +7,7 @@ import { DUR, load, vtt } from './score.js';
 await load();
 if (Math.abs(window.DUR - DUR) > 1e-9) throw new Error(`showreel.html says DUR = ${window.DUR}, the score ${DUR}`);
 const { beginFrame, grain } = await import('./stage.js');
-const { film, CUTS, FAST, EDIT, captions } = await import('./film.js');
+const { film, settle, CUTS, FAST, EDIT, captions } = await import('./film.js');
 
 function seek(t) {
     t = clamp(t, 0, DUR - 1e-4);
@@ -15,7 +15,8 @@ function seek(t) {
     film(t);
     grain(t);
 }
-Object.assign(window, { seek, DUR, CUTS, FAST, EDIT, FRAME: [W, H], FORMAT, THEME: LIGHT ? 'light' : 'dark' });
+// a frame that shows the app waits for its screen to decode (render.py awaits settle() before each grab)
+Object.assign(window, { seek, settle, DUR, CUTS, FAST, EDIT, FRAME: [W, H], FORMAT, THEME: LIGHT ? 'light' : 'dark' });
 // render.py asks for the soundtrack as a WAV, rendered on an OfflineAudioContext
 window.renderWav = async () => (await import('./audio.js')).wav();
 window.renderVtt = vtt;

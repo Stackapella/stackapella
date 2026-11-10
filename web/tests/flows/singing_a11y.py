@@ -20,7 +20,8 @@ def t(f, key, values=None):
 
 
 def journey(f):
-    f.go("/", "document.querySelector('#app header')")
+    # Signed in: from lesson 2 a guest is asked for a free account (Hillel, 2026-11-06: "after lesson 1 of any course").
+    f.go("/?api=mock&as=member", "document.querySelector('#app header')")
     f.wait_text(t(f, "course.start"))
     f.click_t("course.start")
     f.wait("location.pathname === '/learn/1-comfortable'", what="the first lesson")
@@ -36,8 +37,11 @@ def journey(f):
     f.wait("document.querySelector('[data-note]')?.textContent === 'A3'", timeout=20, what="the note found")
     said = f.js("window.__spoken")
     assert len(said) <= 4, f"the note finder said too much: {said}"
-    found = f.js("document.querySelector('[data-listening] [role=status]')?.textContent.trim()")
-    assert found and found.startswith(t(f, "listening.yourNote") + ": A3."), f"the note found, said as one line: {found!r}"
+    # Found: said once in the same polite line, the note and what it suits (the words carry it: before
+    # it's found the screen shows no letters, and nothing spoken names one either).
+    f.wait(f"{spoken}.startsWith({json.dumps(t(f, 'capture.found') + ': A3.')})", timeout=5, what="the note found, said as one line")
+    early = [line for line in f.js("window.__spoken") if "A3" in line and not line.startswith(t(f, "capture.found"))]
+    assert not early, f"a note named before it was found: {early}"
 
     # Lesson 2's take: the phase in a polite line, then focus on the result's heading.
     f.click_t("course.finish")
@@ -51,10 +55,10 @@ def journey(f):
     f.click_t("course.continue")
     f.click_t("course.tap.try")
     # Headphones are asked once a visit, and not on every path: answered when asked.
-    f.wait(f"document.body.innerText.includes({json.dumps(t(f, 'headphones.title'))}) || document.body.innerText.includes({json.dumps(t(f, 'course.wait.done'))})", timeout=30, what="the headphones question or the notes found")
+    f.wait(f"document.body.innerText.includes({json.dumps(t(f, 'headphones.title'))}) || document.querySelector('[data-wait-done]')", timeout=30, what="the headphones question or the notes found")
     if t(f, "headphones.title") in f.js("document.body.innerText"):
         f.click_t("headphones.on")
-    f.wait_text(t(f, "course.wait.done"), timeout=30)
+    f.wait("document.querySelector('[data-wait-done]')", timeout=30, what="every note found")
     f.click_t("course.continue")
     f.click_t("course.tap.sing")
     f.wait(f"{AUDIO}.engine.playing?.recording", timeout=30, what="recording the turn")

@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en" data-theme="stage-dark">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Four-part harmony</title>
+    <!-- How a /tools page mounts the four-part harmony voicer (js/public/tools/satb-voicer.js): a box, the page's words, mountSatbVoicer(). -->
+    <meta name="game-css" content="/css/site-game.css">
+    <link rel="stylesheet" href="/css/site.css">
+    <script src="/js/theme-boot.js"></script>
+    <script src="/js/game-css.js"></script>
+</head>
+<body class="bg-ink text-cream" data-tool-name="Four-part harmony">
+    <main class="px-4">
+        <div id="voicer"></div>
+        <h1 class="mx-auto mt-8 max-w-[24.375rem] text-[28px] font-extrabold leading-tight tracking-tight md:text-[40px]">Four-part harmony generator</h1>
+    </main>
+    <script type="module" src="/tests/tool-frame.js"></script>
+    <script type="module">
+        import { mountSatbVoicer } from '/js/public/tools/satb-voicer.js';
+        const words = {
+            chords: 'Your chords', placeholder: 'Type chords: C Am F G7 C', idleHint: 'Type some chords to voice them for four singers',
+            voiced: 'Voiced for four', voicedHint: 'Smooth parts, no parallels', unknown: 'Not a chord we know: :chord', parallels: 'Check chord :bar: the outer parts move in parallel',
+            inKey: 'In :key', parts: 'The parts', soprano: 'Soprano', alto: 'Alto', tenor: 'Tenor', bass: 'Bass', partOn: ':part: on or off',
+            play: 'Play the four parts', stop: 'Stop', settings: 'More', settingsTitle: 'Settings', reset: 'Reset', done: 'Done', style: 'Style', simple: 'Roots in the bass', warm: 'Smoother bass', bright: 'Brighter',
+            tempo: 'Tempo', slower: 'Slower', faster: 'Faster', bpm: ':n BPM', copy: 'Copy the parts', copied: 'Copied',
+            staffLabel: 'The four parts on a grand staff, :n chords',
+            sample: 'C Am F G7 C',
+        };
+        window.__voicer = mountSatbVoicer(document.querySelector('#voicer'), { words, keySlot: document.querySelector('[data-tool-key]') });
+    </script>
+</body>
+</html>

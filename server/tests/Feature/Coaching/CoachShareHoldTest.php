@@ -9,8 +9,10 @@ use App\Models\CoachProfile;
 use App\Models\Engagement;
 use App\Models\ReviewItem;
 use App\Models\User;
+use App\Services\Billing\BillingGateway;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\Support\Coaching;
+use Tests\Support\FakeBillingGateway;
 use Tests\TestCase;
 
 /**
@@ -72,5 +74,37 @@ final class CoachShareHoldTest extends TestCase
         $this->artisan('app:coaching:deadlines')->assertSuccessful();
         $this->assertCount(2, $this->connect->transfers);
         $this->assertNotNull($engagement->refresh()->stripe_transfer);
+    }
+
+    public function test_only_an_open_dispute_holds_a_share_and_a_closed_inquiry_clears_it(): void
+    {
+        $this->fakeConnect();
+        $this->app->instance(BillingGateway::class, new FakeBillingGateway);
+        $engagement = $this->delivered(User::factory()->create(['coach_active_at' => now()->subYear()]), 'ch_inquiry');
+
+        // A late update to a dispute already won doesn't hold the share again.
+        $this->stripeEvent('charge.dispute.updated', ['id' => 'dp_1', 'charge' => 'ch_inquiry', 'amount' => 2500, 'status' => 'won'])->assertOk();
+        $this->assertNull($engagement->refresh()->disputed_at);
+
+        // An inquiry: held while open, cleared when it closes without a chargeback.
+        $this->stripeEvent('charge.dispute.created', ['id' => 'dp_2', 'charge' => 'ch_inquiry', 'amount' => 2500, 'status' => 'warning_needs_response'])->assertOk();
+        $this->assertNotNull($engagement->refresh()->disputed_at);
+        $this->stripeEvent('charge.dispute.closed', ['id' => 'dp_2', 'charge' => 'ch_inquiry', 'amount' => 2500, 'status' => 'warning_closed'])->assertOk();
+        $this->assertNull($engagement->refresh()->disputed_at);
+    }
+
+    public function test_a_lessons_share_taken_back_is_paid_again_after_a_win_however_long_ago_it_ended(): void
+    {
+        $this->fakeConnect();
+        $coach = User::factory()->create(['coach_active_at' => now()->subYear()]);
+        CoachProfile::factory()->create(['user_id' => $coach->id]);
+        $engagement = Engagement::factory()->create(['kind' => Engagement::LESSON, 'coach_id' => $coach->id, 'status' => Engagement::DELIVERED, 'stripe_charge' => 'ch_lesson', 'stripe_transfer' => 'tr_lesson', 'price_cents' => 2500, 'fee_cents' => 375, 'ended_at' => now()->subDays(40)]);
+
+        app(Engagements::class)->disputed('ch_lesson');
+        $this->assertNotNull($engagement->refresh()->transfer_reversed_at);
+        app(Engagements::class)->disputeWon('ch_lesson');
+        $this->artisan('app:coaching:deadlines')->assertSuccessful();
+
+        $this->assertSame(['ch_lesson'], array_column($this->connect->transfers, 'charge'));
     }
 }

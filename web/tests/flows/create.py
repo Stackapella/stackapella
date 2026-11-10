@@ -1,7 +1,7 @@
 """The template creator (M7; docs/template-creator-plan.md, "Verification"): Sing it with a voice
 simulated through loopback, line by line (counted in 1 2 3) (the lines' notes and words land), an empty take's message,
 Check the notes, Suggest the parts in a style and Try another chord, name and save, and the template
-under Your templates with its own page. Then a draft left halfway shows under Unfinished and Resume
+under Your songs with its own page. Then a draft left halfway shows under Unfinished and Resume
 brings it back; and Make a copy of Amazing Grace, moved up a tone in the editor, saved, and started.
 """
 import json
@@ -161,6 +161,7 @@ def journey(f):
     # In Your songs on the home (written by you), never in the library; and the draft has gone.
     f.go("/", "document.querySelector('#app header')")
     f.wait("document.querySelector('section[aria-labelledby=band-projects] [data-kind=written]')?.innerText.includes('My Grace')", what="the written song in Your songs")
+    f.wait("document.querySelector('#home-songs [data-song-card]')", what="the library on the home")
     assert not f.js("document.querySelector('#home-songs').innerText.includes('My Grace')"), "the written song is in the library too"
     assert not f.js("document.querySelector('[data-kind=draft]')"), "no draft left"
 

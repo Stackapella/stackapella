@@ -3,8 +3,8 @@
         @if (! empty($page['demo']))
             @php($demo = $page['demo'])
             @php($line = in_array($demo['kind'], ['mixer', 'learn'], true) ? \App\Support\Pages\Landing::hero() : null)
-            @php($line = in_array($demo['kind'], ['studio', 'stack'], true) ? \App\Support\Pages\Landing::lineOf($demo['song']) : $line)
-            @if (! in_array($demo['kind'], ['mixer', 'studio', 'stack', 'learn'], true) || $line !== null)
+            @php($line = in_array($demo['kind'], ['studio', 'stack', 'voices'], true) ? \App\Support\Pages\Landing::lineOf($demo['song']) : $line)
+            @if (! in_array($demo['kind'], ['mixer', 'studio', 'stack', 'learn', 'voices'], true) || $line !== null)
                 <section class="s-wrap s-sec s-demosec" aria-labelledby="demo-h">
                     <div class="s-demohead">
                         <h2 id="demo-h" class="s-title">{{ $demo['title'] }}</h2>
@@ -61,23 +61,48 @@
                                 <p class="s-cb-say" role="status" data-learn-say>{{ $ld['ready'] }}</p>
                             </div>
                         </x-site.demo>
-                    @elseif ($demo['kind'] === 'note')
-                        @php($nd = (array) \Illuminate\Support\Facades\Lang::get('pages.site.note_demo'))
-                        <x-site.demo src="/js/public/demos/comfortable-note.js" :caption="$demo['caption']" :start="$demo['start']" :label="$demo['title']">
-                            <div class="s-note" data-note
-                                data-listen="{{ $nd['listen'] }}" data-stop="{{ $nd['stop'] }}" data-ready="{{ $nd['ready'] }}" data-asking="{{ $nd['asking'] }}" data-hearing="{{ $nd['hearing'] }}"
-                                data-found="{{ $nd['found'] }}" data-why-denied="{{ $nd['why_denied'] }}" data-why-no-mic="{{ $nd['why_no_mic'] }}" data-why-unsupported="{{ $nd['why_unsupported'] }}">
-                                <p class="s-note-name" data-note-name aria-live="polite"></p>
-                                <div class="s-note-ladder" aria-hidden="true">
-                                    @foreach (range(0, 14) as $rung)
-                                        <span @class(['s-note-rung', 's-note-rung-c' => $rung % 7 === 0])></span>
+                    @elseif ($demo['kind'] === 'voices')
+                        {{-- Real voices' A/B (js/public/demos/real-voices.js on ab-voice.js): one part of the line, lit on the
+                             learn demo's lane, sung by the practice voice or a real singer, switched while it plays. --}}
+                        @php($vd = (array) \Illuminate\Support\Facades\Lang::get('pages.site.voices_demo'))
+                        @php($line['you'] = $demo['part'])
+                        @php($abPart = collect($line['parts'])->firstWhere('key', $demo['part'])['name'] ?? '')
+                        @php($pitches = collect($line['parts'])->flatMap(fn (array $p): array => array_column($p['notes'], 'pitch'))->all())
+                        @php($lo = min($pitches) - 1)
+                        @php($span = max(1, max($pitches) + 1 - $lo))
+                        <x-site.demo src="/js/public/demos/real-voices.js" :caption="$demo['caption']" :start="$demo['start']" :label="$demo['title']">
+                            <div class="s-lp" data-ab data-part="{{ $demo['part'] }}" data-say-synth="{{ str_replace(':part', $abPart, $vd['synth_say']) }}" data-say-real="{{ str_replace(':part', $abPart, $vd['real_say']) }}" data-missing="{{ str_replace(':part', $abPart, $vd['missing']) }}" data-failed="{{ str_replace(':part', $abPart, $vd['failed']) }}" data-credit="{{ $vd['credit'] }}">
+                                <script type="application/json" data-ab-song>@json($line)</script>
+                                <svg viewBox="0 0 600 220" preserveAspectRatio="none" class="s-lp-lane" aria-hidden="true">
+                                    @foreach ($line['parts'] as $part)
+                                        @foreach ($part['notes'] as $note)
+                                            <rect x="{{ round(12 + $note['beat'] / $line['beats'] * 576, 1) }}" y="{{ round(206 - ($note['pitch'] - $lo) / $span * 200, 1) }}" width="{{ round(max(4, $note['length'] / $line['beats'] * 576 - 2), 1) }}" height="8" rx="4" @class(['s-lp-note', 's-v'.$part['color'], 's-lp-you' => $part['key'] === $line['you']]) />
+                                        @endforeach
                                     @endforeach
-                                    <span class="s-note-marker" data-note-marker hidden></span>
-                                    <span class="s-note-end s-note-low">{{ $nd['low'] }}</span><span class="s-note-end s-note-high">{{ $nd['high'] }}</span>
+                                </svg>
+                                <div class="s-lp-controls">
+                                    <div class="s-lp-group" role="group" aria-label="{{ str_replace(':part', $abPart, $vd['who']) }}"><span class="s-lp-h" aria-hidden="true">{{ str_replace(':part', $abPart, $vd['who']) }}</span><button type="button" class="s-lp-chip" data-ab-use="synth" aria-pressed="true" disabled>{{ $vd['synth'] }}</button><button type="button" class="s-lp-chip" data-ab-use="real" aria-pressed="false" disabled>{{ $vd['real'] }}</button></div>
+                                    <button type="button" class="s-cb-play" data-ab-play data-play="{{ $vd['play'] }}" data-stop="{{ $vd['stop'] }}" aria-pressed="false" disabled><span class="s-cb-play-icon" aria-hidden="true"></span><span data-label>{{ $vd['play'] }}</span></button>
                                 </div>
-                                <p class="s-note-btns"><button type="button" class="s-cb-play" data-note-listen aria-pressed="false"><span class="s-note-mic" aria-hidden="true"><x-site.icon name="mic" size="18" /></span><span data-label>{{ $nd['listen'] }}</span></button></p>
-                                <label class="s-note-pick" hidden><span>{{ $nd['mic'] }}</span><select data-note-pick></select></label>
-                                <p class="s-cb-say" role="status" data-note-say></p>
+                                <p class="s-cb-say" role="status" data-ab-say>{{ $vd['ready'] }}</p>
+                                <p class="s-cb-say" data-ab-credit hidden></p>
+                            </div>
+                        </x-site.demo>
+                    @elseif ($demo['kind'] === 'note')
+                        {{-- Find your comfortable note: the app's own card (js/public/voice-capture.js), mounted on the start; the still
+                             frame is only its outline and first words, so there's one card, never a second version. --}}
+                        @php($nd = (array) \Illuminate\Support\Facades\Lang::get('pages.site.note_demo'))
+                        <x-site.demo src="/js/public/demos/comfortable-note.js" fit="content" :caption="$demo['caption']" :start="$demo['start']" :label="$demo['title']">
+                            <div class="s-capture" data-capture data-why-denied="{{ $nd['why_denied'] }}" data-why-no-mic="{{ $nd['why_no_mic'] }}" data-why-unsupported="{{ $nd['why_unsupported'] }}">
+                                <script type="application/json" data-capture-words>@json($nd['card'])</script>
+                                <div class="s-capture-card" data-capture-card>
+                                    <div class="s-capture-still" aria-hidden="true">
+                                        <svg viewBox="0 0 152 152" width="152" height="152"><circle cx="76" cy="76" r="69" fill="none" stroke="var(--color-raised)" stroke-width="8" /></svg>
+                                        <p class="s-capture-still-h">{{ $nd['card']['listening'] }}</p>
+                                        <p class="s-capture-still-sub">{{ $nd['card']['listeningSub'] }}</p>
+                                    </div>
+                                </div>
+                                <p class="s-cb-say s-capture-say" role="status" data-capture-say></p>
                                 <p class="s-note-private"><x-site.icon name="device" size="16" /><span>{{ $nd['private'] }}</span></p>
                             </div>
                         </x-site.demo>
@@ -168,7 +193,7 @@
                                     <button type="button" class="s-cb-play" data-wu-play data-play="{{ $wd['play'] }}" data-stop="{{ $wd['stop'] }}" aria-pressed="false"><span class="s-cb-play-icon" aria-hidden="true"></span><span data-label>{{ $wd['play'] }}</span></button>
                                 </div>
                                 <p class="s-cb-say" role="status" data-wu-say>{{ $wd['ready'] }}</p>
-                                <p class="s-wu-open"><a href="/warmup" data-wu-open>{{ $wd['open'] }}</a> <span>{{ $wd['open_note'] }}</span></p>
+                                <p class="s-wu-open"><a href="{{ \App\Support\Http\Hosts::app('/warmup') }}" data-wu-open>{{ $wd['open'] }}</a> <span>{{ $wd['open_note'] }}</span></p>
                             </div>
                         </x-site.demo>
                     @elseif ($demo['kind'] === 'vibrato')
@@ -193,6 +218,10 @@
                                 <p class="s-lp-controls"><button type="button" class="s-cb-play" data-vi-play="own" data-play="{{ $vd['own_play'] }}" data-stop="{{ $vd['stop'] }}" aria-pressed="false"><span class="s-cb-play-icon" aria-hidden="true"></span><span data-label>{{ $vd['own_play'] }}</span></button></p>
                                 <p class="s-cb-say" role="status" data-vi-say>{{ $vd['ready'] }}</p>
                             </div>
+                        </x-site.demo>
+                    @elseif ($demo['kind'] === 'bullseye')
+                        <x-site.demo src="/js/public/demos/bullseye.js" fit="content" :caption="$demo['caption']" :start="$demo['start']" :label="$demo['title']">
+                            <div class="cp-pt2 s-ptslot" data-pt>@include('site.courses._pt-bullseye', ['headId' => 'pt-demo-h'])</div>
                         </x-site.demo>
                     @elseif ($demo['kind'] === 'leap')
                         <x-site.demo src="/js/public/demos/ear-leap.js" fit="content" :caption="$demo['caption']" :start="$demo['start']" :label="$demo['title']">

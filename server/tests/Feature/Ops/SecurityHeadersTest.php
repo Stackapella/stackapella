@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Ops;
 
+use App\Http\Middleware\SecurityHeaders;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Testing\TestResponse;
 use Tests\TestCase;
@@ -51,8 +52,8 @@ final class SecurityHeadersTest extends TestCase
         $this->assertSame(["'self'", 'https://challenges.cloudflare.com'], $csp['script-src']);
         $this->assertNotContains("'unsafe-eval'", $csp['script-src']);
         $this->assertNotContains("'unsafe-inline'", $csp['script-src']);
-        $this->assertSame(["'self'", 'https://fonts.googleapis.com'], $csp['style-src']);
-        $this->assertSame(["'self'", 'https://fonts.gstatic.com'], $csp['font-src']);
+        $this->assertSame(["'self'"], $csp['style-src']);
+        $this->assertSame(["'self'"], $csp['font-src']);
         $this->assertContains('https://media.stackapella.test', $csp['img-src']);
         $this->assertContains('https://media.stackapella.test', $csp['media-src']);
         // The landing's lane fetches a guide from the CDN to score it.
@@ -61,13 +62,21 @@ final class SecurityHeadersTest extends TestCase
         $this->assertSame(["'self'"], $csp['frame-ancestors']);
         $page->assertHeader('X-Frame-Options', 'SAMEORIGIN')->assertHeader('X-Content-Type-Options', 'nosniff');
         $this->assertStringStartsWith('microphone=()', (string) $page->headers->get('Permissions-Policy'));
-        // Perfect your pitch's page lets a visitor try the pitch meter, and the Course feature and
-        // beginners' pages "Find your comfortable note"; no other public page listens.
-        foreach (['/courses/perfect-your-pitch', '/features/course', '/for/beginners'] as $listens) {
+        // Perfect your pitch's page lets a visitor try the pitch meter, the Course feature and
+        // beginners' pages "Find your comfortable note", and the singing-in-tune guide Bullseye;
+        // no other public page listens.
+        foreach (['/courses/perfect-your-pitch', '/features/course', '/for/beginners', '/guides/singing-in-tune'] as $listens) {
             $this->assertStringStartsWith('microphone=(self)', (string) $this->get($listens)->headers->get('Permissions-Policy'), $listens);
         }
         $this->assertStringStartsWith('microphone=()', (string) $this->get('/features/studio')->headers->get('Permissions-Policy'));
         $this->assertStringStartsWith('microphone=()', (string) $this->get('/courses/vibrato')->headers->get('Permissions-Policy'));
+
+        // The free tools: only the tuner and the range test listen (their pages are marketing's; once
+        // /tools is a page, it and the other tools' pages say microphone=() like any other).
+        foreach (['/tools/tuner', '/tools/vocal-range-test', '/tools/audio-latency-test', '/tools/mic-test', '/tools/pitch-matching', '/tools/just-intonation-tuner', '/tools/ukulele-tuner', '/tools/violin-tuner', '/tools/voice-tuner', '/tools/guitar-tuner', '/tools/bass-tuner', '/tools/cello-tuner', '/tools/viola-tuner', '/tools/mandolin-tuner', '/tools/banjo-tuner'] as $listens) {
+            $this->assertStringStartsWith('microphone=(self)', (string) $this->get($listens)->headers->get('Permissions-Policy'), $listens);
+        }
+        $this->assertSame(['tools/tuner', 'tools/vocal-range-test', 'tools/audio-latency-test', 'tools/mic-test', 'tools/pitch-matching', 'tools/just-intonation-tuner', 'tools/ukulele-tuner', 'tools/violin-tuner', 'tools/voice-tuner', 'tools/guitar-tuner', 'tools/bass-tuner', 'tools/cello-tuner', 'tools/viola-tuner', 'tools/mandolin-tuner', 'tools/banjo-tuner', 'embed/tools/tuner'], SecurityHeaders::listeningTools());
     }
 
     public function test_the_app_allows_its_pinned_libraries_the_microphone_and_the_instruments(): void
@@ -85,7 +94,7 @@ final class SecurityHeadersTest extends TestCase
         $this->assertContains('https://media.stackapella.test', $csp['connect-src']);
         $this->assertContains('https://stackapella-private.ams3.digitaloceanspaces.com', $csp['media-src']);
         $this->assertContains('https://stackapella-private.ams3.digitaloceanspaces.com', $csp['img-src']);
-        $this->assertContains('https://fonts.gstatic.com', $csp['font-src']);
+        $this->assertSame(["'self'"], $csp['font-src']);
         $this->assertStringStartsWith('microphone=(self)', (string) $shell->headers->get('Permissions-Policy'));
     }
 

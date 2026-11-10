@@ -82,7 +82,9 @@ def journey(f):
     # The whole song's Listen, on a part chosen for you (as a lesson or challenge starts it).
     tenor = new_project(f, "tenor")
     f.go(f"/p/{tenor}/sing", "document.querySelector('h1')")
-    f.run("document.querySelector(\'[data-way=whole]\').click()")  # the way starts at once
+    f.run(f"""const s = {SESSION}; s.session.practice.sing = {{ ...(s.session.practice.sing ?? {{}}), way: 'whole' }};
+        s.practise(s.session.parts.find((p) => p.templatePartKey === 'tenor')); s.savePractice();""")  # the whole song, as the chooser sets it
+    f.wait("!document.querySelector('[data-way], [data-game-select]')", what="past the chooser")
     f.click_t("practice.mode.listen")
     f.js(f"{AUDIO}.unlock()")
     f.click_t("studio.play")

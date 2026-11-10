@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Ops;
 
+use App\Actions\Templates\SyncOfficialTemplates;
+use App\Enums\SubmissionStatus;
+use App\Models\BetaAssignment;
+use App\Models\BetaSubmission;
 use App\Models\Choir;
 use App\Models\ChoirVoice;
 use App\Models\Group;
@@ -11,8 +15,13 @@ use App\Models\GroupMember;
 use App\Models\Harmony;
 use App\Models\Idea;
 use App\Models\IdeaVoice;
+use App\Models\OutreachMessage;
+use App\Models\OutreachReply;
+use App\Models\OutreachSuppression;
+use App\Models\OutreachTarget;
 use App\Models\Part;
 use App\Models\Project;
+use App\Models\SchoolClass;
 use App\Models\StoreSubscription;
 use App\Models\Take;
 use App\Models\Template;
@@ -266,13 +275,65 @@ final class QueryBudgetTest extends TestCase
             }
         };
 
-        foreach (['/api/admin/overview' => 30, '/api/admin/growth?days=84' => 12, '/api/admin/reach' => 14, '/api/admin/active' => 18, '/api/admin/revenue' => 15, '/api/admin/churn' => 13, '/api/admin/cohorts' => 17, '/api/admin/activity' => 24] as $path => $ceiling) {
+        // The overview's 31: the song sync's and the weekly sitemap check's kept problems are a Setting each (2026-11-09).
+        foreach (['/api/admin/overview' => 31, '/api/admin/growth?days=84' => 14, '/api/admin/reach' => 14, '/api/admin/active' => 18, '/api/admin/revenue' => 15, '/api/admin/churn' => 13, '/api/admin/cohorts' => 17, '/api/admin/activity' => 24] as $path => $ceiling) {
             $this->assertFlat($path, $people, function () use ($admin, $path): TestResponse {
                 $this->actingAsAdmin($admin);
 
                 return $this->getJson($path);
             }, $ceiling);
         }
+    }
+
+    public function test_the_admin_outreach_beta_guides_and_school_lists(): void
+    {
+        $admin = User::factory()->admin()->create();
+        // Organizations, each emailed, replied to, with a partner code and a suppressed address: none of it per row.
+        $organizations = function (int $n): void {
+            foreach (range(1, $n) as $i) {
+                $target = OutreachTarget::factory()->create();
+                OutreachMessage::factory()->sent()->create(['outreach_target_id' => $target->id]);
+                OutreachReply::factory()->create(['outreach_target_id' => $target->id]);
+                SchoolClass::factory()->create(['kind' => 'partner', 'teacher_id' => null, 'outreach_target_id' => $target->id]);
+                OutreachSuppression::factory()->create();
+            }
+        };
+        $this->assertFlat('/api/admin/outreach', $organizations, function () use ($admin): TestResponse {
+            $this->actingAsAdmin($admin);
+
+            return $this->getJson('/api/admin/outreach');
+        }, 24);
+
+        // Beta singers asked for parts of the songs, with takes waiting: the guides list and what needs Hillel.
+        app(SyncOfficialTemplates::class)->handle();
+        $template = Template::query()->whereNotNull('current_version_id')->firstOrFail();
+        $singers = function (int $n) use ($template): void {
+            foreach (range(1, $n) as $i) {
+                $assignment = BetaAssignment::factory()->create(['template_id' => $template->id, 'part_key' => 'alto']);
+                BetaSubmission::factory()->create(['beta_assignment_id' => $assignment->id, 'template_version_id' => $template->current_version_id, 'part_key' => 'alto', 'status' => SubmissionStatus::Submitted]);
+            }
+        };
+        // (The guides list is the same computation song by song; its rows are songs, not singers.)
+        foreach (['/api/admin/beta/needs' => 22] as $path => $ceiling) {
+            $this->assertFlat($path, $singers, function () use ($admin, $path): TestResponse {
+                $this->actingAsAdmin($admin);
+
+                return $this->getJson($path);
+            }, $ceiling, 1, 6);
+        }
+
+        // Teachers' codes and partner codes in Admin > School.
+        $codes = function (int $n): void {
+            foreach (range(1, $n) as $i) {
+                SchoolClass::factory()->create();
+                SchoolClass::factory()->create(['kind' => 'partner', 'teacher_id' => null, 'outreach_target_id' => OutreachTarget::factory()->create()->id]);
+            }
+        };
+        $this->assertFlat('/api/admin/school', $codes, function () use ($admin): TestResponse {
+            $this->actingAsAdmin($admin);
+
+            return $this->getJson('/api/admin/school');
+        }, 15);
     }
 
     public function test_billing_and_learning(): void

@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en" data-theme="stage-dark">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Intonation meter</title>
+    <!-- How a /tools page mounts the intonation meter (js/public/tools/intonation-meter.js): a box, the page's words, mountIntonationMeter().
+         ?sing=63.86 stands in a singer holding that pitch (MIDI, fractional: a pure third over C3), for tests and shots. -->
+    <meta name="game-css" content="/css/site-game.css">
+    <link rel="stylesheet" href="/css/site.css">
+    <script src="/js/theme-boot.js"></script>
+    <script src="/js/game-css.js"></script>
+</head>
+<body class="bg-ink text-cream" data-tool-name="Just intonation tuner">
+    <main class="px-4">
+        <div id="meter"></div>
+        <h1 class="mx-auto mt-8 max-w-[24.375rem] text-[28px] font-extrabold leading-tight tracking-tight md:text-[40px]">Is my chord ringing?</h1>
+    </main>
+    <script type="module" src="/tests/tool-frame.js"></script>
+    <script type="module">
+        import { mountIntonationMeter } from '/js/public/tools/intonation-meter.js';
+        import { audio } from '/js/public/voices.js';
+        const words = {
+            start: 'Start the drone', stop: 'Stop', settings: 'More', settingsTitle: 'Settings', reset: 'Reset', done: 'Done',
+            idleHint: 'Sing a chord tone over the drone', headphones: 'Headphones help: the mic hears your voice, not the drone.',
+            listening: 'Listening', listeningHint: 'Hold a 3rd, 5th or 7th', ringing: 'Ringing', ringingHint: 'Hold it there',
+            close: 'Close', high: 'A little high', highHint: 'Sing a hair lower', low: 'A little low', lowHint: 'Sing a hair higher',
+            notInChord: 'Not in the chord', notInChordHint: 'Find a note from the tiles',
+            root: 'Root', lower: 'Lower', higher: 'Higher', modes: 'Chord', maj: 'Major', min: 'Minor', dom7: 'Barbershop',
+            chordTones: 'Chord tones', heldFor: 'Ringing :n s', fromPure: 'cents from pure',
+            pureBelow: 'Pure sits :n cents below the piano', pureAbove: 'Pure sits :n cents above the piano', pureSame: 'Pure and piano agree here',
+            pure: 'pure', piano: 'piano', hearTone: 'Hear',
+            tone0: 'Root', tone3: 'Minor 3rd', tone4: 'Major 3rd', tone7: '5th', tone10: '7th', tone11: 'Major 7th',
+            fifthInDrone: 'The fifth in the drone', droneLevel: 'Drone level', referenceLabel: 'A4 tuning', micLabel: 'Mic',
+            denied: 'The mic is blocked', noMic: 'No mic to listen with',
+        };
+        const sing = Number(new URLSearchParams(location.search).get('sing'));
+        const hz = (midi) => 440 * 2 ** ((midi - 69) / 12);
+        // A singer holding `sing` (fractional MIDI) every frame.
+        const singer = async ({ onFrame }) => {
+            let raf = 0;
+            const tick = () => {
+                raf = requestAnimationFrame(tick);
+                onFrame({ at: audio().currentTime, hz: hz(sing), midi: sing, cents: 0, clear: true, loudness: -24, clarity: 0.95 });
+            };
+            raf = requestAnimationFrame(tick);
+            return { stop: () => cancelAnimationFrame(raf), deviceId: () => '', use: async () => {} };
+        };
+        window.__meter = mountIntonationMeter(document.querySelector('#meter'), {
+            words, keySlot: document.querySelector('[data-tool-key]'), onLesson: () => (window.__lessons = (window.__lessons ?? 0) + 1), ...(Number.isFinite(sing) && sing > 0 ? { open: singer } : {}),
+        });
+    </script>
+</body>
+</html>

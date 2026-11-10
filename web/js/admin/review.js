@@ -21,7 +21,7 @@ function takeTitle(item) {
 import { EmptyState, Field, Notice, StatusChip } from '../components/form.js';
 import { Icon } from '../components/icon.js';
 import { Modal, toast } from '../components/ui.js';
-import { errorsFrom, LoadFailed, loadInto, refused, when } from './common.js';
+import { ChangeSheet, errorsFrom, LoadFailed, loadInto, refused, when } from './common.js';
 import { PitchChart } from '../components/pitch-chart.js';
 import * as mix from './review-mix.js';
 import { singerName } from './singers.js';
@@ -217,7 +217,7 @@ const DecideSheet = {
 
 /** One take. */
 const ReviewTake = {
-    components: { PitchChart, RetakeSheet, DecideSheet, LoadFailed, Notice, StatusChip, Field, Icon },
+    components: { ChangeSheet, PitchChart, RetakeSheet, DecideSheet, LoadFailed, Notice, StatusChip, Field, Icon },
     props: { id: { type: String, required: true }, me: { type: Object, required: true } },
     data: () => ({
         item: null,
@@ -236,6 +236,7 @@ const ReviewTake = {
         sheet: null,
         busy: false,
         errors: null,
+        newTakeNote: '',
     }),
     setup: () => ({ STATUS, PUBLISH, FAILURE, TENDENCY, ADJUST, templatePartName, takeTitle, singerName, formatDate, formatNumber, when }),
     template: `
@@ -332,6 +333,11 @@ const ReviewTake = {
                     <template v-else-if="item.status === 'accepted'">
                         <p class="flex-1 text-sm text-cream">{{ item.publish === 'published' ? t('admin.review.isGuide') : item.publish === 'failed' ? t('admin.review.publishFailed') : t('admin.review.publishing') }}</p>
                         <button v-if="isAdmin && (item.publish === 'failed' || item.publish === 'published')" type="button" class="btn-secondary" :disabled="busy" @click="publish">{{ t('admin.review.publishAgain') }}</button>
+                        <!-- The singer wants to record again (Hillel): the same singer, this take live meanwhile; or the take comes down. -->
+                        <span v-if="isAdmin && item.kind !== 'clip'" class="flex basis-full flex-wrap gap-2 sm:basis-auto">
+                            <button type="button" class="btn-secondary" :disabled="busy" data-review-new-take @click="askNewTake">{{ t('admin.newTake.button') }}</button>
+                            <button v-if="item.publish === 'published'" type="button" class="btn-ghost text-bad" :disabled="busy" data-review-withdraw @click="ask('withdraw')">{{ t('admin.withdraw.button') }}</button>
+                        </span>
                     </template>
                     <p v-else-if="item.reviewedAt" class="text-sm text-muted">{{ t('admin.review.decided', { when: when(item.reviewedAt) }) }}</p>
                     <span class="ms-auto flex gap-2">
@@ -358,6 +364,13 @@ const ReviewTake = {
             </div>
             <RetakeSheet v-if="sheet === 'retake'" :phrases="phrases" :picked="picked" :busy="busy" :errors="errors" @close="sheet = null" @send="retake" />
             <DecideSheet v-if="sheet === 'accept' || sheet === 'reject'" :kind="sheet" :busy="busy" @close="sheet = null" @confirm="decide" />
+            <ChangeSheet v-if="sheet === 'newTake'" :title="t('admin.newTake.title', { name: singerName(item.singer), part: templatePartName({ key: item.partKey }) })" :me="me" :busy="busy" :errors="errors" :reasoned="false" :needs-sudo="false" @close="sheet = null" @confirm="newTake">
+                <p class="text-cream">{{ t('admin.newTake.body', { name: singerName(item.singer) }) }}</p>
+                <label class="block space-y-1.5"><span class="label">{{ t('admin.needs.noteLabel', { name: singerName(item.singer) }) }}</span><textarea v-model="newTakeNote" class="input min-h-16 w-full" maxlength="500" rows="2" data-new-take-note></textarea></label>
+            </ChangeSheet>
+            <ChangeSheet v-if="sheet === 'withdraw'" :title="t('admin.guides.withdrawTitle', { name: singerName(item.singer), part: templatePartName({ key: item.partKey }), song: item.template?.title ?? '' })" :me="me" :busy="busy" :errors="errors" :reasoned="false" @close="sheet = null" @confirm="withdraw">
+                <p class="text-cream">{{ t('admin.guides.removeBody') }}</p>
+            </ChangeSheet>
         </div>`,
     computed: {
         isAdmin: (vm) => vm.me.role === 'admin',
@@ -558,6 +571,43 @@ const ReviewTake = {
         ask(kind) {
             this.errors = null;
             this.sheet = kind;
+        },
+        askNewTake() {
+            this.newTakeNote = t('admin.newTake.note');
+            this.ask('newTake');
+        },
+        /** The same singer records this part again; this take stays the live guide until a new one is accepted. */
+        async newTake() {
+            this.busy = true;
+            this.errors = null;
+            try {
+                await api.admin.beta.assignments.again(this.item.assignmentId, { note: this.newTakeNote.trim() });
+                this.sheet = null;
+                toast(t('admin.newTake.done', { name: singerName(this.item.singer) }));
+            } catch (error) {
+                this.errors = errorsFrom(error);
+                if (!this.errors) this.refusal(error);
+            } finally {
+                this.busy = false;
+            }
+        },
+        /** Takes this take down now (admin.beta.guides.delete, by the guide made from it): another accepted voice, or the synth. */
+        async withdraw() {
+            this.busy = true;
+            this.errors = null;
+            try {
+                const songs = (await api.admin.beta.guides.list()).data ?? [];
+                const guide = songs.flatMap((song) => song.parts.flatMap((part) => part.guides)).find((g) => g.submissionId === this.item.id);
+                if (guide) await api.admin.beta.guides.delete(guide.id, {});
+                this.sheet = null;
+                toast(guide ? t('admin.withdraw.done') : t('admin.withdraw.gone'));
+                await this.load();
+            } catch (error) {
+                this.errors = errorsFrom(error);
+                if (!this.errors) this.refusal(error);
+            } finally {
+                this.busy = false;
+            }
         },
         /** Saves the fixes being tried; false if they were refused. */
         async saveAdjust() {

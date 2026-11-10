@@ -27,6 +27,8 @@ use App\Http\Controllers\Api\Admin\ExperimentsController as AdminExperiments;
 use App\Http\Controllers\Api\Admin\FlagsController;
 use App\Http\Controllers\Api\Admin\FunnelController as AdminFunnel;
 use App\Http\Controllers\Api\Admin\GalleryController as AdminGallery;
+use App\Http\Controllers\Api\Admin\GiveSongController;
+use App\Http\Controllers\Api\Admin\GroupsController as AdminGroups;
 use App\Http\Controllers\Api\Admin\GrowthController as AdminGrowth;
 use App\Http\Controllers\Api\Admin\IdeasController as AdminIdeas;
 use App\Http\Controllers\Api\Admin\LibraryController as AdminLibrary;
@@ -34,6 +36,7 @@ use App\Http\Controllers\Api\Admin\LimitsController;
 use App\Http\Controllers\Api\Admin\MeController;
 use App\Http\Controllers\Api\Admin\MudeoController as AdminMudeo;
 use App\Http\Controllers\Api\Admin\NetworkController as AdminNetwork;
+use App\Http\Controllers\Api\Admin\OutreachController as AdminOutreach;
 use App\Http\Controllers\Api\Admin\OverviewController;
 use App\Http\Controllers\Api\Admin\PeopleController;
 use App\Http\Controllers\Api\Admin\ReportsController as AdminReports;
@@ -280,6 +283,7 @@ Route::middleware('auth')->group(function (): void {
     Route::delete('/groups/{group}/members/{member}', [GroupsController::class, 'removeMember'])->name('groups.members.delete');
     Route::post('/groups/{group}/songs', [GroupsController::class, 'addSong'])->name('groups.songs.create');
     Route::delete('/groups/{group}/songs/{template}', [GroupsController::class, 'removeSong'])->name('groups.songs.delete');
+    Route::post('/groups/{group}/tracks', [GroupsController::class, 'requestTracks'])->middleware('throttle:support')->name('groups.tracks.create');
     Route::put('/groups/{group}/songs/{template}/assignments', [GroupsController::class, 'assign'])->name('groups.assignments.update');
     Route::post('/choir/{token}', [GroupsController::class, 'join'])->middleware(['age', 'throttle:invite-links'])->name('groups.join');
 });
@@ -319,8 +323,9 @@ Route::middleware('auth')->group(function (): void {
 Route::get('/boards/challenges/{token}', [BoardsController::class, 'open'])->middleware('throttle:invite-links')->name('boards.challenges.show');
 // Game mode's daily challenge: anyone sees the day's pick, the signed in its board.
 Route::get('/boards/daily', [BoardsController::class, 'daily'])->middleware('throttle:public-pages')->name('boards.daily.show');
-// Anonymous usage counts: no session, no CSRF (a beacon), nothing kept but the day's numbers.
-Route::post('/counts', [CountsController::class, 'store'])->withoutMiddleware([StartSession::class, ShareErrorsFromSession::class, PreventRequestForgery::class, GrantBetaPass::class])->middleware('throttle:counts')->name('counts.create');
+// Anonymous usage counts: no session, no CSRF (a beacon), nothing kept but the day's numbers. Only its own limit
+// (limits.counts): a beacon from every public page mustn't spend a shared address's budget for the API itself.
+Route::post('/counts', [CountsController::class, 'store'])->withoutMiddleware([StartSession::class, ShareErrorsFromSession::class, PreventRequestForgery::class, GrantBetaPass::class, 'throttle:api'])->middleware('throttle:counts')->name('counts.create');
 Route::post('/support', [SupportController::class, 'store'])->middleware(['throttle:support', 'shield'])->name('support.create');
 Route::get('/notices', [SupportController::class, 'notices'])->middleware('auth')->name('notices.list');
 Route::get('/notices/{notice}', [SupportController::class, 'notice'])->middleware('throttle:invite-links')->name('notices.show');
@@ -347,9 +352,10 @@ Route::middleware('auth')->group(function (): void {
     Route::delete('/comments/{comment}', [GalleryApi::class, 'deleteComment'])->name('comments.delete');
     Route::put('/profiles/{handle}/follow', [GalleryApi::class, 'follow'])->middleware(['throttle:follows', 'paused:follows'])->name('follows.create');
     Route::delete('/profiles/{handle}/follow', [GalleryApi::class, 'unfollow'])->name('follows.delete');
-    Route::put('/profiles/{handle}/block', [GalleryApi::class, 'block'])->name('blocks.create');
+    Route::put('/profiles/{handle}/block', [GalleryApi::class, 'block'])->middleware('throttle:follows')->name('blocks.create');
     Route::delete('/profiles/{handle}/block', [GalleryApi::class, 'unblock'])->name('blocks.delete');
     Route::get('/account/blocks', [GalleryApi::class, 'blocks'])->name('blocks.list');
+    Route::delete('/account/blocks/{block}', [GalleryApi::class, 'unblockById'])->name('blocks.remove');
     Route::post('/harmonies/{harmony}/consent', [GalleryConsents::class, 'ask'])->name('harmonies.consent.ask');
     Route::get('/consent-requests', [GalleryConsents::class, 'index'])->name('consentRequests.list');
     Route::post('/consent-requests/{consent}', [GalleryConsents::class, 'decide'])->name('consentRequests.decide');
@@ -403,7 +409,7 @@ Route::middleware('auth')->group(function (): void {
 // Song requests (N7): anyone reads them; asking and voting signed in.
 Route::get('/requests', [RequestsApi::class, 'index'])->middleware('throttle:public-pages')->name('requests.list');
 Route::middleware('auth')->group(function (): void {
-    Route::post('/requests', [RequestsApi::class, 'store'])->middleware('throttle:comments')->name('requests.create');
+    Route::post('/requests', [RequestsApi::class, 'store'])->middleware('throttle:song-requests')->name('requests.create');
     Route::put('/requests/{id}/vote', [RequestsApi::class, 'vote'])->middleware('throttle:likes')->name('requests.vote');
     Route::delete('/requests/{id}/vote', [RequestsApi::class, 'unvote'])->name('requests.unvote');
 });
@@ -430,7 +436,7 @@ Route::middleware('auth')->prefix('voices')->name('voices.')->group(function ():
     Route::get('/wanted', [VoicesController::class, 'wanted'])->name('wanted');
     Route::post('/join', [VoicesController::class, 'join'])->middleware('age')->name('join');
     Route::get('/claims', [VoicesController::class, 'claims'])->name('claims.list');
-    Route::post('/claims', [VoicesController::class, 'claim'])->name('claims.create');
+    Route::post('/claims', [VoicesController::class, 'claim'])->middleware('throttle:voice-claims')->name('claims.create');
     Route::delete('/claims/{claim}', [VoicesController::class, 'release'])->name('claims.delete');
 });
 
@@ -464,6 +470,25 @@ Route::prefix('beta')->name('beta.')->group(function (): void {
 Route::middleware(['auth', 'editor', 'second-factor'])->prefix('admin')->name('admin.')->group(function (): void {
     Route::get('/me', MeController::class)->name('me');
     Route::get('/overview', OverviewController::class)->name('overview');
+
+    // Outreach (docs/outreach-plan.md): Hillel's one-to-one emails to organizations. Admin only.
+    Route::middleware('admin')->prefix('outreach')->name('outreach.')->group(function (): void {
+        Route::get('/', [AdminOutreach::class, 'index'])->name('list');
+        Route::post('/', [AdminOutreach::class, 'store'])->name('create');
+        Route::post('/import', [AdminOutreach::class, 'import'])->name('import');
+        Route::get('/results', [AdminOutreach::class, 'results'])->name('results');
+        Route::post('/suppressions', [AdminOutreach::class, 'suppress'])->name('suppressions.create');
+        Route::patch('/messages/{message}', [AdminOutreach::class, 'editDraft'])->name('drafts.update');
+        Route::delete('/messages/{message}', [AdminOutreach::class, 'discardDraft'])->name('drafts.delete');
+        Route::post('/messages/{message}/send', [AdminOutreach::class, 'send'])->name('drafts.send');
+        Route::post('/messages/{message}/mark-sent', [AdminOutreach::class, 'markSent'])->name('drafts.sent');
+        Route::post('/messages/{message}/test', [AdminOutreach::class, 'test'])->middleware('throttle:10,1')->name('drafts.test');
+        Route::post('/replies/{reply}/read', [AdminOutreach::class, 'readReply'])->name('replies.read');
+        Route::get('/{target}', [AdminOutreach::class, 'show'])->name('show');
+        Route::patch('/{target}', [AdminOutreach::class, 'update'])->name('update');
+        Route::post('/{target}/drafts', [AdminOutreach::class, 'draft'])->name('drafts.create');
+        Route::post('/{target}/replies', [AdminOutreach::class, 'logReply'])->name('replies.create');
+    });
 
     // The beta review: editors work the queue; accepting, singers, guides and payment are the admin's.
     Route::prefix('beta')->name('beta.')->group(function (): void {
@@ -510,6 +535,7 @@ Route::middleware(['auth', 'editor', 'second-factor'])->prefix('admin')->name('a
         Route::post('/blocklist', [BlocklistController::class, 'store'])->middleware('sudo')->name('blocklist.create');
         Route::delete('/blocklist/{block}', [BlocklistController::class, 'destroy'])->middleware('sudo')->name('blocklist.delete');
         Route::get('/security-events', SecurityEventsController::class)->name('securityEvents.list');
+        Route::get('/groups', [AdminGroups::class, 'index'])->name('groups.list');
         Route::get('/audit', AuditController::class)->name('audit.list');
         Route::get('/billing/disputes', DisputesController::class)->name('billing.disputes.list');
         Route::get('/reports', [AdminReports::class, 'index'])->name('reports.list');
@@ -564,6 +590,7 @@ Route::middleware(['auth', 'editor', 'second-factor'])->prefix('admin')->name('a
         Route::patch('/school/{class}', [AdminSchool::class, 'update'])->middleware('sudo')->name('school.update');
         Route::post('/school/redemptions/{redemption}/end', [AdminSchool::class, 'end'])->middleware('sudo')->name('school.redemptions.end');
         Route::patch('/school/teachers/{teacher}', [AdminSchool::class, 'teacher'])->middleware('sudo')->name('school.teachers.update');
+        Route::post('/school/partners', [AdminSchool::class, 'partner'])->middleware('sudo')->name('school.partners.create');
         Route::post('/experiments', [AdminExperiments::class, 'store'])->middleware('sudo')->name('experiments.create');
         Route::patch('/experiments/{experiment}', [AdminExperiments::class, 'update'])->where('experiment', '[a-z][a-z0-9-]{1,23}')->middleware('sudo')->name('experiments.update');
         Route::get('/growth', [AdminGrowth::class, 'overview'])->name('growth.show');
@@ -608,6 +635,7 @@ Route::middleware(['auth', 'editor', 'second-factor'])->prefix('admin')->name('a
         Route::get('/people/countries', [PeopleController::class, 'countries'])->name('people.countries');
         Route::get('/people/{person}', [PeopleController::class, 'show'])->name('people.show');
         Route::get('/people/{person}/payment', [PeopleController::class, 'payment'])->name('people.payment');
+        Route::post('/people/{person}/songs', GiveSongController::class)->middleware(['admin', 'sudo'])->name('people.songs.create');
         Route::middleware('sudo')->group(function (): void {
             Route::post('/people/{person}/suspend', [PeopleController::class, 'suspend'])->name('people.suspend');
             Route::post('/people/{person}/unsuspend', [PeopleController::class, 'unsuspend'])->name('people.unsuspend');

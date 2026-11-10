@@ -15,6 +15,8 @@ See README.md.
     python3 render.py --launch=vertical               a launch cut from the same film: vertical (1080x1920, social),
                                                       square (1080x1080) or thumb (Product Hunt's 240 px loop, MP4 and GIF)
     python3 render.py --manifest                      manifest.json: every output's name, size and sha256
+    python3 render.py --voices                        the real voices: Amazing Grace's default guide of each part, read
+                                                      from the public catalogue (the app's own call) into voices/
 
 Options: --theme=dark|light, --from=S --to=S, --workers=N, --scale=F, --fps=N, --samples=N,
 --keep (leave the frames), --port-base=N (Chrome's first debugging port, default 9500),
@@ -48,7 +50,7 @@ CHROME = os.environ.get('CHROME', '/Applications/Google Chrome.app/Contents/MacO
 FFMPEG = os.environ.get('FFMPEG', shutil.which('ffmpeg') or 'ffmpeg')
 DUR = float(re.search(r'\bDUR = (\d+(?:\.\d+)?)', (HERE / 'showreel.html').read_text()).group(1))
 # the poster: the end card, its words up ("Harmony, made by you."), between its glints
-POSTER_AT = 30.0
+POSTER_AT = 71.0
 
 A = {}
 for arg in sys.argv[1:]:
@@ -190,7 +192,7 @@ class Browser:
             raise RuntimeError('the page never became ready')
 
     def grab(self, t, fmt='jpeg'):
-        self.cdp.eval(f'seek({t});new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)))', wait=True)
+        self.cdp.eval(f'seek({t});settle().then(()=>new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r))))', wait=True)
         opts = {'format': 'png'} if fmt == 'png' else {'format': 'jpeg', 'quality': 95, 'optimizeForSpeed': True}
         return base64.b64decode(self.cdp.send('Page.captureScreenshot', opts)['data'])
 
@@ -466,14 +468,42 @@ def vtt():
     print(out_dir / f'{NAME}.vtt')
 
 
+CATALOGUE = os.environ.get('CATALOGUE', 'https://stackapella.com/api/templates')
+
+
+def voices():
+    """The soundtrack's real voices: the public catalogue's Amazing Grace (GET /api/templates, as the app
+    asks for it, and nothing else), each part's default real-voice guide, from the public URL it lists,
+    into voices/ (gitignored, as the renders are) with voices.json: each part's file details and credit.
+    Refuses a catalogue whose song is another version than the template here, so the notes on screen
+    are the ones sung."""
+    get = lambda url: urllib.request.urlopen(urllib.request.Request(url, headers={'User-Agent': 'stackapella-showreel', 'Accept': 'application/json'}), timeout=60).read()
+    song = next(t for t in json.loads(get(CATALOGUE))['data'] if t['id'] == 'amazing-grace')
+    local = json.loads((ROOT / 'web/templates/amazing-grace.json').read_text())
+    if song['version'] != local['version']:
+        raise SystemExit(f"the catalogue's Amazing Grace is version {song['version']}, the template here {local['version']}: link the content first")
+    out = HERE / 'voices'
+    out.mkdir(exist_ok=True)
+    parts = {}
+    for part in song['parts']:
+        v = next((x for x in part['versions'] if x.get('default')), part.get('guide'))
+        if not v:
+            raise SystemExit(f"the {part['key']} has no real voice in the catalogue")
+        (out / f"{part['key']}.m4a").write_bytes(get(v['url']))
+        parts[part['key']] = {k: v[k] for k in ('id', 'url', 'sampleRate', 'frames', 'offsetFrames', 'credit')}
+        print(part['key'], v['id'], v['credit'] or '(no credit, by the singer\'s choice)')
+    (out / 'voices.json').write_text(json.dumps({'song': 'amazing-grace', 'version': song['version'], 'source': CATALOGUE, 'parts': parts}, indent=2) + '\n')
+
+
 def manifest():
     """What the CDN serves: every output's name, size and sha256, kept in git beside the posters. The
     film's files go in manifest.json (the landing's version is its hash, so only a new film changes
-    it); the launch cuts in launch-manifest.json."""
+    it). The launch cuts' launch-manifest.json is the first film's, kept as it is."""
     kinds = ('.mp4', '.webm', '.m4a', '.opus', '.jpg', '.webp', '.vtt', '.gif')
     files = sorted(f for f in out_dir.iterdir() if f.suffix in kinds)
     entry = lambda f: {'name': f.name, 'bytes': f.stat().st_size, 'sha256': hashlib.sha256(f.read_bytes()).hexdigest()}
-    for name, mine in (('manifest.json', lambda f: f.name.startswith(NAME)), ('launch-manifest.json', lambda f: f.name.startswith(LAUNCH))):
+    # the launch cuts were made from the first film and are kept as they are: their manifest is left alone
+    for name, mine in (('manifest.json', lambda f: f.name.startswith(NAME)),):
         chosen = [f for f in files if mine(f)]
         if not chosen:
             continue
@@ -485,6 +515,8 @@ def manifest():
 def main():
     if A.get('manifest'):
         return manifest()
+    if A.get('voices'):
+        return voices()
     httpd = serve(http_port)
     try:
         if A.get('vtt'):

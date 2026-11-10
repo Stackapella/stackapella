@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>A site that embeds a tool</title>
+    <!-- Another site's page framing a free tool, as the embed snippet does: ?tool=, ?w= (the frame's width) and ?theme=. -->
+    <style>body { margin: 0; padding: 12px; background: #ddd; font-family: sans-serif; } iframe { border: 0; display: block; }</style>
+</head>
+<body>
+    <script>
+        const q = new URLSearchParams(location.search);
+        const frame = document.createElement('iframe');
+        frame.src = `/tests/embed-demo.html?tool=${q.get('tool') || 'tuner'}&theme=${q.get('theme') || 'warm-light'}&skin=${q.get('skin') || 'serious'}`;
+        frame.width = q.get('w') || '360';
+        frame.height = q.get('h') || '640';
+        frame.allow = 'microphone';
+        frame.title = 'Tool';
+        document.body.append(frame);
+    </script>
+</body>
+</html>

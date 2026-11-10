@@ -99,6 +99,13 @@ final class SchoolOfferTest extends TestCase
         $class = SchoolClass::query()->where('code', str_replace('-', '', (string) $made->json('data.code')))->firstOrFail();
         SchoolRedemption::factory()->create(['school_class_id' => $class->id]);
         $class->increment('used'); // a second student, as a redeem counts it
+        // Today the teacher still sees one, so one seat is taken (no telling who just joined): the
+        // code takes nobody more, and it still holds both seats of the allowance.
+        $this->assertMatchesContract($this->patchJson("/api/school/classes/{$id}", ['seats' => 1]), 'school.classes.update', 200);
+        $this->assertSame(2, $class->refresh()->allowanceTaken());
+        $this->assertSame('full', $class->status());
+        $this->travel(1)->days();
+        $this->patchJson("/api/school/classes/{$id}", ['seats' => 3])->assertOk();
         $this->assertMatchesContract($this->patchJson("/api/school/classes/{$id}", ['seats' => 1]), 'school.classes.update', 409);
         $this->patchJson("/api/school/classes/{$id}", ['seats' => 1])->assertJsonPath('code', 'school_seats_below_used');
         $this->assertMatchesContract($this->patchJson("/api/school/classes/{$id}", ['seats' => 2, 'name' => 'Renamed']), 'school.classes.update', 200);

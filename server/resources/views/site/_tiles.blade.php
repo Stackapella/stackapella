@@ -11,10 +11,6 @@
                     <x-site.soon />
                 @endif
                 <span>{{ $tile['summary'] }}</span>
-                {{-- Choir groups need Plus (pricing's With others), said where the tile says it works. --}}
-                @if ($tile['slug'] === 'choirs' && ! $tile['soon'])
-                    <span class="s-tile-plus"><i>{{ __('pages.site.with_plus') }}</i>@unless (\App\Support\Pages\Landing::plans()['checkoutOpen']) {{ __('pages.site.plus_not_open') }}@endunless</span>
-                @endif
             </a>
         </li>
     @endforeach

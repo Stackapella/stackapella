@@ -1104,8 +1104,8 @@
                 "default": true
             }
         ],
-        "grant": "month",
-        "freeUntil": "2026-10-31T23:59:59Z",
+        "grant": "account",
+        "freeUntil": null,
         "boards": true
     }
 }

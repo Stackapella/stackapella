@@ -3,7 +3,9 @@
 // the part list: each part a portrait in its colour carrying its own numbers from the song itself:
 // Range (its lowest to highest note), Busy (how many notes) and Leaps (how often it jumps a fourth or
 // more) as small meters, and "Best for you" when the range check says so. A 1P cursor in your accent (it blinks 5 times, then rests) follows the pointer and the
-// arrows; a tap or Enter locks it in (the portrait flashes once). No difficulty is invented.
+// arrows; a tap or Enter locks it in (the portrait flashes once). No difficulty is invented. Under the grid, a line
+// says what Busy and Leaps measure, and "Sing Tenor" (the part the cursor is on) is the screen's one primary, so a
+// first-timer who doesn't think to tap a card still has a way in (the first-15-minutes review, items 10 and 11).
 
 import { tk } from '../i18n.js';
 import { midiName } from '../dsp.js';
@@ -53,13 +55,13 @@ export const PartSelect = {
     // card. A tap chooses it, as the list did, after the lock-in flash; the 1P cursor follows the
     // pointer and the keyboard, starting on the part that fits your voice.
     template: `
-        <ul class="ge-select-grid" data-game-select @keydown="key">
+        <div class="flex flex-col gap-4">
+        <ul ref="grid" class="ge-select-grid" data-game-select @keydown="key">
             <li v-for="(part, i) in parts" :key="part.slot.id">
                 <button ref="portrait" type="button" class="ge-portrait" :class="[i === cursor ? 'is-picked' : '', i === cursor && blinking ? 'is-blinking' : '', locking === i ? 'is-locking' : '']" :style="{ '--ge-part': paint(part.slot.color) }"
                     :data-slot="part.slot.id" :aria-current="i === cursor ? 'true' : null" @click="lock(i)" @focus="cursor = i" @pointerenter="cursor = i">
                     <span v-if="i === cursor" class="ge-1p" aria-hidden="true">{{ t('game.select.cursor') }}</span>
                     <span class="ge-portrait-letter" aria-hidden="true" translate="no">{{ part.name.slice(0, 1) }}</span>
-                    <span class="gem ge-portrait-gem" :style="{ '--gem': paint(part.slot.color) }" aria-hidden="true"></span>
                     <span class="ge-portrait-name" translate="no">{{ part.name }}</span>
                     <span v-if="part.slot.id === suggested" class="ge-fits">{{ t('range.bestForYou') }}</span>
                     <span class="ge-portrait-stats">
@@ -70,7 +72,10 @@ export const PartSelect = {
                     </span>
                 </button>
             </li>
-        </ul>`,
+        </ul>
+        <p class="text-sm text-muted" data-select-key>{{ t('game.select.key') }}</p>
+        <button type="button" class="btn-primary btn-lg w-full sm:w-auto sm:self-start" :disabled="locking !== null" data-select-sing @click="lock(cursor)">{{ t('game.select.sing', { part: parts[cursor]?.name ?? '' }) }}</button>
+        </div>`,
     computed: {
         stats() {
             return this.parts.map((p) => partStats(session.project ? templatePart(p.slot)?.guide?.notes ?? [] : []));
@@ -94,7 +99,7 @@ export const PartSelect = {
     methods: {
         /** The arrows move the cursor (and the focus), by the grid's own columns (two on a phone, four wider). */
         key(event) {
-            const style = getComputedStyle(this.$el);
+            const style = getComputedStyle(this.$refs.grid);
             const rtl = style.direction === 'rtl';
             const columns = Math.max(1, style.gridTemplateColumns.split(' ').filter(Boolean).length);
             const step = { ArrowRight: rtl ? -1 : 1, ArrowLeft: rtl ? 1 : -1, ArrowDown: columns, ArrowUp: -columns }[event.key];

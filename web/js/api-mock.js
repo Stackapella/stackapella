@@ -167,6 +167,20 @@ async function stateful(operation, params, body, cases, query = {}) {
         return respond(known?.status ?? 422, known?.example ? await example(known.example) : { message: code, code });
     };
     const now = new Date().toISOString().replace(/\.\d+Z$/, 'Z');
+    // A library song's page: the song itself (its own template file), so what it plays matches the catalogue's
+    // version and real voices; any other id, the example (Silent Night).
+    if (operation === 'templates.show' && /^[a-z0-9-]+$/.test(params?.id ?? '')) {
+        // Only a song on disk (web/templates/index.json lists the free ones): asking for any other would be a 404.
+        const onDisk = (await fetch('/templates/index.json').then((r) => (r.ok ? r.json() : null)).catch(() => null))?.templates ?? [];
+        const file = onDisk.includes(params.id) ? await fetch(`/templates/${params.id}.json`).catch(() => null) : null;
+        // Only a real JSON answer: the local server gives a missing file the app's page, with a 200 (a library song
+        // that isn't among the free ones on disk, like silent-night, then stays the example as before).
+        const template = file?.ok && (file.headers.get('content-type') ?? '').includes('json') ? await file.json().catch(() => null) : null;
+        if (template) {
+            const { data } = await example('templates.show.200.json');
+            return respond(200, { data: { ...data, template } });
+        }
+    }
     if (operation === 'templates.catalogue') {
         // The examples' real voices live on a CDN the mock can't reach: they play a local fixture
         // (3 seconds of chirps, made as the server makes a guide) instead.
@@ -255,6 +269,15 @@ async function stateful(operation, params, body, cases, query = {}) {
         return respond(200, await accountAs(as));
     }
     if (operation.startsWith('account.') && as === 'signedOut') return signedOut();
+    // A choir group as one of its members sees it, for a tab that asks (`stackapella.mockChoirMember`, the
+    // groups flow; anyone but `plus`, who directs it): the examples' Kim Ode is the signed-in account, with
+    // no link to copy. Other tabs keep the example, so Home has no parts to learn for every mock account.
+    if (operation === 'groups.show' && tabStorage.get('stackapella.mockChoirMember') === '1' && as !== 'plus' && as !== 'signedOut' && !scenarios().some((s) => s.startsWith(operation + ':'))) {
+        const json = await example(`${operation}.200.json`);
+        const me = (await example('account.show.200.json')).data.id;
+        json.data = { ...json.data, role: 'member', link: null, members: json.data.members.map((m) => (m.name === 'Kim Ode' ? { ...m, id: me } : m)) };
+        return respond(200, json);
+    }
     if (operation.startsWith('beta.') && !['beta.invite.show', 'beta.agreement.show'].includes(operation)) {
         if (as === 'signedOut') return signedOut();
         // A singer who has just accepted an invite hasn't agreed to the agreement yet.

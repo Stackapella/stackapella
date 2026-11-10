@@ -12,6 +12,7 @@ import { WhatsNext } from '../components/whatsnext.js';
 import { CourseMap } from '../components/course-map.js';
 import { MoreCourses } from '../components/more-courses.js';
 import { Icon } from '../components/icon.js';
+import { AppScreen } from '../components/page.js';
 import { arrivedToday, askShown } from '../funnel.js';
 import { SessionWrap } from '../components/session-wrap.js';
 import { game } from '../skin.js';
@@ -29,11 +30,11 @@ const XP_A_LESSON = 25; // a lesson's XP at three stars: "about two lessons" to 
  * two lessons."); then the units. Current progress and Start in your accent; units in their colours.
  */
 export const CourseView = {
-    components: { CourseMap, Icon, MoreCourses, SessionWrap, WhatsNext },
+    components: { AppScreen, CourseMap, Icon, MoreCourses, SessionWrap, WhatsNext },
     setup: () => ({ inFirstWeek, learning, localized, GOALS, DAY_LETTERS, account, lessonMinutes, XP_A_LESSON, game }),
     computed: {
         next() {
-            return learning.course ? nextLesson(learning.course.units, learning.progress, { plus: account.me?.plan === 'plus' }) : null;
+            return learning.course ? nextLesson(learning.course.units, learning.progress) : null;
         },
         /** A lesson waits (the course has more for this learner): What's next shows only when none does. */
         waiting() {
@@ -79,15 +80,8 @@ export const CourseView = {
         },
     },
     template: `
-        <div class="mx-auto min-h-dvh max-w-4xl px-4 pb-16 pt-[max(1rem,env(safe-area-inset-top))] md:px-8">
-            <header class="flex items-center gap-3 py-4">
-                <button type="button" class="glass-bubble grid size-11 shrink-0 place-items-center rounded-full text-cream" :aria-label="t('home.back')" @click="goBack('/')"><Icon name="back" :size="20" /></button>
-                <div class="min-w-0 flex-1">
-                    <p class="text-sm text-muted">{{ t('course.hub.eyebrow') }}</p>
-                    <h1 class="truncate text-xl font-bold text-cream">{{ t('course.hub.title') }}</h1>
-                </div>
-                <a href="/voice" class="flex h-11 shrink-0 items-center gap-2 rounded-full glass-bubble px-4 text-sm font-semibold text-cream hover:bg-raised" @click.prevent="navigate('/voice')"><span class="size-2 rounded-full bg-accent" aria-hidden="true"></span>{{ voice ? t('course.hub.voiceIs', { voice }) : t('voice.title') }}</a>
-            </header>
+        <AppScreen :title="t('course.hub.title')" :eyebrow="t('course.hub.eyebrow')" back="/" :back-label="t('home.back')" measure="">
+            <template #aside><a href="/voice" class="flex h-11 shrink-0 items-center gap-2 rounded-full glass-bubble px-4 text-sm font-semibold text-cream hover:bg-raised" @click.prevent="navigate('/voice')"><span class="size-2 rounded-full bg-accent" aria-hidden="true"></span>{{ voice ? t('course.hub.voiceIs', { voice }) : t('voice.title') }}</a></template>
             <div v-if="learning.loaded && learning.course" class="mt-2 grid gap-4 md:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
                 <section v-if="next" class="card p-6" :aria-label="t('course.hub.upNext')">
                     <p class="tabular-nums text-xs font-bold uppercase tracking-[0.14em] text-accent-strong">{{ t('course.hub.upNextUnit', { number: unitNumber }) }}</p>
@@ -110,7 +104,7 @@ export const CourseView = {
                     <div class="flex flex-wrap items-baseline justify-between gap-x-3"><h2 class="font-bold text-cream">{{ t('home.week.days') }}</h2><span class="text-sm text-muted">{{ t('course.hub.daysOf', { done: ring.done, goal: ring.goal }) }}</span></div>
                     <ol class="grid grid-cols-7 gap-1 sm:gap-2">
                         <li v-for="(d, i) in days" :key="d.day" class="flex flex-col items-center gap-1.5">
-                            <span class="grid size-8 place-items-center rounded-full sm:size-9" :class="d.done ? 'gem' : d.today ? 'border-2 border-cream' : d.future ? 'border border-dashed border-line' : 'border border-line'" aria-hidden="true"><Icon v-if="d.done" name="check" :size="14" /></span>
+                            <span class="grid size-8 place-items-center rounded-full sm:size-9" :class="d.done ? (game() ? 'gem' : 'bubble bubble-sm') : d.today ? 'border-2 border-cream' : d.future ? 'border border-dashed border-line' : 'border border-line'" :data-node="d.done ? 'done' : d.today ? 'now' : d.future ? 'next' : 'locked'" aria-hidden="true"><Icon v-if="d.done" name="check" :size="14" /></span>
                             <span class="text-[11px] font-semibold" :class="d.today ? 'text-cream' : 'text-muted'">{{ t(DAY_LETTERS[i]) }}</span>
                         </li>
                     </ol>
@@ -136,6 +130,6 @@ export const CourseView = {
             <!-- Voice care's cool-down (docs/voice-care-plan.md): a quiet way in, never a card. -->
             <p v-if="!inFirstWeek()" class="mt-6 text-sm text-muted" data-cooldown-link>{{ t('voiceCare.mapLine') }} <a href="/cooldown" class="link" @click.prevent="navigate('/cooldown')">{{ t('voiceCare.coolDown') }}</a></p>
             <MoreCourses class="mt-10" />
-        </div>`,
+        </AppScreen>`,
     methods: { goBack, navigate, setGoal },
 };

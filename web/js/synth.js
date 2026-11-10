@@ -84,8 +84,7 @@ export function bendAt(points, t) {
 }
 
 /** A head-voice tone (`voice: 'head'`): a purer, lighter colour than the "oo", few soft upper harmonics. */
-function headWavetable() {
-    const weights = [1, 0.22, 0.07, 0.025];
+function headWavetable(weights = [1, 0.22, 0.07, 0.025]) {
     const table = new Float32Array(TABLE + 1);
     let peak = 0;
     for (let i = 0; i <= TABLE; i++) {
@@ -112,8 +111,9 @@ export function renderPart(notes, { bpm, sampleRate, transpose = 0, speed = 1, h
     for (const note of notes) {
         const pitch = note.pitch + transpose;
         const head = note.voice === 'head';
-        const key = head ? `${pitch}:head` : pitch;
-        if (!tables.has(key)) tables.set(key, head ? headWavetable() : wavetable(midiToHz(pitch)));
+        const whistle = note.voice === 'whistle'; // a whistle (js/whistle.js): nearly a sine, a trace of its second harmonic
+        const key = head || whistle ? `${pitch}:${note.voice}` : pitch;
+        if (!tables.has(key)) tables.set(key, whistle ? headWavetable([1, 0.04]) : head ? headWavetable() : wavetable(midiToHz(pitch)));
         const table = tables.get(key);
         const bend = note.bend?.length ? note.bend : null;
         const hz = midiToHz(pitch);

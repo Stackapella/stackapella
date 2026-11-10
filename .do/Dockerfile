@@ -48,6 +48,7 @@ RUN rm -rf .env bootstrap/cache/*.php tests storage/logs/* \
     && mkdir -p storage/app storage/framework/cache storage/framework/sessions storage/framework/views storage/logs bootstrap/cache \
     && chown -R www-data:www-data storage bootstrap/cache \
     && chmod +x /usr/local/bin/start-web \
+    && php -r 'require "vendor/autoload.php"; echo App\Support\Http\StaticVersions::nginxMap("/app/web");' > /etc/nginx/static-versions.conf \
     && date -u +%Y-%m-%dT%H:%M:%SZ > /app/server/BUILT_AT
 
 ENV WEB_PATH=/app/web

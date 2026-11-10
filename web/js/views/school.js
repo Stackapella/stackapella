@@ -13,11 +13,12 @@ import { navigate } from '../router.js';
 import { account, loadAccount, loadAuthConfig } from '../stores/account.js';
 import { loadBilling } from '../stores/plan.js';
 import { AccountWall } from '../components/account-wall.js';
-import { PageHeader } from '../components/page.js';
+import { AppScreen } from '../components/page.js';
 import { Notice } from '../components/form.js';
 import { Icon } from '../components/icon.js';
 import { toast } from '../components/ui.js';
 import { confirmAction } from '../components/confirm.js';
+import { count } from '../usage.js';
 
 const MOST_SEATS = 60;
 /** What a refusal means, said for the person (contract/api.md, "School codes"). */
@@ -54,12 +55,11 @@ export function classState(c, now = Date.now()) {
 const STATES = { pending: tk('school.state.pending'), open: tk('school.state.open'), full: tk('school.state.full'), closed: tk('school.state.closed'), expired: tk('school.state.expired') };
 
 export const ClassesView = {
-    components: { AccountWall, PageHeader, Notice, Icon },
+    components: { AccountWall, AppScreen, Notice, Icon },
     data: () => ({ classes: null, failed: false, name: '', seats: 30, making: false, error: null, editing: null, editName: '', editSeats: 0, saving: false, editError: null }),
     setup: () => ({ account, MOST_SEATS, STATES, classState, formatNumber }),
     template: `
-        <div class="mx-auto min-h-dvh max-w-3xl px-4 pb-16 pt-[max(1rem,env(safe-area-inset-top))] md:px-8" data-classes>
-            <PageHeader :title="t('school.classes.title')" back="/settings" />
+        <AppScreen :title="t('school.classes.title')" back="/settings" measure="max-w-3xl" data-classes>
             <AccountWall v-if="account.loaded && !account.me" reason="settings" next="/settings/classes" />
             <template v-else-if="account.me">
                 <p class="max-w-prose text-muted">{{ t('school.classes.intro') }}</p>
@@ -116,7 +116,7 @@ export const ClassesView = {
                     <p class="mt-8 max-w-prose text-sm text-muted">{{ t('school.classes.daily') }} {{ t('school.classes.privacy') }}</p>
                 </template>
             </template>
-        </div>`,
+        </AppScreen>`,
     created() {
         if (account.me) this.load();
         else loadAccount().then(() => account.me && this.load());
@@ -198,13 +198,12 @@ export const ClassesView = {
 };
 
 export const ClassJoinView = {
-    components: { AccountWall, PageHeader },
+    components: { AccountWall, AppScreen },
     props: { code: { type: String, default: '' } },
     data: () => ({ typed: '', joining: false, error: null, joined: null, schools: null }),
     setup: () => ({ account, cleanCode }),
     template: `
-        <div class="mx-auto flex min-h-dvh max-w-xl flex-col px-4 pb-16 pt-[max(1rem,env(safe-area-inset-top))] md:px-8" data-class-join>
-            <PageHeader :title="t('school.join.title')" back="/" />
+        <AppScreen :title="t('school.join.title')" back="/" measure="max-w-xl" data-class-join>
             <div class="my-auto">
                 <section class="card space-y-5 p-6 md:p-8">
                     <template v-if="joined">
@@ -228,7 +227,7 @@ export const ClassJoinView = {
                     </template>
                 </section>
             </div>
-        </div>`,
+        </AppScreen>`,
     computed: {
         here() {
             return this.code ? `/class/${this.code}` : '/class';
@@ -246,6 +245,7 @@ export const ClassJoinView = {
             this.error = null;
             try {
                 const billing = (await api.school.redeem({ code: this.typed })).data;
+                count('school_redeemed'); // anonymous, kept with the device's source: an organization's ?ref= link bringing codes in
                 this.joined = billing.schoolUntil;
                 await loadAccount({ fresh: true });
                 loadBilling();

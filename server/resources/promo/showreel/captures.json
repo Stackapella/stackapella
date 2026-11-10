@@ -1,0 +1,144 @@
+{
+  "shots": {
+    "arcade": {
+      "id": "arcade",
+      "size": "desktop",
+      "skin": "game",
+      "w": 2880,
+      "h": 1800,
+      "frames": 132,
+      "fps": 30,
+      "songAt": 19.956
+    },
+    "choir-director": {
+      "id": "choir-director",
+      "size": "desktop",
+      "skin": "serious",
+      "w": 2880,
+      "h": 1800
+    },
+    "choir-member": {
+      "id": "choir-member",
+      "size": "desktop",
+      "skin": "serious",
+      "w": 2880,
+      "h": 1800
+    },
+    "courses": {
+      "id": "courses",
+      "size": "desktop",
+      "skin": "serious",
+      "w": 2880,
+      "h": 1800,
+      "frames": 135,
+      "fps": 30
+    },
+    "daily": {
+      "id": "daily",
+      "size": "desktop",
+      "skin": "serious",
+      "w": 2880,
+      "h": 1800
+    },
+    "drone": {
+      "id": "drone",
+      "size": "desktop",
+      "skin": "serious",
+      "w": 2880,
+      "h": 1800,
+      "crop": {
+        "x": 0.3142,
+        "y": 0.1511,
+        "w": 0.3611,
+        "h": 0.8026
+      }
+    },
+    "home-game": {
+      "id": "home-game",
+      "size": "desktop",
+      "skin": "game",
+      "w": 2880,
+      "h": 1800
+    },
+    "landing-toggle": {
+      "id": "landing-toggle",
+      "size": "desktop",
+      "skin": "serious",
+      "w": 2880,
+      "h": 1800,
+      "frames": 96,
+      "fps": 30,
+      "click": {
+        "x": 0.790625,
+        "y": 0.20333333333333334,
+        "at": 1.2
+      }
+    },
+    "lesson": {
+      "id": "lesson",
+      "size": "phone",
+      "skin": "serious",
+      "w": 780,
+      "h": 1688
+    },
+    "metronome": {
+      "id": "metronome",
+      "size": "desktop",
+      "skin": "serious",
+      "w": 2880,
+      "h": 1800,
+      "crop": {
+        "x": 0.3142,
+        "y": 0.1511,
+        "w": 0.3611,
+        "h": 0.8489
+      }
+    },
+    "range": {
+      "id": "range",
+      "size": "desktop",
+      "skin": "serious",
+      "w": 2880,
+      "h": 1800,
+      "crop": {
+        "x": 0.3142,
+        "y": 0.1511,
+        "w": 0.3611,
+        "h": 0.8489
+      }
+    },
+    "sing": {
+      "id": "sing",
+      "size": "desktop",
+      "skin": "serious",
+      "w": 2880,
+      "h": 1800,
+      "frames": 168,
+      "fps": 30,
+      "songAt": 4.052
+    },
+    "studio": {
+      "id": "studio",
+      "size": "desktop",
+      "skin": "serious",
+      "w": 2880,
+      "h": 1800,
+      "frames": 168,
+      "fps": 30,
+      "songAt": 8.581
+    },
+    "tuner": {
+      "id": "tuner",
+      "size": "desktop",
+      "skin": "serious",
+      "w": 2880,
+      "h": 1800,
+      "crop": {
+        "x": 0.3142,
+        "y": 0.1511,
+        "w": 0.3611,
+        "h": 0.8489
+      }
+    }
+  }
+}

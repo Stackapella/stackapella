@@ -9,7 +9,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
 from flow import run  # noqa: E402
-from game_frames import dark, frames, light  # noqa: E402
+from game_frames import dark, every_theme, frames, light  # noqa: E402
 from help_shots import t  # noqa: E402
 
 VS = "document.querySelector('[data-game-versus]')"
@@ -39,6 +39,7 @@ def journey(f):
     f.run(f"{VS}.click()")
     f.wait(f"{VS}.classList.contains('is-done')", timeout=2, what="a tap shows it all")
     f.shot("challenge")
+    every_theme(f, "the versus screen")
     light(f)
     f.shot("challenge-light")
     dark(f)

@@ -7,8 +7,12 @@ namespace App\Support\Pages;
 use App\Models\Template;
 use App\Support\Flags;
 use App\Support\Http\Hosts;
+use App\Support\Outreach\Outreach;
 use App\Support\Site\ComingSoon;
 use App\Support\Site\Drawings;
+use App\Support\Site\SitePages;
+use App\Support\Templates\Catalogue;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Lang;
 use Illuminate\Support\HtmlString;
 
@@ -22,6 +26,35 @@ final class Landing
 {
     /** The hero's song and the beat its first line ends on ("you" is its melody, as on every song page). */
     public const HERO_SONG = 'amazing-grace';
+
+    /** The courses the landing shows after the beginner course, in this order (pages/landing/_free): all open. */
+    public const FEATURED_COURSES = ['vibrato', 'perfect-your-pitch', 'ear-training', 'barbershop', 'range-and-registers', 'breath-and-stamina', 'counterpoint'];
+
+    /** The tools the landing shows as chips, in the hub's order (pages/landing/_free). */
+    public const FEATURED_TOOLS = ['tuner', 'metronome', 'vocal-range-test', 'pitch-pipe', 'drone', 'interval-ear-training'];
+
+    /**
+     * The landing's courses after the beginner course's Start here card: the first six of FEATURED_COURSES with a
+     * page, three by two (landing v2).
+     *
+     * @return list<string>
+     */
+    public static function featuredCourses(): array
+    {
+        $pages = SitePages::courses();
+
+        return array_slice(array_values(array_filter(self::FEATURED_COURSES, static fn (string $slug): bool => in_array($slug, $pages, true))), 0, 6);
+    }
+
+    /**
+     * The landing's tool chips: FEATURED_TOOLS's cards, in the hub's order.
+     *
+     * @return list<array{slug: string, name: string, summary: string, url: string, icon: string, tag: string, group: string}>
+     */
+    public static function featuredTools(): array
+    {
+        return array_values(array_filter(SitePages::tools(), static fn (array $tool): bool => in_array($tool['slug'], self::FEATURED_TOOLS, true)));
+    }
 
     public const HERO_END_BEAT = 24;
 
@@ -53,10 +86,22 @@ final class Landing
     }
 
     /**
-     * The links into the app, carrying `ref` so the app records it at sign-up, and whether the
-     * footer links the comparison pages (the compare_pages switch).
+     * A path on our own site with the visitor's query kept, for a 301 to a page's new address: a shared link's
+     * `?ref=` still counts where it lands.
+     */
+    public static function withQuery(Request $request, string $path): string
+    {
+        $query = $request->getQueryString();
+
+        return $query === null || $query === '' ? $path : $path.'?'.$query;
+    }
+
+    /**
+     * The links into the app, carrying `ref` so the app records it at sign-up, whether the footer
+     * links the comparison pages (the compare_pages switch), and, for someone who came by an
+     * organization's outreach link (a known o- tag), the page with the partner offer, keeping the tag.
      *
-     * @return array{start: string, app: string, plus: string, create: string, compare: bool}
+     * @return array{start: string, app: string, plus: string, create: string, compare: bool, partner: string|null}
      */
     public static function links(?string $ref): array
     {
@@ -68,6 +113,7 @@ final class Landing
             'plus' => $with('/plus?from=landing'),
             'create' => $with('/create'),
             'compare' => app(Flags::class)->on('compare_pages'),
+            'partner' => $ref !== null && Outreach::known($ref) ? '/for/organizations?'.http_build_query(['ref' => $ref]) : null,
         ];
     }
 
@@ -204,13 +250,20 @@ final class Landing
     /**
      * The plans' numbers, from config (docs/features.md is their list).
      *
-     * @return array{freeSongs: int, projects: int, storage: string, trialDays: int, checkoutOpen: bool}
+     * `songs` is the library, every song of it free with an account; `freeSongs` the ones a guest
+     * sings without one; `projects` null since no plan limits them (2026-11-07).
+     *
+     * @return array{songs: int, freeSongs: int, projects: int|null, storage: string, freeStorage: string, trialDays: int, checkoutOpen: bool}
      */
     public static function plans(): array
     {
+        $projects = config('usage.plans.free.projects');
+
         return [
+            'songs' => app(Catalogue::class)->songCount(),
             'freeSongs' => count((array) config('templates.free')),
-            'projects' => (int) config('usage.plans.free.projects'),
+            'projects' => is_int($projects) ? $projects : null,
+            'freeStorage' => round((int) config('usage.plans.free.storage_bytes') / 1024 ** 3).' GB',
             'storage' => round((int) config('usage.plans.plus.storage_bytes') / 1024 ** 3).' GB',
             'trialDays' => (int) config('billing.trial_days'),
             'checkoutOpen' => filled(config('billing.prices.month')) && filled(config('billing.prices.year')),

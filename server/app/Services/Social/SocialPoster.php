@@ -23,7 +23,7 @@ use Illuminate\Support\Facades\Storage;
 
 /**
  * Our own posts on X and Bluesky (docs/backend-plan.md D7; a port of iaw's SocialPoster): a new
- * song, the song of the month, or a harmony its singer said may be featured. Each is proposed
+ * song, or a harmony its singer said may be featured (the song of the month ended on 2026-11-07). Each is proposed
  * once per network (only networks with credentials), waits for Hillel's approval in admin, then
  * goes out after a 120-second undo; what it says is made, and checked, again just before. X posts
  * carry the image but no link; Bluesky posts carry both. Posts go out only in production.
@@ -126,7 +126,7 @@ final class SocialPoster
     /**
      * Waiting posts that can't go any more, cancelled with the reason, so Hillel's list holds only
      * what could still be posted: anything before launch, anything stale, a song or harmony that
-     * changed (taken down, its month over, no longer public). Answers how many went.
+     * changed (taken down, no longer public). Answers how many went.
      */
     public function tidy(): int
     {
@@ -177,7 +177,7 @@ final class SocialPoster
 
     /**
      * What the post says, made now from the item as it is, or null when it mustn't go any more
-     * (a song taken down, a month over, a harmony hidden or no longer agreed to). Without media
+     * (a song taken down, a harmony hidden or no longer agreed to, a song of the month's post). Without media
      * (admin's list, an approval), the card and video aren't read: only the posting job needs them.
      */
     public function message(SocialPost $post, bool $media = true): ?SocialMessage
@@ -192,17 +192,14 @@ final class SocialPoster
                 return null;
             }
 
-            $month = str_starts_with($post->occasion, SocialPost::MONTH);
-
-            if ($month && ! $item->isFreeOn(now())) {
+            // The song of the month ended (2026-11-07): a post about one still waiting never goes.
+            if (str_starts_with($post->occasion, SocialPost::MONTH)) {
                 return null;
             }
 
             $parts = count((array) ($version->data['parts'] ?? []));
             $url = rtrim((string) config('app.url'), '/').'/?'.http_build_query(['song' => $item->slug, 'ref' => 'social']);
-            $text = $month
-                ? __('social.month', ['title' => $item->title, 'parts' => $parts, 'until' => $item->free_until?->format('j F') ?? ''])
-                : __('social.new_song', ['title' => $item->title, 'parts' => $parts]);
+            $text = __('social.new_song', ['title' => $item->title, 'parts' => $parts]);
 
             return new SocialMessage(self::fit($text.($x ? '' : "\n\n".$url), $x), $url, $item->title, __('social.song_card', ['parts' => $parts]));
         }

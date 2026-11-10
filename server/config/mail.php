@@ -77,6 +77,11 @@ return [
             'transport' => 'cloudflare',
         ],
 
+        // Outreach's own sender and stream (config/outreach.php): never the app's mailer.
+        'outreach' => [
+            'transport' => 'cloudflare_outreach',
+        ],
+
         'log' => [
             'transport' => 'log',
             'channel' => env('MAIL_LOG_CHANNEL'),

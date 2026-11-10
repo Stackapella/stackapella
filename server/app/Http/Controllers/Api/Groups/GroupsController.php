@@ -5,9 +5,12 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api\Groups;
 
 use App\Actions\Groups\ManageGroups;
+use App\Actions\Groups\RequestTracks;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Groups\AssignPartsRequest;
 use App\Http\Requests\Groups\GroupNameRequest;
+use App\Http\Requests\Groups\TracksRequest;
+use App\Http\Requests\Groups\UpdateGroupRequest;
 use App\Models\Group;
 use App\Models\GroupMember;
 use App\Models\User;
@@ -49,9 +52,19 @@ final class GroupsController extends Controller
         return $this->show($this->groups->find($user, $group), $user);
     }
 
-    public function update(GroupNameRequest $request, string $group, #[CurrentUser] User $user): JsonResponse
+    public function update(UpdateGroupRequest $request, string $group, #[CurrentUser] User $user): JsonResponse
     {
-        return $this->show($this->groups->rename($user, $group, (string) $request->validated('name')), $user);
+        $changes = [];
+
+        if ($request->has('name')) {
+            $changes['name'] = (string) $request->validated('name');
+        }
+
+        if ($request->has('rehearsal')) {
+            $changes['rehearsal'] = $request->validated('rehearsal') !== null ? ['date' => (string) $request->validated('rehearsal.date'), 'weekly' => $request->boolean('rehearsal.weekly')] : null;
+        }
+
+        return $this->show($this->groups->update($user, $group, $changes), $user);
     }
 
     public function destroy(string $group, #[CurrentUser] User $user): Response
@@ -98,6 +111,18 @@ final class GroupsController extends Controller
         $request->validate(['templateId' => ['required', 'string', 'max:80']]);
 
         return $this->show($this->groups->addSong($user, $group, (string) $request->input('templateId')), $user);
+    }
+
+    /**
+     * groups.tracks.create: the director asks for learning tracks of one piece; it waits in the support inbox.
+     */
+    public function requestTracks(TracksRequest $request, string $group, RequestTracks $tracks, #[CurrentUser] User $user): JsonResponse
+    {
+        /** @var array{piece: string, composer?: string|null, voicing?: string|null, rights: string, note?: string|null} $data */
+        $data = $request->safe()->except('rightsConfirmed');
+        $message = $tracks->handle($user, $group, $data, (string) $request->ip());
+
+        return response()->json(['data' => ['id' => $message->sqid(), 'receivedAt' => $message->created_at?->utc()->toIso8601ZuluString()]], 201);
     }
 
     public function removeSong(string $group, string $template, #[CurrentUser] User $user): Response

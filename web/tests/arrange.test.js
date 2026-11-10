@@ -338,3 +338,40 @@ test('arrange: the mobile app\'s test vectors (tests/vectors/arrange.json) still
     assert(vectors.harmonize.length > 15, 'the songs in every style, and the edge cases');
     for (const v of vectors.harmonize) assert(same(JSON.parse(JSON.stringify(harmonize(v.input.template, v.input.options).template)), v.output), `harmonize ${v.input.song} ${v.input.options.style}: run web/tool/vectors.py`);
 });
+
+test('arrange: four-voice block chords (the voicer tool) are complete, the root doubled, a seventh never doubled', () => {
+    const pcOf = (p) => ((p % 12) + 12) % 12;
+    const voice = (chords, key, soprano) => {
+        const melody = soprano.map((pitch, i) => ({ beat: i * 2, length: 2, pitch, lyric: 'oo' }));
+        const given = chords.map((c, i) => ({ beat: i * 2, ...c }));
+        const { parts } = arrange(melody, { key, timeSignature: '4/4', style: 'simple', chords: given, phraseEnds: [chords.length * 2], four: true });
+        const at = (line, beat) => line.findLast((n) => n.beat <= beat + 1e-6 && n.beat + n.length > beat + 1e-6).pitch;
+        return chords.map((_, i) => [soprano[i], at(parts.alto, i * 2), at(parts.tenor, i * 2), at(parts.bass, i * 2)]);
+    };
+    // C Am F G7 C under C C C B C: the textbook voicing.
+    const c = voice([{ root: 0, quality: 'maj' }, { root: 9, quality: 'min' }, { root: 5, quality: 'maj' }, { root: 7, quality: 'dom7' }, { root: 0, quality: 'maj' }], { tonic: 0, mode: 'major' }, [72, 72, 72, 71, 72]);
+    assert(JSON.stringify(c) === JSON.stringify([[72, 64, 55, 48], [72, 64, 57, 45], [72, 65, 57, 41], [71, 65, 55, 43], [72, 64, 55, 48]]), `C Am F G7 C: ${JSON.stringify(c)}`);
+    // F Bb C7 F: every triad has its fifth, and C7 doesn't double its B flat.
+    const f = voice([{ root: 5, quality: 'maj' }, { root: 10, quality: 'maj' }, { root: 0, quality: 'dom7' }, { root: 5, quality: 'maj' }], { tonic: 5, mode: 'major' }, [69, 70, 70, 65]);
+    const roots = [5, 10, 0, 5];
+    f.forEach((v, i) => {
+        const classes = v.map(pcOf);
+        if (i !== 2) assert(classes.includes((roots[i] + 7) % 12), `chord ${i}: the fifth is there (${v})`);
+        assert(classes.filter((x) => x === roots[i]).length <= 2, `chord ${i}: the root isn't tripled (${v})`);
+    });
+    assert(f[2].map(pcOf).filter((x) => x === 10).length === 1, `C7's seventh sung once (${f[2]})`);
+});
+
+test('arrange: a given slash chord keeps its own bass (C G/B Am F/A G7 C walks down), the rest voiced over it', () => {
+    const chords = [{ root: 0, quality: 'maj' }, { root: 7, quality: 'maj', bass: 11 }, { root: 9, quality: 'min' }, { root: 5, quality: 'maj', bass: 9 }, { root: 7, quality: 'dom7' }, { root: 0, quality: 'maj' }];
+    const melody = [72, 74, 72, 72, 71, 72].map((pitch, i) => ({ beat: i * 2, length: 2, pitch, lyric: 'oo' }));
+    for (const four of [true, false]) {
+        const result = arrange(melody, { key: { tonic: 0, mode: 'major' }, timeSignature: '4/4', style: 'simple', chords: chords.map((c, i) => ({ beat: i * 2, ...c })), phraseEnds: [12], four, slashBass: true });
+        const at = (line, beat) => line.findLast((n) => n.beat <= beat + 1e-6 && n.beat + n.length > beat + 1e-6).pitch;
+        const bass = chords.map((_, i) => at(result.parts.bass, i * 2) % 12);
+        assert(bass.join(' ') === '0 11 9 9 7 0', `the bass walks C B A A G C (${bass.join(' ')}, four ${four})`);
+        assert(result.chords[1].bass === 11 && result.chords[3].bass === 9 && result.chords[0].bass === null, 'the chords keep their slash basses');
+        const gb = ['alto', 'tenor', 'bass'].map((k) => at(result.parts[k], 2) % 12);
+        assert(gb.filter((x) => x === 11).length === 1, `G/B's B, the leading tone, sung once (${gb})`);
+    }
+});

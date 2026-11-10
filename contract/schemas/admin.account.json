@@ -239,6 +239,58 @@
                 }
             }
         },
+        "given": {
+            "type": "array",
+            "description": "admin.people.show (and its actions) only: the songs staff gave them through admin.people.songs.create, still in their account, newest first, at most 50. Ours, made and given by staff; never their own private songs (a copy they made of a given song included) or recordings.",
+            "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                    "id",
+                    "title",
+                    "url",
+                    "givenAt",
+                    "givenBy"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "description": "The template's id, for its /t/<id> link."
+                    },
+                    "title": {
+                        "type": "string"
+                    },
+                    "url": {
+                        "type": "string",
+                        "description": "The song's link in the app, /t/<id> (a path when the app shares the host)."
+                    },
+                    "givenAt": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "givenBy": {
+                        "type": [
+                            "object",
+                            "null"
+                        ],
+                        "additionalProperties": false,
+                        "required": [
+                            "id",
+                            "name"
+                        ],
+                        "description": "The staff member who gave it; null once their account is gone.",
+                        "properties": {
+                            "id": {
+                                "type": "string"
+                            },
+                            "name": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "stats": {
             "type": "object",
             "additionalProperties": false,

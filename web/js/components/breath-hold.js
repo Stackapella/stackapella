@@ -9,7 +9,7 @@
 // The step: `{ kind: 'breathhold', exercise: { step, lyric, drone, lead, max, goal: { plus },
 // baseline, generous, compare: { step }, under: { steps } } }`, each explained in docs/courses/breath.md.
 
-import { audio, engine, leadSeconds, unlock } from '../audio.js';
+import { audio, engine, latencyNow, leadSeconds, unlock } from '../audio.js';
 import { readyMic } from '../mic-check.js';
 import { formatNumber, t, tk } from '../i18n.js';
 import { trackFrame, trackInWorker } from '../pitchtrack.js';
@@ -22,6 +22,8 @@ import { KeyControl } from './key-control.js';
 import { local, session as tabStorage } from '../storage.js';
 import { centsOf } from '../vibrato.js';
 import * as db from '../db.js';
+import { ShareResult } from './share-result.js';
+import { claimShare } from '../share-moment.js';
 import { GOAL_MAX, holdGoal, sustain } from '../pitch-skills.js';
 import { effect } from '../game/effects.js';
 
@@ -41,7 +43,8 @@ const ENDING = { steady: tk('breathhold.end.steady'), sagged: tk('breathhold.end
 const ENDING_SHORT = { steady: tk('breathhold.short.steady'), sagged: tk('breathhold.short.sagged'), wobbled: tk('breathhold.short.wobbled') };
 
 export const BreathHold = {
-    components: { HeadphonesDialog, Icon, KeyControl },
+    components: { HeadphonesDialog, Icon, KeyControl, ShareResult },
+    inject: { lessonShare: { default: null } },
     props: {
         exercise: { type: Object, required: true },
         base: { type: Number, required: true }, // the learner's comfortable note (MIDI)
@@ -49,7 +52,7 @@ export const BreathHold = {
         color: { type: String, default: 'var(--color-part-4)' },
         musicKey: { type: String, default: null },
         canLower: { type: Boolean, default: true },
-        canHigher: { type: Boolean, default: true },
+        canHigher: { type: Boolean, default: true }, higherShown: { type: Boolean, default: true },
         earlier: { type: Object, default: () => ({ results: {}, takes: {} }) }, // this visit's earlier steps
         personal: { type: Object, default: () => ({}) }, // the course's personal values: `baseline`
     },
@@ -74,7 +77,7 @@ export const BreathHold = {
             <!-- Hear yourself: the take, how long it was steady, and how it ended. -->
             <section v-if="result && !running" class="space-y-2 rounded-2xl border border-edge bg-panel p-4" data-breath-result>
                 <div class="flex items-center gap-3">
-                    <button v-if="take" type="button" class="grid size-11 shrink-0 place-items-center rounded-full glass-bubble-solid" :aria-label="playing ? t('studio.stop') : t('breathhold.hearYourself')" @click="listenBack()"><Icon :name="playing ? 'stop' : 'play'" :size="18" /></button>
+                    <button v-if="take" type="button" class="grid size-11 shrink-0 place-items-center bubble bubble-primary" data-disc="play" :aria-label="playing ? t('studio.stop') : t('breathhold.hearYourself')" @click="listenBack()"><Icon :name="playing ? 'stop' : 'play'" :size="18" /></button>
                     <div class="min-w-0">
                         <p class="font-bold text-cream">{{ result.percent === null ? t('course.notHeard') : t('breathhold.hearYourself') }}</p>
                         <p v-if="result.tail" class="text-sm text-cream" role="status" data-breath-line>{{ t(ENDING[result.tail], { seconds: formatNumber(result.steady) }) }}</p>
@@ -86,6 +89,7 @@ export const BreathHold = {
                     <template v-if="thenKept">
                         <p class="min-w-0 flex-1 text-sm text-cream">{{ t('breathhold.thenNow', { then: t(ENDING_SHORT[thenKept.tail] ?? ENDING_SHORT.steady), now: t(ENDING_SHORT[result.tail] ?? ENDING_SHORT.steady), thenShare: share(thenKept), nowShare: share(result) }) }}</p>
                         <button type="button" class="btn-ghost btn-sm" @click="hearThen"><Icon name="play" :size="14" /> {{ t('breathhold.hearThen') }}</button>
+                        <ShareResult v-if="thenNowShare" :label="t('results.share.button')" :milestone="thenNowShare.milestone" :course-slug="thenNowShare.courseSlug" :color="thenNowShare.color" data-then-share />
                     </template>
                     <p v-else class="text-sm text-muted">{{ t('breathhold.thenNone') }}</p>
                 </div>
@@ -94,15 +98,28 @@ export const BreathHold = {
             <p v-if="speaker && exercise.drone" class="text-center text-sm text-muted">{{ t('course.speakerUnder') }}</p>
             <HeadphonesDialog v-if="asking" speaker-option simple :action="t('headphones.on')" @ok="headphonesOn" @speaker="useSpeaker" @close="asking = false" />
             <div class="flex flex-col items-center gap-5">
-                <KeyControl v-if="musicKey && !running && !scoring" class="w-full" :music-key="musicKey" :can-lower="canLower" :can-higher="canHigher" @lower="$emit('lower')" @higher="$emit('higher')" />
+                <KeyControl v-if="musicKey && !running && !scoring" class="w-full" :music-key="musicKey" :can-lower="canLower" :can-higher="canHigher" :higher-shown="higherShown" @lower="$emit('lower')" @higher="$emit('higher')" />
                 <button type="button" class="group flex flex-col items-center gap-2 disabled:opacity-50" :disabled="scoring" @click="running ? stop() : start()">
-                    <span class="grid size-20 place-items-center rounded-full glass-bubble-solid ring-8 ring-raised/70 transition group-hover:scale-105"><Icon :name="running ? 'stop' : 'mic'" :size="30" /></span>
+                    <span class="grid size-20 place-items-center transition group-hover:scale-105 bubble bubble-primary bubble-lg bubble-ringed" data-play-disc><Icon :name="running ? 'stop' : 'mic'" :size="30" /></span>
                     <span class="text-sm font-semibold text-cream">{{ running ? t('studio.stop') : result ? t('breathhold.again') : t('breathhold.start') }}</span>
                 </button>
             </div>
         </div>`,
     setup: () => ({ formatNumber, ENDING, ENDING_SHORT, effect }),
     computed: {
+        /**
+         * Then and now with real progress (the steady share up by 20 points or more): one quiet Share beside the line, the
+         * session's one invitation (js/share-moment.js), naming the lesson and linking to its public page (docs/design-rules.md).
+         */
+        thenNowShare(vm) {
+            const ctx = vm.lessonShare?.();
+            if (!ctx || !vm.thenKept || !vm.result) return null;
+            const pct = (m) => Math.round((100 * (m.steady ?? 0)) / Math.max(0.1, m.held ?? 0));
+            const then = pct(vm.thenKept);
+            const now = pct(vm.result);
+            if (!(now - then >= 20) || !claimShare(`then:${ctx.lessonId}`)) return null;
+            return { milestone: { kind: 'thenNow', title: t('results.share.thenNow'), headline: ctx.lessonTitle, line: t('results.share.thenNowLine', { then, now }), text: t('results.share.thenNowText', { lesson: ctx.lessonTitle, then, now }), lessonId: ctx.lessonId }, courseSlug: ctx.courseSlug, color: ctx.color };
+        },
         lead: (vm) => vm.exercise.lead ?? LEAD,
         /** Where the hold is listened for: just before the lead ends; through a speaker, only once the drone has stopped (the mic would hear it). */
         listenFrom: (vm) => (vm.speaker && vm.exercise.drone ? vm.lead + SPEAKER_SETTLE : vm.lead - 0.3),
@@ -194,7 +211,7 @@ export const BreathHold = {
             }
             Object.assign(this, { result: null, take: null, startedAt: null, quietSince: null, position: 0, running: true });
             this.began = performance.now();
-            const latencyFrames = audio.latencyFrames ?? engine.estimatedLatencyFrames();
+            const latencyFrames = latencyNow();
             engine.play({ fromSeconds: 0, bpm, record: true, latencyFrames, leadSeconds: leadSeconds() });
             const tick = () => {
                 const position = engine.positionSeconds();

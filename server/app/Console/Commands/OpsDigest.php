@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace App\Console\Commands;
 
 use App\Actions\Boards\Boards;
+use App\Actions\Counts\Funnel;
+use App\Actions\Counts\Growth;
+use App\Actions\Counts\RecordCounts;
 use App\Actions\Support\SupportInbox;
 use App\Enums\SecurityEventType;
 use App\Enums\SubmissionStatus;
@@ -68,6 +71,10 @@ final class OpsDigest extends Command
             ]),
         ];
 
+        if (($sources = self::sources($day)) !== null) {
+            $lines[] = $sources;
+        }
+
         $waiting = array_filter([
             'support' => SupportInbox::overdue(),
             'appeals' => Notice::query()->whereNotNull('appealed_at')->whereNull('decided_at')->count(),
@@ -129,5 +136,60 @@ final class OpsDigest extends Command
         $this->info('Digest sent ('.count($lines).' lines).');
 
         return self::SUCCESS;
+    }
+
+    /**
+     * Where yesterday's new visitors came from (the anonymous counts, by their ?ref= source): the
+     * top three by arrivals, each with the accounts it made, and the rest together. A source under
+     * five arrivals is never named on its own (as Growth folds them), so a handful never stands for
+     * a person. Null when nobody came by a tagged link.
+     */
+    public static function sources(string $day): ?string
+    {
+        $rows = DB::table('usage_counts')->where('day', $day)->where('source', '!=', '')
+            ->whereIn('kind', [...Funnel::ARRIVALS, 'f_account'])
+            ->selectRaw('source, kind, sum(count) as total')->groupBy('source', 'kind')->get();
+
+        $by = [];
+
+        foreach ($rows as $row) {
+            $column = $row->kind === 'f_account' ? 'accounts' : 'arrivals';
+            $by[(string) $row->source][$column] = ($by[(string) $row->source][$column] ?? 0) + (int) $row->total;
+        }
+
+        $named = [];
+        $others = ['arrivals' => 0, 'accounts' => 0];
+
+        foreach ($by as $source => $n) {
+            $arrivals = $n['arrivals'] ?? 0;
+            $accounts = $n['accounts'] ?? 0;
+
+            if ($arrivals >= Growth::FOLD_UNDER) {
+                $named[$source] = ['arrivals' => $arrivals, 'accounts' => $accounts];
+            } else {
+                $others['arrivals'] += $arrivals;
+                $others['accounts'] += $accounts;
+            }
+        }
+
+        uasort($named, static fn (array $a, array $b): int => $b['arrivals'] <=> $a['arrivals']);
+
+        foreach (array_slice($named, 3, null, true) as $n) {
+            $others['arrivals'] += $n['arrivals'];
+            $others['accounts'] += $n['accounts'];
+        }
+
+        $parts = [];
+
+        foreach (array_slice($named, 0, 3, true) as $source => $n) {
+            $name = str_starts_with($source, RecordCounts::TOOL_PREFIX) ? (string) __('ops.digest.tool_source', ['name' => substr($source, strlen(RecordCounts::TOOL_PREFIX))]) : $source;
+            $parts[] = (string) __('ops.digest.source', ['source' => $name, 'arrivals' => $n['arrivals'], 'accounts' => $n['accounts']]);
+        }
+
+        if ($others['arrivals'] > 0) {
+            $parts[] = (string) __('ops.digest.source', ['source' => (string) __('ops.digest.other_sources'), 'arrivals' => $others['arrivals'], 'accounts' => $others['accounts']]);
+        }
+
+        return $parts === [] ? null : (string) __('ops.digest.sources', ['list' => implode(', ', $parts)]);
     }
 }

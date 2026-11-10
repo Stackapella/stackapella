@@ -270,6 +270,51 @@ export function steadyRange(track, { from = 0, to = Infinity }) {
     return low === Infinity ? null : { low: Math.round(low), high: Math.round(high) };
 }
 
+export const BREAK_SECONDS = 0.25; // a stop this long in a lip trill, a hum or an "oo" is a break; a trill's buzz flickers shorter
+export const BREAK_DIP_DB = 12; // stopped: this far under the sound's own level (as legato's joins), whatever the room's hum
+export const BREAK_EDGE = 0.1; // seconds at each end of a sounding stretch left out of following the path (a trill's start and end read an octave high)
+
+/**
+ * Which frames from `from` to `to` seconds are sounding (Humming and lip trills' `unbroken`): within BREAK_DIP_DB of the
+ * sound's own level (the median loudness of its voiced readings), so a trill the tracker reads only in part, its clarity
+ * under the bar, still sounds, and a stop is heard through a room's -45 dB mains hum. A track with no loudness line (a
+ * synthetic one) sounds where it's voiced. Returns `{ first, sounding }`: the first frame's index, and 1 or 0 per frame.
+ */
+export function soundingFrames(track, { from = 0, to = Infinity }) {
+    const first = Math.max(0, Math.ceil(from * track.rate));
+    const last = Math.min(track.hz.length - 1, Math.floor(to * track.rate));
+    const sounding = new Uint8Array(Math.max(0, last - first + 1));
+    const loud = track.loudness;
+    const voiced = [];
+    if (loud) for (let i = first; i <= last; i++) if (track.hz[i] > 0 && Number.isFinite(loud[i])) voiced.push(loud[i]);
+    voiced.sort((a, b) => a - b);
+    const level = voiced.length ? voiced[voiced.length >> 1] : null;
+    for (let i = first; i <= last; i++) sounding[i - first] = level === null ? (track.hz[i] > 0 ? 1 : 0) : loud[i] > level - BREAK_DIP_DB ? 1 : 0;
+    return { first, sounding };
+}
+
+/**
+ * Where a sound that should run unbroken stopped (Humming and lip trills' `unbroken`): every stop of BREAK_SECONDS or
+ * more between `from` and `to` seconds, after its first sound, a stop before the end included, judged by loudness
+ * (soundingFrames). Returns the breaks' times in seconds (each stop's start).
+ */
+export function breaksIn(track, { from = 0, to = Infinity, gap = BREAK_SECONDS }) {
+    const { first, sounding } = soundingFrames(track, { from, to });
+    const need = Math.round(gap * track.rate);
+    const breaks = [];
+    let started = false;
+    let quietFrom = null;
+    for (let k = 0; k < sounding.length; k++) {
+        if (sounding[k]) {
+            if (started && quietFrom !== null && k - quietFrom >= need) breaks.push((first + quietFrom) / track.rate);
+            started = true;
+            quietFrom = null;
+        } else if (started && quietFrom === null) quietFrom = k;
+    }
+    if (started && quietFrom !== null && sounding.length - quietFrom >= need) breaks.push((first + quietFrom) / track.rate);
+    return breaks;
+}
+
 export const FLIP_RANGE = [3, 17]; // semitones above the comfortable note where a flip is believed (the high siren reaches 19)
 export const FLIP_HEADROOM = 2; // and the voice reached at least this far above it, so the hook's top (two above the flip) was sung
 export const FLIP_AGREE = 2; // two flips within this many semitones confirm each other
@@ -335,6 +380,9 @@ export const CRY_SECONDS = [0.06, 0.25];
 const CRY_ON_FIRST = 5; // readings on the note just before the flick
 export const YOUR_WAY_SECONDS = 1; // a move you chose yourself counts only on a note this long
 const SLIDE_STEP = 2; // semitones: a slide spans at least this
+const SLIDE_NEAR = 20; // cents of a note's own centre: on it, for a slide's whole transit
+const SLIDE_TRANSIT = 0.14; // seconds: a slide's whole transit, ±20 cents of one note's centre to the other's; legato moves take under it
+const SLIDE_LATE = 0.12; // seconds: a short note slid into is searched this far past its middle too (a singer a little behind)
 const TASTE_SHARE = 0.5; // moves on more than this share of the notes: "less is more"
 
 /** The readings of `track` from `from` to `to` seconds, as cents from `midi` folded into its nearest octave (null when unvoiced). */
@@ -355,7 +403,12 @@ export function scoopInto(track, note, { beatSeconds, window = SCOOP_WITHIN, pre
     const start = note.beat * beatSeconds;
     const joined = !!prev && Math.abs(prev.beat + prev.length - note.beat) <= JOINED;
     const cents = centsAround(track, note.pitch, joined ? start : start - 0.05, start + window + 0.1);
-    const first = cents.findIndex((c, i) => c !== null && cents[i + 1] != null && cents[i + 2] != null);
+    // Joined: readings still on the note before (a singer a little behind the beat) are its tail, not the scoop
+    // (the courses lead's scoring audit, 2026-11-08).
+    const prevCents = joined ? (prev.pitch - note.pitch) * 100 : null;
+    let lead = 0;
+    if (joined) while (lead < cents.length && (cents[lead] === null || Math.abs(cents[lead] - prevCents) <= SCOOP_BELOW_PREV)) lead++;
+    const first = cents.findIndex((c, i) => i >= lead && c !== null && cents[i + 1] != null && cents[i + 2] != null);
     if (first < 0) return false;
     const from = [cents[first], cents[first + 1], cents[first + 2]].sort((x, y) => x - y)[1];
     if (-from < SCOOP_FROM[0] || -from > SCOOP_FROM[1]) return false;
@@ -408,10 +461,14 @@ export function slideInto(track, a, b, { beatSeconds }) {
     if (Math.abs(b.pitch - a.pitch) < SLIDE_STEP || Math.abs(b.beat - (a.beat + a.length)) > JOINED) return false;
     const joint = b.beat * beatSeconds;
     const from = Math.max(0, Math.round((joint - a.length * beatSeconds) * track.rate)); // the whole first note: an eased slide leaves it early
-    const to = Math.min(track.hz.length - 1, Math.round((joint + Math.min(SLIDE_SECONDS[1], (b.length * beatSeconds) / 2)) * track.rate));
+    const to = Math.min(track.hz.length - 1, Math.round((joint + Math.min(SLIDE_SECONDS[1], (b.length * beatSeconds) / 2 + SLIDE_LATE)) * track.rate));
     const off = (k, pitch) => (track.hz[k] > 0 ? Math.abs(hzToCents(track.hz[k], pitch)) : Infinity);
     let reached = -1;
-    for (let k = from; k <= to; k++) if (off(k, b.pitch) <= ON_NOTE && off(k + 1, b.pitch) <= ON_NOTE) { reached = k; break; }
+    // On the first note before anything else: an up-and-back figure's slide into it ends on b's pitch, so b is
+    // looked for only once the voice has been on a (the scoring audit, 2026-11-08).
+    let onA = from;
+    while (onA <= to && off(onA, a.pitch) > ON_NOTE) onA++;
+    for (let k = onA; k <= to; k++) if (off(k, b.pitch) <= ON_NOTE && off(k + 1, b.pitch) <= ON_NOTE) { reached = k; break; }
     let left = -1;
     for (let k = reached - 1; k >= from && reached >= 0; k--) if (off(k, a.pitch) <= ON_NOTE) { left = k; break; }
     if (reached < 0 || left < 0) return false;
@@ -426,7 +483,22 @@ export function slideInto(track, a, b, { beatSeconds }) {
         if (midi > low && midi < high) between++;
     }
     const seconds = (reached - left) / track.rate;
-    return seconds >= SLIDE_SECONDS[0] && seconds <= SLIDE_SECONDS[1] && voiced > 0 && between / voiced > 0.5;
+    // Each note's own centre (its middle's median), then the whole transit: the last reading within ±20 of a's
+    // centre to the first two within ±20 of b's, so a slide's eased ends count as the slide they are.
+    const centreOf = (pitch, t0, t1) => {
+        const xs = [];
+        for (let k = Math.round(t0 * track.rate); k <= Math.round(t1 * track.rate); k++) if (track.hz[k] > 0) xs.push(hzToCents(track.hz[k], pitch));
+        return xs.length >= 5 ? median(xs) : 0;
+    };
+    const ca = centreOf(a.pitch, a.beat * beatSeconds + 0.1, joint - 0.15);
+    const cb = centreOf(b.pitch, joint + 0.3, (b.beat + b.length) * beatSeconds - 0.1);
+    const near = (k, pitch, c) => track.hz[k] > 0 && Math.abs(hzToCents(track.hz[k], pitch) - c) <= SLIDE_NEAR;
+    let arrived = reached;
+    while (arrived <= to && !(near(arrived, b.pitch, cb) && near(arrived + 1, b.pitch, cb))) arrived++;
+    let departed = left;
+    while (departed > from && !near(departed, a.pitch, ca)) departed--;
+    const transit = (arrived - departed) / track.rate;
+    return transit >= SLIDE_TRANSIT && seconds <= SLIDE_SECONDS[1] && voiced > 0 && between / voiced > 0.5;
 }
 
 /** A cry in `note`: a flick 100 to 400 cents above it for 60 to 250 ms, then back on it. */

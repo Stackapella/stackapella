@@ -13,7 +13,8 @@ import { computed, markRaw, reactive } from 'vue';
 import * as db from '../db.js';
 import { first } from '../funnel.js';
 import { audio, engine, leadSeconds, tookTake, unlock } from '../audio.js';
-import { click, isSilent, peaks as toPeaks } from '../dsp.js';
+import { click, FRAMES_PER_PEAK, isSilent, peaks as toPeaks, suggestTranspose } from '../dsp.js';
+import { liveSession } from './session-live.js';
 import { renderGuide } from '../guides.js';
 import { styleOf } from '../band-style.js';
 import { lazyView } from '../lazy.js';
@@ -27,7 +28,7 @@ import { droneNotes } from '../drone.js';
 import { lengthBeats, lyricLines, partsFor, phrases as templatePhrases } from '../templates.js';
 import { beatsPerBar, defaultPartName, PART_COLORS, transposeKey } from '../theme.js';
 import { toast } from '../components/ui.js';
-import { earn, practised } from './learning.js';
+import { earn, learning, practised } from './learning.js';
 import { onCloudChange, refreshShared } from './cloud.js';
 import { account } from './account.js';
 import { mayChangePart } from '../sync.js';
@@ -38,10 +39,10 @@ import { compress, DEFAULT_ROOM, impulseResponse, levelGains, limit, polishRende
 import { prefs } from './prefs.js';
 import { local } from '../storage.js';
 import { count } from '../usage.js';
-import { chipCountIn } from '../game/chip.js';
+import { chipCountIn } from '../game/modules.js';
 
 export const GUIDE_PEAKS_RATE = 48000; // guide outlines are made at 48 kHz (stores/projects.js)
-export const FRAMES_PER_PEAK = 512;
+export { FRAMES_PER_PEAK };
 
 export const session = reactive({
     screen: 'sing', // 'sing' (practising) or 'studio' (mixing): setScreen()
@@ -72,6 +73,8 @@ export const session = reactive({
     // voice exists but the synth plays, for `why`: 'key', 'speed', 'version', 'chosen' or 'failed').
     guideVoices: {},
 });
+// The rest of the app reads it from here (session-live.js), so lesson 1 never has to load this store.
+liveSession.value = session;
 
 // Not reactive: big audio, timers and handles.
 const kept = {
@@ -435,6 +438,22 @@ export async function refreshVoices() {
 }
 
 /** The template's part that a slot sings, or null for a plain part. */
+/**
+ * How well a part suits the singer's range, for the next part to suggest (lower is better): a part that
+ * fits as written first, then the smallest shift; null when the range isn't known.
+ */
+export function rangeFit() {
+    const singer = learning.progress?.range ?? null;
+    if (!singer) return null;
+    const shift = session.project?.transpose || 0; // the song's key as it stands
+    return (slot) => {
+        const range = templatePart(slot)?.range;
+        if (!range) return 99;
+        const fit = suggestTranspose(singer, { low: range.low + shift, high: range.high + shift });
+        return (fit.fits ? 0 : 50) + Math.abs(fit.transpose);
+    };
+}
+
 export function templatePart(part) {
     return part.templatePartKey ? session.project.template?.parts.find((tp) => tp.key === part.templatePartKey) ?? null : null;
 }
@@ -1234,7 +1253,7 @@ export async function finishRecording({ interrupted = false } = {}) {
         Object.assign(target, { takeId: stored?.takeId ?? target.takeId, keptTakes: stored?.keptTakes ?? [] });
         const previous = !first ? target.keptTakes[0]?.takeId : null;
         const undo = previous ? () => useTake(target, previous) : () => (before.samples ? storeTake(target, before.fields, before.samples) : clearTakeOf(target));
-        const next = (target.templatePartKey && nextSlot(session.parts, session.project.template, target.id)) || null;
+        const next = (target.templatePartKey && nextSlot(session.parts, session.project.template, target.id, rangeFit())) || null;
         const everyPart = !!target.templatePartKey && session.progress.done === session.progress.total;
         if (first) recorded(everyPart);
         if (session.focusPart?.id === target.id) session.practice.mode = 'listen';

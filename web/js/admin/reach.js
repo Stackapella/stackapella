@@ -32,15 +32,18 @@ export function weekIn(week, measure) {
 }
 
 /**
- * The daily view: the last `count` of `days` (oldest first), each paired with the day `count` earlier,
- * in devices if every one of them has devices, else opens. `{ measure, bars: [{ key, now, before }] }`.
+ * The daily view: the last `count` days ending with today so far (Hillel: "include today as the last
+ * day also"), oldest first, each paired with the day `count` earlier, in devices if every one of them
+ * has devices, else opens. `{ measure, bars: [{ key, now, before, soFar }] }`; without `today` (an
+ * older server), the last whole day ends it.
  */
-export function dailyBars(days = [], count) {
-    const shown = days.slice(-count);
-    const earlier = days.slice(Math.max(0, days.length - 2 * count), Math.max(0, days.length - count));
+export function dailyBars(days = [], count, today = null) {
+    const series = today && !days.some((d) => d.day === today.day) ? [...days, today] : days;
+    const shown = series.slice(-count);
+    const earlier = series.slice(Math.max(0, series.length - 2 * count), Math.max(0, series.length - count));
     const offset = shown.length - earlier.length; // the earlier days missing at the start, before the counts began
     const measure = shown.length && [...shown, ...earlier].every((d) => d.devices) ? 'devices' : 'opens';
-    const bars = shown.map((d, i) => ({ key: d.day, now: weekIn(d, measure), before: weekIn(earlier[i - offset] ?? null, measure) }));
+    const bars = shown.map((d, i) => ({ key: d.day, soFar: !!today && d.day === today.day, now: weekIn(d, measure), before: weekIn(earlier[i - offset] ?? null, measure) }));
     return { measure, bars };
 }
 
@@ -93,7 +96,8 @@ export const ReachChart = {
                     <li v-for="b in bars" :key="b.key" class="flex h-full items-end gap-px" :data-bar="b.key" :title="label(b)">
                         <span class="sr-only">{{ label(b) }}</span>
                         <i class="block w-2/5 rounded-t-sm bg-cream/20" :style="{ height: height(b.before?.total) + '%' }" aria-hidden="true"></i>
-                        <span v-if="b.now" class="flex w-3/5 flex-col justify-end" :style="{ height: height(b.now.total) + '%' }" aria-hidden="true">
+                        <!-- Today so far (a day or week not over): lighter, with a dashed top, and named under the chart. -->
+                        <span v-if="b.now" class="flex w-3/5 flex-col justify-end" :class="b.soFar ? 'rounded-t-sm border-2 border-b-0 border-dashed border-cream/70 opacity-60' : ''" :style="{ height: height(b.now.total) + '%' }" :data-so-far="b.soFar ? '' : null" aria-hidden="true">
                             <i class="block rounded-t-sm bg-part-4" :style="{ flexGrow: b.now.guest }"></i>
                             <i class="block bg-accent" :style="{ flexGrow: b.now.account }"></i>
                         </span>
@@ -107,6 +111,7 @@ export const ReachChart = {
                     <span class="inline-flex items-center gap-1.5"><i class="inline-block size-2.5 rounded-sm bg-accent" aria-hidden="true"></i>{{ t('admin.reach.account') }}</span>
                     <span class="inline-flex items-center gap-1.5"><i class="inline-block size-2.5 rounded-sm bg-part-4" aria-hidden="true"></i>{{ t('admin.reach.guest') }}</span>
                     <span v-if="view !== 'today'" class="inline-flex items-center gap-1.5"><i class="inline-block size-2.5 rounded-sm bg-cream/20" aria-hidden="true"></i>{{ beforeKey }}</span>
+                    <span v-if="view !== 'today' && bars.at(-1)?.soFar" class="inline-flex items-center gap-1.5" data-so-far-key><i class="inline-block size-2.5 rounded-sm border border-dashed border-cream/70 bg-accent opacity-60" aria-hidden="true"></i>{{ view === 'days' ? t('admin.reach.todaySoFar') : t('admin.reach.weekNotOver') }}</span>
                 </p>
                 <p class="mt-2 text-xs text-muted" data-reach-note>{{ t(MEASURES[measure].note) }}</p>
             </template>
@@ -116,7 +121,7 @@ export const ReachChart = {
             return this.days === 1 ? 'today' : this.days === 7 || this.days === 30 ? 'days' : 'weeks';
         },
         daily() {
-            return dailyBars(this.reach?.days, this.days);
+            return dailyBars(this.reach?.days, this.days, this.reach?.today ?? null);
         },
         pair() {
             return todayPair(this.reach?.days, this.reach?.today ?? null);
@@ -155,6 +160,7 @@ export const ReachChart = {
         },
         lastLabel() {
             const last = this.bars.at(-1);
+            if (last?.soFar && this.view === 'days') return t('admin.reach.todaySoFar');
             return last?.soFar ? t('admin.reach.soFar', { to: this.day(last.key) }) : this.day(last?.key);
         },
     },
@@ -181,7 +187,7 @@ export const ReachChart = {
         /** "25 Oct: 18 signed in, 57 guests. 7 days earlier 65 (+16%)." */
         label(b) {
             if (!b.now) return t('admin.reach.weekPending', { to: this.day(b.key) });
-            const key = b.soFar ? tk('admin.reach.weekSoFarLabel') : this.view === 'days' ? tk('admin.reach.dayLabel') : tk('admin.reach.weekLabel');
+            const key = b.soFar ? (this.view === 'days' ? tk('admin.reach.daySoFarLabel') : tk('admin.reach.weekSoFarLabel')) : this.view === 'days' ? tk('admin.reach.dayLabel') : tk('admin.reach.weekLabel');
             const line = t(key, { to: this.day(b.key), account: this.number(b.now.account), guest: this.number(b.now.guest) });
             if (!b.before) return line;
             const moved = change(Math.round(b.now.total), Math.round(b.before.total)).text;

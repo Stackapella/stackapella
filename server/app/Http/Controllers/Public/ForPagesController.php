@@ -19,11 +19,13 @@ final class ForPagesController extends Controller
 {
     public function show(Request $request, string $who): Response
     {
-        if (! in_array($who, SitePages::FOR, true)) {
+        if (! in_array($who, SitePages::FOR_PAGES, true)) {
             return response()->view('public.page-gone', ['links' => ['app' => '/features']], 404, SongPagesController::headers());
         }
 
         $page = SitePages::page('for', $who);
+        // A page's questions, if it has them (choir directors').
+        $page['faq'] = array_values(array_filter((array) ($page['faq'] ?? []), 'is_array'));
 
         return response()->view('site.for', [
             'title' => SitePages::title((string) $page['title']),

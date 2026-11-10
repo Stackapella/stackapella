@@ -5,11 +5,14 @@ declare(strict_types=1);
 namespace Tests\Feature\Voices;
 
 use App\Actions\Templates\SyncOfficialTemplates;
+use App\Enums\TemplateAccess;
 use App\Models\BetaAssignment;
 use App\Models\BetaSinger;
 use App\Models\CourseClip;
+use App\Models\Template;
 use App\Models\User;
 use App\Support\Flags;
+use App\Support\Templates\Catalogue;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -123,5 +126,34 @@ final class LendVoiceTest extends TestCase
         $this->getJson('/api/voices/claims')->assertJsonCount(0, 'data');
         $this->artisan('app:voices:release')->expectsOutputToContain('Released 4')->assertSuccessful();
         $this->assertContains('clip:yodel.flip', array_column((array) $this->getJson('/api/voices/wanted')->json('data.items'), 'id'));
+    }
+
+    public function test_a_beta_singer_opens_every_song_with_their_account_claimed_or_not(): void
+    {
+        // Every library song is free with an account (2026-11-07): a claim gives nothing extra.
+        $ana = $this->singer();
+        $singer = BetaSinger::factory()->create(['user_id' => $ana->id, 'accepted_at' => now()]);
+        $song = Template::query()->official()->where('access', TemplateAccess::Plus)->firstOrFail();
+        $this->assertSame('account', app(Catalogue::class)->grant($song, $ana));
+
+        BetaAssignment::factory()->create(['beta_singer_id' => $singer->id, 'template_id' => $song->id, 'claimed_at' => now(), 'expires_at' => now()]);
+        $this->assertSame('account', app(Catalogue::class)->grant($song, $ana));
+    }
+
+    public function test_claims_are_limited_to_six_a_day(): void
+    {
+        app(Flags::class)->set('lend_voice', 'on', null, 'Open');
+        $this->singer();
+        $this->join();
+
+        foreach (range(1, 6) as $n) {
+            $this->postJson('/api/voices/claims', ['item' => 'clip:yodel.flip'])->assertCreated();
+            $this->deleteJson('/api/voices/claims/'.BetaAssignment::query()->whereNotNull('course_clip_id')->sole()->sqid())->assertNoContent();
+            $this->artisan('app:voices:release')->assertSuccessful();
+        }
+
+        $over = $this->postJson('/api/voices/claims', ['item' => 'clip:yodel.flip']);
+        $this->assertMatchesContract($over, 'voices.claims.create', 429);
+        $over->assertJsonPath('code', 'rate_limited');
     }
 }

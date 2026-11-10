@@ -1,0 +1,18 @@
+{
+    "data": {
+        "id": "3f2a8c1e-5b7d-4e9a-a1c2-7d8e9f0a1b2c",
+        "title": "Shenandoah (our arrangement)",
+        "version": 1,
+        "owner": {
+            "id": "Pq7Rm2",
+            "name": "Ana Ruiz"
+        },
+        "visibility": "private",
+        "imported": true,
+        "rights": {
+            "confirmedBy": "Ana Ruiz, Music Director, Riverside Chorus",
+            "confirmedAt": "2026-11-02T10:00:00Z",
+            "source": "Email to hillel@stackapella.com, 2 November 2026"
+        }
+    }
+}

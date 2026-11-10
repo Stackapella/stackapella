@@ -5,7 +5,7 @@
 // vibrato.js), folded to the nearest octave, so a man singing a line an octave down isn't off.
 // Every threshold is a named constant, tuned on real voices on the beta before stars depend on it.
 
-import { centsOf } from './vibrato.js';
+import { centsOf, isNaturalVibrato, measureHold } from './vibrato.js';
 
 const BEFORE = 0.25; // a note's readings start this early, to catch an early entry
 const ONSET_SKIPPED = 0.02; // the tracker's first reading of a sound can be wild
@@ -14,6 +14,10 @@ export const SETTLE_SPREAD = 25; // ...that stays within ± this of itself
 export const LAND_WITHIN = 0.8; // never settled by then: the note was a slide, not a landing
 export const CLEAN_SECONDS = 0.06; // settled this soon after the first sound is a clean start
 export const SLIDE_CENTS = 50; // or the first sound was this close to where it landed (the usual scoop is 30 to 80)
+// A joined note's move from the note before (legato, as the guide sings it, or a little behind the beat) is clean
+// within this (the courses lead's scoring audit, 2026-11-08: 0.06 still halved a 100 ms legato move, 0.15 let a
+// 150-cent scoop through).
+export const JOINED_CLEAN = 0.1;
 export const LANDING_FULL = 25; // a landing this close earns full credit (three stars)...
 export const LANDING_GOOD = 35; // ...this close two stars' worth (full in the generous first lesson)...
 export const LANDING_ZERO = 100; // ...falling to none at a semitone off
@@ -51,10 +55,23 @@ const falling = (off, full, zero) => clamp01(1 - (Math.abs(off) - full) / (zero 
  * name must be that leap, not the same note an octave off), the seconds from the first sound to it,
  * and the start: 'clean', 'scoop'
  * (slid up into it), 'fall' (slid down) or 'slide' (never settled). Null when nothing was heard.
+ * `prev`: for a note joined to the one before (no rest between), that note's pitch in cents from this one.
+ * `clean`: settled this soon after the first sound is still a clean start (CLEAN_SECONDS; a whistle's is longer).
  */
-export function landing(cents, rate, { exact = false } = {}) {
-    const first = cents.findIndex((c) => c !== null && Number.isFinite(c));
+export function landing(cents, rate, { exact = false, prev = null, clean = CLEAN_SECONDS } = {}) {
+    let first = cents.findIndex((c) => c !== null && Number.isFinite(c));
     if (first < 0) return null;
+    // Joined to the note before: readings still on it are its tail (a singer a little behind the beat, or
+    // moving legato), not this note's start. A repeated note has no tail to skip; a note sung entirely on the
+    // one before is judged as sung (a wrong note).
+    if (prev !== null && Math.abs(prev) > SLIDE_CENTS) {
+        // In the octave sung (a man an octave down): the note before's tail sits an octave under `prev` too.
+        const heardAll = cents.filter((c) => c !== null && Number.isFinite(c));
+        const octave = heardAll.length ? 1200 * Math.round(median(heardAll) / 1200) : 0;
+        let j = first;
+        while (j < cents.length && (cents[j] === null || Math.abs(cents[j] - octave - prev) <= SLIDE_CENTS)) j++;
+        if (j < cents.length) first = j;
+    }
     const from = first + Math.round(ONSET_SKIPPED * rate);
     const window = Math.max(3, Math.round(SETTLE_SECONDS * rate));
     const last = Math.min(cents.length - window, first + Math.round(LAND_WITHIN * rate));
@@ -66,7 +83,7 @@ export function landing(cents, rate, { exact = false } = {}) {
         const landed = exact ? median(folded) : fold(median(folded));
         const after = (i - first) / rate;
         const start = fold(cents[from] ?? cents[first], landed);
-        const slid = after > CLEAN_SECONDS && Math.abs(start - landed) >= SLIDE_CENTS;
+        const slid = after > (prev !== null ? Math.max(JOINED_CLEAN, clean) : clean) && Math.abs(start - landed) >= SLIDE_CENTS;
         return { cents: Math.round(landed), after, start: slid ? (start < landed ? 'scoop' : 'fall') : 'clean' };
     }
     const heard = cents.slice(from).filter((c) => c !== null);
@@ -104,7 +121,21 @@ function held(cents, rate) {
     const part = cents.slice(Math.round(TRIM_START * rate), cents.length - Math.round(TRIM_END * rate)).filter((c) => c !== null);
     if (part.length < rate * 0.5) return null;
     const centre = median(part);
-    const folded = part.map((c) => fold(c, centre));
+    // In the target's octave: a hold sung (or tracked) an octave off isn't off (the scoring audit, 2026-11-08).
+    const octave = 1200 * Math.round(centre / 1200);
+    const folded = part.map((c) => fold(c, centre) - octave);
+    // A natural vibrato is taken out over a whole number of its cycles (a fixed 0.4 s median nulls only a 5 a second
+    // wave: 5.5 a second kept ±14 of a ±50 vibrato). A shake or a wobble isn't natural: it keeps the median below.
+    const wave = measureHold(cents, rate);
+    if (wave && isNaturalVibrato(wave)) {
+        const span = Math.max(3, Math.round((rate / wave.hz) * Math.max(1, Math.round(SMOOTH * wave.hz))));
+        if (folded.length >= span) {
+            return folded.map((_, i) => {
+                const a = Math.max(0, Math.min(i - (span >> 1), folded.length - span));
+                return mean(folded.slice(a, a + span));
+            });
+        }
+    }
     const half = Math.max(1, Math.floor(Math.round(SMOOTH * rate) / 2));
     return folded.map((_, i) => median(folded.slice(Math.max(0, i - half), i + half + 1)));
 }
@@ -150,6 +181,16 @@ export function centre(cents, rate) {
     return { percent: Math.round(100 * falling(middle, CENTRE_FULL, LANDING_ZERO)), centre: Math.round(middle) };
 }
 
+/** A lock step's note that isn't do or so: its centre (a third tuned to a drone sits off the piano), held steady around it. */
+export function steadyCentre(cents, rate) {
+    const line = held(cents, rate);
+    if (!line) return { percent: null, centre: null };
+    const middle = median(line);
+    const credit = (c) => (Math.abs(c) <= LOCK_FULL ? 1 : (LOCK_PARTS.find(([within]) => Math.abs(c) <= within)?.[1] ?? 0));
+    const steady = mean(line.map((c) => credit(c - middle)));
+    return { percent: Math.round(100 * falling(middle, CENTRE_FULL, LANDING_ZERO) * steady), centre: Math.round(middle) };
+}
+
 /**
  * A note sung from memory, with nothing heard first: how many cents from the target it landed (in
  * the nearest octave, so an octave down isn't a miss). Within a semitone
@@ -174,7 +215,14 @@ export const lockable = (step) => LOCKED_STEPS.includes(((step % 12) + 12) % 12)
  * other note on its centre. Every note is judged and the percent is their average; `notes` holds
  * each one's measure for Hear yourself.
  */
-export function skillPercent(kind, track, target, beatSeconds, { generous = false, named = false, steps = null } = {}) {
+/** The note before's pitch in cents from note `i`, when it runs right into it (no rest); else null. */
+export function prevOf(target, i) {
+    const before = target[i - 1];
+    if (!before || Math.abs(before.beat + before.length - target[i].beat) > 1e-6) return null;
+    return (before.pitch - target[i].pitch) * 100;
+}
+
+export function skillPercent(kind, track, target, beatSeconds, { generous = false, named = false, steps = null, clean = CLEAN_SECONDS } = {}) {
     // A landing is looked for a little before its note, but never inside the note before (joined notes).
     const early = kind === 'landing' || kind === 'memory' || kind === 'line' || kind === 'entry' ? BEFORE : 0;
     const readings = target.map((n, i) => {
@@ -183,7 +231,7 @@ export function skillPercent(kind, track, target, beatSeconds, { generous = fals
         return centsOf(track, { from, to: (n.beat + n.length) * beatSeconds + (kind === 'release' ? RELEASE_AFTER : 0), midi: n.pitch + (n.cents ?? 0) / 100 });
     });
     if (kind === 'landing') {
-        const notes = readings.map((c) => landing(c, track.rate, { exact: named }));
+        const notes = readings.map((c, i) => landing(c, track.rate, { exact: named, prev: prevOf(target, i), clean }));
         return { percent: landingPercent(notes, { generous, named }), notes };
     }
     if (kind === 'entry') {
@@ -199,18 +247,24 @@ export function skillPercent(kind, track, target, beatSeconds, { generous = fals
         const offs = raw.filter((m) => m && m.off !== null && !m.through).map((m) => m.off);
         const usual = offs.length >= 2 ? Math.max(-ENTRY_USUAL, Math.min(ENTRY_USUAL, median(offs))) : 0;
         const notes = raw.map((m) => (m && m.percent !== null && !m.through ? { ...m, percent: Math.round(100 * (0.6 * falling(m.off - usual, ENTRY_ON_TIME, ENTRY_ZERO) + 0.4 * landingCredit(m.landed?.cents ?? 999, false))) } : m));
-        const judged = notes.filter((m) => m && m.percent !== null);
-        return { percent: judged.length ? Math.round(mean(judged.map((m) => m.percent))) : null, notes, usual };
+        // A breath's entry not sung, in a take that was heard, is a miss (as scoreTake counts an unheard note).
+        const judged = notes.filter((m) => m && (m.percent !== null || !m.through));
+        return { percent: judged.some((m) => m.percent !== null) ? Math.round(mean(judged.map((m) => m.percent ?? 0))) : null, notes, usual };
     }
     if (kind === 'release') {
         // A note that ends on time (Breath and stamina): when it stopped against its written end, and its ending steady.
-        const notes = readings.map((c, i) => release(c, track.rate, target[i].length * beatSeconds));
+        // Only a note with a rest after it (or the last) is let go of: a note joined to the next runs on into it
+        // (the scoring audit, 2026-11-08: a perfect legato line scored 25).
+        const releases = target.map((n, i) => !target[i + 1] || target[i + 1].beat - (n.beat + n.length) >= ENTRY_REST);
+        const notes = readings.map((c, i) => (releases[i] ? release(c, track.rate, target[i].length * beatSeconds) : { percent: null, off: null, tail: null }));
         const heard = notes.filter((m) => m.percent !== null);
         return { percent: heard.length ? Math.round(mean(heard.map((m) => m.percent))) : null, notes };
     }
     if (kind === 'line') {
-        // A phrase (Breath and stamina): landing on its notes, then whether its last note ended steady.
-        const notes = readings.map((c) => landing(c, track.rate));
+        // A phrase (Breath and stamina, Classical singing): landing on its notes, then whether its last note ended steady.
+        // A joined note's start is judged after the note before, as landing's are (left out of the round-2 fix by
+        // oversight: a legato phrase read every move as a slide and earned half, the courses lead, 2026-11-08).
+        const notes = readings.map((c, i) => landing(c, track.rate, { prev: prevOf(target, i), clean }));
         const landed = landingPercent(notes, { generous });
         const end = sustain(readings.at(-1), track.rate);
         if (landed === null) return { percent: null, notes, tail: end.tail };
@@ -220,7 +274,7 @@ export function skillPercent(kind, track, target, beatSeconds, { generous = fals
         // A tune started from memory (Perfect your pitch): the first note on how close it came, every
         // note after it on where it landed from that first note, so a do 60 cents off with the tune
         // true to it is right about the tune.
-        const landed = readings.map((c) => landing(c, track.rate));
+        const landed = readings.map((c, i) => landing(c, track.rate, { prev: prevOf(target, i), clean }));
         const anchor = landed[0]?.cents ?? null;
         if (!landed.some(Boolean)) return { percent: null, notes: landed };
         // Every note counts: one not sung is a miss (singing only the do isn't the tune).
@@ -229,9 +283,9 @@ export function skillPercent(kind, track, target, beatSeconds, { generous = fals
     }
     const measures = { lock, drift, centre, memory };
     const notes = readings.map((c, i) => {
-        const measured = (kind === 'lock' && steps && !lockable(steps[i % steps.length]) ? centre : measures[kind])(c, track.rate);
+        const measured = (kind === 'lock' && steps && !lockable(steps[i % steps.length]) ? steadyCentre : measures[kind])(c, track.rate);
         // A note too short to judge as a hold (under about a second) is judged on where it landed.
-        if (measured.percent === null && kind !== 'memory') return { ...measured, percent: landingPercent([landing(c, track.rate)]) };
+        if (measured.percent === null && kind !== 'memory') return { ...measured, percent: landingPercent([landing(c, track.rate, { prev: prevOf(target, i), clean })]) };
         return measured;
     });
     const heard = notes.filter((m) => m.percent !== null);
@@ -300,7 +354,13 @@ export function sustain(cents, rate, { goal = null, generous = false } = {}) {
     const tailRaw = folded.slice(-Math.round(TAIL_SECONDS * rate));
     const tailLine = tailRaw.map((_, i) => median(tailRaw.slice(Math.max(0, i - light), i + light + 1)));
     const swing = (Math.max(...tailLine) - Math.min(...tailLine)) / 2;
-    const tail = tailCentre - middle <= SAG ? 'sagged' : swing > WOBBLE ? 'wobbled' : 'steady';
+    // An even, natural vibrato (the hold's own, the tail no wider than half again) is steady, not the air running
+    // out (the scoring audit, 2026-11-08: a ±50 cent vibrato was called "wobbled").
+    // On the whole hold: measureHold trims its own ends, and the part trimmed here (0.65 s of a short hold) is under the
+    // 0.8 s it needs, so a natural vibrato there went unseen and read as a wobble (the courses lead, 2026-11-08).
+    const wave = measureHold(cents.slice(first, last + 1), rate);
+    const natural = isNaturalVibrato(wave) && swing <= 1.5 * wave.width;
+    const tail = tailCentre - middle <= SAG ? 'sagged' : swing > WOBBLE && !natural ? 'wobbled' : 'steady';
     const steadyShare = clamp01(steady / Math.max(0.1, held - TRIM_START));
     const goalMet = goal ? clamp01(steady / goal) : 1;
     let score = 0.5 * (tail === 'steady' ? 1 : 0.3) + 0.3 * steadyShare + 0.2 * goalMet;
@@ -333,6 +393,8 @@ export function release(cents, rate, seconds) {
     const off = stopped / rate - seconds;
     const end = sustain(cents.slice(0, stopped), rate);
     const timing = falling(off, RELEASE_ON_TIME, RELEASE_ZERO);
+    // A note too short for its ending to be judged (under a second held) is judged on its timing alone.
+    if (end.tail === null) return { percent: Math.round(100 * timing), off: Math.round(off * 100) / 100, tail: null };
     return { percent: Math.round(100 * (0.6 * timing + 0.4 * (end.tail === 'steady' ? 1 : 0.3))), off: Math.round(off * 100) / 100, tail: end.tail };
 }
 

@@ -8,7 +8,7 @@
 // With no code, the page is the teacher's side: making one (views/warmup-builder.js).
 
 import { nextTick } from 'vue';
-import { PageHeader } from '../components/page.js';
+import { AppScreen } from '../components/page.js';
 import { Exercise } from '../components/exercise.js';
 import { Icon } from '../components/icon.js';
 import { midiName } from '../dsp.js';
@@ -26,12 +26,11 @@ const SHIFT_LIMIT = 7;
 const SOUND_NAMES = { ah: tk('warmup.sound.ah'), ee: tk('warmup.sound.ee'), oo: tk('warmup.sound.oo'), oh: tk('warmup.sound.oh'), hum: tk('warmup.sound.hum'), trill: tk('warmup.sound.trill') };
 
 export const WarmupView = {
-    components: { PageHeader, Exercise, Icon, WarmupBuilder },
+    components: { AppScreen, Exercise, Icon, WarmupBuilder },
     data: () => ({ code: null, warmup: null, round: 0, running: false, previewing: false, shift: 0, results: [], finished: false, kept: false }),
     setup: () => ({ REST, SHIFT_LIMIT, SOUND_NAMES }),
     template: `
-        <div class="mx-auto flex min-h-dvh max-w-2xl flex-col px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-[max(0.5rem,env(safe-area-inset-top))] md:px-8" data-warmup>
-            <PageHeader :title="learning.loaded && !code ? t('warmup.make.title') : t('warmup.title')" :back="code ? '/' : '/settings'" />
+        <AppScreen :title="learning.loaded && !code ? t('warmup.make.title') : t('warmup.title')" :back="code ? '/' : '/settings'" measure="max-w-2xl" foot="pb-[max(1rem,env(safe-area-inset-bottom))]">
             <p v-if="!learning.loaded" class="text-muted" role="status">{{ t('settings.loading') }}</p>
             <WarmupBuilder v-else-if="!code" />
             <section v-else-if="!warmup" class="card mt-2 space-y-4 p-6" data-warmup-broken>
@@ -76,7 +75,7 @@ export const WarmupView = {
                     <button type="button" class="btn-ghost btn-sm" :disabled="kept" data-warmup-keep @click="keep"><Icon :name="kept ? 'check' : 'plus'" :size="16" /> {{ kept ? t('warmup.kept') : t('warmup.keep') }}</button>
                 </section>
             </template>
-        </div>`,
+        </AppScreen>`,
     computed: {
         learning: () => learning,
         home: () => learning.progress.home ?? DEFAULT_HOME,

@@ -3,11 +3,11 @@
 // a take that stopped early), then the same through the real pitch tracker on a sung line that drifts.
 // The flip: synthetic tracks with a jump, a dropout, a glide and an octave slip, then sung yodels.
 // The moves (scoop, fall-off, slide, cry): each told from its look-alikes, then the styled scorer.
-import { trackTake } from '/js/pitchtrack.js';
+import { rangeFor, trackTake } from '/js/pitchtrack.js';
 import { bendAt, renderPart } from '/js/synth.js';
 import { fadeOut, layout, noteToGive } from '/js/components/exercise.js';
 import { scoreTake } from '/js/scoring.js';
-import { cryIn, fallOff, flipKeyBase, settleFlip, styleBend, flipPercent, flipPoint, flips, keyDrift, movesHeard, scoopInto, slideInto, steadyRange, styledMoves } from '/js/style-scores.js';
+import { breaksIn, cryIn, fallOff, flipKeyBase, settleFlip, styleBend, flipPercent, flipPoint, flips, keyDrift, movesHeard, scoopInto, slideInto, steadyRange, styledMoves } from '/js/style-scores.js';
 import { PLAY_SCORERS } from '/js/lesson-scores.js';
 import { assert, test } from './harness.js';
 import { sing } from './fixtures.js';
@@ -283,16 +283,16 @@ test('flip finder: two sirens that jump in the same place keep the flip with the
     const target = [{ start: 1, end: 13, pitch: home }];
     const jumping = track([[1, 0], [1, home - 3, home + 5], [1, home + 9, home + 12], [1, home + 12, home + 9], [1, home + 5, home - 3], [1, home - 3, home + 5], [1, home + 9, home + 12], [1, home + 12, home + 9], [1, home + 5, home - 3], [4, home - 3]]);
     const twice = PLAY_SCORERS.flipFinder({ track: jumping, target, notes, exercise: { step: 0 } });
-    assert(twice.percent === 85 && twice.personal.flip === undefined && twice.personal.flipSeen.length === 1, `twice up and down in one siren is one reading: ${JSON.stringify(twice)}`);
+    assert(twice.percent === 100 && twice.personal.flip === undefined && twice.personal.flipSeen.length === 1, `twice up and down in one siren is one reading: ${JSON.stringify(twice)}`);
     const found = PLAY_SCORERS.flipFinder({ track: jumping, target, notes, exercise: { step: 0 }, personal: twice.personal });
     assert(found.percent === 100 && found.personal?.flip === 7, JSON.stringify(found));
     assert(found.line.key === 'styles.flip.found' && found.line.values.note, JSON.stringify(found.line));
     const once = PLAY_SCORERS.flipFinder({ track: track([[1, 0], [1, home - 3, home + 5], [1, home + 9, home + 12], [1, home + 12, home + 9], [1, home + 5, home - 3], [8, home - 3]]), target, notes, exercise: { step: 0 } });
-    assert(once.percent === 85 && once.personal.flip === undefined && once.personal.flipSeen.length === 1 && once.line.key === 'styles.flip.once', JSON.stringify(once));
+    assert(once.percent === 100 && once.personal.flip === undefined && once.personal.flipSeen.length === 1 && once.line.key === 'styles.flip.once', JSON.stringify(once));
     const confirmed = PLAY_SCORERS.flipFinder({ track: track([[1, 0], [1, home - 3, home + 5], [1, home + 9, home + 12], [1, home + 12, home + 9], [1, home + 5, home - 3], [8, home - 3]]), target, notes, exercise: { step: 0 }, personal: once.personal });
     assert(confirmed.personal.flip === 7, `a second siren confirms it: ${JSON.stringify(confirmed)}`);
     const glide = PLAY_SCORERS.flipFinder({ track: track([[1, 0], [3, home - 3, home + 12], [3, home + 12, home - 3], [6, home - 3]]), target, notes, exercise: { step: 0 } });
-    assert(glide.percent === 70 && glide.personal.flip === undefined && glide.line.key === 'styles.flip.none', JSON.stringify(glide));
+    assert(glide.percent === 100 && glide.personal.flip === undefined && glide.line.key === 'styles.flip.none', JSON.stringify(glide));
     const silent = PLAY_SCORERS.flipFinder({ track: track([[14, 0]]), target, notes, exercise: { step: 0 } });
     assert(silent.percent === null, 'not sung: nothing to judge');
 });
@@ -336,6 +336,79 @@ test('smooth: a siren with no jump is the top score; a jump says where, to go li
     assert(PLAY_SCORERS.smooth({ track: track([[12, 0]]), target, notes, exercise: { step: 0 } }).percent === null, 'not sung: nothing to judge');
 });
 
+/** `track(parts)` with a loudness line: `level` dB where `loud(t)` says it sounds, `floor` dB elsewhere (a room's hum). */
+function loudTrack(parts, loud, { level = -18, floor = -45 } = {}) {
+    const t = track(parts);
+    return { ...t, loudness: Float32Array.from(t.hz, (_, i) => (loud(i / t.rate) ? level : floor)) };
+}
+
+test('breaks: a quarter second or more under the sound\'s own level, after the first sound, a stop before the end too; unread trill frames and short dips aren\'t', () => {
+    // No loudness line (a synthetic track): a silence in the readings is a stop.
+    assert(breaksIn(track([[0.5, 0], [2, 57, 64]]), { from: 0, to: 2.5 }).length === 0, 'silence before the first sound isn\'t a break');
+    assert(breaksIn(track([[1, 57], [0.1, 0], [1, 59]]), { from: 0, to: 2.1 }).length === 0, 'a 100 ms flicker is ignored');
+    const two = breaksIn(track([[1, 57], [0.3, 0], [1, 59], [0.5, 0], [0.5, 60]]), { from: 0, to: 3.3 });
+    assert(two.length === 2 && Math.abs(two[0] - 1) < 0.02, `two breaks, the first at 1 s: ${two}`);
+    assert(breaksIn(track([[1.5, 57], [1, 0]]), { from: 0, to: 2.5 }).length === 1, 'stopping before the end is a break');
+    // A trill the tracker reads only in part (its clarity under the bar): 300 ms runs unread, the sound going on.
+    const trill = [[0.5, 57], [0.3, 0], [0.4, 59], [0.3, 0], [0.5, 60]];
+    assert(breaksIn(loudTrack(trill, () => true), { from: 0, to: 2 }).length === 0, 'unread but sounding: no break');
+    // A real stop, through a room's -45 dB mains hum (an absolute gate would hear the hum as sound).
+    assert(breaksIn(loudTrack(trill, (t) => t < 0.5 || t >= 0.8), { from: 0, to: 2 }).length === 1, 'a 300 ms stop down to the hum is a break');
+    assert(breaksIn(loudTrack(trill, (t) => t < 0.6 || t >= 0.8), { from: 0, to: 2 }).length === 0, 'a 200 ms dip isn\'t');
+    // A dip of under 12 dB is the sound getting softer, not a stop.
+    const softer = { ...track([[2, 57]]), loudness: Float32Array.from({ length: 200 }, (_, i) => (i >= 80 && i < 120 ? -26 : -18)) };
+    assert(breaksIn(softer, { from: 0, to: 2 }).length === 0, '8 dB softer for 400 ms is no break');
+});
+
+test('unbroken: the path followed, octave-folded, less for each break, never for height or length; its ends aren\'t followed; unheard says to try a hum', () => {
+    const home = 57;
+    const shape = { seconds: 4, kind: 'path', band: 150, points: [[0, 0], [2, 7], [4, 0]] };
+    const target = [{ start: 0, end: 4, pitch: home }];
+    const exercise = { step: 0, target: [shape] };
+    const on = (t) => home + (t < 2 ? (7 * t) / 2 : 7 - (7 * (t - 2)) / 2);
+    const along = (gaps = [], at = on) => {
+        const parts = [];
+        for (let i = 0; i < 400; i++) {
+            const t = i / 100;
+            parts.push([0.01, gaps.some(([a, b]) => t >= a && t < b) ? 0 : at(t)]);
+        }
+        return track(parts);
+    };
+    const whole = PLAY_SCORERS.unbroken({ track: along(), target, exercise });
+    assert(whole.percent === 100 && whole.line.key === 'styles.unbroken.whole', JSON.stringify(whole));
+    const once = PLAY_SCORERS.unbroken({ track: along([[1.9, 2.3]]), target, exercise });
+    assert(once.percent === 75 && once.line.key === 'styles.unbroken.once' && once.line.values.note === 'E4', `one stop near the top, E4: ${JSON.stringify(once)}`);
+    assert(PLAY_SCORERS.unbroken({ track: along([[1.9, 2.3]]), target, exercise: { ...exercise, generous: true } }).percent === 85, 'generous');
+    const twice = PLAY_SCORERS.unbroken({ track: along([[0.8, 1.1], [2.5, 2.9]]), target, exercise });
+    assert(twice.percent === 55 && twice.line.values.count === 2, JSON.stringify(twice));
+    assert(PLAY_SCORERS.unbroken({ track: along([[1, 1.1]]), target, exercise }).percent === 100, 'a 100 ms flicker isn\'t a break');
+    assert(PLAY_SCORERS.unbroken({ track: along([], (t) => on(t) - 12), target, exercise }).percent === 100, 'an octave down follows it');
+    // A trill's start and release read an octave high (the courses lead's study): the ends aren't followed.
+    // Two stops make six ends; read a tritone off for 80 ms at each, they'd be 15% of the readings (52%, not 55%).
+    const nearEnd = (t) => t < 0.08 || t > 3.92 || [0.8, 2.5].some((a) => t >= a - 0.08 && t < a) || [1.1, 2.9].some((b) => t >= b && t < b + 0.08);
+    const edges = PLAY_SCORERS.unbroken({ track: along([[0.8, 1.1], [2.5, 2.9]], (t) => on(t) + (nearEnd(t) ? 6 : 0)), target, exercise });
+    assert(edges.percent === 55, `a tritone off at each stretch's ends costs nothing: ${JSON.stringify(edges)}`);
+    const lost = PLAY_SCORERS.unbroken({ track: track([[4, 0]]), target, exercise });
+    assert(lost.percent === null && lost.line.key === 'styles.unbroken.unheard', 'not heard: no score, no break, and what to try');
+});
+
+test('unbroken, through the tracker: a lip-trill-like voice keeps its bubble at the trill\'s clarity, and a 300 ms stop through mains hum is a break', () => {
+    // Not a real trill (the courses lead's study had those): the guide's voice up a fifth and back, its loudness cut to
+    // near silence 25 times a second, as flapping lips interrupt the air, over a -45 dB mains hum.
+    const rate = 48000;
+    const notes = [{ beat: 0, length: 2, pitch: 57, bend: [[0, 0], [2, 700]] }, { beat: 2, length: 2, pitch: 64, bend: [[0, 0], [2, -700]] }];
+    const hum = (i) => 0.0056 * Math.sin((2 * Math.PI * 50 * i) / rate);
+    const flutter = (samples) => samples.map((v, i) => v * (0.03 + 0.97 * (0.5 + 0.5 * Math.cos((2 * Math.PI * 25 * i) / rate))) + hum(i));
+    const trilled = flutter(renderPart(notes, { bpm: 60, sampleRate: rate }));
+    const range = rangeFor({ trill: true });
+    assert(range.minClarity === 0.7 && rangeFor({}).minClarity === undefined, 'a trill step\'s bar, and a voice\'s otherwise');
+    const tracked = trackTake(trilled, rate, range);
+    assert(breaksIn(tracked, { from: 0.3, to: 3.7 }).length === 0, `a flutter is no break: ${breaksIn(tracked, { from: 0.3, to: 3.7 })}`);
+    const stopped = Float32Array.from(trilled, (v, i) => (i >= 1.8 * rate && i < 2.1 * rate ? hum(i) : v));
+    const breaks = breaksIn(trackTake(stopped, rate, range), { from: 0.3, to: 3.7 });
+    assert(breaks.length === 1 && Math.abs(breaks[0] - 1.8) < 0.06, `a 300 ms stop, the hum going on, is one break at 1.8 s: ${breaks}`);
+});
+
 test('styles: every result line names words that exist, and a flip lesson says how the way down went', async () => {
     const { t } = await import('/js/i18n.js');
     const rate = 48000;
@@ -343,7 +416,7 @@ test('styles: every result line names words that exist, and a flip lesson says h
     const slidDown = trackTake(sing(rate, { notes: hook, bpm: 60, legato: 350 }), rate);
     const result = PLAY_SCORERS.flip({ track: slidDown, notes: hook, beatSeconds: 1, strictness: 'standard', exercise: {} });
     assert(result.line?.key === 'styles.flip.countDown' && t(result.line.key, result.line.values) !== result.line.key, `the flip line: ${JSON.stringify(result.line)}`);
-    for (const key of ['styles.keyDrift.held', 'styles.keyDrift.low', 'styles.keyDrift.high', 'styles.flip.count', 'styles.moves.asked', 'styles.moves.yours', 'styles.moves.none', 'styles.moves.tooMany', 'styles.range.easy', 'styles.range.one', 'styles.range.none', 'styles.range.smooth', 'styles.range.jumped', 'styles.range.jumpedMore']) {
+    for (const key of ['styles.keyDrift.held', 'styles.keyDrift.low', 'styles.keyDrift.high', 'styles.flip.count', 'styles.moves.asked', 'styles.moves.yours', 'styles.moves.none', 'styles.moves.tooMany', 'styles.range.easy', 'styles.range.one', 'styles.range.none', 'styles.range.smooth', 'styles.range.jumped', 'styles.range.jumpedMore', 'styles.unbroken.whole', 'styles.unbroken.once', 'styles.unbroken.more', 'styles.unbroken.unheard']) {
         assert(t(key, { cents: 30, intervals: 90, clean: 2, count: 2, down: 1, matched: 1, asked: 2 }) !== key, `${key} has words`);
     }
 });
@@ -455,4 +528,35 @@ test('moves: on the lessons\' own note lengths, a copy of the guide\'s slide is 
     const note = { beat: 1, length: 1, pitch: 60 };
     const droop = track([[1, 0], [0.92, 60], [0.08, 60, 57.5], [0.3, 0]]); // 250 cents in the last 80 ms
     assert(!fallOff(droop, note, { beatSeconds: 1 }), 'a release droop');
+});
+
+// ---- The scoring audit's round 2 (2026-11-08): joined notes a little behind the beat ----
+
+test('scoop: into a joined note, a singer a little behind the beat still scoops; plain legato still isn\'t one', () => {
+    const prev = { beat: 0, length: 1, pitch: 58 };
+    const note = { beat: 1, length: 1, pitch: 60 };
+    for (const late of [0.05, 0.08, 0.12]) {
+        assert(scoopInto(track([[1 + late, 58], [0.15, 57, 60], [0.85 - late, 60]]), note, { beatSeconds: 1, prev }), `a 300-cent scoop, ${late * 1000} ms late`);
+    }
+    assert(!scoopInto(track([[1.12, 58], [0.06, 58, 60], [0.82, 60]]), note, { beatSeconds: 1, prev }), 'plain legato, 120 ms late, is no scoop');
+});
+
+test('slide: the slide back to the note before (up and back) is found', () => {
+    const before = { beat: 0, length: 1, pitch: 60 };
+    const a = { beat: 1, length: 1, pitch: 64 };
+    const b = { beat: 2, length: 1, pitch: 60 };
+    // Up a third into a, then back down to b: both 300 ms slides leaving on the beat (the one back was never found).
+    const upAndBack = track([[1, 60], [0.3, 60, 64], [0.7, 64], [0.3, 64, 60], [0.7, 60]]);
+    assert(slideInto(upAndBack, before, a, { beatSeconds: 1 }), 'the slide up');
+    assert(slideInto(upAndBack, a, b, { beatSeconds: 1 }), 'the slide back down to the note before');
+    assert(!slideInto(track([[1, 60], [0.06, 60, 64], [0.94, 64], [0.06, 64, 60], [0.94, 60]]), a, b, { beatSeconds: 1 }), 'plain legato back down is no slide');
+});
+
+test('flip finder: every heard siren earns its stars, the blended one too; the line still says what was found', async () => {
+    const siren = (parts) => PLAY_SCORERS.flipFinder({ track: track(parts), target: [{ start: 0, end: 3 }], notes: [{ pitch: 57 }], exercise: {}, personal: {} });
+    const blended = siren([[3, 57, 72]]);
+    assert(blended.percent === 100 && blended.line.key === 'styles.flip.none', `a light siren that blends: ${blended.percent}`);
+    const jumped = siren([[1.4, 57, 64], [0.02, 64, 70], [1.58, 70, 72]]);
+    assert(jumped.percent === 100, `one jump: ${jumped.percent} (${jumped.line.key})`);
+    assert(siren([[0.5, 57], [2.5, 0]]).percent === null, 'a siren not sung enough to judge');
 });

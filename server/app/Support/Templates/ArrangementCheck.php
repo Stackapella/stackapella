@@ -63,6 +63,11 @@ final class ArrangementCheck
         $end = (float) max([0, ...array_map(static fn (array $s): float => (float) ($s['endBeat'] ?? 0), (array) ($t['sections'] ?? []))]);
         $end = $end > 0 ? $end : TemplateRules::lengthBeats((array) ($t['parts'] ?? []));
         $round = $this->isRound($parts);
+        $long = self::longDecimals($t);
+
+        if ($long !== []) {
+            $hard[] = count($long).' numbers with more than 6 decimal places, the first '.json_encode($long[0][1]).' at '.$long[0][0].": round them to 6 places (MySQL's JSON column reads longer ones back changed, so the stored copy stops matching the file and the sync refuses the song)";
+        }
 
         foreach ($parts as $key => $notes) {
             $this->line($t, $key, $notes, $end, $round, $hard, $advice);
@@ -81,6 +86,31 @@ final class ArrangementCheck
         $this->bars($t, $end, $advice);
 
         return ['hard' => $hard, 'advice' => $advice];
+    }
+
+    /**
+     * Every number with more than 6 decimal places, with where it is: a third of a beat written in
+     * full (90.33333333333333) comes back from MySQL's JSON column as another number.
+     *
+     * @return list<array{0: string, 1: float}>
+     */
+    public static function longDecimals(mixed $value, string $path = ''): array
+    {
+        if (is_float($value)) {
+            return round($value, 6) === $value ? [] : [[$path === '' ? '.' : $path, $value]];
+        }
+
+        if (! is_array($value)) {
+            return [];
+        }
+
+        $found = [];
+
+        foreach ($value as $key => $item) {
+            array_push($found, ...self::longDecimals($item, is_int($key) ? "{$path}[{$key}]" : "{$path}.{$key}"));
+        }
+
+        return $found;
     }
 
     /**

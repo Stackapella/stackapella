@@ -1,6 +1,6 @@
 // Today's workout (js/workout.js): the warm-up fits your range, the weak spot is the one that came
 // up most in your recent singing, the review is your lowest-starred lesson, and free means once a day.
-import { exerciseSeconds, pickWorkout, shifted, stepSeconds, WARM_UP_ROUNDS, weakSpot, workoutUsed } from '/js/workout.js';
+import { exerciseSeconds, pickWorkout, shifted, stepSeconds, WARM_UP_ROUNDS, weakSpot } from '/js/workout.js';
 import { dayOf } from '/js/course.js';
 import { assert, test } from './harness.js';
 
@@ -22,8 +22,7 @@ test('workout: a warm-up, a weak spot, then the lesson with the fewest stars (st
     assert(fresh.steps.length === 2 && fresh.steps[1].insight === null, 'a first workout: a warm-up and a steady hold');
 });
 
-test('workout: free is one a day; Too high and Too low move it a semitone', () => {
-    assert(workoutUsed({ lastWorkout: dayOf() }) && !workoutUsed({ lastWorkout: '2020-01-01' }) && !workoutUsed({}), 'once a day');
+test('workout: Too high and Too low move it a semitone (as many workouts as you like, on every plan)', () => {
     const moved = shifted({ notes: [{ step: 2 }], drone: { step: 0 } }, -1);
     assert(moved.notes[0].step === 1 && moved.drone.step === -1, 'down a semitone');
 });

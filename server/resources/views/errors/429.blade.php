@@ -1,6 +1,10 @@
 {{-- Too many tries in a short time: when to try again, and a way on. --}}
 @extends('public.layout', ['title' => __('errors.rate_limited.title').' | '.__('meta.brand')])
 
+@section('robots')
+    <meta name="robots" content="noindex">
+@endsection
+
 @section('content')
     @php($wait = trans_choice('errors.rate_limited.body', $minutes ?? 1, ['minutes' => $minutes ?? 1]))
     <x-site.notice :headline="__('errors.rate_limited.title')" :body="$wait">

@@ -34,6 +34,14 @@ return [
     'pause_requests' => ['kind' => 'switch', 'values' => ['off', 'on'], 'pauses' => 'requests'],
     'pause_messages' => ['kind' => 'switch', 'values' => ['off', 'on'], 'pauses' => 'messages'],
     'read_only' => ['kind' => 'switch', 'values' => ['off', 'on']],
+    // Hillel's switch for outreach (2026-11-05: "can you auto send 5 a day"; docs/outreach-plan.md):
+    // on, one drafted first email goes every 30 minutes on weekday mornings until the daily cap
+    // (App\Actions\Outreach\AutoSendOutreach). Follow-ups stay his own Send.
+    'outreach_autosend' => ['kind' => 'switch', 'values' => ['off', 'on']],
+    // Hillel's switch for IndexNow (2026-11-09: "Yes, build it"): on, every hour our public pages
+    // that are new to the sitemap or whose words changed go to api.indexnow.org, at most
+    // services.indexnow.daily_cap a day (App\Actions\Site\SubmitToIndexNow). Never self-hosted.
+    'indexnow' => ['kind' => 'switch', 'values' => ['off', 'on']],
 
     'gallery' => ['kind' => 'feature', 'values' => ['off', 'on']],
     // The other network features (N2 to N7; docs/roadmap.md, "After launch"), each opened here.
@@ -47,6 +55,8 @@ return [
     'ideas' => ['kind' => 'feature', 'values' => ['off', 'on']],
     // The Plus courses (docs/plus-courses-plan.md): staff see them while it's off, everyone once on.
     'plus_courses' => ['kind' => 'feature', 'values' => ['off', 'on']],
+    // A lesson page's "Try one round" (docs/lesson-page-try-it-plan.md): a listen-and-choose round on the page, no mic.
+    'lesson_try' => ['kind' => 'feature', 'values' => ['off', 'on']],
     'coaching' => ['kind' => 'feature', 'values' => ['off', 'on']],
     // Coaches apply and are approved (docs/launch-plan.md: open at launch), while the directory
     // (coach_directory, N4) keeps them out of every public list until it opens.

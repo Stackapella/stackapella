@@ -69,7 +69,7 @@ final class EmbedTest extends TestCase
         $this->assertStringContainsString("frame-ancestors 'self'", (string) $page->headers->get('Content-Security-Policy'));
         $this->assertStringNotContainsString('https:;', (string) $page->headers->get('Content-Security-Policy'));
         // The page's Report form can show Turnstile in shield mode; the embed has no form.
-        $this->assertStringContainsString('frame-src https://challenges.cloudflare.com', (string) $page->headers->get('Content-Security-Policy'));
+        $this->assertStringContainsString("frame-src 'self' https://challenges.cloudflare.com", (string) $page->headers->get('Content-Security-Policy'));
         $this->assertStringContainsString("frame-src 'none'", (string) $embed->headers->get('Content-Security-Policy'));
         $this->assertSame(Report::REASONS, array_keys((array) __('sharing.page.reasons')));
 

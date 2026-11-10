@@ -4,17 +4,16 @@ declare(strict_types=1);
 
 namespace App\Support\Pages;
 
-use App\Enums\TemplateAccess;
 use App\Models\Template;
 use App\Support\Http\Hosts;
 use Illuminate\Support\Facades\Storage;
 
 /**
  * An official song as its public page shows it (docs/go-to-market-plan.md, "Search"): the parts
- * and their ranges, the preview clip, the first verse's words from the melody, and Start, or "On
- * Plus". A free song's page (one of the four, or the song of the month while it's free) also
- * plays its opening line in four voices (Landing::line, SongPagesController::show); a Plus song's
- * never shows its parts' notes (Hillel, 2026-10-27, the design round).
+ * and their ranges, the preview clip, the first verse's words from the melody, and Start. Every
+ * song is free with an account (2026-11-07); a page plays its opening line in four voices only for
+ * a song the app bundles (Landing::line, SongPagesController::show): any other song's notes come
+ * only to an account, through the API (Hillel, 2026-10-27, the design round).
  */
 final class SongPage
 {
@@ -49,9 +48,7 @@ final class SongPage
                 isset($credits['words']) ? __('pages.song.words', ['who' => $credits['words']]) : null,
                 isset($credits['tune']) ? __('pages.song.tune', ['who' => $credits['tune']]) : null,
             ])),
-            'plus' => $template->access === TemplateAccess::Plus && ! $template->isFreeOn(now()),
-            'freeThisMonth' => $template->isFreeOn(now()),
-            'ranges' => self::ranges($parts),
+            'ranges' => self::linked(self::ranges($parts), $parts, SongParts::hasPages($template) ? $base.'/songs/'.$template->slug.'/' : null),
             'pageUrl' => $base.'/songs/'.$template->slug,
             'startUrl' => Hosts::app('/?'.http_build_query(['song' => $template->slug, 'ref' => 'song-page'])),
         ];
@@ -91,6 +88,25 @@ final class SongPage
                 'glyphWidth' => max(26.0, $at($high($part)) - $at($low($part))),
             ], $parts, array_keys($parts)),
         ];
+    }
+
+    /**
+     * Each part of the range chart with its own page's address (SongParts), or null when the song has
+     * none: same order as the parts.
+     *
+     * @param  array{marks: list<array{name: string, at: float}>, parts: list<array<string, mixed>>}  $ranges
+     * @param  list<array<string, mixed>>  $parts
+     * @return array{marks: list<array{name: string, at: float}>, parts: list<array<string, mixed>>}
+     */
+    private static function linked(array $ranges, array $parts, ?string $base): array
+    {
+        $ranges['parts'] = array_map(static function (array $row, int $i) use ($parts, $base): array {
+            $key = $parts[$i]['key'] ?? null;
+
+            return [...$row, 'url' => $base !== null && is_string($key) && preg_match(SongParts::KEY, $key) === 1 ? $base.$key : null];
+        }, $ranges['parts'], array_keys($ranges['parts']));
+
+        return $ranges;
     }
 
     /**

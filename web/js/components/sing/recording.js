@@ -33,7 +33,7 @@ export const RecordingStage = {
     template: `
         <div class="flex min-h-0 flex-1 flex-col" data-recording-stage>
             <div class="h-1 shrink-0 bg-record" aria-hidden="true"></div>
-            <header class="grid grid-cols-[1fr_auto_1fr] items-center gap-3 px-4 pb-2 pt-[max(0.75rem,env(safe-area-inset-top))] md:px-8 md:pt-5">
+            <header class="grid grid-cols-[1fr_auto_1fr] items-center gap-3 px-4 pb-2 pt-[max(0.75rem,env(safe-area-inset-top))] md:pt-5 min-[900px]:px-8">
                 <span class="flex items-center gap-1.5 justify-self-start rounded-full glass-record px-3.5 py-1.5 text-sm font-bold tabular-nums" role="status">
                     <span class="size-2 animate-pulse rounded-full bg-record-label" aria-hidden="true"></span>
                     <CountIn v-if="countIn !== null" :beat="countIn" /><template v-else>{{ t('sing.recordingStage.recording') }}</template>
@@ -64,7 +64,7 @@ export const RecordingStage = {
                     <span class="whitespace-nowrap text-base tabular-nums text-cream md:text-2xl" data-take-time>{{ formatTime(position) }} <span class="text-xs text-muted md:text-sm">/ {{ formatTime(length) }}</span></span>
                     <div class="order-3 col-span-2 flex items-center justify-center gap-3 md:order-none md:col-span-1 md:gap-4">
                         <button type="button" class="btn-secondary btn-sm" :disabled="busy" @click="$emit('again')">{{ t('sing.recordingStage.startOver') }}</button>
-                        <button type="button" class="grid size-16 place-items-center rounded-full glass-record transition disabled:opacity-40 md:size-20" :disabled="busy" :aria-label="t('sing.recordingStage.stopKeep')" data-stop @click="$emit('stop')"><Icon name="stop" :size="28" /></button>
+                        <button type="button" class="grid size-16 place-items-center transition disabled:opacity-40 md:size-20 bubble bubble-lg bubble-record bubble-now" data-recording-disc :disabled="busy" :aria-label="t('sing.recordingStage.stopKeep')" data-stop @click="$emit('stop')"><Icon name="stop" :size="28" /></button>
                         <span class="hidden text-sm text-muted md:inline">{{ t('sing.recordingStage.stopKeep') }}</span>
                     </div>
                     <span class="justify-self-end text-end text-xs text-muted md:text-sm" aria-live="off">{{ onPitch === null ? '' : t('sing.recordingStage.onPitch', { percent: onPitch }) }}</span>

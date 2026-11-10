@@ -21,15 +21,17 @@ export function screenLoading({ title = null, home = false } = {}) {
             },
         },
         template: `
-            <div data-ui="screen" class="min-h-dvh bg-ink px-4 pb-16 pt-[max(0.5rem,env(safe-area-inset-top))] md:px-8" aria-busy="true" data-screen-loading>
-                <div class="mx-auto w-full max-w-5xl">
-                    <header class="flex min-h-18 items-center gap-3 py-4">
-                        <Logo v-if="home" />
-                        <button v-else type="button" class="grid size-11 shrink-0 place-items-center rounded-full glass-bubble text-cream transition" :aria-label="t('common.back')" @click="goBack('/')"><Icon name="back" :size="20" /></button>
-                        <p v-if="!home && name" class="min-w-0 flex-1 truncate text-[1.75rem] font-extrabold leading-tight tracking-tight text-cream" aria-hidden="true">{{ name }}</p>
-                        <span v-else-if="!home" class="skeleton h-8 w-2/3" aria-hidden="true"></span>
-                        <span class="spinner ms-auto text-accent" aria-hidden="true"></span>
-                    </header>
+            <div data-ui="screen" class="min-h-dvh bg-ink" aria-busy="true" data-screen-loading>
+                <!-- Home's own top bar (app-wrap app-top), so the logo doesn't move when Home arrives. -->
+                <header v-if="home" class="app-wrap app-top"><Logo /><span class="spinner ms-auto text-accent" aria-hidden="true"></span></header>
+                <!-- Every other screen's bar (components/page.js PageHeader), on the same grid, so Back doesn't move when the screen arrives. -->
+                <header v-else class="app-wrap app-bar">
+                    <button type="button" class="grid size-11 shrink-0 place-items-center rounded-full glass-bubble text-cream transition" :aria-label="t('common.back')" @click="goBack('/')"><Icon name="back" :size="20" /></button>
+                    <p v-if="name" class="min-w-0 flex-1 truncate text-[1.75rem] font-extrabold leading-tight tracking-tight text-cream" aria-hidden="true">{{ name }}</p>
+                    <span v-else class="skeleton h-8 w-2/3" aria-hidden="true"></span>
+                    <span class="spinner ms-auto text-accent" aria-hidden="true"></span>
+                </header>
+                <div class="app-wrap pb-16 pt-4">
                     <p class="sr-only" role="status">{{ name ? t('common.loadingScreen', { screen: name }) : t('common.loading') }}</p>
                     <div class="mt-4 space-y-4" aria-hidden="true">
                         <div class="skeleton h-12 w-full"></div>

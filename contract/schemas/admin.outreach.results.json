@@ -1,0 +1,164 @@
+{
+    "$id": "admin.outreach.results.json",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "byGroup",
+                "byAngle"
+            ],
+            "properties": {
+                "byGroup": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "key",
+                            "organizations",
+                            "emailed",
+                            "bounced",
+                            "replied",
+                            "positive",
+                            "responseRate",
+                            "arrivals",
+                            "lesson1",
+                            "signedUp",
+                            "schoolCodes",
+                            "partners",
+                            "redemptions",
+                            "tracked"
+                        ],
+                        "properties": {
+                            "key": {
+                                "type": "string"
+                            },
+                            "organizations": {
+                                "type": "integer"
+                            },
+                            "emailed": {
+                                "type": "integer"
+                            },
+                            "bounced": {
+                                "type": "integer"
+                            },
+                            "replied": {
+                                "type": "integer"
+                            },
+                            "positive": {
+                                "type": "integer"
+                            },
+                            "responseRate": {
+                                "type": [
+                                    "number",
+                                    "null"
+                                ]
+                            },
+                            "arrivals": {
+                                "type": "integer"
+                            },
+                            "lesson1": {
+                                "type": "integer"
+                            },
+                            "signedUp": {
+                                "type": "integer"
+                            },
+                            "schoolCodes": {
+                                "type": "integer"
+                            },
+                            "partners": {
+                                "type": "integer"
+                            },
+                            "redemptions": {
+                                "type": "integer",
+                                "description": "Seats used on its partners' codes."
+                            },
+                            "tracked": {
+                                "type": "integer",
+                                "description": "Organizations emailed whose sent email carried their ?ref= tag (before 2026-11-05): the counted columns add up only these. 0 with some emailed: \"not tracked\"."
+                            }
+                        }
+                    }
+                },
+                "byAngle": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "key",
+                            "organizations",
+                            "emailed",
+                            "bounced",
+                            "replied",
+                            "positive",
+                            "responseRate",
+                            "arrivals",
+                            "lesson1",
+                            "signedUp",
+                            "schoolCodes",
+                            "partners",
+                            "redemptions",
+                            "tracked"
+                        ],
+                        "properties": {
+                            "key": {
+                                "type": "string"
+                            },
+                            "organizations": {
+                                "type": "integer"
+                            },
+                            "emailed": {
+                                "type": "integer"
+                            },
+                            "bounced": {
+                                "type": "integer"
+                            },
+                            "replied": {
+                                "type": "integer"
+                            },
+                            "positive": {
+                                "type": "integer"
+                            },
+                            "responseRate": {
+                                "type": [
+                                    "number",
+                                    "null"
+                                ]
+                            },
+                            "arrivals": {
+                                "type": "integer"
+                            },
+                            "lesson1": {
+                                "type": "integer"
+                            },
+                            "signedUp": {
+                                "type": "integer"
+                            },
+                            "schoolCodes": {
+                                "type": "integer"
+                            },
+                            "partners": {
+                                "type": "integer"
+                            },
+                            "redemptions": {
+                                "type": "integer",
+                                "description": "Seats used on its partners' codes."
+                            },
+                            "tracked": {
+                                "type": "integer",
+                                "description": "Organizations emailed whose sent email carried their ?ref= tag (before 2026-11-05): the counted columns add up only these. 0 with some emailed: \"not tracked\"."
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

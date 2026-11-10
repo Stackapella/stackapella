@@ -19,14 +19,30 @@ const VIEWS = { words: tk('styleguide.view.words'), notes: tk('styleguide.view.n
 const CHIPS = { soprano: tk('parts.soprano'), alto: tk('parts.alto'), tenor: tk('parts.tenor'), bass: tk('parts.bass') };
 const ICONS = ['play', 'pause', 'stop', 'record', 'mic', 'headphones', 'metronome', 'timing', 'note', 'loop', 'repeat', 'check', 'close', 'back', 'more', 'plus', 'trash', 'download', 'lock', 'arrow', 'alert', 'info', 'shield', 'home', 'list'];
 
+// The bubbles' specimens: each size at the size it's used, and each state (docs/bubble-circles-plan.md, 4b and 4c).
+const BUBBLE_SIZES = [
+    { name: 'bubble-sm', cls: 'bubble-sm', box: 'size-8', icon: 14 },
+    { name: 'bubble', cls: '', box: 'size-12', icon: 20 },
+    { name: 'bubble-lg', cls: 'bubble-lg', box: 'size-14', icon: 20 },
+];
+const SPECIMEN_PRIMARY = 'primary'; // the primary's bubble (New song's +), named for the contrast check (not words)
+const SPECIMEN_RECORD = 'record'; // Record's red bubble, named for the contrast check (not words)
+const SPECIMEN_INITIALS = 'HC'; // a person's initials, as the account chip shows them (not words)
+const BUBBLE_STATES = [
+    { cls: '', icon: 'check', word: tk('styleguide.bubbleDone') },
+    { cls: 'bubble-now', icon: 'play', word: tk('styleguide.bubbleNow') },
+    { cls: 'bubble-clear', icon: 'note', word: tk('styleguide.bubbleUpcoming') },
+    { cls: 'bubble-clear bubble-challenge', icon: 'note', word: tk('styleguide.bubbleChallenge') },
+];
+
 export const StyleguideView = {
     components: { BirthDate, Checkbox, EmptyState, Field, Icon, Logo, Modal, Notice, Range, Segmented, StatusChip, Stepper, Switch },
     // Sample content, as people would type it (not our words). i18n-ignore
     data: () => ({ allowed: false, sheet: false, name: 'Amazing Grace', email: 'not an email', about: 'I sing alto in a community choir.', handle: 'sam.sings', link: 'https://stackapella.com/s/k3v9qa', choice: 'two', songs: ['Amazing Grace', 'Silent Night'], sounds: true, others: false, view: 'notes', singers: 4, bpm: 96, level: 70, adult: true, beats: 4, chips: ['alto'], month: 3, year: new Date().getFullYear() - 9 }), // i18n-ignore
-    setup: () => ({ TOKENS, ICONS, PART_COLORS, KINDS, CHIPS, formatNumber }),
+    setup: () => ({ TOKENS, ICONS, PART_COLORS, KINDS, CHIPS, BUBBLE_SIZES, BUBBLE_STATES, SPECIMEN_INITIALS, SPECIMEN_PRIMARY, SPECIMEN_RECORD, formatNumber }),
     template: `
         <div data-ui="screen" class="min-h-dvh bg-ink">
-            <div v-if="allowed" class="container-page space-y-14 py-10">
+            <div v-if="allowed" class="app-wrap space-y-14 py-10">
                 <header>
                     <Logo />
                     <p class="eyebrow mt-8">{{ t('styleguide.eyebrow') }}</p>
@@ -190,6 +206,39 @@ export const StyleguideView = {
                     <div class="mt-6 grid gap-4 md:grid-cols-2">
                         <EmptyState icon="list" :title="t('styleguide.emptyTitle')" :body="t('styleguide.emptyBody')"><button type="button" class="btn-secondary">{{ t('styleguide.emptyAction') }}</button></EmptyState>
                         <div class="card space-y-3 p-5" aria-hidden="true"><div class="skeleton h-4 w-2/3"></div><div class="skeleton h-3 w-full"></div><div class="skeleton h-3 w-5/6"></div></div>
+                    </div>
+                </section>
+
+                <!-- Bubbles (docs/bubble-circles-plan.md): serious mode's circles that stand for a thing, every state at each
+                     size, in the accent and each part colour. tests/flows/bubble_contrast.py samples the pixels under each
+                     icon box (data-bubble-specimen) against its ink, 4.5:1, in every theme and accent. -->
+                <section aria-labelledby="sg-bubbles" data-bubbles>
+                    <h2 id="sg-bubbles" class="text-2xl font-bold text-cream">{{ t('styleguide.bubbles') }}</h2>
+                    <p class="mt-2 max-w-prose text-muted">{{ t('styleguide.bubblesLine') }}</p>
+                    <div class="card mt-6 space-y-6 p-6">
+                        <div v-for="size in BUBBLE_SIZES" :key="size.cls" class="flex flex-wrap items-center gap-5">
+                            <span class="w-16 text-xs text-muted" translate="no">{{ size.name }}</span>
+                            <span v-for="state in BUBBLE_STATES" :key="state.cls" class="flex flex-col items-center gap-1.5">
+                                <span class="grid place-items-center" :class="['bubble', state.cls, size.cls, size.box]" data-bubble-specimen translate="no" :title="'bubble ' + state.cls + ' ' + size.cls"><Icon :name="state.icon" :size="size.icon" /></span>
+                                <span class="text-[0.65rem] text-muted">{{ t(state.word) }}</span>
+                            </span>
+                            <span class="flex flex-col items-center gap-1.5">
+                                <button type="button" class="bubble bubble-clear grid place-items-center" :class="[size.cls, size.box]" disabled data-bubble-specimen><Icon name="note" :size="size.icon" /></button>
+                                <span class="text-[0.65rem] text-muted">{{ t('styleguide.bubbleLocked') }}</span>
+                            </span>
+                        </div>
+                        <div class="flex flex-wrap items-center gap-4">
+                            <span class="w-16 text-xs text-muted">{{ t('styleguide.bubbleParts') }}</span>
+                            <span v-for="n in 8" :key="n" class="bubble bubble-lg grid size-14 place-items-center" :style="{ '--bubble': 'var(--color-part-' + n + ')', '--bubble-ink': 'var(--color-part-text-' + n + ')' }" data-bubble-specimen translate="no" :title="'part-' + n"><Icon name="check" :size="20" /></span>
+                        </div>
+                        <div class="flex flex-wrap items-center gap-4">
+                            <span class="w-16 text-xs text-muted">{{ t('styleguide.bubblePerson') }}</span>
+                            <span class="bubble bubble-sm grid size-8 place-items-center" style="--bubble: var(--primary); --bubble-ink: var(--primary-ink)" data-bubble-specimen translate="no" :title="SPECIMEN_PRIMARY"><Icon name="plus" :size="18" /></span>
+                            <span class="bubble bubble-lg bubble-primary grid size-14 place-items-center" data-bubble-specimen translate="no" :title="SPECIMEN_PRIMARY"><Icon name="play" :size="22" /></span>
+                            <span class="bubble bubble-lg bubble-record grid size-14 place-items-center" data-bubble-specimen translate="no" :title="SPECIMEN_RECORD"><Icon name="record" :size="22" /></span>
+                            <span class="bubble bubble-lg bubble-record bubble-now grid size-14 place-items-center" data-bubble-specimen translate="no" :title="SPECIMEN_RECORD"><Icon name="stop" :size="22" /></span>
+                            <span class="bubble bubble-sm grid size-8 place-items-center text-[11px] font-extrabold" data-bubble-specimen translate="no">{{ SPECIMEN_INITIALS }}</span>
+                        </div>
                     </div>
                 </section>
 

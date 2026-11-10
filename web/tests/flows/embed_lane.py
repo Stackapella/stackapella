@@ -1,4 +1,4 @@
-"""The embedded Sing lane (js/embed/lane.js) on a page without the app (web/tests/embed-demo.html), as the
+"""The embedded Sing lane (js/embed/lane.js) on a page without the app (web/tests/lane-demo.html), as the
 arcade landing's hero mounts it: it loads when shown, plays the take on the audio clock with the
 voice's dot live, reports each note hit or missed ("the", sung flat, misses), zooms out and in, and
 pauses where it is.
@@ -13,7 +13,7 @@ LANE = "window.__lane"
 
 
 def journey(f):
-    f.go("/tests/embed-demo.html", "window.__lane")
+    f.go("/tests/lane-demo.html", "window.__lane")
     f.wait(f"{LANE}.duration() > 10", what="the take and its song, loaded when seen")
     f.shot("ready")
     f.run(f"{LANE}.play()")
@@ -33,7 +33,7 @@ def journey(f):
     assert abs(f.js(f"{LANE}.time()") - held) < 0.01, "time moves while paused"
     # Muted (the landing's game mode opens silent): the picture plays with no AudioContext; a tap
     # brings the sound in from where the picture is, with no jump.
-    f.go("/tests/embed-demo.html?muted", "window.__lane")
+    f.go("/tests/lane-demo.html?muted", "window.__lane")
     f.wait(f"{LANE}.duration() > 10", what="loaded, muted")
     f.run(f"{LANE}.play()")
     f.wait(f"{LANE}.playing() && {LANE}.muted() && {LANE}.time() > 1.5", timeout=15, what="the picture playing muted")

@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en" data-theme="stage-dark">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Mic test</title>
+    <!-- How a /tools page mounts the mic test (js/public/tools/mic-test.js): a box, the page's words, mountMicTest().
+         ?blocked and ?busy stand in for a refused mic and one another app holds (tests and shots). -->
+    <meta name="game-css" content="/css/site-game.css">
+    <link rel="stylesheet" href="/css/site.css">
+    <script src="/js/theme-boot.js"></script>
+    <script src="/js/game-css.js"></script>
+</head>
+<body class="bg-ink text-cream">
+    <main class="px-4">
+        <div id="mic"></div>
+        <h1 class="mx-auto mt-8 max-w-[24.375rem] text-[28px] font-extrabold leading-tight tracking-tight md:text-[40px]">Mic test</h1>
+    </main>
+    <script type="module" src="/tests/tool-frame.js"></script>
+    <script type="module">
+        import { mountMicTest } from '/js/public/tools/mic-test.js';
+        import { listen } from '/js/public/live-mic.js';
+        const words = {
+            start: 'Test my mic', asking: 'Asking for the mic', record: 'Record 5 s', recording: 'Recording · :n', play: 'Play my take', stopPlaying: 'Stop',
+            recordAgain: 'Record again', settings: 'More', settingsTitle: 'Settings', done: 'Done',
+            idleHint: 'Check your mic before you sing',
+            howItWorks: 'How it works', whatToDo: 'What to do', step1: 'Allow the mic when your browser asks.', step2: 'Sing or talk: the meter should reach the green.', step3: 'Record 5 seconds and listen back.',
+            privacy: 'Nothing is recorded unless you tap Record, and it never leaves this page.',
+            listening: 'Listening', listeningHint: 'Sing or say something', good: 'Good level', goodHint: 'Keep it there', soft: 'A little quiet', softHint: 'Come a bit closer',
+            loud: 'Too loud', loudHint: 'Back off a little', quiet: 'Very quiet', quietHint: 'Come closer, or turn the input up', flat: 'No sound', flatHint: 'Is it muted? Or pick another mic',
+            weHear: 'We hear', micLabel: 'Mic', yourTake: 'Your take, as Stackapella hears it: no call cleanup.', takeHint: 'Record 5 seconds to hear how you sound.', recordingHint: 'Sing now: a phrase, or a few notes up and down.',
+            noRecorder: 'This browser can\'t record a take, but the meter works.', noPlayback: 'That take couldn\'t be played back. Try again.',
+            headset: 'That looks like a headset mic: it switches Bluetooth headphones to call quality. Sing into the phone or laptop mic instead.',
+            nextLabel: 'Mic works. Next:',
+            denied: 'The mic is blocked', deniedHint: 'Allow it for this page and come back: the test starts again by itself.',
+            busy: 'The mic is busy', busyHint: 'Another app has it. Close Zoom, Teams or OBS, then Test my mic.',
+            noMic: 'No mic found', noMicHint: 'Plug one in, or check it\'s switched on.', unsupported: 'This browser can\'t use the mic', unsupportedHint: 'Try Chrome, Safari or Firefox.',
+            fixTitle: 'How to allow it',
+            fixChrome: 'Click the icon left of the address, then Microphone: Allow.', fixChromeAndroid: 'Tap the icon left of the address, Permissions, Microphone: Allow. Greyed out? Android settings, Apps, Chrome, Permissions.',
+            fixSamsungAndroid: 'Tap the menu, Settings, Sites and downloads, Site permissions, Microphone, and allow this site. Still blocked? In the phone\'s Settings, Apps, Samsung Internet, Permissions, allow the microphone.',
+            fixFirefoxAndroid: 'Tap the menu, Settings, Site permissions, Microphone, and allow this site (or tap the lock left of the address, if it shows Microphone). Still blocked? In the phone\'s Settings, Apps, Firefox, Permissions, allow the microphone.',
+            fixSafari: 'Click the page menu in the address bar, Website Settings, then Microphone: Allow (on older versions, the Safari menu, Settings for this website).', fixFirefox: 'Click the crossed-out mic in the address bar and clear the block.',
+            fixEdge: 'In Settings: Privacy, search, and services, Site permissions, Microphone (Cookies and site permissions in older versions).', fixIos: 'Tap aA in the address bar, Website Settings, Microphone: Allow. Then Settings, Safari, Microphone (Settings, Apps, Safari on newer iOS).',
+            fixMac: 'Also check System Settings, Privacy & Security, Microphone, for your browser (Safari isn\'t listed there: allow it in Safari itself).', fixWindows: 'Also check Settings, Privacy & security, Microphone, for your browser.',
+            fixOther: 'Open this site\'s settings from the address bar and allow the microphone.',
+            details: 'Details', sampleRate: 'Sample rate', hz: ':n Hz', channels: 'Channels',
+            processing: 'Echo cancellation, noise suppression and auto gain are off, as Stackapella records.',
+            room: 'Room', roomQuiet: 'Quiet', roomSome: 'Some noise', roomNoisy: 'Noisy', micOff: 'Turn the mic off',
+            kept: 'Nothing is kept or sent: the take lives in this page until you close it.',
+        };
+        const query = new URLSearchParams(location.search);
+        const refuse = (reason, name) => async () => { throw Object.assign(new Error(reason), { reason, cause: { name } }); };
+        const open = query.has('blocked') ? refuse('denied', 'NotAllowedError') : query.has('busy') ? refuse('no-mic', 'NotReadableError') : listen;
+        window.__mic = mountMicTest(document.querySelector('#mic'), {
+            words, keySlot: document.querySelector('[data-tool-key]'), open,
+            next: [{ label: 'Find your range', href: '/tools/vocal-range-test' }, { label: 'Tune a note', href: '/tools/tuner' }],
+        });
+    </script>
+</body>
+</html>

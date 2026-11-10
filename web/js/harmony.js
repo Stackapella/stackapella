@@ -70,10 +70,10 @@ export function pitchAt(notes, beat) {
 }
 
 /** The sung pitch (MIDI) over a note's middle, or null when too little of it was heard. */
-export function sungPitch(track, note, beatSeconds) {
+export function sungPitch(track, note, beatSeconds, lag = 0) {
     const length = note.length * beatSeconds;
-    const from = note.beat * beatSeconds + length * MIDDLE_FROM;
-    const to = (note.beat + note.length) * beatSeconds - length * MIDDLE_FROM;
+    const from = note.beat * beatSeconds + length * MIDDLE_FROM + lag;
+    const to = (note.beat + note.length) * beatSeconds - length * MIDDLE_FROM + lag;
     const readings = [];
     for (let i = Math.max(0, Math.ceil(from * track.rate)); i <= Math.min(track.hz.length - 1, Math.floor(to * track.rate)); i++) {
         if (track.hz[i]) readings.push(hzToMidi(track.hz[i]));
@@ -92,12 +92,40 @@ export function foldedCents(sung, target) {
  * choice nearest what was sung, so the shared scorer judges it as an ordinary note, and the line the
  * singer made can be read. A note not heard keeps its first choice.
  */
+export const CHOICE_LAG_MOST = 0.1; // the singer's usual lateness allowed for in reading a choice (scoreTake forgives 100 ms)
+
+/**
+ * How late the singer usually comes in, in seconds (0 to CHOICE_LAG_MOST): the median, over the notes sung after
+ * silence (the first, and each after a rest), of the first voiced run against the note's beat. 0 with none heard.
+ */
+export function usualLag(track, target, beatSeconds) {
+    const lags = [];
+    target.forEach((note, i) => {
+        const before = target[i - 1];
+        const start = note.beat * beatSeconds;
+        if (before && start - (before.beat + before.length) * beatSeconds < 0.1) return; // joined: no entry to time
+        const from = Math.max(0, start - 0.15, before ? (before.beat + before.length) * beatSeconds + 0.03 : 0);
+        const a = Math.ceil(from * track.rate);
+        const z = Math.min(track.hz.length - 3, Math.floor((start + 0.3) * track.rate));
+        for (let k = a; k <= z; k++) if (track.hz[k] > 0 && track.hz[k + 1] > 0 && track.hz[k + 2] > 0 && !(track.hz[k - 1] > 0)) { lags.push(k / track.rate - start); break; }
+    });
+    if (!lags.length) return 0;
+    return Math.max(0, Math.min(CHOICE_LAG_MOST, median(lags)));
+}
+
 export function resolveChoices(track, target, beatSeconds) {
+    // Read a little later for a singer who's usually late: a short note's middle, 100 ms behind, is still the glide into it.
+    const lag = target.some((n) => n.choices?.length) ? usualLag(track, target, beatSeconds) : 0;
     return target.map((note) => {
         if (!note.choices?.length) return note;
-        const sung = sungPitch(track, note, beatSeconds);
+        const sung = sungPitch(track, note, beatSeconds, lag);
         if (sung === null) return { ...note, pitch: note.choices[0], chosen: null };
-        const pitch = note.choices.reduce((best, c) => (Math.abs(foldedCents(sung, c)) < Math.abs(foldedCents(sung, best)) ? c : best));
+        // The nearest pitch class; between the same note in two octaves (low do and high do), the octave sung (the courses
+        // audit, harmony.md F6: high do was read as low do, so the rules judged leaps nobody sang).
+        const pitch = note.choices.reduce((best, c) => {
+            const d = Math.abs(foldedCents(sung, c)) - Math.abs(foldedCents(sung, best));
+            return d < -1e-6 || (Math.abs(d) <= 1e-6 && Math.abs(sung - c) < Math.abs(sung - best)) ? c : best;
+        });
         return { ...note, pitch, chosen: pitch };
     });
 }
@@ -149,7 +177,8 @@ export function openChoices(choices, cantus, previous) {
         return motion !== 'parallel' && motion !== 'similar';
     });
     const smooth = ruled.filter((c) => !awkwardLeap(previous.sung, c));
-    return smooth.length ? smooth : ruled;
+    // Never nothing lit: a spot where every choice breaks a rule keeps them all (the courses audit, harmony.md F9).
+    return smooth.length ? smooth : ruled.length ? ruled : choices;
 }
 
 /**

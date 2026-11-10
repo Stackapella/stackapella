@@ -20,6 +20,7 @@ const ROWS = [
     { name: 'title', label: tk('game.settings.title'), hint: tk('game.settings.titleHint') },
     { name: 'stages', label: tk('game.settings.stages'), hint: tk('game.settings.stagesHint') },
     { name: 'versus', label: tk('game.settings.versus'), hint: tk('game.settings.versusHint') },
+    { name: 'boss', label: tk('game.settings.boss'), hint: tk('game.settings.bossHint') },
     { name: 'select', label: tk('game.settings.select'), hint: tk('game.settings.selectHint') },
     { name: 'ghost', label: tk('game.settings.ghost'), hint: tk('game.settings.ghostHint') },
     { name: 'daily', label: tk('game.settings.daily'), hint: tk('game.settings.dailyHint') },

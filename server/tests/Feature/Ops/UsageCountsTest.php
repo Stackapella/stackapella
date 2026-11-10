@@ -43,6 +43,19 @@ final class UsageCountsTest extends TestCase
         $this->assertSame(2, (int) DB::table('usage_counts')->where('audience', 'guest')->where('country', '')->value('count'));
     }
 
+    public function test_a_first_lesson_in_any_course_keeps_where_the_device_came_from_and_counts_once(): void
+    {
+        config(['counts.enabled' => true]);
+        $this->postJson('/api/counts', ['events' => [['kind' => 'f_course_lesson', 'n' => 5], ['kind' => 'lesson_done']], 'source' => 'tool-pitch-pipe'])->assertNoContent();
+
+        $rows = DB::table('usage_counts')->orderBy('kind')->get(['kind', 'source', 'count'])->map(fn (object $r): array => [(string) $r->kind, (string) $r->source, (int) $r->count])->all();
+        // Its source kept, as every funnel kind's, and once a request; lesson_done keeps none.
+        $this->assertSame([['f_course_lesson', 'tool-pitch-pipe', 1], ['lesson_done', '', 1]], $rows);
+
+        // The tools' share cards keep their own tags, never folded into other.
+        $this->assertSame(['share-pitch-matching', 'share-interval-ear-training', 'share-chord-ear-training'], array_map(RecordCounts::source(...), ['share-pitch-matching', 'Share-Interval-Ear-Training', 'share-chord-ear-training']));
+    }
+
     public function test_the_usage_pages_kinds_and_a_course_or_lesson_only_by_a_real_id(): void
     {
         config(['counts.enabled' => true]);
@@ -58,12 +71,14 @@ final class UsageCountsTest extends TestCase
         $this->assertSame(0, DB::table('usage_counts')->count());
         $this->getJson('/api/auth/config')->assertJsonPath('data.usageCounts', false);
 
-        // 30 a minute from one connection, the one sent while off among them.
-        config(['counts.enabled' => true]);
+        // A minute's allowance from one connection (30 here), the one sent while off among them.
+        config(['counts.enabled' => true, 'limits.counts.ip.max' => 30]);
         foreach (range(1, 29) as $i) {
             $this->postJson('/api/counts', ['events' => [['kind' => 'app_open']]])->assertNoContent();
         }
-        $this->assertMatchesContract($this->postJson('/api/counts', ['events' => [['kind' => 'app_open']]]), 'counts.create', 429);
+        // Past it, the same quiet 204 (a beacon's 429 is a console error), and nothing is counted.
+        $this->assertMatchesContract($this->postJson('/api/counts', ['events' => [['kind' => 'app_open']]]), 'counts.create', 204);
+        $this->postJson('/api/counts', ['events' => [['kind' => 'lesson_done']]])->assertNoContent();
         $this->assertSame(29, (int) DB::table('usage_counts')->sum('count'));
     }
 
@@ -80,6 +95,32 @@ final class UsageCountsTest extends TestCase
         $this->postJson('/api/counts', ['events' => array_map(static fn (string $kind): array => ['kind' => $kind], $kinds)])->assertNoContent();
 
         $this->assertSame(['pl_s:'.$course, ...array_map(static fn (string $id): string => 'pl_d:'.$id, $songs)], DB::table('usage_counts')->orderBy('id')->pluck('kind')->all());
+    }
+
+    public function test_the_courses_account_ask_is_counted_by_where_it_was_met_beside_its_total(): void
+    {
+        config(['counts.enabled' => true]);
+        $kinds = ['ask_acct_course_shown', 'ask_acct_course_home_shown', 'ask_acct_course_lesson_shown', 'ask_acct_course_map_yes', 'ask_acct_course_page_yes', 'ask_acct_course_lesson_not'];
+        $this->postJson('/api/counts', ['events' => array_map(static fn (string $kind): array => ['kind' => $kind], $kinds)])->assertNoContent();
+
+        // Each place's shown and yes are kept; the Not now is the total's alone, so a place's is dropped.
+        $this->assertSame(['ask_acct_course_home_shown', 'ask_acct_course_lesson_shown', 'ask_acct_course_map_yes', 'ask_acct_course_page_yes', 'ask_acct_course_shown'], DB::table('usage_counts')->orderBy('kind')->pluck('kind')->all());
+    }
+
+    public function test_a_well_known_crawler_counts_nothing_of_any_kind(): void
+    {
+        config(['counts.enabled' => true]);
+        $events = ['events' => [['kind' => 'site_visit'], ['kind' => 'sv_lesson'], ['kind' => 'f_arrive']], 'source' => 'reddit'];
+
+        foreach (['Mozilla/5.0 (Linux; Android 6.0.1; Nexus 5X Build/MMB29P) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Mobile Safari/537.36 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)',
+            'Mozilla/5.0 (compatible; bingbot/2.0; +http://www.bing.com/bingbot.htm)', 'Mozilla/5.0 (compatible; AhrefsBot/7.0; +http://ahrefs.com/robot/)'] as $agent) {
+            $this->withHeader('User-Agent', $agent)->postJson('/api/counts', $events)->assertNoContent();
+        }
+        $this->assertSame(0, DB::table('usage_counts')->count());
+
+        // A phone whose agent holds "bot" in its brand still counts.
+        $this->withHeader('User-Agent', 'Mozilla/5.0 (Linux; Android 12; Cubot KingKong 7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Mobile Safari/537.36')->postJson('/api/counts', $events)->assertNoContent();
+        $this->assertSame(['f_arrive', 'site_visit', 'sv_lesson'], DB::table('usage_counts')->orderBy('kind')->pluck('kind')->all());
     }
 
     public function test_the_admin_sees_each_day_the_totals_and_the_countries(): void

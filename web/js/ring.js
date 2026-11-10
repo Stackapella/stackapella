@@ -4,9 +4,9 @@
 // seventh 31). Never rewards the piano's own third: inside 15 cents only counts on the pure side of
 // it. Pure, unit-tested in tests/barbershop.test.js. From courses-harmony's draft.
 
+import { RING } from './just.js';
 import { centsOf } from './vibrato.js';
 
-export const RING = { from: 0.3, last: 1.5, locked: 6, close: 10, near: 15, seventhNear: -18, generous: 12, held: 1, straight: 10, waved: 40 };
 const MIN_SECONDS = 0.4; // this much of the window heard, or it isn't judged
 
 const median = (xs) => {
@@ -81,29 +81,6 @@ export function ringTake(track, target, offsets, { generous = false, skip = [] }
     return { percent: Math.round(ringable.reduce((a, m) => a + (m.percent ?? 0), 0) / ringable.length), notes };
 }
 
-// Just intonation (docs/tune-chord-plan.md): each chord tone's ratio over the root, by the chord's
-// quality and the tone's semitones above the root. A seventh chord's seventh is the barbershop 7:4.
-const RATIOS = {
-    maj: { 4: 5 / 4, 7: 3 / 2 }, min: { 3: 6 / 5, 7: 3 / 2 }, dim: { 3: 6 / 5, 6: 7 / 5 }, aug: { 4: 5 / 4, 8: 25 / 16 },
-    sus2: { 2: 9 / 8, 7: 3 / 2 }, sus4: { 5: 4 / 3, 7: 3 / 2 }, maj7: { 4: 5 / 4, 7: 3 / 2, 11: 15 / 8 },
-    min7: { 3: 6 / 5, 7: 3 / 2, 10: 9 / 5 }, dom7: { 4: 5 / 4, 7: 3 / 2, 10: 7 / 4 }, dim7: { 3: 6 / 5, 6: 7 / 5, 9: 5 / 3 },
-    hdim7: { 3: 6 / 5, 6: 7 / 5, 10: 9 / 5 }, maj6: { 4: 5 / 4, 7: 3 / 2, 9: 5 / 3 }, min6: { 3: 6 / 5, 7: 3 / 2, 9: 5 / 3 },
-    add9: { 2: 9 / 8, 4: 5 / 4, 7: 3 / 2 },
-};
-
-/** A chord's tones as semitones above its root (0 first), from the just-intonation table. */
-export function chordTones(quality) {
-    return [0, ...Object.keys(RATIOS[quality] ?? RATIOS.maj).map(Number)];
-}
-
-/**
- * A note's pure target in a chord (`{ root, quality }`, the root a pitch class): its cents from the
- * piano's pitch (a major third -13.7, a barbershop seventh -31.2, the root 0), or null when the note
- * isn't in the chord (a passing note gets no target).
- */
-export function pureOffset(pitch, chord) {
-    const semis = (((Math.round(pitch) - chord.root) % 12) + 12) % 12;
-    if (semis === 0) return 0;
-    const ratio = (RATIOS[chord.quality] ?? RATIOS.maj)[semis];
-    return ratio ? 1200 * Math.log2(ratio) - 100 * semis : null;
-}
+// The just-intonation table lives in just.js (no imports, so public pages can use it); re-exported
+// here for the app's chord scoring.
+export { chordTones, pureOffset, RING } from './just.js';

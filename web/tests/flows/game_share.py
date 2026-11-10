@@ -1,6 +1,6 @@
 """The arcade share card (js/result-card.js; docs/game-elements-plan.md): in game mode with
 Celebrations on, a lesson result's card is the same card in the game's type (the word in Bungee, the
-score line and the dare in Press Start 2P, a CRT's faint lines), with NEW RECORD in the part colours
+score line and the dare in the pixel face, a CRT's faint lines), with NEW RECORD in the part colours
 only when the take beat an earlier best. Celebrations off gives today's card; serious mode its own.
 Each card is saved at full size beside the shots.
 """
@@ -10,7 +10,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
 from flow import SHOTS, run  # noqa: E402
-from game_frames import dark, light  # noqa: E402
+from game_frames import dark, every_theme, light  # noqa: E402
 from result_share import MOUNT  # noqa: E402
 
 CARD = "(async () => { const img = document.querySelector('[data-share-result] img'); const blob = await (await fetch(img.src)).blob(); const bytes = new Uint8Array(await blob.arrayBuffer()); let s = ''; for (const b of bytes) s += String.fromCharCode(b); return btoa(s); })()"
@@ -41,6 +41,7 @@ def journey(f):
     card(f, "before")
     f.run("(await import('/js/game/effects.js')).effects.celebrations = true")
     card(f, "arcade")
+    every_theme(f, "the arcade share sheet")
     card(f, "arcade-record", record=True)
     card(f, "arcade-record-story", record=True, story=True)
     light(f)

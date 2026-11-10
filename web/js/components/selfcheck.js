@@ -9,7 +9,7 @@
 // step, vibrato? }], drone?, chords? }, along?, questions: [{ en }] } }`: `lead` beats of the drone
 // or chords before you sing, `along` the model singing with you (headphones only).
 
-import { audio, engine, leadSeconds, unlock } from '../audio.js';
+import { audio, engine, latencyNow, leadSeconds, unlock } from '../audio.js';
 import { readyMic } from '../mic-check.js';
 import { localized, t } from '../i18n.js';
 import { renderBacking, renderPart } from '../synth.js';
@@ -17,7 +17,7 @@ import { Icon } from './icon.js';
 import { showMicHelp } from '../mic-help.js';
 import { HeadphonesDialog } from './dialogs.js';
 import { local, session as tabStorage } from '../storage.js';
-import { renderClip } from './choose.js';
+import { renderClip } from '../ear-rounds.js';
 import { clipBuffer, clipCredit, publishedFor } from '../course-clips.js';
 import { ReportVoice } from './report-voice.js';
 
@@ -48,6 +48,7 @@ export const SelfCheck = {
         exercise: { type: Object, required: true },
         base: { type: Number, required: true },
         color: { type: String, default: 'var(--color-part-4)' },
+        personal: { type: Object, default: () => ({}) }, // the course's own values (a whistle step: `personal.whistle`)
     },
     emits: ['done', 'practised'],
     data: () => ({ recording: false, take: null, playing: null, answers: {}, asking: false, progress: 0, error: null, published: null, reporting: false }),
@@ -147,7 +148,7 @@ export const SelfCheck = {
         modelSamples(sampleRate, { leadIn = false } = {}) {
             const shift = leadIn ? this.leadBeats : 0;
             const clip = { ...this.model, notes: this.model.notes.map((n) => ({ ...n, beat: n.beat + shift })) };
-            return renderClip(clip, this.base, { tempo: this.tempo, sampleRate });
+            return renderClip(clip, this.base, { tempo: this.tempo, sampleRate, exercise: { whistle: !!this.exercise.whistle }, whistle: this.personal.whistle ?? null }); // a whistle step's model is whistled (js/whistle.js)
         },
         /** Record yourself: the drone or chords under you (and the model, sung along, with headphones). */
         async record() {
@@ -180,7 +181,7 @@ export const SelfCheck = {
             }
             this.recording = true;
             this.startedAt = performance.now();
-            engine.play({ fromSeconds: 0, bpm, record: true, latencyFrames: audio.latencyFrames ?? engine.estimatedLatencyFrames(), leadSeconds: leadSeconds() });
+            engine.play({ fromSeconds: 0, bpm, record: true, latencyFrames: latencyNow(), leadSeconds: leadSeconds() });
             const tick = () => {
                 const position = engine.positionSeconds();
                 if (position === null || !this.recording) return;

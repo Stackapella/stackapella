@@ -9,6 +9,7 @@ use App\Actions\Templates\Library;
 use App\Enums\SecurityEventType;
 use App\Exceptions\Refusal;
 use App\Http\Controllers\Controller;
+use App\Http\Middleware\Revalidate;
 use App\Http\Requests\Templates\ShowTemplateRequest;
 use App\Http\Resources\CatalogueSongResource;
 use App\Http\Resources\GuideRecording;
@@ -66,10 +67,14 @@ final class TemplatesController extends Controller
             return $this->own($request, $song, $user, $catalogue);
         }
 
-        $grant = $catalogue->grant($song, $user);
+        // Signed out, an open song (Catalogue::isOpen: live, reviewed, public domain) plays for guests, so
+        // its public part page plays its part (Hillel, 2026-11-08: "Yes, play for guests"); its current
+        // version only, under the daily cap a network has.
+        $grant = $catalogue->grant($song, $user) ?? (Catalogue::isOpen($song) ? 'open' : null);
 
+        // Signed out, any other song the app doesn't bundle: free with an account (docs/pricing-plan.md).
         if ($grant === null) {
-            throw new Refusal(403, 'plus_required');
+            throw new Refusal(403, 'account_required');
         }
 
         $number = $request->validated('version');
@@ -79,6 +84,17 @@ final class TemplatesController extends Controller
             throw new Refusal(404, 'not_found');
         }
 
+        // A guest has the open song as it is now, never an older (or unreviewed) version.
+        if ($grant === 'open' && $version->id !== $song->current_version_id) {
+            throw new Refusal(403, 'account_required');
+        }
+
+        // A guest's copy is kept by their own browser and checked again by its ETag (Revalidate: private, no-cache),
+        // as the catalogue's public reads are; an account's stays no-store.
+        if ($grant === 'open') {
+            // On the request the middleware holds (a FormRequest is a copy of it).
+            app('request')->attributes->set(Revalidate::ATTRIBUTE, true);
+        }
         $voices = $catalogue->guides([$version->id])->flatten(1)->values();
         $etag = '"'.hash('sha256', $version->sha256.'|'.$voices->map(fn (TemplateGuide $g): string => $g->id.':'.$g->is_default.':'.$g->submission?->assignment->singer->credit())->implode(',')).'"';
 
@@ -86,7 +102,7 @@ final class TemplatesController extends Controller
             return response()->noContent(304)->setEtag(trim($etag, '"'));
         }
 
-        // The daily cap on Plus songs (free songs are bundled with the app anyway; admins review many).
+        // The daily cap on the songs the app doesn't bundle (the free ones are in its files anyway; admins review many).
         if (! in_array($grant, ['free', 'admin'], true)) {
             $who = $user !== null ? 'u'.$user->id : 'ip'.IpHash::daily((string) $request->ip());
             $seen = 'plus-downloads:seen:'.$who.':'.$song->id.':'.now()->toDateString();
@@ -111,7 +127,8 @@ final class TemplatesController extends Controller
             'template' => $version->data,
             'voices' => $voices->map(fn (TemplateGuide $g): array => [...GuideRecording::of($g), 'default' => $g->is_default])->all(),
             'grant' => $grant,
-            'freeUntil' => $grant === 'month' ? $song->free_until?->copy()->endOfDay()->utc()->toIso8601ZuluString() : null,
+            // The song of the month ended (2026-11-07); always null, for older apps.
+            'freeUntil' => null,
             // Our songs always have part boards.
             'boards' => true,
         ]])->setEtag(trim($etag, '"'));

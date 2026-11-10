@@ -74,7 +74,7 @@ final class TrustLevel
      */
     private function hasSung(User $user): bool
     {
-        $count = $user->getAttribute('ready_takes_count') ?? Take::query()->where('user_id', $user->id)->where('status', Take::READY)->count();
+        $count = array_key_exists('ready_takes_count', $user->getAttributes()) ? $user->getAttribute('ready_takes_count') : Take::query()->where('user_id', $user->id)->where('status', Take::READY)->count();
 
         return (int) $count >= 2;
     }

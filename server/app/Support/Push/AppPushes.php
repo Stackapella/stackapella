@@ -189,8 +189,8 @@ final class AppPushes
     {
         $locale = $user->locale ?: 'en';
         // Named as the bell names them (a hidden profile is Anonymous; a friend who beat a score as on
-        // the friends' board), never by the raw account name.
-        $name = $item->actor === null ? '' : ($item->kind === 'board_beaten' ? Boards::friendName($item->actor) : GalleryViews::person($item->actor)['name']);
+        // the friends' board; a like from someone under 18 by no name), never by the raw account name.
+        $name = GalleryViews::bellActor($item, $locale)['name'] ?? '';
         $harmony = $item->harmony;
         $idea = $item->idea;
         $request = $item->songRequest;

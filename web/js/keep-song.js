@@ -11,9 +11,10 @@ import { peaks } from './dsp.js';
 import { localized } from './i18n.js';
 import { renderBacking, renderPart } from './synth.js';
 import { keyName } from './theory.js';
+import { layersSeconds, underEntries, underLayers, underMix } from './under-mix.js';
 import { PART_COLORS } from './theme.js';
 import { createProject, savePart } from './stores/projects.js';
-import { FRAMES_PER_PEAK } from './stores/session.js'; // as Sing's own takes, so trim, mix and sync treat these alike
+import { FRAMES_PER_PEAK } from './dsp.js'; // as Sing's own takes, so trim, mix and sync treat these alike
 
 const CHORDS_VOLUME = 0.8; // as the exercise plays them
 
@@ -30,10 +31,20 @@ export function canKeep(lesson, kept) {
  */
 export function finaleTracks(lesson, kept, base) {
     const spec = lesson.keepSong;
-    const takes = spec.takes.map((t) => ({ name: localized(t.name), samples: kept.takes[t.step].samples, sampleRate: kept.takes[t.step].sampleRate, volume: 1, sung: true }));
-    const sampleRate = takes[0].sampleRate;
     const exercise = lesson.steps[spec.from].exercise;
     const bpm = exercise.tempo ?? 72;
+    // Live looping: a take the `from` step loops beneath it is rendered out, looped, to the longest layer
+    // (a 4-beat bass under a 32-beat entry plays all 32 beats in Sing, not once and stop).
+    const loops = Object.fromEntries(underEntries(exercise.under).map((entry) => [entry.step, entry.loopBeats]));
+    // The longest: the longest loop, or the longest take sung through (the finale's own take over the loops).
+    const longest = Math.max(layersSeconds(underLayers(exercise.under, kept.takes), 60 / bpm), ...spec.takes.filter((t) => !loops[t.step]).map((t) => kept.takes[t.step].samples.length / kept.takes[t.step].sampleRate));
+    const takes = spec.takes.map((t) => {
+        const take = kept.takes[t.step];
+        const loopBeats = loops[t.step] ?? null;
+        const samples = loopBeats ? underMix([{ samples: take.samples, sampleRate: take.sampleRate, loopBeats }], { beatSeconds: 60 / bpm, sampleRate: take.sampleRate, seconds: longest }) : take.samples;
+        return { name: localized(t.name), samples, sampleRate: take.sampleRate, volume: 1, sung: true };
+    });
+    const sampleRate = takes[0].sampleRate;
     const laid = layout(exercise, base);
     const partners = (laid.partners ?? []).map((line, i) => ({
         name: localized(spec.partners?.[i] ?? spec.title),
@@ -47,7 +58,7 @@ export function finaleTracks(lesson, kept, base) {
     return [...takes, ...partners, ...chords];
 }
 
-/** Keeps the finale as a song; returns the new project. Throws LimitReached on a full free plan. */
+/** Keeps the finale as a song; returns the new project. */
 export async function keepAsSong(lesson, kept, base) {
     const exercise = lesson.steps[lesson.keepSong.from].exercise;
     const project = await createProject({

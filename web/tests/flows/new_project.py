@@ -73,16 +73,15 @@ def journey(f):
     f.wait("location.pathname.startsWith('/p/') && location.pathname.split('/')[2] !== " + repr(first), what="a second project")
     second = f.js("location.pathname.split('/')[2]")
     assert f.js(f"(await (await import('/js/db.js')).get('projects', '{second}')).countInBars") == 0, "the count-in wasn't remembered"
-    # The free plan's three songs used: New song shows the upgrade moment (99.png), its slots full.
+    # No song limit on the free plan any more (its limit is storage, 2026-11-07): a third and a fourth start as the first did.
     f.run("const s = await import('/js/stores/projects.js'); window.third = (await s.createProject({ title: 'Third' })).id;")
     third = f.js("window.third")
     f.go("/", "document.querySelector('#app header')")
     just_record(f)
-    f.wait("document.querySelector('[data-plus-moment] [data-slots]')", what="the upgrade moment with its slots")
-    f.wait_text(t(f, "plus.moment.makeRoom"))
-    f.shot("upgrade-moment")
-    f.press("Escape")
-    for project in (first, second, third):
+    f.wait("location.pathname.startsWith('/p/') && ![" + ", ".join(repr(x) for x in (first, second, third)) + "].includes(location.pathname.split('/')[2])", what="a fourth song, no upgrade moment")
+    assert not f.js("document.querySelector('[data-plus-moment]')"), "no upgrade moment for a new song"
+    fourth = f.js("location.pathname.split('/')[2]")
+    for project in (first, second, third, fourth):
         f.run(f"(await import('/js/stores/projects.js')).deleteProject('{project}')")
 
 

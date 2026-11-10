@@ -7,7 +7,6 @@ import { EFFECTS, effect, effects, offList } from '/js/game/effects.js';
 import { countAt, run, sequence } from '/js/game/motion.js';
 import { POPUP_SECONDS, SAY_GAP, bonusRate, bonusRoom, comboMilestone, heldToEnd, popupQueue, rateRaised } from '/js/game/popups.js';
 import { CUES, blip, chipCountIn, cue, cueAllowed, cueLength } from '/js/game/chip.js';
-import { GAME_FONTS, loadGameFonts } from '/js/game/fonts.js';
 import { letters } from '/js/game/record.js';
 import { stageCues } from '/js/game/tally.js';
 import { badgeNews, badgeWords, sayBadges } from '/js/game/badge-news.js';
@@ -123,12 +122,13 @@ test('game pop-ups: none in the first 2 s, one at a time, the newest waiting, to
 
 test('game combo bonus: the pop-up never promises more than today\'s cap still pays', () => {
     const progress = emptyProgress();
-    const day = dayOf();
-    assert(bonusRoom(progress) === DAILY_XP_CAP - 15, 'room once the award (10 and a star) is in');
+    const at = new Date(2026, 2, 10, 12).getTime(); // a fixed day, never the clock's (a run across midnight would split it)
+    const day = dayOf(at);
+    assert(bonusRoom(progress, at) === DAILY_XP_CAP - 15, 'room once the award (10 and a star) is in');
     progress.xp.days[day] = DAILY_XP_CAP - 20;
-    assert(bonusRoom(progress) === 5, 'a little room left');
+    assert(bonusRoom(progress, at) === 5, 'a little room left');
     progress.xp.days[day] = DAILY_XP_CAP;
-    assert(bonusRoom(progress) === 0, 'none at the cap');
+    assert(bonusRoom(progress, at) === 0, 'none at the cap');
 });
 
 test('game sounds: cues are short, and none sounds while off, in serious mode, or while the engine plays', async () => {
@@ -340,12 +340,13 @@ test('game feel: Game effects off quiets every arcade moment at once, and leaves
     }
 });
 
-test('game fonts: added once, from Google Fonts', () => {
-    const doc = document.implementation.createHTMLDocument('fonts');
-    loadGameFonts(doc);
-    loadGameFonts(doc);
-    const links = doc.querySelectorAll('link[data-game-fonts]');
-    assert(links.length === 1 && links[0].href === GAME_FONTS && GAME_FONTS.startsWith('https://fonts.googleapis.com/'), 'one stylesheet');
+test('fonts: every face is served from our own address, and every file is there', async () => {
+    const css = await (await fetch('/css/app.css', { cache: 'no-store' })).text();
+    assert(!/googleapis|gstatic/.test(css), 'no third-party font host');
+    const files = [...new Set([...css.matchAll(/url\((['"]?)(\/fonts\/[^'")]+)\1\)/g)].map((m) => m[2]))];
+    for (const family of ['Figtree', 'Noto Music', 'Bungee', 'Stackapella Pixel', 'VT323']) assert(css.includes(`font-family:${family}`) || css.includes(`font-family:"${family}"`) || css.includes(`font-family: '${family}'`), `${family} has a face`);
+    assert(files.length >= 10, `the faces' files: ${files.length}`);
+    for (const file of files) assert((await fetch(file, { method: 'HEAD' })).ok, `${file} is served`);
 });
 
 test('game NEW RECORD: the letters take the part colours in turn', () => {
@@ -393,8 +394,9 @@ test('game combo bonus: +1 XP a note lit in a run of 10 or more, on top of the a
     assert(xpFor({ kind: 'exercise', stars: 2, bonus: 11 }) === 31, 'plus the bonus');
     assert(xpFor({ kind: 'exercise', stars: 2, bonus: -3 }) === 20 && xpFor({ kind: 'workout', bonus: 5 }) === xpFor({ kind: 'workout' }), 'never negative, and only an exercise\'s');
     const progress = emptyProgress();
-    progress.xp.days[dayOf()] = DAILY_XP_CAP - 5; // the app's own (local) day
-    assert(addXp(progress, { kind: 'exercise', stars: 3, bonus: 40 }).gained === 5, 'the daily cap still holds');
+    const at = new Date(2026, 2, 10, 12).getTime(); // a fixed (local) day, never the clock's
+    progress.xp.days[dayOf(at)] = DAILY_XP_CAP - 5;
+    assert(addXp(progress, { kind: 'exercise', stars: 3, bonus: 40 }, at).gained === 5, 'the daily cap still holds');
 });
 
 test('game ghost: a take\'s pitch line packs to 20 frames a second and back, placed on the part', async () => {

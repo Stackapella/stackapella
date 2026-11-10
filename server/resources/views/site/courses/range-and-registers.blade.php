@@ -15,7 +15,7 @@
 @php($demo = $love['demo'])
 @php($ends = $love['ends'])
 @php($plain = $love['plain'])
-@php($tryUrl = $open ? \App\Support\Http\Hosts::app('/learn/c/'.$page['app']) : $links['start'])
+@php($tryUrl = $open ? $courseStart : $links['start'])
 @php($tryLabel = $open ? __('pages.site.course_try') : __('pages.site.course_start'))
 {{-- The hero's keyboard, A1 to C7: its white keys in order, and where each key sits. --}}
 @php($whites = [])
@@ -43,7 +43,7 @@
         <div class="s-wrap cp-hero-grid">
             <div class="cp-hero-copy">
                 <nav class="s-crumb" aria-label="{{ __('pages.site.crumb') }}"><a href="/courses">{{ __('pages.site.courses') }}</a><span aria-hidden="true">/</span><span aria-current="page">{{ $page['name'] }}</span></nav>
-                <p class="cp-hero-chip"><b>{{ __('pages.site.course_chip_plus') }}</b>@if ($outline !== null)<span>{{ __('pages.site.course_chip_lessons', ['n' => $outline['lessons']]) }}</span>@endif</p>
+                <p class="cp-hero-chip"><b>{{ __('pages.site.course_chip_free') }}</b>@if ($outline !== null)<span>{{ __('pages.site.course_chip_lessons', ['n' => $outline['lessons']]) }}</span>@endif</p>
                 <h1 id="page-h">{{ $page['hero_title'] }}</h1>
                 <p class="s-lede">{{ $page['hero_lead'] }}</p>
                 <ul class="cp-hero-facts">
@@ -334,7 +334,7 @@
             <p class="cp-join-btns">
                 <a href="{{ $tryUrl }}" class="btn-primary btn-lg">{{ $tryLabel }} <x-site.icon name="arrow" size="18" /></a>
                 @if ($open)
-                    <a href="/pricing" class="btn-secondary btn-lg">{{ __('pages.site.course_plus') }}</a>
+                    <a href="/courses" class="btn-secondary btn-lg">{{ __('pages.site.course_all') }}</a>
                 @else
                     <a href="/courses" class="btn-secondary btn-lg">{{ __('pages.site.course_all') }}</a>
                 @endif

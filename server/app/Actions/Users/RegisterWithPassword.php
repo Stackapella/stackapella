@@ -52,10 +52,11 @@ final class RegisterWithPassword
         if ($existing !== null) {
             // An unverified account's password was never proven to be the inbox owner's (anyone
             // could have signed up with this address first), so it goes: the owner chooses one
-            // from the link, which also verifies the address.
+            // from the link, which also verifies the address. Nothing from this sign-up (its invite
+            // included) reaches an account it hasn't proven to own.
             if ($existing->email_verified_at === null) {
                 EmailToken::query()->where('user_id', $existing->id)->where('purpose', EmailToken::VERIFY)->delete();
-                $existing->forceFill(['password' => null, 'pending_invite_hash' => $invite !== null ? hash('sha256', $invite) : $existing->pending_invite_hash])->save();
+                $existing->forceFill(['password' => null])->save();
             }
 
             if ($this->limits->allows('verification-email', $email) && ! EmailSuppression::isSuppressed($email)) {

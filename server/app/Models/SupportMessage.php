@@ -48,6 +48,9 @@ final class SupportMessage extends Model
 
     public const CATEGORIES = ['account', 'payments', 'recording', 'coaching', 'other', 'diagnostics', 'bug', 'idea'];
 
+    /** A director's learning tracks request (groups.tracks.create), never from the contact form. */
+    public const TRACKS = 'tracks';
+
     public const OPEN = 'open';
 
     public const ANSWERED = 'answered';

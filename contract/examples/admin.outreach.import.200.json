@@ -1,0 +1,13 @@
+{
+    "data": {
+        "added": 41,
+        "updated": 2,
+        "skipped": [
+            {
+                "row": 17,
+                "name": "Making Music",
+                "reason": "This address is on the do-not-contact list."
+            }
+        ]
+    }
+}

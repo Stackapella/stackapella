@@ -9,7 +9,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 from flow import run  # noqa: E402
 from boards import ANSWER, MOUNT, as_adult  # noqa: E402
-from game_frames import dark, frames, light  # noqa: E402
+from game_frames import dark, every_theme, frames, light  # noqa: E402
 from help_shots import t  # noqa: E402
 
 RECORD = "document.querySelector('[data-game-record]')"
@@ -36,6 +36,7 @@ def journey(f):
     f.run(f"{RECORD}.click()")
     f.wait(f"{RECORD}.classList.contains('is-landed')", what="a tap lands it")
     f.shot("record")
+    every_theme(f, "NEW RECORD")
     light(f)
     f.shot("record-light")
     dark(f)

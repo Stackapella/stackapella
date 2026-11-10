@@ -16,12 +16,12 @@
         <div class="s-wrap cp-hero-grid">
             <div class="cp-hero-copy">
                 <nav class="s-crumb" aria-label="{{ __('pages.site.crumb') }}"><a href="/courses">{{ __('pages.site.courses') }}</a><span aria-hidden="true">/</span><span aria-current="page">{{ $page['name'] }}</span></nav>
-                <p class="cp-hero-chip"><b>{{ __('pages.site.course_chip_plus') }}</b>@if ($outline !== null)<span>{{ __('pages.site.course_chip_lessons', ['n' => $outline['lessons']]) }}</span>@endif</p>
+                <p class="cp-hero-chip"><b>{{ __('pages.site.course_chip_free') }}</b>@if ($outline !== null)<span>{{ __('pages.site.course_chip_lessons', ['n' => $outline['lessons']]) }}</span>@endif</p>
                 <h1 id="page-h">{{ $page['hero_title'] }}</h1>
                 <p class="s-lede">{{ $page['hero_lead'] }}</p>
                 <p class="cp-hero-btns">
                     @if ($open)
-                        <a href="{{ \App\Support\Http\Hosts::app('/learn/c/'.$page['app']) }}" class="btn-primary btn-lg">{{ __('pages.site.course_try') }} <x-site.icon name="arrow" size="18" /></a>
+                        <a href="{{ $courseStart }}" class="btn-primary btn-lg">{{ __('pages.site.course_try') }} <x-site.icon name="arrow" size="18" /></a>
                     @endif
                     <a href="#units-h" class="btn-secondary btn-lg">{{ $page['see_lessons'] }}</a>
                 </p>

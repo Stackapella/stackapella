@@ -50,6 +50,46 @@ def lines_of(song):
     return [tuple(p) for s in song.get("sections", []) for p in s.get("phrases", [])]
 
 
+MINOR_THIRD = {"min", "min7", "min6", "dim", "dim7", "hdim7"}
+
+
+def sounding(notes, beat):
+    for n in notes:
+        if n["beat"] <= beat + 1e-6 < n["beat"] + n["length"]:
+            return n["pitch"]
+    return None
+
+
+def third_to_third(song, tune_notes, part, x, y):
+    """Rule 5, as the courses lead refined it: a third or a fourth from one chord's third to the next
+    chord's third, across the chord change, is an easy move for a close-harmony part, unless it lands in
+    unison with the tune or makes a parallel fifth or octave with another part."""
+    d = abs(y["pitch"] - x["pitch"])
+    if not 3 <= d <= 5:
+        return False
+    chords = song.get("chords") or []
+    at = lambda b: next((c for c in reversed(chords) if c["beat"] <= b + 1e-6), None)
+    a, b = at(x["beat"]), at(y["beat"])
+    if not a or not b or a is b:
+        return False
+    third = lambda c: (c["root"] + (3 if c["quality"] in MINOR_THIRD else 4)) % 12
+    if x["pitch"] % 12 != third(a) or y["pitch"] % 12 != third(b):
+        return False
+    if sounding(tune_notes, y["beat"]) == y["pitch"]:
+        return False
+    for other in song["parts"]:
+        if other is part:
+            continue
+        ns = other["guide"]["notes"]
+        p0, p1 = sounding(ns, x["beat"]), sounding(ns, y["beat"])
+        if p0 is None or p1 is None or p0 == p1:
+            continue
+        was, now = (x["pitch"] - p0) % 12, (y["pitch"] - p1) % 12
+        if was == now and now in (0, 7) and (y["pitch"] > x["pitch"]) == (p1 > p0):
+            return False
+    return True
+
+
 def check(song):
     """Every problem: (rule, part, beat, what)."""
     seconds = 60 / song["tempo"]
@@ -125,9 +165,9 @@ def check(song):
                     out.append((5, key, n["beat"], "a melisma"))
                 if n["length"] < tune_shortest - 1e-6:
                     out.append((5, key, n["beat"], f"a note of {n['length']:g} beats, shorter than the tune's shortest"))
-            starts = {round(a, 4) for a, _ in lines}
-            ends = {round(b, 4) for _, b in lines}
-            line_start = lambda n: n.get("br") or round(n["beat"], 4) in starts
+            starts = {round(a, 6) for a, _ in lines}
+            ends = {round(b, 6) for _, b in lines}
+            line_start = lambda n: n.get("br") or round(n["beat"], 6) in starts
             for a, b in lines:
                 ns = in_line(notes, a, b)
                 leaps = sum(1 for x, y in zip(ns, ns[1:]) if abs(y["pitch"] - x["pitch"]) > 5)
@@ -145,8 +185,9 @@ def check(song):
                     if i and abs(d) > 2 and abs(moves[i - 1][2]) > 2 and (d > 0) == (moves[i - 1][2] > 0) and abs(d + moves[i - 1][2]) > 12:
                         out.append((5, key, y["beat"], "two leaps the same way past an octave"))
             else:
-                if moves and sum(1 for *_, d in moves if abs(d) <= 2) / len(moves) < 0.7 - 1e-6:
-                    out.append((5, key, 0, f"{sum(1 for *_, d in moves if abs(d) <= 2)} of {len(moves)} moves repeat or step, under 70%"))
+                easy = sum(1 for x, y, d in moves if abs(d) <= 2 or third_to_third(song, tune_notes, part, x, y))
+                if moves and easy / len(moves) < 0.7 - 1e-6:
+                    out.append((5, key, 0, f"{easy} of {len(moves)} moves repeat, step or go third to third, under 70%"))
                 for i, (x, y, d) in enumerate(moves):
                     if abs(d) > 7 and not (abs(d) == 12 and line_start(y)):
                         out.append((5, key, y["beat"], f"a leap of {abs(d)}"))
@@ -179,11 +220,13 @@ def choir(song):
 
     def at(p, beat):
         for n in p["guide"]["notes"]:
-            if n["beat"] <= beat + 1e-6 < n["beat"] + n["length"]:
+            if n["beat"] <= beat + 1e-5 < n["beat"] + n["length"]:
                 return n
         return None
 
-    beats = sorted({round(n["beat"], 4) for p in voices for n in p["guide"]["notes"]})
+    # Onsets to 6 places, as the templates write them: at 4, a note on a third of a beat was read
+    # before it started, so the chord compared was the one before it.
+    beats = sorted({round(n["beat"], 6) for p in voices for n in p["guide"]["notes"]})
     out, prev = [], None
     for beat in beats:
         ns = [at(p, beat) for p in voices]

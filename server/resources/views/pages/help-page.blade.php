@@ -14,7 +14,7 @@
     @include('pages._header')
     <main class="s-wrap s-guide">
         <header class="s-guide-head">
-            <p class="s-eyebrow"><a href="/help" class="s-back">{{ __('pages.help.eyebrow') }}</a></p>
+            <x-site.crumbs :trail="[[__('pages.help.eyebrow'), '/help'], [$title]]" :ld="true" />
             <h1 id="page-h">{{ $title }}</h1>
             <p class="s-lead">{{ $meta['description'] }}</p>
         </header>

@@ -269,10 +269,10 @@ final class StripeWebhookController extends WebhookController
      */
     protected function handleChargeDisputeClosed(array $payload): Response
     {
-        // Won: a coach's held or taken-back share is paid after all.
+        // Won (or an inquiry closed without a chargeback): a coach's held or taken-back share is paid after all.
         $charge = $payload['data']['object']['charge'] ?? null;
 
-        if (is_string($charge) && ($payload['data']['object']['status'] ?? null) === 'won') {
+        if (is_string($charge) && in_array($payload['data']['object']['status'] ?? null, ['won', 'warning_closed'], true)) {
             app(Engagements::class)->disputeWon($charge);
         }
 
@@ -284,11 +284,13 @@ final class StripeWebhookController extends WebhookController
      */
     private function dispute(array $payload, bool $coaching = true): Response
     {
-        // A chargeback on coaching: the coach's share never moves after it, and Hillel sees it (a
-        // closed dispute doesn't mark it again: a win has just cleared it).
+        // A chargeback on coaching: the coach's share never moves after it, and Hillel sees it. Only
+        // while the dispute is still open: a closed one (or a late update to it) doesn't mark it again,
+        // since a win has just cleared it.
         $charge = $payload['data']['object']['charge'] ?? null;
+        $open = in_array($payload['data']['object']['status'] ?? null, ['needs_response', 'under_review', 'warning_needs_response', 'warning_under_review'], true);
 
-        if ($coaching && is_string($charge)) {
+        if ($coaching && $open && is_string($charge)) {
             app(Engagements::class)->disputed($charge);
         }
 

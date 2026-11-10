@@ -131,8 +131,9 @@ export const BetaView = {
     template: `
         <div data-ui="screen" class="min-h-dvh bg-ink">
             <header class="border-b border-line">
-                <div class="mx-auto flex max-w-3xl items-center gap-3 px-4 pb-3 pt-[max(0.75rem,env(safe-area-inset-top))]">
-                    <Logo :size="20" /><span class="chip-accent">{{ t('beta.badge') }}</span>
+                <!-- The app's top bar on the site header's grid (app-wrap app-top): the logo where the site's is. -->
+                <div class="app-wrap app-top">
+                    <Logo /><span class="chip-accent">{{ t('beta.badge') }}</span>
                     <button v-if="me" type="button" class="btn-ghost btn-sm ms-auto" @click="telling = true"><Icon name="info" :size="16" /> {{ t('beta.tell.button') }}</button>
                 </div>
             </header>
@@ -268,6 +269,8 @@ export const BetaView = {
                                             <p class="text-sm text-cream" translate="no">{{ noteOf(part).text }}</p>
                                         </div>
                                     </div>
+                                    <!-- Asked for a new take of a part whose take is live: say it's welcome, and that nothing comes down meanwhile. -->
+                                    <p v-if="part.status === 'retake' && part.askedAgain && part.guides.some((g) => g.mine && g.partKey === part.partKey)" class="text-sm text-cream" data-new-take-welcome>{{ t('beta.parts.newTakeWelcome') }}</p>
                                     <p v-if="part.status === 'rejected' && part.latestSubmission?.adminNote" class="text-sm text-muted" translate="no">{{ part.latestSubmission.adminNote }}</p>
                                     <p v-if="part.status === 'to_record' && part.recordable" class="text-sm text-muted">{{ t('beta.parts.readyToRecord') }}</p>
                                     <!-- How to sing it (the part's style, docs/vibrato-plan.md), while it's still to sing -->

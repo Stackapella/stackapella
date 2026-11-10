@@ -85,7 +85,7 @@ export const JustRecorded = {
         bleed: Boolean,
         sungBy: { type: String, default: '' }, // the song and who sang it, once two or more of its parts are yours (onboarding step 10)
     },
-    emits: ['hear', 'again', 'next', 'nudge', 'nudged', 'line-up', 'studio', 'resing', 'trim', 'polish', 'share', 'hear-phrase'],
+    emits: ['hear', 'mute', 'again', 'next', 'nudge', 'nudged', 'line-up', 'studio', 'resing', 'trim', 'polish', 'share', 'hear-phrase'],
     data: () => ({ nudging: false, picked: null }),
     setup: () => ({ MAX_NUDGE_MS, CHART, formatNumber, formatTime, sk }),
     template: `
@@ -113,7 +113,7 @@ export const JustRecorded = {
                         <!-- Hear it with the others: a small mixer. -->
                         <div class="card space-y-3 p-4">
                             <div class="flex items-center gap-3">
-                                <button type="button" class="glass-bubble-solid grid size-12 shrink-0 place-items-center rounded-full" :aria-label="hearing ? t('studio.stop') : t('sing.recorded.hearOthers')" @click="$emit('hear')"><Icon :name="hearing ? 'stop' : 'play'" :size="20" /></button>
+                                <button type="button" class="grid size-12 shrink-0 place-items-center bubble bubble-primary" data-disc="play" :aria-label="hearing ? t('studio.stop') : t('sing.recorded.hearOthers')" @click="$emit('hear')"><Icon :name="hearing ? 'stop' : 'play'" :size="20" /></button>
                                 <div class="min-w-0 flex-1">
                                     <p class="font-bold text-cream" :data-replay="hearing ? '' : null">{{ hearing ? sk('sing.recorded.hearOthers', 'game.replay') : t('sing.recorded.hearOthers') }}</p>
                                     <p class="tabular-nums text-xs text-muted">{{ formatTime(Math.max(0, position)) }} / {{ formatTime(lengthSeconds) }}<template v-if="phraseNow !== null"> · {{ t('sing.review.phrase', { number: phraseNow + 1 }) }}</template></p>
@@ -124,13 +124,14 @@ export const JustRecorded = {
                             </div>
                             <ul class="space-y-1.5">
                                 <li v-for="row in stack" :key="row.id" class="flex items-center gap-2">
-                                    <span class="flex w-32 shrink-0 items-center gap-1.5 truncate text-xs font-semibold" :class="row.muted ? 'text-muted' : 'text-cream'">
+                                    <!-- Tap a part to mute it, right here (Hillel, 2026-11-02: help in place, not in Settings). -->
+                                    <button type="button" class="tap-44 flex w-32 shrink-0 items-center gap-1.5 truncate text-start text-xs font-semibold" :class="row.muted ? 'text-muted' : 'text-cream'" :aria-pressed="row.muted ? 'false' : 'true'" :aria-label="t('sing.review.muteLabel', { part: row.name })" data-mute-part @click="$emit('mute', row.id)">
                                         <span class="size-2 shrink-0 rounded-full" :style="{ background: row.color }"></span><span class="truncate" translate="no">{{ row.you ? t('home.lead.you', { part: row.name }) : row.name }}</span><span v-if="row.muted" class="ms-auto shrink-0 font-bold">{{ t('sing.hear.offShort') }}</span>
-                                    </span>
+                                    </button>
                                     <span class="min-w-0 flex-1 rounded-lg bg-ink px-1" :class="row.muted ? 'opacity-40' : ''" :style="row.you ? { boxShadow: 'inset 0 0 0 1.5px ' + row.color } : null"><PeakRow :peaks="row.peaks" :color="row.color" :at="hearing ? Math.max(0, position) / lengthSeconds : null" /></span>
                                 </li>
                             </ul>
-                            <p class="text-xs text-muted">{{ t('sing.review.inSettings') }}</p>
+                            <p class="text-xs text-muted">{{ t('sing.review.tapToMute') }} {{ polished ? t('polish.hearOn') : t('polish.hearOff') }}</p>
                         </div>
                         <!-- Fine-tune the take: two tiles. -->
                         <div class="space-y-2">

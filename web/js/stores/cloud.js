@@ -11,7 +11,7 @@ import { encodeWav } from '../wav.js';
 import { createSync } from '../sync.js';
 import { account, loadAccount } from './account.js';
 import { syncLearning } from './learning.js';
-import { forgetMine, loadMine } from './templates.js';
+import { templatesStore } from '../lazy-stores.js';
 
 export const cloud = reactive({ pending: 0, conflicts: [], waiting: null, offline: false, lastSynced: null });
 
@@ -125,7 +125,7 @@ export async function signedInSync() {
     const owner = await db.get('meta', 'owner');
     if (owner && owner !== account.me.id) {
         await sync.forget();
-        await forgetMine();
+        await (await templatesStore()).forgetMine();
         listeners.forEach((listener) => listener([{ kind: 'project', id: null, removed: true }]));
     }
     await db.put('meta', account.me.id, 'owner');
@@ -134,7 +134,7 @@ export async function signedInSync() {
         await sync.adopt();
         await db.put('meta', true, key);
     }
-    await Promise.all([sync.run(), syncLearning(), loadMine()]);
+    await Promise.all([sync.run(), syncLearning(), templatesStore().then((store) => store.loadMine())]);
 }
 
 // ---- Friends' projects (contract/api.md, "Collaboration: friends on a project") -----------------

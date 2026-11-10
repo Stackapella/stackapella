@@ -60,6 +60,8 @@ export const game = () => appearance.skin !== 'serious';
 
 /** Game mode on or off: shown at once (the boot script sets <html data-skin>), kept on this device and, signed in, on the account. */
 export async function setSkin(skin) {
+    // Game mode's own stylesheet first (theme-boot.js gameCss: it's a sheet of its own), so the screen turns once, styled.
+    if (skin !== 'serious') await window.stackapellaTheme?.gameCss?.();
     const was = appearance.skin;
     appearance.skin = skin === 'serious' ? 'serious' : 'game';
     if (appearance.skin !== was) count(appearance.skin === 'game' ? 'game_on' : 'game_off');
@@ -182,7 +184,8 @@ export function adoptAccountAppearance(theirs) {
     // Game mode follows the account too (an appearance saved before it reads as game).
     const skin = theirs.skin === 'serious' ? 'serious' : 'game';
     if (skin !== appearance.skin) {
-        appearance.skin = skin;
+        // To game mode: the boot script turns the page once game mode's sheet has loaded, and its theme event sets the skin here.
+        if (skin === 'serious' || !window.stackapellaTheme?.gameCss) appearance.skin = skin;
         window.stackapellaTheme?.choose?.({ skin });
     }
     agreed();

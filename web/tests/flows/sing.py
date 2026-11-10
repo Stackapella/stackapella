@@ -48,15 +48,19 @@ def journey(f):
     f.wait_text(t(f, "sing.chooser.title"))
     alto = t(f, "parts.alto")
     f.shot("chooser")
-    # Three equal ways (Hillel), each a large button that starts at once; no Start button.
-    sizes = f.js("[...document.querySelectorAll('[data-way]')].map((b) => { const r = b.getBoundingClientRect(); return [Math.round(r.width), Math.round(r.height), Math.round(r.top)]; })")
-    assert len(sizes) == 3, sizes
+    # Equal ways, each a large button that starts at once; no Start button. Part by part is tagged for a first song and
+    # the studio waits under More ways (Hillel, 2026-11-02).
+    sizes = f.js("[...document.querySelectorAll('[data-way]')].filter((b) => !b.closest('[data-more-ways]')).map((b) => { const r = b.getBoundingClientRect(); return [Math.round(r.width), Math.round(r.height), Math.round(r.top)]; })")
+    assert len(sizes) == 2, sizes
+    assert f.js("!!document.querySelector('[data-way=parts] [data-first-pick]') && !!document.querySelector('[data-more-ways] [data-way=studio]')"), "the first-song pick and More ways"
     assert len({w for w, _, _ in sizes}) == 1 and len({h for _, h, _ in sizes}) == 1, f"the ways aren't the same size: {sizes}"
     in_a_row = len({top for _, _, top in sizes}) == 1
     assert in_a_row == (f.size == "desktop"), f"the ways aren't {'in a row' if f.size == 'desktop' else 'stacked'}: {sizes}"
     f.run("document.querySelector(\'[data-way=parts]\').click()")  # the way starts at once
     f.wait_text(t(f, "sing.chooser.yourPart"))
-    f.run(f"[...document.querySelectorAll('main button, .card-interactive')].find((b) => b.textContent.includes({alto!r})).click()")
+    alto_button = f"[...document.querySelectorAll('main button, .card-interactive')].find((b) => b.textContent.includes({alto!r}))"
+    f.wait(alto_button, what="the alto to choose")  # game mode's part select comes with Sing (js/game/modules.js WITH_SING)
+    f.run(f"{alto_button}.click()")
     f.wait_text(t(f, "sing.coach.hint.listen", {"part": alto}))
     # 66.png: between plays the stage is the phrase you're on (desktop); Play starts the step's action.
     if f.size == "desktop":
@@ -153,14 +157,11 @@ def journey(f):
     f.wait(f"{SESSION}.session.practice.focus", what="a part picked for your range")
     assert t(f, "sing.chooser.yourPart") not in f.js("document.body.innerText"), "the part picker asked again"
     assert f.js("!!document.querySelector('[data-way=parts] [data-last-time]') && !document.querySelector('[data-way=whole] [data-last-time]')"), "part by part isn't marked Last time"
-    f.run("document.querySelector(\'[data-way=whole]\').click()")  # the way starts at once
-    # Game mode shows the character select with that part pre-picked (Hillel, 2026-11-01): one tap confirms it.
-    if f.skin == "game":
-        f.wait("document.querySelector('[data-game-select] .ge-portrait.is-picked')", what="the character select, the part pre-picked")
-        f.run("document.querySelector('[data-game-select] .ge-portrait.is-picked').click()")
-        f.wait("!document.querySelector('[data-game-select]')", what="locked in")
-    # The round's alto (comes in at bar 3), whichever part fitted: the header's part changes it.
-    f.run(f"const s = {SESSION}; s.practise(s.session.parts.find((p) => p.templatePartKey === 'alto'))")
+    # The whole song on the round's alto (comes in at bar 3), whichever part fitted, as the chooser and the
+    # header's part would set it (game mode's character select is game_select's).
+    f.run(f"""const s = {SESSION}; s.session.practice.sing = {{ ...(s.session.practice.sing ?? {{}}), way: 'whole' }};
+        s.practise(s.session.parts.find((p) => p.templatePartKey === 'alto')); s.savePractice();""")
+    f.wait("!document.querySelector('[data-way], [data-game-select]')", what="past the chooser")
     f.wait("document.querySelector('main')", what="the stage")
     f.wait_text("Are")  # the first line, before playing
     f.shot("stage-idle")

@@ -9,6 +9,7 @@ import { audio, engine, leadSeconds, unlock } from './audio.js';
 import { isSilent } from './dsp.js';
 import { micNeedsCheck, readyMic } from './mic-check.js';
 import { trackFrame } from './pitchtrack.js';
+import { partVoice } from './guide-voice.js';
 import { renderPart } from './synth.js';
 import { beatsPerBar } from './theme.js';
 import { partsFor } from './templates.js';
@@ -134,7 +135,7 @@ export async function hearTake(take) {
  * Plays a template from `fromBeat` with the synth: every part, or `only` (part keys), the rest
  * quieter, or muted ones left out. Returns `{ stop, done, beat() }`; `beat()` is where it is now.
  */
-export async function playTemplate(template, { fromBeat = 0, toBeat = null, singers = null, muted = [], focus = null, onFrame = () => {} } = {}) {
+export async function playTemplate(template, { fromBeat = 0, toBeat = null, singers = null, muted = [], focus = null, real = false, onFrame = () => {} } = {}) {
     await unlock();
     await engine.stop();
     clearParts();
@@ -142,8 +143,10 @@ export async function playTemplate(template, { fromBeat = 0, toBeat = null, sing
     let end = 0;
     for (const part of partsFor(template, singers ?? undefined)) {
         if (!part.guide.notes.length) continue;
-        const samples = renderPart(part.guide.notes, { bpm: template.tempo, sampleRate: engine.sampleRate });
-        engine.setPart(PREFIX + part.key, samples, engine.sampleRate, { volume: focus && focus !== part.key ? 0.45 : 0.9, pan: 0, audible: !muted.includes(part.key), offsetSeconds: 0 });
+        const synth = () => renderPart(part.guide.notes, { bpm: template.tempo, sampleRate: engine.sampleRate });
+        // A library song (`real`, the song page): the part's real voice where the catalogue has one (guide-voice.js).
+        const voice = real ? await partVoice(template, part, engine.sampleRate, synth) : { samples: synth(), offsetSeconds: 0 };
+        engine.setPart(PREFIX + part.key, voice.samples, engine.sampleRate, { volume: focus && focus !== part.key ? 0.45 : 0.9, pan: 0, audible: !muted.includes(part.key), offsetSeconds: voice.offsetSeconds });
         end = Math.max(end, ...part.guide.notes.map((n) => n.beat + n.length));
     }
     engine.play({ fromSeconds: fromBeat * beatSeconds, bpm: template.tempo, beatsPerBar: beatsPerBar(template.timeSignature), pickupBeats: template.pickupBeats });

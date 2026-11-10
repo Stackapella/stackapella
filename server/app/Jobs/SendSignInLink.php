@@ -6,15 +6,17 @@ namespace App\Jobs;
 
 use App\Actions\Users\SignInByLink;
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldBeEncrypted;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 
 /**
  * auth.link.send's work, after the answer: the request only checks and answers, so how long it
- * takes never tells whether the address has an account (SignInByLink::send).
+ * takes never tells whether the address has an account (SignInByLink::send). Queued encrypted: it
+ * carries the address, the invite and the IP.
  */
-final class SendSignInLink implements ShouldQueue
+final class SendSignInLink implements ShouldBeEncrypted, ShouldQueue
 {
     use Dispatchable;
     use InteractsWithQueue;

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Actions\Counts;
 
+use App\Support\Outreach\Outreach;
 use App\Support\Stats\ReportDay;
 use Illuminate\Support\Facades\DB;
 
@@ -14,7 +15,7 @@ use Illuminate\Support\Facades\DB;
 final class RecordCounts
 {
     /** Kinds that keep where the device came from (with the funnel's): the landing's visits. */
-    public const SOURCED = ['site_visit'];
+    public const SOURCED = ['site_visit', 'school_redeemed'];
 
     /**
      * A funnel or ask kind (Funnel::kinds()) also keeps the device's experiment arm, when it names
@@ -46,12 +47,16 @@ final class RecordCounts
 
         $day = ReportDay::today();
         $audience = $signedIn ? 'account' : 'guest';
+        $hourly = [];
 
         foreach (array_diff_key($totals, [Funnel::ENROLLED => true]) as $kind => $n) {
             $arm = in_array($kind, $funnel, true) ? $variant : '';
             $from = in_array($kind, $funnel, true) || in_array($kind, self::SOURCED, true) ? $source : '';
             DB::statement('insert into usage_counts (day, kind, audience, country, variant, source, count) values (?, ?, ?, ?, ?, ?, ?) on duplicate key update count = count + ?', [$day, $kind, $audience, $arm !== '' || $from !== '' ? '' : ($country ?? ''), $arm, $from, $n, $n]);
+            $hourly[] = [$kind, $from, $n];
         }
+
+        self::hourly($audience, $hourly);
 
         // The experiments' own counts: funnel steps only, for arms the registry knows (onb1 keeps `variant`).
         $arms = array_slice(array_values(array_unique(array_filter($variants, static fn (string $v): bool => ! str_starts_with($v, Funnel::LEGACY.'-') && Funnel::knownVariant($v)))), 0, 4);
@@ -63,20 +68,46 @@ final class RecordCounts
         }
     }
 
+    /** A free tool's ?ref= tag: "tool-" and the tool's name (config tools.slugs). */
+    public const TOOL_PREFIX = 'tool-';
+
+    /** usage_counts.source's length. */
+    public const SOURCE_MAX = 60;
+
+    /** An embedded tool's ?ref= tag's prefix; the embedding site's host follows. */
+    public const EMBED_PREFIX = 'embed-';
+
+    /** An embedded tool's tag: "embed-" and the embedding site's host (two labels or more). */
+    public const EMBED = '/^embed-(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,24}$/';
+
     /**
      * Where a device came from, from its ?ref= tag, grouped: a campaign's tag as written (config
-     * counts.sources), "harmony" for a shared harmony's (h-*), "coach" for a coach's link (c-*),
-     * "other" for any other, and '' for none. Never the tag itself, so no id is kept.
+     * counts.sources), a free tool's (tool-<slug>, config tools.slugs), "harmony" for a shared harmony's
+     * (h-*), "coach" for a coach's link (c-*), "profile" for a singer's profile (p-*), "other" for any
+     * other, and '' for none. Never a tag that names a person or a thing of theirs, so no id is kept.
      */
     public static function source(?string $ref): string
     {
         $ref = strtolower(trim((string) $ref));
 
+        // Longer than the column (usage_counts.source) is never one of ours.
+        if (strlen($ref) > self::SOURCE_MAX) {
+            return 'other';
+        }
+
         return match (true) {
             $ref === '' => '',
             in_array($ref, (array) config('counts.sources'), true) => $ref,
+            str_starts_with($ref, self::TOOL_PREFIX) && in_array(substr($ref, strlen(self::TOOL_PREFIX)), (array) config('tools.slugs'), true) => $ref,
+            // A free tool embedded on another site (docs/tools-plan.md): that site's host, which
+            // names a website, never a person; a source of under five a day is folded in Growth.
+            preg_match(self::EMBED, $ref) === 1 => $ref,
             str_starts_with($ref, 'h-') => 'harmony',
             str_starts_with($ref, 'c-') => 'coach',
+            // A singer's public profile (p-<handle>): grouped, never the handle.
+            str_starts_with($ref, 'p-') => 'profile',
+            // An organization's own outreach link (docs/outreach-plan.md): its tag, one per organization.
+            Outreach::known($ref) => $ref,
             default => 'other',
         };
     }
@@ -163,6 +194,26 @@ final class RecordCounts
         }
 
         DB::statement('insert into usage_counts (day, kind, audience, country, count) values (?, ?, ?, ?, 1) on duplicate key update count = count + 1', [ReportDay::today(), $kind, $signedIn ? 'account' : 'guest', $country ?? '']);
+        self::hourly($signedIn ? 'account' : 'guest', [[$kind, '', 1]]);
+    }
+
+    /**
+     * The same counts in this UTC hour (usage_count_hours), in one statement: what a pro-rated
+     * comparison reads (today by this hour against yesterday by the same hour, and every period
+     * cut at the same point). Never a country or an arm.
+     *
+     * @param  list<array{0: string, 1: string, 2: int}>  $rows  [kind, source, n]
+     */
+    private static function hourly(string $audience, array $rows): void
+    {
+        if ($rows === []) {
+            return;
+        }
+
+        $hour = now()->utc()->startOfHour()->format('Y-m-d H:i:s');
+        $values = implode(', ', array_fill(0, count($rows), '(?, ?, ?, ?, ?)'));
+        $bindings = array_merge(...array_map(static fn (array $row): array => [$hour, $row[0], $audience, $row[1], $row[2]], $rows));
+        DB::statement("insert into usage_count_hours (hour, kind, audience, source, count) values {$values} as new on duplicate key update count = usage_count_hours.count + new.count", $bindings);
     }
 
     /**

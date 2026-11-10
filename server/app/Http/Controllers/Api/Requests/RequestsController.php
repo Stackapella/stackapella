@@ -29,7 +29,7 @@ final class RequestsController extends Controller
         $viewer = $request->user() instanceof User ? $request->user() : null;
         $q = $request->validated('q');
         $status = $request->validated('status');
-        $page = $this->requests->list(is_string($q) ? $q : null, is_string($status) ? $status : null, (string) ($request->validated('sort') ?? 'wanted'));
+        $page = $this->requests->list(is_string($q) ? $q : null, is_string($status) ? $status : null, (string) ($request->validated('sort') ?? 'wanted'), $viewer);
         $voted = $viewer !== null ? SongRequestVote::query()->where('user_id', $viewer->id)->whereIn('song_request_id', array_map(static fn (SongRequest $r): int => $r->id, $page->items()))->pluck('song_request_id')->all() : [];
 
         return response()->json([

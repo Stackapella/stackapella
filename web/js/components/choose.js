@@ -11,45 +11,12 @@
 
 import { engine, unlock } from '../audio.js';
 import { localized, t } from '../i18n.js';
-import { renderBacking, renderPart } from '../synth.js';
+import { choosePercent, playableRounds, renderClip } from '../ear-rounds.js';
 import { Icon } from './icon.js';
-import { styleBend } from '../style-scores.js';
 import { clipBuffer, clipCredit, publishedFor } from '../course-clips.js';
 import { ReportVoice } from './report-voice.js';
 
 const LETTERS = ['A', 'B', 'C', 'D'];
-
-/**
- * A clip as one sound: its notes (in steps from `base`), over its drone or chords if it has them. A
- * note's `style` (a scoop, a fall: Pop and country) is sung as the style measure hears it
- * (style-scores.js styleBend), so the model and the measure share one shape.
- */
-export function renderClip(clip, base, { tempo = 72, sampleRate, exercise = {} }) {
-    const notes = clip.notes.map((n, i) => ({ beat: n.beat, length: n.length, pitch: base + n.step, vibrato: n.vibrato ?? null, bend: n.bend ?? styleBend(n, clip.notes[i + 1] ?? null, { ...exercise, tempo }, clip.notes[i - 1] ?? null) ?? null, voice: n.voice ?? null }));
-    const end = Math.max(...notes.map((n) => n.beat + n.length));
-    const layers = [renderPart(notes, { bpm: tempo, sampleRate })];
-    if (clip.drone) layers.push(renderPart([{ beat: 0, length: end, pitch: base + clip.drone.step, vibrato: { cents: 0 } }], { bpm: tempo, sampleRate }).map((v) => v * 0.5));
-    if (clip.chords) layers.push(renderBacking(clip.chords, { bpm: tempo, sampleRate, endBeat: end, transpose: ((base % 12) + 12) % 12 }));
-    const out = new Float32Array(Math.max(...layers.map((l) => l.length)));
-    for (const layer of layers) for (let i = 0; i < layer.length; i++) out[i] += layer[i];
-    return out;
-}
-
-/**
- * The rounds that can be played now: a clip plays a real singer's published recording (`recorded`,
- * by slot) or else its own notes, so a round whose clip has neither (a slot not yet recorded, with no
- * notes to fall back on: clips.json `fallback.skip`) is left out until it's recorded.
- */
-export function playableRounds(rounds, recorded = {}) {
-    return rounds.filter((r) => r.clips.every((c) => c.notes?.length || (c.clip && recorded[c.clip])));
-}
-
-/** The percent for `answers` (each round's first answer) against the rounds. */
-export function choosePercent(rounds, answers) {
-    if (!rounds.length) return null;
-    const right = rounds.filter((r, i) => answers[i] === r.answer).length;
-    return Math.round((100 * right) / rounds.length);
-}
 
 export const Choose = {
     components: { Icon, ReportVoice },
@@ -58,6 +25,7 @@ export const Choose = {
         exercise: { type: Object, required: true },
         base: { type: Number, required: true },
         color: { type: String, default: 'var(--color-part-4)' },
+        personal: { type: Object, default: () => ({}) }, // the course's own values (a whistle step: `personal.whistle`)
     },
     emits: ['done', 'practised'],
     data: () => ({ round: 0, answers: [], picked: null, playing: null, finished: false, recorded: {}, reporting: null }),
@@ -70,7 +38,7 @@ export const Choose = {
                 <!-- The clips: hear each as often as you like. Without words to pick, a clip is the answer. -->
                 <ul class="grid gap-3" :class="current.clips.length > 2 ? 'sm:grid-cols-3' : 'sm:grid-cols-2'">
                     <li v-for="(clip, i) in current.clips" :key="round + '-' + i" class="flex items-center gap-3 rounded-2xl border p-3" :class="clipClass(i)" :data-clip="i">
-                        <button type="button" class="grid size-12 shrink-0 place-items-center rounded-full glass-bubble-solid" :aria-label="t('choose.hear', { name: clipName(clip, i) })" @click="play(i)"><Icon :name="playing === i ? 'stop' : 'play'" :size="18" /></button>
+                        <button type="button" class="grid size-12 shrink-0 place-items-center bubble bubble-primary" data-disc="play" :aria-label="t('choose.hear', { name: clipName(clip, i) })" @click="play(i)"><Icon :name="playing === i ? 'stop' : 'play'" :size="18" /></button>
                         <span class="min-w-0 flex-1"><span class="block font-bold text-cream" translate="no">{{ clipName(clip, i) }}</span><span v-if="clip.clip && recorded[clip.clip]?.credit" class="block text-xs text-muted" translate="no">{{ clipCredit(recorded[clip.clip]) }} <button type="button" class="link-quiet" :aria-label="t('voices.report.button', { who: clipCredit(recorded[clip.clip]) })" data-report-clip @click.stop="reporting = clip.clip">{{ t('voices.report.short') }}</button></span></span>
                         <button v-if="!current.options" type="button" class="btn-secondary btn-sm" :disabled="picked !== null" @click="answer(i)">{{ t('choose.this') }}</button>
                     </li>
@@ -134,7 +102,7 @@ export const Choose = {
             const published = clip.clip ? this.recorded[clip.clip] : null;
             if (published) buffer = await clipBuffer(published.url).catch((error) => (console.warn('Clip not played', error), null));
             if (!buffer && !clip.notes?.length) return;
-            if (!buffer) buffer = engine.toBuffer(renderClip(clip, this.base, { tempo: this.exercise.tempo ?? 72, sampleRate, exercise: this.exercise }), sampleRate);
+            if (!buffer) buffer = engine.toBuffer(renderClip(clip, this.base, { tempo: this.exercise.tempo ?? 72, sampleRate, exercise: this.exercise, whistle: this.personal.whistle ?? null }), sampleRate);
             const source = engine.ctx.createBufferSource();
             source.buffer = buffer;
             source.connect(engine.playBus);

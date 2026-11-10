@@ -27,6 +27,8 @@ const ON_TIME_MS = 120; // entries within this are on time (80 until Hillel's "m
 const STEADY_MS = 120; // for the timing score: entries and note changes within this of the beat (by default; 90 before 2026-11-01)
 const CHANGE_WINDOW = [-0.25, 0.3]; // where to look for a change of note around its start
 const OFFSET_FORGIVEN_MS = 100; // an even offset up to this isn't held against the timing score
+const KIND_AT_LEAST = 3; // with `drift`, the moments of a kind (entries, changes) that set its own usual offset
+const DRIFT_OPENING = 4; // with `drift`, the singer's usual offset is read from this many opening moments
 const TIMED_AT_LEAST = 3; // fewer timed moments than this: no timing score
 const BREATH_BEATS = 0.5; // the last half beat before a new line (a `br` note) is a breath
 // A line started after a breath (a `br` note, or the take's first) may come in this much late and still be
@@ -74,7 +76,7 @@ export function noteCredit(note, tolerance = STRICTNESS.standard, graded = true)
     return 1 - 0.5 * Math.min(1, Math.max(0, (Math.abs(note.cents) - tolerance) / tolerance));
 }
 
-export function scoreTake(track, notes, { beatSeconds, startSeconds = 0, transpose = 0, strictness = 'standard', timing = 'measured', phrases = [], steadyMs = STEADY_MS, graded = true } = {}) {
+export function scoreTake(track, notes, { beatSeconds, startSeconds = 0, transpose = 0, strictness = 'standard', timing = 'measured', phrases = [], steadyMs = STEADY_MS, graded = true, crossing = false, swing = false, forgiveMs = OFFSET_FORGIVEN_MS, drift = false, countMissing = false } = {}) {
     const tolerance = STRICTNESS[strictness] ?? STRICTNESS.standard;
     // Each note ends where its singing does: a breath before a new line isn't held against anyone.
     const timed = notes.map((note, i) => ({
@@ -87,7 +89,7 @@ export function scoreTake(track, notes, { beatSeconds, startSeconds = 0, transpo
         previousPitch: i === 0 ? null : notes[i - 1].pitch + transpose,
         previousStart: i === 0 ? -Infinity : notes[i - 1].beat * beatSeconds - startSeconds,
     }));
-    const results = timed.map((note) => scoreNote(track, note, { tolerance }));
+    const results = timed.map((note) => scoreNote(track, note, { tolerance, crossing }));
     const octaves = results.filter((r) => r.level !== 'unheard').map((r) => r.octave);
     const octave = octaves.length ? mostCommon(octaves) : 0;
     const scored = results.filter((r) => r.level !== 'unheard');
@@ -117,23 +119,55 @@ export function scoreTake(track, notes, { beatSeconds, startSeconds = 0, transpo
     ].filter(Boolean));
     // Steady is against the singer's own usual offset (a take that's evenly a little late lines up
     // with a shift), up to OFFSET_FORGIVEN_MS when the latency was measured; estimated, any offset.
-    const usual = raw.length ? median(raw.map((t) => t.ms)) : 0;
-    const reference = timing === 'measured' ? Math.max(-OFFSET_FORGIVEN_MS, Math.min(OFFSET_FORGIVEN_MS, usual)) : usual;
+    // `swing` (a lesson's `rhythm: "swing"`): the usual offset from the downbeats alone, so straight eighths (each
+    // off-beat early against the swung one) can't pull it halfway and hide in it. `drift` (a lesson's `rhythm`): from
+    // the opening moments alone, so a groove that rushes or drags reads as moving, not as one even offset.
+    const onBeat = (t) => Math.abs(notes[t.index].beat - Math.round(notes[t.index].beat)) < 1e-6;
+    const usualOf = (list) => {
+        const downbeats = swing ? list.filter(onBeat) : [];
+        const pool = downbeats.length >= 2 ? downbeats : list;
+        const opening = drift ? [...pool].sort((a, b) => a.index - b.index).slice(0, DRIFT_OPENING) : pool;
+        const usual = opening.length ? median(opening.map((t) => t.ms)) : 0;
+        return timing === 'measured' ? Math.max(-forgiveMs, Math.min(forgiveMs, usual)) : usual;
+    };
+    const overall = usualOf(raw);
+    // With `drift` (a beat step), an entry after a rest and a change of note are each against the singer's usual for
+    // that kind: the voice's start and a crossing between joined notes read a few tens of ms apart (the crossing is
+    // partway through the glide), so a swing step whose opening downbeats were entries put every joined off-beat
+    // outside the window (sc-2-form[2] and sc-1-swing[3], perfectly on time, 89: the courses lead, 2026-11-08). A kind
+    // with fewer than KIND_AT_LEAST moments is against the whole take's usual (two noisy moments are no usual).
+    const kindUsual = (entry) => {
+        const mine = raw.filter((t) => t.entry === entry);
+        return drift && mine.length >= KIND_AT_LEAST ? usualOf(mine) : overall;
+    };
+    const usualFor = { true: kindUsual(true), false: kindUsual(false) };
+    const ref = (t) => usualFor[!!t.entry];
+    const reference = overall;
     // A breath's lateness, up to BREATH_LATE_MS past the singer's usual, isn't held against anyone.
-    const forgive = (t) => (t.line && t.ms > reference ? Math.max(reference, t.ms - BREATH_LATE_MS) : t.ms);
+    const forgive = (t) => (t.line && t.ms > ref(t) ? Math.max(ref(t), t.ms - BREATH_LATE_MS) : t.ms);
     const entries = raw.filter((t) => t.entry).map(forgive);
     const entryMs = entries.length ? median(entries) : null;
-    const moments = timing === 'none' ? [] : raw.map((t) => ({ index: t.index, ms: forgive(t) }));
-    const steadyShare = (list, least = TIMED_AT_LEAST) => (list.length >= least ? Math.round((list.filter((t) => Math.abs(t.ms - reference) <= steadyMs).length / list.length) * 100) : null);
-    const timingPercent = steadyShare(moments);
+    // `countMissing` (a lesson's `rhythm`): a note whose entry or change of note was due but not found (sung so late it
+    // fell outside the search, or so late its middle went unheard) is a timing miss, never no moment, so a later take
+    // can't escape the timing score.
+    const missing = timing === 'none' || !countMissing ? [] : results.flatMap((r, i) => {
+        if (r.level === 'unheard') return timed[i].afterRest || (timed[i].previousPitch !== null && Math.abs(timed[i].pitch - timed[i].previousPitch) >= 1) ? [{ index: i, ms: Infinity, entry: !!timed[i].afterRest }] : [];
+        const due = timed[i].afterRest ? r.entryMs === null : timed[i].previousPitch !== null && Math.abs(timed[i].pitch - timed[i].previousPitch) >= 1 && r.changeMs === null;
+        return due ? [{ index: i, ms: Infinity, entry: !!timed[i].afterRest }] : [];
+    });
+    const moments = timing === 'none' ? [] : [...raw.map((t) => ({ index: t.index, ms: forgive(t), entry: t.entry })), ...missing];
+    const steadyShare = (list, least = TIMED_AT_LEAST) => (list.length >= least ? Math.round((list.filter((t) => Math.abs(t.ms - ref(t)) <= steadyMs).length / list.length) * 100) : null);
+    // Swing: the off-beats are where it lives, so their own share counts half (straight eighths can't pass on the downbeats).
+    const offBeats = swing ? moments.filter((t) => !onBeat(t)) : [];
+    const timingPercent = offBeats.length >= 2 ? Math.round(((steadyShare(moments) ?? 0) + steadyShare(offBeats, 2)) / 2) : steadyShare(moments);
     const phraseResults = phrases.map(([startBeat, endBeat], index) => {
         const within = (i) => notes[i].beat >= startBeat - 1e-9 && notes[i].beat < endBeat - 1e-9;
         const inside = counted.filter((r) => within(r.index));
         const points = inside.reduce((sum, r) => sum + noteCredit(r, tolerance, graded), 0);
         const mine = moments.filter((t) => within(t.index));
         // A phrase's lean: late or early when most of its timed moments miss the same way.
-        const off = mine.filter((t) => Math.abs(t.ms - reference) > steadyMs);
-        const lean = off.length >= 2 && off.length >= mine.length / 2 ? (off.filter((t) => t.ms > reference).length >= off.length * 0.75 ? 'late' : off.filter((t) => t.ms < reference).length >= off.length * 0.75 ? 'early' : 'uneven') : null;
+        const off = mine.filter((t) => Math.abs(t.ms - ref(t)) > steadyMs);
+        const lean = off.length >= 2 && off.length >= mine.length / 2 ? (off.filter((t) => t.ms > ref(t)).length >= off.length * 0.75 ? 'late' : off.filter((t) => t.ms < ref(t)).length >= off.length * 0.75 ? 'early' : 'uneven') : null;
         return { index, percent: inside.length ? Math.round((points / inside.length) * 100) : null, timingPercent: steadyShare(mine, 2), lean };
     });
     const result = { ...base, status: 'scored', percent, word: levelWord(percent), tendency, registers, entryMs, timingPercent, scoops, wavering, phrases: phraseResults };
@@ -148,7 +182,7 @@ export function scoreTake(track, notes, { beatSeconds, startSeconds = 0, transpo
  * scored within the nearest octave (-1, 0 or +1), so someone who drops the high notes an octave,
  * or a tracker slip, isn't marked down; the take's `octave` says which octave was usual.
  */
-function scoreNote(track, note, { tolerance }) {
+function scoreNote(track, note, { tolerance, crossing = false }) {
     const duration = note.end - note.start;
     const trim = Math.min(Math.max(0.1, duration * 0.2), duration * 0.3);
     const middle = frames(track, note.start + trim, note.end - Math.min(0.06, duration * 0.15));
@@ -158,7 +192,29 @@ function scoreNote(track, note, { tolerance }) {
         return result;
     }
     const octave = Math.max(-1, Math.min(1, Math.round(median(raw) / 1200)));
-    const cents = raw.map((c) => foldCents(c, octave));
+    let cents = raw.map((c) => foldCents(c, octave));
+    // `crossing` (lessons only; Sing and its boards score as they always have, so SCORING_VERSION stays): a joined
+    // note's middle is read from where the voice crossed onto it, when that's later than the trim (a singer a little
+    // behind the beat, or a slow glide), so a quick note (Folk's flick or turn) isn't judged on the note before it
+    // (the courses lead's scoring audit, 2026-11-08, bass-folk.md FLAG 4).
+    if (crossing && !note.afterRest && note.previousPitch !== null && Math.abs(note.pitch - note.previousPitch) >= 1) {
+        const win = frames(track, Math.max(note.start + CHANGE_WINDOW[0], (note.previousStart + note.start) / 2), Math.min(note.end, note.start + CHANGE_WINDOW[1]));
+        const nearer = (f) => {
+            if (!f?.hz) return false;
+            const sung = note.pitch + foldCents(hzToCents(f.hz, note.pitch), octave) / 100;
+            return Math.abs(sung - note.pitch) < Math.abs(sung - note.previousPitch);
+        };
+        const before = win.findIndex((f) => f.hz && !nearer(f));
+        const crossed = before < 0 ? -1 : win.findIndex((f, i) => i > before && nearer(f) && nearer(win[i + 1]) && nearer(win[i + 2]));
+        if (crossed > 0) {
+            const from = win[crossed].time + 0.03;
+            if (from > note.start + trim) {
+                const later = frames(track, from, Math.max(from, note.end - Math.min(0.06, duration * 0.15)) + Math.min(0.15, Math.max(0, from - note.start - trim)));
+                const heardLater = later.filter((f) => f.hz).map((f) => foldCents(hzToCents(f.hz, note.pitch), octave));
+                if (heardLater.length >= 3) cents = heardLater;
+            }
+        }
+    }
     result.octave = octave;
     result.cents = median(cents);
     const off = Math.abs(result.cents);

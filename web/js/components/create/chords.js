@@ -133,7 +133,7 @@ export const ChordsStep = {
             <ul class="grid gap-3 sm:grid-cols-2" role="radiogroup" :aria-label="t('create.chords.title')" @keydown="arrow">
                 <li v-for="(p, i) in cards" :key="p.id" :class="p.blues ? 'sm:col-span-2' : ''">
                     <div class="card relative flex h-full gap-4 p-4 transition" :class="chosen(p) ? 'bg-(--sel-wash) ring-2 ring-(--selected)' : 'hover:border-muted/60'">
-                        <button type="button" class="glass-bubble-solid relative z-10 grid size-11 shrink-0 place-items-center rounded-full" :aria-label="playing === p.id ? t('studio.stop') : t('create.chords.play', { name: t(p.name) })" @click="playLoop(p.id, p.bars, { mode: p.mode, swing: p.swing ?? 0.5 })"><Icon :name="playing === p.id ? 'stop' : 'play'" :size="20" /></button>
+                        <button type="button" class="relative z-10 grid size-11 shrink-0 place-items-center bubble bubble-primary" data-disc="play" :aria-label="playing === p.id ? t('studio.stop') : t('create.chords.play', { name: t(p.name) })" @click="playLoop(p.id, p.bars, { mode: p.mode, swing: p.swing ?? 0.5 })"><Icon :name="playing === p.id ? 'stop' : 'play'" :size="20" /></button>
                         <div class="min-w-0 flex-1 space-y-3">
                             <button type="button" role="radio" :aria-checked="chosen(p) ? 'true' : 'false'" :tabindex="i === focusAt ? 0 : -1" class="block w-full pe-8 text-start outline-none after:absolute after:inset-0 after:rounded-[inherit] focus-visible:after:ring-2 focus-visible:after:ring-accent" data-chords @click="choose(p)">
                                 <span class="block font-bold text-cream">{{ t(p.name) }}</span>

@@ -13,11 +13,13 @@ const WHY = {
     reminders: tk('wall.reminders'),
     friends: tk('wall.friends'),
     groups: tk('wall.groups'),
+    groupsStart: tk('wall.groupsStart'), // a director come to start one (/groups?start=1): said to them, not to a singer
     voice: tk('wall.voice'),
     plus: tk('wall.plus'),
     template: tk('wall.template'),
     songs: tk('wall.songs'),
     school: tk('wall.school'),
+    requests: tk('wall.requests'),
 };
 
 /** Sign-up for `reason`, back to `next` once done; or sign-in, back to `next`. */

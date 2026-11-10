@@ -33,10 +33,10 @@ function write(day) {
 }
 
 /** Seconds of voice heard: counted here, kept every few seconds (and at a take's end, flushSung). */
-export function addSung(seconds) {
+export function addSung(seconds, at = Date.now()) {
     if (!(seconds > 0)) return;
     pending += seconds;
-    if (pending >= FLUSH_SECONDS) flushSung();
+    if (pending >= FLUSH_SECONDS) flushSung(at);
 }
 
 export function flushSung(at = Date.now()) {

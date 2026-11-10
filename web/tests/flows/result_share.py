@@ -64,6 +64,40 @@ def journey(f):
     f.wait("window.downloaded", what="the image downloaded")
     assert f.js("window.downloaded").endswith("-post.png"), f.js("window.downloaded")
 
+    # Sharing in lessons (docs/design-rules.md): a lesson's card links to its public page with ?ref=share-lesson, so a
+    # friend lands where they can try it free; a unit's end shares the unit, linking to its first lesson's page; a streak
+    # milestone is one more line on the lesson's card.
+    f.go("/?app&api=mock&scenario=&as=member", "document.querySelector('#app header')")
+    f.run("navigator.canShare = () => true; window.shared = null; navigator.share = async (data) => { window.shared = data; };")
+    f.run(MOUNT.replace("color: '#c9b456' }", "color: '#c9b456', courseSlug: 'harmony', streak: 7 }"))
+    f.click_t("results.share.button")
+    f.wait("document.querySelector('[data-share-result] img')", what="the lesson card with its streak")
+    f.shot("lesson-streak")
+    f.run("[...document.querySelectorAll('[data-share-result] button')].find((b) => b.textContent.trim() === " + json.dumps(t(f, "results.share.share")) + ").click()")
+    f.wait("window.shared", what="shared")
+    url = f.js("window.shared.url")
+    assert url.endswith(f"/courses/harmony/{f.js('window.shareEntry.lesson.id')}?ref=share-lesson"), f"the lesson's public page: {url}"
+    unit = """{ kind: 'unit', title: 'Unit done', headline: 'Your first harmony, all the way through', line: 'Learn to sing harmony', text: 'I finished it. Try it free:', lessonId: 'first-lesson' }"""
+    f.go("/?app&api=mock&scenario=&as=member", "document.querySelector('#app header')")
+    f.run("navigator.canShare = () => true; window.shared = null; navigator.share = async (data) => { window.shared = data; };")
+    f.run(MOUNT.replace("h(ShareResult, { result, entry,", f"h(ShareResult, {{ milestone: {unit}, entry,").replace("color: '#c9b456' }", "color: '#c9b456', courseSlug: 'perfect-your-pitch' }"))
+    f.click_t("results.share.button")
+    f.wait("document.querySelector('[data-share-result] img')", what="the unit's card")
+    f.shot("unit")
+    f.run("[...document.querySelectorAll('[data-share-result] button')].find((b) => b.textContent.trim() === " + json.dumps(t(f, "results.share.share")) + ").click()")
+    f.wait("window.shared", what="shared")
+    assert f.js("window.shared.url").endswith("/courses/perfect-your-pitch/first-lesson?ref=share-lesson"), f.js("window.shared.url")
+    assert f.js("window.shared.text") == "I finished it. Try it free:"
+    course = unit.replace("'unit'", "'course'").replace("lessonId: 'first-lesson'", "lessonId: null")
+    f.go("/?app&api=mock&scenario=&as=member", "document.querySelector('#app header')")
+    f.run("navigator.canShare = () => true; window.shared = null; navigator.share = async (data) => { window.shared = data; };")
+    f.run(MOUNT.replace("h(ShareResult, { result, entry,", f"h(ShareResult, {{ milestone: {course}, entry,").replace("color: '#c9b456' }", "color: '#c9b456', courseSlug: 'perfect-your-pitch' }"))
+    f.click_t("results.share.button")
+    f.wait("document.querySelector('[data-share-result] img')", what="the course's card")
+    f.run("[...document.querySelectorAll('[data-share-result] button')].find((b) => b.textContent.trim() === " + json.dumps(t(f, "results.share.share")) + ").click()")
+    f.wait("window.shared", what="shared")
+    assert f.js("window.shared.url").endswith("/courses/perfect-your-pitch?ref=share-lesson"), f.js("window.shared.url")
+
 
 if __name__ == "__main__":
     run("result_share", journey, sizes=("desktop",))

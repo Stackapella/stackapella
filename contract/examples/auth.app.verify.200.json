@@ -68,6 +68,7 @@
             "boardsGlobal": false,
             "birthGiven": false,
             "plusCourses": false,
+            "songRequests": false,
             "terms": {
                 "accepted": 1,
                 "current": 1,

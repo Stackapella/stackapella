@@ -27,7 +27,8 @@ def sing(f, pitch=57, beats=9):
 
 def journey(f):
     # Unit 1 done, the note found (A3), headphones on, straight to the drone's sung step.
-    f.go("/", "document.querySelector('#app header')")
+    # Signed in: from lesson 2 a guest is asked for a free account (Hillel, 2026-11-06: "after lesson 1 of any course").
+    f.go("/?api=mock&as=member", "document.querySelector('#app header')")
     f.mic_checked()
     f.run("""const { emptyProgress } = await import('/js/course.js'); const db = await import('/js/db.js');
         const done = { stars: 3, bestPercent: 95, at: Date.now() };

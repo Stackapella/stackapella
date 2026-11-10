@@ -68,6 +68,31 @@ def journey(f):
     f.wait_text(t(f, "admin.people.unsuspend"))
     change(f, "admin.people.unsuspend", t(f, "admin.people.sheet.unsuspend", {"name": "Ada Lovelace"}), "admin.people.unsuspend")
     f.wait_text(t(f, "admin.people.suspend"))
+    # Give a song (docs/partner-songs.md): the arranger's file, the rights as the partner confirmed them, in sudo.
+    f.run("document.querySelector('[data-give-song]').click()")
+    f.wait(f"document.querySelector('[role=dialog]')?.innerText.includes({json.dumps(t(f, 'admin.people.sheet.song', {'name': 'Ada Lovelace'}))})", what="the give-a-song sheet")
+    f.run("""const json = await (await fetch('/templates/amazing-grace.json')).text();
+        const input = document.querySelector('[data-song-file]'); const dt = new DataTransfer();
+        dt.items.add(new File([json], 'amazing-grace.json', { type: 'application/json' })); input.files = dt.files;
+        input.dispatchEvent(new Event('change'));""")
+    f.wait(f"document.querySelector('[role=dialog]').innerText.includes('amazing-grace.json')", what="the file read")
+    f.type("[data-rights-by]", "Jo Park, director")
+    f.type("[data-rights-wording]", "I arranged this and our choir may use it privately.")
+    f.type("[data-rights-source]", "Jo's email of 2 November 2026")
+    f.shot("give-song")
+    f.run("window.mockCalls = [];")
+    f.click(t(f, "admin.confirmChange"), "[role=dialog] button")
+    f.wait("window.mockCalls.includes('admin.people.songs.create') && !document.querySelector('[role=dialog]')", what="the song given")
+    # Songs given (admin.people.show `given`): the new one first, each with its
+    # link to send them (the "your tracks are ready" email): the app's /t/<id>, with Copy.
+    f.wait("document.querySelector('[data-given-song]')?.innerText.includes('Shenandoah')", what="the new song at the top of Songs given")
+    link = f.js("document.querySelector('[data-given-song] [data-given-link]')?.value")
+    assert link and link.startswith(f.js("location.origin") + "/t/"), f"the given song's link: {link}"
+    assert f.js("document.activeElement === document.querySelector('[data-given-link]')"), "the new link isn't focused"
+    f.run("navigator.clipboard.writeText = async (text) => { window.copiedText = text; };")
+    f.run("document.querySelector('[data-copy-given]').click()")
+    f.wait(f"window.copiedText === {json.dumps(link)}", what="the link copied")
+    f.shot("song-given")
     f.click(t(f, "admin.people.title"), "main a")
     f.wait("location.pathname === '/admin/people' && document.querySelector('[data-people]')", what="back to the list")
 

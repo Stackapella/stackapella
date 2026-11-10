@@ -1,0 +1,958 @@
+{
+    "data": {
+        "date": "2026-11-09",
+        "from": "2026-11-09",
+        "to": "2026-11-09",
+        "tiles": [
+            {
+                "key": "arrivals",
+                "today": 30,
+                "yesterday": 12,
+                "lastWeek": 9,
+                "current": 30,
+                "previous": 12,
+                "weekAgo": 9,
+                "lowSample": false
+            },
+            {
+                "key": "lesson1",
+                "today": 0,
+                "yesterday": 0,
+                "lastWeek": 0,
+                "current": 0,
+                "previous": 0,
+                "weekAgo": 0,
+                "lowSample": true
+            },
+            {
+                "key": "signedUp",
+                "today": 0,
+                "yesterday": 0,
+                "lastWeek": 0,
+                "current": 0,
+                "previous": 0,
+                "weekAgo": 0,
+                "lowSample": true
+            },
+            {
+                "key": "plusStarted",
+                "today": 0,
+                "yesterday": 0,
+                "lastWeek": 0,
+                "current": 0,
+                "previous": 0,
+                "weekAgo": 0,
+                "lowSample": true
+            }
+        ],
+        "steps": [
+            {
+                "key": "visits",
+                "total": 0
+            },
+            {
+                "key": "start",
+                "total": 0
+            },
+            {
+                "key": "arrivals",
+                "total": 30
+            },
+            {
+                "key": "lesson1",
+                "total": 0
+            },
+            {
+                "key": "unit1",
+                "total": 0
+            },
+            {
+                "key": "signedUp",
+                "total": 0
+            },
+            {
+                "key": "plusStarted",
+                "total": 0
+            }
+        ],
+        "now": "2026-11-09T10:23:00+00:00",
+        "period": {
+            "key": "today",
+            "from": "2026-11-09",
+            "to": "2026-11-09",
+            "cut": "10:23",
+            "dayShare": 0.433,
+            "early": false
+        },
+        "comparisons": [
+            {
+                "key": "previous",
+                "from": "2026-11-08",
+                "to": "2026-11-08",
+                "cut": "10:23",
+                "scaledDays": null
+            },
+            {
+                "key": "usual",
+                "windows": 4,
+                "available": 4
+            }
+        ],
+        "hourlySince": "2026-11-07T23:00:00Z",
+        "countingSince": "2026-10-12",
+        "metrics": [
+            {
+                "key": "visits",
+                "now": 4,
+                "since": "2026-11-08",
+                "previous": {
+                    "expected": 1.3,
+                    "base": 3,
+                    "k": 0.433,
+                    "estimated": true,
+                    "verdict": "tooFew",
+                    "z": null,
+                    "change": null
+                },
+                "usual": {
+                    "expected": null,
+                    "base": null,
+                    "k": null,
+                    "estimated": false,
+                    "verdict": "noHistory",
+                    "z": null,
+                    "change": null,
+                    "comparesFrom": "2026-11-22",
+                    "available": 0
+                },
+                "rate": null
+            },
+            {
+                "key": "arrivals",
+                "now": 30,
+                "since": "2026-10-12",
+                "previous": {
+                    "expected": 12.3,
+                    "base": 12,
+                    "k": 1,
+                    "estimated": false,
+                    "verdict": "up",
+                    "z": 3.57,
+                    "change": {
+                        "kind": "count",
+                        "value": 18
+                    }
+                },
+                "usual": {
+                    "expected": 8.7,
+                    "base": 80,
+                    "k": 0.108,
+                    "estimated": true,
+                    "available": 4,
+                    "verdict": "up",
+                    "z": 6.17,
+                    "change": {
+                        "kind": "count",
+                        "value": 21
+                    },
+                    "low": 2,
+                    "high": 16
+                },
+                "rate": null
+            },
+            {
+                "key": "lesson1",
+                "now": 0,
+                "since": null,
+                "previous": {
+                    "expected": null,
+                    "base": null,
+                    "k": null,
+                    "estimated": false,
+                    "verdict": "noHistory",
+                    "z": null,
+                    "change": null,
+                    "comparesFrom": null
+                },
+                "usual": {
+                    "expected": null,
+                    "base": null,
+                    "k": null,
+                    "estimated": false,
+                    "verdict": "noHistory",
+                    "z": null,
+                    "change": null,
+                    "comparesFrom": null,
+                    "available": 0
+                },
+                "rate": {
+                    "of": "arrivals",
+                    "base": 30,
+                    "now": 0,
+                    "baseBefore": 0,
+                    "before": null,
+                    "comparable": false,
+                    "verdict": null
+                }
+            },
+            {
+                "key": "lessons",
+                "now": 0,
+                "since": null,
+                "previous": {
+                    "expected": null,
+                    "base": null,
+                    "k": null,
+                    "estimated": false,
+                    "verdict": "noHistory",
+                    "z": null,
+                    "change": null,
+                    "comparesFrom": null
+                },
+                "usual": {
+                    "expected": null,
+                    "base": null,
+                    "k": null,
+                    "estimated": false,
+                    "verdict": "noHistory",
+                    "z": null,
+                    "change": null,
+                    "comparesFrom": null,
+                    "available": 0
+                },
+                "rate": null
+            },
+            {
+                "key": "signUps",
+                "now": 0,
+                "since": null,
+                "previous": {
+                    "expected": null,
+                    "base": null,
+                    "k": null,
+                    "estimated": false,
+                    "verdict": "noHistory",
+                    "z": null,
+                    "change": null,
+                    "comparesFrom": null
+                },
+                "usual": {
+                    "expected": null,
+                    "base": null,
+                    "k": null,
+                    "estimated": false,
+                    "verdict": "noHistory",
+                    "z": null,
+                    "change": null,
+                    "comparesFrom": null,
+                    "available": 0
+                },
+                "rate": {
+                    "of": "arrivals",
+                    "base": 30,
+                    "now": 0,
+                    "baseBefore": 0,
+                    "before": null,
+                    "comparable": false,
+                    "verdict": null
+                }
+            },
+            {
+                "key": "asks",
+                "now": 6,
+                "since": "2026-11-09",
+                "previous": {
+                    "expected": null,
+                    "base": null,
+                    "k": null,
+                    "estimated": false,
+                    "verdict": "noHistory",
+                    "z": null,
+                    "change": null,
+                    "comparesFrom": "2026-11-10"
+                },
+                "usual": {
+                    "expected": null,
+                    "base": null,
+                    "k": null,
+                    "estimated": false,
+                    "verdict": "noHistory",
+                    "z": null,
+                    "change": null,
+                    "comparesFrom": "2026-11-23",
+                    "available": 0
+                },
+                "rate": {
+                    "of": "shown",
+                    "base": 40,
+                    "now": 0.15,
+                    "baseBefore": 0,
+                    "before": null,
+                    "comparable": false,
+                    "verdict": null
+                }
+            },
+            {
+                "key": "day2",
+                "now": 0,
+                "since": null,
+                "previous": {
+                    "expected": null,
+                    "base": null,
+                    "k": null,
+                    "estimated": false,
+                    "verdict": "noHistory",
+                    "z": null,
+                    "change": null,
+                    "comparesFrom": null
+                },
+                "usual": {
+                    "expected": null,
+                    "base": null,
+                    "k": null,
+                    "estimated": false,
+                    "verdict": "noHistory",
+                    "z": null,
+                    "change": null,
+                    "comparesFrom": null,
+                    "available": 0
+                },
+                "rate": null
+            },
+            {
+                "key": "plus",
+                "now": 0,
+                "since": null,
+                "previous": {
+                    "expected": null,
+                    "base": null,
+                    "k": null,
+                    "estimated": false,
+                    "verdict": "noHistory",
+                    "z": null,
+                    "change": null,
+                    "comparesFrom": null
+                },
+                "usual": {
+                    "expected": null,
+                    "base": null,
+                    "k": null,
+                    "estimated": false,
+                    "verdict": "noHistory",
+                    "z": null,
+                    "change": null,
+                    "comparesFrom": null,
+                    "available": 0
+                },
+                "rate": null
+            }
+        ],
+        "sections": [
+            {
+                "key": "sv_home",
+                "now": 0,
+                "previous": {
+                    "expected": null,
+                    "base": null,
+                    "k": null,
+                    "estimated": false,
+                    "verdict": "noHistory",
+                    "z": null,
+                    "change": null,
+                    "comparesFrom": null
+                }
+            },
+            {
+                "key": "sv_courses",
+                "now": 7,
+                "previous": {
+                    "expected": null,
+                    "base": null,
+                    "k": null,
+                    "estimated": false,
+                    "verdict": "noHistory",
+                    "z": null,
+                    "change": null,
+                    "comparesFrom": "2026-11-21"
+                }
+            },
+            {
+                "key": "sv_course",
+                "now": 0,
+                "previous": {
+                    "expected": null,
+                    "base": null,
+                    "k": null,
+                    "estimated": false,
+                    "verdict": "noHistory",
+                    "z": null,
+                    "change": null,
+                    "comparesFrom": null
+                }
+            },
+            {
+                "key": "sv_lesson",
+                "now": 0,
+                "previous": {
+                    "expected": null,
+                    "base": null,
+                    "k": null,
+                    "estimated": false,
+                    "verdict": "noHistory",
+                    "z": null,
+                    "change": null,
+                    "comparesFrom": null
+                }
+            },
+            {
+                "key": "sv_tools",
+                "now": 0,
+                "previous": {
+                    "expected": null,
+                    "base": null,
+                    "k": null,
+                    "estimated": false,
+                    "verdict": "noHistory",
+                    "z": null,
+                    "change": null,
+                    "comparesFrom": null
+                }
+            },
+            {
+                "key": "sv_songs",
+                "now": 0,
+                "previous": {
+                    "expected": null,
+                    "base": null,
+                    "k": null,
+                    "estimated": false,
+                    "verdict": "noHistory",
+                    "z": null,
+                    "change": null,
+                    "comparesFrom": null
+                }
+            },
+            {
+                "key": "sv_part",
+                "now": 0,
+                "previous": {
+                    "expected": null,
+                    "base": null,
+                    "k": null,
+                    "estimated": false,
+                    "verdict": "noHistory",
+                    "z": null,
+                    "change": null,
+                    "comparesFrom": null
+                }
+            },
+            {
+                "key": "sv_guides",
+                "now": 0,
+                "previous": {
+                    "expected": null,
+                    "base": null,
+                    "k": null,
+                    "estimated": false,
+                    "verdict": "noHistory",
+                    "z": null,
+                    "change": null,
+                    "comparesFrom": null
+                }
+            },
+            {
+                "key": "sv_other",
+                "now": 0,
+                "previous": {
+                    "expected": null,
+                    "base": null,
+                    "k": null,
+                    "estimated": false,
+                    "verdict": "noHistory",
+                    "z": null,
+                    "change": null,
+                    "comparesFrom": null
+                }
+            }
+        ],
+        "tracking": {
+            "period": {
+                "key": "7d",
+                "from": "2026-11-03",
+                "to": "2026-11-09",
+                "cut": "10:23"
+            },
+            "metrics": [
+                {
+                    "key": "visits",
+                    "now": 7,
+                    "since": "2026-11-08",
+                    "usual": {
+                        "expected": null,
+                        "base": null,
+                        "k": null,
+                        "estimated": false,
+                        "verdict": "noHistory",
+                        "z": null,
+                        "change": null,
+                        "comparesFrom": "2026-11-28",
+                        "available": 0
+                    }
+                },
+                {
+                    "key": "arrivals",
+                    "now": 50,
+                    "since": "2026-10-12",
+                    "usual": {
+                        "expected": 8.7,
+                        "base": 26,
+                        "k": 0.333,
+                        "estimated": true,
+                        "available": 3,
+                        "verdict": "up",
+                        "z": 10.89,
+                        "change": {
+                            "kind": "count",
+                            "value": 41
+                        },
+                        "low": 1,
+                        "high": 16
+                    }
+                },
+                {
+                    "key": "firstLessons",
+                    "now": 0,
+                    "since": null,
+                    "usual": {
+                        "expected": null,
+                        "base": null,
+                        "k": null,
+                        "estimated": false,
+                        "verdict": "noHistory",
+                        "z": null,
+                        "change": null,
+                        "comparesFrom": null,
+                        "available": 0
+                    },
+                    "measure": "lesson1"
+                },
+                {
+                    "key": "signUps",
+                    "now": 0,
+                    "since": null,
+                    "usual": {
+                        "expected": null,
+                        "base": null,
+                        "k": null,
+                        "estimated": false,
+                        "verdict": "noHistory",
+                        "z": null,
+                        "change": null,
+                        "comparesFrom": null,
+                        "available": 0
+                    },
+                    "rate": {
+                        "of": "arrivals",
+                        "base": 50,
+                        "now": 0,
+                        "baseBefore": 0,
+                        "before": null,
+                        "comparable": false,
+                        "verdict": null
+                    }
+                }
+            ]
+        },
+        "chart": {
+            "kind": "hours",
+            "slots": [
+                "00:00",
+                "01:00",
+                "02:00",
+                "03:00",
+                "04:00",
+                "05:00",
+                "06:00",
+                "07:00",
+                "08:00",
+                "09:00",
+                "10:00",
+                "11:00",
+                "12:00",
+                "13:00",
+                "14:00",
+                "15:00",
+                "16:00",
+                "17:00",
+                "18:00",
+                "19:00",
+                "20:00",
+                "21:00",
+                "22:00",
+                "23:00"
+            ],
+            "now": {
+                "slot": 10,
+                "fraction": 0.38
+            },
+            "metrics": {
+                "visits": {
+                    "now": [
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        1,
+                        1,
+                        1,
+                        1,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null
+                    ],
+                    "previous": [
+                        0.1,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.1,
+                        0.2,
+                        0.3,
+                        0.4,
+                        0.4,
+                        0.2,
+                        0.2,
+                        0.2,
+                        0.2,
+                        0.1,
+                        0.1,
+                        0.1,
+                        0.1,
+                        0.1,
+                        0.1,
+                        0.0,
+                        0.0,
+                        0.0
+                    ],
+                    "previousEstimated": [
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        true
+                    ],
+                    "previousTotal": 3,
+                    "usual": null,
+                    "projection": {
+                        "shown": false,
+                        "hidden": "noHistory",
+                        "showsFrom": null,
+                        "basis": "dayShape",
+                        "share": 0.433,
+                        "value": null,
+                        "low": null,
+                        "high": null,
+                        "slot": null,
+                        "path": null,
+                        "rate": null,
+                        "periodTotal": null
+                    }
+                },
+                "arrivals": {
+                    "now": [
+                        1,
+                        0,
+                        0,
+                        0,
+                        0,
+                        1,
+                        2,
+                        3,
+                        6,
+                        9,
+                        8,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null
+                    ],
+                    "previous": [
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        1,
+                        2,
+                        3,
+                        3,
+                        4,
+                        2,
+                        1,
+                        1,
+                        0,
+                        1,
+                        0,
+                        1,
+                        0,
+                        0,
+                        1,
+                        0,
+                        0,
+                        0
+                    ],
+                    "previousEstimated": [
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false
+                    ],
+                    "previousTotal": 20,
+                    "usual": {
+                        "low": [
+                            0.2,
+                            0.3,
+                            0.4,
+                            0.4,
+                            0.4,
+                            0.5,
+                            0.7,
+                            1.1,
+                            1.6,
+                            2.3,
+                            3.0,
+                            3.5,
+                            3.9,
+                            4.2,
+                            4.6,
+                            4.8,
+                            5.1,
+                            5.3,
+                            5.5,
+                            5.7,
+                            5.9,
+                            5.9,
+                            6.0,
+                            6.0
+                        ],
+                        "high": [
+                            1.1,
+                            1.7,
+                            2.2,
+                            2.5,
+                            2.8,
+                            3.3,
+                            4.4,
+                            6.6,
+                            9.9,
+                            14.3,
+                            18.8,
+                            21.5,
+                            24.0,
+                            26.2,
+                            28.1,
+                            29.8,
+                            31.4,
+                            32.8,
+                            34.2,
+                            35.3,
+                            36.1,
+                            36.6,
+                            36.9,
+                            37.0
+                        ],
+                        "mean": [
+                            0.6,
+                            0.9,
+                            1.2,
+                            1.3,
+                            1.5,
+                            1.8,
+                            2.4,
+                            3.6,
+                            5.4,
+                            7.8,
+                            10.1,
+                            11.6,
+                            13.0,
+                            14.2,
+                            15.2,
+                            16.1,
+                            17.0,
+                            17.7,
+                            18.5,
+                            19.1,
+                            19.5,
+                            19.8,
+                            19.9,
+                            20.0
+                        ],
+                        "available": 4
+                    },
+                    "projection": {
+                        "shown": true,
+                        "hidden": null,
+                        "showsFrom": null,
+                        "basis": "dayShape",
+                        "share": 0.433,
+                        "value": 69,
+                        "low": 41,
+                        "high": 98,
+                        "slot": {
+                            "index": 10,
+                            "value": 69,
+                            "low": 41,
+                            "high": 98
+                        },
+                        "path": {
+                            "mean": [
+                                35.0,
+                                40.1,
+                                44.8,
+                                48.9,
+                                52.5,
+                                55.6,
+                                58.6,
+                                61.2,
+                                63.8,
+                                65.8,
+                                67.4,
+                                68.2,
+                                68.7,
+                                69.0
+                            ],
+                            "low": [
+                                20.8,
+                                23.8,
+                                26.6,
+                                29.0,
+                                31.2,
+                                33.0,
+                                34.8,
+                                36.4,
+                                37.9,
+                                39.1,
+                                40.0,
+                                40.5,
+                                40.8,
+                                41.0
+                            ],
+                            "high": [
+                                49.7,
+                                57.0,
+                                63.6,
+                                69.4,
+                                74.5,
+                                78.9,
+                                83.3,
+                                86.9,
+                                90.6,
+                                93.5,
+                                95.7,
+                                96.9,
+                                97.6,
+                                98.0
+                            ]
+                        },
+                        "rate": null,
+                        "periodTotal": null
+                    }
+                },
+                "signUps": {
+                    "now": [
+                        0,
+                        0,
+                        0,
+                        null,
+                        null,
+                        null
+                    ],
+                    "previous": [
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0
+                    ]
+                }
+            },
+            "releases": [],
+            "breaks": []
+        },
+        "breaks": [
+            {
+                "date": "2026-11-08",
+                "kinds": [
+                    "*"
+                ],
+                "note": "crawlers"
+            }
+        ],
+        "timezone": "Europe/London"
+    }
+}

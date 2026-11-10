@@ -2,11 +2,14 @@
 studio's practice bar is gone) and the studio mixing every part whatever Sing's mode, recording the
 next part over loopback (with Undo), a new key, fewer singers, and the state surviving a reload.
 """
+import json
 import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
 from flow import run  # noqa: E402
+from game_frames import every_theme  # noqa: E402
+from words_check import text_of, words_contrast, words_readable  # noqa: E402
 
 AUDIO = "(await import('/js/audio.js'))"
 GUIDE_AUDIBLE = "[...{a}.engine.parts.entries()].filter(([id, p]) => id.endsWith(':guide') && p.mix.audible).length".format(a=AUDIO)
@@ -70,6 +73,19 @@ def journey(f):
         # The piano sits under the voices (CHORDS_UNDER): its own energy at least 0.2% of theirs (0.59% for Amazing Grace today).
         assert energy[1] > energy[0] * 0.002, f"the chords added nothing: {energy}"
 
+    # The line at the playhead, read in full, before Record (docs/studio-words-plan.md); the lane is the map.
+    words_readable(f, "[data-now-words]", "the line at the playhead, stopped")
+    if f.size == "phone":
+        assert f.js("!document.querySelector('[data-lyrics-lane]').offsetWidth && !!document.querySelector('[data-studio-words]').previousElementSibling.querySelector('[data-line-bar]').offsetWidth"), "a phone's lane is the line bar"
+    else:
+        assert f.js("parseFloat(getComputedStyle(document.querySelector('[data-lyrics-lane] button')).fontSize)") >= 12, "the lane's words under 12 px"
+    if f.skin == "game":
+        # The arcade pass (the game agent's): square segments filling in your accent, the words at AA in all eight themes.
+        if f.size == "phone":
+            assert f.js("getComputedStyle(document.querySelector('[data-line-bar] span[aria-hidden]')).borderRadius") == "0px", "the line bar's segments are square"
+        every_theme(f, "the studio with its words")
+    words_box = "JSON.stringify((({ top, height }) => [Math.round(top), Math.round(height)])(document.querySelector('[data-studio-words]').getBoundingClientRect()))"
+    before = f.js(words_box)
     # Record: a song's next part without a take (the soprano) over loopback, then undo it.
     f.click_t("studio.recordNamed", {"name": soprano})
     f.wait("document.querySelector('[data-headphones]')", what="the headphones question (102.png)")
@@ -80,6 +96,16 @@ def journey(f):
     f.click_t("timing.skip")
     f.wait(f"{AUDIO}.engine.playing?.recording", what="recording")
     f.wait(f"{AUDIO}.engine.ctx.currentTime > {AUDIO}.engine.playing.startTime + 2", what="2 s recorded")
+    # While singing: the same line, in place (Record moved nothing), the soprano's own words.
+    words_readable(f, "[data-now-words]", "the line at the playhead, recording")
+    assert "grace" in text_of(f, "[data-now-words]").lower(), text_of(f, "[data-now-words]")
+    # The row keeps its height (on a phone the page scrolls the recorded row under it, so only its place on screen moves).
+    page = f.js("!!document.querySelector('[data-page-scroll]')")
+    now = json.loads(f.js(words_box))
+    assert (now[1] == json.loads(before)[1]) if page else (f.js(words_box) == before), f"the words moved at Record: {before} then {now}"
+    assert f.js("document.querySelector('[data-studio-words]').getAttribute('aria-hidden')") == "true", "a screen reader talks over the take"
+    words_contrast(f, "[data-next-words], [data-now-words] span.text-cream", "the line at the playhead")
+    f.shot("recording-words")
     f.click_t("studio.stopRecording")
     next_name = f.js("(await import('/js/i18n.js')).t('parts.bass')")
     f.wait_text(f.js(f"(await import('/js/i18n.js')).t('studio.recordedNext', {{ name: '{soprano}', next: '{next_name}' }})"))

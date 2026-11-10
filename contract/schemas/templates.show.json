@@ -31,19 +31,17 @@
                     "type": "string",
                     "enum": [
                         "free",
-                        "plus",
-                        "month",
-                        "kept",
+                        "account",
                         "own",
                         "link",
                         "group",
                         "project",
                         "admin",
-                        "beta",
                         "public",
-                        "idea"
+                        "idea",
+                        "open"
                     ],
-                    "description": "Why the caller may have it: a free song, Plus, the song of the month, kept from a project started while it was, their own template, an unlisted template's link, or a choir group's song, or a project they sing in made from it; Hillel or the editor reviewing; or a beta singer's assigned song. public: a template listed in the library (N3). idea: a tune shared as an idea, while it's listed."
+                    "description": "Why the caller may have it: a song the app bundles (free, signed out too), any signed-in account (account: every library song since 2026-11-07), Hillel or the editor reviewing (admin, never counted toward the daily cap); for a person's template, their own, an unlisted template's link, a choir group's song, or a project they sing in made from it. public: a template listed in the library (N3). idea: a tune shared as an idea, while it's listed. open: signed out, a library song the public site shows (live, reviewed, public domain), its current version only (since 2026-11-08)."
                 },
                 "freeUntil": {
                     "type": [
@@ -51,7 +49,7 @@
                         "null"
                     ],
                     "format": "date-time",
-                    "description": "The song of the month's last moment (for grant month)."
+                    "description": "Always null: the song of the month ended on 2026-11-07. Kept for older apps."
                 },
                 "library": {
                     "$ref": "library.json",

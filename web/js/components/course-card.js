@@ -13,7 +13,7 @@ import { Icon } from './icon.js';
 export const CourseCard = {
     components: { Icon },
     // `summary`: courseSummary() for a course this account can open, or null for one still to come.
-    props: { entry: { type: Object, required: true }, summary: { type: Object, default: null }, plus: Boolean, preview: Boolean },
+    props: { entry: { type: Object, required: true }, summary: { type: Object, default: null }, preview: Boolean },
     setup: () => ({ localized }),
     template: `
         <a v-if="summary" :href="href" class="card-interactive group flex h-full flex-col gap-2 p-4" :aria-label="localized(entry.title) + ', ' + action" @click.prevent="navigate(href)">
@@ -45,10 +45,9 @@ export const CourseCard = {
         percent() {
             return this.summary.total ? Math.round((this.summary.done / this.summary.total) * 100) : 0;
         },
-        /** The way in: Continue once started; Start with Plus (or staff's preview); else its free first lesson. */
+        /** The way in: Continue once started, else Start (every course is free: Hillel, 2026-11-06). */
         action() {
-            if (this.summary.started) return t('courses.continue');
-            return this.plus || this.preview ? t('courses.start') : t('courses.tryFree');
+            return this.summary.started ? t('courses.continue') : t('courses.start');
         },
     },
     methods: { navigate },

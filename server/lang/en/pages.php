@@ -7,8 +7,11 @@ declare(strict_types=1);
 // words. Prices are filled in from config/billing.php, never written here.
 return [
     'song' => [
-        'title' => 'Learn the harmony to :title, part by part',
-        'description' => 'Learn your part of :title (:parts), free in your browser: hear it, sing it, then stack your own voices.',
+        // A part in the song page's range chart, linking its part page (public/song.blade.php).
+        'part_link' => 'Learn the :part part (:low to :high)',
+        'title' => ':title Harmony: Learn Every Part',
+        'description' => 'Learn :title in harmony, part by part (:parts): a guide voice sings each one with you, then you stack your own voices. Free in your browser.',
+        'description_satb' => 'Learn :title in SATB harmony, part by part: soprano, alto, tenor and bass, each sung with you by a guide voice. Then stack your own voices. Free.',
         'words' => 'Words: :who',
         'tune' => 'Tune: :who',
         // The song page's frame (views/public/song.blade.php).
@@ -22,9 +25,6 @@ return [
         'start' => 'Learn this song',
         'start_note' => 'Opens in the app, in your browser.',
         'free' => 'Free',
-        'free_month' => 'Free this month',
-        'plus' => 'On Plus',
-        'plus_note' => 'Hear it here, and learn it with Plus.',
         'difficulty' => ['beginner' => 'For beginners', 'intermediate' => 'A step up'],
         'crumb' => 'Where you are',
         'parts_lead' => 'Each part\'s lowest and highest note. Pick the one that sits where you sing comfortably.',
@@ -33,7 +33,6 @@ return [
         'more' => 'More songs to learn',
         'end_title' => 'Learn :title, part by part.',
         'end_free' => 'Start with the part that fits your voice. It\'s free.',
-        'end_plus' => 'Start with the part that fits your voice, with Plus.',
     ],
     // The shared harmony's own frame (views/public/harmony.blade.php; its other words are sharing.php).
     'harmony_page' => [
@@ -53,11 +52,8 @@ return [
         'lead' => 'Arrangements written for learning, from rounds to four-part hymns. Press Play on a free one to hear it here.',
         'parts' => ':count parts',
         'eyebrow' => 'The songbook',
-        'count' => ':count arrangements, :free free to sing now.',
-        'month' => 'Song of the month',
-        'month_body' => 'Free for everyone this month. Pick the part that fits your voice, and the guide sings it first.',
-        'free_title' => 'Free to sing now',
-        'plus_title' => 'With Plus',
+        'count' => ':count arrangements, every one free with an account.',
+        'free_title' => 'Every song, free',
         'play' => 'Play :title',
         'stop' => 'Stop :title',
         'open' => 'See the song',
@@ -86,6 +82,15 @@ return [
         'game_wake' => 'Press start',
         'game_on' => 'Game on',
         'songs' => 'Songs',
+        'courses' => 'Courses',
+        'tools' => 'Tools',
+        'free_tools' => 'Free tools',
+        'warmups' => 'Warm-ups',
+        'intervals' => 'Intervals',
+        'chords' => 'Chords',
+        'voice_types' => 'Voice types',
+        'note_chart' => 'Note frequencies',
+        'for_choirs' => 'For choirs',
         'features' => 'Features',
         'how' => 'How it works',
         'pricing' => 'Pricing',
@@ -98,6 +103,7 @@ return [
         'press' => 'Press',
         'open_source' => 'Open source',
         'selfhost' => 'Self-host',
+        'integrations' => 'Integrations',
         'terms' => 'Terms',
         'privacy' => 'Privacy',
         'guidelines' => 'Community guidelines',
@@ -106,7 +112,9 @@ return [
         'contact_app' => 'Write to us',
         'email_us' => 'Email us',
         'tagline' => 'Harmony, made by you.',
-        'groups' => ['product' => 'Product', 'help' => 'Help', 'company' => 'Company', 'legal' => 'Legal'],
+        // The footer's line on the carols page while the carols are pushed (Hillel's redesign, 2026-11-10).
+        'xmas' => 'Merry Christmas from all four parts.',
+        'groups' => ['learn' => 'Learn', 'reference' => 'Reference', 'product' => 'Product', 'help' => 'Help', 'company' => 'Company', 'legal' => 'Legal'],
         'social' => ['x' => 'Stackapella on X', 'bluesky' => 'Stackapella on Bluesky'],
         'rights' => '© :year Stackapella',
         // The licence's credit (LICENSE, 2): the author's name and Stackapella, never translated or changed.
@@ -133,14 +141,66 @@ return [
         'headline' => 'Guides',
         'lead' => 'Short, plain guides to singing harmony, each ending in a song to try.',
         'eyebrow' => 'Guides',
+        // A guide's live demo in the shared slot, where its steps begin (site/_demo-section's kinds; the
+        // guide view shows it in place of the song's player). Words checked by the courses lead.
+        'demos' => [
+            'practise-a-choir-part' => [
+                'kind' => 'learn',
+                'title' => 'Try it: learn a part',
+                'lead' => 'Amazing Grace in four parts. Pick your part, hear the guide sing it over the others, slow it down, then take your turn while the others carry on.',
+                'start' => 'Learn a part',
+                'caption' => 'Amazing Grace, sung by the app\'s guide voices. In the app, it listens as you sing and shows which notes landed.',
+            ],
+            'singing-in-tune' => [
+                'kind' => 'bullseye',
+                'title' => 'Try it: match five notes',
+                'lead' => 'The guide sings five notes, one at a time. Sing each one back and see where it landed: in the middle is in tune, above is sharp, below is flat. No mic? Pull a note in by ear instead.',
+                'start' => 'Play Bullseye',
+                'caption' => 'Lesson 1\'s game from Perfect your pitch. The mic opens only when you choose it, your pitch is worked out on this device, and nothing is recorded or sent.',
+            ],
+            'hold-your-part' => [
+                'kind' => 'learn',
+                'you' => 'alto',
+                'title' => 'Try it: hold the alto',
+                'lead' => 'Amazing Grace in four parts. Hear the guide sing the alto over the tune, then press Your turn: the alto goes quiet and everyone else carries on, tune included, for you to hold it.',
+                'start' => 'Try the alto',
+                'caption' => 'Amazing Grace, sung by the app\'s guide voices. In the app, it listens as you sing and shows which notes landed.',
+            ],
+        ],
         // The index (the redesign): one guide to start with, then the rest in groups.
         'featured' => 'how-to-sing-harmony',
         'featured_kick' => 'Start here',
         'read' => 'Read the guide',
         'groups' => [
-            ['The basics', ['what-is-harmony', 'satb-explained', 'find-your-voice-type']],
-            ['Learn your part', ['find-your-part', 'hold-your-part', 'practise-a-choir-part', 'a-round-for-beginners']],
-            ['Skills', ['ear-training', 'singing-in-tune', 'breathing-basics', 'arranging-a-cappella']],
+            ['The basics', ['what-is-harmony', 'satb-explained', 'choir-voicings', 'what-is-a-descant', 'find-your-voice-type']],
+            ['Learn your part', ['find-your-part', 'find-your-starting-note', 'hold-your-part', 'practise-a-choir-part', 'a-round-for-beginners']],
+            ['Skills', ['ear-training', 'sight-reading-for-singers', 'singing-in-tune', 'how-to-sing-with-vibrato', 'breathing-basics', 'arranging-a-cappella', 'vocal-percussion']],
+        ],
+        // A panel of the four choir parts' usual ranges, each to hear (site._guide-ranges, js/public/guide-ranges.js),
+        // after the section a guide names here.
+        'ranges' => [
+            'after' => ['satb-explained' => 'The four parts'],
+            'title' => 'Hear each part\'s range',
+            'lead' => 'Each one sings the part\'s usual range on "ah", from its lowest note to its highest.',
+            'range' => ':low to :high',
+            'play' => 'Play',
+            'stop' => 'Stop',
+            'more' => 'About the :part voice',
+            'parts' => ['soprano' => 'Soprano', 'alto' => 'Alto', 'tenor' => 'Tenor', 'bass' => 'Bass'],
+        ],
+        // Its song's part pages, each a link, while they're open.
+        'song_parts' => 'Hear each part of :song on its own',
+        'part_link' => ':part part',
+        'faq_title' => 'Questions',
+        // A guide's questions (shown after its words, with FAQPage data for search).
+        'faqs' => [
+            'satb-explained' => [
+                ['What do SSA and SSAA mean?', 'They name upper-voice parts the same way SATB does. SSA is three parts: first soprano, second soprano and alto. SSAA has four: two soprano parts and two alto parts. Women\'s, girls\' and children\'s choirs often sing them.'],
+                ['What does TTBB mean?', 'Four lower-voice parts: first tenor, second tenor, baritone and bass (sometimes called first and second bass). Men\'s choirs often sing TTBB. Barbershop also has four parts, named tenor, lead, baritone and bass, with the tune in the lead, the second part from the top.'],
+                ['What is divisi in choir music?', 'Divisi, Italian for "divided", means one section splits into two or more parts for a passage, marked "div." in the music. The section sings one part again where it says "unis.", short for unison.'],
+                ['Where does a baritone sing in SATB?', 'There\'s no baritone part in SATB itself. Baritones usually sing bass, or tenor when the part doesn\'t go too high. Music for more parts sometimes splits the basses into baritone and bass.'],
+                ['What does SATB a cappella mean?', 'The four parts sung by voices alone, with no instruments. "SATB with piano" or "with organ" means the same four parts with an accompaniment.'],
+            ],
         ],
         'try' => 'Try it with a song',
         'start' => 'Start this song',
@@ -196,23 +256,26 @@ return [
         'goes_with' => 'Goes well with',
         'how' => 'How it works',
         'see_plus' => 'See Plus',
+        // A director starting their choir's group, on the directors page and Choir groups (the app's /groups?start=1).
+        'group_start' => 'Start a choir group',
         'who_crumb' => 'Who it\'s for',
         'crumb' => 'Where you are',
         'works' => 'Works today',
         'on_the_way' => 'On the way',
         'on_the_way_lead' => 'Each one opens here when it\'s ready.',
         'all_soon' => 'All coming soon',
-        // A feature that needs Plus (choir groups), said on its tile; and while checkout is paused, that Plus isn't open.
-        'with_plus' => 'With Plus',
-        'plus_not_open' => 'Plus isn\'t open yet.',
         'who' => 'Who it\'s for',
         'who_lead' => 'Pick the one that sounds like you.',
         'uses' => 'What you\'ll use',
+        'fit_courses' => 'Courses that fit',
+        'all_courses' => 'All courses',
         'also_for' => 'Also for',
+        // The landing's choirs section ends with the "for" pages as one quiet row of chips (landing v2).
+        'also_built_for' => 'Also built for',
         // The course pages (/courses): what each says around its own words (site.courses).
         'courses' => 'Courses',
-        'course_card' => 'A course coming to Plus',
-        'course_soon' => 'Coming to Plus. When it opens, its first lesson is free.',
+        'course_card' => 'A free Stackapella course',
+        'course_soon' => 'Coming soon, and free when it opens.',
         // A designed page's numbered notes (site/courses/_cites) and the list they point to.
         'cite' => 'Source :n',
         'sources' => 'Sources',
@@ -223,8 +286,8 @@ return [
         'course_size' => ':units units, :lessons lessons',
         'course_unit' => 'Unit :n',
         'course_stage' => 'Stage :n',
-        'course_free' => 'Free',
-        'course_chip_plus' => 'Plus',
+        'course_free' => 'Start here',
+        'course_chip_free' => 'Free',
         // The chord builder's words (js/public/demos/chord-builder.js), for Songwriters and Create.
         'chord_builder' => [
             'chords_label' => 'The chords, a bar each',
@@ -304,6 +367,20 @@ return [
             'open_note' => 'Set its sound there, and send it as a link. No account needed.',
         ],
         // Learn a part's demo (js/public/demos/learn-part.js), for Learn a part and Choir singers.
+        // Real voices' A/B (js/public/demos/real-voices.js): one part by the practice voice or a real singer.
+        'voices_demo' => [
+            'who' => 'Who sings the :part',
+            'synth' => 'Practice voice',
+            'real' => 'Real singer',
+            'play' => 'Play the line',
+            'stop' => 'Stop',
+            'ready' => 'Press Play, then switch voices while it sings.',
+            'synth_say' => 'The :part by the practice voice, which follows any key and speed.',
+            'real_say' => 'The :part by a real singer, the voice the app plays for this part.',
+            'missing' => 'The :part has no real voice yet, so the practice voice sings it.',
+            'failed' => 'The real singer\'s voice didn\'t load just now, so the practice voice sings the :part. Try again in a moment.',
+            'credit' => 'Sung by :name',
+        ],
         'learn_demo' => [
             'part' => 'Your part',
             'speed' => 'Speed',
@@ -316,20 +393,36 @@ return [
             'guide' => ':part, sung by the guide over the others.',
             'you' => 'Your turn: the others carry on without :part. Sing it.',
         ],
-        // Find your comfortable note (js/public/demos/comfortable-note.js), for Course and Beginners.
+        // Find your comfortable note (js/public/demos/comfortable-note.js), for Course and Beginners: the app's own
+        // find-your-note card (js/public/voice-capture.js, Hillel's "one component per task"), its words the app's
+        // (en.json capture.*), only foundSub said for the site. The mic opens only on the card's Start.
         'note_demo' => [
-            'listen' => 'Listen to my note',
-            'stop' => 'Stop listening',
-            'mic' => 'Mic',
-            'ready' => 'Press Listen, then sing any note that feels easy and hold it for a few seconds.',
-            'asking' => 'Asking for the mic.',
-            'hearing' => 'Listening. Hold one easy note, steady.',
-            'found' => 'Your comfortable note: :note. In the app, the lessons are built from it.',
+            'card' => [
+                'start' => 'Start',
+                'mic' => 'Your mic',
+                'listening' => 'Sing any easy note',
+                'listeningSub' => 'Like a long "ahh". Any pitch is fine.',
+                'hearing' => 'Finding your note...',
+                'hearingSub' => 'Keep singing, let it settle. It\'s normal to wobble at first.',
+                'holding' => 'Hold it right there',
+                'holdingSub' => '{seconds}s to go, nice and steady',
+                'found' => 'That\'s your comfortable note',
+                'foundSub' => 'In the app, the lessons are built around {note}.',
+                'subListening' => 'Listening',
+                'subHearing' => 'Hearing you',
+                'subSteady' => 'Steady',
+                'subFound' => 'Your note',
+                'lower' => 'Lower',
+                'higher' => 'Higher',
+                'zoomWide' => 'Wide',
+                'zoomCloser' => 'Closer',
+                'zoomLocked' => 'Locked',
+                'tryAnother' => 'Try another note',
+                'noMic' => 'No mic to listen with',
+            ],
             'why_denied' => 'The mic wasn\'t allowed. Allow it in your browser\'s settings to try this.',
             'why_no_mic' => 'No mic was found on this device.',
             'why_unsupported' => 'This browser can\'t listen here. Try the app in Chrome, Safari or Firefox.',
-            'low' => 'C3',
-            'high' => 'C5',
             'private' => 'Heard on this device only: nothing is recorded or sent, and the mic closes when your note is found.',
         ],
         // The shared demo slot (components/site/demo.blade.php).
@@ -340,37 +433,44 @@ return [
         'course_hears' => 'What the app listens for',
         'course_safety' => 'Singing safely',
         'course_songs' => 'The songs',
-        'course_today_kick' => 'Free today',
-        'course_today_title' => 'Start with the free course',
-        'course_today_body' => 'Learn to sing harmony from your first note, in short lessons, with your notes lighting up as you hit them. Units 1 to 7 are free, and they end with you singing all four parts of Amazing Grace.',
-        'course_start' => 'Start the free course',
+        'course_today_kick' => 'Start here',
+        'course_today_title' => 'New to singing harmony? Start here',
+        'course_today_body' => 'Learn to sing harmony from your first note, in short lessons, with your notes lighting up as you hit them. In unit 7 you sing all four parts of Amazing Grace. Like every course, it\'s free.',
+        'course_start' => 'Start the beginner course',
         'course_all' => 'All courses',
         'course_more' => 'More in :group',
         'course_count' => '{1} :count course|[2,*] :count courses',
-        // A course once it's open (the plus_courses flag on and its status live in web/course/courses.json).
-        'course_open' => 'Open on Plus',
-        'course_open_line' => 'Open now on Plus. Its first lesson is free for everyone.',
-        'course_try' => 'Try the first lesson free',
-        'course_join_open' => 'On Plus, with the first lesson free.',
-        'course_join_note' => 'No account needed to try it. Saving your progress takes a free account.',
-        'course_plus' => 'See Plus',
+        // A course once it's open (the plus_courses flag on and its status live in web/course/courses.json). Every course is
+        // free (Hillel, 2026-11-06).
+        'course_open' => 'Open now',
+        'course_open_line' => 'Open now, and free.',
+        'course_try' => 'Start the first lesson',
+        'course_join_open' => 'Every course is free.',
+        'course_join_note' => 'Try the first lesson without an account; a free account opens the rest.',
         // The coaches' page once coach sign-up opens (the coach_signup flag): the directory stays hidden.
         'coach_apply' => 'Apply to coach',
         'coach_signup_pill' => 'Sign-ups open',
         'coach_signup_line' => 'Coaches can apply and be approved now. Finding a coach in the app comes once there are enough of them.',
         'start' => 'Start singing',
         'start_note' => 'Free, in your browser. No account needed to start.',
+        // The directors' and music teachers' pages, and arrivals from an outreach email (a known o- tag).
+        'orgs_heading' => 'Running a whole organization?',
+        'orgs_body' => 'Choirs, societies and school bodies can have a free year for every member.',
+        'orgs_link' => 'See the offer for organizations',
+        'partner_line' => 'Here from Hillel\'s email?',
+        'partner_link' => 'See the offer for your organization',
         'final_title' => 'Your first voice is the hardest. Let\'s find it together.',
         'final_body' => 'Lesson 1 starts with one comfortable note.',
     ],
 
     'landing' => [
-        'title' => 'Stackapella: harmony, made by you',
-        'description' => 'For one voice, or a whole choir. Learn your part with a guide voice, stack your own voices exactly in time, and share it. Free in your browser.',
+        'title' => 'Learn to Sing Harmony | Stackapella',
+        'description' => 'Learn to sing harmony one part at a time: a guide voice sings your part with you, then you stack your own voices, exactly in time. Free in your browser.',
         'og_image_alt' => 'Stackapella, harmony made by you: four voices stacked in their colours, soprano, alto, tenor and bass.',
         'headline' => 'Harmony,',
         'headline_em' => 'made by you.',
-        'lead' => 'Learn a part, sing it over the others, and share a song where every voice is yours. Bring friends or your choir, too. It runs in your browser and it\'s free to start.',
+        // Free to learn, Plus for your work (docs/pricing-plan.md): learning is what's free, so the line says so.
+        'lead' => 'Learn a part, sing it over the others, and share a song where every voice is yours. Bring friends or your choir. It runs in your browser, and learning is free.',
         // Beside Start singing: scrolls to the hero's player and plays it (js/public/mixer.js, [data-hear]).
         'hear' => 'Hear four voices',
         // The film under the hero (pages/landing/_showreel.blade.php).
@@ -382,15 +482,23 @@ return [
             'sound_on' => 'Turn the sound on',
             'sound_off' => 'Turn the sound off',
             'captions' => 'English',
+            // The captions toggle (Hillel, 2026-11-08: off unless asked for, so they never cover the film's own words).
+            'cc' => 'CC',
+            'captions_on' => 'Show captions',
+            'captions_off' => 'Hide captions',
         ],
         'start' => 'Start singing',
         'start_free' => 'Start singing, it\'s free',
         // The app's promise on lesson 1's first step, word for word (the chord moment, onb1).
+        // One quiet line under the promise while the carols are pushed (1 November to 26 December, Carols::promoted).
+        'carols' => 'Learn your Christmas carol part before rehearsal',
         'chord_promise' => 'In about two minutes you\'ll hear your own voice in a chord.',
         'make' => 'Make your own',
         'start_note' => 'Free, in your browser. No account needed to start.',
         // The hero's player: the first line of a song, in four voices, each one switchable.
         'hero' => [
+            // Said at once on a press while the voices are made or fetched (Hillel: "show instant feedback").
+            'loading' => 'Getting the voices ready...',
             'title' => ':song · first line',
             'hint' => 'Press Play. Tap a voice to bring it forward, or switch one off.',
             'voices' => ':count voices',
@@ -400,7 +508,6 @@ return [
             'your_part' => ':part, your part, louder',
             'parts_label' => 'Your part',
             'voice_switch' => ':part voice',
-            'synth' => 'Synthesized guide voices, singing on "oo". In the app, real singers sing some of the parts.',
             'alt' => ':song\'s first line, ":words", in four parts: the soprano sings the tune, with the alto, tenor and bass under it. Your part is the :you. Press a voice to take it out of the harmony or bring it back.',
             'parts' => ['soprano' => 'Soprano', 'alto' => 'Alto', 'tenor' => 'Tenor', 'bass' => 'Bass'],
             'roles' => ['soprano' => 'The tune', 'alto' => 'Just under the tune', 'tenor' => 'Fills the chord', 'bass' => 'Holds the roots'],
@@ -408,6 +515,17 @@ return [
         'steps_title' => 'Four voices, four steps to your own harmony.',
         'steps_lead' => 'Each voice teaches you something. Sing the part that suits you, then stack more.',
         'steps_kick' => 'How it works',
+        // Free courses and free tools, after how it works (pages/landing/_free).
+        'free_courses_kick' => 'Free courses',
+        'free_courses_title' => 'Every course is free.',
+        // The beginner course's dark card (landing v2): the place to start, never "the free course" (every course is).
+        'start_here' => 'Start here',
+        'try_lesson' => 'Try lesson 1',
+        'free_courses_lead' => 'Short lessons with a guide voice, from your first note to vibrato and barbershop. Try the first lesson without an account.',
+        'free_tools_kick' => 'Free tools',
+        'free_tools_title' => 'Tools for every practice.',
+        'free_tools_lead' => 'A tuner, a drone, a metronome and more, right in your browser, with no account.',
+        'free_tools_all' => 'All free tools',
         'steps_more' => 'How it works, step by step',
         // The game skin's words (Hillel: "two skins for one app"): the same facts, arcade labels.
         'game' => [
@@ -425,11 +543,13 @@ return [
             'way_kick' => 'Now loading',
             'faq_kick' => 'How to play',
             'final_kick' => 'Press start',
+            // PRESS START's words while the take gets ready (one line in the pixel face on a phone).
+            'loading' => 'Loading voices...',
             // The other pages' game labels.
             'pricing_kick' => 'Select mode',
             'songs_kick' => 'Song select',
             'works' => 'Unlocked',
-            'courses_kick' => 'Plus courses',
+            'courses_kick' => 'Courses',
             'courses_title' => 'Bonus stages',
             // Solo or co-op, on each "for" page's chip (the mockup's tags).
             'solo' => 'Solo',
@@ -441,7 +561,6 @@ return [
             'stage' => 'Stage :n',
             'lessons' => '{1} :count lesson|[2,*] :count lessons',
             'free' => 'Free',
-            'plus' => 'Plus',
             'badges' => ['Combo of 10', 'Weeks in a row', 'XP for every lesson'],
             'scores_kick' => 'Part leaderboards',
             'scores_title' => 'High scores',
@@ -456,7 +575,7 @@ return [
             'who_tags' => ['beginners' => 'solo', 'choir-singers' => 'coop', 'choir-directors' => 'coop', 'a-cappella' => 'coop', 'songwriters' => 'solo', 'instrumentalists' => 'solo', 'friends-and-family' => 'coop'],
         ],
         // The facts under the hero's player: short, true, each with a gem.
-        'facts' => ['No account to start', 'Nothing to install', 'Units 1 to 7 of the course, free', ':free_songs songs free, and one more each month'],
+        'facts' => ['No account to start', 'Nothing to install', 'Every course, free', 'Every song, free with an account'],
         'steps' => [
             'learn' => ['label' => 'Soprano · learn', 'title' => 'Start with the tune you know.', 'body' => 'Short lessons take you from finding your first note to holding a part on your own. Your notes light up as you hit them.', 'lesson' => 'Lesson 1 · Find your note', 'nice' => 'Nice!', 'points' => ['Units 1 to 7 are free', 'Stars and a weekly goal you choose', 'No music reading needed'], 'screens' => ['course' => 'The course map: the next lesson, today\'s workout and your week', 'lesson1' => 'Lesson 1, Your comfortable note: hum a note that feels easy, then sing it']],
             'voice' => ['label' => 'Alto · a real voice', 'title' => 'Learn your harmony from a real singer.', 'body' => 'A singer sings your part first. Listen, sing along with them, then sing it on your own. Most songs start with a clear practice voice, and real voices join them part by part.', 'listen' => 'Listen', 'along' => 'Sing along', 'alone' => 'On your own', 'singer' => 'Singer', 'you' => 'You'],
@@ -503,19 +622,36 @@ return [
             'coach-directory' => ['Find a coach', 'Search for a vocal coach for a take review or a lesson. Today a coach shares their own link.', 'Find a coach'],
             'song-requests' => ['Song requests', 'Ask for a song, and vote for the ones you\'d like to sing next.', 'Request a song'],
         ],
-        'plans_title' => 'Free to start.',
-        'plans_title_more' => 'Plus when you want it all.',
+        // Free to learn, Plus to work (Hillel, 2026-11-07: "it's free to learn to sing and become a better singer but we
+        // charge to use the app in a more professional capacity"; docs/pricing-plan.md, top section). Code keeps `plus`.
+        'plans_title' => 'Free to learn.',
+        'plans_title_more' => 'Plus for your work.',
         'plans_free' => 'Free',
         'plans_free_note' => 'Free forever. No card.',
         'plans_free_includes' => 'What you get',
-        'plans_free_list' => ['The beginner course', ':free_songs songs, and a new free song every month', 'Record your parts, and polish the mix', 'Share links and share videos', ':projects saved songs'],
+        'plans_free_for' => 'For every singer.',
+        'plans_free_list' => ['Every course, from your first note to barbershop', 'Every song in the library, with a free account', 'Unlimited workouts, and your history', 'Sing with friends, and choir groups', ':free_storage for your recordings'],
         'plans_plus' => 'Plus',
         'plans_month' => 'a month',
-        'plans_plus_list' => ['Every song, with new ones each month', 'The full course and unlimited workouts', 'Your history and how you\'re improving', 'Unlimited songs and :storage for recordings', 'MP3 and each part on its own (stems)', 'Choir groups: share songs and give out parts'],
+        'plans_plus_for' => 'For arrangers and creators.',
+        // Each a benefit first, then the plain fact (Hillel, 2026-11-08: "rework the plus features"). Checked against the
+        // app: stems are a ZIP of WAVs and the mix exports as MP3; a creator's recorded guides play for anyone singing
+        // the arrangement (by link, in a choir group, or listed in the library); private covers private, unlisted and
+        // shared with a choir group (usage.plans.*.templates: one on Free).
+        'plans_plus_list' => [
+            ['Room for every take.', ':storage for your recordings.'],
+            ['Every part as its own file.', 'Each part as a WAV for your DAW, the mix as MP3.'],
+            ['Your voice as the guide.', 'Singers learn your arrangement from you.'],
+            ['Private arrangements.', 'As many as you like, shared by link or with your choir.'],
+        ],
+        // Plus isn't the choir offer: learning tracks are their own thing (docs/choir-tracks-plan.md).
+        'plans_choirs' => 'Learning tracks for a choir are separate:',
+        'plans_choirs_link' => 'For choir directors',
         'plans_get' => 'Get Plus',
         'plans_trial' => 'Try it free for :days days first. Cancel any time.',
-        // Shown once the Plus courses open (the plus_courses flag).
-        'plans_plus_courses' => 'Plus courses: Vibrato, Counterpoint and more',
+        // Free's first line before the courses open (the plus_courses flag off, as in a fresh dev setup): every course is
+        // free once they do (Hillel, 2026-11-06), and the list says so as one line.
+        'plans_free_beginner' => 'The beginner course, from your first note to four-part harmony',
         'plans_paused' => 'Plus isn\'t open just yet. Everything free works now.',
         'plans_compare' => 'Compare the plans',
         'plans_yearly' => 'Yearly',
@@ -561,7 +697,7 @@ return [
             'privacy' => ['Who hears my recordings?', 'Only you, until you choose. Your singing stays on your device until you save it to your account or share it, and a shared harmony can be heard only by people with its link. If you make a song public, its parts may become guide voices for other singers, credited to you; making it private again stops that.'],
             'guide' => ['Can my voice become a guide voice?', 'Yes, if you\'d like it to. Most songs start with a practice voice. When you share a harmony and say yes to featuring it, it\'s public, and we may choose your part as the voice everyone learns from, credited to you by your profile name. Public harmonies are for singers 18 and over. Untick featuring any time, and your voice stops being a guide.'],
             'coach' => ['Can an app replace a vocal coach?', 'No. No app can replace a real vocal coach. Only a person can hear everything and guide you. That\'s why Stackapella is built to work with coaches: soon you\'ll be able to send a coach your takes and learn with them right here. Until then, Stackapella is for practising between lessons, or for starting out.'],
-            'free' => ['Is it really free?', 'Yes, with no card and no time limit: the beginner course, :free_songs songs and a new free song every month, recording every part, and sharing. You can start without an account. Plus opens every song and keeps everything you make, from :price a month.'],
+            'free' => ['Is it really free?', 'Yes. Learning is free, with no card and no time limit: every course, every song with a free account, unlimited workouts, your history, recording every part, and singing with friends. You can start without an account. Plus, from :price a month, adds more storage, MP3 and stems, and your own guides.'],
             'read_music' => ['Do I need to read music?', 'No. You learn each part by ear from a guide voice, with the notes drawn as shapes you can follow.'],
             'instruments' => ['Can I add an instrument?', 'Yes. Singing comes first here, but any part can be an instrument: record a ukulele, a guitar or a beatbox in the studio, name the part, and stack it with the voices.'],
         ],
@@ -587,28 +723,29 @@ return [
     ],
 
     'pricing' => [
-        // Courses coming to Plus (docs/plus-courses-plan.md), each Coming soon; Counterpoint and Vibrato first. No dates.
-        'courses_eyebrow' => 'In the works',
-        'courses_title' => 'Courses coming to Plus',
+        // The courses (docs/plus-courses-plan.md), all free since 2026-11-06: most are open, the rest coming. No dates,
+        // and no counts written in.
+        'courses_eyebrow' => 'Courses',
+        'courses_title' => 'Every course, free',
         'courses_count' => '{1} :count course|[2,*] :count courses',
-        'courses_lead' => 'Deeper courses for your voice, built on the same short lessons as the free course.',
-        'courses_free' => 'The first lesson of every course is free.',
+        'courses_lead' => 'Deeper courses for your voice, built on the same short lessons as the beginner course, and every one is free.',
+        'courses_free' => 'Try the first lesson without an account; a free account opens the rest.',
         'courses_coach' => 'Courses get you started; a coach takes you further. Working with a coach in the app is coming soon.',
         'title' => 'Pricing',
-        'meta_title' => 'Stackapella pricing: free to start, Plus for the whole library',
-        'description' => 'Learn to sing harmony for free. Plus opens every song, the full course and everything you make.',
-        'headline' => 'Free to learn. Plus for everything you make.',
+        'meta_title' => 'Stackapella pricing: free to learn, Plus for your work',
+        'description' => 'Every course, every song and your history are free. Plus adds storage, MP3 and stems, and your own guides, for working with what you make.',
+        'headline' => 'Free to learn. Plus for your work.',
         'free' => 'Free',
-        'free_story' => 'Learn to sing harmony: the beginner course, :count songs (plus a song of the month), recording, a polished mix, share links and videos.',
+        'free_story' => 'Learn to sing harmony: every course, every song with a free account, unlimited workouts, your history, recording, singing with friends and choir groups.',
         'plus' => 'Plus',
-        'plus_story' => 'The whole library, and everything you make: every song with new ones each month, the full course and unlimited workouts, your history, unlimited songs and more storage, MP3 and stems.',
+        'plus_story' => 'For working with what you make: more storage, MP3 and stems, your own guides, and unlimited private arrangements.',
         'free_price' => 'Free forever',
         'per_month' => ':amount a month',
         'per_year' => ':amount a year',
         'yearly_as_monthly' => ':monthly a month, :yearly billed yearly',
         'or_monthly' => 'or :amount monthly',
         'tax_included' => 'Tax included.',
-        'tax_added' => 'Plus tax where it applies.',
+        'tax_added' => 'Tax is added where it applies.',
         'start_free' => 'Start singing',
         'currency' => 'Prices in',
         'currencies' => ['usd' => 'US dollars', 'eur' => 'euros', 'gbp' => 'pounds'],
@@ -618,11 +755,11 @@ return [
         'no' => 'No',
         'unlimited' => 'Unlimited',
         'rows' => [
-            'songs' => ['Official songs', 'The free songs, and the song of the month', 'All of them, with new ones each month'],
+            'songs' => ['Every song in the library', 'With a free account', 'Yes'],
             'preview' => ['Hear any song before you start', 'Yes', 'Yes'],
-            'course' => ['The course', 'Units 1 to 7', 'All units and paths'],
-            'workout' => ['Today\'s workout', 'One a day', 'Unlimited'],
-            'report' => ['The report on your latest take', 'Yes', 'Yes, with history and trends'],
+            'course' => ['Every course, every lesson', 'With a free account', 'Yes'],
+            'workout' => ['Today\'s workout', 'Unlimited', 'Unlimited'],
+            'report' => ['The report on every take, with your history', 'Yes', 'Yes'],
             'projects' => ['Saved songs', ':free', ':plus'],
             'storage' => ['Storage for recordings', ':free', ':plus'],
             'singers' => ['Friends singing on one of your songs', ':free', ':plus'],
@@ -630,9 +767,9 @@ return [
             'mp3' => ['Export the mix as MP3', 'No', 'Yes'],
             'stems' => ['Export each part on its own', 'Only with Download and delete', 'Yes'],
             'share' => ['Share links and share videos', 'Yes', 'Yes'],
-            'templates' => ['Private or unlisted templates of your own', ':free', ':plus'],
-            'guides' => ['Your own recorded guides', 'No', 'Yes'],
-            'groups' => ['Choir groups (18 and over)', 'No', 'Yes'],
+            'templates' => ['Private or unlisted arrangements of your own', ':free', ':plus'],
+            'guides' => ['Your own voice as a song\'s guide', 'No', 'Yes'],
+            'groups' => ['Choir groups (18 and over)', 'Yes', 'Yes'],
             'coaching' => ['Buy take reviews and lessons from coaches', 'Yes', 'Yes'],
         ],
         'groups' => ['learn' => 'Learn', 'make' => 'Make and keep', 'share' => 'Share and export', 'others' => 'With others'],
@@ -641,14 +778,15 @@ return [
         'currency_label' => 'Prices in',
         'small_print' => [
             'Plus renews each month or year until you cancel, which you can do online at any time.',
-            'Course work never counts toward your saved songs, and the bin never counts toward storage.',
+            'The bin never counts toward storage.',
             'Coaches set their own prices for reviews and lessons.',
         ],
         'faq_title' => 'Questions',
         'faq' => [
-            ['If I stop Plus, do I lose what I made?', 'No. Nothing is deleted. Songs beyond the free limit, or made from a Plus song, stay readable, and you can export them.'],
+            ['If I stop Plus, do I lose what I made?', 'No. Nothing is deleted, and you can play and export all of it. If your recordings are over the free storage, clear some space before you record more.'],
             ['Is there a free trial?', 'Yes: :days days of Plus, once per account.'],
             ['Can I share what I make?', 'Yes, anywhere, including monetised videos, credited "Arranged by Stackapella". The songs are in the public domain.'],
+            ['I lead a choir. What does it cost?', 'Nothing for you or your singers: choir groups are free. We also make learning tracks of a choir\'s own songs, and your first song is free. See For choirs.'],
         ],
         // The trial's answer while checkout is paused: no trial to take yet.
         'faq_trial_paused' => 'Not yet: Plus isn\'t open. Everything in Free works now, with no card.',
@@ -690,7 +828,7 @@ return [
     ],
     'help' => [
         'title' => 'Help',
-        'meta_title' => 'Stackapella help: the mic, headphones, timing and the iPhone app',
+        'meta_title' => 'Stackapella help: mic, headphones, timing, iPhone',
         'description' => 'Fixes for the common problems: a silent mic, parts out of time, headphones, and installing on iPhone.',
         'headline' => 'Help',
         'lead' => 'How to use Stackapella, step by step, and the fixes for what comes up most.',
@@ -772,9 +910,8 @@ return [
                     ]],
                     ['A song won\'t open offline', [
                         'The app opens without a connection once you\'ve opened it online on that device. The four free songs come with it, and your own songs are kept on the device, so they open offline too.',
-                        'A song from your account, like a Plus song or one your choir shares, needs a connection the first time you start it. After that, it opens offline.',
+                        'A song from your account, like a library song beyond the four or one your choir shares, needs a connection the first time you start it. After that, it opens offline.',
                         'A real singer\'s guide voice is saved on your device the first time it plays, so after that it plays offline too. If one can\'t load, that part uses our practice voice, and the real voice is tried again when you\'re back online.',
-                        'A Plus song needs a quick check online before you change it again. You can still play it.',
                         'The course, Sing and the studio work offline, Export too. Sharing, signing in, choir groups, Plus, Storage, reminders and sending a message to us need a connection: each says so if you\'re offline. Your work stays on the device, and goes to your account when you\'re back.',
                     ]],
                     ['A sign-in link has expired', [
@@ -1002,7 +1139,7 @@ return [
                     ], 'steps' => true],
                     ['Choose a song', [
                         'Tap a song in the library to open it: what it\'s about, its level, key and tempo, and who wrote and sang it, with three buttons: **Play** to hear it, **Edit** to make a copy you can change in the song builder, and **Start**. Where a song can be sung by fewer singers, **How many singers?** picks 2, 3 or 4 parts.',
-                        '**Start** begins with those parts. Once we know your range, Sing opens on a part for you and says which: as a new singer, the melody, in your own octave; once you\'ve recorded parts of your own, the part that fits your range best. If we don\'t know your range yet, Sing asks **Which part is yours?**. A Plus song offers Plus instead.',
+                        '**Start** begins with those parts. Once we know your range, Sing opens on a part for you and says which: as a new singer, the melody, in your own octave; once you\'ve recorded parts of your own, the part that fits your range best. If we don\'t know your range yet, Sing asks **Which part is yours?**.',
                         'The song joins **Your songs**: the free plan keeps 3, and songs the course opens don\'t count.',
                         ['shot' => 'getting-started--song', 'alt' => 'Amazing Grace\'s sheet before it starts: what it\'s about, its details and credits, How many singers?, then Play, Edit and Start.'],
                     ], 'steps' => true],
@@ -1032,12 +1169,12 @@ return [
             ],
             'your-voice' => [
                 'title' => 'Find your voice and the course',
-                'summary' => 'Your comfortable note, the course map, lessons and stars, your range and badges, and what Plus adds.',
+                'summary' => 'Your comfortable note, the course map, lessons and stars, your range and badges, and what\'s free.',
                 'sections' => [
                     ['The course', [
                         'The course teaches harmony from the start, in short lessons with a guide voice. Its units build on each other, from your first note to every part of a song.',
                         'It leads the home. Before your first lesson, tap **Start singing**. After that, the home shows your next lesson with **Continue lesson** (or **Continue**), and **Course map** opens the whole course.',
-                        'Units 1 to 7 are free. The later units come with Stackapella Plus.',
+                        'Every course is free, on singing skills, harmony and styles, from **Vibrato** and **Perfect your pitch** to **Barbershop and tags** and **Yodeling**. Try a course\'s first lesson without an account; a free account opens the rest.',
                         'A song a lesson opens is kept apart, and never counts toward the free plan\'s 3 songs.',
                     ]],
                     ['Find your note', [
@@ -1083,11 +1220,11 @@ return [
                     ['Badges', [
                         'In game mode, **Badges** on Your voice lists them all, with how many you\'ve earned, and can show one group at a time, like **Firsts**, **Range** or **Habit**. The ones you\'ve earned show the date. The rest wait under **Still to earn**, each with a line saying what it\'s for and, where it counts, how far you\'ve got. Serious mode has no badges.',
                     ]],
-                    ['What Plus adds', [
-                        'Stackapella Plus opens the course\'s later units, after the free units 1 to 7, and the ten Plus courses on singing skills, harmony and styles, from **Vibrato** and **Perfect your pitch** to **Barbershop and tags** and **Yodeling**. Each one\'s first lesson is free for everyone.',
-                        'Free has one workout a day. Plus has as many as you like.',
-                        '**Your history** on Your voice: how much of each take was on pitch over time, which way you tend to lean, and recent highlights. Without Plus, it shows a sample.',
-                        'Plus and billing has the price and the trial.',
+                    ['What\'s free', [
+                        'Learning is free: every course, and every song in the library with a free account.',
+                        'Today\'s workout as often as you like.',
+                        '**Your history** on Your voice: how much of each take was on pitch over time, which way you tend to lean, and recent highlights. Without an account, it shows a sample.',
+                        'Plus adds more storage, MP3 and stems, and your own guides. Plus and billing has the price and the trial.',
                     ]],
                 ],
             ],
@@ -1235,7 +1372,7 @@ return [
                         'A song that isn\'t in your account yet asks you to save it first: tap **Save and invite**, and your takes and settings come with it. **Not now** goes back.',
                         'Under **Invite a friend**, choose **Any part** or **For a part**, then **Make a link**. Send it to one friend yourself: it works once, until the date it shows, and we don\'t send it for you.',
                         '**Who\'s singing** lists everyone, with a link not used yet that you can **Take it back**. **Remove** takes a singer out, with their parts or keeping them.',
-                        'A friend\'s part shows their name, and only they change it. Up to 2 friends can sing on a song, or 20 with Plus.',
+                        'A friend\'s part shows their name, and only they change it. Up to 20 friends can sing on a song.',
                         'Singing in someone else\'s song, you add and change your own parts and hear everyone\'s. **Leave the song** asks whether your parts stay for the others.',
                     ]],
                     ['Hear it polished, and export', [
@@ -1295,10 +1432,10 @@ return [
                     ]],
                     ['Your plan and storage', [
                         '**Plan and storage** says whether you\'re on the **Free plan** or **Plus**. **See Plus** (or **Manage your plan**, on Plus) opens the plan page. Plus and billing covers the trial, cancelling and refunds.',
-                        'On the free plan, **Songs** shows how many of your 3 you\'ve made, one slot each. **Storage** is a bar of the space your recordings use in your account.',
-                        '**See what\'s using space** opens **Storage**: your songs as slots (**Unlimited with Plus**), then **Space**, and **Your songs**, biggest first. Open a song to see its current takes and the older takes you didn\'t keep. **Clear older takes** frees their space. **Course voice takes**, the first takes kept on this device for Then and now, has its own **Delete**.',
+                        '**Storage** is a bar of the space your recordings use in your account, and how much you have. On the free plan, **More room with Plus** opens the plan page.',
+                        '**See what\'s using space** opens **Storage**: **Space**, and **Your songs**, biggest first. Open a song to see its current takes and the older takes you didn\'t keep. **Clear older takes** frees their space. **Course voice takes**, the first takes kept on this device for Then and now, has its own **Delete**.',
                         '**Recently deleted** keeps deleted songs and replaced recordings for 30 days, each saying when it\'s gone for good. They don\'t use space or count toward your songs. **Restore** brings a song back, **Restore take** brings back a recording as an older take, and **Delete now** removes it for good.',
-                        ['shot' => 'settings--storage', 'alt' => 'Storage on a phone: the free plan\'s 3 of 3 songs as slots with Unlimited with Plus, Space with each song\'s share, and Your songs, biggest first.'],
+                        ['shot' => 'settings--storage', 'alt' => 'Storage on a phone: Space with each song\'s share, and Your songs, biggest first.'],
                     ]],
                     ['Your data, signing out and deleting', [
                         '**Download my data**: tap **Prepare my data**, and **Download** appears once it\'s ready. Your privacy has the details.',
@@ -1373,20 +1510,19 @@ return [
                         'What\'s free',
                         [
                             'Free has no card and no time limit, and you can start without an account.',
-                            'You get the beginner course (units 1 to 7), four songs plus the song of the month, one workout a day, and the report on your latest take.',
-                            'Record every part, polish the mix, export as WAV, and share links and videos.',
-                            'Your account keeps 3 songs, 1 GB of recordings, and one private or unlisted template of your own. Up to 2 friends can sing on one of your songs.',
-                            'Course work never counts toward your 3 songs, and Recently deleted never counts toward your storage.',
+                            'You get every course and every song in the library, unlimited workouts, your history, and the report on every take. Without an account you can sing lesson 1 of any course and four songs; a free account opens the rest.',
+                            'Record every part, polish the mix, export as WAV, and share links and videos. Up to 20 friends can sing on one of your songs, and choir groups are free.',
+                            'Your account keeps 1 GB of recordings, and one private or unlisted arrangement of your own.',
+                            'Recently deleted never counts toward your storage.',
                         ],
                     ],
                     [
                         'What Plus adds',
                         [
-                            'Every song, with new ones each month, the full course with all its units and paths, and the ten Plus courses (Vibrato, Counterpoint, Barbershop and tags and more), each with its first lesson free.',
-                            'Unlimited workouts, and your history: how you\'re improving over time.',
-                            'Unlimited songs, 50 GB for recordings, and up to 20 friends on a song.',
+                            'Plus is for working with what you make. Learning stays free.',
+                            '50 GB for recordings.',
                             'MP3 export, and each part on its own (stems).',
-                            'Unlimited private or unlisted templates, your own recorded guides, and choir groups (18 and over).',
+                            'Unlimited private or unlisted arrangements, and your own recorded voice as a song\'s guide.',
                             'Plus is from :price a month.',
                         ],
                     ],
@@ -1416,17 +1552,8 @@ return [
                     [
                         'When Plus ends',
                         [
-                            'Nothing is deleted.',
-                            'The free plan keeps 3 songs editable, and you choose which: tap "Choose which stay editable" on a read-only song, or go to Settings, then "See what\'s using space" under Storage. The others stay read-only: you can still play and export them.',
-                            'A song made from a Plus song becomes read-only too, and you can still play and export it. One started from the song of the month stays usable.',
-                            'A choir group you direct becomes read only: your singers can keep learning what\'s shared, but nothing new can be added.',
+                            'Nothing is deleted, and you can play and export everything.',
                             'If your recordings are over the free plan\'s 1 GB, new ones stay on your device until there\'s room.',
-                        ],
-                    ],
-                    [
-                        'Plus songs offline',
-                        [
-                            'A Plus song keeps working offline for 14 days after the app last checked your plan. After that, it needs a quick check online before you change it again. You can still play it.',
                         ],
                     ],
                     [
@@ -1502,8 +1629,8 @@ return [
                     [
                         'What a group is',
                         [
-                            'A choir director with Plus starts a group, sends the singers its link, shares songs, and says who sings which part.',
-                            'Singers join free. While they\'re in the group, they can learn every song shared with it, Plus songs included.',
+                            'A choir director starts a group, sends the singers its link, shares songs, and says who sings which part. Groups are free.',
+                            'Singers join free, and learn every song shared with the group.',
                             'Choir groups are for people 18 and over for now. We ask once.',
                             'A group holds up to 60 singers, and one director can run up to 5 groups.',
                         ],
@@ -1542,15 +1669,9 @@ return [
                         'For singers',
                         [
                             'Open the link your director sent. It says who invited you and shows the parts. Signed in, tap **Join the group**; new to Stackapella, type your email and tap **Accept invite**, or use Apple or Google. You\'ll learn the songs your director shares, with your part picked for you.',
-                            'Tap "Open" on a song to start it. It joins your songs, and counts toward the free plan\'s 3.',
+                            'Tap "Open" on a song to start it. It joins your songs.',
                             'Your groups show on the home page too, under "Your choir".',
-                            'To leave, tap "Leave the group". Your songs stay yours, but one made from a Plus song goes read only again unless you have Plus.',
-                        ],
-                    ],
-                    [
-                        'If the director\'s Plus ends',
-                        [
-                            'The group stays, read only: no new songs, singers or parts. Singers can keep learning what\'s already shared.',
+                            'To leave, tap "Leave the group". Your songs stay yours.',
                         ],
                     ],
                 ],

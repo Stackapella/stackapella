@@ -18,7 +18,7 @@ import { account } from '../stores/account.js';
 import { learning, loadLearning, setRange } from '../stores/learning.js';
 import { Modal } from '../components/ui.js';
 import { CourseStats } from '../components/home.js';
-import { PageHeader } from '../components/page.js';
+import { AppScreen } from '../components/page.js';
 import { Icon, Logo } from '../components/icon.js';
 import { game } from '../skin.js';
 
@@ -31,7 +31,7 @@ const PARTS = ['soprano', 'alto', 'tenor', 'bass'];
 const PART_WORDS = { soprano: tk('parts.soprano'), alto: tk('parts.alto'), tenor: tk('parts.tenor'), bass: tk('parts.bass') };
 const GROUP_COLORS = { firsts: 'var(--color-part-2)', range: 'var(--color-part-1)', skill: 'var(--color-part-3)', habit: 'var(--color-part-4)', community: 'var(--color-part-6)' };
 const GROUP_WORDS = { firsts: tk('badges.group.firsts'), range: tk('badges.group.range'), skill: tk('badges.group.skill'), habit: tk('badges.group.habit'), community: tk('badges.group.community') };
-// What the history looks like, for someone without Plus: plainly marked as a sample.
+// What the history looks like, for a guest (an account has its own, free): plainly marked as a sample.
 const SAMPLE = [52, 58, 55, 63, 61, 67, 70, 66, 72, 75, 74, 79, 81, 78, 84].map((pitchPercent, i) => ({ id: `sample-${i}`, recordedAt: null, summary: { pitchPercent, tendency: -9 + i * 0.4 } }));
 
 /**
@@ -221,15 +221,12 @@ const HistoryChart = {
 };
 
 export const VoiceView = {
-    components: { PageHeader, CourseStats, ChangeRange, Icon, Logo, RangeDialog, RangeKeyboard, HistoryChart },
+    components: { AppScreen, CourseStats, ChangeRange, Icon, Logo, RangeDialog, RangeKeyboard, HistoryChart },
     data: () => ({ history: null, failed: false, titles: {}, group: 'all', measuring: false, changing: false }),
     setup: () => ({ learning, account, navigate, goBack, BADGES, GROUPS, GROUP_WORDS, GROUP_COLORS, SUITS, FIND, SAMPLE, formatDate, formatNumber, game }),
     template: `
-        <div data-ui="screen" class="min-h-dvh bg-ink px-4 pb-16 pt-[max(0.5rem,env(safe-area-inset-top))] md:px-8">
-            <div class="mx-auto flex w-full max-w-3xl flex-col gap-6 md:gap-8">
-                <PageHeader :title="t('voice.title')" back="/learn">
-                    <template v-if="game()" #aside><span class="tabular-nums text-sm text-muted">{{ t('voice.levelXp', { level: level.level, xp: formatNumber(xp) }) }}</span></template>
-                </PageHeader>
+        <AppScreen :title="t('voice.title')" back="/learn" measure="max-w-3xl" content-class="gap-6 pt-4 md:gap-8" data-ui="screen" class="bg-ink">
+            <template v-if="game()" #aside><span class="tabular-nums text-sm text-muted">{{ t('voice.levelXp', { level: level.level, xp: formatNumber(xp) }) }}</span></template>
 
                 <section class="space-y-4" aria-labelledby="range-heading">
                     <div class="flex flex-wrap items-end justify-between gap-4">
@@ -297,7 +294,8 @@ export const VoiceView = {
 
                 <section class="card space-y-4 p-6" aria-labelledby="history-heading">
                     <h2 id="history-heading" class="text-lg font-bold text-cream">{{ t('voice.history.title') }}</h2>
-                    <template v-if="plus && history">
+                    <!-- Free with an account (Hillel, 2026-11-07: "it's free to learn to sing and become a better singer"). -->
+                    <template v-if="signedIn && history">
                         <p v-if="!history.length" class="text-sm text-muted">{{ t('voice.history.empty') }}</p>
                         <template v-else>
                             <HistoryChart :scores="history" />
@@ -308,12 +306,12 @@ export const VoiceView = {
                             </ul>
                         </template>
                     </template>
-                    <p v-else-if="plus && failed" class="text-sm text-muted">{{ failed === 'offline' ? t('common.offline') : t('voice.history.notLoaded') }}</p>
-                    <p v-else-if="plus" class="text-sm text-muted" role="status">{{ t('settings.loading') }}</p>
+                    <p v-else-if="signedIn && failed" class="text-sm text-muted">{{ failed === 'offline' ? t('common.offline') : t('voice.history.notLoaded') }}</p>
+                    <p v-else-if="signedIn" class="text-sm text-muted" role="status">{{ t('settings.loading') }}</p>
                     <template v-else>
                         <p class="text-sm text-muted">{{ t('voice.history.sample') }}</p>
                         <HistoryChart :scores="SAMPLE" sample />
-                        <p class="text-sm text-cream">{{ t('voice.history.withPlus') }} <a href="/plus?from=history" class="link" @click.prevent="navigate('/plus?from=history')">{{ t('export.seePlus') }}</a></p>
+                        <p class="text-sm text-cream">{{ t('voice.history.withAccount') }} <a href="/signin?mode=signup&for=progress&next=/voice" class="link" @click.prevent="navigate('/signin?mode=signup&for=progress&next=/voice')">{{ t('wrap.makeAccount') }}</a></p>
                     </template>
                 </section>
 
@@ -321,10 +319,9 @@ export const VoiceView = {
                     <h2 id="progress-heading" class="mb-4 text-lg font-bold text-cream">{{ t('voice.progress') }}</h2>
                     <CourseStats editable />
                 </section>
-            </div>
             <RangeDialog v-if="measuring" :template="{ key: 'C', parts: [] }" :parts="[]" @close="measuring = false" />
             <ChangeRange v-if="changing" :range="range" @close="changing = false" @save="changeRange" />
-        </div>`,
+        </AppScreen>`,
     computed: {
         range: () => learning.progress.range,
         /** Where the range came from: "Measured on 28 Oct" (sung), or "Chosen by you" (set here, or a part picked). */
@@ -359,7 +356,7 @@ export const VoiceView = {
             const share = (b) => (b.goal ? this.goalOf(b)[0] / this.goalOf(b)[1] : 0);
             return left.sort((a, b) => share(b) - share(a));
         },
-        plus: () => account.me?.plan === 'plus',
+        signedIn: () => !!account.me,
         earnedCount: () => BADGES.filter((b) => learning.progress.badges?.[b.id]).length,
         byGroup: () => Object.fromEntries(GROUPS.map((group) => [group, BADGES.filter((b) => b.group === group)])),
         /** The way you lean, from the recent takes: said only past 5 cents. */
@@ -375,9 +372,9 @@ export const VoiceView = {
     },
     watch: {
         // Opened straight from a link, the account arrives after the page.
-        plus: {
-            handler(plus) {
-                if (plus && !this.history) this.loadHistory();
+        signedIn: {
+            handler(signedIn) {
+                if (signedIn && !this.history) this.loadHistory();
             },
             immediate: true,
         },

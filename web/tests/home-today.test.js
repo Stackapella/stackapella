@@ -44,3 +44,16 @@ test('home today: try it slower plays a lesson at 85% of its tempo', () => {
     assert(slowed(ex, false) === ex, 'not slower: as written');
     assert(slowed(null, true) === null, 'no exercise: nothing');
 });
+
+test('daily challenge: offered past the first week; in it, from its second day once that day is sung (docs/daily-challenge-plan.md)', async () => {
+    const { dailyOpen } = await import('/js/daily-pick.js');
+    const { dayOf, DAY_SECONDS } = await import('/js/course.js');
+    const DAY = 86400000;
+    const now = new Date(2026, 10, 7, 18).getTime();
+    const today = dayOf(now);
+    assert(!dailyOpen({ startedAt: null, practice: {} }, now), 'never before the course starts');
+    assert(!dailyOpen({ startedAt: now - 3600000, practice: { [today]: DAY_SECONDS } }, now), 'not on the first day');
+    assert(!dailyOpen({ startedAt: now - 2 * DAY, practice: { [today]: DAY_SECONDS - 1 } }, now), "not before the day's five minutes");
+    assert(dailyOpen({ startedAt: now - 2 * DAY, practice: { [today]: DAY_SECONDS } }, now), "day 3, today's five minutes sung");
+    assert(dailyOpen({ startedAt: now - 8 * DAY, practice: {} }, now), 'past the first week, any day');
+});

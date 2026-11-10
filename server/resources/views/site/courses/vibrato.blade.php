@@ -25,7 +25,7 @@
     @php($grow .= ($t ? 'L' : 'M').$t.' '.round(20 - $swell * 14 * sin(M_PI * $t / 18), 1))
 @endforeach
 @php($demo = $page['demo'])
-@php($tryUrl = \App\Support\Http\Hosts::app('/learn/c/'.$page['app']))
+@php($tryUrl = $courseStart)
 <main class="cp cp-vibrato" data-vi-demo
     data-straight="{{ $demo['say_straight'] }}" data-wave="{{ $demo['say_wave'] }}" data-wobble="{{ $demo['say_wobble'] }}" data-own="{{ $demo['say_own'] }}"
     data-after="{{ $demo['after'] }}" data-rate-out="{{ $demo['rate_out'] }}" data-width-out="{{ $demo['width_out'] }}">
@@ -43,7 +43,7 @@
                 </ul>
                 <p class="cp-hero-btns">
                     @if ($open)
-                        <a href="{{ \App\Support\Http\Hosts::app('/learn/c/'.$page['app']) }}" class="btn-primary btn-lg">{{ __('pages.site.course_try') }} <x-site.icon name="arrow" size="18" /></a>
+                        <a href="{{ $courseStart }}" class="btn-primary btn-lg">{{ __('pages.site.course_try') }} <x-site.icon name="arrow" size="18" /></a>
                     @endif
                     <a href="#units-h" class="btn-secondary btn-lg">{{ $page['see_lessons'] }}</a>
                 </p>
@@ -247,7 +247,7 @@
             <p class="cp-join-btns">
                 @if ($open)
                     <a href="{{ $tryUrl }}" class="btn-primary btn-lg">{{ __('pages.site.course_try') }} <x-site.icon name="arrow" size="18" /></a>
-                    <a href="/pricing" class="btn-secondary btn-lg">{{ __('pages.site.course_plus') }}</a>
+                    <a href="/courses" class="btn-secondary btn-lg">{{ __('pages.site.course_all') }}</a>
                 @else
                     <a href="{{ $links['start'] }}" class="btn-primary btn-lg">{{ __('pages.site.course_start') }} <x-site.icon name="arrow" size="18" /></a>
                     <a href="/courses" class="btn-secondary btn-lg">{{ __('pages.site.course_all') }}</a>

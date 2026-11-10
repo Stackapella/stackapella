@@ -25,7 +25,9 @@ final class SupportController extends Controller
     public function index(ListInboxRequest $request): JsonResponse
     {
         $status = $request->validated('status') ?? SupportMessage::OPEN;
-        $page = SupportMessage::query()->with('user')->when($status !== 'all', fn ($query) => $query->where('status', $status))->orderByDesc('id')->cursorPaginate(50);
+        $category = $request->validated('category');
+        $page = SupportMessage::query()->with('user')->when($status !== 'all', fn ($query) => $query->where('status', $status))
+            ->when(is_string($category), fn ($query) => $query->where('category', $category))->orderByDesc('id')->cursorPaginate(50);
 
         return response()->json([
             'data' => collect($page->items())->map(fn (SupportMessage $m): array => SupportInbox::view($m))->values()->all(),

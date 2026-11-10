@@ -6,6 +6,7 @@ namespace Tests\Feature;
 
 use App\Http\Controllers\WebAppController;
 use App\Support\Web\AppShell;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use ReflectionClassConstant;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Tests\TestCase;
@@ -17,6 +18,8 @@ use Tests\TestCase;
  */
 final class WebFoldersTest extends TestCase
 {
+    use RefreshDatabase;
+
     /** The folders the image deletes: tests, tools and the spike, never served. */
     private const NOT_SERVED = ['bin', 'spike_audio', 'tests', 'tool'];
 
@@ -37,7 +40,7 @@ final class WebFoldersTest extends TestCase
         $nginx = $this->repo('.do/nginx.conf');
         $this->assertSame(1, preg_match('#location ~ \^/\(([^)]+)\)/ \{#', $nginx, $folders), 'nginx.conf has no static folders location.');
         $this->assertSame(1, preg_match('#location ~ \^/\(([^)]+)\)\$ \{#', $nginx, $files), 'nginx.conf has no static files location.');
-        // The shared location's folders, and any with its own (web/lab: different headers).
+        // The shared location's folders, and any with its own (fonts: different headers).
         preg_match_all('#location \^~ /([a-z0-9-]+)/ \{#', $nginx, $own);
         $nginxFolders = [...explode('|', $folders[1]), ...$own[1]];
         $nginxFiles = array_map(static fn (string $file): string => str_replace('\\.', '.', $file), explode('|', $files[1]));

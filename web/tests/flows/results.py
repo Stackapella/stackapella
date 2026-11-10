@@ -30,10 +30,11 @@ def tone(f, notes, tempo=60):
 
 
 def journey(f):
+    # Signed in: from lesson 2 a guest is asked for a free account (Hillel, 2026-11-06: "after lesson 1 of any course").
     for name in ["stage-dark", "warm-light"]:
-        f.go("/learn/1-comfortable", "document.querySelector('main h1')")
+        f.go("/learn/1-comfortable?api=mock&as=member", "document.querySelector('main h1')")
         f.run("localStorage.clear(); sessionStorage.clear(); indexedDB.deleteDatabase('stackapella');")
-        f.go("/learn/1-comfortable", "document.querySelector('main h1')")
+        f.go("/learn/1-comfortable?api=mock&as=member", "document.querySelector('main h1')")
         theme(f, name)
         f.mic_checked()
         f.js(f"{AUDIO}.unlock()")
@@ -54,14 +55,14 @@ def journey(f):
         f.click_t("course.next")
         f.wait("location.pathname === '/learn/1-match'", what="the next lesson")
         f.run("sessionStorage.setItem('stackapella.lesson.1-match', '2'); sessionStorage.setItem('stackapella.headphones', '1');")
-        f.go("/learn/1-match", "document.querySelector('main h1')")
+        f.go("/learn/1-match?api=mock&as=member", "document.querySelector('main h1')")
         f.js(f"{AUDIO}.unlock()")
         f.js(f"{AUDIO}.engine.setLoopback(true)")
         f.click_t("course.tap.sing")
         f.wait(f"{AUDIO}.engine.playing?.recording", what="recording")
         beat = 60 / 72
         f.run(f"""const {{ engine }} = {AUDIO}; const {{ renderPart }} = await import('/js/synth.js');
-            while ((engine.positionSeconds() ?? 0) < {9 * beat - 0.12}) await new Promise((r) => requestAnimationFrame(r));
+            const until = performance.now() + 20000; while ((engine.positionSeconds() ?? 0) < {9 * beat - 0.12}) {{ if (performance.now() > until) throw new Error('the audio clock never reached ' + {9 * beat - 0.12} + ' s in 20 s: stalled?'); await new Promise((r) => requestAnimationFrame(r)); }}
             engine.preview(renderPart([{{ beat: 0, length: 2, pitch: 57 }}, {{ beat: 3, length: 2, pitch: 59 }}, {{ beat: 6, length: 2, pitch: 54 }}], {{ bpm: 72, sampleRate: engine.sampleRate }}), engine.sampleRate);""")
         f.wait("document.querySelector('[data-take-result]')", timeout=40, what="the take's result")
         assert f.js("document.querySelectorAll('[data-take-result] svg rect.fill-accent').length") > 10, "the voice as dots in the band"
@@ -92,7 +93,7 @@ def journey(f):
             for (const id of [...engine.parts.keys()]) engine.removePart(id); // only the check's tone sounds
             engine.setPart('guide-check', renderPart([{{ beat: 1, length: 1, pitch: 60 }}], {{ bpm: 60, sampleRate: rate }}), rate, {{ volume: 0.8, pan: 0, audible: true, offsetSeconds: 0 }});
             engine.play({{ fromSeconds: 0, bpm: 60, record: true, latencyFrames: 0, leadSeconds: 0 }});
-            while ((engine.positionSeconds() ?? 0) < 2.4) await new Promise((r) => requestAnimationFrame(r));
+            const until = performance.now() + 20000; while ((engine.positionSeconds() ?? 0) < 2.4) {{ if (performance.now() > until) throw new Error('the audio clock never reached ' + 2.4 + ' s in 20 s: stalled?'); await new Promise((r) => requestAnimationFrame(r)); }}
             const take = await engine.stop();
             engine.removePart('guide-check');
             // From 0.4 s: the take opens with the tail of the lesson's last sound, which isn't the check's.

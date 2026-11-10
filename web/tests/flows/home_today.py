@@ -1,8 +1,9 @@
 """Home's Today line (docs/home-returning-plan.md, experiment ret1, arm b): past the first week, one
 suggestion in the course card. Back after five days: a warm-up, opening today's workout. Three days
 on one lesson with two of them sung: try it slower, opening the lesson at 85% marked Slower. The free
-course finished: a song in your range first, then a course. In game mode on a day with nothing else,
-today's challenge (serious mode stays calm). Arm a, and a first-week singer, see none of it.
+course finished: a song in your range first, then a course. On a day with nothing else, today's challenge:
+game mode's line, serious mode's calm one naming the song (docs/daily-challenge-plan.md). Arm a, and a first-week
+singer who hasn't sung today, see none of it.
 """
 import json
 import sys
@@ -13,7 +14,7 @@ from flow import run  # noqa: E402
 from safari_risk import away  # noqa: E402
 
 I18N = "(await import('/js/i18n.js'))"
-HOME = "/?api=mock&scenario=&as=signedOut"
+HOME = "/?api=mock&scenario=&as=member"  # an account: from lesson 2 a guest meets the free-account ask, and this is about lessons past it
 LINE = "document.querySelector('[data-today]')"
 DAY = 86400000
 SEED = """const db = await import('/js/db.js'); const { emptyProgress } = await import('/js/course.js');
@@ -95,18 +96,17 @@ def journey(f):
     f.run("document.querySelector('[data-today-song]').click()")
     f.wait("new URLSearchParams(location.search).get('song')", what="the song opened on Home")
 
-    # Game mode, a day with nothing else: today's challenge. Serious mode: nothing new.
+    # A day with nothing else: today's challenge (game mode's line; serious mode's names the song).
     f.run("""const db = await import('/js/db.js'); const p = await db.get('learning', 'progress');
         await db.put('learning', { ...p, lessons: { '1-comfortable': p.lessons['1-comfortable'] } }, 'progress');""")
     away(f, 1)
     home(f)
-    f.run("const d = await import('/js/game/daily.js'); d.daily.today = { date: new Date().toISOString().slice(0, 10), templateId: 'amazing-grace', partKey: 'soprano' };")
+    f.run("const p = await import('/js/daily-pick.js'); p.dailyPick.today = { date: new Date().toISOString().slice(0, 10), templateId: 'amazing-grace', partKey: 'soprano' };")
     f.js("new Promise((r) => setTimeout(r, 200))")
-    if f.js("document.documentElement.dataset.skin") == "game" and f.js("(async () => (await import('/js/game/effects.js')).effect('daily'))()"):
-        f.wait(f"{LINE}?.dataset.today === 'daily'", what="today's challenge")
-        f.shot("home-today-daily")
-    else:
-        assert not f.js(f"!!{LINE}"), "serious mode shows the challenge"
+    f.wait(f"{LINE}?.dataset.today === 'daily'", what="today's challenge")
+    if f.js("document.documentElement.dataset.skin") != "game":
+        assert "Amazing Grace" in f.js(f"{LINE}.innerText"), "serious mode names the song"
+    f.shot("home-today-daily")
 
 
 if __name__ == "__main__":

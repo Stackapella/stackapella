@@ -137,27 +137,42 @@ final class GroupsTest extends TestCase
         $this->getJson('/api/groups/'.$id)->assertJsonPath('data.link.url', rtrim((string) config('app.url'), '/').'/choir/'.$again);
     }
 
-    public function test_members_learn_the_groups_plus_songs_while_theyre_in_it(): void
+    public function test_a_groups_library_songs_open_to_its_members_as_to_any_account(): void
     {
         [, $id, $token] = $this->group();
-        $plusSong = Template::query()->official()->where('access', 'plus')->firstOrFail();
-        $this->postJson('/api/groups/'.$id.'/songs', ['templateId' => $plusSong->slug])->assertOk();
+        $song = Template::query()->official()->where('access', 'plus')->firstOrFail();
+        $this->postJson('/api/groups/'.$id.'/songs', ['templateId' => $song->slug])->assertOk();
 
+        // Every library song is free with an account (2026-11-07), in a group or not.
         $member = $this->as(User::factory()->create());
-        $this->getJson('/api/templates/'.$plusSong->slug)->assertForbidden();
+        $this->getJson('/api/templates/'.$song->slug)->assertOk()->assertJsonPath('data.grant', 'account');
         $this->postJson('/api/choir/'.$token, ['adult' => true])->assertOk();
-        $this->getJson('/api/templates/'.$plusSong->slug)->assertOk()->assertJsonPath('data.grant', 'group');
+        $this->getJson('/api/groups/'.$id)->assertJsonPath('data.songs.0.access', 'account');
 
-        // Only while the director has Plus: a month of Plus doesn't give the group the songs for good.
         $director = User::query()->whereKey(Group::query()->whereSqid($id)->value('director_id'))->firstOrFail();
         $director->forceFill(['plan' => 'free'])->save();
-        $this->getJson('/api/templates/'.$plusSong->slug)->assertForbidden();
-        $director->forceFill(['plan' => 'plus'])->save();
-        $this->getJson('/api/templates/'.$plusSong->slug)->assertOk();
+        $this->getJson('/api/templates/'.$song->slug)->assertOk();
+        $this->assertNotNull($member);
+    }
 
-        $this->assertMatchesContract($this->deleteJson('/api/groups/'.$id.'/members/'.$member->sqid()), 'groups.members.delete', 204);
+    public function test_removing_a_member_makes_a_new_link_and_the_old_one_stops_working(): void
+    {
+        [$director, $id, $token] = $this->group();
+        $member = $this->as(User::factory()->create());
+        $this->postJson('/api/choir/'.$token, ['adult' => true])->assertOk();
+
+        // Leaving on their own keeps the link.
+        $this->deleteJson('/api/groups/'.$id.'/members/'.$member->sqid())->assertNoContent();
+        $this->postJson('/api/choir/'.$token, ['adult' => true])->assertOk();
+
+        // Removed by the director: the old link finds nothing, and the director sees the new one.
+        $this->as($director);
+        $this->deleteJson('/api/groups/'.$id.'/members/'.$member->sqid())->assertNoContent();
+        $fresh = Str::afterLast((string) $this->getJson('/api/groups/'.$id)->json('data.link.url'), '/choir/');
+        $this->assertNotSame($token, $fresh);
         $this->as($member);
-        $this->getJson('/api/templates/'.$plusSong->slug)->assertForbidden();
+        $this->postJson('/api/choir/'.$token, ['adult' => true])->assertNotFound();
+        $this->postJson('/api/choir/'.$fresh, ['adult' => true])->assertOk();
     }
 
     public function test_a_directors_own_template_is_shared_with_the_group_only(): void
@@ -177,10 +192,11 @@ final class GroupsTest extends TestCase
         $this->assertMatchesContract($this->deleteJson('/api/groups/'.$id.'/songs/'.$uuid), 'groups.songs.delete', 204);
     }
 
-    public function test_groups_are_plus_with_limits_and_go_read_only_when_plus_ends(): void
+    public function test_groups_are_free_for_everyone_with_limits(): void
     {
-        $free = $this->as(User::factory()->create());
-        $this->assertMatchesContract($this->postJson('/api/groups', ['name' => 'Choir', 'adult' => true]), 'groups.create', 403);
+        // Since 2026-11-07 every singer is free: a free account directs a group.
+        $this->as(User::factory()->create());
+        $this->assertMatchesContract($this->postJson('/api/groups', ['name' => 'Choir', 'adult' => true]), 'groups.create', 201);
         $this->assertMatchesContract($this->postJson('/api/groups', ['name' => '', 'adult' => true]), 'groups.create', 422);
         $this->assertMatchesContract($this->getJson('/api/groups/nope'), 'groups.show', 404);
 
@@ -196,43 +212,38 @@ final class GroupsTest extends TestCase
         $this->as(User::factory()->create());
         $this->assertMatchesContract($this->postJson('/api/choir/'.$token, ['adult' => true]), 'groups.join', 403);
 
-        // Plus ends: the group stays, but takes nothing new.
+        // A director without Plus: the group carries on, never read-only.
         $director->forceFill(['plan' => 'free'])->save();
         $this->as($director);
-        $this->getJson('/api/groups/'.$id)->assertJsonPath('data.readOnly', true);
-        $this->assertMatchesContract($this->postJson('/api/groups/'.$id.'/songs', ['templateId' => 'amazing-grace']), 'groups.songs.create', 403);
-        $this->assertMatchesContract($this->postJson('/api/groups/'.$id.'/link'), 'groups.link.create', 403);
-        $this->assertMatchesContract($this->putJson('/api/groups/'.$id.'/songs/amazing-grace/assignments', ['assignments' => []]), 'groups.assignments.update', 403);
+        $this->getJson('/api/groups/'.$id)->assertJsonPath('data.readOnly', false);
+        $this->assertMatchesContract($this->postJson('/api/groups/'.$id.'/songs', ['templateId' => 'amazing-grace']), 'groups.songs.create', 200);
+        $this->assertMatchesContract($this->putJson('/api/groups/'.$id.'/songs/amazing-grace/assignments', ['assignments' => []]), 'groups.assignments.update', 200);
         config(['usage.group_members' => 60]);
         $this->as(User::factory()->create());
-        $this->assertMatchesContract($this->postJson('/api/choir/'.$token, ['adult' => true]), 'groups.join', 403);
-
+        $this->assertMatchesContract($this->postJson('/api/choir/'.$token, ['adult' => true]), 'groups.join', 200);
         $this->as($director);
+        $this->assertMatchesContract($this->postJson('/api/groups/'.$id.'/link'), 'groups.link.create', 201);
+
         $this->assertMatchesContract($this->deleteJson('/api/groups/'.$id), 'groups.delete', 204);
         $this->assertNull(Group::query()->find(Ids::decode($id)));
         $this->assertSame(0, GroupMember::query()->whereNull('group_id')->count());
-        $this->assertNotNull($free);
     }
 
-    public function test_leaving_a_group_tells_the_members_devices_their_plus_song_project_changed(): void
+    public function test_leaving_a_group_leaves_the_members_projects_editable(): void
     {
         [, $id, $token] = $this->group();
-        $plusSong = Template::query()->official()->where('access', 'plus')->firstOrFail();
-        $this->postJson('/api/groups/'.$id.'/songs', ['templateId' => $plusSong->slug])->assertOk();
+        $song = Template::query()->official()->where('access', 'plus')->firstOrFail();
+        $this->postJson('/api/groups/'.$id.'/songs', ['templateId' => $song->slug])->assertOk();
 
         $member = $this->as(User::factory()->create());
         $this->postJson('/api/choir/'.$token, ['adult' => true])->assertOk();
         $project = (string) Str::uuid();
-        $this->saveProject($project, 0, ['template' => ['id' => $plusSong->slug, 'version' => (int) $plusSong->currentVersion?->version]])->assertOk();
-        $this->getJson('/api/projects/'.$project)->assertJsonPath('data.project.readOnly', null);
-        $cursor = (string) $this->pull()->json('meta.cursor');
+        $this->saveProject($project, 0, ['template' => ['id' => $song->slug, 'version' => (int) $song->currentVersion?->version]])->assertOk();
 
         $this->deleteJson('/api/groups/'.$id.'/members/'.$member->sqid())->assertNoContent();
 
         $this->as($member);
-        $pulled = $this->pull($cursor)->assertOk();
-        $this->assertSame([$project], array_column((array) $pulled->json('data.projects'), 'id'));
-        $pulled->assertJsonPath('data.projects.0.readOnly', 'plus_song');
+        $this->getJson('/api/projects/'.$project)->assertJsonPath('data.project.readOnly', null);
     }
 
     public function test_groups_are_18_and_over_asked_once_until_hillel_decides(): void

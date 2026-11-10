@@ -36,6 +36,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from cdp import CLOSE_SECONDS, WebSocket  # noqa: E402
+import cdn_cache  # noqa: E402  (the pinned CDN libraries from this machine's cache, as cdp.py serves them)
 
 FIREFOX = os.environ.get("FIREFOX", "/Applications/Firefox.app/Contents/MacOS/firefox")
 SAFARIDRIVER = os.environ.get("SAFARIDRIVER", "/usr/bin/safaridriver")
@@ -128,12 +129,23 @@ class Bidi:
         self.ws.sock.settimeout(CALL_SECONDS)
         self.granted = set()
         self.next_id = 0
+        self.replies = {}  # replies to calls made while another call waited (a paused request answered meanwhile)
         self.errors = []
         self.warnings = []
+        self.cdn = {}
 
     def _ready(self, width, height, mobile):
         self.context = self.send_bidi("browsingContext.getTree", {})["contexts"][0]["context"]
         self.send_bidi("session.subscribe", {"events": ["log.entryAdded"]})
+        # The pinned CDN libraries from this machine's cache (cdn_cache.py), where the browser's BiDi can intercept
+        # (Firefox can; a browser that can't simply fetches them from the CDN as before).
+        if cdn_cache.ON:
+            try:
+                self.send_bidi("network.addIntercept", {"phases": ["beforeRequestSent"], "urlPatterns": [{"type": "pattern", "protocol": "https", "hostname": "cdn.jsdelivr.net"}]})
+                self.send_bidi("session.subscribe", {"events": ["network.beforeRequestSent"]})
+                self.cdn = cdn_cache.pinned()
+            except (RuntimeError, TimeoutError):
+                self.cdn = {}
         self.set_viewport(width, height, mobile)
 
     def set_viewport(self, width, height, mobile):
@@ -146,7 +158,7 @@ class Bidi:
         self.ws.send(json.dumps({"id": my_id, "method": method, "params": params}))
         while True:
             try:
-                message = json.loads(self.ws.receive())
+                message = self.replies.pop(my_id, None) or json.loads(self.ws.receive())
             except TimeoutError:
                 raise TimeoutError(f"{self.name}: {method} didn't answer in {CALL_SECONDS} s") from None
             if message.get("id") == my_id:
@@ -155,8 +167,13 @@ class Bidi:
                 return message.get("result", {})
             if message.get("type") == "event":
                 self.on_event(message)
+            elif "id" in message:
+                self.replies[message["id"]] = message  # an outer call's reply, read by a call made inside an event
 
     def on_event(self, message):
+        if message.get("method") == "network.beforeRequestSent" and message["params"].get("isBlocked"):
+            self.answer_cdn(message["params"])
+            return
         if message.get("method") != "log.entryAdded":
             return
         entry = message["params"]
@@ -185,7 +202,23 @@ class Bidi:
             return {}
         if method == "Page.captureScreenshot":
             return {"data": self._screenshot_data()}
+        if method == "Emulation.setDeviceMetricsOverride":
+            self.set_viewport(params["width"], params["height"], params.get("mobile", False))
+            return {}
         raise ChromeOnly(f"{method} has no {self.name} equivalent here (tool/bidi.py)")
+
+    def answer_cdn(self, params):
+        """A paused request to the CDN: a pinned file from the cache, anything else on to the network."""
+        request = params["request"]["request"]
+        url = params["request"]["url"]
+        body = cdn_cache.body_for(url, self.cdn[url]) if url in self.cdn else None
+        if body is None:
+            self.send_bidi("network.continueRequest", {"request": request})
+            return
+        header = lambda name, value: {"name": name, "value": {"type": "string", "value": value}}  # noqa: E731
+        self.send_bidi("network.provideResponse", {"request": request, "statusCode": 200, "reasonPhrase": "OK", "headers": [
+            header("Content-Type", "application/javascript; charset=utf-8"), header("Access-Control-Allow-Origin", "*"),
+            header("Cache-Control", "public, max-age=31536000, immutable")], "body": {"type": "base64", "value": base64.b64encode(body).decode()}})
 
     def preload(self, source):
         """Runs `source` in every new document before the page's own scripts."""
@@ -226,18 +259,31 @@ class Bidi:
 
     def goto(self, url, wait=None, timeout=30):
         self.grant_mic(url)
-        self.send_bidi("browsingContext.navigate", {"context": self.context, "url": url, "wait": "none"})
+        try:
+            self.send_bidi("browsingContext.navigate", {"context": self.context, "url": url, "wait": "none"})
+        except RuntimeError as error:
+            # Firefox says NS_BINDING_ABORTED when this navigation cancels one still loading: asked once more.
+            if "NS_BINDING_ABORTED" not in str(error):
+                raise
+            time.sleep(0.3)
+            self.send_bidi("browsingContext.navigate", {"context": self.context, "url": url, "wait": "none"})
         deadline = time.time() + timeout
         condition = wait or "document.readyState === 'complete'"
         time.sleep(0.1)  # the old document can still answer for a moment
+        last = None
         while time.time() < deadline:
             try:
                 if self.evaluate(f"!!({condition})", await_promise=False):
                     return
-            except RuntimeError:
-                pass
+                last = None
+            except RuntimeError as error:
+                last = error
             time.sleep(0.2)
-        raise TimeoutError(f"Timed out waiting for: {condition}")
+        try:
+            where = self.evaluate("JSON.stringify({ at: location.href, ready: document.readyState, app: document.querySelector('#app')?.innerHTML.length ?? null })", await_promise=False)
+        except RuntimeError as error:
+            where = f"no answer: {error}"
+        raise TimeoutError(f"Timed out waiting for: {condition} (the page: {where})" + (f" (the page kept answering: {last})" if last else ""))
 
     def _screenshot_data(self):
         return self.send_bidi("browsingContext.captureScreenshot", {"context": self.context})["data"]
@@ -350,12 +396,22 @@ class Safari(Bidi):
         try:
             caps = {"browserName": "safari", "webSocketUrl": True, "safari:experimentalWebSocketUrl": True,
                     "webkit:alwaysAllowAutoplay": True, "acceptInsecureCerts": True}
-            value = self._http("POST", "/session", {"capabilities": {"alwaysMatch": caps}}, wait=15)
-            self.session = value["sessionId"]
-            url = value["capabilities"].get("webSocketUrl")
-            if not isinstance(url, str):
-                raise RuntimeError("safaridriver gave no BiDi address (Safari too old?)")
-            self.ws = WebSocket(url)
+            # Safari picks its BiDi port itself, low in the 8000s, and now and then one another server
+            # on this Mac already answers (a 404 from nginx): that session is dropped for a new one.
+            for attempt in range(4):
+                value = self._http("POST", "/session", {"capabilities": {"alwaysMatch": caps}}, wait=15)
+                self.session = value["sessionId"]
+                url = value["capabilities"].get("webSocketUrl")
+                if not isinstance(url, str):
+                    raise RuntimeError("safaridriver gave no BiDi address (Safari too old?)")
+                try:
+                    self.ws = WebSocket(url)
+                    break
+                except RuntimeError as error:
+                    if "handshake failed" not in str(error) or attempt == 3:
+                        raise
+                    self._http("DELETE", f"/session/{self.session}")
+                    self.session = None
             self._start()
             self._ready(width, height, mobile)
         except BaseException:

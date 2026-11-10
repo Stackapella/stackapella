@@ -1,16 +1,39 @@
 ---
-title: How to sing in tune
-description: Singing in tune means landing on the right notes and staying there. Here's why singers go sharp or flat, and simple ways to hear and fix it.
+title: How to sing in tune: matching pitch for beginners
+description: Can't match pitch yet? How to sing in tune as a beginner: hear the note first, sing it on an easy sound, slide until it settles, then check yourself.
 song: simple-gifts
 version: 1
 reviewed: false
 ---
 
-# How to sing in tune
+# How to sing in tune: matching pitch for beginners
 
 Singing in tune means two things: landing on the right note, and staying on it while you hold it.
 When you sing with others, it also means fitting with them, so the chord sounds settled rather
-than rough. Nearly everyone can get better at it, and most of the fixes are simple.
+than rough. It starts with one skill, matching a note you hear, and nearly everyone can get better
+at it.
+
+## 1. Hear the note before you sing it
+
+Listen to the note, then hear it again in your head before you make a sound. Most notes that land
+off weren't heard clearly first. If you can hear it in your head, you're ready.
+
+## 2. Sing it on an easy sound
+
+Sing the note on "ah" or a hum, quietly, in the middle of your voice. A soft, easy sound is much
+easier to place than a loud one. If the note is too high or too low for you, try one closer to
+where you speak.
+
+## 3. If you're off, slide
+
+If it doesn't feel right, slide slowly up or down until it settles. Against a steady note you can
+hear it: when you're close but not quite there, the sound wobbles, and the wobble slows down and
+stops as you arrive.
+
+## 4. Check yourself
+
+Check against something that can't drift: a steady note, a tuner, or a recording of yourself.
+Then try a new note. A few notes a day, every day, does more than a long session once a week.
 
 ## Sharp and flat
 
@@ -59,11 +82,6 @@ Feedback helps you notice drifting while it happens, not afterwards.
 Speed hides tuning problems. When you slow a phrase down, you have time to hear each note before
 you sing it, and to notice when you've slipped. Get it right slowly, then bring the speed back
 up bit by bit.
-
-## Little and often
-
-Tuning improves with regular, short practice. Ten focused minutes beats an hour of tired
-singing. If you're working hard and it's getting worse, that's a sign to rest, not to push.
 
 ## Try it in Stackapella
 

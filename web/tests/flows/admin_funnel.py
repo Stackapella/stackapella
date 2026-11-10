@@ -31,6 +31,16 @@ def journey(f):
     f.wait("document.querySelector('[data-funnel-asks] tbody tr')", what="the asks")
     f.no_sideways("the funnel")
     f.shot("funnel")
+    # Every ask the app counts (js/funnel.js ASKS, config counts.asks) has words: the account nudges and the course wall by
+    # place too, never a raw key like acct_course_map.
+    f.run("""const { api } = await import('/js/api.js'); const { ASKS } = await import('/js/funnel.js'); const show = api.admin.funnel.show;
+        api.admin.funnel.show = async (q) => { const r = await show(q); const arms = r.data.asks[0].arms.map((a) => ({ ...a, shown: 4, yes: 1, rate: 0.25 }));
+          return { ...r, data: { ...r.data, asks: ASKS.map((ask) => r.data.asks.find((a) => a.ask === ask) ?? { ask, arms }) } }; };""")
+    f.run("const s = document.querySelector('[data-funnel-experiments]'); s.value = ''; s.dispatchEvent(new Event('change'));")
+    f.wait("document.querySelectorAll('[data-funnel-asks] tbody tr').length >= 16", what="every ask's row")
+    raw = f.js("[...document.querySelectorAll('[data-funnel-asks] tbody tr th')].map((th) => th.textContent.trim()).filter((x) => /^[a-z]+(_[a-z]+)+$/.test(x) || /^[a-z]+$/.test(x))")
+    assert not raw, f"asks shown as their keys: {raw}"
+    f.shot("funnel-asks")
 
 
 if __name__ == "__main__":

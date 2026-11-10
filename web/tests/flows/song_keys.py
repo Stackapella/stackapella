@@ -10,6 +10,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 from flow import run  # noqa: E402
 from help_shots import SESSION, clear_projects, progress, t  # noqa: E402
+from game_frames import every_theme  # noqa: E402
 
 LESSON = "4-words"
 STEP = 1
@@ -48,6 +49,8 @@ def journey(f):
     words = t(f, "sing.fitsYourRangeLower", {"part": t(f, "parts.soprano")})
     assert f.js(f"{LINE}.textContent.trim()") == words, f.js(f"{LINE}.textContent")
     f.shot("low-voice-line")
+    if f.skin == "game":
+        every_theme(f, "the song step's key line")
     into_sing(f)
     project = f.js(f"JSON.parse(JSON.stringify((({{ id, transpose, practice, course }}) => ({{ id, transpose: transpose ?? 0, keyChosen: !!practice?.sing?.keyChosen, fit: course?.fit ?? null }}))({SESSION}.session.project)))")
     assert project["transpose"] == fit["transpose"], f"the copy opens in the key that fits: {project} vs {fit}"

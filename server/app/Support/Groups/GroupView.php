@@ -37,6 +37,9 @@ final class GroupView
         $shown = $directing ? $members : $members->where('user_id', $viewer->id)->values();
         $assignments = GroupAssignment::query()->whereIn('group_song_id', $songs->pluck('id'))->whereIn('user_id', $shown->pluck('user_id'))->get();
         $progress = $this->progress($assignments, $songs);
+        $rehearsal = RehearsalDates::of($group->rehearsal_on, $group->rehearsal_weekly, now());
+        // The director's count since the last rehearsal (from the start of that day, UTC): numbers only.
+        $since = $directing && $rehearsal !== null && $rehearsal['previous'] !== null ? $rehearsal['previous'].'T00:00:00Z' : null;
 
         return [
             'id' => $group->sqid(),
@@ -48,9 +51,10 @@ final class GroupView
             'songs' => $songs->map(fn (GroupSong $song): array => [
                 'templateId' => $song->template->slug,
                 'title' => $song->template->title,
-                'access' => $song->template->owner_id !== null ? 'own' : $song->template->access->value,
+                'access' => $song->template->owner_id !== null ? 'own' : $song->template->access->api(),
                 'own' => $song->template->owner_id !== null,
                 'sharedAt' => $song->created_at?->utc()->toIso8601ZuluString(),
+                'sinceRehearsal' => $since !== null ? self::since($assignments->where('group_song_id', $song->id), $progress, $since) : null,
             ])->all(),
             'members' => $shown->map(fn (GroupMember $member): array => [
                 'id' => $member->user->sqid(),
@@ -61,11 +65,31 @@ final class GroupView
                 'assignments' => $assignments->where('user_id', $member->user_id)->map(fn (GroupAssignment $a): array => [
                     'templateId' => $songs->firstWhere('id', $a->group_song_id)?->template->slug,
                     'partKey' => $a->part_key,
-                    ...($progress[$a->id] ?? ['status' => 'none', 'updatedAt' => null]),
+                    'status' => $progress[$a->id]['status'] ?? 'none',
+                    'updatedAt' => $progress[$a->id]['updatedAt'] ?? null,
                 ])->values()->all(),
             ])->all(),
             // The director's: the link to copy (null for one made before links were kept: reset it).
             'link' => $directing && $group->link_created_at !== null ? ['url' => $group->linkUrl(), 'createdAt' => $group->link_created_at->utc()->toIso8601ZuluString()] : null,
+            'rehearsal' => $rehearsal,
+        ];
+    }
+
+    /**
+     * How many of a song's assigned members began it, and how many recorded their part, since the
+     * last rehearsal's day began.
+     *
+     * @param  Collection<int, GroupAssignment>  $assignments
+     * @param  array<int, array{status: string, updatedAt: string|null, startedAt: string|null}>  $progress
+     * @return array{started: int, recorded: int}
+     */
+    private static function since(Collection $assignments, array $progress, string $since): array
+    {
+        $shown = $assignments->map(fn (GroupAssignment $a): array => $progress[$a->id] ?? ['status' => 'none', 'updatedAt' => null, 'startedAt' => null]);
+
+        return [
+            'started' => $shown->filter(fn (array $p): bool => $p['startedAt'] !== null && $p['startedAt'] >= $since)->count(),
+            'recorded' => $shown->filter(fn (array $p): bool => $p['status'] === 'recorded' && $p['updatedAt'] !== null && $p['updatedAt'] >= $since)->count(),
         ];
     }
 
@@ -75,7 +99,7 @@ final class GroupView
      *
      * @param  Collection<int, GroupAssignment>  $assignments
      * @param  Collection<int, GroupSong>  $songs
-     * @return array<int, array{status: string, updatedAt: string|null}>
+     * @return array<int, array{status: string, updatedAt: string|null, startedAt: string|null}>
      */
     public function progress(Collection $assignments, Collection $songs): array
     {
@@ -97,10 +121,11 @@ final class GroupView
             $recorded = $parts->whereIn('project_id', $theirs->pluck('id'))->where('template_part_key', $assignment->part_key)
                 ->map(fn (Part $part): ?Take => $takes->get($part->current_take_id))->filter()->sortByDesc('ready_at')->first();
 
+            $startedAt = $theirs->min('created_at')?->utc()->toIso8601ZuluString();
             $result[$assignment->id] = match (true) {
-                $recorded !== null => ['status' => 'recorded', 'updatedAt' => $recorded->ready_at?->utc()->toIso8601ZuluString()],
-                $theirs->isNotEmpty() => ['status' => 'started', 'updatedAt' => $theirs->max('updated_at')?->utc()->toIso8601ZuluString()],
-                default => ['status' => 'none', 'updatedAt' => null],
+                $recorded !== null => ['status' => 'recorded', 'updatedAt' => $recorded->ready_at?->utc()->toIso8601ZuluString(), 'startedAt' => $startedAt],
+                $theirs->isNotEmpty() => ['status' => 'started', 'updatedAt' => $theirs->max('updated_at')?->utc()->toIso8601ZuluString(), 'startedAt' => $startedAt],
+                default => ['status' => 'none', 'updatedAt' => null, 'startedAt' => null],
             };
         }
 

@@ -1,4 +1,21 @@
 bin/
+# tool/cdn_cache.py's checked copies of the pinned CDN libraries, for the flow harness
+tool/cache/
+# tool/tailwind.sh's app stylesheet source, made and removed on each build
+css/.app-input.css
+css/.site-input.css
+css/.courses-input.css
+css/.app-game-input.css
+css/.site-game-input.css
+# tests/flows/site_css_exact.py's reference: site.css built from all of web/, served while it compares
+css/.site-full.css
+# tests/flows/game_css_exact.py's references: app.css and site.css whole, as before game mode's own sheets
+css/.app-whole.css
+css/.site-whole.css
+css/.app-whole-input.css
+css/.site-whole-input.css
+css/.app-split.css
+css/.site-split.css
 tests/last-result.json
 # Python bytecode, and the flow scripts screenshots (made on every run)
 __pycache__/

@@ -113,7 +113,7 @@ final class BetaAssignment extends Model
     {
         $latest = $this->latestSubmission;
 
-        return $this->asked_again_at !== null && ($latest === null || $latest->created_at === null || $latest->created_at->lt($this->asked_again_at));
+        return $this->asked_again_at !== null && ($latest === null || $latest->created_at === null || $latest->created_at->lte($this->asked_again_at));
     }
 
     public function isTheVoice(): bool

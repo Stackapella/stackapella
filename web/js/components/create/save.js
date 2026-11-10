@@ -9,7 +9,7 @@
 import { t, tk } from '../../i18n.js';
 import { navigate } from '../../router.js';
 import { exportFile } from '../../creator.js';
-import { canCreateProject, FREE_PROJECT_LIMIT, LimitReached, startFromTemplate } from '../../stores/projects.js';
+import { startFromTemplate } from '../../stores/projects.js';
 import { mine } from '../../stores/templates.js';
 import { singerOptions, templatePartName } from '../../templates.js';
 import { keyLabel } from '../../theme.js';
@@ -196,18 +196,14 @@ export const SaveStep = {
         },
         /** The draft as a project, to sing as a learner would (the draft stays). */
         async tryIt() {
-            if (!canCreateProject()) {
-                toast(t('projects.limitForTemplate', { limit: FREE_PROJECT_LIMIT }));
-                return;
-            }
             this.trying = true;
             try {
                 const template = JSON.parse(JSON.stringify({ ...this.finished, title: this.finished.title || t('create.untitled') }));
                 const project = await startFromTemplate(template, { singers: Math.max(...singerOptions(template)) });
                 navigate(`/p/${project.id}/sing`);
             } catch (error) {
-                if (!(error instanceof LimitReached)) console.error('Trying the template failed', error);
-                toast(error instanceof LimitReached ? t('projects.limit', { limit: FREE_PROJECT_LIMIT }) : t('projects.couldNotStart'), { tone: 'error' });
+                console.error('Trying the template failed', error);
+                toast(t('projects.couldNotStart'), { tone: 'error' });
             } finally {
                 this.trying = false;
             }

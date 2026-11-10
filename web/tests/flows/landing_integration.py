@@ -6,6 +6,7 @@ ends it, and the line plays to its end by itself.
 The theme switch flips light and dark and is kept. Needs the server's page:
 `python3 -I tests/flows/landing_integration.py http://127.0.0.1:8000`.
 """
+import os
 import sys
 from pathlib import Path
 
@@ -18,7 +19,7 @@ HERO = "document.querySelector('.s-mixer')"
 def journey(f):
     f.go("/", f"{HERO}?.hasAttribute('data-ready')")
     assert f.js(f"[...{HERO}.querySelectorAll('[data-toggle]')].every((b) => b.getAttribute('aria-checked') === 'true')"), "every voice on"
-    assert f.js(f"{HERO}.querySelector('[role=radio][aria-checked=true]').closest('[data-voice]').dataset.voice") == "alto", "the alto forward"
+    assert f.js(f"{HERO}.querySelector('[role=radio][aria-checked=true]').closest('[data-voice]').dataset.voice") == "soprano", "the melody forward (a7950e90: the players lead with the tune)"
     assert f.js("document.documentElement.scrollWidth <= innerWidth"), "no sideways scrolling"
     f.shot("ready")
 
@@ -29,21 +30,21 @@ def journey(f):
     play = f"{HERO}.querySelector('[data-play]')"
     assert f.js(f"{play}.getAttribute('aria-label') === {play}.dataset.labelStop"), "Play became Stop"
 
-    # The tenor out, mid-line: still playing, and only its switch changed (the alto stays forward).
+    # The tenor out, mid-line: still playing, and only its switch changed (the soprano stays forward).
     f.run(f"{HERO}.querySelector('[data-voice=tenor] [data-toggle]').click()")
     assert f.js(f"{HERO}.querySelector('[data-voice=tenor] [data-toggle]').getAttribute('aria-checked')") == "false"
     assert f.js(f"{HERO}.querySelector('[data-voice=tenor]').hasAttribute('data-off')"), "the row looks off"
-    assert f.js(f"{HERO}.querySelector('[data-voice=alto] [data-pick]').getAttribute('aria-checked')") == "true", "the switch didn't choose"
+    assert f.js(f"{HERO}.querySelector('[data-voice=soprano] [data-pick]').getAttribute('aria-checked')") == "true", "the switch didn't choose"
     assert f.js(f"{HERO}.hasAttribute('data-playing')"), "switching a voice doesn't stop the line"
     f.shot("tenor-out")
 
-    # The soprano forward by its row: "You" moves with it, and the alto steps back.
-    f.run(f"{HERO}.querySelector('[data-voice=soprano] [data-pick]').click()")
-    assert f.js(f"[...{HERO}.querySelectorAll('[data-pick]')].map((b) => b.getAttribute('aria-checked')).join()") == "true,false,false,false"
-    assert f.js(f"{HERO}.querySelector('[data-voice=soprano]').classList.contains('s-is-you') && !{HERO}.querySelector('[data-voice=alto]').classList.contains('s-is-you')")
-    assert f.js(f"{HERO}.querySelector('[data-voice=soprano] [data-pick]').getAttribute('aria-label')") != "Soprano", "named as your part"
+    # The alto forward by its row: "You" moves with it, and the soprano steps back.
+    f.run(f"{HERO}.querySelector('[data-voice=alto] [data-pick]').click()")
+    assert f.js(f"[...{HERO}.querySelectorAll('[data-pick]')].map((b) => b.getAttribute('aria-checked')).join()") == "false,true,false,false"
+    assert f.js(f"{HERO}.querySelector('[data-voice=alto]').classList.contains('s-is-you') && !{HERO}.querySelector('[data-voice=soprano]').classList.contains('s-is-you')")
+    assert f.js(f"{HERO}.querySelector('[data-voice=alto] [data-pick]').getAttribute('aria-label')") != "Alto", "named as your part"
     # The arrow keys move it on, like any radio group, and a voice that was off comes back on.
-    f.run(f"const s = {HERO}.querySelector('[data-voice=soprano] [data-pick]'); s.focus(); s.dispatchEvent(new KeyboardEvent('keydown', {{ key: 'ArrowDown', bubbles: true }})); s.closest('[data-player]').querySelector('[data-voice=alto] [data-pick]').dispatchEvent(new KeyboardEvent('keydown', {{ key: 'ArrowDown', bubbles: true }}))")
+    f.run(f"const a = {HERO}.querySelector('[data-voice=alto] [data-pick]'); a.focus(); a.dispatchEvent(new KeyboardEvent('keydown', {{ key: 'ArrowDown', bubbles: true }}))")
     assert f.js(f"document.activeElement === {HERO}.querySelector('[data-voice=tenor] [data-pick]')"), "focus moved to the tenor"
     assert f.js(f"{HERO}.querySelector('[data-voice=tenor] [data-pick]').getAttribute('aria-checked')") == "true"
     assert f.js(f"{HERO}.querySelector('[data-voice=tenor] [data-toggle]').getAttribute('aria-checked')") == "true", "forward means on"
@@ -70,4 +71,7 @@ def journey(f):
     f.shot("theme")
 
 
+# The four-voice mixer is the serious skin's hero; in game mode it waits hidden in the serious slot and the
+# cabinet plays instead, so this journey runs in serious unless FLOW_SKINS says otherwise.
+os.environ.setdefault("FLOW_SKINS", "serious")
 run("landing_integration", journey)

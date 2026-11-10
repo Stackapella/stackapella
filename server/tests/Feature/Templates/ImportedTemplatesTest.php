@@ -173,6 +173,10 @@ final class ImportedTemplatesTest extends TestCase
         $member = $this->adult('Ben Ode', 'free');
         $this->postJson('/api/choir/'.$token, ['adult' => true])->assertSuccessful();
         $this->getJson('/api/templates/'.$id)->assertOk();
+        // A member can't make their own copy of the director's imported song.
+        $copied = $this->save((string) Str::uuid(), ['copiedFrom' => $id]);
+        $this->assertMatchesContract($copied, 'templates.save', 422);
+        $copied->assertJsonPath('code', 'imported_private');
         $this->postJson('/api/reports', ['templateId' => $id, 'reason' => 'copyright'])->assertSuccessful();
 
         // Someone outside the group can neither open nor report it.

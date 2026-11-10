@@ -65,7 +65,7 @@ def journey(f):
     assert kept["low"] == 55 and kept["high"] == 61, f"widened by a tone at most, never to A4: {kept}"
 
     # Before a break is found, a step laid from it asks for the sirens first.
-    open_step(f, "range-2-around", 1, "document.querySelector('[data-needs-flip]')")
+    open_step(f, "range-2-around", 2, "document.querySelector('[data-needs-flip]')")
 
     # With a break kept for the course, the light hoot and the blend's siren are laid from it.
     f.run(f"await {STORE}.setCoursePersonal('range-and-registers', {{ flip: 5 }})")

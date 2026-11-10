@@ -14,6 +14,7 @@ use App\Models\Notice;
 use App\Models\Report;
 use App\Models\User;
 use App\Support\Flags;
+use App\Support\Push\AppPushes;
 use App\Support\Sharing\HarmonyFiles;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Storage;
@@ -331,6 +332,85 @@ final class GalleryTest extends TestCase
         $this->actingAs($ana);
         $this->assertMatchesContract($this->deleteJson('/api/profiles/sam/block'), 'blocks.delete', 204);
         $this->assertMatchesContract($this->deleteJson('/api/profiles/nobody/block'), 'blocks.delete', 404);
+    }
+
+    public function test_a_like_from_under_18s_is_unnamed_and_the_bell_leaves_out_blocked_people(): void
+    {
+        $this->open();
+        $ana = $this->singer('ana');
+        $harmony = $this->listed($ana);
+        $teen = User::factory()->create(['handle' => 'teen', 'name' => 'Teenager Name', 'adult_confirmed_at' => null, 'trust_level_override' => 2])->fresh() ?? throw new \LogicException;
+        $this->actingAs($teen);
+        $this->putJson('/api/harmonies/'.$harmony->public_id.'/like')->assertOk();
+        $this->actingAs($this->singer('sam'));
+        $this->putJson('/api/profiles/ana/follow')->assertOk();
+
+        $this->assertSame(2, BellItem::query()->where('user_id', $ana->id)->count());
+
+        // Ana blocks Sam: his follow leaves her bell. The teen's like stays, with no name, in the
+        // bell and in its push.
+        $this->actingAs($ana);
+        $this->putJson('/api/profiles/sam/block')->assertNoContent();
+        $bell = $this->getJson('/api/notifications');
+        $this->assertMatchesContract($bell, 'notifications.list', 200);
+        $bell->assertJsonCount(1, 'data')->assertJsonPath('meta.unread', 1)->assertJsonPath('data.0.kind', 'like')->assertJsonPath('data.0.actor', ['handle' => null, 'name' => __('sharing.a_singer')]);
+        $push = app(AppPushes::class)->words(BellItem::query()->where('kind', 'like')->sole(), $ana);
+        $this->assertStringNotContainsString('Teenager', (string) ($push['body'] ?? ''));
+        $this->assertStringContainsString(__('sharing.a_singer'), (string) ($push['body'] ?? ''));
+    }
+
+    public function test_a_days_likes_are_named_after_the_latest_liker_not_blocked_and_hidden_only_when_all_are(): void
+    {
+        $this->open();
+        $ana = $this->singer('ana');
+        $harmony = $this->listed($ana);
+        foreach (['bea', 'cal', 'dan'] as $i => $handle) {
+            $this->travel(1)->minutes();
+            $this->actingAs($this->singer($handle));
+            $this->putJson('/api/harmonies/'.$harmony->public_id.'/like')->assertOk();
+        }
+
+        // Ana blocks Dan, the latest: the day's likes are Cal's and one more (Hillel: "Name someone not blocked").
+        $this->actingAs($ana);
+        $this->putJson('/api/profiles/dan/block')->assertNoContent();
+        $this->getJson('/api/notifications')->assertJsonCount(1, 'data')->assertJsonPath('data.0.actor.handle', 'cal')->assertJsonPath('data.0.others', 1)->assertJsonPath('meta.unread', 1);
+
+        // Every liker blocked: the item is gone, and so is its unread count.
+        $this->putJson('/api/profiles/cal/block')->assertNoContent();
+        $this->putJson('/api/profiles/bea/block')->assertNoContent();
+        $this->getJson('/api/notifications')->assertJsonCount(0, 'data')->assertJsonPath('meta.unread', 0);
+    }
+
+    public function test_only_a_public_profile_can_be_blocked_and_the_list_shows_no_private_one(): void
+    {
+        $this->open();
+        $this->singer('kim', public: false);
+        $sam = $this->singer('sam');
+        $this->actingAs($this->singer('ana'));
+
+        // A private account's handle: as if there were none; unblocking still works.
+        $this->assertMatchesContract($this->putJson('/api/profiles/kim/block'), 'blocks.create', 404);
+        $this->assertMatchesContract($this->deleteJson('/api/profiles/kim/block'), 'blocks.delete', 204);
+
+        // Sam, blocked, then makes his profile private: just "a singer" in the list.
+        $this->putJson('/api/profiles/sam/block')->assertNoContent();
+        $sam->forceFill(['public_profile_at' => null])->save();
+        $blocks = $this->getJson('/api/account/blocks');
+        $this->assertMatchesContract($blocks, 'blocks.list', 200);
+        $row = (array) $blocks->json('data.0');
+        $this->assertSame(['handle' => null, 'name' => __('sharing.a_singer'), 'avatarUrl' => null], array_diff_key($row, ['blockId' => 1]));
+
+        // Still unblockable, by the block itself (Hillel: "Make them unblockable"); never someone else's.
+        $this->actingAs($this->singer('mia'));
+        $this->assertMatchesContract($this->deleteJson('/api/account/blocks/'.$row['blockId']), 'blocks.remove', 404);
+        $this->actingAs(User::query()->where('handle', 'ana')->sole());
+        $this->assertMatchesContract($this->deleteJson('/api/account/blocks/'.$row['blockId']), 'blocks.remove', 204);
+        $this->getJson('/api/account/blocks')->assertJsonCount(0, 'data');
+
+        // Blocking is limited as following is.
+        config(['limits.follows.account.max' => 1]);
+        $this->singer('lee');
+        $this->assertMatchesContract($this->putJson('/api/profiles/lee/block'), 'blocks.create', 429);
     }
 
     public function test_reports_reach_comments_and_profiles(): void

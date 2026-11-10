@@ -81,6 +81,8 @@ final class AccountResource extends JsonResource
             // The terms of use they agreed to, and the current version (a new one asks once).
             'terms' => Terms::of($user),
             'plusCourses' => app(Flags::class)->on('plus_courses') || $user->is_admin || $user->is_editor,
+            // Song requests: everyone once the switch is on, staff before (Hillel tries them first).
+            'songRequests' => app(Flags::class)->on('song_requests') || $user->is_admin || $user->is_editor,
             'betaSinger' => BetaSinger::query()->where('user_id', $user->id)->whereNull('revoked_at')->whereNull('forgotten_at')->exists(),
             'createdAt' => $user->created_at?->utc()->toIso8601ZuluString(),
         ];

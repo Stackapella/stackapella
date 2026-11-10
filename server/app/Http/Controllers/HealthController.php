@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Services\Audio\Ffmpeg;
+use App\Support\Ops\Readiness;
+use App\Support\Ops\SyncProblems;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -49,7 +51,24 @@ final class HealthController extends Controller
             report(new RuntimeException('Framework defaults in production: '.implode(', ', $defaults)));
         }
 
-        return response()->json(['status' => $cacheOk && ($defaults === [] || ! app()->isProduction()) ? 'ok' : 'degraded', 'build' => config('app.build'), 'builtAt' => config('app.built_at')])
+        // Songs the last deploy's sync skipped (they keep their live versions): deploy-watch prints
+        // them. Never the status: a skipped song mustn't fail the health check.
+        $songsNotSynced = rescue(static fn (): array => SyncProblems::brief(), [], false);
+
+        return response()->json(['status' => $cacheOk && ($defaults === [] || ! app()->isProduction()) ? 'ok' : 'degraded', 'build' => config('app.build'), 'builtAt' => config('app.built_at'), 'songsNotSynced' => $songsNotSynced])
             ->header('Cache-Control', 'no-store');
+    }
+
+    /**
+     * GET /up/scheduler, for an outside uptime check (docs/launch-day.md): 503 when the scheduler
+     * hasn't beaten for 5 minutes, which means no queued email, no alerts and no counts roll-up.
+     * Never App Platform's own health check: restarting the web instance wouldn't mend it.
+     */
+    public function scheduler(): JsonResponse
+    {
+        $beat = Readiness::lastHeartbeat();
+        $ok = $beat !== null && $beat->gt(now()->subMinutes(5));
+
+        return response()->json(['status' => $ok ? 'ok' : 'late', 'lastBeat' => $beat?->utc()->toIso8601ZuluString()], $ok ? 200 : 503)->header('Cache-Control', 'no-store');
     }
 }

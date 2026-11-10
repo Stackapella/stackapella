@@ -73,7 +73,8 @@ final class ContractTest extends TestCase
 
         foreach (RouteFacade::getRoutes() as $route) {
             /** @var Route $route */
-            if (! str_starts_with($route->uri(), 'api/')) {
+            // api/internal/ is ours alone (the growth data pull, docs/growth-data.md), never the apps'.
+            if (! str_starts_with($route->uri(), 'api/') || str_starts_with($route->uri(), 'api/internal/')) {
                 continue;
             }
 

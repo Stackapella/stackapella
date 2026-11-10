@@ -9,16 +9,26 @@
             "type": "object",
             "additionalProperties": false,
             "required": [
+                "breaks",
+                "chart",
+                "comparisons",
+                "countingSince",
                 "date",
                 "from",
-                "to",
+                "hourlySince",
+                "metrics",
+                "now",
+                "period",
+                "sections",
+                "steps",
                 "tiles",
-                "steps"
+                "to",
+                "tracking"
             ],
             "properties": {
                 "date": {
                     "type": "string",
-                    "description": "Today (UTC), YYYY-MM-DD."
+                    "description": "Today in the report zone, YYYY-MM-DD."
                 },
                 "from": {
                     "type": "string"
@@ -109,8 +119,1507 @@
                     }
                 },
                 "timezone": {
+                    "type": "string"
+                },
+                "now": {
                     "type": "string",
-                    "description": "The timezone the days are in (a PHP name; UTC unless set)."
+                    "format": "date-time",
+                    "description": "The server's now, in the report zone."
+                },
+                "period": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                        "key",
+                        "from",
+                        "to",
+                        "cut"
+                    ],
+                    "properties": {
+                        "key": {
+                            "type": "string",
+                            "enum": [
+                                "today",
+                                "7d",
+                                "28d",
+                                "month",
+                                "12w"
+                            ]
+                        },
+                        "from": {
+                            "type": "string"
+                        },
+                        "to": {
+                            "type": "string"
+                        },
+                        "cut": {
+                            "type": "string",
+                            "description": "HH:MM in the report zone: every window ends at this clock time."
+                        },
+                        "dayShare": {
+                            "type": "number",
+                            "description": "A usual day's share of site visits in by now, 0 to 1."
+                        },
+                        "early": {
+                            "type": "boolean",
+                            "description": "Today, under 15% of a usual day in: most numbers are too small yet."
+                        }
+                    }
+                },
+                "comparisons": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "key"
+                        ],
+                        "properties": {
+                            "key": {
+                                "type": "string",
+                                "enum": [
+                                    "previous",
+                                    "usual"
+                                ]
+                            },
+                            "from": {
+                                "type": "string"
+                            },
+                            "to": {
+                                "type": "string"
+                            },
+                            "cut": {
+                                "type": "string"
+                            },
+                            "scaledDays": {
+                                "type": [
+                                    "number",
+                                    "null"
+                                ],
+                                "description": "This month past last month's length: last month whole, scaled to this many days."
+                            },
+                            "windows": {
+                                "type": "integer"
+                            },
+                            "available": {
+                                "type": "integer"
+                            }
+                        }
+                    }
+                },
+                "hourlySince": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "format": "date-time",
+                    "description": "When hourly counting began; a cut day before it is estimated."
+                },
+                "countingSince": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "description": "The first day of any count."
+                },
+                "metrics": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "key",
+                            "now",
+                            "since",
+                            "usual"
+                        ],
+                        "properties": {
+                            "key": {
+                                "type": "string"
+                            },
+                            "now": {
+                                "type": "integer",
+                                "description": "This period so far."
+                            },
+                            "since": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ],
+                                "description": "The first day its kinds were counted."
+                            },
+                            "previous": {
+                                "type": "object",
+                                "additionalProperties": false,
+                                "required": [
+                                    "expected",
+                                    "base",
+                                    "k",
+                                    "estimated",
+                                    "verdict",
+                                    "z",
+                                    "change"
+                                ],
+                                "properties": {
+                                    "expected": {
+                                        "type": [
+                                            "number",
+                                            "null"
+                                        ],
+                                        "description": "What this period would be if nothing had changed: the window cut at the same clock time (a usual row: their mean)."
+                                    },
+                                    "base": {
+                                        "type": [
+                                            "integer",
+                                            "null"
+                                        ],
+                                        "description": "The raw count the expected number was made from (yesterday's whole day when estimated; the four windows' sum for a usual row)."
+                                    },
+                                    "k": {
+                                        "type": [
+                                            "number",
+                                            "null"
+                                        ],
+                                        "description": "Scales the base to the expected number: 1, 1/4 for a mean of four, the day's usual share for an estimate."
+                                    },
+                                    "estimated": {
+                                        "type": "boolean",
+                                        "description": "A cut day had no hourly counts: its part is its day total times a usual day's share by then (say \"about\")."
+                                    },
+                                    "verdict": {
+                                        "type": "string",
+                                        "enum": [
+                                            "up",
+                                            "down",
+                                            "maybeUp",
+                                            "maybeDown",
+                                            "same",
+                                            "tooFew",
+                                            "none",
+                                            "new",
+                                            "noHistory"
+                                        ]
+                                    },
+                                    "z": {
+                                        "type": [
+                                            "number",
+                                            "null"
+                                        ],
+                                        "description": "The gap in chance-sized steps."
+                                    },
+                                    "change": {
+                                        "type": [
+                                            "object",
+                                            "null"
+                                        ],
+                                        "additionalProperties": false,
+                                        "required": [
+                                            "kind",
+                                            "value"
+                                        ],
+                                        "properties": {
+                                            "kind": {
+                                                "type": "string",
+                                                "enum": [
+                                                    "count",
+                                                    "percent",
+                                                    "times"
+                                                ]
+                                            },
+                                            "value": {
+                                                "type": "number"
+                                            }
+                                        },
+                                        "description": "How the change is said: a count (+3) under 20 expected, a whole percentage from 20, or so many times as many above +200%. Null for tooFew, none, new and noHistory."
+                                    },
+                                    "available": {
+                                        "type": "integer",
+                                        "description": "A usual row only: how many of its windows have counts (0 to 4; a verdict needs 2)."
+                                    },
+                                    "low": {
+                                        "type": "integer",
+                                        "description": "A usual row only: the low end of where the number usually lands by now."
+                                    },
+                                    "high": {
+                                        "type": "integer"
+                                    },
+                                    "comparesFrom": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ],
+                                        "description": "noHistory only: the date (YYYY-MM-DD) this comparison starts."
+                                    }
+                                }
+                            },
+                            "usual": {
+                                "type": [
+                                    "object",
+                                    "null"
+                                ],
+                                "additionalProperties": false,
+                                "required": [
+                                    "expected",
+                                    "base",
+                                    "k",
+                                    "estimated",
+                                    "verdict",
+                                    "z",
+                                    "change"
+                                ],
+                                "properties": {
+                                    "expected": {
+                                        "type": [
+                                            "number",
+                                            "null"
+                                        ],
+                                        "description": "What this period would be if nothing had changed: the window cut at the same clock time (a usual row: their mean)."
+                                    },
+                                    "base": {
+                                        "type": [
+                                            "integer",
+                                            "null"
+                                        ],
+                                        "description": "The raw count the expected number was made from (yesterday's whole day when estimated; the four windows' sum for a usual row)."
+                                    },
+                                    "k": {
+                                        "type": [
+                                            "number",
+                                            "null"
+                                        ],
+                                        "description": "Scales the base to the expected number: 1, 1/4 for a mean of four, the day's usual share for an estimate."
+                                    },
+                                    "estimated": {
+                                        "type": "boolean",
+                                        "description": "A cut day had no hourly counts: its part is its day total times a usual day's share by then (say \"about\")."
+                                    },
+                                    "verdict": {
+                                        "type": "string",
+                                        "enum": [
+                                            "up",
+                                            "down",
+                                            "maybeUp",
+                                            "maybeDown",
+                                            "same",
+                                            "tooFew",
+                                            "none",
+                                            "new",
+                                            "noHistory"
+                                        ]
+                                    },
+                                    "z": {
+                                        "type": [
+                                            "number",
+                                            "null"
+                                        ],
+                                        "description": "The gap in chance-sized steps."
+                                    },
+                                    "change": {
+                                        "type": [
+                                            "object",
+                                            "null"
+                                        ],
+                                        "additionalProperties": false,
+                                        "required": [
+                                            "kind",
+                                            "value"
+                                        ],
+                                        "properties": {
+                                            "kind": {
+                                                "type": "string",
+                                                "enum": [
+                                                    "count",
+                                                    "percent",
+                                                    "times"
+                                                ]
+                                            },
+                                            "value": {
+                                                "type": "number"
+                                            }
+                                        },
+                                        "description": "How the change is said: a count (+3) under 20 expected, a whole percentage from 20, or so many times as many above +200%. Null for tooFew, none, new and noHistory."
+                                    },
+                                    "available": {
+                                        "type": "integer",
+                                        "description": "A usual row only: how many of its windows have counts (0 to 4; a verdict needs 2)."
+                                    },
+                                    "low": {
+                                        "type": "integer",
+                                        "description": "A usual row only: the low end of where the number usually lands by now."
+                                    },
+                                    "high": {
+                                        "type": "integer"
+                                    },
+                                    "comparesFrom": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ],
+                                        "description": "noHistory only: the date (YYYY-MM-DD) this comparison starts."
+                                    }
+                                },
+                                "description": "Today and 7 days: against a usual one (the 4 before); null for the other periods."
+                            },
+                            "rate": {
+                                "type": [
+                                    "object",
+                                    "null"
+                                ],
+                                "additionalProperties": false,
+                                "required": [
+                                    "of",
+                                    "base",
+                                    "now",
+                                    "baseBefore",
+                                    "before",
+                                    "comparable",
+                                    "verdict"
+                                ],
+                                "properties": {
+                                    "of": {
+                                        "type": "string",
+                                        "enum": [
+                                            "arrivals",
+                                            "shown"
+                                        ]
+                                    },
+                                    "base": {
+                                        "type": "integer",
+                                        "description": "This period's arrivals (or asks shown)."
+                                    },
+                                    "now": {
+                                        "type": [
+                                            "number",
+                                            "null"
+                                        ],
+                                        "description": "The share now, 0 to 1."
+                                    },
+                                    "baseBefore": {
+                                        "type": "integer"
+                                    },
+                                    "before": {
+                                        "type": [
+                                            "number",
+                                            "null"
+                                        ],
+                                        "description": "The share in the period before, cut at the same time."
+                                    },
+                                    "comparable": {
+                                        "type": "boolean",
+                                        "description": "Both bases are 30 or more."
+                                    },
+                                    "verdict": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ],
+                                        "enum": [
+                                            "up",
+                                            "down",
+                                            "maybeUp",
+                                            "maybeDown",
+                                            "same",
+                                            null
+                                        ]
+                                    }
+                                }
+                            },
+                            "measure": {
+                                "type": "string",
+                                "enum": [
+                                    "anyCourse",
+                                    "lesson1"
+                                ],
+                                "description": "tracking's firstLessons: f_course_lesson once it has 5 weeks, else f_lesson1."
+                            }
+                        }
+                    },
+                    "description": "visits, arrivals, lesson1, lessons, signUps, asks, day2, plus, in that order."
+                },
+                "sections": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "key",
+                            "now",
+                            "previous"
+                        ],
+                        "properties": {
+                            "key": {
+                                "type": "string"
+                            },
+                            "now": {
+                                "type": "integer",
+                                "description": "The last 7 days so far."
+                            },
+                            "previous": {
+                                "type": "object",
+                                "additionalProperties": false,
+                                "required": [
+                                    "expected",
+                                    "base",
+                                    "k",
+                                    "estimated",
+                                    "verdict",
+                                    "z",
+                                    "change"
+                                ],
+                                "properties": {
+                                    "expected": {
+                                        "type": [
+                                            "number",
+                                            "null"
+                                        ],
+                                        "description": "What this period would be if nothing had changed: the window cut at the same clock time (a usual row: their mean)."
+                                    },
+                                    "base": {
+                                        "type": [
+                                            "integer",
+                                            "null"
+                                        ],
+                                        "description": "The raw count the expected number was made from (yesterday's whole day when estimated; the four windows' sum for a usual row)."
+                                    },
+                                    "k": {
+                                        "type": [
+                                            "number",
+                                            "null"
+                                        ],
+                                        "description": "Scales the base to the expected number: 1, 1/4 for a mean of four, the day's usual share for an estimate."
+                                    },
+                                    "estimated": {
+                                        "type": "boolean",
+                                        "description": "A cut day had no hourly counts: its part is its day total times a usual day's share by then (say \"about\")."
+                                    },
+                                    "verdict": {
+                                        "type": "string",
+                                        "enum": [
+                                            "up",
+                                            "down",
+                                            "maybeUp",
+                                            "maybeDown",
+                                            "same",
+                                            "tooFew",
+                                            "none",
+                                            "new",
+                                            "noHistory"
+                                        ]
+                                    },
+                                    "z": {
+                                        "type": [
+                                            "number",
+                                            "null"
+                                        ],
+                                        "description": "The gap in chance-sized steps."
+                                    },
+                                    "change": {
+                                        "type": [
+                                            "object",
+                                            "null"
+                                        ],
+                                        "additionalProperties": false,
+                                        "required": [
+                                            "kind",
+                                            "value"
+                                        ],
+                                        "properties": {
+                                            "kind": {
+                                                "type": "string",
+                                                "enum": [
+                                                    "count",
+                                                    "percent",
+                                                    "times"
+                                                ]
+                                            },
+                                            "value": {
+                                                "type": "number"
+                                            }
+                                        },
+                                        "description": "How the change is said: a count (+3) under 20 expected, a whole percentage from 20, or so many times as many above +200%. Null for tooFew, none, new and noHistory."
+                                    },
+                                    "available": {
+                                        "type": "integer",
+                                        "description": "A usual row only: how many of its windows have counts (0 to 4; a verdict needs 2)."
+                                    },
+                                    "low": {
+                                        "type": "integer",
+                                        "description": "A usual row only: the low end of where the number usually lands by now."
+                                    },
+                                    "high": {
+                                        "type": "integer"
+                                    },
+                                    "comparesFrom": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ],
+                                        "description": "noHistory only: the date (YYYY-MM-DD) this comparison starts."
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "tracking": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                        "period",
+                        "metrics"
+                    ],
+                    "properties": {
+                        "period": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "required": [
+                                "key",
+                                "from",
+                                "to",
+                                "cut"
+                            ],
+                            "properties": {
+                                "key": {
+                                    "type": "string",
+                                    "enum": [
+                                        "today",
+                                        "7d",
+                                        "28d",
+                                        "month",
+                                        "12w"
+                                    ]
+                                },
+                                "from": {
+                                    "type": "string"
+                                },
+                                "to": {
+                                    "type": "string"
+                                },
+                                "cut": {
+                                    "type": "string",
+                                    "description": "HH:MM in the report zone: every window ends at this clock time."
+                                },
+                                "dayShare": {
+                                    "type": "number",
+                                    "description": "A usual day's share of site visits in by now, 0 to 1."
+                                },
+                                "early": {
+                                    "type": "boolean",
+                                    "description": "Today, under 15% of a usual day in: most numbers are too small yet."
+                                }
+                            }
+                        },
+                        "metrics": {
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "additionalProperties": false,
+                                "required": [
+                                    "key",
+                                    "now",
+                                    "since",
+                                    "usual"
+                                ],
+                                "properties": {
+                                    "key": {
+                                        "type": "string"
+                                    },
+                                    "now": {
+                                        "type": "integer",
+                                        "description": "This period so far."
+                                    },
+                                    "since": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ],
+                                        "description": "The first day its kinds were counted."
+                                    },
+                                    "previous": {
+                                        "type": "object",
+                                        "additionalProperties": false,
+                                        "required": [
+                                            "expected",
+                                            "base",
+                                            "k",
+                                            "estimated",
+                                            "verdict",
+                                            "z",
+                                            "change"
+                                        ],
+                                        "properties": {
+                                            "expected": {
+                                                "type": [
+                                                    "number",
+                                                    "null"
+                                                ],
+                                                "description": "What this period would be if nothing had changed: the window cut at the same clock time (a usual row: their mean)."
+                                            },
+                                            "base": {
+                                                "type": [
+                                                    "integer",
+                                                    "null"
+                                                ],
+                                                "description": "The raw count the expected number was made from (yesterday's whole day when estimated; the four windows' sum for a usual row)."
+                                            },
+                                            "k": {
+                                                "type": [
+                                                    "number",
+                                                    "null"
+                                                ],
+                                                "description": "Scales the base to the expected number: 1, 1/4 for a mean of four, the day's usual share for an estimate."
+                                            },
+                                            "estimated": {
+                                                "type": "boolean",
+                                                "description": "A cut day had no hourly counts: its part is its day total times a usual day's share by then (say \"about\")."
+                                            },
+                                            "verdict": {
+                                                "type": "string",
+                                                "enum": [
+                                                    "up",
+                                                    "down",
+                                                    "maybeUp",
+                                                    "maybeDown",
+                                                    "same",
+                                                    "tooFew",
+                                                    "none",
+                                                    "new",
+                                                    "noHistory"
+                                                ]
+                                            },
+                                            "z": {
+                                                "type": [
+                                                    "number",
+                                                    "null"
+                                                ],
+                                                "description": "The gap in chance-sized steps."
+                                            },
+                                            "change": {
+                                                "type": [
+                                                    "object",
+                                                    "null"
+                                                ],
+                                                "additionalProperties": false,
+                                                "required": [
+                                                    "kind",
+                                                    "value"
+                                                ],
+                                                "properties": {
+                                                    "kind": {
+                                                        "type": "string",
+                                                        "enum": [
+                                                            "count",
+                                                            "percent",
+                                                            "times"
+                                                        ]
+                                                    },
+                                                    "value": {
+                                                        "type": "number"
+                                                    }
+                                                },
+                                                "description": "How the change is said: a count (+3) under 20 expected, a whole percentage from 20, or so many times as many above +200%. Null for tooFew, none, new and noHistory."
+                                            },
+                                            "available": {
+                                                "type": "integer",
+                                                "description": "A usual row only: how many of its windows have counts (0 to 4; a verdict needs 2)."
+                                            },
+                                            "low": {
+                                                "type": "integer",
+                                                "description": "A usual row only: the low end of where the number usually lands by now."
+                                            },
+                                            "high": {
+                                                "type": "integer"
+                                            },
+                                            "comparesFrom": {
+                                                "type": [
+                                                    "string",
+                                                    "null"
+                                                ],
+                                                "description": "noHistory only: the date (YYYY-MM-DD) this comparison starts."
+                                            }
+                                        }
+                                    },
+                                    "usual": {
+                                        "type": [
+                                            "object",
+                                            "null"
+                                        ],
+                                        "additionalProperties": false,
+                                        "required": [
+                                            "expected",
+                                            "base",
+                                            "k",
+                                            "estimated",
+                                            "verdict",
+                                            "z",
+                                            "change"
+                                        ],
+                                        "properties": {
+                                            "expected": {
+                                                "type": [
+                                                    "number",
+                                                    "null"
+                                                ],
+                                                "description": "What this period would be if nothing had changed: the window cut at the same clock time (a usual row: their mean)."
+                                            },
+                                            "base": {
+                                                "type": [
+                                                    "integer",
+                                                    "null"
+                                                ],
+                                                "description": "The raw count the expected number was made from (yesterday's whole day when estimated; the four windows' sum for a usual row)."
+                                            },
+                                            "k": {
+                                                "type": [
+                                                    "number",
+                                                    "null"
+                                                ],
+                                                "description": "Scales the base to the expected number: 1, 1/4 for a mean of four, the day's usual share for an estimate."
+                                            },
+                                            "estimated": {
+                                                "type": "boolean",
+                                                "description": "A cut day had no hourly counts: its part is its day total times a usual day's share by then (say \"about\")."
+                                            },
+                                            "verdict": {
+                                                "type": "string",
+                                                "enum": [
+                                                    "up",
+                                                    "down",
+                                                    "maybeUp",
+                                                    "maybeDown",
+                                                    "same",
+                                                    "tooFew",
+                                                    "none",
+                                                    "new",
+                                                    "noHistory"
+                                                ]
+                                            },
+                                            "z": {
+                                                "type": [
+                                                    "number",
+                                                    "null"
+                                                ],
+                                                "description": "The gap in chance-sized steps."
+                                            },
+                                            "change": {
+                                                "type": [
+                                                    "object",
+                                                    "null"
+                                                ],
+                                                "additionalProperties": false,
+                                                "required": [
+                                                    "kind",
+                                                    "value"
+                                                ],
+                                                "properties": {
+                                                    "kind": {
+                                                        "type": "string",
+                                                        "enum": [
+                                                            "count",
+                                                            "percent",
+                                                            "times"
+                                                        ]
+                                                    },
+                                                    "value": {
+                                                        "type": "number"
+                                                    }
+                                                },
+                                                "description": "How the change is said: a count (+3) under 20 expected, a whole percentage from 20, or so many times as many above +200%. Null for tooFew, none, new and noHistory."
+                                            },
+                                            "available": {
+                                                "type": "integer",
+                                                "description": "A usual row only: how many of its windows have counts (0 to 4; a verdict needs 2)."
+                                            },
+                                            "low": {
+                                                "type": "integer",
+                                                "description": "A usual row only: the low end of where the number usually lands by now."
+                                            },
+                                            "high": {
+                                                "type": "integer"
+                                            },
+                                            "comparesFrom": {
+                                                "type": [
+                                                    "string",
+                                                    "null"
+                                                ],
+                                                "description": "noHistory only: the date (YYYY-MM-DD) this comparison starts."
+                                            }
+                                        },
+                                        "description": "Today and 7 days: against a usual one (the 4 before); null for the other periods."
+                                    },
+                                    "rate": {
+                                        "type": [
+                                            "object",
+                                            "null"
+                                        ],
+                                        "additionalProperties": false,
+                                        "required": [
+                                            "of",
+                                            "base",
+                                            "now",
+                                            "baseBefore",
+                                            "before",
+                                            "comparable",
+                                            "verdict"
+                                        ],
+                                        "properties": {
+                                            "of": {
+                                                "type": "string",
+                                                "enum": [
+                                                    "arrivals",
+                                                    "shown"
+                                                ]
+                                            },
+                                            "base": {
+                                                "type": "integer",
+                                                "description": "This period's arrivals (or asks shown)."
+                                            },
+                                            "now": {
+                                                "type": [
+                                                    "number",
+                                                    "null"
+                                                ],
+                                                "description": "The share now, 0 to 1."
+                                            },
+                                            "baseBefore": {
+                                                "type": "integer"
+                                            },
+                                            "before": {
+                                                "type": [
+                                                    "number",
+                                                    "null"
+                                                ],
+                                                "description": "The share in the period before, cut at the same time."
+                                            },
+                                            "comparable": {
+                                                "type": "boolean",
+                                                "description": "Both bases are 30 or more."
+                                            },
+                                            "verdict": {
+                                                "type": [
+                                                    "string",
+                                                    "null"
+                                                ],
+                                                "enum": [
+                                                    "up",
+                                                    "down",
+                                                    "maybeUp",
+                                                    "maybeDown",
+                                                    "same",
+                                                    null
+                                                ]
+                                            }
+                                        }
+                                    },
+                                    "measure": {
+                                        "type": "string",
+                                        "enum": [
+                                            "anyCourse",
+                                            "lesson1"
+                                        ],
+                                        "description": "tracking's firstLessons: f_course_lesson once it has 5 weeks, else f_lesson1."
+                                    }
+                                }
+                            },
+                            "description": "visits, arrivals, firstLessons, signUps: the last 7 days against a usual week."
+                        }
+                    }
+                },
+                "chart": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                        "kind",
+                        "slots",
+                        "now",
+                        "metrics",
+                        "releases",
+                        "breaks"
+                    ],
+                    "description": "The period's chart (docs/growth-compare-plan.md, 11).",
+                    "properties": {
+                        "kind": {
+                            "type": "string",
+                            "enum": [
+                                "hours",
+                                "days",
+                                "weeks"
+                            ]
+                        },
+                        "slots": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            },
+                            "description": "HH:MM for hours, YYYY-MM-DD for days (the month: every day of it), the Monday of each week."
+                        },
+                        "now": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "required": [
+                                "slot",
+                                "fraction"
+                            ],
+                            "properties": {
+                                "slot": {
+                                    "type": "integer"
+                                },
+                                "fraction": {
+                                    "type": "number"
+                                }
+                            }
+                        },
+                        "metrics": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "required": [
+                                "visits",
+                                "arrivals",
+                                "signUps"
+                            ],
+                            "properties": {
+                                "visits": {
+                                    "type": "object",
+                                    "additionalProperties": false,
+                                    "required": [
+                                        "now",
+                                        "previous",
+                                        "previousEstimated",
+                                        "previousTotal",
+                                        "projection"
+                                    ],
+                                    "properties": {
+                                        "now": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": [
+                                                    "number",
+                                                    "null"
+                                                ]
+                                            },
+                                            "description": "The count per slot, the current slot so far, null after it."
+                                        },
+                                        "previous": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": [
+                                                    "number",
+                                                    "null"
+                                                ]
+                                            },
+                                            "description": "The comparison's count per slot (yesterday, the same day 7 or 28 days before, last month's same day, the week 12 before); null where it has no such slot."
+                                        },
+                                        "previousEstimated": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "boolean"
+                                            }
+                                        },
+                                        "previousTotal": {
+                                            "type": "integer",
+                                            "description": "The comparison's whole total (yesterday, the period before, last month)."
+                                        },
+                                        "usual": {
+                                            "type": [
+                                                "object",
+                                                "null"
+                                            ],
+                                            "additionalProperties": false,
+                                            "required": [
+                                                "low",
+                                                "high",
+                                                "mean",
+                                                "available"
+                                            ],
+                                            "properties": {
+                                                "low": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "number"
+                                                    }
+                                                },
+                                                "high": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "number"
+                                                    }
+                                                },
+                                                "mean": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "number"
+                                                    }
+                                                },
+                                                "available": {
+                                                    "type": "integer"
+                                                }
+                                            },
+                                            "description": "Hours only: the usual same weekdays' running totals (null under 2 with counts)."
+                                        },
+                                        "projection": {
+                                            "type": "object",
+                                            "additionalProperties": false,
+                                            "required": [
+                                                "shown",
+                                                "hidden",
+                                                "showsFrom",
+                                                "basis",
+                                                "share",
+                                                "value",
+                                                "low",
+                                                "high",
+                                                "slot",
+                                                "path",
+                                                "rate",
+                                                "periodTotal"
+                                            ],
+                                            "properties": {
+                                                "shown": {
+                                                    "type": "boolean"
+                                                },
+                                                "hidden": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ],
+                                                    "enum": [
+                                                        "early",
+                                                        "tooFew",
+                                                        "noHistory",
+                                                        null
+                                                    ],
+                                                    "description": "Why there's no projection: before a quarter of a usual day (or week, or 3 days of the month) is in, under 15 so far (30 for the month), or no shape yet."
+                                                },
+                                                "showsFrom": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ],
+                                                    "description": "early only: when it will show. HH:MM (a day), YYYY-MM-DD (the month), weekday-part (\"tuesday-afternoon\", the week)."
+                                                },
+                                                "basis": {
+                                                    "type": "string",
+                                                    "enum": [
+                                                        "dayShape",
+                                                        "dailyRate",
+                                                        "weekShape"
+                                                    ]
+                                                },
+                                                "share": {
+                                                    "type": "number",
+                                                    "description": "The usual share done by now that the projection divides by."
+                                                },
+                                                "value": {
+                                                    "type": [
+                                                        "integer",
+                                                        "null"
+                                                    ],
+                                                    "description": "The projected total (today, the month or this week). An estimate: drawn dashed, labelled Projected, never a verdict."
+                                                },
+                                                "low": {
+                                                    "type": [
+                                                        "integer",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "high": {
+                                                    "type": [
+                                                        "integer",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "slot": {
+                                                    "type": [
+                                                        "object",
+                                                        "null"
+                                                    ],
+                                                    "additionalProperties": false,
+                                                    "required": [
+                                                        "index",
+                                                        "value",
+                                                        "low",
+                                                        "high"
+                                                    ],
+                                                    "properties": {
+                                                        "index": {
+                                                            "type": "integer"
+                                                        },
+                                                        "value": {
+                                                            "type": "integer"
+                                                        },
+                                                        "low": {
+                                                            "type": "integer"
+                                                        },
+                                                        "high": {
+                                                            "type": "integer"
+                                                        }
+                                                    },
+                                                    "description": "The current slot's projected total (today's column, this week's)."
+                                                },
+                                                "path": {
+                                                    "type": [
+                                                        "object",
+                                                        "null"
+                                                    ],
+                                                    "additionalProperties": false,
+                                                    "required": [
+                                                        "mean",
+                                                        "low",
+                                                        "high"
+                                                    ],
+                                                    "properties": {
+                                                        "mean": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "type": "number"
+                                                            }
+                                                        },
+                                                        "low": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "type": "number"
+                                                            }
+                                                        },
+                                                        "high": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "type": "number"
+                                                            }
+                                                        }
+                                                    },
+                                                    "description": "Hours only: projected running totals from the now slot to midnight."
+                                                },
+                                                "rate": {
+                                                    "type": [
+                                                        "number",
+                                                        "null"
+                                                    ],
+                                                    "description": "The month only: the projected daily rate."
+                                                },
+                                                "periodTotal": {
+                                                    "type": [
+                                                        "integer",
+                                                        "null"
+                                                    ],
+                                                    "description": "The period's projected total (whole slots plus the current one's projection)."
+                                                }
+                                            }
+                                        }
+                                    }
+                                },
+                                "arrivals": {
+                                    "type": "object",
+                                    "additionalProperties": false,
+                                    "required": [
+                                        "now",
+                                        "previous",
+                                        "previousEstimated",
+                                        "previousTotal",
+                                        "projection"
+                                    ],
+                                    "properties": {
+                                        "now": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": [
+                                                    "number",
+                                                    "null"
+                                                ]
+                                            },
+                                            "description": "The count per slot, the current slot so far, null after it."
+                                        },
+                                        "previous": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": [
+                                                    "number",
+                                                    "null"
+                                                ]
+                                            },
+                                            "description": "The comparison's count per slot (yesterday, the same day 7 or 28 days before, last month's same day, the week 12 before); null where it has no such slot."
+                                        },
+                                        "previousEstimated": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "boolean"
+                                            }
+                                        },
+                                        "previousTotal": {
+                                            "type": "integer",
+                                            "description": "The comparison's whole total (yesterday, the period before, last month)."
+                                        },
+                                        "usual": {
+                                            "type": [
+                                                "object",
+                                                "null"
+                                            ],
+                                            "additionalProperties": false,
+                                            "required": [
+                                                "low",
+                                                "high",
+                                                "mean",
+                                                "available"
+                                            ],
+                                            "properties": {
+                                                "low": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "number"
+                                                    }
+                                                },
+                                                "high": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "number"
+                                                    }
+                                                },
+                                                "mean": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "number"
+                                                    }
+                                                },
+                                                "available": {
+                                                    "type": "integer"
+                                                }
+                                            },
+                                            "description": "Hours only: the usual same weekdays' running totals (null under 2 with counts)."
+                                        },
+                                        "projection": {
+                                            "type": "object",
+                                            "additionalProperties": false,
+                                            "required": [
+                                                "shown",
+                                                "hidden",
+                                                "showsFrom",
+                                                "basis",
+                                                "share",
+                                                "value",
+                                                "low",
+                                                "high",
+                                                "slot",
+                                                "path",
+                                                "rate",
+                                                "periodTotal"
+                                            ],
+                                            "properties": {
+                                                "shown": {
+                                                    "type": "boolean"
+                                                },
+                                                "hidden": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ],
+                                                    "enum": [
+                                                        "early",
+                                                        "tooFew",
+                                                        "noHistory",
+                                                        null
+                                                    ],
+                                                    "description": "Why there's no projection: before a quarter of a usual day (or week, or 3 days of the month) is in, under 15 so far (30 for the month), or no shape yet."
+                                                },
+                                                "showsFrom": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ],
+                                                    "description": "early only: when it will show. HH:MM (a day), YYYY-MM-DD (the month), weekday-part (\"tuesday-afternoon\", the week)."
+                                                },
+                                                "basis": {
+                                                    "type": "string",
+                                                    "enum": [
+                                                        "dayShape",
+                                                        "dailyRate",
+                                                        "weekShape"
+                                                    ]
+                                                },
+                                                "share": {
+                                                    "type": "number",
+                                                    "description": "The usual share done by now that the projection divides by."
+                                                },
+                                                "value": {
+                                                    "type": [
+                                                        "integer",
+                                                        "null"
+                                                    ],
+                                                    "description": "The projected total (today, the month or this week). An estimate: drawn dashed, labelled Projected, never a verdict."
+                                                },
+                                                "low": {
+                                                    "type": [
+                                                        "integer",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "high": {
+                                                    "type": [
+                                                        "integer",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "slot": {
+                                                    "type": [
+                                                        "object",
+                                                        "null"
+                                                    ],
+                                                    "additionalProperties": false,
+                                                    "required": [
+                                                        "index",
+                                                        "value",
+                                                        "low",
+                                                        "high"
+                                                    ],
+                                                    "properties": {
+                                                        "index": {
+                                                            "type": "integer"
+                                                        },
+                                                        "value": {
+                                                            "type": "integer"
+                                                        },
+                                                        "low": {
+                                                            "type": "integer"
+                                                        },
+                                                        "high": {
+                                                            "type": "integer"
+                                                        }
+                                                    },
+                                                    "description": "The current slot's projected total (today's column, this week's)."
+                                                },
+                                                "path": {
+                                                    "type": [
+                                                        "object",
+                                                        "null"
+                                                    ],
+                                                    "additionalProperties": false,
+                                                    "required": [
+                                                        "mean",
+                                                        "low",
+                                                        "high"
+                                                    ],
+                                                    "properties": {
+                                                        "mean": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "type": "number"
+                                                            }
+                                                        },
+                                                        "low": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "type": "number"
+                                                            }
+                                                        },
+                                                        "high": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "type": "number"
+                                                            }
+                                                        }
+                                                    },
+                                                    "description": "Hours only: projected running totals from the now slot to midnight."
+                                                },
+                                                "rate": {
+                                                    "type": [
+                                                        "number",
+                                                        "null"
+                                                    ],
+                                                    "description": "The month only: the projected daily rate."
+                                                },
+                                                "periodTotal": {
+                                                    "type": [
+                                                        "integer",
+                                                        "null"
+                                                    ],
+                                                    "description": "The period's projected total (whole slots plus the current one's projection)."
+                                                }
+                                            }
+                                        }
+                                    }
+                                },
+                                "signUps": {
+                                    "type": "object",
+                                    "additionalProperties": false,
+                                    "required": [
+                                        "now",
+                                        "previous"
+                                    ],
+                                    "properties": {
+                                        "now": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": [
+                                                    "number",
+                                                    "null"
+                                                ]
+                                            }
+                                        },
+                                        "previous": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": [
+                                                    "number",
+                                                    "null"
+                                                ]
+                                            }
+                                        }
+                                    },
+                                    "description": "Sign-ups per slot (Today: six 4-hour cells)."
+                                }
+                            }
+                        },
+                        "releases": {
+                            "type": "array",
+                            "items": {
+                                "type": "string",
+                                "format": "date-time"
+                            }
+                        },
+                        "breaks": {
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "additionalProperties": false,
+                                "required": [
+                                    "date",
+                                    "note"
+                                ],
+                                "properties": {
+                                    "date": {
+                                        "type": "string"
+                                    },
+                                    "note": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "breaks": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "date",
+                            "kinds",
+                            "note"
+                        ],
+                        "properties": {
+                            "date": {
+                                "type": "string"
+                            },
+                            "kinds": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                }
+                            },
+                            "note": {
+                                "type": "string"
+                            }
+                        }
+                    }
                 }
             }
         }

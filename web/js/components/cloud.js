@@ -6,8 +6,8 @@ import * as db from '../db.js';
 import { formatNumber, t, tk } from '../i18n.js';
 import { navigate } from '../router.js';
 import { cloud, settle } from '../stores/cloud.js';
-import { session } from '../stores/session.js';
-import { shownTitle } from '../stores/projects.js';
+import { liveSession } from '../stores/session-live.js';
+import { shownTitle } from '../project-title.js';
 import { Modal, toast } from './ui.js';
 
 /** "4.2 MB", "1.1 GB", in the person's language. */
@@ -22,9 +22,9 @@ export function formatBytes(bytes) {
 export const CloudConflicts = {
     components: { Modal },
     data: () => ({ shown: null, busy: false }),
-    setup: () => ({ cloud, session }),
+    setup: () => ({ cloud, liveSession }),
     template: `
-        <Modal v-if="shown && !session.recording && !session.playing" :key="shown.conflict.id" :title="t('cloud.conflict.title')" :dismissable="false">
+        <Modal v-if="shown && !liveSession?.recording && !liveSession?.playing" :key="shown.conflict.id" :title="t('cloud.conflict.title')" :dismissable="false">
             <div class="space-y-5">
                 <p class="text-cream">{{ shown.text }}</p>
                 <p class="text-sm text-muted">{{ deleting ? t('cloud.conflict.deleteHint') : t('cloud.conflict.hint') }}</p>
@@ -84,8 +84,8 @@ export const CloudConflicts = {
     },
 };
 
-const LOCKED = { limit: tk('locked.limit'), plusSong: tk('locked.plusSong'), offline: tk('locked.offline') };
-const LOCKED_ACTION = { limit: tk('locked.choose'), plusSong: tk('export.seePlus') };
+const LOCKED = { limit: tk('locked.limit') };
+const LOCKED_ACTION = { limit: tk('locked.choose') };
 
 /** A project that can be played and exported, not changed: why, and the way out. */
 export const LockedBanner = {
@@ -95,7 +95,6 @@ export const LockedBanner = {
         <div class="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-2xl bg-raised px-4 py-3 text-sm text-cream" role="status">
             <span class="min-w-0 flex-1">{{ t(LOCKED[reason]) }}</span>
             <a v-if="reason === 'limit'" href="/storage" class="btn-go" @click.prevent="navigate('/storage')">{{ t(LOCKED_ACTION.limit) }}</a>
-            <a v-else-if="reason === 'plusSong'" href="/plus?from=plus_song" class="btn-go" @click.prevent="navigate('/plus?from=plus_song')">{{ t(LOCKED_ACTION.plusSong) }}</a>
         </div>`,
 };
 

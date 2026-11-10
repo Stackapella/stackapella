@@ -3,7 +3,7 @@
         "plan": "free",
         "projects": {
             "used": 2,
-            "limit": 3
+            "limit": null
         },
         "storage": {
             "usedBytes": 38211000,

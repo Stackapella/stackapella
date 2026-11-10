@@ -9,7 +9,7 @@ use App\Rules\OneLine;
 use Illuminate\Foundation\Http\FormRequest;
 
 /**
- * groups.create and groups.update: the group's name.
+ * groups.create: the group's name (groups.update has UpdateGroupRequest).
  */
 final class GroupNameRequest extends FormRequest
 {

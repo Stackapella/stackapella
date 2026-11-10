@@ -100,6 +100,8 @@ final class BillingReviewFixesTest extends TestCase
 
     public function test_after_a_downgrade_editing_doesnt_move_the_line_and_parts_cant_be_deleted(): void
     {
+        // No plan limits projects since 2026-11-07; an install may set one, and this is that machinery.
+        config(['usage.plans.free.projects' => 3]);
         $user = $this->member();
         $this->subscribe($user);
         $this->actingAs($this->fresh($user));

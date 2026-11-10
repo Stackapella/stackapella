@@ -16,7 +16,9 @@ const WAITING_MAX = 5; // kept while offline, sent when the connection is back
 const TOKEN_PATHS = [/^\/(invite|early|join|choir|teacher|beta)\/[^/]+/, /^\/(verify|reset|email\/confirm|email\/revert|signin\/link)(\/.*)?$/];
 // `__firefox__` and `__gCrWeb`: Firefox's and Chrome's iOS apps inject their own scripts into every page
 // (Sentry JAVASCRIPT-3: `window.__firefox__.reader` undefined, on the page's line 1, no frame of ours).
-const NOISE = [/ResizeObserver loop/i, /AbortError/, /The (user|operation) aborted/i, /Load failed$/, /^Script error\.?$/, /__firefox__|__gCrWeb/];
+// The last ones are scripts in-app browsers inject into the page: Firefox's and Chrome's on iPhones,
+// and a crypto wallet's browser setting window.ethereum.selectedAddress (Sentry JAVASCRIPT-4).
+const NOISE = [/ResizeObserver loop/i, /AbortError/, /The (user|operation) aborted/i, /Load failed$/, /^Script error\.?$/, /__firefox__|__gCrWeb/, /window\.ethereum|\bselectedAddress\b/];
 const EXTENSION = /(chrome|moz|safari(-web)?)-extension:\/\//;
 const BROWSERS = [['Edge', /Edg\/(\d+)/], ['Firefox', /Firefox\/(\d+)/], ['Chrome', /Chrome\/(\d+)/], ['Safari', /Version\/(\d+).*Safari/]]; // i18n-ignore: sent to Sentry, never shown
 

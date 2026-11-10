@@ -5,7 +5,7 @@ import { api, apiEvents } from './api.js';
 import { storageEvents } from './db.js';
 import { allWords, formatDate, formatNumber, loadLanguage, localized, t, timeAgo, tk } from './i18n.js';
 import { navigate, route } from './router.js';
-import { session } from './stores/session.js';
+import { liveSession } from './stores/session-live.js';
 import { toast, Toasts } from './components/ui.js';
 import { ConfirmHost } from './components/confirm.js';
 import { watchPlan } from './stores/plan.js';
@@ -17,7 +17,7 @@ import { BirthHost } from './components/birth.js';
 import { NewVersion } from './components/version.js';
 import { MicHelpHost } from './components/mic-help.js';
 import { MicCheckHost } from './components/mic-check.js';
-import './game/fonts.js'; // game mode's two fonts, fetched only once it's on
+import './game/fonts.js'; // game mode's switches on <html> (its fonts are css/input.css's, fetched only when drawn)
 import { checkVersion, newVersionFound, version, watchVersion } from './version.js';
 import { listenForInstall } from './components/install.js';
 import { fill, fitSegments, radioArrows } from './components/controls.js';
@@ -30,11 +30,16 @@ import { count, countReach } from './usage.js';
 import { arrive, first } from './funnel.js';
 import { daysAway } from './asks.js';
 import { lazyView } from './lazy.js';
+import { prefetchResults } from './components/lazy-results.js';
+import { prefetchStores } from './lazy-stores.js';
 import { LOADING_DELAY_MS, screenLoading } from './components/screen-loading.js';
 import { learning, loadPlusCourses } from './stores/learning.js';
 import { courseVisible } from './courses.js';
 import { nameScreens } from './screen-name.js';
 import { COOL_DOWN } from './stores/learning.js';
+import { noteArrival } from './page-lesson.js';
+
+window.stackapellaStarted = true; // every import loaded (Vue from the CDN too): js/boot-watch.js stays quiet
 
 // Views load when they're opened, from the same version as the page (js/lazy.js reloads otherwise).
 // While one loads, its frame shows after a moment (components/screen-loading.js), never a blank page.
@@ -88,12 +93,13 @@ const WarmupView = screen(() => import('./views/warmup.js').then((m) => m.Warmup
 // Start fresh on this device (/start-fresh): for testing on a phone, linked from nowhere (/reset is the password reset's).
 const ResetView = screen(() => import('./views/reset.js').then((m) => m.ResetView));
 const IdeasView = screen(() => import('./views/ideas.js').then((m) => m.IdeasView));
+const RequestsView = screen(() => import('./views/requests.js').then((m) => m.RequestsView));
 const VoicesView = screen(() => import('./views/voices.js').then((m) => m.VoicesView));
 const IdeaView = screen(() => import('./views/ideas.js').then((m) => m.IdeaView));
 const FIRST_INSTALL_WAIT_MS = 15000; // a timer for when to install, never for audio
 
 const App = {
-    components: { LaunchCredit, ReadLinesView, ProjectsView, StudioView, SingView, PrintView, AuthView, SettingsView, StorageView, VoiceView, WorkoutView, PlusView, RemindersView, ClassesView, ClassJoinView, CloudConflicts, LearnView, CourseView, PlusCourseView, BirthHost, NewVersion, AdminView, StyleguideView, StyleguideGameView, BetaView, CreateView, TemplateView, JoinView, EarlyView, GroupsView, GroupView, ChoirJoinView, MovedView, ContactView, WarmupView, IdeasView, IdeaView, VoicesView, ResetView, Toasts, ConfirmHost, MicHelpHost, MicCheckHost, ChallengeView },
+    components: { LaunchCredit, RequestsView, ReadLinesView, ProjectsView, StudioView, SingView, PrintView, AuthView, SettingsView, StorageView, VoiceView, WorkoutView, PlusView, RemindersView, ClassesView, ClassJoinView, CloudConflicts, LearnView, CourseView, PlusCourseView, BirthHost, NewVersion, AdminView, StyleguideView, StyleguideGameView, BetaView, CreateView, TemplateView, JoinView, EarlyView, GroupsView, GroupView, ChoirJoinView, MovedView, ContactView, WarmupView, IdeasView, IdeaView, VoicesView, ResetView, Toasts, ConfirmHost, MicHelpHost, MicCheckHost, ChallengeView },
     setup: () => ({ route, COOL_DOWN }),
     template: `
         <!-- A self-hosted install's credit, as the licence asks, on whichever screen the app opens (components/credit.js). -->
@@ -120,6 +126,7 @@ const App = {
         <ContactView v-else-if="route.name === 'contact'" />
         <WarmupView v-else-if="route.name === 'warmup'" />
         <IdeasView v-else-if="route.name === 'ideas'" />
+        <RequestsView v-else-if="route.name === 'requests'" />
         <VoicesView v-else-if="route.name === 'voices'" />
         <ResetView v-else-if="route.name === 'fresh'" />
         <IdeaView v-else-if="route.name === 'idea'" :key="'idea-' + route.params.id" :id="route.params.id" />
@@ -177,6 +184,8 @@ await loadLanguage(undefined, { lessonFirst }).catch((error) => console.error('T
 const whenIdle = (run) => ('requestIdleCallback' in window ? requestIdleCallback(run, { timeout: 8000 }) : setTimeout(run, 1000));
 async function fetchAhead() {
     await allWords();
+    await prefetchResults(); // what lesson 1 shows after its first take
+    await prefetchStores(); // your songs, your templates and the real voices (lazy-stores.js)
     const ahead1 = (view) => new Promise((done) => whenIdle(() => ahead.get(view).prefetch().then(done)));
     for (const view of [ProjectsView, SettingsView, CourseView]) await ahead1(view);
     // A Plus course's page and the courses' data, when Plus courses show (asked now: the account has
@@ -205,6 +214,7 @@ count(game() ? 'open_game' : 'open_serious'); // and in which skin
 
 // Who's signed in (never needed to learn or record), and what a Google or Apple sign-in came back with.
 rememberRef();
+noteArrival(); // a lesson page's Sing this lesson: its one lesson, granted as it opens (js/page-lesson.js)
 listenForInstall();
 radioArrows();
 fitSegments(); // a segmented control too wide for its row becomes a grid, never a wrapped pill
@@ -231,9 +241,10 @@ watch(() => account.me?.id, (id) => id && signedInSync().catch((error) => consol
 // covers full page loads; this covers moving around inside the app. Asked again after a sign-in.
 const OPEN_BEFORE_LAUNCH = new Set(['auth', 'admin', 'early', 'invite', 'join', 'choir', 'teacher', 'moved', 'contact']);
 const gate = reactive({ comingSoon: false });
-async function readGate() {
+async function readGate({ fresh = false } = {}) {
     try {
-        const { data } = await api.auth.config();
+        // At the start, the settings the funnel asked for (one request, not two); after a sign-in, asked again.
+        const data = fresh ? (await api.auth.config()).data : await loadAuthConfig();
         gate.comingSoon = !!data.comingSoon;
         setDraftsFor({ prelaunch: !!data.prelaunch }); // before the launch, every song shows, drafts too
     } catch (error) {
@@ -242,7 +253,7 @@ async function readGate() {
     }
 }
 readGate();
-watch(() => account.me?.id, (id) => id && readGate());
+watch(() => account.me?.id, (id) => id && readGate({ fresh: true }));
 watch(() => account.me?.staff, (staff) => setDraftsFor({ admin: staff === 'admin' }), { immediate: true });
 watch([() => gate.comingSoon, () => route.name, () => route.params.token], ([closed, name, token]) => {
     if (closed && !account.me && !OPEN_BEFORE_LAUNCH.has(name) && !(name === 'beta' && token)) navigate('/signin', { replace: true });
@@ -314,6 +325,6 @@ if ('serviceWorker' in navigator) {
     navigator.serviceWorker.addEventListener('message', (event) => {
         if (event.data?.type === 'install-failed') console.error('A new version could not install: these files failed', event.data.failed);
         // A reminder tapped while the app is open: go there, unless a take is being recorded.
-        if (event.data?.type === 'navigate' && typeof event.data.path === 'string' && event.data.path.startsWith('/') && !event.data.path.startsWith('//') && !session.recording) navigate(event.data.path);
+        if (event.data?.type === 'navigate' && typeof event.data.path === 'string' && event.data.path.startsWith('/') && !event.data.path.startsWith('//') && !liveSession.value?.recording) navigate(event.data.path);
     });
 }

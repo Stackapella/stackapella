@@ -15,7 +15,7 @@
 @php($sources = $love['sources'])
 @php($demo = $love['demo'])
 @php($names = (array) $love['names'])
-@php($tryUrl = $open ? \App\Support\Http\Hosts::app('/learn/c/'.$page['app']) : $links['start'])
+@php($tryUrl = $open ? $courseStart : $links['start'])
 @php($tryLabel = $open ? __('pages.site.course_try') : __('pages.site.course_start'))
 @php($counts = [':lessons' => (string) ($outline['lessons'] ?? ''), ':units' => (string) count($outline['units'] ?? [])])
 {{-- The ladder: each rung's semitones above do, and where it sits (do at the foot, 22 a semitone). --}}
@@ -249,7 +249,7 @@
             <p class="cp-join-btns">
                 <a href="{{ $tryUrl }}" class="btn-primary btn-lg">{{ $tryLabel }} <x-site.icon name="arrow" size="18" /></a>
                 @if ($open)
-                    <a href="/pricing" class="btn-secondary btn-lg">{{ __('pages.site.course_plus') }}</a>
+                    <a href="/courses" class="btn-secondary btn-lg">{{ __('pages.site.course_all') }}</a>
                 @else
                     <a href="/courses" class="btn-secondary btn-lg">{{ __('pages.site.course_all') }}</a>
                 @endif

@@ -4,11 +4,9 @@ declare(strict_types=1);
 
 namespace App\Actions\Projects;
 
-use App\Enums\TemplateAccess;
 use App\Exceptions\Refusal;
 use App\Models\Project;
 use App\Models\Template;
-use App\Models\TemplateUnlock;
 use App\Models\User;
 use App\Support\Sync\SyncSeq;
 use App\Support\Templates\Catalogue;
@@ -50,6 +48,8 @@ final class SaveProject
                         throw new Refusal(404, 'not_found');
                     }
 
+                    // No plan limits projects since 2026-11-07 (storage is the free plan's limit),
+                    // but an install may set one (config usage.plans.*.projects).
                     if (! $this->plans->mayAddProject($user)) {
                         throw new Refusal(403, 'project_limit');
                     }
@@ -80,17 +80,7 @@ final class SaveProject
                     'template_version' => $data['template']['version'] ?? null,
                     'settings' => $data['settings'] ?? [],
                 ]);
-                $isNew = ! $project->exists;
                 $project->forceFill(['version' => $project->version + 1, 'last_change_id' => $data['changeId'], 'seq' => $this->seq->next($user)])->save();
-
-                // Started from the song of the month: the person keeps it ("finish your song").
-                if ($isNew && $project->template_slug !== null) {
-                    $song = Template::query()->where('slug', $project->template_slug)->first();
-
-                    if ($song !== null && $song->access === TemplateAccess::Plus && $song->isFreeOn(now())) {
-                        TemplateUnlock::query()->firstOrCreate(['user_id' => $user->id, 'template_id' => $song->id]);
-                    }
-                }
 
                 return $project;
             });

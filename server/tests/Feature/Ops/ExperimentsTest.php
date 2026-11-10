@@ -45,6 +45,9 @@ final class ExperimentsTest extends TestCase
         // ret1 waits as a draft too: everyone the app asks for it (only past day 7), f_day14 its measure.
         $ret1 = collect((array) $list->json('data'))->firstWhere('id', 'ret1');
         $this->assertSame(['draft', 'f_day14', ['f_plus'], []], [$ret1['status'], $ret1['metric'], $ret1['guardrails'], $ret1['audience']]);
+        // wall1 waits as a draft: guests in their first week (the wall is in lesson 2), accounts its measure.
+        $wall1 = collect((array) $list->json('data'))->firstWhere('id', 'wall1');
+        $this->assertSame(['draft', 'f_account', ['f_day2'], ['signedIn' => false, 'firstWeek' => true], [['arm' => 'a', 'weight' => 50], ['arm' => 'b', 'weight' => 50]]], [$wall1['status'], $wall1['metric'], $wall1['guardrails'], $wall1['audience'], $wall1['arms']]);
 
         $this->assertMatchesContract($this->postJson('/api/admin/experiments', $this->short1(['arms' => [['arm' => 'b', 'weight' => 50], ['arm' => 'a', 'weight' => 50]]])), 'admin.experiments.create', 422);
         $this->postJson('/api/admin/experiments', $this->short1(['metric' => 'made_up']))->assertJsonValidationErrors('metric');

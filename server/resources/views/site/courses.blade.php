@@ -1,5 +1,5 @@
-{{-- The courses coming to Plus (/courses; docs/plus-courses-plan.md; Hillel, 2026-10-29: "All 27 now"):
-     each group's courses as cards to their own pages, all Coming soon, then the free course that works
+{{-- The courses, all free (/courses; docs/plus-courses-plan.md; Hillel, 2026-10-29: "All 27 now"):
+     each group's courses as cards to their own pages, all Coming soon, then the beginner course that works
      today. Nexus only. Words: lang/en/site.php `courses`. --}}
 @extends('public.layout', ['title' => $meta['title']])
 
@@ -22,7 +22,7 @@
             <p class="s-lede">{{ __('site.courses.index.lead') }}</p>
         </section>
 
-        {{-- The free course first, to its own page. --}}
+        {{-- The beginner course first, to its own page. --}}
         <section class="s-wrap s-sec" aria-labelledby="group-free">
             <h2 id="group-free" class="s-kick">{{ __('site.courses.index.free_kick') }}</h2>
             <a href="/features/course" class="s-card s-freecourse">

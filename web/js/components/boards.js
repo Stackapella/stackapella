@@ -12,6 +12,7 @@ import { Icon } from './icon.js';
 import { APP_VERSION, ApiError, call } from '../api.js';
 import { formatDate, t, tk } from '../i18n.js';
 import { account } from '../stores/account.js';
+import { navigate } from '../router.js';
 import { audio } from '../audio.js';
 import { local } from '../storage.js';
 import { count } from '../usage.js';
@@ -22,7 +23,6 @@ import { PITCH_DETECTOR_VERSION } from '../pitchtrack.js';
 import { NewRecord } from '../game/record.js';
 import { InitialsPicker, boardName, byInitials } from '../game/initials.js';
 import { dailyFor } from '../game/daily.js';
-import { count as countDaily } from '../usage.js';
 import { effect } from '../game/effects.js';
 import { game } from '../skin.js';
 
@@ -59,10 +59,7 @@ export async function submitScore({ templateId, templateVersion, partKey, score,
     };
     // Game mode's daily challenge: a take of the day's song part, started from it, goes on its board too.
     const day = dailyFor(templateId, partKey);
-    if (day) {
-        body.daily = day;
-        countDaily('daily_sung');
-    }
+    if (day) body.daily = day; // counted as sung by Sing itself, in either skin (js/daily-pick.js countSung)
     return (await call('boards.scores.submit', { body })).data;
 }
 
@@ -171,6 +168,25 @@ export const ReportName = {
 };
 
 /** After a recorded take of a song's part: your best and where you stand, or why it didn't count. */
+/** A challenge link for a part, to the share sheet (or copied): from a take's result and an empty friends' board. */
+export async function challengeFriend({ templateId, partKey, partName, songTitle, score }) {
+    try {
+        const { url } = (await call('boards.challenges.create', { body: { templateId, partKey } })).data;
+        const text = t('boards.challenge.text', { score, part: partName, song: songTitle });
+        if (navigator.share) {
+            await navigator.share({ text, url }).catch((error) => {
+                if (error?.name !== 'AbortError') throw error;
+            });
+        } else {
+            await navigator.clipboard.writeText(`${text} ${url}`);
+            toast(t('boards.challenge.copied'));
+        }
+    } catch (error) {
+        console.warn('The challenge was not made', error);
+        toast(t('boards.challenge.failed'), { tone: 'error' });
+    }
+}
+
 export const TakeBest = {
     components: { GlobalSheet, NewRecord, InitialsPicker },
     props: { templateId: { type: String, required: true }, templateVersion: { type: Number, required: true }, partKey: { type: String, required: true }, partName: { type: String, required: true }, songTitle: { type: String, required: true }, score: { type: Number, required: true }, keyOffset: { type: Number, default: 0 }, guideMuted: Boolean, takeId: { type: String, default: null } },
@@ -228,23 +244,8 @@ export const TakeBest = {
         /** A challenge link for this part, to the share sheet (or copied). */
         async challenge() {
             this.challenging = true;
-            try {
-                const { url } = (await call('boards.challenges.create', { body: { templateId: this.templateId, partKey: this.partKey } })).data;
-                const text = t('boards.challenge.text', { score: this.result.best, part: this.partName, song: this.songTitle });
-                if (navigator.share) {
-                    await navigator.share({ text, url }).catch((error) => {
-                        if (error?.name !== 'AbortError') throw error;
-                    });
-                } else {
-                    await navigator.clipboard.writeText(`${text} ${url}`);
-                    toast(t('boards.challenge.copied'));
-                }
-            } catch (error) {
-                console.warn('The challenge was not made', error);
-                toast(t('boards.challenge.failed'), { tone: 'error' });
-            } finally {
-                this.challenging = false;
-            }
+            await challengeFriend({ templateId: this.templateId, partKey: this.partKey, partName: this.partName, songTitle: this.songTitle, score: this.result.best });
+            this.challenging = false;
         },
     },
 };
@@ -254,6 +255,8 @@ export const TakeBest = {
  * arrangement changed lists its earlier arrangements' boards, each read only.
  */
 const SCOPE_WORDS = { friends: tk('boards.friends'), global: tk('boards.everyone'), month: tk('boards.month') };
+// The switch's own words, short enough for one line at 360 px (its spoken name is SCOPE_WORDS').
+const SCOPE_SHORT = { friends: tk('boards.friends'), global: tk('boards.everyone'), month: tk('boards.monthShort') };
 // Each board's empty state: what it is, and how to get on it.
 const EMPTY = {
     friends: { title: tk('boards.emptyFriends.title'), how: tk('boards.emptyFriends.how') },
@@ -264,15 +267,16 @@ const EMPTY = {
 
 export const PartBoard = {
     components: { AccountWall, Icon, ReportName },
-    props: { templateId: { type: String, required: true }, partKey: { type: String, required: true }, partName: { type: String, required: true }, color: { type: String, default: null } },
-    data: () => ({ open: false, scope: 'friends', board: null, failed: false, viewed: false, reporting: null, version: null }),
-    setup: () => ({ account, boardName, byInitials, SCOPE_WORDS, EMPTY }),
+    props: { templateId: { type: String, required: true }, partKey: { type: String, required: true }, partName: { type: String, required: true }, songTitle: { type: String, default: '' }, color: { type: String, default: null } },
+    data: () => ({ open: false, scope: 'friends', board: null, failed: false, viewed: false, reporting: null, version: null, challenging: false }),
+    setup: () => ({ account, boardName, byInitials, SCOPE_WORDS, SCOPE_SHORT, EMPTY, navigate }),
     // Hillel's mockup 1a: one card, "Leaderboard" with the part as a tag and a small switch to its
     // right, then a table (#, singer, score, date) with your row marked YOU, the earlier arrangements at its foot.
     template: `
         <div class="text-sm" data-part-board>
             <button v-if="!open" ref="opener" type="button" class="link inline-flex min-h-6 items-center" aria-expanded="false" @click="toggle">{{ t('boards.title', { part: partName }) }}</button>
-            <section v-else class="ge-board mt-1 space-y-3 rounded-2xl border border-line bg-panel p-4" :aria-label="t('boards.title', { part: partName })">
+            <!-- The part card's own lower half under a divider, never a third frame (docs/leaderboard-redesign-plan.md). -->
+            <section v-else class="ge-board mt-1 space-y-3 border-t border-line pt-3" :aria-label="t('boards.title', { part: partName })">
                 <div class="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
                     <!-- Its name is what it shows (the heading and the part), expanded; never a different spoken name. -->
                     <button ref="closer" type="button" class="flex min-h-6 items-center gap-2 text-start" aria-expanded="true" @click="toggle">
@@ -281,7 +285,7 @@ export const PartBoard = {
                     </button>
                     <!-- One row always: the whole width on a phone, the options sharing it (never stacked). -->
                     <div v-if="account.me" class="seg ge-board-scope flex w-full sm:w-auto" role="radiogroup" :aria-label="t('boards.scope')">
-                        <button v-for="s in scopes" :key="s" type="button" role="radio" :aria-checked="scope === s" class="seg-option tap-44 min-w-0 flex-1 whitespace-normal leading-tight sm:flex-none" :data-board-scope="s" @click="choose(s)">{{ t(SCOPE_WORDS[s]) }}</button>
+                        <button v-for="s in scopes" :key="s" type="button" role="radio" :aria-checked="scope === s" class="seg-option tap-44 min-w-0 flex-1 whitespace-nowrap leading-tight sm:flex-none" :aria-label="t(SCOPE_WORDS[s])" :data-board-scope="s" @click="choose(s)">{{ t(SCOPE_SHORT[s]) }}</button>
                     </div>
                 </div>
                 <AccountWall v-if="!account.me" reason="boards" bare />
@@ -291,7 +295,9 @@ export const PartBoard = {
                     <!-- Empty: what it is and how to get on it, per board; nothing drawn. -->
                     <div v-else-if="!board.entries.length" class="ge-board-empty rounded-xl border border-dashed border-line px-4 py-5 text-center" data-board-empty :data-scope="scope">
                         <p class="font-semibold text-cream" data-ui="board-empty-title">{{ t(EMPTY[version ? 'version' : scope].title) }}</p>
-                        <p class="mx-auto mt-1 max-w-sm text-muted">{{ t(EMPTY[version ? 'version' : scope].how, { part: partName }) }}</p>
+                        <p class="mx-auto mt-1 max-w-sm text-muted">{{ scope === 'friends' && !version && board.you ? t('boards.emptyFriends.howWithBest', { score: board.you.score }) : t(EMPTY[version ? 'version' : scope].how, { part: partName, date: monthEnds }) }}</p>
+                        <!-- No friend on it yet, but a best of yours on this part: the result's own Challenge a friend, here too. -->
+                        <button v-if="scope === 'friends' && !version && board.you" type="button" class="btn-secondary btn-sm mt-3" data-ui="board-challenge" :disabled="challenging" @click="challenge">{{ t('boards.challenge.button') }}</button>
                     </div>
                     <table v-else class="w-full table-fixed border-separate border-spacing-y-1">
                         <thead>
@@ -318,10 +324,21 @@ export const PartBoard = {
                                     <button v-if="!e.you && e.id" type="button" class="tap-44 inline-grid size-8 place-items-center rounded-full text-muted hover:bg-raised hover:text-cream" :aria-label="t('boards.report.button', { name: boardName(e) })" :title="t('boards.report.short')" data-report-entry @click="reporting = e"><Icon name="more" :size="16" /></button>
                                 </td>
                             </tr>
+                            <!-- Further down than tenth: a gap, then your own row, marked as the top ten's are. -->
+                            <template v-if="youBelow">
+                                <tr data-ui="board-gap" aria-hidden="true"><td class="px-1 text-center leading-none text-muted">⋯</td><td></td><td></td><td class="hidden sm:table-cell"></td><td></td></tr>
+                                <tr class="ge-board-you" data-board-entry data-you>
+                                    <td class="rounded-s-xl px-1 py-2"><span class="ge-board-rank">{{ board.you.rank }}</span></td>
+                                    <td class="overflow-hidden px-2 py-2"><span class="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1"><span class="max-w-full shrink-0 truncate font-semibold text-cream" translate="no">{{ board.you.initials || account.me.name }}</span><span class="ge-board-you-tag">{{ t('boards.youTag') }}</span></span></td>
+                                    <td class="px-2 py-2 text-end text-base font-bold tabular-nums text-cream" data-ui="board-score">{{ board.you.score }}</td>
+                                    <td class="hidden px-2 py-2 sm:table-cell"></td>
+                                    <td class="rounded-e-xl py-2"></td>
+                                </tr>
+                            </template>
                         </tbody>
                     </table>
-                    <p v-if="board && board.you && !board.entries.some((e) => e.you)" class="text-muted">{{ board.you.rank ? t('boards.yourPlace', { rank: board.you.rank, score: board.you.score }) : t('boards.yourBest', { score: board.you.score }) }}</p>
-                    <p v-if="board && scope !== 'friends' && !board.onGlobal && account.me.isAdult" class="text-muted">{{ t('boards.notOnGlobal') }}</p>
+                    <p v-if="board && board.entries.length && board.you && !board.you.rank && !board.entries.some((e) => e.you)" class="text-muted">{{ t('boards.yourBest', { score: board.you.score }) }}</p>
+                    <p v-if="board && scope !== 'friends' && !board.onGlobal && account.me.isAdult" class="text-muted" data-not-on-global>{{ t('boards.notOnGlobalLead') }} <a href="/settings" class="link tap-44" @click.prevent="navigate('/settings')">{{ t('boards.notOnGlobalLink') }}</a></p>
                     <p v-if="version" class="border-t border-line pt-3 text-muted" data-board-version>{{ t('boards.versions.readOnly', { version }) }} <button type="button" class="link inline-flex min-h-6 items-center" @click="showVersion(null)">{{ t('boards.versions.back') }}</button></p>
                     <p v-else-if="board?.olderVersions?.length && scope !== 'month'" class="border-t border-line pt-3 text-muted" data-board-versions>{{ t('boards.versions.earlier') }}
                         <template v-for="(v, i) in board.olderVersions" :key="v"><template v-if="i">, </template><button type="button" class="link inline-flex min-h-6 items-center" @click="showVersion(v)">{{ t('boards.versions.version', { version: v }) }}</button></template></p>
@@ -330,12 +347,25 @@ export const PartBoard = {
             </section>
         </div>`,
     computed: {
+        /** You're on this board but below its top ten: shown as a row after a gap. */
+        youBelow() {
+            return !!(this.board?.entries.length && this.board.you?.rank && !this.board.entries.some((e) => e.you));
+        },
+        /** When this month's board starts again ("Dec 1"). */
+        monthEnds() {
+            return this.board?.endsAt ? formatDate(this.board.endsAt, { month: 'short', day: 'numeric', timeZone: 'UTC' }) : '';
+        },
         /** Friends and Everyone; in game mode with Monthly boards on, This month too. */
         scopes: () => (effect('monthly') ? ['friends', 'global', 'month'] : ['friends', 'global']),
     },
     methods: {
         day(at) {
             return formatDate(at, { month: 'short', day: 'numeric' });
+        },
+        async challenge() {
+            this.challenging = true;
+            await challengeFriend({ templateId: this.templateId, partKey: this.partKey, partName: this.partName, songTitle: this.songTitle, score: this.board.you.score });
+            this.challenging = false;
         },
         toggle() {
             this.open = !this.open;

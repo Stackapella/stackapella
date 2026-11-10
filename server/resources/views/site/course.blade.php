@@ -1,8 +1,8 @@
-{{-- A course on Plus (/courses/<slug>; docs/plus-courses-plan.md): what it is and what you'll learn.
+{{-- A course, free like every course (/courses/<slug>; docs/plus-courses-plan.md): what it is and what you'll learn.
      Once it's open (SitePages::courseOpen: the plus_courses flag and its status in
-     web/course/courses.json) it says so and leads to its free first lesson; until then Coming soon,
+     web/course/courses.json) it says so and leads to its first lesson; until then Coming soon,
      with what it still waits for said plainly (listening the app can't do yet,
-     care for loud or high singing), then the free course that works today and the group's other
+     care for loud or high singing), then the beginner course that works today and the group's other
      courses. Below the hero: the units and lessons from the course's own file, what the app listens
      for and how it scores, two real screens, singing safely and the songs. Promises nothing beyond
      the plan. Nexus only. Words: lang/en/site.php `courses`. --}}
@@ -10,6 +10,7 @@
 
 @section('head')
     @include('pages._head')
+    <x-site.json-ld :data="\App\Support\Site\StructuredData::course((string) $page['name'], $meta)" />
 @endsection
 
 @php($group = (array) (\App\Support\Site\SitePages::courseGroups()[$page['group']] ?? []))
@@ -36,6 +37,9 @@
                     <h1 id="page-h">{{ $page['headline'] }}</h1>
                     <p class="s-lede">{{ $page['lead'] }}</p>
                     <p class="s-soonline">{{ $open ? __('pages.site.course_open_line') : __('pages.site.course_soon') }}</p>
+                    @if ($page['slug'] === 'learn-your-choir-part')
+                        @include('site._carols-link', ['line' => __('site.carols.links.choir-course')])
+                    @endif
                     @if (! $open && is_string($page['needs'] ?? null))
                         <p class="s-soonline">{{ __('pages.site.course_needs', ['what' => $page['needs']]) }}</p>
                     @endif
@@ -44,8 +48,8 @@
                     @endif
                     <div class="s-actions s-actions-row">
                         @if ($open)
-                            <a href="{{ \App\Support\Http\Hosts::app('/learn/c/'.$page['slug']) }}" class="btn-primary btn-lg">{{ __('pages.site.course_try') }} <x-site.icon name="arrow" size="18" /></a>
-                            <a href="/pricing" class="btn-secondary btn-lg">{{ __('pages.site.course_plus') }}</a>
+                            <a href="{{ $courseStart }}" class="btn-primary btn-lg">{{ __('pages.site.course_try') }} <x-site.icon name="arrow" size="18" /></a>
+                            <a href="/courses" class="btn-secondary btn-lg">{{ __('pages.site.course_all') }}</a>
                         @else
                             <a href="{{ $links['start'] }}" class="btn-primary btn-lg">{{ __('pages.site.course_start') }} <x-site.icon name="arrow" size="18" /></a>
                             <a href="/courses" class="btn-secondary btn-lg">{{ __('pages.site.course_all') }}</a>
@@ -68,8 +72,19 @@
             </ul>
         </section>
 
+        {{-- Where a style comes from, for a course that tells it (`history`: its heading and paragraphs, the courses
+             lead's words as written; Blues singing first). --}}
+        @if (is_array($page['history'] ?? null))
+            <section class="s-wrap s-sec" aria-labelledby="history-h">
+                <h2 id="history-h" class="s-kick">{{ $page['history']['title'] }}</h2>
+                @foreach ((array) $page['history']['body'] as $paragraph)
+                    <p class="s-lede s-course-history">{{ $paragraph }}</p>
+                @endforeach
+            </section>
+        @endif
+
         {{-- The course itself, unit by unit, from its own file (SitePages::courseOutline), so the page
-             follows the course; the first lesson is free. Stages in the game skin, units in the serious. --}}
+             follows the course; the first lesson is marked Start here. Stages in the game skin, units in the serious. --}}
         @if ($outline !== null)
             <section class="s-wrap s-sec" aria-labelledby="units-h">
                 <div class="s-units-head">
@@ -154,5 +169,7 @@
         </section>
     </main>
     @endif
+    {{-- Every lesson's own page (docs/seo-lesson-pages-plan.md), under either look. --}}
+    @include('site.courses._lesson-pages', ['course' => $page['slug']])
     <x-site.footer />
 @endsection

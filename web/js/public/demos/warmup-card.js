@@ -27,6 +27,9 @@ export async function mount(stage) {
     const lane = root.querySelector('[data-wu-lane]');
     const say = root.querySelector('[data-wu-say]');
     const link = root.querySelector('[data-wu-open]');
+    // The link as the page wrote it: the app's own address (Hosts::app), so it never goes through the public site's
+    // redirect. Each warm-up keeps its host and swaps only the hash.
+    const open = new URL(link.getAttribute('href'), location.href);
     const playButton = root.querySelector('[data-wu-play]');
     let pattern = patterns[0];
     let tempo = speeds[1].tempo;
@@ -55,7 +58,10 @@ export async function mount(stage) {
             root.querySelectorAll(`[data-wu-${attr}]`).forEach((b) => b.setAttribute('aria-pressed', String(b.dataset[`wu${attr[0].toUpperCase()}${attr.slice(1)}`] === value)));
         }
         const code = encodeWarmup(warmup());
-        if (code) link.href = `/warmup#${code}`;
+        if (code) {
+            open.hash = code;
+            link.href = open.href;
+        }
     }
 
     function light(i) {

@@ -30,7 +30,7 @@ return [
     ],
     'template_access' => [
         'free' => 'Free',
-        'plus' => 'Plus',
+        'plus' => 'Free with an account',
     ],
     'security_event_type' => [
         'admin_sign_in' => 'Admin sign-in',

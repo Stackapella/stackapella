@@ -1,6 +1,6 @@
 // The skin (js/theme-boot.js; docs/skins-plan.md): <html data-skin> before paint, "game" unless
-// "serious" was chosen, kept with the theme's other choices and kept when they change; game mode is
-// always dark, keeping the person's own light or dark for serious mode.
+// "serious" was chosen, kept with the theme's other choices and kept when they change; game mode has its own
+// light or dark (dark until chosen, on the site too since 2026-11-02), keeping serious mode's apart.
 import { assert, test } from './harness.js';
 
 async function boot() {
@@ -29,7 +29,11 @@ test('skin: game unless serious is chosen, kept through other choices, and back 
         assert(document.documentElement.dataset.skin === 'serious' && theme.chosen().skin === 'serious', 'a new mode kept the skin');
         assert(document.documentElement.dataset.theme.endsWith('-light'), 'serious and light shows light');
         theme.choose({ skin: 'game' });
-        assert(document.documentElement.dataset.theme.endsWith('-dark') && theme.chosen().mode === 'light', 'game mode is always dark, and the light choice is kept');
+        assert(document.documentElement.dataset.theme.endsWith('-dark') && theme.chosen().mode === 'light', 'game mode is dark until chosen, and serious mode\'s light is kept');
+        theme.choose({ mode: 'light' });
+        assert(document.documentElement.dataset.theme.endsWith('-light') && theme.chosen().gameMode === 'light', 'light chosen in game mode is game mode\'s own');
+        theme.choose({ gameMode: 'dark' });
+        assert(document.documentElement.dataset.theme.endsWith('-dark'), 'and back to dark');
         theme.choose({ skin: 'serious' });
         assert(document.documentElement.dataset.theme.endsWith('-light'), 'serious again: light again');
         theme.choose({ skin: 'nonsense' });

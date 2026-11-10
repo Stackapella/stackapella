@@ -37,17 +37,11 @@
         <section class="s-wrap s-head" aria-labelledby="page-h">
             <div @class(['s-head-grid', 's-head-solo' => $line === null && $song['previewUrl'] === null])>
                 <div>
-                    <nav class="s-crumb" aria-label="{{ __('pages.song.crumb') }}"><a href="/songs">{{ __('pages.song.eyebrow') }}</a><span aria-hidden="true">/</span><span aria-current="page" translate="no">{{ $song['title'] }}</span></nav>
+                    <x-site.crumbs :trail="[[__('pages.song.eyebrow'), '/songs'], [$song['title'], null, true]]" :ld="true" />
                     <h1 id="page-h" translate="no">{{ $song['title'] }}</h1>
                     <p class="s-lead">{{ $song['description'] }}</p>
                     <p class="s-meta">
-                        @if ($song['freeThisMonth'])
-                            <span class="s-badge-free">{{ __('pages.song.free_month') }}</span>
-                        @elseif ($song['plus'])
-                            <span class="s-badge-plus">{{ __('pages.song.plus') }}</span>
-                        @else
-                            <span class="s-badge-free">{{ __('pages.song.free') }}</span>
-                        @endif
+                        <span class="s-badge-free">{{ __('pages.song.free') }}</span>
                         @if (\Illuminate\Support\Facades\Lang::has('pages.song.difficulty.'.$song['difficulty']))
                             <span>{{ __('pages.song.difficulty.'.$song['difficulty']) }}</span>
                         @endif
@@ -58,7 +52,7 @@
                     </p>
                     <div class="s-actions">
                         <a href="{{ $song['startUrl'] }}" class="btn-primary btn-lg">{{ __('pages.song.start') }} <x-site.icon name="arrow" size="18" /></a>
-                        <p>{{ $song['plus'] ? __('pages.song.plus_note') : __('pages.song.start_note') }}</p>
+                        <p>{{ __('pages.song.start_note') }}</p>
                     </div>
                 </div>
                 @if ($line !== null)
@@ -87,9 +81,14 @@
                         <div class="s-range" role="list">
                             <div class="s-range-scale" aria-hidden="true"><span></span><div>@foreach ($song['ranges']['marks'] as $mark)<span style="inset-inline-start: {{ $mark['at'] }}%">{{ $mark['name'] }}</span>@endforeach</div></div>
                             @foreach ($song['ranges']['parts'] as $part)
-                                <div class="s-range-row s-v{{ $part['color'] }}" role="listitem">
-                                    <span class="sr-only">{{ __('pages.song.range_row', ['part' => $part['name'], 'low' => $part['low'], 'high' => $part['high']]) }}</span>
-                                    <span class="s-range-nm" aria-hidden="true"><span class="s-disc">{{ mb_substr($part['name'], 0, 1) }}</span>{{ $part['name'] }}</span>
+                                {{-- A part with its own page (a live, reviewed, public-domain song) links there: the whole row, by a stretched link. --}}
+                                <div @class(['s-range-row s-v'.$part['color'], 'group relative rounded-2xl transition-colors hover:bg-raised/60 has-[a:focus-visible]:outline-2 has-[a:focus-visible]:outline-offset-2 has-[a:focus-visible]:outline-[var(--primary)]' => ! empty($part['url'])]) role="listitem">
+                                    @if (! empty($part['url']))
+                                        <a href="{{ $part['url'] }}" class="absolute inset-0 z-10 rounded-2xl outline-none" data-part-link="{{ basename((string) parse_url($part['url'], PHP_URL_PATH)) }}"><span class="sr-only">{{ \Illuminate\Support\Facades\Lang::has('pages.song.part_link') ? __('pages.song.part_link', ['part' => $part['name'], 'low' => $part['low'], 'high' => $part['high']]) : __('pages.song.range_row', ['part' => $part['name'], 'low' => $part['low'], 'high' => $part['high']]) }}</span></a>
+                                    @else
+                                        <span class="sr-only">{{ __('pages.song.range_row', ['part' => $part['name'], 'low' => $part['low'], 'high' => $part['high']]) }}</span>
+                                    @endif
+                                    <span class="s-range-nm group-hover:underline group-hover:underline-offset-4" aria-hidden="true"><span class="s-disc">{{ mb_substr($part['name'], 0, 1) }}</span>{{ $part['name'] }}</span>
                                     <span class="s-range-track" aria-hidden="true"><span class="s-range-bar" style="inset-inline-start: min({{ $part['from'] }}%, calc(100% - 76px)); width: max({{ max(0, $part['to'] - $part['from']) }}%, 76px)"><span>{{ $part['low'] }}</span><span>{{ $part['high'] }}</span></span></span>
                                 </div>
                             @endforeach
@@ -124,7 +123,7 @@
                             <a href="/songs/{{ $other['slug'] }}" class="s-song">
                                 <span class="s-row">
                                     <x-site.song-glyph :ranges="$other['ranges']" />
-                                    <span class="s-badge {{ $other['plus'] ? 's-badge-plus' : 's-badge-free' }}">{{ $other['plus'] ? __('pages.song.plus') : ($other['freeThisMonth'] ? __('pages.song.free_month') : __('pages.song.free')) }}</span>
+                                    <span class="s-badge s-badge-free">{{ __('pages.song.free') }}</span>
                                 </span>
                                 <span><span class="s-t" translate="no">{{ $other['title'] }}</span><span class="s-k">{{ __('pages.songs.parts', ['count' => count($other['parts'])]) }}@if ($other['genre'] !== []) · {{ ucfirst($other['genre'][0]) }}@endif</span></span>
                             </a>
@@ -141,7 +140,7 @@
                 <span class="s-stackbig" aria-hidden="true"><b class="s-v1" style="width: 100%"></b><b class="s-v2" style="width: 74%"></b><b class="s-v3" style="width: 88%"></b><b class="s-v4" style="width: 62%"></b></span>
                 <div>
                     <h2 id="end-h">{{ __('pages.song.end_title', ['title' => $song['title']]) }}</h2>
-                    <p>{{ $song['plus'] ? __('pages.song.end_plus') : __('pages.song.end_free') }}</p>
+                    <p>{{ __('pages.song.end_free') }}</p>
                 </div>
                 <a href="{{ $song['startUrl'] }}" class="btn-primary btn-lg">{{ __('pages.song.start') }} <x-site.icon name="arrow" size="18" /></a>
             </div>

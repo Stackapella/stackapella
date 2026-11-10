@@ -1,4 +1,6 @@
 {
     "message": "Forbidden.",
-    "code": "storage_limit"
+    "code": "storage_limit",
+    "usedBytes": 1070000000,
+    "limitBytes": 1073741824
 }

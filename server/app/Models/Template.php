@@ -6,7 +6,6 @@ namespace App\Models;
 
 use App\Enums\TemplateAccess;
 use App\Models\Concerns\HasSqid;
-use Carbon\CarbonInterface;
 use Database\Factories\TemplateFactory;
 use Illuminate\Database\Eloquent\Attributes\UseFactory;
 use Illuminate\Database\Eloquent\Builder;
@@ -24,7 +23,7 @@ use Illuminate\Support\Carbon;
  * @property string $slug
  * @property string $title
  * @property TemplateAccess $access
- * @property Carbon|null $free_from
+ * @property Carbon|null $free_from the song of the month's window, ended 2026-11-07: kept, never read
  * @property Carbon|null $free_until
  * @property string|null $preview_key
  * @property int|null $current_version_id
@@ -39,6 +38,9 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $imported_at
  * @property Carbon|null $rights_confirmed_at
  * @property string|null $rights_statement
+ * @property string|null $rights_confirmed_by a partner's song: who confirmed the rights in writing
+ * @property string|null $rights_wording the words they confirmed
+ * @property string|null $rights_source where that confirmation is (their email, its date)
  * @property Carbon|null $featured_at
  * @property Carbon|null $idea_review_at
  * @property string|null $difficulty
@@ -71,8 +73,6 @@ final class Template extends Model
         'slug',
         'title',
         'access',
-        'free_from',
-        'free_until',
     ];
 
     protected function casts(): array
@@ -114,16 +114,6 @@ final class Template extends Model
     }
 
     /**
-     * The song of the month: free to everyone on this day.
-     */
-    public function isFreeOn(CarbonInterface $day): bool
-    {
-        return $this->free_from !== null && $this->free_until !== null
-            && $day->toDateString() >= $this->free_from->toDateString()
-            && $day->toDateString() <= $this->free_until->toDateString();
-    }
-
-    /**
      * Whose template it is: null for our own songs.
      *
      * @return BelongsTo<User, $this>
@@ -156,6 +146,16 @@ final class Template extends Model
     public function isImported(): bool
     {
         return ($this->getAttributes()['imported_at'] ?? null) !== null;
+    }
+
+    /**
+     * A song staff made and gave this account (admin.people.songs.create): the partner's statement with the partner's
+     * named confirmation, which only a give writes. The owner's copy of one carries the statement, never the
+     * confirmation, so it is their own song (Plans::counts).
+     */
+    public function isGiven(): bool
+    {
+        return $this->rights_statement === 'partner' && $this->rights_confirmed_by !== null;
     }
 
     public function isPublic(): bool

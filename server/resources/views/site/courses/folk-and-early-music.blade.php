@@ -10,6 +10,13 @@
 @php($shapes = [[80, 74, 'fa'], [118, 60, 'sol'], [156, 68, 'la'], [194, 50, 'mi'], [232, 60, 'sol'], [270, 74, 'fa'], [308, 56, 'la'], [346, 68, 'mi'], [384, 82, 'fa']])
 @php($modes = ['bright' => [[0, 2, 3, 5, 7, 9, 10, 12], 5, 8], 'soft' => [[0, 2, 4, 5, 7, 9, 10, 12], 6, 11]])
 @php($roman = ['I', 'II', 'III', 'IV', 'V', 'VI'])
+@php($demo = $page['demo'])
+{{-- The bright note (js/public/folk-and-early-music.js): Drunken Sailor's third line as lesson folk-2-dorian
+     sings it, [beat, beats, step from the comfortable note]; "-en" (index 7) is drawn twice, the bright
+     sixth (a step above) and the dark (a half step), one shown at a time; the drone's home note under it all. --}}
+@php($line = [[0, 1, 0], [1, 0.5, 0], [1.5, 0.5, 0], [2, 1, 0], [3, 0.5, 0], [3.5, 0.5, 0], [4, 1, 0], [5, 1, null], [6, 1, 3], [7, 1.6, 5]])
+@php($sixths = ['bright' => 2, 'dark' => 1])
+@php($span = 8.6)
 <main class="cp cp-folk">
     <section class="cp-hero cp-fo-hero" aria-labelledby="page-h">
         <div class="s-wrap cp-hero-grid">
@@ -25,7 +32,7 @@
                 </ul>
                 <p class="cp-hero-btns">
                     @if ($open)
-                        <a href="{{ \App\Support\Http\Hosts::app('/learn/c/'.$page['app']) }}" class="btn-primary btn-lg">{{ __('pages.site.course_try') }} <x-site.icon name="arrow" size="18" /></a>
+                        <a href="{{ $courseStart }}" class="btn-primary btn-lg">{{ __('pages.site.course_try') }} <x-site.icon name="arrow" size="18" /></a>
                     @endif
                     <a href="#units-h" class="btn-secondary btn-lg">{{ $page['see_lessons'] }}</a>
                 </p>
@@ -71,6 +78,59 @@
                     @foreach ([[1, 1], [1, 2], [2, 1], [2, 2]] as [$row, $col])
                         <span class="cp-fo-tack cp-fo-tack-{{ $row }}{{ $col }}"></span>
                     @endforeach
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="s-wrap cp-dk-demosec" aria-labelledby="demo-h">
+        <div class="cp-dk-demo" data-fo-demo data-sixth="bright"
+            data-bright="{{ $demo['bright'] }}" data-dark="{{ $demo['dark'] }}" data-held-bright="{{ $demo['held_bright'] }}" data-held-dark="{{ $demo['held_dark'] }}" data-after="{{ $demo['after'] }}">
+            <p class="cp-dk-demo-bar"><span class="cp-dk-live"><span class="cp-dk-rec" aria-hidden="true"></span>{{ $demo['kick'] }}</span><span>{{ $demo['lesson'] }}</span></p>
+            <div class="cp-dk-demo-in">
+                <div>
+                    <h2 id="demo-h" class="cp-dk-demo-h">{{ $demo['title'] }}</h2>
+                    <p class="cp-dk-demo-lead">{{ $demo['lead'] }}</p>
+                    <p class="cp-dk-btns">
+                        <button type="button" class="cp-dk-play" data-fo-play="dark" data-play="{{ $demo['play_dark'] }}" data-stop="{{ $demo['stop'] }}" aria-pressed="false"><span class="cp-dk-play-icon" aria-hidden="true"></span><span data-label>{{ $demo['play_dark'] }}</span></button>
+                        <button type="button" class="cp-dk-play cp-dk-play-b" data-fo-play="bright" data-play="{{ $demo['play_bright'] }}" data-stop="{{ $demo['stop'] }}" aria-pressed="false"><span class="cp-dk-play-icon" aria-hidden="true"></span><span data-label>{{ $demo['play_bright'] }}</span></button>
+                    </p>
+                    <fieldset class="cp-dk-pick">
+                        <legend>{{ $demo['hold_h'] }}</legend>
+                        <button type="button" class="cp-dk-hear" data-fo-hold data-play="{{ $demo['hold'] }}" data-stop="{{ $demo['stop'] }}" aria-pressed="false"><span class="cp-dk-play-icon" aria-hidden="true"></span><span data-label>{{ $demo['hold'] }}</span></button>
+                        <button type="button" class="cp-ss-switch" role="switch" aria-checked="true" data-fo-switch><span class="switch-track" aria-hidden="true"><span class="switch-knob"></span></span><span>{{ $demo['switch'] }}</span></button>
+                    </fieldset>
+                    <p class="cp-dk-say" role="status" data-fo-say>{{ $demo['ready'] }}</p>
+                </div>
+                <div>
+                    <div class="cp-dk-roll">
+                        <svg viewBox="0 0 600 220" preserveAspectRatio="none" aria-hidden="true">
+                            @foreach ([-7, 0, 3, 5] as $step)
+                                <path d="M20 {{ 110 - ($step + 1) * 14 }} H580" class="cp-dk-staff" />
+                            @endforeach
+                            <rect x="20" y="190" width="560" height="8" rx="4" class="cp-dk-bar" />
+                            @foreach ($line as [$at, $long, $step])
+                                @php($x = round(20 + $at / $span * 560, 1))
+                                @php($w = round($long / $span * 560 - 4, 1))
+                                @if ($step === null)
+                                    @foreach ($sixths as $kind => $sixth)
+                                        <g data-fo-sixth="{{ $kind }}" @if ($kind === 'dark') hidden @endif>
+                                            <rect x="{{ $x - 4 }}" y="{{ 110 - ($sixth + 1) * 14 - 11 }}" width="{{ $w + 8 }}" height="22" rx="11" class="cp-dk-trace" />
+                                            <rect x="{{ $x }}" y="{{ 110 - ($sixth + 1) * 14 - 7 }}" width="{{ $w }}" height="14" rx="7" class="cp-dk-bar" data-fo-note="{{ $loop->parent->index }}" />
+                                        </g>
+                                    @endforeach
+                                @else
+                                    <rect x="{{ $x }}" y="{{ 110 - ($step + 1) * 14 - 7 }}" width="{{ $w }}" height="14" rx="7" class="cp-dk-bar" data-fo-note="{{ $loop->index }}" />
+                                @endif
+                            @endforeach
+                        </svg>
+                        <p class="cp-dk-words" aria-hidden="true">
+                            @foreach ((array) $demo['lyric'] as $word)
+                                <span data-fo-note="{{ $loop->index }}">{{ $word }}</span>
+                            @endforeach
+                        </p>
+                    </div>
+                    <p class="cp-dk-note">{{ $demo['note'] }}</p>
                 </div>
             </div>
         </div>
@@ -221,8 +281,8 @@
             @endif
             <p class="cp-join-btns">
                 @if ($open)
-                    <a href="{{ \App\Support\Http\Hosts::app('/learn/c/'.$page['app']) }}" class="btn-primary btn-lg">{{ __('pages.site.course_try') }} <x-site.icon name="arrow" size="18" /></a>
-                    <a href="/pricing" class="btn-secondary btn-lg">{{ __('pages.site.course_plus') }}</a>
+                    <a href="{{ $courseStart }}" class="btn-primary btn-lg">{{ __('pages.site.course_try') }} <x-site.icon name="arrow" size="18" /></a>
+                    <a href="/courses" class="btn-secondary btn-lg">{{ __('pages.site.course_all') }}</a>
                 @else
                     <a href="{{ $links['start'] }}" class="btn-primary btn-lg">{{ __('pages.site.course_start') }} <x-site.icon name="arrow" size="18" /></a>
                     <a href="/courses" class="btn-secondary btn-lg">{{ __('pages.site.course_all') }}</a>
@@ -232,4 +292,5 @@
             @include('site.courses._related')
         </div>
     </section>
+    <script type="module" src="/js/public/folk-and-early-music.js"></script>
 </main>

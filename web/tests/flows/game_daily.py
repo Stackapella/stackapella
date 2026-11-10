@@ -10,7 +10,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
 from flow import run  # noqa: E402
-from game_frames import dark, light  # noqa: E402
+from game_frames import dark, every_theme, light  # noqa: E402
 from help_shots import clear_projects, t  # noqa: E402
 
 TAG = "document.querySelector('[data-game-daily]')"
@@ -79,6 +79,7 @@ def journey(f):
     assert "ZED" in words, f"an entry by initials: {words}"
     assert f.js("!document.querySelector('[data-daily-view]')"), "no cup from the server: no choice"
     f.shot("sheet")
+    every_theme(f, "the daily training sheet")
     light(f)
     f.shot("sheet-light")
     dark(f)

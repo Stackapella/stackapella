@@ -29,7 +29,12 @@ export function breathAt(seconds) {
 }
 
 export const BreathVisual = {
-    data: () => ({ phase: 'in', left: IN_SECONDS, still: still() }),
+    // `held`: one still frame and no count (Up next's preview: nothing plays by itself there; the first-15-minutes
+    // review, item 22). Reduced motion keeps its own still flower with the words changing once a second.
+    props: { held: Boolean },
+    data() {
+        return { phase: 'in', left: IN_SECONDS, still: this.held || still() };
+    },
     template: `
         <figure class="mx-auto w-full" :aria-label="t('learnVisual.breathLabel')">
             <div class="relative aspect-square w-full">
@@ -37,7 +42,7 @@ export const BreathVisual = {
             <figcaption class="absolute inset-0 grid place-items-center text-center" aria-live="off">
                 <span class="transition-opacity duration-1000" :class="still ? '' : ''">
                     <span class="block text-2xl font-extrabold tracking-tight text-cream drop-shadow">{{ phase === 'in' ? t('learnVisual.breatheIn') : t('learnVisual.breatheOut') }}</span>
-                    <span class="mt-1 block text-sm font-semibold tabular-nums text-cream/80">{{ left }}</span>
+                    <span v-if="!held" class="mt-1 block text-sm font-semibold tabular-nums text-cream/80">{{ left }}</span>
                 </span>
             </figcaption>
             </div>
@@ -134,7 +139,7 @@ export const BreathVisual = {
             }
             g.restore();
             if (this.visible && !this.still) this.frame = requestAnimationFrame(this.draw);
-            else if (this.still) this.stillTimer = setTimeout(() => (this.frame = requestAnimationFrame(this.draw)), 1000); // the words, once a second
+            else if (this.still && !this.held) this.stillTimer = setTimeout(() => (this.frame = requestAnimationFrame(this.draw)), 1000); // the words, once a second
         },
     },
 };
@@ -181,10 +186,11 @@ const LABELS = {
 
 export const LearnVisual = {
     components: { BreathVisual },
-    props: { type: { type: String, required: true } },
+    // `held`: a still frame (Up next's preview, where nothing plays by itself).
+    props: { type: { type: String, required: true }, held: Boolean },
     template: `
-        <BreathVisual v-if="type === 'breath'" />
-        <figure v-else-if="drawing" class="learn-visual mx-auto aspect-[3/2] w-full rounded-3xl bg-raised/60 p-4" role="img" :aria-label="label">
+        <BreathVisual v-if="type === 'breath'" :held="held" />
+        <figure v-else-if="drawing" class="learn-visual mx-auto aspect-[3/2] w-full rounded-3xl bg-raised/60 p-4" :class="held ? 'is-held' : ''" role="img" :aria-label="label">
             <svg viewBox="0 0 300 220" class="size-full" aria-hidden="true" v-html="drawing"></svg>
         </figure>`,
     computed: {

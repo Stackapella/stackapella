@@ -9,7 +9,7 @@
 import { api, ApiError } from '../api.js';
 import { formatDate, t, tk } from '../i18n.js';
 import { navigate } from '../router.js';
-import { PageHeader } from '../components/page.js';
+import { AppScreen } from '../components/page.js';
 import { Notice } from '../components/form.js';
 import { confirmAction } from '../components/confirm.js';
 import { toast } from '../components/ui.js';
@@ -27,6 +27,7 @@ const REFUSED = {
     beta_singer: tk('voices.refused.betaSinger'),
     agreement_changed: tk('voices.refused.agreement'),
     claim_limit: tk('voices.refused.limit'),
+    rate_limited: tk('voices.refused.today'),
     not_wanted: tk('voices.refused.taken'),
     not_volunteer: tk('voices.refused.notVolunteer'),
     volunteer_blocked: tk('voices.refused.blocked'),
@@ -35,12 +36,11 @@ const REFUSED = {
 const day = (time) => (time ? formatDate(time, { month: 'short', day: 'numeric' }) : '');
 
 export const VoicesView = {
-    components: { AccountWall, Agreement, Notice, PageHeader },
+    components: { AccountWall, Agreement, Notice, AppScreen },
     data: () => ({ state: 'loading', agreement: null, wanted: null, skills: [], claims: [], kind: 'all', skill: '', credit: 'name', busy: null, refusal: null }),
     setup: () => ({ KINDS, KIND_WORDS, account, day, navigate }),
     template: `
-        <div class="mx-auto min-h-dvh max-w-3xl px-4 pb-16 pt-[max(1rem,env(safe-area-inset-top))] md:px-8">
-            <PageHeader :title="t('voices.title')" back="/settings" />
+        <AppScreen :title="t('voices.title')" back="/settings" measure="max-w-3xl">
             <p v-if="state === 'loading'" class="text-muted" role="status">{{ t('common.loading') }}</p>
             <Notice v-else-if="state === 'off'" tone="info" data-voices-off>{{ t('voices.off') }}</Notice>
             <AccountWall v-else-if="state === 'signedOut'" reason="voice" next="/voices" />
@@ -111,7 +111,7 @@ export const VoicesView = {
                     </ul>
                 </section>
             </template>
-        </div>`,
+        </AppScreen>`,
     async created() {
         await this.load();
     },

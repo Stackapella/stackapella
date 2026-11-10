@@ -37,12 +37,15 @@ export const GetReady = {
  * coming ones dim. Its hyphens join syllables ("A-maz-ing").
  */
 export const KaraokeLine = {
-    props: { line: { type: Object, required: true }, position: { type: Number, default: 0 }, color: { type: String, required: true }, pill: Boolean, glow: Boolean },
+    // small: the studio's line (20 to 24 px), a thinner underline that fits its fixed height.
+    // color: a part's colour, painted here in the theme showing (so a theme change repaints it); the underlined
+    // syllable takes the part's ink, deeper on a light theme, so it passes AA.
+    props: { line: { type: Object, required: true }, position: { type: Number, default: 0 }, color: { type: String, required: true }, pill: Boolean, glow: Boolean, small: Boolean },
     template: `
         <div translate="no">
-            <template v-for="(s, i) in line.syllables" :key="i"><span class="rounded-lg transition-colors"
-                :class="s.borrowed ? 'opacity-40' : i === active ? (pill ? 'px-1.5' : 'underline decoration-[6px] underline-offset-8') : i < active || active < 0 ? 'text-cream' : 'text-cream/40'"
-                :style="i === active ? (pill ? { background: color, color: paintText(color), boxShadow: glow ? '0 0 22px ' + color : 'none' } : { color }) : null">{{ s.text }}</span>{{ s.text.endsWith('-') ? '' : ' ' }}</template>
+            <template v-for="(s, i) in line.syllables" :key="i"><span class="rounded-lg transition-colors motion-reduce:transition-none"
+                :class="s.borrowed ? 'opacity-40' : i === active ? (pill ? 'px-1.5' : small ? 'underline decoration-2 underline-offset-4' : 'underline decoration-[6px] underline-offset-8') : i < active || active < 0 ? 'text-cream' : 'text-cream/40'"
+                :style="i === active ? (pill ? { background: paint(color), color: paintText(color), boxShadow: glow ? '0 0 22px ' + paint(color) : 'none' } : { color: paintInk(color) }) : null">{{ s.text }}</span>{{ s.text.endsWith('-') ? '' : ' ' }}</template>
         </div>`,
     computed: {
         active() {
@@ -79,7 +82,7 @@ export const Stage = {
     },
     setup: () => ({ joinSyllables }),
     template: `
-        <div class="relative flex min-h-0 flex-1 flex-col justify-center gap-5 px-5 py-6 md:px-12">
+        <div class="relative flex min-h-0 flex-1 flex-col justify-center gap-5 px-5 py-6 md:px-12" data-ui="sing-stage">
             <GetReady v-if="getReady" v-bind="getReady" :color="color" class="absolute inset-x-4 top-3 md:inset-x-12" />
             <p v-if="turn && recording" class="text-lg font-bold" :style="{ color: paintInk(color) }">{{ t('sing.turn.title') }}</p>
             <template v-else-if="lineOf || start">

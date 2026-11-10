@@ -9,6 +9,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Counts\RecordCountsRequest;
 use App\Support\Admin\StaffDevice;
 use App\Support\Pages\MudeoArrival;
+use App\Support\Stats\Crawler;
 use App\Support\Stats\ReportDay;
 use App\Support\Trust\Country;
 use Illuminate\Http\JsonResponse;
@@ -23,8 +24,9 @@ final class CountsController extends Controller
 {
     public function store(RecordCountsRequest $request, RecordCounts $counts): Response
     {
-        // An admin's device (StaffDevice): their own use isn't counted, nor any experiment arm.
-        if (config('counts.enabled') === true && ! StaffDevice::is($request)) {
+        // An admin's device (StaffDevice): their own use isn't counted, nor any experiment arm. Nor a
+        // well-known crawler running our pages' scripts (Crawler, from the agent, which is never kept).
+        if (config('counts.enabled') === true && ! StaffDevice::is($request) && ! Crawler::is($request)) {
             /** @var list<array{kind: string, n?: int}> $events */
             $events = array_values((array) $request->validated('events'));
             $variant = $request->validated('variant');

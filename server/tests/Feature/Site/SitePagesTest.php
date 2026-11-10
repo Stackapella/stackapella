@@ -34,7 +34,7 @@ final class SitePagesTest extends TestCase
     {
         // Hillel: "same image is shown twice". A page's own picture, its sections' and the cards it
         // shows (the first three) are each a different drawing.
-        foreach (['features' => SitePages::FEATURES, 'for' => SitePages::FOR] as $area => $slugs) {
+        foreach (['features' => SitePages::FEATURES, 'for' => SitePages::FOR_PAGES] as $area => $slugs) {
             foreach ($slugs as $slug) {
                 $page = SitePages::page($area, $slug);
                 $shown = SitePages::picturesOf($page);
@@ -48,6 +48,43 @@ final class SitePagesTest extends TestCase
         }
     }
 
+    public function test_a_title_carries_the_name_only_while_it_fits_what_search_results_show(): void
+    {
+        $this->assertSame('Learn a part | Stackapella', SitePages::title('Learn a part'));
+        $this->assertSame('Stackapella pricing', SitePages::title('Stackapella pricing'));
+        $long = 'Row, Row, Row Your Boat (round) harmony, part by part';
+        $this->assertSame($long, SitePages::title($long));
+        $this->assertLessThanOrEqual(SitePages::TITLE_FITS, mb_strlen(SitePages::title(str_repeat('a', 46))));
+    }
+
+    public function test_course_and_feature_pages_tell_search_what_they_are_and_where_they_sit(): void
+    {
+        $this->withoutMiddleware(ThrottleRequests::class);
+        foreach (SitePages::courses() as $slug) {
+            $html = (string) $this->get('/courses/'.$slug)->assertOk()->getContent();
+            $this->assertStringContainsString('"@type":"Course"', $html, "/courses/{$slug}: a Course");
+            $this->assertStringContainsString('"@type":"BreadcrumbList"', $html, "/courses/{$slug}: its trail");
+            $this->assertStringContainsString('"item":"'.Hosts::publicUrl().'/courses/'.$slug.'"', $html, "/courses/{$slug}: the trail ends on the page");
+        }
+        foreach (SitePages::FEATURES as $slug) {
+            $html = (string) $this->get('/features/'.$slug)->assertOk()->getContent();
+            $this->assertStringContainsString('"@type":"BreadcrumbList"', $html, "/features/{$slug}: its trail");
+        }
+    }
+
+    public function test_each_audience_page_links_the_courses_that_fit_it(): void
+    {
+        $this->withoutMiddleware(ThrottleRequests::class);
+        foreach (SitePages::FOR as $slug) {
+            $fit = array_intersect((array) Lang::get('site.for.pages.'.$slug.'.courses'), SitePages::courses());
+            $this->assertNotEmpty($fit, "/for/{$slug}: has courses that fit");
+            $html = (string) $this->get('/for/'.$slug)->assertOk()->getContent();
+            foreach ($fit as $course) {
+                $this->assertStringContainsString('href="/courses/'.$course.'"', $html, "/for/{$slug} links /courses/{$course}");
+            }
+        }
+    }
+
     public function test_every_feature_and_for_page_renders_with_its_words(): void
     {
         foreach (SitePages::paths() as $path) {
@@ -55,9 +92,12 @@ final class SitePagesTest extends TestCase
             $html = (string) $page->getContent();
 
             $this->assertSame(1, substr_count($html, '<h1'), "{$path}: one h1");
+            // Every page opens with the site's header; the free tools add their tool bar under it (Hillel, 2026-11-08).
             $page->assertSee('class="s-wrap s-top"', false)->assertSee('s-footer', false);
             $page->assertSee('<link rel="canonical" href="'.rtrim((string) config('app.url'), '/').$path.'">', false);
             $this->assertMatchesRegularExpression('/<title>[^<]*Stackapella[^<]*<\/title>/', $html, "{$path}: titled with the name");
+            preg_match('/<title>([^<]*)<\/title>/', $html, $title);
+            $this->assertLessThanOrEqual(SitePages::TITLE_FITS, mb_strlen(html_entity_decode($title[1] ?? '', ENT_QUOTES)), "{$path}: its title fits a search result");
             $this->assertStringNotContainsStringIgnoringCase('mudeo', self::withoutTheMaker($html), "{$path}: nothing about mudeo");
         }
 
@@ -67,7 +107,7 @@ final class SitePagesTest extends TestCase
             $words = (array) Lang::get('site.features.pages.'.$slug);
             $this->get('/features/'.$slug)->assertSee((string) ($words['hero_title'] ?? $words['headline']));
         }
-        foreach (SitePages::FOR as $who) {
+        foreach (SitePages::FOR_PAGES as $who) {
             $this->get('/for/'.$who)->assertSee(__('site.for.pages.'.$who.'.headline'));
         }
 
@@ -99,7 +139,7 @@ final class SitePagesTest extends TestCase
     public function test_the_mixer_plays_where_hearing_it_helps(): void
     {
         $template = Template::factory()->create(['slug' => 'amazing-grace', 'title' => 'Amazing Grace']);
-        $template->forceFill(['current_version_id' => TemplateVersion::factory()->create(['template_id' => $template->id])->id])->save();
+        $template->forceFill(['current_version_id' => TemplateVersion::factory()->create(['template_id' => $template->id, 'reviewed' => true])->id])->save();
 
         $this->get('/features/learn-a-part')->assertSee('class="s-mixer"', false)->assertSee('/js/public/mixer.js', false);
         $this->get('/features/course')->assertDontSee('class="s-mixer"', false)->assertDontSee('/js/public/mixer.js', false);
@@ -222,8 +262,8 @@ final class SitePagesTest extends TestCase
         $guide = $this->get('/guides/how-to-sing-harmony')->assertOk();
         // Its numbered headings are a path of steps, each number in a disc and not in the words.
         $guide->assertSee('class="s-prose"', false)->assertSee('class="s-wrap s-top"', false)
-            ->assertSee('<h2 class="s-gstep"><span class="s-disc s-v1" aria-hidden="true">1</span><span>Hear your part alone</span></h2>', false)
-            ->assertDontSee('1. Hear your part alone');
+            ->assertSee('<h2 class="s-gstep"><span class="s-disc s-v1" aria-hidden="true">1</span><span>Find the third</span></h2>', false)
+            ->assertDontSee('1. Find the third');
         $this->assertSame(1, substr_count((string) $guide->getContent(), '<h1'));
 
         foreach (DocumentPagesController::LEGAL as $page) {
@@ -251,17 +291,41 @@ final class SitePagesTest extends TestCase
         }
     }
 
-    public function test_a_plus_songs_page_plays_its_clip_and_never_its_parts_or_notes(): void
+    public function test_a_guides_song_plays_its_opening_line_whenever_it_is_open(): void
+    {
+        // Two guides sing Amazing Grace. Any open song plays for guests on a public page, bundled or not (Hillel's "Yes,
+        // play for guests", 2026-11-08, which the coordinator extended to guides on 2026-11-10); a hidden one never does.
+        $template = Template::factory()->create(['slug' => 'amazing-grace', 'title' => 'Amazing Grace', 'access' => TemplateAccess::Plus]);
+        $version = TemplateVersion::factory()->create(['template_id' => $template->id, 'reviewed' => true]);
+        $template->forceFill(['current_version_id' => $version->id])->save();
+        $guides = array_values(array_filter(DocumentPagesController::guides(), static fn (string $slug): bool => str_contains((string) file_get_contents(resource_path('guides/en/'.$slug.'.md')), "\nsong: amazing-grace\n")));
+        $this->assertNotSame([], $guides);
+
+        foreach ($guides as $slug) {
+            $page = $this->get('/guides/'.$slug)->assertOk();
+            $this->assertSame('amazing-grace', $page->viewData('guide')['song']['slug'] ?? null);
+            $this->assertNotNull($page->viewData('line'), "{$slug} plays its open song");
+        }
+
+        // A version never changes once published: the song goes back to waiting with a new one, not yet reviewed.
+        $template->forceFill(['current_version_id' => TemplateVersion::factory()->create(['template_id' => $template->id, 'version' => 2, 'reviewed' => false])->id])->save();
+        foreach ($guides as $slug) {
+            $this->assertNull($this->get('/guides/'.$slug)->viewData('line'), "{$slug} plays a hidden song");
+        }
+    }
+
+    public function test_an_account_songs_page_plays_its_clip_and_never_its_parts_or_notes(): void
     {
         $template = Template::factory()->create(['slug' => 'amazing-grace', 'title' => 'Amazing Grace', 'access' => TemplateAccess::Plus]);
-        $template->forceFill(['current_version_id' => TemplateVersion::factory()->create(['template_id' => $template->id])->id])->save();
+        $template->forceFill(['current_version_id' => TemplateVersion::factory()->create(['template_id' => $template->id, 'reviewed' => true])->id])->save();
 
         $page = $this->get('/songs/amazing-grace')->assertOk();
         $html = (string) $page->getContent();
 
         $this->assertSame(1, substr_count($html, '<h1'));
-        $page->assertSee(__('pages.song.plus'))->assertSee(__('pages.song.start'))->assertSee('D4');
-        // A Plus song: the preview clip, never a single part or the notes (Hillel, 2026-10-27).
+        // Every library song is free with an account (2026-11-07): none says Plus.
+        $page->assertSee(__('pages.song.start'))->assertSee('D4');
+        // A song the app doesn't bundle: the preview clip, never a single part or the notes (Hillel, 2026-10-27).
         $this->assertStringNotContainsString('data-song', $html);
         $this->assertStringNotContainsString('"pitch"', $html);
         $this->assertStringNotContainsString('/js/public/mixer.js', $html);
@@ -273,7 +337,7 @@ final class SitePagesTest extends TestCase
     {
         foreach (['amazing-grace' => 'Amazing Grace', 'happy-birthday' => 'Happy Birthday'] as $slug => $title) {
             $template = Template::factory()->create(['slug' => $slug, 'title' => $title, 'access' => TemplateAccess::Free]);
-            $template->forceFill(['current_version_id' => TemplateVersion::factory()->create(['template_id' => $template->id])->id])->save();
+            $template->forceFill(['current_version_id' => TemplateVersion::factory()->create(['template_id' => $template->id, 'reviewed' => true])->id])->save();
         }
 
         $page = $this->get('/songs/amazing-grace')->assertOk();
@@ -284,7 +348,8 @@ final class SitePagesTest extends TestCase
             ->assertSee('data-song', false)
             ->assertSee('<script type="module" src="/js/public/mixer.js"></script>', false)
             ->assertSee('role="radiogroup"', false)
-            ->assertSee(__('pages.song.range_row', ['part' => 'Soprano', 'low' => 'D4', 'high' => 'D5']))
+            // A live song's parts each link to their page, named by the link.
+            ->assertSee(__('pages.song.part_link', ['part' => 'Soprano', 'low' => 'D4', 'high' => 'D5']))
             ->assertSee(__('pages.song.end_title', ['title' => 'Amazing Grace']))
             ->assertSee('href="/songs/happy-birthday"', false);
         $this->assertSame(4, substr_count($html, 'class="s-range-row'));
@@ -297,6 +362,9 @@ final class SitePagesTest extends TestCase
     public function test_text_blocks_are_escaped_with_only_bold_made_bold(): void
     {
         $this->assertSame('a <strong>b</strong> &lt;script&gt;', Prose::inline('a **b** <script>')->toHtml());
+        // A link to one of our own pages, and nothing else: another site, a protocol or a script stays words.
+        $this->assertSame('try the <a href="/tools/drone" class="s-lk">drone tool</a> now', Prose::inline('try the [drone tool](/tools/drone) now')->toHtml());
+        $this->assertSame('[x](https://example.com) [y](//evil.example) [z](javascript:alert(1))', Prose::inline('[x](https://example.com) [y](//evil.example) [z](javascript:alert(1))')->toHtml());
     }
 
     public function test_each_page_has_its_own_link_card_drawn_from_its_own_words(): void
@@ -382,7 +450,9 @@ final class SitePagesTest extends TestCase
         app(Flags::class)->set('plus_courses', 'on', null, 'Opening the Plus courses');
         $live = collect((array) json_decode((string) file_get_contents(dirname(base_path()).'/web/course/plus/courses.json'), true)['courses'])->where('status', 'live')->map(fn (array $c): string => $c['slug'] ?? $c['id'])->values()->all();
         foreach (SitePages::COURSES as $slug) {
-            $this->assertSame(in_array($slug, $live, true), SitePages::courseOpen($slug), $slug);
+            // By its slug, or by its page's `app` (the catalogue's id) while the catalogue doesn't name the slug.
+            $app = Lang::get('site.courses.pages.'.$slug.'.app');
+            $this->assertSame(in_array($slug, $live, true) || (is_string($app) && in_array($app, $live, true)), SitePages::courseOpen($slug), $slug);
         }
     }
 
@@ -443,7 +513,6 @@ final class SitePagesTest extends TestCase
 
         $response = $this->get('/features/course')->assertOk()
             ->assertSee((string) $page['hero_title'])
-            ->assertSee((string) $page['plus_unit'])
             ->assertSee('"@type":"FAQPage"', false);
         foreach ($outline['units'] as $unit) {
             $response->assertSee($unit['title'])->assertSee($unit['lessons'][0]);
@@ -452,7 +521,7 @@ final class SitePagesTest extends TestCase
         $html = (string) $this->get('/courses')->assertOk()->getContent();
         $free = strpos($html, 'href="/features/course"');
         $this->assertNotFalse($free, 'the free course is on /courses');
-        $this->assertLessThan(strpos($html, 'href="/courses/'), $free, 'and listed before the Plus courses');
+        $this->assertLessThan(strpos($html, 'href="/courses/'), $free, 'and listed before the other courses');
         $this->assertStringContainsString(e(__('site.courses.index.free_name')), $html);
     }
 
@@ -493,7 +562,9 @@ final class SitePagesTest extends TestCase
 
         foreach ($groups as $key => $group) {
             $this->assertNotSame('', $group['name']);
-            $listed = $catalogue->where('group', $key)->map(fn (array $c): string => $c['slug'] ?? $c['id'])->values()->all();
+            // A catalogue course without its own page yet isn't listed (it would be a link to a 404).
+            $listed = $catalogue->where('group', $key)->map(fn (array $c): string => $c['slug'] ?? $c['id'])
+                ->filter(fn (string $slug): bool => in_array($slug, SitePages::courses(), true))->values()->all();
             $this->assertSame($listed, array_slice($group['courses'], 0, count($listed)), $key);
         }
 

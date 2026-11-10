@@ -1,5 +1,6 @@
 # The App Platform spec, used ONCE: doctl apps create --spec .do/app.yaml. After that, change the app
 # in the console: re-applying a stored spec deletes domains and console-set secrets (docs/conventions.md).
+# An edit here reaches the live app only by the same edit in the console: docs/console-check.md.
 #
 # Secrets are never in this file. Set these in the console, as encrypted values, before the first
 # deploy (each is described in server/.env.example):
@@ -34,8 +35,9 @@ envs:
   - { key: PRIVATE_DISK, value: spaces_private }
   - { key: BACKUP_DISK, value: spaces_backup }
   - { key: BEHIND_APP_PLATFORM, value: 'true' }
-  # The beta domain: "coming soon" for anyone who didn't come in through an invite link or /admin.
-  - { key: COMING_SOON, value: 'true' }
+  # "Coming soon" for anyone who didn't come in through an invite link or /admin: on for the beta,
+  # off since launch (docs/launch-day.md). The live app is changed in the console (docs/console-check.md).
+  - { key: COMING_SOON, value: 'false' }
   # The log mailer until Cloudflare Email Service is set up (roadmap M3; "Needs Hillel" in contract/log.md).
   - { key: MAIL_MAILER, value: log }
 
@@ -82,12 +84,16 @@ workers:
     source_dir: /
     instance_size_slug: apps-s-1vcpu-1gb
     instance_count: 1
-    # Two workers, each started again when it reaches its job or time limit.
+    # Two workers, each started again when it reaches its job or time limit; and one for the
+    # default queue (sign-up links, account emails), so an email goes in seconds rather than at the
+    # scheduler's next minute (it still drains the queue every minute, as a backstop).
     run_command: >-
       sh -c 'cd /app/server && php artisan optimize &&
       for worker in 1 2; do
       (while true; do php artisan queue:work database_long --queue=long --timeout=300 --max-jobs=50 --max-time=3600; sleep 1; done) &
-      done; wait'
+      done;
+      (while true; do php artisan queue:work database --queue=default --timeout=60 --tries=3 --max-jobs=500 --max-time=3600; sleep 1; done) &
+      wait'
     envs:
       - { key: APP_BUILD, value: '${_self.COMMIT_HASH}' }
 
@@ -101,4 +107,4 @@ jobs:
     source_dir: /
     instance_size_slug: apps-s-1vcpu-0.5gb
     # The migrations, then the official templates into the catalogue (safe to run again).
-    run_command: sh -c 'cd /app/server && php artisan migrate --force && php artisan app:templates:sync'
+    run_command: sh -c 'cd /app/server && php artisan migrate --force && php artisan app:templates:sync && (php artisan app:sitemap:dates || echo "sitemap dates skipped")'

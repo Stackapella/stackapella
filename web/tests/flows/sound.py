@@ -64,11 +64,14 @@ def journey(f):
     f.wait(f"{SESSION}.session.playing", what="the studio playing")
     heard(f, "the studio")
     f.run(f"await {SESSION}.stopPlayback()")
-    # A lesson's exercise (Higher and lower), through its own Play.
+    # A lesson's exercise (Higher and lower), through its own Play: signed in, as from lesson 2 a guest is
+    # asked for a free account (Hillel, 2026-11-06: "after lesson 1 of any course").
+    f.go("/voice?api=mock&as=member", "document.querySelector('#app header, #app main')")
+    f.js(f"{AUDIO}.unlock()")
     f.run("""const { findLesson, loadLearning, setHome } = await import('/js/stores/learning.js'); await loadLearning(); await setHome(57);
         const steps = findLesson('1-high-low').lesson.steps; sessionStorage.setItem('stackapella.lesson.1-high-low', String(steps.map((s) => s.kind).indexOf('play')));""")
     f.go("/learn/1-high-low", "document.querySelector('.lane-stage, [data-wait-lane]')")
-    f.run("document.querySelector('button:has(> .glass-bubble-solid.ring-8)').click()")
+    f.run("document.querySelector('button:has(> [data-play-disc])').click()")
     f.wait(f"{AUDIO}.engine.playing", what="the exercise playing")
     heard(f, "a lesson")
 

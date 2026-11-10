@@ -38,7 +38,7 @@ final class Rehearsals
      */
     public function link(User $director, string $sqid, string $schedule): array
     {
-        $group = $this->groups->directed($director, $sqid, needsPlus: true);
+        $group = $this->groups->directed($director, $sqid);
         $connection = EsConnection::query()->where('user_id', $director->id)->where('status', '!=', EsConnection::DISCONNECTED)->first() ?? throw new Refusal(409, 'event_schedule_required');
 
         if (! $connection->usable()) {
@@ -120,7 +120,7 @@ final class Rehearsals
      */
     public function pickSongs(User $director, string $sqid, string $eventId, array $templateIds): array
     {
-        $group = $this->groups->directed($director, $sqid, needsPlus: true);
+        $group = $this->groups->directed($director, $sqid);
         $connection = $group->es_connection_id !== null ? EsConnection::query()->find($group->es_connection_id) : null;
 
         if ($group->es_schedule === null || $connection === null || ! $connection->usable()) {

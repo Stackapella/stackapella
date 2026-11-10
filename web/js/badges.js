@@ -31,6 +31,9 @@ export const BADGES = [
     // Skill
     { id: 'threeStars', name: tk('badges.threeStars.name'), line: tk('badges.threeStars.line'), group: 'skill', icon: 'star', earned: (p) => lessonsWith(p, 3) >= 1 },
     { id: 'tenThreeStars', name: tk('badges.tenThreeStars.name'), line: tk('badges.tenThreeStars.line'), group: 'skill', icon: 'star', earned: (p) => lessonsWith(p, 3) >= 10, goal: (p) => [lessonsWith(p, 3), 10] },
+    // The units' bosses (docs/boss-round-plan.md): the first beaten, then every free unit's.
+    { id: 'bossBeaten', name: tk('badges.bossBeaten.name'), line: tk('badges.bossBeaten.line'), group: 'skill', icon: 'shield', earned: (p) => Object.values(p.bosses ?? {}).some((b) => b.beatAt) },
+    { id: 'everyBoss', name: tk('badges.everyBoss.name'), line: tk('badges.everyBoss.line'), group: 'skill', icon: 'shield', earned: (p) => count(p, 'everyBoss') >= 1 },
     { id: 'combo10', name: tk('badges.combo10.name'), line: tk('badges.combo10.line'), group: 'skill', icon: 'repeat', earned: (p) => count(p, 'bestCombo') >= 10, goal: (p) => [count(p, 'bestCombo'), 10] },
     { id: 'combo20', name: tk('badges.combo20.name'), line: tk('badges.combo20.line'), group: 'skill', icon: 'repeat', earned: (p) => count(p, 'bestCombo') >= 20, goal: (p) => [count(p, 'bestCombo'), 20] },
     { id: 'excellentTake', name: tk('badges.excellentTake.name'), line: tk('badges.excellentTake.line'), group: 'skill', icon: 'check', earned: (p) => count(p, 'excellentTakes') >= 1 },

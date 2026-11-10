@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en" data-theme="stage-dark">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Tap tempo</title>
+    <!-- How a /tools page mounts the tap tempo tool (js/public/tools/tap-tempo.js) under the tools' frame
+         (tests/tool-frame.js: the brand row with the Theme button): the page's H1, a box, the page's words. -->
+    <meta name="game-css" content="/css/site-game.css">
+    <link rel="stylesheet" href="/css/site.css">
+    <script src="/js/theme-boot.js"></script>
+    <script src="/js/game-css.js"></script>
+</head>
+<body class="bg-ink text-cream">
+    <main class="px-4">
+        <div id="tool"></div>
+        <h1 class="mx-auto mt-8 max-w-[24.375rem] text-[28px] font-extrabold leading-tight tracking-tight md:text-[40px]">Tap tempo</h1>
+    </main>
+    <script type="module" src="/tests/tool-frame.js"></script>
+    <script type="module">
+        import { mountTapTempo } from '/js/public/tools/tap-tempo.js';
+        const words = {
+            bpm: 'BPM', time: 'Time', halve: 'Half time', double: 'Double time', tap: 'Tap', tapHint: 'or press Space', idleHint: 'Tap along to the beat of a song', padLabel: 'Tap along',
+            startAgain: 'Tap to start again', taps: ':n taps', steady: 'Steady', fair: 'Fairly steady', uneven: 'Uneven: keep going', metronome: 'Play in metronome',
+            more: 'More', settingsTitle: 'Settings', reset: 'Reset', done: 'Done', eachTap: 'Each tap is', aBeat: 'a beat', aBarOf: 'a bar of :n', decimal: 'Show a decimal', tapSound: 'A click on each tap',
+            perBeat: ':beat ms a beat, :eighth ms an eighth', copy: 'Copy', copied: 'Copied', copyText: ':bpm BPM (:name), from stackapella.com/tools/tap-tempo', clearTaps: 'Start again',
+        };
+        window.__went = null;
+        window.__tool = mountTapTempo(document.querySelector('#tool'), { words, keySlot: document.querySelector('[data-tool-key]'), go: (url) => (window.__went = url) });
+    </script>
+</body>
+</html>

@@ -45,6 +45,12 @@ def sing_wave(f):
     return f.js("document.querySelector('[data-wave-line]').textContent")
 
 
+def on_to_next_wave(f):
+    """From a wave's result on to the lesson's next wave step."""
+    f.click_t("course.continue")
+    f.wait("document.querySelector('[data-wave-lane] canvas') && !document.querySelector('[data-wave-result]')", what="the next wave")
+
+
 def journey(f):
     f.go("/?api=mock&scenario=&as=admin", "document.querySelector('#app header')")
     f.run("localStorage.setItem('stackapella.asks', JSON.stringify({ stopped: ['install'] })); sessionStorage.setItem('stackapella.headphones', '1');")
@@ -75,6 +81,9 @@ def journey(f):
     line = sing_wave(f)
     assert line == t(f, "wave.line.freeStraight"), f"a calm, steady note: {line}"
     picture(f, "vibrato-ghost-result")
+    # Its second ghost wave, a step higher (2026-11-08), is the lesson's last: sing it too.
+    on_to_next_wave(f)
+    sing_wave(f)
     # The lesson end's "Did you know?" card: the lesson's fact, its source a quiet link.
     f.js(f"{AUDIO}.engine.setLoopback(false)")
     f.click_t("course.finish")
@@ -90,6 +99,9 @@ def journey(f):
     line = sing_wave(f)
     assert "not yet" in line, f"no wave yet, said kindly: {line}"
     picture(f, "vibrato-bloom-result")
+    # Its second bloom, on "oo" (2026-11-08), is the lesson's last and gives its stars.
+    on_to_next_wave(f)
+    assert "not yet" in sing_wave(f), "the second bloom, straight too: no wave yet"
     f.js(f"{AUDIO}.engine.setLoopback(false)")
     f.click_t("course.finish")
     f.wait(f"({STORE}.learning.progress.courses?.vibrato?.lessons?.['vib-4-bloom']?.stars ?? 0) === 2", what="two stars for the straight start")

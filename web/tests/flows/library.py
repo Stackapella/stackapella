@@ -48,11 +48,11 @@ def journey(f):
     assert not f.js("document.querySelector('[role=dialog]')"), "Play opened the sheet"
     f.run(f"{CARDS}[0].querySelector('[data-song-play]').click()")
     f.wait(f"!{AUDIO}.engine.playing", what="the preview stopped")
-    # A tap: the sheet, with Play, Edit and Start in a row at equal widths (Hillel), no parts list or More options.
+    # A tap: the sheet. One primary (Hillel, 2026-11-02): Start full width first, then Play and Edit side by side at equal widths.
     f.run(f"{CARDS}[0].querySelector('button').click()")
     f.wait(f"{PLAY} && document.querySelector('[role=dialog] [data-song-start]')", what="the song's sheet")
     boxes = f.js(f"[{PLAY}, document.querySelector('[data-song-edit]'), document.querySelector('[data-song-start]')].map((b) => {{ const r = b.getBoundingClientRect(); return [Math.round(r.width), Math.round(r.top)]; }})")
-    assert boxes[0] == boxes[1] == boxes[2], f"Play, Edit and Start aren't the same width in one row: {boxes}"
+    assert boxes[0] == boxes[1] and boxes[2][0] > boxes[0][0] and boxes[2][1] < boxes[0][1], f"Start isn't full width above Play and Edit: {boxes}"
     assert not f.js(f"[...document.querySelectorAll('[role=dialog] button')].some((b) => b.textContent.trim() === {t(f, 'template.copy')!r})"), "Make a copy is back"
     assert not f.js("document.querySelector('[role=dialog] [data-more-options]')"), "More options is back"
     f.shot("sheet")

@@ -42,9 +42,13 @@ def journey(f):
     f.go("/?api=mock&scenario=&as=member", "document.querySelector('#app header')")
     f.run("localStorage.setItem('stackapella.asks', JSON.stringify({ stopped: ['install'] }));")
 
-    # A member, before launch: nothing shows, and the addresses read as not here.
+    # A member, before launch: nothing shows, and the addresses read as not here. Not even for a moment while the account
+    # is coming (a member read as a guest saw the band and then lost it): watched from the page's first frame.
+    f.chrome.send("Page.addScriptToEvaluateOnNewDocument", {"source": "window.__moreSeen = false; new MutationObserver(() => { if (document.querySelector('[data-more-courses]')) window.__moreSeen = true; }).observe(document, { childList: true, subtree: true });"})
     f.go("/learn", "document.querySelector('[data-course-map]')")
+    f.wait("(await import('/js/stores/account.js')).account.loaded && (await import('/js/stores/account.js')).account.config", what="the account and the settings")
     assert not f.js("!!document.querySelector('[data-more-courses]')"), "a member sees no Plus course before launch"
+    assert not f.js("window.__moreSeen"), "the Plus courses flashed for a member before the account came"
     f.go("/learn/c/vibrato")
     f.wait_text(t(f, "courses.notHere"))
     f.go("/learn/vib-1-laser")
@@ -225,17 +229,19 @@ def journey(f):
     assert f.js(f"!{STORE}.learning.progress.courses?.vibrato"), "the course's lessons went"
     f.wait_text("Swing your voice")
 
-    # After launch, a free account: lesson 1 open, lesson 2 part of Plus.
+    # After launch, a free account: every lesson open (Hillel, 2026-11-06), lesson 2 too.
     f.go("/?api=mock&scenario=&as=member", "document.querySelector('#app header')")
     f.go("/learn", "document.querySelector('[data-course-map]')")
     f.wait(f"!!{ACCOUNT}.me", what="the member's account")
     f.js(f"{ACCOUNT}.me.plusCourses = true")
     f.wait("document.querySelector('[data-more-courses] [data-course-row=vibrato]')", what="the band once the feature is on")
-    f.wait_text(t(f, "courses.moreLine"))  # the free first lesson, said once for every course
+    f.wait_text(t(f, "courses.moreLine"))  # every course free, said once
     f.run(f"(await import('/js/router.js')).navigate('/learn/vib-1-swing')")
     f.wait_text("You're about to see your voice draw a wave")
     f.run(f"(await import('/js/router.js')).navigate('/learn/vib-1-easy')")
-    f.wait_text(t(f, "courses.plusOnly"))
+    f.wait("document.querySelector('[data-go-on]')", what="lesson 2 opens on the free plan")
+    assert not f.js("document.querySelector('[data-needs-account]')"), "a signed-in member is never asked for an account"
+    assert t(f, "courses.wall.title") not in f.js("document.body.innerText")
     compress()
 
 

@@ -15,12 +15,13 @@ import { PART_COLORS } from '../theme.js';
 import { paint } from '../colors.js';
 import { appearance } from '../stores/appearance.js';
 import { Icon } from './icon.js';
-import { courseSummary, courseVisible } from '../courses.js';
+import { courseSummary, courseVisible, guestOpen } from '../courses.js';
+import { CourseWall } from './course-wall.js';
 import { CourseCard } from './course-card.js';
 import { coverShape } from '../song-shape.js';
 import { game, sk } from '../skin.js';
 import { effect } from '../game/effects.js';
-import { stamped } from '../game/daily.js';
+import { stamped } from '../game/modules.js';
 import { daysSinceArrival } from '../funnel.js';
 import { count } from '../usage.js';
 import { midiName } from '../dsp.js';
@@ -114,10 +115,11 @@ export const LessonPath = {
             <template v-for="(lesson, i) in unit.lessons" :key="lesson.id">
                 <li v-if="i" class="mx-1.5 h-0.5 min-w-3 flex-1 rounded-full" :style="{ background: stars(unit.lessons[i - 1]) ? color : 'var(--color-line)' }" aria-hidden="true"></li>
                 <li class="shrink-0">
-                    <!-- Glass gems (2.6a): done and the one now; the rest hollow; the challenge a diamond. Serious mode is
-                         calm (onboarding review 2, 11): flat nodes, and the challenge a plain ring. -->
-                    <button type="button" class="grid place-items-center transition" :class="[lesson.id === current ? 'size-12' : 'size-9', lesson.challenge && !stars(lesson) && game() ? 'rotate-45 rounded-lg' : 'rounded-full', stars(lesson) || lesson.id === current ? (game() ? 'gem' : 'bg-accent text-accent-ink') : lesson.challenge && !game() ? 'border-2 border-cream bg-ink text-cream' : 'border-2 border-line bg-ink text-muted']" :style="lesson.id === current ? { boxShadow: '0 0 0 6px color-mix(in srgb, var(--color-accent) 22%, transparent)' } : null"
-                        :aria-label="t('course.lessonLabel', { title: localized(lesson.title), stars: stars(lesson) })" :aria-current="lesson.id === current ? 'step' : null" @click="navigate('/learn/' + lesson.id)">
+                    <!-- Game mode: glass gems (2.6a), done and the one now; the rest hollow; the challenge a diamond. Serious
+                         mode: bubbles (docs/bubble-circles-plan.md), done and the one now filled (the one now with its halo),
+                         the rest clear pearls, the challenge with a cream rim. -->
+                    <button type="button" class="grid place-items-center transition" :class="[lesson.id === current ? 'size-12' : 'size-9', game() ? gameLook(lesson) : bubbleLook(lesson)]" :style="lesson.id === current && game() ? { boxShadow: '0 0 0 6px color-mix(in srgb, var(--color-accent) 22%, transparent)' } : null"
+                        :aria-label="t('course.lessonLabel', { title: localized(lesson.title), stars: stars(lesson) })" :aria-current="lesson.id === current ? 'step' : null" :data-node="stars(lesson) ? 'done' : lesson.id === current ? 'now' : lesson.challenge ? 'challenge' : 'next'" @click="navigate('/learn/' + lesson.id)">
                         <Icon :name="stars(lesson) ? 'check' : lesson.id === current ? 'play' : lesson.challenge && game() ? 'starFilled' : 'note'" :size="lesson.id === current ? 20 : 15" :class="lesson.challenge && !stars(lesson) && game() ? '-rotate-45' : ''" />
                     </button>
                 </li>
@@ -130,10 +132,16 @@ export const LessonPath = {
     methods: {
         navigate,
         stars: (lesson) => learning.progress.lessons[lesson.id]?.stars ?? 0,
-        look(lesson) {
-            if (lesson.id === this.current) return { background: this.color, color: 'var(--color-accent-ink)', boxShadow: `0 0 0 5px color-mix(in srgb, ${this.color} 25%, transparent)` };
-            if (this.stars(lesson)) return { background: this.color, color: 'var(--color-accent-ink)' };
-            return { background: 'var(--color-raised)', color: 'var(--color-muted)', border: '1.5px solid var(--color-line)' };
+        /** Game mode's node: a gem when done or now, the challenge a diamond, the rest hollow. */
+        gameLook(lesson) {
+            const shape = lesson.challenge && !this.stars(lesson) ? 'rotate-45 rounded-lg' : 'rounded-full';
+            return [shape, this.stars(lesson) || lesson.id === this.current ? 'gem' : 'border-2 border-line bg-ink text-muted'];
+        },
+        /** Serious mode's node: a bubble in the accent when done or now (now with its halo), else a clear pearl. */
+        bubbleLook(lesson) {
+            if (this.stars(lesson)) return 'bubble';
+            if (lesson.id === this.current) return 'bubble bubble-now';
+            return lesson.challenge ? 'bubble bubble-clear bubble-challenge' : 'bubble bubble-clear';
         },
     },
 };
@@ -155,7 +163,7 @@ const laneBars = (seed) => Array.from({ length: BARS }, (_, i) => 0.25 + 0.75 * 
  * next, with the unit's path and place still in it.
  */
 export const HomeLead = {
-    components: { Icon, LessonPath, GoalRing, LevelBar, TodayLine },
+    components: { CourseWall, Icon, LessonPath, GoalRing, LevelBar, TodayLine },
     props: { compact: { type: Boolean, default: false } },
     setup: () => ({ learning, localized, LANES, PART_COLORS, laneBars, BARS, effect, game }),
     data: () => ({ starting: false, wide: window.matchMedia('(min-width: 1024px)').matches }),
@@ -208,7 +216,8 @@ export const HomeLead = {
                     <span class="h-1.5 flex-1 overflow-hidden rounded-full bg-raised" role="progressbar" :aria-valuenow="done" aria-valuemin="0" :aria-valuemax="next.unit.lessons.length" :aria-label="t('home.lead.unitProgress', { done, total: next.unit.lessons.length })"><span class="block h-full rounded-full bg-accent" :style="{ width: (100 * done) / next.unit.lessons.length + '%' }"></span></span>
                     <span v-if="!finished && left" class="shrink-0 text-sm text-muted">{{ t('home.lead.left', { count: left }) }}</span>
                 </div>
-                <div class="mt-6">
+                <CourseWall v-if="walled" compact place="home" :level="2" :lesson-id="next.lesson.id" class="mt-6 max-w-md" />
+                <div v-else class="mt-6">
                     <button v-if="!finished && effect('title')" type="button" class="btn-primary w-full sm:w-auto" data-press-start @click="navigate('/learn/' + next.lesson.id)"><span class="sr-only">{{ t('home.lead.continueLesson') }}: </span><span class="ge-press-arrow" aria-hidden="true">▸</span> {{ t('game.home.pressStart') }}</button>
                     <button v-else-if="!finished" type="button" class="btn-primary w-full sm:w-auto" @click="navigate('/learn/' + next.lesson.id)">{{ t('home.lead.continueLesson') }} <Icon name="arrow" :size="16" /></button>
                     <button v-else type="button" class="btn-secondary w-full sm:w-auto" @click="navigate('/learn')">{{ t('home.lead.seeCourse') }}</button>
@@ -238,7 +247,8 @@ export const HomeLead = {
                         <h1 id="lead-title" class="truncate text-lg font-bold text-cream" translate="no">{{ finished ? t('home.lead.allDoneTitle') : localized(next.lesson.title) }}</h1>
                     </div>
                 </div>
-                <button type="button" class="mt-4 w-full sm:w-auto" :class="finished ? 'btn-secondary' : 'btn-primary'" @click="navigate(finished ? '/learn' : '/learn/' + next.lesson.id)">{{ finished ? t('home.lead.seeCourse') : t('course.continue') }} <Icon v-if="!finished" name="arrow" :size="16" /></button>
+                <CourseWall v-if="walled" compact place="home" :level="2" :lesson-id="next.lesson.id" class="mt-4" />
+                <button v-else type="button" class="mt-4 w-full sm:w-auto" :class="finished ? 'btn-secondary' : 'btn-primary'" @click="navigate(finished ? '/learn' : '/learn/' + next.lesson.id)">{{ finished ? t('home.lead.seeCourse') : t('course.continue') }} <Icon v-if="!finished" name="arrow" :size="16" /></button>
             </template>
         </section>`,
     created() {
@@ -288,7 +298,15 @@ export const HomeLead = {
             return this.compact && !this.wide;
         },
         started: () => Object.keys(learning.progress.lessons).length > 0 || !!learning.progress.startedAt,
-        next: () => (learning.course ? nextLesson(learning.course.units, learning.progress, { plus: account.me?.plan === 'plus' }) : null),
+        next: () => (learning.course ? nextLesson(learning.course.units, learning.progress) : null),
+        /**
+         * A guest whose next lesson is past lesson 1: the course map's account ask here too, in place of Continue, which led
+         * a returning guest straight into the wall (the first-week walk, 2026-11-08). Only once the account is known, so a
+         * member never sees it flash.
+         */
+        walled() {
+            return !!this.next && !this.finished && account.loaded && !account.me && !guestOpen(learning.course, this.next.lesson.id);
+        },
         /** Every lesson open to them has stars: the band points to the course to play for more. */
         finished() {
             return !!this.next && !!learning.progress.lessons[this.next.lesson.id]?.stars;
@@ -296,12 +314,12 @@ export const HomeLead = {
         unitNumber() {
             return learning.course.units.indexOf(this.next.unit) + 1;
         },
-        /** The lesson's place in its unit, and the lessons after it still to sing. */
+        /** The lesson's place in its unit, and the lessons still to sing in it, the one up next included ("Lesson 4 of 5 · 2 lessons left"). */
         place() {
             return this.next.unit.lessons.indexOf(this.next.lesson) + 1;
         },
         left() {
-            return this.next.unit.lessons.filter((l) => !learning.progress.lessons[l.id]?.stars).length - 1;
+            return this.next.unit.lessons.filter((l) => !learning.progress.lessons[l.id]?.stars).length;
         },
         /** The unit's lessons with stars. */
         done() {
@@ -351,6 +369,9 @@ export const WeekCard = {
                 <li v-for="(d, i) in days" :key="d.day" class="flex flex-col items-center gap-1.5"  data-week-day :data-day-done="d.done ? '' : null" :data-day-today="d.today ? '' : null" :data-daily-stamp="stamped(d.day) ? '' : null">
                     <span class="relative h-1.5 w-full overflow-hidden rounded-full" :class="d.today ? 'bg-cream/25' : 'bg-line'"><span class="absolute inset-y-0 start-0 rounded-full bg-accent" :style="{ width: d.share * 100 + '%' }"></span></span>
                     <span class="text-[10px] font-semibold" :class="d.today ? 'text-cream' : 'text-muted'" :aria-label="d.done ? t('home.week.dayDone', { day: t(DAY_NAMES[i]) }) : t('home.week.dayNot', { day: t(DAY_NAMES[i]) })">{{ t(DAY_LETTERS[i]) }}</span>
+                    <!-- Today's dot under its letter: today is never told by colour alone (Hillel chose a dot, 2026-11-02).
+                         Every day keeps the room, so the letters stay in one line. -->
+                    <span class="size-1 rounded-full" :class="d.today ? 'bg-cream' : 'invisible'" aria-hidden="true" :data-today-dot="d.today ? '' : null"></span>
                     <span v-if="stamped(d.day)" class="sr-only">{{ t('game.daily.stamped') }}</span>
                 </li>
             </ol>
@@ -443,7 +464,7 @@ export const WorkoutStrip = {
 
 /**
  * The Plus courses on Home: one row of three, the course under way first (see HomeCourses). A live
- * course this account can see opens its page (its first lesson free); the rest say Coming soon.
+ * course this account can see opens its page (every lesson free); the rest say Coming soon.
  * Drawn from the catalogue (course/plus/courses.json: order, featured, launch, status).
  */
 export const HomeCourses = {
@@ -459,7 +480,7 @@ export const HomeCourses = {
             </div>
             <ul class="mt-3 -mx-4 flex snap-x scroll-px-4 gap-3 overflow-x-auto px-4 pb-1 [scrollbar-width:none] md:mx-0 md:grid md:grid-cols-3 md:overflow-visible md:px-0">
                 <li v-for="c in row" :key="c.entry.id" class="w-64 shrink-0 snap-start md:w-auto" :data-course-card="c.entry.id">
-                    <CourseCard :entry="c.entry" :summary="c.summary" :plus="plus" />
+                    <CourseCard :entry="c.entry" :summary="c.summary" />
                 </li>
             </ul>
         </section>`,
@@ -469,10 +490,9 @@ export const HomeCourses = {
     },
     computed: {
         /** Plus (or staff, trying them before launch) starts any lesson; everyone else, the first free. */
-        plus: () => account.me?.plan === 'plus' || !!account.me?.staff,
         cards() {
             return (learning.catalogue ?? []).map((entry) => {
-                const open = courseVisible(entry, account.me, account.config) && !!learning.courses?.[entry.id];
+                const open = courseVisible(entry, account.me, account.config, account.loaded) && !!learning.courses?.[entry.id];
                 const summary = open ? courseSummary(learning.courses[entry.id], learning.progress) : null;
                 return { entry, open, summary, started: !!summary?.started, last: summary?.started ? lastSung(learning.progress, entry.id) : 0 };
             });

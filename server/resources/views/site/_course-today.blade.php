@@ -1,4 +1,4 @@
-{{-- What works today, for a course still coming: the free course, beside the real course map. --}}
+{{-- What works today, for a course still coming: the beginner course, beside the real course map. --}}
 <section class="s-ink" aria-labelledby="today-h">
     <div class="s-wrap s-split">
         <div>

@@ -8,10 +8,10 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
 from flow import run  # noqa: E402
-from game_frames import dark, light  # noqa: E402
+from game_frames import dark, every_theme, light  # noqa: E402
 
 ROWS = "document.querySelectorAll('[data-game-effect]')"
-NAMES = ["arcade", "scanlines", "all", "sounds", "hud", "popups", "titles", "celebrations", "title", "stages", "versus", "select", "ghost", "daily", "monthly"]  # the look, then the moments
+NAMES = ["arcade", "scanlines", "all", "sounds", "hud", "popups", "titles", "celebrations", "title", "stages", "versus", "boss", "select", "ghost", "daily", "monthly"]  # the look, then the moments
 
 
 def on(f, name):
@@ -30,6 +30,7 @@ def journey(f):
     f.run("document.getElementById('game').scrollIntoView()")
     f.no_sideways("the game switches")
     f.shot("game-dark")
+    every_theme(f, "Settings' game mode section")
     f.run("document.querySelector('[data-game-effect=sounds] [role=switch]').click(); document.querySelector('[data-game-effect=hud] [role=switch]').click()")
     f.wait("JSON.parse(localStorage.getItem('stackapella.gameEffects')).sounds === true", what="kept on the device")
     f.go("/settings?api=mock&as=signedOut", f"{ROWS}.length === {len(NAMES)}")

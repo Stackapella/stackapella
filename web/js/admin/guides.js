@@ -54,11 +54,11 @@ export const GuidesSection = {
                                         <button type="button" class="btn-ghost btn-sm" :disabled="busy" @click="makeDefault(song, guide)">{{ t('admin.guides.makeDefault') }}</button>
                                     </template>
                                     <StatusChip v-if="!guide.isDefault" tone="muted" :label="t('admin.guides.alternate')" />
-                                    <button v-if="isAdmin" type="button" class="btn-ghost btn-sm text-bad" @click="ask(song, guide)">{{ t('admin.guides.remove') }}</button>
+                                    <button v-if="isAdmin" type="button" class="btn-ghost btn-sm text-bad" data-guide-withdraw @click="ask(song, guide, part)">{{ t('admin.withdraw.button') }}</button>
                                 </li>
                             </ul>
                             <!-- What this part needs (takes to review, changed, no singer) and its singers, with Ask again. -->
-                            <PartNeeds v-if="part.needs" :needs="part.needs" :me="me" @asked="load" />
+                            <PartNeeds v-if="part.needs" :needs="part.needs" :me="me" :part-name="templatePartName(part)" @asked="load" />
                         </li>
                     </ul>
                 </li>
@@ -74,7 +74,7 @@ export const GuidesSection = {
                     </li>
                 </ul>
             </section>
-            <ChangeSheet v-if="removing" :title="removing.clip ? t('admin.guides.removeTitle', { name: removing.clip.assignee?.name ?? removing.clip.id }) : t('admin.guides.removeTitle', { name: who(removing.guide) })" :me="me" :busy="busy" :errors="errors" :reasoned="false" @close="removing = null" @confirm="remove">
+            <ChangeSheet v-if="removing" :title="removing.clip ? t('admin.guides.removeTitle', { name: removing.clip.assignee?.name ?? removing.clip.id }) : t('admin.guides.withdrawTitle', { name: who(removing.guide), part: removing.part, song: removing.song.title })" :me="me" :busy="busy" :errors="errors" :reasoned="false" @close="removing = null" @confirm="remove">
                 <p class="text-cream">{{ removing.clip ? t('admin.guides.removeClipBody') : t('admin.guides.removeBody') }}</p>
                 <!-- For abuse: the volunteer who sang it can't lend their voice again. -->
                 <label class="check-row"><input v-model="abuse" type="checkbox" class="checkbox" data-remove-abuse /> <span>{{ t('admin.guides.forAbuse') }}<span class="block text-sm text-muted">{{ t('admin.guides.forAbuseHelp') }}</span></span></label>
@@ -139,10 +139,10 @@ export const GuidesSection = {
                 this.busy = false;
             }
         },
-        ask(song, guide) {
+        ask(song, guide, part) {
             this.errors = null;
             this.abuse = false;
-            this.removing = { song, guide };
+            this.removing = { song, guide, part: templatePartName(part) };
         },
         askClip(clip) {
             this.errors = null;

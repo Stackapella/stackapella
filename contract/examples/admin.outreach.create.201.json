@@ -1,0 +1,48 @@
+{
+    "data": {
+        "id": "Ot4Kx8",
+        "ref": "o-harmony-society",
+        "name": "Harmony Society",
+        "group": "barbershop",
+        "country": "US",
+        "reach": "19,000 members",
+        "fit": "Their chapters learn parts at home before rehearsal.",
+        "contact": {
+            "email": "outreach@harmony.example.com",
+            "formUrl": null,
+            "sourceUrl": "https://harmony.example.com/contact"
+        },
+        "angle": "choir_groups",
+        "sendBy": null,
+        "followUpNotBefore": null,
+        "sendNotBefore": null,
+        "tooEarly": false,
+        "timingNote": null,
+        "sendBySoon": false,
+        "pastSendBy": false,
+        "status": "ready",
+        "followUpFrom": null,
+        "followUpDue": false,
+        "lastSentAt": null,
+        "replies": 0,
+        "unreadReplies": 0,
+        "outcome": null,
+        "outcomeNote": null,
+        "notes": null,
+        "research": null,
+        "suppressed": false,
+        "partnerCodes": [],
+        "updatedAt": "2026-11-10T09:00:00Z",
+        "link": "https://stackapella.com",
+        "messages": [],
+        "replyLog": [],
+        "results": {
+            "arrivals": null,
+            "lesson1": null,
+            "signedUp": null,
+            "schoolCodes": null,
+            "few": true,
+            "tracked": true
+        }
+    }
+}

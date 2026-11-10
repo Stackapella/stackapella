@@ -7,9 +7,10 @@ declare(strict_types=1);
 | Plans and limits
 |--------------------------------------------------------------------------
 |
-| docs/backend-plan.md C6 and docs/pricing-plan.md: the free plan's projects and storage, and
-| Plus's. Storage is proposed at 1 GB and 50 GB (pricing question 4), to be confirmed from real
-| FLAC sizes. A null limit is unlimited. The bin never counts.
+| docs/backend-plan.md C6 and docs/pricing-plan.md: what each plan keeps. Since 2026-11-07 (every
+| singer is free) storage is the free plan's only limit: no project limit, and friends on a song as
+| many as on Plus. Storage is proposed at 1 GB and 50 GB (pricing question 4), to be confirmed from
+| real FLAC sizes. A null limit is unlimited. The bin never counts.
 |
 */
 
@@ -19,9 +20,9 @@ return [
         // `singers`: friends on one of the owner's projects; `templates`: private or unlisted
         // templates kept on the server (docs/pricing-plan.md).
         'free' => [
-            'projects' => 3,
+            'projects' => null,
             'storage_bytes' => 1024 ** 3,
-            'singers' => 2,
+            'singers' => 20,
             'templates' => 1,
         ],
         'plus' => [

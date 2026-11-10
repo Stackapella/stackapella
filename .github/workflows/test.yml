@@ -1,7 +1,9 @@
 name: tests
 
-# Runs on every push (Hillel, 2026-10-31: "please auto run CI tests on push"). server/tool/push-beta.sh
-# pushes a commit to `release` first and only lets it reach main (which deploys) once this is green.
+# Runs on every push (Hillel, 2026-10-31: "please auto run CI tests on push"). Since 2026-11-10 it gates
+# deploys from the public repo, github.com/Stackapella/stackapella, where Actions is free: each deploy's
+# commit is exported as the public tree and pushed to its `release` branch, and only once this is green
+# does the commit deploy and the public main move to it.
 on:
   push:
     branches: [release]
@@ -115,10 +117,28 @@ jobs:
       - name: No npm, ever
         run: test ! -e package.json && test ! -e node_modules
 
+      # Tailwind's binary from the cache, keyed by tool/tailwind.sh's pinned version and Linux sha256, so a
+      # GitHub releases outage can't stop a deploy once it's warm; the script checks the sha256 either way.
+      - name: Tailwind's pin
+        id: tailwind
+        run: |
+          version=$(sed -n 's/^VERSION=//p' tool/tailwind.sh)
+          sha=$(sed -n 's/.*Linux-x86_64).*SHA=\([0-9a-f]\{64\}\).*/\1/p' tool/tailwind.sh)
+          test -n "$version" && test -n "$sha"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "sha=$sha" >> "$GITHUB_OUTPUT"
+
+      - name: Tailwind from the cache
+        uses: actions/cache@v4
+        with:
+          path: web/bin/tailwindcss-${{ steps.tailwind.outputs.version }}
+          key: tailwind-${{ steps.tailwind.outputs.version }}-linux-x64-${{ steps.tailwind.outputs.sha }}
+
       - name: The CSS is up to date
         run: |
           tool/tailwind.sh
-          git diff --exit-code -- css/app.css || (echo "web/css/app.css is out of date: run web/tool/tailwind.sh and commit it." && exit 1)
+          git diff --exit-code -- $(sh tool/css-restore.sh --list | sed 's#web/##g') || (echo "A stylesheet tool/tailwind.sh builds (tool/css-restore.sh --list) is out of date: run web/tool/tailwind.sh and commit it." && exit 1)
+          test -z "$(git ls-files --others --exclude-standard -- css)" || (echo "A stylesheet tool/tailwind.sh built isn't committed." && exit 1)
 
       - name: Every CDN library is pinned with an integrity hash
         run: |
@@ -156,13 +176,22 @@ jobs:
         with:
           fetch-depth: 0
 
+      # The release from the cache, keyed by its pinned version and sha256, so a GitHub releases outage
+      # can't stop a deploy once it's warm; downloaded (with retries) only on a miss, checked either way.
+      - name: gitleaks from the cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/gitleaks
+          key: gitleaks-8.30.1-linux-x64-551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb
+
       - name: gitleaks 8.30.1
         run: |
-          curl -sSfL -o gitleaks.tar.gz https://github.com/gitleaks/gitleaks/releases/download/v8.30.1/gitleaks_8.30.1_linux_x64.tar.gz
-          echo "551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb  gitleaks.tar.gz" | sha256sum -c -
-          tar -xzf gitleaks.tar.gz gitleaks
-          sudo mv gitleaks /usr/local/bin/gitleaks
-          rm gitleaks.tar.gz
+          tarball="$HOME/.cache/gitleaks/gitleaks_8.30.1_linux_x64.tar.gz"
+          mkdir -p "$(dirname "$tarball")"
+          test -f "$tarball" || curl -sSfL --retry 5 --retry-all-errors --retry-delay 5 -o "$tarball" https://github.com/gitleaks/gitleaks/releases/download/v8.30.1/gitleaks_8.30.1_linux_x64.tar.gz
+          echo "551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb  $tarball" | sha256sum -c - || { rm -f "$tarball"; exit 1; }
+          tar -xzf "$tarball" -C "$RUNNER_TEMP" gitleaks
+          sudo mv "$RUNNER_TEMP/gitleaks" /usr/local/bin/gitleaks
 
       - name: Nothing unshareable
         run: sh server/tool/leak-check.sh

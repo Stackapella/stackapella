@@ -108,6 +108,17 @@ def journey(f):
     picture(f, "yodel-needs-flip")
     f.run(f"await (await import('/js/stores/learning.js')).setCoursePersonal('yodel', {{ flip: 7 }})")
     f.wait("!document.querySelector('[data-needs-flip]')", what="the notice gone once the flip is kept")
+    # The key named is the step's own, laid from the flip (a flip 4 above the note: that note's key), not the voice's.
+    f.run(f"await (await import('/js/stores/learning.js')).setCoursePersonal('yodel', {{ flip: 4 }})")
+    want = f.js("""(async () => {
+        const { keyName } = await import('/js/theory.js');
+        const { prettyKey } = await import('/js/components/key-control.js');
+        const { learning } = await import('/js/stores/learning.js');
+        const home = learning.progress.home ?? 57;
+        return [prettyKey(keyName({ tonic: home + 4, mode: 'major' })), prettyKey(keyName({ tonic: home, mode: 'major' }))];
+    })()""")
+    f.wait(f"[...document.querySelectorAll('[role=status]')].some((e) => e.textContent.includes({want[0]!r}))", what=f"the step's key, {want[0]}, not the voice's {want[1]}")
+    f.run(f"await (await import('/js/stores/learning.js')).setCoursePersonal('yodel', {{ flip: 7 }})")
     # The five-minute flip cap (js/flip-rest.js): five minutes of flips this sitting, and the next
     # flip lesson rests first, with when it opens; a lesson that doesn't flip opens as ever.
     f.run("const r = await import('/js/flip-rest.js'); r.flipStopped(); r.flipStarted(Date.now() - 6 * 60000); r.flipStopped(Date.now() - 60000);")

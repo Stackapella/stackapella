@@ -16,7 +16,8 @@ I18N = "(await import('/js/i18n.js'))"
 
 def journey(f):
     # Unit 1 done (unit 2 opens after it), the note found, nothing said about headphones yet, straight to the sung step.
-    f.go("/", "document.querySelector('#app header')")
+    # Signed in: from lesson 2 a guest is asked for a free account (Hillel, 2026-11-06: "after lesson 1 of any course").
+    f.go("/?api=mock&as=member", "document.querySelector('#app header')")
     f.mic_checked()
     f.run("""const { emptyProgress } = await import('/js/course.js'); const db = await import('/js/db.js');
         const done = { stars: 3, bestPercent: 95, at: Date.now() };

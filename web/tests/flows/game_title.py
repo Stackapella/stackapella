@@ -8,7 +8,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
 from flow import run  # noqa: E402
-from game_frames import dark, frames, light  # noqa: E402
+from game_frames import dark, every_theme, frames, light  # noqa: E402
 from help_shots import t  # noqa: E402
 
 CARD = "document.querySelector('[data-game-title]')"
@@ -25,9 +25,10 @@ HELD = """const { createApp, h } = await import('vue');
 
 
 def journey(f):
-    f.go("/learn?api=mock&as=signedOut", "document.querySelector('#app')")
+    # A free account: from lesson 2 a guest is asked to make one (Hillel, 2026-11-06), and the titles run on past lesson 1.
+    f.go("/learn?api=mock&as=member", "document.querySelector('#app')")
     f.run("localStorage.removeItem('stackapella.titlesSeen'); localStorage.removeItem('stackapella.gameEffects')")
-    f.go("/learn/1-comfortable", "document.querySelector('main h1')")
+    f.go("/learn/1-comfortable?api=mock&as=member", "document.querySelector('main h1')")
     if f.skin == "serious":
         assert f.js(f"!{CARD}"), "serious mode: no title card"
         return
@@ -37,17 +38,17 @@ def journey(f):
     f.wait(f"!{CARD}", timeout=5, what="gone by itself")
     assert f.js("JSON.parse(localStorage.getItem('stackapella.titlesSeen')).includes('1-comfortable')"), "kept as seen"
     # A repeat visit: no card.
-    f.go("/learn/1-comfortable", "document.querySelector('main h1')")
+    f.go("/learn/1-comfortable?api=mock&as=member", "document.querySelector('main h1')")
     f.run("await new Promise((r) => setTimeout(r, 400))")
     assert f.js(f"!{CARD}"), "not on a repeat visit"
     # A tap ends it at once.
-    f.go("/learn/1-match", "document.querySelector('main h1')")
+    f.go("/learn/1-match?api=mock&as=member", "document.querySelector('main h1')")
     f.wait(CARD, what="the next lesson's card")
     f.run(f"{CARD}.click()")
     f.wait(f"!{CARD}", timeout=2, what="a tap ends it")
     # The Title cards switch off: none.
     f.run("(await import('/js/game/effects.js')).effects.titles = false")
-    f.go("/learn/1-high-low", "document.querySelector('main h1')")
+    f.go("/learn/1-high-low?api=mock&as=member", "document.querySelector('main h1')")
     f.run("await new Promise((r) => setTimeout(r, 400))")
     assert f.js(f"!{CARD}"), "the switch turns it off"
     f.run("localStorage.removeItem('stackapella.gameEffects')")
@@ -58,6 +59,7 @@ def journey(f):
     light(f)
     frames(f, "title-light", [600])
     dark(f)
+    every_theme(f, "the title card", settle="for (const a of document.getAnimations()) { a.pause(); a.currentTime = 600; }")
     f.run("localStorage.removeItem('stackapella.titlesSeen')")
 
 

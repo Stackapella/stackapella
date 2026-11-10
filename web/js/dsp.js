@@ -16,12 +16,12 @@ export function chirp(sampleRate, { seconds = 0.01, fromHz = 1000, toHz = 8000, 
 }
 
 /** A metronome click: a decaying sine. */
-export function click(sampleRate, { hz = 1500, seconds = 0.03, level = 0.7 } = {}) {
+export function click(sampleRate, { hz = 1500, seconds = 0.03, level = 0.7, decay = 120 } = {}) {
     const length = Math.round(seconds * sampleRate);
     const out = new Float32Array(length);
     for (let i = 0; i < length; i++) {
         const t = i / sampleRate;
-        out[i] = level * Math.exp(-t * 120) * Math.sin(2 * Math.PI * hz * t);
+        out[i] = level * Math.exp(-t * decay) * Math.sin(2 * Math.PI * hz * t);
     }
     return out;
 }
@@ -191,6 +191,9 @@ export function median(values) {
     return sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
 }
 
+/** A take's outline: one peak for every this many frames (Sing's takes and a kept song's alike, so trim, mix and sync treat them the same). */
+export const FRAMES_PER_PEAK = 512;
+
 /** The loudest sample in each bucket of `framesPerPeak`, for drawing waveforms. */
 export function peaks(samples, framesPerPeak) {
     const out = new Float32Array(Math.ceil(samples.length / framesPerPeak));
@@ -256,8 +259,21 @@ export function detectPitch(frame, sampleRate, { minHz = 60, maxHz = 1100, thres
     return { hz: sampleRate / exact, clarity: 1 - cmnd[tau] };
 }
 
-export function hzToMidi(hz) {
-    return 69 + 12 * Math.log2(hz / 440);
+/** A pitch in Hz as a MIDI number (fractional), with A4 at `reference` Hz. */
+export function hzToMidi(hz, reference = 440) {
+    return 69 + 12 * Math.log2(hz / reference);
+}
+
+/** A MIDI number (fractional allowed) in Hz, with A4 at `reference` Hz, `cents` sharp. */
+export function midiToHz(midi, reference = 440, cents = 0) {
+    return reference * 2 ** ((midi - 69 + cents / 100) / 12);
+}
+
+/** The nearest equal-tempered note to `hz` (A4 at `reference`) and how far off it is: { midi, cents }, cents -50 to +50. */
+export function nearestNote(hz, reference = 440) {
+    const exact = hzToMidi(hz, reference);
+    const midi = Math.round(exact);
+    return { midi, cents: (exact - midi) * 100 };
 }
 
 const NOTE_NAMES = ['C', 'C#', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B'];

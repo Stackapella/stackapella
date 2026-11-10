@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en" data-theme="stage-dark">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Find your note</title>
+    <!-- How a public page mounts the app's find-your-note card (js/public/voice-capture.js): a box, the page's words, mountCapture().
+         ?sing=A3 sings that note into it without a mic (for shots). -->
+    <meta name="game-css" content="/css/site-game.css">
+    <link rel="stylesheet" href="/css/site.css">
+    <script src="/js/theme-boot.js"></script>
+    <script src="/js/game-css.js"></script>
+</head>
+<body class="bg-ink p-4 text-cream">
+    <div id="capture" class="mx-auto max-w-md"></div>
+    <script type="module">
+        import { mountCapture } from '/js/public/voice-capture.js';
+        const words = {
+            start: 'Start', mic: 'Your mic', listening: 'Sing any easy note', listeningSub: 'Like a long "ahh". Any pitch is fine.',
+            hearing: 'Finding your note...', hearingSub: 'Keep singing, let it settle. It\'s normal to wobble at first.',
+            holding: 'Hold it right there', holdingSub: '{seconds}s to go, nice and steady', found: 'That\'s your comfortable note',
+            foundSub: 'Your exercises would start from {note}.', subListening: 'Listening', subHearing: 'Hearing you', subSteady: 'Steady',
+            subFound: 'Your note', lower: 'Lower', higher: 'Higher', zoomWide: 'Wide', zoomCloser: 'Closer', zoomLocked: 'Locked',
+            tryAnother: 'Try another note', noMic: 'No mic to listen with',
+        };
+        const params = new URLSearchParams(location.search);
+        const sing = params.get('sing');
+        const fake = sing && (async ({ onFrame }) => {
+            window.__sing = (hz, seconds, from = 10) => { for (let i = 0; i < Math.round(seconds * 60); i++) onFrame({ at: from + i / 60, hz }); };
+            return { stop() {} };
+        });
+        window.__found = null;
+        window.__capture = mountCapture(document.querySelector('#capture'), { words, onFound: (midi) => (window.__found = midi), ...(fake ? { open: fake } : {}) });
+    </script>
+</body>
+</html>

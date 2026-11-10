@@ -2,7 +2,7 @@
 step is drawn on a stave (components/read-stave.js) in the key of the singer's do, names under the
 notes in solfege (Names switches them, remembered), the note lit as the clock reaches it. A cold read
 offers Hear it first; then the take shows its look count, lights its notes, and its result says the
-top score needs a cold read. Unit 2's finale, Ode to Joy, is read with the names off. Unit 3's waltz
+top score needs a cold read. Ode to Joy, now Dotted notes' last line, is read with the names off. Unit 3's waltz
 shows 3/4, and its read counts in after the look, on the audio clock. Unit 4 reads a song's own line in\nits own key with its pickup, and a whole part scrolls in its card on a phone.
 """
 import json
@@ -71,26 +71,31 @@ def journey(f):
         const lesson = {STORE}.learning.courses['sight-singing'].units[0].lessons[0];
         const ex = lesson.steps[2].exercise;
         ex.with = [{{ notes: ex.notes.map((n) => ({{ ...n, vibrato: {{ cents: 0 }} }})), volume: 1 }}];
+        ex.droneAfter = 0; // as the content has it since bbb2894: the drone from the line's start
     """)
     f.js(f"{AUDIO}.engine.setLoopback(true)")
-    f.run("document.querySelector('.glass-bubble-solid.size-20').closest('button').click()")
+    f.run("document.querySelector('[data-play-disc]').closest('button').click()")
     if f.js(f"!!document.querySelector('[role=dialog]')"):
         f.click_t("headphones.on")
     f.wait("document.querySelector('[data-read-look]')?.textContent.trim().length > 0", timeout=10, what="the look count")
     f.shot("look")
+    # Do sounds through the look (the courses lead's teacher reviewer): the drone is a lead part, one
+    # source of it scheduled before beat 0 (this line has no count-in clicks, so nothing else starts there).
+    drone = f.js(f"(async () => {{ const e = {AUDIO}.engine; const p = e.parts.get('ex:drone'); return p && {{ lead: p.lead, offset: p.offsetSeconds, early: e.scheduled.filter((s) => e.startFrames.get(s) < e.playing.startTime * e.sampleRate - 1).length }}; }})()")
+    assert drone and drone["lead"] and drone["offset"] < -3 and drone["early"] >= 1, f"the drone in the look: {drone}"
     f.wait("document.querySelector('[data-read-stave] [data-lit=true]')", timeout=20, what="a note lit as it's read")
     f.shot("reading")
     f.wait("document.querySelector('[data-heard-first]')", timeout=60, what="the result, heard first")
     f.js(f"{AUDIO}.engine.setLoopback(false)")
     f.shot("result")
 
-    # Unit 2's finale: Ode to Joy, names off.
+    # Ode to Joy's second line (Dotted notes' last line since the 2026-11-08 rebuild), names off.
     f.run(f"""
         const store = {STORE};
         const lessons = Object.fromEntries(store.learning.courses['sight-singing'].units.flatMap((u) => u.lessons).map((l) => [l.id, {{ stars: 3, bestPercent: 95, at: '2026-10-30T10:00:00Z' }}]));
         store.learning.progress.courses = {{ ...(store.learning.progress.courses ?? {{}}), 'sight-singing': {{ lessons }} }};
     """)
-    open_step(f, "ss-2-challenge", 1)
+    open_step(f, "ss-3-dotted", 3)
     assert not f.js("[...document.querySelectorAll('[data-read-stave] svg text')].some((x) => /^(do|re|mi|fa|so|la|ti)$/.test(x.textContent))"), "names off in the finale"
     lines = f.js("document.querySelectorAll('[data-read-stave] svg').length")
     assert lines == (2 if f.size == "phone" else 1), f"four bars: two lines on a phone, one on a wide screen ({lines})"
@@ -103,21 +108,22 @@ def journey(f):
     assert "3" in beats and "4" in beats, f"3/4 on the stave: {beats}"
     f.shot("waltz")
     f.js(f"{AUDIO}.unlock()")
-    f.run("document.querySelector('.glass-bubble-solid.size-20').closest('button').click()")
+    f.run("document.querySelector('[data-play-disc]').closest('button').click()")
     if f.js("!!document.querySelector('[role=dialog]')"):
         f.click_t("headphones.on")
     count = t(f, "course.read.counting", {"beat": 1}).rstrip("1").strip()
     f.wait(f"document.querySelector('[data-read-look]')?.textContent.includes({json.dumps(count)})", timeout=15, what="the count-in after the look")
     f.shot("count-in")
-    f.run("document.querySelector('.glass-bubble-solid.size-20').closest('button').click()")
+    f.run("document.querySelector('[data-play-disc]').closest('button').click()")
 
-    # Unit 4: a song's own line, in its own key, with its pickup (Amazing Grace in G, one sharp, 3/4).
-    open_step(f, "ss-4-signature", 1)
+    # Your part in a chord: a song's own line, in its own key, with its pickup (Amazing Grace in G, one
+    # sharp, 3/4). The lesson opens with two learn steps; its first line is step 2.
+    open_step(f, "ss-4-signature", 2)
     sharps = f.js("[...document.querySelectorAll('[data-read-stave] svg')][0].querySelectorAll('text').length && [...[...document.querySelectorAll('[data-read-stave] svg')][0].querySelectorAll('text')].filter((x) => x.textContent === '\\u266F').length")
     assert sharps >= 1, f"the song's key signature: {sharps} sharps"
     f.shot("song-line")
     # A whole part (Michael, Row's alto): on a phone its two-bar lines scroll in their card.
-    open_step(f, "ss-4-challenge", 1)
+    open_step(f, "ss-4-challenge", 2)
     lines = f.js("document.querySelectorAll('[data-read-stave] svg').length")
     if f.size == "phone":
         assert lines > 3 and f.js("!!document.querySelector('[data-read-stave] .overflow-y-auto').style.maxHeight"), f"a long part scrolls in its card ({lines} lines)"

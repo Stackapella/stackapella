@@ -10,6 +10,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
 from flow import run  # noqa: E402
+from words_check import text_of, words_contrast, words_readable  # noqa: E402
 
 I18N = "(await import('/js/i18n.js'))"
 AUDIO = "(await import('/js/audio.js'))"
@@ -30,6 +31,22 @@ def journey(f):
     alto = t(f, "parts.alto")
     f.wait_text(t(f, "beta.studio.recordingFor", {"part": alto, "song": "Amazing Grace"}))
     f.wait_text(t(f, "beta.parts.hillelSays"))
+    # The words (a beta singer once couldn't find them): the line at the playhead, the one place for them
+    # (Hillel: "Not sure the words are needed at the top, they're also at the bottom").
+    words_readable(f, "[data-now-words]", "the line at the playhead, before Record")
+    assert "grace" in text_of(f, "[data-now-words]").lower(), text_of(f, "[data-now-words]")
+    assert not f.js("!!document.querySelector('[data-beta-words]')"), "the verse shown twice"
+    # Hillel's note takes the banner's width, Loop phrase following its words, never a narrow column beside it.
+    note = "document.querySelector('[data-beta-note] p').getBoundingClientRect()"
+    assert f.js("!!document.querySelector('[data-beta-note] p [data-loop-phrase]')"), "Loop phrase off the note's line"
+    assert f.js(f"{note}.width > document.querySelector('[data-beta-note]').getBoundingClientRect().width * 0.8"), "the note in a narrow column"
+    assert t(f, "beta.bar.line", {"pitch": 90, "timing": 80})[:12] not in f.js("document.querySelector('[data-beta-note]').closest('div.border-b').innerText"), "the bar said in the banner"
+    # The part to record shows whole above the transport before Record.
+    row = "document.querySelector('[data-beta-row]').getBoundingClientRect()"
+    footer = "document.querySelector('footer').getBoundingClientRect()"
+    f.wait(f"{row}.top >= 0 && {row}.bottom <= {footer}.top + 1", what="the part to record in view")
+    # Next to record is on the part Record records, never another row.
+    assert f.js("document.querySelectorAll('[data-ready]').length === 1 && !!document.querySelector('[data-beta-row] [data-ready]')"), "Next to record on another row"
     f.shot("beta-studio")
     assert f.js("(await import('/js/stores/projects.js')).projects.list.every((p) => !p.beta)"), "the beta project is listed among the singer's projects"
     # Record: headphones, then the timing check with no way to skip it.
@@ -53,6 +70,12 @@ def journey(f):
     f.click_t("beta.sound.done")
     f.wait(f"{AUDIO}.engine.playing?.recording", what="recording")
     f.wait(f"{AUDIO}.engine.ctx.currentTime > {AUDIO}.engine.playing.startTime + 2", what="2 s recorded")
+    # While singing: the banner one line, the alto's own line in full, the alto in view, and no "Next to record" elsewhere.
+    words_readable(f, "[data-now-words]", "the line at the playhead, recording")
+    assert "grace" in text_of(f, "[data-now-words]").lower() or "maz" in text_of(f, "[data-now-words]").lower(), text_of(f, "[data-now-words]")
+    assert f.js("(({ top, bottom }) => top >= 0 && top < innerHeight)(document.querySelector('[data-recording-row]').getBoundingClientRect())"), "the alto being recorded is out of view"
+    assert not f.js("!!document.querySelector('[data-ready]')"), "Next to record shows while recording"
+    f.shot("beta-recording")
     f.click_t("studio.stopRecording")
     f.wait_text(t(f, "beta.studio.checkAndSend"))
     # Record again from the report: the longer second take is the one checked and sent.
@@ -133,4 +156,4 @@ def use_take(f, faults):
     }})()""")
 
 if __name__ == "__main__":
-    run("beta_take", journey)
+    run("beta_take", journey, sizes=("phone", "se", "desktop"))  # se: 320 x 568, the studio as a page ("Banner room")

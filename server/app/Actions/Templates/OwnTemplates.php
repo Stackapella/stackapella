@@ -8,6 +8,7 @@ use App\Actions\Ideas\Ideas;
 use App\Actions\Projects\Owned;
 use App\Enums\TemplateAccess;
 use App\Exceptions\Refusal;
+use App\Models\AuditLog;
 use App\Models\GroupSong;
 use App\Models\Template;
 use App\Models\TemplateRecording;
@@ -22,8 +23,10 @@ use App\Support\Templates\TemplateRules;
 use App\Support\Trust\TrustLevel;
 use App\Support\Usage\Plans;
 use Illuminate\Database\UniqueConstraintViolationException;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 /**
@@ -54,6 +57,15 @@ final class OwnTemplates
 
         if ($copiedFrom !== null) {
             $original = $this->openable($user, $copiedFrom);
+
+            // Someone else's imported song (one a choir group shares) stays theirs: only its owner
+            // copies it, under the rights they confirmed.
+            if ($original->isImported() && $original->owner_id !== $user->id) {
+                Imported::refuse();
+            }
+
+            // Never the partner's named confirmation: that marks a song we gave (Template::isGiven), and a copy is the
+            // person's own, counted toward their plan.
             $import ??= $original->isImported() ? ['imported_at' => $original->imported_at, 'rights_confirmed_at' => $original->rights_confirmed_at, 'rights_statement' => $original->rights_statement] : null;
         }
 
@@ -76,6 +88,46 @@ final class OwnTemplates
             // The same template sent twice at once: the other request made it.
             return DB::transaction(fn (): Template => $this->store($user, $uuid, $data, $visibility, $libraryOptIn, $declaration, $parentId, $import));
         }
+    }
+
+    /**
+     * A partner's song, given by Admin (docs/partner-songs.md, gap 1): the template the arranger
+     * prepared, put into the owner's account as an imported, private song with the rights record
+     * from the partner's written confirmation. It then follows sheet import's guardrails (private to
+     * its owner and their groups, reportable, taken down on a notice) whether or not import is on,
+     * and the owner shares it with their group themselves. Audited.
+     *
+     * @param  array<string, mixed>  $data  the template JSON
+     * @param  array{confirmedBy: string, confirmedAt: string, wording: string, source: string}  $rights
+     */
+    public function give(User $owner, array $data, array $rights, User $admin, ?string $ip = null): Template
+    {
+        // A new song of its own: its id is ours, whatever the arranger's file named it.
+        $uuid = (string) Str::uuid();
+        $data = [...$data, 'id' => $uuid];
+        $this->check($uuid, $data);
+
+        // The account it's for has shown it's theirs (its email confirmed), as the partner's records name it.
+        if ($owner->email_verified_at === null) {
+            throw new Refusal(403, 'email_unverified');
+        }
+
+        if (Imported::takedowns($owner) >= Imported::REPEAT_LIMIT) {
+            throw new Refusal(403, 'import_blocked');
+        }
+
+        $import = [
+            'imported_at' => now(),
+            'rights_confirmed_at' => Carbon::parse($rights['confirmedAt'])->utc(),
+            'rights_statement' => 'partner',
+            'rights_confirmed_by' => $rights['confirmedBy'],
+            'rights_wording' => $rights['wording'],
+            'rights_source' => $rights['source'],
+        ];
+        $template = DB::transaction(fn (): Template => $this->store($owner, $uuid, $data, 'private', false, null, null, $import));
+        AuditLog::record('templates.given', $template, $admin, after: ['owner' => $owner->sqid(), 'title' => $template->title, 'confirmedBy' => $rights['confirmedBy']], ip: $ip);
+
+        return $template;
     }
 
     public function update(User $user, string $uuid, ?string $visibility, ?bool $libraryOptIn): Template

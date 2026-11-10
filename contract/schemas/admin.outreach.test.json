@@ -1,0 +1,28 @@
+{
+    "$id": "admin.outreach.test.json",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "sentTo",
+                "sentAt"
+            ],
+            "properties": {
+                "sentTo": {
+                    "type": "string",
+                    "description": "The signed-in admin's own address: a test never goes anywhere else."
+                },
+                "sentAt": {
+                    "type": "string",
+                    "format": "date-time"
+                }
+            }
+        }
+    }
+}

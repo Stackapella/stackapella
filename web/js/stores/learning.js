@@ -2,19 +2,22 @@
 // `learning` store (db.js), synced with the account from M4 (account.learning). The course itself
 // is data (web/course/course.json); js/course.js holds its rules.
 
+import { addSpent } from '../daily-cap.js';
 import { reactive } from 'vue';
 import * as db from '../db.js';
 import { api } from '../api.js';
 import { mockWanted } from '../api-mode.js';
-import { addPractice, addXp, countDay, dayOf, emptyProgress, levelFor, mergeProgress, recordLesson, restartedCourse, starsFor, weekRing } from '../course.js';
+import { addPractice, addXp, countDay, dayOf, emptyProgress, levelFor, mergeProgress, paysLessonXp, recordLesson, restartedCourse, starsFor, weekRing } from '../course.js';
 import { account } from './account.js';
 import { BADGES, newBadges, tally, withBadges } from '../badges.js';
 import { playSound } from '../sounds.js';
 import { t } from '../i18n.js';
-import { sayBadges } from '../game/badge-news.js';
+import { sayBadges } from '../game/modules.js';
 import { count, countFor } from '../usage.js';
 import { askYes, first, goalMet } from '../funnel.js';
 import { courseLessons, courseOf, recordCourseLesson, restartedCourseProgress } from '../courses.js';
+import { recordBoss, unitOfBoss } from '../boss.js';
+import { coursePart, lessonForPart, partsOf } from '../course-parts.js';
 
 export const KEY_REACH = 6; // Lower and Higher go this many semitones either way from the note that fits
 // `course` is the free course; `catalogue` lists the Plus courses and `courses` holds each live one's
@@ -283,12 +286,25 @@ export function allLessons() {
 export function findLesson(id) {
     const free = allLessons().find((entry) => entry.lesson.id === id);
     if (free) return { ...free, course: null };
+    // A unit's boss (docs/boss-round-plan.md): played like a lesson, after the unit's lessons, never one of them.
+    const boss = unitOfBoss(learning.course?.units ?? [], id);
+    if (boss) return { unit: boss.unit, unitIndex: boss.unitIndex, lesson: boss.unit.boss, index: boss.unit.lessons.length, course: null, boss: true };
     // The cool-down (docs/voice-care-plan.md): one standalone, unscored lesson, outside every course.
     const cool = learning.cooldown?.units?.[0];
     if (cool?.lessons?.[0]?.id === id) return { unit: cool, unitIndex: 0, lesson: cool.lessons[0], index: 0, course: null, cooldown: true };
     const course = courseOf(learning.courses, id);
     const entry = course ? courseLessons(course).find((l) => l.lesson.id === id) : null;
-    return entry ? { ...entry, course } : null;
+    if (!entry) return null;
+    // A course with parts (course-parts.js): the lesson read for the singer's part.
+    if (!partsOf(course)) return { ...entry, course };
+    const part = coursePart(course, learning.progress, knownRange());
+    return { ...entry, course, part, lesson: lessonForPart(entry.lesson, course, part) };
+}
+
+/** Picks the singer's part for a course with parts: kept with its progress, so it follows the account. */
+export async function setCoursePart(course, part) {
+    if (!partsOf(course)?.choose.includes(part)) return;
+    await setCoursePersonal(course.id, { part });
 }
 
 /** A new record: `percent` beat a lesson's best kept from an earlier try (a first try is never a record). */
@@ -309,12 +325,16 @@ export async function finishLesson(lessonId, { percent, onTime = true, timing = 
     const earned = stars ?? starsFor({ percent, onTime, timing });
     const newBest = beatsBest(kept(learning.progress)[lessonId], percent);
     let progress = entry?.course ? recordCourseLesson(learning.progress, entry.course.id, lessonId, { stars: earned, percent }) : recordLesson(learning.progress, lessonId, { stars: earned, percent });
-    const xp = addXp(progress, { kind: 'exercise', stars: earned, bonus });
+    // A course with "replayXp": false pays nothing for a lesson sung again (its first finish pays as anywhere).
+    const xp = paysLessonXp(entry?.course?.game, kept(learning.progress)[lessonId]?.stars ?? 0) ? addXp(progress, { kind: 'exercise', stars: earned, bonus }) : { progress, gained: 0 };
     progress = addPractice(xp.progress, seconds);
     await save(progress);
     count('lesson_done'); // once a finish: here, where it's recorded, never as the end screen shows again
     countFor(entry?.course ? 'pl_d' : 'fl_d', entry?.course ? entry.course.id : lessonId);
     if (!unitWasDone && unitDone(progress)) count('unit_done');
+    // A first lesson finished with a star in any course (the free one too), once on this device: a funnel kind, so it keeps
+    // the ?ref= source a singer came with (a free tool's lesson line, tool-<tool>), which lesson_done never does.
+    if (earned) first('f_course_lesson');
     if (!entry?.course) {
         // The funnel's first lessons and first unit (the free course only), each counted once on this device.
         const sung = Object.values(progress.lessons).filter((l) => l?.stars).length;
@@ -325,6 +345,19 @@ export async function finishLesson(lessonId, { percent, onTime = true, timing = 
     }
     const now = levelFor(progress.xp.total);
     return { stars: earned, xp: xp.gained, level: now, levelledUp: now.level > level, newBest };
+}
+
+/**
+ * A unit's boss round finished at `percent` (docs/boss-round-plan.md): its best kept, and on the first win the XP and
+ * the badges' count. No stars and no lesson (the course opens as before). Returns recordBoss's
+ * `{ beaten, first, newBest, gained }` with the level, as a lesson's end shows it.
+ */
+export async function finishBoss(unitId, percent, at = Date.now()) {
+    const level = levelFor(learning.progress.xp.total).level;
+    const { progress, ...outcome } = recordBoss(learning.progress, learning.course?.units ?? [], unitId, percent, at);
+    await save(progress);
+    const now = levelFor(progress.xp.total);
+    return { ...outcome, level: now, levelledUp: now.level > level };
 }
 
 const COUNTED = { part: 'parts', harmony: 'harmonies' };
@@ -370,6 +403,14 @@ export async function setCoursePersonal(courseId, patch, at = Date.now()) {
     await loadLearning();
     const had = learning.progress.courses?.[courseId] ?? {};
     await save({ ...learning.progress, courses: { ...learning.progress.courses, [courseId]: { ...had, personal: { ...had.personal, ...patch }, personalAt: at } } });
+}
+
+/** Time spent in a capped course's lessons today (daily-cap.js), kept with its progress so it follows the account. */
+export async function addCourseTime(courseId, seconds, now = Date.now()) {
+    if (!(seconds > 0)) return;
+    await loadLearning();
+    const had = learning.progress.courses?.[courseId] ?? {};
+    await save({ ...learning.progress, courses: { ...learning.progress.courses, [courseId]: { ...had, capDay: addSpent(had.capDay, seconds, now) } } });
 }
 
 /** The first Start: everyone begins at lesson 1. Returns its id. */

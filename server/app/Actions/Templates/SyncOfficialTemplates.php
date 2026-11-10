@@ -12,6 +12,8 @@ use App\Models\TemplateVersion;
 use App\Services\Social\SocialPoster;
 use App\Support\Contract\SchemaChecker;
 use App\Support\Templates\TemplateRules;
+use App\Support\Tools\KnownSongs;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -88,6 +90,9 @@ final class SyncOfficialTemplates
 
         // The courses' clips, defined beside them (web/course/plus/clips.json).
         $report['problems'] = [...$report['problems'], ...$this->clips->sync()];
+
+        // The free tools' list of known songs reads the library: a sync's songs show at once.
+        Cache::forget(KnownSongs::CACHE);
 
         return $report;
     }

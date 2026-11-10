@@ -7,7 +7,7 @@ import { engine } from '../audio.js';
 import { formatDate, t } from '../i18n.js';
 import { account } from '../stores/account.js';
 import { cloud, syncNow } from '../stores/cloud.js';
-import { session } from '../stores/session.js';
+import { sessionBusy } from '../stores/session-live.js';
 import { route } from '../router.js';
 import { version } from '../version.js';
 import { Icon } from './icon.js';
@@ -16,7 +16,7 @@ import { toast } from './ui.js';
 const SAVE_FIRST_MS = 8000; // Refresh waits this long, at most, for the cloud save to finish
 
 /** Whether reloading now would cut into singing: recording, counting in, or anything playing. */
-const singing = () => session.recording || session.playing || session.countIn !== null || !!engine.playing;
+const singing = () => sessionBusy() || !!engine.playing;
 
 /** Whether a lesson or a workout is under way: a step showing, not yet its end screen (or the map). */
 const practising = () => (route.name === 'learn' && !document.querySelector('[data-lesson-end]')) || (route.name === 'workout' && !document.querySelector('[data-workout-end]'));

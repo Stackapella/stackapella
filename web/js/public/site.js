@@ -4,11 +4,17 @@
 // Escape, a tap outside it, or focus moving out of it.
 
 import { mountGameToggles } from './game-toggle.js';
+import { showHats } from './season.js';
 
+// The logo's Santa hat on the visitor's own Christmas Eve and Day (season.js); the carols page wears it all season.
+showHats();
+
+// Each skin keeps its own light or dark (game mode's is `gameMode`), as the app's Theme menu does.
 for (const button of document.querySelectorAll('[data-theme-toggle]')) {
     button.addEventListener('click', () => {
         const light = (document.documentElement.dataset.theme ?? '').endsWith('-light');
-        window.stackapellaTheme?.choose({ mode: light ? 'dark' : 'light' });
+        const game = document.documentElement.dataset.skin !== 'serious';
+        window.stackapellaTheme?.choose(game ? { gameMode: light ? 'dark' : 'light' } : { mode: light ? 'dark' : 'light' });
     });
 }
 
@@ -46,4 +52,13 @@ for (const menu of document.querySelectorAll('.s-menu')) {
             menu.querySelector('summary')?.focus();
         }
     });
+}
+
+// This page load's one count, by its section only (sv_<section>, App\Support\Site\SiteVisit): the footer
+// carries the kind only on the public site while counts are on, and it goes as funnel.js's site_visit does,
+// a beacon to our own server with no source, no id and no path.
+const visit = document.querySelector('[data-site-visit]');
+if (visit) {
+    const { kind } = JSON.parse(visit.textContent);
+    navigator.sendBeacon?.('/api/counts', new Blob([JSON.stringify({ events: [{ kind }], signedIn: false })], { type: 'application/json' }));
 }

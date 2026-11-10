@@ -150,8 +150,11 @@ final class CollaborationTest extends TestCase
         $this->savePart($theirs, $project, 2, ['name' => 'Tenor (Sam)', 'templatePartKey' => 'tenor', 'currentTakeId' => $take])->assertOk();
     }
 
-    public function test_how_many_may_sing_follows_the_owners_plan(): void
+    public function test_how_many_may_sing_follows_the_plans_limit(): void
     {
+        // Friends are free (2026-11-07): the free plan takes as many as Plus. Two here, to fill it.
+        $this->assertSame(config('usage.plans.plus.singers'), config('usage.plans.free.singers'));
+        config(['usage.plans.free.singers' => 2]);
         $this->owner();
         [$project] = $this->projectWithPart();
 
@@ -183,6 +186,7 @@ final class CollaborationTest extends TestCase
 
     public function test_a_full_project_refuses_one_more_singer(): void
     {
+        config(['usage.plans.free.singers' => 2]);
         $owner = $this->owner();
         [$project] = $this->projectWithPart();
         $tokens = [$this->inviteToken($project), $this->inviteToken($project)];
@@ -192,7 +196,7 @@ final class CollaborationTest extends TestCase
             $this->postJson('/api/join/'.$token)->assertOk();
         }
 
-        // Two singers is the free limit: an invite made before can't take a third.
+        // Two singers fill it: an invite made before can't take a third.
         ProjectInvite::factory()->create(['project_id' => Project::query()->where('uuid', $project)->value('id'), 'created_by' => $owner->id, 'token_hash' => hash('sha256', 'third')]);
         $this->as(User::factory()->create());
         $full = $this->postJson('/api/join/third');

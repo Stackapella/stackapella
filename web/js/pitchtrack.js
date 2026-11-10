@@ -23,20 +23,33 @@ const TARGET_RATE = 24000;
 const THRESHOLD = 0.15; // YIN's dip threshold
 export const VOICED_CLARITY = 1 - THRESHOLD; // only a clear dip counts as a pitch
 export const QUIET_DB = -50; // quieter than this is silence, whatever its pitch
+// A lip trill's voice reads at clarity 0.7 to 0.85 (the lips cut the air 12 to 38 times a second), so a trill step
+// (`"trill": true`) counts readings from here; the courses lead's study of real trills: 90% read, against 59%.
+export const TRILL_CLARITY = 0.7;
+
+// A whistle (`"whistle": true`, js/whistle.js): nearly a pure tone from about 1 to 3 kHz, so a voice's tracker reads
+// most of it an octave low (it stops at 1100 Hz). It's tracked from 400 to 4000 Hz on 21 ms windows at 48 kHz: on the
+// frontend's study (2026-11-08), no octave errors on synthetic or real whistles, a median of 2 to 8 cents, at a voice's cost.
+export const WHISTLE_RANGE = { minHz: 400, maxHz: 4000, windowSeconds: 1024 / 48000, targetRate: 48000 };
+
+/** What a step's take is tracked with (trackTake's `range`): a whistle's, a lip trill's lower clarity bar, else a voice's. */
+export const rangeFor = (exercise) => (exercise?.whistle ? WHISTLE_RANGE : exercise?.trill ? { minClarity: TRILL_CLARITY } : {});
 
 /**
  * Tracks a whole take. Returns `{ rate, hz, clarity, loudness }`: `rate` frames a second, and a
  * Float32Array of each per frame. Frame i describes the window centred on i / rate seconds.
+ * `range` (rangeFor) changes what it listens for: `minHz`, `maxHz`, `windowSeconds`, the `targetRate` it brings the
+ * take down to, and the `minClarity` a reading needs to count. Left out, a voice's.
  */
-export function trackTake(samples, sampleRate) {
-    const { signal, rate } = downsample(samples, sampleRate);
-    const window = Math.round(WINDOW_SECONDS * rate);
+export function trackTake(samples, sampleRate, { minHz = MIN_HZ, maxHz = MAX_HZ, windowSeconds = WINDOW_SECONDS, targetRate = TARGET_RATE, minClarity = VOICED_CLARITY } = {}) {
+    const { signal, rate } = downsample(samples, sampleRate, targetRate);
+    const window = Math.round(windowSeconds * rate);
     const hop = rate / FRAME_RATE;
     const count = Math.max(0, Math.floor(samples.length / (sampleRate / FRAME_RATE)));
     const hz = new Float32Array(count);
     const clarity = new Float32Array(count);
     const loudness = new Float32Array(count);
-    const yin = makeYin(window, rate);
+    const yin = makeYin(window, rate, maxHz, minHz);
     const frame = new Float32Array(window);
     for (let i = 0; i < count; i++) {
         const centre = Math.round(i * hop);
@@ -47,7 +60,7 @@ export function trackTake(samples, sampleRate) {
         }
         loudness[i] = decibels(frame);
         const found = loudness[i] > QUIET_DB ? yin(frame) : null;
-        if (found && found.clarity >= VOICED_CLARITY) {
+        if (found && found.clarity >= minClarity) {
             hz[i] = found.hz;
             clarity[i] = found.clarity;
         } else {
@@ -62,31 +75,31 @@ export function trackTake(samples, sampleRate) {
  * One live reading from the mic (`samples` is engine.inputFrame(): the latest 2048 samples at the
  * context's rate). Returns `{ hz, clarity, loudness }`, hz 0 when unvoiced.
  */
-export function trackFrame(samples, sampleRate, { minClarity = VOICED_CLARITY } = {}) {
-    const { signal, rate } = downsample(samples, sampleRate);
-    const window = Math.min(signal.length, Math.round(WINDOW_SECONDS * rate));
+export function trackFrame(samples, sampleRate, { minClarity = VOICED_CLARITY, maxHz = MAX_HZ, minHz = MIN_HZ, windowSeconds = WINDOW_SECONDS, quietDb = QUIET_DB, targetRate = TARGET_RATE } = {}) {
+    const { signal, rate } = downsample(samples, sampleRate, targetRate);
+    const window = Math.min(signal.length, Math.round(windowSeconds * rate));
     const frame = signal.subarray(signal.length - window);
     const loudness = decibels(frame);
-    const found = loudness > QUIET_DB ? liveYin(window, rate)(frame) : null;
+    const found = loudness > quietDb ? liveYin(window, rate, maxHz, minHz)(frame) : null; // maxHz: an instrument reaches higher than a voice (the tuner)
     const voiced = found && found.clarity >= minClarity;
     return { hz: voiced ? found.hz : 0, clarity: found?.clarity ?? 0, loudness };
 }
 
 // The live tracker's YIN, made once per window and rate (it's called every frame while singing).
 const yins = new Map();
-function liveYin(size, rate) {
-    const key = `${size}:${rate}`;
-    if (!yins.has(key)) yins.set(key, makeYin(size, rate));
+function liveYin(size, rate, maxHz = MAX_HZ, minHz = MIN_HZ) {
+    const key = `${size}:${rate}:${maxHz}:${minHz}`;
+    if (!yins.has(key)) yins.set(key, makeYin(size, rate, maxHz, minHz));
     return yins.get(key);
 }
 
-/** Tracks a take in a worker, so a phone stays responsive. Falls back to this thread. */
-export function trackInWorker(samples, sampleRate) {
+/** Tracks a take in a worker, so a phone stays responsive (`range` as trackTake's). Falls back to this thread. */
+export function trackInWorker(samples, sampleRate, range = {}) {
     let worker;
     try {
         worker = new Worker(new URL('./pitchtrack-worker.js', import.meta.url), { type: 'module' });
     } catch {
-        return Promise.resolve(trackTake(samples, sampleRate));
+        return Promise.resolve(trackTake(samples, sampleRate, range));
     }
     return new Promise((resolve, reject) => {
         worker.onmessage = (event) => {
@@ -97,21 +110,21 @@ export function trackInWorker(samples, sampleRate) {
             worker.terminate();
             console.warn('Tracking on the main thread instead', event.message);
             try {
-                resolve(trackTake(samples, sampleRate));
+                resolve(trackTake(samples, sampleRate, range));
             } catch (error) {
                 reject(error);
             }
         };
         const copy = samples.slice(); // the worker takes this copy; the caller keeps its samples
-        worker.postMessage({ samples: copy, sampleRate }, [copy.buffer]);
+        worker.postMessage({ samples: copy, sampleRate, range }, [copy.buffer]);
     });
 }
 
 // ---- The maths ----------------------------------------------------------------------------------
 
-/** Lowpass (a windowed sinc) and keep every nth sample, to about 24 kHz. */
-export function downsample(samples, sampleRate) {
-    const factor = Math.max(1, Math.round(sampleRate / TARGET_RATE));
+/** Lowpass (a windowed sinc) and keep every nth sample, to about 24 kHz (or `targetRate`). */
+export function downsample(samples, sampleRate, targetRate = TARGET_RATE) {
+    const factor = Math.max(1, Math.round(sampleRate / targetRate));
     if (factor === 1) {
         return { signal: samples, rate: sampleRate };
     }
@@ -151,9 +164,9 @@ export function decibels(frame) {
  * d(tau) = sum x[j]^2 + sum x[j+tau]^2 - 2 sum x[j] x[j+tau] takes its cross term from one FFT
  * correlation, and the energy terms from running sums.
  */
-function makeYin(size, rate) {
-    const tauMin = Math.max(2, Math.floor(rate / MAX_HZ));
-    const tauMax = Math.min(Math.floor(rate / MIN_HZ), size >> 1);
+function makeYin(size, rate, maxHz = MAX_HZ, minHz = MIN_HZ) {
+    const tauMin = Math.max(2, Math.floor(rate / maxHz));
+    const tauMax = Math.min(Math.floor(rate / minHz), size >> 1);
     const n = size - tauMax;
     // The correlation's lags stop at tauMax, and the second signal ends at n, so a circular
     // correlation of `size` points never wraps: the next power of two is enough.

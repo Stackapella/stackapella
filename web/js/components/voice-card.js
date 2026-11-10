@@ -8,8 +8,8 @@ import { t, tk } from '../i18n.js';
 import { voiceType } from '../course.js';
 import { easyRange } from '../results.js';
 import { learning } from '../stores/learning.js';
-import { NoteKeyboard } from './results.js';
-import { ShareResult } from './share-result.js';
+import { NoteKeyboard } from './note-keyboard.js';
+import { ShareResult } from './lazy-results.js';
 
 const SUITS = { soprano: tk('voiceCard.suits.soprano'), alto: tk('voiceCard.suits.alto'), tenor: tk('voiceCard.suits.tenor'), bass: tk('voiceCard.suits.bass') };
 

@@ -7,10 +7,11 @@
 // Everything that sounds is scheduled on the audio clock by the engine; the screen only reads the
 // position and the mic. Emits `done` ({ percent, tip, measure, parts, sung }) as the exercise does.
 
-import { audio, engine, leadSeconds, unlock } from '../audio.js';
+import { audio, engine, latencyNow, leadSeconds, unlock } from '../audio.js';
 import { readyMic } from '../mic-check.js';
 import { formatNumber, t, tk } from '../i18n.js';
-import { trackFrame, trackInWorker } from '../pitchtrack.js';
+import { rangeFor, trackFrame, trackInWorker, WHISTLE_RANGE } from '../pitchtrack.js';
+import { foldTrack, sayFoldOnce } from '../whistle.js';
 import { STRICTNESS } from '../scoring.js';
 import { renderPart } from '../synth.js';
 import { token } from '../colors.js';
@@ -106,6 +107,52 @@ export function sungOf(score, pitch) {
     return score.sung?.length ? score.sung : [pitch];
 }
 
+/**
+ * A course's own measure for a wave take (js/lesson-scores.js PLAY_SCORERS), as the lane asks it: the plan's segments as
+ * notes at the lane's pitch, and what the course keeps (`personal`: Yodeling's flipFinder settles a flip from the sirens
+ * before; the lane once left it out, so no flip was ever kept: the courses audit, voice.md F2).
+ */
+export function courseScore(scorer, { track, heard = track, plan, pitch, exercise, strictness, personal = {} }) {
+    const beat = plan.beatSeconds;
+    const target = plan.segments.map((s) => ({ start: s.from, end: s.to, pitch }));
+    const notes = plan.segments.map((s) => ({ beat: s.from / beat, length: s.seconds / beat, pitch, step: exercise.step ?? 0 }));
+    return scorer({ track, heard, dots: [], target, notes, beatSeconds: beat, strictness, exercise: { ...exercise, notes }, personal });
+}
+
+/** The ribbon as short spans (`{ start, end, pitch }`, a tenth of a second each, at the ribbon's own height), for a whistle's fold. */
+function ribbonSpans(plan, pitch) {
+    const spans = [];
+    for (let t = plan.start; t < plan.end; t += 0.1) {
+        const target = targetAt(plan, t + 0.05);
+        if (target) spans.push({ start: t, end: Math.min(plan.end, t + 0.1), pitch: pitch + target.cents / 100 });
+    }
+    return spans;
+}
+
+/**
+ * A wave take's score from its pitch track: each segment by its kind (js/vibrato.js scoreWave), or a course's own
+ * measure (js/lesson-scores.js, e.g. Perfect your pitch's 'lock') when the step names one. Pure, so the scoring guard
+ * (tests/score-guard.test.js) sings it too.
+ */
+export function scoreWaveTake({ track: heard, plan, pitch, exercise, strictness, personal = {} }) {
+    // A whistle (`whistle`, js/whistle.js) is moved down onto the lane's note by whole octaves before it's measured.
+    const { track, octaves: whistled } = exercise.whistle ? foldTrack(heard, ribbonSpans(plan, pitch), { slips: false }) : { track: heard, octaves: 0 };
+    const tolerance = STRICTNESS[strictness] ?? STRICTNESS.relaxed;
+    const score = scoreWave(track, plan, { midi: pitch, tolerance, generous: !!exercise.generous });
+    const scorer = PLAY_SCORERS[exercise.score];
+    if (scorer) {
+        const own = courseScore(scorer, { track, heard, plan, pitch, exercise, strictness, personal });
+        score.percent = own.percent;
+        score.tip = own.tip ?? score.tip;
+        score.personal = own.personal ?? null; // a value the course keeps (a flip note, a baseline)
+        score.sung = own.sung ?? null; // steady notes that widen the range the app keeps (Range and registers' span): see sungOf
+        score.ownLine = own.line ?? null; // the course's own words for what it measured
+        score.label = own.label ?? null; // and its name for the percent (the result's heading)
+    }
+    score.whistled = whistled;
+    return score;
+}
+
 export const WaveLane = {
     components: { HeadphonesDialog, Icon, KeyControl },
     props: {
@@ -115,7 +162,7 @@ export const WaveLane = {
         color: { type: String, default: 'var(--color-part-4)' },
         musicKey: { type: String, default: null },
         canLower: { type: Boolean, default: true },
-        canHigher: { type: Boolean, default: true },
+        canHigher: { type: Boolean, default: true }, higherShown: { type: Boolean, default: true },
         // This visit's earlier steps (views/learn.js `kept`): `exercise.under: { step }` plays that take beneath.
         earlier: { type: Object, default: () => ({ results: {}, takes: {} }) },
         personal: { type: Object, default: () => ({}) },
@@ -136,7 +183,7 @@ export const WaveLane = {
             <!-- Hear yourself: the take played back, and what was measured. -->
             <section v-if="result && !running" class="space-y-3 rounded-2xl border border-edge bg-panel p-4" data-wave-result>
                 <div class="flex items-center gap-3">
-                    <button v-if="take" type="button" class="grid size-11 shrink-0 place-items-center rounded-full glass-bubble-solid" :aria-label="playing ? t('studio.stop') : t('wave.hearYourself')" @click="listenBack"><Icon :name="playing ? 'stop' : 'play'" :size="18" /></button>
+                    <button v-if="take" type="button" class="grid size-11 shrink-0 place-items-center bubble bubble-primary" data-disc="play" :aria-label="playing ? t('studio.stop') : t('wave.hearYourself')" @click="listenBack"><Icon :name="playing ? 'stop' : 'play'" :size="18" /></button>
                     <div class="min-w-0">
                         <!-- A registered scorer's own line, unheard, says what to try (Humming's "try it on a hum"); the lane's own measures keep "not heard". -->
                         <p class="font-bold text-cream" :data-wave-unheard="result.percent === null && result.ownLine ? '' : null">{{ result.percent === null ? (result.ownLine ? t(result.ownLine.key, result.ownLine.values) : t('course.notHeard')) : t('wave.hearYourself') }}</p>
@@ -151,7 +198,7 @@ export const WaveLane = {
                 <h2 class="font-bold text-cream">{{ t('wave.then.title') }}</h2>
                 <template v-if="then">
                     <div v-for="row in thenRows" :key="row.id" class="flex items-center gap-3">
-                        <button type="button" class="grid size-10 shrink-0 place-items-center rounded-full glass-bubble-solid" :aria-label="playing === row.id ? t('studio.stop') : t('wave.then.hear', { which: row.name })" @click="hearOne(row.id)"><Icon :name="playing === row.id ? 'stop' : 'play'" :size="16" /></button>
+                        <button type="button" class="grid size-10 shrink-0 place-items-center bubble bubble-primary" data-disc="play" :aria-label="playing === row.id ? t('studio.stop') : t('wave.then.hear', { which: row.name })" @click="hearOne(row.id)"><Icon :name="playing === row.id ? 'stop' : 'play'" :size="16" /></button>
                         <svg viewBox="0 0 120 40" class="h-10 w-28 shrink-0" aria-hidden="true" data-trace><path :d="row.path" fill="none" stroke="currentColor" stroke-width="2" :class="row.id === 'now' ? 'text-cream' : 'text-muted'" /></svg>
                         <p class="min-w-0 text-sm"><span class="block font-semibold text-cream">{{ row.name }}</span><span v-if="row.line" class="text-muted">{{ t(row.line.key, row.line.values) }}</span></p>
                     </div>
@@ -163,11 +210,11 @@ export const WaveLane = {
             <p v-if="speaker" class="text-center text-sm text-muted">{{ t('course.speakerUnder') }}</p>
             <HeadphonesDialog v-if="asking" speaker-option simple :action="t('headphones.on')" @ok="headphonesOn" @speaker="useSpeaker" @close="asking = false" />
             <div class="flex flex-col items-center gap-5">
-                <KeyControl v-if="musicKey && !running && !scoring" class="w-full" :music-key="musicKey" :can-lower="canLower" :can-higher="canHigher" @lower="$emit('lower')" @higher="$emit('higher')" />
+                <KeyControl v-if="musicKey && !running && !scoring" class="w-full" :music-key="musicKey" :can-lower="canLower" :can-higher="canHigher" :higher-shown="higherShown" @lower="$emit('lower')" @higher="$emit('higher')" />
                 <div class="flex items-end justify-center gap-6">
                     <button v-if="!running" type="button" class="btn-secondary" :disabled="scoring" @click="start('listen')"><Icon name="play" :size="16" /> {{ t('wave.hear') }}</button>
                     <button v-if="running !== 'listen'" type="button" class="group flex flex-col items-center gap-2 disabled:opacity-50" :disabled="scoring" @click="running ? stop() : start('sing')">
-                        <span class="grid size-20 place-items-center rounded-full glass-bubble-solid ring-8 ring-raised/70 transition group-hover:scale-105"><Icon :name="running ? 'stop' : 'mic'" :size="30" /></span>
+                        <span class="grid size-20 place-items-center transition group-hover:scale-105 bubble bubble-lg bubble-primary bubble-ringed" data-play-disc><Icon :name="running ? 'stop' : 'mic'" :size="30" /></span>
                         <span class="text-sm font-semibold text-cream">{{ running ? t('studio.stop') : result ? t('wave.again') : t('wave.sing') }}</span>
                     </button>
                     <button v-else type="button" class="btn-secondary" @click="stop()"><Icon name="stop" :size="16" /> {{ t('studio.stop') }}</button>
@@ -288,7 +335,7 @@ export const WaveLane = {
             this.cue = null;
             this.running = mode;
             this.startedAt = performance.now();
-            const latencyFrames = audio.latencyFrames ?? engine.estimatedLatencyFrames();
+            const latencyFrames = latencyNow();
             // The live line's lag, taken off: the mic frame's middle, and the way in (half the round trip).
             this.lag = 1024 / sr + latencyFrames / sr / 2;
             engine.play({ fromSeconds: 0, bpm, record: mode === 'sing', latencyFrames, leadSeconds: leadSeconds() });
@@ -309,7 +356,7 @@ export const WaveLane = {
         /** One live reading: kept for the line, the ribbon filled where it's inside, a peak popped. */
         hear() {
             const frame = engine.inputFrame();
-            const reading = frame ? trackFrame(frame, engine.sampleRate, { minClarity: LISTEN_CLARITY }) : null;
+            const reading = frame ? trackFrame(frame, engine.sampleRate, { ...(this.exercise.whistle ? WHISTLE_RANGE : {}), minClarity: LISTEN_CLARITY }) : null;
             const at = this.position - this.lag;
             if (!reading?.hz || at < this.plan.start - 0.2) {
                 this.trace.push({ t: at, cents: null });
@@ -358,23 +405,8 @@ export const WaveLane = {
             if (!take || !finished) return;
             this.scoring = true;
             try {
-                const track = await trackInWorker(take.samples, take.sampleRate);
-                const tolerance = STRICTNESS[this.strictness] ?? STRICTNESS.relaxed;
-                const score = scoreWave(track, this.plan, { midi: this.pitch, tolerance, generous: !!this.exercise.generous });
-                // A course's own measure (js/lesson-scores.js, e.g. Perfect your pitch's 'lock') gives the stars when the step names one.
-                const scorer = PLAY_SCORERS[this.exercise.score];
-                if (scorer) {
-                    const beat = this.plan.beatSeconds;
-                    const target = this.plan.segments.map((s) => ({ start: s.from, end: s.to, pitch: this.pitch }));
-                    const notes = this.plan.segments.map((s) => ({ beat: s.from / beat, length: s.seconds / beat, pitch: this.pitch, step: this.exercise.step ?? 0 }));
-                    const own = scorer({ track, dots: [], target, notes, beatSeconds: beat, strictness: this.strictness, exercise: { ...this.exercise, notes } });
-                    score.percent = own.percent;
-                    score.tip = own.tip ?? score.tip;
-                    score.personal = own.personal ?? null; // a value the course keeps (a flip note, a baseline)
-                    score.sung = own.sung ?? null; // steady notes that widen the range the app keeps (Range and registers' span): see sungOf
-                    score.ownLine = own.line ?? null; // the course's own words for what it measured
-                    score.label = own.label ?? null; // and its name for the percent (the result's heading)
-                }
+                const track = await trackInWorker(take.samples, take.sampleRate, rangeFor(this.exercise));
+                const score = scoreWaveTake({ track, plan: this.plan, pitch: this.pitch, exercise: this.exercise, strictness: this.strictness, personal: this.personal });
                 // The whole take's line, for Hear yourself (in the note's octave).
                 const ref = 440 * 2 ** ((this.pitch - 69) / 12);
                 this.trace = Array.from(track.hz, (hz, i) => ({ t: i / track.rate, cents: hz > 0 ? ((c) => c - 1200 * Math.round(c / 1200))(1200 * Math.log2(hz / ref)) : null })).filter((r) => r.t >= this.plan.start - 0.3 && r.t <= this.plan.end + 0.2);
@@ -387,7 +419,7 @@ export const WaveLane = {
                 }
                 this.result = score;
                 await this.keepOrCompare(score);
-                this.$emit('done', { percent: score.percent, tip: score.tip, measure: score.measure, parts: score.parts, sung: sungOf(score, this.pitch), insights: [], take: this.take, personal: score.personal ?? null, line: score.ownLine ?? null, label: score.label ?? null, minStars: this.exercise.generous && score.percent !== null ? 2 : null });
+                this.$emit('done', { percent: score.percent, tip: score.tip, measure: score.measure, parts: score.parts, sung: sungOf(score, this.pitch), insights: [], take: this.take, personal: score.personal ?? null, line: score.ownLine ?? null, label: score.label ?? null, minStars: this.exercise.generous && score.percent !== null ? 2 : null, foldSaid: sayFoldOnce(score.whistled) });
             } catch (error) {
                 console.error('Scoring failed', error);
                 this.$emit('done', { percent: null, sung: [] });

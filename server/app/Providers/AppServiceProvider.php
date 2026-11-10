@@ -29,6 +29,8 @@ use App\Models\Idea;
 use App\Models\IdeaVoice;
 use App\Models\MudeoBatch;
 use App\Models\Notice;
+use App\Models\OutreachMessage;
+use App\Models\OutreachTarget;
 use App\Models\PartScore;
 use App\Models\Report;
 use App\Models\SchoolClass;
@@ -58,6 +60,7 @@ use App\Support\Admin\AdminGate;
 use App\Support\Flags;
 use App\Support\Gallery\Gallery;
 use App\Support\Ops\TempFiles;
+use App\Support\Templates\Catalogue;
 use App\Support\Trust\Limits;
 use App\Support\Usage\Plans;
 use App\Support\Web\AppShell;
@@ -94,6 +97,7 @@ final class AppServiceProvider extends ServiceProvider
         // One per request: it works out which projects are read-only once.
         $this->app->scoped(Plans::class);
         $this->app->scoped(Gallery::class);
+        $this->app->scoped(Catalogue::class);
 
         // Stripe, only through the gateway (the tests bind a fake).
         $this->app->bind(BillingGateway::class, StripeGateway::class);
@@ -145,6 +149,8 @@ final class AppServiceProvider extends ServiceProvider
             'audit_log' => AuditLog::class,
             'block' => Block::class,
             'email_suppression' => EmailSuppression::class,
+            'outreach_target' => OutreachTarget::class,
+            'outreach_message' => OutreachMessage::class,
             'email_token' => EmailToken::class,
             'handle_hold' => HandleHold::class,
             'user_device' => UserDevice::class,
@@ -184,6 +190,10 @@ final class AppServiceProvider extends ServiceProvider
         Mail::extend('cloudflare', static fn (): CloudflareTransport => new CloudflareTransport(
             (string) config('services.cloudflare_email.account_id'),
             (string) config('services.cloudflare_email.token'),
+        ));
+        Mail::extend('cloudflare_outreach', static fn (): CloudflareTransport => new CloudflareTransport(
+            (string) config('outreach.account_id'),
+            (string) config('outreach.token'),
         ));
     }
 

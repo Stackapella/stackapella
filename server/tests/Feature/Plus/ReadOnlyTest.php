@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Tests\Feature\Plus;
 
 use App\Actions\Templates\SyncOfficialTemplates;
-use App\Models\Project;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
 use Tests\Support\CloudSave;
@@ -24,6 +23,8 @@ final class ReadOnlyTest extends TestCase
 
     public function test_a_downgrade_leaves_the_most_recently_edited_editable_and_the_person_may_choose(): void
     {
+        // No plan limits projects since 2026-11-07; an install may set one, and this is that machinery.
+        config(['usage.plans.free.projects' => 3]);
         $this->fakeStripe();
         $user = $this->member();
         $this->subscribe($user);
@@ -55,15 +56,21 @@ final class ReadOnlyTest extends TestCase
         $this->assertMatchesContract($this->putJson('/api/projects/editable', ['ids' => [...$ids]]), 'projects.editable.update', 422);
     }
 
-    public function test_a_project_from_a_plus_song_waits_for_plus(): void
+    public function test_a_project_from_any_library_song_stays_editable_on_the_free_plan(): void
     {
+        // Every library song is free with an account, and no plan limits projects (2026-11-07).
         app(SyncOfficialTemplates::class)->handle();
         $this->owner();
-        $id = (string) Str::uuid();
-        $this->saveProject($id, 0, ['template' => ['id' => 'silent-night', 'version' => 1]])->assertOk();
+        $ids = [];
+        foreach (range(1, 5) as $i) {
+            $ids[] = $id = (string) Str::uuid();
+            $this->saveProject($id, 0, ['template' => ['id' => 'silent-night', 'version' => 1]])->assertOk();
+        }
 
-        $this->assertSame('plus_song', collect((array) $this->pull()->json('data.projects'))->firstWhere('id', $id)['readOnly'] ?? null);
-        $this->putJson('/api/projects/editable', ['ids' => [$id]])->assertStatus(422)->assertJsonValidationErrors('ids.0');
-        $this->assertSame(1, Project::query()->count());
+        $this->assertSame([null], array_values(array_unique(array_column((array) $this->pull()->json('data.projects'), 'readOnly'))));
+        $usage = $this->getJson('/api/usage');
+        $this->assertMatchesContract($usage, 'usage.show', 200);
+        $usage->assertJsonPath('data.projects.limit', null);
+        $this->putJson('/api/projects/editable', ['ids' => $ids])->assertOk();
     }
 }

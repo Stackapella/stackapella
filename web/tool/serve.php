@@ -61,7 +61,7 @@ if (preg_match($serverPaths, $path) === 1) {
         $to = (string) ($_GET['to'] ?? '/');
         header('Content-Type: text/html; charset=utf-8');
         echo '<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Stackapella</title>'
-            .'<script src="/js/theme-boot.js"></script><link rel="stylesheet" href="/css/app.css"></head>'
+            .'<meta name="game-css" content="/css/site-game.css"><script src="/js/theme-boot.js"></script><link rel="stylesheet" href="/css/site.css"><script src="/js/game-css.js"></script></head>'
             .'<body class="min-h-dvh bg-ink font-sans text-cream antialiased"><main class="mx-auto flex min-h-dvh max-w-xl flex-col justify-center gap-6 px-6 py-16">'
             .'<section class="card space-y-4 p-6 md:p-8" data-moving data-app-url="'.htmlspecialchars($to).'" aria-live="polite"></section></main>'
             .'<script type="module" src="/js/public/moving.js"></script></body></html>';
@@ -77,6 +77,22 @@ if (preg_match($serverPaths, $path) === 1) {
         return true;
     }
     forward($api, $_SERVER['REQUEST_URI']);
+
+    return true;
+}
+
+// The library's songs, as the server keeps them, for the scoring guard (tests/score-guard.test.js) to sing a course's
+// song steps without a server: only a plain id, only from that folder.
+if (preg_match('#^/tests/templates/([a-z0-9-]+)\.json$#', $path, $song) === 1) {
+    $file = $repo.'/server/database/templates/'.$song[1].'.json';
+    header('Content-Type: application/json');
+    if (! is_file($file)) {
+        http_response_code(404);
+        echo json_encode(['code' => 'not_found']);
+
+        return true;
+    }
+    readfile($file);
 
     return true;
 }
@@ -104,6 +120,15 @@ if ($file !== false && is_dir($file) && is_file($file.'/index.html')) {
 $inside = $file !== false && str_starts_with($file, $base.DIRECTORY_SEPARATOR) && is_file($file)
     && ! str_starts_with($file, $root.'/tool') && ! str_starts_with($file, $root.'/bin');
 if (! $inside) {
+    // A file production's nginx would look for and not find (a served folder, a name with an extension): a 404, as
+    // there, never the app's page with a 200 (a mock once took that page for a song file: course_song, 2026-11-02).
+    if (! $contract && pathinfo($path, PATHINFO_EXTENSION) !== '' && array_filter($served, fn (string $entry): bool => str_ends_with($entry, '/') && str_starts_with($relative, $entry)) !== []) {
+        http_response_code(404);
+        header('Content-Type: text/plain; charset=utf-8');
+        echo "Not found: {$path}";
+
+        return true;
+    }
     $file = $root.'/index.html';
 }
 

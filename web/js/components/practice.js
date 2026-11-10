@@ -12,7 +12,7 @@ export const LyricsLane = {
     emits: ['seek'],
     template: `
         <div class="relative h-7" translate="no" data-lyrics-lane>
-            <button v-for="(line, i) in lines" :key="i" type="button" class="absolute inset-y-0.5 truncate rounded-md px-2 text-start text-[11px] transition"
+            <button v-for="(line, i) in lines" :key="i" type="button" class="absolute inset-y-0.5 truncate rounded-md px-2 text-start text-xs transition"
                 :class="i === now ? 'bg-raised font-bold text-cream' : 'text-muted hover:text-cream'" :style="place(line)" :aria-current="i === now ? 'true' : null" @click="$emit('seek', line.startSeconds)">{{ line.text }}</button>
         </div>`,
     computed: {

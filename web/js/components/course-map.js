@@ -4,7 +4,8 @@
 // the unit's colour (done ticked, the one now with a play ring in your accent, the rest hollow, the
 // challenge a star), and the picked lesson's card (its number, title, line, minutes and exercises,
 // and Start lesson, Sing it again or why it's locked), the one you're on at first. A unit still
-// closed says how many stars open it. The library and Sing are never behind it.
+// closed says how many stars open it. The library and Sing are never behind it. Past a singer's first week, a unit's
+// boss (docs/boss-round-plan.md) is one row under its path: Boss in game mode, an optional Unit review in serious.
 
 import { localized, t } from '../i18n.js';
 import { navigate } from '../router.js';
@@ -12,19 +13,24 @@ import { maxStars, nextLesson, starsIn, starsToOpen, unitOpen } from '../course.
 import { lessonMinutes } from '../results.js';
 import { account } from '../stores/account.js';
 import { learning, loadLearning } from '../stores/learning.js';
+import { CourseWall } from './course-wall.js';
 import { PART_COLORS } from '../theme.js';
 import { Icon } from './icon.js';
-import { lessonAccess, lessonFree, nextInCourse, openView, songCourse } from '../courses.js';
-import { StageMap } from '../game/stage-map.js';
+import { guestOpen, lessonAccess, nextInCourse, openView } from '../courses.js';
+import { lazyComponent } from '../game/modules.js';
+
+const StageMap = lazyComponent('stageMap', 'StageMap'); // game mode's only: loaded with game mode
 import { effect } from '../game/effects.js';
+import { BOSS_PASS, bossBeaten, bossOpen, bossResult, bossShown } from '../boss.js';
+import { formatNumber } from '../i18n.js';
 import { game } from '../skin.js';
 
 export const CourseMap = {
-    components: { Icon, StageMap },
+    components: { CourseWall, Icon, StageMap },
     // A Plus course's data (js/courses.js); the free course when none.
     props: { course: { type: Object, default: null }, focusUnit: { type: String, default: null } }, // focusUnit: a song course's part, picked on the song page
     data: () => ({ expanded: null, picked: {} }),
-    setup: () => ({ learning, localized, lessonMinutes, effect, game }),
+    setup: () => ({ learning, localized, lessonMinutes, effect, game, formatNumber, BOSS_PASS }),
     template: `
         <ol v-if="units.length" class="space-y-4" data-course-map>
             <li v-for="(unit, u) in units" :key="unit.id" class="card overflow-hidden" :data-unit="unit.id">
@@ -36,11 +42,11 @@ export const CourseMap = {
                             <span class="block text-xl font-extrabold tracking-tight" :class="open(u) ? 'text-cream' : 'text-muted'" translate="no">{{ localized(unit.title) }}</span>
                         </span>
                         <span class="flex shrink-0 items-center gap-2">
-                            <span v-if="plusUnit(unit)" class="chip-accent">{{ t('course.plus') }}</span>
+                            <span v-if="bossOf(unit)?.beaten" class="chip inline-flex items-center gap-1" data-unit-mastered><Icon name="shield" :size="14" /> {{ t('boss.map.mastered') }}</span>
                             <Icon name="chevron" :size="18" class="text-muted motion-safe:transition" :class="isOpen(u) ? 'rotate-180' : ''" />
                         </span>
                     </span>
-                    <span v-if="!plusUnit(unit)" class="mt-3 flex items-center gap-3">
+                    <span class="mt-3 flex items-center gap-3">
                         <span class="block h-1.5 flex-1 overflow-hidden rounded-full bg-raised"><span class="block h-full rounded-full bg-accent" :style="{ width: barShare(u) * 100 + '%' }"></span></span>
                         <span class="shrink-0 tabular-nums text-xs text-muted">{{ game() ? (open(u) ? t('course.mapStars', { stars: starsIn(unit), max: maxStars(unit) }) : t('course.mapToOpen', { stars: starsIn(units[u - 1]), need: starsToOpen(units[u - 1]) })) : open(u) ? t('course.mapLessons', { done: lessonsDone(unit), total: unit.lessons.length }) : t('course.mapOpensAfter', { number: u }) }}</span>
                     </span>
@@ -51,8 +57,8 @@ export const CourseMap = {
                     <ol v-else class="flex items-start" :aria-label="t('home.lead.path')">
                         <li v-for="(lesson, i) in unit.lessons" :key="lesson.id" class="relative flex min-w-0 flex-1 flex-col items-center gap-2 text-center">
                             <span v-if="i > 0" class="absolute end-1/2 top-7 h-0.5 w-full -translate-y-1/2" :style="{ background: stars(unit.lessons[i - 1]) ? colorOf(unit) : 'var(--color-line)' }" aria-hidden="true"></span>
-                            <button type="button" class="relative z-[1] grid size-14 place-items-center transition disabled:cursor-not-allowed" :class="[nodeClass(unit, lesson), pickedId(u) === lesson.id ? 'ring-2 ring-cream ring-offset-2 ring-offset-panel' : '']" :style="nodeStyle(unit, lesson)" :disabled="locked(u, unit, lesson)"
-                                :aria-label="game() ? t('course.lessonLabel', { title: localized(lesson.title), stars: stars(lesson) }) : stars(lesson) ? t('course.lessonDone', { title: localized(lesson.title) }) : localized(lesson.title)" :aria-current="lesson.id === current ? 'step' : null" :aria-pressed="pickedId(u) === lesson.id ? 'true' : 'false'" @click="pick(u, lesson.id)">
+                            <button type="button" class="relative z-[1] grid size-14 place-items-center transition disabled:cursor-not-allowed" :class="[nodeClass(unit, lesson), pickedId(u) === lesson.id ? pickedClass(lesson) : '']" :style="nodeStyle(unit, lesson)" :disabled="locked(u, unit, lesson)"
+                                :aria-label="game() ? t('course.lessonLabel', { title: localized(lesson.title), stars: stars(lesson) }) : stars(lesson) ? t('course.lessonDone', { title: localized(lesson.title) }) : localized(lesson.title)" :aria-current="lesson.id === current ? 'step' : null" :aria-pressed="pickedId(u) === lesson.id ? 'true' : 'false'" :data-node="stars(lesson) ? 'done' : lesson.id === current ? 'now' : locked(u, unit, lesson) ? 'locked' : lesson.challenge ? 'challenge' : 'next'" @click="pick(u, lesson.id)">
                                 <Icon :name="stars(lesson) ? 'check' : lesson.id === current ? 'play' : lesson.challenge && game() ? 'starFilled' : 'note'" :size="20" :class="lesson.challenge && !stars(lesson) && lesson.id !== current && game() ? '-rotate-45' : ''" />
                             </button>
                             <span v-if="game()" class="flex gap-1" aria-hidden="true"><span v-for="s in 3" :key="s" class="size-1.5 rounded-full" :style="{ background: s <= stars(lesson) ? colorOf(unit) : 'var(--color-line)' }"></span></span>
@@ -65,8 +71,20 @@ export const CourseMap = {
                         <p class="mt-1 text-xl font-extrabold tracking-tight text-cream" translate="no">{{ localized(pickedLesson(u).title) }}</p>
                         <p v-if="lineOf(pickedLesson(u))" class="mt-2 text-sm text-muted" translate="no">{{ localized(lineOf(pickedLesson(u))) }}</p>
                         <p class="mt-3 tabular-nums text-xs text-muted">{{ t('course.aboutMin', { minutes: lessonMinutes(pickedLesson(u)) }) }} · {{ t('course.exercises', { count: exercisesIn(pickedLesson(u)) }) }}</p>
-                        <p v-if="locked(u, unit, pickedLesson(u))" class="mt-4 text-sm text-muted" data-lesson-locked>{{ lockedWhy(u, unit) }}</p>
+                        <p v-if="!open(u)" class="mt-4 text-sm text-muted" data-lesson-locked>{{ t('course.locked') }}</p>
+                        <!-- Signed out past a course's first lesson (Hillel, 2026-11-06): a free account, never a price. -->
+                        <CourseWall v-else-if="needsAccount(pickedLesson(u))" compact place="map" :course="course" :lesson-id="pickedLesson(u).id" class="mt-4" />
                         <button v-else type="button" class="btn-primary mt-4 w-full" @click="navigate('/learn/' + pickedLesson(u).id)">{{ stars(pickedLesson(u)) ? t('course.replay') : t('course.startLesson') }}</button>
+                    </div>
+                    <!-- The unit's boss (docs/boss-round-plan.md): optional, past week one; locked until the challenge has stars. -->
+                    <div v-if="bossOf(unit) && open(u)" class="mt-4 flex flex-wrap items-center gap-x-4 gap-y-3 rounded-2xl border border-line p-4" data-ui="boss-row" data-boss-row :data-open="bossOf(unit).open ? '' : null">
+                        <span v-if="effect('boss')" class="ge-boss-gem is-small" :data-crack="bossOf(unit).beaten ? 4 : 0" aria-hidden="true"></span>
+                        <span class="min-w-0 flex-1">
+                            <span class="block text-xs font-bold uppercase tracking-[0.14em] text-muted">{{ effect('boss') ? t('boss.map.boss') : t('boss.map.review') }} · {{ t('boss.map.optional') }}</span>
+                            <span class="block font-bold text-cream" translate="no">{{ localized(unit.boss.title) }}</span>
+                            <span class="block text-sm text-muted" data-boss-status>{{ !bossOf(unit).open ? t('boss.locked') : bossOf(unit).beaten ? (effect('boss') ? t('boss.bestBeaten', { percent: formatNumber(bossOf(unit).best) }) : t('boss.review.bestPassed', { percent: formatNumber(bossOf(unit).best) })) : bossOf(unit).best !== null ? t('boss.best', { percent: formatNumber(bossOf(unit).best) }) : effect('boss') ? t('boss.toBeat', { percent: formatNumber(BOSS_PASS) }) : t('boss.review.toPass', { percent: formatNumber(BOSS_PASS) }) }}</span>
+                        </span>
+                        <button v-if="bossOf(unit).open" type="button" class="btn-secondary max-sm:w-full" data-boss-go @click="navigate('/learn/' + unit.boss.id)">{{ bossOf(unit).beaten ? t('boss.playAgain') : effect('boss') ? t('boss.takeItOn') : t('boss.review.start') }}</button>
                     </div>
                 </div>
             </li>
@@ -75,7 +93,6 @@ export const CourseMap = {
         loadLearning();
     },
     computed: {
-        plus: () => account.me?.plan === 'plus',
         staff: () => !!account.me?.staff,
         units: (vm) => (vm.course ? vm.course.units : learning.course?.units ?? []),
         /** The progress the map reads: a Plus course's own lessons, or the free course's. */
@@ -83,7 +100,7 @@ export const CourseMap = {
         /** The lesson to do next, marked on the map with a play ring. */
         current() {
             if (this.course) return nextInCourse(this.course, learning.progress, this.focusUnit)?.lesson.id ?? null;
-            return learning.course ? nextLesson(learning.course.units, learning.progress, { plus: this.plus })?.lesson.id ?? null : null;
+            return learning.course ? nextLesson(learning.course.units, learning.progress)?.lesson.id ?? null : null;
         },
         /** The unit you're in: open at first. */
         currentUnit() {
@@ -96,6 +113,11 @@ export const CourseMap = {
         navigate,
         maxStars,
         starsToOpen,
+        /** The unit's boss as the map shows it (`{ open, best, beaten }`), or null: the free course's, past week one. */
+        bossOf(unit) {
+            if (this.course || !bossShown(unit, learning.progress)) return null;
+            return { open: bossOpen(unit, learning.progress), best: bossResult(learning.progress, unit.id)?.best ?? null, beaten: bossBeaten(learning.progress, unit.id) };
+        },
         /** Serious mode's measure: the unit's lessons done (no stars). */
         lessonsDone(unit) {
             return unit.lessons.filter((lesson) => this.progress.lessons[lesson.id]?.stars).length;
@@ -110,16 +132,15 @@ export const CourseMap = {
         stars(lesson) {
             return this.progress.lessons[lesson.id]?.stars ?? 0;
         },
-        /** A lesson that can't be started now: its unit closed, or Plus's (a Plus course's first lesson is free). */
-        locked(u, unit, lesson) {
-            if (!this.open(u)) return true;
-            if (!this.course) return !!unit.plus && !this.plus;
-            return !!lesson && lessonAccess(this.course, lesson.id, learning.progress, { plus: this.plus, staff: this.staff }).plusOnly;
+        /** A lesson that can't be started now: its unit closed (every lesson is free: Hillel, 2026-11-06). */
+        locked(u) {
+            return !this.open(u);
         },
-        /** The Plus chip on a unit's head: a Plus unit of the free course, or a Plus course's unit with no free lesson. */
-        plusUnit(unit) {
-            if (this.plus || (this.course && (this.staff || songCourse(this.course)))) return false;
-            return this.course ? !unit.lessons.some((l) => lessonFree(this.course, l.id)) : !!unit.plus;
+        /** Signed out, past the course's first lesson (any course, the free one too): a free account to keep going. */
+        needsAccount(lesson) {
+            if (!lesson || account.me) return false;
+            if (this.course) return lessonAccess(this.course, lesson.id, learning.progress, { signedIn: false, staff: this.staff }).needsAccount;
+            return !!learning.course && !guestOpen(learning.course, lesson.id);
         },
         isOpen(u) {
             return this.expanded === null ? u === this.currentUnit : this.expanded === u;
@@ -137,10 +158,6 @@ export const CourseMap = {
         },
         /** The steps you sing in (every step but the Learn ones), of the lesson as written: the map never draws an experiment's arm (lessonFor), the lesson does when it opens. */
         exercisesIn: (lesson) => lesson.steps.filter((s) => s.kind !== 'learn').length,
-        /** Why a lesson can't be started now: its unit closed, or Plus's (locked's only reason inside an open unit). */
-        lockedWhy(u, unit) {
-            return this.open(u) ? t('course.plusOnly') : t('course.locked');
-        },
         pickedId(u) {
             const unit = this.units[u];
             return this.picked[u] ?? (unit.lessons.some((l) => l.id === this.current) ? this.current : unit.lessons[0]?.id);
@@ -165,17 +182,27 @@ export const CourseMap = {
             return this.paint(PART_COLORS[((unit.colour ?? 4) - 1) % PART_COLORS.length]);
         },
         nodeClass(unit, lesson) {
-            // Serious mode is calm (onboarding review 2, 11): flat nodes, and the challenge a plain ring, never a diamond.
-            const shape = lesson.challenge && !this.stars(lesson) && lesson.id !== this.current && game() ? 'rotate-45 rounded-xl' : 'rounded-full';
-            if (this.stars(lesson)) return game() ? `gem ${shape}` : `${shape}`;
-            if (lesson.challenge && !game() && lesson.id !== this.current) return `${shape} border-2 border-cream bg-ink text-cream`;
+            // Serious mode: bubbles (docs/bubble-circles-plan.md), done in the unit's colour, the one now filled in the accent
+            // with its halo, the rest clear pearls (the challenge with a cream rim; a locked one faded, being disabled).
+            if (!game()) {
+                if (this.stars(lesson)) return 'bubble bubble-lg';
+                if (lesson.id === this.current) return 'bubble bubble-lg bubble-now';
+                return lesson.challenge ? 'bubble bubble-lg bubble-clear bubble-challenge' : 'bubble bubble-lg bubble-clear';
+            }
+            const shape = lesson.challenge && !this.stars(lesson) && lesson.id !== this.current ? 'rotate-45 rounded-xl' : 'rounded-full';
+            if (this.stars(lesson)) return `gem ${shape}`;
             if (lesson.id === this.current) return `${shape} border-2 border-accent bg-ink text-cream`;
             return `${shape} border-2 border-line bg-ink text-muted`;
         },
         nodeStyle(unit, lesson) {
-            if (this.stars(lesson)) return game() ? { '--gem': this.colorOf(unit), '--gem-ink': this.paintText(this.colorOf(unit)) } : { background: this.colorOf(unit), color: this.paintText(this.colorOf(unit)) };
-            if (lesson.id === this.current) return { boxShadow: '0 0 0 5px color-mix(in srgb, var(--color-accent) 25%, transparent)' };
+            if (this.stars(lesson)) return game() ? { '--gem': this.colorOf(unit), '--gem-ink': this.paintText(this.colorOf(unit)) } : { '--bubble': this.colorOf(unit), '--bubble-ink': this.paintText(this.colorOf(unit)) };
+            if (lesson.id === this.current && game()) return { boxShadow: '0 0 0 5px color-mix(in srgb, var(--color-accent) 25%, transparent)' };
             return null;
+        },
+        /** The picked lesson: a ring in game mode; on a bubble an outline (a ring is a box-shadow, which a bubble draws its own), outside the halo. */
+        pickedClass(lesson) {
+            if (game()) return 'ring-2 ring-cream ring-offset-2 ring-offset-panel';
+            return lesson.id === this.current ? 'outline-2 outline-offset-[9px] outline-cream' : 'outline-2 outline-offset-[3px] outline-cream';
         },
     },
 };

@@ -4,23 +4,13 @@
 
 import { reactive } from 'vue';
 import { api } from '../api.js';
-import { local } from '../storage.js';
 import { account, loadAccount } from './account.js';
-import { FREE_SONGS } from '../templates.js';
 
 export const plan = reactive({ billing: null, prices: null, loaded: false });
-
-const OFFLINE_UNTIL = 'stackapella.plusOfflineUntil';
 
 /** On Plus now: the account says so (a trial counts). */
 export function isPlus() {
     return account.me?.plan === 'plus';
-}
-
-/** Offline, a Plus song stays usable until this (ms), from the last check; null when unknown. */
-export function plusOfflineUntil() {
-    const kept = Number(local.get(OFFLINE_UNTIL) || 0);
-    return kept || null;
 }
 
 /** The account's plan and subscription (billing.show), kept for the offline grace. */
@@ -33,7 +23,6 @@ export async function loadBilling() {
     try {
         const { data } = await api.billing.show();
         plan.billing = data;
-        if (data.plusOfflineUntil) local.set(OFFLINE_UNTIL, String(Date.parse(data.plusOfflineUntil)));
         // The account's own plan follows (a Checkout just finished, a plan that ended).
         if (account.me && data.plan !== account.me.plan) await loadAccount({ fresh: true });
     } catch (error) {
@@ -95,20 +84,16 @@ export function watchPlan() {
 
 /**
  * Why a project can be played and exported but not changed, or null: past the free plan's limit
- * after a downgrade ('limit'), made from a Plus song without Plus ('plusSong'), or a Plus song
- * offline for longer than the 14 days since the plan was last checked ('offline').
+ * after a downgrade ('limit'). Every library song is free since 2026-11-07 (Plus is for singing with
+ * others), so a song never locks a project any more, online or off.
  */
-export function lockReason(project, { online = navigator.onLine, now = Date.now(), free = FREE_SONGS } = {}) {
+export function lockReason(project) {
     if (!project || project.beta || project.course) return null;
-    if (project.readOnly === 'limit') return 'limit';
-    if (project.readOnly === 'plus_song') return 'plusSong';
-    const until = plusOfflineUntil();
-    if (!online && isPlus() && until && now > until && project.template && !free.includes(project.template.id)) return 'offline';
-    return null;
+    return project.readOnly === 'limit' ? 'limit' : null;
 }
 
 // ---- The app-only gates (docs/features.md, "In the app only") -------------------------------------
-// The course past unit 7 is the course's data (a unit's `plus`); the workout's count is js/workout.js.
+// Courses, songs and workouts are free (2026-11-06 and 11-07); Plus is singing with others, and the solo extras.
 
 /** MP3 and stems are Plus. */
 export function exportNeedsPlus(format) {

@@ -7,11 +7,34 @@ import { formatDate, formatNumber, t } from '../i18n.js';
 import { Field, Notice } from '../components/form.js';
 import { Modal, toast } from '../components/ui.js';
 import { explain, inSudo, sendToSignIn } from './auth.js';
+import { local } from '../storage.js';
 
 /** A phone's width (under Tailwind's sm): where a wide table becomes a card a row. Follows the window. */
 const PHONE = window.matchMedia('(max-width: 639px)');
 export const screen = reactive({ phone: PHONE.matches });
 PHONE.addEventListener('change', (event) => (screen.phone = event.matches));
+
+/**
+ * Admin view choices are remembered (Hillel, 2026-11-02: "remember the today/7 day/ setting when I
+ * leave the page and come back"): a range, a tab or a sort, kept on this device and read back
+ * before the page's first load. `choices` is { field: [the values offered] }; a kept value no longer
+ * offered is ignored. Storage that throws just means nothing is remembered (storage.js). `when`
+ * leaves out a use with no picker (the funnel inside Experiments).
+ */
+export function remembers(page, choices, when = () => true) {
+    const key = (field) => `stackapella.admin.${page}.${field}`;
+    return {
+        created() {
+            if (!when(this)) return;
+            for (const [field, offered] of Object.entries(choices)) {
+                const kept = local.get(key(field));
+                const value = offered.find((o) => String(o) === kept);
+                if (value !== undefined) this[field] = value;
+                this.$watch(field, (now) => local.set(key(field), String(now)));
+            }
+        },
+    };
+}
 
 /** "Oct 26, 2026, 2:05 PM" for a time the API sends. */
 export function when(time) {

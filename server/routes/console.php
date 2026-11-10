@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Support\Stats\ReportDay;
 use Illuminate\Support\Facades\Schedule;
 
 /*
@@ -168,6 +169,17 @@ Schedule::command('app:bin:purge')
     ->withoutOverlapping(60)
     ->runInBackground();
 
+// Hillel's outreach_autosend switch: one first email a turn, weekday mornings in the report's zone,
+// until the daily cap (the command checks the switch and the window itself too).
+Schedule::command('app:outreach:autosend')
+    ->onOneServer()
+    ->name('outreach-autosend')
+    ->everyThirtyMinutes()
+    ->weekdays()
+    ->between('9:00', '11:59')
+    ->timezone(ReportDay::zone())
+    ->withoutOverlapping(25);
+
 Schedule::command('app:reminders:send')
     ->onOneServer()
     ->name('practice-reminders')
@@ -218,12 +230,6 @@ Schedule::command('app:store:acknowledge')
     ->onOneServer()
     ->name('store-acknowledge')
     ->hourlyAt(15)
-    ->withoutOverlapping(30);
-
-Schedule::command('app:social:month')
-    ->onOneServer()
-    ->name('social-month')
-    ->dailyAt('08:30')
     ->withoutOverlapping(30);
 
 Schedule::command('app:social:send')
@@ -279,12 +285,60 @@ Schedule::command('app:backup:drill')
     ->withoutOverlapping(120)
     ->runInBackground();
 
+// The sitemap's lastmod: each page dated by when its words last changed, daily.
+Schedule::command('app:sitemap:dates')
+    ->onOneServer()
+    ->name('sitemap-dates')
+    ->dailyAt('04:20')
+    ->withoutOverlapping(30)
+    ->runInBackground();
+
+// The sitemap as a search engine reads it, on our own public site: polite (one page at a time,
+// 300 ms apart) and read-only, Wednesdays before Hillel's search review; the result shows in
+// Readiness and admin's overview (SitemapProblems). About 10 minutes, so in the background.
+Schedule::command('app:sitemap:check --save')
+    ->onOneServer()
+    ->name('sitemap-check')
+    ->weeklyOn(3, '05:30')
+    // Our own public site only: a self-hosted install has no sitemap of ours to check.
+    ->when(static fn (): bool => config('selfhost.enabled') !== true)
+    ->withoutOverlapping(60)
+    ->runInBackground();
+
+// IndexNow (Hillel, 2026-11-09): hourly, our pages new to the sitemap or whose words changed, while
+// Admin's indexnow switch is on; after the sitemap's dating (04:20 and each deploy's), so a change is
+// seen within the hour. Never on a self-hosted install.
+Schedule::command('app:indexnow')
+    ->onOneServer()
+    ->name('indexnow')
+    ->hourlyAt(50)
+    ->when(static fn (): bool => config('selfhost.enabled') !== true)
+    ->withoutOverlapping(30)
+    ->runInBackground();
+
+// And within minutes of a deploy: a run only when this build has none (the deploy's job may not run it), never
+// alongside the daily one.
+Schedule::command('app:sitemap:dates --if-new-build')
+    ->onOneServer()
+    ->name('sitemap-dates-deploy')
+    ->everyFiveMinutes()
+    ->unlessBetween('04:15', '04:30')
+    ->withoutOverlapping(30)
+    ->runInBackground();
+
 Schedule::command('app:stats:nightly')
     ->onOneServer()
     ->name('stats-nightly')
     ->dailyAt('03:40')
     ->withoutOverlapping(60)
     ->runInBackground();
+
+// The hourly counts past 100 days (docs/growth-compare-plan.md): the daily counts stay.
+Schedule::command('app:counts:prune-hours')
+    ->onOneServer()
+    ->name('counts-prune-hours')
+    ->dailyAt('03:55')
+    ->withoutOverlapping(30);
 
 // Someone whose birth month and year now make them 18 becomes an adult on their own.
 Schedule::command('app:accounts:ages')

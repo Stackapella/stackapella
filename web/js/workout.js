@@ -4,7 +4,6 @@
 // Pure: the exercises are the course's own shape (`{ tempo, notes: [{ beat, length, step }], turn }`,
 // steps in semitones from your comfortable note), and the runner (js/views/workout.js) plays them.
 
-import { dayOf } from './course.js';
 import { readingLine } from './reading-lines.js';
 
 /** The weak spot each insight points to, and the exercise that works on it. */
@@ -75,11 +74,6 @@ export function pickWorkout(progress, lessons, learning = null, reading = null) 
         steps.push({ kind: 'read', exercise: readingLine({ level: reading.level, seed: reading.day, home: progress.home ?? 57, range: progress.range ?? null }) });
     } else if (review) steps.push({ kind: 'review', lessonId: review.id, exercise: review.exercise });
     return { steps, song: learning };
-}
-
-/** Whether a free account has had today's workout (Plus has as many as it likes). */
-export function workoutUsed(progress, at = Date.now()) {
-    return progress.lastWorkout === dayOf(at);
 }
 
 /** An exercise moved by `shift` semitones (Lower, Higher: kept for next time; and each round up). */

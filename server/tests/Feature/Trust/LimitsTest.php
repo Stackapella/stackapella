@@ -72,7 +72,7 @@ final class LimitsTest extends TestCase
 
         $limits->override('api', 'signed_out', 1, $admin, 'An attack');
         $this->assertSame(1, $limits->all()['api']['signed_out']['max']);
-        $this->assertSame(60, $limits->all()['api']['signed_out']['default']);
+        $this->assertSame(120, $limits->all()['api']['signed_out']['default']);
 
         $this->getJson('/api/admin/me')->assertStatus(401);
         $this->getJson('/api/admin/me')->assertStatus(429);
@@ -88,6 +88,19 @@ final class LimitsTest extends TestCase
 
         $this->post('/auth/google')->assertRedirect();
         $this->post('/auth/google')->assertStatus(429)->assertSee(__('errors.rate_limited.title'));
+    }
+
+    public function test_a_public_page_turned_away_is_a_429_a_search_engine_never_indexes(): void
+    {
+        // Indexing on, as in production: the refusal must still say noindex, never read as the page.
+        config(['ops.indexing' => true, 'limits.public-pages.ip.max' => 1]);
+
+        $this->get('/pricing')->assertOk()->assertDontSee('<meta name="robots" content="noindex">', false);
+        $refused = $this->get('/pricing')->assertStatus(429)->assertSee(__('errors.rate_limited.title'));
+
+        $this->assertNotNull($refused->headers->get('Retry-After'));
+        $this->assertSame('noindex', $refused->headers->get('X-Robots-Tag'));
+        $this->assertStringContainsString('<meta name="robots" content="noindex">', (string) $refused->getContent());
     }
 
     public function test_an_array_where_an_email_should_be_is_counted_not_a_server_error(): void
@@ -127,5 +140,45 @@ final class LimitsTest extends TestCase
             $forAnyone = array_filter($rules, static fn (array $rule): bool => in_array($rule['when'], [null, 'signed_out'], true));
             $this->assertCount(count($forAnyone), app(Limits::class)->for($name, request()), $name);
         }
+    }
+
+    /**
+     * config/limits.php's public-pages limit as it reads in another environment.
+     */
+    private function publicPagesMax(string $environment, ?string $limit): int
+    {
+        $saved = [$_SERVER['APP_ENV'] ?? null, $_ENV['APP_ENV'] ?? null, getenv('APP_ENV'), getenv('PUBLIC_PAGES_LIMIT')];
+        $set = static function (string $key, ?string $value): void {
+            if ($value === null) {
+                unset($_SERVER[$key], $_ENV[$key]);
+                putenv($key);
+            } else {
+                $_SERVER[$key] = $_ENV[$key] = $value;
+                putenv($key.'='.$value);
+            }
+        };
+
+        try {
+            $set('APP_ENV', $environment);
+            $set('PUBLIC_PAGES_LIMIT', $limit);
+
+            return (int) (require config_path('limits.php'))['public-pages']['ip']['max'];
+        } finally {
+            $_SERVER['APP_ENV'] = $_ENV['APP_ENV'] = $saved[0] ?? 'testing';
+            putenv('APP_ENV='.($saved[2] !== false ? $saved[2] : 'testing'));
+            $set('PUBLIC_PAGES_LIMIT', $saved[3] !== false ? $saved[3] : null);
+        }
+    }
+
+    public function test_the_public_pages_limit_is_raised_only_for_local_and_testing(): void
+    {
+        // Production keeps 600 a minute whatever the env says: above a search engine's crawl, a scraper's wall.
+        $this->assertSame(600, $this->publicPagesMax('production', null));
+        $this->assertSame(600, $this->publicPagesMax('production', '9999'));
+        $this->assertSame(600, $this->publicPagesMax('staging', '9999'));
+        // On a developer's Mac every agent's flows share 127.0.0.1.
+        $this->assertSame(2000, $this->publicPagesMax('testing', null));
+        $this->assertSame(5000, $this->publicPagesMax('local', '5000'));
+        $this->assertSame('testing', app()->environment());
     }
 }

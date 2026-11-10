@@ -3,7 +3,6 @@
 
 import { markRaw, reactive, toRaw } from 'vue';
 import * as db from '../db.js';
-import { t } from '../i18n.js';
 import { local } from '../storage.js';
 import { renderGuide } from '../guides.js';
 import { peaks } from '../dsp.js';
@@ -14,16 +13,13 @@ import { changed, deleted, onCloudChange, undoDeleted } from './cloud.js';
 import { account } from './account.js';
 import { count } from '../usage.js';
 
-export const FREE_PROJECT_LIMIT = 3;
-
 // Another device changed something: the lists show it.
 onCloudChange(() => projects.loaded && loadProjects().catch((error) => console.error('The projects did not reload', error)));
 
-// `list` is the person's projects (what the projects page shows and the free limit counts);
+// `list` is the person's projects (what the projects page shows; the free plan's limit is storage, 2026-11-07);
 // `all` adds the beta singers' recording projects, which are kept apart (docs/beta-singers-plan.md).
 export const projects = reactive({ list: [], all: [], loaded: false });
 
-export class LimitReached extends Error {}
 
 /** A project as the list shows it, with its parts' sizes and waveform peaks for the thumbnail. */
 async function summarise(project) {
@@ -39,14 +35,6 @@ export async function loadProjects() {
     projects.all = (await Promise.all(list.map(summarise))).sort((a, b) => b.updatedAt - a.updatedAt);
     projects.list = projects.all.filter((p) => !p.beta);
     projects.loaded = true;
-}
-
-/** The projects the free plan's limit counts: not the course's own songs, nor friends' projects. */
-export const countsToLimit = (project) => !project.course && !project.shared;
-
-/** Plus has no limit; free is under 3 (docs/decisions.md). */
-export function canCreateProject() {
-    return account.me?.plan === 'plus' || projects.list.filter(countsToLimit).length < FREE_PROJECT_LIMIT;
 }
 
 /** What the last-changed project used: a new one starts the same (docs/decisions.md). */
@@ -89,17 +77,11 @@ export async function storedProject(id) {
     return (await db.get('projects', id)) ?? null;
 }
 
-/** A project's name as shown: its title, or "Untitled song" while it has none. */
-export function shownTitle(project) {
-    return project?.title?.trim() || t('project.untitled');
-}
+export { shownTitle } from '../project-title.js'; // on its own, so a screen can say a song's name without this store
 
 export async function createProject(fields) {
     if (!projects.loaded) {
         await loadProjects();
-    }
-    if (!fields.beta && !fields.course && !canCreateProject()) {
-        throw new LimitReached();
     }
     const now = Date.now();
     const project = {

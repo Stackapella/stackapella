@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en" data-theme="stage-dark">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Chord trainer</title>
+    <!-- How a /tools page mounts the chord trainer (js/public/tools/chord-trainer.js) on the tools' one layout, under the
+         frame (tests/tool-frame.js: the brand row with the tool's key control and the Theme button); the page's H1
+         and how-to follow below the tool. ?fresh forgets the kept settings. -->
+    <meta name="game-css" content="/css/site-game.css">
+    <link rel="stylesheet" href="/css/site.css">
+    <script src="/js/theme-boot.js"></script>
+    <script src="/js/game-css.js"></script>
+</head>
+<body class="bg-ink text-cream">
+    <main class="px-4">
+        <div id="trainer"></div>
+        <h1 class="mx-auto mt-8 max-w-[24.375rem] text-[28px] font-extrabold leading-tight tracking-tight md:text-[40px]">Chord trainer</h1>
+    </main>
+    <script type="module" src="/tests/tool-frame.js"></script>
+    <script type="module">
+        import { mountChordTrainer } from '/js/public/tools/chord-trainer.js';
+        const words = {
+            lastTen: ':right of the last 10 right', share: 'Share it', shareText: 'I named :right of my last :total chords by ear (:level). Can you?', cardTitle: 'Chord ear training', cardScore: ':right of :total', cardLine: 'chords named by ear', cardChallenge: 'Can you hear them?',
+            cardTagline: 'Harmony, made by you.', cardSite: 'stackapella.com', cardSaved: 'Card saved, and the line copied',
+            prompt: 'Which chord?', readySub: 'Tap Play to hear a chord', play: 'Play', again: 'Play it again', next: 'Next', answers: 'Your answer',
+            right: 'Right', youSaid: 'You said :answer', yours: 'Hear yours', rightOne: 'Hear the right one',
+            level: 'Level :n · :name', levelShort: 'Level', levelDown: 'An easier level', levelUp: 'A harder level',
+            toNext: ':right of the last 10 right · :need opens Level :level', topLevel: 'Top level', goLevel: 'On to Level :n: :name', ownSet: 'Your own set',
+            statRight: ':accuracy right', statStreak: ':accuracy right · :streak in a row',
+            settings: 'Settings', settingsTitle: 'Settings', reset: 'Reset', done: 'Done', practise: 'Chords to practise', fixedRoot: 'Always start on the same note', playNotes: 'Play notes',
+            range: 'Range', from: 'From', to: 'To', needOne: 'Keep at least one to practise.',
+            results: 'Your results', heard: 'Heard', missed: 'Missed', accuracy: 'Right', keys: 'Keys: space plays, 1 to :last answer, A hears it again.', song: 'Think of :song.',
+            promptMajorMinor: 'Major or minor?',
+            maj: 'Major', min: 'Minor', dim: 'Diminished', aug: 'Augmented', dom7: 'Dominant 7th', maj7: 'Major 7th', min7: 'Minor 7th',
+            hdim7: 'Half-diminished 7th', dim7: 'Diminished 7th', together: 'Together', up: 'Up', down: 'Down',
+            level1: 'Major and minor', level2: 'Diminished and augmented', level3: 'Sevenths', level4: 'All the sevenths',
+            inversions: 'Inversions too',
+        };
+        if (new URLSearchParams(location.search).has('fresh')) Object.keys(localStorage).filter((k) => k.startsWith('stackapella.tools.')).forEach((k) => localStorage.removeItem(k));
+        window.__answers = [];
+        await new Promise((r) => (document.querySelector('[data-tool-key]') ? r() : requestAnimationFrame(r)));
+        window.__trainer = mountChordTrainer(document.querySelector('#trainer'), { words, keySlot: document.querySelector('[data-tool-key]'), onAnswer: (a) => window.__answers.push(a), onLesson: () => (window.__lessons = (window.__lessons ?? 0) + 1), onShared: () => (window.__shared = (window.__shared ?? 0) + 1) });
+    </script>
+</body>
+</html>

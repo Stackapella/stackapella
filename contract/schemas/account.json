@@ -35,7 +35,8 @@
         "boardsGlobal",
         "birthGiven",
         "plusCourses",
-        "terms"
+        "terms",
+        "songRequests"
     ],
     "properties": {
         "id": {
@@ -386,6 +387,10 @@
         "plusCourses": {
             "type": "boolean",
             "description": "Whether the app shows the Plus courses: true once the plus_courses switch is on, and for staff before."
+        },
+        "songRequests": {
+            "type": "boolean",
+            "description": "Whether the app shows song requests: everyone once song_requests is on, staff before."
         },
         "terms": {
             "type": "object",

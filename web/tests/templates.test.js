@@ -1,4 +1,4 @@
-import { REFUSAL_ROUND, refusedAsItIs } from '/js/stores/templates.js';
+import { REFUSAL_ROUND, refusalKey, refusedAsItIs } from '/js/stores/templates.js';
 import { lengthBeats, listTemplates, loadTemplate, lyricLines, phrases, repairTemplate, TemplateError, templatePartName, validateTemplate } from '/js/templates.js';
 import { renderGuide } from '/js/guides.js';
 import { detectPitch, hzToMidi } from '/js/dsp.js';
@@ -263,4 +263,14 @@ test('templates: a refusal from an earlier round is sent once more; one from thi
     assert(!refusedAsItIs(refused(REFUSAL_ROUND - 1)), 'one from an earlier round goes again');
     assert(refusedAsItIs(refused(REFUSAL_ROUND)), 'one from this round waits');
     assert(!refusedAsItIs({ ...refused(REFUSAL_ROUND), template: { ...template, title: 'Changed' } }), 'a changed song goes again');
+});
+
+test('templates: a copy of someone else\'s imported song stays on the device, sent again only once it or who may open it changes', () => {
+    const template = { id: 'x', version: 1, title: 'T', tempo: 80, key: 'C', timeSignature: '4/4', parts: [{ key: 'soprano', range: { low: 60, high: 60 }, guide: { type: 'notes', notes: [{ beat: 0, length: 1, pitch: 60 }] } }] };
+    const record = { state: 'importedPrivate', template, visibility: 'unlisted', libraryOptIn: false };
+    const refused = { ...record, refusedFor: refusalKey(record) };
+    assert(refusedAsItIs(refused), 'refused as it is: waits');
+    assert(!refusedAsItIs({ ...refused, visibility: 'private' }), 'made private: goes again');
+    assert(!refusedAsItIs({ ...refused, template: { ...template, title: 'Changed' } }), 'a changed song goes again');
+    assert(!refusedAsItIs({ ...refused, state: 'device' }), 'only that refusal waits');
 });

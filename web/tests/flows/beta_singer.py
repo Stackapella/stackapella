@@ -141,11 +141,17 @@ def journey(f):
             const json = await answer.json();
             const part = json.data.find((p) => p.status === 'retake');
             part.askedAgain = { note: 'The tune moved in bar 3.', at: new Date().toISOString() };
+            // An accepted take that's live, asked for again (Admin's Ask for a new take): it stays live meanwhile.
+            const live = json.data.find((p) => p.status === 'guide');
+            Object.assign(live, { status: 'retake', askedAgain: { note: 'Hillel asked for a new take of this part.', at: new Date().toISOString() } });
             return new Response(JSON.stringify(json), { status: 200, headers: { 'Content-Type': 'application/json' } });
         });
         const { navigate } = await import('/js/router.js'); navigate('/settings'); await new Promise((r) => setTimeout(r, 300)); navigate('/beta');""")
-    f.wait("document.querySelector('[data-asked-again]')?.textContent.includes('The tune moved in bar 3.')", what="the asked-again note")
-    assert "Lovely tone." not in f.js("document.querySelector('[data-asked-again]').textContent"), "the take's note shown with the asked-again one"
+    tune_moved = "[...document.querySelectorAll('[data-asked-again]')].find((e) => e.textContent.includes('The tune moved in bar 3.'))"
+    f.wait(f"!!{tune_moved}", what="the asked-again note")
+    assert "Lovely tone." not in f.js(f"{tune_moved}.textContent"), "the take's note shown with the asked-again one"
+    f.wait("document.querySelectorAll('[data-new-take-welcome]').length === 1", what="a new take welcome, on the part whose take is live")
+    assert f.js("document.querySelector('[data-new-take-welcome]').textContent.trim()") == t(f, "beta.parts.newTakeWelcome")
     f.shot("my-parts-asked-again")
     f.run("(await import('/js/api.js')).useTransport((await import('/js/api-mock.js')).mockFetch)")
     for path in ("/beta", "/settings"):

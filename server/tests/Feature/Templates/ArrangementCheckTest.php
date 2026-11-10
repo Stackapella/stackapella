@@ -99,6 +99,27 @@ final class ArrangementCheckTest extends TestCase
         $this->assertStringContainsString("don't line up", implode(' ', $check->check($this->template(['soprano' => $good, 'alto' => $short]))['hard']));
     }
 
+    public function test_a_number_with_more_than_six_decimal_places_is_a_hard_error(): void
+    {
+        $check = app(ArrangementCheck::class);
+        $alto = self::line([64, 64, 64, 64]);
+
+        // A third of a beat written in full, as a 6/8 song would: MySQL's JSON column reads 90.33333333333333 back as 90.33333333333331.
+        $thirds = self::line([67, 67, 67, 67]);
+        $thirds[1]['beat'] = 2 + 1 / 3;
+        $thirds[0]['length'] = 2 + 1 / 3;
+        $thirds[1]['length'] = 2 - 1 / 3;
+        $hard = implode(' ', $check->check($this->template(['soprano' => $thirds, 'alto' => $alto]))['hard']);
+        $this->assertStringContainsString('3 numbers with more than 6 decimal places, the first 2.3333333333333335 at .parts[0].guide.notes[0].length', $hard);
+
+        // Rounded to 6 places, the same song passes.
+        $thirds[1]['beat'] = 2.333333;
+        $thirds[0]['length'] = 2.333333;
+        $thirds[1]['length'] = 1.666667;
+        $this->assertSame([], $check->check($this->template(['soprano' => $thirds, 'alto' => $alto]))['hard']);
+        $this->assertSame([['.sections[0].endBeat', 90.33333333333333]], ArrangementCheck::longDecimals(['sections' => [['endBeat' => 90 + 1 / 3]]]));
+    }
+
     public function test_the_musicians_advice(): void
     {
         $check = app(ArrangementCheck::class);

@@ -1,4 +1,5 @@
 import { LOGO_MARK } from '../logo-mark.js';
+import { hatDay } from '../public/season.js';
 // Inline SVG icons (24 x 24, currentColor). Paths are ours, so no icon library is loaded.
 
 const paths = {
@@ -61,13 +62,25 @@ export const Icon = {
     },
 };
 
-/** The mark (four bars, one per voice, on a black square: web/tool/icons.py) and the name, set as the site's header sets it (.s-brand: Figtree 800, 18 px, -0.01em) and the logo set draws it. */
+/**
+ * The mark (four bars, one per voice, on a black square: web/tool/icons.py) and the name, exactly as the site's header
+ * sets them (.s-brand: a 30 px mark, 9 px apart, Figtree 800 18 px -0.01em; below 360 px the mark alone, the name kept
+ * for screen readers), so the logo is the same size in the app and on the site (Hillel, 2026-11-08). Put in an app-top
+ * bar (css/input.css), it sits where the site's does too.
+ *
+ * On Christmas Eve and Christmas Day, by the device's own date (public/season.js hatDay; Hillel asked on 2026-11-10 for
+ * the hat in the app and on the site at Christmas, and on its eve too), the mark wears the site's Santa hat
+ * (icons/santa-hat.svg), placed as the site's .s-brand > .s-hat is: over the mark's top-left corner, tilted, beside it in
+ * the flow so the mark and the name don't move. It comes first, so the mark stays the name's previous sibling
+ * (tests/flows/logo_match.py measures it so). The favicon and the app's icons stay as they are.
+ */
 export const Logo = {
-    props: { size: { type: Number, default: 22 } },
-    setup: () => ({ LOGO_MARK }),
+    props: { size: { type: Number, default: 30 } },
+    setup: () => ({ LOGO_MARK, hat: hatDay() }),
     template: `
-        <span class="inline-flex items-center gap-2 font-extrabold text-cream">
+        <span class="relative inline-flex items-center gap-[9px] font-extrabold text-cream" data-ui="logo">
+            <img v-if="hat" src="/icons/santa-hat.svg" alt="" aria-hidden="true" class="pointer-events-none absolute -left-[9px] top-[calc(50%-27px)] h-[23px] w-[26px] -rotate-[18deg] drop-shadow-[0_1px_1px_rgba(0,0,0,0.25)]" data-hat-christmas />
             <span class="block shrink-0 [&>svg]:size-full" :style="{ width: size + 'px', height: size + 'px' }" aria-hidden="true" v-html="LOGO_MARK"></span>
-            <span class="text-[18px] tracking-[-0.01em]" translate="no" data-ui="wordmark">Stackapella</span>
+            <span class="text-[18px] tracking-[-0.01em] max-[359px]:sr-only" translate="no" data-ui="wordmark">Stackapella</span>
         </span>`,
 };

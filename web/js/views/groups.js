@@ -1,30 +1,30 @@
-// Choir groups (contract/api.md, "Choir groups"; docs/pricing-plan.md, "A choir plan"): a director
-// with Plus makes a group, invites members by the group's link (no email from us), shares songs
+// Choir groups (contract/api.md, "Choir groups"; free for everyone, docs/choir-tracks-plan.md): a director
+// makes a group, invites members by the group's link (no email from us), shares songs
 // (the library's, or their own templates), says who sings which part, and sees who has learned it
-// (started, or recorded). Members join free, learn the songs shared with them (Plus songs too, while
-// they're in it) and leave when they like. For now, 18 and over: making or joining asks once.
+// (started, or recorded). Members join, learn the songs shared with them, on the part they were given,
+// and leave when they like. For now, 18 and over: making or joining asks once.
 // - /groups: the groups you direct or sing in, and Start a group.
 // - /groups/<id>: a group (the director's view, or a member's).
 // - /choir/<token>: the group's link: what it is, and Join.
 
 import { AccountWall } from '../components/account-wall.js';
-import { PageHeader } from '../components/page.js';
+import { AppScreen } from '../components/page.js';
 import { api } from '../api.js';
 import { formatDate, locale, t, tk } from '../i18n.js';
 import { goBack, navigate } from '../router.js';
 import { account } from '../stores/account.js';
-import { canCreateProject, FREE_PROJECT_LIMIT, LimitReached, startFromTemplate } from '../stores/projects.js';
+import { learnGroupSong } from '../group-songs.js';
 import { loadMine, mine } from '../stores/templates.js';
 import { listTemplates, loadTemplate, templatePartName } from '../templates.js';
-import { EmptyState, Field, Notice } from '../components/form.js';
+import { EmptyState, Field } from '../components/form.js';
 import { Icon, Logo } from '../components/icon.js';
 import { paint } from '../colors.js';
 import { PART_COLORS } from '../theme.js';
 import { Modal, toast } from '../components/ui.js';
 import { confirmAction } from '../components/confirm.js';
-import { PlusMoment } from '../components/plus-moment.js';
 import { InviteAccept, InviteCard } from '../components/invite-card.js';
 import { askBirth } from '../components/birth.js';
+import { daysUntil, isoDate, rehearsalDates } from '../rehearsal.js';
 
 const STATUS = {
     none: { tone: 'text-muted', label: tk('groups.status.none') },
@@ -32,12 +32,16 @@ const STATUS = {
     recorded: { tone: 'text-good', label: tk('groups.status.recorded') },
 };
 const REFUSED = {
-    plus_required: tk('groups.refused.plus'),
     group_limit: tk('groups.refused.groupLimit'),
     group_full: tk('groups.refused.full'),
     director_only: tk('groups.refused.directorOnly'),
     not_found: tk('groups.refused.notFound'),
     offline: tk('common.offline'),
+};
+/** Learning tracks' two kinds of piece, for now (docs/choir-tracks-plan.md, "Rights check"): the server's `rights` values. */
+const RIGHTS = {
+    'public-domain': { name: tk('groups.tracks.publicDomain'), hint: tk('groups.tracks.publicDomainHint') },
+    'own-arrangement': { name: tk('groups.tracks.ownArrangement'), hint: tk('groups.tracks.ownArrangementHint') },
 };
 const refusal = (error) => t(REFUSED[error?.code] ?? tk('groups.refused.other'));
 
@@ -53,16 +57,14 @@ function activeWhen(time, now = Date.now()) {
 
 /** The page's frame: the shared page header (back, title, the page's actions), and the page. */
 const Frame = {
-    components: { PageHeader },
+    components: { AppScreen },
     props: { title: { type: String, required: true }, back: { type: String, default: '/' }, titleIsContent: Boolean },
     template: `
-        <div class="mx-auto flex min-h-dvh max-w-3xl flex-col px-4 pb-16 pt-[max(0.5rem,env(safe-area-inset-top))] md:px-8">
-            <!-- A short page (a few groups) sits in the middle of a desktop's height, its title with it; a long one runs from the top as before. -->
-            <div class="md:my-auto md:pb-16">
-                <PageHeader :title="title" :back="back" :title-is-content="titleIsContent"><template #aside><slot name="aside" /></template></PageHeader>
-                <slot />
-            </div>
-        </div>`,
+        <AppScreen :title="title" :back="back" :title-is-content="titleIsContent" measure="max-w-3xl">
+            <template #aside><slot name="aside" /></template>
+            <!-- A short page (a few groups) sits in the middle of a desktop's height under the bar; a long one runs from the top. -->
+            <div class="md:my-auto md:pb-16"><slot /></div>
+        </AppScreen>`,
 };
 
 /** "I'm 18 or over": asked once, when making or joining a group (kept on the account). */
@@ -76,13 +78,14 @@ const AdultCheck = {
 };
 
 export const GroupsView = {
-    components: { AccountWall, Frame, EmptyState, Field, Icon, Modal, Notice, AdultCheck },
-    data: () => ({ groups: null, failed: null, making: false, name: '', adult: false, busy: false, error: null }),
+    components: { AccountWall, Frame, EmptyState, Field, Icon, Modal, AdultCheck },
+    data: () => ({ groups: null, failed: null, making: false, wantStart: new URLSearchParams(location.search).get('start') === '1', shareAfter: new URLSearchParams(location.search).get('share'), here: location.pathname + location.search, name: '', adult: false, busy: false, error: null }),
     setup: () => ({ account, navigate }),
     template: `
         <Frame :title="t('groups.title')">
             <template #aside><button v-if="account.me" type="button" class="btn-primary btn-sm" @click="making = true"><Icon name="plus" :size="16" /> {{ t('groups.start') }}</button></template>
-            <AccountWall v-if="account.loaded && !account.me" reason="groups" next="/groups" />
+            <!-- The wall keeps the address, so ?start=1 (the directors' pages link here to start one) opens the start sheet after sign-up. -->
+            <AccountWall v-if="account.loaded && !account.me" :reason="wantStart ? 'groupsStart' : 'groups'" :next="here" />
             <p v-else-if="failed" class="card p-6 text-cream" role="alert">{{ failed }}</p>
             <p v-else-if="!groups" class="text-muted" role="status">{{ t('create.loading') }}</p>
             <EmptyState v-else-if="!groups.length" icon="list" :title="t('groups.none')" :body="t('groups.noneHint')">
@@ -91,7 +94,7 @@ export const GroupsView = {
             <ul v-else class="space-y-3">
                 <li v-for="g in groups" :key="g.id">
                     <a :href="'/groups/' + g.id" class="card-interactive flex items-center gap-4 p-4" @click.prevent="navigate('/groups/' + g.id)">
-                        <span class="grid size-11 shrink-0 place-items-center rounded-full bg-part-6 text-lg font-extrabold text-part-text-6" aria-hidden="true">{{ g.name.slice(0, 1) }}</span>
+                        <span class="bubble grid size-11 shrink-0 place-items-center text-lg font-extrabold" style="--bubble: var(--color-part-6); --bubble-ink: var(--color-part-text-6)" aria-hidden="true" data-avatar>{{ g.name.slice(0, 1) }}</span>
                         <span class="min-w-0 flex-1">
                             <span class="block truncate font-bold text-cream" translate="no">{{ g.name }}</span>
                             <span class="text-sm text-muted">{{ g.role === 'director' ? t('groups.youDirectCount', { count: Math.max(0, g.members - 1) }) : t('groups.directedBy', { name: g.director.name }) + ' · ' + t('groups.memberCount', { count: g.members }) }} · {{ t('groups.songCount', { count: g.songs }) }}</span>
@@ -101,13 +104,17 @@ export const GroupsView = {
                 </li>
             </ul>
             <Modal v-if="making" :title="t('groups.start')" @close="making = false">
-                <form class="space-y-4" @submit.prevent="create">
+                <!-- Under 18 by the account's own birth date: no "I'm 18 or over" to tick, a kind word instead. -->
+                <div v-if="minor" class="space-y-4" data-too-young>
+                    <p class="text-cream">{{ t('groups.tooYoungStart') }}</p>
+                    <div class="flex justify-end"><button type="button" class="btn-secondary" @click="making = false">{{ t('common.close') }}</button></div>
+                </div>
+                <form v-else class="space-y-4" @submit.prevent="create">
                     <p class="text-muted">{{ t('groups.startHint') }}</p>
                     <Field :label="t('groups.name')" required :error="error" v-slot="f">
                         <input :id="f.id" v-model="name" class="input" maxlength="80" required translate="no" :placeholder="t('groups.namePlaceholder')" />
                     </Field>
                     <AdultCheck v-model="adult" />
-                    <Notice v-if="account.me?.plan !== 'plus'" tone="info">{{ t('groups.plusNeeded') }} <a href="/plus?from=choir" class="link" @click.prevent="navigate('/plus?from=choir')">{{ t('export.seePlus') }}</a></Notice>
                     <div class="flex justify-end gap-3">
                         <button type="button" class="btn-secondary" @click="making = false">{{ t('common.cancel') }}</button>
                         <button type="submit" class="btn-primary" :disabled="busy || !adult || !name.trim()">{{ t('groups.make') }}</button>
@@ -115,10 +122,22 @@ export const GroupsView = {
                 </form>
             </Modal>
         </Frame>`,
+    computed: {
+        /** Under 18 by the account's own birth date (given, and not an adult). */
+        minor: () => !!account.me?.birthGiven && account.me?.isAdult === false,
+    },
     watch: {
         'account.me.id': {
             handler(id) {
-                if (id) this.load();
+                if (!id) return;
+                this.load();
+                // Arrived to start one (?start=1): the sheet opens once you're signed in, never over the wall, and the address is
+                // made plain so a reload doesn't open it again.
+                if (this.wantStart) {
+                    this.wantStart = false;
+                    this.making = true;
+                    history.replaceState(history.state, '', '/groups');
+                }
             },
             immediate: true,
         },
@@ -136,14 +155,15 @@ export const GroupsView = {
             this.error = null;
             try {
                 const { data } = await api.groups.create({ name: this.name.trim(), adult: true });
-                navigate(`/groups/${data.id}`);
+                navigate(`/groups/${data.id}` + (this.shareAfter ? `?share=${encodeURIComponent(this.shareAfter)}` : ''));
             } catch (error) {
                 if (error?.code === 'validation_failed') this.error = error.errors?.name ?? t('groups.nameInvalid');
                 // 18 and over: someone who hasn't said when they were born is asked once, then it tries again.
                 else if (error?.code === 'adult_required' && !account.me?.birthGiven) {
                     this.busy = false;
                     if (await askBirth()) return this.create();
-                } else this.error = refusal(error);
+                } else if (error?.code === 'adult_required') this.error = t('groups.tooYoungStart'); // their birth date says under 18
+                else this.error = refusal(error);
             } finally {
                 this.busy = false;
             }
@@ -152,18 +172,23 @@ export const GroupsView = {
 };
 
 export const GroupView = {
-    components: { Frame, Field, Icon, Modal, Notice, PlusMoment },
+    components: { Frame, Field, Icon, Modal },
     props: { id: { type: String, required: true } },
-    data: () => ({ group: null, failed: null, link: null, inviting: false, sharing: false, songs: [], pick: '', busy: false, editing: null, starting: null, renaming: false, newName: '', renameError: null, limitOpen: false, templates: {} }),
-    setup: () => ({ account, STATUS, templatePartName, formatDate, navigate, paint, PART_COLORS }),
+    data: () => ({ settingRehearsal: false, rehearsalDate: '', rehearsalWeekly: true, rehearsalError: null, asking: false, tracks: { piece: '', composer: '', voicing: '', note: '', rights: '', confirmed: false }, tracksErrors: null, tracksError: null, tracksSent: false, group: null, failed: null, link: null, inviting: false, sharing: false, songs: [], pick: '', busy: false, editing: null, starting: null, renaming: false, newName: '', renameError: null, templates: {} }),
+    setup: () => ({ account, STATUS, RIGHTS, templatePartName, formatDate, navigate, paint, PART_COLORS }),
     template: `
         <Frame :title="group?.name ?? t('groups.title')" back="/groups" title-is-content>
-            <template #aside><button v-if="director && !group.readOnly" type="button" class="btn-primary btn-sm" :aria-expanded="inviting ? 'true' : 'false'" aria-controls="group-link" @click="invite">{{ t('groups.invite') }}</button></template>
             <p v-if="failed" class="card p-6 text-cream" role="alert">{{ failed }}</p>
             <p v-else-if="!group" class="text-muted" role="status">{{ t('create.loading') }}</p>
             <div v-else class="space-y-8">
-                <p class="-mt-2 text-muted">{{ director ? t('groups.youDirectCount', { count: singers.length }) : t('groups.directedBy', { name: group.director.name }) + ' · ' + t('groups.memberCount', { count: group.memberCount }) }}</p>
-                <Notice v-if="group.readOnly" tone="warn">{{ director ? t('groups.readOnlyDirector') : t('groups.readOnlyMember') }}</Notice>
+                <!-- Invite singers sits by the count, not in the header, so a group's name keeps the width (a long one ran under it in the game skin). -->
+                <div class="-mt-2 flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
+                    <p class="text-muted">{{ director ? t('groups.youDirectCount', { count: singers.length }) : t('groups.directedBy', { name: group.director.name }) + ' · ' + t('groups.memberCount', { count: group.memberCount }) }}</p>
+                    <p v-if="noPartYet" class="basis-full text-cream" data-no-part-yet>{{ t('groups.noPartYet', { name: group.director.name }) }}</p>
+                    <button v-if="director" type="button" class="btn-sm" :class="group.songs.length ? 'btn-primary' : 'btn-secondary'" :aria-expanded="inviting ? 'true' : 'false'" aria-controls="group-link" data-invite @click="invite">{{ t('groups.invite') }}</button>
+                    <!-- The next rehearsal, when the director has set one (nothing at all otherwise): information, never a nag. -->
+                    <p v-if="rehearsalLine" class="basis-full text-cream" data-rehearsal>{{ rehearsalLine }}</p>
+                </div>
 
                 <!-- Invite singers: the group's link, to send however you like. -->
                 <section v-if="director && inviting" id="group-link" class="card space-y-3 p-5" :aria-label="t('groups.linkTitle')">
@@ -183,29 +208,34 @@ export const GroupView = {
                 <section class="space-y-3" aria-labelledby="group-songs">
                     <div class="flex items-center justify-between gap-3">
                         <h2 id="group-songs" class="text-xl font-extrabold tracking-tight text-cream">{{ t('groups.songsTitle') }}</h2>
-                        <button v-if="director" type="button" class="btn-secondary btn-sm" :disabled="group.readOnly" @click="openShare"><Icon name="plus" :size="16" /> {{ t('groups.shareSong') }}</button>
+                        <!-- A new group's first step is a song, so its singers find something to learn when they join: Share a song is the page's primary until there is one. -->
+                        <button v-if="director" type="button" class="btn-sm" :class="group.songs.length ? 'btn-secondary' : 'btn-primary'" data-share-song @click="openShare"><Icon name="plus" :size="16" /> {{ t('groups.shareSong') }}</button>
                     </div>
                     <p v-if="!group.songs.length" class="text-muted">{{ director ? t('groups.noSongsDirector') : t('groups.noSongs') }}</p>
                     <ul class="space-y-3">
                         <li v-for="song in group.songs" :key="song.templateId" class="card space-y-4 p-4 md:p-5">
-                            <div class="flex flex-wrap items-start gap-3">
+                            <!-- The title and its line take the card's width; on a phone the buttons go under them, full width (beside them they squeezed the title to a word a line). -->
+                            <div class="flex flex-col gap-3 sm:flex-row sm:items-start" data-group-song>
                                 <div class="min-w-0 flex-1">
                                     <p class="font-bold text-cream" translate="no">{{ song.title }}</p>
                                     <p v-if="director && !anyAssigned(song)" class="text-sm text-warn">{{ t('groups.nobodyYet') }}</p>
+                                    <!-- Assigning a choir song by song is one dropdown per singer: the parts they have in the group's last song, in one tap. -->
+                                    <button v-if="director && copyPlan(song).length && (editing === song.templateId || !anyAssigned(song))" type="button" class="btn-secondary btn-sm mt-2" :disabled="busy" data-same-parts @click="copyParts(song)">{{ t('groups.sameParts', { title: copySource(song).title }) }}</button>
                                     <p v-else-if="director" class="text-sm text-muted">{{ summary(song) }}</p>
-                                    <p v-else-if="myPart(song)" class="text-sm text-muted">{{ t('groups.yourPart', { part: partName(song, myPart(song).partKey) }) }}</p>
+                                    <p v-else-if="myPart(song)" class="text-sm text-cream" data-my-part>{{ t('groups.yourPart', { part: partName(song, myPart(song).partKey) }) }} · <span class="font-semibold" :class="STATUS[myPart(song).status]?.tone ?? STATUS.none.tone">{{ t(STATUS[myPart(song).status]?.label ?? STATUS.none.label) }}</span><span v-if="soon(myPart(song))" data-rehearsal-soon> · {{ soon(myPart(song)) }}</span></p>
                                 </div>
-                                <div class="flex flex-wrap gap-2">
+                                <div class="grid gap-2 sm:flex sm:shrink-0" :class="director ? 'grid-cols-2' : ''">
+                                    <!-- One primary: a member's next part to learn; Open is secondary everywhere else. -->
+                                    <button type="button" class="btn-sm order-last" :class="song.templateId === nextToLearn ? 'btn-primary' : 'btn-secondary'" :disabled="starting === song.templateId" @click="learn(song)">{{ myPart(song) ? t('groups.learnPart') : t('groups.openSong') }}</button>
                                     <button v-if="director" type="button" class="btn-sm" :class="anyAssigned(song) ? 'btn-secondary' : 'btn-secondary border-warn/60 text-warn'" :aria-expanded="editing === song.templateId ? 'true' : 'false'" @click="editing = editing === song.templateId ? null : song.templateId">{{ editing === song.templateId ? t('groups.doneAssigning') : t('groups.assign') }}</button>
-                                    <button type="button" class="btn-primary btn-sm" :disabled="starting === song.templateId" @click="learn(song)">{{ t('groups.openSong') }}</button>
                                 </div>
                             </div>
                             <!-- The part strip: each of the song's own parts, who covers it and how far they've got. -->
                             <ul v-if="partsOf(song).length" class="grid grid-cols-2 gap-2 sm:grid-cols-[repeat(auto-fit,minmax(8.5rem,1fr))]" :aria-label="t('groups.whoSings')">
-                                <li v-for="(p, i) in partsOf(song)" :key="p.key" class="rounded-tile bg-(--fill) p-3 text-sm">
+                                <li v-for="(p, i) in partsOf(song)" :key="p.key" class="rounded-tile bg-(--fill) p-3 text-sm" :class="myPart(song)?.partKey === p.key ? 'ring-2 ring-cream' : ''" :data-mine="myPart(song)?.partKey === p.key ? '' : null">
                                     <span class="flex items-center gap-2 font-semibold text-cream"><span class="size-2.5 shrink-0 rounded-full" :style="{ background: paint(p.color ?? PART_COLORS[i % PART_COLORS.length]) }" aria-hidden="true"></span><span class="truncate">{{ templatePartName(p) }}</span></span>
                                     <span v-for="m in coverOf(song, p.key)" :key="m.id" class="mt-1.5 block">
-                                        <span class="block truncate font-semibold text-cream" translate="no">{{ m.name }}</span>
+                                        <span class="block truncate font-semibold text-cream"><span translate="no">{{ m.name }}</span><span v-if="m.id === account.me?.id" class="ms-1 font-normal text-muted">{{ t('together.you') }}</span></span>
                                         <span class="block text-xs font-semibold" :class="STATUS[assignmentOf(m, song).status]?.tone ?? STATUS.none.tone">{{ t(STATUS[assignmentOf(m, song).status]?.label ?? STATUS.none.label) }}</span>
                                     </span>
                                     <span v-if="!coverOf(song, p.key).length" class="mt-1.5 block text-muted">{{ t('groups.nobody') }}</span>
@@ -227,15 +257,17 @@ export const GroupView = {
                         </li>
                     </ul>
                 </section>
+                <!-- Learning tracks of the choir's own piece (docs/choir-tracks-plan.md, stage 1): one quiet line, the director's only. -->
+                <p v-if="director" class="-mt-4 text-sm text-muted" data-ask-tracks>{{ t('groups.tracks.ask') }} <button type="button" class="link inline-flex min-h-6 items-center" @click="openTracks">{{ t('groups.tracks.askLink') }}</button></p>
 
                 <section class="space-y-3" aria-labelledby="group-singers">
                     <h2 id="group-singers" class="text-xl font-extrabold tracking-tight text-cream">{{ t('groups.membersTitle') }}</h2>
                     <ul class="card divide-y divide-line">
                         <li v-for="m in members" :key="m.id" class="flex items-center gap-3 px-4 py-3">
-                            <img v-if="m.avatarUrl" :src="m.avatarUrl" alt="" class="size-10 shrink-0 rounded-full object-cover" />
-                            <span v-else class="grid size-10 shrink-0 place-items-center rounded-full font-bold" :class="m.role === 'director' ? 'gem' : 'bg-raised text-cream'" :style="m.role === 'director' ? { '--gem': 'var(--color-part-1)', '--gem-ink': 'var(--color-ink)' } : null" aria-hidden="true">{{ m.name.slice(0, 1) }}</span>
+                            <img v-if="m.avatarUrl" :src="m.avatarUrl" alt="" class="size-10 shrink-0 rounded-full object-cover" data-avatar />
+                            <span v-else class="bubble grid size-10 shrink-0 place-items-center font-bold" :class="m.role === 'director' ? '' : 'bubble-clear'" :style="m.role === 'director' ? { '--bubble': 'var(--color-part-1)', '--bubble-ink': 'var(--color-part-text-1)' } : { '--bubble-ink': 'var(--color-cream)' }" data-avatar aria-hidden="true">{{ m.name.slice(0, 1) }}</span>
                             <span class="min-w-0 flex-1">
-                                <span class="block truncate font-semibold text-cream" translate="no">{{ m.name }}<span v-if="m.id === account.me?.id" class="font-normal text-muted"> {{ t('together.you') }}</span></span>
+                                <span class="block truncate font-semibold text-cream"><span translate="no">{{ m.name }}</span><span v-if="m.id === account.me?.id" class="ms-1 font-normal text-muted">{{ t('together.you') }}</span></span>
                                 <span class="block text-sm text-muted">{{ aboutMember(m) }}</span>
                             </span>
                             <span v-if="m.role === 'director'" class="text-sm text-muted">{{ t('groups.director') }}</span>
@@ -248,6 +280,8 @@ export const GroupView = {
                     <h2 id="group-group" class="text-xl font-extrabold tracking-tight text-cream">{{ t('groups.groupTitle') }}</h2>
                     <div class="card divide-y divide-line">
                         <button v-if="director" type="button" class="flex min-h-14 w-full items-center justify-between gap-3 px-4 text-start font-semibold text-cream hover:bg-raised/60" @click="rename">{{ t('groups.renameRow') }} <Icon name="chevron" :size="18" class="-rotate-90 text-muted rtl:rotate-90" /></button>
+                        <!-- The next rehearsal: tucked in here, never a step in starting a group (the coordinator, 2026-11-08). -->
+                        <button v-if="director" type="button" class="flex min-h-14 w-full items-center justify-between gap-3 px-4 text-start font-semibold text-cream hover:bg-raised/60" data-rehearsal-row @click="openRehearsal">{{ t('groups.rehearsal.row') }} <span class="ms-auto text-sm font-normal text-muted">{{ rehearsalNext ? shortDate(rehearsalNext) : t('groups.rehearsal.notSet') }}</span><Icon name="chevron" :size="18" class="-rotate-90 text-muted rtl:rotate-90" /></button>
                         <div class="flex flex-wrap items-center gap-3 px-4 py-3">
                             <span class="min-w-0 flex-1">
                                 <span class="block font-semibold text-bad">{{ director ? t('groups.endRow') : t('groups.leaveRow') }}</span>
@@ -270,10 +304,61 @@ export const GroupView = {
                     </div>
                 </form>
             </Modal>
+            <Modal v-if="settingRehearsal" :title="t('groups.rehearsal.title')" @close="settingRehearsal = false">
+                <form class="space-y-4" data-rehearsal-form @submit.prevent="saveRehearsal">
+                    <p class="text-muted">{{ t('groups.rehearsal.hint') }}</p>
+                    <Field :label="t('groups.rehearsal.date')" required :error="rehearsalError" v-slot="f">
+                        <input :id="f.id" v-model="rehearsalDate" type="date" class="input" :min="today()" required :aria-describedby="f.describedby" :aria-invalid="f.invalid" />
+                    </Field>
+                    <label class="check-row"><input v-model="rehearsalWeekly" type="checkbox" class="checkbox" /><span>{{ t('groups.rehearsal.weeklyLabel') }}</span></label>
+                    <div class="flex flex-wrap items-center justify-end gap-3">
+                        <button v-if="group.rehearsal" type="button" class="btn-ghost me-auto" :disabled="busy" @click="clearRehearsal">{{ t('groups.rehearsal.clear') }}</button>
+                        <button type="button" class="btn-secondary" @click="settingRehearsal = false">{{ t('common.cancel') }}</button>
+                        <button type="submit" class="btn-primary" :disabled="busy || !rehearsalDate">{{ t('common.save') }}</button>
+                    </div>
+                </form>
+            </Modal>
+            <Modal v-if="asking" :title="t('groups.tracks.title')" @close="asking = false">
+                <div v-if="tracksSent" class="space-y-4" role="status" data-tracks-sent>
+                    <p class="text-cream">{{ t('groups.tracks.sent', { email: account.me?.email ?? '' }) }}</p>
+                    <div class="flex justify-end"><button type="button" class="btn-primary" @click="asking = false">{{ t('common.done') }}</button></div>
+                </div>
+                <form v-else class="space-y-4" novalidate data-tracks-form @submit.prevent="sendTracks">
+                    <p class="text-muted">{{ t('groups.tracks.intro') }}</p>
+                    <Field :label="t('groups.tracks.piece')" required :error="tracksErrors?.piece" v-slot="f">
+                        <input :id="f.id" v-model="tracks.piece" class="input" maxlength="200" required translate="no" :placeholder="t('groups.tracks.piecePlaceholder')" :aria-describedby="f.describedby" :aria-invalid="f.invalid" />
+                    </Field>
+                    <Field :label="t('groups.tracks.composer')" :error="tracksErrors?.composer" v-slot="f">
+                        <input :id="f.id" v-model="tracks.composer" class="input" maxlength="200" translate="no" :aria-describedby="f.describedby" />
+                    </Field>
+                    <Field :label="t('groups.tracks.voicing')" :error="tracksErrors?.voicing" v-slot="f">
+                        <input :id="f.id" v-model="tracks.voicing" class="input" maxlength="60" translate="no" :placeholder="t('groups.tracks.voicingPlaceholder')" :aria-describedby="f.describedby" />
+                    </Field>
+                    <fieldset class="space-y-2" data-tracks-rights>
+                        <legend class="label">{{ t('groups.tracks.rights') }}</legend>
+                        <label v-for="(words, r) in RIGHTS" :key="r" class="radio-card">
+                            <input v-model="tracks.rights" type="radio" name="tracks-rights" class="radio mt-px" :value="r" />
+                            <span><span class="block font-semibold text-cream">{{ t(words.name) }}</span><span class="block text-sm text-muted">{{ t(words.hint) }}</span></span>
+                        </label>
+                        <p class="text-sm text-muted">{{ t('groups.tracks.rightsOther') }}</p>
+                        <p v-if="tracksErrors?.rights" class="field-error" role="alert">{{ tracksErrors.rights }}</p>
+                    </fieldset>
+                    <Field :label="t('groups.tracks.note')" :error="tracksErrors?.note" v-slot="f">
+                        <textarea :id="f.id" v-model="tracks.note" class="input min-h-24" maxlength="2000" :placeholder="t('groups.tracks.notePlaceholder')" :aria-describedby="f.describedby"></textarea>
+                    </Field>
+                    <label class="check-row rounded-2xl bg-raised p-3"><input v-model="tracks.confirmed" type="checkbox" class="checkbox" data-tracks-confirm /><span>{{ t('groups.tracks.confirm') }}</span></label>
+                    <p v-if="tracksError" class="field-error" role="alert">{{ tracksError }}</p>
+                    <div class="flex justify-end gap-3">
+                        <button type="button" class="btn-secondary" @click="asking = false">{{ t('common.cancel') }}</button>
+                        <button type="submit" class="btn-primary" :disabled="busy || !tracks.piece.trim() || !tracks.rights || !tracks.confirmed">{{ busy ? t('groups.tracks.sending') : t('groups.tracks.send') }}</button>
+                    </div>
+                </form>
+            </Modal>
             <Modal v-if="sharing" :title="t('groups.shareSong')" @close="sharing = false">
                 <form class="space-y-4" @submit.prevent="shareSong">
                     <label class="block text-sm text-muted">{{ t('groups.whichSong') }}
                         <select v-model="pick" class="input mt-1" required>
+                            <option value="" disabled>{{ t('groups.pickSong') }}</option>
                             <optgroup v-if="ownSongs.length" :label="t('groups.yourTemplates')">
                                 <option v-for="s in ownSongs" :key="s.id" :value="s.id" translate="no">{{ s.title }}</option>
                             </optgroup>
@@ -289,7 +374,6 @@ export const GroupView = {
                     </div>
                 </form>
             </Modal>
-            <PlusMoment v-if="limitOpen" :title="t('plus.moment.projectTitle')" :text="t('plus.moment.projectLimit')" full from="project_limit" @close="limitOpen = false" />
         </Frame>`,
     computed: {
         director() {
@@ -309,6 +393,25 @@ export const GroupView = {
         shownLink() {
             return this.link ?? this.group?.link?.url ?? null;
         },
+        /** The next rehearsal here (rehearsal.js: the server's, rolled on by weeks on this device), or null. */
+        rehearsalNext() {
+            return rehearsalDates(this.group?.rehearsal).next;
+        },
+        /** "Next rehearsal: Thursday 12 November · every week", or nothing without one. */
+        rehearsalLine() {
+            if (!this.rehearsalNext) return '';
+            const line = t('groups.rehearsal.next', { date: this.longDate(this.rehearsalNext) });
+            return this.group.rehearsal.weekly ? `${line} · ${t('groups.rehearsal.weekly')}` : line;
+        },
+        /** A member with songs to learn but no part in any of them yet: told so, and what to do meanwhile. */
+        noPartYet() {
+            return !this.director && !!this.group?.songs.length && !this.group.songs.some((s) => this.myPart(s));
+        },
+        /** A member's next song to learn: the first with a part of theirs not yet recorded (its Learn button is the page's primary). */
+        nextToLearn() {
+            if (this.director) return null;
+            return this.group?.songs.find((s) => this.myPart(s) && this.myPart(s).status !== 'recorded')?.templateId ?? null;
+        },
         /** The director first, then the singers as they joined. */
         members() {
             return [...(this.group?.members ?? [])].sort((a, b) => (a.role === 'director' ? -1 : b.role === 'director' ? 1 : 0));
@@ -316,6 +419,12 @@ export const GroupView = {
     },
     async created() {
         await this.load();
+        const share = new URLSearchParams(location.search).get('share');
+        if (share && this.director) {
+            history.replaceState(history.state, '', location.pathname);
+            this.pick = share;
+            await this.shareSong();
+        }
     },
     methods: {
         async load() {
@@ -363,6 +472,10 @@ export const GroupView = {
             if (parts.length) bits.push(t('groups.covered', { count: parts.length - open.length, total: parts.length }));
             bits.push(t('groups.recordedCount', { count: recorded }));
             if (open.length && open.length < parts.length) bits.push(t('groups.noOne', { parts: formatOr(open.map((p) => templatePartName(p))) }));
+            // Since the last rehearsal (the server's count, the director's only): how many of the singers given a part have begun it.
+            const previous = rehearsalDates(this.group?.rehearsal).previous;
+            const assigned = this.singers.filter((m) => this.assignmentOf(m, song)).length;
+            if (song.sinceRehearsal && previous && assigned) bits.push(t('groups.rehearsal.since', { started: song.sinceRehearsal.started, count: assigned, date: this.shortDate(previous) }));
             return bits.join(' · ');
         },
         /** Under a singer's name: their parts and when they last worked on one, or when they joined. */
@@ -384,6 +497,36 @@ export const GroupView = {
         myPart(song) {
             return this.me ? this.assignmentOf(this.me, song) : null;
         },
+        /** The song to copy parts from: the newest other shared song where someone has a part this song also has. */
+        copySource(song) {
+            return [...this.group.songs].filter((s) => s.templateId !== song.templateId).sort((a, b) => Date.parse(b.sharedAt) - Date.parse(a.sharedAt))
+                .find((s) => this.singers.some((m) => this.matchPart(song, s, this.assignmentOf(m, s)?.partKey))) ?? null;
+        },
+        /** This song's part for a part of another song: the same key, else the same name ("Tenor" and "Tenor"). */
+        matchPart(song, from, key) {
+            if (!key) return null;
+            const parts = this.partsOf(song);
+            const named = this.partsOf(from).find((p) => p.key === key);
+            return (parts.find((p) => p.key === key) ?? (named ? parts.find((p) => templatePartName(p) === templatePartName(named)) : null))?.key ?? null;
+        },
+        /** Who'd get which part from the source song: singers with no part in this song yet. */
+        copyPlan(song) {
+            const from = this.copySource(song);
+            if (!from) return [];
+            return this.singers.filter((m) => !this.assignmentOf(m, song)).map((m) => ({ memberId: m.id, partKey: this.matchPart(song, from, this.assignmentOf(m, from)?.partKey) })).filter((a) => a.partKey);
+        },
+        /** Gives everyone their part from the source song in one save, keeping parts already given here. */
+        async copyParts(song) {
+            const kept = this.singers.map((m) => ({ memberId: m.id, partKey: this.assignmentOf(m, song)?.partKey ?? '' })).filter((a) => a.partKey);
+            this.busy = true;
+            try {
+                this.group = (await api.groups.assignments.update(this.id, song.templateId, { assignments: [...kept, ...this.copyPlan(song)] })).data;
+            } catch (error) {
+                toast(refusal(error), { tone: 'error' });
+            } finally {
+                this.busy = false;
+            }
+        },
         /** Saves who sings which part of a song: the whole list for that song. */
         async assign(song, member, partKey) {
             const assignments = this.singers
@@ -395,21 +538,15 @@ export const GroupView = {
                 toast(refusal(error), { tone: 'error' });
             }
         },
-        /** A project from the song, on your part. */
+        /** The song on your part: your own copy once you've begun it, else a new one; on to Sing. */
         async learn(song) {
-            if (!canCreateProject()) {
-                this.limitOpen = true;
-                return;
-            }
             this.starting = song.templateId;
             try {
-                const template = this.templates[song.templateId] ?? (await loadTemplate(song.templateId));
-                const project = await startFromTemplate(template, { focusKey: this.myPart(song)?.partKey ?? null });
-                navigate(`/p/${project.id}/sing`);
+                const mine = this.myPart(song);
+                navigate(`/p/${await learnGroupSong({ templateId: song.templateId, partKey: mine?.partKey ?? null, status: mine?.status ?? 'none', template: this.templates[song.templateId] ?? null })}/sing`);
             } catch (error) {
-                if (!(error instanceof LimitReached)) console.error('The group song did not start', error);
-                if (error instanceof LimitReached) this.limitOpen = true;
-                else toast(error?.code === 'plus_required' ? t('groups.refused.plusSong') : t('projects.couldNotStart'), { tone: 'error' });
+                console.error('The group song did not start', error);
+                toast(t('projects.couldNotStart'), { tone: 'error' });
             } finally {
                 this.starting = null;
             }
@@ -438,10 +575,76 @@ export const GroupView = {
             // Closing the share sheet rejects too: nothing to say.
             navigator.share({ title: this.group.name, url: this.shownLink }).catch((error) => console.info('Not shared', error.name));
         },
+        longDate(date) {
+            return new Intl.DateTimeFormat(locale.lang, { weekday: 'long', day: 'numeric', month: 'long' }).format(date);
+        },
+        shortDate(date) {
+            return new Intl.DateTimeFormat(locale.lang, { weekday: 'short', day: 'numeric', month: 'short' }).format(date);
+        },
+        today: () => isoDate(new Date()),
+        /** In the three days before the next rehearsal, a part not yet recorded says so, plainly: "2 days to rehearsal". */
+        soon(assignment) {
+            const next = this.rehearsalNext;
+            if (!next || !assignment || assignment.status === 'recorded') return '';
+            const days = daysUntil(next);
+            return days >= 0 && days <= 3 ? t('groups.rehearsal.inDays', { days }) : '';
+        },
+        openRehearsal() {
+            const r = this.group.rehearsal;
+            this.rehearsalDate = this.rehearsalNext ? isoDate(this.rehearsalNext) : '';
+            this.rehearsalWeekly = r ? !!r.weekly : true;
+            this.rehearsalError = null;
+            this.settingRehearsal = true;
+        },
+        async saveRehearsal() {
+            await this.setRehearsal({ date: this.rehearsalDate, weekly: this.rehearsalWeekly });
+        },
+        async clearRehearsal() {
+            await this.setRehearsal(null);
+        },
+        async setRehearsal(rehearsal) {
+            this.busy = true;
+            this.rehearsalError = null;
+            try {
+                this.group = (await api.groups.update(this.id, { rehearsal })).data;
+                this.settingRehearsal = false;
+            } catch (error) {
+                this.rehearsalError = error?.code === 'validation_failed' ? (error.errors?.['rehearsal.date'] ?? [t('groups.rehearsal.invalid')])[0] : refusal(error);
+            } finally {
+                this.busy = false;
+            }
+        },
+        /** Ask for learning tracks: the form, fresh each time it opens (what was typed stays until it's sent). */
+        openTracks() {
+            this.tracksSent = false;
+            this.tracksError = null;
+            this.tracksErrors = null;
+            this.asking = true;
+        },
+        async sendTracks() {
+            this.busy = true;
+            this.tracksError = null;
+            this.tracksErrors = null;
+            const f = this.tracks;
+            const trimmed = (v) => v.trim() || undefined;
+            try {
+                await api.groups.tracks.create(this.id, { piece: f.piece.trim(), composer: trimmed(f.composer), voicing: trimmed(f.voicing), note: trimmed(f.note), rights: f.rights, rightsConfirmed: f.confirmed });
+                this.tracksSent = true;
+                this.tracks = { piece: '', composer: '', voicing: '', note: '', rights: '', confirmed: false };
+            } catch (error) {
+                if (error?.code === 'validation_failed' && error.errors) this.tracksErrors = Object.fromEntries(Object.entries(error.errors).map(([k, v]) => [k === 'rightsConfirmed' ? 'rights' : k, Array.isArray(v) ? v[0] : v]));
+                else if (error?.code === 'rate_limited') this.tracksError = t('groups.tracks.tooMany');
+                else this.tracksError = refusal(error);
+            } finally {
+                this.busy = false;
+            }
+        },
         async openShare() {
             this.sharing = true;
             this.pick = '';
             await loadMine().catch((error) => console.warn('Your songs did not load', error));
+            const shared = new Set(this.group.songs.map((x) => x.templateId));
+            this.pick = [...mine.list].filter((r) => r.state === 'saved' && !shared.has(r.id)).sort((a, b) => (b.updatedAt ?? 0) - (a.updatedAt ?? 0))[0]?.id ?? '';
             this.songs = (await listTemplates().catch(() => [])).map((s) => ({ id: s.id, title: s.title }));
         },
         async shareSong() {
@@ -449,6 +652,8 @@ export const GroupView = {
             try {
                 this.group = (await api.groups.songs.create(this.id, { templateId: this.pick })).data;
                 this.sharing = false;
+                // Straight on to who sings what, when there's anyone to give a part to.
+                if (this.singers.length) this.editing = this.pick;
                 this.loadParts();
             } catch (error) {
                 toast(refusal(error), { tone: 'error' });
@@ -507,23 +712,27 @@ export const GroupView = {
 };
 
 export const ChoirJoinView = {
-    components: { AdultCheck, InviteAccept, InviteCard },
+    components: { InviteAccept, InviteCard },
     props: { token: { type: String, required: true } },
-    data: () => ({ group: null, problem: null, adult: false, joining: false, needsAdult: false }),
+    // `back`: arrived back from this group's own link after signing up or in (?join=1, which the link's own sign-in sets), so
+    // the join goes ahead at once; from anywhere else, never (the coordinator, 2026-11-08).
+    data: () => ({ group: null, problem: null, joining: false, tooYoung: false, back: new URLSearchParams(location.search).get('join') === '1' }),
     setup: () => ({ account, navigate }),
     template: `
-        <InviteCard :from="group?.director.name ?? ''" :kind="group ? t('groups.joinKind', { name: group.name, count: group.members }) : ''" :lead="group ? t('groups.joinLead', { name: group.name }) : ''" :sign-in="'/signin?next=/choir/' + token">
+        <InviteCard :part="null" :from="group?.director.name ?? ''" :kind="group ? t('groups.joinKind', { name: group.name, count: group.members }) : ''" :lead="group ? t('groups.joinLead', { name: group.name }) : ''" :sign-in="'/signin?next=' + encodeURIComponent('/choir/' + token + '?join=1')">
             <template v-if="problem || !group" #top>
                 <p v-if="problem" class="text-lg text-cream" role="alert">{{ problem }}</p>
                 <p v-else class="text-muted" role="status">{{ t('create.loading') }}</p>
                 <button v-if="problem" type="button" class="btn-secondary" @click="navigate('/')">{{ t('common.backToProjects') }}</button>
             </template>
             <template v-if="group && !problem">
-                <template v-if="account.me">
-                    <AdultCheck v-if="needsAdult" v-model="adult" />
-                    <button type="button" class="btn-primary btn-lg w-full" :disabled="joining || (needsAdult && !adult)" @click="join">{{ joining ? t('join.joining') : t('groups.join') }}</button>
+                <!-- Under 18 by the account's own birth date: said plainly and kindly, never a tick to claim otherwise (groups are 18 and over). -->
+                <template v-if="account.me && tooYoung">
+                    <p class="text-cream" role="status" data-too-young>{{ t('groups.tooYoung') }}</p>
+                    <a href="/" class="btn-primary btn-lg w-full" @click.prevent="navigate('/')">{{ t('groups.startSinging') }}</a>
                 </template>
-                <InviteAccept v-else-if="account.loaded" :next="'/choir/' + token" />
+                <button v-else-if="account.me" type="button" class="btn-primary btn-lg w-full" :disabled="joining" @click="join">{{ joining ? t('join.joining') : t('groups.join') }}</button>
+                <InviteAccept v-else-if="account.loaded" :next="'/choir/' + token + '?join=1'" />
             </template>
         </InviteCard>`,
     async created() {
@@ -532,19 +741,33 @@ export const ChoirJoinView = {
         } catch (error) {
             this.problem = error?.code === 'not_found' ? t('groups.linkGone') : refusal(error);
         }
+        this.joinOnReturn();
+    },
+    watch: {
+        'account.me.id'() {
+            this.joinOnReturn();
+        },
     },
     methods: {
+        /** Back from this link's own sign-up or sign-in: joined at once, once, the address made plain. */
+        joinOnReturn() {
+            if (!this.back || !this.group || !account.me?.id || this.joining) return;
+            this.back = false;
+            history.replaceState(history.state, '', `/choir/${this.token}`);
+            this.join();
+        },
         async join() {
             this.joining = true;
             try {
-                // The 18-and-over answer is asked only when the account hasn't given it yet.
-                const { data } = await api.groups.join(this.token, this.adult ? { adult: true } : {});
+                // 18 and over is the account's birth date's to say (the server checks it): with none yet, it's asked first (askBirth).
+                const { data } = await api.groups.join(this.token, account.me?.birthGiven ? { adult: true } : {});
+                toast(t('groups.joinedToast', { name: data.name }));
                 navigate(`/groups/${data.id}`, { replace: true });
             } catch (error) {
-                if (error?.code === 'adult_required' && !account.me?.birthGiven) {
+                if ((error?.code === 'adult_required' || error?.code === 'age_unconfirmed') && !account.me?.birthGiven) {
                     this.joining = false;
                     if (await askBirth()) return this.join();
-                } else if (error?.code === 'adult_required') this.needsAdult = true;
+                } else if (error?.code === 'adult_required') this.tooYoung = true; // their birth date says under 18
                 else this.problem = refusal(error);
             } finally {
                 this.joining = false;

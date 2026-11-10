@@ -48,7 +48,9 @@ watch(
  */
 export const BadgeLine = {
     data: () => ({ said: [] }),
-    template: `<p v-if="said.length" class="ge-badge-line" role="status" data-badge-line>{{ badgeWords(said) }}</p>`,
+    // Short, so a result's reward row stays one line and the way on stays in view (the first-15-minutes review, item
+    // 20): one badge by name, several as a count with their names for a screen reader (Your voice lists them all).
+    template: `<p v-if="said.length" class="ge-badge-line" role="status" data-badge-line><template v-if="said.length === 1">{{ badgeWords(said) }}</template><template v-else><span aria-hidden="true">{{ t('badges.newCount', { count: said.length }) }}</span><span class="sr-only">{{ badgeWords(said) }}</span></template></p>`,
     setup: () => ({ badgeWords }),
     created() {
         this.stop = watch(

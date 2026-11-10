@@ -38,6 +38,11 @@ const LEVEL = 0.6; // four guides together, each about -20 dBFS RMS, kept well u
 const FORWARD = 1.2;
 const BACK = 0.6;
 const BRING = 0.05; // the time constant of bringing a voice forward: about 150 ms to settle
+// The voices are made before any press (Hillel: "when I click play ... nothing happens for a second"), at one rate:
+// an AudioBuffer plays at its own rate in any context, so nothing waits for the context to exist.
+const RATE = 48000;
+// A press waits this long for the real voices still on their way, then the app's own voice sings.
+const REAL_WAIT = 1500;
 
 let context = null;
 const players = [];
@@ -113,6 +118,39 @@ function setUp(root) {
     const level = (key) => voiceLevel(key, { on: on.get(key), soloed, forward, fader: fader(key) });
 
     let play = null; // { start, master, gains, sources }
+    let made = null; // the app's voices, made once the player is in view (no network: the worker sings them)
+    let real = null; // the real voices, fetched once someone shows they might press (hover, focus, a touch)
+    const synthVoices = () => (made ??= Promise.all(song.parts.map((part) => renderGuide({
+        templateId: `site:${song.song}`,
+        templateVersion: song.version,
+        part: { key: part.key, guide: { notes: part.notes } },
+        tempo: song.tempo,
+        sampleRate: RATE,
+        human: 'full', // a demo to listen to: sung as a person sings, every variation (js/synth.js)
+    }))).catch((error) => {
+        made = null;
+        throw error;
+    }));
+    // A part with a real voice for this version of the song sings with it (the same voices Sing plays), cut to the line.
+    const realVoices = () => (real ??= (async () => {
+        const guides = (await catalogueGuides(song.song, { version: song.version })) ?? {};
+        const decoder = new OfflineAudioContext(1, 1, RATE);
+        const voices = {};
+        await Promise.all(song.parts.map(async (part) => {
+            if (!guides[part.key]) return;
+            try {
+                voices[part.key] = await realVoice(guides[part.key], decoder);
+            } catch (error) {
+                console.warn('A real voice could not load: the synth sings it', error);
+            }
+        }));
+        return voices;
+    })());
+    const ready = () => synthVoices();
+    const likely = () => {
+        synthVoices().catch(() => {});
+        realVoices();
+    };
     let pending = null; // the press whose voices are still rendering; Stop or another player cancels it
     let frame = 0;
 
@@ -120,6 +158,15 @@ function setUp(root) {
 
     function label(playing) {
         button.setAttribute('aria-label', playing ? button.dataset.labelStop : button.dataset.labelPlay);
+    }
+
+    // Loading: the button busy (its ring turns) and the line under the title says the voices are on their way.
+    const line = root.querySelector('[data-loading-line]');
+    function loading(on) {
+        root.toggleAttribute('data-loading', on);
+        if (on) button.setAttribute('aria-busy', 'true');
+        else button.removeAttribute('aria-busy');
+        if (line) line.hidden = !on;
     }
 
     function show(at) {
@@ -208,30 +255,21 @@ function setUp(root) {
         pending = press;
         // On iPhone, sound even with the silent switch on, as a player should.
         if ('audioSession' in navigator) navigator.audioSession.type = 'playback';
-        // Made and resumed inside the press, as Safari asks.
+        // The press answers at once (every tap answers within 100 ms, docs/design-rules.md): loading, then playing.
+        loading(true);
+        // Made and resumed inside the press, as Safari asks (made already on the pointer going down, when it can be).
         context ??= new AudioContext({ latencyHint: 'playback' });
         const resumed = context.resume();
-        button.setAttribute('aria-busy', 'true');
         try {
-            const rendered = await Promise.all(song.parts.map((part) => renderGuide({
-                templateId: `site:${song.song}`,
-                templateVersion: song.version,
-                part: { key: part.key, guide: { notes: part.notes } },
-                tempo: song.tempo,
-                sampleRate: context.sampleRate,
-                human: 'full', // a demo to listen to: sung as a person sings, every variation (js/synth.js)
-            })));
-            // A part with a real voice for this version of the song sings with it (the same voices Sing plays), cut to the line.
-            const guides = (await catalogueGuides(song.song, { version: song.version })) ?? {};
-            await Promise.all(song.parts.map(async (part, i) => {
-                if (!guides[part.key]) return;
-                try {
-                    const voice = await realVoice(guides[part.key], context);
-                    rendered[i] = placed(voice.samples, voice.offsetSeconds, context.sampleRate, rendered[i].length);
-                } catch (error) {
-                    console.warn('A real voice could not load: the synth sings it', error);
-                }
-            }));
+            const voicesOnTheWay = realVoices();
+            const rendered = [...(await ready())];
+            // The real voices if they're here in time; else the app's own voice sings and they're kept for the next press.
+            // A limit on the wait for the network, not audio timing: the voices still start together on the audio clock.
+            const voices = await Promise.race([voicesOnTheWay, new Promise((resolve) => setTimeout(() => resolve(null), REAL_WAIT))]);
+            song.parts.forEach((part, i) => {
+                const voice = voices?.[part.key];
+                if (voice) rendered[i] = placed(voice.samples, voice.offsetSeconds, RATE, rendered[i].length);
+            });
             await resumed;
             if (pending !== press) return; // stopped, or another player started, while it rendered
             pending = null;
@@ -243,7 +281,7 @@ function setUp(root) {
             const panners = new Map();
             const sources = song.parts.map((part, i) => {
                 const samples = rendered[i];
-                const buffer = context.createBuffer(1, Math.max(1, samples.length), context.sampleRate);
+                const buffer = context.createBuffer(1, Math.max(1, samples.length), RATE);
                 buffer.copyToChannel(samples, 0);
                 const source = context.createBufferSource();
                 source.buffer = buffer;
@@ -267,18 +305,20 @@ function setUp(root) {
             const last = sources.reduce((a, b) => (b.buffer.length > a.buffer.length ? b : a));
             last.addEventListener('ended', () => play === current && stopped());
             root.setAttribute('data-playing', '');
+            root.setAttribute('data-played', '');
+            loading(false);
             label(true);
             frame = requestAnimationFrame(tick);
         } finally {
             if (pending === press) pending = null;
-            if (pending === null) button.removeAttribute('aria-busy');
+            if (pending === null) loading(false);
         }
     }
 
     function stop() {
         if (pending) {
             pending = null;
-            button.removeAttribute('aria-busy');
+            loading(false);
         }
         if (!play) return;
         const { master, sources } = play;
@@ -288,6 +328,10 @@ function setUp(root) {
         stopped();
     }
 
+    // The pointer going down is already a press: the AudioContext is made then, so the click itself answers at once.
+    button.addEventListener('pointerdown', () => {
+        if (!play && !pending) context ??= new AudioContext({ latencyHint: 'playback' });
+    });
     button.addEventListener('click', () => {
         // A second press while it renders, or while it plays, stops it.
         if (play || pending) {
@@ -344,6 +388,22 @@ function setUp(root) {
             pan.cancelScheduledValues(context.currentTime);
             pan.setTargetAtTime(placeOf(key), context.currentTime, SWITCH);
         });
+    }
+
+    // Made ahead: the app's voices once the player is in view, the real ones once someone might press.
+    if ('IntersectionObserver' in window) {
+        const seen = new IntersectionObserver((entries) => {
+            if (!entries.some((e) => e.isIntersecting)) return;
+            seen.disconnect();
+            const soon = () => synthVoices().catch(() => {});
+            if ('requestIdleCallback' in window) requestIdleCallback(soon, { timeout: 2000 });
+            else soon();
+        });
+        seen.observe(root);
+    }
+    for (const name of ['pointerenter', 'focusin', 'pointerdown']) root.addEventListener(name, likely, { once: true, passive: true });
+    for (const link of document.querySelectorAll(`[data-hear="${root.id}"]`)) {
+        for (const name of ['pointerenter', 'focus', 'pointerdown']) link.addEventListener(name, likely, { once: true, passive: true });
     }
 
     root.setAttribute('data-ready', '');

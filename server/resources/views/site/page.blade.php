@@ -9,6 +9,8 @@
 
 @section('head')
     @include('pages._head')
+    {{-- The trail the page shows above its heading, for search (What it does / this page). --}}
+    <x-site.json-ld :data="[\App\Support\Site\StructuredData::breadcrumbs([[(string) __('pages.site.features'), \App\Support\Http\Hosts::publicUrl().'/features'], [(string) ($page['name'] ?? $page['headline']), $meta['url']]])]" />
 @endsection
 
 @section('content')
@@ -38,6 +40,10 @@
                         {{-- A feature still coming leads to what works today (its `try`), else Start singing. --}}
                         @if ($page['soon'] && is_array($page['try'] ?? null))
                             <a href="{{ $links[$page['try'][1]] ?? $page['try'][1] }}" class="btn-primary btn-lg">{{ $page['try'][0] }} <x-site.icon name="arrow" size="18" /></a>
+                        @elseif (is_string($page['group_start'] ?? null))
+                            {{-- Choir groups: a director starts one here (its `group_start` is the ref it's counted by). --}}
+                            <a href="{{ \App\Support\Http\Hosts::app('/groups?start=1&ref='.$page['group_start']) }}" class="btn-primary btn-lg">{{ __('pages.site.group_start') }} <x-site.icon name="arrow" size="18" /></a>
+                            <a href="{{ $links['start'] }}" class="btn-secondary btn-lg">{{ __('pages.site.start') }}</a>
                         @else
                             <a href="{{ $links['start'] }}" class="btn-primary btn-lg">{{ __('pages.site.start') }} <x-site.icon name="arrow" size="18" /></a>
                             <p>{{ __('pages.site.start_note') }}</p>
@@ -132,6 +138,9 @@
                 <p class="s-final-btns">
                     @if ($page['soon'] && is_array($page['try'] ?? null))
                         <a href="{{ $links[$page['try'][1]] ?? $page['try'][1] }}" class="btn-primary btn-lg">{{ $page['try'][0] }} <x-site.icon name="arrow" size="18" /></a>
+                    @elseif (is_string($page['group_start'] ?? null))
+                        <a href="{{ \App\Support\Http\Hosts::app('/groups?start=1&ref='.$page['group_start']) }}" class="btn-primary btn-lg">{{ __('pages.site.group_start') }} <x-site.icon name="arrow" size="18" /></a>
+                        <a href="{{ $links['start'] }}" class="btn-secondary btn-lg">{{ __('pages.site.start') }}</a>
                     @else
                         <a href="{{ $links['start'] }}" class="btn-primary btn-lg">{{ __('pages.site.start') }} <x-site.icon name="arrow" size="18" /></a>
                     @endif

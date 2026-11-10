@@ -79,8 +79,9 @@ analytics and no licence check. The server contacts your storage and mail provid
 its keys are set; practice reminders go through the browsers' own push services, only for people
 who turn them on. The weekly check of Cloudflare's published IP ranges runs only behind Cloudflare
 (`BEHIND_CLOUDFLARE`, off by default on a self-hosted install). Your users' browsers load Vue (and lamejs, when exporting an MP3)
-from jsDelivr, each pinned to an exact version with an SRI hash, and the Figtree and Noto Music
-fonts from Google Fonts.
+from jsDelivr, each pinned to an exact version with an SRI hash. The fonts (Figtree, Noto Music,
+and game mode's VT323, Press Start 2P and Bungee, all under the SIL Open Font License) are the
+install's own files in `web/fonts/`, so no request goes to Google.
 
 **Content and the name:** the courses, the song arrangements, the guides and help, What's new
 and the screenshots and share images are [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/)
@@ -223,7 +224,7 @@ You need PHP (Herd's is fine), and Chrome for the tests. There's nothing to inst
 
 ```bash
 cd web
-tool/tailwind.sh                     # builds css/app.css (the first run downloads the pinned Tailwind binary)
+tool/tailwind.sh                     # builds css/app.css, css/site.css and css/courses.css (the first run downloads the pinned Tailwind binary)
 php -S localhost:8081 tool/serve.php
 # open http://localhost:8081 (localhost counts as secure, so the mic works)
 
@@ -232,7 +233,10 @@ API=http://127.0.0.1:8000 PHP_CLI_SERVER_WORKERS=4 php -S localhost:8081 tool/se
 ```
 
 - After changing Tailwind classes, run `tool/tailwind.sh` again, or `tool/tailwind.sh --watch`.
-  `css/app.css` is committed.
+  The builds are committed: `css/site.css` (the public pages: all of `css/input.css` but the course pages'
+  `.cp-*` rules), `css/courses.css` (those rules alone, linked only by a page that shows a `.cp-` class) and
+  `css/app.css` (the app and the server's own pages: the rules that need no `.s-*` or `.cp-*` class;
+  `tool/app_css.py`).
 - `tool/test.sh` runs the tests in muted headless Chrome: the timing maths, the audio engine over
   loopback (exact to the sample), the pitch tracker and scoring, the stores, the contract, and the
   checks (words, the offline list, only `api.js` calling `/api`).

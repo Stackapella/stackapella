@@ -158,7 +158,8 @@ final class ManagePerson
         return $person;
     }
 
-    private static function fingerprint(?string $email): ?string
+    /** An address in the audit log: enough to tell two apart, never the address itself. */
+    public static function fingerprint(?string $email): ?string
     {
         return $email !== null ? substr(hash('sha256', $email), 0, 12) : null;
     }

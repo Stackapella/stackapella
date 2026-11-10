@@ -17,7 +17,8 @@
                 "memberCount",
                 "songs",
                 "members",
-                "link"
+                "link",
+                "rehearsal"
             ],
             "properties": {
                 "id": {
@@ -65,7 +66,8 @@
                             "title",
                             "access",
                             "own",
-                            "sharedAt"
+                            "sharedAt",
+                            "sinceRehearsal"
                         ],
                         "properties": {
                             "templateId": {
@@ -78,10 +80,10 @@
                                 "type": "string",
                                 "enum": [
                                     "free",
-                                    "plus",
+                                    "account",
                                     "own"
                                 ],
-                                "description": "own: one of the director's templates."
+                                "description": "free or account as the catalogue's access; own: one of the director's templates."
                             },
                             "own": {
                                 "type": "boolean"
@@ -89,6 +91,28 @@
                             "sharedAt": {
                                 "type": "string",
                                 "format": "date-time"
+                            },
+                            "sinceRehearsal": {
+                                "type": [
+                                    "object",
+                                    "null"
+                                ],
+                                "additionalProperties": false,
+                                "required": [
+                                    "started",
+                                    "recorded"
+                                ],
+                                "properties": {
+                                    "started": {
+                                        "type": "integer",
+                                        "description": "Assigned members who began the song (their first project from it since the assignment) on or after the previous rehearsal's day (UTC)."
+                                    },
+                                    "recorded": {
+                                        "type": "integer",
+                                        "description": "Assignments whose ready take is from on or after that day."
+                                    }
+                                },
+                                "description": "The director's counts since the last rehearsal, numbers only; null for a member, or before a first rehearsal."
                             }
                         }
                     }
@@ -196,6 +220,43 @@
                         }
                     },
                     "description": "The director's join link and when it was made (null before one is). A member never sees it."
+                },
+                "rehearsal": {
+                    "type": [
+                        "object",
+                        "null"
+                    ],
+                    "additionalProperties": false,
+                    "required": [
+                        "date",
+                        "weekly",
+                        "next",
+                        "previous"
+                    ],
+                    "properties": {
+                        "date": {
+                            "type": "string",
+                            "description": "The date the director set: a plain local date, YYYY-MM-DD."
+                        },
+                        "weekly": {
+                            "type": "boolean"
+                        },
+                        "next": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "description": "The next rehearsal on or after today (YYYY-MM-DD), worked out on read; null for a one-off that has passed. A day counts as passed once it is over everywhere (12:00 UTC the next day)."
+                        },
+                        "previous": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "description": "The latest rehearsal before next (YYYY-MM-DD); null before the first."
+                        }
+                    },
+                    "description": "The group's next rehearsal as its director set it (null when none is). Members see it too."
                 }
             }
         }

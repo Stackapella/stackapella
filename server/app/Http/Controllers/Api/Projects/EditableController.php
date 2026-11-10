@@ -36,8 +36,6 @@ final class EditableController extends Controller
 
             if ($project === null || $project->binned_at !== null) {
                 $errors['ids.'.$i] = __('validation.editable_unknown');
-            } elseif ($plans->readOnly($user, $project) === 'plus_song') {
-                $errors['ids.'.$i] = __('validation.editable_plus_song');
             }
         }
 

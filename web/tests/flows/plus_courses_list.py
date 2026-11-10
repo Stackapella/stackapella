@@ -51,11 +51,19 @@ def journey(f):
     f.shot("learn-more-courses")
     f.no_sideways("the Learn hub's More courses")
     assert not f.js("document.querySelector('[data-more-courses] .btn-primary')"), "a primary button among the courses"
-    # Courses still to come: by name, under their group, doing nothing.
+    # Courses still to come: quiet cells in their group, by name, doing nothing (Hillel's 3 by 3 grids, 2026-11-08).
     soon = f.js("(await import('/js/stores/learning.js')).learning.catalogue.filter((c) => c.status === 'soon').map((c) => c.title.en)")
-    said = f.js("[...document.querySelectorAll('[data-courses-soon]')].map((p) => p.textContent).join(' ')")
+    said = f.js("[...document.querySelectorAll('[data-course-soon]')].map((p) => p.textContent).join(' ')")
     assert all(name in said for name in soon), [n for n in soon if n not in said]
-    assert not f.js("document.querySelector('[data-courses-soon] a, [data-courses-soon] button')"), "a course still to come that does something"
+    assert not f.js("document.querySelector('[data-course-soon] a, [data-course-soon] button')"), "a course still to come that does something"
+    assert not f.js("document.querySelector('[data-courses-soon]')"), "the old Coming soon line"
+    # Every course of the catalogue has its cell; one column on a phone, three on a desktop.
+    cells = f.js("document.querySelectorAll('[data-course-group] li').length")
+    total = f.js("(await import('/js/stores/learning.js')).learning.catalogue.length")
+    assert cells == total, f"{cells} cells for {total} courses"
+    columns = f.js("getComputedStyle(document.querySelector('[data-course-group] ul')).gridTemplateColumns.split(' ').length")
+    want = 3 if f.js("innerWidth >= 1024") else 1
+    assert columns == want, f"{columns} columns at {f.js('innerWidth')} px, not {want}"
     # A course under way: on top, as a card with how far you got.
     f.run("""const { learning } = await import('/js/stores/learning.js'); const id = document.querySelector('[data-course-row]').dataset.courseRow;
         const lesson = learning.courses[id].units[0].lessons[0].id;

@@ -21,7 +21,7 @@ final class ScoresAndRemindersTest extends TestCase
     use Plus;
     use RefreshDatabase;
 
-    public function test_everyones_scores_are_kept_and_the_history_is_plus(): void
+    public function test_everyones_scores_are_kept_and_the_history_is_theirs(): void
     {
         $this->fakeStripe();
         $user = $this->member();
@@ -35,10 +35,7 @@ final class ScoresAndRemindersTest extends TestCase
         $this->postJson('/api/scores', [...$score, 'summary' => ['pitchPercent' => 99]])->assertStatus(422)->assertJsonValidationErrors('id');
         $this->assertMatchesContract($this->postJson('/api/scores', [...$score, 'id' => (string) Str::uuid(), 'summary' => ['x' => str_repeat('a', 17 * 1024)]]), 'scores.create', 422);
 
-        $this->assertMatchesContract($this->getJson('/api/scores'), 'scores.list', 403);
-
-        $this->subscribe($user);
-        $this->actingAs($this->fresh($user));
+        // The history is free (2026-11-07): learning to sing better is.
         $history = $this->getJson('/api/scores?lesson=u4.l2.ex1');
         $this->assertMatchesContract($history, 'scores.list', 200);
         $history->assertJsonCount(1, 'data')->assertJsonPath('data.0.id', $id);

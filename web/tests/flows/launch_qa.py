@@ -123,12 +123,12 @@ def journey(f):
             else:
                 note(course, lesson, f"still not at its end after {MAX_STEPS} steps")
     save(f, found)
-    # A free account: lesson 1 free, lesson 2 asks for Plus.
+    # A free account: every lesson of every course opens (Hillel, 2026-11-06), lesson 2 too, with no account ask.
     if not SHOTS_ONLY:
         open_all(f, "member")
         f.wait(f"!!{ACCOUNT}.me", what="the member's account")
         f.js(f"{ACCOUNT}.me.plusCourses = true")
-        plus_only = t(f, "courses.plusOnly")
+        plus_only = t(f, "courses.wall.title")
         for course in json.loads(courses):
             first_two = json.loads(f.js(f"JSON.stringify(({STORE}.learning.courses['{course}']?.units[0]?.lessons ?? []).slice(0, 2).map((l) => l.id))"))
             if len(first_two) < 2:
@@ -136,11 +136,11 @@ def journey(f):
             f.run(f"{ROUTER}.navigate('/learn/{first_two[0]}')")
             f.run("await new Promise((r) => setTimeout(r, 600))")
             if plus_only in f.js("document.body.innerText"):
-                note(course, first_two[0], "the free first lesson asks for Plus")
+                note(course, first_two[0], "lesson 1 asks a free account for one")
             f.run(f"{ROUTER}.navigate('/learn/{first_two[1]}')")
             f.run("await new Promise((r) => setTimeout(r, 600))")
-            if plus_only not in f.js("document.body.innerText"):
-                note(course, first_two[1], "lesson 2 doesn't ask a free account for Plus")
+            if plus_only in f.js("document.body.innerText"):
+                note(course, first_two[1], "lesson 2 asks a signed-in account for an account")
     save(f, found)
     print(f"     {len(found)} findings ({f.size}, {f.skin})")
     compress()

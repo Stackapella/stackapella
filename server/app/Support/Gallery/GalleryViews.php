@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Support\Gallery;
 
+use App\Actions\Boards\Boards;
 use App\Actions\Gallery\OpenParts;
+use App\Models\BellItem;
 use App\Models\Comment;
 use App\Models\Follow;
 use App\Models\Harmony;
@@ -104,6 +106,30 @@ final class GalleryViews
             'held' => $comment->held_at !== null,
             'createdAt' => $comment->created_at?->utc()->toIso8601ZuluString(),
         ];
+    }
+
+    /**
+     * Whoever did a bell item's thing, as the bell and its push both name them: a hidden profile is
+     * Anonymous, a friend who beat a score is as on the friends' board, and a like from someone not
+     * confirmed 18 or over never shows their name.
+     *
+     * @return array{handle: string|null, name: string}|null
+     */
+    public static function bellActor(BellItem $item, ?string $locale = null): ?array
+    {
+        $actor = $item->actor;
+
+        if ($actor === null) {
+            return null;
+        }
+
+        if ($item->kind === 'like' && ! Gallery::adult($actor)) {
+            return ['handle' => null, 'name' => (string) __('sharing.a_singer', [], $locale)];
+        }
+
+        $person = self::person($actor);
+
+        return ['handle' => $person['handle'], 'name' => $item->kind === 'board_beaten' ? Boards::friendName($actor) : $person['name']];
     }
 
     /**

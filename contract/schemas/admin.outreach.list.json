@@ -1,0 +1,63 @@
+{
+    "$id": "admin.outreach.list.json",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data",
+        "summary",
+        "unfiled"
+    ],
+    "properties": {
+        "data": {
+            "type": "array",
+            "items": {
+                "$ref": "admin.outreach.target.json"
+            }
+        },
+        "summary": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "configured",
+                "cap",
+                "sentToday",
+                "followUpsDue",
+                "unreadReplies",
+                "unfiledReplies",
+                "sendBySoon"
+            ],
+            "properties": {
+                "configured": {
+                    "type": "boolean",
+                    "description": "False until outreach's sender and token are set: Send answers 409 outreach_off."
+                },
+                "cap": {
+                    "type": "integer"
+                },
+                "sentToday": {
+                    "type": "integer",
+                    "description": "First emails sent or marked sent today (the report's day), by hand or automatically: the daily cap's count. Follow-ups never count."
+                },
+                "followUpsDue": {
+                    "type": "integer"
+                },
+                "unreadReplies": {
+                    "type": "integer"
+                },
+                "unfiledReplies": {
+                    "type": "integer"
+                },
+                "sendBySoon": {
+                    "type": "integer"
+                }
+            }
+        },
+        "unfiled": {
+            "type": "array",
+            "items": {
+                "$ref": "admin.outreach.reply.json"
+            },
+            "description": "Replies no organization matched, newest first (50 at most)."
+        }
+    }
+}

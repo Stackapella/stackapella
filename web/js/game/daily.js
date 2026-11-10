@@ -4,29 +4,25 @@
 // opens the day's board and Take the challenge, which starts the song on that part; a take of it that
 // counts goes on the day's board too. The day's totals are counted (daily_viewed, daily_sung) through
 // the anonymous daily counts. The days you took it are stamped on Home's week bulbs (a reskin): from
-// this device (its last 14 dates), and from the server's `days` when signed in.
+// this device (its last 14 dates), and from the server's `days` when signed in. The pick, taking it and
+// its counts are shared with serious mode's calm line (js/daily-pick.js, docs/daily-challenge-plan.md).
 
 import { AccountWall } from '../components/account-wall.js';
 import { reactive } from 'vue';
-import { call } from '../api.js';
 import { formatNumber, t } from '../i18n.js';
-import { navigate } from '../router.js';
-import { local, session as tabStorage } from '../storage.js';
+import { local } from '../storage.js';
 import { account } from '../stores/account.js';
-import { startFromTemplate } from '../stores/projects.js';
 import { loadTemplate, templatePartName } from '../templates.js';
+import { dailyFor, dailyPick, loadPick, takeChallenge, utcDay } from '../daily-pick.js';
 import { count } from '../usage.js';
 import { Modal } from '../components/ui.js';
 import { boardName, byInitials } from './initials.js';
 import { effect } from './effects.js';
 
-const STARTED = 'stackapella.daily'; // this tab's challenge taken: { date, templateId, partKey }
+export { dailyFor, utcDay };
 
-/** Today in UTC, as the server dates the challenge: "2026-10-30". */
-export const utcDay = (at = Date.now()) => new Date(at).toISOString().slice(0, 10);
-
-/** Today's challenge, loaded once a visit: { date, templateId, partKey, ... } or null. */
-export const daily = reactive({ today: null, loading: false, asked: null });
+/** Today's challenge, loaded once a visit: { date, templateId, partKey, ... } or null (the pick both skins share). */
+export const daily = dailyPick;
 
 const STAMPS = 'stackapella.dailyDays'; // the challenge dates you took on this device
 const STAMPS_KEPT = 14;
@@ -63,29 +59,10 @@ export const stamped = (day) => effect('daily') && effect('title') && dailyDays.
  * serious mode never asks); a closed or missing challenge isn't asked again until tomorrow.
  */
 export async function loadDaily() {
-    if (daily.asked === utcDay() || daily.loading || !effect('daily')) return daily.today;
-    daily.asked = utcDay();
-    daily.loading = true;
-    try {
-        daily.today = (await call('boards.daily.show', { query: { scope: 'global' } })).data;
-        stamp(daily.today?.days ?? []);
-    } catch (error) {
-        console.info('No challenge today', error?.message ?? error);
-        daily.today = null;
-    } finally {
-        daily.loading = false;
-    }
-    return daily.today;
-}
-
-/** The challenge date a take of this song part sings for, if it was started from today's challenge; else null. */
-export function dailyFor(templateId, partKey) {
-    try {
-        const started = JSON.parse(tabStorage.get(STARTED) || 'null');
-        return started && started.templateId === templateId && started.partKey === partKey && started.date === utcDay() ? started.date : null;
-    } catch {
-        return null;
-    }
+    if (!effect('daily')) return daily.today;
+    const today = await loadPick();
+    stamp(today?.days ?? []);
+    return today;
 }
 
 /** Days, hours or minutes until the challenge (or the week's cup) ends, as words. */
@@ -158,13 +135,11 @@ export const DailySheet = {
         }
     },
     methods: {
-        /** Starts the song on the day's part; a take of it then goes on the day's board too. */
+        /** Starts the song on the day's part (your copy of it, if you have one); a take of it then goes on the day's board too. */
         async take() {
             this.starting = true;
             try {
-                tabStorage.set(STARTED, JSON.stringify({ date: this.challenge.date, templateId: this.challenge.templateId, partKey: this.challenge.partKey }));
-                const project = await startFromTemplate(this.song, { focusKey: this.challenge.partKey });
-                navigate(`/p/${project.id}/sing`);
+                await takeChallenge(this.challenge, this.song);
             } catch (error) {
                 console.warn('The challenge could not start', error);
                 this.failed = true;

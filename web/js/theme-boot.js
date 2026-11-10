@@ -9,12 +9,9 @@
 // <html data-theme="<colour>-<mode>"> (css/themes.css), data-accent (css/accents.css: a chosen accent,
 // else the palette's own), data-skin ("game", the default, or "serious": docs/skins-plan.md; Hillel's
 // "two skins for one app") and the browser bar's colour. Game mode has its own light or dark
-// (`gameMode`, dark until chosen), so each skin keeps its own; in the app only (its page has
-// <meta name="stackapella-app"> before this script): the public site's game look is dark only
-// (Hillel: "the landing page with game mode on can always be dark mode, but the app should support
-// both").
+// (`gameMode`, dark until chosen), so each skin keeps its own, on the public site as in the app (Hillel,
+// 2026-11-02: "Whole site follows light", which ended the site's dark-only game look).
 (function () {
-    const app = !!document.querySelector('meta[name="stackapella-app"]');
     const COLOURS = {"warm-dark": "#17120f", "warm-light": "#faf5ee", "midnight-dark": "#0d1220", "midnight-light": "#f1f5fb", "graphite-dark": "#151617", "graphite-light": "#f3f3f1", "stage-dark": "#000000", "stage-light": "#f0f0f0"};
     const FAMILIES = ['stage', 'warm', 'midnight', 'graphite']; // Plum went: a choice of it shows as the mode's own
     const ACCENTS = ['coral', 'amber', 'green', 'teal', 'sky', 'indigo', 'violet', 'rose']; // tool/accents.py; else the palette's own
@@ -89,6 +86,39 @@
         return { accent: rgbHex(rgb), strong: rgbHex(strong), ink: rgbHex(words), adjusted: true };
     }
     const system = window.matchMedia('(prefers-color-scheme: dark)');
+    // Game mode's own stylesheet (docs/css-split-plan.md, step 3): the game skin's rules are a sheet of their own, the
+    // page's <meta name="game-css">, which serious mode never fetches. On the first paint js/game-css.js links it right
+    // after the page's own sheet; turned on later, the page turns once it has loaded (gameCss), never half-styled.
+    const GAME_CSS = document.querySelector('meta[name="game-css"]')?.getAttribute('content') || '';
+    let booted = false; // the first apply(), before the page's sheets are parsed, is game-css.js's to link for
+    let gameLoad = null;
+    let gameFailed = false;
+    const gameReady = () => !GAME_CSS || gameFailed || !!document.querySelector('link[data-game-css]')?.sheet;
+    /** Game mode's sheet on the page and loaded: resolves true, or false if it couldn't load (the page turns anyway). */
+    function gameCss() {
+        if (gameReady()) return Promise.resolve(!gameFailed);
+        if (gameLoad) return gameLoad;
+        let link = document.querySelector('link[data-game-css]');
+        if (!link) {
+            link = Object.assign(document.createElement('link'), { rel: 'stylesheet', href: GAME_CSS });
+            link.dataset.gameCss = '';
+            // Where game-css.js would have written it: right after the page's own sheet, so it cascades as on a first paint.
+            const at = document.querySelector('script[src*="/js/game-css.js"]');
+            if (at) at.before(link);
+            else document.head.append(link);
+        }
+        gameLoad = new Promise((done) => {
+            const failed = () => {
+                gameFailed = true;
+                console.info('Game mode\'s stylesheet did not load', GAME_CSS);
+                done(false);
+            };
+            link.addEventListener('load', () => done(true), { once: true });
+            link.addEventListener('error', failed, { once: true });
+            setTimeout(() => (gameReady() ? done(true) : failed()), 15000); // a page timer, never audio: offline, or stuck
+        }).finally(() => (gameLoad = null));
+        return gameLoad;
+    }
     // The choice: this address's own (localStorage), or the `sa_theme` cookie (on .stackapella.com,
     // so the app and the public site look the same) when that one was made later, on the other host.
     function chosen() {
@@ -128,7 +158,12 @@
         // turns dark by itself and keeps its own choice (Hillel: "auto set to dark but show toggle to
         // return to light"); serious mode's is kept apart, so each skin comes back as it was left.
         const game = choice.skin !== 'serious';
-        const wanted = game ? (app ? choice.gameMode || 'dark' : 'dark') : choice.mode;
+        // Game mode turned on with its sheet not loaded yet: the page stays exactly as it is until it has, then turns.
+        if (game && booted && !gameReady()) {
+            gameCss().then(() => apply());
+            return document.documentElement.dataset.theme;
+        }
+        const wanted = game ? choice.gameMode || 'dark' : choice.mode;
         const mode = wanted === 'light' || wanted === 'dark' ? wanted : wanted === 'system' ? (system.matches ? 'dark' : 'light') : 'dark';
         // A colour not chosen is the mode's own: Stage in dark, Warm in light (docs/decisions.md).
         const colour = FAMILIES.includes(choice.colour) ? choice.colour : mode === 'dark' ? 'stage' : 'warm';
@@ -162,8 +197,8 @@
         const before = chosen();
         const pick = (name) => (change && name in change ? change[name] : before[name]) ?? null;
         const choice = { mode: pick('mode') ?? 'dark', gameMode: pick('gameMode'), colour: pick('colour'), accent: pick('accent'), customAccent: pick('customAccent'), skin: pick('skin') === 'serious' ? 'serious' : 'game', at: Date.now() };
-        // A light or dark chosen in the app's game mode is game mode's own: serious mode's stays as it was.
-        if (app && choice.skin === 'game' && change && 'mode' in change && !('gameMode' in change)) {
+        // A light or dark chosen in game mode (the app's or the site's) is game mode's own: serious mode's stays as it was.
+        if (choice.skin === 'game' && change && 'mode' in change && !('gameMode' in change)) {
             choice.gameMode = change.mode;
             choice.mode = before.mode ?? 'dark';
         }
@@ -183,6 +218,28 @@
         if (newest.at) writeCookie(newest);
     }
     apply();
+    // Game mode's sheet, fetched at once beside the page's own (js/game-css.js links it after that one).
+    if (GAME_CSS && document.documentElement.dataset.skin === 'game') {
+        document.head.append(Object.assign(document.createElement('link'), { rel: 'preload', as: 'style', href: GAME_CSS }));
+    }
+    // Game mode in the app: its two faces on every screen (VT323, the screen's words; Stackapella Pixel, labels and
+    // buttons) fetched as the page starts rather than once the stylesheet asks, so they land by the first paint
+    // (the slow-phone pass, 2026-11-02). Serious mode preloads nothing new; the site's pages don't all use both.
+    if (document.documentElement.dataset.skin === 'game' && document.querySelector('meta[name="stackapella-app"]')) {
+        for (const [href, type] of [['/fonts/vt323-latin.woff2', 'font/woff2']]) {
+            const link = Object.assign(document.createElement('link'), { rel: 'preload', as: 'font', type, href, crossOrigin: 'anonymous' });
+            document.head.append(link);
+        }
+        // (Game mode's own modules are preloaded by js/preload.js, after the import map: a module preload here, before
+        // it, makes Firefox ignore the import map, and the app never starts.)
+    }
+    // Signed in (the server's `sa_signed_in=1` cookie on the shared domain: no ID, readable here): marked on <html> before
+    // the page paints, so a public page shows "Open the app" instead of its try-the-app line with no flash (/tools).
+    if (document.cookie.split('; ').includes('sa_signed_in=1')) document.documentElement.dataset.signedIn = '';
+    // Opened from the home screen (an installed tool, the app): marked before the page paints, so an installed tool's
+    // page shows the slim Stackapella bar in place of the site header (/tools). iOS says so with navigator.standalone.
+    if (matchMedia('(display-mode: standalone)').matches || navigator.standalone === true) document.documentElement.dataset.standalone = '';
     system.addEventListener('change', apply);
-    window.stackapellaTheme = { apply, chosen, choose, fitAccent };
+    booted = true;
+    window.stackapellaTheme = { apply, chosen, choose, fitAccent, gameCss };
 })();

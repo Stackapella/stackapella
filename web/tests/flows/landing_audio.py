@@ -58,7 +58,8 @@ def plays(f, label):
     assert f.js("document.querySelector('[data-cab-time]').textContent") != "0:00", f"{label}: the take's time didn't move"
     f.shot(label + "-game")
     # Game mode off by its toggle stops it; on again it rests under PRESS START, and a press plays it with sound.
-    toggle = "document.querySelector('.gt--hero')"
+    # The header's Game mode (landing v2: the hero has none of its own; on a phone it's the menu's row).
+    toggle = "([...document.querySelectorAll('.s-top [data-game-toggle]')].find((b) => b.offsetParent) || document.querySelector('.s-menu [data-game-toggle]'))"
     f.run(f"{toggle}.click();")
     f.wait(f"document.documentElement.dataset.skin === 'serious' && !{cab}.hasAttribute('data-playing')", timeout=10, what=f"{label}: Game mode off stops the take")
     f.run(f"{toggle}.click();")

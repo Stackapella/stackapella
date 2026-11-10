@@ -30,6 +30,7 @@
                             "visits",
                             "arrivals",
                             "lesson1",
+                            "courseLesson",
                             "signedUp",
                             "day2",
                             "week1"
@@ -51,6 +52,10 @@
                             },
                             "lesson1": {
                                 "type": "integer"
+                            },
+                            "courseLesson": {
+                                "type": "integer",
+                                "description": "f_course_lesson: a first lesson finished with a star in any course, the free one included."
                             },
                             "signedUp": {
                                 "type": "integer"

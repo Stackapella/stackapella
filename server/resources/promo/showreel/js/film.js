@@ -1,10 +1,10 @@
-// HARMONY, MADE BY YOU: the film. One world (Amazing Grace's four lanes of glass gems, the mixer, the
-// creator, the share card and the end card, each at its own place in it), a split screen of the four
+// HARMONY, MADE BY YOU: the film. One world (Amazing Grace's four lanes of glass gems, the share card
+// and the end card, each at its own place in it), the real app in a drawn device, a split screen of the four
 // singers drawn over it, and a director who cuts between shots on the song's beat. Everything is a
 // pure function of t, so any frame can be rendered alone.
 
 import { E, $, CX, CY, FORMAT, H, LIGHT, Q, W, bump, clamp, hash, lerp, mk, range, set, spring, vis } from './lib.js';
-import { BEATS, CUE, DUR, S, VERSE, beatAt, chordName, sec, sung, voicing } from './score.js';
+import { BEATS, CUE, DUR, S, VERSE, beatAt, creditLine, sec, sung, voicing } from './score.js';
 import { PART_INK, PART_VAR, T, glow, project, setCam, sparkles, specks } from './stage.js';
 
 const W0 = $('#world');
@@ -93,7 +93,7 @@ const noteIndex = (i, beat) => S.parts[i].findIndex((n) => n.beat === beat);
 const lerp4 = (a, b, u) => ({ x: lerp(a.x, b.x, u), y: lerp(a.y, b.y, u), w: lerp(a.w, b.w, u), h: lerp(a.h, b.h, u) });
 
 /* ================= the end card (in the lane set's world, where "see." is sung) ================= */
-const seeNote = S.parts[0].at(-1), meNote = S.parts[0].find((n) => n.beat === CUE.mark);
+const seeNote = S.parts[0].at(-1);
 const END = { cx: X(seeNote.beat + seeNote.length / 2), cy: STACK_H / 2 - 40 };
 const endEl = mk('div', 'grp', laneSet);
 endEl.id = 'endc';
@@ -105,105 +105,23 @@ const ENDS = {
     thumb: { mark: 0, k: 1, h: 0, p: 0, site: 0, br: '' },
 };
 const EL = ENDS[FORMAT];
-endEl.innerHTML = `<h2>Harmony,${EL.br} <em>made by you.</em></h2><p>For one voice, or a whole choir.</p><p class="site">stackapella.com</p>`;
+endEl.innerHTML = `<h2>Harmony,${EL.br} <em>made by you.</em></h2><p>For one voice, or a whole choir.</p><p class="site">stackapella.com</p><p class="credit"></p>`;
 endEl.style.cssText = `left:${END.cx - CX}px;top:${END.cy - CY}px;width:${W}px;height:${H}px`;
-const [endH, endP, endSite] = endEl.children;
+const [endH, endP, endSite, endCredit] = endEl.children;
 endH.style.top = `${EL.h}px`; endP.style.top = `${EL.p}px`; endSite.style.top = `${EL.site}px`;
+// the real voices' credit, as the app gives it (score.js creditLine, from the catalogue)
+endCredit.style.top = `${EL.site + 70}px`;
+endCredit.textContent = creditLine();
 const END_MARK = markRects(END.cx, END.cy + EL.mark, EL.k);
-const MID = { cx: X(meNote.beat + meNote.length / 2), cy: STACK_H / 2 };
-const MID_MARK = markRects(MID.cx, MID.cy, 2.5);
 // the opening note as the fold leaves it: what the pre-roll's camera sees, three times its size
 const OPEN = { zoom: 3, w: (PXB - GW) * 3, h: GH * 3, r: 20 * 3 };
-
-/* ================= the mixer, as the landing's hero draws it ================= */
-const MIX = { x: -6000, y: 0, w: 1560, h: 900 };
-const mixSet = mk('div', 'set', W0);
-const mixCard = mk('div', 'card', mixSet);
-mixCard.style.cssText = `left:${MIX.x}px;top:${MIX.y}px;width:${MIX.w}px;height:${MIX.h}px`;
-const mixHead = mk('div', 'lane-name', mixCard);
-mixHead.style.cssText = 'left:64px;top:52px;color:var(--cream);font-size:36px';
-mixHead.innerHTML = '<span>Amazing Grace · first line</span><small></small>';
-const mixTime = mixHead.querySelector('small');
-const ROLES = ['The tune', 'Just under the tune', 'Fills the chord', 'Holds the roots'];
-const TRACK = { x: 560, w: 780, b0: 0, b1: CUE.hum[0] };
-const ROW = (i) => 140 + i * 145;
-const mixRows = [0, 1, 2, 3].map((i) => {
-    const row = mk('div', 'mrow', mixCard);
-    row.style.cssText = `left:64px;top:${ROW(i)}px;width:${MIX.w - 128}px;height:120px`;
-    const disc = mk('div', 'gem disc', row, NAMES[i][0]);
-    disc.style.cssText = `position:relative;flex:none;--gem:${PART_VAR[i]};--gem-ink:${PART_INK[i]}`;
-    const nm = mk('div', 'nm', row);
-    nm.innerHTML = `${NAMES[i]}<span class="you" style="background:${PART_VAR[i]};color:${PART_INK[i]}">You</span><small>${ROLES[i]}</small>`;
-    const you = nm.querySelector('.you');
-    const track = mk('div', 'grp', row);
-    track.style.cssText = `left:${TRACK.x - 64}px;top:0;width:${TRACK.w}px;height:120px`;
-    const [lo, hi] = RANGE[i];
-    const bars = S.parts[i].filter((n) => n.beat < TRACK.b1).map((n) => {
-        const b = mk('div', 'gem gem-bar', track);
-        const x = ((n.beat - TRACK.b0) / (TRACK.b1 - TRACK.b0)) * TRACK.w, w = (Math.min(n.beat + n.length, TRACK.b1) - n.beat) / (TRACK.b1 - TRACK.b0) * TRACK.w;
-        b.style.cssText = `left:${x + 2}px;top:${8 + ((hi - n.pitch) / Math.max(1, hi - lo)) * 70}px;width:${w - 4}px;height:34px;border-radius:17px;--gem:${PART_VAR[i]}`;
-        return { el: b, n };
-    });
-    const sw = mk('div', 'gem gem-bar sw', row);
-    sw.style.setProperty('--gem', PART_VAR[i]);
-    return { row, disc, nm, you, bars };
-});
-const mixBeam = mk('div', 'beam', mixCard);
-const words = mk('div', 'words', mixCard);
-words.style.top = '745px';
-const wordEls = S.parts[0].filter((n) => n.lyric && n.beat < TRACK.b1).map((n) => {
-    const w = n.lyric.endsWith('-') ? n.lyric.slice(0, -1) : n.lyric + ' ';
-    return { el: mk('span', null, words, w), n };
-});
-const ptr = mk('div', 'ptr', mixCard);
-const ring = mk('div', 'ring', mixCard);
-
-/* ================= the creator ================= */
-// One roll for all four parts (lowest bass to the top of the tune), from beat 24 to 36, on a wash
-// of the accent: the one act that doesn't stand on the plain stage.
-const CR = { x: 20000, y: 0, pxb: 170, sp: 16, gh: 48, lo: 42, hi: 76, b0: CUE.hum[0], b1: S.phrases[2][1] };
-const crX = (b) => CR.x + (b - CR.b0) * CR.pxb;
-const crY = (p) => CR.y + (CR.hi - p) * CR.sp;
-const crSet = mk('div', 'set', W0);
-const crLines = mk('div', 'lines', crSet);
-crLines.style.cssText = `left:${crX(CR.b0 - 1)}px;width:${CR.pxb * (CR.b1 - CR.b0 + 2)}px;top:${CR.y}px;height:${(CR.hi - CR.lo) * CR.sp}px`;
-for (let p = CR.lo + 1; p < CR.hi; p++) mk('i', p % 12 === 0 ? 'c' : '', crLines).style.top = `${(CR.hi - p) * CR.sp - 1}px`;
-const humCv = mk('canvas', null, crSet);
-const HUM = { x: crX(CR.b0 - 1), y: CR.y - 40, w: CR.pxb * (CR.b1 - CR.b0 + 2), h: (CR.hi - CR.lo) * CR.sp + 80, k: 1.5 };
-humCv.width = HUM.w * HUM.k; humCv.height = HUM.h * HUM.k;
-humCv.style.cssText = `position:absolute;left:${HUM.x}px;top:${HUM.y}px;width:${HUM.w}px;height:${HUM.h}px`;
-const hum = humCv.getContext('2d');
-const crGems = [0, 1, 2, 3].map((i) => S.parts[i].filter((n) => n.beat >= CR.b0 && n.beat < CR.b1).map((n) => {
-    const g = mk('div', 'gem gem-bar', crSet);
-    g.style.cssText = `left:${crX(n.beat) + 4}px;top:${crY(n.pitch) - CR.gh / 2}px;width:${n.length * CR.pxb - 8}px;height:${CR.gh}px;border-radius:16px;--gem:${PART_VAR[i]};--gem-ink:${PART_INK[i]};font-size:24px`;
-    if (i === 0 && n.lyric) g.textContent = n.lyric;
-    return { el: g, n, i };
-}));
-// When each note of the tune becomes a gem: as you finish humming it. The harmony under a note
-// blooms with it, or at the bloom for the notes hummed before it.
-const formed = (n) => n.beat + Math.min(0.62, n.length * 0.62);
-const tuneAt = (b) => S.parts[0].find((n) => n.beat <= b + 1e-6 && n.beat + n.length > b + 1e-6);
-const bloomBeat = (n, i) => {
-    if (i === 0) return formed(n);
-    const tn = tuneAt(n.beat);
-    return Math.max(CUE.bloom + i * 0.18 + (n.beat - CR.b0) * 0.04, tn ? formed(tn) + i * 0.08 : n.beat);
-};
-const CR_CHORDS = S.chords.filter((c) => c.beat > CR.b0 && c.beat < CR.b1).map((c, k, all) => ({ c, b0: c.beat, b1: all[k + 1]?.beat ?? CR.b1 }));
-const BLOCK_Y = crY(CR.lo) + 44, BLOCK_H = 130;
-const blocks = CR_CHORDS.map(({ c, b0, b1 }) => {
-    const e = mk('div', 'block', crSet, chordName(c));
-    e.style.cssText = `left:${crX(b0) + 5}px;top:${BLOCK_Y}px;width:${(b1 - b0) * CR.pxb - 10}px;height:${BLOCK_H}px`;
-    return e;
-});
-const crBeam = mk('div', 'beam', crSet);
-crBeam.style.cssText = `top:${CR.y - 30}px;height:${(CR.hi - CR.lo) * CR.sp + 60}px`;
 
 /* ================= the share card ================= */
 const SH = { x: -20000, y: 0, w: 1400, h: 780 };
 const shSet = mk('div', 'set share', W0);
 const shCard = mk('div', 'card', shSet);
 shCard.style.cssText = `left:${SH.x}px;top:${SH.y}px;width:${SH.w}px;height:${SH.h}px`;
-shCard.innerHTML = '<h3 style="left:72px;top:72px">Amazing Grace</h3><div class="meta" style="left:74px;top:160px">4 voices · stacked</div>';
+shCard.innerHTML = '<h3 style="left:72px;top:72px">Amazing Grace</h3><div class="meta" style="left:74px;top:160px">Sing together</div>';
 const pic = mk('div', 'pic', shCard);
 pic.style.cssText = 'left:72px;top:226px;width:1256px;height:250px';
 [0, 1, 2, 3].forEach((i) => S.parts[i].forEach((n) => {
@@ -212,11 +130,11 @@ pic.style.cssText = 'left:72px;top:226px;width:1256px;height:250px';
 }));
 const shChip = mk('div', 'chip', shCard);
 shChip.style.cssText = 'left:72px;top:520px;--chip:var(--accent)';
-shChip.innerHTML = '<i></i><span>Anyone with the link</span>';
+shChip.innerHTML = '<i></i><span>A link for each part</span>';
 const discs = [0, 1, 2, 3].map((i) => {
     const d = mk('div', 'gem disc who', shCard, NAMES[i][0]);
     d.style.cssText = `left:${590 + i * 190}px;top:600px;--gem:${PART_VAR[i]};--gem-ink:${PART_INK[i]}`;
-    const l = mk('div', 'who-l', shCard, i ? 'Open part' : 'You');
+    const l = mk('div', 'who-l', shCard, i ? NAMES[i] : 'You');
     l.style.cssText = `left:${646 + i * 190}px;top:726px`;
     return { d, l };
 });
@@ -229,7 +147,7 @@ const shRing = mk('div', 'ring', shCard);
 const QUAD = { wide: { w: 954, h: 384, top: 300 }, vertical: { w: 534, h: 520, top: 600 }, square: { w: 534, h: 400, top: 268 }, thumb: { w: 1, h: 1, top: 0 } }[FORMAT];
 const QPOS = [[0, QUAD.top], [W - QUAD.w, QUAD.top], [0, QUAD.top + QUAD.h + 12], [W - QUAD.w, QUAD.top + QUAD.h + 12]];
 // the beam stands in from the quadrant's edge, clear of the page's buttons in the frame's corners
-const QB0 = 10, QPX = 170, QBEAM = Math.round(QUAD.w * 0.45), QTOP = () => 104, QH = QUAD.h - 144;
+const QB0 = 34, QPX = 170, QBEAM = Math.round(QUAD.w * 0.45), QTOP = () => 104, QH = QUAD.h - 144;
 const quads = [0, 1, 2, 3].map((i) => {
     const q = mk('div', 'q', splitEl);
     q.style.cssText = `left:${QPOS[i][0]}px;top:${QPOS[i][1]}px;width:${QUAD.w}px;height:${QUAD.h}px;--q:${PART_VAR[i]}`;
@@ -238,7 +156,7 @@ const quads = [0, 1, 2, 3].map((i) => {
     head.innerHTML = `<span class="gem disc" style="--gem:${PART_VAR[i]};--gem-ink:${PART_INK[i]}">${NAMES[i][0]}</span>${NAMES[i]}<span class="you" style="background:${PART_VAR[i]};color:${PART_INK[i]}">You</span>`;
     const strip = mk('div', 'strip', inner);
     const [lo, hi] = RANGE[i];
-    const gems = S.parts[i].filter((n) => n.beat + n.length > QB0 && n.beat < 22).map((n) => {
+    const gems = S.parts[i].filter((n) => n.beat + n.length > QB0 && n.beat < QB0 + 12).map((n) => {
         const g = mk('div', 'gem gem-bar', strip);
         g.style.cssText = `left:${(n.beat - QB0) * QPX + 6}px;top:${QTOP(i) + ((hi + 1 - n.pitch) / (hi - lo + 2)) * QH - 32}px;width:${n.length * QPX - 12}px;height:64px;--gem:${PART_VAR[i]};--gem-ink:${PART_INK[i]}`;
         g.textContent = n.lyric && n.lyric !== 'oo' ? n.lyric : '';
@@ -254,7 +172,7 @@ const cap = mk('div', null, hud);
 cap.id = 'cap';
 cap.innerHTML = '<div class="eb"><i></i><span></span></div><div class="ln"><span></span></div>';
 const capEb = cap.querySelector('.eb span'), capLn = cap.querySelector('.ln span'), capDot = cap.querySelector('.eb i');
-const ACTS = { learn: ['Learn', 0], stack: ['Stack', 1], make: ['Make your own', 2], share: ['Share', 3] };
+const ACTS = { learn: ['Learn', 0], stack: ['Stack', 1], play: ['Game mode', 2], share: ['Share', 3], courses: ['Courses', 0], tools: ['Tools', 1], choirs: ['Choirs', 2], daily: ['Every day', 3] };
 
 /* ================= the world ================= */
 const sungBy = (i, t) => (t >= sec(CUE.friends[0]) - 0.01 && t < sec(CUE.end) ? FRIENDS[i] : i === 0 ? 'You' : 'You, again');
@@ -396,92 +314,17 @@ function fingertip(p, r, t, path) {
     const press = 1 - 0.18 * bump(t, to.t - 0.06, to.t + 0.14);
     set(p, 'transform', `translate(${x.toFixed(1)}px,${y.toFixed(1)}px) scale(${press.toFixed(3)})`);
     const d = t - to.t;
-    vis(r, d >= 0 && d < 0.5);
-    if (d >= 0 && d < 0.5) {
+    const clicks = to.click !== false && d >= 0 && d < 0.5; // a point it only starts from makes no ring
+    vis(r, clicks);
+    if (clicks) {
         set(r, 'transform', `translate(${to.x}px,${to.y}px) scale(${(1 + 2.2 * E.out(d / 0.5)).toFixed(3)})`);
         set(r, 'opacity', (0.8 * (1 - d / 0.5)).toFixed(3));
     }
 }
 
-function mixer(t) {
-    const b = beatAt(t);
-    const k = CUE.forwardPart[Math.max(0, CUE.forward.findLastIndex((f) => b >= f))];
-    mixRows.forEach((r, i) => {
-        const fwd = i === k;
-        set(r.row, 'opacity', fwd ? '1' : '0.62');
-        set(r.disc, '--glow', fwd ? '0.9' : '0.3');
-        vis(r.you, fwd);
-        for (const bar of r.bars) {
-            const lit = b >= bar.n.beat;
-            set(bar.el, '--glow', lit && b < bar.n.beat + bar.n.length ? '0.8' : lit ? '0.3' : '0.1');
-        }
-    });
-    for (const w of wordEls) w.el.classList.toggle('lit', b >= w.n.beat);
-    const now = `4 voices · ${clock(t)} / ${clock(sec(VERSE))}`;
-    if (mixTime._t !== now) { mixTime._t = now; mixTime.textContent = now; }
-    const px = TRACK.x + ((Math.min(b, TRACK.b1) - TRACK.b0) / (TRACK.b1 - TRACK.b0)) * TRACK.w;
-    set(mixBeam, 'left', `${px}px`); set(mixBeam, 'top', `${ROW(0) - 10}px`); set(mixBeam, 'height', `${ROW(3) + 140 - ROW(0)}px`);
-    set(mixBeam, '--beam', PART_VAR[k]);
-    // tap a voice to bring it forward: the landing's own words for its mixer
-    fingertip(ptr, ring, t, CUE.forward.map((fb, j) => ({ t: sec(fb), x: 64 + 180, y: ROW(CUE.forwardPart[j]) + 60 })));
-}
-
-function creator(t) {
-    const b = beatAt(t);
-    // the hum: your voice drawn as a line in the accent, as you sing it
-    hum.setTransform(HUM.k, 0, 0, HUM.k, 0, 0);
-    hum.clearRect(0, 0, HUM.w, HUM.h);
-    hum.lineCap = 'round'; hum.lineJoin = 'round';
-    const line = (LIGHT ? T.accent : T.cream).join(','), haze = T.accent.join(',');
-    const wob = (x) => 0.22 * Math.sin(x * 9.1) + 0.14 * Math.sin(x * 17.3 + 2);
-    for (const pass of [0, 1]) {
-        hum.beginPath();
-        let pen = false;
-        for (let x = CR.b0; x <= Math.min(b, CR.b1); x += 0.02) {
-            if (!voicing(x)) { pen = false; continue; }
-            const px = crX(x) - HUM.x, py = crY(S.voice(x) + wob(x)) - HUM.y;
-            if (!pen) hum.moveTo(px, py); else hum.lineTo(px, py);
-            pen = true;
-        }
-        hum.strokeStyle = pass ? `rgba(${line},0.95)` : `rgba(${haze},0.35)`;
-        hum.lineWidth = pass ? 6 : 26;
-        hum.stroke();
-    }
-    if (b <= CR.b1 && voicing(b)) {
-        const px = crX(b) - HUM.x, py = crY(S.voice(b) + wob(b)) - HUM.y;
-        const gr = hum.createRadialGradient(px, py, 0, px, py, 56);
-        gr.addColorStop(0, `rgba(${haze},0.7)`); gr.addColorStop(1, `rgba(${haze},0)`);
-        hum.fillStyle = gr; hum.fillRect(px - 56, py - 56, 112, 112);
-        hum.fillStyle = `rgba(${line},1)`; hum.beginPath(); hum.arc(px, py, 11, 0, 6.283); hum.fill();
-    }
-    crGems.forEach((list, i) => list.forEach((g) => {
-        const at = bloomBeat(g.n, i), d = b - at;
-        vis(g.el, d >= 0);
-        if (d < 0) return;
-        const u = E.outBack(clamp(d / 0.5));
-        const tn = i ? tuneAt(g.n.beat) : null;
-        const dy = tn ? (crY(tn.pitch) - crY(g.n.pitch)) * (1 - E.outQuint(clamp(d / 0.55))) : 0;
-        set(g.el, 'transform', `translateY(${dy.toFixed(2)}px) scale(${(0.3 + 0.7 * u).toFixed(4)})`);
-        set(g.el, 'opacity', clamp(d / 0.08).toFixed(3));
-        const sounding = b >= g.n.beat && b < g.n.beat + g.n.length;
-        set(g.el, '--glow', (sounding ? 0.75 : 0.3 + 0.6 * Math.exp(-d / 0.25)).toFixed(3));
-    }));
-    blocks.forEach((e, k) => {
-        const at = sec(CUE.blocks[k]), d = t - at;
-        vis(e, d > -0.3);
-        if (d <= -0.3) return;
-        const u = d < 0 ? E.in(clamp((d + 0.3) / 0.3)) : 1;
-        const y = d < 0 ? lerp(-300, 0, u) : 14 * Math.exp(-d / 0.08) * Math.sin(d * 40);
-        set(e, 'transform', `translateY(${y.toFixed(2)}px)`);
-        set(e, 'opacity', clamp((d + 0.3) / 0.12).toFixed(3));
-        const sounding = b >= CR_CHORDS[k].b0 && b < CR_CHORDS[k].b1;
-        set(e, '--glow', (d < 0 ? 0 : Math.max(sounding ? 0.5 : 0.12, Math.exp(-d / 0.25))).toFixed(3));
-    });
-    set(crBeam, 'left', `${crX(clamp(b, CR.b0, CR.b1))}px`);
-    set(crBeam, '--beam', b >= CUE.bloom ? 'var(--cream)' : 'var(--accent)');
-}
-
 function share(t) {
+    // close on the parts, the song's strip at the card's top would sit under the line: it goes
+    set(pic, 'opacity', (1 - E.io(range(t, sec(CUE.friends[0] - 0.25), sec(CUE.friends[0] - 0.25) + 0.3))).toFixed(3));
     const dt = t - sec(CUE.copied);
     vis(toast, dt > 0);
     if (dt > 0) {
@@ -503,7 +346,7 @@ function share(t) {
         const pop = on ? 1 + 0.18 * Math.exp(-d2 / 0.12) * Math.cos(d2 * 26) : 1;
         set(d, 'transform', `scale(${pop.toFixed(4)})`);
         set(d, '--glow', on ? (0.4 + 0.6 * Math.exp(-d2 / 0.3)).toFixed(3) : '0');
-        const txt = on ? FRIENDS[i] : 'Open part';
+        const txt = on ? FRIENDS[i] : NAMES[i];
         if (l._t !== txt) { l._t = txt; l.textContent = txt; }
         set(l, 'color', on ? PART_VAR[i] : 'var(--muted)');
     });
@@ -525,7 +368,7 @@ function split(t, a) {
     quads.forEach((Qd, i) => {
         // each singer wipes in, one after another on the cut
         const w = E.outQuint(range(t, a + i * 0.07, a + i * 0.07 + 0.22));
-        set(Qd.q, 'clipPath', `inset(0 ${((1 - w) * 100).toFixed(2)}% 0 0 round 28px)`);
+        set(Qd.q, 'clipPath', `inset(0 ${((1 - w) * 100).toFixed(2)}% 0 0 round ${stageEl.classList.contains('arcade') ? 0 : 28}px)`);
         set(Qd.inner, 'transform', `scale(${lerp(1, 1.05, range(t, a, a + 1.25)).toFixed(4)})`);
         set(Qd.strip, 'transform', `translateX(${(QBEAM - (b - QB0) * QPX).toFixed(2)}px)`);
         for (const g of Qd.gems) {
@@ -562,57 +405,190 @@ function glints(t, rects) {
     }
 }
 
+/* ================= the app, as it really is ================= */
+// Real screens and recordings of the app (capture.py, captures.json), each in a device drawn here: a
+// phone standing tall on the right, or a window pushed in on the panel that matters, so they read on a
+// phone-sized landing. A cut films the app in its own light or dark. Its camera says where the device
+// is and how big, by the point of the screen it frames (`fx`, `fy`, as a share of the screen), where that
+// point sits in the frame (`sx`, `sy`) and the device's scale `s`. Taps are a ring and a soft disc.
+const CAPS = (await (await fetch('captures.json')).json()).shots;
+const CUTNAME = LIGHT ? 'light' : 'dark';
+const appsEl = mk('div', 'apps', $('#stage'));
+splitEl.after(appsEl);
+const appGlow = mk('div', 'app-glow', appsEl);
+const dev = mk('div', 'dev', appsEl);
+const devBar = mk('div', 'dev-bar', dev);
+devBar.innerHTML = '<i></i><i></i><i></i><span></span>';
+const devUrl = devBar.querySelector('span');
+const devImg = mk('img', 'dev-img', dev);
+devImg.decoding = 'sync';
+const tapPtr = mk('div', 'ptr', appsEl), tapRing = mk('div', 'ring', appsEl);
+// a desktop's pointer: an arrow, drawn (an object, never a hand)
+const cursor = mk('div', 'cursor', appsEl);
+cursor.innerHTML = '<svg viewBox="0 0 24 24" width="46" height="46"><path d="M3 2l15 10.5-6.6 1.2 3.9 7.4-2.9 1.4-3.8-7.5L3 19.5z" fill="#fff" stroke="#111" stroke-width="1.4" stroke-linejoin="round"/></svg>';
+const cursorRing = mk('div', 'ring', appsEl);
+// The device's size on screen at scale 1: a phone 860 tall; a window 1500 wide, its bar 44 tall.
+const PHONE_H = 860, WIN_W = 1500, BAR = 44;
+const pending = [];
+/** Resolves once every screen this frame asked for has been decoded (render.py waits for it). */
+export const settle = () => Promise.all(pending.splice(0));
+function app(t, shot) {
+    const A = shot.app, id = typeof A.id === 'string' ? A.id : A.id(t), c = CAPS[id];
+    if (!c) throw new Error(`no capture "${id}": run capture.py`);
+    const phone = c.size === 'phone';
+    const w = phone ? (PHONE_H * c.w) / c.h : WIN_W, h = phone ? PHONE_H : (WIN_W * c.h) / c.w, top = phone ? 0 : BAR;
+    dev.className = `dev ${phone ? 'phone' : 'win'}`;
+    set(dev, 'width', `${w}px`);
+    set(dev, 'height', `${h + top}px`);
+    if (devUrl._t !== (A.url ?? '')) { devUrl._t = A.url ?? ''; devUrl.textContent = A.url ?? ''; }
+    // the frame of a recording: its own clock from the shot's start, held on its last frame
+    // in step with the song (a recording that knows where in the song it began: the words lit are the
+    // words sung), or from the shot's start
+    const clock = A.sync && c.songAt != null ? t - c.songAt : t - shot.a + (A.skip ?? 0);
+    const file = c.frames ? `${id}/${String(Math.min(c.frames - 1, Math.max(0, Math.floor(clock * c.fps)))).padStart(4, '0')}.jpg` : `${id}.jpg`;
+    const src = `captures/${CUTNAME}/${file}`;
+    if (devImg._src !== src) {
+        devImg._src = src;
+        devImg.src = src;
+        pending.push(devImg.decode().catch(() => { throw new Error(`could not load ${src}`); }));
+    }
+    const cam = { ...A.cam(t) };
+    // it arrives: a quick settle into place, unless the shot before was this same screen
+    const prev = SHOTS[SHOTS.indexOf(shot) - 1];
+    if (!prev?.app || (typeof prev.app.id === 'string' ? prev.app.id : '') !== id) cam.s *= lerp(0.93, 1, E.outExpo(range(t, shot.a, shot.a + 0.4)));
+    const at = (fx, fy) => [cam.sx + (fx - cam.fx) * w * cam.s, cam.sy + (top + (fy - cam.fy) * h - top) * cam.s];
+    const [x0, y0] = at(0, 0);
+    set(dev, 'transform', `translate(${x0.toFixed(2)}px,${(y0 - top * cam.s).toFixed(2)}px) scale(${cam.s.toFixed(4)})${cam.rz ? ` rotate(${cam.rz.toFixed(3)}deg)` : ''}`);
+    set(appGlow, 'transform', `translate(${(x0 + (w * cam.s) / 2).toFixed(1)}px,${(y0 + (h * cam.s) / 2).toFixed(1)}px)`);
+    set(appGlow, '--glow-c', PART_VAR[ACTS[shot.act]?.[1] ?? 0]);
+    // the taps: glide to each, press, and a ring spreads
+    const taps = A.taps ?? (c.click ? [{ t: shot.a + c.click.at - (A.skip ?? 0), x: c.click.x, y: c.click.y }] : []);
+    const [ptr, ring, other, otherRing] = phone ? [tapPtr, tapRing, cursor, cursorRing] : [cursor, cursorRing, tapPtr, tapRing];
+    vis(other, false); vis(otherRing, false);
+    vis(ptr, taps.length > 0 && t >= taps[0].t - 1.1 && t < taps.at(-1).t + 0.6);
+    if (taps.length) {
+        // it glides in from the lower right, then clicks
+        const path = taps.map((p) => { const [x, y] = at(p.x, p.y); return { t: p.t, x, y }; });
+        fingertip(ptr, ring, t, [{ t: path[0].t - 0.75, x: path[0].x + 380, y: path[0].y + 260, click: false }, ...path]);
+    } else vis(ring, false);
+}
+/* ================= the tools, one a bar ================= */
+// Hillel: "when showing the tools make it clear what each tool is and redesign". One tool a bar: the row of
+// all four names (the one now lit), its name big with a few words on what it does, and the tool itself,
+// its own panel cut from the real page, on a card that slides in on the bar as the last slides out.
+const TOOLS = [
+    { id: 'tuner', name: 'Tuner', what: 'See which note you\'re on.' },
+    { id: 'drone', name: 'Drone', what: 'One steady note to match.' },
+    { id: 'metronome', name: 'Metronome', what: 'Steady time for practice.' },
+    { id: 'range', name: 'Vocal range test', what: 'Find the choir part to try.' },
+];
+const TOOLS_AT = sec(VERSE + 12), TOOL_BAR = sec(3);
+const toolsEl = mk('div', 'tools', $('#stage'));
+appsEl.after(toolsEl);
+const toolIndex = mk('ol', 'tl-index', toolsEl);
+const toolLis = TOOLS.map((x) => mk('li', null, toolIndex, x.name));
+const toolText = mk('div', 'tl-text', toolsEl);
+const toolName = mk('h3', 'tl-name', toolText), toolWhat = mk('p', 'tl-what', toolText);
+const CARD_H = 800;
+const toolCards = [0, 1].map(() => { const c = mk('div', 'tl-card', toolsEl); const img = mk('img', null, c); img.decoding = 'sync'; return { c, img }; });
+function toolCard(card, k, u, out) {
+    const x = TOOLS[k], c = CAPS[x.id];
+    if (!c?.crop) throw new Error(`no crop for the ${x.id}: run capture.py`);
+    const cw = c.crop.w * c.w, ch = c.crop.h * c.h, k2 = CARD_H / ch, w = cw * k2;
+    const src = `captures/${CUTNAME}/${x.id}.jpg`;
+    if (card.img._src !== src) { card.img._src = src; card.img.src = src; pending.push(card.img.decode()); }
+    set(card.img, 'width', `${(c.w * k2).toFixed(1)}px`);
+    set(card.img, 'transform', `translate(${(-c.crop.x * c.w * k2).toFixed(1)}px,${(-c.crop.y * c.h * k2).toFixed(1)}px)`);
+    set(card.c, 'width', `${w.toFixed(1)}px`);
+    set(card.c, 'height', `${CARD_H}px`);
+    // in from the right on the bar; the one before lifts away where it is, never across the words
+    const dx = out ? 0 : 360 * (1 - E.outExpo(u)), dy = out ? -60 * E.in(clamp(u * 1.8)) : 0, rot = out ? 0 : 6 * (1 - E.outExpo(u));
+    set(card.c, 'transform', `translate(${(1190 - w / 2 + dx).toFixed(1)}px,${250 + dy}px) rotate(${rot.toFixed(2)}deg)`);
+    set(card.c, 'opacity', (out ? 1 - clamp(u * 1.8) : clamp(u * 3)).toFixed(3));
+}
+function tools(t) {
+    const k = clamp(Math.floor((t - TOOLS_AT) / TOOL_BAR), 0, TOOLS.length - 1), local = t - TOOLS_AT - k * TOOL_BAR;
+    const x = TOOLS[k];
+    if (toolName._t !== x.name) { toolName._t = x.name; toolName.textContent = x.name; toolWhat.textContent = x.what; }
+    toolLis.forEach((li, i) => { li.className = i === k ? 'now' : i < k ? 'done' : ''; });
+    const r1 = E.rise(range(local, 0.05, 0.4)), r2 = E.rise(range(local, 0.15, 0.5));
+    set(toolName, 'transform', `translateY(${((1 - r1) * 40).toFixed(1)}px)`); set(toolName, 'opacity', clamp(r1 * 1.6).toFixed(3));
+    set(toolWhat, 'transform', `translateY(${((1 - r2) * 30).toFixed(1)}px)`); set(toolWhat, 'opacity', clamp(r2 * 1.6).toFixed(3));
+    // this bar's card, and the last one leaving
+    const cur = toolCards[k % 2], prev = toolCards[(k + 1) % 2], u = range(local, 0, 0.45);
+    vis(cur.c, true);
+    toolCard(cur, k, u, false);
+    vis(prev.c, k > 0 && u < 1);
+    if (k > 0 && u < 1) toolCard(prev, k - 1, u, true);
+}
+
+/** A camera that eases from one framing to another between two times. */
+const move = (t0, t1, a, b, ease = E.io) => (t) => { const u = ease(range(t, t0, t1)); const o = {}; for (const k in a) o[k] = lerp(a[k], b[k] ?? a[k], u); return o; };
+const PHONE_AT = { sx: 1230, sy: 720 }; // a phone rises from the frame's foot right of centre, clear of the line and the corners
+
 /* ================= the director =================
-   Each shot: when it starts, which set it shows, where the camera is (it may move inside the shot),
-   the act and the line it carries. A shot runs until the next begins. Cuts are hard and on the beat;
-   a whip is a camera move fast enough to smear, ending or starting a shot. */
-const STACK_LINE = 'Stack your own voices, exactly in time.';
-const blocksCam = (t) => { const u = E.io(range(t, sec(CUE.pad), sec(CUE.share))); return { x: crX((CR.b0 + CR.b1) / 2 + 0.5), y: crY(59), zoom: lerp(0.66, 0.7, u), rx: lerp(18, 10, u), ry: lerp(-14, 6, u) }; };
+   Each shot: when it starts, which set it shows (the lanes, the split, the share card, or the app), where
+   the camera is (it may move inside the shot), and the act and line it carries. A shot runs until the
+   next begins. Cuts are hard and on the beat; a whip is a camera move fast enough to smear. The first
+   time through the verse the harmony is built a voice at a time; the second, what comes with it. */
 const INVITE_LINE = 'Invite friends to sing the other parts.';
+const RECORD_LINE = 'Record each part over the others.';
+const PLAY_LINE = 'Or play it as a game.';
+const TOOLS_LINE = 'Tools for every practice.';
 const ph = (t) => X(beatAt(t));
 const centreOf = (i) => LANES[i].top + LANES[i].h / 2;
 const shake = (t, at, amp) => { const d = t - at; if (d < 0) return [0, 0]; const s = Math.exp(-d / 0.09) * amp, f = Math.floor(t * 60); return [(hash(f) - 0.5) * s, (hash(f + 9) - 0.5) * s]; };
-const whipOut = (t, b, dx) => dx * E.inExpo(range(t, sec(b) - 0.28, sec(b)));
 const whipIn = (t, b, dx) => dx * (1 - E.outExpo(range(t, sec(b), sec(b) + 0.32)));
+/** A phone shot: the phone rises a little into place and drifts closer. */
+const phoneCam = (a, b, fy = 0.5, s0 = 1.1, s1 = 1.16) => (t) => { const u = E.outExpo(range(t, a, a + 0.5)); return { fx: 0.5, fy, sx: PHONE_AT.sx, sy: PHONE_AT.sy + (1 - u) * 80, s: lerp(s0, s1, range(t, a, b)), rz: lerp(1.2, 0, u) }; };
+/** A window shot: it hangs from just under the line (its bar's top near y 270) and pushes in from there. */
+const winCam = (a, b, fx, s0, s1, sx = 980, sy = 330) => move(a, b, { fx, fy: 0, sx, sy, s: s0 }, { s: s1 });
+// THE ARCADE: from Game mode switching on (the landing's own switch, clicked) to the end of the first time
+// through, the film itself is game mode; then it switches off again into the calm second pass. Why back:
+// the app's rule is "arcade where people play, calm where people read", and the second pass is for
+// reading (courses, tools, a choir's parts); and seeing it switch both ways says it's one toggle.
+const ARC0 = sec(27), ARC1 = sec(VERSE);
+const TOGGLE = CAPS['landing-toggle'];
 const SHOTS = [
-    // LEARN. A close-up on the opening note: it breathes, its pickup sounds, the tune appears beside it
-    { a: 0, set: 'lanes', act: 'learn', cap: 'Learn a part with a guide voice.', capAt: 0.2, cam: (t) => { const u = E.io(range(t, 0.3, 1.25)); return { x: lerp(X(0) + PXB / 2, X(1.4) + 100, u), y: yOf(LANES[0], 62), zoom: (OPEN.zoom + 0.16 * range(t, -0.625, 0.3)) * lerp(1, 0.55, u), rz: lerp(0, -1.2, u) }; } },
+    // LEARN. A close-up on the opening note: it breathes, the pickup sounds, the tune appears beside it
+    { a: 0, set: 'lanes', act: 'learn', cap: 'Learn your harmony from a real singer.', capAt: 0.1, cam: (t) => { const u = E.io(range(t, 0.15, 1.05)); return { x: lerp(X(0) + PXB / 2, X(1.4) + 100, u), y: yOf(LANES[0], 62), zoom: (OPEN.zoom + 0.16 * range(t, -0.75, 0.15)) * lerp(1, 0.55, u), rz: lerp(0, -1.2, u) }; } },
     // the lane, low and close, pulling focus into it
-    { a: sec(2), set: 'lanes', follow: true, act: 'learn', cap: 'Learn a part with a guide voice.', focus: [sec(2), 0.5, 16], cam: (t) => ({ x: ph(t) + 300, y: pitchCentre(beatAt(t)) - 110, zoom: lerp(1.25, 1.32, range(t, sec(2), sec(4))), ry: -14, rx: 10 }) },
+    { a: sec(2), set: 'lanes', follow: true, act: 'learn', cap: 'Learn your harmony from a real singer.', focus: [sec(2), 0.5, 16], cam: (t) => ({ x: ph(t) + 300, y: pitchCentre(beatAt(t)) - 110, zoom: lerp(1.25, 1.32, range(t, sec(2), sec(4))), ry: -14, rx: 10 }) },
     // "grace": very close, a little low, Slide up, the hit
-    { a: sec(4), set: 'lanes', act: 'learn', cap: 'Learn a part with a guide voice.', cam: (t) => { const [dx, dy] = shake(t, sec(S.parts[0][4].hit), 14); return { x: X(4) + 260 + dx + 40 * range(t, sec(4), sec(6)), y: yOf(LANES[0], 70.4) - 70 + dy, zoom: lerp(1.85, 1.96, range(t, sec(4), sec(6))), rz: 1.5 }; } },
-    // the pitch camera pushes in on the held "sweet"
-    { a: sec(6), set: 'lanes', follow: true, act: 'learn', cap: 'Your notes light up as you hit them.', cam: (t) => { const push = E.io(range(t, sec(7.6), sec(8.9))); return { x: ph(t) + lerp(300, 160, push), y: pitchCentre(beatAt(t)) - lerp(120, 170, push), zoom: lerp(1.15, 1.6, push), ry: lerp(-14, -4, push) }; } },
-    // wide: the line sung, every note lit, the camera craning up
-    { a: sec(9), set: 'lanes', follow: true, act: 'learn', cap: 'Your notes light up as you hit them.', cam: (t) => { const u = E.io(range(t, sec(9), sec(12))); return { x: lerp(ph(t) - 300, X(6), u), y: lerp(centreOf(0) - 140, centreOf(0) - 40, u), zoom: lerp(0.8, 0.66, u), rx: lerp(0, 12, u) }; } },
-    // STACK. Tilted: the tune alone, room below it
-    { a: sec(12), set: 'lanes', follow: true, act: 'stack', cap: STACK_LINE, cam: (t) => ({ x: ph(t) + 380, y: centreOf(0) + 230, zoom: lerp(0.76, 0.8, range(t, sec(12), sec(13))), rx: 16, ry: -24 }) },
-    // low and close: the alto swings up into place
-    { a: sec(CUE.enter[1]), set: 'lanes', follow: true, act: 'stack', cap: STACK_LINE, cam: (t) => ({ x: ph(t) + 320, y: (centreOf(0) + centreOf(1)) / 2 - 40, zoom: lerp(0.84, 0.9, range(t, sec(13), sec(15))), rx: 24, ry: -34 }) },
-    // top down: the tenor lands, the lanes laid out like a table
-    { a: sec(CUE.enter[2]), set: 'lanes', follow: true, act: 'stack', cap: STACK_LINE, cam: (t) => ({ x: ph(t) + 260, y: centreOf(1) + 60, zoom: lerp(0.86, 0.9, range(t, sec(15), sec(16))), rx: 40, ry: -8, rz: -6 }) },
-    // the split screen, under the line: four singers, each a take of you, the bass joining
-    { a: sec(CUE.enter[3]), set: 'split', act: 'stack', cap: STACK_LINE },
-    // along the beam: every part on it at once
-    { a: sec(18), set: 'lanes', follow: true, act: 'stack', cap: STACK_LINE, cam: (t) => ({ x: ph(t) + 80, y: STACK_H / 2 - 40, zoom: lerp(0.78, 0.84, range(t, sec(18), sec(19))), rx: 8, ry: -62 }) },
-    // "me.": the four held notes become the mark
-    { a: sec(CUE.mark), set: 'lanes', mark: 'mid', cam: (t) => { const u = E.io(range(t, sec(19), sec(20.4))); return { x: lerp(ph(t) + 300, MID.cx, u), y: lerp(STACK_H / 2, MID.cy, u), zoom: lerp(0.5, 0.86, u), rx: lerp(10, 0, u), ry: lerp(-18, 0, u) }; } },
-    // the mixer, flat and square on, as on the page; tap a voice to bring it forward; then a whip out
-    { a: sec(CUE.forward[0]), set: 'mixer', act: 'stack', cap: 'Sing the part that suits you.', cam: (t) => ({ x: MIX.x + MIX.w / 2 + whipOut(t, CUE.hum[0], 2600), y: MIX.y + MIX.h / 2 - 140, zoom: lerp(0.86, 0.9, range(t, sec(21), sec(CUE.hum[0]))), rz: 4 * E.inExpo(range(t, sec(CUE.hum[0]) - 0.28, sec(CUE.hum[0]))) }) },
-    // MAKE YOUR OWN, on the accent's wash. Whip in on the hum
-    { a: sec(CUE.hum[0]), set: 'creator', wash: true, act: 'make', cap: 'Hum a tune.', cam: (t) => { const b = beatAt(t), h = CUE.hum[0]; return { x: crX(b) + 120 - whipIn(t, h, 1800), y: crY(S.voice(Math.max(h, b))) - 60, zoom: lerp(1.75, 1.85, range(t, sec(h), sec(CUE.bloom))), rz: -1.5 - 4 * (1 - E.outExpo(range(t, sec(h), sec(h) + 0.32))) }; } },
-    // from above: the harmony blooms under the tune
-    { a: sec(CUE.bloom), set: 'creator', wash: true, act: 'make', cap: 'Hear it harmonised.', cam: (t) => ({ x: crX(CUE.bloom + 2) + lerp(0, 120, range(t, sec(CUE.bloom), sec(CUE.pad))), y: crY(60) + 20, zoom: lerp(0.9, 0.94, range(t, sec(CUE.bloom), sec(CUE.pad))), rx: 36, rz: -4 }) },
-    // the chords land as glass blocks; a slow orbit, and the line changes once they are down
-    { a: sec(CUE.pad), set: 'creator', wash: true, act: 'make', cap: 'Hear it harmonised.', cam: (t) => blocksCam(t) },
-    { a: sec(CUE.write), set: 'creator', wash: true, act: 'make', cap: 'Write a song.', cam: (t) => blocksCam(t) },
-    // SHARE. The song as a share card, flying in on the held "found,"
-    { a: sec(CUE.share), set: 'share', act: 'share', cap: 'Share the whole harmony.', cam: (t) => { const a = sec(CUE.share), u = E.outExpo(range(t, a, a + 0.8)); return { x: SH.x + SH.w / 2 + 30, y: SH.y + 250, dz: lerp(-700, 0, u) - 40 * range(t, a + 0.8, sec(CUE.friends[0])), zoom: 0.88, ry: lerp(24, -3, u), rx: lerp(-10, 2, u) }; } },
-    // close on the parts: friends take them, one beat each
-    { a: sec(CUE.friends[0]), set: 'share', act: 'share', cap: INVITE_LINE, cam: (t) => ({ x: SH.x + 930 + lerp(-30, 30, range(t, sec(CUE.friends[0]), sec(CUE.all))), y: SH.y + 690, zoom: lerp(1.72, 1.8, range(t, sec(CUE.friends[0]), sec(CUE.all))), rz: -1 }) },
-    // wide, high and whipped in: everyone, singing together, through the held "now"
-    { a: sec(CUE.all), set: 'lanes', follow: true, names: true, all: true, act: 'share', cap: INVITE_LINE, cam: (t) => { const u = E.io(range(t, sec(CUE.all), sec(CUE.end - 1))); return { x: ph(t) + lerp(500, 200, u) - whipIn(t, CUE.all, 2400), y: STACK_H / 2 - 60, zoom: lerp(0.46, 0.54, u), rx: lerp(38, 20, u), ry: lerp(-36, -12, u) }; } },
-    // the end card: "see." becomes the mark, and the words, held through the fermata
+    { a: sec(4), set: 'lanes', act: 'learn', cap: 'Learn your harmony from a real singer.', cam: (t) => { const [dx, dy] = shake(t, sec(S.parts[0][4].hit), 14); return { x: X(4) + 260 + dx + 40 * range(t, sec(4), sec(6)), y: yOf(LANES[0], 70.4) - 70 + dy, zoom: lerp(1.85, 1.96, range(t, sec(4), sec(6))), rz: 1.5 }; } },
+    // the app: Sing, the alto's notes lighting as they're hit, its words in step with the song
+    { a: sec(6), set: 'app', act: 'learn', cap: 'Your notes light up as you hit them.', app: { id: 'sing', sync: true, url: 'app.stackapella.com', cam: winCam(sec(6), sec(12), 0.5, 0.9, 0.96, 1000, 300) } },
+    // STACK. The studio: three parts sung and playing, the bass next
+    { a: sec(12), set: 'app', act: 'stack', cap: RECORD_LINE, app: { id: 'studio', sync: true, url: 'app.stackapella.com', cam: winCam(sec(12), sec(18), 0.45, 1.08, 1.16) } },
+    // top down on the lanes: two voices now, the tenor landing as the phrase turns
+    { a: sec(18), set: 'lanes', follow: true, act: 'stack', cap: RECORD_LINE, cam: (t) => ({ x: ph(t) + 260, y: centreOf(1) + 60, zoom: lerp(0.86, 0.9, range(t, sec(18), sec(24))), rx: 40, ry: -8, rz: -6 }) },
+    // GAME MODE. The landing page: the pointer clicks its Game mode switch on the half beat
+    { a: sec(24), set: 'app', act: 'play', cap: PLAY_LINE, app: { id: 'landing-toggle', skip: (TOGGLE?.click?.at ?? 1.2) - (sec(25.5) - sec(24)), url: 'stackapella.com', cam: (t) => ({ fx: 0.56, fy: TOGGLE?.click?.y ?? 0.4, sx: 1000, sy: 600, s: lerp(1.15, 1.3, E.io(range(t, sec(24), sec(27)))) }) } },
+    // the screen switches on as the arcade: the same take, in game mode, in step with the song
+    { a: ARC0, set: 'app', arcade: true, act: 'play', cap: PLAY_LINE, app: { id: 'arcade', sync: true, url: 'app.stackapella.com', cam: winCam(ARC0, sec(32), 0.5, 0.9, 0.96, 1000, 300) } },
+    // the arcade's Home: its stage card, STAGE 01 and the lanes
+    { a: sec(32), set: 'app', arcade: true, act: 'play', cap: PLAY_LINE, app: { id: 'home-game', url: 'app.stackapella.com', cam: winCam(sec(32), sec(36), 0.5, 1.25, 1.34) } },
+    // the split screen, in the arcade: four singers, each a take of you, the bass joining
+    { a: sec(CUE.enter[3]), set: 'split', arcade: true, act: 'stack', cap: 'Stack your own voices, exactly in time.' },
+    // SHARE. The song as a share card, flying in
+    { a: sec(CUE.share), set: 'share', arcade: true, act: 'share', cap: INVITE_LINE, cam: (t) => { const a = sec(CUE.share), u = E.outExpo(range(t, a, a + 0.8)); return { x: SH.x + SH.w / 2 + 30, y: SH.y + 250, dz: lerp(-700, 0, u) - 40 * range(t, a + 0.8, sec(CUE.friends[0])), zoom: 0.88, ry: lerp(24, -3, u), rx: lerp(-10, 2, u) }; } },
+    // close on the parts: friends take them, one beat each; then the screen switches off
+    { a: sec(CUE.friends[0] - 0.25), set: 'share', arcade: true, act: 'share', cap: INVITE_LINE, cam: (t) => ({ x: SH.x + 930 + lerp(-30, 30, range(t, sec(CUE.friends[0]), sec(VERSE))), y: SH.y + 690, zoom: lerp(1.6, 1.68, range(t, sec(CUE.friends[0]), sec(VERSE))), rz: -1 }) },
+    // COURSES. The courses page, scrolled through its groups
+    { a: ARC1, set: 'app', act: 'courses', cap: 'Every course is free.', app: { id: 'courses', url: 'stackapella.com/courses', cam: winCam(ARC1, sec(VERSE + 6), 0.5, 1.5, 1.58) } },
+    // the first lesson, on a phone, with no account
+    { a: sec(VERSE + 6), set: 'app', act: 'courses', cap: 'Try the first lesson without an account.', app: { id: 'lesson', cam: phoneCam(sec(VERSE + 6), sec(VERSE + 12), 0.45) } },
+    // TOOLS, a bar each: each one named, with the tool itself on its card
+    { a: TOOLS_AT, set: 'tools', act: 'tools', cap: TOOLS_LINE },
+    // CHOIRS. The director's group: each song's parts, who sings them, how far they've got
+    { a: sec(VERSE + 24), set: 'app', act: 'choirs', cap: 'Give each singer a part.', app: { id: 'choir-director', url: 'app.stackapella.com', cam: winCam(sec(VERSE + 24), sec(VERSE + 30), 0.5, 1.75, 1.85) } },
+    // a member's view: their part first, Learn your part
+    { a: sec(VERSE + 30), set: 'app', act: 'choirs', cap: 'Singers join free.', app: { id: 'choir-member', url: 'app.stackapella.com', cam: winCam(sec(VERSE + 30), sec(VERSE + 36), 0.5, 1.75, 1.85) } },
+    // EVERY DAY. Today's song, on Home
+    { a: sec(VERSE + 36), set: 'app', act: 'daily', cap: 'A new challenge every day.', app: { id: 'daily', url: 'app.stackapella.com', cam: winCam(sec(VERSE + 36), sec(CUE.all), 0.45, 1.65, 1.75) } },
+    // wide, high and whipped in: everyone, singing together, through "but now I"
+    { a: sec(CUE.all), set: 'lanes', follow: true, names: true, all: true, cam: (t) => { const u = E.io(range(t, sec(CUE.all), sec(CUE.end - 1))); return { x: ph(t) + lerp(500, 200, u) - whipIn(t, CUE.all, 2400), y: STACK_H / 2 - 60, zoom: lerp(0.46, 0.54, u), rx: lerp(38, 20, u), ry: lerp(-36, -12, u) }; } },
+    // the end card: "see." becomes the mark, and the words, held through the last chord
     { a: sec(CUE.end - 1), set: 'lanes', follow: true, names: true, all: true, quiet: true, cam: (t) => ({ x: lerp(X(CUE.end) + 200, X(CUE.end) + 380, range(t, sec(CUE.end - 1), sec(CUE.end))), y: STACK_H / 2, zoom: 0.5, rx: 6, ry: -10 }) },
     { a: sec(CUE.end), set: 'lanes', mark: 'end', cam: (t) => { const a = sec(CUE.end), u = E.io(range(t, a, a + 1)); return { x: lerp(X(CUE.end) + 380, END.cx, u), y: lerp(STACK_H / 2, END.cy, u), zoom: lerp(0.5, 1, u) * lerp(1, 1.035, range(t, a + 1, sec(CUE.fold[0]))), rx: lerp(6, 0, u), ry: lerp(-10, 0, u) }; } },
     // the pre-roll: back to the opening note, a beat before the loop starts again
@@ -620,33 +596,46 @@ const SHOTS = [
 ];
 SHOTS.forEach((s, i) => { s.b = SHOTS[i + 1] ? SHOTS[i + 1].a : DUR; });
 export const CUTS = SHOTS.slice(1).map((s) => s.a);
-// What each format plays, as stretches of the film end to end. The joins fall where the music can
-// take them: the vertical cut goes from "like" to the last chord, "see." (G after G/B), and the square
-// one also leaves "grace," for "that saved"; both still end on the opening note, so they loop too.
-const THUMB_T = sec(6);
-export const EDIT = {
-    wide: [[0, DUR]],
-    vertical: [[0, sec(CUE.mark)], [sec(CUE.end), DUR]],
-    square: [[0, sec(6)], [sec(12), sec(CUE.mark)], [sec(CUE.end), DUR]],
-    thumb: [[0, THUMB_T]],
-}[FORMAT];
-// How each format reframes the film's camera: a zoom, and a shift down (screen px) that keeps the
-// picture under the line each shot carries. The end card and the split screen are laid out for it.
-const FRAMING = { wide: { zoom: 1, down: 0 }, vertical: { zoom: 1, down: 150 }, square: { zoom: 0.8, down: 80 }, thumb: { zoom: 1, down: 0 } }[FORMAT];
-function reframe(c, shot, t) {
-    // the end card is laid out for the frame itself, so its shot eases out of the framing as it arrives
-    const w = shot.mark === 'end' ? 1 - E.io(range(t, sec(CUE.end), sec(CUE.end) + 1)) : 1;
-    const zoom = c.zoom * lerp(1, FRAMING.zoom, w);
-    // a shot that follows the playhead keeps it the same share of the way across a narrower frame
-    const x = shot.follow ? ph(t) + (c.x - ph(t)) * Math.min(1, W / 1920 / FRAMING.zoom) : c.x;
-    return { ...c, x, zoom, y: c.y - (FRAMING.down * w) / zoom };
+// The launch cuts (vertical, square) were made from the first film and posted as they are; this one is
+// for the landing's frame only. The thumbnail (the mark alone) still renders.
+const THUMB_T = 3.75;
+if (FORMAT === 'vertical' || FORMAT === 'square') throw new Error('The launch cuts come from the first film (git history before the second cut); this film is wide only');
+export const EDIT = { wide: [[0, DUR]], thumb: [[0, THUMB_T]] }[FORMAT];
+const FRAMING = { zoom: 1, down: 0 };
+function reframe(c) {
+    return c;
 }
-// windows fast enough to earn extra motion-blur samples: the lanes swinging in, the split's wipes,
-// the mark forming, the whips, the card flying in, the fold
-export const FAST = [[sec(13) - 0.4, sec(13) + 0.5], [sec(15) - 0.4, sec(15) + 0.5], [sec(16), sec(16) + 0.5], [sec(19), sec(20.4)],
-    [sec(CUE.hum[0]) - 0.3, sec(CUE.hum[0]) + 0.35], [sec(CUE.share), sec(CUE.share) + 0.8], [sec(CUE.all), sec(CUE.all) + 0.35],
-    [sec(CUE.end), sec(CUE.end) + 1.2], [sec(CUE.fold[0]), sec(BEATS - 1)]];
-const FLASHES = [[sec(CUE.mark), 0.1], [sec(CUE.bloom), 0.06], [sec(CUE.blocks[0]), 0.06], [sec(CUE.end), 0.08]];
+// windows fast enough to earn extra motion-blur samples: the split's wipes, the card flying in, the
+// whip, the mark forming, the fold, and every phone rising into place
+export const FAST = [[sec(CUE.enter[3]), sec(CUE.enter[3]) + 0.5], [sec(CUE.share), sec(CUE.share) + 0.8], [sec(CUE.all), sec(CUE.all) + 0.35],
+    [sec(CUE.end), sec(CUE.end) + 1.2], [sec(CUE.fold[0]), sec(BEATS - 1)], [ARC0 - 0.16, ARC0 + 0.32], [ARC1 - 0.4, ARC1 + 0.25],
+    ...SHOTS.filter((s) => s.set === 'app' && typeof s.app.id === 'string' && CAPS[s.app.id]?.size === 'phone').map((s) => [s.a, s.a + 0.4]),
+    ...TOOLS.map((_, k) => [TOOLS_AT + k * TOOL_BAR, TOOLS_AT + k * TOOL_BAR + 0.45])];
+const FLASHES = [[sec(VERSE), 0.06], [sec(CUE.end), 0.08]];
+
+/* ================= the CRT: game mode switching on and off ================= */
+const crtEl = $('#crt'), [crtTop, crtBottom, crtLine, crtWash] = crtEl.children;
+const stageEl = $('#stage');
+function crt(t) {
+    let h = 0, line = 0, lw = 1, wash = 0;
+    const close = (a, b) => { const u = E.in(range(t, a, b)); h = Math.max(h, 540 * u); line = Math.max(line, clamp((u - 0.55) / 0.45)); };
+    const open = (a, b) => { const u = range(t, a, b); if (u <= 0 || u >= 1) return; h = Math.max(h, 540 * (1 - E.outExpo(u))); line = Math.max(line, 1 - u); wash = Math.max(wash, 0.55 * (1 - u) ** 2); };
+    // on: the page closes to a bright line on the beat, and the line opens as the arcade
+    if (t >= ARC0 - 0.16 && t < ARC0) close(ARC0 - 0.16, ARC0);
+    open(ARC0, ARC0 + 0.34);
+    // off: the arcade closes to a line, the line shrinks to a dot, and the calm screen opens
+    if (t >= ARC1 - 0.42 && t < ARC1) {
+        close(ARC1 - 0.42, ARC1 - 0.2);
+        if (t >= ARC1 - 0.2) { h = 540; line = 1; lw = Math.max(0.006, 1 - E.in(range(t, ARC1 - 0.2, ARC1 - 0.04))); }
+    }
+    open(ARC1, ARC1 + 0.26);
+    vis(crtEl, h > 0.5 || wash > 0.01);
+    set(crtTop, 'height', `${h.toFixed(1)}px`);
+    set(crtBottom, 'height', `${h.toFixed(1)}px`);
+    set(crtLine, 'opacity', line.toFixed(3));
+    set(crtLine, 'transform', `scaleX(${lw.toFixed(4)})`);
+    set(crtWash, 'opacity', wash.toFixed(3));
+}
 
 /** Each line, from when it reads (most of its rise done) to when it goes: for checking that each stays long enough to read. */
 export function captions() {
@@ -699,7 +688,7 @@ function thumb(t) {
     set(hud, '--shade', '0');
 }
 
-const sets = { lanes: laneSet, mixer: mixSet, creator: crSet, share: shSet };
+const sets = { lanes: laneSet, share: shSet };
 // ?cam={"rx":40} nudges the camera of whatever shot is showing: for trying a framing in the preview
 const NUDGE = Q.has('cam') ? JSON.parse(Q.get('cam')) : null;
 
@@ -708,9 +697,14 @@ export function film(t) {
     for (const s of SHOTS) if (t >= s.a) shot = s;
     for (const k in sets) vis(sets[k], shot.set === k);
     vis(splitEl, shot.set === 'split');
+    vis(appsEl, shot.set === 'app');
+    stageEl.classList.toggle('arcade', !!shot.arcade);
+    vis(toolsEl, shot.set === 'tools');
+    if (shot.set === 'tools') tools(t);
+    crt(t);
     set(washEl, 'opacity', shot.wash ? '1' : '0');
     if (FORMAT === 'thumb') return thumb(t);
-    const cam = shot.cam ? reframe(shot.cam(t), shot, t) : null;
+    const cam = shot.cam ? reframe(shot.cam(t)) : null;
     setCam(cam ? (NUDGE ? { ...cam, ...NUDGE } : cam) : {});
     // a focus pull: the picture comes into focus at the start of a shot
     const f = shot.focus ? shot.focus[2] * (1 - E.io(range(t, shot.focus[0], shot.focus[0] + shot.focus[1]))) : 0;
@@ -723,9 +717,9 @@ export function film(t) {
         morphEls.forEach((e) => vis(e, !!shot.mark));
         if (shot.mark) {
             // the four held notes leave their lanes and become the four bars of the mark
-            const beat = shot.mark === 'mid' ? CUE.mark : CUE.end, t0 = sec(beat);
+            const beat = CUE.end, t0 = sec(beat);
             const idx = [0, 1, 2, 3].map((i) => noteIndex(i, beat));
-            const dst = shot.mark === 'mid' ? MID_MARK : END_MARK;
+            const dst = END_MARK;
             const fade = 1 - E.io(range(t, t0 + 0.1, t0 + 0.7));
             o = { ...o, all: true, hide: idx, fade, lines: fade, quiet: true, noBeam: fade < 0.05 };
             const fold = shot.mark === 'end' ? E.io(range(t, sec(CUE.fold[0]), sec(BEATS - 1))) : 0;
@@ -750,7 +744,8 @@ export function film(t) {
             if (shot.mark === 'end') {
                 const out = E.in(range(t, sec(CUE.fold[0]), sec(CUE.fold[0]) + 0.3));
                 const r1 = E.rise(range(t, t0 + 0.7, t0 + 1.25)), r2 = E.rise(range(t, t0 + 0.95, t0 + 1.5)), r3 = E.rise(range(t, t0 + 1.15, t0 + 1.7));
-                [[endH, r1], [endP, r2], [endSite, r3]].forEach(([e, r]) => {
+                const r4 = E.rise(range(t, t0 + 1.5, t0 + 2.1));
+                [[endH, r1], [endP, r2], [endSite, r3], [endCredit, r4]].forEach(([e, r]) => {
                     set(e, 'transform', `translateY(${((1 - r) * 40 + out * -30).toFixed(2)}px)`);
                     set(e, 'opacity', (clamp(r * 1.5) * (1 - out)).toFixed(3));
                 });
@@ -759,18 +754,15 @@ export function film(t) {
         lanes(t, o);
         if (shot.mark === 'end' && t < sec(CUE.fold[0])) glints(t, END_MARK);
     }
-    if (shot.set === 'mixer') mixer(t);
-    if (shot.set === 'creator') creator(t);
+    if (shot.set === 'app') app(t, shot);
     if (shot.set === 'share') share(t);
     if (shot.set === 'split') split(t, shot.a);
 
     /* screen space: the voice, the sparks, the specks */
     if (shot.set === 'lanes' && !shot.mark && !shot.all) { voiceTrail(lt); hits(lt); }
     if (shot.set === 'share') shareSparkles(t);
-    if (shot.set !== 'split') {
-        const c = cam;
-        specks(t, DUR, shot.set === 'share' || shot.set === 'mixer' ? 0.5 : 1, shot.set === 'lanes' || shot.set === 'creator' ? c.x * 0.8 - 1000 : shot.set === 'mixer' ? MIX.x : SH.x);
-    }
+    if (shot.arcade) { /* the arcade's own dotted ground instead */ } else if (shot.set === 'lanes' || shot.set === 'share') specks(t, DUR, shot.set === 'share' ? 0.5 : 1, shot.set === 'lanes' ? cam.x * 0.8 - 1000 : SH.x);
+    else if (shot.set === 'app' || shot.set === 'tools') specks(t, DUR, 0.45, -400);
 
     /* the line this shot carries: it rises once, and stays put across cuts that keep it */
     const text = shot.cap ?? null;

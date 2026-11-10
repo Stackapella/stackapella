@@ -99,7 +99,7 @@ final class AdminInsightsTest extends TestCase
             ['day' => '2026-11-05', 'kind' => 'harmonise_used', 'audience' => 'account', 'country' => '', 'count' => 2],
             ['day' => '2026-10-01', 'kind' => 'harmonise_used', 'audience' => 'guest', 'country' => '', 'count' => 99],
         ]);
-        // Free accounts: one at the 3-project limit, one a project below it.
+        // Free accounts with 3 projects and 2.
         $full = User::factory()->create();
         Project::factory()->count(3)->create(['user_id' => $full->id]);
         Project::factory()->count(1)->create(['user_id' => $singer->id]); // the singer now has 2
@@ -118,7 +118,10 @@ final class AdminInsightsTest extends TestCase
         $this->assertSame(2, array_sum(array_column((array) $activity->json('data.hours'), 'takes')));
         $this->assertSame(1, array_sum(array_column((array) $activity->json('data.hours'), 'scores')));
         $this->assertSame(['kind' => 'harmonise_used', 'guest' => 5, 'account' => 2], $activity->json('data.features.0'));
-        $activity->assertJsonPath('data.limits.projectsAtLimit', 1)->assertJsonPath('data.limits.projectsNearLimit', 1)->assertJsonPath('data.limits.projectLimit', 3);
+        // No free project limit since 2026-11-07 (storage is the limit): none is at it.
+        $activity->assertJsonPath('data.limits.projectsAtLimit', 0)->assertJsonPath('data.limits.projectsNearLimit', 0)->assertJsonPath('data.limits.projectLimit', 0);
+        config(['usage.plans.free.projects' => 3]);
+        $this->getJson('/api/admin/activity')->assertJsonPath('data.limits.projectsAtLimit', 1)->assertJsonPath('data.limits.projectsNearLimit', 1)->assertJsonPath('data.limits.projectLimit', 3);
     }
 
     public function test_only_an_admin_reads_them(): void

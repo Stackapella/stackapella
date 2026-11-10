@@ -8,6 +8,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
 from flow import run  # noqa: E402
+from game_frames import every_theme  # noqa: E402
 from game_hud import record, stop  # noqa: E402
 from help_shots import AUDIO, SESSION, clear_projects, new_song, t  # noqa: E402
 
@@ -41,6 +42,7 @@ def journey(f):
     f.run("await new Promise((r) => setTimeout(r, 500))")
     record(f)
     f.shot("ghost")
+    every_theme(f, "the ghost run")
     stop(f)
     clear_projects(f)
 

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Site;
 
 use App\Support\Site\Showreel;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
@@ -15,6 +16,8 @@ use Tests\TestCase;
  */
 final class ShowreelUploadTest extends TestCase
 {
+    use RefreshDatabase;
+
     private string $public;
 
     private string $renders;

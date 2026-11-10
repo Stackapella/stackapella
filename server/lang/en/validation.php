@@ -248,7 +248,6 @@ return [
     'part_take' => 'That take isn\'t one of this part\'s.',
     'editable_limit' => 'Choose at most :max songs.',
     'editable_unknown' => 'That song isn\'t one of yours, or it\'s in Recently deleted.',
-    'editable_plus_song' => 'A song started from a Plus song stays read-only until you have Plus.',
     'reminder_time' => 'The time must be like 18:30, on a quarter hour.',
     'push_endpoint' => 'The endpoint must be a push service\'s address.',
     'score_id' => 'That score was already sent with other numbers.',

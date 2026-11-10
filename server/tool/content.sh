@@ -26,6 +26,47 @@ if [ -z "$commit" ]; then
     exit 0
 fi
 
+# One turn at a time on the shared checkout (~/Code/stackapella-courses-content): a lock like
+# land-lock's, taken over only when its holder is surely gone (ps can't see it, and it's over 10
+# minutes old); given back when this run ends.
+SHARED_LOCK=/tmp/stackapella-content.lock
+shared_turn() {
+    waited=
+    while ! mkdir "$SHARED_LOCK" 2> /dev/null; do
+        pid=$(cat "$SHARED_LOCK/pid" 2> /dev/null || true)
+        if [ -n "$pid" ] && ! ps -p "$pid" > /dev/null 2>&1 \
+            && [ -n "$(find "$SHARED_LOCK" -maxdepth 0 -mmin +10 2> /dev/null)" ]; then
+            rm -rf "$SHARED_LOCK"
+            continue
+        fi
+        if [ -z "$waited" ]; then
+            echo "Waiting for the content checkout ($(cat "$SHARED_LOCK/who" 2> /dev/null || echo 'another worktree'))" >&2
+            waited=1
+        fi
+        sleep 2
+    done
+    echo $$ > "$SHARED_LOCK/pid"
+    echo "$here" > "$SHARED_LOCK/who"
+    trap 'rm -rf "$SHARED_LOCK"' EXIT
+    trap 'exit 130' INT TERM
+}
+
+# A git step on the shared checkout. Someone else's git there (a person, an editor) can still hold
+# its index.lock: wait for it to go and try again, a minute at most. The lock is never deleted.
+shared_git() {
+    dir=$1
+    shift
+    tries=0
+    until git -C "$dir" "$@"; do
+        tries=$((tries + 1))
+        if [ ! -e "$dir/.git/index.lock" ] || [ $tries -gt 30 ]; then
+            echo "content.sh: git $* failed in $dir$( [ -e "$dir/.git/index.lock" ] && echo ' (its index.lock is still there after a minute: is a git command running there?)')." >&2
+            return 1
+        fi
+        sleep 2
+    done
+}
+
 # Where each part of the content repo goes.
 place() {
     src=$1 root=$2 how=$3
@@ -57,9 +98,12 @@ case "${1:-}" in
     link)
         src=${CONTENT_DIR:-$HOME/Code/stackapella-courses-content}
         if [ -z "${CONTENT_DIR:-}" ]; then
+            # The shared checkout is one for every worktree: one turn at a time, from the checkout to
+            # the end of the copy, so no other worktree moves it to its own pin halfway through.
+            shared_turn
             test -d "$src/.git" || git clone -q "https://github.com/$repo.git" "$src"
-            git -C "$src" fetch -q origin
-            git -C "$src" checkout -q "$commit"
+            shared_git "$src" fetch -q origin
+            shared_git "$src" checkout -q "$commit"
         fi
         place "$(cd "$src" && pwd)" "$here" link
         echo "content copied from $src$( [ -n "${CONTENT_DIR:-}" ] && echo ' (CONTENT_DIR: your working copy, not the pin)' || echo " at $commit" )."

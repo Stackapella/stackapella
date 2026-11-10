@@ -20,7 +20,9 @@ use Illuminate\Support\Carbon;
  * year. The teacher sees only its seats used, never who.
  *
  * @property int $id
+ * @property string $kind class (a teacher's) or partner (Admin's, for an outreach partner's members)
  * @property int|null $teacher_id
+ * @property int|null $outreach_target_id the partner organization a partner code is for
  * @property string $name
  * @property string $code
  * @property int $seats
@@ -31,6 +33,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property-read User|null $teacher
+ * @property-read OutreachTarget|null $partner
  * @property-read SchoolTeacher|null $teacherRecord
  * @property int|null $today_count redemptions since the start of today (the report timezone)
  */
@@ -43,11 +46,21 @@ final class SchoolClass extends Model
     use HasSqid;
 
     /** The code's letters: no 0/O or 1/I/L, so it reads aloud and copies cleanly. */
+    public const PARTNER = 'partner';
+
     public const ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
 
     protected function casts(): array
     {
         return ['seats' => 'integer', 'used' => 'integer', 'expires_at' => 'datetime', 'closed_at' => 'datetime'];
+    }
+
+    /**
+     * @return BelongsTo<OutreachTarget, $this>
+     */
+    public function partner(): BelongsTo
+    {
+        return $this->belongsTo(OutreachTarget::class, 'outreach_target_id');
     }
 
     /**
@@ -83,9 +96,10 @@ final class SchoolClass extends Model
     public function status(?int $used = null): string
     {
         return match (true) {
-            $this->closed_at !== null || $this->teacher_id === null => 'closed',
+            // A class with no teacher is a deleted account's; a partner code never has one.
+            $this->closed_at !== null || ($this->kind !== self::PARTNER && $this->teacher_id === null) => 'closed',
             $this->expires_at->isPast() => 'expired',
-            $this->teacherRecord?->approved_at === null => 'pending',
+            $this->kind !== self::PARTNER && $this->teacherRecord?->approved_at === null => 'pending',
             ($used ?? $this->used) >= $this->seats => 'full',
             default => 'open',
         };
@@ -102,10 +116,13 @@ final class SchoolClass extends Model
         return max(0, $this->used - (int) $today);
     }
 
-    /** What this code takes of the teacher's seat allowance: all its seats while open, its used ones once closed. */
+    /**
+     * What this code takes of the teacher's seat allowance: all its seats while open (or its used
+     * ones, if more joined than it now has seats), its used ones once closed.
+     */
     public function allowanceTaken(): int
     {
-        return $this->closed_at !== null || $this->expires_at->isPast() ? $this->used : $this->seats;
+        return $this->closed_at !== null || $this->expires_at->isPast() ? $this->used : max($this->seats, $this->used);
     }
 
     /** As shown: KQ7M-3XPA. */

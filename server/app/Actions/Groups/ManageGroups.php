@@ -14,29 +14,22 @@ use App\Models\Template;
 use App\Models\User;
 use App\Support\Accounts\Age;
 use App\Support\Ids;
-use App\Support\Usage\Plans;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 /**
- * Choir groups (contract/api.md, "Choir groups"): a director with Plus makes a group, members join
- * by its one link, and the director shares songs and assigns parts. If the director's Plus ends,
- * the group stays but takes nothing new.
+ * Choir groups (contract/api.md, "Choir groups"): any adult account makes a group, members join by
+ * its one link, and the director shares songs and assigns parts. Free for everyone since
+ * 2026-11-07 (docs/pricing-plan.md: every singer is free).
  */
 final class ManageGroups
 {
-    public function __construct(private readonly Plans $plans) {}
-
     public function create(User $user, string $name, bool $adult = false): Group
     {
         return DB::transaction(function () use ($user, $name, $adult): Group {
             Owned::lockAccount($user);
             $this->ensureAdult($user, $adult);
-
-            if (! $this->plans->isPlus($user)) {
-                throw new Refusal(403, 'plus_required');
-            }
 
             if (Group::query()->where('director_id', $user->id)->count() >= (int) config('usage.groups_per_director')) {
                 throw new Refusal(403, 'group_limit');
@@ -63,7 +56,7 @@ final class ManageGroups
     /**
      * The director's alone; a member is told so.
      */
-    public function directed(User $user, string $sqid, bool $needsPlus = false): Group
+    public function directed(User $user, string $sqid): Group
     {
         $group = $this->find($user, $sqid);
 
@@ -71,22 +64,36 @@ final class ManageGroups
             throw new Refusal(403, 'director_only');
         }
 
-        if ($needsPlus && $this->readOnly($group)) {
-            throw new Refusal(403, 'plus_required');
-        }
-
         return $group;
     }
 
+    /**
+     * Groups are free since 2026-11-07 (docs/pricing-plan.md), so none is read-only; the API keeps
+     * the field for older apps.
+     */
     public function readOnly(Group $group): bool
     {
-        return ! $this->plans->isPlus($group->director);
+        return false;
     }
 
-    public function rename(User $user, string $sqid, string $name): Group
+    /**
+     * The director's changes to the group: a new name, the next rehearsal (null clears it), or both.
+     *
+     * @param  array{name?: string, rehearsal?: array{date: string, weekly: bool}|null}  $changes
+     */
+    public function update(User $user, string $sqid, array $changes): Group
     {
         $group = $this->directed($user, $sqid);
-        $group->forceFill(['name' => trim($name)])->save();
+
+        if (array_key_exists('name', $changes)) {
+            $group->forceFill(['name' => trim($changes['name'])]);
+        }
+
+        if (array_key_exists('rehearsal', $changes)) {
+            $group->forceFill(['rehearsal_on' => $changes['rehearsal']['date'] ?? null, 'rehearsal_weekly' => $changes['rehearsal']['weekly'] ?? false]);
+        }
+
+        $group->save();
 
         return $group;
     }
@@ -94,24 +101,7 @@ final class ManageGroups
     public function delete(User $user, string $sqid): void
     {
         $group = $this->directed($user, $sqid);
-        $members = GroupMember::query()->where('group_id', $group->id)->pluck('user_id')->all();
         $group->delete();
-        $this->refresh($members);
-    }
-
-    /**
-     * Group songs keep members' Plus-song projects editable: when that changes, their devices
-     * hear about it in their next pull (Plans::readOnlyChanged), as at a downgrade.
-     *
-     * @param  iterable<int|string>  $userIds
-     */
-    public function refresh(iterable $userIds): void
-    {
-        foreach (User::query()->with('subscriptions')->whereKey(collect($userIds)->all())->get() as $member) {
-            if (! $this->plans->isPlus($member)) {
-                $this->plans->readOnlyChanged($member);
-            }
-        }
     }
 
     /**
@@ -120,11 +110,16 @@ final class ManageGroups
      */
     public function newLink(User $user, string $sqid): string
     {
-        $group = $this->directed($user, $sqid, needsPlus: true);
-        $token = Str::random(24);
-        $group->forceFill(['link_hash' => hash('sha256', $token), 'link_token' => $token, 'link_created_at' => now()])->save();
+        $group = $this->directed($user, $sqid);
+        $this->rotateLink($group);
 
         return (string) $group->linkUrl();
+    }
+
+    private function rotateLink(Group $group): void
+    {
+        $token = Str::random(24);
+        $group->forceFill(['link_hash' => hash('sha256', $token), 'link_token' => $token, 'link_created_at' => now()])->save();
     }
 
     public function byLink(string $token): Group
@@ -142,10 +137,6 @@ final class ManageGroups
                 return $group;
             }
 
-            if ($this->readOnly($group)) {
-                throw new Refusal(403, 'plus_required');
-            }
-
             $this->ensureAdult($user, $adult);
 
             if (GroupMember::query()->where('group_id', $group->id)->where('role', GroupMember::MEMBER)->count() >= (int) config('usage.group_members')) {
@@ -154,7 +145,6 @@ final class ManageGroups
 
             $member = new GroupMember(['role' => GroupMember::MEMBER]);
             $member->forceFill(['group_id' => $group->id, 'user_id' => $user->id])->save();
-            $this->refresh([$user->id]);
 
             return $group;
         });
@@ -162,7 +152,8 @@ final class ManageGroups
 
     /**
      * The director removes a member, or a member leaves. The director can't leave their own group
-     * (they delete it instead).
+     * (they delete it instead). A member removed gets a new link made, so the old one can't bring
+     * them straight back; the director sees and copies the new one as before.
      */
     public function removeMember(User $user, string $sqid, string $memberSqid): void
     {
@@ -173,12 +164,15 @@ final class ManageGroups
             throw new Refusal(403, 'director_only');
         }
 
-        DB::transaction(function () use ($group, $memberId): void {
+        DB::transaction(function () use ($group, $memberId, $user): void {
             GroupAssignment::query()->where('user_id', $memberId ?? 0)->whereIn('group_song_id', GroupSong::query()->where('group_id', $group->id)->select('id'))->delete();
-            GroupMember::query()->where('group_id', $group->id)->where('user_id', $memberId ?? 0)->delete();
+            $removed = GroupMember::query()->where('group_id', $group->id)->where('user_id', $memberId ?? 0)->delete() > 0;
+
+            if ($removed && $memberId !== $user->id && $group->link_hash !== null) {
+                $this->rotateLink($group);
+            }
         });
 
-        $this->refresh([$memberId ?? 0]);
     }
 
     /**
@@ -186,12 +180,11 @@ final class ManageGroups
      */
     public function addSong(User $user, string $sqid, string $templateId): Group
     {
-        $group = $this->directed($user, $sqid, needsPlus: true);
+        $group = $this->directed($user, $sqid);
         $template = Template::query()->where('slug', $templateId)->whereNull('deleted_at')->where(fn ($query) => $query->whereNull('owner_id')->orWhere('owner_id', $user->id))->whereNotNull('current_version_id')->first()
             ?? throw new Refusal(404, 'not_found');
 
         GroupSong::query()->firstOrCreate(['group_id' => $group->id, 'template_id' => $template->id]);
-        $this->refresh(GroupMember::query()->where('group_id', $group->id)->pluck('user_id'));
 
         return $group;
     }
@@ -200,7 +193,6 @@ final class ManageGroups
     {
         $group = $this->directed($user, $sqid);
         GroupSong::query()->where('group_id', $group->id)->whereHas('template', fn ($query) => $query->where('slug', $templateId))->delete();
-        $this->refresh(GroupMember::query()->where('group_id', $group->id)->pluck('user_id'));
     }
 
     /**
@@ -210,7 +202,7 @@ final class ManageGroups
      */
     public function assign(User $user, string $sqid, string $templateId, array $assignments): Group
     {
-        $group = $this->directed($user, $sqid, needsPlus: true);
+        $group = $this->directed($user, $sqid);
         $song = GroupSong::query()->with('template.currentVersion')->where('group_id', $group->id)->whereHas('template', fn ($query) => $query->where('slug', $templateId))->first()
             ?? throw new Refusal(404, 'not_found');
 

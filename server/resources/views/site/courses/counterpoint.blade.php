@@ -13,7 +13,7 @@
      Words: lang/en/site.php courses.pages.counterpoint (love). --}}
 @php($love = $page['love'])
 @php($sources = $love['sources'])
-@php($tryUrl = $open ? \App\Support\Http\Hosts::app('/learn/c/'.$page['app']) : $links['start'])
+@php($tryUrl = $open ? $courseStart : $links['start'])
 @php($tryLabel = $open ? __('pages.site.course_try') : __('pages.site.course_start'))
 {{-- The count of lessons, from the course itself, in the eyebrow and the first answer. --}}
 @php($lessons = $outline['lessons'] ?? null)

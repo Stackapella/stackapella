@@ -71,7 +71,9 @@ def journey(f):
     record = f.js("""(async () => { const { mine } = await import('/js/stores/templates.js'); const id = location.pathname.split('/')[2];
         const r = mine.list.find((x) => x.id === id); return { source: r.source, visibility: r.visibility, title: r.template.title, parts: r.template.parts.map((p) => p.key), words: r.template.parts[3].guide.notes[0].lyric }; })()""")
     assert record == {"source": "sheet-music", "visibility": "private", "title": "Old Hundredth", "parts": ["soprano", "alto", "tenor", "bass"], "words": "All"}, f"saved as an import: {record}"
-    f.wait_text(t(f, "create.save.otherHint"))
+    # Private to you and your groups, and no link or idea offered (the account refuses them for an import).
+    f.wait_text(t(f, "template.choirPrivate"))
+    assert not f.js("!!document.querySelector('main input[name=visibility]')"), "no Anyone with the link for an import"
     assert not f.js(f"[...document.querySelectorAll('button')].some((b) => b.textContent.includes({json.dumps(t(f, 'template.export'))}))"), "no template file for an import"
     f.shot("song")
 

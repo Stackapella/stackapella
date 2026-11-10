@@ -23,6 +23,15 @@ test('asks: an account ask at most once a week, install and reminders unaffected
     assert(askAllowed('install', seen, NOON + DAY) && askAllowed('remind', seen, NOON + DAY), 'install and reminders the next day');
 });
 
+test('asks: an ask seen and left unanswered waits a week, the others go on', () => {
+    const seen = withSeen('install', fresh(), NOON);
+    assert(askAllowed('install', seen, NOON + 3600000), 'again later the same day');
+    assert(!askAllowed('install', seen, NOON + DAY), 'not the next day');
+    assert(!askAllowed('install', seen, NOON + 6 * DAY), 'not six days on');
+    assert(askAllowed('install', seen, NOON + 7 * DAY), 'a week on');
+    assert(askAllowed('remind', seen, NOON + DAY), 'another ask the next day');
+});
+
 test('asks: a Not now on any puts all away for 14 days, and the third stops them for good', () => {
     let ledger = withNotNow('remind', withSeen('remind', fresh(), NOON), NOON);
     assert(!askAllowed('remind', ledger, NOON + 1000), 'not again today, after its own Not now');

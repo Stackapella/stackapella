@@ -493,8 +493,11 @@ def studio_phone(f):
         f.js(f"{AUDIO}.unlock()")
         f.js(f"{AUDIO}.engine.setLoopback(true)")
         tenor = t(f, "parts.tenor")
-        # The pick follows the song's order (the Bass next): pick the Tenor, then record it.
-        f.click_t("studio.pickNamed", {"name": tenor})
+        # The next to record is the part nearest the singer's range, else the song's order: pick the Tenor
+        # unless it's already the one, then record it.
+        record_tenor = json.dumps(t(f, 'studio.recordNamed', {'name': tenor}))
+        if not f.js(f"[...document.querySelectorAll('button')].some((b) => b.textContent.trim() === {record_tenor})"):
+            f.click_t("studio.pickNamed", {"name": tenor})
         f.wait(f"[...document.querySelectorAll('button')].some((b) => b.textContent.trim() === {json.dumps(t(f, 'studio.recordNamed', {'name': tenor}))})", what="Record Tenor")
         f.click_t("studio.recordNamed", {"name": tenor})
         recording_starts(f)

@@ -18,6 +18,7 @@ export const KeyControl = {
         musicKey: { type: String, required: true },
         canLower: { type: Boolean, default: true },
         canHigher: { type: Boolean, default: true },
+        higherShown: { type: Boolean, default: true }, // a lower-only lesson has no Higher at all
     },
     emits: ['lower', 'higher'],
     setup: () => ({ prettyKey }),
@@ -28,7 +29,7 @@ export const KeyControl = {
             <div class="flex items-center gap-1 rounded-full border border-line p-1" role="group" :aria-label="t('keyControl.label')">
                 <button type="button" class="grid size-11 place-items-center rounded-full glass-bubble text-cream disabled:opacity-40" :aria-label="t('keyControl.lower')" :title="t('keyControl.lower')" :disabled="!canLower" @click="$emit('lower')"><Icon name="minus" :size="16" /></button>
                 <span class="min-w-16 px-2 text-center text-sm font-semibold text-cream" role="status" translate="no">{{ t('keyControl.key', { key: prettyKey(musicKey) }) }}</span>
-                <button type="button" class="grid size-11 place-items-center rounded-full glass-bubble text-cream disabled:opacity-40" :aria-label="t('keyControl.higher')" :title="t('keyControl.higher')" :disabled="!canHigher" @click="$emit('higher')"><Icon name="plus" :size="16" /></button>
+                <button v-if="higherShown" type="button" class="grid size-11 place-items-center rounded-full glass-bubble text-cream disabled:opacity-40" :aria-label="t('keyControl.higher')" :title="t('keyControl.higher')" :disabled="!canHigher" @click="$emit('higher')"><Icon name="plus" :size="16" /></button>
             </div>
         </div>`,
 };

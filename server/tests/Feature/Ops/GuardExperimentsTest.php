@@ -57,4 +57,29 @@ final class GuardExperimentsTest extends TestCase
         $this->assertSame(1, AuditLog::query()->where('action', 'experiment.guardrail_stop')->count());
         Notification::assertSentTo($admin, OpsAlert::class, fn (OpsAlert $alert): bool => str_contains($alert->subject, 'bad'));
     }
+
+    public function test_wall1_and_ret1_as_their_migrations_made_them_are_guarded_on_their_own_guardrails(): void
+    {
+        // Started by Hillel on 2026-11-08 (Admin > Experiments): the registry's own rows, each worse in B
+        // on its guardrail (wall1: back on day 2; ret1: Plus started), enrolment counted from exp_enrol.
+        Notification::fake();
+        User::factory()->admin()->create();
+        $started = [];
+
+        foreach (['wall1' => 'f_day2', 'ret1' => 'f_plus'] as $key => $guardrail) {
+            $experiment = Experiment::query()->where('key', $key)->firstOrFail();
+            $this->assertSame([$guardrail], $experiment->guardrails);
+            $experiment->forceFill(['starts_on' => now()->subDays(5)->toDateString()])->save();
+            $started[$key] = $experiment;
+
+            foreach (['exp_enrol' => [400, 400], $guardrail => [120, 60]] as $kind => [$a, $b]) {
+                foreach (['a' => $a, 'b' => $b] as $arm => $n) {
+                    DB::table('experiment_counts')->insert(['day' => now()->subDay()->toDateString(), 'variant' => $key.'-'.$arm, 'kind' => $kind, 'audience' => 'guest', 'count' => $n]);
+                }
+            }
+        }
+
+        $this->artisan('app:experiments:guard')->expectsOutputToContain('Closed 2')->assertSuccessful();
+        $this->assertSame(['closed', 'closed'], [$started['wall1']->refresh()->status(), $started['ret1']->refresh()->status()]);
+    }
 }

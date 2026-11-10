@@ -8,6 +8,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
 from flow import run  # noqa: E402
+from game_frames import every_theme  # noqa: E402
 from help_shots import t  # noqa: E402
 from home import progress  # noqa: E402
 
@@ -19,6 +20,7 @@ def journey(f):
     expected = t(f, "game.workout.title") if f.skin == "game" else t(f, "workout.title")
     f.wait_text(expected)
     f.shot("training-mode")
+    every_theme(f, "training mode")
     if f.skin == "game":
         for count in (2, 3):
             words = [t(f, f"game.popup.{key}", {"count": count}) for key in ("rate", "rateChip", "rateChipLabel")]

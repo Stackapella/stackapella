@@ -23,6 +23,7 @@ let lane = null;
 let startButton = null; // PRESS START, over the lane while it rests
 let rules = null; // game/combo.js, loaded with the lane
 let busyWords = null; // fills PRESS START's loading words once they arrive
+let showBusy = null; // the loading state, at once on any press that starts the take
 let popWords = null; // the app's pop-up words, { combo, rate, rateChip }, once fetched
 const REDUCE = window.matchMedia('(prefers-reduced-motion: reduce)');
 
@@ -61,6 +62,8 @@ function format(seconds) {
 /** A person's press on play: sound comes on inside the click, then the take plays or carries on. */
 function press() {
     if (!lane) return;
+    // Every press answers at once (docs/design-rules.md): loading until the take sounds.
+    if (!lane.playing()) showBusy?.(true);
     embed?.unlock();
     loadWords().then(() => busyWords?.());
     if (lane.muted()) {
@@ -158,6 +161,7 @@ async function start() {
     status.setAttribute('role', 'status');
     cabinet.append(status);
     const busy = (on) => {
+        cabinet.toggleAttribute('data-loading', on);
         startButton.toggleAttribute('data-busy', on);
         startButton.setAttribute('aria-busy', on ? 'true' : 'false');
         startButton.setAttribute('aria-disabled', on ? 'true' : 'false');
@@ -166,18 +170,26 @@ async function start() {
             status.textContent = '';
         } else busyWords();
     };
+    showBusy = busy;
     busyWords = () => {
         if (!startButton.hasAttribute('data-busy')) return;
-        const opening = popWords?.loading ?? '';
+        // The page's own words, at once (the app's own "Opening the song..." only on a page without them).
+        const opening = cabinet.dataset.loadingWords || popWords?.loading || '';
         label.textContent = opening;
         status.textContent = opening;
     };
+    // The pointer going down is already a press: the audio wakes then, so the click answers at once.
+    for (const el of [startButton, play, ...document.querySelectorAll('[data-cab-start]')]) el.addEventListener('pointerdown', () => embed?.unlock(), { passive: true });
     startButton.addEventListener('click', () => {
         if (startButton.hasAttribute('data-busy')) return;
         busy(true);
         press();
     });
     cabinet.querySelector('[data-cab-lane]').append(startButton);
+    // Someone who might press (a hover, focus or touch): the voices are made now, so the press starts at once.
+    for (const el of [cabinet, ...document.querySelectorAll('[data-cab-start]')]) {
+        for (const name of ['pointerenter', 'focusin', 'pointerdown']) el.addEventListener(name, () => lane?.prepare?.(), { once: true, passive: true });
+    }
     play.addEventListener('click', press);
     sound.addEventListener('click', press);
     // The hero's own button in the game skin ("Play the take") starts it too.

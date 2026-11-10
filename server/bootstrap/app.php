@@ -5,11 +5,14 @@ declare(strict_types=1);
 use App\Exceptions\Refusal;
 use App\Http\Controllers\Auth\ProviderController;
 use App\Http\Controllers\HealthController;
+use App\Http\Controllers\Internal\GrowthDataController;
 use App\Http\Controllers\Ops\SecurityTxtController;
 use App\Http\Controllers\PreviewLinkController;
+use App\Http\Controllers\Public\CarolsPageController;
 use App\Http\Controllers\Public\CoachesPageController;
 use App\Http\Controllers\Public\CoachPageController;
 use App\Http\Controllers\Public\ComparePagesController;
+use App\Http\Controllers\Public\CourseCssController;
 use App\Http\Controllers\Public\CoursePagesController;
 use App\Http\Controllers\Public\DocumentPagesController;
 use App\Http\Controllers\Public\EmbedHarmonyController;
@@ -17,13 +20,22 @@ use App\Http\Controllers\Public\FeaturePagesController;
 use App\Http\Controllers\Public\ForPagesController;
 use App\Http\Controllers\Public\GalleryPagesController;
 use App\Http\Controllers\Public\HarmonyPageController;
+use App\Http\Controllers\Public\IndexNowKeyController;
 use App\Http\Controllers\Public\InfoPagesController;
+use App\Http\Controllers\Public\IntegrationPagesController;
+use App\Http\Controllers\Public\LessonPagesController;
 use App\Http\Controllers\Public\OEmbedController;
 use App\Http\Controllers\Public\OpenSourcePagesController;
+use App\Http\Controllers\Public\ReferencePagesController;
 use App\Http\Controllers\Public\SingTogetherPagesController;
 use App\Http\Controllers\Public\SitemapController;
 use App\Http\Controllers\Public\SitePagesController;
 use App\Http\Controllers\Public\SongPagesController;
+use App\Http\Controllers\Public\SongPartPagesController;
+use App\Http\Controllers\Public\ToolEmbedController;
+use App\Http\Controllers\Public\ToolManifestController;
+use App\Http\Controllers\Public\ToolPagesController;
+use App\Http\Controllers\Public\WarmupPagesController;
 use App\Http\Controllers\UnsubscribeController;
 use App\Http\Controllers\WebAppController;
 use App\Http\Middleware\AuthenticateAppDevice;
@@ -40,6 +52,7 @@ use App\Http\Middleware\HostRouting;
 use App\Http\Middleware\NexusOnly;
 use App\Http\Middleware\NoStore;
 use App\Http\Middleware\PausedFeature;
+use App\Http\Middleware\PreloadModules;
 use App\Http\Middleware\PreventRequestForgery;
 use App\Http\Middleware\ReadOnlyMode;
 use App\Http\Middleware\RedirectToCanonicalHost;
@@ -49,6 +62,7 @@ use App\Http\Middleware\Revalidate;
 use App\Http\Middleware\SecurityHeaders;
 use App\Http\Middleware\SessionlessAnonymousReads;
 use App\Http\Middleware\Shield;
+use App\Http\Middleware\SignedInHint;
 use App\Services\EventSchedule\EventScheduleError;
 use App\Support\Accounts\BetaPass;
 use App\Support\Admin\IntendedUrl;
@@ -83,6 +97,9 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
         using: function (): void {
             Route::get('/up', HealthController::class)->middleware('throttle:health')->name('health');
+            Route::get('/up/scheduler', [HealthController::class, 'scheduler'])->middleware('throttle:health')->name('health.scheduler');
+            // The growth data for app:pull-growth (docs/growth-data.md): a bearer token, no session.
+            Route::get('/api/internal/growth', GrowthDataController::class)->middleware('throttle:growth-data')->name('internal.growth');
             Route::get('/.well-known/security.txt', SecurityTxtController::class)->middleware('throttle:public-pages')->name('security.txt');
 
             Route::middleware('web')->group(base_path('routes/web.php'));
@@ -98,7 +115,11 @@ return Application::configure(basePath: dirname(__DIR__))
             Route::get('/coach/{handle}', CoachPageController::class)->where('handle', '[a-z][a-z0-9_]{2,19}')->middleware('throttle:public-pages')->name('coach.page');
             // Songs, guides and legal pages for search, and the sitemap (no session; cacheable).
             Route::get('/songs', [SongPagesController::class, 'index'])->middleware(['nexus', 'throttle:public-pages'])->name('songs.index');
+            // The Christmas carols page (App\Support\Pages\Carols), before a song's own address.
+            Route::get('/songs/christmas-carols', CarolsPageController::class)->middleware(['nexus', 'throttle:public-pages'])->name('songs.carols');
             Route::get('/songs/{slug}', [SongPagesController::class, 'show'])->where('slug', '[a-z0-9-]{1,80}')->middleware(['nexus', 'throttle:public-pages'])->name('songs.page');
+            // Each part of a song (docs/seo-growth-plan.md): live, reviewed, public-domain songs only.
+            Route::get('/songs/{slug}/{part}', [SongPartPagesController::class, 'show'])->where(['slug' => '[a-z0-9-]{1,80}', 'part' => '[a-z0-9-]{1,40}'])->middleware(['nexus', 'throttle:public-pages'])->name('songs.part');
             Route::get('/guides/{slug}', [DocumentPagesController::class, 'guide'])->where('slug', '[a-z0-9-]{1,80}')->middleware(['nexus', 'throttle:public-pages'])->name('guides.page');
             Route::get('/legal/{page}', [DocumentPagesController::class, 'legal'])->where('page', '[a-z0-9-]{1,80}')->middleware('throttle:public-pages')->name('legal.page');
             // The gallery's public pages (N1, behind its flag).
@@ -122,15 +143,40 @@ return Application::configure(basePath: dirname(__DIR__))
             Route::permanentRedirect('/self-host-stackapella', '/selfhost')->middleware('nexus')->name('selfhost.moved-long');
             Route::get('/guides', [SitePagesController::class, 'guides'])->middleware(['nexus', 'throttle:public-pages'])->name('guides.index');
             Route::get('/whats-new', [SitePagesController::class, 'whatsNew'])->middleware(['nexus', 'throttle:public-pages'])->name('whats-new.page');
+            // The integrations (IntegrationPagesController): the hub and a page for each other app.
+            Route::get('/integrations', [IntegrationPagesController::class, 'index'])->middleware(['nexus', 'throttle:public-pages'])->name('integrations.index');
+            Route::get('/integrations/{slug}', [IntegrationPagesController::class, 'show'])->where('slug', '[a-z0-9-]{1,40}')->middleware(['nexus', 'throttle:public-pages'])->name('integrations.page');
             Route::get('/for/{who}', [ForPagesController::class, 'show'])->where('who', '[a-z0-9-]{1,40}')->middleware(['nexus', 'throttle:public-pages'])->name('for.page');
+            // Free tools for musicians (docs/tools-plan.md): the hub and one page per tool.
+            Route::get('/tools', [ToolPagesController::class, 'index'])->middleware(['nexus', 'throttle:public-pages'])->name('tools.index');
+            Route::get('/tools/embed', [ToolPagesController::class, 'embed'])->middleware(['nexus', 'throttle:public-pages'])->name('tools.embed');
+            Route::get('/tools/{tool}', [ToolPagesController::class, 'show'])->where('tool', '[a-z0-9-]{1,40}')->middleware(['nexus', 'throttle:public-pages'])->name('tools.page');
+            // The free warm-ups (docs/seo-growth-plan.md item 8): the list and one page per warm-up.
+            Route::get('/warmups', [WarmupPagesController::class, 'index'])->middleware(['nexus', 'throttle:public-pages'])->name('warmups.index');
+            Route::get('/warmups/{warmup}', [WarmupPagesController::class, 'show'])->where('warmup', '[a-z0-9-]{1,40}')->middleware(['nexus', 'throttle:public-pages'])->name('warmups.page');
+            // The reference pages (docs/seo-growth-plan.md item 4): each family's index and one page per item.
+            foreach (['intervals', 'chords', 'voice-types'] as $kind) {
+                Route::get('/'.$kind, [ReferencePagesController::class, 'index'])->defaults('kind', $kind)->middleware(['nexus', 'throttle:public-pages'])->name($kind.'.index');
+                Route::get('/'.$kind.'/{slug}', [ReferencePagesController::class, 'show'])->defaults('kind', $kind)->where('slug', '[a-z0-9-]{1,40}')->middleware(['nexus', 'throttle:public-pages'])->name($kind.'.page');
+            }
             Route::get('/courses', [CoursePagesController::class, 'index'])->middleware(['nexus', 'throttle:public-pages'])->name('courses.index');
+            // The free course has one canonical page (marketing, 2026-11-07); its lesson pages sit under /courses/harmony.
+            Route::get('/courses/harmony', [CoursePagesController::class, 'free'])->name('courses.free');
             Route::get('/courses/{slug}', [CoursePagesController::class, 'show'])->where('slug', '[a-z0-9-]{1,40}')->middleware(['nexus', 'throttle:public-pages'])->name('courses.page');
+            // Each course's lesson pages (docs/seo-lesson-pages-plan.md); a lesson's or unit's id 301s to its page.
+            Route::get('/courses/{course}/{page}', [LessonPagesController::class, 'show'])->where(['course' => '[a-z0-9-]{1,40}', 'page' => '[a-z0-9-]{1,80}'])->middleware(['nexus', 'throttle:public-pages'])->name('courses.lesson');
             Route::get('/pricing', [InfoPagesController::class, 'pricing'])->middleware(['nexus', 'throttle:public-pages'])->name('pricing.page');
             Route::get('/help', [InfoPagesController::class, 'help'])->middleware('throttle:public-pages')->name('help.index');
             Route::get('/help/search-index.json', [InfoPagesController::class, 'helpSearch'])->middleware('throttle:public-pages')->name('help.search');
             Route::get('/help/{slug}', [InfoPagesController::class, 'helpPage'])->where('slug', '[a-z0-9-]{1,40}')->middleware('throttle:public-pages')->name('help.page');
+            // Each free tool installs as its own app (docs/tools-plan.md): its manifest; the pages are marketing's.
+            Route::get('/tools/{tool}/manifest.webmanifest', ToolManifestController::class)->where('tool', '[a-z0-9-]{1,40}')->middleware('throttle:public-pages')->name('tools.manifest');
             Route::get('/sitemap.xml', [SitemapController::class, 'sitemap'])->middleware(['nexus', 'throttle:public-pages'])->name('sitemap');
             Route::get('/robots.txt', [SitemapController::class, 'robots'])->middleware('throttle:public-pages')->name('robots');
+            // IndexNow's key file (SubmitToIndexNow): only its own name answers.
+            Route::get('/{key}.txt', IndexNowKeyController::class)->where('key', '[A-Za-z0-9-]{8,128}')->middleware('throttle:public-pages')->name('indexnow.key');
+            // A page's course stylesheet, only the courses it shows (CourseCss; no session, kept a year at its ?v=).
+            Route::get('/course-css/{key}.css', CourseCssController::class)->where('key', '[a-z0-9.]{1,200}')->middleware('throttle:public-pages')->name('course.css');
 
             // The mudeo email's one-click unsubscribe (RFC 8058): signed, no session. GET shows the
             // button (no data-changing GET); the POST, from it or from the mail provider, does it.
@@ -147,6 +193,8 @@ return Application::configure(basePath: dirname(__DIR__))
             // A harmony played on other sites (Event Schedule's event pages): oEmbed and its player.
             Route::get('/oembed', OEmbedController::class)->middleware('throttle:public-pages')->name('oembed');
             Route::get('/embed/h/{harmony}', EmbedHarmonyController::class)->middleware('throttle:public-pages')->name('embed.harmony');
+            // The free tools for other sites (docs/seo-growth-plan.md, item 2).
+            Route::get('/embed/tools/{tool}', ToolEmbedController::class)->where('tool', '[a-z0-9-]{1,40}')->middleware('throttle:public-pages')->name('embed.tool');
 
             // Everything else is the PWA: its index.html for app routes, and locally its files. No
             // session: an anonymous visit never makes a session row or sets a cookie (the app's
@@ -162,6 +210,8 @@ return Application::configure(basePath: dirname(__DIR__))
         // The launch domain's other names go to the one in APP_URL before anything else.
         $middleware->prepend(RedirectToCanonicalHost::class);
         $middleware->append(SecurityHeaders::class);
+        // A public page's module scripts' import chains, named in its <head> so a phone fetches each at once.
+        $middleware->append(PreloadModules::class);
         // The app's host and the public site's (docs/app-subdomain-plan.md).
         $middleware->append(HostRouting::class);
 
@@ -170,7 +220,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->trustProxies(at: '*', headers: Request::HEADER_X_FORWARDED_PROTO);
 
         // Before the api group copies the web group, so the API checks CSRF with ours too.
-        $middleware->web(append: [RenewRememberCookie::class], replace: [LaravelPreventRequestForgery::class => PreventRequestForgery::class]);
+        $middleware->web(append: [RenewRememberCookie::class, SignedInHint::class], replace: [LaravelPreventRequestForgery::class => PreventRequestForgery::class]);
 
         // The API is the web stack (the session cookie and CSRF on one origin; contract/api.md),
         // plus the app version check, read-only mode, the backstop limiter and no-store.
@@ -224,7 +274,7 @@ return Application::configure(basePath: dirname(__DIR__))
         // sign-in returns by a cross-site POST, checked by its own state cookie.
         // Read by the app shell's coming-soon gate, which runs without the cookie middleware: the
         // beta pass is signed by us, and the app's own marker holds nothing.
-        $middleware->encryptCookies(except: [BetaPass::COOKIE, MudeoArrival::COOKIE, MudeoArrival::USED_COOKIE, StaffDevice::COOKIE, 'sa_app']);
+        $middleware->encryptCookies(except: [BetaPass::COOKIE, MudeoArrival::COOKIE, MudeoArrival::USED_COOKIE, StaffDevice::COOKIE, 'sa_app', SignedInHint::COOKIE]);
 
         // Reports also come from the public site's pages, across origins and without the app's
         // XSRF cookie (docs/app-subdomain-plan.md, "Report from a shared page").

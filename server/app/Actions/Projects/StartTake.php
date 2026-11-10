@@ -100,7 +100,7 @@ final class StartTake
         $current = $part->current_take_id !== null ? Take::query()->whereKey($part->current_take_id)->whereNull('binned_at')->first() : null;
 
         if ($this->plans->storageUsed($owner) - ($current?->bytes() ?? 0) + $data['bytes'] > $this->plans->storageLimit($owner)) {
-            throw new Refusal(403, 'storage_limit');
+            throw $this->plans->storageFull($owner);
         }
 
         $this->bytes->count($user, $data['bytes']);

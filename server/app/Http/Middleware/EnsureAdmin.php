@@ -9,7 +9,6 @@ use App\Support\Admin\AdminGate;
 use App\Support\Http\ApiError;
 use Closure;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
@@ -42,10 +41,10 @@ class EnsureAdmin
             $session->put([AdminGate::SESSION_STARTED_AT => now()->getTimestamp(), AdminGate::SESSION_UA => $agent]);
         }
 
+        // The admin area's own limit ends the admin area only: the account stays signed in, its
+        // remember cookie kept (Hillel, 2026-11-09: "Please make sure all logins are permanmnet").
         if (! $this->gate->sessionIsFresh($session, $agent)) {
-            Auth::logoutCurrentDevice();
-            $session->invalidate();
-            $session->regenerateToken();
+            $this->gate->endAdminSession($session);
 
             return $this->signIn($request, ended: true);
         }

@@ -27,11 +27,12 @@ export function emptyProgress() {
 
 /**
  * The course started over (Hillel): every lesson's completion and stars go, so the course opens at
- * its start again. Kept: the comfortable note and the range (finding them again is its own choice),
- * badges, XP, the practice days and the weekly goal, and everything outside the course.
+ * its start again, and the units' bosses with them (docs/boss-round-plan.md). Kept: the comfortable note and the
+ * range (finding them again is its own choice), badges, XP, the practice days and the weekly goal, and everything
+ * outside the course.
  */
 export function restartedCourse(progress) {
-    return { ...progress, lessons: {}, testedOut: [] };
+    return { ...progress, lessons: {}, testedOut: [], bosses: {} };
 }
 
 // ---- Stars ----------------------------------------------------------------------------------------
@@ -84,12 +85,12 @@ export function unitOpen(units, index, progress) {
 
 /**
  * The lesson to do next: the first open lesson without stars, in order, else the last open one.
- * Plus's units count only for `plus`. Everyone starts at lesson 1 (docs/decisions.md, "one way
- * into the course").
+ * Every unit is on the free plan (Hillel, 2026-11-06: "lets make all courses included with the free
+ * plan"). Everyone starts at lesson 1 (docs/decisions.md, "one way into the course").
  */
-export function nextLesson(units, progress, { plus = false } = {}) {
+export function nextLesson(units, progress) {
     let last = null;
-    for (let i = 0; i < units.length && (plus || !units[i].plus) && unitOpen(units, i, progress); i++) {
+    for (let i = 0; i < units.length && unitOpen(units, i, progress); i++) {
         for (const lesson of units[i].lessons) {
             last = { unit: units[i], lesson };
             if (!progress.lessons[lesson.id]?.stars) return last;
@@ -122,13 +123,19 @@ export function recordLesson(progress, lessonId, { stars, percent }, at = Date.n
 // ---- XP and levels --------------------------------------------------------------------------------
 
 export const DAILY_XP_CAP = 300;
-export const XP = { exercise: 10, star: 5, practiceRun: 20, part: 50, harmony: 200, workout: 25 };
+export const XP = { exercise: 10, star: 5, practiceRun: 20, part: 50, harmony: 200, workout: 25, boss: 100 };
 
 /** The day an event counts for, in the learner's own time zone: 'YYYY-MM-DD'. */
 export function dayOf(at = Date.now()) {
     const d = new Date(at);
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
+
+/**
+ * Whether a lesson's finish pays XP: always, unless its course says "replayXp": false (course.json's "game"; First steps
+ * to belting, no game pressure) and the lesson already has stars (a replay).
+ */
+export const paysLessonXp = (rules, hadStars) => !(rules?.replayXp === false && hadStars > 0);
 
 /** XP for an event: { kind: 'exercise', stars } and so on. */
 export function xpFor(event) {
@@ -137,11 +144,14 @@ export function xpFor(event) {
     return XP[event.kind] ?? 0;
 }
 
-/** Adds an event's XP, within the day's cap (practice, not grinding). Returns `{ progress, gained }`. */
+/**
+ * Adds an event's XP, within the day's cap (practice, not grinding). A boss's XP, paid once per unit and so never
+ * ground, is outside the cap (docs/boss-round-plan.md). Returns `{ progress, gained }`.
+ */
 export function addXp(progress, event, at = Date.now()) {
     const day = dayOf(at);
     const today = progress.xp.days[day] ?? 0;
-    const gained = Math.max(0, Math.min(xpFor(event), DAILY_XP_CAP - today));
+    const gained = event.kind === 'boss' ? xpFor(event) : Math.max(0, Math.min(xpFor(event), DAILY_XP_CAP - today));
     return { gained, progress: { ...progress, xp: { total: progress.xp.total + gained, days: { ...progress.xp.days, [day]: today + gained } } } };
 }
 
@@ -263,6 +273,8 @@ export function mergeProgress(mine, theirs) {
         lessons,
         // The Plus courses', lesson by lesson (only once either side has one, so nothing else changes).
         ...(mine.courses || theirs.courses ? { courses: mergeCourses(mine.courses, theirs.courses) } : {}),
+        // The units' bosses (docs/boss-round-plan.md), only once either side has one.
+        ...(mine.bosses || theirs.bosses ? { bosses: mergeBosses(mine.bosses, theirs.bosses) } : {}),
         // Kept warm-ups (docs/warmup-builder-plan.md, slice 4), only once either side has one.
         ...(mine.warmups || theirs.warmups ? { warmups: mergeWarmups(mine.warmups, theirs.warmups) } : {}),
         keys: { ...theirs.keys, ...mine.keys },
@@ -276,6 +288,21 @@ export function mergeProgress(mine, theirs) {
         // A badge is earned once: the earlier of the two.
         badges: Object.fromEntries([...new Set([...Object.keys(mine.badges ?? {}), ...Object.keys(theirs.badges ?? {})])].map((id) => [id, Math.min(mine.badges?.[id] ?? Infinity, theirs.badges?.[id] ?? Infinity)])),
     };
+}
+
+/** Two devices' boss results as one: each unit's higher best and the earlier win. */
+export function mergeBosses(mine = {}, theirs = {}) {
+    const out = { ...theirs };
+    for (const [id, had] of Object.entries(mine)) {
+        const other = out[id];
+        if (!other) {
+            out[id] = had;
+            continue;
+        }
+        const wins = [had.beatAt, other.beatAt].filter(Boolean);
+        out[id] = { best: Math.max(had.best ?? -1, other.best ?? -1), beatAt: wins.length ? Math.min(...wins) : null };
+    }
+    return out;
 }
 
 /**

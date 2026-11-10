@@ -35,6 +35,7 @@ import { ChordsKeyStep, ChordsStep, chosenLetters, HumStep } from '../components
 import { HumTuneStep } from '../components/create/hum-tune.js';
 import { chordsFor } from '../theory.js';
 import { Icon } from '../components/icon.js';
+import { AppScreen } from '../components/page.js';
 import { toast } from '../components/ui.js';
 import { confirmAction } from '../components/confirm.js';
 import { count } from '../usage.js';
@@ -97,20 +98,13 @@ export function newDraft(mode, template = null, extra = {}) {
 }
 
 export const CreateView = {
-    components: { Icon, TempoStep, WordsStep, SingStep, CheckStep, PartsStep, SaveStep, EditorStep, ChordsStep, ChordsKeyStep, HumStep, HumTuneStep },
+    components: { AppScreen, Icon, TempoStep, WordsStep, SingStep, CheckStep, PartsStep, SaveStep, EditorStep, ChordsStep, ChordsKeyStep, HumStep, HumTuneStep },
     props: { draftId: { type: String, default: null } },
     data: () => ({ draft: null, savedAt: null, failed: null, saving: false, unclear: null }),
     setup: () => ({ STEP_NAMES, goBack, account }),
     template: `
-        <div class="mx-auto flex min-h-dvh w-full flex-col px-4 pt-[max(1rem,env(safe-area-inset-top))] md:px-8" :class="wide ? 'max-w-6xl' : 'max-w-4xl'">
-            <header class="flex items-center gap-3 pb-4">
-                <button type="button" class="glass-bubble grid size-11 shrink-0 place-items-center rounded-full text-cream transition" :aria-label="t('create.leave')" @click="leave"><Icon name="back" :size="20" /></button>
-                <div class="min-w-0 flex-1">
-                    <p class="truncate text-sm text-muted">{{ draft ? t('create.frame.stepOf', { step: stepIndex + 1, total: steps.length }) : t('create.title') }}</p>
-                    <h1 class="truncate text-xl font-bold tracking-tight text-cream">{{ draft ? t(STEP_NAMES[draft.step]) : t('create.title') }}</h1>
-                </div>
-                <p v-if="savedAt" data-ui="facts" class="flex shrink-0 items-center gap-2 text-sm text-muted" role="status"><span class="size-2 rounded-full bg-accent" aria-hidden="true"></span>{{ t('create.draftSaved') }}</p>
-            </header>
+        <AppScreen :title="draft ? t(STEP_NAMES[draft.step]) : t('create.title')" :eyebrow="draft ? t('create.frame.stepOf', { step: stepIndex + 1, total: steps.length }) : t('create.title')" :leave="leave" :back-label="t('create.leave')" :measure="wide ? '' : 'max-w-4xl'" foot="">
+            <template #aside><p v-if="savedAt" data-ui="facts" class="flex shrink-0 items-center gap-2 text-sm text-muted" role="status"><span class="size-2 rounded-full bg-accent" aria-hidden="true"></span>{{ t('create.draftSaved') }}</p></template>
             <p v-if="failed" class="card p-6 text-cream" role="alert">{{ failed }}</p>
             <section v-else-if="unclear" class="card space-y-4 p-6" role="status">
                 <h2 class="text-xl font-bold text-cream">{{ t('harmonise.unclear.title') }}</h2>
@@ -141,7 +135,7 @@ export const CreateView = {
                     <EditorStep v-else-if="draft.step === 'edit'" :draft="draft" @change="change" @template="setTemplate" />
                     <SaveStep v-else-if="draft.step === 'save'" :draft="draft" :finished="finished" :problems="problems" :saving="saving" @change="change" @save="save" @goto="goto" />
                 </div>
-                <nav class="sticky bottom-0 z-20 -mx-4 mt-10 border-t border-line bg-ink/95 px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur md:-mx-8 md:px-8" :aria-label="t('create.frame.nav')">
+                <nav class="sticky bottom-0 z-20 -mx-4 mt-10 border-t border-line bg-ink/95 px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur min-[900px]:-mx-10 min-[900px]:px-10" :aria-label="t('create.frame.nav')">
                     <div class="flex flex-wrap items-center gap-x-4 gap-y-2">
                         <button v-if="stepIndex > 0" type="button" class="btn-secondary" :aria-label="t('create.frame.backTo', { step: t(STEP_NAMES[steps[stepIndex - 1]]) })" @click="goto(steps[stepIndex - 1])"><Icon name="back" :size="18" /> {{ t(STEP_NAMES[steps[stepIndex - 1]]) }}</button>
                         <p v-if="footerNote" class="order-first basis-full text-sm text-muted sm:order-none sm:ms-auto sm:basis-auto sm:text-end" :role="canGoOn ? null : 'status'"><b v-if="footerHead" class="block font-semibold text-cream">{{ footerHead }}</b>{{ footerNote }}</p>
@@ -151,7 +145,7 @@ export const CreateView = {
                     </div>
                 </nav>
             </template>
-        </div>`,
+        </AppScreen>`,
     computed: {
         steps() {
             return stepsFor(this.draft);
@@ -434,7 +428,7 @@ export const CreateView = {
                 this.dirty = false;
                 await discardDraft(d.id);
                 if (d.mode === 'hum') count('hum_saved'); // a hummed tune kept as a song
-                toast(record.state === 'limit' || record.state === 'invalid' ? t('create.savedHereOnly') : t('create.saved'));
+                toast(record.state === 'importedPrivate' ? t('create.savedImported') : record.state === 'limit' || record.state === 'invalid' ? t('create.savedHereOnly') : t('create.saved'));
                 navigate(`/t/${record.id}`, { replace: true });
             } catch (error) {
                 console.error('The template was not saved', error);

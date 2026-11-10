@@ -30,11 +30,10 @@ def journey(f):
         else:
             # Serious mode (docs/skins-plan.md row 6): still earned, never listed.
             assert not f.js("!!document.querySelector('#badges-heading')"), "badges in serious mode"
-        if who == "plus":
-            f.wait("document.querySelectorAll('svg[role=img] polyline').length >= 1", what="the history chart")
-            f.wait_text(t(f, "voice.history.highlights"))
-        else:
-            f.wait_text(t(f, "voice.history.withPlus"))
+        # History is free with an account, on any plan (Hillel, 2026-11-07).
+        f.wait("document.querySelectorAll('svg[role=img] polyline').length >= 1", what="the history chart")
+        f.wait_text(t(f, "voice.history.highlights"))
+        assert t(f, "voice.history.withAccount") not in f.js("document.body.innerText"), "no account ask when signed in"
         f.shot(who)
 
 

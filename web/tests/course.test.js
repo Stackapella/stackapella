@@ -33,6 +33,7 @@ test('course: a unit opens at two thirds of the stars before it, or by the check
 });
 
 test('course: the next lesson is the first open one without stars, in order; Plus units only for Plus', () => {
+    // A unit once marked Plus is free like the rest (Hillel, 2026-11-06): the flag is no longer read.
     const course = [
         { id: 'u1', lessons: [{ id: 'home', findsHome: true }, { id: 'b' }] },
         { id: 'u2', plus: true, lessons: [{ id: 'c' }] },
@@ -40,8 +41,7 @@ test('course: the next lesson is the first open one without stars, in order; Plu
     let p = emptyProgress();
     assert(nextLesson(course, p).lesson.id === 'home', 'lesson 1 first, for everyone');
     p = recordLesson(recordLesson(p, 'home', { stars: 3, percent: 95 }), 'b', { stars: 3, percent: 95 });
-    assert(nextLesson(course, p).lesson.id === 'b', 'all free done: the last free lesson');
-    assert(nextLesson(course, p, { plus: true }).lesson.id === 'c', 'a Plus member goes on');
+    assert(nextLesson(course, p).lesson.id === 'c', 'everyone goes on to the next unit, no Plus needed');
     // Units an earlier skip-ahead opened stay open.
     assert(unitOpen(units, 2, { ...emptyProgress(), testedOut: ['u3'] }), 'kept open');
 });

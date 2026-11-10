@@ -1,24 +1,26 @@
-{{-- Four voices, four steps (Hillel's mockup, as a bento since the redesign: learn and share wide,
-     a real voice and record narrow): learn (the real course map), a real voice, record, share, each
-     card's picture drawn from the hero's song (Landing::pictures) when it's in the library. --}}
+{{-- Four voices, four steps (landing v2: numbered, two by two, the section's line beside the heading; the How it
+     works page keeps its bento): learn (the real course map), a real voice, record, share, each card's picture drawn
+     from the hero's song (Landing::pictures) when it's in the library, then the coach note as one quiet bar. --}}
 <section id="how" class="s-wrap s-sec" aria-labelledby="steps-h">
     {{-- On the How it works page itself, its eyebrow already says so. --}}
     @unless (request()->is('how-it-works'))
         <p class="s-kick">{{ __('pages.landing.steps_kick') }}</p>
     @endunless
-    <h2 id="steps-h" class="s-title"><x-site.skin :game="__('pages.landing.game.steps_title')" :serious="__('pages.landing.steps_title')" /></h2>
-    <p class="s-lede">{{ __('pages.landing.steps_lead') }}</p>
+    <div class="s-headsplit">
+        <h2 id="steps-h" class="s-title"><x-site.skin :game="__('pages.landing.game.steps_title')" :serious="__('pages.landing.steps_title')" /></h2>
+        <p class="s-lede">{{ __('pages.landing.steps_lead') }}</p>
+    </div>
     <div class="s-steps s-bento">
         {{-- The first step shows the real app: the course map with a week under way (the guide's
              your-voice--map, light and dark, as the reader's theme), cropped to its top. --}}
         <article class="s-step s-v1">
-            <p class="s-step-k"><span class="s-disc" aria-hidden="true">{{ mb_substr(__('pages.landing.hero.parts.soprano'), 0, 1) }}</span>{{ __('pages.landing.steps.learn.label') }}</p>
+            <p class="s-step-k"><span class="s-disc" aria-hidden="true">1</span>{{ __('pages.landing.steps.learn.label') }}</p>
             <h3>{{ __('pages.landing.steps.learn.title') }}</h3>
             <p>{{ __('pages.landing.steps.learn.body') }}</p>
             <div class="s-vis s-vis-shot"><x-site.appshot id="your-voice--map" :alt="__('pages.landing.steps.learn.screens.course')" /></div>
         </article>
         <article class="s-step s-v2">
-            <p class="s-step-k"><span class="s-disc" aria-hidden="true">{{ mb_substr(__('pages.landing.hero.parts.alto'), 0, 1) }}</span>{{ __('pages.landing.steps.voice.label') }}</p>
+            <p class="s-step-k"><span class="s-disc" aria-hidden="true">2</span>{{ __('pages.landing.steps.voice.label') }}</p>
             <h3>{{ __('pages.landing.steps.voice.title') }}</h3>
             <p>{{ __('pages.landing.steps.voice.body') }}</p>
             <div class="s-vis" aria-hidden="true">
@@ -30,7 +32,7 @@
             </div>
         </article>
         <article class="s-step s-v3">
-            <p class="s-step-k"><span class="s-disc" aria-hidden="true">{{ mb_substr(__('pages.landing.hero.parts.tenor'), 0, 1) }}</span>{{ __('pages.landing.steps.record.label') }}</p>
+            <p class="s-step-k"><span class="s-disc" aria-hidden="true">3</span>{{ __('pages.landing.steps.record.label') }}</p>
             <h3>{{ __('pages.landing.steps.record.title') }}</h3>
             <p>{{ __('pages.landing.steps.record.body') }}</p>
             <div class="s-vis" aria-hidden="true">
@@ -41,7 +43,7 @@
             </div>
         </article>
         <article class="s-step s-v4">
-            <p class="s-step-k"><span class="s-disc" aria-hidden="true">{{ mb_substr(__('pages.landing.hero.parts.bass'), 0, 1) }}</span>{{ __('pages.landing.steps.share.label') }}</p>
+            <p class="s-step-k"><span class="s-disc" aria-hidden="true">4</span>{{ __('pages.landing.steps.share.label') }}</p>
             <h3>{{ __('pages.landing.steps.share.title') }}</h3>
             <p>{{ __('pages.landing.steps.share.body') }}</p>
             <div class="s-vis" aria-hidden="true">
@@ -55,10 +57,12 @@
             </div>
         </article>
     </div>
-    {{-- Through to the whole story on its own page (site/how-it-works), but not from that page itself. --}}
-    @unless (request()->is('how-it-works'))
-        <a href="/how-it-works" class="s-arrow">{{ __('pages.landing.steps_more') }} <x-site.icon name="arrow" size="16" /></a>
-    @endunless
-    {{-- Hillel: no app replaces a real vocal coach, said on the landing (CoachLineTest). --}}
-    <p class="s-coachline">{{ __('pages.landing.coach_note') }}</p>
+    {{-- Hillel: no app replaces a real vocal coach, said on the landing (CoachLineTest), in one quiet bar with the
+         way through to the whole story on its own page (site/how-it-works), but not from that page itself. --}}
+    <div class="s-coachbar">
+        <p class="s-coachline">{{ __('pages.landing.coach_note') }}</p>
+        @unless (request()->is('how-it-works'))
+            <a href="/how-it-works" class="s-arrow">{{ __('pages.landing.steps_more') }} <x-site.icon name="arrow" size="16" /></a>
+        @endunless
+    </div>
 </section>

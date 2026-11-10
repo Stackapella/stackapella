@@ -5,13 +5,11 @@ declare(strict_types=1);
 namespace App\Support\Templates;
 
 use App\Enums\TemplateAccess;
-use App\Models\BetaAssignment;
 use App\Models\GroupSong;
 use App\Models\Template;
 use App\Models\TemplateGuide;
-use App\Models\TemplateUnlock;
 use App\Models\User;
-use App\Support\Usage\Plans;
+use App\Support\Pages\SongParts;
 use Illuminate\Support\Collection;
 
 /**
@@ -29,16 +27,40 @@ final class Catalogue
         return Template::query()->listed()->with('currentVersion')->whereNotNull('current_version_id')->orderBy('title')->get();
     }
 
-    /** @var array<int, array<int, int>> the songs each person kept from the song of the month */
-    private array $kept = [];
+    /**
+     * The songs the public site may show (the songbook, each song's page and its part pages, the
+     * sitemap, the song counts): live, its current version reviewed, its words and tune public
+     * domain. A song waiting for its Monday is reviewed false, so it stays off the site until it opens.
+     *
+     * @return Collection<int, Template>
+     */
+    public function open(): Collection
+    {
+        // Read once a request (it's scoped): the songbook, the sitemap and the part pages all ask.
+        return $this->open ??= $this->songs()->filter(self::isOpen(...))->values();
+    }
+
+    /** @var Collection<int, Template>|null */
+    private ?Collection $open = null;
+
+    /** Whether the public site may show this song (self::open()). */
+    public static function isOpen(Template $template): bool
+    {
+        return $template->owner_id === null && $template->withdrawn_at === null && $template->current_version_id !== null
+            && $template->currentVersion?->reviewed === true && SongParts::publicDomain((array) $template->currentVersion->data);
+    }
 
     /** @var array<int, list<int>> the songs shared with each person's choir groups */
     private array $grouped = [];
 
-    /** @var array<int, array<int, int>> each beta singer's assigned songs, by user id */
-    private array $assigned = [];
-
-    public function __construct(private readonly Plans $plans) {}
+    /**
+     * The library's size as the site says it: the songs it may show (self::open()), every one free
+     * with an account (docs/pricing-plan.md, top).
+     */
+    public function songCount(): int
+    {
+        return $this->open()->count();
+    }
 
     public function mayStart(Template $template, ?User $user): bool
     {
@@ -46,26 +68,20 @@ final class Catalogue
     }
 
     /**
-     * Why someone may have a song's notes and voices (contract/api.md, "Plus and billing"): a free
-     * song, Plus, the song of the month (signed out too), or kept from a project started while it
-     * was; null when they may not.
+     * Why someone may have a library song's notes and voices (contract/api.md, "Plus and billing"):
+     * one of the free songs the app bundles (anyone, signed out too), Hillel and the editor (never
+     * counted toward the daily cap), or any signed-in account (since 2026-11-07 every library song
+     * is free with an account); null signed out.
      *
-     * @return 'free'|'plus'|'month'|'kept'|'group'|'admin'|'beta'|null
+     * @return 'free'|'admin'|'account'|null
      */
     public function grant(Template $template, ?User $user): ?string
     {
         return match (true) {
             $template->access === TemplateAccess::Free => 'free',
-            $user !== null && $this->plans->isPlus($user) => 'plus',
-            $template->isFreeOn(now()) => 'month',
-            $user !== null && in_array($template->id, $this->kept[$user->id] ??= TemplateUnlock::query()->where('user_id', $user->id)->pluck('template_id')->map(fn (mixed $id): int => (int) $id)->values()->all(), true) => 'kept',
-            // A choir group's song, while the person sings in that group and its director has Plus.
-            $user !== null && in_array($template->id, $this->plans->groupSongIds($user), true) => 'group',
-            // Hillel and the editor, reviewing beta takes and guides.
-            $user !== null && ($user->is_admin || $user->is_editor) => 'admin',
-            // A beta singer's assigned song, to record their part.
-            $user !== null && in_array($template->id, $this->assigned[$user->id] ??= BetaAssignment::query()->whereHas('singer', fn ($q) => $q->where('user_id', $user->id)->whereNull('revoked_at')->whereNull('forgotten_at'))->pluck('template_id')->map(fn (mixed $id): int => (int) $id)->values()->all(), true) => 'beta',
-            default => null,
+            $user === null => null,
+            $user->is_admin || $user->is_editor => 'admin',
+            default => 'account',
         };
     }
 

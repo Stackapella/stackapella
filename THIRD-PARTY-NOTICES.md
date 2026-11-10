@@ -13,8 +13,6 @@ bundled into our code (there's no npm; `web/index.html`'s import map and `web/js
 |---|---|---|---|
 | [Vue](https://vuejs.org) | 3.5.44 | MIT, Copyright (c) 2018-present, Yuxi (Evan) You | jsDelivr (`vue.esm-browser.prod.js`) |
 | [lamejs](https://github.com/zhuker/lamejs) (MP3 export) | 1.2.1 | LGPL-3.0, by Alex Zhukov | jsDelivr (`lame.min.js`), loaded only when someone exports an MP3 |
-| [Figtree](https://github.com/erikdkennedy/figtree) (weights 300 to 800) | Google Fonts | SIL Open Font License 1.1 | fonts.googleapis.com |
-| [Noto Music](https://fonts.google.com/noto/specimen/Noto+Music) (a few music signs) | Google Fonts | SIL Open Font License 1.1 | fonts.googleapis.com |
 
 **lamejs is under the LGPL-3.0.** It stays a separate file, loaded unmodified at run time, so
 it can be replaced; if you copy it to your own server, keep it a separate file with its licence
@@ -29,6 +27,7 @@ Apple's sign-in. They're services, under their own terms, not code in this repos
 | What | Licence | Where |
 |---|---|---|
 | Figtree Medium, Bold and ExtraBold (TTF), Copyright 2022 The Figtree Project Authors | SIL Open Font License 1.1 (its text beside the fonts) | `server/resources/fonts/OFL.txt`, `server/resources/promo/showreel/fonts/OFL.txt` |
+| The app's and the site's web fonts, served from our own address: [Figtree](https://github.com/erikdkennedy/figtree) (weights 300 to 800, Latin and Latin Extended, as Google Fonts cuts them), Copyright 2022 The Figtree Project Authors; [Noto Music](https://github.com/notofonts/music) (the staff's few music signs), Copyright 2022 The Noto Project Authors; [Bungee](https://github.com/djrrb/Bungee), Copyright 2023 The Bungee Project Authors; [Press Start 2P](https://github.com/google/fonts/tree/main/ofl/pressstart2p), shipped as "Stackapella Pixel": a subset of the original converted to WOFF2 (a Modified Version, so under its own name, as its Reserved Font Name asks), Copyright 2012 The Press Start 2P Project Authors; [VT323](https://github.com/google/fonts/tree/main/ofl/vt323), Copyright 2011 The VT323 Project Authors | SIL Open Font License 1.1 (each font's text beside it) | `web/fonts/` (`OFL-figtree.txt`, `OFL-notomusic.txt`, `OFL-bungee.txt`, `OFL-pixel.txt`, `OFL-vt323.txt`) |
 | Tailwind CSS's compiled output | MIT, Copyright (c) Tailwind Labs, Inc. (its banner kept at the top of the file) | `web/css/app.css`. The standalone Tailwind 4.3.3 binary is downloaded by `web/tool/tailwind.sh`, checked by its SHA-256, and never committed |
 | The 10,000 most common passwords, from [SecLists](https://github.com/danielmiessler/SecLists) (`Passwords/Common-Credentials/10k-most-common.txt`) | MIT, Copyright (c) 2018 Daniel Miessler (in full below) | `server/resources/data/common-passwords.txt` |
 | Disposable email domains, from [disposable-email-domains](https://github.com/disposable-email-domains/disposable-email-domains) | CC0 1.0 | `server/resources/data/disposable-domains.txt` |

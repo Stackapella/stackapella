@@ -7,6 +7,7 @@ namespace App\Actions\School;
 use App\Exceptions\Refusal;
 use App\Mail\Account\ClassCodesReady;
 use App\Models\AuditLog;
+use App\Models\OutreachTarget;
 use App\Models\SchoolClass;
 use App\Models\SchoolRedemption;
 use App\Models\SchoolTeacher;
@@ -96,6 +97,60 @@ final class SchoolCodes
         });
     }
 
+    /** A partner code's seats at most (a partner's membership), and its life in days. */
+    public const PARTNER_SEATS = 100000;
+
+    public const PARTNER_DAYS = 365;
+
+    /**
+     * A partner code (docs/outreach-plan.md, "The partner offer"): Admin's, for an approved partner
+     * organization's members, with the seats it needs and no lifetime cap. Each member redeems once
+     * for a year, under-18s under the school rules, and the partner learns only the seats used. Its
+     * outreach organization (when there is one) becomes a partner. Audited.
+     */
+    public function createPartner(string $name, int $seats, int $days, ?OutreachTarget $target, User $admin, ?string $ip = null): SchoolClass
+    {
+        $this->ensureOpen();
+
+        for ($try = 0; ; $try++) {
+            try {
+                $class = new SchoolClass;
+                $class->forceFill(['kind' => SchoolClass::PARTNER, 'teacher_id' => null, 'outreach_target_id' => $target?->id, 'name' => $name, 'code' => self::newCode(), 'seats' => $seats, 'expires_at' => now()->addDays($days)])->save();
+
+                break;
+            } catch (QueryException $e) {
+                if ($try >= 4 || ! str_contains($e->getMessage(), 'Duplicate')) {
+                    throw $e;
+                }
+            }
+        }
+
+        $target?->forceFill(['status' => 'partner', 'outcome' => 'joined'])->save();
+        AuditLog::record('school.partner_code', $class, $admin, after: ['name' => $name, 'seats' => $seats, 'days' => $days, 'target' => $target?->ref], ip: $ip);
+
+        return $class->refresh();
+    }
+
+    /**
+     * Admin changes a partner code's seats, never below those used. Audited.
+     */
+    public function partnerSeats(SchoolClass $class, int $seats, User $admin, ?string $reason = null): SchoolClass
+    {
+        if ($class->kind !== SchoolClass::PARTNER) {
+            throw new Refusal(409, 'school_not_partner');
+        }
+
+        if ($seats < $class->used) {
+            throw new Refusal(409, 'school_seats_below_used');
+        }
+
+        $before = $class->seats;
+        $class->forceFill(['seats' => $seats])->save();
+        AuditLog::record('school.partner_seats', $class, $admin, before: ['seats' => $before], after: ['seats' => $seats], reason: $reason);
+
+        return $class;
+    }
+
     /**
      * Renames it, changes its seats (never below the seats used), or closes it.
      */
@@ -114,7 +169,9 @@ final class SchoolCodes
             $class = SchoolClass::query()->whereKey($class->id)->lockForUpdate()->firstOrFail();
 
             if ($seats !== null && $seats !== $class->seats) {
-                if ($seats < $class->used) {
+                // Against the count the teacher sees (as of the start of today), so the refusal can't
+                // tell them who joined since; a code set below its live count just stops taking more.
+                if ($seats < $class->usedForTeacher()) {
                     throw new Refusal(409, 'school_seats_below_used');
                 }
 
@@ -201,7 +258,7 @@ final class SchoolCodes
      */
     public function all(): Collection
     {
-        return SchoolClass::query()->with(['teacher:id,name,email', 'teacherRecord'])->latest('id')->limit(500)->get();
+        return SchoolClass::query()->with(['teacher:id,name,email', 'teacherRecord', 'partner'])->latest('id')->limit(500)->get();
     }
 
     public function close(SchoolClass $class, User $admin, ?string $reason = null): SchoolClass

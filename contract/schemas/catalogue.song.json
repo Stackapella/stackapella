@@ -76,8 +76,9 @@
             "type": "string",
             "enum": [
                 "free",
-                "plus"
-            ]
+                "account"
+            ],
+            "description": "free: anyone may start it, signed out too (the app bundles it); account: any signed-in account, on any plan (every library song since 2026-11-07)."
         },
         "freeUntil": {
             "type": [
@@ -85,7 +86,7 @@
                 "null"
             ],
             "format": "date-time",
-            "description": "The song of the month: free to everyone until this moment. Null otherwise."
+            "description": "Always null: the song of the month ended on 2026-11-07. Kept for older apps."
         },
         "previewUrl": {
             "type": [

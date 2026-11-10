@@ -10,6 +10,7 @@
      wordless. Words: lang/en/site.php courses.pages.breath-and-stamina. --}}
 @php($flags = ['a', 'b', 'c', 'd', 'a', 'c', 'b', 'd'])
 @php($ports = [[70, 176], [210, 112], [350, 150], [490, 74]])
+@php($demo = $page['demo'])
 <main class="cp cp-breath">
     <section class="cp-hero cp-br-hero" aria-labelledby="page-h">
         <div class="s-wrap cp-hero-grid">
@@ -25,7 +26,7 @@
                 </ul>
                 <p class="cp-hero-btns">
                     @if ($open)
-                        <a href="{{ \App\Support\Http\Hosts::app('/learn/c/'.$page['app']) }}" class="btn-primary btn-lg">{{ __('pages.site.course_try') }} <x-site.icon name="arrow" size="18" /></a>
+                        <a href="{{ $courseStart }}" class="btn-primary btn-lg">{{ __('pages.site.course_try') }} <x-site.icon name="arrow" size="18" /></a>
                     @endif
                     <a href="#units-h" class="btn-secondary btn-lg">{{ $page['see_lessons'] }}</a>
                 </p>
@@ -64,6 +65,61 @@
                         <path d="M64 402 v8 M104 402 v8 M144 402 v8 M184 402 v8 M224 402 v8 M264 402 v8 M304 402 v8 M344 402 v8 M384 402 v8 M424 402 v8 M464 402 v8 M504 402 v8 M544 402 v8" class="cp-br-ticks" />
                     </g>
                 </svg>
+            </div>
+        </div>
+    </section>
+
+    {{-- The featured demo, End on purpose (lesson br-2-end; js/public/breath-and-stamina.js): a listen
+         first, A steady and B running out of air, then a held note over a drone to let go on the beat.
+         The roll counts beats 0 to 12 across x(b) = 20 + 560b/12: two count dots, the note from beat 3
+         to 9, the on-time band (0.12 s either side of 9) and the line at its end. --}}
+    <section class="s-wrap cp-dk-demosec" aria-labelledby="demo-h">
+        <div class="cp-dk-demo" data-br-demo
+            data-ready="{{ $demo['ready'] }}" data-count="{{ $demo['count'] }}" data-holding="{{ $demo['holding'] }}" data-too-soon="{{ $demo['too_soon'] }}"
+            data-on-time="{{ $demo['on_time'] }}" data-early-near="{{ $demo['early_near'] }}" data-early-far="{{ $demo['early_far'] }}"
+            data-late-near="{{ $demo['late_near'] }}" data-late-far="{{ $demo['late_far'] }}" data-ran-out="{{ $demo['ran_out'] }}"
+            data-right="{{ $demo['right'] }}" data-wrong="{{ $demo['wrong'] }}">
+            <p class="cp-dk-demo-bar"><span class="cp-dk-live"><span class="cp-dk-rec" aria-hidden="true"></span>{{ $demo['live'] }}</span><span>{{ $demo['lesson'] }}</span></p>
+            <div class="cp-dk-demo-in">
+                <div>
+                    <h2 id="demo-h" class="cp-dk-demo-h">{{ $demo['title'] }}</h2>
+                    <p class="cp-dk-demo-lead">{{ $demo['lead'] }}</p>
+                    <fieldset class="cp-dk-pick">
+                        <legend>{{ $demo['listen_h'] }}</legend>
+                        @foreach ((array) $demo['clips'] as $clip => $name)
+                            <button type="button" class="cp-dk-hear" data-br-clip="{{ $clip }}" data-play="{{ $name }}" data-stop="{{ $demo['stop'] }}" aria-pressed="false"><span class="cp-dk-play-icon" aria-hidden="true"></span><span data-label>{{ $name }}</span></button>
+                        @endforeach
+                    </fieldset>
+                    <fieldset class="cp-dk-pick">
+                        <legend>{{ $demo['ask'] }}</legend>
+                        @foreach ((array) $demo['picks'] as $clip => $name)
+                            <button type="button" class="cp-dk-chip cp-ear-pick" data-br-pick="{{ $clip }}">{{ $name }}</button>
+                        @endforeach
+                    </fieldset>
+                    <p class="cp-dk-say" role="status" data-br-heard></p>
+                </div>
+                <div>
+                    <div class="cp-dk-roll">
+                        <svg viewBox="0 40 600 150" aria-hidden="true">
+                            <path d="M20 100 H580" class="cp-dk-staff" />
+                            @foreach (range(0, 12) as $b)
+                                <path d="M{{ 20 + $b * 560 / 12 }} 168 V180" class="cp-dk-staff" />
+                            @endforeach
+                            <rect x="{{ 20 + 9 * 560 / 12 - 5.6 }}" y="56" width="11.2" height="124" class="cp-dk-part" data-br-band />
+                            <rect x="{{ 20 + 3 * 560 / 12 }}" y="93" width="280" height="14" rx="7" class="cp-dk-bar" data-br-bar />
+                            <text x="{{ 20 + 3 * 560 / 12 + 10 }}" y="84" class="cp-ear-n">{{ $demo['vowel'] }}</text>
+                            <path d="M440 50 V180" class="cp-dk-centre" />
+                            <circle cx="{{ 20 + 560 / 12 }}" cy="100" r="7" class="cp-ear-rung" data-br-count />
+                            <circle cx="{{ 20 + 2 * 560 / 12 }}" cy="100" r="7" class="cp-ear-rung" data-br-count />
+                            <path d="" class="cp-dk-trace" data-br-trace />
+                            <circle cx="20" cy="100" r="8" class="cp-ear-rung" data-on data-br-head />
+                        </svg>
+                    </div>
+                    <p class="cp-dk-btns"><button type="button" class="cp-dk-big cp-br-press" data-br-hold aria-pressed="false"><span class="cp-dk-big-icon" aria-hidden="true"></span>{{ $demo['hold'] }}</button></p>
+                    <p class="cp-dk-say" role="status" data-br-say>{{ $demo['ready'] }}</p>
+                    <p class="cp-dk-note"><b>{{ $demo['motto'] }}</b> {{ $demo['fact'] }} <a href="{{ $demo['url'] }}" rel="noopener" class="underline underline-offset-2">{{ $demo['source'] }}</a></p>
+                    <p class="cp-dk-note">{{ $demo['note'] }}</p>
+                </div>
             </div>
         </div>
     </section>
@@ -219,8 +275,8 @@
             @endif
             <p class="cp-join-btns">
                 @if ($open)
-                    <a href="{{ \App\Support\Http\Hosts::app('/learn/c/'.$page['app']) }}" class="btn-primary btn-lg">{{ __('pages.site.course_try') }} <x-site.icon name="arrow" size="18" /></a>
-                    <a href="/pricing" class="btn-secondary btn-lg">{{ __('pages.site.course_plus') }}</a>
+                    <a href="{{ $courseStart }}" class="btn-primary btn-lg">{{ __('pages.site.course_try') }} <x-site.icon name="arrow" size="18" /></a>
+                    <a href="/courses" class="btn-secondary btn-lg">{{ __('pages.site.course_all') }}</a>
                 @else
                     <a href="{{ $links['start'] }}" class="btn-primary btn-lg">{{ __('pages.site.course_start') }} <x-site.icon name="arrow" size="18" /></a>
                     <a href="/courses" class="btn-secondary btn-lg">{{ __('pages.site.course_all') }}</a>
@@ -230,4 +286,5 @@
             @include('site.courses._related')
         </div>
     </section>
+    <script type="module" src="/js/public/breath-and-stamina.js"></script>
 </main>

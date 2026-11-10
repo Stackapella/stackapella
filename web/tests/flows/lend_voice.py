@@ -44,6 +44,11 @@ def journey(f):
     f.run("[...document.querySelectorAll('[data-voices-wanted] [role=radio]')].find((b) => b.textContent.trim() === " + json.dumps(t(f, "voices.kind.clips")) + ").click()")
     f.wait("document.querySelector('[data-voices-wanted] [role=radio][aria-checked=true]')?.textContent.trim() === " + json.dumps(t(f, "voices.kind.clips")), what="lesson clips")
     f.wait("document.querySelector('[data-wanted] [data-wanted-claim]')", what="the clips listed")
+    # Six claims a day: the seventh is said in words, not a bare failure.
+    f.run("history.replaceState(null, '', '/voices?scenario=voices.claims.create:rate_limited')")
+    f.run("document.querySelector('[data-wanted] [data-wanted-claim]').click()")
+    f.wait(f"document.querySelector('[data-voices-refused]')?.textContent.trim() === {json.dumps(t(f, 'voices.refused.today'))}", what="six a day")
+    f.run("history.replaceState(null, '', '/voices?scenario=')")
     f.run("document.querySelector('[data-wanted] [data-wanted-claim]').click()")
     f.wait_text(t(f, "voices.claimed"))
 

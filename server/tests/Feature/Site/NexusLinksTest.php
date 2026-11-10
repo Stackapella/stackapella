@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Site;
 
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 /**
@@ -12,6 +13,8 @@ use Tests\TestCase;
  */
 final class NexusLinksTest extends TestCase
 {
+    use RefreshDatabase;
+
     private const MARKETING = ['/pricing', '/features', '/whats-new', '/guides', '/about', '/press', '/open-source', '/selfhost', '/how-it-works'];
 
     public function test_the_help_and_legal_pages_link_only_to_pages_that_are_there_off_the_nexus(): void

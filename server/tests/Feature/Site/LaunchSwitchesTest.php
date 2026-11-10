@@ -30,22 +30,25 @@ final class LaunchSwitchesTest extends TestCase
         $this->get('/courses/vibrato')->assertOk()
             ->assertSee((string) __('site.courses.pages.vibrato.close'))
             ->assertSee(__('pages.site.course_try'))
-            ->assertSee('/learn/c/vibrato', false);
+            ->assertSee('?ref=course-page', false);
         $this->get('/courses/'.$this->aCourseStillComing())->assertOk()
             ->assertSee(__('pages.site.course_soon'))
             ->assertDontSee(__('pages.site.course_try'));
         $this->get('/courses')->assertOk()->assertSee(__('pages.site.course_open'));
     }
 
-    public function test_the_plans_list_the_plus_courses_once_they_open(): void
+    public function test_the_free_plan_lists_every_course_once_they_open(): void
     {
-        $this->get('/')->assertOk()->assertDontSee(__('pages.landing.plans_plus_courses'));
-        $this->get('/pricing')->assertOk()->assertDontSee(__('pages.landing.plans_plus_courses'));
+        $every = (string) __('pages.landing.plans_free_list.0');
+        $beginner = (string) __('pages.landing.plans_free_beginner');
+        $this->get('/')->assertOk()->assertSee($beginner)->assertDontSee($every);
+        $this->get('/pricing')->assertOk()->assertSee($beginner)->assertDontSee($every);
 
         app(Flags::class)->set('plus_courses', 'on', null, 'Opening the Plus courses');
 
-        $this->get('/')->assertOk()->assertSee(__('pages.landing.plans_plus_courses'));
-        $this->get('/pricing')->assertOk()->assertSee(__('pages.landing.plans_plus_courses'));
+        // One line, never the beginner course and "every other course" as two (Hillel, 2026-11-08).
+        $this->get('/')->assertOk()->assertSee($every)->assertDontSee($beginner);
+        $this->get('/pricing')->assertOk()->assertSee($every)->assertDontSee($beginner);
     }
 
     public function test_the_coaches_page_leads_to_applying_once_coach_sign_up_opens(): void

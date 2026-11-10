@@ -22,12 +22,16 @@ final class SessionlessAnonymousReads
     /** The anonymous reads that start a session. */
     public const STARTS_SESSION = ['auth.config'];
 
+    /** Set on a request this let through without a session (SignedInHint can't read who it is). */
+    public const SESSIONLESS = 'stackapella.sessionless';
+
     public function handle(Request $request, Closure $next): Response
     {
         if (! self::anonymousRead($request)) {
             return $next($request);
         }
 
+        $request->attributes->set(self::SESSIONLESS, true);
         $driver = config('session.driver');
         config(['session.driver' => 'array', 'session.stored_driver' => $driver]);
 

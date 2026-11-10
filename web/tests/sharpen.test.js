@@ -42,8 +42,8 @@ test('sharpen up: the weakest lessons done, fewest stars, then lowest best, then
     assert(four[0].kept.bestPercent === 72 && four[0].unit.id === 'u1', 'each with its kept result and unit');
     const learnOnly = sharpenPicks(course, kept({ a: { stars: 3, bestPercent: 95 }, b: { stars: 2, bestPercent: 70 }, d: { stars: 3, bestPercent: null } }), staff);
     assert(learnOnly.length === 0, 'a lesson with nothing scored does not count toward it');
-    const closed = sharpenPicks(course, kept({ a: { stars: 1, bestPercent: 40 }, b: { stars: 1, bestPercent: 40 }, c: { stars: 1, bestPercent: 40 } }), {});
-    assert(closed.length === 0, 'lessons past the free one, without Plus: not offered');
+    const free = sharpenPicks(course, kept({ a: { stars: 1, bestPercent: 40 }, b: { stars: 1, bestPercent: 40 }, c: { stars: 1, bestPercent: 40 } }), { signedIn: true });
+    assert(free.length > 0, 'on the free plan too: every lesson is free (2026-11-06)');
 });
 
 test('sharpen up: the queue in this tab moves on lesson by lesson and ends', () => {

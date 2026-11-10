@@ -23,7 +23,7 @@ export const mine = reactive({ list: [], drafts: [], loaded: false, syncing: fal
 const signedIn = () => !!account.me && !mockWanted();
 const byNewest = (a, b) => (b.updatedAt ?? 0) - (a.updatedAt ?? 0);
 // What a refusal leaves the template as, on the device.
-const STATES = { template_limit: 'limit', template_read_only: 'readOnly', email_unverified: 'unverified' };
+const STATES = { template_limit: 'limit', template_read_only: 'readOnly', email_unverified: 'unverified', imported_private: 'importedPrivate' };
 /** What a refusal of the template itself (422) said: every message (each names the part and note), shown, never resent as it is. */
 const problemsIn = (error) => Object.values(error.errors ?? {}).flat().filter((m) => typeof m === 'string');
 
@@ -153,6 +153,11 @@ async function send(record, { retried = false } = {}) {
             console.warn('The account refused the template', error.errors);
             return keep({ ...now, state: 'invalid', invalid: { reasons: problemsIn(error), for: JSON.stringify(now.template), round: REFUSAL_ROUND } });
         }
+        if (error.code === 'imported_private') {
+            // Someone else's song from sheet music (a choir group's), or an import asked to be shared: it
+            // stays on this device, and isn't sent again until it or who may open it changes.
+            return keep({ ...now, state: 'importedPrivate', refusedFor: refusalKey(now) });
+        }
         if (!STATES[error.code] && error.status !== 0 && error.code !== 'offline') console.warn('The template was not saved to the account', error);
         return keep({ ...now, state: STATES[error.code] ?? (error.status === 0 || error.code === 'offline' ? 'offline' : now.state === 'saved' ? 'offline' : 'device') });
     }
@@ -167,8 +172,12 @@ export const REFUSAL_ROUND = 1;
 
 /** Refused by the account (422) in this round and not changed since: waits for an edit instead of going again. */
 export function refusedAsItIs(record) {
+    if (record.state === 'importedPrivate') return record.refusedFor === refusalKey(record);
     return record.state === 'invalid' && record.invalid?.round === REFUSAL_ROUND && record.invalid?.for === JSON.stringify(repairTemplate(record.template).template);
 }
+
+/** What an imported_private refusal was about: the song, who may open it, and the library opt-in (exported for the tests). */
+export const refusalKey = (record) => JSON.stringify([repairTemplate(record.template).template, record.visibility, record.libraryOptIn]);
 
 async function keep(record) {
     await db.put('templates', record);

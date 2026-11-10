@@ -99,7 +99,10 @@ def choose_skin(chrome, public, skin):
 def landing(chrome, public, app, now):
     for skin in ("game", "serious"):
         choose_skin(chrome, public, skin)
-        if not page(chrome, f"https://{public}/", f"the landing on {public} renders in the {skin} skin with no console errors"):
+        # Until the page is complete: funnel.js, a module that runs after the HTML, writes from=start into
+        # every Start. Read sooner (an h1 alone), the first check after a deploy raced it and lost.
+        if not page(chrome, f"https://{public}/", f"the landing on {public} renders in the {skin} skin with no console errors",
+                    wait="document.querySelector('h1') && document.readyState === 'complete'"):
             continue
         shown = chrome.evaluate("document.documentElement.dataset.skin")
         say(shown == skin, f"the landing shows the {skin} skin", f"data-skin {shown}")

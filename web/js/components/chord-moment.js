@@ -57,7 +57,7 @@ export const ChordMoment = {
     template: `
         <section class="w-full max-w-xl rounded-3xl border border-edge bg-panel p-5" aria-labelledby="chord-moment-title" data-chord-moment :data-playing="playing ? 'true' : 'false'">
             <div class="flex items-center gap-4">
-                <button type="button" class="glass-bubble-solid grid size-14 shrink-0 place-items-center rounded-full" :aria-label="playing ? t('chordMoment.playing') : t('chordMoment.play')" :disabled="playing" data-chord-play @click="play(0)"><Icon :name="playing ? 'volume' : 'play'" :size="22" /></button>
+                <button type="button" class="grid size-14 shrink-0 place-items-center bubble bubble-primary" data-disc="play" :aria-label="playing ? t('chordMoment.playing') : t('chordMoment.play')" :disabled="playing" data-chord-play @click="play(0)"><Icon :name="playing ? 'volume' : 'play'" :size="22" /></button>
                 <h2 id="chord-moment-title" class="text-lg font-bold text-cream">{{ t('chordMoment.title') }}</h2>
             </div>
             <ol class="mt-4 space-y-2" :aria-label="t('chordMoment.lanes')">

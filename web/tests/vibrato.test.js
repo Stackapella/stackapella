@@ -187,3 +187,27 @@ test('wave lane: a take widens the range with a scorer\'s own steady notes, else
     assert(sungOf({ percent: 80, sung: [] }, 57).join() === '57', 'an empty list counts as none given');
     assert(sungOf({ percent: null, sung: [45, 67] }, 57).length === 0, 'not heard: nothing widens');
 });
+
+// ---- The scoring audit, 2026-11-08 (F2, F4): steering and a pushed wave aren't a free hold or a bloom ----
+
+test('vibrato: a free hold caps a wobble (steering) at two stars, as a tremble and a shake', () => {
+    for (const natural of [{ hz: 5.5, cents: 30 }, { hz: 4.7, cents: 40 }, { hz: 6, cents: 60 }, { hz: 0, cents: 0 }]) {
+        const p = freePercent(hold({ seconds: 6, ...natural }), RATE).percent;
+        assert(p >= 90, `natural or straight ${JSON.stringify(natural)}: ${p}`);
+    }
+    for (const steered of [{ hz: 3.2, cents: 80 }, { hz: 4, cents: 110 }, { hz: 4, cents: 30 }, { hz: 4, cents: 60 }]) {
+        const p = freePercent(hold({ seconds: 6, ...steered }), RATE).percent;
+        assert(p <= 75, `steering on, or a wobble ${JSON.stringify(steered)}: ${p}`);
+    }
+});
+
+test('vibrato: only a natural wave is the bloom; a pushed, steered, wobbling or trembling one is "not yet"', () => {
+    for (const natural of [{ hz: 5.5, cents: 30 }, { hz: 5, cents: 45 }]) {
+        const b = bloomPercent(hold({ seconds: 7, onset: 2, ...natural }), RATE);
+        assert(b.bloomed && b.percent >= 90, `a natural bloom ${JSON.stringify(natural)}: ${b.percent}`);
+    }
+    for (const forced of [{ hz: 4.3, cents: 50 }, { hz: 4.2, cents: 30 }, { hz: 4.3, cents: 110 }, { hz: 4.6, cents: 115 }, { hz: 9, cents: 25 }]) {
+        const b = bloomPercent(hold({ seconds: 7, onset: 2, ...forced }), RATE);
+        assert(!b.bloomed && b.percent <= 75, `${JSON.stringify(forced)} isn't the bloom: ${b.percent}`);
+    }
+});

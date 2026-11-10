@@ -2,7 +2,7 @@
 import { trackTake } from './pitchtrack.js';
 
 self.onmessage = (event) => {
-    const { samples, sampleRate } = event.data;
-    const track = trackTake(samples, sampleRate);
+    const { samples, sampleRate, range } = event.data;
+    const track = trackTake(samples, sampleRate, range ?? {});
     self.postMessage(track, [track.hz.buffer, track.clarity.buffer, track.loudness.buffer]);
 };

@@ -1,0 +1,40 @@
+{
+    "data": {
+        "byGroup": [
+            {
+                "key": "barbershop",
+                "organizations": 4,
+                "emailed": 3,
+                "bounced": 0,
+                "replied": 1,
+                "positive": 1,
+                "responseRate": 0.333,
+                "tracked": 3,
+                "arrivals": 6,
+                "lesson1": 3,
+                "signedUp": 2,
+                "schoolCodes": 0,
+                "partners": 0,
+                "redemptions": 0
+            }
+        ],
+        "byAngle": [
+            {
+                "key": "choir_groups",
+                "organizations": 9,
+                "emailed": 5,
+                "bounced": 1,
+                "replied": 2,
+                "positive": 1,
+                "responseRate": 0.4,
+                "tracked": 5,
+                "arrivals": 6,
+                "lesson1": 3,
+                "signedUp": 2,
+                "schoolCodes": 0,
+                "partners": 0,
+                "redemptions": 0
+            }
+        ]
+    }
+}

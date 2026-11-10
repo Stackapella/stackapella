@@ -4,7 +4,7 @@
 // "Turn off" lands here.
 
 import { AccountWall } from '../components/account-wall.js';
-import { PageHeader } from '../components/page.js';
+import { AppScreen } from '../components/page.js';
 import { formatDate, t } from '../i18n.js';
 import { goBack, navigate } from '../router.js';
 import { account } from '../stores/account.js';
@@ -21,13 +21,12 @@ const TIMES = Array.from({ length: 96 }, (_, i) => `${String(Math.floor(i / 4)).
 const GOAL_DAYS = { 2: [2, 5], 3: [1, 3, 5], 5: [1, 2, 3, 4, 5] };
 
 export const RemindersView = {
-    components: { AccountWall, PageHeader, Notice, Logo, Switch },
+    components: { AccountWall, AppScreen, Notice, Logo, Switch },
     data: () => ({ reminder: null, days: [1, 3, 5], time: '18:30', busy: false, notice: null, failed: false }),
     setup: () => ({ account, navigate, goBack, TIMES, supported: pushSupported(), install: needsInstall() }),
     template: `
-        <div data-ui="screen" class="min-h-dvh bg-ink px-4 pb-16 pt-[max(0.5rem,env(safe-area-inset-top))] md:px-8">
-            <div class="mx-auto flex w-full max-w-2xl flex-col gap-4 md:gap-6">
-                <PageHeader :title="t('reminders.title')" back="/settings"><template #aside><span v-if="onHere" class="text-sm text-muted" role="status">{{ busy ? t('common.saving') : t('common.saved') }}</span></template></PageHeader>
+        <AppScreen :title="t('reminders.title')" back="/settings" measure="max-w-2xl" content-class="gap-4 pt-4 md:gap-6" data-ui="screen" class="bg-ink">
+            <template #aside><span v-if="onHere" class="text-sm text-muted" role="status">{{ busy ? t('common.saving') : t('common.saved') }}</span></template>
                 <AccountWall v-if="!account.me" reason="reminders" next="/settings/reminders" />
                 <Notice v-else-if="install" tone="info">{{ t('reminders.install') }}</Notice>
                 <Notice v-else-if="!supported" tone="info">{{ t('reminders.unsupported') }}</Notice>
@@ -69,8 +68,7 @@ export const RemindersView = {
                     </section>
                     <p class="text-sm text-muted">{{ t('reminders.thisDevice') }}</p>
                 </template>
-            </div>
-        </div>`,
+        </AppScreen>`,
     computed: {
         /** "Tomorrow at 6:30 PM", "Today at 6:30 PM" or "Wednesday at 6:30 PM": the next of the chosen days at the time. */
         nextWhen() {

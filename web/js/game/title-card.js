@@ -13,6 +13,7 @@ const KEY = 'stackapella.titlesSeen';
 export const TITLE_MS = 1200;
 export const STILL_MS = 800;
 export const CLEAR_MS = 2200; // a stage clear holds a little longer
+const NAME_FLOOR = 16; // px: the unit's name never smaller than this
 
 function seen() {
     try {
@@ -56,13 +57,15 @@ export const TitleCard = {
             <div class="ge-title-foot"><span class="ge-title-unit">{{ t('game.title.unit', { number: unit }) }}</span></div>
             <div class="ge-title-name">
                 <span class="ge-title-stage">{{ clear ? t('game.title.clear', { unit }) : t('game.title.stage', { unit, lesson }) }}</span>
-                <b translate="no">{{ unitTitle }}</b>
+                <b ref="name" translate="no">{{ unitTitle }}</b>
                 <i v-if="clear && level" data-game-level-up>{{ t('game.title.levelUp', { level: formatNumber(level) }) }}</i>
                 <i v-else-if="!clear"><span>{{ t('game.title.lesson', { number: lesson }) }}</span> · <span translate="no">{{ lessonTitle }}</span></i>
             </div>
             <span class="ge-title-act">{{ formatNumber(clear ? unit : lesson) }}</span>
         </div>`,
     mounted() {
+        this.fitName();
+        document.fonts?.ready.then(() => this.fitName());
         this.going = run(this.still ? Math.min(this.ms, STILL_MS) : this.ms, () => {}, { motion: true });
         this.going.done.then(() => this.$emit('done'));
         // The key that ends it does only that (Enter never also presses what's under the card).
@@ -82,6 +85,22 @@ export const TitleCard = {
     methods: {
         end() {
             this.going?.skip();
+        },
+        /**
+         * The unit's name a size smaller until its longest word fits its column (a 320 px phone: "MOVING" or "CONSONANTS"
+         * at the card's 32 px broke mid-word), never under NAME_FLOOR; a word too long even then breaks where it must.
+         */
+        fitName() {
+            const name = this.$refs.name;
+            if (!name) return;
+            name.style.fontSize = '';
+            name.style.overflowWrap = '';
+            let size = parseFloat(getComputedStyle(name).fontSize);
+            while (name.scrollWidth > name.clientWidth + 1 && size > NAME_FLOOR) {
+                size = Math.max(NAME_FLOOR, size - 2);
+                name.style.fontSize = `${size}px`;
+            }
+            if (name.scrollWidth > name.clientWidth + 1) name.style.overflowWrap = 'anywhere';
         },
     },
 };

@@ -49,7 +49,7 @@ if (str_starts_with($uri, '/media/') && ! str_contains($uri, '..')) {
 // public/'s own files (the admin's passkeys.js), served here rather than by the built-in server,
 // whose document root would go stale the same way.
 if ($uri !== '/' && ! str_contains($uri, '..') && is_file($public.$uri)) {
-    $types = ['js' => 'text/javascript; charset=utf-8', 'css' => 'text/css; charset=utf-8', 'txt' => 'text/plain; charset=utf-8', 'ico' => 'image/x-icon', 'svg' => 'image/svg+xml', 'png' => 'image/png'];
+    $types = ['js' => 'text/javascript; charset=utf-8', 'css' => 'text/css; charset=utf-8', 'txt' => 'text/plain; charset=utf-8', 'ico' => 'image/x-icon', 'svg' => 'image/svg+xml', 'png' => 'image/png', 'vtt' => 'text/vtt; charset=utf-8'];
     header('Content-Type: '.($types[pathinfo($uri, PATHINFO_EXTENSION)] ?? 'application/octet-stream'));
     header('X-Content-Type-Options: nosniff');
     readfile($public.$uri);

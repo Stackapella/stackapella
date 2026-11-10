@@ -1,0 +1,91 @@
+{
+    "$id": "admin.outreach.message.json",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "id",
+        "kind",
+        "subject",
+        "body",
+        "status",
+        "toEmail",
+        "sentVia",
+        "sentAt",
+        "deliveredAt",
+        "bouncedAt",
+        "bounceNote"
+    ],
+    "properties": {
+        "id": {
+            "type": "string"
+        },
+        "kind": {
+            "type": "string",
+            "enum": [
+                "first",
+                "follow_up"
+            ]
+        },
+        "subject": {
+            "type": "string"
+        },
+        "body": {
+            "type": "string",
+            "description": "Plain text, exactly as sent."
+        },
+        "status": {
+            "type": "string",
+            "enum": [
+                "draft",
+                "sent",
+                "delivered",
+                "bounced"
+            ]
+        },
+        "toEmail": {
+            "type": [
+                "string",
+                "null"
+            ]
+        },
+        "sentVia": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "enum": [
+                "email",
+                "form",
+                null
+            ]
+        },
+        "sentAt": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "format": "date-time"
+        },
+        "deliveredAt": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "format": "date-time"
+        },
+        "bouncedAt": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "format": "date-time"
+        },
+        "bounceNote": {
+            "type": [
+                "string",
+                "null"
+            ]
+        }
+    },
+    "title": "One outreach email: a draft, or sent (by Send, or marked sent after their contact form)"
+}

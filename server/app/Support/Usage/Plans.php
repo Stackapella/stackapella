@@ -4,15 +4,12 @@ declare(strict_types=1);
 
 namespace App\Support\Usage;
 
-use App\Enums\TemplateAccess;
 use App\Exceptions\Refusal;
-use App\Models\GroupSong;
 use App\Models\Harmony;
 use App\Models\Project;
 use App\Models\Take;
 use App\Models\Template;
 use App\Models\TemplateRecording;
-use App\Models\TemplateUnlock;
 use App\Models\User;
 use App\Support\Sync\SyncSeq;
 use Illuminate\Database\Eloquent\Builder;
@@ -25,11 +22,8 @@ use Illuminate\Support\Facades\DB;
  */
 final class Plans
 {
-    /** @var array<int, array<int, 'limit'|'plus_song'|null>> read-only reasons, per user, per project id */
+    /** @var array<int, array<int, 'limit'|null>> read-only reasons, per user, per project id */
     private array $readOnly = [];
-
-    /** @var array<int, list<int>> */
-    private array $groupSongs = [];
 
     /**
      * @return 'free'|'plus'
@@ -59,26 +53,13 @@ final class Plans
     }
 
     /**
-     * The songs shared with the choir groups the person sings in (or directs) whose director has
-     * Plus now: a group's Plus songs are free to its singers only while it's a Plus director's.
-     *
-     * @return list<int>
-     */
-    public function groupSongIds(User $user): array
-    {
-        return $this->groupSongs[$user->id] ??= array_values(GroupSong::query()->with('group.director.subscriptions')
-            ->whereHas('group.members', fn ($query) => $query->where('user_id', $user->id))->get(['id', 'group_id', 'template_id'])
-            ->filter(fn (GroupSong $song): bool => $song->group?->director !== null && $this->isPlus($song->group->director))
-            ->map(fn (GroupSong $song): int => (int) $song->template_id)->unique()->values()->all());
-    }
-
-    /**
      * Why each of the person's projects can't change (docs/pricing-plan.md, "Downgrades"), or null
-     * when it can: made from a Plus song without Plus (and not kept from the song of the month), or
-     * beyond the free limit, past the ones they chose to keep editable (the most recently edited by
-     * default). Worked out once per request.
+     * when it can: beyond a plan's project limit, past the ones they chose to keep editable (the
+     * newest by default). No plan has a project limit since 2026-11-07 (storage is the free plan's
+     * limit), so every project is editable; the machinery stays for an install that sets one.
+     * Worked out once per request.
      *
-     * @return array<int, 'limit'|'plus_song'|null>
+     * @return array<int, 'limit'|null>
      */
     public function readOnlyMap(User $user): array
     {
@@ -86,35 +67,18 @@ final class Plans
             return $this->readOnly[$user->id];
         }
 
-        $projects = Project::query()->where('user_id', $user->id)->get(['id', 'uuid', 'template_slug', 'binned_at', 'updated_at']);
+        $projects = Project::query()->where('user_id', $user->id)->get(['id', 'uuid', 'binned_at']);
         $map = $projects->mapWithKeys(fn (Project $p): array => [$p->id => null])->all();
+        $limit = $this->projectLimit($user);
 
-        if (! $this->isPlus($user)) {
-            $plusSongs = Template::query()->where('access', TemplateAccess::Plus)->whereIn('slug', $projects->pluck('template_slug')->filter()->unique())->get()->keyBy('slug');
-            // Kept from the song of the month, or shared with a choir group they sing in.
-            $kept = [
-                ...TemplateUnlock::query()->where('user_id', $user->id)->pluck('template_id')->all(),
-                ...$this->groupSongIds($user),
-            ];
-            $live = [];
-
-            foreach ($projects as $project) {
-                $song = $project->template_slug !== null ? $plusSongs->get($project->template_slug) : null;
-
-                if ($song !== null && ! in_array($song->id, $kept, true) && ! $song->isFreeOn(now())) {
-                    $map[$project->id] = 'plus_song';
-                } elseif ($project->binned_at === null) {
-                    $live[] = $project;
-                }
-            }
-
-            $limit = $this->projectLimit($user);
+        if ($limit !== null) {
+            $live = $projects->whereNull('binned_at')->values()->all();
             $chosen = array_flip($user->editable_project_ids ?? []);
             // The ones chosen (settled at the downgrade, or picked since), then the newest made:
             // never by when last edited, which a settings-only save would move.
             usort($live, fn (Project $a, Project $b): int => [isset($chosen[$b->uuid]), $b->id] <=> [isset($chosen[$a->uuid]), $a->id]);
 
-            foreach (array_slice($live, (int) $limit) as $project) {
+            foreach (array_slice($live, $limit) as $project) {
                 $map[$project->id] = 'limit';
             }
         }
@@ -125,7 +89,7 @@ final class Plans
     /**
      * For a resource that has the project but not its owner (one owner lookup per request).
      *
-     * @return 'limit'|'plus_song'|null
+     * @return 'limit'|null
      */
     public function readOnlyOf(Project $project): ?string
     {
@@ -153,13 +117,18 @@ final class Plans
         }
 
         $limit = $this->projectLimit($user);
-        $ids = Project::query()->where('user_id', $user->id)->whereNull('binned_at')->orderByDesc('updated_at')->limit((int) $limit)->pluck('uuid')->all();
+
+        if ($limit === null) {
+            return;
+        }
+
+        $ids = Project::query()->where('user_id', $user->id)->whereNull('binned_at')->orderByDesc('updated_at')->limit($limit)->pluck('uuid')->all();
         $user->forceFill(['editable_project_ids' => array_values($ids)])->save();
         unset($this->readOnly[$user->id]);
     }
 
     /**
-     * @return 'limit'|'plus_song'|null
+     * @return 'limit'|null
      */
     public function readOnly(User $user, Project $project): ?string
     {
@@ -173,6 +142,11 @@ final class Plans
     public function readOnlyChanged(User $user): void
     {
         unset($this->readOnly[$user->id]);
+
+        // No plan limits projects (2026-11-07): nothing can have changed, so no device is told.
+        if (config('usage.plans.free.projects') === null && config('usage.plans.plus.projects') === null) {
+            return;
+        }
 
         DB::transaction(function () use ($user): void {
             $count = Project::query()->where('user_id', $user->id)->count();
@@ -270,7 +244,16 @@ final class Plans
     {
         $editable = $this->editableTemplateIds($user);
 
-        return $editable !== null && ! $template->isPublic() && ! in_array($template->id, $editable, true);
+        return $editable !== null && self::counts($template) && ! in_array($template->id, $editable, true);
+    }
+
+    /**
+     * Whether a template counts toward the free plan's limit (countedTemplates, for one already
+     * loaded): private or unlisted, and not a song we gave them (their copy of one counts).
+     */
+    public static function counts(Template $template): bool
+    {
+        return ! $template->isPublic() && ! $template->isGiven();
     }
 
     /**
@@ -287,18 +270,31 @@ final class Plans
     }
 
     /**
-     * The templates the free limit counts: their own, private or unlisted.
+     * The templates the free limit counts: their own, private or unlisted. Never a song we made
+     * and gave them (admin.people.songs.create, Template::isGiven): a choir's learning tracks are
+     * what a choir pays us for (docs/choir-tracks-plan.md), so its director needs no plan to keep
+     * and share them. Their own copy of a given song is their own song, and counts (2026-11-08).
      *
      * @return Builder<Template>
      */
     public function countedTemplates(User $user): Builder
     {
-        return Template::query()->where('owner_id', $user->id)->whereNull('deleted_at')->where(fn ($q) => $q->where('visibility', '!=', 'public')->orWhereNull('visibility'));
+        return Template::query()->where('owner_id', $user->id)->whereNull('deleted_at')->where(fn ($q) => $q->where('visibility', '!=', 'public')->orWhereNull('visibility'))
+            ->where(fn ($q) => $q->whereNull('rights_statement')->orWhere('rights_statement', '!=', 'partner')->orWhereNull('rights_confirmed_by'));
     }
 
     public function storageLimit(User $user): int
     {
         return (int) config('usage.plans.'.$this->plan($user).'.storage_bytes');
+    }
+
+    /**
+     * 403 storage_limit, with what's used and the allowance, so the app can show the meter at once
+     * (since 2026-11-07 storage is the free plan's only limit).
+     */
+    public function storageFull(User $user): Refusal
+    {
+        return new Refusal(403, 'storage_limit', ['usedBytes' => $this->storageUsed($user), 'limitBytes' => $this->storageLimit($user)]);
     }
 
     public function projectsUsed(User $user): int

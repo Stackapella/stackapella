@@ -16,6 +16,7 @@ use App\Support\Site\ComingSoon;
 use App\Support\Site\HelpGuide;
 use App\Support\Site\OpenSource;
 use App\Support\Site\SitePages;
+use App\Support\Templates\Catalogue;
 use App\Support\Trust\Country;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -89,6 +90,7 @@ final class InfoPagesController extends Controller
             'currencies' => Prices::CURRENCIES,
             'trialDays' => (int) config('billing.trial_days'),
             'freeSongs' => count((array) config('templates.free')),
+            'songs' => app(Catalogue::class)->songCount(),
             'limits' => [
                 'projects' => [$limit($plans['free']['projects']), $limit($plans['plus']['projects'])],
                 'storage' => [$limit($plans['free']['storage_bytes'], 'bytes'), $limit($plans['plus']['storage_bytes'], 'bytes')],

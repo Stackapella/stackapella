@@ -94,7 +94,7 @@ final class StartHarmony
         ['singers' => $singers, 'takes' => $takes] = $this->checkMix($project, $part, $data['frames'] / $data['sampleRate'], $fill['seconds'] ?? 0.0);
 
         if ($this->plans->storageUsed($user) + $data['bytes'] > $this->plans->storageLimit($user)) {
-            throw new Refusal(403, 'storage_limit');
+            throw $this->plans->storageFull($user);
         }
 
         if ($data['visibility'] === Harmony::UNLISTED) {

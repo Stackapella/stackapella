@@ -1,0 +1,130 @@
+{
+    "data": {
+        "groups": [
+            {
+                "id": "Gp4rQs",
+                "name": "Thursday Singers",
+                "director": {
+                    "id": "jR4kLmNo",
+                    "name": "Ana Ruiz"
+                },
+                "members": 14,
+                "songs": 2,
+                "createdAt": "2026-10-27T12:00:00Z",
+                "weeks": [
+                    {
+                        "week": "2026-09-14",
+                        "singers": 0,
+                        "takes": 0,
+                        "scores": 0
+                    },
+                    {
+                        "week": "2026-09-21",
+                        "singers": 0,
+                        "takes": 0,
+                        "scores": 0
+                    },
+                    {
+                        "week": "2026-09-28",
+                        "singers": 0,
+                        "takes": 0,
+                        "scores": 0
+                    },
+                    {
+                        "week": "2026-10-05",
+                        "singers": 0,
+                        "takes": 0,
+                        "scores": 0
+                    },
+                    {
+                        "week": "2026-10-12",
+                        "singers": 0,
+                        "takes": 0,
+                        "scores": 0
+                    },
+                    {
+                        "week": "2026-10-19",
+                        "singers": 0,
+                        "takes": 0,
+                        "scores": 0
+                    },
+                    {
+                        "week": "2026-10-26",
+                        "singers": 6,
+                        "takes": 9,
+                        "scores": 21
+                    },
+                    {
+                        "week": "2026-11-02",
+                        "singers": 9,
+                        "takes": 14,
+                        "scores": 37
+                    }
+                ]
+            },
+            {
+                "id": "Hq5sTu",
+                "name": "Riverside Chorale",
+                "director": {
+                    "id": "Kp7wXyZa",
+                    "name": "Sam Okafor"
+                },
+                "members": 3,
+                "songs": 1,
+                "createdAt": "2026-11-03T09:30:00Z",
+                "weeks": [
+                    {
+                        "week": "2026-09-14",
+                        "singers": 0,
+                        "takes": 0,
+                        "scores": 0
+                    },
+                    {
+                        "week": "2026-09-21",
+                        "singers": 0,
+                        "takes": 0,
+                        "scores": 0
+                    },
+                    {
+                        "week": "2026-09-28",
+                        "singers": 0,
+                        "takes": 0,
+                        "scores": 0
+                    },
+                    {
+                        "week": "2026-10-05",
+                        "singers": 0,
+                        "takes": 0,
+                        "scores": 0
+                    },
+                    {
+                        "week": "2026-10-12",
+                        "singers": 0,
+                        "takes": 0,
+                        "scores": 0
+                    },
+                    {
+                        "week": "2026-10-19",
+                        "singers": 0,
+                        "takes": 0,
+                        "scores": 0
+                    },
+                    {
+                        "week": "2026-10-26",
+                        "singers": 0,
+                        "takes": 0,
+                        "scores": 0
+                    },
+                    {
+                        "week": "2026-11-02",
+                        "singers": 0,
+                        "takes": 0,
+                        "scores": 0
+                    }
+                ]
+            }
+        ],
+        "total": 2,
+        "timezone": "UTC"
+    }
+}

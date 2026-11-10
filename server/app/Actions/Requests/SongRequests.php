@@ -32,9 +32,12 @@ final class SongRequests
 {
     public function __construct(private readonly Flags $flags, private readonly TrustLevel $trust) {}
 
-    public function isOpen(): bool
+    /**
+     * Open to everyone once the switch is on; to staff before, so Hillel can try it.
+     */
+    public function isOpen(?User $user = null): bool
     {
-        return $this->flags->on('song_requests');
+        return $this->flags->on('song_requests') || ($user !== null && ($user->is_admin || $user->is_editor));
     }
 
     /**
@@ -52,9 +55,9 @@ final class SongRequests
      *
      * @return CursorPaginator<int, SongRequest>
      */
-    public function list(?string $q, ?string $status, string $sort): CursorPaginator
+    public function list(?string $q, ?string $status, string $sort, ?User $viewer = null): CursorPaginator
     {
-        if (! $this->isOpen()) {
+        if (! $this->isOpen($viewer)) {
             throw new Refusal(404, 'not_found');
         }
 
@@ -119,7 +122,7 @@ final class SongRequests
 
     public function vote(User $user, string $id, bool $on): SongRequest
     {
-        $request = $this->find($id);
+        $request = $this->find($id, $user);
 
         if ($on) {
             $this->ensureMayAsk($user);
@@ -133,7 +136,7 @@ final class SongRequests
 
     private function ensureMayAsk(User $user): void
     {
-        if (! $this->isOpen()) {
+        if (! $this->isOpen($user)) {
             throw new Refusal(409, 'requests_closed');
         }
 
@@ -163,9 +166,9 @@ final class SongRequests
     /**
      * One anyone can see, by its id.
      */
-    public function find(string $id): SongRequest
+    public function find(string $id, ?User $viewer = null): SongRequest
     {
-        if (! $this->isOpen()) {
+        if (! $this->isOpen($viewer)) {
             throw new Refusal(404, 'not_found');
         }
 

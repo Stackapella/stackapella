@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en" data-theme="stage-dark">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Tuner</title>
+    <!-- How a public page mounts the free tuner (js/public/tools/tuner.js): a box, the page's words, mountTuner().
+         ?play=1 plays readings into it without a mic (window.__play(hz, seconds, loudness)), for the flows. -->
+    <meta name="game-css" content="/css/site-game.css">
+    <link rel="stylesheet" href="/css/site.css">
+    <script src="/js/theme-boot.js"></script>
+    <script src="/js/game-css.js"></script>
+</head>
+<body class="bg-ink text-cream" data-tool-name="Tuner">
+    <main class="px-4">
+        <div id="tuner"></div>
+    </main>
+    <!-- The tools' frame (the brand row with the mark and the Theme button), so shots show the tool as its page does. -->
+    <script type="module" src="/tests/tool-frame.js"></script>
+    <script type="module">
+        import { mountTuner } from '/js/public/tools/tuner.js';
+        const words = {
+            start: 'Listen', stop: 'Stop listening', listening: 'Listening...', paused: 'Paused', resume: 'Tap Listen to resume',
+            idleHint: 'Tap Listen, then play or sing a note', tooQuiet: 'Too quiet, come closer', lastNote: 'Last note', inTune: 'In tune',
+            hold: 'Hold it there', nearly: 'Nearly there', sharp: 'Sharp', flat: 'Flat',
+            singDown: 'Sing a little lower ↓', singUp: 'Sing a little higher ↑', tuneDown: 'Tune a little lower ↓', tuneUp: 'Tune a little higher ↑',
+            loosen: 'Loosen slightly ↓', tighten: 'Tighten slightly ↑', cents: ':cents¢', hz: ':hz Hz', noMic: 'Mic blocked: here is how to allow it',
+            voice: 'Voice', instrument: 'Instrument', modes: 'What you tune', settings: 'More', done: 'Done', trace: 'Last 8 seconds',
+            traceSharp: '♯ sharp', traceFlat: '♭ flat', lowerNote: '← Lower', higherNote: 'Higher →', inTuneShare: ':percent% in tune',
+            spokenInTune: ':note, in tune', spokenFlat: ':note, :cents cents flat', spokenSharp: ':note, :cents cents sharp',
+            referenceLabel: 'Reference pitch', reference: 'A4 = :hz', lower: 'Lower the reference', higher: 'Raise the reference',
+            transposition: 'Transposition', concert: 'Concert', inKey: ':key instrument', instrumentLabel: 'Instrument', chromatic: 'Chromatic',
+            guitar: 'Guitar', bass4: 'Bass (4 string)', bass5: 'Bass (5 string)', ukulele: 'Ukulele', violin: 'Violin', viola: 'Viola', cello: 'Cello',
+            mandolin: 'Mandolin', banjo: 'Banjo', strings: 'Strings', stringHint: 'Auto-detecting string · tap one to hear it and lock', tuningLabel: 'Tuning',
+            standard: 'Standard', dropD: 'Drop D', halfDown: 'Half step down', dropC: 'Drop C', dadgad: 'DADGAD', openG: 'Open G', openD: 'Open D', openE: 'Open E',
+            naming: 'Note names', letters: 'C D E', fixedDo: 'Do Re Mi', german: 'German (H)', sensitivity: 'Sensitivity', sensitivityLow: 'Ignores noise',
+            sensitivityHigh: 'Catches quiet notes', zone: 'In-tune zone', zoneValue: 'In tune within ±:cents cents',
+            settingsTitle: 'Tuner settings', reset: 'Reset', referenceHint: 'Frequency of A4', soundingPitch: 'Shows sounding pitch', writtenPitch: 'Shows written pitch',
+            sensLow: 'Low', sensMedium: 'Medium', sensHigh: 'High', zoneStrict: 'Strict', zoneForgiving: 'Forgiving', zoneShort: '±:cents¢',
+        };
+        const fake = new URLSearchParams(location.search).has('play') && (async ({ onFrame }) => {
+            let at = 0;
+            window.__play = (hz, seconds, loudness = -25) => {
+                for (let i = 0; i < Math.round(seconds * 60); i++) onFrame({ at: (at += 1 / 60), hz, loudness, clarity: hz > 0 ? 0.95 : 0.1 });
+            };
+            return { stop() {} };
+        });
+        window.__tuner = mountTuner(document.querySelector('#tuner'), { words, keySlot: document.querySelector('[data-tool-key]'), onLesson: () => (window.__lessons = (window.__lessons ?? 0) + 1), ...(fake ? { open: fake } : {}) });
+    </script>
+</body>
+</html>

@@ -102,9 +102,10 @@ export const Toasts = {
         countdown: { mounted: (el, { value }) => el.animate([{ transform: 'scaleX(1)' }, { transform: 'scaleX(0)' }], { duration: value * 1000, easing: 'linear', fill: 'forwards' }) },
     },
     setup: () => ({ toasts, dismissToast, route }),
-    // In a lesson, under its header (a badge's toast once covered Back and the lesson's name while singing).
+    // In a lesson and in Sing, under its header (a badge's toast once covered Back and the lesson's name while
+    // singing; "Tenor fits your range" covered the song and part, the first-15-minutes review).
     template: `
-        <div class="pointer-events-none fixed inset-x-0 z-50 flex flex-col items-center gap-2 px-3" :class="route.name === 'learn' ? 'top-[calc(env(safe-area-inset-top)+5rem)]' : 'top-[calc(env(safe-area-inset-top)+1rem)]'" aria-live="polite">
+        <div class="pointer-events-none fixed inset-x-0 z-50 flex flex-col items-center gap-2 px-3" :class="route.name === 'learn' || route.name === 'sing' ? 'top-[calc(env(safe-area-inset-top)+5rem)]' : 'top-[calc(env(safe-area-inset-top)+1rem)]'" aria-live="polite">
             <slot />
             <!-- The studio shows its messages in its own card above the transport (components/studio.js StudioNotice). -->
             <div v-for="item in route.name === 'studio' ? [] : toasts.list" :key="item.id"

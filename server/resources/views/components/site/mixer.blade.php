@@ -3,7 +3,8 @@
      Landing::hero()'s shape. The words and the
      text alternative are here, so the page says what it plays without the script. The slot is what
      sits beside Play on desktop (the hero's Start singing). `on`, when given, lists the part keys
-     switched on at first (A cappella's stack starts with the bass alone); the rest start off. --}}
+     switched on at first (A cappella's stack starts with the bass alone); the rest start off. `foot`, a
+     named slot, is the card's last row (the landing's facts). --}}
 @props(['song', 'id' => 'mixer', 'studio' => false, 'on' => null])
 <div @class(['s-mixer', 's-mixer-studio' => $studio]) id="{{ $id }}" data-player role="group" aria-labelledby="{{ $id }}-title">
     <script type="application/json" data-song>@json($song)</script>
@@ -11,7 +12,7 @@
         <button type="button" class="s-play" data-play aria-label="{{ __('pages.landing.hero.play') }}" data-label-play="{{ __('pages.landing.hero.play') }}" data-label-stop="{{ __('pages.landing.hero.stop') }}">
             <span class="s-i-play"><x-site.icon name="play" size="26" /></span><span class="s-i-stop"><x-site.icon name="stop" size="26" /></span>
         </button>
-        <p class="s-t"><b id="{{ $id }}-title">{{ __('pages.landing.hero.title', ['song' => $song['title']]) }}</b><span>{{ __('pages.landing.hero.voices', ['count' => count($song['parts'])]) }} · <span data-time>0:00 / {{ $song['length'] }}</span></span></p>
+        <p class="s-t"><b id="{{ $id }}-title">{{ __('pages.landing.hero.title', ['song' => $song['title']]) }}</b><span class="s-mix-meta">{{ __('pages.landing.hero.voices', ['count' => count($song['parts'])]) }} · <span data-time>0:00 / {{ $song['length'] }}</span></span><span class="s-mix-loading" data-loading-line hidden>{{ __('pages.landing.hero.loading') }}</span></p>
         {{ $slot }}
     </div>
     {{-- Each voice is a row you tap to bring it forward (the radio, over the whole row: the louder
@@ -47,6 +48,8 @@
     @if ($song['words'] !== [])
         <div class="s-mix-words" aria-hidden="true"><p class="s-lyrics">@foreach ($song['words'] as $word)<span data-beat="{{ $word['beat'] }}">{{ $word['text'] }}</span>{{ $word['joins'] ? '' : ' ' }}@endforeach</p></div>
     @endif
-    <p class="s-mix-note">{{ __('pages.landing.hero.synth') }}</p>
+    @isset($foot)
+        <div class="s-mix-foot">{{ $foot }}</div>
+    @endisset
     <p class="sr-only">{{ __('pages.landing.hero.alt', ['song' => $song['title'], 'words' => \App\Support\Pages\Landing::sentence($song['words']), 'you' => $yourPart]) }}</p>
 </div>

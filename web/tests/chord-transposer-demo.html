@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en" data-theme="stage-dark">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Chord transposer</title>
+    <!-- How a /tools page mounts the chord transposer (js/public/tools/chord-transposer.js): a box, the page's words, mountChordTransposer(). -->
+    <meta name="game-css" content="/css/site-game.css">
+    <link rel="stylesheet" href="/css/site.css">
+    <script src="/js/theme-boot.js"></script>
+    <script src="/js/game-css.js"></script>
+</head>
+<body class="bg-ink text-cream" data-tool-name="Chord transposer">
+    <main class="px-4">
+        <div id="transposer"></div>
+        <h1 class="mx-auto mt-8 max-w-[24.375rem] text-[28px] font-extrabold leading-tight tracking-tight md:text-[40px]">Chord transposer</h1>
+    </main>
+    <script type="module" src="/tests/tool-frame.js"></script>
+    <script type="module">
+        import { mountChordTransposer } from '/js/public/tools/chord-transposer.js';
+        const words = {
+            transpose: 'Transpose', lower: 'Down a semitone', higher: 'Up a semitone', modes: 'Show', yourChart: 'Your chart', transposed: 'Transposed',
+            idleHint: 'Paste a chord chart, lyrics and all', chordsFound: ':n chords found', notChords: 'No chords found yet', chart: 'The chart',
+            placeholder: 'Paste chords and lyrics here',
+            asWritten: 'As written', shiftUp: ':n semitones up', shiftDown: ':n semitones down',
+            guitar: 'Guitar: capo :n, play :shape shapes', guitarOpen: 'Guitar: no capo, :key is open chords', copy: 'Copy the chart', copied: 'Copied',
+            settings: 'More', settingsTitle: 'Settings', reset: 'Reset', done: 'Done', toKey: 'Straight to a key', spelling: 'Spell the new key with', auto: 'As the key is written', sharps: 'Sharps', flats: 'Flats',
+            sample: 'Try a sample', sampleText: '[Verse 1]\nG          C        G\nAmazing grace, how sweet the sound\nG              D7\nThat saved a wretch like me\nG        G7      C       G\nI once was lost, but now am found\nG    Em    D7     G\nWas blind but now I see',
+            clear: 'Clear', kept: 'Your chart stays on this device; nothing is sent.',
+        };
+        window.__transposer = mountChordTransposer(document.querySelector('#transposer'), { words, keySlot: document.querySelector('[data-tool-key]') });
+    </script>
+</body>
+</html>

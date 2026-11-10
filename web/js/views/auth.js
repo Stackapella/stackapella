@@ -9,12 +9,15 @@ import { CreditLine } from '../components/credit.js';
 import { api, ApiError } from '../api.js';
 import { formatWait, t, tk } from '../i18n.js';
 import { goBack, navigate, route } from '../router.js';
-import { account, lastMethod, linkToken, loadAuthConfig, providerSignIn, ref, signedIn } from '../stores/account.js';
+import { account, lastMethod, linkToken, loadAuthConfig, providerSignIn, signedIn, signUpRef } from '../stores/account.js';
 import { local, session as tabStorage } from '../storage.js';
 
 // What an ask was for (`?for=`), as sign-up's title: the reason in the person's words.
 const SIGN_UP = tk('auth.signUpTitle');
-const REASONS = { progress: tk('auth.reason.progress'), reminders: tk('auth.reason.reminders'), share: tk('auth.reason.share'), boards: tk('auth.reason.boards'), songs: tk('auth.reason.songs'), daily: tk('auth.reason.daily'), friends: tk('auth.reason.friends'), groups: tk('auth.reason.groups'), voice: tk('auth.reason.voice'), plus: tk('auth.reason.plus'), template: tk('auth.reason.template'), sheet: tk('auth.reason.sheet'), settings: tk('auth.reason.settings'), week: tk('auth.reason.week'), unit: tk('auth.reason.unit'), risk: tk('auth.reason.risk'), school: tk('auth.reason.school') };
+/** Where an account is the feature itself, the line under the title says so ("Optional" would be untrue there). */
+const INTROS = { groups: tk('auth.introGroups'), groupsStart: tk('auth.introGroups') };
+const INTRO = tk('auth.intro');
+const REASONS = { progress: tk('auth.reason.progress'), reminders: tk('auth.reason.reminders'), share: tk('auth.reason.share'), boards: tk('auth.reason.boards'), songs: tk('auth.reason.songs'), daily: tk('auth.reason.daily'), friends: tk('auth.reason.friends'), groups: tk('auth.reason.groups'), groupsStart: tk('auth.reason.groupsStart'), voice: tk('auth.reason.voice'), plus: tk('auth.reason.plus'), template: tk('auth.reason.template'), sheet: tk('auth.reason.sheet'), settings: tk('auth.reason.settings'), week: tk('auth.reason.week'), unit: tk('auth.reason.unit'), risk: tk('auth.reason.risk'), school: tk('auth.reason.school'), requests: tk('auth.reason.requests'), course: tk('auth.reason.course') };
 import { TurnstileBox } from '../turnstile.js';
 import { Field, Notice } from '../components/form.js';
 import { Icon, Logo } from '../components/icon.js';
@@ -96,12 +99,14 @@ export const AuthView = {
         };
     },
     template: `
-        <div data-ui="screen" class="min-h-dvh bg-ink px-4 py-8 md:py-16">
-            <div class="mx-auto flex w-full max-w-md flex-col gap-6">
-                <header class="flex items-center justify-between gap-3">
-                    <a href="/" @click.prevent="navigate('/')"><Logo /></a>
+        <div data-ui="screen" class="min-h-dvh bg-ink">
+            <!-- The app's top bar on the site header's grid (app-wrap app-top): the logo where the site's is. -->
+            <header class="app-wrap app-top justify-between">
+                    <a href="/" class="flex" @click.prevent="navigate('/')"><Logo /></a>
                     <button type="button" class="btn-secondary btn-sm min-h-11" @click="notNow">{{ t('auth.notNow') }}</button>
-                </header>
+            </header>
+            <div class="px-4 pb-8 pt-2 md:pb-16 md:pt-8">
+            <div class="mx-auto flex w-full max-w-md flex-col gap-6">
 
                 <!-- Check your email -->
                 <template v-if="sentTo">
@@ -206,7 +211,7 @@ export const AuthView = {
                 <template v-else>
                     <div>
                         <h1 ref="heading" tabindex="-1" class="text-3xl font-extrabold tracking-tight text-cream outline-none">{{ mode === 'signup' ? t(REASONS[reason] ?? SIGN_UP) : t('auth.signInTitle') }}</h1>
-                        <p class="mt-2 text-muted">{{ invite ? t('auth.inviteIntro') : early ? t('auth.earlyIntro') : t('auth.intro') }}</p>
+                        <p class="mt-2 text-muted">{{ invite ? t('auth.inviteIntro') : early ? t('auth.earlyIntro') : t(INTROS[reason] ?? INTRO) }}</p>
                     </div>
                     <Notice v-if="config?.signups === 'paused' && mode === 'signup' && !invite && !early" tone="warn">{{ t('auth.error.paused') }}</Notice>
                     <div v-if="mode === 'signup' || step === 'email'" class="flex flex-col gap-3">
@@ -246,9 +251,10 @@ export const AuthView = {
                     <p v-else class="text-center text-sm text-muted">{{ t('auth.signupsSoon') }}</p>
                 </template>
             </div>
+            </div>
             <CreditLine />
         </div>`,
-    setup: () => ({ REASONS, SIGN_UP, PROVIDERS, DONE: {
+    setup: () => ({ REASONS, INTROS, INTRO, SIGN_UP, PROVIDERS, DONE: {
         verified: { title: tk('auth.verified.title'), body: tk('auth.verified.body') },
         reset: { title: tk('auth.reset.done'), body: tk('auth.reset.doneBody') },
         confirmed: { title: tk('auth.confirmed.title'), body: tk('auth.confirmed.body') },
@@ -392,7 +398,7 @@ export const AuthView = {
                     password: this.form.password,
                     birthMonth: this.form.birthMonth,
                     birthYear: this.form.birthYear,
-                    ref: ref(),
+                    ref: signUpRef(),
                     elapsedMs: Math.round(performance.now() - this.startedAt),
                     nickname: this.form.nickname,
                     turnstileToken: this.turnstile,

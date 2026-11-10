@@ -14,9 +14,13 @@ const SHELL = [
     '/',
     '/index.html',
     '/css/app.css',
+    '/js/game-css.js', // links game mode's sheet; css/app-game.css itself is kept once game mode first loads it (serious never fetches it)
+    '/fonts/figtree-latin.woff2', // the reading face, offline too (the others are kept as they're first drawn)
+    '/fonts/noto-music-signs.woff2',
     '/manifest.webmanifest',
     '/icons/icon.svg',
     '/icons/favicon.svg',
+    '/icons/santa-hat.svg',
     '/js/main.js',
     '/js/router.js',
     '/js/i18n.js',
@@ -29,11 +33,14 @@ const SHELL = [
     '/js/db.js',
     '/js/device.js',
     '/js/dsp.js',
+    '/js/timing-check.js',
+    '/js/mic-level.js',
     '/js/storage.js',
     '/js/theme.js',
     '/js/wav.js',
     '/js/stores/projects.js',
     '/js/stores/session.js',
+    '/js/stores/session-live.js',
     '/js/pitchtrack.js',
     '/js/pitchtrack-worker.js',
     '/js/scoring.js',
@@ -52,6 +59,10 @@ const SHELL = [
     '/js/api-mode.js',
     '/js/schema.js',
     '/js/recorded-guides.js',
+    '/js/guide-voice.js',
+    '/js/real-key.js',
+    '/js/daily-cap.js',
+    '/js/daily-pick.js',
     '/js/stores/catalogue.js',
     '/js/views/beta.js',
     '/js/beta.js',
@@ -63,6 +74,7 @@ const SHELL = [
     '/js/components/controls.js',
     '/js/components/count-in.js',
     '/js/game/effects.js',
+    '/js/game/modules.js',
     '/js/game/motion.js',
     '/js/game/chip.js',
     '/js/game/fonts.js',
@@ -93,6 +105,8 @@ const SHELL = [
     '/js/views/learn.js',
     '/js/stores/learning.js',
     '/js/components/course-map.js',
+    '/js/components/course-wall.js',
+    '/js/components/course-part.js',
     '/js/components/fact-card.js',
     '/js/components/more-courses.js',
     '/js/components/course-card.js',
@@ -104,19 +118,26 @@ const SHELL = [
     '/js/lesson-steps.js',
     '/js/lesson-scores.js',
     '/js/courses.js',
+    '/js/page-lesson.js',
+    '/js/under-mix.js',
+    '/js/course-parts.js',
     '/js/sharpen.js',
     '/js/song-course.js',
     '/js/course-clips.js',
     '/js/vibrato.js',
     '/js/pitch-skills.js',
     '/js/ring.js',
+    '/js/just.js',
     '/js/style-scores.js',
+    '/js/whistle.js',
+    '/js/ear-rounds.js',
     '/js/flip-rest.js',
     '/js/harmony.js',
     '/js/keep-song.js',
     '/js/components/keep-song.js',
     '/js/views/plus-course.js',
     '/js/views/ideas.js',
+    '/js/views/requests.js',
     '/js/views/voices.js',
     '/js/stores/ideas.js',
     '/js/views/reset.js',
@@ -130,7 +151,7 @@ const SHELL = [
     '/js/components/exercise.js',
     '/course/course.json',
     '/course/cooldown.json',
-    '/course/cooldown.json',
+    '/course/warmups.json',
     '/course/plus/courses.json',
     '/course/plus/vibrato/course.json',
     '/course/plus/folk/course.json',
@@ -177,6 +198,7 @@ const SHELL = [
     '/js/waitforme.js',
     '/js/report.js',
     '/js/badges.js',
+    '/js/boss.js',
     '/js/workout.js',
     '/js/warmup.js',
     '/js/song-shape.js',
@@ -206,6 +228,9 @@ const SHELL = [
     '/js/views/join.js',
     '/js/views/early.js',
     '/js/views/groups.js',
+    '/js/group-songs.js',
+    '/js/rehearsal.js',
+    '/js/share-moment.js',
     '/js/components/together.js',
     '/js/components/studio.js',
     '/js/components/appearance.js',
@@ -213,6 +238,7 @@ const SHELL = [
     '/js/theme-boot.js',
     '/js/preload.js',
     '/js/old-browser.js',
+    '/js/boot-watch.js',
     '/js/stores/appearance.js',
     '/js/components/create/check.js',
     '/js/components/create/chords.js',
@@ -246,11 +272,15 @@ const SHELL = [
     '/js/components/screen-loading.js',
     '/js/components/then-and-now.js',
     '/js/components/voice-card.js',
+    '/js/components/note-keyboard.js',
     '/js/components/create/hum-tune.js',
     '/js/components/listening.js',
+    '/js/components/voice-capture.js',
+    '/js/capture-scale.js',
     '/js/components/level-meter.js',
     '/js/components/mic-check.js',
     '/js/components/results.js',
+    '/js/components/boss.js',
     '/js/components/plus-moment.js',
     '/js/components/learn-visual.js',
     '/js/home.js',
@@ -286,6 +316,7 @@ const SHELL = [
     '/sounds/special.mp3',
     '/js/components/sing/staff.js',
     '/js/components/icon.js',
+    '/js/public/season.js',
     '/js/components/ui.js',
     '/js/components/dialogs.js',
     '/js/components/notes.js',
@@ -302,6 +333,11 @@ const SHELL = [
     '/js/usage.js',
     '/js/result-card.js',
     '/js/components/share-result.js',
+    '/js/components/lazy-results.js',
+    '/js/components/lazy-lesson.js',
+    '/js/lazy-stores.js',
+    '/js/project-title.js',
+    '/js/components/daily-share.js',
     '/js/components/boards.js',
     '/js/views/challenge.js',
     '/js/practice.js',
@@ -322,7 +358,7 @@ const SHELL = [
 
 // The app's own addresses (every route in router.js; tests/sw-routes.test.js keeps them in step);
 // every other page is the server's.
-const APP_ROUTE = /^\/(?:$|index\.html$|p\/[\w-]+(?:\/(?:sing|print))?\/?$|styleguide(?:\/game)?\/?$|beta(?:\/[\w-]*)?\/?$|signin(?:\/link)?\/?$|settings(?:\/(?:reminders|classes))?\/?$|class(?:\/[\w-]+)?\/?$|storage\/?$|voice\/?$|workout\/?$|plus\/?$|learn(?:\/[cs])?(?:\/[\w-]+)?(?:\/lines)?\/?$|verify\/?$|reset\/?$|email\/(?:confirm|revert)\/?$|create(?:\/[\w-]+)?\/?$|t\/[\w-]+\/?$|(?:join|early|invite|choir|challenge)\/[\w-]+\/?$|groups(?:\/[\w-]+)?\/?$|ideas(?:\/[\w-]+)?\/?$|voices\/?$|start-fresh\/?$|cooldown\/?$|warmup\/?$|moved\/?$|contact\/?$|admin(?:\/(?!sign-in|sign-out|second-factor)[\w-]+(?:\/[\w-]+)?)?\/?$)/;
+const APP_ROUTE = /^\/(?:$|index\.html$|p\/[\w-]+(?:\/(?:sing|print))?\/?$|styleguide(?:\/game)?\/?$|beta(?:\/[\w-]*)?\/?$|signin(?:\/link)?\/?$|settings(?:\/(?:reminders|classes))?\/?$|class(?:\/[\w-]+)?\/?$|storage\/?$|voice\/?$|workout\/?$|plus\/?$|learn(?:\/[cs])?(?:\/[\w-]+)?(?:\/lines)?\/?$|verify\/?$|reset\/?$|email\/(?:confirm|revert)\/?$|create(?:\/[\w-]+)?\/?$|t\/[\w-]+\/?$|(?:join|early|invite|choir|challenge)\/[\w-]+\/?$|groups(?:\/[\w-]+)?\/?$|ideas(?:\/[\w-]+)?\/?$|requests\/?$|voices\/?$|start-fresh\/?$|cooldown\/?$|warmup\/?$|moved\/?$|contact\/?$|admin(?:\/(?!sign-in|sign-out|second-factor)[\w-]+(?:\/[\w-]+)?)?\/?$)/;
 
 /**
  * Caches every file of the app, or none: a file that fails (a folder the server doesn't serve, say)
@@ -350,7 +386,7 @@ self.addEventListener('install', (event) => {
     event.waitUntil(
         precache()
             .then(() => caches.keys())
-            .then((keys) => carryOver(keys.filter((key) => key !== CACHE)))
+            .then((keys) => carryOver(keys.filter((key) => key.startsWith('stackapella-') && key !== CACHE)))
             .then(() => self.skipWaiting()),
     );
 });
@@ -379,7 +415,9 @@ self.addEventListener('activate', (event) => {
     event.waitUntil(
         caches
             .keys()
-            .then((keys) => Promise.all(keys.filter((key) => key !== CACHE).map((key) => caches.delete(key))))
+            // Only the app's own old caches: on one origin (local, self-hosted) the free tools' worker
+            // keeps its tools-* caches beside these (docs/tools-plan.md).
+            .then((keys) => Promise.all(keys.filter((key) => key.startsWith('stackapella-') && key !== CACHE).map((key) => caches.delete(key))))
             .then(() => self.clients.claim()),
     );
 });
@@ -392,7 +430,7 @@ self.addEventListener('fetch', (event) => {
     }
     // A real instrument's version never changes (contract/instruments.md): kept for good once fetched.
     const instrumentFile = /\/instruments\/[a-z][a-z0-9-]+\/[^/]+\/./.test(url.pathname) && !url.pathname.endsWith('/index.json');
-    const pinned = url.hostname === 'cdn.jsdelivr.net' || url.hostname === 'fonts.gstatic.com' || instrumentFile;
+    const pinned = url.hostname === 'cdn.jsdelivr.net' || instrumentFile;
     if (pinned) {
         event.respondWith(caches.match(request).then((hit) => hit ?? fetchAndKeep(event, request)));
     } else if (url.origin === self.location.origin && url.pathname.startsWith('/js/admin/')) {
@@ -401,7 +439,7 @@ self.addEventListener('fetch', (event) => {
         event.respondWith(fetch(fresh(request)));
     } else if (request.mode === 'navigate' && !APP_ROUTE.test(url.pathname)) {
         // A server page (sign-in, the second factor, public pages): never stored as the app shell.
-    } else if (url.origin === self.location.origin || url.hostname === 'fonts.googleapis.com') {
+    } else if (url.origin === self.location.origin) {
         // An app address (like /p/123) is the app shell.
         const key = request.mode === 'navigate' ? '/index.html' : request;
         event.respondWith(fetchAndKeep(event, request, key).catch(() => caches.match(key)));

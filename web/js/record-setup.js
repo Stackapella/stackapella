@@ -15,7 +15,7 @@ import { soundChecked } from './components/beta.js';
 import { toast } from './components/ui.js';
 import { lockReason } from './stores/plan.js';
 
-const LOCKED_TOAST = { limit: tk('locked.limit'), plusSong: tk('locked.plusSong'), offline: tk('locked.offline') };
+const LOCKED_TOAST = { limit: tk('locked.limit') };
 
 export const RecordSetup = {
     methods: {

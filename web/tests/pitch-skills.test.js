@@ -2,7 +2,7 @@
 // cents read from the settled start, an octave down not held against anyone; a hold's lock with a
 // natural vibrato forgiven; a long note's sag; a note from memory; then the same through the real
 // pitch tracker on a sung voice.
-import { centre, drift, holdGoal, landing, landingPercent, lock, lockable, memory, release, skillPercent, sustain } from '/js/pitch-skills.js';
+import { centre, drift, holdGoal, JOINED_CLEAN, landing, landingPercent, lock, lockable, memory, prevOf, release, skillPercent, sustain } from '/js/pitch-skills.js';
 import { trackTake } from '/js/pitchtrack.js';
 import { sing } from './fixtures.js';
 import { assert, close, test } from './harness.js';
@@ -252,4 +252,143 @@ test('pitch skills: a tune from memory with only its first note sung is mostly m
     const notes = [{ beat: 1, length: 1, pitch: 60 }, { beat: 2, length: 1, pitch: 64 }, { beat: 3, length: 1, pitch: 67 }];
     const only = skillPercent('cold', trackTake(sing(sampleRate, { notes: [notes[0]], bpm: 72 }), sampleRate), notes, 60 / 72);
     assert(only.percent <= 34, `only do ${only.percent}`);
+});
+
+// ---- Joined notes (the courses lead's scoring audit, 2026-11-08, FLAGS 1 to 12) ----
+
+const BEAT = 0.5; // 120 bpm
+const hzOf = (midi) => 440 * 2 ** ((midi - 69) / 12);
+
+/**
+ * A take of `notes` (`{ beat, length, pitch }`) as a track: sung `late` s behind the beat; joined notes move
+ * to the next over `move` s (legato, as the guide sings), or stop `gap` s before their written end (separate);
+ * `scoop` (cents below) slides into note `scoopAt` over `scoopMs`; `sing` replaces a note's pitch (a wrong note).
+ */
+function take(notes, { late = 0, move = 0.06, gap = 0, scoop = 0, scoopAt = -1, scoopMs = 200, sing = {} } = {}) {
+    const end = Math.max(...notes.map((n) => (n.beat + n.length) * BEAT)) + late + 0.5;
+    const hz = new Float32Array(Math.ceil(end * RATE));
+    const sung = notes.map((n, i) => sing[i] ?? n.pitch);
+    for (let k = 0; k < hz.length; k++) {
+        const t = k / RATE - late;
+        const i = notes.findIndex((n) => t >= n.beat * BEAT && t < (n.beat + n.length) * BEAT - gap);
+        if (i < 0) continue;
+        const from = notes[i].beat * BEAT;
+        let midi = sung[i];
+        const before = notes[i - 1];
+        const joined = before && !gap && Math.abs(before.beat + before.length - notes[i].beat) < 1e-6;
+        if (joined && t - from < move) midi = sung[i - 1] + (sung[i] - sung[i - 1]) * ((t - from) / move);
+        if (i === scoopAt && (t - from) * 1000 < scoopMs) midi -= (scoop / 100) * (1 - ((t - from) * 1000) / scoopMs);
+        hz[k] = hzOf(midi);
+    }
+    return { rate: RATE, hz };
+}
+
+const line = (pitches, length = 2) => pitches.map((pitch, i) => ({ beat: i * length, length, pitch }));
+const SCALE = line([60, 62, 64, 65, 67, 65, 64, 62, 60]); // do to so and back, joined
+
+test('pitch skills: a joined note\'s start is judged after the note before: legato and a little late land clean', () => {
+    for (const late of [0, 0.04, 0.1]) {
+        const score = skillPercent('landing', take(SCALE, { late }), SCALE, BEAT);
+        assert(score.percent >= 96, `legato ${late * 1000} ms late: ${score.percent} (${score.notes.map((n) => n?.start).join()})`);
+        assert(score.notes.every((n) => n.start === 'clean'), `every start clean, ${late * 1000} ms late`);
+    }
+    const leaps = line([60, 67, 64, 72, 60]);
+    assert(skillPercent('landing', take(leaps, { late: 0.1 }), leaps, BEAT).percent >= 96, 'leaps sung legato, 100 ms late');
+});
+
+test('pitch skills: separate notes sung late still land clean', () => {
+    const notes = line([60, 64, 67, 72, 67, 64, 60]);
+    const score = skillPercent('landing', take(notes, { gap: 0.12, late: 0.15 }), notes, BEAT);
+    assert(score.percent >= 96, `separate, 150 ms late: ${score.percent}`);
+});
+
+test('pitch skills: a joined note scooped into is still a scoop, and a wrong note still wrong', () => {
+    const scooped = skillPercent('landing', take(SCALE, { scoop: 150, scoopAt: 3, scoopMs: 200 }), SCALE, BEAT);
+    assert(scooped.notes[3].start === 'scoop', `a 150-cent scoop into fa: ${scooped.notes[3].start}`);
+    // Do, re, do, with the re sung as do again: judged as sung, a whole step flat, never clean credit.
+    const home = line([60, 62, 60]);
+    const wrong = skillPercent('landing', take(home, { sing: { 1: 60 } }), home, BEAT);
+    close(wrong.notes[1].cents, -200, 15, 'the re sung as do, judged as sung');
+    assert(wrong.percent <= 70, `a wrong note in three still costs it: ${wrong.percent}`);
+    // A repeated note has no tail to skip: two do's in a row, both clean.
+    const again = line([60, 60, 62]);
+    assert(skillPercent('landing', take(again, { late: 0.05 }), again, BEAT).notes.every((n) => n.start === 'clean'), 'a repeated note');
+});
+
+test('pitch skills: a phrase (line) judges a joined note after the note before: legato lands clean, a scoop from below is still a scoop', () => {
+    // Legato, a little behind the beat: every move from the note before is the join, not a slide.
+    const legato = skillPercent('line', take(SCALE, { late: 0.05 }), SCALE, BEAT);
+    assert(legato.notes.every((n) => n.start === 'clean'), `legato read as slides: ${legato.notes.map((n) => n.start).join(' ')}`);
+    assert(legato.percent >= 95, `a legato phrase: ${legato.percent}`);
+    // Into a note below the one before (fa down to mi), a 150-cent scoop from under mi: never the move from fa above.
+    const scooped = skillPercent('line', take(SCALE, { scoop: 150, scoopAt: 6, scoopMs: 200 }), SCALE, BEAT);
+    assert(scooped.notes[6].start === 'scoop', `a scoop from below into mi, after fa: ${scooped.notes[6].start}`);
+    assert(scooped.percent < legato.percent, `the scoop still costs: ${scooped.percent} against ${legato.percent}`);
+});
+
+test('pitch skills: the note before is known only when it runs right into this one', () => {
+    const notes = [{ beat: 0, length: 2, pitch: 60 }, { beat: 2, length: 2, pitch: 64 }, { beat: 5, length: 1, pitch: 62 }];
+    assert(prevOf(notes, 0) === null && prevOf(notes, 1) === -400 && prevOf(notes, 2) === null, 'joined, then after a rest');
+    assert(JOINED_CLEAN === 0.1, 'a joined note\'s move is clean within 0.1 s');
+});
+
+// ---- The scoring audit's round 2 (2026-11-08) ----
+
+/** Readings of a hold: `cents` off, a natural wave of `vibrato` (± cents at `hz`), then silence after `seconds`. */
+function heldNote({ seconds = 3, cents = 0, vibrato = 0, hz = 5.5, shakeFrom = null, after = 0.5 } = {}) {
+    const out = [];
+    for (let i = 0; i < seconds * RATE; i++) {
+        const t = i / RATE;
+        const shake = shakeFrom !== null && t >= shakeFrom ? 50 * Math.sin(2 * Math.PI * 3 * t) : 0;
+        out.push(cents + vibrato * Math.sin(2 * Math.PI * hz * t) + (shakeFrom !== null && t >= shakeFrom ? shake : 0));
+    }
+    for (let i = 0; i < after * RATE; i++) out.push(null);
+    return out;
+}
+
+test('pitch skills: a natural vibrato at the end of a hold is steady, a shake is still a wobble', () => {
+    for (const width of [50, 60, 80]) assert(sustain(heldNote({ vibrato: width }), RATE).tail === 'steady', `±${width} cents of natural vibrato`);
+    assert(sustain(heldNote({ seconds: 4, shakeFrom: 2.5 }), RATE).tail === 'wobbled', 'straight, then a 3 Hz shake');
+});
+
+test('pitch skills: a hold sung an octave off is judged in the target\'s octave', () => {
+    const atPitch = lock(heldNote({ cents: 0, after: 0 }), RATE).percent;
+    assert(lock(heldNote({ cents: 1200, after: 0 }), RATE).percent === atPitch && atPitch >= 95, 'an octave up locks as well as at pitch');
+    assert(centre(heldNote({ cents: -1200, after: 0 }), RATE).percent >= 95, 'an octave down is centred');
+    assert(lock(heldNote({ cents: 1225, after: 0 }), RATE).percent < atPitch, 'and 25 cents sharp an octave up is still sharp');
+});
+
+test('pitch skills: a note under a second held is released on its timing alone', () => {
+    const onTime = release(heldNote({ seconds: 0.75, after: 0.4 }), RATE, 0.75);
+    assert(onTime.percent === 100 && onTime.tail === null, `stopped on its end: ${onTime.percent}`);
+    assert(release(heldNote({ seconds: 1.05, after: 0.2 }), RATE, 0.75).percent < 80, '300 ms past its end');
+});
+
+test('pitch skills: release judges only a note with a rest after it, or the last; a joined note runs on', () => {
+    const line = [0, 2, 4, 5, 7, 5, 4].map((d, i) => ({ beat: i, length: 1, pitch: 60 + d }));
+    const sung = (lastSeconds) => {
+        const hz = new Float32Array(Math.ceil((6 + lastSeconds + 1) * RATE));
+        for (let k = 0; k < hz.length; k++) {
+            const t = k / RATE;
+            const i = Math.min(6, Math.floor(t));
+            if (t < 6 + lastSeconds) hz[k] = 440 * 2 ** ((line[i].pitch - 69) / 12);
+        }
+        return { rate: RATE, hz };
+    };
+    const held = skillPercent('release', sung(1), line, 1);
+    assert(held.percent === 100, `the last note held to its end and stopped on the beat: ${held.percent}`);
+    assert(held.notes.slice(0, 6).every((n) => n.percent === null), 'the joined notes aren\'t judged');
+    assert(skillPercent('release', sung(0.6), line, 1).percent <= 70, 'let go 0.4 s early');
+});
+
+test('pitch skills: an entry after a breath that was never sung counts as a miss', () => {
+    const notes = [{ beat: 0, length: 1, pitch: 60 }, { beat: 2, length: 1, pitch: 62 }, { beat: 4, length: 1, pitch: 64 }];
+    const take = (sungIndexes) => {
+        const hz = new Float32Array(6 * RATE);
+        for (const i of sungIndexes) for (let k = notes[i].beat * RATE; k < (notes[i].beat + 1) * RATE; k++) hz[k] = 440 * 2 ** ((notes[i].pitch - 69) / 12);
+        return { rate: RATE, hz };
+    };
+    assert(skillPercent('entry', take([0, 1, 2]), notes, 1).percent >= 95, 'both entries on time');
+    const missed = skillPercent('entry', take([0, 1]), notes, 1).percent;
+    assert(missed !== null && missed <= 55, `the second entry never sung: ${missed}`);
 });

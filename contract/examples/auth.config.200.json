@@ -18,6 +18,7 @@
         "humTune": false,
         "ideas": false,
         "plusCourses": true,
+        "songRequests": false,
         "sheetImport": false,
         "lendVoice": false,
         "experiment": null,

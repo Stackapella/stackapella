@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Counts;
 
+use App\Actions\Counts\RecordCounts;
 use Illuminate\Foundation\Http\FormRequest;
 
 /**
@@ -34,7 +35,7 @@ final class RecordCountsRequest extends FormRequest
             'variants' => ['nullable', 'array', 'max:4'],
             'variants.*' => ['string', 'max:40', 'distinct'],
             // Where the device came from: its stored ?ref= tag, grouped by the server (never kept as sent).
-            'source' => ['nullable', 'string', 'max:40'],
+            'source' => ['nullable', 'string', 'max:'.RecordCounts::SOURCE_MAX],
         ];
     }
 }

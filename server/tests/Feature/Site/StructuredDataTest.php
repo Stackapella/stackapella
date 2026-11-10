@@ -6,6 +6,7 @@ namespace Tests\Feature\Site;
 
 use App\Models\Template;
 use App\Models\TemplateVersion;
+use App\Support\Site\StructuredData;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -29,22 +30,36 @@ final class StructuredDataTest extends TestCase
         $this->assertStringNotContainsString(config('site.founder'), json_encode($items));
     }
 
+    public function test_a_free_tool_is_a_free_web_app_with_its_questions_and_trail(): void
+    {
+        $data = StructuredData::tool('Tuner', ['title' => 'Online tuner', 'description' => 'A tuner.', 'url' => 'https://stackapella.test/tools/tuner'], [['Is it free?', 'Yes.']]);
+
+        $this->assertSame(['WebApplication', 'FAQPage', 'BreadcrumbList'], array_column($data, '@type'));
+        $this->assertSame('MultimediaApplication', $data[0]['applicationCategory']);
+        $this->assertSame('Any', $data[0]['operatingSystem']);
+        $this->assertSame('0', $data[0]['offers']['price']);
+        $this->assertSame('Is it free?', $data[1]['mainEntity'][0]['name']);
+        $this->assertSame('Yes.', $data[1]['mainEntity'][0]['acceptedAnswer']['text']);
+        $this->assertSame('https://stackapella.test/tools/tuner', end($data[2]['itemListElement'])['item']);
+    }
+
     public function test_a_song_page_describes_its_composition(): void
     {
         $template = Template::factory()->create(['slug' => 'amazing-grace', 'title' => 'Amazing Grace']);
-        $template->forceFill(['current_version_id' => TemplateVersion::factory()->create(['template_id' => $template->id])->id])->save();
+        $template->forceFill(['current_version_id' => TemplateVersion::factory()->create(['template_id' => $template->id, 'reviewed' => true])->id])->save();
 
         [$song] = $this->jsonLd((string) $this->get('/songs/amazing-grace')->getContent());
 
         $this->assertSame('MusicComposition', $song['@type']);
         $this->assertSame('Amazing Grace', $song['name']);
-        $this->assertFalse($song['isAccessibleForFree']);
+        // Every library song is free with a free account (2026-11-07).
+        $this->assertTrue($song['isAccessibleForFree']);
     }
 
     public function test_a_song_page_unfurls_with_its_title_and_a_card(): void
     {
         $template = Template::factory()->create(['slug' => 'amazing-grace', 'title' => 'Amazing <Grace>']);
-        $template->forceFill(['current_version_id' => TemplateVersion::factory()->create(['template_id' => $template->id])->id])->save();
+        $template->forceFill(['current_version_id' => TemplateVersion::factory()->create(['template_id' => $template->id, 'reviewed' => true])->id])->save();
 
         $html = (string) $this->get('/songs/amazing-grace')->assertOk()->getContent();
 

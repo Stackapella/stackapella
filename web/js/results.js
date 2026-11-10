@@ -197,3 +197,7 @@ export function withGuide(take, target, { level = GUIDE_UNDER } = {}) {
     if (peak > MIX_PEAK) for (let i = 0; i < samples.length; i++) samples[i] *= MIX_PEAK / peak;
     return { samples, sampleRate: take.sampleRate };
 }
+
+// "How did you hear about Stackapella?" (account.update heardFrom): the mockup's six, in its order (the lesson view and
+// LessonEnd ask it).
+export const HEARD = { friend: tk('course.heard.friend'), tiktok: tk('course.heard.tiktok'), instagram: tk('course.heard.instagram'), youtube: tk('course.heard.youtube'), app_store: tk('course.heard.appStore'), other: tk('course.heard.other') };

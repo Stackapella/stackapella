@@ -58,22 +58,25 @@ export function soundChecked() {
 /** What's being recorded for Hillel, his note on the phrase he pinned it to, and Check and send. */
 export const BetaBanner = {
     components: { Icon },
-    props: { partName: String, song: String, note: String, phrase: Number, looping: Boolean, canSend: Boolean, bar: { type: Object, default: () => DEFAULT_BAR } },
+    props: { partName: String, song: String, note: String, phrase: Number, looping: Boolean, canSend: Boolean, bar: { type: Object, default: () => DEFAULT_BAR }, recording: Boolean },
     emits: ['loop', 'send', 'parts', 'tell'],
     template: `
         <div class="border-b border-line bg-part-4/10 px-4 py-2.5 text-sm text-cream">
             <div class="flex flex-wrap items-center gap-x-3 gap-y-2">
                 <span class="chip-accent">{{ t('beta.badge') }}</span>
                 <span>{{ t('beta.studio.recordingFor', { part: partName, song }) }}</span>
-                <a href="/beta" class="btn-go" @click.prevent="$emit('parts')">{{ t('beta.parts.title') }}</a>
+                <a v-if="!recording" href="/beta" class="btn-go" @click.prevent="$emit('parts')">{{ t('beta.parts.title') }}</a>
                 <button type="button" class="btn-ghost btn-sm" @click="$emit('tell')">{{ t('beta.tell.button') }}</button>
                 <button v-if="canSend" type="button" class="btn-primary btn-sm ms-auto" @click="$emit('send')">{{ t('beta.studio.checkAndSend') }}</button>
             </div>
-            <p class="mt-1.5 text-muted">{{ t('beta.bar.line', { pitch: bar.pitchPercent, timing: bar.timingPercent }) }}</p>
-            <p v-if="note" class="mt-2 flex flex-wrap items-start gap-x-2 gap-y-1">
-                <span class="flex min-w-0 flex-1 items-start gap-2"><Icon name="info" :size="16" class="mt-0.5 shrink-0 text-warn" /><span><span class="font-semibold">{{ t('beta.parts.hillelSays') }}</span> <span translate="no">{{ note }}</span></span></span>
-                <button v-if="phrase !== null && phrase !== undefined" type="button" class="btn-sm" :class="looping ? 'btn-secondary' : 'btn-ghost'" :aria-pressed="looping ? 'true' : 'false'" data-loop-phrase @click="$emit('loop', phrase)"><Icon name="loop" :size="14" /> {{ t('beta.studio.loopPhrase', { number: phrase + 1 }) }}</button>
-            </p>
+            <!-- While recording, one line (part, song, Tell Hillel), so the part being recorded stays in view (docs/studio-words-plan.md).
+                 The bar a guide needs is said where it's judged: My parts and Check and send (its section on banner room). -->
+            <!-- Hillel's note across the banner's width (his screenshot: a narrow column beside Loop phrase), Loop phrase
+                 following its words on the same line (its section on banner room), never a column of its own. -->
+            <div v-if="note && !recording" class="mt-2" data-beta-note>
+                <p class="flex items-start gap-2"><Icon name="info" :size="16" class="mt-0.5 shrink-0 text-warn" /><span><span class="font-semibold">{{ t('beta.parts.hillelSays') }}</span> <span translate="no">{{ note }}</span>
+                    <button v-if="phrase !== null && phrase !== undefined" type="button" class="btn-sm ms-1 inline-flex align-middle" :class="looping ? 'btn-secondary' : 'btn-ghost'" :aria-pressed="looping ? 'true' : 'false'" data-loop-phrase @click="$emit('loop', phrase)"><Icon name="loop" :size="14" /> {{ t('beta.studio.loopPhrase', { number: phrase + 1 }) }}</button></span></p>
+            </div>
         </div>`,
 };
 

@@ -3,19 +3,26 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Embedded lane</title>
-    <!-- How a public page mounts the app's Sing lane (js/embed/lane.js): the theme's tokens, a sized box, and mount(). -->
-    <link rel="stylesheet" href="/css/app.css">
+    <title>Embedded tool</title>
+    <!-- How the embed view (resources/views/embed/tool.blade.php) mounts a tool in another site's iframe: a stage, the
+         tool's words, embedFrame(). ?tool=tuner|metronome picks it; ?theme= and ?skin= set its look. -->
+    <meta name="game-css" content="/css/site-game.css">
+    <link rel="stylesheet" href="/css/site.css">
     <script src="/js/theme-boot.js"></script>
+    <script src="/js/game-css.js"></script>
 </head>
-<body class="bg-ink p-6 text-cream">
-    <div id="lane" style="height: 340px; border-radius: 16px; overflow: hidden; background: var(--color-ink); border: 1px solid var(--color-line)"></div>
+<body class="bg-ink px-3 text-cream">
+    <div data-embed-stage></div>
     <script type="module">
-        import { mount } from '/js/embed/lane.js';
-        const lane = mount(document.querySelector('#lane'), { take: '/templates/takes/amazing-grace-alto.json', trail: '#ffffff', trailGlow: 'var(--color-part-2)', controls: true, muted: new URLSearchParams(location.search).has('muted'), words: { play: 'Play', pause: 'Pause', zoom: 'Zoom', zoomOut: 'Zoom out', zoomIn: 'Zoom in' } });
-        window.__lane = lane;
-        window.__notes = [];
-        lane.on('note', (n) => window.__notes.push(n));
+        import { embedFrame } from '/js/public/tools/embed.js';
+        const tool = new URLSearchParams(location.search).get('tool') || 'tuner';
+        // The demos' own words, read from the tool's demo page so they're never typed twice.
+        const page = await fetch(`/tests/${tool}-demo.html`).then((r) => r.text());
+        const words = Function(`return ${page.slice(page.indexOf('const words = {') + 14, page.indexOf('};', page.indexOf('const words = {')) + 1)}`)();
+        window.__embed = await embedFrame(document.querySelector('[data-embed-stage]'), {
+            tool, src: `/js/public/tools/${tool}.js`, mount: tool === 'tuner' ? 'mountTuner' : 'mountMetronome',
+            words, credit: 'Free tools by Stackapella', appUrl: 'https://app.stackapella.com/', refPrefix: 'embed-',
+        });
     </script>
 </body>
 </html>

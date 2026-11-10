@@ -160,6 +160,35 @@ final class ReviewTest extends TestCase
         $this->assertTrue($guide->refresh()->is_default);
     }
 
+    public function test_an_accepted_part_is_asked_for_again_and_the_new_take_replaces_it_with_no_gap(): void
+    {
+        $first = $this->submitted();
+        $admin = $this->actingAsAdmin();
+        $this->postJson("/api/admin/beta/submissions/{$first->sqid()}/accept", ['makeDefault' => true])->assertOk();
+        $live = TemplateGuide::query()->sole();
+
+        // Hillel asks for a new take (Hillel: "the singer wants to record again"): the part reopens
+        // for the same singer, and the accepted take stays the voice learners hear meanwhile.
+        $this->postJson('/api/admin/beta/assignments/'.$first->assignment->sqid().'/again', ['note' => 'Record it again, as you asked.'])->assertOk()->assertJsonPath('data.status', 'retake');
+        $this->assertTrue($live->refresh()->is_default);
+
+        // The new take, accepted as the default: it leads, the old one stays as an alternate.
+        $wav = Wav::tone(2.0);
+        $second = BetaSubmission::factory()->create([
+            'beta_assignment_id' => $first->beta_assignment_id, 'template_version_id' => $first->template_version_id, 'part_key' => $first->part_key,
+            'frames' => intdiv(strlen($wav) - 44, 2), 'bytes' => strlen($wav), 'sha256' => hash('sha256', $wav), 'loudness_dbfs' => -13.5, 'peaks' => [0.3, 0.3],
+        ]);
+        Storage::disk('private')->put($second->master_key, $wav);
+        $this->actingAsAdmin($admin);
+        $this->postJson("/api/admin/beta/submissions/{$second->sqid()}/accept", ['makeDefault' => true])->assertOk();
+
+        $this->assertSame([$second->id], TemplateGuide::query()->where('is_default', true)->pluck('beta_submission_id')->all());
+        $this->assertFalse($live->refresh()->is_default);
+        // Withdrawn (a take that must come down): the old voice leads again, never a gap while one is left.
+        $this->deleteJson('/api/admin/beta/guides/'.TemplateGuide::query()->where('beta_submission_id', $second->id)->sole()->sqid())->assertNoContent();
+        $this->assertTrue($live->refresh()->is_default);
+    }
+
     public function test_trims_must_leave_a_second_and_only_open_or_accepted_takes_can_be_adjusted(): void
     {
         $submission = $this->submitted(2.0);

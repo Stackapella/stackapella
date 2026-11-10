@@ -4,13 +4,11 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api\Billing;
 
-use App\Exceptions\Refusal;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Billing\ListScoresRequest;
 use App\Http\Requests\Billing\SaveScoreRequest;
 use App\Models\Score;
 use App\Models\User;
-use App\Support\Usage\Plans;
 use Illuminate\Container\Attributes\CurrentUser;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Carbon;
@@ -51,12 +49,12 @@ final class ScoresController extends Controller
         return response()->json(['data' => self::fields($score)], 201);
     }
 
-    public function index(ListScoresRequest $request, Plans $plans, #[CurrentUser] User $user): JsonResponse
+    /**
+     * scores.list: the history, for every account (free since 2026-11-07: learning to sing better
+     * is free, docs/pricing-plan.md).
+     */
+    public function index(ListScoresRequest $request, #[CurrentUser] User $user): JsonResponse
     {
-        if (! $plans->isPlus($user)) {
-            throw new Refusal(403, 'plus_required');
-        }
-
         $since = $request->validated('since');
         $page = Score::query()
             ->where('user_id', $user->id)

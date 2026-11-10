@@ -191,6 +191,8 @@ final class BuildExport implements ShouldQueue
         $templates = Template::query()->with(['versions', 'recordings'])->where('owner_id', $user->id)->whereNull('deleted_at')->orderBy('id')->get()->map(static fn (Template $template): array => [
             'id' => $template->slug,
             'visibility' => $template->visibility,
+            // A song made from sheet music: when they confirmed the right to use it, and the wording's version.
+            'fromSheetMusic' => $template->imported_at !== null ? ['importedAt' => $template->imported_at->utc()->toIso8601ZuluString(), 'rightsConfirmedAt' => $template->rights_confirmed_at?->utc()->toIso8601ZuluString(), 'rightsWording' => $template->rights_statement, 'rightsConfirmedBy' => $template->rights_confirmed_by, 'rightsSource' => $template->rights_source] : null,
             'versions' => $template->versions->sortBy('version')->map(static fn (TemplateVersion $version): array => (array) $version->data)->values()->all(),
             'recordedGuides' => $template->recordings->where('status', TemplateRecording::READY)->map(static fn (TemplateRecording $recording): array => [
                 'part' => $recording->part_key,
@@ -233,12 +235,16 @@ final class BuildExport implements ShouldQueue
 
         // A beta singer's own records, payments included: their data, in their own export (the
         // right of access), never shown in the app (Hillel's rule; docs/decisions.md).
-        $singer = BetaSinger::query()->with(['assignments.template', 'assignments.submissions' => fn ($query) => $query->select(['id', 'beta_assignment_id', 'status', 'payable_cents', 'paid_at', 'singer_note', 'device', 'mic', 'created_at'])])->where('user_id', $user->id)->first();
+        $singer = BetaSinger::query()->with(['assignments.template', 'assignments.submissions' => fn ($query) => $query->select(['id', 'beta_assignment_id', 'status', 'payable_cents', 'paid_at', 'singer_note', 'admin_note', 'device', 'mic', 'created_at'])])->where('user_id', $user->id)->first();
 
         if ($singer !== null) {
             $zip->addFromString('beta-singer.json', (string) json_encode([
                 'agreement' => ['version' => $singer->consent_version, 'acceptedAt' => $singer->consented_at?->utc()->toIso8601ZuluString()],
                 'credit' => $singer->credit_mode?->value,
+                'creditLinksYourProfile' => $singer->credit_links_profile,
+                // Lend your voice: a volunteer, and when claiming stopped (a take refused for abuse).
+                'volunteer' => $singer->volunteer,
+                'claimingStoppedAt' => $singer->volunteer_blocked_at?->utc()->toIso8601ZuluString(),
                 'hourlyRateCents' => $singer->hourly_rate_cents,
                 'currency' => $singer->currency,
                 'parts' => $singer->assignments->map(static fn (BetaAssignment $a): array => [
@@ -246,12 +252,16 @@ final class BuildExport implements ShouldQueue
                     'part' => $a->part_key,
                     'courseClip' => $a->clip?->slot,
                     'minutes' => $a->minutes,
+                    'claimedAt' => $a->claimed_at?->utc()->toIso8601ZuluString(),
+                    'heldUntil' => $a->claimed_at !== null ? $a->expires_at?->utc()->toIso8601ZuluString() : null,
+                    'askedAgain' => $a->asked_again_at !== null ? ['at' => $a->asked_again_at->utc()->toIso8601ZuluString(), 'note' => $a->asked_again_note] : null,
                     'takes' => $a->submissions->map(static fn (BetaSubmission $s): array => [
                         'sentAt' => $s->created_at?->utc()->toIso8601ZuluString(),
                         'status' => $s->status->value,
                         'payableCents' => $s->payable_cents,
                         'paidAt' => $s->paid_at?->utc()->toIso8601ZuluString(),
                         'yourNote' => $s->singer_note,
+                        'ourNote' => $s->admin_note,
                         'device' => $s->device,
                         'mic' => $s->mic,
                     ])->values()->all(),

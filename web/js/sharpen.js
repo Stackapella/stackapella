@@ -39,8 +39,7 @@ export function sharpenPicks(course, progress, access = {}) {
     const kept = courseLessonsKept(progress, course?.id);
     const done = courseLessons(course).filter((l) => kept[l.lesson.id]?.stars && !l.lesson.findsHome);
     const playable = (id) => {
-        const { open, plusOnly } = lessonAccess(course, id, progress, access);
-        return open && !plusOnly;
+        return lessonAccess(course, id, progress, access).open;
     };
     const ready = done.filter((l) => sharpenStart(l.lesson) !== null && playable(l.lesson.id));
     if (ready.length < SHARPEN_FROM) return [];

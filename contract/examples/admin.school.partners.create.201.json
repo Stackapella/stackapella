@@ -1,0 +1,20 @@
+{
+    "data": {
+        "id": "Ab3dEf9h",
+        "kind": "partner",
+        "name": "Harmony Society members",
+        "partner": {
+            "id": "Ot4Kx8",
+            "name": "Harmony Society"
+        },
+        "code": "KQ7M-3XPA",
+        "teacher": null,
+        "seats": 19000,
+        "used": 0,
+        "status": "open",
+        "createdAt": "2026-11-01T10:00:00Z",
+        "expiresAt": "2027-03-01T10:00:00Z",
+        "closedAt": null,
+        "closedBy": null
+    }
+}

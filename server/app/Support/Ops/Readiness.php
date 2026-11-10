@@ -116,6 +116,27 @@ final class Readiness
 
             return Check::when($songs > 0, 'content', 'songs', 'Songs', "{$songs} in the library.", 'No songs in the library.', 'sh server/tool/content.sh fetch (from the repo root), then php artisan app:templates:sync.');
         });
+        // The weekly sitemap check (Wednesdays): every listed page indexable, every linked one listed.
+        if (! $selfHosted) {
+            $checks[] = $this->safely('content', 'sitemap', 'Sitemap', function (): Check {
+                $last = SitemapProblems::latest();
+                $count = count($last['problems'] ?? []);
+
+                return match (true) {
+                    $last === null => Check::pass('content', 'sitemap', 'Sitemap', 'Checked every Wednesday; not yet here.'),
+                    $count === 0 => Check::pass('content', 'sitemap', 'Sitemap', 'Every page could be indexed on '.substr($last['at'], 0, 10).'.'),
+                    default => new Check('content', 'sitemap', 'Sitemap', Check::FAIL, ($count === 1 ? '1 problem' : "{$count} problems").' on '.substr($last['at'], 0, 10).': '.implode(' | ', SitemapProblems::brief()), 'php artisan app:sitemap:check --all names them all; fix each, then run it again with --save.'),
+                };
+            });
+        }
+
+        // The last sync skips a song it can't load and keeps that song's live version (SyncProblems).
+        $checks[] = $this->safely('content', 'sync', 'Song sync', function (): Check {
+            $problems = SyncProblems::latest();
+            $count = count($problems);
+
+            return Check::when($problems === [], 'content', 'sync', 'Song sync', 'Every song loaded at the last sync.', ($count === 1 ? '1 song' : "{$count} songs").' not synced, each still on its live version: '.implode(' | ', $problems), 'Fix each in the content repo (a changed song needs a new version), pin it with content-bump.sh, and deploy.');
+        });
 
         $checks[] = Check::when(! $production || ((string) config('services.turnstile.site_key') !== '' && (string) config('services.turnstile.secret') !== ''), 'config', 'turnstile', 'Turnstile', 'Keys set.', 'No Turnstile keys: shield mode can\'t ask for a challenge when sign-ups or reports surge.', 'Set TURNSTILE_SITE_KEY and TURNSTILE_SECRET.', Check::WARN);
 
@@ -240,6 +261,17 @@ final class Readiness
     public static function stamp(string $key, mixed $value = null): void
     {
         Setting::query()->updateOrCreate(['key' => $key], ['value' => $value ?? now()->utc()->toIso8601ZuluString()]);
+    }
+
+    /**
+     * When the scheduler last beat (app:heartbeat, every minute), or null if it never has.
+     */
+    public static function lastHeartbeat(): ?Carbon
+    {
+        $value = Setting::query()->where('key', self::HEARTBEAT)->first()?->value;
+        $at = is_array($value) ? ($value['at'] ?? null) : $value;
+
+        return is_string($at) && $at !== '' ? Carbon::parse($at) : null;
     }
 
     private function time(string $key): ?Carbon

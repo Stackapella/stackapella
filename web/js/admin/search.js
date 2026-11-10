@@ -6,7 +6,7 @@
 
 import { api } from '../api.js';
 import { formatDate, formatNumber, t, tk } from '../i18n.js';
-import { LoadFailed } from './common.js';
+import { LoadFailed, remembers } from './common.js';
 import { Notice } from '../components/form.js';
 
 const REASONS = { lowCtr: tk('admin.search.reason.lowCtr'), nearTop: tk('admin.search.reason.nearTop') };
@@ -27,6 +27,7 @@ export function shortKey(key) {
 export const rate = (ctr) => formatNumber(ctr ?? 0, { style: 'percent', maximumFractionDigits: 1 });
 
 export const SearchSection = {
+    mixins: [remembers('search', { view: Object.keys(VIEWS) })],
     components: { LoadFailed, Notice },
     props: { me: { type: Object, required: true } },
     data: () => ({ report: null, failed: false, view: 'pages' }),

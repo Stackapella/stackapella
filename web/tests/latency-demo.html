@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en" data-theme="stage-dark">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Latency test</title>
+    <!-- How a /tools page mounts the latency test (js/public/tools/latency-test.js): a box, the page's words, mountLatencyTest().
+         ?loopback measures the engine's own output (no speaker or mic in the room: tests and shots). -->
+    <meta name="game-css" content="/css/site-game.css">
+    <link rel="stylesheet" href="/css/site.css">
+    <script src="/js/theme-boot.js"></script>
+    <script src="/js/game-css.js"></script>
+</head>
+<body class="bg-ink text-cream">
+    <main class="px-4">
+        <div id="latency"></div>
+        <h1 class="mx-auto mt-8 max-w-[24.375rem] text-[28px] font-extrabold leading-tight tracking-tight md:text-[40px]">How late are your headphones?</h1>
+    </main>
+    <script type="module" src="/tests/tool-frame.js"></script>
+    <script type="module">
+        import { mountLatencyTest, openEngine } from '/js/public/tools/latency-test.js';
+        const words = {
+            routeQuestion: 'What are you listening on?', howToLabel: 'How it works', idleHint: 'Pick what you listen on, then Start', wired: 'Wired', bluetooth: 'Bluetooth', speakers: 'Speakers',
+            wiredHint: 'Wired: hold one earbud or ear cup near the mic if you use the more exact check.', bluetoothHint: 'Bluetooth delays are usually 100 to 300 ms.',
+            speakersHint: 'Speakers: turn the volume up in a quiet room.',
+            howTo: 'Start plays a steady click. Tap the pad on each one, as steadily as you can, and we\'ll work out how late you hear it.',
+            start: 'Start tapping', stop: 'Stop', tapPad: 'Tap', tapHint: 'Tap on each click, or press Space', tapLabel: 'Tap on each click',
+            tapCount: ':n of :total taps', tapUneven: 'A little uneven: a few more', tapLost: 'We didn\'t get enough steady taps. Try again, right on each click.',
+            exact: 'More exact: let the mic hear it', micIntro: 'Plays a few clicks and listens for them, about 10 seconds. Hold an earbud near the mic. The mic opens only now, and nothing is recorded.',
+            micStart: 'Start listening', measuring: 'Listening for the clicks. Keep the room quiet.',
+            ms: ':ms ms', plusMinus: '± :ms',
+            tight: 'Most people won\'t notice it; hearing yourself live, some singers still will.', fine: 'Fine for recording; noticeably late to hear yourself live.',
+            late: 'Fine for stacking harmonies in an app that lines takes up; too slow to hear yourself live.', veryLate: 'Singing along will drag. Use wired headphones if you can.',
+            zoneTight: 'Tight', zoneFine: 'Fine', zoneLate: 'Late', zoneVeryLate: 'Very late',
+            whatNow: 'What to do with it',
+            do1: 'Recording in Stackapella? It lines your takes up by this much for you, after a 10-second check.',
+            do2: 'To hear yourself live while you sing, use wired headphones: Bluetooth is always too slow for that.',
+            do3: 'Stuck with Bluetooth? A game or low-latency mode, or LE Audio headphones, cut the delay.',
+            headsetMic: 'With Bluetooth headphones, sing into the phone or laptop mic, not the headset\'s own: its mic switches it to call quality and changes the delay.',
+            browserSays: 'Your browser says :ms ms, which often leaves out the Bluetooth part.',
+            again: 'Test again', thisVisit: 'This visit', byTap: 'tapped', byMic: 'round trip, by mic',
+            roundTrip: 'By mic, this is the round trip: out through your :route and back in through the mic, the delay Stackapella lines your takes up by.', tapEarly: 'Taps run a little early, so a tapped delay reads a little low: the mic check in More is the exact one.', copyTextMic: ':route: :ms ms round trip (± :spread), measured at stackapella.com', copy: 'Copy result', copied: 'Copied', copyText: ':route headphones: :ms ms (± :spread), measured at stackapella.com',
+            kept: 'Nothing is recorded or kept: the clicks and your taps stay in this page.',
+            failed: 'We couldn\'t hear the clicks.', failedHint: 'Turn the volume up, and hold an earbud right against the mic.',
+            denied: 'The mic is blocked for this page. Allow it in the browser to run the check.', noMic: 'No mic to listen with.',
+            settings: 'More', settingsTitle: 'Settings', reset: 'Reset', done: 'Done',
+            clapExact: 'More exact: clap along', clapIntro: 'Keep your earbuds in. You\'ll hear 12 clicks: clap on each one, or tap the table, and the phone\'s or laptop\'s own mic hears you. About 8 seconds. The mic opens only now, and nothing is recorded.',
+            clapTip: 'AirPods: turn off Automatic Ear Detection, and the click check works with an earbud held to the mic.', clapStart: 'Start the clicks',
+            clapping: 'Clap on each click, right on the beat. The first few are for finding it.', clapUneven: 'Try again, clapping right on the click.',
+            clapFew: 'We didn\'t hear enough claps. Clap a little louder, near the phone or laptop.', byClap: 'round trip, clapped along',
+            clapNote: 'Clapped along, this is the round trip as you hear it: out to your earbuds and your clap back in through the mic, with the usual lead of a clap on the beat added back.',
+        };
+        const loopback = new URLSearchParams(location.search).has('loopback');
+        window.__result = null;
+        window.__latency = mountLatencyTest(document.querySelector('#latency'), {
+            words, keySlot: document.querySelector('[data-tool-key]'), onResult: (r) => (window.__result = r), onError: (reason) => (window.__error = reason),
+            ...(loopback ? { open: (options) => openEngine({ ...options, loopback: true }) } : {}),
+        });
+    </script>
+</body>
+</html>

@@ -44,6 +44,7 @@ const routes = [
     { name: 'warmup', pattern: /^\/warmup\/?$/, keys: [] }, // a teacher's warm-up: /warmup#<code> (js/warmup.js)
     { name: 'fresh', pattern: /^\/start-fresh\/?$/, keys: [] },
     { name: 'ideas', pattern: /^\/ideas\/?$/, keys: [] },
+    { name: 'requests', pattern: /^\/requests\/?$/, keys: [] }, // song requests (N7)
     { name: 'voices', pattern: /^\/voices\/?$/, keys: [] }, // Lend your voice (views/voices.js)
     { name: 'idea', pattern: /^\/ideas\/([\w-]+)\/?$/, keys: ['id'] },
     { name: 'projects', pattern: /^\/?$/, keys: [] },

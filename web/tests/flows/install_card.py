@@ -1,5 +1,6 @@
 """The install card (docs/operations-plan.md, "Keeping songs safe"): with the browser's offer to
-install (headless Chrome offers it on localhost), the home offers it; "Not now" ends the plain offer. Once a song is recorded the card says
+install (headless Chrome offers it on localhost), the home offers it once the device has done something (never on a
+brand-new guest's first home); "Not now" ends the plain offer. Once a song is recorded the card says
 the songs are only on this device. Every "Not now" holds back all the asks for 14 days (js/asks.js). Installing calls the
 browser's own prompt.
 """
@@ -25,6 +26,15 @@ def journey(f):
     f.go(HOME, "document.querySelector('#app header')")
     f.wait("true", what="loaded")
     time.sleep(1)  # Chrome offers to install here for real; ours replaces it, to see the call
+    f.run(OFFER)
+    # A brand-new guest's first home is Start singing and nothing competing (the coordinator, 2026-11-08): no card yet.
+    time.sleep(0.5)
+    assert not f.js("!!document.querySelector('#install-title')"), "the install card on a brand-new guest's first home"
+    # Lesson 1 done on this device: the card comes.
+    f.run("""const { emptyProgress } = await import('/js/course.js'); const db = await import('/js/db.js');
+        await db.put('learning', { ...emptyProgress(), startedAt: Date.now(), home: 57, lessons: { '1-comfortable': { stars: 3, bestPercent: 95, at: Date.now() } } }, 'progress');""")
+    f.go(HOME, "document.querySelector('#app header')")
+    time.sleep(1)
     f.run(OFFER)
     f.wait(f"{CARD} === (await import('/js/i18n.js')).t('install.title')", what="install.title")
     f.shot("offer")

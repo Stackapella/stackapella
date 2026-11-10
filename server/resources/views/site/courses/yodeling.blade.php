@@ -12,7 +12,7 @@
      (js/public/yodeling.js), only when pressed. Words: lang/en/site.php courses.pages.yodeling (love). --}}
 @php($love = $page['love'])
 @php($sources = $love['sources'])
-@php($tryUrl = $open ? \App\Support\Http\Hosts::app('/learn/c/'.$page['app']) : $links['start'])
+@php($tryUrl = $open ? $courseStart : $links['start'])
 @php($tryLabel = $open ? __('pages.site.course_try') : __('pages.site.course_start'))
 {{-- The call: [start, length, y, head] for each note of the hook, drawn at 200px a second from the alphorn. --}}
 @php($hook = [[0, .3, 205, false], [.3, .3, 140, true], [.6, .3, 190, false], [.9, .8, 125, true]])

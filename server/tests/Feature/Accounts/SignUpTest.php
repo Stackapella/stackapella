@@ -145,6 +145,28 @@ final class SignUpTest extends TestCase
         $this->postJson('/api/auth/sign-in', ['email' => 'ada@example.com', 'password' => 'the-squatters-password'])->assertStatus(401);
     }
 
+    public function test_what_a_stranger_said_at_sign_up_goes_when_the_owner_resets_the_password(): void
+    {
+        // A squatter's sign-up with Ada's address: a name, an age and an invite of their own.
+        $squatter = User::factory()->withPassword('the-squatters-password')->unverified()->create(['email' => 'ada@example.com', 'name' => 'Squatter', 'birth_month' => 1, 'birth_year' => 1980, 'adult_confirmed_at' => now(), 'pending_invite_hash' => hash('sha256', 'squatters-invite')]);
+
+        // Ada signs up with an invite of her own: it isn't put on the account she hasn't proven.
+        $this->postJson('/api/auth/register', $this->form(['invite' => 'adas-invite']))->assertStatus(202);
+        $this->assertSame(hash('sha256', 'squatters-invite'), $squatter->refresh()->pending_invite_hash);
+
+        $token = null;
+        Mail::assertQueued(AlreadyHaveAnAccount::class, function (AlreadyHaveAnAccount $mail) use (&$token): bool {
+            $token = $mail->resetToken;
+
+            return true;
+        });
+        $this->postJson('/api/auth/password/reset', ['token' => $token, 'email' => 'ada@example.com', 'password' => 'adas-own-fine-passphrase'])->assertOk();
+
+        $squatter->refresh();
+        $this->assertNotNull($squatter->email_verified_at);
+        $this->assertSame(['', null, null, null, null, null], [$squatter->name, $squatter->birth_month, $squatter->birth_year, $squatter->age_confirmed_at, $squatter->adult_confirmed_at, $squatter->pending_invite_hash]);
+    }
+
     public function test_bots_get_the_same_answer_and_nothing_happens(): void
     {
         $this->assertMatchesContract($this->postJson('/api/auth/register', $this->form(['nickname' => 'bot'])), 'auth.register', 202);

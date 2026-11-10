@@ -7,7 +7,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
 from flow import run  # noqa: E402
-from game_frames import dark, frames, light  # noqa: E402
+from game_frames import dark, every_theme, frames, light  # noqa: E402
 from help_shots import t  # noqa: E402
 
 GEM = "getComputedStyle(document.querySelector('[data-toast-tone=badge]'), '::before').content !== 'none'"
@@ -26,6 +26,7 @@ def journey(f):
     assert f.js(GEM), "the gem held up"
     frames(f, "item-get", [0, 300, 550, 1100])
     f.shot("item-get")
+    every_theme(f, "the item get")
     light(f)
     f.shot("item-get-light")
     dark(f)

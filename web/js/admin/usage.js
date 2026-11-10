@@ -10,7 +10,7 @@
 import { api } from '../api.js';
 import { formatDate, formatNumber, locale, localized, t, timeAgo, tk } from '../i18n.js';
 import { EmptyState } from '../components/form.js';
-import { LoadFailed, loadInto, zoneName } from './common.js';
+import { LoadFailed, loadInto, remembers, zoneName } from './common.js';
 
 // 1 is Today: today so far, UTC.
 const WINDOWS = [1, 7, 30, 90];
@@ -18,7 +18,7 @@ const REFRESH_MS = 30000; // while the page is in view (a timer for the page, ne
 const TICK_MS = 1000; // how long ago it was updated, counting up
 // The moments counted (js/usage.js; sign-ups the server counts itself), by area, each in the order a person meets them.
 const AREAS = [
-    { key: 'everyday', title: tk('admin.usage.area.everyday'), kinds: ['app_open', 'app_day', 'app_week', 'app_month', 'sign_up', 'lesson_start', 'lesson_done', 'unit_done', 'song_created', 'take_recorded', 'harmonise_used', 'export_done', 'share_created', 'result_shared'] },
+    { key: 'everyday', title: tk('admin.usage.area.everyday'), kinds: ['app_open', 'app_day', 'app_week', 'app_month', 'sign_up', 'lesson_start', 'lesson_done', 'unit_done', 'song_created', 'take_recorded', 'harmonise_used', 'export_done', 'share_created', 'result_shared', 'part_play'] },
     { key: 'skins', title: tk('admin.usage.area.skins'), kinds: ['open_game', 'open_serious', 'game_on', 'game_off', 'daily_viewed', 'daily_sung'] },
     { key: 'plus', title: tk('admin.usage.area.plus'), kinds: ['sharpen_up', 'then_now', 'keep_song', 'fact_source'], courses: true },
     { key: 'free', title: tk('admin.usage.area.free'), kinds: [], lessons: true },
@@ -42,6 +42,7 @@ export const KINDS = {
     export_done: tk('admin.usage.kind.export_done'),
     share_created: tk('admin.usage.kind.share_created'),
     result_shared: tk('admin.usage.kind.result_shared'),
+    part_play: tk('admin.usage.kind.part_play'),
     open_game: tk('admin.usage.kind.open_game'),
     open_serious: tk('admin.usage.kind.open_serious'),
     game_on: tk('admin.usage.kind.game_on'),
@@ -111,6 +112,7 @@ export function updatedAgo(at, now) {
 }
 
 export const UsageSection = {
+    mixins: [remembers('usage', { days: WINDOWS })],
     components: { EmptyState, LoadFailed },
     props: { me: { type: Object, required: true } },
     data: () => ({ days: 1, kind: 'app_open', counts: null, failed: false, loadingMore: false, cursor: null, course: null, catalogue: [], updatedAt: null, now: Date.now(), refreshing: false, staleSince: null }),
@@ -127,8 +129,9 @@ export const UsageSection = {
                         <button v-for="d in WINDOWS" :key="d" type="button" role="radio" :aria-checked="days === d" class="seg-option" @click="setDays(d)">{{ d === 1 ? t('admin.usage.today') : t('admin.usage.days', { count: d }) }}</button>
                     </div>
                     <p v-if="updatedAt" class="flex flex-wrap items-center gap-x-3 text-sm text-muted" data-usage-updated>
-                        <span>{{ staleSince ? t('admin.usage.notUpdated', { when: updated }) : t('admin.usage.updated', { when: updated }) }}</span>
-                        <button type="button" class="btn-ghost btn-sm" :aria-busy="refreshing ? 'true' : null" :disabled="refreshing" @click="refresh"><span v-if="refreshing" class="spinner"></span>{{ t('admin.usage.refresh') }}</button>
+                        <!-- As Growth says it: a dot (green fresh, amber stale), the words, and Refresh as a secondary button. -->
+                        <span class="inline-flex items-center gap-1.5"><span class="size-1.5 rounded-full" :class="staleSince ? 'bg-warn' : 'bg-good'" aria-hidden="true"></span>{{ staleSince ? t('admin.usage.notUpdated', { when: updated }) : t('admin.usage.updated', { when: updated }) }}</span>
+                        <button type="button" class="btn-secondary btn-sm" :aria-busy="refreshing ? 'true' : null" :disabled="refreshing" @click="refresh"><span v-if="refreshing" class="spinner"></span>{{ t('admin.usage.refresh') }}</button>
                     </p>
                 </div>
             </div>

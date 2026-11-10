@@ -10,11 +10,11 @@
 
 import { VoiceCareLine } from '../components/voice-care.js';
 import { nextTick } from 'vue';
-import { PageHeader } from '../components/page.js';
+import { AppScreen } from '../components/page.js';
 import { midiName } from '../dsp.js';
 import { localized, t, tk } from '../i18n.js';
 import { goBack, navigate } from '../router.js';
-import { pickWorkout, shifted, stepSeconds, exerciseSeconds, workoutUsed } from '../workout.js';
+import { pickWorkout, shifted, stepSeconds, exerciseSeconds } from '../workout.js';
 import { readingToday } from '../reading-lines.js';
 import { account } from '../stores/account.js';
 import { allLessons, learning, loadLearning, setWorkoutShift, workoutDone } from '../stores/learning.js';
@@ -41,36 +41,25 @@ const WHY = {
 };
 
 export const WorkoutView = {
-    components: { VoiceCareLine, PageHeader, Exercise, Icon },
+    components: { VoiceCareLine, AppScreen, Exercise, Icon },
     data: () => ({ kept: [], choice: null, plan: null, step: 0, round: 0, running: false, previewing: false, previewRound: 0, done: 0, ran: false, sang: false, skippedAll: false, finished: false, xp: 0 }),
     setup: () => ({ learning, navigate, goBack, TITLES, WHY, SHIFT_LIMIT, REST, midiName, game, sk }),
     template: `
-        <div class="mx-auto flex min-h-dvh max-w-2xl flex-col px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-[max(0.5rem,env(safe-area-inset-top))] md:px-8">
-            <PageHeader :title="sk('workout.title', 'game.workout.title')" back="/learn">
+        <AppScreen :title="sk('workout.title', 'game.workout.title')" back="/learn" measure="max-w-2xl" foot="pb-[max(1rem,env(safe-area-inset-bottom))]">
                 <template #title>
                     <span class="block text-xs font-medium tracking-normal text-muted">{{ sk('workout.title', 'game.workout.title') }}</span>
-                    <span class="block text-base font-bold tracking-normal">{{ plan && !finished && !used ? t(TITLES[current.kind]) : sk('workout.title', 'game.workout.title') }}</span>
+                    <span class="block text-base font-bold tracking-normal">{{ plan && !finished ? t(TITLES[current.kind]) : sk('workout.title', 'game.workout.title') }}</span>
                 </template>
                 <template #aside>
-                    <div v-if="plan && !finished && !used" class="flex items-center gap-3">
+                    <div v-if="plan && !finished" class="flex items-center gap-3">
                         <span class="text-xs text-muted tabular-nums">{{ t('workout.stepOf', { step: step + 1, count: plan.steps.length }) }}</span>
                         <span class="flex w-16 gap-1" aria-hidden="true"><span v-for="(s, i) in plan.steps" :key="i" class="h-1 flex-1 rounded-full" :class="i <= step ? 'bg-accent' : 'bg-line'"></span></span>
                     </div>
                 </template>
-            </PageHeader>
 
             <p v-if="!learning.loaded" class="text-muted" role="status">{{ t('settings.loading') }}</p>
-            <section v-else-if="used" class="card mt-4 space-y-4 p-6 text-center">
-                <span class="mx-auto grid size-14 place-items-center rounded-full bg-part-4 text-part-text-4"><Icon name="check" :size="28" /></span>
-                <h2 class="text-xl font-bold text-cream">{{ t('workout.usedTitle') }}</h2>
-                <p class="text-muted">{{ t('workout.usedHint') }}</p>
-                <div class="flex flex-wrap justify-center gap-3">
-                    <button type="button" class="btn-secondary" @click="navigate('/learn')">{{ t('workout.toCourse') }}</button>
-                    <button type="button" class="btn-primary" @click="navigate('/plus?from=workout')">{{ t('workout.morePlus') }}</button>
-                </div>
-            </section>
             <section v-else-if="finished" class="card mt-4 space-y-4 p-6 text-center" aria-live="polite" data-workout-end>
-                <span class="mx-auto grid size-14 place-items-center rounded-full bg-part-4 text-part-text-4"><Icon name="star" :size="28" /></span>
+                <span class="bubble bubble-lg mx-auto grid size-14 place-items-center" style="--bubble: var(--color-part-4); --bubble-ink: var(--color-part-text-4)"><Icon name="star" :size="28" /></span>
                 <h2 class="text-xl font-bold text-cream">{{ t('workout.doneTitle') }}</h2>
                 <p class="text-muted">{{ skippedAll ? t('workout.skippedAll') : xp && game() ? t('workout.doneXp', { xp }) : t('workout.doneHint') }}</p>
                 <VoiceCareLine />
@@ -134,15 +123,10 @@ export const WorkoutView = {
                     <button type="button" class="btn-primary col-span-2 w-full sm:w-auto" :disabled="!ran" @click="next">{{ step === plan.steps.length - 1 ? t('workout.finish') : t('workout.continueTo', { step: step + 2 }) }}</button>
                 </footer>
             </template>
-        </div>`,
+        </AppScreen>`,
     computed: {
         base: () => learning.progress.home ?? DEFAULT_HOME,
         shift: () => learning.progress.workoutShift ?? 0,
-        plus: () => account.me?.plan === 'plus',
-        /** Free has had today's (Plus has as many as it likes). A workout under way carries on. */
-        used() {
-            return !this.plus && !this.plan?.started && workoutUsed(learning.progress);
-        },
         /** The step under way: the warm-up is the kept one chosen on this device, when there is one. */
         current() {
             const step = this.plan.steps[this.step];

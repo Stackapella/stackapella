@@ -135,6 +135,7 @@ export const OPERATIONS = {
     'groups.join': ['POST', '/api/choir/{token}'],
     'groups.members.delete': ['DELETE', '/api/groups/{id}/members/{memberId}'],
     'groups.songs.create': ['POST', '/api/groups/{id}/songs'],
+    'groups.tracks.create': ['POST', '/api/groups/{id}/tracks'],
     'groups.songs.delete': ['DELETE', '/api/groups/{id}/songs/{templateId}'],
     'groups.assignments.update': ['PUT', '/api/groups/{id}/songs/{templateId}/assignments'],
     'beta.submissions.create': ['POST', '/api/beta/submissions'],
@@ -179,11 +180,27 @@ export const OPERATIONS = {
     'voices.claims.create': ['POST', '/api/voices/claims'],
     'voices.claims.delete': ['DELETE', '/api/voices/claims/{id}'],
     'admin.growth.show': ['GET', '/api/admin/growth'],
+    'admin.outreach.list': ['GET', '/api/admin/outreach'],
+    'admin.outreach.create': ['POST', '/api/admin/outreach'],
+    'admin.outreach.import': ['POST', '/api/admin/outreach/import'],
+    'admin.outreach.results': ['GET', '/api/admin/outreach/results'],
+    'admin.outreach.suppressions.create': ['POST', '/api/admin/outreach/suppressions'],
+    'admin.outreach.drafts.update': ['PATCH', '/api/admin/outreach/messages/{id}'],
+    'admin.outreach.drafts.delete': ['DELETE', '/api/admin/outreach/messages/{id}'],
+    'admin.outreach.drafts.send': ['POST', '/api/admin/outreach/messages/{id}/send'],
+    'admin.outreach.drafts.sent': ['POST', '/api/admin/outreach/messages/{id}/mark-sent'],
+    'admin.outreach.drafts.test': ['POST', '/api/admin/outreach/messages/{id}/test'],
+    'admin.outreach.replies.read': ['POST', '/api/admin/outreach/replies/{id}/read'],
+    'admin.outreach.show': ['GET', '/api/admin/outreach/{id}'],
+    'admin.outreach.update': ['PATCH', '/api/admin/outreach/{id}'],
+    'admin.outreach.drafts.create': ['POST', '/api/admin/outreach/{id}/drafts'],
+    'admin.outreach.replies.create': ['POST', '/api/admin/outreach/{id}/replies'],
     'admin.experiments.list': ['GET', '/api/admin/experiments'],
     'admin.experiments.create': ['POST', '/api/admin/experiments'],
     'admin.experiments.update': ['PATCH', '/api/admin/experiments/{id}'],
     'admin.sources.show': ['GET', '/api/admin/sources'],
     'admin.active.show': ['GET', '/api/admin/active'],
+    'admin.groups.list': ['GET', '/api/admin/groups'],
     'admin.reach.show': ['GET', '/api/admin/reach'],
     'admin.revenue.show': ['GET', '/api/admin/revenue'],
     'admin.cohorts.show': ['GET', '/api/admin/cohorts'],
@@ -197,6 +214,7 @@ export const OPERATIONS = {
     'admin.school.update': ['PATCH', '/api/admin/school/{id}'],
     'admin.school.redemptions.end': ['POST', '/api/admin/school/redemptions/{id}/end'],
     'admin.school.teachers.update': ['PATCH', '/api/admin/school/teachers/{id}'],
+    'admin.school.partners.create': ['POST', '/api/admin/school/partners'],
     'school.classes.list': ['GET', '/api/school/classes'],
     'school.classes.create': ['POST', '/api/school/classes'],
     'school.classes.update': ['PATCH', '/api/school/classes/{id}'],
@@ -204,6 +222,7 @@ export const OPERATIONS = {
     'admin.people.show': ['GET', '/api/admin/people/{id}'],
     'admin.people.suspend': ['POST', '/api/admin/people/{id}/suspend'],
     'admin.people.unsuspend': ['POST', '/api/admin/people/{id}/unsuspend'],
+    'admin.people.songs.create': ['POST', '/api/admin/people/{id}/songs'],
     'admin.people.trust.update': ['PUT', '/api/admin/people/{id}/trust'],
     'admin.people.recover': ['POST', '/api/admin/people/{id}/recover'],
     'auth.config': ['GET', '/api/auth/config'],
@@ -330,6 +349,7 @@ export const OPERATIONS = {
     'blocks.create': ['PUT', '/api/profiles/{handle}/block'],
     'blocks.delete': ['DELETE', '/api/profiles/{handle}/block'],
     'blocks.list': ['GET', '/api/account/blocks'],
+    'blocks.remove': ['DELETE', '/api/account/blocks/{id}'],
     'harmonies.consent.ask': ['POST', '/api/harmonies/{id}/consent'],
     'consentRequests.list': ['GET', '/api/consent-requests'],
     'consentRequests.decide': ['POST', '/api/consent-requests/{id}'],
@@ -598,6 +618,8 @@ export const api = {
         create: (handle) => call('blocks.create', { params: { handle } }),
         delete: (handle) => call('blocks.delete', { params: { handle } }),
         list: () => call('blocks.list'),
+        // Unblock a row by its own id (blocks.list's blockId), hidden profiles included (Hillel: "Make them unblockable").
+        remove: (blockId) => call('blocks.remove', { params: { id: blockId } }),
     },
     consentRequests: {
         list: () => call('consentRequests.list'),
@@ -634,6 +656,13 @@ export const api = {
     },
     reports: {
         create: (fields) => call('reports.create', { body: fields }),
+    },
+    // Song requests (N7): the most wanted, asking (a match is voted for instead), and votes.
+    requests: {
+        list: ({ q, status, sort, cursor } = {}) => call('requests.list', { query: { q, status, sort, cursor } }),
+        create: ({ title, writer = null, why = null }) => call('requests.create', { body: { title, writer, why } }),
+        vote: (id) => call('requests.vote', { params: { id } }),
+        unvote: (id) => call('requests.unvote', { params: { id } }),
     },
     // mudeo's early-access link (docs/mudeo-transition-plan.md): what a code is for.
     earlyAccess: {
@@ -698,6 +727,11 @@ export const api = {
         },
         reports: {
             list: ({ status, cursor } = {}) => call('admin.reports.list', { query: { status, cursor } }),
+        },
+        // Song requests (N7): held first, then by votes; approve, hide, a status, Ready with its song, or merge.
+        requests: {
+            list: ({ cursor } = {}) => call('admin.requests.list', { query: { cursor } }),
+            update: (id, fields) => call('admin.requests.update', { params: { id }, body: fields }),
         },
         social: {
             list: ({ status, cursor } = {}) => call('admin.social.list', { query: { status, cursor } }),
@@ -782,6 +816,8 @@ export const api = {
             show: (id) => call('admin.people.show', { params: { id } }),
             suspend: (id, { reason }) => call('admin.people.suspend', { params: { id }, body: { reason } }),
             unsuspend: (id, { reason }) => call('admin.people.unsuspend', { params: { id }, body: { reason } }),
+            // Give a song to this person (docs/partner-songs.md): the arranger's template, private to them, with the rights confirmed.
+            giveSong: (id, { song, rights }) => call('admin.people.songs.create', { params: { id }, body: { song, rights } }),
             trust: {
                 update: (id, { level, note }) => call('admin.people.trust.update', { params: { id }, body: { level, note } }),
             },
@@ -799,7 +835,32 @@ export const api = {
         funnel: {
             show: ({ experiment, days } = {}) => call('admin.funnel.show', { query: { experiment, days } }),
         },
-        growth: { show: ({ days } = {}) => call('admin.growth.show', { query: { days } }) },
+        growth: { show: ({ period, days } = {}) => call('admin.growth.show', { query: { period, days } }) },
+        // Outreach (docs/outreach-plan.md): one organization, one email, sent by Hillel's own press.
+        outreach: {
+            list: ({ status, group, angle, q } = {}) => call('admin.outreach.list', { query: { status, group, angle, q } }),
+            create: (body) => call('admin.outreach.create', { body }),
+            import: (rows) => call('admin.outreach.import', { body: { rows } }),
+            results: () => call('admin.outreach.results'),
+            show: (id) => call('admin.outreach.show', { params: { id } }),
+            update: (id, body) => call('admin.outreach.update', { params: { id }, body }),
+            suppress: ({ email, reason, note }) => call('admin.outreach.suppressions.create', { body: { email, reason, note } }),
+            drafts: {
+                create: (id, { kind } = {}) => call('admin.outreach.drafts.create', { params: { id }, body: kind ? { kind } : {} }),
+                update: (id, { subject, body } = {}) => call('admin.outreach.drafts.update', { params: { id }, body: { subject, body } }),
+                delete: (id) => call('admin.outreach.drafts.delete', { params: { id } }),
+                // staleOk: send it anyway past its send-by day (outreach_past_send_by); earlyOk: before its
+                // send-not-before day (outreach_too_early). Hillel said so each time.
+                send: (id, { staleOk = false, earlyOk = false } = {}) => call('admin.outreach.drafts.send', { params: { id }, body: { ...(staleOk ? { staleOk: true } : {}), ...(earlyOk ? { earlyOk: true } : {}) } }),
+                sent: (id, { staleOk = false, earlyOk = false } = {}) => call('admin.outreach.drafts.sent', { params: { id }, body: { ...(staleOk ? { staleOk: true } : {}), ...(earlyOk ? { earlyOk: true } : {}) } }),
+                // A test to the signed-in admin only, marked [Test]: never counted, never marked sent.
+                test: (id) => call('admin.outreach.drafts.test', { params: { id } }),
+            },
+            replies: {
+                create: (id, { body, from, subject, receivedAt } = {}) => call('admin.outreach.replies.create', { params: { id }, body: { body, from, subject, receivedAt } }),
+                read: (id, { targetId } = {}) => call('admin.outreach.replies.read', { params: { id }, body: targetId ? { targetId } : {} }),
+            },
+        },
         experiments: {
             list: () => call('admin.experiments.list'),
             create: (body) => call('admin.experiments.create', { body }),
@@ -807,6 +868,7 @@ export const api = {
         },
         sources: { show: ({ days } = {}) => call('admin.sources.show', { query: { days } }) },
         active: { show: () => call('admin.active.show') },
+        groups: { list: () => call('admin.groups.list') },
         reach: { show: () => call('admin.reach.show') },
         revenue: { show: () => call('admin.revenue.show') },
         cohorts: { show: () => call('admin.cohorts.show') },
@@ -823,6 +885,8 @@ export const api = {
             update: (id, fields) => call('admin.school.update', { params: { id }, body: fields }),
             endRedemption: (id, fields = {}) => call('admin.school.redemptions.end', { params: { id }, body: fields }),
             updateTeacher: (id, body) => call('admin.school.teachers.update', { params: { id }, body }),
+            // A partner code for an organization (docs/outreach-plan.md): its seats, how long, and the outreach target it's for.
+            createPartner: ({ name, seats, days, targetId } = {}) => call('admin.school.partners.create', { body: { name, seats, days, targetId } }),
         },
         storeTesters: {
             list: () => call('admin.storeTesters.list'),
@@ -943,6 +1007,9 @@ export const api = {
         songs: {
             create: (id, fields) => call('groups.songs.create', { params: { id }, body: fields }),
             delete: (id, templateId) => call('groups.songs.delete', { params: { id, templateId } }),
+        },
+        tracks: {
+            create: (id, fields) => call('groups.tracks.create', { params: { id }, body: fields }),
         },
         assignments: {
             update: (id, templateId, assignments) => call('groups.assignments.update', { params: { id, templateId }, body: assignments }),

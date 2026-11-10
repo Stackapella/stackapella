@@ -9,6 +9,7 @@ use App\Models\BetaFeedback;
 use App\Models\BetaSinger;
 use App\Models\BetaSubmission;
 use App\Models\CourseClip;
+use App\Models\Report;
 use App\Models\TemplateGuide;
 use App\Models\User;
 use App\Services\DigitalOcean\CdnPurge;
@@ -41,12 +42,15 @@ final class ForgetSinger
             }
 
             BetaFeedback::query()->where('beta_singer_id', $singer->id)->delete();
+            // Hillel's "please record again" notes to them.
+            $singer->assignments()->update(['asked_again_note' => null]);
 
             $singer->forceFill([
                 'name' => '',
                 'email' => null,
                 'note' => null,
                 'credit_mode' => null,
+                'credit_links_profile' => false,
                 'user_id' => null,
                 'revoked_at' => $singer->revoked_at ?? now(),
                 'forgotten_at' => now(),
@@ -54,6 +58,13 @@ final class ForgetSinger
 
             AuditLog::record('beta.forgotten', $singer, $actor, after: ['takes' => $submissions->count()], ip: $ip);
         });
+
+        // Reports about their voices go with them: a clip's slot waits for someone else's recording,
+        // which they'd otherwise be held against.
+        $guides = TemplateGuide::query()->whereIn('beta_submission_id', $submissions->pluck('id'))->pluck('id');
+        $clips = CourseClip::query()->whereIn('beta_submission_id', $submissions->pluck('id'))->pluck('id');
+        Report::query()->where(fn ($query) => $query->where('reportable_type', (new TemplateGuide)->getMorphClass())->whereIn('reportable_id', $guides))
+            ->orWhere(fn ($query) => $query->where('reportable_type', (new CourseClip)->getMorphClass())->whereIn('reportable_id', $clips))->delete();
 
         foreach (TemplateGuide::query()->whereIn('beta_submission_id', $submissions->pluck('id'))->get() as $guide) {
             $this->guides->remove($guide, $actor, $ip, 'forgotten');

@@ -4,11 +4,10 @@ import { assert, test } from './harness.js';
 import { addSung, flushSung, markShown, noteDue, setNotes, sungToday } from '../js/voice-day.js';
 
 const KEY = 'stackapella.voiceDay';
-// Today's noon and just after tomorrow's midnight, from the real clock: addSung stamps Date.now(), so
-// a fixed date would stop matching it the day after.
-const now = new Date();
-const NOON = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 12).getTime();
-const NEXT_DAY = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 5).getTime();
+// A fixed day's noon and just after the next midnight, handed to every call (addSung too), so the tests never
+// depend on when they run (a run across midnight split them once, 2026-11-02).
+const NOON = new Date(2026, 2, 10, 12).getTime();
+const NEXT_DAY = new Date(2026, 2, 11, 0, 5).getTime();
 
 function fresh(seconds = 0, shown = []) {
     localStorage.setItem(KEY, JSON.stringify({ day: new Date(NOON).toDateString(), sungSeconds: seconds, shown }));
@@ -39,8 +38,8 @@ test('voice care: 40 minutes is the second note, and covers the 20', () => {
 test('voice care: sung seconds add up, and a new day starts at local midnight', () => {
     setNotes(true);
     fresh(0);
-    addSung(3);
-    addSung(4); // over the flush threshold: kept
+    addSung(3, NOON);
+    addSung(4, NOON); // over the flush threshold: kept
     flushSung(NOON);
     assert(Math.round(sungToday(NOON)) === 7, `7 s, got ${sungToday(NOON)}`);
     assert(sungToday(NEXT_DAY) === 0, 'a new day starts at nothing');

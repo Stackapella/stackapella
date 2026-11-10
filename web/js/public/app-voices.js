@@ -25,6 +25,13 @@ export async function catalogueGuides(id, template) {
     }
 }
 
+/** A library song's template as the app reads it (templates.show; a Plus song, signed out, is refused: 403). */
+export async function songTemplate(slug) {
+    const response = await fetch('/api/templates/{id}'.replace('{id}', encodeURIComponent(slug)), { headers: { Accept: 'application/json' } });
+    if (!response.ok) throw new Error(`The song answered ${response.status}`);
+    return (await response.json()).data.template;
+}
+
 /** A real voice at `context`'s rate: `{ samples, offsetSeconds }` (its samples start that far into the song). */
 export async function realVoice(guide, context) {
     const decoded = await context.decodeAudioData(await (await fetch(guide.url)).arrayBuffer());

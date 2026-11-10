@@ -149,15 +149,20 @@ export function voiceLevels(slots, practice = PRACTICE_DEFAULTS, { recordingId =
     return levels;
 }
 
-/** The slots in the template's suggested order, for "next part" prompts. */
-export function nextSlot(slots, template, afterId = null) {
+/**
+ * The next part to record, for "next part" prompts: the one that suits the singer's voice best (`fit`,
+ * a slot to a number, lower is better: Hillel, 2026-11-02, "the next part by range"), then the
+ * template's suggested order.
+ */
+export function nextSlot(slots, template, afterId = null, fit = null) {
     const order = template?.order ?? [];
     const rank = (slot) => {
         const i = order.indexOf(slot.templatePartKey);
         return i < 0 ? order.length + slot.order : i;
     };
-    const sorted = slots.filter((s) => s.templatePartKey).sort((a, b) => rank(a) - rank(b));
-    return sorted.find((s) => s.id !== afterId && !hasTake(s)) ?? null;
+    const open = slots.filter((s) => s.templatePartKey && s.id !== afterId && !hasTake(s));
+    const sorted = open.sort((a, b) => (fit ? fit(a) - fit(b) : 0) || rank(a) - rank(b));
+    return sorted[0] ?? null;
 }
 
 // ---- Practice tracks (docs/more-features-plan.md, feature 12) -------------------------------------

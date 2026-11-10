@@ -1,38 +1,37 @@
-// The music the film is cut to: Amazing Grace's verse from the app's own template
-// (web/templates/amazing-grace.json, read as it is), at 96 BPM. Four of its long notes are held
-// longer, as fermatas, so the words on screen have time to be read: "me.", "found," and "now" a bar
-// each, and the last chord ("see.") two bars, so the end card stays up. Its 63 beats last exactly
-// the film's 39.375 seconds, and the next loop's pickup lands on the film's first frame. Every cut
-// sits on its beat (0.625 s) or half beat.
+// The music the film is cut to: Amazing Grace's verse as the app's real singers recorded it (the four
+// default real-voice guides of the song's catalogue entry, docs/showreel-v2-plan.md), at the song's own
+// 80 BPM. A real voice can't be stretched, so there are no fermatas: the verse is sung twice, the first
+// time voice by voice and the second with all four, and the last chord is held two more bars under the
+// app's soft pad, so the end card stays up. 102 beats last exactly the film's 76.5 seconds, and the
+// next loop's pickup lands on the film's first frame. Every cut sits on a beat (0.75 s) or a half beat.
 
 import { E, clamp, range } from './lib.js';
 
-export const BPM = 96;
+export const BPM = 80;
 export const SPB = 60 / BPM;
-// The fermatas: [a beat inside the held note, in the template's own beats, how many beats more].
-// Everything after one moves later; a note sounding across it is held longer.
-export const STRETCH = [[23.5, 3], [35.5, 3], [41, 3]];
-/** A beat of the template, as a beat of the film. */
-export const m = (b) => b + STRETCH.reduce((sum, [at, n]) => sum + (b > at ? n : 0), 0);
-export const VERSE = m(48);
-export const HOLD = 6; // the last fermata: "see." held two more bars
-export const BEATS = VERSE + HOLD;
+export const VERSE = 48; // the template's verse, its one-beat pickup included
+export const PASS2 = VERSE; // where the second time through starts
+export const HOLD = 6; // the last chord, held two more bars
+export const BEATS = 2 * VERSE + HOLD;
 export const DUR = BEATS * SPB;
 export const sec = (beat) => beat * SPB;
 export const beatAt = (t) => t / SPB;
 export const PARTS = ['soprano', 'alto', 'tenor', 'bass'];
 
-export const S = { song: null, parts: null, chords: null, phrases: null, voice: null };
+// song: the template; parts: each part's notes through both passes (each with its `pass`); voices:
+// each part's real voice as the catalogue lists it (voices/voices.json, written by render.py --voices).
+export const S = { song: null, parts: null, chords: null, phrases: null, voice: null, voices: null };
 
 export async function load() {
     const song = await (await fetch('/web/templates/amazing-grace.json')).json();
     S.song = song;
-    const held = (n) => ({ ...n, beat: m(n.beat), length: m(n.beat + n.length) - m(n.beat) });
-    S.parts = PARTS.map((key) => song.parts.find((p) => p.key === key).guide.notes.map(held));
+    const twice = (list) => [0, 1].flatMap((pass) => list.map((x) => ({ ...x, beat: x.beat + pass * PASS2, pass })));
+    S.parts = PARTS.map((key) => twice(song.parts.find((p) => p.key === key).guide.notes));
     for (const notes of S.parts) notes[notes.length - 1].length += HOLD;
-    S.chords = song.chords.map((c) => ({ ...c, beat: m(c.beat) }));
-    S.phrases = song.sections[0].phrases.map(([a, b]) => [m(a), m(b)]);
+    S.chords = twice(song.chords);
+    S.phrases = twice(song.sections[0].phrases.map(([a, b]) => ({ beat: a, end: b }))).map((p) => [p.beat, p.end + p.pass * PASS2]);
     S.voice = voiceCurve(S.parts[0]);
+    S.voices = (await fetch('voices/voices.json').then((r) => (r.ok ? r.json() : null)).catch(() => null))?.parts ?? null;
     // When each of your notes is first in tune, and how much of it you held there (the sheen).
     const step = 0.01;
     for (const n of S.parts[0]) {
@@ -44,6 +43,18 @@ export async function load() {
             if (on && n.hit === null) n.hit = b;
         }
     }
+}
+
+/** The credit line, as the app gives it a part at a time: "Soprano and alto sung by <name>". */
+export function creditLine() {
+    if (!S.voices) return '';
+    const by = new Map();
+    for (const key of PARTS) {
+        const name = S.voices[key]?.credit;
+        if (name) by.set(name, [...(by.get(name) ?? []), key]);
+    }
+    const list = (xs) => (xs.length < 2 ? xs[0] : `${xs.slice(0, -1).join(', ')} and ${xs.at(-1)}`);
+    return [...by].map(([name, keys]) => { const p = list(keys); return `${p[0].toUpperCase()}${p.slice(1)} sung by ${name}`; }).join('. ');
 }
 
 /** How much of note `n` you have held in tune by `beat` (0 to 1): the sheen's fill. */
@@ -97,37 +108,33 @@ const NAMES = ['C', 'C#', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B'];
 export const chordName = (c) => NAMES[c.root] + (c.quality === 'min' ? 'm' : c.quality === 'maj6' ? '6' : '') + (c.bass != null ? '/' + NAMES[c.bass] : '');
 
 /**
- * The beats the picture and the sound share, so a chime can never land off its gem. The film reads
- * them for its moves, the soundtrack for its entries and chimes.
+ * The beats the picture and the sound share, so a voice can never join off its lane. The film reads
+ * them for its moves, the soundtrack for its entries and chimes. The first time through, a voice joins
+ * at each phrase; the second, all four sing from the pickup.
  */
-// In the film's beats; m() turns a beat of the template into one.
 export const CUE = {
-    enter: [0, m(13), m(15), m(16)],         // when each voice joins (the alto, tenor and bass lanes slide in)
-    mark: m(19),                             // "me.": the four held notes become the mark
-    forward: [21, 22, 23, 24, 25],           // the mixer brings a voice forward on each beat of the held "me."
-    forwardPart: [0, 1, 2, 3, 1],            // the soprano, alto, tenor, bass, and back to the alto ("You")
-    hum: [m(24), m(28)],                     // you hum alone: the creator
-    bloom: m(28),                            // the harmony parts bloom under the tune
-    blocks: [m(31), m(31.5), m(32), m(32.5)], // the chords land as glass blocks
-    pad: m(31),                              // and the "oo" pad comes in under them
-    write: m(32),                            // "Write a song.", once the blocks are down
-    share: m(35.5),                          // the held "found,": the share card
-    copied: m(35.5) + 1.5,                   // "Link copied."
-    friends: [m(37), m(38), m(39)],          // friends take the alto, the tenor, the bass
-    all: m(40),                              // "now", held: everyone, wide
-    end: m(43),                              // "see.": the end card
-    fold: [BEATS - 3, BEATS - 0.8],          // everything folds back into the one voice
+    enter: [0, 12, 24, 36],      // when each voice joins (the alto, tenor and bass lanes slide in)
+    share: 42,                   // the first time's last line: the share card
+    copied: 42.75,               // "Link copied."
+    friends: [43.5, 44.5, 45.5], // friends take the alto, the tenor, the bass
+    all: 88,                     // "now I", the second time: everyone, wide
+    end: 91,                     // "see.": the mark and the end card
+    fold: [BEATS - 3, BEATS - 0.8], // everything folds back into the one voice
 };
 
 /**
- * The captions track (WebVTT): a cue for each phrase, with the line of the hymn the tune carries and
- * what is heard. The guide voice sings every part on "oo", so a cue never claims the words are sung.
+ * The captions track (WebVTT): a cue for each phrase, with the line the singers sing and who joins,
+ * and the credit over the last chord. The bass sings on "oo", the others the words.
  */
 const HEARD = [
-    'One voice, singing on "oo"',
-    'The alto, tenor and bass join, on "oo"',
-    'A hummed tune, then the harmony and soft chords',
-    'Friends double the four parts; it folds back to one voice',
+    'A real singer sings the tune',
+    'The alto joins',
+    'The tenor joins',
+    'The bass joins, on "oo": four voices',
+    'All four voices',
+    'All four voices',
+    'All four voices',
+    'All four voices, the last chord held',
 ];
 export function vtt() {
     const stamp = (s) => `${String(Math.floor(s / 60)).padStart(2, '0')}:${(s % 60).toFixed(3).padStart(6, '0')}`;
@@ -140,7 +147,8 @@ export function vtt() {
         }
         // the last phrase runs on through the held chord
         const end = k === S.phrases.length - 1 ? DUR : sec(b1);
-        out.push(String(k + 1), `${stamp(sec(b0))} --> ${stamp(end - 0.2)}`, `♪ ${words.trim()} ♪`, `[${HEARD[k]}]`, '');
+        const credit = k === S.phrases.length - 1 && creditLine() ? `\n[${creditLine()}]` : '';
+        out.push(String(k + 1), `${stamp(sec(b0))} --> ${stamp(end - 0.2)}`, `♪ ${words.trim()} ♪`, `[${HEARD[k]}]${credit}`, '');
     });
     return out.join('\n');
 }

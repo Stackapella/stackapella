@@ -18,6 +18,8 @@ def t(f, key, values=None):
 
 
 def journey(f):
+    # Signed in: from lesson 2 a guest is asked for a free account (Hillel, 2026-11-06: "after lesson 1 of any course").
+    f.go("/?api=mock&as=member", "document.querySelector('#app header')")
     for theme in ["stage-dark", "warm-light"]:
         colour, mode = theme.split("-")
         f.go("/learn/1-breath", "document.querySelector('main h1')")

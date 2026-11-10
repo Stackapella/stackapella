@@ -6,6 +6,7 @@ namespace Tests\Feature;
 
 use App\Models\Template;
 use App\Models\TemplateGuide;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\Support\BetaFixtures;
 use Tests\TestCase;
@@ -33,7 +34,7 @@ final class CatalogueTest extends TestCase
         $this->assertSame(['soprano', 'alto', 'tenor', 'bass'], array_column($grace['parts'], 'key'));
     }
 
-    public function test_real_voices_show_for_free_songs_and_the_song_of_the_month_only(): void
+    public function test_real_voices_show_signed_out_for_the_bundled_songs_and_signed_in_for_every_song(): void
     {
         $grace = $this->catalogue();
         $silent = Template::query()->where('slug', 'silent-night')->firstOrFail();
@@ -41,16 +42,18 @@ final class CatalogueTest extends TestCase
         TemplateGuide::factory()->create(['template_version_id' => $silent->current_version_id, 'part_key' => 'alto']);
 
         $songs = collect($this->getJson('/api/templates')->json('data'))->keyBy('id');
+        $this->assertSame(['free', 'account'], [$songs['amazing-grace']['access'], $songs['silent-night']['access']]);
         $this->assertNotNull($songs['amazing-grace']['parts'][1]['guide']);
-        $this->assertNull($songs['silent-night']['parts'][1]['guide'], 'A Plus song never gives away its parts.');
+        $this->assertNull($songs['silent-night']['parts'][1]['guide'], 'Signed out, a song the app doesn\'t bundle never gives away its parts.');
         $this->assertNull($songs['silent-night']['freeUntil']);
 
-        $silent->forceFill(['free_from' => now()->startOfMonth(), 'free_until' => now()->endOfMonth()])->save();
+        // Every library song is free with an account (2026-11-07): any plan.
+        $this->actingAs(User::factory()->create());
         $response = $this->getJson('/api/templates');
         $this->assertMatchesContract($response, 'templates.catalogue', 200);
         $songs = collect($response->json('data'))->keyBy('id');
         $this->assertNotNull($songs['silent-night']['parts'][1]['guide']);
-        $this->assertSame(now()->endOfMonth()->utc()->toIso8601ZuluString(), $songs['silent-night']['freeUntil']);
+        $this->assertNull($songs['silent-night']['freeUntil']);
     }
 
     public function test_the_catalogue_doesnt_ask_more_as_the_library_grows(): void

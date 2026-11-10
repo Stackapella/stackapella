@@ -95,9 +95,9 @@ const songCourse = {
     ],
 };
 
-test('song course: every part\'s unit is open from the start, and no lesson is Plus-only (the song is the gate)', () => {
-    const access = lessonAccess(songCourse, 'song-amazing-grace-alto-2', emptyProgress(), { plus: false, staff: false });
-    assert(access.open && !access.plusOnly, 'the alto\'s second lesson, with nothing sung and no Plus');
+test('song course: every part\'s unit is open from the start, and no lesson needs an account (the song is the gate)', () => {
+    const access = lessonAccess(songCourse, 'song-amazing-grace-alto-2', emptyProgress(), { signedIn: false, staff: false });
+    assert(access.open && !access.needsAccount, 'the alto\'s second lesson, with nothing sung, signed out');
 });
 
 test('song course: Up next follows the part picked on the song\'s sheet, else the melody first', () => {

@@ -28,7 +28,8 @@ return [
 
     'api' => [
         'signed_in' => ['max' => 300, 'per' => 'minute', 'by' => 'account', 'when' => 'signed_in'],
-        'signed_out' => ['max' => 60, 'per' => 'minute', 'by' => 'ip', 'when' => 'signed_out'],
+        // 120: a school's or a phone network's shared address can be several visitors at once (launch day, 2026-11-02).
+        'signed_out' => ['max' => 120, 'per' => 'minute', 'by' => 'ip', 'when' => 'signed_out'],
     ],
 
     // The health check (App Platform and uptime monitors call it every few seconds).
@@ -36,9 +37,14 @@ return [
         'ip' => ['max' => 120, 'per' => 'minute', 'by' => 'ip'],
     ],
 
-    // The public pages (/h/<id>): far above anyone reading, a wall for scrapers.
+    // The public pages (the site, the sitemap, /h/<id>): far above anyone reading, and above any
+    // search engine's crawl from one address (Googlebot and Bingbot fetch a few pages a second in
+    // parallel; 120 a minute turned a crawl of the lesson pages away, 2026-11-09), still a wall for a
+    // scraper. 600 a minute (10 a second) in production whatever the env says; never a user-agent
+    // allowlist (anyone can claim to be Googlebot). On a developer's Mac every agent's browser flows
+    // share 127.0.0.1, so local and testing take PUBLIC_PAGES_LIMIT (2000 unless set).
     'public-pages' => [
-        'ip' => ['max' => 120, 'per' => 'minute', 'by' => 'ip'],
+        'ip' => ['max' => in_array(env('APP_ENV'), ['local', 'testing'], true) ? (int) (env('PUBLIC_PAGES_LIMIT') ?: 2000) : 600, 'per' => 'minute', 'by' => 'ip'],
     ],
 
     // Sign in with Google or Apple: the trips out to the provider and back.
@@ -177,7 +183,17 @@ return [
 
     // Anonymous usage counts: a beacon now and then from each app; more is someone inflating them.
     'counts' => [
-        'ip' => ['max' => 30, 'per' => 'minute', 'by' => 'ip'],
+        // A device sends a batch whenever the browser is idle; several people on one shared address
+        // in lessons can pass 30 a minute, and a refused batch is lost from the numbers. 120 in production
+        // whatever the env says. Every public page sends its count now, and on a developer's Mac every agent's
+        // browser flows share 127.0.0.1, so local and testing take the public pages' PUBLIC_PAGES_LIMIT
+        // (2000 unless set), or a site flow's own page loads are refused.
+        'ip' => ['max' => in_array(env('APP_ENV'), ['local', 'testing'], true) ? (int) (env('PUBLIC_PAGES_LIMIT') ?: 2000) : 120, 'per' => 'minute', 'by' => 'ip'],
+    ],
+
+    // The growth data pull (docs/growth-data.md): one person's dev machine, a few times a day.
+    'growth-data' => [
+        'ip' => ['max' => 10, 'per' => 'minute', 'by' => 'ip'],
     ],
 
     'error-reports' => [
@@ -202,6 +218,17 @@ return [
     'comments' => [
         'level_2' => ['max' => 10, 'per' => 'hour', 'by' => 'account', 'when' => 'level:2'],
         'level_3' => ['max' => 30, 'per' => 'hour', 'by' => 'account', 'when' => 'level:3'],
+    ],
+
+    // Asking for a song (requests.create, N7): ten a day.
+    'song-requests' => [
+        'account' => ['max' => 10, 'per' => 'day', 'by' => 'account'],
+    ],
+
+    // Claiming a wanted voice (voices.claims.create): six a day, so claiming and releasing can't
+    // cycle through the list.
+    'voice-claims' => [
+        'account' => ['max' => 6, 'per' => 'day', 'by' => 'account'],
     ],
 
     // Publishing to the template library (N3): five a day.

@@ -12,14 +12,24 @@
 import { api } from '../api.js';
 import { formatDate, formatNumber, t, tk } from '../i18n.js';
 import { navigate } from '../router.js';
-import { change, FEW, LoadFailed, zoneName } from './common.js';
+import { local } from '../storage.js';
+import { change, FEW, LoadFailed, remembers, zoneName } from './common.js';
 
 export { change };
 import { ReachChart } from './reach.js';
 import { updatedAgo } from './usage.js';
 import { ARM_COLORS, arrivalsByArm, lostBetween } from './funnel.js';
+import { SiteSectionsCard } from './site-sections.js';
+import { FROM_DAYS, PERIODS } from './growth-compare.js';
+import { METRICS as METRIC_NAMES, MetricCard, TrackingPanel } from './growth-cards.js';
+import { HOUR_MARGINS, HourChart } from './growth-chart.js';
+import { COLUMN_MARGINS, ColumnChart, SignUpStrip } from './growth-columns.js';
 
-const RANGES = [1, 7, 30, 84]; // 84: 12 weeks, the people chart a week at a time
+// Each period's days, for what still reads a day count (the reach chart, and the cards from an older server); 4 weeks and
+// This month read as 30 there, 12 weeks as 84 (the people chart a week at a time).
+const DAYS = { today: 1, '7d': 7, '28d': 30, month: 30, '12w': 84 };
+const PERIOD_NAMES = { today: tk('admin.growth.periods.today'), '7d': tk('admin.growth.periods.7d'), '28d': tk('admin.growth.periods.28d'), month: tk('admin.growth.periods.month'), '12w': tk('admin.growth.periods.12w') };
+const BREAK_NOTES = { crawlers: tk('admin.growth.breakNotes.crawlers') };
 const REFRESH_MS = 30000; // while the page is in view (a timer for the page, never for audio)
 const TICK_MS = 1000;
 const TILES = { arrivals: tk('admin.growth.tile.arrivals'), lesson1: tk('admin.growth.tile.lesson1'), signedUp: tk('admin.growth.tile.signedUp'), plusStarted: tk('admin.growth.tile.plusStarted') };
@@ -28,7 +38,7 @@ const STEPS = { visits: tk('admin.growth.step.visits'), start: tk('admin.growth.
 // Where the next step is a part of the one before, so a loss between them is real: arrivals also come
 // straight to the app, and signing up can come before Unit 1.
 const FOLLOWS = new Set(['visits>start', 'arrivals>lesson1', 'lesson1>unit1', 'signedUp>plusStarted']);
-const SOURCES = { none: tk('admin.growth.source.none'), harmony: tk('admin.growth.source.harmony'), coach: tk('admin.growth.source.coach'), other: tk('admin.growth.source.other') };
+const SOURCES = { none: tk('admin.growth.source.none'), harmony: tk('admin.growth.source.harmony'), profile: tk('admin.growth.source.profile'), coach: tk('admin.growth.source.coach'), other: tk('admin.growth.source.other') };
 const COLUMNS = { arrivals: tk('admin.growth.col.arrivals'), lesson1: tk('admin.growth.col.lesson1'), day2: tk('admin.growth.col.day2Return') };
 const DROPS = { real: tk('admin.growth.didntContinue'), fewer: tk('admin.growth.fewer') };
 const SOURCE_DAYS = 7; // the Overview's sources: always a week, so day-2 returns have had time to come in
@@ -38,10 +48,19 @@ const day = (date) => (date ? formatDate(`${date}T12:00:00Z`, { month: 'short', 
 
 
 /** A campaign tag as written ("hn"), never translated; our own groupings and the fold are words. */
-export const isTag = (source) => !SOURCES[source] && source !== 'small';
+// A free tool's try-the-app link (?ref=tool-tuner) reads as words, "Tools: tuner" (docs/tools-plan.md).
+// Named sources that read as words: a tool's link (tool-tuner: "Tools: tuner"), an embed on another site
+// (embed-x.org: "Embed: x.org") and the song part pages (part-page).
+const TOOL = 'tool-';
+const EMBED = 'embed-';
+const PART_PAGE = 'part-page';
+export const isTag = (source) => !SOURCES[source] && source !== 'small' && source !== PART_PAGE && !String(source).startsWith(TOOL) && !String(source).startsWith(EMBED);
 
 export function sourceName(row) {
     if (row.source === 'small') return t('admin.growth.source.small', { count: row.sources ?? 0 });
+    if (String(row.source).startsWith(TOOL)) return t('admin.growth.source.tool', { name: row.source.slice(TOOL.length) });
+    if (String(row.source).startsWith(EMBED)) return t('admin.growth.source.embed', { name: row.source.slice(EMBED.length) });
+    if (row.source === PART_PAGE) return t('admin.growth.source.partPage');
     return SOURCES[row.source] ? t(SOURCES[row.source]) : row.source;
 }
 
@@ -55,46 +74,97 @@ export function sortSources(rows, by, rate = false) {
 }
 
 export const OverviewSection = {
-    components: { LoadFailed, ReachChart },
+    mixins: [remembers('growth', { period: PERIODS, sortBy: Object.keys(COLUMNS) })],
+    components: { LoadFailed, ReachChart, SiteSectionsCard, MetricCard, TrackingPanel, HourChart, ColumnChart, SignUpStrip },
     props: { me: { type: Object, required: true } },
-    data: () => ({ days: 1, growth: null, sources: null, funnel: null, failed: false, sortBy: 'day2', updatedAt: null, now: Date.now(), refreshing: false, staleSince: null }),
-    setup: () => ({ zoneName, RANGES, FEW, TILES, STEPS, COLUMNS, SHORT, ARM_COLORS, formatNumber, pct, day, navigate }),
+    data: () => ({ period: 'today', showHow: false, growth: null, sources: null, funnel: null, failed: false, sortBy: 'day2', updatedAt: null, now: Date.now(), refreshing: false, staleSince: null }),
+    setup: () => ({ zoneName, PERIODS, PERIOD_NAMES, METRIC_NAMES, FEW, TILES, STEPS, COLUMNS, SHORT, ARM_COLORS, formatNumber, pct, day, navigate, HOUR_MARGINS, COLUMN_MARGINS }),
     template: `
         <section class="space-y-6" aria-labelledby="growth-h" data-growth>
             <div class="flex flex-wrap items-start justify-between gap-4">
                 <div class="min-w-0">
                     <h1 id="growth-h" class="text-3xl font-extrabold tracking-tight text-cream">{{ t('admin.growth.title') }}</h1>
                     <p class="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted">
-                        <span>{{ days === 1 ? t('admin.growth.introToday', { zone: zoneName(growth?.timezone) }) : t('admin.growth.introDays', { from: day(growth?.from), to: day(growth?.to), zone: zoneName(growth?.timezone) }) }}</span>
+                        <span v-if="growth?.period" data-growth-clock>{{ t('admin.growth.clock', { zone: zoneName(growth.timezone), cut: growth.period.cut }) }}</span>
+                        <span v-else>{{ days === 1 ? t('admin.growth.introToday', { zone: zoneName(growth?.timezone) }) : t('admin.growth.introDays', { from: day(growth?.from), to: day(growth?.to), zone: zoneName(growth?.timezone) }) }}</span>
                         <span v-if="updatedAt" class="inline-flex flex-wrap items-center gap-x-2" data-growth-updated>
                             <span class="hidden sm:inline" aria-hidden="true">·</span>
                             <span class="inline-flex items-center gap-1.5"><span class="size-1.5 rounded-full" :class="staleSince ? 'bg-warn' : 'bg-good'" aria-hidden="true"></span>{{ staleSince ? t('admin.usage.notUpdated', { when: updated }) : t('admin.usage.updated', { when: updated }) }}</span>
-                            <button type="button" class="btn-secondary btn-sm" :aria-busy="refreshing ? 'true' : null" :disabled="refreshing" @click="refresh">{{ t('admin.usage.refresh') }}</button>
+                            <button type="button" class="btn-secondary btn-sm" :aria-busy="refreshing ? 'true' : null" :disabled="refreshing" @click="refresh"><span v-if="refreshing" class="spinner"></span>{{ t('admin.usage.refresh') }}</button>
                         </span>
                     </p>
-                </div>
-                <div class="seg flex" role="radiogroup" :aria-label="t('admin.usage.range')">
-                    <button v-for="d in RANGES" :key="d" type="button" role="radio" :aria-checked="days === d" class="seg-option" @click="setDays(d)">{{ d === 1 ? t('admin.growth.today') : d === 84 ? t('admin.growth.weeks12') : t('admin.usage.days', { count: d }) }}</button>
                 </div>
             </div>
             <LoadFailed v-if="failed" :message="failed" @retry="load" />
             <p v-else-if="!growth" class="text-muted" role="status">{{ t('admin.loading') }}</p>
             <template v-else>
-                <!-- Four cards of one layout: the period, against the one before and the same days a week back. -->
-                <ul class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4" data-growth-tiles>
-                    <li v-for="tile in growth.tiles" :key="tile.key" class="card flex flex-col p-5" :data-tile="tile.key">
+                <!-- The period first (spec 4.1): Today, 7 days, 4 weeks, This month, 12 weeks. It scopes the charts and the cards.
+                     On a phone, a compact menu (Hillel, 2026-11-09: five options stacked pushed the charts down); from sm up,
+                     the segmented control. The seg sits in its own wrapper: its stacked form is display grid, unlayered. -->
+                <div class="sm:hidden">
+                    <select class="input w-auto min-w-40 font-semibold" :aria-label="t('admin.growth.periods.label')" :value="shownPeriod" data-growth-period-select @change="setPeriod($event.target.value)">
+                        <option v-for="p in PERIODS" :key="p" :value="p">{{ t(PERIOD_NAMES[p]) }}</option>
+                    </select>
+                </div>
+                <div class="hidden sm:block">
+                    <div class="seg flex w-fit max-w-full overflow-x-auto" role="radiogroup" :aria-label="t('admin.growth.periods.label')" data-growth-periods>
+                        <button v-for="p in PERIODS" :key="p" type="button" role="radio" :aria-checked="shownPeriod === p" class="seg-option whitespace-nowrap" :data-period="p" @click="setPeriod(p)">{{ t(PERIOD_NAMES[p]) }}</button>
+                    </div>
+                </div>
+
+                <!-- The charts at the top, under the period they follow (Hillel, 2026-11-09: "move the new awesome charts to
+                     the top"), with the lines that qualify the period: early in the day, a break in the counts. -->
+                <template v-if="growth.metrics">
+                    <p v-if="growth.period?.early" class="text-sm text-muted" data-growth-early>{{ t('admin.growth.early') }}</p>
+                    <p v-if="breakLine" class="text-sm text-muted" data-growth-break>{{ breakLine }}</p>
+                    <!-- So far, against before (spec 4.4 and 11): Visits and Arrivals as two small multiples, each its own
+                         y-axis from 0 (never one chart with two scales). Today hour by hour, with the projection; the other
+                         periods day by day or week by week as columns. Sign-ups as a strip of counts under Arrivals. -->
+                    <section v-if="['hours', 'days', 'weeks'].includes(growth.chart?.kind)" class="card space-y-4 p-5 md:p-6" aria-labelledby="growth-chart-h" data-growth-charts :data-chart-period="shownPeriod">
+                        <h2 id="growth-chart-h" class="text-lg font-bold text-cream">{{ t('admin.growth.chart.title') }}</h2>
+                        <div v-if="growth.chart.kind === 'hours'" class="grid gap-6 lg:grid-cols-2">
+                            <HourChart :chart="growth.chart" metric="visits" :label="t(METRIC_NAMES.visits)" :cut="growth.period?.cut ?? ''" :weekday="compareContext.weekday" />
+                            <HourChart :chart="growth.chart" metric="arrivals" :label="t(METRIC_NAMES.arrivals)" :cut="growth.period?.cut ?? ''" :weekday="compareContext.weekday">
+                                <template #under><SignUpStrip :chart="growth.chart" :period="shownPeriod" :margins="HOUR_MARGINS" /></template>
+                            </HourChart>
+                        </div>
+                        <div v-else :key="shownPeriod" class="grid gap-6 lg:grid-cols-2">
+                            <ColumnChart :chart="growth.chart" metric="visits" :label="t(METRIC_NAMES.visits)" :period="shownPeriod" :cut="growth.period?.cut ?? ''" />
+                            <ColumnChart :chart="growth.chart" metric="arrivals" :label="t(METRIC_NAMES.arrivals)" :period="shownPeriod" :cut="growth.period?.cut ?? ''">
+                                <template #under><SignUpStrip :chart="growth.chart" :period="shownPeriod" :margins="COLUMN_MARGINS" /></template>
+                            </ColumnChart>
+                        </div>
+                    </section>
+                </template>
+
+                <!-- How we're tracking (docs/growth-compare-spec.md, 3): the last 7 days against a usual week, whatever the period. -->
+                <TrackingPanel v-if="growth.tracking" :tracking="growth.tracking" :cut="growth.period?.cut ?? ''" />
+
+                <!-- The fair cards (spec 4.2): each cut at the same clock time as what it's set against, and said in words
+                     before any percentage. From a server without them, the cards of before. -->
+                <template v-if="growth.metrics">
+                    <ul class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4" data-growth-metrics>
+                        <MetricCard v-for="m in growth.metrics" :key="m.key" :metric="m" :period="growth.period" :context="compareContext" />
+                    </ul>
+                    <div>
+                        <button type="button" class="link inline-flex min-h-6 items-center text-sm" :aria-expanded="showHow ? 'true' : 'false'" aria-controls="growth-how" data-growth-how-link @click="showHow = !showHow">{{ t('admin.growth.howLink') }}</button>
+                        <p v-show="showHow" id="growth-how" class="card mt-2 max-w-prose p-4 text-sm text-muted" data-growth-how>{{ t('admin.growth.howText', { cut: growth.period?.cut ?? '' }) }}</p>
+                    </div>
+                </template>
+                <ul v-else class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4" data-growth-tiles>
+                    <li v-for="tile in growth.tiles" :key="tile.key" class="card flex flex-col p-4 sm:p-5" :data-tile="tile.key">
                         <div class="flex items-start justify-between gap-2">
                             <p class="text-sm text-muted">{{ TILES[tile.key] ? t(TILES[tile.key]) : tile.key }}</p>
                             <span v-if="lowSample(tile)" class="shrink-0 rounded-md border border-line px-1.5 py-0.5 text-xs text-muted" data-few>{{ t('admin.growth.lowSample') }}</span>
                         </div>
                         <p class="mt-2 flex flex-wrap items-baseline gap-x-2.5">
-                            <span class="text-4xl font-extrabold tabular-nums text-cream">{{ formatNumber(count(tile)) }}</span>
+                            <span class="text-3xl font-extrabold tabular-nums text-cream sm:text-4xl">{{ formatNumber(count(tile)) }}</span>
                             <span v-if="shareOfArrivals(tile)" class="text-sm text-muted" data-share><b class="font-semibold text-cream">{{ shareOfArrivals(tile) }}</b> {{ t('admin.growth.ofArrivals') }}</span>
                         </p>
                         <div class="mt-auto pt-4"><dl class="space-y-1 border-t border-line pt-3 text-sm">
                             <div v-for="row in tileRows(tile)" :key="row.label" class="flex items-center justify-between gap-3" data-change :data-dir="row.dir">
                                 <dt class="text-muted">{{ row.label }}</dt>
-                                <dd class="font-semibold tabular-nums" :class="row.dir === 'up' ? 'text-good' : row.dir === 'down' ? 'text-bad' : 'text-muted'"><span v-if="row.dir !== 'same'" class="me-1" aria-hidden="true">{{ row.dir === 'up' ? '↑' : '↓' }}</span>{{ row.text }}</dd>
+                                <dd class="font-semibold tabular-nums" :class="row.dir === 'up' ? 'text-up' : row.dir === 'down' ? 'text-down' : 'text-muted'"><span v-if="row.dir !== 'same'" class="me-1" aria-hidden="true">{{ row.dir === 'up' ? '↑' : '↓' }}</span>{{ row.text }}</dd>
                             </div>
                         </dl></div>
                     </li>
@@ -186,6 +256,9 @@ export const OverviewSection = {
                             </div>
                         </section>
 
+                        <!-- The whole public site's visits by section, the last 7 days (admin/site-sections.js). -->
+                        <SiteSectionsCard :today="growth?.to ?? ''" :sections="growth?.sections ?? null" />
+
                         <!-- The running experiment, in one card; the Funnel has the rest. -->
                         <section v-if="experiment" class="card space-y-3 p-5 md:p-6" aria-labelledby="growth-exp-h" data-growth-experiment>
                             <div class="flex flex-wrap items-start justify-between gap-3">
@@ -210,6 +283,34 @@ export const OverviewSection = {
             </template>
         </section>`,
     computed: {
+        /** The pill that's on: the period the cards answer for (the server's), so the two always agree; the asked one while it loads. */
+        shownPeriod() {
+            return this.growth?.period?.key ?? this.period;
+        },
+        /** The period's days, for what reads a day count. */
+        days() {
+            return DAYS[this.period] ?? 1;
+        },
+        /** What the comparison rows' names need: the cut, today's weekday (the report zone's), the window before. */
+        compareContext() {
+            const g = this.growth;
+            const to = g?.period?.to;
+            const usual = g?.comparisons?.find((c) => c.key === 'usual');
+            return {
+                cut: g?.period?.cut ?? '',
+                weekday: to ? formatDate(`${to}T12:00:00Z`, { weekday: 'long', timeZone: 'UTC' }) : '',
+                previous: g?.comparisons?.find((c) => c.key === 'previous') ?? {},
+                available: usual?.available ?? 4,
+            };
+        },
+        /** A change in counting between the window before and now (spec 6): said once, above the cards. */
+        breakLine() {
+            const g = this.growth;
+            const from = g?.comparisons?.find((c) => c.key === 'previous')?.from;
+            const crossing = (g?.breaks ?? []).find((b) => from && b.date > from && b.date <= (g.period?.to ?? b.date));
+            if (!crossing) return '';
+            return t('admin.growth.breakLine', { date: day(crossing.date), note: BREAK_NOTES[crossing.note] ? t(BREAK_NOTES[crossing.note]) : crossing.note });
+        },
         updated() {
             return this.updatedAt ? updatedAgo(this.updatedAt, this.now) : '';
         },
@@ -282,6 +383,11 @@ export const OverviewSection = {
         },
     },
     created() {
+        // A day count remembered from before the periods (1, 7, 30, 84 days): 30 days is 4 weeks now (spec section 1).
+        if (!local.get('stackapella.admin.growth.period')) {
+            const before = FROM_DAYS[local.get('stackapella.admin.growth.days')];
+            if (before) this.period = before;
+        }
         this.load();
     },
     mounted() {
@@ -326,24 +432,25 @@ export const OverviewSection = {
         barWidth(total) {
             return this.firstStep ? Math.max(total ? 1 : 0, Math.min(100, (total / this.firstStep) * 100)) : 0;
         },
-        setDays(days) {
-            this.days = days;
+        setPeriod(period) {
+            this.period = period;
             this.load();
         },
         async fetchAll() {
             const days = this.days;
+            const period = this.period;
             // Sources always over the last week: today's arrivals can't have come back on day 2 yet.
-            const [growth, sources, list] = await Promise.all([api.admin.growth.show({ days }), api.admin.sources.show({ days: SOURCE_DAYS }), api.admin.funnel.show({ days: 7 })]);
+            const [growth, sources, list] = await Promise.all([api.admin.growth.show({ period, days }), api.admin.sources.show({ days: SOURCE_DAYS }), api.admin.funnel.show({ days: 7 })]);
             const running = list.data.experiments?.find((e) => e.enrolling) ?? list.data.experiments?.at(-1) ?? null;
             const funnel = !running ? null : list.data.experiment === running.id ? list.data : (await api.admin.funnel.show({ experiment: running.id })).data;
-            return { days, growth: growth.data, sources: sources.data, funnel };
+            return { period, growth: growth.data, sources: sources.data, funnel };
         },
         async load() {
             this.failed = false;
             this.growth = null;
             try {
                 const answer = await this.fetchAll();
-                if (answer.days !== this.days) return;
+                if (answer.period !== this.period) return;
                 Object.assign(this, { growth: answer.growth, sources: answer.sources, funnel: answer.funnel });
                 this.fresh();
             } catch (error) {
@@ -357,7 +464,7 @@ export const OverviewSection = {
             this.refreshing = true;
             try {
                 const answer = await this.fetchAll();
-                if (answer.days !== this.days) return;
+                if (answer.period !== this.period) return;
                 Object.assign(this, { growth: answer.growth, sources: answer.sources, funnel: answer.funnel });
                 this.fresh();
             } catch (error) {

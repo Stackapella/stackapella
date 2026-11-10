@@ -4,10 +4,16 @@
 // that holds only that course's lessons. Pure, unit-tested in tests/plus-courses.test.js; the
 // courses' data and the progress are kept by stores/learning.js.
 
+import { mergeCapDay } from './daily-cap.js';
 import { nextLesson, recordLesson, unitOpen } from './course.js';
+import { pageGrants, pageLesson } from './page-lesson.js';
 
-/** Lessons of every Plus course that are free: the first (Hillel, 2026-10-28). */
-export const FREE_LESSONS = 1;
+/**
+ * Lessons of any course a guest (signed out) may sing before making a free account: the first
+ * (Hillel, 2026-11-06: "lets just ask people create an account to continue past the 1 course",
+ * then "after lesson 1 of any course"). Signed in, every lesson of every course is free.
+ */
+export const GUEST_LESSONS = 1;
 
 /** A course's lessons, flat, each with its unit and places: `{ unit, unitIndex, lesson, index, place }`. */
 export function courseLessons(course) {
@@ -89,7 +95,8 @@ export function mergeCourses(mine = {}, theirs = {}) {
         const b = theirs?.[id] ?? {};
         const newer = (a.personalAt ?? 0) >= (b.personalAt ?? 0) ? a : b;
         const personal = newer.personal ? { personal: newer.personal, personalAt: newer.personalAt ?? null } : {};
-        return [id, { ...b, ...a, lessons: mergeLessons(a.lessons, b.lessons), ...personal }];
+        const capDay = mergeCapDay(a.capDay, b.capDay); // a capped course's day (daily-cap.js)
+        return [id, { ...b, ...a, lessons: mergeLessons(a.lessons, b.lessons), ...personal, ...(capDay ? { capDay } : {}) }];
     }));
 }
 
@@ -98,29 +105,42 @@ export function mergeCourses(mine = {}, theirs = {}) {
  * `plusCourses` feature reaches (account.show). Signed out, a guest sees it once the feature is on
  * for everyone (auth.config's `plusCourses`, passed as `config`), to try its free lesson.
  */
-export function courseVisible(entry, me, config = null) {
+export function courseVisible(entry, me, config = null, known = true) {
     if (!entry || entry.status !== 'live') return false;
     // Signed out, a guest can try a live course's free lesson once the feature is on for everyone
-    // (Hillel, 2026-10-30: "Guests can try it"), as auth.config says it.
-    if (!me) return config?.plusCourses === true;
+    // (Hillel, 2026-10-30: "Guests can try it"), as auth.config says it. Only once the account is `known`: a member whose
+    // account hadn't come yet was read as a guest, so a list showed the courses and then hid them (2026-11-08).
+    if (!me) return known && config?.plusCourses === true;
     return me.plusCourses === true || !!me.staff;
 }
 
-/** Whether a lesson is one of the course's free ones (the first). */
-export function lessonFree(course, lessonId) {
-    return courseLessons(course).findIndex((l) => l.lesson.id === lessonId) < FREE_LESSONS;
+/**
+ * Whether a guest may sing this lesson of `course`: one of its first GUEST_LESSONS, or (in place of those) the lesson
+ * its own public page opened on this device (js/page-lesson.js: Hillel, 2026-11-08, "Yes, once").
+ */
+export function guestOpen(course, lessonId) {
+    return course?.id && pageGrants[course.id] ? pageGrants[course.id] === lessonId : guestLesson(course, lessonId);
+}
+
+/** Whether a guest may sing this lesson of `course` (any course, the free one too): one of its first GUEST_LESSONS. */
+export function guestLesson(course, lessonId) {
+    const at = courseLessons(course).findIndex((l) => l.lesson.id === lessonId);
+    return at >= 0 && at < GUEST_LESSONS;
 }
 
 /**
- * Whether `lessonId` can be sung now: `{ open, plusOnly }`. Its unit must be open (two thirds of
- * the stars of the unit before, as in the free course), and past the free lesson it needs Plus.
- * Staff (`staff: true`) preview every unit and lesson, to review a course before launch.
+ * Whether `lessonId` can be sung now: `{ open, needsAccount }`. Its unit must be open (two thirds of
+ * the stars of the unit before, as in the free course). Every lesson of every course is on the free
+ * plan (Hillel, 2026-11-06: "lets make all courses included with the free plan"); signed out, past
+ * the first lesson it needs a free account (`needsAccount`). Staff (`staff: true`) preview every unit
+ * and lesson, to review a course before launch; a song course's parts are open to anyone.
  */
-export function lessonAccess(course, lessonId, progress, { plus = false, staff = false } = {}) {
+export function lessonAccess(course, lessonId, progress, { signedIn = false, staff = false } = {}) {
     const entry = courseLessons(course).find((l) => l.lesson.id === lessonId);
-    if (!entry) return { open: false, plusOnly: false };
-    const plusOnly = !plus && !staff && !songCourse(course) && !lessonFree(course, lessonId);
-    return { open: staff || unitOpen(course.units, entry.unitIndex, openView(progress, course)), plusOnly };
+    if (!entry) return { open: false, needsAccount: false };
+    const needsAccount = !signedIn && !staff && !songCourse(course) && !guestOpen(course, lessonId);
+    // The lesson its page opened sings, its unit's lock waived for it alone (js/page-lesson.js).
+    return { open: staff || pageLesson(course.id, lessonId) || unitOpen(course.units, entry.unitIndex, openView(progress, course)), needsAccount };
 }
 
 /**
@@ -130,7 +150,7 @@ export function lessonAccess(course, lessonId, progress, { plus = false, staff =
 export function nextInCourse(course, progress, unitId = null) {
     if (!course) return null;
     const units = unitId ? course.units.filter((u) => u.id === unitId) : [];
-    return nextLesson(units.length ? units : course.units, openView(progress, course), { plus: true });
+    return nextLesson(units.length ? units : course.units, openView(progress, course));
 }
 
 /** A course's card: lessons done of all, and the stars. */
@@ -147,6 +167,5 @@ export function lessonAfter(course, lessonId, progress, access = {}) {
     const lessons = courseLessons(course);
     const after = lessons[lessons.findIndex((l) => l.lesson.id === lessonId) + 1];
     if (!after) return null;
-    const { open, plusOnly } = lessonAccess(course, after.lesson.id, progress, access);
-    return open && !plusOnly ? after.lesson : null;
+    return lessonAccess(course, after.lesson.id, progress, access).open ? after.lesson : null;
 }
