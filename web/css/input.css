@@ -2205,24 +2205,58 @@ select:disabled {
 .s-emaker-code .btn-primary { justify-self: start; }
 .s-emaker-why { margin-top: 18px; max-width: 64ch; }
 @media (min-width: 900px) { .s-emaker-out { grid-template-columns: 400px minmax(0, 1fr); align-items: start; } }
-/* A song's part page (site/song-part.blade.php): the part's facts in a row, the player under them, the other parts as
-   tiles. */
-.s-spart-note { margin-top: 10px; max-width: 60ch; font-size: 16px; color: var(--color-muted); }
-.s-spart-facts { display: flex; flex-wrap: wrap; gap: 10px 28px; margin-top: 18px; }
-.s-spart-facts dt { font-size: 13px; font-weight: 700; color: var(--color-muted); }
+/* A song's part page (site/song-part.blade.php; Hillel's redesign, 2026-11-10: "it makes better use of space"): from
+   900 px a two-column top (the heading at left; the part's line, its facts in one ruled row and the parts to switch to at
+   right), then the player as one full-width panel with the way into the app at its foot, the three steps in columns and
+   the song's About in two. A phone stacks it all in the same order. */
+.s-spart-hero { display: grid; gap: 28px; }
+.s-spart-side { display: grid; align-content: end; gap: 18px; }
+.s-spart-note { max-width: 60ch; font-size: 16px; line-height: 1.6; color: var(--color-muted); }
+.s-spart-facts { display: grid; grid-template-columns: auto auto minmax(0, 1fr); border-block: 1px solid var(--color-edge); }
+.s-spart-facts > div { padding: 14px 18px 14px 0; }
+.s-spart-facts > div + div { padding-inline-start: 18px; border-inline-start: 1px solid var(--color-edge); }
+.s-spart-facts dt { font-size: 13px; font-weight: 600; color: var(--color-muted); }
 .s-spart-facts dd { margin: 2px 0 0; font-size: 17px; font-weight: 700; }
-.s-spart-player { margin-top: 24px; max-width: 760px; }
-/* The part player's room, held until its script mounts it (js/public/part-player.js fills the box): the lane, the ways to
-   play, Play and the status line, 384 px on a phone and 448 px from 640 px (the lane's sm:h-72), so nothing below jumps. */
-.s-spart-player:empty { min-height: 384px; }
-@media (min-width: 640px) { .s-spart-player:empty { min-height: 448px; } }
-.s-spart-plus { margin-top: 20px; color: var(--color-muted); }
-.s-spart-parts { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; margin-top: 14px; }
-.s-spart-parts a { display: grid; gap: 2px; min-height: 60px; padding: 12px 14px; border-radius: 16px; background: var(--color-panel); border: 1px solid var(--color-edge); }
-.s-spart-parts b { font-size: 16px; }
-.s-spart-parts span { font-size: 14px; color: var(--color-muted); }
-.s-spart-parts .s-spart-tag { justify-self: start; font-size: 12px; font-weight: 700; color: var(--color-cream); }
-.s-spart-parts a:hover { background: var(--color-raised); }
+.s-spart-switch { margin-top: 4px; }
+.s-spart-chips { display: grid; grid-template-columns: repeat(auto-fit, minmax(118px, 1fr)); gap: 8px; margin-top: -8px; }
+.s-spart-chip { display: grid; align-content: start; gap: 2px; min-height: 60px; height: 100%; padding: 10px 14px; border-radius: 14px; background: var(--color-panel); border: 1px solid var(--color-edge); }
+.s-spart-chip b { font-size: 15px; }
+.s-spart-chip span { font-size: 13px; color: var(--color-muted); }
+.s-spart-chip .s-spart-tag { font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--color-cream); }
+a.s-spart-chip:hover { background: var(--color-raised); }
+.s-spart-chip[aria-current] { background: var(--color-cream); border-color: var(--color-cream); color: var(--color-ink); }
+.s-spart-chip[aria-current] span, .s-spart-chip[aria-current] .s-spart-tag { color: color-mix(in srgb, var(--color-ink) 78%, var(--color-cream)); }
+.s-spart-panel { margin-top: 32px; padding: 14px; border-radius: 26px; background: var(--color-raised); }
+.s-spart-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 20px; padding: 14px 8px 4px; }
+.s-spart-foot p { font-size: 15px; color: var(--color-muted); }
+.s-spart-player { margin: 0; }
+.s-spart-how h2, .s-spart-about h2 { font-size: clamp(22px, 5.6vw, 28px); line-height: 1.15; font-weight: 800; letter-spacing: -0.01em; text-wrap: balance; }
+.s-spart-steps { display: grid; gap: 22px; margin-top: 20px; }
+.s-spart-steps li { padding-top: 14px; border-top: 2px solid var(--color-cream); }
+.s-spart-step-k { font-family: var(--font-mono, ui-monospace, monospace); font-size: 13px; color: var(--color-part-ink-2); }
+.s-spart-steps p { margin-top: 8px; line-height: 1.6; }
+.s-spart-about { display: grid; gap: 18px; }
+.s-spart-about-ruled { padding-top: 40px; border-top: 1px solid var(--color-edge); }
+.s-spart-about p { line-height: 1.7; max-width: 70ch; }
+.s-spart-about p + p { margin-top: 12px; }
+.s-spart-credit { margin-top: 6px; font-size: 14px; color: var(--color-muted); }
+.s-spart-about h2 + .s-spart-credit { margin-top: 14px; }
+.s-spart-links { display: flex; flex-wrap: wrap; gap: 14px 28px; margin-top: 22px; }
+.s-spart-links svg { display: inline-block; vertical-align: -3px; }
+@media (min-width: 900px) {
+    .s-spart-hero { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 56px; align-items: end; }
+    .s-spart-panel { padding: 16px; }
+    .s-spart-how { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: 40px; }
+    .s-spart-steps { grid-template-columns: repeat(3, minmax(0, 1fr)); margin-top: 0; }
+    .s-spart-about { grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: 40px; }
+    .s-spart-about-ruled { padding-top: 72px; }
+}
+/* The part player's room, held until its script mounts it (js/public/part-player.js fills the box): Play, the time and
+   the ways to play over the lane, then the status line, measured mounted: 388 px on a phone (the ways on their own line),
+   392 px from 640 px (one row over the lane's sm:h-72) and 488 px from 1024 px (lg:h-96), so nothing below jumps. */
+.s-spart-player:empty { min-height: 388px; }
+@media (min-width: 640px) { .s-spart-player:empty { min-height: 392px; } }
+@media (min-width: 1024px) { .s-spart-player:empty { min-height: 488px; } }
 /* The Christmas carols page (site.carols): how many are open, then each carol with where it comes from and its parts. */
 .s-songs-season, .s-carols-link { margin-top: 12px; font-size: 15.5px; }
 .s-songs-season svg, .s-carols-link svg { display: inline-block; vertical-align: -3px; }

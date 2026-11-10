@@ -1,7 +1,7 @@
 {{-- A song's part page, /songs/<song>/<part> (docs/seo-growth-plan.md, item 1; SongPartPagesController gives
      $songPart, App\Support\Pages\SongParts): the part's name as the heading, its range and key, the frontend's player
      for a free song (the part alone, with the others, or sung with each note lit; js/public/song-part-page.js mounts
-     it) or the app for a Plus one, then how to learn it, the song, the other parts, the About panel and the free tools.
+     it) or the app for a Plus one, then how to learn it, the song, the About panel and the free tools; every part as a chip to switch to.
      Words: site.song_part. --}}
 @php($s = $songPart['song'])
 @php($p = $songPart['part'])
@@ -34,73 +34,80 @@
 @section('content')
     <x-site.header />
     <main>
+        {{-- The top, two columns from 900 px (Hillel's redesign, 2026-11-10: "it makes better use of space"): the trail,
+             the heading and the lead at left; at right the part's own line, its facts in one ruled row and every part
+             as a chip to switch to, this one filled. Then the player as one full-width panel, with the way into the app
+             at its foot. A phone stacks it all in the same order. --}}
         <section class="s-wrap s-head s-spart" aria-labelledby="page-h">
-            <nav class="s-crumb" aria-label="{{ __('site.song_part.crumb') }}"><a href="/songs">{{ __('site.song_part.songs') }}</a><span aria-hidden="true">/</span>@if ($songPart['home'] !== null)<a href="{{ $songPart['home']['path'] }}">{{ $songPart['home']['name'] }}</a><span aria-hidden="true">/</span>@endif<a href="{{ $s['pageUrl'] }}" translate="no">{{ $s['title'] }}</a><span aria-hidden="true">/</span><span aria-current="page">{{ $p['name'] }}</span></nav>
-            <h1 id="page-h">{{ $heading }}</h1>
-            <p class="s-lead">{{ __($melody ? 'site.song_part.lead_melody' : 'site.song_part.lead', $fill) }}</p>
-            @if (\Illuminate\Support\Facades\Lang::has('song_parts.'.$s['slug'].'.'.$p['key']))
-                <p class="s-spart-note">{{ __('song_parts.'.$s['slug'].'.'.$p['key']) }}</p>
-            @endif
-            <dl class="s-spart-facts">
-                <div><dt>{{ __('site.song_part.range') }}</dt><dd translate="no">{{ __('site.song_part.range_value', $fill) }}</dd></div>
-                <div><dt>{{ __('site.song_part.key') }}</dt><dd translate="no">{{ $s['key'] }}</dd></div>
-                <div><dt>{{ __('site.song_part.voice') }}</dt><dd>
-                    @if ($songPart['guide']['realVoice'])
-                        @if ($songPart['guide']['credit'] !== null && $songPart['guide']['creditHandle'] !== null)
-                            <a href="{{ '/@'.$songPart['guide']['creditHandle'] }}" class="s-lk">{{ __('site.song_part.sung_by', ['name' => $songPart['guide']['credit']]) }}</a>
-                        @elseif ($songPart['guide']['credit'] !== null)
-                            {{ __('site.song_part.sung_by', ['name' => $songPart['guide']['credit']]) }}
-                        @else
-                            {{ __('site.song_part.sung_by_anon') }}
-                        @endif
-                    @else
-                        {{ __('site.song_part.synth') }}
+            <div class="s-spart-hero">
+                <div>
+                    <nav class="s-crumb" aria-label="{{ __('site.song_part.crumb') }}"><a href="/songs">{{ __('site.song_part.songs') }}</a><span aria-hidden="true">/</span>@if ($songPart['home'] !== null)<a href="{{ $songPart['home']['path'] }}">{{ $songPart['home']['name'] }}</a><span aria-hidden="true">/</span>@endif<a href="{{ $s['pageUrl'] }}" translate="no">{{ $s['title'] }}</a><span aria-hidden="true">/</span><span aria-current="page">{{ $p['name'] }}</span></nav>
+                    <h1 id="page-h">{{ $heading }}</h1>
+                    <p class="s-lead">{{ __($melody ? 'site.song_part.lead_melody' : 'site.song_part.lead', $fill) }}</p>
+                </div>
+                <div class="s-spart-side">
+                    @if (\Illuminate\Support\Facades\Lang::has('song_parts.'.$s['slug'].'.'.$p['key']))
+                        <p class="s-spart-note">{{ __('song_parts.'.$s['slug'].'.'.$p['key']) }}</p>
                     @endif
-                </dd></div>
-            </dl>
+                    <dl class="s-spart-facts">
+                        <div><dt>{{ __('site.song_part.range') }}</dt><dd translate="no">{{ __('site.song_part.range_value', $fill) }}</dd></div>
+                        <div><dt>{{ __('site.song_part.key') }}</dt><dd translate="no">{{ $s['key'] }}</dd></div>
+                        <div><dt>{{ __('site.song_part.voice') }}</dt><dd>
+                            @if ($songPart['guide']['realVoice'])
+                                @if ($songPart['guide']['credit'] !== null && $songPart['guide']['creditHandle'] !== null)
+                                    <a href="{{ '/@'.$songPart['guide']['creditHandle'] }}" class="s-lk">{{ __('site.song_part.sung_by', ['name' => $songPart['guide']['credit']]) }}</a>
+                                @elseif ($songPart['guide']['credit'] !== null)
+                                    {{ __('site.song_part.sung_by', ['name' => $songPart['guide']['credit']]) }}
+                                @else
+                                    {{ __('site.song_part.sung_by_anon') }}
+                                @endif
+                            @else
+                                {{ __('site.song_part.synth') }}
+                            @endif
+                        </dd></div>
+                    </dl>
+                    <h2 id="switch-h" class="s-kick s-spart-switch">{{ __('site.song_part.switch') }}</h2>
+                    <ul class="s-spart-chips" aria-labelledby="switch-h">
+                        @foreach ($songPart['parts'] as $other)
+                            <li>
+                                @if ($other['current'])
+                                    <span class="s-spart-chip" aria-current="page"><b>{{ $other['name'] }}</b><span translate="no">{{ __('site.song_part.other_range', ['low' => $other['lowName'], 'high' => $other['highName']]) }}</span>@if ($other['melody'])<span class="s-spart-tag">{{ __('site.song_part.melody_tag') }}</span>@endif</span>
+                                @else
+                                    <a href="{{ $other['url'] }}" class="s-spart-chip"><b>{{ $other['name'] }}</b><span translate="no">{{ __('site.song_part.other_range', ['low' => $other['lowName'], 'high' => $other['highName']]) }}</span>@if ($other['melody'])<span class="s-spart-tag">{{ __('site.song_part.melody_tag') }}</span>@endif</a>
+                                @endif
+                            </li>
+                        @endforeach
+                    </ul>
+                </div>
+            </div>
 
-            @if ($s['free'])
-                <div class="s-spart-player" data-part-player></div>
-                <script type="application/json" data-part-player-data>@json(\App\Support\Pages\SongPartPage::player($songPart))</script>
-            @else
-                <p class="s-spart-plus">{{ __('site.song_part.plus_note') }}</p>
-            @endif
-            {{-- One primary: the player's Play when it's here, else Learn this part. --}}
-            <p class="s-actions"><a href="{{ $songPart['startUrl'] }}" @class(['btn-lg', 'btn-secondary' => $s['free'], 'btn-primary' => ! $s['free']])>{{ __('site.song_part.start') }} <x-site.icon name="arrow" size="18" /></a></p>
+            <div class="s-spart-panel">
+                @if ($s['free'])
+                    <div class="s-spart-player" data-part-player></div>
+                    <script type="application/json" data-part-player-data>@json(\App\Support\Pages\SongPartPage::player($songPart))</script>
+                @endif
+                {{-- One primary: the player's Play when it's here, else Learn this part. --}}
+                <div class="s-spart-foot">
+                    <p>{{ __($s['free'] ? 'site.song_part.foot' : 'site.song_part.plus_note') }}</p>
+                    <a href="{{ $songPart['startUrl'] }}" @class(['btn-secondary' => $s['free'], 'btn-primary' => ! $s['free']])>{{ __('site.song_part.start') }} <x-site.icon name="arrow" size="18" /></a>
+                </div>
+            </div>
         </section>
 
-        <section class="s-wrap s-sec2 s-tool-guide" aria-labelledby="how-h">
+        {{-- How to learn it: the player's three ways as three numbered steps, in columns from 900 px. --}}
+        <section class="s-wrap s-sec2 s-spart-how" aria-labelledby="how-h">
             <h2 id="how-h">{{ __('site.song_part.how', $fill) }}</h2>
-            <ol class="s-tool-how">
+            <ol class="s-spart-steps">
                 @foreach ((array) \Illuminate\Support\Facades\Lang::get('site.song_part.steps') as $step)
-                    <li>{{ $step }}</li>
+                    <li><span class="s-spart-step-k">{{ __('site.song_part.step', ['n' => sprintf('%02d', $loop->iteration), 'name' => __('site.song_part.player.'.['hear', 'withOthers', 'sing'][$loop->index])]) }}</span><p>{{ $step }}</p></li>
                 @endforeach
             </ol>
         </section>
 
+        {{-- About the song, two columns from 900 px: its name and credits at left, its story and the ways on at right. --}}
         @if (($s['about'] ?? null) !== null || $s['description'] !== '')
-            <section class="s-wrap s-sec2 s-tool-guide" aria-labelledby="about-song-h">
-                <h2 id="about-song-h">{{ __('site.song_part.about', $fill) }}</h2>
-                @foreach (preg_split('/\n\s*\n/', (string) ($s['about'] ?? $s['description'])) ?: [] as $paragraph)
-                    <p>{{ $paragraph }}</p>
-                @endforeach
-                @foreach ($s['credits'] as $credit)
-                    <p class="help">{{ $credit }}</p>
-                @endforeach
-                <p><a href="{{ $s['pageUrl'] }}" class="s-lk">{{ __('site.song_part.song_page', $fill) }}</a></p>
-            </section>
+            @include('site._song-about', ['heading' => __('site.song_part.about', $fill), 'credits' => $s['credits'], 'text' => $s['about'] ?? $s['description'], 'songPage' => [$s['pageUrl'], __('site.song_part.song_page', $fill)], 'home' => $songPart['home']])
         @endif
-
-        <section class="s-wrap s-sec2" aria-labelledby="others-h">
-            <h2 id="others-h" class="s-kick">{{ __('site.song_part.others') }}</h2>
-            <ul class="s-spart-parts">
-                @foreach ($songPart['parts'] as $other)
-                    @continue($other['current'])
-                    <li><a href="{{ $other['url'] }}"><b>{{ $other['name'] }}</b>@if ($other['melody'])<span class="s-spart-tag">{{ __('site.song_part.melody_tag') }}</span>@endif<span translate="no">{{ __('site.song_part.other_range', ['low' => $other['lowName'], 'high' => $other['highName']]) }}</span></a></li>
-                @endforeach
-            </ul>
-            @include('site._collection-link', ['home' => $songPart['home']])
-        </section>
 
         @include('site.tools._about', ['tie' => __('site.song_part.tie'), 'tryLink' => __('site.song_part.try_link'), 'try' => $songPart['startUrl'], 'links' => ['app' => \App\Support\Http\Hosts::app('/')]])
         @include('site.tools._directory', ['directory' => \App\Support\Site\SitePages::directory()])

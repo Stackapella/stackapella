@@ -63,4 +63,37 @@ final class SongPartViewTest extends TestCase
 
         $this->assertStringContainsString('<h1 id="page-h">Amazing Grace: the melody (soprano)</h1>', $html);
     }
+
+    public function test_the_page_has_hillels_redesign_chips_panel_steps_and_about(): void
+    {
+        // Hillel's redesign (2026-11-10): every part a chip to switch to, this one current and not a link; the player in
+        // one panel with the way into the app at its foot; the steps named as the player names its ways; the About with
+        // the song's page.
+        $html = (string) $this->get('/songs/amazing-grace/alto')->assertOk()->getContent();
+
+        $this->assertStringContainsString('<span class="s-spart-chip" aria-current="page"><b>Alto</b>', $html);
+        foreach (['soprano', 'tenor', 'bass'] as $other) {
+            $this->assertMatchesRegularExpression('#<a href="[^"]*/songs/amazing-grace/'.$other.'" class="s-spart-chip">#', $html);
+        }
+        $this->assertStringNotContainsString('class="s-spart-chip">'.'<b>Alto</b>', $html);
+        $this->assertMatchesRegularExpression('#<div class="s-spart-panel">\s*<div class="s-spart-player" data-part-player></div>#', $html);
+        $this->assertStringContainsString(e(__('site.song_part.foot')), $html);
+        foreach (['01 · Your part', '02 · With the others', '03 · Sing it'] as $step) {
+            $this->assertStringContainsString($step, $html);
+        }
+        $this->assertStringContainsString('class="s-spart-about s-spart-about-ruled"', $html);
+        $this->assertStringContainsString(e(__('site.song_part.song_page', ['song' => 'Amazing Grace'])), $html);
+    }
+
+    public function test_a_song_page_tells_its_story_as_its_part_pages_do(): void
+    {
+        $about = __('song_about.amazing-grace');
+        $this->assertIsString($about);
+        $first = trim(explode("\n\n", $about)[0]);
+
+        $this->get('/songs/amazing-grace')->assertOk()
+            ->assertSee('id="about-song-h"', false)
+            ->assertSee(e($first), false)
+            ->assertDontSee('s-spart-about-ruled', false);
+    }
 }

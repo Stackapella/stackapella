@@ -1677,14 +1677,19 @@ return [
         'free' => 'Free',
         'plus_note' => 'Its parts play in the app, free with an account.',
         'start' => 'Learn this part in the app',
+        // The player panel's foot (the app's Sing slows a phrase, loops it and records: locales/en.json sing.ladder, studio.loop).
+        'foot' => 'Slow it down, loop a phrase and record yourself in the app.',
         'how' => 'How to learn the :part part',
         'steps' => [
             'Hear your part on its own until the tune of it is in your ear.',
             'Hear it with the others, so you know where it sits in the chord.',
             'Sing it with the others under you and watch each note light up as you land it. The mic listens only while it plays, and nothing is recorded.',
         ],
+        // Each step's label, its number and the player's own name for it: "01 · Your part".
+        'step' => ':n · :name',
         'about' => 'About :song',
-        'others' => 'The other parts',
+        // The hero's chips, every part with this one filled (Hillel's redesign, 2026-11-10).
+        'switch' => 'Switch part',
         'other_range' => ':low to :high',
         'melody_tag' => 'Melody',
         'song_page' => 'All about :song',

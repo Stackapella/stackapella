@@ -114,6 +114,12 @@
             </section>
         @endif
 
+        {{-- Its story, as its part pages tell it (site._song-about); the credits are in the verse band above when it has
+             one, and the page that collects it is linked below its more songs. --}}
+        @if ($song['about'] !== null)
+            @include('site._song-about', ['heading' => __('site.song_part.about', ['song' => $song['title']]), 'credits' => $song['words'] === [] ? $song['credits'] : [], 'text' => $song['about'], 'songPage' => null, 'home' => null, 'ruled' => false])
+        @endif
+
         @if ($more !== [])
             <section class="s-wrap s-sec2" aria-labelledby="more-h">
                 <h2 id="more-h" class="s-h2">{{ __('pages.song.more') }}</h2>

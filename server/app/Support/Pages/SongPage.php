@@ -33,6 +33,8 @@ final class SongPage
             'slug' => $template->slug,
             'title' => $template->title,
             'description' => (string) ($data['description'] ?? ''),
+            // Its story where it has one (lang song_about), the part pages' About too.
+            'about' => trans()->has('song_about.'.$template->slug) ? (string) __('song_about.'.$template->slug) : null,
             'difficulty' => (string) ($data['difficulty'] ?? ''),
             'genre' => array_values(array_filter((array) ($data['genre'] ?? []), 'is_string')),
             'parts' => array_map(static fn (array $part): array => [
