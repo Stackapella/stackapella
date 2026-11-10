@@ -1297,11 +1297,15 @@ select:disabled {
 /* The Santa hat on the mark (Icons::hat): the carols page through Christmas Day, every page on Christmas Day itself
    (js/public/season.js). Worn on the mark's top-left corner (Hillel: "it should be on the corner and look like a hat
    on the block"): web/icons/santa-hat.svg is drawn in the mark's own box with room above and to the left (39 by 42, its
-   0 to 30 square the mark's 30 px), its brim across the corner; an object only, the same drawing in every skin; the
+   0 to 30 square the mark's 30 px), its brim across the corner; an object only (game mode's in pixels, below); the
    mark itself never moves. */
 .s-brand { position: relative; } /* the hat's place (Icons::hat) */
 .s-brand > .s-hat[hidden] { display: none; }
 .s-brand > .s-hat { position: absolute; left: -9px; top: calc(50% - 27px); width: 39px; height: 42px; pointer-events: none; filter: drop-shadow(0 1px 1px rgba(0, 0, 0, .3)); }
+/* Game mode's hat: the same hat in the same box, traced in 2 px pixels on the mark's grid (web/icons/santa-hat-pixel.svg,
+   the drawing's own shapes hidden), its shadow hard as a sprite's. */
+:root[data-skin='game'] .s-brand > .s-hat > * { display: none; }
+:root[data-skin='game'] .s-brand > .s-hat { background: url('/icons/santa-hat-pixel.svg') 0 0 / 100% 100% no-repeat; filter: drop-shadow(0 2px 0 rgba(0, 0, 0, .3)); }
 .s-nav { display: none; gap: 4px; font-size: 15px; }
 .s-nav a { display: inline-flex; align-items: center; min-height: 44px; padding-inline: 12px; font-weight: 600; color: var(--color-muted); border-radius: 99px; }
 /* Navigation links (the header, the footer, the back links) are plain words, underlined in the accent
@@ -8967,6 +8971,13 @@ select:disabled {
 :root[data-skin='game'][data-gs] .seg > .seg-option:first-child { margin-inline-start: var(--arc-edge-w); }
 :root[data-skin='game'][data-gs] .seg > .seg-option:last-child { margin-inline-end: var(--arc-edge-w); }
 :root[data-skin='game'][data-gs] .seg > .seg-option + .seg-option { border-inline-start: var(--arc-edge-w) solid var(--arc-line); }
+/* Stacked (fitSegments' seg-stack, on a phone): the same strip, never wider than its row (the edge margins on a
+   full-width option ran it 2 px past), with dividers between rows as well as columns. Every option draws a top and a
+   start divider pulled into the frame's padding; the frame is drawn again above them (::after), so only the dividers
+   inside show, in one column or two by two, with no markup path (tool/skin_check.py). */
+:root[data-skin='game'][data-gs] .seg.seg-stack { position: relative; padding: var(--arc-edge-w); align-items: stretch; } /* a short option fills its row, so its divider meets its neighbour's */
+:root[data-skin='game'][data-gs] .seg.seg-stack::after { content: ''; position: absolute; inset: 0; z-index: 2; pointer-events: none; box-shadow: inset 0 0 0 var(--arc-edge-w) var(--color-cream); }
+:root[data-skin='game'][data-gs] .seg.seg-stack > .seg-option { width: auto; margin: calc(-1 * var(--arc-edge-w)) 0 0; margin-inline-start: calc(-1 * var(--arc-edge-w)); border: 0 solid var(--arc-line); border-top-width: var(--arc-edge-w); border-inline-start-width: var(--arc-edge-w); }
 
 /* Tones (data-tone): a named accent and the shade under it, for any piece that takes one (a band's title, a tag). */
 :root[data-skin='game'][data-gs] [data-tone='yellow'] { --tone: var(--arc-yellow); --tone-shade: var(--arc-pink); }

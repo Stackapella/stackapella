@@ -37,7 +37,13 @@ def theme_card(f, family, scope="[role=dialog]"):
 
 def journey(f):
     f.go("/?api=mock&as=signedOut", "document.querySelector('#app header')")
-    f.run("localStorage.removeItem('stackapella.appearance'); window.stackapellaTheme.apply();")
+    # A fresh start, dark and Stage, in this run's own skin, then the page loaded again so the page and the app's
+    # appearance store agree. Removing the whole record (as this did) also dropped the harness's "serious", so a serious
+    # run's first choice could save under game mode's defaults and the theme never turned warm-light, depending on
+    # whether the store had caught up: the flake in other agents' gates (2026-11-10).
+    f.run(f"localStorage.setItem('stackapella.appearance', JSON.stringify({{ skin: '{f.skin}', at: Date.now() }}));")
+    f.go("/?api=mock&as=signedOut", "document.querySelector('#app header')")
+    assert f.js("document.documentElement.dataset.skin") == f.skin, f"the run's skin kept: {f.js('document.documentElement.dataset.skin')}"
     assert theme(f) == "stage-dark", f"dark and Stage until a choice: {theme(f)}"
     f.wait("document.querySelector('#app header button[aria-haspopup=dialog]')", what="the Theme button")
     f.wait("document.querySelector('#app header button[aria-haspopup=dialog]')", what="the Theme button"); f.run("document.querySelector('#app header button[aria-haspopup=dialog]').click()")

@@ -120,7 +120,9 @@ export const Checkbox = {
  * Never a wrapped segmented control: every `.seg` on the page is watched, and one whose options don't
  * fit on a row (on a phone, or with longer words in another language) gets `seg-stack`, a grid of
  * equal segments, two by two, or one column for an odd count. Measured on its own row each time its
- * size changes, so it goes back to a row when there's room. Installed once, in main.js.
+ * size changes, so it goes back to a row when there's room. Its options are watched too: one that grows inside a row
+ * that doesn't (a face that loads late, like game mode's pixel face, or a choice v-show brings in) measures it again,
+ * a frame later so the change never lands inside the observer's own pass. Installed once, in main.js.
  */
 export function fitSegments(root = document.body) {
     const fit = (seg) => {
@@ -129,14 +131,24 @@ export function fitSegments(root = document.body) {
         seg.classList.add('seg-stack');
         if (seg.children.length % 2) seg.classList.add('seg-stack-1');
     };
-    const sizes = new ResizeObserver((entries) => entries.forEach((entry) => fit(entry.target)));
+    const pending = new Set();
+    const later = (seg) => {
+        if (!pending.size) requestAnimationFrame(() => { const segs = [...pending]; pending.clear(); segs.forEach((s) => s.isConnected && fit(s)); });
+        pending.add(seg);
+    };
+    const sizes = new ResizeObserver((entries) => entries.forEach((entry) => {
+        if (entry.target.matches('.seg')) fit(entry.target);
+        else if (entry.target.parentElement?.matches('.seg')) later(entry.target.parentElement);
+    }));
     const watched = new WeakSet();
     const watch = (node) => {
+        if (node.nodeType === 1 && node.parentElement?.matches('.seg') && !node.matches('.seg')) sizes.observe(node);
         const all = node.matches?.('.seg') ? [node] : [...(node.querySelectorAll?.('.seg') ?? [])];
         for (const seg of all) {
             if (watched.has(seg)) continue;
             watched.add(seg);
             sizes.observe(seg);
+            for (const option of seg.children) sizes.observe(option);
             fit(seg);
         }
     };

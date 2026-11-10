@@ -46,9 +46,27 @@ def journey(f):
         ("/admin/posts?api=mock&as=admin", "document.querySelector('.seg')"),
         ("/admin/support?api=mock&as=admin", "document.querySelector('.seg')"),
         ("/admin/reports?api=mock&as=admin", "document.querySelector('.seg')"),
+        ("/ideas?api=mock&as=member&scenario=", "document.querySelector('#app .seg')"),
     ]:
         f.go(path, ready)
         check(f, path.split("?")[0])
+
+    # An option that grows inside a row whose own box doesn't (a face that loads late, a choice v-show brings in) still
+    # stacks it, and it goes back to a row when there's room again (the Ideas tabs, 2026-11-10: game mode's pixel face
+    # arrived after the first fit and the page ran 64 px sideways).
+    f.run("""const box = document.createElement('div'); box.id = 'seg-grow'; box.style.cssText = 'position: fixed; left: 0; top: 0; width: 240px; z-index: 99';
+        box.innerHTML = '<div class="seg flex"><button type="button" class="seg-option flex-1">A</button><button type="button" class="seg-option flex-1">B</button></div>';
+        document.body.append(box);""")
+    frames = "new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(() => setTimeout(r, 50))))"
+    f.js(frames)
+    assert not f.js("document.querySelector('#seg-grow .seg').classList.contains('seg-stack')"), "two short options stacked"
+    f.run("document.querySelector('#seg-grow button').textContent = 'A much longer choice than fits'")
+    f.js(frames)
+    assert f.js("document.querySelector('#seg-grow .seg').classList.contains('seg-stack')"), "an option grew past its row and the control never stacked"
+    f.run("document.querySelector('#seg-grow button').textContent = 'A'")
+    f.js(frames)
+    assert not f.js("document.querySelector('#seg-grow .seg').classList.contains('seg-stack')"), "back to short, the control stayed stacked"
+    f.run("document.querySelector('#seg-grow').remove()")
 
     # A song: Sing's settings, then the studio's Export with Polished's Room.
     f.go("/voice?api=mock&scenario=", "document.querySelector('#app header, #app main')")
