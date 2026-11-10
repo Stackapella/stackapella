@@ -10,6 +10,7 @@ use App\Models\Template;
 use App\Models\TemplateVersion;
 use App\Support\Ops\Readiness;
 use App\Support\Ops\SyncProblems;
+use App\Support\Templates\Catalogue;
 use App\Support\Templates\TemplateRules;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\File;
@@ -112,6 +113,38 @@ final class SyncTemplatesTest extends TestCase
         $version = TemplateVersion::query()->firstOrFail();
         $this->assertTrue($version->reviewed);
         $this->assertSame('A fixed typo.', $version->data['description']);
+    }
+
+    public function test_a_hidden_song_opens_on_its_monday_when_only_its_reviewed_mark_flips(): void
+    {
+        // The arranger's opening: the same version, nothing changed but reviewed (It Is Well, 16 Nov).
+        config(['templates.folders' => [$this->folder]]);
+        $song = [...(array) json_decode((string) file_get_contents(database_path('templates/silent-night.json')), true), 'reviewed' => false];
+        File::put($this->folder.'/silent-night.json', (string) json_encode($song));
+        $this->artisan('app:templates:sync')->expectsOutput('0 unchanged.')->assertSuccessful();
+
+        $hidden = Template::query()->where('slug', 'silent-night')->with('currentVersion')->firstOrFail();
+        $this->assertFalse($hidden->currentVersion?->reviewed);
+        $this->assertFalse(Catalogue::isOpen($hidden));
+        $this->get('/songs/silent-night')->assertNotFound();
+
+        File::put($this->folder.'/silent-night.json', (string) json_encode([...$song, 'reviewed' => true]));
+        $this->artisan('app:templates:sync')
+            ->expectsOutput("Opened silent-night@{$song['version']}: reviewed now, no longer hidden")
+            ->expectsOutput('0 unchanged.')
+            ->assertSuccessful();
+
+        $open = Template::query()->where('slug', 'silent-night')->with('currentVersion')->firstOrFail();
+        $this->assertSame(1, TemplateVersion::query()->count());
+        $this->assertSame($hidden->current_version_id, $open->current_version_id);
+        $this->assertTrue($open->currentVersion?->reviewed);
+        $this->assertTrue($open->currentVersion->data['reviewed']);
+        $this->assertTrue(Catalogue::isOpen($open));
+        $this->get('/songs/silent-night')->assertOk();
+
+        // Once open, a sync leaves it so.
+        $this->artisan('app:templates:sync')->expectsOutput('1 unchanged.')->assertSuccessful();
+        $this->assertTrue(TemplateVersion::query()->firstOrFail()->reviewed);
     }
 
     public function test_the_current_version_is_the_newest_reviewed_one(): void

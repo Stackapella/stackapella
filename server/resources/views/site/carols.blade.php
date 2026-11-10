@@ -36,12 +36,12 @@
     <main @class(['s-xmas' => $festive])>
         <section class="s-xhero" aria-labelledby="page-h">
             @if ($festive)
-                {{-- A string of lights along the top: CSS marks, never images. --}}
+                {{-- A string of still lights along the top: CSS marks, never images. --}}
                 <div class="s-xlights" aria-hidden="true">@for ($i = 0; $i < 24; $i++)<i></i>@endfor</div>
                 {{-- Snow falling across the hero, behind the words (Hillel: "add nice animated falling snow in the green
-                     header"): CSS flakes, paused off screen (js/public/carols.js), none under reduced motion. --}}
-                {{-- Each flake its own place, size, speed and drift, from a fixed sequence (the same every visit): far ones
-                     small, faint and slow, near ones big, bright and a little faster. --}}
+                     header", "make it look like snow"): each flake its own place, size, speed and drift from a fixed
+                     sequence, far ones small, faint and slow, near ones big, bright and a little faster; paused off
+                     screen (js/public/carols.js), none under reduced motion. --}}
                 <div class="s-xsnow" aria-hidden="true" data-snow>@for ($i = 0; $i < 60; $i++)@php($depth = $i % 3)@php($r = fmod($i * 0.618034, 1))<i style="--x: {{ round(fmod($i * 37.3, 100), 1) }}%; --s: {{ [3, 5, 8][$depth] + ($i % 2) }}px; --o: {{ [0.55, 0.8, 0.95][$depth] }}; --d: {{ round([18, 14, 11][$depth] + $r * 3, 1) }}s; --w: -{{ round($r * 18, 1) }}s; --sway: {{ [6, 11, 16][$depth] + ($i % 4) }}px"></i>@endfor</div>
             @endif
             <div class="s-wrap s-xhero-in">
@@ -58,30 +58,52 @@
                     </div>
                 </div>
                 @if ($countdown !== null)
-                    {{-- Up to Christmas Day; js/public/carols.js counts again in the visitor's own day and hides it after. --}}
-                    <aside class="s-xcount" aria-label="{{ __('site.carols.count_label') }}" data-countdown>
-                        <p class="s-xcount-k" data-count-label data-count="{{ __('site.carols.count_label') }}" data-christmas="{{ __('site.carols.christmas_label') }}">{{ $countdown['christmas'] ? __('site.carols.christmas_label') : __('site.carols.count_label') }}</p>
-                        <p class="s-xcount-n">
-                            <span class="s-xserif" data-days>{{ $countdown['christmas'] ? 25 : $countdown['days'] }}</span>
-                            <span data-days-unit data-one="{{ trans_choice('site.carols.days', 1) }}" data-many="{{ trans_choice('site.carols.days', 2) }}" data-christmas="{{ __('site.carols.christmas') }}">{{ $countdown['christmas'] ? __('site.carols.christmas') : trans_choice('site.carols.days', $countdown['days']) }}</span>
-                        </p>
-                        <p class="s-xcount-totals">
-                            <span><b>{{ $totals['carols'] }}</b> {{ trans_choice('site.carols.totals_carols', $totals['carols']) }}</span>
-                            <span><b>{{ $totals['parts'] }}</b> {{ trans_choice('site.carols.totals_parts', $totals['parts']) }}</span>
-                            @if ($totals['each'] !== null)
-                                <span><b>{{ $totals['each'] }}</b> {{ __('site.carols.totals_each') }}</span>
+                    {{-- Up to Christmas Day; js/public/carols.js counts again in the visitor's own day and hides it after. On a
+                         phone it's one line. --}}
+                    <div class="s-xcountwrap" data-countdown>
+                        <aside class="s-xcount" aria-label="{{ __('site.carols.count_label') }}">
+                            <p class="s-xcount-k" data-count-label data-count="{{ __('site.carols.count_label') }}" data-christmas="{{ __('site.carols.christmas_label') }}">{{ $countdown['christmas'] ? __('site.carols.christmas_label') : __('site.carols.count_label') }}</p>
+                            <p class="s-xcount-n">
+                                <span class="s-xserif" data-days>{{ $countdown['christmas'] ? 25 : $countdown['days'] }}</span>
+                                <span data-days-unit data-one="{{ trans_choice('site.carols.days', 1) }}" data-many="{{ trans_choice('site.carols.days', 2) }}" data-christmas="{{ __('site.carols.christmas') }}">{{ $countdown['christmas'] ? __('site.carols.christmas') : trans_choice('site.carols.days', $countdown['days']) }}</span>
+                            </p>
+                            <p class="s-xcount-totals">
+                                <span><b>{{ $totals['carols'] }}</b> {{ trans_choice('site.carols.totals_carols', $totals['carols']) }}</span>
+                                @if ($totals['each'] !== null)
+                                    <span>{{ trans_choice('site.carols.totals_each', $totals['each'], ['count' => $totals['each']]) }}</span>
+                                @endif
+                            </p>
+                            @if ($tonight !== null)
+                                {{-- Tonight's carol plays its first line here: the page's one inviting play. --}}
+                                <div class="s-xtonight" @if ($tonight['line'] !== null) data-player @endif>
+                                    @if ($tonight['line'] !== null)
+                                        <script type="application/json" data-song>@json($tonight['line'])</script>
+                                        <button type="button" class="s-play" data-play aria-label="{{ __('site.carols.play', ['song' => $tonight['title']]) }}" data-label-play="{{ __('site.carols.play', ['song' => $tonight['title']]) }}" data-label-stop="{{ __('site.carols.stop', ['song' => $tonight['title']]) }}">
+                                            <span class="s-i-play"><x-site.icon name="play" size="16" /></span><span class="s-i-stop"><x-site.icon name="stop" size="16" /></span>
+                                        </button>
+                                    @endif
+                                    <a href="#carol-{{ $tonight['slug'] }}"><span><small>{{ __('site.carols.tonight') }}</small><b translate="no">{{ $tonight['title'] }}</b></span><x-site.icon name="arrow" size="18" /></a>
+                                </div>
+                            @endif
+                        </aside>
+                        <p class="s-xcount-line">
+                            <span data-line-days data-one="{{ trans_choice('site.carols.count_line', 1, ['count' => 1]) }}" data-many="{{ trans_choice('site.carols.count_line', 2, ['count' => ':count']) }}" data-christmas="{{ __('site.carols.christmas') }}">{{ $countdown['christmas'] ? __('site.carols.christmas') : trans_choice('site.carols.count_line', $countdown['days'], ['count' => $countdown['days']]) }}</span>
+                            @if ($tonight !== null)
+                                · <a href="#carol-{{ $tonight['slug'] }}" class="s-lk">{{ __('site.carols.tonight_line', ['song' => $tonight['title']]) }} <x-site.icon name="arrow" size="16" /></a>
                             @endif
                         </p>
-                        @if ($tonight !== null)
-                            <a href="#carol-{{ $tonight['slug'] }}" class="s-xtonight"><span><small>{{ __('site.carols.tonight') }}</small><b translate="no">{{ $tonight['title'] }}</b></span><x-site.icon name="arrow" size="18" /></a>
-                        @endif
-                    </aside>
+                    </div>
                 @endif
             </div>
-            @if ($festive)
-                {{-- A stave along the foot, with a few notes on it: CSS marks again. --}}
-                <div class="s-xstave" aria-hidden="true">@for ($i = 0; $i < 12; $i++)<i></i>@endfor</div>
-            @endif
+        </section>
+
+        {{-- How a carol is learnt here, in three steps. --}}
+        <section class="s-wrap s-xsteps" aria-label="{{ __('site.carols.steps_label') }}">
+            <ol>
+                @foreach ((array) \Illuminate\Support\Facades\Lang::get('site.carols.steps') as [$step, $line])
+                    <li class="s-v{{ $loop->iteration }}"><span class="s-xstep-n" aria-hidden="true">{{ $loop->iteration }}</span><span><b>{{ $step }}</b> {{ $line }}</span></li>
+                @endforeach
+            </ol>
         </section>
 
         <section id="songbook" class="s-wrap s-xbook" aria-labelledby="book-h" data-songbook>
@@ -125,16 +147,18 @@
                             @endif
                         </div>
                         <h3 id="carol-{{ $carol['slug'] }}-h" translate="no">{{ $carol['title'] }}</h3>
-                        @if ($carol['from'] !== null)
-                            <p class="s-xfrom">{{ $carol['from'] }}</p>
+                        {{-- Its key, how much of it and its level, from the song file; its story is on its own page. --}}
+                        @if ($carol['meta'] !== [])
+                            <p class="s-xmeta">{{ implode(' · ', $carol['meta']) }}</p>
                         @endif
                         <ul class="s-xparts" aria-label="{{ __('site.carols.parts') }}">
                             @foreach ($carol['parts'] as $part)
                                 <li>
                                     <a href="{{ $part['url'] }}" class="s-xpart s-v{{ $loop->iteration }}" data-part-key="{{ $part['key'] }}">
                                         <i aria-hidden="true"></i>
-                                        <span><b>{{ $part['name'] }}</b>@if ($part['melody'])<span class="s-xmel">{{ __('site.song_part.melody_tag') }}</span>@endif</span>
+                                        <span class="s-xpart-name"><b>{{ $part['name'] }}</b>@if ($part['melody'])<span class="s-xmel">{{ __('site.song_part.melody_tag') }}</span>@endif</span>
                                         <span class="s-xrange" translate="no">{{ __('site.song_part.other_range', ['low' => $part['lowName'], 'high' => $part['highName']]) }}</span>
+                                        <x-site.icon name="arrow" size="16" />
                                     </a>
                                 </li>
                             @endforeach
@@ -150,14 +174,11 @@
                 <div>
                     <h2 id="choirs-h">{{ __('site.carols.choirs_title') }} <em class="s-xserif">{{ __('site.carols.choirs_title_em') }}</em></h2>
                     <p>{{ __('site.carols.choirs_body') }}</p>
-                    <h3 class="s-carols-send-h">{{ __('site.carols.send_title') }}</h3>
-                    <ol class="s-carols-send">
-                        @foreach ((array) \Illuminate\Support\Facades\Lang::get('site.carols.send') as $step)
-                            <li>{{ $step }}</li>
-                        @endforeach
-                    </ol>
                 </div>
-                <a href="/for/choir-directors" class="btn-secondary btn-lg">{{ __('site.carols.choirs_link') }} <x-site.icon name="arrow" size="18" /></a>
+                <div class="s-xband-go">
+                    <a href="{{ \App\Support\Http\Hosts::app('/groups?start=1&ref=carols') }}" class="btn-secondary btn-lg">{{ __('site.carols.choirs_start') }} <x-site.icon name="arrow" size="18" /></a>
+                    <a href="/for/choir-directors" class="s-lk">{{ __('site.carols.choirs_more') }}</a>
+                </div>
             </div>
         </section>
 

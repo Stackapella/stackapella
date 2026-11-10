@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Site;
 
 use App\Models\Template;
+use App\Support\Http\Hosts;
 use App\Support\Pages\Carols;
 use App\Support\Pages\SongParts;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -60,19 +61,39 @@ final class CarolsPageTest extends TestCase
         $this->get(Carols::PATH)->assertOk()->assertSee(e($hidden->title), false)->assertSee('href="/songs/'.$hidden->slug.'/', false);
     }
 
-    public function test_each_carol_plays_its_opening_line_and_directors_learn_to_send_each_part(): void
+    public function test_each_carol_plays_its_opening_line_and_directors_start_a_group(): void
     {
         $carols = app(Carols::class)->songs();
         $html = (string) $this->get(Carols::PATH)->assertOk()
-            ->assertSee(e(__('site.carols.send_title')), false)
+            ->assertSee(e(__('site.carols.choirs_body')), false)
+            ->assertSee(e(Hosts::app('/groups?start=1&ref=carols')), false)
+            ->assertSee('href="/for/choir-directors"', false)
             ->assertSee('/js/public/mixer.js', false)
             ->getContent();
 
-        $this->assertSame(count($carols), substr_count($html, 'data-song>'));
+        // One per card, and tonight's carol's in the countdown card.
+        $this->assertSame(count($carols) + 1, substr_count($html, 'data-song>'));
         foreach ($carols as $carol) {
             $this->assertNotNull($carol['line'], $carol['slug']);
             $this->assertStringContainsString(e(__('site.carols.play', ['song' => $carol['title']])), $html);
         }
+        // The steps for sending each part's link moved to the directors' page.
+        $this->get('/for/choir-directors')->assertOk()->assertSee('Or send each section its part');
+    }
+
+    public function test_each_card_has_its_key_coverage_and_level_and_real_flat_and_sharp_signs(): void
+    {
+        $carols = collect(app(Carols::class)->songs())->keyBy('slug');
+        $this->assertSame(['G major', 'Verse 1', 'Beginner'], $carols['away-in-a-manger']['meta']);
+        $this->assertSame(['E♭ major', 'Verse 1', 'Beginner'], $carols['deck-the-halls']['meta']);
+        $this->assertSame(['G major', 'Verse and refrain', 'Beginner'], $carols['hark-the-herald']['meta']);
+        $this->assertSame(['G major', 'Verse and chorus', 'Beginner'], $carols['jingle-bells']['meta']);
+        // Shchedryk's sections are named for who sings, so it says no coverage.
+        $this->assertSame(['G minor', 'Intermediate'], $carols['shchedryk']['meta']);
+        $this->assertSame('E♭5', $carols['deck-the-halls']['parts'][0]['highName']);
+        $this->assertSame('F♯2', $carols['away-in-a-manger']['parts'][3]['lowName']);
+
+        $this->get(Carols::PATH)->assertOk()->assertSee('E♭ major · Verse 1 · Beginner')->assertSee('E♭5');
     }
 
     public function test_the_landing_and_the_choir_guides_point_here_from_1_november_to_26_december(): void
@@ -100,13 +121,13 @@ final class CarolsPageTest extends TestCase
     {
         $this->travelTo('2026-11-10 12:00:00');
         $carols = app(Carols::class)->songs();
-        $parts = array_sum(array_map(static fn (array $carol): int => count($carol['parts']), $carols));
         $page = $this->get(Carols::PATH)->assertOk()
             ->assertSee('data-countdown', false)
             ->assertSee('data-days>45<', false)
             ->assertSee(trans_choice('site.carols.days', 45))
             ->assertSee('<b>'.count($carols).'</b> '.trans_choice('site.carols.totals_carols', count($carols)), false)
-            ->assertSee('<b>'.$parts.'</b> '.trans_choice('site.carols.totals_parts', $parts), false)
+            ->assertSee(trans_choice('site.carols.totals_each', 4, ['count' => 4]))
+            ->assertSee(trans_choice('site.carols.count_line', 45, ['count' => 45]))
             ->assertSee(__('site.carols.tonight'));
         $tonight = Carols::tonight($carols);
         $this->assertNotNull($tonight);
@@ -182,7 +203,8 @@ final class CarolsPageTest extends TestCase
 
         $first = strtok((string) __('song_about.hark-the-herald'), "\n");
         $this->assertStringStartsWith('Hark! The Herald Angels Sing ', (string) $first);
-        $this->get(Carols::PATH)->assertOk()->assertSee(e('Hark! The Herald Angels Sing began'), false);
+        $hark = collect(app(Carols::class)->songs())->firstWhere('slug', 'hark-the-herald');
+        $this->assertStringStartsWith('Hark! The Herald Angels Sing began', (string) $hark['from']);
     }
 
     public function test_the_weekly_line_shows_only_until_its_date(): void

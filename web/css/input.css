@@ -2234,7 +2234,6 @@ select:disabled {
 .s-xhero .s-actions { margin-top: 28px; }
 .s-xweekly { margin-top: 12px; font-size: 15px; color: var(--color-muted); }
 .s-xcount { justify-self: stretch; max-width: 380px; position: relative; padding: 24px 26px; border-radius: 24px; background: #F7F1E6; color: #211A14; box-shadow: 0 30px 60px -20px rgba(0, 0, 0, .45); }
-.s-xcount[hidden] { display: none; }
 .s-xcount::before, .s-xcount::after { content: ''; position: absolute; top: -10px; width: 10px; height: 20px; border-radius: 5px; background: #C8323F; }
 .s-xcount::before { left: 28px; }
 .s-xcount::after { right: 28px; }
@@ -2243,11 +2242,17 @@ select:disabled {
 .s-xcount-n .s-xserif { font-size: 88px; line-height: .9; color: #A61F33; }
 .s-xcount-totals { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px 16px; margin-top: 18px; padding-top: 16px; border-top: 1px solid #E2D6C4; font-size: 15px; color: #4A4036; }
 .s-xcount-totals b { color: #211A14; }
-.s-xtonight { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 16px; min-height: 44px; padding: 12px 14px; border-radius: 14px; background: #12372A; color: #F7F1E6; }
-.s-xtonight > span { display: grid; }
+.s-xtonight { display: flex; align-items: center; gap: 12px; margin-top: 16px; padding: 10px 14px 10px 10px; border-radius: 14px; background: #12372A; color: #F7F1E6; }
+.s-xtonight > a { flex: 1; display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 44px; }
+.s-xtonight > a > span { display: grid; }
+.s-xtonight .s-play { width: 44px; height: 44px; }
+.s-xtonight .s-play svg { width: 16px; height: 16px; }
+/* The page's one inviting play (the design rules): a breathing ring until it's first pressed, none under reduced motion. */
+.s-xtonight[data-player]:not([data-played]):not([data-loading]):not([data-playing]) .s-play::after { animation: s-breathe 2.4s ease-out infinite; }
+@media (prefers-reduced-motion: reduce) { .s-xtonight[data-player] .s-play::after { animation: none; } }
 .s-xtonight small { font-size: 12px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: #E9C46A; }
 .s-xtonight b { font-size: 16px; }
-.s-xtonight:hover b, .s-xtonight:focus-visible b { text-decoration: underline; text-underline-offset: 4px; }
+.s-xtonight > a:hover b, .s-xtonight > a:focus-visible b { text-decoration: underline; text-underline-offset: 4px; }
 /* In season: the green hero, its own tokens so the trail, the words and both buttons read on it in light and dark. */
 .s-xmas .s-xhero {
     --color-cream: #F7F1E6; --color-muted: #C9D8CD; --color-accent: #E9C46A;
@@ -2256,19 +2261,15 @@ select:disabled {
     --btn-outline: inset 0 0 0 1px rgba(247, 241, 230, .32); --btn-outline-pressed: inset 0 0 0 1px rgba(247, 241, 230, .32);
     overflow: hidden; color: var(--color-cream); border-radius: 0 0 36px 36px; background: #12372A;
 }
-/* The words and the card sit above the snow. */
-.s-xmas .s-xhero-in, .s-xmas .s-xstave { position: relative; z-index: 1; }
+.s-xmas .s-xhero-in { position: relative; z-index: 1; }
 .s-xmas .s-xhero-in { padding-top: 56px; }
 .s-xmas .s-xhero h1 .s-xserif { color: #E9C46A; }
 .s-xlights { position: absolute; inset: 0 0 auto; height: 40px; display: flex; justify-content: space-between; padding-inline: 1%; pointer-events: none; }
-.s-xlights i { position: relative; top: 6px; width: 9px; height: 13px; border-radius: 50% 50% 50% 50% / 40% 40% 60% 60%; background: var(--b, #E2513B); box-shadow: 0 0 12px 2px var(--b, #E2513B); opacity: .9; }
+.s-xlights i { position: relative; top: 6px; width: 9px; height: 13px; border-radius: 50% 50% 50% 50% / 40% 40% 60% 60%; background: var(--b, #E2513B); box-shadow: 0 0 12px 2px var(--b, #E2513B); opacity: .85; }
 .s-xlights i::before { content: ''; position: absolute; top: -4px; left: 2px; width: 5px; height: 4px; border-radius: 1px; background: #3D5A4C; }
 .s-xlights i:nth-child(4n+2) { top: 14px; } .s-xlights i:nth-child(4n+3) { top: 19px; } .s-xlights i:nth-child(4n) { top: 11px; }
 .s-xlights i:nth-child(5n+2) { --b: #E9C46A; } .s-xlights i:nth-child(5n+3) { --b: #2BA58A; } .s-xlights i:nth-child(5n+4) { --b: #F7F1E6; } .s-xlights i:nth-child(5n) { --b: #7FA6E8; }
 @media (max-width: 640px) { .s-xlights i:nth-child(even) { display: none; } }
-.s-xstave { position: relative; height: 56px; display: flex; justify-content: space-around; padding-inline: 4%; background: repeating-linear-gradient(to bottom, transparent 0 8px, rgba(233, 196, 106, .22) 8px 9px) 0 6px / 100% 46px no-repeat; }
-.s-xstave i { position: relative; top: 26px; width: 13px; height: 10px; border-radius: 50%; background: var(--b, #E9C46A); transform: rotate(-20deg); opacity: .85; }
-.s-xstave i:nth-child(4n+1) { top: 32px; } .s-xstave i:nth-child(4n+2) { top: 19px; --b: #E2513B; } .s-xstave i:nth-child(4n+3) { top: 10px; --b: #F7F1E6; } .s-xstave i:nth-child(3n) { --b: #2BA58A; }
 /* Snow (Hillel: "add nice animated falling snow in the green header", then "make it look like snow"): white, soft-edged
    flakes (a radial fill, no filter) at three depths, far ones small, faint and slow and near ones big, bright and a little
    faster, each swaying as it falls across the whole hero, behind the words (which sit above it). Each flake's place, size,
@@ -2281,7 +2282,17 @@ select:disabled {
 @media (max-width: 899px) { .s-xsnow { --fall: 1250px; } }
 @media (max-width: 640px) { .s-xsnow i { width: min(var(--s), 7px); height: min(var(--s), 7px); } .s-xsnow i:nth-child(n+31) { display: none; } }
 @media (prefers-reduced-motion: reduce) { .s-xsnow { display: none; } }
-@media (min-width: 900px) { .s-xhero-in { grid-template-columns: minmax(0, 1fr) 360px; gap: 48px; } .s-xcount { justify-self: end; width: 100%; } }
+.s-xcountwrap[hidden] { display: none; }
+.s-xcount-line { display: none; font-size: 15.5px; font-weight: 600; }
+.s-xcount-line svg { display: inline-block; vertical-align: -3px; }
+@media (max-width: 639px) { .s-xcount { display: none; } .s-xcount-line { display: block; } }
+@media (min-width: 900px) { .s-xhero-in { grid-template-columns: minmax(0, 1fr) 360px; gap: 48px; } .s-xcountwrap { justify-self: end; width: 100%; } .s-xcount { width: 100%; } }
+/* How a carol is learnt, in three steps under the hero. */
+.s-xsteps ol { display: grid; gap: 12px; margin-top: 28px; }
+.s-xsteps li { display: flex; align-items: flex-start; gap: 12px; font-size: 15.5px; line-height: 1.5; color: var(--color-muted); }
+.s-xsteps b { color: var(--color-cream); }
+.s-xstep-n { display: grid; place-items: center; flex: none; width: 30px; height: 30px; border-radius: 50%; background: var(--c); color: var(--ct); font-weight: 800; font-size: 14px; }
+@media (min-width: 900px) { .s-xsteps ol { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; } }
 /* The songbook: nine cards are three by three from 1024 px, one column below (the rule for a group of nine). */
 .s-xbook { padding-top: 64px; }
 .s-xbook-head { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 16px 24px; margin-bottom: 28px; }
@@ -2306,13 +2317,15 @@ select:disabled {
 .s-xcard .s-play { width: 44px; height: 44px; }
 .s-xcard .s-play svg { width: 18px; height: 18px; }
 .s-xcard h3 { font-size: 24px; line-height: 1.15; font-weight: 800; letter-spacing: -0.015em; text-wrap: balance; }
-.s-xfrom { flex: 1; font-size: 15px; line-height: 1.55; color: var(--color-muted); }
-.s-xparts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
-.s-xpart { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 0 10px; min-height: 52px; padding: 9px 12px; border-radius: 12px; border: 2px solid transparent; background: color-mix(in srgb, var(--c) 16%, var(--color-panel)); transition: opacity .2s, border-color .15s; }
-.s-xpart > i { grid-row: span 2; width: 8px; height: 8px; border-radius: 50%; background: var(--c); }
-.s-xpart b { font-size: 14.5px; }
+.s-xmeta { flex: 1; font-size: 14.5px; font-weight: 600; color: var(--color-muted); }
+/* Its parts as rows: the dot, the name (and MELODY), the range lined up, an arrow to the part's page. */
+.s-xparts { display: grid; gap: 6px; }
+.s-xpart { display: grid; grid-template-columns: 8px minmax(0, 1fr) auto 16px; align-items: center; gap: 0 12px; min-height: 44px; padding: 8px 12px; border-radius: 12px; border: 2px solid transparent; background: color-mix(in srgb, var(--c) 14%, var(--color-panel)); transition: opacity .2s, border-color .15s; }
+.s-xpart > i { width: 8px; height: 8px; border-radius: 50%; background: var(--c); }
+.s-xpart b { font-size: 15px; }
+.s-xpart > svg { color: var(--color-muted); }
 .s-xmel { margin-left: 6px; font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--ci); }
-.s-xrange { font-size: 13px; color: var(--color-muted); }
+.s-xrange { font-size: 14px; color: var(--color-muted); font-variant-numeric: tabular-nums; }
 .s-xpart:hover, .s-xpart:focus-visible, .s-xpart[data-sung] { border-color: var(--color-cream); }
 .s-xpart[data-faded] { opacity: .4; }
 .s-xmore { align-self: flex-start; font-size: 14.5px; }
@@ -2323,13 +2336,14 @@ select:disabled {
 .s-xband > div { max-width: 640px; }
 .s-xband h2 { font-size: clamp(26px, 3.4vw, 32px); font-weight: 800; letter-spacing: -0.02em; }
 .s-xband p { margin-top: 10px; font-size: 16.5px; line-height: 1.55; }
+.s-xband-go { display: flex; flex-wrap: wrap; align-items: center; gap: 14px 22px; }
 .s-xmas .s-xband {
-    --color-cream: #FFF5EC; --color-muted: #FBE3DA;
-    --btn-soft: #FFF5EC; --btn-soft-hover: #FFFFFF; --btn-soft-active: #FBE3DA; --btn-outline: none; --btn-outline-pressed: none;
-    background: #B3263A; border-color: #B3263A; color: var(--color-cream);
+    --color-cream: #F7F1E6; --color-muted: #D9E3DA; --color-accent: #E9C46A;
+    --btn-soft: #F7F1E6; --btn-soft-hover: #FFFFFF; --btn-soft-active: #E7DECF; --btn-outline: none; --btn-outline-pressed: none;
+    background: #1B4D3A; border-color: #1B4D3A; color: var(--color-cream);
 }
-.s-xmas .s-xband .btn-secondary { color: #8E1B2C; }
-@media (max-width: 640px) { .s-xband { padding: 28px 22px; } .s-xband > .btn-secondary { width: 100%; justify-content: center; } }
+.s-xmas .s-xband .btn-secondary { color: #12372A; }
+@media (max-width: 640px) { .s-xband { padding: 28px 22px; } .s-xband-go, .s-xband-go .btn-secondary { width: 100%; justify-content: center; } }
 /* In season, the footer on the season's green, with its line in the serif. */
 .s-xfoot {
     --color-cream: #F7F1E6; --color-muted: #C9D8CD; --color-accent: #E9C46A; --color-line: rgba(217, 227, 218, .18);
@@ -2338,10 +2352,6 @@ select:disabled {
 .s-xfoot .s-foot-grid { border-top: 0; }
 @media (max-width: 640px) { .s-xhero .s-actions > a { flex: 1 1 100%; justify-content: center; } }
 .s-foot-xmas { margin-top: 14px; font-family: ui-serif, 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, serif; font-style: italic; font-size: 22px; color: #E9C46A; }
-.s-carols-send-h { margin-top: 22px; font-size: 18px; font-weight: 800; }
-.s-carols-send { margin-top: 10px; max-width: 64ch; display: grid; gap: 8px; padding-inline-start: 22px; list-style: decimal; }
-.s-carols-send + .s-actions-l { margin-top: 18px; }
-.s-carols-send li::marker { color: var(--color-muted); font-weight: 700; }
 /* The landing's one seasonal line (1 November to 26 December), quiet under the promise. */
 .s-hero-carols { margin-top: 10px; font-size: 14.5px; }
 .s-hero-carols svg { display: inline-block; vertical-align: -3px; }

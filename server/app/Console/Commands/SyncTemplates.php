@@ -31,10 +31,14 @@ final class SyncTemplates extends Command
             $this->info("Added {$added}");
         }
 
+        foreach ($report['opened'] as $opened) {
+            $this->info("Opened {$opened}: reviewed now, no longer hidden");
+        }
+
         $this->line(count($report['unchanged']).' unchanged.');
 
         // No song files at all: the courses and songs live in their own repo, fetched first.
-        if ($report['added'] === [] && $report['unchanged'] === [] && $report['problems'] === []) {
+        if ($report['added'] === [] && $report['opened'] === [] && $report['unchanged'] === [] && $report['problems'] === []) {
             $this->warn('No songs found. Fetch them first: sh server/tool/content.sh fetch (from the repo root), then run this again.');
         }
 
@@ -58,7 +62,7 @@ final class SyncTemplates extends Command
 
         Log::error('Songs not synced: their live versions stay until each is fixed', ['problems' => $report['problems']]);
 
-        if ($this->option('strict') || ($report['added'] === [] && $report['unchanged'] === [])) {
+        if ($this->option('strict') || ($report['added'] === [] && $report['opened'] === [] && $report['unchanged'] === [])) {
             return self::FAILURE;
         }
 

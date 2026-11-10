@@ -47,7 +47,9 @@ def journey(f):
         assert dressed["markIsSvgBox"], "the mark isn't the name's previous sibling any more"
         assert dressed["mark"] == plain["mark"] and dressed["word"] == plain["word"], f"the hat moved the logo: {dressed} against {plain}"
         hat, mark = dressed["hat"], dressed["mark"]
-        assert hat[0] < mark[0] < hat[0] + hat[2] and hat[1] < mark[1], f"the hat isn't over the mark's top-left corner: {dressed}"
+        # The site's box (.s-brand > .s-hat): 9 px out and 12 px above the 30 px mark's top-left, 39 by 42.
+        want = [mark[0] - 9, mark[1] - 12, 39, 42]
+        assert all(abs(a - b) <= 1 for a, b in zip(hat, want)), f"the hat isn't in the site's box: {hat}, want {want}"
         if date == 24:
             f.shot("home-christmas-eve")
     assert logo_on(f, (2026, 11, 26))["hat"] is None, "a hat on 26 December"

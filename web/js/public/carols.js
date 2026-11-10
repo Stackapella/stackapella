@@ -1,8 +1,8 @@
 // The Christmas carols page (server/resources/views/site/carols.blade.php, Hillel's redesign of 2026-11-10).
 // - "I sing": plain buttons (a menu on a phone) that light one part on every carol's card, the others faded, and say
 //   so under the songbook's heading. The choice lives only while the page is open: nothing is stored.
-// - The countdown: the server's day is a first guess; here it's counted again in the visitor's own day, and the card
-//   goes once Christmas Day has passed. Nothing about the visitor is kept or sent.
+// - The countdown: the server's day is a first guess; here it's counted again in the visitor's own day (the card, and
+//   its one line on a phone), and it goes once Christmas Day has passed. Nothing about the visitor is kept or sent.
 // - The hero's snow pauses while it's off screen.
 // The words are the view's (data- attributes).
 
@@ -46,14 +46,17 @@ if (countdown) {
         const label = countdown.querySelector('[data-count-label]');
         const count = countdown.querySelector('[data-days]');
         const unit = countdown.querySelector('[data-days-unit]');
+        const line = countdown.querySelector('[data-line-days]');
         if (days === 0) {
             label.textContent = label.dataset.christmas;
             count.textContent = '25';
             unit.textContent = unit.dataset.christmas;
+            if (line) line.textContent = line.dataset.christmas;
         } else {
             label.textContent = label.dataset.count;
             count.textContent = String(days);
             unit.textContent = days === 1 ? unit.dataset.one : unit.dataset.many;
+            if (line) line.textContent = days === 1 ? line.dataset.one : line.dataset.many.replace(':count', String(days));
         }
     }
 }

@@ -5,7 +5,7 @@ black square edge to edge, which iOS, Android and the PWA mask round themselves)
 
 - web/icons/icon.svg: the app icon (512, the bars inside the maskable safe zone);
 - web/icons/favicon.svg: the same, the bars bolder, for 16 px;
-- web/js/logo-mark.js: the inline mark's SVG for the app's header.
+- web/js/logo-mark.js: the inline mark's SVG for the app's header: icon.svg's drawing, its corners rounded as the site's.
 
 Then render the PNGs (icon-192, icon-512, icon-maskable-512, apple-touch-icon) with
 `web/tool/icons.sh`, which draws the SVG in headless Chrome. Standard library only.
@@ -40,7 +40,10 @@ def main():
     (WEB / "icons/icon.svg").write_text(mark(512, 294, colours))
     # The favicon: bolder bars, so four read at 16 px.
     (WEB / "icons/favicon.svg").write_text(mark(16, 14, colours, bar=2.5, gap=1.1))
-    inline = mark(24, 17, colours, radius=4).strip().replace('"', "'")
+    # The header's inline mark is the app icon's drawing exactly, its corners rounded as the site's header has them
+    # (server/app/Support/Site/Icons.php mark: rx 86 of 512), so the app's logo and the site's are one drawing (Hillel,
+    # 2026-11-10, picking the site's: docs/decisions.md).
+    inline = mark(512, 294, colours, radius=86).strip().replace('"', "'")
     (WEB / "js/logo-mark.js").write_text(
         "// Written by web/tool/icons.py: the mark, inline (the black square and four bars), for the header.\n"
         f'export const LOGO_MARK = "{inline}";\n'

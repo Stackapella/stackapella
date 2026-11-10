@@ -854,6 +854,16 @@ return [
                         'body' => 'Members join by your link with a free account and no card. Learning on Stackapella is free.',
                     ],
                     [
+                        // Moved from the carols page (the UX review, 2026-11-10): the way without a group.
+                        'heading' => 'Or send each section its part',
+                        'body' => 'Most songs in our library, the Christmas carols included, have a page for each part that anyone can play without an account. Before rehearsal:',
+                        'points' => [
+                            'Open the song you\'re rehearsing and copy each part\'s link: the soprano page for your sopranos, and so on',
+                            'Send each section its own link by email or in your group chat, a week or so ahead',
+                            'Each singer plays their part on its own or with the others, and sings along as each note lights up',
+                        ],
+                    ],
+                    [
                         'pic' => 'create',
                         'heading' => 'Your own arrangements',
                         'body' => 'Write the arrangement your choir sings in the creator: sing the tune, get the other parts suggested, and change any note. Share it with your group like any of our songs.',
@@ -1474,8 +1484,10 @@ return [
         'christmas_label' => 'Christmas Day',
         'christmas' => 'Merry Christmas!',
         'totals_carols' => '{1} carol|[2,*] carols',
-        'totals_parts' => '{1} part|[2,*] parts',
-        'totals_each' => 'voices each',
+        'totals_each' => '{1}:count part each|[2,*]:count parts each',
+        // The countdown in one line on a phone.
+        'count_line' => '{1}:count day to Christmas|[2,*]:count days to Christmas',
+        'tonight_line' => 'Tonight: :song',
         'tonight' => 'Tonight\'s carol',
         // The songbook: every open carol as a card, and a filter that lights one part on every card.
         'songbook' => 'The songbook',
@@ -1484,6 +1496,11 @@ return [
         'i_sing' => 'I sing',
         'any_part' => 'Any part',
         'number' => 'No. :n',
+        // Each card's line from its song file (Carols::meta).
+        'key_major' => ':note major',
+        'key_minor' => ':note minor',
+        'coverage' => ['verse' => 'Verse 1', 'verse_refrain' => 'Verse and refrain', 'verse_chorus' => 'Verse and chorus'],
+        'levels' => ['beginner' => 'Beginner', 'intermediate' => 'Intermediate', 'advanced' => 'Advanced'],
         // Where and when each carol comes from, as a chip on its card: where and when its oldest part, words or tune, first
         // appeared (the courses lead's rule and check, 2026-11-10).
         'places' => [
@@ -1497,7 +1514,14 @@ return [
             'shchedryk' => 'Ukraine · trad.',
             'silent-night' => 'Austria · 1816',
         ],
-        'lead' => 'Learn your SATB part before rehearsal. Play a carol\'s first line to hear it, then open your part\'s page: hear it on its own or with the others, sing it and watch each note light up.',
+        'lead' => 'Learn your SATB part before rehearsal. Free, in your browser, no account.',
+        // How a carol is learnt here, in three steps under the hero (the UX review, 2026-11-10).
+        'steps' => [
+            ['Hear it', 'Press play to hear the first line as the choir sings it. The ranges show which part fits you.'],
+            ['Learn it', 'Open your part: hear it alone or with the others under it.'],
+            ['Sing it', 'Sing along and watch each note light up as you hit it.'],
+        ],
+        'steps_label' => 'How it works',
         'play' => 'Play :song',
         'stop' => 'Stop :song',
         'count' => '{1} One carol to learn now|[2,*] :count carols to learn now',
@@ -1508,17 +1532,14 @@ return [
         'from' => [
             'silent-night' => 'Silent Night has German words by Joseph Mohr from 1816 and a tune by Franz Xaver Gruber from 1818, sung here in John Freeman Young\'s English of 1859.',
         ],
-        'choirs_title' => 'Teaching carols to a',
-        'choirs_title_em' => 'choir?',
-        'choirs_body' => 'Choir groups are free: share a carol with your singers and give each one their part. We also make learning tracks of the songs your choir is rehearsing, when they\'re public domain or your own arrangement, and the first song is free.',
+        // The band for directors: a choir group, checked against the groups code (GroupView: a join link, parts given
+        // out, started and recorded); the steps for sending part links live on /for/choir-directors.
+        'choirs_title' => 'Send one link. Rehearse with a choir that',
+        'choirs_title_em' => 'already knows its notes.',
+        'choirs_body' => 'Start a free choir group: one link brings your singers in, you give each their part, and you see who has started and recorded it before rehearsal.',
+        'choirs_start' => 'Start a choir group',
+        'choirs_more' => 'More for choir directors',
         'choirs_link' => 'For choir directors',
-        // For directors: sending each section its own part page before rehearsal.
-        'send_title' => 'Send each section its part before rehearsal',
-        'send' => [
-            'Open the carol you\'re rehearsing and copy each part\'s link: the soprano page for your sopranos, the alto page for your altos, and so on.',
-            'Send each section its own link by email or in your group chat, a week or so before rehearsal.',
-            'Each singer plays their part on its own or with the others, and sings along as each note lights up, so they arrive knowing it.',
-        ],
         'tie' => 'Found your part? Sing it with the others under you.',
         'try_link' => 'Learn a carol, free',
         'list' => 'Christmas carols to learn',

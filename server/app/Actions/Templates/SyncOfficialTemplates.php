@@ -25,6 +25,11 @@ use Illuminate\Support\Facades\DB;
  * a version). Its words around the music may: the title, description, credits, licence and the
  * musician's `reviewed` are updated in place. The current version is the newest reviewed one (or
  * the newest, while none is). Safe to run again (it runs on every deploy).
+ *
+ * A Monday opening is that in-place change: the content flips a hidden song's `reviewed` to true
+ * with no new version, and the next sync marks the stored version reviewed and reports it as
+ * opened (SyncTemplatesTest). A sync reads the files where it runs, so a checkout whose content
+ * wasn't linked since the pin still has the song hidden.
  */
 final class SyncOfficialTemplates
 {
@@ -34,11 +39,11 @@ final class SyncOfficialTemplates
     public function __construct(private readonly TemplateRules $rules, private readonly SocialPoster $poster, private readonly CarryVoicesOver $carry, private readonly CourseClips $clips) {}
 
     /**
-     * @return array{added: list<string>, unchanged: list<string>, problems: list<string>, carried: list<string>, withdrawn: list<string>}
+     * @return array{added: list<string>, opened: list<string>, unchanged: list<string>, problems: list<string>, carried: list<string>, withdrawn: list<string>}
      */
     public function handle(): array
     {
-        $report = ['added' => [], 'unchanged' => [], 'problems' => [], 'carried' => [], 'withdrawn' => []];
+        $report = ['added' => [], 'opened' => [], 'unchanged' => [], 'problems' => [], 'carried' => [], 'withdrawn' => []];
         // Every song a file names, valid or not: a broken file is a problem, never a withdrawal.
         $present = [];
         $schemas = new SchemaChecker((string) config('templates.schemas'));
@@ -77,7 +82,8 @@ final class SyncOfficialTemplates
                 $this->poster->propose($template, SocialPost::NEW_SONG);
             }
 
-            $result = $result === 'reviewed' ? 'unchanged' : $result;
+            // The same version, now reviewed: the song opens (a Monday's opening).
+            $result = $result === 'reviewed' ? 'opened' : $result;
             $report[$result === 'problem' ? 'problems' : $result][] = $result === 'problem'
                 ? "{$name}: version {$data['version']} of {$data['id']} was published with different notes; give the change a new version number"
                 : "{$data['id']}@{$data['version']}";
@@ -198,8 +204,8 @@ final class SyncOfficialTemplates
      * that went wrong (no files, or most missing) is a problem to look at, not a withdrawal.
      *
      * @param  list<string>  $present
-     * @param  array{added: list<string>, unchanged: list<string>, problems: list<string>, carried: list<string>, withdrawn: list<string>}  $report
-     * @return array{added: list<string>, unchanged: list<string>, problems: list<string>, carried: list<string>, withdrawn: list<string>}
+     * @param  array{added: list<string>, opened: list<string>, unchanged: list<string>, problems: list<string>, carried: list<string>, withdrawn: list<string>}  $report
+     * @return array{added: list<string>, opened: list<string>, unchanged: list<string>, problems: list<string>, carried: list<string>, withdrawn: list<string>}
      */
     private function withdraw(array $present, array $report): array
     {

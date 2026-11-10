@@ -70,16 +70,21 @@ export const Icon = {
  *
  * On Christmas Eve and Christmas Day, by the device's own date (public/season.js hatDay; Hillel asked on 2026-11-10 for
  * the hat in the app and on the site at Christmas, and on its eve too), the mark wears the site's Santa hat
- * (icons/santa-hat.svg), placed as the site's .s-brand > .s-hat is: over the mark's top-left corner, tilted, beside it in
- * the flow so the mark and the name don't move. It comes first, so the mark stays the name's previous sibling
+ * (icons/santa-hat.svg, Hillel's hat3e), in the site's own box (.s-brand > .s-hat) so the two are the same to the pixel:
+ * worn on the mark's top-left corner, the tilt in the drawing, out of the flow so the mark and the name don't move. It comes first, so the mark stays the name's previous sibling
  * (tests/flows/logo_match.py measures it so). The favicon and the app's icons stay as they are.
  */
 export const Logo = {
     props: { size: { type: Number, default: 30 } },
     setup: () => ({ LOGO_MARK, hat: hatDay() }),
+    computed: {
+        // The site's box exactly (.s-brand > .s-hat: the drawing's -9 -12 39 42 over the 30 px mark), at this mark's size:
+        // 0.3 of it out to the left and 0.4 above, 1.3 by 1.4 of it, the mark centred in the row as the site's is.
+        hatBox: (vm) => ({ left: `${-0.3 * vm.size}px`, top: `calc(50% - ${0.9 * vm.size}px)`, width: `${1.3 * vm.size}px`, height: `${1.4 * vm.size}px` }),
+    },
     template: `
         <span class="relative inline-flex items-center gap-[9px] font-extrabold text-cream" data-ui="logo">
-            <img v-if="hat" src="/icons/santa-hat.svg" alt="" aria-hidden="true" class="pointer-events-none absolute -left-[9px] top-[calc(50%-27px)] h-[23px] w-[26px] -rotate-[18deg] drop-shadow-[0_1px_1px_rgba(0,0,0,0.25)]" data-hat-christmas />
+            <img v-if="hat" src="/icons/santa-hat.svg" alt="" aria-hidden="true" class="pointer-events-none absolute max-w-none drop-shadow-[0_1px_1px_rgba(0,0,0,0.3)]" :style="hatBox" data-hat-christmas />
             <span class="block shrink-0 [&>svg]:size-full" :style="{ width: size + 'px', height: size + 'px' }" aria-hidden="true" v-html="LOGO_MARK"></span>
             <span class="text-[18px] tracking-[-0.01em] max-[359px]:sr-only" translate="no" data-ui="wordmark">Stackapella</span>
         </span>`,

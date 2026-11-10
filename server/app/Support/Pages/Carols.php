@@ -29,7 +29,7 @@ final class Carols
      * Each open carol: its title and page, where it comes from (the first sentence of its part pages' About, checked
      * by the courses lead), and its parts, each to its own page.
      *
-     * @return list<array{slug: string, title: string, url: string, from: string|null, line: array<string, mixed>|null, parts: list<array{key: string, name: string, melody: bool, lowName: string, highName: string, url: string}>}>
+     * @return list<array{slug: string, title: string, url: string, from: string|null, line: array<string, mixed>|null, meta: list<string>, parts: list<array{key: string, name: string, melody: bool, lowName: string, highName: string, url: string}>}>
      */
     public function songs(): array
     {
@@ -53,14 +53,55 @@ final class Carols
                 // Its opening line to play, as /songs plays a song's: every open song plays for guests (Hillel,
                 // 2026-11-08, "Yes, play for guests").
                 'line' => Landing::line($template),
+                // Its key, how much of it there is and its level, from the song file: "G major · Verse 1 · Beginner"
+                // (the UX review of Hillel's second mockup, 2026-11-10). Never a length: the files don't give one.
+                'meta' => self::meta((array) $template->currentVersion?->data),
                 'parts' => array_map(static fn (array $part): array => [
                     'key' => $part['key'], 'name' => $part['name'], 'melody' => $part['melody'],
-                    'lowName' => $part['lowName'], 'highName' => $part['highName'], 'url' => $url.'/'.$part['key'],
+                    'lowName' => self::signs($part['lowName']), 'highName' => self::signs($part['highName']), 'url' => $url.'/'.$part['key'],
                 ], SongParts::parts($template)),
             ];
         }
 
         return $carols;
+    }
+
+    /**
+     * A carol's card line: its key ("E♭ major", "G minor"), how much of the song it has ("Verse 1", "Verse and refrain",
+     * "Verse and chorus", or none when its sections are named otherwise) and its level, each only when the file says.
+     *
+     * @param  array<string, mixed>  $data
+     * @return list<string>
+     */
+    public static function meta(array $data): array
+    {
+        $line = [];
+        if (is_string($data['key'] ?? null) && preg_match('/^([A-G])([b#]?)(m?)$/', $data['key'], $m) === 1) {
+            $line[] = (string) __($m[3] === 'm' ? 'site.carols.key_minor' : 'site.carols.key_major', ['note' => self::signs($m[1].$m[2])]);
+        }
+        $sections = array_values(array_filter(array_map(static fn (mixed $s): ?string => is_array($s) && is_string($s['name'] ?? null) ? $s['name'] : null, (array) ($data['sections'] ?? []))));
+        $verses = count(array_filter($sections, static fn (string $name): bool => preg_match('/^Verse \d+$/', $name) === 1));
+        $rest = array_values(array_diff($sections, array_filter($sections, static fn (string $name): bool => preg_match('/^Verse \d+$/', $name) === 1)));
+        $coverage = match (true) {
+            $verses === 1 && $rest === [] => 'verse',
+            $verses === 1 && $rest === ['Refrain'] => 'verse_refrain',
+            $verses === 1 && $rest === ['Chorus'] => 'verse_chorus',
+            default => null,
+        };
+        if ($coverage !== null) {
+            $line[] = (string) __('site.carols.coverage.'.$coverage);
+        }
+        if (is_string($data['difficulty'] ?? null) && trans()->has('site.carols.levels.'.$data['difficulty'])) {
+            $line[] = (string) __('site.carols.levels.'.$data['difficulty']);
+        }
+
+        return $line;
+    }
+
+    /** A note's name with real flat and sharp signs ("Eb5" to "E♭5", "F#2" to "F♯2"), as the music font draws them. */
+    public static function signs(string $note): string
+    {
+        return (string) preg_replace(['/([A-G])b/', '/([A-G])#/'], ['$1♭', '$1♯'], $note);
     }
 
     public static function isCarol(Template $template): bool
@@ -132,8 +173,8 @@ final class Carols
     /**
      * Tonight's carol: one of the open carols by the day of the year, the same for everyone on a day (no visitor data).
      *
-     * @param  list<array{slug: string, title: string}>  $carols
-     * @return array{slug: string, title: string}|null
+     * @param  list<array{slug: string, title: string, line: array<string, mixed>|null}>  $carols
+     * @return array{slug: string, title: string, line: array<string, mixed>|null}|null
      */
     public static function tonight(array $carols): ?array
     {
@@ -142,7 +183,7 @@ final class Carols
         }
         $carol = $carols[now()->dayOfYear % count($carols)];
 
-        return ['slug' => $carol['slug'], 'title' => $carol['title']];
+        return ['slug' => $carol['slug'], 'title' => $carol['title'], 'line' => $carol['line']];
     }
 
     /**
