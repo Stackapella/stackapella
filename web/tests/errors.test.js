@@ -29,6 +29,12 @@ test('errors: the envelope has the DSN, an event with the error and its frames, 
 });
 
 test('errors: extensions, resize loops and aborted fetches are noise; Firefox frames are read', () => {
+    // A stack with frames, none of them ours or the pinned CDN's: someone else's script (the coordinator, 2026-11-10).
+    assert(isNoise({ name: 'TypeError', message: 'x is undefined', stack: 'TypeError: x is undefined\n    at inject (https://cdn.example-wallet.io/inpage.js:3:10)\n    at https://cdn.example-wallet.io/inpage.js:1:1' }), 'a stack of only another site\'s frames');
+    assert(!isNoise({ name: 'TypeError', message: "Cannot read properties of undefined (reading 'tone')", stack: "TypeError: Cannot read properties of undefined (reading 'tone')\n    at Proxy.render (eval at uv (https://cdn.jsdelivr.net/npm/vue@3.5.44/dist/vue.esm-browser.prod.js:14:318), <anonymous>:95:9)\n    at S (https://cdn.jsdelivr.net/npm/vue@3.5.44/dist/vue.esm-browser.prod.js:7:1)" }), 'a template error, its frames in Vue on the pinned CDN');
+    assert(!isNoise({ name: 'TypeError', message: 'navigate is not a function', stack: 'TypeError: navigate is not a function\n    at onClick (https://app.stackapella.com/js/components/course-wall.js:51:3)' }), 'a frame of ours');
+    assert(!isNoise({ name: 'Error', message: 'a rejection', stack: '' }), 'no frames at all: still reported');
+    assert(!isNoise({ name: 'Error', message: 'boom', stack: 'Error: boom\n    at window.boom (<anonymous>:1:44)' }), 'only an address-less frame (eval\'d code): still reported');
     assert(isNoise({ name: 'Error', message: 'ResizeObserver loop completed with undelivered notifications.' }), 'resize');
     assert(isNoise({ name: 'AbortError', message: 'The user aborted a request.' }), 'aborted');
     assert(isNoise({ name: 'Error', message: 'x', stack: 'f@chrome-extension://abc/x.js:1:1' }), 'extension');

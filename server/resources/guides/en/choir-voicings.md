@@ -74,4 +74,5 @@ lowest and highest notes and the part that fits them.
 
 Most songs in Stackapella's [library](/songs) are SATB, for 2 to 4 singers, and each part has its
 own page: hear it on its own or with the others, then sing it and watch each note light up. Learn
-your part, then record it and sing another over your own voice, to hear how the parts fit.
+your part, then record it and sing another over your own voice, to hear how the parts fit. Every one of
+the [hymns](/songs/hymns) is SATB, with the tune in the soprano.

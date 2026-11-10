@@ -47,7 +47,11 @@ def logo_at(f, path, width, text=16):
     f.chrome.send("Emulation.setDeviceMetricsOverride", {"width": width, "height": 900, "deviceScaleFactor": 1, "mobile": width < 768})
     f.chrome.send("Page.setFontSizes", {"fontSizes": {"standard": text}})
     f.go(path, "document.querySelector('header .s-brand .s-word, #app header [data-ui=wordmark]')")
-    f.wait("document.fonts.status === 'loaded'", what=f"{path}: fonts")
+    # Game mode: its sheet first (it sets the wordmark's face and size adjust), then a layout so the face it names is
+    # asked for, and only then are the fonts done (fonts.status is 'loaded' before the sheet has asked for any).
+    f.wait("document.documentElement.dataset.skin !== 'game' || !document.querySelector('meta[name=\"game-css\"]')"
+           " || !!document.querySelector('link[data-game-css]')?.sheet", what=f"{path}: the game sheet")
+    f.wait("document.body.offsetWidth > 0 && document.fonts.status === 'loaded'", what=f"{path}: fonts")
     time.sleep(0.3)
     return f.js(LOGO)
 

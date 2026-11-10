@@ -48,7 +48,8 @@ final class SignInTest extends TestCase
 
     public function test_a_first_sign_in_makes_an_account_matched_on_the_es_account_only(): void
     {
-        $this->getJson('/api/auth/config')->assertJsonPath('data.methods', ['apple', 'google', 'event_schedule', 'password']);
+        // The tests' Apple and Google have no settings, so they aren't offered (SignInProviders).
+        $this->getJson('/api/auth/config')->assertJsonPath('data.methods', ['event_schedule', 'password']);
 
         $this->signIn()->assertRedirect('/settings?signedIn=event_schedule');
         $user = User::query()->sole();
@@ -78,7 +79,7 @@ final class SignInTest extends TestCase
         $this->app->instance(EventSchedule::class, new HttpEventSchedule);
 
         $this->post('/auth/event-schedule', ['intended' => '/settings'])->assertRedirect('/settings?authError=unavailable');
-        $this->getJson('/api/auth/config')->assertJsonPath('data.methods', ['apple', 'google', 'password']);
+        $this->getJson('/api/auth/config')->assertJsonPath('data.methods', ['password']);
     }
 
     public function test_it_can_be_added_to_an_account_and_removed_from_one(): void

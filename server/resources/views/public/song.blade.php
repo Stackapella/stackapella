@@ -37,7 +37,7 @@
         <section class="s-wrap s-head" aria-labelledby="page-h">
             <div @class(['s-head-grid', 's-head-solo' => $line === null && $song['previewUrl'] === null])>
                 <div>
-                    <x-site.crumbs :trail="[[__('pages.song.eyebrow'), '/songs'], [$song['title'], null, true]]" :ld="true" />
+                    <x-site.crumbs :trail="[[__('pages.song.eyebrow'), '/songs'], ...($home !== null ? [[$home['name'], $home['path']]] : []), [$song['title'], null, true]]" :ld="true" />
                     <h1 id="page-h" translate="no">{{ $song['title'] }}</h1>
                     <p class="s-lead">{{ $song['description'] }}</p>
                     <p class="s-meta">
@@ -130,6 +130,7 @@
                         </li>
                     @endforeach
                 </ul>
+                @include('site._collection-link', ['home' => $home])
                 <p class="s-more"><a href="/songs" class="btn-secondary">{{ __('pages.songs.headline') }}</a></p>
             </section>
         @endif

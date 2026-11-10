@@ -10,10 +10,14 @@ use App\Mail\Account\NewSignIn;
 use App\Mail\Account\ResetPassword;
 use App\Models\Block;
 use App\Models\User;
+use App\Services\EventSchedule\EventSchedule;
+use App\Services\EventSchedule\HttpEventSchedule;
 use App\Support\Accounts\BetaPass;
 use App\Support\Accounts\PasswordFailures;
 use App\Support\Accounts\SignInSession;
 use App\Support\Flags;
+use Firebase\JWT\JWT;
+use Firebase\JWT\Key;
 use Illuminate\Cookie\CookieValuePrefix;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
@@ -24,6 +28,7 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Testing\TestResponse;
 use Laravel\Socialite\Facades\Socialite;
 use Laravel\Socialite\Two\User as ProviderUser;
+use ReflectionMethod;
 use Tests\TestCase;
 
 final class SignInTest extends TestCase
@@ -329,6 +334,58 @@ final class SignInTest extends TestCase
         app(ManageSignInMethods::class)->remove($ada, 'apple');
         Http::assertSent(fn ($request): bool => str_contains($request->url(), 'auth/revoke') && $request['token'] === 'web-refresh' && $request['client_id'] === 'com.stackapella.web');
         $this->assertNull($ada->refresh()->apple_web_refresh_token);
+    }
+
+    public function test_a_sign_in_provider_is_offered_only_with_all_its_settings(): void
+    {
+        $this->app->instance(EventSchedule::class, new HttpEventSchedule);
+        $apple = ['services.apple.client_id' => 'com.stackapella.web', 'services.apple.team_id' => 'TEAM', 'services.apple.key_id' => 'KEY', 'services.apple.private_key' => 'a key'];
+        config([...$apple, 'services.google.client_id' => 'google-id', 'services.google.client_secret' => 'google-secret']);
+        $this->getJson('/api/auth/config')->assertJsonPath('data.methods', ['apple', 'google', 'password']);
+
+        // Production on 2026-11-10: Apple offered without all it needs, and every tap failed.
+        foreach (array_keys($apple) as $missing) {
+            config([...$apple, $missing => '']);
+            $this->getJson('/api/auth/config')->assertJsonPath('data.methods', ['google', 'password']);
+        }
+
+        config([...$apple, 'services.google.client_secret' => null]);
+        $this->getJson('/api/auth/config')->assertJsonPath('data.methods', ['apple', 'password']);
+    }
+
+    public function test_the_real_apple_provider_starts_and_signs_its_own_client_secret_from_the_key(): void
+    {
+        // Production on 2026-11-10: with no client_secret entry, the provider refused to start.
+        $key = openssl_pkey_new(['private_key_type' => OPENSSL_KEYTYPE_EC, 'curve_name' => 'prime256v1', 'private_key_bits' => 384]);
+        openssl_pkey_export($key, $pem);
+        $public = (string) openssl_pkey_get_details($key)['key'];
+
+        // The env holds the .p8 on one line with \n between its lines; the config makes it a key again.
+        $saved = [$_ENV['APPLE_PRIVATE_KEY'] ?? null, $_SERVER['APPLE_PRIVATE_KEY'] ?? null];
+        $_ENV['APPLE_PRIVATE_KEY'] = $_SERVER['APPLE_PRIVATE_KEY'] = str_replace("\n", '\n', trim((string) $pem));
+        try {
+            $services = require config_path('services.php');
+        } finally {
+            [$_ENV['APPLE_PRIVATE_KEY'], $_SERVER['APPLE_PRIVATE_KEY']] = $saved;
+        }
+        $this->assertSame(trim((string) $pem), $services['apple']['private_key']);
+        $this->assertArrayHasKey('client_secret', $services['apple']);
+
+        config(['services.apple' => [...$services['apple'], 'client_id' => 'com.stackapella.web', 'team_id' => 'TEAM123456', 'key_id' => 'KEY1234567']]);
+
+        $start = $this->post('/auth/apple', ['intended' => '/songs']);
+        $this->assertStringStartsWith('https://appleid.apple.com/auth/authorize', (string) $start->headers->get('Location'));
+        $this->assertStringContainsString('client_id=com.stackapella.web', (string) $start->headers->get('Location'));
+
+        // The secret it sends with the code: signed with our key, naming our team, key and Services ID.
+        $driver = Socialite::driver('apple');
+        $secret = (string) (new ReflectionMethod($driver, 'getClientSecret'))->invoke($driver);
+        $claims = JWT::decode($secret, new Key($public, 'ES256'));
+        $this->assertSame('TEAM123456', $claims->iss);
+        $this->assertSame('com.stackapella.web', $claims->sub);
+        $this->assertSame('https://appleid.apple.com', $claims->aud);
+        $this->assertLessThanOrEqual(now()->addHour()->getTimestamp() + 1, $claims->exp);
+        $this->assertSame('KEY1234567', json_decode((string) JWT::urlsafeB64Decode(explode('.', $secret)[0]))->kid);
     }
 
     public function test_apple_is_sent_a_nonce_its_id_token_must_carry_back(): void

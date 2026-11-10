@@ -49,7 +49,7 @@ final class SongPagesController extends Controller
         ], 200, self::headers());
     }
 
-    public function show(string $slug, SongCards $cards, Catalogue $catalogue): Response
+    public function show(string $slug, SongCards $cards, Catalogue $catalogue, SongCollections $collections): Response
     {
         $template = Template::query()->listed()->whereNotNull('current_version_id')->with('currentVersion')->where('slug', $slug)->first();
 
@@ -70,6 +70,8 @@ final class SongPagesController extends Controller
             // an account, through the API (Hillel, 2026-10-27).
             'line' => $template->access === TemplateAccess::Plus ? null : Landing::line($template),
             'more' => $more,
+            // The page that collects it, in its trail and below its more songs (SongCollections::home).
+            'home' => $collections->home((string) $template->slug),
             'meta' => [
                 // A round says round (its searches do), never SATB or harmony; SATB named where it's true
                 // (docs/search-content-plan.md, item 4): choirs search it.

@@ -35,7 +35,7 @@
     <x-site.header />
     <main>
         <section class="s-wrap s-head s-spart" aria-labelledby="page-h">
-            <nav class="s-crumb" aria-label="{{ __('site.song_part.crumb') }}"><a href="/songs">{{ __('site.song_part.songs') }}</a><span aria-hidden="true">/</span><a href="{{ $s['pageUrl'] }}" translate="no">{{ $s['title'] }}</a><span aria-hidden="true">/</span><span aria-current="page">{{ $p['name'] }}</span></nav>
+            <nav class="s-crumb" aria-label="{{ __('site.song_part.crumb') }}"><a href="/songs">{{ __('site.song_part.songs') }}</a><span aria-hidden="true">/</span>@if ($songPart['home'] !== null)<a href="{{ $songPart['home']['path'] }}">{{ $songPart['home']['name'] }}</a><span aria-hidden="true">/</span>@endif<a href="{{ $s['pageUrl'] }}" translate="no">{{ $s['title'] }}</a><span aria-hidden="true">/</span><span aria-current="page">{{ $p['name'] }}</span></nav>
             <h1 id="page-h">{{ $heading }}</h1>
             <p class="s-lead">{{ __($melody ? 'site.song_part.lead_melody' : 'site.song_part.lead', $fill) }}</p>
             @if (\Illuminate\Support\Facades\Lang::has('song_parts.'.$s['slug'].'.'.$p['key']))
@@ -99,9 +99,7 @@
                     <li><a href="{{ $other['url'] }}"><b>{{ $other['name'] }}</b>@if ($other['melody'])<span class="s-spart-tag">{{ __('site.song_part.melody_tag') }}</span>@endif<span translate="no">{{ __('site.song_part.other_range', ['low' => $other['lowName'], 'high' => $other['highName']]) }}</span></a></li>
                 @endforeach
             </ul>
-            @if (\App\Support\Pages\Carols::has($s['slug']))
-                @include('site._carols-link', ['line' => __('site.carols.links.part')])
-            @endif
+            @include('site._collection-link', ['home' => $songPart['home']])
         </section>
 
         @include('site.tools._about', ['tie' => __('site.song_part.tie'), 'tryLink' => __('site.song_part.try_link'), 'try' => $songPart['startUrl'], 'links' => ['app' => \App\Support\Http\Hosts::app('/')]])

@@ -225,7 +225,7 @@ final class StructuredData
 
     /**
      * A song's part page (/songs/<song>/<part>): the song as a MusicComposition with this part's page as its address
-     * and the part named, and the trail Songs, the song, the part.
+     * and the part named, and the trail Songs, the page that collects it (when one does), the song, the part.
      *
      * @param  array<string, mixed>  $page  SongParts::page()
      * @return list<array<string, mixed>>
@@ -250,6 +250,8 @@ final class StructuredData
             ],
             self::breadcrumbs([
                 [(string) __('site.song_part.songs'), Hosts::publicUrl().'/songs'],
+                // The page that collects it, as the trail on the page shows (SongCollections::home).
+                ...(is_array($page['home'] ?? null) ? [[(string) $page['home']['name'], Hosts::publicUrl().$page['home']['path']]] : []),
                 [(string) $song['title'], (string) $song['pageUrl']],
                 [(string) $part['name'], (string) $page['canonical']],
             ]),

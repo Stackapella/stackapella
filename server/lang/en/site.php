@@ -1579,6 +1579,8 @@ return [
             'list' => 'Hymns to learn in four parts',
             'try_link' => 'Learn a hymn, free',
             'songs_link' => 'Hymns, part by part',
+            // On each of its songs' pages and part pages (SongCollections::home).
+            'more' => 'More hymns, part by part',
         ],
         // Google's suggestions, 2026-11-10: "spirituals for choir", "spirituals satb", "easy spirituals for choir",
         // "african american spirituals satb". The courses lead checked the history (2026-11-10).
@@ -1591,7 +1593,7 @@ return [
             'lead' => 'Learn your part of a spiritual before rehearsal. Free, in your browser, no account.',
             'intro' => [
                 'Spirituals are songs first sung by enslaved African Americans. They were sung long before they were written down; the first printed collections came after emancipation, and the Fisk Jubilee Singers carried them across the United States from 1871 and to Europe from 1873. Composers such as Harry T. Burleigh later set them for concert singers and choirs.',
-                'Deep River is Burleigh\'s own setting, as G. Schirmer printed it in 1914; the rest are our own four-part arrangements of the traditional tunes and words. Each song\'s page tells where it comes from. Learn the words and their story as well as the notes.',
+                'Deep River is Burleigh\'s own setting, as G. Schirmer printed it in 1914, and Go Down, Moses keeps the four-part answer from Theodore F. Seward\'s Jubilee Songs of 1872; the rest are our own four-part arrangements of the traditional tunes and words. Each song\'s page tells where it comes from. Learn the words and their story as well as the notes.',
             ],
             'pick' => 'Pick a spiritual',
             'songbook' => 'The spirituals',
@@ -1600,6 +1602,8 @@ return [
             'list' => 'Spirituals to learn in four parts',
             'try_link' => 'Learn a spiritual, free',
             'songs_link' => 'Spirituals, part by part',
+            // On each of its songs' pages and part pages (SongCollections::home).
+            'more' => 'More spirituals, part by part',
         ],
         // Google's suggestions, 2026-11-10: "easy sea shanties to sing", "sea shanties to sing with friends", "best sea
         // shanties to sing", "sea shanty songs for choir", "sea shanty harmony". The courses lead checked the history (2026-11-10).
@@ -1621,6 +1625,8 @@ return [
             'list' => 'Sea shanties to sing in four parts',
             'try_link' => 'Learn a shanty, free',
             'songs_link' => 'Sea shanties, part by part',
+            // On each of its songs' pages and part pages (SongCollections::home).
+            'more' => 'More sea shanties, part by part',
         ],
         // Google's suggestions, 2026-11-10: "rounds to sing", "easy rounds to sing", "rounds to sing with kids", "rounds
         // to sing in choir", "easy rounds for choir", "songs to sing in a round", "singing rounds for beginners". The courses lead
@@ -1643,6 +1649,8 @@ return [
             'list' => 'Rounds to sing in up to four parts',
             'try_link' => 'Learn a round, free',
             'songs_link' => 'Rounds, voice by voice',
+            // On each of its songs' pages and part pages (SongCollections::home).
+            'more' => 'More rounds, voice by voice',
         ],
     ],
 

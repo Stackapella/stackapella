@@ -9095,6 +9095,16 @@ select:disabled {
    play, a quiet note square. The app pictures' insides (chips, groups, a part's icon) stay as on the landing. */
 :root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) :is(.s-letter-note, .s-video-frame, .s-video-play, .s-video-len, .s-quiet) { border-radius: var(--arc-radius); }
 :root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) :is(.s-letter-note, .s-video-frame) { border: var(--arc-edge-w) solid var(--arc-line); box-shadow: var(--arc-shadow); }
+/* The songbook pages (carols, hymns, spirituals, sea shanties, rounds: site/_songbook.blade.php and the carols page,
+   marketing's .s-x* classes, game's to reskin): the cards, place chips, filter, the carols' countdown and Tonight, the
+   band, the hero's foot and the footer's head square, the cards, countdown and band framed like the stage card. Its
+   part rows are links (square above), a part's MELODY tag still wraps under its name (.s-xpart-name); the step numbers
+   and the countdown's rings stay round (round marks), the lights as they are. The snow falls in pixels: white squares
+   at three sizes by depth (2, 4 and 6 px, marketing: "make it look like snow"), each flake's place, opacity, timing and
+   sway still the view's, behind the words, paused off screen, none under reduced motion. */
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) :is(.s-xcard, .s-xplace, .s-xfilter-seg, .s-xfilter-menu, .s-xcount, .s-xtonight, .s-xband, .s-xhero, .s-xfoot) { border-radius: var(--arc-radius); }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) :is(.s-xcard, .s-xcount, .s-xband) { border: var(--arc-edge-w) solid var(--arc-line); box-shadow: var(--arc-shadow); }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-xsnow i { width: round(nearest, calc(var(--s) * .7), 2px); height: round(nearest, calc(var(--s) * .7), 2px); border-radius: 0; background: #fff; }
 :root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) :is(.s-step, .s-plan, .s-final) { border: var(--arc-edge-w) solid var(--arc-line); box-shadow: var(--arc-shadow); }
 :root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-title { font-size: clamp(26px, 4.4vw, 44px); }
 :root[data-skin='game'][data-gs] body.s-arcade .s-brand .s-word { font-family: var(--arc-pixel); font-weight: 400; font-size-adjust: 0.66; text-shadow: 0.08em 0.08em 0 color-mix(in srgb, var(--arc-pink) 70%, transparent); }

@@ -112,12 +112,16 @@ return [
         'secret' => env('TURNSTILE_SECRET'),
     ],
 
-    // Sign in with Apple (socialiteproviders/apple). The client secret is made from the key.
+    // Sign in with Apple (socialiteproviders/apple). The client secret is made from the key: a
+    // fresh ES256 token on each sign-in, so nothing to renew. `client_secret` stays null, but the
+    // provider refuses to start without the key there (2026-11-10: every web sign-in failed).
+    // The .p8 key may be one line with \n between its lines, as the env holds it.
     'apple' => [
         'client_id' => env('APPLE_CLIENT_ID'),
+        'client_secret' => null,
         'team_id' => env('APPLE_TEAM_ID'),
         'key_id' => env('APPLE_KEY_ID'),
-        'private_key' => env('APPLE_PRIVATE_KEY'),
+        'private_key' => str_replace('\n', "\n", (string) env('APPLE_PRIVATE_KEY')),
         'redirect' => '/auth/apple/callback',
         // The native apps' bundle id: their identity tokens' audience, and the client for their codes.
         'app_bundle_id' => env('APPLE_APP_BUNDLE_ID'),

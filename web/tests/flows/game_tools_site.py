@@ -18,7 +18,8 @@ from app_audit import APP_CONTRAST  # noqa: E402
 from game_frames import THEMES, pixel_face  # noqa: E402
 
 SITE = sys.argv[1] if len(sys.argv) > 1 else "http://127.0.0.1:8412"
-PAGES = ["/tools", "/tools/tuner", "/tools/metronome", "/tools/vocal-range-test", "/tools/pitch-pipe", "/tools/tuning-forks", "/tools/drone", "/warmups", "/warmups/humming-scale", "/songs/amazing-grace/alto", "/intervals/perfect-fifth", "/chords/major", "/voice-types/alto", "/courses/harmony/steady-notes", "/courses/perfect-your-pitch/scoop-or-clean", "/courses/vibrato/swing-and-settle", "/integrations", "/integrations/invoice-ninja", "/songs", "/songs/amazing-grace", "/compare", "/compare/smule", "/courses/other-languages", "/about", "/for/beginners", "/for/organizations", "/guides", "/guides/what-is-harmony", "/whats-new"]
+PAGES = ["/tools", "/tools/tuner", "/tools/metronome", "/tools/vocal-range-test", "/tools/pitch-pipe", "/tools/tuning-forks", "/tools/drone", "/warmups", "/warmups/humming-scale", "/songs/amazing-grace/alto", "/intervals/perfect-fifth", "/chords/major", "/voice-types/alto", "/courses/harmony/steady-notes", "/courses/perfect-your-pitch/scoop-or-clean", "/courses/vibrato/swing-and-settle", "/integrations", "/integrations/invoice-ninja", "/songs", "/songs/amazing-grace", "/compare", "/compare/smule", "/courses/other-languages", "/about", "/for/beginners", "/for/organizations", "/guides", "/guides/what-is-harmony", "/whats-new",
+         "/songs/christmas-carols", "/songs/hymns", "/songs/spirituals", "/songs/sea-shanties", "/songs/rounds"]  # the songbook pages
 STYLE = "getComputedStyle(document.querySelector({sel!r}))"
 # The site server's own folder (this checkout's), whose database says whether the courses are open: the lesson pages
 # exist only for open courses (SitePages::courseOpen), so a run that finds them closed opens them. It never closes them

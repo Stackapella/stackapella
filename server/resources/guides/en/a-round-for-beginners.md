@@ -27,4 +27,5 @@ Record yourself singing the tune, then record it again starting a line later, an
 play them back together, you'll hear a round sung entirely by you.
 
 Try it with a round everyone knows, or with [Row, Row, Row Your Boat](/songs/row-row-row), whose four entries
-each have a page to learn on its own.
+each have a page to learn on its own. The [rounds page](/songs/rounds) has the others, each learned the
+same way.

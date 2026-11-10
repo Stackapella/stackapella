@@ -117,4 +117,5 @@ notes. Then put the two together.
 - Then go **On your own** while the others keep going, and watch your notes light up as you hit them.
 
 In Sing, you can loop a hard phrase. **Build up to speed** starts it at 70% and goes up 5% each round
-you sing cleanly, until it's at full speed. Try it on a carol your choir might sing.
+you sing cleanly, until it's at full speed. Try it on a carol, a [hymn](/songs/hymns) or a
+[spiritual](/songs/spirituals) your choir might sing.

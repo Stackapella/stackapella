@@ -68,17 +68,58 @@ final class SongCollections
      */
     public function songs(string $slug): array
     {
+        $members = $this->members($slug);
+
+        return array_values($this->parts->songs()
+            ->filter(static fn (Template $template): bool => in_array((string) $template->slug, $members, true))
+            ->map(static fn (Template $template): array => Carols::card($template))
+            ->sortBy('title', SORT_NATURAL | SORT_FLAG_CASE)
+            ->all());
+    }
+
+    /**
+     * A collection's open songs' slugs, or [] when it isn't a page: what songs() lists, without building the cards
+     * (each plays a first line), read once a request for the song pages' links.
+     *
+     * @return list<string>
+     */
+    public function members(string $slug): array
+    {
         if (! isset(self::COLLECTIONS[$slug]) || ! trans()->has('site.collections.'.$slug) || ! SongParts::open()) {
             return [];
         }
 
-        $cards = array_values($this->parts->songs()
+        $members = $this->members[$slug] ??= array_values($this->parts->songs()
             ->filter(static fn (Template $template): bool => self::belongs($template, self::COLLECTIONS[$slug]))
-            ->map(static fn (Template $template): array => Carols::card($template))
-            ->sortBy('title', SORT_NATURAL | SORT_FLAG_CASE)
+            ->map(static fn (Template $template): string => (string) $template->slug)
             ->all());
 
-        return count($cards) >= self::MIN ? $cards : [];
+        return count($members) >= self::MIN ? $members : [];
+    }
+
+    /** @var array<string, list<string>> */
+    private array $members = [];
+
+    /**
+     * The page that collects a song, for its own page's and its part pages' trail and link (the coordinator,
+     * 2026-11-10: each collection linked from its songs): the first of /songs's groups, in order, whose page lists it,
+     * the carols page only while the carols are linked (Carols::linked), or null.
+     *
+     * @return array{path: string, name: string, more: string}|null
+     */
+    public function home(string $song): ?array
+    {
+        foreach (array_keys(self::GROUPS) as $key) {
+            if ($key === 'christmas') {
+                if (Carols::linked() && Carols::has($song)) {
+                    return ['path' => Carols::PATH, 'name' => (string) __('site.carols.crumb'), 'more' => (string) __('site.carols.links.part')];
+                }
+            } elseif (in_array($song, $this->members($key), true)) {
+                return ['path' => self::path($key), 'name' => (string) __('site.collections.'.$key.'.crumb'), 'more' => (string) __('site.collections.'.$key.'.more')];
+            }
+        }
+
+        return null;
     }
 
     /**
@@ -90,7 +131,7 @@ final class SongCollections
     {
         return array_values(array_map(
             static fn (string $slug): array => ['slug' => $slug, 'path' => self::path($slug), 'name' => (string) __('site.collections.'.$slug.'.crumb')],
-            array_filter(self::slugs(), fn (string $slug): bool => $this->songs($slug) !== []),
+            array_filter(self::slugs(), fn (string $slug): bool => $this->members($slug) !== []),
         ));
     }
 

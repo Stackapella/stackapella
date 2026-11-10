@@ -28,6 +28,7 @@ use App\Services\EventSchedule\EventSchedule;
 use App\Support\Accounts\Age;
 use App\Support\Accounts\BetaPass;
 use App\Support\Accounts\Sessions;
+use App\Support\Accounts\SignInProviders;
 use App\Support\Accounts\SignInSession;
 use App\Support\Accounts\SignUpBrowser;
 use App\Support\Flags;
@@ -58,8 +59,9 @@ final class AuthController extends Controller
         }
 
         return response()->json(['data' => [
-            // Event Schedule only once its OAuth client is set up (or locally, its fake).
-            'methods' => [...['apple', 'google'], ...($eventSchedule->configured() ? ['event_schedule'] : []), 'password'],
+            // Apple and Google only with all their settings (SignInProviders); Event Schedule only once
+            // its OAuth client is set up (or locally, its fake).
+            'methods' => [...SignInProviders::offered(), ...($eventSchedule->configured() ? ['event_schedule'] : []), 'password'],
             'signups' => match ($paused) {
                 'password' => 'password_paused',
                 'all' => 'paused',

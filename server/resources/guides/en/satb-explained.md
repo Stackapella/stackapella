@@ -34,7 +34,7 @@ highest notes and the part that fits them.
 
 ## Who usually has the tune
 
-In most hymns and carols, the soprano sings the melody and the other three harmonise beneath it.
+In most [hymns](/songs/hymns) and carols, the soprano sings the melody and the other three harmonise beneath it.
 That's why sopranos often find their part the easiest to learn: it's the one everyone already
 knows. The alto, tenor and bass parts are harder at first, because the tune keeps pulling at you.
 They're also where a lot of the fun is.

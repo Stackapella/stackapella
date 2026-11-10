@@ -20,6 +20,9 @@ const TOKEN_PATHS = [/^\/(invite|early|join|choir|teacher|beta)\/[^/]+/, /^\/(ve
 // and a crypto wallet's browser setting window.ethereum.selectedAddress (Sentry JAVASCRIPT-4).
 const NOISE = [/ResizeObserver loop/i, /AbortError/, /The (user|operation) aborted/i, /Load failed$/, /^Script error\.?$/, /__firefox__|__gCrWeb/, /window\.ethereum|\bselectedAddress\b/];
 const EXTENSION = /(chrome|moz|safari(-web)?)-extension:\/\//;
+// Code of ours: this host, any stackapella.com address, or the pinned CDN (Vue and the libraries). A stack with frames
+// but none of these is an extension's or an injected script's, whatever it says (the coordinator, 2026-11-10).
+const OURS = /^(?:https?:\/\/(?:[\w-]+\.)*stackapella\.com\/|https:\/\/cdn\.jsdelivr\.net\/npm\/)/;
 const BROWSERS = [['Edge', /Edg\/(\d+)/], ['Firefox', /Firefox\/(\d+)/], ['Chrome', /Chrome\/(\d+)/], ['Safari', /Version\/(\d+).*Safari/]]; // i18n-ignore: sent to Sentry, never shown
 
 const sent = new Set();
@@ -90,7 +93,12 @@ export function isNoise(error) {
     // Tested on the message alone too: "Script error." (a cross-origin script's, or an extension's or an
     // in-app browser's, its details hidden) comes as { name: 'Error', message: 'Script error.' }.
     if (NOISE.some((r) => r.test(text) || r.test(message))) return true;
-    return EXTENSION.test(String(error?.stack ?? '')) || EXTENSION.test(String(error?.filename ?? ''));
+    if (EXTENSION.test(String(error?.stack ?? '')) || EXTENSION.test(String(error?.filename ?? ''))) return true;
+    // Frames with an address, and not one of ours: someone else's script on our page. A stack with no address (none, or
+    // only <anonymous>, eval'd code's) stays reported: it can be ours.
+    const frames = framesOf(error?.stack);
+    const located = frames.filter((f) => /^(https?:|[a-z-]+-extension:)/.test(f.filename));
+    return located.length > 0 && !frames.some((f) => f.in_app || OURS.test(f.filename) || f.filename.includes('cdn.jsdelivr.net/npm/'));
 }
 
 function send(envelope) {

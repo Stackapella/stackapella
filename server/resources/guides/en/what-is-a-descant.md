@@ -70,4 +70,6 @@ Stackapella's arrangements don't include descants. But holding your own line whi
 at you is the same skill every harmony part needs. O Come, All Ye Faithful, whose best-known descant soars over its "Sing, choirs of angels" verse,
 has [an alto part](/songs/o-come-all-ye-faithful/alto) that mostly moves a third or a sixth beneath
 the tune and climbs above it on the last note of "Bethlehem", as a descant would. Learn it on its
-own, then sing it with the others and keep your line where the two part ways.
+own, then sing it with the others and keep your line where the two part ways. Every one of the
+[hymns](/songs/hymns) has the tune in the soprano and three parts to hold against it, for the same
+practice.
