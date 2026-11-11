@@ -6,6 +6,7 @@
 import { styleOf } from '../../band-style.js';
 import { t, tk } from '../../i18n.js';
 import { NOTE_STYLES } from '../../notes.js';
+import { midiName } from '../../dsp.js';
 import { prefs } from '../../stores/prefs.js';
 import { Modal } from '../ui.js';
 import { Icon } from '../icon.js';
@@ -18,7 +19,9 @@ const VIEWS = [
     { value: 'staff', label: tk('sing.view.staff') },
 ];
 const SPEEDS = [1, 0.85, 0.7];
-const STYLE_LABELS = { letters: tk('sing.settings.names.letters'), solfege: tk('sing.settings.names.solfege'), numbers: tk('sing.settings.names.numbers'), off: tk('sing.settings.names.off') };
+// Letters say themselves as a note in the naming in use (D4, Re4 with fixed Do: note-names.js).
+const styleLabel = (n) => (n === 'letters' ? midiName(62) : t(STYLE_LABELS[n]));
+const STYLE_LABELS = { solfege: tk('sing.settings.names.solfege'), numbers: tk('sing.settings.names.numbers'), off: tk('sing.settings.names.off') };
 
 // The band's styles (js/band.js), for the chords underneath.
 const BAND_STYLES = [{ value: 'gentle', label: tk('band.style.gentle') }, { value: 'pop', label: tk('band.style.pop') }, { value: 'swing', label: tk('band.style.swing') }];
@@ -47,7 +50,7 @@ export const SettingsSheet = {
         partColor: { type: String, default: '' },
     },
     emits: ['part', 'toggle', 'level', 'view', 'speed', 'ladder', 'chords', 'chords-level', 'chords-sound', 'drone', 'drone-level', 'voices', 'split', 'reset', 'close'],
-    setup: () => ({ VIEWS, SPEEDS, NOTE_STYLES, STYLE_LABELS, SHORTCUTS, prefs, BAND_STYLES, styleOf }),
+    setup: () => ({ VIEWS, SPEEDS, NOTE_STYLES, styleLabel, SHORTCUTS, prefs, BAND_STYLES, styleOf }),
     // 67.png: Display (Show, Note names with a sample, the keyboard, the other parts), Practice (Speed
     // with the tempo it plays at, Chords underneath, Guide voices), Controls (shortcuts and their keys).
     template: `
@@ -72,7 +75,7 @@ export const SettingsSheet = {
                     <fieldset>
                         <div class="mb-2 flex items-baseline justify-between gap-3"><legend class="font-semibold text-cream">{{ t('sing.settings.names.title') }}</legend><span v-if="sample" class="tabular-nums text-xs text-muted" translate="no">{{ sample }}</span></div>
                         <div class="grid rounded-2xl border border-line p-1 grid-cols-4">
-                            <button v-for="n in NOTE_STYLES" :key="n" type="button" class="min-h-10 rounded-xl text-sm font-semibold" :class="prefs.noteNames === n ? 'glass-bubble-solid' : 'text-muted hover:text-cream'" :aria-pressed="prefs.noteNames === n ? 'true' : 'false'" @click="prefs.noteNames = n">{{ t(STYLE_LABELS[n]) }}</button>
+                            <button v-for="n in NOTE_STYLES" :key="n" type="button" class="min-h-10 rounded-xl text-sm font-semibold" :class="prefs.noteNames === n ? 'glass-bubble-solid' : 'text-muted hover:text-cream'" :aria-pressed="prefs.noteNames === n ? 'true' : 'false'" @click="prefs.noteNames = n">{{ styleLabel(n) }}</button>
                         </div>
                     </fieldset>
                     <Switch :on="prefs.keyboard" :label="t('sing.settings.keyboard')" :hint="t('sing.settings.keyboardHint')" @change="prefs.keyboard = $event" />

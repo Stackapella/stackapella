@@ -53,7 +53,9 @@ def journey(f):
     f.no_sideways("the stave")
     f.shot("hear-with-stave")
     # Names: letters, remembered on the device.
-    f.click(t(f, "course.read.style.letters"), "[data-read-stave] button")
+    # (the letters choice says itself in the naming in use: "C D E", or "Do Re Mi" with fixed Do)
+    letters = f.js("(async () => { const n = await import('/js/note-names.js'); return n.namingSample(n.naming()); })()")
+    f.click(letters, "[data-read-stave] button")
     f.wait("(await import('/js/stores/prefs.js')).prefs.readNames === 'letters'", what="letters chosen")
     letters = f.js("[...document.querySelectorAll('[data-read-stave] svg text')].map((x) => x.textContent).filter((x) => /^[A-G][#b♯♭]?$/.test(x)).length")
     assert letters >= 3, "letter names under the notes"

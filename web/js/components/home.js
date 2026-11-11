@@ -517,7 +517,8 @@ export const HomeBand = {
     template: `
         <section :aria-labelledby="id" data-ui="band" :data-tone="tone">
             <div class="flex flex-wrap items-center gap-3">
-                <div class="flex flex-1 items-baseline gap-3 whitespace-nowrap">
+                <!-- The count wraps under a long title (a language up to 40% longer: language_fit), never off the edge. -->
+                <div class="flex min-w-0 flex-1 flex-wrap items-baseline gap-x-3">
                     <h2 :id="id" class="text-2xl font-extrabold tracking-tight text-cream">{{ title }}</h2>
                     <span v-if="count" class="text-sm tabular-nums text-muted">{{ count }}</span>
                 </div>

@@ -38,6 +38,8 @@ for (const kind of [
     // Home's Today line (docs/home-returning-plan.md, experiment ret1): each case shown, and its taps.
     'home_today_gap_shown', 'home_today_gap_tap', 'home_today_stuck_shown', 'home_today_stuck_tap',
     'home_today_done_shown', 'home_today_done_song_tap', 'home_today_done_course_tap', 'home_today_daily_shown', 'home_today_daily_tap',
+    // Home's picks carrying a New or Carol season song (docs/retention-plan.md, idea 5): shown, and tapped.
+    'home_new_shown', 'home_new_tap',
 ]) KINDS.add(kind);
 // Kinds with a detail, `<prefix>:<id>`: a Plus course's lessons by course, the free course by lesson.
 // The server keeps only ids the courses have.

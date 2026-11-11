@@ -28,7 +28,7 @@ import { dailyState, lazyComponent, loadDaily } from '../game/modules.js';
 const DailyTag = lazyComponent('daily', 'DailyTag'); // game mode's only: loaded with game mode
 import { effect } from '../game/effects.js';
 import { dailyOpen, loadPick } from '../daily-pick.js';
-import { game } from '../skin.js';
+import { game, sk } from '../skin.js';
 import { inFirstWeek } from '../components/voice-care.js';
 import { InstallCard } from '../components/install.js';
 import { signUpFor } from '../components/account-wall.js';
@@ -43,6 +43,7 @@ import { deleteTemplate, discardDraft, loadMine, mine, saveTemplate } from '../s
 import { SheetImport } from '../components/create/sheet-import.js';
 import { readSheetFile } from '../sheet-import.js';
 import { count } from '../usage.js';
+import { lastLooked, lookedNow, newsPick } from '../song-news.js';
 import { leftProject, loadShared } from '../stores/cloud.js';
 import { friendlyProblem } from '../components/create/save.js';
 import { TemplateDialog } from '../components/dialogs.js';
@@ -68,10 +69,13 @@ const songColumns = () => (window.matchMedia('(min-width: 1024px)').matches ? 4 
 /** A draft's template when it has a tune to play (a tempo and notes in a part), else null. */
 const playableDraft = (draft) => (draft.template?.tempo && draft.template.parts?.some((p) => p.guide?.notes?.length) ? draft.template : null);
 
+// A collection in season, said on its pick (song-news.js): its words by the server's season key.
+const SEASON_WORDS = { carols: tk('home.songs.news.carols') };
+
 export const ProjectsView = {
     components: { StorageMeter, CreditLine, SheetImport, PlayerChip, DailyTag, CardMenu, HomeCourses, ThemeSwitch, Icon, Logo, TemplateDialog, HomeLead, HomeBand, SongCover, InstallCard, WeekCard, WorkoutStrip, StatusChip, Modal, Notice, RemindAsk, FirstWeek },
     setup: () => ({ templatePartName, ideas, session, mine, friendlyProblem, canStart, projects, account, learning, shownTitle, formatTime, timeAgo, PART_COLORS, lengthBeats, partsFor, keyLabel, DIFFICULTY, creditsFor, navigate, BAND_COLORS, BETA_STATUS, publicSiteUrl, effect, dailyState }),
-    data: () => ({ storageUsage: null, locked: false, clip: null, templates: [], openTemplate: null, singers: 4, previewing: false, preparingPreview: false, starting: false, groups: null, choirParts: [], startingChoir: null, betaParts: null, avatarFailed: false, making: false, importProblems: null, sheetScore: null, sheetSaving: false, songsOpen: tabStorage.get('stackapella.songsOpen') === '1', yoursOpen: false, songColumns: songColumns(), newing: false, showInfo: false, previewOf: null, playingSong: null, renaming: null, newName: '' }),
+    data: () => ({ storageUsage: null, locked: false, clip: null, templates: [], openTemplate: null, singers: 4, previewing: false, preparingPreview: false, starting: false, groups: null, choirParts: [], startingChoir: null, betaParts: null, avatarFailed: false, making: false, importProblems: null, sheetScore: null, sheetSaving: false, songsOpen: tabStorage.get('stackapella.songsOpen') === '1', lookedAt: lastLooked(), newsCounted: null, yoursOpen: false, songColumns: songColumns(), newing: false, showInfo: false, previewOf: null, playingSong: null, renaming: null, newName: '' }),
     template: `
         <div class="min-h-dvh">
             <!-- The app's top bar on the site header's grid (app-wrap app-top): the logo where the site's is. -->
@@ -175,11 +179,13 @@ export const ProjectsView = {
                                 <li v-for="item in shownSongs" :key="item.key" class="group relative" :class="songsOpen ? '' : 'w-40 shrink-0 snap-start md:w-auto'" data-song-card :data-daily="dailyShown && dailyState().today?.templateId === item.tpl.id ? '' : null">
                                     <!-- Game mode's daily challenge: today's song card wears its tag (docs/game-elements-plan.md) -->
                                     <DailyTag v-if="dailyShown && dailyState().today?.templateId === item.tpl.id" :challenge="dailyState().today" />
-                                    <button type="button" class="flex w-full flex-col gap-2 rounded-3xl p-1 text-start hover:bg-raised/50" data-ui="cartridge" @click="infoSong(item.tpl)">
+                                    <button type="button" class="flex w-full flex-col gap-2 rounded-3xl p-1 text-start hover:bg-raised/50" data-ui="cartridge" @click="songTap(item)">
                                         <span class="relative block">
                                             <SongCover :song="item.tpl" :voices="item.tpl.parts.map((p) => p.key)" :seed="seedOf(item.tpl.id)" />
                                             <!-- The tags at the top left; the top right is the preview's Play. -->
                                             <span class="absolute end-14 start-3 top-3 flex flex-wrap gap-1">
+                                                <!-- New, or Carol season (retention plan, idea 5): one pick at most, in the singer's range. -->
+                                                <span v-if="!songsOpen && news?.item === item" data-ui="tag" data-tone="yellow" class="rounded-full bg-raised px-2 py-0.5 text-[10px] font-bold text-cream" data-news-tag :data-news="news.kind">{{ newsWords }}</span>
                                                 <span v-if="creditsFor(item.tpl.id).length" data-ui="tag" data-tone="cyan" class="rounded-full bg-raised px-2 py-0.5 text-[10px] font-bold text-accent-strong">{{ t('home.songs.realVoices') }}</span>
                                                 <span v-else-if="!item.tpl.reviewed" data-ui="tag" data-tone="pink" class="rounded-full bg-raised px-2 py-0.5 text-[10px] text-muted">{{ t('projects.draft') }}</span>
                                             </span>
@@ -413,13 +419,35 @@ export const ProjectsView = {
          * best part sits closest to your range (how far outside it, in semitones), in the library's order.
          */
         picked() {
-            const range = learning.progress.range;
-            const outside = (tpl) => (range ? Math.min(99, ...(tpl.parts ?? []).filter((p) => p.range).map((p) => Math.max(0, range.low - p.range.low) + Math.max(0, p.range.high - range.high))) : 0);
-            const sorted = [...this.allSongs].sort((a, b) => Number(!canStart(a.tpl, this.signedIn)) - Number(!canStart(b.tpl, this.signedIn)) || outside(a.tpl) - outside(b.tpl) || a.n - b.n);
+            const sorted = this.ranked;
             // Game mode's daily challenge: today's song is among the three (its TODAY tag is the way in), first when it wasn't.
-            const today = effect('daily') ? sorted.find((item) => item.tpl.id === dailyState().today?.templateId) : null;
-            const three = sorted.slice(0, 3);
-            return today && !three.includes(today) ? [today, ...three.slice(0, 2)] : three;
+            const today = this.dailyItem;
+            let three = sorted.slice(0, 3);
+            if (today && !three.includes(today)) three = [today, ...three.slice(0, 2)];
+            // At most one New or Carol season song (song-news.js), last, when it isn't among them already.
+            if (this.news && !three.includes(this.news.item)) three = [...three.slice(0, 2), this.news.item];
+            return three;
+        },
+        /** The library in Home's order for this singer: songs you can start first, then the closest to your range. */
+        ranked() {
+            return [...this.allSongs].sort((a, b) => Number(!canStart(a.tpl, this.signedIn)) - Number(!canStart(b.tpl, this.signedIn)) || this.outside(a.tpl) - this.outside(b.tpl) || a.n - b.n);
+        },
+        dailyItem() {
+            return effect('daily') ? this.ranked.find((item) => item.tpl.id === dailyState().today?.templateId) ?? null : null;
+        },
+        /**
+         * The one pick with news (retention plan, idea 5): a song opened since this device last looked at the library,
+         * or a carol in carol season. Only once the picks show, only for a known range, only a song that fits it and can
+         * be started, and never today's daily song (which wears its own tag).
+         */
+        news() {
+            if (!this.trimmed || !learning.progress.range) return null;
+            const fits = (tpl) => this.outside(tpl) === 0 && canStart(tpl, this.signedIn) && tpl.id !== this.dailyItem?.tpl.id;
+            return newsPick(this.ranked, { since: this.lookedAt, fits });
+        },
+        newsWords() {
+            if (!this.news) return '';
+            return this.news.kind === 'new' ? sk('home.songs.news.new', 'home.songs.news.newGame') : t(SEASON_WORDS[this.news.season] ?? SEASON_WORDS.carols);
         },
         shownSongs() {
             if (this.songsOpen) return this.allSongs;
@@ -483,6 +511,8 @@ export const ProjectsView = {
             .catch((error) => console.warn('Templates not loaded', error));
     },
     mounted() {
+        // A first look at Home's picks starts the library's clock: nothing is "new" the first time (song-news.js).
+        if (!this.lookedAt) lookedNow();
         this.onResize = () => (this.songColumns = songColumns());
         window.addEventListener('resize', this.onResize);
     },
@@ -493,6 +523,15 @@ export const ProjectsView = {
         this.stopDrafts?.();
     },
     watch: {
+        /** A pick with news, counted once each time it shows. */
+        'news.item.tpl.id': {
+            handler(id) {
+                if (id && !this.songsOpen && this.newsCounted !== id) {
+                    this.newsCounted = id;
+                    count('home_new_shown');
+                }
+            },
+        },
         /** Ideas is asked about once the new-song sheet opens (closed, the server answers 404). */
         newing(open) {
             if (open) ideasOpen();
@@ -516,7 +555,18 @@ export const ProjectsView = {
     },
     methods: {
         /** Shows every song, or two rows again; remembered for this visit only. */
+        /** How far a song's best part sits outside the singer's range, in semitones (0: it fits; no range, 0). */
+        outside(tpl) {
+            const range = learning.progress.range;
+            return range ? Math.min(99, ...(tpl.parts ?? []).filter((p) => p.range).map((p) => Math.max(0, range.low - p.range.low) + Math.max(0, p.range.high - range.high))) : 0;
+        },
+        /** A tap on a song card: its sheet; on the pick with news, counted. */
+        songTap(item) {
+            if (this.news?.item === item) count('home_new_tap');
+            this.infoSong(item.tpl);
+        },
         openSongs(open) {
+            if (open) lookedNow(); // looked at the library: what opens after this is new
             this.songsOpen = open;
             tabStorage.set('stackapella.songsOpen', open ? '1' : '');
             if (!open) document.getElementById('band-songs')?.scrollIntoView({ block: 'nearest' });

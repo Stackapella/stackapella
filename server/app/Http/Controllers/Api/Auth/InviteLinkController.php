@@ -7,7 +7,9 @@ namespace App\Http\Controllers\Api\Auth;
 use App\Http\Controllers\Controller;
 use App\Models\EarlyAccessLink;
 use App\Support\Accounts\EarlyAccess;
+use App\Support\Sharing\SharedPage;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 /**
  * inviteLink.show: whether Hillel's shared invite link still lets people in (docs/decisions.md,
@@ -15,8 +17,15 @@ use Illuminate\Http\JsonResponse;
  */
 final class InviteLinkController extends Controller
 {
-    public function __invoke(string $code): JsonResponse
+    public function __invoke(Request $request, string $code): JsonResponse
     {
-        return response()->json(['data' => ['status' => EarlyAccess::status($code, EarlyAccessLink::INVITE)]]);
+        $status = EarlyAccess::status($code, EarlyAccessLink::INVITE);
+
+        // Hillel's invite link, opened while it works (an anonymous count by surface: SharedPage).
+        if ($status === 'open') {
+            SharedPage::opened($request, 'app');
+        }
+
+        return response()->json(['data' => ['status' => $status]]);
     }
 }

@@ -8,6 +8,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Harmony;
 use App\Support\Http\Hosts;
 use App\Support\Sharing\HarmonyFacts;
+use App\Support\Sharing\SharedPage;
+use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 
 /**
@@ -19,7 +21,7 @@ final class HarmonyPageController extends Controller
 {
     private const HEADERS = ['Cache-Control' => 'public, max-age=300', 'X-Robots-Tag' => 'noindex'];
 
-    public function __invoke(string $harmony, HarmonyFacts $facts): Response
+    public function __invoke(Request $request, string $harmony, HarmonyFacts $facts): Response
     {
         $found = Harmony::query()->with('user', 'templateVersion.template')->where('public_id', $harmony)->first();
 
@@ -29,6 +31,9 @@ final class HarmonyPageController extends Controller
             return response()->view('public.harmony-gone', ['reason' => $removed ? 'removed' : 'missing', 'links' => ['app' => '/']], $removed ? 410 : 404, self::HEADERS);
         }
 
+        // A shared song's page, opened (an anonymous count by surface: SharedPage). Cached five minutes at the edge,
+        // so a busy page counts fewer than it's seen.
+        SharedPage::opened($request, 'song');
         $id = $found->public_id;
         $ref = 'h-'.$id;
         $page = $facts->page($found);

@@ -17,6 +17,9 @@ needed = [path for path in needed if not path.startswith("/js/admin/")]
 needed = [path for path in needed if not path.startswith("/js/public/")]
 # The embedded lane (/js/embed) is for public pages too (the landing's hero), not the app.
 needed = [path for path in needed if not path.startswith("/js/embed/")]
+# Another language's words (es.json, its .source.json) aren't precached for everyone: the person who reads it fetches it
+# at the start, and sw.js keeps every same-origin file it fetches, so it's there offline from then on.
+needed = [path for path in needed if not (path.startswith("/locales/") and path.count("/") == 2 and path != "/locales/en.json")]
 missing = sorted(set(needed) - listed)
 # Pinned CDN files (index.html's import map, MP3 export's encoder): precached, or carried over from
 # one version to the next (sw.js CARRIED), so an update never leaves the app without one offline.

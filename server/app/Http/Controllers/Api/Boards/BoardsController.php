@@ -11,6 +11,7 @@ use App\Http\Requests\Boards\GhostRequest;
 use App\Http\Requests\Boards\SubmitScoreRequest;
 use App\Models\Ghost;
 use App\Models\User;
+use App\Support\Sharing\SharedPage;
 use Illuminate\Container\Attributes\CurrentUser;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -58,8 +59,11 @@ final class BoardsController extends Controller
     public function open(Request $request, string $token): JsonResponse
     {
         $viewer = $request->user();
+        $challenge = $this->boards->open($viewer instanceof User ? $viewer : null, $token);
+        // A challenge link, opened (an anonymous count by surface: SharedPage).
+        SharedPage::opened($request, 'challenge');
 
-        return response()->json(['data' => $this->boards->open($viewer instanceof User ? $viewer : null, $token)]);
+        return response()->json(['data' => $challenge]);
     }
 
     /**

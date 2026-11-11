@@ -43,6 +43,7 @@ use App\Http\Controllers\Api\Admin\PeopleController;
 use App\Http\Controllers\Api\Admin\ReportsController as AdminReports;
 use App\Http\Controllers\Api\Admin\SchoolController as AdminSchool;
 use App\Http\Controllers\Api\Admin\SecurityEventsController;
+use App\Http\Controllers\Api\Admin\SharingController as AdminSharing;
 use App\Http\Controllers\Api\Admin\SocialController as AdminSocial;
 use App\Http\Controllers\Api\Admin\SupportController as AdminSupport;
 use App\Http\Controllers\Api\Auth\AppAuthController;
@@ -591,6 +592,7 @@ Route::middleware(['auth', 'editor', 'second-factor'])->prefix('admin')->name('a
         Route::get('/counts', [CountsController::class, 'show'])->name('counts.show');
         Route::get('/funnel', AdminFunnel::class)->name('funnel.show');
         Route::get('/dropoffs', AdminDropoffs::class)->name('dropoffs.show');
+        Route::get('/sharing', AdminSharing::class)->name('sharing.show');
         Route::get('/experiments', [AdminExperiments::class, 'index'])->name('experiments.list');
         Route::get('/school', [AdminSchool::class, 'index'])->name('school.list');
         Route::get('/school/{class}', [AdminSchool::class, 'show'])->name('school.show');

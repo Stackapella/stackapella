@@ -67,6 +67,8 @@ export function songSummary(entry) {
         previewUrl: entry.previewUrl ?? null,
         parts: entry.parts.map((p) => ({ key: p.key, name: p.name, range: p.range })),
         voicings: entry.voicings ?? {}, // who sings for each number of singers: the card's "2 to 4"
+        openedAt: entry.openedAt ?? null, // when it opened in the library (Home's New tag: song-news.js)
+        season: entry.season ?? null, // a collection in season ({ key: 'carols', until }), or null
         summary: true,
     };
 }

@@ -1,0 +1,61 @@
+{
+    "data": {
+        "from": "2026-11-06",
+        "to": "2026-11-12",
+        "floor": 30,
+        "headline": {
+            "active": 420,
+            "shares": 63,
+            "arrivals": 51,
+            "sharesPer100": 15.0,
+            "arrivalsPerShare": 0.81,
+            "arrivalsThatSing": 0.471,
+            "arrivalsThatSignUp": 0.196,
+            "eachHundredBring": 5.7
+        },
+        "before": {
+            "active": 398,
+            "shares": 48,
+            "arrivals": 37,
+            "sharesPer100": 12.1,
+            "arrivalsPerShare": 0.77,
+            "arrivalsThatSing": 0.432,
+            "arrivalsThatSignUp": 0.162,
+            "eachHundredBring": 4.0
+        },
+        "surfaces": [
+            {
+                "surface": "group",
+                "shares": 9,
+                "methods": {
+                    "sheet": 2,
+                    "copy": 7,
+                    "video": 0,
+                    "image": 0,
+                    "embed": 0
+                },
+                "opened": 40,
+                "arrivals": 31,
+                "lesson1": 18,
+                "signedUp": 9,
+                "arrivalsPerShare": 3.44
+            },
+            {
+                "surface": "note",
+                "shares": 30,
+                "methods": {
+                    "sheet": 21,
+                    "copy": 0,
+                    "video": 0,
+                    "image": 9,
+                    "embed": 0
+                },
+                "opened": null,
+                "arrivals": 8,
+                "lesson1": 3,
+                "signedUp": 0,
+                "arrivalsPerShare": 0.27
+            }
+        ]
+    }
+}

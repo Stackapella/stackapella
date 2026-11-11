@@ -3553,7 +3553,6 @@
             "fullSpeedRecording": "Recording always uses full speed.",
             "names": {
                 "title": "Note names",
-                "letters": "D4",
                 "solfege": "do re mi",
                 "numbers": "1 2 3",
                 "off": "Off"
@@ -4226,7 +4225,6 @@
             "measured": "{pitch}% on pitch, {timing}% on time.",
             "style": {
                 "solfege": "do re mi",
-                "letters": "C D E",
                 "numbers": "1 2 3"
             }
         },
@@ -4511,6 +4509,11 @@
         "seeAll": "See all",
         "back": "Back home",
         "songs": {
+            "news": {
+                "new": "New",
+                "newGame": "New stage",
+                "carols": "Carol season"
+            },
             "first": "Hear a harmony first",
             "library": "Song library",
             "stopNamed": "Stop {title}",

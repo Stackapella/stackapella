@@ -8,13 +8,16 @@
 import { formatNumber, t, tk } from '../i18n.js';
 import { printLayout } from '../print-score.js';
 import { noteLabel } from '../notes.js';
+import { naming, namingSample } from '../note-names.js';
 import { prefs } from '../stores/prefs.js';
 import { ScoreSystem } from './score-system.js';
 
 // Each do (a pitch class) as the key that puts it at home, the fewer sharps or flats.
 const KEYS = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B'];
 export const READ_STYLES = ['solfege', 'letters', 'numbers'];
-const STYLE_LABELS = { letters: tk('course.read.style.letters'), solfege: tk('course.read.style.solfege'), numbers: tk('course.read.style.numbers') };
+const STYLE_LABELS = { solfege: tk('course.read.style.solfege'), numbers: tk('course.read.style.numbers') };
+// Letters say themselves in the naming in use (C D E, Do Re Mi with fixed Do, C D E ... A H in German: note-names.js).
+const styleLabel = (s) => (s === 'letters' ? namingSample(naming()) : t(STYLE_LABELS[s]));
 const FAINT = 0.35;
 
 /**
@@ -59,7 +62,7 @@ export const ReadStave = {
         musicKey: { type: String, default: null }, // a song's own key, a minor one with its m; else the key of `home`
         color: { type: String, required: true },
     },
-    setup: () => ({ prefs, READ_STYLES, STYLE_LABELS }),
+    setup: () => ({ prefs, READ_STYLES, styleLabel }),
     template: `
         <div class="space-y-3" data-read-stave>
             <!-- A long part (a song's) scrolls in its card, the line being sung kept in view -->
@@ -69,7 +72,7 @@ export const ReadStave = {
             <div class="flex flex-wrap items-center justify-between gap-3">
                 <p class="min-h-6 text-sm font-semibold text-cream" aria-live="polite" data-read-look>{{ look !== null && look > 0 ? t('course.read.look', { seconds: formatNumber(Math.ceil(look)) }) : counting ? t('course.read.counting', { beat: formatNumber(counting) }) : '' }}</p>
                 <div v-if="names !== 'off'" class="flex rounded-full border border-line p-0.5" role="group" :aria-label="t('course.read.names')">
-                    <button v-for="s in READ_STYLES" :key="s" type="button" class="rounded-full px-3 py-1 text-xs" :class="style === s ? 'bg-raised font-semibold text-cream' : 'text-muted'" :aria-pressed="style === s ? 'true' : 'false'" @click="prefs.readNames = s">{{ t(STYLE_LABELS[s]) }}</button>
+                    <button v-for="s in READ_STYLES" :key="s" type="button" class="rounded-full px-3 py-1 text-xs" :class="style === s ? 'bg-raised font-semibold text-cream' : 'text-muted'" :aria-pressed="style === s ? 'true' : 'false'" @click="prefs.readNames = s">{{ styleLabel(s) }}</button>
                 </div>
             </div>
         </div>`,

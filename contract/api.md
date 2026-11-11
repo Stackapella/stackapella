@@ -524,6 +524,7 @@ Each operation is one function in `web/js/api.js` named after it, and one route 
 | `admin.counts.show` | `GET /api/admin/counts` | An admin | L |
 | `admin.funnel.show` | `GET /api/admin/funnel` | An admin | L |
 | `admin.dropoffs.show` | `GET /api/admin/dropoffs` | An admin | L |
+| `admin.sharing.show` | `GET /api/admin/sharing` | An admin | L |
 | `admin.experiments.list` | `GET /api/admin/experiments` | An admin | L |
 | `admin.experiments.create` | `POST /api/admin/experiments` | An admin, in sudo | L |
 | `admin.experiments.update` | `PATCH /api/admin/experiments/{id}` | An admin, in sudo | L |
@@ -6293,6 +6294,24 @@ ranked). `worst` is the three drops that lost the most, for Home's "What needs y
 | Status | Code | Schema | Example |
 |---|---|---|---|
 | 200 | | `admin.dropoffs.show.json` | `admin.dropoffs.show.200.json` |
+
+#### `admin.sharing.show`
+
+How often singers pass the app on, and what comes of it (docs/retention-plan.md, "Sharing"), over the
+seven days to today (`from` to `to`, report timezone). `surfaces` is one row a surface (config/counts.php
+`share_surfaces`, and a free tool's `tool-<slug>`): `shares` and their `methods` (`sh:<surface>.<method>`),
+`opened` (a shared page's loads counted by the server, `so:<surface>`, for the song, invite, app, group
+and challenge pages; null for a surface with no page of its own), and the devices that came by its tag
+(`share-<surface>`; a tool's `share-<slug>`; a shared song's `h-` links count as `share-song`):
+`arrivals`, `lesson1`, `signedUp`, and `arrivalsPerShare`. `headline` is the four measures (`sharesPer100`
+active singers, `arrivalsPerShare`, `arrivalsThatSing` and `arrivalsThatSignUp`, and `eachHundredBring`:
+arrivals that sang a first lesson per 100 active), with `active` (app_week), `shares` and `arrivals`;
+`before` is the same for the seven days before, for its move. A number over a total under `floor` reads
+as too few to tell. Anonymous daily totals only. **Request:** none.
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 200 | | `admin.sharing.show.json` | `admin.sharing.show.200.json` |
 
 #### `admin.growth.show`
 

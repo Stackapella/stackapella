@@ -47,7 +47,8 @@ final class GrowthTest extends TestCase
         $this->send([['kind' => 'f_arrive']], null);
 
         $sources = DB::table('usage_counts')->where('kind', 'f_arrive')->orderBy('source')->pluck('source')->all();
-        $this->assertSame(['', 'coach', 'harmony', 'hn', 'other', 'profile'], $sources);
+        // A shared song's tag is the song surface's share tag (2026-11-11; it was "harmony").
+        $this->assertSame(['', 'coach', 'hn', 'other', 'profile', 'share-song'], $sources);
         // No tag as sent, ever; a sourced row keeps no country; other kinds keep none of it.
         $this->assertSame(0, DB::table('usage_counts')->whereIn('source', ['h-Ab12Cd34', 'c-coach-ana', 'p-ana_sings', 'john-smith'])->count());
         $this->assertSame('', DB::table('usage_counts')->where('kind', 'site_visit')->value('country'));

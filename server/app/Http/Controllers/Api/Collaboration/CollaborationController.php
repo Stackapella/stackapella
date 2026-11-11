@@ -15,6 +15,7 @@ use App\Models\ProjectInvite;
 use App\Models\ProjectMember;
 use App\Models\Template;
 use App\Models\User;
+use App\Support\Sharing\SharedPage;
 use Illuminate\Container\Attributes\CurrentUser;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -87,9 +88,11 @@ final class CollaborationController extends Controller
         return response()->noContent();
     }
 
-    public function showInvite(string $token, ManageInvites $invites): JsonResponse
+    public function showInvite(Request $request, string $token, ManageInvites $invites): JsonResponse
     {
         $invite = $invites->open($token);
+        // An invite to sing a part, opened (an anonymous count by surface: SharedPage).
+        SharedPage::opened($request, 'invite');
         $project = $invite->project;
         $song = $project->template_slug !== null ? Template::query()->where('slug', $project->template_slug)->first(['slug', 'title']) : null;
 

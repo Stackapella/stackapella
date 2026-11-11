@@ -128,6 +128,11 @@ return [
     // 2026-10-29: "Anonymous totals").
     'server_kinds' => ['mudeo_visit', 'mudeo_used', 'plus_started'],
 
+    // A shared link's page opened, counted by the server as so:<surface> (docs/retention-plan.md, sharing): a shared
+    // song's page, an invite to sing a part, Hillel's invite link, a choir group's join link, a challenge. By surface
+    // only, never the token, the song or anyone.
+    'shared_pages' => ['song', 'invite', 'app', 'group', 'challenge'],
+
     // Growth's sources (docs/admin-growth-plan.md): the campaign tags of our own ?ref= links, kept
     // as written. Any other tag is grouped (h-* "harmony", c-* "coach", else "other"), so no
     // harmony's or coach's id, and no one-off tag, is ever kept. A new campaign adds its tag here.

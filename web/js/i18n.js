@@ -97,6 +97,9 @@ export function inLanguage(text) {
     return typeof text[locale.lang] === 'string' && text[locale.lang] !== '';
 }
 
+// Staff screens stay English in every language (the admin, the style guides): never counted as untranslated.
+const ENGLISH_ONLY = new Set(['admin', 'styleguide', 'styleguideGame']);
+
 /** How much of the app is in the person's language, 0 to 1 (1 in English): Settings says when some is still English. */
 export function coverage() {
     if (locale.messages === locale.english || locale.pseudo) return 1;
@@ -112,7 +115,7 @@ export function coverage() {
             }
         }
     };
-    walk(locale.english, '');
+    for (const [part, node] of Object.entries(locale.english)) if (!ENGLISH_ONLY.has(part) && typeof node === 'object') walk(node, part);
     return all ? done / all : 1;
 }
 

@@ -41,7 +41,12 @@ def nest(pairs):
     return root
 
 
+# Staff screens stay English in every language (the admin, the style guides).
+ENGLISH_ONLY = ("admin.", "styleguide.", "styleguideGame.")
+
+
 def report(lang, english):
+    english = {k: v for k, v in english.items() if not k.startswith(ENGLISH_ONLY)}
     words = flat(json.loads((LOCALES / f"{lang}.json").read_text()))
     source_file = LOCALES / f"{lang}.source.json"
     source = flat(json.loads(source_file.read_text())) if source_file.exists() else {}

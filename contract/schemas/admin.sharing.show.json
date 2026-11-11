@@ -1,0 +1,194 @@
+{
+    "$id": "admin.sharing.show.json",
+    "title": "How often singers pass the app on, this week and last",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "from",
+                "to",
+                "floor",
+                "headline",
+                "before",
+                "surfaces"
+            ],
+            "properties": {
+                "from": {
+                    "type": "string"
+                },
+                "to": {
+                    "type": "string"
+                },
+                "floor": {
+                    "type": "integer"
+                },
+                "headline": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                        "active",
+                        "shares",
+                        "arrivals",
+                        "sharesPer100",
+                        "arrivalsPerShare",
+                        "arrivalsThatSing",
+                        "arrivalsThatSignUp",
+                        "eachHundredBring"
+                    ],
+                    "properties": {
+                        "active": {
+                            "type": "integer"
+                        },
+                        "shares": {
+                            "type": "integer"
+                        },
+                        "arrivals": {
+                            "type": "integer"
+                        },
+                        "sharesPer100": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "arrivalsPerShare": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "arrivalsThatSing": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "arrivalsThatSignUp": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "eachHundredBring": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        }
+                    }
+                },
+                "before": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                        "active",
+                        "shares",
+                        "arrivals",
+                        "sharesPer100",
+                        "arrivalsPerShare",
+                        "arrivalsThatSing",
+                        "arrivalsThatSignUp",
+                        "eachHundredBring"
+                    ],
+                    "properties": {
+                        "active": {
+                            "type": "integer"
+                        },
+                        "shares": {
+                            "type": "integer"
+                        },
+                        "arrivals": {
+                            "type": "integer"
+                        },
+                        "sharesPer100": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "arrivalsPerShare": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "arrivalsThatSing": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "arrivalsThatSignUp": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "eachHundredBring": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        }
+                    }
+                },
+                "surfaces": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "surface",
+                            "shares",
+                            "methods",
+                            "opened",
+                            "arrivals",
+                            "lesson1",
+                            "signedUp",
+                            "arrivalsPerShare"
+                        ],
+                        "properties": {
+                            "surface": {
+                                "type": "string"
+                            },
+                            "shares": {
+                                "type": "integer"
+                            },
+                            "methods": {
+                                "type": "object",
+                                "description": "Shares by method (config counts.share_methods)."
+                            },
+                            "opened": {
+                                "type": [
+                                    "integer",
+                                    "null"
+                                ]
+                            },
+                            "arrivals": {
+                                "type": "integer"
+                            },
+                            "lesson1": {
+                                "type": "integer"
+                            },
+                            "signedUp": {
+                                "type": "integer"
+                            },
+                            "arrivalsPerShare": {
+                                "type": [
+                                    "number",
+                                    "null"
+                                ]
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

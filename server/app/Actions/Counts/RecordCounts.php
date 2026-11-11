@@ -106,7 +106,9 @@ final class RecordCounts
             // A free tool embedded on another site (docs/tools-plan.md): that site's host, which
             // names a website, never a person; a source of under five a day is folded in Growth.
             preg_match(self::EMBED, $ref) === 1 => $ref,
-            str_starts_with($ref, 'h-') => 'harmony',
+            // A shared song's page (its links carry the harmony's id for the song's own count, ShareSignUps): read as
+            // the song surface's share tag, never by its id (docs/retention-plan.md, sharing).
+            str_starts_with($ref, 'h-') => 'share-song',
             str_starts_with($ref, 'c-') => 'coach',
             // A singer's public profile (p-<handle>): grouped, never the handle.
             str_starts_with($ref, 'p-') => 'profile',
@@ -337,7 +339,9 @@ final class RecordCounts
      */
     public function server(string $kind, bool $signedIn, ?string $country): void
     {
-        if (config('counts.enabled') !== true || ! in_array($kind, (array) config('counts.server_kinds'), true)) {
+        $opened = str_starts_with($kind, 'so:') && in_array(substr($kind, 3), (array) config('counts.shared_pages'), true);
+
+        if (config('counts.enabled') !== true || (! $opened && ! in_array($kind, (array) config('counts.server_kinds'), true))) {
             return;
         }
 

@@ -31,7 +31,53 @@ def flatten(node, prefix=""):
 
 
 def arguments(message):
-    return set(re.findall(r"\{\s*(\w+)\s*[,}]", message))
+    """The {argument} names in a message, read as ICU nests them: a plural's or select's branches ("one {it}") are the
+    message's own words, so a translation may say them differently; only the arguments inside them count."""
+    found = set()
+
+    def text(i, end_on_brace):
+        # Text until the closing brace of a branch (or the end): each "{" starts an argument.
+        while i < len(message):
+            c = message[i]
+            if c == "}" and end_on_brace:
+                return i + 1
+            if c == "{":
+                i = argument(i + 1)
+                continue
+            i += 1
+        return i
+
+    def argument(i):
+        m = re.match(r"\s*(\w+)\s*", message[i:])
+        if not m:
+            return i
+        found.add(m.group(1))
+        i += m.end()
+        if i < len(message) and message[i] == "}":
+            return i + 1
+        kind = re.match(r",\s*(\w+)\s*", message[i:])
+        if not kind:
+            return i
+        i += kind.end()
+        if kind.group(1) in ("plural", "select", "selectordinal"):
+            i += len(re.match(r",?\s*", message[i:]).group(0))
+            # Branches: a keyword then {its text}, until this argument's own }.
+            while i < len(message):
+                skip = re.match(r"\s*(?:offset:\d+\s*)?", message[i:]).end()
+                i += skip
+                if i >= len(message) or message[i] == "}":
+                    return i + 1
+                key = re.match(r"(=\d+|\w+)\s*\{", message[i:])
+                if not key:
+                    return i + 1
+                i = text(i + key.end(), True)
+            return i
+        # Another kind ({n, number}): up to its }.
+        close = message.find("}", i)
+        return len(message) if close < 0 else close + 1
+
+    text(0, False)
+    return found
 
 
 def parses(message):

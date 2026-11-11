@@ -19,6 +19,7 @@ use App\Models\GroupMember;
 use App\Models\TrackScore;
 use App\Models\User;
 use App\Support\Groups\GroupView;
+use App\Support\Sharing\SharedPage;
 use Illuminate\Container\Attributes\CurrentUser;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -86,9 +87,11 @@ final class GroupsController extends Controller
         return response()->json(['data' => ['url' => $url, 'createdAt' => now()->utc()->toIso8601ZuluString()]], 201);
     }
 
-    public function joinShow(string $token): JsonResponse
+    public function joinShow(Request $request, string $token): JsonResponse
     {
         $group = $this->groups->byLink($token);
+        // A choir group's link, opened (an anonymous count by surface: SharedPage).
+        SharedPage::opened($request, 'group');
 
         return response()->json(['data' => [
             'name' => $group->name,

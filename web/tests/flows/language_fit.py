@@ -30,6 +30,7 @@ CUT = r"""(() => {
 SCREENS = [
     ("/", "projects"),
     ("/learn", "learn"),
+    ("/learn/1-comfortable", "lesson1"),
     ("/voice", "voice"),
     ("/settings", "settings"),
     ("/plus", "plus"),
@@ -37,17 +38,29 @@ SCREENS = [
 ]
 
 
+def fits(f, name, where):
+    """The page never scrolls sideways (a row built to scroll may), and no button, link, label or heading cuts its words."""
+    over = f.js("document.documentElement.scrollWidth - document.documentElement.clientWidth")
+    assert over <= 0, f"{name} {where}: the page scrolls sideways by {over}px"
+    cut = f.js(CUT)
+    assert not cut, f"{name} {where}: words cut off: {cut}"
+
+
 def journey(f):
+    # Spanish (es.json, drafted and native-reviewed by the courses lead), opened by ?lang=es while its switch is off.
+    for path, name in SCREENS:
+        f.go(f"{path}{'&' if '?' in path else '?'}api=mock&scenario=&lang=es", "document.querySelector('#app h1, #app h2')")
+        f.wait("!document.querySelector('#app [role=status][aria-busy=true]')", what=f"{name} loaded")
+        assert f.js("document.documentElement.lang") == "es", "in Spanish"
+        f.run("window.scrollTo(0, 0)")
+        f.shot(f"es-{name}")
+        fits(f, name, "in Spanish")
     for path, name in SCREENS:
         f.go(f"{path}{'&' if '?' in path else '?'}api=mock&scenario=&lang=pseudo", "document.querySelector('#app h1, #app h2')")
         f.wait("!document.querySelector('#app [role=status][aria-busy=true]')", what=f"{name} loaded")
         f.run("window.scrollTo(0, 0)")
         f.shot(f"pseudo-{name}")
-        # The page never scrolls sideways (a row built to scroll, such as the range keyboard, may: it does in English too).
-        over = f.js("document.documentElement.scrollWidth - document.documentElement.clientWidth")
-        assert over <= 0, f"{name} at 40% longer: the page scrolls sideways by {over}px"
-        cut = f.js(CUT)
-        assert not cut, f"{name}: words cut off at 40% longer: {cut}"
+        fits(f, name, "at 40% longer")
 
     # Settings: no Language row while English is the only language switched on.
     f.go("/settings?api=mock&scenario=", "document.querySelector('[data-sounds]')")
