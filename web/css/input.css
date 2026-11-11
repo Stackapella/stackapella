@@ -2251,6 +2251,10 @@ a.s-spart-chip:hover { background: var(--color-raised); }
     .s-spart-about { grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: 40px; }
     .s-spart-about-ruled { padding-top: 72px; }
 }
+/* A reference page's card is its own framed panel (js/public/reference-cards.js), so it sits under the top with no second
+   frame round it. */
+.s-ref-panel { margin-top: 32px; }
+.s-ref-top .s-spart-chip { min-height: 48px; align-content: center; }
 /* The part player's room, held until its script mounts it (js/public/part-player.js fills the box): Play, the time and
    the ways to play over the lane, then the status line, measured mounted: 388 px on a phone (the ways on their own line),
    392 px from 640 px (one row over the lane's sm:h-72) and 488 px from 1024 px (lg:h-96), so nothing below jumps. */

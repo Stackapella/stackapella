@@ -19,21 +19,45 @@
 @section('content')
     @include('site.tools._brand-row', ['onTool' => true, 'toolName' => (string) $index['eyebrow'], 'toolSlug' => null, 'ref' => $kind, 'trail' => [[(string) $index['eyebrow'], '/'.$kind], [(string) $page['name']]]])
     <main>
-        <section class="s-wrap s-thead s-thead-hub" aria-labelledby="page-h">
-            <p class="s-teyebrow">{{ $page['eyebrow'] }}</p>
-            <h1 id="page-h">{{ $page['headline'] }}</h1>
-            <p class="s-lede">{{ $page['lead'] }}</p>
-        </section>
-
-        <section class="s-wrap" aria-label="{{ $page['name'] }}">
-            {{-- Its card's room, held until page.js has mounted it (data-state), so the guide below doesn't jump: each family's
-                 shortest card, measured on a phone and a desktop (tests/flows/site_reference.py checks it never overshoots). --}}
-            @php($room = ['intervals' => '[&:not([data-state])]:min-h-[580px] md:[&:not([data-state])]:min-h-[484px]', 'chords' => '[&:not([data-state])]:min-h-[648px] md:[&:not([data-state])]:min-h-[550px]', 'voice-types' => '[&:not([data-state])]:min-h-[596px] md:[&:not([data-state])]:min-h-[524px]'][$kind] ?? '')
-            <div class="s-ref max-w-3xl {{ $room }}" data-tool="ref-{{ $kind }}" data-src="{{ $module }}" data-mount="{{ $mount }}">
-                <script type="application/json" data-tool-words>@json($card)</script>
-                <script type="application/json" data-tool-data>@json($data)</script>
+        {{-- The top, two columns from 900 px (Hillel's part page redesign, 2026-11-10: "it makes better use of space"): the
+             eyebrow, heading and lead at left; at right the pages to switch to as chips, this one filled (Reference::top).
+             Then frontend's card, the full width, as the page's one panel (its facts in its own ruled row). --}}
+        <section class="s-wrap s-head s-spart s-ref-top" aria-labelledby="page-h">
+            <div class="s-spart-hero">
+                <div>
+                    <p class="s-teyebrow">{{ $page['eyebrow'] }}</p>
+                    <h1 id="page-h">{{ $page['headline'] }}</h1>
+                    <p class="s-lead">{{ $page['lead'] }}</p>
+                </div>
+                <div class="s-spart-side">
+                    <h2 id="switch-h" class="s-kick s-spart-switch">{{ $index['switch'] }}</h2>
+                    <ul class="s-spart-chips" aria-labelledby="switch-h">
+                        @foreach ($chips as $chip)
+                            <li>
+                                @if ($chip['current'])
+                                    <span class="s-spart-chip" aria-current="page"><b>{{ $chip['name'] }}</b></span>
+                                @else
+                                    <a href="{{ $chip['url'] }}" class="s-spart-chip"><b>{{ $chip['name'] }}</b></a>
+                                @endif
+                            </li>
+                        @endforeach
+                    </ul>
+                </div>
             </div>
-            <p class="s-tool-say" role="status" data-tool-say hidden></p>
+
+            <div class="s-ref-panel">
+                {{-- Its card's room, held until page.js has mounted it (data-state), so the guide below doesn't jump: each family's
+                     shortest card, measured on a phone and a desktop (tests/flows/site_reference.py checks it never overshoots).
+                     From 1024 px the panel gives the card 900 px or more and it lays out across (frontend's 9f275fba8, measured):
+                     352 for an interval, 416 for a chord until its header fits one row from about 1000 px of card (xl), 416 for a
+                     voice type with its find link. --}}
+                @php($room = ['intervals' => '[&:not([data-state])]:min-h-[580px] md:[&:not([data-state])]:min-h-[484px] lg:[&:not([data-state])]:min-h-[352px]', 'chords' => '[&:not([data-state])]:min-h-[648px] md:[&:not([data-state])]:min-h-[550px] lg:[&:not([data-state])]:min-h-[416px] xl:[&:not([data-state])]:min-h-[352px]', 'voice-types' => '[&:not([data-state])]:min-h-[596px] md:[&:not([data-state])]:min-h-[524px] lg:[&:not([data-state])]:min-h-[416px]'][$kind] ?? '')
+                <div class="s-ref {{ $room }}" data-tool="ref-{{ $kind }}" data-src="{{ $module }}" data-mount="{{ $mount }}">
+                    <script type="application/json" data-tool-words>@json($card)</script>
+                    <script type="application/json" data-tool-data>@json($data)</script>
+                </div>
+                <p class="s-tool-say" role="status" data-tool-say hidden></p>
+            </div>
         </section>
 
         @foreach ((array) ($page['guide'] ?? []) as $section)
@@ -72,8 +96,8 @@
             </section>
         @endif
 
-        {{-- The family's other pages, one tap from each. --}}
-        @if ($others !== [])
+        {{-- The family's other pages, one tap from each, unless the chips above already show them all. --}}
+        @if ($others !== [] && count($chips) <= count($others))
             <section class="s-wrap s-sec2" aria-labelledby="others-h">
                 <h2 id="others-h" class="s-kick">{{ $index['others'] }}</h2>
                 <ul class="s-cards s-tool-cards">

@@ -151,6 +151,27 @@ final class Reference
         }, self::slugs($family));
     }
 
+    /** A family this long shows only a page's neighbours as chips, so a phone isn't seven rows of them before the card. */
+    private const ALL_CHIPS = 6;
+
+    /**
+     * A page's chips beside its heading (Hillel's part page redesign, 2026-11-10): the pages to switch to, all of a short
+     * family or this one and its neighbours, this one current. Its facts are the card's own ruled row and the eyebrow, so
+     * the top doesn't repeat them.
+     *
+     * @return array{chips: list<array{url: string, name: string, current: bool}>}
+     */
+    public static function top(string $family, string $slug): array
+    {
+        $rows = self::rows($family);
+        $at = (int) array_search('/'.$family.'/'.$slug, array_column($rows, 'url'), true);
+        $near = count($rows) <= self::ALL_CHIPS ? $rows : array_slice($rows, max(0, $at - 1), $at === 0 ? 2 : 3);
+
+        return [
+            'chips' => array_values(array_map(static fn (array $row): array => ['url' => $row['url'], 'name' => $row['name'], 'current' => $row['url'] === '/'.$family.'/'.$slug], $near)),
+        ];
+    }
+
     /**
      * Every reference page's address, for the sitemap: each family's index once it has a page, and its pages.
      *

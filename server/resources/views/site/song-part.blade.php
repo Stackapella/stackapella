@@ -71,9 +71,9 @@
                         @foreach ($songPart['parts'] as $other)
                             <li>
                                 @if ($other['current'])
-                                    <span class="s-spart-chip" aria-current="page"><b>{{ $other['name'] }}</b><span translate="no">{{ __('site.song_part.other_range', ['low' => $other['lowName'], 'high' => $other['highName']]) }}</span>@if ($other['melody'])<span class="s-spart-tag">{{ __('site.song_part.melody_tag') }}</span>@endif</span>
+                                    <span class="s-spart-chip s-v{{ $loop->iteration }}" aria-current="page"><b>{{ $other['name'] }}</b><span translate="no">{{ __('site.song_part.other_range', ['low' => $other['lowName'], 'high' => $other['highName']]) }}</span>@if ($other['melody'])<span class="s-spart-tag">{{ __('site.song_part.melody_tag') }}</span>@endif</span>
                                 @else
-                                    <a href="{{ $other['url'] }}" class="s-spart-chip"><b>{{ $other['name'] }}</b><span translate="no">{{ __('site.song_part.other_range', ['low' => $other['lowName'], 'high' => $other['highName']]) }}</span>@if ($other['melody'])<span class="s-spart-tag">{{ __('site.song_part.melody_tag') }}</span>@endif</a>
+                                    <a href="{{ $other['url'] }}" class="s-spart-chip s-v{{ $loop->iteration }}"><b>{{ $other['name'] }}</b><span translate="no">{{ __('site.song_part.other_range', ['low' => $other['lowName'], 'high' => $other['highName']]) }}</span>@if ($other['melody'])<span class="s-spart-tag">{{ __('site.song_part.melody_tag') }}</span>@endif</a>
                                 @endif
                             </li>
                         @endforeach

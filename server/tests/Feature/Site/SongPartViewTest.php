@@ -71,11 +71,11 @@ final class SongPartViewTest extends TestCase
         // the song's page.
         $html = (string) $this->get('/songs/amazing-grace/alto')->assertOk()->getContent();
 
-        $this->assertStringContainsString('<span class="s-spart-chip" aria-current="page"><b>Alto</b>', $html);
+        $this->assertStringContainsString('<span class="s-spart-chip s-v2" aria-current="page"><b>Alto</b>', $html);
         foreach (['soprano', 'tenor', 'bass'] as $other) {
-            $this->assertMatchesRegularExpression('#<a href="[^"]*/songs/amazing-grace/'.$other.'" class="s-spart-chip">#', $html);
+            $this->assertMatchesRegularExpression('#<a href="[^"]*/songs/amazing-grace/'.$other.'" class="s-spart-chip s-v\\d">#', $html);
         }
-        $this->assertStringNotContainsString('class="s-spart-chip">'.'<b>Alto</b>', $html);
+        $this->assertStringNotContainsString('/songs/amazing-grace/alto" class="s-spart-chip', $html);
         $this->assertMatchesRegularExpression('#<div class="s-spart-panel">\s*<div class="s-spart-player" data-part-player></div>#', $html);
         $this->assertStringContainsString(e(__('site.song_part.foot')), $html);
         foreach (['01 · Your part', '02 · With the others', '03 · Sing it'] as $step) {
