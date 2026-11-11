@@ -86,6 +86,25 @@ final class Funnel
     }
 
     /**
+     * The kinds beyond the funnel that a running experiment measures (its metric and guardrails: any counted kind,
+     * a lesson's step for one), so counts keep the arm on exactly those and no more rows than needed.
+     *
+     * @return list<string>
+     */
+    public static function measured(): array
+    {
+        $kinds = [];
+
+        foreach (self::registry() as $experiment) {
+            if (in_array($experiment->status(), [Experiment::RUNNING, Experiment::READING], true)) {
+                $kinds = [...$kinds, $experiment->metric, ...$experiment->guardrails];
+            }
+        }
+
+        return array_values(array_diff(array_unique($kinds), self::kinds(), [self::ENROLLED]));
+    }
+
+    /**
      * auth.config's `experiments`: every one running (enrolling, or read later but its arms still
      * shown), for the app's experiment(id): who may join, and how.
      *
@@ -187,7 +206,10 @@ final class Funnel
         // are in experiment_counts, counted from enrolment (exp_enrol).
         $registry = $experiment !== null && $experiment['id'] !== self::LEGACY;
         $arrivalKinds = $registry ? [self::ENROLLED] : self::ARRIVALS;
-        $query = DB::table($registry ? 'experiment_counts' : 'usage_counts')->whereIn('kind', [...$arrivalKinds, ...self::kinds()]);
+        // A registry experiment may measure any counted kind (a lesson's step, a share): read beside the funnel.
+        $model = $registry ? collect(self::registry())->firstWhere('key', $experiment['id']) : null;
+        $extra = $model instanceof Experiment ? array_values(array_diff(array_unique([$model->metric, ...$model->guardrails]), self::kinds(), [self::ENROLLED])) : [];
+        $query = DB::table($registry ? 'experiment_counts' : 'usage_counts')->whereIn('kind', [...$arrivalKinds, ...self::kinds(), ...$extra]);
 
         if ($experiment !== null) {
             $arms = $experiment['arms'];
@@ -218,7 +240,7 @@ final class Funnel
 
         $steps = [];
 
-        foreach ([...($registry ? [self::ENROLLED] : []), ...(array) config('counts.funnel')] as $kind) {
+        foreach ([...($registry ? [self::ENROLLED] : []), ...(array) config('counts.funnel'), ...$extra] as $kind) {
             $steps[] = [
                 'kind' => $kind,
                 'arms' => array_map(static fn (string $arm): array => [

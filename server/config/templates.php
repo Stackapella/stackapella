@@ -22,6 +22,12 @@ return [
         database_path('templates'),
     ],
 
+    // A song's season (templates.catalogue `season`, Home's "Carol season" tag): a song of one of these genres is in
+    // season from `from` to `until` (month-day, the report's year), with `until` as that year's date.
+    'seasons' => [
+        'carols' => ['genres' => ['christmas', 'carol'], 'from' => '11-01', 'until' => '12-26'],
+    ],
+
     // What's next shows a song's finishers (and what they also learned) only from this many.
     'finishers_to_show' => 20,
 

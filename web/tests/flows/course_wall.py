@@ -4,6 +4,7 @@ _not for its Back to the course, and _yes for Make a free account, which opens s
 and comes back to the lesson. It's a wall, not a nudge: meeting it never touches the asks' ledger.
 """
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -64,8 +65,13 @@ def journey(f):
         localStorage.setItem('stackapella.funnel', JSON.stringify(kept));""")
     f.go("/learn", "document.querySelector('[data-picked-lesson] [data-needs-account]')")
     f.wait(f"({FIRSTS}).ask_acct_course_shown && ({FIRSTS}).ask_acct_course_map_shown", what="the map's wall counted shown, as the map's")
-    stars = t(f, "courses.wall.keepStars", {"count": 3})
-    assert stars in f.js("document.querySelector('[data-picked-lesson] [data-needs-account]').innerText"), f"the map's wall keeps lesson 1's stars: {stars}"
+    # What it keeps: lesson 1's stars in game mode; in serious, its lessons, never stars (the retention walk, 2026-11-11:
+    # serious said "Your 3 stars from this course so far").
+    serious = f.skin == "serious"
+    keep = t(f, "courses.wall.keepLessons", {"count": 1}) if serious else t(f, "courses.wall.keepStars", {"count": 3})
+    said = f.js("document.querySelector('[data-picked-lesson] [data-needs-account]').innerText")
+    assert keep in said, f"the map's wall keeps lesson 1: {keep} in {said}"
+    assert not (serious and re.search(r"\bstars?\b", said, re.I)), f"the serious wall says stars: {said}"
     f.shot("map-wall")
     f.run("document.querySelector('[data-picked-lesson] [data-needs-account-yes]').click()")
     f.wait("location.pathname === '/signin'", what="sign-up from the map")
@@ -79,6 +85,8 @@ def journey(f):
     assert not f.js("document.querySelector('[data-press-start]')"), "PRESS START still leads a guest into the wall"
     assert t(f, "home.lead.continueLesson") not in f.js("document.querySelector('#lead-title').closest('section').innerText"), "Continue lesson still shown to a walled guest"
     assert f.js("document.querySelector('#lead-title')?.textContent") == "Match a note", "the lesson the account opens, named"
+    lead = f.js("document.querySelector('#lead-title').closest('section').innerText")
+    assert not (serious and re.search(r"\bstars?\b", lead, re.I)), f"the serious home's ask says stars: {lead}"
     f.shot("home-wall")
     # wall1's arm b (previewed): Google and Apple on the wall itself, the email way a link to sign-up.
     f.go("/?x=wall1-b", WALL)

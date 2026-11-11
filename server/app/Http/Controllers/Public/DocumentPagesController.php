@@ -68,7 +68,8 @@ final class DocumentPagesController extends Controller
 
     public function guide(string $slug, LegalText $text): Response
     {
-        $guide = in_array($slug, self::GUIDES, true) ? $this->read($text, $slug, 'guides') : null;
+        // In the page's language when the guide is written in it (resources/guides/<lang>/), else English.
+        $guide = in_array($slug, self::GUIDES, true) ? $this->read($text, $slug, 'guides', app()->getLocale()) : null;
 
         if ($guide === null) {
             return response()->view('public.page-gone', ['links' => ['app' => '/']], 404, self::headers());
@@ -131,10 +132,10 @@ final class DocumentPagesController extends Controller
     /**
      * @return array{version: int, reviewed: bool, language: string, title: string, description: string|null, song: string|null, blocks: list<array{type: string, level: int|null, text: string|null, items: list<string>|null}>}|null
      */
-    private function read(LegalText $text, string $name, string $folder): ?array
+    private function read(LegalText $text, string $name, string $folder, string $language = 'en'): ?array
     {
         try {
-            return $text->read($name, 'en', $folder);
+            return $text->read($name, $language, $folder);
         } catch (RuntimeException) {
             // Listed but not written yet (a legal page still with the lawyer): not there.
             return null;

@@ -127,6 +127,16 @@ abstract class AccountMail extends Mailable implements ShouldBeEncrypted, Should
         return true;
     }
 
+    /**
+     * At most one step after the main one, as a line and a quieter button (the verify email's next lesson), or none.
+     *
+     * @return array{line: string, button: string, url: string}|null
+     */
+    protected function next(): ?array
+    {
+        return null;
+    }
+
     public function envelope(): Envelope
     {
         return new Envelope(subject: __('account.mail.'.$this->key().'.subject'));
@@ -148,6 +158,7 @@ abstract class AccountMail extends Mailable implements ShouldBeEncrypted, Should
             'button' => $this->word('button', $skin),
             'url' => $this->url(),
             'soon' => $this->soon(),
+            'next' => $this->next(),
             'note' => $this->note(),
             'sentTo' => $this->recipient(),
             'because' => $this->because(),

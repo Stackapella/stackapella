@@ -285,18 +285,28 @@ export function mountChordCard(el, { quality, root = 60, words = {} } = {}) {
  * A voice range card: theory.js's `type` (bass, baritone, tenor, alto, mezzo, soprano), its usual range. Words:
  * lowest, highest, scale (the notes between), range (":low to :high"), rangeLabel, part (the choir part's words
  * by CHOIR_PARTS key), partLabel, find (the link's words), keyboard, staff. `rangeTest` is the range test's address.
+ * `bare`: the keyboard and its plays only, for a page that shows the range, the part and the range test itself (a
+ * voice type's page in Hillel's design, 2026-11-11).
  */
-export function mountVoiceRangeCard(el, { type, words = {}, rangeTest = '/tools/vocal-range-test' } = {}) {
+export function mountVoiceRangeCard(el, { type, words = {}, rangeTest = '/tools/vocal-range-test', bare = false } = {}) {
     const card = frame(el, 'voice-range');
     const { low, high } = VOICE_TYPES[type];
     const range = fill(words.range, { low: named(low), high: named(high) });
     card.keys({ low: low - 4, high: high + 4, mark: [low, high], shade: span(low, high), names: { [low]: named(low), [high]: named(high) }, label: fill(words.keyboard, { range }) });
-    card.staff([low, high], fill(words.staff, { range }));
+    if (bare) {
+        card.$('[data-ui="ref-staff"]').remove();
+        card.$('[data-ui="ref-facts"]').remove();
+        // With no staff beside it, the keyboard takes the whole row of a card 900 px wide or more (frontend, 2026-11-11).
+        card.$('[data-keys]').classList.add('@min-[900px]:col-span-2');
+    } else {
+        card.staff([low, high], fill(words.staff, { range }));
+    }
     card.button('lowest', words.lowest, () => card.play([{ hz: hz(low), at: 0, length: 1.4 }]));
     card.button('highest', words.highest, () => card.play([{ hz: hz(high), at: 0, length: 1.4 }]));
     // The white notes from the lowest to the highest (and the ends, sharp or not), one after another.
     const steps = span(low, high).filter((m, i, all) => i === 0 || i === all.length - 1 || ![1, 3, 6, 8, 10].includes(m % 12));
     card.button('scale', words.scale, () => card.play(steps.map((m, i) => ({ hz: hz(m), at: i * CARD.rangeStep, length: CARD.rangeStep * 1.15 }))));
+    if (bare) return { stop: card.stop, range: { low, high } };
     card.facts([[words.rangeLabel, range, 'range'], [words.partLabel, words.part?.[CHOIR_PARTS[type]] ?? '', 'part']]);
     const link = document.createElement('a');
     link.className = 'btn-primary min-h-12 justify-center rounded-full px-6 text-[1rem] sm:justify-self-start @min-[900px]:col-span-2';

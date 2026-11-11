@@ -15,78 +15,78 @@
     },
     {
       "name": "stackapella-showreel-light-mobile.mp4",
-      "bytes": 7977892,
-      "sha256": "6037bf41a21f4195d78c62e35e3ca7a8f64e5b42508a04d5fc1e0c3767c9d083"
+      "bytes": 7988575,
+      "sha256": "41d000128a5dd9739aac09c02d212e8225b0f63ddfe16d0a2d7b1e5cf9db7848"
     },
     {
       "name": "stackapella-showreel-light-poster-1440.webp",
-      "bytes": 18196,
-      "sha256": "ce7467397e08238358528736393f377a5e4797969df6cf6d69e6c1318070fcf9"
+      "bytes": 15490,
+      "sha256": "978db767ce2116d5fe21f7d171b8c5bf7ae0ed4e98a2f335a56b9e91a89f4b1f"
     },
     {
       "name": "stackapella-showreel-light-poster-1920.webp",
-      "bytes": 24932,
-      "sha256": "4ca2fda3696a35f6e7dc858e95dc8cd394604da9014d38ac1fc0e302680829b9"
+      "bytes": 21756,
+      "sha256": "68cbb86c4fe6d21ce02b5de99abeef6ec945b2fce5e00ef9e46213ac9e083412"
     },
     {
       "name": "stackapella-showreel-light-poster-960.webp",
-      "bytes": 11762,
-      "sha256": "1a95acb671e3a8245171a3170a65d812f42f5960a5605c8a26394fe42b668cc3"
+      "bytes": 10242,
+      "sha256": "0f95b81b0d0e829245eb421bd60e650b607e2116f1baaebbd2a7c812175f7167"
     },
     {
       "name": "stackapella-showreel-light-poster.jpg",
-      "bytes": 60545,
-      "sha256": "e84af8bf5389719f96ea4089b2c15ba6aa6b17eb812657c6562b2b914eb99013"
+      "bytes": 55981,
+      "sha256": "ad00a7f4a1886adf68c77f730b296e5720ec8112e08aa310d18cbb923f4ea868"
     },
     {
       "name": "stackapella-showreel-light.mp4",
-      "bytes": 21212082,
-      "sha256": "d3dffa58bd074c081f973625bd16dfbaac2404ac1fc3aa02ba39df12e60c4962"
+      "bytes": 21273962,
+      "sha256": "3eec0873e5a978991c2d65346e67d63679a7fcc91f3632a7ab4a284f8a99250f"
     },
     {
       "name": "stackapella-showreel-light.webm",
-      "bytes": 21106134,
-      "sha256": "3f377183f258e3338fd4c8c0a5288984c7618c22612d3efd65abdd8dfbb11e98"
+      "bytes": 21132709,
+      "sha256": "17faff634a0e7fda6b2d30e7853d51a3b14f9e21886b72d09ae6e6e677387be7"
     },
     {
       "name": "stackapella-showreel-mobile.mp4",
-      "bytes": 7978247,
-      "sha256": "783acd804c6a329d5da64c893bc257b7c16a24145b6b466159c9258bf019c384"
+      "bytes": 7997193,
+      "sha256": "9f4df5162702fd25ca6bc200d766eebae6a88078ec4c8996d1e411536865944e"
     },
     {
       "name": "stackapella-showreel-poster-1440.webp",
-      "bytes": 19918,
-      "sha256": "c667dc6be2ab00a202a15b53b14eb4fba9c23b6f4a63586e6c97adc9200c8e02"
+      "bytes": 16678,
+      "sha256": "b5d488a40ecd4f9d7098280f618ec39f8a4e5efe02618c851555058f0dcf355d"
     },
     {
       "name": "stackapella-showreel-poster-1920.webp",
-      "bytes": 26740,
-      "sha256": "0e36321581f2f7abf17b2f1b7c186134653701268fe274069be3cb998a6a4e5d"
+      "bytes": 23676,
+      "sha256": "95a34145ed9631aeb8fbaf2c034ef414ed093d13540ef440ca11cb2a10fca6a3"
     },
     {
       "name": "stackapella-showreel-poster-960.webp",
-      "bytes": 12478,
-      "sha256": "1e4cb820ad0750e25575b536398d33aa251568836eb33fa6be8e63c3319d62eb"
+      "bytes": 10844,
+      "sha256": "877b631730897120e2a0a38df9fc697da10ccada2bebb039cdb168866a9de452"
     },
     {
       "name": "stackapella-showreel-poster.jpg",
-      "bytes": 62607,
-      "sha256": "ddaaac95a0f9228a6e1d4d5f6df95ee11d5fd55fc9235bfd0fcd17c29e03f9cf"
+      "bytes": 57061,
+      "sha256": "93c43f4259d34c5a6619cd602ca5cfcfc409d1876f6723efbcd9d403f3695925"
     },
     {
       "name": "stackapella-showreel.mp4",
-      "bytes": 21220318,
-      "sha256": "baf8f6980d5261d3767f145d43c6f5fe2ffab3fd992e87f244d07e48e38155a2"
+      "bytes": 21269616,
+      "sha256": "ba290962a3e355ae1ddf001f73cd1b4ef59bc97d79f63ffb80c9392e2dff3ce4"
     },
     {
       "name": "stackapella-showreel.vtt",
-      "bytes": 778,
-      "sha256": "6e0bdec82f74325ab668136a9844d1021bfc193149d66929ea2c6b961ef3415f"
+      "bytes": 733,
+      "sha256": "8e751b778134a33090481e1b48d813cf73ad6ee310c75941ea1e35784b40daa8"
     },
     {
       "name": "stackapella-showreel.webm",
-      "bytes": 21107066,
-      "sha256": "1910c72d924a11c74caf885a129cbb957b55b49ffc9f48f47a608cb8fc85b95a"
+      "bytes": 21155692,
+      "sha256": "67d8cd97ae6fac5a6bacb9e062256534dccd58e62b09348cd797c50ed451d816"
     }
   ]
 }

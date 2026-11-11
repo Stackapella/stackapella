@@ -25,7 +25,7 @@ final class RecordCountsRequest extends FormRequest
     {
         return [
             'events' => ['required', 'array', 'max:'.(int) config('counts.max_events')],
-            'events.*.kind' => ['required', 'string', 'max:32'],
+            'events.*.kind' => ['required', 'string', 'max:64'],
             'events.*.n' => ['nullable', 'integer', 'min:1'],
             'signedIn' => ['nullable', 'boolean'],
             // The funnel's experiment arm ("onb1-b"); one the server doesn't know is counted without it.

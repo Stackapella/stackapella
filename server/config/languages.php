@@ -18,8 +18,22 @@ declare(strict_types=1);
 return [
 
     'site' => [
-        // The course lessons: the courses lead's Spanish for every course (2026-11-11).
-        'es' => ['courses.lesson'],
+        // The courses lead's Spanish, area by area as the coordinator ordered (2026-11-11): the courses and lessons,
+        // the songs and their part pages, the tools and warm-ups, the guides (each once its Spanish file is written:
+        // resources/guides/es/<slug>.md), the reference pages, help, and the site's own pages, the home page (`home`: the
+        // landing, at /es). Not yet: legal (English, by Hillel's decision), press and what's new.
+        'es' => [
+            'home',
+            'courses.index', 'courses.page', 'courses.free', 'courses.lesson',
+            'songs.index', 'songs.carols', 'songs.collection', 'songs.page', 'songs.part',
+            // tools.embed before tools.page, as the English routes go: /tools/embed isn't a tool.
+            'tools.index', 'tools.embed', 'tools.page', 'warmups.index', 'warmups.page',
+            'guides.index', 'guides.page',
+            'intervals.index', 'intervals.page', 'chords.index', 'chords.page', 'voice-types.index', 'voice-types.page',
+            'help.index', 'help.page',
+            'pricing.page', 'features.index', 'features.page', 'compare.index', 'compare.page', 'for.page',
+            'integrations.index', 'integrations.page', 'about.page', 'how.page', 'open-source.page', 'selfhost.page',
+        ],
         'de' => [],
     ],
 

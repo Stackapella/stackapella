@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Requests\Experiments;
 
 use App\Actions\Counts\Funnel;
+use App\Actions\Counts\RecordCounts;
 use Closure;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -27,7 +28,9 @@ final class ExperimentRequest extends FormRequest
     {
         $creating = $this->isMethod('POST');
         $need = $creating ? 'required' : 'sometimes';
-        $metrics = Funnel::kinds();
+        // Any counted kind (docs/retention-plan.md, "Test"): a funnel step, the app's own kinds, or a detailed one (a
+        // lesson's step, a share, a feature's first use).
+        $metrics = [...Funnel::kinds(), ...array_map('strval', (array) config('counts.kinds')), ...RecordCounts::detailedKinds()];
 
         return [
             'id' => $creating ? ['required', 'string', 'regex:/^[a-z][a-z0-9-]{1,23}$/', 'unique:experiments,key'] : ['prohibited'],

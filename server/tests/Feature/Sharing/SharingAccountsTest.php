@@ -37,7 +37,7 @@ final class SharingAccountsTest extends TestCase
         return $harmony->refresh();
     }
 
-    public function test_a_sign_up_from_a_shared_page_is_recorded_with_the_harmony(): void
+    public function test_a_sign_up_from_a_shared_page_counts_on_the_harmony_and_the_account_keeps_nothing_of_it(): void
     {
         Mail::fake();
         $harmony = $this->live();
@@ -45,12 +45,14 @@ final class SharingAccountsTest extends TestCase
         $this->postJson('/api/auth/register', ['name' => 'Bea', 'email' => 'bea@example.com', 'password' => 'a-fine-long-passphrase-42', 'birthMonth' => 5, 'birthYear' => 1990, 'ref' => 'h-'.$harmony->public_id, 'elapsedMs' => 45000, 'nickname' => ''])->assertStatus(202);
 
         $bea = User::query()->where('email', 'bea@example.com')->firstOrFail();
-        $this->assertSame($harmony->id, $bea->signup_harmony_id);
+        // Hillel, 2026-11-11 (Q8): the song keeps its anonymous count; the account, nothing of where it came from.
+        $this->assertNull($bea->signup_harmony_id);
         $this->assertSame(1, $harmony->fresh()?->sign_ups);
 
         // Any other ref, or a harmony that isn't there, records nothing.
         $this->postJson('/api/auth/register', ['name' => 'Cy', 'email' => 'cy@example.com', 'password' => 'a-fine-long-passphrase-42', 'birthMonth' => 5, 'birthYear' => 1990, 'ref' => 'h-nope', 'elapsedMs' => 45000, 'nickname' => ''])->assertStatus(202);
         $this->assertNull(User::query()->where('email', 'cy@example.com')->value('signup_harmony_id'));
+        $this->assertSame(1, $harmony->fresh()?->sign_ups);
     }
 
     public function test_the_share_limit_follows_the_trust_level(): void

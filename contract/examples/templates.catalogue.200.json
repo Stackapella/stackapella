@@ -15,6 +15,11 @@
             "tempo": 80,
             "timeSignature": "3/4",
             "reviewed": true,
+            "openedAt": "2026-11-10T09:00:00Z",
+            "season": {
+                "key": "carols",
+                "until": "2026-12-26"
+            },
             "access": "free",
             "freeUntil": null,
             "previewUrl": null,
@@ -222,6 +227,8 @@
             "tempo": 66,
             "timeSignature": "6/8",
             "reviewed": false,
+            "openedAt": null,
+            "season": null,
             "access": "account",
             "freeUntil": null,
             "previewUrl": "https://stackapella-media.nyc3.cdn.digitaloceanspaces.com/previews/2c9e4f7a1b3d5e8c0a6f2d4b7e9c1a3f.m4a",

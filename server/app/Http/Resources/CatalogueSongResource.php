@@ -6,6 +6,7 @@ namespace App\Http\Resources;
 
 use App\Models\Template;
 use App\Models\TemplateGuide;
+use App\Support\Stats\ReportDay;
 use App\Support\Templates\SongShape;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -36,6 +37,30 @@ final class CatalogueSongResource extends JsonResource
     }
 
     /**
+     * The season a song with these genres is in today, or null.
+     *
+     * @param  array<int|string, mixed>  $genres
+     * @return array{key: string, until: string}|null
+     */
+    public static function season(array $genres): ?array
+    {
+        $genres = array_map(static fn (mixed $g): string => strtolower(trim((string) $g)), array_filter($genres, 'is_string'));
+        $today = ReportDay::now();
+
+        foreach ((array) config('templates.seasons') as $key => $season) {
+            $year = $today->year;
+            $from = $year.'-'.$season['from'];
+            $until = $year.'-'.$season['until'];
+
+            if (array_intersect($genres, (array) $season['genres']) !== [] && $today->toDateString() >= $from && $today->toDateString() <= $until) {
+                return ['key' => (string) $key, 'until' => $until];
+            }
+        }
+
+        return null;
+    }
+
+    /**
      * @return array<string, mixed>
      */
     public function toArray(Request $request): array
@@ -62,6 +87,10 @@ final class CatalogueSongResource extends JsonResource
             'tempo' => $data['tempo'] ?? 0,
             'timeSignature' => (string) ($data['timeSignature'] ?? '4/4'),
             'reviewed' => (bool) $version?->reviewed,
+            // When it opened in the library (its first reviewed version), for Home's "New and in season"; null while hidden.
+            'openedAt' => $template->opened_at?->utc()->toIso8601ZuluString(),
+            // In season now (config templates.seasons: carols until 26 December), for Home's tag; null otherwise.
+            'season' => self::season((array) ($data['genre'] ?? [])),
             // free: the app bundles it, guests too; account: any signed-in account (2026-11-07).
             'access' => $template->access->api(),
             // The song of the month ended (2026-11-07); always null, for older apps.

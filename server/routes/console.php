@@ -180,6 +180,16 @@ Schedule::command('app:outreach:autosend')
     ->timezone(ReportDay::zone())
     ->withoutOverlapping(25);
 
+// The weekly drop-off report: just after Friday ends in the report's zone, over the seven whole days to Friday
+// (Saturday to Friday), ready for the Saturday review.
+Schedule::command('app:dropoffs')
+    ->onOneServer()
+    ->name('dropoffs')
+    ->weeklyOn(6, '00:30')
+    ->timezone(ReportDay::zone())
+    ->withoutOverlapping(30)
+    ->runInBackground();
+
 Schedule::command('app:reminders:send')
     ->onOneServer()
     ->name('practice-reminders')

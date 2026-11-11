@@ -8,6 +8,7 @@ use App\Actions\Beta\AcceptInvite;
 use App\Actions\Mudeo\MudeoList;
 use App\Http\Controllers\Public\InfoPagesController;
 use App\Http\Middleware\SecurityHeaders;
+use App\Http\Middleware\SiteLanguage;
 use App\Models\EarlyAccessLink;
 use App\Models\Group;
 use App\Models\ProjectInvite;
@@ -83,9 +84,10 @@ final class WebAppController extends Controller
         // launch, to anyone holding the beta pass, coming soon otherwise.
         // Off stackapella.com (an install of the app under the AAL) there's no landing: / is the app.
         if ($path === '' && Hosts::onPublicHost($request) && config('app.is_nexus') === true) {
+            // The landing names its other languages (SiteLanguage), as every page in them does.
             return config('app.coming_soon') && ! BetaPass::valid($request)
                 ? response()->view('coming-soon', [], 200, ['Cache-Control' => 'no-cache', 'Vary' => 'Cookie'])
-                : app(InfoPagesController::class)->landing($request);
+                : SiteLanguage::finish(app(InfoPagesController::class)->landing($request), 'en', '/');
         }
 
         // The public site's host never answers with the app's shell: an address of the site with no page
@@ -108,7 +110,7 @@ final class WebAppController extends Controller
         // marker, a session, signing in) or asks for it (?app, the installed app's start) the app.
         // ?landing is the landing for anyone (the app's logo, on one host).
         if ($path === '' && config('app.is_nexus') === true && ! Hosts::split() && ($request->query->has('landing') || $this->firstVisit($request))) {
-            return app(InfoPagesController::class)->landing($request);
+            return SiteLanguage::finish(app(InfoPagesController::class)->landing($request), 'en', '/');
         }
 
         $request->attributes->set(SecurityHeaders::APP_PAGE, true);

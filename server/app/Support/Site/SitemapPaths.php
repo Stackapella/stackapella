@@ -109,7 +109,7 @@ final class SitemapPaths
         // Each page again in every language that's open and serves it (config/languages.php), under /<lang>/.
         foreach (app(Languages::class)->offered() as $language) {
             if ($language !== 'en') {
-                $paths = [...$paths, ...array_map(static fn (string $path): string => '/'.$language.$path, array_values(array_filter(array_map('strval', $paths), static fn (string $path): bool => SiteLanguages::serves($language, $path))))];
+                $paths = [...$paths, ...array_map(static fn (string $path): string => '/'.$language.($path === '/' ? '' : $path), array_values(array_filter(array_map('strval', $paths), static fn (string $path): bool => SiteLanguages::serves($language, $path))))];
             }
         }
 

@@ -25,7 +25,7 @@
     <meta property="og:description" content="{{ $description }}">
     <meta property="og:url" content="{{ $songPart['canonical'] }}">
     <meta property="og:type" content="music.song">
-    <meta property="og:image" content="{{ \App\Support\Http\Hosts::public('/icons/og-landing.png') }}">
+    <meta property="og:image" content="{{ $image }}">
     <meta name="twitter:card" content="summary_large_image">
     <link rel="canonical" href="{{ $songPart['canonical'] }}">
     <x-site.json-ld :data="\App\Support\Site\StructuredData::songPart($songPart, $heading)" />

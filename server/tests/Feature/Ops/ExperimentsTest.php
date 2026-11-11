@@ -106,6 +106,33 @@ final class ExperimentsTest extends TestCase
         $this->assertSame([0.5, 0.6667], [$lesson3['arms'][0]['rate'], $lesson3['arms'][1]['rate']]);
     }
 
+    public function test_an_experiment_may_measure_any_counted_kind_and_only_those_keep_the_arm(): void
+    {
+        // A lesson's step as the metric (docs/retention-plan.md, "Test"): the 4-words fix measured where it happens.
+        config(['counts.enabled' => true]);
+        $admin = $this->actingAsAdmin();
+        $this->postJson('/api/admin/experiments', $this->short1(['id' => 'words1', 'metric' => 'fs_r:1-comfortable.1', 'guardrails' => ['fl_d:1-comfortable']]))->assertCreated();
+        $this->postJson('/api/admin/experiments', $this->short1(['id' => 'words2', 'metric' => 'not_a_kind']))->assertJsonValidationErrors('metric');
+        $this->patchJson('/api/admin/experiments/words1', ['action' => 'start'])->assertOk();
+        auth()->forgetGuards();
+
+        $send = fn (array $kinds, string $arm) => $this->postJson('/api/counts', ['events' => array_map(fn (string $k): array => ['kind' => $k], $kinds), 'variants' => [$arm]])->assertNoContent();
+        $send(['exp_enrol', 'fs_r:1-comfortable.1', 'fl_d:1-comfortable', 'fs_r:1-comfortable.0', 'sug_melody'], 'words1-a');
+        $send(['exp_enrol', 'fs_r:1-comfortable.1'], 'words1-b');
+        $send(['exp_enrol'], 'words1-b');
+
+        // The arm is kept on what it measures, and the funnel's own; not on a kind nobody's testing.
+        $kept = DB::table('experiment_counts')->distinct()->orderBy('kind')->pluck('kind')->all();
+        $this->assertSame(['exp_enrol', 'fl_d:1-comfortable', 'fs_r:1-comfortable.1'], $kept);
+
+        $this->actingAsAdmin($admin);
+        $report = $this->getJson('/api/admin/funnel?experiment=words1');
+        $this->assertMatchesContract($report, 'admin.funnel.show', 200);
+        $step = collect((array) $report->json('data.steps'))->firstWhere('kind', 'fs_r:1-comfortable.1');
+        $this->assertSame([1, 1], [$step['arms'][0]['total'], $step['arms'][1]['total']]);
+        $this->assertEquals([1, 0.5], [$step['arms'][0]['rate'], $step['arms'][1]['rate']]);
+    }
+
     public function test_only_an_admin_in_sudo_changes_the_registry(): void
     {
         $this->actingAsAdmin(secondFactorPassed: false);

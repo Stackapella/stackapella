@@ -65,6 +65,60 @@ final class UsageCountsTest extends TestCase
         $this->assertSame(['fl_s:1-comfortable', 'fs_r:1-comfortable.1', 'open_game', 'pl_d:vibrato', 'sug_melody', 'take_undo'], DB::table('usage_counts')->orderBy('kind')->pluck('kind')->all());
     }
 
+    public function test_the_improvement_loops_kinds_count_and_a_share_counts_only_by_a_real_surface_and_method(): void
+    {
+        // docs/retention-plan.md, section 8: returns, the thread back, Home's new card, breadth and shares.
+        $plain = ['back_d1', 'back_d7', 'back_d14', 'back_d30', 'back_w1', 'back_link_tap', 'back_cal_tap', 'ask_nudge_shown', 'ask_nudge_yes', 'ask_nudge_not', 'home_new_shown', 'home_new_tap'];
+        // A tool's share (sh:tool-interval-ear-training.image, 36 characters) fits: the kind column is 64 wide (was 32).
+        $detailed = ['ft:lesson', 'ft:together', 'br:0', 'br:11', 'sh:song.sheet', 'sh:page-carols.copy', 'sh:tool-pitch-pipe.embed', 'sh:tool-interval-ear-training.image'];
+        $dropped = ['ft:nope', 'br:12', 'br:-1', 'sh:song', 'sh:song.fax', 'sh:nope.copy', 'sh:tool-nope.copy'];
+        foreach (array_chunk([...$plain, ...$detailed, ...$dropped], 20) as $kinds) {
+            $this->postJson('/api/counts', ['events' => array_map(static fn (string $kind): array => ['kind' => $kind], $kinds)])->assertNoContent();
+        }
+
+        $kept = DB::table('usage_counts')->pluck('kind')->all();
+        sort($kept);
+        $expected = [...$plain, ...$detailed];
+        sort($expected);
+        $this->assertSame($expected, $kept);
+    }
+
+    public function test_the_loops_paths_weekly_use_tools_and_try_next_kinds_count(): void
+    {
+        $kinds = ['sing_open', 'sing_kept', 'song_part3', 'lesson_song_back', 'cr_shared', 'grp_sang', 'part_sing', 'invite_sung', 'use_boss', 'remind_on',
+            'tool_result:pitch-pipe', 'tool_try:pitch-pipe', 'try_shown:record', 'try_tap:stack'];
+        $this->postJson('/api/counts', ['events' => array_map(static fn (string $kind): array => ['kind' => $kind], [...$kinds, 'tool_try:nope', 'try_tap:nope'])])->assertNoContent();
+
+        $kept = DB::table('usage_counts')->pluck('kind')->all();
+        sort($kept);
+        sort($kinds);
+        $this->assertSame($kinds, $kept);
+    }
+
+    public function test_every_courses_lessons_and_steps_count_only_by_a_real_lesson_and_step(): void
+    {
+        // A Plus course's and a song course's lessons, as the free course's are (docs/retention-plan.md, section 8).
+        $plus = (array) json_decode((string) file_get_contents(dirname(base_path()).'/web/course/plus/vibrato/course.json'), true);
+        $lesson = (array) $plus['units'][0]['lessons'][0];
+        $last = count((array) $lesson['steps']) - 1;
+        $kinds = ['cl_s:'.$lesson['id'], 'cl_d:'.$lesson['id'], 'cs_r:'.$lesson['id'].'.0', 'cs_r:'.$lesson['id'].'.'.$last];
+        $this->postJson('/api/counts', ['events' => array_map(static fn (string $kind): array => ['kind' => $kind], [...$kinds, 'cl_s:nope', 'cs_r:'.$lesson['id'].'.'.($last + 5), 'cs_r:nope.0', 'cl_s:1-comfortable'])])->assertNoContent();
+
+        $kept = DB::table('usage_counts')->pluck('kind')->all();
+        sort($kept);
+        sort($kinds);
+        // The free course's lessons are fl_s's, never cl_s's.
+        $this->assertSame($kinds, $kept);
+    }
+
+    public function test_the_loops_sources_and_every_share_surfaces_tag_are_kept_as_written(): void
+    {
+        foreach (['welcome', 'today', 'back-link', 'back-calendar', 'share-song', 'share-page-carols', 'share-lesson', 'share-pitch-pipe'] as $tag) {
+            $this->assertSame($tag, RecordCounts::source($tag), $tag);
+        }
+        $this->assertSame('other', RecordCounts::source('share-nope'));
+    }
+
     public function test_off_counts_nothing_and_flooding_is_limited(): void
     {
         config(['counts.enabled' => false]);

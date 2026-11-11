@@ -523,6 +523,7 @@ Each operation is one function in `web/js/api.js` named after it, and one route 
 | `admin.network.show` | `GET /api/admin/network` | An admin | L |
 | `admin.counts.show` | `GET /api/admin/counts` | An admin | L |
 | `admin.funnel.show` | `GET /api/admin/funnel` | An admin | L |
+| `admin.dropoffs.show` | `GET /api/admin/dropoffs` | An admin | L |
 | `admin.experiments.list` | `GET /api/admin/experiments` | An admin | L |
 | `admin.experiments.create` | `POST /api/admin/experiments` | An admin, in sudo | L |
 | `admin.experiments.update` | `PATCH /api/admin/experiments/{id}` | An admin, in sudo | L |
@@ -857,7 +858,10 @@ Every song in the library, current versions only, for anyone (signed in or not).
 or part audio of a song the caller can't start: a part's `guide` and `versions` are filled only for
 a song the app bundles (`access: "free"`) and, signed in, every song (`access: "account"`: every
 library song is free with an account since 2026-11-07). The app's bundled templates are the offline
-fallback. **Request:** none.
+fallback. `openedAt` is when a song opened in the library (its first reviewed version, set by the sync;
+null while hidden), so Home's "New and in season" can show what's just opened; `season` is the season the song
+is in today, `{ "key": "carols", "until": "2026-12-26" }` (a carol, 1 November to 26 December; config
+templates.seasons), or null. **Request:** none.
 
 **Voices** (Hillel's decision, "published versions"): every accepted recording of a part is a
 published version (`versions`, the default first, then the newest), and `guide` is the default
@@ -1769,7 +1773,9 @@ sign-in now), for the app's Admin link; editors and everyone else get false. It'
 
 #### `account.update`
 
-**Request:** any of `name` (1 to 80), `handle`, `bio` (up to 300), `locale` (`en`, `es` or `de`, the
+**Request:** any of `name` (1 to 80), `handle`, `bio` (up to 300), `tried` (breadth: features tried on this device, each with the day first used, `{ "record": "2026-11-11" }`,
+from config/counts.php `features`; merged with the account's, each keeping its earliest day, never taken away),
+`locale` (`en`, `es` or `de`, the
 account's language: emails and pushes follow it, each sentence in English until it's translated; any of
 the three may be kept before its switch is on, so a draft can be checked), `timezone`, `xHandle`,
 `blueskyHandle`, `heardFrom` (one of the enum, asked once at the end of the first run),
@@ -6201,7 +6207,7 @@ account, address, browser or cookie, and the request starts no session, so the a
 `harmonise_used`, `export_done`, `result_shared` (a lesson's result card shared), `leaderboard_viewed`,
 `challenge_accepted`, `app_day`, `app_week` and `app_month` (each device once a UTC day, ISO week
 and month, at its first open in it, from the date it last sent one, kept on the device), `sign_up` (counted
-by the server itself for every new account: the app doesn't send it), and the usage page's own (config/counts.php `kinds`: the skins, Plus extras, Hum a tune, the studio, onboarding's asks and melody first), and `<prefix>:<id>` for a course or lesson: `pl_s:` and `pl_d:` with a Plus course's `id` (web/course/plus/courses.json), `fl_s:` and `fl_d:` with a free lesson's `id` (web/course/course.json), `fs_r:<lessonId>.<step>` when a free lesson's step is reached (step from 0, in the lesson's own order or its experiment variant's; once per step each time the lesson is run), counted only for a real id (others are dropped); `n` is 1 to 20 (more counts as
+by the server itself for every new account: the app doesn't send it), and the usage page's own (config/counts.php `kinds`: the skins, Plus extras, Hum a tune, the studio, onboarding's asks and melody first), and `<prefix>:<id>` for a course or lesson: `pl_s:` and `pl_d:` with a Plus course's `id` (web/course/plus/courses.json), `fl_s:` and `fl_d:` with a free lesson's `id` (web/course/course.json), `fs_r:<lessonId>.<step>` when a free lesson's step is reached (step from 0, in the lesson's own order or its experiment variant's; once per step each time the lesson is run), the same for every other course's lessons (a Plus or song course's) as `cl_s:<lessonId>` (started), `cl_d:<lessonId>` (finished) and `cs_r:<lessonId>.<step>` (lesson ids are unique across courses), `ft:<feature>` a feature's first use on the device (config/counts.php `features`), `br:<n>` how many of those features the device has tried (0 to 11, once a day beside `app_day`), `sh:<surface>.<method>` a share (a surface from config/counts.php `share_surfaces`, or a free tool's `tool-<slug>`; a method from `share_methods`), `tool_result:<slug>` and `tool_try:<slug>` a free tool's result reached and its way into the app tapped, and `try_shown:<feature>` and `try_tap:<feature>` the "try next" line, counted only for a real id (others are dropped); a kind is at most 64 characters; `n` is 1 to 20 (more counts as
 20); at most 20 events a request, 120 requests a minute from one connection (past it, the same `204`
 and nothing is counted: every sender is a beacon, and a browser logs a beacon's `429` as a console error).
 A request carrying the `sa_staff` cookie (an admin's device: set when an admin passes the second
@@ -6267,6 +6273,26 @@ below p 0.001 means a bucketing bug, not a result). `asks` is each ask's shown a
 | Status | Code | Schema | Example |
 |---|---|---|---|
 | 200 | | `admin.funnel.show.json` | `admin.funnel.show.200.json` |
+
+#### `admin.dropoffs.show`
+
+The weekly drop-off report (docs/retention-plan.md, "Detect"): `latest` and `previous`, each a week's
+report or null before the first. A report covers `weekStart` to `weekEnd` (seven whole days, report
+timezone; worked out early each Saturday, over Saturday to Friday, by `app:dropoffs`). `paths` are, in order, the funnel's main line,
+the free course lesson by lesson, and each lesson step by step (a Plus or song course's lesson only when
+someone started it that week). Each step has `entered` (devices that reached it), `passed` (reached the
+next), `passThrough` (passed over entered), `before` (the same over the four weeks before, or null with
+too few then), `neighbours` (the median pass-through of the path's steps around it, or a lesson's other
+steps), `fall` (before minus now), `tooFew` (entered under `floor`: never a drop), `drop` (more than
+`margin` below its neighbours or its own weeks before) and `lost` (how many more would have gone on at
+the neighbours' rate), and `month`, the same step over the last 28 whole days (`entered`, `passed`,
+`passThrough`, `tooFew`: the long window, so a deep step few reach in a week can still be read; never
+ranked). `worst` is the three drops that lost the most, for Home's "What needs you now";
+`falls` the three biggest falls. Anonymous daily totals only. **Request:** none.
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 200 | | `admin.dropoffs.show.json` | `admin.dropoffs.show.200.json` |
 
 #### `admin.growth.show`
 
@@ -6756,7 +6782,9 @@ from `readFrom`, a week on), `decided` (a `winner` named) or `closed`. Its resul
 A new experiment, as a draft. **Request:** `id` (lower case, `^[a-z][a-z0-9-]{1,23}$`, unique),
 `what`, `hypothesis`, `arms` (`[{ "arm": "a", "weight": 50 }, { "arm": "b", "weight": 50 }]`: a, b
 and maybe c, in order, adding up to 100; a is always today's app), `metric` and `guardrails` (up to
-three; a funnel or ask kind), `audience` (any of `new`,
+three; any counted kind: a funnel or ask kind, one of config/counts.php `kinds`, or a detailed kind such as a
+lesson's step `cs_r:<lessonId>.<step>`; counts keep the arm on exactly the kinds a running experiment measures,
+and admin.funnel.show reads them as steps after the funnel's), `audience` (any of `new`,
 `skin`, `size`, `signedIn`, `firstWeek`), `excludes` (other experiments' ids) and `plannedPerArm`.
 Audited.
 

@@ -11,7 +11,7 @@
 import { renderBacking } from '/web/js/synth.js';
 import { duckBreaths, gaps } from './breaths.js';
 import { rng } from './lib.js';
-import { BEATS, BPM, CUE, DUR, PARTS, PASS2, S, SPB, sec } from './score.js';
+import { BPM, CUE, CUT, DUR, END, FROM, JOIN_RAMP, PARTS, PASS2, PASSES, S, SPB, joinAt, sec } from './score.js';
 
 const RATE = 48000;
 const PRIMING_FRAMES = 1024; // ffmpeg's AAC encoder delay, as web/js/recorded-guides.js skips it
@@ -81,7 +81,6 @@ async function realVoices() {
 }
 
 /** The first note of part `i` at or after `beat` (a voice fades in just before it, on the breath). */
-const firstFrom = (i, beat) => S.parts[i].find((n) => n.beat >= beat - 1e-6 && n.pass === 0);
 
 /** The whole mix: `loops` copies of the film, end to end. */
 async function mix(loops) {
@@ -97,52 +96,55 @@ async function mix(loops) {
 
     // [gain, pan] for each part: the tune a touch forward, the alto and tenor either side, the bass centred
     const PLACE = [[1.0, 0], [0.82, -0.3], [0.8, 0.3], [0.92, 0]];
-    const foldA = sec(CUE.fold[0]), foldB = sec(CUE.fold[1]);
+    // the film's clock is the song's from FROM (v5's social cut starts at phrase three)
+    const at0 = (beat) => sec(beat - FROM);
+    const foldA = at0(CUE.fold[0]), foldB = at0(CUE.fold[1]);
     for (let loop = 0; loop < loops; loop++) {
         const t0 = loop * DUR;
         real.forEach((v, i) => {
             const buf = ctx.createBuffer(1, v.samples.length, RATE);
             buf.copyToChannel(v.samples, 0);
             const [level, pan] = PLACE[i];
-            for (const pass of [0, 1]) {
+            for (let pass = 0; pass < PASSES; pass++) {
                 const src = ctx.createBufferSource(), g = ctx.createGain(), p = ctx.createStereoPanner();
                 src.buffer = buf;
                 p.pan.value = pan;
-                const at = t0 + pass * sec(PASS2) + v.offset;
+                const at = t0 + pass * sec(PASS2) + v.offset - sec(FROM);
                 if (pass === 0 && i > 0) {
-                    // joins at its phrase: silent until just before its first note there
-                    const from = t0 + sec(firstFrom(i, CUE.enter[i]).beat) - 0.16;
+                    // joins at its phrase (the social: its half phrase): silent until just before its first note there
+                    const from = t0 + joinAt(i) - sec(FROM);
                     g.gain.setValueAtTime(0, t0);
                     g.gain.setValueAtTime(0, from);
-                    g.gain.linearRampToValueAtTime(level, from + 0.12);
+                    g.gain.linearRampToValueAtTime(level, from + JOIN_RAMP);
                 } else g.gain.setValueAtTime(level, t0);
                 // the fold: the lower voices step away first, the tune last
-                if (pass === 1) g.gain.setTargetAtTime(0, t0 + (i ? foldA : sec(CUE.fold[1] - 0.6)), i ? (foldB - foldA) / 3 : 0.18);
+                if (pass === PASSES - 1) g.gain.setTargetAtTime(0, t0 + (i ? foldA : at0(CUE.fold[1] - 0.6)), i ? (foldB - foldA) / 3 : 0.18);
                 src.connect(g).connect(p).connect(bus);
-                src.start(at);
+                // a pass that began before the film did (the social's) starts part way into the take
+                if (at >= t0) src.start(at); else src.start(t0, t0 - at);
             }
         });
 
         // the soft "oo" pad, from the last line the second time, swelling under the held chord
-        const padFrom = PASS2 + 36;
+        const padFrom = (PASSES - 1) * PASS2 + 36, padAt = t0 + at0(padFrom), lastEnd = t0 + at0(PASSES * PASS2);
         const chords = S.chords.filter((c) => c.beat >= padFrom).map((c) => ({ ...c }));
-        const pad = renderBacking(chords.map((c) => ({ ...c, beat: c.beat - padFrom })), { bpm: BPM, sampleRate: RATE, endBeat: BEATS - padFrom, voice: 'pad' });
+        const pad = renderBacking(chords.map((c) => ({ ...c, beat: c.beat - padFrom })), { bpm: BPM, sampleRate: RATE, endBeat: END - padFrom, voice: 'pad' });
         const pb = ctx.createBuffer(1, Math.max(1, pad.length), RATE); pb.copyToChannel(pad, 0);
         const ps = ctx.createBufferSource(); ps.buffer = pb;
         const pg = ctx.createGain();
-        pg.gain.setValueAtTime(0, t0 + sec(padFrom));
-        pg.gain.linearRampToValueAtTime(0.35, t0 + sec(padFrom) + 1.5);
-        pg.gain.setValueAtTime(0.35, t0 + sec(2 * PASS2) - 1.2);
-        pg.gain.linearRampToValueAtTime(0.75, t0 + sec(2 * PASS2) + 0.3);
+        pg.gain.setValueAtTime(0, padAt);
+        pg.gain.linearRampToValueAtTime(0.35, padAt + 1.5);
+        pg.gain.setValueAtTime(0.35, lastEnd - 1.2);
+        pg.gain.linearRampToValueAtTime(0.75, lastEnd + 0.3);
         pg.gain.setTargetAtTime(0, t0 + foldA, (foldB - foldA) / 3);
         ps.connect(pg).connect(bus);
-        ps.start(t0 + sec(padFrom));
+        ps.start(padAt);
 
         // the chimes: every note you hit in the first line, each friend joining, and the end card
         const ch = ctx.createGain(); ch.connect(dry); ch.connect(verb);
-        for (const n of S.parts[0]) if (n.beat < 6 && n.hit != null) chime(ctx, ch, t0 + sec(n.hit), n.pitch + 24, 0.03);
-        CUE.friends.forEach((b, i) => chime(ctx, ch, t0 + sec(b), [74, 79, 83][i] + 12, 0.04));
-        [0, 0.07, 0.14, 0.21].forEach((d, i) => chime(ctx, ch, t0 + sec(CUE.end) + 0.9 + d, [79, 83, 86, 91][i], 0.035));
+        for (const n of S.parts[0]) if (n.beat >= FROM && n.beat < FROM + 6 && n.hit != null) chime(ctx, ch, t0 + at0(n.hit), n.pitch + 24, 0.03);
+        if (CUT === 'hero') CUE.friends.forEach((b, i) => chime(ctx, ch, t0 + at0(b), [74, 79, 83][i] + 12, 0.04));
+        [0, 0.07, 0.14, 0.21].forEach((d, i) => chime(ctx, ch, t0 + at0(CUE.end) + 0.9 + d, [79, 83, 86, 91][i], 0.035));
     }
     return ctx.startRendering();
 }

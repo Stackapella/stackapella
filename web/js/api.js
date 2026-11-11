@@ -177,6 +177,7 @@ export const OPERATIONS = {
     'counts.create': ['POST', '/api/counts'],
     'admin.counts.show': ['GET', '/api/admin/counts'],
     'admin.funnel.show': ['GET', '/api/admin/funnel'],
+    'admin.dropoffs.show': ['GET', '/api/admin/dropoffs'],
     'voices.wanted': ['GET', '/api/voices/wanted'],
     'voices.join': ['POST', '/api/voices/join'],
     'voices.summary': ['GET', '/api/voices/summary'],
@@ -821,7 +822,8 @@ export const api = {
             suspend: (id, { reason }) => call('admin.people.suspend', { params: { id }, body: { reason } }),
             unsuspend: (id, { reason }) => call('admin.people.unsuspend', { params: { id }, body: { reason } }),
             // Give a song to this person (docs/partner-songs.md): the arranger's template, private to them, with the rights confirmed.
-            giveSong: (id, { song, rights }) => call('admin.people.songs.create', { params: { id }, body: { song, rights } }),
+            // trackRequest: a director's learning tracks request (a `tracks` support message) this delivers and closes.
+            giveSong: (id, { song, rights, trackRequest }) => call('admin.people.songs.create', { params: { id }, body: { song, rights, ...(trackRequest ? { trackRequest } : {}) } }),
             trust: {
                 update: (id, { level, note }) => call('admin.people.trust.update', { params: { id }, body: { level, note } }),
             },
@@ -839,6 +841,7 @@ export const api = {
         funnel: {
             show: ({ experiment, days } = {}) => call('admin.funnel.show', { query: { experiment, days } }),
         },
+        dropoffs: () => call('admin.dropoffs.show'),
         growth: { show: ({ period, days } = {}) => call('admin.growth.show', { query: { period, days } }) },
         // Outreach (docs/outreach-plan.md): one organization, one email, sent by Hillel's own press.
         outreach: {

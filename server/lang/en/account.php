@@ -16,6 +16,9 @@ return [
             'button' => 'Confirm my email',
             // The game skin's words (App\Support\Mail\EmailSkin); the lines stay plain in both.
             'game' => ['title' => 'Ready to sing?', 'button' => 'Press start'],
+            // Hillel, 2026-11-11 (docs/retention-plan.md, row 7): the free course's next lesson, one line and a button.
+            'next' => 'Your next lesson: Lesson :n, :title',
+            'next_button' => 'Start the lesson',
             'soon' => 'This link works for 24 hours.',
             'note_lead' => 'Didn\'t sign up?',
             'note' => 'You can ignore this email. Without the link, the address is never confirmed.',

@@ -18,7 +18,9 @@
         "freeUntil",
         "previewUrl",
         "parts",
-        "voicings"
+        "voicings",
+        "openedAt",
+        "season"
     ],
     "properties": {
         "id": {
@@ -71,6 +73,37 @@
         "reviewed": {
             "type": "boolean",
             "description": "False for a draft the musician hasn't checked; the app shows drafts only locally or with ?drafts=1."
+        },
+        "openedAt": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "format": "date-time",
+            "description": "When it opened in the library (its first reviewed version); null while hidden. Home's New and in season."
+        },
+        "season": {
+            "type": [
+                "object",
+                "null"
+            ],
+            "additionalProperties": false,
+            "required": [
+                "key",
+                "until"
+            ],
+            "description": "The season the song is in today (config templates.seasons: carols from 1 November to 26 December), for Home's tag; null otherwise.",
+            "properties": {
+                "key": {
+                    "type": "string",
+                    "enum": [
+                        "carols"
+                    ]
+                },
+                "until": {
+                    "type": "string"
+                }
+            }
         },
         "access": {
             "type": "string",

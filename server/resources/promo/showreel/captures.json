@@ -10,19 +10,78 @@
       "fps": 30,
       "songAt": 19.956
     },
+    "carols": {
+      "id": "carols",
+      "size": "desktop-close",
+      "skin": "serious",
+      "w": 4320,
+      "h": 2700,
+      "frames": 84,
+      "fps": 30
+    },
+    "carols-book": {
+      "id": "carols-book",
+      "size": "desktop",
+      "skin": "serious",
+      "w": 2880,
+      "h": 1800,
+      "crops": {
+        "card": {
+          "x": 0.1059,
+          "y": 0.1294,
+          "w": 0.25,
+          "h": 0.4897
+        },
+        "filter": {
+          "x": 0.5575,
+          "y": 0.0406,
+          "w": 0.3262,
+          "h": 0.0578
+        },
+        "row": {
+          "x": 0.1059,
+          "y": 0.0317,
+          "w": 0.7778,
+          "h": 0.5874
+        }
+      },
+      "frames": 72,
+      "fps": 30,
+      "click": {
+        "x": 0.7466,
+        "y": 0.0694,
+        "at": 0.7
+      }
+    },
     "choir-director": {
       "id": "choir-director",
       "size": "desktop",
       "skin": "serious",
       "w": 2880,
-      "h": 1800
+      "h": 1800,
+      "crops": {
+        "song": {
+          "x": 0.2281,
+          "y": 0.2444,
+          "w": 0.5333,
+          "h": 0.2089
+        }
+      }
     },
     "choir-member": {
       "id": "choir-member",
       "size": "desktop",
       "skin": "serious",
       "w": 2880,
-      "h": 1800
+      "h": 1800,
+      "crops": {
+        "song": {
+          "x": 0.2281,
+          "y": 0.2222,
+          "w": 0.5333,
+          "h": 0.2089
+        }
+      }
     },
     "courses": {
       "id": "courses",
@@ -30,15 +89,44 @@
       "skin": "serious",
       "w": 2880,
       "h": 1800,
-      "frames": 135,
+      "frames": 90,
       "fps": 30
+    },
+    "courses-card": {
+      "id": "courses-card",
+      "size": "desktop",
+      "skin": "serious",
+      "w": 2880,
+      "h": 1800,
+      "crops": {
+        "card": {
+          "x": 0.0781,
+          "y": 0.4437,
+          "w": 0.8333,
+          "h": 0.2742
+        },
+        "head": {
+          "x": 0.0781,
+          "y": 0.0889,
+          "w": 0.8333,
+          "h": 0.3548
+        }
+      }
     },
     "daily": {
       "id": "daily",
       "size": "desktop",
-      "skin": "serious",
+      "skin": "game",
       "w": 2880,
-      "h": 1800
+      "h": 1800,
+      "crops": {
+        "stage": {
+          "x": 0.1059,
+          "y": 0.1156,
+          "w": 0.7778,
+          "h": 0.5269
+        }
+      }
     },
     "drone": {
       "id": "drone",
@@ -53,12 +141,68 @@
         "h": 0.8026
       }
     },
+    "drone-live": {
+      "id": "drone-live",
+      "size": "desktop",
+      "skin": "serious",
+      "w": 1040,
+      "h": 1445,
+      "lifted": true,
+      "frames": 120,
+      "fps": 30
+    },
+    "flip-arcade": {
+      "id": "flip-arcade",
+      "size": "desktop",
+      "skin": "game",
+      "w": 2880,
+      "h": 1800,
+      "frames": 150,
+      "fps": 30,
+      "songAt": 12.927
+    },
+    "github": {
+      "id": "github",
+      "size": "desktop-close",
+      "skin": "serious",
+      "w": 4320,
+      "h": 2700,
+      "crops": {
+        "card": {
+          "x": 0.0667,
+          "y": 0.3467,
+          "w": 0.3056,
+          "h": 0.1081
+        }
+      }
+    },
     "home-game": {
       "id": "home-game",
       "size": "desktop",
       "skin": "game",
       "w": 2880,
       "h": 1800
+    },
+    "hymns": {
+      "id": "hymns",
+      "size": "desktop",
+      "skin": "serious",
+      "w": 2880,
+      "h": 1800
+    },
+    "hymns-book": {
+      "id": "hymns-book",
+      "size": "desktop",
+      "skin": "serious",
+      "w": 2880,
+      "h": 1800,
+      "frames": 72,
+      "fps": 30,
+      "click": {
+        "x": 0.7466,
+        "y": 0.0967,
+        "at": 0.7
+      }
     },
     "landing-toggle": {
       "id": "landing-toggle",
@@ -81,6 +225,16 @@
       "w": 780,
       "h": 1688
     },
+    "metro-live": {
+      "id": "metro-live",
+      "size": "desktop",
+      "skin": "serious",
+      "w": 1040,
+      "h": 1433,
+      "lifted": true,
+      "frames": 120,
+      "fps": 30
+    },
     "metronome": {
       "id": "metronome",
       "size": "desktop",
@@ -92,6 +246,18 @@
         "y": 0.1511,
         "w": 0.3611,
         "h": 0.8489
+      }
+    },
+    "open-source": {
+      "id": "open-source",
+      "size": "desktop",
+      "skin": "serious",
+      "w": 2880,
+      "h": 1800,
+      "click": {
+        "x": 0.1748,
+        "y": 0.3826,
+        "at": 0
       }
     },
     "range": {
@@ -107,6 +273,16 @@
         "h": 0.8489
       }
     },
+    "range-live": {
+      "id": "range-live",
+      "size": "desktop",
+      "skin": "serious",
+      "w": 1040,
+      "h": 1008,
+      "lifted": true,
+      "frames": 270,
+      "fps": 30
+    },
     "sing": {
       "id": "sing",
       "size": "desktop",
@@ -117,6 +293,42 @@
       "fps": 30,
       "songAt": 4.052
     },
+    "sing-soprano": {
+      "id": "sing-soprano",
+      "size": "desktop",
+      "skin": "serious",
+      "w": 2880,
+      "h": 1800,
+      "frames": 450,
+      "fps": 30,
+      "songAt": 3.945
+    },
+    "sing-tenor-phone": {
+      "id": "sing-tenor-phone",
+      "size": "phone",
+      "skin": "serious",
+      "w": 780,
+      "h": 1688,
+      "frames": 150,
+      "fps": 30,
+      "songAt": 21.988
+    },
+    "songbook": {
+      "id": "songbook",
+      "size": "desktop",
+      "skin": "serious",
+      "w": 2880,
+      "h": 1800
+    },
+    "songbook-book": {
+      "id": "songbook-book",
+      "size": "desktop",
+      "skin": "serious",
+      "w": 2880,
+      "h": 1800,
+      "frames": 72,
+      "fps": 30
+    },
     "studio": {
       "id": "studio",
       "size": "desktop",
@@ -126,6 +338,36 @@
       "frames": 168,
       "fps": 30,
       "songAt": 8.581
+    },
+    "studio-alto": {
+      "id": "studio-alto",
+      "size": "desktop",
+      "skin": "serious",
+      "w": 2880,
+      "h": 1800,
+      "frames": 150,
+      "fps": 30,
+      "songAt": 12.933
+    },
+    "studio-alto-phone": {
+      "id": "studio-alto-phone",
+      "size": "phone",
+      "skin": "serious",
+      "w": 780,
+      "h": 1688,
+      "frames": 150,
+      "fps": 30,
+      "songAt": 22.495
+    },
+    "studio-bass": {
+      "id": "studio-bass",
+      "size": "desktop",
+      "skin": "serious",
+      "w": 2880,
+      "h": 1800,
+      "frames": 150,
+      "fps": 30,
+      "songAt": 31.05
     },
     "tuner": {
       "id": "tuner",
@@ -139,6 +381,16 @@
         "w": 0.3611,
         "h": 0.8489
       }
+    },
+    "tuner-live": {
+      "id": "tuner-live",
+      "size": "desktop",
+      "skin": "serious",
+      "w": 1040,
+      "h": 1555,
+      "lifted": true,
+      "frames": 120,
+      "fps": 30
     }
   }
 }

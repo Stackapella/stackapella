@@ -36,11 +36,28 @@ def journey(f):
             assert f.js("document.querySelector('h1').compareDocumentPosition(document.querySelector('[data-ui=ref-card]')) & Node.DOCUMENT_POSITION_FOLLOWING"), f"{path}: the heading before the card"
             assert f.js("document.querySelector('header.s-top .s-brand').getAttribute('href')") == f"/?ref={family}", f"{path}: the logo's tag"
             assert f.js("document.querySelectorAll('[data-ui=ref-card] [data-ui=keyboard] [data-marked], [data-ui=ref-card] [data-marked]').length > 0"), f"{path}: notes marked on the keyboard"
-            assert f.js("document.querySelector('[data-ui=ref-facts]').textContent.trim().length > 0"), f"{path}: the facts"
+            assert f.js("document.querySelector('[data-ui=ref-facts], .s-vt-facts').textContent.trim().length > 0"), f"{path}: the facts"
+            if family == "voice-types":
+                voice_type(f, path)
             # Every play button sounds without an error (the flow fails on any page error).
             f.run("document.querySelectorAll('[data-ui=ref-card] [data-plays] button').forEach((b) => b.click())")
             if i in (2, 3) and family != "voice-types" or (family == "voice-types" and i == 2):
                 f.shot(path.strip("/").replace("/", "-"))
+
+
+def voice_type(f, path):
+    """A voice type in Hillel's design (2026-11-11): its card bare beside its facts, every type on one scale with itself
+    lit, its song parts as bars inside its range, the contents only from 900 px, and no button's label ever wrapping."""
+    assert not f.js("document.querySelector('[data-ui=ref-card] [data-ui=ref-staff], [data-ui=ref-card] [data-ui=ref-facts], [data-ui=ref-find]')"), f"{path}: the card is bare"
+    rungs = json.loads(f.js("JSON.stringify([...document.querySelectorAll('.s-vt-ladder a')].map((a) => [a.getAttribute('href'), a.getAttribute('aria-current')]))"))
+    assert len(rungs) == 6 and [h for h, c in rungs if c == "page"] == [path], f"{path}: the ladder {rungs}"
+    bars = f.js("[...document.querySelectorAll('.s-vt-bar')].every((b) => { const t = b.parentElement.getBoundingClientRect(), r = b.getBoundingClientRect(); return r.width > 0 && r.left >= t.left - 1 && r.right <= t.right + 1; })")
+    assert bars, f"{path}: every bar inside its track"
+    wide = f.js("innerWidth >= 900")
+    assert f.js("getComputedStyle(document.querySelector('.s-vt-toc')).display !== 'none'") == wide, f"{path}: the contents only from 900 px"
+    # A label never wraps: each button is one line tall and nothing overflows it (Hillel, 2026-11-11).
+    wraps = json.loads(f.js("JSON.stringify([...document.querySelectorAll('.s-vt-btns a, [data-ui=ref-card] [data-plays] button')].filter((b) => b.scrollWidth > b.clientWidth + 1 || b.getBoundingClientRect().height > 64).map((b) => b.textContent.trim()))"))
+    assert wraps == [], f"{path}: labels wrapping {wraps}"
 
 
 run("site_reference", journey)

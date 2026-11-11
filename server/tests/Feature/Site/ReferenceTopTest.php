@@ -49,6 +49,7 @@ final class ReferenceTopTest extends TestCase
         foreach (Reference::rows('intervals') as $row) {
             $this->assertNotSame('-', $row['line']);
         }
-        $this->get('/voice-types/alto')->assertOk()->assertSee('class="s-card s-ref-fam"', false);
+        // A voice type has its own page (VoiceTypePageTest); a chord keeps the family grid.
+        $this->get('/chords/minor')->assertOk()->assertSee('class="s-card s-ref-fam"', false);
     }
 }

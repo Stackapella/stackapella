@@ -20,6 +20,14 @@ use Illuminate\Contracts\Translation\Loader;
  */
 final class TranslationMaps implements Loader
 {
+    /**
+     * Keys whose values are names the code reads, never words (a drawing's name, a part's key, an anchor, a guide's
+     * slug): a bare slug under one of these is never translated, whatever the map says, since the same English word
+     * may be text elsewhere (the courses lead, 2026-11-11: "groups" and "alto" would have become "grupos" and
+     * "contralto"). Matched on the key path's end.
+     */
+    private const IDENTIFIERS = ['pic', 'demo.part', 'demo.you', 'at', 'guide', 'slug', 'shot', 'icon', 'kind', 'song', 'flag', 'app'];
+
     public function __construct(private readonly Loader $files, private readonly string $langPath) {}
 
     /**
@@ -55,7 +63,7 @@ final class TranslationMaps implements Loader
                 continue;
             }
 
-            if (! is_string($value)) {
+            if (! is_string($value) || self::identifier($here, $value)) {
                 $out[$key] = $value;
 
                 continue;
@@ -71,6 +79,25 @@ final class TranslationMaps implements Loader
         }
 
         return $out;
+    }
+
+    /**
+     * Whether a value is a name the code reads: under one of IDENTIFIERS' keys, and a bare lower-case slug (the same
+     * keys hold real text elsewhere, "About the song", "Open the app", which is translated).
+     */
+    public static function identifier(string $path, string $value): bool
+    {
+        if (preg_match('/^[a-z0-9][a-z0-9-]*$/', $value) !== 1) {
+            return false;
+        }
+
+        foreach (self::IDENTIFIERS as $end) {
+            if ($path === $end || str_ends_with($path, '.'.$end)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**

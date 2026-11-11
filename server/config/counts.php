@@ -14,6 +14,8 @@ declare(strict_types=1);
 */
 
 $selfHosted = filter_var(env('SELF_HOSTED', false), FILTER_VALIDATE_BOOL);
+// What can be shared (sh:<surface>.<method>); each surface's source tag is share-<surface>.
+$shareSurfaces = ['song', 'lesson', 'note', 'daily', 'invite', 'challenge', 'group', 'class', 'arrangement', 'warmup', 'app', 'embed', 'page-song', 'page-part', 'page-course', 'page-lesson', 'page-carols'];
 $on = env('USAGE_COUNTS');
 
 return [
@@ -62,6 +64,23 @@ return [
         'home_today_stuck_shown', 'home_today_stuck_tap', 'home_today_daily_shown', 'home_today_daily_tap',
         // Melody first: what the app suggested, and whether the singer changed it.
         'sug_melody', 'sug_part', 'sug_switch',
+        // The improvement loop (docs/retention-plan.md, section 8): a device back on exactly day 1, 7, 14 or 30
+        // after it first arrived, and once on any of days 1 to 6 (back_w1).
+        'back_d1', 'back_d7', 'back_d14', 'back_d30', 'back_w1',
+        // The thread back: a lesson's "come back" link and calendar reminder tapped, and the nudge's Not now.
+        'back_link_tap', 'back_cal_tap', 'ask_nudge_not',
+        // New and in season on Home: the card shown, and tapped.
+        'home_new_shown', 'home_new_tap',
+        // The paths the drop-off report reads (docs/retention-plan.md, section 8, "Measure"), each a device's first:
+        // a song in Sing, from a lesson into a song and back, the creator, choir groups, a part page into the app,
+        // and a share opened and sung.
+        'sing_open', 'sing_listen', 'sing_along', 'sing_own', 'sing_scored', 'sing_kept', 'song_part2', 'song_part3',
+        'lesson_song_open', 'lesson_song_back',
+        'cr_open', 'cr_notes', 'cr_part2', 'cr_saved', 'cr_shared',
+        'grp_start', 'grp_made', 'grp_link', 'grp_joined', 'grp_assigned', 'grp_sang',
+        'part_sing', 'share_opened', 'invite_sung',
+        // Weekly use of what section 2 found under-used, once a device a week (read against app_week).
+        'use_library', 'use_song_course', 'use_course', 'use_workout', 'use_boss', 'use_studio', 'use_group', 'use_tools', 'remind_on',
     ],
 
     // Kinds with a detail, "<prefix>:<id>", counted only when the id is a real one (a course in
@@ -75,7 +94,34 @@ return [
         // A free-course lesson's step reached, "fs_r:<lessonId>.<step>" (step from 0, as the lesson
         // lists them, a variant's too): where a lesson's singers stop (2026-11-11, the courses lead).
         'fs_r' => 'free_steps',
+        // Every other course (the Plus and song courses), lesson by lesson and step by step, as the free course is
+        // (docs/retention-plan.md, section 8): cl_s:<lessonId> started, cl_d:<lessonId> finished,
+        // cs_r:<lessonId>.<step> reached. Lesson ids are unique across every course, so no course id is needed.
+        'cl_s' => 'course_lessons',
+        'cl_d' => 'course_lessons',
+        'cs_r' => 'course_steps',
+        // Breadth (docs/retention-plan.md, section 8): a feature's first use on a device, ft:<feature>; and
+        // how many features a device has tried, br:<n> (0 to 11), once a device a day beside app_day.
+        'ft' => 'features',
+        'br' => 'breadth',
+        // A share, sh:<surface>.<method>: what was shared and how (config counts.share_surfaces and share_methods;
+        // a free tool's surface is tool-<slug>).
+        'sh' => 'shares',
+        // A free tool's result reached, and its way into the app tapped: tool_result:<slug>, tool_try:<slug>.
+        'tool_result' => 'tools',
+        'tool_try' => 'tools',
+        // The "try next" line (breadth's nudge): shown and tapped, by feature.
+        'try_shown' => 'features',
+        'try_tap' => 'features',
     ],
+
+    // The features breadth counts (ft:<feature>), each a device's first use.
+    'features' => ['lesson', 'warmup', 'singalong', 'record', 'stack', 'whole', 'course', 'create', 'share', 'together', 'tool'],
+
+    // What can be shared, and how (sh:<surface>.<method>); each surface's own source tag is share-<surface>
+    // (a tool's, share-<slug>, as it already was).
+    'share_surfaces' => $shareSurfaces,
+    'share_methods' => ['sheet', 'copy', 'video', 'image', 'embed'],
 
     // Kinds only the server counts, never taken from counts.create: the mudeo email's link opened in
     // a browser, and someone who came from it making a first song or finishing a lesson (Hillel,
@@ -85,7 +131,12 @@ return [
     // Growth's sources (docs/admin-growth-plan.md): the campaign tags of our own ?ref= links, kept
     // as written. Any other tag is grouped (h-* "harmony", c-* "coach", else "other"), so no
     // harmony's or coach's id, and no one-off tag, is ever kept. A new campaign adds its tag here.
-    'sources' => ['hn', 'mudeo', 'songs', 'song-page', 'part-page', 'carols', 'lesson-page', 'course-page', 'features-course', 'lesson-try', 'warmups', 'intervals', 'chords', 'voice-types', 'tools', 'tools-embed', 'share-range', 'share-pitch-matching', 'share-interval-ear-training', 'share-chord-ear-training', 'share-lesson', 'for-choir-directors', 'features-choirs', 'social', 'reddit', 'producthunt', 'newsletter', 'press'],
+    'sources' => ['hn', 'mudeo', 'songs', 'song-page', 'part-page', 'carols', 'lesson-page', 'course-page', 'features-course', 'lesson-try', 'warmups', 'intervals', 'chords', 'voice-types', 'tools', 'tools-embed', 'share-range', 'share-pitch-matching', 'share-interval-ear-training', 'share-chord-ear-training', 'share-lesson', 'for-choir-directors', 'features-choirs', 'social', 'reddit', 'producthunt', 'newsletter', 'press',
+        // The improvement loop: the verify email's next lesson, the day's part (/today), and the thread back.
+        'welcome', 'today', 'back-link', 'back-calendar',
+        // Each share surface's tag (share-lesson was already one; never folded, as every share- tag).
+        ...array_values(array_diff(array_map(static fn (string $surface): string => 'share-'.$surface, $shareSurfaces), ['share-lesson'])),
+    ],
     // The onboarding funnel (App\Actions\Counts\Funnel, docs/onboarding-review.md section 4): each a
     // device's first, counted once per device by the app (f_site_start by the landing), in the
     // funnel's order. Arrivals are f_arrive plus f_arrive_start (one or the other, never both).
@@ -106,7 +157,9 @@ return [
     // acct_course_<place>: the course's account ask by where it was met (the home's lesson card, a
     // lesson, the course map, a course's page), beside acct_course's total; its Not now is the total's alone.
     'asks' => ['install', 'account', 'name', 'share', 'goal', 'remind', 'acct_week', 'acct_songs', 'acct_unit', 'acct_risk', 'acct_settings', 'acct_course',
-        'acct_course_home', 'acct_course_lesson', 'acct_course_map', 'acct_course_page'],
+        'acct_course_home', 'acct_course_lesson', 'acct_course_map', 'acct_course_page',
+        // The thread back's nudge (docs/retention-plan.md; its Not now is ask_nudge_not in kinds).
+        'nudge'],
 
     // The A/B experiments are in the registry (the experiments table, Admin > Experiments;
     // docs/experiments-plan.md), not here. A test is read by, and guarded with, funnel steps.
@@ -121,6 +174,11 @@ return [
         'claudebot', 'claude-user', 'claude-searchbot', 'perplexitybot', 'ccbot', 'amazonbot', 'meta-externalagent', 'facebookexternalhit',
         'twitterbot', 'linkedinbot', 'slackbot', 'discordbot', 'telegrambot', 'whatsapp', 'pinterestbot', 'chrome-lighthouse',
     ],
+
+    // The weekly drop-off report (App\Actions\Growth\Dropoffs; docs/retention-plan.md, "Detect"): a step fewer than
+    // `floor` devices reached in the week is "too few to tell", never a drop; a drop is a pass-through more than
+    // `margin` below its neighbours' median or its own four weeks before. Set with the coordinator at the first review.
+    'dropoffs' => ['floor' => 30, 'margin' => 0.15],
 
     // Changes in what's counted that make the days before read differently (docs/growth-compare-plan.md,
     // section 6): Growth says so beside a comparison whose baseline lies before one. Never adjusted.

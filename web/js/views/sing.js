@@ -64,7 +64,7 @@ import { appearance } from '../stores/appearance.js';
 import { phraseBests, scoreSummary, sinceLast } from '../report.js';
 import { bleedCheck } from '../quality.js';
 import * as db from '../db.js';
-import { counted as countDone, learning, loadLearning, pickRange, remember } from '../stores/learning.js';
+import { SONG_USED_SECONDS, counted as countDone, findLesson, learning, loadLearning, loadPlusCourses, pickRange, remember } from '../stores/learning.js';
 import { TrimSheet } from '../components/trim.js';
 import { heardSpan } from '../trim.js';
 // The part's board after a take: game mode's only, loaded with game mode.
@@ -93,7 +93,7 @@ export const SingView = {
     components: { DailyShare, RingMeter, VoiceCareLine, TimingLine, PopupSlot, TakeBest, IdeaVoice, PhraseStage, Chooser, Stage, RecordingStage, Lane, NowCard, Coach, StepDone, JustRecorded, LineBar, ModeBar, SingHeader, Transport, TurnBand, PartSheet, SettingsSheet, HeadphonesDialog, TimingDialog, RangeDialog, Icon, VoiceNote, ResingSheet, ResungCard, TrimSheet, WhatsNext, LockedBanner, ShareSheet },
     props: { id: { type: String, required: true } },
     setup: () => ({ ...toRefs(session), audio, formatTime, shownTitle, prefs, game, effect }),
-    data: () => ({ crt: false, ghostTake: null, pendingGhost: null, hud: popupQueue(), viewPicked: false, readied: null, combo: 0, hintState: { hint: null }, voice: voiceFollower(), dialog: null, choosing: false, recorded: null, said: '', suggested: null, celebrated: null, lining: false, lined: null, resingPlanned: null, resung: null, takeNumbers: {}, fitSuggestion: null, ring: null, ringChord: '' }),
+    data: () => ({ crt: false, ghostTake: null, pendingGhost: null, hud: popupQueue(), viewPicked: false, readied: null, combo: 0, hintState: { hint: null }, voice: voiceFollower(), dialog: null, choosing: false, recorded: null, said: '', suggested: null, celebrated: null, lining: false, lined: null, resingPlanned: null, resung: null, takeNumbers: {}, fitSuggestion: null, ring: null, ringChord: '', lessonStep: null, lessonOpening: false }),
     template: `
         <div class="flex h-dvh flex-col bg-ink" :data-paused="paused ? '' : null">
             <p class="sr-only" aria-live="polite">{{ said }}</p>
@@ -106,6 +106,8 @@ export const SingView = {
                 <p class="text-cream">{{ t('sing.notTemplate') }}</p>
                 <button type="button" class="btn-primary mt-4" @click="navigate('/')">{{ t('common.backToProjects') }}</button>
             </div>
+            <!-- A lesson's song (Hillel agreed, 2026-11-11): no chooser and no part picker, the step's part and way set while its lesson is read. -->
+            <p v-else-if="lessonOpening" class="m-auto text-muted" role="status">{{ t('sing.loading') }}</p>
             <Chooser v-else-if="choosing || !way || !focusPart" :parts="partChoices" :transpose="project.transpose || 0" :way="choosing ? null : way" :suggested="suggested"
                 :title="shownTitle(project)" :focus="focusPart ? { slot: focusPart, name: partName, range: templatePart(focusPart)?.range ?? null } : null" :bpm="project.bpm" :phrases="phraseRows.length" :length="lengthSeconds" :auto="!choosing"
                 @choose="choose" @range="dialog = 'range'" @back="leave" @studio="openStudio" />
@@ -125,6 +127,10 @@ export const SingView = {
                     :recording="recording" :recorded-seconds="recordedSeconds" :count-in="countIn" :about="about" :badge="settingsBadge"
                     @back="leave" @part="dialog = 'part'" @settings="dialog = 'settings'" :marked="hearingChanged" />
                 <LockedBanner v-if="locked" :reason="locked" class="mx-4 mt-2 md:mx-6" />
+                <!-- A lesson's step done here (sung long enough, or recorded): the way back, where its Finish now waits. Secondary: the coach keeps the one primary. -->
+                <div v-if="lessonDone && !recording" class="mx-4 mt-2 flex justify-end md:mx-6" data-lesson-back>
+                    <button type="button" class="btn-secondary btn-sm max-sm:w-full" @click="backToLesson"><Icon name="back" :size="16" /> {{ t('sing.lessonBack') }}</button>
+                </div>
                 <ModeBar v-if="!recording && !bandShown && !recorded && !resung && (way === 'whole' || coach.step === 'record')" :class="coaching && !playing ? 'hidden md:flex' : ''" :mode="practice.mode" @mode="setMode" />
                 <VoiceNote v-if="!recording" @use-range="useRange" />
 
@@ -516,6 +522,13 @@ export const SingView = {
         otherNames() {
             return this.parts.filter((p) => p.templatePartKey && p.id !== this.focusPart?.id).map((p) => this.nameOf(p)).join(', ');
         },
+        /** A lesson's step is done in Sing: the lesson's own rule (its checkUse), live while you sing. */
+        lessonDone() {
+            if (!this.lessonStep || !this.focusPart) return false;
+            if (this.lessonStep.kind === 'record') return hasTake(this.focusPart);
+            void this.position; // read as it moves, so the run going on now counts
+            return sessionStore.sungSeconds() >= SONG_USED_SECONDS;
+        },
         partChoices() {
             return this.parts.filter((p) => p.templatePartKey).map((slot) => ({ slot, name: this.nameOf(slot), range: sessionStore.templatePart(slot)?.range ?? null, recorded: hasTake(slot) }));
         },
@@ -721,6 +734,7 @@ export const SingView = {
         }
         sessionStore.setScreen('sing');
         if (this.isTemplate) sessionStore.refreshVoices();
+        if (session.project?.course?.lessonId && this.isTemplate) await this.openForLesson();
         this.pickFitting().catch((error) => console.warn('The part that fits was not picked', error));
     },
     mounted() {
@@ -912,6 +926,44 @@ export const SingView = {
         leave() {
             if (this.recording) return;
             goBack(this.project?.course ? `/learn/${this.project.course.lessonId}` : '/');
+        },
+        /**
+         * Opened from a lesson's song step (Hillel's "Both", 2026-11-11; the free course's 4-words had 12 starts and 1
+         * finish): no chooser and no part picker. The step's part, part by part, on Sing along with its first phrase
+         * ready to play (a use step), or on Record (a record step). A step that can't be found opens Sing as usual.
+         */
+        async openForLesson() {
+            const lessonId = this.project.course.lessonId;
+            this.lessonOpening = true;
+            try {
+                await loadLearning();
+                let entry = findLesson(lessonId);
+                if (!entry) {
+                    await loadPlusCourses();
+                    entry = findLesson(lessonId);
+                }
+                const songId = this.project.template?.id;
+                const step = (entry?.lesson.steps ?? []).find((s) => (s.kind === 'use' || s.kind === 'record') && (s.template ?? s.courseSong?.replace(/^.*\/|\.json$/g, '')) === songId);
+                if (!step) return;
+                const key = step.part === 'all' ? null : [step.part].flat()[0];
+                const slot = this.parts.find((p) => p.templatePartKey && p.templatePartKey === key) ?? this.focusPart ?? this.parts.find((p) => p.templatePartKey);
+                if (!slot) return;
+                if (this.focusPart?.id !== slot.id) sessionStore.practise(slot);
+                this.sing({ way: 'parts', fitSaid: true, keyChosen: true }); // the lesson fitted the key when it made the song
+                this.lessonStep = step;
+                await this.setStep(step.kind === 'record' ? 'record' : 'singAlong');
+                if (step.kind !== 'record') this.readied = step.phrases?.[0] ?? 0;
+            } catch (error) {
+                console.warn("The lesson's step was not read: Sing opens as usual", error);
+            } finally {
+                this.lessonOpening = false;
+            }
+        },
+        /** Back to the lesson, its step done: what was sung saved first, so the lesson's Finish is ready when it opens. */
+        async backToLesson() {
+            if (this.playing) await sessionStore.stopPlayback();
+            await sessionStore.persist(async () => {});
+            goBack(`/learn/${this.project.course.lessonId}`);
         },
         /** The studio, to mix, edit and export: one tap from Sing, never where leaving Sing lands by itself. */
         openStudio() {

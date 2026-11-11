@@ -19,6 +19,8 @@ import { courseLessons, courseOf, recordCourseLesson, restartedCourseProgress } 
 import { recordBoss, unitOfBoss } from '../boss.js';
 import { coursePart, lessonForPart, partsOf } from '../course-parts.js';
 
+/** Singing in a lesson's song this long does the step that uses it (the lesson's checkUse, and Sing's Back to the lesson). */
+export const SONG_USED_SECONDS = 20;
 export const KEY_REACH = 6; // Lower and Higher go this many semitones either way from the note that fits
 // `course` is the free course; `catalogue` lists the Plus courses and `courses` holds each live one's
 // data by id (js/courses.js, docs/plus-courses-build-plan.md).

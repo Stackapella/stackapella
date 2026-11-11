@@ -430,7 +430,43 @@ def course(path, seen, clip_ids, unplayable, facts):
                 unplayable[lid] = sorted(flutter)
         if "boss" in unit:
             boss(f"{name} {unit.get('id')}", unit["boss"], seen, path, clip_ids)
+        if "song" in unit:
+            unit_song(f"{name} {unit.get('id')} song", unit["song"], first=unit is data["units"][0] and path.name == "course.json" and path.parent.name == "course")
     return lessons
+
+
+def unit_song(where, s, first):
+    """A unit's song (steps.json unitSong): an open song, its part ("melody" or a part key), an optional syllable, and its
+    two lines in both skins. The free course's first unit offers it to guests, so its song must be bundled (web/templates)."""
+    spec = FORMAT["unitSong"]
+    if not isinstance(s, dict):
+        problem(where, "song is { template, part, title, text }")
+        return
+    known(where, s, spec["fields"])
+    t = template(s.get("template"))
+    if t is None:
+        problem(where, f"template '{s.get('template')}' isn't a song here")
+        return
+    if t.get("reviewed") is not True or t.get("withdrawn") or t.get("owner"):
+        problem(where, f"template '{s['template']}' isn't open (reviewed, not withdrawn, no owner)")
+    if first and not (WEB / "templates" / f"{s['template']}.json").exists():
+        problem(where, f"the first unit's song is offered to guests, so '{s['template']}' must be a bundled song (web/templates)")
+    keys = [p.get("key") for p in t.get("parts", [])]
+    if s.get("part") == "melody":
+        if not any(p.get("melody") for p in t.get("parts", [])):
+            problem(where, f"'{s['template']}' has no melody part")
+    elif s.get("part") not in keys:
+        problem(where, f"part '{s.get('part')}' isn't one of {keys} or \"melody\"")
+    if "syllable" in s and s["syllable"] not in spec["syllables"]:
+        problem(where, f"syllable is one of {spec['syllables']}")
+    for key in ("title", "text"):
+        if not is_words(s.get(key)):
+            problem(where, f"'{key}' must be {{ \"en\": \"...\" }}")
+    if "game" in s:
+        g = s["game"]
+        if not isinstance(g, dict) or set(g) != {"title", "text"} or not all(is_words(g.get(k)) for k in ("title", "text")):
+            problem(where, "game is { title, text }, each { \"en\": \"...\" }")
+    words(where, {"title": s.get("title"), "text": s.get("text"), **({"game": s["game"]} if isinstance(s.get("game"), dict) else {})})
 
 
 BOSS_KINDS = ("play",)  # a boss is one go: a record step would leave it for Sing

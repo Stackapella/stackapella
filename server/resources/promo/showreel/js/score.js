@@ -11,9 +11,19 @@ export const BPM = 80;
 export const SPB = 60 / BPM;
 export const VERSE = 48; // the template's verse, its one-beat pickup included
 export const PASS2 = VERSE; // where the second time through starts
-export const HOLD = 6; // the last chord, held two more bars
-export const BEATS = 2 * VERSE + HOLD;
+// v5's three cuts (docs/showreel-v5-plan.md), picked with ?cut=: the hero (the verse twice, 76.5 s), the short
+// (verse one and the held chord, 40.5 s, for Reddit and social) and the social (vertical, phrases three and
+// four with a voice joining each half phrase, 19.75 s). The film runs on the song's clock: FROM is the
+// song's beat at the film's first frame, END the beat it loops on.
+const CUTQ = new URLSearchParams(location.search).get('cut');
+export const CUT = ['hero', 'short', 'social'].includes(CUTQ) ? CUTQ : 'hero';
+export const PASSES = CUT === 'hero' ? 2 : 1;
+export const FROM = CUT === 'social' ? 24 : 0;
+export const HOLD = CUT === 'social' ? 7 / 3 : 6; // the last chord held on: two bars, or the social's 1.75 s
+export const END = PASSES * VERSE + HOLD;
+export const BEATS = END - FROM; // the film's length in beats
 export const DUR = BEATS * SPB;
+export const DURS = { hero: 76.5, short: 40.5, social: 19.75 };
 export const sec = (beat) => beat * SPB;
 export const beatAt = (t) => t / SPB;
 export const PARTS = ['soprano', 'alto', 'tenor', 'bass'];
@@ -25,7 +35,7 @@ export const S = { song: null, parts: null, chords: null, phrases: null, voice: 
 export async function load() {
     const song = await (await fetch('/web/templates/amazing-grace.json')).json();
     S.song = song;
-    const twice = (list) => [0, 1].flatMap((pass) => list.map((x) => ({ ...x, beat: x.beat + pass * PASS2, pass })));
+    const twice = (list) => [0, 1].slice(0, PASSES).flatMap((pass) => list.map((x) => ({ ...x, beat: x.beat + pass * PASS2, pass })));
     S.parts = PARTS.map((key) => twice(song.parts.find((p) => p.key === key).guide.notes));
     for (const notes of S.parts) notes[notes.length - 1].length += HOLD;
     S.chords = twice(song.chords);
@@ -113,18 +123,29 @@ export const chordName = (c) => NAMES[c.root] + (c.quality === 'min' ? 'm' : c.q
  * at each phrase; the second, all four sing from the pickup.
  */
 export const CUE = {
-    enter: [0, 12, 24, 36],      // when each voice joins (the alto, tenor and bass lanes slide in)
-    share: 42,                   // the first time's last line: the share card
-    copied: 42.75,               // "Link copied."
-    friends: [43.5, 44.5, 45.5], // friends take the alto, the tenor, the bass
-    all: 88,                     // "now I", the second time: everyone, wide
-    end: 91,                     // "see.": the mark and the end card
-    fold: [BEATS - 3, BEATS - 0.8], // everything folds back into the one voice
+    // when each voice joins: its lane ignites, its voice fades in at its first note from here (the social
+    // cut joins a voice every half phrase, from phrase three)
+    enter: CUT === 'social' ? [24, 30, 36, 42] : [0, 12, 24, 36],
+    // v5's share card, in verse two: you, then Maya, Sam and Leo take the other parts, a beat each
+    share: 72,
+    friends: [74, 75, 76],
+    copied: 73,
+    all: (PASSES - 1) * VERSE + 40, // "now I", the last time: everyone
+    end: (PASSES - 1) * VERSE + 43, // "see.": the mark and the end card
+    fold: [END - 3, END - 0.8],     // everything folds back into the one voice
 };
 
 /**
+ * When part `i` is let in, in song seconds: its voice fades in over JOIN_RAMP from just before its first
+ * note at its entry (the soundtrack's gate; v5's lane ignites on what is then heard, loud.js onsetAt).
+ */
+export const JOIN_LEAD = 0.16, JOIN_RAMP = 0.12;
+const firstFrom = (i, beat) => S.parts[i].find((n) => n.beat >= beat - 1e-6 && n.pass === 0);
+export const joinAt = (i) => sec(firstFrom(i, CUE.enter[i]).beat) - JOIN_LEAD;
+
+/**
  * The captions track (WebVTT): a cue for each phrase, with the line the singers sing and who joins,
- * and the credit over the last chord. The bass sings on "oo", the others the words.
+ * The bass sings on "oo", the others the words.
  */
 const HEARD = [
     'A real singer sings the tune',
@@ -139,16 +160,18 @@ const HEARD = [
 export function vtt() {
     const stamp = (s) => `${String(Math.floor(s / 60)).padStart(2, '0')}:${(s % 60).toFixed(3).padStart(6, '0')}`;
     const out = ['WEBVTT', ''];
+    // the social cut is for platforms that caption it themselves: its lines are in the picture
+    if (CUT === 'social') return out.join('\n');
     S.phrases.forEach(([b0, b1], k) => {
         let words = '';
         for (const n of S.parts[0]) {
             if (!n.lyric || n.beat < b0 || n.beat >= b1) continue;
             words += n.lyric.endsWith('-') ? n.lyric.slice(0, -1) : `${n.lyric} `;
         }
-        // the last phrase runs on through the held chord
-        const end = k === S.phrases.length - 1 ? DUR : sec(b1);
-        const credit = k === S.phrases.length - 1 && creditLine() ? `\n[${creditLine()}]` : '';
-        out.push(String(k + 1), `${stamp(sec(b0))} --> ${stamp(end - 0.2)}`, `♪ ${words.trim()} ♪`, `[${HEARD[k]}]${credit}`, '');
+        // the last phrase runs on through the held chord (the singer's credit is on the end card, not here)
+        const last = k === S.phrases.length - 1, end = last ? DUR : sec(b1);
+        const heard = last && PASSES === 1 ? `${HEARD[k]}, the last chord held` : HEARD[k];
+        out.push(String(k + 1), `${stamp(sec(b0))} --> ${stamp(end - 0.2)}`, `♪ ${words.trim()} ♪`, `[${heard}]`, '');
     });
     return out.join('\n');
 }

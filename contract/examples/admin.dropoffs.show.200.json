@@ -1,0 +1,121 @@
+{
+    "data": {
+        "latest": {
+            "weekStart": "2026-11-06",
+            "weekEnd": "2026-11-12",
+            "floor": 30,
+            "margin": 0.15,
+            "paths": [
+                {
+                    "path": "lesson:4-words",
+                    "label": "Lesson 4, Words to a tune",
+                    "steps": [
+                        {
+                            "step": "fl_s:4-words",
+                            "label": "started to step 1",
+                            "entered": 120,
+                            "passed": 110,
+                            "passThrough": 0.917,
+                            "before": 0.9,
+                            "tooFew": false,
+                            "neighbours": 0.6,
+                            "fall": -0.017,
+                            "drop": false,
+                            "lost": 0,
+                            "month": {
+                                "entered": 480,
+                                "passed": 440,
+                                "passThrough": 0.917,
+                                "tooFew": false
+                            }
+                        },
+                        {
+                            "step": "fs_r:4-words.0",
+                            "label": "step 1 to step 2",
+                            "entered": 110,
+                            "passed": 40,
+                            "passThrough": 0.364,
+                            "before": 0.42,
+                            "tooFew": false,
+                            "neighbours": 0.917,
+                            "fall": 0.056,
+                            "drop": true,
+                            "lost": 61,
+                            "month": {
+                                "entered": 440,
+                                "passed": 160,
+                                "passThrough": 0.364,
+                                "tooFew": false
+                            }
+                        },
+                        {
+                            "step": "fs_r:4-words.1",
+                            "label": "step 2 to finished",
+                            "entered": 40,
+                            "passed": 12,
+                            "passThrough": 0.3,
+                            "before": null,
+                            "tooFew": false,
+                            "neighbours": 0.64,
+                            "fall": null,
+                            "drop": true,
+                            "lost": 14,
+                            "month": {
+                                "entered": 160,
+                                "passed": 48,
+                                "passThrough": 0.3,
+                                "tooFew": false
+                            }
+                        }
+                    ]
+                }
+            ],
+            "worst": [
+                {
+                    "path": "lesson:4-words",
+                    "pathLabel": "Lesson 4, Words to a tune",
+                    "step": "fs_r:4-words.0",
+                    "label": "step 1 to step 2",
+                    "entered": 110,
+                    "passed": 40,
+                    "passThrough": 0.364,
+                    "before": 0.42,
+                    "tooFew": false,
+                    "neighbours": 0.917,
+                    "fall": 0.056,
+                    "drop": true,
+                    "lost": 61,
+                    "month": {
+                        "entered": 440,
+                        "passed": 160,
+                        "passThrough": 0.364,
+                        "tooFew": false
+                    }
+                },
+                {
+                    "path": "lesson:4-words",
+                    "pathLabel": "Lesson 4, Words to a tune",
+                    "step": "fs_r:4-words.1",
+                    "label": "step 2 to finished",
+                    "entered": 40,
+                    "passed": 12,
+                    "passThrough": 0.3,
+                    "before": null,
+                    "tooFew": false,
+                    "neighbours": 0.64,
+                    "fall": null,
+                    "drop": true,
+                    "lost": 14,
+                    "month": {
+                        "entered": 160,
+                        "passed": 48,
+                        "passThrough": 0.3,
+                        "tooFew": false
+                    }
+                }
+            ],
+            "falls": []
+        },
+        "previous": null
+    }
+}

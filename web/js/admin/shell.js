@@ -87,42 +87,52 @@ export const SECTIONS = [
     { name: 'code-watch', group: 'settings', path: '/admin/code-watch', label: tk('admin.nav.codeWatch'), hint: tk('admin.nav.codeWatchHint'), icon: 'shield', role: 'admin' },
 ];
 
+const GREETINGS = { morning: tk('admin.home.greeting.morning'), afternoon: tk('admin.home.greeting.afternoon'), evening: tk('admin.home.greeting.evening') };
+
 const HomeSection = {
     components: { Icon, NeedsCard, StatusChip, StoreTestersCard },
     props: { me: { type: Object, required: true }, groups: { type: Array, required: true }, overview: { type: Object, default: null } },
     setup: () => ({ formatNumber }),
     template: `
         <div class="space-y-6">
-            <h1 class="text-2xl font-extrabold tracking-tight text-cream">{{ t('admin.home.title') }}</h1>
-            <!-- First after a deploy: what needs you to get real voices live (admin/needs.js). -->
-            <NeedsCard :outreach="overview?.outreach ?? null" :not-synced="overview?.songsNotSynced ?? []" :sitemap="overview?.sitemapProblems ?? []" />
-            <section class="card p-6" aria-labelledby="me-heading">
-                <h2 id="me-heading" class="text-lg font-bold text-cream">{{ t('admin.home.signedInAs', { name: me.name }) }}</h2>
-                <p class="mt-1 text-sm text-muted" translate="no">{{ me.email }}</p>
-                <div class="mt-3 flex flex-wrap gap-2">
-                    <StatusChip tone="info" :label="me.role === 'admin' ? t('admin.role.admin') : t('admin.role.editor')" />
-                    <StatusChip :tone="sudo ? 'good' : 'muted'" :label="sudo ? t('admin.home.sudoUntil', { time: formatDate(me.sudoUntil, { timeStyle: 'short' }) }) : t('admin.home.noSudo')" />
+            <!-- Hillel's Home layout (2026-11-11): it opens on him and what needs him. The day,
+                 then a greeting by the time of day; the account and its role at the far right of the same row. -->
+            <header class="flex flex-wrap items-end justify-between gap-x-4 gap-y-2" data-home-head>
+                <div class="min-w-0">
+                    <p class="text-sm text-muted" data-home-date><time :datetime="todayIso">{{ today }}</time></p>
+                    <h1 class="mt-1 text-2xl font-extrabold tracking-tight text-cream sm:text-3xl" data-home-greeting>{{ greeting }}</h1>
                 </div>
-            </section>
-            <!-- Growth at a glance (docs/admin-analytics-plan.md, slice 1): Growth Overview's cards, the last 7 days
-                 against the 7 before where the server sends them, and the songs finished so far. -->
+                <div class="flex min-w-0 flex-wrap items-center gap-2.5 text-sm text-muted">
+                    <span class="min-w-0 break-all" translate="no">{{ me.email }}</span>
+                    <StatusChip tone="info" :label="me.role === 'admin' ? t('admin.role.admin') : t('admin.role.editor')" />
+                </div>
+            </header>
+            <!-- A change needs a fresh second-factor check: one line, only while it applies (it was a chip on a card). -->
+            <p v-if="!sudo" class="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-xl border border-warn/40 bg-warn/10 px-4 py-3 text-sm" data-home-sudo>
+                <span class="size-2 shrink-0 rounded-full bg-warn" aria-hidden="true"></span>
+                <span class="min-w-0 flex-1 text-cream">{{ t('admin.home.sudoNeeded') }}</span>
+                <a :href="sudoPath" class="tap-44 inline-flex items-center gap-1 font-semibold text-warn hover:underline">{{ t('admin.home.sudoConfirm') }}<span aria-hidden="true" class="rtl:-scale-x-100">→</span></a>
+            </p>
+            <!-- What needs you now (admin/needs.js): a card for each kind that has something, side by side from 900 px. -->
+            <NeedsCard :outreach="overview?.outreach ?? null" :not-synced="overview?.songsNotSynced ?? []" :sitemap="overview?.sitemapProblems ?? []" />
+            <!-- The last 7 days against the 7 before (docs/admin-analytics-plan.md, slice 1), as Hillel drew it: one ruled
+                 panel, each a label over a big number with its change small beside it; five across from 900 px, two on a
+                 phone. The two all-time counts say so, since they aren't the week's. -->
             <section v-if="overview?.growth && me.role === 'admin'" class="space-y-3" aria-labelledby="home-growth-heading" data-home-growth>
-                <div class="flex flex-wrap items-baseline justify-between gap-2">
-                    <h2 id="home-growth-heading" class="text-lg font-bold text-cream">{{ t('admin.home.growth.title') }}</h2>
+                <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+                    <h2 id="home-growth-heading" class="text-xl font-bold text-cream">{{ t('admin.home.growth.title') }} <span class="ms-1 text-sm font-normal text-muted">{{ t('admin.home.growth.vsBefore') }}</span></h2>
                     <a href="/admin/growth" class="link tap-44 inline-flex min-h-6 items-center gap-1 text-sm" @click.prevent="navigate('/admin/growth')">{{ t('admin.home.growth.open') }}<span aria-hidden="true" class="rtl:-scale-x-100">→</span></a>
                 </div>
-                <ul class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                    <li v-for="tile in growthTiles" :key="tile.key" class="card flex flex-col p-4 sm:p-5" :data-tile="tile.key">
-                        <p class="text-sm text-muted">{{ tile.label }}</p>
-                        <p class="mt-2 text-3xl font-extrabold tabular-nums text-cream sm:text-4xl" data-tile-value>{{ formatNumber(tile.value) }}</p>
-                        <div class="mt-auto pt-4"><dl class="space-y-1 border-t border-line pt-3 text-sm">
-                            <div class="flex items-center justify-between gap-3" data-change :data-dir="tile.dir">
-                                <dt class="text-muted">{{ tile.against }}</dt>
-                                <dd class="font-semibold tabular-nums" :class="tile.dir === 'up' ? 'text-up' : tile.dir === 'down' ? 'text-down' : 'text-muted'"><span v-if="tile.dir === 'up' || tile.dir === 'down'" class="me-1" aria-hidden="true">{{ tile.dir === 'up' ? '↑' : '↓' }}</span>{{ tile.text }}</dd>
-                            </div>
-                        </dl></div>
-                    </li>
-                </ul>
+                <dl class="card grid grid-cols-2 overflow-hidden min-[900px]:grid-cols-5" data-home-panel>
+                    <div v-for="tile in growthTiles" :key="tile.key" class="-mb-px -me-px min-w-0 border-b border-e border-line p-4 sm:p-5" :data-tile="tile.key">
+                        <dt class="text-sm text-muted">{{ tile.label }}</dt>
+                        <dd class="mt-2 flex flex-wrap items-baseline gap-x-2.5 gap-y-1">
+                            <span class="text-3xl font-extrabold tabular-nums tracking-tight text-cream sm:text-4xl" data-tile-value>{{ formatNumber(tile.value) }}</span>
+                            <span v-if="tile.week" class="text-sm font-semibold tabular-nums" :class="tile.dir === 'up' ? 'text-up' : tile.dir === 'down' ? 'text-down' : 'text-muted'" :title="tile.against" data-change :data-dir="tile.dir"><span v-if="tile.dir === 'up' || tile.dir === 'down'" class="me-0.5" aria-hidden="true">{{ tile.dir === 'up' ? '↑' : '↓' }}</span>{{ tile.text }}<span class="sr-only"> {{ tile.against }}</span></span>
+                            <span v-else class="text-xs text-muted" data-all-time>{{ tile.against }}</span>
+                        </dd>
+                    </div>
+                </dl>
             </section>
             <section v-if="overview" class="card p-6" aria-labelledby="beta-heading">
                 <h2 id="beta-heading" class="text-lg font-bold text-cream">{{ t('admin.home.beta') }}</h2>
@@ -147,6 +157,16 @@ const HomeSection = {
         sudo() {
             return this.me.sudoUntil && new Date(this.me.sudoUntil) > new Date();
         },
+        /** The second-factor check, back to Home after. */
+        sudoPath: () => `/admin/second-factor?sudo=1&intended=${encodeURIComponent('/admin')}`,
+        today: () => formatDate(new Date(), { weekday: 'long', day: 'numeric', month: 'long' }),
+        todayIso: () => new Date().toLocaleDateString('sv'), // YYYY-MM-DD, this device's day
+        /** Good morning (before noon), afternoon (before 6), or evening, by the first name. */
+        greeting() {
+            const hour = new Date().getHours();
+            const name = (this.me.name ?? '').trim().split(/\s+/)[0] ?? '';
+            return t(GREETINGS[hour < 12 ? 'morning' : hour < 18 ? 'afternoon' : 'evening'], { name });
+        },
         /** The last 7 days (with the change on the 7 before, once the server sends `growth.previous`), then all-time songs. */
         growthTiles() {
             const g = this.overview.growth;
@@ -154,9 +174,9 @@ const HomeSection = {
             const week = (key, label) => {
                 const before = g.previous?.[key];
                 const moved = typeof before === 'number' ? change(g[key] ?? 0, before) : { dir: 'none', text: '-' };
-                return { key, label: t(label), value: g[key] ?? 0, against: t('admin.home.growth.vsWeekBefore'), ...moved };
+                return { key, label: t(label), value: g[key] ?? 0, against: t('admin.home.growth.vsWeekBefore'), week: true, ...moved };
             };
-            const total = (key, label) => ({ key, label: t(label), value: h[key] ?? 0, against: t('admin.home.growth.allTime'), dir: 'none', text: '' });
+            const total = (key, label) => ({ key, label: t(label), value: h[key] ?? 0, against: t('admin.home.growth.allTime'), week: false, dir: 'none', text: '' });
             return [
                 week('signUps', tk('admin.home.growth.signUps')),
                 week('upgrades', tk('admin.home.growth.upgrades')),

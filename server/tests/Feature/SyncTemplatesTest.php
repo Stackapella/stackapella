@@ -126,6 +126,7 @@ final class SyncTemplatesTest extends TestCase
         $hidden = Template::query()->where('slug', 'silent-night')->with('currentVersion')->firstOrFail();
         $this->assertFalse($hidden->currentVersion?->reviewed);
         $this->assertFalse(Catalogue::isOpen($hidden));
+        $this->assertNull($hidden->opened_at);
         $this->get('/songs/silent-night')->assertNotFound();
 
         File::put($this->folder.'/silent-night.json', (string) json_encode([...$song, 'reviewed' => true]));
@@ -140,11 +141,16 @@ final class SyncTemplatesTest extends TestCase
         $this->assertTrue($open->currentVersion?->reviewed);
         $this->assertTrue($open->currentVersion->data['reviewed']);
         $this->assertTrue(Catalogue::isOpen($open));
+        // The day it opened, for Home's "New and in season", kept from then on.
+        $this->assertSame(now()->toDateString(), $open->opened_at?->toDateString());
+        $this->assertSame($open->opened_at->utc()->toIso8601ZuluString(), collect((array) $this->getJson('/api/templates')->json('data'))->firstWhere('id', 'silent-night')['openedAt'] ?? null);
+        $this->travel(3)->days();
         $this->get('/songs/silent-night')->assertOk();
 
-        // Once open, a sync leaves it so.
+        // Once open, a sync leaves it so, its opening day too.
         $this->artisan('app:templates:sync')->expectsOutput('1 unchanged.')->assertSuccessful();
         $this->assertTrue(TemplateVersion::query()->firstOrFail()->reviewed);
+        $this->assertSame($open->opened_at->toDateString(), Template::query()->where('slug', 'silent-night')->firstOrFail()->opened_at?->toDateString());
     }
 
     public function test_the_current_version_is_the_newest_reviewed_one(): void

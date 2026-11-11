@@ -4,7 +4,8 @@
 // pure function of t, so any frame can be rendered alone.
 
 import { E, $, CX, CY, FORMAT, H, LIGHT, Q, W, bump, clamp, hash, lerp, mk, range, set, spring, vis } from './lib.js';
-import { BEATS, CUE, DUR, S, VERSE, beatAt, creditLine, sec, sung, voicing } from './score.js';
+import { CUE, CUT, DUR, END as LAST, FROM, S, SPB, VERSE, beatAt, creditLine, sec, sung, voicing } from './score.js';
+import { loadLoud, loud, onsetAt } from './loud.js';
 import { PART_INK, PART_VAR, T, glow, project, setCam, sparkles, specks } from './stage.js';
 
 const W0 = $('#world');
@@ -23,7 +24,7 @@ const clock = (s) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStar
 /* ================= the lanes ================= */
 // One lane per part, in the part's colour: x is time (PXB a beat), y is pitch (SP a semitone). The
 // gems are big and chunky, as in the arcade lanes: each is taller than two semitones.
-const PXB = 200, SP = 26, GH = 64, GAP = 120, GW = 14;
+const PXB = 200, SP = 26, GH = 64, GAP = 70, GW = 14; // v5: the lanes closer, so the whole stack fits under the line
 const X = (b) => b * PXB;
 const RANGE = [[62, 74], [59, 71], [55, 60], [43, 50]];
 const LANES = (() => {
@@ -40,12 +41,27 @@ const laneSet = mk('div', 'set', W0);
 const laneEls = LANES.map((lane) => {
     const el = mk('div', 'lane', laneSet);
     const lines = mk('div', 'lines', el);
-    lines.style.cssText = `left:${X(-2.4)}px;width:${X(BEATS + 6)}px;top:${lane.top}px;height:${lane.h}px`;
+    lines.style.cssText = `left:${X(-2.4)}px;width:${X(LAST + 6)}px;top:${lane.top}px;height:${lane.h}px`;
+    // v5: the lane's own colour, once its voice has joined (it breathes with that singer's loudness), and the
+    // sweep of colour that ignites it on the downbeat
+    // an empty lane is a debossed glass track, named, waiting for its voice
+    const track = mk('div', 'lane-track', el);
+    track.style.cssText = `left:${X(-2.4)}px;width:${X(LAST + 6)}px;top:${lane.top}px;height:${lane.h}px`;
+    const tint = mk('div', 'lane-tint', el);
+    tint.style.cssText = `left:${X(-2.4)}px;width:${X(LAST + 6)}px;top:${lane.top}px;height:${lane.h}px;--lc:${PART_VAR[lane.i]}`;
+    const sweep = mk('div', 'lane-sweep', el);
+    sweep.style.cssText = `left:0;width:900px;top:${lane.top - 20}px;height:${lane.h + 40}px;--lc:${PART_VAR[lane.i]}`;
     for (let p = lane.lo - 1; p <= lane.hi + 1; p++) mk('i', p % 12 === 0 ? 'c' : '', lines).style.top = `${(lane.hi + 1.5 - p) * SP - 1}px`;
+    const rim = mk('div', 'lane-rim', el);
+    rim.style.cssText = `left:${X(-2.4)}px;width:${X(LAST + 6)}px;top:${lane.top}px;height:${lane.h}px;--lc:${PART_VAR[lane.i]}`;
     const name = mk('div', 'lane-name', el);
     name.style.cssText = `left:${X(-2.2)}px;top:${lane.top + 8}px;color:${PART_VAR[lane.i]}`;
     mk('span', null, name, NAMES[lane.i]);
-    const who = mk('small', null, name, RANGES[lane.i]);
+    // the tune is a real singer's recording (v5: "Soprano, a real voice"); the others wait, named
+    // a small level meter beside the name: the singer's real loudness, so a lit lane is seen to be sound
+    const meter = mk('div', 'lane-meter', name);
+    const bars = [0, 1, 2, 3].map(() => mk('i', null, meter));
+    const who = mk('small', null, name, lane.i === 0 ? 'a real voice' : '');
     const gems = S.parts[lane.i].map((n, k) => {
         const g = mk('div', 'gem gem-bar', el);
         g.style.cssText = `left:${X(n.beat) + GW / 2}px;top:${yOf(lane, n.pitch) - GH / 2}px;width:${n.length * PXB - GW}px;height:${GH}px;--gem:${PART_VAR[lane.i]};--gem-ink:${PART_INK[lane.i]}`;
@@ -53,7 +69,7 @@ const laneEls = LANES.map((lane) => {
         if (lane.i === 0) g.insertAdjacentHTML('beforeend', svgTick);
         return { el: g, n, k, tick: g.querySelector('.tick') };
     });
-    return { el, lines, name, who, gems, lane };
+    return { el, lines, name, who, gems, lane, tint, sweep, track, rim, meter, bars };
 });
 const beamEl = mk('div', 'beam', laneSet);
 const chipEl = mk('div', 'chip', laneSet);
@@ -80,9 +96,9 @@ const morphEls = [0, 1, 2, 3].map((i) => {
     g.style.cssText = `left:0;top:0;--gem:${PART_VAR[i]}`;
     return g;
 });
-function morphBar(el, i, a, b, u, colour, radius) {
+function morphBar(el, i, a, b, u, colour, radius, land = 0) {
     const x = lerp(a.x, b.x, u), y = lerp(a.y, b.y, u), w = lerp(a.w, b.w, u), h = lerp(a.h, b.h, u);
-    set(el, 'transform', `translate(${x.toFixed(2)}px,${y.toFixed(2)}px)`);
+    set(el, 'transform', `translate(${x.toFixed(2)}px,${y.toFixed(2)}px)${land ? ` scale(${(1 + land).toFixed(4)},${(1 - land * 0.8).toFixed(4)})` : ''}`);
     set(el, 'width', `${w.toFixed(2)}px`);
     set(el, 'height', `${h.toFixed(2)}px`);
     set(el, 'borderRadius', `${(radius ?? lerp(20, h / 2, clamp(u * 1.6))).toFixed(2)}px`);
@@ -105,12 +121,13 @@ const ENDS = {
     thumb: { mark: 0, k: 1, h: 0, p: 0, site: 0, br: '' },
 };
 const EL = ENDS[FORMAT];
-endEl.innerHTML = `<h2>Harmony,${EL.br} <em>made by you.</em></h2><p>For one voice, or a whole choir.</p><p class="site">stackapella.com</p><p class="credit"></p>`;
+endEl.innerHTML = `<h2>Harmony,${EL.br} <em>made by you.</em></h2><p></p><p class="site">stackapella.com</p><p class="credit"></p>`;
 endEl.style.cssText = `left:${END.cx - CX}px;top:${END.cy - CY}px;width:${W}px;height:${H}px`;
 const [endH, endP, endSite, endCredit] = endEl.children;
-endH.style.top = `${EL.h}px`; endP.style.top = `${EL.p}px`; endSite.style.top = `${EL.site}px`;
+// v5: the card is the mark, the headline, the address and the credit (the tagline is a line at 0:54)
+endH.style.top = `${EL.h}px`; endP.style.display = 'none'; endSite.style.top = `${EL.p}px`;
 // the real voices' credit, as the app gives it (score.js creditLine, from the catalogue)
-endCredit.style.top = `${EL.site + 70}px`;
+endCredit.style.top = `${EL.p + 76}px`;
 endCredit.textContent = creditLine();
 const END_MARK = markRects(END.cx, END.cy + EL.mark, EL.k);
 // the opening note as the fold leaves it: what the pre-roll's camera sees, three times its size
@@ -126,7 +143,7 @@ const pic = mk('div', 'pic', shCard);
 pic.style.cssText = 'left:72px;top:226px;width:1256px;height:250px';
 [0, 1, 2, 3].forEach((i) => S.parts[i].forEach((n) => {
     const b = mk('b', 'gem gem-bar', pic);
-    b.style.cssText = `left:${(n.beat / BEATS) * 1256 + 2}px;top:${i * 62}px;width:${(n.length / BEATS) * 1256 - 4}px;height:44px;border-radius:22px;--gem:${PART_VAR[i]}`;
+    b.style.cssText = `left:${(n.beat / LAST) * 1256 + 2}px;top:${i * 62}px;width:${(n.length / LAST) * 1256 - 4}px;height:44px;border-radius:22px;--gem:${PART_VAR[i]}`;
 }));
 const shChip = mk('div', 'chip', shCard);
 shChip.style.cssText = 'left:72px;top:520px;--chip:var(--accent)';
@@ -144,8 +161,10 @@ toast.style.cssText = `left:${SH.x + SH.w - 400}px;top:${SH.y + 62}px`;
 const shRing = mk('div', 'ring', shCard);
 
 /* ================= the split screen: the four singers, each a take of you ================= */
-const QUAD = { wide: { w: 954, h: 384, top: 300 }, vertical: { w: 534, h: 520, top: 600 }, square: { w: 534, h: 400, top: 268 }, thumb: { w: 1, h: 1, top: 0 } }[FORMAT];
-const QPOS = [[0, QUAD.top], [W - QUAD.w, QUAD.top], [0, QUAD.top + QUAD.h + 12], [W - QUAD.w, QUAD.top + QUAD.h + 12]];
+const QUAD = { wide: { w: 954, h: 384, top: 300 }, vertical: { w: 410, h: 500, top: 540, left: 64 }, square: { w: 534, h: 400, top: 268 }, thumb: { w: 1, h: 1, top: 0 } }[FORMAT];
+// (the vertical cut keeps its right 180 px and bottom 300 px clear for the platforms' buttons)
+const QL = QUAD.left ?? 0, QR = QUAD.left != null ? QL + QUAD.w + 16 : W - QUAD.w;
+const QPOS = [[QL, QUAD.top], [QR, QUAD.top], [QL, QUAD.top + QUAD.h + 12], [QR, QUAD.top + QUAD.h + 12]];
 // the beam stands in from the quadrant's edge, clear of the page's buttons in the frame's corners
 const QB0 = 34, QPX = 170, QBEAM = Math.round(QUAD.w * 0.45), QTOP = () => 104, QH = QUAD.h - 144;
 const quads = [0, 1, 2, 3].map((i) => {
@@ -164,7 +183,7 @@ const quads = [0, 1, 2, 3].map((i) => {
     });
     const beam = mk('div', 'beam', inner);
     beam.style.cssText = `left:${QBEAM}px;top:${QTOP(i) - 10}px;height:${QH + 20}px;--beam:${PART_VAR[i]}`;
-    return { q, inner, strip, gems };
+    return { q, inner, strip, gems, you: head.querySelector('.you') };
 });
 
 /* ================= the line each shot carries ================= */
@@ -172,9 +191,14 @@ const cap = mk('div', null, hud);
 cap.id = 'cap';
 cap.innerHTML = '<div class="eb"><i></i><span></span></div><div class="ln"><span></span></div>';
 const capEb = cap.querySelector('.eb span'), capLn = cap.querySelector('.ln span'), capDot = cap.querySelector('.eb i');
-const ACTS = { learn: ['Learn', 0], stack: ['Stack', 1], play: ['Game mode', 2], share: ['Share', 3], courses: ['Courses', 0], tools: ['Tools', 1], choirs: ['Choirs', 2], daily: ['Every day', 3] };
+const ACTS = { learn: ['Learn', 0], stack: ['Stack', 1], play: ['Game mode', 2], share: ['Share', 3], songs: ['Songs', 3], courses: ['Courses', 0], tools: ['Tools', 1], choirs: ['Choirs', 2], open: ['Open source', 1], daily: ['Every day', 3] };
 
 /* ================= the world ================= */
+// v5: each joining lane's sweep peaks as its voice is first heard (loud.js onsetAt, the real recording's
+// onset as the mix lets it in), two frames early so the eye meets the ear; the lane lights a quarter in
+const ANTICIPATE = 1 / 30, SWEEP = 0.48;
+const peakAt = (i) => (i === 0 ? -99 : onsetAt(i) - ANTICIPATE);
+const litAt = (i) => (i === 0 ? -99 : peakAt(i) - SWEEP / 4);
 const sungBy = (i, t) => (t >= sec(CUE.friends[0]) - 0.01 && t < sec(CUE.end) ? FRIENDS[i] : i === 0 ? 'You' : 'You, again');
 
 function lanes(t, o) {
@@ -183,17 +207,37 @@ function lanes(t, o) {
     const lt = o.lt, b = beatAt(lt);
     const singing = voicing(b) && lt >= 0;
     laneEls.forEach((L, i) => {
-        const enter = i === 0 ? -99 : sec(CUE.enter[i]);
-        const shown = lt >= enter - 0.35 || o.all;
-        vis(L.el, shown);
-        if (!shown) return;
-        // the slide in: hinged at its top, it swings up into place and settles on a spring
-        const u = o.all || i === 0 ? 1 : spring(lt - enter + 0.35, 1.25, 0.62);
-        set(L.el, 'transform', u === 1 ? '' : `translate3d(0,${((1 - u) * 620).toFixed(2)}px,${((1 - u) * -300).toFixed(2)}px) rotateX(${((1 - u) * -70).toFixed(2)}deg)`);
-        set(L.el, 'opacity', String(clamp(u * 1.4) * (o.fade ?? 1)));
-        set(L.lines, 'opacity', String(o.lines ?? 1));
-        set(L.name, 'opacity', String(o.lines ?? 1));
-        const who = o.names ? sungBy(i, t) : RANGES[i];
+        // v5: every lane stands from the first frame, the three still to come empty and named; each ignites
+        // as its voice starts to sing, a sweep of its colour across it, and its gems follow the sweep
+        const ign = peakAt(i);
+        const lit = o.all || lt >= litAt(i);
+        vis(L.el, true);
+        set(L.el, 'transform', '');
+        set(L.el, 'opacity', String(o.fade ?? 1));
+        set(L.lines, 'opacity', String((o.lines ?? 1) * (lit ? 1 : 0.38)));
+        set(L.name, 'opacity', String((o.lines ?? 1) * (lit ? 1 : 0.62)));
+        set(L.track, 'opacity', String((o.lines ?? 1) * (lit ? 0.45 : 1)));
+        // the name stays at the frame's left edge, at a size that reads, however far the camera is
+        if (o.cam) {
+            // its name pops as the lane lights
+            const dn = lt - litAt(i), pop = i > 0 && !o.all && dn >= 0 ? 1 + 0.16 * Math.exp(-dn / 0.14) * Math.cos(dn * 20) : 1;
+            const z = o.cam.zoom ?? 1, left = (o.cam.x ?? CX) - CX / z + 44 / z, k = clamp(0.95 / z, 1, 1.9) * pop;
+            set(L.name, 'left', `${Math.max(X(-2.2), left).toFixed(1)}px`);
+            set(L.name, 'transform', `scale(${k.toFixed(3)})`);
+            // close on a note (the opening, the pre-roll) the names wait until the camera pulls back
+            set(L.name, 'opacity', String((o.lines ?? 1) * (lit ? 1 : 0.62) * clamp((1.5 - z) / 0.6)));
+        }
+        const sw = o.all || i === 0 ? 1 : range(lt, ign - SWEEP / 2, ign + SWEEP / 2);
+        const sweepX = X(beatAt(ign)) + lerp(-1500, 1700, E.io(sw));
+        vis(L.sweep, sw > 0 && sw < 1);
+        if (sw > 0 && sw < 1) { set(L.sweep, 'transform', `translateX(${(sweepX - 450).toFixed(1)}px)`); set(L.sweep, 'opacity', (Math.sin(sw * Math.PI) * 0.75).toFixed(3)); }
+        const lv = lit ? loud(i, b) : 0, flare = lit && i > 0 ? Math.exp(-Math.max(0, lt - ign) / 0.35) : 0;
+        set(L.tint, 'opacity', (lit ? (o.lines ?? 1) * ((LIGHT ? 0.05 : 0.07) + (LIGHT ? 0.05 : 0.09) * lv + 0.12 * flare) : 0).toFixed(3));
+        // a lit lane's glass edge takes its colour, brighter as its singer sings louder
+        set(L.rim, 'opacity', (lit ? (o.lines ?? 1) * clamp(0.22 + 0.4 * lv + 0.6 * flare) : 0).toFixed(3));
+        vis(L.meter, lit && lt >= 0);
+        if (lit && lt >= 0) L.bars.forEach((e, k) => set(e, 'height', `${(8 + 30 * clamp(loud(i, b - k * 0.14) * [0.7, 1, 0.82, 0.55][k])).toFixed(1)}px`));
+        const who = o.names ? sungBy(i, t) : i === 0 ? 'a real voice' : '';
         if (L.who._t !== who) { L.who._t = who; L.who.textContent = who; }
         for (const g of L.gems) {
             const n = g.n, s0 = sec(n.beat), s1 = sec(n.beat + n.length);
@@ -224,8 +268,14 @@ function lanes(t, o) {
                 }
             } else {
                 now = lt >= s0 && lt < s1;
-                gl = now ? 0.65 : 0.25;
+                // the joined voice's own loudness lights its note
+                gl = now ? 0.35 + 0.6 * loud(i, b) : 0.25;
                 fill = clamp((b - n.beat) / n.length);
+                // a part still waiting shows its notes as faint dashed outlines; the sweep turns each to glass
+                const solid = lit && (sw >= 1 || X(n.beat) <= sweepX);
+                if (g.ghost !== !solid) { g.ghost = !solid; g.el.classList.toggle('ghost', !solid); }
+                if (!solid) { gl = 0; fill = 0; alpha = 0.5 * (o.lines ?? 1); }
+                else if (sw < 1) scale *= lerp(0.8, 1, E.outBack(clamp((sweepX - X(n.beat)) / 500)));
             }
             if (o.hide && o.hide[i] === g.k) show = false;
             vis(g.el, show);
@@ -240,12 +290,15 @@ function lanes(t, o) {
         }
     });
     // one playhead across every lane that is in: the parts are exactly in time
-    const last = o.all ? 3 : [0, 1, 2, 3].filter((i) => i === 0 || lt >= sec(CUE.enter[i])).pop();
+    const last = o.all ? 3 : [0, 1, 2, 3].filter((i) => lt >= litAt(i)).pop();
     vis(beamEl, lt > 0 && !o.noBeam);
     if (lt > 0 && !o.noBeam) {
         set(beamEl, 'left', `${X(b)}px`);
         set(beamEl, 'top', '-40px');
-        set(beamEl, 'height', `${LANES[last].top + LANES[last].h + 80}px`);
+        // it grows down into each lane as the lane lights
+        let foot = LANES[0].top + LANES[0].h;
+        for (let i = 1; i < 4; i++) foot = lerp(foot, LANES[i].top + LANES[i].h, o.all ? 1 : E.outExpo(range(lt, litAt(i), litAt(i) + 0.4)));
+        set(beamEl, 'height', `${(foot + 80).toFixed(1)}px`);
         set(beamEl, '--beam', singing || last ? 'var(--p1)' : 'var(--cream)');
         set(beamEl, 'opacity', String((o.lines ?? 1) * clamp(lt / 0.12)));
     }
@@ -305,6 +358,23 @@ function hits(lt) {
     }
 }
 
+/** A lane igniting, in screen space: light rides the sweep's head, and the voice's first note sparkles as it sounds. */
+function ignitions(lt) {
+    for (let i = 1; i < 4; i++) {
+        const ign = peakAt(i), sw = range(lt, ign - SWEEP / 2, ign + SWEEP / 2), cy = centreOf(i);
+        if (sw > 0 && sw < 1) {
+            const [sx, sy, s] = project(X(beatAt(ign)) + lerp(-1500, 1700, E.io(sw)), cy, 0);
+            glow(sx, sy, 520 * s, T.parts[i], (LIGHT ? 0.3 : 0.5) * Math.sin(sw * Math.PI));
+        }
+        const on = onsetAt(i), d = lt - on;
+        if (d < 0 || d > 0.6) continue;
+        const n = S.parts[i].find((x) => sec(x.beat + x.length) > on + 0.02) ?? S.parts[i][0];
+        const [sx, sy, s] = project(X(beatAt(on)), yOf(LANES[i], n.pitch), 0);
+        sparkles(sx, sy, d, T.parts[i], s * 1.5, i + 3, 10);
+        glow(sx, sy, 320 * s, T.parts[i], (LIGHT ? 0.3 : 0.6) * Math.exp(-d / 0.2));
+    }
+}
+
 /** A fingertip that glides to `at` (card px) and taps there at `tap` seconds. */
 function fingertip(p, r, t, path) {
     let i = path.findLastIndex((s) => t >= s.t - 0.32);
@@ -340,7 +410,7 @@ function share(t) {
         set(shRing, 'opacity', (0.8 * (1 - dd / 0.5)).toFixed(3));
     }
     discs.forEach(({ d, l }, i) => {
-        const at = i === 0 ? -99 : sec(CUE.friends[i - 1]), d2 = t - at;
+        const at = i === 0 ? sec(CUE.copied) : sec(CUE.friends[i - 1]), d2 = t - at;
         const on = d2 >= 0;
         d.classList.toggle('ghost', !on);
         const pop = on ? 1 + 0.18 * Math.exp(-d2 / 0.12) * Math.cos(d2 * 26) : 1;
@@ -371,6 +441,8 @@ function split(t, a) {
         set(Qd.q, 'clipPath', `inset(0 ${((1 - w) * 100).toFixed(2)}% 0 0 round ${stageEl.classList.contains('arcade') ? 0 : 28}px)`);
         set(Qd.inner, 'transform', `scale(${lerp(1, 1.05, range(t, a, a + 1.25)).toFixed(4)})`);
         set(Qd.strip, 'transform', `translateX(${(QBEAM - (b - QB0) * QPX).toFixed(2)}px)`);
+        // "You", four times: each badge lands with a small spring, one after another
+        set(Qd.you, 'transform', `scale(${spring(t - a - 0.28 - i * 0.1, 2.4, 0.42).toFixed(4)})`);
         for (const g of Qd.gems) {
             const now = b >= g.n.beat && b < g.n.beat + g.n.length;
             set(g.el, '--glow', now ? '0.85' : b > g.n.beat ? '0.35' : '0.22');
@@ -455,7 +527,8 @@ function app(t, shot) {
     const cam = { ...A.cam(t) };
     // it arrives: a quick settle into place, unless the shot before was this same screen
     const prev = SHOTS[SHOTS.indexOf(shot) - 1];
-    if (!prev?.app || (typeof prev.app.id === 'string' ? prev.app.id : '') !== id) cam.s *= lerp(0.93, 1, E.outExpo(range(t, shot.a, shot.a + 0.4)));
+    // (`settle: false`: a framing that must not show more than it does, like GitHub's above its counts)
+    if (A.settle !== false && (!prev?.app || (typeof prev.app.id === 'string' ? prev.app.id : '') !== id)) cam.s *= lerp(0.93, 1, E.outExpo(range(t, shot.a, shot.a + 0.4)));
     const at = (fx, fy) => [cam.sx + (fx - cam.fx) * w * cam.s, cam.sy + (top + (fy - cam.fy) * h - top) * cam.s];
     const [x0, y0] = at(0, 0);
     set(dev, 'transform', `translate(${x0.toFixed(2)}px,${(y0 - top * cam.s).toFixed(2)}px) scale(${cam.s.toFixed(4)})${cam.rz ? ` rotate(${cam.rz.toFixed(3)}deg)` : ''}`);
@@ -479,14 +552,16 @@ function app(t, shot) {
 const TOOLS = [
     { id: 'tuner', name: 'Tuner', what: 'See which note you\'re on.' },
     { id: 'drone', name: 'Drone', what: 'One steady note to match.' },
-    { id: 'metronome', name: 'Metronome', what: 'Steady time for practice.' },
     { id: 'range', name: 'Vocal range test', what: 'Find the choir part to try.' },
 ];
-const TOOLS_AT = sec(VERSE + 12), TOOL_BAR = sec(3);
+// v4: three tools at four beats each (a name and its few words need about 3 s to read), and the row
+// ends "and more": the site has many more free tools than the film has room for
+const TOOLS_AT = sec(62), TOOL_BAR = sec(4);
 const toolsEl = mk('div', 'tools', $('#stage'));
 appsEl.after(toolsEl);
 const toolIndex = mk('ol', 'tl-index', toolsEl);
 const toolLis = TOOLS.map((x) => mk('li', null, toolIndex, x.name));
+mk('li', 'more', toolIndex, 'and more');
 const toolText = mk('div', 'tl-text', toolsEl);
 const toolName = mk('h3', 'tl-name', toolText), toolWhat = mk('p', 'tl-what', toolText);
 const CARD_H = 800;
@@ -526,92 +601,326 @@ function tools(t) {
 const move = (t0, t1, a, b, ease = E.io) => (t) => { const u = ease(range(t, t0, t1)); const o = {}; for (const k in a) o[k] = lerp(a[k], b[k] ?? a[k], u); return o; };
 const PHONE_AT = { sx: 1230, sy: 720 }; // a phone rises from the frame's foot right of centre, clear of the line and the corners
 
-/* ================= the director =================
-   Each shot: when it starts, which set it shows (the lanes, the split, the share card, or the app), where
-   the camera is (it may move inside the shot), and the act and line it carries. A shot runs until the
-   next begins. Cuts are hard and on the beat; a whip is a camera move fast enough to smear. The first
-   time through the verse the harmony is built a voice at a time; the second, what comes with it. */
-const INVITE_LINE = 'Invite friends to sing the other parts.';
-const RECORD_LINE = 'Record each part over the others.';
-const PLAY_LINE = 'Or play it as a game.';
-const TOOLS_LINE = 'Tools for every practice.';
+/* ================= v5: lifted planes =================
+   The real app as lifted components (docs/showreel-v5-plan.md, "App footage"): a crop of a capture, never a
+   browser, as a plane in the frame's own 3D, with a soft shadow and a full-edge glow in the phrase's colour.
+   A shot's `planes(t)` lists what shows: { id, crop (fractions, or a name from captures.json), clock (s into
+   a recording), x, y (its centre), w (or h), z, rx, ry, rz, s, squash, o, glow, tint, tintC, scan, phone, label }. */
+await loadLoud();
+const planesEl = mk('div', 'planes', $('#stage'));
+hud.before(planesEl);
+const POOL = Array.from({ length: 14 }, () => {
+    const p = mk('div', 'pl', planesEl), img = mk('img', null, p);
+    img.decoding = 'sync';
+    const tint = mk('i', 'tint', p), scan = mk('b', 'scan', p), sheen = mk('em', 'sheen', p), label = mk('span', 'pl-label', planesEl);
+    return { p, img, tint, scan, sheen, label };
+});
+const pCursor = mk('div', 'cursor', planesEl);
+pCursor.innerHTML = cursor.innerHTML;
+const pRing = mk('div', 'ring', planesEl);
+const cropOf = (c, q) => (typeof q.crop === 'string' ? c.crops?.[q.crop] : q.crop) ?? { x: 0, y: 0, w: 1, h: 1 };
+/** Where a point of plane `q`'s capture (fractions of the capture) lands on the frame (ignoring its tilt). */
+function onPlane(q, fx, fy) {
+    const c = CAPS[q.id], cr = cropOf(c, q), w = q.w ?? q.h * (cr.w * c.w) / (cr.h * c.h), h = q.h ?? w * (cr.h * c.h) / (cr.w * c.w), k = q.s ?? 1;
+    return [q.x + ((fx - cr.x) / cr.w - 0.5) * w * k, q.y + ((fy - cr.y) / cr.h - 0.5) * h * k];
+}
+/** How loud the voices that have joined are singing now (0 to 1): what the glows breathe with. */
+function level(t) {
+    const b = beatAt(t);
+    let s = 0, n = 0;
+    for (let i = 0; i < 4; i++) if (t >= litAt(i)) { s += loud(i, b); n++; }
+    return n ? s / n : 0;
+}
+function drawPlanes(list, t) {
+    POOL.forEach((P, k) => {
+        const q = list[k];
+        vis(P.p, !!q);
+        vis(P.label, !!q?.label);
+        if (!q) return;
+        const c = CAPS[q.id];
+        if (!c) throw new Error(`no capture "${q.id}": run capture.py`);
+        const cr = cropOf(c, q);
+        if (!cr) throw new Error(`no crop "${q.crop}" in ${q.id}: run capture.py`);
+        const w = q.w ?? q.h * (cr.w * c.w) / (cr.h * c.h), h = q.h ?? w * (cr.h * c.h) / (cr.w * c.w);
+        const file = c.frames ? `${q.id}/${String(Math.min(c.frames - 1, Math.max(0, Math.floor((q.clock ?? 0) * c.fps)))).padStart(4, '0')}.jpg` : `${q.id}.jpg`;
+        const src = `captures/${CUTNAME}/${file}`;
+        if (P.img._src !== src) { P.img._src = src; P.img.src = src; pending.push(P.img.decode().catch(() => { throw new Error(`could not load ${src}`); })); }
+        const iw = w / cr.w, ih = iw * (c.h / c.w);
+        set(P.img, 'width', `${iw.toFixed(1)}px`);
+        set(P.img, 'transform', `translate(${(-cr.x * iw).toFixed(1)}px,${(-cr.y * ih).toFixed(1)}px)`);
+        P.p.className = `pl${q.phone ? ' phone' : ''}`;
+        set(P.p, 'width', `${w.toFixed(1)}px`);
+        set(P.p, 'height', `${h.toFixed(1)}px`);
+        const k1 = q.s ?? 1;
+        set(P.p, 'transform', `translate3d(${(q.x - w / 2).toFixed(1)}px,${(q.y - h / 2).toFixed(1)}px,${(q.z ?? 0).toFixed(1)}px) rotateX(${(q.rx ?? 0).toFixed(2)}deg) rotateY(${(q.ry ?? 0).toFixed(2)}deg) rotateZ(${(q.rz ?? 0).toFixed(2)}deg) scale(${k1.toFixed(4)},${(k1 * (q.squash ?? 1)).toFixed(4)})`);
+        set(P.p, 'opacity', clamp(q.o ?? 1).toFixed(3));
+        set(P.p, '--glow-c', q.glow == null ? 'transparent' : q.glow === 'brand' ? 'var(--accent)' : PART_VAR[q.glow]);
+        set(P.p, 'borderRadius', q.radius != null ? `${q.radius.toFixed(1)}px` : '');
+        set(P.tint, 'opacity', clamp(q.tint ?? 0).toFixed(3));
+        set(P.tint, 'background', q.tintC ?? 'var(--cream)');
+        set(P.scan, 'opacity', clamp(q.scan ?? 0).toFixed(3));
+        // glass: a band of light crosses it once as it arrives, and its edge glow breathes with the singing
+        const sh = q.sheen ?? 0;
+        vis(P.sheen, sh > 0 && sh < 1);
+        if (sh > 0 && sh < 1) set(P.sheen, 'transform', `translateX(${lerp(-110, 110, E.ioSine(sh)).toFixed(2)}%)`);
+        set(P.p, '--gk', level(t).toFixed(3));
+        if (q.label) {
+            if (P.label._t !== q.label) { P.label._t = q.label; P.label.textContent = q.label; }
+            set(P.label, 'transform', `translate(${q.x.toFixed(1)}px,${(q.y + (h * k1) / 2 + 22).toFixed(1)}px) translateX(-50%)`);
+            set(P.label, 'opacity', clamp(q.o ?? 1).toFixed(3));
+        }
+    });
+}
+/** The desktop pointer, gliding in to click at a point of a plane at `at` (song seconds). */
+function planeTap(t, q, fx, fy, at) {
+    const show = t >= at - 1.1 && t < at + 0.6;
+    vis(pCursor, show);
+    vis(pRing, false);
+    if (!show) return;
+    const [x, y] = onPlane(q, fx, fy);
+    fingertip(pCursor, pRing, t, [{ t: at - 0.75, x: x + 380, y: y + 260, click: false }, { t: at, x, y }]);
+}
+
+/* ================= v5: the lines =================
+   Figtree 800 at 76 px, top left (64 px across the vertical cut's top), one at a time, at most two rows. Each
+   word rises 24 px, 40 ms after the one before, over 450 ms (expo out); one accent word takes the colour of the
+   voice that just joined; the line goes over the 200 ms before the beat its next one comes on. No kickers. */
+const lineEl = mk('div', 'line5', hud);
+const ACCENT = (k) => (k === 'brand' ? 'var(--accent)' : PART_VAR[k]);
+const L5 = (a, b, text, accent, colour) => ({ a, b, text, accent, colour });
+const LINE1 = 'Learn your harmony from a real singer.', LINE2 = 'Record each part over the others.', LINE3 = 'Stack your own voices, exactly in time.', LINE4 = 'The whole song is you.';
+const LINES = {
+    hero: [L5(-1, sec(12), LINE1, 'singer.', 0), L5(sec(12), sec(24), LINE2, 'others.', 1), L5(sec(24), sec(36), LINE3, 'time.', 2), L5(sec(36), sec(48), LINE4, 'you.', 'brand'),
+        L5(sec(48), sec(66), 'Free to learn.', 'Free', 0), L5(sec(66), sec(72), 'Or play it as a game.', 'game.', 1), L5(sec(72), sec(84), 'For one voice, or a whole choir.', 'choir.', 2),
+        L5(sec(84), sec(88), 'Open source on GitHub.', 'GitHub.', 3), L5(DUR - SPB, DUR + 1, LINE1, 'singer.', 0)],
+    short: [L5(-1, sec(12), LINE1, 'singer.', 0), L5(sec(12), sec(24), LINE2, 'others.', 1), L5(sec(24), sec(36), LINE3, 'time.', 2), L5(sec(36), sec(43), LINE4, 'you.', 'brand'),
+        L5(DUR - SPB, DUR + 1, LINE1, 'singer.', 0)],
+    social: [L5(sec(24) - 1, sec(30), LINE1, 'singer.', 0), L5(sec(30), sec(36), LINE2, 'others.', 1), L5(sec(36), sec(42), LINE3, 'time.', 2), L5(sec(42), sec(48), LINE4, 'you.', 'brand')],
+}[CUT];
+function drawLine(t) {
+    const l = LINES.findLast((x) => t >= x.a - 1e-6 && t < x.b);
+    vis(lineEl, !!l);
+    set(hud, '--shade', l ? '1' : '0');
+    if (!l) return;
+    if (lineEl._t !== l.text) {
+        lineEl._t = l.text;
+        lineEl.innerHTML = '';
+        lineEl._w = l.text.split(' ').map((w) => { const e = mk('span', null, mk('span', 'w', lineEl), w); e._accent = w === l.accent; if (e._accent) e.style.color = ACCENT(l.colour); return e; });
+    }
+    // each word rises from behind its own baseline, and leaves upward the same way, a little quicker
+    const n = lineEl._w.length;
+    lineEl._w.forEach((e, k) => {
+        const at = l.a + k * 0.04, u = E.outExpo(range(t, at, at + 0.5)), out = E.in(range(t, l.b - 0.24 + k * (0.06 / n), l.b - 0.02));
+        set(e, 'transform', `translateY(${((1 - u) * 108 - out * 108).toFixed(2)}%)`);
+        set(e, 'opacity', (clamp(u * 2.5) * (1 - out)).toFixed(3));
+        // the accent word glows as it lands (the dark cut: light on black)
+        if (e._accent) set(e, 'textShadow', LIGHT || l.a < 0 || l.a >= DUR - SPB - 1e-6 ? '' : `0 0 ${(36 * Math.exp(-Math.max(0, t - at - 0.2) / 0.5)).toFixed(1)}px currentColor`);
+    });
+}
+/** Each line, from when it reads to when it goes: for checking that each stays long enough to read. */
+export function captions() {
+    // (the pre-roll's line is the first line again, set before the loop: not a line of its own)
+    return LINES.filter((l) => !(l.a >= DUR - SPB - 1e-6 && CUT !== 'social')).map((l) => {
+        const from = Math.max(l.a + 0.45, sec(FROM)), until = Math.min(l.b, sec(LAST));
+        return { text: l.text, from: +(from - sec(FROM)).toFixed(2), until: +(until - sec(FROM)).toFixed(2), shown: +(until - from).toFixed(2), needs: +(0.3 * l.text.split(/\s+/).length + 1).toFixed(2) };
+    });
+}
+
+/* ================= v5: the season's slot, and the components ================= */
+// beats 54 to 57 of the hero: a songs page's top, lifted; then its songbook with Alto picked. In season the
+// carols; after it `render.py --season=hymns` (or songbook) swaps the slot and nothing else.
+const SEASONS = {
+    carols: { hero: 'carols', strip: { x: 0.02, y: 0, w: 0.6, h: 0.45 }, book: 'carols-book', row: 'row' },
+    hymns: { hero: 'hymns', strip: { x: 0.04, y: 0.04, w: 0.64, h: 0.44 }, book: 'hymns-book', row: { x: 0.08, y: 0.0, w: 0.84, h: 0.62 } },
+    songbook: { hero: 'songbook', strip: { x: 0.04, y: 0.05, w: 0.6, h: 0.42 }, book: 'songbook-book', row: { x: 0.08, y: 0.1, w: 0.84, h: 0.55 } },
+};
+const SEASON = SEASONS[Q.get('season') ?? 'carols'];
+if (!SEASON) throw new Error(`no season "${Q.get('season')}": ${Object.keys(SEASONS).join(', ')}`);
+const SING_CROP = { x: 0, y: 0.17, w: 1, h: 0.63 }; // Sing's lanes and its words, no bars
+const ROWS_CROP = { x: 0, y: 0.115, w: 1, h: 0.775 }; // the studio's words and its four rows
+const STAGE_CROP = { x: 0.06, y: 0.16, w: 0.56, h: 0.52 }; // Home's stage card in the arcade, PRESS START in it
+/** Where the verse is at song time t (either time through): what a recording made in step shows. */
+const verseAt = (t) => (t >= sec(VERSE) ? t - sec(VERSE) : t);
+const synced = (id, t) => verseAt(t) - (CAPS[id]?.songAt ?? 0);
+
+/* ================= v5: the shots =================
+   Each: `a` (song seconds), `set` (lanes, planes, share, split, fold, mark), its camera or planes, the wash's
+   colour (verse two tints by phrase). Cuts are on the pickup; the accent lands on the next downbeat. */
+const B = sec;
 const ph = (t) => X(beatAt(t));
 const centreOf = (i) => LANES[i].top + LANES[i].h / 2;
-const shake = (t, at, amp) => { const d = t - at; if (d < 0) return [0, 0]; const s = Math.exp(-d / 0.09) * amp, f = Math.floor(t * 60); return [(hash(f) - 0.5) * s, (hash(f + 9) - 0.5) * s]; };
-const whipIn = (t, b, dx) => dx * (1 - E.outExpo(range(t, sec(b), sec(b) + 0.32)));
-/** A phone shot: the phone rises a little into place and drifts closer. */
-const phoneCam = (a, b, fy = 0.5, s0 = 1.1, s1 = 1.16) => (t) => { const u = E.outExpo(range(t, a, a + 0.5)); return { fx: 0.5, fy, sx: PHONE_AT.sx, sy: PHONE_AT.sy + (1 - u) * 80, s: lerp(s0, s1, range(t, a, b)), rz: lerp(1.2, 0, u) }; };
-/** A window shot: it hangs from just under the line (its bar's top near y 270) and pushes in from there. */
-const winCam = (a, b, fx, s0, s1, sx = 980, sy = 330) => move(a, b, { fx, fy: 0, sx, sy, s: s0 }, { s: s1 });
-// THE ARCADE: from Game mode switching on (the landing's own switch, clicked) to the end of the first time
-// through, the film itself is game mode; then it switches off again into the calm second pass. Why back:
-// the app's rule is "arcade where people play, calm where people read", and the second pass is for
-// reading (courses, tools, a choir's parts); and seeing it switch both ways says it's one toggle.
-const ARC0 = sec(27), ARC1 = sec(VERSE);
-const TOGGLE = CAPS['landing-toggle'];
-const SHOTS = [
-    // LEARN. A close-up on the opening note: it breathes, the pickup sounds, the tune appears beside it
-    { a: 0, set: 'lanes', act: 'learn', cap: 'Learn your harmony from a real singer.', capAt: 0.1, cam: (t) => { const u = E.io(range(t, 0.15, 1.05)); return { x: lerp(X(0) + PXB / 2, X(1.4) + 100, u), y: yOf(LANES[0], 62), zoom: (OPEN.zoom + 0.16 * range(t, -0.75, 0.15)) * lerp(1, 0.55, u), rz: lerp(0, -1.2, u) }; } },
-    // the lane, low and close, pulling focus into it
-    { a: sec(2), set: 'lanes', follow: true, act: 'learn', cap: 'Learn your harmony from a real singer.', focus: [sec(2), 0.5, 16], cam: (t) => ({ x: ph(t) + 300, y: pitchCentre(beatAt(t)) - 110, zoom: lerp(1.25, 1.32, range(t, sec(2), sec(4))), ry: -14, rx: 10 }) },
-    // "grace": very close, a little low, Slide up, the hit
-    { a: sec(4), set: 'lanes', act: 'learn', cap: 'Learn your harmony from a real singer.', cam: (t) => { const [dx, dy] = shake(t, sec(S.parts[0][4].hit), 14); return { x: X(4) + 260 + dx + 40 * range(t, sec(4), sec(6)), y: yOf(LANES[0], 70.4) - 70 + dy, zoom: lerp(1.85, 1.96, range(t, sec(4), sec(6))), rz: 1.5 }; } },
-    // the app: Sing, the alto's notes lighting as they're hit, its words in step with the song
-    { a: sec(6), set: 'app', act: 'learn', cap: 'Your notes light up as you hit them.', app: { id: 'sing', sync: true, url: 'app.stackapella.com', cam: winCam(sec(6), sec(12), 0.5, 0.9, 0.96, 1000, 300) } },
-    // STACK. The studio: three parts sung and playing, the bass next
-    { a: sec(12), set: 'app', act: 'stack', cap: RECORD_LINE, app: { id: 'studio', sync: true, url: 'app.stackapella.com', cam: winCam(sec(12), sec(18), 0.45, 1.08, 1.16) } },
-    // top down on the lanes: two voices now, the tenor landing as the phrase turns
-    { a: sec(18), set: 'lanes', follow: true, act: 'stack', cap: RECORD_LINE, cam: (t) => ({ x: ph(t) + 260, y: centreOf(1) + 60, zoom: lerp(0.86, 0.9, range(t, sec(18), sec(24))), rx: 40, ry: -8, rz: -6 }) },
-    // GAME MODE. The landing page: the pointer clicks its Game mode switch on the half beat
-    { a: sec(24), set: 'app', act: 'play', cap: PLAY_LINE, app: { id: 'landing-toggle', skip: (TOGGLE?.click?.at ?? 1.2) - (sec(25.5) - sec(24)), url: 'stackapella.com', cam: (t) => ({ fx: 0.56, fy: TOGGLE?.click?.y ?? 0.4, sx: 1000, sy: 600, s: lerp(1.15, 1.3, E.io(range(t, sec(24), sec(27)))) }) } },
-    // the screen switches on as the arcade: the same take, in game mode, in step with the song
-    { a: ARC0, set: 'app', arcade: true, act: 'play', cap: PLAY_LINE, app: { id: 'arcade', sync: true, url: 'app.stackapella.com', cam: winCam(ARC0, sec(32), 0.5, 0.9, 0.96, 1000, 300) } },
-    // the arcade's Home: its stage card, STAGE 01 and the lanes
-    { a: sec(32), set: 'app', arcade: true, act: 'play', cap: PLAY_LINE, app: { id: 'home-game', url: 'app.stackapella.com', cam: winCam(sec(32), sec(36), 0.5, 1.25, 1.34) } },
-    // the split screen, in the arcade: four singers, each a take of you, the bass joining
-    { a: sec(CUE.enter[3]), set: 'split', arcade: true, act: 'stack', cap: 'Stack your own voices, exactly in time.' },
-    // SHARE. The song as a share card, flying in
-    { a: sec(CUE.share), set: 'share', arcade: true, act: 'share', cap: INVITE_LINE, cam: (t) => { const a = sec(CUE.share), u = E.outExpo(range(t, a, a + 0.8)); return { x: SH.x + SH.w / 2 + 30, y: SH.y + 250, dz: lerp(-700, 0, u) - 40 * range(t, a + 0.8, sec(CUE.friends[0])), zoom: 0.88, ry: lerp(24, -3, u), rx: lerp(-10, 2, u) }; } },
-    // close on the parts: friends take them, one beat each; then the screen switches off
-    { a: sec(CUE.friends[0] - 0.25), set: 'share', arcade: true, act: 'share', cap: INVITE_LINE, cam: (t) => ({ x: SH.x + 930 + lerp(-30, 30, range(t, sec(CUE.friends[0]), sec(VERSE))), y: SH.y + 690, zoom: lerp(1.6, 1.68, range(t, sec(CUE.friends[0]), sec(VERSE))), rz: -1 }) },
-    // COURSES. The courses page, scrolled through its groups
-    { a: ARC1, set: 'app', act: 'courses', cap: 'Every course is free.', app: { id: 'courses', url: 'stackapella.com/courses', cam: winCam(ARC1, sec(VERSE + 6), 0.5, 1.5, 1.58) } },
-    // the first lesson, on a phone, with no account
-    { a: sec(VERSE + 6), set: 'app', act: 'courses', cap: 'Try the first lesson without an account.', app: { id: 'lesson', cam: phoneCam(sec(VERSE + 6), sec(VERSE + 12), 0.45) } },
-    // TOOLS, a bar each: each one named, with the tool itself on its card
-    { a: TOOLS_AT, set: 'tools', act: 'tools', cap: TOOLS_LINE },
-    // CHOIRS. The director's group: each song's parts, who sings them, how far they've got
-    { a: sec(VERSE + 24), set: 'app', act: 'choirs', cap: 'Give each singer a part.', app: { id: 'choir-director', url: 'app.stackapella.com', cam: winCam(sec(VERSE + 24), sec(VERSE + 30), 0.5, 1.75, 1.85) } },
-    // a member's view: their part first, Learn your part
-    { a: sec(VERSE + 30), set: 'app', act: 'choirs', cap: 'Singers join free.', app: { id: 'choir-member', url: 'app.stackapella.com', cam: winCam(sec(VERSE + 30), sec(VERSE + 36), 0.5, 1.75, 1.85) } },
-    // EVERY DAY. Today's song, on Home
-    { a: sec(VERSE + 36), set: 'app', act: 'daily', cap: 'A new challenge every day.', app: { id: 'daily', url: 'app.stackapella.com', cam: winCam(sec(VERSE + 36), sec(CUE.all), 0.45, 1.65, 1.75) } },
-    // wide, high and whipped in: everyone, singing together, through "but now I"
-    { a: sec(CUE.all), set: 'lanes', follow: true, names: true, all: true, cam: (t) => { const u = E.io(range(t, sec(CUE.all), sec(CUE.end - 1))); return { x: ph(t) + lerp(500, 200, u) - whipIn(t, CUE.all, 2400), y: STACK_H / 2 - 60, zoom: lerp(0.46, 0.54, u), rx: lerp(38, 20, u), ry: lerp(-36, -12, u) }; } },
-    // the end card: "see." becomes the mark, and the words, held through the last chord
-    { a: sec(CUE.end - 1), set: 'lanes', follow: true, names: true, all: true, quiet: true, cam: (t) => ({ x: lerp(X(CUE.end) + 200, X(CUE.end) + 380, range(t, sec(CUE.end - 1), sec(CUE.end))), y: STACK_H / 2, zoom: 0.5, rx: 6, ry: -10 }) },
-    { a: sec(CUE.end), set: 'lanes', mark: 'end', cam: (t) => { const a = sec(CUE.end), u = E.io(range(t, a, a + 1)); return { x: lerp(X(CUE.end) + 380, END.cx, u), y: lerp(STACK_H / 2, END.cy, u), zoom: lerp(0.5, 1, u) * lerp(1, 1.035, range(t, a + 1, sec(CUE.fold[0]))), rx: lerp(6, 0, u), ry: lerp(-10, 0, u) }; } },
-    // the pre-roll: back to the opening note, a beat before the loop starts again
-    { a: sec(BEATS - 1), set: 'lanes', preroll: true, cam: (t) => SHOTS[0].cam(t - DUR) },
+const PHONE_X = 1240;
+const VERT = FORMAT === 'vertical';
+// the opening: close on the first note, pulling back by 1.5 s to the stack, three lanes waiting
+// (the stack sits under the line: its middle at the frame's y 655)
+const STACK_Y = (z) => STACK_H / 2 - (640 - CY) / z;
+// (held close a moment, a quick pull back, a long settle; then it keeps drifting in)
+const openCam = (t) => { const u = E.snap(range(t, 0.1, 1.7)), z = lerp(OPEN.zoom, 0.54, u) * lerp(1, 1.035, range(t, 1.3, B(6))); return { x: lerp(X(0) + PXB / 2, ph(t) + 520, u), y: lerp(yOf(LANES[0], 62), STACK_Y(0.54), u), zoom: z, rz: lerp(0, -0.8, u) }; };
+const twoCam = (t) => ({ x: ph(t) + 420, y: lerp(LANES[1].top - GAP / 2 - 150, LANES[1].top - GAP / 2 - 120, range(t, B(11), B(18))), zoom: lerp(0.8, 0.84, range(t, B(11), B(18))), rx: lerp(10, 2, E.io(range(t, B(11), B(13.5)))) });
+const topCam = (t) => ({ x: ph(t) + 260, y: centreOf(1) + 60, zoom: lerp(0.84, 0.9, range(t, B(23), B(30))), rx: 40, ry: -8, rz: -6 });
+const wideCam = (a, b) => (t) => { const z = lerp(0.55, 0.57, range(t, a, b)); return { x: ph(t) + 520, y: STACK_Y(z), zoom: z, rz: lerp(0.6, 0, range(t, a, b)) }; };
+const vCam = (a, b) => (t) => ({ x: ph(t) + 230, y: STACK_H / 2 - 40, zoom: lerp(0.66, 0.69, range(t, a, b)) });
+const endCam = (t) => ({ x: END.cx, y: END.cy, zoom: lerp(1, 1.04, range(t, B(CUE.end), B(LAST - 1))) });
+
+/** A single lifted screen, drifting (the camera never stops: a push of 3 to 5%, sine in and out). */
+// It arrives out of depth, tilting level as it settles, a band of light crossing its glass; it drifts at one
+// speed (never easing to a stop); and it leaves by pushing at the lens, so the cut carries the motion on.
+const lift = (q, a, b, drift = {}) => (t) => {
+    const u = range(t, a, b), arrive = E.outExpo(range(t, a, a + 0.75)), leave = drift.stay ? 0 : E.in(range(t, b - 0.22, b));
+    return [{ ...q, clock: typeof q.clock === 'function' ? q.clock(t) : q.clock, s: (q.s ?? 1) * lerp(drift.s0 ?? 1, drift.s1 ?? 1.05, u) * lerp(0.88, 1, arrive) * (1 + 0.08 * leave),
+        rx: (q.rx ?? 0) + lerp(7, 0, arrive), ry: (q.ry ?? 0) + (drift.ry ?? 0) * u + lerp(-8, 0, arrive), x: q.x + (drift.x ?? 0) * u, y: q.y + (drift.y ?? 0) * u + lerp(46, 0, arrive),
+        o: clamp(0.4 + arrive * 2.4), sheen: range(t, a + 0.12, a + 1.0) }];
+};
+const singQ = { id: 'sing-soprano', crop: SING_CROP, x: CX + 40, y: 650, w: 1560, glow: 0, rx: 4, ry: -9, clock: (t) => synced('sing-soprano', t) };
+const studioQ = (id, glow) => ({ id, crop: ROWS_CROP, x: CX + 30, y: 660, w: 1500, glow, rx: 3, ry: -6, clock: (t) => synced(id, t) });
+
+// verse two: a component a bar, flown in from depth on the downbeat, whipped out on the next pickup
+const SEASON_ROW = SEASON.row;
+const GROUPS = [
+    { s: 48, q: { id: 'courses-card', crop: 'head', x: CX + 60, y: 640, w: 1500, glow: 0 } },
+    { s: 51, q: { id: 'lesson', phone: true, x: PHONE_X, y: 600, h: 860, glow: 0 } },
+    { s: 54, q: { id: SEASON.hero, crop: SEASON.strip, x: CX + 40, y: 640, w: 1500, glow: 0 }, clock: true },
+    { s: 57, q: { id: SEASON.book, crop: SEASON_ROW, x: CX + 40, y: 650, w: 1500, glow: 0 }, clock: true, tap: true },
 ];
-SHOTS.forEach((s, i) => { s.b = SHOTS[i + 1] ? SHOTS[i + 1].a : DUR; });
-export const CUTS = SHOTS.slice(1).map((s) => s.a);
-// The launch cuts (vertical, square) were made from the first film and posted as they are; this one is
-// for the landing's frame only. The thumbnail (the mark alone) still renders.
-const THUMB_T = 3.75;
-if (FORMAT === 'vertical' || FORMAT === 'square') throw new Error('The launch cuts come from the first film (git history before the second cut); this film is wide only');
-export const EDIT = { wide: [[0, DUR]], thumb: [[0, THUMB_T]] }[FORMAT];
-const FRAMING = { zoom: 1, down: 0 };
-function reframe(c) {
-    return c;
+function flyIn(g, t, next) {
+    const a = B(g.s), d = B(g.s + 1), e = next != null ? B(next) : Infinity;
+    if (t < a - 0.6 || t > e + 0.32) return null;
+    const q = { ...g.q };
+    if (g.clock) q.clock = t - a;
+    if (t < a) { const u = range(t, a - 0.6, a); return { ...q, x: q.x + 420, y: q.y - 120, z: -3200, o: 0.45 * u, s: 1 }; }
+    if (t < d) { const u = E.outExpo(range(t, a, d)); return { ...q, x: lerp(q.x + 420, q.x, u), y: lerp(q.y - 120, q.y, u), z: lerp(-3200, 0, u), ry: lerp(-14, -6, u), o: lerp(0.45, 1, clamp(u * 2)) }; }
+    const hold = range(t, d, e), out = E.in(range(t, e, e + 0.3));
+    return { ...q, x: q.x - 1900 * out, z: lerp(0, 90, hold), ry: lerp(-6, -2, hold) + 28 * out, rz: -3 * out, o: 1, sheen: range(t, d - 0.25, d + 0.7) };
 }
-// windows fast enough to earn extra motion-blur samples: the split's wipes, the card flying in, the
-// whip, the mark forming, the fold, and every phone rising into place
-export const FAST = [[sec(CUE.enter[3]), sec(CUE.enter[3]) + 0.5], [sec(CUE.share), sec(CUE.share) + 0.8], [sec(CUE.all), sec(CUE.all) + 0.35],
-    [sec(CUE.end), sec(CUE.end) + 1.2], [sec(CUE.fold[0]), sec(BEATS - 1)], [ARC0 - 0.16, ARC0 + 0.32], [ARC1 - 0.4, ARC1 + 0.25],
-    ...SHOTS.filter((s) => s.set === 'app' && typeof s.app.id === 'string' && CAPS[s.app.id]?.size === 'phone').map((s) => [s.a, s.a + 0.4]),
-    ...TOOLS.map((_, k) => [TOOLS_AT + k * TOOL_BAR, TOOLS_AT + k * TOOL_BAR + 0.45])];
-const FLASHES = [[sec(VERSE), 0.06], [sec(CUE.end), 0.08]];
+// the tools: four panels, working, popping in a beat each, each named
+const TOOLS5 = [['tuner-live', 'Tuner', 0], ['drone-live', 'Drone', 0.4], ['metro-live', 'Metronome', 0], ['range-live', 'Vocal range test', 3]];
+function toolsGrid(t) {
+    return TOOLS5.map(([id, label, skip], k) => {
+        const at = B(60 + k), u = spring(t - at + 0.02, 1.4, 0.55);
+        if (t < at - 0.02) return null;
+        const col = k % 2, row = Math.floor(k / 2), w = 400;
+        return { id, label, crop: { x: 0, y: 0, w: 1, h: 0.62 }, x: 960 + col * 460, y: 405 + row * 410, w, glow: 0, clock: t - at + skip, s: lerp(0.3, 1, u), o: clamp(u * 3), z: lerp(-200, 0, u) };
+    });
+}
+function montage(t) {
+    const list = [];
+    GROUPS.forEach((g, k) => { const q = flyIn(g, t, GROUPS[k + 1]?.s ?? 60); if (q) list.push(q); });
+    if (t >= B(60) - 0.05) list.push(...toolsGrid(t).filter(Boolean));
+    // the songbook: the pointer picks Alto under I sing, as the capture did
+    const book = list.find((q) => q.id === SEASON.book), c = CAPS[SEASON.book];
+    if (book && c?.click) planeTap(t, book, c.click.x, c.click.y, B(57) + c.click.at); else { vis(pCursor, false); vis(pRing, false); }
+    return list.sort((p, q) => (p.z ?? 0) - (q.z ?? 0));
+}
+// game mode: the same moment of Sing, calm, then a CRT flip on the downbeat into the arcade; then PRESS START
+function flip(t) {
+    const f = B(67);
+    if (t < f - 0.16) return lift(singQ, B(66), f, { stay: true })(t);
+    if (t < f) { const u = E.in(range(t, f - 0.16, f)); return [{ ...lift(singQ, B(66), f, { stay: true })(t)[0], squash: lerp(1, 0.012, u), tint: u, tintC: '#fff' }]; }
+    if (t < B(70)) {
+        const u = E.outExpo(range(t, f, f + 0.3)), q = { ...singQ, id: 'flip-arcade', glow: 'brand', clock: synced('flip-arcade', t) };
+        return [{ ...q, s: lerp(1, 1.04, range(t, f, B(70))), squash: lerp(0.012, 1, u), tint: 1 - range(t, f, f + 0.35), tintC: '#fff', scan: 0.55 }];
+    }
+    const u = E.io(range(t, B(70), B(72)));
+    return [{ id: 'daily', crop: STAGE_CROP, x: CX + 60 - 260 * u, y: 640 + 60 * u, w: 1500, s: lerp(1, 1.5, u), glow: 'brand', o: E.outExpo(range(t, B(70), B(70) + 0.3)) * 1.6 }];
+}
+// the fold: every verse-two component, a grid; four colour columns; the mark's four bars, on "see."
+const FOLD_ITEMS = [['courses-card', 'head'], ['lesson', null], [SEASON.hero, SEASON.strip], [SEASON.book, SEASON_ROW], ['tuner-live', null], ['drone-live', null],
+    ['metro-live', null], ['range-live', null], ['flip-arcade', SING_CROP], ['choir-director', 'song'], ['choir-member', 'song'], ['github', 'card']];
+const SCREEN_MARK = END_MARK.map((r) => ({ x: r.x - END.cx + CX, y: r.y - END.cy + CY, w: r.w, h: r.h }));
+function fold(t) {
+    const a = B(CUE.all), b1 = B(CUE.all + 1), b2 = B(CUE.all + 2), see = B(CUE.end);
+    return FOLD_ITEMS.map(([id, crop], k) => {
+        const col = k % 4, row = Math.floor(k / 4), pop = spring(t - a - k * 0.03, 1.5, 0.6), land = clamp(pop);
+        const cell = { x: CX + (col - 1.5) * 420, y: 360 + row * 250, w: 380, h: 214 };
+        // each column becomes a small stack of three bars in its voice's colour, before the mark takes them
+        const column = { x: CX + (col - 1.5) * 420, y: 600 + (row - 1) * 78, w: 380, h: 60 };
+        const m = SCREEN_MARK[col], bar = { x: m.x + m.w / 2, y: m.y + m.h / 2, w: m.w, h: m.h };
+        const u1 = E.io(range(t, b1 + col * 0.03, b2 - (3 - col) * 0.03)), u2 = E.snap(range(t, b2 + col * 0.035, see - (3 - col) * 0.035));
+        const pos = lerp4(lerp4(cell, column, u1), bar, u2);
+        return { id, crop, clock: 0.5, x: pos.x, y: pos.y, w: pos.w, h: pos.h, s: lerp(0.5, 1, pop), z: lerp(-1500, 0, land), rz: (hash(k + 3) - 0.5) * 26 * (1 - land), ry: lerp(-24, 0, land), o: clamp(pop * 3), tint: clamp(u1 * 1.3), tintC: PART_VAR[col], radius: lerp(14, pos.h / 2, u1), glow: col };
+    });
+}
+
+const SHOTS_BY_CUT = {
+    hero: [
+        // VERSE ONE: one voice becomes four. The stack opens on the tune, three lanes waiting
+        { a: 0, set: 'lanes', cam: openCam, trail: true },
+        { a: B(6), set: 'planes', wash: 0, soft: true, planes: lift(singQ, B(6), B(11), { ry: 5 }) },
+        // back to the lanes a beat before the alto sings (9.0), so its lane is seen to ignite; the camera
+        // cranes up to two lanes
+        { a: B(11), set: 'lanes', cam: twoCam, trail: true },
+        { a: B(18), set: 'planes', wash: 1, soft: true, planes: lift(studioQ('studio-alto', 1), B(18), B(23), { y: -24, s1: 1.13 }) },
+        // the tenor sings on 18.0, a beat into v4's top-down tilt, three lanes lit
+        { a: B(23), set: 'lanes', cam: topCam, trail: true },
+        { a: B(30), set: 'planes', planes: lift({ id: 'sing-tenor-phone', phone: true, x: PHONE_X, y: 600, h: 860, glow: 2, clock: (t) => synced('sing-tenor-phone', t) }, B(30), B(36), { y: -16 }) , wash: 2, soft: true },
+        // the bass sings on 27.7, the whole stack; on 30.0 the four "You" tiles
+        { a: B(36), set: 'lanes', cam: wideCam(B(36), B(40)), trail: true },
+        { a: B(40), set: 'split' },
+        { a: B(42), set: 'planes', wash: 3, soft: true, planes: lift(studioQ('studio-bass', 3), B(42), B(48), { y: 24, s0: 1.12, s1: 1 }) },
+        // VERSE TWO: a montage over the full chord, a component a bar, tinted by phrase
+        { a: B(48), set: 'planes', wash: 0, planes: montage },
+        { a: B(66), set: 'planes', wash: 1, planes: flip },
+        { a: B(72), set: 'share', wash: 2, cam: (t) => { const a = B(72), u = E.outExpo(range(t, a, a + 0.8)), o = range(t, a, B(78)); return { x: SH.x + SH.w / 2 + lerp(-60, 60, o), y: SH.y + 345, dz: lerp(-700, 0, u), zoom: lerp(0.9, 1.02, o), ry: lerp(-10, 6, E.io(o)) }; } },
+        { a: B(78), set: 'planes', wash: 2, planes: lift({ id: 'choir-director', crop: 'song', x: CX + 160, y: 640, w: 1500, glow: 2 }, B(78), B(81), { x: -260, ry: 6 }) },
+        { a: B(81), set: 'planes', wash: 2, planes: lift({ id: 'choir-member', crop: 'song', x: CX + 40, y: 640, w: 1500, glow: 2 }, B(81), B(84), { ry: 4 }) },
+        { a: B(84), set: 'planes', wash: 3, planes: lift({ id: 'github', crop: 'card', x: CX, y: 640, w: 1300, glow: 3 }, B(84), B(88), { y: -20 }) },
+        { a: B(CUE.all), set: 'fold', planes: fold },
+        { a: B(CUE.end), set: 'lanes', mark: 'end', atMark: true, cam: endCam, wordsAt: B(CUE.end + 2) },
+        { a: B(LAST - 1), set: 'lanes', preroll: true, cam: (t) => openCam(t - DUR) },
+    ],
+    short: [
+        { a: 0, set: 'lanes', cam: openCam, trail: true },
+        { a: B(6), set: 'planes', wash: 0, soft: true, planes: lift(singQ, B(6), B(11), { ry: 5 }) },
+        { a: B(11), set: 'lanes', cam: twoCam, trail: true },
+        { a: B(18), set: 'planes', wash: 1, soft: true, planes: lift(studioQ('studio-alto', 1), B(18), B(23), { y: -24, s1: 1.13 }) },
+        { a: B(23), set: 'lanes', cam: topCam, trail: true },
+        { a: B(30), set: 'planes', planes: lift({ id: 'sing-tenor-phone', phone: true, x: PHONE_X, y: 600, h: 860, glow: 2, clock: (t) => synced('sing-tenor-phone', t) }, B(30), B(36), { y: -16 }) , wash: 2, soft: true },
+        { a: B(36), set: 'lanes', cam: wideCam(B(36), B(40)), trail: true },
+        { a: B(40), set: 'split' },
+        // "see.": the four held notes become the mark, and the card
+        { a: B(CUE.end), set: 'lanes', mark: 'end', wordsAt: B(CUE.end) + 0.7, cam: (t) => { const a = B(CUE.end), u = E.io(range(t, a, a + 1)); return { x: lerp(X(CUE.end) + 380, END.cx, u), y: lerp(STACK_H / 2, END.cy, u), zoom: lerp(0.5, 1, u) }; } },
+        { a: B(LAST - 1), set: 'lanes', preroll: true, cam: (t) => openCam(t - DUR) },
+    ],
+    social: [
+        { a: B(24), set: 'lanes', cam: vCam(B(24), B(30)), trail: true },
+        // the alto sings on 22.5: its lane ignites, then a beat on, its studio take
+        { a: B(31), set: 'planes', wash: 1, soft: true, planes: lift({ id: 'studio-alto-phone', phone: true, x: CX, y: 1010, h: 1380, glow: 1, clock: (t) => synced('studio-alto-phone', t) }, B(31), B(35), { y: -20 }) },
+        // back a beat before the tenor sings (26.9); the bass is let in mid-note at 32.1
+        { a: B(35), set: 'lanes', cam: vCam(B(35), B(44)), trail: true },
+        { a: B(44), set: 'split', url: B(45) },
+        { a: B(48), set: 'mark', url: B(45) },
+    ],
+};
+const SHOTS = SHOTS_BY_CUT[CUT];
+SHOTS.forEach((s, i) => { s.b = SHOTS[i + 1] ? SHOTS[i + 1].a : sec(LAST); });
+export const CUTS = SHOTS.slice(1).map((s) => s.a - sec(FROM));
+export const EDIT = { wide: [[0, DUR]], vertical: [[0, DUR]], thumb: [[0, 3.75]] }[FORMAT];
+if (FORMAT === 'square') throw new Error('v5 has no square cut');
+const FRAMING = { zoom: 1, down: 0 };
+const reframe = (c) => c;
+// windows fast enough to earn extra motion-blur samples: every cut's first moments, the montage's whips,
+// the flip, the fold and the mark forming (film seconds)
+export const FAST = [...SHOTS.map((s) => [s.a - 0.24, s.a + 0.6]), ...[1, 2, 3].map((i) => [peakAt(i) - SWEEP / 2, peakAt(i) + SWEEP / 2]), ...GROUPS.map((g, k) => [B(GROUPS[k + 1]?.s ?? 60), B(GROUPS[k + 1]?.s ?? 60) + 0.35]),
+    [B(CUE.all), B(CUE.end) + 0.3], [B(CUE.fold[0]), B(LAST - 1)]].map(([a, b]) => [a - sec(FROM), b - sec(FROM)]);
+const FLASHES = CUT === 'hero' ? [[B(VERSE), 0.05], [B(CUE.end), 0.08]] : [[B(CUE.end), 0.08]];
+
+/* ================= v5: the mark in the frame (the social cut's tiles fold into it) ================= */
+const markV = mk('div', 'markv', $('#stage'));
+hud.before(markV);
+const MARKV = markRects(CX, 1010, 1.9);
+const markVBars = MARKV.map((r, i) => { const g = mk('div', 'gem gem-bar', markV); g.style.cssText = `left:0;top:0;--gem:var(--m${i + 1})`; return g; });
+const urlEl = mk('div', 'url5', hud, 'stackapella.com');
+function drawMarkV(t, a) {
+    MARKV.forEach((r, i) => {
+        const q = QPOS[i], from = { x: q[0] + QUAD.w / 2 - 40, y: q[1] + QUAD.h / 2 - 20, w: 80, h: 40 };
+        const u = E.snap(range(t, a + i * 0.05, a + 0.7 + i * 0.05));
+        morphBar(markVBars[i], i, from, r, u, E.io(range(t, a + 0.5, a + 1.2)), lerp(20, r.h / 2, u));
+        set(markVBars[i], '--glow', (0.35 + 0.65 * Math.exp(-Math.max(0, t - a - 0.8) / 0.4)).toFixed(3));
+    });
+}
+
+/* ================= the CRT (v4's full-frame power on and off): v5 flips on the plane alone ================= */
+const ARC0 = -99, ARC1 = -99;
 
 /* ================= the CRT: game mode switching on and off ================= */
 const crtEl = $('#crt'), [crtTop, crtBottom, crtLine, crtWash] = crtEl.children;
@@ -635,17 +944,6 @@ function crt(t) {
     set(crtLine, 'opacity', line.toFixed(3));
     set(crtLine, 'transform', `scaleX(${lw.toFixed(4)})`);
     set(crtWash, 'opacity', wash.toFixed(3));
-}
-
-/** Each line, from when it reads (most of its rise done) to when it goes: for checking that each stays long enough to read. */
-export function captions() {
-    const out = [];
-    SHOTS.forEach((s) => {
-        const last = out.at(-1);
-        if (s.cap && last && last.text === s.cap && Math.abs(last.until - s.a) < 1e-6) last.until = s.b;
-        else if (s.cap) out.push({ text: s.cap, from: (s.capAt ?? s.a) + 0.3, until: s.b });
-    });
-    return out.map((c) => ({ ...c, shown: +(c.until - c.from).toFixed(2), needs: +(0.3 * c.text.split(/\s+/).length + 1).toFixed(2) }));
 }
 
 /* ================= the thumbnail: the mark, its voices lit one by one ================= */
@@ -693,94 +991,103 @@ const sets = { lanes: laneSet, share: shSet };
 const NUDGE = Q.has('cam') ? JSON.parse(Q.get('cam')) : null;
 
 export function film(t) {
+    // t is the song's clock (main.js adds the cut's start)
     let shot = SHOTS[0];
     for (const s of SHOTS) if (t >= s.a) shot = s;
     for (const k in sets) vis(sets[k], shot.set === k);
     vis(splitEl, shot.set === 'split');
-    vis(appsEl, shot.set === 'app');
-    stageEl.classList.toggle('arcade', !!shot.arcade);
-    vis(toolsEl, shot.set === 'tools');
-    if (shot.set === 'tools') tools(t);
+    vis(appsEl, false);
+    vis(toolsEl, false);
+    vis(planesEl, shot.set === 'planes' || shot.set === 'fold');
+    vis(markV, shot.set === 'mark');
+    vis(cap, false);
+    stageEl.classList.toggle('arcade', false);
     crt(t);
-    set(washEl, 'opacity', shot.wash ? '1' : '0');
+    // the colour script: verse two tints by phrase
+    // (verse one too, softer: each lifted screen sits in the light of the voice that just joined; it breathes with the singing)
+    set(washEl, 'opacity', shot.wash != null ? ((shot.soft ? 0.6 : 0.8) + 0.2 * level(t)).toFixed(3) : '0');
+    if (shot.wash != null) set(washEl, 'background', `radial-gradient(ellipse 80% 70% at 62% 62%, color-mix(in oklab, ${PART_VAR[shot.wash]} ${LIGHT ? 12 : 17}%, transparent), transparent 76%)`);
     if (FORMAT === 'thumb') return thumb(t);
     const cam = shot.cam ? reframe(shot.cam(t)) : null;
+    if (cam && shot.trail) {
+        // the camera settles in from each cut and pushes at the lens into the next, so cuts carry the motion;
+        // and it takes a small kick as each voice starts to sing
+        let k = 1 + 0.07 * E.in(range(t, shot.b - 0.22, shot.b));
+        if (shot.a > sec(FROM)) k *= lerp(0.93, 1, E.outExpo(range(t, shot.a, shot.a + 0.7)));
+        for (let i = 1; i < 4; i++) { const d = t - peakAt(i); if (d > 0) k *= 1 + 0.016 * (1 - Math.exp(-d / 0.035)) * Math.exp(-d / 0.32); }
+        cam.zoom *= k;
+    }
     setCam(cam ? (NUDGE ? { ...cam, ...NUDGE } : cam) : {});
-    // a focus pull: the picture comes into focus at the start of a shot
-    const f = shot.focus ? shot.focus[2] * (1 - E.io(range(t, shot.focus[0], shot.focus[0] + shot.focus[1]))) : 0;
-    set(lens, 'filter', f > 0.05 ? `blur(${f.toFixed(2)}px)` : '');
+    set(lens, 'filter', '');
     const lt = shot.preroll ? t - DUR : t;
 
     if (shot.set === 'lanes') {
-        let o = { lt, names: shot.names, all: shot.all, quiet: shot.quiet };
+        let o = { lt, names: shot.names, all: shot.all, quiet: shot.quiet, cam };
         vis(endEl, shot.mark === 'end');
         morphEls.forEach((e) => vis(e, !!shot.mark));
         if (shot.mark) {
-            // the four held notes leave their lanes and become the four bars of the mark
+            // "see.": the four held notes (or, after the fold, the four bars it made) are the mark
             const beat = CUE.end, t0 = sec(beat);
             const idx = [0, 1, 2, 3].map((i) => noteIndex(i, beat));
-            const dst = END_MARK;
-            const fade = 1 - E.io(range(t, t0 + 0.1, t0 + 0.7));
+            const fade = shot.atMark ? 0 : 1 - E.io(range(t, t0 + 0.1, t0 + 0.7));
             o = { ...o, all: true, hide: idx, fade, lines: fade, quiet: true, noBeam: fade < 0.05 };
-            const fold = shot.mark === 'end' ? E.io(range(t, sec(CUE.fold[0]), sec(BEATS - 1))) : 0;
-            // the opening note, in this set's world, at the size and place the pre-roll will show it
-            // (its shot is reframed for the format: zoomed by FRAMING.zoom and moved down by .down)
+            const fold = E.io(range(t, sec(CUE.fold[0]), sec(LAST - 1)));
             const z = cam.zoom, ow = OPEN.w * FRAMING.zoom, oh = OPEN.h * FRAMING.zoom;
             const gem = { x: END.cx - ow / 2 / z, y: END.cy + FRAMING.down / z - oh / 2 / z, w: ow / z, h: oh / z };
             morphEls.forEach((e, i) => {
-                const u = E.snap(range(t, t0 + 0.05 + i * 0.06, t0 + 0.85 + i * 0.06));
-                let to = dst[i], radius;
+                const u = shot.atMark ? 1 : E.snap(range(t, t0 + 0.05 + i * 0.06, t0 + 0.85 + i * 0.06));
+                let to = END_MARK[i], radius;
                 if (fold > 0) {
                     // the fold: the lower bars slide up into the tune's, which becomes the opening note
                     const f1 = E.io(clamp(fold * 1.6)), f2 = E.io(clamp(fold * 1.6 - 0.6));
-                    to = i === 0 ? lerp4(dst[0], gem, f2) : lerp4(lerp4(dst[i], { ...dst[0], w: dst[i].w * 0.6 }, f1), gem, f2);
+                    to = i === 0 ? lerp4(END_MARK[0], gem, f2) : lerp4(lerp4(END_MARK[i], { ...END_MARK[0], w: END_MARK[i].w * 0.6 }, f1), gem, f2);
                     radius = lerp(to.h / 2, (OPEN.r * FRAMING.zoom) / z, f2);
                     set(e, 'opacity', i === 0 ? '1' : (1 - clamp(fold * 1.6 - 0.5) * 2).toFixed(3));
                 } else set(e, 'opacity', '1');
-                const colour = E.io(range(t, t0 + 0.4, t0 + 1.2)) * (shot.mark === 'end' ? 1 - E.io(range(t, sec(CUE.fold[0]) + 0.4, sec(BEATS - 1))) : 1);
-                morphBar(e, i, gemRect(i, idx[i]), to, u, colour, radius);
-                set(e, '--glow', (0.3 + 0.7 * Math.exp(-Math.max(0, t - t0 - 0.9) / 0.3)).toFixed(3));
+                const colour = E.io(range(t, t0 + 0.4, t0 + 1.2)) * (1 - E.io(range(t, sec(CUE.fold[0]) + 0.4, sec(LAST - 1))));
+                // (after the fold, each bar lands with a small squash)
+                const dl = t - t0 - i * 0.035, land = shot.atMark && dl > 0 ? 0.08 * Math.exp(-dl / 0.11) * Math.cos(dl * 24) : 0;
+                morphBar(e, i, gemRect(i, idx[i]), to, u, colour, radius, land);
+                // the mark breathes
+                // and glows with its own voice's loudness on the held chord
+                set(e, '--glow', clamp(0.3 + 0.7 * Math.exp(-Math.max(0, t - t0 - (shot.atMark ? 0 : 0.9)) / 0.3) + 0.08 * Math.sin((t - t0) * 2.4 + i) + 0.3 * loud(i, beatAt(t))).toFixed(3));
             });
-            if (shot.mark === 'end') {
-                const out = E.in(range(t, sec(CUE.fold[0]), sec(CUE.fold[0]) + 0.3));
-                const r1 = E.rise(range(t, t0 + 0.7, t0 + 1.25)), r2 = E.rise(range(t, t0 + 0.95, t0 + 1.5)), r3 = E.rise(range(t, t0 + 1.15, t0 + 1.7));
-                const r4 = E.rise(range(t, t0 + 1.5, t0 + 2.1));
-                [[endH, r1], [endP, r2], [endSite, r3], [endCredit, r4]].forEach(([e, r]) => {
-                    set(e, 'transform', `translateY(${((1 - r) * 40 + out * -30).toFixed(2)}px)`);
-                    set(e, 'opacity', (clamp(r * 1.5) * (1 - out)).toFixed(3));
-                });
-            }
+            const wa = shot.wordsAt, out = E.in(range(t, sec(CUE.fold[0]), sec(CUE.fold[0]) + 0.3));
+            [[endH, 0], [endSite, 0.25], [endCredit, 0.55]].forEach(([e, d]) => {
+                const r = E.outExpo(range(t, wa + d, wa + d + 0.55));
+                set(e, 'transform', `translateY(${((1 - r) * 24 + out * -30).toFixed(2)}px)`);
+                set(e, 'opacity', (clamp(r * 1.5) * (1 - out)).toFixed(3));
+            });
         }
         lanes(t, o);
         if (shot.mark === 'end' && t < sec(CUE.fold[0])) glints(t, END_MARK);
+        if (shot.atMark) END_MARK.forEach((r, i) => {
+            // the fold lands: a spark at each bar's end, in its colour
+            const d = t - sec(CUE.end) - i * 0.035;
+            if (d < 0 || d > 0.6) return;
+            const [sx, sy, s] = project(r.x + r.w, r.y + r.h / 2, 0);
+            sparkles(sx, sy, d, T.parts[i], s * 1.2, i + 7, 8);
+            glow(sx - (r.w * s) / 2, sy, 250 * s, T.parts[i], (LIGHT ? 0.2 : 0.36) * Math.exp(-d / 0.22));
+        });
     }
-    if (shot.set === 'app') app(t, shot);
+    if (shot.set === 'planes' || shot.set === 'fold') {
+        if (shot.planes !== montage) { vis(pCursor, false); vis(pRing, false); }
+        drawPlanes(shot.planes(t), t);
+    }
     if (shot.set === 'share') share(t);
     if (shot.set === 'split') split(t, shot.a);
+    if (shot.set === 'mark') drawMarkV(t, shot.a);
+    const ua = shot.url ?? null;
+    vis(urlEl, ua != null && t >= ua);
+    if (ua != null) { const r = E.outExpo(range(t, ua, ua + 0.6)); set(urlEl, 'opacity', clamp(r * 1.4).toFixed(3)); set(urlEl, 'transform', `translateX(-50%) translateY(${((1 - r) * 20).toFixed(1)}px)`); }
 
     /* screen space: the voice, the sparks, the specks */
-    if (shot.set === 'lanes' && !shot.mark && !shot.all) { voiceTrail(lt); hits(lt); }
+    if (shot.set === 'lanes' && shot.trail) { voiceTrail(lt); hits(lt); ignitions(lt); }
     if (shot.set === 'share') shareSparkles(t);
-    if (shot.arcade) { /* the arcade's own dotted ground instead */ } else if (shot.set === 'lanes' || shot.set === 'share') specks(t, DUR, shot.set === 'share' ? 0.5 : 1, shot.set === 'lanes' ? cam.x * 0.8 - 1000 : SH.x);
-    else if (shot.set === 'app' || shot.set === 'tools') specks(t, DUR, 0.45, -400);
+    if (shot.set === 'lanes' || shot.set === 'share') specks(t, DUR, shot.set === 'share' ? 0.5 : 1, shot.set === 'lanes' ? cam.x * 0.8 - 1000 : SH.x);
+    else specks(t, DUR, 0.4, -400);
 
-    /* the line this shot carries: it rises once, and stays put across cuts that keep it */
-    const text = shot.cap ?? null;
-    vis(cap, !!text);
-    set(hud, '--shade', text ? '1' : '0');
-    if (text) {
-        let at = shot.capAt ?? shot.a;
-        for (let i = SHOTS.indexOf(shot) - 1; i >= 0 && SHOTS[i].cap === text; i--) at = SHOTS[i].capAt ?? SHOTS[i].a;
-        let actAt = at;
-        for (let i = SHOTS.indexOf(shot) - 1; i >= 0 && SHOTS[i].act === shot.act; i--) actAt = SHOTS[i].a;
-        if (capLn._t !== text) { capLn._t = text; capLn.textContent = text; }
-        const [eb, dot] = ACTS[shot.act];
-        if (capEb._t !== eb) { capEb._t = eb; capEb.textContent = eb; capDot.style.setProperty('--dot', PART_VAR[dot]); }
-        const r = E.rise(range(t, at + 0.03, at + 0.42)), re = E.rise(range(t, actAt, actAt + 0.35));
-        set(capLn, 'transform', `translateY(${((1 - r) * 34).toFixed(2)}px)`);
-        set(capLn, 'opacity', clamp(r * 1.6).toFixed(3));
-        set(capEb.parentNode, 'opacity', clamp(re * 1.6).toFixed(3));
-    }
+    drawLine(t);
     let fl = 0;
     for (const [a, k] of FLASHES) if (t >= a) fl += k * Math.exp(-(t - a) / 0.08);
     set(flashEl, 'opacity', Math.min(0.4, fl).toFixed(4));

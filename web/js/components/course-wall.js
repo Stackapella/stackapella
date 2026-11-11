@@ -18,6 +18,7 @@ import { askNot, askShown, askYes } from '../funnel.js';
 import { experiment } from '../experiments.js';
 import { midiName } from '../dsp.js';
 import { Icon } from './icon.js';
+import { game } from '../skin.js';
 
 const PROVIDERS = { google: tk('auth.google'), apple: tk('auth.apple') };
 
@@ -67,10 +68,12 @@ export const CourseWall = {
         keeps() {
             const lessons = this.course ? learning.progress.courses?.[this.course.id]?.lessons ?? {} : learning.progress.lessons ?? {};
             const stars = Object.values(lessons).reduce((sum, kept) => sum + (kept?.stars ?? 0), 0);
+            const done = Object.values(lessons).filter((kept) => kept?.stars).length;
             const title = localized(this.course?.title ?? learning.course?.title) || '';
             const home = learning.progress.home;
             return [
-                ...(stars ? [t('courses.wall.keepStars', { count: stars })] : []),
+                // Serious mode counts lessons, never stars (docs/skins-plan.md).
+                ...(stars ? [game() ? t('courses.wall.keepStars', { count: stars }) : t('courses.wall.keepLessons', { count: done })] : []),
                 ...(home != null && !this.course ? [t('courses.wall.keepNote', { note: midiName(home) })] : []),
                 ...(title ? [t('courses.wall.keepPlace', { course: title })] : []),
                 t('courses.wall.keepAll'),

@@ -159,6 +159,10 @@ final class ReferencePagesTest extends TestCase
         $this->assertContains('/songs/amazing-grace/bass', $urls);
         $this->assertNotContains('/songs/amazing-grace/tenor', $urls);
         $this->assertLessThanOrEqual(6, count($urls));
+        // Each with its part's own ends, inside the range, for the page's bar of it.
+        foreach ($parts->within($low, $high, Reference::VOICE_PARTS['bass']) as $row) {
+            $this->assertTrue($row['low'] >= $low && $row['high'] <= $high && $row['low'] <= $row['high'], $row['url']);
+        }
         $this->assertSame([], $parts->within(84, 96), 'no part sits that high');
 
         if (SongParts::open()) {

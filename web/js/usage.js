@@ -41,11 +41,12 @@ for (const kind of [
 ]) KINDS.add(kind);
 // Kinds with a detail, `<prefix>:<id>`: a Plus course's lessons by course, the free course by lesson.
 // The server keeps only ids the courses have.
-const DETAILED = new Set(['pl_s', 'pl_d', 'fl_s', 'fl_d']);
+// fs_r: a free lesson's step reached, `fs_r:<lessonId>.<step>` (step from 0), once per step each time it's run.
+const DETAILED = new Set(['pl_s', 'pl_d', 'fl_s', 'fl_d', 'fs_r']);
 const MOST_EACH = 20; // the server takes 1 to 20 of a kind, and 20 kinds, in one batch
 const IDLE_WAIT_MS = 30000; // a batch goes within this, when the browser is idle (never for audio)
 
-const detailed = (kind) => DETAILED.has(kind.split(':')[0]) && /^[a-z]+_[a-z]:[a-z0-9-]{1,24}$/.test(kind);
+const detailed = (kind) => DETAILED.has(kind.split(':')[0]) && /^[a-z]+_[a-z]:[a-z0-9-]{1,24}(\.\d{1,2})?$/.test(kind);
 
 /** Counts a kind for one course or lesson: countFor('pl_d', 'vibrato'), countFor('fl_s', '1-match'). */
 export function countFor(prefix, id) {

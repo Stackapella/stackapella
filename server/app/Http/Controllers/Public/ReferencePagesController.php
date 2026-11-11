@@ -10,6 +10,7 @@ use App\Support\Pages\Landing;
 use App\Support\Pages\PageGone;
 use App\Support\Pages\Reference;
 use App\Support\Pages\SongParts;
+use App\Support\Pages\VoiceTypePage;
 use App\Support\Site\SitePages;
 use App\Support\Site\StructuredData;
 use App\Support\Site\ToolPreloads;
@@ -62,8 +63,11 @@ final class ReferencePagesController extends Controller
         $page = Reference::page($kind, $slug);
         $meta = ['title' => SitePages::title((string) $page['title']), 'description' => (string) $page['description'], 'url' => Hosts::publicUrl().'/'.$kind.'/'.$slug];
         $trail = StructuredData::breadcrumbs([[(string) $index['eyebrow'], Hosts::publicUrl().'/'.$kind], [(string) $page['name'], $meta['url']]]);
+        // A voice type's song parts inside its range, each with its own page (the voice type's page draws each as a bar).
+        $songs = $kind === 'voice-types' && SongParts::open() ? $parts->within(Reference::VOICE_TYPES[$slug][2], Reference::VOICE_TYPES[$slug][3], Reference::VOICE_PARTS[$slug]) : [];
 
-        return response()->view('site.reference', [
+        // A voice type has its own page in Hillel's design (2026-11-11); the intervals and chords keep the reference page.
+        return response()->view($kind === 'voice-types' ? 'site.voice-type' : 'site.reference', [
             'title' => $meta['title'],
             'meta' => $meta,
             'ld' => [...self::faq(self::pairs($page['faq'] ?? [])), $trail],
@@ -76,8 +80,10 @@ final class ReferencePagesController extends Controller
             'module' => Reference::MODULE,
             'preloads' => ToolPreloads::for(Reference::MODULE),
             'data' => Reference::data($kind, $slug),
-            // A voice type's page lists song parts that sit inside its range, each with its own page.
-            'songs' => $kind === 'voice-types' && SongParts::open() ? $parts->within(Reference::VOICE_TYPES[$slug][2], Reference::VOICE_TYPES[$slug][3], Reference::VOICE_PARTS[$slug]) : [],
+            'songs' => $songs,
+            'slug' => $slug,
+            'choir' => $kind === 'voice-types' ? Reference::VOICE_TYPES[$slug][1] : null,
+            'vt' => $kind === 'voice-types' ? VoiceTypePage::of($slug, $songs, ! empty($page['faq'])) : null,
             'others' => array_values(array_filter(Reference::rows($kind), static fn (array $row): bool => $row['url'] !== $page['url'])),
             'directory' => SitePages::directory(null, Reference::related($kind)),
             'links' => Landing::links(Landing::ref($request->query('ref'))),

@@ -1,0 +1,729 @@
+{
+    "$id": "admin.dropoffs.show.json",
+    "title": "The weekly drop-off report: the latest week and the one before",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "latest",
+                "previous"
+            ],
+            "properties": {
+                "latest": {
+                    "type": [
+                        "object",
+                        "null"
+                    ],
+                    "additionalProperties": false,
+                    "required": [
+                        "weekStart",
+                        "weekEnd",
+                        "floor",
+                        "margin",
+                        "paths",
+                        "worst",
+                        "falls"
+                    ],
+                    "properties": {
+                        "weekStart": {
+                            "type": "string"
+                        },
+                        "weekEnd": {
+                            "type": "string"
+                        },
+                        "floor": {
+                            "type": "integer"
+                        },
+                        "margin": {
+                            "type": "number"
+                        },
+                        "paths": {
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "additionalProperties": false,
+                                "required": [
+                                    "path",
+                                    "label",
+                                    "steps"
+                                ],
+                                "properties": {
+                                    "path": {
+                                        "type": "string"
+                                    },
+                                    "label": {
+                                        "type": "string"
+                                    },
+                                    "steps": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "object",
+                                            "additionalProperties": false,
+                                            "required": [
+                                                "step",
+                                                "label",
+                                                "entered",
+                                                "passed",
+                                                "passThrough",
+                                                "before",
+                                                "tooFew",
+                                                "neighbours",
+                                                "fall",
+                                                "drop",
+                                                "lost",
+                                                "month"
+                                            ],
+                                            "properties": {
+                                                "step": {
+                                                    "type": "string"
+                                                },
+                                                "label": {
+                                                    "type": "string"
+                                                },
+                                                "entered": {
+                                                    "type": "integer"
+                                                },
+                                                "passed": {
+                                                    "type": "integer"
+                                                },
+                                                "passThrough": {
+                                                    "type": [
+                                                        "number",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "before": {
+                                                    "type": [
+                                                        "number",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "tooFew": {
+                                                    "type": "boolean"
+                                                },
+                                                "neighbours": {
+                                                    "type": [
+                                                        "number",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "fall": {
+                                                    "type": [
+                                                        "number",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "drop": {
+                                                    "type": "boolean"
+                                                },
+                                                "lost": {
+                                                    "type": "integer"
+                                                },
+                                                "month": {
+                                                    "type": "object",
+                                                    "additionalProperties": false,
+                                                    "required": [
+                                                        "entered",
+                                                        "passed",
+                                                        "passThrough",
+                                                        "tooFew"
+                                                    ],
+                                                    "description": "The same step over the last 28 whole days to weekEnd: the long window, for steps too few reach in a week. Never ranked.",
+                                                    "properties": {
+                                                        "entered": {
+                                                            "type": "integer"
+                                                        },
+                                                        "passed": {
+                                                            "type": "integer"
+                                                        },
+                                                        "passThrough": {
+                                                            "type": [
+                                                                "number",
+                                                                "null"
+                                                            ]
+                                                        },
+                                                        "tooFew": {
+                                                            "type": "boolean"
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        "worst": {
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "additionalProperties": false,
+                                "required": [
+                                    "path",
+                                    "pathLabel",
+                                    "step",
+                                    "label",
+                                    "entered",
+                                    "passed",
+                                    "passThrough",
+                                    "before",
+                                    "tooFew",
+                                    "neighbours",
+                                    "fall",
+                                    "drop",
+                                    "lost",
+                                    "month"
+                                ],
+                                "properties": {
+                                    "path": {
+                                        "type": "string"
+                                    },
+                                    "pathLabel": {
+                                        "type": "string"
+                                    },
+                                    "step": {
+                                        "type": "string"
+                                    },
+                                    "label": {
+                                        "type": "string"
+                                    },
+                                    "entered": {
+                                        "type": "integer"
+                                    },
+                                    "passed": {
+                                        "type": "integer"
+                                    },
+                                    "passThrough": {
+                                        "type": [
+                                            "number",
+                                            "null"
+                                        ]
+                                    },
+                                    "before": {
+                                        "type": [
+                                            "number",
+                                            "null"
+                                        ]
+                                    },
+                                    "tooFew": {
+                                        "type": "boolean"
+                                    },
+                                    "neighbours": {
+                                        "type": [
+                                            "number",
+                                            "null"
+                                        ]
+                                    },
+                                    "fall": {
+                                        "type": [
+                                            "number",
+                                            "null"
+                                        ]
+                                    },
+                                    "drop": {
+                                        "type": "boolean"
+                                    },
+                                    "lost": {
+                                        "type": "integer"
+                                    },
+                                    "month": {
+                                        "type": "object",
+                                        "additionalProperties": false,
+                                        "required": [
+                                            "entered",
+                                            "passed",
+                                            "passThrough",
+                                            "tooFew"
+                                        ],
+                                        "description": "The same step over the last 28 whole days to weekEnd: the long window, for steps too few reach in a week. Never ranked.",
+                                        "properties": {
+                                            "entered": {
+                                                "type": "integer"
+                                            },
+                                            "passed": {
+                                                "type": "integer"
+                                            },
+                                            "passThrough": {
+                                                "type": [
+                                                    "number",
+                                                    "null"
+                                                ]
+                                            },
+                                            "tooFew": {
+                                                "type": "boolean"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        "falls": {
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "additionalProperties": false,
+                                "required": [
+                                    "path",
+                                    "pathLabel",
+                                    "step",
+                                    "label",
+                                    "entered",
+                                    "passed",
+                                    "passThrough",
+                                    "before",
+                                    "tooFew",
+                                    "neighbours",
+                                    "fall",
+                                    "drop",
+                                    "lost",
+                                    "month"
+                                ],
+                                "properties": {
+                                    "path": {
+                                        "type": "string"
+                                    },
+                                    "pathLabel": {
+                                        "type": "string"
+                                    },
+                                    "step": {
+                                        "type": "string"
+                                    },
+                                    "label": {
+                                        "type": "string"
+                                    },
+                                    "entered": {
+                                        "type": "integer"
+                                    },
+                                    "passed": {
+                                        "type": "integer"
+                                    },
+                                    "passThrough": {
+                                        "type": [
+                                            "number",
+                                            "null"
+                                        ]
+                                    },
+                                    "before": {
+                                        "type": [
+                                            "number",
+                                            "null"
+                                        ]
+                                    },
+                                    "tooFew": {
+                                        "type": "boolean"
+                                    },
+                                    "neighbours": {
+                                        "type": [
+                                            "number",
+                                            "null"
+                                        ]
+                                    },
+                                    "fall": {
+                                        "type": [
+                                            "number",
+                                            "null"
+                                        ]
+                                    },
+                                    "drop": {
+                                        "type": "boolean"
+                                    },
+                                    "lost": {
+                                        "type": "integer"
+                                    },
+                                    "month": {
+                                        "type": "object",
+                                        "additionalProperties": false,
+                                        "required": [
+                                            "entered",
+                                            "passed",
+                                            "passThrough",
+                                            "tooFew"
+                                        ],
+                                        "description": "The same step over the last 28 whole days to weekEnd: the long window, for steps too few reach in a week. Never ranked.",
+                                        "properties": {
+                                            "entered": {
+                                                "type": "integer"
+                                            },
+                                            "passed": {
+                                                "type": "integer"
+                                            },
+                                            "passThrough": {
+                                                "type": [
+                                                    "number",
+                                                    "null"
+                                                ]
+                                            },
+                                            "tooFew": {
+                                                "type": "boolean"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "previous": {
+                    "type": [
+                        "object",
+                        "null"
+                    ],
+                    "additionalProperties": false,
+                    "required": [
+                        "weekStart",
+                        "weekEnd",
+                        "floor",
+                        "margin",
+                        "paths",
+                        "worst",
+                        "falls"
+                    ],
+                    "properties": {
+                        "weekStart": {
+                            "type": "string"
+                        },
+                        "weekEnd": {
+                            "type": "string"
+                        },
+                        "floor": {
+                            "type": "integer"
+                        },
+                        "margin": {
+                            "type": "number"
+                        },
+                        "paths": {
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "additionalProperties": false,
+                                "required": [
+                                    "path",
+                                    "label",
+                                    "steps"
+                                ],
+                                "properties": {
+                                    "path": {
+                                        "type": "string"
+                                    },
+                                    "label": {
+                                        "type": "string"
+                                    },
+                                    "steps": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "object",
+                                            "additionalProperties": false,
+                                            "required": [
+                                                "step",
+                                                "label",
+                                                "entered",
+                                                "passed",
+                                                "passThrough",
+                                                "before",
+                                                "tooFew",
+                                                "neighbours",
+                                                "fall",
+                                                "drop",
+                                                "lost",
+                                                "month"
+                                            ],
+                                            "properties": {
+                                                "step": {
+                                                    "type": "string"
+                                                },
+                                                "label": {
+                                                    "type": "string"
+                                                },
+                                                "entered": {
+                                                    "type": "integer"
+                                                },
+                                                "passed": {
+                                                    "type": "integer"
+                                                },
+                                                "passThrough": {
+                                                    "type": [
+                                                        "number",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "before": {
+                                                    "type": [
+                                                        "number",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "tooFew": {
+                                                    "type": "boolean"
+                                                },
+                                                "neighbours": {
+                                                    "type": [
+                                                        "number",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "fall": {
+                                                    "type": [
+                                                        "number",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "drop": {
+                                                    "type": "boolean"
+                                                },
+                                                "lost": {
+                                                    "type": "integer"
+                                                },
+                                                "month": {
+                                                    "type": "object",
+                                                    "additionalProperties": false,
+                                                    "required": [
+                                                        "entered",
+                                                        "passed",
+                                                        "passThrough",
+                                                        "tooFew"
+                                                    ],
+                                                    "description": "The same step over the last 28 whole days to weekEnd: the long window, for steps too few reach in a week. Never ranked.",
+                                                    "properties": {
+                                                        "entered": {
+                                                            "type": "integer"
+                                                        },
+                                                        "passed": {
+                                                            "type": "integer"
+                                                        },
+                                                        "passThrough": {
+                                                            "type": [
+                                                                "number",
+                                                                "null"
+                                                            ]
+                                                        },
+                                                        "tooFew": {
+                                                            "type": "boolean"
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        "worst": {
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "additionalProperties": false,
+                                "required": [
+                                    "path",
+                                    "pathLabel",
+                                    "step",
+                                    "label",
+                                    "entered",
+                                    "passed",
+                                    "passThrough",
+                                    "before",
+                                    "tooFew",
+                                    "neighbours",
+                                    "fall",
+                                    "drop",
+                                    "lost",
+                                    "month"
+                                ],
+                                "properties": {
+                                    "path": {
+                                        "type": "string"
+                                    },
+                                    "pathLabel": {
+                                        "type": "string"
+                                    },
+                                    "step": {
+                                        "type": "string"
+                                    },
+                                    "label": {
+                                        "type": "string"
+                                    },
+                                    "entered": {
+                                        "type": "integer"
+                                    },
+                                    "passed": {
+                                        "type": "integer"
+                                    },
+                                    "passThrough": {
+                                        "type": [
+                                            "number",
+                                            "null"
+                                        ]
+                                    },
+                                    "before": {
+                                        "type": [
+                                            "number",
+                                            "null"
+                                        ]
+                                    },
+                                    "tooFew": {
+                                        "type": "boolean"
+                                    },
+                                    "neighbours": {
+                                        "type": [
+                                            "number",
+                                            "null"
+                                        ]
+                                    },
+                                    "fall": {
+                                        "type": [
+                                            "number",
+                                            "null"
+                                        ]
+                                    },
+                                    "drop": {
+                                        "type": "boolean"
+                                    },
+                                    "lost": {
+                                        "type": "integer"
+                                    },
+                                    "month": {
+                                        "type": "object",
+                                        "additionalProperties": false,
+                                        "required": [
+                                            "entered",
+                                            "passed",
+                                            "passThrough",
+                                            "tooFew"
+                                        ],
+                                        "description": "The same step over the last 28 whole days to weekEnd: the long window, for steps too few reach in a week. Never ranked.",
+                                        "properties": {
+                                            "entered": {
+                                                "type": "integer"
+                                            },
+                                            "passed": {
+                                                "type": "integer"
+                                            },
+                                            "passThrough": {
+                                                "type": [
+                                                    "number",
+                                                    "null"
+                                                ]
+                                            },
+                                            "tooFew": {
+                                                "type": "boolean"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        "falls": {
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "additionalProperties": false,
+                                "required": [
+                                    "path",
+                                    "pathLabel",
+                                    "step",
+                                    "label",
+                                    "entered",
+                                    "passed",
+                                    "passThrough",
+                                    "before",
+                                    "tooFew",
+                                    "neighbours",
+                                    "fall",
+                                    "drop",
+                                    "lost",
+                                    "month"
+                                ],
+                                "properties": {
+                                    "path": {
+                                        "type": "string"
+                                    },
+                                    "pathLabel": {
+                                        "type": "string"
+                                    },
+                                    "step": {
+                                        "type": "string"
+                                    },
+                                    "label": {
+                                        "type": "string"
+                                    },
+                                    "entered": {
+                                        "type": "integer"
+                                    },
+                                    "passed": {
+                                        "type": "integer"
+                                    },
+                                    "passThrough": {
+                                        "type": [
+                                            "number",
+                                            "null"
+                                        ]
+                                    },
+                                    "before": {
+                                        "type": [
+                                            "number",
+                                            "null"
+                                        ]
+                                    },
+                                    "tooFew": {
+                                        "type": "boolean"
+                                    },
+                                    "neighbours": {
+                                        "type": [
+                                            "number",
+                                            "null"
+                                        ]
+                                    },
+                                    "fall": {
+                                        "type": [
+                                            "number",
+                                            "null"
+                                        ]
+                                    },
+                                    "drop": {
+                                        "type": "boolean"
+                                    },
+                                    "lost": {
+                                        "type": "integer"
+                                    },
+                                    "month": {
+                                        "type": "object",
+                                        "additionalProperties": false,
+                                        "required": [
+                                            "entered",
+                                            "passed",
+                                            "passThrough",
+                                            "tooFew"
+                                        ],
+                                        "description": "The same step over the last 28 whole days to weekEnd: the long window, for steps too few reach in a week. Never ranked.",
+                                        "properties": {
+                                            "entered": {
+                                                "type": "integer"
+                                            },
+                                            "passed": {
+                                                "type": "integer"
+                                            },
+                                            "passThrough": {
+                                                "type": [
+                                                    "number",
+                                                    "null"
+                                                ]
+                                            },
+                                            "tooFew": {
+                                                "type": "boolean"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

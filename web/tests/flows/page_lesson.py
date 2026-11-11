@@ -26,10 +26,11 @@ def from_page(f, lesson, who="signedOut"):
 
 
 def shows(f, what):
-    f.wait(f"(document.querySelector('[data-step-bars], [data-go-on]') && !{WALL}) || {WALL} || document.body.innerText.includes({json.dumps(t(f, 'course.locked'))})", what=what)
+    locked = f.js("(await import('/js/skin.js')).sk('course.lockedSerious', 'course.locked')")  # the skin's own words for a locked lesson
+    f.wait(f"(document.querySelector('[data-step-bars], [data-go-on]') && !{WALL}) || {WALL} || document.body.innerText.includes({json.dumps(locked)})", what=what)
     if f.js(f"!!{WALL}"):
         return "walled"
-    return "locked" if f.js(f"document.body.innerText.includes({json.dumps(t(f, 'course.locked'))})") else "open"
+    return "locked" if f.js(f"document.body.innerText.includes({json.dumps(locked)})") else "open"
 
 
 def journey(f):

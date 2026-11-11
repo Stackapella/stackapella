@@ -94,19 +94,19 @@ export const GroupsView = {
                 <button type="button" class="btn-primary" @click="making = true">{{ sk('groups.start', 'game.groups.start') }}</button>
             </EmptyState>
             <div v-else class="space-y-3">
-            <GameOnly><p class="ge-kick" data-groups-kick>{{ t('game.groups.kick') }}</p></GameOnly>
-            <ul class="grid gap-3 min-[640px]:grid-cols-2">
-                <li v-for="g in groups" :key="g.id" class="min-w-0">
-                    <a :href="'/groups/' + g.id" class="card-interactive flex h-full items-center gap-4 p-4" data-group-card @click.prevent="navigate('/groups/' + g.id)">
-                        <span class="bubble grid size-11 shrink-0 place-items-center text-lg font-extrabold" style="--bubble: var(--color-part-6); --bubble-ink: var(--color-part-text-6)" aria-hidden="true" data-avatar>{{ g.name.slice(0, 1) }}</span>
-                        <span class="min-w-0 flex-1">
-                            <span class="block truncate font-bold text-cream" translate="no">{{ g.name }}</span>
-                            <span class="text-sm text-muted">{{ g.role === 'director' ? t('groups.youDirectCount', { count: Math.max(0, g.members - 1) }) : t('groups.directedBy', { name: g.director.name }) + ' · ' + t('groups.memberCount', { count: g.members }) }} · {{ t('groups.songCount', { count: g.songs }) }}</span>
-                        </span>
-                        <Icon name="arrow" :size="18" class="text-muted" />
-                    </a>
-                </li>
-            </ul>
+                <GameOnly><p class="ge-kick" data-groups-kick>{{ t('game.groups.kick') }}</p></GameOnly>
+                <ul class="grid gap-3 min-[640px]:grid-cols-2">
+                    <li v-for="g in groups" :key="g.id" class="min-w-0">
+                        <a :href="'/groups/' + g.id" class="card-interactive flex h-full items-center gap-4 p-4" data-group-card @click.prevent="navigate('/groups/' + g.id)">
+                            <span class="bubble grid size-11 shrink-0 place-items-center text-lg font-extrabold" style="--bubble: var(--color-part-6); --bubble-ink: var(--color-part-text-6)" aria-hidden="true" data-avatar>{{ g.name.slice(0, 1) }}</span>
+                            <span class="min-w-0 flex-1">
+                                <span class="block truncate font-bold text-cream" translate="no">{{ g.name }}</span>
+                                <span class="text-sm text-muted">{{ g.role === 'director' ? t('groups.youDirectCount', { count: Math.max(0, g.members - 1) }) : t('groups.directedBy', { name: g.director.name }) + ' · ' + t('groups.memberCount', { count: g.members }) }} · {{ t('groups.songCount', { count: g.songs }) }}</span>
+                            </span>
+                            <Icon name="arrow" :size="18" class="text-muted" />
+                        </a>
+                    </li>
+                </ul>
             </div>
             <Modal v-if="making" :title="sk('groups.start', 'game.groups.start')" @close="making = false">
                 <!-- Under 18 by the account's own birth date: no "I'm 18 or over" to tick, a kind word instead. -->

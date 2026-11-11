@@ -14,7 +14,7 @@ import { api, ApiError } from '../api.js';
 import { account } from '../stores/account.js';
 import { backTo, goBack, navigate } from '../router.js';
 import { addXp, cappedWidening, dayOf, nextLesson, strictnessFor, starsFor, unitOpen, voiceType } from '../course.js';
-import { addCourseTime, COOL_DOWN, finishBoss, finishLesson, findLesson, KEY_REACH, knownRange, loadCooldown, learning, loadLearning, loadPlusCourses, loadSongCourse, noteSung, practised, remember, setCoursePersonal, setHome, setLessonKey } from '../stores/learning.js';
+import { addCourseTime, COOL_DOWN, finishBoss, finishLesson, findLesson, KEY_REACH, knownRange, SONG_USED_SECONDS, loadCooldown, learning, loadLearning, loadPlusCourses, loadSongCourse, noteSung, practised, remember, setCoursePersonal, setHome, setLessonKey } from '../stores/learning.js';
 import { keyName } from '../theory.js';
 import { keepScore } from '../stores/cloud.js';
 import { audio, closeMic, engine } from '../audio.js';
@@ -67,7 +67,6 @@ const FIT_WORDS = { real: tk('sing.realKey'), fits: tk('sing.fitsYourRange'), lo
 const STEP_KIND = { learn: tk('course.step.learn'), try: tk('course.step.try'), play: tk('course.step.play'), use: tk('course.step.use'), record: tk('course.step.record'), home: tk('course.step.home') };
 // Words for the scorer's tips (js/scoring.js TIPS).
 const TIP_WORDS = { breathSupport: tk('course.tip.breathSupport'), relaxHigh: tk('course.tip.relaxHigh'), listenFirst: tk('course.tip.listenFirst'), onsets: tk('course.tip.onsets'), breatheEarly: tk('course.tip.breatheEarly'), waitForBeat: tk('course.tip.waitForBeat') };
-const USED_SECONDS = 20; // singing in a lesson's song this long does the step that uses it
 const DEFAULT_HOME = 57; // A3, where most untrained voices are comfortable, until unit 1 finds theirs
 const FLIP_UNTIL_FOUND = 5; // semitones above the comfortable note, until the course finds the singer's flip
 
@@ -112,7 +111,7 @@ export const LearnView = {
                 <!-- The account still being checked where a guest would meet the wall: the lesson's own wait, never a flash of the wall. -->
                 <p v-else-if="needsAccount === null" class="text-muted" role="status" data-account-checking>{{ t('course.loading') }}</p>
                 <CourseWall v-else-if="needsAccount" place="lesson" :course="entry.course" :lesson-id="entry.lesson.id" :home="courseHome" class="max-w-xl" />
-                <p v-else-if="!open" class="text-cream">{{ entry.boss ? t('boss.locked') : t('course.locked') }} <a href="/" class="link" @click.prevent="navigate('/')">{{ t('course.backToCourse') }}</a></p>
+                <p v-else-if="!open" class="text-cream">{{ entry.boss ? t('boss.locked') : sk('course.lockedSerious', 'course.locked') }} <a href="/" class="link" @click.prevent="navigate('/')">{{ t('course.backToCourse') }}</a></p>
                 <!-- A unit's boss round (docs/boss-round-plan.md): its intro before the first step, and its own end. -->
                 <BossIntro v-else-if="entry.boss && !bossStarted && !done" ref="bossIntro" :unit="entry.unitIndex + 1" :unit-title="localized(entry.unit.title)" :title="localized(entry.lesson.title)" :best="bossResult(learning.progress, entry.unit.id)?.best ?? null" :beaten="bossBeaten(learning.progress, entry.unit.id)" :ready="!!bossNotes" @start="bossStart" @later="goBack('/learn')" />
                 <BossEnd v-else-if="done && done.boss" ref="bossEnd" :done="done" :title="localized(entry.lesson.title)" @again="bossAgain" @back="goBack('/learn')" />
@@ -132,7 +131,7 @@ export const LearnView = {
                 <!-- The end screen: couldn't hear (nothing earned, nothing lost) -->
                 <section v-else-if="done && done.unheard" class="flex flex-col items-center gap-5 text-center" aria-labelledby="done-title">
                     <h1 id="done-title" ref="heading" tabindex="-1" class="text-3xl font-extrabold tracking-tight text-cream outline-none">{{ done.skipped ? t('course.done.skippedTitle') : sk('course.done.unheardTitle', 'game.done.continue') }}</h1>
-                    <p class="max-w-prose text-muted">{{ done.skipped ? t('course.done.skipped') : t('course.done.unheard') }}</p>
+                    <p class="max-w-prose text-muted">{{ done.skipped ? sk('course.done.skippedSerious', 'course.done.skipped') : sk('course.done.unheardSerious', 'course.done.unheard') }}</p>
                     <div class="flex flex-wrap justify-center gap-3">
                         <button type="button" class="btn-primary" @click="replay">{{ t('course.tryAgain') }}</button>
                         <button type="button" class="btn-secondary" @click="continueOn">{{ next ? t('course.next') : t('course.backToCourse') }}</button>
@@ -249,7 +248,7 @@ export const LearnView = {
                                 <button v-if="result?.offerGuide && !takesUsed" type="button" class="btn-ghost" data-sing-with-guide @click="singWithGuide">{{ t('course.withGuide') }}</button>
                             </div>
                         </template>
-                        <p v-else-if="result" class="text-center text-cream" role="status">{{ result.percent === null ? t('course.notHeard') : t('course.result', { percent: result.percent, stars: starsOf(result) }) }}</p>
+                        <p v-else-if="result" class="text-center text-cream" role="status">{{ result.percent === null ? t('course.notHeard') : sk('course.resultSerious', 'course.result', { percent: result.percent, stars: starsOf(result) }) }}</p>
                     </template>
                     <!-- A Plus course's own step (js/lesson-steps.js: the trace lane, listen and choose, ...): it shows its own result. -->
                     <component :is="registered.component" v-else-if="registered" :key="'r' + step" :exercise="current.exercise" :base="stepBase" :strictness="strictness" :color="color" :music-key="musicKey" :can-lower="canLower" :can-higher="canHigher" :higher-shown="higherShown" :earlier="kept" :personal="personal" @lower="moveKey(-1)" @higher="moveKey(1)" @done="registeredDone" @practised="practised" />
@@ -268,7 +267,7 @@ export const LearnView = {
                         <button type="button" class="btn-primary btn-lg self-start" :disabled="checking" @click="openSong"><Icon name="mic" :size="18" /> {{ current.kind === 'record' ? t('course.recordIn') : t('course.openIn') }}</button>
                         <p v-if="fitLine" class="text-sm text-cream" data-fit-line>{{ fitLine }}</p>
                         <p v-if="current.kind === 'use'" class="text-sm text-muted" role="status">{{ used ? t('course.usedIt') : t('course.useFirst') }}</p>
-                        <p v-if="current.kind === 'record' && result" class="text-cream" role="status">{{ result.noTake ? t('course.recordFirst') : result.percent === null ? t('course.notHeard') : t('course.result', { percent: result.percent, stars: starsOf(result) }) }}</p>
+                        <p v-if="current.kind === 'record' && result" class="text-cream" role="status">{{ result.noTake ? t('course.recordFirst') : result.percent === null ? t('course.notHeard') : sk('course.resultSerious', 'course.result', { percent: result.percent, stars: starsOf(result) }) }}</p>
                         <p v-if="current.kind === 'record' && result && measuresLine" class="text-sm text-muted">{{ measuresLine }}</p>
                         <button v-if="current.kind === 'record'" type="button" class="btn-ghost btn-sm self-start" :disabled="checking" @click="checkRecording">{{ checking ? t('course.checking') : t('course.checkRecording') }}</button>
                     </template>
@@ -419,7 +418,7 @@ export const LearnView = {
         measuresLine() {
             const step = this.current;
             if (step?.measures) return localized(step.measures);
-            return step?.exercise?.score === 'hold' ? t('course.stars.hold') : '';
+            return step?.exercise?.score === 'hold' ? sk('course.stars.holdSerious', 'course.stars.hold') : '';
         },
         /** 8-vibrato: what was heard, described, never graded ("a gentle vibrato, about 5.5 a second"). */
         vibratoLine() {
@@ -615,7 +614,8 @@ export const LearnView = {
             if (now && !before && now.stars >= 2) starsSound(now.stars, 0.35 + (now.stars - 1) * 0.3);
             if (now && !before) this.focusWhenShown('[data-result-heading]');
         },
-        step() {
+        step(now) {
+            this.reachStep(now);
             this.bossLive = 0;
             this.$nextTick(() => this.$refs.heading?.focus({ preventScroll: true }));
         },
@@ -650,6 +650,7 @@ export const LearnView = {
         } else if (this.entry) {
             this.flipOpen({ check: true });
             this.capOpen({ check: true });
+            tabStorage.set(`stackapella.lesson.${this.id}.reached`, ''); // a new run: its steps count afresh
             if (!this.entry.boss) {
                 count('lesson_start'); // a lesson begun, not one come back to from Sing
                 countFor(this.entry.course ? 'pl_s' : 'fl_s', this.entry.course ? this.entry.course.id : this.entry.lesson.id); // by course, or the free course's lesson
@@ -657,6 +658,7 @@ export const LearnView = {
             this.beginSharpen();
             this.showTitle();
         }
+        this.reachStep(this.step);
         if (this.current?.kind === 'record') this.checkRecording();
         if (this.current?.kind === 'use') this.checkUse();
         this.$nextTick(() => (this.$refs.bossIntro ? this.$refs.bossIntro.focus() : this.$refs.heading?.focus({ preventScroll: true })));
@@ -1016,13 +1018,26 @@ export const LearnView = {
         chime(stars) {
             starsSound(stars, 0.35 + (stars - 1) * 0.3);
         },
+        /**
+         * A free lesson's step reached (fs_r:<lessonId>.<step>, anonymous; where 4-words' 12 starts and 1 finish were
+         * lost): once per step each time the lesson is run, kept for the tab so coming back from Sing doesn't count again.
+         */
+        reachStep(index) {
+            const entry = this.entry;
+            if (!entry || entry.course || entry.boss || entry.cooldown || index === null || index === undefined) return;
+            const key = `stackapella.lesson.${this.id}.reached`;
+            const reached = (tabStorage.get(key) ?? '').split(',').filter(Boolean);
+            if (reached.includes(String(index))) return;
+            tabStorage.set(key, [...reached, index].join(','));
+            countFor('fs_r', `${entry.lesson.id}.${index}`);
+        },
         /** "Use it": done once the lesson's song has been sung in (for a while) or recorded. */
         async checkUse() {
             const step = this.current;
             const { loadProjects, projects } = await projectsStore();
             await loadProjects();
             const project = projects.all.find((p) => p.course?.lessonId === this.id && p.template?.id === step.template);
-            this.used = !!project && ((project.practice?.sungSeconds ?? 0) >= USED_SECONDS || !!project.recorded);
+            this.used = !!project && ((project.practice?.sungSeconds ?? 0) >= SONG_USED_SECONDS || !!project.recorded);
         },
         continueOn() {
             if (this.sharpen) sharpenOn(this.id); // the session moves on (or ends, with the course page next)

@@ -21,6 +21,7 @@ use App\Http\Controllers\Api\Admin\CoachingController as AdminCoaching;
 use App\Http\Controllers\Api\Admin\CodeWatchController as AdminCodeWatch;
 use App\Http\Controllers\Api\Admin\DiagnosticsController as AdminDiagnostics;
 use App\Http\Controllers\Api\Admin\DisputesController;
+use App\Http\Controllers\Api\Admin\DropoffsController as AdminDropoffs;
 use App\Http\Controllers\Api\Admin\EarlyAccessController as AdminEarlyAccess;
 use App\Http\Controllers\Api\Admin\EventScheduleController as AdminEventSchedule;
 use App\Http\Controllers\Api\Admin\ExperimentsController as AdminExperiments;
@@ -589,6 +590,7 @@ Route::middleware(['auth', 'editor', 'second-factor'])->prefix('admin')->name('a
         Route::get('/network', [AdminNetwork::class, 'show'])->name('network.show');
         Route::get('/counts', [CountsController::class, 'show'])->name('counts.show');
         Route::get('/funnel', AdminFunnel::class)->name('funnel.show');
+        Route::get('/dropoffs', AdminDropoffs::class)->name('dropoffs.show');
         Route::get('/experiments', [AdminExperiments::class, 'index'])->name('experiments.list');
         Route::get('/school', [AdminSchool::class, 'index'])->name('school.list');
         Route::get('/school/{class}', [AdminSchool::class, 'show'])->name('school.show');

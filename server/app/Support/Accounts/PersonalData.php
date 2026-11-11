@@ -28,7 +28,7 @@ final class PersonalData
         'x_handle' => 'xHandle', 'bluesky_handle' => 'blueskyHandle',
         'google_id' => 'signInMethods', 'apple_id' => 'signInMethods', 'event_schedule_id' => 'signInMethods',
         'is_admin' => [null, "Staff's own role."], 'is_editor' => [null, "Staff's own role."],
-        'locale' => 'locale', 'appearance' => 'appearance', 'plan' => 'plan',
+        'locale' => 'locale', 'appearance' => 'appearance', 'tried' => 'tried', 'plan' => 'plan',
         'sync_seq' => [null, 'Bookkeeping: where their devices are in the sync.'], 'sync_pruned_seq' => [null, 'Bookkeeping: where their devices are in the sync.'],
         'timezone' => 'timezone', 'age_confirmed_at' => 'ageConfirmedAt', 'adult_confirmed_at' => 'adultConfirmedAt', 'birth_month' => 'birthMonth', 'birth_year' => 'birthYear',
         'terms_version' => 'termsAccepted', 'terms_accepted_at' => 'termsAccepted',
@@ -52,7 +52,7 @@ final class PersonalData
         'editable_project_ids' => [null, 'Bookkeeping: which projects stay editable on the free plan.'],
         'reminder_enabled' => 'practiceReminders', 'reminder_days' => 'practiceReminders', 'reminder_time' => 'practiceReminders', 'reminder_timezone' => 'practiceReminders',
         'reminder_sent_on' => [null, 'Bookkeeping: the last day a reminder went.'],
-        'signup_harmony_id' => [null, 'Bookkeeping: the shared song they signed up from (a count, never shown).'],
+        'signup_harmony_id' => [null, 'Never written since 2026-11-11 (Q8: the song keeps the count, the account nothing); emptied then.'],
         'coach_active_at' => 'coachSince', 'idea_emails' => 'ideaEmails', 'push_settings' => 'appPushes',
         'apple_refresh_token' => [null, 'A secret, revoked with Apple when they leave.'], 'apple_web_refresh_token' => [null, 'A secret, revoked with Apple when they leave.'],
     ];

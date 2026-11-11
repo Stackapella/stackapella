@@ -27,7 +27,7 @@ def journey(f):
         f.go("/icons/favicon.svg")
         f.run("localStorage.clear(); sessionStorage.clear();")
         f.go(f"{path}?api=mock&as=signedOut&ref=tool-test", "document.querySelector('#app main')")
-        locked = f.js(f"{I18N}.t('course.locked')")
+        locked = f.js("(await import('/js/skin.js')).sk('course.lockedSerious', 'course.locked')")  # the skin's own words for a locked lesson
         f.wait(f"document.querySelector('[data-step-bars]') || document.querySelector('[data-needs-account]') || document.querySelector('#app main')?.innerText.includes({json.dumps(locked)})", what=f"{path} opened")
         assert not f.js("!!document.querySelector('[data-needs-account]')"), f"{path}: a guest is asked for an account"
         assert locked not in f.js("document.querySelector('#app main').innerText"), f"{path}: the unit is locked for a guest"

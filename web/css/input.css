@@ -1278,6 +1278,9 @@ select:disabled {
 .s-v2 { --c: var(--color-part-2); --ci: var(--color-part-ink-2); --ct: var(--color-part-text-2); }
 .s-v3 { --c: var(--color-part-3); --ci: var(--color-part-ink-3); --ct: var(--color-part-text-3); }
 .s-v4 { --c: var(--color-part-4); --ci: var(--color-part-ink-4); --ct: var(--color-part-text-4); }
+/* Parts 5 and 6, for a set of more than four (a voice type's six; game colours each one's range bar by them). */
+.s-v5 { --c: var(--color-part-5); --ci: var(--color-part-ink-5); --ct: var(--color-part-text-5); }
+.s-v6 { --c: var(--color-part-6); --ci: var(--color-part-ink-6); --ct: var(--color-part-text-6); }
 .s-lk { color: var(--color-cream); font-weight: 600; text-decoration: underline; text-decoration-color: color-mix(in srgb, var(--color-accent) 70%, transparent); text-decoration-thickness: 2px; text-underline-offset: 4px; padding-block: 12px; margin-block: -12px; }
 .s-lk:hover { text-decoration-color: var(--color-accent); }
 .s-soon { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 700; color: var(--color-muted); white-space: nowrap; letter-spacing: 0; text-transform: none; }
@@ -2184,6 +2187,8 @@ select:disabled {
    that wrap, and game mode's wider screen type a little tighter still. */
 @media (max-width: 599px) { .s-tool-table table { font-size: 14px; } .s-tool-table :is(th, td) { padding: 7px 6px; } .s-tool-table thead th { font-size: 12px; } }
 @media (max-width: 599px) { :root[data-skin="game"] body.s-arcade .s-tool-table :is(th, td) { padding: 6px 4px; } :root[data-skin="game"] body.s-arcade .s-tool-table table { font-size: 13px; } }
+/* A 320 px phone: the reference indexes' five columns fit (site_reference at 320), long names hyphenated, not scrolled. */
+@media (max-width: 359px) { .s-tool-table table { font-size: 13px; } .s-tool-table :is(th, td) { padding: 6px 3px; hyphens: auto; } }
 @media (max-width: 359px) { :root[data-skin="game"] body.s-arcade .s-tool-table :is(th, td) { padding: 5px 3px; } :root[data-skin="game"] body.s-arcade .s-tool-table table { font-size: 12px; } }
 /* One way into the app: the tool's own line for a visitor, "Open the app" for one who's signed in (theme-boot.js marks the root). */
 .s-try-in, :root[data-signed-in] .s-try-out { display: none; }
@@ -2280,6 +2285,84 @@ a.s-spart-chip:hover { background: var(--color-raised); }
     .s-ref-cardcol { position: sticky; top: 24px; }
 }
 @media (min-width: 1024px) { .s-ref-family { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+/* A voice type's page (Hillel's design, 2026-11-11, site/voice-type.blade.php): the heading, lead, facts and ways on
+   at left with the keyboard card at right; the guide in one reading column on a white band, its contents beside it from
+   900 px; every type's range on one scale; the song parts inside the range as bars. No label ever wraps: the buttons
+   wrap to a new line instead. */
+.s-vt-hero { display: grid; gap: 36px; align-items: center; padding-top: 28px; padding-bottom: 56px; }
+.s-vt-intro h1 { margin-top: 12px; font-size: clamp(40px, 10vw, 72px); line-height: 1; letter-spacing: -0.03em; }
+.s-vt-lead { margin-top: 20px; max-width: 52ch; font-size: clamp(17px, 4.4vw, 19px); line-height: 1.55; color: color-mix(in srgb, var(--color-cream) 82%, var(--color-ink)); }
+/* Three auto columns share the room down to each one's narrowest, so a long part ("Bass or Tenor 2") wraps before a label overflows. */
+.s-vt-facts { grid-template-columns: repeat(3, auto); justify-content: start; margin-top: 28px; max-width: 520px; }
+/* On a phone the facts take the part page's size and tighter gutters, so a long neighbour ("Baritone") fits at 320 px. */
+.s-vt-facts dd { font-size: 17px; }
+.s-vt-facts dd[translate="no"] { white-space: nowrap; }
+.s-vt-facts > div { padding-inline-end: 12px; }
+.s-vt-facts > div + div { padding-inline-start: 12px; }
+.s-vt-near { display: flex; flex-wrap: wrap; gap: 0 14px; }
+.s-vt-btns { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 28px; }
+.s-vt-btns a, .s-vt-hear [data-ui="ref-play"] { white-space: nowrap; }
+.s-vt-hear { padding: 20px; border: 1px solid var(--color-line); border-radius: 24px; background: var(--color-panel); box-shadow: 0 20px 40px -24px rgb(60 40 10 / 0.25); }
+.s-vt-hear-top { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-bottom: 14px; }
+.s-vt-hear-top h2 { font-size: 16px; font-weight: 700; }
+.s-vt-hear-top span { font-size: 13px; color: var(--color-muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.s-vt-hear [data-ui="ref-card"] { padding: 0; background: none; }
+.s-vt-read { border-block: 1px solid var(--color-line); background: var(--color-panel); }
+.s-vt-body { display: grid; gap: 28px; padding-block: 56px; }
+.s-vt-toc { display: none; }
+.s-vt-prose { max-width: 680px; }
+.s-vt-prose > .s-tool-guide + .s-tool-guide { margin-top: 40px; }
+.s-vt-prose .s-tool-guide h2 { font-size: clamp(22px, 5vw, 28px); letter-spacing: -0.02em; }
+.s-vt-prose .s-tool-guide p { font-size: 17px; line-height: 1.7; }
+.s-vt-prose .s-across-stack .s-card { background: var(--color-ink); }
+.s-vt-where h2, .s-vt-parts h2, .s-vt-faq h2 { margin-top: 8px; font-size: clamp(28px, 6vw, 36px); line-height: 1.1; letter-spacing: -0.02em; }
+.s-vt-rung { display: grid; grid-template-columns: minmax(96px, 180px) minmax(0, 1fr); align-items: center; gap: 16px; padding: 12px 14px; border: 1px solid transparent; border-radius: 12px; }
+.s-vt-rung b { display: block; font-size: 15px; }
+.s-vt-rung b + span { display: block; font-size: 12px; color: var(--color-muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+a.s-vt-rung:hover { background: color-mix(in srgb, var(--color-cream) 5%, transparent); }
+.s-vt-scale { margin-top: 24px; padding-block: 0; }
+.s-vt-ticks { position: relative; height: 16px; font-size: 11px; color: var(--color-muted); font-variant-numeric: tabular-nums; }
+.s-vt-ticks span { position: absolute; left: var(--l); transform: translateX(-50%); }
+.s-vt-ticks span:first-child { transform: none; }
+.s-vt-ticks span:last-child { transform: translateX(-100%); }
+.s-vt-ladder { display: grid; gap: 4px; margin-top: 4px; }
+.s-vt-track { position: relative; height: 10px; border-radius: 999px; background: color-mix(in srgb, var(--color-cream) 8%, transparent); }
+.s-vt-bar { position: absolute; inset-block: 0; left: var(--l); width: var(--w); border-radius: 999px; background: color-mix(in srgb, var(--color-cream) 24%, transparent); }
+.s-vt-here { border-color: var(--color-line); background: var(--color-panel); }
+:is(.s-vt-here, .s-vt-songs) .s-vt-bar { background: var(--color-good); }
+.s-vt-parts { display: grid; gap: 28px; }
+.s-vt-parts h2 + p { margin-top: 14px; max-width: 40ch; line-height: 1.6; color: color-mix(in srgb, var(--color-cream) 82%, var(--color-ink)); }
+.s-vt-songs { border-top: 1px solid var(--color-line); }
+.s-vt-songs a { display: grid; grid-template-columns: minmax(0, 1fr) 72px 16px; grid-template-areas: "song bar go" "range bar go"; align-items: center; gap: 2px 16px; padding: 14px 4px; border-bottom: 1px solid var(--color-line); }
+.s-vt-songs a:hover { background: color-mix(in srgb, var(--color-cream) 5%, transparent); }
+.s-vt-songs a > span:first-child { grid-area: song; }
+.s-vt-songs b { font-size: 16px; font-weight: 600; }
+.s-vt-songs b + span { margin-inline-start: 8px; font-size: 13px; color: var(--color-muted); }
+.s-vt-songrange { grid-area: range; font-size: 12px; color: var(--color-muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.s-vt-songs .s-vt-track { grid-area: bar; height: 6px; }
+.s-vt-songs svg { grid-area: go; color: var(--color-muted); }
+.s-vt-note { margin-top: 10px; font-size: 12px; color: var(--color-muted); }
+.s-vt-faq { display: grid; gap: 20px; }
+@media (min-width: 560px) {
+    .s-vt-songs a { grid-template-columns: minmax(0, 1.4fr) 76px minmax(72px, 1fr) 16px; grid-template-areas: "song range bar go"; gap: 16px; padding-block: 18px; }
+}
+/* The game skin boxes each fact (322 px for three): below 360 px they go two to a row rather than push the page sideways. */
+@media (max-width: 359px) { :root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-vt-facts { grid-template-columns: repeat(2, auto); } }
+@media (min-width: 640px) {
+    .s-vt-prose .s-across-stack { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .s-vt-facts dd { font-size: 20px; }
+    .s-vt-facts > div { padding-inline-end: 18px; }
+    .s-vt-facts > div + div { padding-inline-start: 18px; }
+}
+@media (min-width: 900px) {
+    .s-vt-hero { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 56px; padding-top: 40px; padding-bottom: 72px; }
+    .s-vt-body { grid-template-columns: 200px minmax(0, 1fr); gap: 56px; padding-block: 80px; }
+    .s-vt-toc { display: block; position: sticky; top: 24px; align-self: start; }
+    .s-vt-toc ul { display: grid; gap: 2px; margin-top: 14px; border-inline-start: 1px solid var(--color-line); }
+    .s-vt-toc a { display: block; padding: 6px 0 6px 16px; font-size: 14px; color: color-mix(in srgb, var(--color-cream) 75%, var(--color-ink)); }
+    .s-vt-toc a:hover { color: var(--color-cream); }
+    .s-vt-parts, .s-vt-faq { grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: 48px; }
+}
 /* The part player's room, held until its script mounts it (js/public/part-player.js fills the box): Play, the time and
    the ways to play over the lane, then the status line, measured mounted: 388 px on a phone (the ways on their own line),
    392 px from 640 px (one row over the lane's sm:h-72) and 488 px from 1024 px (lg:h-96), so nothing below jumps. */
@@ -2430,7 +2513,6 @@ a.s-spart-chip:hover { background: var(--color-raised); }
 /* The landing's one seasonal line (1 November to 26 December), quiet under the promise. */
 .s-hero-carols { margin-top: 10px; font-size: 14.5px; }
 .s-hero-carols svg { display: inline-block; vertical-align: -3px; }
-.s-v6 { --c: var(--color-part-6); --ci: var(--color-part-ink-6); --ct: var(--color-part-text-6); }
 /* About Stackapella below a tool or the hub (site/tools/_about; docs/tools/below-the-fold.md): the page's one accent
    block. One real screen (the help shot of the alto being recorded): on a phone cropped in CSS to its note lane (y 340
    to 980 of 1688, x 32 to 748 of 780; percent margins follow the width), on desktop its top in a phone frame. */
@@ -9286,6 +9368,11 @@ a.s-spart-chip:hover { background: var(--color-raised); }
 :root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-spart-chip { border-radius: var(--arc-radius); border: var(--arc-edge-w) solid var(--arc-line); background: var(--arc-well); }
 :root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) a.s-spart-chip:hover { background: var(--arc-panel); border-color: var(--color-cream); }
 :root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-spart-chip[aria-current] { background: var(--color-cream); border-color: var(--color-cream); box-shadow: var(--arc-shadow); }
+/* On a part's page each chip is framed in its part's colour, the current part's filled with it (a reference page's chips
+   carry no part, so they keep the plain block). */
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-spart-chip:is(.s-v1, .s-v2, .s-v3, .s-v4) { border: var(--arc-frame) solid var(--c); }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-spart-chip:is(.s-v1, .s-v2, .s-v3, .s-v4)[aria-current] { background: var(--c); border-color: var(--c); color: var(--ct); }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-spart-chip:is(.s-v1, .s-v2, .s-v3, .s-v4)[aria-current] :is(span, .s-spart-tag) { color: var(--ct); }
 :root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-spart-panel { border-radius: var(--arc-radius); border: var(--arc-edge-w) solid var(--arc-line); background: var(--arc-panel); box-shadow: var(--arc-shadow); }
 :root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-spart-facts { gap: 8px; border-block: 0; }
 :root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-spart-facts > div, :root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-spart-facts > div + div { padding: 10px 14px; border: var(--arc-edge-w) solid var(--arc-line); background: var(--arc-well); }

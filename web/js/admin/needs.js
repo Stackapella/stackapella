@@ -11,9 +11,10 @@
 
 import { reactive } from 'vue';
 import { api } from '../api.js';
-import { t, tk } from '../i18n.js';
+import { formatNumber, t, tk } from '../i18n.js';
 import { navigate } from '../router.js';
 import { StatusChip } from '../components/form.js';
+import { Icon } from '../components/icon.js';
 import { toast } from '../components/ui.js';
 import { ChangeSheet, LoadFailed, refused, when } from './common.js';
 
@@ -97,47 +98,81 @@ export const NeedChips = {
 };
 
 export const NeedsCard = {
-    components: { LoadFailed, NeedChips, NeedLines, StatusChip },
+    components: { Icon, LoadFailed, NeedChips, NeedLines, StatusChip },
     // Outreach's follow-ups due and replies to read (admin.overview's outreach: null for an editor), and the songs the last
     // deploy's sync couldn't load (admin.overview's songsNotSynced: the file and why, a line each; empty when it was clean),
     // and what the weekly sitemap check last found (sitemapProblems: a page search can't index and why; "and N more").
     props: { outreach: { type: Object, default: null }, notSynced: { type: Array, default: () => [] }, sitemap: { type: Array, default: () => [] } },
-    setup: () => ({ needs, noSingers, listCount }),
+    setup: () => ({ needs, noSingers, listCount, formatNumber }),
     template: `
-        <section class="card space-y-4 p-6" aria-labelledby="needs-h" data-admin-needs>
-            <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-                <h2 id="needs-h" class="text-lg font-bold text-cream">{{ t('admin.needs.title') }}</h2>
-                <a href="/admin/guides" class="link tap-44 text-sm" @click.prevent="navigate('/admin/guides')">{{ t('admin.needs.toGuides') }}</a>
-            </div>
-            <!-- Songs the last deploy couldn't sync (each still on its live version), and the sitemap check's problems: an
-                 item each, its lines on a tap. -->
-            <NeedLines v-if="notSynced.length" kind="notSynced" :title="notSyncedTitle" :show="t('admin.needs.notSynced.show')" :note="t('admin.needs.notSynced.note')" :lines="notSynced" />
-            <NeedLines v-if="sitemap.length" kind="sitemap" :title="t('admin.needs.sitemap.title', { count: listCount(sitemap) })" :show="t('admin.needs.sitemap.show')" :note="t('admin.needs.sitemap.note')" :lines="sitemap" />
-            <!-- Outreach (docs/outreach-plan.md): follow-ups due and replies to read, each straight to its list. -->
-            <ul v-if="outreach && (outreach.followUpsDue || outreach.unreadReplies || outreach.sendBySoon)" class="flex flex-wrap gap-2" data-needs-outreach>
-                <li v-if="outreach.sendBySoon"><a href="/admin/outreach" class="chip tap-44 text-warn" @click.prevent="navigate('/admin/outreach')">{{ t('admin.outreach.sendBySoon', { count: outreach.sendBySoon }) }}</a></li>
-                <li v-if="outreach.followUpsDue"><a href="/admin/outreach?status=follow_up_due" class="chip tap-44 text-accent-strong" @click.prevent="navigate('/admin/outreach?status=follow_up_due')">{{ t('admin.outreach.followUpsDue', { count: outreach.followUpsDue }) }}</a></li>
-                <li v-if="outreach.unreadReplies"><a href="/admin/outreach?status=replied" class="chip tap-44 text-accent-strong" @click.prevent="navigate('/admin/outreach?status=replied')">{{ t('admin.outreach.unreadReplies', { count: outreach.unreadReplies }) }}</a></li>
-            </ul>
+        <section class="space-y-3" aria-labelledby="needs-h" data-admin-needs>
+            <h2 id="needs-h" class="text-xl font-bold text-cream">{{ t('admin.needs.title') }}<span v-if="total" class="ms-2 font-medium tabular-nums text-muted" data-needs-total>{{ formatNumber(total) }}</span></h2>
             <LoadFailed v-if="needs.failed && !needs.data" :message="t('admin.needs.failed')" @retry="load" />
             <p v-else-if="!needs.data" class="text-sm text-muted" role="status">{{ t('admin.loading') }}</p>
-            <p v-else-if="!songs.length && !notSynced.length && !sitemap.length && !(outreach && (outreach.followUpsDue || outreach.unreadReplies || outreach.sendBySoon))" class="text-sm text-muted" data-needs-none>{{ t('admin.needs.none') }}</p>
-            <ul v-else class="divide-y divide-line">
-                <li v-for="song in songs" :key="song.id" class="flex flex-wrap items-start gap-x-4 gap-y-2 py-3 first:pt-0 last:pb-0" :data-needs-song="song.id">
-                    <p class="w-full font-bold text-cream sm:w-48 sm:shrink-0"><span translate="no">{{ song.title }}</span> <span class="text-sm font-normal text-muted">· {{ t('admin.guides.version', { version: song.version }) }}</span></p>
-                    <div v-if="noSingers(song)" class="flex flex-wrap gap-2"><StatusChip tone="bad" :label="t('admin.needs.noSingers', { count: song.parts.length })" data-needs-no-singers /></div>
-                    <ul v-else class="flex min-w-0 flex-1 flex-col gap-2">
-                        <li v-for="part in song.parts" :key="part.key" class="flex flex-wrap items-center gap-2" :data-needs-part="part.key">
-                            <span class="w-20 shrink-0 text-sm font-semibold text-cream" translate="no">{{ part.name }}</span>
-                            <NeedChips :needs="part.needs" />
+            <p v-else-if="!total" class="text-sm text-muted" data-needs-none>{{ t('admin.needs.none') }}</p>
+            <div v-else class="grid items-start gap-4 min-[900px]:grid-cols-2">
+                <!-- Outreach (docs/outreach-plan.md): a row for each kind waiting, its count at the left, each to where it's done. -->
+                <section v-if="outreachRows.length" class="card overflow-hidden" aria-labelledby="needs-outreach-h" data-needs-outreach>
+                    <div class="flex items-center justify-between gap-3 border-b border-line px-5 py-3.5">
+                        <h3 id="needs-outreach-h" class="eyebrow text-muted">{{ t('admin.nav.outreach') }}</h3>
+                        <a href="/admin/outreach" class="link tap-44 inline-flex items-center gap-1 text-sm" @click.prevent="navigate('/admin/outreach')">{{ t('admin.needs.toOutreach') }}<span aria-hidden="true" class="rtl:-scale-x-100">→</span></a>
+                    </div>
+                    <ul class="divide-y divide-line">
+                        <li v-for="row in outreachRows" :key="row.key">
+                            <a :href="row.path" class="flex min-h-14 items-center gap-3.5 px-5 py-3 text-cream transition hover:bg-(--fill)" :data-needs-outreach-row="row.key" @click.prevent="navigate(row.path)">
+                                <span class="grid h-7 min-w-7 shrink-0 place-items-center rounded-lg px-1.5 text-sm font-bold tabular-nums" :class="row.tone === 'warn' ? 'bg-warn/15 text-warn' : 'bg-accent/15 text-accent-strong'" data-count>{{ formatNumber(row.count) }}</span>
+                                <span class="min-w-0 flex-1">{{ row.label }}</span>
+                                <Icon name="chevron" :size="16" class="shrink-0 -rotate-90 text-muted rtl:rotate-90" />
+                            </a>
                         </li>
                     </ul>
-                </li>
-            </ul>
+                </section>
+                <!-- Voices: each song and its version, a row per part with what it needs. -->
+                <section v-if="songs.length" class="card overflow-hidden" aria-labelledby="needs-voices-h" data-needs-voices>
+                    <div class="flex items-center justify-between gap-3 border-b border-line px-5 py-3.5">
+                        <h3 id="needs-voices-h" class="eyebrow text-muted">{{ t('admin.needs.voices') }}</h3>
+                        <a href="/admin/guides" class="link tap-44 inline-flex items-center gap-1 text-sm" @click.prevent="navigate('/admin/guides')">{{ t('admin.needs.toGuides') }}<span aria-hidden="true" class="rtl:-scale-x-100">→</span></a>
+                    </div>
+                    <ul class="divide-y divide-line px-5">
+                        <li v-for="song in songs" :key="song.id" class="py-4" :data-needs-song="song.id">
+                            <p class="font-bold text-cream"><span translate="no">{{ song.title }}</span> <span class="text-sm font-normal text-muted">· {{ t('admin.guides.version', { version: song.version }) }}</span></p>
+                            <div v-if="noSingers(song)" class="mt-2 flex flex-wrap gap-2"><StatusChip tone="bad" :label="t('admin.needs.noSingers', { count: song.parts.length })" data-needs-no-singers /></div>
+                            <ul v-else class="mt-1 divide-y divide-line">
+                                <li v-for="part in song.parts" :key="part.key" class="grid grid-cols-[5.5rem_minmax(0,1fr)] items-center gap-3 py-2.5" :data-needs-part="part.key">
+                                    <span class="truncate text-sm font-semibold text-cream" translate="no">{{ part.name }}</span>
+                                    <span class="flex flex-wrap items-center gap-2"><NeedChips :needs="part.needs" /></span>
+                                </li>
+                            </ul>
+                        </li>
+                    </ul>
+                </section>
+                <!-- The site: songs the last deploy couldn't sync (each still on its live version), and the sitemap check's
+                     problems, an item each, its lines on a tap. -->
+                <section v-if="notSynced.length || sitemap.length" class="card space-y-3 p-5" aria-labelledby="needs-site-h" data-needs-site>
+                    <h3 id="needs-site-h" class="eyebrow text-muted">{{ t('admin.needs.site') }}</h3>
+                    <NeedLines v-if="notSynced.length" kind="notSynced" :title="notSyncedTitle" :show="t('admin.needs.notSynced.show')" :note="t('admin.needs.notSynced.note')" :lines="notSynced" />
+                    <NeedLines v-if="sitemap.length" kind="sitemap" :title="t('admin.needs.sitemap.title', { count: listCount(sitemap) })" :show="t('admin.needs.sitemap.show')" :note="t('admin.needs.sitemap.note')" :lines="sitemap" />
+                </section>
+            </div>
         </section>`,
     // Loaded by the admin's shell on every screen (it counts them in the nav): no second ask here.
     computed: {
         songs: () => needs.data?.templates ?? [],
+        /** Outreach's rows, those with something: the first emails due soon, follow-ups due, replies to read. */
+        outreachRows() {
+            const o = this.outreach;
+            if (!o) return [];
+            return [
+                { key: 'sendBySoon', count: o.sendBySoon ?? 0, label: t('admin.needs.outreach.sendBySoon', { count: o.sendBySoon ?? 0 }), path: '/admin/outreach', tone: 'warn' },
+                { key: 'followUps', count: o.followUpsDue ?? 0, label: t('admin.needs.outreach.followUps', { count: o.followUpsDue ?? 0 }), path: '/admin/outreach?status=follow_up_due', tone: 'accent' },
+                { key: 'replies', count: o.unreadReplies ?? 0, label: t('admin.needs.outreach.replies', { count: o.unreadReplies ?? 0 }), path: '/admin/outreach?status=replied', tone: 'accent' },
+            ].filter((row) => row.count > 0);
+        },
+        /** Everything waiting, beside the title: outreach's, the parts that need a voice, takes to review, and the site's. */
+        total() {
+            const takes = this.songs.reduce((sum, song) => sum + song.parts.reduce((n, p) => n + p.needs.review.length, 0), 0);
+            return this.outreachRows.reduce((sum, row) => sum + row.count, 0) + partsNeeding(needs.data) + takes + listCount(this.notSynced) + listCount(this.sitemap);
+        },
         /** The server lists the first 5: at 5, there may be more. */
         notSyncedTitle() {
             const n = this.notSynced.length;

@@ -64,6 +64,9 @@ final class UpdateAccountRequest extends FormRequest
             'quietHours.start' => ['required_with:quietHours', 'date_format:H:i'],
             'quietHours.end' => ['required_with:quietHours', 'date_format:H:i'],
             // The theme picker (docs/decisions.md, "themes"): either or both.
+            // Breadth: features tried on this device, each with the day first used; merged with the account's own.
+            'tried' => ['sometimes', 'array', 'array:'.implode(',', (array) config('counts.features'))],
+            'tried.*' => ['date_format:Y-m-d'],
             'appearance' => ['sometimes', 'array:mode,colour,accent,customAccent,skin'],
             'appearance.mode' => ['sometimes', 'string', Rule::in(User::APPEARANCE_MODES)],
             'appearance.colour' => ['sometimes', 'nullable', 'string', Rule::in(User::APPEARANCE_COLOURS)],

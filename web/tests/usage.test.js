@@ -37,3 +37,28 @@ test('usage counts: a batch of allowlisted moments, with no ID, only when the se
         Object.assign(account, had);
     }
 });
+
+test('usage counts: a free lesson step reached goes as fs_r:<lesson>.<step>; a malformed one is dropped', async () => {
+    const sent = [];
+    const beacon = navigator.sendBeacon;
+    const had = { config: account.config, me: account.me };
+    navigator.sendBeacon = (url, blob) => {
+        sent.push({ url, blob });
+        return true;
+    };
+    try {
+        account.config = { usageCounts: true };
+        account.me = null;
+        count('fs_r:4-phrasing.1');
+        count('fs_r:4-phrasing.1');
+        count('fs_r:1-match.0');
+        count('fs_r:4-phrasing.x'); // not a step: dropped here
+        send();
+        const n = Object.fromEntries(JSON.parse(await sent[0].blob.text()).events.map((e) => [e.kind, e.n]));
+        assert(n['fs_r:4-phrasing.1'] === 2 && n['fs_r:1-match.0'] === 1, JSON.stringify(n));
+        assert(!('fs_r:4-phrasing.x' in n), JSON.stringify(n));
+    } finally {
+        navigator.sendBeacon = beacon;
+        Object.assign(account, had);
+    }
+});

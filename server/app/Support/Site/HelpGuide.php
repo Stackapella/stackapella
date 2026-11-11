@@ -6,6 +6,7 @@ namespace App\Support\Site;
 
 use App\Support\Flags;
 use App\Support\Http\Hosts;
+use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Lang;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
@@ -117,24 +118,20 @@ final class HelpGuide
      */
     public static function sections(string $slug, array $fill = []): array
     {
-        $raw = (array) Lang::get('pages.help.pages.'.$slug.'.sections');
-        // The mic page starts with the app's own mic dialog steps, so the two never differ.
-        // Each device's steps fold away, so the page is one screen until you open yours.
-        if ($slug === 'mic') {
-            $mic = MicHelp::sections((string) __('pages.help.pages.mic.why'));
-            $devices = array_map(static fn (array $section): array => [...$section, 'steps' => true, 'fold' => true], array_slice($mic, 1));
-            $raw = [$mic[0], ...$devices, ...$raw];
-        }
+        $raw = self::raw($slug);
+        // Each section's anchor is its English heading's, in every language, so a link (`at`) never changes with a
+        // translation and a reworded heading never breaks one.
+        $english = App::getLocale() === 'en' ? $raw : self::inEnglish(static fn (): array => self::raw($slug));
 
         $replace = array_combine(array_map(static fn (string $key): string => ':'.$key, array_keys($fill)), array_values($fill));
         $seen = [];
         $sections = [];
-        foreach ($raw as $section) {
+        foreach ($raw as $k => $section) {
             if (! self::switchedOn((array) $section)) {
                 continue;
             }
             $heading = (string) $section[0];
-            $id = $base = Str::slug($heading) ?: 'section';
+            $id = $base = Str::slug((string) ($english[$k][0] ?? $heading)) ?: 'section';
             for ($n = 2; isset($seen[$id]); $n++) {
                 $id = $base.'-'.$n;
             }
@@ -304,13 +301,52 @@ final class HelpGuide
         }
 
         $text = self::card($slug)['title'];
-        if (isset($link['at'])) {
-            $section = array_values(array_filter(self::sections($slug), static fn (array $s): bool => $s['id'] === $link['at']))[0]
-                ?? throw new InvalidArgumentException("The guide's page [{$slug}] has no section [{$link['at']}].");
+        // A section no longer there leads to its page (the anchors are the English headings', so a translation never
+        // loses one; only a reworded English heading can).
+        $section = isset($link['at']) ? (array_values(array_filter(self::sections($slug), static fn (array $s): bool => $s['id'] === $link['at']))[0] ?? null) : null;
+        if ($section !== null) {
             $text .= ': '.$section['heading'];
         }
 
-        return ['href' => '/help/'.$slug.(isset($link['at']) ? '#'.$link['at'] : ''), 'text' => $text, 'app' => false];
+        return ['href' => '/help/'.$slug.($section !== null ? '#'.$section['id'] : ''), 'text' => $text, 'app' => false];
+    }
+
+    /**
+     * A page's sections as written, before the numbers are filled in: the mic page starts with the app's own mic
+     * dialog steps, so the two never differ, each device's steps folding away so the page is one screen until you
+     * open yours.
+     *
+     * @return array<int, mixed>
+     */
+    private static function raw(string $slug): array
+    {
+        $raw = array_values((array) Lang::get('pages.help.pages.'.$slug.'.sections'));
+
+        if ($slug === 'mic') {
+            $mic = MicHelp::sections((string) __('pages.help.pages.mic.why'));
+            $devices = array_map(static fn (array $section): array => [...$section, 'steps' => true, 'fold' => true], array_slice($mic, 1));
+            $raw = [$mic[0], ...$devices, ...$raw];
+        }
+
+        return $raw;
+    }
+
+    /**
+     * @template T
+     *
+     * @param  callable(): T  $read
+     * @return T
+     */
+    private static function inEnglish(callable $read): mixed
+    {
+        $before = App::getLocale();
+        App::setLocale('en');
+
+        try {
+            return $read();
+        } finally {
+            App::setLocale($before);
+        }
     }
 
     private static function web(string $path): string

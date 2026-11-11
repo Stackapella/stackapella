@@ -15,8 +15,17 @@ I18N = "(await import('/js/i18n.js'))"
 
 def journey(f):
     f.go("/admin?api=mock&scenario=", "document.querySelector('main')")
-    name = f.js(f"{I18N}.t('admin.home.signedInAs', {{ name: 'Hillel Coren' }})")
-    f.wait_text(name)
+    # Hillel's Home (2026-11-11): the day, a greeting by first name, the account at the right of the same row.
+    f.wait("document.querySelector('[data-home-greeting]')?.textContent.trim().endsWith(', Hillel')", what="the greeting by first name")
+    assert f.js("document.querySelector('[data-home-head]').innerText").count("hillel@example.com") == 1
+    # The example's second-factor check has run out: one line, with the way to confirm it.
+    assert f.js("document.querySelector('[data-home-sudo] a').getAttribute('href')") == "/admin/second-factor?sudo=1&intended=%2Fadmin"
+    # What needs you now: the total beside the title, and a card per kind; the five numbers as one panel.
+    f.wait("document.querySelector('[data-needs-total]')?.textContent.trim() && document.querySelector('[data-admin-needs] [data-needs-voices] [data-needs-song]')", what="the total and the voices card")
+    f.wait("document.querySelectorAll('[data-home-panel] [data-tile]').length === 5", what="the five numbers in one panel")
+    if f.size == "desktop":
+        tops = f.js("[...document.querySelectorAll('[data-home-panel] [data-tile]')].map((d) => Math.round(d.getBoundingClientRect().top))")
+        assert len(set(tops)) == 1, f"five across at 1440: {tops}"
     # The last 7 days (docs/admin-analytics-plan.md, slice 1): the overview's growth and songs as cards.
     f.wait("document.querySelectorAll('[data-home-growth] [data-tile]').length === 5", what="the growth cards")
     tiles = f.js("Object.fromEntries([...document.querySelectorAll('[data-home-growth] [data-tile]')].map((c) => [c.dataset.tile, c.querySelector('[data-tile-value]').textContent.trim()]))")

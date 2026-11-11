@@ -7,13 +7,16 @@ namespace App\Support\Boards;
 use App\Enums\TemplateAccess;
 use App\Models\Template;
 use App\Models\TemplateVersion;
+use App\Support\Pages\Carols;
+use App\Support\Templates\Catalogue;
 use Carbon\CarbonImmutable;
 
 /**
  * Game mode's daily challenge (Hillel: "i love the game ideas, go go go"): one song part a day, the
  * same for everyone, picked from the date in UTC. The pool is every part of the official songs that
  * are reviewed, free and current, sorted by song then part; the day's is the one at fnv1a32 of
- * "YYYY-MM-DD" modulo the pool's size, so anyone (the app, a test) can work it out.
+ * "YYYY-MM-DD" modulo the pool's size, so anyone (the app, a test) can work it out. From 1 to 26 December the pool is
+ * the open carols' parts instead (carolSeason).
  */
 final class Daily
 {
@@ -30,6 +33,12 @@ final class Daily
      */
     public static function pick(string $date): ?array
     {
+        // Through 26 December an open carol's part, the same for everyone (docs/retention-plan.md, Today's song);
+        // with no carol open, or after, the year-round pool.
+        if (self::carolSeason($date) && ($carols = self::carols()) !== []) {
+            return $carols[self::fnv1a32($date) % count($carols)];
+        }
+
         $pool = [];
         $songs = Template::query()->listed()->with('currentVersion')->where('access', TemplateAccess::Free)->whereNull('deleted_at')
             ->whereNotNull('current_version_id')->orderBy('slug')->get();
@@ -50,6 +59,41 @@ final class Daily
         }
 
         return $pool === [] ? null : $pool[self::fnv1a32($date) % count($pool)];
+    }
+
+    /** Whether a date is in carol season: 1 to 26 December. */
+    public static function carolSeason(string $date): bool
+    {
+        return preg_match('/^\d{4}-12-(\d{2})$/', $date, $day) === 1 && (int) $day[1] <= 26;
+    }
+
+    /**
+     * Every part of every carol open on the site (Catalogue::isOpen and Carols::isCarol: live, reviewed, public
+     * domain), sorted by song then part as the year-round pool is.
+     *
+     * @return list<array{template: Template, version: TemplateVersion, part: string}>
+     */
+    private static function carols(): array
+    {
+        $pool = [];
+        $songs = Template::query()->listed()->with('currentVersion')->whereNull('deleted_at')->whereNotNull('current_version_id')->orderBy('slug')->get();
+
+        foreach ($songs as $template) {
+            $version = $template->currentVersion;
+
+            if ($version === null || ! Catalogue::isOpen($template) || ! Carols::isCarol($template)) {
+                continue;
+            }
+
+            $parts = array_values(array_filter(array_map(static fn (mixed $p): ?string => is_array($p) && is_string($p['key'] ?? null) ? $p['key'] : null, (array) ($version->data['parts'] ?? []))));
+            sort($parts);
+
+            foreach ($parts as $part) {
+                $pool[] = ['template' => $template, 'version' => $version, 'part' => $part];
+            }
+        }
+
+        return $pool;
     }
 
     /**

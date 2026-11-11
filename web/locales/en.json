@@ -973,10 +973,13 @@
             "failed": "Revenue didn't load."
         },
         "home": {
-            "title": "Admin",
-            "signedInAs": "Signed in as {name}",
-            "sudoUntil": "Confirmed until {time}",
-            "noSudo": "Second factor needed for changes",
+            "greeting": {
+                "morning": "Good morning, {name}",
+                "afternoon": "Good afternoon, {name}",
+                "evening": "Good evening, {name}"
+            },
+            "sudoNeeded": "Confirm your second factor before you make changes.",
+            "sudoConfirm": "Confirm",
             "beta": "The beta",
             "waiting": "Takes waiting",
             "unread": "New feedback",
@@ -993,8 +996,9 @@
                 "active": "Active singers",
                 "finished": "Songs finished",
                 "second": "Singers with a second song",
-                "vsWeekBefore": "Against the 7 days before",
-                "allTime": "So far"
+                "vsBefore": "vs. the 7 days before",
+                "vsWeekBefore": "against the 7 days before",
+                "allTime": "all time"
             }
         },
         "safety": {
@@ -1672,7 +1676,15 @@
             "title": "What needs you now",
             "navCount": "{count, plural, one {1 part needs a voice} other {# parts need a voice}}",
             "failed": "What needs you didn't load.",
-            "none": "Nothing needs you: every part has a voice or a singer on it.",
+            "none": "Nothing needs you right now.",
+            "voices": "Voices",
+            "site": "Site",
+            "toOutreach": "All outreach",
+            "outreach": {
+                "sendBySoon": "{count, plural, one {First email to send soon} other {First emails to send soon}}",
+                "followUps": "{count, plural, one {Follow-up due} other {Follow-ups due}}",
+                "replies": "{count, plural, one {Reply to read} other {Replies to read}}"
+            },
             "takes": "{count, plural, one {1 take to review} other {# takes to review}}",
             "changed": "Changed: needs recording again",
             "unassigned": "No singer",
@@ -1928,6 +1940,40 @@
             "joined": "{joined} let in (of {cap})."
         },
         "support": {
+            "tracks": {
+                "category": "Learning tracks",
+                "only": "Learning tracks only",
+                "title": "Learning tracks request",
+                "piece": "Piece",
+                "composer": "Composer",
+                "voicing": "Voicing",
+                "group": "Group",
+                "rights": "What they confirmed",
+                "confirmedAt": "Confirmed {when}",
+                "scores": "The score",
+                "noScore": "No score sent yet: a saved reply below asks for it.",
+                "download": "Download",
+                "linkNote": "Download links last 10 minutes. Open the message again for fresh ones.",
+                "kind": {
+                    "pdf": "PDF",
+                    "musicxml": "MusicXML",
+                    "mxl": "MusicXML, compressed",
+                    "photo": "Photo"
+                },
+                "status": {
+                    "received": "Waiting for tracks",
+                    "delivered": "Delivered",
+                    "closed": "Closed"
+                },
+                "delivered": "Delivered {when}:",
+                "give": "Give this song",
+                "giveTitle": "Give {piece} to {name}",
+                "giveBody": "The arranger's song file goes into {name}'s songs and is shared into {group}, with what they confirmed as its rights record. The request then closes.",
+                "rightsRecord": "The rights record",
+                "given": "{title} is in {group} now. The request is closed.",
+                "noGive": "This request came before Give this song: give it from their account.",
+                "toAccount": "Open their account"
+            },
             "filter": {
                 "open": "Open",
                 "answered": "Answered",
@@ -3249,6 +3295,7 @@
         }
     },
     "sing": {
+        "lessonBack": "Back to the lesson",
         "now": {
             "nextThen": "Now {now}, next {next}, then {then} ({direction, select, up {up} down {down} other {the same}})",
             "next": "Now {now}, next {next}",
@@ -4014,6 +4061,7 @@
         "wall": {
             "title": "Keep going with a free account",
             "keepStars": "{count, plural, one {Your star} other {Your # stars}} from this course so far",
+            "keepLessons": "{count, plural, one {Your lesson} other {Your # lessons}} from this course so far",
             "keepNote": "Your note, {note}",
             "keepPlace": "Your place in {course}, on any device",
             "keepAll": "Every lesson of every course, all free",
@@ -4201,6 +4249,7 @@
         "loading": "Getting your lesson",
         "noLesson": "That lesson isn't in the course.",
         "locked": "This lesson opens once you've earned enough stars before it.",
+        "lockedSerious": "This lesson opens once you've sung the ones before it.",
         "backToCourse": "Back to the course",
         "flipRest": {
             "title": "Rest your voice",
@@ -4228,6 +4277,7 @@
         "notesLabel": "The notes: {notes}",
         "notHeard": "We couldn't hear you clearly. Try again somewhere quieter, a little closer to the mic.",
         "result": "{percent}% on pitch: {stars, plural, one {# star} other {# stars}}",
+        "resultSerious": "{percent}% on pitch",
         "starsLabel": "{count, plural, =0 {No stars} one {# of 3 stars} other {# of 3 stars}}",
         "done": {
             "capped": "That's the most XP for today: the stars still count.",
@@ -4236,7 +4286,9 @@
             "unheardTitle": "Let's try that again",
             "unheard": "No stars this time: we couldn't hear you clearly. Try again somewhere quieter, a little closer to the mic. It doesn't cost you anything.",
             "skippedTitle": "Skipped for now",
-            "skipped": "No stars this time, and nothing lost. Come back and sing it when you're ready."
+            "skipped": "No stars this time, and nothing lost. Come back and sing it when you're ready.",
+            "unheardSerious": "Nothing counted this time: we couldn't hear you clearly. Try again somewhere quieter, a little closer to the mic. It doesn't cost you anything.",
+            "skippedSerious": "Nothing lost. Come back and sing it when you're ready."
         },
         "openIn": "Open it in Sing",
         "recordIn": "Record it in Sing",
@@ -4365,7 +4417,8 @@
         "singToFinish": "Sing it once to finish",
         "singToGoOn": "Sing it once to go on",
         "stars": {
-            "hold": "Stars here are for how long you held the note, and how steadily."
+            "hold": "Stars here are for how long you held the note, and how steadily.",
+            "holdSerious": "This one is about how long you held the note, and how steadily."
         },
         "vibrato": {
             "heard": "A gentle vibrato, about {rate} a second.",
@@ -4501,6 +4554,7 @@
             "path": "This unit's lessons",
             "allDone": "Every lesson sung",
             "allDoneTitle": "Go back for more stars",
+            "allDoneTitleSerious": "Sing any of them again",
             "seeCourse": "See the course",
             "failed": "The course couldn't load just now. Check your connection, then try again.",
             "lessonOf": "Lesson {place} of {total} · about {minutes} min",

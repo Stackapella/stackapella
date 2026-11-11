@@ -5,6 +5,7 @@ the skin prefix (.text-sm, .flex, .min-h-dvh ...). What remains is listed in ALL
 It also checks each colour theme's inks (the parts', good, warn, bad, muted, cream, accent-strong) reach AA on that theme's
 arcade ground, panels and wells (the 8-theme check, 2026-11-02: the arcade's own surfaces made some miss).
 """
+import json
 import re
 import sys
 from pathlib import Path
@@ -46,6 +47,70 @@ def problems(text):
     return found
 
 
+# Game words in the app's own words (the serious skin's leak, 2026-11-11: a guest's Home said "Your 3 stars from this
+# course so far" in serious mode, from the course wall). A key whose English names stars, XP, combos or streaks is a game
+# word: a line of the app that says one must choose by skin on that line (game(), sk(...)), or live in js/game/ or
+# js/admin/. The lines below are what was there when the check began: each is either inside a game-only block (a parent
+# v-if="game()", a game-only screen) or a leak still to fix. Only shrink it, and never add to it: guard the new line.
+LOCALE = CSS.parents[1] / "locales" / "en.json"
+JS = CSS.parents[1] / "js"
+GAME_WORD = re.compile(r"\bstars?\b|★|\bXP\b|\bcombos?\b|\bstreaks?\b", re.I)
+WORDS_ALLOWED = {
+    "components/appearance.js: appearance.gameMode.onHint",
+    "components/boss.js: boss.review.line",
+    "components/boss.js: boss.xp",
+    "components/course-map.js: boss.locked",
+    "components/course-map.js: course.locked",
+    "components/home.js: course.xp",
+    "components/home.js: course.xpLabel",
+    "components/home.js: home.lead.welcomeLast",
+    "components/home.js: home.lead.welcomeYesterday",
+    "components/home.js: results.levelXp",
+    "components/results.js: results.levelLabel",
+    "components/results.js: results.levelXp",
+    "components/selfcheck.js: selfcheck.honest",
+    "components/session-wrap.js: wrap.week.keepStars",
+    "components/share-result.js: results.share.streak",
+    "results.js: results.end.one",
+    "results.js: results.end.three",
+    "results.js: results.end.two",
+    "results.js: results.end.up",
+    "results.js: results.end.upToThree",
+    "views/course.js: course.hub.toLevel",
+    "views/course.js: course.xpLabel",
+    "views/course.js: results.levelXp",
+    "views/learn.js: boss.locked",
+    "views/settings.js: settings.course.confirmBody",
+    "views/settings.js: settings.course.restarted",
+    "views/storage.js: cloud.storage.courseTakesBody",
+    "views/workout.js: workout.why.review",
+}
+
+
+def _strings(node, path=""):
+    if isinstance(node, dict):
+        for key, value in node.items():
+            yield from _strings(value, f"{path}.{key}" if path else key)
+    elif isinstance(node, str):
+        yield path, node
+
+
+def words(locale_text, js_files):
+    """A game word said in the app on a line that doesn't choose by skin (both skins would show it)."""
+    keys = {k for k, s in _strings(json.loads(locale_text)) if GAME_WORD.search(s) and not k.startswith(("admin.", "game.", "badges."))}
+    found = []
+    for name, text in js_files:
+        if name.startswith(("admin/", "game/")):
+            continue
+        for number, line in enumerate(text.splitlines(), 1):
+            if "game()" in line or "sk(" in line:
+                continue
+            for key in re.findall(r"""\b(?:t|tk)\(['"]([\w.]+)['"]""", line):
+                if key in keys and f"{name}: {key}" not in WORDS_ALLOWED:
+                    found.append(f"js/{name}:{number}: {key} names a game word in both skins: use sk() or game()")
+    return found
+
+
 def _block(text, selector):
     match = re.search(re.escape(selector) + r"\s*\{(.*?)\}", text, re.S)
     return dict(re.findall(r"(--[\w-]+):\s*(#[0-9a-fA-F]{6})\b", match.group(1))) if match else {}
@@ -82,7 +147,8 @@ def inks(text, themes_text):
 
 
 if __name__ == "__main__":
-    found = problems(CSS.read_text()) + inks(CSS.read_text(), THEMES_CSS.read_text())
+    js_files = [(str(f.relative_to(JS)), f.read_text()) for f in sorted(JS.rglob("*.js"))]
+    found = problems(CSS.read_text()) + inks(CSS.read_text(), THEMES_CSS.read_text()) + words(LOCALE.read_text(), js_files)
     for line in found:
         print(line)
     print(f"skin: {len(found)} problems")

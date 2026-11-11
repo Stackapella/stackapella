@@ -73,6 +73,7 @@ use Laravel\Passkeys\PasskeyAuthenticatable;
  * @property Carbon|null $billing_notice_at
  * @property list<string>|null $editable_project_ids
  * @property array{mode: string, colour: string|null, accent?: string|null, customAccent?: string|null, skin?: string}|null $appearance
+ * @property array<string, string>|null $tried each feature tried (config counts.features) and the day it was first used
  * @property int|null $early_access_link_id
  * @property bool $reminder_enabled
  * @property bool $idea_emails
@@ -207,6 +208,7 @@ final class User extends Authenticatable implements PasskeyUser
             'billing_notice_at' => 'datetime',
             'editable_project_ids' => 'array',
             'appearance' => 'array',
+            'tried' => 'array',
             'push_settings' => 'array',
             'reminder_enabled' => 'boolean',
             'hide_profile' => 'boolean',

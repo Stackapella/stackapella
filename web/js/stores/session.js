@@ -188,6 +188,9 @@ export async function openSession(id, { refresh = true } = {}) {
  * still waiting (a slider's, a practice change) are made at once; the promise is theirs.
  */
 export function closeSession() {
+    // Left while playing (Back, a lesson's Back to the lesson): the run so far still counts, toward the goal and the
+    // lesson's step (it was lost before: Sentry-free, but the free course's 4-words had 12 starts and 1 finish).
+    if (session.playing && !session.recording) doneSinging();
     const saves = [];
     for (const [part, timer] of kept.partSaves) {
         clearTimeout(timer);
@@ -1070,6 +1073,12 @@ const PRACTICE_RUN_SECONDS = 30; // a run this long earns the practice run's XP
 /** Playing or recording began (a seek while playing carries on the same run). */
 function singing() {
     kept.singingFrom ??= performance.now();
+}
+
+/** The seconds sung in this song so far, the run going on now included (a lesson's step is done at SONG_USED_SECONDS). */
+export function sungSeconds() {
+    const running = kept.singingFrom === null || kept.singingFrom === undefined ? 0 : (performance.now() - kept.singingFrom) / 1000;
+    return (session.practice?.sungSeconds ?? 0) + running;
 }
 
 /** Playing or recording stopped: the time counts toward the goal, and a long enough run earns XP. */

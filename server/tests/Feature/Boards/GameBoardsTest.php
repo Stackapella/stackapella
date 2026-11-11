@@ -6,12 +6,15 @@ namespace Tests\Feature\Boards;
 
 use App\Actions\Boards\Boards;
 use App\Actions\Templates\SyncOfficialTemplates;
+use App\Enums\TemplateAccess;
 use App\Models\DailyScore;
 use App\Models\Ghost;
 use App\Models\PartScore;
 use App\Models\Template;
 use App\Models\User;
 use App\Support\Boards\Daily;
+use App\Support\Pages\Carols;
+use App\Support\Templates\Catalogue;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Artisan;
@@ -100,6 +103,28 @@ final class GameBoardsTest extends TestCase
         PartScore::query()->where('user_id', $ben->id)->where('part_key', $part)->update(['hidden_at' => now()]);
         $this->assertSame(['Ana Ruiz'], array_column((array) $this->actingAs($ana)->getJson('/api/boards/daily')->json('data.entries'), 'name'));
         $this->actingAs($ben)->getJson('/api/boards/daily')->assertJsonPath('data.days', []);
+    }
+
+    public function test_through_26_december_the_days_part_is_an_open_carols_then_the_year_round_pool(): void
+    {
+        // The content's carols are open (reviewed, public domain): from 1 to 26 December the day's part is one of theirs.
+        foreach (['2026-12-01', '2026-12-13', '2026-12-26'] as $date) {
+            $pick = Daily::pick($date);
+            $this->assertNotNull($pick);
+            $this->assertTrue(Carols::isCarol($pick['template']), "{$date}: {$pick['template']->slug}");
+            $this->assertTrue(Catalogue::isOpen($pick['template']));
+            // The same for everyone, on every call.
+            $this->assertSame([$pick['template']->slug, $pick['part']], [Daily::pick($date)['template']->slug ?? null, Daily::pick($date)['part'] ?? null]);
+        }
+
+        // Before and after, the year-round pool: the free songs.
+        foreach (['2026-11-30', '2026-12-27'] as $date) {
+            $this->assertSame(TemplateAccess::Free, Daily::pick($date)['template']->access ?? null, $date);
+        }
+
+        // With no carol open, December keeps the year-round pool.
+        Template::query()->whereIn('id', Template::query()->get()->filter(static fn (Template $t): bool => Carols::isCarol($t->loadMissing('currentVersion')))->modelKeys())->update(['withdrawn_at' => now()]);
+        $this->assertSame(TemplateAccess::Free, Daily::pick('2026-12-13')['template']->access ?? null);
     }
 
     public function test_the_weekly_cup_adds_up_each_days_best_and_turning_up_counts(): void

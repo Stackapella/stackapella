@@ -446,4 +446,46 @@ return [
         'tenor' => 'Rests through the solo lines and answers in the middle of the chord, mostly on G and A, starting "Blow, boys blow." on its top C in verse 1 and on its low E in every verse after.',
         'bass' => 'Rests through the solo lines and sings the bass of Terry\'s chords, C, E, A under "Blow, boys blow.", with its top E on "boys", then D for "Blow my bully boys" and down to a low G on the last "blow.", the same in every verse.',
     ],
+    'maoz-tzur' => [
+        'soprano' => 'Carries the traditional tune, most often on E, then B, dipping to its low B on "Maoz" and "Tikon" in verse 1 and on "Yevanim" and "Ufartzu" in verse 5, up to its top E on "matbeach," and "mitzar" in verse 1 and on "kankanim," and "naasa" in verse 5, and sings each verse\'s last line twice.',
+        'alto' => 'Sings the words under the tune, mostly a third or a sixth below it, most often on G-sharp, up to its top B only on "mitzar" in verse 1 and "naasa" in verse 5, and crosses a third above the tune, to G-sharp, on the last note of every "hamizbeach." and "urenanim." and on "alai," and "migdalai," in verse 5.',
+        'tenor' => 'Sings the middle of the chord, most often on B, then E, up to its top E only on "hamenabeach." in verse 1 and "nes" in verse 5, and down to its low D-sharp on "yeshuati,", "leshabeach.", "tefilati," and "nezabeach." in verse 1 and on "Chashmanim." and "hashemanim." in verse 5.',
+        'bass' => 'Sings mostly the roots of the chords, on E just over half the time, then B, up to the higher A only on "hamenabeach." in verse 1 and "naasa" in verse 5, and down to the low A an octave under it on "nae", "toda", "tachin" and every "chanukat hamizbeach." in verse 1, and on "azai", "vetim\'u", "Uminotar" and every "kav\'u shir urenanim." in verse 5.',
+    ],
+    'oy-chanukah' => [
+        'soprano' => 'Carries the Hasidic tune as Lvov printed it, quick and light, most often on C, then A-flat, up to its top F on the second "Khanike," and on "freylekher," each time verse 1 is sung and on "fartribn" and "hamikdesh" in verse 2, and down to its low F on, among others, the first and last words of every verse, "Oy," and "kon." in verse 1 and "Yehude" and "oykh." in verse 2.',
+        'alto' => 'Sings Lvov\'s alto part with the words, mostly a third or a sixth below the tune, most often on A-flat, then F, up to its top B-flat on "likhtelekh" each time verse 1 is sung and on "hamakabi" in verse 2, and down to its low A-flat on the last word of every verse, "kon." and "oykh.".',
+        'tenor' => 'Sings the words in the middle of the chord, taken from Lvov\'s piano left hand, most often on C, then A-flat, up to its top E on "sheyner," and "azoyner." each time verse 1 is sung and on "rotseyekh," and "lamnatseyekh." in verse 2, and down to its low C on the last word of every verse, "kon." and "oykh.".',
+        'bass' => 'Sings the bass line of Lvov\'s piano left hand on "dm", a short note on the beat under the others, once or twice a bar, mostly on F, and joins the words only for the last word of each verse, "kon." and "oykh.", on its low F.',
+    ],
+    'ein-keloheinu' => [
+        'soprano' => 'Carries Freudenthal\'s tune, most often on G, then B, up to its top E on "kemalkenu," in verse 1, "lemalkenu," in verse 3 and "malkenu," in verse 5, and down to its low C-sharp only on "ch\'moshienu." in verse 2 and "moshienu." in verse 4.',
+        'alto' => 'Sings under the tune, mostly a third or a sixth below it, most often on D, then G, from its low B on the opening "Ein", "Node" and "Ata hu" of verses 1, 3 and 5 up to its top B on "ein" before "kemalkenu,", "nodeh" before "lemalkenu,", "atah hu" before "malkenu," and the last "moshienu.", where it ends a third above the tune.',
+        'tenor' => 'Sings the middle of the chord, most often on A, staying on A for three quarters of verses 2 and 4, and up to its top E on "kemalkenu," in verse 1, "lemalkenu," in verse 3 and the last "atah" in verse 5.',
+        'bass' => 'Sings the bass line, on the chords\' roots three quarters of the time, on G and D two thirds of the time, and goes down to its low A only in verses 2 and 4, on "mi chadoneinu," and "ch\'moshienu." and on "baruch adoneinu," and "moshienu.".',
+    ],
+    'adir-hu' => [
+        'soprano' => 'Carries the traditional tune, most often on G, then C, up to its top E on "bimhera," and "veitcha" in every verse, and down to its low E on the names that open each verse ("Adir" and both "adir" in verse 1, "Bachur", "gadol" and "yachid" in verse 2, "Tzadik", "kadosh" and "rachum" in verse 3), and on "beyameinu", the "bekarov." after it and the first "bene," of every verse.',
+        'alto' => 'Sings under the tune, a third or a sixth below it most of the time, mostly on E, up to its top A only on "bimhera," and down to its low B only on the "bekarov." after "beyameinu", in every verse.',
+        'tenor' => 'Sings the middle of the chord on just five notes, mostly on G, up to C on the third "adir hu," in verse 1, on "yachid hu," and "rachum hu," in verses 2 and 3 and on every second "bimhera," and every "beyameinu", and down to F on the first "bekarov," and the "bekarov." after "beyameinu" in every verse.',
+        'bass' => 'Sings mostly the roots of the chords, on a low C most of the time, staying on it under the names that open each verse, up to its top G only on "veito" and down to its low F only on the last "bekarov." of every verse.',
+    ],
+    'eliyahu-hanavi' => [
+        'soprano' => 'Carries Idelsohn\'s folk tune, most often on G, then B-flat and D, down to its low D on "hanavi," and up to its top E-flat only on the last "Eliyahu", before "hagiladi.", the same each time through.',
+        'alto' => 'Sings under the tune, mostly a third or a sixth below it, most often on E-flat, then D, down to its low A on "hanavi," and up to its top G on "hatishbi,", the first "Eliyahu," and the "Eliyahu" before "hagiladi.", the same each time through.',
+        'tenor' => 'Sings the middle of the chord, most often on B-flat, then G, up to its top D on the first "Eliyahu," each time through, and down to its low D, an octave under it, only on the very last "hagiladi.".',
+        'bass' => 'Sings the bass line, most often on G, then B-flat, from its low G on the first "Eliyahu", "hanavi," and "hagiladi." up to its top G, an octave higher, on the "Eliyahu" before "hatishbi,", the same each time through.',
+    ],
+    'echad-mi-yodea' => [
+        'soprano' => 'Carries the traditional tune, most often on F, then C, up to its top D-flat on the first "yodea," and on "shebashamayim" in every verse, and down to its low E only on "uvaaretz.", the last word of every verse.',
+        'alto' => 'Sings under the tune, mostly a sixth below it, most often on A-flat, then E-flat, up to its top F on "ani" in verses 1, 3 and 4, on the "shenayim" after "mi yodea," in verse 2 and on every "shebashamayim", and down to its low A-flat on the "Echad", "Shenayim", "Sh\'losha" and "Arba" that open the verses, on the "echad" before every "elokeinu" and on every "uvaaretz.".',
+        'tenor' => 'Sings the middle of the chord, most often on A-flat, then F, up to its top B-flat on the first "yodea," in verses 1 and 4 and on every "imahot,", "avot," and "hab\'rit,", and down to its low C on every "uvaaretz.".',
+        'bass' => 'Sings the bass line, most often on F, then C, up to its top F on "ani" in verse 2 and on the "yodea," after "ani" in verses 1, 3 and 4, and down to its low F, an octave under it, on the "Echad", "Shenayim", "Sh\'losha" and "Arba" that open the verses, on every "elokeinu" and on every "uvaaretz.".',
+    ],
+    'ki-lo-naeh' => [
+        'soprano' => 'Carries the traditional tune and sings each verse alone, from "Adir bimlucha," to "yomru lo:" and the same lines of verses 2 and 3, most often on A, then F-sharp, up to its top D on every "yae." and on the first "lecha" and the "lecha" before "af" in every answer, and down to its low D on every "Ki" that opens "Ki lo nae,", on every "kahalacha," and on "gedudav", "shinanav" and "temimav".',
+        'alto' => 'Rests while the soprano sings each verse alone and joins for "Ki lo nae, ki lo yae." and every answer, mostly a third or a sixth below the tune, most often on D, then C-sharp, up to its top F-sharp on every "yae." and, in every answer, on the first "lecha" and on "ki lecha," and "lecha af lecha,", and down to its low A only on the "Ki lo" that opens every "Ki lo nae,".',
+        'tenor' => 'Rests while the soprano sings each verse alone and joins for "Ki lo nae, ki lo yae." and every answer in the middle of the chord, on F-sharp, G and A over nine tenths of the time, most often on F-sharp, up to its top C-sharp on the first "lecha" of every answer and down to its low D on every "nae,".',
+        'bass' => 'Rests while the soprano sings each verse alone and joins for "Ki lo nae, ki lo yae." and every answer, singing the bass line, most often on D, then B, up to its top F-sharp on the "lecha" before "Adoshem" in every answer, and down to its low F-sharp, an octave under it, on every "nae," and the "ki" after it, and on "af", the "lecha," after it and "hamamlacha," in every answer.',
+    ],
 ];

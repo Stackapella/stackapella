@@ -204,7 +204,7 @@ def audit(f):
     progress(f, done, 230, days=1, extra=", home: 57, range: { low: 55, high: 76 }")
     visit("learn", "/learn?api=mock&as=member", "document.querySelectorAll('main ol button, ol button').length > 5")
     visit("workout", "/workout?api=mock&as=member", "document.querySelector('#app h2')")
-    for lesson, step, kind in (("1-comfortable", 0, "learn"), ("1-comfortable", 1, "home"), ("1-match", 1, "try"), ("1-match", 2, "play"), ("4-words", 1, "use"), ("4-challenge", 0, "record")):
+    for lesson, step, kind in (("1-comfortable", 0, "learn"), ("1-comfortable", 1, "home"), ("1-match", 1, "try"), ("1-match", 2, "play"), ("4-words", 1, "song-line"), ("4-phrasing", 1, "use"), ("4-challenge", 0, "record")):
         f.run(f"sessionStorage.setItem('stackapella.lesson.{lesson}', '{step}');")
         visit(f"lesson-{kind}", f"/learn/{lesson}?api=mock&as=member", "document.querySelector('#app h1')")
 
@@ -302,7 +302,8 @@ def audit(f):
     # The cool-down (voice care): an unscored lesson of its own.
     visit("cooldown", "/cooldown?api=mock&scenario=&as=member", "document.querySelector('#app h1')")
     # Admin's Growth: the Overview, the Funnel with an experiment's arms, and Sources.
-    visit("growth", "/admin/growth?api=mock&scenario=&as=admin", "document.querySelector('[data-growth-tiles] li')")
+    # The fair cards (data-growth-metrics) once the server sends them, the tiles of before otherwise.
+    visit("growth", "/admin/growth?api=mock&scenario=&as=admin", "document.querySelector('[data-growth-metrics] li, [data-growth-tiles] li')")
 
     def experiment():
         f.run("const s = document.querySelector('[data-funnel-experiments]'); s.value = 'onb1'; s.dispatchEvent(new Event('change'));")

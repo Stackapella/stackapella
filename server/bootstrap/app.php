@@ -33,6 +33,7 @@ use App\Http\Controllers\Public\SitePagesController;
 use App\Http\Controllers\Public\SongCollectionPageController;
 use App\Http\Controllers\Public\SongPagesController;
 use App\Http\Controllers\Public\SongPartPagesController;
+use App\Http\Controllers\Public\TodayController;
 use App\Http\Controllers\Public\ToolEmbedController;
 use App\Http\Controllers\Public\ToolManifestController;
 use App\Http\Controllers\Public\ToolPagesController;
@@ -118,6 +119,8 @@ return Application::configure(basePath: dirname(__DIR__))
             Route::get('/coaches', CoachesPageController::class)->middleware('throttle:public-pages')->name('coaches.page');
             Route::get('/coach/{handle}', CoachPageController::class)->where('handle', '[a-z][a-z0-9_]{2,19}')->middleware('throttle:public-pages')->name('coach.page');
             // Songs, guides and legal pages for search, and the sitemap (no session; cacheable).
+            // The day's part (TodayController): a fixed link to something new each day.
+            Route::get('/today', TodayController::class)->middleware(['nexus', 'throttle:public-pages'])->name('today.page');
             Route::get('/songs', [SongPagesController::class, 'index'])->middleware(['nexus', 'throttle:public-pages'])->name('songs.index');
             // The Christmas carols page (App\Support\Pages\Carols), before a song's own address.
             Route::get('/songs/christmas-carols', CarolsPageController::class)->middleware(['nexus', 'throttle:public-pages'])->name('songs.carols');

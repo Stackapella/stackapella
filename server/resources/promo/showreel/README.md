@@ -8,7 +8,13 @@ real-voice guides from the public catalogue, the soprano alone and then a voice 
 the second time through. It renders in two cuts on one timeline, dark (Stage) and light (Warm). After
 Event Schedule's showreel (`~/Code/eventschedule/resources/promo/showreel`), whose ideas it reuses.
 
-**Status (2026-11-08):** the second cut (`docs/showreel-v2-plan.md`, Hillel approved the plan and
+**Status (2026-11-11):** v5, "The Stack", with its polish pass (`docs/showreel-v5-plan.md`; Hillel: "ship it"):
+the final set is rendered as version `9b4cd32976`. Three cuts from one film: the hero (76.5 s, dark and
+light), the short (40.5 s, `stackapella-short.mp4`) and the social (vertical, `stackapella-social.mp4`); the
+last two are for posting and sit outside the manifest. The shot list under "How the film is put together"
+below is the second cut's; v5's is in its plan.
+
+**Before it (2026-11-08):** the second cut (`docs/showreel-v2-plan.md`, Hillel approved the plan and
 "the verse twice"). The first cut (39 s, the synth guide at 96 BPM) is in git history before it, with
 the launch cuts made from it.
 - **Where the files are:** `server/public/videos/showreel/`. The videos, audio, GIF, the captures and
@@ -52,12 +58,18 @@ phrases (9 s):
 |---|---|---|
 | 0:00 | "Amazing grace...", the soprano alone | Learn: the lanes close up, then Sing, notes lighting, in step with the song |
 | 0:09 | "that saved...", the alto joins | Stack: the studio with three parts sung, then the lanes from above |
-| 0:18 | "I once was lost...", the tenor joins | Game mode: the landing's own switch clicked; a CRT power-on into the arcade, and the film itself goes arcade: the take, Home's stage card |
+| 0:18 | "I once was lost...", the tenor joins | Game mode: the landing's own switch clicked; a CRT power-on into the arcade, and the film itself goes arcade: the take, then the daily challenge on Home |
 | 0:27 | "was blind...", the bass joins | Still the arcade: the split screen of four takes of you, the share card and friends joining; then a power-off |
-| 0:36 | all four, the second time | Courses: the courses page scrolling, the first lesson with no account |
-| 0:45 | | Tools, a bar each: the four named in a row, the one now big with a few words, its own panel on a card (tuner, drone, metronome, vocal range test) |
-| 0:54 | | Choirs: the director's group, a member's |
-| 1:03 | | Every day: the daily challenge; then everyone on the lanes, and on "see." the mark and the end card, held to 1:16.5 |
+| 0:36 | all four, the second time | The season's slot: the carols page (lights, snow, the Santa hat), then its songbook with I sing on Alto (`--season`, below) |
+| 0:40.5 | | Courses: the courses page scrolling, then the first lesson on a phone with no account |
+| 0:46.5 | | Tools, four beats each: tuner, drone, vocal range test, each named big with a few words and its own panel on a card; the row ends "and more" |
+| 0:55.5 | | Choirs: the director's group, a member's |
+| 1:03 | | Open source: the site's /open-source page, the pointer on View on GitHub, then GitHub's page for the organisation (signed out); then everyone on the lanes, and on "see." the mark and the end card, held to 1:16.5 |
+
+**The season's slot.** Beats 48 to 54 show a songs page, picked with `render.py --season=`: `carols`
+(the default, /songs/christmas-carols) in season, then `hymns` (/songs/hymns) or `songbook` (/songs).
+`capture.py` takes all three; a swap is the season's renders (`--final`, `--mobile` for each theme),
+`--manifest` and the upload, nothing else (the posters are the end card, the captions what's sung).
 
 **The arcade** (film.css, "GAME MODE"): from the switch to the end of the first pass the film follows game
 mode's guide, always the dark arcade (in the light cut too, as the app turns dark with game mode), and the CRT (`crt()` in film.js) switches it on and off on the beat.
@@ -178,7 +190,7 @@ under 300 KB are committed beside it.
   each. That is 140 film px on a desktop and about 450 on a phone, so nothing that matters sits in
   the bottom 450 x 450 of either corner.
 - **The captions track** (`--vtt`, `stackapella-showreel.vtt`) gives each phrase's line of the hymn
-  and says who joins; the bass sings on "oo", the others the words. The last cue carries the credit.
+  and says who joins; the bass sings on "oo", the others the words. The singers' credit is on the end card, not in the captions.
 
 ## On the landing
 

@@ -18,7 +18,11 @@
     <meta property="og:description" content="{{ $description }}">
     <meta property="og:url" content="{{ $canonical }}">
     <meta property="og:type" content="website">
-    <meta property="og:image" content="{{ \App\Support\Http\Hosts::public('/icons/og-landing.png') }}">
+    {{-- Its own link card (tool/link_cards.py, the page's theme), the landing's until it's drawn. --}}
+    <meta property="og:image" content="{{ \App\Support\Site\SitePages::image($canonical) }}">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="{{ $title }}">
     <meta name="twitter:card" content="summary_large_image">
     <link rel="canonical" href="{{ $canonical }}">
     <x-site.json-ld :data="\App\Support\Site\StructuredData::collection(__($words.'.list'), __($words.'.crumb'), $canonical, $songs)" />

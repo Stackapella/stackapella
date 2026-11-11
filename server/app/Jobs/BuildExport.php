@@ -109,6 +109,7 @@ final class BuildExport implements ShouldQueue
             'practiceReminders' => ['on' => (bool) $user->reminder_enabled, 'days' => $user->reminder_days, 'time' => $user->reminder_time, 'timezone' => $user->reminder_timezone],
             'appPushes' => AppPushes::settings($user),
             'appearance' => $user->appearance,
+            'tried' => $user->tried,
             'ideaEmails' => (bool) ($user->getAttributes()['idea_emails'] ?? true),
             'storePlusUntil' => $user->store_plus_until?->utc()->toIso8601ZuluString(),
             'schoolPlusUntil' => $user->school_plus_until?->utc()->toIso8601ZuluString(),

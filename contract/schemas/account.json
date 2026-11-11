@@ -36,7 +36,8 @@
         "birthGiven",
         "plusCourses",
         "terms",
-        "songRequests"
+        "songRequests",
+        "tried"
     ],
     "properties": {
         "id": {
@@ -142,6 +143,10 @@
                 }
             },
             "description": "The theme they chose, following them to every device. Null until they choose: the device's own choice stands. A null colour is not chosen: the mode's own (Stage in dark, Warm in light). A null accent is the palette's own."
+        },
+        "tried": {
+            "type": "object",
+            "description": "Breadth: each feature tried (config counts.features) and the day it was first used, YYYY-MM-DD; {} when none. Theirs alone, never in Admin."
         },
         "timezone": {
             "type": [

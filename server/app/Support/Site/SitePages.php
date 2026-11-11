@@ -8,8 +8,11 @@ use App\Http\Controllers\Public\DocumentPagesController;
 use App\Support\Flags;
 use App\Support\Http\Hosts;
 use App\Support\Legal\LegalText;
+use App\Support\Pages\Carols;
 use App\Support\Pages\Landing;
 use App\Support\Pages\Reference;
+use App\Support\Pages\SongCollections;
+use App\Support\Pages\Warmups;
 use Illuminate\Support\Facades\Lang;
 use Illuminate\Support\Facades\View;
 
@@ -610,22 +613,29 @@ final class SitePages
 
     /**
      * Each page's link card (web/icons/og/<key>.png, made by `php artisan app:site:link-cards`
-     * and tool/link_cards.py from the page's own eyebrow and headline), or the landing's.
+     * and tool/link_cards.py from the page's own eyebrow and headline); a page without one takes the nearest page above
+     * it that has one (a lesson its course's, a warm-up the warm-ups'; the coordinator's audit, 2026-11-11), else the
+     * landing's.
      */
     public static function image(string $url): string
     {
-        $key = str_replace('/', '-', trim((string) parse_url($url, PHP_URL_PATH), '/'));
+        $parts = array_values(array_filter(explode('/', trim((string) parse_url($url, PHP_URL_PATH), '/')), static fn (string $p): bool => $p !== ''));
+        for ($n = count($parts); $n > 0; $n--) {
+            $key = implode('-', array_slice($parts, 0, $n));
+            if (is_file(dirname(base_path()).'/web/icons/og/'.$key.'.png')) {
+                return Hosts::public('/icons/og/'.$key.'.png');
+            }
+        }
 
-        return $key !== '' && is_file(dirname(base_path()).'/web/icons/og/'.$key.'.png')
-            ? Hosts::public('/icons/og/'.$key.'.png')
-            : Hosts::public('/icons/og-landing.png');
+        return Hosts::public('/icons/og-landing.png');
     }
 
     /**
      * The pages that get their own link card: each one's key, eyebrow and headline, the page's own
-     * words (no claims of the card's own).
+     * words (no claims of the card's own). A song collection's card is designed for its page (its `theme`, with the
+     * serif words and the promise its hero has: collectionCards).
      *
-     * @return list<array{key: string, eyebrow: string, headline: string}>
+     * @return list<array{key: string, eyebrow: string, headline: string, em?: string, lead?: string, theme?: string}>
      */
     public static function linkCards(): array
     {
@@ -648,6 +658,7 @@ final class SitePages
                 ...array_map(static fn (string $slug): array => $card('/'.$family.'/'.$slug, (string) Reference::index($family)['eyebrow'], (string) Reference::page($family, $slug)['headline']), Reference::slugs($family)),
             ], array_keys(Reference::FAMILIES))),
             $card('/songs', (string) __('pages.songs.eyebrow'), (string) __('pages.songs.headline')),
+            ...self::collectionCards(),
             ...(self::courses() === [] ? [] : [$card('/courses', (string) __('pages.site.courses'), (string) __('site.courses.index.headline'))]),
             ...(self::hasHowItWorks() ? [$card('/how-it-works', (string) __('site.how.eyebrow'), (string) __('site.how.headline'))] : []),
             $card('/pricing', (string) __('pages.nav.pricing'), (string) __('pages.pricing.headline')),
@@ -658,7 +669,38 @@ final class SitePages
             $card('/about', (string) __('pages.nav.about'), (string) __('site.about.lead')),
             $card('/press', (string) __('pages.nav.press'), (string) __('site.press.one_liner')),
             $card('/whats-new', (string) __('pages.nav.whats_new'), (string) __('site.whats_new.lead')),
+            // The warm-ups and the integrations (the coordinator's audit, 2026-11-11: they were on the landing's card).
+            ...(Warmups::ids() === [] ? [] : [
+                $card('/warmups', (string) __('site.warmups.index.eyebrow'), (string) __('site.warmups.index.headline')),
+                ...array_map(static fn (string $id): array => $card('/warmups/'.$id, (string) __('site.warmups.index.eyebrow'), (string) __('site.warmups.pages.'.$id.'.headline')), Warmups::ids()),
+            ]),
+            $card('/integrations', (string) __('site.integrations.index.eyebrow'), (string) __('site.integrations.index.headline')),
+            ...array_map(static fn (string $s): array => $card('/integrations/'.$s, (string) __('site.integrations.index.eyebrow'), (string) __('site.integrations.pages.'.$s.'.headline')), self::INTEGRATIONS),
         ];
+    }
+
+    /**
+     * The song collections' cards (Hillel, 2026-11-11: "give these special pages a special meta image"): the carols'
+     * while it has a carol open, and each collection that's a page (SongCollections::open), each with its hero's words
+     * and its own theme (tool/link_cards.py THEMES). No song count, so a card never goes stale.
+     *
+     * @return list<array{key: string, eyebrow: string, headline: string, em: string, lead: string, theme: string}>
+     */
+    private static function collectionCards(): array
+    {
+        $cards = app(Carols::class)->songs() === [] ? [] : [[
+            'key' => trim(str_replace('/', '-', Carols::PATH), '-'), 'eyebrow' => (string) __('site.carols.crumb'), 'headline' => (string) __('site.carols.headline'),
+            'em' => (string) __('site.carols.headline_em'), 'lead' => (string) __('site.carols.lead'), 'theme' => 'carols',
+        ]];
+        foreach (app(SongCollections::class)->open() as $open) {
+            $words = 'site.collections.'.$open['slug'];
+            $cards[] = [
+                'key' => trim(str_replace('/', '-', $open['path']), '-'), 'eyebrow' => $open['name'], 'headline' => (string) __($words.'.headline'),
+                'em' => (string) __($words.'.headline_em'), 'lead' => (string) __($words.'.lead'), 'theme' => $open['slug'],
+            ];
+        }
+
+        return $cards;
     }
 
     /**

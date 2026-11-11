@@ -12,10 +12,10 @@ from flow import run  # noqa: E402
 from help_shots import SESSION, clear_projects, progress, t  # noqa: E402
 from game_frames import every_theme  # noqa: E402
 
-LESSON = "4-words"
+LESSON = "4-phrasing"  # unit 4's first Amazing Grace step that opens Sing (4-words sings its line in the lesson since 2026-11-11)
 STEP = 1
 DONE = {lesson: {"stars": 3, "bestPercent": 95, "at": 0} for lesson in ("1-comfortable", "1-match", "1-high-low", "1-breath", "1-challenge", "2-hold", "2-drone", "2-vowels",
-                                                                        "2-challenge", "3-steps-up", "3-steps-down", "3-jumps", "3-challenge")}
+                                                                        "2-challenge", "3-steps-up", "3-steps-down", "3-jumps", "3-challenge", "4-words")}
 FIT = """(async () => { const { songFit } = await import('/js/song-course.js'); const { loadTemplate } = await import('/js/templates.js'); const L = await import('/js/stores/learning.js');
     await L.loadLearning(); return songFit(await loadTemplate('amazing-grace'), 'soprano', L.knownRange(), L.learning.progress.home ?? null); })()"""
 LINE = "document.querySelector('[data-fit-line]')"

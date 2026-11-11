@@ -31,14 +31,15 @@ final class RecordCounts
     public function handle(array $events, bool $signedIn, ?string $country, ?string $variant = null, ?string $ref = null, array $variants = []): void
     {
         $funnel = Funnel::kinds();
-        $kinds = [...(array) config('counts.kinds'), ...$funnel, ...self::detailedKinds(), Funnel::ENROLLED];
+        // A set: the detailed kinds run to thousands (every course's lessons and steps).
+        $kinds = array_flip([...(array) config('counts.kinds'), ...$funnel, ...self::detailedKinds(), Funnel::ENROLLED]);
         $variant = $variant !== null && Funnel::knownVariant($variant) ? $variant : '';
         $source = self::source($ref);
         $max = (int) config('counts.max_n');
         $totals = [];
 
         foreach (array_slice($events, 0, (int) config('counts.max_events')) as $event) {
-            if (in_array($event['kind'], $kinds, true)) {
+            if (is_string($event['kind'] ?? null) && isset($kinds[$event['kind']])) {
                 // A funnel kind is a device's first: once a request, whatever `n` says.
                 $cap = in_array($event['kind'], [...$funnel, Funnel::ENROLLED], true) ? 1 : $max;
                 $totals[$event['kind']] = min($cap, ($totals[$event['kind']] ?? 0) + max(1, min($cap, (int) ($event['n'] ?? 1))));
@@ -58,10 +59,11 @@ final class RecordCounts
 
         self::hourly($audience, $hourly);
 
-        // The experiments' own counts: funnel steps only, for arms the registry knows (onb1 keeps `variant`).
+        // The experiments' own counts: funnel steps and whatever a running experiment measures besides (Funnel::measured),
+        // for arms the registry knows (onb1 keeps `variant`).
         $arms = array_slice(array_values(array_unique(array_filter($variants, static fn (string $v): bool => ! str_starts_with($v, Funnel::LEGACY.'-') && Funnel::knownVariant($v)))), 0, 4);
 
-        foreach ($arms === [] ? [] : array_intersect_key($totals, array_flip([...$funnel, Funnel::ENROLLED])) as $kind => $n) {
+        foreach ($arms === [] ? [] : array_intersect_key($totals, array_flip([...$funnel, Funnel::ENROLLED, ...Funnel::measured()])) as $kind => $n) {
             foreach ($arms as $arm) {
                 DB::statement('insert into experiment_counts (day, variant, kind, audience, count) values (?, ?, ?, ?, ?) on duplicate key update count = count + ?', [$day, $arm, $kind, $audience, $n, $n]);
             }
@@ -98,6 +100,8 @@ final class RecordCounts
         return match (true) {
             $ref === '' => '',
             in_array($ref, (array) config('counts.sources'), true) => $ref,
+            // A free tool's share card: share-<slug> (docs/retention-plan.md, section 8; the surfaces' are in sources).
+            str_starts_with($ref, 'share-') && in_array(substr($ref, 6), (array) config('tools.slugs'), true) => $ref,
             str_starts_with($ref, self::TOOL_PREFIX) && in_array(substr($ref, strlen(self::TOOL_PREFIX)), (array) config('tools.slugs'), true) => $ref,
             // A free tool embedded on another site (docs/tools-plan.md): that site's host, which
             // names a website, never a person; a source of under five a day is folded in Growth.
@@ -126,8 +130,29 @@ final class RecordCounts
             return $kinds;
         }
 
+        // Built from the course files only when they change: kept as a PHP file opcache holds, keyed by the files'
+        // dates and sizes, as counts.create is called on every app's every few minutes.
+        $file = storage_path('framework/cache/count-kinds-'.self::courseFingerprint().'.php');
+
+        if (is_file($file)) {
+            /** @var list<string> $cached */
+            $cached = require $file;
+
+            return $kinds = $cached;
+        }
+
         // A song's course (web/course/songs) counts its lessons as a Plus course's do.
-        $ids = ['plus_courses' => [...self::plusCourses(), ...self::songCourses()], 'free_lessons' => self::freeLessons(), 'free_steps' => self::freeSteps()];
+        $ids = [
+            'plus_courses' => [...self::plusCourses(), ...self::songCourses()],
+            'free_lessons' => self::freeLessons(),
+            'free_steps' => self::freeSteps(),
+            'features' => array_values(array_map('strval', (array) config('counts.features'))),
+            'tools' => array_values(array_map('strval', (array) config('tools.slugs'))),
+            'breadth' => array_map('strval', range(0, count((array) config('counts.features')))),
+            'shares' => self::shares(),
+            'course_lessons' => array_keys(self::courseLessons()),
+            'course_steps' => array_merge(...array_map(static fn (string $id, int $steps): array => array_map(static fn (int $i): string => $id.'.'.$i, $steps > 0 ? range(0, $steps - 1) : []), array_keys(self::courseLessons()), self::courseLessons())),
+        ];
         $kinds = [];
 
         foreach ((array) config('counts.detailed') as $prefix => $source) {
@@ -136,7 +161,27 @@ final class RecordCounts
             }
         }
 
+        // Written whole, then moved into place, so a request never reads half a file.
+        if (is_dir(dirname($file)) || @mkdir(dirname($file), 0o775, true)) {
+            $tmp = $file.'.'.bin2hex(random_bytes(4));
+            if (file_put_contents($tmp, '<?php return '.var_export($kinds, true).";\n") !== false) {
+                rename($tmp, $file);
+            }
+        }
+
         return $kinds;
+    }
+
+    /**
+     * What the detailed kinds are built from (the course files, the counts config and the tools), as a short hash.
+     */
+    private static function courseFingerprint(): string
+    {
+        $root = dirname(base_path()).'/web/course';
+        $paths = [$root.'/course.json', $root.'/plus/courses.json', $root.'/songs/index.json', ...glob($root.'/plus/*/*.json') ?: [], ...glob($root.'/songs/*.json') ?: []];
+        $stamp = array_map(static fn (string $path): string => $path.':'.(is_file($path) ? filemtime($path).':'.filesize($path) : '-'), $paths);
+
+        return substr(hash('sha256', implode('|', $stamp).json_encode([config('counts.detailed'), config('counts.features'), config('counts.share_surfaces'), config('counts.share_methods'), config('tools.slugs')])), 0, 16);
     }
 
     /**
@@ -177,6 +222,76 @@ final class RecordCounts
                 if (is_array($lesson) && is_string($lesson['id'] ?? null)) {
                     $ids[] = $lesson['id'];
                 }
+            }
+        }
+
+        return $ids;
+    }
+
+    /**
+     * Every Plus and song course's lessons, each with as many steps as its longest form (its own or a variant's).
+     *
+     * @return array<string, int>
+     */
+    private static function courseLessons(): array
+    {
+        static $lessons = null;
+
+        if ($lessons !== null) {
+            return $lessons;
+        }
+
+        $root = dirname(base_path()).'/web/course';
+        $files = [];
+
+        foreach (['plus/courses.json' => 'plus', 'songs/index.json' => 'songs'] as $list => $folder) {
+            $index = is_file($root.'/'.$list) ? json_decode((string) file_get_contents($root.'/'.$list), true) : null;
+
+            foreach (is_array($index) ? (array) ($index['courses'] ?? []) : [] as $course) {
+                if (is_array($course) && is_string($course['file'] ?? null) && ! str_contains($course['file'], '..')) {
+                    $files[] = $root.'/'.$folder.'/'.$course['file'];
+                }
+            }
+        }
+
+        $lessons = [];
+
+        foreach ($files as $file) {
+            $course = is_file($file) ? json_decode((string) file_get_contents($file), true) : null;
+
+            foreach (is_array($course) ? (array) ($course['units'] ?? []) : [] as $unit) {
+                foreach (is_array($unit) ? (array) ($unit['lessons'] ?? []) : [] as $lesson) {
+                    if (! is_array($lesson) || ! is_string($lesson['id'] ?? null)) {
+                        continue;
+                    }
+
+                    $steps = count((array) ($lesson['steps'] ?? []));
+
+                    foreach ((array) ($lesson['variants'] ?? []) as $variant) {
+                        $steps = max($steps, is_array($variant) ? count((array) ($variant['steps'] ?? [])) : 0);
+                    }
+
+                    $lessons[$lesson['id']] = $steps;
+                }
+            }
+        }
+
+        return $lessons;
+    }
+
+    /**
+     * Every "<surface>.<method>" a share may be: each surface (a free tool's as tool-<slug>) with each method.
+     *
+     * @return list<string>
+     */
+    private static function shares(): array
+    {
+        $surfaces = [...(array) config('counts.share_surfaces'), ...array_map(static fn (mixed $slug): string => 'tool-'.$slug, (array) config('tools.slugs'))];
+        $ids = [];
+
+        foreach ($surfaces as $surface) {
+            foreach ((array) config('counts.share_methods') as $method) {
+                $ids[] = $surface.'.'.$method;
             }
         }
 

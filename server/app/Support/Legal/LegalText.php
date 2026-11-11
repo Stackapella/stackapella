@@ -92,7 +92,9 @@ final class LegalText
         preg_match('/^description:\s*(.+)$/m', $parts[1], $description);
         preg_match('/^song:\s*([a-z0-9-]+)\s*$/m', $parts[1], $song);
 
-        $documentTitle = trim($title[1] ?? $name);
+        // One pair of quotes around a title or description is YAML's, not the words'.
+        $unquote = static fn (string $value): string => preg_match('/^(["\'])(.*)\1$/s', trim($value), $q) === 1 ? $q[2] : trim($value);
+        $documentTitle = $unquote($title[1] ?? $name);
         $blocks = [];
         $paragraph = [];
         $list = null;
@@ -137,7 +139,7 @@ final class LegalText
             'reviewed' => ($reviewed[1] ?? 'false') === 'true',
             'language' => $language,
             'title' => $documentTitle,
-            'description' => isset($description[1]) ? trim($description[1]) : null,
+            'description' => isset($description[1]) ? $unquote($description[1]) : null,
             'song' => $song[1] ?? null,
             'blocks' => $blocks,
         ];

@@ -73,9 +73,52 @@ final class LanguageStatus extends Command
         }
 
         $this->table(['Group', 'Sentences', 'Translated', 'To translate', 'Refused', 'Stale'], $rows);
+        $this->guides($language);
         $this->info("{$language}: {$missingTotal} to translate ({$refusedTotal} of them refused), {$staleTotal} stale.");
 
         return self::SUCCESS;
+    }
+
+    /**
+     * The guides, translated as whole files (resources/guides/<lang>/<slug>.md): each names the English it was made
+     * from as `translatedFrom`, the first 12 hex of the English file's sha256, so a guide whose English changed since
+     * is stale (file dates can't tell: a checkout resets them).
+     */
+    private function guides(string $language): void
+    {
+        $root = (string) config('content.guides');
+        $missing = [];
+        $stale = [];
+        $all = glob($root.'/en/*.md') ?: [];
+
+        foreach ($all as $english) {
+            $slug = basename($english, '.md');
+            $translated = $root.'/'.$language.'/'.$slug.'.md';
+
+            if (! is_file($translated)) {
+                $missing[] = $slug;
+
+                continue;
+            }
+
+            preg_match('/^translatedFrom:\s*([a-f0-9]{12})\s*$/m', (string) file_get_contents($translated), $from);
+
+            if (($from[1] ?? null) !== substr((string) hash_file('sha256', $english), 0, 12)) {
+                $stale[] = $slug;
+            }
+        }
+
+        $this->info('Guides: '.(count($all) - count($missing)).' of '.count($all).' translated, '.count($stale).' stale (their English changed since).');
+
+        if ($this->option('list')) {
+            foreach ($missing as $slug) {
+                $this->line("guides: {$slug} (not translated)");
+            }
+        }
+
+        foreach ($stale as $slug) {
+            $this->warn("guides: {$slug} is stale: translate it again from the English, and set translatedFrom to its new hash");
+        }
     }
 
     /**

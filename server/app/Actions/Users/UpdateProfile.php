@@ -80,6 +80,19 @@ final class UpdateProfile
             $fields['appearance'] = $appearance;
         }
 
+        // Features tried (breadth): a union with the account's, each feature keeping the earliest day it was first used,
+        // so two devices add up and nothing is ever taken away.
+        if (is_array($changes['tried'] ?? null)) {
+            $tried = (array) ($user->tried ?? []);
+            foreach ($changes['tried'] as $feature => $day) {
+                if (in_array($feature, (array) config('counts.features'), true) && is_string($day)) {
+                    $tried[$feature] = isset($tried[$feature]) ? min($tried[$feature], $day) : $day;
+                }
+            }
+            ksort($tried);
+            $fields['tried'] = $tried;
+        }
+
         // Push to the apps: the kinds sent change, the rest stay; quiet hours are replaced (or null).
         if (is_array($changes['pushTypes'] ?? null) || array_key_exists('quietHours', $changes)) {
             $push = AppPushes::settings($user);

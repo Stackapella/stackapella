@@ -44,6 +44,8 @@ final class AccountResource extends JsonResource
             // Null until they choose a theme (the device's own choice stands until then).
             // (A choice made before accents came reads as the palette's own.)
             'appearance' => $user->appearance !== null ? [...User::APPEARANCE_DEFAULT, ...$user->appearance] : null,
+            // Breadth: the features they've tried and the day each was first used ({} when none).
+            'tried' => (object) ($user->tried ?? []),
             // The gallery (N1): their public profile, and what it lets them do (never their level).
             'publicProfile' => $user->public_profile_at !== null,
             // Hide profile: others see "Anonymous", with no handle, picture or profile page.

@@ -249,6 +249,7 @@ body.render #bar { display: none; }
 .tl-index li { padding: 12px 22px; border-radius: 999px; font: 700 26px/1 var(--font); color: var(--muted); background: var(--raised); border: 1.5px solid var(--edge); }
 .tl-index li.done { opacity: .55; }
 .tl-index li.now { color: var(--ink); background: var(--accent); border-color: transparent; }
+.tl-index li.more { background: none; border-style: dashed; opacity: .7; }
 .tl-text { position: absolute; left: 120px; top: 370px; width: 740px; }
 .tl-name { margin: 0; font: 800 132px/1 var(--font); letter-spacing: -.035em; color: var(--cream); text-wrap: balance; }
 .tl-what { margin: 26px 0 0 4px; font: 500 46px/1.2 var(--font); color: var(--muted); }
@@ -310,3 +311,48 @@ body.render #bar { display: none; }
 [data-format="square"] #endc p { font-size: 40px; }
 [data-format="square"] #endc .site { font-size: 32px; }
 .thumb { position: absolute; inset: 0; }
+
+/* ================= v5, "The Stack" (docs/showreel-v5-plan.md) ================= */
+/* the lanes: a joined voice's colour, and the sweep that ignites it */
+.lane-track { position: absolute; border-radius: 28px; background: color-mix(in oklab, var(--raised) 55%, transparent); box-shadow: inset 0 6px 18px rgb(0 0 0 / .45), inset 0 0 0 2px var(--edge); }
+:root:not([data-theme="dark"]) .lane-track { background: color-mix(in oklab, var(--raised) 80%, transparent); box-shadow: inset 0 5px 14px rgb(60 40 20 / .18), inset 0 0 0 2px var(--edge); }
+.lane-name { transform-origin: 0 0; z-index: 1; }
+.lane-tint { position: absolute; background: var(--lc); opacity: 0; border-radius: 28px; mix-blend-mode: var(--tint-blend, screen); }
+:root:not([data-theme="dark"]) .lane-tint { mix-blend-mode: multiply; }
+.lane-sweep { position: absolute; background: linear-gradient(90deg, transparent, color-mix(in oklab, var(--lc) 75%, white) 46%, var(--lc) 54%, transparent); opacity: 0; filter: blur(18px); }
+/* lifted planes: a crop of the real app, no browser, a soft shadow and a full-edge glow (never a left stripe) */
+.planes { position: absolute; inset: 0; perspective: 2200px; perspective-origin: 50% 55%; overflow: hidden; }
+.pl { position: absolute; left: 0; top: 0; overflow: hidden; transform-origin: 50% 50%; border-radius: 22px; background: var(--panel);
+    box-shadow: 0 34px 100px rgb(0 0 0 / .55), 0 0 0 1.5px color-mix(in oklab, var(--glow-c, var(--edge)) 65%, var(--edge)), 0 0 80px color-mix(in oklab, var(--glow-c, transparent) 34%, transparent); }
+:root:not([data-theme="dark"]) .pl { box-shadow: 0 28px 80px rgb(60 40 20 / .24), 0 0 0 1.5px color-mix(in oklab, var(--glow-c, var(--edge)) 55%, var(--edge)), 0 0 60px color-mix(in oklab, var(--glow-c, transparent) 22%, transparent); }
+.pl img { position: absolute; left: 0; top: 0; display: block; max-width: none; transform-origin: 0 0; }
+.pl .tint { position: absolute; inset: 0; opacity: 0; }
+.pl .scan { position: absolute; inset: 0; opacity: 0; background: repeating-linear-gradient(0deg, rgb(0 0 0 / .32) 0 2px, transparent 2px 5px); }
+.pl.phone { border-radius: 56px; outline: 12px solid var(--raised); }
+.pl-label { position: absolute; left: 0; top: 0; padding: 10px 22px; border-radius: 999px; background: var(--raised); border: 1.5px solid var(--edge); font: 700 26px/1 var(--font); color: var(--cream); white-space: nowrap; }
+.planes .cursor { z-index: 2; }
+/* the line: one at a time, words rising */
+.line5 { position: absolute; left: 120px; top: 108px; max-width: 1500px; font: 800 76px/1.04 var(--font); letter-spacing: -.03em; color: var(--cream); text-wrap: balance; }
+.line5 .w { display: inline-block; overflow: hidden; vertical-align: top; padding: .1em .04em .2em 0; margin: -.1em .2em -.2em 0; }
+.line5 .w > span { display: inline-block; }
+[data-format="vertical"] .line5 { left: 64px; top: 140px; max-width: 836px; font-size: 64px; }
+/* the social cut's mark and address */
+.markv { position: absolute; inset: 0; }
+.markv .gem { position: absolute; }
+.url5 { position: absolute; left: 50%; top: 430px; font: 800 52px/1 var(--font); color: var(--cream); letter-spacing: -.01em; }
+
+/* the polish pass: a lit lane's glass edge in its colour, the level meter beside its name, glass on the lifted screens */
+.lane-rim { position: absolute; border-radius: 28px; opacity: 0; border: 2px solid color-mix(in oklab, var(--lc) 80%, white);
+    box-shadow: 0 0 34px color-mix(in oklab, var(--lc) 45%, transparent), inset 0 0 46px color-mix(in oklab, var(--lc) 22%, transparent); }
+:root:not([data-theme="dark"]) .lane-rim { border-color: color-mix(in oklab, var(--lc) 70%, transparent); box-shadow: 0 6px 26px color-mix(in oklab, var(--lc) 22%, transparent), inset 0 0 40px color-mix(in oklab, var(--lc) 12%, transparent); }
+.lane-meter { display: flex; align-items: center; gap: 5px; height: 38px; }
+.gem.ghost .w { opacity: 0; }
+.lane .gem.ghost { border-width: 2.5px; }
+.lane-meter i { width: 7px; height: 8px; border-radius: 4px; background: currentColor; }
+.pl::after { content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+    background: linear-gradient(180deg, rgb(255 255 255 / .05), transparent 30%); box-shadow: inset 0 1.5px 0 rgb(255 255 255 / .16), inset 0 0 0 1px rgb(255 255 255 / .05); }
+.pl .sheen { position: absolute; inset: -10% 0; background: linear-gradient(104deg, transparent 38%, rgb(255 255 255 / .13) 47%, rgb(255 255 255 / .2) 50%, rgb(255 255 255 / .13) 53%, transparent 62%); }
+:root:not([data-theme="dark"]) .pl .sheen { background: linear-gradient(104deg, transparent 38%, rgb(255 255 255 / .4) 50%, transparent 62%); }
+.pl { box-shadow: 0 34px 100px rgb(0 0 0 / .55), 0 0 0 1.5px color-mix(in oklab, var(--glow-c, var(--edge)) 65%, var(--edge)), 0 0 calc(64px + var(--gk, .5) * 56px) color-mix(in oklab, var(--glow-c, transparent) calc(24% + var(--gk, .5) * 22%), transparent); }
+:root:not([data-theme="dark"]) .pl { box-shadow: 0 28px 80px rgb(60 40 20 / .24), 0 0 0 1.5px color-mix(in oklab, var(--glow-c, var(--edge)) 55%, var(--edge)), 0 0 calc(50px + var(--gk, .5) * 40px) color-mix(in oklab, var(--glow-c, transparent) calc(16% + var(--gk, .5) * 14%), transparent); }
+#split .qh .you { transform-origin: 50% 50%; }

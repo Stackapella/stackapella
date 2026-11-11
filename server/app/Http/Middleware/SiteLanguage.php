@@ -26,6 +26,8 @@ final class SiteLanguage
     {
         if ($language !== 'en') {
             abort_unless($this->languages->isOffered($language) || app()->environment(['local', 'testing']), 404);
+            // A page written as a whole file in each language (a guide) answers here only once it's written in this one.
+            abort_unless(SiteLanguages::serves($language, SiteLanguages::englishPath($request->getPathInfo(), $language)), 404);
         }
 
         // The page's language for this request only: a long-running worker serves the next one as it was.
@@ -41,14 +43,24 @@ final class SiteLanguage
 
     private function render(Request $request, Closure $next, string $language): Response
     {
-        $response = $next($request);
-        $english = SiteLanguages::englishPath($request->getPathInfo(), $language);
+        return self::finish($next($request), $language, SiteLanguages::englishPath($request->getPathInfo(), $language));
+    }
 
+    /**
+     * A page's response in a language: its links and redirects kept in it, and its alternates named. Public for the
+     * landing at /, which the app's shell serves rather than a route.
+     */
+    public static function finish(Response $response, string $language, string $english): Response
+    {
         if ($language !== 'en' && $response->isRedirection() && is_string($location = $response->headers->get('Location'))) {
             $response->headers->set('Location', self::localize($location, $language));
         }
 
-        if ($response->getStatusCode() !== 200 || ! str_contains((string) $response->headers->get('Content-Type'), 'text/html') || ! is_string($html = $response->getContent())) {
+        // A page: HTML by its type, or by its start when it has no type yet (a controller's own response, before
+        // Laravel prepares it).
+        $type = (string) $response->headers->get('Content-Type');
+        $html = $response->getContent();
+        if ($response->getStatusCode() !== 200 || ! is_string($html) || ! ($type !== '' ? str_contains($type, 'text/html') : preg_match('/^\s*<!DOCTYPE html/i', $html) === 1)) {
             return $response;
         }
 
@@ -65,7 +77,14 @@ final class SiteLanguage
             $html = (string) preg_replace('#</head>#i', implode('', $links).'</head>', $html, 1);
         }
 
-        $response->setContent($html);
+        // Only when something changed, and the view it came from kept (tests and anything after read it).
+        if ($html !== $response->getContent()) {
+            $original = $response instanceof \Illuminate\Http\Response ? $response->original : null;
+            $response->setContent($html);
+            if ($response instanceof \Illuminate\Http\Response) {
+                $response->original = $original;
+            }
+        }
 
         return $response;
     }

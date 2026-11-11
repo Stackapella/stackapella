@@ -6,6 +6,7 @@ namespace App\Actions\Growth;
 
 use App\Actions\Counts\Funnel;
 use App\Console\Commands\RecordPageVersions;
+use App\Models\DropoffReport;
 use App\Models\OutreachMessage;
 use App\Models\OutreachTarget;
 use App\Support\Admin\Insights;
@@ -29,13 +30,13 @@ use Illuminate\Support\Facades\DB;
 final class GrowthExport
 {
     /** Bump when a field's shape or meaning changes, and say so in docs/growth-data.md. */
-    public const SCHEMA_VERSION = 10;
+    public const SCHEMA_VERSION = 14;
 
     /** The range-scoped sections' windows, in days (null: since the first count). */
     public const RANGES = ['7' => 7, '30' => 30, '90' => 90, 'all' => null];
 
     /** Every top-level key, in order (GrowthDataDictionaryTest checks each is documented). */
-    public const SECTIONS = ['meta', 'daily', 'funnel', 'signups', 'cohorts', 'courses', 'sources', 'siteSections', 'partPlays', 'plus', 'outreach', 'releases'];
+    public const SECTIONS = ['meta', 'daily', 'funnel', 'signups', 'cohorts', 'courses', 'sources', 'siteSections', 'partPlays', 'plus', 'outreach', 'releases', 'dropoffs'];
 
     /** The sections `meta.range` applies to; the rest say their own windows. */
     public const RANGED = ['funnel', 'courses', 'sources', 'siteSections', 'partPlays'];
@@ -97,6 +98,8 @@ final class GrowthExport
             'plus' => $this->plus(),
             'outreach' => $this->outreach($today),
             'releases' => Releases::recent(),
+            // The latest weekly drop-off report (App\Actions\Growth\Dropoffs), or null before the first.
+            'dropoffs' => DropoffReport::query()->orderByDesc('week_end')->first()?->data,
         ];
     }
 

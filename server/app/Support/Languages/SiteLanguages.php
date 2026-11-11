@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Support\Languages;
 
+use App\Http\Controllers\Public\InfoPagesController;
 use App\Http\Controllers\Public\LanguageNotFoundController;
 use App\Http\Middleware\SiteLanguage;
 use App\Support\Http\Hosts;
@@ -18,7 +19,7 @@ use Illuminate\Routing\Router;
  */
 final class SiteLanguages
 {
-    /** @var array<string, list<string>>|null each language's page regexes, from the English routes */
+    /** @var array<string, array<string, string>>|null each language's page regexes by route name, from the English routes */
     private static ?array $patterns = null;
 
     /**
@@ -30,6 +31,11 @@ final class SiteLanguages
         $router->getRoutes()->refreshNameLookups();
 
         foreach (array_keys(Languages::SWITCHES) as $language) {
+            // The home page: the landing, which / serves through the app's shell rather than a route.
+            if (in_array('home', self::names($language), true)) {
+                $router->get($language, [InfoPagesController::class, 'landing'])->middleware(['nexus', 'throttle:public-pages', SiteLanguage::class.':'.$language])->name($language.'.home');
+            }
+
             foreach (self::names($language) as $name) {
                 $route = $router->getRoutes()->getByName($name);
 
@@ -68,13 +74,27 @@ final class SiteLanguages
      */
     public static function serves(string $language, string $path): bool
     {
-        foreach (self::patterns()[$language] ?? [] as $regex) {
-            if (preg_match($regex, '/'.ltrim($path, '/')) === 1) {
-                return true;
+        foreach (self::patterns()[$language] ?? [] as $name => $regex) {
+            if (preg_match($regex, '/'.ltrim($path, '/'), $match) === 1) {
+                return self::written($language, (string) $name, $match);
             }
         }
 
         return false;
+    }
+
+    /**
+     * Whether a page whose words are a whole file in each language (a guide: resources/guides/<lang>/<slug>.md) has
+     * its file in this one; any other listed page is in it by its maps.
+     *
+     * @param  array<int|string, string>  $match
+     */
+    private static function written(string $language, string $name, array $match): bool
+    {
+        return match ($name) {
+            'guides.page' => is_string($match['slug'] ?? null) && is_file(config('content.guides').'/'.$language.'/'.$match['slug'].'.md'),
+            default => true,
+        };
     }
 
     /**
@@ -111,7 +131,7 @@ final class SiteLanguages
     }
 
     /**
-     * @return array<string, list<string>>
+     * @return array<string, array<string, string>>
      */
     private static function patterns(): array
     {
@@ -127,10 +147,16 @@ final class SiteLanguages
             $patterns[$language] = [];
 
             foreach (self::names($language) as $name) {
+                if ($name === 'home') {
+                    $patterns[$language][$name] = '{^/$}';
+
+                    continue;
+                }
+
                 $route = $routes->getByName($name);
 
                 if ($route instanceof Route) {
-                    $patterns[$language][] = $route->getCompiled()?->getRegex() ?? $route->toSymfonyRoute()->compile()->getRegex();
+                    $patterns[$language][$name] = $route->getCompiled()?->getRegex() ?? $route->toSymfonyRoute()->compile()->getRegex();
                 }
             }
         }

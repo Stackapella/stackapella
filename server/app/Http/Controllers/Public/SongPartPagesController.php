@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Public;
 
 use App\Http\Controllers\Controller;
+use App\Models\Template;
 use App\Support\Pages\PageGone;
 use App\Support\Pages\SongCollections;
 use App\Support\Pages\SongParts;
+use App\Support\Sharing\SongCards;
 use Illuminate\Http\Response;
 
 /**
@@ -17,7 +19,7 @@ use Illuminate\Http\Response;
  */
 final class SongPartPagesController extends Controller
 {
-    public function show(string $slug, string $part, SongParts $parts, SongCollections $collections): Response
+    public function show(string $slug, string $part, SongParts $parts, SongCollections $collections, SongCards $cards): Response
     {
         $page = SongParts::open() ? $parts->page($slug, $part) : null;
 
@@ -28,6 +30,9 @@ final class SongPartPagesController extends Controller
         // The page that collects the song, in the trail and below the other parts (SongCollections::home).
         $page['home'] = $collections->home($slug);
 
-        return response()->view(SongParts::VIEW, ['songPart' => $page], 200, SongPagesController::headers());
+        // Its link card is its song's (the song page's own, SongCards), not the landing's (the coordinator's audit, 2026-11-11).
+        $template = Template::query()->with('currentVersion')->where('slug', $slug)->first();
+
+        return response()->view(SongParts::VIEW, ['songPart' => $page, 'image' => $template !== null ? $cards->url($template, 'join') : SongCards::fallback()], 200, SongPagesController::headers());
     }
 }

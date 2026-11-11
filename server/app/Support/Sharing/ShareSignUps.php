@@ -8,9 +8,9 @@ use App\Models\Harmony;
 use App\Models\User;
 
 /**
- * Sign-ups from a share, recorded with the harmony (docs/go-to-market-plan.md, M6): the shared
- * page's links carry ?ref=h-<id>, which the sign-up keeps as `ref`. Our own records, no
- * analytics.
+ * Sign-ups from a share, counted on the harmony (docs/go-to-market-plan.md, M6): the shared page's
+ * links carry ?ref=h-<id>, which the sign-up keeps as `ref`. Only the song's anonymous count goes up;
+ * the account keeps nothing of it (Hillel, 2026-11-11, Q8: "Keep the song's count only").
  */
 final class ShareSignUps
 {
@@ -26,7 +26,6 @@ final class ShareSignUps
             return;
         }
 
-        $user->forceFill(['signup_harmony_id' => $harmony->id])->save();
         Harmony::query()->whereKey($harmony->id)->increment('sign_ups');
     }
 }

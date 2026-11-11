@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Languages;
 
+use App\Actions\Templates\SyncOfficialTemplates;
 use App\Mail\Account\ResetPassword;
 use App\Mail\Account\VerifyEmailAddress;
 use App\Models\User;
@@ -11,6 +12,8 @@ use App\Support\Flags;
 use App\Support\Http\Hosts;
 use App\Support\Languages\Languages;
 use App\Support\Languages\TranslationMaps;
+use App\Support\Site\HelpGuide;
+use App\Support\Site\SitemapPaths;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Mail;
@@ -71,6 +74,10 @@ final class LanguagesTest extends TestCase
         $levels = ['tuner' => ['low' => 'Low'], 'warmups' => ['card' => ['low' => 'Low']]];
         $this->assertSame(['tuner' => ['low' => 'Baja'], 'warmups' => ['card' => ['low' => 'Grave']]], TranslationMaps::translate($levels, ['Low' => 'Baja', '@warmups.card.low:Low' => 'Grave']));
         $this->assertSame(['tuner' => ['low' => 'Baja'], 'warmups' => ['card' => ['low' => 'Baja']]], TranslationMaps::translate($levels, ['Low' => 'Baja', '@warmups.card.low:Lower' => 'Grave']));
+        // A name the code reads (a drawing, a part's key, an anchor) stays English, even where the word is text elsewhere.
+        $named = ['card' => ['title' => 'groups', 'pic' => 'groups', 'song' => 'About the song'], 'demo' => ['part' => 'alto', 'label' => 'alto'], 'links' => [['guide' => 'mic', 'at' => 'before-you-record']]];
+        $this->assertSame(['card' => ['title' => 'grupos', 'pic' => 'groups', 'song' => 'Sobre la canción'], 'demo' => ['part' => 'alto', 'label' => 'contralto'], 'links' => [['guide' => 'mic', 'at' => 'before-you-record']]], TranslationMaps::translate($named, ['groups' => 'grupos', 'alto' => 'contralto', 'mic' => 'micro', 'before-you-record' => 'antes', 'About the song' => 'Sobre la canción']));
+
         // A list asked for whole keeps every item, the untranslated ones in English.
         $this->assertSame(['card' => ['tie' => 'Tie it', 'low' => 'Grave']], TranslationMaps::translate(['card' => ['tie' => 'Tie it', 'low' => 'Low']], ['@card.low:Low' => 'Grave']));
         $this->assertSame(['warmups.card.low', 'Low'], TranslationMaps::entry('@warmups.card.low:Low'));
@@ -87,7 +94,7 @@ final class LanguagesTest extends TestCase
         $this->assertStringContainsString('Encuentra tu voz', $html);
         // The next page is in Spanish too; a page Spanish doesn't serve keeps its English address.
         $this->assertStringContainsString('/es/courses/harmony/steady-notes"', $html);
-        $this->assertStringNotContainsString('/es/pricing', $html);
+        $this->assertStringNotContainsString('/es/legal/', $html);
         $this->assertStringNotContainsString('href="/courses/harmony/steady-notes"', $html);
 
         // The English page is as it was, and the language stays English for it.
@@ -99,7 +106,7 @@ final class LanguagesTest extends TestCase
         $this->assertStringNotContainsString('/es/', (string) $this->get('/sitemap.xml')->getContent());
 
         // A page Spanish doesn't serve has no Spanish address.
-        $this->get('/es/pricing')->assertNotFound();
+        $this->get('/es/legal/terms')->assertNotFound();
     }
 
     public function test_spanish_pages_open_with_their_switch_named_in_hreflang_and_the_sitemap(): void
@@ -117,12 +124,12 @@ final class LanguagesTest extends TestCase
             $this->assertStringContainsString('hreflang="es" href="'.Hosts::publicUrl().'/es/courses/harmony/find-your-voice"', $html, $path);
             $this->assertStringContainsString('hreflang="x-default" href="'.Hosts::publicUrl().'/courses/harmony/find-your-voice"', $html, $path);
         }
-        // A page only in English names no other language.
-        $this->assertStringNotContainsString('hreflang', (string) $this->get('/pricing')->getContent());
+        // A page only in English (legal, by Hillel's decision) names no other language.
+        $this->assertStringNotContainsString('hreflang', (string) $this->get('/legal/terms')->getContent());
 
         $sitemap = (string) $this->get('/sitemap.xml')->getContent();
         $this->assertStringContainsString(Hosts::publicUrl().'/es/courses/harmony/find-your-voice</loc>', $sitemap);
-        $this->assertStringNotContainsString('/es/pricing', $sitemap);
+        $this->assertStringNotContainsString('/es/legal/', $sitemap);
     }
 
     public function test_the_status_names_what_is_left_to_translate_and_what_is_stale(): void
@@ -223,5 +230,89 @@ final class LanguagesTest extends TestCase
         }
 
         $this->assertGreaterThanOrEqual(0, $checked);
+    }
+
+    public function test_a_help_sections_anchor_is_its_english_headings_in_every_language_and_every_link_finds_its_section(): void
+    {
+        foreach (HelpGuide::slugs() as $slug) {
+            if (! HelpGuide::written($slug)) {
+                continue;
+            }
+            app()->setLocale('en');
+            $english = array_column(HelpGuide::sections($slug), 'id');
+            app()->setLocale('es');
+            $this->assertSame($english, array_column(HelpGuide::sections($slug), 'id'), "help/{$slug}: the anchors are the English headings' in Spanish too");
+        }
+        app()->setLocale('en');
+
+        // Every link to a section names one that's there (a missing one would only lead to its page).
+        $links = [];
+        $walk = static function (mixed $node) use (&$walk, &$links): void {
+            if (is_array($node)) {
+                if (is_string($node['guide'] ?? null) && is_string($node['at'] ?? null)) {
+                    $links[] = [$node['guide'], $node['at']];
+                }
+                array_map($walk, $node);
+            }
+        };
+        $walk((array) __('pages.help'));
+        $this->assertNotSame([], $links);
+        foreach ($links as [$guide, $at]) {
+            $this->assertContains($at, array_column(HelpGuide::sections($guide), 'id'), "help: {$guide}#{$at}");
+        }
+    }
+
+    public function test_a_guide_answers_in_spanish_only_once_its_spanish_file_is_written(): void
+    {
+        $written = collect(glob(resource_path('guides/es/*.md')) ?: [])->map(static fn (string $f): string => basename($f, '.md'))->first();
+        $this->assertIsString($written);
+        $page = (string) $this->get('/es/guides/'.$written)->assertOk()->getContent();
+        $this->assertStringContainsString('<html lang="es"', $page);
+        $this->assertStringNotContainsString('translatedFrom', $page);
+
+        // A guide with no Spanish file has no Spanish address.
+        File::ensureDirectoryExists(storage_path('framework/testing'));
+        File::move(resource_path('guides/es/'.$written.'.md'), storage_path('framework/testing/'.$written.'.md'));
+        try {
+            $this->get('/es/guides/'.$written)->assertNotFound();
+        } finally {
+            File::move(storage_path('framework/testing/'.$written.'.md'), resource_path('guides/es/'.$written.'.md'));
+        }
+    }
+
+    public function test_every_kind_of_spanish_page_answers_in_spanish(): void
+    {
+        app(SyncOfficialTemplates::class)->handle();
+        app(Flags::class)->set('lang_es', 'on', null, 'Spanish checked');
+        app(Flags::class)->set('compare_pages', 'on', null, 'In search');
+
+        // Two of each kind the sitemap lists in Spanish: each answers, in Spanish, with no error.
+        $paths = collect(app(SitemapPaths::class)->all())->filter(static fn (string $p): bool => str_starts_with($p, '/es/'))
+            ->groupBy(static fn (string $p): string => explode('/', $p)[2] ?? '')->flatMap(static fn ($group) => $group->take(2))->values()->all();
+        $this->assertGreaterThan(15, count($paths));
+
+        $wrong = [];
+        foreach ($paths as $path) {
+            $response = $this->get($path);
+            if ($response->getStatusCode() !== 200 || ! str_contains((string) $response->getContent(), '<html lang="es"')) {
+                $wrong[] = $path.' '.$response->getStatusCode();
+            }
+        }
+        $this->assertSame([], $wrong);
+    }
+
+    public function test_the_home_page_is_in_spanish_at_es_and_the_landing_names_it(): void
+    {
+        app(Flags::class)->set('lang_es', 'on', null, 'Spanish checked');
+
+        $home = (string) $this->get('/es')->assertOk()->getContent();
+        $this->assertStringContainsString('<html lang="es"', $home);
+        $this->assertStringContainsString('hreflang="es" href="'.Hosts::publicUrl().'/es"', $home);
+        // Its link to the Spanish pricing page stays Spanish.
+        $this->assertStringContainsString('/es/pricing', $home);
+
+        $this->assertStringContainsString(Hosts::publicUrl().'/es</loc>', (string) $this->get('/sitemap.xml')->getContent());
+        $landing = (string) $this->get(Hosts::publicUrl().'/?landing=1')->getContent();
+        $this->assertStringContainsString('hreflang="es" href="'.Hosts::publicUrl().'/es"', $landing);
     }
 }

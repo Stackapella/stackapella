@@ -107,7 +107,8 @@ final class Reference
         return match ($family) {
             'intervals' => ['semis' => self::INTERVALS[$slug][0]],
             'chords' => ['quality' => self::CHORDS[$slug]],
-            default => ['type' => self::VOICE_TYPES[$slug][0], 'rangeTest' => in_array('vocal-range-test', SitePages::listed(), true) ? '/tools/vocal-range-test' : '/tools'],
+            // Bare: its page shows the range, the part and the way to the range test itself (Hillel's voice type design, 2026-11-11).
+            default => ['type' => self::VOICE_TYPES[$slug][0], 'rangeTest' => in_array('vocal-range-test', SitePages::listed(), true) ? '/tools/vocal-range-test' : '/tools', 'bare' => true],
         };
     }
 

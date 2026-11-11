@@ -18,7 +18,7 @@ See README.md.
     python3 render.py --voices                        the real voices: Amazing Grace's default guide of each part, read
                                                       from the public catalogue (the app's own call) into voices/
 
-Options: --theme=dark|light, --from=S --to=S, --workers=N, --scale=F, --fps=N, --samples=N,
+Options: --cut=hero|short|social (v5: the landing's 76.5 s film, the 40.5 s cut, the 19.75 s vertical), --theme=dark|light, --season=carols|hymns|songbook (the songs slot; carols by default), --from=S --to=S, --workers=N, --scale=F, --fps=N, --samples=N,
 --keep (leave the frames), --port-base=N (Chrome's first debugging port, default 9500),
 --http=N (the page's port, default 8790), --dir=DIR (the outputs, default
 server/public/videos/showreel), --poster-at=S.
@@ -48,7 +48,6 @@ OUT = ROOT / 'server/public/videos/showreel'
 NAME = 'stackapella-showreel'
 CHROME = os.environ.get('CHROME', '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome')
 FFMPEG = os.environ.get('FFMPEG', shutil.which('ffmpeg') or 'ffmpeg')
-DUR = float(re.search(r'\bDUR = (\d+(?:\.\d+)?)', (HERE / 'showreel.html').read_text()).group(1))
 # the poster: the end card, its words up ("Harmony, made by you."), between its glints
 POSTER_AT = 71.0
 
@@ -56,6 +55,13 @@ A = {}
 for arg in sys.argv[1:]:
     k, _, v = arg.lstrip('-').partition('=')
     A[k] = v if v else True
+# v5's three cuts (js/score.js CUT): the hero for the landing, the short (40.5 s, landscape) and the social
+# (19.75 s, vertical); the page checks its length against the score's
+CUTS = {'hero': 76.5, 'short': 40.5, 'social': 19.75}
+cut = str(A.get('cut', 'hero'))
+if cut not in CUTS:
+    raise SystemExit(f'no cut {cut}: {", ".join(CUTS)}')
+DUR = CUTS[cut]
 
 
 # ---------------------------------------------------------------- the page's server
@@ -204,13 +210,17 @@ class Browser:
 
 # ---------------------------------------------------------------- the renders
 theme = 'light' if A.get('theme') == 'light' else 'dark'
+# the season's slot (js/film.js SEASONS): carols in season, hymns or songbook after it
+season = str(A.get('season', 'carols'))
+if season not in ('carols', 'hymns', 'songbook'):
+    raise SystemExit(f'no season {season}: carols, hymns, songbook')
 http_port = int(A.get('http', 8790))
 port_base = int(A.get('port-base', 9500))
 out_dir = Path(A['dir']).resolve() if 'dir' in A else OUT
 suffix = '-light' if theme == 'light' else ''
 # The frame of each format: lib.js's FORMATS, which the page checks against this (window.FRAME).
 FORMATS = {'wide': (1920, 1080), 'vertical': (1080, 1920), 'square': (1080, 1080), 'thumb': (480, 480)}
-fmt = A.get('launch') or A.get('format') or 'wide'
+fmt = A.get('launch') or A.get('format') or ('vertical' if cut == 'social' else 'wide')
 if fmt not in FORMATS:
     raise SystemExit(f'no format {fmt}: {", ".join(FORMATS)}')
 FW, FH = FORMATS[fmt]
@@ -218,7 +228,7 @@ LAUNCH = 'stackapella-launch'
 
 
 def page_url(scale):
-    return f'http://127.0.0.1:{http_port}{PAGE}?render=1&scale={scale}&theme={theme}&format={fmt}'
+    return f'http://127.0.0.1:{http_port}{PAGE}?render=1&scale={scale}&theme={theme}&format={fmt}&season={season}&cut={cut}'
 
 
 def launch(i, scale):
@@ -377,6 +387,8 @@ def video():
                 'square': {'scale': 1, 'fps': 30, 'samples': 8, 'fast': 16, 'bitrate': '5000k'},
                 'thumb': {'scale': 1, 'fps': 20, 'samples': 4, 'fast': 8, 'bitrate': '600k'}}
     preset = (LAUNCHES[fmt] if A.get('launch') else
+              {'scale': 1, 'fps': 30, 'samples': 8, 'fast': 16, 'bitrate': '6000k'} if A.get('final') and cut == 'social' else
+              {'scale': 1, 'fps': 60, 'samples': 8, 'fast': 16, 'bitrate': '5000k'} if A.get('final') and cut == 'short' else
               {'scale': 1, 'fps': 60, 'samples': 8, 'fast': 16, 'bitrate': '2600k'} if A.get('final') else
               {'scale': 0.5, 'fps': 30, 'samples': 8, 'fast': 16, 'bitrate': '900k'} if A.get('mobile') else
               {'scale': 0.5, 'fps': 30, 'samples': 1, 'fast': 1, 'bitrate': '1500k'})
@@ -400,6 +412,10 @@ def video():
                 gif(tmp, f0, fps, base.with_suffix('.gif'))
             else:
                 encode(tmp, f0, fps, wav, mp4=base.with_suffix('.mp4'), bitrate=A.get('bitrate', preset['bitrate']), t0=t0, t1=t1)
+        elif A.get('final') and cut != 'hero':
+            # the short and the social are for posting: an MP4 each, with room for the platforms' own re-encode
+            out_dir.mkdir(parents=True, exist_ok=True)
+            encode(tmp, f0, fps, wav, mp4=out_dir / f'stackapella-{cut}{suffix}.mp4', bitrate=A.get('bitrate', preset['bitrate']), t0=t0, t1=t1)
         elif A.get('final'):
             out_dir.mkdir(parents=True, exist_ok=True)
             encode(tmp, f0, fps, wav, mp4=out_dir / f'{NAME}{suffix}.mp4', webm=out_dir / f'{NAME}{suffix}.webm', bitrate=A.get('bitrate', preset['bitrate']), t0=t0, t1=t1)

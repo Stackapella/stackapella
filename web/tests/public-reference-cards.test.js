@@ -1,6 +1,6 @@
 // The reference pages' cards (js/public/reference-cards.js): notes spelled by their interval, an interval's sizes
-// equal and pure from just.js, and the staff writing a spelled note's flat.
-import { intervalSizes, pureOf, spellAbove, spelledName, spellRoot } from '/js/public/reference-cards.js';
+// equal and pure from just.js, the staff writing a spelled note's flat, and a voice type's bare card.
+import { intervalSizes, mountVoiceRangeCard, pureOf, spellAbove, spelledName, spellRoot } from '/js/public/reference-cards.js';
 import { grandStaff } from '/js/public/staff.js';
 import { assert, close, test } from './harness.js';
 
@@ -27,4 +27,16 @@ test('reference cards: the staff writes a spelled note\'s own flat, and a double
     assert(signs.includes('♭') && signs.includes('\u{1D12B}') && !signs.includes('♯'), `the signs: ${signs}`);
     const ys = [...svg.querySelectorAll('ellipse')].map((e) => e.getAttribute('cy'));
     assert(ys[0] === ys[1], 'B flat and B double flat on the same line');
+});
+
+test('reference cards: a bare voice range card is the keyboard and its three plays, no staff, facts or link', () => {
+    const words = { lowest: 'Lowest', highest: 'Highest', scale: 'The notes between', range: ':low to :high', rangeLabel: 'Usual range', partLabel: 'Choir part', find: 'Find your own range' };
+    const full = document.createElement('div');
+    const bare = document.createElement('div');
+    mountVoiceRangeCard(full, { type: 'alto', words });
+    const card = mountVoiceRangeCard(bare, { type: 'alto', words, bare: true });
+    assert(full.querySelector('[data-ui=ref-staff]') && full.querySelector('[data-ui=ref-facts]') && full.querySelector('[data-ui=ref-find]'), 'the full card');
+    assert(!bare.querySelector('[data-ui=ref-staff]') && !bare.querySelector('[data-ui=ref-facts]') && !bare.querySelector('[data-ui=ref-find]'), 'the bare card has none of them');
+    assert(bare.querySelectorAll('[data-plays] button').length === 3 && bare.querySelector('[data-marked]'), 'its plays and its marked keys');
+    assert(card.range.low === 53 && card.range.high === 74, 'the alto\'s F3 to D5');
 });

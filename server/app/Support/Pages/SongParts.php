@@ -109,32 +109,38 @@ final class SongParts
         return $dates;
     }
 
+    /** The song file's levels, easiest first (its `difficulty`); a song without one comes after them. */
+    public const LEVELS = ['beginner', 'intermediate', 'advanced'];
+
     /**
      * Song parts that sit inside a range (a voice type's usual range, MIDI), for its reference page: one per song, a
-     * part named in `$prefer` first (the type's own choir parts), else the one whose middle is nearest the range's, in
-     * the catalogue's order, at most `$limit`.
+     * part named in `$prefer` first (the type's own choir parts), else the one whose middle is nearest the range's. The
+     * songs whose part is one of `$prefer` come first, then the easiest (the file's level, LEVELS), then the catalogue's
+     * order, at most `$limit`. Each with its part's ends (MIDI) for the page's bar of it inside the range.
      *
      * @param  list<string>  $prefer
-     * @return list<array{title: string, name: string, url: string, lowName: string, highName: string}>
+     * @return list<array{title: string, name: string, url: string, low: int, high: int, lowName: string, highName: string}>
      */
     public function within(int $low, int $high, array $prefer = [], int $limit = 6): array
     {
         $middle = ($low + $high) / 2;
         $found = [];
 
-        foreach ($this->songs() as $template) {
+        foreach ($this->songs()->values() as $i => $template) {
             $fits = array_values(array_filter(self::parts($template), static fn (array $p): bool => $p['low'] > 0 && $p['low'] >= $low && $p['high'] <= $high));
             if ($fits === []) {
                 continue;
             }
             usort($fits, static fn (array $a, array $b): int => [! in_array($a['key'], $prefer, true), abs(($a['low'] + $a['high']) / 2 - $middle)] <=> [! in_array($b['key'], $prefer, true), abs(($b['low'] + $b['high']) / 2 - $middle)]);
-            $found[] = ['title' => (string) $template->title, 'name' => $fits[0]['name'], 'url' => '/songs/'.$template->slug.'/'.$fits[0]['key'], 'lowName' => $fits[0]['lowName'], 'highName' => $fits[0]['highName']];
-            if (count($found) >= $limit) {
-                break;
-            }
+            $level = array_search(((array) $template->currentVersion?->data)['difficulty'] ?? null, self::LEVELS, true);
+            $found[] = [
+                'order' => [! in_array($fits[0]['key'], $prefer, true), $level === false ? count(self::LEVELS) : $level, $i],
+                'row' => ['title' => (string) $template->title, 'name' => $fits[0]['name'], 'url' => '/songs/'.$template->slug.'/'.$fits[0]['key'], 'low' => $fits[0]['low'], 'high' => $fits[0]['high'], 'lowName' => $fits[0]['lowName'], 'highName' => $fits[0]['highName']],
+            ];
         }
+        usort($found, static fn (array $a, array $b): int => $a['order'] <=> $b['order']);
 
-        return $found;
+        return array_slice(array_column($found, 'row'), 0, $limit);
     }
 
     /** The choir's four parts, highest first: a song whose parts are these is SATB, and its pages say so. */

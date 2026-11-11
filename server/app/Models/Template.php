@@ -27,6 +27,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $free_until
  * @property string|null $preview_key
  * @property int|null $current_version_id
+ * @property Carbon|null $opened_at when the library song opened (its first reviewed version)
  * @property int|null $owner_id
  * @property string|null $visibility
  * @property bool $library_opt_in
@@ -94,6 +95,7 @@ final class Template extends Model
             'voicings' => 'array',
             'deleted_at' => 'datetime',
             'withdrawn_at' => 'datetime',
+            'opened_at' => 'datetime',
         ];
     }
 

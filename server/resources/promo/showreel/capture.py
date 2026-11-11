@@ -29,13 +29,19 @@ for arg in sys.argv[1:]:
     k, _, v = arg.lstrip('-').partition('=')
     A[k] = v if v else True
 APP = str(A.get('app', 'http://127.0.0.1:8462')).rstrip('/')
+# Two public pages are filmed as they're served: the site's /open-source (behind a flag the local
+# server's shared database keeps off) and GitHub's page for the Stackapella organisation, signed out.
+# Both are public and show no one's data; nothing else is read from production.
+LIVE = 'https://stackapella.com'
 SITE = str(A.get('site', 'http://127.0.0.1:8461')).rstrip('/')
 OUT = HERE / 'captures'
 
 # Phone shots stand tall in the frame (about 860 film px), so twice the phone's own pixels. Desktop
 # shots are a 1440-wide window pushed in on the panel that matters (Hillel: "there should be desktop
 # shots"), so twice its pixels too.
-SIZES = {'phone': (390, 844, True, 2), 'desktop': (1440, 900, False, 2)}
+SIZES = {'phone': (390, 844, True, 2), 'desktop': (1440, 900, False, 2),
+         # a desktop the film pushes in on hard (the carols' hero, framed clear of its countdown), at three times its pixels
+         'desktop-close': (1440, 900, False, 3)}
 
 # The mock's people, and the one real name its examples carry, become the film's: the singer whose
 # phone or group it is is Maya; the others Sam and Leo.
@@ -111,6 +117,11 @@ await sing(60, 1.6); await sing(null, 0.4); await sing(64, 1.6); await sing(null
 btn().click(); await wait(0.6);
 document.querySelector('[data-falsetto-answer="no"]')?.click(); await wait(0.3); btn().click(); await wait(1.2);"""
 
+def sing_steps(part):
+    """Sing recording `part` over loopback (SING_STEPS is the alto's): the same steps for any part."""
+    return [{**st, 'js': st['js'].replace("'alto'", repr(part))} if 'js' in st else st for st in SING_STEPS]
+
+
 # Amazing Grace's Sing, recording the alto over loopback (the way game_hud.py records): the mic opened
 # and remembered, the latency zero, the song made from the template, the alto picked, R pressed, and
 # filmed once the take is under way.
@@ -167,6 +178,25 @@ STUDIO_STEPS = [
         await new Promise((r) => setTimeout(r, 1200));"""},
 ]
 
+def studio_live(stored, live):
+    """v5: the studio with `stored` parts sung (as STUDIO_STEPS sings them) and `live` recording now, from
+    the start, its wave drawing in as the loopback hears its own notes (the way SING_STEPS records)."""
+    store = STUDIO_STEPS[3]['js'].split("await new Promise((r) => setTimeout(r, 600));")[0].replace("['soprano', 'alto', 'tenor']", json.dumps(stored))
+    return STUDIO_STEPS[:3] + [
+        {'wait': 'window.__s.session.parts.length > 3', 'js': store + """
+        const a = await import('/js/audio.js'); a.unlock(); await a.openMic(); a.engine.setLoopback(true);
+        s.session.project.countInBars = 0;
+        s.session.rerecordId = s.session.parts.find((p) => p.templatePartKey === %s).id;
+        await new Promise((r) => setTimeout(r, 800));
+        await s.startRecording({ fromStart: true });""" % json.dumps(live)},
+        {'wait': 'window.__s.session.recording && window.__s.session.countIn === null && window.__s.session.position > 0.05',
+         'js': """const s = window.__s, { engine } = await import('/js/audio.js'), { renderPart } = await import('/js/synth.js');
+        const bpm = s.session.project?.tempo ?? 80, b0 = s.session.position * bpm / 60, part = s.session.parts.find((p) => p.templatePartKey === %s);
+        const notes = s.templatePart(part).guide.notes.filter((n) => n.beat > b0 + 0.05).map((n) => ({ ...n, beat: n.beat - b0 }));
+        engine.preview(renderPart(notes, { bpm, sampleRate: engine.sampleRate, transpose: s.session.project.transpose || 0 }), engine.sampleRate);""" % json.dumps(live)},
+    ]
+
+
 # The day's challenge (daily_challenge.py): the course begun three days ago with today's five minutes
 # sung, and the example's challenge dated today.
 DAILY_SEED = """const db = await import('/js/db.js'); const { emptyProgress, dayOf } = await import('/js/course.js');
@@ -185,9 +215,38 @@ DAILY_TODAY = """const api = await import('/js/api.js'); const { mockFetch } = a
     await new Promise((r) => setTimeout(r, 500));
     document.querySelector('[data-today]')?.scrollIntoView({ block: 'center' }); await new Promise((r) => setTimeout(r, 300));"""
 
+# A songbook, scrolled so its heading and I sing sit at the very top and each card's Alto row is in the film's frame
+BOOK = "const b = document.querySelector('[data-songbook]'); scrollTo(0, b.getBoundingClientRect().top + scrollY + 66); await new Promise((r) => setTimeout(r, 600));"
+
 # ---------------------------------------------------------------- the shots
 # id: size, skin, url (APP or SITE), wait (JS, true once it's ready), then (JS run after, awaited),
 # and for a recording `clip`: how its frames are made.
+# v5, "The Stack" (docs/showreel-v5-plan.md): the parts sung in Sing and the studio, each where the film shows it
+# (`from`: the song's position the recording starts at), the tools working, and the components lifted from pages.
+COURSE_CARD = "(() => { const r = document.querySelector('section.s-sec').getBoundingClientRect(); return [r.left, r.top, r.right, r.bottom]; })()"
+# GitHub's repo card, above its row of language, stars and forks (no numbers)
+GH_CARD = "(() => { const c = document.querySelector('.pinned-item-list-item'), r = c.getBoundingClientRect(), last = [...c.querySelectorAll('p')].at(-1).getBoundingClientRect(); return [r.left, r.top, r.right, last.top - 2]; })()"
+V5 = {
+    'sing-soprano': {'size': 'desktop', 'skin': 'serious', 'url': 'APP/voice', 'steps': sing_steps('soprano'), 'swap': HEARING, 'clip': {'kind': 'cast', 'seconds': 15.0, 'fps': 30, 'from': 3.9}},
+    'flip-arcade': {'size': 'desktop', 'skin': 'game', 'url': 'APP/voice', 'steps': sing_steps('soprano'), 'swap': HEARING, 'clip': {'kind': 'cast', 'seconds': 5.0, 'fps': 30, 'from': 12.9}},
+    'sing-tenor-phone': {'size': 'phone', 'skin': 'serious', 'url': 'APP/voice', 'steps': sing_steps('tenor'), 'swap': HEARING, 'clip': {'kind': 'cast', 'seconds': 5.0, 'fps': 30, 'from': 21.9}},
+    'studio-alto': {'size': 'desktop', 'skin': 'serious', 'url': 'APP/voice', 'steps': studio_live(['soprano'], 'alto'), 'clip': {'kind': 'cast', 'seconds': 5.0, 'fps': 30, 'from': 12.9}},
+    'studio-alto-phone': {'size': 'phone', 'skin': 'serious', 'url': 'APP/voice', 'steps': studio_live(['soprano'], 'alto'), 'clip': {'kind': 'cast', 'seconds': 5.0, 'fps': 30, 'from': 22.4}},
+    'studio-bass': {'size': 'desktop', 'skin': 'serious', 'url': 'APP/voice', 'steps': studio_live(['soprano', 'alto', 'tenor'], 'bass'), 'clip': {'kind': 'cast', 'seconds': 5.0, 'fps': 30, 'from': 30.9}},
+    'tuner-live': {'size': 'desktop', 'skin': 'serious', 'url': 'SITE/tools/tuner', 'wait': "document.querySelector('[data-start]')", 'mic': True,
+                   'then': "window.__hz = 440 * 2 ** (-30 / 1200); document.querySelector('[data-start]').click(); await new Promise((r) => setTimeout(r, 1500));",
+                   'clip': {'kind': 'clipcast', 'el': '[data-ui="tool"]', 'seconds': 4.0, 'fps': 30,
+                            'start': "for (let i = 0; i <= 40; i++) { window.__hz = 440 * 2 ** (-30 * (1 - Math.min(1, i / 24)) / 1200); await new Promise((r) => setTimeout(r, 90)); }"}},
+    'drone-live': {'size': 'desktop', 'skin': 'serious', 'url': 'SITE/tools/drone', 'wait': "document.querySelector('[data-ui=tool-primary]')",
+                   'then': "document.querySelector('[data-ui=tool-primary]').click(); await new Promise((r) => setTimeout(r, 900));",
+                   'clip': {'kind': 'clipcast', 'el': '[data-ui="tool"]', 'seconds': 4.0, 'fps': 30}},
+    'metro-live': {'size': 'desktop', 'skin': 'serious', 'url': 'SITE/tools/metronome', 'wait': "document.querySelector('[data-bpm]')",
+                   'then': "const i = document.querySelector('[data-bpm]'); i.value = '80'; i.dispatchEvent(new Event('input', { bubbles: true })); i.dispatchEvent(new Event('change', { bubbles: true })); await new Promise((r) => setTimeout(r, 400));",
+                   'clip': {'kind': 'clipcast', 'el': '[data-ui="tool"]', 'seconds': 4.0, 'fps': 30, 'start': "document.querySelector('[data-ui=tool-primary]').click();"}},
+    'range-live': {'size': 'desktop', 'skin': 'serious', 'url': 'SITE/tools/vocal-range-test', 'wait': "document.querySelector('[data-ui=tool-primary]')", 'mic': True,
+                   'clip': {'kind': 'clipcast', 'el': '[data-ui="tool"]', 'seconds': 9.0, 'fps': 30, 'start': RANGE_SUNG}},
+}
+
 SHOTS = {
     # Learn: Sing on a desktop, recording the alto, in step with the song from its first line
     'sing': {'size': 'desktop', 'skin': 'serious', 'url': 'APP/voice', 'steps': SING_STEPS, 'swap': HEARING, 'clip': {'kind': 'cast', 'seconds': 5.6, 'fps': 30, 'from': 4.0}},
@@ -200,9 +259,22 @@ SHOTS = {
     'arcade': {'size': 'desktop', 'skin': 'game', 'url': 'APP/voice', 'steps': SING_STEPS, 'swap': HEARING, 'clip': {'kind': 'cast', 'seconds': 4.4, 'fps': 30, 'from': 19.9}},
     # the arcade's Home: the stage card
     'home-game': {'size': 'desktop', 'skin': 'game', 'url': 'APP/?api=mock&scenario=&as=member', 'wait': "document.querySelector('#app header')"},
+    # THE SEASON'S SLOT (film.js SEASONS): each season is its page's top, a recording, then its songbook
+    # with I sing set to Alto. The carols: the lights, the snow falling, the Santa hat on the logo.
+    'carols': {'size': 'desktop-close', 'skin': 'serious', 'url': 'SITE/songs/christmas-carols', 'wait': "document.querySelector('[data-snow]')",
+               'clip': {'kind': 'anim', 'seconds': 2.8, 'fps': 30}},
+    'carols-book': {'size': 'desktop', 'skin': 'serious', 'url': 'SITE/songs/christmas-carols', 'wait': "document.querySelector('[data-songbook]')", 'then': BOOK,
+                    'clip': {'kind': 'anim', 'seconds': 2.4, 'fps': 30, 'click': '[data-sing="alto"]', 'clickAt': 0.7}},
+    # January's: the hymns (/songs/hymns), or the whole songbook (/songs)
+    'hymns': {'size': 'desktop', 'skin': 'serious', 'url': 'SITE/songs/hymns', 'wait': "document.querySelector('h1')"},
+    'hymns-book': {'size': 'desktop', 'skin': 'serious', 'url': 'SITE/songs/hymns', 'wait': "document.querySelector('[data-songbook]')", 'then': BOOK,
+                   'clip': {'kind': 'anim', 'seconds': 2.4, 'fps': 30, 'click': '[data-sing="alto"]', 'clickAt': 0.7}},
+    'songbook': {'size': 'desktop', 'skin': 'serious', 'url': 'SITE/songs', 'wait': "document.querySelector('h1')"},
+    'songbook-book': {'size': 'desktop', 'skin': 'serious', 'url': 'SITE/songs', 'wait': "document.querySelector('h1')",
+                      'clip': {'kind': 'scroll', 'seconds': 2.4, 'fps': 30, 'to': "document.querySelector('#songs-free-h').getBoundingClientRect().top + scrollY - 120"}},
     # every course: the site's page, scrolled through its groups
     'courses': {'size': 'desktop', 'skin': 'serious', 'url': 'SITE/courses', 'wait': "document.querySelector('h1')",
-                'clip': {'kind': 'scroll', 'seconds': 4.5, 'fps': 30, 'to': "document.querySelector('#group-harmony').getBoundingClientRect().top + scrollY - 140"}},
+                'clip': {'kind': 'scroll', 'seconds': 3.0, 'fps': 30, 'to': "document.querySelector('#group-harmony').getBoundingClientRect().top + scrollY - 140"}},
     # the first lesson as a guest, no account, on a phone (the phone is the point: anyone can start)
     'lesson': {'size': 'phone', 'skin': 'serious', 'url': 'APP/learn/1-comfortable?api=mock&scenario=', 'wait': "document.querySelector('main h1')"},
     # the tools: each one's own panel, which the film shows on its own card (crop: where it is)
@@ -218,10 +290,22 @@ SHOTS = {
     'choir-director': {'size': 'desktop', 'skin': 'serious', 'url': 'APP/groups/Gp4rQs?api=mock&scenario=&as=plus', 'wait': "document.querySelector('h1')"},
     'choir-member': {'size': 'desktop', 'skin': 'serious', 'url': 'APP/groups/Gp4rQs?api=mock&as=member', 'wait': "document.querySelector('[data-my-part]')",
                      'pre': "sessionStorage.setItem('stackapella.mockChoirMember', '1')"},
-    # Every day: today's song on Home (daily_challenge.py's seed: day 3 of the course, today's 5 minutes sung)
-    'daily': {'size': 'desktop', 'skin': 'serious', 'url': 'APP/?api=mock&scenario=&as=member', 'wait': "document.querySelector('#app header')",
+    # Open source: the site's page, the pointer on View on GitHub; then GitHub's page for the organisation
+    'open-source': {'size': 'desktop', 'skin': 'serious', 'url': 'LIVE/open-source', 'wait': "document.querySelector('h1')", 'point': 'a.btn-primary[href="https://github.com/stackapella/stackapella"]'},
+    'github': {'size': 'desktop-close', 'skin': 'serious', 'url': 'https://github.com/Stackapella', 'wait': "document.querySelector('[itemprop=name], h1')", 'scheme': True},
+    # Every day: the daily challenge on Home, in the arcade (daily_challenge.py's seed: day 3 of the course, today's 5 minutes sung)
+    'daily': {'size': 'desktop', 'skin': 'game', 'url': 'APP/?api=mock&scenario=&as=member', 'wait': "document.querySelector('#app header')",
               'steps': [{'js': DAILY_SEED}, {'go': '/?api=mock&scenario=&as=member', 'wait': "document.querySelector('[data-lead]') && !document.querySelector('[data-lead] .skeleton')", 'js': DAILY_TODAY}]},
 }
+SHOTS.update(V5)
+# the components v5 lifts out of the pages it already films
+SHOTS['courses-card'] = {'size': 'desktop', 'skin': 'serious', 'url': 'SITE/courses', 'wait': "document.querySelector('h1')", 'crops': {'card': COURSE_CARD, 'head': 'section.s-featurehead'}}
+SHOTS['github']['crops'] = {'card': GH_CARD}
+SHOTS['choir-director']['crops'] = {'song': 'li.card'}
+SHOTS['choir-member']['crops'] = {'song': 'section li.card, section .card'}
+SHOTS['daily']['crops'] = {'stage': '[data-lead]'}
+SHOTS['carols-book']['crops'] = {'card': '[data-songbook] .s-xcard', 'filter': '.s-xfilter',
+                                 'row': "(() => { const c = [...document.querySelectorAll('[data-songbook] .s-xcard')].slice(0, 3).map((e) => e.getBoundingClientRect()), f = document.querySelector('.s-xfilter').getBoundingClientRect(); return [c[0].left, f.top - 8, c[2].right, c[0].bottom]; })()"}
 
 
 def shoot(cut, sid, spec):
@@ -233,7 +317,10 @@ def shoot(cut, sid, spec):
         c.send('Emulation.setScrollbarsHidden', {'hidden': True})
         for src in [appearance(spec['skin'], mode), f"const SWAP = {json.dumps(spec.get('swap', []))};" + RENAME, spec.get('pre', '')] + ([FAKE_MIC] if spec.get('mic') else []):
             c.send('Page.addScriptToEvaluateOnNewDocument', {'source': src})
-        url = spec['url'].replace('APP', APP).replace('SITE', SITE)
+        if spec.get('scheme'):
+            # a page that follows the device's light or dark (GitHub's), shown in the cut's
+            c.send('Emulation.setEmulatedMedia', {'features': [{'name': 'prefers-color-scheme', 'value': mode}]})
+        url = spec['url'].replace('APP', APP).replace('SITE', SITE).replace('LIVE', LIVE) if not spec['url'].startswith('https://github.com') else spec['url']
         c.goto(url, spec.get('wait') or "document.readyState === 'complete'", timeout=30)
         c.evaluate('document.fonts.ready.then(() => new Promise((r) => setTimeout(r, 900)))')
         if spec.get('then'):
@@ -258,6 +345,17 @@ def shoot(cut, sid, spec):
             r = c.evaluate(f"(() => {{ const r = document.querySelector({json.dumps(spec['crop'])}).getBoundingClientRect(); return [r.left, r.top, r.right, r.bottom]; }})()")
             x0, y0, x1, y1 = max(0, r[0]) / w, max(0, r[1]) / h, min(w, r[2]) / w, min(h, r[3]) / h
             entry['crop'] = {'x': round(x0, 4), 'y': round(y0, 4), 'w': round(x1 - x0, 4), 'h': round(y1 - y0, 4)}
+        if spec.get('point'):
+            # where the film's pointer clicks on a still (nothing is clicked here)
+            r = c.evaluate(f"(() => {{ const r = document.querySelector({json.dumps(spec['point'])}).getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2]; }})()")
+            entry['click'] = {'x': round(r[0] / w, 4), 'y': round(r[1] / h, 4), 'at': 0}
+        if spec.get('crops'):
+            # v5's lifted components: each named element's rect (a selector, or JS giving [l, t, r, b]), as shares of the screen
+            entry['crops'] = {}
+            for name, how in spec['crops'].items():
+                js = how if how.lstrip().startswith('(') else f"(() => {{ const r = document.querySelector({json.dumps(how)}).getBoundingClientRect(); return [r.left, r.top, r.right, r.bottom]; }})()"
+                l, t_, r_, b = c.evaluate(js)
+                entry['crops'][name] = {'x': round(max(0, l) / w, 4), 'y': round(max(0, t_) / h, 4), 'w': round((min(w, r_) - max(0, l)) / w, 4), 'h': round((min(h, b) - max(0, t_)) / h, 4)}
         if not clip:
             jpeg(c, out / f'{sid}.jpg')
             return entry
@@ -274,6 +372,39 @@ def shoot(cut, sid, spec):
                 c.evaluate(f'window.scrollTo(0, {end * eased:.1f}); new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)))')
                 jpeg(c, d / f'{k:04d}.jpg')
         extra = {}
+        if clip['kind'] == 'anim':
+            # stepped, not cast: every CSS animation and transition held and set to each frame's time, then a
+            # full-resolution screenshot (a screencast is only CSS pixels), so the frames are sharp and even
+            if 'click' in clip:
+                r = c.evaluate(f"(() => {{ const r = document.querySelector({json.dumps(clip['click'])}).getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2]; }})()")
+                extra['click'] = {'x': round(r[0] / w, 4), 'y': round(r[1] / h, 4), 'at': clip['clickAt']}
+            clicked = False
+            for k in range(n):
+                ms = k / clip['fps'] * 1000
+                if 'click' in clip and not clicked and ms >= clip['clickAt'] * 1000:
+                    c.evaluate(f"document.querySelector({json.dumps(clip['click'])}).click()")
+                    clicked = True
+                c.evaluate(f"(() => {{ for (const a of document.getAnimations()) {{ a.__k0 ??= {ms}; a.__t0 ??= (a.currentTime ?? 0); a.pause(); a.currentTime = a.__t0 + {ms} - a.__k0; }} }})();"
+                           " new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)))")
+                jpeg(c, d / f'{k:04d}.jpg')
+        if clip['kind'] == 'clipcast':
+            # a live panel (a tool working), sharp: screenshots clipped to the element at full resolution,
+            # as fast as they come (about 20 a second), each with its time, resampled to fps
+            r = c.evaluate(f"(() => {{ const r = document.querySelector({json.dumps(clip['el'])}).getBoundingClientRect(); return [r.left, r.top, r.width, r.height]; }})()")
+            box = {'x': r[0], 'y': r[1], 'width': r[2], 'height': r[3], 'scale': 1}
+            entry.update({'w': round(r[2] * dpr), 'h': round(r[3] * dpr), 'lifted': True})
+            if clip.get('start'):
+                c.evaluate(f'(async () => {{ {clip["start"]} }})()', await_promise=False)
+            got, t0 = [], time.time()
+            while time.time() - t0 < clip['seconds'] + 0.2:
+                at = time.time() - t0
+                got.append((at, c.send('Page.captureScreenshot', {'format': 'jpeg', 'quality': 90, 'clip': box})['data']))
+            k = 0
+            for i in range(n):
+                while k + 1 < len(got) and got[k + 1][0] <= i / clip['fps']:
+                    k += 1
+                (d / f'{i:04d}.jpg').write_bytes(base64.b64decode(got[k][1]))
+            print(f'  {len(got)} clips in {clip["seconds"]}s')
         if clip['kind'] == 'cast':
             if 'from' in clip:
                 # in step with the song: start once the take or the playback reaches `from` seconds
@@ -282,7 +413,7 @@ def shoot(cut, sid, spec):
                 r = c.evaluate(f"(() => {{ const r = document.querySelector({json.dumps(clip['click'])}).getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2]; }})()")
                 extra['click'] = {'x': r[0] / w, 'y': r[1] / h, 'at': clip['clickAt']}
             at = c.evaluate('window.__s?.session?.position ?? null') if 'from' in clip else None
-            cast(c, d, clip['seconds'], clip['fps'], w * dpr, h * dpr, clip.get('click') and (clip['clickAt'], clip['click']))
+            cast(c, d, clip['seconds'], clip['fps'], w * dpr, h * dpr, clip.get('click') and (clip['clickAt'], clip['click']), clip.get('sparse', False))
             if at is not None:
                 extra['songAt'] = round(at, 3)
         return {**entry, 'frames': n, 'fps': clip['fps'], **extra}
@@ -302,7 +433,7 @@ def until(c, condition, timeout):
     raise TimeoutError(f'Timed out waiting for: {condition}')
 
 
-def cast(c, d, seconds, fps, w, h, click=None):
+def cast(c, d, seconds, fps, w, h, click=None, sparse=False):
     """A real-time recording: Chrome's screencast for `seconds`, its frames (each with its own time)
     resampled to `fps` by taking the newest frame at each tick."""
     got = []
@@ -326,7 +457,8 @@ def cast(c, d, seconds, fps, w, h, click=None):
         c.evaluate('new Promise((r) => setTimeout(r, 15))')
     c.send('Page.stopScreencast')
     c.on_event = plain
-    if len(got) < seconds * 8:
+    # a page that's still between changes sends few frames (`sparse`); a moving one that sends few is broken
+    if len(got) < (2 if sparse else seconds * 8):
         raise RuntimeError(f'only {len(got)} frames in {seconds}s')
     t0 = got[0][0]
     k = 0

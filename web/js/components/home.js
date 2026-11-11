@@ -119,7 +119,7 @@ export const LessonPath = {
                          mode: bubbles (docs/bubble-circles-plan.md), done and the one now filled (the one now with its halo),
                          the rest clear pearls, the challenge with a cream rim. -->
                     <button type="button" class="grid place-items-center transition" :class="[lesson.id === current ? 'size-12' : 'size-9', game() ? gameLook(lesson) : bubbleLook(lesson)]" :style="lesson.id === current && game() ? { boxShadow: '0 0 0 6px color-mix(in srgb, var(--color-accent) 22%, transparent)' } : null"
-                        :aria-label="t('course.lessonLabel', { title: localized(lesson.title), stars: stars(lesson) })" :aria-current="lesson.id === current ? 'step' : null" :data-node="stars(lesson) ? 'done' : lesson.id === current ? 'now' : lesson.challenge ? 'challenge' : 'next'" @click="navigate('/learn/' + lesson.id)">
+                        :aria-label="game() ? t('course.lessonLabel', { title: localized(lesson.title), stars: stars(lesson) }) : stars(lesson) ? t('course.lessonDone', { title: localized(lesson.title) }) : localized(lesson.title)" :aria-current="lesson.id === current ? 'step' : null" :data-node="stars(lesson) ? 'done' : lesson.id === current ? 'now' : lesson.challenge ? 'challenge' : 'next'" @click="navigate('/learn/' + lesson.id)">
                         <Icon :name="stars(lesson) ? 'check' : lesson.id === current ? 'play' : lesson.challenge && game() ? 'starFilled' : 'note'" :size="lesson.id === current ? 20 : 15" :class="lesson.challenge && !stars(lesson) && game() ? '-rotate-45' : ''" />
                     </button>
                 </li>
@@ -165,7 +165,7 @@ const laneBars = (seed) => Array.from({ length: BARS }, (_, i) => 0.25 + 0.75 * 
 export const HomeLead = {
     components: { CourseWall, Icon, LessonPath, GoalRing, LevelBar, TodayLine },
     props: { compact: { type: Boolean, default: false } },
-    setup: () => ({ learning, localized, LANES, PART_COLORS, laneBars, BARS, effect, game }),
+    setup: () => ({ learning, localized, LANES, PART_COLORS, laneBars, BARS, effect, game, sk }),
     data: () => ({ starting: false, wide: window.matchMedia('(min-width: 1024px)').matches }),
     template: `
         <section class="relative overflow-hidden rounded-stage border border-edge bg-panel p-5 md:p-8" :style="{ backgroundImage: glow }" aria-labelledby="lead-title" data-lead>
@@ -211,7 +211,7 @@ export const HomeLead = {
                 </div>
                 <LessonPath class="mt-6" :unit="next.unit" :current="finished ? null : next.lesson.id" />
                 <p class="mt-8 text-sm text-muted">{{ finished ? t('home.lead.allDone') : t('home.lead.lessonOf', { place: place, total: next.unit.lessons.length, minutes: minutes }) }}</p>
-                <h1 id="lead-title" class="mt-1 text-4xl font-extrabold leading-tight tracking-tight text-cream md:text-5xl" translate="no">{{ finished ? t('home.lead.allDoneTitle') : localized(next.lesson.title) }}</h1>
+                <h1 id="lead-title" class="mt-1 text-4xl font-extrabold leading-tight tracking-tight text-cream md:text-5xl" translate="no">{{ finished ? sk('home.lead.allDoneTitleSerious', 'home.lead.allDoneTitle') : localized(next.lesson.title) }}</h1>
                 <div class="mt-5 flex max-w-md items-center gap-3" data-unit-progress>
                     <span class="h-1.5 flex-1 overflow-hidden rounded-full bg-raised" role="progressbar" :aria-valuenow="done" aria-valuemin="0" :aria-valuemax="next.unit.lessons.length" :aria-label="t('home.lead.unitProgress', { done, total: next.unit.lessons.length })"><span class="block h-full rounded-full bg-accent" :style="{ width: (100 * done) / next.unit.lessons.length + '%' }"></span></span>
                     <span v-if="!finished && left" class="shrink-0 text-sm text-muted">{{ t('home.lead.left', { count: left }) }}</span>
@@ -244,7 +244,7 @@ export const HomeLead = {
                     <GoalRing :color="color" />
                     <div class="min-w-0 flex-1">
                         <p class="truncate text-xs text-muted">{{ finished ? t('home.lead.allDone') : t('home.lead.lessonOf', { place: place, total: next.unit.lessons.length, minutes: minutes }) }}</p>
-                        <h1 id="lead-title" class="truncate text-lg font-bold text-cream" translate="no">{{ finished ? t('home.lead.allDoneTitle') : localized(next.lesson.title) }}</h1>
+                        <h1 id="lead-title" class="truncate text-lg font-bold text-cream" translate="no">{{ finished ? sk('home.lead.allDoneTitleSerious', 'home.lead.allDoneTitle') : localized(next.lesson.title) }}</h1>
                     </div>
                 </div>
                 <CourseWall v-if="walled" compact place="home" :level="2" :lesson-id="next.lesson.id" class="mt-4" />

@@ -31,7 +31,11 @@ def journey(f):
     # Admin Home: outreach's follow-ups due and replies to read, in What needs you now.
     f.go("/admin?api=mock&scenario=", "document.querySelector('main')")
     f.wait("document.querySelector('[data-admin-needs] [data-needs-outreach]')", what="outreach in What needs you now")
-    assert t(f, "admin.outreach.followUpsDue", {"count": 1}) in f.js("document.querySelector('[data-needs-outreach]').innerText")
+    # A row each, its count at the left, each to where it's done (Hillel's Home, 2026-11-11).
+    row = "document.querySelector('[data-needs-outreach-row=followUps]')"
+    assert f.js(f"{row}.querySelector('[data-count]').textContent.trim()") == "1"
+    assert t(f, "admin.needs.outreach.followUps", {"count": 1}) in f.js(f"{row}.innerText")
+    assert f.js(f"{row}.getAttribute('href')") == "/admin/outreach?status=follow_up_due"
 
     # The list: today's cap, a row, the filters.
     f.go("/admin/outreach?api=mock&scenario=", "document.querySelector('[data-outreach-summary]')")

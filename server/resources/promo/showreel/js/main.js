@@ -2,7 +2,7 @@
 // AudioContext's clock is the film's clock, so picture and sound can't drift apart.
 
 import { $, FORMAT, H, LIGHT, Q, RENDER, W, clamp } from './lib.js';
-import { DUR, load, vtt } from './score.js';
+import { DUR, FROM, load, sec, vtt } from './score.js';
 
 await load();
 if (Math.abs(window.DUR - DUR) > 1e-9) throw new Error(`showreel.html says DUR = ${window.DUR}, the score ${DUR}`);
@@ -12,7 +12,7 @@ const { film, settle, CUTS, FAST, EDIT, captions } = await import('./film.js');
 function seek(t) {
     t = clamp(t, 0, DUR - 1e-4);
     beginFrame();
-    film(t);
+    film(t + sec(FROM)); // the film runs on the song's clock (the social cut starts at phrase three)
     grain(t);
 }
 // a frame that shows the app waits for its screen to decode (render.py awaits settle() before each grab)

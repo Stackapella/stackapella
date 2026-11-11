@@ -1,5 +1,5 @@
 {{-- An account email (AccountMail): a few lines, one button, a small line under it, the link
-     written out for when the button doesn't work, and a note for anyone who didn't expect it. --}}
+     written out for when the button doesn't work, at most one next step, and a note for anyone who didn't expect it. --}}
 @extends('emails.layout')
 @php($p = $palette ?? \App\Support\Mail\EmailSkin::palette(\App\Support\Mail\EmailSkin::SERIOUS))
 
@@ -28,6 +28,17 @@
             </td>
         </tr>
     </table>
+    @if (! empty($next))
+        {{-- One more step, after the main one (the verify email's next lesson): a line and a quieter button. --}}
+        <p class="sa-text" style="margin:20px 0 10px;color:{{ $p['text'] }};">{{ $next['line'] }}</p>
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 6px;">
+            <tr>
+                <td style="border:2px solid {{ $p['button'] }};border-radius:999px;">
+                    <a href="{{ $next['url'] }}" style="display:inline-block;padding:10px 22px;font-size:14px;font-weight:700;line-height:1.2;color:{{ $p['link'] }};text-decoration:none;border-radius:999px;">{{ $next['button'] }}</a>
+                </td>
+            </tr>
+        </table>
+    @endif
     @if (! empty($note))
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:20px 0 0;">
             <tr><td class="sa-rule" style="border-top:1px solid {{ $p['line'] }};font-size:0;line-height:0;">&nbsp;</td></tr>

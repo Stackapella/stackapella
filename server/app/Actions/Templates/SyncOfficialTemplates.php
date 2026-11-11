@@ -158,7 +158,9 @@ final class SyncOfficialTemplates
     {
         $versions = TemplateVersion::query()->where('template_id', $template->id)->orderByDesc('version')->get(['id', 'reviewed']);
         $current = $versions->firstWhere('reviewed', true) ?? $versions->first();
-        $template->forceFill(['current_version_id' => $current?->id])->save();
+        // The day it opened: the first time any version of it is reviewed (Home's "New and in season").
+        $opened = $template->opened_at ?? ($versions->firstWhere('reviewed', true) !== null ? now() : null);
+        $template->forceFill(['current_version_id' => $current?->id, 'opened_at' => $opened])->save();
     }
 
     /**

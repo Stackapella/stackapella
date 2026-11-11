@@ -14,6 +14,11 @@
 {!! $soon !!}
 @endif
 
+@if (! empty($next))
+{!! $next['line'] !!}
+{!! $next['button'] !!}: {!! $next['url'] !!}
+
+@endif
 @if (! empty($note))
 {!! trim(($note['lead'] ?? '').' '.$note['text']) !!}
 
