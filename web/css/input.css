@@ -9139,6 +9139,97 @@ a.s-spart-chip:hover { background: var(--color-raised); }
 :root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) :is(.s-xcard, .s-xplace, .s-xfilter-seg, .s-xfilter-menu, .s-xcount, .s-xtonight, .s-xband, .s-xhero, .s-xfoot) { border-radius: var(--arc-radius); }
 :root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) :is(.s-xcard, .s-xcount, .s-xband) { border: var(--arc-edge-w) solid var(--arc-line); box-shadow: var(--arc-shadow); }
 :root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-xsnow i { width: round(nearest, calc(var(--s) * .7), 2px); height: round(nearest, calc(var(--s) * .7), 2px); border-radius: 0; background: #fff; }
+/* The songbook pages in Hillel's 90s arcade design (2026-11-10, "i love it": shots-review/review-2026-11-10/carols-90s-design,
+   docs/decisions.md): reskinned and relabelled in game mode only, the facts and the serious words untouched (the labels
+   are <x-site.skin> spans). In season the carols' hero, its countdown and the directors' band are a night screen with
+   fixed colours, as the season's green was, so they read the same in all eight themes; everything else takes the
+   theme's arcade neons (--arc-*, AA on each theme's ground; green is the theme's good ink, --arc-green has no light
+   variant) and the parts' colours.
+   - The hero: night sky, its pixel snow white (as above), the heading in caps with a hard red-and-black drop and
+     its last words in yellow.
+   - The countdown as a HUD: TIME LEFT, the days a big red pixel number, the totals as stat chips, TONIGHT'S STAGE in a
+     green box with a green play block.
+   - The steps as LEVEL 1, 2 and 3 cards, each in its own neon outline (red, green, yellow).
+   - STAGE SELECT: the "I sing" filter as 1P SELECT block buttons with colour squares (the one chosen filled with its
+     part's colour), each card a STAGE tile in its neon outline (red, green, yellow in turn) with a play block in that
+     colour and its parts as rows with square marks and arrows in their part's colour.
+   - The band as 2P CO-OP in a cyan outline with a cyan START CO-OP block. */
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-xmas .s-xhero { background: #18123d; border-bottom: var(--arc-frame) solid #3b3270; }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-xmas .s-xhero h1 { text-transform: uppercase; color: #f4f1ff; text-shadow: 4px 4px 0 #ff4d5e, 8px 8px 0 #000; }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-xhero h1 { text-transform: uppercase; } /* every songbook's hero: caps, its last words pixel and yellow too */
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-xhero h1 .s-xserif { font-family: inherit; font-style: normal; font-weight: inherit; color: var(--arc-yellow); }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-xmas .s-xhero h1 .s-xserif { color: #ffd84a; }
+/* The HUD. */
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-xcount { background: #000; color: #f4f1ff; border: var(--arc-frame) solid #f4f1ff; box-shadow: var(--arc-drop-lg) var(--arc-drop-lg) 0 #3b3270; }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-xcount::before, :root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-xcount::after { content: none; }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) :is(.s-xcount-k, .s-xcount-n, .s-xtonight small) { font-family: var(--a-hud); text-transform: uppercase; letter-spacing: 0; }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-xcount-k { font-size: 10px; color: #b1abc9; }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-xcount-n { font-size: 12px; font-weight: 400; }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-xcount-n .s-xserif { font-family: var(--a-hud); font-style: normal; font-size: 64px; line-height: 1; color: #ff4d5e; text-shadow: 4px 4px 0 #5a0f1a; }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-xcount-totals { display: grid; grid-template-columns: repeat(auto-fit, minmax(0, 1fr)); gap: 8px; border-top: 0; padding-top: 0; color: #b1abc9; text-align: center; }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-xcount-totals > span { display: grid; align-content: center; gap: 4px; padding: 8px 4px; border: var(--arc-edge-w) solid #3b3270; text-transform: uppercase; }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-xcount-totals b { font-family: var(--a-hud); font-size: 14px; font-weight: 400; color: #ffd84a; }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-xtonight { background: transparent; color: #f4f1ff; border: 3px solid #2fd27b; }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-xtonight small { font-size: 9px; color: #2fd27b; }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-xtonight .s-play { background: #2fd27b; color: #000; box-shadow: 3px 3px 0 #1a5c25; }
+/* The LEVEL cards. */
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-xsteps li { --lv: var(--arc-red); display: block; padding: 20px; border: var(--arc-frame) solid var(--lv); background: var(--arc-panel); }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-xsteps li.s-v2 { --lv: var(--color-good); }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-xsteps li.s-v3 { --lv: var(--arc-yellow); }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-xstep-n { display: block; width: auto; height: auto; margin-bottom: 12px; border-radius: 0; background: none; color: var(--lv); font-family: var(--a-hud); font-size: 10px; font-weight: 400; text-transform: uppercase; }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-xsteps li b { display: block; margin-bottom: 10px; font-family: var(--a-hud); font-size: 14px; font-weight: 400; text-transform: uppercase; }
+/* STAGE SELECT. */
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-xbook h2 { text-transform: uppercase; text-shadow: 4px 4px 0 var(--arc-line); }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-xfilter { flex-wrap: wrap; }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-xfilter-k { font-family: var(--a-hud); font-size: 10px; font-weight: 400; text-transform: uppercase; }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-xfilter-seg { gap: 12px; padding: 0 6px 6px 0; background: none; }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-xfilter-seg button { --c: var(--color-cream); --ct: var(--arc-bg); gap: 10px; padding-inline: 16px; border-radius: 0; border: var(--arc-frame) solid var(--arc-line); background: var(--arc-well); font-family: var(--a-hud); font-size: 10px; font-weight: 400; text-transform: uppercase; }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-xfilter-seg button.s-v1 { --c: var(--color-part-1); --ct: var(--color-part-text-1); }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-xfilter-seg button.s-v2 { --c: var(--color-part-2); --ct: var(--color-part-text-2); }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-xfilter-seg button.s-v3 { --c: var(--color-part-3); --ct: var(--color-part-text-3); }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-xfilter-seg button.s-v4 { --c: var(--color-part-4); --ct: var(--color-part-text-4); }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-xfilter-seg button i { width: 10px; height: 10px; border-radius: 0; }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-xfilter-seg button[aria-pressed="true"] { background: var(--c); color: var(--ct); border-color: var(--c); box-shadow: var(--arc-shadow); }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-xfilter-seg button[aria-pressed="true"] i { background: var(--ct); }
+/* The STAGE tiles. */
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-xcard { --neon: var(--arc-red); border: var(--arc-frame) solid var(--neon); background: var(--arc-well); box-shadow: 6px 6px 0 var(--arc-line); }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-xcard.s-xrib2 { --neon: var(--color-good); }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-xcard.s-xrib3 { --neon: var(--arc-yellow); }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-xcard::before { content: none; }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-xno { font-family: var(--a-hud); font-style: normal; font-size: 10px; white-space: nowrap; text-transform: uppercase; color: color-mix(in srgb, var(--neon) 85%, var(--color-cream)); } /* a touch of the words' colour: AA on every theme's well */
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-xcard .s-play { background: var(--neon); color: var(--arc-bg); box-shadow: 3px 3px 0 var(--arc-line); }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-xparts { padding-top: 12px; border-top: var(--arc-edge-w) dashed var(--arc-line); }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-xpart { grid-template-columns: 10px minmax(0, 1fr) auto 16px; background: transparent; }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-xpart:hover { background: var(--arc-panel); }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-xpart > i { width: 10px; height: 10px; border-radius: 0; }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-xpart > svg { color: var(--ci); }
+/* 2P CO-OP. */
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-xband { border: var(--arc-frame) solid var(--arc-cyan); box-shadow: var(--arc-shadow-lg); }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-xband-k { font-family: var(--a-hud); font-size: 10px; text-transform: uppercase; color: var(--arc-cyan); }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-xmas .s-xband { --btn-soft: #3be7ff; --btn-soft-hover: #6bedff; --btn-soft-active: #2bc4d9; background: #18123d; border-color: #3be7ff; }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-xmas .s-xband .s-xband-k { color: #3be7ff; }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-xmas .s-xband .btn-secondary { color: #000; }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-xmas + .s-xfoot { background: #18123d; border-top: var(--arc-frame) solid #3b3270; }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-xband p.s-xband-k { margin: 0 0 16px; }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-xband h2 .s-xserif { font-family: inherit; font-style: normal; font-weight: inherit; }
+/* A song part's page in its redesign (marketing's .s-spart-*, 2026-11-10) on the arcade screen, in the 90s design's
+   language (docs/design-rules.md): the SWITCH PART chips as 1P SELECT blocks (square, framed, the current one filled with
+   a hard shadow), the player's panel framed like the stage card, the facts as HUD stat boxes with pixel labels, the
+   three steps as framed level cards with pixel captions, the About's rule dashed. On a phone the panel's foot stacks
+   and its button takes the row, so "Learn this part in the app" keeps to one line in the arcade font. */
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-spart-chip { border-radius: var(--arc-radius); border: var(--arc-edge-w) solid var(--arc-line); background: var(--arc-well); }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) a.s-spart-chip:hover { background: var(--arc-panel); border-color: var(--color-cream); }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-spart-chip[aria-current] { background: var(--color-cream); border-color: var(--color-cream); box-shadow: var(--arc-shadow); }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-spart-panel { border-radius: var(--arc-radius); border: var(--arc-edge-w) solid var(--arc-line); background: var(--arc-panel); box-shadow: var(--arc-shadow); }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-spart-facts { gap: 8px; border-block: 0; }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-spart-facts > div, :root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-spart-facts > div + div { padding: 10px 14px; border: var(--arc-edge-w) solid var(--arc-line); background: var(--arc-well); }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) :is(.s-spart-facts dt, .s-spart-step-k) { font-family: var(--a-hud); font-size: 10px; font-weight: 400; text-transform: uppercase; }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-spart-steps li { padding: 18px; border: var(--arc-frame) solid var(--arc-line); background: var(--arc-panel); }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-spart-about-ruled { border-top: var(--arc-edge-w) dashed var(--arc-line); }
+@media (max-width: 639px) {
+    :root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-spart-foot { flex-direction: column; align-items: stretch; }
+    :root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-spart-foot :is(.btn, .btn-primary, .btn-secondary, .btn-ghost) { justify-content: center; font-size: 10px; }
+}
 :root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) :is(.s-step, .s-plan, .s-final) { border: var(--arc-edge-w) solid var(--arc-line); box-shadow: var(--arc-shadow); }
 :root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-title { font-size: clamp(26px, 4.4vw, 44px); }
 :root[data-skin='game'][data-gs] body.s-arcade .s-brand .s-word { font-family: var(--arc-pixel); font-weight: 400; font-size-adjust: 0.66; text-shadow: 0.08em 0.08em 0 color-mix(in srgb, var(--arc-pink) 70%, transparent); }

@@ -6,12 +6,12 @@
         <section id="songbook" class="s-wrap s-xbook" aria-labelledby="book-h" data-songbook>
             <div class="s-xbook-head">
                 <div>
-                    <h2 id="book-h">{{ $heading }}</h2>
+                    <h2 id="book-h"><x-site.skin :game="__('site.carols.game.stage_select')" :serious="$heading" /></h2>
                     <p class="s-xbook-sub" data-book-sub data-any="{{ $sub }}" data-part="{{ $subPart }}">{{ $sub }}</p>
                 </div>
                 {{-- Plain buttons (a menu on a phone), remembered only while the page is open. --}}
                 <div class="s-xfilter">
-                    <span class="s-xfilter-k" id="sing-k">{{ __('site.carols.i_sing') }}</span>
+                    <span class="s-xfilter-k" id="sing-k"><x-site.skin :game="__('site.carols.game.one_p')" :serious="__('site.carols.i_sing')" /></span>
                     <div class="s-xfilter-seg" role="group" aria-labelledby="sing-k">
                         <button type="button" data-sing="" aria-pressed="true">{{ __('site.carols.any_part') }}</button>
                         @foreach ($singParts as $key => $name)
@@ -31,7 +31,7 @@
                 @foreach ($songs as $carol)
                     <article id="carol-{{ $carol['slug'] }}" class="s-xcard s-xrib{{ $loop->index % 3 + 1 }}" aria-labelledby="carol-{{ $carol['slug'] }}-h" @if ($carol['line'] !== null) data-player @endif>
                         <div class="s-xcard-top">
-                            <span class="s-xno s-xserif">{{ __('site.carols.number', ['n' => sprintf('%02d', $loop->iteration)]) }}</span>
+                            <span class="s-xno s-xserif"><x-site.skin :game="__('site.carols.game.stage', ['n' => sprintf('%02d', $loop->iteration)])" :serious="__('site.carols.number', ['n' => sprintf('%02d', $loop->iteration)])" /></span>
                             @if ($places !== null && trans()->has($places.'.'.$carol['slug']))
                                 <span class="s-xplace">{{ __($places.'.'.$carol['slug']) }}</span>
                             @endif

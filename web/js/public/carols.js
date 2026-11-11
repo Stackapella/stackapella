@@ -43,17 +43,17 @@ if (countdown) {
     if (days < 0) {
         countdown.hidden = true;
     } else {
-        const label = countdown.querySelector('[data-count-label]');
+        const labels = countdown.querySelectorAll('[data-count-label]'); // the serious skin's and game mode's (TIME LEFT)
         const count = countdown.querySelector('[data-days]');
         const unit = countdown.querySelector('[data-days-unit]');
         const line = countdown.querySelector('[data-line-days]');
         if (days === 0) {
-            label.textContent = label.dataset.christmas;
+            for (const label of labels) label.textContent = label.dataset.christmas;
             count.textContent = '25';
             unit.textContent = unit.dataset.christmas;
             if (line) line.textContent = line.dataset.christmas;
         } else {
-            label.textContent = label.dataset.count;
+            for (const label of labels) label.textContent = label.dataset.count;
             count.textContent = String(days);
             unit.textContent = days === 1 ? unit.dataset.one : unit.dataset.many;
             if (line) line.textContent = days === 1 ? line.dataset.one : line.dataset.many.replace(':count', String(days));

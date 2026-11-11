@@ -52,7 +52,7 @@
                     @endif
                     <div class="s-actions s-actions-row">
                         <a href="#songbook" class="btn-primary btn-lg">{{ __('site.carols.pick') }} <span aria-hidden="true">↓</span></a>
-                        <a href="#choirs-h" class="btn-secondary btn-lg">{{ __('site.carols.choirs_link') }}</a>
+                        <a href="#choirs-h" class="btn-secondary btn-lg"><x-site.skin :game="__('site.carols.game.co_op_link')" :serious="__('site.carols.choirs_link')" /></a>
                     </div>
                 </div>
                 @if ($countdown !== null)
@@ -60,7 +60,7 @@
                          phone it's one line. --}}
                     <div class="s-xcountwrap" data-countdown>
                         <aside class="s-xcount" aria-label="{{ __('site.carols.count_label') }}">
-                            <p class="s-xcount-k" data-count-label data-count="{{ __('site.carols.count_label') }}" data-christmas="{{ __('site.carols.christmas_label') }}">{{ $countdown['christmas'] ? __('site.carols.christmas_label') : __('site.carols.count_label') }}</p>
+                            <p class="s-xcount-k"><span class="s-skin-g" data-count-label data-count="{{ __('site.carols.game.time_left') }}" data-christmas="{{ __('site.carols.christmas_label') }}">{{ $countdown['christmas'] ? __('site.carols.christmas_label') : __('site.carols.game.time_left') }}</span><span class="s-skin-s" data-count-label data-count="{{ __('site.carols.count_label') }}" data-christmas="{{ __('site.carols.christmas_label') }}">{{ $countdown['christmas'] ? __('site.carols.christmas_label') : __('site.carols.count_label') }}</span></p>
                             <p class="s-xcount-n">
                                 <span class="s-xserif" data-days>{{ $countdown['christmas'] ? 25 : $countdown['days'] }}</span>
                                 <span data-days-unit data-one="{{ trans_choice('site.carols.days', 1) }}" data-many="{{ trans_choice('site.carols.days', 2) }}" data-christmas="{{ __('site.carols.christmas') }}">{{ $countdown['christmas'] ? __('site.carols.christmas') : trans_choice('site.carols.days', $countdown['days']) }}</span>
@@ -80,7 +80,7 @@
                                             <span class="s-i-play"><x-site.icon name="play" size="16" /></span><span class="s-i-stop"><x-site.icon name="stop" size="16" /></span>
                                         </button>
                                     @endif
-                                    <a href="#carol-{{ $tonight['slug'] }}"><span><small>{{ __('site.carols.tonight') }}</small><b translate="no">{{ $tonight['title'] }}</b></span><x-site.icon name="arrow" size="18" /></a>
+                                    <a href="#carol-{{ $tonight['slug'] }}"><span><small><x-site.skin :game="__('site.carols.game.tonight')" :serious="__('site.carols.tonight')" /></small><b translate="no">{{ $tonight['title'] }}</b></span><x-site.icon name="arrow" size="18" /></a>
                                 </div>
                             @endif
                         </aside>
@@ -99,7 +99,7 @@
         <section class="s-wrap s-xsteps" aria-label="{{ __('site.carols.steps_label') }}">
             <ol>
                 @foreach ((array) \Illuminate\Support\Facades\Lang::get('site.carols.steps') as [$step, $line])
-                    <li class="s-v{{ $loop->iteration }}"><span class="s-xstep-n" aria-hidden="true">{{ $loop->iteration }}</span><span><b>{{ $step }}</b> {{ $line }}</span></li>
+                    <li class="s-v{{ $loop->iteration }}"><span class="s-xstep-n" aria-hidden="true"><x-site.skin :game="__('site.carols.game.level', ['n' => $loop->iteration])" :serious="$loop->iteration" /></span><span><b>{{ $step }}</b> {{ $line }}</span></li>
                 @endforeach
             </ol>
         </section>
@@ -109,11 +109,13 @@
         <section class="s-wrap s-xchoirs" aria-labelledby="choirs-h">
             <div class="s-xband">
                 <div>
+                    {{-- Game mode's kicker (Hillel's 90s design): the band as two players' co-op. --}}
+                    <p class="s-xband-k s-skin-g">{{ __('site.carols.game.co_op') }}</p>
                     <h2 id="choirs-h">{{ __('site.carols.choirs_title') }} <em class="s-xserif">{{ __('site.carols.choirs_title_em') }}</em></h2>
                     <p>{{ __('site.carols.choirs_body') }}</p>
                 </div>
                 <div class="s-xband-go">
-                    <a href="{{ \App\Support\Http\Hosts::app('/groups?start=1&ref=carols') }}" class="btn-secondary btn-lg">{{ __('site.carols.choirs_start') }} <x-site.icon name="arrow" size="18" /></a>
+                    <a href="{{ \App\Support\Http\Hosts::app('/groups?start=1&ref=carols') }}" class="btn-secondary btn-lg"><x-site.skin :game="__('site.carols.game.co_op_start')" :serious="__('site.carols.choirs_start')" /> <x-site.icon name="arrow" size="18" /></a>
                     <a href="/for/choir-directors" class="s-lk">{{ __('site.carols.choirs_more') }}</a>
                 </div>
             </div>

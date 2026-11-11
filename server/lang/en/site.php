@@ -1468,6 +1468,11 @@ return [
     // hear and sing along to, its range and key, the song, the other parts, then the About panel and the free tools.
     // The Christmas carols page, /songs/christmas-carols (App\Support\Pages\Carols): the open carols, each part to its
     // page. Where each carol comes from is its About's first sentence (song_about.php, checked by the courses lead).
+    // Game mode's words on every site page (Hillel's 90s arcade design, 2026-11-10): the footer's sign-off.
+    'game' => [
+        'insert_coin' => 'Insert coin to continue',
+    ],
+
     'carols' => [
         // Aimed at choir searches (Google's suggestions, 2026-11-10: "christmas carols satb", "... satb free",
         // "christmas songs for choir satb", "traditional christmas carols satb", "christmas carols alto part").
@@ -1540,6 +1545,19 @@ return [
         'choirs_start' => 'Start a choir group',
         'choirs_more' => 'More for choir directors',
         'choirs_link' => 'For choir directors',
+        // Game mode's labels on the songbook pages (Hillel's 90s arcade design, 2026-11-10, "i love it"): the same
+        // facts in the arcade's words, shown only in game mode (<x-site.skin>). The serious words above never change.
+        'game' => [
+            'level' => 'Level :n',
+            'stage_select' => 'Stage select',
+            'one_p' => '1P select',
+            'stage' => 'Stage :n',
+            'time_left' => 'Time left',
+            'tonight' => 'Tonight\'s stage',
+            'co_op_link' => 'Co-op mode',
+            'co_op' => '2P co-op · for choir directors',
+            'co_op_start' => 'Start co-op',
+        ],
         'tie' => 'Found your part? Sing it with the others under you.',
         'try_link' => 'Learn a carol, free',
         'list' => 'Christmas carols to learn',

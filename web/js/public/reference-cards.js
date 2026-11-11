@@ -80,23 +80,33 @@ export function intervalSizes(semis, name = null) {
     return { equal: semis * 100, pure: cents, offset, ratio };
 }
 
-/** The card's frame: the keyboard, the staff, a row of play buttons with the tuning switch, and the facts. */
+/**
+ * The card's frame: the keyboard, the staff, a row of play buttons with the tuning switch, and the facts. In a box 900 px
+ * wide or more (its own width, a container query: Hillel's redesign of the reference pages, 2026-11-10, one full-width
+ * panel), it lays out across: the row first (the plays at the left, the key and Equal or Pure at the right), then the
+ * piano (3/5) beside the staff (2/5), then the facts as one ruled row. Narrower, it stacks as it always has. The
+ * controls come in the same order either way, so focus follows what's seen; the piano and the staff take no focus.
+ */
 function frame(el, kind) {
     el.innerHTML = `
-<section class="grid gap-4 rounded-3xl bg-panel p-4 text-cream sm:p-6" data-ui="ref-card" data-kind="${kind}">
-  <div data-keys></div>
-  <div class="flex justify-center overflow-hidden rounded-2xl bg-raised px-2 py-3 text-cream [&_svg]:h-auto [&_svg]:max-w-full" data-ui="ref-staff"></div>
-  <div class="flex flex-wrap items-center gap-2" data-row>
+<div class="@container">
+<section class="grid gap-4 rounded-3xl bg-panel p-4 text-cream sm:p-6 @min-[900px]:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] @min-[900px]:gap-5" data-ui="ref-card" data-kind="${kind}">
+  <div class="@min-[900px]:col-start-1 @min-[900px]:row-start-2" data-keys></div>
+  <div class="flex justify-center overflow-hidden rounded-2xl bg-raised px-2 py-3 text-cream [&_svg]:h-auto [&_svg]:max-w-full @min-[900px]:col-start-2 @min-[900px]:row-start-2 @min-[900px]:items-center" data-ui="ref-staff"></div>
+  <div class="flex flex-wrap items-center gap-2 @min-[900px]:col-span-2 @min-[900px]:row-start-1 @min-[900px]:gap-3" data-row>
     <div class="flex flex-wrap gap-2" data-plays></div>
-    <div class="ms-auto flex items-center gap-2" data-root hidden>
-      <button type="button" class="btn-secondary size-11 rounded-full p-0 text-lg" data-root-step="-1">−</button>
-      <span class="min-w-12 text-center font-bold tabular-nums" translate="no" data-root-name></span>
-      <button type="button" class="btn-secondary size-11 rounded-full p-0 text-lg" data-root-step="1">+</button>
+    <div class="contents @min-[900px]:ms-auto @min-[900px]:flex @min-[900px]:items-center @min-[900px]:gap-3" data-row-end>
+      <div class="ms-auto flex items-center gap-2" data-root hidden>
+        <button type="button" class="btn-secondary size-11 rounded-full p-0 text-lg" data-root-step="-1">−</button>
+        <span class="min-w-12 text-center font-bold tabular-nums" translate="no" data-root-name></span>
+        <button type="button" class="btn-secondary size-11 rounded-full p-0 text-lg" data-root-step="1">+</button>
+      </div>
+      <div class="mt-2 basis-full empty:hidden @min-[900px]:mt-0 @min-[900px]:basis-auto" data-tuning></div>
     </div>
   </div>
-  <div class="empty:hidden" data-tuning></div>
-  <dl class="grid gap-x-4 gap-y-1.5 text-sm sm:grid-cols-[auto_minmax(0,1fr)]" data-ui="ref-facts"></dl>
-</section>`;
+  <dl class="grid gap-x-4 gap-y-1.5 text-sm sm:grid-cols-[auto_minmax(0,1fr)] @min-[900px]:col-span-2 @min-[900px]:flex @min-[900px]:flex-wrap @min-[900px]:gap-0 @min-[900px]:border-y @min-[900px]:border-line" data-ui="ref-facts"></dl>
+</section>
+</div>`;
     const $ = (sel) => el.querySelector(sel);
     const sounding = new Set();
     const stop = () => {
@@ -135,7 +145,10 @@ function frame(el, kind) {
             dd.className = 'font-semibold tabular-nums';
             dd.textContent = detail ?? '';
             if (hook) dd.dataset.fact = hook;
-            return [dt, dd];
+            const pair = document.createElement('div');
+            pair.className = 'contents @min-[900px]:block @min-[900px]:px-5 @min-[900px]:py-3 @min-[900px]:first:ps-0 @min-[900px]:[&+&]:border-s @min-[900px]:[&+&]:border-line';
+            pair.append(dt, dd);
+            return [pair];
         }));
     };
     const staff = (notes, label) => $('[data-ui="ref-staff"]').replaceChildren(grandStaff(notes, { label }));
@@ -271,7 +284,7 @@ export function mountVoiceRangeCard(el, { type, words = {}, rangeTest = '/tools/
     card.button('scale', words.scale, () => card.play(steps.map((m, i) => ({ hz: hz(m), at: i * CARD.rangeStep, length: CARD.rangeStep * 1.15 }))));
     card.facts([[words.rangeLabel, range, 'range'], [words.partLabel, words.part?.[CHOIR_PARTS[type]] ?? '', 'part']]);
     const link = document.createElement('a');
-    link.className = 'btn-primary min-h-12 justify-center rounded-full px-6 text-[1rem] sm:justify-self-start';
+    link.className = 'btn-primary min-h-12 justify-center rounded-full px-6 text-[1rem] sm:justify-self-start @min-[900px]:col-span-2';
     link.href = rangeTest;
     link.dataset.ui = 'ref-find';
     link.textContent = words.find ?? '';

@@ -48,7 +48,8 @@
             @endforeach
         </nav>
     </div>
-    <p class="s-foot-legal">{{ __('pages.nav.rights', ['year' => now()->year]) }}</p>
+    {{-- Game mode's sign-off (Hillel's 90s design, 2026-11-10), in game mode only. --}}
+    <p class="s-foot-legal">{{ __('pages.nav.rights', ['year' => now()->year]) }}<span class="s-skin-g"> · {{ __('site.game.insert_coin') }}</span></p>
     @if (\App\Support\Site\OpenSource::credited())
         {{-- The licence's credit (OpenSource::CREDIT_URL), kept on every install. --}}
         <p class="s-foot-legal" translate="no">{{ __('pages.nav.credit') }} · <a href="{{ \App\Support\Site\OpenSource::CREDIT_URL }}" class="s-flink">{{ \App\Support\Site\OpenSource::creditHost() }}</a></p>

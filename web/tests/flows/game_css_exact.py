@@ -59,10 +59,12 @@ def build_whole():
 
 
 def swap(base, whole):
-    """The page's sheet and its game sheet out, the whole build in the page sheet's place."""
+    """The page's sheet and its game sheet out, the whole build in the page sheet's place, and its fonts in before anything is
+    measured (a face the swapped sheet names again could measure on its fallback: one page in a run, at random)."""
     return f"""const old = [...document.querySelectorAll('link[rel=stylesheet]')].find((l) => (l.getAttribute('href') ?? '').split('?')[0] === {base!r});
     await new Promise((done) => {{ const l = Object.assign(document.createElement('link'), {{ rel: 'stylesheet', href: {whole!r} }}); l.onload = done; l.onerror = done; old.after(l); }});
-    old.remove(); document.querySelector('link[data-game-css]')?.remove();"""
+    old.remove(); document.querySelector('link[data-game-css]')?.remove();
+    document.body.offsetWidth; await document.fonts.ready;"""  # a layout, so the faces the new sheet names are asked for, then loaded
 
 
 # What the page fetched and linked: the game sheets it asked for (any way), and the order of its stylesheet links.
