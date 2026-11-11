@@ -68,7 +68,11 @@ export const WarmupBuilder = {
     data: () => ({ ...fresh(), hearing: false, link: null, qr: null, canShare: typeof navigator.share === 'function' }),
     setup: () => ({ NOTES, PRESETS, PRESET_NAMES, LIMITS }),
     template: `
-        <div class="mt-2 space-y-5" data-warmup-builder>
+        <!-- From 900 px (Hillel's width design, 2026-11-11: "apply these changes to all pages which will benefit"): what
+             you set at left, what you hear and share at right, kept in view as you scroll (not once the link and its QR
+             code are open: that column can outgrow the window). A phone stacks the same order. -->
+        <div class="mt-2 space-y-5 min-[900px]:grid min-[900px]:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] min-[900px]:items-start min-[900px]:gap-6 min-[900px]:space-y-0" data-warmup-builder>
+            <div class="space-y-5">
             <section class="card space-y-4 p-5" aria-labelledby="warmup-pattern">
                 <div>
                     <h2 id="warmup-pattern" class="text-lg font-bold text-cream">{{ t('warmup.make.pattern') }}</h2>
@@ -127,12 +131,17 @@ export const WarmupBuilder = {
                     <span class="block text-sm text-muted">{{ t('warmup.make.nameHint') }}</span>
                 </label>
             </section>
+            </div>
 
+            <div class="space-y-5" :class="{ 'min-[900px]:sticky min-[900px]:top-6': !link }" data-warmup-side>
+            <!-- One panel: what it sounds like, how long it takes, and the two ways on at its foot. -->
+            <div class="card space-y-4 p-5" data-warmup-hear>
             <Exercise v-if="warmup" ref="exercise" bare :key="code + (hearing ? ':hear' : '')" :exercise="preview" :base="home + warmup.start" mode="listen" :color="paint('#4ccfb0')" :rest-beats="0" @done="hearing = false" />
             <p class="text-sm text-muted">{{ t('warmup.safety') }} {{ warmup ? t('warmup.make.lasts', { rounds: rounds, minutes }) : '' }}</p>
             <div class="flex gap-3">
                 <button type="button" class="btn-secondary flex-1 sm:flex-none" :disabled="!warmup" @click="hear">{{ hearing ? t('studio.stop') : t('warmup.make.hear') }}</button>
                 <button type="button" class="btn-primary flex flex-1 items-center justify-center gap-2 sm:flex-none" :disabled="!warmup" data-warmup-share @click="share">{{ t('warmup.make.share') }}</button>
+            </div>
             </div>
             <section v-if="link" class="card space-y-3 p-5" aria-live="polite" data-warmup-link>
                 <label class="block font-semibold text-cream" for="warmup-link">{{ t('warmup.make.linkTitle') }}</label>
@@ -148,6 +157,7 @@ export const WarmupBuilder = {
                     <figcaption class="text-sm text-muted">{{ t('warmup.make.qrHint') }}</figcaption>
                 </figure>
             </section>
+            </div>
         </div>`,
     computed: {
         /** The free course's sung exercises the builder can make, one a lesson (its first that fits), in course order. */

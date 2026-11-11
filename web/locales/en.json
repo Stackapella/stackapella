@@ -7209,6 +7209,11 @@
         "statPart": "on pitch and ringing"
     },
     "game": {
+        "groups": {
+            "title": "Co-op",
+            "start": "Start co-op",
+            "kick": "2P co-op · your choir groups"
+        },
         "settings": {
             "intro": "Game mode's extras, one at a time. With reduced motion on your device, they stay still.",
             "all": "Game effects",
@@ -7359,6 +7364,7 @@
         },
         "select": {
             "cursor": "1P",
+            "kick": "1P select",
             "range": "Range",
             "busy": "Busy",
             "notes": "{count, plural, one {# note} other {# notes}}",

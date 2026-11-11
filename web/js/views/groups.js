@@ -21,6 +21,7 @@ import { Icon, Logo } from '../components/icon.js';
 import { paint } from '../colors.js';
 import { PART_COLORS } from '../theme.js';
 import { Modal, toast } from '../components/ui.js';
+import { GameOnly, sk } from '../skin.js';
 import { confirmAction } from '../components/confirm.js';
 import { InviteAccept, InviteCard } from '../components/invite-card.js';
 import { askBirth } from '../components/birth.js';
@@ -60,7 +61,7 @@ const Frame = {
     components: { AppScreen },
     props: { title: { type: String, required: true }, back: { type: String, default: '/' }, titleIsContent: Boolean },
     template: `
-        <AppScreen :title="title" :back="back" :title-is-content="titleIsContent" measure="max-w-3xl">
+        <AppScreen :title="title" :back="back" :title-is-content="titleIsContent" measure="max-w-3xl" data-ui="groups">
             <template #aside><slot name="aside" /></template>
             <!-- A short page (a few groups) sits in the middle of a desktop's height under the bar; a long one runs from the top. -->
             <div class="md:my-auto md:pb-16"><slot /></div>
@@ -78,22 +79,24 @@ const AdultCheck = {
 };
 
 export const GroupsView = {
-    components: { AccountWall, Frame, EmptyState, Field, Icon, Modal, AdultCheck },
+    components: { AccountWall, Frame, EmptyState, Field, Icon, Modal, AdultCheck, GameOnly },
     data: () => ({ groups: null, failed: null, making: false, wantStart: new URLSearchParams(location.search).get('start') === '1', shareAfter: new URLSearchParams(location.search).get('share'), here: location.pathname + location.search, name: '', adult: false, busy: false, error: null }),
-    setup: () => ({ account, navigate }),
+    setup: () => ({ account, navigate, sk }),
     template: `
-        <Frame :title="t('groups.title')">
-            <template #aside><button v-if="account.me" type="button" class="btn-primary btn-sm" @click="making = true"><Icon name="plus" :size="16" /> {{ t('groups.start') }}</button></template>
+        <Frame :title="sk('groups.title', 'game.groups.title')">
+            <template #aside><button v-if="account.me" type="button" class="btn-primary btn-sm" @click="making = true"><Icon name="plus" :size="16" /> {{ sk('groups.start', 'game.groups.start') }}</button></template>
             <!-- The wall keeps the address, so ?start=1 (the directors' pages link here to start one) opens the start sheet after sign-up. -->
             <AccountWall v-if="account.loaded && !account.me" :reason="wantStart ? 'groupsStart' : 'groups'" :next="here" />
             <p v-else-if="failed" class="card p-6 text-cream" role="alert">{{ failed }}</p>
             <p v-else-if="!groups" class="text-muted" role="status">{{ t('create.loading') }}</p>
             <EmptyState v-else-if="!groups.length" icon="list" :title="t('groups.none')" :body="t('groups.noneHint')">
-                <button type="button" class="btn-primary" @click="making = true">{{ t('groups.start') }}</button>
+                <button type="button" class="btn-primary" @click="making = true">{{ sk('groups.start', 'game.groups.start') }}</button>
             </EmptyState>
-            <ul v-else class="space-y-3">
+            <div v-else class="space-y-3">
+            <GameOnly><p class="ge-kick" data-groups-kick>{{ t('game.groups.kick') }}</p></GameOnly>
+            <ul class="space-y-3">
                 <li v-for="g in groups" :key="g.id">
-                    <a :href="'/groups/' + g.id" class="card-interactive flex items-center gap-4 p-4" @click.prevent="navigate('/groups/' + g.id)">
+                    <a :href="'/groups/' + g.id" class="card-interactive flex items-center gap-4 p-4" data-group-card @click.prevent="navigate('/groups/' + g.id)">
                         <span class="bubble grid size-11 shrink-0 place-items-center text-lg font-extrabold" style="--bubble: var(--color-part-6); --bubble-ink: var(--color-part-text-6)" aria-hidden="true" data-avatar>{{ g.name.slice(0, 1) }}</span>
                         <span class="min-w-0 flex-1">
                             <span class="block truncate font-bold text-cream" translate="no">{{ g.name }}</span>
@@ -103,7 +106,8 @@ export const GroupsView = {
                     </a>
                 </li>
             </ul>
-            <Modal v-if="making" :title="t('groups.start')" @close="making = false">
+            </div>
+            <Modal v-if="making" :title="sk('groups.start', 'game.groups.start')" @close="making = false">
                 <!-- Under 18 by the account's own birth date: no "I'm 18 or over" to tick, a kind word instead. -->
                 <div v-if="minor" class="space-y-4" data-too-young>
                     <p class="text-cream">{{ t('groups.tooYoungStart') }}</p>

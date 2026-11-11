@@ -56,6 +56,7 @@ export const PartSelect = {
     // pointer and the keyboard, starting on the part that fits your voice.
     template: `
         <div class="flex flex-col gap-4">
+        <p class="ge-kick" data-select-kick>{{ t('game.select.kick') }}</p>
         <ul ref="grid" class="ge-select-grid" data-game-select @keydown="key">
             <li v-for="(part, i) in parts" :key="part.slot.id">
                 <button ref="portrait" type="button" class="ge-portrait" :class="[i === cursor ? 'is-picked' : '', i === cursor && blinking ? 'is-blinking' : '', locking === i ? 'is-locking' : '']" :style="{ '--ge-part': paint(part.slot.color) }"

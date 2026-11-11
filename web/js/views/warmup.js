@@ -30,7 +30,7 @@ export const WarmupView = {
     data: () => ({ code: null, warmup: null, round: 0, running: false, previewing: false, shift: 0, results: [], finished: false, kept: false }),
     setup: () => ({ REST, SHIFT_LIMIT, SOUND_NAMES }),
     template: `
-        <AppScreen :title="learning.loaded && !code ? t('warmup.make.title') : t('warmup.title')" :back="code ? '/' : '/settings'" measure="max-w-2xl" foot="pb-[max(1rem,env(safe-area-inset-bottom))]">
+        <AppScreen :title="learning.loaded && !code ? t('warmup.make.title') : t('warmup.title')" :back="code ? '/' : '/settings'" :measure="learning.loaded && !code ? '' : 'max-w-2xl'" foot="pb-[max(1rem,env(safe-area-inset-bottom))]">
             <p v-if="!learning.loaded" class="text-muted" role="status">{{ t('settings.loading') }}</p>
             <WarmupBuilder v-else-if="!code" />
             <section v-else-if="!warmup" class="card mt-2 space-y-4 p-6" data-warmup-broken>

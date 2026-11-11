@@ -9241,6 +9241,18 @@ a.s-spart-chip:hover { background: var(--color-raised); }
 :root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-unit-n { font-family: var(--a-hud); font-weight: 400; font-size: 10px; letter-spacing: 0; color: color-mix(in srgb, var(--neon, var(--color-part-ink-2)) 85%, var(--color-cream)); }
 :root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-coursecards .s-card { border-radius: var(--arc-radius); border: 3px solid var(--neon, var(--arc-line)); background: var(--arc-well); box-shadow: 4px 4px 0 var(--arc-line); }
 :root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-coursecards .s-card:hover { border-color: var(--color-cream); }
+/* The site's header in the 90s design: the Game mode pill as a square green-outlined HUD switch, "Open the app" a red
+   block on its hard shadow (the mockup's INSERT COIN button). */
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-top > .gt--pill { border-radius: var(--arc-radius); box-shadow: inset 0 0 0 var(--arc-edge-w) var(--color-good); }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-top > a.btn-secondary { border-radius: var(--arc-radius); border: 0; background: var(--arc-red); color: var(--arc-bg); box-shadow: var(--arc-shadow); }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-top > a.btn-secondary:hover { background: color-mix(in srgb, var(--arc-red) 85%, var(--color-cream)); }
+/* The app's part picker under a 1P SELECT kicker, each part's card framed in its own colour; choir groups as 2P CO-OP,
+   each group a card in a cyan neon frame. */
+:root[data-skin='game'][data-gs] .ge-kick { margin: 0; font-family: var(--arc-pixel); font-size: 10px; font-weight: 400; line-height: 1.4; letter-spacing: 0; text-transform: uppercase; color: var(--arc-yellow); }
+:root[data-skin='game'][data-gs] [data-groups-kick] { color: var(--arc-cyan); }
+:root[data-skin='game'][data-gs] .ge-portrait { border: var(--arc-frame) solid var(--ge-part); box-shadow: var(--arc-shadow); }
+:root[data-skin='game'][data-gs] [data-group-card] { border-radius: var(--arc-radius); border: 3px solid var(--arc-cyan); background: var(--arc-well); box-shadow: 4px 4px 0 var(--arc-line); }
+:root[data-skin='game'][data-gs] [data-group-card]:hover { border-color: var(--color-cream); }
 /* A song part's page in its redesign (marketing's .s-spart-*, 2026-11-10) on the arcade screen, in the 90s design's
    language (docs/design-rules.md): the SWITCH PART chips as 1P SELECT blocks (square, framed, the current one filled with
    a hard shadow), the player's panel framed like the stage card, the facts as HUD stat boxes with pixel labels, the
