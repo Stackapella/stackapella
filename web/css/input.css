@@ -615,6 +615,18 @@ select:disabled {
     }
 }
 
+/* Two columns from 900 px (Hillel's width design; docs/design-rules.md, "App screens use the width too"): what you set
+   or read at left, about 60%, and what it makes with its ways on at right. Below 900 px, nothing: a phone stacks the same
+   order. A screen places a child elsewhere with col-start and row-start at 900 px, keeping its DOM (and a phone's) order. */
+@utility app-split {
+    @media (min-width: 900px) {
+        display: grid;
+        grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+        column-gap: 1.5rem;
+        align-items: start;
+    }
+}
+
 @utility app-top {
     display: flex;
     align-items: center;

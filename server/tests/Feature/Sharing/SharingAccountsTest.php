@@ -4,16 +4,20 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Sharing;
 
+use App\Actions\Counts\RecordCounts;
 use App\Actions\Users\DeleteAccount;
+use App\Enums\SecurityEventType;
 use App\Jobs\BuildExport;
 use App\Models\DataExport;
 use App\Models\Harmony;
 use App\Models\Report;
+use App\Models\SecurityEvent;
 use App\Models\User;
 use App\Support\Sharing\HarmonyFiles;
 use App\Support\Trust\Limits;
 use App\Support\Trust\TrustLevel;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
@@ -48,11 +52,38 @@ final class SharingAccountsTest extends TestCase
         // Hillel, 2026-11-11 (Q8): the song keeps its anonymous count; the account, nothing of where it came from.
         $this->assertNull($bea->signup_harmony_id);
         $this->assertSame(1, $harmony->fresh()?->sign_ups);
+        // Nor the shared song's tag: the account and its sign-up's security event keep only its group.
+        $this->assertSame('share-song', $bea->ref);
+        $this->assertSame('share-song', SecurityEvent::query()->where('user_id', $bea->id)->where('type', SecurityEventType::SignUp)->firstOrFail()->context['ref'] ?? null);
+        $this->assertSame(0, DB::table('users')->where('ref', 'like', '%'.$harmony->public_id.'%')->count());
+        $this->assertSame(0, DB::table('security_events')->where('context', 'like', '%'.$harmony->public_id.'%')->count());
 
         // Any other ref, or a harmony that isn't there, records nothing.
         $this->postJson('/api/auth/register', ['name' => 'Cy', 'email' => 'cy@example.com', 'password' => 'a-fine-long-passphrase-42', 'birthMonth' => 5, 'birthYear' => 1990, 'ref' => 'h-nope', 'elapsedMs' => 45000, 'nickname' => ''])->assertStatus(202);
         $this->assertNull(User::query()->where('email', 'cy@example.com')->value('signup_harmony_id'));
         $this->assertSame(1, $harmony->fresh()?->sign_ups);
+    }
+
+    public function test_a_tag_that_names_someone_is_kept_only_as_its_group_and_the_ones_kept_before_are_grouped(): void
+    {
+        // A coach's or a singer's own tag, as a shared song's: its group. A campaign's or an organization's: as sent.
+        $this->assertSame(['share-song', 'coach', 'profile', 'reddit', 'o-thursday', null], array_map(RecordCounts::accountRef(...), ['h-AbC123', 'c-ana', 'P-bea', 'reddit', 'o-thursday', null]));
+
+        // The tags kept before 2026-11-12, on accounts and in their sign-ups' security events, become their groups.
+        $kept = ['h-AbC123' => 'share-song', 'c-ana' => 'coach', 'p-bea' => 'profile', 'reddit' => 'reddit'];
+        foreach (array_keys($kept) as $ref) {
+            $user = User::factory()->create();
+            DB::table('users')->where('id', $user->id)->update(['ref' => $ref]);
+            DB::table('security_events')->insert(['type' => 'sign_up', 'user_id' => $user->id, 'context' => json_encode(['method' => 'password', 'ref' => $ref]), 'created_at' => now()]);
+        }
+        $migration = require database_path('migrations/2026_11_12_010000_group_personal_sign_up_refs.php');
+        // Twice: a second run changes nothing.
+        $migration->up();
+        $migration->up();
+
+        $this->assertEquals(array_values($kept), DB::table('users')->whereNotNull('ref')->orderBy('id')->pluck('ref')->all());
+        $this->assertEquals(array_values($kept), DB::table('security_events')->where('type', 'sign_up')->orderBy('id')->pluck('context')->map(static fn (mixed $c): mixed => json_decode((string) $c, true)['ref'] ?? null)->all());
+        $this->assertSame('password', json_decode((string) DB::table('security_events')->value('context'), true)['method'] ?? null);
     }
 
     public function test_the_share_limit_follows_the_trust_level(): void

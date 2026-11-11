@@ -61,12 +61,12 @@ final class SignInWithProvider
                 $column => $id,
                 'email' => $emailFree ? $email : null,
                 'email_verified_at' => $emailFree ? now() : null,
-                'ref' => $ref,
+                'ref' => RecordCounts::accountRef($ref),
                 'early_access_link_id' => $link?->id,
             ])->save();
             ShareSignUps::record($user, $ref);
 
-            $this->securityLog->record(SecurityEventType::SignUp, $user, null, ['method' => $provider, 'ref' => $ref]);
+            $this->securityLog->record(SecurityEventType::SignUp, $user, null, ['method' => $provider, 'ref' => RecordCounts::accountRef($ref)]);
             // The anonymous daily count: the server counts every new account, whichever way it came.
             app(RecordCounts::class)->handle([['kind' => 'sign_up']], true, $country);
 

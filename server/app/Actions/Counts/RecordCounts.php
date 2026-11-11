@@ -82,6 +82,29 @@ final class RecordCounts
     /** An embedded tool's tag: "embed-" and the embedding site's host (two labels or more). */
     public const EMBED = '/^embed-(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,24}$/';
 
+    /** The tags that name a person or a thing of theirs: a shared song (h-), a coach (c-), a singer's profile (p-). */
+    public const PERSONAL_REFS = ['h-', 'c-', 'p-'];
+
+    /**
+     * The tag an account keeps of where it came from (users.ref, and the sign-up's security event): as sent, except one
+     * that names a person or a thing of theirs, kept only as its group (share-song, coach, profile). Hillel, 2026-11-11
+     * (Q8): the shared song keeps its anonymous count; the account, nothing that leads back to the sharer.
+     */
+    public static function accountRef(?string $ref): ?string
+    {
+        if ($ref === null || $ref === '') {
+            return $ref;
+        }
+
+        foreach (self::PERSONAL_REFS as $prefix) {
+            if (str_starts_with(strtolower($ref), $prefix)) {
+                return self::source($ref);
+            }
+        }
+
+        return $ref;
+    }
+
     /**
      * Where a device came from, from its ?ref= tag, grouped: a campaign's tag as written (config
      * counts.sources), a free tool's (tool-<slug>, config tools.slugs), "harmony" for a shared harmony's

@@ -8,6 +8,7 @@ use App\Actions\Templates\SyncOfficialTemplates;
 use App\Mail\Account\ResetPassword;
 use App\Mail\Account\VerifyEmailAddress;
 use App\Models\User;
+use App\Support\Admin\SecondFactor;
 use App\Support\Admin\StaffDevice;
 use App\Support\Flags;
 use App\Support\Http\Hosts;
@@ -17,8 +18,10 @@ use App\Support\Site\HelpGuide;
 use App\Support\Site\SitemapPaths;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Mail;
+use PragmaRX\Google2FA\Google2FA;
 use Tests\TestCase;
 
 /**
@@ -346,10 +349,61 @@ final class LanguagesTest extends TestCase
 
     public function test_passing_the_second_factor_gives_an_admins_device_the_preview(): void
     {
-        $this->actingAsAdmin();
-        $response = $this->getJson('/api/admin/flags')->assertOk();
-        $cookie = collect($response->headers->getCookies())->first(static fn ($c): bool => $c->getName() === StaffDevice::PREVIEW_COOKIE);
-        $this->assertNotNull($cookie);
-        $this->assertTrue(StaffDevice::previews(Request::create('/', 'GET', [], [StaffDevice::PREVIEW_COOKIE => (string) $cookie->getValue()])));
+        $preview = static fn ($response): ?string => collect($response->headers->getCookies())->first(static fn ($c): bool => $c->getName() === StaffDevice::PREVIEW_COOKIE)?->getValue();
+        $pass = function (User $user) use ($preview): ?string {
+            $secret = app(SecondFactor::class)->newTotpSecret();
+            app(SecondFactor::class)->enableTotp($user, $secret);
+            $this->actingAs($user)->withSession($this->adminSession($user, secondFactorPassed: false));
+
+            $value = $preview($this->post('/admin/second-factor/challenge/code', ['code' => app(Google2FA::class)->getCurrentOtp($secret)])->assertRedirect());
+            // A queued cookie belongs to its own request (each a new process outside tests).
+            Cookie::flushQueuedCookies();
+
+            return $value;
+        };
+
+        // Given once, when the second factor passes (no admin request after it checks or mints one).
+        $value = $pass(User::factory()->admin()->create());
+        $this->assertNotNull($value);
+        $this->assertTrue(StaffDevice::previews(Request::create('/', 'GET', [], [StaffDevice::PREVIEW_COOKIE => $value])));
+        $this->assertNull($preview($this->getJson('/api/admin/flags')->assertOk()));
+
+        // An editor passing it is staff (the counts leave the device out) but gets no preview.
+        $this->assertNull($pass(User::factory()->editor()->create()));
+    }
+
+    public function test_a_preview_cookie_stops_at_its_expiry_and_when_an_admin_or_a_second_factor_is_removed(): void
+    {
+        $previews = static fn (string $value): bool => StaffDevice::previews(Request::create('/', 'GET', [], [StaffDevice::PREVIEW_COOKIE => $value]));
+        $mint = static fn (): string => (string) StaffDevice::previewCookie(request())->getValue();
+        $admin = User::factory()->admin()->create();
+        $other = User::factory()->create();
+        $other->forceFill(['is_admin' => true])->save();
+        app(SecondFactor::class)->enableTotp($admin, app(SecondFactor::class)->newTotpSecret());
+        app(SecondFactor::class)->enableTotp($other, app(SecondFactor::class)->newTotpSecret());
+
+        // The server checks its own signed expiry: a copied value stops after thirty days, whatever the browser keeps.
+        $value = $mint();
+        $this->assertTrue($previews($value));
+        $this->travel(31)->days();
+        $this->assertFalse($previews($value));
+        $this->travelBack();
+        // Nor can the expiry be pushed out by hand, and the old fixed value (one for every admin, forever) is refused.
+        [$expires, $signature] = explode('.', $mint());
+        $this->assertFalse($previews(((int) $expires + 86400).'.'.$signature));
+        $this->assertFalse($previews(hash_hmac('sha256', 'staff-preview', (string) config('app.key'))));
+
+        // An admin removed: every device's cookie stops (the remaining admin gets a new one when they next pass the second factor).
+        $value = $mint();
+        $other->forceFill(['is_admin' => false])->save();
+        $this->assertFalse($previews($value));
+        // A second factor removed, or an admin suspended: the same.
+        $value = $mint();
+        $admin->secondFactor()->delete();
+        $this->assertFalse($previews($value));
+        $this->assertTrue($previews($mint()));
+        $value = $mint();
+        $admin->forceFill(['suspended_at' => now()])->save();
+        $this->assertFalse($previews($value));
     }
 }

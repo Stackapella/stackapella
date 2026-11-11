@@ -1605,7 +1605,9 @@
             "restarted": "El curso vuelve a empezar. Tus estrellas se guardan 30 días por si cambias de idea.",
             "undone": "Tus lecciones y estrellas han vuelto.",
             "restartHintSerious": "Tus lecciones vuelven al principio. Tu nota y tu extensión se quedan. Puedes deshacerlo durante 30 días.",
-            "undoneSerious": "Tus lecciones han vuelto."
+            "undoneSerious": "Tus lecciones han vuelto.",
+            "confirmBodySerious": "Cada lección vuelve al principio y el curso vuelve a empezar. Tu nota, tu extensión y tus canciones se quedan. Puedes deshacerlo aquí durante 30 días.",
+            "restartedSerious": "El curso vuelve a empezar. Tus lecciones se guardan 30 días por si cambias de idea."
         },
         "hide": {
             "title": "Ocultar perfil",
@@ -1751,7 +1753,8 @@
         "notYetLine": "\"Aún no\" también sirve: escucha el ejemplo una vez más y graba otra vez cuando quieras.",
         "honest": "Esto aún no lo puntuamos. Aquí tus estrellas son por practicar: el juez es tu propio oído.",
         "toGoOn": "Graba y responde para seguir",
-        "toFinish": "Graba y responde para terminar"
+        "toFinish": "Graba y responde para terminar",
+        "honestSerious": "Esto aún no lo puntuamos. Es para practicar: el juez es tu propio oído."
     },
     "keepSong": {
         "line": "Tus tomas y las demás voces de esta lección, como pistas de una canción tuya, para volver a oírla, cambiarla y compartirla.",
@@ -2065,7 +2068,8 @@
         "dailyCap": {
             "title": "Ya está el belting de hoy.",
             "line": "Tu voz se recupera durante la noche."
-        }
+        },
+        "lockedSerious": "Esta lección se abre cuando hayas cantado las anteriores."
     },
     "install": {
         "title": "Instalar Stackapella",
@@ -2308,7 +2312,8 @@
             "courseTakesBody": "Las tomas guardadas para Antes y ahora se eliminan de este dispositivo. Tus estrellas y tu progreso se quedan, y Antes y ahora guardará tu próxima toma en su lugar.",
             "courseTakesAction": "Eliminar tomas",
             "courseTakesDone": "Tomas de voz del curso eliminadas.",
-            "courseTakesFailed": "No se pudieron eliminar las tomas de voz del curso. Vuelve a intentarlo."
+            "courseTakesFailed": "No se pudieron eliminar las tomas de voz del curso. Vuelve a intentarlo.",
+            "courseTakesBodySerious": "Las tomas guardadas para Antes y ahora se eliminan de este dispositivo. Tu progreso se queda, y Antes y ahora guardará tu próxima toma en su lugar."
         },
         "bin": {
             "title": "Eliminadas recientemente",
@@ -2720,7 +2725,8 @@
             "scoops": "Últimamente algunas notas entran arrastradas desde abajo: empieza cada una justo en su sitio.",
             "late": "Últimamente entras un poco tarde: entra justo en el pulso.",
             "early": "Últimamente entras un poco pronto: espera el pulso.",
-            "wavering": "Últimamente tus notas largas oscilan: mantén estas estables."
+            "wavering": "Últimamente tus notas largas oscilan: mantén estas estables.",
+            "reviewSerious": "De \"{lesson}\": merece otro intento."
         },
         "finish": "Terminar",
         "doneTitle": "Entrenamiento completado",
@@ -4564,7 +4570,8 @@
             "daily": "Desafío de hoy, {date} · {title} · {part}",
             "dailySerious": "Canción de hoy, {date} · {title} · {part}",
             "dailyText": "Hice el desafío de hoy en Stackapella, {title} ({part}): {percent}%. ¿Lo superas?",
-            "dailyTextSerious": "Canté la canción de hoy en Stackapella, {title} ({part}): {percent}% afinado."
+            "dailyTextSerious": "Canté la canción de hoy en Stackapella, {title} ({part}): {percent}% afinado.",
+            "streakSerious": "{days} días seguidos"
         },
         "onPitch": "{percent}% afinado",
         "lessonDone": "Lección completada"
@@ -5409,7 +5416,8 @@
             "notYet": "Todavía no: {percent}%",
             "passedLine": "Dominas la unidad.",
             "under": "Conseguiste un {percent}%. Con un {pass}% se supera. Vuelve a intentarlo cuando quieras.",
-            "toPass": "Mínimo {percent}%"
+            "toPass": "Mínimo {percent}%",
+            "lineSerious": "Las habilidades de la unidad de una vez, unos 2 minutos. Con un {percent}% se supera. Es opcional: tus lecciones se quedan como están."
         },
         "map": {
             "boss": "Jefe",
@@ -5422,6 +5430,7 @@
         "unlocked": {
             "game": "Jefe desbloqueado: {title}. Opcional: con un 80% lo derrotas.",
             "review": "Hay un repaso de unidad abierto: {title}. Opcional: con un 80% se supera."
-        }
+        },
+        "lockedSerious": "Se abre cuando hayas cantado el desafío de la unidad."
     }
 }

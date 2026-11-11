@@ -3545,7 +3545,8 @@ Start sending one file of the score, as `takes.create`: a presigned PUT to the p
 (`application/vnd.recordare.musicxml+xml`, or `application/vnd.recordare.musicxml` for a compressed
 `.mxl`), or a photo of a page (`image/jpeg`, `image/png`, `image/heic`); the upload must be sent with it.
 At most 25 MB a file (`bytes`), counted in the day's upload cap (`429 rate_limited`, as takes); `name`
-(1 to 200) is only shown to staff. A file not in a request within a day is deleted.
+(1 to 200) is only shown to staff. A file not in a request within a day is deleted. The upload link
+holds 10 minutes; pausable (`423 paused`, by the uploads switch).
 
 | Status | Code | Schema | Example |
 |---|---|---|---|
@@ -3560,7 +3561,8 @@ At most 25 MB a file (`bytes`), counted in the day's upload cap (`429 rate_limit
 As `takes.complete`: the file is checked at its size and SHA-256, then by its first bytes against its
 `contentType` (a PDF starts `%PDF`, MusicXML is a `score-partwise` or `score-timewise` document or a
 `.mxl` zip, a photo is a JPEG, PNG or HEIC). A file that isn't what it says is deleted (`422
-score_type`). Completing a ready file again answers the same. **Request:** none.
+score_type`). Completing a ready file again answers the same; pausable (`423 paused`, by the uploads
+switch). **Request:** none.
 
 | Status | Code | Schema | Example |
 |---|---|---|---|

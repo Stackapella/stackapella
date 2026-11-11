@@ -25,6 +25,9 @@
         </include>
     </source>
     <php>
+        <!-- The whole suite runs in one process, and at about 1,500 tests it outgrew the CLI's 128M (a different
+             test died each run, 2026-11-12). -->
+        <ini name="memory_limit" value="512M"/>
         <env name="APP_ENV" value="testing" force="true"/>
         <env name="APP_URL" value="https://stackapella.test" force="true"/>
         <env name="APP_MAINTENANCE_DRIVER" value="file"/>

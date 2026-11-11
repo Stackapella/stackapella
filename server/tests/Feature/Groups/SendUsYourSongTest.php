@@ -11,6 +11,7 @@ use App\Models\SupportMessage;
 use App\Models\Template;
 use App\Models\TrackScore;
 use App\Models\User;
+use App\Support\Flags;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Testing\TestResponse;
@@ -170,17 +171,33 @@ final class SendUsYourSongTest extends TestCase
         $this->assertMatchesContract($this->postJson('/api/groups/'.$this->group.'/tracks/scores', $body), 'groups.tracks.scores.create', 429);
     }
 
+    public function test_the_upload_link_holds_ten_minutes_and_the_uploads_switch_pauses_sending(): void
+    {
+        $this->travelTo(now()->startOfMinute());
+        $started = $this->postJson('/api/groups/'.$this->group.'/tracks/scores', ['name' => 'a.pdf', 'contentType' => 'application/pdf', 'bytes' => strlen(self::PDF), 'sha256' => hash('sha256', self::PDF)])->assertCreated();
+        $this->assertSame(now()->addMinutes(10)->utc()->toIso8601ZuluString(), $started->json('upload.expiresAt'));
+
+        // The uploads switch (a storage attack) stops a file's start and its complete, as it does a take's.
+        app(Flags::class)->set('pause_uploads', 'on', null, 'Storage attack');
+        $this->postJson('/api/groups/'.$this->group.'/tracks/scores', ['name' => 'b.pdf', 'contentType' => 'application/pdf', 'bytes' => 10, 'sha256' => str_repeat('a', 64)])->assertStatus(423);
+        $this->postJson('/api/groups/'.$this->group.'/tracks/scores/'.$started->json('data.id').'/complete')->assertStatus(423);
+    }
+
     public function test_a_file_never_put_in_a_request_goes_after_a_day_and_one_in_a_request_stays(): void
     {
         $kept = (string) $this->send(self::PDF, 'application/pdf')->assertOk()->json('data.id');
         $this->send(self::PDF, 'application/pdf')->assertOk();
         $this->postJson('/api/groups/'.$this->group.'/tracks', ['piece' => 'Shenandoah', 'rights' => 'own-arrangement', 'rightsConfirmed' => true, 'scoreIds' => [$kept]])->assertCreated();
         $files = TrackScore::query()->pluck('file_key')->all();
+        // Something put in the kept file's upload slot after its complete: no one checks it, so it doesn't stay.
+        $slot = (string) TrackScore::query()->orderBy('id')->value('upload_key');
+        Storage::disk('private')->put($slot, 'stray');
 
         $this->travel(25)->hours();
         $this->artisan('app:track-scores:prune')->expectsOutputToContain('Deleted 1 ')->assertSuccessful();
 
         $this->assertSame([$kept], TrackScore::query()->get()->map->sqid()->all());
         $this->assertSame([true, false], array_map(static fn (?string $key): bool => Storage::disk('private')->exists((string) $key), $files));
+        $this->assertFalse(Storage::disk('private')->exists($slot));
     }
 }

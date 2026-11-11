@@ -1605,7 +1605,9 @@
             "restarted": "The course starts over. Your stars are kept for 30 days if you change your mind.",
             "undone": "Your lessons and stars are back.",
             "restartHintSerious": "Your lessons go back to the start. Your note and range stay. You can undo it for 30 days.",
-            "undoneSerious": "Your lessons are back."
+            "undoneSerious": "Your lessons are back.",
+            "confirmBodySerious": "Every lesson goes back to the start, and the course opens at its start. Your note, range and songs stay. You can undo it here for 30 days.",
+            "restartedSerious": "The course starts over. Your lessons are kept for 30 days if you change your mind."
         },
         "hide": {
             "title": "Hide profile",
@@ -1751,7 +1753,8 @@
         "notYetLine": "Not yet is useful: listen to the model once more, then record again whenever you like.",
         "honest": "We don't score this yet. Your stars here are for practising: your own ears are the judge.",
         "toGoOn": "Record and answer to go on",
-        "toFinish": "Record and answer to finish"
+        "toFinish": "Record and answer to finish",
+        "honestSerious": "We don't score this yet. It's for practising: your own ears are the judge."
     },
     "keepSong": {
         "line": "Your takes and the other voices from this lesson, as tracks of a song of your own, to play again, change and share.",
@@ -2065,7 +2068,8 @@
         "dailyCap": {
             "title": "That's today's belting.",
             "line": "Your voice recovers overnight."
-        }
+        },
+        "lockedSerious": "This lesson opens once you've sung the ones before it."
     },
     "install": {
         "title": "Install Stackapella",
@@ -2308,7 +2312,8 @@
             "courseTakesBody": "The takes kept for Then and now are deleted from this device. Your stars and progress stay, and Then and now keeps your next take instead.",
             "courseTakesAction": "Delete takes",
             "courseTakesDone": "Course voice takes deleted.",
-            "courseTakesFailed": "The course voice takes couldn't be deleted. Try again."
+            "courseTakesFailed": "The course voice takes couldn't be deleted. Try again.",
+            "courseTakesBodySerious": "The takes kept for Then and now are deleted from this device. Your progress stays, and Then and now keeps your next take instead."
         },
         "bin": {
             "title": "Recently deleted",
@@ -2720,7 +2725,8 @@
             "scoops": "Some notes have slid up into place lately: start each one right on it.",
             "late": "Your entries have been a little late lately: come in on the beat.",
             "early": "Your entries have been a little early lately: wait for the beat.",
-            "wavering": "Long notes have wavered lately: hold these steady."
+            "wavering": "Long notes have wavered lately: hold these steady.",
+            "reviewSerious": "From \"{lesson}\": worth another go."
         },
         "finish": "Finish",
         "doneTitle": "Workout done",
@@ -4564,7 +4570,8 @@
             "daily": "Today's challenge, {date} · {title} · {part}",
             "dailySerious": "Today's song, {date} · {title} · {part}",
             "dailyText": "I took today's Stackapella challenge, {title} ({part}): {percent}%. Can you beat it?",
-            "dailyTextSerious": "I sang today's song in Stackapella, {title} ({part}): {percent}% on pitch."
+            "dailyTextSerious": "I sang today's song in Stackapella, {title} ({part}): {percent}% on pitch.",
+            "streakSerious": "{days} days in a row"
         },
         "onPitch": "{percent}% on pitch",
         "lessonDone": "Lesson done"
@@ -5409,7 +5416,8 @@
             "notYet": "Not yet: {percent}%",
             "passedLine": "The unit is mastered.",
             "under": "You got {percent}%. {pass}% passes. Try again whenever you like.",
-            "toPass": "{percent}% passes"
+            "toPass": "{percent}% passes",
+            "lineSerious": "The unit's skills in one go, about 2 minutes. {percent}% passes. Optional: your lessons stay as they are."
         },
         "map": {
             "boss": "Boss",
@@ -5422,6 +5430,7 @@
         "unlocked": {
             "game": "Boss unlocked: {title}. Optional, 80% beats it.",
             "review": "A unit review is open: {title}. Optional, 80% passes."
-        }
+        },
+        "lockedSerious": "Opens once you've sung the unit's challenge."
     }
 }

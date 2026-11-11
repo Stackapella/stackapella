@@ -191,28 +191,30 @@ export const RequestsView = {
     data: () => ({ list: null, cursor: null, failed: false, busy: false, sort: 'wanted', yours: false, asking: false, askTitle: '', reporting: null, walled: false }),
     setup: () => ({ SORTS, account }),
     template: `
-        <AppScreen :title="t('requests.title')" back="/" measure="max-w-3xl" data-requests>
-            <div class="mt-4 space-y-6">
-                <EmptyState v-if="!open" icon="info" :title="t('requests.closed')" :body="t('requests.closedHint')" />
+        <AppScreen :title="t('requests.title')" back="/" measure="" data-requests>
+            <!-- From 900 px (Hillel's width design): the list at left; the lead, Request a song and the sort at right. A phone
+                 keeps this order: lead and Request, the sort, the list. -->
+            <div class="mt-4 space-y-6 app-split min-[900px]:gap-y-6 min-[900px]:space-y-0">
+                <EmptyState v-if="!open" class="min-[900px]:col-span-2" icon="info" :title="t('requests.closed')" :body="t('requests.closedHint')" />
                 <template v-else>
-                    <div class="flex flex-wrap items-start justify-between gap-3">
+                    <div class="flex flex-wrap items-start justify-between gap-3 min-[900px]:col-start-2 min-[900px]:row-start-1 min-[900px]:flex-col">
                         <p class="max-w-prose text-muted">{{ t('requests.intro') }}</p>
                         <button type="button" class="btn-primary" data-request-open @click="ask()">{{ t('requests.ask.button') }}</button>
                     </div>
-                    <AccountWall v-if="walled" reason="requests" bare />
-                    <div class="flex flex-wrap items-center gap-2">
+                    <AccountWall v-if="walled" class="min-[900px]:col-start-2" reason="requests" bare />
+                    <div class="flex flex-wrap items-center gap-2 min-[900px]:col-start-2">
                         <div class="seg inline-flex" role="radiogroup" :aria-label="t('requests.sort.label')">
                             <button v-for="(label, key) in SORTS" :key="key" type="button" role="radio" :aria-checked="sort === key ? 'true' : 'false'" class="seg-option" @click="setSort(key)">{{ t(label) }}</button>
                         </div>
                         <button v-if="account.me" type="button" class="filter-chip" :aria-pressed="yours ? 'true' : 'false'" data-requests-yours @click="yours = !yours">{{ t('requests.yours') }}</button>
                     </div>
-                    <p v-if="failed" class="text-sm text-bad" role="alert">{{ t('requests.failed') }} <button type="button" class="link" @click="load">{{ t('common.tryAgain') }}</button></p>
-                    <p v-else-if="list === null" class="text-muted" role="status">{{ t('requests.loading') }}</p>
-                    <p v-else-if="!shown.length" class="text-muted" data-requests-empty>{{ yours ? t('requests.emptyYours') : t('requests.empty') }}</p>
-                    <ul v-else class="card divide-y divide-line px-4" data-requests-list>
+                    <p v-if="failed" class="text-sm text-bad min-[900px]:col-start-1 min-[900px]:row-span-4 min-[900px]:row-start-1" role="alert">{{ t('requests.failed') }} <button type="button" class="link" @click="load">{{ t('common.tryAgain') }}</button></p>
+                    <p v-else-if="list === null" class="text-muted min-[900px]:col-start-1 min-[900px]:row-span-4 min-[900px]:row-start-1" role="status">{{ t('requests.loading') }}</p>
+                    <p v-else-if="!shown.length" class="text-muted min-[900px]:col-start-1 min-[900px]:row-span-4 min-[900px]:row-start-1" data-requests-empty>{{ yours ? t('requests.emptyYours') : t('requests.empty') }}</p>
+                    <ul v-else class="card divide-y divide-line px-4 min-[900px]:col-start-1 min-[900px]:row-span-4 min-[900px]:row-start-1" data-requests-list>
                         <RequestRow v-for="r in shown" :key="r.id" :request="r" @vote="vote" @report="reporting = $event" />
                     </ul>
-                    <button v-if="cursor" type="button" class="btn-secondary w-full" :disabled="busy" @click="more">{{ t('requests.more') }}</button>
+                    <button v-if="cursor" type="button" class="btn-secondary w-full min-[900px]:col-start-1" :disabled="busy" @click="more">{{ t('requests.more') }}</button>
                 </template>
             </div>
             <AskSheet v-if="asking" :title="askTitle" @close="asking = false" @asked="asked" @vote="put" />
@@ -223,6 +225,12 @@ export const RequestsView = {
         /** Yours: the ones you asked for or voted. */
         shown() {
             return this.yours ? (this.list ?? []).filter((r) => r.mine || r.voted) : this.list ?? [];
+        },
+    },
+    watch: {
+        /** Opened by its link before the app knew requests were on (auth.config): the list once it does. */
+        open(now) {
+            if (now && this.list === null && !this.failed) this.load();
         },
     },
     created() {

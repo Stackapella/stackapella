@@ -20,8 +20,9 @@ use Illuminate\Validation\ValidationException;
 /**
  * The score's files a director sends with "Send us your song" (docs/choir-tracks-plan.md, Hillel
  * 2026-11-11): each a presigned PUT to the private bucket, as takes are (the day's upload cap counts
- * it), checked at complete by size, SHA-256 and its first bytes against the type it was sent as.
- * Only staff read them, through a 10-minute link. One never put in a request goes after a day.
+ * it, the uploads switch pauses it, and its link holds 10 minutes), checked at complete by size,
+ * SHA-256 and its first bytes against the type it was sent as. Only staff read them, through a
+ * 10-minute link. One never put in a request goes after a day.
  */
 final class TrackScores
 {
@@ -61,7 +62,7 @@ final class TrackScores
             'upload_key' => 'uploads/scores/'.Str::lower(Str::random(32)).'.'.TrackScore::EXTENSIONS[$data['contentType']],
         ])->save();
 
-        return ['score' => $score, 'upload' => $this->uploads->presign($score->upload_key, $score->content_type, $score->bytes, minutes: 30)];
+        return ['score' => $score, 'upload' => $this->uploads->presign($score->upload_key, $score->content_type, $score->bytes, minutes: 10)];
     }
 
     public function complete(User $user, string $groupId, string $scoreId): TrackScore
@@ -136,10 +137,15 @@ final class TrackScores
     }
 
     /**
-     * Files never put in a request (or whose request has gone) a day on: deleted, rows and files.
+     * Files never put in a request (or whose request has gone) a day on: deleted, rows and files. And a kept file's
+     * upload slot, long after its link expired: anything put there after its complete goes, while the row and its
+     * checked copy stay. (Each kept row is looked at for its few hours just past a day; this runs hourly.)
      */
     public function prune(): int
     {
+        TrackScore::query()->whereNotNull('support_message_id')->whereBetween('created_at', [now()->subDay()->subHours(3), now()->subDay()])
+            ->chunkById(200, static fn ($scores) => Storage::disk('private')->delete($scores->pluck('upload_key')->all()));
+
         $pruned = 0;
 
         TrackScore::query()->whereNull('support_message_id')->where('created_at', '<', now()->subDay())->chunkById(200, function ($scores) use (&$pruned): void {

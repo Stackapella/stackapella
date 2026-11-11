@@ -81,7 +81,7 @@ final class RegisterWithPassword
 
                 $user = new User(['name' => $name, 'email' => $email, 'locale' => $locale]);
                 $age = Age::fields($user, $birth['month'], $birth['year']);
-                $user->forceFill(['password' => $password, 'ref' => $ref, 'early_access_link_id' => $link?->id, ...$age, 'pending_invite_hash' => $invite !== null ? hash('sha256', $invite) : null])->save();
+                $user->forceFill(['password' => $password, 'ref' => RecordCounts::accountRef($ref), 'early_access_link_id' => $link?->id, ...$age, 'pending_invite_hash' => $invite !== null ? hash('sha256', $invite) : null])->save();
                 ShareSignUps::record($user, $ref);
 
                 return $user;
@@ -91,7 +91,7 @@ final class RegisterWithPassword
             return;
         }
 
-        $this->securityLog->record(SecurityEventType::SignUp, $user, $ip, ['method' => 'password', 'ref' => $ref]);
+        $this->securityLog->record(SecurityEventType::SignUp, $user, $ip, ['method' => 'password', 'ref' => RecordCounts::accountRef($ref)]);
         // The anonymous daily count: the server counts every new account, whichever way it came.
         app(RecordCounts::class)->handle([['kind' => 'sign_up']], true, $country);
 

@@ -225,11 +225,13 @@ export const VoiceView = {
     data: () => ({ history: null, failed: false, titles: {}, group: 'all', measuring: false, changing: false }),
     setup: () => ({ learning, account, navigate, goBack, BADGES, GROUPS, GROUP_WORDS, GROUP_COLORS, SUITS, FIND, SAMPLE, formatDate, formatNumber, game }),
     template: `
-        <AppScreen :title="t('voice.title')" back="/learn" measure="max-w-3xl" content-class="gap-6 pt-4 md:gap-8" data-ui="screen" class="bg-ink">
+        <AppScreen :title="t('voice.title')" back="/learn" measure="" content-class="gap-6 pt-4 md:gap-8" data-ui="screen" class="bg-ink">
             <template v-if="game()" #aside><span class="tabular-nums text-sm text-muted">{{ t('voice.levelXp', { level: level.level, xp: formatNumber(xp) }) }}</span></template>
 
-                <section class="space-y-4" aria-labelledby="range-heading">
-                    <div class="flex flex-wrap items-end justify-between gap-4">
+                <!-- From 900 px (Hillel's width design): the keyboard at left; your range, its line and the ways to change it at
+                     right, the four numbers under them. A phone keeps this order: range, keyboard, numbers. -->
+                <section class="app-split space-y-4 min-[900px]:gap-y-4 min-[900px]:space-y-0" aria-labelledby="range-heading" data-voice-range>
+                    <div class="flex flex-wrap items-end justify-between gap-4 min-[900px]:col-start-2 min-[900px]:row-start-1 min-[900px]:flex-col min-[900px]:items-start min-[900px]:justify-start">
                         <div class="min-w-0 max-w-xl">
                             <p id="range-heading" class="text-xs font-bold tracking-widest text-accent uppercase">{{ t('voice.range') }}</p>
                             <p v-if="range" class="mt-1 text-5xl font-extrabold tracking-tight text-cream">{{ t('voice.rangeBig', { low: name(range.low), high: name(range.high) }) }}</p>
@@ -243,17 +245,17 @@ export const VoiceView = {
                             <button type="button" class="btn-secondary" @click="changing = true">{{ range ? t('voice.change.open') : t('voice.change.choose') }}</button>
                         </div>
                     </div>
-                    <div class="card space-y-3 p-4 md:p-5">
+                    <div class="card space-y-3 p-4 md:p-5 min-[900px]:col-start-1 min-[900px]:row-span-3 min-[900px]:row-start-1">
                         <RangeKeyboard :range="range" :home="learning.progress.home" :type="type" @key="hear" />
                         <p class="text-xs text-muted">{{ range ? t('voice.keyboardNote') : t('voice.keyboardTap') }}</p>
                     </div>
-                    <dl v-if="range" class="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                    <dl v-if="range" class="grid grid-cols-2 gap-3 min-[640px]:grid-cols-4 min-[900px]:col-start-2 min-[900px]:grid-cols-2">
                         <div v-for="tile in tiles" :key="tile.label" class="card p-4">
                             <dt class="text-xs text-muted">{{ tile.label }}</dt>
                             <dd class="mt-1 text-xl font-extrabold text-cream">{{ tile.value }}</dd>
                         </div>
                     </dl>
-                    <button v-if="type" type="button" class="btn-primary self-start" @click="navigate('/')">{{ t(FIND[type]) }} <Icon name="arrow" :size="16" /></button>
+                    <button v-if="type" type="button" class="btn-primary self-start min-[900px]:col-start-2 min-[900px]:justify-self-start" @click="navigate('/')">{{ t(FIND[type]) }} <Icon name="arrow" :size="16" /></button>
                 </section>
 
                 <!-- Badges are game mode's: still earned, shown only there (docs/skins-plan.md row 6). -->
@@ -292,6 +294,8 @@ export const VoiceView = {
                     </template>
                 </section>
 
+                <!-- Your history and Your progress side by side from 900 px. -->
+                <div class="flex flex-col gap-6 md:gap-8 min-[900px]:grid min-[900px]:grid-cols-2 min-[900px]:items-start min-[900px]:gap-6" data-voice-pair>
                 <section class="card space-y-4 p-6" aria-labelledby="history-heading">
                     <h2 id="history-heading" class="text-lg font-bold text-cream">{{ t('voice.history.title') }}</h2>
                     <!-- Free with an account (Hillel, 2026-11-07: "it's free to learn to sing and become a better singer"). -->
@@ -319,6 +323,7 @@ export const VoiceView = {
                     <h2 id="progress-heading" class="mb-4 text-lg font-bold text-cream">{{ t('voice.progress') }}</h2>
                     <CourseStats editable />
                 </section>
+                </div>
             <RangeDialog v-if="measuring" :template="{ key: 'C', parts: [] }" :parts="[]" @close="measuring = false" />
             <ChangeRange v-if="changing" :range="range" @close="changing = false" @save="changeRange" />
         </AppScreen>`,

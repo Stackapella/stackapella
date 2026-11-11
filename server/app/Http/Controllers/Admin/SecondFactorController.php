@@ -13,6 +13,7 @@ use App\Notifications\Admin\SecondFactorAdded;
 use App\Support\Admin\Admins;
 use App\Support\Admin\IntendedUrl;
 use App\Support\Admin\SecondFactor;
+use App\Support\Admin\StaffDevice;
 use BaconQrCode\Renderer\Image\SvgImageBackEnd;
 use BaconQrCode\Renderer\ImageRenderer;
 use BaconQrCode\Renderer\RendererStyle\RendererStyle;
@@ -21,6 +22,7 @@ use Illuminate\Container\Attributes\CurrentUser;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
@@ -108,7 +110,7 @@ final class SecondFactorController extends Controller
         if ($enrolled) {
             Notification::send($this->admins->all(), new SecondFactorAdded($user, 'passkey', (string) $request->userAgent()));
         } else {
-            $this->secondFactor->markPassed($request->session(), $user, 'passkey', (string) $request->userAgent(), $request->ip());
+            $this->passed($request, $user, 'passkey');
         }
 
         return response()->json(['redirect' => $this->intended($request)]);
@@ -137,7 +139,7 @@ final class SecondFactorController extends Controller
         if ($enrolled) {
             Notification::send($this->admins->all(), new SecondFactorAdded($user, 'totp', (string) $request->userAgent()));
         } else {
-            $this->secondFactor->markPassed($request->session(), $user, 'code', (string) $request->userAgent(), $request->ip());
+            $this->passed($request, $user, 'code');
         }
 
         return redirect()->route('admin.second-factor.setup');
@@ -203,7 +205,7 @@ final class SecondFactorController extends Controller
             return response()->json(['message' => __('admin.second_factor.passkey_failed')], 422);
         }
 
-        $this->secondFactor->markPassed($request->session(), $user, 'passkey', (string) $request->userAgent(), $request->ip());
+        $this->passed($request, $user, 'passkey');
 
         return response()->json(['redirect' => $this->intended($request)]);
     }
@@ -218,9 +220,23 @@ final class SecondFactorController extends Controller
                 : __('admin.second_factor.code_failed')]);
         }
 
-        $this->secondFactor->markPassed($request->session(), $user, 'code', (string) $request->userAgent(), $request->ip());
+        $this->passed($request, $user, 'code');
 
         return redirect()->to($this->intended($request));
+    }
+
+    /**
+     * The second factor passed for this sign-in; an admin's device (not an editor's) may also preview a language
+     * before it opens (StaffDevice::previewCookie, checked by SiteLanguage), from now until its expiry or until who
+     * may preview changes.
+     */
+    private function passed(Request $request, User $user, string $method): void
+    {
+        $this->secondFactor->markPassed($request->session(), $user, $method, (string) $request->userAgent(), $request->ip());
+
+        if ($user->is_admin) {
+            Cookie::queue(StaffDevice::previewCookie($request));
+        }
     }
 
     /**

@@ -35,7 +35,7 @@ export const StorageView = {
     data: () => ({ usage: null, bin: null, failed: false, busy: null, notice: null, editable: [], openSong: null, kept: null }),
     setup: () => ({ account, cloud, projects, navigate, goBack, formatBytes, formatDate, shownTitle, selfHosted }),
     template: `
-        <AppScreen :title="t('cloud.storage.title')" back="/settings" measure="max-w-2xl" content-class="gap-8 pt-4" data-ui="screen" class="bg-ink">
+        <AppScreen :title="t('cloud.storage.title')" back="/settings" :measure="account.me ? '' : 'max-w-2xl'" content-class="gap-8 pt-4" side-class="mt-8 min-[900px]:pt-4" data-ui="screen" class="bg-ink">
 
                 <!-- The real limit first (88.png): the songs as slots, then the space split by song, then the sync line -->
                 <section v-if="account.me" class="card space-y-5 p-5 md:p-6" data-storage-hero>
@@ -121,8 +121,10 @@ export const StorageView = {
                     <button type="button" class="btn-secondary btn-sm shrink-0 text-bad" :disabled="busy === 'courseTakes'" @click="removeCourseTakes">{{ t('cloud.storage.courseTakesDelete') }}</button>
                 </section>
 
-                <!-- Recently deleted: countdowns, the restore rules said before you tap, and Delete now -->
-                <section v-if="account.me" class="space-y-3" aria-labelledby="bin-heading">
+                <!-- Recently deleted: countdowns, the restore rules said before you tap, and Delete now. From 900 px it sits at
+                     right of the plan and your songs (Hillel's width design); a phone has it last, as before. -->
+                <template v-if="account.me" #side>
+                <section class="space-y-3" aria-labelledby="bin-heading" data-storage-bin>
                     <div><h2 id="bin-heading" class="text-lg font-bold text-cream">{{ t('cloud.bin.title') }}</h2><p class="text-sm text-muted">{{ t('cloud.bin.kept') }}</p></div>
                     <p v-if="bin === null && !failed" class="text-sm text-muted" role="status">{{ t('settings.loading') }}</p>
                     <p v-else-if="bin && !bin.length" class="text-sm text-muted">{{ t('cloud.bin.empty') }}</p>
@@ -141,6 +143,7 @@ export const StorageView = {
                         </li>
                     </ul>
                 </section>
+                </template>
         </AppScreen>`,
     computed: {
         editableLimit() {

@@ -30,9 +30,10 @@ const partColor = (index) => paint(PART_COLORS[(index * 3) % PART_COLORS.length]
 /** The page's frame: the shared header, and the page. */
 const Frame = {
     components: { AppScreen },
-    props: { title: { type: String, required: true }, back: { type: String, default: '/' } },
+    // wide: the list, across the app's row from 900 px (Hillel's width design); an idea's own page keeps its column.
+    props: { title: { type: String, required: true }, back: { type: String, default: '/' }, wide: Boolean },
     template: `
-        <AppScreen :title="title" :back="back" measure="max-w-3xl">
+        <AppScreen :title="title" :back="back" :measure="wide ? '' : 'max-w-3xl'">
             <template #aside><slot name="aside" /></template>
             <div class="mt-4 space-y-6"><slot /></div>
         </AppScreen>`,
@@ -67,11 +68,13 @@ export const IdeasView = {
     data: () => ({ tab: 'open', needs: null, list: null, cursor: null, failed: null, busy: false }),
     setup: () => ({ TABS, NEEDS, ideas, account }),
     template: `
-        <Frame :title="t('ideas.title')">
+        <Frame :title="t('ideas.title')" wide>
             <p class="text-muted">{{ t('ideas.intro') }}</p>
             <p v-if="ideas.open === null" class="text-muted" role="status">{{ t('ideas.loading') }}</p>
             <EmptyState v-else-if="ideas.open === false" icon="info" :title="t('ideas.closed')" :body="t('ideas.closedHint')" />
             <template v-else>
+                <!-- From 900 px the tabs and the part filter share one row, and the cards go two across. -->
+                <div class="space-y-6 min-[900px]:flex min-[900px]:flex-wrap min-[900px]:items-center min-[900px]:justify-between min-[900px]:gap-4 min-[900px]:space-y-0" data-ideas-controls>
                 <div class="seg flex sm:w-fit" role="radiogroup" :aria-label="t('ideas.title')">
                     <button v-for="(label, key) in TABS" v-show="key !== 'mine' || account.me" :key="key" type="button" role="radio" :aria-checked="tab === key ? 'true' : 'false'" class="seg-option flex-1 sm:flex-none" @click="choose(key)">{{ t(label) }}</button>
                 </div>
@@ -79,10 +82,11 @@ export const IdeasView = {
                     <span class="text-sm text-muted">{{ t('ideas.needsLabel') }}</span>
                     <button v-for="(label, key) in NEEDS" :key="key" type="button" class="filter-chip" :aria-pressed="needs === key ? 'true' : 'false'" @click="need(key)">{{ t(label) }}</button>
                 </div>
+                </div>
                 <p v-if="failed" class="text-sm text-bad" role="alert">{{ failed }}</p>
                 <p v-else-if="list === null" class="text-muted" role="status">{{ t('ideas.loading') }}</p>
                 <p v-else-if="!list.length" class="text-muted" data-ideas-empty>{{ tab === 'mine' ? t('ideas.emptyMine') : needs ? t('ideas.emptyNeeds', { part: t(NEEDS[needs]) }) : t('ideas.empty') }}</p>
-                <div v-else class="space-y-3" data-ideas-list>
+                <div v-else class="space-y-3 min-[900px]:grid min-[900px]:grid-cols-2 min-[900px]:items-start min-[900px]:gap-3 min-[900px]:space-y-0" data-ideas-list>
                     <IdeaCard v-for="idea in list" :key="idea.id" :idea="idea" />
                 </div>
                 <button v-if="cursor" type="button" class="btn-secondary w-full" :disabled="busy" @click="more">{{ t('ideas.more') }}</button>

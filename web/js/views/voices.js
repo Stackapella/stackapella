@@ -40,7 +40,7 @@ export const VoicesView = {
     data: () => ({ state: 'loading', agreement: null, wanted: null, skills: [], claims: [], kind: 'all', skill: '', credit: 'name', busy: null, refusal: null }),
     setup: () => ({ KINDS, KIND_WORDS, account, day, navigate }),
     template: `
-        <AppScreen :title="t('voices.title')" back="/settings" measure="max-w-3xl">
+        <AppScreen :title="t('voices.title')" back="/settings" :measure="state === 'volunteer' ? '' : 'max-w-3xl'">
             <p v-if="state === 'loading'" class="text-muted" role="status">{{ t('common.loading') }}</p>
             <Notice v-else-if="state === 'off'" tone="info" data-voices-off>{{ t('voices.off') }}</Notice>
             <AccountWall v-else-if="state === 'signedOut'" reason="voice" next="/voices" />
@@ -67,9 +67,10 @@ export const VoicesView = {
                 <button type="button" class="btn-primary" :disabled="busy === 'join' || !agreement" data-voices-agree @click="join">{{ busy === 'join' ? t('auth.working') : t('voices.agree') }}</button>
             </section>
 
-            <!-- A volunteer: what you hold, then what's wanted. -->
-            <template v-else-if="state === 'volunteer'">
-                <section v-if="claims.length" class="space-y-3" aria-labelledby="voices-held" data-voices-claims>
+            <!-- A volunteer: what you hold, then what's wanted. From 900 px (Hillel's width design) what's wanted at left, wide,
+                 and yours to record at right; a phone keeps this order. -->
+            <div v-else-if="state === 'volunteer'" class="app-split" data-voices-split>
+                <section v-if="claims.length" class="space-y-3 min-[900px]:col-start-2 min-[900px]:row-start-1" aria-labelledby="voices-held" data-voices-claims>
                     <h2 id="voices-held" class="text-lg font-bold text-cream">{{ t('voices.held') }}</h2>
                     <ul class="space-y-2">
                         <li v-for="c in claims" :key="c.id" class="card flex flex-wrap items-center justify-between gap-3 p-4" :data-claim="c.id">
@@ -84,7 +85,7 @@ export const VoicesView = {
                         </li>
                     </ul>
                 </section>
-                <section class="mt-8 space-y-3" aria-labelledby="voices-wanted" data-voices-wanted>
+                <section class="mt-8 space-y-3 min-[900px]:col-start-1 min-[900px]:row-start-1 min-[900px]:mt-0" :class="claims.length ? '' : 'min-[900px]:col-span-2'" aria-labelledby="voices-wanted" data-voices-wanted>
                     <div class="flex flex-wrap items-end justify-between gap-3">
                         <h2 id="voices-wanted" class="text-lg font-bold text-cream">{{ t('voices.wanted') }}</h2>
                         <div class="flex w-full min-w-0 flex-wrap items-center gap-3 sm:w-auto">
@@ -110,7 +111,7 @@ export const VoicesView = {
                         </li>
                     </ul>
                 </section>
-            </template>
+            </div>
         </AppScreen>`,
     async created() {
         await this.load();

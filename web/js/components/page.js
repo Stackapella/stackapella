@@ -50,6 +50,9 @@ export const AppScreen = {
         measure: { type: String, default: 'max-w-3xl' },
         contentClass: { type: [String, Array, Object], default: '' },
         foot: { type: String, default: 'pb-16' }, // the space under the content (a screen with a pinned foot has its own)
+        // The side panel's own: on a phone, the gap above it (the content's own gap, so a phone looks as before); at 900 px,
+        // its top (the content's top padding) or min-[900px]:static for a side that can outgrow the window.
+        sideClass: { type: [String, Array, Object], default: 'mt-6' },
     },
     template: `
         <div class="flex min-h-dvh flex-col">
@@ -58,7 +61,13 @@ export const AppScreen = {
                 <template #aside><slot name="aside" /></template>
             </PageHeader>
             <div class="app-wrap flex flex-1 flex-col" :class="foot">
-                <div class="mx-auto flex w-full flex-1 flex-col" :class="[measure, contentClass]"><slot /></div>
+                <!-- With a side (Hillel's width design): the content at left, the side panel at right from 900 px, sticky
+                     where it fits; a phone has the side after the content, as written. -->
+                <div v-if="$slots.side" class="app-split mx-auto w-full flex-1" :class="measure" data-app-split>
+                    <div class="flex min-w-0 flex-col" :class="contentClass"><slot /></div>
+                    <aside class="flex min-w-0 flex-col gap-6 min-[900px]:sticky min-[900px]:top-6 min-[900px]:!mt-0" :class="sideClass" data-app-side><slot name="side" /></aside>
+                </div>
+                <div v-else class="mx-auto flex w-full flex-1 flex-col" :class="[measure, contentClass]"><slot /></div>
             </div>
         </div>`,
 };

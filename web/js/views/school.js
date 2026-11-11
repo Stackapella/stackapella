@@ -59,14 +59,16 @@ export const ClassesView = {
     data: () => ({ classes: null, failed: false, name: '', seats: 30, making: false, error: null, editing: null, editName: '', editSeats: 0, saving: false, editError: null }),
     setup: () => ({ account, MOST_SEATS, STATES, classState, formatNumber }),
     template: `
-        <AppScreen :title="t('school.classes.title')" back="/settings" measure="max-w-3xl" data-classes>
+        <AppScreen :title="t('school.classes.title')" back="/settings" :measure="account.me ? '' : 'max-w-3xl'" data-classes>
             <AccountWall v-if="account.loaded && !account.me" reason="settings" next="/settings/classes" />
-            <template v-else-if="account.me">
-                <p class="max-w-prose text-muted">{{ t('school.classes.intro') }}</p>
-                <Notice v-if="account.me.isAdult === false" tone="info" class="mt-5">{{ t('school.error.adult') }}</Notice>
+            <!-- From 900 px (Hillel's width design): your codes at left; at right the intro as the lead, Make a class code and
+                 the seats note. A phone keeps this order: intro, make, your codes, the note. -->
+            <div v-else-if="account.me" class="app-split min-[900px]:gap-y-6" data-classes-split>
+                <p class="max-w-prose text-muted min-[900px]:col-start-2 min-[900px]:row-start-1">{{ t('school.classes.intro') }}</p>
+                <Notice v-if="account.me.isAdult === false" tone="info" class="mt-5 min-[900px]:col-start-1 min-[900px]:row-start-1 min-[900px]:mt-0">{{ t('school.error.adult') }}</Notice>
                 <template v-else>
                     <!-- Make a code: the one action, first. -->
-                    <form class="card mt-6 space-y-4 p-5" data-class-new @submit.prevent="make">
+                    <form class="card mt-6 space-y-4 p-5 min-[900px]:col-start-2 min-[900px]:row-start-2 min-[900px]:mt-0" data-class-new @submit.prevent="make">
                         <h2 class="text-lg font-bold text-cream">{{ t('school.classes.new') }}</h2>
                         <div class="grid gap-4 sm:grid-cols-[minmax(0,1fr)_9rem]">
                             <label class="space-y-1.5"><span class="block text-sm font-semibold text-cream">{{ t('school.classes.name') }}</span>
@@ -79,7 +81,7 @@ export const ClassesView = {
                         <button type="submit" class="btn-primary" :disabled="making || !name" data-class-make>{{ making ? t('common.saving') : t('school.classes.make') }}</button>
                     </form>
 
-                    <section class="mt-8 space-y-3" aria-labelledby="classes-h">
+                    <section class="mt-8 space-y-3 min-[900px]:col-start-1 min-[900px]:row-span-3 min-[900px]:row-start-1 min-[900px]:mt-0" aria-labelledby="classes-h">
                         <h2 id="classes-h" class="text-lg font-bold text-cream">{{ t('school.classes.yours') }}</h2>
                         <p v-if="failed" class="text-muted" role="status">{{ t('school.classes.failed') }} <button type="button" class="link" @click="load">{{ t('common.tryAgain') }}</button></p>
                         <p v-else-if="!classes" class="text-muted" role="status">{{ t('common.loading') }}</p>
@@ -113,9 +115,9 @@ export const ClassesView = {
                             </li>
                         </ul>
                     </section>
-                    <p class="mt-8 max-w-prose text-sm text-muted">{{ t('school.classes.daily') }} {{ t('school.classes.privacy') }}</p>
+                    <p class="mt-8 max-w-prose text-sm text-muted min-[900px]:col-start-2 min-[900px]:row-start-3 min-[900px]:mt-0">{{ t('school.classes.daily') }} {{ t('school.classes.privacy') }}</p>
                 </template>
-            </template>
+            </div>
         </AppScreen>`,
     created() {
         if (account.me) this.load();
