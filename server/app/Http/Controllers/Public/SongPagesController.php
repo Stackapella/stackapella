@@ -8,10 +8,12 @@ use App\Enums\TemplateAccess;
 use App\Http\Controllers\Controller;
 use App\Models\Template;
 use App\Support\Http\Hosts;
+use App\Support\Pages\Carols;
 use App\Support\Pages\Landing;
 use App\Support\Pages\SongCollections;
 use App\Support\Pages\SongPage;
 use App\Support\Pages\SongParts;
+use App\Support\Pages\SongsHub;
 use App\Support\Sharing\SongCards;
 use App\Support\Templates\Catalogue;
 use Illuminate\Http\Response;
@@ -38,13 +40,16 @@ final class SongPagesController extends Controller
         // Only the songs the site may show: one waiting for its Monday stays off (Catalogue::open()).
         $songs = $catalogue->open();
 
+        // A sampler (Hillel, 2026-11-11): each collection's band in its page's look with a few songs to play and the way to
+        // all of them, then every song A to Z (SongsHub).
+
         return response()->view('public.songs', [
-            'songs' => $all = array_values($songs->map(fn (Template $t): array => SongPage::of($t))->all()),
-            // The songs in groups (SongCollections::grouped): about 50 open is too many for one list.
-            'groups' => app(SongCollections::class)->grouped($all),
-            // Each card's Play: a bundled song's opening line, by slug; any other song's notes come
-            // only through the API, to an account (Hillel, 2026-10-27), so it has none.
-            'lines' => $songs->mapWithKeys(fn (Template $t): array => [$t->slug => $t->access === TemplateAccess::Plus ? null : Landing::line($t)])->all(),
+            'count' => $songs->count(),
+            'bands' => app(SongsHub::class)->bands(),
+            'index' => SongsHub::index($songs),
+            'rounds' => in_array('rounds', array_column(app(SongCollections::class)->open(), 'slug'), true) ? SongCollections::path('rounds') : null,
+            // The season band's chip: when it ends (Carols::seasonEnds).
+            'until' => Carols::seasonEnds()->translatedFormat('j F'),
             'meta' => ['title' => __('pages.songs.title'), 'description' => __('pages.songs.description'), 'url' => Hosts::publicUrl().'/songs'],
         ], 200, self::headers());
     }

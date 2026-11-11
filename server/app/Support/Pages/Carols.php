@@ -224,6 +224,14 @@ final class Carols
         return $today->month >= 11 || ($today->month === 1 && $today->day <= 6);
     }
 
+    /** The day the season ends (Twelfth Night, 6 January), for /songs's "Until 6 January": next January's in the autumn. */
+    public static function seasonEnds(): Carbon
+    {
+        $today = now();
+
+        return $today->copy()->setDate($today->month >= 11 ? $today->year + 1 : $today->year, 1, 6)->startOfDay();
+    }
+
     /**
      * The page's lastmod: the newest of its carols' current versions, or null with none.
      */

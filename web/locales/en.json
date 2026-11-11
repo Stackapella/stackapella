@@ -694,6 +694,10 @@
             "usageHint": "How much the app is used, guests included: anonymous daily counts, by moment and country.",
             "funnel": "Funnel",
             "funnelHint": "The onboarding funnel and its A/B experiments, from the anonymous counts.",
+            "dropoffs": "Drop-offs",
+            "dropoffsHint": "Where singers stop, step by step: the week's worst, each against its neighbours and its weeks before.",
+            "sharing": "Sharing",
+            "sharingHint": "How often singers pass the app on, from where, and what comes of it.",
             "group": {
                 "inbox": "Inbox",
                 "users": "Users",
@@ -1680,6 +1684,9 @@
             "voices": "Voices",
             "site": "Site",
             "toOutreach": "All outreach",
+            "toDropoffs": "All drop-offs",
+            "toSharing": "All sharing",
+            "weakest": "Weakest: {surface}, {perShare} arrivals a share.",
             "outreach": {
                 "sendBySoon": "{count, plural, one {First email to send soon} other {First emails to send soon}}",
                 "followUps": "{count, plural, one {Follow-up due} other {Follow-ups due}}",
@@ -1938,6 +1945,84 @@
             "title": "The preview link",
             "hint": "Lets someone look around the app before it opens, with no account (it never lets a sign-up through). Send it yourself.",
             "joined": "{joined} let in (of {cap})."
+        },
+        "dropoffs": {
+            "intro": "The week of {from} to {to}: how many reached each step, how many went on, and that against the steps around it and its own four weeks before. Under {floor} it's too few to tell, never a drop.",
+            "introNone": "Where singers stop, step by step, each week.",
+            "none": "No report yet: the first is worked out on Friday night.",
+            "failed": "The drop-offs didn't load.",
+            "worst": "The worst this week",
+            "noDrops": "No step fell well below the steps around it, or its own weeks before.",
+            "line": "{pass} went on, against {neighbours} around it; {lost} more would have",
+            "lastWeekWas": "last week {pass}",
+            "tooFew": "too few to tell",
+            "lost": "{count, plural, one {1 lost} other {# lost}}",
+            "col": {
+                "step": "Step",
+                "entered": "Reached it",
+                "passed": "Went on",
+                "week": "This week",
+                "lastWeek": "Last week",
+                "before": "4 weeks before",
+                "neighbours": "Steps around it",
+                "month": "Last 28 days",
+                "verdict": "A drop"
+            }
+        },
+        "sharing": {
+            "intro": "The seven days from {from} to {to}, against the seven before. Under {floor}, a number is too few to tell.",
+            "introShort": "How often singers pass the app on, and what comes of it.",
+            "failed": "Sharing didn't load.",
+            "tooFew": "too few to tell",
+            "same": "same",
+            "points": "pts",
+            "onLastWeek": "on last week",
+            "totals": "{active} active singers, {shares} shares, {arrivals} arrivals from a share.",
+            "bySurface": "Where shares start",
+            "noShares": "No shares this week.",
+            "measure": {
+                "sharesPer100": "Shares per 100 singers",
+                "arrivalsPerShare": "Arrivals per share",
+                "arrivalsThatSing": "Arrivals that sing",
+                "eachHundredBring": "Each 100 singers bring"
+            },
+            "col": {
+                "surface": "From",
+                "shares": "Shares",
+                "how": "How",
+                "opened": "Pages opened",
+                "arrivals": "Arrivals",
+                "lesson1": "First lesson",
+                "signedUp": "Signed up",
+                "perShare": "Arrivals a share"
+            },
+            "method": {
+                "sheet": "{count} from the share sheet",
+                "copy": "{count} copied",
+                "video": "{count} as a video",
+                "image": "{count} as a picture",
+                "embed": "{count} embedded"
+            },
+            "surface": {
+                "song": "A song",
+                "lesson": "A lesson",
+                "note": "Your note",
+                "daily": "The daily challenge",
+                "invite": "An invite",
+                "challenge": "A challenge",
+                "group": "A choir group",
+                "class": "A class code",
+                "arrangement": "An arrangement",
+                "warmup": "A warm-up",
+                "app": "The app",
+                "embed": "An embedded tool",
+                "pageSong": "A song page",
+                "pagePart": "A part page",
+                "pageCourse": "A course page",
+                "pageLesson": "A lesson page",
+                "pageCarols": "The carols page",
+                "tool": "Free tool: {slug}"
+            }
         },
         "support": {
             "tracks": {

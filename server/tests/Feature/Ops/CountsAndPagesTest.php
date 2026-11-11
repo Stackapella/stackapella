@@ -194,14 +194,9 @@ final class CountsAndPagesTest extends TestCase
         $this->assertSame('noindex', $page->headers->get('X-Robots-Tag'));
         $this->assertNull($page->headers->get('Set-Cookie'));
 
+        // /songs lists every open song A to Z (its samples play for guests: Hillel, 2026-11-08, "Yes, play for guests").
         $list = $this->get('/songs')->assertOk()->assertViewIs('public.songs');
-        $this->assertSame(['amazing-grace', 'silent-night'], array_column($list->viewData('songs'), 'slug'));
-        // Each card's Play: a bundled song's opening line; any other song's notes come only to an
-        // account, through the API.
-        $this->assertNotNull($list->viewData('lines')['amazing-grace']);
-        $this->assertNull($list->viewData('lines')['silent-night']);
-        // Every library song is free with an account (2026-11-07): no song carries a plan.
-        $this->assertSame([], array_column($list->viewData('songs'), 'plus'));
+        $this->assertSame(['/songs/amazing-grace', '/songs/silent-night'], array_column($list->viewData('index'), 'url'));
 
         $this->get('/songs/nope')->assertNotFound()->assertViewIs('public.page-gone')->assertViewHas('links', ['app' => '/songs']);
         // A singer's own template has no page.
@@ -222,7 +217,7 @@ final class CountsAndPagesTest extends TestCase
         app(SyncOfficialTemplates::class)->handle();
 
         $seen = function (): array {
-            $list = array_column((array) $this->get('/songs')->assertOk()->viewData('songs'), 'slug');
+            $list = array_map(static fn (string $url): string => basename($url), array_column((array) $this->get('/songs')->assertOk()->viewData('index'), 'url'));
             $page = $this->get('/songs/away-in-a-manger')->status();
             $sitemap = str_contains((string) $this->get('/sitemap.xml')->assertOk()->getContent(), '/songs/away-in-a-manger</loc>');
             $more = array_column((array) $this->get('/songs/amazing-grace')->assertOk()->viewData('more'), 'slug');

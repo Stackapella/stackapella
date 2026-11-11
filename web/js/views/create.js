@@ -12,7 +12,7 @@
 //   other parts, name and save.
 // The steps are in js/components/create/; the plain parts in js/creator.js.
 
-import { t, tk } from '../i18n.js';
+import { locale, t, tk } from '../i18n.js';
 import { goBack, navigate } from '../router.js';
 import { harmonize } from '../arrange.js';
 import { copyOf, finishParts, LICENCE, melodyFromLines, newTemplate, partOf, problemsOf, sectionFrom, MELODY_KEY } from '../creator.js';
@@ -69,6 +69,8 @@ export function stepsFor(draft) {
 /** A new draft. `template` when starting from notes (a copy, one of yours, a file, a project). */
 export function newDraft(mode, template = null, extra = {}) {
     const start = template ?? newTemplate();
+    // A new song's words are in the person's language when it's one the words step splits (Spanish); English otherwise.
+    if (!template && locale.lang.split('-')[0] === 'es') start.language = 'es';
     return {
         id: crypto.randomUUID(),
         mode,

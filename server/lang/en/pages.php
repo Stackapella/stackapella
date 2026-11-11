@@ -50,11 +50,11 @@ return [
     'songs' => [
         'title' => 'Songs to learn in harmony',
         'description' => 'Every song on Stackapella, arranged in parts to learn one at a time.',
-        'headline' => 'Songs to learn',
-        'lead' => 'Arrangements written for learning, from rounds to four-part hymns. Press Play on a free one to hear it here.',
+        'headline' => 'Songs to sing in harmony',
+        'lead' => 'Choose a song, choose your part, and hear it alone or with the others.',
         'parts' => ':count parts',
         'eyebrow' => 'The songbook',
-        'count' => ':count arrangements, every one free with an account.',
+        'count' => ':count songs, every part free to learn.',
         'free_title' => 'Every song, free',
         // /songs in groups (SongCollections::grouped), and the row that jumps to them.
         'groups' => [
@@ -62,6 +62,13 @@ return [
             'sea-shanties' => 'Sea shanties', 'folk' => 'Folk songs', 'classical' => 'Classical and sacred', 'stage' => 'Barbershop, parlour and stage', 'more' => 'More songs',
         ],
         'jump' => 'Song groups',
+        // /songs as a sampler (App\Support\Pages\SongsHub): each collection's band and its way on, then every song.
+        'start_round' => 'New to harmony? Start with a round',
+        'season' => 'In season',
+        'season_until' => 'Until :date',
+        'index_kick' => 'Every song',
+        'index' => 'Every song, A to Z',
+        'index_lead' => 'Each one has its own page, with every part to hear and learn.',
         'play' => 'Play :title',
         'stop' => 'Stop :title',
         'open' => 'See the song',

@@ -142,7 +142,7 @@ def journey(f):
 
     # One header bar; the Numbers pages as underline tabs, Overview first (Hillel's menu by job, 2026-11-10).
     pages = json.loads(f.js("JSON.stringify([...document.querySelectorAll('[data-nav-sections] a')].map((a) => a.getAttribute('href')))"))
-    assert pages == ["/admin/growth", "/admin/usage", "/admin/activity", "/admin/funnel", "/admin/sources", "/admin/cohorts", "/admin/experiments", "/admin/revenue"], pages
+    assert pages == ["/admin/growth", "/admin/usage", "/admin/activity", "/admin/funnel", "/admin/dropoffs", "/admin/sources", "/admin/sharing", "/admin/cohorts", "/admin/experiments", "/admin/revenue"], pages
     assert f.js("document.querySelector('[data-nav-sections] [aria-current=page]').getAttribute('href')") == "/admin/growth"
     groups = f.js("[...document.querySelectorAll('header [data-nav-groups] a')].map((a) => a.textContent.trim().replace(/\\d+$/, '').trim())")
     assert groups == [t(f, f"admin.nav.group.{k}") for k in ("inbox", "users", "library", "marketing", "numbers", "settings")], groups

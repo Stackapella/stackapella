@@ -1,7 +1,8 @@
 // Words for the template creator (docs/template-creator-plan.md, "Syllables and fitting"): pasted
 // words split into syllables the way the templates write them ("A-" "maz-" "ing"), by built-in
 // English rules with a few exceptions (the Liang hyphenation patterns would need Hillel's OK as a
-// new library; other languages are split by hand), and a line's syllables fitted to the notes sung
+// new library), or Spanish's own (regular enough to be rules: docs/languages-plan.md; other languages
+// are split by hand), and a line's syllables fitted to the notes sung
 // for it: one each, extra notes held as melismas where they sit best (long notes, steps within a
 // word), and too few notes answered with the note to split. Pure, unit-tested.
 
@@ -79,19 +80,89 @@ function splitWord(word) {
     return out.filter(Boolean);
 }
 
+// ---- Spanish ---------------------------------------------------------------------------------------------------
+// Spanish splits by its spelling (the RAE's rules): a consonant between vowels starts the next syllable (pa-ra); of
+// two, the second does (can-ción), unless they're a pair that starts syllables together (a-brir: pr, bl, tr...); of
+// three or four, the last two go right when they're such a pair (ins-truc-ción), else the last one (trans-por-te).
+// ch, ll and rr are one sound; the u of qu and gu before e or i is silent. Two vowels share a syllable when one is
+// an unstressed i or u (bien, cau-sa, cui-dar); two strong ones (a, e, o) part (le-er), as does a stressed í or ú
+// beside another (dí-a, ra-íz). A final y is a vowel (rey, hoy, muy).
+const ES_VOWELS = new Set([...'aeiouáéíóúü']);
+const ES_STRONG = new Set([...'aeoáéóíú']); // a stressed í or ú stands alone like a, e, o
+const ES_PAIRS = new Set(['pl', 'pr', 'bl', 'br', 'fl', 'fr', 'cl', 'cr', 'gl', 'gr', 'kl', 'kr', 'tr', 'dr', 'tl']);
+const ES_ONE = ['ch', 'll', 'rr'];
+
+/** The word's sounds: each vowel, or a consonant unit (ch, ll, rr, qu, gu before e/i), with its letters. */
+function esSounds(word) {
+    const out = [];
+    for (let i = 0; i < word.length; ) {
+        const c = word[i];
+        const two = word.slice(i, i + 2);
+        const next = word[i + 2];
+        if ((two === 'qu' || two === 'gu') && next && 'eiéí'.includes(next)) {
+            out.push({ text: two, vowel: false });
+            i += 2;
+        } else if (ES_ONE.includes(two)) {
+            out.push({ text: two, vowel: false });
+            i += 2;
+        } else if (c === 'y' && (i === word.length - 1 || (i > 0 && !ES_VOWELS.has(word[i + 1] ?? '') && !ES_VOWELS.has(word[i - 1])))) {
+            out.push({ text: c, vowel: true, weak: true }); // y as a vowel: rey, y
+            i += 1;
+        } else {
+            out.push({ text: c, vowel: ES_VOWELS.has(c), weak: ES_VOWELS.has(c) && !ES_STRONG.has(c) });
+            i += 1;
+        }
+    }
+    return out;
+}
+
+/** One Spanish word (letters only, lower case, its accents kept) split into syllables. */
+function splitWordEs(word) {
+    const sounds = esSounds(word);
+    // The vowel nuclei: runs of vowels that stay together (a diphthong or a triphthong), split at a hiatus.
+    const nuclei = [];
+    for (let i = 0; i < sounds.length; i++) {
+        if (!sounds[i].vowel) continue;
+        let end = i;
+        while (end + 1 < sounds.length && sounds[end + 1].vowel && (sounds[end].weak || sounds[end + 1].weak)) end++;
+        nuclei.push([i, end]);
+        i = end;
+    }
+    if (nuclei.length <= 1) return [word];
+    const cuts = []; // sound index each later syllable starts at
+    for (let n = 0; n < nuclei.length - 1; n++) {
+        const from = nuclei[n][1] + 1;
+        const to = nuclei[n + 1][0];
+        const between = sounds.slice(from, to).map((s) => s.text);
+        if (between.length <= 1) cuts.push(from); // pa-ra, le-er
+        else if (ES_PAIRS.has(between.slice(-2).join(''))) cuts.push(to - 2); // a-brir, ins-truc-ción
+        else cuts.push(to - 1); // can-ción, trans-por-te
+    }
+    const out = [];
+    let at = 0;
+    for (const cut of cuts) {
+        out.push(sounds.slice(at, cut).map((s) => s.text).join(''));
+        at = cut;
+    }
+    out.push(sounds.slice(at).map((s) => s.text).join(''));
+    return out.filter(Boolean);
+}
+
 /**
  * A line of words as syllables, the templates' way: each keeps its spelling and punctuation, and
- * every syllable but a word's last ends with "-" ("A-", "maz-", "ing", "grace,").
+ * every syllable but a word's last ends with "-" ("A-", "maz-", "ing", "grace,"). `language` is the
+ * song's (template.language): Spanish by its own rules, anything else by English's.
  */
-export function syllables(line) {
+export function syllables(line, language = 'en') {
+    const spanish = String(language).split('-')[0] === 'es';
     const out = [];
     for (const raw of line.trim().split(/\s+/).filter(Boolean)) {
-        const letters = raw.toLowerCase().replace(/[^a-z']/g, '');
+        const letters = spanish ? raw.toLowerCase().replace(/[^a-záéíóúüñ]/g, '') : raw.toLowerCase().replace(/[^a-z']/g, '');
         if (!letters) {
             out.push(raw);
             continue;
         }
-        const parts = splitWord(letters.replace(/'/g, ''));
+        const parts = spanish ? splitWordEs(letters) : splitWord(letters.replace(/'/g, ''));
         // Map the parts back onto the word as written (capitals, apostrophes, punctuation stay).
         const bounds = new Set();
         let total = 0;
@@ -101,7 +172,7 @@ export function syllables(line) {
         let count = 0;
         for (const c of raw) {
             piece += c;
-            if (/[a-z]/i.test(c) && bounds.has(++count)) {
+            if ((spanish ? /[a-záéíóúüñ]/i : /[a-z]/i).test(c) && bounds.has(++count)) {
                 pieces.push(piece);
                 piece = '';
             }

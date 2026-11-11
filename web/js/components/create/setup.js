@@ -215,7 +215,7 @@ export const WordsStep = {
             const lines = texts.map((text, i) => {
                 const before = this.draft.lines[i];
                 if (before && before.text === text && !before.noWords) return before;
-                return refit({ ...(before ?? {}), text, syllables: syllables(text), noWords: false });
+                return refit({ ...(before ?? {}), text, syllables: syllables(text, this.draft.template.language), noWords: false }); // by the song's language
             });
             this.$emit('change', { lines });
         },

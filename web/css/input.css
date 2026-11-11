@@ -2501,6 +2501,94 @@ a.s-vt-rung:hover { background: color-mix(in srgb, var(--color-cream) 5%, transp
     background: #1B4D3A; border-color: #1B4D3A; color: var(--color-cream);
 }
 .s-xmas .s-xband .btn-secondary { color: #12372A; }
+/* A collection's palette (s-tone-<key>): its page's hero, its band on /songs and its link card (server/tool/link_cards.py
+   THEMES) share it, so a band always previews its page (Hillel, 2026-11-11). Each keeps its dark ground in light and dark
+   mode, as the carols' green does; --tl is its cards' ground, a few steps lighter. The words on it read cream (AA on every
+   ground); the gold or amber accent is for large words and marks only. */
+.s-tone-christmas { --tb: #12372A; --ta: #E9C46A; --tm: #C9D8CD; --tl: #1C4A39; --primary: #C8323F; --primary-ink: #FFF7EE; }
+.s-tone-hymns { --tb: #2B1B34; --ta: #E9C46A; --tm: #D8C9DD; --tl: #3B2848; --primary: #E9C46A; --primary-ink: #2B1B34; }
+.s-tone-spirituals { --tb: #14243F; --ta: #F2B84B; --tm: #C8D3E6; --tl: #1F3458; --primary: #F2B84B; --primary-ink: #14243F; }
+.s-tone-sea-shanties { --tb: #0D3340; --ta: #F0D9A8; --tm: #BFDCD6; --tl: #164658; --primary: #F0D9A8; --primary-ink: #0D3340; }
+.s-tone-rounds { --tb: #3A2416; --ta: #FFB45C; --tm: #E6D3C2; --tl: #4D3221; --primary: #FFB45C; --primary-ink: #3A2416; }
+.s-tone {
+    --color-cream: #F7F1E6; --color-muted: var(--tm); --color-accent: var(--ta); --primary-hover-to: #000;
+    --btn-soft: rgba(247, 241, 230, .12); --btn-soft-hover: rgba(247, 241, 230, .2); --btn-soft-active: rgba(247, 241, 230, .26);
+    --btn-outline: inset 0 0 0 1px rgba(247, 241, 230, .32); --btn-outline-pressed: inset 0 0 0 1px rgba(247, 241, 230, .32);
+    position: relative; overflow: hidden; color: var(--color-cream); background: var(--tb);
+}
+/* The gold serif words only on the tone's own dark ground: the game skin gives a collection hero its own (light themes too). */
+.s-sh-band .s-xserif, :root:not([data-skin='game']) .s-xhero.s-tone .s-xserif { color: var(--ta); }
+.s-tone :is(a, button):focus-visible { outline: 2px solid var(--ta); outline-offset: 3px; }
+.s-tone-motif { position: absolute; top: 0; right: 0; width: min(100%, 1200px); height: 120px; color: var(--ta); opacity: .28; pointer-events: none; }
+.s-xhero.s-tone { border-radius: 0 0 36px 36px; }
+.s-xhero.s-tone .s-xhero-in { position: relative; z-index: 1; padding-top: 48px; }
+@media (max-width: 639px) { .s-xhero.s-tone .s-tone-motif { height: 64px; } .s-xhero.s-tone .s-xhero-in { padding-top: 88px; } }
+/* /songs (public/songs, SongsHub): the promise and the swatches, the season's band, the panels, then every song. */
+.s-sh-hero { display: grid; gap: 28px; padding-top: 32px; }
+.s-sh-hero h1 { margin-top: 10px; font-size: clamp(36px, 9vw, 60px); line-height: 1.04; letter-spacing: -.025em; }
+.s-sh-hero .s-lede { margin-top: 14px; }
+.s-sh-start { margin-top: 14px; }
+.s-sh-start svg { display: inline-block; vertical-align: -3px; }
+.s-sh-swatches ul { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.s-sh-swatch { display: flex; align-items: center; gap: 10px; min-height: 48px; padding: 8px 12px; border: 1px solid var(--color-line); border-radius: 14px; background: var(--color-panel); }
+.s-sh-swatch i { flex: none; width: 22px; height: 22px; border-radius: 7px; background: var(--tb); box-shadow: inset 0 0 0 5px var(--tb), inset 0 0 0 11px var(--ta); }
+.s-sh-swatch-all i { background: var(--color-cream); box-shadow: none; }
+.s-sh-swatch b { flex: 1; min-width: 0; font-size: 14.5px; font-weight: 700; white-space: nowrap; }
+/* A phone: the swatches as pills that wrap whole, never a label over two lines. */
+@media (max-width: 639px) { .s-sh-swatches ul { display: flex; flex-wrap: wrap; } .s-sh-swatch { min-height: 44px; padding-inline: 10px 12px; } .s-sh-swatch b { flex: none; } }
+.s-sh-swatch span { font-size: 13px; color: var(--color-muted); font-variant-numeric: tabular-nums; }
+.s-sh-swatch:hover b { text-decoration: underline; text-underline-offset: 3px; }
+/* A panel: inset, its own ground, as tall as what's in it; the one in season runs the full width with its sky. */
+.s-sh-band { width: calc(100% - 32px); max-width: 1200px; margin: 40px auto 0; border-radius: 22px; box-shadow: inset 0 0 0 1px rgba(247, 241, 230, .08); }
+.s-sh-band.s-sh-season { width: 100%; max-width: none; margin-top: 48px; border-radius: 0; box-shadow: none; }
+/* A panel's motif keeps to its songs' side, behind them, never over its words; a phone's is shallower. */
+.s-sh-band .s-tone-motif { height: 36px; }
+/* The season's snow stays off the words (it read as punctuation on them): below the lights on a phone, the songs' side from 900. */
+.s-sh-season .s-xsnow { -webkit-mask-image: linear-gradient(#000 0 96px, transparent 140px); mask-image: linear-gradient(#000 0 96px, transparent 140px); }
+.s-sh-band-in { position: relative; z-index: 1; display: grid; grid-template-areas: "words" "songs" "all"; gap: 20px; padding: 56px 20px 24px; }
+.s-sh-season .s-sh-band-in { max-width: 1200px; margin-inline: auto; padding: 64px 16px 48px; }
+.s-sh-words { grid-area: words; }
+.s-sh-kick { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; font-size: 12.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--ta); }
+.s-sh-chip { display: inline-flex; gap: 8px; padding: 4px 10px; border-radius: 999px; background: rgba(247, 241, 230, .12); color: var(--color-cream); font-weight: 600; letter-spacing: .02em; text-transform: none; white-space: nowrap; }
+.s-sh-chip > span + span::before { content: '·'; margin-inline-end: 8px; }
+.s-sh-band h2 { margin-top: 10px; font-size: clamp(26px, 6.5vw, 40px); line-height: 1.08; letter-spacing: -.02em; text-wrap: balance; }
+.s-sh-band h2 em { white-space: nowrap; }
+.s-sh-season h2 { margin-top: 14px; }
+.s-sh-line { margin-top: 12px; max-width: 44ch; line-height: 1.55; color: var(--tm); }
+.s-sh-songs { grid-area: songs; display: grid; gap: 10px; }
+.s-sh-song { display: flex; align-items: center; gap: 12px; min-height: 60px; padding: 8px 10px 8px 16px; border-radius: 16px; background: var(--tl); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ta) 40%, transparent); }
+.s-sh-song > a { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; padding-block: 6px; color: var(--color-cream); }
+.s-sh-song b { font-size: 16px; font-weight: 700; }
+.s-sh-song a span { font-size: 13px; color: var(--tm); }
+.s-sh-song > a:hover b { text-decoration: underline; text-underline-offset: 3px; }
+.s-sh-all { grid-area: all; justify-content: center; min-height: 48px; white-space: nowrap; }
+@media (max-width: 639px) { .s-sh-song:nth-child(n+4) { display: none; } }
+/* Every song: short links in columns, each to its own page. */
+.s-sh-index h2 { margin-top: 8px; font-size: clamp(26px, 6vw, 36px); line-height: 1.1; letter-spacing: -.02em; }
+.s-sh-index-lead { margin-top: 10px; color: var(--color-muted); }
+.s-sh-az { columns: 2; column-gap: 24px; margin-top: 20px; }
+.s-sh-az li { break-inside: avoid; border-bottom: 1px solid var(--color-line); }
+.s-sh-az a { display: block; padding-block: 10px; font-weight: 600; }
+.s-sh-az a:hover { text-decoration: underline; text-underline-offset: 3px; }
+@media (min-width: 640px) {
+    .s-sh-songs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .s-sh-all { justify-self: start; }
+    .s-sh-swatches ul { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (min-width: 900px) {
+    .s-sh-hero { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 56px; align-items: end; padding-top: 40px; }
+    .s-sh-swatches ul { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .s-sh-band-in { grid-template-columns: minmax(0, 38fr) minmax(0, 62fr); grid-template-areas: "words songs" "all songs"; gap: 16px 48px; padding: 44px 48px; }
+    .s-sh-flip .s-sh-band-in { grid-template-columns: minmax(0, 62fr) minmax(0, 38fr); grid-template-areas: "songs words" "songs all"; }
+    .s-sh-band .s-tone-motif { width: 62%; height: 40px; }
+    .s-sh-band-in { padding-top: 44px; }
+    .s-sh-season .s-sh-band-in { padding: 64px 48px 48px; }
+    .s-sh-season .s-xsnow { -webkit-mask-image: linear-gradient(to right, transparent 0 42%, #000 58%); mask-image: linear-gradient(to right, transparent 0 42%, #000 58%); }
+    .s-sh-flip .s-tone-motif { right: auto; left: 0; transform: scaleX(-1); }
+    .s-sh-words { align-self: end; }
+    .s-sh-all { align-self: start; }
+    .s-sh-az { columns: 4; }
+}
 @media (max-width: 640px) { .s-xband { padding: 28px 22px; } .s-xband-go, .s-xband-go .btn-secondary { width: 100%; justify-content: center; } }
 /* In season, the footer on the season's green, with its line in the serif. */
 .s-xfoot {
@@ -9269,6 +9357,8 @@ a.s-vt-rung:hover { background: color-mix(in srgb, var(--color-cream) 5%, transp
 :root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-xmas .s-xhero h1 { text-transform: uppercase; color: #f4f1ff; text-shadow: 4px 4px 0 #ff4d5e, 8px 8px 0 #000; }
 :root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-xhero h1 { text-transform: uppercase; } /* every songbook's hero: caps, its last words pixel and yellow too */
 :root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-xhero h1 .s-xserif { font-family: inherit; font-style: normal; font-weight: inherit; color: var(--arc-yellow); }
+/* A collection hero keeps its tone's dark ground in every theme, so its last words take the tone's accent, not the theme's yellow (dark in a light theme). */
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-xhero.s-tone h1 .s-xserif { color: var(--ta); }
 :root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-xmas .s-xhero h1 .s-xserif { color: #ffd84a; }
 /* The HUD. */
 :root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-xcount { background: #000; color: #f4f1ff; border: var(--arc-frame) solid #f4f1ff; box-shadow: var(--arc-drop-lg) var(--arc-drop-lg) 0 #3b3270; }

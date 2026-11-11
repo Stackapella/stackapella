@@ -21,3 +21,19 @@ test('lyrics: a line fits its notes: one each, an extra note held where it sits 
     const short = fitLine(syllables('Amazing grace, how sweet'), notes.slice(0, 3));
     assert(short.mismatch?.syllables === 6 && short.split === 1, JSON.stringify(short));
 });
+
+test('lyrics: Spanish words split by Spanish rules, by the song\'s language', () => {
+    const cases = {
+        'para canción abrir transporte': 'pa- ra can- ción a- brir trans- por- te',
+        'bien causa día leer': 'bien cau- sa dí- a le- er',
+        'Noche de paz, noche de amor': 'No- che de paz, no- che de a- mor',
+        'guitarra querida, construcción': 'gui- ta- rra que- ri- da, cons- truc- ción',
+        'rey hoy y mayo': 'rey hoy y ma- yo',
+        'cuidar aéreo raíz llegar': 'cui- dar a- é- re- o ra- íz lle- gar',
+    };
+    for (const [line, want] of Object.entries(cases)) {
+        const got = syllables(line, 'es').join(' ');
+        assert(got === want, `${line}: got ${got}`);
+    }
+    assert(syllables('Amazing grace', 'en-GB').join(' ') === 'A- maz- ing grace' && syllables('para', 'es-MX').join(' ') === 'pa- ra', 'regions follow their language');
+});

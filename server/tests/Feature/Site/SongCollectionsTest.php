@@ -69,31 +69,38 @@ final class SongCollectionsTest extends TestCase
     public function test_it_is_in_the_sitemap_and_linked_from_songs(): void
     {
         $this->assertStringContainsString('/songs/hymns<', (string) $this->get('/sitemap.xml')->getContent());
-        $this->get('/songs')->assertOk()->assertSee('href="/songs/hymns"', false)->assertSee(__('site.collections.hymns.songs_link'));
+        $this->get('/songs')->assertOk()->assertSee('href="/songs/hymns"', false)->assertSee(__('site.collections.hymns.crumb'));
     }
 
-    public function test_songs_lists_every_open_song_once_in_its_group(): void
+    public function test_songs_samples_each_collection_and_lists_every_open_song_a_to_z(): void
     {
         $this->travelTo('2027-03-01 12:00:00');
         $html = (string) $this->get('/songs')->assertOk()->getContent();
         $open = app(Catalogue::class)->open();
 
-        // Each open song once, in the group its genres give it, and every group in order (Christmas last out of season).
+        // Every open song once in the A to Z, so none is more than a click from /songs (Hillel's sampler, 2026-11-11).
+        preg_match('#<ul class="s-sh-az">(.*?)</ul>#s', $html, $az);
         foreach ($open as $template) {
-            $this->assertSame(1, substr_count($html, 'href="/songs/'.$template->slug.'" class="s-song"'), $template->slug);
+            $this->assertSame(1, substr_count($az[1] ?? '', 'href="/songs/'.$template->slug.'"'), $template->slug);
         }
-        preg_match_all('#id="songs-([a-z-]+)-h"#', $html, $m);
-        $order = [...array_values(array_diff(array_keys(SongCollections::GROUPS), ['christmas'])), 'christmas', 'more'];
-        $this->assertSame(array_values(array_intersect($order, $m[1])), $m[1]);
-        $this->assertSame('christmas', end($m[1]) === 'more' ? $m[1][count($m[1]) - 2] : end($m[1]));
-        // The carols page is linked only in its season.
+        // Out of the carol season: no carols band, and the collections' panels the biggest first.
+        preg_match_all('#<section id="band-([a-z-]+)"#', $html, $m);
+        $this->assertNotContains('christmas', $m[1]);
+        $sizes = array_map(static fn (string $slug): int => count(app(SongCollections::class)->members($slug)), $m[1]);
+        $sorted = $sizes;
+        rsort($sorted);
+        $this->assertSame($sorted, $sizes);
         $this->assertStringNotContainsString('href="/songs/christmas-carols"', $html);
 
+        // In season the carols come first, as the full-width band, until Twelfth Night.
         $this->travelTo('2026-11-10 12:00:00');
         $html = (string) $this->get('/songs')->assertOk()->getContent();
-        preg_match_all('#id="songs-([a-z-]+)-h"#', $html, $m);
-        $this->assertSame('christmas', $m[1][0]);
-        $this->assertStringContainsString('href="/songs/christmas-carols"', $html);
+        preg_match_all('#<section id="band-([a-z-]+)"#', $html, $m);
+        if (app(Carols::class)->songs() !== []) {
+            $this->assertSame('christmas', $m[1][0]);
+            $this->assertStringContainsString('s-sh-season', $html);
+            $this->assertStringContainsString(__('pages.songs.season_until', ['date' => '6 January']), $html);
+        }
     }
 
     public function test_a_song_goes_to_its_first_group_in_order(): void

@@ -1483,6 +1483,8 @@ return [
         'title' => 'Christmas Carols SATB: Learn Your Part Free',
         'description' => 'Traditional Christmas carols in SATB, free: learn your soprano, alto, tenor or bass part by ear, hear it with the other three, then sing along before rehearsal.',
         'crumb' => 'Christmas carols',
+        // /songs's way to the page (SongsHub): how many there are.
+        'all' => 'All :count carols',
         // Hillel's redesign (2026-11-10): the headline's last words in the italic serif.
         'headline' => 'Christmas carols for choir,',
         'headline_em' => 'part by part',
@@ -1587,6 +1589,8 @@ return [
             'title' => 'Hymns in SATB: Learn Your Part Free',
             'description' => 'Well-loved hymns in four-part SATB harmony, free: learn your soprano, alto, tenor or bass part by ear, hear it with the others, and sing along.',
             'crumb' => 'Hymns',
+            // /songs's way to the page (SongsHub): how many there are.
+            'all' => 'All :count hymns',
             'headline' => 'Hymns in four parts,',
             'headline_em' => 'part by part',
             'lead' => 'Learn your part of a hymn before Sunday or rehearsal. Free, in your browser, no account.',
@@ -1610,6 +1614,8 @@ return [
             'title' => 'Spirituals for Choir: Learn Your Part Free',
             'description' => 'African American spirituals for choir in four-part SATB harmony, free: learn your part by ear, hear it with the others, and sing along in your browser.',
             'crumb' => 'Spirituals',
+            // /songs's way to the page (SongsHub): how many there are.
+            'all' => 'All :count spirituals',
             'headline' => 'Spirituals for choir,',
             'headline_em' => 'part by part',
             'lead' => 'Learn your part of a spiritual before rehearsal. Free, in your browser, no account.',
@@ -1633,6 +1639,8 @@ return [
             'title' => 'Sea Shanties in Harmony: Learn Your Part Free',
             'description' => 'Sea shanties to sing in four-part harmony with friends or a choir, free: learn your part by ear, hear it with the others, and sing along in your browser.',
             'crumb' => 'Sea shanties',
+            // /songs's way to the page (SongsHub): how many there are.
+            'all' => 'All :count sea shanties',
             'headline' => 'Sea shanties,',
             'headline_em' => 'part by part',
             'lead' => 'Learn your part of a sea shanty, then sing it with friends or your choir. Free, in your browser, no account.',
@@ -1657,6 +1665,8 @@ return [
             'title' => 'Easy Rounds to Sing: Learn Your Part Free',
             'description' => 'Easy rounds to sing with kids, a choir or friends, free: learn the one tune by ear, hear each voice come in after the last, and sing along in your browser.',
             'crumb' => 'Rounds',
+            // /songs's way to the page (SongsHub): how many there are.
+            'all' => 'All :count rounds',
             'headline' => 'Rounds to sing,',
             'headline_em' => 'voice by voice',
             'lead' => 'Learn a round, then sing it with your kids, your choir or your friends. Free, in your browser, no account.',

@@ -17,6 +17,8 @@ import { StatusChip } from '../components/form.js';
 import { Icon } from '../components/icon.js';
 import { toast } from '../components/ui.js';
 import { ChangeSheet, LoadFailed, refused, when } from './common.js';
+import { DropoffLine, dropPath, lastWeekOf } from './dropoffs.js';
+import { SharingPanel, surfaceName, weakest } from './sharing.js';
 
 // Where a singer stands, as My parts says it.
 const STATUS = {
@@ -98,19 +100,22 @@ export const NeedChips = {
 };
 
 export const NeedsCard = {
-    components: { Icon, LoadFailed, NeedChips, NeedLines, StatusChip },
+    components: { DropoffLine, Icon, LoadFailed, NeedChips, NeedLines, SharingPanel, StatusChip },
     // Outreach's follow-ups due and replies to read (admin.overview's outreach: null for an editor), and the songs the last
     // deploy's sync couldn't load (admin.overview's songsNotSynced: the file and why, a line each; empty when it was clean),
     // and what the weekly sitemap check last found (sitemapProblems: a page search can't index and why; "and N more").
-    props: { outreach: { type: Object, default: null }, notSynced: { type: Array, default: () => [] }, sitemap: { type: Array, default: () => [] } },
-    setup: () => ({ needs, noSingers, listCount, formatNumber }),
+    // For an admin, the week's three worst drop-offs and how sharing went (admin.dropoffs.show, admin.sharing.show), asked here.
+    props: { outreach: { type: Object, default: null }, notSynced: { type: Array, default: () => [] }, sitemap: { type: Array, default: () => [] }, admin: { type: Boolean, default: false } },
+    data: () => ({ dropoffs: null, sharing: null }),
+    setup: () => ({ needs, noSingers, listCount, formatNumber, dropPath, lastWeekOf, surfaceName }),
     template: `
         <section class="space-y-3" aria-labelledby="needs-h" data-admin-needs>
             <h2 id="needs-h" class="text-xl font-bold text-cream">{{ t('admin.needs.title') }}<span v-if="total" class="ms-2 font-medium tabular-nums text-muted" data-needs-total>{{ formatNumber(total) }}</span></h2>
             <LoadFailed v-if="needs.failed && !needs.data" :message="t('admin.needs.failed')" @retry="load" />
             <p v-else-if="!needs.data" class="text-sm text-muted" role="status">{{ t('admin.loading') }}</p>
             <p v-else-if="!total" class="text-sm text-muted" data-needs-none>{{ t('admin.needs.none') }}</p>
-            <div v-else class="grid items-start gap-4 min-[900px]:grid-cols-2">
+            <!-- Sharing isn't a need, so it shows (and counts) only beside the rest; nothing needing him, it sits under the line. -->
+            <div v-if="needs.data && (total || sharing)" class="grid items-start gap-4 min-[900px]:grid-cols-2">
                 <!-- Outreach (docs/outreach-plan.md): a row for each kind waiting, its count at the left, each to where it's done. -->
                 <section v-if="outreachRows.length" class="card overflow-hidden" aria-labelledby="needs-outreach-h" data-needs-outreach>
                     <div class="flex items-center justify-between gap-3 border-b border-line px-5 py-3.5">
@@ -146,6 +151,32 @@ export const NeedsCard = {
                         </li>
                     </ul>
                 </section>
+                <!-- Drop-offs (docs/retention-plan.md, its Detect section): the week's three worst steps, each to where it's read. -->
+                <section v-if="worst.length" class="card overflow-hidden" aria-labelledby="needs-drops-h" data-needs-dropoffs>
+                    <div class="flex items-center justify-between gap-3 border-b border-line px-5 py-3.5">
+                        <h3 id="needs-drops-h" class="eyebrow text-muted">{{ t('admin.nav.dropoffs') }}</h3>
+                        <a href="/admin/dropoffs" class="link tap-44 inline-flex items-center gap-1 text-sm" @click.prevent="navigate('/admin/dropoffs')">{{ t('admin.needs.toDropoffs') }}<span aria-hidden="true" class="rtl:-scale-x-100">→</span></a>
+                    </div>
+                    <ul class="divide-y divide-line">
+                        <li v-for="d in worst" :key="d.path + d.step">
+                            <a :href="dropPath(d.path)" class="flex items-center gap-3.5 px-5 py-3 transition hover:bg-(--fill)" :data-needs-dropoff="d.step" @click.prevent="navigate(dropPath(d.path))">
+                                <DropoffLine :drop="d" :last-week="lastWeekOf(dropoffs.previous, d.path, d.step)" />
+                                <Icon name="chevron" :size="16" class="shrink-0 -rotate-90 text-muted rtl:rotate-90" />
+                            </a>
+                        </li>
+                    </ul>
+                </section>
+                <!-- Sharing (docs/retention-plan.md, its Sharing section): the four measures and their move, the weakest surface named. -->
+                <section v-if="sharing" class="card overflow-hidden" aria-labelledby="needs-sharing-h" data-needs-sharing>
+                    <div class="flex items-center justify-between gap-3 border-b border-line px-5 py-3.5">
+                        <h3 id="needs-sharing-h" class="eyebrow text-muted">{{ t('admin.nav.sharing') }}</h3>
+                        <a href="/admin/sharing" class="link tap-44 inline-flex items-center gap-1 text-sm" @click.prevent="navigate('/admin/sharing')">{{ t('admin.needs.toSharing') }}<span aria-hidden="true" class="rtl:-scale-x-100">→</span></a>
+                    </div>
+                    <div class="space-y-3 p-4">
+                        <SharingPanel :report="sharing" class="!grid-cols-2" />
+                        <p v-if="weakSurface" class="text-sm text-muted" data-needs-sharing-weakest>{{ t('admin.needs.weakest', { surface: surfaceName(weakSurface.surface), perShare: formatNumber(weakSurface.arrivalsPerShare, { maximumFractionDigits: 2 }) }) }}</p>
+                    </div>
+                </section>
                 <!-- The site: songs the last deploy couldn't sync (each still on its live version), and the sitemap check's
                      problems, an item each, its lines on a tap. -->
                 <section v-if="notSynced.length || sitemap.length" class="card space-y-3 p-5" aria-labelledby="needs-site-h" data-needs-site>
@@ -171,13 +202,26 @@ export const NeedsCard = {
         /** Everything waiting, beside the title: outreach's, the parts that need a voice, takes to review, and the site's. */
         total() {
             const takes = this.songs.reduce((sum, song) => sum + song.parts.reduce((n, p) => n + p.needs.review.length, 0), 0);
-            return this.outreachRows.reduce((sum, row) => sum + row.count, 0) + partsNeeding(needs.data) + takes + listCount(this.notSynced) + listCount(this.sitemap);
+            return this.outreachRows.reduce((sum, row) => sum + row.count, 0) + partsNeeding(needs.data) + takes + listCount(this.notSynced) + listCount(this.sitemap) + this.worst.length;
+        },
+        /** The week's three worst drop-offs (none before the first report). */
+        worst() {
+            return this.dropoffs?.latest?.worst ?? [];
+        },
+        weakSurface() {
+            return this.sharing ? weakest(this.sharing.surfaces, this.sharing.floor) : null;
         },
         /** The server lists the first 5: at 5, there may be more. */
         notSyncedTitle() {
             const n = this.notSynced.length;
             return n >= 5 ? t('admin.needs.notSynced.titleMany', { count: n }) : t('admin.needs.notSynced.title', { count: n });
         },
+    },
+    created() {
+        if (!this.admin) return;
+        // Each its own ask, each quiet when it fails: the card says what it has.
+        api.admin.dropoffs().then(({ data }) => (this.dropoffs = data), (error) => console.warn('Drop-offs did not load', error));
+        api.admin.sharing().then(({ data }) => (this.sharing = data), (error) => console.warn('Sharing did not load', error));
     },
     methods: {
         navigate,

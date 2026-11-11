@@ -34,6 +34,8 @@ import { CodeWatchSection } from './code-watch.js';
 import { ExperimentsSection } from './experiments.js';
 import { OutreachSection } from './outreach.js';
 import { FunnelSection } from './funnel.js';
+import { DropoffsSection } from './dropoffs.js';
+import { SharingSection } from './sharing.js';
 import { SupportSection } from './support.js';
 import { LinksSection } from './links.js';
 import { PostsSection, socialWaiting } from './posts.js';
@@ -77,7 +79,9 @@ export const SECTIONS = [
     { name: 'usage', group: 'numbers', path: '/admin/usage', label: tk('admin.nav.usage'), hint: tk('admin.nav.usageHint'), icon: 'sparkle', role: 'admin' },
     { name: 'activity', group: 'numbers', path: '/admin/activity', label: tk('admin.nav.activity'), hint: tk('admin.nav.activityHint'), icon: 'wave', role: 'admin' },
     { name: 'funnel', group: 'numbers', path: '/admin/funnel', label: tk('admin.nav.funnel'), hint: tk('admin.nav.funnelHint'), icon: 'list', role: 'admin' },
+    { name: 'dropoffs', group: 'numbers', path: '/admin/dropoffs', label: tk('admin.nav.dropoffs'), hint: tk('admin.nav.dropoffsHint'), icon: 'list', role: 'admin' },
     { name: 'sources', group: 'numbers', path: '/admin/sources', label: tk('admin.nav.sources'), hint: tk('admin.nav.sourcesHint'), icon: 'arrow', role: 'admin' },
+    { name: 'sharing', group: 'numbers', path: '/admin/sharing', label: tk('admin.nav.sharing'), hint: tk('admin.nav.sharingHint'), icon: 'arrow', role: 'admin' },
     { name: 'cohorts', group: 'numbers', path: '/admin/cohorts', label: tk('admin.nav.cohorts'), hint: tk('admin.nav.cohortsHint'), icon: 'list', role: 'admin' },
     { name: 'experiments', group: 'numbers', path: '/admin/experiments', label: tk('admin.nav.experiments'), hint: tk('admin.nav.experimentsHint'), icon: 'split', role: 'admin' },
     { name: 'revenue', group: 'numbers', path: '/admin/revenue', label: tk('admin.nav.revenue'), hint: tk('admin.nav.revenueHint'), icon: 'sparkle', role: 'admin' },
@@ -114,7 +118,7 @@ const HomeSection = {
                 <a :href="sudoPath" class="tap-44 inline-flex items-center gap-1 font-semibold text-warn hover:underline">{{ t('admin.home.sudoConfirm') }}<span aria-hidden="true" class="rtl:-scale-x-100">→</span></a>
             </p>
             <!-- What needs you now (admin/needs.js): a card for each kind that has something, side by side from 900 px. -->
-            <NeedsCard :outreach="overview?.outreach ?? null" :not-synced="overview?.songsNotSynced ?? []" :sitemap="overview?.sitemapProblems ?? []" />
+            <NeedsCard :outreach="overview?.outreach ?? null" :not-synced="overview?.songsNotSynced ?? []" :sitemap="overview?.sitemapProblems ?? []" :admin="me.role === 'admin'" />
             <!-- The last 7 days against the 7 before (docs/admin-analytics-plan.md, slice 1), as Hillel drew it: one ruled
                  panel, each a label over a big number with its change small beside it; five across from 900 px, two on a
                  phone. The two all-time counts say so, since they aren't the week's. -->
@@ -200,7 +204,7 @@ const HomeSection = {
 };
 
 export const AdminView = {
-    components: { Icon, Logo, Notice, RequestsSection, HomeSection, SafetySection, SwitchesSection, AuditSection, ReviewSection, SingersSection, GuidesSection, FeedbackSection, ReportsSection, IdeasSection, MudeoSection, SupportSection, LinksSection, PeopleSection, PostsSection, OverviewSection, SourcesSection, ChoirGroupsSection, RevenueSection, SearchSection, SchoolSection, CohortsSection, ActivitySection, CodeWatchSection, ExperimentsSection, OutreachSection, UsageSection, FunnelSection },
+    components: { Icon, Logo, Notice, RequestsSection, HomeSection, SafetySection, SwitchesSection, AuditSection, ReviewSection, SingersSection, GuidesSection, FeedbackSection, ReportsSection, IdeasSection, MudeoSection, SupportSection, LinksSection, PeopleSection, PostsSection, OverviewSection, SourcesSection, ChoirGroupsSection, RevenueSection, SearchSection, SchoolSection, CohortsSection, ActivitySection, CodeWatchSection, ExperimentsSection, OutreachSection, UsageSection, FunnelSection, DropoffsSection, SharingSection },
     data: () => ({ me: null, failed: false, overview: null }),
     setup: () => ({ route, socialWaiting, formatNumber }),
     template: `
@@ -270,6 +274,8 @@ export const AdminView = {
                 <OutreachSection v-else-if="current === 'outreach'" :me="me" />
                 <UsageSection v-else-if="current === 'usage'" :me="me" />
                 <FunnelSection v-else-if="current === 'funnel'" :me="me" />
+                <DropoffsSection v-else-if="current === 'dropoffs'" :me="me" />
+                <SharingSection v-else-if="current === 'sharing'" :me="me" />
                 <GuidesSection v-else-if="current === 'guides'" :me="me" />
                 <FeedbackSection v-else-if="current === 'feedback'" :me="me" />
                 <ReportsSection v-else-if="current === 'reports'" :me="me" />

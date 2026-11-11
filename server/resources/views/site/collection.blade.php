@@ -1,8 +1,7 @@
 {{-- A song collection, /songs/<collection> (SongCollectionPageController gives $slug, $songs and $canonical;
      App\Support\Pages\SongCollections): the trail, the heading with its last words in the italic serif, the lead and a
      short intro, then the songbook (site._songbook: each song a card with its first line to play and its parts to their
-     pages, and the "I sing" filter), the About panel and the free tools. The carols page's calm frame, without the
-     season. Words: site.collections.<slug>. --}}
+     pages, and the "I sing" filter), the About panel and the free tools. The carols page's frame, its hero in the collection's own palette (s-tone-<slug>). Words: site.collections.<slug>. --}}
 @php($words = 'site.collections.'.$slug)
 @php($title = __($words.'.title'))
 @php($description = __($words.'.description'))
@@ -31,7 +30,9 @@
 @section('content')
     <x-site.header />
     <main>
-        <section class="s-xhero" aria-labelledby="page-h">
+        {{-- Its hero in its own palette and motif (s-tone-<slug>), the same as its band on /songs and its link card. --}}
+        <section class="s-xhero s-tone s-tone-{{ $slug }}" aria-labelledby="page-h">
+            @include('site._tone-motif', ['key' => $slug])
             <div class="s-wrap s-xhero-in s-xcoll-in">
                 <div class="s-xhero-text">
                     <x-site.crumbs :trail="[[__('site.song_part.songs'), '/songs'], [__($words.'.crumb')]]" />
