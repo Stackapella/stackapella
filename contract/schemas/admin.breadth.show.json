@@ -1,0 +1,256 @@
+{
+    "$id": "admin.breadth.show.json",
+    "title": "How much of the app singers use, this week and the four before",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "from",
+                "to",
+                "floor",
+                "headline",
+                "weeks",
+                "newDevices",
+                "features"
+            ],
+            "properties": {
+                "from": {
+                    "type": "string"
+                },
+                "to": {
+                    "type": "string"
+                },
+                "floor": {
+                    "type": "integer"
+                },
+                "headline": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                        "deviceDays",
+                        "threePlus",
+                        "mean",
+                        "tooFew",
+                        "lastWeek",
+                        "fourWeeksAgo"
+                    ],
+                    "properties": {
+                        "deviceDays": {
+                            "type": "integer"
+                        },
+                        "threePlus": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "mean": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "tooFew": {
+                            "type": "boolean"
+                        },
+                        "lastWeek": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "fourWeeksAgo": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        }
+                    }
+                },
+                "weeks": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "from",
+                            "to",
+                            "all",
+                            "guest",
+                            "account"
+                        ],
+                        "properties": {
+                            "from": {
+                                "type": "string"
+                            },
+                            "to": {
+                                "type": "string"
+                            },
+                            "all": {
+                                "type": "object",
+                                "additionalProperties": false,
+                                "required": [
+                                    "deviceDays",
+                                    "levels",
+                                    "threePlus",
+                                    "mean",
+                                    "tooFew"
+                                ],
+                                "properties": {
+                                    "deviceDays": {
+                                        "type": "integer"
+                                    },
+                                    "levels": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "integer"
+                                        }
+                                    },
+                                    "threePlus": {
+                                        "type": [
+                                            "number",
+                                            "null"
+                                        ]
+                                    },
+                                    "mean": {
+                                        "type": [
+                                            "number",
+                                            "null"
+                                        ]
+                                    },
+                                    "tooFew": {
+                                        "type": "boolean"
+                                    }
+                                }
+                            },
+                            "guest": {
+                                "type": "object",
+                                "additionalProperties": false,
+                                "required": [
+                                    "deviceDays",
+                                    "levels",
+                                    "threePlus",
+                                    "mean",
+                                    "tooFew"
+                                ],
+                                "properties": {
+                                    "deviceDays": {
+                                        "type": "integer"
+                                    },
+                                    "levels": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "integer"
+                                        }
+                                    },
+                                    "threePlus": {
+                                        "type": [
+                                            "number",
+                                            "null"
+                                        ]
+                                    },
+                                    "mean": {
+                                        "type": [
+                                            "number",
+                                            "null"
+                                        ]
+                                    },
+                                    "tooFew": {
+                                        "type": "boolean"
+                                    }
+                                }
+                            },
+                            "account": {
+                                "type": "object",
+                                "additionalProperties": false,
+                                "required": [
+                                    "deviceDays",
+                                    "levels",
+                                    "threePlus",
+                                    "mean",
+                                    "tooFew"
+                                ],
+                                "properties": {
+                                    "deviceDays": {
+                                        "type": "integer"
+                                    },
+                                    "levels": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "integer"
+                                        }
+                                    },
+                                    "threePlus": {
+                                        "type": [
+                                            "number",
+                                            "null"
+                                        ]
+                                    },
+                                    "mean": {
+                                        "type": [
+                                            "number",
+                                            "null"
+                                        ]
+                                    },
+                                    "tooFew": {
+                                        "type": "boolean"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "newDevices": {
+                    "type": "integer"
+                },
+                "features": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "feature",
+                            "firstUses",
+                            "lastWeek",
+                            "perNew",
+                            "fromPrevious",
+                            "tooFew"
+                        ],
+                        "properties": {
+                            "feature": {
+                                "type": "string"
+                            },
+                            "firstUses": {
+                                "type": "integer"
+                            },
+                            "lastWeek": {
+                                "type": "integer"
+                            },
+                            "perNew": {
+                                "type": [
+                                    "number",
+                                    "null"
+                                ]
+                            },
+                            "fromPrevious": {
+                                "type": [
+                                    "number",
+                                    "null"
+                                ]
+                            },
+                            "tooFew": {
+                                "type": "boolean"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

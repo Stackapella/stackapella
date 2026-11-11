@@ -2517,7 +2517,7 @@ a.s-vt-rung:hover { background: color-mix(in srgb, var(--color-cream) 5%, transp
     position: relative; overflow: hidden; color: var(--color-cream); background: var(--tb);
 }
 /* The gold serif words only on the tone's own dark ground: the game skin gives a collection hero its own (light themes too). */
-.s-sh-band .s-xserif, :root:not([data-skin='game']) .s-xhero.s-tone .s-xserif { color: var(--ta); }
+.s-sh-band .s-xserif, .s-sh-panel .s-xserif, :root:not([data-skin='game']) .s-xhero.s-tone .s-xserif { color: var(--ta); }
 .s-tone :is(a, button):focus-visible { outline: 2px solid var(--ta); outline-offset: 3px; }
 .s-tone-motif { position: absolute; top: 0; right: 0; width: min(100%, 1200px); height: 120px; color: var(--ta); opacity: .28; pointer-events: none; }
 .s-xhero.s-tone { border-radius: 0 0 36px 36px; }
@@ -2529,15 +2529,30 @@ a.s-vt-rung:hover { background: color-mix(in srgb, var(--color-cream) 5%, transp
 .s-sh-hero .s-lede { margin-top: 14px; }
 .s-sh-start { margin-top: 14px; }
 .s-sh-start svg { display: inline-block; vertical-align: -3px; }
-.s-sh-swatches ul { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
-.s-sh-swatch { display: flex; align-items: center; gap: 10px; min-height: 48px; padding: 8px 12px; border: 1px solid var(--color-line); border-radius: 14px; background: var(--color-panel); }
-.s-sh-swatch i { flex: none; width: 22px; height: 22px; border-radius: 7px; background: var(--tb); box-shadow: inset 0 0 0 5px var(--tb), inset 0 0 0 11px var(--ta); }
-.s-sh-swatch-all i { background: var(--color-cream); box-shadow: none; }
-.s-sh-swatch b { flex: 1; min-width: 0; font-size: 14.5px; font-weight: 700; white-space: nowrap; }
-/* A phone: the swatches as pills that wrap whole, never a label over two lines. */
-@media (max-width: 639px) { .s-sh-swatches ul { display: flex; flex-wrap: wrap; } .s-sh-swatch { min-height: 44px; padding-inline: 10px 12px; } .s-sh-swatch b { flex: none; } }
-.s-sh-swatch span { font-size: 13px; color: var(--color-muted); font-variant-numeric: tabular-nums; }
-.s-sh-swatch:hover b { text-decoration: underline; text-underline-offset: 3px; }
+.s-sh-hero h1 em { white-space: nowrap; }
+/* The search (a form: the A to Z narrows as you type; ?q= without the script), the chips, the song to try. */
+.s-sh-search { display: flex; align-items: center; gap: 10px; max-width: 460px; min-height: 52px; margin-top: 24px; padding: 0 16px; border: 1px solid var(--color-line); border-radius: 14px; background: var(--color-panel); color: var(--color-muted); }
+.s-sh-search:focus-within { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+.s-sh-search input { flex: 1; min-width: 0; height: 48px; border: 0; background: none; color: var(--color-cream); font-size: 16px; outline: none; }
+.s-sh-search input::placeholder { color: var(--color-muted); opacity: 1; }
+.s-sh-search-sm { max-width: 320px; min-height: 44px; margin-top: 0; }
+.s-sh-search-sm input { height: 40px; font-size: 15px; }
+.s-sh-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+.s-sh-chip2, .s-sh-filter { display: inline-flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 14px; border: 1px solid var(--color-line); border-radius: 999px; background: var(--color-panel); font-size: 14.5px; font-weight: 600; white-space: nowrap; }
+.s-sh-chip2 i, .s-sh-filter i, .s-sh-letters li i { flex: none; width: 8px; height: 8px; border-radius: 50%; background: var(--dot, var(--tb)); }
+.s-sh-chip2 span, .s-sh-filter span { font-weight: 500; color: var(--color-muted); font-variant-numeric: tabular-nums; }
+.s-sh-chip2:hover { border-color: var(--color-cream); }
+/* Each collection's dot (the chips, the A to Z): a brighter mark of its palette, so the five tell apart on cream. */
+.s-tone-christmas { --dot: #C8323F; }
+.s-tone-hymns { --dot: #8A4FB0; }
+.s-tone-spirituals { --dot: #2F63B8; }
+.s-tone-sea-shanties { --dot: #1E8C8C; }
+.s-tone-rounds { --dot: #E0891E; }
+.s-tone-jewish-songs { --dot: #3E5FC4; }
+.s-tone-other { --dot: #9A9085; }
+.s-sh-try .s-mixer { box-shadow: 0 24px 48px -28px rgb(60 40 10 / 0.35); }
+@media (max-width: 639px) { .s-sh-try-k { display: none; } }
+.s-sh-try-k { margin-inline-start: auto; font-size: 12px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--color-muted); white-space: nowrap; }
 /* A panel: inset, its own ground, as tall as what's in it; the one in season runs the full width with its sky. */
 .s-sh-band { width: calc(100% - 32px); max-width: 1200px; margin: 40px auto 0; border-radius: 22px; box-shadow: inset 0 0 0 1px rgba(247, 241, 230, .08); }
 .s-sh-band.s-sh-season { width: 100%; max-width: none; margin-top: 48px; border-radius: 0; box-shadow: none; }
@@ -2547,6 +2562,7 @@ a.s-vt-rung:hover { background: color-mix(in srgb, var(--color-cream) 5%, transp
 .s-sh-season .s-xsnow { -webkit-mask-image: linear-gradient(#000 0 96px, transparent 140px); mask-image: linear-gradient(#000 0 96px, transparent 140px); }
 .s-sh-band-in { position: relative; z-index: 1; display: grid; grid-template-areas: "words" "songs" "all"; gap: 20px; padding: 56px 20px 24px; }
 .s-sh-season .s-sh-band-in { max-width: 1200px; margin-inline: auto; padding: 64px 16px 48px; }
+/* The page column's edges, from the hero to the A to Z (the review: the band sat 8 px inside them). */
 .s-sh-words { grid-area: words; }
 .s-sh-kick { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; font-size: 12.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--ta); }
 .s-sh-chip { display: inline-flex; gap: 8px; padding: 4px 10px; border-radius: 999px; background: rgba(247, 241, 230, .12); color: var(--color-cream); font-weight: 600; letter-spacing: .02em; text-transform: none; white-space: nowrap; }
@@ -2556,38 +2572,81 @@ a.s-vt-rung:hover { background: color-mix(in srgb, var(--color-cream) 5%, transp
 .s-sh-season h2 { margin-top: 14px; }
 .s-sh-line { margin-top: 12px; max-width: 44ch; line-height: 1.55; color: var(--tm); }
 .s-sh-songs { grid-area: songs; display: grid; gap: 10px; }
-.s-sh-song { display: flex; align-items: center; gap: 12px; min-height: 60px; padding: 8px 10px 8px 16px; border-radius: 16px; background: var(--tl); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ta) 40%, transparent); }
+.s-sh-song { display: flex; align-items: center; gap: 12px; min-height: 60px; padding: 8px 10px 8px 16px; border-radius: 16px; background: var(--tl); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ta) 18%, transparent); }
+.s-sh-song .s-play { width: 42px; height: 42px; }
 .s-sh-song > a { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; padding-block: 6px; color: var(--color-cream); }
 .s-sh-song b { font-size: 16px; font-weight: 700; }
 .s-sh-song a span { font-size: 13px; color: var(--tm); }
 .s-sh-song > a:hover b { text-decoration: underline; text-underline-offset: 3px; }
 .s-sh-all { grid-area: all; justify-content: center; min-height: 48px; white-space: nowrap; }
+/* The collections as a grid of panels (Hillel's songbook design): each its palette, its title with a serif tail, "All N"
+   at top right, one line, four songs (three on a phone); its motif along its top, behind. */
+.s-sh-grid-head { display: grid; gap: 10px; }
+.s-sh-grid-head h2 { margin-top: 8px; font-size: clamp(28px, 6vw, 40px); line-height: 1.1; letter-spacing: -.02em; text-wrap: balance; }
+.s-sh-grid-head h2 em { white-space: nowrap; }
+.s-sh-grid-note { color: var(--color-muted); }
+.s-sh-grid { display: grid; gap: 16px; margin-top: 24px; }
+.s-sh-panel { border-radius: 22px; box-shadow: inset 0 0 0 1px rgba(247, 241, 230, .08); }
+/* Inset from the corners, so no rounded corner cuts it. */
+.s-sh-panel .s-tone-motif { top: 10px; right: 22px; width: calc(100% - 44px); height: 30px; }
+.s-sh-panel-in { position: relative; z-index: 1; padding: 44px 20px 20px; }
+.s-sh-panel-top { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.s-sh-panel h3 { font-size: clamp(24px, 6vw, 30px); line-height: 1.1; letter-spacing: -.02em; }
+.s-sh-panel h3 em { white-space: nowrap; }
+.s-sh-panel-all { flex: none; display: inline-flex; align-items: center; gap: 4px; min-height: 44px; font-size: 14.5px; font-weight: 700; color: var(--ta); white-space: nowrap; }
+.s-sh-panel-all svg { display: inline-block; }
+.s-sh-panel-all:hover { text-decoration: underline; text-underline-offset: 3px; }
+.s-sh-panel .s-sh-line { margin-top: 4px; }
+.s-sh-panel .s-sh-songs { margin-top: 18px; }
 @media (max-width: 639px) { .s-sh-song:nth-child(n+4) { display: none; } }
-/* Every song: short links in columns, each to its own page. */
-.s-sh-index h2 { margin-top: 8px; font-size: clamp(26px, 6vw, 36px); line-height: 1.1; letter-spacing: -.02em; }
-.s-sh-index-lead { margin-top: 10px; color: var(--color-muted); }
-.s-sh-az { columns: 2; column-gap: 24px; margin-top: 20px; }
-.s-sh-az li { break-inside: avoid; border-bottom: 1px solid var(--color-line); }
-.s-sh-az a { display: block; padding-block: 10px; font-weight: 600; }
-.s-sh-az a:hover { text-decoration: underline; text-underline-offset: 3px; }
+/* Every song by letter (Hillel's songbook design): its filters and search narrow it in place (js/public/songbook.js). */
+.s-sh-index-head { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 16px; }
+.s-sh-index h2 { margin-top: 8px; font-size: clamp(32px, 7vw, 48px); line-height: 1.05; letter-spacing: -.02em; }
+.s-sh-filters { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 20px; padding-bottom: 20px; border-bottom: 1px solid var(--color-line); }
+.s-sh-filter { cursor: pointer; color: var(--color-cream); }
+.s-sh-filter[aria-pressed="true"] { border-color: var(--color-cream); background: var(--color-cream); color: var(--color-ink); }
+.s-sh-filter[aria-pressed="true"] span { color: inherit; opacity: .7; }
+.s-sh-shown { margin-inline-start: auto; font-size: 14px; color: var(--color-muted); white-space: nowrap; }
+.s-sh-letters { columns: 1; column-gap: 28px; margin-top: 20px; }
+@media (min-width: 560px) { .s-sh-letters { columns: 2; } }
+.s-sh-letter { break-inside: avoid; padding-bottom: 18px; }
+.s-sh-letter h3 { font-size: 30px; line-height: 1; color: #B4472E; }
+.s-sh-letters ul { margin-top: 6px; }
+.s-sh-letters li { border-bottom: 1px solid var(--color-line); }
+.s-sh-letters li a { display: flex; align-items: baseline; gap: 10px; padding-block: 9px; font-size: 15px; }
+.s-sh-letters li i { transform: translateY(-2px); }
+.s-sh-letters li a:hover span { text-decoration: underline; text-underline-offset: 3px; }
+.s-sh-none { margin-top: 16px; color: var(--color-muted); }
+/* The close, left-aligned: the words and the one way on. */
+.s-sh-end-in { display: grid; gap: 20px; }
+.s-sh-end h2 { font-size: clamp(32px, 7vw, 52px); line-height: 1.05; letter-spacing: -.02em; }
+.s-sh-end h2 em { color: #E9C46A; }
+/* A cream pill on the dark close in both modes (dark on near-black vanished in light mode). */
+.s-sh-end { --primary: #F7F1E6; --primary-ink: #211A14; }
+.s-sh-end p { margin-top: 10px; color: var(--color-muted); }
+.s-sh-end .btn-lg { justify-self: start; white-space: nowrap; }
 @media (min-width: 640px) {
     .s-sh-songs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .s-sh-all { justify-self: start; }
-    .s-sh-swatches ul { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 @media (min-width: 900px) {
-    .s-sh-hero { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 56px; align-items: end; padding-top: 40px; }
-    .s-sh-swatches ul { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .s-sh-hero { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 56px; align-items: start; padding-top: 48px; }
+    .s-sh-grid-head { grid-template-columns: minmax(0, 1fr) auto; align-items: end; }
+    .s-sh-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .s-sh-panel-in { padding: 48px 28px 28px; }
+    .s-sh-panel .s-tone-motif { width: 60%; }
+    .s-sh-end-in { grid-template-columns: minmax(0, 1fr) auto; align-items: center; }
+    .s-sh-end .btn-lg { justify-self: end; }
     .s-sh-band-in { grid-template-columns: minmax(0, 38fr) minmax(0, 62fr); grid-template-areas: "words songs" "all songs"; gap: 16px 48px; padding: 44px 48px; }
     .s-sh-flip .s-sh-band-in { grid-template-columns: minmax(0, 62fr) minmax(0, 38fr); grid-template-areas: "songs words" "songs all"; }
     .s-sh-band .s-tone-motif { width: 62%; height: 40px; }
     .s-sh-band-in { padding-top: 44px; }
-    .s-sh-season .s-sh-band-in { padding: 64px 48px 48px; }
+    .s-sh-season .s-sh-band-in { padding: 64px 16px 48px; }
     .s-sh-season .s-xsnow { -webkit-mask-image: linear-gradient(to right, transparent 0 42%, #000 58%); mask-image: linear-gradient(to right, transparent 0 42%, #000 58%); }
     .s-sh-flip .s-tone-motif { right: auto; left: 0; transform: scaleX(-1); }
     .s-sh-words { align-self: end; }
     .s-sh-all { align-self: start; }
-    .s-sh-az { columns: 4; }
+    .s-sh-letters { columns: 4; }
 }
 @media (max-width: 640px) { .s-xband { padding: 28px 22px; } .s-xband-go, .s-xband-go .btn-secondary { width: 100%; justify-content: center; } }
 /* In season, the footer on the season's green, with its line in the serif. */

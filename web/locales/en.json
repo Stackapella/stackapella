@@ -461,6 +461,7 @@
         "noWords": "The file has no words, so every part sings \"oo\". You can add words after.",
         "private": "The song stays private: just you, and choir groups you add it to.",
         "rights": "I have the right to use this music for my own practice or my choir's.",
+        "rightsFrom": "Rights: as {who} confirmed with the request.",
         "make": "Make the song",
         "track": "Track {number}",
         "unnamed": "A part with no name",
@@ -698,6 +699,8 @@
             "dropoffsHint": "Where singers stop, step by step: the week's worst, each against its neighbours and its weeks before.",
             "sharing": "Sharing",
             "sharingHint": "How often singers pass the app on, from where, and what comes of it.",
+            "breadth": "Breadth",
+            "breadthHint": "How much of the app singers have used: the eleven core things, how many each active day has tried.",
             "group": {
                 "inbox": "Inbox",
                 "users": "Users",
@@ -1969,6 +1972,62 @@
                 "verdict": "A drop"
             }
         },
+        "breadth": {
+            "intro": "The week of {from} to {to}: of the eleven core things, from a first lesson to a free tool, how many each active day's singer had tried. Under {floor} it's too few to tell.",
+            "introShort": "How much of the app singers have used.",
+            "failed": "Breadth didn't load.",
+            "tooFew": "too few to tell",
+            "tooFewDays": "{count, plural, one {1 active day: too few to tell} other {# active days: too few to tell}}",
+            "same": "same",
+            "notYet": "no week to compare yet",
+            "points": "{count, plural, one {1 pt} other {# pts}}",
+            "was": "was {share}",
+            "threePlus": "Active days at three or more",
+            "onLastWeek": "On last week",
+            "onFourWeeks": "On four weeks ago",
+            "mean": "On average, tried",
+            "days": "{count, plural, one {over 1 active day} other {over # active days}}",
+            "weeksTitle": "Each week, guests and accounts apart",
+            "weekOf": "Week of {from}",
+            "guests": "Guests",
+            "accounts": "Accounts",
+            "asTable": "Show as a table",
+            "asBars": "Show as bars",
+            "ladderTitle": "First tries this week",
+            "ladderIntro": "{count, plural, one {Beside this week's 1 new device, each thing in the order a singer meets it, and against the one before.} other {Beside this week's # new devices, each thing in the order a singer meets it, and against the one before.}}",
+            "homeLine": "Breadth: {share} of active days at three or more things (last week {last}).",
+            "homeLineFirst": "Breadth: {share} of active days at three or more things.",
+            "band": {
+                "none": "None yet",
+                "one": "1",
+                "two": "2",
+                "threeFour": "3 or 4",
+                "fivePlus": "5 or more"
+            },
+            "col": {
+                "week": "Week",
+                "who": "Who",
+                "days": "Active days",
+                "feature": "Thing",
+                "firstUses": "First tries",
+                "lastWeek": "Last week",
+                "perNew": "Of new devices",
+                "fromPrevious": "From the one before"
+            },
+            "feature": {
+                "lesson": "A lesson finished",
+                "warmup": "A warm-up or workout",
+                "singalong": "A song sung along",
+                "record": "A take recorded",
+                "stack": "A second part of a song",
+                "whole": "A song all theirs",
+                "course": "Another course's lesson",
+                "create": "A song of their own",
+                "share": "Something shared",
+                "together": "Singing with others",
+                "tool": "A free tool"
+            }
+        },
         "sharing": {
             "intro": "The seven days from {from} to {to}, against the seven before. Under {floor}, a number is too few to tell.",
             "introShort": "How often singers pass the app on, and what comes of it.",
@@ -2057,7 +2116,14 @@
                 "rightsRecord": "The rights record",
                 "given": "{title} is in {group} now. The request is closed.",
                 "noGive": "This request came before Give this song: give it from their account.",
-                "toAccount": "Open their account"
+                "toAccount": "Open their account",
+                "import": "Import this score",
+                "importing": "Opening",
+                "importFailed": "The score didn't open from its link: it lasts 10 minutes, and the file may not be one the importer reads. Download it and choose it here, or open the message again.",
+                "chooseFile": "The downloaded score",
+                "problems": "{count, plural, one {1 thing to fix in the score before it can be a song:} other {# things to fix in the score before it can be a song:}}",
+                "advice": "What a singer will meet",
+                "adviceNote": "Proposals only: their music is never changed."
             },
             "filter": {
                 "open": "Open",
@@ -4072,7 +4138,9 @@
             "startOver": "Start over",
             "confirmTitle": "Start the course over?",
             "confirmBody": "Every lesson's stars go, and the course opens at its start. Your note, range, XP, badges and songs stay. You can undo it here for 30 days.",
+            "confirmBodySerious": "Every lesson goes back to the start, and the course opens at its start. Your note, range and songs stay. You can undo it here for 30 days.",
             "restarted": "The course starts over. Your stars are kept for 30 days if you change your mind.",
+            "restartedSerious": "The course starts over. Your lessons are kept for 30 days if you change your mind.",
             "undone": "Your lessons and stars are back.",
             "restartHintSerious": "Your lessons go back to the start. Your note and range stay. You can undo it for 30 days.",
             "undoneSerious": "Your lessons are back."
@@ -4221,6 +4289,7 @@
         "notYet": "Not yet",
         "notYetLine": "Not yet is useful: listen to the model once more, then record again whenever you like.",
         "honest": "We don't score this yet. Your stars here are for practising: your own ears are the judge.",
+        "honestSerious": "We don't score this yet. It's for practising: your own ears are the judge.",
         "toGoOn": "Record and answer to go on",
         "toFinish": "Record and answer to finish"
     },
@@ -4783,6 +4852,7 @@
             "courseTakesDelete": "Delete",
             "courseTakesTitle": "Delete your course voice takes?",
             "courseTakesBody": "The takes kept for Then and now are deleted from this device. Your stars and progress stay, and Then and now keeps your next take instead.",
+            "courseTakesBodySerious": "The takes kept for Then and now are deleted from this device. Your progress stays, and Then and now keeps your next take instead.",
             "courseTakesAction": "Delete takes",
             "courseTakesDone": "Course voice takes deleted.",
             "courseTakesFailed": "The course voice takes couldn't be deleted. Try again."
@@ -5189,6 +5259,7 @@
         "why": {
             "steady": "Hold each note steady, as long as it lasts.",
             "review": "From \"{lesson}\": a few more stars are waiting.",
+            "reviewSerious": "From \"{lesson}\": worth another go.",
             "read": "Read a new line from the stave.",
             "flatHigh": "Your high notes have been a little flat lately: these climb, with breath behind them.",
             "sharpHigh": "Your high notes have been a little sharp lately: these climb, with a relaxed jaw.",
@@ -7011,6 +7082,7 @@
             "thenNowText": "\u201c{lesson}\u201d: {then}% when I started, {now}% now. Try it free:",
             "yourTurn": "Your turn?",
             "streak": "{days}-day streak",
+            "streakSerious": "{days} days in a row",
             "title": "Share your result",
             "size": "Size",
             "post": "Post",
@@ -7852,6 +7924,7 @@
     },
     "boss": {
         "locked": "Opens once the unit's challenge has stars.",
+        "lockedSerious": "Opens once you've sung the unit's challenge.",
         "noTry": "No try yet",
         "best": "Your best: {percent}%",
         "bestBeaten": "Beaten, best {percent}%",
@@ -7881,6 +7954,7 @@
         "review": {
             "title": "Unit review",
             "line": "The unit's skills in one go, about 2 minutes. {percent}% passes. Optional: it doesn't change your stars.",
+            "lineSerious": "The unit's skills in one go, about 2 minutes. {percent}% passes. Optional: your lessons stay as they are.",
             "bestPassed": "Passed, best {percent}%",
             "start": "Start",
             "passed": "Review passed, {percent}%",

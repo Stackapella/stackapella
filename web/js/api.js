@@ -179,6 +179,7 @@ export const OPERATIONS = {
     'admin.funnel.show': ['GET', '/api/admin/funnel'],
     'admin.dropoffs.show': ['GET', '/api/admin/dropoffs'],
     'admin.sharing.show': ['GET', '/api/admin/sharing'],
+    'admin.breadth.show': ['GET', '/api/admin/breadth'],
     'voices.wanted': ['GET', '/api/voices/wanted'],
     'voices.join': ['POST', '/api/voices/join'],
     'voices.summary': ['GET', '/api/voices/summary'],
@@ -844,6 +845,7 @@ export const api = {
         },
         dropoffs: () => call('admin.dropoffs.show'),
         sharing: () => call('admin.sharing.show'),
+        breadth: () => call('admin.breadth.show'),
         growth: { show: ({ period, days } = {}) => call('admin.growth.show', { query: { period, days } }) },
         // Outreach (docs/outreach-plan.md): one organization, one email, sent by Hillel's own press.
         outreach: {

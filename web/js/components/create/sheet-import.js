@@ -13,14 +13,16 @@ import { Modal } from '../ui.js';
 
 export const SheetImport = {
     components: { Modal },
-    props: { score: { type: Object, required: true }, busy: Boolean },
+    // rightsRecord: staff importing a director's score (Admin > Support's tracks row) show the director's confirmation
+    // instead of asking for one (docs/score-import-plan.md, section 5).
+    props: { score: { type: Object, required: true }, busy: Boolean, rightsRecord: { type: Object, default: null } },
     emits: ['make', 'close'],
     data() {
         const lines = this.score.lines;
         return {
             picks: Object.fromEntries(lines.map((l) => [l.id, { as: namedVoice(l) ?? '', take: 'top' }])),
             wordsFrom: lines.find((l) => l.words)?.id ?? '',
-            rights: false,
+            rights: !!this.rightsRecord,
             SING_AS,
         };
     },
@@ -57,8 +59,11 @@ export const SheetImport = {
                 <p v-else-if="!wordLines.length" class="text-sm text-muted">{{ t('sheet.noWords') }}</p>
                 <ul v-if="notices.length" class="list-disc space-y-1 ps-5 text-sm text-muted" data-sheet-notices><li v-for="(n, i) in notices" :key="i">{{ n }}</li></ul>
                 <p v-if="problemText" class="text-sm text-cream" role="status">{{ problemText }}</p>
-                <p class="text-sm text-muted">{{ t('sheet.private') }}</p>
-                <label class="check-row"><input v-model="rights" type="checkbox" class="checkbox" data-sheet-rights /><span>{{ t('sheet.rights') }}</span></label>
+                <p v-if="rightsRecord" class="text-sm text-muted" translate="no" data-sheet-rights-record>{{ t('sheet.rightsFrom', { who: rightsRecord.confirmedBy }) }}</p>
+                <template v-else>
+                    <p class="text-sm text-muted">{{ t('sheet.private') }}</p>
+                    <label class="check-row"><input v-model="rights" type="checkbox" class="checkbox" data-sheet-rights /><span>{{ t('sheet.rights') }}</span></label>
+                </template>
                 <div class="flex flex-wrap items-center justify-end gap-3 border-t border-line pt-4">
                     <button type="button" class="btn-secondary" @click="$emit('close')">{{ t('common.cancel') }}</button>
                     <button type="submit" class="primary btn-primary" :disabled="!ready || busy">{{ t('sheet.make') }}</button>

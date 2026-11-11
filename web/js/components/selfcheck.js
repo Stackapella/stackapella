@@ -12,6 +12,7 @@
 import { audio, engine, latencyNow, leadSeconds, unlock } from '../audio.js';
 import { readyMic } from '../mic-check.js';
 import { localized, t } from '../i18n.js';
+import { sk } from '../skin.js';
 import { renderBacking, renderPart } from '../synth.js';
 import { Icon } from './icon.js';
 import { showMicHelp } from '../mic-help.js';
@@ -52,7 +53,7 @@ export const SelfCheck = {
     },
     emits: ['done', 'practised'],
     data: () => ({ recording: false, take: null, playing: null, answers: {}, asking: false, progress: 0, error: null, published: null, reporting: false }),
-    setup: () => ({ localized, clipCredit }),
+    setup: () => ({ localized, clipCredit, sk }),
     template: `
         <div class="space-y-5" data-selfcheck>
             <ol class="space-y-3">
@@ -96,7 +97,7 @@ export const SelfCheck = {
                 </div>
                 <p v-if="allAnswered && notYets" class="text-sm text-muted" role="status">{{ t('selfcheck.notYetLine') }}</p>
             </section>
-            <p class="text-sm text-muted" data-selfcheck-honest>{{ t('selfcheck.honest') }}</p>
+            <p class="text-sm text-muted" data-selfcheck-honest>{{ sk('selfcheck.honestSerious', 'selfcheck.honest') }}</p>
             <p v-if="error" class="text-sm text-bad" role="alert">{{ error }}</p>
             <HeadphonesDialog v-if="asking" speaker-option simple :action="t('headphones.on')" @ok="headphonesOn" @speaker="useSpeaker" @close="asking = false" />
             <ReportVoice v-if="reporting && published" :clip-slot="model.clip" :who="clipCredit(published)" @close="reporting = false" />

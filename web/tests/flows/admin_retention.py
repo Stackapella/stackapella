@@ -34,10 +34,24 @@ def journey(f):
     assert rows == ["note 0.27", "group " + t(f, "admin.sharing.tooFew")], rows
     f.no_sideways("Sharing")
     f.shot("sharing")
+    # Breadth: three or more this week and its moves, a stacked bar a week for guests and accounts, the ladder.
+    f.go("/admin/breadth?api=mock&scenario=&as=admin", "document.querySelector('[data-breadth] [data-breadth-headline]')")
+    assert f.js("document.querySelector('[data-measure=threePlus] [data-value]').textContent.trim()") == "25%"
+    assert f.js("document.querySelector('[data-measure=lastWeek] dd').dataset.dir") == "up"
+    assert f.js("document.querySelectorAll('[data-breadth-bars] [data-week]').length") == 5
+    assert f.js("document.querySelectorAll('[data-feature]').length") == 11
+    ladder = f.js("[...document.querySelectorAll('[data-feature]')].slice(0, 3).map((r) => r.children[3].textContent.trim())")
+    assert ladder == ["63%", "25%", t(f, "admin.breadth.tooFew")], ladder
+    f.no_sideways("Breadth")
+    f.shot("breadth")
+    f.run("document.querySelector('[data-breadth-table-toggle]').click()")
+    f.wait("document.querySelector('[data-breadth-weeks-table] tbody tr')", what="the weeks as a table")
     # Home: the worst drop-offs as rows, and sharing with its weakest surface named.
     f.go("/admin?api=mock&scenario=&as=admin", "document.querySelector('[data-needs-dropoffs] [data-needs-dropoff]') && document.querySelector('[data-needs-sharing] [data-sharing-panel]')")
     assert f.js("document.querySelectorAll('[data-needs-dropoff]').length") == 2
     assert f.js("document.querySelector('[data-needs-dropoff]').getAttribute('href')") == "/admin/dropoffs#path-lesson-4-words"
+    f.wait("document.querySelector('[data-needs-breadth]')", what="Breadth's line")
+    assert f.js("document.querySelector('[data-needs-breadth]').textContent.trim()") == t(f, "admin.breadth.homeLine", {"share": "25%", "last": "10%"})
     weakest = f.js("document.querySelector('[data-needs-sharing-weakest]').textContent.trim()")
     assert weakest == t(f, "admin.needs.weakest", {"surface": t(f, "admin.sharing.surface.note"), "perShare": "0.27"}), weakest
     f.run("document.querySelector('[data-needs-dropoffs]').scrollIntoView({ block: 'start' })")

@@ -487,12 +487,12 @@ export const SettingsView = {
         },
         /** Start the course over: asked once, plainly, then undoable for 30 days (here, and in the toast). */
         async restartCourseAsk() {
-            const sure = await confirmAction({ title: t('settings.course.confirmTitle'), body: t('settings.course.confirmBody'), action: t('settings.course.startOver') });
+            const sure = await confirmAction({ title: t('settings.course.confirmTitle'), body: sk('settings.course.confirmBodySerious', 'settings.course.confirmBody'), action: t('settings.course.startOver') });
             if (!sure) return;
             this.restarting = true;
             try {
                 await restartCourse();
-                toast(t('settings.course.restarted'), { seconds: 10, actions: [{ label: t('common.undo'), run: () => this.undoRestartCourse() }] });
+                toast(sk('settings.course.restartedSerious', 'settings.course.restarted'), { seconds: 10, actions: [{ label: t('common.undo'), run: () => this.undoRestartCourse() }] });
             } catch (error) {
                 console.error('The course did not start over', error);
                 toast(error?.code === 'offline' ? t('common.offline') : t('settings.failed'), { tone: 'error' });

@@ -79,10 +79,12 @@ final class SongCollectionsTest extends TestCase
         $open = app(Catalogue::class)->open();
 
         // Every open song once in the A to Z, so none is more than a click from /songs (Hillel's sampler, 2026-11-11).
-        preg_match('#<ul class="s-sh-az">(.*?)</ul>#s', $html, $az);
+        preg_match('#<div class="s-sh-letters">(.*?)<p class="s-sh-none"#s', $html, $az);
         foreach ($open as $template) {
             $this->assertSame(1, substr_count($az[1] ?? '', 'href="/songs/'.$template->slug.'"'), $template->slug);
         }
+        // Each entry carries the collections that list it, for the filters (Hillel's songbook design).
+        $this->assertMatchesRegularExpression('#<li data-in="[a-z -]+" data-title="amazing grace"#', $az[1] ?? '');
         // Out of the carol season: no carols band, and the collections' panels the biggest first.
         preg_match_all('#<section id="band-([a-z-]+)"#', $html, $m);
         $this->assertNotContains('christmas', $m[1]);
@@ -101,6 +103,18 @@ final class SongCollectionsTest extends TestCase
             $this->assertStringContainsString('s-sh-season', $html);
             $this->assertStringContainsString(__('pages.songs.season_until', ['date' => '6 January']), $html);
         }
+    }
+
+    public function test_the_songbook_searches_without_the_script_and_offers_a_song_to_try(): void
+    {
+        // ?q= narrows the A to Z on the server (the hero's search when the script hasn't run), the page staying /songs.
+        $html = (string) $this->get('/songs?q=grace')->assertOk()->getContent();
+        $this->assertMatchesRegularExpression('#<li data-in="[a-z -]+" data-title="amazing grace" >#', $html);
+        $this->assertMatchesRegularExpression('#<li data-in="[a-z -]+" data-title="silent night"\s+hidden\s*>#', $html);
+        $this->assertStringContainsString('<link rel="canonical" href="'.Hosts::publicUrl().'/songs">', $html);
+        // A song to try in the hero: its parts, each switchable (x-site.mixer).
+        $this->assertStringContainsString('id="try-mixer"', $html);
+        $this->assertStringContainsString('data-toggle', $html);
     }
 
     public function test_a_song_goes_to_its_first_group_in_order(): void

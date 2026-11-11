@@ -81,7 +81,7 @@ def journey(f):
     assert not f.js(f"!!{ROW}"), "no boss in the first week"
     # Waits for the locked words themselves: under load the lesson's loading line is the first paragraph.
     f.go("/learn/2-boss?api=mock&scenario=&as=member", "document.querySelector('main p')")
-    f.wait_text(t(f, "boss.locked"))
+    f.wait_text(f.js("(await import('/js/skin.js')).sk('boss.lockedSerious', 'boss.locked')"))  # the skin's own words
 
     # Past it: the row, open (the challenge has stars), and into the boss stage.
     seed(f, 8)

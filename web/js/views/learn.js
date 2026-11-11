@@ -111,7 +111,7 @@ export const LearnView = {
                 <!-- The account still being checked where a guest would meet the wall: the lesson's own wait, never a flash of the wall. -->
                 <p v-else-if="needsAccount === null" class="text-muted" role="status" data-account-checking>{{ t('course.loading') }}</p>
                 <CourseWall v-else-if="needsAccount" place="lesson" :course="entry.course" :lesson-id="entry.lesson.id" :home="courseHome" class="max-w-xl" />
-                <p v-else-if="!open" class="text-cream">{{ entry.boss ? t('boss.locked') : sk('course.lockedSerious', 'course.locked') }} <a href="/" class="link" @click.prevent="navigate('/')">{{ t('course.backToCourse') }}</a></p>
+                <p v-else-if="!open" class="text-cream">{{ entry.boss ? sk('boss.lockedSerious', 'boss.locked') : sk('course.lockedSerious', 'course.locked') }} <a href="/" class="link" @click.prevent="navigate('/')">{{ t('course.backToCourse') }}</a></p>
                 <!-- A unit's boss round (docs/boss-round-plan.md): its intro before the first step, and its own end. -->
                 <BossIntro v-else-if="entry.boss && !bossStarted && !done" ref="bossIntro" :unit="entry.unitIndex + 1" :unit-title="localized(entry.unit.title)" :title="localized(entry.lesson.title)" :best="bossResult(learning.progress, entry.unit.id)?.best ?? null" :beaten="bossBeaten(learning.progress, entry.unit.id)" :ready="!!bossNotes" @start="bossStart" @later="goBack('/learn')" />
                 <BossEnd v-else-if="done && done.boss" ref="bossEnd" :done="done" :title="localized(entry.lesson.title)" @again="bossAgain" @back="goBack('/learn')" />

@@ -56,14 +56,36 @@ APP_GAME_INPUT=css/.app-game-input.css
 SITE_INPUT=css/.site-input.css
 SITE_GAME_INPUT=css/.site-game-input.css
 COURSES_INPUT=css/.courses-input.css
-trap 'rm -f "$APP_INPUT" "$APP_GAME_INPUT" "$SITE_INPUT" "$SITE_GAME_INPUT" "$COURSES_INPUT"' EXIT
+BUILD_LOG=css/.tailwind.log
+trap 'rm -f "$APP_INPUT" "$APP_GAME_INPUT" "$SITE_INPUT" "$SITE_GAME_INPUT" "$COURSES_INPUT" "$BUILD_LOG"' EXIT
+
+# One sheet. Its exit status isn't the only check (marketing, 2026-11-11, saw "CssSyntaxError ... Missing opening {"
+# with status 0; most likely a pipe's, as 4.3.3 exits 1 on it here): the binary's own words are read too, and an error
+# there, or a sheet missing or empty, fails the build rather than letting a chain carry on with the last good sheet.
+build() {
+  local input="$1" output="$2"
+  if ! "$BIN" -i "$input" -o "$output" --minify 2> "$BUILD_LOG"; then
+    cat "$BUILD_LOG" >&2
+    echo "Tailwind failed building $output from $input" >&2
+    exit 1
+  fi
+  cat "$BUILD_LOG" >&2
+  if grep -qE 'CssSyntaxError|(^|[[:space:]])Error:' "$BUILD_LOG"; then
+    echo "Tailwind reported an error building $output from $input (its exit status was 0): fix input.css" >&2
+    exit 1
+  fi
+  if [[ ! -s "$output" ]]; then
+    echo "Tailwind left $output missing or empty" >&2
+    exit 1
+  fi
+}
 # The public pages: site.css without the course pages' rules (.cp-*), which are courses.css, linked only by a page
 # that shows one (server/resources/views/public/layout.blade.php). Each of site.css and app.css without its game skin's
 # rules, which are site-game.css and app-game.css, linked only in game mode, right after it (js/game-css.js).
 python3 -I tool/app_css.py --site css/input.css "$SITE_INPUT" "$COURSES_INPUT" "$SITE_GAME_INPUT"
-"$BIN" -i "$SITE_INPUT" -o css/site.css --minify
-"$BIN" -i "$SITE_GAME_INPUT" -o css/site-game.css --minify
-"$BIN" -i "$COURSES_INPUT" -o css/courses.css --minify
+build "$SITE_INPUT" css/site.css
+build "$SITE_GAME_INPUT" css/site-game.css
+build "$COURSES_INPUT" css/courses.css
 python3 -I tool/app_css.py css/input.css "$APP_INPUT" "$APP_GAME_INPUT"
-"$BIN" -i "$APP_INPUT" -o css/app.css --minify
-"$BIN" -i "$APP_GAME_INPUT" -o css/app-game.css --minify
+build "$APP_INPUT" css/app.css
+build "$APP_GAME_INPUT" css/app-game.css

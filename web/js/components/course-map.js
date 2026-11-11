@@ -71,7 +71,7 @@ export const CourseMap = {
                         <p class="mt-1 text-xl font-extrabold tracking-tight text-cream" translate="no">{{ localized(pickedLesson(u).title) }}</p>
                         <p v-if="lineOf(pickedLesson(u))" class="mt-2 text-sm text-muted" translate="no">{{ localized(lineOf(pickedLesson(u))) }}</p>
                         <p class="mt-3 tabular-nums text-xs text-muted">{{ t('course.aboutMin', { minutes: lessonMinutes(pickedLesson(u)) }) }} · {{ t('course.exercises', { count: exercisesIn(pickedLesson(u)) }) }}</p>
-                        <p v-if="!open(u)" class="mt-4 text-sm text-muted" data-lesson-locked>{{ t('course.locked') }}</p>
+                        <p v-if="!open(u)" class="mt-4 text-sm text-muted" data-lesson-locked>{{ game() ? t('course.locked') : t('course.lockedSerious') }}</p>
                         <!-- Signed out past a course's first lesson (Hillel, 2026-11-06): a free account, never a price. -->
                         <CourseWall v-else-if="needsAccount(pickedLesson(u))" compact place="map" :course="course" :lesson-id="pickedLesson(u).id" class="mt-4" />
                         <button v-else type="button" class="btn-primary mt-4 w-full" @click="navigate('/learn/' + pickedLesson(u).id)">{{ stars(pickedLesson(u)) ? t('course.replay') : t('course.startLesson') }}</button>
@@ -82,7 +82,7 @@ export const CourseMap = {
                         <span class="min-w-0 flex-1">
                             <span class="block text-xs font-bold uppercase tracking-[0.14em] text-muted">{{ effect('boss') ? t('boss.map.boss') : t('boss.map.review') }} · {{ t('boss.map.optional') }}</span>
                             <span class="block font-bold text-cream" translate="no">{{ localized(unit.boss.title) }}</span>
-                            <span class="block text-sm text-muted" data-boss-status>{{ !bossOf(unit).open ? t('boss.locked') : bossOf(unit).beaten ? (effect('boss') ? t('boss.bestBeaten', { percent: formatNumber(bossOf(unit).best) }) : t('boss.review.bestPassed', { percent: formatNumber(bossOf(unit).best) })) : bossOf(unit).best !== null ? t('boss.best', { percent: formatNumber(bossOf(unit).best) }) : effect('boss') ? t('boss.toBeat', { percent: formatNumber(BOSS_PASS) }) : t('boss.review.toPass', { percent: formatNumber(BOSS_PASS) }) }}</span>
+                            <span class="block text-sm text-muted" data-boss-status>{{ !bossOf(unit).open ? (game() ? t('boss.locked') : t('boss.lockedSerious')) : bossOf(unit).beaten ? (effect('boss') ? t('boss.bestBeaten', { percent: formatNumber(bossOf(unit).best) }) : t('boss.review.bestPassed', { percent: formatNumber(bossOf(unit).best) })) : bossOf(unit).best !== null ? t('boss.best', { percent: formatNumber(bossOf(unit).best) }) : effect('boss') ? t('boss.toBeat', { percent: formatNumber(BOSS_PASS) }) : t('boss.review.toPass', { percent: formatNumber(BOSS_PASS) }) }}</span>
                         </span>
                         <button v-if="bossOf(unit).open" type="button" class="btn-secondary max-sm:w-full" data-boss-go @click="navigate('/learn/' + unit.boss.id)">{{ bossOf(unit).beaten ? t('boss.playAgain') : effect('boss') ? t('boss.takeItOn') : t('boss.review.start') }}</button>
                     </div>

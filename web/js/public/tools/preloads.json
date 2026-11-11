@@ -446,6 +446,9 @@
     "/js/recorded-guides.js",
     "/js/db.js"
   ],
+  "/js/public/songbook.js": [
+    "/js/public/songbook.js"
+  ],
   "/js/public/tools/embed-maker.js": [
     "/js/public/tools/embed-maker.js"
   ],

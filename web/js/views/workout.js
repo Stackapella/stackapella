@@ -165,7 +165,7 @@ export const WorkoutView = {
         headline() {
             if (this.current.roundShifts) return this.current.name || t('warmup.from');
             if (this.current.kind === 'warmUp') return t('workout.warmUpTitle', { climb: this.current.climb });
-            if (this.current.kind === 'review') return t('workout.why.review', { lesson: this.lessonTitle(this.current.lessonId) });
+            if (this.current.kind === 'review') return sk('workout.why.reviewSerious', 'workout.why.review', { lesson: this.lessonTitle(this.current.lessonId) });
             if (this.current.kind === 'read') return t('workout.why.read');
             return this.current.insight ? t(WHY[this.current.insight]) : t('workout.why.steady');
         },

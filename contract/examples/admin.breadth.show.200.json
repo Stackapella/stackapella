@@ -1,0 +1,428 @@
+{
+    "data": {
+        "from": "2026-11-06",
+        "to": "2026-11-12",
+        "floor": 30,
+        "headline": {
+            "deviceDays": 120,
+            "threePlus": 0.25,
+            "mean": 1.83,
+            "tooFew": false,
+            "lastWeek": 0.1,
+            "fourWeeksAgo": 0.0
+        },
+        "weeks": [
+            {
+                "from": "2026-10-09",
+                "to": "2026-10-15",
+                "all": {
+                    "deviceDays": 40,
+                    "levels": [
+                        0,
+                        40,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0
+                    ],
+                    "threePlus": 0.0,
+                    "mean": 1.0,
+                    "tooFew": false
+                },
+                "guest": {
+                    "deviceDays": 40,
+                    "levels": [
+                        0,
+                        40,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0
+                    ],
+                    "threePlus": 0.0,
+                    "mean": 1.0,
+                    "tooFew": false
+                },
+                "account": {
+                    "deviceDays": 0,
+                    "levels": [
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0
+                    ],
+                    "threePlus": null,
+                    "mean": null,
+                    "tooFew": true
+                }
+            },
+            {
+                "from": "2026-10-16",
+                "to": "2026-10-22",
+                "all": {
+                    "deviceDays": 0,
+                    "levels": [
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0
+                    ],
+                    "threePlus": null,
+                    "mean": null,
+                    "tooFew": true
+                },
+                "guest": {
+                    "deviceDays": 0,
+                    "levels": [
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0
+                    ],
+                    "threePlus": null,
+                    "mean": null,
+                    "tooFew": true
+                },
+                "account": {
+                    "deviceDays": 0,
+                    "levels": [
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0
+                    ],
+                    "threePlus": null,
+                    "mean": null,
+                    "tooFew": true
+                }
+            },
+            {
+                "from": "2026-10-23",
+                "to": "2026-10-29",
+                "all": {
+                    "deviceDays": 68,
+                    "levels": [
+                        0,
+                        52,
+                        11,
+                        4,
+                        1,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0
+                    ],
+                    "threePlus": 0.074,
+                    "mean": 1.32,
+                    "tooFew": false
+                },
+                "guest": {
+                    "deviceDays": 56,
+                    "levels": [
+                        0,
+                        46,
+                        8,
+                        2,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0
+                    ],
+                    "threePlus": 0.036,
+                    "mean": 1.21,
+                    "tooFew": false
+                },
+                "account": {
+                    "deviceDays": 12,
+                    "levels": [
+                        0,
+                        6,
+                        3,
+                        2,
+                        1,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0
+                    ],
+                    "threePlus": 0.25,
+                    "mean": 1.83,
+                    "tooFew": true
+                }
+            },
+            {
+                "from": "2026-10-30",
+                "to": "2026-11-05",
+                "all": {
+                    "deviceDays": 100,
+                    "levels": [
+                        0,
+                        90,
+                        0,
+                        0,
+                        0,
+                        10,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0
+                    ],
+                    "threePlus": 0.1,
+                    "mean": 1.4,
+                    "tooFew": false
+                },
+                "guest": {
+                    "deviceDays": 90,
+                    "levels": [
+                        0,
+                        90,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0
+                    ],
+                    "threePlus": 0.0,
+                    "mean": 1.0,
+                    "tooFew": false
+                },
+                "account": {
+                    "deviceDays": 10,
+                    "levels": [
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        10,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0
+                    ],
+                    "threePlus": 1.0,
+                    "mean": 5.0,
+                    "tooFew": true
+                }
+            },
+            {
+                "from": "2026-11-06",
+                "to": "2026-11-12",
+                "all": {
+                    "deviceDays": 120,
+                    "levels": [
+                        0,
+                        60,
+                        30,
+                        20,
+                        10,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0
+                    ],
+                    "threePlus": 0.25,
+                    "mean": 1.83,
+                    "tooFew": false
+                },
+                "guest": {
+                    "deviceDays": 100,
+                    "levels": [
+                        0,
+                        60,
+                        30,
+                        0,
+                        10,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0
+                    ],
+                    "threePlus": 0.1,
+                    "mean": 1.6,
+                    "tooFew": false
+                },
+                "account": {
+                    "deviceDays": 20,
+                    "levels": [
+                        0,
+                        0,
+                        0,
+                        20,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0
+                    ],
+                    "threePlus": 1.0,
+                    "mean": 3.0,
+                    "tooFew": true
+                }
+            }
+        ],
+        "newDevices": 80,
+        "features": [
+            {
+                "feature": "lesson",
+                "firstUses": 50,
+                "lastWeek": 44,
+                "perNew": 0.625,
+                "fromPrevious": null,
+                "tooFew": false
+            },
+            {
+                "feature": "warmup",
+                "firstUses": 20,
+                "lastWeek": 15,
+                "perNew": 0.25,
+                "fromPrevious": 0.4,
+                "tooFew": false
+            },
+            {
+                "feature": "singalong",
+                "firstUses": 9,
+                "lastWeek": 6,
+                "perNew": 0.113,
+                "fromPrevious": 0.45,
+                "tooFew": true
+            },
+            {
+                "feature": "record",
+                "firstUses": 4,
+                "lastWeek": 3,
+                "perNew": 0.05,
+                "fromPrevious": 0.444,
+                "tooFew": true
+            },
+            {
+                "feature": "stack",
+                "firstUses": 1,
+                "lastWeek": 0,
+                "perNew": 0.013,
+                "fromPrevious": 0.25,
+                "tooFew": true
+            },
+            {
+                "feature": "whole",
+                "firstUses": 0,
+                "lastWeek": 0,
+                "perNew": 0.0,
+                "fromPrevious": 0.0,
+                "tooFew": true
+            },
+            {
+                "feature": "course",
+                "firstUses": 0,
+                "lastWeek": 0,
+                "perNew": 0.0,
+                "fromPrevious": null,
+                "tooFew": true
+            },
+            {
+                "feature": "create",
+                "firstUses": 2,
+                "lastWeek": 1,
+                "perNew": 0.025,
+                "fromPrevious": null,
+                "tooFew": true
+            },
+            {
+                "feature": "share",
+                "firstUses": 3,
+                "lastWeek": 2,
+                "perNew": 0.037,
+                "fromPrevious": 1.5,
+                "tooFew": true
+            },
+            {
+                "feature": "together",
+                "firstUses": 0,
+                "lastWeek": 0,
+                "perNew": 0.0,
+                "fromPrevious": 0.0,
+                "tooFew": true
+            },
+            {
+                "feature": "tool",
+                "firstUses": 1,
+                "lastWeek": 0,
+                "perNew": 0.013,
+                "fromPrevious": null,
+                "tooFew": true
+            }
+        ]
+    }
+}

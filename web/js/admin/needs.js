@@ -19,6 +19,7 @@ import { toast } from '../components/ui.js';
 import { ChangeSheet, LoadFailed, refused, when } from './common.js';
 import { DropoffLine, dropPath, lastWeekOf } from './dropoffs.js';
 import { SharingPanel, surfaceName, weakest } from './sharing.js';
+import { breadthLine } from './breadth.js';
 
 // Where a singer stands, as My parts says it.
 const STATUS = {
@@ -106,7 +107,7 @@ export const NeedsCard = {
     // and what the weekly sitemap check last found (sitemapProblems: a page search can't index and why; "and N more").
     // For an admin, the week's three worst drop-offs and how sharing went (admin.dropoffs.show, admin.sharing.show), asked here.
     props: { outreach: { type: Object, default: null }, notSynced: { type: Array, default: () => [] }, sitemap: { type: Array, default: () => [] }, admin: { type: Boolean, default: false } },
-    data: () => ({ dropoffs: null, sharing: null }),
+    data: () => ({ dropoffs: null, sharing: null, breadth: null }),
     setup: () => ({ needs, noSingers, listCount, formatNumber, dropPath, lastWeekOf, surfaceName }),
     template: `
         <section class="space-y-3" aria-labelledby="needs-h" data-admin-needs>
@@ -185,6 +186,8 @@ export const NeedsCard = {
                     <NeedLines v-if="sitemap.length" kind="sitemap" :title="t('admin.needs.sitemap.title', { count: listCount(sitemap) })" :show="t('admin.needs.sitemap.show')" :note="t('admin.needs.sitemap.note')" :lines="sitemap" />
                 </section>
             </div>
+            <!-- Breadth (docs/retention-plan.md): how much of the app this week's active singers have used, one line to its tab. -->
+            <a v-if="breadthText" href="/admin/breadth" class="link tap-44 inline-flex text-sm" data-needs-breadth @click.prevent="navigate('/admin/breadth')">{{ breadthText }}</a>
         </section>`,
     // Loaded by the admin's shell on every screen (it counts them in the nav): no second ask here.
     computed: {
@@ -208,6 +211,10 @@ export const NeedsCard = {
         worst() {
             return this.dropoffs?.latest?.worst ?? [];
         },
+        /** Breadth's one line (docs/retention-plan.md): three or more this week against last; not a need, never counted. */
+        breadthText() {
+            return breadthLine(this.breadth);
+        },
         weakSurface() {
             return this.sharing ? weakest(this.sharing.surfaces, this.sharing.floor) : null;
         },
@@ -222,6 +229,7 @@ export const NeedsCard = {
         // Each its own ask, each quiet when it fails: the card says what it has.
         api.admin.dropoffs().then(({ data }) => (this.dropoffs = data), (error) => console.warn('Drop-offs did not load', error));
         api.admin.sharing().then(({ data }) => (this.sharing = data), (error) => console.warn('Sharing did not load', error));
+        api.admin.breadth().then(({ data }) => (this.breadth = data), (error) => console.warn('Breadth did not load', error));
     },
     methods: {
         navigate,

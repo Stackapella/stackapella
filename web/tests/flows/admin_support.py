@@ -15,6 +15,7 @@ def t(f, key, values=None):
 
 
 def journey(f):
+    f.expected_errors = list(f.expected_errors) + ["no-such-score.mxl"]  # the tracks score whose link has run out, on purpose
     f.go("/admin/support?api=mock&as=admin", "document.querySelector('main a[href^=\"/admin/support/\"]')")
     f.run("document.querySelector('main a[href^=\"/admin/support/\"]').click()")
     f.wait("document.querySelector('#message-heading') && document.querySelector('main dl')", what="the message, with its details")
@@ -33,7 +34,11 @@ def journey(f):
     f.wait("document.querySelector('[data-tracks-only]').getAttribute('aria-pressed') === 'true' && document.querySelector('[data-tracks-row]')", what="the tracks requests")
     f.run("""const { api } = await import('/js/api.js');
         const row = (await api.admin.support.list({ query: { category: 'tracks' } })).data.find((m) => m.tracks);
-        window.tracksMessage = { ...row, body: row.preview, context: null, replies: [], savedReplies: [], tracks: { ...row.tracks, scores: row.tracks.scores.map((s) => ({ ...s, url: 'https://example.com/score.pdf' })) } };
+        window.tracksMessage = { ...row, body: row.preview, context: null, replies: [], savedReplies: [], tracks: { ...row.tracks, scores: [
+            ...row.tracks.scores.map((s) => ({ ...s, url: 'https://example.com/score.pdf' })),
+            { id: 'Sc0rE2', name: 'St Anne.musicxml', kind: 'musicxml', bytes: 9000, url: '/tests/fixtures/old-hundredth.musicxml' },
+            { id: 'Sc0rE3', name: 'Gone.mxl', kind: 'mxl', bytes: 9000, url: '/tests/fixtures/no-such-score.mxl' },
+        ] } };
         api.admin.support.show = async () => ({ data: window.tracksMessage });
         window.gave = null;
         api.admin.people.giveSong = async (id, body) => { window.gave = { id, ...body };
@@ -44,18 +49,25 @@ def journey(f):
     assert f.js("document.querySelector('[data-tracks-rights]').textContent").startswith("I confirm this piece is in the public domain")
     assert f.js("document.querySelector('[data-tracks-status]').innerText.trim()") == t(f, "admin.support.tracks.status.received")
     f.shot("tracks-request")
-    f.run("document.querySelector('[data-tracks-give]').click()")
-    f.wait("document.querySelector('[role=dialog] [data-tracks-give-rights]')", what="Give this song, with their confirmation as the rights record")
-    f.run("""const json = await (await fetch('/templates/amazing-grace.json')).text();
-        const input = document.querySelector('[role=dialog] [data-song-file]'); const dt = new DataTransfer();
-        dt.items.add(new File([json], 'o-god.json', { type: 'application/json' })); input.files = dt.files;
-        input.dispatchEvent(new Event('change'));""")
-    f.wait("document.querySelector('[role=dialog]').innerText.includes('o-god.json')", what="the file read")
+    # Import this score (docs/score-import-plan.md, section 5): a link that's run out says so and offers the file.
+    f.run("document.querySelector('[data-tracks-import=Sc0rE3]').click()")
+    f.wait("document.querySelector('[data-tracks-import-failed] [data-tracks-import-file]')", what="the score's link failing, the file offered")
+    # The MusicXML opens in Bring your music with the director's confirmation as its rights, is checked (templates.check),
+    # and goes into Give this song with what a singer will meet.
+    f.run("document.querySelector('[data-tracks-import=Sc0rE2]').click()")
+    f.wait("document.querySelectorAll('[data-sheet-import] [data-sheet-line]').length === 4 && document.querySelector('[data-sheet-rights-record]')", what="Bring your music, with the director's rights")
+    assert not f.js("!!document.querySelector('[data-sheet-rights]')"), "no checkbox: the director confirmed"
+    f.shot("tracks-import")
+    # The arranger says what each line sings, as the file doesn't name them.
+    f.run("""[...document.querySelectorAll('[data-sheet-import] [data-sheet-line] select')].filter((s) => [...s.options].some((o) => o.value === 'soprano')).forEach((s, i) => { s.value = ['soprano', 'alto', 'tenor', 'bass'][i]; s.dispatchEvent(new Event('change')); });""")
+    f.wait("!document.querySelector('[data-sheet-import] button[type=submit]').disabled", what="the four lines set")
+    f.run("document.querySelector('[data-sheet-import] button[type=submit]').click()")
+    f.wait("document.querySelector('[role=dialog] [data-tracks-advice] li') && document.querySelector('[role=dialog] [data-tracks-imported]')", what="Give this song, with the check's advice")
     f.shot("tracks-give")
     f.click(t(f, "admin.confirmChange"), "[role=dialog] button")
     f.wait("window.gave && !document.querySelector('[role=dialog]')", what="the song given")
-    gave = f.js("({ id: window.gave.id, trackRequest: window.gave.trackRequest, by: window.gave.rights.confirmedBy, song: !!window.gave.song })")
-    assert gave == {"id": "jR4kLmNo", "trackRequest": "Tr4kQ3", "by": "Ana Ruiz <ana@example.com>, director of Thursday Singers", "song": True}, gave
+    gave = f.js("({ id: window.gave.id, trackRequest: window.gave.trackRequest, by: window.gave.rights.confirmedBy, parts: window.gave.song.parts.length })")
+    assert gave == {"id": "jR4kLmNo", "trackRequest": "Tr4kQ3", "by": "Ana Ruiz <ana@example.com>, director of Thursday Singers", "parts": 4}, gave
     f.wait("document.querySelector('[data-tracks-delivered]')", what="the request delivered")
     assert not f.js("!!document.querySelector('[data-tracks-give]')"), "no second Give"
     f.no_sideways("a tracks request")

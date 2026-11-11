@@ -635,7 +635,7 @@ final class SitePages
      * words (no claims of the card's own). A song collection's card is designed for its page (its `theme`, with the
      * serif words and the promise its hero has: collectionCards).
      *
-     * @return list<array{key: string, eyebrow: string, headline: string, em?: string, lead?: string, theme?: string}>
+     * @return list<array{key: string, eyebrow: string, headline: string, em?: string, lead?: string, theme?: string, promise?: string, lanes?: array<string, mixed>|null}>
      */
     public static function linkCards(): array
     {
@@ -684,7 +684,7 @@ final class SitePages
      * while it has a carol open, and each collection that's a page (SongCollections::open), each with its hero's words
      * and its own theme (tool/link_cards.py THEMES). No song count, so a card never goes stale.
      *
-     * @return list<array{key: string, eyebrow: string, headline: string, em: string, lead: string, theme: string}>
+     * @return list<array{key: string, eyebrow: string, headline: string, em: string, lead: string, theme: string, promise: string, lanes: array<string, mixed>|null}>
      */
     private static function collectionCards(): array
     {
@@ -700,7 +700,9 @@ final class SitePages
             ];
         }
 
-        return $cards;
+        // Hillel's genre banners (2026-11-11): the lead's first sentence as the card's one promise, and the part lanes
+        // drawn from a real song's notes (LinkCardLanes).
+        return array_map(static fn (array $card): array => [...$card, 'promise' => strtok($card['lead'], '.').'.', 'lanes' => LinkCardLanes::for($card['theme'])], $cards);
     }
 
     /**

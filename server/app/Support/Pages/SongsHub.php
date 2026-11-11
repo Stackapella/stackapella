@@ -50,7 +50,7 @@ final class SongsHub
         // The carol season (November to Twelfth Night, Carols::inSeason), as /songs has always linked the page.
         $season = Carols::inSeason() && $carols !== [];
         if ($season) {
-            $bands[] = ['key' => 'christmas', 'path' => Carols::PATH, 'count' => count($carols), 'season' => true, 'samples' => self::pick($carols, self::SAMPLES['christmas'])];
+            $bands[] = ['key' => 'christmas', 'path' => Carols::PATH, 'count' => count($carols), 'season' => true, 'samples' => self::pick($carols, self::SAMPLES['christmas'], 'christmas')];
         }
 
         $panels = [];
@@ -58,7 +58,7 @@ final class SongsHub
             $slug = $open['slug'];
             // A collection's Christmas songs (a carol that's also a hymn) are the carols band's in season, not its sample.
             $cards = array_values(array_filter($this->collections->songs($slug), fn (array $card): bool => ! ($season && Carols::has($card['slug']))));
-            $panels[] = ['key' => $slug, 'path' => $open['path'], 'count' => count($this->collections->members($slug)), 'season' => false, 'samples' => self::pick($cards, self::SAMPLES[$slug] ?? [])];
+            $panels[] = ['key' => $slug, 'path' => $open['path'], 'count' => count($this->collections->members($slug)), 'season' => false, 'samples' => self::pick($cards, self::SAMPLES[$slug] ?? [], $slug)];
         }
         usort($panels, static fn (array $a, array $b): int => $b['count'] <=> $a['count']);
         $bands = [...$bands, ...$panels];
@@ -69,15 +69,30 @@ final class SongsHub
     }
 
     /**
-     * Every open song, A to Z, each to its own page: nothing more than one click from /songs.
+     * Every open song, A to Z, each to its own page, so nothing is more than one click from /songs; each with the
+     * collections that list it (the A to Z's filters, Hillel's songbook design) and its dot, the first of them in
+     * /songs's group order, or `other` (folk and parlour) when no collection lists it.
      *
      * @param  Collection<int, Template>  $songs
-     * @return list<array{title: string, url: string}>
+     * @return list<array{title: string, url: string, letter: string, in: list<string>, dot: string}>
      */
-    public static function index(Collection $songs): array
+    public function index(Collection $songs): array
     {
+        $carols = array_column($this->carols->songs(), 'slug');
+        $members = ['christmas' => $carols];
+        foreach ($this->collections->open() as $open) {
+            $members[$open['slug']] = $this->collections->members($open['slug']);
+        }
+
         return array_values($songs
-            ->map(static fn (Template $t): array => ['title' => (string) $t->title, 'url' => '/songs/'.$t->slug])
+            ->map(static function (Template $t) use ($members): array {
+                $in = array_keys(array_filter($members, static fn (array $slugs): bool => in_array((string) $t->slug, $slugs, true)));
+                $order = array_keys(SongCollections::GROUPS);
+                usort($in, static fn (string $a, string $b): int => array_search($a, $order, true) <=> array_search($b, $order, true));
+                $title = (string) $t->title;
+
+                return ['title' => $title, 'url' => '/songs/'.$t->slug, 'letter' => mb_strtoupper(mb_substr(ltrim($title, '"\'('), 0, 1)), 'in' => $in === [] ? ['other'] : $in, 'dot' => $in[0] ?? 'other'];
+            })
             ->sortBy('title', SORT_NATURAL | SORT_FLAG_CASE)
             ->all());
     }
@@ -89,7 +104,7 @@ final class SongsHub
      * @param  list<string>  $picks
      * @return list<array<string, mixed>>
      */
-    private static function pick(array $cards, array $picks): array
+    private static function pick(array $cards, array $picks, string $key = ''): array
     {
         $bySlug = array_column($cards, null, 'slug');
         $chosen = array_values(array_filter(array_map(static fn (string $slug): ?array => $bySlug[$slug] ?? null, $picks)));
@@ -102,6 +117,7 @@ final class SongsHub
             }
         }
 
-        return array_slice($chosen, 0, self::PER_BAND);
+        // Each with its kind for its card's line (Hillel's songbook design: "C major · SATB"): a round, four choir parts, or how many.
+        return array_map(static fn (array $card): array => [...$card, 'kind' => $key === 'rounds' ? 'round' : (array_column($card['parts'], 'key') === SongParts::SATB ? 'satb' : 'parts')], array_slice($chosen, 0, self::PER_BAND));
     }
 }

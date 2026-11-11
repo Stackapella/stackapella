@@ -1,9 +1,8 @@
-{{-- /songs as a sampler (Hillel, 2026-11-11: "change the /songs page so it samples and then leads to the page for each
-     section, the section style should match the page it leads to"; App\Support\Pages\SongsHub, and the design review):
-     the songbook's promise with every collection as a swatch to jump to; the collection in season as a full-width band
-     in its page's look; each other collection as a panel in its own palette (its page's hero and link card share it),
-     with a few songs to play and the way to all of them; then every song A to Z, so none is more than a click away.
-     Kept out of the site's navigation (Hillel); here for search and shared links. --}}
+{{-- /songs, the songbook (Hillel's "Songbook page rebuild", 2026-11-11, on his sampler; App\Support\Pages\SongsHub):
+     the promise, a search and every collection as a chip, with a song to try beside it, each part switchable; the
+     collection in season as a full-width band in its page's look; the other collections as a grid of panels in their
+     palettes, each with four songs to play and the way to all of them; then every song A to Z by letter, to filter and
+     search in place, every song a plain link (for people and for search). Kept out of the site's navigation (Hillel). --}}
 @extends('public.layout', ['title' => \App\Support\Site\SitePages::title($meta['title'])])
 
 @section('head')
@@ -21,88 +20,133 @@
 
 {{-- A band's words: the carols' own, else its collection's. --}}
 @php($w = fn (string $key): string => $key === 'christmas' ? 'site.carols' : 'site.collections.'.$key)
+@php($season = collect($bands)->firstWhere('season', true))
+@php($panels = array_values(array_filter($bands, static fn (array $band): bool => ! $band['season'])))
+@php($letters = collect($index)->groupBy('letter'))
+@php($others = count(array_filter($index, static fn (array $entry): bool => $entry['in'] === ['other'])))
 
 @section('content')
     <x-site.header />
     <main>
         <section class="s-wrap s-sh-hero" aria-labelledby="page-h">
             <div>
-                <p class="s-eyebrow"><span class="s-dots" aria-hidden="true">@foreach ([1, 2, 3, 4] as $n)<b class="s-v{{ $n }}"></b>@endforeach</span><x-site.skin :game="__('pages.landing.game.songs_kick')" :serious="__('pages.songs.eyebrow')" /></p>
-                <h1 id="page-h">{{ __('pages.songs.headline') }}</h1>
+                <p class="s-eyebrow"><x-site.skin :game="__('pages.landing.game.songs_kick')" :serious="__('pages.songs.eyebrow_count', ['count' => $count])" /></p>
+                <h1 id="page-h">{{ __('pages.songs.headline') }} <em class="s-xserif">{{ __('pages.songs.headline_em') }}</em></h1>
                 <p class="s-lede">{{ __('pages.songs.lead') }}</p>
-                <p class="s-countline">{{ __('pages.songs.count', ['count' => $count]) }}</p>
+                {{-- Search: the A to Z narrows as you type (js/public/songbook.js); without the script, ?q= does it on the server. --}}
+                <form class="s-sh-search" action="/songs#every-song" method="get" role="search" data-songbook-search>
+                    <x-site.icon name="search" size="18" />
+                    <input type="search" name="q" value="{{ $q }}" placeholder="{{ __('pages.songs.search', ['count' => $count]) }}" data-short="{{ __('pages.songs.search_short', ['count' => $count]) }}" aria-label="{{ __('pages.songs.search_label') }}" autocomplete="off">
+                </form>
+                <ul class="s-sh-chips" aria-label="{{ __('pages.songs.jump') }}">
+                    @foreach ($bands as $band)
+                        <li><a href="{{ $band['path'] }}" class="s-sh-chip2 s-tone-{{ $band['key'] }}"><i aria-hidden="true"></i>{{ __($w($band['key']).'.crumb') }}<span>{{ $band['count'] }}</span></a></li>
+                    @endforeach
+                </ul>
                 @if ($rounds !== null)
                     <p class="s-sh-start"><a href="{{ $rounds }}" class="s-lk">{{ __('pages.songs.start_round') }}&#8288;<x-site.icon name="arrow" size="16" /></a></p>
                 @endif
             </div>
-            {{-- Every band as a swatch in its palette, with its count: what's below, one tap away. --}}
-            <nav class="s-sh-swatches" aria-label="{{ __('pages.songs.jump') }}">
-                <ul>
-                    @foreach ($bands as $band)
-                        <li><a href="#band-{{ $band['key'] }}" class="s-sh-swatch s-tone-{{ $band['key'] }}"><i aria-hidden="true"></i><b>{{ __($w($band['key']).'.crumb') }}</b><span>{{ $band['count'] }}</span></a></li>
-                    @endforeach
-                    <li><a href="#every-song" class="s-sh-swatch s-sh-swatch-all"><i aria-hidden="true"></i><b>{{ __('pages.songs.index') }}</b><span>{{ $count }}</span></a></li>
-                </ul>
-            </nav>
+            {{-- A song to try: its first line in four parts, each switched on or off as it plays (x-site.mixer). --}}
+            @if ($try !== null)
+                <div class="s-sh-try">
+                    <x-site.mixer :song="$try" id="try-mixer"><span class="s-sh-try-k">{{ __('pages.songs.try') }}</span><x-slot:foot>{{ __('pages.songs.try_note') }}</x-slot:foot></x-site.mixer>
+                </div>
+            @endif
         </section>
 
-        @foreach ($bands as $band)
-            @php($words = $w($band['key']))
-            <section id="band-{{ $band['key'] }}" @class(['s-sh-band', 's-tone', 's-tone-'.$band['key'], 's-sh-season' => $band['season'], 's-sh-flip' => ! $band['season'] && $loop->index % 2 === 1]) aria-labelledby="band-{{ $band['key'] }}-h">
-                @if ($band['season'] && $band['key'] === 'christmas')
-                    @include('site._xmas-sky')
-                @else
-                    @include('site._tone-motif', ['key' => $band['key']])
-                @endif
+        @if ($season !== null)
+            @php($words = $w($season['key']))
+            <section id="band-{{ $season['key'] }}" class="s-sh-band s-tone s-tone-{{ $season['key'] }} s-sh-season" aria-labelledby="band-{{ $season['key'] }}-h">
+                @include('site._xmas-sky')
                 <div class="s-sh-band-in">
                     <div class="s-sh-words">
-                        {{-- The season's band says so; a panel's headline names it (a kicker over it only repeated it). --}}
-                        @if ($band['season'])
-                            <p class="s-sh-kick">
-                                <span>{{ __($words.'.crumb') }}</span>
-                                <span class="s-sh-chip"><span>{{ __('pages.songs.season') }}</span>@if ($until !== null)<span>{{ __('pages.songs.season_until', ['date' => $until]) }}</span>@endif</span>
-                            </p>
-                        @endif
-                        <h2 id="band-{{ $band['key'] }}-h">{{ __($words.'.headline') }} <em class="s-xserif">{{ __($words.'.headline_em') }}</em></h2>
+                        <p class="s-sh-kick">
+                            <span>{{ __($words.'.crumb') }}</span>
+                            <span class="s-sh-chip"><span>{{ __('pages.songs.season') }}</span>@if ($until !== null)<span>{{ __('pages.songs.season_until', ['date' => $until]) }}</span>@endif</span>
+                        </p>
+                        <h2 id="band-{{ $season['key'] }}-h">{{ __($words.'.headline') }} <em class="s-xserif">{{ __($words.'.headline_em') }}</em></h2>
                         <p class="s-sh-line">{{ __($words.'.lead') }}</p>
                     </div>
-                    <ul class="s-sh-songs">
-                        @foreach ($band['samples'] as $song)
-                            <li class="s-sh-song" @if ($song['line'] !== null) data-player @endif>
-                                <a href="{{ $song['url'] }}"><b translate="no">{{ $song['title'] }}</b>@if ($song['meta'] !== [])<span>{{ $song['meta'][0] }}</span>@endif</a>
-                                @if ($song['line'] !== null)
-                                    <script type="application/json" data-song>@json($song['line'])</script>
-                                    <button type="button" class="s-play" data-play aria-label="{{ __('pages.songs.play', ['title' => $song['title']]) }}" data-label-play="{{ __('pages.songs.play', ['title' => $song['title']]) }}" data-label-stop="{{ __('pages.songs.stop', ['title' => $song['title']]) }}">
-                                        <span class="s-i-play"><x-site.icon name="play" size="16" /></span><span class="s-i-stop"><x-site.icon name="stop" size="16" /></span>
-                                    </button>
-                                @endif
-                            </li>
-                        @endforeach
-                    </ul>
-                    {{-- Its one way on, after the songs on a phone and under the words beside them from 900 px. --}}
-                    <a href="{{ $band['path'] }}" class="btn-primary s-sh-all">{{ __($words.'.all', ['count' => $band['count']]) }} <x-site.icon name="arrow" size="18" /></a>
+                    @include('public._songs-samples', ['songs' => $season['samples']])
+                    <a href="{{ $season['path'] }}" class="btn-primary s-sh-all">{{ __($words.'.all', ['count' => $season['count']]) }} <x-site.icon name="arrow" size="18" /></a>
                 </div>
             </section>
-        @endforeach
+        @endif
 
-        {{-- Every song, each to its own page: nothing more than one click from here (for people and for search). --}}
-        <section id="every-song" class="s-wrap s-sec s-sh-index" aria-labelledby="every-song-h">
-            <p class="s-kick">{{ __('pages.songs.index_kick') }}</p>
-            <h2 id="every-song-h">{{ __('pages.songs.index') }}</h2>
-            <p class="s-sh-index-lead">{{ __('pages.songs.index_lead') }}</p>
-            <ul class="s-sh-az">
-                @foreach ($index as $entry)
-                    <li><a href="{{ $entry['url'] }}" translate="no">{{ $entry['title'] }}</a></li>
+        {{-- The other collections as a grid of panels, each a preview of its page. --}}
+        @if ($panels !== [])
+            <section class="s-wrap s-sec s-sh-grid-sec" aria-labelledby="collections-h">
+                <div class="s-sh-grid-head">
+                    <div>
+                        <p class="s-kick">{{ __('pages.songs.collections_kick') }}</p>
+                        <h2 id="collections-h">{{ __('pages.songs.collections') }} <em class="s-xserif">{{ __('pages.songs.collections_em') }}</em></h2>
+                    </div>
+                    <p class="s-sh-grid-note">{{ __('pages.songs.collections_note') }}</p>
+                </div>
+                <div class="s-sh-grid">
+                    @foreach ($panels as $band)
+                        @php($words = $w($band['key']))
+                        <section id="band-{{ $band['key'] }}" class="s-sh-panel s-tone s-tone-{{ $band['key'] }}" aria-labelledby="band-{{ $band['key'] }}-h">
+                            @include('site._tone-motif', ['key' => $band['key']])
+                            <div class="s-sh-panel-in">
+                                <div class="s-sh-panel-top">
+                                    <h3 id="band-{{ $band['key'] }}-h">{{ __($words.'.band') }} <em class="s-xserif">{{ __($words.'.band_em') }}</em></h3>
+                                    <a href="{{ $band['path'] }}" class="s-sh-panel-all" aria-label="{{ __($words.'.all', ['count' => $band['count']]) }}">{{ __('pages.songs.all_short', ['count' => $band['count']]) }}&#8288;<x-site.icon name="arrow" size="16" /></a>
+                                </div>
+                                <p class="s-sh-line">{{ __($words.'.band_line') }}</p>
+                                @include('public._songs-samples', ['songs' => $band['samples']])
+                            </div>
+                        </section>
+                    @endforeach
+                </div>
+            </section>
+        @endif
+
+        {{-- Every song by letter, each a plain link; the chips and the search narrow it in place (js/public/songbook.js). --}}
+        <section id="every-song" class="s-wrap s-sec s-sh-index" aria-labelledby="every-song-h" data-songbook-index>
+            <div class="s-sh-index-head">
+                <div>
+                    <p class="s-kick">{{ __('pages.songs.index_kick') }}</p>
+                    <h2 id="every-song-h">{{ __('pages.songs.index') }}</h2>
+                </div>
+                <label class="s-sh-search s-sh-search-sm">
+                    <x-site.icon name="search" size="16" />
+                    <input type="search" value="{{ $q }}" placeholder="{{ __('pages.songs.index_search') }}" aria-label="{{ __('pages.songs.search_label') }}" autocomplete="off" data-index-search>
+                </label>
+            </div>
+            <div class="s-sh-filters" role="group" aria-label="{{ __('pages.songs.jump') }}">
+                <button type="button" class="s-sh-filter" data-filter="" aria-pressed="true">{{ __('pages.songs.all_songs') }}<span>{{ $count }}</span></button>
+                @foreach ($bands as $band)
+                    <button type="button" class="s-sh-filter s-tone-{{ $band['key'] }}" data-filter="{{ $band['key'] }}" aria-pressed="false"><i aria-hidden="true"></i>{{ __($w($band['key']).'.crumb') }}<span>{{ $band['count'] }}</span></button>
                 @endforeach
-            </ul>
+                @if ($others > 0)
+                    <button type="button" class="s-sh-filter s-tone-other" data-filter="other" aria-pressed="false"><i aria-hidden="true"></i>{{ __('pages.songs.other') }}<span>{{ $others }}</span></button>
+                @endif
+                <p class="s-sh-shown" role="status" data-shown data-one="{{ trans_choice('pages.songs.shown', 1, ['count' => 1]) }}" data-many="{{ trans_choice('pages.songs.shown', 2, ['count' => ':count']) }}">{{ trans_choice('pages.songs.shown', $count, ['count' => $count]) }}</p>
+            </div>
+            <div class="s-sh-letters">
+                @foreach ($letters as $letter => $entries)
+                    <div class="s-sh-letter" data-letter>
+                        <h3 class="s-xserif" aria-hidden="true">{{ $letter }}</h3>
+                        <ul>
+                            @foreach ($entries as $entry)
+                                <li data-in="{{ implode(' ', $entry['in']) }}" data-title="{{ mb_strtolower($entry['title']) }}" @if ($q !== '' && ! str_contains(mb_strtolower($entry['title']), mb_strtolower($q))) hidden @endif><a href="{{ $entry['url'] }}"><i class="s-tone-{{ $entry['dot'] }}" aria-hidden="true"></i><span translate="no">{{ $entry['title'] }}</span></a></li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endforeach
+            </div>
+            <p class="s-sh-none" data-none hidden>{{ __('pages.songs.none') }}</p>
         </section>
 
-        <section class="s-ink" aria-labelledby="end-h">
-            <div class="s-wrap s-final">
-                <span class="s-stackbig" aria-hidden="true">@foreach ([[1, 100], [2, 74], [3, 88], [4, 62]] as [$n, $w2])<b class="s-v{{ $n }}" style="width: {{ $w2 }}%"></b>@endforeach</span>
-                <h2 id="end-h">{{ __('pages.songs.end_title') }}</h2>
-                <p>{{ __('pages.songs.end_body') }}</p>
-                <p class="s-final-btns"><a href="{{ \App\Support\Http\Hosts::app('/?ref=songs') }}" class="btn-primary btn-lg">{{ __('pages.site.start') }} <x-site.icon name="arrow" size="18" /></a></p>
+        <section class="s-ink s-sh-end" aria-labelledby="end-h">
+            <div class="s-wrap s-sh-end-in">
+                <div>
+                    <h2 id="end-h">{{ __('pages.songs.end_title') }} <em class="s-xserif">{{ __('pages.songs.end_em') }}</em></h2>
+                    <p>{{ __('pages.songs.end_body') }}</p>
+                </div>
+                <a href="{{ \App\Support\Http\Hosts::app('/?ref=songs') }}" class="btn-primary btn-lg">{{ __('pages.site.start') }} <x-site.icon name="arrow" size="18" /></a>
             </div>
         </section>
     </main>
@@ -112,4 +156,5 @@
 @section('scripts')
     <script type="module" src="/js/public/mixer.js"></script>
     <script type="module" src="/js/public/carols.js"></script>
+    <script type="module" src="/js/public/songbook.js"></script>
 @endsection

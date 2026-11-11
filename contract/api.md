@@ -525,6 +525,7 @@ Each operation is one function in `web/js/api.js` named after it, and one route 
 | `admin.funnel.show` | `GET /api/admin/funnel` | An admin | L |
 | `admin.dropoffs.show` | `GET /api/admin/dropoffs` | An admin | L |
 | `admin.sharing.show` | `GET /api/admin/sharing` | An admin | L |
+| `admin.breadth.show` | `GET /api/admin/breadth` | An admin | L |
 | `admin.experiments.list` | `GET /api/admin/experiments` | An admin | L |
 | `admin.experiments.create` | `POST /api/admin/experiments` | An admin, in sudo | L |
 | `admin.experiments.update` | `PATCH /api/admin/experiments/{id}` | An admin, in sudo | L |
@@ -6312,6 +6313,24 @@ as too few to tell. Anonymous daily totals only. **Request:** none.
 | Status | Code | Schema | Example |
 |---|---|---|---|
 | 200 | | `admin.sharing.show.json` | `admin.sharing.show.200.json` |
+
+#### `admin.breadth.show`
+
+How much of the app singers use (docs/retention-plan.md, "Breadth"), read only from the two anonymous
+counts: `br:<n>` (once a device a day beside app_day, how many of the core features it has tried) and
+`ft:<feature>` (a device's first use of each). `weeks` is the week to today (`from` to `to`, report
+timezone) and the four before it, oldest first; each has `all`, `guest` and `account`, with its
+active `deviceDays`, `levels` (the device-days at each level, 0 to the number of features),
+`threePlus` (the share at three or more), `mean` and `tooFew` (device-days under `floor`).
+`headline` is this week's `all` with `threePlus` last week (`lastWeek`) and four weeks ago
+(`fourWeeksAgo`). `features` is this week's first uses in the list's order (config/counts.php
+`features`): `firstUses`, `lastWeek`, `perNew` (a share of `newDevices`, this week's arrivals) and
+`fromPrevious` (over the feature before it, the ladder's pass-through); `tooFew` when what it is read
+against is under `floor`. An account's tried set is never read here. **Request:** none.
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 200 | | `admin.breadth.show.json` | `admin.breadth.show.200.json` |
 
 #### `admin.growth.show`
 

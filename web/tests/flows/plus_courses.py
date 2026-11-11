@@ -145,7 +145,7 @@ def journey(f):
         lesson.steps = [{ kind: 'selfcheck', text: { en: 'Sing it like the model, then check.' }, exercise: { tempo: 60, model: { notes: [{ beat: 0, length: 3, step: 0 }], drone: { step: 0 } }, questions: [{ en: 'Did your jaw stay loose?' }, { en: 'Did it sound like the model?' }] } }];
         (await import('/js/router.js')).navigate('/learn/vib-1-easy');""")
     f.wait("document.querySelector('[data-selfcheck]')", what="the self-check")
-    f.wait_text(t(f, "selfcheck.honest"))
+    f.wait_text(f.js("(await import('/js/skin.js')).sk('selfcheck.honestSerious', 'selfcheck.honest')"))  # the skin's own words
     f.click("Record", "[data-selfcheck-record]")
     f.wait("document.querySelector('[data-selfcheck-questions]')", timeout=30, what="the questions, once recorded")
     assert f.js("!document.querySelector('[data-selfcheck-yours]').disabled"), "yours to hear back"

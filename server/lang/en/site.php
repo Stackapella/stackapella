@@ -1593,6 +1593,10 @@ return [
             'title' => 'Hymns in SATB: Learn Your Part Free',
             'description' => 'Well-loved hymns in four-part SATB harmony, free: learn your soprano, alto, tenor or bass part by ear, hear it with the others, and sing along.',
             'crumb' => 'Hymns',
+            // Its panel on /songs (Hillel's songbook design): a short title with its serif tail, and one line.
+            'band' => 'Hymns',
+            'band_em' => 'in four parts',
+            'band_line' => 'Learn your part before Sunday or rehearsal.',
             // /songs's way to the page (SongsHub): how many there are.
             'all' => 'All :count hymns',
             'headline' => 'Hymns in four parts,',
@@ -1618,6 +1622,10 @@ return [
             'title' => 'Spirituals for Choir: Learn Your Part Free',
             'description' => 'African American spirituals for choir in four-part SATB harmony, free: learn your part by ear, hear it with the others, and sing along in your browser.',
             'crumb' => 'Spirituals',
+            // Its panel on /songs (Hillel's songbook design): a short title with its serif tail, and one line.
+            'band' => 'Spirituals',
+            'band_em' => 'for choir',
+            'band_line' => 'Learn your part of a spiritual before rehearsal.',
             // /songs's way to the page (SongsHub): how many there are.
             'all' => 'All :count spirituals',
             'headline' => 'Spirituals for choir,',
@@ -1643,6 +1651,10 @@ return [
             'title' => 'Sea Shanties in Harmony: Learn Your Part Free',
             'description' => 'Sea shanties to sing in four-part harmony with friends or a choir, free: learn your part by ear, hear it with the others, and sing along in your browser.',
             'crumb' => 'Sea shanties',
+            // Its panel on /songs (Hillel's songbook design): a short title with its serif tail, and one line.
+            'band' => 'Sea shanties,',
+            'band_em' => 'all hands',
+            'band_line' => 'Learn your part, then sing it with friends or your choir.',
             // /songs's way to the page (SongsHub): how many there are.
             'all' => 'All :count sea shanties',
             'headline' => 'Sea shanties,',
@@ -1669,6 +1681,10 @@ return [
             'title' => 'Easy Rounds to Sing: Learn Your Part Free',
             'description' => 'Easy rounds to sing with kids, a choir or friends, free: learn the one tune by ear, hear each voice come in after the last, and sing along in your browser.',
             'crumb' => 'Rounds',
+            // Its panel on /songs (Hillel's songbook design): a short title with its serif tail, and one line.
+            'band' => 'Rounds,',
+            'band_em' => 'voice by voice',
+            'band_line' => 'A good first step into harmony. Sing with your kids, your choir or your friends.',
             // /songs's way to the page (SongsHub): how many there are.
             'all' => 'All :count rounds',
             'headline' => 'Rounds to sing,',

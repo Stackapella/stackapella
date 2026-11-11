@@ -78,7 +78,7 @@ export const ShareResult = {
             if (this.daily) return this.dailyWords(site, by);
             const stats = r.lit !== undefined && r.target?.length > 1 ? t('results.share.statsLit', { percent: r.percent, lit: r.lit, count: r.target.length }) : t('results.share.stats', { percent: r.percent });
             // Serious mode (docs/skins-plan.md row 17): the measure, with no stars and no dare.
-            const streak = this.streak ? t('results.share.streak', { days: this.streak }) : null;
+            const streak = this.streak ? (game() ? t('results.share.streak', { days: this.streak }) : t('results.share.streakSerious', { days: this.streak })) : null;
             if (!game()) return { word: t('results.onPitch', { percent: Math.round(r.percent) }), stats: r.lit !== undefined && r.target?.length > 1 ? t('results.share.litOf', { lit: r.lit, count: r.target.length }) : '', lesson: `${this.unitTitle} · ${this.lessonTitle}`, streak, by, stars: false, challenge: null, tagline: t('results.share.tagline'), site };
             // Game mode's arcade card (Celebrations switch): the same words in the game's type, NEW RECORD when it is one.
             const arcade = effect('celebrations') ? { arcade: true, record: this.record ? t('game.record.title') : null } : {};

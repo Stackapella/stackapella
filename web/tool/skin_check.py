@@ -51,39 +51,30 @@ def problems(text):
 # course so far" in serious mode, from the course wall). A key whose English names stars, XP, combos or streaks is a game
 # word: a line of the app that says one must choose by skin on that line (game(), sk(...)), or live in js/game/ or
 # js/admin/. The lines below are what was there when the check began: each is either inside a game-only block (a parent
-# v-if="game()", a game-only screen) or a leak still to fix. Only shrink it, and never add to it: guard the new line.
+# v-if="game()", a game-only screen), each saying why (the audit, 2026-11-11, fixed the leaks). Only shrink it; a new
+# line guards itself (game() or sk() on the line).
 LOCALE = CSS.parents[1] / "locales" / "en.json"
 JS = CSS.parents[1] / "js"
 GAME_WORD = re.compile(r"\bstars?\b|★|\bXP\b|\bcombos?\b|\bstreaks?\b", re.I)
 WORDS_ALLOWED = {
-    "components/appearance.js: appearance.gameMode.onHint",
-    "components/boss.js: boss.review.line",
-    "components/boss.js: boss.xp",
-    "components/course-map.js: boss.locked",
-    "components/course-map.js: course.locked",
-    "components/home.js: course.xp",
-    "components/home.js: course.xpLabel",
-    "components/home.js: home.lead.welcomeLast",
-    "components/home.js: home.lead.welcomeYesterday",
-    "components/home.js: results.levelXp",
-    "components/results.js: results.levelLabel",
-    "components/results.js: results.levelXp",
-    "components/selfcheck.js: selfcheck.honest",
-    "components/session-wrap.js: wrap.week.keepStars",
-    "components/share-result.js: results.share.streak",
-    "results.js: results.end.one",
-    "results.js: results.end.three",
-    "results.js: results.end.two",
-    "results.js: results.end.up",
-    "results.js: results.end.upToThree",
-    "views/course.js: course.hub.toLevel",
-    "views/course.js: course.xpLabel",
-    "views/course.js: results.levelXp",
-    "views/learn.js: boss.locked",
-    "views/settings.js: settings.course.confirmBody",
-    "views/settings.js: settings.course.restarted",
-    "views/storage.js: cloud.storage.courseTakesBody",
-    "views/workout.js: workout.why.review",
+    "components/appearance.js: appearance.gameMode.onHint": "the Game mode switch's own hint names what game mode adds",
+    "components/boss.js: boss.xp": "the boss round's end, drawn only with the boss switch on (game mode)",
+    "components/home.js: course.xp": "inside LevelBar's v-if=\"game()\"",
+    "components/home.js: course.xpLabel": "inside v-if=\"game()\" (LevelBar, the course stats)",
+    "components/home.js: results.levelXp": "inside the course stats' v-if=\"game()\"",
+    "components/home.js: home.lead.welcomeLast": "the WELCOME table: serious picks its *Serious twin",
+    "components/home.js: home.lead.welcomeYesterday": "the WELCOME table: serious picks its *Serious twin",
+    "components/results.js: results.levelLabel": "inside the end screen's v-if=\"game()\" level",
+    "components/results.js: results.levelXp": "inside the end screen's v-if=\"game()\" level",
+    "components/session-wrap.js: wrap.week.keepStars": "keepLine's game branch (serious says lessons)",
+    "results.js: results.end.one": "endLine's words, shown only under v-if=\"game()\" (components/results.js)",
+    "results.js: results.end.two": "endLine's words, shown only under v-if=\"game()\"",
+    "results.js: results.end.three": "endLine's words, shown only under v-if=\"game()\"",
+    "results.js: results.end.up": "endLine's words, shown only under v-if=\"game()\"",
+    "results.js: results.end.upToThree": "endLine's words, shown only under v-if=\"game()\"",
+    "views/course.js: course.hub.toLevel": "inside the course page's v-if=\"game()\" level",
+    "views/course.js: course.xpLabel": "inside the course page's v-if=\"game()\" level",
+    "views/course.js: results.levelXp": "inside the course page's v-if=\"game()\" level",
 }
 
 

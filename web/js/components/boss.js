@@ -5,6 +5,7 @@
 // bar and no fanfare. The bar is the running score itself: each note lit takes its share off, and the 80% line is drawn.
 
 import { formatNumber, t } from '../i18n.js';
+import { sk } from '../skin.js';
 import { effect } from '../game/effects.js';
 import { BOSS_PASS } from '../boss.js';
 
@@ -25,7 +26,7 @@ export const BossIntro = {
         ready: { type: Boolean, default: true }, // its songs' notes are in
     },
     emits: ['start', 'later'],
-    setup: () => ({ t, formatNumber, effect, BOSS_PASS }),
+    setup: () => ({ t, sk, formatNumber, effect, BOSS_PASS }),
     template: `
         <section v-if="effect('boss')" class="ge-vs ge-boss" data-boss-intro data-game-boss aria-labelledby="boss-title">
             <h1 id="boss-title" ref="heading" tabindex="-1" class="sr-only">{{ t('boss.game.heading', { unit, title }) }}</h1>
@@ -44,7 +45,7 @@ export const BossIntro = {
             <p class="text-sm font-semibold text-accent-strong" translate="no">{{ unitTitle }}</p>
             <h1 id="boss-title" ref="heading" tabindex="-1" class="text-3xl font-extrabold tracking-tight text-cream outline-none">{{ t('boss.review.title') }}</h1>
             <p class="text-lg text-cream" translate="no">{{ title }}</p>
-            <p class="max-w-prose text-muted">{{ t('boss.review.line', { percent: formatNumber(BOSS_PASS) }) }}</p>
+            <p class="max-w-prose text-muted">{{ sk('boss.review.lineSerious', 'boss.review.line', { percent: formatNumber(BOSS_PASS) }) }}</p>
             <p v-if="best !== null" class="text-sm text-muted" data-boss-best>{{ beaten ? t('boss.review.bestPassed', { percent: formatNumber(best) }) : t('boss.best', { percent: formatNumber(best) }) }}</p>
             <div class="flex flex-wrap gap-3 max-sm:flex-col">
                 <button type="button" class="btn-primary" :disabled="!ready" data-boss-start @click="$emit('start')">{{ ready ? t('boss.review.start') : t('course.loading') }}</button>

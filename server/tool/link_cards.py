@@ -73,104 +73,117 @@ p{margin:30px 0 0;font-size:26px;color:#a59c92}
 <div class="rows">{rows}</div>
 </body></html>"""
 
-# A song collection's card (SitePages::linkCards, a card with a `theme`): designed for its page, as Hillel asked
-# (2026-11-11: "give these special pages a special meta image"). Its name, its headline with the serif word the page
-# sets in gold, and its one-line promise, over its own colour and motif; no song count, so it never goes stale. The
-# carols' card is the season's: the green hero's lights and snow, and the mark in Hillel's Santa hat (hat3e).
+# A song collection's card (SitePages::linkCards, a card with a `theme`), in Hillel's "Genre banners redesign"
+# (2026-11-11: "1200x630 · shared grid, shared part lanes motif, genre accent kept small"): one grid for every card, the
+# mark (in Hillel's Santa hat, hat3e, on the carols' card, the season's), the eyebrow, a big headline with its serif
+# words in gold, the page's one promise and "Pick your part" with what's free; at right the part lanes, a real song's
+# opening from its file's notes (LinkCardLanes), one part lit; the genre's own mark kept small. No count, so no card goes stale.
 COLLECTION = """<!doctype html><html><head><meta charset="utf-8">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400..900&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@500;600;800&family=Newsreader:ital,opsz,wght@1,6..72,500&family=JetBrains+Mono:wght@500&display=swap">
 <style>
 html,body{margin:0}
-body{width:1200px;height:630px;box-sizing:border-box;padding:76px 80px 72px;background:var(--bg);color:#f7f1e6;font-family:'Figtree',sans-serif;display:flex;flex-direction:column;overflow:hidden;position:relative}
-.brand{position:relative;display:flex;align-items:center;gap:16px;font-weight:800;font-size:34px;z-index:2}
-.mark{position:relative;width:56px;height:56px}.mark svg{width:56px;height:56px;display:block}
-.hat{position:absolute;left:-17px;top:-22px;width:73px;height:78px;max-width:none;filter:drop-shadow(0 1px 1px rgba(0,0,0,.3))}
-.eyebrow{position:relative;z-index:2;margin-top:auto;font-size:24px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--ac)}
-h1{position:relative;z-index:2;margin:16px 0 0;font-size:{size}px;line-height:1.02;letter-spacing:-.025em;font-weight:800;max-width:{width}px}
-h1 em{display:block;font-family:ui-serif,'Iowan Old Style','Palatino Linotype',Palatino,Georgia,serif;font-style:italic;font-weight:400;letter-spacing:-.01em;color:var(--ac)}
-p{position:relative;z-index:2;margin:22px 0 0;max-width:680px;font-size:27px;line-height:1.35;color:var(--mu)}
-.motif{position:absolute;inset:0;z-index:1;pointer-events:none}
+body{width:1200px;height:630px;position:relative;overflow:hidden;background:var(--bg);color:#f6efe2;font-family:'Figtree',sans-serif}
+.accent{position:absolute;inset:0;pointer-events:none}
+.brand{position:absolute;left:80px;top:72px;display:flex;align-items:center;gap:14px;font:800 30px/1 Figtree;letter-spacing:-.01em;z-index:2}
+.mark{position:relative;width:48px;height:48px}.mark svg{width:48px;height:48px;display:block}
+.hat{position:absolute;left:-14px;top:-19px;width:62px;height:67px;max-width:none;filter:drop-shadow(0 1px 1px rgba(0,0,0,.3))}
+.words{position:absolute;left:80px;top:150px;bottom:64px;width:580px;display:flex;flex-direction:column;justify-content:center;gap:18px;z-index:2}
+.eyebrow{font:800 17px/1 Figtree;letter-spacing:.16em;text-transform:uppercase;color:var(--ac)}
+h1{margin:0;font:800 {size}px/1.02 Figtree;letter-spacing:-.025em;text-wrap:balance}
+h1 em{display:block;font:italic 500 {emsize}px/1.06 Newsreader,Georgia,serif;letter-spacing:0;color:var(--ac)}
+.promise{font:500 24px/1.4 Figtree;color:var(--mu);text-wrap:pretty}
+.cta{display:flex;align-items:center;gap:18px;margin-top:4px}
+.pill{background:var(--ac);color:var(--bg);font:800 20px/1 Figtree;padding:16px 26px;border-radius:999px;white-space:nowrap}
+.free{font:600 18px/1.2 Figtree;color:var(--mu)}
+.lanes{position:absolute;right:72px;top:50%;transform:translateY(-50%);width:420px;padding:28px 28px 24px;box-sizing:border-box;border-radius:20px;background:rgba(0,0,0,.2);border:1px solid rgba(246,239,226,.1);display:flex;flex-direction:column;gap:14px;z-index:2}
+.lane{display:flex;align-items:center;gap:14px}
+.lane .k{width:22px;font:500 16px/1 'JetBrains Mono',monospace}
+.lane .track{position:relative;flex:1;height:34px;border-radius:8px;background:rgba(246,239,226,.06)}
+.lane .track i{position:absolute;height:10px;border-radius:4px}
+.cap{display:flex;justify-content:space-between;gap:16px;font:500 14px/1 'JetBrains Mono',monospace;color:var(--mu);margin-top:6px}
 {css}
 </style></head><body style="--bg:{bg};--ac:{ac};--mu:{mu}">
-<div class="motif">{motif}</div>
+<div class="accent">{motif}</div>
 <div class="brand"><span class="mark">{hat}{mark}</span>Stackapella</div>
+<div class="words">
 <div class="eyebrow">{eyebrow}</div>
 <h1>{headline}<em>{em}</em></h1>
-<p>{lead}</p>
+<div class="promise">{promise}</div>
+<div class="cta"><div class="pill">{pick} &#8594;</div><div class="free">{free}</div></div>
+</div>
+{lanes}
 </body></html>"""
+
+# The card's two fixed lines (the site's own: every part page plays for guests and the courses are free; Hillel, 2026-11-08).
+PICK = "Pick your part"
+FREE = "Free · In your browser · No account"
 
 
 def _lights():
-    colours = ["#E2513B", "#E9C46A", "#2BA58A", "#F7F1E6", "#7FA6E8"]
-    drops = [6, 14, 19, 11]
-    return '<div class="lights">' + "".join(
-        f'<i style="--b:{colours[i % 5]};top:{drops[i % 4] + 4}px"></i>' for i in range(22)) + "</div>"
+    # The carols' string of lights along the top edge, small (Hillel: "genre accent kept small").
+    colours = ["#E2513B", "#E9C46A", "#2BA58A", "#7FA6E8", "#F7F1E6"]
+    return '<div class="lights">' + "".join(f'<i style="--b:{colours[i % 5]};margin-top:{round(8 + 6 * __import__("math").sin(i / 21 * 3.1416 * 3))}px"></i>' for i in range(22)) + "</div>"
 
 
-def _snow():
-    # A fixed scatter (no randomness, so a re-render draws the same card).
-    flakes = []
-    for i in range(46):
-        x = (i * 263) % 1200
-        y = 60 + (i * 137) % 560
-        r = 3 + (i * 7) % 6
-        o = 0.35 + ((i * 13) % 50) / 100
-        flakes.append(f'<i style="left:{x}px;top:{y}px;width:{r}px;height:{r}px;opacity:{o:.2f}"></i>')
-    return '<div class="snow">' + "".join(flakes) + "</div>"
+def _stars():
+    # The spirituals' few stars, top right.
+    return "".join(f'<span class="star" style="left:{x}px;top:{y}px;width:{r}px;height:{r}px"></span>' for x, y, r in [(760, 70, 6), (812, 92, 5), (868, 104, 6), (926, 124, 7), (986, 168, 6), (1050, 150, 5), (1100, 96, 5)])
 
 
 def _arches():
-    # Three pointed windows at the right, their panes in the part colours, as stained glass.
-    panes = ["#ff9139", "#ffea6b", "#45eca4", "#968dfd"]
-    out = []
-    for i, x in enumerate([890, 990, 1090]):
-        h = 340 if i == 1 else 280
-        y = 630 - h - 44
-        cells = "".join(f'<rect x="{x + 7}" y="{y + 62 + k * ((h - 80) / 4)}" width="66" height="{(h - 80) / 4 - 6}" rx="3" fill="{panes[(k + i) % 4]}" opacity=".22"/>' for k in range(4))
-        out.append(f'<path d="M{x} {y + h} V{y + 62} Q{x} {y} {x + 40} {y - 18} Q{x + 80} {y} {x + 80} {y + 62} V{y + h} Z" fill="none" stroke="#E9C46A" stroke-opacity=".55" stroke-width="3"/>{cells}')
-    return '<svg width="1200" height="630" viewBox="0 0 1200 630">' + "".join(out) + "</svg>"
-
-
-def _river():
-    # Slow river lines across the foot and a few stars above: the deep river, by night.
-    lines = []
-    for k in range(5):
-        y = 566 + k * 15
-        lines.append(f'<path d="M-20 {y} C 180 {y - 22}, 380 {y + 22}, 600 {y} S 1020 {y - 22}, 1220 {y}" fill="none" stroke="#7FA6E8" stroke-opacity="{0.42 - k * 0.05:.2f}" stroke-width="3"/>')
-    stars = "".join(f'<circle cx="{700 + (i * 97) % 460}" cy="{70 + (i * 61) % 300}" r="{2 + i % 3}" fill="#F2D38A" opacity="{0.4 + (i % 4) * 0.12:.2f}"/>' for i in range(14))
-    return '<svg width="1200" height="630" viewBox="0 0 1200 630">' + stars + "".join(lines) + "</svg>"
+    # The hymns' arches, a small row at the top right, outline only.
+    return '<svg width="1200" height="630" viewBox="0 0 1200 630">' + "".join(f'<path d="M{x} 130 V84 Q{x} 58 {x + 22} 46 Q{x + 44} 58 {x + 44} 84 V130" fill="none" stroke="#E9C46A" stroke-opacity=".4" stroke-width="2.5"/>' for x in (900, 960, 1020, 1080)) + "</svg>"
 
 
 def _waves():
-    # Rolling swells at the foot, a rope's dashed line along the top.
-    waves = []
-    for k, (y, o) in enumerate([(574, .3), (600, .42), (626, .55)]):
-        d = f"M-40 {y} " + " ".join(f"Q {-40 + 75 + j * 150} {y - 18} {-40 + 150 + j * 150} {y} T {-40 + 300 + j * 150} {y}" for j in range(0, 10, 2))
-        waves.append(f'<path d="{d}" fill="none" stroke="#7FD3C4" stroke-opacity="{o}" stroke-width="4"/>')
-    rope = '<path d="M0 28 H1200" stroke="#F0D9A8" stroke-opacity=".45" stroke-width="6" stroke-dasharray="14 8"/>'
-    return '<svg width="1200" height="630" viewBox="0 0 1200 630">' + rope + "".join(waves) + "</svg>"
+    # The shanties' waves, two faint lines at the foot.
+    return '<svg width="1200" height="630" viewBox="0 0 1200 630">' + "".join(f'<path d="M-40 {y} ' + " ".join(f"Q {-40 + 75 + j * 150} {y - 14} {-40 + 150 + j * 150} {y} T {-40 + 300 + j * 150} {y}" for j in range(0, 10, 2)) + f'" fill="none" stroke="#7FD3C4" stroke-opacity="{o}" stroke-width="3"/>' for y, o in [(596, .25), (616, .35)]) + "</svg>"
 
 
 def _rings():
-    # Four voices entering one after another: the same ring, each a step later, in the part colours.
+    # The rounds' four voices entering, small rings at the top right.
     colours = ["#ff9139", "#ffea6b", "#45eca4", "#968dfd"]
-    rings = "".join(f'<circle cx="{960 + k * 34}" cy="{300 + k * 22}" r="{170 - k * 6}" fill="none" stroke="{colours[k]}" stroke-opacity=".5" stroke-width="12" stroke-dasharray="{(170 - k * 6) * 6.283 * (0.95 - k * 0.18):.0f} 2000" transform="rotate({-90 + k * 6} {960 + k * 34} {300 + k * 22})" stroke-linecap="round"/>' for k in range(4))
-    return '<svg width="1200" height="630" viewBox="0 0 1200 630">' + rings + "</svg>"
+    return '<svg width="1200" height="630" viewBox="0 0 1200 630">' + "".join(f'<circle cx="{1060 + k * 14}" cy="{70 + k * 8}" r="{40 - k * 3}" fill="none" stroke="{colours[k]}" stroke-opacity=".45" stroke-width="5" stroke-dasharray="{round((40 - k * 3) * 6.283 * (0.95 - k * 0.18))} 400"/>' for k in range(4)) + "</svg>"
 
 
-# Each collection's colour, gold and muted line, its motif and that motif's CSS.
+def _flames():
+    # The Jewish songs' nine small lights, the middle one raised, at the top right (the lamp itself isn't drawn).
+    out = []
+    for k in range(9):
+        x = 880 + k * 30
+        y = 58 if k == 4 else 72
+        out.append(f'<path d="M{x} {y + 30} C {x - 9} {y + 21}, {x - 6} {y + 9}, {x} {y} C {x + 6} {y + 9}, {x + 9} {y + 21}, {x} {y + 30} Z" fill="#F3D27A" opacity="{0.85 if k == 4 else 0.6}"/>')
+    return '<svg width="1200" height="630" viewBox="0 0 1200 630">' + "".join(out) + "</svg>"
+
+
+# Each collection's ground, gold and muted line, its small accent and that accent's CSS.
 THEMES = {
-    "carols": {"bg": "#12372A", "ac": "#E9C46A", "mu": "#C9D8CD", "motif": lambda: _snow() + _lights(), "hat": True,
-               "css": ".lights{position:absolute;inset:0 0 auto;height:44px;display:flex;justify-content:space-between;padding:0 18px}"
-                      ".lights i{position:relative;width:13px;height:19px;border-radius:50% 50% 50% 50%/40% 40% 60% 60%;background:var(--b);box-shadow:0 0 16px 3px var(--b);opacity:.9}"
-                      ".lights i::before{content:'';position:absolute;top:-5px;left:3px;width:7px;height:5px;border-radius:1px;background:#3D5A4C}"
-                      ".snow i{position:absolute;border-radius:50%;background:radial-gradient(circle,#fff 0 42%,rgba(255,255,255,.55) 62%,rgba(255,255,255,0) 72%)}"
-                      "body{padding-top:84px}"},
-    "hymns": {"bg": "#2B1B34", "ac": "#E9C46A", "mu": "#D8C9DD", "motif": _arches, "css": ""},
-    "spirituals": {"bg": "#14243F", "ac": "#F2B84B", "mu": "#C8D3E6", "motif": _river, "css": ""},
-    "sea-shanties": {"bg": "#0D3340", "ac": "#F0D9A8", "mu": "#BFDCD6", "motif": _waves, "css": "body{padding-top:84px}"},
-    "rounds": {"bg": "#3A2416", "ac": "#FFB45C", "mu": "#E6D3C2", "motif": _rings, "css": ""},
+    "carols": {"bg": "#163D2D", "ac": "#F2C46B", "mu": "#C8D3C6", "motif": _lights, "hat": True,
+               "css": ".lights{position:absolute;inset:0 0 auto;height:44px;display:flex;justify-content:space-between;padding:0 40px}"
+                      ".lights i{width:12px;height:16px;border-radius:50% 50% 50% 50%/60% 60% 40% 40%;background:var(--b);box-shadow:0 0 14px var(--b)}"},
+    "hymns": {"bg": "#2B1B35", "ac": "#F2C46B", "mu": "#D3C6D9", "motif": _arches, "css": ""},
+    "spirituals": {"bg": "#14223F", "ac": "#F2C46B", "mu": "#C3CEE3", "motif": _stars, "css": ".star{position:absolute;border-radius:50%;background:#F2C46B}"},
+    "sea-shanties": {"bg": "#0E3440", "ac": "#F2C46B", "mu": "#BAD7D1", "motif": _waves, "css": ""},
+    "rounds": {"bg": "#3A2416", "ac": "#FFB45C", "mu": "#E3D1C1", "motif": _rings, "css": ""},
+    "jewish-songs": {"bg": "#1B2D63", "ac": "#F3D27A", "mu": "#CDD6EF", "motif": _flames, "css": ""},
 }
+
+# The lanes' part colours, soprano to bass (the mark's own, as the songs colour their parts).
+LANE_COLOURS = ["#ff9139", "#ffea6b", "#45eca4", "#968dfd"]
+LANE_KEYS = ["S", "A", "T", "B"]
+
+
+def _lanes(lanes):
+    if not lanes:
+        return ""
+    rows = []
+    for i, notes in enumerate(lanes["lanes"]):
+        colour = LANE_COLOURS[i % 4]
+        opacity = 1 if i == lanes["lit"] else 0.32
+        bars = "".join(f'<i style="left:{n["x"] * 100:.2f}%;width:{max(n["w"] * 100 - 0.8, 0.8):.2f}%;top:{round(4 + (1 - n["y"]) * 20)}px;background:{colour}"></i>' for n in notes)
+        rows.append(f'<div class="lane" style="opacity:{opacity}"><div class="k" style="color:{colour}">{LANE_KEYS[i % 4]}</div><div class="track">{bars}</div></div>')
+    caption = f'<div class="cap"><div>{html.escape(lanes["song"])} · {html.escape(lanes["part"])}</div><div>{html.escape(lanes["length"])}</div></div>'
+    return '<div class="lanes">' + "".join(rows) + caption + "</div>"
 
 
 def collection(card, tmp):
@@ -178,13 +191,13 @@ def collection(card, tmp):
     hat = ""
     if theme.get("hat"):
         hat = '<img class="hat" alt="" src="' + (SERVER.parent / "web" / "icons" / "santa-hat.svg").as_uri() + '">'
-    words = len(card["headline"]) + len(card.get("em", ""))
+    words = len(card["headline"])
     page = Path(tmp) / f"{card['key']}.html"
     page.write_text(COLLECTION.replace("{css}", theme["css"]).replace("{motif}", theme["motif"]()).replace("{hat}", hat).replace("{mark}", mark().replace("{{", "{").replace("}}", "}"))
-                    .replace("{size}", "76" if words <= 36 else "68").replace("{width}", "720" if card["theme"] in ("hymns", "rounds") else "900")
+                    .replace("{size}", "66" if words <= 28 else "58").replace("{emsize}", "68" if words <= 28 else "60")
                     .replace("{bg}", theme["bg"]).replace("{ac}", theme["ac"]).replace("{mu}", theme["mu"])
                     .replace("{eyebrow}", html.escape(card["eyebrow"])).replace("{headline}", html.escape(card["headline"])).replace("{em}", html.escape(card.get("em", "")))
-                    .replace("{lead}", html.escape(card.get("lead", ""))))
+                    .replace("{promise}", html.escape(card.get("promise", ""))).replace("{pick}", PICK).replace("{free}", FREE).replace("{lanes}", _lanes(card.get("lanes"))))
     shoot(page, OUT / f"{card['key']}.png", tmp, card["key"], colors=0)
 
 

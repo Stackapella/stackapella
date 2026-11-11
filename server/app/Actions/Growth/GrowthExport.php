@@ -30,13 +30,13 @@ use Illuminate\Support\Facades\DB;
 final class GrowthExport
 {
     /** Bump when a field's shape or meaning changes, and say so in docs/growth-data.md. */
-    public const SCHEMA_VERSION = 15;
+    public const SCHEMA_VERSION = 16;
 
     /** The range-scoped sections' windows, in days (null: since the first count). */
     public const RANGES = ['7' => 7, '30' => 30, '90' => 90, 'all' => null];
 
     /** Every top-level key, in order (GrowthDataDictionaryTest checks each is documented). */
-    public const SECTIONS = ['meta', 'daily', 'funnel', 'signups', 'cohorts', 'courses', 'sources', 'siteSections', 'partPlays', 'plus', 'outreach', 'releases', 'dropoffs', 'sharing'];
+    public const SECTIONS = ['meta', 'daily', 'funnel', 'signups', 'cohorts', 'courses', 'sources', 'siteSections', 'partPlays', 'plus', 'outreach', 'releases', 'dropoffs', 'sharing', 'breadth'];
 
     /** The sections `meta.range` applies to; the rest say their own windows. */
     public const RANGED = ['funnel', 'courses', 'sources', 'siteSections', 'partPlays'];
@@ -102,6 +102,8 @@ final class GrowthExport
             'dropoffs' => DropoffReport::query()->orderByDesc('week_end')->first()?->data,
             // This week's sharing beside last week's (App\Actions\Growth\Sharing): totals by surface only.
             'sharing' => app(Sharing::class)->build(),
+            // How much of the app singers use, this week and the four before (App\Actions\Growth\Breadth): br and ft totals only.
+            'breadth' => app(Breadth::class)->build(),
         ];
     }
 

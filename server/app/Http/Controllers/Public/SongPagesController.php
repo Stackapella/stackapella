@@ -16,6 +16,7 @@ use App\Support\Pages\SongParts;
 use App\Support\Pages\SongsHub;
 use App\Support\Sharing\SongCards;
 use App\Support\Templates\Catalogue;
+use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 
 /**
@@ -35,7 +36,7 @@ final class SongPagesController extends Controller
         return [...self::HEADERS, ...(config('ops.indexing') === true ? [] : ['X-Robots-Tag' => 'noindex'])];
     }
 
-    public function index(Catalogue $catalogue): Response
+    public function index(Request $request, Catalogue $catalogue): Response
     {
         // Only the songs the site may show: one waiting for its Monday stays off (Catalogue::open()).
         $songs = $catalogue->open();
@@ -43,10 +44,18 @@ final class SongPagesController extends Controller
         // A sampler (Hillel, 2026-11-11): each collection's band in its page's look with a few songs to play and the way to
         // all of them, then every song A to Z (SongsHub).
 
+        $hub = app(SongsHub::class);
+        // The hero's search without the script (Hillel's songbook design): ?q= narrows the A to Z by title; the script
+        // does the same as you type, and the page's address stays /songs for search.
+        $q = trim((string) $request->query('q', ''));
+
         return response()->view('public.songs', [
             'count' => $songs->count(),
-            'bands' => app(SongsHub::class)->bands(),
-            'index' => SongsHub::index($songs),
+            'bands' => $hub->bands(),
+            'index' => $hub->index($songs),
+            'q' => mb_substr($q, 0, 60),
+            // The hero's "Try it": a song's first line in four parts, each switchable (x-site.mixer, js/public/mixer.js).
+            'try' => Landing::lineOf('silent-night') ?? Landing::lineOf('amazing-grace'),
             'rounds' => in_array('rounds', array_column(app(SongCollections::class)->open(), 'slug'), true) ? SongCollections::path('rounds') : null,
             // The season band's chip: when it ends (Carols::seasonEnds).
             'until' => Carols::seasonEnds()->translatedFormat('j F'),

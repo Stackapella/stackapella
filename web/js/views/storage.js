@@ -6,6 +6,7 @@
 import { AccountWall } from '../components/account-wall.js';
 import { api, ApiError } from '../api.js';
 import { formatDate, t, timeAgo } from '../i18n.js';
+import { sk } from '../skin.js';
 import { goBack, navigate } from '../router.js';
 import { account, selfHosted } from '../stores/account.js';
 import { cloud, syncNow } from '../stores/cloud.js';
@@ -275,7 +276,7 @@ export const StorageView = {
             }
         },
         async removeCourseTakes() {
-            const sure = await confirmAction({ title: t('cloud.storage.courseTakesTitle'), body: t('cloud.storage.courseTakesBody'), action: t('cloud.storage.courseTakesAction'), cancel: t('confirm.keep') });
+            const sure = await confirmAction({ title: t('cloud.storage.courseTakesTitle'), body: sk('cloud.storage.courseTakesBodySerious', 'cloud.storage.courseTakesBody'), action: t('cloud.storage.courseTakesAction'), cancel: t('confirm.keep') });
             if (!sure) return;
             this.busy = 'courseTakes';
             try {
