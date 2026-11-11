@@ -5,7 +5,7 @@
 // lesson free). A course still to come is quieter: no edge, no link, its name and line in muted words
 // and Coming soon. No buttons on either, so the screen's one primary stays its own.
 
-import { localized, t } from '../i18n.js';
+import { inLanguage, localized, t } from '../i18n.js';
 import { navigate } from '../router.js';
 import { PART_COLORS } from '../theme.js';
 import { Icon } from './icon.js';
@@ -21,9 +21,11 @@ export const CourseCard = {
                 <span class="size-2.5 shrink-0 rounded-full" :style="{ backgroundColor: colour }" aria-hidden="true"></span>
                 <span class="tabular-nums text-xs font-bold uppercase tracking-[0.12em]" :style="{ color: paintInk(colour) }">{{ t('courses.lessons', { count: summary.total }) }}</span>
                 <span v-if="preview" class="chip ms-auto">{{ t('courses.preview') }}</span>
+                <!-- Not yet in the person's language (docs/languages-plan.md): its English, said plainly, never half translated. -->
+                <span v-if="english" class="chip" :class="preview ? '' : 'ms-auto'" data-in-english>{{ t('courses.inEnglish') }}</span>
             </span>
-            <span class="text-lg font-extrabold leading-snug tracking-tight text-cream" translate="no">{{ localized(entry.title) }}</span>
-            <span class="line-clamp-2 text-sm text-muted" translate="no">{{ localized(entry.line) }}</span>
+            <span class="text-lg font-extrabold leading-snug tracking-tight text-cream" translate="no" :lang="english ? 'en' : null">{{ localized(entry.title) }}</span>
+            <span class="line-clamp-2 text-sm text-muted" translate="no" :lang="english ? 'en' : null">{{ localized(entry.line) }}</span>
             <span v-if="summary.started" class="mt-1 flex items-center gap-3" data-course-progress>
                 <span class="h-1.5 flex-1 overflow-hidden rounded-full bg-raised" aria-hidden="true"><span class="block h-full rounded-full" :style="{ width: percent + '%', backgroundColor: colour }"></span></span>
                 <span class="tabular-nums text-xs text-muted">{{ t('courses.progress', { done: summary.done, total: summary.total }) }}</span>
@@ -36,6 +38,10 @@ export const CourseCard = {
             <span class="mt-auto pt-1 text-xs font-semibold text-muted" data-course-status>{{ t('courses.soon') }}</span>
         </div>`,
     computed: {
+        /** The course isn't in the person's language yet: shown in English with a chip. */
+        english() {
+            return !inLanguage(this.entry.title);
+        },
         href() {
             return '/learn/c/' + this.entry.id;
         },

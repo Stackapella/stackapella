@@ -278,10 +278,21 @@ export function nearestNote(hz, reference = 440) {
 
 const NOTE_NAMES = ['C', 'C#', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B'];
 
-/** "C4" for MIDI 60. */
-export function midiName(midi) {
+/** "C4" for MIDI 60: always letters, for what isn't read by a person in their language (a file, a log). */
+export function letterName(midi) {
     const m = Math.round(midi);
     return `${NOTE_NAMES[((m % 12) + 12) % 12]}${Math.floor(m / 12) - 1}`;
+}
+
+// How a note is named for the person (note-names.js sets it from Settings and the language: C4, Do4, or German's H).
+let namer = letterName;
+export function setNoteNamer(fn) {
+    namer = fn ?? letterName;
+}
+
+/** A note's name as the person reads it: "C4" in letters (the default), "Do4" with fixed Do, "H3" for B3 in German. */
+export function midiName(midi) {
+    return namer(Math.round(midi));
 }
 
 /**

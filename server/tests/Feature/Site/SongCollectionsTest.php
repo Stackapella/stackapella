@@ -164,10 +164,17 @@ final class SongCollectionsTest extends TestCase
         $moses = Template::query()->with('currentVersion')->where('slug', 'go-down-moses')->firstOrFail();
         $this->assertStringContainsString('Seward', (string) (((array) (((array) $moses->currentVersion?->data)['credits'] ?? []))['arrangement'] ?? ''));
         $this->assertStringContainsString('Seward', implode(' ', (array) __('site.collections.spirituals.intro')));
-        // The intro names Deep River as Burleigh's setting and says the rest are our own arrangements: another
-        // arranger's setting joining must change the words first.
+        // The intro names Deep River as Burleigh's setting and There Is a Balm in Gilead as Dett's four parts (the arranger,
+        // 2026-11-11), and says the rest are our own arrangements: another arranger's setting joining must change the words first.
         foreach (app(SongCollections::class)->songs('spirituals') as $song) {
             if ($song['slug'] === 'deep-river') {
+                continue;
+            }
+            if ($song['slug'] === 'balm-in-gilead') {
+                $balm = Template::query()->with('currentVersion')->where('slug', 'balm-in-gilead')->firstOrFail();
+                $this->assertStringContainsString('Dett', (string) (((array) (((array) $balm->currentVersion?->data)['credits'] ?? []))['arrangement'] ?? ''));
+                $this->assertStringContainsString('Dett', implode(' ', (array) __('site.collections.spirituals.intro')));
+
                 continue;
             }
             $template = Template::query()->with('currentVersion')->where('slug', $song['slug'])->firstOrFail();

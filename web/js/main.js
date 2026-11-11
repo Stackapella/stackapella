@@ -3,7 +3,9 @@ import { watchErrors } from './errors.js';
 import { setDraftsFor } from './templates.js';
 import { api, apiEvents } from './api.js';
 import { storageEvents } from './db.js';
-import { allWords, formatDate, formatNumber, loadLanguage, localized, t, timeAgo, tk } from './i18n.js';
+import { allWords, chooseLanguage, formatDate, formatNumber, isLive, loadLanguage, locale, localized, setLiveLanguages, t, timeAgo, tk } from './i18n.js';
+import { local } from './storage.js';
+import './note-names.js'; // every note name by the person's naming (C4, Do4, H3): dsp.js midiName asks it
 import { navigate, route } from './router.js';
 import { liveSession } from './stores/session-live.js';
 import { toast, Toasts } from './components/ui.js';
@@ -246,6 +248,7 @@ async function readGate({ fresh = false } = {}) {
         // At the start, the settings the funnel asked for (one request, not two); after a sign-in, asked again.
         const data = fresh ? (await api.auth.config()).data : await loadAuthConfig();
         gate.comingSoon = !!data.comingSoon;
+        setLiveLanguages(data.languages); // the languages switched on (docs/languages-plan.md): English alone until one is
         setDraftsFor({ prelaunch: !!data.prelaunch }); // before the launch, every song shows, drafts too
     } catch (error) {
         console.warn('Coming soon not known: the app stays open', error);
@@ -258,6 +261,17 @@ watch(() => account.me?.staff, (staff) => setDraftsFor({ admin: staff === 'admin
 watch([() => gate.comingSoon, () => route.name, () => route.params.token], ([closed, name, token]) => {
     if (closed && !account.me && !OPEN_BEFORE_LAUNCH.has(name) && !(name === 'beta' && token)) navigate('/signin', { replace: true });
 });
+
+// The language and the account (docs/languages-plan.md): a device that hasn't chosen one takes the account's (when it's
+// another language, switched on); a device that has chosen tells the account, so emails follow it. Asked after a sign-in and once languages are known.
+watch([() => account.me?.locale, () => locale.live.join()], ([theirs]) => {
+    if (!theirs) return;
+    const mine = local.get('stackapella.lang');
+    // Every account made before languages says 'en': only another language is taken from it, and never over ?lang=.
+    const asked = new URLSearchParams(location.search).get('lang');
+    if (!mine && !asked && theirs !== 'en' && theirs !== locale.lang && isLive(theirs)) chooseLanguage(theirs).catch((error) => console.warn('The account\'s language did not load', error));
+    else if (mine && mine !== theirs && isLive(mine)) api.account.update({ locale: mine }).catch((error) => console.warn('The language was not saved to the account', error));
+}, { immediate: true });
 
 // Signed in on a device that hasn't chosen a look: the one chosen on another device.
 watch(() => account.me?.appearance, (theirs) => adoptAccountAppearance(theirs), { immediate: true });

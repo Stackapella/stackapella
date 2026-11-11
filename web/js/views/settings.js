@@ -6,7 +6,8 @@
 import { GameModeSwitch, ThemeSwitch } from '../components/appearance.js';
 import { lazyComponent, setGlobal } from '../game/modules.js';
 import { api, ApiError } from '../api.js';
-import { formatDate, t, tk } from '../i18n.js';
+import { chooseLanguage, coverage, formatDate, locale, t, tk } from '../i18n.js';
+import { chooseNaming, naming, NAMINGS, namingSample, noteNames } from '../note-names.js';
 import { navigate } from '../router.js';
 import { account, loadAccount, loadAuthConfig, providerSignIn, selfHosted, signOut } from '../stores/account.js';
 import { Field, Notice, StatusChip } from '../components/form.js';
@@ -98,7 +99,7 @@ export const SettingsView = {
         editing: null, // 'email' or 'password': its change open under its row
         section: 'profile', // the section in view, marked in the sidebar
     }),
-    setup: () => ({ voiceCare, setNotes, ideas, learning, prefs, account, METHODS, HANDLE_REASONS, EXPORT, formatDate, formatBytes, SECTIONS, SECTION_WORDS, appearanceSummary, selfHosted, CREDIT_SITE, sk, game }),
+    setup: () => ({ voiceCare, setNotes, ideas, learning, prefs, account, locale, noteNames, NAMINGS, chooseNaming, METHODS, HANDLE_REASONS, EXPORT, formatDate, formatBytes, SECTIONS, SECTION_WORDS, appearanceSummary, selfHosted, CREDIT_SITE, sk, game }),
     template: `
         <AppScreen :title="t('settings.title')" back="/" measure="" data-ui="screen" class="bg-ink">
             <!-- How it looks is the header's Theme button, here as on every screen (Hillel's call). -->
@@ -243,6 +244,16 @@ export const SettingsView = {
                     <h2 id="practice-heading" class="text-lg font-bold text-cream">{{ t('settings.nav.practice') }}</h2>
                     <div class="card divide-y divide-line overflow-hidden">
                         <div class="flex items-center justify-between gap-4 p-5"><div class="min-w-0"><p class="font-semibold text-cream">{{ t('appearance.title') }}</p><p class="text-sm text-muted">{{ appearanceSummary() }}</p></div><ThemeSwitch /></div>
+                        <!-- Language and Note names (docs/languages-plan.md): once a language besides English is switched on
+                             (Admin > Settings > Switches), or one was opened by ?lang= to check a draft. -->
+                        <template v-if="languagesShown">
+                            <label class="flex flex-wrap items-center justify-between gap-4 p-5" data-language><span class="min-w-0"><span class="block font-semibold text-cream">{{ t('settings.language.title') }}</span><span class="block text-sm text-muted" data-language-hint>{{ languageHint }}</span></span>
+                                <select class="input w-auto" :value="locale.lang" @change="pickLanguage($event.target.value)"><option v-for="lang in languages" :key="lang" :value="lang" :lang="lang" translate="no">{{ languageName(lang) }}</option></select>
+                            </label>
+                            <label class="flex flex-wrap items-center justify-between gap-4 p-5" data-note-names><span class="min-w-0"><span class="block font-semibold text-cream">{{ t('settings.noteNames.title') }}</span><span class="block text-sm text-muted">{{ t('settings.noteNames.hint') }}</span></span>
+                                <select class="input w-auto" :value="noteNames.choice" @change="chooseNaming($event.target.value)"><option v-for="n in NAMINGS" :key="n" :value="n">{{ namingLabel(n) }}</option></select>
+                            </label>
+                        </template>
                         <a v-if="account.me" href="/settings/reminders" class="flex items-center justify-between gap-4 p-5 hover:bg-raised/50" @click.prevent="navigate('/settings/reminders')"><span class="min-w-0"><span class="block font-semibold text-cream">{{ t('reminders.title') }}</span><span class="block text-sm text-muted">{{ t('reminders.settingsHint') }}</span></span><Icon name="chevron" :size="18" class="shrink-0 -rotate-90 text-muted rtl:rotate-90" /></a>
                         <a v-if="account.me" href="/groups" class="flex items-center justify-between gap-4 p-5 hover:bg-raised/50" @click.prevent="navigate('/groups')"><span class="min-w-0"><span class="block font-semibold text-cream">{{ t('groups.title') }}</span><span class="block text-sm text-muted">{{ t('groups.settingsHint') }}</span></span><Icon name="chevron" :size="18" class="shrink-0 -rotate-90 text-muted rtl:rotate-90" /></a>
                         <!-- A warm-up for students (docs/warmup-builder-plan.md): made here, shared as a link; no account needed. -->
@@ -297,7 +308,7 @@ export const SettingsView = {
                         <div class="card divide-y divide-line overflow-hidden">
                             <div class="flex flex-wrap items-center justify-between gap-4 p-5">
                                 <div class="min-w-0"><p class="font-semibold text-cream">{{ t('settings.export.title') }}</p><p class="text-sm text-muted">{{ exportState && EXPORT[exportState.status] ? t(EXPORT[exportState.status], { date: exportState.expiresAt ? formatDate(exportState.expiresAt) : '' }) : t('settings.export.intro') }}</p></div>
-                                <div class="flex shrink-0 flex-wrap gap-2">
+                                <div class="flex min-w-0 flex-wrap gap-2"><!-- may wrap: two buttons 40% longer outgrow a phone (language_fit) -->
                                     <button v-if="exportState?.status !== 'preparing'" type="button" class="btn-secondary btn-sm" :disabled="busy === 'export'" @click="requestExport">{{ exportState?.status === 'ready' || exportState?.status === 'failed' ? t('settings.export.again') : t('settings.export.request') }}</button>
                                     <a v-if="exportState?.status === 'ready' && exportState.url" :href="exportState.url" class="btn-primary btn-sm" rel="noopener">{{ t('settings.export.download') }}</a>
                                 </div>
@@ -357,6 +368,12 @@ export const SettingsView = {
             </Modal>
         </AppScreen>`,
     computed: {
+        languagesShown: () => locale.live.length > 1 || locale.lang !== 'en',
+        languages: () => [...new Set([...locale.live, locale.lang])],
+        /** Some screens still English (a key not yet translated, or its English changed since): said under the row. */
+        languageHint: () => (coverage() < 1 ? t('settings.language.someEnglish') : t('settings.language.hint')),
+        /** What "auto" names notes by: the language's own (Do Re Mi in Spanish), read with the choice set aside. */
+        autoNaming: () => (noteNames.choice === 'auto' ? naming() : { es: 'fixed', de: 'german' }[locale.lang.split('-')[0]] ?? 'letters'),
         signUp: () => signUpFor('settings', '/settings'),
         signIn: () => signInTo('/settings'),
         /** A guest's tally: what's kept only here (or that nothing is yet). */
@@ -422,6 +439,20 @@ export const SettingsView = {
         this.sections?.disconnect();
     },
     methods: {
+        /** A language in its own words, as a choice list names them: "English", "Español", "Deutsch". */
+        languageName(lang) {
+            const name = new Intl.DisplayNames([lang], { type: 'language' }).of(lang) ?? lang;
+            return name.charAt(0).toLocaleUpperCase(lang) + name.slice(1);
+        },
+        /** A naming as its first notes; "auto" says it follows the language ("Your language's (Do Re Mi)"). */
+        namingLabel(n) {
+            return n === 'auto' ? t('settings.noteNames.auto', { sample: namingSample(this.autoNaming) }) : namingSample(n);
+        },
+        /** The language on this device, and on the account so emails follow it. */
+        async pickLanguage(lang) {
+            await chooseLanguage(lang);
+            if (account.me) api.account.update({ locale: lang }).catch((error) => console.warn('The language was not saved to the account', error));
+        },
         async downloadBackup() {
             this.backup = 'making';
             try {

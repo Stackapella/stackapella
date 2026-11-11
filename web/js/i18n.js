@@ -20,7 +20,15 @@ import { local } from './storage.js';
 
 const RTL = new Set(['ar', 'he', 'fa', 'ur']);
 
-export const locale = reactive({ lang: 'en', dir: 'ltr', messages: {}, english: {}, pseudo: false });
+// `live`: the languages switched on (auth.config's `languages`, kept on the device for the next start): the browser's
+// language and Settings' choice are followed only into these. A drafted language stays hidden until Hillel switches it
+// on (Admin > Settings > Switches, lang_es); `?lang=es` still opens it, to check a draft. `source`: for each key, the
+// English a translation was made from (locales/<lang>.source.json), so a key whose English has changed since shows
+// the new English until it's translated again, never a stale sentence.
+const LIVE_KEY = 'stackapella.languages';
+// The languages we translate, each with its .source.json (tool/stale_words.py --mark writes it after a drafting pass).
+const SOURCED = new Set(['es', 'de']);
+export const locale = reactive({ lang: 'en', dir: 'ltr', messages: {}, english: {}, source: null, pseudo: false, live: liveFromDevice() });
 
 // A first visit (no service worker yet) starts with lesson 1's own words, a quarter of en.json
 // (locales/lesson1/en.json, written by tool/preload_list.py from the modules main.js imports), and
@@ -36,8 +44,8 @@ export const tk = (key) => key;
 
 /** The message for `key` in the person's language (English when it's missing), filled in. */
 export function t(key, values = {}) {
-    const message = lookup(locale.messages, key);
     const english = lookup(locale.english, key);
+    const message = translated(key, english);
     if (typeof message !== 'string' && typeof english !== 'string' && partial) {
         // Only lesson 1's words so far: the rest are on their way, and the screen re-renders with them.
         if (!words.missed.includes(key)) words.missed.push(key);
@@ -72,6 +80,42 @@ export function localized(text) {
     return text[locale.lang] ?? text.en ?? Object.values(text)[0] ?? '';
 }
 
+/** A key's words in the person's language, or undefined when it has none or they were made from older English. */
+function translated(key, english) {
+    if (locale.messages === locale.english) return english;
+    const message = lookup(locale.messages, key);
+    if (typeof message !== 'string' || typeof english !== 'string' || !locale.source) return message;
+    return lookup(locale.source, key) === english ? message : undefined;
+}
+
+/**
+ * Whether content kept by language (`{ "en": ..., "es": ... }`) has the person's language: false shows its English
+ * with a "not yet in your language" note. Always true in English.
+ */
+export function inLanguage(text) {
+    if (locale.lang === 'en' || typeof text !== 'object' || text === null) return true;
+    return typeof text[locale.lang] === 'string' && text[locale.lang] !== '';
+}
+
+/** How much of the app is in the person's language, 0 to 1 (1 in English): Settings says when some is still English. */
+export function coverage() {
+    if (locale.messages === locale.english || locale.pseudo) return 1;
+    let all = 0;
+    let done = 0;
+    const walk = (node, path) => {
+        for (const [part, value] of Object.entries(node)) {
+            const key = path ? `${path}.${part}` : part;
+            if (typeof value === 'object' && value !== null) walk(value, key);
+            else if (typeof value === 'string') {
+                all++;
+                if (translated(key, value) !== undefined) done++;
+            }
+        }
+    };
+    walk(locale.english, '');
+    return all ? done / all : 1;
+}
+
 function lookup(messages, key) {
     return key.split('.').reduce((node, part) => (node && typeof node === 'object' ? node[part] : undefined), messages);
 }
@@ -97,6 +141,8 @@ export async function loadLanguage(wanted = preferredLanguages(), { lessonFirst 
             break;
         }
     }
+    // What each key was translated from (none for English, or when the file isn't there: then nothing counts as stale).
+    locale.source = SOURCED.has(chosen.split('-')[0]) ? await getJson(`/locales/${encodeURIComponent(chosen)}.source.json`).catch(() => null) : null;
     locale.pseudo = wanted[0] === 'pseudo';
     locale.lang = chosen;
     locale.dir = RTL.has(chosen.split('-')[0]) ? 'rtl' : 'ltr';
@@ -121,21 +167,52 @@ export function allWords() {
     return allLoading;
 }
 
-/** Settings: remember the person's choice (later also stored on the account). */
+/** Settings: remember the person's choice on this device (Settings also sends it to the account, for emails). */
 export async function chooseLanguage(lang) {
     local.set('stackapella.lang', lang);
     await loadLanguage([lang]);
 }
 
-function preferredLanguages() {
+/** The person's language as they'd choose it: their choice on this device, else the browser's first that's live. */
+export function preferredLanguages() {
     const asked = new URLSearchParams(location.search).get('lang');
     if (asked === 'pseudo') {
         // A developer's tool: never on the live site.
         return ['localhost', '127.0.0.1'].includes(location.hostname) ? ['pseudo'] : [];
     }
-    const list = [asked, local.get('stackapella.lang'), ...(navigator.languages ?? [navigator.language])].filter(Boolean);
-    // "pt-BR" is tried before "pt".
-    return [...new Set(list.flatMap((lang) => [lang, lang.split('-')[0]]))];
+    // A language asked for in the address opens even before it's switched on (checking a draft); the rest only once live.
+    const list = [local.get('stackapella.lang'), ...(navigator.languages ?? [navigator.language])].filter(Boolean);
+    const live = [...new Set(list.flatMap((lang) => [lang, lang.split('-')[0]]))].filter((lang) => isLive(lang));
+    return [...new Set([...(asked ? [asked, asked.split('-')[0]] : []), ...live])];
+}
+
+/** Whether a language (or its region's, "es-MX") is switched on. English always is. */
+export function isLive(lang) {
+    const base = String(lang).split('-')[0];
+    return base === 'en' || locale.live.includes(base);
+}
+
+function liveFromDevice() {
+    try {
+        const kept = JSON.parse(local.get(LIVE_KEY) ?? 'null');
+        return Array.isArray(kept) ? kept.filter((lang) => typeof lang === 'string') : ['en'];
+    } catch {
+        return ['en'];
+    }
+}
+
+/**
+ * auth.config's `languages` (missing: English only), kept for the next start. When it changes what the person would
+ * read (a language switched on or off), the words change now.
+ */
+export async function setLiveLanguages(languages) {
+    const live = Array.isArray(languages) && languages.length ? [...new Set(['en', ...languages.filter((lang) => typeof lang === 'string')])] : ['en'];
+    if (live.join() === locale.live.join()) return;
+    locale.live = live;
+    local.set(LIVE_KEY, JSON.stringify(live));
+    const wanted = preferredLanguages();
+    const now = wanted.find((lang) => lang === 'pseudo' || lang === 'en' || lang.startsWith('en-') || isLive(lang)) ?? 'en';
+    if (now.split('-')[0] !== locale.lang.split('-')[0] && !locale.pseudo) await loadLanguage(wanted);
 }
 
 const triedFor = new Set();
@@ -148,6 +225,7 @@ export function refreshWords() {
         try {
             const english = await fetchMessages('en', { fresh: true });
             const messages = locale.lang === 'en' ? english : await fetchMessages(locale.lang, { fresh: true }).catch(() => locale.messages);
+            if (SOURCED.has(locale.lang.split('-')[0])) locale.source = await getJson(`/locales/${encodeURIComponent(locale.lang)}.source.json`, { cache: 'reload' }).catch(() => locale.source);
             locale.english = english;
             locale.messages = messages;
             partial = false;
@@ -267,7 +345,9 @@ export function pseudo(message) {
         }
         out += char;
     }
-    return `[${out} ${'·'.repeat(Math.ceil(letters * 0.4))}]`;
+    // The 40% as words of up to five dots (a real language's longer text has spaces to wrap at; one long run never would).
+    const pad = '·'.repeat(Math.ceil(letters * 0.4));
+    return `[${out} ${pad.match(/·{1,5}/g)?.join(' ') ?? ''}]`;
 }
 
 // ---- Numbers, dates and durations ---------------------------------------------------------------

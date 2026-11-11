@@ -392,4 +392,58 @@ return [
         'tenor' => 'Sings the same tune an octave lower, for lower voices, coming in six bars after the alto, as the soprano reaches "Ding, dong".',
         'bass' => 'Sings the same low tune as the tenor, coming in last, six bars after it, and finishing alone on the last "Ding, dong, ding, dong, ding, dong!".',
     ],
+    'ezekiel-saw-the-wheel' => [
+        'soprano' => 'Carries the tune, mostly on G and B, sings each verse\'s solo lines alone, from "Some go to church fo\' to sing an\' shout" to "He\'ll talk \'bout me an\' he\'ll talk \'bout you", starting them on its top E, on "Some", "Befo\'", "Let" and "He\'ll talk", and goes down to its low D on the first syllable of every "Ezekiel", on "An\' de" before "little wheel" and on the first "a" in "\'Tis a wheel in a wheel".',
+        'alto' => 'Rests through the soprano\'s solo lines and answers "\'Way in de middle ob de air" with everyone, mostly on B and D, rising to its top E only in the refrain, on "in de" in "\'Way up in de middle", "run by" in "little wheel run by faith" and "by de" in "run by de grace".',
+        'tenor' => 'Rests through the soprano\'s solo lines and joins every answer, most often on G, then D, up to its top C on "in de" in "\'Way up in de middle" and down to its low C on "run by" in "little wheel run by faith".',
+        'bass' => 'Sings the bass line, mostly on a low G, rests through the soprano\'s solo lines, and rises to its top note, D, on every "\'Way in de middle ob de", on "middle ob de" in "\'Way up in de middle" and on "grace ob" in "by de grace ob God".',
+    ],
+    'every-time-i-feel-the-spirit' => [
+        'soprano' => 'Carries the tune of the refrain, mostly on E-flat and C, across an octave, from its top E-flat on every "Ev\'ry" and "feel" in "Ev\'ry time I feel the Spirit" down to the E-flat below on every "heart" and "pray.", and rests while the alto sings the verses.',
+        'alto' => 'Sings both verses alone, "Upon the mountain my Lord spoke" and "All around me looks so shine", on C, E-flat and G, with an F on "fire" and "all", and in the refrain sings with everyone, mostly on G and A-flat, up to A-flat on "time I feel the" and the start of "moving", and down to C on every "heart".',
+        'tenor' => 'Sings the refrain on just two notes, mostly B-flat, rising to E-flat on every "time I feel the" and "moving", and rests while the alto sings the verses.',
+        'bass' => 'Sings the refrain mostly on the roots, most often on E-flat, down to its low A-flat on every "time I", and rests while the alto sings the verses.',
+    ],
+    'were-you-there' => [
+        'soprano' => 'Asks each verse\'s question alone, as "Were you there when they crucified my Lord?" in verse 1, holding its last word while the others echo, then sings the rest with everyone, mostly on G and B, up to its top E on "crucified", "nailed", "pierced" and "sun" in each verse\'s second question and on every "Sometimes", and down to its low D on each verse\'s first "Were" and its last "tremble,".',
+        'alto' => 'Rests while the soprano asks each question, echoes its end on B, C and B ("were you there?" in verses 1 and 4, "to the tree?" and "in the side?" in verses 2 and 3), then sings with everyone, mostly on B and E, reaching its top B only in each verse\'s second question, on every "Oh!" and on every "Sometimes".',
+        'tenor' => 'Echoes the end of each question with the alto and bass, then fills the middle of the chord, most often on G, then C, up to its top C on "me to tremble," and the second "tremble" in "Sometimes it causes me to tremble", and on "crucified", "nailed", "pierced" and "sun" in each verse\'s last line; its low C comes once a verse, in the echo, on "you" or "the".',
+        'bass' => 'Echoes the end of each question with the alto and tenor, then sings the bass line, most often on a low G, then C, rising to the G an octave up once a verse, in its last line, on "crucified", on "Him" in "nailed Him" and "pierced Him", and on "refused".',
+    ],
+    'didnt-my-lord-deliver-daniel' => [
+        'soprano' => 'Sings the five-note tune, mostly on C and D, and each verse alone until the others join its last line, up to its top E on "Daniel," after each "Didn\'t my Lord deliver" or "d\'liver" and on "why" in the refrain, and on "belly", "fiery", "forbear", "disappear,", "begin" and "Canaan\'s" in the verses, and down to its low G on the start of each "deliver" or "d\'liver" after "Didn\'t my Lord".',
+        'alto' => 'Sings the refrain and each verse\'s last line, mostly on C, a steady low line under the tune, up to its top E on the third "Daniel," of each refrain and on "why not", "Jesus" and "never come" in the verses\' last lines, and down to A on every "every" in the refrain\'s "And why not a every man?".',
+        'tenor' => 'Sings the refrain and each verse\'s last line, most often on A, then G, and drops to its low E on "a" and "man?" in each "And why not a every man?", and in the verses on "And why not" and "man?", "King Jesus" and "mine.", and "And I\'ll never come" and "more.".',
+        'bass' => 'Sings the roots, mostly on a low A, then C, joins each verse\'s last line on A, with G on one word, and drops to its bottom F on "every" in each refrain\'s "And why not a every man?".',
+    ],
+    'balm-in-gilead' => [
+        'soprano' => 'Carries the tune, mostly on A and C-sharp, and sings both verses alone, "Sometimes I feel discouraged" and "If you cannot preach like Peter", reaching its top E only there, on "discouraged,", "work\'s" and "Spirit" in the first and on "Peter,", "pray" and "Jesus," in the second, and down to its low E on every "To" in "To heal the sin-sick soul".',
+        'alto' => 'Rests through both verses and sings Dett\'s alto in the refrain, mostly on C-sharp and E, up to F-sharp, its top note, on every "wounded" and "whole," and on the first "soul." of each refrain.',
+        'tenor' => 'Rests through both verses and sings the refrain on just three notes, mostly on A, dropping to E on every "in Gilead,", on "Balm" before each "To make the wounded whole" and on the last "soul." of each refrain, and to G-sharp on every "whole,", the "There is a" after it and "sick" in every "sin-sick".',
+        'bass' => 'Sings the roots of Dett\'s chords on just two notes, a low A for three quarters of the time and the E above it on every "whole,", the "There is a" after it and every "sin-sick", and rests through both verses.',
+    ],
+    'bully-in-the-alley' => [
+        'soprano' => 'Is the shantyman: sings the opening refrain\'s two "So help my bob I\'m bully in the alley" lines alone, and in each verse its first line and "Bully in Tinpot alley", most often on G, then B and A, from its low D on every "So" up to its top D on every "I\'m", on "our" in the first lines of verses 1 and 2, on the second "the" in verse 3\'s "She\'s the girl in the alley." and on "in" in every "Bully in Tinpot alley".',
+        'alto' => 'Answers "Way ay bully in the alley" with everyone and, in the verses, also sings "So help my bob I\'m bully in the alley", mostly on E, C and D, from a low A on each verse\'s "So" up to its top G on "ay" in both answers of the opening refrain and in each verse\'s last answer.',
+        'tenor' => 'Answers with everyone, and in the verses sings "So help my bob I\'m bully in the alley" too, most often on G, up to its top D only once, on "ay" in the opening refrain\'s second "Way ay", and down to a low D on the last "alley." of each verse.',
+        'bass' => 'Sings the bass line under the answers, mostly on C and a low G, and in the verses under "So help my bob I\'m bully in the alley" too, rising to its top E only once, on "ay" in the opening refrain\'s first "Way ay".',
+    ],
+    'haul-on-the-bowline' => [
+        'soprano' => 'Is the shantyman: sings the whole chorus alone first, as his call, then each verse\'s first line alone, "Because she had a foretop" and "Because she had a maintop", starting each on its low D on "Because", most often on D, then B, up to its top E on the first "bowline," of the opening call and of the closing chorus.',
+        'alto' => 'Rests through the shantyman\'s call and solo lines, joins each verse\'s last line ("Haul on the bowline, the bowline haul", in verse 2 "Haul the bowline") and sings the whole last chorus, mostly on F-sharp and G, up to its top A only there, on "bowline, O" in "Haul on the bowline, O Kitty".',
+        'tenor' => 'Rests through the call and the solo lines, then sings each verse\'s last line and the last chorus, mostly on A and D, on its low F-sharp for "Haul on the" at the start of verse 1\'s answer, and up to its top E once, on the last "bowline" before the final "haul".',
+        'bass' => 'Rests through the call and the solo lines, then sings the bass line, most often on B, then A and D, down to its low G once, on "darling," in the last chorus, and up to its top F-sharp on "bowline, the" in that chorus\'s last line.',
+    ],
+    'spanish-ladies' => [
+        'soprano' => 'Carries Sharp\'s tune in its old minor form, mostly on A and C, up to its top E on "sail" and "But" in the verse and on "channel" and "From" in each chorus, and down to its low D on "to" in "short time to see you again" and on "is" in each "to Scilly is thirty five leagues".',
+        'alto' => 'Sings the words with the tune all through, mostly on C and E, up to its top A only on "strike" in each "Until we strike soundings", and turns the last chord major with a C-sharp on the very last "leagues.".',
+        'tenor' => 'Sings the words in the middle of the chord, mostly on E and G, staying on E for most of the opening "Farewell and adieu to you Spanish ladies", and up to its top D on "Until" in each chorus.',
+        'bass' => 'Sings the bass line from Sharp\'s left hand, mostly on A and C, up to its top A only once, on "hope" in "But we hope in a short time", and down to its low F on "old" in every "old England", on "like" in "roar like true British sailors" and on "roar" in "we\'ll roar all on the salt seas".',
+    ],
+    'blow-boys-blow' => [
+        'soprano' => 'Is the shantyman: sings both solo lines of every verse alone, among them "A Yankee ship came down the river" and "Why bullock\'s lights and donkey\'s liver.", mostly on B and G, starting each verse on its low D ("A", "And" or "Then") and each second solo line on its top E ("Her", "The", "Why" or "And").',
+        'alto' => 'Rests through the solo lines and answers "Blow, boys blow." rising E, G-sharp, A, its top note, and "Blow my bully boys blow." falling G, F-sharp, D to a low B on the last "blow.", the same in every verse.',
+        'tenor' => 'Rests through the solo lines and answers in the middle of the chord, mostly on G and A, starting "Blow, boys blow." on its top C in verse 1 and on its low E in every verse after.',
+        'bass' => 'Rests through the solo lines and sings the bass of Terry\'s chords, C, E, A under "Blow, boys blow.", with its top E on "boys", then D for "Blow my bully boys" and down to a low G on the last "blow.", the same in every verse.',
+    ],
 ];

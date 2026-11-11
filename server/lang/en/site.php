@@ -1615,7 +1615,7 @@ return [
             'lead' => 'Learn your part of a spiritual before rehearsal. Free, in your browser, no account.',
             'intro' => [
                 'Spirituals are songs first sung by enslaved African Americans. They were sung long before they were written down; the first printed collections came after emancipation, and the Fisk Jubilee Singers carried them across the United States from 1871 and to Europe from 1873. Composers such as Harry T. Burleigh later set them for concert singers and choirs.',
-                'Deep River is Burleigh\'s own setting, as G. Schirmer printed it in 1914, and Go Down, Moses keeps the four-part answer from Theodore F. Seward\'s Jubilee Songs of 1872; the rest are our own four-part arrangements of the traditional tunes and words. Each song\'s page tells where it comes from. Learn the words and their story as well as the notes.',
+                'Deep River is Burleigh\'s own setting, as G. Schirmer printed it in 1914; Go Down, Moses keeps the four-part answer from Theodore F. Seward\'s Jubilee Songs of 1872; and There Is a Balm in Gilead keeps the four parts R. Nathaniel Dett printed in his Hampton Institute collection of 1927. The rest are our own four-part arrangements of the traditional tunes and words. Each song\'s page tells where it comes from. Learn the words and their story as well as the notes.',
             ],
             'pick' => 'Pick a spiritual',
             'songbook' => 'The spirituals',
@@ -1638,7 +1638,7 @@ return [
             'lead' => 'Learn your part of a sea shanty, then sing it with friends or your choir. Free, in your browser, no account.',
             'intro' => [
                 'Shanties were the work songs of sailing ships: the shantyman usually sang a line and the crew answered as they hauled on a rope or marched round the capstan, so the singing kept everyone pulling together.',
-                'These are our own four-part arrangements of the tunes and words that W. B. Whall, Cecil Sharp and R. R. Terry printed from 1913 to 1921, and each song\'s page says which job it was sung for.',
+                'These are our own four-part arrangements of the tunes and words that W. B. Whall, Cecil Sharp and R. R. Terry printed from 1909 to 1921, and each song\'s page says which job it was sung for.',
             ],
             'pick' => 'Pick a shanty',
             'songbook' => 'The shanties',

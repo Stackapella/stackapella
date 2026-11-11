@@ -13,6 +13,7 @@ import { chartDots, holdPercent, longestHold } from '../results.js';
 import { CAMERA, frameFor } from '../camera.js';
 import { hzToMidi, midiName } from '../dsp.js';
 import { formatNumber, t, tk } from '../i18n.js';
+import { isSolfa, naming } from '../note-names.js';
 import { rangeFor, trackFrame, trackInWorker, WHISTLE_RANGE } from '../pitchtrack.js';
 import { foldLive, foldTrack, sayFoldOnce } from '../whistle.js';
 import { scoreTake, STRICTNESS } from '../scoring.js';
@@ -422,6 +423,11 @@ export const Exercise = {
             return ({ width }) => (note && !this.waitDone ? [{ x: width * 0.08, y, w: width * 0.84, h: 48, color, rim: on, glow: on ? 0.8 : 0, fill, fillColor: this.color }] : []);
         },
         laid: (vm) => layout(vm.exercise, vm.base),
+        /**
+         * With fixed-Do names (Spanish), the pitches this exercise sings on a solfège syllable over the home note, each
+         * with its syllable: those notes are named by it ("mi"), never by a fixed name ("Fa#4") that would contradict it.
+         */
+        solfaAt: (vm) => (naming() === 'fixed' ? new Map([...(vm.laid.guide ?? []), ...vm.laid.target].filter((n) => isSolfa(n.lyric)).map((n) => [Math.round(n.pitch), n.lyric.replace(/-$/, '')])) : new Map()),
         /** The notes sung in tune so far this take (the lit ones past the lead-in): a boss round's bar reads it live. */
         litTargets: (vm) => [...vm.lit].filter((i) => i >= vm.shown.length - vm.laid.target.length).length,
         beatSeconds: (vm) => 60 / (vm.exercise.tempo ?? 72),
@@ -549,16 +555,16 @@ export const Exercise = {
         waitHeadline() {
             if (this.waitDone) return t('course.wait.done');
             if (!this.running) return t('course.wait.ready');
-            return this.onNote ? t('course.wait.hold') : t('course.wait.find', { note: midiName(this.waitNote.pitch) });
+            return this.onNote ? t('course.wait.hold') : t('course.wait.find', { note: this.name(this.waitNote.pitch) });
         },
         waitLine() {
             const count = this.laid.guide.length;
             if (this.waitDone) return t('course.wait.doneLine', { count });
             if (!this.running) return t('course.wait.readyLine', { count });
-            return this.onNote ? t('course.wait.holdLine', { note: midiName(this.waitNote.pitch) }) : t('course.wait.findLine');
+            return this.onNote ? t('course.wait.holdLine', { note: this.name(this.waitNote.pitch) }) : t('course.wait.findLine');
         },
         waitLabel() {
-            return this.waitNote ? t('course.wait.label', { note: midiName(this.waitNote.pitch), percent: Math.round(this.fill * 100) }) : '';
+            return this.waitNote ? t('course.wait.label', { note: this.name(this.waitNote.pitch), percent: Math.round(this.fill * 100) }) : '';
         },
         /** The live voice, folded into the frame's octave (a man on a treble line sits on its notes). */
         liveShown() {
@@ -622,7 +628,10 @@ export const Exercise = {
         labelFits(n) {
             return n.length * this.pxPerBeat - 2 >= String(this.noteWord(n)).length * (this.labelled ? 7 : LABEL_CHAR_PX) + LABEL_PAD_PX;
         },
-        name: (pitch) => midiName(pitch),
+        /** A note's name as the singer reads it; a solfège step's own syllable in a fixed-Do language (solfaAt). */
+        name(pitch) {
+            return this.solfaAt.get(Math.round(pitch)) ?? midiName(pitch);
+        },
         headphonesOn(never) {
             tabStorage.set('stackapella.headphones', '1');
             if (never) local.set('stackapella.headphones.never', '1');

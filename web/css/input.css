@@ -9259,8 +9259,8 @@ a.s-spart-chip:hover { background: var(--color-raised); }
 :root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) :is(.s-step-k, .s-howsteps) .s-disc { display: block; justify-self: start; width: auto; height: auto; padding: 0; border-radius: 0; background: none; color: var(--ci); font-family: var(--a-hud); font-size: 10px; font-weight: 400; text-transform: uppercase; }
 :root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-steps .s-step { border: var(--arc-frame) solid var(--ci); }
 :root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-howsteps li { grid-template-columns: minmax(0, 1fr); gap: 10px; border-radius: var(--arc-radius); border: var(--arc-frame) solid var(--ci); box-shadow: var(--arc-shadow); }
-:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-tool-how li { grid-template-columns: minmax(0, 1fr); gap: 6px; padding: 14px 16px; border: var(--arc-edge-w) solid var(--arc-line); background: var(--arc-panel); }
-:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-tool-how li::before { content: none; }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-tool-how:has(.s-tool-how-n) li { grid-template-columns: minmax(0, 1fr); gap: 6px; padding: 14px 16px; border: var(--arc-edge-w) solid var(--arc-line); background: var(--arc-panel); }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-tool-how:has(.s-tool-how-n) li::before { content: none; }
 :root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-tool-how-n { font-family: var(--a-hud); font-size: 10px; text-transform: uppercase; color: var(--arc-yellow); }
 :root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-unit { border: var(--arc-frame) solid var(--neon, var(--arc-line)); }
 :root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-unit-n { font-family: var(--a-hud); font-weight: 400; font-size: 10px; letter-spacing: 0; color: color-mix(in srgb, var(--neon, var(--color-part-ink-2)) 85%, var(--color-cream)); }

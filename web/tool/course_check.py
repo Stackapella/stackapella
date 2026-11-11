@@ -18,7 +18,7 @@ FORMAT = json.loads((WEB / "course" / "format" / "steps.json").read_text())
 SONG_DIRS = [WEB / "templates", WEB.parent / "server" / "database" / "templates"]
 _experiments = WEB / "course" / "format" / "experiments.json"
 EXPERIMENTS = set(json.loads(_experiments.read_text())["experiments"]) if _experiments.exists() else set()
-STARS = re.compile(r"\bstars?\b", re.IGNORECASE)  # only game mode shows stars (docs/decisions.md)
+STARS = re.compile(r"\b(stars?|estrellas?|sterne?)\b", re.IGNORECASE)  # only game mode shows stars (docs/decisions.md), in any language
 KEBAB = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 # A fact told twice: two facts in different courses sharing two names or years ("Beethoven", "1824").
 NAME = re.compile(r"\b[A-Z][\w'’-]*(?:\s+(?:of\s+|de\s+|the\s+)?[A-Z][\w'’-]*)*")
@@ -50,7 +50,7 @@ def words(where, obj):
                 problem(where, f"'{key}' has an em dash")
             elif STARS.search(json.dumps(value, ensure_ascii=False)) and key in FORMAT["words"]:
                 problem(where, f"'{key}' says stars, which serious mode hides: say what it's scored on")
-            elif "Did you know" in json.dumps(value, ensure_ascii=False) and key in FORMAT["words"]:
+            elif re.search(r"Did you know|¿Sabías|Schon gewusst|Wusstest du", json.dumps(value, ensure_ascii=False)) and key in FORMAT["words"]:
                 problem(where, f"'{key}' has a fact: it belongs in the lesson's fact, the lesson end's card")
             if key not in FORMAT["words"]:
                 words(where, value)

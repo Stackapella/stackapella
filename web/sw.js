@@ -192,6 +192,7 @@ const SHELL = [
     '/js/glass.js',
     '/js/patch.js',
     '/js/notes.js',
+    '/js/note-names.js',
     '/js/livevoice.js',
     '/js/sync.js',
     '/js/trim.js',

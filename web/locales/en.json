@@ -3787,6 +3787,16 @@
         }
     },
     "settings": {
+        "language": {
+            "title": "Language",
+            "hint": "The app's words, and your emails. Songs keep their own words.",
+            "someEnglish": "Some screens are still in English while we translate them."
+        },
+        "noteNames": {
+            "title": "Note names",
+            "hint": "How notes are named everywhere: on the lanes, in lessons and in your results.",
+            "auto": "Your language's ({sample})"
+        },
         "title": "Settings",
         "loading": "Loading your account",
         "nameCredit": "This is also the name learners see on the guides you sang.",
@@ -4023,6 +4033,7 @@
         "start": "Start",
         "continue": "Continue",
         "preview": "Staff preview",
+        "inEnglish": "In English",
         "notHere": "That course isn't here.",
         "notTeacher": "No app replaces a voice teacher. If anything feels tight or hurts, stop and rest.",
         "restart": "Restart this course",
