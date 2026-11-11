@@ -14,13 +14,13 @@
         {{-- The first step shows the real app: the course map with a week under way (the guide's
              your-voice--map, light and dark, as the reader's theme), cropped to its top. --}}
         <article class="s-step s-v1">
-            <p class="s-step-k"><span class="s-disc" aria-hidden="true">1</span>{{ __('pages.landing.steps.learn.label') }}</p>
+            <p class="s-step-k"><span class="s-disc" aria-hidden="true"><x-site.skin :game="__('site.game.level', ['n' => 1])" serious="1" /></span>{{ __('pages.landing.steps.learn.label') }}</p>
             <h3>{{ __('pages.landing.steps.learn.title') }}</h3>
             <p>{{ __('pages.landing.steps.learn.body') }}</p>
             <div class="s-vis s-vis-shot"><x-site.appshot id="your-voice--map" :alt="__('pages.landing.steps.learn.screens.course')" /></div>
         </article>
         <article class="s-step s-v2">
-            <p class="s-step-k"><span class="s-disc" aria-hidden="true">2</span>{{ __('pages.landing.steps.voice.label') }}</p>
+            <p class="s-step-k"><span class="s-disc" aria-hidden="true"><x-site.skin :game="__('site.game.level', ['n' => 2])" serious="2" /></span>{{ __('pages.landing.steps.voice.label') }}</p>
             <h3>{{ __('pages.landing.steps.voice.title') }}</h3>
             <p>{{ __('pages.landing.steps.voice.body') }}</p>
             <div class="s-vis" aria-hidden="true">
@@ -32,7 +32,7 @@
             </div>
         </article>
         <article class="s-step s-v3">
-            <p class="s-step-k"><span class="s-disc" aria-hidden="true">3</span>{{ __('pages.landing.steps.record.label') }}</p>
+            <p class="s-step-k"><span class="s-disc" aria-hidden="true"><x-site.skin :game="__('site.game.level', ['n' => 3])" serious="3" /></span>{{ __('pages.landing.steps.record.label') }}</p>
             <h3>{{ __('pages.landing.steps.record.title') }}</h3>
             <p>{{ __('pages.landing.steps.record.body') }}</p>
             <div class="s-vis" aria-hidden="true">
@@ -43,7 +43,7 @@
             </div>
         </article>
         <article class="s-step s-v4">
-            <p class="s-step-k"><span class="s-disc" aria-hidden="true">4</span>{{ __('pages.landing.steps.share.label') }}</p>
+            <p class="s-step-k"><span class="s-disc" aria-hidden="true"><x-site.skin :game="__('site.game.level', ['n' => 4])" serious="4" /></span>{{ __('pages.landing.steps.share.label') }}</p>
             <h3>{{ __('pages.landing.steps.share.title') }}</h3>
             <p>{{ __('pages.landing.steps.share.body') }}</p>
             <div class="s-vis" aria-hidden="true">

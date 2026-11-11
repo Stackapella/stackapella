@@ -39,7 +39,7 @@
                 </div>
                 <ul class="s-cards s-coursecards">
                     @foreach ($group['courses'] as $slug)
-                        <li>
+                        <li class="s-neon{{ $loop->index % 3 + 1 }}">
                             <a href="/courses/{{ $slug }}" class="s-card">
                                 <b>{{ __('site.courses.pages.'.$slug.'.name') }}@if (\App\Support\Site\SitePages::courseOpen($slug)) <span class="s-soon s-open">{{ __('pages.site.course_open') }}</span>@endif</b>
                                 <span>{{ __('site.courses.pages.'.$slug.'.summary') }}</span>

@@ -93,7 +93,7 @@
                 </div>
                 <ol class="s-units">
                     @foreach ($outline['units'] as $unit)
-                        <li class="s-unit">
+                        <li class="s-unit s-neon{{ $loop->index % 3 + 1 }}">
                             @php($stage = __('pages.site.course_stage', ['n' => $loop->iteration]))
                             @php($unitName = __('pages.site.course_unit', ['n' => $loop->iteration]))
                             <p class="s-unit-n"><x-site.skin :game="$stage" :serious="$unitName" /></p>

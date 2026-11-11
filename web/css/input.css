@@ -9212,6 +9212,31 @@ a.s-spart-chip:hover { background: var(--color-raised); }
 :root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-xmas + .s-xfoot { background: #18123d; border-top: var(--arc-frame) solid #3b3270; }
 :root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-xband p.s-xband-k { margin: 0 0 16px; }
 :root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-xband h2 .s-xserif { font-family: inherit; font-style: normal; font-weight: inherit; }
+/* Hillel's 90s design everywhere (the coordinator, 2026-11-11: "build 1 to 6"). A page's own heading on the design's hard
+   two-step drop (the theme's red, then the cabinet's shadow) on the hubs, song and part pages and the songbooks (the season's
+   night hero keeps its own colours, above). The neon set: .s-neon1, 2 and 3 name red, green and yellow in turn for cards
+   in a row (the theme's neons, AA on its ground; green is its good ink); in serious they name nothing. A song's card (/songs,
+   a song's "more songs") is a STAGE tile: square, framed in its neon on the well, with a hard shadow. */
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) :is(.s-featurehead, .s-head, .s-pricehead, .s-xhero) h1 { text-shadow: .08em .08em 0 var(--arc-red), .16em .16em 0 var(--arc-shadow-c); }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-neon1 { --neon: var(--arc-red); }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-neon2 { --neon: var(--color-good); }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-neon3 { --neon: var(--arc-yellow); }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-song { border-radius: var(--arc-radius); border: 3px solid var(--neon, var(--arc-line)); background: var(--arc-well); box-shadow: 4px 4px 0 var(--arc-line); }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-song:hover { border-color: var(--color-cream); }
+/* Numbered steps as LEVEL cards (the landing's four, How it works' first lesson, a tool's how-to): the number's disc
+   becomes its "Level n" caption in pixel caps (game words through x-site.skin; serious keeps its disc), and the landing's and
+   How it works' steps take a neon frame in their part's colour. A course's units and the course cards are STAGE tiles in
+   the neon set, the unit's "Stage n" in its neon. */
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) :is(.s-step-k, .s-howsteps) .s-disc { display: block; justify-self: start; width: auto; height: auto; padding: 0; border-radius: 0; background: none; color: var(--ci); font-family: var(--a-hud); font-size: 10px; font-weight: 400; text-transform: uppercase; }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-steps .s-step { border: var(--arc-frame) solid var(--ci); }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-howsteps li { grid-template-columns: minmax(0, 1fr); gap: 10px; border-radius: var(--arc-radius); border: var(--arc-frame) solid var(--ci); box-shadow: var(--arc-shadow); }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-tool-how li { grid-template-columns: minmax(0, 1fr); gap: 6px; padding: 14px 16px; border: var(--arc-edge-w) solid var(--arc-line); background: var(--arc-panel); }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-tool-how li::before { content: none; }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-tool-how-n { font-family: var(--a-hud); font-size: 10px; text-transform: uppercase; color: var(--arc-yellow); }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-unit { border: var(--arc-frame) solid var(--neon, var(--arc-line)); }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-unit-n { font-family: var(--a-hud); font-weight: 400; font-size: 10px; letter-spacing: 0; color: color-mix(in srgb, var(--neon, var(--color-part-ink-2)) 85%, var(--color-cream)); }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-coursecards .s-card { border-radius: var(--arc-radius); border: 3px solid var(--neon, var(--arc-line)); background: var(--arc-well); box-shadow: 4px 4px 0 var(--arc-line); }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-coursecards .s-card:hover { border-color: var(--color-cream); }
 /* A song part's page in its redesign (marketing's .s-spart-*, 2026-11-10) on the arcade screen, in the 90s design's
    language (docs/design-rules.md): the SWITCH PART chips as 1P SELECT blocks (square, framed, the current one filled with
    a hard shadow), the player's panel framed like the stage card, the facts as HUD stat boxes with pixel labels, the

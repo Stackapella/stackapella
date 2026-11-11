@@ -36,7 +36,7 @@
             <h2 id="first-h" class="s-title">{{ __('site.how.first.title') }}</h2>
             <ol class="s-howsteps">
                 @foreach ((array) \Illuminate\Support\Facades\Lang::get('site.how.first.steps') as [$step, $body])
-                    <li class="s-v{{ $loop->iteration }}"><span class="s-disc" aria-hidden="true">{{ $loop->iteration }}</span><div><h3>{{ $step }}</h3><p>{{ $body }}</p></div></li>
+                    <li class="s-v{{ $loop->iteration }}"><span class="s-disc" aria-hidden="true"><x-site.skin :game="__('site.game.level', ['n' => $loop->iteration])" :serious="$loop->iteration" /></span><div><h3>{{ $step }}</h3><p>{{ $body }}</p></div></li>
                 @endforeach
             </ol>
         </section>

@@ -53,7 +53,7 @@
             <h2 class="s-kick">{{ $ix['how'] }}</h2>
             <ol class="s-tool-how">
                 @foreach ((array) $page['how'] as $line)
-                    <li>{{ $line }}</li>
+                    <li><span class="s-tool-how-n s-skin-g" aria-hidden="true">{{ __('site.game.level', ['n' => $loop->iteration]) }}</span>{{ $line }}</li>
                 @endforeach
             </ol>
             @if ($also !== [])

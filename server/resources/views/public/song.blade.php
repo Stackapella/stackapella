@@ -125,7 +125,7 @@
                 <h2 id="more-h" class="s-h2">{{ __('pages.song.more') }}</h2>
                 <ul class="s-songs s-more-songs">
                     @foreach ($more as $other)
-                        <li>
+                        <li class="s-neon{{ $loop->index % 3 + 1 }}">
                             <a href="/songs/{{ $other['slug'] }}" class="s-song">
                                 <span class="s-row">
                                     <x-site.song-glyph :ranges="$other['ranges']" />

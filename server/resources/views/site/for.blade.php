@@ -29,6 +29,10 @@
                     @elseif ($page['slug'] === 'coaches' && \App\Support\Site\SitePages::soon('coaching'))
                         <p class="s-soonpill"><x-site.soon /></p>
                     @endif
+                    @if ($page['slug'] === 'choir-directors')
+                        {{-- Game mode's kicker (Hillel's 90s design): a choir group is two players' co-op. --}}
+                        <p class="s-kick s-skin-g">{{ __('site.game.co_op_kick') }}</p>
+                    @endif
                     <h1 id="page-h">{{ $page['headline'] }}</h1>
                     <p class="s-lede">{{ $page['lead'] }}</p>
                     @if (in_array($page['slug'], ['choir-singers', 'choir-directors'], true))
@@ -43,7 +47,7 @@
                     <div class="s-actions s-actions-row">
                         @if ($try !== null && ($page['group_first'] ?? false) && is_string($page['group_start'] ?? null))
                             {{-- The group leads (directors: the learning tracks are asked for from the group's page), the page's own `try` beside it. --}}
-                            <a href="{{ \App\Support\Http\Hosts::app('/groups?start=1&ref='.$page['group_start']) }}" class="btn-primary btn-lg">{{ __('pages.site.group_start') }} <x-site.icon name="arrow" size="18" /></a>
+                            <a href="{{ \App\Support\Http\Hosts::app('/groups?start=1&ref='.$page['group_start']) }}" class="btn-primary btn-lg"><x-site.skin :game="__('site.game.co_op_start')" :serious="__('pages.site.group_start')" /> <x-site.icon name="arrow" size="18" /></a>
                             <a href="{{ $try[1] }}" class="btn-secondary btn-lg">{{ $try[0] }}</a>
                             @if (is_string($page['try_note'] ?? null))
                                 <p>{{ $page['try_note'] }}</p>
@@ -55,7 +59,7 @@
                             @endif
                             {{-- A director can start their choir's group from here (its `group_start` is the ref it's counted by). --}}
                             @if (is_string($page['group_start'] ?? null))
-                                <a href="{{ \App\Support\Http\Hosts::app('/groups?start=1&ref='.$page['group_start']) }}" class="btn-secondary btn-lg">{{ __('pages.site.group_start') }}</a>
+                                <a href="{{ \App\Support\Http\Hosts::app('/groups?start=1&ref='.$page['group_start']) }}" class="btn-secondary btn-lg"><x-site.skin :game="__('site.game.co_op_start')" :serious="__('pages.site.group_start')" /></a>
                             @endif
                         @else
                             <a href="{{ $links['start'] }}" class="btn-primary btn-lg">{{ __('pages.site.start') }} <x-site.icon name="arrow" size="18" /></a>
@@ -176,7 +180,7 @@
                 </div>
                 <ul class="s-cards s-coursecards">
                     @foreach ($fit as $slug)
-                        <li>
+                        <li class="s-neon{{ $loop->index % 3 + 1 }}">
                             <a href="/courses/{{ $slug }}" class="s-card">
                                 <b>{{ __('site.courses.pages.'.$slug.'.name') }}@if (\App\Support\Site\SitePages::courseOpen($slug)) <span class="s-soon s-open">{{ __('pages.site.course_open') }}</span>@endif</b>
                                 <span>{{ __('site.courses.pages.'.$slug.'.summary') }}</span>
@@ -221,12 +225,12 @@
                 <p>{{ $page['end']['body'] ?? __('pages.site.final_body') }}</p>
                 <p class="s-final-btns">
                     @if ($try !== null && ($page['group_first'] ?? false) && is_string($page['group_start'] ?? null))
-                        <a href="{{ \App\Support\Http\Hosts::app('/groups?start=1&ref='.$page['group_start']) }}" class="btn-primary btn-lg">{{ __('pages.site.group_start') }} <x-site.icon name="arrow" size="18" /></a>
+                        <a href="{{ \App\Support\Http\Hosts::app('/groups?start=1&ref='.$page['group_start']) }}" class="btn-primary btn-lg"><x-site.skin :game="__('site.game.co_op_start')" :serious="__('pages.site.group_start')" /> <x-site.icon name="arrow" size="18" /></a>
                         <a href="{{ $try[1] }}" class="btn-secondary btn-lg">{{ $try[0] }}</a>
                     @elseif ($try !== null)
                         <a href="{{ $try[1] }}" class="btn-primary btn-lg">{{ $try[0] }} <x-site.icon name="arrow" size="18" /></a>
                         @if (is_string($page['group_start'] ?? null))
-                            <a href="{{ \App\Support\Http\Hosts::app('/groups?start=1&ref='.$page['group_start']) }}" class="btn-secondary btn-lg">{{ __('pages.site.group_start') }}</a>
+                            <a href="{{ \App\Support\Http\Hosts::app('/groups?start=1&ref='.$page['group_start']) }}" class="btn-secondary btn-lg"><x-site.skin :game="__('site.game.co_op_start')" :serious="__('pages.site.group_start')" /></a>
                         @endif
                     @elseif ($page['end']['plus'] ?? false)
                         <a href="/pricing" class="btn-primary btn-lg">{{ __('pages.site.see_plus') }} <x-site.icon name="arrow" size="18" /></a>

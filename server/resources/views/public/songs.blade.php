@@ -48,7 +48,7 @@
                 </div>
                 <ul class="s-songs s-songs-2">
                     @foreach ($group['songs'] as $song)
-                        <li @if (($lines[$song['slug']] ?? null) !== null) data-player @endif>
+                        <li class="s-neon{{ $loop->index % 3 + 1 }}" @if (($lines[$song['slug']] ?? null) !== null) data-player @endif>
                             <a href="/songs/{{ $song['slug'] }}" class="s-song">
                                 <span class="s-row">
                                     <x-site.song-glyph :ranges="$song['ranges']" />

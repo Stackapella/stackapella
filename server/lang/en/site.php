@@ -1471,6 +1471,10 @@ return [
     // Game mode's words on every site page (Hillel's 90s arcade design, 2026-11-10): the footer's sign-off.
     'game' => [
         'insert_coin' => 'Insert coin to continue',
+        // A numbered step as a level (the landing's and How it works' steps, a tool's how-to), and a choir group as co-op.
+        'level' => 'Level :n',
+        'co_op_kick' => '2P co-op',
+        'co_op_start' => 'Start co-op',
     ],
 
     'carols' => [
