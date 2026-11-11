@@ -41,7 +41,7 @@ final class TracksRequestTest extends TestCase
         $this->assertSame(['tracks', 'ana@example.com', $director->id, 'We sing it at Easter.'], [$message->category, $message->email, $message->user_id, $message->body]);
         $this->assertStringNotContainsString('someone-else', (string) json_encode($message->context));
         $this->assertStringNotContainsString('base64', (string) json_encode($message->context));
-        $this->assertEquals(['groupId' => $group, 'group' => 'Thursday Singers', 'piece' => 'God So Loved the World', 'composer' => 'John Stainer', 'voicing' => 'SATB', 'rights' => 'public-domain', 'rightsConfirmedAt' => now()->utc()->toIso8601ZuluString()], $message->context['tracks'] ?? null);
+        $this->assertEquals(['groupId' => $group, 'group' => 'Thursday Singers', 'piece' => 'God So Loved the World', 'composer' => 'John Stainer', 'voicing' => 'SATB', 'rights' => 'public-domain', 'rightsConfirmedAt' => now()->utc()->toIso8601ZuluString(), 'rightsStatement' => __('support.tracks.rights.public-domain')], $message->context['tracks'] ?? null);
 
         // No note: the body says what it is.
         $this->postJson('/api/groups/'.$group.'/tracks', ['piece' => 'Our own Shenandoah', 'rights' => 'own-arrangement', 'rightsConfirmed' => true])->assertCreated();

@@ -1,0 +1,77 @@
+{
+    "$id": "groups.tracks.list.json",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                    "id",
+                    "piece",
+                    "status",
+                    "scores",
+                    "song",
+                    "createdAt",
+                    "deliveredAt"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "piece": {
+                        "type": "string"
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "received",
+                            "delivered",
+                            "closed"
+                        ]
+                    },
+                    "scores": {
+                        "type": "integer",
+                        "description": "How many score files came with it."
+                    },
+                    "song": {
+                        "type": [
+                            "object",
+                            "null"
+                        ],
+                        "additionalProperties": false,
+                        "required": [
+                            "id",
+                            "title"
+                        ],
+                        "properties": {
+                            "id": {
+                                "type": "string"
+                            },
+                            "title": {
+                                "type": "string"
+                            }
+                        },
+                        "description": "delivered: the song, shared into the group."
+                    },
+                    "createdAt": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "deliveredAt": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    }
+                }
+            }
+        }
+    }
+}

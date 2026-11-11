@@ -390,6 +390,15 @@ final class BuildExport implements ShouldQueue
                 ->map(static fn (stdClass $m): array => ['id' => Ids::encode((int) $m->id), ...array_diff_key((array) $m, ['id' => true])]),
             'support-replies' => DB::table('support_replies')->whereIn('support_message_id', DB::table('support_messages')->where('user_id', $id)->when($user->email !== null, fn ($q) => $q->orWhere('email', $user->email))->select('id'))->orderBy('id')->select(['support_message_id', 'body', 'created_at'])->lazy(500)
                 ->map(static fn (stdClass $r): array => ['message' => Ids::encode((int) $r->support_message_id), 'body' => $r->body, 'createdAt' => $r->created_at]),
+            // The score files sent with learning tracks requests, each a link like a recording.
+            'score-files-you-sent' => DB::table('track_scores')->where('user_id', $id)->where('status', 'ready')->orderBy('id')->select(['support_message_id', 'name', 'kind', 'bytes', 'file_key', 'created_at'])->lazy(500)->map(static fn (stdClass $score): array => [
+                'request' => $score->support_message_id !== null ? Ids::encode((int) $score->support_message_id) : null,
+                'name' => $score->name,
+                'kind' => $score->kind,
+                'bytes' => $score->bytes,
+                'sentAt' => $score->created_at,
+                'file' => $score->file_key !== null ? Storage::disk('private')->temporaryUrl((string) $score->file_key, $linksUntil) : null,
+            ]),
             'notices-and-appeals' => $lazy(DB::table('notices')->where('user_id', $id)->orderBy('id')->select(['kind', 'rule', 'note', 'automatic', 'appeal_text', 'appealed_at', 'decision', 'decision_note', 'decided_at', 'created_at'])),
             'reports-you-sent' => $lazy(DB::table('reports')->where('reporter_id', $id)->orderBy('id')->select(['reportable_type', 'reason', 'note', 'status', 'resolved_at', 'created_at'])),
             'coaching-problems-you-reported' => $lazy(DB::table('engagement_reports')->where('user_id', $id)->orderBy('id')->select(['text', 'resolved_at', 'created_at'])),

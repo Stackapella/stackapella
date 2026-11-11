@@ -8,6 +8,15 @@ return [
     // A director's learning tracks request, when they add no note of their own (the inbox's body).
     'tracks' => [
         'body' => 'Learning tracks, please: :piece.',
+        // The sentence the director confirms, kept word for word as the request's rights record (the
+        // app's form shows the same words).
+        'rights' => [
+            'public-domain' => 'I confirm this piece is in the public domain: everyone whose work it uses (composer, lyricist, arranger, translator) died more than 70 years ago, and the music was printed before 1931.',
+            'own-arrangement' => 'I confirm this is our choir\'s own arrangement: I or a member of the choir arranged it, and the choir may use it.',
+        ],
+        // Give this song's rights record, from the request.
+        'confirmed_by' => ':name <:email>, director of :group',
+        'source' => 'Send us your song, request :id (:date)',
     ],
     'saved' => [
         'silent_mic' => [

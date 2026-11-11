@@ -130,11 +130,25 @@ final class Reference
     }
 
     /**
-     * The index's table: each page's cells, its name first (linked by the view to `url`).
+     * The index's table: each page's cells, its name first (linked by the view to `url`); and for a page's family grid
+     * (Hillel's width design, 2026-11-11) its number (an interval's semitones, else its place in the family) and the line
+     * under its name (an interval's song going up, a chord in C, a voice type's range), none for a cell with nothing.
      *
-     * @return list<array{url: string, name: string, cells: list<string>}>
+     * @return list<array{url: string, name: string, cells: list<string>, n: string, line: string|null}>
      */
     public static function rows(string $family): array
+    {
+        $rows = self::cells($family);
+
+        return array_map(static fn (array $row, int $i): array => [...$row, 'n' => $row['n'] !== '' ? $row['n'] : (string) ($i + 1)], $rows, array_keys($rows));
+    }
+
+    /**
+     * The rows before their numbers.
+     *
+     * @return list<array{url: string, name: string, cells: list<string>, n: string, line: string|null}>
+     */
+    private static function cells(string $family): array
     {
         $none = '-';
         $parts = (array) Lang::get('site.reference.voices.card.part');
@@ -147,29 +161,10 @@ final class Reference
                 default => [(string) $page['range'], (string) ($parts[self::VOICE_TYPES[$slug][1]] ?? '')],
             };
 
-            return ['url' => (string) $page['url'], 'name' => (string) $page['name'], 'cells' => $cells];
+            $line = $family === 'voice-types' ? $cells[0] : $cells[1];
+
+            return ['url' => (string) $page['url'], 'name' => (string) $page['name'], 'cells' => $cells, 'n' => $family === 'intervals' ? $cells[0] : '', 'line' => $line !== $none ? $line : null];
         }, self::slugs($family));
-    }
-
-    /** A family this long shows only a page's neighbours as chips, so a phone isn't seven rows of them before the card. */
-    private const ALL_CHIPS = 6;
-
-    /**
-     * A page's chips beside its heading (Hillel's part page redesign, 2026-11-10): the pages to switch to, all of a short
-     * family or this one and its neighbours, this one current. Its facts are the card's own ruled row and the eyebrow, so
-     * the top doesn't repeat them.
-     *
-     * @return array{chips: list<array{url: string, name: string, current: bool}>}
-     */
-    public static function top(string $family, string $slug): array
-    {
-        $rows = self::rows($family);
-        $at = (int) array_search('/'.$family.'/'.$slug, array_column($rows, 'url'), true);
-        $near = count($rows) <= self::ALL_CHIPS ? $rows : array_slice($rows, max(0, $at - 1), $at === 0 ? 2 : 3);
-
-        return [
-            'chips' => array_values(array_map(static fn (array $row): array => ['url' => $row['url'], 'name' => $row['name'], 'current' => $row['url'] === '/'.$family.'/'.$slug], $near)),
-        ];
     }
 
     /**

@@ -252,6 +252,8 @@ return [
     'push_endpoint' => 'The endpoint must be a push service\'s address.',
     'score_id' => 'That score was already sent with other numbers.',
     'take_id' => 'That take was already sent with other numbers.',
+    'track_scores' => 'One of the score\'s files isn\'t ready, isn\'t this group\'s, or is already in a request.',
+    'track_request' => 'That learning tracks request isn\'t this account\'s, or its song was already given.',
     'take_size' => 'The size doesn\'t match a 16-bit mono WAV of that many frames.',
     'harmony_id' => 'That share was already sent with other numbers.',
     'mudeo_csv' => 'The file needs a header row with an email column.',

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Actions\Support;
 
+use App\Actions\Groups\TrackRequests;
+use App\Actions\Groups\TrackScores;
 use App\Exceptions\Refusal;
 use App\Http\Resources\Admin\AccountAdminResource;
 use App\Mail\Support\SupportAnswer;
@@ -90,16 +92,25 @@ final class SupportInbox
     }
 
     /**
-     * A tracks request's own fields, as groups.tracks.create kept them.
+     * A tracks request's own fields, as groups.tracks.create kept them, with where it's got to, the score's files
+     * (with 10-minute download links in full) and the rights record Give this song takes (TrackRequests).
      *
-     * @return array{groupId: string|null, group: string|null, piece: string, composer: string|null, voicing: string|null, rights: string|null, rightsConfirmedAt: string|null}
+     * @return array<string, mixed>
      */
-    private static function tracks(SupportMessage $message): array
+    private static function tracks(SupportMessage $message, bool $full): array
     {
         $tracks = (array) ($message->context['tracks'] ?? []);
         $text = static fn (string $key): ?string => is_string($tracks[$key] ?? null) ? $tracks[$key] : null;
 
-        return ['groupId' => $text('groupId'), 'group' => $text('group'), 'piece' => $text('piece') ?? '', 'composer' => $text('composer'), 'voicing' => $text('voicing'), 'rights' => $text('rights'), 'rightsConfirmedAt' => $text('rightsConfirmedAt')];
+        return [
+            'groupId' => $text('groupId'), 'group' => $text('group'), 'piece' => $text('piece') ?? '', 'composer' => $text('composer'), 'voicing' => $text('voicing'),
+            'rights' => $text('rights'), 'rightsConfirmedAt' => $text('rightsConfirmedAt'), 'rightsStatement' => $text('rightsStatement'),
+            'status' => TrackRequests::status($message),
+            'scores' => TrackScores::forMessage($message, links: $full),
+            'song' => TrackRequests::song($message),
+            'deliveredAt' => $text('deliveredAt'),
+            'give' => TrackRequests::give($message),
+        ];
     }
 
     /**
@@ -118,7 +129,7 @@ final class SupportInbox
             'answeredAt' => $message->answered_at?->utc()->toIso8601ZuluString(),
             // A director's learning tracks request: the group, the piece and their word on its rights, so Admin can
             // give the song straight from the row (admin.people.songs.create to from.account).
-            ...($message->category === SupportMessage::TRACKS ? ['tracks' => self::tracks($message)] : []),
+            ...($message->category === SupportMessage::TRACKS ? ['tracks' => self::tracks($message, $full)] : []),
             ...($full ? [
                 'body' => $message->body,
                 'context' => $message->context,

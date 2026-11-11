@@ -284,6 +284,9 @@ Route::middleware('auth')->group(function (): void {
     Route::post('/groups/{group}/songs', [GroupsController::class, 'addSong'])->name('groups.songs.create');
     Route::delete('/groups/{group}/songs/{template}', [GroupsController::class, 'removeSong'])->name('groups.songs.delete');
     Route::post('/groups/{group}/tracks', [GroupsController::class, 'requestTracks'])->middleware('throttle:support')->name('groups.tracks.create');
+    Route::get('/groups/{group}/tracks', [GroupsController::class, 'tracks'])->name('groups.tracks.list');
+    Route::post('/groups/{group}/tracks/scores', [GroupsController::class, 'startScore'])->middleware('throttle:track-scores')->name('groups.tracks.scores.create');
+    Route::post('/groups/{group}/tracks/scores/{score}/complete', [GroupsController::class, 'completeScore'])->name('groups.tracks.scores.complete');
     Route::put('/groups/{group}/songs/{template}/assignments', [GroupsController::class, 'assign'])->name('groups.assignments.update');
     Route::post('/choir/{token}', [GroupsController::class, 'join'])->middleware(['age', 'throttle:invite-links'])->name('groups.join');
 });

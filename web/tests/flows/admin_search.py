@@ -32,8 +32,9 @@ def journey(f):
     # Not connected: the empty state, no numbers.
     f.run("""const mock = await import('/js/api-mock.js'); const { api } = await import('/js/api.js');
         api.admin.search.show = async () => ({ data: { connected: false, syncedAt: null, from: null, to: null, error: null, totals: { clicks: 0, impressions: 0, ctr: 0 }, pages: [], queries: [], toImprove: [], sitemaps: [], rules: { minImpressions: 50, lowCtr: 0.02, nearTop: [8, 20] } } });""")
-    f.run("document.querySelector('a[href=\"/admin/revenue\"]').click()")
-    f.wait("document.querySelector('[data-revenue]')", what="another tab")
+    # Away to another Marketing page and back (Search sits in Marketing since Hillel's menu by job, 2026-11-10).
+    f.run("document.querySelector('[data-nav-sections] a[href=\"/admin/outreach\"]').click()")
+    f.wait("document.querySelector('[data-outreach-summary]')", what="another tab")
     f.run("document.querySelector('a[href=\"/admin/search\"]').click()")
     f.wait("document.querySelector('[data-search-off]')", what="Not connected yet")
     assert t(f, "admin.search.offTitle") in f.js("document.querySelector('[data-search-off]').textContent")

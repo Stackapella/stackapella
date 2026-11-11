@@ -327,6 +327,9 @@ Each operation is one function in `web/js/api.js` named after it, and one route 
 | `groups.members.delete` | `DELETE /api/groups/{id}/members/{memberId}` | The director, or the member themselves | M7 |
 | `groups.songs.create` | `POST /api/groups/{id}/songs` | The director | M7 |
 | `groups.tracks.create` | `POST /api/groups/{id}/tracks` | The director | L |
+| `groups.tracks.list` | `GET /api/groups/{id}/tracks` | The director | L |
+| `groups.tracks.scores.create` | `POST /api/groups/{id}/tracks/scores` | The director | L |
+| `groups.tracks.scores.complete` | `POST /api/groups/{id}/tracks/scores/{scoreId}/complete` | The director | L |
 | `groups.songs.delete` | `DELETE /api/groups/{id}/songs/{templateId}` | The director | M7 |
 | `groups.assignments.update` | `PUT /api/groups/{id}/songs/{templateId}/assignments` | The director | M7 |
 | `coach.application.show` | `GET /api/coach/application` | Anyone signed in | M8 |
@@ -3470,16 +3473,19 @@ it is.
 
 #### `groups.tracks.create`
 
-Ask us for learning tracks of one piece the choir is rehearsing (docs/choir-tracks-plan.md, stage 1).
-It waits in the support inbox as a `tracks` message from the director's account (no other address is
-asked for), and the answer comes by email asking for the score: no score is sent or kept here.
+"Send us your song": ask us for learning tracks of one piece the choir is rehearsing
+(docs/choir-tracks-plan.md, stage 1, free). It waits in the support inbox as a `tracks` message from the
+director's account (no other address is asked for), with the score files sent first by
+`groups.tracks.scores.*`. With no score, the answer comes by email asking for it.
 **Request:** `{ "piece": "God So Loved the World", "composer": "John Stainer", "voicing": "SATB",
 "rights": "public-domain", "rightsConfirmed": true, "note": "We sing it at Easter." }`. `piece` is
 needed (up to 200); `composer` (200), `voicing` (60) and `note` (2000) are optional. `rights` is
 `public-domain` (everyone whose work is used died over 70 years ago and it was printed before 1931)
 or `own-arrangement` (the director or a member arranged it, and the choir may use it), and
-`rightsConfirmed` must be `true`: the director's written word, kept with the request. Limited
-(`support`, 5 an hour).
+`rightsConfirmed` must be `true`: the director's written word, kept with the request as the exact
+sentence they confirmed (the rights record Give this song keeps). `scoreIds` (optional, up to 10): the
+score's files, each sent and completed by `groups.tracks.scores.*` for this group and not yet in a
+request (else `422`, on `scoreIds`). Limited (`support`, 5 an hour).
 
 | Status | Code | Schema | Example |
 |---|---|---|---|
@@ -3488,6 +3494,52 @@ or `own-arrangement` (the director or a member arranged it, and the choir may us
 | 404 | `not_found` | `error.json` | `groups.tracks.create.not_found.json` |
 | 422 | `validation_failed` | `error.json` | `groups.tracks.create.validation_failed.json` |
 | 429 | `rate_limited` | `error.json` | `groups.tracks.create.rate_limited.json` |
+
+#### `groups.tracks.list`
+
+The director's requests for this group, newest first, each with where it's got to: `received` (with
+us), `delivered` (its `song` is in the group: the group page says it's ready), or `closed` (answered by
+email and closed without a song). **Request:** none.
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 200 |  | `groups.tracks.list.json` | `groups.tracks.list.200.json` |
+| 403 | `director_only` | `error.json` | `groups.tracks.list.director_only.json` |
+| 404 | `not_found` | `error.json` | `groups.tracks.list.not_found.json` |
+
+#### `groups.tracks.scores.create`
+
+Start sending one file of the score, as `takes.create`: a presigned PUT to the private bucket.
+**Request:** `{ "name": "God So Loved the World.pdf", "contentType": "application/pdf", "bytes":
+1843200, "sha256": "..." }`. `contentType` says what it is: `application/pdf`, MusicXML
+(`application/vnd.recordare.musicxml+xml`, or `application/vnd.recordare.musicxml` for a compressed
+`.mxl`), or a photo of a page (`image/jpeg`, `image/png`, `image/heic`); the upload must be sent with it.
+At most 25 MB a file (`bytes`), counted in the day's upload cap (`429 rate_limited`, as takes); `name`
+(1 to 200) is only shown to staff. A file not in a request within a day is deleted.
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 201 |  | `groups.tracks.scores.create.json` | `groups.tracks.scores.create.201.json` |
+| 403 | `director_only` | `error.json` | `groups.tracks.scores.create.director_only.json` |
+| 404 | `not_found` | `error.json` | `groups.tracks.scores.create.not_found.json` |
+| 422 | `validation_failed` | `error.json` | `groups.tracks.scores.create.validation_failed.json` |
+| 429 | `rate_limited` | `error.json` | `groups.tracks.scores.create.rate_limited.json` |
+
+#### `groups.tracks.scores.complete`
+
+As `takes.complete`: the file is checked at its size and SHA-256, then by its first bytes against its
+`contentType` (a PDF starts `%PDF`, MusicXML is a `score-partwise` or `score-timewise` document or a
+`.mxl` zip, a photo is a JPEG, PNG or HEIC). A file that isn't what it says is deleted (`422
+score_type`). Completing a ready file again answers the same. **Request:** none.
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 200 |  | `groups.tracks.scores.show.json` | `groups.tracks.scores.complete.200.json` |
+| 403 | `director_only` | `error.json` | `groups.tracks.scores.complete.director_only.json` |
+| 404 | `not_found` | `error.json` | `groups.tracks.scores.complete.not_found.json` |
+| 409 | `upload_incomplete` | `error.json` | `groups.tracks.scores.complete.upload_incomplete.json` |
+| 409 | `upload_mismatch` | `error.json` | `groups.tracks.scores.complete.upload_mismatch.json` |
+| 422 | `score_type` | `error.json` | `groups.tracks.scores.complete.score_type.json` |
 
 #### `groups.songs.delete`
 
@@ -4606,9 +4658,13 @@ months.
 
 **Request:** `?status=open` (the default), `answered`, `closed` or `all`; `?category=` (one of
 `support.create`'s, or `tracks`: directors' learning tracks requests); `?cursor=`. A `tracks` message
-has `tracks`: `{groupId, group, piece, composer, voicing, rights, rightsConfirmedAt}`, so Admin can
-give the song from the row (`admin.people.songs.create` to `from.account`); `admin.support.show` has it
-too, and the saved reply `tracks_score` asks for the score.
+has `tracks`: `{groupId, group, piece, composer, voicing, rights, rightsConfirmedAt, rightsStatement,
+status, scores, song, deliveredAt, give}`, so Admin can give the song from the row
+(`admin.people.songs.create` to `from.account`, with `trackRequest` set to the message's `id` and
+`give.rights` as the rights record). `scores` lists the score's files (`id`, `name`, `kind`, `bytes`,
+and `url`, a 10-minute download link, only in `admin.support.show`); `status` is `received`, `delivered`
+(`song` and `deliveredAt` say what and when) or `closed`. `admin.support.show` has it too, and the
+saved reply `tracks_score` asks for the score when none was sent.
 
 | Status | Code | Schema | Example |
 |---|---|---|---|
@@ -4691,6 +4747,11 @@ groups, never public or in the library, reportable, taken down on a notice), whe
 `sheet_import` is on; the owner shares it with their group from the group page. **Request:** `{ "song":
 { template JSON, as templates.save takes }, "rights": { "confirmedBy": "who, and their role", "confirmedAt":
 "when they confirmed", "wording": "the words they confirmed", "source": "where it is: their email and its date" } }`.
+`trackRequest` (optional): a director's learning tracks request (a `tracks` support message from this
+account, not yet delivered). Giving it delivers the request: the song is shared into the request's
+group (while this account still directs it), the request says `delivered` with the song (the
+director's `groups.tracks.list`, so the group page says it's ready; no email), and the message is
+closed. A request that isn't this account's, or is already delivered, is a `422` on `trackRequest`.
 Refused for an owner who hasn't confirmed their email (`email_unverified`) or a repeat infringer
 (`import_blocked`); a bad template is a `422`. In sudo. Audited.
 

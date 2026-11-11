@@ -10,6 +10,7 @@ use App\Actions\Books\ForgetBuyer;
 use App\Actions\Choirs\Choirs;
 use App\Actions\Coaching\Engagements;
 use App\Actions\EventSchedule\Connections;
+use App\Actions\Groups\TrackScores;
 use App\Actions\Ideas\Ideas;
 use App\Actions\Ideas\IdeaVoices;
 use App\Actions\Projects\Owned;
@@ -111,6 +112,8 @@ final class DeleteAccount
             ->concat(ReviewMedia::query()->whereIn('review_item_id', $reviewIds)->orWhere('user_id', $user->id)->get(['file_key', 'upload_key'])->flatMap(fn (ReviewMedia $media): array => array_values(array_filter([$media->file_key, $media->upload_key]))))
             ->values()->all();
         ReviewMedia::query()->whereIn('review_item_id', $reviewIds)->delete();
+        // The score files they sent with learning tracks requests (the rows go by the foreign key).
+        $scores = TrackScores::keysOf($user);
         ReviewItem::query()->whereKey($reviewIds)->delete();
 
         // Plus stops billing with the account (backend plan D8): cancelled now, and Cashier's rows go.
@@ -226,7 +229,7 @@ final class DeleteAccount
         Storage::disk('private')->delete($exports);
 
         // 100 a job: the bucket deletes one key per request, and a job has 60 seconds.
-        foreach (array_chunk([...$recordings, ...$coaching], 100) as $keys) {
+        foreach (array_chunk([...$recordings, ...$coaching, ...$scores], 100) as $keys) {
             DeletePrivateFiles::dispatch($keys);
         }
     }

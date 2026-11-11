@@ -1,0 +1,17 @@
+{
+    "data": {
+        "id": "Sc0rE1",
+        "name": "God So Loved the World.pdf",
+        "kind": "pdf",
+        "bytes": 1843200,
+        "status": "uploading"
+    },
+    "upload": {
+        "url": "https://stackapella-private.nyc3.digitaloceanspaces.com/uploads/scores/s1.pdf?X-Amz-Signature=abc",
+        "method": "PUT",
+        "headers": {
+            "Content-Type": "application/pdf"
+        },
+        "expiresAt": "2026-11-11T09:30:00Z"
+    }
+}

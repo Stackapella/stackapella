@@ -29,6 +29,8 @@ final class GiveSongRequest extends FormRequest
             'rights.confirmedAt' => ['required', 'date', 'before_or_equal:now'],
             'rights.wording' => ['required', 'string', 'max:2000'],
             'rights.source' => ['required', 'string', 'max:500'],
+            // A director's learning tracks request this delivers (TrackRequests::deliver).
+            'trackRequest' => ['nullable', 'string', 'max:40'],
         ];
     }
 }

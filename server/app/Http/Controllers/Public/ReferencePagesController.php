@@ -79,8 +79,6 @@ final class ReferencePagesController extends Controller
             // A voice type's page lists song parts that sit inside its range, each with its own page.
             'songs' => $kind === 'voice-types' && SongParts::open() ? $parts->within(Reference::VOICE_TYPES[$slug][2], Reference::VOICE_TYPES[$slug][3], Reference::VOICE_PARTS[$slug]) : [],
             'others' => array_values(array_filter(Reference::rows($kind), static fn (array $row): bool => $row['url'] !== $page['url'])),
-            // The top's facts and chips (Hillel's part page redesign, 2026-11-10; Reference::top).
-            ...Reference::top($kind, $slug),
             'directory' => SitePages::directory(null, Reference::related($kind)),
             'links' => Landing::links(Landing::ref($request->query('ref'))),
             'try' => self::tryUrl($kind),

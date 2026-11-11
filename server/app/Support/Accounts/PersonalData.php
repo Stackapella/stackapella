@@ -154,6 +154,7 @@ final class PersonalData
         'sync_tombstones.user_id' => [null, 'Sync bookkeeping: what was deleted, so other devices delete it too.'],
         'takes.recorded_by' => ['sung-on-shared-projects.json', null],
         'takes.user_id' => ['projects.json', null],
+        'track_scores.user_id' => ['records/score-files-you-sent.json', null],
         'teacher_links.singer_id' => ['records/teacher-links.json', null],
         'teacher_links.teacher_id' => ['records/teacher-links.json', null],
         'template_guides.credit_user_id' => [null, 'The credit on a published guide; their recordings are in beta-singer.json and my-templates.json.'],

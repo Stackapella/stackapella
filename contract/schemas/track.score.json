@@ -1,0 +1,40 @@
+{
+    "$id": "track.score.json",
+    "title": "One file of a score sent with a learning tracks request",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "id",
+        "name",
+        "kind",
+        "bytes",
+        "status"
+    ],
+    "properties": {
+        "id": {
+            "type": "string"
+        },
+        "name": {
+            "type": "string"
+        },
+        "kind": {
+            "type": "string",
+            "enum": [
+                "pdf",
+                "musicxml",
+                "mxl",
+                "photo"
+            ]
+        },
+        "bytes": {
+            "type": "integer"
+        },
+        "status": {
+            "type": "string",
+            "enum": [
+                "uploading",
+                "ready"
+            ]
+        }
+    }
+}

@@ -86,7 +86,7 @@ def journey(f):
     f.wait_text(t(f, "admin.review.noneWaiting"))
 
     # Singers: invite, the link shown once.
-    f.click_t("admin.nav.group.people")
+    f.click_t("admin.nav.group.library")
     f.click_t("admin.nav.singers")
     f.wait_text("Sarah Kim")
     f.wait("!document.querySelector('main .btn-primary').disabled", what="the songs for invites")
@@ -115,7 +115,7 @@ def journey(f):
     f.wait("!location.search.includes('singer=')", what="everyone again")
 
     # Real voices: the default switched, and each version's pitch score.
-    f.click_t("admin.nav.group.content")
+    f.click_t("admin.nav.group.library")  # Library opens on Real voices
     count = t(f, "admin.needs.navCount", {"count": 1})
     f.wait(f"[...document.querySelectorAll('[aria-label]')].some((e) => e.getAttribute('aria-label') === {json.dumps(count)})", what="the nav counting the part that needs a voice")
     f.click_t("admin.nav.guides")
@@ -135,7 +135,7 @@ def journey(f):
     assert f.js("(globalThis.mockCalls ?? []).filter((o) => o === 'admin.beta.assignments.again').length") == 2, "asked again twice: in one tap, then with a note"
 
     # Feedback: marked read.
-    f.click_t("admin.nav.group.today")
+    f.click_t("admin.nav.group.inbox")
     f.click_t("admin.nav.feedback")
     f.wait_text("feels low for the alto")
     f.click_t("admin.feedback.markRead")

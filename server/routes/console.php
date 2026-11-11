@@ -193,6 +193,14 @@ Schedule::command('app:sharing:prune')
     ->withoutOverlapping(30)
     ->runInBackground();
 
+// Score files sent for a learning tracks request that never came, a day on.
+Schedule::command('app:track-scores:prune')
+    ->onOneServer()
+    ->name('track-scores-prune')
+    ->hourlyAt(47)
+    ->withoutOverlapping(30)
+    ->runInBackground();
+
 Schedule::command('app:coaching:deadlines')
     ->onOneServer()
     ->name('coaching-deadlines')

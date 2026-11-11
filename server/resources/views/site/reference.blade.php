@@ -19,64 +19,52 @@
 @section('content')
     @include('site.tools._brand-row', ['onTool' => true, 'toolName' => (string) $index['eyebrow'], 'toolSlug' => null, 'ref' => $kind, 'trail' => [[(string) $index['eyebrow'], '/'.$kind], [(string) $page['name']]]])
     <main>
-        {{-- The top, two columns from 900 px (Hillel's part page redesign, 2026-11-10: "it makes better use of space"): the
-             eyebrow, heading and lead at left; at right the pages to switch to as chips, this one filled (Reference::top).
-             Then frontend's card, the full width, as the page's one panel (its facts in its own ruled row). --}}
-        <section class="s-wrap s-head s-spart s-ref-top" aria-labelledby="page-h">
-            <div class="s-spart-hero">
-                <div>
-                    <p class="s-teyebrow">{{ $page['eyebrow'] }}</p>
-                    <h1 id="page-h">{{ $page['headline'] }}</h1>
-                    <p class="s-lead">{{ $page['lead'] }}</p>
-                </div>
-                <div class="s-spart-side">
-                    <h2 id="switch-h" class="s-kick s-spart-switch">{{ $index['switch'] }}</h2>
-                    <ul class="s-spart-chips" aria-labelledby="switch-h">
-                        @foreach ($chips as $chip)
-                            <li>
-                                @if ($chip['current'])
-                                    <span class="s-spart-chip" aria-current="page"><b>{{ $chip['name'] }}</b></span>
-                                @else
-                                    <a href="{{ $chip['url'] }}" class="s-spart-chip"><b>{{ $chip['name'] }}</b></a>
-                                @endif
-                            </li>
-                        @endforeach
-                    </ul>
-                </div>
+        {{-- The top (Hillel's width design, 2026-11-11: "apply these changes to all pages which will benefit"): the eyebrow and
+             heading at left, the lead large at right from 900 px. Then two columns: frontend's card at left with its facts
+             under it, and beside it the guide and the lessons to go on with, so nothing sits under the card with the right
+             side empty. A phone stacks it all in the same order. --}}
+        <section class="s-wrap s-thead s-ref-head" aria-labelledby="page-h">
+            <div>
+                <p class="s-teyebrow">{{ $page['eyebrow'] }}</p>
+                <h1 id="page-h">{{ $page['headline'] }}</h1>
             </div>
+            <p class="s-ref-lead">{{ $page['lead'] }}</p>
+        </section>
 
-            <div class="s-ref-panel">
+        <div class="s-wrap s-ref-body">
+            <section class="s-ref-cardcol" aria-label="{{ $page['name'] }}">
                 {{-- Its card's room, held until page.js has mounted it (data-state), so the guide below doesn't jump: each family's
-                     shortest card, measured on a phone and a desktop (tests/flows/site_reference.py checks it never overshoots).
-                     From 1024 px the panel gives the card 900 px or more and it lays out across (frontend's 9f275fba8, measured):
-                     352 for an interval, 416 for a chord until its header fits one row from about 1000 px of card (xl), 416 for a
-                     voice type with its find link. --}}
-                @php($room = ['intervals' => '[&:not([data-state])]:min-h-[580px] md:[&:not([data-state])]:min-h-[484px] lg:[&:not([data-state])]:min-h-[352px]', 'chords' => '[&:not([data-state])]:min-h-[648px] md:[&:not([data-state])]:min-h-[550px] lg:[&:not([data-state])]:min-h-[416px] xl:[&:not([data-state])]:min-h-[352px]', 'voice-types' => '[&:not([data-state])]:min-h-[596px] md:[&:not([data-state])]:min-h-[524px] lg:[&:not([data-state])]:min-h-[416px]'][$kind] ?? '')
+                     shortest card at that width, measured on every page (the octave, the augmented chord, the alto), a little
+                     under so it never overshoots (tests/flows/site_reference.py checks): a phone's, then from 768 px, where the
+                     card is 590 to 700 px wide in its column or alone. --}}
+                @php($room = ['intervals' => '[&:not([data-state])]:min-h-[540px] md:[&:not([data-state])]:min-h-[495px]', 'chords' => '[&:not([data-state])]:min-h-[590px] md:[&:not([data-state])]:min-h-[560px]', 'voice-types' => '[&:not([data-state])]:min-h-[560px] md:[&:not([data-state])]:min-h-[535px]'][$kind] ?? '')
                 <div class="s-ref {{ $room }}" data-tool="ref-{{ $kind }}" data-src="{{ $module }}" data-mount="{{ $mount }}">
                     <script type="application/json" data-tool-words>@json($card)</script>
                     <script type="application/json" data-tool-data>@json($data)</script>
                 </div>
                 <p class="s-tool-say" role="status" data-tool-say hidden></p>
-            </div>
-        </section>
-
-        @foreach ((array) ($page['guide'] ?? []) as $section)
-            <section class="s-wrap s-sec2 s-tool-guide" aria-labelledby="guide-{{ $loop->iteration }}">
-                <h2 id="guide-{{ $loop->iteration }}">{{ $section['heading'] }}</h2>
-                @foreach ((array) $section['body'] as $paragraph)
-                    <p>{{ $paragraph }}</p>
-                @endforeach
-                @if (! empty($section['table']))
-                    <div class="s-tool-table"><table>
-                        <thead><tr>@foreach ((array) $section['table']['head'] as $cell)<th scope="col">{{ $cell }}</th>@endforeach</tr></thead>
-                        <tbody>@foreach ((array) $section['table']['rows'] as $row)<tr>@foreach ((array) $row as $cell)@if ($loop->first)<th scope="row">{{ $cell }}</th>@else<td>{{ $cell }}</td>@endif @endforeach</tr>@endforeach</tbody>
-                    </table></div>
-                @endif
             </section>
-        @endforeach
 
-        {{-- Its lessons to go on with (marketing's map), at the end of the teaching, before the onward links. --}}
-        @include('site.courses._lessons-across', ['path' => '/'.request()->path()])
+            <div class="s-ref-prose">
+                @foreach ((array) ($page['guide'] ?? []) as $section)
+                    <section class="s-tool-guide" aria-labelledby="guide-{{ $loop->iteration }}">
+                        <h2 id="guide-{{ $loop->iteration }}">{{ $section['heading'] }}</h2>
+                        @foreach ((array) $section['body'] as $paragraph)
+                            <p>{{ $paragraph }}</p>
+                        @endforeach
+                        @if (! empty($section['table']))
+                            <div class="s-tool-table"><table>
+                                <thead><tr>@foreach ((array) $section['table']['head'] as $cell)<th scope="col">{{ $cell }}</th>@endforeach</tr></thead>
+                                <tbody>@foreach ((array) $section['table']['rows'] as $row)<tr>@foreach ((array) $row as $cell)@if ($loop->first)<th scope="row">{{ $cell }}</th>@else<td>{{ $cell }}</td>@endif @endforeach</tr>@endforeach</tbody>
+                            </table></div>
+                        @endif
+                    </section>
+                @endforeach
+
+                {{-- Its lessons to go on with (marketing's map), at the end of the teaching, one card a row. --}}
+                @include('site.courses._lessons-across', ['path' => '/'.request()->path(), 'nested' => true, 'stacked' => true])
+            </div>
+        </div>
 
         {{-- A voice type's song parts that sit inside its range, each with its own page. --}}
         @if ($songs !== [])
@@ -96,16 +84,17 @@
             </section>
         @endif
 
-        {{-- The family's other pages, one tap from each, unless the chips above already show them all. --}}
-        @if ($others !== [] && count($chips) <= count($others))
+        {{-- The family's other pages, one tap from each: four across from 1024 px, each with its number (an interval's
+             semitones, else its place) and the line under its name (Reference::rows). --}}
+        @if ($others !== [])
             <section class="s-wrap s-sec2" aria-labelledby="others-h">
                 <h2 id="others-h" class="s-kick">{{ $index['others'] }}</h2>
-                <ul class="s-cards s-tool-cards">
+                <ul class="s-ref-family s-tool-cards">
                     @foreach ($others as $other)
                         <li>
-                            <a href="{{ $other['url'] }}" class="s-card">
-                                <b>{{ $other['name'] }}</b>
-                                <span>{{ implode(' · ', array_slice($other['cells'], 0, 2)) }}</span>
+                            <a href="{{ $other['url'] }}" class="s-card s-ref-fam">
+                                <span class="s-ref-fam-n" aria-hidden="true">{{ $other['n'] }}</span>
+                                <span><b>{{ $other['name'] }}</b>@if ($other['line'] !== null)<span translate="no">{{ $other['line'] }}</span>@endif</span>
                             </a>
                         </li>
                     @endforeach

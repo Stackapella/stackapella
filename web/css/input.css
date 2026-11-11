@@ -2251,10 +2251,35 @@ a.s-spart-chip:hover { background: var(--color-raised); }
     .s-spart-about { grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: 40px; }
     .s-spart-about-ruled { padding-top: 72px; }
 }
-/* A reference page's card is its own framed panel (js/public/reference-cards.js), so it sits under the top with no second
-   frame round it. */
-.s-ref-panel { margin-top: 32px; }
-.s-ref-top .s-spart-chip { min-height: 48px; align-content: center; }
+/* A reference page (site/reference.blade.php; Hillel's width design, 2026-11-11: "apply these changes to all pages which
+   will benefit"): the eyebrow and heading at left and the lead large at right from 900 px; then the card (its own frame,
+   js/public/reference-cards.js) at left with the guide and the lessons to go on with beside it, 55/45, so nothing sits
+   under the card with the right side empty; the family four across from 1024 px, each numbered. A phone stacks it all. */
+.s-ref-head { display: grid; gap: 14px; padding-top: 40px; }
+.s-ref-head h1 { font-size: clamp(36px, 9vw, 56px); line-height: 1.04; letter-spacing: -0.025em; }
+.s-ref-lead { font-size: clamp(18px, 4.6vw, 22px); line-height: 1.45; color: color-mix(in srgb, var(--color-cream) 82%, var(--color-ink)); max-width: 46ch; }
+.s-ref-body { display: grid; gap: 36px; margin-top: 28px; }
+.s-ref-prose > .s-tool-guide + .s-tool-guide { margin-top: 36px; }
+.s-ref-prose .s-tool-guide h2 { font-size: 22px; }
+.s-across-stack { display: grid; gap: 12px; }
+.s-across-stack .s-card { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "name go" "line go"; align-items: center; gap: 4px 16px; padding: 16px 18px; }
+.s-across-stack .s-card b { grid-area: name; font-size: 16px; }
+.s-across-stack .s-card span { grid-area: line; font-size: 14px; }
+.s-across-stack .s-card svg { grid-area: go; color: var(--color-muted); }
+.s-ref-family { display: grid; gap: 12px; margin-top: 14px; }
+.s-ref-fam { display: grid; grid-template-columns: 24px minmax(0, 1fr); align-items: start; gap: 12px; padding: 18px; }
+.s-ref-fam .s-ref-fam-n { font-size: 14px; line-height: 1.6; color: var(--color-muted); font-variant-numeric: tabular-nums; }
+.s-ref-fam b { display: block; font-size: 16px; }
+.s-ref-fam b + span { display: block; margin-top: 4px; font-size: 14px; }
+@media (min-width: 640px) { .s-ref-family { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (min-width: 900px) {
+    .s-ref-head { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 56px; align-items: start; }
+    .s-ref-lead { padding-top: 2px; }
+    .s-ref-body { grid-template-columns: minmax(0, 11fr) minmax(0, 9fr); gap: 32px 44px; align-items: start; }
+    /* A long guide outgrows the card: the card stays in view, usable, as the guide beside it scrolls. */
+    .s-ref-cardcol { position: sticky; top: 24px; }
+}
+@media (min-width: 1024px) { .s-ref-family { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
 /* The part player's room, held until its script mounts it (js/public/part-player.js fills the box): Play, the time and
    the ways to play over the lane, then the status line, measured mounted: 388 px on a phone (the ways on their own line),
    392 px from 640 px (one row over the lane's sm:h-72) and 488 px from 1024 px (lg:h-96), so nothing below jumps. */

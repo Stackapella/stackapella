@@ -36,7 +36,7 @@ def journey(f):
         f.click_t(tab)
         f.wait("document.querySelector('table') || document.querySelector('main .card.text-center')", what=tab)
     f.shot("events")
-    f.click_t("admin.nav.group.system")
+    f.click_t("admin.nav.group.settings")
     f.click_t("admin.nav.audit")
     f.wait("document.querySelector('table') && document.querySelector('table').textContent.includes('Integration check: off')", what="the change in the audit log")
     f.shot("audit")

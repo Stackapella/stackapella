@@ -136,6 +136,9 @@ export const OPERATIONS = {
     'groups.members.delete': ['DELETE', '/api/groups/{id}/members/{memberId}'],
     'groups.songs.create': ['POST', '/api/groups/{id}/songs'],
     'groups.tracks.create': ['POST', '/api/groups/{id}/tracks'],
+    'groups.tracks.list': ['GET', '/api/groups/{id}/tracks'],
+    'groups.tracks.scores.create': ['POST', '/api/groups/{id}/tracks/scores'],
+    'groups.tracks.scores.complete': ['POST', '/api/groups/{id}/tracks/scores/{scoreId}/complete'],
     'groups.songs.delete': ['DELETE', '/api/groups/{id}/songs/{templateId}'],
     'groups.assignments.update': ['PUT', '/api/groups/{id}/songs/{templateId}/assignments'],
     'beta.submissions.create': ['POST', '/api/beta/submissions'],
@@ -1010,6 +1013,11 @@ export const api = {
         },
         tracks: {
             create: (id, fields) => call('groups.tracks.create', { params: { id }, body: fields }),
+            list: (id) => call('groups.tracks.list', { params: { id } }),
+            scores: {
+                create: (id, fields) => call('groups.tracks.scores.create', { params: { id }, body: fields }),
+                complete: (id, scoreId) => call('groups.tracks.scores.complete', { params: { id, scoreId } }),
+            },
         },
         assignments: {
             update: (id, templateId, assignments) => call('groups.assignments.update', { params: { id, templateId }, body: assignments }),

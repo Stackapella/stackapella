@@ -38,10 +38,10 @@ def journey(f):
     f.go("/admin?api=mock&scenario=", "document.querySelector('main')")
     f.wait("document.querySelector('[data-admin-needs]') && document.querySelector('[data-admin-needs]').innerText.trim().length > 30", what="What needs you now")
     assert not f.js(f"!!{ITEM} || !!{SITEMAP}"), "a clean sync and a clean sitemap say nothing"
-    f.wait("document.querySelector('[data-nav-sections]')", what="Today's pages")
+    f.wait("document.querySelector('[data-nav-sections]')", what="the Inbox's pages")
     assert not f.js(f"!!{HOME_COUNT}"), "and counts nothing on Home"
-    # Today's count once the overview is in (the review queue and feedback, from the contract's example).
-    f.wait("document.querySelector('[data-nav-groups] a[href=\"/admin\"] [data-group-count]')", what="Today's count")
+    # The Inbox's count once the overview is in (the review queue and feedback, from the contract's example).
+    f.wait("document.querySelector('[data-nav-groups] a[href=\"/admin\"] [data-group-count]')", what="the Inbox's count")
     clean = f.js(GROUP_COUNT)
 
     # Two songs didn't sync: one item, counted on Home, its lines on expand.
@@ -63,7 +63,7 @@ def journey(f):
     f.run(f"{SITEMAP}.querySelector('summary').click()")
     assert f.js(f"[...{SITEMAP}.querySelectorAll('[data-need-line]')].map((l) => l.textContent.trim())") == PAGES
     assert f.js(f"{HOME_COUNT}.textContent.trim()") == "9", f.js(f"{HOME_COUNT}.textContent")
-    assert f.js(GROUP_COUNT) == clean + 9, f"and in Today's count: {f.js(GROUP_COUNT)} against {clean} before"
+    assert f.js(GROUP_COUNT) == clean + 9, f"and in the Inbox's count: {f.js(GROUP_COUNT)} against {clean} before"
     f.no_sideways("What needs you now")
     f.run(f"{ITEM}.scrollIntoView({{ block: 'center' }})")
     f.shot("not-synced")

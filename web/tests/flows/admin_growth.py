@@ -140,11 +140,14 @@ def journey(f):
     f.shot("reach-12-weeks")
     assert f.js("!!document.querySelector('[data-growth-updated] button')"), "Refresh over days too"
 
-    # One header bar; the Growth pages as underline tabs, Overview first, Sources kept, Campaigns last.
+    # One header bar; the Numbers pages as underline tabs, Overview first (Hillel's menu by job, 2026-11-10).
     pages = json.loads(f.js("JSON.stringify([...document.querySelectorAll('[data-nav-sections] a')].map((a) => a.getAttribute('href')))"))
-    assert pages == ["/admin/growth", "/admin/revenue", "/admin/cohorts", "/admin/activity", "/admin/search", "/admin/funnel", "/admin/outreach", "/admin/experiments", "/admin/sources", "/admin/usage", "/admin/mudeo"], pages
+    assert pages == ["/admin/growth", "/admin/usage", "/admin/activity", "/admin/funnel", "/admin/sources", "/admin/cohorts", "/admin/experiments", "/admin/revenue"], pages
     assert f.js("document.querySelector('[data-nav-sections] [aria-current=page]').getAttribute('href')") == "/admin/growth"
-    assert f.js("document.querySelectorAll('header [data-nav-groups] a').length") == 5, "every group in the bar"
+    groups = f.js("[...document.querySelectorAll('header [data-nav-groups] a')].map((a) => a.textContent.trim().replace(/\\d+$/, '').trim())")
+    assert groups == [t(f, f"admin.nav.group.{k}") for k in ("inbox", "users", "library", "marketing", "numbers", "settings")], groups
+    # A phone scrolls the groups in their row; none is cut off once scrolled to, and the page never scrolls sideways.
+    f.no_sideways("the six groups")
     # The account: its initials, opening its name and Sign out.
     f.run("const summary = document.querySelector('[data-admin-account]'); summary.focus(); summary.click();")
     f.wait(f"document.querySelector('[data-admin-account]').parentElement.open && document.querySelector('[data-admin-account]').parentElement.innerText.includes({json.dumps(t(f, 'admin.signOut'))})", what="the account's Sign out")

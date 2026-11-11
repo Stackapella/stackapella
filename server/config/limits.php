@@ -153,6 +153,11 @@ return [
         'account' => ['max' => 5, 'per' => 'hour', 'by' => 'account'],
     ],
 
+    // The score's files sent with a learning tracks request (a photo a page, up to 10 a request).
+    'track-scores' => [
+        'account' => ['max' => 40, 'per' => 'hour', 'by' => 'account'],
+    ],
+
     // A new photo is decoded, stored and purged from the CDN each time.
     'avatar' => [
         'account' => ['max' => 20, 'per' => 'hour', 'by' => 'account'],

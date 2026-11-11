@@ -61,10 +61,11 @@ const Frame = {
     components: { AppScreen },
     props: { title: { type: String, required: true }, back: { type: String, default: '/' }, titleIsContent: Boolean },
     template: `
-        <AppScreen :title="title" :back="back" :title-is-content="titleIsContent" measure="max-w-3xl" data-ui="groups">
+        <!-- The site's full row (Hillel's width design, 2026-11-11: "apply these changes to all pages which will benefit"):
+             the groups as cards across, a group's songs beside its singers. A phone stacks the same order. -->
+        <AppScreen :title="title" :back="back" :title-is-content="titleIsContent" measure="" data-ui="groups">
             <template #aside><slot name="aside" /></template>
-            <!-- A short page (a few groups) sits in the middle of a desktop's height under the bar; a long one runs from the top. -->
-            <div class="md:my-auto md:pb-16"><slot /></div>
+            <slot />
         </AppScreen>`,
 };
 
@@ -94,9 +95,9 @@ export const GroupsView = {
             </EmptyState>
             <div v-else class="space-y-3">
             <GameOnly><p class="ge-kick" data-groups-kick>{{ t('game.groups.kick') }}</p></GameOnly>
-            <ul class="space-y-3">
-                <li v-for="g in groups" :key="g.id">
-                    <a :href="'/groups/' + g.id" class="card-interactive flex items-center gap-4 p-4" data-group-card @click.prevent="navigate('/groups/' + g.id)">
+            <ul class="grid gap-3 min-[640px]:grid-cols-2">
+                <li v-for="g in groups" :key="g.id" class="min-w-0">
+                    <a :href="'/groups/' + g.id" class="card-interactive flex h-full items-center gap-4 p-4" data-group-card @click.prevent="navigate('/groups/' + g.id)">
                         <span class="bubble grid size-11 shrink-0 place-items-center text-lg font-extrabold" style="--bubble: var(--color-part-6); --bubble-ink: var(--color-part-text-6)" aria-hidden="true" data-avatar>{{ g.name.slice(0, 1) }}</span>
                         <span class="min-w-0 flex-1">
                             <span class="block truncate font-bold text-cream" translate="no">{{ g.name }}</span>
@@ -184,9 +185,9 @@ export const GroupView = {
         <Frame :title="group?.name ?? t('groups.title')" back="/groups" title-is-content>
             <p v-if="failed" class="card p-6 text-cream" role="alert">{{ failed }}</p>
             <p v-else-if="!group" class="text-muted" role="status">{{ t('create.loading') }}</p>
-            <div v-else class="space-y-8">
+            <div v-else class="space-y-8 min-[900px]:grid min-[900px]:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] min-[900px]:items-start min-[900px]:gap-x-8 min-[900px]:gap-y-8 min-[900px]:space-y-0">
                 <!-- Invite singers sits by the count, not in the header, so a group's name keeps the width (a long one ran under it in the game skin). -->
-                <div class="-mt-2 flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
+                <div class="-mt-2 flex flex-wrap items-center justify-between gap-x-3 gap-y-2 min-[900px]:col-span-2">
                     <p class="text-muted">{{ director ? t('groups.youDirectCount', { count: singers.length }) : t('groups.directedBy', { name: group.director.name }) + ' · ' + t('groups.memberCount', { count: group.memberCount }) }}</p>
                     <p v-if="noPartYet" class="basis-full text-cream" data-no-part-yet>{{ t('groups.noPartYet', { name: group.director.name }) }}</p>
                     <button v-if="director" type="button" class="btn-sm" :class="group.songs.length ? 'btn-primary' : 'btn-secondary'" :aria-expanded="inviting ? 'true' : 'false'" aria-controls="group-link" data-invite @click="invite">{{ t('groups.invite') }}</button>
@@ -195,7 +196,7 @@ export const GroupView = {
                 </div>
 
                 <!-- Invite singers: the group's link, to send however you like. -->
-                <section v-if="director && inviting" id="group-link" class="card space-y-3 p-5" :aria-label="t('groups.linkTitle')">
+                <section v-if="director && inviting" id="group-link" class="card space-y-3 p-5 min-[900px]:col-span-2" :aria-label="t('groups.linkTitle')">
                     <p class="text-cream">{{ t('groups.linkHint') }}</p>
                     <div v-if="shownLink" class="flex flex-wrap items-center gap-2">
                         <input class="input min-w-0 flex-1 basis-56" :value="shownLink" readonly :aria-label="t('groups.linkTitle')" translate="no" @focus="$event.target.select()" />
@@ -209,6 +210,8 @@ export const GroupView = {
                     </div>
                 </section>
 
+                <!-- At left: the songs (what the group learns), and the director's tracks line under them. -->
+                <div class="space-y-8">
                 <section class="space-y-3" aria-labelledby="group-songs">
                     <div class="flex items-center justify-between gap-3">
                         <h2 id="group-songs" class="text-xl font-extrabold tracking-tight text-cream">{{ t('groups.songsTitle') }}</h2>
@@ -263,6 +266,10 @@ export const GroupView = {
                 </section>
                 <!-- Learning tracks of the choir's own piece (docs/choir-tracks-plan.md, stage 1): one quiet line, the director's only. -->
                 <p v-if="director" class="-mt-4 text-sm text-muted" data-ask-tracks>{{ t('groups.tracks.ask') }} <button type="button" class="link inline-flex min-h-6 items-center" @click="openTracks">{{ t('groups.tracks.askLink') }}</button></p>
+                </div>
+
+                <!-- At right: who's in it, and the group's own settings. -->
+                <div class="space-y-8">
 
                 <section class="space-y-3" aria-labelledby="group-singers">
                     <h2 id="group-singers" class="text-xl font-extrabold tracking-tight text-cream">{{ t('groups.membersTitle') }}</h2>
@@ -295,6 +302,7 @@ export const GroupView = {
                         </div>
                     </div>
                 </section>
+                </div>
             </div>
 
             <Modal v-if="renaming" :title="t('groups.rename')" @close="renaming = false">

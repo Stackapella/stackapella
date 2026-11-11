@@ -1,6 +1,51 @@
 {
     "data": [
         {
+            "id": "Tr4kQ3",
+            "category": "tracks",
+            "status": "open",
+            "from": {
+                "email": "ana@example.com",
+                "account": {
+                    "id": "jR4kLmNo",
+                    "name": "Ana Ruiz"
+                }
+            },
+            "preview": "Learning tracks, please: O God, Our Help in Ages Past.",
+            "createdAt": "2026-11-11T09:00:00Z",
+            "answeredAt": null,
+            "tracks": {
+                "groupId": "Gr0uP1",
+                "group": "Thursday Singers",
+                "piece": "O God, Our Help in Ages Past",
+                "composer": "William Croft",
+                "voicing": "SATB",
+                "rights": "public-domain",
+                "rightsConfirmedAt": "2026-11-11T09:00:00Z",
+                "rightsStatement": "I confirm this piece is in the public domain: everyone whose work it uses (composer, lyricist, arranger, translator) died more than 70 years ago, and this edition was printed before 1931.",
+                "status": "received",
+                "scores": [
+                    {
+                        "id": "Sc0rE1",
+                        "name": "St Anne.pdf",
+                        "kind": "pdf",
+                        "bytes": 1843200,
+                        "url": null
+                    }
+                ],
+                "song": null,
+                "deliveredAt": null,
+                "give": {
+                    "rights": {
+                        "confirmedBy": "Ana Ruiz <ana@example.com>, director of Thursday Singers",
+                        "confirmedAt": "2026-11-11T09:00:00Z",
+                        "wording": "I confirm this piece is in the public domain: everyone whose work it uses (composer, lyricist, arranger, translator) died more than 70 years ago, and this edition was printed before 1931.",
+                        "source": "Send us your song, request Tr4kQ3 (2026-11-11)"
+                    }
+                }
+            }
+        },
+        {
             "id": "Sm4kP1",
             "category": "recording",
             "status": "open",

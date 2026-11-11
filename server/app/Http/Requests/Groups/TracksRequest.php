@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Requests\Groups;
 
 use App\Actions\Groups\RequestTracks;
+use App\Actions\Groups\TrackScores;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -31,6 +32,8 @@ final class TracksRequest extends FormRequest
             'rights' => ['required', Rule::in(RequestTracks::RIGHTS)],
             'rightsConfirmed' => ['accepted'],
             'note' => ['nullable', 'string', 'max:2000'],
+            'scoreIds' => ['nullable', 'array', 'max:'.TrackScores::MAX_FILES],
+            'scoreIds.*' => ['string', 'max:40', 'distinct'],
         ];
     }
 }

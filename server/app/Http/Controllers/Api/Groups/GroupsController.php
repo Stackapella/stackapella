@@ -6,19 +6,24 @@ namespace App\Http\Controllers\Api\Groups;
 
 use App\Actions\Groups\ManageGroups;
 use App\Actions\Groups\RequestTracks;
+use App\Actions\Groups\TrackRequests;
+use App\Actions\Groups\TrackScores;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Groups\AssignPartsRequest;
 use App\Http\Requests\Groups\GroupNameRequest;
+use App\Http\Requests\Groups\TrackScoreRequest;
 use App\Http\Requests\Groups\TracksRequest;
 use App\Http\Requests\Groups\UpdateGroupRequest;
 use App\Models\Group;
 use App\Models\GroupMember;
+use App\Models\TrackScore;
 use App\Models\User;
 use App\Support\Groups\GroupView;
 use Illuminate\Container\Attributes\CurrentUser;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Carbon;
 
 /**
  * groups.*: choir groups (contract/api.md, "Choir groups").
@@ -118,11 +123,47 @@ final class GroupsController extends Controller
      */
     public function requestTracks(TracksRequest $request, string $group, RequestTracks $tracks, #[CurrentUser] User $user): JsonResponse
     {
-        /** @var array{piece: string, composer?: string|null, voicing?: string|null, rights: string, note?: string|null} $data */
+        /** @var array{piece: string, composer?: string|null, voicing?: string|null, rights: string, note?: string|null, scoreIds?: list<string>|null} $data */
         $data = $request->safe()->except('rightsConfirmed');
         $message = $tracks->handle($user, $group, $data, (string) $request->ip());
 
         return response()->json(['data' => ['id' => $message->sqid(), 'receivedAt' => $message->created_at?->utc()->toIso8601ZuluString()]], 201);
+    }
+
+    /**
+     * groups.tracks.list: the director's learning tracks requests for this group, and where each has got to.
+     */
+    public function tracks(string $group, TrackRequests $tracks, #[CurrentUser] User $user): JsonResponse
+    {
+        return response()->json(['data' => $tracks->forGroup($user, $group)]);
+    }
+
+    /**
+     * groups.tracks.scores.create: start sending one file of the score (a presigned PUT, as takes).
+     */
+    public function startScore(TrackScoreRequest $request, string $group, TrackScores $scores, #[CurrentUser] User $user): JsonResponse
+    {
+        /** @var array{name: string, contentType: string, bytes: int, sha256: string} $data */
+        $data = $request->validated();
+        $started = $scores->start($user, $group, $data);
+
+        return response()->json(['data' => self::score($started['score']), 'upload' => [...$started['upload'], 'expiresAt' => Carbon::instance($started['upload']['expiresAt'])->utc()->toIso8601ZuluString()]], 201);
+    }
+
+    /**
+     * groups.tracks.scores.complete: the file is checked (size, SHA-256, and that it is what it says).
+     */
+    public function completeScore(string $group, string $score, TrackScores $scores, #[CurrentUser] User $user): JsonResponse
+    {
+        return response()->json(['data' => self::score($scores->complete($user, $group, $score))]);
+    }
+
+    /**
+     * @return array{id: string, name: string, kind: string, bytes: int, status: string}
+     */
+    private static function score(TrackScore $score): array
+    {
+        return ['id' => $score->sqid(), 'name' => $score->name, 'kind' => $score->kind, 'bytes' => $score->bytes, 'status' => $score->status];
     }
 
     public function removeSong(string $group, string $template, #[CurrentUser] User $user): Response

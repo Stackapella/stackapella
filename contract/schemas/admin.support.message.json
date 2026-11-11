@@ -217,7 +217,13 @@
                         "composer",
                         "voicing",
                         "rights",
-                        "rightsConfirmedAt"
+                        "rightsConfirmedAt",
+                        "rightsStatement",
+                        "status",
+                        "scores",
+                        "song",
+                        "deliveredAt",
+                        "give"
                     ],
                     "properties": {
                         "groupId": {
@@ -264,6 +270,127 @@
                                 "null"
                             ],
                             "format": "date-time"
+                        },
+                        "rightsStatement": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "description": "The exact sentence the director confirmed (null on requests from before it was kept)."
+                        },
+                        "status": {
+                            "type": "string",
+                            "enum": [
+                                "received",
+                                "delivered",
+                                "closed"
+                            ]
+                        },
+                        "scores": {
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "additionalProperties": false,
+                                "required": [
+                                    "id",
+                                    "name",
+                                    "kind",
+                                    "bytes",
+                                    "url"
+                                ],
+                                "properties": {
+                                    "id": {
+                                        "type": "string"
+                                    },
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "kind": {
+                                        "type": "string",
+                                        "enum": [
+                                            "pdf",
+                                            "musicxml",
+                                            "mxl",
+                                            "photo"
+                                        ]
+                                    },
+                                    "bytes": {
+                                        "type": "integer"
+                                    },
+                                    "url": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ],
+                                        "format": "uri",
+                                        "description": "A 10-minute download link, in admin.support.show only."
+                                    }
+                                }
+                            }
+                        },
+                        "song": {
+                            "type": [
+                                "object",
+                                "null"
+                            ],
+                            "additionalProperties": false,
+                            "required": [
+                                "id",
+                                "title"
+                            ],
+                            "properties": {
+                                "id": {
+                                    "type": "string"
+                                },
+                                "title": {
+                                    "type": "string"
+                                }
+                            }
+                        },
+                        "deliveredAt": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "format": "date-time"
+                        },
+                        "give": {
+                            "type": [
+                                "object",
+                                "null"
+                            ],
+                            "additionalProperties": false,
+                            "required": [
+                                "rights"
+                            ],
+                            "description": "What admin.people.songs.create takes as the rights record, from the request (null when its rights weren't kept).",
+                            "properties": {
+                                "rights": {
+                                    "type": "object",
+                                    "additionalProperties": false,
+                                    "required": [
+                                        "confirmedBy",
+                                        "confirmedAt",
+                                        "wording",
+                                        "source"
+                                    ],
+                                    "properties": {
+                                        "confirmedBy": {
+                                            "type": "string"
+                                        },
+                                        "confirmedAt": {
+                                            "type": "string",
+                                            "format": "date-time"
+                                        },
+                                        "wording": {
+                                            "type": "string"
+                                        },
+                                        "source": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
                         }
                     }
                 }

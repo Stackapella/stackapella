@@ -1,0 +1,9 @@
+{
+    "message": "Unprocessable Content.",
+    "code": "validation_failed",
+    "errors": {
+        "bytes": [
+            "The bytes field must not be greater than 26214400."
+        ]
+    }
+}

@@ -4705,8 +4705,6 @@ return [
         'intervals' => [
             'index' => [
                 'eyebrow' => 'Intervals',
-                // The page's top, beside its heading (Hillel's part page redesign, 2026-11-10): its neighbours to switch to.
-                'switch' => 'Switch interval',
                 'others' => 'More intervals',
                 'related' => ['Ready to know them by ear? Try interval ear training', 'interval-ear-training'],
                 'title' => 'Music Intervals: Hear Each One, With Songs',
@@ -4758,7 +4756,6 @@ return [
                 'equalLabel' => 'On a piano',
                 'equalCents' => ':cents cents',
                 'pureLabel' => 'Pure, :ratio',
-                'pureCents' => ':cents cents, :how',
                 'pureNarrower' => ':diff narrower',
                 'pureWider' => ':diff wider',
                 'pureSame' => 'the same',
@@ -5131,8 +5128,6 @@ return [
         'chords' => [
             'index' => [
                 'eyebrow' => 'Chords',
-                // The page's top, beside its heading (Hillel's part page redesign, 2026-11-10): its neighbours to switch to.
-                'switch' => 'Switch chord',
                 'others' => 'More chord types',
                 'related' => ['Ready to tell them apart by ear? Try chord ear training', 'chord-ear-training'],
                 'title' => 'Chord Types: Notes, Formulas and Pure Tuning',
@@ -5181,7 +5176,6 @@ return [
                 'higher' => 'Raise the root',
                 'chord' => ':root:name',
                 'tones' => [0 => 'Root', 2 => 'Second', 3 => 'Minor third', 4 => 'Major third', 5 => 'Fourth', 6 => 'Diminished fifth', 7 => 'Fifth', 8 => 'Augmented fifth', 9 => 'Sixth', 10 => 'Minor seventh', 11 => 'Major seventh'],
-                'toneCents' => ':note, :how',
                 'pureSame' => 'no change when pure',
                 'pureNarrower' => ':diff cents lower when pure',
                 'pureWider' => ':diff cents higher when pure',
@@ -5739,8 +5733,6 @@ return [
         'voices' => [
             'index' => [
                 'eyebrow' => 'Voice types',
-                // The page's top, beside its heading (Hillel's part page redesign, 2026-11-10): its neighbours to switch to.
-                'switch' => 'Switch voice type',
                 'others' => 'The other voice types',
                 'related' => ['Which one are you? Try the vocal range test', 'vocal-range-test'],
                 // A voice type's page lists song parts that sit inside its range (App\Support\Pages\SongParts::within).

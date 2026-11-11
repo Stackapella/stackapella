@@ -26,6 +26,9 @@ def journey(f):
     f.wait("document.querySelectorAll('[role=tab]').length === 4", what="the tabs")
     f.wait_text(f.js(f"{I18N}.t('admin.flag.shield_mode')"))
     f.shot("switches")
+    # Safety keeps the emergency controls only; the features (Gallery in the example) are on Switches.
+    flags = f.js("[...document.querySelectorAll('[data-flags=emergency] [data-flag]')].map((li) => li.dataset.flag).join()")
+    assert flags == "shield_mode,pause_signups,pause_uploads,read_only", flags
     # Turn shield mode on, with a reason.
     f.js("[...document.querySelectorAll('li.card')].find((li) => li.textContent.includes('Shield')).querySelectorAll('[aria-pressed]')[1].click()")
     f.wait("document.querySelector('[role=dialog] textarea')", what="the reason")
@@ -53,8 +56,14 @@ def journey(f):
     f.click_t("admin.safety.tab.events")
     f.wait("document.querySelector('table')", what="the events")
     f.shot("events")
-    f.click_t("admin.nav.group.system")
-    f.click_t("admin.nav.group.system")  # the System group opens on the audit log
+    # Settings opens on Switches (Hillel, 2026-11-10): the feature switches, none of Safety's emergency controls.
+    f.click_t("admin.nav.group.settings")
+    f.wait("document.querySelector('[data-switches] [data-flags=features] [data-flag]')", what="the feature switches")
+    flags = f.js("[...document.querySelectorAll('[data-switches] [data-flag]')].map((li) => li.dataset.flag).join()")
+    assert flags == "gallery", flags
+    assert f.js("location.pathname") == "/admin/switches"
+    f.shot("feature-switches")
+    f.click_t("admin.nav.audit")
     f.wait("document.querySelector('table, [data-audit-cards]')", what="the audit log")
     f.shot("audit")
     # A change outside sudo goes to the second factor, and back here after.
@@ -67,7 +76,7 @@ def journey(f):
     f.go("/admin/audit?api=mock&scenario=unauthenticated", "location.pathname === '/admin/sign-in'")
     assert "intended=%2Fadmin%2Faudit" in f.js("location.search"), f.js("location.search")
     # Every admin screen in the pseudo-language: every word through t().
-    for path in ("/admin", "/admin/safety?tab=switches", "/admin/safety?tab=limits", "/admin/safety?tab=blocklist", "/admin/safety?tab=events", "/admin/audit"):
+    for path in ("/admin", "/admin/switches", "/admin/safety?tab=switches", "/admin/safety?tab=limits", "/admin/safety?tab=blocklist", "/admin/safety?tab=events", "/admin/audit"):
         f.go(f"{path}{'&' if '?' in path else '?'}lang=pseudo&scenario=", "document.querySelector('main h1') && !document.querySelector('[role=status]')")
         left = f.js(UNTRANSLATED)
         assert not left, f"{path}: not translated: {left}"

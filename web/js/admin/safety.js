@@ -1,9 +1,11 @@
-// The trust and safety screen (docs/trust-and-safety-plan.md, "Admin controls"): the switches for an
-// attack, the limits with live overrides, the blocklist, and what happened (security events).
+// The safety screen (docs/trust-and-safety-plan.md, "Admin controls"): the emergency switches for an attack, the limits
+// with live overrides, the blocklist, and what happened (security events). The feature switches (what ships dark, and the
+// automatic jobs) are a page of their own under Settings (SwitchesSection; Hillel, 2026-11-10: "why are switches under
+// people?"), from the same list of flags.
 // Every change asks for a reason, which the audit log keeps. Changes need a recent second-factor
 // check ("in sudo"): the screen says so before, and sends the person to confirm when the server asks.
 
-import { api } from '../api.js';
+import { api, ApiError } from '../api.js';
 import { t, tk } from '../i18n.js';
 import { EmptyState, Field, StatusChip } from '../components/form.js';
 import { Icon } from '../components/icon.js';
@@ -78,6 +80,10 @@ const FLAG_HINTS = {
     compare_pages: tk('admin.flagHint.compare_pages'),
     open_source: tk('admin.flagHint.open_source'),
 };
+// Safety's own: the emergency controls, each a pause or a lockdown. Every other flag, a new one included, is a feature
+// switch and shows on Switches.
+export const EMERGENCY = ['shield_mode', 'pause_signups', 'pause_sharing', 'pause_videos', 'pause_uploads', 'pause_checkout', 'pause_comments', 'pause_follows', 'pause_requests', 'pause_messages', 'read_only'];
+const FLAGS_INTRO = { emergency: tk('admin.switches.intro'), features: tk('admin.switches.featuresIntro') };
 const BLOCK_HELP = { email: tk('admin.blockHelp.email'), email_domain: tk('admin.blockHelp.email_domain'), ip: tk('admin.blockHelp.ip'), ip_range: tk('admin.blockHelp.ip_range'), card_fingerprint: tk('admin.blockHelp.card_fingerprint') };
 const FLAG_VALUES = { off: tk('admin.flagValue.off'), on: tk('admin.flagValue.on'), password: tk('admin.flagValue.password'), all: tk('admin.flagValue.all') };
 const BLOCK_TYPES = { email: tk('admin.blockType.email'), email_domain: tk('admin.blockType.email_domain'), ip: tk('admin.blockType.ip'), ip_range: tk('admin.blockType.ip_range'), card_fingerprint: tk('admin.blockType.card_fingerprint') };
@@ -98,19 +104,20 @@ const TABS = [
     { name: 'events', label: tk('admin.safety.tab.events') },
 ];
 
-const SwitchesTab = {
+/** The flags, either Safety's emergency controls or the feature switches: each with its hint, its last change and why. */
+const FlagsList = {
     components: { ChangeSheet, StatusChip, EmptyState, LoadFailed },
-    props: { me: { type: Object, required: true } },
+    props: { me: { type: Object, required: true }, which: { type: String, required: true } },
     data: () => ({ flags: null, failed: false, change: null, busy: false, errors: null }),
-    setup: () => ({ FLAGS, FLAG_HINTS, FLAG_VALUES, when }),
+    setup: () => ({ FLAGS, FLAG_HINTS, FLAG_VALUES, FLAGS_INTRO, when }),
     template: `
         <div>
-            <p class="mb-4 max-w-prose text-sm text-muted">{{ t('admin.switches.intro') }}</p>
+            <p class="mb-4 max-w-prose text-sm text-muted">{{ t(FLAGS_INTRO[which]) }}</p>
             <LoadFailed v-if="failed" :message="failed" @retry="load" />
             <p v-else-if="!flags" class="text-muted" role="status">{{ t('admin.loading') }}</p>
-            <EmptyState v-else-if="!flags.length" icon="shield" :title="t('admin.switches.none')" />
-            <ul v-else class="grid gap-4 md:grid-cols-2">
-                <li v-for="flag in flags" :key="flag.name" class="card p-5">
+            <EmptyState v-else-if="!shown.length" icon="shield" :title="t('admin.switches.none')" />
+            <ul v-else class="grid gap-4 md:grid-cols-2" :data-flags="which">
+                <li v-for="flag in shown" :key="flag.name" class="card p-5" :data-flag="flag.name">
                     <div class="flex items-start justify-between gap-3">
                         <div class="min-w-0">
                             <h3 class="font-bold text-cream">{{ nameOf(flag) }}</h3>
@@ -127,6 +134,11 @@ const SwitchesTab = {
             </ul>
             <ChangeSheet v-if="change" :title="t('admin.switches.changeTitle', { name: nameOf(change.flag), value: valueLabel(change.value) })" :me="me" :busy="busy" :errors="errors" @close="change = null" @confirm="save" />
         </div>`,
+    computed: {
+        shown() {
+            return (this.flags ?? []).filter((flag) => EMERGENCY.includes(flag.name) === (this.which === 'emergency'));
+        },
+    },
     created() {
         this.load();
     },
@@ -369,7 +381,7 @@ const EventsTab = {
 
 /** The four tabs, as the ARIA tabs pattern: arrow keys move between them, Home and End to the ends. */
 export const SafetySection = {
-    components: { Icon, SwitchesTab, LimitsTab, BlocklistTab, EventsTab },
+    components: { Icon, FlagsList, LimitsTab, BlocklistTab, EventsTab },
     props: { me: { type: Object, required: true } },
     data() {
         const asked = new URLSearchParams(location.search).get('tab');
@@ -385,7 +397,7 @@ export const SafetySection = {
                     @click="pick(item.name)">{{ t(item.label) }}</button>
             </div>
             <div :id="'panel-' + tab" role="tabpanel" :aria-labelledby="'tab-' + tab" tabindex="0">
-                <SwitchesTab v-if="tab === 'switches'" :me="me" />
+                <FlagsList v-if="tab === 'switches'" :me="me" which="emergency" />
                 <LimitsTab v-else-if="tab === 'limits'" :me="me" />
                 <BlocklistTab v-else-if="tab === 'blocklist'" :me="me" />
                 <EventsTab v-else :me="me" />
@@ -408,4 +420,15 @@ export const SafetySection = {
             this.$nextTick(() => document.getElementById(`tab-${next}`)?.focus());
         },
     },
+};
+
+/** Settings > Switches: the features that ship dark and the automatic jobs, each change with a reason for the audit log. */
+export const SwitchesSection = {
+    components: { FlagsList },
+    props: { me: { type: Object, required: true } },
+    template: `
+        <div class="space-y-6" data-switches>
+            <h1 class="text-2xl font-extrabold tracking-tight text-cream">{{ t('admin.nav.switches') }}</h1>
+            <FlagsList :me="me" which="features" />
+        </div>`,
 };
