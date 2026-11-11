@@ -104,7 +104,7 @@ function frame(el, kind) {
       <div class="mt-2 basis-full empty:hidden @min-[900px]:mt-0 @min-[900px]:basis-auto" data-tuning></div>
     </div>
   </div>
-  <dl class="grid gap-x-4 gap-y-1.5 text-sm sm:grid-cols-[auto_minmax(0,1fr)] @min-[900px]:col-span-2 @min-[900px]:flex @min-[900px]:flex-wrap @min-[900px]:gap-0 @min-[900px]:border-y @min-[900px]:border-line" data-ui="ref-facts"></dl>
+  <dl class="grid gap-x-4 gap-y-3 border-t border-line pt-4 @min-[900px]:col-span-2" data-ui="ref-facts"></dl>
 </section>
 </div>`;
     const $ = (sel) => el.querySelector(sel);
@@ -136,19 +136,34 @@ function frame(el, kind) {
         $('[data-plays]').append(b);
         return b;
     };
+    // The facts: one ruled row of columns at every width (Hillel's width design, 2026-11-11), a small label over a big
+    // value with its second part small after it ("702.0 cents 2.0 wider"); four (a seventh chord's) go two by two on a
+    // narrow card.
+    const COLUMNS = { 1: 'grid-cols-1', 2: 'grid-cols-2', 3: 'grid-cols-3', 4: 'grid-cols-2 @min-[480px]:grid-cols-4' };
     const facts = (rows) => {
-        $('[data-ui="ref-facts"]').replaceChildren(...rows.flatMap(([term, detail, hook]) => {
+        const list = $('[data-ui="ref-facts"]');
+        list.className = `grid gap-x-4 gap-y-3 border-t border-line pt-4 @min-[900px]:col-span-2 ${COLUMNS[rows.length] ?? 'grid-cols-2'}`;
+        list.replaceChildren(...rows.map(([term, detail, hook, more]) => {
             const dt = document.createElement('dt');
-            dt.className = 'text-muted';
+            dt.className = 'text-xs text-muted';
             dt.textContent = term ?? '';
             const dd = document.createElement('dd');
-            dd.className = 'font-semibold tabular-nums';
+            dd.className = 'mt-1 text-lg font-semibold leading-tight tabular-nums @min-[480px]:text-xl';
             dd.textContent = detail ?? '';
+            if (more) {
+                const quiet = document.createElement('span');
+                quiet.className = 'sr-only';
+                quiet.textContent = ', '; // said as one: "702.0 cents, 2.0 wider"
+                const small = document.createElement('span');
+                small.className = 'ms-1 inline-block text-xs font-normal leading-snug text-muted'; // its own lines when long (a chord's "13.7 cents lower when pure")
+                small.textContent = more;
+                dd.append(quiet, small);
+            }
             if (hook) dd.dataset.fact = hook;
             const pair = document.createElement('div');
-            pair.className = 'contents @min-[900px]:block @min-[900px]:px-5 @min-[900px]:py-3 @min-[900px]:first:ps-0 @min-[900px]:[&+&]:border-s @min-[900px]:[&+&]:border-line';
+            pair.className = 'min-w-0';
             pair.append(dt, dd);
-            return [pair];
+            return pair;
         }));
     };
     const staff = (notes, label) => $('[data-ui="ref-staff"]').replaceChildren(grandStaff(notes, { label }));
@@ -212,7 +227,7 @@ export function mountIntervalCard(el, { semis, name = null, root = 60, words = {
         if (sizes.pure !== null) {
             const diff = Math.abs(sizes.offset);
             const how = diff < 0.05 ? words.pureSame : sizes.offset < 0 ? words.pureNarrower : words.pureWider;
-            rows.push([fill(words.pureLabel, { ratio: `${sizes.ratio[0]}:${sizes.ratio[1]}` }), fill(words.pureCents, { cents: num(sizes.pure), diff: num(diff), how: fill(how, { diff: num(diff) }) }), 'pure']);
+            rows.push([fill(words.pureLabel, { ratio: `${sizes.ratio[0]}:${sizes.ratio[1]}` }), fill(words.equalCents, { cents: num(sizes.pure) }), 'pure', fill(how, { diff: num(diff) })]);
         }
         card.facts(rows);
     };
@@ -249,7 +264,7 @@ export function mountChordCard(el, { quality, root = 60, words = {} } = {}) {
             const offset = ratio === null ? 0 : 1200 * Math.log2(ratio) - 100 * s;
             const diff = Math.abs(offset);
             const how = diff < 0.05 ? words.pureSame : offset < 0 ? words.pureNarrower : words.pureWider;
-            return [words.tones?.[s] ?? '', fill(words.toneCents, { note: spelledName(spelled[i]), how: fill(how, { diff: num(diff) }) }), `tone-${s}`];
+            return [words.tones?.[s] ?? '', spelledName(spelled[i]), `tone-${s}`, fill(how, { diff: num(diff) })];
         }));
     };
     const getRoot = card.rooted(root, words, draw);
