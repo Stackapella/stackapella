@@ -38,6 +38,11 @@ final class EnsureSecondFactor
                 $response->headers->setCookie(StaffDevice::cookie($request));
             }
 
+            // And may preview a language before it opens (SiteLanguage), refreshed while they use admin.
+            if (! StaffDevice::previews($request)) {
+                $response->headers->setCookie(StaffDevice::previewCookie($request));
+            }
+
             return $response;
         }
 

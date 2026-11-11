@@ -40,3 +40,16 @@ test('reference cards: a bare voice range card is the keyboard and its three pla
     assert(bare.querySelectorAll('[data-plays] button').length === 3 && bare.querySelector('[data-marked]'), 'its plays and its marked keys');
     assert(card.range.low === 53 && card.range.high === 74, 'the alto\'s F3 to D5');
 });
+
+test('reference cards: a spelled note in each naming (letters, fixed Do, German), chord symbols aside', async () => {
+    const { spelledName, spellRoot, spellAbove } = await import('/js/public/reference-cards.js');
+    const c4 = spellRoot(60);
+    const eFlat = spellAbove(c4, 3, 2); // a minor third: E flat
+    const bFlat = spellRoot(70);
+    const b = spellRoot(71);
+    const fSharp = spellRoot(66);
+    const names = (naming) => [eFlat, bFlat, b, fSharp].map((n) => spelledName(n, { naming })).join(' ');
+    assert(names('letters') === 'E♭4 B♭4 B4 F♯4', names('letters'));
+    assert(names('fixed-do') === 'Mi♭4 Si♭4 Si4 Fa♯4', names('fixed-do'));
+    assert(names('german') === 'Es4 B4 H4 Fis4', names('german'));
+});

@@ -51,7 +51,11 @@
                         <span>{{ __('pages.songs.parts', ['count' => count($song['parts'])]) }}</span>
                     </p>
                     <div class="s-actions">
-                        <a href="{{ $song['startUrl'] }}" class="btn-primary btn-lg">{{ __('pages.song.start') }} <x-site.icon name="arrow" size="18" /></a>
+                        {{-- Learn and Share as one row, so the actions never gain one (a phone stacks them). --}}
+                        <div style="display:flex;flex-wrap:wrap;align-items:center;gap:12px;min-width:0;max-width:100%">
+                            <a href="{{ $song['startUrl'] }}" class="btn-primary btn-lg">{{ __('pages.song.start') }} <x-site.icon name="arrow" size="18" /></a>
+                            @include('site._share', ['surface' => 'page-song', 'url' => $meta['url'], 'title' => $song['title'], 'lg' => true])
+                        </div>
                         <p>{{ __('pages.song.start_note') }}</p>
                     </div>
                 </div>

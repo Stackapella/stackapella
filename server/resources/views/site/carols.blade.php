@@ -50,6 +50,7 @@
                     @endif
                     <div class="s-actions s-actions-row">
                         <a href="#songbook" class="btn-primary btn-lg">{{ __('site.carols.pick') }} <span aria-hidden="true">↓</span></a>
+                        @include('site._share', ['surface' => 'page-carols', 'url' => $canonical, 'title' => $title, 'text' => __('site.share.text_carols'), 'lg' => true])
                         <a href="#choirs-h" class="btn-secondary btn-lg"><x-site.skin :game="__('site.carols.game.co_op_link')" :serious="__('site.carols.choirs_link')" /></a>
                     </div>
                 </div>

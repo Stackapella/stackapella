@@ -1,4 +1,4 @@
-"""Home's Today line (docs/home-returning-plan.md, experiment ret1, arm b): past the first week, one
+"""Home's Today line (docs/home-returning-plan.md, experiment ret1, arm b; Today's song in both arms): past the first week, one
 suggestion in the course card. Back after five days: a warm-up, opening today's workout. Three days
 on one lesson with two of them sung: try it slower, opening the lesson at 85% marked Slower. The free
 course finished: a song in your range first, then a course. On a day with nothing else, today's challenge:
@@ -107,6 +107,11 @@ def journey(f):
     if f.js("document.documentElement.dataset.skin") != "game":
         assert "Amazing Grace" in f.js(f"{LINE}.innerText"), "serious mode names the song"
     f.shot("home-today-daily")
+    # Today's song is seen by everyone (docs/retention-plan.md, idea 6, 2026-11-11): ret1's arm a shows it too, while the
+    # other cases stay arm b's alone (the gap, above).
+    home(f, "a")
+    f.run("const p = await import('/js/daily-pick.js'); p.dailyPick.today = { date: new Date().toISOString().slice(0, 10), templateId: 'amazing-grace', partKey: 'soprano' };")
+    f.wait(f"{LINE}?.dataset.today === 'daily'", what="today's song in arm a too")
 
 
 if __name__ == "__main__":

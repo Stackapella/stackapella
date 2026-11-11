@@ -23,7 +23,7 @@ TODAY = """const api = await import('/js/api.js'); const { mockFetch } = await i
     api.useTransport(async (url, init = {}) => {
         const answer = await mockFetch(url, init);
         if (init.operation !== 'boards.daily.show') return answer;
-        const json = await answer.json(); json.data.date = today; if ('cupFake' in window) { if (window.cupFake) json.data.cup = window.cupFake; else delete json.data.cup; }
+        const json = await answer.json(); json.data.date = today; if ('cupFake' in window) { if (window.cupFake) json.data.cup = window.cupFake; else delete json.data.cup; } if (window.boardFake) json.data.entries = [...json.data.entries, ...window.boardFake];
         return new Response(JSON.stringify(json), { status: 200, headers: { 'Content-Type': 'application/json' } });
     });"""
 
@@ -74,9 +74,26 @@ def journey(f):
     f.no_sideways("Home with the challenge")
     f.shot("home-tag")
     f.run(f"{TAG}.click()")
-    f.wait("document.querySelector('[data-game-daily-sheet]')", what="the day's board")
+    f.wait("document.querySelector('[data-game-daily-sheet]')", what="the day's sheet")
+    # Two names (the contract's example): too few for a board (an empty-looking board says nobody is here; the retention
+    # plan, idea 6), so the sheet is the song, the part and Sing it.
+    f.wait("!document.querySelector('[data-daily-take]').disabled", what="the song loaded")
+    words = f.js("document.querySelector('[data-game-daily-sheet]').innerText")
+    assert not f.js("!!document.querySelector('[data-daily-board]')") and "ZED" not in words, f"a board of two names: {words}"
+    assert f.js("document.querySelector('[data-daily-take]').textContent.trim()") == t(f, "game.daily.sing"), "Sing it, while the board is hidden"
+    f.shot("sheet-few")
+    # A few names: the day's board, and Take the challenge.
+    f.go("/", "document.querySelector('[data-song-card]')")
+    f.run(TODAY)
+    f.run("window.cupFake = null; window.boardFake = [{ id: 'b3', rank: 3, name: 'Kai Mori', initials: null, score: 801, you: false }]")
+    f.run("const d = await import('/js/game/daily.js'); d.daily.today = null; d.daily.asked = null; await d.loadDaily();")
+    f.wait(TAG, what="today's challenge on its card again")
+    f.run(f"{TAG}.closest('[data-song-card]').scrollIntoView({{ block: 'center' }})")
+    f.run(f"{TAG}.click()")
+    f.wait("document.querySelector('[data-daily-board] li')", what="the day's board")
     words = f.js("document.querySelector('[data-game-daily-sheet]').innerText")
     assert "ZED" in words, f"an entry by initials: {words}"
+    assert f.js("document.querySelector('[data-daily-take]').textContent.trim()") == t(f, "game.daily.take"), "Take the challenge, with a board"
     assert f.js("!document.querySelector('[data-daily-view]')"), "no cup from the server: no choice"
     f.shot("sheet")
     every_theme(f, "the daily training sheet")

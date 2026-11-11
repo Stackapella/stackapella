@@ -32,7 +32,7 @@ import { segmented, sheetRow, stepper, toolLayout } from '../tool-layout.js';
 import { audio, voice } from '../voices.js';
 import { keepAwake } from '../wake-lock.js';
 import { midiToHz } from '../../dsp.js';
-import { pitchName } from '../../notes.js';
+import { pageNaming, pitchName } from '../../notes.js';
 import { REFERENCE, stepTuner, TUNER, tunerReading } from '../tuner-reading.js';
 
 // The pitch tracker's files, kept offline by the tools' service worker (page.js) before a first Listen or Start.
@@ -69,7 +69,7 @@ export const INSTRUMENTS = {
 const REACH = { voice: { minHz: 60, maxHz: 1100, window: 2048 }, instrument: { minHz: 28, maxHz: 1500, window: 4096 } };
 const SENSITIVITY = { min: -75, max: -35, standard: -60 }; // the quietest level that counts, dBFS
 const ZONE = { min: 2, max: 15 };
-const DEFAULTS = { mode: 'voice', reference: REFERENCE.standard, transposition: 'C', instrument: 'chromatic', tuning: 'standard', naming: 'letters', quietDb: SENSITIVITY.standard, zone: null };
+const DEFAULTS = { mode: 'voice', reference: REFERENCE.standard, transposition: 'C', instrument: 'chromatic', tuning: 'standard', naming: pageNaming(), quietDb: SENSITIVITY.standard, zone: null };
 
 // The page's words fill :names, as Laravel's language files write them (one regex, so :note never eats into :notes).
 const fill = (text, values) => String(text ?? '').replace(/:(\w+)/g, (match, k) => (k in values ? String(values[k]) : match));

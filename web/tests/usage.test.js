@@ -1,6 +1,6 @@
 // Usage counts (js/usage.js): only the allowlisted moments, added up into one batch with whether
 // someone was signed in and nothing else; none sent while the server hasn't turned counting on.
-import { count, send } from '/js/usage.js';
+import { count, countShare, send, shareRef } from '/js/usage.js';
 import { account } from '/js/stores/account.js';
 import { assert, test } from './harness.js';
 
@@ -57,6 +57,34 @@ test('usage counts: a free lesson step reached goes as fs_r:<lesson>.<step>; a m
         const n = Object.fromEntries(JSON.parse(await sent[0].blob.text()).events.map((e) => [e.kind, e.n]));
         assert(n['fs_r:4-phrasing.1'] === 2 && n['fs_r:1-match.0'] === 1, JSON.stringify(n));
         assert(!('fs_r:4-phrasing.x' in n), JSON.stringify(n));
+    } finally {
+        navigator.sendBeacon = beacon;
+        Object.assign(account, had);
+    }
+});
+
+test('usage counts: a share counts as sh:<surface>.<method> only for the server\'s surfaces and methods', async () => {
+    const sent = [];
+    const beacon = navigator.sendBeacon;
+    const had = { config: account.config, me: account.me };
+    navigator.sendBeacon = (url, blob) => {
+        sent.push({ url, blob });
+        return true;
+    };
+    try {
+        account.config = { usageCounts: true };
+        account.me = null;
+        send();
+        sent.length = 0;
+        countShare('daily', 'sheet');
+        countShare('daily', 'sheet');
+        countShare('daily', 'fax'); // not a method: dropped
+        countShare('somewhere', 'copy'); // not a surface: dropped
+        count('sh:daily.copy'); // count() never takes a share: countShare does
+        send();
+        const kinds = Object.fromEntries(JSON.parse(await sent[0].blob.text()).events.map((e) => [e.kind, e.n]));
+        assert(JSON.stringify(kinds) === '{"sh:daily.sheet":2}', `only the known share, twice: ${JSON.stringify(kinds)}`);
+        assert(shareRef('daily') === 'share-daily', 'a shared link\'s source tag');
     } finally {
         navigator.sendBeacon = beacon;
         Object.assign(account, had);

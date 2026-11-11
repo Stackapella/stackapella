@@ -11,7 +11,8 @@ import { emptyProgress, unitOpen } from '../course.js';
 import { learning } from '../stores/learning.js';
 import { publicSiteUrl } from '../hosts.js';
 import { drawMilestoneCard, drawNoteCard, drawResultCard, SIZES } from '../result-card.js';
-import { count } from '../usage.js';
+import { count, countShare, shareRef } from '../usage.js';
+import { utcDay } from '../daily-pick.js';
 import { askShown, askYes, first } from '../funnel.js';
 import { game } from '../skin.js';
 import { effect } from '../game/effects.js';
@@ -91,7 +92,9 @@ export const ShareResult = {
         link() {
             const site = publicSiteUrl();
             const base = site.startsWith('/') ? location.origin : site;
-            if (this.daily) return new URL(`/songs/${this.daily.templateId}/${this.daily.partKey}`, base).href;
+            // Today's challenge on its day: stackapella.com/today, one address that leads to the day's part (the server's
+            // redirect, tagged today); after its day, the part's own page.
+            if (this.daily) return this.daily.date === utcDay() ? new URL('/today', base).href : new URL(`/songs/${this.daily.templateId}/${this.daily.partKey}?ref=${shareRef('daily')}`, base).href;
             const slug = this.courseSlug;
             if (slug && !this.note) {
                 const lessonId = this.milestone ? this.milestone.lessonId : this.entry?.lesson?.id;
@@ -147,9 +150,10 @@ export const ShareResult = {
             this.make();
         },
         /** A card that went out: counted, and lesson 1's note card ("Share my note") on its own too. */
-        counted() {
+        counted(method) {
             count('result_shared');
             if (this.note) count('share_note');
+            if (this.daily) countShare('daily', method);
         },
         /** A card that went out with a name: counted (the funnel), and a guest's name kept for next time. */
         named() {
@@ -187,7 +191,7 @@ export const ShareResult = {
             this.busy = true;
             try {
                 await navigator.share({ files: [this.file], text: this.text, url: this.link });
-                this.counted();
+                this.counted('sheet');
                 first('f_share');
                 this.named();
                 this.close();
@@ -208,13 +212,14 @@ export const ShareResult = {
             link.click();
             link.remove();
             setTimeout(() => URL.revokeObjectURL(url), 60000);
-            this.counted();
+            this.counted('image');
             first('f_share');
             this.named();
         },
         async copyText() {
             try {
                 await navigator.clipboard.writeText(`${this.text} ${this.link}`);
+                if (this.daily) countShare('daily', 'copy');
                 toast(t('results.share.copied'));
             } catch (error) {
                 console.warn('Copying the result failed', error);

@@ -29,7 +29,7 @@ import { audio, voice } from '../voices.js';
 import { hzToMidi, midiToHz } from '../../dsp.js';
 import { hear, listener } from '../../listen.js';
 import { SHARE_FILES, shareCard, shareUrl } from './share-card.js';
-import { pitchName } from '../../notes.js';
+import { pageNaming, pitchName } from '../../notes.js';
 import { CHOIR_PARTS, VOICE_TYPES, voiceTypes } from '../../theory.js';
 
 // The pitch tracker's files, kept offline by the tools' service worker (page.js) before a first Listen or Start.
@@ -56,7 +56,7 @@ const COMFORT_SECONDS = 10;
 const fill = (text, values) => String(text ?? '').replace(/:(\w+)/g, (match, k) => (k in values ? String(values[k]) : match));
 
 // Note names and the saved results, remembered on this device (tool-prefs.js); a result must be a real range.
-const DEFAULTS = { naming: 'letters', history: [] };
+const DEFAULTS = { naming: pageNaming(['letters', 'fixed-do']), history: [] }; // German pages: letters until it offers German
 const VALID = {
     naming: (v) => ['letters', 'fixed-do'].includes(v),
     history: (v) => Array.isArray(v) && v.every((h) => Number.isInteger(h?.low) && Number.isInteger(h?.high) && h.low < h.high),

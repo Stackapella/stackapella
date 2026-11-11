@@ -6,6 +6,10 @@ declare(strict_types=1);
 // Sentence case, plain words, no em dashes. Numbers from config are placeholders (:free_songs,
 // :price), never typed here.
 return [
+    // A page in a language before it opens to everyone, as an admin previews it (App\Http\Middleware\SiteLanguage).
+    // A page's Share button (site/_share): the label, what it says once the link is copied, and the share sheet's text.
+    'share' => ['button' => 'Share', 'copied' => 'Link copied', 'text' => 'Learn :title, part by part, free', 'text_part' => 'Learn the :part part of :song, free', 'text_carols' => 'Learn the Christmas carols, part by part, free'],
+    'language_preview' => 'Preview: :language is off for everyone else. Only this device sees this page.',
     'features' => [
         'index' => [
             'title' => 'What Stackapella does',

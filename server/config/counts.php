@@ -15,7 +15,7 @@ declare(strict_types=1);
 
 $selfHosted = filter_var(env('SELF_HOSTED', false), FILTER_VALIDATE_BOOL);
 // What can be shared (sh:<surface>.<method>); each surface's source tag is share-<surface>.
-$shareSurfaces = ['song', 'lesson', 'note', 'daily', 'invite', 'challenge', 'group', 'class', 'arrangement', 'warmup', 'app', 'embed', 'page-song', 'page-part', 'page-course', 'page-lesson', 'page-carols'];
+$shareSurfaces = ['song', 'lesson', 'note', 'daily', 'invite', 'challenge', 'group', 'class', 'arrangement', 'warmup', 'app', 'embed', 'page-song', 'page-part', 'page-course', 'page-lesson', 'page-carols', 'page-collection'];
 $on = env('USAGE_COUNTS');
 
 return [

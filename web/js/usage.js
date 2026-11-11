@@ -61,7 +61,24 @@ let waiting = false;
 
 /** Counts one `kind` (an unknown one is ignored). */
 export function count(kind) {
-    if (!KINDS.has(kind) && !detailed(kind)) return;
+    if (KINDS.has(kind) || detailed(kind)) enqueue(kind);
+}
+
+// A share, counted as sh:<surface>.<method>: what was shared and how. The lists mirror server/config/counts.php
+// (share_surfaces and share_methods); anything else is dropped, as count() drops an unknown kind.
+export const SHARE_SURFACES = new Set(['song', 'lesson', 'note', 'daily', 'invite', 'challenge', 'group', 'class', 'arrangement', 'warmup', 'app', 'embed', 'page-song', 'page-part', 'page-course', 'page-lesson', 'page-carols']);
+export const SHARE_METHODS = new Set(['sheet', 'copy', 'video', 'image', 'embed']);
+
+/** Counts a share of `surface` by `method`: countShare('daily', 'sheet') is sh:daily.sheet. */
+export function countShare(surface, method) {
+    if (SHARE_SURFACES.has(surface) && SHARE_METHODS.has(method)) enqueue(`sh:${surface}.${method}`);
+}
+
+/** A shared link's ?ref= tag for `surface` (the server's source for it): share-daily. */
+export const shareRef = (surface) => `share-${surface}`;
+
+/** Adds one to `kind` in the next batch, which goes when the browser is idle. */
+function enqueue(kind) {
     queue.set(kind, (queue.get(kind) ?? 0) + 1);
     if (waiting) return;
     waiting = true;

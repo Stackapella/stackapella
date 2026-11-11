@@ -4971,7 +4971,6 @@
             "tag": "Hoy",
             "title": "Desafío de hoy",
             "board": "Clasificación de hoy",
-            "first": "Aún no hay nadie en la clasificación de hoy. Estrénala tú.",
             "take": "Aceptar el desafío",
             "failed": "El desafío no pudo empezar. Vuelve a intentarlo.",
             "endsHours": "{hours, plural, one {Termina en # hora} other {Termina en # horas}}",

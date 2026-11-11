@@ -8,6 +8,7 @@ use App\Actions\Templates\SyncOfficialTemplates;
 use App\Mail\Account\ResetPassword;
 use App\Mail\Account\VerifyEmailAddress;
 use App\Models\User;
+use App\Support\Admin\StaffDevice;
 use App\Support\Flags;
 use App\Support\Http\Hosts;
 use App\Support\Languages\Languages;
@@ -15,6 +16,7 @@ use App\Support\Languages\TranslationMaps;
 use App\Support\Site\HelpGuide;
 use App\Support\Site\SitemapPaths;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Mail;
 use Tests\TestCase;
@@ -314,5 +316,40 @@ final class LanguagesTest extends TestCase
         $this->assertStringContainsString(Hosts::publicUrl().'/es</loc>', (string) $this->get('/sitemap.xml')->getContent());
         $landing = (string) $this->get(Hosts::publicUrl().'/?landing=1')->getContent();
         $this->assertStringContainsString('hreflang="es" href="'.Hosts::publicUrl().'/es"', $landing);
+    }
+
+    public function test_an_admins_device_previews_spanish_before_it_opens_and_no_one_else_does(): void
+    {
+        $this->app->instance('env', 'production');
+        $value = StaffDevice::previewCookie(request())->getValue();
+
+        // Anyone else: not found, and never kept.
+        $closed = $this->get('/es/courses/harmony/find-your-voice')->assertNotFound();
+        $this->assertStringContainsString('no-store', (string) $closed->headers->get('Cache-Control'));
+        // The staff cookie's plain "1" (anyone can set it) is no key to a preview.
+        $this->withUnencryptedCookie(StaffDevice::PREVIEW_COOKIE, '1')->get('/es/courses/harmony/find-your-voice')->assertNotFound();
+
+        // An admin's device: the page in Spanish, saying it's a preview, kept by nobody, named by no alternates.
+        $page = $this->withUnencryptedCookie(StaffDevice::PREVIEW_COOKIE, $value)->get('/es/courses/harmony/find-your-voice')->assertOk();
+        $html = (string) $page->getContent();
+        $this->assertStringContainsString('<html lang="es"', $html);
+        $this->assertStringContainsString('Preview: ES is off for everyone else', $html);
+        $this->assertStringContainsString('no-store', (string) $page->headers->get('Cache-Control'));
+        $this->assertStringNotContainsString('hreflang', $html);
+        $this->assertStringNotContainsString('/es/', (string) $this->get('/sitemap.xml')->getContent());
+
+        // Once it's open: no note, and the page is everyone's.
+        app(Flags::class)->set('lang_es', 'on', null, 'Spanish checked');
+        $open = (string) $this->get('/es/courses/harmony/find-your-voice')->assertOk()->getContent();
+        $this->assertStringNotContainsString('Preview:', $open);
+    }
+
+    public function test_passing_the_second_factor_gives_an_admins_device_the_preview(): void
+    {
+        $this->actingAsAdmin();
+        $response = $this->getJson('/api/admin/flags')->assertOk();
+        $cookie = collect($response->headers->getCookies())->first(static fn ($c): bool => $c->getName() === StaffDevice::PREVIEW_COOKIE);
+        $this->assertNotNull($cookie);
+        $this->assertTrue(StaffDevice::previews(Request::create('/', 'GET', [], [StaffDevice::PREVIEW_COOKIE => (string) $cookie->getValue()])));
     }
 }

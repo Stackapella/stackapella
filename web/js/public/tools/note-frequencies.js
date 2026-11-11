@@ -24,7 +24,7 @@
 // are pure, for tests and for a page that writes the table out for search engines.
 
 import { midiToHz, nearestNote } from '../../dsp.js';
-import { parsePitch, pitchName } from '../../notes.js';
+import { pageNaming, parsePitch, pitchName } from '../../notes.js';
 import { VOICE_TYPES } from '../../theory.js';
 import { savedRange } from '../saved-range.js';
 import { strike } from '../tones.js';
@@ -86,7 +86,7 @@ export function readQuery(text, reference = REFERENCE.standard, { c3 = false } =
 }
 
 /** The settings, remembered on this device (js/public/tool-prefs.js); A4 from the link (?a4=) wins for the visit. */
-const DEFAULTS = { reference: REFERENCE.standard, naming: 'letters', flats: false, c3: false };
+const DEFAULTS = { reference: REFERENCE.standard, naming: pageNaming(), flats: false, c3: false };
 const VALID = { reference: (v) => Number.isFinite(v) && v >= REFERENCE.low && v <= REFERENCE.high, naming: (v) => ['letters', 'fixed-do', 'german'].includes(v) };
 
 const BIG_NOTE = 'text-[clamp(4rem,22vw,6.5rem)] font-black leading-none tracking-tight text-cream [@media(max-height:640px)]:text-[3.25rem]';

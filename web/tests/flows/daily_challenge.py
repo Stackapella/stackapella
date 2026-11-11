@@ -114,7 +114,9 @@ def journey(f):
     alt = f.js("document.querySelector('[data-share-result] img').alt")
     assert "Michael, Row the Boat Ashore" in alt and "Tenor" in alt, f"the card names the song and part: {alt}"
     link = f.js("document.querySelector('[data-share-result]').dataset.shareLink")
-    assert link.endswith("/songs/michael-row/tenor"), f"the link is the part's page: {link}"
+    # On the challenge's own day, the one address that leads to the day's part (the server's /today redirect, tagged
+    # today; Today's song, the retention plan's idea 6); after it, the part's own page.
+    assert link.endswith("/today"), f"the link is /today on its day: {link}"
     f.no_sideways("the challenge's share sheet")
     f.shot("share-card")
     every_theme(f, "the challenge's share sheet")

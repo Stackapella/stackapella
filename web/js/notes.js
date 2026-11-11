@@ -119,6 +119,17 @@ const NAMED = {
     ],
 };
 
+/**
+ * The naming a page's language reads notes in (its <html lang>): fixed Do on Spanish pages, German's on German ones,
+ * letters otherwise; one of `among`, the namings a tool offers (else letters). A visitor's own choice, kept by the
+ * tool, still wins: this is only the default.
+ */
+export function pageNaming(among = NAMINGS) {
+    const lang = String(globalThis.document?.documentElement?.lang || 'en').split('-')[0];
+    const wanted = { es: 'fixed-do', de: 'german' }[lang] ?? 'letters';
+    return among.includes(wanted) ? wanted : 'letters';
+}
+
 /** A note (MIDI, rounded) as its name and octave number (middle C is C4): { name: 'F♯', octave: 3 }. */
 export function pitchName(midi, { naming = 'letters', flats = false } = {}) {
     const m = Math.round(midi);

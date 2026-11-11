@@ -3,6 +3,7 @@ done, game mode's title card comes back as "Stage 2 clear!" with the unit's name
 it, over the lesson end; a tap ends it at once. learn.js shows it only through the Title cards switch (effect
 'titles'), so serious mode and the switch off never see it.
 """
+import json
 import sys
 from pathlib import Path
 
@@ -26,6 +27,9 @@ def mount(f, level):
         app.config.globalProperties.t = t;
         app.mount(box);""")
     f.wait(CARD, what="the stage clear")
+    # The card is in the page before its words are (a gate read "Breathing2" mid-render, 2026-11-11): wait for them.
+    clear = t(f, "game.title.clear", {"unit": 2})
+    f.wait(f"{CARD}.textContent.includes({json.dumps(clear)})", what="the stage clear's words")
 
 
 def journey(f):

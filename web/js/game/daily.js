@@ -72,7 +72,13 @@ export function endsIn(endsAt, now = Date.now()) {
     return minutes >= 60 ? t('game.daily.endsHours', { hours: formatNumber(Math.floor(minutes / 60)) }) : t('game.daily.endsMinutes', { minutes: formatNumber(minutes) });
 }
 
-/** The day's board and Take the challenge, in a sheet; with the week's cup (its days added up) a choice inside it. */
+/** A day's board shows once it has this many names: fewer says nobody is here (retention plan, idea 6). */
+export const BOARD_FEW = 3;
+
+/**
+ * The day's board and Take the challenge, in a sheet; with the week's cup (its days added up) a choice inside it. Until
+ * the board has a few names, the sheet is the song, the part and Sing it.
+ */
 export const DailySheet = {
     components: { AccountWall, Modal },
     props: { challenge: { type: Object, required: true } },
@@ -104,21 +110,23 @@ export const DailySheet = {
                 </template>
                 <template v-else>
                     <p class="text-sm text-muted">{{ endsIn(challenge.endsAt) }}</p>
-                    <ol v-if="board?.entries?.length" class="space-y-1" :aria-label="t('game.daily.board')">
+                    <ol v-if="crowded" class="space-y-1" :aria-label="t('game.daily.board')" data-daily-board>
                         <li v-for="e in board.entries" :key="e.id ?? e.rank" class="flex items-center gap-3 rounded-xl px-2 py-1.5" :class="e.you ? 'bg-accent/10' : ''">
                             <span class="w-6 text-end tabular-nums text-muted">{{ e.rank }}</span>
                             <span class="min-w-0 flex-1 truncate text-cream" translate="no" :data-initials="byInitials(e) ? '' : null">{{ boardName(e) }}</span>
                             <span class="tabular-nums font-semibold text-cream">{{ e.score }}</span>
                         </li>
                     </ol>
-                    <p v-else-if="account.me" class="text-sm text-muted">{{ t('game.daily.first') }}</p>
-                    <AccountWall v-else reason="daily" bare />
                 </template>
                 <p v-if="failed" class="text-sm text-bad" role="alert">{{ t('game.daily.failed') }}</p>
-                <button type="button" class="btn-primary w-full" :disabled="starting || !song" data-daily-take @click="take">{{ t('game.daily.take') }}</button>
+                <button type="button" class="btn-primary w-full" :disabled="starting || !song" data-daily-take @click="take">{{ crowded ? t('game.daily.take') : t('game.daily.sing') }}</button>
             </div>
         </Modal>`,
     computed: {
+        /** The day's board has a few names to show. */
+        crowded() {
+            return (this.board?.entries?.length ?? 0) >= BOARD_FEW;
+        },
         partName() {
             const part = this.song?.parts.find((p) => p.key === this.challenge.partKey);
             return part ? templatePartName(part) : '';

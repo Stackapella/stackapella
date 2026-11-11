@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Middleware;
 
+use App\Support\Admin\StaffDevice;
 use App\Support\Http\Hosts;
 use App\Support\Languages\Languages;
 use App\Support\Languages\SiteLanguages;
@@ -24,8 +25,14 @@ final class SiteLanguage
 
     public function handle(Request $request, Closure $next, string $language = 'en'): Response
     {
+        // A language not yet open answers only locally, in tests, and on an admin's device (a preview, Hillel's review
+        // before the switch: StaffDevice::previews). Its 404 is never kept, so the admin's next look isn't a stored one.
+        $preview = $language !== 'en' && ! $this->languages->isOffered($language);
+
         if ($language !== 'en') {
-            abort_unless($this->languages->isOffered($language) || app()->environment(['local', 'testing']), 404);
+            if ($preview && ! app()->environment(['local', 'testing']) && ! StaffDevice::previews($request)) {
+                abort(404, '', ['Cache-Control' => 'no-store, private']);
+            }
             // A page written as a whole file in each language (a guide) answers here only once it's written in this one.
             abort_unless(SiteLanguages::serves($language, SiteLanguages::englishPath($request->getPathInfo(), $language)), 404);
         }
@@ -35,10 +42,39 @@ final class SiteLanguage
         App::setLocale($language);
 
         try {
-            return $this->render($request, $next, $language);
+            $response = $this->render($request, $next, $language);
+
+            return $preview ? self::preview($response, $language) : $response;
         } finally {
             App::setLocale($before);
         }
+    }
+
+    /**
+     * A page in a language not yet open: kept by nobody (it's one admin's look), and saying so at its top. Its
+     * alternates and the sitemap name it only once it's open (SiteLanguages::alternatesOf reads the open languages).
+     */
+    private static function preview(Response $response, string $language): Response
+    {
+        $response->headers->set('Cache-Control', 'no-store, private');
+        $response->headers->set('X-Robots-Tag', 'noindex');
+        $html = $response->getContent();
+
+        if ($response->getStatusCode() === 200 && is_string($html)) {
+            $note = '<div role="note" style="position:sticky;top:0;z-index:999;padding:6px 12px;background:#1f2937;color:#f9fafb;font:600 13px/1.4 system-ui,sans-serif;text-align:center">'
+                .e(__('site.language_preview', ['language' => strtoupper($language)], 'en')).'</div>';
+            $with = (string) preg_replace('#(<body[^>]*>)#i', '$1'.$note, $html, 1);
+
+            if ($with !== $html) {
+                $original = $response instanceof \Illuminate\Http\Response ? $response->original : null;
+                $response->setContent($with);
+                if ($response instanceof \Illuminate\Http\Response) {
+                    $response->original = $original;
+                }
+            }
+        }
+
+        return $response;
     }
 
     private function render(Request $request, Closure $next, string $language): Response

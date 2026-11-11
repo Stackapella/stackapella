@@ -409,6 +409,10 @@
     "/js/public/voices.js",
     "/js/public/demo-player.js"
   ],
+  "/js/public/share.js": [
+    "/js/public/share.js",
+    "/js/public/count.js"
+  ],
   "/js/public/showreel.js": [
     "/js/public/showreel.js"
   ],

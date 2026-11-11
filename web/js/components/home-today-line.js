@@ -5,7 +5,8 @@
 // (docs/daily-challenge-plan.md) on a day with nothing else: game mode's sheet with its board, serious
 // mode's calm line naming the song and part with Sing it. It's also offered in the first week, from its
 // second day once that day's 5 minutes are sung, to every singer (ret1 doesn't reach the first week);
-// past it, only in ret1's arm b, as before.
+// past it, in both of ret1's arms (docs/retention-plan.md, idea 6, 2026-11-11): ret1 goes on comparing
+// the other cases, which still come first.
 
 import { localized, t, tk } from '../i18n.js';
 import { navigate } from '../router.js';
@@ -116,6 +117,7 @@ export const TodayLine = {
             if (!this.kase) return false;
             if (this.kase === 'daily' && !game() && !this.dailySong) return false; // serious names the song: drawn once it's known
             if (inFirstWeek()) return true; // the challenge, the only first-week case (ret1 starts past it)
+            if (this.kase === 'daily') return true; // Today's song, seen by everyone: both of ret1's arms (retention plan, idea 6)
             if (this.kase === 'done' && !this.song && !this.course) return false;
             const { arm, ready } = experiment('ret1');
             return ready && arm === 'b';

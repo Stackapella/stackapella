@@ -22,3 +22,18 @@ test('notes: a minor key is la-based in solfège, and its own tonic is 1', () =>
     assert(noteLabel(57, 'numbers', 'Am') === '1' && noteLabel(60, 'numbers', 'Am') === '♭3', 'numbers in A minor');
     assert(parseKey('F#m').tonic === 6 && parseKey('F#m').minor && parseKey('Bb').tonic === 10 && !parseKey('Bb').minor, 'keys parse');
 });
+
+test('notes: a public page names notes in its own language by default (pageNaming)', async () => {
+    const { pageNaming } = await import('/js/notes.js');
+    const was = document.documentElement.lang;
+    try {
+        document.documentElement.lang = 'es';
+        assert(pageNaming() === 'fixed-do', 'Spanish: Do Re Mi');
+        document.documentElement.lang = 'de-AT';
+        assert(pageNaming() === 'german' && pageNaming(['letters', 'fixed-do']) === 'letters', 'German, or letters where a tool has no German');
+        document.documentElement.lang = 'fr';
+        assert(pageNaming() === 'letters', 'any other language: letters');
+    } finally {
+        document.documentElement.lang = was;
+    }
+});

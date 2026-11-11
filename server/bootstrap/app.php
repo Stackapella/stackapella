@@ -288,7 +288,7 @@ return Application::configure(basePath: dirname(__DIR__))
         // sign-in returns by a cross-site POST, checked by its own state cookie.
         // Read by the app shell's coming-soon gate, which runs without the cookie middleware: the
         // beta pass is signed by us, and the app's own marker holds nothing.
-        $middleware->encryptCookies(except: [BetaPass::COOKIE, MudeoArrival::COOKIE, MudeoArrival::USED_COOKIE, StaffDevice::COOKIE, 'sa_app', SignedInHint::COOKIE]);
+        $middleware->encryptCookies(except: [BetaPass::COOKIE, MudeoArrival::COOKIE, MudeoArrival::USED_COOKIE, StaffDevice::COOKIE, StaffDevice::PREVIEW_COOKIE, 'sa_app', SignedInHint::COOKIE]);
 
         // Reports also come from the public site's pages, across origins and without the app's
         // XSRF cookie (docs/app-subdomain-plan.md, "Report from a shared page").

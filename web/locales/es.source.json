@@ -4971,7 +4971,6 @@
             "tag": "Today",
             "title": "Today's challenge",
             "board": "Today's board",
-            "first": "No one's on today's board yet. Be the first.",
             "take": "Take the challenge",
             "failed": "The challenge couldn't start. Try again.",
             "endsHours": "{hours, plural, one {Ends in # hour} other {Ends in # hours}}",

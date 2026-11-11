@@ -16,7 +16,7 @@
 
 import { INTERVALS, chordTones, intervalCents, pureRatio } from '../just.js';
 import { CHOIR_PARTS, VOICE_TYPES } from '../theory.js';
-import { pitchName } from '../notes.js';
+import { pageNaming, pitchName } from '../notes.js';
 import { audio, hz } from './voices.js';
 import { note } from './tones.js';
 import { keyboard, span } from './piano.js';
@@ -26,7 +26,7 @@ import { segmented } from './tool-layout.js';
 const fill = (text, values) => String(text ?? '').replace(/:(\w+)/g, (match, k) => (k in values ? String(values[k]) : match));
 const num = (n, digits = 1) => (Math.round(n * 10 ** digits) / 10 ** digits).toFixed(digits);
 const named = (midi) => {
-    const { name, octave } = pitchName(midi);
+    const { name, octave } = pitchName(midi, { naming: pageNaming() });
     return `${name}${octave}`;
 };
 
@@ -58,8 +58,24 @@ export function spellAbove(root, semis, letters) {
     return { midi, letter, octave, accidental: midi - ((octave + 1) * 12 + NATURAL[letter]) };
 }
 
-/** A spelled note's name: "B♭4" (or "B♭" with `octave: false`). */
-export const spelledName = (n, { octave = true } = {}) => `${LETTERS[n.letter]}${SIGN[n.accidental] ?? ''}${octave ? n.octave : ''}`;
+// The letters in the page's language (notes.js pageNaming): fixed Do on Spanish pages (Mi♭4), German's on German ones
+// (Es4, B for B flat, H for B). Chord symbols stay letters in every language (the glossaries: "Cm", "G7").
+const FIXED_DO = ['Do', 'Re', 'Mi', 'Fa', 'Sol', 'La', 'Si']; // i18n-ignore: note names are symbols
+
+/** A spelled letter and its accidental in German: Cis, Es, As, B (B flat), H (B), Heses, Fisis. */
+export function germanName(letter, accidental) {
+    const l = LETTERS[letter];
+    if (l === 'B') return { '-2': 'Heses', '-1': 'B', 0: 'H', 1: 'His', 2: 'Hisis' }[accidental] ?? 'H'; // i18n-ignore: note names are symbols
+    if (accidental > 0) return l + 'is'.repeat(accidental);
+    if (accidental < 0) return (l === 'E' || l === 'A' ? `${l}s` : `${l}es`) + 'es'.repeat(-accidental - 1);
+    return l;
+}
+
+/** A spelled note's name: "B♭4" (or "B♭" with `octave: false`); "Si♭4" with fixed Do, "B4" in German. */
+export const spelledName = (n, { octave = true, naming = pageNaming() } = {}) => {
+    const name = naming === 'fixed-do' ? `${FIXED_DO[n.letter]}${SIGN[n.accidental] ?? ''}` : naming === 'german' ? germanName(n.letter, n.accidental) : `${LETTERS[n.letter]}${SIGN[n.accidental] ?? ''}`;
+    return `${name}${octave ? n.octave : ''}`;
+};
 
 // How the cards play: a note's length and the gap to the next, in seconds.
 export const CARD = { length: 0.85, step: 0.75, together: 1.8, chordStep: 0.5, rangeStep: 0.26, level: 0.12, levelTogether: 0.09, roots: [48, 72] };
