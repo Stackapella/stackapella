@@ -241,6 +241,11 @@ return [
         'account' => ['max' => 5, 'per' => 'day', 'by' => 'account'],
     ],
 
+    // A draft song checked before it's saved (templates.check: a score import's review screen).
+    'template-check' => [
+        'account' => ['max' => 120, 'per' => 'hour', 'by' => 'account'],
+    ],
+
     // Open parts' stems (N5): sixty an hour.
     'stems' => [
         'account' => ['max' => 60, 'per' => 'hour', 'by' => 'account'],

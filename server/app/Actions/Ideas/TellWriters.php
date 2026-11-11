@@ -72,7 +72,7 @@ final class TellWriters
 
             $parts = self::partNames($idea);
             $instruments = self::instrumentParts($idea);
-            Mail::to($writer->email)->queue(new IdeaVoicesMail(
+            Mail::to($writer->email)->locale($writer->preferredLocale())->queue(new IdeaVoicesMail(
                 $writer->name,
                 $idea->template->title,
                 array_values($news->map(fn (IdeaVoice $voice): array => ['name' => GalleryViews::person($voice->user)['name'], 'part' => mb_strtolower($parts[$voice->part_key] ?? __('ideas.mail.a_part')), 'played' => in_array($voice->part_key, $instruments, true)])->all()),

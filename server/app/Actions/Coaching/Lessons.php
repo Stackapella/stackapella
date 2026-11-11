@@ -276,7 +276,7 @@ final class Lessons
 
         $by = $user->id === $engagement->coach_id ? 'coach' : 'singer';
         $lesson->forceFill(['cancel_requested_by' => $by])->save();
-        $note = $this->cancelInEs($lesson, __('coaching.lesson_cancelled_in_app', ['by' => $by]), rethrowUnavailable: true);
+        $note = $this->cancelInEs($lesson, __('coaching.lesson_cancelled_in_app', ['by' => __('coaching.by.'.$by)]), rethrowUnavailable: true);
         $this->settleCancel($lesson, $by, now(), null);
 
         if ($note !== null) {

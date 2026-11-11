@@ -95,6 +95,7 @@ use App\Http\Controllers\Api\Sharing\VideosController;
 use App\Http\Controllers\Api\Support\SupportController;
 use App\Http\Controllers\Api\Templates\FinishersController;
 use App\Http\Controllers\Api\Templates\OwnTemplatesController;
+use App\Http\Controllers\Api\Templates\TemplateCheckController;
 use App\Http\Controllers\Api\TemplatesController;
 use App\Http\Controllers\Api\Voices\VoicesController;
 use App\Http\Middleware\GrantBetaPass;
@@ -382,6 +383,7 @@ Route::middleware('auth')->group(function (): void {
 // The templates people make (contract/api.md, "Your own templates"); before /templates/{template}.
 Route::middleware('auth')->group(function (): void {
     Route::get('/templates/mine', [OwnTemplatesController::class, 'index'])->name('templates.mine');
+    Route::post('/templates/check', TemplateCheckController::class)->middleware('throttle:template-check')->name('templates.check');
     Route::put('/templates/{template}', [OwnTemplatesController::class, 'save'])->whereUuid('template')->name('templates.save');
     Route::patch('/templates/{template}', [OwnTemplatesController::class, 'update'])->whereUuid('template')->name('templates.update');
     Route::delete('/templates/{template}', [OwnTemplatesController::class, 'destroy'])->whereUuid('template')->name('templates.delete');

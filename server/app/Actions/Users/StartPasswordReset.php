@@ -35,6 +35,6 @@ final class StartPasswordReset
         }
 
         // To the account's own address, never the one typed (docs/security-review.md).
-        Mail::to((string) $user->email)->send(new ResetPassword(Password::broker()->createToken($user), (string) $user->email));
+        Mail::to((string) $user->email)->locale($user->preferredLocale())->send(new ResetPassword(Password::broker()->createToken($user), (string) $user->email));
     }
 }

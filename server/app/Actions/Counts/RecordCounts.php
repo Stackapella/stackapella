@@ -127,7 +127,7 @@ final class RecordCounts
         }
 
         // A song's course (web/course/songs) counts its lessons as a Plus course's do.
-        $ids = ['plus_courses' => [...self::plusCourses(), ...self::songCourses()], 'free_lessons' => self::freeLessons()];
+        $ids = ['plus_courses' => [...self::plusCourses(), ...self::songCourses()], 'free_lessons' => self::freeLessons(), 'free_steps' => self::freeSteps()];
         $kinds = [];
 
         foreach ((array) config('counts.detailed') as $prefix => $source) {
@@ -176,6 +176,39 @@ final class RecordCounts
             foreach (is_array($unit) ? (array) ($unit['lessons'] ?? []) : [] as $lesson) {
                 if (is_array($lesson) && is_string($lesson['id'] ?? null)) {
                     $ids[] = $lesson['id'];
+                }
+            }
+        }
+
+        return $ids;
+    }
+
+    /**
+     * Each free-course lesson's steps, "<lessonId>.<step>", as many as its longest form has (its own
+     * steps or an experiment's variant).
+     *
+     * @return list<string>
+     */
+    private static function freeSteps(): array
+    {
+        $file = dirname(base_path()).'/web/course/course.json';
+        $course = is_file($file) ? json_decode((string) file_get_contents($file), true) : null;
+        $ids = [];
+
+        foreach (is_array($course) ? (array) ($course['units'] ?? []) : [] as $unit) {
+            foreach (is_array($unit) ? (array) ($unit['lessons'] ?? []) : [] as $lesson) {
+                if (! is_array($lesson) || ! is_string($lesson['id'] ?? null)) {
+                    continue;
+                }
+
+                $steps = count((array) ($lesson['steps'] ?? []));
+
+                foreach ((array) ($lesson['variants'] ?? []) as $variant) {
+                    $steps = max($steps, is_array($variant) ? count((array) ($variant['steps'] ?? [])) : 0);
+                }
+
+                for ($i = 0; $i < $steps; $i++) {
+                    $ids[] = $lesson['id'].'.'.$i;
                 }
             }
         }

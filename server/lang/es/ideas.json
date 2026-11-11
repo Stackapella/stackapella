@@ -1,0 +1,20 @@
+{
+    ":name sang the :part of your tune": ":name cantó :part en tu melodía",
+    ":name played the :part of your tune": ":name tocó :part en tu melodía",
+    ":count new voices on your tune": ":count voces nuevas en tu melodía",
+    "Every part of your tune has a voice": "Tu melodía ya tiene todas sus voces",
+    "New voices on \":title\"": "Voces nuevas en \":title\"",
+    ":name sang the :part.": ":name cantó :part.",
+    ":name played the :part.": ":name tocó :part.",
+    "Every part of \":title\" has a voice now: hear it all together.": "\":title\" ya tiene todas sus voces: escúchala entera.",
+    "Hear your tune": "Escuchar tu melodía",
+    "One a day at most": "Como mucho, uno al día",
+    "for each tune you share. Turn them off in Settings, or in one click: :unsubscribe": "por cada melodía que compartes. Desactívalos en Ajustes, o con un clic: :unsubscribe",
+    "you shared a tune on Stackapella's Ideas shelf": "compartiste una melodía en la sección Ideas de Stackapella",
+    "Emails about your ideas": "Correos sobre tus ideas",
+    "Stop emails telling you who sang your tunes? The bell in the app still tells you.": "¿Dejar de recibir correos sobre quién cantó tus melodías? La campana de la app te lo seguirá contando.",
+    "Turn them off": "Desactivarlos",
+    "They're off": "Desactivados",
+    "We won't email you about your ideas. Turn them back on in Settings.": "No te enviaremos correos sobre tus ideas. Puedes volver a activarlos en Ajustes.",
+    "part": "una voz"
+}

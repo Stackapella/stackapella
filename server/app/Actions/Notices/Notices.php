@@ -58,7 +58,7 @@ final class Notices
 
         // A suspended account can't sign in to read it: the notice comes by email, with its link.
         if ($kind === Notice::ACCOUNT_SUSPENDED && $user->email !== null) {
-            Mail::to($user->email)->queue((new NoticeIssued(__('notices.kinds.'.$kind), __('notices.rules.'.$rule), Hosts::appLink('/notice?'.http_build_query(['token' => $token])), $notice->note))->afterCommit());
+            Mail::to($user->email)->locale($user->preferredLocale())->queue((new NoticeIssued(__('notices.kinds.'.$kind), __('notices.rules.'.$rule), Hosts::appLink('/notice?'.http_build_query(['token' => $token])), $notice->note))->afterCommit());
         }
 
         return $notice;
@@ -120,7 +120,7 @@ final class Notices
 
             // The answer to their request, by email: a suspended person can't sign in to see it.
             if ($notice->user?->email !== null) {
-                Mail::to($notice->user->email)->queue((new NoticeDecided($decision, $note))->afterCommit());
+                Mail::to($notice->user->email)->locale($notice->user->preferredLocale())->queue((new NoticeDecided($decision, $note))->afterCommit());
             }
 
             return $notice;

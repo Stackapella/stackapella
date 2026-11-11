@@ -72,6 +72,9 @@ return [
         'pl_d' => 'plus_courses',
         'fl_s' => 'free_lessons',
         'fl_d' => 'free_lessons',
+        // A free-course lesson's step reached, "fs_r:<lessonId>.<step>" (step from 0, as the lesson
+        // lists them, a variant's too): where a lesson's singers stop (2026-11-11, the courses lead).
+        'fs_r' => 'free_steps',
     ],
 
     // Kinds only the server counts, never taken from counts.create: the mudeo email's link opened in

@@ -302,6 +302,7 @@ Each operation is one function in `web/js/api.js` named after it, and one route 
 | `admin.harmonies.restore` | `POST /api/admin/harmonies/{id}/restore` | An admin | M6 |
 | `admin.harmonies.remove` | `POST /api/admin/harmonies/{id}/remove` | An admin, in sudo | M6 |
 | `templates.mine` | `GET /api/templates/mine` | Anyone signed in | M7 |
+| `templates.check` | `POST /api/templates/check` | Anyone signed in | L |
 | `templates.save` | `PUT /api/templates/{id}` | The owner (or anyone signed in, to make one) | M7 |
 | `templates.update` | `PATCH /api/templates/{id}` | The owner | M7 |
 | `templates.delete` | `DELETE /api/templates/{id}` | The owner | M7 |
@@ -613,8 +614,8 @@ Every switch and dark feature, in the order of `server/config/flags.php`. **Requ
 
 Turn a switch on or off, or open a dark feature. **Request:** `{ "value": "on", "reason": "A wave
 of bot sign-ups" }`: `value` is one of the flag's `values`; `reason` is required (up to 500
-characters). `sheet_import` goes on only once the DMCA agent is set (`DMCA_AGENT_*`), else
-`409 dmca_agent_missing`.
+characters). `sheet_import` goes on (`on`, or `directors`: choir directors only) only once the DMCA agent
+is set (`DMCA_AGENT_*`), else `409 dmca_agent_missing`.
 
 | Status | Code | Schema | Example |
 |---|---|---|---|
@@ -1564,9 +1565,12 @@ sends nothing. `usageCounts` says whether to send the anonymous usage counts (`c
 it's false the app shows no Ideas, and reads this rather than asking the ideas operations.
 `plusCourses` says whether the Plus courses are live (the `plus_courses` switch), so a signed-out
 visitor can try a live course's free first lesson; `account.plusCourses` is the same switch, plus
-staff before it opens. `sheetImport` says whether sheet music import is on (the `sheet_import`
-switch, off until its server rules are live; staff see it before). `lendVoice` says whether Lend
-your voice is on (the `lend_voice` switch).
+staff before it opens. `sheetImport` says whether sheet music import is open to this visitor (the `sheet_import`
+switch: `on` for everyone, `directors` for anyone who directs a choir group; off until its server rules
+are live; staff see it before). `lendVoice` says whether Lend
+your voice is on (the `lend_voice` switch). `languages` lists the languages open to everyone, English
+first, then each whose switch is on (`lang_es`, `lang_de`): the app offers only these in Settings and
+follows the browser only into these (`?lang=` still shows a draft).
 `experiment` is the funnel's running A/B test, `{ "id": "onb1", "arms": ["a", "b"], "enrol": true }`,
 or null: a new device draws an arm (`crypto.getRandomValues`) at its first open only while `enrol`
 is true, keeps it on the device, and sends `"<id>-<arm>"` as `counts.create`'s `variant`.
@@ -1765,7 +1769,9 @@ sign-in now), for the app's Admin link; editors and everyone else get false. It'
 
 #### `account.update`
 
-**Request:** any of `name` (1 to 80), `handle`, `bio` (up to 300), `locale`, `timezone`, `xHandle`,
+**Request:** any of `name` (1 to 80), `handle`, `bio` (up to 300), `locale` (`en`, `es` or `de`, the
+account's language: emails and pushes follow it, each sentence in English until it's translated; any of
+the three may be kept before its switch is on, so a draft can be checked), `timezone`, `xHandle`,
 `blueskyHandle`, `heardFrom` (one of the enum, asked once at the end of the first run),
 `birthMonth` and `birthYear` (as `auth.register`'s, once: while the account has none, for a first
 Google or Apple sign-in and for older accounts that ticked "13 or over"; a later answer doesn't
@@ -3106,6 +3112,22 @@ The person's own templates, newest first (deleted ones aren't listed). **Request
 | Status | Code | Schema | Example |
 |---|---|---|---|
 | 200 |  | `templates.mine.json` | `templates.mine.200.json` |
+
+#### `templates.check`
+
+A draft song checked before it's saved (docs/score-import-plan.md, section 3), for a score import's
+review screen: `problems` are what would refuse it (the template schema, the song's rules and the
+arrangement's hard errors, each a plain line naming its part and bar); `advice` is what a singer will
+meet, never applied (`kind`: `range`, `leap`, `parallels`, `chord`, `third`, `end`, `duet`, `bars` or
+`breath`, a line sung over 10 seconds with no rest or breath mark; `text` says where). Nothing is kept.
+**Request:** `{ "template": { template JSON, as templates.save takes } }` (at most 512 KB). Limited
+(`template-check`, 120 an hour).
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 200 |  | `templates.check.json` | `templates.check.200.json` |
+| 422 | `validation_failed` | `error.json` | `templates.check.validation_failed.json` |
+| 429 | `rate_limited` | `error.json` | `templates.check.rate_limited.json` |
 
 #### `templates.save`
 
@@ -6179,7 +6201,7 @@ account, address, browser or cookie, and the request starts no session, so the a
 `harmonise_used`, `export_done`, `result_shared` (a lesson's result card shared), `leaderboard_viewed`,
 `challenge_accepted`, `app_day`, `app_week` and `app_month` (each device once a UTC day, ISO week
 and month, at its first open in it, from the date it last sent one, kept on the device), `sign_up` (counted
-by the server itself for every new account: the app doesn't send it), and the usage page's own (config/counts.php `kinds`: the skins, Plus extras, Hum a tune, the studio, onboarding's asks and melody first), and `<prefix>:<id>` for a course or lesson: `pl_s:` and `pl_d:` with a Plus course's `id` (web/course/plus/courses.json), `fl_s:` and `fl_d:` with a free lesson's `id` (web/course/course.json), counted only for a real id (others are dropped); `n` is 1 to 20 (more counts as
+by the server itself for every new account: the app doesn't send it), and the usage page's own (config/counts.php `kinds`: the skins, Plus extras, Hum a tune, the studio, onboarding's asks and melody first), and `<prefix>:<id>` for a course or lesson: `pl_s:` and `pl_d:` with a Plus course's `id` (web/course/plus/courses.json), `fl_s:` and `fl_d:` with a free lesson's `id` (web/course/course.json), `fs_r:<lessonId>.<step>` when a free lesson's step is reached (step from 0, in the lesson's own order or its experiment variant's; once per step each time the lesson is run), counted only for a real id (others are dropped); `n` is 1 to 20 (more counts as
 20); at most 20 events a request, 120 requests a minute from one connection (past it, the same `204`
 and nothing is counted: every sender is a beacon, and a browser logs a beacon's `429` as a console error).
 A request carrying the `sa_staff` cookie (an admin's device: set when an admin passes the second

@@ -29,7 +29,7 @@ use Illuminate\Support\Facades\DB;
 final class GrowthExport
 {
     /** Bump when a field's shape or meaning changes, and say so in docs/growth-data.md. */
-    public const SCHEMA_VERSION = 9;
+    public const SCHEMA_VERSION = 10;
 
     /** The range-scoped sections' windows, in days (null: since the first count). */
     public const RANGES = ['7' => 7, '30' => 30, '90' => 90, 'all' => null];
@@ -351,7 +351,7 @@ final class GrowthExport
         $askKinds = array_merge(...array_map(static fn (string $ask): array => ['ask_'.$ask.'_shown', 'ask_'.$ask.'_yes', 'ask_'.$ask.'_not'], $asks));
         $rows = DB::table('usage_counts')->where('day', '>=', $from)
             ->where(fn ($q) => $q->whereIn('kind', ['lesson_start', 'lesson_done', 'f_lesson1', ...$askKinds])
-                ->orWhere('kind', 'like', 'pl\_%')->orWhere('kind', 'like', 'fl\_%'))
+                ->orWhere('kind', 'like', 'pl\_%')->orWhere('kind', 'like', 'fl\_%')->orWhere('kind', 'like', 'fs\_r:%'))
             ->selectRaw("kind, {$split}")->groupBy('kind')->get()
             ->mapWithKeys(static fn (object $r): array => [(string) $r->kind => ['guest' => (int) $r->guest, 'account' => (int) $r->account]])->all();
 
@@ -361,6 +361,14 @@ final class GrowthExport
 
         foreach ($rows as $kind => $n) {
             [$prefix, $id] = array_pad(explode(':', $kind, 2), 2, null);
+
+            // A free lesson's step reached: its lesson's `steps`, by step.
+            if ($prefix === 'fs_r' && $id !== null && preg_match('/^(.+)\.(\d+)$/', $id, $step) === 1) {
+                $lessons[$step[1]] ??= ['lesson' => $step[1], 'started' => $zero, 'finished' => $zero, 'steps' => []];
+                $lessons[$step[1]]['steps'][(int) $step[2]] = $n;
+
+                continue;
+            }
 
             if ($id === null || ! isset(self::COURSE_KINDS[$prefix])) {
                 continue;
@@ -372,13 +380,19 @@ final class GrowthExport
                 $courses[$id] ??= ['course' => $id, 'started' => $zero, 'finished' => $zero];
                 $courses[$id][$what] = $n;
             } else {
-                $lessons[$id] ??= ['lesson' => $id, 'started' => $zero, 'finished' => $zero];
+                $lessons[$id] ??= ['lesson' => $id, 'started' => $zero, 'finished' => $zero, 'steps' => []];
                 $lessons[$id][$what] = $n;
             }
         }
 
         ksort($courses);
         ksort($lessons, SORT_NATURAL);
+
+        // Each lesson's steps in order from 0, a step with none reached as zero.
+        foreach ($lessons as $id => $lesson) {
+            $reached = $lesson['steps'];
+            $lessons[$id]['steps'] = $reached === [] ? [] : array_map(static fn (int $i): mixed => $reached[$i] ?? $zero, range(0, max(array_keys($reached))));
+        }
 
         return [
             'lessons' => ['started' => $rows['lesson_start'] ?? $zero, 'finished' => $rows['lesson_done'] ?? $zero, 'firstLesson' => $rows['f_lesson1'] ?? $zero],

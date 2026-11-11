@@ -23,6 +23,11 @@ const EXTENSION = /(chrome|moz|safari(-web)?)-extension:\/\//;
 // Code of ours: this host, any stackapella.com address, or the pinned CDN (Vue and the libraries). A stack with frames
 // but none of these is an extension's or an injected script's, whatever it says (the coordinator, 2026-11-10).
 const OURS = /^(?:https?:\/\/(?:[\w-]+\.)*stackapella\.com\/|https:\/\/cdn\.jsdelivr\.net\/npm\/)/;
+// The page's own length in lines, read as this module loads (before the app draws into it). We have no inline script,
+// so code at a page's own address past its last line is a script an in-app browser injected into the page: Sentry
+// JAVASCRIPT-7 was 100 frames of two minified functions on "line 230" of the 69-line /learn/1-match, on iOS. Such an
+// event still goes, tagged injected and at the info level, so an odd stack of ours can never vanish (the coordinator).
+const PAGE_LINES = typeof document === 'undefined' ? 0 : document.documentElement.outerHTML.split('\n').length + 1;
 const BROWSERS = [['Edge', /Edg\/(\d+)/], ['Firefox', /Firefox\/(\d+)/], ['Chrome', /Chrome\/(\d+)/], ['Safari', /Version\/(\d+).*Safari/]]; // i18n-ignore: sent to Sentry, never shown
 
 const sent = new Set();
@@ -61,22 +66,40 @@ export function framesOf(stack) {
     return frames.reverse();
 }
 
+/**
+ * Whether a stack is a script injected into the page: every frame (at least one) at an address of this site that is a
+ * page, not a script file, and past the page's last line. Our code is always in a script file (or Vue's, on the CDN).
+ */
+export function injected(stack, { origin = location.origin, lines = PAGE_LINES } = {}) {
+    const frames = framesOf(stack);
+    return frames.length > 0 && frames.every((f) => {
+        let address;
+        try {
+            address = new URL(f.filename);
+        } catch {
+            return false; // no address (eval'd code): it can be ours
+        }
+        return address.origin === origin && !/\.m?js$/.test(address.pathname) && f.lineno > lines;
+    });
+}
+
 /** The event JSON for an error: its type, message and frames, and what it happened in. */
-export function eventFor(error, { mechanism = 'onerror', context = null, path = location.pathname, ua = navigator.userAgent, release = APP_VERSION, build = null } = {}) {
+export function eventFor(error, { mechanism = 'onerror', context = null, path = location.pathname, ua = navigator.userAgent, release = APP_VERSION, build = null, pageLines = PAGE_LINES } = {}) {
     const type = error?.name || 'Error';
+    const foreign = injected(error?.stack, { lines: pageLines });
     const value = String(error?.message ?? error ?? '').slice(0, 1000);
     const { browser, os } = describeBrowser(ua);
     return {
         event_id: crypto.randomUUID().replace(/-/g, ''),
         timestamp: Date.now() / 1000,
         platform: 'javascript',
-        level: 'error',
+        level: foreign ? 'info' : 'error',
         release: build ? `${release}+${build}` : release,
         environment: location.hostname === 'localhost' || location.hostname === '127.0.0.1' ? 'development' : location.hostname.startsWith('beta.') ? 'beta' : 'production',
         exception: { values: [{ type, value, stacktrace: { frames: framesOf(error?.stack) }, mechanism: { type: mechanism, handled: false } }] },
         request: { url: `${location.origin}${scrubPath(path)}` },
         contexts: { browser, os },
-        tags: { route: scrubPath(path), ...(context ? { vue: context } : {}) },
+        tags: { route: scrubPath(path), ...(context ? { vue: context } : {}), ...(foreign ? { injected: 'true' } : {}) },
     };
 }
 
@@ -128,7 +151,9 @@ export function watchErrors(app) {
         else if (event.message) report({ name: 'Error', message: event.message, filename: event.filename, stack: '' }, { mechanism: 'onerror' }); // i18n-ignore: sent to Sentry, never shown
     });
     window.addEventListener('unhandledrejection', (event) => {
-        const reason = event.reason instanceof Error ? event.reason : { name: 'UnhandledRejection', message: String(event.reason?.message ?? event.reason), stack: '' };
+        // Not an Error (JAVASCRIPT-6 was just "Na"): its kind too, as "(object Foo)" or "(string)", so the report says what it was.
+        const kind = (r) => `${typeof r}${r && typeof r === 'object' && r.constructor?.name && r.constructor.name !== 'Object' ? ` ${r.constructor.name}` : ''}`; // i18n-ignore: sent to Sentry, never shown
+        const reason = event.reason instanceof Error ? event.reason : { name: 'UnhandledRejection', message: `${String(event.reason?.message ?? event.reason)} (${kind(event.reason)})`, stack: String(event.reason?.stack ?? '') };
         report(reason, { mechanism: 'onunhandledrejection' });
     });
     window.addEventListener('online', () => waiting.splice(0).forEach(send));

@@ -257,7 +257,7 @@ final class AppTokens
             && ! AppDevice::query()->where('user_id', $user->id)->whereKeyNot($device->id)->exists();
 
         if (! $firstEver && $user->email !== null && $user->email_verified_at !== null) {
-            Mail::to($user->email)->send(new NewSignIn(__('account.mail.new_sign_in.platforms.'.$device->platform), true));
+            Mail::to($user->email)->locale($user->preferredLocale())->send(new NewSignIn(__('account.mail.new_sign_in.platforms.'.$device->platform), true));
         }
     }
 

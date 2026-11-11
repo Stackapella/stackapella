@@ -45,6 +45,9 @@
                 ]
             }
         ],
-        "schools": false
+        "schools": false,
+        "languages": [
+            "en"
+        ]
     }
 }

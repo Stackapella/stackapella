@@ -60,6 +60,7 @@ use App\Support\Admin\AdminGate;
 use App\Support\Cache\RetryingDatabaseStore;
 use App\Support\Flags;
 use App\Support\Gallery\Gallery;
+use App\Support\Languages\TranslationMaps;
 use App\Support\Ops\TempFiles;
 use App\Support\Templates\Catalogue;
 use App\Support\Trust\Limits;
@@ -67,6 +68,7 @@ use App\Support\Usage\Plans;
 use App\Support\Web\AppShell;
 use Illuminate\Cache\Repository;
 use Illuminate\Contracts\Foundation\Application;
+use Illuminate\Contracts\Translation\Loader;
 use Illuminate\Database\Connection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Relation;
@@ -94,6 +96,9 @@ final class AppServiceProvider extends ServiceProvider
 
     public function register(): void
     {
+        // The server's words in other languages: maps from the English (App\Support\Languages\TranslationMaps).
+        $this->app->extend('translation.loader', static fn (Loader $loader, Application $app): TranslationMaps => new TranslationMaps($loader, $app->langPath()));
+
         // The database cache, built as Laravel's own `database` driver builds it, with the retrying store.
         // Once every provider is registered, before any boots (the rate limiters ask for the cache).
         $this->app->booting(static fn () => Cache::extend('database_retrying', function (Application $app, array $config): Repository {

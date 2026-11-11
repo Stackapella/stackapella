@@ -9,6 +9,7 @@ use App\Rules\AvailableHandle;
 use App\Rules\NoLinks;
 use App\Rules\OneLine;
 use App\Support\Accounts\Age;
+use App\Support\Languages\Languages;
 use App\Support\Push\AppPushes;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -34,7 +35,7 @@ final class UpdateAccountRequest extends FormRequest
             'name' => ['sometimes', 'required', 'string', 'max:80', new NoLinks, new OneLine],
             'handle' => ['sometimes', 'required', 'string', new AvailableHandle($user instanceof User ? $user : null)],
             'bio' => ['sometimes', 'nullable', 'string', 'max:300', new NoLinks],
-            'locale' => ['sometimes', 'required', 'string', Rule::in(['en'])],
+            'locale' => ['sometimes', 'required', 'string', Rule::in(Languages::ALL)],
             'timezone' => ['sometimes', 'nullable', 'string', 'timezone:all'],
             'xHandle' => ['sometimes', 'nullable', 'string', 'regex:/^[A-Za-z0-9_]{1,15}$/'],
             'blueskyHandle' => ['sometimes', 'nullable', 'string', 'max:253', 'regex:/^[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/'],

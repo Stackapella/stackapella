@@ -27,7 +27,7 @@ final class FlagsController extends Controller
     public function update(UpdateFlagRequest $request, string $name, Flags $flags, #[CurrentUser] User $admin): FlagResource
     {
         // Sheet music import goes on only with the DMCA agent named (docs/sheet-import-legal.md).
-        if ($name === 'sheet_import' && $request->validated('value') === 'on' && ! DmcaAgent::registered()) {
+        if ($name === 'sheet_import' && $request->validated('value') !== 'off' && ! DmcaAgent::registered()) {
             throw new Refusal(409, 'dmca_agent_missing');
         }
 

@@ -1,0 +1,17 @@
+{
+    "This page isn't here": "Esta página no existe",
+    "The link may be old, or the address mistyped. Everything else is where it was.": "Puede que el enlace sea antiguo o que la dirección esté mal escrita. Todo lo demás sigue en su sitio.",
+    "This page isn't open to you": "No tienes acceso a esta página",
+    "The link may have expired, or be meant for someone else. If someone sent it to you, ask them for a fresh one.": "Puede que el enlace haya caducado o que sea para otra persona. Si alguien te lo envió, pídele uno nuevo.",
+    "That form timed out": "El formulario caducó",
+    "For your safety, a form left open for a long time stops working. Go back, reload the page and try again.": "Por tu seguridad, un formulario que se deja abierto mucho tiempo deja de funcionar. Vuelve atrás, recarga la página e inténtalo de nuevo.",
+    "Something went wrong on our side": "Algo falló por nuestra parte",
+    "It isn't anything you did, and your songs are safe. Try again in a moment.": "No es nada que hayas hecho, y tus canciones están a salvo. Vuelve a intentarlo en un momento.",
+    "Back in a few minutes": "Volvemos en unos minutos",
+    "We're making Stackapella better. Your songs are safe on your device, and the app keeps working offline.": "Estamos mejorando Stackapella. Tus canciones están a salvo en tu dispositivo, y la app sigue funcionando sin conexión.",
+    "Back to the start": "Volver al inicio",
+    "Keep looking": "Seguir buscando",
+    "Open the app": "Abrir la app",
+    "Slow down a little": "Más despacio, por favor",
+    "{1} You can try again in a minute.|[2,*] You can try again in :minutes minutes.": "{1} Puedes volver a intentarlo en un minuto.|[2,*] Puedes volver a intentarlo en :minutes minutos."
+}

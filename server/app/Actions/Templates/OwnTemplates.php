@@ -15,10 +15,10 @@ use App\Models\TemplateRecording;
 use App\Models\TemplateVersion;
 use App\Models\User;
 use App\Support\Contract\SchemaChecker;
-use App\Support\Flags;
 use App\Support\Moderation\TextFilter;
 use App\Support\Templates\Catalogue;
 use App\Support\Templates\Imported;
+use App\Support\Templates\SheetImport;
 use App\Support\Templates\TemplateRules;
 use App\Support\Trust\TrustLevel;
 use App\Support\Usage\Plans;
@@ -35,7 +35,7 @@ use Illuminate\Validation\ValidationException;
  */
 final class OwnTemplates
 {
-    private const MAX_BYTES = 512 * 1024;
+    public const MAX_BYTES = 512 * 1024;
 
     public function __construct(private readonly Plans $plans, private readonly TrustLevel $trust, private readonly TemplateRules $rules) {}
 
@@ -73,7 +73,7 @@ final class OwnTemplates
         // calling the API around the app's switch (docs/sheet-import-legal.md).
         $existing = Template::query()->where('slug', $uuid)->where('owner_id', $user->id)->whereNotNull('imported_at')->exists();
 
-        if ($imported && $copiedFrom === null && ! $existing && ! app(Flags::class)->on('sheet_import') && ! $user->is_admin && ! $user->is_editor) {
+        if ($imported && $copiedFrom === null && ! $existing && ! app(SheetImport::class)->allowed($user)) {
             throw new Refusal(403, 'import_closed');
         }
 

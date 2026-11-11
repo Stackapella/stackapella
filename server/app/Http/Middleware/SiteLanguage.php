@@ -1,0 +1,95 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Http\Middleware;
+
+use App\Support\Http\Hosts;
+use App\Support\Languages\Languages;
+use App\Support\Languages\SiteLanguages;
+use Closure;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\App;
+use Symfony\Component\HttpFoundation\Response;
+
+/**
+ * A public page in a language (SiteLanguages): a page under /<lang>/ answers only while its language's switch is on
+ * (locally and in tests, always, to check a draft), in that language. Its links to other pages the language serves
+ * stay in it (so are its canonical and redirects), and every such page, English too, names its other languages
+ * (hreflang, with English as x-default) once more than English is open.
+ */
+final class SiteLanguage
+{
+    public function __construct(private readonly Languages $languages) {}
+
+    public function handle(Request $request, Closure $next, string $language = 'en'): Response
+    {
+        if ($language !== 'en') {
+            abort_unless($this->languages->isOffered($language) || app()->environment(['local', 'testing']), 404);
+        }
+
+        // The page's language for this request only: a long-running worker serves the next one as it was.
+        $before = App::getLocale();
+        App::setLocale($language);
+
+        try {
+            return $this->render($request, $next, $language);
+        } finally {
+            App::setLocale($before);
+        }
+    }
+
+    private function render(Request $request, Closure $next, string $language): Response
+    {
+        $response = $next($request);
+        $english = SiteLanguages::englishPath($request->getPathInfo(), $language);
+
+        if ($language !== 'en' && $response->isRedirection() && is_string($location = $response->headers->get('Location'))) {
+            $response->headers->set('Location', self::localize($location, $language));
+        }
+
+        if ($response->getStatusCode() !== 200 || ! str_contains((string) $response->headers->get('Content-Type'), 'text/html') || ! is_string($html = $response->getContent())) {
+            return $response;
+        }
+
+        if ($language !== 'en') {
+            $html = (string) preg_replace_callback('/\b(href|content|action)="([^"]*)"/', static fn (array $m): string => $m[1].'="'.self::localize(html_entity_decode($m[2], ENT_QUOTES | ENT_HTML5), $language, escape: true).'"', $html);
+            $response->headers->set('Content-Language', $language);
+        }
+
+        $alternates = SiteLanguages::alternatesOf($english);
+
+        if ($alternates !== []) {
+            $links = array_map(static fn (string $lang): string => '<link rel="alternate" hreflang="'.$lang.'" href="'.e(SiteLanguages::url($lang, $english)).'">', $alternates);
+            $links[] = '<link rel="alternate" hreflang="x-default" href="'.e(SiteLanguages::url('en', $english)).'">';
+            $html = (string) preg_replace('#</head>#i', implode('', $links).'</head>', $html, 1);
+        }
+
+        $response->setContent($html);
+
+        return $response;
+    }
+
+    /**
+     * An address on our public site, in the language when the language serves its page; any other as it is.
+     */
+    private static function localize(string $url, string $language, bool $escape = false): string
+    {
+        $public = Hosts::publicUrl();
+        $relative = str_starts_with($url, '/') && ! str_starts_with($url, '//');
+        $ours = $public !== '' && ($url === $public || str_starts_with($url, $public.'/'));
+
+        if (! $relative && ! $ours) {
+            return $escape ? e($url) : $url;
+        }
+
+        $rest = $relative ? $url : substr($url, strlen($public));
+        $path = (string) strtok($rest === '' ? '/' : $rest, '?#');
+        $tail = substr($rest, strlen($path));
+        $done = SiteLanguages::serves($language, $path) && ! str_starts_with($path, '/'.$language.'/')
+            ? ($relative ? '' : $public).'/'.$language.$path.$tail
+            : $url;
+
+        return $escape ? e($done) : $done;
+    }
+}

@@ -59,9 +59,10 @@ final class UsageCountsTest extends TestCase
     public function test_the_usage_pages_kinds_and_a_course_or_lesson_only_by_a_real_id(): void
     {
         config(['counts.enabled' => true]);
-        $this->postJson('/api/counts', ['events' => [['kind' => 'open_game'], ['kind' => 'take_undo'], ['kind' => 'sug_melody'], ['kind' => 'pl_d:vibrato'], ['kind' => 'fl_s:1-comfortable'], ['kind' => 'pl_d:no-such-course'], ['kind' => 'fl_s:nope'], ['kind' => 'zz:vibrato']]])->assertNoContent();
+        $this->postJson('/api/counts', ['events' => [['kind' => 'open_game'], ['kind' => 'take_undo'], ['kind' => 'sug_melody'], ['kind' => 'pl_d:vibrato'], ['kind' => 'fl_s:1-comfortable'], ['kind' => 'pl_d:no-such-course'], ['kind' => 'fl_s:nope'], ['kind' => 'zz:vibrato'], ['kind' => 'fs_r:1-comfortable.1'], ['kind' => 'fs_r:1-comfortable.99'], ['kind' => 'fs_r:nope.0']]])->assertNoContent();
 
-        $this->assertSame(['fl_s:1-comfortable', 'open_game', 'pl_d:vibrato', 'sug_melody', 'take_undo'], DB::table('usage_counts')->orderBy('kind')->pluck('kind')->all());
+        // A free lesson's step reached counts only for a real lesson and a step it has.
+        $this->assertSame(['fl_s:1-comfortable', 'fs_r:1-comfortable.1', 'open_game', 'pl_d:vibrato', 'sug_melody', 'take_undo'], DB::table('usage_counts')->orderBy('kind')->pluck('kind')->all());
     }
 
     public function test_off_counts_nothing_and_flooding_is_limited(): void

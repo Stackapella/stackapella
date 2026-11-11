@@ -63,8 +63,10 @@ return [
     'coach_signup' => ['kind' => 'feature', 'values' => ['off', 'on']],
     // Hum a tune's page and the landing's line about it (docs/launch-plan.md: on at launch).
     'your_tune' => ['kind' => 'feature', 'values' => ['off', 'on']],
-    // Sheet music import (docs/sheet-music-plan.md): off until the server's guardrails are live.
-    'sheet_import' => ['kind' => 'feature', 'values' => ['off', 'on']],
+    // Sheet music import (docs/sheet-music-plan.md): off until the server's guardrails are live; `directors` opens
+    // it to choir directors only (docs/score-import-plan.md: learning tracks from their own score). Either needs
+    // the DMCA agent named (App\Support\Templates\SheetImport).
+    'sheet_import' => ['kind' => 'feature', 'values' => ['off', 'on', 'directors']],
     // Lend your voice (docs/lend-your-voice-plan.md): volunteers claim the songs' and lessons'
     // missing real voices. Off until Hillel has reviewed the agreement and the terms.
     'lend_voice' => ['kind' => 'feature', 'values' => ['off', 'on']],
@@ -79,5 +81,10 @@ return [
     // self-hosting terms and every mention of it on the site. Off until the repos are public:
     // saying so before then would be untrue.
     'open_source' => ['kind' => 'feature', 'values' => ['off', 'on']],
+    // A language for everyone (docs/languages-plan.md; App\Support\Languages\Languages): the app
+    // offers it in Settings and follows the browser into it, and the site serves its pages, only
+    // while it's on. Off until its slice has had its native-speaker review.
+    'lang_es' => ['kind' => 'feature', 'values' => ['off', 'on']],
+    'lang_de' => ['kind' => 'feature', 'values' => ['off', 'on']],
 
 ];

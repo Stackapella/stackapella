@@ -1,5 +1,5 @@
 // Error reporting (js/errors.js): the envelope Sentry reads, and what never goes in it.
-import { describeBrowser, envelopeFor, eventFor, framesOf, isNoise, scrubPath } from '/js/errors.js';
+import { describeBrowser, envelopeFor, eventFor, framesOf, injected, isNoise, scrubPath } from '/js/errors.js';
 import { assert, test } from './harness.js';
 
 test('errors: token addresses are reported as their pattern, never with the token or a query', () => {
@@ -46,4 +46,25 @@ test('errors: extensions, resize loops and aborted fetches are noise; Firefox fr
     assert(isNoise({ name: 'Error', message: 'Script error.', filename: '', stack: '' }), "a cross-origin script's hidden error, as window.onerror gives it");
     assert(framesOf('play@https://h/js/a.js:3:4').length === 1, 'Firefox frames');
     assert(describeBrowser('Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) Version/18.0 Mobile/15E148 Safari/604.1').os.name === 'iOS', 'iOS');
+});
+
+test('errors: a script injected into the page (every frame at the page itself, past its last line) goes as info, tagged', () => {
+    // Sentry JAVASCRIPT-7, as Safari on iOS gave it: two minified functions calling each other on "line 230" of the
+    // 69-line /learn/1-match, called from lines 191 to 201: an in-app browser's script, none of ours.
+    const page = `${location.origin}/learn/1-match`;
+    const loop = Array.from({ length: 6 }, (_, i) => (i % 2 ? `tk@${page}:230:418` : `rk@${page}:230:70`));
+    const stack = [...loop, `@${page}:201:358`, `@${page}:194:39`, `@${page}:191:249`, `@${page}:194:68`].join('\n');
+    const overflow = { name: 'RangeError', message: 'Maximum call stack size exceeded.', stack };
+    assert(injected(stack, { lines: 69 }), 'every frame past the page\'s last line');
+    const event = eventFor(overflow, { path: '/learn/1-match', pageLines: 69 });
+    assert(event.level === 'info' && event.tags.injected === 'true', JSON.stringify({ level: event.level, tags: event.tags }));
+    assert(!isNoise(overflow), 'still sent: visible in Sentry, never dropped');
+    // Any frame of ours, or one within the page's own lines, or one without an address: ours, an error as ever.
+    assert(!injected(`${stack}\nplay@${location.origin}/js/views/learn.js:12:3`, { lines: 69 }), 'a frame in a script file of ours');
+    assert(!injected(`rk@${page}:12:7`, { lines: 69 }), 'within the page\'s own lines');
+    assert(!injected(`    at render (<anonymous>:95:9)\n    at rk (${page}:230:70)`, { lines: 69 }), 'an eval\'d frame (no address) among them');
+    assert(!injected(`rk@https://cdn.jsdelivr.net/npm/vue@3.5.44/dist/vue.esm-browser.prod.js:7:1`, { lines: 69 }), 'Vue on the pinned CDN');
+    assert(!injected('', { lines: 69 }), 'no frames at all');
+    const ours = eventFor({ name: 'TypeError', message: 'x', stack: `play@${location.origin}/js/views/learn.js:12:3` }, { pageLines: 69 });
+    assert(ours.level === 'error' && !('injected' in ours.tags), JSON.stringify(ours.tags));
 });

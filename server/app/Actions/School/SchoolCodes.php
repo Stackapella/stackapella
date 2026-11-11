@@ -313,7 +313,7 @@ final class SchoolCodes
         $record->save();
 
         if ($tell) {
-            Mail::to((string) $teacher->email)->queue((new ClassCodesReady($teacher->name))->afterCommit());
+            Mail::to((string) $teacher->email)->locale($teacher->preferredLocale())->queue((new ClassCodesReady($teacher->name))->afterCommit());
         }
 
         AuditLog::record('school.teacher', $teacher, $admin, before: $before, after: ['approved' => $record->approved_at !== null, 'seatAllowance' => $record->seat_allowance], reason: $reason);

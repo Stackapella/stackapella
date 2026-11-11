@@ -44,6 +44,9 @@ final class ArrangementCheck
         'hdim7' => [[0, 3, 6, 10], 3], 'min6' => [[0, 3, 7, 9], 3], 'add9' => [[0, 2, 4, 7], 4],
     ];
 
+    /** The longest a line may go without a breath, at the song's tempo (singable.py's rule 2). */
+    private const BREATH_SECONDS = 10;
+
     /** Leaps larger than a major sixth (semitones). */
     private const LEAP = 9;
 
@@ -214,6 +217,38 @@ final class ArrangementCheck
             } elseif ($next !== null && $next['br'] && ! $round && in_array($key, ['alto', 'tenor'], true) && abs($next['pitch'] - $note['pitch']) > self::LEAP) {
                 // An inner voice has no tune to find its next note by, so a breath doesn't help it.
                 $advice[] = "leap: {$at}: {$this->name($note['pitch'])} to {$this->name($next['pitch'])} into a new phrase, over a sixth";
+            }
+        }
+
+        $this->breaths($t, $key, $notes, $advice);
+    }
+
+    /**
+     * A line sung for longer than a breath lasts (singable.py's rules 1 and 2, the arranger's, here so a director
+     * importing a score hears it too): from a breath mark or a rest, more than BREATH_SECONDS before the next.
+     *
+     * @param  array<string, mixed>  $t
+     * @param  list<array{beat: float, length: float, pitch: int, lyric: ?string, br: bool}>  $notes
+     * @param  list<string>  $advice
+     */
+    private function breaths(array $t, string $key, array $notes, array &$advice): void
+    {
+        $tempo = is_numeric($t['tempo'] ?? null) && (float) $t['tempo'] > 0 ? (float) $t['tempo'] : 90.0;
+        $start = $notes[0];
+
+        foreach ($notes as $i => $note) {
+            $next = $notes[$i + 1] ?? null;
+            $end = $note['beat'] + $note['length'];
+
+            // The line ends here: at the last note, before a rest, or before a breath mark.
+            if ($next === null || $next['beat'] > $end + self::EPSILON || $next['br']) {
+                $seconds = ($end - $start['beat']) * 60 / $tempo;
+
+                if ($seconds > self::BREATH_SECONDS) {
+                    $advice[] = "breath: {$key} {$this->at($t, $start['beat'])} to {$this->at($t, $end)}: ".round($seconds).' seconds with no breath (a rest or a breath mark at a comma helps)';
+                }
+
+                $start = $next ?? $note;
             }
         }
     }

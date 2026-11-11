@@ -60,9 +60,9 @@ final class Lessons
             }
             $courses[$slug] = [
                 'id' => (string) ($entry['id'] ?? $slug),
-                'name' => self::en($entry['title'] ?? ''),
+                'name' => self::words($entry['title'] ?? ''),
                 'file' => $root.'/plus/'.$entry['file'],
-                'safety' => self::en($entry['safety'] ?? '') ?: null,
+                'safety' => self::words($entry['safety'] ?? '') ?: null,
                 'up' => '/courses/'.$slug,
                 'minutes' => is_int($entry['minutes'] ?? null) ? $entry['minutes'] : null,
             ];
@@ -80,7 +80,8 @@ final class Lessons
     {
         self::$built ??= [];
 
-        return self::$built[$course] ??= self::build($course);
+        // Built once per language a request: the slugs are the English's, the words the page's language.
+        return self::$built[app()->getLocale().':'.$course] ??= self::build($course);
     }
 
     /**
@@ -276,8 +277,9 @@ final class Lessons
                 if ($group === []) {
                     continue;
                 }
-                $title = $perUnit ? self::en($unit['title'] ?? '') : self::en($group[0]['title'] ?? '');
-                $slug = self::slug($title);
+                // The address is the English title's in every language; the page says it in its own.
+                $slug = self::slug($perUnit ? self::en($unit['title'] ?? '') : self::en($group[0]['title'] ?? ''));
+                $title = $perUnit ? self::words($unit['title'] ?? '') : self::words($group[0]['title'] ?? '');
                 if ($slug === '' || isset($taken[$slug])) {
                     $slug = trim($slug.'-'.($u + 1), '-');
                 }
@@ -292,7 +294,7 @@ final class Lessons
                     'url' => '/courses/'.$course.'/'.$slug,
                     'kind' => $perUnit ? 'unit' : 'lesson',
                     'name' => $title,
-                    'unit' => self::en($unit['title'] ?? ''),
+                    'unit' => self::words($unit['title'] ?? ''),
                     'unitNumber' => $u + 1,
                     'title' => is_string($words['title'] ?? null) ? $words['title'] : $title,
                     'description' => is_string($words['description'] ?? null) ? $words['description'] : null,
@@ -358,11 +360,11 @@ final class Lessons
             if ($kind === 'learn') {
                 $cards = [];
                 foreach (array_filter((array) ($step['steps'] ?? []), 'is_array') as $card) {
-                    $cards[] = ['title' => self::en($card['title'] ?? ''), 'detail' => self::en($card['detail'] ?? '')];
+                    $cards[] = ['title' => self::words($card['title'] ?? ''), 'detail' => self::words($card['detail'] ?? '')];
                 }
-                $teach[] = ['headline' => self::en($step['headline'] ?? ''), 'cards' => $cards];
-            } elseif (in_array($kind, self::SUNG, true) && self::en($step['text'] ?? '') !== '') {
-                $sing[] = self::en($step['text']);
+                $teach[] = ['headline' => self::words($step['headline'] ?? ''), 'cards' => $cards];
+            } elseif (in_array($kind, self::SUNG, true) && self::words($step['text'] ?? '') !== '') {
+                $sing[] = self::words($step['text']);
             }
             if ($kind === 'choose') {
                 $choose ??= self::round($step);
@@ -373,13 +375,13 @@ final class Lessons
 
         return [
             'id' => (string) ($lesson['id'] ?? ''),
-            'name' => self::en($lesson['title'] ?? ''),
+            'name' => self::words($lesson['title'] ?? ''),
             'challenge' => (bool) ($lesson['challenge'] ?? false),
             'teach' => $teach,
             'sing' => $sing,
             // The first listen-and-choose round it has, for a page's "Try one round" (lesson_try).
             'choose' => $choose,
-            'fact' => $fact === null || self::en($fact['text'] ?? '') === '' ? null : ['text' => self::en($fact['text']), 'source' => self::en($fact['source'] ?? '') ?: null, 'url' => $url],
+            'fact' => $fact === null || self::words($fact['text'] ?? '') === '' ? null : ['text' => self::words($fact['text']), 'source' => self::words($fact['source'] ?? '') ?: null, 'url' => $url],
         ];
     }
 
@@ -397,7 +399,7 @@ final class Lessons
         foreach (array_filter((array) ($exercise['rounds'] ?? []), 'is_array') as $round) {
             $clips = array_values(array_filter((array) ($round['clips'] ?? []), 'is_array'));
             $playable = $clips !== [] && array_filter($clips, static fn (array $clip): bool => ! is_array($clip['notes'] ?? null) || $clip['notes'] === [] || isset($clip['recorded']) || isset($clip['clip'])) === [];
-            $options = isset($round['options']) ? array_values(array_map(self::en(...), (array) $round['options'])) : null;
+            $options = isset($round['options']) ? array_values(array_map(self::words(...), (array) $round['options'])) : null;
             $answer = $round['answer'] ?? null;
             $choices = $options === null ? count($clips) : count($options);
             if (! $playable || $choices < 2 || ! is_int($answer) || $answer < 0 || $answer >= $choices || ($options !== null && in_array('', $options, true))) {
@@ -405,17 +407,26 @@ final class Lessons
             }
 
             return [
-                'text' => self::en($step['text'] ?? ''),
+                'text' => self::words($step['text'] ?? ''),
                 'tempo' => is_int($exercise['tempo'] ?? null) ? $exercise['tempo'] : 72,
-                'prompt' => self::en($round['prompt'] ?? ''),
+                'prompt' => self::words($round['prompt'] ?? ''),
                 'clips' => array_map(static fn (array $clip): array => array_intersect_key($clip, array_flip(['notes', 'voices', 'drone', 'chords'])), $clips),
                 'options' => $options,
                 'answer' => $answer,
-                'why' => self::en($round['why'] ?? ''),
+                'why' => self::words($round['why'] ?? ''),
             ];
         }
 
         return null;
+    }
+
+    /** A word as the content keeps it ({ "en": "...", "es": "..." }, or a plain string), in the page's language, or
+     *  in English while it has none (docs/languages-plan.md: never half a sentence). */
+    private static function words(mixed $words): string
+    {
+        $here = is_array($words) ? $words[app()->getLocale()] ?? null : null;
+
+        return is_string($here) && trim($here) !== '' ? trim($here) : self::en($words);
     }
 
     /** A word as the content keeps it ({ "en": "..." }, or a plain string), in English. */

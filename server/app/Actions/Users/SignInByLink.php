@@ -56,7 +56,8 @@ final class SignInByLink
             'expires_at' => now()->addMinutes(SignInLink::MINUTES),
         ])->save();
 
-        Mail::to($email)->send(new SignInLinkMail($token));
+        // In the account's language, or a newcomer's (the request's: App\Http\Middleware\RequestLanguage).
+        Mail::to($email)->locale(User::query()->where('email', $email)->value('locale') ?? app()->getLocale())->send(new SignInLinkMail($token));
     }
 
     /**

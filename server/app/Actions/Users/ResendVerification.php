@@ -34,6 +34,6 @@ final class ResendVerification
         // Bound like the sign-up's (SignUpBrowser): to the secret the asker holds, else to one nobody
         // holds, so a link asked for without it starts the account fresh. Never unbound.
         $bound = $browserHash ?? hash('sha256', Str::random(48));
-        Mail::to((string) $user->email)->send(new VerifyEmailAddress($this->tokens->issue($user, EmailToken::VERIFY, (string) $user->email, 24, browserHash: $bound), $user->name));
+        Mail::to((string) $user->email)->locale($user->preferredLocale())->send(new VerifyEmailAddress($this->tokens->issue($user, EmailToken::VERIFY, (string) $user->email, 24, browserHash: $bound), $user->name));
     }
 }

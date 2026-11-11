@@ -11,6 +11,8 @@ use App\Models\Choir;
 use App\Models\PageVersion;
 use App\Models\Template;
 use App\Models\TemplateVersion;
+use App\Support\Languages\Languages;
+use App\Support\Languages\SiteLanguages;
 use App\Support\Pages\Carols;
 use App\Support\Pages\Lessons;
 use App\Support\Pages\Reference;
@@ -101,6 +103,13 @@ final class SitemapPaths
         foreach ($legal as $page) {
             if (is_file(resource_path("legal/en/{$page}.md"))) {
                 $paths[] = '/legal/'.$page;
+            }
+        }
+
+        // Each page again in every language that's open and serves it (config/languages.php), under /<lang>/.
+        foreach (app(Languages::class)->offered() as $language) {
+            if ($language !== 'en') {
+                $paths = [...$paths, ...array_map(static fn (string $path): string => '/'.$language.$path, array_values(array_filter(array_map('strval', $paths), static fn (string $path): bool => SiteLanguages::serves($language, $path))))];
             }
         }
 

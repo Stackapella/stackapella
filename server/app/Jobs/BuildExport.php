@@ -314,7 +314,7 @@ final class BuildExport implements ShouldQueue
         $export->forceFill(['status' => 'ready', 'file_key' => $key, 'ready_at' => now(), 'expires_at' => $expiresAt])->save();
 
         if ($user->email !== null) {
-            Mail::to($user->email)->send(new ExportReady(Hosts::appLink('/account/export'), $expiresAt->copy()->setTimezone($user->zone())->settings(['locale' => $user->locale])->isoFormat('LL')));
+            Mail::to($user->email)->locale($user->preferredLocale())->send(new ExportReady(Hosts::appLink('/account/export'), $expiresAt->copy()->setTimezone($user->zone())->settings(['locale' => $user->locale])->isoFormat('LL')));
         }
     }
 

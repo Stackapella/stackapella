@@ -58,7 +58,7 @@ final class SupportInbox
             $message->forceFill(['status' => $close ? SupportMessage::CLOSED : SupportMessage::ANSWERED, 'answered_at' => now(), 'closed_at' => $close ? now() : null])->save();
 
             if ($message->email !== null) {
-                Mail::to($message->email)->queue((new SupportAnswer($reply, $message->user?->name))->afterCommit());
+                Mail::to($message->email)->locale($message->user?->preferredLocale() ?? 'en')->queue((new SupportAnswer($reply, $message->user?->name))->afterCommit());
             }
 
             return $message;

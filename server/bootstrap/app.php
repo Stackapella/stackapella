@@ -58,6 +58,7 @@ use App\Http\Middleware\PreventRequestForgery;
 use App\Http\Middleware\ReadOnlyMode;
 use App\Http\Middleware\RedirectToCanonicalHost;
 use App\Http\Middleware\RenewRememberCookie;
+use App\Http\Middleware\RequestLanguage;
 use App\Http\Middleware\ResolveClientIp;
 use App\Http\Middleware\Revalidate;
 use App\Http\Middleware\SecurityHeaders;
@@ -69,6 +70,7 @@ use App\Support\Accounts\BetaPass;
 use App\Support\Admin\IntendedUrl;
 use App\Support\Admin\StaffDevice;
 use App\Support\Http\ApiError;
+use App\Support\Languages\SiteLanguages;
 use App\Support\Pages\MudeoArrival;
 use App\Support\Pages\SongCollections;
 use Illuminate\Auth\AuthenticationException;
@@ -203,6 +205,9 @@ return Application::configure(basePath: dirname(__DIR__))
             // Everything else is the PWA: its index.html for app routes, and locally its files. No
             // session: an anonymous visit never makes a session row or sets a cookie (the app's
             // first /api call gets the XSRF-TOKEN cookie when it needs one).
+            // The pages in other languages (config/languages.php), each under /<lang>/.
+            SiteLanguages::register(app('router'));
+
             Route::fallback(WebAppController::class);
         },
         commands: __DIR__.'/../routes/console.php',
@@ -240,6 +245,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'throttle:api',
             NoStore::class,
             GrantBetaPass::class,
+            // The request's language: the account's, or the browser's among the open ones (RequestLanguage).
+            RequestLanguage::class,
             // Code watch: another website calling the API, a domain's daily count, after the answer.
             CountForeignOrigins::class,
         ]);

@@ -1,0 +1,15 @@
+{
+    "data": {
+        "problems": [],
+        "advice": [
+            {
+                "kind": "breath",
+                "text": "alto bar 9 beat 1 to bar 13 beat 3: 14 seconds with no breath (a rest or a breath mark at a comma helps)"
+            },
+            {
+                "kind": "range",
+                "text": "soprano bar 12 beat 2: G5 is outside the amateur soprano range (C4 to E5)"
+            }
+        ]
+    }
+}

@@ -45,6 +45,8 @@ const FLAGS = {
     schools: tk('admin.flag.schools'),
     compare_pages: tk('admin.flag.compare_pages'),
     open_source: tk('admin.flag.open_source'),
+    lang_es: tk('admin.flag.lang_es'),
+    lang_de: tk('admin.flag.lang_de'),
 };
 const FLAG_HINTS = {
     shield_mode: tk('admin.flagHint.shield_mode'),
@@ -79,6 +81,8 @@ const FLAG_HINTS = {
     schools: tk('admin.flagHint.schools'),
     compare_pages: tk('admin.flagHint.compare_pages'),
     open_source: tk('admin.flagHint.open_source'),
+    lang_es: tk('admin.flagHint.lang_es'),
+    lang_de: tk('admin.flagHint.lang_de'),
 };
 // Safety's own: the emergency controls, each a pause or a lockdown. Every other flag, a new one included, is a feature
 // switch and shows on Switches.

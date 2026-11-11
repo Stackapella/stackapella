@@ -91,7 +91,7 @@ final class SignInSession
 
         // Not for the very first sign-in (that's the account being made), and only to a verified address.
         if (! $firstEver && $user->email !== null && $user->email_verified_at !== null) {
-            Mail::to($user->email)->send(new NewSignIn(self::browserName((string) $request->userAgent())));
+            Mail::to($user->email)->locale($user->preferredLocale())->send(new NewSignIn(self::browserName((string) $request->userAgent())));
         }
     }
 

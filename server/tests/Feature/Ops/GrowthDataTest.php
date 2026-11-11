@@ -138,6 +138,9 @@ final class GrowthDataTest extends TestCase
         $this->counted('2026-11-06', 'ask_acct_week_not', 2);
         $this->counted('2026-11-05', 'fl_s:1-comfortable', 5);
         $this->counted('2026-11-05', 'fl_s:1-comfortable', 2, 'account');
+        // Its steps reached: the first by 4, the second by 1 (none counted at a step between reads as zero).
+        $this->counted('2026-11-05', 'fs_r:1-comfortable.0', 4);
+        $this->counted('2026-11-05', 'fs_r:1-comfortable.1', 1);
         $this->counted('2026-11-05', 'pl_d:barbershop', 1, 'account');
         $this->counted('2026-11-06', 'ask_acct_course_shown', 4);
         $this->counted('2026-11-06', 'ask_acct_course_yes', 1);
@@ -186,7 +189,7 @@ final class GrowthDataTest extends TestCase
         // A tool's share card: its own row from its first day, never folded.
         $this->assertSame(['share', 0], [$sources['share-interval-ear-training']['type'], $sources['share-interval-ear-training']['arrivals']]);
 
-        $this->assertSame([['lesson' => '1-comfortable', 'started' => ['guest' => 5, 'account' => 2], 'finished' => ['guest' => 0, 'account' => 0]]], $data['courses']['freeCourse']);
+        $this->assertSame([['lesson' => '1-comfortable', 'started' => ['guest' => 5, 'account' => 2], 'finished' => ['guest' => 0, 'account' => 0], 'steps' => [['guest' => 4, 'account' => 0], ['guest' => 1, 'account' => 0]]]], $data['courses']['freeCourse']);
         $this->assertSame([['course' => 'barbershop', 'started' => ['guest' => 0, 'account' => 0], 'finished' => ['guest' => 0, 'account' => 1]]], $data['courses']['byCourse']);
         $this->assertSame(['shown' => ['guest' => 4, 'account' => 0], 'yes' => ['guest' => 1, 'account' => 0], 'notNow' => ['guest' => 0, 'account' => 0]], $data['courses']['accountAsk']);
         // Every ask for an account, by what asked; the first-run ask has no Not now count.

@@ -47,6 +47,22 @@ final class ImportedTemplatesTest extends TestCase
         config(['site.dmca_agent' => ['name' => '', 'address' => '', 'phone' => '', 'email' => '']]);
         $this->actingAsAdmin();
         $this->assertMatchesContract($this->putJson('/api/admin/flags/sheet_import', ['value' => 'on', 'reason' => 'Ready']), 'admin.flags.update', 409);
+        $this->putJson('/api/admin/flags/sheet_import', ['value' => 'directors', 'reason' => 'Ready'])->assertStatus(409);
+    }
+
+    public function test_directors_only_opens_import_to_whoever_directs_a_choir_group(): void
+    {
+        // Choir learning tracks, stage 3 (docs/score-import-plan.md): a director makes tracks from their own score.
+        app(Flags::class)->set('sheet_import', 'directors', null, 'Directors first');
+        $singer = $this->adult('Bo Lind');
+        $this->getJson('/api/auth/config')->assertJsonPath('data.sheetImport', false);
+        $this->save((string) Str::uuid(), ['source' => 'sheet-music', 'rightsConfirmed' => true])->assertStatus(403)->assertJsonPath('code', 'import_closed');
+
+        $director = $this->adult();
+        $this->postJson('/api/groups', ['name' => 'Thursday Singers', 'adult' => true])->assertCreated();
+        $this->getJson('/api/auth/config')->assertJsonPath('data.sheetImport', true);
+        $this->save((string) Str::uuid(), ['source' => 'sheet-music', 'rightsConfirmed' => true])->assertSuccessful();
+        $this->assertSame([1, 0], [Template::query()->where('owner_id', $director->id)->count(), Template::query()->where('owner_id', $singer->id)->count()]);
     }
 
     private function adult(string $name = 'Ana Ruiz', string $plan = 'plus'): User

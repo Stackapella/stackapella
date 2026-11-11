@@ -18,7 +18,8 @@ return [
         'note_lead' => 'One a day at most',
         'note' => 'for each tune you share. Turn them off in Settings, or in one click: :unsubscribe',
         'because' => 'you shared a tune on Stackapella\'s Ideas shelf',
-        'a_part' => 'a part',
+        // A part with no name, in "sang the :part of your tune".
+        'a_part' => 'part',
     ],
     'unsubscribe' => [
         'title' => 'Emails about your ideas',

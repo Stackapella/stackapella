@@ -12,6 +12,8 @@ return [
     ],
     // Reasons Stackapella gives Event Schedule when it cancels a lesson there (ES may show them).
     'lesson_cancelled_in_app' => 'Cancelled in Stackapella by the :by.',
+    // Who cancelled, as lesson_cancelled_in_app names them.
+    'by' => ['singer' => 'singer', 'coach' => 'coach'],
     'lesson_not_approved' => 'Not approved in time, so it was cancelled and refunded.',
     'lesson_not_booked' => 'Refunded in Stackapella before it could be booked.',
     'checkout' => [

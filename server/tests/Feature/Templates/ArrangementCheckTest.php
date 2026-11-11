@@ -136,6 +136,12 @@ final class ArrangementCheckTest extends TestCase
         $this->assertStringContainsString('amateur soprano range', $advice($this->template(['soprano' => self::line([79, 79, 79, 79]), 'alto' => self::line([64, 64, 64, 64])])));
         $this->assertStringContainsString("isn't in C maj", $advice($this->template(['soprano' => self::line([69, 67, 67, 67]), 'alto' => self::line([64, 64, 64, 64])])));
 
+        // A line longer than a breath: 16 beats at 60 bpm with no rest is 16 seconds; a breath mark halfway is two of 8.
+        $this->assertStringContainsString('16 seconds with no breath', $advice($this->template(['soprano' => self::line(array_fill(0, 8, 64)), 'alto' => self::line(array_fill(0, 8, 60))], ['tempo' => 60, 'sections' => [['name' => 'V', 'startBeat' => 0, 'endBeat' => 16]]])));
+        $breathed = self::line(array_fill(0, 8, 64));
+        $breathed[4]['br'] = true;
+        $this->assertStringNotContainsString('breath: soprano', $advice($this->template(['soprano' => $breathed, 'alto' => self::line(array_fill(0, 8, 60))], ['tempo' => 60, 'sections' => [['name' => 'V', 'startBeat' => 0, 'endBeat' => 16]]])));
+
         // The duet sings C and G over C major: no E, so no third.
         $duet = $this->template(['soprano' => self::line([67, 67, 67, 67]), 'alto' => self::line([60, 60, 60, 60])], ['voicings' => ['2' => ['soprano', 'alto']]]);
         $this->assertStringContainsString('without its third', $advice($duet));

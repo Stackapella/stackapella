@@ -46,11 +46,11 @@ final class ChangeEmail
         $taken = User::query()->where('email', $email)->whereNotIn('id', UnconfirmedAccounts::query()->select('id'))->exists();
 
         if (! $taken && ! EmailSuppression::isSuppressed($email) && $this->limits->allows('verification-email', $email)) {
-            Mail::to($email)->send(new ConfirmNewEmail($token));
+            Mail::to($email)->locale($user->preferredLocale())->send(new ConfirmNewEmail($token));
         }
 
         if ($user->email !== null && $user->email_verified_at !== null) {
-            Mail::to($user->email)->send(new EmailChanging($email, $this->tokens->issue($user, self::REVERT, $user->email, 24 * 7, onlyNewest: false)));
+            Mail::to($user->email)->locale($user->preferredLocale())->send(new EmailChanging($email, $this->tokens->issue($user, self::REVERT, $user->email, 24 * 7, onlyNewest: false)));
         }
     }
 

@@ -32,7 +32,9 @@ use App\Support\Accounts\SignInProviders;
 use App\Support\Accounts\SignInSession;
 use App\Support\Accounts\SignUpBrowser;
 use App\Support\Flags;
+use App\Support\Languages\Languages;
 use App\Support\Media\Instruments;
+use App\Support\Templates\SheetImport;
 use App\Support\Trust\Blocklist;
 use App\Support\Trust\Country;
 use App\Support\Trust\SecurityLog;
@@ -49,7 +51,7 @@ final class AuthController extends Controller
 {
     public function __construct(private readonly SignInSession $signInSession) {}
 
-    public function config(Request $request, Flags $flags, Turnstile $turnstile, EventSchedule $eventSchedule): JsonResponse
+    public function config(Request $request, Flags $flags, Turnstile $turnstile, EventSchedule $eventSchedule, Languages $languages): JsonResponse
     {
         $paused = $flags->value('pause_signups');
 
@@ -69,6 +71,8 @@ final class AuthController extends Controller
             },
             'turnstileSiteKey' => $turnstile->siteKey(),
             'passwordMinLength' => StrongPassword::MIN,
+            // English and each language switched on: the ones the app offers and follows the browser into.
+            'languages' => $languages->offered(),
             // Before launch, for someone not let in yet (no beta pass, not signed in): the app shows
             // only signing in and the invite pages.
             'comingSoon' => config('app.coming_soon') === true && ! BetaPass::valid($request) && $request->user() === null,
@@ -96,8 +100,9 @@ final class AuthController extends Controller
             // The Plus courses (the plus_courses switch), for a signed-out visitor too, who can try
             // a live course's free first lesson (account.plusCourses adds staff before it opens).
             'plusCourses' => $flags->on('plus_courses'),
-            // Sheet music import in the app (the sheet_import switch); staff see it before (account).
-            'sheetImport' => $flags->on('sheet_import'),
+            // Sheet music import in the app (the sheet_import switch: everyone, or choir directors only); staff see it
+            // before (account).
+            'sheetImport' => app(SheetImport::class)->open($request->user()),
             // Lend your voice (the lend_voice switch): volunteers claim the missing real voices.
             'lendVoice' => $flags->on('lend_voice'),
             // Song requests (the song_requests switch); staff see them before (account.songRequests).

@@ -111,6 +111,7 @@ export const OPERATIONS = {
     'admin.coaching.refund': ['POST', '/api/admin/coaching/engagements/{id}/refund'],
     // M7: making your own, together (contract/api.md, "Making your own, together")
     'templates.mine': ['GET', '/api/templates/mine'],
+    'templates.check': ['POST', '/api/templates/check'],
     'templates.save': ['PUT', '/api/templates/{id}'],
     'templates.update': ['PATCH', '/api/templates/{id}'],
     'templates.delete': ['DELETE', '/api/templates/{id}'],
@@ -1063,6 +1064,7 @@ export const api = {
         show: (id, { version } = {}) => call('templates.show', { params: { id }, query: { version } }),
         finishers: (id) => call('templates.finishers', { params: { id } }),
         mine: ({ cursor } = {}) => call('templates.mine', { query: { cursor } }),
+        check: (template) => call('templates.check', { body: { template } }),
         save: (id, template) => call('templates.save', { params: { id }, body: template }),
         update: (id, fields) => call('templates.update', { params: { id }, body: fields }),
         delete: (id) => call('templates.delete', { params: { id } }),

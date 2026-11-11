@@ -60,7 +60,7 @@ final class RegisterWithPassword
             }
 
             if ($this->limits->allows('verification-email', $email) && ! EmailSuppression::isSuppressed($email)) {
-                Mail::to((string) $existing->email)->send(new AlreadyHaveAnAccount(Password::broker()->createToken($existing), (string) $existing->email));
+                Mail::to((string) $existing->email)->locale($existing->preferredLocale())->send(new AlreadyHaveAnAccount(Password::broker()->createToken($existing), (string) $existing->email));
             } else {
                 // A new account's password costs a bcrypt, and so does the link: the same here.
                 Hash::make(Str::random(40));
@@ -97,7 +97,7 @@ final class RegisterWithPassword
 
         if ($this->limits->allows('verification-email', $email) && ! EmailSuppression::isSuppressed($email)) {
             // Bound to the browser or app that signed up (SignUpBrowser).
-            Mail::to($email)->send(new VerifyEmailAddress($this->tokens->issue($user, EmailToken::VERIFY, $email, 24, browserHash: $browserHash), $user->name));
+            Mail::to($email)->locale($user->preferredLocale())->send(new VerifyEmailAddress($this->tokens->issue($user, EmailToken::VERIFY, $email, 24, browserHash: $browserHash), $user->name));
         }
     }
 }

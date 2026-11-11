@@ -29,7 +29,8 @@
                 "experiment",
                 "experiments",
                 "schools",
-                "songRequests"
+                "songRequests",
+                "languages"
             ],
             "properties": {
                 "methods": {
@@ -240,6 +241,18 @@
                 "schools": {
                     "type": "boolean",
                     "description": "The school offer's class codes are open (docs/school-offer-plan.md)."
+                },
+                "languages": {
+                    "type": "array",
+                    "items": {
+                        "type": "string",
+                        "enum": [
+                            "en",
+                            "es",
+                            "de"
+                        ]
+                    },
+                    "description": "English, then each language switched on (lang_es, lang_de)."
                 }
             }
         }

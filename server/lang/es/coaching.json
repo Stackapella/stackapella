@@ -1,0 +1,14 @@
+{
+    "A message asked to pay outside the app (flagged automatically).": "Un mensaje pedía pagar fuera de la app (marcado automáticamente).",
+    "The singer's bank disputed this payment (a chargeback, flagged automatically).": "El banco de quien canta reclamó este pago (un contracargo, marcado automáticamente).",
+    "A deleted account": "Una cuenta eliminada",
+    ":name, voice coach on Stackapella": ":name, coach vocal en Stackapella",
+    "Cancelled in Stackapella by the :by.": "Cancelada en Stackapella por :by.",
+    "Not approved in time, so it was cancelled and refunded.": "No se aprobó a tiempo, así que se canceló y se reembolsó.",
+    "Refunded in Stackapella before it could be booked.": "Se reembolsó en Stackapella antes de poder reservarse.",
+    "A take review from :coach": "Una revisión de toma de :coach",
+    "Monthly coaching with :coach": "Coaching mensual con :coach",
+    ":title, from :coach": ":title, de :coach",
+    "singer": "la persona que canta",
+    "coach": "el coach"
+}

@@ -1,0 +1,14 @@
+{
+    "You're on Plus": "Ya tienes Plus",
+    "Thank you. Every song in the library is yours to sing now.": "Gracias. Ya puedes cantar todas las canciones de la biblioteca.",
+    "Still confirming...": "Seguimos confirmando...",
+    "Stripe is telling us about your payment; it takes a few seconds. You can go back to the app now: Plus turns on by itself.": "Stripe nos está confirmando tu pago; tarda unos segundos. Ya puedes volver a la app: Plus se activa solo.",
+    "Go back to the app": "Volver a la app",
+    "Plus renews every :interval at :price until you cancel. Cancel online any time in Settings.": "Plus se renueva cada :interval por :price hasta que lo canceles. Cancela en línea cuando quieras, en Ajustes.",
+    "Your free trial ends on :date. Then Plus renews every :interval at :price until you cancel. Cancel online any time in Settings, before :date to pay nothing.": "Tu prueba gratis termina el :date. Después, Plus se renueva cada :interval por :price hasta que lo canceles. Cancela en línea cuando quieras, en Ajustes; si lo haces antes del :date, no pagas nada.",
+    "Your free trial ends on :date, and Plus ends with it unless you add a card in Settings. With a card, Plus renews every :interval at :price until you cancel. Cancel online any time in Settings.": "Tu prueba gratis termina el :date, y Plus termina con ella salvo que añadas una tarjeta en Ajustes. Con tarjeta, Plus se renueva cada :interval por :price hasta que lo canceles. Cancela en línea cuando quieras, en Ajustes.",
+    ":price plus tax": ":price más impuestos",
+    "month": "mes",
+    "year": "año",
+    "Please confirm that Plus should start now.": "Confirma que quieres que Plus empiece ya."
+}

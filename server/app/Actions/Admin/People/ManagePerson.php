@@ -149,10 +149,10 @@ final class ManagePerson
         // The audit log is kept for good, so it holds no addresses, only which changed.
         AuditLog::record('person.recovered', $person, $admin, before: ['email' => self::fingerprint($before)], after: ['email' => self::fingerprint($email)], reason: $reason, ip: $ip);
 
-        Mail::to($email)->send(new ResetPassword(Password::broker()->createToken($person), $email));
+        Mail::to($email)->locale($person->preferredLocale())->send(new ResetPassword(Password::broker()->createToken($person), $email));
 
         if ($before !== null && $before !== $email) {
-            Mail::to($before)->send(new RecoveredBySupport($email));
+            Mail::to($before)->locale($person->preferredLocale())->send(new RecoveredBySupport($email));
         }
 
         return $person;
