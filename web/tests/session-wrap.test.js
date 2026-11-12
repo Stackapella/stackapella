@@ -1,6 +1,6 @@
 // The first session's wrap (js/components/session-wrap.js): one keep-it ask that fits the device, and
 // "Not now" as a real answer (the ask ledger's caps are tested in asks.test.js).
-import { keepAskFor } from '/js/components/session-wrap.js';
+import { keepAskFor, tomorrowAtThisTime } from '/js/components/session-wrap.js';
 import { installForm, riskShows } from '/js/components/install.js';
 import { assert, test } from './harness.js';
 
@@ -40,4 +40,13 @@ test('install card: the Safari loss card only for a guest with something to keep
     assert(!riskShows({ ...base, safari: false }) && !riskShows({ ...base, isInstalled: true }), 'not Safari, or the added app');
     assert(!riskShows({ ...base, persisted: true }) && !riskShows({ ...base, persisted: null }), 'storage kept, or not known');
     assert(!riskShows({ ...base, signedIn: true }) && !riskShows({ ...base, value: false }), 'signed in, or nothing to keep');
+});
+
+test('wrap: Nudge me tomorrow is tomorrow\'s weekday at now, to the nearest quarter hour', () => {
+    const wed = tomorrowAtThisTime(new Date(2026, 10, 11, 21, 37)); // a Wednesday, 21:37
+    assert(JSON.stringify(wed) === JSON.stringify({ days: [4], time: '21:30' }), JSON.stringify(wed));
+    const sat = tomorrowAtThisTime(new Date(2026, 10, 14, 9, 53)); // a Saturday: tomorrow is Sunday, 0
+    assert(JSON.stringify(sat) === JSON.stringify({ days: [0], time: '10:00' }), JSON.stringify(sat));
+    const late = tomorrowAtThisTime(new Date(2026, 10, 11, 23, 55)); // rounds past midnight to 00:00, still tomorrow's day
+    assert(late.time === '00:00' && late.days[0] === 4, JSON.stringify(late));
 });

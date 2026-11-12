@@ -516,7 +516,7 @@ const PART_NAMES = { soprano: 'Soprano', alto: 'Alto', tenor: 'Tenor', bass: 'Ba
  * `as` is left out), the words from `wordsFrom` (a line's id) for lines without their own, a part
  * with no words singing "oo". The tune is the part the singer set as soprano or lead, else the
  * first of their picks in score order (alto, tenor, then bass), unless `melody` names the line the director chose as the
- * tune. The score's sections (verses, rehearsal marks) are the song's, each phrase inside one. Private, credited to the
+ * tune, or is 'none' (no part is the tune: the phrases follow the first part). The score's sections (verses, rehearsal marks) are the song's, each phrase inside one. Private, credited to the
  * file's authors, its licence "by someone else: kept private".
  */
 export function toTemplate(score, { picks, wordsFrom = null, melody: tuneLine = null, title = score.title, id = crypto.randomUUID() }) {
@@ -557,7 +557,7 @@ export function toTemplate(score, { picks, wordsFrom = null, melody: tuneLine = 
     if (shift) for (const p of parts) p.guide.notes = p.guide.notes.map((n) => ({ ...n, beat: round(n.beat - shift) }));
     const picked = chosen.findIndex((p) => p.id === tuneLine);
     const melody = (picked >= 0 ? parts[picked] : null) ?? parts.find((p) => p.key === 'soprano' || p.key === 'lead') ?? parts[0];
-    if (melody) melody.melody = true;
+    if (melody && tuneLine !== 'none') melody.melody = true;
     const ends = parts.flatMap((p) => p.guide.notes.map((n) => n.beat + n.length));
     const total = round(Math.max(0, ...ends));
     // The score's sections from where they start (one that starts before the notes do takes the start), to the next. A

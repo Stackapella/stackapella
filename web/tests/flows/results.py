@@ -122,15 +122,11 @@ def journey(f):
             assert not f.js("!!document.querySelector('[data-session-wrap]')"), "the wrap after two lessons"
             f.run("const { learning } = await import('/js/stores/learning.js'); learning.progress = { ...learning.progress, lessons: { ...learning.progress.lessons, '1-high-low': { stars: 2, bestPercent: 80, at: Date.now() } } };")
             f.wait("document.querySelector('[data-session-wrap]')", what="the session wrap")
-            # 3 days suggested, as an outline, and nothing shown chosen until a tap (onboarding review 2, 15).
-            assert f.js("document.querySelector('[data-wrap-goal] [data-suggested]').textContent.trim()") == t(f, "wrap.days", {"count": 3}), "3 days suggested"
-            assert not f.js("!!document.querySelector('[data-wrap-goal] [aria-checked=true]')"), "nothing shown chosen before a tap"
-            f.wait("['prompt', 'account'].includes(document.querySelector('[data-wrap-keep]')?.dataset.ask)", what="one keep-it ask: " + str(f.js("document.querySelector('[data-wrap-keep]')?.dataset.ask ?? 'none'")))
+            # The goal question left the wrap (docs/retention-plan.md, idea 2): it's on the week row and the course hub.
+            assert not f.js("!!document.querySelector('[data-wrap-goal]')"), "the goal question is still in the wrap"
+            # One keep-it ask: the nudge where push works signed in, else install or an account.
+            f.wait("['prompt', 'account', 'nudge'].includes(document.querySelector('[data-wrap-keep]')?.dataset.ask)", what="one keep-it ask: " + str(f.js("document.querySelector('[data-wrap-keep]')?.dataset.ask ?? 'none'")))
             f.shot("session-wrap")
-            f.run("[...document.querySelectorAll('[data-wrap-goal] [role=radio]')][2].click()")
-            f.wait("(await import('/js/stores/learning.js')).learning.progress.goal === 5", what="5 days kept")
-            assert f.js("document.querySelector('[data-wrap-goal] [aria-checked=true]').textContent.trim()") == t(f, "wrap.days", {"count": 5}), "5 days shown chosen once tapped"
-            assert f.js("JSON.parse(localStorage.getItem('stackapella.funnel')).firsts.f_goal") is True, "the goal not counted"
             f.run("document.querySelector('[data-wrap-not-now]').click()")
             f.wait("!document.querySelector('[data-wrap-keep]')", what="Not now")
             assert f.js("JSON.parse(localStorage.getItem('stackapella.asks')).nots") == 1, "Not now not kept"

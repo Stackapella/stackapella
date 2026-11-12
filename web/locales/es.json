@@ -500,7 +500,27 @@
             "empty": "No encontramos ninguna nota en ese archivo.",
             "signIn": "Importar partituras requiere una cuenta gratis. Tus canciones y tu progreso van contigo."
         },
-        "rightsFrom": "Derechos: según confirmó {who} con la solicitud."
+        "rightsFrom": "Derechos: según confirmó {who} con la solicitud.",
+        "tune": "La melodía está en",
+        "tuneNone": "Ninguna (todas iguales)",
+        "proposals": {
+            "title": "Lo que encontrará el coro",
+            "checking": "Revisando las voces",
+            "failed": "No se han podido revisar las voces ahora. Vuelve a intentarlo en un momento.",
+            "problems": "Corrige esto en la partitura para poder crear la canción:",
+            "unchanged": "Son solo sugerencias: tus notas se quedan tal como están escritas.",
+            "none": "Nada que señalar: cada línea tiene sitio para respirar y está dentro de la extensión de su voz."
+        },
+        "director": {
+            "whose": "¿De quién es la música?",
+            "inCopyright": "Todavía no se puede importar un arreglo publicado que aún tenga derechos de autor.",
+            "for": "Para",
+            "private": "Privada: solo quienes cantan en tu grupo pueden abrirla.",
+            "make": "Crear las pistas",
+            "pdf": "Aquí no se puede leer un PDF ni fotos de la partitura. Envíanoslos y haremos las pistas.",
+            "notShared": "La canción está guardada, pero aún no está en {group}.",
+            "made": "{title} ya está en tu grupo. Escúchala entera antes que tus cantantes."
+        }
     },
     "part": {
         "practise": "Practicar esta voz",
@@ -3822,7 +3842,8 @@
         },
         "tracks": {
             "ask": "¿Quieres pistas de estudio de una obra que ensaya tu coro?",
-            "askLink": "Pídelas",
+            "askLink": "Envíanos tu canción",
+            "makeLink": "Crea pistas desde una partitura",
             "title": "Pedir pistas de estudio",
             "intro": "Dinos la obra. Te escribiremos para pedirte la partitura (un PDF o MusicXML), haremos de cada voz una pista de estudio con su voz guía y la pondremos en tu cuenta para que la compartas aquí.",
             "piece": "La obra",
@@ -5108,8 +5129,6 @@
     "wrap": {
         "title": "Primera sesión: tu nota {note}, {lessons} lecciones, {stars} estrellas.",
         "titleNoNote": "Primera sesión: {lessons} lecciones, {stars} estrellas.",
-        "goal": "¿Cuántos días a la semana nos proponemos?",
-        "goalKept": "{count, plural, one {1 día a la semana} other {# días a la semana}}. Puedes cambiarlo en la página del curso.",
         "account": "Guarda tu progreso (tu nota, tus {stars} estrellas y tu nivel) con una cuenta gratis.",
         "makeAccount": "Crear una cuenta gratis",
         "remindTitle": "¿Quieres un recordatorio en tus días de práctica?",
@@ -5117,7 +5136,6 @@
         "titleSerious": "Primera sesión: tu nota {note}, {lessons} lecciones.",
         "titleNoNoteSerious": "Primera sesión: {lessons} lecciones.",
         "accountSerious": "Guarda tu progreso (tu nota y tus lecciones) con una cuenta gratis.",
-        "days": "{count} días",
         "week": {
             "title": "Tu primera semana",
             "days": "{count, plural, one {1 día cantado} other {# días cantados}}",
@@ -5132,8 +5150,7 @@
             "keepLessons": "{count, plural, one {1 lección} other {# lecciones}}",
             "keepSongs": "tus canciones"
         },
-        "installApp": "Instala la app: se abre como una app, sin la barra del navegador.",
-        "goalSuggested": "{count, plural, one {# día a la semana es un buen comienzo. Toca uno para elegirlo.} other {# días a la semana es un buen comienzo. Toca uno para elegirlo.}}"
+        "installApp": "Instala la app: se abre como una app, sin la barra del navegador."
     },
     "voiceCard": {
         "title": "Unidad 1 completada: tu voz",

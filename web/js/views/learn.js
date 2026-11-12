@@ -676,6 +676,7 @@ export const LearnView = {
             if (!this.entry.boss) {
                 count('lesson_start'); // a lesson begun, not one come back to from Sing
                 countFor(this.entry.course ? 'pl_s' : 'fl_s', this.entry.course ? this.entry.course.id : this.entry.lesson.id); // by course, or the free course's lesson
+                if (this.entry.course) countFor('cl_s', this.entry.lesson.id); // any other course's lesson, by its own id
             }
             this.beginSharpen();
             this.showTitle();
@@ -1041,17 +1042,18 @@ export const LearnView = {
             starsSound(stars, 0.35 + (stars - 1) * 0.3);
         },
         /**
-         * A free lesson's step reached (fs_r:<lessonId>.<step>, anonymous; where 4-words' 12 starts and 1 finish were
-         * lost): once per step each time the lesson is run, kept for the tab so coming back from Sing doesn't count again.
+         * A lesson's step reached, anonymous: fs_r:<lessonId>.<step> in the free course (where 4-words' 12 starts and 1
+         * finish were lost), cs_r:<lessonId>.<step> in any other; once per step each time the lesson is run, kept for the
+         * tab so coming back from Sing doesn't count again.
          */
         reachStep(index) {
             const entry = this.entry;
-            if (!entry || entry.course || entry.boss || entry.cooldown || index === null || index === undefined) return;
+            if (!entry || entry.boss || entry.cooldown || index === null || index === undefined) return;
             const key = `stackapella.lesson.${this.id}.reached`;
             const reached = (tabStorage.get(key) ?? '').split(',').filter(Boolean);
             if (reached.includes(String(index))) return;
             tabStorage.set(key, [...reached, index].join(','));
-            countFor('fs_r', `${entry.lesson.id}.${index}`);
+            countFor(entry.course ? 'cs_r' : 'fs_r', `${entry.lesson.id}.${index}`);
         },
         /** "Use it": done once the lesson's song has been sung in (for a while) or recorded. */
         async checkUse() {

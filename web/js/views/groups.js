@@ -10,6 +10,8 @@
 import { AccountWall } from '../components/account-wall.js';
 import { AppScreen } from '../components/page.js';
 import { api, uploadTo } from '../api.js';
+import { countShare, shareRef } from '../usage.js';
+import { first } from '../funnel.js';
 import { formatDate, locale, t, tk } from '../i18n.js';
 import { goBack, navigate } from '../router.js';
 import { account } from '../stores/account.js';
@@ -20,6 +22,7 @@ import { EmptyState, Field } from '../components/form.js';
 import { Icon, Logo } from '../components/icon.js';
 import { paint } from '../colors.js';
 import { PART_COLORS } from '../theme.js';
+import { markRaw } from 'vue';
 import { Modal, toast } from '../components/ui.js';
 import { GameOnly, sk } from '../skin.js';
 import { confirmAction } from '../components/confirm.js';
@@ -154,6 +157,10 @@ export const GroupsView = {
         minor: () => !!account.me?.birthGiven && account.me?.isAdult === false,
     },
     watch: {
+        /** The Start a group sheet shown: a choir's path begins (grp_start, this device's first). */
+        making(open) {
+            if (open) first('grp_start');
+        },
         'account.me.id': {
             handler(id) {
                 if (!id) return;
@@ -182,6 +189,7 @@ export const GroupsView = {
             this.error = null;
             try {
                 const { data } = await api.groups.create({ name: this.name.trim(), adult: true });
+                first('grp_made');
                 navigate(`/groups/${data.id}` + (this.shareAfter ? `?share=${encodeURIComponent(this.shareAfter)}` : ''));
             } catch (error) {
                 if (error?.code === 'validation_failed') this.error = error.errors?.name ?? t('groups.nameInvalid');
@@ -201,7 +209,7 @@ export const GroupsView = {
 export const GroupView = {
     components: { Frame, Field, Icon, Modal },
     props: { id: { type: String, required: true } },
-    data: () => ({ settingRehearsal: false, rehearsalDate: '', rehearsalWeekly: true, rehearsalError: null, asking: false, tracks: { piece: '', composer: '', voicing: '', note: '', rights: '' }, scores: [], requests: null, tracksErrors: null, tracksError: null, tracksSent: false, group: null, failed: null, link: null, inviting: false, sharing: false, songs: [], pick: '', busy: false, editing: null, starting: null, renaming: false, newName: '', renameError: null, templates: {} }),
+    data: () => ({ settingRehearsal: false, rehearsalDate: '', rehearsalWeekly: true, rehearsalError: null, asking: false, tracks: { piece: '', composer: '', voicing: '', note: '', rights: '' }, scores: [], requests: null, tracksErrors: null, tracksError: null, tracksSent: false, directorImport: null, group: null, failed: null, link: null, inviting: false, sharing: false, songs: [], pick: '', busy: false, editing: null, starting: null, renaming: false, newName: '', renameError: null, templates: {} }),
     setup: () => ({ account, STATUS, RIGHTS, SCORE_ACCEPT, SCORE_FILES, REQUEST_STATUS, templatePartName, formatDate, navigate, paint, PART_COLORS }),
     template: `
         <Frame :title="group?.name ?? t('groups.title')" back="/groups" title-is-content>
@@ -287,7 +295,9 @@ export const GroupView = {
                     </ul>
                 </section>
                 <!-- Learning tracks of the choir's own piece (docs/choir-tracks-plan.md, stage 1): one quiet line, the director's only. -->
-                <p v-if="director" class="-mt-4 text-sm text-muted" data-ask-tracks>{{ t('groups.tracks.ask') }} <button type="button" class="link inline-flex min-h-6 items-center" @click="openTracks">{{ t('groups.tracks.askLink') }}</button></p>
+                <p v-if="director" class="-mt-4 text-sm text-muted" data-ask-tracks>{{ t('groups.tracks.ask') }} <button type="button" class="link inline-flex min-h-6 items-center" @click="openTracks">{{ t('groups.tracks.askLink') }}</button><template v-if="directorImport"><span class="mx-1.5" aria-hidden="true">·</span><button type="button" class="link inline-flex min-h-6 items-center" data-make-tracks @click="$refs.directorImport.open()">{{ t('groups.tracks.makeLink') }}</button></template></p>
+                <!-- Make tracks from a score (docs/score-import-plan.md, section 4): the director's own way, where sheet_import allows it. -->
+                <component :is="directorImport" v-if="directorImport" ref="directorImport" :group="{ id: group.id, name: group.name }" @send="openTracks" />
                 <!-- The songs the director sent us, newest first, with where each has got to; a delivered one is in the group, ready to open (the director's in-app note: no email). -->
                 <section v-if="director && requests?.length" class="space-y-3" aria-labelledby="group-requests" data-tracks-requests>
                     <h2 id="group-requests" class="text-sm font-bold text-muted">{{ t('groups.tracks.requestsTitle') }}</h2>
@@ -444,6 +454,10 @@ export const GroupView = {
         director() {
             return this.group?.role === 'director';
         },
+        /** Make tracks from a score: a director's, once sheet_import lets directors in (staff before). */
+        canImport() {
+            return this.director && !!(account.me?.staff || account.config?.sheetImport);
+        },
         singers() {
             return (this.group?.members ?? []).filter((m) => m.role !== 'director');
         },
@@ -498,6 +512,20 @@ export const GroupView = {
             this.pick = share;
             await this.shareSong();
         }
+    },
+    watch: {
+        // The director's import is loaded once it may show, so its link opens the file picker at once (a tap's own turn).
+        canImport: {
+            immediate: true,
+            async handler(on) {
+                if (!on || this.directorImport) return;
+                try {
+                    this.directorImport = markRaw((await import('../components/create/director-import.js')).DirectorImport);
+                } catch (error) {
+                    console.error('Make tracks from a score did not load', error);
+                }
+            },
+        },
     },
     methods: {
         async load() {
@@ -655,6 +683,7 @@ export const GroupView = {
                 .filter((a) => a.partKey);
             try {
                 this.group = (await api.groups.assignments.update(this.id, song.templateId, { assignments })).data;
+                if (partKey) first('grp_assigned');
             } catch (error) {
                 toast(refusal(error), { tone: 'error' });
             }
@@ -684,9 +713,17 @@ export const GroupView = {
                 this.busy = false;
             }
         },
+        /** The group's link as sent: tagged with where it came from (a source, never who). */
+        sentLink() {
+            const url = new URL(this.shownLink);
+            url.searchParams.set('ref', shareRef('group'));
+            return url.toString();
+        },
         async copy() {
+            first('grp_link');
+            countShare('group', 'copy');
             try {
-                await navigator.clipboard.writeText(this.shownLink);
+                await navigator.clipboard.writeText(this.sentLink());
                 toast(t('share.copied'));
             } catch {
                 toast(t('share.copyFailed'), { tone: 'error' });
@@ -694,7 +731,9 @@ export const GroupView = {
         },
         share() {
             // Closing the share sheet rejects too: nothing to say.
-            navigator.share({ title: this.group.name, url: this.shownLink }).catch((error) => console.info('Not shared', error.name));
+            first('grp_link');
+            countShare('group', 'sheet');
+            navigator.share({ title: this.group.name, url: this.sentLink() }).catch((error) => console.info('Not shared', error.name));
         },
         longDate(date) {
             return new Intl.DateTimeFormat(locale.lang, { weekday: 'long', day: 'numeric', month: 'long' }).format(date);
@@ -885,6 +924,7 @@ export const ChoirJoinView = {
             try {
                 // 18 and over is the account's birth date's to say (the server checks it): with none yet, it's asked first (askBirth).
                 const { data } = await api.groups.join(this.token, account.me?.birthGiven ? { adult: true } : {});
+                first('grp_joined');
                 toast(t('groups.joinedToast', { name: data.name }));
                 navigate(`/groups/${data.id}`, { replace: true });
             } catch (error) {

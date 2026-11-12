@@ -1,9 +1,10 @@
 // The first session's wrap (docs/onboarding-review.md, session 1 step 5; onboarding item 5): on lesson
 // 3's end in the free course, on the day this device arrived, a card under the result (never a
-// modal): what the session gave ("your note A3, 3 lessons, 8 stars"), the weekly goal chosen rather
-// than given (3 looks chosen, nothing is kept until a tap), and exactly one keep-it ask for this
-// device: install where it can (Chrome's one tap, the iPhone's Share then Add to Home Screen, the
-// Mac's Add to Dock), else an account. "Not now" is a real answer, kept in the ask ledger (js/asks.js):
+// modal): what the session gave ("your note A3, 3 lessons, 8 stars") and exactly one keep-it ask for this
+// device. Signed in where push works: "Nudge me tomorrow at about this time", one tap (docs/retention-plan.md, idea 2;
+// Hillel: ship to all, read at two weeks). Else install where it can (Chrome's one tap, the iPhone's Share then Add to
+// Home Screen, the Mac's Add to Dock), else an account. The weekly goal left the wrap for the week row and the course
+// hub, where a tap sets it, so the wrap gained nothing in length. "Not now" is a real answer, kept in the ask ledger (js/asks.js):
 // every ask waits 14 days, and after three Not nows they stop.
 
 import { navigate } from '../router.js';
@@ -12,18 +13,21 @@ import { midiName } from '../dsp.js';
 import { local } from '../storage.js';
 import { askDue, askNotNow, askSeen } from '../asks.js';
 import { account } from '../stores/account.js';
-import { learning, setGoal } from '../stores/learning.js';
+import { learning } from '../stores/learning.js';
 import { askNot, askShown, askYes, daysSinceArrival, first, funnelRecord } from '../funnel.js';
 import { install, installed, iphone, macSafari } from './install.js';
-import { loadReminder, pushSupported } from '../reminders.js';
+import { loadReminder, needsInstall, pushSupported, turnOn } from '../reminders.js';
 import { Icon } from './icon.js';
 import { game, sk } from '../skin.js';
 import { experiment } from '../experiments.js';
 import { levelFor } from '../course.js';
 import { signUpFor } from './account-wall.js';
 
-const GOALS = [2, 3, 5];
-const SUGGESTED = 3;
+/** Tomorrow's weekday (0 is Sunday, as the reminders' days) and now to the nearest quarter hour, "HH:MM". */
+export function tomorrowAtThisTime(now = new Date()) {
+    const minutes = Math.round((now.getHours() * 60 + now.getMinutes()) / 15) * 15 % (24 * 60);
+    return { days: [(now.getDay() + 1) % 7], time: `${String(Math.floor(minutes / 60)).padStart(2, '0')}:${String(minutes % 60).padStart(2, '0')}` };
+}
 /**
  * Which keep-it ask fits this device: 'prompt' (one tap), 'iphone', 'mac', 'account', or null. On
  * Safari an added app keeps its own storage, apart from Safari's (docs/account-nudges-plan.md, F1),
@@ -38,48 +42,39 @@ export function keepAskFor({ isInstalled = installed(), prompt = !!install.promp
 }
 
 /** The ledger's name (and the funnel's) for a keep-it ask. */
-const ledgerName = (ask) => (ask === 'account' ? 'account' : 'install');
+const ledgerName = (ask) => (ask === 'account' || ask === 'nudge' ? ask : 'install');
+/** Whether this device can take a push nudge at all (signed in, push here; an iPhone only in the installed app). */
+const nudgeable = () => !!account.me && pushSupported() && !needsInstall();
 
 export const SessionWrap = {
     components: { Icon },
     props: { lessons: { type: Number, required: true }, stars: { type: Number, required: true } },
-    data: () => ({ goal: null, answered: false }),
-    setup: () => ({ GOALS, SUGGESTED, learning, midiName, sk }),
+    data: () => ({ answered: false, nudgeChecked: !nudgeable(), canNudge: false, busy: false, nudgedAt: null, nudgeError: null }),
+    setup: () => ({ learning, midiName, sk }),
     template: `
         <section class="w-full space-y-5 rounded-3xl border border-edge bg-panel p-5 text-start" aria-labelledby="wrap-title" data-session-wrap>
             <h2 id="wrap-title" class="text-lg font-bold text-cream">{{ learning.progress.home !== null ? sk('wrap.titleSerious', 'wrap.title', { note: midiName(Math.round(learning.progress.home)), lessons, stars }) : sk('wrap.titleNoNoteSerious', 'wrap.titleNoNote', { lessons, stars }) }}</h2>
-            <div class="space-y-2" data-wrap-goal>
-                <p :id="'wrap-goal-' + $.uid" class="font-semibold text-cream">{{ t('wrap.goal') }}</p>
-                <div class="seg flex sm:w-fit" role="radiogroup" :aria-labelledby="'wrap-goal-' + $.uid">
-                    <button v-for="g in GOALS" :key="g" type="button" role="radio" :aria-checked="chosenGoal === g ? 'true' : 'false'" class="seg-option flex-1 sm:flex-none" :data-suggested="suggested === g ? '' : null" @click="chooseGoal(g)">{{ t('wrap.days', { count: g }) }}</button>
-                </div>
-                <p v-if="goal" class="text-sm text-muted" role="status">{{ t('wrap.goalKept', { count: goal }) }}</p>
-                <p v-else-if="suggested" class="text-sm text-muted">{{ t('wrap.goalSuggested', { count: suggested }) }}</p>
-            </div>
             <div v-if="ask" class="space-y-3 border-t border-line pt-4" data-wrap-keep :data-ask="ask">
                 <!-- Installing is said for what it is, never as a way to keep what's here: on Safari an added app starts fresh, so a guest there is asked for the account. -->
-                <p class="font-semibold text-cream">{{ ask === 'account' ? sk('wrap.accountSerious', 'wrap.account', { stars }) : t('wrap.installApp') }}</p>
+                <p class="font-semibold text-cream">{{ ask === 'account' ? sk('wrap.accountSerious', 'wrap.account', { stars }) : ask === 'nudge' ? sk('wrap.nudgeTitle', 'game.wrap.nudgeTitle') : t('wrap.installApp') }}</p>
                 <p v-if="ask === 'iphone'" class="text-sm text-muted">{{ t('install.iphone') }} {{ t('install.signInThere') }}</p>
                 <p v-else-if="ask === 'mac'" class="text-sm text-muted">{{ t('install.mac') }} {{ t('install.signInThere') }}</p>
                 <div class="flex flex-wrap items-center gap-3">
                     <button v-if="ask === 'prompt'" type="button" class="btn-primary" data-wrap-install @click="installNow"><Icon name="download" :size="16" /> {{ t('install.button') }}</button>
                     <button v-else-if="ask === 'account'" type="button" class="btn-primary" data-wrap-account @click="makeAccount">{{ t('wrap.makeAccount') }}</button>
+                    <button v-else-if="ask === 'nudge'" type="button" class="btn-primary" :disabled="busy" data-wrap-nudge @click="nudge">{{ t('wrap.nudge') }}</button>
                     <button type="button" class="tap-44 btn-ghost btn-sm" data-wrap-not-now @click="notNow">{{ t('install.later') }}</button>
                 </div>
+                <p v-if="nudgeError" class="text-sm text-bad" role="alert">{{ nudgeError }}</p>
             </div>
+            <p v-if="nudgedAt" class="border-t border-line pt-4 text-sm text-cream" role="status" data-wrap-nudged>{{ t('wrap.nudgeSet', { time: nudgedAt }) }}</p>
         </section>`,
     computed: {
-        /** The goal chosen: the one tapped, here or before on this device; null until then. */
-        chosenGoal() {
-            return this.goal ?? (funnelRecord().firsts.f_goal ? learning.progress.goal : null);
-        },
-        /** Until one is chosen, 3 is suggested in words only: nothing looks picked until it's tapped (onboarding review 2, 15;
-            Hillel, 2026-11-02: an outline on 3 still read as chosen). */
-        suggested() {
-            return this.chosenGoal === null ? SUGGESTED : null;
-        },
+        /** The one keep-it ask: the nudge where it works here and isn't on yet, else keepAskFor's (asked once the nudge is known). */
         ask() {
-            const ask = this.answered ? null : keepAskFor();
+            if (this.answered || !this.nudgeChecked) return null;
+            if (this.canNudge && askDue('nudge')) return 'nudge';
+            const ask = keepAskFor();
             return ask && askDue(ledgerName(ask)) ? ask : null;
         },
     },
@@ -93,13 +88,31 @@ export const SessionWrap = {
             immediate: true,
         },
     },
-    mounted() {
-        askShown('goal');
+    created() {
+        if (this.nudgeChecked) return;
+        loadReminder()
+            .then((reminder) => (this.canNudge = !(reminder?.enabled && reminder?.thisDevice)))
+            .catch((error) => console.info('Reminders unknown here: no nudge offered', error?.code ?? error))
+            .finally(() => (this.nudgeChecked = true));
     },
     methods: {
-        async chooseGoal(goal) {
-            this.goal = goal;
-            await setGoal(goal);
+        /** "Nudge me tomorrow at about this time": tomorrow's weekday at now's time, a reminder like any other (Settings changes it). */
+        async nudge() {
+            this.busy = true;
+            this.nudgeError = null;
+            askYes('nudge');
+            try {
+                const reminder = await loadReminder();
+                const when = tomorrowAtThisTime();
+                await turnOn(when, reminder.vapidPublicKey);
+                const [h, m] = when.time.split(':').map(Number);
+                this.nudgedAt = new Intl.DateTimeFormat(undefined, { hour: 'numeric', minute: '2-digit' }).format(new Date(2000, 0, 1, h, m));
+                this.answered = true;
+            } catch (error) {
+                this.nudgeError = error?.code === 'denied' ? t('reminders.denied') : t('wrap.nudgeFailed');
+            } finally {
+                this.busy = false;
+            }
         },
         async installNow() {
             const prompt = install.prompt;
@@ -118,6 +131,7 @@ export const SessionWrap = {
             navigate('/signin?mode=signup&for=progress');
         },
         notNow() {
+            if (this.ask === 'nudge') askNot('nudge');
             askNotNow(ledgerName(this.ask));
             this.answered = true;
         },

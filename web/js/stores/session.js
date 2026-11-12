@@ -37,7 +37,7 @@ import { heardSpan, lineUp, trimmedSamples, trimsOf } from '../trim.js';
 import { trackPeaks } from '../share.js';
 import { compress, DEFAULT_ROOM, impulseResponse, levelGains, limit, polishRender, ROOMS, spread } from '../polish.js';
 import { prefs } from './prefs.js';
-import { local } from '../storage.js';
+import { local, session as tabStorage } from '../storage.js';
 import { count } from '../usage.js';
 import { keptIn } from '../unit-song.js';
 import { chipCountIn } from '../game/modules.js';
@@ -1403,6 +1403,7 @@ export async function storeTake(part, fields, samples) {
     await persist(() => savePart(plainPart(part), samples));
     count('take_recorded'); // after it's saved: a save that fails isn't a take
     if (session.project?.id) keptIn(session.project.id); // a unit's song opened from its end: us_kept for that place
+    if (tabStorage.get(`stackapella.fromGroup.${session.project?.id}`)) first('grp_sang'); // a member's first take on a group's song
     // Voice care's day (on this device only): a take's length is time sung.
     if (part.sampleRate && samples?.length) {
         addSung(samples.length / part.sampleRate);

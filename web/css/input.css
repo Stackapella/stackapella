@@ -2197,8 +2197,9 @@ select:disabled {
 .s-tool-table thead th { font-size: 13px; color: var(--color-muted); }
 /* On a phone a reference table fits its width (up to five columns: the intonation tuner's cents): tighter cells
    that wrap, and game mode's wider screen type a little tighter still: VT323 at a smaller font-size-adjust than the
-   body's 0.62 (at 0.62 /intervals needs 354 px in 328, and hyphens never split "Greensleeves"). */
-@media (max-width: 599px) { .s-tool-table table { font-size: 14px; } .s-tool-table :is(th, td) { padding: 7px 6px; } .s-tool-table thead th { font-size: 12px; } }
+   body's 0.62 (at 0.62 /intervals needs 354 px in 328, and hyphens never split "Greensleeves"). Serious
+   cells keep 4px sides for the same column: 6px scrolled it sideways by 5px at 360 (game, 2026-11-12). */
+@media (max-width: 599px) { .s-tool-table table { font-size: 14px; } .s-tool-table :is(th, td) { padding: 7px 4px; } .s-tool-table thead th { font-size: 12px; } }
 @media (max-width: 599px) { :root[data-skin="game"] body.s-arcade .s-tool-table :is(th, td) { padding: 6px 4px; font-size-adjust: 0.5; } :root[data-skin="game"] body.s-arcade .s-tool-table table { font-size: 13px; } }
 /* A 320 px phone: the reference indexes' five columns fit (site_reference at 320), long names hyphenated, not scrolled. */
 @media (max-width: 359px) { .s-tool-table table { font-size: 13px; } .s-tool-table :is(th, td) { padding: 6px 3px; hyphens: auto; } }

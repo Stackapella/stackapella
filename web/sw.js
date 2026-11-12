@@ -259,6 +259,7 @@ const SHELL = [
     '/js/components/create/roll.js',
     '/js/components/create/save.js',
     '/js/components/create/setup.js',
+    '/js/components/create/director-import.js',
     '/js/components/create/sheet-import.js',
     '/js/components/create/sing-line.js',
     '/js/stores/sharing.js',

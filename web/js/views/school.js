@@ -8,6 +8,7 @@
 // Words for every refusal the server gives (adult_required, school_already_redeemed, ...).
 
 import { api, ApiError } from '../api.js';
+import { countShare, shareRef } from '../usage.js';
 import { formatDate, formatNumber, t, tk } from '../i18n.js';
 import { navigate } from '../router.js';
 import { account, loadAccount, loadAuthConfig } from '../stores/account.js';
@@ -185,9 +186,12 @@ export const ClassesView = {
             }
         },
         async copy(c) {
-            const text = t('school.classes.shareText', { code: c.code, url: c.url });
+            const sent = new URL(c.url);
+            sent.searchParams.set('ref', shareRef('class')); // where the link came from, never who
+            const text = t('school.classes.shareText', { code: c.code, url: sent.toString() });
+            countShare('class', navigator.share ? 'sheet' : 'copy');
             try {
-                if (navigator.share) await navigator.share({ text: t('school.classes.shareLine'), url: c.url });
+                if (navigator.share) await navigator.share({ text: t('school.classes.shareLine'), url: sent.toString() });
                 else {
                     await navigator.clipboard.writeText(text);
                     toast(t('school.classes.copied'));

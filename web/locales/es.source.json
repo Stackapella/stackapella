@@ -500,7 +500,27 @@
             "empty": "We couldn't find any notes in that file.",
             "signIn": "Bringing in sheet music needs a free account. Your songs and progress come with you."
         },
-        "rightsFrom": "Rights: as {who} confirmed with the request."
+        "rightsFrom": "Rights: as {who} confirmed with the request.",
+        "tune": "The tune is in",
+        "tuneNone": "No part (all equal)",
+        "proposals": {
+            "title": "What singers will meet",
+            "checking": "Checking the parts",
+            "failed": "The parts couldn't be checked just now. Try again in a moment.",
+            "problems": "Fix these in the score before it can be made:",
+            "unchanged": "These are only suggestions: your notes are kept as written.",
+            "none": "Nothing to point out: every line has room to breathe and sits in its voice's range."
+        },
+        "director": {
+            "whose": "Whose music is it?",
+            "inCopyright": "A published arrangement still in copyright can't be brought in yet.",
+            "for": "For",
+            "private": "Kept private: only your group's singers can open it.",
+            "make": "Make the tracks",
+            "pdf": "A PDF or photos of the score can't be read here. Send them to us and we'll make the tracks.",
+            "notShared": "The song is saved, but it isn't in {group} yet.",
+            "made": "{title} is in your group. Listen through it before your singers do."
+        }
     },
     "part": {
         "practise": "Practise this part",
@@ -3822,7 +3842,8 @@
         },
         "tracks": {
             "ask": "Want learning tracks of a piece you're rehearsing?",
-            "askLink": "Ask us",
+            "askLink": "Send us your song",
+            "makeLink": "Make tracks from a score",
             "title": "Ask for learning tracks",
             "intro": "Tell us the piece. We'll email you to ask for the score (a PDF or MusicXML), make each part a learning track with its guide voice, and put it in your account to share here.",
             "piece": "The piece",
@@ -5108,8 +5129,6 @@
     "wrap": {
         "title": "Session one: your note {note}, {lessons} lessons, {stars} stars.",
         "titleNoNote": "Session one: {lessons} lessons, {stars} stars.",
-        "goal": "How many days a week shall we aim for?",
-        "goalKept": "{count, plural, one {1 day a week} other {# days a week}}. You can change it on the course page.",
         "account": "Save your progress (your note, your {stars} stars and your level) with a free account.",
         "makeAccount": "Make a free account",
         "remindTitle": "Want a nudge on your practice days?",
@@ -5117,7 +5136,6 @@
         "titleSerious": "Session one: your note {note}, {lessons} lessons.",
         "titleNoNoteSerious": "Session one: {lessons} lessons.",
         "accountSerious": "Save your progress (your note and your lessons) with a free account.",
-        "days": "{count} days",
         "week": {
             "title": "Your first week",
             "days": "{count, plural, one {1 day sung} other {# days sung}}",
@@ -5132,8 +5150,7 @@
             "keepLessons": "{count, plural, one {1 lesson} other {# lessons}}",
             "keepSongs": "your songs"
         },
-        "installApp": "Install the app: it opens like an app, with no browser bar.",
-        "goalSuggested": "{count, plural, one {# day a week is a good start. Tap one to keep it.} other {# days a week is a good start. Tap one to keep it.}}"
+        "installApp": "Install the app: it opens like an app, with no browser bar."
     },
     "voiceCard": {
         "title": "Unit 1 done: your voice",

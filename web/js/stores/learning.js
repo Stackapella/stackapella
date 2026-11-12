@@ -352,6 +352,7 @@ export async function finishLesson(lessonId, { percent, onTime = true, timing = 
     await save(progress);
     count('lesson_done'); // once a finish: here, where it's recorded, never as the end screen shows again
     countFor(entry?.course ? 'pl_d' : 'fl_d', entry?.course ? entry.course.id : lessonId);
+    if (entry?.course) countFor('cl_d', lessonId); // any other course's lesson, by its own id
     if (!unitWasDone && unitDone(progress)) count('unit_done');
     // A first lesson finished with a star in any course (the free one too), once on this device: a funnel kind, so it keeps
     // the ?ref= source a singer came with (a free tool's lesson line, tool-<tool>), which lesson_done never does.

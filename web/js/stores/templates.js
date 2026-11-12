@@ -82,7 +82,7 @@ export async function ownTemplate(id) {
  * (`copiedFrom`): both go with its first save, so the account keeps an import private
  * (docs/sheet-music-patent-notes.md, section 4).
  */
-export async function saveTemplate(template, { visibility = null, libraryOptIn = null, source = null, copiedFrom = null } = {}) {
+export async function saveTemplate(template, { visibility = null, libraryOptIn = null, source = null, copiedFrom = null, rights = null } = {}) {
     validateTemplate(template);
     const before = await db.get('templates', template.id);
     const next = JSON.parse(JSON.stringify(template)); // plain: the screens pass Vue's reactive copies
@@ -102,6 +102,8 @@ export async function saveTemplate(template, { visibility = null, libraryOptIn =
         state: before?.state ?? 'device',
         ...(source ?? before?.source ? { source: source ?? before.source } : {}),
         ...(copiedFrom ?? before?.copiedFrom ? { copiedFrom: copiedFrom ?? before.copiedFrom } : {}),
+        // An import's rights: which of the two sentences was confirmed (public-domain, own-arrangement), sent with its first save.
+        ...(rights ?? before?.rights ? { rights: rights ?? before.rights } : {}),
         ...(before?.imported ? { imported: true } : {}),
         pending: true, // something to send: a version, or who may open it
         deleted: false,
@@ -118,7 +120,7 @@ export async function saveTemplate(template, { visibility = null, libraryOptIn =
 /** What only a template's first save carries: where it came from (an import, a copy). */
 function firstSave(record) {
     if (record.savedVersion) return {};
-    return { ...(record.source ? { source: record.source, rightsConfirmed: true } : {}), ...(record.copiedFrom ? { copiedFrom: record.copiedFrom } : {}) };
+    return { ...(record.source ? { source: record.source, rightsConfirmed: true, ...(record.rights ? { rights: record.rights } : {}) } : {}), ...(record.copiedFrom ? { copiedFrom: record.copiedFrom } : {}) };
 }
 
 async function send(record, { retried = false } = {}) {

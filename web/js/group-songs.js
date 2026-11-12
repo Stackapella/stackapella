@@ -4,6 +4,7 @@
 // making a new copy at every tap.
 
 import { api } from './api.js';
+import { session as tabStorage } from './storage.js';
 import * as db from './db.js';
 import { loadTemplate } from './templates.js';
 import { loadProjects, projects, saveProject, startFromTemplate, storedProject } from './stores/projects.js';
@@ -56,8 +57,13 @@ export async function learnGroupSong({ templateId, partKey = null, status = 'non
             const slot = (await db.allBy('parts', 'projectId', kept.id)).find((p) => p.templatePartKey === partKey);
             if (project && slot && project.practice?.focus !== slot.id) await saveProject({ ...project, practice: { ...project.practice, focus: slot.id } });
         }
+        fromGroup(kept.id);
         return kept.id;
     }
     const project = await startFromTemplate(template ?? (await loadTemplate(templateId)), { focusKey: partKey });
+    fromGroup(project.id);
     return project.id;
 }
+
+/** This tab opened the song from a group: its first take is a group's (grp_sang, js/stores/session.js). */
+export const fromGroup = (projectId) => tabStorage.set(`stackapella.fromGroup.${projectId}`, '1');

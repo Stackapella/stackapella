@@ -149,7 +149,7 @@ export const SaveStep = {
                     <ul class="space-y-1.5 text-sm" :aria-label="t('create.save.needs')">
                         <li v-for="c in checklist" :key="c.key" class="flex items-center gap-2" :class="c.done ? 'text-cream' : 'text-muted'">
                             <span class="grid size-5 place-items-center rounded-full border" :class="c.done ? 'border-good bg-good text-ink' : 'border-line'" aria-hidden="true"><Icon v-if="c.done" name="check" :size="12" /></span>
-                            <span>{{ t(c.label) }}<span class="sr-only">{{ c.done ? t('create.save.done') : t('create.save.notYet') }}</span></span>
+                            <span>{{ t(c.label) }}<span class="sr-only">, {{ c.done ? t('create.save.done') : t('create.save.notYet') }}</span></span>
                         </li>
                     </ul>
                 </aside>

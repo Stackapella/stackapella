@@ -39,6 +39,8 @@ def journey(f):
     f.wait_text("Sing the line.")
     # The scored step, over loopback.
     f.js(f"{AUDIO}.engine.setLoopback(true)")
+    # The step's words draw first and its Exercise a beat later (components/lazy-lesson.js): wait for the disc itself.
+    f.wait("document.querySelector('[data-play-disc]')", what="the play step's disc")
     f.run("document.querySelector('[data-play-disc]').closest('button').click()")
     if f.js("!!document.querySelector('[role=dialog]')"):
         f.click_t("headphones.on")

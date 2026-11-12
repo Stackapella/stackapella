@@ -15,7 +15,7 @@ const LANDING_VARIANT = 'stackapella.landingVariant'; // ?v= from the landing's 
 // The account nudges' asks (docs/account-nudges-plan.md, section 6) are acct_*: N1 to N4, Settings and P4.
 // acct_course_<place>: the course wall again, by where it was met (the home's lesson card, a lesson, the course map, a
 // course's page), beside acct_course's total, so the growth pull tells them apart (anonymous counts, no ids).
-export const ASKS = ['install', 'account', 'name', 'share', 'goal', 'remind', 'acct_week', 'acct_songs', 'acct_unit', 'acct_risk', 'acct_settings', 'acct_course', 'acct_course_home', 'acct_course_lesson', 'acct_course_map', 'acct_course_page'];
+export const ASKS = ['install', 'account', 'name', 'share', 'goal', 'remind', 'nudge', 'acct_week', 'acct_songs', 'acct_unit', 'acct_risk', 'acct_settings', 'acct_course', 'acct_course_home', 'acct_course_lesson', 'acct_course_map', 'acct_course_page'];
 const DAY = 86400000;
 
 /** What this device has kept: { firsts: { kind: true }, variant: 'onb1-b' | null, arrived: 'YYYY-MM-DD' | null, free: bool }. */
@@ -57,7 +57,7 @@ export function askShown(name) {
 
 /** An ask was put off: a plain daily total each time (the annoyance readout), for the account nudges. */
 export function askNot(name) {
-    if (ASKS.includes(name) && name.startsWith('acct_')) count(`ask_${name}_not`);
+    if (ASKS.includes(name) && (name.startsWith('acct_') || name === 'nudge')) count(`ask_${name}_not`);
 }
 
 /** An ask was said yes to: counted the first time. */

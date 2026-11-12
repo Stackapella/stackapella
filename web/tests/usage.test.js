@@ -1,6 +1,6 @@
 // Usage counts (js/usage.js): only the allowlisted moments, added up into one batch with whether
 // someone was signed in and nothing else; none sent while the server hasn't turned counting on.
-import { count, countShare, send, shareRef } from '/js/usage.js';
+import { count, countReturn, countShare, send, shareRef } from '/js/usage.js';
 import { account } from '/js/stores/account.js';
 import { assert, test } from './harness.js';
 
@@ -88,5 +88,46 @@ test('usage counts: a share counts as sh:<surface>.<method> only for the server\
     } finally {
         navigator.sendBeacon = beacon;
         Object.assign(account, had);
+    }
+});
+
+test('usage counts: coming back on day 1, 7, 14 or 30 since arriving, and once in days 1 to 6', async () => {
+    const sent = [];
+    const beacon = navigator.sendBeacon;
+    const had = { config: account.config, me: account.me, funnel: localStorage.getItem('stackapella.funnel'), returned: localStorage.getItem('stackapella.returned') };
+    navigator.sendBeacon = (url, blob) => {
+        sent.push({ url, blob });
+        return true;
+    };
+    const kinds = async () => {
+        send();
+        const batch = sent.pop();
+        return batch ? JSON.parse(await batch.blob.text()).events.map((e) => e.kind) : [];
+    };
+    try {
+        account.config = { usageCounts: true };
+        account.me = null;
+        localStorage.removeItem('stackapella.returned');
+        const day = (n) => new Date(2026, 10, 1 + n, 12).getTime(); // noon, local, n days after 1 November
+        localStorage.setItem('stackapella.funnel', JSON.stringify({ firsts: {}, arrived: '2026-11-01' }));
+        countReturn(day(1));
+        assert(JSON.stringify((await kinds()).sort()) === '["back_d1","back_w1"]', 'day 1: back_d1 and the week\'s once');
+        countReturn(day(3));
+        assert((await kinds()).length === 0, 'day 3: the week was counted already');
+        countReturn(day(7));
+        assert(JSON.stringify(await kinds()) === '["back_d7"]', 'day 7');
+        countReturn(day(30));
+        assert(JSON.stringify(await kinds()) === '["back_d30"]', 'day 30');
+        localStorage.removeItem('stackapella.funnel');
+        countReturn(day(7));
+        assert((await kinds()).length === 0, 'no arrival day kept: nothing');
+    } finally {
+        navigator.sendBeacon = beacon;
+        account.config = had.config;
+        account.me = had.me;
+        if (had.funnel === null) localStorage.removeItem('stackapella.funnel');
+        else localStorage.setItem('stackapella.funnel', had.funnel);
+        if (had.returned === null) localStorage.removeItem('stackapella.returned');
+        else localStorage.setItem('stackapella.returned', had.returned);
     }
 });

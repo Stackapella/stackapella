@@ -18,7 +18,7 @@ export const KINDS = new Set(['app_open', 'app_day', 'app_week', 'app_month', 'l
 // The funnel's steps and asks (docs/onboarding-review.md, section 4), each counted once per device by js/funnel.js.
 const FUNNEL = ['f_day7', 'f_plus', 'f_arrive', 'f_arrive_start', 'f_mic', 'f_note', 'f_note_skip', 'f_lesson1', 'f_chord', 'f_lesson2', 'f_lesson3', 'f_unit1', 'f_goal', 'f_install', 'f_name', 'f_account', 'f_share', 'f_remind', 'f_take', 'f_harmony', 'f_day2', 'f_week1', 'f_goal_met', 'f_day14', 'f_course_lesson'];
 const NUDGES = ['acct_week', 'acct_songs', 'acct_unit', 'acct_risk', 'acct_settings', 'acct_course']; // the account nudges' asks
-const ASKED = ['install', 'account', 'name', 'share', 'goal', 'remind', ...NUDGES].flatMap((ask) => [`ask_${ask}_shown`, `ask_${ask}_yes`]);
+const ASKED = ['install', 'account', 'name', 'share', 'goal', 'remind', 'nudge', ...NUDGES].flatMap((ask) => [`ask_${ask}_shown`, `ask_${ask}_yes`]);
 for (const kind of [...FUNNEL, ...ASKED]) KINDS.add(kind);
 // What's been built since (Hillel: "update the admin usage page with all of the new stuff, ie
 // courses, etc"): the skins, the Plus courses' extras, Hum a tune, the studio, the onboarding's
@@ -34,6 +34,12 @@ for (const kind of [
     ...NUDGES.map((ask) => `ask_${ask}_not`),
     'sug_melody', 'sug_part', 'sug_switch',
     'daily_viewed', 'daily_sung',
+    'ask_nudge_not', // the wrap's Nudge me tomorrow, put off (docs/retention-plan.md, idea 2)
+    // Coming back (docs/retention-plan.md, section 8): days 1, 7, 14 and 30 since this device arrived, and once in days 1 to 6.
+    'back_d1', 'back_d7', 'back_d14', 'back_d30', 'back_w1',
+    // A choir group's path, each a device's first (js/funnel.js first): the start sheet shown, a group made, its link first
+    // sent, an invite accepted, a director's first part given, a member's first take on a group's song.
+    'grp_start', 'grp_made', 'grp_link', 'grp_joined', 'grp_assigned', 'grp_sang',
     'school_redeemed',
     // Home's Today line (docs/home-returning-plan.md, experiment ret1): each case shown, and its taps.
     'home_today_gap_shown', 'home_today_gap_tap', 'home_today_stuck_shown', 'home_today_stuck_tap',
@@ -44,7 +50,9 @@ for (const kind of [
 // Kinds with a detail, `<prefix>:<id>`: a Plus course's lessons by course, the free course by lesson.
 // The server keeps only ids the courses have.
 // fs_r: a free lesson's step reached, `fs_r:<lessonId>.<step>` (step from 0), once per step each time it's run.
-const DETAILED = new Set(['pl_s', 'pl_d', 'fl_s', 'fl_d', 'fs_r']);
+// cl_s, cl_d and cs_r: the same for a lesson in any other course, by the lesson's own id (ids are unique across courses;
+// pl_s and pl_d stay, by course, so earlier weeks still read).
+const DETAILED = new Set(['pl_s', 'pl_d', 'fl_s', 'fl_d', 'fs_r', 'cl_s', 'cl_d', 'cs_r']);
 const MOST_EACH = 20; // the server takes 1 to 20 of a kind, and 20 kinds, in one batch
 const IDLE_WAIT_MS = 30000; // a batch goes within this, when the browser is idle (never for audio)
 
@@ -181,4 +189,35 @@ export function countReach(at = Date.now()) {
         return; // without a record, counting would repeat on every open
     }
     for (const kind of changed) count(kind);
+    if (changed.includes('app_day')) countReturn(at);
+}
+
+const RETURNED = 'stackapella.returned'; // '1' once back_w1 has gone: nothing else
+
+/**
+ * Coming back, beside the day's app_day: back_d1, back_d7, back_d14 or back_d30 on exactly that day since this device
+ * arrived (the funnel's own day, kept on the device), and back_w1 once on the first open in days 1 to 6. Daily totals
+ * only, with no ID; read against the new devices of the matching earlier day.
+ */
+export function countReturn(at = Date.now()) {
+    let arrived = null;
+    try {
+        arrived = JSON.parse(localStorage.getItem('stackapella.funnel') || 'null')?.arrived ?? null;
+    } catch (error) {
+        console.info('The arrival day was unreadable', error?.message ?? error);
+    }
+    if (!arrived) return;
+    const local = new Date(at - new Date(at).getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+    const days = Math.round((Date.parse(local) - Date.parse(arrived)) / 86400000);
+    if ([1, 7, 14, 30].includes(days)) count(`back_d${days}`);
+    if (days >= 1 && days <= 6) {
+        try {
+            if (localStorage.getItem(RETURNED) === '1') return;
+            localStorage.setItem(RETURNED, '1');
+        } catch (error) {
+            console.info('The week-one return was not kept', error?.message ?? error);
+            return; // without the flag it would count on every day of the week
+        }
+        count('back_w1');
+    }
 }

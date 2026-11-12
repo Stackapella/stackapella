@@ -266,7 +266,7 @@
         "routeQuestion": "What will you record with?",
         "skip": "Skip and use an estimate",
         "start": "Start the check",
-        "listening": "Listening for the chirps. Keep the room quiet.",
+        "listening": "Listening for the clicks. Keep the room quiet.",
         "result": "Your delay is {ms} ms. New parts will be lined up automatically.",
         "hideDetails": "Hide details",
         "showDetails": "Show details",
@@ -275,7 +275,7 @@
         "estimate": "Browser's estimate",
         "again": "Measure again",
         "startRecording": "Start recording",
-        "failed": "We couldn't hear the chirps.",
+        "failed": "We couldn't hear the clicks.",
         "failedHint": "Turn the volume up, check the right microphone is picked, and for headphones hold an earbud right against the mic.",
         "useEstimate": "Use an estimate",
         "interrupted": "The timing check stopped before it finished. Try again.",
@@ -493,6 +493,26 @@
             "tempoChanges": "The speed changes later on. The first one is kept.",
             "graces": "{count, plural, one {A grace note is left out.} other {# grace notes are left out.}}",
             "metreWritten": "Its {from} is written as {to}, which sounds the same."
+        },
+        "tune": "The tune is in",
+        "tuneNone": "No part (all equal)",
+        "proposals": {
+            "title": "What singers will meet",
+            "checking": "Checking the parts",
+            "failed": "The parts couldn't be checked just now. Try again in a moment.",
+            "problems": "Fix these in the score before it can be made:",
+            "unchanged": "These are only suggestions: your notes are kept as written.",
+            "none": "Nothing to point out: every line has room to breathe and sits in its voice's range."
+        },
+        "director": {
+            "whose": "Whose music is it?",
+            "inCopyright": "A published arrangement still in copyright can't be brought in yet.",
+            "for": "For",
+            "private": "Kept private: only your group's singers can open it.",
+            "make": "Make the tracks",
+            "pdf": "A PDF or photos of the score can't be read here. Send them to us and we'll make the tracks.",
+            "notShared": "The song is saved, but it isn't in {group} yet.",
+            "made": "{title} is in your group. Listen through it before your singers do."
         },
         "error": {
             "unreadable": "That file isn't sheet music we can read. Try MusicXML (.musicxml or .mxl) or MIDI.",
@@ -3256,7 +3276,7 @@
             "tryForGuide": "Try for guide",
             "readyToRecord": "Learn it with the guide, then record your take.",
             "creditTitle": "Your credit",
-            "creditShown": "Shown on every part you sing, such as \"{part} sung by {name}\".",
+            "creditShown": "Your name is shown on every part you sing, such as \"{part} sung by {name}\".",
             "creditShownAnonymous": "Your parts show without a name, as you chose.",
             "anonymous": "Anonymous",
             "editCredit": "Edit",
@@ -3443,7 +3463,7 @@
             "onHome": "On your comfortable note.",
             "aboveHome": "{count, plural, one {# semitone} other {# semitones}} above your comfortable note.",
             "belowHome": "{count, plural, one {# semitone} other {# semitones}} below your comfortable note.",
-            "aroundHome": "Anywhere from {low} semitones below to {high} semitones above your comfortable note.",
+            "aroundHome": "Anywhere from {low, plural, one {1 semitone} other {# semitones}} below to {high, plural, one {1 semitone} other {# semitones}} above your comfortable note.",
             "hearNote": "Hear your note",
             "record": "Record",
             "recordAgain": "Record again",
@@ -5538,7 +5558,7 @@
         "leave": "Leave (your draft is kept)",
         "draftSaved": "Draft saved",
         "progress": "Step {step} of {total}",
-        "keptDraft": "Your draft is kept. Find it under Unfinished on the home page.",
+        "keptDraft": "Your draft is kept. Find it in Your songs, marked Draft.",
         "draftGone": "That draft isn't on this device any more. It may have been saved or discarded.",
         "couldNotStart": "The creator couldn't open that just now. Try again in a moment.",
         "copyTitle": "{title} (my copy)",
@@ -6037,7 +6057,7 @@
         "hum": {
             "title": "Hum your tune",
             "hint": "Hum or sing it in your own time, up to {seconds} seconds. Breathe between lines: that's how we find them.",
-            "ready": "Press Start and hum. No words needed.",
+            "ready": "Press Start humming and hum. No words needed.",
             "start": "Start humming",
             "again": "Hum it again",
             "recording": "Listening: {seconds} s",
@@ -6358,6 +6378,7 @@
         "tracks": {
             "ask": "Want learning tracks of a piece you're rehearsing?",
             "askLink": "Send us your song",
+            "makeLink": "Make tracks from a score",
             "title": "Send us your song",
             "intro": "Send the score of a piece your choir is rehearsing. We'll make each part a learning track with its guide voice and put the song in this group, usually within a working day.",
             "piece": "The piece",
@@ -6490,7 +6511,7 @@
     "moved": {
         "arriving": "Your songs are arriving",
         "waiting": "Waiting for the old address",
-        "received": "{count} things received",
+        "received": "{count, plural, one {1 thing received} other {# things received}}",
         "here": "Your songs are here",
         "hereBody": "Your songs, takes and settings came across. Anything that was already here stayed as it was.",
         "nothingNew": "Everything was here already.",
@@ -6892,7 +6913,7 @@
                 }
             }
         },
-        "setup": "For **{browser}** on **{device}**",
+        "setup": "For **{browser}** on your **{device}**",
         "change": "Change",
         "hearing": "Your mic works",
         "hearingLine": "We can hear you. Carrying on...",
@@ -6917,7 +6938,7 @@
             "windows": "Windows",
             "ios": "iPhone or iPad",
             "android": "Android",
-            "computer": "a computer"
+            "computer": "computer"
         },
         "drawing": {
             "microphone": "Microphone"
@@ -7079,7 +7100,7 @@
             "plus": "+{xp}",
             "xpEarned": "XP earned"
         },
-        "streak": "{count}-day streak",
+        "streak": "{count, plural, one {1-day streak} other {#-day streak}}",
         "lessonOf": "Lesson {place} of {total} done",
         "pathLabel": "This unit's lessons",
         "path": {
@@ -7483,6 +7504,9 @@
         "statPart": "on pitch and ringing"
     },
     "game": {
+        "wrap": {
+            "nudgeTitle": "CONTINUE TOMORROW?"
+        },
         "groups": {
             "title": "Co-op",
             "start": "Start co-op",
@@ -7543,7 +7567,7 @@
             "rate": "Bonus x{count}!",
             "rateChip": "x{count}",
             "rateChipLabel": "{count} times the bonus",
-            "streak": "Streak! {count} days"
+            "streak": "{count, plural, one {Streak! 1 day} other {Streak! # days}}"
         },
         "workout": {
             "title": "Training mode"
@@ -7667,16 +7691,17 @@
     "wrap": {
         "title": "Session one: your note {note}, {lessons} lessons, {stars} stars.",
         "titleNoNote": "Session one: {lessons} lessons, {stars} stars.",
-        "goal": "How many days a week shall we aim for?",
-        "goalKept": "{count, plural, one {1 day a week} other {# days a week}}. You can change it on the course page.",
         "account": "Save your progress (your note, your {stars} stars and your level) with a free account.",
         "makeAccount": "Make a free account",
+        "nudgeTitle": "Pick this up tomorrow?",
+        "nudge": "Nudge me tomorrow at about this time",
+        "nudgeSet": "Done: a nudge tomorrow at {time}. Change it any time in Settings, under Practice reminders.",
+        "nudgeFailed": "The nudge couldn't be set here. Practice reminders in Settings can try again.",
         "remindTitle": "Want a nudge on your practice days?",
         "remindWhy": "One a day at most, at a time you pick.",
         "titleSerious": "Session one: your note {note}, {lessons} lessons.",
         "titleNoNoteSerious": "Session one: {lessons} lessons.",
         "accountSerious": "Save your progress (your note and your lessons) with a free account.",
-        "days": "{count} days",
         "week": {
             "title": "Your first week",
             "days": "{count, plural, one {1 day sung} other {# days sung}}",
@@ -7691,8 +7716,7 @@
             "keepLessons": "{count, plural, one {1 lesson} other {# lessons}}",
             "keepSongs": "your songs"
         },
-        "installApp": "Install the app: it opens like an app, with no browser bar.",
-        "goalSuggested": "{count, plural, one {# day a week is a good start. Tap one to keep it.} other {# days a week is a good start. Tap one to keep it.}}"
+        "installApp": "Install the app: it opens like an app, with no browser bar."
     },
     "voiceCard": {
         "title": "Unit 1 done: your voice",
