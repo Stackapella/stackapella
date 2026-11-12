@@ -34,7 +34,7 @@ final class SongPage
 
         return [
             'slug' => $template->slug,
-            'title' => $template->title,
+            'title' => SongWords::title((string) $template->title, (string) $template->slug),
             'description' => SongWords::description((string) ($data['description'] ?? '')),
             // Its story where it has one (lang song_about), the part pages' About too.
             'about' => trans()->has('song_about.'.$template->slug) ? (string) __('song_about.'.$template->slug) : null,

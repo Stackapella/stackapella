@@ -27,10 +27,40 @@ final class SongWords
         return self::map('credits')[$english] ?? $english;
     }
 
-    /** A song's title as a page shows it: a round's note after it in the page's language ("(canon)" in Spanish). */
-    public static function title(string $title): string
+    /**
+     * A song's title as a page shows it: its own title in the page's language where it has one (song_titles: "Frère
+     * Jacques" for Are You Sleeping in Spanish; the courses lead, for the coordinator), else a round's note in it
+     * ("(canon)").
+     */
+    public static function title(string $title, ?string $slug = null): string
     {
-        return App::getLocale() === 'en' ? $title : (string) preg_replace('/\s*\(round\)$/', ' '.__('pages.songs.round_note'), $title);
+        $locale = App::getLocale();
+        if ($locale === 'en') {
+            return $title;
+        }
+        $own = $slug !== null ? (self::titles($slug)[$locale] ?? null) : null;
+
+        return $own ?? (string) preg_replace('/\s*\(round\)$/', ' '.__('pages.songs.round_note'), $title);
+    }
+
+    /**
+     * A song's own titles in other languages (resources/data/song_titles/<lang>.json, by slug, as the app's
+     * js/song-titles.js keys them), for the app to search and show.
+     *
+     * @return array<string, string>
+     */
+    public static function titles(string $slug): array
+    {
+        $titles = [];
+        foreach (glob(resource_path('data/song_titles/*.json')) ?: [] as $file) {
+            $language = basename($file, '.json');
+            self::$maps['titles/'.$language] ??= array_filter((array) json_decode((string) file_get_contents($file), true), 'is_string');
+            if (isset(self::$maps['titles/'.$language][$slug])) {
+                $titles[$language] = self::$maps['titles/'.$language][$slug];
+            }
+        }
+
+        return $titles;
     }
 
     /** A genre's chip ("hymn" is "Hymn" in English, "Himno" in Spanish). */

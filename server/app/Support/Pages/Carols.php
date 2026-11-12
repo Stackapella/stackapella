@@ -6,6 +6,7 @@ namespace App\Support\Pages;
 
 use App\Models\Template;
 use App\Support\Languages\NoteNames;
+use App\Support\Languages\SongWords;
 use Illuminate\Support\Carbon;
 
 /**
@@ -94,7 +95,7 @@ final class Carols
         return [
             'slug' => (string) $template->slug,
             // A round's without its "(round)", as /songs puts it: its card says round already.
-            'title' => $round ? SongParts::searchTitle((string) $template->title) : (string) $template->title,
+            'title' => SongWords::title($round ? SongParts::searchTitle((string) $template->title) : (string) $template->title, (string) $template->slug),
             'url' => $url,
             'from' => self::from((string) $template->slug, (string) $template->title),
             // Its opening line to play, as /songs plays a song's: every open song plays for guests (Hillel,

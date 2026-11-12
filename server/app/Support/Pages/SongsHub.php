@@ -101,7 +101,7 @@ final class SongsHub
                 $order = array_keys(SongCollections::GROUPS);
                 usort($in, static fn (string $a, string $b): int => array_search($a, $order, true) <=> array_search($b, $order, true));
                 // A round's note in the page's language: "(canon)" in Spanish.
-                $title = SongWords::title((string) $t->title);
+                $title = SongWords::title((string) $t->title, (string) $t->slug);
 
                 return ['title' => $title, 'url' => '/songs/'.$t->slug, 'letter' => mb_strtoupper(mb_substr(ltrim($title, '"\'('), 0, 1)), 'in' => $in === [] ? ['other'] : $in, 'dot' => $in[0] ?? 'other'];
             })

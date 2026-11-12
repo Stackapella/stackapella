@@ -1,6 +1,7 @@
 <?php
 
 declare(strict_types=1);
+use App\Support\Pages\SongCollections;
 
 /*
 |--------------------------------------------------------------------------
@@ -15,7 +16,7 @@ declare(strict_types=1);
 
 $selfHosted = filter_var(env('SELF_HOSTED', false), FILTER_VALIDATE_BOOL);
 // What can be shared (sh:<surface>.<method>); each surface's source tag is share-<surface>.
-$shareSurfaces = ['song', 'lesson', 'note', 'daily', 'invite', 'challenge', 'group', 'class', 'arrangement', 'warmup', 'app', 'embed', 'page-song', 'page-part', 'page-course', 'page-lesson', 'page-carols', 'page-collection'];
+$shareSurfaces = ['song', 'lesson', 'note', 'daily', 'invite', 'challenge', 'group', 'class', 'arrangement', 'warmup', 'app', 'embed', 'page-song', 'page-part', 'page-course', 'page-lesson', 'page-carols', 'page-collection', 'voice'];
 $on = env('USAGE_COUNTS');
 
 return [
@@ -69,6 +70,15 @@ return [
         'back_d1', 'back_d7', 'back_d14', 'back_d30', 'back_w1',
         // The thread back: a lesson's "come back" link and calendar reminder tapped, and the nudge's Not now.
         'back_link_tap', 'back_cal_tap', 'ask_nudge_not',
+        // Be the voice (docs/open-guide-voices-plan.md; the engagement review): the call to action shown, a part sung
+        // from it, Later, the share sheet opened from it, a take resumed.
+        'bv_sung', 'bv_shown', 'bv_later', 'bv_resume', 'bv_sheet_tap',
+        // The mic, where lesson 1's first step loses singers (frontend, 2026-11-12): the why-sheet and its Not now, the
+        // browser about to ask and the mic opening, a no, each other cause mic-help.js finds, and lesson 1 begun inside
+        // another app's own browser (read against fl_s:1-comfortable).
+        'mic_primer', 'mic_primer_not', 'mic_prompt', 'mic_granted', 'mic_denied',
+        'mic_failed_inapp', 'mic_failed_insecure', 'mic_failed_unsupported', 'mic_failed_notfound', 'mic_failed_inuse', 'mic_failed_other',
+        'l1_inapp',
         // New and in season on Home: the card shown, and tapped.
         'home_new_shown', 'home_new_tap',
         // The paths the drop-off report reads (docs/retention-plan.md, section 8, "Measure"), each a device's first:
@@ -118,6 +128,18 @@ return [
         'us_shown' => 'song_offers',
         'us_tap' => 'song_offers',
         'us_kept' => 'song_offers',
+        // Be the voice: Share tapped, by who (a guest or a member), and where a singer stopped (bv_stop:<step>).
+        'bv_share_tap' => 'bv_share',
+        'bv_stop' => 'bv_stops',
+        // The library's filters in the app (Browse all): library_filter:<all|search|part:<part>|a /songs group>, a tap each.
+        'library_filter' => 'library_filters',
+    ],
+
+    // Fixed id lists for detailed kinds (counts.detailed's sources not read from the courses or the tools).
+    'lists' => [
+        'bv_share' => ['guest', 'member'],
+        'bv_stops' => ['age', 'email', 'check', 'upload'],
+        'library_filters' => ['all', 'search', 'part:soprano', 'part:alto', 'part:tenor', 'part:bass', 'more', ...array_keys(SongCollections::GROUPS)],
     ],
 
     // Where a song is offered at a unit's end (us_*): after units 1 to 4, and the wall. Units 5 to 8 join when theirs

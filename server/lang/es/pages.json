@@ -542,7 +542,7 @@
     "Spirituals": "Espirituales",
     "Hymns": "Himnos",
     "Sea shanties": "Canciones marineras",
-    "Folk songs": "Canciones populares",
+    "Folk songs": "Canciones tradicionales",
     "Classical and sacred": "Música clásica y sacra",
     "Barbershop, parlour and stage": "Barbershop, salón y musicales",
     "More songs": "Más canciones",
@@ -1434,5 +1434,9 @@
     "What is Maoz Tzur about?": "¿De qué trata Maoz Tzur?",
     "It's the Hebrew hymn sung after the Hanukkah lights are lit. Its first verse praises Hashem as the rock of salvation and asks for the Temple to be rebuilt; its fifth tells the Hanukkah story: the Greeks made the oil unclean, one jar was found, and eight days of praise were set.": "Es el himno hebreo que se canta después de encender las luces de Janucá. Su primera estrofa alaba a Hashem como la roca de la salvación y pide que se reconstruya el Templo; la quinta cuenta la historia de Janucá: los griegos hicieron impuro el aceite, se encontró una sola vasija y se establecieron ocho días de alabanza.",
     "Can a choir sing these Hanukkah songs in parts?": "¿Puede un coro cantar estas canciones de Janucá a voces?",
-    "Yes. Both are set for 2 to 4 singers, with the tune in the soprano. Start with the tune and the alto, then add the bass, and the tenor fills the middle. Each part has its own page to learn it by ear.": "Sí. Las dos están arregladas para 2 a 4 cantantes, con la melodía en la soprano. Empieza con la melodía y la contralto, añade luego el bajo, y el tenor completa el centro. Cada voz tiene su propia página para aprenderla de oído."
+    "Yes. Both are set for 2 to 4 singers, with the tune in the soprano. Start with the tune and the alto, then add the bass, and the tenor fills the middle. Each part has its own page to learn it by ear.": "Sí. Las dos están arregladas para 2 a 4 cantantes, con la melodía en la soprano. Empieza con la melodía y la contralto, añade luego el bajo, y el tenor completa el centro. Cada voz tiene su propia página para aprenderla de oído.",
+    "Every course, every song and your history are free. Plus adds storage, MP3 and stems, and unlimited private arrangements, for working with what you make.": "Cada curso, cada canción y tu historial, gratis. Plus añade almacenamiento, MP3, pistas por separado y arreglos privados ilimitados, para trabajar con tus creaciones.",
+    "For working with what you make: more storage, MP3 and stems, and unlimited private arrangements.": "Para trabajar con tus creaciones: más almacenamiento, MP3 y pistas por separado, y arreglos privados ilimitados.",
+    "Plus adds more storage, MP3 and stems, and unlimited private arrangements. Plus and billing has the price and the trial.": "Plus añade más almacenamiento, MP3 y pistas por separado, y arreglos privados ilimitados. Plus y facturación tiene el precio y el periodo de prueba.",
+    "Yes. Learning is free, with no card and no time limit: every course, every song with a free account, unlimited workouts, your history, recording every part, and singing with friends. You can start without an account. Plus, from :price a month, adds more storage, MP3 and stems, and unlimited private arrangements.": "Sí. Aprender es gratis, sin tarjeta y sin límite de tiempo: todos los cursos, todas las canciones con una cuenta gratis, entrenamientos ilimitados, tu historial, grabar todas las voces y cantar con amigos. Puedes empezar sin cuenta. Plus, desde :price al mes, añade más almacenamiento, MP3 y pistas por separado, y arreglos privados ilimitados."
 }

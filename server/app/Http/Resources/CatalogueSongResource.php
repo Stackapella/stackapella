@@ -6,6 +6,8 @@ namespace App\Http\Resources;
 
 use App\Models\Template;
 use App\Models\TemplateGuide;
+use App\Support\Languages\SongWords;
+use App\Support\Pages\SongCollections;
 use App\Support\Stats\ReportDay;
 use App\Support\Templates\SongShape;
 use Illuminate\Http\Request;
@@ -82,6 +84,10 @@ final class CatalogueSongResource extends JsonResource
             'description' => (string) ($data['description'] ?? ''),
             'difficulty' => (string) ($data['difficulty'] ?? 'beginner'),
             'genre' => array_values((array) ($data['genre'] ?? [])),
+            // The /songs group it sits in (SongCollections::group, as /songs and its A to Z place it), null for "more";
+            // and its own titles in other languages, for the app's Browse all (frontend, 2026-11-12).
+            'group' => ($group = SongCollections::group(array_values(array_filter((array) ($data['genre'] ?? []), 'is_string')))) === 'more' ? null : $group,
+            'titles' => (object) SongWords::titles((string) $template->slug),
             'language' => (string) ($data['language'] ?? 'en'),
             'key' => (string) ($data['key'] ?? ''),
             'tempo' => $data['tempo'] ?? 0,

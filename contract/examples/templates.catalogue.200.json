@@ -211,7 +211,9 @@
                     "tenor",
                     "bass"
                 ]
-            }
+            },
+            "group": null,
+            "titles": {}
         },
         {
             "id": "silent-night",
@@ -378,7 +380,9 @@
                     "tenor",
                     "bass"
                 ]
-            }
+            },
+            "group": null,
+            "titles": {}
         }
     ]
 }

@@ -20,7 +20,9 @@
         "parts",
         "voicings",
         "openedAt",
-        "season"
+        "season",
+        "group",
+        "titles"
     ],
     "properties": {
         "id": {
@@ -177,6 +179,26 @@
                     }
                 }
             }
+        },
+        "group": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "description": "The /songs group the song sits in (SongCollections::group), null for \"more\"."
+        },
+        "titles": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "es": {
+                    "type": "string"
+                },
+                "de": {
+                    "type": "string"
+                }
+            },
+            "description": "The song's own titles in other languages, by language code (Frère Jacques in es); only the languages the site offers."
         }
     },
     "title": "A song in the catalogue: what anyone may see, never the notes"

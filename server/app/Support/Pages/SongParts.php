@@ -137,7 +137,7 @@ final class SongParts
             $level = array_search(((array) $template->currentVersion?->data)['difficulty'] ?? null, self::LEVELS, true);
             $found[] = [
                 'order' => [! in_array($fits[0]['key'], $prefer, true), $level === false ? count(self::LEVELS) : $level, $i],
-                'row' => ['title' => (string) $template->title, 'name' => $fits[0]['name'], 'url' => '/songs/'.$template->slug.'/'.$fits[0]['key'], 'low' => $fits[0]['low'], 'high' => $fits[0]['high'], 'lowName' => $fits[0]['lowName'], 'highName' => $fits[0]['highName']],
+                'row' => ['title' => SongWords::title((string) $template->title, (string) $template->slug), 'name' => $fits[0]['name'], 'url' => '/songs/'.$template->slug.'/'.$fits[0]['key'], 'low' => $fits[0]['low'], 'high' => $fits[0]['high'], 'lowName' => $fits[0]['lowName'], 'highName' => $fits[0]['highName']],
             ];
         }
         usort($found, static fn (array $a, array $b): int => $a['order'] <=> $b['order']);
@@ -201,7 +201,7 @@ final class SongParts
             'canonical' => $base.'/'.$key,
             'song' => [
                 'slug' => (string) $template->slug,
-                'title' => (string) $template->title,
+                'title' => SongWords::title((string) $template->title, (string) $template->slug),
                 'key' => (string) ($data['key'] ?? ''),
                 'difficulty' => (string) ($data['difficulty'] ?? ''),
                 'genre' => array_values(array_filter((array) ($data['genre'] ?? []), 'is_string')),

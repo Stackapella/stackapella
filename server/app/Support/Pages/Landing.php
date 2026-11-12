@@ -191,7 +191,7 @@ final class Landing
 
         return [
             'song' => $template->slug,
-            'title' => SongWords::title((string) $template->title),
+            'title' => SongWords::title((string) $template->title, (string) $template->slug),
             'version' => (int) ($template->currentVersion->version ?? 1),
             'tempo' => $tempo,
             'beats' => $end,

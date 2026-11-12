@@ -863,7 +863,11 @@ library song is free with an account since 2026-11-07). The app's bundled templa
 fallback. `openedAt` is when a song opened in the library (its first reviewed version, set by the sync;
 null while hidden), so Home's "New and in season" can show what's just opened; `season` is the season the song
 is in today, `{ "key": "carols", "until": "2026-12-26" }` (a carol, 1 November to 26 December; config
-templates.seasons), or null. **Request:** none.
+templates.seasons), or null. `group` is the /songs group the song sits in (`christmas`, `jewish-songs`, `rounds`,
+`spirituals`, `hymns`, `sea-shanties`, `folk-songs`, `classical`, `barbershop-songs`; the first that its genres name, as
+/songs and its A to Z place it), or null ("more"); `titles` is the song's own title in other languages, by language
+code (`{ "es": "Frère Jacques" }`; empty when it has none), for the app's Browse all (since 2026-11-12).
+**Request:** none.
 
 **Voices** (Hillel's decision, "published versions"): every accepted recording of a part is a
 published version (`versions`, the default first, then the newest), and `guide` is the default

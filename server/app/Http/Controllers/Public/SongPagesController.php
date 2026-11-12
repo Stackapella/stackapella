@@ -9,6 +9,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Template;
 use App\Support\Http\Hosts;
 use App\Support\Languages\Dates;
+use App\Support\Languages\SongWords;
 use App\Support\Pages\Carols;
 use App\Support\Pages\Landing;
 use App\Support\Pages\SongCollections;
@@ -92,16 +93,16 @@ final class SongPagesController extends Controller
                 // (docs/search-content-plan.md, item 4): choirs search it.
                 'title' => SongParts::round($song['genre'])
                     ? __('pages.song.title_round', ['title' => SongParts::searchTitle((string) $template->title)])
-                    : __('pages.song.title', ['title' => $template->title]),
+                    : __('pages.song.title', ['title' => SongWords::title((string) $template->title, (string) $template->slug)]),
                 'description' => match (true) {
                     SongParts::round($song['genre']) => __('pages.song.description_round', ['title' => SongParts::searchTitle((string) $template->title)]),
-                    SongParts::satb(array_column($song['parts'], 'key')) => __('pages.song.description_satb', ['title' => $template->title]),
-                    default => __('pages.song.description', ['title' => $template->title, 'parts' => implode(', ', array_column($song['parts'], 'name'))]),
+                    SongParts::satb(array_column($song['parts'], 'key')) => __('pages.song.description_satb', ['title' => SongWords::title((string) $template->title, (string) $template->slug)]),
+                    default => __('pages.song.description', ['title' => SongWords::title((string) $template->title, (string) $template->slug), 'parts' => implode(', ', array_column($song['parts'], 'name'))]),
                 },
                 'url' => $song['pageUrl'],
                 // The song's own card (made on the first visit; the landing's until then).
                 'image' => $cards->url($template, 'join'),
-                'imageAlt' => __('site.meta.app.join.image_alt', ['song' => $template->title]),
+                'imageAlt' => __('site.meta.app.join.image_alt', ['song' => SongWords::title((string) $template->title, (string) $template->slug)]),
             ],
         ], 200, self::headers());
     }

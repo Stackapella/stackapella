@@ -123,6 +123,8 @@ final class RecordCounts
         return match (true) {
             $ref === '' => '',
             in_array($ref, (array) config('counts.sources'), true) => $ref,
+            // A Reddit campaign's tag, one per subreddit we post in (reddit-judaism): our own tag, never a person.
+            preg_match('/^reddit-[a-z0-9-]{1,24}$/', $ref) === 1 => $ref,
             // A free tool's share card: share-<slug> (docs/retention-plan.md, section 8; the surfaces' are in sources).
             str_starts_with($ref, 'share-') && in_array(substr($ref, 6), (array) config('tools.slugs'), true) => $ref,
             str_starts_with($ref, self::TOOL_PREFIX) && in_array(substr($ref, strlen(self::TOOL_PREFIX)), (array) config('tools.slugs'), true) => $ref,
@@ -182,7 +184,7 @@ final class RecordCounts
         $kinds = [];
 
         foreach ((array) config('counts.detailed') as $prefix => $source) {
-            foreach ($ids[$source] ?? [] as $id) {
+            foreach ($ids[$source] ?? array_map('strval', (array) config('counts.lists.'.$source)) as $id) {
                 $kinds[] = $prefix.':'.$id;
             }
         }
@@ -207,7 +209,7 @@ final class RecordCounts
         $paths = [$root.'/course.json', $root.'/plus/courses.json', $root.'/songs/index.json', ...glob($root.'/plus/*/*.json') ?: [], ...glob($root.'/songs/*.json') ?: []];
         $stamp = array_map(static fn (string $path): string => $path.':'.(is_file($path) ? filemtime($path).':'.filesize($path) : '-'), $paths);
 
-        return substr(hash('sha256', implode('|', $stamp).json_encode([config('counts.detailed'), config('counts.features'), config('counts.share_surfaces'), config('counts.share_methods'), config('counts.song_offers'), config('tools.slugs')])), 0, 16);
+        return substr(hash('sha256', implode('|', $stamp).json_encode([config('counts.detailed'), config('counts.features'), config('counts.share_surfaces'), config('counts.share_methods'), config('counts.song_offers'), config('tools.slugs'), config('counts.lists')])), 0, 16);
     }
 
     /**

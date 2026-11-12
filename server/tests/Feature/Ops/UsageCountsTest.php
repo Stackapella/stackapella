@@ -107,6 +107,23 @@ final class UsageCountsTest extends TestCase
         $this->assertSame($kinds, $kept);
     }
 
+    public function test_be_the_voice_and_the_librarys_filters_count_only_by_their_known_ids(): void
+    {
+        // Be the voice (the engagement review) and the app's Browse all filters (frontend, 2026-11-12).
+        $kinds = ['bv_sung', 'bv_shown', 'bv_later', 'bv_resume', 'bv_sheet_tap', 'bv_share_tap:guest', 'bv_share_tap:member', 'bv_stop:age', 'bv_stop:upload',
+            'library_filter:all', 'library_filter:search', 'library_filter:part:alto', 'library_filter:folk-songs', 'library_filter:more', 'sh:voice.copy',
+            'mic_primer', 'mic_granted', 'mic_denied', 'mic_failed_inapp', 'mic_failed_other', 'l1_inapp'];
+        // Two posts: one takes at most 20 events.
+        $post = fn (array $kinds): mixed => $this->postJson('/api/counts', ['events' => array_map(static fn (string $kind): array => ['kind' => $kind], $kinds)])->assertNoContent();
+        $post([...array_slice($kinds, 0, 15), 'bv_stop:why', 'bv_share_tap:admin']);
+        $post([...array_slice($kinds, 15), 'library_filter:part:descant', 'library_filter:anything']);
+
+        $kept = DB::table('usage_counts')->pluck('kind')->all();
+        sort($kept);
+        sort($kinds);
+        $this->assertSame($kinds, $kept);
+    }
+
     public function test_every_courses_lessons_and_steps_count_only_by_a_real_lesson_and_step(): void
     {
         // A Plus course's and a song course's lessons, as the free course's are (docs/retention-plan.md, section 8).
@@ -121,6 +138,19 @@ final class UsageCountsTest extends TestCase
         sort($kinds);
         // The free course's lessons are fl_s's, never cl_s's.
         $this->assertSame($kinds, $kept);
+    }
+
+    public function test_a_reddit_campaigns_tag_is_kept_as_written_and_nothing_else_like_it(): void
+    {
+        $this->assertSame('reddit-judaism', RecordCounts::source('reddit-judaism'));
+        $this->assertSame('reddit-judaism', RecordCounts::source(' Reddit-Judaism '));
+        $this->assertSame('reddit', RecordCounts::source('reddit'));
+        $this->assertSame('reddit-'.str_repeat('a', 24), RecordCounts::source('reddit-'.str_repeat('a', 24)));
+        $this->assertSame('other', RecordCounts::source('reddit-'.str_repeat('a', 25)), 'too long');
+        $this->assertSame('other', RecordCounts::source('reddit-'), 'no subreddit');
+        $this->assertSame('other', RecordCounts::source('reddit-ju_daism'), 'a character outside the tag');
+        $this->assertSame('other', RecordCounts::source('reddit-ju daism'));
+        $this->assertSame('other', RecordCounts::source('xreddit-judaism'));
     }
 
     public function test_the_loops_sources_and_every_share_surfaces_tag_are_kept_as_written(): void

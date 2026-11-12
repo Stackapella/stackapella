@@ -94,18 +94,62 @@ export function dismissToast(id) {
 }
 
 /**
- * At the very top, just inside the safe area and above everything (Hillel's call): over the top of
- * the screen rather than on the content; tapping one dismisses it.
+ * The bottom of the bar at the top of the screen, in px, or 0 when none is there: the header under the top centre of
+ * the window (an app or admin bar, sticky or not, a lesson's or Sing's own), never one inside a sheet or a toast.
+ */
+export function topBarBottom(doc = document) {
+    const x = Math.round(doc.documentElement.clientWidth / 2);
+    const header = doc.elementsFromPoint(x, 2).map((el) => el.closest('header')).find((h) => h && !h.closest('[role=dialog], [data-toasts]'));
+    return header ? Math.max(0, Math.round(header.getBoundingClientRect().bottom)) : 0;
+}
+
+/**
+ * Near the top, above everything (Hillel's call), but never on the header (design rules: "A passing message never
+ * covers the header"; the admin's sticky bar and the app's Back and title were covered on a phone): just under the bar
+ * at the top of the screen, measured as each one shows and as the page scrolls, else just inside the safe area.
+ * Tapping one dismisses it.
  */
 export const Toasts = {
     directives: {
         countdown: { mounted: (el, { value }) => el.animate([{ transform: 'scaleX(1)' }, { transform: 'scaleX(0)' }], { duration: value * 1000, easing: 'linear', fill: 'forwards' }) },
     },
     setup: () => ({ toasts, dismissToast, route }),
-    // In a lesson and in Sing, under its header (a badge's toast once covered Back and the lesson's name while
-    // singing; "Tenor fits your range" covered the song and part, the first-15-minutes review).
+    data: () => ({ under: 0 }),
+    computed: {
+        top() {
+            return `max(calc(env(safe-area-inset-top) + 1rem), ${this.under + 8}px)`;
+        },
+    },
+    watch: {
+        'toasts.list.length': {
+            handler(now, before) {
+                if (now && !before) this.follow(true);
+                else if (!now) this.follow(false);
+                nextTick(this.place);
+            },
+        },
+    },
+    mounted() {
+        // The slot's message (a new version) shows without a toast: it follows the screen's bar too.
+        this.$watch(() => route.name, () => nextTick(() => requestAnimationFrame(this.place)), { immediate: true });
+    },
+    unmounted() {
+        this.follow(false);
+    },
+    methods: {
+        place() {
+            this.under = topBarBottom();
+        },
+        /** While a toast shows, it keeps under the bar as the page scrolls or turns. */
+        follow(on) {
+            this.onMove ??= () => !this.frame && (this.frame = requestAnimationFrame(() => ((this.frame = 0), this.place())));
+            for (const event of ['scroll', 'resize']) (on ? addEventListener : removeEventListener)(event, this.onMove, { passive: true });
+        },
+    },
+    // Under the header everywhere, a lesson's and Sing's included (a badge's toast once covered Back and the lesson's
+    // name while singing; "Tenor fits your range" covered the song and part, the first-15-minutes review).
     template: `
-        <div class="pointer-events-none fixed inset-x-0 z-50 flex flex-col items-center gap-2 px-3" :class="route.name === 'learn' || route.name === 'sing' ? 'top-[calc(env(safe-area-inset-top)+5rem)]' : 'top-[calc(env(safe-area-inset-top)+1rem)]'" aria-live="polite">
+        <div class="pointer-events-none fixed inset-x-0 z-50 flex flex-col items-center gap-2 px-3" :style="{ top }" aria-live="polite" data-toasts>
             <slot />
             <!-- The studio shows its messages in its own card above the transport (components/studio.js StudioNotice). -->
             <div v-for="item in route.name === 'studio' ? [] : toasts.list" :key="item.id"

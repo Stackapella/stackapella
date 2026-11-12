@@ -595,4 +595,21 @@ final class LanguagesTest extends TestCase
         app()->setLocale('en');
         $this->assertSame('$3.33', Prices::format(333, 'usd'));
     }
+
+    public function test_a_song_has_its_own_title_in_spanish_and_the_catalogue_names_its_group_and_titles(): void
+    {
+        // Are You Sleeping is Frère Jacques in Spanish (the courses lead, for the coordinator), on every page that names it.
+        config(['app.is_nexus' => true, 'app.coming_soon' => false]);
+        app(SyncOfficialTemplates::class)->handle();
+        app(Flags::class)->set('lang_es', 'on', null, 'Spanish checked');
+
+        $this->get('/es/songs/are-you-sleeping')->assertOk()->assertSee('Frère Jacques')->assertSee('<title>', false);
+        $this->get('/es/songs')->assertOk()->assertSee('Frère Jacques');
+        $this->get('/songs/are-you-sleeping')->assertOk()->assertSee('Are You Sleeping');
+
+        $songs = collect((array) $this->getJson('/api/templates')->assertOk()->json('data'))->keyBy('id');
+        $this->assertSame(['es' => 'Frère Jacques'], $songs['are-you-sleeping']['titles'] ?? null);
+        $this->assertSame('rounds', $songs['are-you-sleeping']['group'] ?? null);
+        $this->assertSame('hymns', $songs['amazing-grace']['group'] ?? null);
+    }
 }
