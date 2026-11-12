@@ -471,7 +471,7 @@ return [
         'bass' => 'Sings mostly the roots of the chords, on a low C most of the time, staying on it under the names that open each verse, up to its top G only on "veito" and down to its low F only on the last "bekarov." of every verse.',
     ],
     'eliyahu-hanavi' => [
-        'soprano' => 'Carries Idelsohn\'s folk tune, most often on G, then B-flat and D, down to its low D on "hanavi," and up to its top E-flat only on the last "Eliyahu", before "hagiladi.", the same each time through.',
+        'soprano' => 'Carries the folk tune Idelsohn printed, most often on G, then B-flat and D, down to its low D on "hanavi," and up to its top E-flat only on the last "Eliyahu", before "hagiladi.", the same each time through.',
         'alto' => 'Sings under the tune, mostly a third or a sixth below it, most often on E-flat, then D, down to its low A on "hanavi," and up to its top G on "hatishbi,", the first "Eliyahu," and the "Eliyahu" before "hagiladi.", the same each time through.',
         'tenor' => 'Sings the middle of the chord, most often on B-flat, then G, up to its top D on the first "Eliyahu," each time through, and down to its low D, an octave under it, only on the very last "hagiladi.".',
         'bass' => 'Sings the bass line, most often on G, then B-flat, from its low G on the first "Eliyahu", "hanavi," and "hagiladi." up to its top G, an octave higher, on the "Eliyahu" before "hatishbi,", the same each time through.',

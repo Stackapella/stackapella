@@ -3,7 +3,7 @@ import { watchErrors } from './errors.js';
 import { setDraftsFor } from './templates.js';
 import { api, apiEvents } from './api.js';
 import { storageEvents } from './db.js';
-import { allWords, chooseLanguage, formatDate, formatNumber, isLive, loadLanguage, locale, localized, setLiveLanguages, t, timeAgo, tk } from './i18n.js';
+import { allWords, chooseLanguage, firstWordsFor, wordsFor, formatDate, formatNumber, isLive, loadLanguage, locale, localized, setLiveLanguages, t, timeAgo, tk } from './i18n.js';
 import { local } from './storage.js';
 import './note-names.js'; // every note name by the person's naming (C4, Do4, H3): dsp.js midiName asks it
 import { navigate, route } from './router.js';
@@ -12,7 +12,6 @@ import { toast, Toasts } from './components/ui.js';
 import { ConfirmHost } from './components/confirm.js';
 import { watchPlan } from './stores/plan.js';
 import { CloudConflicts } from './components/cloud.js';
-import { LearnView } from './views/learn.js';
 import { cameBackFromSignIn } from './components/account.js';
 import { LaunchCredit } from './components/credit.js';
 import { BirthHost } from './components/birth.js';
@@ -46,8 +45,8 @@ window.stackapellaStarted = true; // every import loaded (Vue from the CDN too):
 // Views load when they're opened, from the same version as the page (js/lazy.js reloads otherwise).
 // While one loads, its frame shows after a moment (components/screen-loading.js), never a blank page.
 const ahead = new Map(); // each view's loader, for fetching it ahead (below)
-function screen(load, frame = {}) {
-    const loader = lazyView(load);
+function screen(load, frame = {}, words = allWords) {
+    const loader = lazyView(load, { words });
     const view = defineAsyncComponent({ loader, loadingComponent: screenLoading(frame), delay: LOADING_DELAY_MS });
     ahead.set(view, loader);
     return view;
@@ -60,7 +59,10 @@ const StyleguideGameView = defineAsyncComponent(lazyView(() => import('./admin/s
 // The views a first visit's lesson never needs load when they're opened (a phone on a slow line gets to
 // its first note sooner).
 // The home and sign-in too (the coordinator's first-load step): lesson 1, the landing's Start, needs neither.
-const ProjectsView = screen(() => import('./views/projects.js').then((m) => m.ProjectsView), { home: true });
+const ProjectsView = screen(() => import('./views/projects.js').then((m) => m.ProjectsView), { home: true }, wordsFor('home'));
+// A lesson too (2026-11-12, main.js's split): a first visit at "/" draws Home before the lesson's code arrives, and one
+// opening a lesson has it preloaded (js/preload.js's learn list), with lesson 1's own words.
+const LearnView = screen(() => import('./views/learn.js').then((m) => m.LearnView), {}, wordsFor('lesson'));
 const AuthView = screen(() => import('./views/auth.js').then((m) => m.AuthView));
 const StudioView = screen(() => import('./views/studio.js').then((m) => m.StudioView));
 const SingView = screen(() => import('./views/sing.js').then((m) => m.SingView));
@@ -179,7 +181,7 @@ keepLinkToken();
 // visit (no service worker yet, as js/preload.js decides) starts with lesson 1's own words, and
 // fetches the rest once the page has loaded and the browser is idle.
 const lessonFirst = !navigator.serviceWorker?.controller;
-await loadLanguage(undefined, { lessonFirst }).catch((error) => console.error('The words did not load', error));
+await loadLanguage(undefined, { first: lessonFirst ? firstWordsFor(location.pathname) : null }).catch((error) => console.error('The words did not load', error));
 // Then (Hillel: "when I click some pages (ie settings or a course) the screen is blank for a second"),
 // the screens most often opened next are fetched ahead, one at a time while the browser is idle, so
 // they open at once: after the words, once the first screen is up (timers for the page, never audio).
@@ -189,7 +191,7 @@ async function fetchAhead() {
     await prefetchResults(); // what lesson 1 shows after its first take
     await prefetchStores(); // your songs, your templates and the real voices (lazy-stores.js)
     const ahead1 = (view) => new Promise((done) => whenIdle(() => ahead.get(view).prefetch().then(done)));
-    for (const view of [ProjectsView, SettingsView, CourseView]) await ahead1(view);
+    for (const view of [LearnView, ProjectsView, SettingsView, CourseView]) await ahead1(view);
     // A Plus course's page and the courses' data, when Plus courses show (asked now: the account has
     // loaded). Guests see them too once auth.config says so (courses.js courseVisible).
     const config = await loadAuthConfig().catch(() => null);

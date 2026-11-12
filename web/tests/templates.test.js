@@ -274,3 +274,20 @@ test('templates: a copy of someone else\'s imported song stays on the device, se
     assert(!refusedAsItIs({ ...refused, template: { ...template, title: 'Changed' } }), 'a changed song goes again');
     assert(!refusedAsItIs({ ...refused, state: 'device' }), 'only that refusal waits');
 });
+
+test("templates: a section's generic name shows in the page's language, a lyric's first line or a letter as written", async () => {
+    const { locale } = await import('/js/i18n.js');
+    const { sectionName } = await import('/js/templates.js');
+    const [lang, messages] = [locale.lang, locale.messages];
+    try {
+        assert(sectionName('Verse 2') === 'Verse 2' && sectionName('Deep river') === 'Deep river', 'English: the template\'s own words');
+        locale.lang = 'es';
+        locale.messages = { songSection: { verseN: 'Estrofa {n}', verseNAgain: 'Estrofa {n} otra vez', refrain: 'Estribillo', altoJoins: 'Entra la contralto' } };
+        assert(sectionName('Verse 2') === 'Estrofa 2' && sectionName('Verse 3 again') === 'Estrofa 3 otra vez', sectionName('Verse 2'));
+        assert(sectionName('Chorus') === 'Estribillo' && sectionName('Refrain') === 'Estribillo' && sectionName('Alto joins') === 'Entra la contralto', 'the generic names');
+        assert(sectionName('Deep river') === 'Deep river' && sectionName('A2') === 'A2' && sectionName('') === '' && sectionName(undefined) === undefined, 'the rest as written');
+    } finally {
+        locale.lang = lang;
+        locale.messages = messages;
+    }
+});

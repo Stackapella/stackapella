@@ -8,8 +8,10 @@ use App\Http\Controllers\Controller;
 use App\Models\Template;
 use App\Support\Http\Hosts;
 use App\Support\Pages\JewishSongs;
+use App\Support\Pages\Landing;
 use App\Support\Pages\PageGone;
 use App\Support\Pages\SongCollections;
+use App\Support\Site\LinkCardLanes;
 use Illuminate\Http\Response;
 
 /**
@@ -43,7 +45,24 @@ final class SongCollectionPageController extends Controller
             // The Jewish songs page's own: its countdown to the next festival, and each card's festival from its genre.
             'festival' => $festival,
             'chips' => $chips,
+            // Beside the heading (the width design): the song on its link card, its opening in four parts to switch,
+            // that card's part lit. The Jewish page has its countdown there instead.
+            'try' => $festival === null ? self::tryLine($collection) : null,
         ], 200, SongPagesController::headers());
+    }
+
+    /**
+     * The collection's own song to try (LinkCardLanes::SONGS, the one its link card draws), its part as "you", or null
+     * when that song isn't in the library.
+     *
+     * @return array<string, mixed>|null
+     */
+    private static function tryLine(string $collection): ?array
+    {
+        [$slug, $part] = LinkCardLanes::SONGS[$collection] ?? [null, null];
+        $template = $slug === null ? null : Template::query()->official()->with('currentVersion')->where('slug', $slug)->first();
+
+        return $template === null ? null : Landing::line($template, null, $part);
     }
 
     /**

@@ -2529,6 +2529,15 @@ a.s-vt-rung:hover { background: color-mix(in srgb, var(--color-cream) 5%, transp
 .s-xcard h3 { font-size: 24px; line-height: 1.15; font-weight: 800; letter-spacing: -0.015em; text-wrap: balance; }
 .s-xcoll-in { padding-top: 32px; }
 .s-xcoll-intro { margin-top: 12px; max-width: 64ch; font-size: 16.5px; line-height: 1.6; color: var(--color-muted); }
+/* A collection's song to try beside its heading (the width design): a wider right column than the countdown's, the card
+   top-aligned with the trail. */
+.s-xcoll-try .s-mixer { box-shadow: 0 24px 48px -28px rgb(0 0 0 / 0.45); }
+/* The tone gives the hero light words, so the card takes the tone's dark grounds too (a light theme's white panel left
+   them unreadable, and so did game mode's light themes). */
+.s-xcoll-try { --color-panel: var(--tl); --color-raised: color-mix(in srgb, var(--tl), #fff 7%); --color-line: rgba(247, 241, 230, .14); --color-edge: rgba(247, 241, 230, .14); }
+.s-xcoll-try .s-mix-foot { background: var(--tb); }
+@media (min-width: 900px) { .s-xhero-in.s-xcoll-has-try { grid-template-columns: minmax(0, 1fr) 420px; align-items: start; } }
+@media (min-width: 1200px) { .s-xhero-in.s-xcoll-has-try { grid-template-columns: minmax(0, 1fr) 460px; gap: 64px; } }
 .s-songs-colls { display: flex; flex-wrap: wrap; gap: 8px 24px; }
 .s-songs-jump { display: flex; flex-wrap: wrap; gap: 6px 22px; margin-top: 18px; font-size: 15px; }
 .s-songs-jump a { min-height: 44px; display: inline-flex; align-items: center; }
@@ -2779,6 +2788,14 @@ a.s-vt-rung:hover { background: color-mix(in srgb, var(--color-cream) 5%, transp
     .s-about-wave { height: 26px; }
     .s-about-cta { grid-template-columns: auto auto; justify-content: start; align-items: center; gap: 22px; }
     .s-about-proof { margin-top: 30px; }
+}
+/* Between 900 and 1199 px the picture column narrows (380 px, its shot and song card smaller), so the words keep
+   290 px or more and "Start the beginner course" stays on one line (game, 2026-11-12: 151 px at 1000). */
+@media (min-width: 900px) and (max-width: 1199px) {
+    .s-about-panel { grid-template-columns: minmax(0, 1fr) 380px; column-gap: 40px; padding: 48px 44px 40px; }
+    .s-about-vis { min-height: 520px; }
+    .s-about-shot { width: 280px; }
+    .s-about-stack { width: 236px; }
 }
 /* More free tools (site/tools/_directory): the featured next tool, then every other live tool in five groups, each in
    its group's colour (always with the group's name). Tiles on a phone, one panel in three columns on desktop. */

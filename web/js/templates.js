@@ -3,7 +3,7 @@
 // MIDI note numbers; a part's lyrics ride on its notes (a note without one continues a word).
 
 import { api } from './api.js';
-import { t, tk } from './i18n.js';
+import { locale, t, tk } from './i18n.js';
 import { local } from './storage.js';
 import { beatsPerBar, TIME_SIGNATURES } from './theme.js';
 
@@ -159,6 +159,37 @@ export function partsFor(template, singers = Math.max(...singerOptions(template)
     const keys = template.voicings?.[String(singers)];
     // An instrument part plays whoever sings: it isn't one of the singers.
     return keys ? template.parts.filter((p) => keys.includes(p.key) || p.kind === 'instrument') : template.parts;
+}
+
+// A song's section names as the templates write them, in the page's language where the name is a generic one (Verse 2,
+// Refrain, Ending); a lyric's first line ("Deep river") or a letter ("A2") stays as written, in the song's language
+// (docs/languages/es-glossary.md). English shows the template's own words.
+const SECTION_WORDS = {
+    Verse: tk('songSection.verse'),
+    Refrain: tk('songSection.refrain'),
+    Chorus: tk('songSection.refrain'),
+    Ending: tk('songSection.ending'),
+    Round: tk('songSection.round'),
+    'Soprano alone': tk('songSection.sopranoAlone'), // i18n-ignore: a template's section name
+    'Alto joins': tk('songSection.altoJoins'), // i18n-ignore: a template's section name
+    'Bass joins': tk('songSection.bassJoins'), // i18n-ignore: a template's section name
+    'All parts': tk('songSection.allParts'), // i18n-ignore: a template's section name
+    'First half': tk('songSection.firstHalf'), // i18n-ignore: a template's section name
+    'First half again': tk('songSection.firstHalfAgain'), // i18n-ignore: a template's section name
+    'Second half': tk('songSection.secondHalf'), // i18n-ignore: a template's section name
+    'Second half again': tk('songSection.secondHalfAgain'), // i18n-ignore: a template's section name
+    'The call': tk('songSection.theCall'), // i18n-ignore: a template's section name
+    'First time': tk('songSection.firstTime'), // i18n-ignore: a template's section name
+    'Second time': tk('songSection.secondTime'), // i18n-ignore: a template's section name
+    'Third time, softly': tk('songSection.thirdTimeSoftly'), // i18n-ignore: a template's section name
+};
+
+/** A section's name as the page shows it (above): the template's words, or a generic name in the page's language. */
+export function sectionName(name) {
+    if (!name || locale.lang === 'en' || locale.lang.startsWith('en-')) return name;
+    const verse = /^Verse (\d+)( again)?$/.exec(name);
+    if (verse) return verse[2] ? t('songSection.verseNAgain', { n: verse[1] }) : t('songSection.verseN', { n: verse[1] });
+    return SECTION_WORDS[name] ? t(SECTION_WORDS[name]) : name;
 }
 
 /** Every phrase in order, with its section's name. */

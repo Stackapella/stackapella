@@ -36,6 +36,7 @@ def lesson(f):
 def sing(f):
     """Sing the step's line over loopback, through headphones, and wait for its result."""
     f.js(f"{AUDIO}.engine.setLoopback(true)")
+    f.wait("document.querySelector('[data-play-disc]')", what="the step's Start (its exercise loads after the step's words)")
     f.run("document.querySelector('[data-play-disc]').closest('button').click()")
     if f.js("!!document.querySelector('[role=dialog]')"):
         f.click_t("headphones.on")
@@ -74,6 +75,7 @@ def journey(f):
     f.click_t("course.continue")
     f.wait_text("Hear the loop, then sing your line.")
     f.run("sessionStorage.removeItem('stackapella.headphones'); sessionStorage.setItem('stackapella.speaker', '1'); localStorage.removeItem('stackapella.headphones.never');")
+    f.wait("document.querySelector('[data-play-disc]')", what="the step's Start (its exercise loads after the step's words)")
     f.run("document.querySelector('[data-play-disc]').closest('button').click()")
     f.wait(f"{AUDIO}.engine.parts.get('ex:under')", timeout=10, what="the layer under the listening round, through a speaker")
     until = f.js(f"(async () => {{ const p = {AUDIO}.engine.parts.get('ex:under'); return p.buffer.duration; }})()")

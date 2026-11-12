@@ -8,13 +8,11 @@ import { CreditLine } from '../components/credit.js';
 import { api } from '../api.js';
 import { StorageMeter } from '../components/cloud.js';
 import { formatNumber, locale, t, timeAgo, tk } from '../i18n.js';
-import { renderGuide } from '../guides.js';
-import { partVoice } from '../guide-voice.js';
 import { publicSiteUrl } from '../hosts.js';
 import { navigate } from '../router.js';
 import { betaWaiting, homeBands, sangThisWeek } from '../home.js';
 import { creditsFor, loadCatalogue } from '../stores/catalogue.js';
-import { markRaw, toRaw } from 'vue';
+import { defineAsyncComponent, markRaw, toRaw } from 'vue';
 import { createProject, deleteProject, loadProjects, projects, saveProject, shownTitle, startFromTemplate } from '../stores/projects.js';
 import { ideas, ideasOpen } from '../stores/ideas.js';
 import { learning } from '../stores/learning.js';
@@ -33,18 +31,16 @@ import { inFirstWeek } from '../components/voice-care.js';
 import { InstallCard } from '../components/install.js';
 import { signUpFor } from '../components/account-wall.js';
 import { FirstWeek, RemindAsk } from '../components/session-wrap.js';
-import { BETA_STATUS } from '../components/beta.js';
+import { BETA_STATUS } from '../beta-status.js';
 import { Notice, StatusChip } from '../components/form.js';
 import { Modal } from '../components/ui.js';
 import { ThemeSwitch } from '../components/appearance.js';
-import { readImport } from '../creator.js';
 import { session as tabStorage } from '../storage.js';
 import { deleteTemplate, discardDraft, loadMine, mine, saveTemplate } from '../stores/templates.js';
 import { count, tried } from '../usage.js';
 import { lastLooked, lookedNow, newsPick } from '../song-news.js';
 import { leftProject, loadShared } from '../stores/cloud.js';
-import { friendlyProblem } from '../components/create/save.js';
-import { TemplateDialog } from '../components/dialogs.js';
+import { lazyView } from '../lazy.js';
 import { Icon, Logo } from '../components/icon.js';
 import { toast } from '../components/ui.js';
 import { learnGroupSong, myGroupParts } from '../group-songs.js';
@@ -68,9 +64,13 @@ const playableDraft = (draft) => (draft.template?.tempo && draft.template.parts?
 // A collection in season, said on its pick (song-news.js): its words by the server's season key.
 const SEASON_WORDS = { carols: tk('home.songs.news.carols') };
 
+// A song's sheet (components/dialogs.js, with Sing's voice capture): loaded when a song is first opened, not with Home.
+const dialogLoader = lazyView(() => import('../components/dialogs.js').then((m) => m.TemplateDialog));
+const TemplateDialog = defineAsyncComponent(dialogLoader);
+
 export const ProjectsView = {
     components: { StorageMeter, CreditLine, PlayerChip, DailyTag, CardMenu, HomeCourses, ThemeSwitch, Icon, Logo, TemplateDialog, HomeLead, HomeBand, SongCover, InstallCard, WeekCard, WorkoutStrip, StatusChip, Modal, Notice, RemindAsk, FirstWeek },
-    setup: () => ({ templatePartName, ideas, mine, friendlyProblem, canStart, projects, account, learning, shownTitle, formatTime, timeAgo, PART_COLORS, lengthBeats, partsFor, keyLabel, DIFFICULTY, creditsFor, navigate, BAND_COLORS, BETA_STATUS, publicSiteUrl, effect, dailyState }),
+    setup: () => ({ templatePartName, ideas, mine, canStart, projects, account, learning, shownTitle, formatTime, timeAgo, PART_COLORS, lengthBeats, partsFor, keyLabel, DIFFICULTY, creditsFor, navigate, BAND_COLORS, BETA_STATUS, publicSiteUrl, effect, dailyState }),
     data: () => ({ storageUsage: null, locked: false, clip: null, templates: [], openTemplate: null, singers: 4, previewing: false, preparingPreview: false, starting: false, groups: null, choirParts: [], startingChoir: null, betaParts: null, avatarFailed: false, making: false, importProblems: null, sheetScore: null, sheetSaving: false, sheetView: null, sessionStore: null, songsOpen: tabStorage.get('stackapella.songsOpen') === '1', lookedAt: lastLooked(), newsCounted: null, yoursOpen: false, songColumns: songColumns(), newing: false, showInfo: false, previewOf: null, playingSong: null, renaming: null, newName: '' }),
     template: `
         <div class="min-h-dvh">
@@ -294,7 +294,7 @@ export const ProjectsView = {
                     <div v-if="importProblems" class="space-y-2">
                         <Notice tone="warn">
                             <p>{{ t('create.home.importBroken') }}</p>
-                            <ul class="mt-1 list-disc ps-5 text-sm"><li v-for="(p, i) in importProblems.problems.slice(0, 5)" :key="i">{{ friendlyProblem(p) }}</li></ul>
+                            <ul class="mt-1 list-disc ps-5 text-sm"><li v-for="(p, i) in importProblems.problems.slice(0, 5)" :key="i">{{ p }}</li></ul>
                         </Notice>
                         <button type="button" class="btn-secondary" @click="openBroken">{{ t('create.home.openAnyway') }}</button>
                     </div>
@@ -511,6 +511,9 @@ export const ProjectsView = {
             .catch((error) => console.warn('Templates not loaded', error));
     },
     mounted() {
+        // The song's sheet fetched once Home is up and the page is idle, so a tap on a song opens it at once.
+        const idle = window.requestIdleCallback ?? ((run) => setTimeout(run, 1500));
+        idle(() => dialogLoader.prefetch(), { timeout: 5000 });
         // A first look at Home's picks starts the library's clock: nothing is "new" the first time (song-news.js).
         if (!this.lookedAt) lookedNow();
         this.onResize = () => (this.songColumns = songColumns());
@@ -680,6 +683,8 @@ export const ProjectsView = {
             // Each part's real voice where the song has one, as Sing and the landing play it (guide-voice.js), else the
             // synth; one after another, as decoding every real voice at once can use hundreds of MB on a phone.
             const guides = [];
+            // The guides' renderer and the real voices, loaded with the first preview (off Home's first load, 2026-11-12).
+            const [{ renderGuide }, { partVoice }] = await Promise.all([import('../guides.js'), import('../guide-voice.js')]);
             for (const part of t.parts) {
                 guides.push(await partVoice(t, part, engine.sampleRate, () => renderGuide({ templateId: t.id, templateVersion: t.version, part, tempo: t.tempo, sampleRate: engine.sampleRate })));
                 if (this.openTemplate !== t) break;
@@ -863,13 +868,15 @@ export const ProjectsView = {
                 await this.openSheet(file);
                 return;
             }
+            // The template reader and its problems' plain words, loaded with the first file (off Home's first load, 2026-11-12).
+            const [{ readImport }, { friendlyProblem }] = await Promise.all([import('../creator.js'), import('../components/create/save.js')]);
             const result = readImport(await file.text(), { taken: (id) => this.templates.some((t) => t.id === id) || mine.list.some((r) => r.id === id) });
             if (result.unreadable) {
                 toast(t('create.home.importUnreadable'), { tone: 'error' });
                 return;
             }
             if (result.problems) {
-                this.importProblems = result;
+                this.importProblems = { ...result, problems: result.problems.map(friendlyProblem) };
                 return;
             }
             const record = await saveTemplate({ ...result.template, version: 1 });

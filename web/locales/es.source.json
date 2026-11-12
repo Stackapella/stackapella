@@ -5514,5 +5514,25 @@
             "review": "A unit review is open: {title}. Optional, 80% passes."
         },
         "lockedSerious": "Opens once you've sung the unit's challenge."
+    },
+    "songSection": {
+        "verse": "Verse",
+        "verseN": "Verse {n}",
+        "verseNAgain": "Verse {n} again",
+        "refrain": "Refrain",
+        "ending": "Ending",
+        "round": "Round",
+        "sopranoAlone": "Soprano alone",
+        "altoJoins": "Alto joins",
+        "bassJoins": "Bass joins",
+        "allParts": "All parts",
+        "firstHalf": "First half",
+        "firstHalfAgain": "First half again",
+        "secondHalf": "Second half",
+        "secondHalfAgain": "Second half again",
+        "theCall": "The call",
+        "firstTime": "First time",
+        "secondTime": "Second time",
+        "thirdTimeSoftly": "Third time, softly"
     }
 }

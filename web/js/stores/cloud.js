@@ -8,7 +8,6 @@ import * as db from '../db.js';
 import { api } from '../api.js';
 import { mockWanted } from '../api-mode.js';
 import { encodeWav } from '../wav.js';
-import { createSync } from '../sync.js';
 import { account, loadAccount } from './account.js';
 import { syncLearning } from './learning.js';
 import { templatesStore } from '../lazy-stores.js';
@@ -33,12 +32,18 @@ async function loadTake(url, sampleRate) {
     return decoded.getChannelData(0);
 }
 
-const sync = createSync({
+const signedIn = () => !!account.me && !mockWanted();
+let made = null;
+/**
+ * The sync (js/sync.js), made on first use: a guest's first visit never needs it until something of theirs changes (its
+ * outbox keeps it for the account), so it isn't in the first load (2026-11-12, main.js's split).
+ */
+const syncer = () => (made ??= import('../sync.js').then(({ createSync }) => createSync({
     api,
     db,
     // The mock answers with fixed examples, so cloud save stays off there (tests/sync.test.js and the
     // sync flow against the local server check it).
-    signedIn: () => !!account.me && !mockWanted(),
+    signedIn,
     me: () => account.me?.id ?? null,
     uuid: () => crypto.randomUUID(),
     sha256: async (blob) => hex(await crypto.subtle.digest('SHA-256', await blob.arrayBuffer())),
@@ -47,24 +52,26 @@ const sync = createSync({
     loadTake,
     onState: (state) => Object.assign(cloud, state),
     onChange: (changes) => listeners.forEach((listener) => listener(changes)),
-});
+})));
+/** A sync run: nothing to load or do signed out (sync.js's run returns at once then). */
+const run = () => (signedIn() ? syncer().then((sync) => sync.run()) : Promise.resolve());
 
 let soon = null;
 /** Runs the sync a moment after a change (several changes go together). */
 export function syncSoon() {
     clearTimeout(soon);
-    soon = setTimeout(() => sync.run(), 1500);
+    soon = setTimeout(() => run(), 1500);
 }
 
 /** Runs the sync now (Sync now, and after a restore so it comes back down). */
 export function syncNow() {
     clearTimeout(soon);
-    return sync.run();
+    return run();
 }
 
 /** A project or part changed on the device. */
 export async function changed(kind, record) {
-    await sync.enqueue(kind, record.id, kind === 'part' ? { projectId: record.projectId } : {});
+    await (await syncer()).enqueue(kind, record.id, kind === 'part' ? { projectId: record.projectId } : {});
     syncSoon();
 }
 
@@ -75,24 +82,24 @@ export async function changed(kind, record) {
 export async function keepScore({ lesson, summary }) {
     if (!account.me || mockWanted()) return;
     const id = crypto.randomUUID();
-    await sync.enqueue('score', id, { body: { id, lesson, templateId: null, templateVersion: null, partKey: null, recordedAt: new Date().toISOString(), summary } });
+    await (await syncer()).enqueue('score', id, { body: { id, lesson, templateId: null, templateVersion: null, partKey: null, recordedAt: new Date().toISOString(), summary } });
     syncSoon();
 }
 
 /** A project or part was deleted on the device. */
 export async function deleted(kind, record) {
-    await sync.enqueueDelete(kind, record);
+    await (await syncer()).enqueueDelete(kind, record);
     syncSoon();
 }
 
 export async function undoDeleted(project) {
-    await sync.undoDelete(project);
+    await (await syncer()).undoDelete(project);
     syncSoon();
 }
 
 /** Settles "Changed on another device": 'mine' or 'theirs'. */
 export async function settle(conflict, choice) {
-    await sync.resolve(conflict, choice);
+    await (await syncer()).resolve(conflict, choice);
     syncSoon();
 }
 
@@ -105,7 +112,7 @@ export function startSync() {
     // and nothing syncs: back online, or back in view, it's checked again first, then the outbox goes.
     const resume = async () => {
         if (!account.me && navigator.onLine) await loadAccount({ fresh: true });
-        sync.run();
+        run();
         syncLearning().catch((error) => console.warn('Course progress did not sync', error));
     };
     window.addEventListener('online', () => resume().catch((error) => console.warn('Sync did not resume', error)));
@@ -113,7 +120,7 @@ export function startSync() {
         if (document.visibilityState !== 'visible') return;
         resume().catch((error) => console.warn('Sync did not resume', error));
     });
-    setInterval(() => document.visibilityState === 'visible' && sync.run(), 60_000);
+    setInterval(() => document.visibilityState === 'visible' && run(), 60_000);
 }
 
 /**
@@ -124,17 +131,17 @@ export async function signedInSync() {
     if (!account.me || mockWanted()) return;
     const owner = await db.get('meta', 'owner');
     if (owner && owner !== account.me.id) {
-        await sync.forget();
+        await (await syncer()).forget();
         await (await templatesStore()).forgetMine();
         listeners.forEach((listener) => listener([{ kind: 'project', id: null, removed: true }]));
     }
     await db.put('meta', account.me.id, 'owner');
     const key = `adopted:${account.me.id}`;
     if (!(await db.get('meta', key))) {
-        await sync.adopt();
+        await (await syncer()).adopt();
         await db.put('meta', true, key);
     }
-    await Promise.all([sync.run(), syncLearning(), templatesStore().then((store) => store.loadMine())]);
+    await Promise.all([run(), syncLearning(), templatesStore().then((store) => store.loadMine())]);
 }
 
 // ---- Friends' projects (contract/api.md, "Collaboration: friends on a project") -----------------
@@ -169,7 +176,7 @@ export async function loadShared() {
         cursor = page.meta?.nextCursor ?? null;
     } while (cursor);
     for (const item of items) {
-        await sync.keepShared(item, { role: item.role, owner: item.owner });
+        await (await syncer()).keepShared(item, { role: item.role, owner: item.owner });
         await ensureTemplate(item.project.id).catch((error) => console.warn('A shared project\'s song did not load', error));
     }
     const listed = new Set(items.map((item) => item.project.id));
@@ -185,7 +192,7 @@ export async function refreshShared(id) {
     if (!project?.shared || project.shared.removed || !account.me || mockWanted()) return;
     try {
         const { data } = await api.projects.show(id);
-        await sync.keepShared(data, project.shared);
+        await (await syncer()).keepShared(data, project.shared);
         await ensureTemplate(id);
     } catch (error) {
         if (error?.code === 'removed_from_project') await markRemoved(project, 'removed');
@@ -198,7 +205,7 @@ export async function refreshShared(id) {
 export async function joinedProject(shown, owner) {
     const local = await db.get('projects', shown.project.id);
     if (local && !local.shared) return; // your own project's link: it's yours already
-    await sync.keepShared(shown, { role: 'singer', owner });
+    await (await syncer()).keepShared(shown, { role: 'singer', owner });
     await ensureTemplate(shown.project.id);
 }
 

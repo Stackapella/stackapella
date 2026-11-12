@@ -377,7 +377,7 @@
         "dontAsk": "No volver a preguntar",
         "notNow": "Ahora no",
         "start": "Empezar a grabar",
-        "lessonBody": "En este paso suena algo debajo de tu voz. Los auriculares evitan que entre en tu micrófono; sin ellos, suena más bajo para que el micrófono solo te oiga a ti.",
+        "lessonBody": "En este paso suena un acompañamiento bajo tu voz. Con auriculares, no se cuela en el micrófono; sin ellos, sonará más bajo para que el micrófono solo te oiga a ti.",
         "needed": {
             "title": "Esta lección necesita auriculares",
             "body": "Por el altavoz, lo que suena bajo tu voz calla mientras cantas, para que el micrófono solo te oiga a ti, y no oirás la voz principal. Con auriculares lo oyes todo el tiempo.",
@@ -1366,7 +1366,7 @@
         },
         "sent": {
             "title": "Revisa tu correo",
-            "verify": "Enviamos un enlace a {email}. Ábrelo para terminar de crear tu cuenta.",
+            "verify": "Te enviamos un enlace a {email}. Ábrelo para terminar de crear tu cuenta.",
             "reset": "Si hay una cuenta con {email}, te enviamos un enlace para elegir una contraseña nueva.",
             "spam": "¿No te llega en unos minutos? Mira en la carpeta de spam o envíalo de nuevo.",
             "resend": "Enviarlo de nuevo",
@@ -1527,7 +1527,7 @@
             "new": "Correo nuevo",
             "passwordHelp": "O, si acabas de iniciar sesión, déjalo vacío.",
             "change": "Cambiar mi correo",
-            "sent": "Enviamos un enlace a {email}. Tu correo cambiará cuando lo abras."
+            "sent": "Te enviamos un enlace a {email}. Tu correo cambiará cuando lo abras."
         },
         "password": {
             "change": "Cambiarla cierra tu sesión en los demás dispositivos.",
@@ -1715,14 +1715,14 @@
             "keepNote": "Tu nota, {note}",
             "keepPlace": "Por dónde vas en {course}, en cualquier dispositivo",
             "keepAll": "Cada lección de cada curso, todo gratis",
-            "free": "Gratis, sin tarjeta y sin periodo de prueba.",
+            "free": "Gratis y sin tarjeta: no es una prueba.",
             "email": "Prefiero usar mi correo",
             "signIn": "¿Ya tienes una cuenta? Entrar",
             "keepLessons": "{count, plural, one {Tu lección} other {Tus # lecciones}} de este curso hasta ahora",
             "songFirst": "O canta antes una canción",
             "sendLink": "Enviarme el enlace",
             "shareText": "Mi próxima lección de canto: {title}",
-            "calendar": "Añadir mañana a mi calendario",
+            "calendar": "Apuntar mañana en mi calendario",
             "morning": "Por la mañana",
             "evening": "Por la tarde",
             "calendarTitle": "Cantar: {title}"
@@ -1808,7 +1808,7 @@
         "error": "Esta vez no se pudo guardar. Vuelve a intentarlo."
     },
     "harmony": {
-        "ownLine": "Voz propia: {count} notas seguidas afinadas, mientras suenan las otras voces.",
+        "ownLine": "Tu propia línea: {count} notas seguidas afinadas, mientras sonaban las otras voces.",
         "laneByEar": "{count} notas que encontrar de oído; el carril no las muestra.",
         "laneChoice": "una de {notes}",
         "laneOr": " o ",
@@ -2215,8 +2215,8 @@
         "lead": {
             "title": "Aprende a cantar a voces, voz por voz.",
             "you": "{part} · tú",
-            "body": "Lecciones cortas con una voz guía. Tus notas se iluminan cuando las das.",
-            "free": "Gratis, unos minutos y sin crear cuenta.",
+            "body": "Lecciones cortas con una voz guía. Tus notas se iluminan cuando las aciertas.",
+            "free": "Gratis, en unos minutos y sin crear una cuenta.",
             "unit": "Unidad {number} · {title}",
             "map": "Mapa del curso",
             "path": "Lecciones de esta unidad",
@@ -2498,7 +2498,7 @@
             "line": "Conseguiste tres estrellas en una lección."
         },
         "tenThreeStars": {
-            "name": "Diez veces tres",
+            "name": "Diez de tres estrellas",
             "line": "Tres estrellas en diez lecciones."
         },
         "bossBeaten": {
@@ -2622,7 +2622,7 @@
         "measuredOn": "Medida el {date}",
         "chosenByYou": "Elegida por ti",
         "change": {
-            "open": "Cambiarla",
+            "open": "Cambiar de voz",
             "choose": "Elegirla",
             "title": "Tu extensión",
             "hint": "Elige una voz o fija tus notas más grave y más aguda. Las canciones se abren en la voz que mejor encaja.",
@@ -4441,7 +4441,7 @@
             "more": "Tenemos {note}. Sube más si aún no te cuesta."
         },
         "zoom": {
-            "wide": "Amplio",
+            "wide": "Margen amplio",
             "closer": "Cerca",
             "locked": "Fijo"
         },
@@ -5174,7 +5174,7 @@
         "accountSerious": "Guarda tu progreso (tu nota y tus lecciones) con una cuenta gratis.",
         "week": {
             "title": "Tu primera semana",
-            "days": "{count, plural, one {1 día cantado} other {# días cantados}}",
+            "days": "{count, plural, one {1 día de práctica} other {# días de práctica}}",
             "lessons": "{count, plural, one {1 lección} other {# lecciones}}",
             "note": "nota {note}",
             "range": "extensión hasta ahora: de {low} a {high}",
@@ -5514,5 +5514,25 @@
             "review": "Hay un repaso de unidad abierto: {title}. Opcional: con un 80% se supera."
         },
         "lockedSerious": "Se abre cuando hayas cantado el desafío de la unidad."
+    },
+    "songSection": {
+        "verse": "Estrofa",
+        "verseN": "Estrofa {n}",
+        "verseNAgain": "Estrofa {n} otra vez",
+        "refrain": "Estribillo",
+        "ending": "Final",
+        "round": "Canon",
+        "sopranoAlone": "Soprano sola",
+        "altoJoins": "Entra la contralto",
+        "bassJoins": "Entra el bajo",
+        "allParts": "Todas las voces",
+        "firstHalf": "Primera mitad",
+        "firstHalfAgain": "Primera mitad otra vez",
+        "secondHalf": "Segunda mitad",
+        "secondHalfAgain": "Segunda mitad otra vez",
+        "theCall": "La llamada",
+        "firstTime": "La primera vez",
+        "secondTime": "La segunda vez",
+        "thirdTimeSoftly": "La tercera vez, suave"
     }
 }

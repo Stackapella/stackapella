@@ -34,8 +34,17 @@ export const locale = reactive({ lang: 'en', dir: 'ltr', messages: {}, english: 
 // (locales/lesson1/en.json, written by tool/preload_list.py from the modules main.js imports), and
 // the rest follows (allWords): when the page is idle, before a view loaded later, or for a key the
 // short list doesn't have. Read by a flow: the keys a short list was missing (it should be none).
-const FIRST_WORDS = '/locales/lesson1/en.json';
+// A first visit's first words, by where it opens (tool/preload_list.py writes both, js/preload.js asks for the one it
+// needs with Vue): lesson 1's own (a lesson, the cool-down), or Home's (the app at "/", 2026-11-12, main.js's split).
+const FIRST_WORDS = { lesson: '/locales/lesson1/en.json', home: '/locales/home1/en.json' };
+/** The first words a first visit opening `path` starts with ('lesson', 'home'), or null: all of en.json at once. */
+export function firstWordsFor(path) {
+    if (path === '/') return 'home';
+    if (/^\/(learn\/[\w-]+|cooldown)\/?$/.test(path)) return 'lesson';
+    return null;
+}
 let partial = false;
+const bundles = new Set(); // the first-word bundles in so far, while partial
 let allLoading = null;
 export const words = { missed: [] };
 
@@ -127,10 +136,13 @@ function lookup(messages, key) {
  * Loads the person's language: the one they chose, or the browser's first that we have, falling
  * back to English. Sets <html lang> and dir.
  */
-export async function loadLanguage(wanted = preferredLanguages(), { lessonFirst = false } = {}) {
-    // lessonFirst: a first visit's start (main.js), with lesson 1's own words; the rest, later.
-    partial = lessonFirst;
-    locale.english = partial ? await getJson(FIRST_WORDS).catch(() => ((partial = false), fetchMessages('en'))) : await fetchMessages('en');
+export async function loadLanguage(wanted = preferredLanguages(), { first = null } = {}) {
+    // first: a first visit's start (main.js), with the opening screen's own words ('lesson' or 'home'); the rest, later.
+    partial = !!FIRST_WORDS[first];
+    bundles.clear();
+    locale.english = partial
+        ? await getJson(FIRST_WORDS[first]).then((words) => (bundles.add(first), words)).catch(() => ((partial = false), fetchMessages('en')))
+        : await fetchMessages('en');
     let chosen = 'en';
     let messages = locale.english;
     for (const lang of wanted) {
@@ -157,7 +169,37 @@ export async function loadLanguage(wanted = preferredLanguages(), { lessonFirst 
     document.documentElement.dir = locale.dir;
 }
 
-/** All of en.json, after a first visit started with lesson 1's words (resolves at once otherwise, and on failure). */
+/**
+ * A view's words before it draws (lazy.js's `words`): at once when they're all in, or when `bundle` ('lesson', 'home')
+ * is; else that bundle's few words, added to those in (a first visit's Home opening lesson 1 waits for lesson 1's words,
+ * not all of en.json). With no bundle named, all the words.
+ */
+export function wordsFor(bundle = null) {
+    return () => {
+        if (!partial || bundles.has(bundle)) return Promise.resolve();
+        if (!FIRST_WORDS[bundle]) return allWords();
+        return getJson(FIRST_WORDS[bundle])
+            .then((more) => {
+                if (!partial) return; // everything came meanwhile
+                const english = deepMerge(locale.english, more);
+                if (locale.messages === locale.english) locale.messages = english;
+                locale.english = english;
+                bundles.add(bundle);
+            })
+            .catch(() => allWords());
+    };
+}
+
+/** `a` with `b`'s keys added (nested objects merged), new objects only. */
+function deepMerge(a, b) {
+    const out = { ...a };
+    for (const [key, value] of Object.entries(b)) {
+        out[key] = value && typeof value === 'object' && out[key] && typeof out[key] === 'object' ? deepMerge(out[key], value) : value;
+    }
+    return out;
+}
+
+/** All of en.json, after a first visit started with a screen's own words (resolves at once otherwise, and on failure). */
 export function allWords() {
     if (!partial) return Promise.resolve();
     allLoading ??= fetchMessages('en')
@@ -199,6 +241,10 @@ export function isLive(lang) {
 }
 
 function liveFromDevice() {
+    // The page says which languages are switched on (the server's <meta name="live-languages">), so a first visit opens in
+    // the browser's language from the start; auth.config confirms it later (setLiveLanguages). Then what this device kept.
+    const said = document.querySelector('meta[name="live-languages"]')?.getAttribute('content');
+    if (said) return ['en', ...said.split(',').map((lang) => lang.trim()).filter((lang) => /^[a-z]{2,3}(-[A-Za-z0-9]+)?$/.test(lang))];
     try {
         const kept = JSON.parse(local.get(LIVE_KEY) ?? 'null');
         return Array.isArray(kept) ? kept.filter((lang) => typeof lang === 'string') : ['en'];
@@ -212,7 +258,9 @@ function liveFromDevice() {
  * read (a language switched on or off), the words change now.
  */
 export async function setLiveLanguages(languages) {
-    const live = Array.isArray(languages) && languages.length ? [...new Set(['en', ...languages.filter((lang) => typeof lang === 'string')])] : ['en'];
+    // auth.config confirms what the page said (<meta name="live-languages">); an answer without the list says nothing.
+    if (!Array.isArray(languages)) return;
+    const live = languages.length ? [...new Set(['en', ...languages.filter((lang) => typeof lang === 'string')])] : ['en'];
     if (live.join() === locale.live.join()) return;
     locale.live = live;
     local.set(LIVE_KEY, JSON.stringify(live));

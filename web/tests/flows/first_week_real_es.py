@@ -183,6 +183,8 @@ def english_in(texts):
     found = []
     for text in texts:
         bare = re.sub(r"^(aria-label|title|placeholder|alt): ", "", text)
+        # A link in the text is an address, not words: /learn/1-match?ref=welcome isn't English to a Spanish reader.
+        bare = re.sub(r"\S+://\S+", " ", bare)
         hit = next(((why, key) for why, key, rx in LEAKS if rx.match(bare)), None)
         if hit:
             found.append({"text": text[:200], "why": hit[0], "key": hit[1]})

@@ -4,6 +4,7 @@
 // lesson's step, an opening sheet) keeps it; the first load leaves focus where the browser put it.
 
 import { nextTick, watch } from 'vue';
+import { locale } from './i18n.js';
 import { route } from './router.js';
 
 const NAME = 'Stackapella'; // i18n-ignore: the product's name
@@ -62,5 +63,13 @@ export function nameScreens() {
             nextTick(() => nameWhenShown(moved));
         },
         { immediate: true },
+    );
+    // The language changing (a first visit's language confirmed, or chosen in Settings) renames the tab in it; focus stays.
+    watch(
+        () => locale.lang,
+        () => nextTick(() => {
+            const h1 = heading();
+            if (h1) name(h1, false);
+        }),
     );
 }

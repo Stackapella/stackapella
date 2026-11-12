@@ -36,6 +36,7 @@ def journey(f):
     f.go("/?api=mock&scenario=&as=signedOut", "document.querySelector('#band-songs')")
     f.wait("document.querySelector('#home-songs [data-song-card] button')", what="the songs")
     f.run("document.querySelector('#home-songs [data-song-card] button').click()")
+    f.wait("document.querySelector('[role=dialog]')", what="the song's sheet")  # it loads on first open (main.js's split)
     f.click_t("templates.start")
     f.wait("/^\\/p\\/[\\w-]+\\/sing$/.test(location.pathname)", what="Sing")
     project = f.js("location.pathname.split('/')[2]")

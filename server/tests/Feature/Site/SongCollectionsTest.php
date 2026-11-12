@@ -10,6 +10,7 @@ use App\Support\Pages\Carols;
 use App\Support\Pages\SongCollections;
 use App\Support\Pages\SongParts;
 use App\Support\Pages\SongsHub;
+use App\Support\Site\LinkCardLanes;
 use App\Support\Templates\Catalogue;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
@@ -116,6 +117,28 @@ final class SongCollectionsTest extends TestCase
         // A song to try in the hero: its parts, each switchable (x-site.mixer).
         $this->assertStringContainsString('id="try-mixer"', $html);
         $this->assertStringContainsString('data-toggle', $html);
+    }
+
+    public function test_each_collection_offers_its_link_cards_song_to_try_with_that_cards_part_lit(): void
+    {
+        $seen = 0;
+        foreach (['hymns', 'spirituals', 'sea-shanties', 'rounds', 'folk-songs', 'barbershop-songs'] as $collection) {
+            [$slug, $part] = LinkCardLanes::SONGS[$collection];
+            if (app(SongCollections::class)->songs($collection) === [] || ! Template::query()->where('slug', $slug)->exists()) {
+                continue;
+            }
+            $html = (string) $this->get('/songs/'.$collection)->assertOk()->getContent();
+
+            $this->assertStringContainsString('s-xcoll-has-try', $html, $collection);
+            $this->assertMatchesRegularExpression('#<div class="s-sh-try s-xcoll-try">\s*<div class="s-mixer" id="try-mixer"#', $html, $collection);
+            preg_match('#<script type="application/json" data-song>(.*?)</script>#s', $html, $m);
+            $song = (array) json_decode($m[1] ?? '{}', true);
+            $this->assertSame([$slug, $part], [$song['song'] ?? null, $song['you'] ?? null], $collection);
+            $seen++;
+        }
+        $this->assertGreaterThan(0, $seen);
+        // The Jewish page keeps its countdown there instead.
+        $this->get('/songs/jewish-songs')->assertDontSee('s-xcoll-has-try', false);
     }
 
     public function test_a_song_goes_to_its_first_group_in_order(): void

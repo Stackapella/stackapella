@@ -33,7 +33,7 @@
         {{-- Its hero in its own palette and motif (s-tone-<slug>), the same as its band on /songs and its link card. --}}
         <section class="s-xhero s-tone s-tone-{{ $slug }}" aria-labelledby="page-h">
             @include('site._tone-motif', ['key' => $slug])
-            <div class="s-wrap s-xhero-in s-xcoll-in">
+            <div @class(['s-wrap s-xhero-in s-xcoll-in', 's-xcoll-has-try' => ($try ?? null) !== null])>
                 <div class="s-xhero-text">
                     <x-site.crumbs :trail="[[__('site.song_part.songs'), '/songs'], [__($words.'.crumb')]]" />
                     <h1 id="page-h">{{ __($words.'.headline') }} <em class="s-xserif">{{ __($words.'.headline_em') }}</em></h1>
@@ -46,6 +46,13 @@
                         @include('site._share', ['surface' => 'page-collection', 'url' => $canonical, 'title' => $title, 'name' => __($words.'.crumb'), 'lg' => true])
                     </div>
                 </div>
+                {{-- Beside the heading from 900 px (the width design): the collection's own song, the one on its link card,
+                     its opening in four parts, each one switched on or off as it plays (x-site.mixer), that card's part lit. --}}
+                @if (($try ?? null) !== null)
+                    <div class="s-sh-try s-xcoll-try">
+                        <x-site.mixer :song="$try" id="try-mixer"><span class="s-sh-try-k">{{ __('pages.songs.try') }}</span><x-slot:foot>{{ __('pages.songs.try_note') }}</x-slot:foot></x-site.mixer>
+                    </div>
+                @endif
                 {{-- The Jewish songs page's countdown to its next festival (App\Support\Pages\JewishSongs::festival). --}}
                 @if (($festival ?? null) !== null)
                     <aside class="s-jcount" aria-labelledby="jcount-k">

@@ -14,8 +14,10 @@
         document.head.append(link);
     };
     preload('https://cdn.jsdelivr.net/npm/vue@3.5.44/dist/vue.esm-browser.prod.js', { integrity: 'sha384-Yy+wUwjypE8OL2+tZ7lLLMsIVMFBXibFJCdzCWWWXnuVVdiuS3gViCyubnRyWnSP', crossOrigin: 'anonymous' });
-    // Lesson 1's words (js/i18n.js fetches them on a first visit): asked for now, not after the modules.
-    preload('/locales/lesson1/en.json', { rel: 'preload', as: 'fetch', crossOrigin: 'anonymous' });
+    // Where the visit opens (js/i18n.js firstWordsFor): a lesson, Home, or another screen, which starts with all the words.
+    const opens = location.pathname === '/' ? 'home' : /^\/(learn\/[\w-]+|cooldown)\/?$/.test(location.pathname) ? 'lesson' : null;
+    // That screen's own words (js/i18n.js fetches them on a first visit): asked for now, not after the modules.
+    preload(opens === 'lesson' ? '/locales/lesson1/en.json' : opens === 'home' ? '/locales/home1/en.json' : '/locales/en.json', { rel: 'preload', as: 'fetch', crossOrigin: 'anonymous' });
     // The courses (js/stores/learning.js fetches them as the app starts): lesson 1 can't draw without them, and asked for
     // only once every module had run, they came a round trip and a server's answer late (a slow 4G phone, 2026-11-08).
     preload('/course/course.json', { rel: 'preload', as: 'fetch', crossOrigin: 'anonymous' });
@@ -36,7 +38,6 @@
         '/js/components/confirm.js',
         '/js/stores/plan.js',
         '/js/components/cloud.js',
-        '/js/views/learn.js',
         '/js/components/account.js',
         '/js/components/credit.js',
         '/js/components/birth.js',
@@ -68,14 +69,45 @@
         '/js/dsp.js',
         '/js/components/icon.js',
         '/js/project-title.js',
-        '/js/components/voice-care.js',
-        '/js/skin.js',
-        '/js/course.js',
-        '/js/theory.js',
         '/js/audio.js',
         '/js/mic-help.js',
+        '/js/mic-check.js',
+        '/js/components/level-meter.js',
         '/js/sounds.js',
+        '/js/components/mic.js',
+        '/js/game/effects.js',
+        '/js/game/arcade.js',
+        '/js/wav.js',
+        '/js/experiments.js',
+        '/js/daily-cap.js',
+        '/js/course.js',
+        '/js/badges.js',
+        '/js/game/modules.js',
+        '/js/boss.js',
+        '/js/course-parts.js',
+        '/js/theory.js',
+        '/js/logo-mark.js',
+        '/js/public/season.js',
+        '/engine/engine.js',
+        '/js/timing-check.js',
+        '/js/mic-choice.js',
         '/js/pitchtrack.js',
+        '/js/mic-level.js',
+        '/js/stores/prefs.js',
+        '/js/warmup.js',
+        '/engine/clock.js',
+        '/js/listen.js',
+    ];
+    // preload_list.py: end
+    for (const module of MODULES) preload(module);
+
+    // A lesson's own view (views/learn.js and what it imports beyond main.js's list, written by tool/preload_list.py), on a
+    // visit that opens on a lesson: main.js loads it with import() (2026-11-12, the split), so Home never waits for it.
+    // preload_list.py: learn begin
+    const LEARN = [
+        '/js/views/learn.js',
+        '/js/components/voice-care.js',
+        '/js/skin.js',
         '/js/scoring.js',
         '/js/components/voice-capture.js',
         '/js/components/chord-moment.js',
@@ -93,37 +125,16 @@
         '/js/under-mix.js',
         '/js/real-key.js',
         '/js/unit-song.js',
-        '/js/experiments.js',
         '/js/lesson-steps.js',
-        '/js/game/modules.js',
         '/js/sharpen.js',
-        '/js/game/effects.js',
         '/js/style-scores.js',
         '/js/flip-rest.js',
         '/js/whistle.js',
-        '/js/daily-cap.js',
         '/js/home-today.js',
         '/js/components/boss.js',
-        '/js/boss.js',
         '/js/next-up.js',
-        '/js/mic-check.js',
-        '/js/components/level-meter.js',
-        '/js/components/mic.js',
-        '/js/game/arcade.js',
-        '/js/wav.js',
-        '/js/sync.js',
-        '/js/badges.js',
-        '/js/course-parts.js',
-        '/js/logo-mark.js',
-        '/js/public/season.js',
         '/js/voice-day.js',
-        '/js/warmup.js',
-        '/engine/engine.js',
-        '/js/timing-check.js',
-        '/js/mic-choice.js',
-        '/js/stores/prefs.js',
         '/js/creator-audio.js',
-        '/js/listen.js',
         '/js/listening.js',
         '/js/capture-scale.js',
         '/js/pitch-display.js',
@@ -131,12 +142,10 @@
         '/js/components/note-keyboard.js',
         '/js/notes.js',
         '/js/recorded-guides.js',
-        '/js/mic-level.js',
-        '/engine/clock.js',
         '/js/guide-voice.js',
     ];
-    // preload_list.py: end
-    for (const module of MODULES) preload(module);
+    // preload_list.py: learn end
+    if (opens === 'lesson') for (const module of LEARN) preload(module);
 
     // What a lesson draws once begun (js/components/lazy-lesson.js: the exercise, the results, the end), off lesson 1's
     // first screen: asked for all at once when the lesson is drawn, not found one import level at a time.
@@ -162,7 +171,6 @@
         '/js/ring.js',
         '/js/components/sing/ring-meter.js',
         '/js/keep-song.js',
-        '/js/guides.js',
         '/js/practice.js',
         '/js/components/report-voice.js',
         '/js/band-style.js',
@@ -173,41 +181,49 @@
     ];
     // preload_list.py: lesson end
     // Home's own view on a first visit that opens the app at "/" (written by tool/preload_list.py: views/projects.js and what
-    // it imports beyond the lists above), and all the words, which Home's screen waits for: asked for with Vue, not after it.
-    if (location.pathname === '/') {
+    // it imports beyond main.js's and game mode's lists): asked for with Vue, not after it.
+    if (opens === 'home') {
         // preload_list.py: home begin
     const HOME = [
         '/js/views/projects.js',
         '/js/hosts.js',
         '/js/home.js',
+        '/js/stores/catalogue.js',
+        '/js/stores/projects.js',
         '/js/stores/ideas.js',
         '/js/components/home.js',
         '/js/game/title-screen.js',
+        '/js/skin.js',
+        '/js/components/voice-care.js',
         '/js/components/session-wrap.js',
-        '/js/components/beta.js',
+        '/js/beta-status.js',
         '/js/components/form.js',
         '/js/components/appearance.js',
-        '/js/creator.js',
+        '/js/stores/templates.js',
         '/js/song-news.js',
-        '/js/components/create/save.js',
         '/js/group-songs.js',
         '/js/rehearsal.js',
         '/js/components/card-menu.js',
+        '/js/practice.js',
         '/js/workout.js',
         '/js/reading-lines.js',
+        '/js/results.js',
+        '/js/components/course-wall.js',
         '/js/components/course-card.js',
         '/js/song-shape.js',
         '/js/components/home-today-line.js',
+        '/js/voice-day.js',
         '/js/reminders.js',
-        '/js/quality.js',
-        '/js/beta.js',
         '/js/game-toggle.js',
         '/js/accent-colours.js',
+        '/js/synth.js',
+        '/js/next-up.js',
+        '/js/unit-song.js',
         '/js/whatsnext.js',
+        '/js/home-today.js',
     ];
     // preload_list.py: home end
         for (const module of HOME) preload(module);
-        preload('/locales/en.json', { rel: 'preload', as: 'fetch', crossOrigin: 'anonymous' });
     }
     let lessonAsked = false;
     window.stackapellaPreloadLesson = () => {

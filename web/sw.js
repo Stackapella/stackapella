@@ -27,6 +27,7 @@ const SHELL = [
     '/js/i18n.js',
     '/js/levels.js',
     '/js/lazy.js',
+    '/js/beta-status.js',
     '/js/screen-name.js',
     '/locales/en.json',
     '/js/audio.js',

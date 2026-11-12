@@ -4,7 +4,6 @@
 import { markRaw, reactive, toRaw } from 'vue';
 import * as db from '../db.js';
 import { local } from '../storage.js';
-import { renderGuide } from '../guides.js';
 import { peaks } from '../dsp.js';
 import { isNewSinger, PRACTICE_DEFAULTS } from '../practice.js';
 import { partsFor } from '../templates.js';
@@ -228,6 +227,9 @@ export async function adoptTemplate(projectId, template, melodySlotId) {
 export async function makeSlot(project, template, part, transpose = 0, extra = {}) {
     const sampleRate = 48000;
     const order = template.parts.indexOf(part);
+    // The guides' renderer (with the synth and scoring) loaded when a song is started, not with the store: Home lists your
+    // songs with this store and never renders a guide (2026-11-12, main.js's split).
+    const { renderGuide } = await import('../guides.js');
     const guide = await renderGuide({ templateId: template.id, templateVersion: template.version, part, tempo: template.tempo, transpose, sampleRate });
     const id = crypto.randomUUID();
     const slot = {

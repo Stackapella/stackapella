@@ -17,8 +17,11 @@ def visit(f, path, ready):
 
 def journey(f):
     visit(f, "/?api=mock&scenario=&as=signedOut", "document.querySelector('#app header')")
-    # Not controlled yet (a first visit): Vue and lesson 1's modules preloaded once each, from the boot script.
-    assert f.js("navigator.serviceWorker?.controller ? true : (() => { const all = [...document.querySelectorAll('link[rel=modulepreload]')].map((l) => l.href); return new Set(all).size === all.length && all.filter((h) => h.includes('/vue@')).length === 1 && all.some((h) => h.endsWith('/js/views/learn.js')); })()"), "Vue and lesson 1's modules aren't preloaded once each on a first visit"
+    # Not controlled yet (a first visit): Vue and Home's modules preloaded once each, from the boot script; the lesson's own
+    # view only on a visit that opens on a lesson (js/preload.js, main.js's split, 2026-11-12).
+    assert f.js("navigator.serviceWorker?.controller ? true : (() => { const all = [...document.querySelectorAll('link[rel=modulepreload]')].map((l) => l.href); return new Set(all).size === all.length && all.filter((h) => h.includes('/vue@')).length === 1 && all.some((h) => h.endsWith('/js/views/projects.js')) && !all.some((h) => h.endsWith('/js/views/learn.js')); })()"), "Vue and Home's modules aren't preloaded once each on a first visit at Home"
+    visit(f, "/learn/1-match?api=mock&scenario=&as=signedOut", "document.querySelector('main h1, main h2')")
+    assert f.js("navigator.serviceWorker?.controller ? true : (() => { const all = [...document.querySelectorAll('link[rel=modulepreload]')].map((l) => l.href); return new Set(all).size === all.length && all.some((h) => h.endsWith('/js/views/learn.js')); })()"), "a lesson's view isn't preloaded once on a first visit to a lesson"
     visit(f, "/workout?api=mock&scenario=&as=signedOut", "document.querySelector('#app h1')")
     f.run("const s = await import('/js/stores/projects.js'); const p = await s.createProject({ title: 'Console' }); window.made = p.id;")
     visit(f, "/p/" + f.js("window.made") + "?api=mock&scenario=&as=signedOut", "document.querySelector('footer')")
