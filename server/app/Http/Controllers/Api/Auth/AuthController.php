@@ -34,6 +34,7 @@ use App\Support\Accounts\SignUpBrowser;
 use App\Support\Flags;
 use App\Support\Languages\Languages;
 use App\Support\Media\Instruments;
+use App\Support\Rights\RightsHere;
 use App\Support\Templates\SheetImport;
 use App\Support\Trust\Blocklist;
 use App\Support\Trust\Country;
@@ -73,6 +74,9 @@ final class AuthController extends Controller
             'passwordMinLength' => StrongPassword::MIN,
             // English and each language switched on: the ones the app offers and follows the browser into.
             'languages' => $languages->offered(),
+            // The songs withheld where the visitor is (docs/geo-rights-plan.md): the app leaves them out and a course
+            // step sings its altSong instead. Never the country itself. Empty while geo_rights is off.
+            'withheldSongs' => app(RightsHere::class)->withheldSlugs(RightsHere::country($request)),
             // Before launch, for someone not let in yet (no beta pass, not signed in): the app shows
             // only signing in and the invite pages.
             'comingSoon' => config('app.coming_soon') === true && ! BetaPass::valid($request) && $request->user() === null,

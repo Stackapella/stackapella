@@ -69,7 +69,7 @@ export const ShareResult = {
         words() {
             const site = new URL(publicSiteUrl(), location.href).host;
             const by = this.name.trim() ? t('results.share.by', { name: this.name.trim() }) : null;
-            if (this.note) return { title: t('results.share.noteTitle'), note: this.note.name, line: this.note.line, word: this.note.name, stats: this.note.line, lesson: '', by: this.name.trim() || null, tagline: t('results.share.tagline'), site };
+            if (this.note) return { title: t('results.share.noteTitle'), note: this.note.name, line: this.note.line, word: this.note.name, stats: this.note.line, lesson: '', by: this.name.trim() || null, ask: t('results.share.noteAsk'), tagline: t('results.share.tagline'), site };
             if (this.milestone) {
                 const m = this.milestone;
                 return { title: m.title, headline: m.headline, line: m.line, word: m.headline, stats: m.line, lesson: m.title, by, challenge: t('results.share.yourTurn'), tagline: t('results.share.tagline'), site, arcade: game() && effect('celebrations') };
@@ -103,6 +103,10 @@ export const ShareResult = {
                 return new URL(`${path}?ref=share-lesson`, base).href;
             }
             const units = learning.course?.units ?? [];
+            // Lesson 1's note (docs/improvement-log.md, row 4): the course's first lesson, which asks the friend for theirs with
+            // the sender's note beside it (learn.js friendNote), tagged share-note.
+            const first = units[0]?.lessons?.[0]?.id;
+            if (this.note && first) return new URL(`/learn/${first}?ref=${shareRef('note')}&their=${encodeURIComponent(this.note.name)}`, location.origin).href;
             const fresh = units.length && unitOpen(units, this.entry.unitIndex, emptyProgress());
             return new URL(fresh ? `/learn/${this.entry.lesson.id}` : '/', location.origin).href;
         },

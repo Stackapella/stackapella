@@ -8272,5 +8272,19 @@
     "Guide": "Guía",
     "Instrument parts, and your own recorded voice as the guide, free for everyone.": "Partes de instrumentos, y tu propia voz grabada como guía, gratis para todos.",
     "Share your arrangement by link, and friends learn it part by part. Keeping your own voice as the guide is coming, free for everyone.": "Comparte tu arreglo por enlace y tus amigos lo aprenden voz a voz. Usar tu propia voz como guía llegará pronto, gratis para todos.",
-    "Yes: every course and every song in the library, with a free account, and unlimited workouts, your history, singing with friends and choir groups. Plus, for :price_month a month or :price_year a year, adds more storage, MP3 and stems, and unlimited private arrangements.": "Sí: todos los cursos y todas las canciones de la biblioteca, con una cuenta gratis, y entrenamientos ilimitados, tu historial, cantar con amigos y los grupos de coro. Plus, por :price_month al mes o :price_year al año, añade más almacenamiento, MP3 y pistas por separado, y arreglos privados ilimitados."
+    "Yes: every course and every song in the library, with a free account, and unlimited workouts, your history, singing with friends and choir groups. Plus, for :price_month a month or :price_year a year, adds more storage, MP3 and stems, and unlimited private arrangements.": "Sí: todos los cursos y todas las canciones de la biblioteca, con una cuenta gratis, y entrenamientos ilimitados, tu historial, cantar con amigos y los grupos de coro. Plus, por :price_month al mes o :price_year al año, añade más almacenamiento, MP3 y pistas por separado, y arreglos privados ilimitados.",
+    "Share my key": "Comparte mi tonalidad",
+    "I sing it in :key (:shift). Find yours:": "La canto en :key (:shift). Encuentra la tuya:",
+    "My key for this song": "Mi tonalidad para esta canción",
+    "My key for :name": "Mi tonalidad para :name",
+    "What's your key?": "¿Cuál es tu tonalidad?",
+    "Share the parts": "Comparte las voces",
+    "Four-part harmony for :chords, voiced for a choir. Voice your own:": "Armonía a cuatro voces para :chords, distribuida para coro. Distribuye las tuyas:",
+    "Voice your own chords": "Distribuye tus propios acordes",
+    "Share the change": "Comparte el cambio",
+    "From :from to :to in one tap. Transpose yours:": "De :from a :to con un toque. Transporta la tuya:",
+    "In a new key": "En otra tonalidad",
+    "Was": "Antes",
+    "Now": "Ahora",
+    "Transpose your own": "Transporta la tuya"
 }

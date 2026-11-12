@@ -4,8 +4,10 @@ word that isn't a { "en": ... } object, a lesson id used twice, a clip slot miss
 web/course/plus/clips.json, or a lesson's fact (the "Did you know?" card) that's malformed or told in
 two courses; and it counts the lessons an app can't play yet (Flutter's "open this
 lesson on the web"). A song course's exercise (course/songs, `song`) must name a song that's here, one
-of its parts and phrases it has, and never carry notes of its own. Prints one line; `--apps` lists
-those lessons. Python's standard library only.
+of its parts and phrases it has, and never carry notes of its own. A song's fallback where it's withheld
+(`altSong`, steps.json) must name another song that's here, keep its object's kind and languages, and pass that
+object's own checks; a lesson's or boss's partial one only where something inside it falls back. Prints one line;
+`--apps` lists those lessons. Python's standard library only.
 """
 import json
 import re
@@ -140,7 +142,15 @@ def song(where, s):
     if not isinstance(s, dict):
         problem(where, "song must be { template, part, phrases }")
         return
-    known(where + " song", s, ["template", "part", "phrases", "with"])
+    known(where + " song", s, ["template", "part", "phrases", "with", "altSong"])
+    if "altSong" in s:
+        alt = s["altSong"]
+        if not isinstance(alt, dict) or "altSong" in alt:
+            problem(where, "a song's altSong is { template, part, phrases, with?, text? }, with no altSong of its own")
+        else:
+            if alt.get("template") == s.get("template"):
+                problem(where, f"a song's altSong must name another song than '{s.get('template')}'")
+            song(where + " altSong", {k: v for k, v in alt.items() if k != "text"})
     t = template(s.get("template"))
     if t is None:
         problem(where, f"song '{s.get('template')}' isn't one of the songs")
@@ -413,6 +423,8 @@ def course(path, seen, clip_ids, unplayable, facts):
                 fact(where, lesson["fact"], facts, str(name))
             if "keepSong" in lesson:
                 keep_song(where, lesson["keepSong"], lesson.get("steps", []))
+            if "altSong" in lesson:
+                alt_partial(where, lesson, FORMAT["altSong"]["lesson"], facts, str(name))
             if lesson.get("unscored"):
                 unscored(where, lesson)
             elif "endLine" in lesson:
@@ -467,6 +479,19 @@ def unit_song(where, s, first):
         if not isinstance(g, dict) or set(g) != {"title", "text"} or not all(is_words(g.get(k)) for k in ("title", "text")):
             problem(where, "game is { title, text }, each { \"en\": \"...\" }")
     words(where, {"title": s.get("title"), "text": s.get("text"), **({"game": s["game"]} if isinstance(s.get("game"), dict) else {})})
+    if "altSong" in s:  # its fallback where the song is withheld (steps.json altSong): another song, the same words' languages
+        alt = s["altSong"]
+        if not isinstance(alt, dict) or "altSong" in alt:
+            problem(where, "altSong is a whole unit song, with no altSong of its own")
+            return
+        if alt.get("template") == s.get("template"):
+            problem(where, f"altSong must name another song than '{s.get('template')}'")
+        for key in ("title", "text"):
+            same_languages(where, alt, s, key)
+        if isinstance(s.get("game"), dict):
+            for key in ("title", "text"):
+                same_languages(where + " game", alt.get("game") if isinstance(alt.get("game"), dict) else {}, s["game"], key)
+        unit_song(where + " altSong", alt, first)
 
 
 BOSS_KINDS = ("play",)  # a boss is one go: a record step would leave it for Sing
@@ -479,7 +504,9 @@ def boss(where, b, seen, path, clip_ids):
     if not isinstance(b, dict):
         problem(where, "boss must be { id, title, steps }")
         return
-    known(where + " boss", b, ["id", "title", "steps"])
+    known(where + " boss", b, ["id", "title", "steps", "altSong"])
+    if "altSong" in b:
+        alt_partial(where + " boss", b, FORMAT["altSong"]["boss"])
     bid = b.get("id")
     if not isinstance(bid, str) or not re.fullmatch(r"[a-z0-9]+(-[a-z0-9]+)*-boss", bid):
         problem(where, "a boss's id is the unit's prefix and number then -boss, as 3-boss")
@@ -487,7 +514,7 @@ def boss(where, b, seen, path, clip_ids):
         problem(where, f"boss id '{bid}' used twice")
     else:
         seen.add(bid)
-    words(where + " boss", {"title": b.get("title")})
+    words(where + " boss", {"title": b.get("title"), "altSong": b.get("altSong")})
     steps = b.get("steps")
     if not isinstance(steps, list) or not 2 <= len(steps) <= 4:
         problem(where, "a boss has 2 to 4 steps")
@@ -531,36 +558,119 @@ def check_steps(where, steps, path, clip_ids, kept):
     """Each step's kind and fields, its song and exercise; returns what Flutter can't play yet."""
     flutter = set()
     for i, step in enumerate(steps):
-        at = f"{where} step {i + 1}"
-        kind = FORMAT["kinds"].get(step.get("kind"))
-        if not kind:
-            problem(at, f"unknown step kind '{step.get('kind')}'")
-            continue
-        known(at, step, kind["fields"])
-        if step.get("part") == "yours" and not yours_fits(step.get("template")):
-            problem(at, "a record step's part 'yours' needs the course's parts, for its song")
-        if "byPart" in step:
-            by_part(at, step["byPart"])
-        if "textByPart" in step:
-            text_by_part(at, step["textByPart"])
-        if "template" in step and template(step["template"]) is None:
-            problem(at, f"song '{step['template']}' isn't one of the songs")
-        if "courseSong" in step:
-            course_song(at, path.parent, step)
-        web_only = set()
-        if "exercise" in step:
-            exercise(at, step["exercise"], kind.get("exercise", "play"), web_only, clip_ids)
-        if "listen" in step:
-            exercise(at, step["listen"], "play", web_only, clip_ids)
-        ex = step.get("exercise") if isinstance(step.get("exercise"), dict) else {}
-        if "under" in ex:
-            under(at, ex["under"], i)
-        if ex.get("thenAndNow") and ex["thenAndNow"] not in kept:
-            problem(at, f"thenAndNow '{ex['thenAndNow']}' isn't kept by an earlier lesson of this course")
-        if kind["flutter"] != "yes":
-            flutter.add(f"{step['kind']} ({kind['flutter']})")
-        flutter.update(f"play.{k}" for k in web_only)
+        flutter |= check_step(f"{where} step {i + 1}", i, step, path, clip_ids, kept)
     return flutter
+
+
+def check_step(at, i, step, path, clip_ids, kept):
+    """One step (the i-th, from 0) and its fallback; returns what Flutter can't play yet."""
+    flutter = set()
+    kind = FORMAT["kinds"].get(step.get("kind"))
+    if not kind:
+        problem(at, f"unknown step kind '{step.get('kind')}'")
+        return flutter
+    known(at, step, kind["fields"])
+    if step.get("part") == "yours" and not yours_fits(step.get("template")):
+        problem(at, "a record step's part 'yours' needs the course's parts, for its song")
+    if "byPart" in step:
+        by_part(at, step["byPart"])
+    if "textByPart" in step:
+        text_by_part(at, step["textByPart"])
+    if "template" in step and template(step["template"]) is None:
+        problem(at, f"song '{step['template']}' isn't one of the songs")
+    if "courseSong" in step:
+        course_song(at, path.parent, step)
+    web_only = set()
+    if "exercise" in step:
+        exercise(at, step["exercise"], kind.get("exercise", "play"), web_only, clip_ids)
+    if "listen" in step:
+        exercise(at, step["listen"], "play", web_only, clip_ids)
+    ex = step.get("exercise") if isinstance(step.get("exercise"), dict) else {}
+    if "under" in ex:
+        under(at, ex["under"], i)
+    if ex.get("thenAndNow") and ex["thenAndNow"] not in kept:
+        problem(at, f"thenAndNow '{ex['thenAndNow']}' isn't kept by an earlier lesson of this course")
+    if "from" in step:
+        if template(step["from"]) is None:
+            problem(at, f"from: song '{step['from']}' isn't one of the songs")
+        if not ex.get("notes") or "song" in ex:
+            problem(at, "from names the song a step's own notes are taken from: a step with notes, not a song")
+    song_alt = ex["song"].get("altSong") if isinstance(ex.get("song"), dict) else None
+    if isinstance(song_alt, dict) and "text" in song_alt:
+        same_languages(at + " song altSong", song_alt, step, "text")
+    if "altSong" in step:
+        flutter |= alt_step(at, i, step, path, clip_ids, kept)
+    if kind["flutter"] != "yes":
+        flutter.add(f"{step['kind']} ({kind['flutter']})")
+    flutter.update(f"play.{k}" for k in web_only)
+    return flutter
+
+
+def step_song(step):
+    """The song a step names: its template, or from (a play step whose own notes are taken from a song)."""
+    return step.get("template") or step.get("from")
+
+
+def same_languages(where, alt, original, key):
+    """A fallback's words are in every language its original's are, and only those."""
+    if is_words(original.get(key)) and not (is_words(alt.get(key)) and set(alt[key]) == set(original[key])):
+        problem(where, f"altSong's {key} needs the original's languages, {', '.join(original[key])}")
+
+
+def alt_step(at, i, step, path, clip_ids, kept):
+    """A step's fallback where its song is withheld (steps.json altSong): the whole step again, the same kind, naming
+    another song that's here the same way (template, or from), in the original's languages, and checked as a step is."""
+    alt = step["altSong"]
+    where = at + " altSong"
+    if not isinstance(alt, dict):
+        problem(where, "altSong is a whole step")
+        return set()
+    if "altSong" in alt:
+        problem(where, "an altSong has no altSong of its own")
+    if step_song(step) is None:
+        problem(at, "altSong belongs on a step that names its song (template, or from)")
+    if alt.get("kind") != step.get("kind"):
+        problem(where, f"altSong's kind must be the step's own, '{step.get('kind')}'")
+    if ("template" in alt) != ("template" in step) or ("from" in alt) != ("from" in step):
+        problem(where, "altSong names its song as the step does (template, or from)")
+    elif step_song(alt) is not None and step_song(alt) == step_song(step):
+        problem(where, f"altSong must name another song than '{step_song(step)}'")
+    for key in FORMAT["words"]:
+        if key in step:
+            same_languages(where, alt, step, key)
+    return check_step(where, i, {k: v for k, v in alt.items() if k != "altSong"}, path, clip_ids, kept)
+
+
+def has_alt(obj):
+    """Whether anything inside obj (a lesson's or a boss's steps) has an altSong."""
+    if isinstance(obj, dict):
+        return "altSong" in obj or any(has_alt(v) for v in obj.values())
+    return isinstance(obj, list) and any(has_alt(v) for v in obj)
+
+
+def alt_partial(where, obj, allowed, facts=None, course_name=None):
+    """A lesson's or a boss's altSong: only the fields that name the song (steps.json altSong), used when something
+    inside it fell back, so only where something inside it has an altSong. A fact there is checked as any fact is,
+    so its id must be new."""
+    alt = obj["altSong"]
+    where += " altSong"
+    if not isinstance(alt, dict) or not alt:
+        problem(where, f"altSong is {{ {', '.join(allowed)} }}, the fields that name the song")
+        return
+    for key in alt:
+        if key not in allowed:
+            problem(where, f"'{key}' can't fall back: only {', '.join(allowed)}")
+    if not has_alt(obj.get("steps")) and not has_alt(obj.get("variants")):
+        problem(where, "altSong belongs where something inside falls back: no step or song here has an altSong")
+    if "title" in alt:
+        same_languages(where, alt, obj, "title")
+    if "fact" in alt and "fact" in allowed:
+        fact(where, alt["fact"], facts, course_name)
+        if isinstance(alt["fact"], dict) and isinstance(obj.get("fact"), dict):
+            for key in ("text", "source"):
+                same_languages(where + " fact", alt["fact"], obj["fact"], key)
+    if "keepSong" in alt and "keepSong" in allowed:
+        keep_song(where, alt["keepSong"], obj.get("steps", []))
 
 
 WARMUP_SOUNDS = ("ah", "ee", "oo", "oh", "hum", "trill")  # js/warmup.js SOUNDS

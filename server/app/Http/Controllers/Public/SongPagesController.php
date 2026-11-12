@@ -16,6 +16,7 @@ use App\Support\Pages\SongCollections;
 use App\Support\Pages\SongPage;
 use App\Support\Pages\SongParts;
 use App\Support\Pages\SongsHub;
+use App\Support\Rights\RightsHere;
 use App\Support\Sharing\SongCards;
 use App\Support\Templates\Catalogue;
 use Illuminate\Http\Request;
@@ -36,6 +37,19 @@ final class SongPagesController extends Controller
     public static function headers(): array
     {
         return [...self::HEADERS, ...(config('ops.indexing') === true ? [] : ['X-Robots-Tag' => 'noindex'])];
+    }
+
+    /**
+     * A song's page (or part page) headers: a song protected anywhere reads differently by country (docs/geo-rights-plan.md),
+     * so no shared cache may keep it.
+     *
+     * @return array<string, string>
+     */
+    public static function headersFor(?Template $template): array
+    {
+        return $template !== null && app(RightsHere::class)->variesByCountry($template)
+            ? [...self::headers(), 'Cache-Control' => 'private, no-store']
+            : self::headers();
     }
 
     public function index(Request $request, Catalogue $catalogue): Response
@@ -65,7 +79,7 @@ final class SongPagesController extends Controller
         ], 200, self::headers());
     }
 
-    public function show(string $slug, SongCards $cards, Catalogue $catalogue, SongCollections $collections): Response
+    public function show(Request $request, string $slug, SongCards $cards, Catalogue $catalogue, SongCollections $collections, RightsHere $rights): Response
     {
         $template = Template::query()->listed()->whereNotNull('current_version_id')->with('currentVersion')->where('slug', $slug)->first();
 
@@ -74,6 +88,14 @@ final class SongPagesController extends Controller
         }
 
         $song = SongPage::of($template);
+        // Where its copyright still runs (docs/geo-rights-plan.md): the page stays, saying when it's free there; the
+        // player goes, and the words too where they're the protected part.
+        $country = RightsHere::country($request);
+        $withheld = $rights->withheld($template, $country);
+        $wordsWithheld = $rights->wordsWithheld($template, $country);
+        if ($wordsWithheld) {
+            $song['words'] = [];
+        }
         // More to learn: the same level first, three of them (picked by the level SongPage::of reads, before building
         // the three: building every song's page for three was most of the page's time).
         $more = $catalogue->open()->reject(fn (Template $other): bool => $other->is($template))
@@ -84,7 +106,10 @@ final class SongPagesController extends Controller
             'song' => $song,
             // A bundled song plays its opening line; any other only its clip: its notes come only to
             // an account, through the API (Hillel, 2026-10-27).
-            'line' => $template->access === TemplateAccess::Plus ? null : Landing::line($template),
+            'line' => $template->access === TemplateAccess::Plus || $withheld !== null ? null : Landing::line($template),
+            // Null where it's free; else the year it's free here (null when that can't be known) and whether the words
+            // are withheld too. The view's words are marketing's.
+            'rights' => $withheld === null ? null : ['freeFrom' => $withheld['freeFrom'], 'words' => $wordsWithheld],
             'more' => $more,
             // The page that collects it, in its trail and below its more songs (SongCollections::home).
             'home' => $collections->home((string) $template->slug),
@@ -104,6 +129,6 @@ final class SongPagesController extends Controller
                 'image' => $cards->url($template, 'join'),
                 'imageAlt' => __('site.meta.app.join.image_alt', ['song' => SongWords::title((string) $template->title, (string) $template->slug)]),
             ],
-        ], 200, self::headers());
+        ], 200, self::headersFor($template));
     }
 }

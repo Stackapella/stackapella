@@ -1,6 +1,7 @@
 // "Let's get your mic working" (js/mic-help.js): each browser and device gets its own steps, and
 // each of getUserMedia's failures its own plain cause.
-import { adviceFor, deviceOf, diagnose, PLATFORMS } from '/js/mic-help.js';
+import { adviceFor, CAUSES, deviceOf, diagnose, micFailKind, PLATFORMS } from '/js/mic-help.js';
+import { KINDS } from '/js/usage.js';
 import { assert, test } from './harness.js';
 
 const UA = {
@@ -56,4 +57,11 @@ test('mic help: the advice fits the device', () => {
     assert(windows.system === 'windows' && windows.cause === 'notFound', JSON.stringify(windows));
     const android = adviceFor(error('NotAllowedError'), { userAgent: UA.androidChrome });
     assert(android.platform === 'androidChrome' && !android.reload && !android.system, JSON.stringify(android));
+});
+
+test('mic help: every cause of a mic that did not open is a count the app sends (lesson 1.1, 2026-11-12)', () => {
+    assert(micFailKind('blocked') === 'mic_denied', 'a refusal is mic_denied');
+    assert(micFailKind('inApp') === 'mic_failed_inapp' && micFailKind('notFound') === 'mic_failed_notfound', 'the rest by cause');
+    for (const cause of Object.keys(CAUSES)) assert(KINDS.has(micFailKind(cause)), `${cause}: ${micFailKind(cause)} is a kind`);
+    for (const kind of ['mic_primer', 'mic_primer_not', 'mic_prompt', 'mic_granted', 'l1_inapp']) assert(KINDS.has(kind), kind);
 });

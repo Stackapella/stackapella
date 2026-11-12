@@ -150,13 +150,13 @@ return [
         'soprano' => 'Carries the tune, which opens by running straight down the scale, from the top D to the low one, on "Joy to the world, the Lord is come!"',
         'alto' => 'Sings the words under the tune, mostly a third or a sixth below it, mostly in thirds with the soprano on "Let ev\'ry heart prepare him room", and ends on the low D with the tune.',
         'tenor' => 'Fills in the middle of the chord, mostly on A, with F-sharp and G, rests while the upper voices sing "Let ev\'ry heart prepare him room", then comes in a bar behind them on "And heav\'n and nature sing".',
-        'bass' => 'Sings the roots, mostly on D and A, holds D under "Let ev\'ry heart prepare him room", and comes in with the tenor a bar behind the others on "And heav\'n and nature sing".',
+        'bass' => 'Sings the bass line, mostly on D and A, holds D under "Let ev\'ry heart prepare him room", and comes in with the tenor a bar behind the others on "And heav\'n and nature sing".',
     ],
     'hark-the-herald' => [
         'soprano' => 'Carries Mendelssohn\'s tune, which climbs to its top E on "With th\'angelic" and again on the refrain\'s "Hark! the herald".',
         'alto' => 'Sings the words under the tune, mostly a third or a sixth below it, and has the G-sharp on "proclaim" and on the refrain\'s "angels" that turns the harmony toward A minor.',
         'tenor' => 'Fills in the middle of the chord, mostly on D, B and E, and holds A at the start of "Joyful, all ye nations rise" and "Join the triumph of the skies" while the tune repeats its high D above.',
-        'bass' => 'Sings the roots, mostly on D, C and G, with a held D under "Joyful, all" and "Join the", and a held C under "With th\'angelic host" before it climbs to A on "proclaim".',
+        'bass' => 'Sings the bass line, mostly on D, C and G, with a held D under "Joyful, all" and "Join the", and a held C under "With th\'angelic host" before it climbs to A on "proclaim".',
     ],
     'jingle-bells' => [
         'soprano' => 'Carries the tune, the dashing verse and then the chorus everyone knows: "Jingle bells! Jingle bells! Jingle all the way!"',
@@ -168,13 +168,13 @@ return [
         'soprano' => 'Carries the tune, in E minor, which reaches its top E on "Satan\'s" and on "of" in the last "O tidings of comfort and joy".',
         'alto' => 'Sings the words under the tune, often on D-sharp, the sharpened note that pulls the minor key home to E, and starts and ends on the same E as the tune.',
         'tenor' => 'Fills in the middle of the chord, mostly on G and B, and rises to D on "astray" and on "O tidings" and "comfort" in the last "O tidings of comfort and joy".',
-        'bass' => 'Sings the roots, mostly on E and B, the minor key\'s home note and the note that leads back to it.',
+        'bass' => 'Sings the bass line, mostly on E and B, the minor key\'s home note and the note that leads back to it.',
     ],
     'deck-the-halls' => [
         'soprano' => 'Carries the Welsh tune, stepping down the scale from "Deck the halls" and climbing to its top E-flat on the last "la" of the rising "fa la la" in the middle.',
         'alto' => 'Sings the words a third under the tune for most of the verse; in the rising "fa la la" in the middle it holds G while the tune climbs, then follows it down a sixth below. Mostly on E-flat and D.',
         'tenor' => 'Holds the middle of the chord, mostly on B-flat, a steady note while the tune and alto move above it.',
-        'bass' => 'Sings the roots, mostly on E-flat and B-flat, the song\'s home chord and the one that leads back to it.',
+        'bass' => 'Sings the bass line, mostly on E-flat and B-flat, the roots of the song\'s home chord and of the one that leads back to it.',
     ],
     'away-in-a-manger' => [
         'soprano' => 'Carries Kirkpatrick\'s gentle tune in three time, which reaches its top E on "a" in "no crib for a bed" and on "He" in "looked down where He lay".',
@@ -240,7 +240,7 @@ return [
         'tenor' => 'Sings above the tune, mostly on E, the ringing top of the chord, climbing to A on "old", "mill", "there" and "I", and answers the lead with "sweet sixteen, village queen".',
         'lead' => 'Carries Tell Taylor\'s waltz tune, from a low C-sharp on "With" up to E on "old" and "there", and sings "You were sixteen" and "my village queen" alone before the others answer.',
         'baritone' => 'Fills the chord between the lead and the bass, mostly on A and C-sharp, crossing above the tune at times as a barbershop baritone does, from the low C-sharp on "With your eyes" to the high one on "Down by the old".',
-        'bass' => 'Sings the roots, mostly on a low A, down to E on "gingham" and up to E on the first "stream", "met", "knew" and the last "mill".',
+        'bass' => 'Sings the bass line, mostly on a low A, down to E on "gingham" and up to E on the first "stream", "met", "knew" and the last "mill".',
     ],
     'blow-the-man-down' => [
         'soprano' => 'Is the shantyman: sings every call alone, from "O blow the man down, bullies" to "just home from Hong Kong", and leads the crew\'s answers, up to its top D.',
@@ -252,7 +252,7 @@ return [
         'soprano' => 'Is the shantyman: sings each verse\'s call alone and leads both choruses, from the top E on "Haul" and each verse\'s first word down to the low C-sharp on every "Joe".',
         'alto' => 'Sings the words with the tune in both choruses, rests through the calls and comes in on every "Way, haul away, haul away, Joe", mostly on E, with D-sharp and B, up to G-sharp on each chorus\'s first "Haul".',
         'tenor' => 'Sings the words in the middle of the chord, mostly on G-sharp, with B and D-sharp, resting through the shantyman\'s calls.',
-        'bass' => 'Sings the roots, mostly on C-sharp, with B and E, down to a low G-sharp on the chorus\'s last "away" and up to G-sharp on "Rosie".',
+        'bass' => 'Sings the bass line, mostly on C-sharp, with B and E, down to a low G-sharp on the chorus\'s last "away" and up to G-sharp on "Rosie".',
     ],
     'sakura-sakura' => [
         'soprano' => 'Carries the tune in its five-note scale, sung in Japanese, from a low D on "kagiri" and "izuru" up to its top E-flat on "yayoi" and "kasumi".',
@@ -336,7 +336,7 @@ return [
         'soprano' => 'Is the shantyman: sings "What shall we do with a drunken sailor" alone, then leads the chorus, up to its top E on "sailor" and "rises".',
         'alto' => 'Rests through the verse and comes in on the chorus, "Hooray and up she rises", mostly on G and F-sharp, ending on a low G on "morning".',
         'tenor' => 'Comes in on the chorus in strong, simple chords, mostly on B and A, up to D on the third "up" and down to E on "morning".',
-        'bass' => 'Comes in on the chorus on the roots, mostly E and D, down to a low G on the third "rises".',
+        'bass' => 'Comes in on the chorus, mostly on the roots, E and D, down to a low G on the third "rises".',
     ],
     'leave-her-johnny' => [
         'soprano' => 'Is the shantyman: sings each grumble alone, from "O the times are hard" to "a leaking ship and a harping crew", up to its top D on "times", "bread" and "leaking".',
@@ -366,7 +366,7 @@ return [
         'soprano' => 'Rests through the first refrain while the alto has the tune, then floats the refrain above it, mostly on long notes, from a slow "Deep, deep river" to "want to cross over into campground"; in the verse it sings the tune with the alto, in unison, through "gospel feast", then takes the top line. Its highest note, a G, comes on "over" in the second refrain and on "promised" in the verse, its lowest, a D, on the last "river", and it sings G, E-flat or B-flat most of the time.',
         'alto' => 'Carries the tune, twice through the refrain, with its octave leap from "is" up to "over" in "my home is over Jordan", and shares it with the soprano in the verse up to "gospel feast". Its highest note, an E-flat, comes on "over" both times and on "gospel", its lowest, a B-flat, on "into" in the second refrain and on the last "river", and it sings E-flat, G or C most of the time.',
         'tenor' => 'Sings the words in the middle of Burleigh\'s chords, C, B-flat, E-flat or D most of the time, stepping down D, D-flat, C under "Jordan, Deep, deep river" in the first refrain; in the verse it sings "Want to go" while the soprano and alto sing "Oh, don\'t you want to go", then sings "to that gospel feast" with them. Its highest note, a G, comes once, on "all" in "where all is peace?", and its lowest, an F, on the last "river".',
-        'bass' => 'Sings Burleigh\'s bass line, on E-flat nearly a third of the time and on E-flat, B-flat, G or A-flat most of it, from its lowest note, an F, on "over" in the first refrain and on "want to cross" in the second, up to its highest, a B-flat, once, on "all" in "where all is peace?". At the close it moves B-flat, B natural, C, B-flat, A-flat, B-flat, E-flat under "is peace? Oh, deep river".',
+        'bass' => 'Sings Burleigh\'s bass line, on E-flat nearly a third of the time and on E-flat, B-flat, G or A-flat most of it, from its lowest note, an F, on "over" in "cross over" in the first refrain and on "want to cross" in the second, up to its highest, a B-flat, once, on "all" in "where all is peace?". At the close it moves B-flat, B natural, C, B-flat, A-flat, B-flat, E-flat under "is peace? Oh, deep river".',
     ],
     'white-coral-bells' => [
         'soprano' => 'Starts the round alone and sings both verses twice, from its low B-flat on "Lilies" and "That" up to its top D on "our" in "deck our garden walk" and on "the" in "when the fairies sing".',
@@ -406,9 +406,9 @@ return [
     ],
     'were-you-there' => [
         'soprano' => 'Asks each verse\'s question alone, as "Were you there when they crucified my Lord?" in verse 1, holding its last word while the others echo, then sings the rest with everyone, mostly on G and B, up to its top E on "crucified", "nailed", "pierced" and "sun" in each verse\'s second question and on every "Sometimes", and down to its low D on each verse\'s first "Were" and its last "tremble,".',
-        'alto' => 'Rests while the soprano asks each question, echoes its end on B, C and B ("were you there?" in verses 1 and 4, "to the tree?" and "in the side?" in verses 2 and 3), then sings with everyone, mostly on B and E, reaching its top B only in each verse\'s second question, on every "Oh!" and on every "Sometimes".',
-        'tenor' => 'Echoes the end of each question with the alto and bass, then fills the middle of the chord, most often on G, then C, up to its top C on "me to tremble," and the second "tremble" in "Sometimes it causes me to tremble", and on "crucified", "nailed", "pierced" and "sun" in each verse\'s last line; its low C comes once a verse, in the echo, on "you" or "the".',
-        'bass' => 'Echoes the end of each question with the alto and tenor, then sings the bass line, most often on a low G, then C, rising to the G an octave up once a verse, in its last line, on "crucified", on "Him" in "nailed Him" and "pierced Him", and on "refused".',
+        'alto' => 'Rests while the soprano asks each question, echoes her on B, C and B ("were you there?" in verses 1 and 4, "to the tree?" and "in the side?" in verses 2 and 3), then sings with everyone, mostly on B and E, reaching its top B only in each verse\'s second question, on every "Oh!" and on every "Sometimes".',
+        'tenor' => 'Echoes each question with the alto and bass, then fills the middle of the chord, most often on G, then C, up to its top C on "me to tremble," and the second "tremble" in "Sometimes it causes me to tremble", and on "crucified", "nailed", "pierced" and "sun" in each verse\'s last line; its low C comes once a verse, in the echo, on "you" or "the".',
+        'bass' => 'Echoes each question with the alto and tenor, then sings the bass line, most often on a low G, then C, rising to the G an octave up once a verse, in its last line, on "crucified", on "Him" in "nailed Him" and "pierced Him", and on "refused".',
     ],
     'didnt-my-lord-deliver-daniel' => [
         'soprano' => 'Sings the five-note tune, mostly on C and D, and each verse alone until the others join its last line, up to its top E on "Daniel," after each "Didn\'t my Lord deliver" or "d\'liver" and on "why" in the refrain, and on "belly", "fiery", "forbear", "disappear,", "begin" and "Canaan\'s" in the verses, and down to its low G on the start of each "deliver" or "d\'liver" after "Didn\'t my Lord".',
@@ -457,6 +457,18 @@ return [
         'alto' => 'Sings the alto part printed under Lvov\'s name, with the words, mostly a third or a sixth below the tune, most often on A-flat, then F, up to its top B-flat on "likhtelekh" each time verse 1 is sung and on "hamakabi" in verse 2, and down to its low A-flat on the last word of every verse, "kon." and "oykh.".',
         'tenor' => 'Sings the words in the middle of the chord, taken from the piano left hand printed under Lvov\'s name, most often on C, then A-flat, up to its top E on "sheyner," and "azoyner." each time verse 1 is sung and on "rotseyekh," and "lamnatseyekh." in verse 2, and down to its low C on the last word of every verse, "kon." and "oykh.".',
         'bass' => 'Sings the bass line of the piano left hand printed under Lvov\'s name on "dm", a short note on the beat under the others, once or twice a bar, mostly on F, and joins the words only for the last word of each verse, "kon." and "oykh.", on its low F.',
+    ],
+    'oyfn-pripetchik' => [
+        'soprano' => 'Carries Warshawsky\'s tune as Kisselgof\'s book prints it, most often on G and C, then A-flat and F, up to its top F on the "un" of "un der rebe" both times in verse 1, on the "vifl" of "vifl in di oysyes" both times in verse 2 and on "zogt" in both "zogt zhe nokh a mol" lines of each refrain, and down to its low C on the end of "kinderlekh," in each refrain.',
+        'alto' => 'Sings the words from Lvov\'s two alto voices, mostly a sixth below the tune, sometimes a third, most often on F, then A-flat and E, up to its top A, an A natural, on the second "un der rebe" in verse 1, the second "vifl in di oysyes" in verse 2 and the second "zogt zhe nokh a mol" in each refrain, each time on its first word, and down to its low G on the end of "kinderlekh," in each refrain.',
+        'tenor' => 'Sings the words in the middle of the chord, from Lvov\'s two alto voices an octave down, most often on C, then F and A-flat, up to its top D-flat on "un in" and both "lernt" in verse 1, "vet ir" and both "oysyes" in verse 2, and "vos ir" and both "mol un" in each refrain, and down to its low C on "beys." and "geveyn.", the last word of each verse, and on the song\'s last "o!".',
+        'bass' => 'Sings the words on the bass line, from Lvov\'s piano left hand, most often on B-flat and its low F, then C and A-flat, up to its top F only at the start of each verse, on "Oyf dem pripetshik" and on "Az ir vet, kinderlekh," all but its last syllable.',
+    ],
+    'rozhinkes-mit-mandlen' => [
+        'soprano' => 'Carries Goldfaden\'s lullaby with the words through the verse while the others hum, most often on B, then E and D, up to its top F-sharp only on "almone" and down to its low D on the end of "keseyder" and on "un zingt", and leads the refrain, singing "Unter" and "shteyt a" alone before the others come in.',
+        'alto' => 'Hums the verse on "oo" with the others, mostly on F-sharp, G and B, up to its top B under "aleyn" and down to its low B, held from "yokhidl" into "keseyder", then sings the refrain\'s words under the tune, mostly a third or a sixth below and most often on G, humming again under "dos tsigele iz geforn".',
+        'tenor' => 'Hums the verse on "oo", mostly on B, D and G, down to its low G, held from "yokhidl" into "keseyder" and again under "zingt im tsum", then sings the refrain\'s words in the middle of the chord, up to its top E for "Yideles vigele" and "klor vays tsigele", dipping a semitone on each "ge".',
+        'bass' => 'Hums the roots of the chords under the verse on "oo", mostly on G and B, down to its low F-sharp only under "Tsiyon" and the start of "aleyn", then sings the refrain\'s words on the roots, mostly on E, its top note, which it takes on every E minor chord in the song.',
     ],
     'ein-keloheinu' => [
         'soprano' => 'Carries Freudenthal\'s tune, most often on G, then B, up to its top E on "kemalkenu," in verse 1, "lemalkenu," in verse 3 and "malkenu," in verse 5, and down to its low C-sharp only on "ch\'moshienu." in verse 2 and "moshienu." in verse 4.',
@@ -576,19 +588,19 @@ return [
         'soprano' => 'Carries the Shaker tune, most often on G, with many repeated notes, from middle C, only on the "I" that opens the first strain each time, up to its top E on the start of "humble," in the first strain, and in the second on "the" in "this is the token", on the end of "easy", and on "be broken, yea I\'ll", five notes in a row on the E.',
         'alto' => 'Sings the words a third or a sixth under the tune nine tenths of the time, mostly a third, most often on E, with many repeated notes, on just six notes, from middle C up to A: the A comes only in the first strain\'s second line, on "I" and "yea bow", and middle C only in its first line, on "I will", the end of "simple," and the "I" after it.',
         'tenor' => 'Sings the words in the middle of the chord, mostly on C, with many repeated notes, up to D only in the second strain, on the start of "token," and on "bow" in "I will bow and be broken,", and down to F only on "will" in "I will wear the easy yoke,".',
-        'bass' => 'Holds the roots on "oo" nearly nine tenths of the time, in long low notes, most often on C, starting the first strain on a C held for eight beats, and moving more often in the second strain.',
+        'bass' => 'Holds the roots on "oo" more than nine tenths of the time, in long low notes, most often on C, starting the first strain on a C held for eight beats, and moving more often in the second strain.',
     ],
     'o-the-beautiful-treasure' => [
         'soprano' => 'Carries the minor-key tune, mostly by step, most often on G, then F-sharp and B, down to its low B only on "wise," in the first strain, and up to its top E only on the end of "bestow.", the last word of the second strain, each time.',
         'alto' => 'Sings the words a third or a sixth under the tune almost all the time, mostly a third, within one octave, from its low G on "O", "wise," and "prize." in the first strain up to its top G only in the second strain, on "than" and the end of "diamonds", and on "than", "can" and the end of "bestow.".',
         'tenor' => 'Sings the words in the middle of the chord, most often on G, up to its top C only once, on the start of "glorious" the second time through the first strain, and down to its low D on "How precious" each time and on the end of "glorious" the first time.',
-        'bass' => 'Holds the roots on "oo" more than four fifths of the time, in long low notes, most often on C, and goes down to its low G only in the second strain, where each line starts on it.',
+        'bass' => 'Holds the roots on "oo" about four fifths of the time, in long low notes, most often on C, and goes down to its low G only in the second strain, where each line starts on it.',
     ],
     'who-will-bow-and-bend' => [
         'soprano' => 'Carries the tune, with many repeated notes, most often on E, down to middle C only in the first two strains: in the first on each "Who", on "In" and "From", and on the ends of "willow,", "freedom," and "blowing,", and in the second on "Pride" and the end of "working.", and up to its top E only in the second and third: on "of" and the start of "power,", on "bend to get", on the end of "turning," and the start of "twisting,", and on "starch".',
         'alto' => 'Sings the words a third or a sixth under the tune almost all the time, mostly a third, most often on E, with many repeated notes, up to its top B for most of "Dropping down like a shower," in the second strain and on "out all the" in the third, and down to its low A on each "Who" of the first strain, on "In" and "From the" and on the ends of "willow,", "freedom," and "blowing,", and in the second strain on "Pride and" and the end of "working.".',
         'tenor' => 'Sings the words in the middle of the chord, most often on G, then C, with many repeated notes, up to its top D on "Dropping down like a" and the start of "shower," in the second strain and on "Shake out all the" in the third, and down to its low C only on "bow" in "Who will bow and bend like a willow,".',
-        'bass' => 'Holds the roots on "oo" more than nine tenths of the time, in long low notes, most often on C, within one octave: down to its low F under the second "Who" of the first strain and under "reeling," in the third, and up to the F above it under the end of "freedom," and "From the" in the first strain, the end of "working." in the second, and "I will have" and the "I will" after it in the third.',
+        'bass' => 'Holds the roots on "oo" nearly nine tenths of the time, in long low notes, most often on C, within one octave: down to its low F under the second "Who" of the first strain and under "reeling," in the third, and up to the F above it under the end of "freedom," and "From the" in the first strain, the end of "working." in the second, and "I will have" and the "I will" after it in the third.',
     ],
     'heavenly-treasures' => [
         'soprano' => 'Carries the lilting tune, mostly by step, most often on G, then B, and after each "treasures" and the last "praise" of each line carries the word through a run of wordless notes, reaching its low E only in those runs and its top E only on the first "Praise," of each line of the second strain.',
@@ -607,5 +619,23 @@ return [
         'alto' => 'Rests while the soprano sings the call and the verses, and in every refrain sings under the tune on just six notes, most often on E-flat, often a third below it, up to its top G-flat on the first "Riu" and, crossing above the tune, on "la" in "la guarda ribera" and at the end of both lines that end "cordera", and down to its low B-flat only on "de nuestra" in the refrain\'s last line.',
         'tenor' => 'Rests while the soprano sings the call and the verses, and in every refrain sings mostly on B-flat, with many repeated notes, up to its top D-flat on the first "Riu" and the start of the second, and on "Dios", the start of "guardó" and "el" in both "Dios guardó el lobo" lines, and down to its low E-flat only on the end of "guarda" and the start of "ribera", and on the middle of the last "cordera".',
         'bass' => 'Rests while the soprano sings the call and the verses, which the 1556 print gives to the bass, and in every refrain sings the print\'s bass, on the roots of the chords nearly nine tenths of the time, most often on E-flat, up to its top B-flat on "Dios", the start of "guardó" and "el" in both "Dios guardó el lobo" lines, and down to the B-flat an octave under it on the end of "chiu", the last two syllables of "ribera", the end of each "lobo", and the end of "nuestra" and the start of "cordera" in both lines that end "cordera".',
+    ],
+    'noche-de-paz' => [
+        'soprano' => 'Carries the tune, most often on C and G, which take nearly half its time between them, up to its top F only on the first "estrella" in verse 1, the first "buen" in verse 2 and the first "eterno" in verse 3, and down to its low C only on the last note of each verse: "paz.", the end of "Redentor." and the end of "fulgor.".',
+        'alto' => 'Sings the words a third or a sixth under the tune about three quarters of the time, mostly a third, most often on E, up to its top A once in each of the third and fourth lines of every verse, on "astros" and "anunciando", "celestes" and "glorias", "rostro" and "pesebre,", and down to its low B on "Todo", "En el" and "Ved qué" at the start of the second line, through "Brilla la estrella", "Por nuestro buen Re-" and "Astro de eterno" in the fifth line, and on the last "estrella", "buen" and "eterno", crossing above the tune only on the last two notes of each verse, "de paz.", the end of "Redentor." and "fulgor.".',
+        'tenor' => 'Sings the words on just five notes, from E up to C, most often on G, with many repeated notes, up to its top C on "¡Noche de" at the start of each verse and on the three notes before the last note of the third and fourth lines, and down to its low E on the end of the second line, "derredor.", "al pastor," and "resplandor", and on the last word of the fifth line, "paz,", the end of "Redentor," and the end of "fulgor,".',
+        'bass' => 'Hums the roots of the chords on "oo" in long held notes, mostly on C, up to its top F under the first half of the third and fourth lines of each verse, and down to its low G under the first half of the second and fifth lines, and for a moment under the last "estrella", "buen" and "eterno", before stepping up through B to each verse\'s closing C.',
+    ],
+    'pastores-a-belen' => [
+        'soprano' => 'Carries the tune, most often on B and C, with many repeated notes, from its low D, only on the first notes of "Pastores" and "Vamos", leaping up a sixth from there, to its top E: on the middle of "María.", on the "llí, a-" that joins two "allí"s before "Nos espera Jesús," and again before "Nos convida su luz.", and on the start of "Niño" in the refrain\'s second "Llevemos" line.',
+        'alto' => 'Sings the words a third or a sixth under the tune more than two thirds of the time, most often on F-sharp, with many repeated notes, within one octave, from its low B, only on the first notes of "Pastores" and "Vamos", up to its top B: on the end of "María." and the "A-" after it; on the start of the next "allí,", the end of the one after it and "Nos es-"; on the "A-" that opens "Allí, allí, Nos convida", the end of the second "allí," and "Nos"; and on "al" and the start of "Niño" in each of the refrain\'s last two lines.',
+        'tenor' => 'Sings the words mostly on D, with many repeated notes, on just five notes, from G up to E, up to its top E only on the end of "turrones" in each "Llevemos" line, and down to its low G through "Pastores á Belén" and "Vamos con ale-", on the "-tro" of "nuestro", and on the end of the "Manuel" that closes each "Llevemos" line.',
+        'bass' => 'Sings the roots of the chords more than nine tenths of the time, most often on its low G, then the D above it, with many repeated notes, beginning "Pastores", "Vamos", each run of "allí" calls, both "Llevemos" lines and both "al Niño Manuel" lines on that low G and ending every "Manuel" there, and rising to the G an octave above only on "Jesús," and "luz.", at the end of the two lines that begin "Nos".',
+    ],
+    'el-cant-dels-ocells' => [
+        'soprano' => 'Sings the solo after the hummed opening, mostly by step, most often on C, from its low C, only on the first note of each verse, "Al" and "L\'A-", leaping up a fourth from there, to its top F only on "lo" and "va" at the start of the second line, and in the third line on "més" and the start of "ditxosa," in verse 1 and the start of "melodía," in verse 2.',
+        'alto' => 'Hums "oo" under the soprano\'s solo, the top line of Millet\'s humming choir, mostly by step, most often on E-flat, often a sixth under the tune, up to its top E, an E natural, only under the end of "ditxosa," in verse 1 and of "melodía," in verse 2, and down to its low G only under "la nit" in verse 1 and the end of "cantant" with "ab" in verse 2.',
+        'tenor' => 'Hums "oo" under the alto, most often on F, up to its top C only for a moment in the fourth line, under the end of "cantant" in each "los aucellets cantant" of verse 1 and under "nat" in each "dihent: Jesús es nat" of verse 2, and down to its low C only under the last note of "alegría.", the end of the song.',
+        'bass' => 'Hums the bass line of Millet\'s harmony on "oo", most often on F, high or low. It holds its top F through the hummed opening and the first two lines of each verse, until the breath before the end of "lluminar" and "volant", and again in the bar between the verses; it goes down to the low F, an octave below, under the middle of every "los aucellets cantant" and "dihent: Jesús es nat", and under the end of every "melindrosa" and "alegría".',
     ],
 ];

@@ -24,13 +24,19 @@ import { flatKey, noteSpelling, parseChordSymbol } from '../../notes.js';
 import { capoFor } from '../../theory.js';
 import { segmented, sheetRow, stepper, toolLayout } from '../tool-layout.js';
 import { toolPrefs } from '../tool-prefs.js';
+import { arcade, partInk, SHARE_FILES, shareCard, shareUrl } from './share-card.js';
 
 /** The words a page passes, each translated. */
 export const WORDS = [
     'transpose', 'lower', 'higher', 'modes', 'yourChart', 'transposed', 'idleHint', 'chordsFound', 'notChords', 'chart', 'placeholder',
     'asWritten', 'shiftUp', 'shiftDown', 'guitar', 'guitarOpen', 'copy', 'copied', 'settings', 'settingsTitle', 'reset', 'done',
     'toKey', 'spelling', 'auto', 'sharps', 'flats', 'sample', 'sampleText', 'clear', 'kept',
+    'share', 'shareText', 'cardTitle', 'cardWas', 'cardNow', 'cardChallenge', 'cardTagline', 'cardSite', 'cardSaved',
 ];
+
+// The share card's drawing (share-card.js), kept offline by the tools' service worker (page.js).
+export const WARM = SHARE_FILES;
+const CARD_CHORDS = 6; // a card shows the chart's first six different chords, never its words
 
 const RANGE = 11; // up or down by up to 11 semitones
 // What may sit between chords on a chord line: bar lines, repeats, rests, "N.C.", "x2", parentheses.
@@ -80,6 +86,15 @@ export function chordsOf(text) {
     });
 }
 
+/** A sheet's chord names as written, in order (inline and on chord lines); its words never. */
+export function symbolsOf(text) {
+    return readSheet(text).flatMap(({ text: line, kind }) => {
+        if (kind === 'inline') return [...line.matchAll(/\[([^\]]+)\]/g)].map((m) => m[1].trim()).filter((symbol) => parseChordSymbol(symbol));
+        if (kind === 'chords') return line.trim().split(/\s+/).map((w) => chordToken(w)).filter(Boolean).map((t) => t.symbol);
+        return [];
+    });
+}
+
 /** The key a sheet seems to be in: its first chord's root, minor when that chord is (Am, Am7; not Amaj7). Null with no chords. */
 export function guessKey(text) {
     const first = chordsOf(text)[0];
@@ -116,7 +131,13 @@ const HERO = `
   <p class="text-sm font-semibold text-muted" data-shift></p>
 </div>`;
 
-const READOUT = `<p class="text-base font-bold text-cream" data-ui="transposer-capo" data-capo></p>`;
+// The guitar's capo, and Share the change once the chart has moved (docs/improvement-log.md, row 5): one quiet button.
+const READOUT = `
+<div class="flex flex-wrap items-center justify-center gap-x-3 gap-y-1">
+  <p class="text-base font-bold text-cream" data-ui="transposer-capo" data-capo></p>
+  <button type="button" class="btn-secondary btn-sm" data-share data-ui="transposer-share" data-w="share"></button>
+  <span class="text-sm text-good" aria-live="polite" data-share-said></span>
+</div>`;
 
 // The chart is set in a monospace face so a chord sits over its syllable (the one place a tool uses it).
 // Typing wraps; the transposed chart keeps its columns and, when a line is wider than a phone, slides
@@ -136,7 +157,7 @@ function buildSheet(ui, w) {
 
 const MAJOR_NAMES = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B']; // i18n-ignore: key names
 
-export function mountChordTransposer(root, { words = {}, keySlot = null } = {}) {
+export function mountChordTransposer(root, { words = {}, keySlot = null, onShared = null } = {}) {
     const w = (key) => words[key] ?? '';
     const ui = toolLayout(root, { keySlot, more: w('settings'), done: w('done'), title: w('settingsTitle'), reset: w('reset') });
     ui.hero.innerHTML = HERO;
@@ -193,6 +214,7 @@ export function mountChordTransposer(root, { words = {}, keySlot = null } = {}) 
         const capo = k ? capoFor(pc(k.tonic + by), k.minor) : null;
         text('[data-capo]', !capo ? '' : capo.capo ? fill(w('guitar'), { n: capo.capo, shape: keyText(capo.shape, k.minor) }) : fill(w('guitarOpen'), { key: keyText(k.tonic + by, k.minor) }));
         $('[data-capo]').hidden = !capo;
+        $('[data-share]').hidden = !k || !by || !count;
         $('[data-input]').hidden = view !== 'input';
         $('[data-output]').hidden = view !== 'output';
         if (view === 'output') text('[data-output]', output());
@@ -262,6 +284,38 @@ export function mountChordTransposer(root, { words = {}, keySlot = null } = {}) 
         view = 'input';
         set('');
         ui.openSheet(false);
+    });
+    // Share the change: the keys and the first chords, before and after, as a card made on the device (result-card.js
+    // drawAnswerCard), with the line and the tool's link (?ref=share-chord-transposer). Never the chart's words.
+    $('[data-share]').addEventListener('click', async () => {
+        const k = key();
+        if (!k || !by) return;
+        const button = $('[data-share]');
+        const was = [...new Set(symbolsOf(settings.text))];
+        const more = was.length > CARD_CHORDS ? ' …' : '';
+        const from = keyText(k.tonic, k.minor);
+        const to = keyText(k.tonic + by, k.minor);
+        button.disabled = true;
+        const done = await shareCard({
+            fileName: 'chords-in-a-new-key.png',
+            text: fill(w('shareText'), { from, to }),
+            url: shareUrl('chord-transposer', 'share-chord-transposer'),
+            draw: ({ drawAnswerCard }) => drawAnswerCard({
+                words: {
+                    title: w('cardTitle'), hero: `${from} → ${to}`, line: $('[data-shift]').textContent,
+                    rows: [
+                        [w('cardWas'), was.slice(0, CARD_CHORDS).join(' ') + more],
+                        [w('cardNow'), was.slice(0, CARD_CHORDS).map((symbol) => transposeSymbol(symbol, by, flatsNow())).join(' ') + more],
+                        ['', $('[data-capo]').hidden ? '' : $('[data-capo]').textContent],
+                    ].filter((row) => row[1]),
+                    challenge: w('cardChallenge'), tagline: w('cardTagline'), site: w('cardSite'), arcade: arcade(),
+                },
+                color: partInk(2),
+            }),
+        });
+        if (done === 'saved') text('[data-share-said]', w('cardSaved'));
+        if (done) onShared?.('chord-transposer', done);
+        button.disabled = false;
     });
     ui.onPrimary(async () => {
         try {

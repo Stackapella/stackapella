@@ -145,6 +145,79 @@
                 }
             }
         },
+        "makers": {
+            "type": "array",
+            "description": "Who made what we sing, for each country's copyright term (docs/geo-rights-plan.md): the composer, the author of the words, the translator, a printed arrangement we use, or the collector or editor whose printing of a traditional song we sing. Traditional or anonymous material has no maker, and our own arrangement is never listed.",
+            "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                    "name",
+                    "role",
+                    "died"
+                ],
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "role": {
+                        "enum": [
+                            "music",
+                            "words",
+                            "translation",
+                            "arrangement",
+                            "edition"
+                        ]
+                    },
+                    "died": {
+                        "type": [
+                            "integer",
+                            "string"
+                        ],
+                        "description": "The year, or \"living\" or \"unknown\" (unknown counts as protected everywhere); the content repo's template_check refuses anything else."
+                    },
+                    "nationality": {
+                        "type": "string",
+                        "description": "ISO 3166 alpha-2; left out when not known."
+                    }
+                }
+            }
+        },
+        "firstPublished": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "year"
+            ],
+            "description": "The first printing of the song as we sing it; a range or an approximate date is given as its latest year.",
+            "properties": {
+                "year": {
+                    "type": "integer"
+                },
+                "country": {
+                    "type": "string",
+                    "description": "Where it was printed, ISO 3166 alpha-2; left out when not known (then no rule of the shorter term applies)."
+                },
+                "notice": {
+                    "type": [
+                        "boolean",
+                        "string"
+                    ],
+                    "description": "Whether that printing carried a copyright notice (US works before 1989): true, false or \"unknown\"."
+                },
+                "renewed": {
+                    "type": [
+                        "boolean",
+                        "string"
+                    ],
+                    "description": "Whether that copyright was renewed (US works printed 1928 to 1963): true, false or \"unknown\"."
+                }
+            }
+        },
+        "made": {
+            "type": "integer",
+            "description": "The year a song known only from a manuscript was written (with no firstPublished it is treated as unpublished)."
+        },
         "order": {
             "type": "array",
             "items": {

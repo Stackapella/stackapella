@@ -74,6 +74,20 @@ const FLIP_UNTIL_FOUND = 5; // semitones above the comfortable note, until the c
 
 const TitleCard = lazyComponent('titleCard', 'TitleCard'); // game mode's only: loaded with game mode
 
+// A friend's note (docs/improvement-log.md, row 4): lesson 1's shared card links here with ?their=<note> (and
+// ?ref=share-note), so the friend is asked for their own note with the sender's beside it. Kept for the tab, only a
+// note's name ("A3", "C#4"); nothing about who sent it.
+const FRIEND_KEY = 'stackapella.friendNote';
+const NOTE_NAME = /^[A-G]#?\d$/;
+
+/** Takes ?their= from the address once (counted as the friend's landing seen), then keeps it for the tab. */
+function takeFriendNote(search = location.search) {
+    const their = new URLSearchParams(search).get('their');
+    if (!their || !NOTE_NAME.test(their)) return;
+    if (tabStorage.get(FRIEND_KEY) !== their) count('note_friend_seen');
+    tabStorage.set(FRIEND_KEY, their);
+}
+
 export const LearnView = {
     components: { VoiceCapture, BossBar, BossEnd, BossIntro, VoiceCareLine, ChordMoment, SessionWrap, ThenAndNow, CoursePart, CourseWall, VoiceCard, FactCard, Exercise, InAppCard, KeepSong, LearnVisual, LessonEnd, NoteResult, TakeResult, Icon, Logo, ShareResult, TitleCard },
     props: { id: { type: String, required: true } },
@@ -143,6 +157,8 @@ export const LearnView = {
                 <section v-else-if="done && noteDone" class="flex flex-col items-center gap-6" aria-labelledby="done-title">
                     <h1 id="done-title" ref="heading" tabindex="-1" class="sr-only">{{ t(done.word) }}</h1>
                     <NoteResult ref="noteResult" :home="learning.progress.home" :range="easyRange(learning.progress.home, learning.progress.range)" :line="noteLine(learning.progress.home, voiceType(learning.progress.range))" :stars="done.stars" :xp="done.xp" :fresh="done.fresh" />
+                    <!-- Their note beside the friend's who sent the card (docs/improvement-log.md, row 4). -->
+                    <p v-if="friendNote && learning.progress.home !== null" class="text-center text-cream" translate="no" data-friend-compare>{{ t('course.friendNote.both', { theirs: friendNote, yours: midiName(Math.round(learning.progress.home)) }) }}</p>
                     <!-- Your note in a chord (onboarding item 3): the end of the note you held, with two guide voices. -->
                     <ChordMoment v-if="noteClip && chordMoment" :clip="noteClip" :note="learning.progress.home" :color="color" />
                     <div v-if="askHeard" class="w-full space-y-3 border-t border-line pt-5 text-center">
@@ -273,7 +289,10 @@ export const LearnView = {
                             <button type="button" class="btn-primary btn-lg self-start" data-mic-first-go @click="micOn"><Icon v-if="!inApp" name="mic" :size="18" /> {{ inApp ? t('course.mic.carryOn') : t('course.mic.turnOn') }}</button>
                             <p class="text-xs text-muted" data-mic-why>{{ t('course.mic.why') }}</p>
                         </div>
-                        <VoiceCapture v-else mode="note" :color="color" @found="foundHome" @no-sound="(now) => (noSound = now)" />
+                        <template v-else>
+                            <p v-if="friendNote" class="text-center text-lg font-semibold text-cream" data-friend-note>{{ t('course.friendNote.ask', { note: friendNote }) }}</p>
+                            <VoiceCapture mode="note" :color="color" @found="foundHome" @no-sound="(now) => (noSound = now)" />
+                        </template>
                         <p v-if="skippedHome" class="text-center text-muted" role="status">{{ t('course.home.skipped') }}</p>
                     </template>
                     <template v-else-if="current.kind === 'use' || current.kind === 'record'">
@@ -310,6 +329,12 @@ export const LearnView = {
             </div>
         </div>`,
     computed: {
+        /** The friend's note, on the free course's first lesson only (row 4); else null. */
+        friendNote() {
+            if (this.entry?.course || this.entry?.unitIndex !== 0 || this.entry?.lesson?.id !== this.entry?.unit?.lessons?.[0]?.id) return null;
+            const kept = tabStorage.get(FRIEND_KEY);
+            return kept && NOTE_NAME.test(kept) ? kept : null;
+        },
         /** The lesson, in the free course or a Plus course this account can see (else none, as an unknown id). */
         found(vm) {
             const entry = learning.loaded ? findLesson(vm.id) : null;
@@ -573,6 +598,10 @@ export const LearnView = {
         },
     },
     watch: {
+        /** A friend's landing that reached its own note: counted once (note_friend_found). */
+        done(now, before) {
+            if (now && !before && this.noteDone && this.friendNote) count('note_friend_found');
+        },
         /** The unit's song on screen: counted once a device a place (us_shown). */
         'unitSong.place': {
             immediate: true,
@@ -659,6 +688,7 @@ export const LearnView = {
         },
     },
     async created() {
+        takeFriendNote();
         // Already allowed (an earlier visit): the way on is plain Continue. Not every browser can say.
         navigator.permissions
             ?.query({ name: 'microphone' })
@@ -1061,6 +1091,8 @@ export const LearnView = {
             count('lesson_start'); // a lesson begun, not one come back to from Sing
             countFor(this.entry.course ? 'pl_s' : 'fl_s', this.entry.course ? this.entry.course.id : this.entry.lesson.id); // by course, or the free course's lesson
             if (this.entry.course) countFor('cl_s', this.entry.lesson.id); // any other course's lesson, by its own id
+            // The first lesson begun in an app's own browser (Instagram, Facebook and the like), where the mic often can't open.
+            if (!this.entry.course && this.entry.unitIndex === 0 && this.entry.unit.lessons[0]?.id === this.entry.lesson.id && this.inApp) count('l1_inapp');
         },
         reachStep(index) {
             const entry = this.entry;

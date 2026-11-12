@@ -2959,6 +2959,16 @@ return [
                     'sampleText' => "[Verse 1]\nG          C        G\nAmazing grace, how sweet the sound\nG              D7\nThat saved a wretch like me\nG        G7      C       G\nI once was lost, but now am found\nG    Em    D7     G\nWas blind but now I see",
                     'clear' => 'Clear',
                     'kept' => 'Your chart stays on this device; nothing is sent.',
+                    // Share the change (share-card.js, result-card.js drawAnswerCard; docs/improvement-log.md, row 5): the chord names only, never the chart's words.
+                    'share' => 'Share the change',
+                    'shareText' => 'From :from to :to in one tap. Transpose yours:',
+                    'cardTitle' => 'In a new key',
+                    'cardWas' => 'Was',
+                    'cardNow' => 'Now',
+                    'cardChallenge' => 'Transpose your own',
+                    'cardTagline' => 'Harmony, made by you.',
+                    'cardSite' => 'stackapella.com',
+                    'cardSaved' => 'Card saved, and the line copied',
                 ],
             ],
             'four-part-harmony' => [
@@ -3060,6 +3070,14 @@ return [
                     'copied' => 'Copied',
                     'staffLabel' => 'The four parts on a grand staff, :n chords',
                     'sample' => 'C Am F G7 C',
+                    // Share the parts (share-card.js, result-card.js drawAnswerCard; docs/improvement-log.md, row 5): once the chords are voiced.
+                    'share' => 'Share the parts',
+                    'shareText' => 'Four-part harmony for :chords, voiced for a choir. Voice your own:',
+                    'cardTitle' => 'Four-part harmony',
+                    'cardChallenge' => 'Voice your own chords',
+                    'cardTagline' => 'Harmony, made by you.',
+                    'cardSite' => 'stackapella.com',
+                    'cardSaved' => 'Card saved, and the line copied',
                 ],
             ],
             'pitch-matching' => [
@@ -3745,6 +3763,15 @@ return [
                     'copy' => 'Copy the answer',
                     'copied' => 'Copied',
                     'copyText' => 'Sing it in :key (:shift). :guitar',
+                    // Share my key (share-card.js, result-card.js drawAnswerCard; docs/improvement-log.md, row 5): once the key fits or is a stretch.
+                    'share' => 'Share my key',
+                    'shareText' => 'I sing it in :key (:shift). Find yours:',
+                    'cardTitle' => 'My key for this song',
+                    'cardTitleSong' => 'My key for :name',
+                    'cardChallenge' => "What's your key?",
+                    'cardTagline' => 'Harmony, made by you.',
+                    'cardSite' => 'stackapella.com',
+                    'cardSaved' => 'Card saved, and the line copied',
                 ],
             ],
             'just-intonation-tuner' => [

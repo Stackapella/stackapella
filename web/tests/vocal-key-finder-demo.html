@@ -31,6 +31,7 @@
             play: 'Hear it in :key', stop: 'Stop', settings: 'More', settingsTitle: 'Settings', reset: 'Reset', done: 'Done',
             topOnce: 'The top note is only once (let it go 2 over)', noCapo: 'No guitar line', copy: 'Copy the answer', copied: 'Copied',
             copyText: 'Sing it in :key (:shift). :guitar',
+            share: 'Share my key', shareText: 'I sing it in :key (:shift). Find yours:', cardTitle: 'My key for this song', cardTitleSong: 'My key for :name', cardChallenge: "What's your key?", cardTagline: 'Harmony, made by you.', cardSite: 'stackapella.com', cardSaved: 'Card saved, and the line copied',
         };
         const q = new URLSearchParams(location.search).get('range');
         if (q) {
@@ -39,7 +40,7 @@
         }
         // Public-domain melodies, as a page passes its own list (their key, lowest and highest note).
         const songs = [{ name: 'Amazing Grace (in G)', key: 'G', low: 62, high: 76, href: '/songs/amazing-grace' }, { name: 'Auld Lang Syne (in F)', key: 'F', low: 60, high: 74 }];
-        window.__finder = mountKeyFinder(document.querySelector('#finder'), { words, keySlot: document.querySelector('[data-tool-key]'), songs });
+        window.__finder = mountKeyFinder(document.querySelector('#finder'), { words, keySlot: document.querySelector('[data-tool-key]'), songs, onShared: (tool, done) => (window.__shared = [...(window.__shared ?? []), [tool, done]]) });
     </script>
 </body>
 </html>

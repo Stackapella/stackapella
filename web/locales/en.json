@@ -1083,6 +1083,7 @@
             "setNamed": "Set {name} to"
         },
         "flag": {
+            "geo_rights": "Songs by country",
             "pause_checkout": "Pause checkout",
             "leagues": "Leagues",
             "template_library": "The template library",
@@ -1119,6 +1120,7 @@
             "event_schedule": "Event Schedule"
         },
         "flagHint": {
+            "geo_rights": "Withholds a song, or its words, where its copyright still runs in the visitor's country: the app says when it's free there, and the song's page stays without its player. Off until every open song has its makers and the lawyer has read the rules.",
             "pause_checkout": "Stops new Plus purchases (a burst of failed payments is card testing). Plans already paid keep working.",
             "leagues": "Weekly leagues and friends' leaderboards, about 30 singers at a similar level each. Meant for 1,000 singers active in a week.",
             "template_library": "The public library of templates people share, with search. Meant for 50 shared templates from 20 creators.",
@@ -2451,6 +2453,8 @@
                 "melody": "Melody first"
             },
             "kind": {
+                "note_friend_found": "That friend found their own note",
+                "note_friend_seen": "A friend's note card opened lesson 1",
                 "app_open": "App opened",
                 "app_day": "Devices using the app that day",
                 "app_week": "Devices using the app that week",
@@ -4422,6 +4426,10 @@
         }
     },
     "course": {
+        "friendNote": {
+            "both": "Your friend: {theirs} · You: {yours}",
+            "ask": "Your friend's voice sits around {note}. What's yours?"
+        },
         "unitSong": {
             "sing": "Sing it"
         },
@@ -7177,6 +7185,7 @@
         "chartStart": "Start",
         "chartEnd": "End",
         "share": {
+            "noteAsk": "What's yours?",
             "button": "Share",
             "unitDone": "Unit done",
             "courseDone": "Course done",
@@ -7212,7 +7221,7 @@
             "namePlaceholder": "Your first name",
             "by": "Sung by {name}",
             "noteTitle": "My voice sits around",
-            "noteText": "My comfortable singing note is {note}. Find yours:",
+            "noteText": "My comfortable singing note is {note}. What's yours? Find it in a minute:",
             "note": "Share my note",
             "textSerious": "I sang “{lesson}” in Stackapella: {percent}% on pitch.",
             "litOf": "{lit} of {count} notes lit",

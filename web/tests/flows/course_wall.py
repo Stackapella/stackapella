@@ -100,13 +100,11 @@ def journey(f):
     lead = f.js("document.querySelector('#lead-title').closest('section').innerText")
     assert not (serious and re.search(r"\bstars?\b", lead, re.I)), f"the serious home's ask says stars: {lead}"
     f.shot("home-wall")
-    # wall1's arm b (previewed): Google and Apple on the wall itself, the email way a link to sign-up.
-    f.go("/?x=wall1-b", WALL)
-    f.wait(f"{WALL}.dataset.wallArm === 'b' && {WALL}.querySelector('[data-wall-provider]')", what="arm b on the home's ask too")
-    f.shot("home-wall-b")
-    f.go("/learn/1-match?x=wall1-b", WALL)
-    f.wait(f"{WALL}.dataset.wallArm === 'b' && {WALL}.querySelector('[data-wall-provider]')", what="arm b's buttons on the wall")
-    f.shot("wall-b")
+    # Google and Apple on the wall itself, the email way a link to sign-up (wall1's arm b, for everyone since 2026-11-12).
+    f.wait(f"{WALL}.querySelector('[data-wall-provider]')", what="Google and Apple on the home's ask too")
+    f.go("/learn/1-match", WALL)
+    f.wait(f"{WALL}.querySelector('[data-wall-provider]')", what="Google and Apple on the wall")
+    f.shot("wall-providers")
     shown = f.js(f"[...{WALL}.querySelectorAll('[data-wall-provider]')].map((b) => b.dataset.wallProvider).sort().join()")
     assert shown == "apple,google", f"Google and Apple, as the server offers them: {shown}"
     f.run("HTMLFormElement.prototype.submit = function () { window.__left = { action: this.getAttribute('action'), intended: this.querySelector('[name=intended]')?.value }; };")

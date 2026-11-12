@@ -19,6 +19,7 @@ use App\Models\TemplateGuide;
 use App\Models\TemplateRecording;
 use App\Models\TemplateVersion;
 use App\Models\User;
+use App\Support\Rights\RightsHere;
 use App\Support\Templates\Catalogue;
 use App\Support\Templates\PersonsTemplate;
 use App\Support\Trust\IpHash;
@@ -35,11 +36,17 @@ use Symfony\Component\HttpFoundation\Response;
  */
 final class TemplatesController extends Controller
 {
-    public function index(Request $request, Catalogue $catalogue): JsonResponse
+    public function index(Request $request, Catalogue $catalogue, RightsHere $rights): JsonResponse
     {
         $user = $request->user();
         $user = $user instanceof User ? $user : null;
         $songs = $catalogue->songs();
+
+        // A song withheld where the visitor is isn't listed there (docs/geo-rights-plan.md); admins and editors see all.
+        if (! ($user?->is_admin || $user?->is_editor)) {
+            $withheld = $rights->withheldSlugs(RightsHere::country($request));
+            $songs = $withheld === [] ? $songs : $songs->reject(static fn (Template $template): bool => in_array($template->slug, $withheld, true))->values();
+        }
 
         $startable = $songs->filter(fn (Template $template): bool => $catalogue->mayStart($template, $user));
         $guides = $catalogue->guides($startable->pluck('current_version_id')->filter()->map(static fn (mixed $id): int => (int) $id)->values()->all());
@@ -53,7 +60,7 @@ final class TemplatesController extends Controller
      * templates.show: a song's full template and its voices, for whoever may start it. Sent with
      * an ETag; a 304, or the same song again the same day, isn't counted toward the daily cap.
      */
-    public function show(ShowTemplateRequest $request, string $template, Catalogue $catalogue, SecurityLog $securityLog, Limits $limits): Response
+    public function show(ShowTemplateRequest $request, string $template, Catalogue $catalogue, SecurityLog $securityLog, Limits $limits, RightsHere $rights): Response
     {
         $user = $request->user();
         $user = $user instanceof User ? $user : null;
@@ -71,6 +78,12 @@ final class TemplatesController extends Controller
         // its public part page plays its part (Hillel, 2026-11-08: "Yes, play for guests"); its current
         // version only, under the daily cap a network has.
         $grant = $catalogue->grant($song, $user) ?? (Catalogue::isOpen($song) ? 'open' : null);
+
+        // A song whose copyright still runs where the visitor is: 451, with the year it's free there when known
+        // (docs/geo-rights-plan.md). Admins still open it, to review it.
+        if (! ($user?->is_admin || $user?->is_editor) && ($withheld = $rights->withheld($song, RightsHere::country($request))) !== null) {
+            throw new Refusal(451, 'not_available_here', $withheld);
+        }
 
         // Signed out, any other song the app doesn't bundle: free with an account (docs/pricing-plan.md).
         if ($grant === null) {

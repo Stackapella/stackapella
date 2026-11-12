@@ -3,7 +3,7 @@ eight colour themes of the skin it runs in, at a phone and a desktop size: a nam
 targets of 24 px or room round them, visible focus, Tab kept inside an open sheet, Escape closing it, reflow at 320 px,
 nothing moving under reduced motion, no page errors. And here: focus comes back to the control that opened a dialog when
 it closes (WCAG 2.4.3), and a result is announced (a status region, WCAG 4.1.3). The surfaces: the lesson-2 account wall
-(CourseWall, both wall1 arms), Your part (course-parts.js), the firm headphones ask, a rhythm step's result ("on pitch
+(CourseWall, Google and Apple on it), Your part (course-parts.js), the firm headphones ask, a rhythm step's result ("on pitch
 and time"), a looping step, the share card's sheet and its alt text, a director's and a member's group page, the
 group's link for a singer, and the learning tracks request.
 
@@ -80,17 +80,13 @@ def journey(f):
         except (AssertionError, TimeoutError) as error:
             failures.append(f"{name}: couldn't open: {error}")
 
-    # CourseWall: a guest at lesson 2, both arms of wall1.
-    def wall(arm):
-        def steps():
-            f.go("/?api=mock&scenario=&as=signedOut", "document.querySelector('#app header')")
-            f.go("/learn/1-match" + ("?x=wall1-b" if arm == "b" else ""), WALL)
-            if arm == "b":
-                f.wait(f"{WALL}.dataset.wallArm === 'b'", what="arm b")
-            check(f, f"wall-{arm}", failures)
-        return steps
-    screen("wall-a", wall("a"))
-    screen("wall-b", wall("b"))
+    # CourseWall: a guest at lesson 2, with Google and Apple on the wall.
+    def wall():
+        f.go("/?api=mock&scenario=&as=signedOut", "document.querySelector('#app header')")
+        f.go("/learn/1-match", WALL)
+        f.wait(f"{WALL}.querySelector('[data-wall-provider]')", what="Google and Apple on the wall")
+        check(f, "wall", failures)
+    screen("wall", wall)
 
     # Your part, on the course page of a course with parts.
     def part():

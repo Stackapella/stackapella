@@ -65,6 +65,11 @@ return [
         'home_today_stuck_shown', 'home_today_stuck_tap', 'home_today_daily_shown', 'home_today_daily_tap',
         // Melody first: what the app suggested, and whether the singer changed it.
         'sug_melody', 'sug_part', 'sug_switch',
+        // Lesson 1's ways round a first try (frontend, 2026-11-12; experiments mic2 and wall2), once a lesson run: mic2's
+        // b arm's Hear it first played, "Can't sing right now?" opened, Listen through it chosen and heard to its end,
+        // its way back later (the share sheet, a calendar entry), and Android's in-app card's Open in Chrome (read
+        // against l1_inapp).
+        'l1_hear', 'l1_later_shown', 'l1_listen', 'l1_listen_heard', 'l1_later_link', 'l1_later_cal', 'inapp_handoff',
         // The improvement loop (docs/retention-plan.md, section 8): a device back on exactly day 1, 7, 14 or 30
         // after it first arrived, and once on any of days 1 to 6 (back_w1).
         'back_d1', 'back_d7', 'back_d14', 'back_d30', 'back_w1',

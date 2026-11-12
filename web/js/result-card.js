@@ -262,7 +262,7 @@ export async function drawResultCard({ size = 'post', words, result, color }) {
 /**
  * Your note's card (lesson 1's end, onboarding step 6): "My voice sits around", the note big in a
  * glow of your colour, what it suits, your name if you typed one, and the brand. `words`: { title,
- * note, line, by, tagline, site }. Returns a PNG Blob.
+ * note, line, by, ask, tagline, site }. Returns a PNG Blob.
  */
 export async function drawNoteCard({ size = 'post', words, color }) {
     const { width, height } = SIZES[size];
@@ -287,6 +287,8 @@ export async function drawNoteCard({ size = 'post', words, color }) {
     fitText(g, words.note, width / 2, middle + 110, { size: 300, max: width - pad * 2, color: colors.cream, align: 'center' });
     fitText(g, words.line, width / 2, middle + 230, { size: 46, weight: 600, max: width - pad * 2, color: colors.cream, align: 'center' });
     if (words.by) fitText(g, words.by, width / 2, middle + 300, { size: 36, weight: 700, max: width - pad * 2, color: colors.accent, align: 'center' });
+    // The friend's reason to open it (docs/improvement-log.md, row 4): "What's yours?"
+    if (words.ask) fitText(g, words.ask, width / 2, middle + 400, { size: 60, weight: 800, max: width - pad * 2, color: colors.accent, align: 'center' });
     brand(g, { x: pad, y: height - pad - 60, colors, tagline: words.tagline, site: words.site });
     return new Promise((resolve, reject) => canvas.toBlob((blob) => (blob ? resolve(blob) : reject(new Error('The card could not be drawn'))), 'image/png'));
 }
@@ -377,6 +379,68 @@ export async function drawRangeCard({ size = 'post', words, low, high, color }) 
     // The dare in game mode's HUD type, as the lesson result card's (the game agent's pass, 2026-11-08).
     if (arcade) fitText(g, words.challenge.toLocaleUpperCase(), width / 2, y + (story ? 200 : 110), { size: 38, weight: 400, least: 18, max: width - pad * 2, color: colors.accent, align: 'center', family: HUD });
     else fitText(g, words.challenge, width / 2, y + (story ? 200 : 110), { size: 56, max: width - pad * 2, color: colors.accent, align: 'center' });
+    brand(g, { x: pad, y: height - pad - 60, colors, tagline: words.tagline, site: words.site });
+    return new Promise((resolve, reject) => canvas.toBlob((blob) => (blob ? resolve(blob) : reject(new Error('The card could not be drawn'))), 'image/png'));
+}
+
+/**
+ * A free tool's answer to share (docs/improvement-log.md, row 5: the key finder's key, the voicer's parts, the
+ * transposer's chords): the range card's layout with the tool's question, the answer big, a line under it, and a panel
+ * of rows (a label at left, its value at right, or a value alone across; up to five), then the dare and the brand. `words` is { title, hero,
+ * line, rows: [[label, value]], challenge, tagline, site, arcade }. Nothing about the person is on it; made on the device.
+ */
+export async function drawAnswerCard({ size = 'post', words, color }) {
+    const { width, height } = SIZES[size];
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    const g = canvas.getContext('2d');
+    await Promise.all([document.fonts?.load(`800 96px ${FONT}`), document.fonts?.load(`500 32px ${FONT}`)]).catch((error) => console.info('Figtree not ready; the card uses the system font', error?.message ?? error));
+    const arcade = !!words.arcade;
+    if (arcade) await Promise.all([document.fonts?.load(`400 96px ${DISPLAY}`), document.fonts?.load(`400 30px ${HUD}`)]).catch((error) => console.info('The game fonts are not ready; the card uses Figtree', error?.message ?? error));
+    const colors = theme();
+    const pad = 84;
+    const story = size === 'story';
+    const top = story ? 420 : 230;
+    g.fillStyle = colors.ink;
+    g.fillRect(0, 0, width, height);
+    const glow = g.createRadialGradient(width / 2, top + 160, 40, width / 2, top + 160, width * 0.7);
+    glow.addColorStop(0, shades(color).faint.replace(/[\d.]+\)$/, '0.36)'));
+    glow.addColorStop(1, 'rgba(0,0,0,0)');
+    g.fillStyle = glow;
+    g.fillRect(0, 0, width, height);
+    if (arcade) {
+        g.fillStyle = colors.light ? 'rgba(40,25,10,0.035)' : 'rgba(255,255,255,0.03)';
+        for (let line = 0; line < height; line += 6) g.fillRect(0, line, width, 2);
+    }
+    let y = top;
+    fitText(g, words.title, width / 2, y, { size: 52, weight: 600, max: width - pad * 2, color: colors.muted, align: 'center' });
+    y += 190;
+    if (arcade) fitText(g, words.hero, width / 2, y, { size: 140, weight: 400, least: 48, max: width - pad * 2, color, align: 'center', family: DISPLAY });
+    else fitText(g, words.hero, width / 2, y, { size: 170, least: 56, max: width - pad * 2, color, align: 'center' });
+    y += 90;
+    if (words.line) fitText(g, words.line, width / 2, y, { size: 46, weight: 700, max: width - pad * 2, color: colors.cream, align: 'center' });
+    y += story ? 110 : 60;
+    const rows = (words.rows ?? []).slice(0, 5);
+    if (rows.length) {
+        const rowH = story ? 84 : 64;
+        const panelH = rows.length * rowH + 48;
+        g.fillStyle = colors.panel;
+        rounded(g, pad, y, width - pad * 2, panelH, 40);
+        g.fill();
+        const inner = width - pad * 2 - 96;
+        rows.forEach(([label, value], i) => {
+            const rowY = y + 24 + rowH * i + rowH * 0.66;
+            // A row with no label is one line across the panel (the key finder's guitar line).
+            if (!label) return fitText(g, value, width / 2, rowY, { size: 36, weight: 700, least: 20, max: inner, color: colors.cream, align: 'center' });
+            fitText(g, label, pad + 48, rowY, { size: 34, weight: 600, max: inner * 0.32, color: colors.muted });
+            fitText(g, value, width - pad - 48, rowY, { size: 38, weight: 700, least: 20, max: inner * 0.66, color: colors.cream, align: 'right' });
+        });
+        y += panelH;
+    }
+    const dareY = Math.min(y + (story ? 180 : 100), height - pad - 150);
+    if (arcade) fitText(g, words.challenge.toLocaleUpperCase(), width / 2, dareY, { size: 38, weight: 400, least: 18, max: width - pad * 2, color: colors.accent, align: 'center', family: HUD });
+    else fitText(g, words.challenge, width / 2, dareY, { size: 56, max: width - pad * 2, color: colors.accent, align: 'center' });
     brand(g, { x: pad, y: height - pad - 60, colors, tagline: words.tagline, site: words.site });
     return new Promise((resolve, reject) => canvas.toBlob((blob) => (blob ? resolve(blob) : reject(new Error('The card could not be drawn'))), 'image/png'));
 }

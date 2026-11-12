@@ -6,16 +6,14 @@
 // a device, yes on any way in, and Back to the course as its Not now. A wall, not a nudge: the asks'
 // ledger isn't told.
 //
-// Experiment wall1 (docs/decisions.md, 2026-11-08), drawn when the wall shows: arm a is the wall as it is
-// (Make a free account opens sign-up); arm b puts Google and Apple on the wall itself, the email way a
-// link to sign-up, so a guest is one tap from an account rather than a page away.
+// Google and Apple are on the wall itself, the email way a link to sign-up, so a guest is one tap from an account
+// rather than a page away (wall1's arm b, for everyone since Hillel's "Stop both, decide", 2026-11-12; docs/decisions.md).
 
 import { localized, t, tk } from '../i18n.js';
 import { navigate } from '../router.js';
 import { account, providerSignIn } from '../stores/account.js';
 import { learning } from '../stores/learning.js';
 import { askNot, askShown, askYes } from '../funnel.js';
-import { experiment } from '../experiments.js';
 import { midiName } from '../dsp.js';
 import { Icon } from './icon.js';
 import { game } from '../skin.js';
@@ -37,7 +35,7 @@ export const CourseWall = {
         place: { type: String, required: true, validator: (v) => ['home', 'lesson', 'map', 'page'].includes(v) }, // where it was met, for the counts
     },
     template: `
-        <section :class="compact ? 'space-y-3' : 'card space-y-5 p-6'" :aria-labelledby="uid" data-needs-account :data-wall-arm="arm">
+        <section :class="compact ? 'space-y-3' : 'card space-y-5 p-6'" :aria-labelledby="uid" data-needs-account>
             <component :is="'h' + (level ?? (compact ? 3 : 2))" :id="uid" class="font-bold text-cream" :class="compact ? 'text-base' : 'text-2xl tracking-tight'">{{ t('courses.wall.title') }}</component>
             <!-- What waits, named (docs/retention-plan.md, idea 2): the lesson this wall opens. -->
             <p v-if="nextUp" class="text-sm text-cream" translate="no" data-wall-next>{{ nextUp }}</p>
@@ -79,15 +77,10 @@ export const CourseWall = {
         nextUp: (vm) => nextUpLine(vm.lessonId),
         signUp: (vm) => `/signin?mode=signup&for=course&next=${encodeURIComponent(vm.next)}`,
         signIn: (vm) => `/signin?next=${encodeURIComponent(vm.next)}`,
-        /** wall1's arm, drawn as the wall shows (exposure); the wall as it is until the arm is known. */
-        arm() {
-            const { arm, ready } = experiment('wall1');
-            return ready && arm ? arm : null;
-        },
         /** Unit 1's song, offered on the free course's full wall (not a Plus course's, not the map's compact card). */
         song: (vm) => (!vm.course && !vm.compact ? learning.course?.units?.[0]?.song ?? null : null),
         providers: () => (account.config?.methods ?? Object.keys(PROVIDERS)).filter((m) => m in PROVIDERS),
-        inline: (vm) => vm.arm === 'b' && vm.providers.length > 0,
+        inline: (vm) => vm.providers.length > 0,
         /** What comes with the account: the stars this course has from them, their note, their place, every lesson. */
         keeps() {
             const lessons = this.course ? learning.progress.courses?.[this.course.id]?.lessons ?? {} : learning.progress.lessons ?? {};

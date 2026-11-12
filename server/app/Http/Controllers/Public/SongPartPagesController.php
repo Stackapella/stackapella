@@ -33,6 +33,6 @@ final class SongPartPagesController extends Controller
         // Its link card is its song's (the song page's own, SongCards), not the landing's (the coordinator's audit, 2026-11-11).
         $template = Template::query()->with('currentVersion')->where('slug', $slug)->first();
 
-        return response()->view(SongParts::VIEW, ['songPart' => $page, 'image' => $template !== null ? $cards->url($template, 'join') : SongCards::fallback()], 200, SongPagesController::headers());
+        return response()->view(SongParts::VIEW, ['songPart' => $page, 'image' => $template !== null ? $cards->url($template, 'join') : SongCards::fallback()], 200, SongPagesController::headersFor($template));
     }
 }

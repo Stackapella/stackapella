@@ -91,6 +91,7 @@ use App\Http\Controllers\Api\Projects\SyncController;
 use App\Http\Controllers\Api\Projects\TakesController;
 use App\Http\Controllers\Api\Projects\UsageController;
 use App\Http\Controllers\Api\Requests\RequestsController as RequestsApi;
+use App\Http\Controllers\Api\Rights\RightsHereController;
 use App\Http\Controllers\Api\School\SchoolController as SchoolApi;
 use App\Http\Controllers\Api\Sharing\HarmoniesController;
 use App\Http\Controllers\Api\Sharing\ReportsController as SharingReports;
@@ -402,6 +403,8 @@ Route::middleware('auth')->group(function (): void {
 
 // The catalogue: every song, for anyone.
 Route::get('/templates', [TemplatesController::class, 'index'])->middleware('revalidate')->name('templates.catalogue');
+// The songs withheld where the visitor is (docs/geo-rights-plan.md, step 3).
+Route::get('/rights/here', RightsHereController::class)->middleware('throttle:public-pages')->name('rights.here');
 // A course's real-voice clips (CourseClips), for its steps.
 Route::get('/courses/{course}/clips', CourseClipsController::class)->where('course', '[a-z0-9-]{1,40}')->middleware('revalidate')->name('courses.clips.list');
 Route::get('/library', [LibraryApi::class, 'index'])->middleware('throttle:public-pages')->name('library.list');

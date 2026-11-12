@@ -29,6 +29,7 @@ export { capoFor };
 import { segmented, sheetRow, stepper, toolLayout } from '../tool-layout.js';
 import { toolPrefs } from '../tool-prefs.js';
 import { audio, voice } from '../voices.js';
+import { arcade, partInk, SHARE_FILES, shareCard, shareUrl } from './share-card.js';
 
 /** The words a page passes, each translated. */
 export const WORDS = [
@@ -36,7 +37,11 @@ export const WORDS = [
     'bass', 'baritone', 'tenor', 'alto', 'mezzo', 'soprano', 'singIt', 'asWritten', 'shiftUp', 'shiftDown', 'octaveDown', 'octaveUp',
     'fits', 'fitsHint', 'stretch', 'stretchTop', 'stretchBottom', 'tooFar', 'tooFarHint', 'guitar', 'guitarOpen',
     'learnIt', 'range', 'allKeys', 'keyFits', 'keyStretch', 'keyNo', 'play', 'stop', 'settings', 'settingsTitle', 'reset', 'done', 'topOnce', 'noCapo', 'copy', 'copied', 'copyText',
+    'share', 'shareText', 'cardTitle', 'cardTitleSong', 'cardChallenge', 'cardTagline', 'cardSite', 'cardSaved',
 ];
+
+// The share card's drawing (share-card.js), kept offline by the tools' service worker (page.js).
+export const WARM = SHARE_FILES;
 
 /** Keys as they're usually spelled (a symbol each; the minor ones with their m). */
 const MAJOR_KEYS = ['C', 'D♭', 'D', 'E♭', 'E', 'F', 'F♯', 'G', 'A♭', 'A', 'B♭', 'B']; // i18n-ignore: key names are symbols
@@ -119,7 +124,13 @@ const HERO = `
 const VOICE = `
 <label class="block"><span class="sr-only" data-w="yourVoice"></span><select class="input w-full text-center font-bold" data-ui="key-voice" data-voice-pick></select></label>`;
 
-const READOUT = `<p class="text-base font-bold text-cream" data-ui="key-guitar" data-guitar></p>`;
+// The guitar line, and Share my key once the answer fits or is a stretch (docs/improvement-log.md, row 5): one quiet button.
+const READOUT = `
+<div class="flex flex-wrap items-center justify-center gap-x-3 gap-y-1">
+  <p class="text-base font-bold text-cream" data-ui="key-guitar" data-guitar></p>
+  <button type="button" class="btn-secondary btn-sm" data-share data-ui="key-share" data-w="share"></button>
+  <span class="text-sm text-good" aria-live="polite" data-share-said></span>
+</div>`;
 
 const PANEL = `
 <div class="absolute inset-0 grid content-start gap-3 overflow-y-auto p-3 text-start">
@@ -140,7 +151,7 @@ function buildSheet(ui, w) {
     sheetRow(ui.sheet).body.innerHTML = '<button type="button" class="btn-secondary btn-sm" data-copy data-w="copy"></button>';
 }
 
-export function mountKeyFinder(root, { words = {}, keySlot = null, songs = [] } = {}) {
+export function mountKeyFinder(root, { words = {}, keySlot = null, songs = [], onShared = null } = {}) {
     const w = (key) => words[key] ?? '';
     const ui = toolLayout(root, { keySlot, more: w('settings'), done: w('done'), title: w('settingsTitle'), reset: w('reset') });
     ui.modes.innerHTML = VOICE;
@@ -234,6 +245,7 @@ export function mountKeyFinder(root, { words = {}, keySlot = null, songs = [] } 
         text('[data-shift]', shiftWords(r));
         text('[data-guitar]', guitarWords(r));
         $('[data-guitar]').hidden = !$('[data-guitar]').textContent;
+        $('[data-share]').hidden = !(r.fits || r.over + r.under <= STRETCH);
         if (r.fits) ui.setStatus({ tone: 'good', text: w('fits'), hint: w('fitsHint') });
         else if (r.over + r.under <= STRETCH) {
             const hint = [r.over && fill(w('stretchTop'), { n: r.over }), r.under && fill(w('stretchBottom'), { n: r.under })].filter(Boolean).join(', ');
@@ -342,6 +354,31 @@ export function mountKeyFinder(root, { words = {}, keySlot = null, songs = [] } 
     $('[data-no-capo]').addEventListener('change', (event) => {
         settings.noCapo = event.target.checked;
         changed();
+    });
+    // Share my key: the answer as a card made on the device (result-card.js drawAnswerCard), with the line and the tool's
+    // link (?ref=share-vocal-key-finder). The song's name only when it came from the page's own list; nothing about who.
+    $('[data-share]').addEventListener('click', async () => {
+        const button = $('[data-share]');
+        const r = result();
+        const key = keyName(r.tonic, settings.minor);
+        const choice = $('[data-song]').value === '' ? null : songs[Number($('[data-song]').value)];
+        button.disabled = true;
+        const done = await shareCard({
+            fileName: 'my-key.png',
+            text: fill(w('shareText'), { key, shift: shiftWords(r) }),
+            url: shareUrl('vocal-key-finder', 'share-vocal-key-finder'),
+            draw: ({ drawAnswerCard }) => drawAnswerCard({
+                words: {
+                    title: choice ? fill(w('cardTitleSong'), { name: choice.name }) : w('cardTitle'), hero: key, line: shiftWords(r),
+                    rows: [[w('theSong'), fill(w('range'), { low: noteName(settings.low), high: noteName(settings.high) })], ['', guitarWords(r)]].filter((row) => row[1]),
+                    challenge: w('cardChallenge'), tagline: w('cardTagline'), site: w('cardSite'), arcade: arcade(),
+                },
+                color: partInk(3),
+            }),
+        });
+        if (done === 'saved') text('[data-share-said]', w('cardSaved'));
+        if (done) onShared?.('vocal-key-finder', done);
+        button.disabled = false;
     });
     $('[data-copy]').addEventListener('click', async () => {
         const r = result();

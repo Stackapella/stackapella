@@ -6,6 +6,7 @@
 
 import { reactive } from 'vue';
 import { tk } from './i18n.js';
+import { count } from './usage.js';
 
 /**
  * The browser and device from the user agent: `{ platform, os, inApp }`. `platform` picks the
@@ -72,6 +73,53 @@ export function diagnose(error, { inApp = null, secure = true, framed = false, h
     if (name === 'NotFoundError' || name === 'DevicesNotFoundError' || name === 'OverconstrainedError') return 'notFound';
     if (['NotReadableError', 'TrackStartError', 'AbortError', 'InvalidStateError'].includes(name)) return 'inUse';
     return 'other';
+}
+
+/**
+ * Where this page is, for diagnose() and adviceFor(): the user agent, the installed app, touch, https, a frame, the mic API.
+ */
+export function placeHere() {
+    return {
+        userAgent: navigator.userAgent,
+        standalone: navigator.standalone === true || matchMedia('(display-mode: standalone)').matches,
+        touchPoints: navigator.maxTouchPoints ?? 0,
+        secure: window.isSecureContext !== false,
+        framed: window.top !== window,
+        hasMediaDevices: !!navigator.mediaDevices?.getUserMedia,
+    };
+}
+
+/**
+ * The anonymous count for a mic that didn't open, by its cause (lesson 1.1's drop-off, 2026-11-12: where new singers stop
+ * is before the mic opens): mic_denied when someone or the browser said no, else mic_failed_<cause>.
+ */
+export function micFailKind(cause) {
+    return cause === 'blocked' ? 'mic_denied' : `mic_failed_${String(cause).toLowerCase()}`;
+}
+
+// Each mic count once a page load: a person tapping Try again five times is one refusal, not five.
+const counted = new Set();
+export function countMic(kind) {
+    if (counted.has(kind)) return;
+    counted.add(kind);
+    count(kind);
+}
+
+/** A mic that didn't open, counted by its cause here (no detail about the device or the browser leaves it). */
+export function countMicFailure(error) {
+    const place = placeHere();
+    const cause = diagnose(error, { ...place, inApp: deviceOf(place.userAgent, place).inApp });
+    countMic(micFailKind(cause));
+}
+
+/** The browser's word on the mic: 'granted', 'denied', 'prompt', or null where it can't be read. */
+export async function micPermission() {
+    try {
+        return (await navigator.permissions?.query({ name: 'microphone' }))?.state ?? null;
+    } catch (error) {
+        console.info('The mic permission cannot be read here (Firefox asks each time)', error?.message ?? error);
+        return null;
+    }
 }
 
 /** Each cause: a heading and what it means, in plain words. */
@@ -188,16 +236,13 @@ export async function explainFirst() {
     } catch (error) {
         console.warn('Could not read whether the mic was explained', error);
     }
-    let state = null;
-    try {
-        state = (await navigator.permissions?.query({ name: 'microphone' }))?.state ?? null;
-    } catch (error) {
-        console.warn('The mic permission cannot be read here', error);
-    }
+    const state = await micPermission();
     if (state === 'granted' || state === 'denied') return true;
+    countMic('mic_primer');
     return new Promise((resolve) => {
         micHelp.primer = (go) => {
             micHelp.primer = null;
+            if (!go) countMic('mic_primer_not');
             if (go) {
                 try {
                     localStorage.setItem(EXPLAINED_KEY, '1');

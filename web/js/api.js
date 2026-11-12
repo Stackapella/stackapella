@@ -276,6 +276,8 @@ export const OPERATIONS = {
     'account.learning.update': ['PUT', '/api/account/learning'],
     // M5: Plus and billing, the score history, practice reminders.
     'templates.show': ['GET', '/api/templates/{id}'],
+    // Geo rights: the visitor's country and the songs withheld there, for the site's song lists.
+    'rights.here': ['GET', '/api/rights/here'],
     'admin.beta.clips.list': ['GET', '/api/admin/beta/clips'],
     'courses.clips.list': ['GET', '/api/courses/{courseId}/clips'],
     'billing.prices': ['GET', '/api/billing/prices'],

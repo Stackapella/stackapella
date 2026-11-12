@@ -24,7 +24,7 @@ const AREAS = [
     { key: 'free', title: tk('admin.usage.area.free'), kinds: [], lessons: true },
     { key: 'hum', title: tk('admin.usage.area.hum'), kinds: ['hum_start', 'hum_found', 'hum_saved', 'hum_click', 'hum_tap'] },
     { key: 'studio', title: tk('admin.usage.area.studio'), kinds: ['take_use', 'take_undo', 'track_add', 'track_rename', 'exp_song', 'exp_practice', 'exp_stems', 'exp_sheet', 'sheet_import'] },
-    { key: 'onboarding', title: tk('admin.usage.area.onboarding'), kinds: ['share_note', 'card_named', 'su_progress', 'su_reminders', 'su_share', 'su_boards', 'card_day2'] },
+    { key: 'onboarding', title: tk('admin.usage.area.onboarding'), kinds: ['share_note', 'note_friend_seen', 'note_friend_found', 'card_named', 'su_progress', 'su_reminders', 'su_share', 'su_boards', 'card_day2'] },
     { key: 'melody', title: tk('admin.usage.area.melody'), kinds: ['sug_melody', 'sug_part', 'sug_switch'] },
 ];
 export const KINDS = {
@@ -68,6 +68,8 @@ export const KINDS = {
     exp_sheet: tk('admin.usage.kind.exp_sheet'),
     sheet_import: tk('admin.usage.kind.sheet_import'),
     share_note: tk('admin.usage.kind.share_note'),
+    note_friend_seen: tk('admin.usage.kind.note_friend_seen'),
+    note_friend_found: tk('admin.usage.kind.note_friend_found'),
     card_named: tk('admin.usage.kind.card_named'),
     su_progress: tk('admin.usage.kind.su_progress'),
     su_reminders: tk('admin.usage.kind.su_reminders'),

@@ -19,6 +19,7 @@
     <script type="module">
         import { mountChordTransposer } from '/js/public/tools/chord-transposer.js';
         const words = {
+            share: 'Share the change', shareText: 'From :from to :to in one tap. Transpose yours:', cardTitle: 'In a new key', cardWas: 'Was', cardNow: 'Now', cardChallenge: 'Transpose your own', cardTagline: 'Harmony, made by you.', cardSite: 'stackapella.com', cardSaved: 'Card saved, and the line copied',
             transpose: 'Transpose', lower: 'Down a semitone', higher: 'Up a semitone', modes: 'Show', yourChart: 'Your chart', transposed: 'Transposed',
             idleHint: 'Paste a chord chart, lyrics and all', chordsFound: ':n chords found', notChords: 'No chords found yet', chart: 'The chart',
             placeholder: 'Paste chords and lyrics here',
@@ -28,7 +29,7 @@
             sample: 'Try a sample', sampleText: '[Verse 1]\nG          C        G\nAmazing grace, how sweet the sound\nG              D7\nThat saved a wretch like me\nG        G7      C       G\nI once was lost, but now am found\nG    Em    D7     G\nWas blind but now I see',
             clear: 'Clear', kept: 'Your chart stays on this device; nothing is sent.',
         };
-        window.__transposer = mountChordTransposer(document.querySelector('#transposer'), { words, keySlot: document.querySelector('[data-tool-key]') });
+        window.__transposer = mountChordTransposer(document.querySelector('#transposer'), { words, keySlot: document.querySelector('[data-tool-key]'), onShared: (tool, done) => (window.__shared = [...(window.__shared ?? []), [tool, done]]) });
     </script>
 </body>
 </html>

@@ -30,7 +30,8 @@
                 "experiments",
                 "schools",
                 "songRequests",
-                "languages"
+                "languages",
+                "withheldSongs"
             ],
             "properties": {
                 "methods": {
@@ -253,6 +254,13 @@
                         ]
                     },
                     "description": "English, then each language switched on (lang_es, lang_de)."
+                },
+                "withheldSongs": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "The songs (slugs) withheld where the visitor is, by its copyright term (docs/geo-rights-plan.md): the app leaves them out and a course step sings its altSong. Never the country. Empty while geo_rights is off."
                 }
             }
         }

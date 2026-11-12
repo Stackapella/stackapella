@@ -7,7 +7,7 @@ import { Engine } from '../engine/engine.js';
 import { measureClaps, measureLatency } from './timing-check.js';
 import { tk } from './i18n.js';
 import { local } from './storage.js';
-import { explainFirst } from './mic-help.js';
+import { countMic, countMicFailure, explainFirst, micPermission } from './mic-help.js';
 import { pickByLabel, rememberMicLabel, rememberedMicLabel } from './mic-choice.js';
 
 export const engine = new Engine();
@@ -119,6 +119,9 @@ export async function openMic(deviceId = local.get('stackapella.mic') || '') {
     await unlock();
     // The first time, a few words on why before the browser asks (not now: as if closed).
     if (!engine.mic && !(await explainFirst())) return null;
+    // Counted, anonymous (lesson 1.1's drop-off): the browser about to ask, and how that went.
+    const asking = !engine.mic && !['granted', 'denied'].includes(await micPermission());
+    if (asking) countMic('mic_prompt');
     let mic;
     try {
         mic = await engine.openMic(deviceId); // it falls back to the default mic, and simpler asks, itself
@@ -126,8 +129,10 @@ export async function openMic(deviceId = local.get('stackapella.mic') || '') {
         if (error?.closedWhileOpening) {
             return null;
         }
+        countMicFailure(error);
         throw error;
     }
+    if (asking) countMic('mic_granted');
     first('f_mic'); // the funnel: the mic open for the first time on this device
     const fresh = audio.mic?.deviceId !== mic.deviceId || audio.micOpenedAt === null;
     const hadTiming = audio.latencyFrames !== null;

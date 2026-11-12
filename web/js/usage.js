@@ -29,6 +29,8 @@ for (const kind of [
     'hum_start', 'hum_click', 'hum_tap', 'hum_found', 'hum_saved',
     'take_use', 'take_undo', 'track_add', 'track_rename', 'exp_song', 'exp_practice', 'exp_stems', 'exp_sheet', 'sheet_import',
     'share_note', 'card_named', 'su_progress', 'su_reminders', 'su_share', 'su_boards', 'card_day2',
+    // A friend arriving from lesson 1's note card (docs/improvement-log.md, row 4): asked for theirs, and theirs found.
+    'note_friend_seen', 'note_friend_found',
     // The account nudges: an account made, by what asked for it, and each nudge's Not now.
     'su_week', 'su_songs', 'su_unit', 'su_risk', 'su_school', 'su_groups', 'su_friends', 'su_voice', 'su_plus', 'su_template', 'su_sheet', 'su_settings', 'su_daily',
     ...NUDGES.map((ask) => `ask_${ask}_not`),
@@ -48,6 +50,12 @@ for (const kind of [
     'home_today_done_shown', 'home_today_done_song_tap', 'home_today_done_course_tap', 'home_today_daily_shown', 'home_today_daily_tap',
     // Home's picks carrying a New or Carol season song (docs/retention-plan.md, idea 5): shown, and tapped.
     'home_new_shown', 'home_new_tap',
+    // The mic (lesson 1.1's drop-off, 2026-11-12; js/mic-help.js, each once a page load): the why-sheet before the browser
+    // asks, and its Not now; the browser asking, and yes; a refusal; and every other failure by its cause.
+    'mic_primer', 'mic_primer_not', 'mic_prompt', 'mic_granted', 'mic_denied',
+    'mic_failed_inapp', 'mic_failed_insecure', 'mic_failed_unsupported', 'mic_failed_notfound', 'mic_failed_inuse', 'mic_failed_other',
+    // The free course's first lesson begun in an app's own browser (js/mic-help.js deviceOf), against fl_s:<its id>.
+    'l1_inapp',
 ]) KINDS.add(kind);
 // Kinds with a detail, `<prefix>:<id>`: a Plus course's lessons by course, the free course by lesson.
 // The server keeps only ids the courses have.

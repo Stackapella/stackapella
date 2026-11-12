@@ -65,6 +65,13 @@
         "email": {
             "type": "string",
             "description": "A 409 confirm_sign_in only: the account a link would sign into, to ask \"Sign in as ...?\"."
+        },
+        "freeFrom": {
+            "type": [
+                "integer",
+                "null"
+            ],
+            "description": "A 451 not_available_here only: the year the song is free where the visitor is (from 1 January), or null when that can't be known yet."
         }
     }
 }

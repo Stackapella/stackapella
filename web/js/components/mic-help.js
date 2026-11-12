@@ -6,7 +6,7 @@
 
 import { audio, engine, openMic } from '../audio.js';
 import { t } from '../i18n.js';
-import { adviceFor, boldParts, BROWSER_WORDS, CAUSES, closeMicHelp, DEVICE_WORDS, DRAWINGS, micHelp, PLATFORMS, reloadForMic, SYSTEMS } from '../mic-help.js';
+import { adviceFor, boldParts, BROWSER_WORDS, CAUSES, closeMicHelp, DEVICE_WORDS, DRAWINGS, micHelp, placeHere, PLATFORMS, reloadForMic, SYSTEMS } from '../mic-help.js';
 import { micDb } from '../mic-check.js';
 import { Icon } from './icon.js';
 import { LevelMeter } from './level-meter.js';
@@ -87,14 +87,7 @@ export const MicHelpHost = {
     computed: {
         userAgent: () => navigator.userAgent,
         advice() {
-            return adviceFor(micHelp.error, {
-                userAgent: navigator.userAgent,
-                standalone: navigator.standalone === true || matchMedia('(display-mode: standalone)').matches,
-                touchPoints: navigator.maxTouchPoints ?? 0,
-                secure: window.isSecureContext !== false,
-                framed: window.top !== window,
-                hasMediaDevices: !!navigator.mediaDevices?.getUserMedia,
-            });
+            return adviceFor(micHelp.error, placeHere());
         },
         platform() {
             return this.chosen ?? this.advice.platform;

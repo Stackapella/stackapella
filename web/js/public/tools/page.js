@@ -102,8 +102,13 @@ async function start() {
                 showResult(result);
                 offerLesson();
             },
-            // A result shared from the tool (the range test's card): one anonymous count, as the app's result_shared (count.js).
-            onShared: () => countAnon('result_shared'),
+            // A result shared from the tool (the range test's card): one anonymous count, as the app's result_shared (count.js);
+            // a tool that names itself is counted as a share too, sh:tool-<slug>.<how> (docs/improvement-log.md, row 5):
+            // the device's share sheet, or the card saved as an image with its line copied.
+            onShared: (tool, done) => {
+                countAnon('result_shared');
+                if (tool) countAnon(`sh:tool-${tool}.${done === 'shared' ? 'sheet' : 'image'}`);
+            },
             // The moment a tool's free lesson is wanted (its result), for the line under it.
             onLesson: () => offerLesson(),
             // A refused mic: 'denied', 'no-mic' or 'unsupported', in the page's own words.

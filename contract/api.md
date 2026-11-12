@@ -83,6 +83,7 @@ Every error response has this shape (`schemas/error.json`):
 | 429 | `rate_limited` | Too many requests; `retryAfter` and `Retry-After` say how long to wait | Says when to try again |
 | 423 | `paused` | An attack switch has paused this feature (`docs/trust-and-safety-plan.md`) | Says it's paused for now, and keeps the work on the device |
 | 423 | `read_only` | Read-only mode during an incident | Keeps the work on the device for later |
+| 451 | `not_available_here` | The song's copyright still runs where the visitor is (docs/geo-rights-plan.md); `freeFrom` is the year it's free there, or null | Says it isn't available here yet, and from when |
 | 503 | `unavailable` | Stackapella is being updated (maintenance mode), or something it depends on is down. The only 503: the hosting's edge doesn't pass a 503's body through, so every refusal the app must read is a 4xx | Says to try again in a minute, keeping the work on the device |
 | 500 | `server_error` | Something broke on the server. Never a raw exception message | Says something went wrong |
 
@@ -165,6 +166,7 @@ Each operation is one function in `web/js/api.js` named after it, and one route 
 | `admin.storeTesters.list` | `GET /api/admin/store-testers` | An admin | Apps |
 | `admin.people.recover` | `POST /api/admin/people/{id}/recover` | An admin, in sudo | M3 |
 | `templates.catalogue` | `GET /api/templates` | Anyone | M2 |
+| `rights.here` | `GET /api/rights/here` | Anyone | Geo rights |
 | `courses.clips.list` | `GET /api/courses/{courseId}/clips` | Anyone | L |
 | `beta.invite.show` | `GET /api/beta/invites/{token}` | Anyone with an invite link | M2 |
 | `beta.invite.accept` | `POST /api/beta/invites/{token}/accept` | Anyone signed in, with the link | M2 |
@@ -867,7 +869,8 @@ templates.seasons), or null. `group` is the /songs group the song sits in (`chri
 `spirituals`, `hymns`, `sea-shanties`, `folk-songs`, `classical`, `barbershop-songs`; the first that its genres name, as
 /songs and its A to Z place it), or null ("more"); `titles` is the song's own title in other languages, by language
 code (`{ "es": "Frère Jacques" }`; empty when it has none), for the app's Browse all (since 2026-11-12).
-**Request:** none.
+A song withheld where the visitor is (docs/geo-rights-plan.md, behind `geo_rights`) isn't listed there, except to
+admins and editors. **Request:** none.
 
 **Voices** (Hillel's decision, "published versions"): every accepted recording of a part is a
 published version (`versions`, the default first, then the newest), and `guide` is the default
@@ -883,6 +886,16 @@ recently takes over, else the newest, else the synth: never a broken part.
 | Status | Code | Schema | Example |
 |---|---|---|---|
 | 200 |  | `templates.catalogue.json` | `templates.catalogue.200.json` |
+
+#### `rights.here`
+
+The songs withheld where the visitor is, by their copyright terms (docs/geo-rights-plan.md, step 3), for the
+site's song lists, which are cached for everyone and hide those cards in the browser. `withheld` is empty while
+`geo_rights` is off. No-store, as the api group is. **Request:** none.
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 200 |  | `rights.here.json` | `rights.here.200.json` |
 
 #### `beta.invite.show`
 
@@ -2585,7 +2598,9 @@ the current version or `?version=` (a project made on an older one), and why the
 (`grant`), and whether its parts have leaderboards (`boards`: our songs, and a person's own song
 while it's public). It sends an `ETag`: a `304`, or the same song again the same day, doesn't count toward
 the daily cap (`plus-downloads`, per account, or per network signed out; past it, `429`, and Hillel
-is told). **Request:** `?version=` (optional).
+is told). Where the song's copyright still runs in the visitor's country (docs/geo-rights-plan.md, behind
+`geo_rights`), it is `451 not_available_here` with `freeFrom`, the year it's free there (null when that can't
+be known); admins and editors still open it. **Request:** `?version=` (optional).
 
 | Status | Code | Schema | Example |
 |---|---|---|---|
@@ -2593,6 +2608,7 @@ is told). **Request:** `?version=` (optional).
 | 403 | `account_required` | `error.json` | `templates.show.account_required.json` |
 | 404 | `not_found` | `error.json` | `templates.show.not_found.json` |
 | 429 | `rate_limited` | `error.json` | `templates.show.rate_limited.json` |
+| 451 | `not_available_here` | `error.json` | `templates.show.not_available_here.json` |
 
 #### `billing.prices`
 

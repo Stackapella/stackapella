@@ -35,6 +35,23 @@ final class SongStories
         'sources' => ['Sources', true],
     ];
 
+    /** The parser's version, in its cache key: a parse kept from an older one is never served (2: fullWords). */
+    private const PARSER = 2;
+
+    /** The words section's last subsection, the song's whole text, by the story's language (marketing's fullWords). */
+    public const FULL_WORDS = ['The full words', 'La letra completa'];
+
+    /** A language's code from its name in the front matter (English or Spanish), for `scriptLang` and the lyrics' inLanguage. */
+    private const LANGUAGES = [
+        'english' => 'en', 'inglés' => 'en', 'spanish' => 'es', 'español' => 'es', 'latin' => 'la', 'latín' => 'la',
+        'german' => 'de', 'alemán' => 'de', 'french' => 'fr', 'francés' => 'fr', 'italian' => 'it', 'italiano' => 'it',
+        'welsh' => 'cy', 'galés' => 'cy', 'irish' => 'ga', 'irlandés' => 'ga', 'hebrew' => 'he', 'hebreo' => 'he',
+        'yiddish' => 'yi', 'ídish' => 'yi', 'yidis' => 'yi', 'russian' => 'ru', 'ruso' => 'ru', 'ukrainian' => 'uk',
+        'ucraniano' => 'uk', 'greek' => 'el', 'griego' => 'el', 'japanese' => 'ja', 'japonés' => 'ja', 'chinese' => 'zh',
+        'chino' => 'zh', 'korean' => 'ko', 'coreano' => 'ko', 'arabic' => 'ar', 'árabe' => 'ar', 'georgian' => 'ka',
+        'georgiano' => 'ka', 'armenian' => 'hy', 'armenio' => 'hy', 'zulu' => 'zu', 'swahili' => 'sw', 'suajili' => 'sw',
+    ];
+
     /** The quick-facts box's fields, in the order the page lists them. */
     public const FACTS = ['words', 'tune', 'tuneName', 'meter', 'earliestPrinting', 'language', 'origin', 'occasion', 'alsoKnownAs'];
 
@@ -91,7 +108,7 @@ final class SongStories
         $keys = $file === $english ? null : self::keys((string) file_get_contents($english));
 
         // Parsed once per version of the file (its hash is in the key), on the file store: never the database.
-        return Cache::store('file')->rememberForever('song-story:'.$slug.':'.sha1($text.json_encode($keys)), static fn (): array => self::parse($slug, $file === $english ? 'en' : $language, $text, $keys));
+        return Cache::store('file')->rememberForever('song-story:'.self::PARSER.':'.$slug.':'.sha1($text.json_encode($keys)), static fn (): array => self::parse($slug, $file === $english ? 'en' : $language, $text, $keys));
     }
 
     /** The first 12 hex of a file's sha256: what a translation names in `translatedFrom`. */
@@ -154,6 +171,13 @@ final class SongStories
         foreach (['title', 'description', 'lead', 'updated', 'checked', 'reviewed'] as $key) {
             if (($front[$key] ?? '') === '') {
                 $problems[] = $at.'no '.$key;
+            }
+        }
+        // A front matter line is split on its first colon and taken as it is, so quotes around a whole value would be
+        // shown (they reached 97 headlines once); a value that only contains quotes, around a title, is fine.
+        foreach ($front as $key => $value) {
+            if (preg_match('/^"[^"]*"$/', $value) === 1) {
+                $problems[] = $at.$key.' is in quotes: front matter values aren\'t quoted (the line splits on its first colon)';
             }
         }
         foreach (['updated', 'checked'] as $key) {
@@ -264,6 +288,7 @@ final class SongStories
         $timeline = [];
         $facts = [];
         $next = [];
+        $fullWords = null;
         foreach ($sections as $i => $section) {
             $key = $found[$i] ?? '?';
             if ($key === 'sources') {
@@ -283,6 +308,9 @@ final class SongStories
                 if ($key === 'origins') {
                     $timeline = array_map(static fn (array $row): array => ['year' => $row['year'], 'html' => $cite(self::inline($row['line']))], self::timeline($prose));
                     $prose = self::before('/^### /m', $prose);
+                }
+                if ($key === 'words') {
+                    [$prose, $fullWords] = self::fullWords($prose, self::languageCode((string) ($front['language'] ?? '')), $cite, $plain);
                 }
                 $html = $figures($cite(self::markdown($prose)));
             }
@@ -326,12 +354,94 @@ final class SongStories
             // Primary scans that aren't among the pictures (Mohr's autograph): "See the original" links, as listen.
             'original' => self::listen((string) ($front['original'] ?? '')),
             'sections' => $parts,
+            // The song's whole text, out of its words section (null when it has none, or where its words are withheld:
+            // withoutWords()); the page falls back to today's verses.
+            'fullWords' => $fullWords,
+            'sungLanguage' => self::languageCode((string) ($front['language'] ?? '')),
             'timeline' => $timeline,
             'didYouKnow' => $facts,
             'questions' => $questions,
             'next' => $next,
             'sources' => $list,
         ];
+    }
+
+    /**
+     * A story without the song's words, where they're withheld (docs/geo-rights-plan.md): the full words go (they're
+     * already out of the words section's html).
+     *
+     * @param  array<string, mixed>  $story
+     * @return array<string, mixed>
+     */
+    public static function withoutWords(array $story): array
+    {
+        return ['fullWords' => null] + $story;
+    }
+
+    /**
+     * The words section's "### The full words" (or its translation), when it's the section's last subsection: the prose
+     * without it, and the full words (marketing's shape, agreed 2026-11-12): an intro paragraph with its citations, then
+     * stanzas split by blank lines, each with an optional `**Verse 1**` label. A line is sung as written; `> original`
+     * then its meaning; or `> script`, `*transliteration*`, then its meaning.
+     *
+     * @param  callable(string): string  $cite
+     * @param  callable(string): string  $plain
+     * @return array{0: string, 1: array{intro: string, stanzas: list<array{label: string|null, lines: list<array<string, string>>}>}|null}
+     */
+    private static function fullWords(string $prose, ?string $language, callable $cite, callable $plain): array
+    {
+        if (preg_match_all('/^### (.+)$/m', $prose, $headings, PREG_OFFSET_CAPTURE) < 1) {
+            return [$prose, null];
+        }
+        $last = $headings[1][count($headings[1]) - 1];
+        if (! in_array(trim($last[0]), self::FULL_WORDS, true)) {
+            return [$prose, null];
+        }
+        $start = $headings[0][count($headings[0]) - 1][1];
+        $block = trim(substr($prose, $start + strlen($headings[0][count($headings[0]) - 1][0])));
+        $prose = rtrim(substr($prose, 0, $start));
+
+        $paragraphs = array_values(array_filter(array_map('trim', preg_split('/\n\s*\n/', $block) ?: []), static fn (string $p): bool => $p !== ''));
+        $intro = $paragraphs !== [] && ! preg_match('/^(>|\*\*)/', $paragraphs[0]) ? array_shift($paragraphs) : '';
+        $stanzas = [];
+        foreach ($paragraphs as $paragraph) {
+            $lines = array_values(array_filter(array_map('trim', explode("\n", $paragraph)), static fn (string $l): bool => $l !== ''));
+            $label = null;
+            if ($lines !== [] && preg_match('/^\*\*(.+)\*\*$/', $lines[0], $m) === 1) {
+                $label = $plain($m[1]);
+                array_shift($lines);
+            }
+            $out = [];
+            for ($i = 0; $i < count($lines); $i++) {
+                if (! str_starts_with($lines[$i], '>')) {
+                    $out[] = ['sung' => $plain($lines[$i])];
+
+                    continue;
+                }
+                $original = $plain(ltrim(substr($lines[$i], 1)));
+                $translit = null;
+                if (isset($lines[$i + 1]) && preg_match('/^\*([^*].*?)\*$/', $lines[$i + 1], $m) === 1) {
+                    $translit = $plain($m[1]);
+                    $i++;
+                }
+                $line = $translit === null ? ['sung' => $original] : ['script' => $original, ...($language !== null ? ['scriptLang' => $language] : []), 'sung' => $translit];
+                if (isset($lines[$i + 1]) && ! str_starts_with($lines[$i + 1], '>')) {
+                    $line['meaning'] = $plain($lines[$i + 1]);
+                    $i++;
+                }
+                $out[] = $line;
+            }
+            if ($out !== []) {
+                $stanzas[] = ['label' => $label, 'lines' => $out];
+            }
+        }
+
+        return [$prose, $stanzas === [] ? null : ['intro' => $intro === '' ? '' : $cite(self::markdown($intro)), 'stanzas' => $stanzas]];
+    }
+
+    private static function languageCode(string $name): ?string
+    {
+        return self::LANGUAGES[mb_strtolower(trim($name))] ?? null;
     }
 
     /** @return list<string> the pictures a story places, by name, in order (`![[1]]` on a line of its own) */

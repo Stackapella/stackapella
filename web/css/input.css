@@ -1353,6 +1353,9 @@ select:disabled {
 .s-lang-panel a { display: flex; align-items: center; min-height: 48px; padding-inline: 12px; border-radius: 12px; font-weight: 650; color: var(--color-cream); white-space: nowrap; }
 .s-lang-panel a:hover, .s-lang-panel a:focus-visible { background: var(--color-raised); }
 .s-lang-panel a[aria-current="true"] { background: var(--color-raised); font-weight: 800; }
+/* On a phone the menu's button sits in the header's left half (the logo, then it, then Open the app and the menu), so its
+   panel opens from the button's start edge: from its end it ran off the screen's start (38 px at 320, both skins). */
+@media (max-width: 47.99rem) { .s-lang-panel { inset-inline-end: auto; inset-inline-start: 0; } }
 .s-banner { background: var(--color-raised); border-bottom: 1px solid var(--color-line); }
 .s-banner p { display: flex; flex-wrap: wrap; align-items: center; gap: 0 12px; min-height: 48px; padding-block: 6px; font-size: 14.5px; line-height: 1.4; }
 .s-banner .s-lk { white-space: nowrap; }
@@ -9549,6 +9552,17 @@ a.s-vt-rung:hover { background: color-mix(in srgb, var(--color-cream) 5%, transp
 /* A band's own action (See all, Browse all) is a yellow pixel button. */
 :root[data-skin='game'][data-gs] [data-ui='band'] > div:first-child .btn-go { background: var(--arc-yellow); color: #1d1500; box-shadow: var(--arc-shadow); }
 :root[data-skin='game'][data-gs][data-theme$='-light'] [data-ui='band'] > div:first-child .btn-go { color: #fff; }
+/* The library's filters as a stage select (frontend's components/library-filters.js, Home's Browse all): the search and
+   the part picker as framed wells, "I sing" a pixel label on one line, each group chip a framed block and the chosen one
+   lifted on a hard shadow (the row keeps room under it: it scrolls sideways, so it would clip), and each group's heading
+   in the list ruled off to the edge like a stage row. */
+:root[data-skin='game'][data-gs] [data-library-filters] :is([data-library-search], [data-library-voice]) { border: var(--arc-edge-w) solid var(--arc-line); background-color: var(--arc-well); }
+:root[data-skin='game'][data-gs] [data-library-filters] label:has([data-library-voice]) > span { font-family: var(--arc-pixel); font-size: 0.75rem; letter-spacing: 0.06em; text-transform: uppercase; white-space: nowrap; }
+:root[data-skin='game'][data-gs] [data-library-groups] { padding-bottom: 4px; }
+:root[data-skin='game'][data-gs] [data-library-group] { box-shadow: inset 0 0 0 var(--arc-edge-w) var(--arc-line); }
+:root[data-skin='game'][data-gs] [data-library-group][aria-pressed='true'] { box-shadow: 3px 3px 0 var(--arc-shadow-c); }
+:root[data-skin='game'][data-gs] [data-library-heading] > h3 { display: flex; align-items: center; gap: 0.75rem; }
+:root[data-skin='game'][data-gs] [data-library-heading] > h3::after { content: ''; flex: 1; min-width: 1rem; border-top: var(--arc-edge-w) dashed var(--arc-line); }
 
 /* A song card as a game cartridge (data-ui="cartridge"): a chunky frame and a hard drop shadow, the cover a dark
    window on top, the title and details on the label under it. A hover lifts it and a blinking cursor shows on it. */
@@ -9739,6 +9753,15 @@ a.s-vt-rung:hover { background: color-mix(in srgb, var(--color-cream) 5%, transp
 :root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-xmas + .s-xfoot { background: #18123d; border-top: var(--arc-frame) solid #3b3270; }
 :root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-xband p.s-xband-k { margin: 0 0 16px; }
 :root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-xband h2 .s-xserif { font-family: inherit; font-style: normal; font-weight: inherit; }
+/* Collections v2 (marketing's folk, barbershop and Jewish pages): the next festival's card a HUD, square in its tone's
+   frame on a hard shadow, the festival's name and its days in the pixel face; the hero's Try it mixer framed in the
+   tone; "come from" in Where these songs come from set in the heading's own face, in yellow (the carols' last words). */
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-jcount { border-radius: 0; box-shadow: inset 0 0 0 var(--arc-frame) var(--ta), 6px 6px 0 rgb(0 0 0 / .45); }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-jcount-k { font-family: var(--a-hud); font-size: 10px; font-weight: 400; letter-spacing: .06em; }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-jcount-n.s-xserif { font-family: var(--a-hud); font-style: normal; font-size: 24px; line-height: 1.3; letter-spacing: 0; text-shadow: 3px 3px 0 rgb(0 0 0 / .5); }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-jcount-d { font-family: var(--a-hud); font-size: 20px; font-weight: 400; letter-spacing: 0; line-height: 1.3; }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-xcoll-try .s-mixer { border: var(--arc-frame) solid var(--ta); box-shadow: 6px 6px 0 rgb(0 0 0 / .45); }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-xfrom h2 .s-xserif { font-family: inherit; font-style: normal; font-weight: inherit; letter-spacing: inherit; color: var(--arc-yellow); }
 /* Hillel's 90s design everywhere (the coordinator, 2026-11-11: "build 1 to 6"). A page's own heading on the design's hard
    two-step drop (the theme's red, then the cabinet's shadow) on the hubs, song and part pages and the songbooks (the season's
    night hero keeps its own colours, above). The neon set: .s-neon1, 2 and 3 name red, green and yellow in turn for cards
@@ -9984,6 +10007,19 @@ a.s-vt-rung:hover { background: color-mix(in srgb, var(--color-cream) 5%, transp
 :root[data-skin='game'][data-gs] body.s-arcade [data-lesson] p > b { color: var(--color-accent-strong); }
 /* Its real voices and its "Did you know?" sit in cards: square, in the tiles' 2 px edge. */
 :root[data-skin='game'][data-gs] body.s-arcade [data-lesson] .s-card { border-radius: 0; border: var(--arc-edge-w) solid var(--color-edge); }
+/* The tools hub (frontend2's, in Hillel's design): Most used as three framed stages in the carols design's cyan neon (one
+   neon: the cards carry no hook to tell them apart), each picture a square screen; the groups' marks and the Mic tags square, the cards in the tiles' 2 px
+   edge with the 2 px offset shadow on hover. A Most used name wraps under its own column so Open keeps its row at
+   768 (Vocal range test, Prueba de rango vocal). */
+:root[data-skin='game'][data-gs] body.s-arcade .s-th-big { --neon: var(--arc-cyan); border-radius: 0; border: var(--arc-frame) solid var(--neon); background: var(--arc-well); box-shadow: 4px 4px 0 var(--arc-shadow-c); }
+:root[data-skin='game'][data-gs] body.s-arcade .s-th-big:hover { border-color: var(--color-cream); }
+:root[data-skin='game'][data-gs] body.s-arcade .s-th-pic { border-radius: 0; background: var(--arc-panel); box-shadow: inset 0 0 0 var(--arc-edge-w) var(--arc-line); }
+:root[data-skin='game'][data-gs] body.s-arcade .s-th-big-head { flex-wrap: nowrap; align-items: baseline; }
+:root[data-skin='game'][data-gs] body.s-arcade .s-th-big-head b { flex: 1 1 auto; }
+:root[data-skin='game'][data-gs] body.s-arcade :is(.s-th-keys, .s-th-ticks i.is-on, .s-th-mic, .s-th-grp-head h2 i) { border-radius: 0; }
+:root[data-skin='game'][data-gs] body.s-arcade .s-th-mic { box-shadow: inset 0 0 0 1px var(--arc-line); }
+:root[data-skin='game'][data-gs] body.s-arcade .s-th-card { border-radius: 0; border: var(--arc-edge-w) solid var(--color-edge); }
+@media (hover: hover) and (prefers-reduced-motion: no-preference) { :root[data-skin='game'][data-gs] body.s-arcade .s-th-card:hover { box-shadow: 2px 2px 0 var(--arc-shadow-c); } }
 /* arcade-screen:end */
 /* Game mode's circles are arcade coins (Hillel's pick of two, 2026-11-08; the course map's stages, .ge-map-node, above):
    every bubble that reaches game mode (serious mode's look, docs/bubble-circles-plan.md: the avatars, New song's +, the

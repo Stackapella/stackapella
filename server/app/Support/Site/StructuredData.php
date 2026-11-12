@@ -245,6 +245,12 @@ final class StructuredData
             'alternateName' => ($facts['alsoKnownAs'] ?? null) ?: null,
             'sameAs' => is_string($story['wikidata'] ?? null) ? 'https://www.wikidata.org/wiki/'.$story['wikidata'] : null,
             'musicArrangement' => ['@type' => 'MusicComposition', 'name' => $song['title'], 'arranger' => ['@type' => 'Organization', 'name' => 'Stackapella']],
+            // The whole sung text, stanzas apart, where the story has the full words (and they aren't withheld here).
+            'lyrics' => is_array($story['fullWords'] ?? null) ? array_filter([
+                '@type' => 'CreativeWork',
+                'text' => implode("\n\n", array_map(static fn (array $stanza): string => implode("\n", array_column($stanza['lines'], 'sung')), $story['fullWords']['stanzas'])),
+                'inLanguage' => $story['sungLanguage'] ?? null,
+            ], static fn (mixed $v): bool => $v !== null) : null,
         ], static fn (mixed $v): bool => $v !== null);
 
         $data = [$composition, [

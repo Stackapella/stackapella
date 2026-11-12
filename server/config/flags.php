@@ -86,5 +86,9 @@ return [
     // while it's on. Off until its slice has had its native-speaker review.
     'lang_es' => ['kind' => 'feature', 'values' => ['off', 'on']],
     'lang_de' => ['kind' => 'feature', 'values' => ['off', 'on']],
+    // Songs by country (docs/geo-rights-plan.md, App\Support\Rights\RightsHere): a song, or its words, whose
+    // copyright still runs in the visitor's country is withheld there. Off until every open song has its makers and
+    // the lawyer has read the rules; Hillel switches it on.
+    'geo_rights' => ['kind' => 'feature', 'values' => ['off', 'on']],
 
 ];

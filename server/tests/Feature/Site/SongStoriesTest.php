@@ -55,6 +55,10 @@ final class SongStoriesTest extends TestCase
         $this->assertStringContainsString('A song made for the tests, sung by nobody<sup class="s-cite"><a href="#source-1">[1]</a></sup>.', $story['opening']);
         $this->assertSame(['origins', 'words', 'sung', 'facts', 'singing', 'questions', 'next'], array_column($story['sections'], 'key'));
         $this->assertSame('where-it-comes-from', $story['sections'][0]['id']);
+        // A source may be a print citation with no address (one whose publisher forbids linking, the Oklahoma Historical
+        // Society's): it reads as plain text, has no link, and the check takes it.
+        $this->assertSame(['id' => 'two', 'n' => 2, 'html' => '<em>A Hymnal</em> (Boston, 1818), no. 12.', 'url' => null], $story['sources'][1]);
+        $this->assertArrayNotHasKey('url', StructuredData::song(['title' => 'T', 'description' => 'D', 'pageUrl' => 'https://example.com/songs/t', 'genre' => ['hymn'], 'credits' => []], $story)[1]['citation'][1]);
         $this->assertStringNotContainsString('Timeline', $story['sections'][0]['html'], 'the timeline is its own list');
         $this->assertSame([['year' => '1816', 'html' => 'written down <sup class="s-cite"><a href="#source-1">[1]</a></sup>'], ['year' => '1818', 'html' => 'printed <sup class="s-cite"><a href="#source-2">[2]</a></sup>']], $story['timeline']);
 
@@ -130,6 +134,15 @@ final class SongStoriesTest extends TestCase
         $this->artisan('app:stories:check', ['song' => 'test-song'])->assertFailed();
     }
 
+    public function test_the_check_fails_a_quoted_front_matter_value_but_not_quotes_inside_one(): void
+    {
+        $this->write('title: Test Song: history, meaning and the words explained', 'title: "Test Song: history, meaning and the words explained"');
+        $this->write('earliestPrinting: 1818, A Hymnal', 'earliestPrinting: "A Hymnal" (1818), and "Songs" (1820)');
+
+        $problems = SongStories::check('test-song');
+        $this->assertSame(['test-song: title is in quotes: front matter values aren\'t quoted (the line splits on its first colon)'], $problems);
+    }
+
     public function test_the_check_wants_the_guides_sections_in_order(): void
     {
         $this->write("## Sing next\n\n- [Amazing Grace](/songs/amazing-grace): the same meter.\n- [Silent Night](/songs/silent-night): a good next step.\n\n", '');
@@ -165,5 +178,44 @@ final class SongStoriesTest extends TestCase
         File::copy($this->dir.'/test-song.md', $this->dir.'/amazing-grace.md');
         File::put($this->dir.'/amazing-grace.md', str_replace('updated: 2026-11-12', 'updated: 2099-01-01', File::get($this->dir.'/amazing-grace.md')));
         $this->assertSame('2099-01-01', app(SitemapPaths::class)->lastModified()['/songs/amazing-grace'] ?? null);
+    }
+
+    public function test_the_full_words_leave_the_words_section_for_full_words(): void
+    {
+        $song = ['title' => 'Test Song', 'description' => 'A song.', 'pageUrl' => 'https://example.com/songs/test-song', 'genre' => ['hymn'], 'credits' => []];
+        $this->assertNull(SongStories::story('test-song')['fullWords'] ?? null, 'no block, no full words');
+
+        // An English song on its English page: an intro with its citation, then stanzas sung as written.
+        $this->write("The words mean what they say[^three].\n", "The words mean what they say[^three].\n\n### The full words\n\nAs Ann Writer printed them[^one].\n\n**Verse 1**\nSing it *once*,\nthen sing it again.\n\nThe second time\nsofter[^two].\n");
+        $story = SongStories::story('test-song');
+        $words = $story['fullWords'];
+        $this->assertStringContainsString('As Ann Writer printed them<sup class="s-cite"><a href="#source-1">[1]</a></sup>', $words['intro']);
+        $this->assertSame([
+            ['label' => 'Verse 1', 'lines' => [['sung' => 'Sing it once,'], ['sung' => 'then sing it again.']]],
+            ['label' => null, 'lines' => [['sung' => 'The second time'], ['sung' => 'softer.']]],
+        ], $words['stanzas']);
+        $section = collect($story['sections'])->firstWhere('key', 'words');
+        $this->assertStringNotContainsString('full words', $section['html']);
+        $this->assertStringNotContainsString('sing it again', $section['html']);
+        $this->assertSame([], SongStories::check('test-song'));
+
+        // Its markup carries the sung text, stanzas apart, in the song's language; withheld, it has none.
+        $composition = StructuredData::song($song, $story)[0];
+        $this->assertSame(['@type' => 'CreativeWork', 'text' => "Sing it once,\nthen sing it again.\n\nThe second time\nsofter.", 'inLanguage' => 'en'], $composition['lyrics']);
+        $hidden = SongStories::withoutWords($story);
+        $this->assertNull($hidden['fullWords']);
+        $this->assertArrayNotHasKey('lyrics', StructuredData::song($song, $hidden)[0]);
+    }
+
+    public function test_full_words_in_another_script_or_language_carry_their_meaning(): void
+    {
+        $this->write('language: English', 'language: Hebrew');
+        $this->write("The words mean what they say[^three].\n", "The words mean what they say[^three].\n\n### The full words\n\nThe hymn as it is sung[^one].\n\n> מָעוֹז צוּר\n*Ma'oz tzur*\nStronghold, rock\n> plain original\nits meaning\n");
+        $this->assertSame([['script' => 'מָעוֹז צוּר', 'scriptLang' => 'he', 'sung' => "Ma'oz tzur", 'meaning' => 'Stronghold, rock'], ['sung' => 'plain original', 'meaning' => 'its meaning']], SongStories::story('test-song')['fullWords']['stanzas'][0]['lines']);
+        $this->assertSame('he', SongStories::story('test-song')['sungLanguage']);
+
+        // A "### The full words" that isn't the words section's last subsection is prose, as before.
+        $this->write("its meaning\n", "its meaning\n\n### Afterwards\n\nMore.\n");
+        $this->assertNull(SongStories::story('test-song')['fullWords']);
     }
 }

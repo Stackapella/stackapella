@@ -19,6 +19,7 @@
     <script type="module">
         import { mountSatbVoicer } from '/js/public/tools/satb-voicer.js';
         const words = {
+            share: 'Share the parts', shareText: 'Four-part harmony for :chords, voiced for a choir. Voice your own:', cardTitle: 'Four-part harmony', cardChallenge: 'Voice your own chords', cardTagline: 'Harmony, made by you.', cardSite: 'stackapella.com', cardSaved: 'Card saved, and the line copied',
             chords: 'Your chords', placeholder: 'Type chords: C Am F G7 C', idleHint: 'Type some chords to voice them for four singers',
             voiced: 'Voiced for four', voicedHint: 'Smooth parts, no parallels', unknown: 'Not a chord we know: :chord', parallels: 'Check chord :bar: the outer parts move in parallel',
             inKey: 'In :key', parts: 'The parts', soprano: 'Soprano', alto: 'Alto', tenor: 'Tenor', bass: 'Bass', partOn: ':part: on or off',
@@ -27,7 +28,7 @@
             staffLabel: 'The four parts on a grand staff, :n chords',
             sample: 'C Am F G7 C',
         };
-        window.__voicer = mountSatbVoicer(document.querySelector('#voicer'), { words, keySlot: document.querySelector('[data-tool-key]') });
+        window.__voicer = mountSatbVoicer(document.querySelector('#voicer'), { words, keySlot: document.querySelector('[data-tool-key]'), onShared: (tool, done) => (window.__shared = [...(window.__shared ?? []), [tool, done]]) });
     </script>
 </body>
 </html>

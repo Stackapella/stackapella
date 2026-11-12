@@ -30,13 +30,18 @@ import { grandStaff } from '../staff.js';
 import { segmented, sheetRow, toolLayout } from '../tool-layout.js';
 import { toolPrefs } from '../tool-prefs.js';
 import { audio, voice } from '../voices.js';
+import { arcade, partInk, SHARE_FILES, shareCard, shareUrl } from './share-card.js';
 
 /** The words a page passes, each translated. */
 export const WORDS = [
     'chords', 'placeholder', 'idleHint', 'voiced', 'voicedHint', 'unknown', 'parallels', 'inKey', 'parts', 'soprano', 'alto', 'tenor', 'bass',
     'partOn', 'play', 'stop', 'settings', 'settingsTitle', 'reset', 'done', 'style', 'simple', 'warm', 'bright', 'tempo', 'slower', 'faster', 'bpm', 'copy', 'copied',
-    'staffLabel', 'sample',
+    'staffLabel', 'sample', 'share', 'shareText', 'cardTitle', 'cardChallenge', 'cardTagline', 'cardSite', 'cardSaved',
 ];
+
+// The share card's drawing (share-card.js), kept offline by the tools' service worker (page.js).
+export const WARM = SHARE_FILES;
+const CARD_CHORDS = 6; // a card shows the first six chords (and says there are more)
 
 export const PARTS = ['soprano', 'alto', 'tenor', 'bass'];
 const SOPRANO = { low: 62, high: 77, home: 67 }; // D4 to F5, around G4 (where a hymnal's soprano sits)
@@ -151,7 +156,10 @@ const INPUT = `
 
 const HERO = `<div class="overflow-x-auto pb-1 text-cream [&>svg]:mx-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" data-ui="satb-staff" data-staff></div>`;
 
-const READOUT = `<div class="grid grid-cols-4 gap-1.5" role="group" data-ui="satb-parts" data-part-toggles></div>`;
+// The parts, each a tap to leave it out; under them, Share the parts once they're voiced (docs/improvement-log.md, row 5).
+const READOUT = `
+<div class="grid grid-cols-4 gap-1.5" role="group" data-ui="satb-parts" data-part-toggles></div>
+<p class="mt-2 flex flex-wrap items-center justify-center gap-x-3 gap-y-1"><button type="button" class="btn-secondary btn-sm" data-share data-ui="satb-share" data-w="share"></button><span class="text-sm text-good" aria-live="polite" data-share-said></span></p>`;
 
 const PANEL = `
 <div class="absolute inset-0 overflow-auto p-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
@@ -170,7 +178,7 @@ function buildSheet(ui, w) {
     sheetRow(ui.sheet).body.innerHTML = '<button type="button" class="btn-secondary btn-sm" data-copy data-w="copy"></button>';
 }
 
-export function mountSatbVoicer(root, { words = {}, keySlot = null } = {}) {
+export function mountSatbVoicer(root, { words = {}, keySlot = null, onShared = null } = {}) {
     const w = (key) => words[key] ?? '';
     const ui = toolLayout(root, { keySlot, more: w('settings'), done: w('done'), title: w('settingsTitle'), reset: w('reset') });
     ui.modes.innerHTML = INPUT;
@@ -216,6 +224,11 @@ export function mountSatbVoicer(root, { words = {}, keySlot = null } = {}) {
         return `${name}${octave}`;
     };
 
+    /** The key the chords are in ("C", "Am"), or nothing before they're voiced. */
+    function keyText() {
+        return parts ? `${['C', 'D♭', 'D', 'E♭', 'E', 'F', 'F♯', 'G', 'A♭', 'A', 'B♭', 'B'][parts.key.tonic]}${parts.key.mode === 'minor' ? 'm' : ''}` : ''; // i18n-ignore: key names
+    }
+
     function compute() {
         stop();
         read = readChords(settings.text);
@@ -249,10 +262,10 @@ export function mountSatbVoicer(root, { words = {}, keySlot = null } = {}) {
         else if (parts?.warnings.length) ui.setStatus({ tone: 'muted', text: w('voiced'), hint: fill(w('parallels'), { bar: parts.warnings[0] + 1 }) });
         else if (parts) ui.setStatus({ tone: 'good', text: w('voiced'), hint: w('voicedHint') });
         else ui.setStatus({ hint: w('idleHint') });
-        const keyName = parts ? `${['C', 'D♭', 'D', 'E♭', 'E', 'F', 'F♯', 'G', 'A♭', 'A', 'B♭', 'B'][parts.key.tonic]}${parts.key.mode === 'minor' ? 'm' : ''}` : ''; // i18n-ignore: key names
-        ui.setLabel(w('parts'), parts ? fill(w('inKey'), { key: keyName }) : '');
+        ui.setLabel(w('parts'), parts ? fill(w('inKey'), { key: keyText() }) : '');
         ui.setPrimary({ label: sounding.length ? w('stop') : w('play'), active: sounding.length > 0 });
         ui.primary.disabled = !parts;
+        $('[data-share]').hidden = !parts || read.unknown.length > 0;
         text('[data-tempo-value]', fill(w('bpm'), { n: settings.tempo }));
         light(-1);
     }
@@ -334,6 +347,32 @@ export function mountSatbVoicer(root, { words = {}, keySlot = null } = {}) {
         prefs.save();
         stop();
         render();
+    });
+    // Share the parts: the chords and each part's notes as a card made on the device (result-card.js drawAnswerCard), with
+    // the line and the tool's link (?ref=share-four-part-harmony). The first six chords; nothing about who.
+    $('[data-share]').addEventListener('click', async () => {
+        if (!parts) return;
+        const button = $('[data-share]');
+        const more = read.chords.length > CARD_CHORDS ? ' …' : '';
+        const first = (list) => list.slice(0, CARD_CHORDS).join(' ') + more;
+        const chords = first(read.chords.map((c) => c.symbol));
+        button.disabled = true;
+        const done = await shareCard({
+            fileName: 'four-part-harmony.png',
+            text: fill(w('shareText'), { chords: read.chords.map((c) => c.symbol).join(' ') }),
+            url: shareUrl('four-part-harmony', 'share-four-part-harmony'),
+            draw: ({ drawAnswerCard }) => drawAnswerCard({
+                words: {
+                    title: w('cardTitle'), hero: chords, line: fill(w('inKey'), { key: keyText() }),
+                    rows: PARTS.map((p) => [w(p), first(parts[p].map(noteName))]),
+                    challenge: w('cardChallenge'), tagline: w('cardTagline'), site: w('cardSite'), arcade: arcade(),
+                },
+                color: partInk(4),
+            }),
+        });
+        if (done === 'saved') text('[data-share-said]', w('cardSaved'));
+        if (done) onShared?.('four-part-harmony', done);
+        button.disabled = false;
     });
     $('[data-copy]').addEventListener('click', async () => {
         if (!parts) return;

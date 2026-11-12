@@ -24,6 +24,7 @@
     "/js/theory.js",
     "/js/public/tool-layout.js",
     "/js/public/tool-prefs.js",
+    "/js/public/tools/share-card.js",
     "/js/dsp.js"
   ],
   "/js/public/tools/drone.js": [
@@ -190,6 +191,7 @@
     "/js/public/tool-layout.js",
     "/js/public/tool-prefs.js",
     "/js/public/voices.js",
+    "/js/public/tools/share-card.js",
     "/js/theory.js"
   ],
   "/js/public/tools/tap-tempo.js": [
@@ -234,7 +236,8 @@
     "/js/public/saved-range.js",
     "/js/public/tool-layout.js",
     "/js/public/tool-prefs.js",
-    "/js/public/voices.js"
+    "/js/public/voices.js",
+    "/js/public/tools/share-card.js"
   ],
   "/js/public/tools/vocal-range-test.js": [
     "/js/public/tools/vocal-range-test.js",
