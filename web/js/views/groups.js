@@ -10,7 +10,7 @@
 import { AccountWall } from '../components/account-wall.js';
 import { AppScreen } from '../components/page.js';
 import { api, uploadTo } from '../api.js';
-import { countShare, shareRef } from '../usage.js';
+import { countShare, shareRef, tried } from '../usage.js';
 import { first } from '../funnel.js';
 import { formatDate, locale, t, tk } from '../i18n.js';
 import { goBack, navigate } from '../router.js';
@@ -190,6 +190,7 @@ export const GroupsView = {
             try {
                 const { data } = await api.groups.create({ name: this.name.trim(), adult: true });
                 first('grp_made');
+                tried('together');
                 navigate(`/groups/${data.id}` + (this.shareAfter ? `?share=${encodeURIComponent(this.shareAfter)}` : ''));
             } catch (error) {
                 if (error?.code === 'validation_failed') this.error = error.errors?.name ?? t('groups.nameInvalid');
@@ -925,6 +926,7 @@ export const ChoirJoinView = {
                 // 18 and over is the account's birth date's to say (the server checks it): with none yet, it's asked first (askBirth).
                 const { data } = await api.groups.join(this.token, account.me?.birthGiven ? { adult: true } : {});
                 first('grp_joined');
+                tried('together');
                 toast(t('groups.joinedToast', { name: data.name }));
                 navigate(`/groups/${data.id}`, { replace: true });
             } catch (error) {

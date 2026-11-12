@@ -308,7 +308,7 @@ export const LessonEnd = {
                     <!-- The picture waits for a wider screen: on a phone it pushed Next lesson below the fold. -->
                     <div v-if="next.visual" class="pb-3 max-sm:hidden"><LearnVisual :type="next.visual" held class="mx-auto max-w-[16rem]" /></div>
                     <div class="space-y-3">
-                        <p class="text-xs font-bold uppercase tracking-[0.14em] text-accent-strong">{{ t('results.upNextMinutes', { minutes: next.minutes }) }}</p>
+                        <p class="text-xs font-bold uppercase tracking-[0.14em] text-accent-strong">{{ next.number ? t('results.upNextLesson', { number: next.number, minutes: next.minutes }) : t('results.upNextMinutes', { minutes: next.minutes }) }}</p>
                         <h2 class="text-2xl font-extrabold tracking-tight text-cream" translate="no">{{ localized(next.lesson.title) }}</h2>
                         <p v-if="next.line" class="text-muted" translate="no">{{ localized(next.line) }}</p>
                         <button type="button" class="btn-primary btn-lg w-full" @click="$emit('next')">{{ t('course.next') }}</button>

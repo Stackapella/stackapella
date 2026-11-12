@@ -187,7 +187,7 @@ export const LineBar = {
     template: `
         <ol class="grid gap-1.5" :class="compact ? '' : 'px-6 pt-3'" :style="{ gridTemplateColumns: 'repeat(' + lines.length + ', minmax(0, 1fr))' }" :aria-label="t('sing.lines')" data-line-bar>
             <li v-for="(line, i) in lines" :key="i">
-                <button type="button" class="block w-full text-start" :class="compact ? 'tap-44 py-2' : ''" :aria-current="i === now ? 'true' : null" :aria-label="compact ? line.label : null" :translate="compact ? 'no' : null" @click="$emit('seek', line.startSeconds)">
+                <button type="button" class="block w-full text-start" :class="compact ? 'tap-44 min-h-6 py-2' : ''" :aria-current="i === now ? 'true' : null" :aria-label="compact ? line.label : null" :translate="compact ? 'no' : null" @click="$emit('seek', line.startSeconds)">
                     <span class="block h-1.5 overflow-hidden rounded-full bg-raised" aria-hidden="true"><span class="block h-full rounded-full bg-cream/70" :style="{ width: fill(line) + '%' }"></span></span>
                     <span v-if="!compact" class="mt-1.5 block truncate text-xs" :class="i === now ? 'text-cream' : 'text-muted'" translate="no">{{ line.label }}</span>
                 </button>

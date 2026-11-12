@@ -216,9 +216,9 @@ def audit(f):
     visit("song", "/?api=mock&scenario=&as=member", "document.querySelector('#lead-title')", song_dialog)
 
     def part_board():
-        # Game mode's part leaderboard, open (components/boards.js): one card with a table.
-        f.run("document.querySelectorAll('[data-part-board] button')[1].click()")
-        f.wait("document.querySelector('[data-board-entry]')", what="the part's leaderboard")
+        # Game mode's part leaderboard (components/boards.js): closed, it's only its opener; opened, a table or its empty card.
+        f.run("document.querySelector('[data-part-board] button').click()")
+        f.wait("document.querySelector('[data-board-entry], [data-board-empty]')", what="the part's leaderboard")
 
     # Serious mode has no boards: the song page as it is.
     if f.skin == "serious":

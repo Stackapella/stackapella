@@ -19,12 +19,13 @@ import { experiment } from '../experiments.js';
 import { midiName } from '../dsp.js';
 import { Icon } from './icon.js';
 import { game } from '../skin.js';
+import { addTomorrow, nextUpLine, sendMyselfTheLink } from '../next-up.js';
 
 const PROVIDERS = { google: tk('auth.google'), apple: tk('auth.apple') };
 
 export const CourseWall = {
     components: { Icon },
-    setup: () => ({ PROVIDERS, navigate }), // navigate: the template's sign-in link (Sentry, 2026-11-10: it wasn't there)
+    setup: () => ({ PROVIDERS, navigate, addTomorrow, sendMyselfTheLink }), // navigate: the template's sign-in link (Sentry, 2026-11-10: it wasn't there)
     props: {
         course: { type: Object, default: null }, // a course from the catalogue, or null for the free course
         lessonId: { type: String, required: true }, // the lesson it opens, to come back to after sign-up
@@ -36,6 +37,8 @@ export const CourseWall = {
     template: `
         <section :class="compact ? 'space-y-3' : 'card space-y-5 p-6'" :aria-labelledby="uid" data-needs-account :data-wall-arm="arm">
             <component :is="'h' + (level ?? (compact ? 3 : 2))" :id="uid" class="font-bold text-cream" :class="compact ? 'text-base' : 'text-2xl tracking-tight'">{{ t('courses.wall.title') }}</component>
+            <!-- What waits, named (docs/retention-plan.md, idea 2): the lesson this wall opens. -->
+            <p v-if="nextUp" class="text-sm text-cream" translate="no" data-wall-next>{{ nextUp }}</p>
             <ul class="space-y-2" data-wall-keeps>
                 <li v-for="keep in keeps" :key="keep" class="flex items-start gap-2.5 text-sm text-cream"><Icon name="check" :size="16" class="mt-0.5 shrink-0 text-good" />{{ keep }}</li>
             </ul>
@@ -51,10 +54,22 @@ export const CourseWall = {
                 <a v-if="home" :href="home" class="link inline-flex min-h-6 items-center" data-needs-account-not @click.prevent="notNow">{{ t('course.backToCourse') }}</a>
                 <a :href="signIn" class="link inline-flex min-h-6 items-center" data-wall-sign-in @click.prevent="navigate(signIn)">{{ t('courses.wall.signIn') }}</a>
             </p>
+            <!-- One quiet way back for a guest not making an account yet, idea 2: a text link, never a button. The share sheet
+                 where the device has one, else one calendar entry for tomorrow, morning or evening, made here. -->
+            <p class="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm" data-wall-back>
+                <button v-if="canShare" type="button" class="link inline-flex min-h-6 items-center" data-wall-send @click="sendMyselfTheLink(lessonId)">{{ t('courses.wall.sendLink') }}</button>
+                <button v-else-if="!choosingTime" type="button" class="link inline-flex min-h-6 items-center" data-wall-calendar @click="choosingTime = true">{{ t('courses.wall.calendar') }}</button>
+                <template v-else>
+                    <span class="text-muted">{{ t('courses.wall.calendar') }}:</span>
+                    <button type="button" class="link inline-flex min-h-6 items-center" data-wall-calendar-at="morning" @click="addTomorrow(lessonId, 'morning')">{{ t('courses.wall.morning') }}</button>
+                    <button type="button" class="link inline-flex min-h-6 items-center" data-wall-calendar-at="evening" @click="addTomorrow(lessonId, 'evening')">{{ t('courses.wall.evening') }}</button>
+                </template>
+            </p>
         </section>`,
-    data: () => ({ uid: 'wall-' + Math.random().toString(36).slice(2, 8) }),
+    data: () => ({ uid: 'wall-' + Math.random().toString(36).slice(2, 8), choosingTime: false, canShare: typeof navigator.share === 'function' }),
     computed: {
         next: (vm) => '/learn/' + vm.lessonId,
+        nextUp: (vm) => nextUpLine(vm.lessonId),
         signUp: (vm) => `/signin?mode=signup&for=course&next=${encodeURIComponent(vm.next)}`,
         signIn: (vm) => `/signin?next=${encodeURIComponent(vm.next)}`,
         /** wall1's arm, drawn as the wall shows (exposure); the wall as it is until the arm is known. */

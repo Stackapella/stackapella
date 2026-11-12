@@ -36,6 +36,18 @@ def journey(f):
     assert not f.js("document.querySelector('[data-step-bars]')"), "a step count over the wall"
     assert f.js(f"{WALL}.dataset.wallArm") in (None, ""), "arm a (no experiment running): the wall as it is"
     assert "acct_course" not in (f.js("localStorage.getItem('stackapella.asks')") or ""), "the wall wrote to the asks' ledger"
+    # What waits, named, and one quiet way back for a guest not making an account (docs/retention-plan.md, idea 2): a
+    # text link under the wall's own links, never a second button: the share sheet, or tomorrow in the calendar.
+    expected = f.js("(async () => (await import('/js/next-up.js')).nextUpLine('1-match'))()")
+    assert expected and f.js("document.querySelector('[data-wall-next]')?.textContent.trim()") == expected, expected
+    back = f.js("[...document.querySelectorAll('[data-wall-back] button')].map((b) => b.className)")
+    assert len(back) == 1 and "btn-" not in back[0], f"one text link, not a button: {back}"
+    if f.js("!!document.querySelector('[data-wall-calendar]')"):
+        f.run("globalThis.countsSent = []")
+        f.run("document.querySelector('[data-wall-calendar]').click()")
+        f.wait("document.querySelectorAll('[data-wall-calendar-at]').length === 2", what="morning or evening")
+        f.run("document.querySelector('[data-wall-calendar-at=morning]').click()")
+        f.wait(f"{SENT}.then((kinds) => kinds.includes('back_cal_tap'))", what="the calendar entry counted")
     f.shot("wall")
     # Back to the course: its Not now, a plain count each time.
     f.run("globalThis.countsSent = []")

@@ -38,7 +38,7 @@ import { trackPeaks } from '../share.js';
 import { compress, DEFAULT_ROOM, impulseResponse, levelGains, limit, polishRender, ROOMS, spread } from '../polish.js';
 import { prefs } from './prefs.js';
 import { local, session as tabStorage } from '../storage.js';
-import { count } from '../usage.js';
+import { count, tried } from '../usage.js';
 import { keptIn } from '../unit-song.js';
 import { chipCountIn } from '../game/modules.js';
 
@@ -1411,6 +1411,11 @@ export async function storeTake(part, fields, samples) {
     }
     first('f_take'); // the funnel: this device's first take
     if (session.parts.filter((p) => p.frames > 0).length >= 2) first('f_harmony'); // and its first song of two parts sung
+    // Breadth: a take of a song's part kept; a second part of the same song; every part of it yours.
+    tried('record');
+    const sung = session.parts.filter((p) => p.templatePartKey && p.frames > 0).length;
+    if (sung >= 2) tried('stack');
+    if (sung && sung === session.parts.filter((p) => p.templatePartKey).length && sung >= 2) tried('whole');
 }
 
 /**

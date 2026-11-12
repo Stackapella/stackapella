@@ -212,6 +212,7 @@ app.mount('#app');
 nameScreens(); // each screen's heading as the tab's title, and focus on it after a move
 count('app_open'); // each time the app is opened (a load): anonymous, with no ID (js/usage.js)
 countReach(); // and once a day, a week and a month on this device (app_day, app_week, app_month)
+whenIdle(() => import('./tried-backfill.js').then((m) => m.startTried()).catch((error) => console.info('Breadth was not started', error?.message ?? error))); // breadth's tried set, filled in once, uncounted
 count(game() ? 'open_game' : 'open_serious'); // and in which skin
 
 // Who's signed in (never needed to learn or record), and what a Google or Apple sign-in came back with.

@@ -17,7 +17,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 from flow import run  # noqa: E402
 
-WIDTHS = [320, 360, 390, 768, 1024, 1100, 1233, 1280, 1440, 1920]
+WIDTHS = [320, 360, 390, 640, 768, 896, 1024, 1100, 1233, 1280, 1440, 1920]
 OVER = """JSON.stringify((() => {
     const edge = document.documentElement.clientWidth;
     const wide = [...document.querySelectorAll('body *')].filter((e) => {
@@ -63,6 +63,11 @@ GRID = """((outward) => {
   if (Math.round(h.height) <= height + 1 && Math.abs(b.top - h.top - (height - b.height) / 2) > 1) bad.push(`its first control ${Math.round(b.top - h.top)} px down a ${Math.round(h.height)} px bar`);
   return bad.join('; ');
 })"""
+# The studio's title keeps real room from 640 px: from 768 px its buttons once squeezed it to 10 px (app_audit,
+# 2026-11-12); the song's name and its line under it get 12rem at least, the buttons taking a row of their own before that.
+STUDIO_TITLE = """(() => { const input = document.querySelector('#song-name'); if (!input) return null;
+    const w = (el) => Math.round(el.getBoundingClientRect().width); const info = input.nextElementSibling;
+    return w(input) < 180 || w(info) < 180 ? `the title ${w(input)} px, its line ${w(info)} px` : null; })()"""
 WORKSPACES = ("/p/", "/learn/")  # the studio, Sing and a lesson: their bars the window's width, Back never further in than the site's logo
 
 
@@ -80,6 +85,11 @@ def journey(f):
             found = json.loads(f.js(OVER))
             if found["scroll"] > 0 or found["wide"]:
                 problems.append(f"{path} at {width}px: {found}")
+            if path == f"/p/{studio}" and width >= 640:  # a phone's title shares its row with Sing and More, as it always has
+                f.wait("document.querySelector('#song-name')", what="the studio's title")
+                squeezed = f.js(STUDIO_TITLE)
+                if squeezed:
+                    problems.append(f"{path} at {width}px, the studio's title squeezed: {squeezed}")
             for clash in f.js(HEADER):
                 problems.append(f"{path} at {width}px, its header: {clash}")
             if path != "/":

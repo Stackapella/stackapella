@@ -1,6 +1,6 @@
 // Usage counts (js/usage.js): only the allowlisted moments, added up into one batch with whether
 // someone was signed in and nothing else; none sent while the server hasn't turned counting on.
-import { count, countReturn, countShare, send, shareRef } from '/js/usage.js';
+import { addTried, count, countBreadth, countReturn, countShare, send, shareRef, tried } from '/js/usage.js';
 import { account } from '/js/stores/account.js';
 import { assert, test } from './harness.js';
 
@@ -82,7 +82,8 @@ test('usage counts: a share counts as sh:<surface>.<method> only for the server\
         countShare('somewhere', 'copy'); // not a surface: dropped
         count('sh:daily.copy'); // count() never takes a share: countShare does
         send();
-        const kinds = Object.fromEntries(JSON.parse(await sent[0].blob.text()).events.map((e) => [e.kind, e.n]));
+        // A share is also breadth's "share" (ft:share, once a device): left aside here, tested with the tried set.
+        const kinds = Object.fromEntries(JSON.parse(await sent[0].blob.text()).events.filter((e) => !e.kind.startsWith('ft:')).map((e) => [e.kind, e.n]));
         assert(JSON.stringify(kinds) === '{"sh:daily.sheet":2}', `only the known share, twice: ${JSON.stringify(kinds)}`);
         assert(shareRef('daily') === 'share-daily', 'a shared link\'s source tag');
     } finally {
@@ -129,5 +130,43 @@ test('usage counts: coming back on day 1, 7, 14 or 30 since arriving, and once i
         else localStorage.setItem('stackapella.funnel', had.funnel);
         if (had.returned === null) localStorage.removeItem('stackapella.returned');
         else localStorage.setItem('stackapella.returned', had.returned);
+    }
+});
+
+test('usage counts: a feature\'s first use goes once as ft:, never for one already held; br:<n> once a day after the fill-in', async () => {
+    const sent = [];
+    const beacon = navigator.sendBeacon;
+    const keys = ['stackapella.tried', 'stackapella.breadthDay'];
+    const had = { config: account.config, me: account.me, kept: keys.map((k) => localStorage.getItem(k)) };
+    navigator.sendBeacon = (url, blob) => {
+        sent.push({ url, blob });
+        return true;
+    };
+    const kinds = async () => {
+        send();
+        const batch = sent.pop();
+        return batch ? JSON.parse(await batch.blob.text()).events.map((e) => e.kind).sort() : [];
+    };
+    try {
+        account.config = { usageCounts: true };
+        account.me = null;
+        keys.forEach((k) => localStorage.removeItem(k));
+        const day = new Date(2026, 10, 12, 12).getTime();
+        countBreadth(day);
+        assert((await kinds()).length === 0, 'no br before the set is filled in');
+        addTried({ lesson: true, share: '2026-11-01' }, { at: day }); // what the device held: never counted
+        tried('lesson', { at: day });
+        tried('nonsense', { at: day });
+        tried('record', { at: day });
+        tried('record', { at: day });
+        assert(JSON.stringify(await kinds()) === '["ft:record"]', 'only the new feature, once');
+        countBreadth(day);
+        countBreadth(day);
+        assert(JSON.stringify(await kinds()) === '["br:3"]', 'three tried, counted once that day');
+    } finally {
+        navigator.sendBeacon = beacon;
+        account.config = had.config;
+        account.me = had.me;
+        keys.forEach((k, i) => (had.kept[i] === null ? localStorage.removeItem(k) : localStorage.setItem(k, had.kept[i])));
     }
 });

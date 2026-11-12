@@ -469,7 +469,9 @@ export const LearnView = {
             if (!lesson) return null;
             const learn = lesson.steps.find((s) => s.kind === 'learn' && s.visual);
             const said = lesson.steps.find((s) => s.headline);
-            return { lesson, minutes: lessonMinutes(lesson), visual: learn?.visual ?? null, line: said?.headline ?? null };
+            // Its number in its unit, so the end names it as the map does (docs/retention-plan.md, idea 2: "Next: Lesson 2").
+            const number = (findLesson(lesson.id)?.index ?? -1) + 1 || null;
+            return { lesson, number, minutes: lessonMinutes(lesson), visual: learn?.visual ?? null, line: said?.headline ?? null };
         },
         last: (vm) => !!vm.entry && vm.step === vm.entry.lesson.steps.length - 1,
         color: (vm) => vm.paint(PART_COLORS[((vm.entry?.unit.colour ?? 4) - 1) % PART_COLORS.length]),

@@ -38,7 +38,7 @@ import { Icon } from '../components/icon.js';
 import { AppScreen } from '../components/page.js';
 import { toast } from '../components/ui.js';
 import { confirmAction } from '../components/confirm.js';
-import { count } from '../usage.js';
+import { count, tried } from '../usage.js';
 
 const STEP_NAMES = {
     tempo: tk('create.step.tempo'),
@@ -431,6 +431,7 @@ export const CreateView = {
                 this.dirty = false;
                 await discardDraft(d.id);
                 if (d.mode === 'hum') count('hum_saved'); // a hummed tune kept as a song
+                tried('create'); // breadth: a song of your own saved (the builder, or Hum a tune)
                 toast(record.state === 'importedPrivate' ? t('create.savedImported') : record.state === 'limit' || record.state === 'invalid' ? t('create.savedHereOnly') : t('create.saved'));
                 navigate(`/t/${record.id}`, { replace: true });
             } catch (error) {

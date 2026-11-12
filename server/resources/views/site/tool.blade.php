@@ -47,9 +47,15 @@
         {{-- The page's heading comes after the tool (the shared tool layout has none: docs/tools-plan.md, "Tool page
              frame"), with the searched words, the lede and how to use it (the trail is at the top, in the tool bar). --}}
         <section class="s-wrap s-sec2 s-tool-more" aria-labelledby="page-h">
-            <p class="s-teyebrow">{{ $page['eyebrow'] ?? $ix['eyebrow'] }}</p>
-            <h1 id="page-h">{{ $page['headline'] }}</h1>
-            <p class="s-lede s-tool-lede">{{ $page['lead'] }}</p>
+            {{-- From 900 px the heading at left and the lead large at right, the steps as numbered columns under them
+                 (docs/design-rules.md, "A compact tool sits beside its words": the reference pages' top). --}}
+            <div class="s-tool-top">
+                <div>
+                    <p class="s-teyebrow">{{ $page['eyebrow'] ?? $ix['eyebrow'] }}</p>
+                    <h1 id="page-h">{{ $page['headline'] }}</h1>
+                </div>
+                <p class="s-lede s-tool-lede">{{ $page['lead'] }}</p>
+            </div>
             <h2 class="s-kick">{{ $ix['how'] }}</h2>
             <ol class="s-tool-how">
                 @foreach ((array) $page['how'] as $line)
@@ -78,8 +84,11 @@
         @endif
 
         {{-- What's worth knowing around the tool (cents, tuning a guitar, the voice types): a few useful sections, never filler. --}}
+        {{-- From 900 px each section's heading at left and its words at right, so a short section leaves no empty side. --}}
+        @if ((array) ($page['guide'] ?? []) !== [])
+        <div class="s-wrap s-sec2 s-tool-guides">
         @foreach ((array) ($page['guide'] ?? []) as $section)
-            <section class="s-wrap s-sec2 s-tool-guide" aria-labelledby="guide-{{ $loop->iteration }}">
+            <section class="s-tool-guide" aria-labelledby="guide-{{ $loop->iteration }}">
                 <h2 id="guide-{{ $loop->iteration }}">{{ $section['heading'] }}</h2>
                 @foreach ((array) $section['body'] as $paragraph)
                     <p>{{ $paragraph }}</p>
@@ -92,6 +101,8 @@
                 @endif
             </section>
         @endforeach
+        </div>
+        @endif
         {{-- The reference pages about the same things (/intervals, /chords, /voice-types): one quiet line after the guide,
              whose table can also link each row to its own page (the table's `links`). --}}
         @if (is_array($page['reference'] ?? null))

@@ -7,7 +7,7 @@
 // (sendBeacon); offline or refused, it's simply dropped. Off when the server
 // says so (auth.config.usageCounts: a self-hosted install, unless its owner turned it on).
 
-import { OPERATIONS } from './api.js';
+import { api, OPERATIONS } from './api.js';
 import { mockWanted } from './api-mode.js';
 import { account, ref } from './stores/account.js';
 import { variant as funnelVariant } from './funnel.js';
@@ -40,6 +40,8 @@ for (const kind of [
     // A choir group's path, each a device's first (js/funnel.js first): the start sheet shown, a group made, its link first
     // sent, an invite accepted, a director's first part given, a member's first take on a group's song.
     'grp_start', 'grp_made', 'grp_link', 'grp_joined', 'grp_assigned', 'grp_sang',
+    // The thread back (docs/retention-plan.md, idea 2): the wall's Send myself the link and Add tomorrow to my calendar.
+    'back_link_tap', 'back_cal_tap',
     'school_redeemed',
     // Home's Today line (docs/home-returning-plan.md, experiment ret1): each case shown, and its taps.
     'home_today_gap_shown', 'home_today_gap_tap', 'home_today_stuck_shown', 'home_today_stuck_tap',
@@ -79,7 +81,77 @@ export const SHARE_METHODS = new Set(['sheet', 'copy', 'video', 'image', 'embed'
 
 /** Counts a share of `surface` by `method`: countShare('daily', 'sheet') is sh:daily.sheet. */
 export function countShare(surface, method) {
-    if (SHARE_SURFACES.has(surface) && SHARE_METHODS.has(method)) enqueue(`sh:${surface}.${method}`);
+    if (!SHARE_SURFACES.has(surface) || !SHARE_METHODS.has(method)) return;
+    enqueue(`sh:${surface}.${method}`);
+    tried('share');
+}
+
+// ---- Breadth: the features this device has tried (docs/retention-plan.md, section 8; config/counts.php `features`).
+// Kept here only, each with the day first used, never sent as a set: ft:<feature> once on its first use, br:<n> beside
+// each day's app_day. Signed in, the account keeps the same set (account.update `tried`, merged), so a feature first used
+// on another device isn't counted again here.
+export const TRIED = ['lesson', 'warmup', 'singalong', 'record', 'stack', 'whole', 'course', 'create', 'share', 'together', 'tool'];
+const TRIED_KEY = 'stackapella.tried'; // { at: { feature: 'YYYY-MM-DD' }, backfilled: bool }
+const localDay = (at = Date.now()) => new Date(at - new Date(at).getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+
+/** What this device has tried: { at: { feature: day }, backfilled }. */
+export function triedSet() {
+    try {
+        const kept = JSON.parse(localStorage.getItem(TRIED_KEY) || 'null');
+        return { at: kept?.at && typeof kept.at === 'object' ? kept.at : {}, backfilled: !!kept?.backfilled };
+    } catch (error) {
+        console.info('The tried set was unreadable', error?.message ?? error);
+        return { at: {}, backfilled: false };
+    }
+}
+
+function keepTried(set) {
+    try {
+        localStorage.setItem(TRIED_KEY, JSON.stringify(set));
+        return true;
+    } catch (error) {
+        console.info('The tried set was not kept', error?.message ?? error);
+        return false;
+    }
+}
+
+/** A feature used: on its first use here (and not on the account already), ft:<feature>, and the account told. */
+export function tried(feature, { at = Date.now() } = {}) {
+    if (!TRIED.includes(feature)) return;
+    const set = triedSet();
+    if (set.at[feature]) return;
+    set.at[feature] = localDay(at);
+    if (!keepTried(set)) return; // without the record it would count on every use
+    enqueue(`ft:${feature}`);
+    if (account.me && !mockWanted()) api.account.update({ tried: { [feature]: set.at[feature] } }).catch((error) => console.info('The tried feature was not kept on the account', error?.code ?? error));
+}
+
+/**
+ * What the device already holds (stars, songs, takes, groups), filled in once WITHOUT counting (a device that had them
+ * before breadth was counted), and the account's own set (signed in), also never counted again here.
+ */
+export function addTried(features, { at = Date.now() } = {}) {
+    const set = triedSet();
+    for (const [feature, day] of Object.entries(features)) {
+        if (TRIED.includes(feature) && !set.at[feature]) set.at[feature] = typeof day === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(day) ? day : localDay(at);
+    }
+    set.backfilled = true;
+    keepTried(set);
+}
+
+/** br:<n>, how many features this device has tried: once a day, and only once the set has been filled in. */
+export function countBreadth(at = Date.now()) {
+    const set = triedSet();
+    if (!set.backfilled) return;
+    const day = localDay(at);
+    try {
+        if (localStorage.getItem('stackapella.breadthDay') === day) return;
+        localStorage.setItem('stackapella.breadthDay', day);
+    } catch (error) {
+        console.info('The breadth day was not kept', error?.message ?? error);
+        return;
+    }
+    enqueue(`br:${Object.keys(set.at).filter((f) => TRIED.includes(f)).length}`);
 }
 
 /** A shared link's ?ref= tag for `surface` (the server's source for it): share-daily. */
@@ -189,7 +261,11 @@ export function countReach(at = Date.now()) {
         return; // without a record, counting would repeat on every open
     }
     for (const kind of changed) count(kind);
-    if (changed.includes('app_day')) countReturn(at);
+    if (changed.includes('app_day')) {
+        countReturn(at);
+        if (String(ref() ?? '').startsWith('tool-')) tried('tool', { at }); // arrived from a free tool
+        countBreadth(at); // breadth, once a day (after the set is first filled in: js/tried-backfill.js)
+    }
 }
 
 const RETURNED = 'stackapella.returned'; // '1' once back_w1 has gone: nothing else

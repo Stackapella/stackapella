@@ -2191,6 +2191,21 @@ select:disabled {
 .s-tool-also a { white-space: nowrap; }
 .s-tool-guide h2 { font-size: 20px; font-weight: 800; }
 .s-tool-guide p { margin-top: 8px; max-width: 64ch; line-height: 1.6; }
+/* Tool and warm-up pages below the stage use the width (docs/design-rules.md, "A compact tool sits beside its words"):
+   from 900 px the heading at left with the lead large at right, top-aligned with the eyebrow; the steps as numbered
+   columns; each guide section a row of its own, its heading at left and its words and table at right (pairing
+   sections left a lone one beside an empty side whenever a table took a row). A phone stacks it all in order. */
+.s-tool-guides > .s-tool-guide + .s-tool-guide { margin-top: 48px; }
+@media (min-width: 900px) {
+    .s-tool-top { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 56px; align-items: start; }
+    .s-tool-top .s-tool-lede { margin-top: 0; padding-top: 2px; font-size: 20px; line-height: 1.5; max-width: 46ch; }
+    .s-tool-more .s-tool-how { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px 32px; max-width: none; }
+    .s-tool-guides > .s-tool-guide { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); column-gap: 64px; align-items: start; }
+    .s-tool-guides > .s-tool-guide + .s-tool-guide { margin-top: 72px; padding-top: 40px; border-top: 1px solid var(--color-line); }
+    .s-tool-guides > .s-tool-guide > h2 { grid-column: 1; grid-row: 1 / span 12; }
+    .s-tool-guides > .s-tool-guide > :not(h2) { grid-column: 2; }
+    .s-tool-guides > .s-tool-guide > h2 + * { margin-top: 0; }
+}
 .s-tool-table { margin-top: 12px; overflow-x: auto; }
 .s-tool-table table { border-collapse: collapse; min-width: 100%; font-size: 15px; }
 .s-tool-table :is(th, td) { padding: 8px 12px; text-align: start; border-bottom: 1px solid var(--color-line); }

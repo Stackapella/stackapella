@@ -9,7 +9,7 @@ import * as db from '../db.js';
 import { encodeWav } from '../wav.js';
 import { session, shareMix } from './session.js';
 import { cloud, syncNow } from './cloud.js';
-import { count } from '../usage.js';
+import { count, tried } from '../usage.js';
 import { first } from '../funnel.js';
 
 const POLL_MS = 2000;
@@ -90,6 +90,7 @@ export async function shareProject({ title, visibility = 'unlisted', partId = nu
     }
     count('share_created');
     first('f_share'); // the funnel: this device's first share
+    tried('share'); // breadth
     onStep('processing');
     for (let i = 0; i < 90 && harmony.status !== 'ready' && harmony.status !== 'failed'; i++) {
         await wait(POLL_MS);

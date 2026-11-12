@@ -42,7 +42,7 @@ import { session as tabStorage } from '../storage.js';
 import { deleteTemplate, discardDraft, loadMine, mine, saveTemplate } from '../stores/templates.js';
 import { SheetImport } from '../components/create/sheet-import.js';
 import { readSheetFile } from '../sheet-import.js';
-import { count } from '../usage.js';
+import { count, tried } from '../usage.js';
 import { lastLooked, lookedNow, newsPick } from '../song-news.js';
 import { leftProject, loadShared } from '../stores/cloud.js';
 import { friendlyProblem } from '../components/create/save.js';
@@ -901,6 +901,7 @@ export const ProjectsView = {
             try {
                 const record = await saveTemplate(template, { visibility: 'private', source: 'sheet-music' });
                 count('sheet_import');
+                tried('create'); // breadth: a song of your own, from sheet music
                 this.sheetScore = null;
                 toast(t('create.home.imported', { title: record.template.title }));
                 navigate(`/t/${record.id}`);

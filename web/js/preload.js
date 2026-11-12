@@ -127,6 +127,7 @@
         '/js/capture-scale.js',
         '/js/pitch-display.js',
         '/js/synth.js',
+        '/js/next-up.js',
         '/js/components/note-keyboard.js',
         '/js/notes.js',
         '/js/recorded-guides.js',

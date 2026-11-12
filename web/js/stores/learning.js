@@ -13,7 +13,7 @@ import { BADGES, newBadges, tally, withBadges } from '../badges.js';
 import { playSound } from '../sounds.js';
 import { t } from '../i18n.js';
 import { sayBadges } from '../game/modules.js';
-import { count, countFor } from '../usage.js';
+import { count, countFor, tried } from '../usage.js';
 import { askYes, first, goalMet } from '../funnel.js';
 import { courseLessons, courseOf, recordCourseLesson, restartedCourseProgress } from '../courses.js';
 import { recordBoss, unitOfBoss } from '../boss.js';
@@ -352,6 +352,8 @@ export async function finishLesson(lessonId, { percent, onTime = true, timing = 
     await save(progress);
     count('lesson_done'); // once a finish: here, where it's recorded, never as the end screen shows again
     countFor(entry?.course ? 'pl_d' : 'fl_d', entry?.course ? entry.course.id : lessonId);
+    if (earned > 0) tried('lesson'); // breadth: a lesson finished with a star
+    if (earned > 0 && entry?.course) tried('course'); // and one in a course other than the free one
     if (entry?.course) countFor('cl_d', lessonId); // any other course's lesson, by its own id
     if (!unitWasDone && unitDone(progress)) count('unit_done');
     // A first lesson finished with a star in any course (the free one too), once on this device: a funnel kind, so it keeps
@@ -497,6 +499,7 @@ export async function setGoal(days) {
 }
 
 export async function workoutDone() {
+    tried('warmup'); // breadth: a workout finished
     const { progress } = addXp(learning.progress, { kind: 'workout' });
     await save({ ...tally(countDay(progress), 'workouts', { add: 1 }), lastWorkout: dayOf() });
 }

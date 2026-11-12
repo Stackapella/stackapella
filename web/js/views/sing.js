@@ -18,7 +18,7 @@ import { scoreTake } from '../scoring.js';
 import { trackFrame, trackInWorker, VOICED_CLARITY } from '../pitchtrack.js';
 import * as sessionStore from '../stores/session.js';
 import { account } from '../stores/account.js';
-import { count } from '../usage.js';
+import { count, tried } from '../usage.js';
 import { local } from '../storage.js';
 import { countInText } from '../components/count-in.js';
 import { session } from '../stores/session.js';
@@ -1347,6 +1347,7 @@ export const SingView = {
                 if (score.status === 'scored' && !bleed && this.project.template?.id) countSung(this.project.template.id, key); // the challenge sung (any skin)
                 if (score.status === 'scored' && !bleed) {
                     remember({ percent: score.percent, insights: score.insights, tendency: score.tendency }).catch((error) => console.error('Not remembered', error));
+                    if (this.project.template?.id && !this.project.course) tried('singalong'); // breadth: a library song's part scored in Sing
                     if (score.percent >= 90) countDone('excellentTakes', { add: 1 }).catch((error) => console.error('Not counted', error));
                     // Kept with the take it's about, so it goes up with that take (js/sync.js).
                     sessionStore.updatePart(part, { score: { ...summary, takeId }, scoring: null });

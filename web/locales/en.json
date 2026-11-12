@@ -4253,7 +4253,13 @@
             "keepAll": "Every lesson of every course, all free",
             "free": "Free, with no card and no trial.",
             "email": "Use my email instead",
-            "signIn": "Already have an account? Sign in"
+            "signIn": "Already have an account? Sign in",
+            "sendLink": "Send myself the link",
+            "shareText": "My next singing lesson: {title}",
+            "calendar": "Add tomorrow to my calendar",
+            "morning": "Morning",
+            "evening": "Evening",
+            "calendarTitle": "Sing: {title}"
         },
         "yours": "Your courses",
         "progressShort": "{done} of {total}",
@@ -4440,6 +4446,7 @@
         "locked": "This lesson opens once you've earned enough stars before it.",
         "lockedSerious": "This lesson opens once you've sung the ones before it.",
         "backToCourse": "Back to the course",
+        "nextUp": "Next: Lesson {number}, {title}, {minutes, plural, one {about 1 minute} other {about # minutes}}.",
         "flipRest": {
             "title": "Rest your voice",
             "line": "That's about five minutes of flips, the most at a time. Flip lessons open again at {time}; the course's other lessons are open now."
@@ -7115,6 +7122,7 @@
         "heard": "Quick one: how did you hear about Stackapella?",
         "upNext": "Up next",
         "upNextMinutes": "Up next · {minutes} min",
+        "upNextLesson": "Up next · Lesson {number} · {minutes} min",
         "playAgainStars": "Sing it again for more stars",
         "unitDone": "That's every lesson open to you for now. The course map shows what's next.",
         "end": {
