@@ -20,7 +20,9 @@ const QUALITIES = {
 };
 export const MAX_LINES = 4; // our songs have 2 to 4 sung parts
 const EPSILON = 1e-6;
-const round = (beat) => Math.round(beat * 10000) / 10000;
+// Six decimal places at most (MySQL's JSON column changes longer numbers); lengths are taken from rounded ends, so a
+// bar's notes still add up to the bar.
+const round = (beat) => Math.round(beat * 1e6) / 1e6;
 
 /** The key's name from MusicXML's fifths and mode, as our keys are written ("G", "Bbm"). */
 export function keyFromFifths(fifths, minor = false) {
@@ -45,61 +47,153 @@ const toBeats = (quarters, timeSignature) => (timeSignature === '6/8' ? quarters
 const text = (el, selector) => el?.querySelector(selector)?.textContent?.trim() ?? null;
 const childrenNamed = (el, name) => [...el.children].filter((c) => c.tagName === name);
 
+/** A measure's navigation marks, from its directions' sounds and words: segno, coda, To Coda, Fine, D.C., D.S. */
+function marksOf(m) {
+    const sounds = [...m.querySelectorAll('sound')];
+    const has = (attr) => sounds.some((sd) => sd.hasAttribute(attr) && sd.getAttribute(attr) !== 'no');
+    const words = [...m.querySelectorAll('direction-type words')].map((w) => w.textContent.trim());
+    const said = (re) => words.some((w) => re.test(w));
+    const toCoda = has('tocoda') || said(/\bto\s+coda\b/i);
+    return {
+        segno: has('segno') || !!m.querySelector('direction-type segno'),
+        // The coda the music jumps to (not the To Coda sign, which some editors also draw as a coda).
+        coda: has('coda') || (!toCoda && !!m.querySelector('direction-type coda')),
+        toCoda,
+        fine: has('fine') || said(/^fine\.?$/i),
+        dc: has('dacapo') || said(/^d\.?\s?c\.?(\s|$)|^da capo/i),
+        ds: has('dalsegno') || said(/^d\.?\s?s\.?(\s|$)|^dal segno/i),
+    };
+}
+
 /**
- * The measures in the order they're sung: repeat signs and first and second endings written out.
- * D.C., D.S. and codas aren't followed, and are named for the singer. Returns `{ order, repeats, jumps }`.
+ * The measures in the order they're sung: repeat signs and first and second endings written out, and D.C. or D.S.
+ * followed once, as printed: back to the start or the segno, on to Fine, or from To Coda to the coda. After the jump
+ * repeats aren't taken again and only a set of endings' last is sung (the usual reading). Returns `{ order, passes,
+ * repeats, jump }`: `passes` is each measure's time through its repeat (1, 2...), for the verse sung on it, and
+ * `jump` is null or `{ kind: 'dc' | 'ds', fine, coda }`.
  */
 export function playOrder(measures) {
     const order = [];
-    const ending = (m) => childrenNamed(m, 'barline').flatMap((b) => childrenNamed(b, 'ending')).find((e) => e.getAttribute('type') === 'start');
+    const passes = [];
+    const marks = measures.map(marksOf);
+    const endingStart = (m) => childrenNamed(m, 'barline').flatMap((b) => childrenNamed(b, 'ending')).find((e) => e.getAttribute('type') === 'start');
+    const endsAnEnding = (m) => childrenNamed(m, 'barline').some((b) => b.querySelector('ending[type="stop"], ending[type="discontinue"]'));
     const has = (m, location, direction) => childrenNamed(m, 'barline').some((b) => (b.getAttribute('location') ?? 'right') === location && b.querySelector(`repeat[direction="${direction}"]`));
+    /** The measure an ending starting at `i` stops at. */
+    const endingEnd = (i) => {
+        let j = i;
+        while (j < measures.length - 1 && !endsAnEnding(measures[j])) j++;
+        return j;
+    };
     let start = 0;
     let repeats = 0;
-    const done = new Set(); // the backward repeats already taken
     let pass = 1;
-    for (let i = 0; i < measures.length && order.length < measures.length * 4; i++) {
+    const taken = new Map(); // a backward repeat's index: how many times it's been taken
+    let jump = null;
+    let i = 0;
+    while (i < measures.length && order.length < measures.length * 6) {
         const m = measures[i];
-        if (has(m, 'left', 'forward')) {
-            if (!done.has(`start${i}`)) pass = 1;
+        if (!jump && has(m, 'left', 'forward')) {
+            if (!taken.has(`from${i}`)) pass = 1;
             start = i;
         }
-        const e = ending(m);
+        const e = endingStart(m);
         if (e) {
-            const numbers = (e.getAttribute('number') ?? '1').split(/[,\s]+/).map(Number);
-            if (!numbers.includes(pass)) {
-                // This ending isn't for this time through: skip to the measure after it.
-                while (i < measures.length - 1 && !childrenNamed(measures[i], 'barline').some((b) => b.querySelector('ending[type="stop"], ending[type="discontinue"]'))) i++;
+            const stop = endingEnd(i);
+            const numbers = (e.getAttribute('number') ?? '1').split(/[,\s]+/).filter(Boolean).map(Number);
+            // After a D.C. or D.S., only the set's last ending; before it, the ending for this time through.
+            const sing = jump ? !endingStart(measures[stop + 1] ?? m) || stop + 1 >= measures.length : numbers.includes(pass);
+            if (!sing) {
+                i = stop + 1;
                 continue;
             }
         }
         order.push(i);
-        if (has(m, 'right', 'backward')) {
-            const times = Number(childrenNamed(m, 'barline').find((b) => b.querySelector('repeat[direction="backward"]'))?.querySelector('repeat').getAttribute('times') ?? 2);
-            const key = `back${i}`;
-            const taken = done.has(key) ? Number([...done].filter((d) => d.startsWith(`${key}:`)).length) : 0;
-            if (taken + 1 < times) {
-                done.add(key);
-                done.add(`${key}:${taken}`);
-                repeats++;
-                pass = taken + 2;
-                i = start - 1;
-                done.add(`start${start}`);
-            } else {
-                pass = 1;
-                start = i + 1;
+        passes.push(pass);
+        if (!jump && endsAnEnding(m) && !has(m, 'right', 'backward')) pass = 1; // the set's last ending: past the repeat
+        if (jump && marks[i].fine) break;
+        if (jump && marks[i].toCoda) {
+            const coda = marks.findIndex((k, j) => j > i && k.coda);
+            if (coda > i) {
+                jump.coda = true;
+                i = coda;
+                continue;
             }
         }
+        if (!jump && has(m, 'right', 'backward')) {
+            const times = Number(childrenNamed(m, 'barline').find((b) => b.querySelector('repeat[direction="backward"]'))?.querySelector('repeat').getAttribute('times') ?? 2);
+            const done = taken.get(i) ?? 0;
+            if (done + 1 < times) {
+                taken.set(i, done + 1);
+                taken.set(`from${start}`, true);
+                repeats++;
+                pass = done + 2;
+                i = start;
+                continue;
+            }
+            pass = 1;
+            start = i + 1;
+        }
+        if (!jump && (marks[i].dc || marks[i].ds)) {
+            const to = marks[i].dc ? 0 : Math.max(0, marks.findIndex((k) => k.segno));
+            jump = { kind: marks[i].dc ? 'dc' : 'ds', fine: marks.some((k) => k.fine), coda: false };
+            pass = 1;
+            i = to;
+            continue;
+        }
+        i++;
     }
-    const jumps = measures.some((m) => m.querySelector('sound[dacapo], sound[dalsegno], sound[tocoda], segno, coda'));
-    return { order, repeats, jumps };
+    return { order, passes, repeats, jump };
+}
+
+/** A lyric's words as printed: its syllables joined at an elision ("o'‿clock"), an em dash read as a comma. */
+function lyricText(lyric) {
+    let out = '';
+    for (const child of lyric.children) {
+        if (child.tagName === 'text') out += child.textContent;
+        else if (child.tagName === 'elision') out += child.textContent || '‿';
+    }
+    out = out.trim().replace(/\s*—\s*/g, ', ').replace(/,\s*$/, ',');
+    return out === '_' ? '' : out;
 }
 
 /**
- * A MusicXML score read into its lines: `{ title, credits, key, timeSignature, tempo, pickupBeats,
- * chords, lines, notices }`, or `{ unreadable }`, or `{ unsupported: reason }`. A line is one voice
- * of one part as the file numbers it: `{ id, name, staff, voice, notes, range, chordBars, words }`.
- * A note is `{ beat, length, pitches, lyric?, br? }`: `pitches`, lowest first, more than one where
- * the voice has two notes at once (the singer picks the top or the bottom).
+ * Each note's word for verse `verseOf(note)`: where a bar (one time through it, `n`) has no words for that verse, they're
+ * sung as printed once, so verse 1's.
+ */
+function wordsFor(notes, verseOf) {
+    const worded = new Set(notes.filter((x) => x.lyrics?.[verseOf(x)]).map((x) => x.n));
+    return notes.map((x) => {
+        const { lyric, ...rest } = x;
+        const verse = verseOf(x);
+        const said = x.lyrics?.[verse] ?? (worded.has(x.n) ? null : x.lyrics?.[1] ?? (verse === 1 && x.lyrics ? Object.values(x.lyrics)[0] : null));
+        return said ? { ...rest, lyric: said } : rest;
+    });
+}
+
+/** Bars as printed, short: "3, 7–9, 12". */
+export function barList(bars) {
+    const nums = [...new Set(bars)].map(Number).filter(Number.isFinite).sort((a, b) => a - b);
+    const out = [];
+    for (let i = 0; i < nums.length; i++) {
+        let j = i;
+        while (j + 1 < nums.length && nums[j + 1] === nums[j] + 1) j++;
+        out.push(j > i + 1 ? `${nums[i]}–${nums[j]}` : j === i + 1 ? `${nums[i]}, ${nums[j]}` : `${nums[i]}`);
+        i = j;
+    }
+    return out.join(', ');
+}
+
+const TEMPO_WORDS = /\b(rall|rit|ritard|accel|a tempo|allarg|morendo|poco a poco|tempo primo|rubato)/i;
+const SOLO_TUTTI = /^(solo|soli|tutti)\b/i;
+
+/**
+ * A MusicXML score read into its lines: `{ title, credits, key, timeSignature, tempo, pickupBeats, chords, sections,
+ * lines, notices }`, or `{ unreadable }`, or `{ unsupported: reason }`. A line is one voice of one part as the file
+ * numbers it: `{ id, name, staff, voice, notes, range, chordNotes, chordBars, words }`. A note is `{ beat, length,
+ * pitches, lyric?, br? }`: `pitches`, lowest first, more than one where the voice has two notes at once (the singer
+ * picks the top or the bottom). `sections` are where the song's sections start, `{ name, beat }`: each verse its own
+ * pass through the music ("Verse 2"), or at rehearsal marks.
  */
 export function readMusicXML(xml) {
     const doc = new DOMParser().parseFromString(xml, 'application/xml');
@@ -120,24 +214,30 @@ export function readMusicXML(xml) {
     let graces = 0;
     let pickupQuarters = 0;
     let repeatsWritten = 0;
-    let jumps = false;
+    let jump = null;
+    let songQuarters = 0;
+    let maxPass = 1;
     const chords = [];
     const lines = [];
+    const rehearsals = []; // { name, quarters }, the first part's
+    const bars = { fermatas: new Set(), tempoWords: new Set(), dynamics: new Set(), accents: new Set(), soloTutti: new Set() };
 
     childrenNamed(root, 'part').forEach((part, partIndex) => {
         const partId = part.getAttribute('id');
         const measures = childrenNamed(part, 'measure');
-        const { order, repeats, jumps: j } = playOrder(measures);
+        const { order, passes, repeats, jump: j } = playOrder(measures);
         if (partIndex === 0) {
             repeatsWritten = repeats;
-            jumps = j;
+            jump = j;
         }
         let divisions = 1;
         let full = 4; // a whole bar, in quarters, as the time signature now says
         let at = 0; // quarters from the song's start, at this measure's start
-        const voices = new Map(); // voice number: { notes, staff, open ties }
+        const voices = new Map(); // voice number: { notes, staff, open ties, slurs }
         order.forEach((index, n) => {
             const measure = measures[index];
+            const bar = measure.getAttribute('number') ?? String(index + 1);
+            const pass = passes[n];
             let pos = 0; // divisions into the measure
             let longest = 0;
             let lastStart = 0;
@@ -172,14 +272,26 @@ export function readMusicXML(xml) {
                         const q = { whole: 4, half: 2, quarter: 1, eighth: 0.5 }[unit] ?? 1;
                         tempo = perMinute * q * (dotted ? 1.5 : 1);
                     }
+                    // What the guide doesn't sing yet, named in the report with its bars.
+                    for (const w of el.querySelectorAll('direction-type words')) {
+                        const said = w.textContent.trim();
+                        if (TEMPO_WORDS.test(said)) bars.tempoWords.add(bar);
+                        if (SOLO_TUTTI.test(said)) bars.soloTutti.add(bar);
+                    }
+                    if (el.querySelector('direction-type dynamics, direction-type wedge')) bars.dynamics.add(bar);
+                    const mark = text(el, 'direction-type rehearsal');
+                    if (mark && partIndex === 0) {
+                        // Met again on a repeat or after a D.C.: that's its section again.
+                        rehearsals.push({ name: mark, quarters: at + pos / divisions });
+                    }
                 } else if (el.tagName === 'harmony') {
-                    const root = text(el, 'root-step');
+                    const rootStep = text(el, 'root-step');
                     const quality = QUALITIES[text(el, 'kind')];
-                    if (root && quality) {
+                    if (rootStep && quality) {
                         const pc = (step, alter) => (((STEP_PC[step] + Number(alter ?? 0)) % 12) + 12) % 12;
                         const offset = Number(text(el, 'offset') ?? 0);
                         const bass = text(el, 'bass-step');
-                        chords.push({ quarters: at + (pos + offset) / divisions, root: pc(root, text(el, 'root-alter')), quality, bass: bass ? pc(bass, text(el, 'bass-alter')) : null });
+                        chords.push({ quarters: at + (pos + offset) / divisions, root: pc(rootStep, text(el, 'root-alter')), quality, bass: bass ? pc(bass, text(el, 'bass-alter')) : null });
                     }
                 } else if (el.tagName === 'backup') {
                     pos -= Number(text(el, 'duration') ?? 0);
@@ -195,11 +307,15 @@ export function readMusicXML(xml) {
                     const chord = !!el.querySelector('chord');
                     const start = chord ? lastStart : pos;
                     const voiceNo = text(el, 'voice') ?? '1';
-                    if (!voices.has(voiceNo)) voices.set(voiceNo, { notes: [], staff: Number(text(el, 'staff') ?? 1), ties: new Map(), restBefore: 0, breathNext: true });
+                    if (!voices.has(voiceNo)) voices.set(voiceNo, { notes: [], staff: Number(text(el, 'staff') ?? 1), ties: new Map(), restBefore: 0, breathNext: true, breathMark: false, slurs: 0 });
                     const v = voices.get(voiceNo);
                     const quarters = at + start / divisions;
                     const length = duration / divisions;
                     const pitchEl = el.querySelector('pitch');
+                    if (el.querySelector('notations fermata')) bars.fermatas.add(bar);
+                    if (el.querySelector('notations articulations accent, notations articulations strong-accent')) bars.accents.add(bar);
+                    const slurs = [...el.querySelectorAll('notations slur')];
+                    const underSlur = v.slurs > 0; // a slur open from an earlier note covers this one
                     if (!pitchEl) {
                         if (!chord) v.restBefore += length;
                     } else {
@@ -207,37 +323,50 @@ export function readMusicXML(xml) {
                         const tieStop = [...el.querySelectorAll('tie')].some((t) => t.getAttribute('type') === 'stop');
                         const tieStart = [...el.querySelectorAll('tie')].some((t) => t.getAttribute('type') === 'start');
                         const open = v.ties.get(midi);
+                        const lyrics = [...el.querySelectorAll('lyric')];
+                        const last = v.notes.at(-1);
                         if (tieStop && open && Math.abs(open.quarters + open.length - quarters) < EPSILON) {
                             open.length += length; // a tied note: one note
                             if (!tieStart) v.ties.delete(midi);
                         } else if (tieStop && open && open.quarters < quarters && quarters < open.quarters + open.length + EPSILON) {
                             if (!tieStart) v.ties.delete(midi); // another note of a tied chord: already held
+                        } else if (!chord && underSlur && !lyrics.length && last && last.pitches.length === 1 && last.pitches[0] === midi && Math.abs(last.quarters + last.length - quarters) < EPSILON && !v.breathNext && v.restBefore < EPSILON) {
+                            last.length += length; // a slurred pair on one pitch and one syllable: one held note, not a melisma
+                            if (tieStart) v.ties.set(midi, last);
                         } else {
-                            const last = v.notes.at(-1);
                             let note;
                             if (chord && last && Math.abs(last.quarters - quarters) < EPSILON) {
                                 last.pitches.push(midi);
                                 last.pitches.sort((a, b) => a - b);
                                 note = last;
                             } else {
-                                note = { quarters, length, pitches: [midi] };
-                                if (v.breathNext || v.restBefore >= 1 - EPSILON) note.br = true;
+                                note = { quarters, length, pitches: [midi], bar, n, pass };
+                                if (v.breathNext || v.restBefore >= 1 - EPSILON) {
+                                    note.br = true;
+                                    if (v.breathMark && v.restBefore < EPSILON) note.breathMark = true; // a breath with no rest to take it in
+                                }
                                 v.breathNext = false;
+                                v.breathMark = false;
                                 v.restBefore = 0;
-                                const lyrics = [...el.querySelectorAll('lyric')];
                                 if (lyrics.length) {
                                     verses = Math.max(verses, ...lyrics.map((l) => Number(l.getAttribute('number')) || 1), lyrics.length);
-                                    const first = lyrics.find((l) => (l.getAttribute('number') ?? '1') === '1') ?? lyrics[0];
-                                    const word = text(first, 'text');
-                                    const syllabic = text(first, 'syllabic');
-                                    if (word) note.lyric = word + (syllabic === 'begin' || syllabic === 'middle' ? '-' : '');
+                                    note.lyrics = {};
+                                    lyrics.forEach((l, k) => {
+                                        const word = lyricText(l);
+                                        const syllabic = [...l.querySelectorAll('syllabic')].at(-1)?.textContent.trim();
+                                        if (word) note.lyrics[Number(l.getAttribute('number')) || k + 1] = word + (syllabic === 'begin' || syllabic === 'middle' ? '-' : '');
+                                    });
                                 }
                                 v.notes.push(note);
                             }
                             if (tieStart) v.ties.set(midi, note);
                         }
-                        if (el.querySelector('breath-mark, caesura, fermata')) v.breathNext = true; // a hymn's line ends at its fermata
+                        if (el.querySelector('breath-mark, caesura, fermata')) {
+                            v.breathNext = true; // a hymn's line ends at its fermata
+                            v.breathMark = true;
+                        }
                     }
+                    for (const sl of slurs) v.slurs = Math.max(0, v.slurs + (sl.getAttribute('type') === 'start' ? 1 : sl.getAttribute('type') === 'stop' ? -1 : 0));
                     if (!chord) {
                         lastStart = pos;
                         pos += duration;
@@ -250,8 +379,13 @@ export function readMusicXML(xml) {
             if (partIndex === 0 && n === 0 && (measure.getAttribute('implicit') === 'yes' || barQuarters < full - EPSILON)) pickupQuarters = barQuarters;
             at += barQuarters;
         });
+        if (partIndex === 0) {
+            songQuarters = at;
+            maxPass = Math.max(1, ...passes);
+        }
         for (const [voiceNo, v] of voices) {
             if (!v.notes.length) continue;
+            v.notes = wordsFor(v.notes, (x) => x.pass); // a repeat's second time through sings verse 2
             const pitches = v.notes.flatMap((x) => x.pitches);
             lines.push({
                 id: `${partId}:${voiceNo}`,
@@ -262,6 +396,7 @@ export function readMusicXML(xml) {
                 notes: v.notes,
                 range: { low: Math.min(...pitches), high: Math.max(...pitches) },
                 chordNotes: v.notes.filter((x) => x.pitches.length > 1).length,
+                chordBars: [...new Set(v.notes.filter((x) => x.pitches.length > 1).map((x) => x.bar))],
                 words: v.notes.filter((x) => x.lyric).length,
             });
         }
@@ -269,17 +404,65 @@ export function readMusicXML(xml) {
 
     if (!lines.length) return { unsupported: 'empty' };
     if (!metre) return { unsupported: 'metre', metre: originalTime };
+    // A metre change mid-song isn't taken yet (no song of ours has one): said plainly, rather than sung wrong.
+    if (laterTimes) return { unsupported: 'metreChange', metre: originalTime };
     const ts = metre.timeSignature;
     const beats = (q) => round(toBeats(q, ts));
-    // Each note ends where its rounded end is, so triplets meet the next note exactly.
-    for (const line of lines) line.notes = line.notes.map(({ quarters, length, ...rest }) => ({ beat: beats(quarters), length: beats(quarters + length) - beats(quarters), ...rest }));
+
+    // Verses: with no repeat to sing them on, each verse is its own pass through the music, in order, as a section; a
+    // pass whose notes carry none of that verse's words is left out and named.
+    const sections = [];
+    let versesWritten = 0;
+    const versesLeft = [];
+    if (verses > 1 && !repeatsWritten) {
+        const sung = [];
+        for (let k = 1; k <= verses; k++) if (lines.some((l) => l.notes.some((x) => x.lyrics?.[k]))) sung.push(k);
+        else versesLeft.push(k);
+        if (sung.length > 1) {
+            const chordsOnce = chords.splice(0);
+            for (const line of lines) {
+                const once = line.notes;
+                // Each verse starts a line of the tune, with a breath taken from the last note of the verse before.
+                line.notes = sung.flatMap((k, pass) => wordsFor(once, () => k).map((x, i) => ({ ...x, quarters: x.quarters + pass * songQuarters, n: `${pass}:${x.n}`, ...(pass && i === 0 ? { br: true, breathMark: true } : {}) })));
+                line.words = line.notes.filter((x) => x.lyric).length;
+            }
+            sung.forEach((k, pass) => {
+                sections.push({ name: `Verse ${k}`, quarters: pass * songQuarters }); // i18n-ignore: a song's section name, as the templates write them
+                chords.push(...chordsOnce.map((c) => ({ ...c, quarters: c.quarters + pass * songQuarters })));
+            });
+            versesWritten = sung.length;
+        }
+    }
+    // More verses than times through the repeats: the rest are named.
+    if (repeatsWritten) for (let k = maxPass + 1; k <= verses; k++) versesLeft.push(k);
+    if (!sections.length && rehearsals.length) {
+        // Rehearsal marks as sections; music before the first mark is a section of its own.
+        if (rehearsals[0].quarters > EPSILON) sections.push({ name: '', quarters: 0 });
+        sections.push(...rehearsals);
+    }
+
+    // Each note ends where its rounded end is, so triplets meet the next note exactly and a bar's notes add up. A breath
+    // marked with no rest before it takes half a beat from the note before (never moving an onset), as the arranger does.
+    for (const line of lines) {
+        line.notes = line.notes.map(({ quarters, length, lyrics, bar, n, pass, ...rest }) => ({ beat: beats(quarters), length: round(beats(quarters + length) - beats(quarters)), ...rest }));
+        line.notes.forEach((x, i) => {
+            if (!x.breathMark) return;
+            delete x.breathMark;
+            const before = line.notes[i - 1];
+            if (before && Math.abs(before.beat + before.length - x.beat) < EPSILON) before.length = round(before.length - Math.min(0.5, before.length / 2));
+        });
+    }
     if (repeatsWritten) notices.push({ kind: 'repeats', count: repeatsWritten });
-    if (jumps) notices.push({ kind: 'jumps' });
-    if (verses > 1) notices.push({ kind: 'verses', count: verses });
-    if (laterTimes) notices.push({ kind: 'metreChanges' });
+    if (jump) notices.push({ kind: 'jumpFollowed', jump: jump.kind, fine: jump.fine, coda: jump.coda });
+    if (versesWritten) notices.push({ kind: 'versesWritten', count: versesWritten });
+    else if (verses > 1 && !repeatsWritten) notices.push({ kind: 'verses', count: verses });
+    if (versesLeft.length && (versesWritten || repeatsWritten)) notices.push({ kind: 'versesLeftOut', verses: versesLeft.join(', ') });
     if (laterTempos) notices.push({ kind: 'tempoChanges' });
     if (graces) notices.push({ kind: 'graces', count: graces });
     if (originalTime !== ts) notices.push({ kind: 'metreWritten', from: originalTime, to: ts });
+    // What isn't sung yet, by bar: fermatas are held in time, the others are left to the singers.
+    for (const [kind, set] of Object.entries(bars)) if (set.size) notices.push({ kind, bars: barList([...set]), count: set.size });
+    for (const line of lines) if (line.chordBars.length) notices.push({ kind: 'divisi', line: line.id, part: line.part, voice: line.voice, bars: barList(line.chordBars), count: line.chordBars.length });
     const credits = { tune: text(root, 'identification creator[type="composer"]') ?? '', words: text(root, 'identification creator[type="lyricist"]') ?? '', arrangement: text(root, 'identification creator[type="arranger"]') ?? '' };
     return {
         title: text(root, 'work > work-title') || text(root, 'movement-title') || '',
@@ -290,6 +473,7 @@ export function readMusicXML(xml) {
         pickupBeats: beats(pickupQuarters),
         // Chord symbols from any staff, one at a time (the same symbol on two staves is one).
         chords: chords.sort((a, b) => a.quarters - b.quarters).filter((c, i, all) => i === 0 || c.quarters > all[i - 1].quarters + EPSILON).map(({ quarters, ...c }) => ({ beat: beats(quarters), ...c })),
+        sections: sections.map(({ name, quarters }) => ({ name, beat: beats(quarters) })),
         lines,
         notices,
     };
@@ -331,9 +515,11 @@ const PART_NAMES = { soprano: 'Soprano', alto: 'Alto', tenor: 'Tenor', bass: 'Ba
  * The song from the singer's picks: `picks` [{ id, as, take: 'top' | 'bottom' }] (a line with no
  * `as` is left out), the words from `wordsFrom` (a line's id) for lines without their own, a part
  * with no words singing "oo". The tune is the part the singer set as soprano or lead, else the
- * first of their picks in score order (alto, tenor, then bass). Private, credited to the file's authors, its licence "by someone else: kept private".
+ * first of their picks in score order (alto, tenor, then bass), unless `melody` names the line the director chose as the
+ * tune. The score's sections (verses, rehearsal marks) are the song's, each phrase inside one. Private, credited to the
+ * file's authors, its licence "by someone else: kept private".
  */
-export function toTemplate(score, { picks, wordsFrom = null, title = score.title, id = crypto.randomUUID() }) {
+export function toTemplate(score, { picks, wordsFrom = null, melody: tuneLine = null, title = score.title, id = crypto.randomUUID() }) {
     const chosen = picks.filter((p) => p.as).sort((a, b) => ORDER.indexOf(a.as) - ORDER.indexOf(b.as));
     const words = wordsFrom ? score.lines.find((l) => l.id === wordsFrom) : null;
     const wordAt = new Map((words?.notes ?? []).filter((n) => n.lyric).map((n) => [round(n.beat), n.lyric]));
@@ -369,15 +555,38 @@ export function toTemplate(score, { picks, wordsFrom = null, title = score.title
         shift = first;
     }
     if (shift) for (const p of parts) p.guide.notes = p.guide.notes.map((n) => ({ ...n, beat: round(n.beat - shift) }));
-    const melody = parts.find((p) => p.key === 'soprano' || p.key === 'lead') ?? parts[0];
+    const picked = chosen.findIndex((p) => p.id === tuneLine);
+    const melody = (picked >= 0 ? parts[picked] : null) ?? parts.find((p) => p.key === 'soprano' || p.key === 'lead') ?? parts[0];
     if (melody) melody.melody = true;
     const ends = parts.flatMap((p) => p.guide.notes.map((n) => n.beat + n.length));
-    const total = Math.max(0, ...ends);
-    // A phrase a line of the tune (each note marked br starts one), one section to the end.
-    const phrases = [];
+    const total = round(Math.max(0, ...ends));
+    // The score's sections from where they start (one that starts before the notes do takes the start), to the next. A
+    // section marked on a downbeat starts with the tune's phrase leading into it (its upbeat), less than a bar before.
+    const phraseStarts = (melody?.guide.notes ?? []).filter((n, i) => i === 0 || n.br).map((n) => n.beat);
+    const starts = [];
+    for (const sec of score.sections ?? []) {
+        let beat = Math.max(0, round(sec.beat - shift));
+        const lead = phraseStarts.filter((b) => b <= beat + EPSILON).at(-1);
+        if (lead != null && beat - lead > EPSILON && beat - lead < perBar - EPSILON && (!starts.length || lead > starts.at(-1).beat + EPSILON || !starts.at(-1).name)) beat = lead;
+        if (beat >= total - EPSILON) continue;
+        if (starts.length && beat <= starts.at(-1).beat + EPSILON) starts.at(-1).name = sec.name;
+        else starts.push({ name: sec.name, beat });
+    }
+    if (!starts.length || starts[0].beat > EPSILON) starts.unshift({ name: '', beat: 0 });
+    const sections = total ? starts.map((sec, i) => ({ name: sec.name, startBeat: sec.beat, endBeat: starts[i + 1]?.beat ?? total, phrases: [] })) : [];
+    // A phrase a line of the tune (each note marked br starts one, as does a new section), inside its section.
+    let at = 0;
+    let open = null;
     for (const n of melody?.guide.notes ?? []) {
-        if (n.br || !phrases.length) phrases.push([n.beat, n.beat + n.length]);
-        else phrases.at(-1)[1] = n.beat + n.length;
+        while (sections[at + 1] && n.beat >= sections[at + 1].startBeat - EPSILON) {
+            at++;
+            open = null;
+        }
+        const section = sections[at];
+        if (!section) break;
+        const end = Math.min(round(n.beat + n.length), section.endBeat);
+        if (n.br || !open) section.phrases.push((open = [n.beat, end]));
+        else open[1] = end;
     }
     const chords = score.chords.map((c) => ({ ...c, beat: round(c.beat - shift) })).filter((c, i, all) => c.beat >= 0 && c.beat < total && (i === 0 || c.beat > all[i - 1].beat));
     const KEPT = 'by someone else: kept private';
@@ -386,7 +595,7 @@ export function toTemplate(score, { picks, wordsFrom = null, title = score.title
         tempo: score.tempo, key: score.key, timeSignature: score.timeSignature, pickupBeats,
         credits: { words: score.credits.words, tune: score.credits.tune, arrangement: score.credits.arrangement },
         licence: { words: KEPT, tune: KEPT, arrangement: KEPT, recordings: 'synthesized guides', checked: null },
-        sections: total ? [{ name: '', startBeat: 0, endBeat: total, phrases }] : [],
+        sections,
         ...(chords.length ? { chords } : {}),
         parts,
     };

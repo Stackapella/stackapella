@@ -194,6 +194,7 @@ const SHELL = [
     '/js/notes.js',
     '/js/note-names.js',
     '/js/song-news.js',
+    '/js/unit-song.js',
     '/js/livevoice.js',
     '/js/sync.js',
     '/js/trim.js',

@@ -2196,12 +2196,13 @@ select:disabled {
 .s-tool-table :is(th, td) { padding: 8px 12px; text-align: start; border-bottom: 1px solid var(--color-line); }
 .s-tool-table thead th { font-size: 13px; color: var(--color-muted); }
 /* On a phone a reference table fits its width (up to five columns: the intonation tuner's cents): tighter cells
-   that wrap, and game mode's wider screen type a little tighter still. */
+   that wrap, and game mode's wider screen type a little tighter still: VT323 at a smaller font-size-adjust than the
+   body's 0.62 (at 0.62 /intervals needs 354 px in 328, and hyphens never split "Greensleeves"). */
 @media (max-width: 599px) { .s-tool-table table { font-size: 14px; } .s-tool-table :is(th, td) { padding: 7px 6px; } .s-tool-table thead th { font-size: 12px; } }
-@media (max-width: 599px) { :root[data-skin="game"] body.s-arcade .s-tool-table :is(th, td) { padding: 6px 4px; } :root[data-skin="game"] body.s-arcade .s-tool-table table { font-size: 13px; } }
+@media (max-width: 599px) { :root[data-skin="game"] body.s-arcade .s-tool-table :is(th, td) { padding: 6px 4px; font-size-adjust: 0.5; } :root[data-skin="game"] body.s-arcade .s-tool-table table { font-size: 13px; } }
 /* A 320 px phone: the reference indexes' five columns fit (site_reference at 320), long names hyphenated, not scrolled. */
 @media (max-width: 359px) { .s-tool-table table { font-size: 13px; } .s-tool-table :is(th, td) { padding: 6px 3px; hyphens: auto; } }
-@media (max-width: 359px) { :root[data-skin="game"] body.s-arcade .s-tool-table :is(th, td) { padding: 5px 3px; } :root[data-skin="game"] body.s-arcade .s-tool-table table { font-size: 12px; } }
+@media (max-width: 359px) { :root[data-skin="game"] body.s-arcade .s-tool-table :is(th, td) { padding: 5px 3px; font-size-adjust: 0.46; } :root[data-skin="game"] body.s-arcade .s-tool-table table { font-size: 12px; } }
 /* One way into the app: the tool's own line for a visitor, "Open the app" for one who's signed in (theme-boot.js marks the root). */
 .s-try-in, :root[data-signed-in] .s-try-out { display: none; }
 :root[data-signed-in] .s-try-in { display: block; }
@@ -2359,7 +2360,23 @@ a.s-vt-rung:hover { background: color-mix(in srgb, var(--color-cream) 5%, transp
     .s-vt-songs a { grid-template-columns: minmax(0, 1.4fr) 76px minmax(72px, 1fr) 16px; grid-template-areas: "song range bar go"; gap: 16px; padding-block: 18px; }
 }
 /* The game skin boxes each fact (322 px for three): below 360 px they go two to a row rather than push the page sideways. */
-@media (max-width: 359px) { :root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-vt-facts { grid-template-columns: repeat(2, auto); } }
+/* A voice type's page in the 90s design (docs/design-rules.md): the Hear the range card framed like the stage card with
+   a pixel caption, the guide's band a well between dashed rules, and the range bars square and in their voice's part
+   colour (s-v1..6 on each rung, the page voice's on the song list): the other voices' bars dimmed, the page voice's rung
+   framed in its colour and filled. On a phone (below 400 px; VT323's three facts need 353 px side by side) they stack as
+   HUD rows, label left and value right. */
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-vt-hear { border-radius: var(--arc-radius); border: var(--arc-frame) solid var(--arc-line); background: var(--arc-panel); box-shadow: var(--arc-shadow); }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-vt-hear-top h2 { font-family: var(--a-hud); font-size: 10px; font-weight: 400; text-transform: uppercase; }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-vt-read { border-block: var(--arc-edge-w) dashed var(--arc-line); background: var(--arc-well); }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) :is(.s-vt-rung, .s-vt-track, .s-vt-bar) { border-radius: var(--arc-radius); }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-vt-ladder .s-vt-bar { background: color-mix(in srgb, var(--c, var(--color-cream)) 40%, transparent); }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) :is(.s-vt-here, .s-vt-songs) .s-vt-bar { background: var(--c, var(--color-good)); }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-vt-here { border: var(--arc-edge-w) solid var(--c, var(--arc-line)); background: var(--arc-panel); box-shadow: var(--arc-shadow); }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-vt-here b { color: var(--ci, var(--color-cream)); }
+@media (max-width: 399px) {
+    :root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-vt-facts { grid-template-columns: minmax(0, 1fr); max-width: none; }
+    :root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-vt-facts > div { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+}
 @media (min-width: 640px) {
     .s-vt-prose .s-across-stack { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .s-vt-facts dd { font-size: 20px; }
@@ -2381,6 +2398,19 @@ a.s-vt-rung:hover { background: color-mix(in srgb, var(--color-cream) 5%, transp
 .s-spart-player:empty { min-height: 388px; }
 @media (min-width: 640px) { .s-spart-player:empty { min-height: 392px; } }
 @media (min-width: 1024px) { .s-spart-player:empty { min-height: 488px; } }
+/* A lesson page (site/lesson.blade.php; the courses lead's conditions, 2026-11-11, and Hillel's width design): its unit's
+   pages as chips beside its heading; each lesson's teaching at left, one reading column, with what you do with it beside
+   it from 900 px (its real voices and Try it in one panel, none when it has neither; What you sing; its "Did you know?").
+   A phone stacks them: the teaching, the panel, the steps, the fact. */
+.s-lesson-panel { display: grid; gap: 16px; margin-top: 24px; }
+.s-lesson-clips { display: grid; gap: 12px; margin-top: 10px; }
+/* The panel is the round's frame, so its card adds none, and Try it here keeps its own width. */
+.s-lesson-panel [data-lesson-try] { display: grid; gap: 4px; padding: 4px 6px; background: none; border: 0; box-shadow: none; }
+.s-lesson-panel [data-lesson-try-start] { justify-self: start; }
+@media (min-width: 900px) {
+    .s-lesson-cols { display: grid; grid-template-columns: minmax(0, 11fr) minmax(0, 9fr); gap: 44px; align-items: start; }
+    .s-lesson-side > :first-child { margin-top: 4px; }
+}
 /* The Christmas carols page (site.carols): how many are open, then each carol with where it comes from and its parts. */
 .s-songs-season, .s-carols-link { margin-top: 12px; font-size: 15.5px; }
 .s-songs-season svg, .s-carols-link svg { display: inline-block; vertical-align: -3px; }
@@ -9489,7 +9519,7 @@ a.s-vt-rung:hover { background: color-mix(in srgb, var(--color-cream) 5%, transp
    night hero keeps its own colours, above). The neon set: .s-neon1, 2 and 3 name red, green and yellow in turn for cards
    in a row (the theme's neons, AA on its ground; green is its good ink); in serious they name nothing. A song's card (/songs,
    a song's "more songs") is a STAGE tile: square, framed in its neon on the well, with a hard shadow. */
-:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) :is(.s-featurehead, .s-head, .s-pricehead, .s-xhero) h1 { text-shadow: .08em .08em 0 var(--arc-red), .16em .16em 0 var(--arc-shadow-c); }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) :is(.s-featurehead, .s-head, .s-pricehead, .s-xhero, .s-vt-intro, .s-ref-head) h1 { text-shadow: .08em .08em 0 var(--arc-red), .16em .16em 0 var(--arc-shadow-c); }
 :root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-neon1 { --neon: var(--arc-red); }
 :root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-neon2 { --neon: var(--color-good); }
 :root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-neon3 { --neon: var(--arc-yellow); }
@@ -9540,6 +9570,23 @@ a.s-vt-rung:hover { background: color-mix(in srgb, var(--color-cream) 5%, transp
 :root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) :is(.s-spart-facts dt, .s-spart-step-k) { font-family: var(--a-hud); font-size: 10px; font-weight: 400; text-transform: uppercase; }
 :root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-spart-steps li { padding: 18px; border: var(--arc-frame) solid var(--arc-line); background: var(--arc-panel); }
 :root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-spart-about-ruled { border-top: var(--arc-edge-w) dashed var(--arc-line); }
+/* /songs as the songbook in the 90s design's STAGE SELECT (docs/design-rules.md; marketing's .s-sh-*, each collection's
+   palette from .s-tone-<key>, which stays as it is): each collection panel a square stage framed in its tone's accent on
+   a hard drop, each song a square tile edged in the accent with its play block on a hard drop, the searches as square
+   wells, the dots as pixels, the headings' second halves in the pixel face and the accent (as the collection heroes'),
+   wrapping as they need to, a panel's title as large as the page's headings beside VT323's big body text, and the A to
+   Z's letters in the arcade red (the serious rust is under 3:1 on the dark). */
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-sh-panel { border-radius: var(--arc-radius); box-shadow: inset 0 0 0 var(--arc-frame) var(--ta), 8px 8px 0 var(--arc-shadow-c); }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-sh-song { border-radius: var(--arc-radius); box-shadow: inset 0 0 0 var(--arc-edge-w) color-mix(in srgb, var(--ta) 55%, transparent), 4px 4px 0 var(--arc-shadow-c); }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-sh-song:hover { box-shadow: inset 0 0 0 var(--arc-edge-w) var(--ta), 4px 4px 0 var(--arc-shadow-c); }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-sh-song .s-play { box-shadow: 3px 3px 0 var(--arc-shadow-c); }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-sh-search { border-radius: var(--arc-radius); border: var(--arc-edge-w) solid var(--arc-line); background: var(--arc-well); }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-sh-chip { border-radius: var(--arc-radius); }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) :is(.s-sh-chip2, .s-sh-filter, .s-sh-letters li) i { border-radius: 0; }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) :is(.s-sh-hero h1, .s-sh-band h2, .s-sh-grid-head h2, .s-sh-panel h3, .s-sh-end h2) .s-xserif { font-family: inherit; font-style: normal; font-weight: inherit; white-space: normal; }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) :is(.s-sh-hero h1, .s-sh-grid-head h2) .s-xserif { color: var(--arc-yellow); }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-sh-letter h3 { font-style: normal; color: var(--arc-red); }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-sh-panel h3 { font-size-adjust: 0.58; text-wrap: balance; }
 @media (max-width: 639px) {
     :root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-spart-foot { flex-direction: column; align-items: stretch; }
     :root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-spart-foot :is(.btn, .btn-primary, .btn-secondary, .btn-ghost) { justify-content: center; font-size: 10px; }

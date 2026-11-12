@@ -312,12 +312,16 @@ export const LessonEnd = {
                         <h2 class="text-2xl font-extrabold tracking-tight text-cream" translate="no">{{ localized(next.lesson.title) }}</h2>
                         <p v-if="next.line" class="text-muted" translate="no">{{ localized(next.line) }}</p>
                         <button type="button" class="btn-primary btn-lg w-full" @click="$emit('next')">{{ t('course.next') }}</button>
+                        <!-- A unit's challenge done (unit-song.js): its song, quiet, under the next unit's first lesson. -->
+                        <div v-if="$slots.song" data-unit-song-slot><slot name="song" /></div>
                         <button type="button" class="btn-ghost w-full" @click="$emit('replay')">{{ done.stars < 3 && game() ? t('results.playAgainStars') : t('course.replay') }}</button>
                     </div>
                 </template>
                 <div v-else class="space-y-3">
                     <p class="text-cream">{{ done.sharpened ? t('sharpen.done') : t('results.unitDone') }}</p>
                     <button type="button" class="btn-primary btn-lg w-full" @click="$emit('next')">{{ t('course.backToCourse') }}</button>
+                    <!-- The unit's song (unit-song.js): a quiet second way, never instead of Back to the course. -->
+                    <div v-if="$slots.song" data-unit-song-slot><slot name="song" /></div>
                     <button type="button" class="btn-ghost w-full" @click="$emit('replay')">{{ done.stars < 3 && game() ? t('results.playAgainStars') : t('course.replay') }}</button>
                     <!-- A unit or course finished: the lesson's view puts its one quiet Share here (docs/design-rules.md, Sharing in lessons). -->
                     <div v-if="$slots.share" class="flex justify-center pt-1" data-unit-share><slot name="share" /></div>

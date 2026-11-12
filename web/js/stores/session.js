@@ -39,6 +39,7 @@ import { compress, DEFAULT_ROOM, impulseResponse, levelGains, limit, polishRende
 import { prefs } from './prefs.js';
 import { local } from '../storage.js';
 import { count } from '../usage.js';
+import { keptIn } from '../unit-song.js';
 import { chipCountIn } from '../game/modules.js';
 
 export const GUIDE_PEAKS_RATE = 48000; // guide outlines are made at 48 kHz (stores/projects.js)
@@ -1401,6 +1402,7 @@ export async function storeTake(part, fields, samples) {
     syncMix();
     await persist(() => savePart(plainPart(part), samples));
     count('take_recorded'); // after it's saved: a save that fails isn't a take
+    if (session.project?.id) keptIn(session.project.id); // a unit's song opened from its end: us_kept for that place
     // Voice care's day (on this device only): a take's length is time sung.
     if (part.sampleRate && samples?.length) {
         addSung(samples.length / part.sampleRate);

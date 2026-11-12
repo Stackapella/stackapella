@@ -61,7 +61,7 @@ export const TemplateView = {
     data: () => ({ directed: null, template: null, grant: null, boards: null, missing: false, failed: false, singers: 4, picked: null, player: null, playingPart: null, starting: false, changing: false, details: { description: '', words: '', tune: '' }, backingUp: false }),
     setup: () => ({ STATES, DIFFICULTY, account, signInTo, signUpFor, keyLabel, midiName, templatePartName, singerOptions, formatTime, goBack, paint, PART_COLORS, game }),
     template: `
-        <AppScreen :title="template?.title ?? t('template.title')" :title-is-content="!!template" back="/" measure="max-w-3xl">
+        <AppScreen :title="template?.title ?? t('template.title')" :title-is-content="!!template" back="/" measure="">
             <!-- Signed out, a private song is a 404 too: a director opening their choir's song from an email, on a device they've never signed in on, signs in and comes back to it (docs/agents/handoff-frontend2.md, choir tracks stage 1) -->
             <div v-if="missing && !account.me" class="card space-y-4 p-6" role="alert" data-template-sign-in>
                 <p class="text-cream">{{ t('template.signInToOpen') }}</p>
@@ -73,8 +73,11 @@ export const TemplateView = {
             <p v-else-if="missing" class="card p-6 text-cream" role="alert">{{ t('template.missing') }}</p>
             <p v-else-if="failed" class="card p-6 text-cream" role="alert">{{ failed }}</p>
             <p v-else-if="!template" class="text-muted" role="status">{{ t('create.loading') }}</p>
-            <div v-else class="space-y-8">
-                <div class="-mt-2 space-y-3">
+            <!-- From 900 px (Hillel's width design; he agreed for this screen, 2026-11-11): the part picker at left,
+                 60%, with the song's line, its facts and credits (and a choir song's sharing) at right. Placed by the grid,
+                 so the order in the page, and a phone's, is unchanged: new singers reach this screen in their first minutes. -->
+            <div v-else class="space-y-8 min-[900px]:grid min-[900px]:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] min-[900px]:gap-x-8 min-[900px]:gap-y-6 min-[900px]:space-y-0">
+                <div class="-mt-2 space-y-3 min-[900px]:col-start-2 min-[900px]:row-start-1 min-[900px]:mt-0 min-[900px]:self-start">
                     <p v-if="template.description" class="text-cream" translate="no">{{ template.description }}</p>
                     <p v-else-if="record" class="text-muted">{{ t('template.noDescription') }}</p>
                     <ul class="flex flex-wrap gap-2 tabular-nums text-xs text-cream">
@@ -87,7 +90,7 @@ export const TemplateView = {
                 </div>
 
                 <!-- A choir's own song (an import, private to you and your groups): sharing it with the choir comes first, since that's the only way it reaches the singers (docs/agents/handoff-frontend2.md, choir tracks stage 1) -->
-                <section v-if="choirSong" class="card space-y-3 p-5 md:p-6" aria-labelledby="choir-heading" data-share-choir>
+                <section v-if="choirSong" class="card space-y-3 p-5 md:p-6 min-[900px]:col-start-2 min-[900px]:row-start-2 min-[900px]:self-start" aria-labelledby="choir-heading" data-share-choir>
                     <h2 id="choir-heading" class="text-xl font-extrabold tracking-tight text-cream">{{ t('template.choir.title') }}</h2>
                     <p class="text-sm text-muted">{{ t('template.choir.hint') }}</p>
                     <div class="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
@@ -96,7 +99,7 @@ export const TemplateView = {
                     </div>
                 </section>
 
-                <section class="card space-y-4 p-5 md:p-6" aria-labelledby="pick-heading">
+                <section class="card space-y-4 p-5 md:p-6 min-[900px]:col-start-1 min-[900px]:row-span-2 min-[900px]:row-start-1 min-[900px]:self-start" aria-labelledby="pick-heading">
                     <div class="flex flex-wrap items-center justify-between gap-3">
                         <h2 id="pick-heading" class="text-xl font-extrabold tracking-tight text-cream">{{ t('template.pick') }}</h2>
                         <div v-if="singerOptions(template).length > 1" class="flex items-center gap-2">
@@ -135,7 +138,7 @@ export const TemplateView = {
                     </div>
                 </section>
 
-                <section v-if="record" class="space-y-4" aria-labelledby="yours-heading">
+                <section v-if="record" class="space-y-4 min-[900px]:col-span-2 min-[900px]:row-start-3" aria-labelledby="yours-heading">
                     <h2 id="yours-heading" class="text-xs font-bold uppercase tracking-widest text-muted">{{ imported ? t('template.yoursImported') : t('template.yours') }}</h2>
                     <div class="card space-y-3 p-5" :class="record.state === 'saved' ? '' : 'border-warn/50'">
                         <p class="font-bold text-cream">{{ t(STATES[record.state]?.label ?? STATES.device.label) }}</p>

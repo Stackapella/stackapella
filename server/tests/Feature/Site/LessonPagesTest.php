@@ -187,6 +187,22 @@ final class LessonPagesTest extends TestCase
 
         // A lesson with no listen-and-choose step has no round.
         $this->get(self::SITE.'/courses/perfect-your-pitch/bullseye')->assertOk()->assertDontSee('data-lesson-try-round', false);
+
+        // The round comes after What you sing, whose steps it plays (the courses lead, 2026-11-11).
+        $html = (string) $page->getContent();
+        $this->assertLessThan(strpos($html, 'data-lesson-try>'), strpos($html, '>'.__('site.lessons.sing').'</h3>'));
+    }
+
+    public function test_a_section_with_no_teaching_keeps_its_steps_under_its_heading_and_home_and_use_steps_show(): void
+    {
+        $this->open();
+        $html = (string) $this->get(self::SITE.'/courses/harmony/find-your-voice')->assertOk()->getContent();
+
+        // "Sing any note that feels easy": a home step, now among the steps (Lessons::SUNG).
+        $this->assertStringContainsString('Sing any note that feels easy', $html);
+        // The challenge has no teaching: its steps are in the reading column, under its heading.
+        preg_match_all('#<div class="s-lesson-read">(.*?)<div class="s-lesson-side">#s', $html, $reads);
+        $this->assertNotEmpty(array_filter($reads[1], static fn (string $read): bool => str_contains($read, 'class="s-tool-how"')), 'a reading column holds the challenge\'s steps');
     }
 
     public function test_sight_singing_has_a_page_per_lesson_and_its_old_unit_pages_lead_to_their_first_lesson(): void
@@ -214,6 +230,25 @@ final class LessonPagesTest extends TestCase
 
         $this->get(self::SITE.'/intervals/perfect-fifth')->assertOk()->assertSee('/courses/ear-training/four-or-five', false);
         $this->get(self::SITE.'/chords')->assertOk()->assertSee('data-lessons-across', false);
+    }
+
+    public function test_a_lessons_unit_pages_are_chips_beside_its_heading_and_a_unit_page_keeps_one_column(): void
+    {
+        // Hillel's part page redesign (2026-11-10), with the courses lead's conditions: the unit's pages move up as chips,
+        // this one current with its "You are here", once on the page; no facts row; a unit page's top stays one column.
+        $this->open();
+        $html = (string) $this->get(self::SITE.'/courses/perfect-your-pitch/bullseye')->assertOk()->getContent();
+        $this->assertStringContainsString('class="s-spart-hero"', $html);
+        $this->assertSame(1, substr_count($html, 'id="unit-h"'));
+        $this->assertMatchesRegularExpression('#<span class="s-spart-chip" aria-current="page"><b>[^<]+</b><span>'.preg_quote(e(__('site.lessons.here')), '#').'</span></span>#', $html);
+        $this->assertGreaterThan(0, substr_count($html, '" class="s-spart-chip">'));
+        $this->assertStringNotContainsString('s-spart-facts', $html);
+        $this->assertStringContainsString('data-lesson-start', $html);
+
+        $unit = (string) $this->get(self::SITE.'/courses/harmony/find-your-voice')->assertOk()->getContent();
+        $this->assertStringNotContainsString('class="s-spart-hero"', $unit);
+        $this->assertStringNotContainsString('id="unit-h"', $unit);
+        $this->assertStringContainsString('class="s-lesson-cols"', $unit);
     }
 
     public function test_every_page_is_in_the_sitemap(): void

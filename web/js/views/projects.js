@@ -884,6 +884,7 @@ export const ProjectsView = {
             const score = await readSheetFile(file);
             if (score.unreadable || score.unsupported === 'timewise') toast(t('sheet.error.unreadable'), { tone: 'error' });
             else if (score.unsupported === 'metre') toast(t('sheet.error.metre', { metre: score.metre ?? '?' }), { tone: 'error' });
+            else if (score.unsupported === 'metreChange') toast(t('sheet.error.metreChange', { metre: score.metre ?? '?' }), { tone: 'error' });
             else if (score.unsupported) toast(t('sheet.error.empty'), { tone: 'error' });
             else {
                 this.making = false;

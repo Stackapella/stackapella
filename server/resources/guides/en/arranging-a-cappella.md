@@ -42,7 +42,7 @@ a bass on the root, the alto and tenor share out what's left.
 
 An arrangement can look fine on paper and be miserable to sing.
 
-- **Keep it in range.** Roughly: soprano C4 to A5, alto G3 to D5, tenor C3 to A4, bass E2 to E4.
+- **Keep it in range.** Roughly: soprano C4 to A5, alto F3 to D5, tenor C3 to A4, bass E2 to E4.
   Aim for the middle of each.
 - **Move by step, or hold.** Inner parts that stay on a note or move to the next one up or down
   are easy to learn and blend well. Save big leaps for the tune or the bass.

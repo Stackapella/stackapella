@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Site;
 
 use App\Models\OutreachTarget;
+use App\Support\Flags;
 use App\Support\Outreach\Outreach;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
@@ -34,6 +35,15 @@ final class OrganizationsPageTest extends TestCase
         $this->assertStringNotContainsString('<form', $page);
         // No Start singing in place of writing.
         $this->assertStringNotContainsString(e(__('pages.site.start_note')), $page);
+    }
+
+    public function test_its_notice_names_the_languages_open_to_everyone(): void
+    {
+        $this->get('/for/organizations')->assertOk()->assertSee('Stackapella is in English only.')->assertDontSee(':languages');
+
+        // Once Spanish is switched on, the same line says so (the courses lead, 2026-11-11: it mustn't go stale).
+        app(Flags::class)->set('lang_es', 'on', null, 'Spanish opens');
+        $this->get('/for/organizations')->assertOk()->assertSee('Stackapella is in English and Spanish.');
     }
 
     public function test_a_singer_never_meets_it_but_directors_and_teachers_can(): void

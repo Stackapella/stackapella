@@ -2,6 +2,7 @@
 // path) or as the whole song (the Stage with words or the staff, or the Notes lane), over the same
 // session as the studio (js/stores/session.js), which stays the mixer and editor. At /p/<id>/sing.
 
+import { leftSong } from '../unit-song.js';
 import { VoiceCareLine } from '../components/voice-care.js';
 import { TimingLine } from '../components/timing-line.js';
 import { game } from '../skin.js';
@@ -749,6 +750,7 @@ export const SingView = {
         engine.onInterrupt = this.onInterrupt;
     },
     beforeUnmount() {
+        if (this.project?.id) leftSong(this.project.id); // a unit song's visit ends when Sing does (unit-song.js)
         // A re-sung phrase on trial wasn't kept: the take goes back as it was.
         if (this.resung) sessionStore.tryTake(this.resung.outcome.part, this.resung.before);
         sessionStore.cancelResing();
@@ -936,6 +938,17 @@ export const SingView = {
             const lessonId = this.project.course.lessonId;
             this.lessonOpening = true;
             try {
+                // A unit's song (unit-song.js), opened from the unit's end: its part, straight in Sing along.
+                if (this.project.course.unitSong) {
+                    const slot = this.parts.find((p) => p.templatePartKey && p.templatePartKey === this.project.course.partKey) ?? this.focusPart;
+                    if (!slot) return;
+                    if (this.focusPart?.id !== slot.id) sessionStore.practise(slot);
+                    this.sing({ way: 'parts', fitSaid: true, keyChosen: true }); // fitted to the singer when it was made
+                    this.lessonStep = { kind: 'use', unitSong: true };
+                    await this.setStep('singAlong');
+                    this.readied = 0;
+                    return;
+                }
                 await loadLearning();
                 let entry = findLesson(lessonId);
                 if (!entry) {

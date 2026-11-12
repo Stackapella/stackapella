@@ -163,6 +163,21 @@ The launch's cuts (vertical, square and the Product Hunt thumbnail, listed in `l
 were made from the first film and posted as they are; this film is wide only (`--launch=vertical` and
 `square` refuse). They can be re-cut from this one if Hillel wants new ones.
 
+## The carols cut
+
+`--cut=carols` is the season's cut for posting, vertical (the default) or `--format=square`, about 24 s:
+the live carols page (the Santa hat, the lights, the snow; in the vertical cut its songbook too), then
+Silent Night's first two lines with a part joining every two bars (soprano, alto, tenor, bass), then the
+end card with stackapella.com/songs/christmas-carols. It runs at the song's own 66 BPM and does not loop.
+**Its voices are the app's sung guide** (`web/js/synth.js`, as the song's page plays them): the catalogue
+has no real voices for Silent Night, so nothing in it says "a real voice" and it carries no singer's
+credit. `python3 render.py --cut=carols --format=square --final --dir=<folder>` writes
+`stackapella-carols-square.mp4`; `--vtt` its captions. It is not in the manifest.
+
+**Spanish captions.** `python3 render.py --vtt --lang=es` writes `stackapella-showreel.es.vtt` (the hymn's
+words as sung, who joins in Spanish, by `docs/languages/es-glossary.md`). It is in git but not in the
+manifest or on the CDN until Spanish switches on.
+
 ## Where the outputs live
 
 Videos and sound are never committed (the repo goes public, and binaries bloat it for good). They

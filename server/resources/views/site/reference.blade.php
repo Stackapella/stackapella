@@ -91,7 +91,7 @@
                 <h2 id="others-h" class="s-kick">{{ $index['others'] }}</h2>
                 <ul class="s-ref-family s-tool-cards">
                     @foreach ($others as $other)
-                        <li>
+                        <li class="s-neon{{ $loop->index % 3 + 1 }}">
                             <a href="{{ $other['url'] }}" class="s-card s-ref-fam">
                                 <span class="s-ref-fam-n" aria-hidden="true">{{ $other['n'] }}</span>
                                 <span><b>{{ $other['name'] }}</b>@if ($other['line'] !== null)<span translate="no">{{ $other['line'] }}</span>@endif</span>

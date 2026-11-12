@@ -31,8 +31,10 @@ final class Lessons
      *  theirs grew (afd0bd985): a course's old unit pages 301 to their first lesson. */
     public const PER_UNIT = ['choir-part'];
 
-    /** The steps a singer does, each with its one line (learn steps teach; their cards are shown apart). */
-    private const SUNG = ['play', 'try', 'wave', 'bullseye', 'choose', 'selfcheck', 'breathhold', 'record'];
+    /** The steps a singer does, each with its one line (learn steps teach; their cards are shown apart). `home` (find
+     *  your easy note) and `use` (sing a song's lines) are sung too (the courses lead, 2026-11-11: seven beginner lessons
+     *  showed no step). */
+    private const SUNG = ['play', 'try', 'wave', 'bullseye', 'choose', 'selfcheck', 'breathhold', 'record', 'home', 'use'];
 
     /** @var array<string, list<array<string, mixed>>>|null */
     private static ?array $built = null;

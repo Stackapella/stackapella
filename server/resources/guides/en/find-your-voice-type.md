@@ -41,7 +41,7 @@ Once you have your two notes, compare them with the usual choir ranges. These ar
 **C4** is middle C:
 
 - **Soprano:** roughly C4 to A5.
-- **Alto:** roughly G3 to D5.
+- **Alto:** roughly F3 to D5.
 - **Tenor:** roughly C3 to A4.
 - **Bass:** roughly E2 to E4.
 

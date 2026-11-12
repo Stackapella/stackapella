@@ -4,7 +4,7 @@
 // pure function of t, so any frame can be rendered alone.
 
 import { E, $, CX, CY, FORMAT, H, LIGHT, Q, W, bump, clamp, hash, lerp, mk, range, set, spring, vis } from './lib.js';
-import { CUE, CUT, DUR, END as LAST, FROM, S, SPB, VERSE, beatAt, creditLine, sec, sung, voicing } from './score.js';
+import { CAROLS, CUE, CUT, DUR, END as LAST, FROM, S, SPB, VERSE, beatAt, creditLine, sec, sung, voicing } from './score.js';
 import { loadLoud, loud, onsetAt } from './loud.js';
 import { PART_INK, PART_VAR, T, glow, project, setCam, sparkles, specks } from './stage.js';
 
@@ -26,7 +26,8 @@ const clock = (s) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStar
 // gems are big and chunky, as in the arcade lanes: each is taller than two semitones.
 const PXB = 200, SP = 26, GH = 64, GAP = 70, GW = 14; // v5: the lanes closer, so the whole stack fits under the line
 const X = (b) => b * PXB;
-const RANGE = [[62, 74], [59, 71], [55, 60], [43, 50]];
+const RANGE = CAROLS ? [[64, 74], [59, 64], [55, 62], [43, 48]] : [[62, 74], [59, 71], [55, 60], [43, 50]];
+const REAL = CAROLS ? '' : 'a real voice'; // the carols cut's voices are the app's guide, not recordings
 const LANES = (() => {
     let top = 0;
     return RANGE.map(([lo, hi], i) => {
@@ -61,7 +62,7 @@ const laneEls = LANES.map((lane) => {
     // a small level meter beside the name: the singer's real loudness, so a lit lane is seen to be sound
     const meter = mk('div', 'lane-meter', name);
     const bars = [0, 1, 2, 3].map(() => mk('i', null, meter));
-    const who = mk('small', null, name, lane.i === 0 ? 'a real voice' : '');
+    const who = mk('small', null, name, lane.i === 0 ? REAL : '');
     const gems = S.parts[lane.i].map((n, k) => {
         const g = mk('div', 'gem gem-bar', el);
         g.style.cssText = `left:${X(n.beat) + GW / 2}px;top:${yOf(lane, n.pitch) - GH / 2}px;width:${n.length * PXB - GW}px;height:${GH}px;--gem:${PART_VAR[lane.i]};--gem-ink:${PART_INK[lane.i]}`;
@@ -121,7 +122,8 @@ const ENDS = {
     thumb: { mark: 0, k: 1, h: 0, p: 0, site: 0, br: '' },
 };
 const EL = ENDS[FORMAT];
-endEl.innerHTML = `<h2>Harmony,${EL.br} <em>made by you.</em></h2><p></p><p class="site">stackapella.com</p><p class="credit"></p>`;
+endEl.innerHTML = CAROLS ? `<h2>Christmas carols,${EL.br} <em>part by part.</em></h2><p></p><p class="site">stackapella.com/songs/christmas-carols</p><p class="credit"></p>`
+    : `<h2>Harmony,${EL.br} <em>made by you.</em></h2><p></p><p class="site">stackapella.com</p><p class="credit"></p>`;
 endEl.style.cssText = `left:${END.cx - CX}px;top:${END.cy - CY}px;width:${W}px;height:${H}px`;
 const [endH, endP, endSite, endCredit] = endEl.children;
 // v5: the card is the mark, the headline, the address and the credit (the tagline is a line at 0:54)
@@ -237,7 +239,7 @@ function lanes(t, o) {
         set(L.rim, 'opacity', (lit ? (o.lines ?? 1) * clamp(0.22 + 0.4 * lv + 0.6 * flare) : 0).toFixed(3));
         vis(L.meter, lit && lt >= 0);
         if (lit && lt >= 0) L.bars.forEach((e, k) => set(e, 'height', `${(8 + 30 * clamp(loud(i, b - k * 0.14) * [0.7, 1, 0.82, 0.55][k])).toFixed(1)}px`));
-        const who = o.names ? sungBy(i, t) : i === 0 ? 'a real voice' : '';
+        const who = o.names ? sungBy(i, t) : i === 0 ? REAL : '';
         if (L.who._t !== who) { L.who._t = who; L.who.textContent = who; }
         for (const g of L.gems) {
             const n = g.n, s0 = sec(n.beat), s1 = sec(n.beat + n.length);
@@ -304,7 +306,7 @@ function lanes(t, o) {
     }
     // "Slide up", while the voice is under "grace"
     const grace = S.parts[0][4];
-    const ck = bump(b, grace.beat + 0.12, grace.beat + 1.1);
+    const ck = CAROLS ? 0 : bump(b, grace.beat + 0.12, grace.beat + 1.1);
     vis(chipEl, ck > 0.01 && !o.quiet);
     if (ck > 0.01) {
         set(chipEl, 'transform', `translate(${X(b) + 50}px,${yOf(LANES[0], S.voice(b)) + 52}px) scale(${(0.8 + 0.2 * E.outBack(range(b, grace.beat + 0.12, grace.beat + 0.4))).toFixed(3)})`);
@@ -696,6 +698,8 @@ const LINES = {
     short: [L5(-1, sec(12), LINE1, 'singer.', 0), L5(sec(12), sec(24), LINE2, 'others.', 1), L5(sec(24), sec(36), LINE3, 'time.', 2), L5(sec(36), sec(43), LINE4, 'you.', 'brand'),
         L5(DUR - SPB, DUR + 1, LINE1, 'singer.', 0)],
     social: [L5(sec(24) - 1, sec(30), LINE1, 'singer.', 0), L5(sec(30), sec(36), LINE2, 'others.', 1), L5(sec(36), sec(42), LINE3, 'time.', 2), L5(sec(42), sec(48), LINE4, 'you.', 'brand')],
+    // the carols cut: the page speaks for itself first; then the page's own promises, a line a voice
+    carols: [L5(sec(4.5), sec(12), 'Silent Night, in four parts.', 'parts.', 1), L5(sec(12), sec(18), 'Hear each part, then sing yours.', 'yours.', 2), L5(sec(18), sec(21.4), 'Free, in your browser.', 'Free,', 3)],
 }[CUT];
 function drawLine(t) {
     const l = LINES.findLast((x) => t >= x.a - 1e-6 && t < x.b);
@@ -760,6 +764,36 @@ const twoCam = (t) => ({ x: ph(t) + 420, y: lerp(LANES[1].top - GAP / 2 - 150, L
 const topCam = (t) => ({ x: ph(t) + 260, y: centreOf(1) + 60, zoom: lerp(0.84, 0.9, range(t, B(23), B(30))), rx: 40, ry: -8, rz: -6 });
 const wideCam = (a, b) => (t) => { const z = lerp(0.55, 0.57, range(t, a, b)); return { x: ph(t) + 520, y: STACK_Y(z), zoom: z, rz: lerp(0.6, 0, range(t, a, b)) }; };
 const vCam = (a, b) => (t) => ({ x: ph(t) + 230, y: STACK_H / 2 - 40, zoom: lerp(0.66, 0.69, range(t, a, b)) });
+// the carols cut: the camera frames the lanes that are in and the one about to join, craning back a bar before
+// each voice, the stack kept between the line and the foot of the frame
+const USABLE = { vertical: [400, 1560], square: [290, 1020], wide: [300, 1010], thumb: [0, 480] }[FORMAT];
+const carolCam = (t) => {
+    const n = 2 + E.io(range(t, B(8.5), B(11.2))) + E.io(range(t, B(14.5), B(17.2))), k = Math.min(3, Math.floor(n)), f = n - k;
+    const bot = (m) => LANES[m - 1].top + LANES[m - 1].h, bottom = lerp(bot(k), bot(k + 1), f), top = -56;
+    const z = Math.min(0.95, (USABLE[1] - USABLE[0]) / (bottom - top + 60)) * lerp(1, 1.035, range(t, B(4.5), B(21)));
+    return { x: ph(t) + (0.14 * W) / z, y: (top + bottom) / 2 - ((USABLE[0] + USABLE[1]) / 2 - CY) / z, zoom: z };
+};
+// its end card sits a little lower in the frame (the frame's foot is the platforms')
+const CAROL_END = { vertical: 80, square: 100, wide: 0, thumb: 0 }[FORMAT];
+const carolEnd = (t) => { const a = B(CUE.end), u = E.io(range(t, a, a + 1.1)), c = carolCam(t); return { x: lerp(c.x, END.cx, u), y: lerp(c.y, END.cy - CAROL_END, u), zoom: lerp(c.zoom, 1, u) * lerp(1, 1.035, range(t, a + 1, B(LAST))) }; };
+// its opening: the live carols page, lifted: close on the Santa hat and the lights, the snow falling, then back
+// to the whole heading; in the vertical cut its songbook comes in under it and the pointer picks Alto
+const HERO_FULL = { x: 0.085, y: 0, w: 0.53, h: 0.56 }, HERO_HAT = { x: 0.085, y: 0, w: 0.21, h: 0.2219 };
+function carolsPage(t) {
+    const b = B(4.5), u = E.snap(range(t, 0.3, 1.9)), leave = E.in(range(t, b - 0.22, b)), w = W - 80;
+    const crop = { x: lerp(HERO_HAT.x, HERO_FULL.x, u), y: 0, w: lerp(HERO_HAT.w, HERO_FULL.w, u), h: lerp(HERO_HAT.h, HERO_FULL.h, u) };
+    const push = lerp(1, 1.04, range(t, 1.9, b)) * (1 + 0.08 * leave);
+    const list = [{ id: 'carols', crop, clock: t * 0.66, x: CX, y: VERT ? lerp(880, 640, E.io(range(t, B(2) - 0.55, B(2) + 0.35))) : CY + 10, w, glow: 2, ry: lerp(-5, -1.5, range(t, 0, b)), rx: 2, s: push, sheen: range(t, 0.2, 1.2) }];
+    if (VERT) {
+        const a = B(2), arrive = E.outExpo(range(t, a, a + 0.75)), c = CAPS['carols-book'];
+        if (t >= a) {
+            const q = { id: 'carols-book', crop: { x: 0.1059, y: 0, w: 0.7778, h: 0.6191 }, clock: t - a - 0.25, x: CX, y: 1296 + lerp(46, 0, arrive), w, glow: 1, s: lerp(0.88, 1, arrive) * push, rx: lerp(7, 2, arrive), ry: lerp(-8, 0, arrive) + lerp(-5, -1.5, range(t, 0, b)), o: clamp(0.4 + arrive * 2.4), sheen: range(t, a + 0.12, a + 1.0) };
+            list.push(q);
+            if (c?.click) planeTap(t, q, c.click.x, c.click.y, a + 0.25 + c.click.at);
+        }
+    }
+    return list;
+}
 const endCam = (t) => ({ x: END.cx, y: END.cy, zoom: lerp(1, 1.04, range(t, B(CUE.end), B(LAST - 1))) });
 
 /** A single lifted screen, drifting (the camera never stops: a push of 3 to 5%, sine in and out). */
@@ -881,6 +915,13 @@ const SHOTS_BY_CUT = {
         { a: B(CUE.end), set: 'lanes', mark: 'end', wordsAt: B(CUE.end) + 0.7, cam: (t) => { const a = B(CUE.end), u = E.io(range(t, a, a + 1)); return { x: lerp(X(CUE.end) + 380, END.cx, u), y: lerp(STACK_H / 2, END.cy, u), zoom: lerp(0.5, 1, u) }; } },
         { a: B(LAST - 1), set: 'lanes', preroll: true, cam: (t) => openCam(t - DUR) },
     ],
+    carols: [
+        { a: 0, set: 'planes', wash: 2, soft: true, planes: carolsPage },
+        // the lanes a beat and a half before the alto joins; one shot through all three joining
+        { a: B(4.5), set: 'lanes', cam: carolCam, trail: true, hold: true },
+        // "bright": the four held notes become the mark, and the card with the carols' address
+        { a: B(CUE.end), set: 'lanes', mark: 'end', wordsAt: B(CUE.end) + 0.7, cam: carolEnd },
+    ],
     social: [
         { a: B(24), set: 'lanes', cam: vCam(B(24), B(30)), trail: true },
         // the alto sings on 22.5: its lane ignites, then a beat on, its studio take
@@ -894,8 +935,8 @@ const SHOTS_BY_CUT = {
 const SHOTS = SHOTS_BY_CUT[CUT];
 SHOTS.forEach((s, i) => { s.b = SHOTS[i + 1] ? SHOTS[i + 1].a : sec(LAST); });
 export const CUTS = SHOTS.slice(1).map((s) => s.a - sec(FROM));
-export const EDIT = { wide: [[0, DUR]], vertical: [[0, DUR]], thumb: [[0, 3.75]] }[FORMAT];
-if (FORMAT === 'square') throw new Error('v5 has no square cut');
+export const EDIT = { wide: [[0, DUR]], vertical: [[0, DUR]], square: [[0, DUR]], thumb: [[0, 3.75]] }[FORMAT];
+if (FORMAT === 'square' && !CAROLS) throw new Error('v5 has no square cut but the carols');
 const FRAMING = { zoom: 1, down: 0 };
 const reframe = (c) => c;
 // windows fast enough to earn extra motion-blur samples: every cut's first moments, the montage's whips,
@@ -987,6 +1028,8 @@ function thumb(t) {
 }
 
 const sets = { lanes: laneSet, share: shSet };
+// where the fold back to the first note ends (the carols cut never folds: its fold is past its end)
+const FOLD_B = Math.max(sec(LAST - 1), sec(CUE.fold[0]) + 0.5);
 // ?cam={"rx":40} nudges the camera of whatever shot is showing: for trying a framing in the preview
 const NUDGE = Q.has('cam') ? JSON.parse(Q.get('cam')) : null;
 
@@ -1012,7 +1055,7 @@ export function film(t) {
     if (cam && shot.trail) {
         // the camera settles in from each cut and pushes at the lens into the next, so cuts carry the motion;
         // and it takes a small kick as each voice starts to sing
-        let k = 1 + 0.07 * E.in(range(t, shot.b - 0.22, shot.b));
+        let k = shot.hold ? 1 : 1 + 0.07 * E.in(range(t, shot.b - 0.22, shot.b));
         if (shot.a > sec(FROM)) k *= lerp(0.93, 1, E.outExpo(range(t, shot.a, shot.a + 0.7)));
         for (let i = 1; i < 4; i++) { const d = t - peakAt(i); if (d > 0) k *= 1 + 0.016 * (1 - Math.exp(-d / 0.035)) * Math.exp(-d / 0.32); }
         cam.zoom *= k;
@@ -1031,7 +1074,7 @@ export function film(t) {
             const idx = [0, 1, 2, 3].map((i) => noteIndex(i, beat));
             const fade = shot.atMark ? 0 : 1 - E.io(range(t, t0 + 0.1, t0 + 0.7));
             o = { ...o, all: true, hide: idx, fade, lines: fade, quiet: true, noBeam: fade < 0.05 };
-            const fold = E.io(range(t, sec(CUE.fold[0]), sec(LAST - 1)));
+            const fold = E.io(range(t, sec(CUE.fold[0]), FOLD_B));
             const z = cam.zoom, ow = OPEN.w * FRAMING.zoom, oh = OPEN.h * FRAMING.zoom;
             const gem = { x: END.cx - ow / 2 / z, y: END.cy + FRAMING.down / z - oh / 2 / z, w: ow / z, h: oh / z };
             morphEls.forEach((e, i) => {
@@ -1044,7 +1087,7 @@ export function film(t) {
                     radius = lerp(to.h / 2, (OPEN.r * FRAMING.zoom) / z, f2);
                     set(e, 'opacity', i === 0 ? '1' : (1 - clamp(fold * 1.6 - 0.5) * 2).toFixed(3));
                 } else set(e, 'opacity', '1');
-                const colour = E.io(range(t, t0 + 0.4, t0 + 1.2)) * (1 - E.io(range(t, sec(CUE.fold[0]) + 0.4, sec(LAST - 1))));
+                const colour = E.io(range(t, t0 + 0.4, t0 + 1.2)) * (1 - E.io(range(t, sec(CUE.fold[0]) + 0.4, FOLD_B)));
                 // (after the fold, each bar lands with a small squash)
                 const dl = t - t0 - i * 0.035, land = shot.atMark && dl > 0 ? 0.08 * Math.exp(-dl / 0.11) * Math.cos(dl * 24) : 0;
                 morphBar(e, i, gemRect(i, idx[i]), to, u, colour, radius, land);

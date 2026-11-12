@@ -7,23 +7,28 @@
 
 import { E, clamp, range } from './lib.js';
 
-export const BPM = 80;
-export const SPB = 60 / BPM;
-export const VERSE = 48; // the template's verse, its one-beat pickup included
-export const PASS2 = VERSE; // where the second time through starts
 // v5's three cuts (docs/showreel-v5-plan.md), picked with ?cut=: the hero (the verse twice, 76.5 s), the short
 // (verse one and the held chord, 40.5 s, for Reddit and social) and the social (vertical, phrases three and
 // four with a voice joining each half phrase, 19.75 s). The film runs on the song's clock: FROM is the
 // song's beat at the film's first frame, END the beat it loops on.
+// The carols cut (the season's posts, vertical or square) is another song on the same page: Silent Night's
+// first two lines at its own 66 BPM, a part joining every two bars, in the app's own guide voice (the
+// catalogue has no real voices for it), the last chord held two beats under the end card. It does not loop.
 const CUTQ = new URLSearchParams(location.search).get('cut');
-export const CUT = ['hero', 'short', 'social'].includes(CUTQ) ? CUTQ : 'hero';
+export const CUT = ['hero', 'short', 'social', 'carols'].includes(CUTQ) ? CUTQ : 'hero';
+export const CAROLS = CUT === 'carols';
+document.documentElement.dataset.cut = CUT;
+export const BPM = CAROLS ? 66 : 80;
+export const SPB = 60 / BPM;
+export const VERSE = CAROLS ? 24 : 48; // the template's verse, its one-beat pickup included (the carols: its first two lines)
+export const PASS2 = VERSE; // where the second time through starts
 export const PASSES = CUT === 'hero' ? 2 : 1;
 export const FROM = CUT === 'social' ? 24 : 0;
-export const HOLD = CUT === 'social' ? 7 / 3 : 6; // the last chord held on: two bars, or the social's 1.75 s
+export const HOLD = CAROLS ? 2 : CUT === 'social' ? 7 / 3 : 6; // the last chord held on: two bars, or the social's 1.75 s
 export const END = PASSES * VERSE + HOLD;
 export const BEATS = END - FROM; // the film's length in beats
 export const DUR = BEATS * SPB;
-export const DURS = { hero: 76.5, short: 40.5, social: 19.75 };
+export const DURS = { hero: 76.5, short: 40.5, social: 19.75, carols: (26 * 60) / 66 };
 export const sec = (beat) => beat * SPB;
 export const beatAt = (t) => t / SPB;
 export const PARTS = ['soprano', 'alto', 'tenor', 'bass'];
@@ -33,15 +38,17 @@ export const PARTS = ['soprano', 'alto', 'tenor', 'bass'];
 export const S = { song: null, parts: null, chords: null, phrases: null, voice: null, voices: null };
 
 export async function load() {
-    const song = await (await fetch('/web/templates/amazing-grace.json')).json();
+    const song = await (await fetch(CAROLS ? '/server/database/templates/silent-night.json' : '/web/templates/amazing-grace.json')).json();
     S.song = song;
+    // the carols cut sings only the song's first two lines
+    const head = (list) => (CAROLS ? list.filter((x) => x.beat < VERSE - 1e-6).map((x) => ({ ...x })) : list);
     const twice = (list) => [0, 1].slice(0, PASSES).flatMap((pass) => list.map((x) => ({ ...x, beat: x.beat + pass * PASS2, pass })));
-    S.parts = PARTS.map((key) => twice(song.parts.find((p) => p.key === key).guide.notes));
-    for (const notes of S.parts) notes[notes.length - 1].length += HOLD;
-    S.chords = twice(song.chords);
-    S.phrases = twice(song.sections[0].phrases.map(([a, b]) => ({ beat: a, end: b }))).map((p) => [p.beat, p.end + p.pass * PASS2]);
+    S.parts = PARTS.map((key) => twice(head(song.parts.find((p) => p.key === key).guide.notes)));
+    for (const notes of S.parts) { const last = notes[notes.length - 1]; last.length = CAROLS ? END - last.beat : last.length + HOLD; }
+    S.chords = twice(head(song.chords));
+    S.phrases = CAROLS ? [[0, 6], [6, 12], [12, 18], [18, 24]] : twice(song.sections[0].phrases.map(([a, b]) => ({ beat: a, end: b }))).map((p) => [p.beat, p.end + p.pass * PASS2]);
     S.voice = voiceCurve(S.parts[0]);
-    S.voices = (await fetch('voices/voices.json').then((r) => (r.ok ? r.json() : null)).catch(() => null))?.parts ?? null;
+    S.voices = CAROLS ? null : (await fetch('voices/voices.json').then((r) => (r.ok ? r.json() : null)).catch(() => null))?.parts ?? null;
     // When each of your notes is first in tune, and how much of it you held there (the sheen).
     const step = 0.01;
     for (const n of S.parts[0]) {
@@ -125,14 +132,14 @@ export const chordName = (c) => NAMES[c.root] + (c.quality === 'min' ? 'm' : c.q
 export const CUE = {
     // when each voice joins: its lane ignites, its voice fades in at its first note from here (the social
     // cut joins a voice every half phrase, from phrase three)
-    enter: CUT === 'social' ? [24, 30, 36, 42] : [0, 12, 24, 36],
+    enter: CAROLS ? [0, 6, 12, 18] : CUT === 'social' ? [24, 30, 36, 42] : [0, 12, 24, 36],
     // v5's share card, in verse two: you, then Maya, Sam and Leo take the other parts, a beat each
     share: 72,
     friends: [74, 75, 76],
     copied: 73,
-    all: (PASSES - 1) * VERSE + 40, // "now I", the last time: everyone
-    end: (PASSES - 1) * VERSE + 43, // "see.": the mark and the end card
-    fold: [END - 3, END - 0.8],     // everything folds back into the one voice
+    all: CAROLS ? 20 : (PASSES - 1) * VERSE + 40, // "now I", the last time: everyone
+    end: CAROLS ? 21 : (PASSES - 1) * VERSE + 43, // "see." (the carols: "bright"): the mark and the end card
+    fold: CAROLS ? [END + 50, END + 51] : [END - 3, END - 0.8], // everything folds back into the one voice (never, in the carols cut)
 };
 
 /**
@@ -157,7 +164,21 @@ const HEARD = [
     'All four voices',
     'All four voices, the last chord held',
 ];
-export function vtt() {
+// the same, for Spanish speakers (docs/languages/es-glossary.md: contralto, bajo, melodía; the hymn is sung in
+// English, so its words stay as sung)
+const HEARD_ES = [
+    'Una voz real canta la melodía',
+    'Entra la contralto',
+    'Entra el tenor',
+    'Entra el bajo, con "oo": cuatro voces',
+    'Las cuatro voces',
+    'Las cuatro voces',
+    'Las cuatro voces',
+    'Las cuatro voces, con el último acorde sostenido',
+];
+const HEARD_CAROLS = ['The soprano has the tune', 'The alto joins', 'The tenor joins', 'The bass joins, on "oo": four parts'];
+export function vtt(lang = 'en') {
+    const HEARD_IN = lang === 'es' ? HEARD_ES : HEARD;
     const stamp = (s) => `${String(Math.floor(s / 60)).padStart(2, '0')}:${(s % 60).toFixed(3).padStart(6, '0')}`;
     const out = ['WEBVTT', ''];
     // the social cut is for platforms that caption it themselves: its lines are in the picture
@@ -170,7 +191,8 @@ export function vtt() {
         }
         // the last phrase runs on through the held chord (the singer's credit is on the end card, not here)
         const last = k === S.phrases.length - 1, end = last ? DUR : sec(b1);
-        const heard = last && PASSES === 1 ? `${HEARD[k]}, the last chord held` : HEARD[k];
+        const heard = CAROLS ? HEARD_CAROLS[k] : last && PASSES === 1 ? `${HEARD_IN[k]}${lang === 'es' ? ', con el último acorde sostenido' : ', the last chord held'}` : HEARD_IN[k];
+        if (CAROLS) words = words.trim().replace(/,$/, '').replace(/^./, (c) => c.toUpperCase());
         out.push(String(k + 1), `${stamp(sec(b0))} --> ${stamp(end - 0.2)}`, `♪ ${words.trim()} ♪`, `[${heard}]`, '');
     });
     return out.join('\n');

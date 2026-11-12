@@ -1,5 +1,5 @@
 ---
-title: "How to Sight-Sing: Reading Music with Solfege"
+title: How to Sight-Sing: Reading Music with Solfege
 description: Sight-singing is singing a line you've never heard, straight from the page. Learn it with solfege: find do, read steps and skips, and count the rhythm.
 song: ode-to-joy
 version: 2

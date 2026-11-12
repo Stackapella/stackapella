@@ -92,6 +92,7 @@
         '/js/song-course.js',
         '/js/under-mix.js',
         '/js/real-key.js',
+        '/js/unit-song.js',
         '/js/experiments.js',
         '/js/lesson-steps.js',
         '/js/game/modules.js',

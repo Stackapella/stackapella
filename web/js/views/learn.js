@@ -49,6 +49,7 @@ import { pageLesson, takePageLesson } from '../page-lesson.js';
 import { isSongLesson, songExercise, songFit, songOf, songTranspose } from '../song-course.js';
 import { underLayers } from '../under-mix.js';
 import { realKeyFit } from '../real-key.js';
+import { countUnitSong, unitSongOffer, unitSongProject } from '../unit-song.js';
 import { lessonFor } from '../experiments.js';
 import { isScored, prefetchSteps, stepOf } from '../lesson-steps.js';
 import { clearMs, cue, lazyComponent, load, markTitleSeen, titleSeen } from '../game/modules.js';
@@ -78,7 +79,7 @@ export const LearnView = {
     // `kept`: this visit's sung steps, their results and takes by step index (a later step may build on
     // one: js/lesson-steps.js's `earlier`), emptied on replay and gone when the lesson closes.
     // `sharpen`: this lesson's place in a Sharpen up session (`{ place, total, start, nextId }`), or null.
-    data: () => ({ sharpen: null, guiding: false, step: 0, micAsked: false, result: null, done: null, ran: false, checking: false, error: null, askHeard: false, tip: null, used: false, skippedHome: false, noSound: false, skipped: false, micPermission: null, noteClip: null, kept: { results: {}, takes: {} }, titleCard: null, songLooked: false, songStep: null, songError: null, flipRestAt: null, capRest: false, capFrom: null, takesOn: {}, bossStarted: false, bossNotes: null, bossLive: 0, bossSaid: '', fitLine: '', slower: new URLSearchParams(location.search).get('slower') === '1' }),
+    data: () => ({ sharpen: null, guiding: false, step: 0, micAsked: false, result: null, done: null, ran: false, checking: false, error: null, askHeard: false, tip: null, used: false, skippedHome: false, noSound: false, skipped: false, micPermission: null, noteClip: null, kept: { results: {}, takes: {} }, titleCard: null, songLooked: false, songStep: null, songError: null, flipRestAt: null, capRest: false, capFrom: null, takesOn: {}, bossStarted: false, bossNotes: null, bossLive: 0, bossSaid: '', fitLine: '', unitSongOpening: false, slower: new URLSearchParams(location.search).get('slower') === '1' }),
     // A step's Then and now offers its card with the lesson's name and link (docs/design-rules.md, Sharing in lessons).
     provide() {
         return { lessonShare: () => this.thenShareContext };
@@ -167,6 +168,15 @@ export const LearnView = {
                 <template v-else-if="done">
                     <LessonEnd ref="end" :done="done" :path="path" :next="upNext" :ask-heard="askHeard" @next="continueOn" @replay="replay" @heard="saveHeard" @skip-heard="askHeard = false">
                         <template v-if="unitShare" #share><ShareResult :label="t('results.share.button')" :milestone="unitMoment" :entry="entry" :course-slug="shareSlug" :color="color" /></template>
+                        <!-- The unit's song (retention row 8, unit-song.js): one quiet card under the main button, its part opened
+                             straight in Sing along with the other voices singing. Game mode's words in game mode. -->
+                        <template v-if="unitSong" #song>
+                            <div class="space-y-2 rounded-2xl border border-line p-4 text-start" data-unit-song :data-place="unitSong.place">
+                                <p class="font-semibold text-cream" translate="no">{{ unitSongLine('title') }}</p>
+                                <p class="text-sm text-muted" translate="no">{{ unitSongLine('text') }}</p>
+                                <button type="button" class="btn-secondary w-full" :disabled="unitSongOpening" data-unit-song-open @click="openUnitSong">{{ t('course.unitSong.sing') }}</button>
+                            </div>
+                        </template>
                     </LessonEnd>
                     <!-- The unit's boss, just opened by this challenge (past week one, not tried yet): one quiet line, never a pop-up. -->
                     <div v-if="bossUnlocked" class="mx-auto mt-4 flex max-w-prose flex-wrap items-center justify-center gap-3 text-center" data-boss-unlocked>
@@ -337,6 +347,11 @@ export const LearnView = {
             return { kind: 'unit', title: t('results.share.unitDone'), headline: unit, line: courseName, text: t('results.share.unitText', { unit, course: courseName }), lessonId: e.unit.lessons[0].id };
         },
         unitShare: (vm) => !!vm.unitMoment && claimShare(`${vm.unitMoment.kind}:${vm.entry.unit.id}`),
+        /**
+         * The unit's song at its end (retention row 8): a unit of the free course's first four with a song, its challenge
+         * sung with stars (never a boss), and nothing up next in the unit. `place` (u1 to u4) is what's counted.
+         */
+        unitSong: (vm) => unitSongOffer({ entry: vm.entry, done: vm.done, progress: learning.progress, course: learning.course }),
         /** What a step's Then and now card names and links to (bullseye.js, breath-hold.js inject it as lessonShare). */
         thenShareContext: (vm) => (vm.entry && vm.shareSlug ? { lessonId: vm.entry.lesson.id, lessonTitle: localized(vm.entry.lesson.title), courseSlug: vm.shareSlug, color: vm.color } : null),
         /** A Plus course's own values for its scorers (`progress.courses.<id>.personal`); none for the free course. */
@@ -553,6 +568,13 @@ export const LearnView = {
         },
     },
     watch: {
+        /** The unit's song on screen: counted once a device a place (us_shown). */
+        'unitSong.place': {
+            immediate: true,
+            handler(place) {
+                if (place) countUnitSong('shown', place);
+            },
+        },
         // A lesson arrived at from its own public page (js/page-lesson.js, Hillel: "Yes, once"): granted as it opens,
         // once the account is known, when it would otherwise be walled or locked.
         pageArrival: {
@@ -1077,6 +1099,25 @@ export const LearnView = {
                 this.fitLine = t(words, { part: templatePartName(part) });
             } catch (error) {
                 console.info('The song step\'s key line was left out', error?.message ?? error);
+            }
+        },
+        /** The unit song's title or line in the singer's language: game mode's own where it has them. */
+        unitSongLine(field) {
+            const s = this.unitSong;
+            return localized((game() && s.game?.[field]) || s[field]);
+        },
+        /** Opens the unit's song: its part (the tune, or the part named), in the singer's key, straight in Sing along. */
+        async openUnitSong() {
+            this.unitSongOpening = true;
+            this.error = null;
+            try {
+                const project = await unitSongProject(this.unitSong, { lessonId: this.id, unitId: this.entry.unit.id, place: this.unitSong.place });
+                navigate(`/p/${project.id}/sing`);
+            } catch (error) {
+                console.error("The unit's song could not open", error);
+                this.error = t('course.songFailed');
+            } finally {
+                this.unitSongOpening = false;
             }
         },
         async courseProject() {

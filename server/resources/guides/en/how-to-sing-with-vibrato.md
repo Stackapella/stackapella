@@ -1,5 +1,5 @@
 ---
-title: "How to sing with vibrato: a gentle guide"
+title: How to sing with vibrato: a gentle guide
 description: Vibrato is a small, even wave in a held note: what it is, how it differs from a wobble, how to let it grow from an easy note, and when to sing straight.
 song: shenandoah
 version: 2

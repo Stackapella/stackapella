@@ -6,10 +6,12 @@ namespace App\Http\Controllers\Public;
 
 use App\Http\Controllers\Controller;
 use App\Support\Http\Hosts;
+use App\Support\Languages\Languages;
 use App\Support\Pages\Landing;
 use App\Support\Site\SitePages;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Lang;
 
 /**
  * Who Stackapella is for (docs/public-site-plan.md): /for/<who>, each with the features that
@@ -17,7 +19,7 @@ use Illuminate\Http\Response;
  */
 final class ForPagesController extends Controller
 {
-    public function show(Request $request, string $who): Response
+    public function show(Request $request, string $who, Languages $languages): Response
     {
         if (! in_array($who, SitePages::FOR_PAGES, true)) {
             return response()->view('public.page-gone', ['links' => ['app' => '/features']], 404, SongPagesController::headers());
@@ -32,10 +34,25 @@ final class ForPagesController extends Controller
             'meta' => ['title' => SitePages::title((string) $page['title']), 'description' => (string) $page['description'], 'url' => Hosts::publicUrl().'/for/'.$who],
             'area' => 'for',
             'page' => $page,
+            // A notice's :languages: "English only", or the languages open to everyone ("English and Spanish").
+            'languages' => self::languages($languages->offered()),
             'links' => Landing::links(Landing::ref($request->query('ref'))),
             'hero' => null,
             'cards' => SitePages::unshown(SitePages::cards(array_values(array_filter((array) ($page['features'] ?? []), 'is_string'))), SitePages::picturesOf($page)),
             'draw' => SitePages::draw(),
         ], 200, SongPagesController::headers());
+    }
+
+    /** @param  list<string>  $offered */
+    private static function languages(array $offered): string
+    {
+        $words = (array) Lang::get('site.for.languages');
+        $names = array_values(array_map(static fn (string $code): string => (string) ($words['names'][$code] ?? $code), $offered));
+        if (count($names) < 2) {
+            return (string) $words['only'];
+        }
+        $last = array_pop($names);
+
+        return str_replace([':first', ':last'], [implode(', ', $names), $last], (string) $words['list']);
     }
 }

@@ -3,7 +3,7 @@
 // soundtrack mixes (voices/, render.py --voices): decoded, the encoder's priming skipped as audio.js
 // skips it, an RMS every 20 ms, each part scaled to its own loud singing. Pure after loading.
 
-import { JOIN_LEAD, JOIN_RAMP, PARTS, S, SPB, VERSE, joinAt } from './score.js';
+import { JOIN_LEAD, JOIN_RAMP, PARTS, S, SPB, VERSE, joinAt, noteAt } from './score.js';
 
 const RATE = 48000, HOP = 0.02, PRIMING_FRAMES = 1024;
 // a voice is singing once its loudness, as the mix lets it in, crosses this (of its own loud singing)
@@ -34,7 +34,8 @@ export async function loadLoud() {
 
 /** Part `i`'s loudness at song beat `beat` (either time through the verse), smoothed over 60 ms. */
 export function loud(i, beat) {
-    if (!env) return 0.6;
+    // without recordings (the carols cut's guide voice): each note sounds, and settles
+    if (!env) { const n = noteAt(S.parts[i], beat); return n ? 0.45 + 0.45 * Math.exp(-(beat - n.beat) * 0.9) : 0.06; }
     const b = beat >= VERSE ? beat - VERSE : beat, e = env[i], k = Math.round((b * SPB - e.offset) / HOP);
     return smooth(e, k);
 }

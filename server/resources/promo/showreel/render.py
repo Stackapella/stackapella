@@ -57,7 +57,7 @@ for arg in sys.argv[1:]:
     A[k] = v if v else True
 # v5's three cuts (js/score.js CUT): the hero for the landing, the short (40.5 s, landscape) and the social
 # (19.75 s, vertical); the page checks its length against the score's
-CUTS = {'hero': 76.5, 'short': 40.5, 'social': 19.75}
+CUTS = {'hero': 76.5, 'short': 40.5, 'social': 19.75, 'carols': 26 * 60 / 66}  # the carols: the season's posts (--format=vertical|square)
 cut = str(A.get('cut', 'hero'))
 if cut not in CUTS:
     raise SystemExit(f'no cut {cut}: {", ".join(CUTS)}')
@@ -220,7 +220,7 @@ out_dir = Path(A['dir']).resolve() if 'dir' in A else OUT
 suffix = '-light' if theme == 'light' else ''
 # The frame of each format: lib.js's FORMATS, which the page checks against this (window.FRAME).
 FORMATS = {'wide': (1920, 1080), 'vertical': (1080, 1920), 'square': (1080, 1080), 'thumb': (480, 480)}
-fmt = A.get('launch') or A.get('format') or ('vertical' if cut == 'social' else 'wide')
+fmt = A.get('launch') or A.get('format') or ('vertical' if cut in ('social', 'carols') else 'wide')
 if fmt not in FORMATS:
     raise SystemExit(f'no format {fmt}: {", ".join(FORMATS)}')
 FW, FH = FORMATS[fmt]
@@ -387,7 +387,7 @@ def video():
                 'square': {'scale': 1, 'fps': 30, 'samples': 8, 'fast': 16, 'bitrate': '5000k'},
                 'thumb': {'scale': 1, 'fps': 20, 'samples': 4, 'fast': 8, 'bitrate': '600k'}}
     preset = (LAUNCHES[fmt] if A.get('launch') else
-              {'scale': 1, 'fps': 30, 'samples': 8, 'fast': 16, 'bitrate': '6000k'} if A.get('final') and cut == 'social' else
+              {'scale': 1, 'fps': 30, 'samples': 8, 'fast': 16, 'bitrate': '6000k'} if A.get('final') and cut in ('social', 'carols') else
               {'scale': 1, 'fps': 60, 'samples': 8, 'fast': 16, 'bitrate': '5000k'} if A.get('final') and cut == 'short' else
               {'scale': 1, 'fps': 60, 'samples': 8, 'fast': 16, 'bitrate': '2600k'} if A.get('final') else
               {'scale': 0.5, 'fps': 30, 'samples': 8, 'fast': 16, 'bitrate': '900k'} if A.get('mobile') else
@@ -415,7 +415,7 @@ def video():
         elif A.get('final') and cut != 'hero':
             # the short and the social are for posting: an MP4 each, with room for the platforms' own re-encode
             out_dir.mkdir(parents=True, exist_ok=True)
-            encode(tmp, f0, fps, wav, mp4=out_dir / f'stackapella-{cut}{suffix}.mp4', bitrate=A.get('bitrate', preset['bitrate']), t0=t0, t1=t1)
+            encode(tmp, f0, fps, wav, mp4=out_dir / (f'stackapella-carols-{fmt}{suffix}.mp4' if cut == 'carols' else f'stackapella-{cut}{suffix}.mp4'), bitrate=A.get('bitrate', preset['bitrate']), t0=t0, t1=t1)
         elif A.get('final'):
             out_dir.mkdir(parents=True, exist_ok=True)
             encode(tmp, f0, fps, wav, mp4=out_dir / f'{NAME}{suffix}.mp4', webm=out_dir / f'{NAME}{suffix}.webm', bitrate=A.get('bitrate', preset['bitrate']), t0=t0, t1=t1)
@@ -473,15 +473,18 @@ def audio():
 
 
 def vtt():
-    """The captions track (WebVTT), which the page writes from the score (score.js, vtt())."""
+    """The captions track (WebVTT), which the page writes from the score (score.js, vtt()); --lang=es writes
+    the Spanish one (stackapella-showreel.es.vtt: the hymn's words as sung, who joins in Spanish)."""
+    lang = 'es' if A.get('lang') == 'es' else 'en'
+    name = f'{NAME}.vtt' if lang == 'en' else f'{NAME}.{lang}.vtt'
     b = launch(0, 0.25)
     try:
-        text = b.cdp.eval('window.renderVtt()')
+        text = b.cdp.eval(f"window.renderVtt('{lang}')")
     finally:
         b.close()
     out_dir.mkdir(parents=True, exist_ok=True)
-    (out_dir / f'{NAME}.vtt').write_text(text)
-    print(out_dir / f'{NAME}.vtt')
+    (out_dir / name).write_text(text)
+    print(out_dir / name)
 
 
 CATALOGUE = os.environ.get('CATALOGUE', 'https://stackapella.com/api/templates')

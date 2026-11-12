@@ -96,6 +96,31 @@ def journey(f):
     assert named == ["soprano", "alto", "tenor", "bass"], f"tracks named for their voices: {named}"
     f.shot("midi")
 
+    # What the guide won't sing is said before the song is made, by bar (score import slice A): a Dorico export's
+    # divisi, Solo and Tutti, accent, rall. and fermata.
+    f.go("/?api=mock&as=admin", "document.querySelector('[data-new-song]')")
+    open_file_sheet(f)
+    f.run(OPEN_FILE.replace("NAME", "editors/dorico-greensleeves.musicxml"))
+    f.wait("document.querySelectorAll('[data-sheet-line]').length === 3", what="the Dorico file's three lines")
+    said = f.js("[...document.querySelectorAll('[data-sheet-notices] li')].map((li) => li.textContent.trim())")
+    for key, values in [("sheet.notice.divisi", {"name": "Men", "bars": "3, 4", "count": 2}), ("sheet.notice.soloTutti", {"bars": "0, 3", "count": 2}), ("sheet.notice.accents", {"bars": "2", "count": 1}), ("sheet.notice.tempoWords", {"bars": "4", "count": 1}), ("sheet.notice.fermatas", {"bars": "4", "count": 1})]:
+        assert t(f, key, values) in said, f"{key} said: {said}"
+    f.shot("report")
+
+    # A hymn's three verses printed under the notes are sung one after another, each a section of the song.
+    f.go("/?api=mock&as=admin", "document.querySelector('[data-new-song]')")
+    open_file_sheet(f)
+    f.run(OPEN_FILE.replace("NAME", "editors/finale-amazing-grace.musicxml"))
+    f.wait("document.querySelectorAll('[data-sheet-line]').length === 1", what="the hymn's one line")
+    assert t(f, "sheet.notice.versesWritten", {"count": 3}) in f.js("document.querySelector('[data-sheet-notices]').textContent"), "the verses said"
+    f.run("const row = document.querySelector('[data-sheet-line] select'); row.value = 'soprano'; row.dispatchEvent(new Event('change')); document.querySelector('[data-sheet-rights]').click();")
+    f.wait("!document.querySelector('[data-sheet-import] button[type=submit]').disabled", what="Make the song")
+    f.run("document.querySelector('[data-sheet-import]').requestSubmit()")
+    f.wait("location.pathname.startsWith('/t/')", what="the hymn's page")
+    sections = f.js("""(async () => { const { mine } = await import('/js/stores/templates.js'); const id = location.pathname.split('/')[2];
+        return mine.list.find((x) => x.id === id).template.sections.map((s) => s.name); })()""")
+    assert sections == ["Verse 1", "Verse 2", "Verse 3"], f"a section a verse: {sections}"
+
 
 if __name__ == "__main__":
     run("import_sheet", journey)

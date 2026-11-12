@@ -356,3 +356,10 @@ body.render #bar { display: none; }
 .pl { box-shadow: 0 34px 100px rgb(0 0 0 / .55), 0 0 0 1.5px color-mix(in oklab, var(--glow-c, var(--edge)) 65%, var(--edge)), 0 0 calc(64px + var(--gk, .5) * 56px) color-mix(in oklab, var(--glow-c, transparent) calc(24% + var(--gk, .5) * 22%), transparent); }
 :root:not([data-theme="dark"]) .pl { box-shadow: 0 28px 80px rgb(60 40 20 / .24), 0 0 0 1.5px color-mix(in oklab, var(--glow-c, var(--edge)) 55%, var(--edge)), 0 0 calc(50px + var(--gk, .5) * 40px) color-mix(in oklab, var(--glow-c, transparent) calc(16% + var(--gk, .5) * 14%), transparent); }
 #split .qh .you { transform-origin: 50% 50%; }
+
+/* the carols cut (vertical and square): its line, and an end card whose heading and address are longer */
+[data-format="square"] .line5 { left: 56px; top: 64px; max-width: 920px; font-size: 62px; }
+[data-cut="carols"][data-format="vertical"] #endc h2 { font-size: 104px; }
+[data-cut="carols"][data-format="square"] #endc h2 { font-size: 92px; }
+[data-cut="carols"][data-format="vertical"] #endc .site { font-size: 38px; }
+[data-cut="carols"][data-format="square"] #endc .site { font-size: 36px; }

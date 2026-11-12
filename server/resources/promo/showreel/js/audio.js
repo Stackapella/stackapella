@@ -8,10 +8,10 @@
 // second kept, so the reverb tail of the last chord carries over the loop's seam the way it will when
 // the page loops it.
 
-import { renderBacking } from '/web/js/synth.js';
+import { renderBacking, renderPart } from '/web/js/synth.js';
 import { duckBreaths, gaps } from './breaths.js';
 import { rng } from './lib.js';
-import { BPM, CUE, CUT, DUR, END, FROM, JOIN_RAMP, PARTS, PASS2, PASSES, S, SPB, joinAt, sec } from './score.js';
+import { BPM, CAROLS, CUE, CUT, DUR, END, FROM, JOIN_RAMP, PARTS, PASS2, PASSES, S, SPB, joinAt, sec } from './score.js';
 
 const RATE = 48000;
 const PRIMING_FRAMES = 1024; // ffmpeg's AAC encoder delay, as web/js/recorded-guides.js skips it
@@ -149,16 +149,48 @@ async function mix(loops) {
     return ctx.startRendering();
 }
 
+/**
+ * The carols cut: Silent Night's parts in the app's own sung guide voice (web/js/synth.js renderPart, as the
+ * song's page plays them: the catalogue has no real voices for it), each from the bar it joins at, in the same
+ * room, a quiet chime as each joins. It does not loop: the last chord fades under the end card.
+ */
+async function mixCarols() {
+    const ctx = new OfflineAudioContext(2, Math.round(DUR * RATE), RATE);
+    const comp = ctx.createDynamicsCompressor();
+    comp.threshold.value = -16; comp.ratio.value = 2.5; comp.attack.value = 0.02; comp.release.value = 0.25; comp.knee.value = 8;
+    comp.connect(ctx.destination);
+    const dry = ctx.createGain(); dry.gain.value = 0.86; dry.connect(comp);
+    const verb = ctx.createConvolver(); verb.normalize = true; verb.buffer = room(ctx);
+    const wet = ctx.createGain(); wet.gain.value = 0.26; verb.connect(wet).connect(comp);
+    const bus = ctx.createGain(); bus.connect(dry); bus.connect(verb);
+    const PLACE = [[1.0, 0], [0.8, -0.3], [0.78, 0.3], [0.9, 0]];
+    PARTS.forEach((key, i) => {
+        const notes = S.parts[i].filter((n) => n.beat >= CUE.enter[i] - 1e-6);
+        const pcm = renderPart(notes, { bpm: BPM, sampleRate: RATE, human: 'full', seed: 11 + i });
+        const buf = ctx.createBuffer(1, pcm.length, RATE); buf.copyToChannel(pcm, 0);
+        const src = ctx.createBufferSource(), g = ctx.createGain(), p = ctx.createStereoPanner();
+        src.buffer = buf; p.pan.value = PLACE[i][1];
+        g.gain.setValueAtTime(0.4 * PLACE[i][0], 0);
+        g.gain.setTargetAtTime(0, DUR - 1.25, 0.3);
+        src.connect(g).connect(p).connect(bus);
+        src.start(0);
+    });
+    const ch = ctx.createGain(); ch.connect(dry); ch.connect(verb);
+    [1, 2, 3].forEach((i) => chime(ctx, ch, sec(CUE.enter[i]), [88, 91, 96][i - 1], 0.022));
+    [0, 0.07, 0.14, 0.21].forEach((d, i) => chime(ctx, ch, sec(CUE.end) + 0.9 + d, [79, 84, 88, 91][i], 0.03));
+    return ctx.startRendering();
+}
+
 /** The soundtrack: exactly DUR seconds that loop, as an AudioBuffer (the second of two loops). */
 export async function soundtrack() {
-    const two = await mix(2);
     const n = Math.round(DUR * RATE), out = new AudioBuffer({ numberOfChannels: 2, length: n, sampleRate: RATE });
+    const off = CAROLS ? 0 : n, two = CAROLS ? await mixCarols() : await mix(2);
     let peak = 0;
-    for (let c = 0; c < 2; c++) for (const v of two.getChannelData(c).subarray(n, 2 * n)) peak = Math.max(peak, Math.abs(v));
+    for (let c = 0; c < 2; c++) for (const v of two.getChannelData(c).subarray(off, off + n)) peak = Math.max(peak, Math.abs(v));
     // about -16 LUFS: a page's video someone chose to unmute should not jump out of the speakers
     const gain = 0.52 / (peak || 1);
     for (let c = 0; c < 2; c++) {
-        const d = two.getChannelData(c).subarray(n, 2 * n), o = out.getChannelData(c);
+        const d = two.getChannelData(c).subarray(off, off + n), o = out.getChannelData(c);
         for (let i = 0; i < n; i++) o[i] = d[i] * gain;
     }
     return out;

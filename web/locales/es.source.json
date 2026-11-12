@@ -473,7 +473,20 @@
         },
         "notice": {
             "repeats": "{count, plural, one {A repeat is written out in full.} other {# repeats are written out in full.}}",
-            "jumps": "D.C., D.S. and coda signs aren't followed: the song is sung straight through.",
+            "jumpDc": "D.C. is followed: back to the start, then on to the end.",
+            "jumpDcFine": "D.C. al Fine is followed: back to the start, ending at Fine.",
+            "jumpDcCoda": "D.C. al Coda is followed: back to the start, then on to the coda.",
+            "jumpDs": "D.S. is followed: back to the sign, then on to the end.",
+            "jumpDsFine": "D.S. al Fine is followed: back to the sign, ending at Fine.",
+            "jumpDsCoda": "D.S. al Coda is followed: back to the sign, then on to the coda.",
+            "versesWritten": "{count, plural, other {Its # verses are sung one after another, each a section.}}",
+            "versesLeftOut": "Not sung, as the music has no time through for it: verse {verses}.",
+            "fermatas": "Held notes (fermatas) are sung in time, with a breath after. {count, plural, one {Bar {bars}.} other {Bars {bars}.}}",
+            "tempoWords": "Rall., rit. and a tempo aren't sung by the guide yet. {count, plural, one {Bar {bars}.} other {Bars {bars}.}}",
+            "dynamics": "Louder and softer aren't sung by the guide yet. {count, plural, one {Bar {bars}.} other {Bars {bars}.}}",
+            "accents": "Accents aren't sung by the guide yet. {count, plural, one {Bar {bars}.} other {Bars {bars}.}}",
+            "soloTutti": "Solo and Tutti aren't followed yet: everyone sings. {count, plural, one {Bar {bars}.} other {Bars {bars}.}}",
+            "divisi": "{name} splits into two notes in {count, plural, one {bar {bars}} other {bars {bars}}}: choose the top or the bottom.",
             "verses": "Only verse 1's words are kept. The file has {count}.",
             "metreChanges": "The metre changes later on. The first one is kept.",
             "tempoChanges": "The speed changes later on. The first one is kept.",
@@ -483,6 +496,7 @@
         "error": {
             "unreadable": "That file isn't sheet music we can read. Try MusicXML (.musicxml or .mxl) or MIDI.",
             "metre": "Its metre ({metre}) can't be sung here yet.",
+            "metreChange": "The metre changes partway through (it starts in {metre}). Songs with a metre change can't be brought in yet.",
             "empty": "We couldn't find any notes in that file.",
             "signIn": "Bringing in sheet music needs a free account. Your songs and progress come with you."
         },
@@ -1829,6 +1843,9 @@
         }
     },
     "course": {
+        "unitSong": {
+            "sing": "Sing it"
+        },
         "fitClosest": "None of the parts quite fits your range, even with the key moved. {part} is the closest.",
         "whistle": {
             "folded": "Whistles sit far above voices, so the app moves yours down to compare."

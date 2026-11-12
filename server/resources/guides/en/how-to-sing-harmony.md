@@ -116,5 +116,4 @@ yourself in a chord is one of the fastest ways to learn what fitting sounds like
 - **Learn a part** plays your part with a guide voice, lets you slow it to 85% or 70% at the same pitch,
   and then turns your guide off while the others keep going. Your notes light up as you land them.
 - For more, **Improvising a harmony** teaches you to invent a part above or below a tune, and
-  **Counterpoint** to hold your own line while other voices pull at your ear. Each one's first lesson is
-  free.
+  **Counterpoint** to hold your own line while other voices pull at your ear. Both are free.

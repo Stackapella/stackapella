@@ -24,7 +24,7 @@
             <h2 id="for-h" class="s-kick">{{ $common['titles']['for'] }}</h2>
             <div class="cmp-two">
                 <div class="cmp-card">
-                    <h3>{{ str_replace(':name', $page['name'], $common['titles']['for_them']) }}</h3>
+                    <h3>{{ $page['for_them'] ?? str_replace(':name', $page['name'], $common['titles']['for_them']) }}</h3>
                     <ul class="s-ticks">@foreach ((array) $page['them_for'] as $line)<li><x-site.icon name="check" size="18" />{{ $line }}</li>@endforeach</ul>
                 </div>
                 <div class="cmp-card cmp-us">

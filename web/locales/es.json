@@ -473,7 +473,20 @@
         },
         "notice": {
             "repeats": "{count, plural, one {Una repetición se escribe completa.} other {# repeticiones se escriben completas.}}",
-            "jumps": "No se siguen los signos D.C., D.S. ni coda: la canción se canta de principio a fin.",
+            "jumpDc": "Se sigue el D.C.: de vuelta al principio y luego hasta el final.",
+            "jumpDcFine": "Se sigue el D.C. al Fine: de vuelta al principio, hasta el Fine.",
+            "jumpDcCoda": "Se sigue el D.C. al Coda: de vuelta al principio y luego a la coda.",
+            "jumpDs": "Se sigue el D.S.: de vuelta al signo y luego hasta el final.",
+            "jumpDsFine": "Se sigue el D.S. al Fine: de vuelta al signo, hasta el Fine.",
+            "jumpDsCoda": "Se sigue el D.S. al Coda: de vuelta al signo y luego a la coda.",
+            "versesWritten": "{count, plural, other {Sus # estrofas se cantan una tras otra, cada una como sección.}}",
+            "versesLeftOut": "No se canta, porque la música no tiene una vuelta para ella: estrofa {verses}.",
+            "fermatas": "Las notas con calderón se cantan a tempo, con una respiración después. {count, plural, one {Compás {bars}.} other {Compases {bars}.}}",
+            "tempoWords": "La guía aún no canta rall., rit. ni a tempo. {count, plural, one {Compás {bars}.} other {Compases {bars}.}}",
+            "dynamics": "La guía aún no canta más fuerte ni más suave. {count, plural, one {Compás {bars}.} other {Compases {bars}.}}",
+            "accents": "La guía aún no canta los acentos. {count, plural, one {Compás {bars}.} other {Compases {bars}.}}",
+            "soloTutti": "Aún no se siguen Solo y Tutti: todos cantan. {count, plural, one {Compás {bars}.} other {Compases {bars}.}}",
+            "divisi": "{name} se divide en dos notas {count, plural, one {en el compás {bars}} other {en los compases {bars}}}: elige la de arriba o la de abajo.",
             "verses": "Solo se conserva la letra de la estrofa 1. El archivo tiene {count}.",
             "metreChanges": "El compás cambia más adelante. Se conserva el primero.",
             "tempoChanges": "La velocidad cambia más adelante. Se conserva la primera.",
@@ -483,6 +496,7 @@
         "error": {
             "unreadable": "Ese archivo no es una partitura que podamos leer. Prueba con MusicXML (.musicxml o .mxl) o MIDI.",
             "metre": "Su compás ({metre}) aún no se puede cantar aquí.",
+            "metreChange": "El compás cambia a mitad de la canción (empieza en {metre}). Aún no se pueden importar canciones con cambio de compás.",
             "empty": "No encontramos ninguna nota en ese archivo.",
             "signIn": "Importar partituras requiere una cuenta gratis. Tus canciones y tu progreso van contigo."
         },
@@ -1829,6 +1843,9 @@
         }
     },
     "course": {
+        "unitSong": {
+            "sing": "Cantarla"
+        },
         "fitClosest": "Ninguna voz encaja del todo en tu extensión, ni cambiando la tonalidad. La más cercana es {part}.",
         "whistle": {
             "folded": "Los silbidos suenan muy por encima de las voces, así que la app baja el tuyo para compararlo."

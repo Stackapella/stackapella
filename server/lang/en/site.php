@@ -448,7 +448,7 @@ return [
             ],
 
             'coaching' => [
-                'end' => ['title' => 'Start with one comfortable note.', 'body' => 'The course is here today, and free to start.'],
+                'end' => ['title' => 'Start with one comfortable note.', 'body' => 'The course is here today, and free.'],
                 'pic' => 'icon:coach',
                 'name' => 'Coaching',
                 'summary' => 'Reviews and lessons from approved vocal coaches.',
@@ -547,7 +547,7 @@ return [
             ],
 
             'leagues' => [
-                'end' => ['title' => 'A little every day.', 'body' => 'Today\'s workout and the course are here now, free to start.'],
+                'end' => ['title' => 'A little every day.', 'body' => 'Today\'s workout and the course are here now, and free.'],
                 'pic' => 'icon:flag',
                 'name' => 'Leagues',
                 'summary' => 'Weekly leagues ranked by practice, not talent, and a table of friends.',
@@ -580,7 +580,7 @@ return [
 
             'library' => [
                 'try' => ['Try the creator', 'create'],
-                'end' => ['title' => 'Arrange a song of your own.', 'body' => 'The creator is here today, and free to start.'],
+                'end' => ['title' => 'Arrange a song of your own.', 'body' => 'The creator is here today, and free to use.'],
                 'pic' => 'icon:book',
                 'name' => 'The library',
                 'summary' => 'Arrangements made by singers, to find and learn.',
@@ -722,6 +722,9 @@ return [
     ],
 
     'for' => [
+        // The languages a "for" page's :languages names (App\Support\Languages\Languages::offered, ForPagesController),
+        // so a line about them follows the switches instead of going stale.
+        'languages' => ['only' => 'English only', 'names' => ['en' => 'English', 'es' => 'Spanish', 'de' => 'German'], 'list' => ':first and :last'],
         'index' => [
             'title' => 'Who Stackapella is for',
             'description' => 'Beginners, choir singers and directors, a cappella singers, songwriters, players and families: how Stackapella helps each one sing harmony.',
@@ -1170,7 +1173,7 @@ return [
                     ],
                     [
                         'heading' => 'Taking turns, on purpose',
-                        'body' => 'Stackapella doesn\'t sing live over the internet, where delays would pull the parts apart. Taking turns keeps every part exactly in time.',
+                        'body' => 'On Stackapella you don\'t sing live together over the internet, where delays would pull the parts apart. Taking turns keeps every part exactly in time.',
                     ],
                 ],
                 'features' => ['learn-a-part', 'studio', 'share', 'real-voices'],
@@ -1287,7 +1290,7 @@ return [
                     [
                         'notice' => true,
                         'heading' => 'Good to know',
-                        'body' => 'Choir groups are for adults, up to 60 singers each. Members aged 13 to 17 can use the code too, under the same rules as a school class code, and younger children can play the lessons as guests, with no account and no personal details asked. Songs still under someone else\'s copyright need the publisher\'s permission first. Stackapella is in English only. We never track your members, sell data or send them marketing email.',
+                        'body' => 'Choir groups are for adults, up to 60 singers each. Members aged 13 to 17 can use the code too, under the same rules as a school class code, and younger children can play the lessons as guests, with no account and no personal details asked. Songs still under someone else\'s copyright need the publisher\'s permission first. Stackapella is in :languages. We never track your members, sell data or send them marketing email.',
                     ],
                 ],
                 'features' => ['choirs', 'learn-a-part', 'course'],
@@ -1340,7 +1343,7 @@ return [
 
     'about' => [
         'title' => 'About Stackapella',
-        'description' => 'Why Stackapella exists, what it cares about, and who makes it.',
+        'description' => 'Why Stackapella exists, what it cares about and who makes it: a free, open-source way to learn harmony part by part, with a guide voice and no tracking.',
         'headline' => 'About Stackapella',
         'lead' => 'Stackapella is for anyone who wants to sing harmony and isn\'t sure which notes to sing.',
         // Hillel's note, in his words (approved as is, 2026-10-27). :email is the contact address, linked.
@@ -1365,7 +1368,7 @@ return [
             'intro_end' => ', and Stackapella is my third try at building a music app.',
             'steps' => [
                 ['title' => 'Music Maker Pro, later OK Piano (2013).', 'body' => 'A free iPhone app for making a song without knowing any music theory: you tapped out a rhythm, then played along on a guided keyboard.'],
-                ['title' => 'mudeo (2019).', 'body' => 'An open-source app for iPhone and Android for recording yourself on video and stacking the parts into a harmony, alone or with friends. I could never get the videos to line up: every phone adds its own delay, and video made it worse. mudeo closed earlier this year.'],
+                ['title' => 'mudeo (2019).', 'body' => 'An open-source app for iPhone and Android for recording yourself on video and stacking the parts into a harmony, alone or with friends. I could never get the videos to line up: every phone adds its own delay, and video made it worse. mudeo closed in 2026.'],
                 ['title' => 'Stackapella.', 'body' => 'Audio only, so every part lines up on the audio clock, and built to teach you which notes to sing, not just to record them.'],
             ],
             'videos' => [
@@ -3814,6 +3817,10 @@ return [
                     'wiredHint' => 'Wired: hold one earbud or ear cup near the mic if you use the more exact check.',
                     'bluetoothHint' => 'Bluetooth delays are usually 100 to 300 ms.',
                     'speakersHint' => 'Speakers: turn the volume up in a quiet room.',
+                    // Each route as the round trip names it mid-sentence ("out through your :route").
+                    'wiredRoute' => 'wired headphones',
+                    'bluetoothRoute' => 'Bluetooth headphones',
+                    'speakersRoute' => 'speakers',
                     'howTo' => 'Start plays a steady click. Tap the pad on each one, as steadily as you can, and we\'ll work out how late you hear it.',
                     'start' => 'Start tapping',
                     'stop' => 'Stop',
@@ -3861,7 +3868,7 @@ return [
                     'copyTextMic' => ':route: :ms ms round trip (± :spread), measured at stackapella.com',
                     'copy' => 'Copy result',
                     'copied' => 'Copied',
-                    'copyText' => ':route headphones: :ms ms (± :spread), measured at stackapella.com',
+                    'copyText' => ':route: :ms ms (± :spread), measured at stackapella.com',
                     'kept' => 'Nothing is recorded or kept: the clicks and your taps stay in this page.',
                     'failed' => 'We couldn\'t hear the clicks.',
                     'failedHint' => 'Turn the volume up, and hold an earbud right against the mic.',
@@ -6396,7 +6403,7 @@ return [
         ],
         'missing_title' => 'What isn\'t included',
         'missing' => [
-            'The official songs and the course aren\'t bundled, but they\'re CC BY-SA 4.0: fetch them from their own repo and use or adapt them on any install, credited "Stackapella (https://stackapella.com)". The creator makes songs too.',
+            'The official songs and the course aren\'t bundled, but they\'re CC BY-SA 4.0: fetch them from their own repo and use or adapt them on any install, credited "Stackapella (https://stackapella.com)". You can also make your own songs with the song creator, which is included.',
             'The real singers\' guide voices. Your guides are the synthesized voice.',
             'Real instruments, until you upload CC0 sample sets of your own (php artisan app:instruments:upload).',
             'The native apps, which talk to stackapella.com. On your server, people use the web app, which installs from the browser.',
@@ -7381,7 +7388,7 @@ return [
                     ],
                     'price' => [
                         [
-                            'Free for up to 50 people. Choir plans $26.67 or $53.33 a month for 21 to 50 members, paid yearly. Premium for one singer $4.99 a month (App Store)',
+                            'Free plan: 15 songs and 10 audio files per member. Standard $26.67 or Premium $53.33 a month for a choir of 21 to 50, paid yearly, for unlimited songs, offline use and more. Premium for one singer $4.99 a month (App Store)',
                             [3, 1],
                         ],
                     ],
@@ -7476,6 +7483,8 @@ return [
                 'description' => 'How Stackapella compares with CyberBass and Choralia, the free choir practice-track sites: prices, practising your part, pitch feedback, courses and recording, with sources.',
                 'summary' => 'All three help choir singers learn their part by ear.',
                 'headline' => 'Stackapella and CyberBass and Choralia',
+                // Two sites, so its "who it's for" heading is plural (the shared one is ":name is for").
+                'for_them' => 'CyberBass and Choralia are for',
                 'lead' => 'CyberBass and Choralia are free websites of practice tracks for choral works, with your own part brought forward. Stackapella teaches the parts of shorter songs by ear and listens as you sing.',
                 'them_for' => [
                     'Choir singers learning a major choral work, like a requiem.',
@@ -8215,7 +8224,7 @@ return [
                 'name' => 'First steps to belting',
                 'summary' => 'Bright, speech-like calls, low and easy: the first step towards belt.',
                 'title' => 'First steps to belting course',
-                'description' => 'Bright, speech-like calls, low and easy: the first step towards belt. A free singing skills course coming to Stackapella, in short lessons.',
+                'description' => 'Bright, speech-like calls, low and easy: the first step towards belt. A free singing skills course on Stackapella, in short lessons.',
                 'headline' => 'First steps to belting',
                 'lead' => 'Bright, speech-like calls, low and easy: the first step towards belt.',
                 'learn' => ['Calls that start from speech', 'A bright sound, low in your voice', 'Stopping while it still feels easy'],
@@ -8543,7 +8552,7 @@ return [
                 'name' => 'Diction for singers',
                 'summary' => 'Pure vowels, and consonants on time.',
                 'title' => 'Diction for singers course',
-                'description' => 'Pure vowels, and consonants on time. A free singing skills course coming to Stackapella, in short lessons.',
+                'description' => 'Pure vowels, and consonants on time. A free singing skills course on Stackapella, in short lessons.',
                 'headline' => 'Words people can hear',
                 'lead' => 'Pure vowels that carry the note, and consonants placed in time, so a choir sings one word, not twenty.',
                 'learn' => ['Pure vowels that carry the note', 'Consonants placed in time', 'Words a listener can follow'],
@@ -8644,7 +8653,7 @@ return [
                         'stop' => 'Stop',
                         'ready' => 'Press play: ee, ah and oo on C3, then on C5.',
                         'say' => ':vowel on :note. F1 :f1 Hz, F2 :f2 Hz.',
-                        'after' => 'The same three filters on two notes. Pick a vowel and a note to hold one.',
+                        'after' => 'The same three vowels on two notes. Pick a vowel and a note to hold one.',
                         'vowel_label' => 'Vowel',
                         'note_label' => 'Note',
                         'notes' => ['C3' => 'C3, 130.81 Hz', 'C5' => 'C5, 523.25 Hz'],
@@ -8785,7 +8794,7 @@ return [
                     ['Why do re mi, and not letter names?', 'Do re mi name each note by its place in the key, so do to mi looks and sounds the same in any key. When the key changes, do moves on the stave, and every other note moves with it.'],
                     ['What if I can\'t find the first note?', 'The early lines sit over a drone on do, and you can hear a line before you read it. Find do first, then count the steps from it.'],
                     ['Is it safe for my voice?', 'Yes. The lines are short, sung at a medium volume in the middle of your voice. Stop if anything tightens or hurts.'],
-                    ['What does it cost?', 'Nothing: every course is free. When it opens, try the first lesson without an account; a free account opens the rest.'],
+                    ['What does it cost?', 'Nothing: every course is free. Try the first lesson without an account; a free account opens the rest.'],
                 ],
                 'related' => ['ear-training', 'perfect-your-pitch', 'barbershop'],
                 // The guides that go with this course (SEO pass): listed with the related courses.
@@ -9157,7 +9166,7 @@ return [
                 'name' => 'Scat singing',
                 'summary' => 'Jazz syllables, swing, and short improvised lines.',
                 'title' => 'Scat singing course',
-                'description' => 'Jazz syllables, swing, and short improvised lines. A free harmony course coming to Stackapella, in short lessons.',
+                'description' => 'Jazz syllables, swing, and short improvised lines. A free harmony course on Stackapella, in short lessons.',
                 'headline' => 'Scat singing',
                 'lead' => 'Jazz syllables, a swing feel, and short lines of your own that land on the chord.',
                 'learn' => ['Scat syllables', 'Swing', 'Short lines that land on chord tones'],
@@ -9212,7 +9221,7 @@ return [
                     ['What are the syllables for?', 'They make your voice speak like a horn: a soft "doo" on the long note, a leaning "bah" on the short one, a clean "dat" to end. The app hears your notes and your timing, not which syllables you choose.'],
                     ['Is scat the same as vocalese?', 'No. Scat is made up on the spot, on syllables. Vocalese sets words to a band\'s recorded solos and horn parts, as on Sing a Song of Basie.'],
                     ['Is it safe for my voice?', 'Yes, sung the course\'s way: light, at a medium volume, in the middle of your voice, with accents from the breath and never the throat. Stop if anything tightens or hurts.'],
-                    ['What does it cost?', 'Nothing: every course is free. When it opens, try the first lesson without an account; a free account opens the rest.'],
+                    ['What does it cost?', 'Nothing: every course is free. Try the first lesson without an account; a free account opens the rest.'],
                 ],
                 'related' => ['improvising-harmony', 'ear-training', 'pop-and-country'],
                 'kicks' => ['story' => 'The story', 'aims' => 'Long, short', 'units' => 'The lessons', 'science' => 'The science', 'margin' => 'Liner notes', 'begin' => 'Before you begin', 'questions' => 'Questions', 'close' => 'Your first trade'],
@@ -9342,15 +9351,6 @@ return [
                     'Place the third and the seventh where barbershop does: lower than the piano.',
                     'Sing every seat in the quartet: lead, tenor, baritone and bass.',
                     'Sing a swipe, hold a post, and stack a tag in two voices, both yours.',
-                ],
-                'ring' => [
-                    'lead' => 'When two notes are a little out of tune with each other, the sound wobbles: you hear beats. Tune one of them and the wobble slows, then stops. That\'s the ring.',
-                    'body' => 'Barbershop tunes its chords closer than a piano can. The third sits 14 cents below the piano\'s, and the seventh about 31 cents below (a cent is a hundredth of a semitone). The course hears how far you are from the ring, and which way.',
-                    'beating' => 'Beating: a little out',
-                    'ringing' => 'Ringing: locked',
-                    // The needle's three marks, and the two numbers set large.
-                    'meter' => ['Low', 'Ring', 'High'],
-                    'numbers' => [['14', 'cents', 'The third, below where the piano plays it'], ['31', 'cents', 'The seventh, about this far below the piano\'s']],
                 ],
                 'seats' => [
                     ['Tenor', 'Floats above the lead, light and soft: the quietest voice in the quartet.'],
@@ -9526,7 +9526,7 @@ return [
                 'name' => 'Gospel and soul runs',
                 'summary' => 'Riffs, runs and blue notes.',
                 'title' => 'Gospel and soul runs course',
-                'description' => 'Riffs, runs and blue notes. A free harmony course coming to Stackapella, in short lessons.',
+                'description' => 'Riffs, runs and blue notes. A free harmony course on Stackapella, in short lessons.',
                 'headline' => 'Gospel and soul runs',
                 'lead' => 'Riffs, runs and blue notes, slow at first, then up to speed.',
                 'learn' => ['Blue notes', 'Short riffs', 'Runs, slow then up to speed'],
@@ -10062,7 +10062,7 @@ return [
                 'name' => 'Musical theatre',
                 'summary' => 'Singing that tells a story: words that land, patter, bright and legit.',
                 'title' => 'Musical theatre course',
-                'description' => 'Singing that tells a story, on Gilbert and Sullivan: words that land, patter, bright and legit, and an ending that sells the song. Coming to Stackapella, free.',
+                'description' => 'Singing that tells a story, on Gilbert and Sullivan: words that land, patter, bright and legit, and an ending that sells the song. Free on Stackapella.',
                 'headline' => 'Musical theatre',
                 'lead' => 'Singing that tells a story: words that land, a breath where the thought ends, and an ending that sells the song.',
                 'learn' => ['Words that land on the beat', 'Patter on two notes', 'Bright and legit', 'Selling the song'],
@@ -10118,7 +10118,7 @@ return [
                     ['Will I learn to belt?', 'No. Bright is not belt: the bright lessons build a brighter line from speech, at a medium volume in the middle of your voice. Belt is for later, with a teacher, and the course never asks for it.'],
                     ['Why Gilbert and Sullivan?', 'Gilbert wanted every word to reach the audience, and their songs are long out of copyright, so every note and word can be in the lessons. Gilbert died in 1911 and Sullivan in 1900.'],
                     ['Does the app hear my words?', 'Not yet. It hears your pitch, the beat, your breaths and your last note. Words and tone are self-checks: after a take, two plain questions about your own playback.'],
-                    ['What does it cost?', 'Nothing: every course is free. When it opens, try the first lesson without an account; a free account opens the rest.'],
+                    ['What does it cost?', 'Nothing: every course is free. Try the first lesson without an account; a free account opens the rest.'],
                 ],
                 'related' => ['breath-and-stamina', 'pop-and-country', 'vibrato'],
                 'kicks' => ['story' => 'The story', 'aims' => 'Overture', 'units' => 'The lessons', 'science' => 'The science', 'margin' => 'Backstage', 'company' => 'Dramatis personae', 'begin' => 'Before you begin', 'questions' => 'Questions', 'close' => 'Curtain up'],
@@ -10365,7 +10365,7 @@ return [
                 'name' => 'A cappella bass',
                 'summary' => 'Low lines and holding a groove.',
                 'title' => 'A cappella bass course',
-                'description' => 'Low lines and holding a groove. A free harmony course coming to Stackapella, in short lessons.',
+                'description' => 'Low lines and holding a groove. A free harmony course on Stackapella, in short lessons.',
                 'headline' => 'A cappella bass',
                 'lead' => 'Low lines that hold the whole group up, with "dm dm" syllables and a steady groove.',
                 'learn' => ['Low lines, in tune', 'Bass syllables', 'Holding the groove'],
@@ -10420,7 +10420,7 @@ return [
                     ['Is it safe for my voice?', 'Yes. Nothing is held at the bottom of your range: the lowest notes come only as short notes inside a line. Never press, growl or tuck your chin; if a note rumbles, sing it higher and the app follows. No vocal fry is taught.'],
                     ['Will the app hear my low notes?', 'Yes. It hears down to 60 Hz, well under the lowest note in the course. Low notes are quieter, so don\'t push: let the mic do the work.'],
                     ['Do I need to read music?', 'No. You learn each line by ear from a guide bass, then sing it on your own under three guide voices.'],
-                    ['What does it cost?', 'Nothing: every course is free. When it opens, try the first lesson without an account; a free account opens the rest.'],
+                    ['What does it cost?', 'Nothing: every course is free. Try the first lesson without an account; a free account opens the rest.'],
                 ],
                 'related' => ['barbershop', 'ear-training', 'counterpoint'],
                 'kicks' => ['story' => 'The story', 'aims' => 'The floor', 'units' => 'The lessons', 'science' => 'The science', 'margin' => 'Margin notes', 'begin' => 'Before you begin', 'questions' => 'Questions', 'close' => 'Your first root'],
@@ -11113,7 +11113,6 @@ return [
         'belting_cap' => 'Belt for no more than 10 minutes a day.',
         'inUnit' => 'More in :unit',
         'here' => 'You are here',
-        'lessonOf' => 'A lesson from :course',
         'pager' => 'Lessons',
         'previous' => 'Previous',
         'next' => 'Next',

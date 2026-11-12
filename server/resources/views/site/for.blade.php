@@ -131,7 +131,7 @@
 
         @foreach ($page['notices'] as $section)
             <section class="s-wrap s-sec2" aria-label="{{ $section['heading'] }}">
-                <p class="s-quiet"><x-site.icon name="info" size="18" /><span><b>{{ $section['heading'] }}.</b> {{ $section['body'] }}</span></p>
+                <p class="s-quiet"><x-site.icon name="info" size="18" /><span><b>{{ $section['heading'] }}.</b> {{ str_replace(':languages', $languages, $section['body']) }}</span></p>
             </section>
         @endforeach
 

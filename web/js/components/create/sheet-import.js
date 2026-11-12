@@ -100,7 +100,18 @@ export const SheetImport = {
         notices() {
             return this.score.notices.map((n) => {
                 if (n.kind === 'repeats') return t('sheet.notice.repeats', { count: n.count });
-                if (n.kind === 'jumps') return t('sheet.notice.jumps');
+                if (n.kind === 'jumpFollowed') return this.jumpText(n);
+                if (n.kind === 'versesWritten') return t('sheet.notice.versesWritten', { count: n.count });
+                if (n.kind === 'versesLeftOut') return t('sheet.notice.versesLeftOut', { verses: n.verses });
+                if (n.kind === 'fermatas') return t('sheet.notice.fermatas', { bars: n.bars, count: n.count });
+                if (n.kind === 'tempoWords') return t('sheet.notice.tempoWords', { bars: n.bars, count: n.count });
+                if (n.kind === 'dynamics') return t('sheet.notice.dynamics', { bars: n.bars, count: n.count });
+                if (n.kind === 'accents') return t('sheet.notice.accents', { bars: n.bars, count: n.count });
+                if (n.kind === 'soloTutti') return t('sheet.notice.soloTutti', { bars: n.bars, count: n.count });
+                if (n.kind === 'divisi') {
+                    const line = this.score.lines.find((l) => l.id === n.line);
+                    return line ? t('sheet.notice.divisi', { name: this.nameOf(line), bars: n.bars, count: n.count }) : null;
+                }
                 if (n.kind === 'verses') return t('sheet.notice.verses', { count: n.count });
                 if (n.kind === 'metreChanges') return t('sheet.notice.metreChanges');
                 if (n.kind === 'tempoChanges') return t('sheet.notice.tempoChanges');
@@ -112,6 +123,11 @@ export const SheetImport = {
     },
     methods: {
         midiName,
+        /** The D.C. or D.S. followed, and where it ends. */
+        jumpText(n) {
+            if (n.jump === 'ds') return n.coda ? t('sheet.notice.jumpDsCoda') : n.fine ? t('sheet.notice.jumpDsFine') : t('sheet.notice.jumpDs');
+            return n.coda ? t('sheet.notice.jumpDcCoda') : n.fine ? t('sheet.notice.jumpDcFine') : t('sheet.notice.jumpDc');
+        },
         voiceName(voice) {
             return { soprano: t('parts.soprano'), alto: t('parts.alto'), tenor: t('parts.tenor'), bass: t('parts.bass'), lead: t('parts.lead'), baritone: t('parts.baritone') }[voice];
         },

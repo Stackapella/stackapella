@@ -31,7 +31,7 @@ import { sound } from '../tones.js';
 import { audio } from '../voices.js';
 
 /** The words a page passes (each a translated string; :ms, :n, :total, :route and :spread are filled in here). */
-export const WORDS = ['routeQuestion', 'howToLabel', 'idleHint', 'wired', 'bluetooth', 'speakers', 'wiredHint', 'bluetoothHint', 'speakersHint', 'howTo',
+export const WORDS = ['routeQuestion', 'howToLabel', 'idleHint', 'wired', 'bluetooth', 'speakers', 'wiredHint', 'bluetoothHint', 'speakersHint', 'wiredRoute', 'bluetoothRoute', 'speakersRoute', 'howTo',
     'start', 'stop', 'tapPad', 'tapHint', 'tapLabel', 'tapCount', 'tapUneven', 'tapLost', 'exact', 'micIntro', 'micStart', 'measuring',
     'ms', 'plusMinus', 'tight', 'fine', 'late', 'veryLate', 'zoneTight', 'zoneFine', 'zoneLate', 'zoneVeryLate',
     'whatNow', 'do1', 'do2', 'do3', 'headsetMic', 'browserSays', 'again', 'thisVisit', 'byTap', 'byMic',
@@ -274,9 +274,10 @@ export function mountLatencyTest(root, { words = {}, keySlot = null, route = nul
         const zone = { tight: 'zoneTight', fine: 'zoneFine', late: 'zoneLate', veryLate: 'zoneVeryLate' }[verdict];
         ui.setStatus({ tone: TONES[verdict], text: words[zone], hint: words[verdict] });
         text('[data-browser]', Number.isFinite(browserMs) && browserMs > 0 ? fill(words.browserSays, { ms: number(browserMs) }) : '');
-        // What the number is: the mic's is the round trip (out to the :route and back in through the mic, what the
+        // What the number is: the mic's is the round trip (out to the :route, the route's own phrase mid-sentence, such as
+        // "wired headphones", never the button's label lowercased; courses, 2026-11-11), and back in through the mic, what the
         // app lines takes up by; never halved, as Bluetooth's delay is nearly all on the way out); taps run a little early.
-        text('[data-method-note]', method === 'clap' ? words.clapNote : method === 'mic' ? fill(words.roundTrip, { route: (words[chosen] ?? chosen).toLowerCase() }) : words.tapEarly);
+        text('[data-method-note]', method === 'clap' ? words.clapNote : method === 'mic' ? fill(words.roundTrip, { route: words[`${chosen}Route`] ?? chosen }) : words.tapEarly);
         card.dataset.verdict = verdict;
         visit.push(last);
         const items = visit.map((r) => Object.assign(document.createElement('li'), { textContent: `${words[r.route] ?? r.route}: ${fill(words.ms, { ms: number(r.ms) })} ${fill(words.plusMinus, { ms: number(Math.max(1, r.spreadMs)) })}, ${r.method === 'tap' ? words.byTap ?? '' : r.method === 'clap' ? words.byClap ?? '' : words.byMic ?? ''}` }));
