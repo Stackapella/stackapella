@@ -35,12 +35,18 @@
          and at the edge, as its bytes can't change under it; a new deploy's file has a new address
          (App\Support\Http\StaticVersions, which also writes nginx's map). --}}
     @php($web = (string) config('app.web_path'))
-    {{-- Game mode's own sheet (docs/css-split-plan.md, step 3): the game skin's rules, fetched only in game mode
-         (theme-boot.js preloads it) and linked right after site.css by game-css.js, so serious mode never loads them
-         and game mode never paints without them. --}}
-    <meta name="game-css" content="{{ \App\Support\Http\StaticVersions::url($web, '/css/site-game.css') }}">
+    {{-- The page's family's sheets (docs/css-split-plan.md, step 4): site.css and site-game.css less the rules no page of
+         its family can use (the landing, the songs, the tools, the reference pages, the courses, the rest), in their own
+         order, /site-css/<family>.css; the whole site.css and site-game.css when the page shows a class its family's
+         manifest lacks (App\Support\Site\SiteCss). Read from what the page renders, as the course sheet is.
+         Game mode's own sheet (step 3): the game skin's rules, fetched only in game mode (theme-boot.js preloads it) and
+         linked right after the page's sheet by game-css.js, so serious mode never loads them and game mode never paints
+         without them. --}}
+    @php($siteCss = \App\Support\Site\SiteCss::urls($web, '/'.ltrim(request()->path(), '/'), $__env->yieldContent('content').$__env->yieldContent('head')))
+    <meta name="css-family" content="{{ \App\Support\Site\SiteCss::family('/'.ltrim(request()->path(), '/')) }}">
+    <meta name="game-css" content="{{ $siteCss[1] }}">
     <script src="{{ \App\Support\Http\StaticVersions::url($web, '/js/theme-boot.js') }}"></script>
-    <link rel="stylesheet" href="{{ \App\Support\Http\StaticVersions::url($web, '/css/site.css') }}">
+    <link rel="stylesheet" href="{{ $siteCss[0] }}">
     <script src="{{ \App\Support\Http\StaticVersions::url($web, '/js/game-css.js') }}"></script>
     {{-- The course pages' own rules (.cp-*), only where the page shows one (a course page, or a course demo on a "for",
          guide or feature page) and only the courses it shows: /course-css/<prefixes>.css, courses.css less the other
@@ -62,6 +68,8 @@
         <p class="s-partnerbar"><span>{{ __('pages.site.partner_line') }}</span> <a href="{{ $links['partner'] }}" class="s-lk">{{ __('pages.site.partner_link') }}</a></p>
     @endif
     @yield('content')
+    {{-- The play controls' words while they load (js/public/play-state.js), once for the page. --}}
+    <template id="s-play-words" data-loading="{{ __('pages.site.play_loading') }}" data-slow="{{ __('pages.site.play_slow') }}" data-failed="{{ __('pages.site.play_failed') }}"></template>
     @yield('scripts')
 </body>
 </html>

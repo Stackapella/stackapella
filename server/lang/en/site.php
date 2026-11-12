@@ -8,7 +8,7 @@ declare(strict_types=1);
 return [
     // A page in a language before it opens to everyone, as an admin previews it (App\Http\Middleware\SiteLanguage).
     // A page's Share button (site/_share): the label, what it says once the link is copied, and the share sheet's text.
-    'share' => ['button' => 'Share', 'copied' => 'Link copied', 'text' => 'Learn :title, part by part, free', 'text_part' => 'Learn the :part part of :song, free', 'text_carols' => 'Learn the Christmas carols, part by part, free'],
+    'share' => ['button' => 'Share', 'copied' => 'Link copied', 'text' => 'Learn :title, part by part, free', 'text_part' => 'Learn the :part part of :song, free', 'text_carols' => 'Learn the Christmas carols, part by part, free', 'choir' => 'Share with your choir'],
     'language_preview' => 'Preview: :language is off for everyone else. Only this device sees this page.',
     'features' => [
         'index' => [
@@ -345,7 +345,7 @@ return [
                             'Plus: as many private and unlisted arrangements as you like',
                         ],
                         // Said as coming (a Coming soon label), never as a tick.
-                        'soon' => 'Instrument parts, and your own recorded voice as the guide on Plus.',
+                        'soon' => 'Instrument parts, and your own recorded voice as the guide, free for everyone.',
                     ],
                     [
                         'heading' => 'Start from chords',
@@ -1083,7 +1083,7 @@ return [
                     [
                         'pic' => 'share',
                         'heading' => 'Share it to be sung',
-                        'body' => 'Share your arrangement by link, and friends learn it part by part. Keeping your own voice as the guide is coming to Plus.',
+                        'body' => 'Share your arrangement by link, and friends learn it part by part. Keeping your own voice as the guide is coming, free for everyone.',
                     ],
                     [
                         'heading' => 'Or hum it',
@@ -1545,7 +1545,11 @@ return [
         'count' => '{1} One carol to learn now|[2,*] :count carols to learn now',
         'weekly' => 'A new Christmas song opens every Monday until Christmas, from 16 November.',
         'parts' => 'Its parts',
-        'song_page' => 'All about :song',
+        'song_page' => 'Learn :song',
+        // Under the songbook (Hillel's Jewish Songs redesign, 2026-11-12): what the range bars show, and a way to ask for a song.
+        'scale' => 'Bars show each part on one scale, :low to :high. The line is middle C.',
+        'more' => 'Want another song?',
+        'write' => 'Write to us',
         // Where a carol comes from, when the first sentence of its About isn't the whole story (the courses lead).
         'from' => [
             'silent-night' => 'Silent Night has German words by Joseph Mohr from 1816 and a tune by Franz Xaver Gruber from 1818, sung here in John Freeman Young\'s English of 1859.',
@@ -1596,6 +1600,9 @@ return [
             'title' => 'Hymns in SATB: Learn Your Part Free',
             'description' => 'Well-loved hymns in four-part SATB harmony, free: learn your soprano, alto, tenor or bass part by ear, hear it with the others, and sing along.',
             'crumb' => 'Hymns',
+            // The intro's own section after the songs, its heading's last words in the italic serif (Hillel's redesign).
+            'from' => 'About these',
+            'from_em' => 'hymns',
             // Its panel on /songs (Hillel's songbook design): a short title with its serif tail, and one line.
             'band' => 'Hymns',
             'band_em' => 'in four parts',
@@ -1627,6 +1634,9 @@ return [
             'title' => 'Jewish Songs for Hanukkah, Passover and Shabbat',
             'description' => 'Traditional Jewish songs for Hanukkah, Passover and Shabbat in four-part harmony, free: learn your part by ear and sing it with a choir or family.',
             'crumb' => 'Jewish songs',
+            // The intro's own section after the songs, its heading's last words in the italic serif (Hillel's redesign).
+            'from' => 'Where these arrangements',
+            'from_em' => 'come from',
             // Its panel on /songs out of season (public/songs.blade.php).
             'band' => 'Jewish songs',
             'band_em' => 'for the festivals',
@@ -1638,7 +1648,7 @@ return [
             'lead' => 'Learn your part of a Hanukkah, Passover or Shabbat song, then sing it with your choir or your family. Free, in your browser, no account.',
             'intro' => [
                 'Hanukkah songs for choir, and songs for the Passover seder and for Shabbat, each in four parts: learn the tune or a harmony by ear, hear it with the other voices, then sing it together.',
-                'Every song here comes from a printing before 1931. Maoz Tzur and Oy Chanukah are our own four parts on the harmonies A. Z. Idelsohn printed in 1911 or 1912 and Pesach Lvov wrote for Susman Kisselgof\'s songbook of 1911 and 1912, and Adon Olam on the harmony Eliezer Gerovitsch printed in 1897; Ein Keloheinu is adapted from the Union Hymnal\'s four parts of 1897; the rest are our own four-part arrangements. Where a Hebrew song names God, it is sung in the substituted forms customary when singing outside prayer, as its page says.',
+                'Every song here comes from a printing before 1931. Maoz Tzur and Oy Chanukah are our own four parts on the harmonies A. Z. Idelsohn printed in 1911 or 1912 and Pesach Lvov wrote for Susman Kisselgof\'s songbook of 1911 and 1912, and Adon Olam on the harmony Eliezer Gerovitsch printed in 1897; Ein Keloheinu is adapted from the Union Hymnal\'s four parts of 1897; the rest are our own four-part arrangements. Where a Hebrew song names Hashem, it is sung in the substituted forms customary when singing outside prayer, as its page says.',
             ],
             'pick' => 'Pick a song',
             'songbook' => 'The songs',
@@ -1653,10 +1663,12 @@ return [
             'festivals' => ['hanukkah' => 'Hanukkah', 'passover' => 'Passover', 'purim' => 'Purim', 'shabbat' => 'Shabbat', 'tu-bishvat' => 'Tu BiShvat', 'every-day' => 'Every day'],
             'count_label' => 'The next festival',
             'count_on_label' => 'On now',
-            'count_tonight' => 'begins at sundown tonight',
-            'count_in' => '{1} begins at sundown tomorrow|[2,*] begins at sundown in :count days',
-            'count_from' => 'First evening :date',
+            'count_tonight' => 'Tonight',
+            'count_days' => '{1} Tomorrow|[2,*] :count days',
+            'count_sundown' => 'Sundown, :date',
             'count_until' => 'Until :date',
+            // Under the countdown, before that festival's songs (only a festival with songs here has a line).
+            'count_learn' => ['hanukkah' => 'Learn in time for the first candle', 'passover' => 'Learn in time for the seder'],
         ],
         // Google's suggestions, 2026-11-12: "folk songs for choir", "folk songs satb", "irish folk songs satb",
         // "folk songs to sing acapella". The courses lead checked the history (2026-11-12).
@@ -1664,6 +1676,9 @@ return [
             'title' => 'Folk Songs for Choir: Learn Your Part Free',
             'description' => 'Folk songs for choir in harmony, free: Danny Boy, Loch Lomond, The Water Is Wide and more. Learn your part by ear, hear it with the others, and sing along.',
             'crumb' => 'Folk songs',
+            // The intro's own section after the songs, its heading's last words in the italic serif (Hillel's redesign).
+            'from' => 'Where these songs',
+            'from_em' => 'come from',
             // Its panel on /songs (Hillel's songbook design): a short title with its serif tail, and one line.
             'band' => 'Folk songs',
             'band_em' => 'from near and far',
@@ -1674,7 +1689,7 @@ return [
             'headline_em' => 'part by part',
             'lead' => 'Learn your part of a folk song before rehearsal. Free, in your browser, no account.',
             'intro' => [
-                'Some of these tunes have no known author, and others have one. Greensleeves is an English tune of the 1500s, the tune of the Welsh lullaby All Through the Night has its earliest known printing in 1784, and Cecil Sharp heard The Water Is Wide in Somerset. Loch Lomond and Auld Lang Syne come from Scotland, Danny Boy sets words of 1913 to the Londonderry Air, an Irish tune printed in 1855, Home on the Range comes from Kansas, Red River Valley from Canada and the United States, Sakura Sakura from Japan, and La Paloma is the habanera Sebastián Iradier wrote after he heard habaneras in Cuba.',
+                'Some of these tunes have no known author, and others have one. Greensleeves is an English tune of the 1500s, the tune of the Welsh lullaby All Through the Night has its earliest known printing in 1784, and Cecil Sharp heard The Water Is Wide in Somerset. Loch Lomond and Auld Lang Syne come from Scotland, Danny Boy sets words of 1913 to the Londonderry Air, an Irish tune printed in 1855, Home on the Range comes from Kansas, Sakura Sakura from Japan, and La Paloma is the habanera Sebastián Iradier wrote after he heard habaneras in Cuba. From Scotland, too, come Comin\' Thro\' the Rye, My Love Is Like a Red, Red Rose, Annie Laurie, Will Ye No Come Back Again?, Ye Banks and Braes o\' Bonnie Doon and The Skye Boat Song. I Will Bow and Be Simple, O the Beautiful Treasure, Who Will Bow and Bend and I Am Fill\'d with Heavenly Treasures are Shaker songs from Mary Hazzard\'s manuscript songbook, begun in 1847, and Las Mañanitas is the Mexican song of birthday mornings.',
                 'Every song here is public domain and set for 2 to 4 singers, and each card says its key and how hard it is. Play a song\'s first line to hear every part together, then open your part to hear it alone or with the others under it, and sing along as each note lights up. Each song\'s page tells where it comes from.',
             ],
             'pick' => 'Pick a folk song',
@@ -1693,6 +1708,9 @@ return [
             'title' => 'Barbershop and Parlour Songs: Learn Your Part Free',
             'description' => 'Barbershop and parlour songs in close harmony, free: Sweet Adeline, Daisy Bell, Let Me Call You Sweetheart and more. Learn your part by ear and sing along.',
             'crumb' => 'Barbershop and parlour',
+            // The intro's own section after the songs, its heading's last words in the italic serif (Hillel's redesign).
+            'from' => 'Where these songs',
+            'from_em' => 'come from',
             // Its panel on /songs (Hillel's songbook design): a short title with its serif tail, and one line.
             'band' => 'Barbershop',
             'band_em' => 'and parlour',
@@ -1722,6 +1740,9 @@ return [
             'title' => 'Spirituals for Choir: Learn Your Part Free',
             'description' => 'African American spirituals for choir in four-part SATB harmony, free: learn your part by ear, hear it with the others, and sing along in your browser.',
             'crumb' => 'Spirituals',
+            // The intro's own section after the songs, its heading's last words in the italic serif (Hillel's redesign).
+            'from' => 'Where these spirituals',
+            'from_em' => 'come from',
             // Its panel on /songs (Hillel's songbook design): a short title with its serif tail, and one line.
             'band' => 'Spirituals',
             'band_em' => 'for choir',
@@ -1751,6 +1772,9 @@ return [
             'title' => 'Sea Shanties in Harmony: Learn Your Part Free',
             'description' => 'Sea shanties to sing in four-part harmony with friends or a choir, free: learn your part by ear, hear it with the others, and sing along in your browser.',
             'crumb' => 'Sea shanties',
+            // The intro's own section after the songs, its heading's last words in the italic serif (Hillel's redesign).
+            'from' => 'Where these shanties',
+            'from_em' => 'come from',
             // Its panel on /songs (Hillel's songbook design): a short title with its serif tail, and one line.
             'band' => 'Sea shanties,',
             'band_em' => 'all hands',
@@ -1781,6 +1805,12 @@ return [
             'title' => 'Easy Rounds to Sing: Learn Your Part Free',
             'description' => 'Easy rounds to sing with kids, a choir or friends, free: learn the one tune by ear, hear each voice come in after the last, and sing along in your browser.',
             'crumb' => 'Rounds',
+            // The intro's own section after the songs, its heading's last words in the italic serif (Hillel's redesign).
+            'from' => 'Where these rounds',
+            'from_em' => 'come from',
+            // A round is sung with friends more often than with a choir.
+            'share' => 'Share with friends',
+            'songbook_note' => 'Every part sings the same tune, each starting later. The bars show the octave each part sings in.',
             // Its panel on /songs (Hillel's songbook design): a short title with its serif tail, and one line.
             'band' => 'Rounds,',
             'band_em' => 'voice by voice',
@@ -1909,7 +1939,31 @@ return [
             // Under a tool's how-to, its variant pages (a variant's: the other variants of its tool).
             'also' => 'Also:',
             'directory' => 'All free tools',
-            'groups' => ['pitch' => 'Tune and pitch', 'voice' => 'Voice and mic', 'ear' => 'Ear training', 'rhythm' => 'Rhythm', 'theory' => 'Theory'],
+            'groups' => ['tune' => 'Tune', 'time' => 'Keep time', 'voice' => 'Know your voice', 'harmony' => 'Chords & harmony', 'ear' => 'Train your ear', 'setup' => 'Check your setup'],
+            // The hub's sections (Hillel's tools page, 2026-11-12): each group's line under its name.
+            'group_lines' => [
+                'tune' => 'Check a pitch or give the group its starting note.',
+                'time' => 'Set a tempo, or find the one a song is in.',
+                'voice' => 'Your range, your part, and the key that suits you.',
+                'harmony' => 'Move songs to a new key and split chords into parts.',
+                'ear' => 'Short drills for hearing intervals and chords.',
+                'setup' => 'Make sure your mic and headphones are ready.',
+            ],
+            // The hub's eyebrow with the count, its search and chips, Most used, a tool card's mic badge, and no match.
+            'eyebrow_count' => ':count free tools',
+            'search' => 'Search tools, e.g. tempo',
+            'search_label' => 'Search the tools',
+            'chips_label' => 'Tools by what you want to do',
+            'all' => 'All',
+            'most_used' => 'Most used',
+            'open' => 'Open',
+            'mic' => 'Mic',
+            'mic_label' => 'Uses your microphone',
+            'no_match' => 'No tool matches “:q”.',
+            'show_all' => 'Show all tools',
+            'warming_up' => 'Warming up?',
+            // Most used's small drawings (static, never the mic): a note found, a tempo, a range.
+            'preview' => ['note' => 'A4', 'cents' => '+4 cents', 'bpm' => '120', 'beat' => 'BPM · 4/4', 'range' => 'G3–D5', 'part' => 'Alto'],
             'try_link' => 'Start the beginner course',
             'try_to' => '/learn/1-comfortable',
             'open_app' => 'Open the app',
@@ -1964,7 +2018,7 @@ return [
                 'summary' => 'Sing or play a note and see how sharp or flat it is.',
                 'tie' => 'You can see your pitch. Now learn to land it by ear.',
                 'tag' => 'Sharp or flat, voice or instrument',
-                'group' => 'pitch',
+                'group' => 'tune',
                 // Search words (docs/tools/seo.md, "1. Tuner"): the title stays short enough to keep " | Stackapella".
                 'title' => 'Free Online Tuner for Voice and Instruments',
                 'description' => 'A free online tuner for singing and any instrument: see which note you\'re on and how many cents sharp or flat. Calm on vibrato. No account, no ads.',
@@ -2126,7 +2180,7 @@ return [
                 'summary' => 'A steady click with accents, subdivisions and tap tempo.',
                 'tie' => 'You can keep the beat. Now keep it with your voice.',
                 'tag' => 'Accents, subdivisions, 3/4 and 6/8',
-                'group' => 'rhythm',
+                'group' => 'time',
                 // Search words (docs/tools/seo.md, "2. Metronome"): the title stays short enough to keep " | Stackapella".
                 'title' => 'Free Online Metronome: Tap Tempo, Subdivisions',
                 'description' => 'A free online metronome that keeps steady time: 20 to 300 BPM, 3/4 and 6/8, accents, subdivisions and tap tempo. No account, no ads, nothing locked.',
@@ -2448,7 +2502,7 @@ return [
                 'summary' => 'A round chromatic pitch pipe: tap a note to give everyone the start.',
                 'tie' => 'You\'ve got the starting note. Now ring the chord.',
                 'tag' => 'Give everyone the starting note',
-                'group' => 'pitch',
+                'group' => 'tune',
                 'title' => 'Online Pitch Pipe for Choirs and Singers',
                 'description' => 'A free online pitch pipe for choirs, barbershop and a cappella. Hold a note as long as you need, or sound the key chord. No account, works offline.',
                 'headline' => 'Online pitch pipe',
@@ -2563,7 +2617,7 @@ return [
                 'summary' => 'A440, A432, C256 and more: strike one and hear a pure tone ring.',
                 'tie' => 'You\'ve heard a pure A. Now find your own home note.',
                 'tag' => 'A440, A432, C256 and more',
-                'group' => 'pitch',
+                'group' => 'tune',
                 'title' => 'Online Tuning Fork: A440, A432, C256, C512',
                 'description' => 'Strike a virtual tuning fork: A440, A442, A415, A432, C256, C512 and more, as pure tones that ring and fade. Free, no account, works offline.',
                 'headline' => 'Online tuning forks',
@@ -2683,7 +2737,7 @@ return [
                 'summary' => 'A steady drone in any key: a note, a fifth or a chord tuned pure.',
                 'tie' => 'A drone holds one note. Now sing a part against three.',
                 'tag' => 'A held note or pure chord, any key',
-                'group' => 'pitch',
+                'group' => 'tune',
                 'title' => 'Drone Tones: Free Online Drone in Any Key',
                 'description' => 'Free drone tones for singing and playing in tune: any key, root and fifth, pure major chords and the barbershop seventh. No account, works offline.',
                 'headline' => 'Drone tones for practising in tune',
@@ -2808,7 +2862,7 @@ return [
                 'summary' => 'Move a whole chord sheet to a new key, lyrics and all.',
                 'tie' => 'Your chart\'s in the right key. Now sing the harmony.',
                 'tag' => 'Move a chord sheet to a new key',
-                'group' => 'theory',
+                'group' => 'harmony',
                 // Search words (docs/tools/competitors-transposer-satb.md, section 1): the title stays short enough to keep " | Stackapella".
                 'title' => 'Chord Transposer with Lyrics and Capo',
                 'description' => 'Paste a chord chart with lyrics and move it to any key. The chords stay over their words, spelled for the new key, with the capo to use. Free, no account.',
@@ -2911,7 +2965,7 @@ return [
                 'summary' => 'Type chords and get soprano, alto, tenor and bass to sing.',
                 'tie' => 'You\'ve voiced the chord. Now sing all four parts yourself.',
                 'tag' => 'Voice a chord for four singers',
-                'group' => 'theory',
+                'group' => 'harmony',
                 // Search words (docs/tools/competitors-transposer-satb.md, section 2): "four part harmony" and "SATB" in the title, short enough to keep " | Stackapella".
                 'title' => 'Four-Part Harmony Generator: SATB Voicings',
                 'description' => 'Type a chord progression and get four singable parts, soprano, alto, tenor and bass, with smooth voice leading, on a staff you can hear. Free, no account.',
@@ -3012,7 +3066,7 @@ return [
                 'summary' => 'Hear a note, hold it in your head, sing it back.',
                 'tie' => 'You matched one note. Now match a whole part.',
                 'tag' => 'Hear a note, sing it back',
-                'group' => 'ear',
+                'group' => 'voice',
                 // Search words (docs/tools/seo-2.md, "3. Pitch memory game"): "pitch matching" first, "pitch memory" in the copy.
                 'title' => 'Pitch Matching Game: Hear It, Sing It Back',
                 'description' => 'Hear a note, hold it through a pause, then sing it back and see how close you were, in cents. No headphones needed. Free, no account.',
@@ -3155,7 +3209,7 @@ return [
                 'summary' => 'Every note\'s frequency in Hz and its MIDI number. Tap one to hear it.',
                 'tie' => 'Those are the numbers. Now hear the notes fit together.',
                 'tag' => 'Every note, in Hz',
-                'group' => 'theory',
+                'group' => 'tune',
                 // Search words (docs/tools/seo-2.md, "6. Note frequency chart"): "note frequency chart", "note to frequency", MIDI.
                 'title' => 'Note Frequency Chart: Every Note in Hz, MIDI',
                 'description' => 'Every note from C0 to B8 in Hz, with its MIDI number, at A4 = 440, 442 or 432. Tap a note to hear it, or type a frequency to find its note. Free.',
@@ -3306,7 +3360,7 @@ return [
                 'summary' => 'Tap along to a song to find its tempo in BPM.',
                 'tie' => 'You found the tempo. Now sing in time with a song.',
                 'tag' => 'Tap along, see the tempo',
-                'group' => 'rhythm',
+                'group' => 'time',
                 'title' => 'Tap Tempo: BPM Finder, Tap Along to Any Song',
                 'description' => 'Tap along to any song to find its tempo in BPM, with half and double time and its tempo marking, then play it on a metronome. Free, no account, no ads.',
                 'headline' => 'Tap tempo',
@@ -3416,7 +3470,7 @@ return [
                 'summary' => 'Check your mic works, at a good level, and hear it back.',
                 'tie' => 'Your mic hears you. Now let it find your home note.',
                 'tag' => 'Check your mic hears you',
-                'group' => 'voice',
+                'group' => 'setup',
                 'title' => 'Mic Test: Check Your Microphone, Hear It Back',
                 'description' => 'Is your mic working? See its level, record 5 seconds and hear it back, and get this browser\'s fix if it\'s blocked. Free, no account, nothing sent.',
                 'headline' => 'Mic test',
@@ -3697,7 +3751,7 @@ return [
                 'summary' => 'Sing a chord tone over a drone and see how close it is to pure.',
                 'tie' => 'You heard a chord lock. Now be one voice in it.',
                 'tag' => 'See a chord lock pure',
-                'group' => 'pitch',
+                'group' => 'tune',
                 'title' => 'Just Intonation Tuner: Sing Chords Pure',
                 'description' => 'Sing a note of a chord over a drone and see how many cents you are from pure (just) tuning, the piano\'s pitch marked. Free, no account, nothing recorded.',
                 'headline' => 'Just intonation tuner',
@@ -3832,7 +3886,7 @@ return [
                 'summary' => 'How late your headphones, earbuds or speakers play, in milliseconds.',
                 'tie' => 'Your delay\'s measured. The app lines your parts up for it.',
                 'tag' => 'Your headphones\' delay',
-                'group' => 'voice',
+                'group' => 'setup',
                 // Search words (docs/tools/seo.md, "7. Audio latency test"): "Bluetooth latency test" is this page, in the title and a heading.
                 'title' => 'Audio Latency Test: Bluetooth Headphone Delay',
                 'description' => 'Measure how much delay your headphones, Bluetooth earbuds or speakers add, in milliseconds, by tapping or with your mic. Free, no account, works offline.',
@@ -6885,7 +6939,7 @@ return [
                     ],
                     [
                         'Is Stackapella free?',
-                        'Yes: every course and every song in the library, with a free account, and unlimited workouts, your history, singing with friends and choir groups. Plus, for :price_month a month or :price_year a year, adds more storage, MP3 and stems, and your own guides.',
+                        'Yes: every course and every song in the library, with a free account, and unlimited workouts, your history, singing with friends and choir groups. Plus, for :price_month a month or :price_year a year, adds more storage, MP3 and stems, and unlimited private arrangements.',
                     ],
                 ],
                 'sources' => [
@@ -7000,7 +7054,7 @@ return [
                     ],
                     [
                         'Is Stackapella free?',
-                        'Yes: every course and every song in the library, with a free account, and unlimited workouts, your history, singing with friends and choir groups. Plus, for :price_month a month or :price_year a year, adds more storage, MP3 and stems, and your own guides.',
+                        'Yes: every course and every song in the library, with a free account, and unlimited workouts, your history, singing with friends and choir groups. Plus, for :price_month a month or :price_year a year, adds more storage, MP3 and stems, and unlimited private arrangements.',
                     ],
                 ],
                 'sources' => [
@@ -7116,7 +7170,7 @@ return [
                     ],
                     [
                         'Is Stackapella free?',
-                        'Yes: every course and every song in the library, with a free account, and unlimited workouts, your history, singing with friends and choir groups. Plus, for :price_month a month or :price_year a year, adds more storage, MP3 and stems, and your own guides.',
+                        'Yes: every course and every song in the library, with a free account, and unlimited workouts, your history, singing with friends and choir groups. Plus, for :price_month a month or :price_year a year, adds more storage, MP3 and stems, and unlimited private arrangements.',
                     ],
                 ],
                 'sources' => [
@@ -7228,7 +7282,7 @@ return [
                     ],
                     [
                         'Is Stackapella free?',
-                        'Yes: every course and every song in the library, with a free account, and unlimited workouts, your history, singing with friends and choir groups. Plus, for :price_month a month or :price_year a year, adds more storage, MP3 and stems, and your own guides.',
+                        'Yes: every course and every song in the library, with a free account, and unlimited workouts, your history, singing with friends and choir groups. Plus, for :price_month a month or :price_year a year, adds more storage, MP3 and stems, and unlimited private arrangements.',
                     ],
                 ],
                 'sources' => [
@@ -7337,7 +7391,7 @@ return [
                     ],
                     [
                         'Is Stackapella free?',
-                        'Yes: every course and every song in the library, with a free account, and unlimited workouts, your history, singing with friends and choir groups. Plus, for :price_month a month or :price_year a year, adds more storage, MP3 and stems, and your own guides.',
+                        'Yes: every course and every song in the library, with a free account, and unlimited workouts, your history, singing with friends and choir groups. Plus, for :price_month a month or :price_year a year, adds more storage, MP3 and stems, and unlimited private arrangements.',
                     ],
                 ],
                 'sources' => [
@@ -7449,7 +7503,7 @@ return [
                     ],
                     [
                         'Is Stackapella free?',
-                        'Yes: every course and every song in the library, with a free account, and unlimited workouts, your history, singing with friends and choir groups. Plus, for :price_month a month or :price_year a year, adds more storage, MP3 and stems, and your own guides.',
+                        'Yes: every course and every song in the library, with a free account, and unlimited workouts, your history, singing with friends and choir groups. Plus, for :price_month a month or :price_year a year, adds more storage, MP3 and stems, and unlimited private arrangements.',
                     ],
                 ],
                 'sources' => [
@@ -7560,7 +7614,7 @@ return [
                     ],
                     [
                         'Is Stackapella free?',
-                        'Yes: every course and every song in the library, with a free account, and unlimited workouts, your history, singing with friends and choir groups. Plus, for :price_month a month or :price_year a year, adds more storage, MP3 and stems, and your own guides.',
+                        'Yes: every course and every song in the library, with a free account, and unlimited workouts, your history, singing with friends and choir groups. Plus, for :price_month a month or :price_year a year, adds more storage, MP3 and stems, and unlimited private arrangements.',
                     ],
                 ],
                 'sources' => [
@@ -7718,7 +7772,7 @@ return [
                     ],
                     [
                         'Is Stackapella free?',
-                        'Yes: every course and every song in the library, with a free account, and unlimited workouts, your history, singing with friends and choir groups. Plus, for :price_month a month or :price_year a year, adds more storage, MP3 and stems, and your own guides.',
+                        'Yes: every course and every song in the library, with a free account, and unlimited workouts, your history, singing with friends and choir groups. Plus, for :price_month a month or :price_year a year, adds more storage, MP3 and stems, and unlimited private arrangements.',
                     ],
                 ],
                 'sources' => [
@@ -8527,7 +8581,7 @@ return [
                 'measures' => 'The app hears your steady seconds, whether a note stays steady to its end, and when you stop and come back after a breath. Ribs and shoulders are yours to check.',
                 'scoring' => ['game' => 'Up to three stars and XP for how your hold ended, how steady it was and reaching your own goal. Holding longer than that earns nothing more.', 'serious' => 'The same hold shows the plain measure, such as "Steady to the end: 9.4 steady seconds", with no stars or rewards.'],
                 'safety' => ['Never hold your breath before you sing, and stop while it\'s still easy.', 'With asthma, a heart or lung condition, or in pregnancy, keep holds short and easy.', 'A cough, wheeze, tight chest or feeling lightheaded means stop.'],
-                'songs' => [['Swing Low, Sweet Chariot', 'Spiritual, public domain'], ['Ah! vous dirai-je, maman', 'French tune (1761), public domain'], ['Simple Gifts', 'Public domain (1848)']],
+                'songs' => [['Swing Low, Sweet Chariot', 'Spiritual, public domain'], ['Ah! vous dirai-je, maman', 'French tune (1761), public domain'], ['Simple Gifts', 'Public domain (usually dated 1848)']],
                 'shots' => ['Breath and stamina\'s first lesson, The long note: a breathing flower, and why a long note is about letting the air out slowly.', 'A first hold of "oo": a bar showing 2.9 steady seconds, and Hear yourself saying it stayed steady and stopped while it was easy.'],
                 // The designed page (site/courses/breath-and-stamina): its own sections and words.
                 'app' => 'breath',
@@ -9119,7 +9173,7 @@ return [
                 'measures' => 'The app hears where each note lands, whether you slid in, how close you hold to a drone, and whether a long note sags. A tight neck or jaw is yours to check.',
                 'scoring' => ['game' => 'Every note you sing back lands as a dart on the Bullseye board, and the lesson earns up to three stars and XP for how close they landed.', 'serious' => 'The same board, labelled in cents, with the plain measure instead of stars, such as "4 of 5 landed within 25 cents".'],
                 'safety' => ['Pitch comes from breath and listening, never from squeezing: tightening pushes you sharp.', 'Keep headphones at a moderate volume, with one ear off.', 'Stop if anything tightens, tickles or hurts. Don\'t practise when hoarse or ill.'],
-                'songs' => [['The Westminster chimes', 'Public domain (1793)'], ['Red River Valley', 'Traditional, public domain'], ['Amazing Grace', 'Public domain hymn (words 1779, tune 1829)'], ['Ode to Joy', 'Public domain melody (1824), sung on "loo"']],
+                'songs' => [['The Westminster chimes', 'Public domain (1793)'], ['Home on the Range', 'Traditional, 1870s, public domain'], ['Amazing Grace', 'Public domain hymn (words 1779, tune 1829)'], ['Ode to Joy', 'Public domain melody (1824), sung on "loo"']],
                 'shots' => ['Perfect your pitch\'s first lesson, Bullseye: land right on a note, don\'t slide into it, in three steps: listen, think it, land on "dah".', 'The Bullseye board after two echoes: both darts in the centre, between Sharp and Flat, and "2 of 2 landed within 25 cents."'],
                 // The designed page (site/courses/perfect-your-pitch): its own sections and words, and in
                 // `love` its demos, its counts from the course file (:lessons, :units) and its cited facts.
@@ -9424,10 +9478,10 @@ return [
                 'shots' => ['A chord that rings, the first lesson: hear four straight voices ring, then a hole in the chord where the top note, mi, is yours.', 'Holding mi until it rings: 100% on pitch, a steady A3 for five seconds, and Hear it together with the chord.'],
                 // The designed page (site/courses/barbershop): its own sections and words.
                 'app' => 'barbershop',
-                'eyebrow' => 'A free course · 16 lessons',
+                'eyebrow' => 'A free course · 17 lessons',
                 'hero_title' => 'Make a chord ring.',
                 'hero_lead' => 'Four voices, tuned so close the chord hums. Learn to hear the ring and lock your note into it, sing every seat in a quartet, and finish with tags: the short, ringing endings barbershoppers sing just for the chords.',
-                'hero_facts' => ['16 lessons, a few minutes each', 'Headphones on', 'No reading music'],
+                'hero_facts' => ['17 lessons, a few minutes each', 'Headphones on', 'No reading music'],
                 'see_lessons' => 'See the lessons',
                 'titles' => [
                     'outcomes' => 'By the last tag, you can',
@@ -9490,7 +9544,7 @@ return [
                     'No reading music: you learn every part by ear, from a guide voice.',
                 ],
                 'faq' => [
-                    ['How long does it take?', '16 short lessons. At one or two a day, you\'re singing tags in about two weeks.'],
+                    ['How long does it take?', '17 short lessons. At one or two a day, you\'re singing tags in about two weeks.'],
                     ['Do I need three other singers?', 'No. The app sings the other three, tuned to ring. In the last lesson, two of the voices are you.'],
                     ['Is it safe for my voice?', 'Yes, sung the course\'s way: straight, not squeezed, medium-soft, in short holds. Stop if anything tightens or hurts. It isn\'t a voice teacher.'],
                     ['Do I need to read music?', 'No. You learn each part by ear from a guide voice, and see its notes as shapes.'],
@@ -9846,13 +9900,13 @@ return [
                 'measures' => 'It finds where your voice flips, then hears how cleanly you jump across it, up and down, and each note\'s pitch. Whether the top sounded lighter is yours to hear.',
                 'scoring' => ['game' => 'Up to 3 stars, half for clean flips and half for the notes on pitch, plus XP; in lesson 1 a nearly clean flip counts.', 'serious' => 'The same take says it plainly, like "6 of 8 flips clean, up and down", with no stars or XP.'],
                 'safety' => ['The flip is a light flick, never a hard catch or a crack.', 'Land every downward flip lightly, at speaking volume.', 'About five minutes of flips at a time, then a rest.'],
-                'songs' => [['Home on the Range', 'Traditional, 1870s, public domain'], ['Red River Valley', 'Traditional, 1890s, public domain'], ['The yodel refrains', 'Written for the course']],
+                'songs' => [['Home on the Range', 'Traditional, 1870s, public domain'], ['Keep on the Sunny Side', 'Ada Blenkhorn and J. Howard Entwisle (1899); public domain'], ['The yodel refrains', 'Written for the course']],
                 'shots' => ['Find the flip: your siren drawn over the ribbon, the jumps marked, and a note that your voice flipped around E4.', 'Flip or slide, a listening round: two clips to play, and the question of which one flipped.'],
                 // The designed page (site/courses/yodeling): its own sections and words.
                 'app' => 'yodel',
                 'eyebrow' => 'A free course · 16 lessons',
                 'hero_title' => 'Find the flip.',
-                'hero_lead' => 'Herders called across valleys with a voice that flips, and the flip is already in yours. Find it, make it on purpose, keep it clean and light, then take it up the trail into Home on the Range and Red River Valley.',
+                'hero_lead' => 'Herders called across valleys with a voice that flips, and the flip is already in yours. Find it, make it on purpose, keep it clean and light, then take it up the trail into Home on the Range and Keep on the Sunny Side.',
                 'hero_facts' => ['16 lessons, five minutes or less each', 'About 30 minutes in all', 'No reading music'],
                 'see_lessons' => 'See the trail',
                 'art' => ['head' => 'Head voice', 'chest' => 'Chest voice'],
@@ -9894,7 +9948,7 @@ return [
                     'Find your flip, hear your two voices, and tell a flip from a slide.',
                     'An open vowel below and a narrow one above, a light way down, and bigger leaps.',
                     'Yodels that fit the chord, a cowboy lope, and Home on the Range.',
-                    'Several flips on one breath, at three speeds, then Red River Valley.',
+                    'Several flips on one breath, at three speeds, then Keep on the Sunny Side.',
                 ],
                 'try' => [
                     'lead' => 'Somewhere quiet, at a medium volume. Stop if anything tightens or tickles.',
@@ -10876,7 +10930,7 @@ return [
                 'measures' => 'Your notes on pitch, and in some lessons your cut-offs, when you come back in, and whether your answers land on the beat. Volume and blend aren\'t scored: the course asks you to listen, and in your headphones, could you hear the lead over yourself? Headphones on for every lesson: through a speaker, the lead and your earlier takes rest while you sing.',
                 'scoring' => ['game' => 'Up to three stars for the notes on pitch, and in the answers on the beat, and XP.', 'serious' => 'The same take says it plainly, like "21 of 24 notes on pitch" or "93% on pitch and time", with no stars or XP.'],
                 'safety' => ['Easy volume, softer than the tune.', 'Stop if anything tightens or hurts.'],
-                'songs' => [['Shenandoah', 'Traditional, public domain'], ['Swing Low, Sweet Chariot', 'Spiritual, public domain'], ['Michael, Row the Boat Ashore', 'Traditional, public domain'], ['Red River Valley', 'Traditional, public domain'], ['Amazing Grace', 'Public domain hymn (words 1779, tune 1829)'], ['The doo-wop lead and every backing part', 'Written for the course']],
+                'songs' => [['Shenandoah', 'Traditional, public domain'], ['Swing Low, Sweet Chariot', 'Spiritual, public domain'], ['Michael, Row the Boat Ashore', 'Traditional, public domain'], ['Home on the Range', 'Traditional, 1870s, public domain'], ['Amazing Grace', 'Public domain hymn (words 1779, tune 1829)'], ['The doo-wop lead and every backing part', 'Written for the course']],
             ],
             // Sea shanties and work songs (the courses lead, content c4a7c4a and 51fcca8; it replaces Overtone singing).
             // Every song printed before 1927. No modern shanty craze, no living people, no nautical puns.
@@ -11011,7 +11065,7 @@ return [
                 ],
                 'songs' => [
                     ['Ode to Joy', 'Ludwig van Beethoven (1824); public domain'],
-                    ['Simple Gifts', 'Joseph Brackett (1848); public domain'],
+                    ['Simple Gifts', 'Joseph Brackett (attributed, usually dated 1848); public domain'],
                     ['The Water Is Wide', 'Traditional; public domain'],
                     ['Hot Cross Buns', 'Traditional; public domain'],
                 ],
@@ -11082,7 +11136,7 @@ return [
                 'measures' => 'It checks each note of your harmony against the notes that fit, with the lights on, only at the chord changes, or off, and says when the tune pulled you onto its note. Whether the chord rings is for your ears.',
                 'scoring' => ['game' => 'Up to three stars and XP for your harmony\'s notes, and some lessons also ask that you never copied the tune.', 'serious' => 'The same take shows its measure plainly, like "76% on pitch", with no stars or XP.'],
                 'safety' => ['Stop if anything tightens or hurts, and don\'t sing when you\'re hoarse.', 'Above a loud tune, go lighter rather than strain to match it.', 'The tune plays under your voice; wired or one-ear headphones help you hear yourself.'],
-                'songs' => [['Michael, Row the Boat Ashore', 'Traditional, public domain'], ['Home on the Range', 'Traditional, 1870s, public domain (the chorus)'], ['Swing Low, Sweet Chariot', 'Spiritual, published 1872, public domain (the chorus)'], ['Red River Valley', 'Traditional, 1870s, public domain'], ['Steal Away', 'Spiritual, public domain (the refrain)'], ['Simple Gifts', 'Joseph Brackett, 1848, public domain'], ['The harmony lines', 'Written for the course']],
+                'songs' => [['Michael, Row the Boat Ashore', 'Traditional, public domain'], ['Home on the Range', 'Traditional, 1870s, public domain (the chorus)'], ['Swing Low, Sweet Chariot', 'Spiritual, published 1872, public domain (the chorus)'], ['Shenandoah', 'Traditional, public domain'], ['Steal Away', 'Spiritual, public domain (the refrain)'], ['Simple Gifts', 'Joseph Brackett (attributed), usually dated 1848, public domain'], ['The harmony lines', 'Written for the course']],
                 'shots' => ['The first lesson\'s card: sing the tune\'s next chord tone up, mostly a third and a fourth over so, best with headphones.', 'The part above Michael, Row the Boat Ashore on the note lane, every harmony note lit with its word.'],
                 // The designed page (site/courses/improvising-harmony): its own sections and words.
                 'app' => 'improvising-harmony',

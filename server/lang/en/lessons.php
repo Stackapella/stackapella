@@ -310,6 +310,7 @@ return [
         'the-response' => ['title' => 'Call and response: sing the answer part', 'description' => 'Sing the oldest backing job: the leader calls each line of a folk song and you answer "Hallelujah", resting through the next call, never shouting. Free.'],
         'back-in-on-time' => ['title' => 'Backing vocals: come back in on the beat', 'description' => 'Echo the tune, count the gap while it rests, then answer right on the beat, light and quick, through a whole verse and chorus of call and response. Free.'],
         'red-river-valley-a-pad-then-answers' => ['title' => 'Backing a real song: a pad, then answers', 'description' => 'Hold a soft pad for two lines of a cowboy song, then switch to answers, waiting, echoing the tune and filling its gaps, after hearing the tune first. Free.'],
+        'home-on-the-range-a-pad-then-answers' => ['title' => 'Backing a real song: a pad, then answers', 'description' => 'Hold a soft pad for two lines of a cowboy song, then switch to answers, waiting, echoing the tune and filling its gaps, after hearing the tune first. Free.'],
         'amazing-grace-two-more-parts' => ['title' => 'Three-part backing vocals under a hymn', 'description' => 'Add a middle and a top part above your pad from lesson 1, breathing at different times so the sound never stops, then all three kept as a song. Free to sing.'],
     ],
     'sea-shanties-and-work-songs' => [

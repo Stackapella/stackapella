@@ -19,7 +19,8 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 /**
- * A creator's own recorded guide for one part of their template (Plus; docs/pricing-plan.md):
+ * A creator's own recorded guide for one part of their template, free for every signed-in singer (Hillel,
+ * 2026-11-12: "anyone should be able to. feels odd to pay us for us to use your voice"; docs/pricing-plan.md):
  * uploaded as takes are (a presigned PUT of a 16-bit mono WAV, checked at complete), made into AAC
  * by ProcessTemplateRecording, and counted toward their storage.
  */
@@ -44,10 +45,6 @@ final class TemplateRecordings
                 }
 
                 return $existing;
-            }
-
-            if (! $this->plans->isPlus($user)) {
-                throw new Refusal(403, 'plus_required');
             }
 
             $parts = array_column((array) ($template->currentVersion->data['parts'] ?? []), 'key');

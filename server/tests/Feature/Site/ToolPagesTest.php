@@ -98,7 +98,7 @@ final class ToolPagesTest extends TestCase
     public function test_open_the_app_is_tagged_for_a_visitor_from_search_and_keeps_a_ref_they_brought(): void
     {
         // The header's Open the app, not the logo (which links the landing with the page's own tag).
-        $app = static fn (string $ref): string => 'href="'.e(Hosts::app('/?ref='.$ref)).'" class="btn-secondary"';
+        $app = static fn (string $ref): string => 'href="'.e(Hosts::app('/?ref='.$ref)).'" class="btn-primary"';
         $slug = SitePages::TOOLS[0];
 
         $this->assertStringContainsString($app('tool-'.$slug), (string) $this->get('/tools/'.$slug)->getContent());

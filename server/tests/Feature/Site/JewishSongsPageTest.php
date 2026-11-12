@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Site;
 
 use App\Models\Template;
+use App\Support\Pages\Hanukkiah;
 use App\Support\Pages\JewishSongs;
 use App\Support\Pages\SongCollections;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -59,6 +60,31 @@ final class JewishSongsPageTest extends TestCase
         $this->assertTrue(JewishSongs::inSeason());
     }
 
+    public function test_the_lamp_is_a_hanukkiah_whose_candles_count_from_the_right_and_whose_script_knows_each_hanukkah(): void
+    {
+        // Candle 1 is the far right as you face the lamp; night 8 lights the far left too (js/public/hanukkiah.js).
+        $x = Hanukkiah::candles();
+        $this->assertSame(range(1, 8), array_keys($x));
+        $sorted = array_values($x);
+        rsort($sorted);
+        $this->assertSame($sorted, array_values($x), 'candle 1 rightmost, then leftward');
+
+        config(['site.jewish_festivals' => [
+            ['key' => 'hanukkah', 'from' => '2026-12-04', 'until' => '2026-12-12'],
+            ['key' => 'passover', 'from' => '2027-04-21', 'until' => '2027-04-29'],
+            ['key' => 'hanukkah', 'from' => '2027-12-24', 'until' => '2028-01-01'],
+        ]]);
+        $svg = (string) Hanukkiah::svg('s-hk');
+        $this->assertStringContainsString('data-hanukkiah="2026-12-04 2027-12-24"', $svg);
+        // Each candle in both skins' drawings, and the shamash and every candle lit as drawn (the script unlights).
+        $this->assertSame(2, substr_count($svg, 'data-hk="1"'));
+        $this->assertSame(2, substr_count($svg, 'data-hk="8"'));
+        $this->assertSame(18, substr_count($svg, 'class="s-hk-flame"'));
+        $this->assertStringNotContainsString('data-unlit', $svg);
+        // The link card's has no dates to count from: always all lit.
+        $this->assertStringNotContainsString('data-hanukkiah', (string) Hanukkiah::svg('hk', false));
+    }
+
     public function test_a_songs_tag_is_its_first_festival_else_every_day(): void
     {
         $this->assertSame('hanukkah', JewishSongs::tag(['jewish', 'hanukkah', 'traditional']));
@@ -78,7 +104,13 @@ final class JewishSongsPageTest extends TestCase
         $this->assertStringContainsString('<title>Jewish Songs for Hanukkah, Passover and Shabbat</title>', $html);
         $this->assertStringContainsString('class="s-xhero s-tone s-tone-jewish-songs"', $html);
         $this->assertStringContainsString('Hanukkah', $html);
-        $this->assertStringContainsString(trans_choice('site.collections.jewish-songs.count_in', 23, ['count' => 23]), $html);
+        $this->assertStringContainsString('<p class="s-jcount-d">23 days</p>', $html);
+        $this->assertStringContainsString('Sundown, Friday 4 December', $html);
+        // Hanukkah's songs as rows to learn in time, each to its page (Hillel's redesign of the card).
+        $this->assertStringContainsString('Learn in time for the first candle', $html);
+        $this->assertMatchesRegularExpression('#<ul class="s-jcount-songs">\s*<li><a href="/songs/maoz-tzur"><b translate="no">Maoz Tzur</b>#', $html);
+        // The intro is its own section after the songs, not in the hero.
+        $this->assertMatchesRegularExpression('#id="songbook".*<section class="s-wrap s-sec2 s-xfrom" aria-labelledby="from-h">.*Union Hymnal#s', $html);
         preg_match_all('#class="s-xplace">([^<]+)<#', $html, $tags);
         $this->assertNotEmpty($tags[1]);
         $this->assertSame('Hanukkah', $tags[1][0], 'the coming festival\'s songs first');

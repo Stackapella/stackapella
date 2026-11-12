@@ -8,6 +8,7 @@ use App\Actions\Templates\SyncOfficialTemplates;
 use App\Console\Commands\RecordPageVersions;
 use App\Models\PageVersion;
 use App\Models\Template;
+use App\Support\Pages\SongStories;
 use Illuminate\Console\Scheduling\Event;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -131,7 +132,8 @@ final class SitemapDatesTest extends TestCase
         app(SyncOfficialTemplates::class)->handle();
         $template = Template::query()->where('slug', 'amazing-grace')->firstOrFail();
         DB::table('template_versions')->where('id', $template->current_version_id)->update(['created_at' => '2026-10-20 23:30:00']);
-        $this->assertSame('2026-10-20', $this->lastmod('/songs/amazing-grace'));
+        // A song page's day is its current version's, or its story's last change when that is later.
+        $this->assertSame(max('2026-10-20', SongStories::updated('amazing-grace') ?? '2026-10-20'), $this->lastmod('/songs/amazing-grace'));
 
         PageVersion::factory()->create(['path' => '/no-longer-listed']);
         $this->artisan('app:sitemap:dates')->assertSuccessful();

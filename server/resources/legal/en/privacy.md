@@ -202,6 +202,7 @@ Our storage is in DigitalOcean's New York region, so your data is held in the Un
 - **sa_pass (before launch only):** Lets beta testers in. Kept until launch.
 - **sa_app:** Remembers you've used the app, so the home address opens it. Kept a year.
 - **sa_theme:** Remembers the look you chose. Kept a year.
+- **sa_lang:** Remembers the language you picked in our site's language menu (only "en" or "es"), so the app and our emails can use it. It never moves you to another page by itself. Kept a year.
 - **sa_signed_in:** Lets our public site show "Open the app" instead of an invitation to try it, once you're signed in. Its value is only "1", with no ID: it says only that this browser is signed in, and our server looks at it only to know whether to set it again or remove it. Removed when you sign out. Kept up to five years while you stay signed in (most browsers keep a cookie at most about a year).
 - **sa_mic:** Remembers the name of the mic you chose (such as "MacBook Pro Microphone"), so the site and the app pick the same one. Nothing else is in it, and our server never reads or keeps it. Kept a year.
 - **sa_mudeo:** Remembers you came from mudeo, to show its welcome. Kept until you close the browser.

@@ -1,7 +1,7 @@
 // The session store (js/stores/session.js): what the studio and the Sing screens share.
 import { useDatabase } from '/js/db.js';
 import { loadTemplate } from '/js/templates.js';
-import { loadProjects, startFromTemplate } from '/js/stores/projects.js';
+import { loadProjects, notesSeconds, openProject, startFromTemplate } from '/js/stores/projects.js';
 import { closeSession, levels, listenThenRepeat, openSession, practise, selectPhrase, session, setMode, stopPlayback } from '/js/stores/session.js';
 import { guideId } from '/js/practice.js';
 import { assert, close, test } from './harness.js';
@@ -86,6 +86,8 @@ test('session: a real voice from the catalogue plays as the guide, only in its k
         while (session.preparing) await new Promise((resolve) => setTimeout(resolve, 20));
         const alto = session.parts.find((p) => p.templatePartKey === 'alto');
         const soprano = session.parts.find((p) => p.templatePartKey === 'soprano');
+        // No part chosen yet: every real voice arrives after the synth has the song ready (renderGuides).
+        for (let i = 0; i < 200 && session.guideVoices[alto.id]?.kind !== 'real'; i++) await new Promise((resolve) => setTimeout(resolve, 20));
         const voice = session.guideVoices[alto.id];
         assert(voice?.kind === 'real' && voice.credit === 'Sarah K.', JSON.stringify(voice));
         close(voice.offsetSeconds, 0.5, 1e-9, 'the guide starts half a second in');
@@ -121,6 +123,55 @@ test('session: a real voice that cannot load (offline) falls back to the synth, 
         await closeSession();
         catalogue.list = [];
     } finally {
+        useDatabase('stackapella-test');
+    }
+});
+
+test('session: a song started from its sheet opens without rendering its guides first, and keeps their outline once its session renders them', async () => {
+    try {
+        await freshDatabase();
+        const template = await loadTemplate('amazing-grace');
+        const project = await startFromTemplate(template, { singers: 4, renderGuides: false });
+        const started = (await openProject(project.id)).parts;
+        assert(started.every((p) => p.guidePeaks === null), 'no outline yet: Start no longer waits for four renders');
+        const soprano = template.parts.find((p) => p.key === 'soprano');
+        close(started.find((p) => p.templatePartKey === 'soprano').guideSeconds, notesSeconds(soprano, template.tempo), 1e-9, 'the length from the notes');
+        assert(notesSeconds({ guide: { notes: [{ beat: 0, length: 1 }, { beat: 6, length: 2 }] } }, 120) === 4, 'the last note ends at beat 8: 4 s at 120');
+        await openSession(project.id);
+        await new Promise((resolve) => setTimeout(resolve, 50));
+        while (session.preparing) await new Promise((resolve) => setTimeout(resolve, 20));
+        let kept = [];
+        for (let i = 0; i < 50 && kept.length < 4; i++) {
+            kept = (await openProject(project.id)).parts.filter((p) => p.guidePeaks?.length);
+            if (kept.length < 4) await new Promise((resolve) => setTimeout(resolve, 20));
+        }
+        assert(kept.length === 4, `the first render's outline kept on ${kept.length} of 4 parts, for Home's thumbnail`);
+    } finally {
+        closeSession();
+        useDatabase('stackapella-test');
+    }
+});
+
+test('session: your part plays its real voice from the first note; the others start on the synth and swap in as theirs arrive', async () => {
+    const { catalogue, loadCatalogue } = await import('/js/stores/catalogue.js');
+    const { ready } = await import('/js/stores/session.js');
+    await freshDatabase();
+    try {
+        await loadCatalogue();
+        const template = await loadTemplate('amazing-grace');
+        const guide = (key, id) => ({ id, partKey: key, url: `${location.origin}/tests/fixtures/guide-48000.m4a?${key}`, sampleRate: 48000, frames: 144000, offsetFrames: 24000, credit: 'Sarah K.' });
+        catalogue.list = [{ id: template.id, version: template.version, parts: ['alto', 'tenor'].map((key, i) => ({ key, guide: guide(key, `g${i}`), versions: [{ ...guide(key, `g${i}`), default: true }] })) }];
+        const project = await startFromTemplate(template, { singers: 4, focusKey: 'alto' });
+        await openSession(project.id);
+        await ready();
+        const alto = session.parts.find((p) => p.templatePartKey === 'alto');
+        const tenor = session.parts.find((p) => p.templatePartKey === 'tenor');
+        assert(session.guideVoices[alto.id]?.kind === 'real' && !session.guideVoices[alto.id].loading, `your part, real at once: ${JSON.stringify(session.guideVoices[alto.id])}`);
+        for (let i = 0; i < 200 && session.guideVoices[tenor.id]?.kind !== 'real'; i++) await new Promise((resolve) => setTimeout(resolve, 20));
+        assert(session.guideVoices[tenor.id]?.kind === 'real', `the tenor's real voice arrives after: ${JSON.stringify(session.guideVoices[tenor.id])}`);
+    } finally {
+        catalogue.list = [];
+        closeSession();
         useDatabase('stackapella-test');
     }
 });

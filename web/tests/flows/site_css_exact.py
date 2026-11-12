@@ -1,5 +1,5 @@
-"""css/site.css scanned only from what the public pages load (docs/css-split-plan.md, step 2; tool/app_css.py public_js)
-looks exactly as the build scanned from all of web/: on every public page site_integration visits, a song's part pages, the
+"""css/site.css scanned only from what the public pages load (docs/css-split-plan.md, step 2; tool/app_css.py public_js),
+and each page family's sheet cut from it (step 4, /site-css/<family>.css), looks exactly as the build scanned from all of web/: on every public page site_integration visits, a song's part pages, the
 reference pages and the tool embeds, in both skins, at a phone's and a desktop's width, each element's computed style and
 box with the served site.css is compared with the same page given the full build instead. Not one element may differ.
 Needs the server's pages and the full build somewhere the server serves it:
@@ -19,16 +19,21 @@ EXTRA = ["/songs/amazing-grace/soprano", "/songs/amazing-grace/bass", "/interval
          "/courses/vibrato/smaller-waves", "/tools/drone/embed", "/tools/pitch-pipe/embed", "/for/organizations"]
 
 
-def swap(full):
-    # In site.css's own place, so it cascades exactly where the served one did.
-    return f"""const old = [...document.querySelectorAll('link[rel=stylesheet]')].find((l) => (l.getAttribute('href') ?? '').split('?')[0] === '/css/site.css');
+# The public page's own sheet: its family's (docs/css-split-plan.md, step 4: /site-css/<family>.css, site.css less what the
+# family can't use), or the whole site.css when it shows a class its family's manifest lacks.
+SITE_SHEET = "[...document.querySelectorAll('link[rel=stylesheet]')].map((l) => new URL(l.href).pathname).find((p) => p === '/css/site.css' || /^\\/site-css\\/[a-z]+\\.css$/.test(p)) ?? null"
+
+
+def swap(base, full):
+    # In the served sheet's own place, so it cascades exactly where the served one did.
+    return f"""const old = [...document.querySelectorAll('link[rel=stylesheet]')].find((l) => (l.getAttribute('href') ?? '').split('?')[0] === {base!r});
     await new Promise((done) => {{ const l = Object.assign(document.createElement('link'), {{ rel: 'stylesheet', href: {full!r} }}); l.onload = done; l.onerror = done; old.after(l); }});
     old.remove();"""
 
 
 def main():
     site, full = sys.argv[1].rstrip("/"), sys.argv[2]
-    failed, checked, skipped = [], 0, set()
+    failed, checked, skipped, sheets = [], 0, set(), set()
     for skin, (colour, mode) in (("serious", ("warm", "light")), ("game", ("stage", "dark"))):
         for size, width in (("phone", 390), ("desktop", 1440)):
             f = Flow(site, size, "site-css", skin)
@@ -39,15 +44,17 @@ def main():
                     time.sleep(1.5)
                     f.run(f"window.stackapellaTheme?.choose({{ colour: '{colour}', mode: '{mode}', skin: '{skin}' }})")
                     time.sleep(1)
-                    if not f.js("!!document.querySelector('main') && [...document.querySelectorAll('link[rel=stylesheet]')].some((l) => (l.getAttribute('href') ?? '').split('?')[0] === '/css/site.css')"):
-                        skipped.add(path)  # a page without site.css (an embed has its own): nothing to compare
+                    base = f.js(f"document.querySelector('main') ? {SITE_SHEET} : null")
+                    if not base:
+                        skipped.add(path)  # a page without the site's sheet (an embed has its own): nothing to compare
                         continue
+                    sheets.add(base)
                     # Both snapshots after one swap each (the served sheet for itself, then the full build): a page that
                     # sizes itself from its layout (the landing's cabinet canvas) re-measures on any swap, CSS or not.
-                    f.run(swap("/css/site.css?again=1"))
+                    f.run(swap(base, base + "?again=1"))
                     time.sleep(0.4)
                     own = f.js(SNAP)
-                    f.run(swap(full))
+                    f.run(swap(base, full))
                     time.sleep(0.4)
                     whole = f.js(SNAP)
                     checked += 1
@@ -61,7 +68,7 @@ def main():
         print("site css: the served site.css styles these differently from the full build:")
         print("\n".join(failed[:40]))
         raise SystemExit(1)
-    print(f"site css: {checked} page views, both skins, 390 and 1440: every element as with the full build (no site.css, skipped: {sorted(skipped)})")
+    print(f"site css: {checked} page views, both skins, 390 and 1440: every element as with the full build (served: {', '.join(sorted(sheets))}; no site sheet, skipped: {sorted(skipped)})")
 
 
 if __name__ == "__main__":

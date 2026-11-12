@@ -57,6 +57,14 @@ async function fileFor(recording, key, fetchImpl) {
     return bytes;
 }
 
+/**
+ * A recorded guide's file fetched and kept ahead of time (the song's sheet, while it's read), so the session that opens
+ * next reads it from the device instead of waiting on the network for its first note (2026-11-12, the speed pass).
+ */
+export async function keepAhead(recording, key, fetchImpl = fetch) {
+    await fileFor(recording, key, fetchImpl);
+}
+
 /** The key a recorded guide is kept under: templateId@version:partKey, and its version's id. */
 export function guideKey(templateId, version, partKey, id = null) {
     return `${templateId}@${version}:${partKey}${id ? `#${id}` : ''}`;

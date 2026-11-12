@@ -65,3 +65,51 @@ test('site mixer: a solo wins over the switches, two sound together, and the fad
     assert(!root.hasAttribute('data-playing'), 'Stop stops it');
     root.remove();
 });
+
+// The whole song (Hillel: "let's always play the full songs"): the rest joins the opening line on the audio clock, and a
+// card's part rows follow whoever is singing.
+test('public mixer: the rest of the song joins at the line\'s end, or where the song has got to when it comes late', async () => {
+    const { joinAt } = await import('/js/public/mixer.js');
+    const on = joinAt(10, 12, 15);
+    assert(on.when === 22 && on.offset === 12, `in time: ${JSON.stringify(on)}`);
+    const late = joinAt(10, 12, 25.5);
+    assert(late.when === 25.5 && late.offset === 15.5, `late: ${JSON.stringify(late)}`);
+});
+
+test('public mixer: a card\'s part rows light while their part sings a note', async () => {
+    const { sounding } = await import('/js/public/mixer.js');
+    const parts = [
+        { key: 'soprano', notes: [{ beat: 0, length: 2 }, { beat: 4, length: 1 }] },
+        { key: 'bass', notes: [{ beat: 1, length: 3 }] },
+    ];
+    const at = (seconds) => [...sounding(parts, seconds, 0.5)].sort().join(',');
+    assert(at(0) === 'soprano', at(0));
+    assert(at(0.75) === 'bass,soprano', at(0.75));
+    assert(at(1.5) === 'bass', `a rest between notes: ${at(1.5)}`);
+    assert(at(2.25) === 'soprano', `the bass has ended: ${at(2.25)}`);
+    assert(at(3) === '', 'after the song');
+});
+
+test('play state: a press shows loading at once, a slow load a quiet hint, a failure its words; playing clears them', async () => {
+    const { playState } = await import('/js/public/play-state.js');
+    const root = document.createElement('div');
+    const button = document.createElement('button');
+    button.setAttribute('aria-label', 'Play');
+    root.append(button);
+    document.body.append(root);
+    const words = { loading: 'Loading...', slow: 'Still loading', failed: 'Couldn\'t play, tap to try again' };
+    const states = playState(button, root, { slow: 30, words });
+    const hint = () => button.querySelector('.s-play-hint').textContent;
+    states.loading();
+    assert(root.hasAttribute('data-loading') && button.getAttribute('aria-busy') === 'true' && hint() === '', 'loading at once, no hint yet');
+    await new Promise((resolve) => setTimeout(resolve, 60));
+    assert(root.hasAttribute('data-slow') && hint() === 'Still loading', 'a slow load says so');
+    states.playing();
+    assert(!root.hasAttribute('data-loading') && !root.hasAttribute('data-slow') && !button.hasAttribute('aria-busy') && hint() === '', 'playing clears it');
+    states.failed();
+    assert(root.hasAttribute('data-failed') && hint() === words.failed && button.getAttribute('aria-label') === words.failed, 'a failure says so');
+    states.loading();
+    assert(!root.hasAttribute('data-failed') && button.getAttribute('aria-label') === 'Play', 'trying again puts the label back');
+    states.idle();
+    root.remove();
+});

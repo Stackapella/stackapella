@@ -18,7 +18,7 @@ See README.md.
     python3 render.py --voices                        the real voices: Amazing Grace's default guide of each part, read
                                                       from the public catalogue (the app's own call) into voices/
 
-Options: --cut=hero|short|social (v5: the landing's 76.5 s film, the 40.5 s cut, the 19.75 s vertical), --theme=dark|light, --season=carols|hymns|songbook (the songs slot; carols by default), --from=S --to=S, --workers=N, --scale=F, --fps=N, --samples=N,
+Options: --cut=hero|short|social|carols|hanukkah (v5: the landing's 76.5 s film, the 40.5 s cut, the 19.75 s vertical, the season cuts), --theme=dark|light, --season=carols|hymns|songbook (the songs slot; carols by default), --from=S --to=S, --workers=N, --scale=F, --fps=N, --samples=N,
 --keep (leave the frames), --port-base=N (Chrome's first debugging port, default 9500),
 --http=N (the page's port, default 8790), --dir=DIR (the outputs, default
 server/public/videos/showreel), --poster-at=S.
@@ -57,7 +57,7 @@ for arg in sys.argv[1:]:
     A[k] = v if v else True
 # v5's three cuts (js/score.js CUT): the hero for the landing, the short (40.5 s, landscape) and the social
 # (19.75 s, vertical); the page checks its length against the score's
-CUTS = {'hero': 76.5, 'short': 40.5, 'social': 19.75, 'carols': 26 * 60 / 66}  # the carols: the season's posts (--format=vertical|square)
+CUTS = {'hero': 76.5, 'short': 40.5, 'social': 19.75, 'carols': 26 * 60 / 66, 'hanukkah': 36 * 60 / 90}  # the season cuts, for posting (--format=vertical|square)
 cut = str(A.get('cut', 'hero'))
 if cut not in CUTS:
     raise SystemExit(f'no cut {cut}: {", ".join(CUTS)}')
@@ -216,11 +216,16 @@ if season not in ('carols', 'hymns', 'songbook'):
     raise SystemExit(f'no season {season}: carols, hymns, songbook')
 http_port = int(A.get('http', 8790))
 port_base = int(A.get('port-base', 9500))
-out_dir = Path(A['dir']).resolve() if 'dir' in A else OUT
+# --lang=es: that language's film (js/words.js, capture.py --lang=es), its files beside English's in <lang>/ with the
+# same names and a manifest of their own (showreel/<lang>/manifest.json: its own version on the CDN)
+lang = str(A.get('lang') or 'en')
+if lang not in ('en', 'es'):
+    raise SystemExit(f'no language {lang}: en, es (js/words.js and capture.py --lang={lang} first)')
+out_dir = Path(A['dir']).resolve() if 'dir' in A else (OUT if lang == 'en' else OUT / lang)
 suffix = '-light' if theme == 'light' else ''
 # The frame of each format: lib.js's FORMATS, which the page checks against this (window.FRAME).
 FORMATS = {'wide': (1920, 1080), 'vertical': (1080, 1920), 'square': (1080, 1080), 'thumb': (480, 480)}
-fmt = A.get('launch') or A.get('format') or ('vertical' if cut in ('social', 'carols') else 'wide')
+fmt = A.get('launch') or A.get('format') or ('vertical' if cut in ('social', 'carols', 'hanukkah') else 'wide')
 if fmt not in FORMATS:
     raise SystemExit(f'no format {fmt}: {", ".join(FORMATS)}')
 FW, FH = FORMATS[fmt]
@@ -228,7 +233,7 @@ LAUNCH = 'stackapella-launch'
 
 
 def page_url(scale):
-    return f'http://127.0.0.1:{http_port}{PAGE}?render=1&scale={scale}&theme={theme}&format={fmt}&season={season}&cut={cut}'
+    return f'http://127.0.0.1:{http_port}{PAGE}?render=1&scale={scale}&theme={theme}&format={fmt}&season={season}&cut={cut}' + (f'&lang={lang}' if lang != 'en' else '')
 
 
 def launch(i, scale):
@@ -387,7 +392,7 @@ def video():
                 'square': {'scale': 1, 'fps': 30, 'samples': 8, 'fast': 16, 'bitrate': '5000k'},
                 'thumb': {'scale': 1, 'fps': 20, 'samples': 4, 'fast': 8, 'bitrate': '600k'}}
     preset = (LAUNCHES[fmt] if A.get('launch') else
-              {'scale': 1, 'fps': 30, 'samples': 8, 'fast': 16, 'bitrate': '6000k'} if A.get('final') and cut in ('social', 'carols') else
+              {'scale': 1, 'fps': 30, 'samples': 8, 'fast': 16, 'bitrate': '6000k'} if A.get('final') and cut in ('social', 'carols', 'hanukkah') else
               {'scale': 1, 'fps': 60, 'samples': 8, 'fast': 16, 'bitrate': '5000k'} if A.get('final') and cut == 'short' else
               {'scale': 1, 'fps': 60, 'samples': 8, 'fast': 16, 'bitrate': '2600k'} if A.get('final') else
               {'scale': 0.5, 'fps': 30, 'samples': 8, 'fast': 16, 'bitrate': '900k'} if A.get('mobile') else
@@ -415,7 +420,7 @@ def video():
         elif A.get('final') and cut != 'hero':
             # the short and the social are for posting: an MP4 each, with room for the platforms' own re-encode
             out_dir.mkdir(parents=True, exist_ok=True)
-            encode(tmp, f0, fps, wav, mp4=out_dir / (f'stackapella-carols-{fmt}{suffix}.mp4' if cut == 'carols' else f'stackapella-{cut}{suffix}.mp4'), bitrate=A.get('bitrate', preset['bitrate']), t0=t0, t1=t1)
+            encode(tmp, f0, fps, wav, mp4=out_dir / (f'stackapella-{cut}-{fmt}{suffix}.mp4' if cut in ('carols', 'hanukkah') else f'stackapella-{cut}{suffix}.mp4'), bitrate=A.get('bitrate', preset['bitrate']), t0=t0, t1=t1)
         elif A.get('final'):
             out_dir.mkdir(parents=True, exist_ok=True)
             encode(tmp, f0, fps, wav, mp4=out_dir / f'{NAME}{suffix}.mp4', webm=out_dir / f'{NAME}{suffix}.webm', bitrate=A.get('bitrate', preset['bitrate']), t0=t0, t1=t1)
@@ -474,9 +479,8 @@ def audio():
 
 def vtt():
     """The captions track (WebVTT), which the page writes from the score (score.js, vtt()); --lang=es writes
-    the Spanish one (stackapella-showreel.es.vtt: the hymn's words as sung, who joins in Spanish)."""
-    lang = 'es' if A.get('lang') == 'es' else 'en'
-    name = f'{NAME}.vtt' if lang == 'en' else f'{NAME}.{lang}.vtt'
+    that language's (in <lang>/, the same name: the hymn's words as sung, who joins in the language)."""
+    name = f'{NAME}.vtt'
     b = launch(0, 0.25)
     try:
         text = b.cdp.eval(f"window.renderVtt('{lang}')")
@@ -526,7 +530,7 @@ def manifest():
         chosen = [f for f in files if mine(f)]
         if not chosen:
             continue
-        data = {'film': 'Harmony, made by you', 'duration': DUR, 'source': str(HERE.relative_to(ROOT)), 'files': [entry(f) for f in chosen]}
+        data = {'film': 'Harmony, made by you', 'duration': DUR, 'source': str(HERE.relative_to(ROOT)), **({'lang': lang} if lang != 'en' else {}), 'files': [entry(f) for f in chosen]}
         (out_dir / name).write_text(json.dumps(data, indent=2) + '\n')
         print(out_dir / name, f'({len(chosen)} files)')
 

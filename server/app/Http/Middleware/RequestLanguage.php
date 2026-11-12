@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Middleware;
 
+use App\Support\Languages\LanguageMenu;
 use App\Support\Languages\Languages;
 use Closure;
 use Illuminate\Http\Request;
@@ -12,7 +13,7 @@ use Symfony\Component\HttpFoundation\Response;
 
 /**
  * An API request's language (docs/languages-plan.md): the signed-in account's own (any it may keep, so a draft can
- * be checked before its switch is on); otherwise the best of the browser's languages (Accept-Language, which the app
+ * be checked before its switch is on); otherwise the one picked in the site's menu (sa_lang), else the best of the browser's languages (Accept-Language, which the app
  * sets to the language it shows) among those open to everyone, else English. It's what a new account is given and
  * what a newcomer's sign-in link is written in. For this request only.
  */
@@ -24,7 +25,13 @@ final class RequestLanguage
     {
         $before = App::getLocale();
         $own = $request->user()?->locale;
-        App::setLocale(is_string($own) && in_array($own, Languages::ALL, true) ? $own : ($request->getPreferredLanguage($this->languages->offered()) ?? 'en'));
+        // A newcomer's: the language they picked in the site's menu (LanguageMenu), while it's open, else their browser's.
+        $picked = $request->cookies->get(LanguageMenu::COOKIE);
+        App::setLocale(match (true) {
+            is_string($own) && in_array($own, Languages::ALL, true) => $own,
+            is_string($picked) && $this->languages->isOffered($picked) => $picked,
+            default => $request->getPreferredLanguage($this->languages->offered()) ?? 'en',
+        });
 
         try {
             return $next($request);

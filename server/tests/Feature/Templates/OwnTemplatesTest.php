@@ -179,9 +179,10 @@ final class OwnTemplatesTest extends TestCase
         $this->assertNotNull($owner);
     }
 
-    public function test_a_creators_recorded_guide_goes_up_like_a_take_with_plus_and_plays_from_templates_show(): void
+    public function test_a_creators_recorded_guide_goes_up_like_a_take_and_plays_from_templates_show(): void
     {
-        $user = $this->as(User::factory()->create(['plan' => 'plus']));
+        // Free for every singer (Hillel, 2026-11-12: "anyone should be able to"), on the free plan here.
+        $user = $this->as(User::factory()->create());
         $id = (string) Str::uuid();
         $this->save($id, $this->template($id))->assertOk();
         $wav = Wav::tone(1.0);
@@ -224,19 +225,16 @@ final class OwnTemplatesTest extends TestCase
         $this->assertNotNull(ProcessTemplateRecording::class);
     }
 
-    public function test_recorded_guides_are_plus_and_count_toward_storage(): void
+    public function test_recorded_guides_are_free_and_count_toward_storage(): void
     {
-        $user = $this->as(User::factory()->create());
+        $this->as(User::factory()->create());
         $id = (string) Str::uuid();
         $this->save($id, $this->template($id))->assertOk();
         $wav = Wav::tone(1.0);
         $body = ['id' => (string) Str::uuid(), 'partKey' => 'alto', 'sampleRate' => 48000, 'frames' => 48000, 'offsetFrames' => 0, 'bytes' => strlen($wav), 'sha256' => hash('sha256', $wav)];
 
-        $this->assertMatchesContract($this->postJson('/api/templates/'.$id.'/recordings', $body), 'templates.recordings.create', 403);
-
-        $user->forceFill(['plan' => 'plus'])->save();
-        $this->as($user);
-        config(['usage.plans.plus.storage_bytes' => 10]);
+        // A free account's storage still limits it, as any take.
+        config(['usage.plans.free.storage_bytes' => 10]);
         $full = $this->postJson('/api/templates/'.$id.'/recordings', $body);
         $this->assertMatchesContract($full, 'templates.recordings.create', 403);
         $full->assertJsonPath('code', 'storage_limit');

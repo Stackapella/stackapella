@@ -17,7 +17,7 @@ return [
     // Lend your voice (docs/lend-your-voice-plan.md): volunteers accept their own agreement
     // (resources/legal/en/lend-your-voice.md) instead of this one; a claim is held this long, says
     // it's ending (in the app) this many days in, and someone holds at most this many at once.
-    'volunteer_agreement_version' => 1,
+    'volunteer_agreement_version' => 2,
     'claim_days' => 14,
     'claim_remind_after_days' => 10,
     'claims_at_once' => 3,

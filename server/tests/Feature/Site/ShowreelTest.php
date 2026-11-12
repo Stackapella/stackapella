@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Site;
 
+use App\Support\Site\Showreel;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -120,5 +121,47 @@ final class ShowreelTest extends TestCase
         $policy = (string) $this->get('/')->headers->get('Content-Security-Policy');
         $this->assertMatchesRegularExpression('#media-src [^;]*https://cdn\.example\.com#', $policy);
         $this->assertMatchesRegularExpression('#img-src [^;]*https://cdn\.example\.com#', $policy);
+    }
+
+    public function test_each_language_shows_its_own_film_and_english_until_it_has_one(): void
+    {
+        $this->withManifest();
+        config(['site.showreel.url' => 'https://media.example.com/showreel']);
+        // A language that will never have a film (the real ones, Spanish first, have their manifests in git).
+        $spanish = public_path('videos/showreel/zz/manifest.json');
+        $this->assertFileDoesNotExist($spanish, 'a real render is never overwritten by this test');
+
+        try {
+            // No film in that language yet: its page shows the English one.
+            $this->assertSame('en', Showreel::language('zz'));
+            $this->assertSame(Showreel::files('en')['dark']['mp4'], Showreel::files('zz')['dark']['mp4']);
+
+            mkdir(dirname($spanish), 0755, true);
+            file_put_contents($spanish, json_encode(['lang' => 'zz', 'files' => []], JSON_THROW_ON_ERROR));
+            $es = Showreel::files('zz');
+            $this->assertSame('zz', $es['language']);
+            $this->assertSame(substr((string) hash_file('sha256', $spanish), 0, 10), Showreel::version('zz'));
+            $this->assertSame('https://media.example.com/showreel/'.Showreel::version('zz').'/stackapella-showreel.mp4', $es['dark']['mp4']);
+            $this->assertNotSame(Showreel::version('en'), Showreel::version('zz'));
+            $this->assertStringStartsWith('/videos/showreel/zz/stackapella-showreel.vtt?v=', $es['captions']);
+            $this->assertSame('en', Showreel::files('en')['language'], 'English stays as it was');
+            $this->assertSame('en', Showreel::language('de'), 'a language with no film falls back to English');
+            // The real Spanish film, once its manifest is in git: Spanish pages show it, at its own version.
+            $real = public_path('videos/showreel/es/manifest.json');
+            if (is_file($real)) {
+                $this->assertSame('es', Showreel::language('es'));
+                $this->assertSame(substr((string) hash_file('sha256', $real), 0, 10), Showreel::version('es'));
+            }
+
+            // And the upload command takes it by --lang, refusing a language with no film.
+            $this->artisan('app:showreel:upload', ['--lang' => 'de', '--check' => true])->assertFailed();
+        } finally {
+            if (is_file($spanish)) {
+                unlink($spanish);
+            }
+            if (is_dir(dirname($spanish)) && (scandir(dirname($spanish)) ?: []) === ['.', '..']) {
+                rmdir(dirname($spanish));
+            }
+        }
     }
 }

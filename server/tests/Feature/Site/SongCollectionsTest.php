@@ -141,6 +141,30 @@ final class SongCollectionsTest extends TestCase
         $this->get('/songs/jewish-songs')->assertDontSee('s-xcoll-has-try', false);
     }
 
+    public function test_every_open_part_fits_the_songbooks_one_scale_and_each_card_draws_its_range_on_it(): void
+    {
+        // One scale on every page (the UX review of Hillel's Jewish Songs redesign): a part outside it would draw past
+        // its track, so widen Carols::SCALE (and the caption's words follow) when a new song needs it.
+        [$low, $high] = Carols::SCALE;
+        foreach (Template::query()->with('currentVersion')->get() as $template) {
+            if (! Catalogue::isOpen($template)) {
+                continue;
+            }
+            foreach (SongParts::parts($template) as $part) {
+                $this->assertGreaterThanOrEqual($low, $part['low'], $template->slug.'/'.$part['key']);
+                $this->assertLessThanOrEqual($high, $part['high'], $template->slug.'/'.$part['key']);
+            }
+        }
+
+        $html = (string) $this->get('/songs/hymns')->assertOk()->getContent();
+        $this->assertMatchesRegularExpression('#<span class="s-xbar" aria-hidden="true"><i style="--lo: [\d.]+%; --hi: [\d.]+%"></i></span>#', $html);
+        $this->assertStringContainsString('Bars show each part on one scale, E2 to G5. The line is middle C.', $html);
+        // At most three across (Hillel); the hymns' last card isn't left alone when their count leaves one over.
+        $this->assertStringNotContainsString('s-xcards-4', $html);
+        preg_match_all('#<article id="carol-#', $html, $cards);
+        $this->assertStringContainsString(count($cards[0]) >= 4 && count($cards[0]) % 3 === 1 ? 'class="s-xcards s-xcards-tail"' : 'class="s-xcards"', $html);
+    }
+
     public function test_a_song_goes_to_its_first_group_in_order(): void
     {
         $this->assertSame('christmas', SongCollections::group(['hymn', 'christmas']));
@@ -300,7 +324,7 @@ final class SongCollectionsTest extends TestCase
 
     public function test_the_folk_and_barbershop_intros_name_exactly_the_songs_their_pages_list(): void
     {
-        foreach (['folk-songs' => 10, 'barbershop-songs' => 5] as $slug => $count) {
+        foreach (['folk-songs' => 20, 'barbershop-songs' => 5] as $slug => $count) {
             $songs = app(SongCollections::class)->songs($slug);
             $this->assertCount($count, $songs, $slug);
             $intro = implode(' ', (array) __('site.collections.'.$slug.'.intro'));

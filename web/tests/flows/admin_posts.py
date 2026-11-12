@@ -17,7 +17,7 @@ def journey(f):
     f.go("/admin/posts?api=mock&scenario=&as=admin", "document.querySelector('main')")
     light_first(f)
     f.wait(f"{POSTS} === 2", what="the two posts waiting")
-    f.wait("document.querySelector('[data-nav-count]')?.textContent.trim() === '2'", what="the count by Posts in the nav")
+    assert not f.js("!!document.querySelector('a[href=\"/admin/posts\"] [data-nav-count]')"), "Posts has no count: the menu badges only the Inbox"
     page = f.js("document.querySelector('main').innerText")
     for words in ["Danny Boy", "#harmony", t(f, "admin.posts.network.bluesky"), t(f, "admin.posts.network.x"), t(f, "admin.posts.status.awaiting")]:
         assert words in page, f"{words!r} isn't on the screen"

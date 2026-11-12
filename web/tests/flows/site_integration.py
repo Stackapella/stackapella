@@ -35,10 +35,11 @@ SPEED = """(() => {
   for (const img of document.images) if (img.getBoundingClientRect().top > innerHeight * 1.5 && img.loading !== 'lazy') bad.push(`an image far below the fold loads at once: ${(img.currentSrc || img.src).replace(location.origin, '').slice(0, 60)}`);
   for (const v of document.querySelectorAll('video')) if (v.preload === 'auto' && !v.autoplay) bad.push(`a video preloads: ${(v.currentSrc || v.src || '').replace(location.origin, '').slice(0, 60)}`);
   const own = res.filter((r) => r.name.startsWith(location.origin));
-  const css = own.filter((r) => /\\/css\\/site\\.css(\\?|$)/.test(r.name)).reduce((s, r) => s + r.decodedBodySize, 0) / 1024;
+  const siteSheet = (r) => /\\/(css\\/site|site-css\\/[a-z]+)\\.css(\\?|$)/.test(r.name);  // site.css, or its page family's cut of it
+  const css = own.filter(siteSheet).reduce((s, r) => s + r.decodedBodySize, 0) / 1024;
   const courseSheet = (r) => /\\/(css\\/courses|course-css\\/[a-z0-9.]+)\\.css(\\?|$)/.test(r.name);
   const courses = own.filter(courseSheet).reduce((s, r) => s + r.decodedBodySize, 0) / 1024;
-  const sheet = (r) => /\\/css\\/site\\.css(\\?|$)/.test(r.name) || courseSheet(r);
+  const sheet = (r) => siteSheet(r) || courseSheet(r);
   const kb = (performance.getEntriesByType('navigation')[0].decodedBodySize + own.filter((r) => !sheet(r)).reduce((s, r) => s + r.decodedBodySize, 0)) / 1024;
   // The course pages' rules where a .cp- class shows, and nowhere else: the page's own sheet (App\\Support\\Site\\CourseCss).
   const showsCourse = [...document.querySelectorAll('[class]')].some((el) => [...el.classList].some((c) => c.startsWith('cp-')));

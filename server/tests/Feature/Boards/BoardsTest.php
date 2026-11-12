@@ -51,7 +51,7 @@ final class BoardsTest extends TestCase
      */
     private function score(int $score, array $with = []): array
     {
-        return ['templateId' => 'amazing-grace', 'templateVersion' => (int) $this->song->currentVersion?->version, 'partKey' => 'alto', 'scoringVersion' => 1, 'pitchDetectorVersion' => 1, 'score' => $score, 'mode' => 'own', 'keyOffset' => 0, 'speed' => 1, 'guideMuted' => true, 'timingChecked' => true, 'output' => 'wired', 'alignmentMs' => 42, 'notes' => [['lit' => true, 'cents' => -8, 'timingMs' => 12]], ...$with];
+        return ['templateId' => 'amazing-grace', 'templateVersion' => (int) $this->song->currentVersion?->version, 'partKey' => 'alto', 'scoringVersion' => (int) config('boards.scoring_version'), 'pitchDetectorVersion' => 1, 'score' => $score, 'mode' => 'own', 'keyOffset' => 0, 'speed' => 1, 'guideMuted' => true, 'timingChecked' => true, 'output' => 'wired', 'alignmentMs' => 42, 'notes' => [['lit' => true, 'cents' => -8, 'timingMs' => 12]], ...$with];
     }
 
     public function test_only_a_qualifying_score_counts_and_only_the_best_is_kept(): void
@@ -68,7 +68,7 @@ final class BoardsTest extends TestCase
 
         $this->assertMatchesContract($this->postJson('/api/boards/scores', $this->score(80, ['templateVersion' => 99])), 'boards.scores.submit', 409);
         $this->assertMatchesContract($this->postJson('/api/boards/scores', $this->score(80, ['templateId' => 'no-such-song'])), 'boards.scores.submit', 404);
-        $this->postJson('/api/boards/scores', $this->score(80, ['scoringVersion' => 2]))->assertJsonPath('code', 'scoring_outdated');
+        $this->postJson('/api/boards/scores', $this->score(80, ['scoringVersion' => (int) config('boards.scoring_version') + 1]))->assertJsonPath('code', 'scoring_outdated');
 
         $first = $this->postJson('/api/boards/scores', $this->score(80));
         $this->assertMatchesContract($first, 'boards.scores.submit', 200);
@@ -78,7 +78,7 @@ final class BoardsTest extends TestCase
         $this->postJson('/api/boards/scores', $this->score(91))->assertJsonPath('data.best', 91)->assertJsonPath('data.before', 80);
 
         $row = PartScore::query()->sole();
-        $this->assertSame([91, 1, 1, 42], [$row->score, $row->scoring_version, $row->pitch_detector_version, $row->alignment_ms]);
+        $this->assertSame([91, (int) config('boards.scoring_version'), 1, 42], [$row->score, $row->scoring_version, $row->pitch_detector_version, $row->alignment_ms]);
         $this->assertSame([['lit' => true, 'cents' => -8, 'timingMs' => 12]], $row->notes);
     }
 

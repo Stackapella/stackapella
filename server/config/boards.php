@@ -15,7 +15,9 @@ declare(strict_types=1);
 
 return [
 
-    'scoring_version' => (int) (env('BOARDS_SCORING_VERSION') ?: 1),
+    // 2 since web/js/scoring.js's easier scoring (de858090c, 2026-11-12): the default followed it late, and until it did
+    // every web score was refused as scoring_outdated. Change both together (a test holds them equal).
+    'scoring_version' => (int) (env('BOARDS_SCORING_VERSION') ?: 2),
 
     // How many a board lists, above "your place".
     'top' => 10,

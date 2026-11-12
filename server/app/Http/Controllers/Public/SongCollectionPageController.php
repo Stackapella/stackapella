@@ -45,6 +45,8 @@ final class SongCollectionPageController extends Controller
             // The Jewish songs page's own: its countdown to the next festival, and each card's festival from its genre.
             'festival' => $festival,
             'chips' => $chips,
+            // That festival's songs (at most three), to learn in time: rows in the countdown card (Hillel's redesign).
+            'festivalSongs' => $festival !== null && $chips !== null ? array_slice(array_values(array_filter($songs, static fn (array $song): bool => ($chips[$song['slug']] ?? null) === (string) __('site.collections.jewish-songs.festivals.'.$festival['key']))), 0, 3) : [],
             // Beside the heading (the width design): the song on its link card, its opening in four parts to switch,
             // that card's part lit. The Jewish page has its countdown there instead.
             'try' => $festival === null ? self::tryLine($collection) : null,

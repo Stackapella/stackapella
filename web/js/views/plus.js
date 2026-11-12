@@ -34,12 +34,13 @@ const GROUPS = [
         { what: tk('plus.row.storage'), free: tk('plus.free.storage'), plus: tk('plus.plus.storage') },
         { what: tk('plus.row.mp3'), free: null, plus: tk('plus.yes') },
         { what: tk('plus.row.stems'), free: tk('plus.free.stems'), plus: tk('plus.yes'), note: tk('plus.row.stemsNote') },
-        { what: tk('plus.row.guides'), free: null, plus: tk('plus.yes') },
         { what: tk('plus.row.templates'), free: tk('plus.free.templates'), plus: tk('plus.unlimited') },
     ] },
     // Free for every singer (Hillel, 2026-11-06 and 11-07): the same on both, so only under Everything.
     { name: tk('plus.group.free'), rows: [
         { what: tk('plus.row.songs'), free: tk('plus.allSongs'), plus: tk('plus.allSongs') },
+        // Your own recorded guides: free for every singer (Hillel, 2026-11-12: "feels odd to pay us for us to use your voice"),
+        // listed once the app has the screen to record one for your arrangement (the coordinator's rule: never a promise).
         { what: tk('plus.row.course'), free: tk('plus.everyCourse'), plus: tk('plus.everyCourse') },
         { what: tk('plus.row.workout'), free: tk('plus.asMany'), plus: tk('plus.asMany') },
         { what: tk('plus.row.report'), free: tk('plus.plus.report'), plus: tk('plus.plus.report') },

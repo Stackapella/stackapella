@@ -43,7 +43,7 @@ final class CarolsPageTest extends TestCase
             }
         }
         $page->assertSee('"@type":"ItemList"', false)->assertSee('"@type":"BreadcrumbList"', false)
-            ->assertSee('href="/for/choir-directors"', false);
+            ->assertSee('href="/for/choir-directors?ref=for-choirs-carols"', false);
     }
 
     public function test_a_hidden_carol_is_never_named_and_joins_by_itself_when_it_opens(): void
@@ -67,7 +67,7 @@ final class CarolsPageTest extends TestCase
         $html = (string) $this->get(Carols::PATH)->assertOk()
             ->assertSee(e(__('site.carols.choirs_body')), false)
             ->assertSee(e(Hosts::app('/groups?start=1&ref=carols')), false)
-            ->assertSee('href="/for/choir-directors"', false)
+            ->assertSee('href="/for/choir-directors?ref=for-choirs-carols"', false)
             ->assertSee('/js/public/mixer.js', false)
             ->getContent();
 

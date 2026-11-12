@@ -19,6 +19,23 @@ final class SiteNavTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_the_top_bar_reads_songs_courses_tools_pricing_and_for_choirs_is_led_to_with_its_place(): void
+    {
+        // Hillel, 2026-11-12: "change the header options to songs courses tools pricing", For choirs led to elsewhere.
+        $html = (string) $this->get('/pricing')->assertOk()->getContent();
+        preg_match('#<nav class="s-nav"[^>]*>(.*?)</nav>#s', $html, $nav);
+        preg_match_all('#href="([^"]+)"#', $nav[1] ?? '', $links);
+        $this->assertSame(['/songs', '/courses', SitePages::toolsHome(), '/pricing'], $links[1]);
+        $this->assertStringContainsString('aria-current="page" >'.e(__('pages.nav.pricing')).'</a>', str_replace('aria-current="page">', 'aria-current="page" >', $nav[1] ?? ''));
+        // Open the app is the bar's one primary (Hillel's open source design).
+        $this->assertMatchesRegularExpression('#class="btn-primary">'.preg_quote(e(__('pages.nav.open_app')), '#').'</a>#', $html);
+        $this->assertStringContainsString('href="/for/choir-directors?ref=for-choirs-footer"', $html);
+
+        // A director who came by a lead-in starts their group counted by that place.
+        $this->get('/for/choir-directors?ref=for-choirs-songs')->assertOk()->assertSee('ref=for-choirs-songs', false);
+        $this->get('/for/choir-directors?ref=someone-else')->assertOk()->assertSee('ref=for-choir-directors', false);
+    }
+
     public function test_the_top_bar_and_the_footer_lead_to_the_courses_and_the_tools(): void
     {
         $tools = SitePages::toolsHome();

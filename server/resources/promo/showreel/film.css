@@ -359,7 +359,7 @@ body.render #bar { display: none; }
 
 /* the carols cut (vertical and square): its line, and an end card whose heading and address are longer */
 [data-format="square"] .line5 { left: 56px; top: 64px; max-width: 920px; font-size: 62px; }
-[data-cut="carols"][data-format="vertical"] #endc h2 { font-size: 104px; }
-[data-cut="carols"][data-format="square"] #endc h2 { font-size: 92px; }
-[data-cut="carols"][data-format="vertical"] #endc .site { font-size: 38px; }
-[data-cut="carols"][data-format="square"] #endc .site { font-size: 36px; }
+[data-seasonal][data-format="vertical"] #endc h2 { font-size: 104px; }
+[data-seasonal][data-format="square"] #endc h2 { font-size: 92px; }
+[data-seasonal][data-format="vertical"] #endc .site { font-size: 38px; }
+[data-seasonal][data-format="square"] #endc .site { font-size: 36px; }

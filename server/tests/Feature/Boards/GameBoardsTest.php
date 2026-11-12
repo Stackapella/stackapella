@@ -47,7 +47,7 @@ final class GameBoardsTest extends TestCase
     {
         $version = (int) Template::query()->with('currentVersion')->where('slug', $song)->firstOrFail()->currentVersion?->version;
 
-        return ['templateId' => $song, 'templateVersion' => $version, 'partKey' => $part, 'scoringVersion' => 1, 'pitchDetectorVersion' => 1, 'score' => $score, 'mode' => 'own', 'keyOffset' => 0, 'speed' => 1, 'guideMuted' => true, 'timingChecked' => true, 'output' => 'wired', ...$with];
+        return ['templateId' => $song, 'templateVersion' => $version, 'partKey' => $part, 'scoringVersion' => (int) config('boards.scoring_version'), 'pitchDetectorVersion' => 1, 'score' => $score, 'mode' => 'own', 'keyOffset' => 0, 'speed' => 1, 'guideMuted' => true, 'timingChecked' => true, 'output' => 'wired', ...$with];
     }
 
     /**
@@ -218,7 +218,7 @@ final class GameBoardsTest extends TestCase
         $ana = $this->person();
         $this->actingAs($ana);
         $version = (int) Template::query()->with('currentVersion')->where('slug', 'amazing-grace')->firstOrFail()->currentVersion?->version;
-        $ghost = ['templateVersion' => $version, 'scoringVersion' => 1, 'score' => 80, 'rate' => 20, 'startSeconds' => 1.5, 'keyOffset' => 0, 'pitches' => base64_encode(pack('v*', 0, 6900, 6912, 0))];
+        $ghost = ['templateVersion' => $version, 'scoringVersion' => (int) config('boards.scoring_version'), 'score' => 80, 'rate' => 20, 'startSeconds' => 1.5, 'keyOffset' => 0, 'pitches' => base64_encode(pack('v*', 0, 6900, 6912, 0))];
 
         $none = $this->getJson('/api/boards/amazing-grace/alto/ghost');
         $this->assertMatchesContract($none, 'boards.ghost.show', 200);

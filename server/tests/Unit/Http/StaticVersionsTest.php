@@ -6,6 +6,7 @@ namespace Tests\Unit\Http;
 
 use App\Support\Http\StaticVersions;
 use App\Support\Site\CourseCss;
+use App\Support\Site\SiteCss;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\File;
 use Tests\TestCase;
@@ -63,7 +64,10 @@ final class StaticVersionsTest extends TestCase
         $page = (string) $this->get('/pricing')->assertOk()->getContent();
 
         $this->assertMatchesRegularExpression('#^/css/site\.css\?v=[0-9a-f]{12}$#', StaticVersions::url($web, '/css/site.css'));
-        $this->assertStringContainsString('<link rel="stylesheet" href="'.StaticVersions::url($web, '/css/site.css').'">', $page);
+        // The page's sheet: its family's (docs/css-split-plan.md, step 4), at its own version, or the whole site.css at its hash.
+        $sheet = SiteCss::urls($web, '/pricing', $page)[0];
+        $this->assertMatchesRegularExpression('#^/(site-css/info|css/site)\.css\?v=[0-9a-f]{12}$#', $sheet);
+        $this->assertStringContainsString('<link rel="stylesheet" href="'.$sheet.'">', $page);
         $this->assertStringContainsString('<script src="'.StaticVersions::url($web, '/js/theme-boot.js').'"></script>', $page);
     }
 
@@ -73,17 +77,19 @@ final class StaticVersionsTest extends TestCase
         $page = (string) $this->get('/pricing')->assertOk()->getContent();
 
         // docs/css-split-plan.md, step 3: the address in a meta before theme-boot.js (which preloads it in game mode), and
-        // game-css.js right after site.css (which links it there, so it cascades where its rules stood in the whole build).
-        $meta = '<meta name="game-css" content="'.StaticVersions::url($web, '/css/site-game.css').'">';
+        // game-css.js right after the page's sheet (which links it there, so it cascades where its rules stood in the whole
+        // build); step 4: both the page family's (SiteCss).
+        [$sheet, $game] = SiteCss::urls($web, '/pricing', $page);
+        $meta = '<meta name="game-css" content="'.$game.'">';
         $boot = '<script src="'.StaticVersions::url($web, '/js/theme-boot.js').'"></script>';
-        $site = '<link rel="stylesheet" href="'.StaticVersions::url($web, '/css/site.css').'">';
+        $site = '<link rel="stylesheet" href="'.$sheet.'">';
         $link = '<script src="'.StaticVersions::url($web, '/js/game-css.js').'"></script>';
         foreach ([$meta, $boot, $site, $link] as $tag) {
             $this->assertStringContainsString($tag, $page);
         }
         $this->assertLessThan(strpos($page, $boot), strpos($page, $meta));
         $this->assertSame(1, preg_match('#'.preg_quote($site, '#').'\s*'.preg_quote($link, '#').'#', $page), 'game-css.js not right after site.css');
-        $this->assertStringNotContainsString('<link rel="stylesheet" href="'.StaticVersions::url($web, '/css/site-game.css'), $page);
+        $this->assertStringNotContainsString('<link rel="stylesheet" href="'.$game, $page);
     }
 
     public function test_the_layout_and_the_build_name_the_same_files(): void
@@ -96,10 +102,12 @@ final class StaticVersionsTest extends TestCase
         $this->assertStringContainsString('add_header Cache-Control $static_cache always;', $nginx);
         $this->assertStringContainsString('StaticVersions::nginxMap("/app/web");\' > /etc/nginx/static-versions.conf', $docker);
 
-        foreach (array_diff(StaticVersions::FILES, [CourseCss::WHOLE]) as $file) {
+        foreach (array_diff(StaticVersions::FILES, [CourseCss::WHOLE, SiteCss::WHOLE, SiteCss::GAME]) as $file) {
             $this->assertStringContainsString("StaticVersions::url(\$web, '{$file}')", $layout);
         }
-        // courses.css is the course sheet's fallback (CourseCss::url): the layout links what that picks.
+        // courses.css is the course sheet's fallback (CourseCss::url), and site.css and site-game.css the family sheets'
+        // (SiteCss::urls, which links them at StaticVersions' hash): the layout links what those pick.
         $this->assertStringContainsString('CourseCss::url($web, ', $layout);
+        $this->assertStringContainsString('SiteCss::urls($web, ', $layout);
     }
 }

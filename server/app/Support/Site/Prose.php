@@ -9,7 +9,7 @@ use Illuminate\Support\HtmlString;
 /**
  * A guide's or a legal page's words (App\Support\Legal\LegalText's blocks) as the public site shows
  * them: always escaped, with only **bold** made bold and a [link](/path) to one of our own pages made a link (a
- * site-relative path only, never another site's address or a script).
+ * site-relative path only, never another site's address or a script; a ?ref= tag may follow it, to count where it led from).
  */
 final class Prose
 {
@@ -17,6 +17,6 @@ final class Prose
     {
         $html = (string) preg_replace('/\*\*(.+?)\*\*/', '<strong>$1</strong>', e($text));
 
-        return new HtmlString((string) preg_replace('#\[([^\]]+)\]\((/(?!/)[a-z0-9/_\-]*(?:\#[a-z0-9\-]+)?)\)#', '<a href="$2" class="s-lk">$1</a>', $html));
+        return new HtmlString((string) preg_replace('#\[([^\]]+)\]\((/(?!/)[a-z0-9/_\-]*(?:\?ref=[a-z0-9\-]+)?(?:\#[a-z0-9\-]+)?)\)#', '<a href="$2" class="s-lk">$1</a>', $html));
     }
 }

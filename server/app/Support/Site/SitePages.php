@@ -191,15 +191,24 @@ final class SitePages
             'url' => '/tools/'.$slug,
             'icon' => (string) __('site.tools.pages.'.$slug.'.icon'),
             'tag' => (string) __('site.tools.pages.'.$slug.'.tag'),
-            'group' => (string) __('site.tools.pages.'.$slug.'.group'),
+            // A key, never words: read in English, as a translation of "tune" (the melody) would lose its group.
+            'group' => (string) Lang::get('site.tools.pages.'.$slug.'.group', [], 'en'),
+            // It opens the mic on a tap (config tools.listening): the hub's card says so.
+            'mic' => in_array($slug, (array) config('tools.listening'), true),
         ], self::TOOLS);
     }
 
     /**
-     * The tools' groups, in the order every page lists them, each with the part colour its icons wear
-     * (docs/tools/below-the-fold.md, "More free tools"). Names are site.tools.index.groups.<key>.
+     * The hub's "Most used" (Hillel's tools page, 2026-11-12): the three most opened live tools. Until the counts can say
+     * which those are (a tool's own opens aren't counted yet, only arrivals from it), the three the design names.
      */
-    public const TOOL_GROUPS = ['pitch' => 1, 'voice' => 4, 'ear' => 3, 'rhythm' => 2, 'theory' => 6];
+    public const MOST_USED = ['tuner', 'metronome', 'vocal-range-test'];
+
+    /**
+     * The tools' groups, in the order every page lists them, each with the part colour its dot and icons wear (Hillel's
+     * tools page, 2026-11-12: what a singer comes to do). Names are site.tools.index.groups.<key>, lines group_lines.<key>.
+     */
+    public const TOOL_GROUPS = ['tune' => 1, 'time' => 2, 'voice' => 4, 'harmony' => 6, 'ear' => 3, 'setup' => 5];
 
     /**
      * "More free tools" below a tool, or the hub's list: the featured next tool (this tool's `related`, when it's live),

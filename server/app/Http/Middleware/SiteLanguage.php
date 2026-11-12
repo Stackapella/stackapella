@@ -101,7 +101,10 @@ final class SiteLanguage
         }
 
         if ($language !== 'en') {
-            $html = (string) preg_replace_callback('/\b(href|content|action)="([^"]*)"/', static fn (array $m): string => $m[1].'="'.self::localize(html_entity_decode($m[2], ENT_QUOTES | ENT_HTML5), $language, escape: true).'"', $html);
+            // Tag by tag: a link that names its language (hreflang, the header's language menu) keeps its address.
+            $html = (string) preg_replace_callback('/<[a-z][^>]*>/i', static fn (array $tag): string => str_contains($tag[0], ' hreflang="')
+                ? $tag[0]
+                : (string) preg_replace_callback('/\b(href|content|action)="([^"]*)"/', static fn (array $m): string => $m[1].'="'.self::localize(html_entity_decode($m[2], ENT_QUOTES | ENT_HTML5), $language, escape: true).'"', $tag[0]), $html);
             $response->headers->set('Content-Language', $language);
         }
 
@@ -143,7 +146,8 @@ final class SiteLanguage
         $tail = substr($rest, strlen($path));
         // The app's own link to a song (/?song=, SongPage's "Learn this song") opens the app, which picks its own
         // language: /es/ is only ever the landing, so it never opened the song (frontend's Spanish walk, 2026-11-12).
-        $app = $path === '/' && preg_match('/[?&]song=/', $tail) === 1;
+        // The same for Open the app with the page's language (?lang).
+        $app = $path === '/' && preg_match('/[?&](song|lang)=/', $tail) === 1;
         $done = ! $app && SiteLanguages::serves($language, $path) && ! str_starts_with($path, '/'.$language.'/')
             // The landing is /es, as its hreflang and the sitemap name it (SiteLanguages::url), never /es/ beside it.
             ? ($relative ? '' : $public).'/'.$language.($path === '/' ? '' : $path).$tail

@@ -4,7 +4,8 @@
 // pure function of t, so any frame can be rendered alone.
 
 import { E, $, CX, CY, FORMAT, H, LIGHT, Q, W, bump, clamp, hash, lerp, mk, range, set, spring, vis } from './lib.js';
-import { CAROLS, CUE, CUT, DUR, END as LAST, FROM, S, SPB, VERSE, beatAt, creditLine, sec, sung, voicing } from './score.js';
+import { LANG, LINE_T, SITE, tr } from './words.js';
+import { CUE, CUT, DUR, END as LAST, FROM, S, SC, SEASONAL, SPB, VERSE, beatAt, creditLine, sec, sung, voicing } from './score.js';
 import { loadLoud, loud, onsetAt } from './loud.js';
 import { PART_INK, PART_VAR, T, glow, project, setCam, sparkles, specks } from './stage.js';
 
@@ -16,9 +17,9 @@ const washEl = $('#wash');
 const splitEl = $('#split');
 const svgTick = '<svg class="tick" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
 const svgCheck = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9.5"/><path d="M7.5 12.5l3 3 6-6.5"/></svg>';
-const NAMES = ['Soprano', 'Alto', 'Tenor', 'Bass'];
+const NAMES = ['Soprano', 'Alto', 'Tenor', 'Bass'].map(tr);
 const RANGES = ['D4 to D5', 'B3 to B4', 'G3 to C4', 'G2 to D3'];
-const FRIENDS = ['You', 'Maya', 'Sam', 'Leo'];
+const FRIENDS = [tr('You'), 'Maya', 'Sam', 'Leo'];
 const clock = (s) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
 
 /* ================= the lanes ================= */
@@ -26,8 +27,8 @@ const clock = (s) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStar
 // gems are big and chunky, as in the arcade lanes: each is taller than two semitones.
 const PXB = 200, SP = 26, GH = 64, GAP = 70, GW = 14; // v5: the lanes closer, so the whole stack fits under the line
 const X = (b) => b * PXB;
-const RANGE = CAROLS ? [[64, 74], [59, 64], [55, 62], [43, 48]] : [[62, 74], [59, 71], [55, 60], [43, 50]];
-const REAL = CAROLS ? '' : 'a real voice'; // the carols cut's voices are the app's guide, not recordings
+const RANGE = CUT === 'carols' ? [[64, 74], [59, 64], [55, 62], [43, 48]] : CUT === 'hanukkah' ? [[59, 75], [56, 70], [51, 61], [45, 54]] : [[62, 74], [59, 71], [55, 60], [43, 50]];
+const REAL = SEASONAL ? '' : tr('a real voice'); // a season cut's voices are the app's guide, not recordings
 const LANES = (() => {
     let top = 0;
     return RANGE.map(([lo, hi], i) => {
@@ -74,7 +75,7 @@ const laneEls = LANES.map((lane) => {
 });
 const beamEl = mk('div', 'beam', laneSet);
 const chipEl = mk('div', 'chip', laneSet);
-chipEl.innerHTML = '<i></i><span>Slide up</span>';
+chipEl.innerHTML = `<i></i><span>${tr('Slide up')}</span>`;
 chipEl.style.font = '700 30px/1 var(--font)';
 
 // The pitch camera (ux-spec 5.7c), as a pure function: the frame's centre follows the notes from
@@ -122,8 +123,9 @@ const ENDS = {
     thumb: { mark: 0, k: 1, h: 0, p: 0, site: 0, br: '' },
 };
 const EL = ENDS[FORMAT];
-endEl.innerHTML = CAROLS ? `<h2>Christmas carols,${EL.br} <em>part by part.</em></h2><p></p><p class="site">stackapella.com/songs/christmas-carols</p><p class="credit"></p>`
-    : `<h2>Harmony,${EL.br} <em>made by you.</em></h2><p></p><p class="site">stackapella.com</p><p class="credit"></p>`;
+const CARD = { carols: ['Christmas carols,', 'stackapella.com/songs/christmas-carols'], hanukkah: ['Hanukkah songs,', 'stackapella.com/songs/jewish-songs'] }[CUT];
+endEl.innerHTML = CARD ? `<h2>${CARD[0]}${EL.br} <em>part by part.</em></h2><p></p><p class="site">${CARD[1]}</p><p class="credit"></p>`
+    : `<h2>${tr('Harmony,')}${EL.br} <em>${tr('made by you.')}</em></h2><p></p><p class="site">${SITE}</p><p class="credit"></p>`;
 endEl.style.cssText = `left:${END.cx - CX}px;top:${END.cy - CY}px;width:${W}px;height:${H}px`;
 const [endH, endP, endSite, endCredit] = endEl.children;
 // v5: the card is the mark, the headline, the address and the credit (the tagline is a line at 0:54)
@@ -140,7 +142,7 @@ const SH = { x: -20000, y: 0, w: 1400, h: 780 };
 const shSet = mk('div', 'set share', W0);
 const shCard = mk('div', 'card', shSet);
 shCard.style.cssText = `left:${SH.x}px;top:${SH.y}px;width:${SH.w}px;height:${SH.h}px`;
-shCard.innerHTML = '<h3 style="left:72px;top:72px">Amazing Grace</h3><div class="meta" style="left:74px;top:160px">Sing together</div>';
+shCard.innerHTML = `<h3 style="left:72px;top:72px">Amazing Grace</h3><div class="meta" style="left:74px;top:160px">${tr('Sing together')}</div>`;
 const pic = mk('div', 'pic', shCard);
 pic.style.cssText = 'left:72px;top:226px;width:1256px;height:250px';
 [0, 1, 2, 3].forEach((i) => S.parts[i].forEach((n) => {
@@ -149,16 +151,16 @@ pic.style.cssText = 'left:72px;top:226px;width:1256px;height:250px';
 }));
 const shChip = mk('div', 'chip', shCard);
 shChip.style.cssText = 'left:72px;top:520px;--chip:var(--accent)';
-shChip.innerHTML = '<i></i><span>A link for each part</span>';
+shChip.innerHTML = `<i></i><span>${tr('A link for each part')}</span>`;
 const discs = [0, 1, 2, 3].map((i) => {
     const d = mk('div', 'gem disc who', shCard, NAMES[i][0]);
     d.style.cssText = `left:${590 + i * 190}px;top:600px;--gem:${PART_VAR[i]};--gem-ink:${PART_INK[i]}`;
-    const l = mk('div', 'who-l', shCard, i ? NAMES[i] : 'You');
+    const l = mk('div', 'who-l', shCard, i ? NAMES[i] : tr('You'));
     l.style.cssText = `left:${646 + i * 190}px;top:726px`;
     return { d, l };
 });
 const toast = mk('div', 'toast', shSet);
-toast.innerHTML = `${svgCheck}<span>Link copied.</span>`;
+toast.innerHTML = `${svgCheck}<span>${tr('Link copied.')}</span>`;
 toast.style.cssText = `left:${SH.x + SH.w - 400}px;top:${SH.y + 62}px`;
 const shRing = mk('div', 'ring', shCard);
 
@@ -174,7 +176,7 @@ const quads = [0, 1, 2, 3].map((i) => {
     q.style.cssText = `left:${QPOS[i][0]}px;top:${QPOS[i][1]}px;width:${QUAD.w}px;height:${QUAD.h}px;--q:${PART_VAR[i]}`;
     const inner = mk('div', 'qi', q);
     const head = mk('div', 'qh', inner);
-    head.innerHTML = `<span class="gem disc" style="--gem:${PART_VAR[i]};--gem-ink:${PART_INK[i]}">${NAMES[i][0]}</span>${NAMES[i]}<span class="you" style="background:${PART_VAR[i]};color:${PART_INK[i]}">You</span>`;
+    head.innerHTML = `<span class="gem disc" style="--gem:${PART_VAR[i]};--gem-ink:${PART_INK[i]}">${NAMES[i][0]}</span>${NAMES[i]}<span class="you" style="background:${PART_VAR[i]};color:${PART_INK[i]}">${tr('You')}</span>`;
     const strip = mk('div', 'strip', inner);
     const [lo, hi] = RANGE[i];
     const gems = S.parts[i].filter((n) => n.beat + n.length > QB0 && n.beat < QB0 + 12).map((n) => {
@@ -201,7 +203,7 @@ const ACTS = { learn: ['Learn', 0], stack: ['Stack', 1], play: ['Game mode', 2],
 const ANTICIPATE = 1 / 30, SWEEP = 0.48;
 const peakAt = (i) => (i === 0 ? -99 : onsetAt(i) - ANTICIPATE);
 const litAt = (i) => (i === 0 ? -99 : peakAt(i) - SWEEP / 4);
-const sungBy = (i, t) => (t >= sec(CUE.friends[0]) - 0.01 && t < sec(CUE.end) ? FRIENDS[i] : i === 0 ? 'You' : 'You, again');
+const sungBy = (i, t) => (t >= sec(CUE.friends[0]) - 0.01 && t < sec(CUE.end) ? FRIENDS[i] : i === 0 ? tr('You') : tr('You, again'));
 
 function lanes(t, o) {
     // o: { lt: the lanes' own clock (the pre-roll runs it below zero), fade: lines and gems, all:
@@ -306,7 +308,7 @@ function lanes(t, o) {
     }
     // "Slide up", while the voice is under "grace"
     const grace = S.parts[0][4];
-    const ck = CAROLS ? 0 : bump(b, grace.beat + 0.12, grace.beat + 1.1);
+    const ck = SEASONAL ? 0 : bump(b, grace.beat + 0.12, grace.beat + 1.1);
     vis(chipEl, ck > 0.01 && !o.quiet);
     if (ck > 0.01) {
         set(chipEl, 'transform', `translate(${X(b) + 50}px,${yOf(LANES[0], S.voice(b)) + 52}px) scale(${(0.8 + 0.2 * E.outBack(range(b, grace.beat + 0.12, grace.beat + 0.4))).toFixed(3)})`);
@@ -485,8 +487,9 @@ function glints(t, rects) {
 // phone-sized landing. A cut films the app in its own light or dark. Its camera says where the device
 // is and how big, by the point of the screen it frames (`fx`, `fy`, as a share of the screen), where that
 // point sits in the frame (`sx`, `sy`) and the device's scale `s`. Taps are a ring and a soft disc.
-const CAPS = (await (await fetch('captures.json')).json()).shots;
-const CUTNAME = LIGHT ? 'light' : 'dark';
+// each language's film shows that language's app (capture.py --lang=es: captures.es.json, captures/es/)
+const CAPS = (await (await fetch(LANG === 'en' ? 'captures.json' : `captures.${LANG}.json`)).json()).shots;
+const CUTNAME = `${LANG === 'en' ? '' : `${LANG}/`}${LIGHT ? 'light' : 'dark'}`;
 const appsEl = mk('div', 'apps', $('#stage'));
 splitEl.after(appsEl);
 const appGlow = mk('div', 'app-glow', appsEl);
@@ -689,7 +692,8 @@ function planeTap(t, q, fx, fy, at) {
    voice that just joined; the line goes over the 200 ms before the beat its next one comes on. No kickers. */
 const lineEl = mk('div', 'line5', hud);
 const ACCENT = (k) => (k === 'brand' ? 'var(--accent)' : PART_VAR[k]);
-const L5 = (a, b, text, accent, colour) => ({ a, b, text, accent, colour });
+const L5 = (a, b, en, lit, colour) => { const [text, accent] = LINE_T(en, lit); return { a, b, text, accent, colour }; };
+const L5E = (a, b, text, accent, colour) => ({ a, b, text, accent, colour }); // a season cut's line: English only
 const LINE1 = 'Learn your harmony from a real singer.', LINE2 = 'Record each part over the others.', LINE3 = 'Stack your own voices, exactly in time.', LINE4 = 'The whole song is you.';
 const LINES = {
     hero: [L5(-1, sec(12), LINE1, 'singer.', 0), L5(sec(12), sec(24), LINE2, 'others.', 1), L5(sec(24), sec(36), LINE3, 'time.', 2), L5(sec(36), sec(48), LINE4, 'you.', 'brand'),
@@ -699,7 +703,9 @@ const LINES = {
         L5(DUR - SPB, DUR + 1, LINE1, 'singer.', 0)],
     social: [L5(sec(24) - 1, sec(30), LINE1, 'singer.', 0), L5(sec(30), sec(36), LINE2, 'others.', 1), L5(sec(36), sec(42), LINE3, 'time.', 2), L5(sec(42), sec(48), LINE4, 'you.', 'brand')],
     // the carols cut: the page speaks for itself first; then the page's own promises, a line a voice
-    carols: [L5(sec(4.5), sec(12), 'Silent Night, in four parts.', 'parts.', 1), L5(sec(12), sec(18), 'Hear each part, then sing yours.', 'yours.', 2), L5(sec(18), sec(21.4), 'Free, in your browser.', 'Free,', 3)],
+    carols: [L5E(sec(4.5), sec(12), 'Silent Night, in four parts.', 'parts.', 1), L5E(sec(12), sec(18), 'Hear each part, then sing yours.', 'yours.', 2), L5E(sec(18), sec(21.4), 'Free, in your browser.', 'Free,', 3)],
+    // the Hanukkah cut: the same promises (its page's own), a line a voice
+    hanukkah: [L5E(sec(6), sec(16), 'Maoz Tzur, in four parts.', 'parts.', 1), L5E(sec(16), sec(23.5), 'Hear each part, then sing yours.', 'yours.', 2), L5E(sec(23.5), sec(30.5), 'Free, in your browser.', 'Free,', 3)],
 }[CUT];
 function drawLine(t) {
     const l = LINES.findLast((x) => t >= x.a - 1e-6 && t < x.b);
@@ -767,10 +773,12 @@ const vCam = (a, b) => (t) => ({ x: ph(t) + 230, y: STACK_H / 2 - 40, zoom: lerp
 // the carols cut: the camera frames the lanes that are in and the one about to join, craning back a bar before
 // each voice, the stack kept between the line and the foot of the frame
 const USABLE = { vertical: [400, 1560], square: [290, 1020], wide: [300, 1010], thumb: [0, 480] }[FORMAT];
+const CRANE = [(3.5 * 60) / 66, (0.8 * 60) / 66]; // back from 3.2 s before a voice joins to 0.7 s before
 const carolCam = (t) => {
-    const n = 2 + E.io(range(t, B(8.5), B(11.2))) + E.io(range(t, B(14.5), B(17.2))), k = Math.min(3, Math.floor(n)), f = n - k;
+    const crane = (i) => E.io(range(t, B(CUE.enter[i]) - CRANE[0], B(CUE.enter[i]) - CRANE[1]));
+    const n = 2 + crane(2) + crane(3), k = Math.min(3, Math.floor(n)), f = n - k;
     const bot = (m) => LANES[m - 1].top + LANES[m - 1].h, bottom = lerp(bot(k), bot(k + 1), f), top = -56;
-    const z = Math.min(0.95, (USABLE[1] - USABLE[0]) / (bottom - top + 60)) * lerp(1, 1.035, range(t, B(4.5), B(21)));
+    const z = Math.min(0.95, (USABLE[1] - USABLE[0]) / (bottom - top + 60)) * lerp(1, 1.035, range(t, B(SC.lanes), B(CUE.end)));
     return { x: ph(t) + (0.14 * W) / z, y: (top + bottom) / 2 - ((USABLE[0] + USABLE[1]) / 2 - CY) / z, zoom: z };
 };
 // its end card sits a little lower in the frame (the frame's foot is the platforms')
@@ -780,7 +788,7 @@ const carolEnd = (t) => { const a = B(CUE.end), u = E.io(range(t, a, a + 1.1)), 
 // to the whole heading; in the vertical cut its songbook comes in under it and the pointer picks Alto
 const HERO_FULL = { x: 0.085, y: 0, w: 0.53, h: 0.56 }, HERO_HAT = { x: 0.085, y: 0, w: 0.21, h: 0.2219 };
 function carolsPage(t) {
-    const b = B(4.5), u = E.snap(range(t, 0.3, 1.9)), leave = E.in(range(t, b - 0.22, b)), w = W - 80;
+    const b = B(SC.lanes), u = E.snap(range(t, 0.3, 1.9)), leave = E.in(range(t, b - 0.22, b)), w = W - 80;
     const crop = { x: lerp(HERO_HAT.x, HERO_FULL.x, u), y: 0, w: lerp(HERO_HAT.w, HERO_FULL.w, u), h: lerp(HERO_HAT.h, HERO_FULL.h, u) };
     const push = lerp(1, 1.04, range(t, 1.9, b)) * (1 + 0.08 * leave);
     const list = [{ id: 'carols', crop, clock: t * 0.66, x: CX, y: VERT ? lerp(880, 640, E.io(range(t, B(2) - 0.55, B(2) + 0.35))) : CY + 10, w, glow: 2, ry: lerp(-5, -1.5, range(t, 0, b)), rx: 2, s: push, sheen: range(t, 0.2, 1.2) }];
@@ -791,6 +799,24 @@ function carolsPage(t) {
             list.push(q);
             if (c?.click) planeTap(t, q, c.click.x, c.click.y, a + 0.25 + c.click.at);
         }
+    }
+    return list;
+}
+// the Hanukkah cut's opening: the live Jewish songs page, lifted: close on its nine lights, across to the heading;
+// then the next festival's card comes in under it (capture.py films the page as served, so the card's day count
+// is the capture day's: film it again on the day it is posted)
+function hanukkahPage(t) {
+    const b = B(SC.lanes), u = E.snap(range(t, 0.3, 1.9)), leave = E.in(range(t, b - 0.22, b)), w = W - 80, C = CAPS.hanukkah.crops;
+    const full = { x: C.text.x - 0.021, y: C.hero.y, w: 0.53, h: C.text.y + 0.325 - C.hero.y }, k = full.h / full.w;
+    const lights = { x: C.motif.x + C.motif.w - 0.235, y: C.hero.y, w: 0.225, h: 0.225 * k };
+    const crop = { x: lerp(lights.x, full.x, u), y: full.y, w: lerp(lights.w, full.w, u), h: lerp(lights.h, full.h, u) };
+    const push = lerp(1, 1.04, range(t, 1.9, b)) * (1 + 0.08 * leave), a = 1.75, arrive = E.outExpo(range(t, a, a + 0.75));
+    const y0 = VERT ? 610 : 400;
+    const list = [{ id: 'hanukkah', crop, clock: 0, x: CX, y: lerp(VERT ? 880 : CY + 10, y0, E.io(range(t, a - 0.55, a + 0.35))), w, glow: 2, ry: lerp(-5, -1.5, range(t, 0, b)), rx: 2, s: push, sheen: range(t, 0.2, 1.2) }];
+    if (t >= a) {
+        const pad = 0.014, cw = VERT ? 840 : 600;
+        list.push({ id: 'hanukkah', crop: { x: C.count.x - pad, y: C.count.y - pad * 1.6, w: C.count.w + 2 * pad, h: C.count.h + 3.2 * pad }, clock: 0, x: CX, y: (VERT ? 1230 : 850) + lerp(46, 0, arrive), w: cw, glow: 1,
+            s: lerp(0.88, 1, arrive) * push, rx: lerp(7, 2, arrive), ry: lerp(-8, 0, arrive) + lerp(-5, -1.5, range(t, 0, b)), o: clamp(0.4 + arrive * 2.4), sheen: range(t, a + 0.12, a + 1.0) });
     }
     return list;
 }
@@ -827,7 +853,7 @@ function flyIn(g, t, next) {
     return { ...q, x: q.x - 1900 * out, z: lerp(0, 90, hold), ry: lerp(-6, -2, hold) + 28 * out, rz: -3 * out, o: 1, sheen: range(t, d - 0.25, d + 0.7) };
 }
 // the tools: four panels, working, popping in a beat each, each named
-const TOOLS5 = [['tuner-live', 'Tuner', 0], ['drone-live', 'Drone', 0.4], ['metro-live', 'Metronome', 0], ['range-live', 'Vocal range test', 3]];
+const TOOLS5 = [['tuner-live', tr('Tuner'), 0], ['drone-live', tr('Drone'), 0.4], ['metro-live', tr('Metronome'), 0], ['range-live', tr('Vocal range test'), 3]];
 function toolsGrid(t) {
     return TOOLS5.map(([id, label, skip], k) => {
         const at = B(60 + k), u = spring(t - at + 0.02, 1.4, 0.55);
@@ -922,6 +948,13 @@ const SHOTS_BY_CUT = {
         // "bright": the four held notes become the mark, and the card with the carols' address
         { a: B(CUE.end), set: 'lanes', mark: 'end', wordsAt: B(CUE.end) + 0.7, cam: carolEnd },
     ],
+    hanukkah: [
+        { a: 0, set: 'planes', wash: 3, soft: true, planes: hanukkahPage },
+        // the lanes a beat and a half before the alto's pickup; one shot through all three joining
+        { a: B(6), set: 'lanes', cam: carolCam, trail: true, hold: true },
+        // the last "ach.": the four held notes become the mark, and the card with the page's address
+        { a: B(CUE.end), set: 'lanes', mark: 'end', wordsAt: B(CUE.end) + 0.7, cam: carolEnd },
+    ],
     social: [
         { a: B(24), set: 'lanes', cam: vCam(B(24), B(30)), trail: true },
         // the alto sings on 22.5: its lane ignites, then a beat on, its studio take
@@ -936,7 +969,7 @@ const SHOTS = SHOTS_BY_CUT[CUT];
 SHOTS.forEach((s, i) => { s.b = SHOTS[i + 1] ? SHOTS[i + 1].a : sec(LAST); });
 export const CUTS = SHOTS.slice(1).map((s) => s.a - sec(FROM));
 export const EDIT = { wide: [[0, DUR]], vertical: [[0, DUR]], square: [[0, DUR]], thumb: [[0, 3.75]] }[FORMAT];
-if (FORMAT === 'square' && !CAROLS) throw new Error('v5 has no square cut but the carols');
+if (FORMAT === 'square' && !SEASONAL) throw new Error('v5 has no square cut but the season cuts');
 const FRAMING = { zoom: 1, down: 0 };
 const reframe = (c) => c;
 // windows fast enough to earn extra motion-blur samples: every cut's first moments, the montage's whips,
@@ -950,7 +983,7 @@ const markV = mk('div', 'markv', $('#stage'));
 hud.before(markV);
 const MARKV = markRects(CX, 1010, 1.9);
 const markVBars = MARKV.map((r, i) => { const g = mk('div', 'gem gem-bar', markV); g.style.cssText = `left:0;top:0;--gem:var(--m${i + 1})`; return g; });
-const urlEl = mk('div', 'url5', hud, 'stackapella.com');
+const urlEl = mk('div', 'url5', hud, SITE);
 function drawMarkV(t, a) {
     MARKV.forEach((r, i) => {
         const q = QPOS[i], from = { x: q[0] + QUAD.w / 2 - 40, y: q[1] + QUAD.h / 2 - 20, w: 80, h: 40 };

@@ -2191,7 +2191,26 @@
                 "all": "Todas",
                 "free": "Gratis",
                 "plus": "Plus",
-                "label": "Qué canciones"
+                "label": "Qué canciones",
+                "search": "{count, plural, one {Buscar en # canción} other {Buscar en # canciones}}",
+                "searchLabel": "Buscar canciones por título",
+                "iSing": "Canto",
+                "anyPart": "Cualquier voz",
+                "groups": "Grupos de canciones",
+                "none": "Ninguna canción coincide.",
+                "clear": "Mostrar todas las canciones"
+            },
+            "group": {
+                "christmas": "Navidad",
+                "jewish": "Canciones judías",
+                "rounds": "Cánones",
+                "spirituals": "Espirituales",
+                "hymns": "Himnos",
+                "shanties": "Canciones marineras",
+                "folk": "Canciones tradicionales",
+                "classical": "Música clásica y sacra",
+                "barbershop": "Barbershop, salón y musicales",
+                "more": "Más canciones"
             },
             "browseAllCount": "{count, plural, one {Ver la canción} other {Ver las # canciones}}"
         },
@@ -2858,7 +2877,6 @@
             "stems": "Cada voz por separado",
             "share": "Compartir enlaces y videos",
             "templates": "Plantillas privadas o solo con enlace",
-            "guides": "Tus propias guías grabadas",
             "choir": "Grupos de coro",
             "preview": "Escuchar cualquier canción antes de empezar",
             "stemsNote": "Un archivo por voz, en un ZIP",

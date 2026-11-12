@@ -123,13 +123,39 @@ export function loadPlusCourses() {
  * second": on a slow line, all of them is a few megabytes).
  */
 async function loadCourses() {
-    const catalogue = (await getJson('/course/plus/courses.json'))?.courses ?? [];
-    learning.catalogue = catalogue;
-    const live = catalogue.filter((c) => c.status === 'live' && c.file);
-    await Promise.all(live.map(async (c) => {
-        const data = await getJson(`/course/plus/${c.file}`);
-        if (data) learning.courses[c.id] = data;
-    }));
+    const catalogue = await loadPlusCatalogue();
+    await Promise.all(catalogue.filter((c) => c.status === 'live' && c.file).map((c) => loadPlusCourse(c.id)));
+}
+
+let catalogueLoading = null;
+const courseLoading = new Map();
+
+/** The Plus courses' catalogue alone (course/plus/courses.json): their names, lines and order, none of their lessons. */
+export function loadPlusCatalogue() {
+    catalogueLoading ??= getJson('/course/plus/courses.json').then((data) => {
+        if (!data) catalogueLoading = null; // tried again next time
+        learning.catalogue = data?.courses ?? learning.catalogue;
+        return learning.catalogue;
+    });
+    return catalogueLoading;
+}
+
+/**
+ * One live course's lessons, kept as it arrives (Home's band shows three courses: it loads those three, not all 25 and
+ * their 420 KB on a first visit's slow line: the speed pass, 2026-11-12). Resolves either way; a missing file stays out.
+ */
+export function loadPlusCourse(id) {
+    if (learning.courses[id]) return Promise.resolve(learning.courses[id]);
+    if (!courseLoading.has(id)) {
+        courseLoading.set(id, (async () => {
+            const entry = (await loadPlusCatalogue()).find((c) => c.id === id);
+            const data = entry?.status === 'live' && entry.file ? await getJson(`/course/plus/${entry.file}`) : null;
+            if (data) learning.courses[id] = data;
+            else courseLoading.delete(id);
+            return data;
+        })());
+    }
+    return courseLoading.get(id);
 }
 
 let songsLoading = null;

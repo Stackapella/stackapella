@@ -204,14 +204,18 @@ final class StructuredData
     }
 
     /**
-     * A song's page: the composition, its parts' arrangement and whether it's free to learn.
+     * A song's page: the composition, its parts' arrangement and whether it's free to learn; with its story, when the
+     * page shows one (SongStories::story; the courses lead's guide, "Structured data"), the composition's makers, date,
+     * other names and Wikidata item, the story as an Article citing its sources, and its questions as a FAQPage. Only
+     * what the page shows: pass the story only where the page renders it.
      *
      * @param  array{title: string, description: string, pageUrl: string, genre: list<string>, credits: list<string>}  $song
+     * @param  array<string, mixed>|null  $story
      * @return list<array<string, mixed>>
      */
-    public static function song(array $song): array
+    public static function song(array $song, ?array $story = null): array
     {
-        return [[
+        $composition = [
             '@context' => 'https://schema.org',
             '@type' => 'MusicComposition',
             'name' => $song['title'],
@@ -220,7 +224,68 @@ final class StructuredData
             'genre' => $song['genre'],
             'isAccessibleForFree' => true,
             'inLanguage' => app()->getLocale(),
+        ];
+        if ($story === null) {
+            return [$composition];
+        }
+
+        $facts = (array) ($story['facts'] ?? []);
+        // A maker named in the facts box, without the dates in brackets; "traditional" names no one.
+        $person = static function (mixed $who): ?array {
+            $name = trim((string) preg_replace('/\s*\([^)]*\)\s*$/', '', (string) $who));
+
+            return $name === '' || preg_match('/^(traditional|tradicional|anonymous|anónimo)$/i', $name) === 1 ? null : ['@type' => 'Person', 'name' => $name];
+        };
+        $first = $story['timeline'][0]['year'] ?? null;
+        $composition = array_filter([
+            ...$composition,
+            'lyricist' => $person($facts['words'] ?? null),
+            'composer' => $person($facts['tune'] ?? null),
+            'dateCreated' => is_string($first) && preg_match('/^\d{4}$/', $first) === 1 ? $first : null,
+            'alternateName' => ($facts['alsoKnownAs'] ?? null) ?: null,
+            'sameAs' => is_string($story['wikidata'] ?? null) ? 'https://www.wikidata.org/wiki/'.$story['wikidata'] : null,
+            'musicArrangement' => ['@type' => 'MusicComposition', 'name' => $song['title'], 'arranger' => ['@type' => 'Organization', 'name' => 'Stackapella']],
+        ], static fn (mixed $v): bool => $v !== null);
+
+        $data = [$composition, [
+            '@context' => 'https://schema.org',
+            '@type' => 'Article',
+            'headline' => (string) $story['title'],
+            'description' => (string) $story['description'],
+            'url' => $song['pageUrl'],
+            'mainEntityOfPage' => $song['pageUrl'],
+            'about' => ['@type' => 'MusicComposition', 'name' => $song['title']],
+            'inLanguage' => app()->getLocale(),
+            'dateModified' => $story['updated'],
+            'author' => ['@type' => 'Organization', 'name' => 'Stackapella', 'url' => Hosts::publicUrl()],
+            'publisher' => ['@type' => 'Organization', 'name' => 'Stackapella', 'url' => Hosts::publicUrl()],
+            'citation' => array_map(static fn (array $s): array => array_filter(['@type' => 'CreativeWork', 'name' => trim(html_entity_decode(strip_tags((string) $s['html']), ENT_QUOTES | ENT_HTML5)), 'url' => $s['url']]), (array) ($story['sources'] ?? [])),
         ]];
+        // Each picture the page shows, with its credit and licence (the coordinator: ImageObject, creditText, license).
+        foreach ((array) ($story['images'] ?? []) as $image) {
+            $data[] = array_filter([
+                '@context' => 'https://schema.org',
+                '@type' => 'ImageObject',
+                'contentUrl' => Hosts::publicUrl().$image['src'],
+                'width' => $image['width'],
+                'height' => $image['height'],
+                'caption' => trim(html_entity_decode(strip_tags((string) $image['caption']), ENT_QUOTES | ENT_HTML5)),
+                'creditText' => $image['credit'] !== '' ? $image['credit'] : null,
+                'copyrightNotice' => $image['licenceName'],
+                'license' => $image['licenceUrl'],
+                'acquireLicensePage' => $image['sourceUrl'],
+                'dateCreated' => $image['date'],
+            ], static fn (mixed $v): bool => $v !== null && $v !== '');
+        }
+        if (($story['questions'] ?? []) !== []) {
+            $data[] = [
+                '@context' => 'https://schema.org',
+                '@type' => 'FAQPage',
+                'mainEntity' => array_map(static fn (array $q): array => ['@type' => 'Question', 'name' => $q['question'], 'acceptedAnswer' => ['@type' => 'Answer', 'text' => $q['text']]], (array) $story['questions']),
+            ];
+        }
+
+        return $data;
     }
 
     /**

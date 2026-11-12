@@ -190,6 +190,8 @@ const SHELL = [
     '/js/listen.js',
     '/js/mic-check.js',
     '/js/next-up.js',
+    '/js/library-filter.js',
+    '/js/components/library-filters.js',
     '/js/results.js',
     '/js/camera.js',
     '/js/glass.js',

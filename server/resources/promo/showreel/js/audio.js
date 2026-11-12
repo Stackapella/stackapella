@@ -11,7 +11,7 @@
 import { renderBacking, renderPart } from '/web/js/synth.js';
 import { duckBreaths, gaps } from './breaths.js';
 import { rng } from './lib.js';
-import { BPM, CAROLS, CUE, CUT, DUR, END, FROM, JOIN_RAMP, PARTS, PASS2, PASSES, S, SPB, joinAt, sec } from './score.js';
+import { BPM, CUE, CUT, DUR, END, FROM, JOIN_RAMP, PARTS, PASS2, PASSES, S, SC, SEASONAL, SPB, joinAt, sec } from './score.js';
 
 const RATE = 48000;
 const PRIMING_FRAMES = 1024; // ffmpeg's AAC encoder delay, as web/js/recorded-guides.js skips it
@@ -150,9 +150,9 @@ async function mix(loops) {
 }
 
 /**
- * The carols cut: Silent Night's parts in the app's own sung guide voice (web/js/synth.js renderPart, as the
- * song's page plays them: the catalogue has no real voices for it), each from the bar it joins at, in the same
- * room, a quiet chime as each joins. It does not loop: the last chord fades under the end card.
+ * A season cut (the carols', Hanukkah's): the song's parts in the app's own sung guide voice (web/js/synth.js renderPart, as the
+ * song's page plays them: the catalogue has no real voices for them), each from the beat it joins at, in the same
+ * room, a quiet chime in the song's key as each joins. It does not loop: the last chord fades under the end card.
  */
 async function mixCarols() {
     const ctx = new OfflineAudioContext(2, Math.round(DUR * RATE), RATE);
@@ -176,15 +176,15 @@ async function mixCarols() {
         src.start(0);
     });
     const ch = ctx.createGain(); ch.connect(dry); ch.connect(verb);
-    [1, 2, 3].forEach((i) => chime(ctx, ch, sec(CUE.enter[i]), [88, 91, 96][i - 1], 0.022));
-    [0, 0.07, 0.14, 0.21].forEach((d, i) => chime(ctx, ch, sec(CUE.end) + 0.9 + d, [79, 84, 88, 91][i], 0.03));
+    [1, 2, 3].forEach((i) => chime(ctx, ch, sec(CUE.enter[i]), [88, 91, 96][i - 1] + SC.key, 0.022));
+    [0, 0.07, 0.14, 0.21].forEach((d, i) => chime(ctx, ch, sec(CUE.end) + 0.9 + d, [79, 84, 88, 91][i] + SC.key, 0.03));
     return ctx.startRendering();
 }
 
 /** The soundtrack: exactly DUR seconds that loop, as an AudioBuffer (the second of two loops). */
 export async function soundtrack() {
     const n = Math.round(DUR * RATE), out = new AudioBuffer({ numberOfChannels: 2, length: n, sampleRate: RATE });
-    const off = CAROLS ? 0 : n, two = CAROLS ? await mixCarols() : await mix(2);
+    const off = SEASONAL ? 0 : n, two = SEASONAL ? await mixCarols() : await mix(2);
     let peak = 0;
     for (let c = 0; c < 2; c++) for (const v of two.getChannelData(c).subarray(off, off + n)) peak = Math.max(peak, Math.abs(v));
     // about -16 LUFS: a page's video someone chose to unmute should not jump out of the speakers

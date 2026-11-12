@@ -322,7 +322,7 @@ final class Plans
             ->where('status', '!=', Harmony::FAILED)
             ->sum(DB::raw('coalesce(stored_bytes, upload_bytes)'));
 
-        // The creator's own recorded guides, Plus's.
+        // The creator's own recorded guides (free for everyone since 2026-11-12), against their storage like any take.
         $recordings = (int) TemplateRecording::query()->where('user_id', $user->id)->where('status', '!=', TemplateRecording::FAILED)->sum(DB::raw('coalesce(stored_bytes, upload_bytes)'));
 
         return $takes + $harmonies + $recordings;

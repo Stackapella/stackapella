@@ -19,7 +19,7 @@ import { renderGuide } from '../guides.js';
 import { styleOf } from '../band-style.js';
 import { lazyView } from '../lazy.js';
 import { guideKey, loadRecordedGuide, mixVoices, recordingApplies } from '../recorded-guides.js';
-import { loadCatalogue, versionsFor } from './catalogue.js';
+import { catalogue, loadCatalogue, versionsFor } from './catalogue.js';
 import { t } from '../i18n.js';
 import { BACKING, DRONE, GUIDE_LEVELS, guideId, hasTake, nextSlot, PRACTICE_DEFAULTS, SPEAKERS_UNDER, trackLevels, voiceLevels, withClicks } from '../practice.js';
 import { clearTake, deleteKeptTake, deletePart, makeSlot, openProject, savePart, saveProject, useKeptTake } from './projects.js';
@@ -173,6 +173,9 @@ export async function openSession(id, { refresh = true } = {}) {
     // A friend's project: what the others sang since, fetched now (it opens again if anything changed).
     if (refresh && opened.project.shared && !opened.project.shared.removed) refreshShared(id);
     session.parts = opened.parts.map((part) => ({ ...part, peaks: part.peaks ? markRaw(part.peaks) : null, guidePeaks: part.guidePeaks ? markRaw(part.guidePeaks) : null }));
+    // A song just started keeps no guide outline yet (stores/projects.js startFromTemplate leaves it to this session's
+    // render): the first render keeps it, for Home's thumbnail.
+    unoutlined = new Set(opened.parts.filter((part) => part.templatePartKey && !part.guidePeaks).map((part) => part.id));
     kept.samples = opened.samples;
     if (session.project.template) {
         // withOthers and compare were once saved by the review's listening: they follow the way you sing now.
@@ -282,6 +285,9 @@ export async function ready() {
     await unlock();
     if (session.isTemplate) {
         await prepareGuides(engine.sampleRate);
+        // Your own part plays in its real voice from the first note: wait for it alone, never for the others (renderGuides).
+        const focus = session.practice?.focus;
+        while (focus && session.guideVoices[focus]?.loading && kept.arrival && stillOpen(id)) await kept.arrival;
     }
     if (!stillOpen(id)) return false;
     const loaded = `${session.project.id}:${session.guidesVersion}`;
@@ -322,8 +328,10 @@ function guidesKey(sampleRate) {
         return `${p.templatePartKey}=${urls.length ? urls.join('+') : 'synth'}`;
     }).join(',');
     const chords = session.project.template?.chords?.length ? styleOf(session.practice?.chordsSound) : 'none';
-    // The speed too: a slower practice voice (and chords) render again, at that speed.
-    return `${session.openedId}:${sampleRate}:${session.project.transpose || 0}:${session.practice?.speed ?? 1}:${voices}:${chords}`;
+    // The speed too: a slower practice voice (and chords) render again, at that speed. And whether the catalogue had come: a
+    // render made before it (Sing waits 1.5 s, and your part renders first) is made again once it's here, so each part's
+    // voice says what it is and why (real_key: a moved key's synth says 'key').
+    return `${session.openedId}:${sampleRate}:${session.project.transpose || 0}:${session.practice?.speed ?? 1}:${voices}:${chords}:${catalogue.loaded ? 'catalogue' : 'none'}`;
 }
 
 /**
@@ -361,6 +369,9 @@ function betaVoice(slot) {
     return recording ? { versions: [{ ...recording, default: true }], version: session.project.beta.templateVersion } : null;
 }
 
+// The parts opened with no guide outline kept (a song just started): their first render keeps one.
+let unoutlined = new Set();
+
 async function renderGuides(key, sampleRate) {
     kept.rendering++;
     session.preparing = true;
@@ -369,20 +380,20 @@ async function renderGuides(key, sampleRate) {
         const transpose = session.project.transpose || 0;
         const slots = session.parts.filter((p) => templatePart(p));
         const voices = {};
-        // One part after another: decoding every real voice at once can use hundreds of MB on a phone.
-        const rendered = [];
-        for (const part of slots) {
-            rendered.push(await renderOne(part, { template, transpose, sampleRate, voices }));
+        // Your part first, as it will sound (its real voice where it has one); every other part with a real voice still to
+        // come plays the synth meanwhile (the worker, no download), so Play needn't wait for every part's voice to arrive
+        // (2026-11-12: on a slow phone the first sound waited 12 s for four real voices, one after another). The real voices
+        // follow after (kept.voicesDone), each swapped in at the next play.
+        const focusId = session.practice?.focus ?? null;
+        const ordered = [...slots].sort((a, b) => Number(b.id === focusId) - Number(a.id === focusId));
+        const later = [];
+        for (const part of ordered) {
+            const coming = part.id !== focusId && realComing(part);
+            const rendered = coming ? await renderSynth(part, { template, transpose, sampleRate, voices }) : await renderOne(part, { template, transpose, sampleRate, voices });
             if (kept.guidesKey !== key) return; // a newer render took over
+            if (coming) later.push(part);
+            keepGuide(part, rendered, sampleRate);
         }
-        slots.forEach((part, i) => {
-            kept.guides.set(part.id, rendered[i].samples);
-            kept.guideOffsets.set(part.id, rendered[i].offsetSeconds);
-            // The lane shows what plays: the voice's own outline, at its own rate, and its length.
-            part.guidePeaks = markRaw(toPeaks(rendered[i].samples, FRAMES_PER_PEAK));
-            part.guidePeaksRate = sampleRate;
-            part.guideSeconds = rendered[i].offsetSeconds + rendered[i].samples.length / sampleRate;
-        });
         // The chords underneath only when they're on (off by default): the band is the slow part on a phone.
         kept.backing = template.chords?.length && session.practice?.chords ? markRaw(await songBand(template, { transpose, speed: session.practice?.speed ?? 1, sampleRate, style: styleOf(session.practice?.chordsSound) })) : null;
         kept.drone = renderDrone(session.practice?.drone, { sampleRate, speed: session.practice?.speed ?? 1 });
@@ -391,9 +402,60 @@ async function renderGuides(key, sampleRate) {
         session.guideVoices = voices;
         kept.guidesRate = sampleRate;
         session.guidesVersion++;
+        kept.voicesDone = later.length ? realVoicesAfter(later, { key, template, transpose, sampleRate, voices }) : Promise.resolve();
     } finally {
         kept.rendering--;
         session.preparing = kept.rendering > 0;
+    }
+}
+
+/** A slot's rendered guide kept for the engine, its lane's outline and length (the voice's own, at its own rate). */
+function keepGuide(part, rendered, sampleRate) {
+    kept.guides.set(part.id, rendered.samples);
+    kept.guideOffsets.set(part.id, rendered.offsetSeconds);
+    part.guidePeaks = markRaw(toPeaks(rendered.samples, FRAMES_PER_PEAK));
+    part.guidePeaksRate = sampleRate;
+    part.guideSeconds = rendered.offsetSeconds + rendered.samples.length / sampleRate;
+    // The live part, as every other change to it is saved: never an older copy over a newer setting.
+    if (unoutlined.delete(part.id)) savePart(plainPart(part)).catch((error) => console.warn('The guide outline was not kept', error));
+}
+
+/** Whether a slot's guide will be a real voice (one that hasn't failed to load here). */
+function realComing(part) {
+    const choice = voiceChoice(part, session.practice?.speed ?? 1);
+    return choice.recordings.length > 0 && choice.recordings.every((r) => !kept.failedVoices.has(r.url));
+}
+
+/** The synth for a slot whose real voice is still on its way (said so in its voice: `loading`). */
+async function renderSynth(part, { template, transpose, sampleRate, voices, speed = session.practice?.speed ?? 1 }) {
+    const choice = voiceChoice(part, speed);
+    voices[part.id] = { kind: 'synth', credit: choice.credit, credits: choice.credits ?? [], versions: choice.versions, chosen: choice.chosen, why: null, url: null, offsetSeconds: 0, loading: true };
+    const samples = await renderGuide({ templateId: template.id, templateVersion: template.version, part: templatePart(part), tempo: template.tempo, transpose, speed, sampleRate });
+    return { samples, sampleRate, offsetSeconds: 0 };
+}
+
+/**
+ * The other parts' real voices, one after another (decoding every real voice at once can use hundreds of MB on a phone),
+ * each kept as it arrives; the engine takes them at the next play (ready() reloads on a new guidesVersion), never
+ * mid-phrase.
+ */
+async function realVoicesAfter(parts, { key, template, transpose, sampleRate, voices }) {
+    const waiting = [...parts];
+    while (waiting.length) {
+        // The part you've chosen since (Sing's picker) jumps the queue: it's the one you'll hear first.
+        const next = waiting.findIndex((p) => p.id === session.practice?.focus);
+        const [part] = waiting.splice(next >= 0 ? next : 0, 1);
+        let arrived;
+        kept.arrival = new Promise((resolve) => (arrived = resolve));
+        try {
+            const rendered = await renderOne(part, { template, transpose, sampleRate, voices });
+            if (kept.guidesKey !== key || !session.project) return;
+            keepGuide(part, rendered, sampleRate);
+            session.guideVoices = { ...voices };
+            session.guidesVersion++;
+        } finally {
+            arrived(); // ready() waiting on your part hears of each arrival (or of the render giving way to a newer one)
+        }
     }
 }
 
@@ -1531,6 +1593,9 @@ const CHORDS_UNDER = 0.5; // Export's piano chords, as loud as Sing's chords sta
  * click and a bar of count-in if asked.
  */
 export async function renderMix({ chords = false, room = null, track = null, only = null, mix: asMixed = false, sampleRate = engine.sampleRate } = {}) {
+    // A file has every real voice: wait for those still arriving after the first play (renderGuides), then ready() takes them.
+    if (!(await ready())) throw new Error('The project was closed');
+    await kept.voicesDone;
     if (!(await ready())) throw new Error('The project was closed');
     let all = asMixed ? mixLevels() : levels();
     // Sing's chords never go in a file; Export's "Piano chords underneath" adds the song's own, on piano.

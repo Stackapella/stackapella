@@ -112,10 +112,12 @@ final class LandingPageTest extends TestCase
         $page = $this->get('/')->assertOk();
 
         // Hillel: a short catalogue looks thin; the song pages stay, for search and shared links. The one exception is
-        // the carols page, linked in its season only (Hillel, 2026-11-10; CarolsPageTest proves the window).
-        preg_match_all('#href="(/songs[^"]*)"#', (string) $page->getContent(), $links);
+        // the carols page, linked in its season only (Hillel, 2026-11-10; CarolsPageTest proves the window). The site's
+        // bar and its phone menu lead to the songbook itself (Hillel, 2026-11-12: "songs courses tools pricing").
+        $body = (string) preg_replace('#<header class="s-wrap s-top">.*?</header>#s', '', (string) $page->getContent());
+        preg_match_all('#href="(/songs[^"]*)"#', $body, $links);
         $this->assertSame([], array_values(array_diff($links[1], [Carols::PATH])));
-        $this->get('/pricing')->assertOk()->assertDontSee('href="/songs', false);
+        $this->assertDoesNotMatchRegularExpression('#href="/songs#', (string) preg_replace('#<header class="s-wrap s-top">.*?</header>#s', '', (string) $this->get('/pricing')->assertOk()->getContent()));
         $this->get('/songs')->assertOk();
     }
 
@@ -180,7 +182,8 @@ final class LandingPageTest extends TestCase
                 $page->assertSee('<strong>'.e($gain).'</strong>', false);
             }
             // Said once, so Plus isn't taken for the choir offer.
-            $this->assertSame(1, substr_count((string) $page->getContent(), '<a href="/for/choir-directors">'.e(__('pages.landing.plans_choirs_link')).'</a>'));
+            // Counted by where it's read (Hillel, 2026-11-12: For choirs left the header for these lead-ins).
+            $this->assertSame(1, substr_count((string) $page->getContent(), '<a href="/for/choir-directors?ref=for-choirs-'.($path === '/pricing' ? 'pricing' : 'landing').'">'.e(__('pages.landing.plans_choirs_link')).'</a>'));
         }
     }
 

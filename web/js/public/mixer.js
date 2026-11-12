@@ -24,10 +24,19 @@
 // The player gets data-playing while it plays, and --p (0 to 1) for its playhead.
 // Anywhere on the page, [data-hear="<player id>"] (the hero's "Hear four voices") brings that player
 // into view and plays it, unless it's playing already. Without the script it's a link to the player.
+// - [data-part-key="<part key>"] (a song card's part rows): data-sounding while that part sings a note.
+//
+// The whole song (Hillel: "let's always play the full songs. none are that long"): a song whose data says `whole`
+// starts at once with its opening line (the notes in the page), while the rest of the song comes from the public
+// catalogue (/api/templates/<slug>, as the part pages read it) and is sung by the same worker; it joins on the audio
+// clock exactly where the song has got to, so the parts never drift. The seam for showreel's rendered full mixes, later:
+// the song's data gains a `mix` URL, and a player with one plays that file instead of joining the rest. A press answers
+// at once and shows its loading, a slow load and a failure the same way on every player (play-state.js).
 
 import { heardTime } from '../../engine/clock.js';
 import { renderGuide } from '../guides.js';
-import { catalogueGuides, placed, realVoice } from './app-voices.js';
+import { catalogueGuides, placed, realVoice, songTemplate } from './app-voices.js';
+import { playState } from './play-state.js';
 
 const START_AHEAD = 0.1; // seconds: room to start every voice on the same frame
 const SWITCH = 0.012; // the time constant of a voice's switch, about 50 ms to silence
@@ -58,6 +67,25 @@ export function voiceLevel(key, { on, soloed, forward, fader = 1 }) {
     return (forward === null ? 1 : key === forward ? FORWARD : BACK) * fader;
 }
 
+/**
+ * The parts singing a note `at` seconds in: `parts` is [{ key, notes: [{ beat, length }] }], `secondsPerBeat` the
+ * song's. Pure (the tests check it).
+ */
+export function sounding(parts, at, secondsPerBeat) {
+    const beat = at / secondsPerBeat;
+    return new Set(parts.filter((part) => part.notes.some((n) => beat >= n.beat && beat < n.beat + n.length)).map((part) => part.key));
+}
+
+/**
+ * Where the rest of a song joins its opening line: `start` (when the line started on the audio clock), `lineSeconds`
+ * (its length), `now` (the clock now, plus room to start). It joins at the line's end, or, when the rest came late,
+ * now, that far into the song: { when, offset }. Pure (the tests check it).
+ */
+export function joinAt(start, lineSeconds, now) {
+    const when = Math.max(start + lineSeconds, now);
+    return { when, offset: when - start };
+}
+
 for (const root of document.querySelectorAll('[data-player]')) {
     const player = setUp(root);
     if (player) players.push(player);
@@ -83,7 +111,11 @@ function setUp(root) {
     if (!data || !button) return null;
     const song = JSON.parse(data.textContent);
     const secondsPerBeat = 60 / song.tempo;
-    const length = song.beats * secondsPerBeat;
+    // The line in the page, and what a press plays: the whole song when the data says so.
+    const lineLength = song.beats * secondsPerBeat;
+    const whole = song.whole === true && Number(song.songBeats) > song.beats;
+    const length = (whole ? Number(song.songBeats) : song.beats) * secondsPerBeat;
+    const rows = new Map([...root.querySelectorAll('[data-part-key]')].map((el) => [el.dataset.partKey, el]));
     const voices = new Map([...root.querySelectorAll('[data-voice]')].map((el) => [el.dataset.voice, el]));
     const sets = [...root.querySelectorAll('[data-set]')];
     const marks = [...root.querySelectorAll('[data-beat]')].map((el) => ({
@@ -94,7 +126,7 @@ function setUp(root) {
     // A word is lit until the next word starts.
     const starts = [...new Set(marks.filter((m) => m.to === null).map((m) => m.from))].sort((a, b) => a - b);
     for (const mark of marks) {
-        if (mark.to === null) mark.to = starts.find((s) => s > mark.from) ?? length;
+        if (mark.to === null) mark.to = starts.find((s) => s > mark.from) ?? lineLength;
     }
     const time = root.querySelector('[data-time]');
     const toggles = new Map([...voices].map(([key, el]) => [key, el.querySelector('[data-toggle]')]));
@@ -147,9 +179,42 @@ function setUp(root) {
         return voices;
     })());
     const ready = () => synthVoices();
+    // The rest of the song: its notes from the catalogue (fetched once someone might press), sung whole by the worker,
+    // with the real voices placed over the whole song. Its parts in the line's order.
+    let fullNotes = null;
+    const fullParts = () => (fullNotes ??= songTemplate(song.song).then((template) => song.parts.map((part) => {
+        const own = (template.parts ?? []).find((p) => p.key === part.key);
+        return { key: part.key, notes: (own?.guide?.notes ?? []).map((n) => ({ ...n })) };
+    })).catch((error) => {
+        fullNotes = null;
+        throw error;
+    }));
+    let full = null;
+    const fullVoices = () => (full ??= (async () => {
+        const parts = await fullParts();
+        const rendered = await Promise.all(parts.map((part) => renderGuide({
+            templateId: `site:${song.song}:whole`,
+            templateVersion: song.version,
+            part: { key: part.key, guide: { notes: part.notes } },
+            tempo: song.tempo,
+            sampleRate: RATE,
+            human: 'full',
+        })));
+        const voices = await realVoices();
+        return parts.map((part, i) => {
+            const voice = voices?.[part.key];
+            return voice ? placed(voice.samples, voice.offsetSeconds, RATE, Math.max(rendered[i].length, Math.round(length * RATE))) : rendered[i];
+        });
+    })().catch((error) => {
+        full = null;
+        throw error;
+    }));
+    // What the part rows follow: the line's notes until the whole song's are here.
+    let following = song.parts.map((part) => ({ key: part.key, notes: part.notes }));
     const likely = () => {
         synthVoices().catch(() => {});
         realVoices();
+        if (whole) fullParts().catch(() => {});
     };
     let pending = null; // the press whose voices are still rendering; Stop or another player cancels it
     let frame = 0;
@@ -160,17 +225,22 @@ function setUp(root) {
         button.setAttribute('aria-label', playing ? button.dataset.labelStop : button.dataset.labelPlay);
     }
 
-    // Loading: the button busy (its ring turns) and the line under the title says the voices are on their way.
+    // Loading: the button busy (its ring turns), the line under the title says the voices are on their way, and a slow
+    // load or a failure says so (play-state.js, every player alike).
     const line = root.querySelector('[data-loading-line]');
+    const states = playState(button, root);
     function loading(on) {
-        root.toggleAttribute('data-loading', on);
-        if (on) button.setAttribute('aria-busy', 'true');
-        else button.removeAttribute('aria-busy');
+        if (on) states.loading();
+        else if (states.state === 'loading') states.idle();
         if (line) line.hidden = !on;
     }
 
     function show(at) {
         root.style.setProperty('--p', String(Math.min(1, at / length)));
+        if (rows.size) {
+            const now = play !== null && at > 0 ? sounding(following, at, secondsPerBeat) : new Set();
+            for (const [key, row] of rows) row.toggleAttribute('data-sounding', now.has(key));
+        }
         for (const mark of marks) {
             const lit = play !== null && at > 0 && at >= mark.from && at < mark.to;
             mark.el.toggleAttribute('data-lit', lit);
@@ -299,19 +369,64 @@ function setUp(root) {
                 gains.set(part.key, gain);
                 return source;
             });
-            const current = { start: at, master, gains, panners, sources, stop };
+            // The whole song: the rest joins where the line ends; until it has, the line's end doesn't end the play.
+            // `ending`: which voices' end ends the play, the line's until the rest has joined.
+            const current = { start: at, master, gains, panners, sources, stop, joining: whole, ending: 'line', lineEnded: false };
             play = current;
             // The longest voice ending ends the play.
-            const last = sources.reduce((a, b) => (b.buffer.length > a.buffer.length ? b : a));
-            last.addEventListener('ended', () => play === current && stopped());
+            const ends = (list, which) => {
+                const left = (source) => source.buffer.duration - (source.from ?? 0);
+                const last = list.reduce((a, b) => (left(b) > left(a) ? b : a));
+                last.addEventListener('ended', () => {
+                    if (which === 'line') current.lineEnded = true;
+                    if (play === current && current.ending === which && !current.joining) stopped();
+                });
+            };
+            ends(sources, 'line');
             root.setAttribute('data-playing', '');
             root.setAttribute('data-played', '');
             loading(false);
+            states.playing();
             label(true);
             frame = requestAnimationFrame(tick);
+            if (whole) join(current, ends);
+            else current.joining = false;
         } finally {
             if (pending === press) pending = null;
             if (pending === null) loading(false);
+        }
+    }
+
+    // The rest of the song, sung by the worker (or the real voices), started on the audio clock at the line's end, or
+    // where the song has got to if it came late, through the same gains (the voices' switches keep working).
+    async function join(current, ends) {
+        try {
+            const rest = await fullVoices();
+            fullParts().then((parts) => (following = parts)).catch(() => {});
+            if (play !== current) return;
+            const { when, offset } = joinAt(current.start, lineLength, context.currentTime + START_AHEAD);
+            const more = song.parts.map((part, i) => {
+                const samples = rest[i];
+                const buffer = context.createBuffer(1, Math.max(1, samples.length), RATE);
+                buffer.copyToChannel(samples, 0);
+                const source = context.createBufferSource();
+                source.buffer = buffer;
+                source.from = offset;
+                source.connect(current.gains.get(part.key));
+                if (offset < buffer.duration) source.start(when, offset);
+                return source;
+            }).filter((source) => source.from < source.buffer.duration);
+            current.sources.push(...more);
+            current.joining = false;
+            if (more.length) {
+                current.ending = 'rest';
+                ends(more, 'rest');
+            } else if (current.lineEnded) stopped();
+        } catch (error) {
+            // The rest couldn't come: the line already played says so, and the play ends with it.
+            console.warn('The rest of the song could not load', error); // i18n-ignore
+            current.joining = false;
+            if (play === current && current.lineEnded) stopped();
         }
     }
 
@@ -343,6 +458,7 @@ function setUp(root) {
         start().catch((error) => {
             console.warn('The player could not play', error); // i18n-ignore
             stopped();
+            states.failed();
         });
     });
 

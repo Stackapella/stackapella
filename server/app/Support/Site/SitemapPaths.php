@@ -18,6 +18,7 @@ use App\Support\Pages\Lessons;
 use App\Support\Pages\Reference;
 use App\Support\Pages\SongCollections;
 use App\Support\Pages\SongParts;
+use App\Support\Pages\SongStories;
 use App\Support\Pages\Warmups;
 use App\Support\Templates\Catalogue;
 use Illuminate\Support\Carbon;
@@ -146,6 +147,13 @@ final class SitemapPaths
 
         foreach ($songs as $slug => $created) {
             $dates['/songs/'.$slug] = Carbon::parse((string) $created, 'UTC')->toDateString();
+        }
+        // A song page changes with its story's edits too (its `updated`), whichever is newer.
+        foreach (SongStories::slugs() as $slug) {
+            $story = SongStories::updated($slug);
+            if ($story !== null && isset($dates['/songs/'.$slug]) && $story > $dates['/songs/'.$slug]) {
+                $dates['/songs/'.$slug] = $story;
+            }
         }
 
         if (SongParts::open()) {

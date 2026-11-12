@@ -179,7 +179,7 @@ let persisting = null;
  * waveform outline (for the projects page). Counts toward the free limit like any project, except
  * a beta singer's recording project (`beta`), which is kept apart.
  */
-export async function startFromTemplate(template, { transpose = 0, focusKey = null, singers = null, beta = null, course = null, idea = null, keyChosen = false } = {}) {
+export async function startFromTemplate(template, { transpose = 0, focusKey = null, singers = null, beta = null, course = null, idea = null, keyChosen = false, renderGuides = true } = {}) {
     const project = await createProject({
         title: template.title,
         bpm: template.tempo,
@@ -196,8 +196,12 @@ export async function startFromTemplate(template, { transpose = 0, focusKey = nu
         ...(course ? { course } : {}), // a song a lesson opened: listed, but not counted toward the limit
         ...(idea ? { idea } : {}), // an idea's tune (docs/ideas-app-plan.md): { id, writer, partKey }, to add your voice to it
     });
+    // `renderGuides: false` (a song's Start from its sheet): Sing opens at once and its session renders the guides as it
+    // opens (a part's real voice where there is one, the synth otherwise), while the singer reads how to sing. Rendering
+    // every part here first held Start back by seconds on a phone (four synth renders, one after another, often thrown
+    // away for the real voices: the speed pass, 2026-11-12). A lesson's song opens straight on singing: it renders first.
     for (const part of partsFor(template, singers ?? undefined)) {
-        const slot = await makeSlot(project, template, part, transpose);
+        const slot = await makeSlot(project, template, part, transpose, {}, { render: renderGuides });
         if (part.key === focusKey) project.practice.focus = slot.id;
     }
     return saveProject(project);
@@ -224,13 +228,13 @@ export async function adoptTemplate(projectId, template, melodySlotId) {
 }
 
 /** A slot for `part` of a template project, with its guide's length and outline. */
-export async function makeSlot(project, template, part, transpose = 0, extra = {}) {
+export async function makeSlot(project, template, part, transpose = 0, extra = {}, { render = true } = {}) {
     const sampleRate = 48000;
     const order = template.parts.indexOf(part);
     // The guides' renderer (with the synth and scoring) loaded when a song is started, not with the store: Home lists your
-    // songs with this store and never renders a guide (2026-11-12, main.js's split).
-    const { renderGuide } = await import('../guides.js');
-    const guide = await renderGuide({ templateId: template.id, templateVersion: template.version, part, tempo: template.tempo, transpose, sampleRate });
+    // songs with this store and never renders a guide (2026-11-12, main.js's split). `render: false` leaves the outline
+    // to the session that opens next (it renders every guide as it opens) and takes the length from the notes.
+    const guide = render ? await (await import('../guides.js')).renderGuide({ templateId: template.id, templateVersion: template.version, part, tempo: template.tempo, transpose, sampleRate }) : null;
     const id = crypto.randomUUID();
     const slot = {
         id,
@@ -251,13 +255,19 @@ export async function makeSlot(project, template, part, transpose = 0, extra = {
         templatePartKey: part.key,
         ...(part.kind === 'instrument' ? { kind: 'instrument' } : {}),
         useGuide: false,
-        guideSeconds: guide.length / sampleRate,
-        guidePeaks: peaks(guide, GUIDE_FRAMES_PER_PEAK),
+        guideSeconds: guide ? guide.length / sampleRate : notesSeconds(part, template.tempo),
+        guidePeaks: guide ? peaks(guide, GUIDE_FRAMES_PER_PEAK) : null,
         createdAt: Date.now(),
         ...extra,
     };
     await savePart(slot);
     return slot;
+}
+
+/** How long a part's guide runs, from its notes (seconds at `tempo`): the last note's end. */
+export function notesSeconds(part, tempo) {
+    const end = Math.max(0, ...(part.guide?.notes ?? []).map((n) => n.beat + n.length));
+    return tempo > 0 ? (end * 60) / tempo : 0;
 }
 
 /** A project with its parts (in order) and each part's samples. */

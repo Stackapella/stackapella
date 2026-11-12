@@ -75,6 +75,17 @@ final class JewishSongs
     }
 
     /**
+     * Each first evening of a festival in the config, as Y-m-d, earliest first (the lamp's script counts Hanukkah's night
+     * from these, in the visitor's own day: Hanukkiah).
+     *
+     * @return list<string>
+     */
+    public static function firsts(string $key): array
+    {
+        return array_values(array_map(static fn (array $f): string => $f['from']->format('Y-m-d'), array_filter(self::dates(), static fn (array $f): bool => $f['key'] === $key)));
+    }
+
+    /**
      * The configured festivals, in date order, each with its dates as days.
      *
      * @return list<array{key: string, from: Carbon, until: Carbon}>

@@ -46,7 +46,7 @@
                             <span>{{ __('pages.song.difficulty.'.$song['difficulty']) }}</span>
                         @endif
                         @foreach ($song['genre'] as $genre)
-                            <span>{{ ucfirst($genre) }}</span>
+                            <span>{{ \App\Support\Languages\SongWords::genre($genre) }}</span>
                         @endforeach
                         <span>{{ __('pages.songs.parts', ['count' => count($song['parts'])]) }}</span>
                     </p>
@@ -88,7 +88,7 @@
                                 {{-- A part with its own page (a live, reviewed, public-domain song) links there: the whole row, by a stretched link. --}}
                                 <div @class(['s-range-row s-v'.$part['color'], 'group relative rounded-2xl transition-colors hover:bg-raised/60 has-[a:focus-visible]:outline-2 has-[a:focus-visible]:outline-offset-2 has-[a:focus-visible]:outline-[var(--primary)]' => ! empty($part['url'])]) role="listitem">
                                     @if (! empty($part['url']))
-                                        <a href="{{ $part['url'] }}" class="absolute inset-0 z-10 rounded-2xl outline-none" data-part-link="{{ basename((string) parse_url($part['url'], PHP_URL_PATH)) }}"><span class="sr-only">{{ \Illuminate\Support\Facades\Lang::has('pages.song.part_link') ? __('pages.song.part_link', ['part' => $part['name'], 'low' => $part['low'], 'high' => $part['high']]) : __('pages.song.range_row', ['part' => $part['name'], 'low' => $part['low'], 'high' => $part['high']]) }}</span></a>
+                                        <a href="{{ $part['url'] }}" class="absolute inset-0 z-10 rounded-2xl outline-none" data-part-link="{{ basename((string) parse_url($part['url'], PHP_URL_PATH)) }}"><span class="sr-only">{{ \Illuminate\Support\Facades\Lang::has('pages.song.part_link') ? __('pages.song.part_link', ['part' => mb_strtolower($part['name']), 'low' => $part['low'], 'high' => $part['high']]) : __('pages.song.range_row', ['part' => $part['name'], 'low' => $part['low'], 'high' => $part['high']]) }}</span></a>
                                     @else
                                         <span class="sr-only">{{ __('pages.song.range_row', ['part' => $part['name'], 'low' => $part['low'], 'high' => $part['high']]) }}</span>
                                     @endif
@@ -135,7 +135,7 @@
                                     <x-site.song-glyph :ranges="$other['ranges']" />
                                     <span class="s-badge s-badge-free">{{ __('pages.song.free') }}</span>
                                 </span>
-                                <span><span class="s-t" translate="no">{{ $other['title'] }}</span><span class="s-k">{{ __('pages.songs.parts', ['count' => count($other['parts'])]) }}@if ($other['genre'] !== []) · {{ ucfirst($other['genre'][0]) }}@endif</span></span>
+                                <span><span class="s-t" translate="no">{{ $other['title'] }}</span><span class="s-k">{{ __('pages.songs.parts', ['count' => count($other['parts'])]) }}@if ($other['genre'] !== []) · {{ \App\Support\Languages\SongWords::genre($other['genre'][0]) }}@endif</span></span>
                             </a>
                         </li>
                     @endforeach

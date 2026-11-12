@@ -69,9 +69,14 @@ const queue = new Map(); // kind → how many since the last batch
 const enrols = []; // experiments' arms just drawn ("short1-b"), each counted once on its own (exp_enrol)
 let waiting = false;
 
+// The song library's filters (Home's Browse all): library_filter:<group>, :all, :search or :part:<voice>, one a tap. The
+// groups mirror server/config/counts.php (SongCollections::GROUPS and "more").
+export const LIBRARY_FILTERS = new Set(['all', 'search', 'christmas', 'jewish-songs', 'rounds', 'spirituals', 'hymns', 'sea-shanties', 'folk-songs', 'classical', 'barbershop-songs', 'more', 'part:soprano', 'part:alto', 'part:tenor', 'part:bass']);
+const libraryFilter = (kind) => kind.startsWith('library_filter:') && LIBRARY_FILTERS.has(kind.slice('library_filter:'.length));
+
 /** Counts one `kind` (an unknown one is ignored). */
 export function count(kind) {
-    if (KINDS.has(kind) || detailed(kind)) enqueue(kind);
+    if (KINDS.has(kind) || detailed(kind) || libraryFilter(kind)) enqueue(kind);
 }
 
 // A share, counted as sh:<surface>.<method>: what was shared and how. The lists mirror server/config/counts.php

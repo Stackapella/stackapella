@@ -949,6 +949,8 @@ export const StudioView = {
         announceVoices() {
             const practice = this.practice;
             if (!practice) return;
+            // Voices arrive one by one after the first sound (stores/session.js realVoicesAfter): one note once they're all here.
+            if (this.parts.some((part) => this.guideVoices[part.id]?.loading)) return;
             const seen = new Set(practice.voicesSeen ?? []);
             const fresh = this.parts.filter((part) => this.guideVoices[part.id]?.kind === 'real' && !seen.has(this.guideVoices[part.id].url));
             if (!fresh.length) return;

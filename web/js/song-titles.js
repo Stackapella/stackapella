@@ -10,7 +10,10 @@ const TITLES = { 'are-you-sleeping': tk('songTitles.areYouSleeping') };
 /** `template`'s title as the page shows it ({ id, title }; a group's song passes { id: templateId, title }). */
 export function songTitle(template) {
     const own = template?.title ?? '';
+    if (locale.lang === 'en' || locale.lang.startsWith('en-')) return own;
+    // The catalogue's own name for it in this language (CatalogueSongResource `titles`, from resources/data/song_titles).
+    const named = template?.titles?.[locale.lang.split('-')[0]];
+    if (named) return named;
     const key = template && TITLES[template.id];
-    if (!key || locale.lang === 'en' || locale.lang.startsWith('en-')) return own;
-    return t(key) || own;
+    return key ? t(key) || own : own;
 }

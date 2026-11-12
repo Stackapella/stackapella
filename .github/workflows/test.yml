@@ -103,7 +103,8 @@ jobs:
         run: php artisan route:cache && php artisan config:cache && php artisan route:clear && php artisan config:clear
 
       - name: PHPUnit
-        run: php artisan test --compact
+        # In parallel (paratest): 4 workers, each its own database (tests/TestDatabase.php), as GitHub's runners have 4 cores.
+        run: php artisan test --parallel --processes=4 --compact
 
   web:
     runs-on: ubuntu-24.04

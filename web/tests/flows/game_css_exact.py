@@ -12,12 +12,13 @@ import re
 import subprocess
 import sys
 import time
+import urllib.request
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
 from course_css_exact import PROPS  # noqa: E402
 from flow import Flow  # noqa: E402
-from site_css_exact import EXTRA  # noqa: E402
+from site_css_exact import EXTRA, SITE_SHEET  # noqa: E402
 from site_integration import PAGES  # noqa: E402
 
 WEB = Path(__file__).resolve().parents[2]
@@ -67,6 +68,19 @@ def swap(base, whole):
     document.body.offsetWidth; await document.fonts.ready;"""  # a layout, so the faces the new sheet names are asked for, then loaded
 
 
+def family_split(site, base, families):
+    """css/.<family>-split.css: the family's served pair as one sheet (its sheet, then its game sheet), as build_whole writes
+    css/.site-split.css, so compare() swaps it in exactly as it does the whole site.css's pair."""
+    name = base.split("/")[-1][:-4]
+    if name in families:
+        return
+    sheet, game = (urllib.request.urlopen(site + path, timeout=60).read().decode("utf-8") for path in (base, base.replace(".css", "-game.css")))
+    if re.search(r"@(layer|import|charset)\b", game):
+        raise SystemExit(f"game css: {base}'s game sheet has an @layer, @import or @charset, so it can't be read as one with it")
+    (WEB / f"css/.{name}-split.css").write_text(sheet + "\n" + game, encoding="utf-8")
+    families.add(name)
+
+
 # What the page fetched and linked: the game sheets it asked for (any way), and the order of its stylesheet links.
 FETCHED = "performance.getEntriesByType('resource').map((r) => new URL(r.name).pathname).filter((p) => /-game\\.css$/.test(p))"
 LINKS = "[...document.querySelectorAll('link[rel=stylesheet]')].map((l) => new URL(l.href).pathname + (l.dataset.gameCss !== undefined ? '#game' : ''))"
@@ -109,7 +123,7 @@ def look(f, skin, colour, mode):
 def main():
     site, app = sys.argv[1].rstrip("/"), sys.argv[2].rstrip("/")
     build_whole()
-    failed, checked = [], 0
+    failed, checked, families, whole_pages = [], 0, set(), set()
     try:
         for skin, (colour, mode) in LOOKS:
             for size, width in (("phone", 390), ("desktop", 1440)):
@@ -122,9 +136,14 @@ def main():
                     for path in dict.fromkeys(PAGES + EXTRA):
                         f.go(path, "document.querySelector('body')")  # loaded in this look from the first paint
                         time.sleep(1.5)
-                        if not f.js("[...document.querySelectorAll('link[rel=stylesheet]')].some((l) => new URL(l.href).pathname === '/css/site.css')"):
-                            continue
-                        compare(f, path, "/css/site.css", "/css/.site-whole.css", skin, width, failed)
+                        base = f.js(SITE_SHEET)
+                        if not base:
+                            continue  # a page without the site's sheet (an embed has its own)
+                        if base != "/css/site.css":
+                            family_split(site, base, families)
+                        else:
+                            whole_pages.add(path)
+                        compare(f, path, base, "/css/.site-whole.css", skin, width, failed)
                         checked += 1
                 finally:
                     f.chrome.close()
@@ -147,6 +166,8 @@ def main():
         for name in ("app", "site"):
             (WEB / f"css/.{name}-whole.css").unlink(missing_ok=True)
             (WEB / f"css/.{name}-split.css").unlink(missing_ok=True)
+        for name in families:
+            (WEB / f"css/.{name}-split.css").unlink(missing_ok=True)
     if failed:
         print(f"game css: with the split sheets these differ from the whole build, or the sheets are linked wrong ({len(failed)} in all):")
         pages = {}
@@ -156,7 +177,7 @@ def main():
         print("By page: " + "; ".join(f"{k} ({n})" for k, n in pages.items()))
         print("\n".join(failed[:40]))
         raise SystemExit(1)
-    print(f"game css: {checked} page views (the site's and the app's), serious and game in dark and light, 390 and 1440: every element as with the whole build; serious fetched no game sheet, game linked its own right after the page's")
+    print(f"game css: {checked} page views (the site's and the app's), serious and game in dark and light, 390 and 1440: every element as with the whole build; serious fetched no game sheet, game linked its own right after the page's; family sheets: {', '.join(sorted(families)) or 'none'}; the whole site.css on: {', '.join(sorted(whole_pages)) or 'no page'}")
 
 
 if __name__ == "__main__":

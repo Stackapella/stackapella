@@ -39,6 +39,8 @@
                     <p class="s-soonline">{{ $open ? __('pages.site.course_open_line') : __('pages.site.course_soon') }}</p>
                     @if ($page['slug'] === 'learn-your-choir-part')
                         @include('site._carols-link', ['line' => __('site.carols.links.choir-course')])
+                        {{-- For choirs, led to from where a director reads (Hillel, 2026-11-12), counted by its place. --}}
+                        <p class="s-soonline"><a href="/for/choir-directors?ref=for-choirs-course" class="s-lk">{{ __('pages.songs.for_choirs') }}</a></p>
                     @endif
                     @if (! $open && is_string($page['needs'] ?? null))
                         <p class="s-soonline">{{ __('pages.site.course_needs', ['what' => $page['needs']]) }}</p>

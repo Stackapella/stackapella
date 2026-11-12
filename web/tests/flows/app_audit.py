@@ -54,7 +54,11 @@ APP_AUDIT = tuned(AUDIT, [
 # Disabled controls are faint on purpose, and words over the lane's canvas are read against it. A
 # gradient with no solid colour under it (a note's glossy brick) can't be measured, so its words are
 # left out; the glass buttons set a solid colour under their gloss for this.
+# A colour that is still on its way (a link's 0.15 s colour transition, just after a theme switch) is measured where it
+# lands: a loaded machine read the header's links half way from the dark theme's cream (2026-11-12, 2.06 in stage light).
 APP_CONTRAST = tuned(CONTRAST, [
+    ("(() => {\n  const rgb = ",
+     "(() => {\n  for (const a of document.getAnimations()) if (a instanceof CSSTransition) a.finish();\n  const rgb = "),
     ("const behind = (el) => { for (let e = el; e; e = e.parentElement) { const c = rgb(getComputedStyle(e).backgroundColor); if (c && c.a > 0.9) return c; }",
      "const behind = (el) => { for (let e = el; e; e = e.parentElement) { const st = getComputedStyle(e); const c = rgb(st.backgroundColor); if (c && c.a > 0.9) return c; if (st.backgroundImage.includes('gradient')) return null; }"),
     ("el.closest('[aria-hidden=\"true\"], .sr-only, svg')) continue;",

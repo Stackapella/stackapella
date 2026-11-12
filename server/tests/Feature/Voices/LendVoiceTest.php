@@ -42,7 +42,7 @@ final class LendVoiceTest extends TestCase
 
     private function join(): void
     {
-        $this->postJson('/api/voices/join', ['agreementVersion' => 1, 'credit' => 'name', 'linksProfile' => false])->assertOk();
+        $this->postJson('/api/voices/join', ['agreementVersion' => (int) config('beta.volunteer_agreement_version'), 'credit' => 'name', 'linksProfile' => false])->assertOk();
     }
 
     public function test_it_is_closed_until_the_switch_is_on(): void
@@ -72,21 +72,21 @@ final class LendVoiceTest extends TestCase
     {
         app(Flags::class)->set('lend_voice', 'on', null, 'Open');
         $this->singer('New Comer', ['created_at' => now()->subDays(2)]);
-        $this->assertMatchesContract($this->postJson('/api/voices/join', ['agreementVersion' => 1, 'credit' => 'name']), 'voices.join', 403);
+        $this->assertMatchesContract($this->postJson('/api/voices/join', ['agreementVersion' => (int) config('beta.volunteer_agreement_version'), 'credit' => 'name']), 'voices.join', 403);
         $this->singer('No Email', ['email_verified_at' => null]);
-        $this->postJson('/api/voices/join', ['agreementVersion' => 1, 'credit' => 'name'])->assertForbidden()->assertJsonPath('code', 'email_unverified');
+        $this->postJson('/api/voices/join', ['agreementVersion' => (int) config('beta.volunteer_agreement_version'), 'credit' => 'name'])->assertForbidden()->assertJsonPath('code', 'email_unverified');
         $this->singer('Not Said', ['adult_confirmed_at' => null]);
-        $this->postJson('/api/voices/join', ['agreementVersion' => 1, 'credit' => 'name'])->assertForbidden();
+        $this->postJson('/api/voices/join', ['agreementVersion' => (int) config('beta.volunteer_agreement_version'), 'credit' => 'name'])->assertForbidden();
 
         $paid = $this->singer('Paid Singer');
         BetaSinger::factory()->create(['user_id' => $paid->id, 'accepted_at' => now()]);
-        $this->assertMatchesContract($this->postJson('/api/voices/join', ['agreementVersion' => 1, 'credit' => 'name']), 'voices.join', 409);
+        $this->assertMatchesContract($this->postJson('/api/voices/join', ['agreementVersion' => (int) config('beta.volunteer_agreement_version'), 'credit' => 'name']), 'voices.join', 409);
 
         $this->singer('Ana Ruiz');
-        $this->assertMatchesContract($this->postJson('/api/voices/join', ['agreementVersion' => 2, 'credit' => 'name']), 'voices.join', 409);
-        $joined = $this->postJson('/api/voices/join', ['agreementVersion' => 1, 'credit' => 'anonymous']);
+        $this->assertMatchesContract($this->postJson('/api/voices/join', ['agreementVersion' => (int) config('beta.volunteer_agreement_version') + 1, 'credit' => 'name']), 'voices.join', 409);
+        $joined = $this->postJson('/api/voices/join', ['agreementVersion' => (int) config('beta.volunteer_agreement_version'), 'credit' => 'anonymous']);
         $this->assertMatchesContract($joined, 'voices.join', 200);
-        $joined->assertJsonPath('data.volunteer', true)->assertJsonPath('data.consent.version', 1)->assertJsonPath('data.consent.current', 1);
+        $joined->assertJsonPath('data.volunteer', true)->assertJsonPath('data.consent.version', (int) config('beta.volunteer_agreement_version'))->assertJsonPath('data.consent.current', (int) config('beta.volunteer_agreement_version'));
         $this->getJson('/api/beta/agreement?for=volunteer')->assertOk()->assertJsonPath('data.title', 'Lend your voice');
     }
 

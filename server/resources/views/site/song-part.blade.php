@@ -51,7 +51,7 @@
                     @endif
                     <dl class="s-spart-facts">
                         <div><dt>{{ __('site.song_part.range') }}</dt><dd translate="no">{{ __('site.song_part.range_value', $fill) }}</dd></div>
-                        <div><dt>{{ __('site.song_part.key') }}</dt><dd translate="no">{{ $s['key'] }}</dd></div>
+                        <div><dt>{{ __('site.song_part.key') }}</dt><dd translate="no">{{ \App\Support\Languages\NoteNames::name($s['key']) }}</dd></div>
                         <div><dt>{{ __('site.song_part.voice') }}</dt><dd>
                             @if ($songPart['guide']['realVoice'])
                                 @if ($songPart['guide']['credit'] !== null && $songPart['guide']['creditHandle'] !== null)

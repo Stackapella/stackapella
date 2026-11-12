@@ -38,7 +38,7 @@ final class MonthlyBoardsTest extends TestCase
 
     private function sing(User $who, int $score): void
     {
-        $this->actingAs($who)->postJson('/api/boards/scores', ['templateId' => 'amazing-grace', 'templateVersion' => (int) $this->song->currentVersion?->version, 'partKey' => 'alto', 'scoringVersion' => 1, 'pitchDetectorVersion' => 1, 'score' => $score, 'mode' => 'own', 'keyOffset' => 0, 'speed' => 1, 'guideMuted' => true, 'timingChecked' => true, 'output' => 'wired'])->assertOk()->assertJsonPath('data.counted', true);
+        $this->actingAs($who)->postJson('/api/boards/scores', ['templateId' => 'amazing-grace', 'templateVersion' => (int) $this->song->currentVersion?->version, 'partKey' => 'alto', 'scoringVersion' => (int) config('boards.scoring_version'), 'pitchDetectorVersion' => 1, 'score' => $score, 'mode' => 'own', 'keyOffset' => 0, 'speed' => 1, 'guideMuted' => true, 'timingChecked' => true, 'output' => 'wired'])->assertOk()->assertJsonPath('data.counted', true);
     }
 
     public function test_this_months_best_ranks_the_month_while_the_all_time_board_keeps_the_best_ever(): void

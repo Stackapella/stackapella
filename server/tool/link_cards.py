@@ -147,13 +147,10 @@ def _rings():
 
 
 def _flames():
-    # The Jewish songs' nine small lights, the middle one raised, at the top right (the lamp itself isn't drawn).
-    out = []
-    for k in range(9):
-        x = 880 + k * 30
-        y = 58 if k == 4 else 72
-        out.append(f'<path d="M{x} {y + 30} C {x - 9} {y + 21}, {x - 6} {y + 9}, {x} {y} C {x + 6} {y + 9}, {x + 9} {y + 21}, {x} {y + 30} Z" fill="#F3D27A" opacity="{0.85 if k == 4 else 0.6}"/>')
-    return '<svg width="1200" height="630" viewBox="0 0 1200 630">' + "".join(out) + "</svg>"
+    # The Jewish songs' hanukkiah at the top right, the page's own drawing (App\Support\Pages\Hanukkiah, its serious
+    # skin), every candle lit: a card has no night to count.
+    lamp = subprocess.check_output(["php", "artisan", "tinker", "--execute", "echo App\\Support\\Pages\\Hanukkiah::svg('hk', false);"], cwd=SERVER).decode().strip().splitlines()[-1]
+    return f'<div style="position:absolute;right:76px;top:38px;width:204px">{lamp}</div>'
 
 
 def _hills():
@@ -178,7 +175,7 @@ THEMES = {
     "spirituals": {"bg": "#14223F", "ac": "#F2C46B", "mu": "#C3CEE3", "motif": _stars, "css": ".star{position:absolute;border-radius:50%;background:#F2C46B}"},
     "sea-shanties": {"bg": "#0E3440", "ac": "#F2C46B", "mu": "#BAD7D1", "motif": _waves, "css": ""},
     "rounds": {"bg": "#3A2416", "ac": "#FFB45C", "mu": "#E3D1C1", "motif": _rings, "css": ""},
-    "jewish-songs": {"bg": "#1B2D63", "ac": "#F3D27A", "mu": "#CDD6EF", "motif": _flames, "css": ""},
+    "jewish-songs": {"bg": "#1B2D63", "ac": "#F3D27A", "mu": "#CDD6EF", "motif": _flames, "css": ".hk{display:block;width:100%;height:auto}.s-hk-game{display:none}"},
     "folk-songs": {"bg": "#2F3B21", "ac": "#E9A27A", "mu": "#D6DCC8", "motif": _hills, "css": ""},
     "barbershop-songs": {"bg": "#3A1420", "ac": "#E8C26A", "mu": "#EAD3D7", "motif": _stripes, "css": ""},
 }

@@ -9,7 +9,7 @@ use App\Models\Template;
 use App\Models\TemplateGuide;
 use App\Support\Http\Hosts;
 use App\Support\Languages\PartNames;
-use App\Support\Languages\SongDescriptions;
+use App\Support\Languages\SongWords;
 use App\Support\Templates\Catalogue;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
@@ -205,7 +205,7 @@ final class SongParts
                 'key' => (string) ($data['key'] ?? ''),
                 'difficulty' => (string) ($data['difficulty'] ?? ''),
                 'genre' => array_values(array_filter((array) ($data['genre'] ?? []), 'is_string')),
-                'description' => SongDescriptions::of((string) ($data['description'] ?? '')),
+                'description' => SongWords::description((string) ($data['description'] ?? '')),
                 'about' => trans()->has($about) ? (string) __($about) : null,
                 'melodyPart' => array_values(array_filter($parts, static fn (array $p): bool => $p['melody']))[0]['key'] ?? null,
                 'pageUrl' => $base,
@@ -214,8 +214,8 @@ final class SongParts
                 // song's player met a guest's 403 and collapsed, a layout shift of 0.12.
                 'free' => Catalogue::isOpen($template),
                 'credits' => array_values(array_filter([
-                    isset($credits['words']) ? __('pages.song.words', ['who' => $credits['words']]) : null,
-                    isset($credits['tune']) ? __('pages.song.tune', ['who' => $credits['tune']]) : null,
+                    isset($credits['words']) ? __('pages.song.words', ['who' => SongWords::credit((string) $credits['words'])]) : null,
+                    isset($credits['tune']) ? __('pages.song.tune', ['who' => SongWords::credit((string) $credits['tune'])]) : null,
                 ])),
             ],
             'part' => $part,

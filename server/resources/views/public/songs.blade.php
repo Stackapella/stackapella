@@ -82,7 +82,11 @@
                         <p class="s-kick">{{ __('pages.songs.collections_kick') }}</p>
                         <h2 id="collections-h">{{ __('pages.songs.collections') }} <em class="s-xserif">{{ __('pages.songs.collections_em') }}</em></h2>
                     </div>
-                    <p class="s-sh-grid-note">{{ __('pages.songs.collections_note') }}</p>
+                    <div class="s-sh-grid-note">
+                        <p>{{ __('pages.songs.collections_note') }}</p>
+                        {{-- For choirs, led to from where a director reads (Hillel, 2026-11-12), counted by its place. --}}
+                        <p class="s-sh-choirs"><a href="/for/choir-directors?ref=for-choirs-songs" class="s-lk">{{ __('pages.songs.for_choirs') }}&#8288;<x-site.icon name="arrow" size="16" /></a></p>
+                    </div>
                 </div>
                 <div class="s-sh-grid">
                     @foreach ($panels as $band)
@@ -156,5 +160,6 @@
 @section('scripts')
     <script type="module" src="/js/public/mixer.js"></script>
     <script type="module" src="/js/public/carols.js"></script>
+    <script type="module" src="/js/public/hanukkiah.js"></script>
     <script type="module" src="/js/public/songbook.js"></script>
 @endsection

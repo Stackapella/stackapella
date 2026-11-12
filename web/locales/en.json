@@ -1519,7 +1519,6 @@
             "title": "Outreach",
             "intro": "One organization, one person, one email, written for them and sent by you. Only published contacts, five a day, one follow-up at most after ten days, and never again after a no.",
             "organizations": "Organizations",
-            "navCount": "{count, plural, one {1 outreach thing needs you} other {# outreach things need you}}",
             "today": "Today",
             "sentToday": "New emails today: {sent} of {cap}",
             "sendBySoon": "{count, plural, one {1 first email to send soon} other {# first emails to send soon}}",
@@ -1738,10 +1737,8 @@
         },
         "needs": {
             "title": "What needs you now",
-            "navCount": "{count, plural, one {1 part needs a voice} other {# parts need a voice}}",
             "failed": "What needs you didn't load.",
             "none": "Nothing needs you right now.",
-            "voices": "Voices",
             "site": "Site",
             "toOutreach": "All outreach",
             "toDropoffs": "All drop-offs",
@@ -1756,8 +1753,6 @@
             "changed": "Changed: needs recording again",
             "unassigned": "No singer",
             "findSinger": "Ask a singer",
-            "toGuides": "All voices",
-            "noSingers": "{count, plural, one {No singer yet} other {No singers yet for its # parts}}",
             "notSynced": {
                 "title": "{count, plural, one {1 song didn't sync on the last deploy} other {# songs didn't sync on the last deploy}}",
                 "titleMany": "{count} or more songs didn't sync on the last deploy",
@@ -1870,8 +1865,7 @@
             "undoHint": "It's approved but hasn't gone out yet. Stop it now and it won't be posted.",
             "approved": "Approved. It goes out in 2 minutes.",
             "retried": "Sending it again.",
-            "cancelled": "Cancelled. It won't be posted.",
-            "waitingCount": "{count, plural, one {1 post waiting} other {# posts waiting}}"
+            "cancelled": "Cancelled. It won't be posted."
         },
         "reports": {
             "show": "Show",
@@ -4749,7 +4743,26 @@
                 "all": "All",
                 "free": "Free",
                 "plus": "Plus",
-                "label": "Which songs"
+                "label": "Which songs",
+                "search": "{count, plural, one {Search the # song} other {Search # songs}}",
+                "searchLabel": "Search the songs by title",
+                "iSing": "I sing",
+                "anyPart": "Any part",
+                "groups": "Song groups",
+                "none": "No songs match.",
+                "clear": "Show every song"
+            },
+            "group": {
+                "christmas": "Christmas",
+                "jewish": "Jewish songs",
+                "rounds": "Rounds",
+                "spirituals": "Spirituals",
+                "hymns": "Hymns",
+                "shanties": "Sea shanties",
+                "folk": "Folk songs",
+                "classical": "Classical and sacred",
+                "barbershop": "Barbershop, parlour and stage",
+                "more": "More songs"
             },
             "browseAllCount": "{count, plural, one {Browse the # song} other {Browse all # songs}}"
         },
@@ -5416,7 +5429,6 @@
             "stems": "Each part separately",
             "share": "Share links and videos",
             "templates": "Private or unlisted templates",
-            "guides": "Your own recorded guides",
             "choir": "Choir groups",
             "preview": "Hear any song before you start",
             "stemsNote": "One file per part, in a ZIP",

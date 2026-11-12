@@ -46,8 +46,9 @@ final class KnownSongs
                     'key' => $data['key'],
                     'low' => $low,
                     'high' => $high,
-                    'lowName' => SongPage::note($low),
-                    'highName' => SongPage::note($high),
+                    // Kept in a cache every language shares, so letters (the tool names notes its own way).
+                    'lowName' => SongPage::letterName($low),
+                    'highName' => SongPage::letterName($high),
                 ];
             })
             ->filter()

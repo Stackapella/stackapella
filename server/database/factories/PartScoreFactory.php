@@ -24,7 +24,7 @@ final class PartScoreFactory extends Factory
             'template_id' => Template::factory(),
             'template_version_id' => fn (array $row): int => TemplateVersion::factory()->create(['template_id' => $row['template_id']])->id,
             'part_key' => 'alto',
-            'scoring_version' => 1,
+            'scoring_version' => (int) config('boards.scoring_version'),
             'score' => fake()->numberBetween(40, 95),
             'mode' => 'own',
             'key_offset' => 0,

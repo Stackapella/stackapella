@@ -26,6 +26,8 @@ def journey(f):
     })()""")
     f.go(f"/p/{project}", "document.querySelectorAll('canvas').length > 3")
     f.wait(f"{SESSION}.guidesVersion > 0 && !{SESSION}.preparing", what="the guides ready")
+    # Your part sounds first; the others' real voices follow, one by one (stores/session.js realVoicesAfter).
+    f.wait(f"!Object.values({SESSION}.guideVoices).some((v) => v?.loading)", timeout=30, what="every real voice arrived")
     voice = alto_voice(f)
     assert voice and voice["kind"] == "real" and voice["credit"] == "Sarah K.", voice
     f.wait_text(f.js(f"{I18N}.t('studio.badge.realVoiceBy', {{ name: 'Sarah K.' }})"))

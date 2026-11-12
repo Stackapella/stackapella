@@ -174,9 +174,27 @@ has no real voices for Silent Night, so nothing in it says "a real voice" and it
 credit. `python3 render.py --cut=carols --format=square --final --dir=<folder>` writes
 `stackapella-carols-square.mp4`; `--vtt` its captions. It is not in the manifest.
 
-**Spanish captions.** `python3 render.py --vtt --lang=es` writes `stackapella-showreel.es.vtt` (the hymn's
-words as sung, who joins in Spanish, by `docs/languages/es-glossary.md`). It is in git but not in the
-manifest or on the CDN until Spanish switches on.
+## The Hanukkah cut
+
+`--cut=hanukkah` is the same kind of cut for /songs/jewish-songs, 24 s at Maoz Tzur's own 90 BPM: the live
+page (its lights and its countdown), then the song's four parts stacking, sung by the app's guide voice,
+and an end card with stackapella.com/songs/jewish-songs. `python3 capture.py --only=hanukkah --cut=dark`
+films the page. The countdown names a number of days, so film and render it on the day it is posted.
+Both season cuts read their song and timing from `js/score.js` (`SEASON_CUTS`); their words are English only.
+
+## Languages
+
+`--lang=es` on `capture.py` and `render.py` (and `?lang=es` on the page) makes the whole film in that
+language: every word on screen from `js/words.js` (one table per language, read by the courses lead against
+`docs/languages/es-glossary.md`; a missing word stops the render), the app and site shots filmed in that
+language into `captures/<lang>/` (note names Do Re Mi, the site's /<lang>/ pages), the end card with
+stackapella.com/<lang>. The hymn is sung as it is sung, in English. The files go to
+`server/public/videos/showreel/<lang>/` under the same names as English, with a manifest of their own
+(`"lang"` added), so each language is its own version on the CDN: `php artisan app:showreel:upload --lang=es`
+uploads it, and a page in that language plays it when `<lang>/manifest.json` exists (English otherwise).
+The manifest, posters and captions (`<lang>/stackapella-showreel.vtt`) are in git; the videos are not.
+A new language: its table in `js/words.js`, its code in `render.py`'s list, then capture, render
+(posters, vtt, audio, heroes, phone cuts, `--manifest`), upload, check every file answers 200, and land.
 
 ## Where the outputs live
 

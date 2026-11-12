@@ -22,7 +22,7 @@ final class GhostFactory extends Factory
             'user_id' => User::factory(),
             'template_version_id' => TemplateVersion::factory(),
             'part_key' => 'alto',
-            'scoring_version' => 1,
+            'scoring_version' => (int) config('boards.scoring_version'),
             'score' => 80,
             'rate' => 20,
             'start_seconds' => '0.00',

@@ -336,6 +336,9 @@
     "/js/public/voices.js",
     "/js/public/demo-player.js"
   ],
+  "/js/public/hanukkiah.js": [
+    "/js/public/hanukkiah.js"
+  ],
   "/js/public/harmony.js": [
     "/js/public/harmony.js",
     "/js/api.js",
@@ -352,6 +355,9 @@
     "/js/public/voices.js",
     "/js/public/demo-player.js"
   ],
+  "/js/public/lang-menu.js": [
+    "/js/public/lang-menu.js"
+  ],
   "/js/public/lesson-try.js": [
     "/js/public/lesson-try.js"
   ],
@@ -360,6 +366,7 @@
     "/engine/clock.js",
     "/js/guides.js",
     "/js/public/app-voices.js",
+    "/js/public/play-state.js",
     "/js/synth.js",
     "/js/scoring.js",
     "/js/recorded-guides.js",
@@ -430,6 +437,7 @@
     "/js/public/song-part-page.js",
     "/js/public/part-player.js",
     "/js/embed/lane.js",
+    "/js/public/play-state.js",
     "/js/public/tool-layout.js",
     "/js/lane-painter.js",
     "/js/synth.js",
@@ -452,6 +460,9 @@
   ],
   "/js/public/tools/embed-maker.js": [
     "/js/public/tools/embed-maker.js"
+  ],
+  "/js/public/tools/hub.js": [
+    "/js/public/tools/hub.js"
   ],
   "/js/public/tools/page.js": [
     "/js/public/tools/page.js",

@@ -16,6 +16,9 @@ return [
     // The guides: <language>/<slug>.md (App\Support\Legal\LegalText).
     'guides' => resource_path('guides'),
 
+    // The songs' stories: <slug>.md and <language>/<slug>.md, beside the songs (App\Support\Pages\SongStories).
+    'stories' => database_path('templates/stories'),
+
     // What's new, newest first (App\Support\Site\WhatsNew).
     'whats_new' => resource_path('whats-new/en.json'),
 

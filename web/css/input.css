@@ -1341,6 +1341,18 @@ select:disabled {
 .s-menu-panel { position: absolute; inset-inline-end: 0; top: calc(100% + 8px); z-index: 30; width: min(280px, calc(100vw - 32px)); display: grid; padding: 8px; border-radius: 20px; background: var(--color-panel); border: 1px solid var(--color-line); box-shadow: 0 20px 50px color-mix(in srgb, var(--color-cream) 14%, transparent); }
 .s-menu-panel a, .s-menu-panel button { display: flex; align-items: center; gap: 10px; min-height: 48px; padding-inline: 12px; border-radius: 12px; font-weight: 650; color: var(--color-cream); text-align: start; cursor: pointer; }
 .s-menu-panel a:hover, .s-menu-panel button:hover { background: var(--color-raised); }
+/* The language menu (LanguageMenu; Hillel, 2026-11-12: "Header switcher"): a globe and the language's code, never
+   wrapping, in the bar at every width from 320 px; its panel lists each language by its own name. */
+.s-lang { position: relative; flex: none; }
+.s-lang summary { list-style: none; }
+.s-lang summary::-webkit-details-marker { display: none; }
+.s-langbtn { @apply glass-bubble; height: 44px; min-width: 44px; padding-inline: 10px; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; gap: 5px; color: var(--color-muted); font-size: 13px; font-weight: 750; letter-spacing: .04em; white-space: nowrap; cursor: pointer; }
+.s-langbtn:hover, .s-lang[open] > .s-langbtn { color: var(--color-cream); }
+.s-langbtn > svg { flex: none; }
+.s-lang-panel { position: absolute; inset-inline-end: 0; top: calc(100% + 8px); z-index: 30; min-width: 168px; display: grid; padding: 8px; border-radius: 20px; background: var(--color-panel); border: 1px solid var(--color-line); box-shadow: 0 20px 50px color-mix(in srgb, var(--color-cream) 14%, transparent); }
+.s-lang-panel a { display: flex; align-items: center; min-height: 48px; padding-inline: 12px; border-radius: 12px; font-weight: 650; color: var(--color-cream); white-space: nowrap; }
+.s-lang-panel a:hover, .s-lang-panel a:focus-visible { background: var(--color-raised); }
+.s-lang-panel a[aria-current="true"] { background: var(--color-raised); font-weight: 800; }
 .s-banner { background: var(--color-raised); border-bottom: 1px solid var(--color-line); }
 .s-banner p { display: flex; flex-wrap: wrap; align-items: center; gap: 0 12px; min-height: 48px; padding-block: 6px; font-size: 14.5px; line-height: 1.4; }
 .s-banner .s-lk { white-space: nowrap; }
@@ -1369,6 +1381,20 @@ select:disabled {
 .s-play::after { content: ''; position: absolute; inset: -6px; border-radius: inherit; border: 3px solid transparent; pointer-events: none; }
 [data-loading] .s-play { opacity: 1; }
 [data-loading] .s-play::after { border-color: color-mix(in oklab, var(--primary) 22%, transparent); border-top-color: var(--primary); animation: s-turn .8s linear infinite; }
+/* Playing a whole song (Hillel: "let's always play the full songs"): a thin ring round Play fills with the song's
+   progress (--p on the player, js/public/mixer.js), whatever the button's shape in either skin. A load that's slow
+   shows a quiet hint under the button, and a failure says so in the same place, its ring the warning colour
+   (js/public/play-state.js; Hillel: "make sure there is instant feedback if we need to load"). */
+[data-playing] .s-play::after { border: 0; padding: 3px; background: conic-gradient(var(--primary) calc(var(--p, 0) * 1turn), color-mix(in oklab, var(--primary) 20%, transparent) 0); -webkit-mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0); mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0); -webkit-mask-composite: xor; }
+[data-failed] .s-play::after { border-color: var(--color-warn, #c2410c); }
+.s-play-hint { position: absolute; top: calc(100% + 8px); inset-inline-end: 0; z-index: 3; padding: 4px 10px; border-radius: 999px; background: var(--color-panel); box-shadow: 0 2px 10px rgb(0 0 0 / .18); color: var(--color-muted); font-size: 12px; font-weight: 600; line-height: 1.3; white-space: nowrap; pointer-events: none; }
+.s-play-hint:empty { display: none; }
+[data-failed] .s-play-hint { color: var(--color-cream); }
+.s-mix-head .s-play-hint, [data-ui="part-play"] .s-play-hint { inset-inline-end: auto; inset-inline-start: 0; }
+/* A song card's part rows follow the song: the part singing now is lit. */
+.s-xpart { transition: background-color .15s; }
+[data-playing] .s-xpart[data-sounding] { background: color-mix(in srgb, var(--color-cream) 7%, transparent); }
+@media (prefers-reduced-motion: reduce) { .s-xpart { transition: none; } }
 .s-mix-head .s-t > .s-mix-loading { color: var(--color-cream); font-weight: 650; }
 [data-loading] .s-mix-head .s-t > .s-mix-meta { display: none; }
 @keyframes s-turn { to { transform: rotate(1turn); } }
@@ -1582,6 +1608,11 @@ select:disabled {
 .s-foot-h { font-size: 13px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--color-cream); margin-bottom: 4px; }
 .s-foot-legal { margin-top: 36px; padding-top: 20px; border-top: 1px solid var(--color-line); font-size: 13px; }
 .s-flink { display: inline-flex; align-items: center; min-height: 44px; font-weight: 500; color: var(--color-muted); }
+
+/* With the language menu the bar needs about 410 px: on a narrower phone the mark stands for the name, as below 360. */
+@media (max-width: 459px) {
+    .s-top:has(> .s-lang) .s-brand .s-word { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+}
 
 @media (max-width: 359px) {
     .s-brand .s-word { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
@@ -2187,6 +2218,64 @@ select:disabled {
 .s-tool-how li::before { content: counter(how); display: grid; place-items: center; width: 28px; height: 28px; border-radius: 99px; background: var(--color-raised); color: var(--color-cream); font-size: 14px; font-weight: 750; }
 :root[data-skin="game"] body.s-arcade .s-tool-how li::before { border-radius: 0; }
 .s-tool-related { margin-top: 24px; }
+/* The tools hub (Hillel's tools page, 2026-11-12): the search and the groups as chips, Most used with its drawings, then each
+   group: its name and line at left, its tools at right from 900 px. Labels never wrap. */
+.s-th-search { max-width: 420px; }
+/* Hidden by the search or a chip (js/public/tools/hub.js): the sections' own display mustn't keep them showing. */
+.s-th-grp[hidden], .s-th-most-wrap[hidden], .s-th-none[hidden], .s-th-list > li[hidden] { display: none; }
+.s-th-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+.s-th-chips .s-sh-filter.is-on { border-color: var(--color-cream); background: var(--color-cream); color: var(--color-ink); }
+.s-th-chips .s-sh-filter.is-on span { color: inherit; opacity: .7; }
+.s-th-chips .s-sh-filter i { background: var(--c, var(--color-muted)); }
+.s-th-label { font-size: 12.5px; font-weight: 750; letter-spacing: .12em; text-transform: uppercase; color: var(--color-muted); }
+.s-th-most-wrap { padding-top: 36px; }
+.s-th-most { display: grid; gap: 14px; margin-top: 14px; }
+@media (min-width: 760px) { .s-th-most { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.s-th-big { display: flex; flex-direction: column; gap: 8px; height: 100%; padding: 16px; border: 1px solid var(--color-line); border-radius: 22px; background: var(--color-panel); }
+.s-th-big:hover { border-color: var(--color-muted); }
+.s-th-pic { display: grid; place-items: center; gap: 12px; min-height: 112px; margin-bottom: 6px; padding: 18px 14px; border-radius: 14px; background: color-mix(in srgb, var(--color-cream) 7%, var(--color-panel)); }
+/* The reading and its word each stay whole, and the word drops under the reading when both don't fit (Spanish in the game
+   skin's wider face at 768: "Sol3–Re5" and "Contralto"). */
+.s-th-pic-read { display: inline-flex; flex-wrap: wrap; align-items: baseline; gap: 2px 6px; max-width: 100%; }
+.s-th-pic-read > * { white-space: nowrap; }
+.s-th-pic-read b { font-size: 32px; line-height: 1; font-weight: 800; letter-spacing: -.02em; color: var(--color-cream); }
+.s-th-pic-read em { font-style: normal; font-size: 13px; font-weight: 650; color: var(--color-muted); }
+.s-th-pic-read .s-th-good { color: var(--color-good); }
+.s-th-pic-read .s-th-part { color: var(--color-part-4); }
+.s-th-ticks { display: flex; align-items: center; gap: 9px; height: 24px; }
+.s-th-ticks i { width: 1px; height: 14px; background: var(--color-muted); opacity: .7; }
+.s-th-ticks i.is-on { width: 3px; height: 24px; border-radius: 2px; background: var(--color-good); opacity: 1; }
+.s-th-beats { display: flex; gap: 10px; }
+.s-th-beats i { width: 11px; height: 11px; border-radius: 50%; background: var(--color-line); }
+.s-th-beats i.is-on { width: 15px; height: 15px; margin-block: -2px; background: var(--color-part-1); }
+.s-th-keys { display: flex; border: 1px solid var(--color-line); border-radius: 3px; overflow: hidden; }
+.s-th-keys i { width: 11px; height: 18px; border-inline-end: 1px solid var(--color-line); background: var(--color-cream); opacity: .9; }
+.s-th-keys i:last-child { border-inline-end: 0; }
+.s-th-keys i.is-on { background: var(--color-part-4); opacity: 1; }
+/* Open drops under the name when both don't fit (the game skin's wider face at 768: "Vocal range test"), and a name longer
+   than its card (Spanish there) wraps between words: a card's heading, not a label. */
+.s-th-big-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 4px 10px; }
+.s-th-big-head b { min-width: 0; font-size: 18px; font-weight: 750; text-wrap: balance; }
+.s-th-open { display: inline-flex; align-items: center; gap: 4px; font-size: 14px; font-weight: 650; white-space: nowrap; }
+.s-th-line { font-size: 14.5px; line-height: 1.45; color: var(--color-muted); }
+.s-th-groups { padding-top: 28px; }
+.s-th-grp { display: grid; gap: 14px; padding-block: 26px; border-top: 1px solid var(--color-line); }
+@media (min-width: 900px) { .s-th-grp { grid-template-columns: 240px minmax(0, 1fr); gap: 28px; } }
+.s-th-grp-head h2 { display: flex; align-items: center; gap: 9px; font-size: 19px; line-height: 1.2; font-weight: 800; white-space: nowrap; }
+.s-th-grp-head h2 i { flex: none; width: 9px; height: 9px; border-radius: 50%; background: var(--c); }
+.s-th-grp-head p { margin-top: 6px; font-size: 14.5px; line-height: 1.45; color: var(--color-muted); max-width: 32ch; }
+.s-th-list { display: grid; gap: 10px; align-content: start; }
+@media (min-width: 640px) { .s-th-list { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (min-width: 1100px) { .s-th-list { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.s-th-card { display: flex; flex-direction: column; gap: 6px; height: 100%; min-height: 44px; padding: 14px 16px; border: 1px solid var(--color-line); border-radius: 16px; background: var(--color-panel); }
+.s-th-card:hover { border-color: var(--color-muted); }
+.s-th-card-top { display: flex; align-items: center; gap: 8px; }
+.s-th-card-top b { flex: 1; min-width: 0; font-size: 15.5px; font-weight: 700; }
+.s-th-card-top svg { flex: none; color: var(--color-muted); }
+.s-th-mic { flex: none; padding: 2px 7px; border-radius: 999px; background: color-mix(in srgb, var(--color-cream) 10%, var(--color-panel)); font-size: 10.5px; font-weight: 750; letter-spacing: .08em; text-transform: uppercase; color: var(--color-muted); white-space: nowrap; }
+.s-th-none { padding-block: 22px; border-top: 1px solid var(--color-line); color: var(--color-muted); }
+.s-th-warmups { padding-top: 22px; border-top: 1px solid var(--color-line); color: var(--color-muted); }
+.s-th-warmups .s-lk { display: inline-flex; align-items: center; gap: 4px; }
 .s-tool-also { margin-top: 16px; font-size: 15px; }
 .s-tool-also a { white-space: nowrap; }
 .s-tool-guide h2 { font-size: 20px; font-weight: 800; }
@@ -2517,16 +2606,21 @@ a.s-vt-rung:hover { background: color-mix(in srgb, var(--color-cream) 5%, transp
 .s-xfilter-menu { display: none; min-height: 44px; padding: 0 36px 0 16px; border-radius: 999px; background: var(--color-raised); color: var(--color-cream); font-size: 16px; font-weight: 700; }
 @media (max-width: 639px) { .s-xfilter-seg { display: none; } .s-xfilter-menu { display: block; } }
 .s-xcards { display: grid; gap: 20px; }
-@media (min-width: 1024px) { .s-xcards { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+/* Two across from 600 px, three from 900, never more (Hillel, 2026-11-12: "keep it to 3 songs per row"). When three would
+   leave one card alone on the last row (7, 10, 13, 16), the last four sit two and two (s-xcards-tail, the songbook's count
+   rule): a grid of six columns, each card two, those four three. */
+@media (min-width: 600px) { .s-xcards { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (min-width: 900px) { .s-xcards { grid-template-columns: repeat(6, minmax(0, 1fr)); } .s-xcards > * { grid-column: span 2; }
+    .s-xcards-tail > :nth-last-child(-n+4) { grid-column: span 3; } }
 .s-xcard { position: relative; overflow: hidden; display: flex; flex-direction: column; gap: 14px; padding: 26px 24px 20px; border-radius: 22px; background: var(--color-panel); border: 1px solid var(--color-line); scroll-margin-top: 24px; }
-.s-xcard::before { content: ''; position: absolute; inset: 0 0 auto; height: 5px; background: var(--rib); }
+/* No ribbon in the serious skin (Hillel's redesign dropped it; game mode keeps its neon frames from --rib). */
 .s-xrib1 { --rib: #B3263A; } .s-xrib2 { --rib: #1F7A58; } .s-xrib3 { --rib: #B8892B; }
 .s-xcard-top { display: flex; align-items: center; gap: 8px; }
-.s-xno { margin-right: auto; font-size: 22px; color: color-mix(in srgb, var(--rib) 55%, var(--color-cream)); }
+.s-xno { margin-right: auto; font-size: 17px; color: var(--color-muted); }
 .s-xplace { padding: 4px 10px; border-radius: 999px; background: var(--color-raised); font-size: 12.5px; font-weight: 700; color: var(--color-muted); white-space: nowrap; }
 .s-xcard .s-play { width: 44px; height: 44px; }
 .s-xcard .s-play svg { width: 18px; height: 18px; }
-.s-xcard h3 { font-size: 24px; line-height: 1.15; font-weight: 800; letter-spacing: -0.015em; text-wrap: balance; }
+.s-xcard h3 { font-size: 25px; line-height: 1.15; font-weight: 800; letter-spacing: -0.015em; text-wrap: balance; }
 .s-xcoll-in { padding-top: 32px; }
 .s-xcoll-intro { margin-top: 12px; max-width: 64ch; font-size: 16.5px; line-height: 1.6; color: var(--color-muted); }
 /* A collection's song to try beside its heading (the width design): a wider right column than the countdown's, the card
@@ -2536,7 +2630,7 @@ a.s-vt-rung:hover { background: color-mix(in srgb, var(--color-cream) 5%, transp
    them unreadable, and so did game mode's light themes). */
 .s-xcoll-try { --color-panel: var(--tl); --color-raised: color-mix(in srgb, var(--tl), #fff 7%); --color-line: rgba(247, 241, 230, .14); --color-edge: rgba(247, 241, 230, .14); }
 .s-xcoll-try .s-mix-foot { background: var(--tb); }
-@media (min-width: 900px) { .s-xhero-in.s-xcoll-has-try { grid-template-columns: minmax(0, 1fr) 420px; align-items: start; } }
+@media (min-width: 900px) { .s-xhero-in.s-xcoll-has-try, .s-xhero-in:has(> .s-jcount) { grid-template-columns: minmax(0, 1fr) 420px; align-items: start; } }
 @media (min-width: 1200px) { .s-xhero-in.s-xcoll-has-try { grid-template-columns: minmax(0, 1fr) 460px; gap: 64px; } }
 .s-songs-colls { display: flex; flex-wrap: wrap; gap: 8px 24px; }
 .s-songs-jump { display: flex; flex-wrap: wrap; gap: 6px 22px; margin-top: 18px; font-size: 15px; }
@@ -2544,19 +2638,36 @@ a.s-vt-rung:hover { background: color-mix(in srgb, var(--color-cream) 5%, transp
 .s-songs-n { margin-left: 6px; color: var(--color-muted); font-weight: 600; }
 .s-xmeta { flex: 1; font-size: 14.5px; font-weight: 600; color: var(--color-muted); }
 /* Its parts as rows: the dot, the name (and MELODY), the range lined up, an arrow to the part's page. */
-.s-xparts { display: grid; gap: 6px; }
-.s-xpart { display: grid; grid-template-columns: 8px minmax(0, 1fr) auto 16px; align-items: center; gap: 0 12px; min-height: 44px; padding: 8px 12px; border-radius: 12px; border: 2px solid transparent; background: color-mix(in srgb, var(--c) 14%, var(--color-panel)); transition: opacity .2s, border-color .15s; }
-.s-xpart > i { width: 8px; height: 8px; border-radius: 50%; background: var(--c); }
+/* Plain rows with a hairline between (Hillel's redesign): the name with MELODY under it, the range bar on the songbook's
+   one scale (Carols::SCALE, middle C a faint line), the range in words, an arrow. The whole row links its part's page. */
+.s-xparts { display: grid; }
+.s-xparts li + li { border-top: 1px solid var(--color-line); }
+.s-xpart { display: grid; grid-template-columns: 4.7em minmax(44px, 1fr) auto 14px; align-items: center; gap: 0 10px; min-height: 44px; padding: 6px 6px; margin-inline: -6px; border-radius: 10px; border: 2px solid transparent; transition: opacity .2s, border-color .15s; }
+.s-xpart > i { display: none; }
 .s-xpart b { font-size: 15px; }
+.s-xbar { position: relative; height: 6px; border-radius: 3px; background: color-mix(in srgb, var(--color-cream) 13%, var(--color-panel)); }
+.s-xbar::before { content: ''; position: absolute; left: var(--mid); top: -4px; bottom: -4px; width: 1px; background: color-mix(in srgb, var(--color-cream) 35%, transparent); }
+.s-xbar i { position: absolute; top: 0; bottom: 0; left: var(--lo); right: calc(100% - var(--hi)); min-width: 6px; border-radius: 3px; background: var(--ci); transition: opacity .2s; }
 .s-xpart > svg { color: var(--color-muted); }
 /* The name and its melody tag wrap onto two lines when the row is short of room (the arcade font on a small phone), never under the range. */
-.s-xpart-name { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 6px; min-width: 0; }
+.s-xpart-name { display: grid; min-width: 0; line-height: 1.2; }
 .s-xmel { font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--ci); }
-.s-xrange { font-size: 14px; color: var(--color-muted); font-variant-numeric: tabular-nums; }
+.s-xrange { font-size: 13.5px; white-space: nowrap; color: var(--color-muted); font-variant-numeric: tabular-nums; }
 .s-xpart:hover, .s-xpart:focus-visible, .s-xpart[data-sung] { border-color: var(--color-cream); }
-.s-xpart[data-faded] { opacity: .4; }
+/* Another part picked in "I sing": its bar dims, its words stay readable (the UX review: never under AA). */
+.s-xpart[data-faded] .s-xbar i { opacity: .3; }
 .s-xmore { align-self: flex-start; font-size: 14.5px; }
 .s-xmore svg { display: inline-block; vertical-align: -3px; }
+.s-xbook-note { margin-top: 6px; max-width: 54ch; font-size: 14.5px; color: var(--color-muted); }
+/* Under the cards: what the bars show, and a way to ask for another song. */
+.s-xbook-foot { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px 24px; margin-top: 16px; font-size: 14px; color: var(--color-muted); }
+/* Where the songs come from: the intro, after the songs, its heading at left from 900 px. */
+.s-xfrom { display: grid; gap: 18px; }
+.s-xfrom h2 { font-size: clamp(28px, 3.6vw, 40px); line-height: 1.1; font-weight: 800; letter-spacing: -0.02em; text-wrap: balance; }
+.s-xfrom h2 em { font-weight: 400; }
+.s-xfrom p { max-width: 65ch; font-size: 17px; line-height: 1.65; color: var(--color-muted); }
+.s-xfrom p + p { margin-top: 14px; }
+@media (min-width: 900px) { .s-xfrom { grid-template-columns: minmax(0, 2fr) minmax(0, 3fr); gap: 64px; padding-top: 48px; margin-top: 64px; border-top: 1px solid var(--color-line); } }
 /* The band for choir directors: plain out of season, the season's red in it. */
 .s-xchoirs { margin-top: 56px; }
 .s-xband { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 24px 32px; padding: 36px 40px; border-radius: 28px; background: var(--color-panel); border: 1px solid var(--color-line); }
@@ -2585,9 +2696,20 @@ a.s-vt-rung:hover { background: color-mix(in srgb, var(--color-cream) 5%, transp
 /* The Jewish songs page's countdown to its next festival (site/collection, JewishSongs::festival): a card on its hero. */
 .s-jcount { align-self: end; padding: 22px 24px; border-radius: 22px; background: var(--tl); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ta) 40%, transparent); }
 .s-jcount-k { font-size: 12.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--ta); }
-.s-jcount-n { margin-top: 6px; font-size: 44px; line-height: 1.05; color: var(--ta); }
-.s-jcount-line { margin-top: 8px; font-size: 17px; font-weight: 600; }
-.s-jcount-date { margin-top: 4px; font-size: 14px; color: var(--tm); }
+/* Hillel's redesign: the festival large at left, the days large at right over its first sundown, then its songs. */
+.s-jcount-top { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 8px 20px; margin-top: 10px; }
+.s-jcount-n { font-size: 42px; line-height: 1.05; color: var(--ta); }
+.s-jcount-when { text-align: end; }
+.s-jcount-d { font-size: 32px; line-height: 1; font-weight: 800; letter-spacing: -0.02em; }
+.s-jcount-date { margin-top: 6px; font-size: 14px; color: var(--tm); }
+.s-jcount-learn { margin-top: 18px; padding-top: 14px; border-top: 1px solid rgba(247, 241, 230, .16); font-size: 14px; color: var(--tm); }
+.s-jcount-songs { margin-top: 4px; }
+.s-jcount-songs li + li { border-top: 1px solid rgba(247, 241, 230, .12); }
+.s-jcount-songs a { display: flex; align-items: center; gap: 10px; min-height: 44px; }
+.s-jcount-songs b { flex: 1; font-size: 16px; }
+.s-jcount-songs span { font-size: 14px; color: var(--tm); }
+.s-jcount-songs svg { flex: none; color: var(--ta); }
+.s-jcount-songs a:hover b { text-decoration: underline; text-underline-offset: 3px; }
 .s-tone {
     --color-cream: #F7F1E6; --color-muted: var(--tm); --color-accent: var(--ta); --primary-hover-to: #000;
     --btn-soft: rgba(247, 241, 230, .12); --btn-soft-hover: rgba(247, 241, 230, .2); --btn-soft-active: rgba(247, 241, 230, .26);
@@ -2601,6 +2723,17 @@ a.s-vt-rung:hover { background: color-mix(in srgb, var(--color-cream) 5%, transp
 .s-xhero.s-tone { border-radius: 0 0 36px 36px; }
 .s-xhero.s-tone .s-xhero-in { position: relative; z-index: 1; padding-top: 48px; }
 @media (max-width: 639px) { .s-xhero.s-tone .s-tone-motif { height: 64px; } .s-xhero.s-tone .s-xhero-in { padding-top: 88px; } }
+/* The Jewish songs' hanukkiah (App\Support\Pages\Hanukkiah) in the top-right corner of the next festival's card while
+   that's Hanukkah (Hillel, 2026-11-12: "make it a bit smaller, show in top right corner of the next festival box"); the
+   card's words keep clear of it, and the hero draws no motif of its own. Its unlit candles (js/public/hanukkiah.js) keep
+   their wicks. Game mode draws the pixel lamp. */
+.s-jcount { position: relative; }
+.s-hk-card { position: absolute; top: 16px; right: 18px; width: auto; height: 60px; aspect-ratio: 240 / 152; pointer-events: none; }
+.s-jcount-lamp > .s-jcount-k, .s-jcount-lamp > .s-jcount-top { padding-right: 100px; }
+@media (max-width: 639px) { .s-hk-card { top: 14px; right: 14px; height: 48px; } .s-jcount-lamp > .s-jcount-k, .s-jcount-lamp > .s-jcount-top { padding-right: 80px; } }
+.s-hk [data-unlit] .s-hk-flame, .s-hk .s-hk-game { display: none; }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-hk .s-hk-serious { display: none; }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-hk .s-hk-game { display: inline; }
 /* /songs (public/songs, SongsHub): the promise and the swatches, the season's band, the panels, then every song. */
 .s-sh-hero { display: grid; gap: 28px; padding-top: 32px; }
 .s-sh-hero h1 { margin-top: 10px; font-size: clamp(36px, 9vw, 60px); line-height: 1.04; letter-spacing: -.025em; }
@@ -2665,10 +2798,13 @@ a.s-vt-rung:hover { background: color-mix(in srgb, var(--color-cream) 5%, transp
 .s-sh-grid-head h2 { margin-top: 8px; font-size: clamp(28px, 6vw, 40px); line-height: 1.1; letter-spacing: -.02em; text-wrap: balance; }
 .s-sh-grid-head h2 em { white-space: nowrap; }
 .s-sh-grid-note { color: var(--color-muted); }
+.s-sh-choirs { margin-top: 8px; }
+.s-sh-choirs svg { display: inline-block; vertical-align: -3px; }
 .s-sh-grid { display: grid; gap: 16px; margin-top: 24px; }
 .s-sh-panel { border-radius: 22px; box-shadow: inset 0 0 0 1px rgba(247, 241, 230, .08); }
 /* Inset from the corners, so no rounded corner cuts it. */
 .s-sh-panel .s-tone-motif { top: 10px; right: 22px; width: calc(100% - 44px); height: 30px; }
+.s-sh-panel .s-tone-motif.s-hk { top: 8px; right: 22px; width: auto; height: 44px; aspect-ratio: 240 / 152; opacity: .94; }
 .s-sh-panel-in { position: relative; z-index: 1; padding: 44px 20px 20px; }
 .s-sh-panel-top { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
 .s-sh-panel h3 { font-size: clamp(24px, 6vw, 30px); line-height: 1.1; letter-spacing: -.02em; }
@@ -2724,6 +2860,8 @@ a.s-vt-rung:hover { background: color-mix(in srgb, var(--color-cream) 5%, transp
     .s-sh-season .s-sh-band-in { padding: 64px 16px 48px; }
     .s-sh-season .s-xsnow { -webkit-mask-image: linear-gradient(to right, transparent 0 42%, #000 58%); mask-image: linear-gradient(to right, transparent 0 42%, #000 58%); }
     .s-sh-flip .s-tone-motif { right: auto; left: 0; transform: scaleX(-1); }
+    /* The lamp is never mirrored: night 1's candle stays on the right as you face it. */
+    .s-sh-flip .s-tone-motif.s-hk { right: auto; left: 22px; transform: none; }
     .s-sh-words { align-self: end; }
     .s-sh-all { align-self: start; }
     .s-sh-letters { columns: 4; }
@@ -9586,7 +9724,9 @@ a.s-vt-rung:hover { background: color-mix(in srgb, var(--color-cream) 5%, transp
 :root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-xno { font-family: var(--a-hud); font-style: normal; font-size: 10px; white-space: nowrap; text-transform: uppercase; color: color-mix(in srgb, var(--neon) 85%, var(--color-cream)); } /* a touch of the words' colour: AA on every theme's well */
 :root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-xcard .s-play { background: var(--neon); color: var(--arc-bg); box-shadow: 3px 3px 0 var(--arc-line); }
 :root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-xparts { padding-top: 12px; border-top: var(--arc-edge-w) dashed var(--arc-line); }
-:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-xpart { grid-template-columns: 10px minmax(0, 1fr) auto 16px; background: transparent; }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-xpart { grid-template-columns: 10px 4.7em minmax(40px, 1fr) auto 16px; background: transparent; }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-xpart > i { display: block; }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) :is(.s-xbar, .s-xbar i) { border-radius: 0; }
 :root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-xpart:hover { background: var(--arc-panel); }
 :root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-xpart > i { width: 10px; height: 10px; border-radius: 0; }
 :root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-xpart > svg { color: var(--ci); }
@@ -9814,8 +9954,9 @@ a.s-vt-rung:hover { background: color-mix(in srgb, var(--color-cream) 5%, transp
 /* The tools' frame (marketing's _brand-row and the Theme menu; docs/tools-plan.md, "Tool page frame": "Game: the pixel
    wordmark with its pink shadow, a square Theme button with a hard shadow"): the row's wordmark in the pixel face, the
    Theme button and its menu square and framed, the menu's light/dark switch as the arcade's segmented control. */
-:root[data-skin='game'][data-gs] body.s-arcade :is(.s-tmenu > .s-iconbtn, .s-top .s-iconbtn) { border-radius: 0; background: var(--arc-panel); box-shadow: inset 0 0 0 var(--arc-edge-w) var(--arc-purple), var(--arc-shadow); }
-:root[data-skin='game'][data-gs] body.s-arcade .s-tmenu-panel { border-radius: 0; border: var(--arc-edge-w) solid var(--arc-purple); background: var(--arc-panel); box-shadow: var(--arc-shadow); }
+:root[data-skin='game'][data-gs] body.s-arcade :is(.s-tmenu > .s-iconbtn, .s-top .s-iconbtn, .s-top .s-langbtn) { border-radius: 0; background: var(--arc-panel); box-shadow: inset 0 0 0 var(--arc-edge-w) var(--arc-purple), var(--arc-shadow); }
+:root[data-skin='game'][data-gs] body.s-arcade .s-lang-panel a { border-radius: 0; }
+:root[data-skin='game'][data-gs] body.s-arcade :is(.s-tmenu-panel, .s-lang-panel) { border-radius: 0; border: var(--arc-edge-w) solid var(--arc-purple); background: var(--arc-panel); box-shadow: var(--arc-shadow); }
 :root[data-skin='game'][data-gs] body.s-arcade .s-tmenu :is(.s-seg2, .s-seg2 button, .s-tmenu-sw) { border-radius: 0; }
 :root[data-skin='game'][data-gs] body.s-arcade .s-tmenu .s-seg2 { background: var(--arc-panel); box-shadow: inset 0 0 0 var(--arc-edge-w) var(--color-cream), var(--arc-shadow); }
 /* Below a tool (marketing's About panel and More free tools; docs/tools/below-the-fold.md, "Both skins"): the panel

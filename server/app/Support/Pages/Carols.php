@@ -17,6 +17,16 @@ use Illuminate\Support\Carbon;
  */
 final class Carols
 {
+    /**
+     * The songbook's one scale for every part's range bar, on every collection and the carols page (the UX review of
+     * Hillel's Jewish Songs redesign, 2026-11-12: one shared scale, so a bar means the same notes on every page): E2 to
+     * G5, MIDI 40 to 79, the lowest and highest notes of any open part (SongbookScaleTest checks every one fits), and
+     * middle C (60) marked on it.
+     */
+    public const SCALE = [40, 79];
+
+    public const MIDDLE_C = 60;
+
     public const PATH = '/songs/christmas-carols';
 
     public const VIEW = 'site.carols';
@@ -48,7 +58,7 @@ final class Carols
      * Each open carol: its title and page, where it comes from (the first sentence of its part pages' About, checked
      * by the courses lead), and its parts, each to its own page.
      *
-     * @return list<array{slug: string, title: string, url: string, from: string|null, line: array<string, mixed>|null, meta: list<string>, parts: list<array{key: string, name: string, melody: bool, lowName: string, highName: string, url: string}>}>
+     * @return list<array{slug: string, title: string, url: string, from: string|null, line: array<string, mixed>|null, meta: list<string>, level: string|null, parts: list<array{key: string, name: string, melody: bool, low: int, high: int, lowName: string, highName: string, url: string}>}>
      */
     public function songs(): array
     {
@@ -73,7 +83,7 @@ final class Carols
      * A song as a card in a songbook (this page, and the collections, SongCollections): its title and page, where it
      * comes from, its opening line to play, its line from the song file, and its parts, each to its own page.
      *
-     * @return array{slug: string, title: string, url: string, from: string|null, line: array<string, mixed>|null, meta: list<string>, parts: list<array{key: string, name: string, melody: bool, lowName: string, highName: string, url: string}>}
+     * @return array{slug: string, title: string, url: string, from: string|null, line: array<string, mixed>|null, meta: list<string>, level: string|null, parts: list<array{key: string, name: string, melody: bool, low: int, high: int, lowName: string, highName: string, url: string}>}
      */
     public static function card(Template $template): array
     {
@@ -93,8 +103,12 @@ final class Carols
             // Its key, how much of it there is and its level, from the song file: "G major · Verse 1 · Beginner"
             // (the UX review of Hillel's second mockup, 2026-11-10). Never a length: the files don't give one.
             'meta' => self::meta((array) $template->currentVersion?->data),
+            // Its level alone, for a list that names only that (the Jewish page's next-festival card).
+            'level' => self::level((array) $template->currentVersion?->data),
             'parts' => array_map(static fn (array $part): array => [
                 'key' => $part['key'], 'name' => $part['name'], 'melody' => $part['melody'] && ! $round,
+                // Its lowest and highest notes (MIDI), for its range bar on the songbook's one scale (SCALE).
+                'low' => $part['low'], 'high' => $part['high'],
                 'lowName' => self::signs($part['lowName']), 'highName' => self::signs($part['highName']), 'url' => $url.'/'.$part['key'],
             ], SongParts::parts($template)),
         ];
@@ -125,11 +139,22 @@ final class Carols
         if ($coverage !== null) {
             $line[] = (string) __('site.carols.coverage.'.$coverage);
         }
-        if (is_string($data['difficulty'] ?? null) && trans()->has('site.carols.levels.'.$data['difficulty'])) {
-            $line[] = (string) __('site.carols.levels.'.$data['difficulty']);
+        $level = self::level($data);
+        if ($level !== null) {
+            $line[] = $level;
         }
 
         return $line;
+    }
+
+    /**
+     * A song's level in the page's words ("Beginner"), when its file says.
+     *
+     * @param  array<string, mixed>  $data
+     */
+    public static function level(array $data): ?string
+    {
+        return is_string($data['difficulty'] ?? null) && trans()->has('site.carols.levels.'.$data['difficulty']) ? (string) __('site.carols.levels.'.$data['difficulty']) : null;
     }
 
     /** A note's name with real flat and sharp signs ("Eb5" to "E♭5", "F#2" to "F♯2"), as the music font draws them, in the page's language's names. */

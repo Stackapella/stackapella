@@ -1,15 +1,13 @@
-// What needs Hillel now (the coordinator's guide workflow ask; contract admin.beta.needs.show,
-// admin.beta.guides.list's per-part `needs`, admin.beta.assignments.again), to get real voices live
-// after a deploy. Two pieces:
-// - NeedsCard, the top of Admin Home: each song, then its parts with chips (takes to review, Changed,
-//   No singer). A song where no part has a singer yet says so once, not part by part.
-// - PartNeeds, each part on Admin > Guides: the same chips, the singers asked and where they stand, and
-//   Ask again for a singer who recorded an older version: one tap (the server's own note), or with a
+// What needs Hillel now (the coordinator's guide workflow ask; admin.beta.guides.list's per-part `needs`,
+// admin.beta.assignments.again). Two pieces:
+// - NeedsCard, the top of Admin Home: only what needs him now (outreach waiting, the week's worst drop-offs, the site's
+//   sync and sitemap problems). The voices aren't in it, nor its total (Hillel, 2026-11-12: "dont include voices in what
+//   needs you now"): every song's parts lacking singers isn't a need of the day. They stay on Library > Guides, and a
+//   take waiting for him is on Inbox > Review.
+// - PartNeeds, each part on Admin > Guides: chips (takes to review, Changed, No singer), the singers asked and where
+//   they stand, and Ask again for a singer who recorded an older version: one tap (the server's own note), or with a
 //   note of Hillel's.
-// The nav's Guides count is the parts that need a voice (changed, or no singer), from the same store;
-// takes to review are counted on Review already.
 
-import { reactive } from 'vue';
 import { api } from '../api.js';
 import { formatNumber, t, tk } from '../i18n.js';
 import { navigate } from '../router.js';
@@ -66,29 +64,6 @@ const NeedLines = {
     },
 };
 
-/** The needs, shared by the card and the nav's count: `data` once loaded, `failed` when it wasn't. */
-export const needs = reactive({ data: null, failed: false });
-
-/** The parts that need a voice: changed since their recording, or with no singer. */
-export function partsNeeding(data) {
-    return (data?.templates ?? []).reduce((sum, song) => sum + song.parts.filter((p) => p.needs.changed || p.needs.unassigned).length, 0);
-}
-
-/** A song where not one part has a singer: said once ("No singers yet"), not part by part. */
-export const noSingers = (song) => song.parts.length > 0 && song.parts.every((p) => p.needs.unassigned && !p.needs.singers.length && !p.needs.review.length);
-
-/** Loads (or reloads) what needs Hillel; a failure keeps the last answer and says so. */
-export async function loadNeeds() {
-    try {
-        needs.data = (await api.admin.beta.guides.needs()).data;
-        needs.failed = false;
-    } catch (error) {
-        console.warn('What needs you did not load', error);
-        needs.failed = true;
-    }
-    return needs.data;
-}
-
 /** A part's chips: takes to review (to the queue), Changed, No singer. */
 export const NeedChips = {
     components: { StatusChip },
@@ -101,22 +76,24 @@ export const NeedChips = {
 };
 
 export const NeedsCard = {
-    components: { DropoffLine, Icon, LoadFailed, NeedChips, NeedLines, SharingPanel, StatusChip },
+    components: { DropoffLine, Icon, LoadFailed, NeedLines, SharingPanel },
     // Outreach's follow-ups due and replies to read (admin.overview's outreach: null for an editor), and the songs the last
     // deploy's sync couldn't load (admin.overview's songsNotSynced: the file and why, a line each; empty when it was clean),
     // and what the weekly sitemap check last found (sitemapProblems: a page search can't index and why; "and N more").
     // For an admin, the week's three worst drop-offs and how sharing went (admin.dropoffs.show, admin.sharing.show), asked here.
-    props: { outreach: { type: Object, default: null }, notSynced: { type: Array, default: () => [] }, sitemap: { type: Array, default: () => [] }, admin: { type: Boolean, default: false } },
+    // `loaded` once the overview came, `failed` when it didn't (the shell's ask; retry asks again).
+    props: { outreach: { type: Object, default: null }, notSynced: { type: Array, default: () => [] }, sitemap: { type: Array, default: () => [] }, admin: { type: Boolean, default: false }, loaded: { type: Boolean, default: false }, failed: { type: Boolean, default: false } },
+    emits: ['retry'],
     data: () => ({ dropoffs: null, sharing: null, breadth: null }),
-    setup: () => ({ needs, noSingers, listCount, formatNumber, dropPath, lastWeekOf, surfaceName }),
+    setup: () => ({ listCount, formatNumber, dropPath, lastWeekOf, surfaceName }),
     template: `
         <section class="space-y-3" aria-labelledby="needs-h" data-admin-needs>
             <h2 id="needs-h" class="text-xl font-bold text-cream">{{ t('admin.needs.title') }}<span v-if="total" class="ms-2 font-medium tabular-nums text-muted" data-needs-total>{{ formatNumber(total) }}</span></h2>
-            <LoadFailed v-if="needs.failed && !needs.data" :message="t('admin.needs.failed')" @retry="load" />
-            <p v-else-if="!needs.data" class="text-sm text-muted" role="status">{{ t('admin.loading') }}</p>
+            <LoadFailed v-if="failed && !loaded" :message="t('admin.needs.failed')" @retry="$emit('retry')" />
+            <p v-else-if="!loaded" class="text-sm text-muted" role="status">{{ t('admin.loading') }}</p>
             <p v-else-if="!total" class="text-sm text-muted" data-needs-none>{{ t('admin.needs.none') }}</p>
             <!-- Sharing isn't a need, so it shows (and counts) only beside the rest; nothing needing him, it sits under the line. -->
-            <div v-if="needs.data && (total || sharing)" class="grid items-start gap-4 min-[900px]:grid-cols-2">
+            <div v-if="loaded && (total || sharing)" class="grid items-start gap-4 min-[900px]:grid-cols-2">
                 <!-- Outreach (docs/outreach-plan.md): a row for each kind waiting, its count at the left, each to where it's done. -->
                 <section v-if="outreachRows.length" class="card overflow-hidden" aria-labelledby="needs-outreach-h" data-needs-outreach>
                     <div class="flex items-center justify-between gap-3 border-b border-line px-5 py-3.5">
@@ -130,25 +107,6 @@ export const NeedsCard = {
                                 <span class="min-w-0 flex-1">{{ row.label }}</span>
                                 <Icon name="chevron" :size="16" class="shrink-0 -rotate-90 text-muted rtl:rotate-90" />
                             </a>
-                        </li>
-                    </ul>
-                </section>
-                <!-- Voices: each song and its version, a row per part with what it needs. -->
-                <section v-if="songs.length" class="card overflow-hidden" aria-labelledby="needs-voices-h" data-needs-voices>
-                    <div class="flex items-center justify-between gap-3 border-b border-line px-5 py-3.5">
-                        <h3 id="needs-voices-h" class="eyebrow text-muted">{{ t('admin.needs.voices') }}</h3>
-                        <a href="/admin/guides" class="link tap-44 inline-flex items-center gap-1 text-sm" @click.prevent="navigate('/admin/guides')">{{ t('admin.needs.toGuides') }}<span aria-hidden="true" class="rtl:-scale-x-100">→</span></a>
-                    </div>
-                    <ul class="divide-y divide-line px-5">
-                        <li v-for="song in songs" :key="song.id" class="py-4" :data-needs-song="song.id">
-                            <p class="font-bold text-cream"><span translate="no">{{ song.title }}</span> <span class="text-sm font-normal text-muted">· {{ t('admin.guides.version', { version: song.version }) }}</span></p>
-                            <div v-if="noSingers(song)" class="mt-2 flex flex-wrap gap-2"><StatusChip tone="bad" :label="t('admin.needs.noSingers', { count: song.parts.length })" data-needs-no-singers /></div>
-                            <ul v-else class="mt-1 divide-y divide-line">
-                                <li v-for="part in song.parts" :key="part.key" class="grid grid-cols-[5.5rem_minmax(0,1fr)] items-center gap-3 py-2.5" :data-needs-part="part.key">
-                                    <span class="truncate text-sm font-semibold text-cream" translate="no">{{ part.name }}</span>
-                                    <span class="flex flex-wrap items-center gap-2"><NeedChips :needs="part.needs" /></span>
-                                </li>
-                            </ul>
                         </li>
                     </ul>
                 </section>
@@ -189,9 +147,7 @@ export const NeedsCard = {
             <!-- Breadth (docs/retention-plan.md): how much of the app this week's active singers have used, one line to its tab. -->
             <a v-if="breadthText" href="/admin/breadth" class="link tap-44 inline-flex text-sm" data-needs-breadth @click.prevent="navigate('/admin/breadth')">{{ breadthText }}</a>
         </section>`,
-    // Loaded by the admin's shell on every screen (it counts them in the nav): no second ask here.
     computed: {
-        songs: () => needs.data?.templates ?? [],
         /** Outreach's rows, those with something: the first emails due soon, follow-ups due, replies to read. */
         outreachRows() {
             const o = this.outreach;
@@ -202,10 +158,9 @@ export const NeedsCard = {
                 { key: 'replies', count: o.unreadReplies ?? 0, label: t('admin.needs.outreach.replies', { count: o.unreadReplies ?? 0 }), path: '/admin/outreach?status=replied', tone: 'accent' },
             ].filter((row) => row.count > 0);
         },
-        /** Everything waiting, beside the title: outreach's, the parts that need a voice, takes to review, and the site's. */
+        /** What needs him now, beside the title: outreach's, the week's worst drop-offs and the site's (never the voices). */
         total() {
-            const takes = this.songs.reduce((sum, song) => sum + song.parts.reduce((n, p) => n + p.needs.review.length, 0), 0);
-            return this.outreachRows.reduce((sum, row) => sum + row.count, 0) + partsNeeding(needs.data) + takes + listCount(this.notSynced) + listCount(this.sitemap) + this.worst.length;
+            return this.outreachRows.reduce((sum, row) => sum + row.count, 0) + listCount(this.notSynced) + listCount(this.sitemap) + this.worst.length;
         },
         /** The week's three worst drop-offs (none before the first report). */
         worst() {
@@ -231,10 +186,7 @@ export const NeedsCard = {
         api.admin.sharing().then(({ data }) => (this.sharing = data), (error) => console.warn('Sharing did not load', error));
         api.admin.breadth().then(({ data }) => (this.breadth = data), (error) => console.warn('Breadth did not load', error));
     },
-    methods: {
-        navigate,
-        load: () => loadNeeds(),
-    },
+    methods: { navigate },
 };
 
 export const PartNeeds = {
@@ -301,7 +253,6 @@ export const PartNeeds = {
                 this.noting = null;
                 this.newTake = null;
                 this.$emit('asked');
-                loadNeeds();
             } catch (error) {
                 refused(error);
             } finally {

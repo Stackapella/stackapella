@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Support\Pages;
 
 use App\Models\Template;
+use App\Support\Languages\SongWords;
 use Illuminate\Support\Collection;
 
 /**
@@ -99,7 +100,8 @@ final class SongsHub
                 $in = array_keys(array_filter($members, static fn (array $slugs): bool => in_array((string) $t->slug, $slugs, true)));
                 $order = array_keys(SongCollections::GROUPS);
                 usort($in, static fn (string $a, string $b): int => array_search($a, $order, true) <=> array_search($b, $order, true));
-                $title = (string) $t->title;
+                // A round's note in the page's language: "(canon)" in Spanish.
+                $title = SongWords::title((string) $t->title);
 
                 return ['title' => $title, 'url' => '/songs/'.$t->slug, 'letter' => mb_strtoupper(mb_substr(ltrim($title, '"\'('), 0, 1)), 'in' => $in === [] ? ['other'] : $in, 'dot' => $in[0] ?? 'other'];
             })

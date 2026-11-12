@@ -2191,7 +2191,26 @@
                 "all": "All",
                 "free": "Free",
                 "plus": "Plus",
-                "label": "Which songs"
+                "label": "Which songs",
+                "search": "{count, plural, one {Search the # song} other {Search # songs}}",
+                "searchLabel": "Search the songs by title",
+                "iSing": "I sing",
+                "anyPart": "Any part",
+                "groups": "Song groups",
+                "none": "No songs match.",
+                "clear": "Show every song"
+            },
+            "group": {
+                "christmas": "Christmas",
+                "jewish": "Jewish songs",
+                "rounds": "Rounds",
+                "spirituals": "Spirituals",
+                "hymns": "Hymns",
+                "shanties": "Sea shanties",
+                "folk": "Folk songs",
+                "classical": "Classical and sacred",
+                "barbershop": "Barbershop, parlour and stage",
+                "more": "More songs"
             },
             "browseAllCount": "{count, plural, one {Browse the # song} other {Browse all # songs}}"
         },
@@ -2858,7 +2877,6 @@
             "stems": "Each part separately",
             "share": "Share links and videos",
             "templates": "Private or unlisted templates",
-            "guides": "Your own recorded guides",
             "choir": "Choir groups",
             "preview": "Hear any song before you start",
             "stemsNote": "One file per part, in a ZIP",

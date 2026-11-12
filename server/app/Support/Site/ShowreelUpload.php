@@ -37,7 +37,7 @@ final class ShowreelUpload
      *
      * @return list<string> the file names, in upload order
      */
-    public static function files(string $folder): array
+    public static function files(string $folder, string $language = 'en'): array
     {
         $root = realpath($folder);
 
@@ -45,10 +45,10 @@ final class ShowreelUpload
             throw new RuntimeException("{$folder} isn't a folder.");
         }
 
-        $committed = Showreel::manifest();
+        $committed = Showreel::manifest($language);
 
-        if (! is_file($committed)) {
-            throw new RuntimeException('There is no manifest.json in server/public/videos/showreel: render the film first.');
+        if (! is_file($committed) || Showreel::language($language) !== $language) {
+            throw new RuntimeException('There is no manifest.json in server/public/videos/showreel'.($language === 'en' ? '' : '/'.$language).': render the film first.');
         }
 
         if (! is_file($root.'/manifest.json') || ! hash_equals((string) hash_file('sha256', $committed), (string) hash_file('sha256', $root.'/manifest.json'))) {
@@ -83,7 +83,7 @@ final class ShowreelUpload
             $names[] = $name;
         }
 
-        $wanted = array_map(static fn (string $url): string => basename((string) parse_url($url, PHP_URL_PATH)), self::pageFiles());
+        $wanted = array_map(static fn (string $url): string => basename((string) parse_url($url, PHP_URL_PATH)), self::pageFiles($language));
 
         if (($missing = array_values(array_diff($wanted, $names))) !== []) {
             throw new RuntimeException('The manifest is missing what the pages use: '.implode(', ', $missing).'.');
@@ -100,12 +100,12 @@ final class ShowreelUpload
      *
      * @return array{uploaded: int, skipped: int, url: string}
      */
-    public static function upload(string $folder): array
+    public static function upload(string $folder, string $language = 'en'): array
     {
-        $names = self::files($folder);
+        $names = self::files($folder, $language);
         $root = (string) realpath($folder);
         $disk = Storage::disk('media');
-        $prefix = self::PREFIX.'/'.Showreel::version();
+        $prefix = self::PREFIX.'/'.Showreel::version($language);
         $uploaded = 0;
 
         foreach ($names as $name) {
@@ -136,9 +136,9 @@ final class ShowreelUpload
      *
      * @return list<string>
      */
-    private static function pageFiles(): array
+    private static function pageFiles(string $language = 'en'): array
     {
-        $files = Showreel::files();
+        $files = Showreel::files($language);
 
         return [...array_values(array_diff_key($files['dark'], ['posterSet' => 1])), ...array_values(array_diff_key($files['light'], ['posterSet' => 1])), $files['captions'],
             ...array_map(static fn (string $entry): string => explode(' ', $entry)[0], [...explode(', ', $files['dark']['posterSet']), ...explode(', ', $files['light']['posterSet'])])];

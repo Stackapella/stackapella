@@ -4,7 +4,6 @@
 // then); Cancel turns a post down, after a styled confirm; Retry sends a failed one again. Filters
 // for what was approved, sent, failed or cancelled. The nav's count is the posts waiting.
 
-import { reactive } from 'vue';
 import { api } from '../api.js';
 import { t, tk } from '../i18n.js';
 import { EmptyState, StatusChip } from '../components/form.js';
@@ -30,21 +29,6 @@ const STATUS = {
 const DONE = { approve: tk('admin.posts.approved'), retry: tk('admin.posts.retried'), cancel: tk('admin.posts.cancelled') };
 const NETWORKS = { x: tk('admin.posts.network.x'), bluesky: tk('admin.posts.network.bluesky') };
 const OCCASIONS = { new_song: tk('admin.posts.occasion.newSong'), month: tk('admin.posts.occasion.month'), featured: tk('admin.posts.occasion.featured') };
-
-/** The posts waiting for approval, for the nav's count: `count`, and `more` when there's a further page. */
-export const socialWaiting = reactive({
-    count: 0,
-    more: false,
-    async refresh() {
-        try {
-            const page = await api.admin.social.list({ status: 'awaiting' });
-            this.count = page.data.length;
-            this.more = !!page.meta?.nextCursor;
-        } catch (error) {
-            console.warn('The posts waiting could not be counted', error);
-        }
-    },
-});
 
 /** The link a post carries (the song's or harmony's page), else none. */
 const linkIn = (text) => /https?:\/\/\S+/.exec(text ?? '')?.[0] ?? null;
@@ -111,7 +95,6 @@ export const PostsSection = {
                 if (this.status !== 'all' && post.status !== this.status) this.items = this.items.filter((p) => p !== post);
                 toast(t(DONE[action]));
                 this.cancelling = null;
-                socialWaiting.refresh();
             } catch (error) {
                 refused(error);
             } finally {

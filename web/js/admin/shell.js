@@ -39,16 +39,17 @@ import { SharingSection } from './sharing.js';
 import { BreadthSection } from './breadth.js';
 import { SupportSection } from './support.js';
 import { LinksSection } from './links.js';
-import { PostsSection, socialWaiting } from './posts.js';
+import { PostsSection } from './posts.js';
 import { sendToSignIn } from './auth.js';
 import { StoreTestersCard } from './testers.js';
-import { NeedsCard, homeCount, loadNeeds, needs, partsNeeding } from './needs.js';
+import { NeedsCard, homeCount } from './needs.js';
 
 // The menu by job (Hillel, 2026-11-10: "i find the admin header navigation confusing, for example why are switches under
 // people?"; he approved this structure): what's waiting for you, the accounts and groups, the songs and voices, getting
 // the word out, the numbers, and the settings. Feature switches never live under Safety, which keeps the emergency
-// controls. The header shows the groups, then the open group's pages; a page's count adds to its group's. The paths
-// never change with the groups, so old links keep working.
+// controls. The header shows the groups, then the open group's pages; a page's count adds to its group's. Only the
+// Inbox's pages count (Hillel, 2026-11-12: "dont include the count in library and marketing"): a badge is for what
+// waits on him, never a backlog. The paths never change with the groups, so old links keep working.
 export const GROUPS = [
     { key: 'inbox', label: tk('admin.nav.group.inbox') },
     { key: 'users', label: tk('admin.nav.group.users') },
@@ -67,13 +68,13 @@ export const SECTIONS = [
     { name: 'people', group: 'users', path: '/admin/people', label: tk('admin.nav.people'), hint: tk('admin.nav.peopleHint'), icon: 'list', role: 'admin' },
     { name: 'groups', group: 'users', path: '/admin/groups', label: tk('admin.nav.choirGroups'), hint: tk('admin.nav.choirGroupsHint'), icon: 'list', role: 'admin' },
     { name: 'school', group: 'users', path: '/admin/school', label: tk('admin.nav.school'), hint: tk('admin.nav.schoolHint'), icon: 'list', role: 'admin' },
-    { name: 'guides', group: 'library', path: '/admin/guides', label: tk('admin.nav.guides'), hint: tk('admin.nav.guidesHint'), icon: 'note', role: 'editor', count: (c) => c.needs, words: tk('admin.needs.navCount') },
+    { name: 'guides', group: 'library', path: '/admin/guides', label: tk('admin.nav.guides'), hint: tk('admin.nav.guidesHint'), icon: 'note', role: 'editor' },
     { name: 'singers', group: 'library', path: '/admin/singers', label: tk('admin.nav.singers'), hint: tk('admin.nav.singersHint'), icon: 'headphones', role: 'admin' },
     { name: 'links', group: 'library', path: '/admin/links', label: tk('admin.nav.links'), hint: tk('admin.nav.linksHint'), icon: 'arrow', role: 'admin' },
     { name: 'requests', group: 'library', path: '/admin/requests', label: tk('admin.nav.requests'), hint: tk('admin.nav.requestsHint'), icon: 'list', role: 'admin' },
     { name: 'ideas', group: 'library', path: '/admin/ideas', label: tk('admin.nav.ideas'), hint: tk('admin.nav.ideasHint'), icon: 'mic', role: 'admin' },
-    { name: 'outreach', group: 'marketing', path: '/admin/outreach', label: tk('admin.nav.outreach'), hint: tk('admin.nav.outreachHint'), icon: 'arrow', role: 'admin', count: (c) => c.outreach, words: tk('admin.outreach.navCount') },
-    { name: 'posts', group: 'marketing', path: '/admin/posts', label: tk('admin.nav.posts'), hint: tk('admin.nav.postsHint'), icon: 'sparkle', role: 'admin', count: (c) => c.posts, words: tk('admin.posts.waitingCount') },
+    { name: 'outreach', group: 'marketing', path: '/admin/outreach', label: tk('admin.nav.outreach'), hint: tk('admin.nav.outreachHint'), icon: 'arrow', role: 'admin' },
+    { name: 'posts', group: 'marketing', path: '/admin/posts', label: tk('admin.nav.posts'), hint: tk('admin.nav.postsHint'), icon: 'sparkle', role: 'admin' },
     { name: 'search', group: 'marketing', path: '/admin/search', label: tk('admin.nav.search'), hint: tk('admin.nav.searchHint'), icon: 'arrow', role: 'admin' },
     { name: 'mudeo', group: 'marketing', path: '/admin/mudeo', label: tk('admin.nav.campaigns'), hint: tk('admin.nav.campaignsHint'), icon: 'arrow', role: 'admin' },
     { name: 'growth', group: 'numbers', path: '/admin/growth', label: tk('admin.nav.growth'), hint: tk('admin.nav.growthHint'), icon: 'sparkle', role: 'admin' },
@@ -97,7 +98,8 @@ const GREETINGS = { morning: tk('admin.home.greeting.morning'), afternoon: tk('a
 
 const HomeSection = {
     components: { Icon, NeedsCard, StatusChip, StoreTestersCard },
-    props: { me: { type: Object, required: true }, groups: { type: Array, required: true }, overview: { type: Object, default: null } },
+    props: { me: { type: Object, required: true }, groups: { type: Array, required: true }, overview: { type: Object, default: null }, overviewFailed: { type: Boolean, default: false } },
+    emits: ['retry'],
     setup: () => ({ formatNumber }),
     template: `
         <div class="space-y-6">
@@ -120,7 +122,7 @@ const HomeSection = {
                 <a :href="sudoPath" class="tap-44 inline-flex items-center gap-1 font-semibold text-warn hover:underline">{{ t('admin.home.sudoConfirm') }}<span aria-hidden="true" class="rtl:-scale-x-100">→</span></a>
             </p>
             <!-- What needs you now (admin/needs.js): a card for each kind that has something, side by side from 900 px. -->
-            <NeedsCard :outreach="overview?.outreach ?? null" :not-synced="overview?.songsNotSynced ?? []" :sitemap="overview?.sitemapProblems ?? []" :admin="me.role === 'admin'" />
+            <NeedsCard :outreach="overview?.outreach ?? null" :not-synced="overview?.songsNotSynced ?? []" :sitemap="overview?.sitemapProblems ?? []" :admin="me.role === 'admin'" :loaded="!!overview" :failed="overviewFailed" @retry="$emit('retry')" />
             <!-- The last 7 days against the 7 before (docs/admin-analytics-plan.md, slice 1), as Hillel drew it: one ruled
                  panel, each a label over a big number with its change small beside it; five across from 900 px, two on a
                  phone. The two all-time counts say so, since they aren't the week's. -->
@@ -207,8 +209,8 @@ const HomeSection = {
 
 export const AdminView = {
     components: { Icon, Logo, Notice, RequestsSection, HomeSection, SafetySection, SwitchesSection, AuditSection, ReviewSection, SingersSection, GuidesSection, FeedbackSection, ReportsSection, IdeasSection, MudeoSection, SupportSection, LinksSection, PeopleSection, PostsSection, OverviewSection, SourcesSection, ChoirGroupsSection, RevenueSection, SearchSection, SchoolSection, CohortsSection, ActivitySection, CodeWatchSection, ExperimentsSection, OutreachSection, UsageSection, FunnelSection, DropoffsSection, SharingSection, BreadthSection },
-    data: () => ({ me: null, failed: false, overview: null }),
-    setup: () => ({ route, socialWaiting, formatNumber }),
+    data: () => ({ me: null, failed: false, overview: null, overviewFailed: false }),
+    setup: () => ({ route, formatNumber }),
     template: `
         <div class="min-h-dvh bg-ink">
             <!-- One bar (Hillel's redesign, 2026-10-30): the groups with what's waiting in them, then Back to app
@@ -247,7 +249,7 @@ export const AdminView = {
                     <ul class="-mb-px flex gap-6 overflow-x-auto [scrollbar-width:none]" data-nav-sections>
                         <li v-for="s in shown" :key="s.name" class="shrink-0">
                             <a :href="s.path" class="inline-flex min-h-11 items-center gap-1.5 border-b-2 text-sm font-medium transition" :class="current === s.name ? 'border-accent text-cream' : 'border-transparent text-muted hover:text-cream'" :aria-current="current === s.name ? 'page' : null" @click.prevent="navigate(s.path)">
-                                {{ t(s.label) }}<span v-if="countOf(s)" class="min-w-5 rounded-full bg-accent px-1.5 text-center text-xs font-bold text-accent-ink tabular-nums" :aria-label="t(s.words, { count: countOf(s) })" :data-nav-count="s.name === 'posts' ? '' : null">{{ formatNumber(countOf(s)) }}{{ s.name === 'posts' && socialWaiting.more ? '+' : '' }}</span>
+                                {{ t(s.label) }}<span v-if="countOf(s)" class="min-w-5 rounded-full bg-accent px-1.5 text-center text-xs font-bold text-accent-ink tabular-nums" :aria-label="t(s.words, { count: countOf(s) })" data-nav-count>{{ formatNumber(countOf(s)) }}</span>
                             </a>
                         </li>
                     </ul>
@@ -256,7 +258,7 @@ export const AdminView = {
             <main class="app-wrap py-8">
                 <p v-if="!me && !failed" class="text-muted" role="status">{{ t('admin.loading') }}</p>
                 <Notice v-else-if="failed" tone="bad">{{ t('admin.loadFailed') }} <button type="button" class="link" @click="load">{{ t('common.tryAgain') }}</button></Notice>
-                <HomeSection v-else-if="current === 'home'" :me="me" :groups="groups" :overview="overview" />
+                <HomeSection v-else-if="current === 'home'" :me="me" :groups="groups" :overview="overview" :overview-failed="overviewFailed" @retry="loadOverview" />
                 <SafetySection v-else-if="current === 'safety'" :me="me" />
                 <SwitchesSection v-else-if="current === 'switches'" :me="me" />
                 <AuditSection v-else-if="current === 'audit'" :me="me" />
@@ -344,7 +346,6 @@ export const AdminView = {
             try {
                 this.me = (await api.admin.me()).data;
                 this.revealNav();
-                if (this.me.role === 'admin') socialWaiting.refresh(); // the nav's count
                 this.loadOverview();
             } catch (error) {
                 if (!sendToSignIn(error)) {
@@ -355,17 +356,18 @@ export const AdminView = {
         },
         /** The home's numbers, and the nav's counts (what's waiting and unread). */
         async loadOverview() {
+            this.overviewFailed = false;
             try {
-                loadNeeds().then(() => this.revealNav()); // the Guides count: parts that need you (admin/needs.js)
                 this.overview = (await api.admin.overview()).data;
                 this.revealNav(); // the counts widened the rows
             } catch (error) {
                 console.warn('The overview failed to load', error); // the admin works without it
+                this.overviewFailed = true;
             }
         },
         countOf(s) {
             const b = this.overview?.beta;
-            return s.count?.({ waiting: b?.waiting ?? 0, unread: b?.unreadFeedback ?? 0, posts: socialWaiting.count ?? 0, needs: partsNeeding(needs.data), outreach: (this.overview?.outreach?.followUpsDue ?? 0) + (this.overview?.outreach?.unreadReplies ?? 0), home: homeCount(this.overview) }) ?? 0;
+            return s.count?.({ waiting: b?.waiting ?? 0, unread: b?.unreadFeedback ?? 0, home: homeCount(this.overview) }) ?? 0;
         },
         closeAccount() {
             this.$refs.account?.removeAttribute('open');

@@ -17,7 +17,7 @@
                 <p class="s-teams-lead">{{ __('site.teams.lead') }}</p>
                 <blockquote class="s-teams-quote">{{ __('site.teams.quote') }}</blockquote>
                 @if ($landing)
-                    <p class="s-actions-l s-teams-actions"><a href="{{ \App\Support\Http\Hosts::app('/groups?start=1&ref=landing') }}" class="btn-primary btn-lg">{{ __('pages.site.group_start') }}</a> <a href="/for/choir-directors" class="btn-secondary btn-lg">{{ __('site.teams.directors') }}</a></p>
+                    <p class="s-actions-l s-teams-actions"><a href="{{ \App\Support\Http\Hosts::app('/groups?start=1&ref=landing') }}" class="btn-primary btn-lg">{{ __('pages.site.group_start') }}</a> <a href="/for/choir-directors?ref=for-choirs-landing" class="btn-secondary btn-lg">{{ __('site.teams.directors') }}</a></p>
                 @endif
             </div>
             @if ($landing)

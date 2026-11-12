@@ -1,6 +1,6 @@
 """The free tools' brand row, as a visitor sees it (docs/tools-plan.md, "Tool page frame"; Hillel: "make sure it (and
 all tools) have our logo and theme picker at the top"). On the hub and every listed tool, in a browser tab and
-installed (the standalone flag theme-boot.js sets), the first thing on the page is the row: the mark, "Stackapella"
+installed (the standalone flag theme-boot.js sets), the first thing on the page is the row: the mark (not its Christmas hat, hidden out of season), "Stackapella"
 and the Theme button, all visible at the very top; the logo leads to the landing; and the Theme button opens the Theme menu.
 
 It runs against the server's own site, like site_integration:
@@ -26,7 +26,7 @@ ROW = """(() => {
   const first = [...document.body.children].find((el) => el.tagName !== 'SCRIPT');
   const name = [...(row?.querySelectorAll('.s-brand span') ?? [])].find((s) => s.textContent.trim() === 'Stackapella');
   return JSON.stringify({ first: first === row, top: row ? Math.round(row.getBoundingClientRect().top) : null,
-    mark: seen(row?.querySelector('.s-brand svg')), name: seen(name), theme: seen(bar?.querySelector('[data-theme-menu-button]')),
+    mark: seen(row?.querySelector('.s-brand svg:not(.s-hat)')), name: seen(name), theme: seen(bar?.querySelector('[data-theme-menu-button]')),
     home: row?.querySelector('.s-brand')?.getAttribute('href') ?? null });
 })()"""
 

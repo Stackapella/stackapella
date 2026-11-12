@@ -11,7 +11,8 @@ import { formatNumber, locale, t, timeAgo, tk } from '../i18n.js';
 import { publicSiteUrl } from '../hosts.js';
 import { navigate } from '../router.js';
 import { betaWaiting, homeBands, sangThisWeek } from '../home.js';
-import { creditsFor, loadCatalogue } from '../stores/catalogue.js';
+import { creditsFor, loadCatalogue, recordingFor } from '../stores/catalogue.js';
+import { guideKey, keepAhead } from '../recorded-guides.js';
 import { defineAsyncComponent, markRaw, toRaw } from 'vue';
 import { createProject, deleteProject, loadProjects, projects, saveProject, shownTitle, startFromTemplate } from '../stores/projects.js';
 import { ideas, ideasOpen } from '../stores/ideas.js';
@@ -48,11 +49,24 @@ import { daysUntil, rehearsalDates } from '../rehearsal.js';
 import { confirmAction, deleteSong, UNDO_SECONDS } from '../components/confirm.js';
 import { CardMenu } from '../components/card-menu.js';
 import { songTitle } from '../song-titles.js';
+import { GROUP_WORDS, LibraryFilters } from '../components/library-filters.js';
+import { groupCounts, librarySections } from '../library-filter.js';
 
 const DIFFICULTY = { beginner: tk('templates.difficulty.beginner'), intermediate: tk('templates.difficulty.intermediate'), advanced: tk('templates.difficulty.advanced') };
 // The bands' marks are the accent: nothing on the home that isn't a part wears a part's colour (Hillel's call).
 const BAND_COLORS = { beta: 'var(--color-accent)', projects: 'var(--color-accent)', songs: 'var(--color-accent)', workout: 'var(--color-accent)' };
 const PHONE_SONGS = 6; // cards in a phone's sideways band before See all
+// The library's filters while it's open (components/library-filters.js), kept for this tab like the open library itself.
+const FILTERS_KEY = 'stackapella.libraryFilters';
+function keptFilters() {
+    try {
+        const kept = JSON.parse(tabStorage.get(FILTERS_KEY) || 'null');
+        return { group: typeof kept?.group === 'string' ? kept.group : null, voice: typeof kept?.voice === 'string' ? kept.voice : null, query: typeof kept?.query === 'string' ? kept.query : '' };
+    } catch (error) {
+        console.info('The library filters kept for this tab were unreadable', error?.message ?? error);
+        return { group: null, voice: null, query: '' };
+    }
+}
 /** The songs grid's columns (as its classes: 3 from md, 4 from xl), or 0 on a phone, where the band scrolls. */
 // Hillel: three songs a row from a tablet up (Your songs and the library alike); a phone's band scrolls.
 const songColumns = () => (window.matchMedia('(min-width: 1024px)').matches ? 4 : window.matchMedia('(min-width: 768px)').matches ? 3 : 0);
@@ -70,9 +84,9 @@ const dialogLoader = lazyView(() => import('../components/dialogs.js').then((m) 
 const TemplateDialog = defineAsyncComponent(dialogLoader);
 
 export const ProjectsView = {
-    components: { StorageMeter, CreditLine, PlayerChip, DailyTag, CardMenu, HomeCourses, ThemeSwitch, Icon, Logo, TemplateDialog, HomeLead, HomeBand, SongCover, InstallCard, WeekCard, WorkoutStrip, StatusChip, Modal, Notice, RemindAsk, FirstWeek },
-    setup: () => ({ templatePartName, ideas, mine, canStart, projects, account, learning, shownTitle, songTitle, formatTime, timeAgo, PART_COLORS, lengthBeats, partsFor, keyLabel, DIFFICULTY, creditsFor, navigate, BAND_COLORS, BETA_STATUS, publicSiteUrl, effect, dailyState }),
-    data: () => ({ storageUsage: null, locked: false, clip: null, templates: [], openTemplate: null, singers: 4, previewing: false, preparingPreview: false, starting: false, groups: null, choirParts: [], startingChoir: null, betaParts: null, avatarFailed: false, making: false, importProblems: null, sheetScore: null, sheetSaving: false, sheetView: null, sessionStore: null, songsOpen: tabStorage.get('stackapella.songsOpen') === '1', lookedAt: lastLooked(), newsCounted: null, yoursOpen: false, songColumns: songColumns(), newing: false, showInfo: false, previewOf: null, playingSong: null, renaming: null, newName: '' }),
+    components: { LibraryFilters, StorageMeter, CreditLine, PlayerChip, DailyTag, CardMenu, HomeCourses, ThemeSwitch, Icon, Logo, TemplateDialog, HomeLead, HomeBand, SongCover, InstallCard, WeekCard, WorkoutStrip, StatusChip, Modal, Notice, RemindAsk, FirstWeek },
+    setup: () => ({ GROUP_WORDS, templatePartName, ideas, mine, canStart, projects, account, learning, shownTitle, songTitle, formatTime, timeAgo, PART_COLORS, lengthBeats, partsFor, keyLabel, DIFFICULTY, creditsFor, navigate, BAND_COLORS, BETA_STATUS, publicSiteUrl, effect, dailyState }),
+    data: () => ({ storageUsage: null, locked: false, clip: null, templates: [], openTemplate: null, singers: 4, previewing: false, preparingPreview: false, starting: false, groups: null, choirParts: [], startingChoir: null, betaParts: null, avatarFailed: false, making: false, importProblems: null, sheetScore: null, sheetSaving: false, sheetView: null, sessionStore: null, songsOpen: tabStorage.get('stackapella.songsOpen') === '1', libraryFilters: keptFilters(), lookedAt: lastLooked(), newsCounted: null, yoursOpen: false, songColumns: songColumns(), newing: false, showInfo: false, previewOf: null, playingSong: null, renaming: null, newName: '' }),
     template: `
         <div class="min-h-dvh">
             <!-- The app's top bar on the site header's grid (app-wrap app-top): the logo where the site's is. -->
@@ -172,8 +186,14 @@ export const ProjectsView = {
                                 <!-- Hillel (2026-10-30): after the first week, three picked for your range and Browse all; the filter only while browsing. -->
                                 <button v-if="trimmed && !songsOpen" type="button" class="btn-go" aria-controls="home-songs" :aria-expanded="'false'" data-browse-all @click="openSongs(true)">{{ t('home.songs.browseAllCount', { count: allSongs.length }) }}</button>
                             </template>
+                            <!-- The full library (Hillel, 2026-11-12: "the list is unwieldy"): find a song by its category, your part or its title. -->
+                            <LibraryFilters v-if="songsOpen" v-model:filters="libraryFilters" :groups="libraryGroups" :total="allSongs.length" />
+                            <p v-if="songsOpen && !songRows.length" class="py-6 text-center text-muted" role="status" data-library-none>{{ t('home.songs.filter.none') }} <button type="button" class="link tap-44" @click="libraryFilters = { group: null, voice: null, query: '' }">{{ t('home.songs.filter.clear') }}</button></p>
                             <ul id="home-songs" class="gap-3" :class="(songsOpen ? 'grid grid-cols-2 md:grid-cols-3' : '-mx-4 flex snap-x scroll-px-4 overflow-x-auto px-4 [scrollbar-width:none] md:mx-0 md:grid md:grid-cols-3 md:overflow-visible md:px-0') + (trimmed ? '' : ' lg:grid-cols-4')">
-                                <li v-for="item in shownSongs" :key="item.key" class="group relative" :class="songsOpen ? '' : 'w-40 shrink-0 snap-start md:w-auto'" data-song-card :data-daily="dailyShown && dailyState().today?.templateId === item.tpl.id ? '' : null">
+                                <template v-for="item in songRows" :key="item.key">
+                                <!-- A category's heading, over its songs, while the whole library shows by category. -->
+                                <li v-if="item.heading" class="col-span-full mt-3 first:mt-0" :data-library-heading="item.group"><h3 class="text-sm font-bold uppercase tracking-[0.12em] text-muted">{{ t(GROUP_WORDS[item.group] ?? GROUP_WORDS.more) }} <span class="tabular-nums">{{ item.count }}</span></h3></li>
+                                <li v-else class="group relative" :class="songsOpen ? '' : 'w-40 shrink-0 snap-start md:w-auto'" data-song-card :data-daily="dailyShown && dailyState().today?.templateId === item.tpl.id ? '' : null">
                                     <!-- Game mode's daily challenge: today's song card wears its tag (docs/game-elements-plan.md) -->
                                     <DailyTag v-if="dailyShown && dailyState().today?.templateId === item.tpl.id" :challenge="dailyState().today" />
                                     <button type="button" class="flex w-full flex-col gap-2 rounded-3xl p-1 text-start hover:bg-raised/50" data-ui="cartridge" @click="songTap(item)">
@@ -193,6 +213,7 @@ export const ProjectsView = {
                                     <!-- Hillel: the preview's Play at the picture's top right, on hover (always on touch); a tap on the card still opens it. -->
                                     <button type="button" class="card-tools tap-44 absolute end-3 top-3 grid size-9 place-items-center rounded-full glass-bubble" :class="songOn(item.tpl.id) ? 'is-on bg-accent text-accent-ink' : 'bg-panel text-cream'" :aria-label="songOn(item.tpl.id) ? t('home.songs.stopNamed', { title: songTitle(item.tpl) }) : t('home.yours.playNamed', { title: songTitle(item.tpl) })" :aria-pressed="songOn(item.tpl.id) ? 'true' : 'false'" data-song-play @click="playLibrary(item.tpl)"><Icon :name="songOn(item.tpl.id) ? 'stop' : 'play'" :size="16" /></button>
                                 </li>
+                                </template>
                                 <li v-if="!trimmed && !songsOpen && hiddenSongs" class="w-40 shrink-0 snap-start md:w-auto">
                                     <button type="button" class="flex w-full flex-col gap-2 rounded-3xl p-1 text-start hover:bg-raised/50" aria-controls="home-songs" :aria-expanded="'false'" data-browse-all @click="openSongs(true)">
                                         <span class="flex h-28 items-center justify-center gap-2 rounded-2xl border border-edge bg-panel px-3 text-center font-bold text-cream">{{ t('home.songs.browseAll') }} <Icon name="arrow" :size="18" /></span>
@@ -466,6 +487,23 @@ export const ProjectsView = {
         hiddenSongs() {
             return this.allSongs.length - this.shownSongs.length;
         },
+        /** The library's categories with their counts (the chips), in season first. */
+        libraryGroups() {
+            return groupCounts(this.allSongs.map((item) => item.tpl));
+        },
+        /**
+         * What the song grid draws: closed, the cards as before; open, the library through its filters, by category with a
+         * heading each (in Home's order for this singer within each), or A to Z once a filter narrows it.
+         */
+        songRows() {
+            if (!this.songsOpen) return this.shownSongs;
+            const items = new Map(this.ranked.map((item) => [item.tpl, item]));
+            const sections = librarySections(this.ranked.map((item) => item.tpl), this.libraryFilters, { lang: locale.lang, range: learning.progress.range, title: songTitle });
+            return sections.flatMap((section) => [
+                ...(section.key ? [{ heading: true, key: 'h-' + section.key, group: section.key, count: section.songs.length }] : []),
+                ...section.songs.map((tpl) => items.get(tpl)),
+            ]);
+        },
         /** Up to three parts, those waiting on the singer first. */
         betaShown() {
             const waiting = (part) => (['to_record', 'retake'].includes(part.status) ? 0 : 1);
@@ -527,6 +565,13 @@ export const ProjectsView = {
         this.stopDrafts?.();
     },
     watch: {
+        /** The library's filters: kept for this tab, and each one used counted (anonymous, the kind only). */
+        libraryFilters(now, before) {
+            tabStorage.set(FILTERS_KEY, JSON.stringify(now));
+            if (now.group !== before.group) count(`library_filter:${now.group ?? 'all'}`);
+            if (now.voice && now.voice !== before.voice) count(`library_filter:part:${now.voice}`);
+            if (now.query.trim() && !before.query.trim()) count('library_filter:search');
+        },
         /** A pick with news, counted once each time it shows. */
         'news.item.tpl.id': {
             handler(id) {
@@ -828,6 +873,23 @@ export const ProjectsView = {
             await this.stopSongs();
             await this.pickTemplate(template);
             if (this.openTemplate?.id === template.id) this.showInfo = true;
+            // Start opens Sing: its code comes in while the sheet is read, so Sing's choice shows at once after Start (on a slow
+            // phone its few levels of imports took about 2 s after the tap: the speed pass, 2026-11-12). Game mode's part select
+            // follows Sing's store in (game/modules.js).
+            import('./sing.js').catch((error) => console.warn('Sing could not be fetched ahead', error));
+            this.voiceAhead(template);
+        },
+        /**
+         * Your part's real voice fetched while the sheet is read (the part the link named, else the melody), so Sing's first
+         * note doesn't wait on the network. Not on a data saver, and not for a song this singer can't start.
+         */
+        voiceAhead(template) {
+            if (this.locked || navigator.connection?.saveData) return;
+            const linked = this.linkedPart?.song === template.id ? this.linkedPart.part : null;
+            const part = linked ?? template.parts?.find((p) => p.melody)?.key ?? template.parts?.[0]?.key;
+            const recording = part ? recordingFor(template.id, part)?.recording : null;
+            if (!recording?.url) return;
+            keepAhead(recording, guideKey(template.id, template.version, part, recording.id)).catch((error) => console.info('Your part\'s voice was not fetched ahead', error?.message ?? error));
         },
         async start(range = null) {
             if (this.starting) return;
@@ -835,7 +897,7 @@ export const ProjectsView = {
             this.stopPreview();
             try {
                 const linked = this.linkedPart?.song === this.openTemplate.id ? this.linkedPart.part : null; // the song part page's part
-                const project = await startFromTemplate(this.openTemplate, { singers: this.singers, ...(range ? { transpose: range.transpose, focusKey: range.partId, keyChosen: true } : linked ? { focusKey: linked } : {}) });
+                const project = await startFromTemplate(this.openTemplate, { singers: this.singers, renderGuides: false, ...(range ? { transpose: range.transpose, focusKey: range.partId, keyChosen: true } : linked ? { focusKey: linked } : {}) });
                 navigate(`/p/${project.id}/sing`); // a new template project starts by asking how to sing
             } catch (error) {
                 console.error('Starting a template failed', error);

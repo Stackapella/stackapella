@@ -18,6 +18,6 @@ final class Money
 
         return in_array($currency, Prices::CURRENCIES, true)
             ? Prices::format($cents, $currency)
-            : strtoupper($currency).' '.number_format($cents / 100, 2);
+            : Prices::local($cents, $currency) ?? strtoupper($currency).' '.number_format($cents / 100, 2);
     }
 }

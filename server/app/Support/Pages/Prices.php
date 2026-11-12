@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Support\Pages;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\App;
+use NumberFormatter;
 
 /**
  * Plus's prices as the public pages show them (docs/pricing-plan.md, "Prices"), in the visitor's
@@ -60,8 +62,21 @@ final class Prices
         ];
     }
 
+    /** A price as the page's language writes it: "$3.33" in English, "3,33 US$" and "3,33 €" in Spanish (ICU). */
     public static function format(int $cents, string $currency): string
     {
-        return self::SYMBOLS[$currency].number_format($cents / 100, 2);
+        return self::local($cents, $currency) ?? self::SYMBOLS[$currency].number_format($cents / 100, 2);
+    }
+
+    /** Any currency in the page's language, or null in English (whose own forms the site keeps exactly). */
+    public static function local(int $cents, string $currency): ?string
+    {
+        $locale = App::getLocale();
+        if ($locale === 'en' || ! class_exists(NumberFormatter::class)) {
+            return null;
+        }
+        $words = (new NumberFormatter($locale, NumberFormatter::CURRENCY))->formatCurrency($cents / 100, strtoupper($currency));
+
+        return $words === false ? null : $words;
     }
 }

@@ -8,6 +8,10 @@
                 <div>
                     <h2 id="book-h"><x-site.skin :game="__('site.carols.game.stage_select')" :serious="$heading" /></h2>
                     <p class="s-xbook-sub" data-book-sub data-any="{{ $sub }}" data-part="{{ $subPart }}">{{ $sub }}</p>
+                    {{-- A page's own note on its cards (a round's parts all sing the tune, an octave apart). --}}
+                    @if (($note ?? null) !== null)
+                        <p class="s-xbook-note">{{ $note }}</p>
+                    @endif
                 </div>
                 {{-- Plain buttons (a menu on a phone), remembered only while the page is open. --}}
                 <div class="s-xfilter">
@@ -27,7 +31,10 @@
                 </div>
             </div>
 
-            <div class="s-xcards">
+            {{-- At most three across; when three would leave one card alone on its last row (7, 10, 13, 16), the last four sit two and two. --}}
+            @php($scale = \App\Support\Pages\Carols::SCALE)
+            @php($at = static fn (int $midi): float => round(($midi - $scale[0]) / ($scale[1] - $scale[0]) * 100, 2))
+            <div @class(['s-xcards', 's-xcards-tail' => count($songs) >= 4 && count($songs) % 3 === 1]) style="--mid: {{ $at(\App\Support\Pages\Carols::MIDDLE_C) }}%">
                 @foreach ($songs as $carol)
                     <article id="carol-{{ $carol['slug'] }}" class="s-xcard s-xrib{{ $loop->index % 3 + 1 }}" aria-labelledby="carol-{{ $carol['slug'] }}-h" @if ($carol['line'] !== null) data-player @endif>
                         <div class="s-xcard-top">
@@ -56,6 +63,8 @@
                                     <a href="{{ $part['url'] }}" class="s-xpart s-v{{ $loop->iteration }}" data-part-key="{{ $part['key'] }}">
                                         <i aria-hidden="true"></i>
                                         <span class="s-xpart-name"><b>{{ $part['name'] }}</b>@if ($part['melody'])<span class="s-xmel">{{ __('site.song_part.melody_tag') }}</span>@endif</span>
+                                        {{-- Its range on the songbook's one scale, E2 to G5 (Carols::SCALE), middle C marked; the words beside it say the same. --}}
+                                        <span class="s-xbar" aria-hidden="true"><i style="--lo: {{ $at($part['low']) }}%; --hi: {{ $at($part['high']) }}%"></i></span>
                                         <span class="s-xrange" translate="no">{{ __('site.song_part.other_range', ['low' => $part['lowName'], 'high' => $part['highName']]) }}</span>
                                         <x-site.icon name="arrow" size="16" />
                                     </a>
@@ -65,5 +74,9 @@
                         <a href="{{ $carol['url'] }}" class="s-lk s-xmore">{{ __('site.carols.song_page', ['song' => $carol['title']]) }} <x-site.icon name="arrow" size="16" /></a>
                     </article>
                 @endforeach
+            </div>
+            <div class="s-xbook-foot">
+                <p>{{ __('site.carols.scale', ['low' => \App\Support\Pages\Carols::signs(\App\Support\Pages\SongPage::note($scale[0])), 'high' => \App\Support\Pages\Carols::signs(\App\Support\Pages\SongPage::note($scale[1]))]) }}</p>
+                <p>{{ __('site.carols.more') }} <a href="{{ \App\Support\Http\Hosts::app('/contact') }}" class="s-lk">{{ __('site.carols.write') }}</a></p>
             </div>
         </section>

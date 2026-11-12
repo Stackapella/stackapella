@@ -34,7 +34,19 @@ APP = str(A.get('app', 'http://127.0.0.1:8462')).rstrip('/')
 # Both are public and show no one's data; nothing else is read from production.
 LIVE = 'https://stackapella.com'
 SITE = str(A.get('site', 'http://127.0.0.1:8461')).rstrip('/')
-OUT = HERE / 'captures'
+# --lang=es films the app and the site in that language (each language's film is its own render): the app with the
+# language chosen on the device, as Settings keeps it, and the site's pages at /<lang>/. Its captures are their own
+# (captures/<lang>/, captures.<lang>.json), so English's are never touched.
+LANG = str(A['lang']) if 'lang' in A and A['lang'] != 'en' else None
+OUT = HERE / 'captures' / LANG if LANG else HERE / 'captures'
+# The mock's settings answer (its auth.config example) says English alone, as the server does until the language's
+# switch is on; here it says the language is on, as it will be when its film is served.
+CHOOSE_LANG = ("""try{localStorage.setItem('stackapella.lang',%s);localStorage.setItem('stackapella.languages',%s)}catch(e){}
+(() => { const f = window.fetch; window.fetch = async (u, i) => { const r = await f(u, i);
+  if (!String(u && u.url || u).includes('auth.config.200.json')) return r;
+  const j = await r.json(); j.data.languages = [%s];
+  return new Response(JSON.stringify(j), { status: 200, headers: { 'Content-Type': 'application/json' } }); }; })();"""
+               % (json.dumps(LANG), json.dumps(json.dumps(['en', LANG])), json.dumps(LANG))) if LANG else ''
 
 # Phone shots stand tall in the frame (about 860 film px), so twice the phone's own pixels. Desktop
 # shots are a 1440-wide window pushed in on the panel that matters (Hillel: "there should be desktop
@@ -135,7 +147,9 @@ return (await ps.startFromTemplate(await loadTemplate('amazing-grace'), { singer
 SESSION = "(await import('/js/stores/session.js'))"
 # The singer hears the other parts while they record, as a singer does (the app's own line for it, as
 # the first take shows it); here they're muted only so the loopback hears the alto alone.
-HEARING = [['Nothing plays while you record: your guide and every other part are off.', 'Hearing every other part. Your guide is off.']]
+HEARING = [['Nothing plays while you record: your guide and every other part are off.', 'Hearing every other part. Your guide is off.'],
+           # the same two lines of the app's in Spanish (web/locales/es.json sing.hear: recordingNone; recording with everyOther, guideOffRecording)
+           ['Mientras grabas no suena nada: tu guía y las demás voces están apagadas.', 'Oyes todas las demás voces. Tu guía está apagada.']]
 SING_STEPS = [
     {'go': '/voice', 'wait': "document.querySelector('#app header, #app main')", 'js': SING_READY},
     {'go': '/p/{ret}/sing', 'wait': "document.querySelector('#app header')"},
@@ -265,6 +279,9 @@ SHOTS = {
                'clip': {'kind': 'anim', 'seconds': 2.8, 'fps': 30}},
     'carols-book': {'size': 'desktop', 'skin': 'serious', 'url': 'SITE/songs/christmas-carols', 'wait': "document.querySelector('[data-songbook]')", 'then': BOOK,
                     'clip': {'kind': 'anim', 'seconds': 2.4, 'fps': 30, 'click': '[data-sing="alto"]', 'clickAt': 0.7}},
+    # the Hanukkah cut's (render.py --cut=hanukkah): the Jewish songs page as it is served (a public page, no one's
+    # data): the nine lights, the heading and the next festival's card
+    'hanukkah': {'size': 'desktop-close', 'skin': 'serious', 'url': 'LIVE/songs/jewish-songs', 'wait': "document.querySelector('.s-jcount')"},
     # January's: the hymns (/songs/hymns), or the whole songbook (/songs)
     'hymns': {'size': 'desktop', 'skin': 'serious', 'url': 'SITE/songs/hymns', 'wait': "document.querySelector('h1')"},
     'hymns-book': {'size': 'desktop', 'skin': 'serious', 'url': 'SITE/songs/hymns', 'wait': "document.querySelector('[data-songbook]')", 'then': BOOK,
@@ -279,7 +296,7 @@ SHOTS = {
     'lesson': {'size': 'phone', 'skin': 'serious', 'url': 'APP/learn/1-comfortable?api=mock&scenario=', 'wait': "document.querySelector('main h1')"},
     # the tools: each one's own panel, which the film shows on its own card (crop: where it is)
     'tuner': {'size': 'desktop', 'skin': 'serious', 'url': 'SITE/tools/tuner', 'wait': "document.querySelector('[data-start]')", 'mic': True, 'crop': '[data-ui="tool"]',
-              'then': "window.__hz = 440 * 2 ** (3 / 1200); document.querySelector('[data-start]').click(); for (let i = 0; i < 60 && !/In tune/.test(document.querySelector('[data-status-text]')?.textContent ?? ''); i++) await new Promise((r) => setTimeout(r, 200)); await new Promise((r) => setTimeout(r, 2500)); if (!/In tune/.test(document.querySelector('[data-status-text]').textContent)) throw new Error('the tuner never heard the note in tune');"},
+              'then': "window.__hz = 440 * 2 ** (3 / 1200); document.querySelector('[data-start]').click(); for (let i = 0; i < 60 && !/In tune|Afinado/.test(document.querySelector('[data-status-text]')?.textContent ?? ''); i++) await new Promise((r) => setTimeout(r, 200)); await new Promise((r) => setTimeout(r, 2500)); if (!/In tune|Afinado/.test(document.querySelector('[data-status-text]').textContent)) throw new Error('the tuner never heard the note in tune');"},
     'drone': {'size': 'desktop', 'skin': 'serious', 'url': 'SITE/tools/drone', 'wait': "document.querySelector('[data-ui=tool-primary]')", 'crop': '[data-ui="tool"]',
               'then': "document.querySelector('[data-ui=tool-primary]').click(); await new Promise((r) => setTimeout(r, 1500));"},
     'metronome': {'size': 'desktop', 'skin': 'serious', 'url': 'SITE/tools/metronome', 'wait': "document.querySelector('[data-ui=tool-primary]')", 'crop': '[data-ui="tool"]',
@@ -304,6 +321,7 @@ SHOTS['github']['crops'] = {'card': GH_CARD}
 SHOTS['choir-director']['crops'] = {'song': 'li.card'}
 SHOTS['choir-member']['crops'] = {'song': 'section li.card, section .card'}
 SHOTS['daily']['crops'] = {'stage': '[data-lead]'}
+SHOTS['hanukkah']['crops'] = {'count': '.s-jcount', 'head': '.s-xhero-text h1', 'text': '.s-xhero-text', 'motif': '.s-tone-motif', 'hero': '.s-xhero'}
 SHOTS['carols-book']['crops'] = {'card': '[data-songbook] .s-xcard', 'filter': '.s-xfilter',
                                  'row': "(() => { const c = [...document.querySelectorAll('[data-songbook] .s-xcard')].slice(0, 3).map((e) => e.getBoundingClientRect()), f = document.querySelector('.s-xfilter').getBoundingClientRect(); return [c[0].left, f.top - 8, c[2].right, c[0].bottom]; })()"}
 
@@ -315,14 +333,18 @@ def shoot(cut, sid, spec):
     try:
         c.send('Emulation.setDeviceMetricsOverride', {'width': w, 'height': h, 'deviceScaleFactor': dpr, 'mobile': mobile})
         c.send('Emulation.setScrollbarsHidden', {'hidden': True})
-        for src in [appearance(spec['skin'], mode), f"const SWAP = {json.dumps(spec.get('swap', []))};" + RENAME, spec.get('pre', '')] + ([FAKE_MIC] if spec.get('mic') else []):
+        for src in [appearance(spec['skin'], mode), f"const SWAP = {json.dumps(spec.get('swap', []))};" + RENAME, spec.get('pre', ''), CHOOSE_LANG] + ([FAKE_MIC] if spec.get('mic') else []):
             c.send('Page.addScriptToEvaluateOnNewDocument', {'source': src})
         if spec.get('scheme'):
             # a page that follows the device's light or dark (GitHub's), shown in the cut's
             c.send('Emulation.setEmulatedMedia', {'features': [{'name': 'prefers-color-scheme', 'value': mode}]})
-        url = spec['url'].replace('APP', APP).replace('SITE', SITE).replace('LIVE', LIVE) if not spec['url'].startswith('https://github.com') else spec['url']
+        url = spec['url'].replace('APP', APP).replace('SITE', SITE + (f'/{LANG}' if LANG else '')).replace('LIVE', LIVE) if not spec['url'].startswith('https://github.com') else spec['url']
         c.goto(url, spec.get('wait') or "document.readyState === 'complete'", timeout=30)
         c.evaluate('document.fonts.ready.then(() => new Promise((r) => setTimeout(r, 900)))')
+        if LANG:
+            # a language not yet switched on is served locally with a preview note at its top (SiteLanguage::preview);
+            # the page is filmed as it will be once the language is on, without it
+            c.evaluate("document.querySelector('body > div[role=note]')?.remove()")
         if spec.get('then'):
             c.evaluate(f'(async () => {{ {spec["then"]} }})()')
         ret = None
@@ -478,7 +500,7 @@ def jpeg(c, path):
 def main():
     only = str(A['only']).split(',') if 'only' in A else list(SHOTS)
     cuts = [A['cut']] if 'cut' in A else ['dark', 'light']
-    index = HERE / 'captures.json'
+    index = HERE / (f'captures.{LANG}.json' if LANG else 'captures.json')
     listed = json.loads(index.read_text()) if index.exists() else {'shots': {}}
     for cut in cuts:
         for sid in only:

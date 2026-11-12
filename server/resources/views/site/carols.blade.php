@@ -115,7 +115,7 @@
                 </div>
                 <div class="s-xband-go">
                     <a href="{{ \App\Support\Http\Hosts::app('/groups?start=1&ref=carols') }}" class="btn-secondary btn-lg"><x-site.skin :game="__('site.carols.game.co_op_start')" :serious="__('site.carols.choirs_start')" /> <x-site.icon name="arrow" size="18" /></a>
-                    <a href="/for/choir-directors" class="s-lk">{{ __('site.carols.choirs_more') }}</a>
+                    <a href="/for/choir-directors?ref=for-choirs-carols" class="s-lk">{{ __('site.carols.choirs_more') }}</a>
                 </div>
             </div>
         </section>

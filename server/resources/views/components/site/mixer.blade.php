@@ -12,7 +12,7 @@
         <button type="button" class="s-play" data-play aria-label="{{ __('pages.landing.hero.play') }}" data-label-play="{{ __('pages.landing.hero.play') }}" data-label-stop="{{ __('pages.landing.hero.stop') }}">
             <span class="s-i-play"><x-site.icon name="play" size="26" /></span><span class="s-i-stop"><x-site.icon name="stop" size="26" /></span>
         </button>
-        <p class="s-t"><b id="{{ $id }}-title">{{ __('pages.landing.hero.title', ['song' => $song['title']]) }}</b><span class="s-mix-meta">{{ __('pages.landing.hero.voices', ['count' => count($song['parts'])]) }} · <span data-time>0:00 / {{ $song['length'] }}</span></span><span class="s-mix-loading" data-loading-line hidden>{{ __('pages.landing.hero.loading') }}</span></p>
+        <p class="s-t"><b id="{{ $id }}-title">{{ __(($song['whole'] ?? false) ? 'pages.landing.hero.title_whole' : 'pages.landing.hero.title', ['song' => $song['title']]) }}</b><span class="s-mix-meta">{{ __('pages.landing.hero.voices', ['count' => count($song['parts'])]) }} · <span data-time>0:00 / {{ $song['length'] }}</span></span><span class="s-mix-loading" data-loading-line hidden>{{ __('pages.landing.hero.loading') }}</span></p>
         {{ $slot }}
     </div>
     {{-- Each voice is a row you tap to bring it forward (the radio, over the whole row: the louder
@@ -51,5 +51,5 @@
     @isset($foot)
         <div class="s-mix-foot">{{ $foot }}</div>
     @endisset
-    <p class="sr-only">{{ __('pages.landing.hero.alt', ['song' => $song['title'], 'words' => \App\Support\Pages\Landing::sentence($song['words']), 'you' => $yourPart]) }}</p>
+    <p class="sr-only">{{ __(($song['whole'] ?? false) ? 'pages.landing.hero.alt_whole' : 'pages.landing.hero.alt', ['song' => $song['title'], 'words' => \App\Support\Pages\Landing::sentence($song['words']), 'you' => $yourPart]) }}</p>
 </div>

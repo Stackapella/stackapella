@@ -13,6 +13,7 @@
 // Tested in tests/flows/part_player.py.
 
 import { mount as mountLane } from '../embed/lane.js';
+import { playState } from './play-state.js';
 import { segmented } from './tool-layout.js';
 
 const fill = (text, values) => String(text ?? '').replace(/:(\w+)/g, (match, k) => (k in values ? String(values[k]) : match));
@@ -60,12 +61,15 @@ export function mountPartPlayer(el, { slug, part, url = null, startUrl = '', wor
     };
     const hint = () => say(mode === 'sing' ? words.micNote : '');
 
+    // Loading, a slow load and a press that failed, shown as every player shows them (play-state.js).
+    const states = playState(playButton, el);
+    let cancelled = false; // a second press while it loads: it stops as soon as it starts
+
     function paint() {
         const label = show.starting ? words.loading : show.playing ? words.pause : words.play;
-        playButton.className = `${show.playing ? 'btn-secondary' : 'btn-primary'} min-h-14 min-w-0 flex-1 gap-3 rounded-full text-[1.0625rem] sm:flex-none sm:px-8`;
+        playButton.className = `${show.playing ? 'btn-secondary' : 'btn-primary'} relative min-h-14 min-w-0 flex-1 gap-3 rounded-full text-[1.0625rem] sm:flex-none sm:px-8`;
         playButton.querySelector('[data-play-icon]').className = `shrink-0 bg-current ${show.playing ? 'size-3.5 rounded-[3px]' : 'h-4 w-3.5 [clip-path:polygon(0_0,100%_50%,0_100%)]'}`;
         playButton.querySelector('[data-play-label]').textContent = label ?? '';
-        playButton.setAttribute('aria-busy', String(show.starting));
         playButton.dataset.state = show.starting ? 'starting' : show.playing ? 'playing' : 'paused';
     }
 
@@ -83,7 +87,12 @@ export function mountPartPlayer(el, { slug, part, url = null, startUrl = '', wor
             lit = 0;
             passed = 0;
         }
-        lane.play(mode).catch(failed);
+        cancelled = false;
+        lane.play(mode).catch((error) => {
+            if (gone) return;
+            console.warn('The part could not play', error); // i18n-ignore
+            states.failed();
+        });
     };
 
     let mode = 'part';
@@ -106,7 +115,13 @@ export function mountPartPlayer(el, { slug, part, url = null, startUrl = '', wor
     });
 
     playButton.addEventListener('click', () => {
-        if (show.starting) return;
+        if (show.starting) {
+            cancelled = true;
+            show.starting = false;
+            states.idle();
+            paint();
+            return;
+        }
         if (show.playing) lane.pause();
         else start(mode);
     });
@@ -135,8 +150,16 @@ export function mountPartPlayer(el, { slug, part, url = null, startUrl = '', wor
     };
 
     lane.on('state', ({ playing, starting }) => {
+        if (playing && cancelled) {
+            cancelled = false;
+            lane.pause();
+            return;
+        }
         show.playing = Boolean(playing);
-        show.starting = Boolean(starting) && !playing;
+        show.starting = Boolean(starting) && !playing && !cancelled;
+        if (show.starting) states.loading();
+        else if (show.playing) states.playing();
+        else if (states.state === 'loading') states.idle();
         paint();
         if (playing) offerVoice();
         if (playing && lane.mode() === 'sing') say(words.micNote);

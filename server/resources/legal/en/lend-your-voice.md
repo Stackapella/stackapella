@@ -1,8 +1,9 @@
 ---
 title: Lend your voice
-version: 1
+version: 2
 reviewed: false
 drafted: 2026-10-31
+changed: 2026-11-12 (1.1: open takes, no 14-day hold; several singers may send takes for a part and we choose one)
 ---
 
 # Lend your voice
@@ -28,8 +29,9 @@ terms follow.
 ## 1. What you'll do
 
 1.1 You choose something from the Wanted voices list: a part of one of our library's songs (in the
-public domain), or a short clip for one of our lessons (our own material). It's yours to record for
-14 days; if you send nothing, it goes back on the list.
+public domain), or a short clip for one of our lessons (our own material). Anyone may record anything
+on the list, and several people may send takes for the same part. We choose one to use, and we may
+later choose another.
 
 1.2 You sing it yourself, in the app, and choose which takes to send. The app checks a take before
 it's sent (pitch, timing, noise). We may accept a take, ask for another one (with a note), or not

@@ -69,6 +69,8 @@ export function songSummary(entry) {
         voicings: entry.voicings ?? {}, // who sings for each number of singers: the card's "2 to 4"
         openedAt: entry.openedAt ?? null, // when it opened in the library (Home's New tag: song-news.js)
         season: entry.season ?? null, // a collection in season ({ key: 'carols', until }), or null
+        group: entry.group ?? null, // the /songs group it's under (SongCollections::group), for the library's filters
+        titles: entry.titles ?? {}, // its own title in a language that names it so ({ es: '…' }), shown and searched there
         summary: true,
     };
 }
@@ -128,7 +130,11 @@ export async function loadTemplate(id) {
     const own = await ownTemplate(id);
     if (own) return validateTemplate(structuredClone(own));
     const { data } = await api.templates.show(id);
-    return validateTemplate(data.template);
+    // Its own title in other languages comes with the catalogue, not the song's file: carried, so a project started from
+    // it keeps showing "Noche de paz" in Spanish (song-titles.js songTitle, project-title.js shownTitle).
+    const { catalogue } = await import('./stores/catalogue.js');
+    const titles = catalogue.list.find((entry) => entry.id === id)?.titles;
+    return validateTemplate(titles && Object.keys(titles).length ? { ...data.template, titles } : data.template);
 }
 
 function loadBundled(id) {

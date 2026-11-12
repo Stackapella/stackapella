@@ -24,7 +24,7 @@ final class MonthlyScoreFactory extends Factory
             'user_id' => User::factory(),
             'template_version_id' => TemplateVersion::factory(),
             'part_key' => 'alto',
-            'scoring_version' => 1,
+            'scoring_version' => (int) config('boards.scoring_version'),
             'score' => fake()->numberBetween(40, 95),
             'recorded_at' => now(),
         ];

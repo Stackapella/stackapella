@@ -2569,7 +2569,7 @@ portal's `url` (in the installed app, the system browser).
   `?version=`, is `403 account_required`: the app asks for a free account. The song of the month ended:
   `freeUntil` is always null. Offline, such a song stays usable until `billing.show`'s
   `plusOfflineUntil` (14 days after the last check), then read-only until the app is online again.
-- **Refusals:** `403 plus_required` (a Plus feature on a free account: your own recorded guide),
+- **Refusals:** `403 plus_required` (a Plus feature on a free account: Send to my teacher; your own recorded guide is free since 2026-11-12),
   `403 account_required` (a library song signed out), `403 project_read_only`, `403 email_unverified` (Checkout needs a verified address), `409
   already_plus`, `409 trial_used`, `409 no_subscription`, `423 paused` (Checkout paused during an
   attack, or before Stripe is set up), `429 rate_limited` (the Checkout limit, and the Plus download cap).
@@ -3215,7 +3215,7 @@ library songs open to its members as to any account (`grant: "account"`).
 
 #### `templates.recordings.create`
 
-Start sending the creator's guide for one part (Plus). **Request:** `{ "id": "<uuid>", "partKey":
+Start sending the creator's guide for one part (every signed-in singer since 2026-11-12, against their storage). **Request:** `{ "id": "<uuid>", "partKey":
 "alto", "sampleRate": 48000, "frames": 2304000, "offsetFrames": 0, "bytes": 4608044, "sha256":
 "<64 hex>" }`, as for `takes.create` (a 16-bit mono WAV, at most 10 minutes). It replaces that
 part's earlier recording once it's ready. The `upload` works for 10 minutes.
@@ -3224,7 +3224,6 @@ part's earlier recording once it's ready. The `upload` works for 10 minutes.
 |---|---|---|---|
 | 201 |  | `templates.recording.create.json` | `templates.recordings.create.201.json` |
 | 403 | `age_unconfirmed` | `error.json` | `templates.recordings.create.age_unconfirmed.json` |
-| 403 | `plus_required` | `error.json` | `templates.recordings.create.plus_required.json` |
 | 403 | `storage_limit` | `error.json` | `templates.recordings.create.storage_limit.json` |
 | 404 | `not_found` | `error.json` | `templates.recordings.create.not_found.json` |
 | 422 | `validation_failed` | `error.json` | `templates.recordings.create.validation_failed.json` |

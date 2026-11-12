@@ -23,15 +23,17 @@ def t(f, key, values=None):
 def journey(f):
     f.go("/admin?api=mock&scenario=", "document.querySelector('main')")
     f.wait_text(t(f, "admin.home.beta"))
-    # What needs you now, first on Home: songs, then parts with their chips.
-    f.wait("document.querySelector('[data-admin-needs] [data-needs-part]')", what="what needs you now")
+    # What needs you now, first on Home: only what needs him today, never the voices (Hillel, 2026-11-12: "dont include
+    # voices in what needs you now"). A take waiting is Review's, counted in the nav; the parts are on Guides.
+    f.wait("document.querySelector('[data-admin-needs] [data-needs-total], [data-admin-needs] [data-needs-none]')", what="what needs you now")
     assert f.js("document.querySelector('main section[data-admin-needs]') === document.querySelector('main section')"), "what needs you comes first"
-    assert f.js("!!document.querySelector('[data-admin-needs] [data-needs-part=soprano] [data-needs-changed]') && !!document.querySelector('[data-admin-needs] [data-needs-part=soprano] [data-needs-unassigned]')"), "soprano changed, no singer"
-    assert f.js("document.querySelector('[data-admin-needs] [data-needs-part=tenor] [data-needs-takes]')?.textContent.trim()") == t(f, "admin.needs.takes", {"count": 1}), "tenor's take to review"
-    # A song where no part has a singer says so once.
-    f.run("""const { needs, noSingers } = await import('/js/admin/needs.js');
-        needs.data = { ...needs.data, templates: [...needs.data.templates, { id: 'silent-night', version: 1, title: 'Silent Night', parts: ['soprano', 'alto'].map((key) => ({ key, name: key, needs: { voiced: false, review: [], changed: false, unassigned: true, singers: [] } })) }] };""")
-    f.wait("document.querySelector('[data-needs-song=silent-night] [data-needs-no-singers]') && !document.querySelector('[data-needs-song=silent-night] [data-needs-part]')", what="no singers yet, said once")
+    assert not f.js("!!document.querySelector('[data-admin-needs] [data-needs-part], [data-admin-needs] [data-needs-takes], [data-admin-needs] [data-needs-changed]')"), "the voices aren't a need of the day"
+    # The menu badges only the Inbox: Review's take is counted there, Library and Marketing never.
+    f.wait("[...document.querySelectorAll('[data-nav-count]')].some((b) => b.closest('a')?.getAttribute('href') === '/admin/review')", what="Review's count")
+    for href in ["/admin/guides", "/admin/outreach", "/admin/posts"]:
+        assert not f.js(f"!!document.querySelector('a[href=\"{href}\"] [data-nav-count]')"), f"{href} has a count"
+    badged = f.js("[...document.querySelectorAll('[data-nav-groups] [data-group-count]')].map((b) => b.closest('a').getAttribute('href'))")
+    assert badged == ["/admin"], f"only the Inbox's group is counted: {badged}"
     f.shot("home")
 
     # The queue, then the take.
@@ -116,8 +118,8 @@ def journey(f):
 
     # Real voices: the default switched, and each version's pitch score.
     f.click_t("admin.nav.group.library")  # Library opens on Real voices
-    count = t(f, "admin.needs.navCount", {"count": 1})
-    f.wait(f"[...document.querySelectorAll('[aria-label]')].some((e) => e.getAttribute('aria-label') === {json.dumps(count)})", what="the nav counting the part that needs a voice")
+    f.wait("document.querySelector('a[href=\"/admin/guides\"]')", what="Library's pages")
+    assert not f.js("!!document.querySelector('a[href=\"/admin/guides\"] [data-nav-count]')"), "Guides has no count: the parts needing voices are a backlog, not the Inbox"
     f.click_t("admin.nav.guides")
     f.wait_text(t(f, "admin.guides.progress", {"done": 2, "total": 4}))
     f.wait_text(t(f, "admin.review.onPitch", {"percent": 91}))

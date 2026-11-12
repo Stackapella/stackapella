@@ -349,7 +349,7 @@ final class SitePagesTest extends TestCase
             ->assertSee('<script type="module" src="/js/public/mixer.js"></script>', false)
             ->assertSee('role="radiogroup"', false)
             // A live song's parts each link to their page, named by the link.
-            ->assertSee(__('pages.song.part_link', ['part' => 'Soprano', 'low' => 'D4', 'high' => 'D5']))
+            ->assertSee(__('pages.song.part_link', ['part' => 'soprano', 'low' => 'D4', 'high' => 'D5']))
             ->assertSee(__('pages.song.end_title', ['title' => 'Amazing Grace']))
             ->assertSee('href="/songs/happy-birthday"', false);
         $this->assertSame(4, substr_count($html, 'class="s-range-row'));

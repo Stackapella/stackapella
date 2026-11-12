@@ -28,9 +28,11 @@ use App\Http\Controllers\Public\OEmbedController;
 use App\Http\Controllers\Public\OpenSourcePagesController;
 use App\Http\Controllers\Public\ReferencePagesController;
 use App\Http\Controllers\Public\SingTogetherPagesController;
+use App\Http\Controllers\Public\SiteCssController;
 use App\Http\Controllers\Public\SitemapController;
 use App\Http\Controllers\Public\SitePagesController;
 use App\Http\Controllers\Public\SongCollectionPageController;
+use App\Http\Controllers\Public\SongMediaController;
 use App\Http\Controllers\Public\SongPagesController;
 use App\Http\Controllers\Public\SongPartPagesController;
 use App\Http\Controllers\Public\TodayController;
@@ -71,6 +73,7 @@ use App\Support\Accounts\BetaPass;
 use App\Support\Admin\IntendedUrl;
 use App\Support\Admin\StaffDevice;
 use App\Support\Http\ApiError;
+use App\Support\Languages\LanguageMenu;
 use App\Support\Languages\SiteLanguages;
 use App\Support\Pages\MudeoArrival;
 use App\Support\Pages\SongCollections;
@@ -185,7 +188,10 @@ return Application::configure(basePath: dirname(__DIR__))
             // IndexNow's key file (SubmitToIndexNow): only its own name answers.
             Route::get('/{key}.txt', IndexNowKeyController::class)->where('key', '[A-Za-z0-9-]{8,128}')->middleware('throttle:public-pages')->name('indexnow.key');
             // A page's course stylesheet, only the courses it shows (CourseCss; no session, kept a year at its ?v=).
+            Route::get('/song-media/{slug}/{file}', SongMediaController::class)->where(['slug' => '[a-z0-9-]{1,80}', 'file' => '[a-z0-9-]{1,40}\.webp'])->middleware('throttle:public-pages')->name('song.media');
             Route::get('/course-css/{key}.css', CourseCssController::class)->where('key', '[a-z0-9.]{1,200}')->middleware('throttle:public-pages')->name('course.css');
+            // A page family's stylesheets, only the rules the family can use (SiteCss; no session, kept a year at its ?v=).
+            Route::get('/site-css/{sheet}.css', SiteCssController::class)->where('sheet', '[a-z]{1,20}(-game)?')->middleware('throttle:public-pages')->name('site.css');
 
             // The mudeo email's one-click unsubscribe (RFC 8058): signed, no session. GET shows the
             // button (no data-changing GET); the POST, from it or from the mail provider, does it.
@@ -288,7 +294,7 @@ return Application::configure(basePath: dirname(__DIR__))
         // sign-in returns by a cross-site POST, checked by its own state cookie.
         // Read by the app shell's coming-soon gate, which runs without the cookie middleware: the
         // beta pass is signed by us, and the app's own marker holds nothing.
-        $middleware->encryptCookies(except: [BetaPass::COOKIE, MudeoArrival::COOKIE, MudeoArrival::USED_COOKIE, StaffDevice::COOKIE, StaffDevice::PREVIEW_COOKIE, 'sa_app', SignedInHint::COOKIE]);
+        $middleware->encryptCookies(except: [BetaPass::COOKIE, MudeoArrival::COOKIE, MudeoArrival::USED_COOKIE, StaffDevice::COOKIE, StaffDevice::PREVIEW_COOKIE, 'sa_app', SignedInHint::COOKIE, LanguageMenu::COOKIE]);
 
         // Reports also come from the public site's pages, across origins and without the app's
         // XSRF cookie (docs/app-subdomain-plan.md, "Report from a shared page").

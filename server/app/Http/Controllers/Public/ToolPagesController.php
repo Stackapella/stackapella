@@ -41,10 +41,25 @@ final class ToolPagesController extends Controller
             'area' => 'tools',
             'words' => $words,
             'tools' => SitePages::tools(),
+            // Hillel's tools page (2026-11-12): every live tool in its group, and Most used.
+            'groups' => SitePages::directory()['groups'],
+            'most' => self::mostUsed(),
             // Tagged even for a visitor with no ?ref= (one from search), so the brand row's Open the app is counted.
             'links' => Landing::links(Landing::ref($request->query('ref')) ?? 'tools'),
             'try' => self::tryUrl((string) $words['try_to'], 'tools'),
         ], 200, SongPagesController::headers());
+    }
+
+    /**
+     * The hub's Most used, in SitePages::MOST_USED's order, live ones only.
+     *
+     * @return list<array<string, mixed>>
+     */
+    private static function mostUsed(): array
+    {
+        $live = array_column(SitePages::tools(), null, 'slug');
+
+        return array_values(array_filter(array_map(static fn (string $slug): ?array => $live[$slug] ?? null, SitePages::MOST_USED)));
     }
 
     /**

@@ -6,8 +6,9 @@ namespace App\Support\Pages;
 
 use App\Models\Template;
 use App\Support\Http\Hosts;
+use App\Support\Languages\NoteNames;
 use App\Support\Languages\PartNames;
-use App\Support\Languages\SongDescriptions;
+use App\Support\Languages\SongWords;
 use Illuminate\Support\Facades\Storage;
 
 /**
@@ -34,7 +35,7 @@ final class SongPage
         return [
             'slug' => $template->slug,
             'title' => $template->title,
-            'description' => SongDescriptions::of((string) ($data['description'] ?? '')),
+            'description' => SongWords::description((string) ($data['description'] ?? '')),
             // Its story where it has one (lang song_about), the part pages' About too.
             'about' => trans()->has('song_about.'.$template->slug) ? (string) __('song_about.'.$template->slug) : null,
             'difficulty' => (string) ($data['difficulty'] ?? ''),
@@ -49,8 +50,8 @@ final class SongPage
             'previewType' => 'audio/mp4',
             'words' => self::firstVerse($data, $parts),
             'credits' => array_values(array_filter([
-                isset($credits['words']) ? __('pages.song.words', ['who' => $credits['words']]) : null,
-                isset($credits['tune']) ? __('pages.song.tune', ['who' => $credits['tune']]) : null,
+                isset($credits['words']) ? __('pages.song.words', ['who' => SongWords::credit((string) $credits['words'])]) : null,
+                isset($credits['tune']) ? __('pages.song.tune', ['who' => SongWords::credit((string) $credits['tune'])]) : null,
             ])),
             'ranges' => self::linked(self::ranges($parts), $parts, SongParts::hasPages($template) ? $base.'/songs/'.$template->slug.'/' : null),
             'pageUrl' => $base.'/songs/'.$template->slug,
@@ -116,7 +117,14 @@ final class SongPage
     /**
      * A note's name in scientific pitch (60 is C4).
      */
+    /** A note's name as the page's language names notes ("Eb4", "Mi♭4" in Spanish: NoteNames). */
     public static function note(int $midi): string
+    {
+        return NoteNames::name(self::letterName($midi));
+    }
+
+    /** A note's letter name ("Eb4"), whatever the page's language: for what's kept or read by code, not shown. */
+    public static function letterName(int $midi): string
     {
         return self::NAMES[$midi % 12].(intdiv($midi, 12) - 1);
     }

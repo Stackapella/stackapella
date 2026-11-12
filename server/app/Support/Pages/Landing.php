@@ -8,6 +8,7 @@ use App\Models\Template;
 use App\Support\Flags;
 use App\Support\Http\Hosts;
 use App\Support\Languages\PartNames;
+use App\Support\Languages\SongWords;
 use App\Support\Outreach\Outreach;
 use App\Support\Site\ComingSoon;
 use App\Support\Site\Drawings;
@@ -149,9 +150,12 @@ final class Landing
      * A song's opening line in the hero's shape, for any song's page: its first phrases, up to the
      * first phrase end at least LINE_SECONDS in (or `$end`), with "you" the part asked for, else
      * the melody (Hillel: "Melody first", as the app and both heroes do), else the first part.
-     * Null when the song has no parts.
+     * Null when the song has no parts. Without an `$end` a press plays the whole song (Hillel, 2026-11-12: "let's
+     * always play the full songs"): `whole`, and `songBeats` where it ends; the page carries only the opening line's
+     * notes, and js/public/mixer.js fetches the rest (and `length` is the whole song's). The landing's hero keeps its
+     * one line (its words and its title say so).
      *
-     * @return array{song: string, title: string, version: int, tempo: float, beats: float, length: string, you: string, parts: list<array{key: string, name: string, color: int, range: array{low: int, high: int}, notes: list<array{beat: float, length: float, pitch: int}>}>, words: list<array{beat: float, text: string, joins: bool}>}|null
+     * @return array{song: string, title: string, version: int, tempo: float, beats: float, songBeats: float, whole: bool, length: string, you: string, parts: list<array{key: string, name: string, color: int, range: array{low: int, high: int}, notes: list<array{beat: float, length: float, pitch: int}>}>, words: list<array{beat: float, text: string, joins: bool}>}|null
      */
     public static function line(Template $template, ?float $end = null, ?string $you = null): ?array
     {
@@ -162,7 +166,16 @@ final class Landing
         }
 
         $tempo = (float) ($data['tempo'] ?? 80);
+        $whole = $end === null;
         $end ??= self::lineEnd($data, $tempo);
+        $songBeats = 0.0;
+        foreach ($parts as $part) {
+            foreach (array_filter((array) ($part['guide']['notes'] ?? []), 'is_array') as $note) {
+                $songBeats = max($songBeats, (float) ($note['beat'] ?? 0) + (float) ($note['length'] ?? 1));
+            }
+        }
+        // A song no longer than its line is whole already.
+        $whole = $whole && $songBeats > $end;
         $line = static fn (array $part): array => array_values(array_filter(
             array_filter((array) ($part['guide']['notes'] ?? []), 'is_array'),
             static fn (array $note): bool => (float) ($note['beat'] ?? 0) < $end,
@@ -178,11 +191,13 @@ final class Landing
 
         return [
             'song' => $template->slug,
-            'title' => $template->title,
+            'title' => SongWords::title((string) $template->title),
             'version' => (int) ($template->currentVersion->version ?? 1),
             'tempo' => $tempo,
             'beats' => $end,
-            'length' => self::clock($end * 60 / $tempo),
+            'songBeats' => max($songBeats, $end),
+            'whole' => $whole,
+            'length' => self::clock(($whole ? $songBeats : $end) * 60 / $tempo),
             'you' => $you,
             // Coloured as the studio colours a song's parts: in their order.
             'parts' => array_map(static fn (array $part, int $i): array => [

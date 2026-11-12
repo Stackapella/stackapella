@@ -31,6 +31,17 @@ final class TestDatabase
         $base = $get('DB_TEST_DATABASE', 'stackapella_test');
         $token = self::token();
         $database = $token === null ? $base : $base.'_'.$token;
+        // A parallel run's worker (`php artisan test --parallel --without-databases`, paratest's TEST_TOKEN): its own
+        // database, chosen here before the app boots. Laravel's own switch happens after boot and purges the
+        // connection, which left services resolved at boot (the cache the rate limits use) writing outside each test's
+        // transaction, into a database every worker shared.
+        $worker = $_SERVER['TEST_TOKEN'] ?? getenv('TEST_TOKEN');
+        if (! empty($_SERVER['LARAVEL_PARALLEL_TESTING'] ?? getenv('LARAVEL_PARALLEL_TESTING')) && is_string($worker) && preg_match('/^\d+$/', $worker) === 1) {
+            $database .= '_w'.$worker;
+            // And Laravel's own switch stays off: `--without-databases` never reaches paratest's workers, and its
+            // switch would leave the cache on this database while each test ran on another (a probe, 2026-11-12).
+            $_SERVER['LARAVEL_PARALLEL_TESTING_WITHOUT_DATABASES'] = '1';
+        }
 
         if (! str_contains($database, 'test')) {
             throw new RuntimeException("Refusing to run tests against [{$database}]: the name must contain \"test\".");
@@ -59,6 +70,9 @@ final class TestDatabase
 
     /** @var PDO|null A connection of its own: what it writes never joins (or rolls back with) a test's transaction. */
     private static ?PDO $own = null;
+
+    /** The database $own is on: in a parallel run each worker switches to its own (`<base>_test_<n>`) after booting. */
+    private static ?string $ownDatabase = null;
 
     private static bool $forgotten = false;
 
@@ -118,8 +132,10 @@ final class TestDatabase
 
     private static function own(): PDO
     {
-        if (self::$own === null) {
-            $config = (array) config('database.connections.'.config('database.default'));
+        $config = (array) config('database.connections.'.config('database.default'));
+        // Always the database the tests are on now: a worker's own once Laravel has switched to it, never the run's base.
+        if (self::$own === null || self::$ownDatabase !== ($config['database'] ?? null)) {
+            self::$ownDatabase = isset($config['database']) ? (string) $config['database'] : null;
             self::$own = new PDO(sprintf('mysql:host=%s;port=%s;dbname=%s', $config['host'] ?? '127.0.0.1', $config['port'] ?? '3306', $config['database'] ?? ''), (string) ($config['username'] ?? ''), (string) ($config['password'] ?? ''), [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
         }
 

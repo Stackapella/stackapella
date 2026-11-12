@@ -6,7 +6,7 @@
 import { localized, t, tk } from '../i18n.js';
 import { navigate } from '../router.js';
 import { dayOf, levelFor, nextLesson, weekDays, weekOf, weekRing, weeksInARow } from '../course.js';
-import { allLessons, learning, loadLearning, loadPlusCourses, setGoal, startCourse } from '../stores/learning.js';
+import { allLessons, learning, loadLearning, loadPlusCatalogue, loadPlusCourse, setGoal, startCourse } from '../stores/learning.js';
 import { pickWorkout } from '../workout.js';
 import { readingToday } from '../reading-lines.js';
 import { lessonMinutes } from '../results.js';
@@ -473,7 +473,7 @@ export const HomeCourses = {
     // Hillel (2026-10-30, "it feels like we're throwing a lot at the user"): one row of three, the
     // course under way first, and All courses (the Learn page lists every one).
     template: `
-        <section v-if="row.length" aria-labelledby="band-courses" data-home-courses>
+        <section v-if="row.length && row.every((c) => !c.open || c.summary || tried[c.entry.id])" aria-labelledby="band-courses" data-home-courses>
             <div class="flex flex-wrap items-baseline justify-between gap-3">
                 <h2 id="band-courses" class="text-2xl font-extrabold tracking-tight text-cream">{{ sk('courses.homeTitle', 'courses.homeTitleGame') }}</h2>
                 <a href="/learn" class="btn-go" data-all-courses @click.prevent="navigate('/learn')">{{ t('courses.allCourses') }}</a>
@@ -484,17 +484,23 @@ export const HomeCourses = {
                 </li>
             </ul>
         </section>`,
+    // `tried`: the courses whose lessons were asked for (a missing file then shows as still to come).
+    data: () => ({ tried: {} }),
     created() {
         loadLearning();
-        loadPlusCourses();
+        // The catalogue, then only the three courses the band shows: not every course's lessons (25 files, about 420 KB, on a
+        // first visit's slow line while a song or a lesson is loading: the speed pass, 2026-11-12).
+        loadPlusCatalogue();
     },
     computed: {
         /** Plus (or staff, trying them before launch) starts any lesson; everyone else, the first free. */
         cards() {
             return (learning.catalogue ?? []).map((entry) => {
-                const open = courseVisible(entry, account.me, account.config, account.loaded) && !!learning.courses?.[entry.id];
-                const summary = open ? courseSummary(learning.courses[entry.id], learning.progress) : null;
-                return { entry, open, summary, started: !!summary?.started, last: summary?.started ? lastSung(learning.progress, entry.id) : 0 };
+                const open = courseVisible(entry, account.me, account.config, account.loaded) && entry.status === 'live' && !!entry.file;
+                const summary = open && learning.courses?.[entry.id] ? courseSummary(learning.courses[entry.id], learning.progress) : null;
+                // Under way, from the progress kept (a lesson with stars): known before the course's own file is in.
+                const started = open && startedIn(learning.progress, entry.id);
+                return { entry, open, summary, started, last: started ? lastSung(learning.progress, entry.id) : 0 };
             });
         },
         /** Three: the courses under way (the latest sung first), then the open ones by the featured and launch order, then the rest. */
@@ -504,7 +510,24 @@ export const HomeCourses = {
             return [...this.cards].sort((a, b) => rank(a) - rank(b) || b.last - a.last || place(a) - place(b)).slice(0, 3);
         },
     },
+    watch: {
+        /** The band's three courses: their lessons, for each card's length and progress. */
+        row: {
+            immediate: true,
+            handler(row) {
+                for (const c of row) {
+                    if (!c.open || this.tried[c.entry.id]) continue;
+                    loadPlusCourse(c.entry.id).finally(() => (this.tried = { ...this.tried, [c.entry.id]: true }));
+                }
+            },
+        },
+    },
 };
+
+/** Whether a course is under way: a lesson of it kept with stars. */
+function startedIn(progress, courseId) {
+    return Object.values(progress.courses?.[courseId]?.lessons ?? {}).some((l) => l?.stars);
+}
 
 /** When a course's lessons were last sung (its kept lessons' latest `at`), to put the one under way first. */
 function lastSung(progress, courseId) {

@@ -10,7 +10,7 @@
     <figure class="s-reel" data-reel data-play-label="{{ __('pages.landing.reel.play') }}" data-pause-label="{{ __('pages.landing.reel.pause') }}" data-sound-on="{{ __('pages.landing.reel.sound_on') }}" data-sound-off="{{ __('pages.landing.reel.sound_off') }}" data-captions-on="{{ __('pages.landing.reel.captions_on') }}" data-captions-off="{{ __('pages.landing.reel.captions_off') }}">
         @foreach (['dark', 'light'] as $cut)
             <video class="s-reel-v" data-cut="{{ $cut }}" data-webm="{{ $reel[$cut]['webm'] }}" data-mp4="{{ $reel[$cut]['mp4'] }}" data-mobile="{{ $reel[$cut]['mobile'] }}" muted loop playsinline preload="none" aria-label="{{ __('pages.landing.reel.label') }}">
-                <track kind="captions" srclang="en" label="{{ __('pages.landing.reel.captions') }}" src="{{ $reel['captions'] }}">
+                <track kind="captions" srclang="{{ $reel['language'] }}" label="{{ __('pages.landing.reel.captions') }}" src="{{ $reel['captions'] }}">
             </video>
             <img class="s-reel-poster" data-cut="{{ $cut }}" src="{{ $reel[$cut]['poster'] }}" srcset="{{ $reel[$cut]['posterSet'] }}" sizes="(min-width: 1180px) 1120px, 100vw" width="1920" height="1080" alt="" loading="lazy" decoding="async">
         @endforeach

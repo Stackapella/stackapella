@@ -10,7 +10,7 @@
 @php($groups = [
     'learn' => ['courses' => '/courses', 'free_tools' => \App\Support\Site\SitePages::toolsHome(), 'warmups' => '/warmups', 'guides' => '/guides'],
     'reference' => ['intervals' => '/intervals', 'chords' => '/chords', 'voice_types' => '/voice-types', 'note_chart' => '/tools/note-frequency-chart'],
-    'product' => ['features' => '/features', 'how' => '/how-it-works', 'pricing' => '/pricing', 'for_choirs' => '/for/choir-directors'],
+    'product' => ['features' => '/features', 'how' => '/how-it-works', 'pricing' => '/pricing', 'for_choirs' => '/for/choir-directors?ref=for-choirs-footer'],
     'help' => ['help' => '/help', 'whats_new' => '/whats-new', 'contact_app' => \App\Support\Http\Hosts::app('/contact'), 'email_us' => 'mailto:'.config('site.contact_email')],
     'company' => ['about' => '/about', 'press' => '/press', ...(\App\Support\Site\OpenSource::on() ? ['open_source' => '/open-source'] : []), 'integrations' => '/integrations'],
     'legal' => ['terms' => '/legal/terms', 'privacy' => '/legal/privacy', 'guidelines' => '/legal/community-guidelines', 'accessibility' => '/legal/accessibility'],

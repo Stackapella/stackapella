@@ -74,7 +74,8 @@ def journey(f):
     f.js("new Promise((r) => setTimeout(r, 1200))")  # the song's practice saves settle before the reload
     f.go(f"/p/{grace}/sing", "document.querySelector('main')")
     f.wait_text(t(f, "sing.coach.hint.listen", {"part": alto}))
-    assert f.js(f"{SESSION}.session.hearing.off.length === 1"), "What you hear wasn't remembered for the song"
+    # Read as Sing reaches its own screen (session.js setScreen), which a busy machine reaches after the hint shows.
+    f.wait(f"{SESSION}.session.hearing.off.length === 1", timeout=10, what="What you hear remembered for the song")
     open_hearing(f)
     assert f.js(f"document.querySelector('[data-hearing]').innerText.includes({t(f, 'sing.hear.melody')!r})"), "the melody's row has no Melody tag"
     f.run(f"""const name = {I18N}.t('parts.soprano'); [...document.querySelectorAll('[data-hearing] [role=switch]')].find((b) => b.textContent.includes(name)).click();""")

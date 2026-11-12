@@ -28,6 +28,12 @@ final class ForPagesController extends Controller
         $page = SitePages::page('for', $who);
         // A page's questions, if it has them (choir directors').
         $page['faq'] = array_values(array_filter((array) ($page['faq'] ?? []), 'is_array'));
+        // Arrived by one of the For choirs lead-ins (?ref=for-choirs-<place>, Hillel, 2026-11-12: For choirs left the header
+        // for the pages a director reads): starting a group is counted by that place too, as the Start links are.
+        $ref = Landing::ref($request->query('ref'));
+        if ($ref !== null && str_starts_with($ref, 'for-choirs-') && in_array($ref, (array) config('counts.sources'), true) && is_string($page['group_start'] ?? null)) {
+            $page['group_start'] = $ref;
+        }
 
         return response()->view('site.for', [
             'title' => SitePages::title((string) $page['title']),

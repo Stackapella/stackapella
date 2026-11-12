@@ -19,6 +19,7 @@ use App\Support\Languages\NoteNames;
 use App\Support\Languages\TranslationMaps;
 use App\Support\Legal\LegalText;
 use App\Support\Pages\Carols;
+use App\Support\Pages\Prices;
 use App\Support\Site\HelpGuide;
 use App\Support\Site\SitemapPaths;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -136,7 +137,7 @@ final class LanguagesTest extends TestCase
             $this->assertStringContainsString('hreflang="x-default" href="'.Hosts::publicUrl().'/courses/harmony/find-your-voice"', $html, $path);
         }
         // A page only in English (legal, by Hillel's decision) names no other language.
-        $this->assertStringNotContainsString('hreflang', (string) $this->get('/legal/terms')->getContent());
+        $this->assertStringNotContainsString('rel="alternate" hreflang', (string) $this->get('/legal/terms')->getContent());
 
         $sitemap = (string) $this->get('/sitemap.xml')->getContent();
         $this->assertStringContainsString(Hosts::publicUrl().'/es/courses/harmony/find-your-voice</loc>', $sitemap);
@@ -344,7 +345,9 @@ final class LanguagesTest extends TestCase
         $this->assertStringContainsString('<html lang="es"', $html);
         $this->assertStringContainsString('Preview: ES is off for everyone else', $html);
         $this->assertStringContainsString('no-store', (string) $page->headers->get('Cache-Control'));
-        $this->assertStringNotContainsString('hreflang', $html);
+        $this->assertStringNotContainsString('rel="alternate" hreflang', $html);
+        // The header's language menu shows on the preview, for the admin to move between the two.
+        $this->assertStringContainsString('data-lang-menu', $html);
         $this->assertStringNotContainsString('/es/', (string) $this->get('/sitemap.xml')->getContent());
 
         // Once it's open: no note, and the page is everyone's.
@@ -523,5 +526,73 @@ final class LanguagesTest extends TestCase
         $guides = (string) $this->get('/es/courses/ear-training')->assertOk()->getContent();
         $this->assertStringContainsString(e(app(LegalText::class)->read('singing-in-tune', 'es', 'guides')['title']), $guides);
         $this->assertStringNotContainsString(e(app(LegalText::class)->read('singing-in-tune', 'en', 'guides')['title']), $guides);
+    }
+
+    public function test_the_header_offers_each_open_language_for_the_same_page_and_remembers_only_the_choice(): void
+    {
+        config(['app.is_nexus' => true, 'app.coming_soon' => false]);
+        app(SyncOfficialTemplates::class)->handle();
+
+        // Only English open: no menu.
+        $this->get('/songs/amazing-grace')->assertOk()->assertDontSee('data-lang-menu', false);
+
+        app(Flags::class)->set('lang_es', 'on', null, 'Spanish checked');
+        $english = (string) $this->get('/songs/amazing-grace')->assertOk()->getContent();
+        $this->assertStringContainsString('data-lang-menu', $english);
+        $this->assertStringContainsString('href="'.Hosts::publicUrl().'/es/songs/amazing-grace" hreflang="es" lang="es" data-lang-choice="es"', $english);
+
+        // On the Spanish page, its link to English stays English (a page in a language never rewrites it).
+        $spanish = (string) $this->get('/es/songs/amazing-grace')->assertOk()->getContent();
+        $this->assertStringContainsString('href="'.Hosts::publicUrl().'/songs/amazing-grace" hreflang="en" lang="en" data-lang-choice="en"', $spanish);
+        $this->assertMatchesRegularExpression('/data-lang-choice="es"\s+aria-current="true"/', $spanish);
+        // Open the app opens in Spanish too, and the menu sits just before it (Hillel: "between the light/dark toggle and
+        // open the app buttons").
+        $this->assertStringContainsString('lang=es', (string) str($spanish)->before('" class="btn-primary"')->afterLast('href="'));
+        $this->assertStringContainsString('</details>', (string) str($spanish)->after('data-lang-menu')->before('class="btn-primary"'));
+        $this->assertStringNotContainsString('data-theme-toggle', (string) str($spanish)->after('data-lang-menu')->before('class="btn-primary"'));
+        $this->assertStringContainsString('data-theme-toggle', (string) str($spanish)->after('class="s-wrap s-top"')->before('data-lang-menu'));
+
+        // A page with no Spanish twin offers the Spanish home.
+        $this->assertStringContainsString('href="'.Hosts::publicUrl().'/es" hreflang="es"', (string) $this->get('/legal/terms')->getContent());
+
+        // The choice is a newcomer's language for what the server writes them (a new account's emails), while it's open.
+        $form = ['name' => 'Ana', 'email' => 'ana@example.com', 'password' => 'a-fine-long-passphrase-42', 'birthMonth' => 5, 'birthYear' => 1990, 'elapsedMs' => 45000, 'nickname' => ''];
+        Mail::fake();
+        $this->withCredentials()->withUnencryptedCookie('sa_lang', 'es')->withHeaders(['Accept-Language' => 'en'])->postJson('/api/auth/register', $form)->assertStatus(202);
+        $this->assertSame('es', User::query()->where('email', 'ana@example.com')->value('locale'));
+        app(Flags::class)->set('lang_es', 'off', null, 'Closed again');
+        $this->withCredentials()->withUnencryptedCookie('sa_lang', 'es')->withHeaders(['Accept-Language' => 'en'])->postJson('/api/auth/register', [...$form, 'email' => 'bo@example.com'])->assertStatus(202);
+        $this->assertSame('en', User::query()->where('email', 'bo@example.com')->value('locale'));
+    }
+
+    public function test_spanish_song_pages_name_notes_keys_genres_credits_and_rounds_in_spanish(): void
+    {
+        // The native read of the Spanish site (the courses lead, 2026-11-12): letter names, English chips and credits.
+        config(['app.is_nexus' => true, 'app.coming_soon' => false]);
+        app(SyncOfficialTemplates::class)->handle();
+        app(Flags::class)->set('lang_es', 'on', null, 'Spanish checked');
+
+        $song = (string) $this->get('/es/songs/amazing-grace')->assertOk()->getContent();
+        $this->assertStringContainsString('<span>Himno</span>', $song);
+        $this->assertStringContainsString('himno popular estadounidense (1829)', $song);
+        $this->assertStringContainsString('Aprende la voz de soprano (de ', $song);
+        $this->assertMatchesRegularExpression('/s-range-scale.*>Do\d</su', $song);
+        $this->assertDoesNotMatchRegularExpression('/s-range-scale[^\n]*>C\d</u', $song);
+
+        $english = (string) $this->get('/songs/amazing-grace')->assertOk()->getContent();
+        $this->assertStringContainsString('<span>Hymn</span>', $english);
+        $this->assertStringContainsString('American folk hymn (1829)', $english);
+        $this->assertStringContainsString('Learn the soprano part (', $english);
+
+        // The part page's key, and a round's note in the A to Z.
+        $this->get('/es/songs/amazing-grace/alto')->assertOk()->assertSee('<dd translate="no">Sol</dd>', false);
+        $this->get('/songs/amazing-grace/alto')->assertOk()->assertSee('<dd translate="no">G</dd>', false);
+        $this->get('/es/songs')->assertOk()->assertSee('(canon)')->assertDontSee('(round)');
+
+        // Prices as Spanish writes them; English keeps its own.
+        app()->setLocale('es');
+        $this->assertSame("3,33\u{A0}US$", Prices::format(333, 'usd'));
+        app()->setLocale('en');
+        $this->assertSame('$3.33', Prices::format(333, 'usd'));
     }
 }

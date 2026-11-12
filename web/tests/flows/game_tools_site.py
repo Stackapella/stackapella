@@ -59,7 +59,9 @@ def themes(f, path):
 
 
 def check(f, path):
-    f.go(path, "document.querySelector('main')")
+    # The page's scripts run first (they draw a tool and wire the Theme menu): a module runs only once the page's sheets
+    # are in, and the site's family sheets come through PHP locally, so a set sleep alone can read the page before them.
+    f.go(path, "document.readyState === 'complete' && document.querySelector('main')")
     time.sleep(0.6)
     tool = f.js("!!document.querySelector('[data-ui=tool-panel]')")
     if f.skin == "serious":

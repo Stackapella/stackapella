@@ -32,18 +32,20 @@
     <main>
         {{-- Its hero in its own palette and motif (s-tone-<slug>), the same as its band on /songs and its link card. --}}
         <section class="s-xhero s-tone s-tone-{{ $slug }}" aria-labelledby="page-h">
-            @include('site._tone-motif', ['key' => $slug])
+            {{-- The Jewish songs' lamp sits in its next festival's card instead (Hillel, 2026-11-12: "show in top right corner of
+                 the next festival box"), so it's never drawn twice. --}}
+            @if ($slug !== \App\Support\Pages\JewishSongs::SLUG)
+                @include('site._tone-motif', ['key' => $slug])
+            @endif
             <div @class(['s-wrap s-xhero-in s-xcoll-in', 's-xcoll-has-try' => ($try ?? null) !== null])>
                 <div class="s-xhero-text">
                     <x-site.crumbs :trail="[[__('site.song_part.songs'), '/songs'], [__($words.'.crumb')]]" />
                     <h1 id="page-h">{{ __($words.'.headline') }} <em class="s-xserif">{{ __($words.'.headline_em') }}</em></h1>
+                    {{-- One short lead (Hillel's Jewish Songs redesign); the intro is its own section after the songs. --}}
                     <p class="s-lead">{{ __($words.'.lead') }}</p>
-                    @foreach ((array) \Illuminate\Support\Facades\Lang::get($words.'.intro') as $paragraph)
-                        <p class="s-xcoll-intro">{{ $paragraph }}</p>
-                    @endforeach
                     <div class="s-actions s-actions-row">
                         <a href="#songbook" class="btn-primary btn-lg">{{ __($words.'.pick') }} <span aria-hidden="true">↓</span></a>
-                        @include('site._share', ['surface' => 'page-collection', 'url' => $canonical, 'title' => $title, 'name' => __($words.'.crumb'), 'lg' => true])
+                        @include('site._share', ['surface' => 'page-collection', 'url' => $canonical, 'title' => $title, 'name' => __($words.'.crumb'), 'lg' => true, 'label' => trans()->has($words.'.share') ? __($words.'.share') : __('site.share.choir')])
                     </div>
                 </div>
                 {{-- Beside the heading from 900 px (the width design): the collection's own song, the one on its link card,
@@ -55,19 +57,50 @@
                 @endif
                 {{-- The Jewish songs page's countdown to its next festival (App\Support\Pages\JewishSongs::festival). --}}
                 @if (($festival ?? null) !== null)
-                    <aside class="s-jcount" aria-labelledby="jcount-k">
+                    {{-- Hillel's redesign (2026-11-12): the festival large, the days large beside it with its first sundown,
+                         then that festival's songs (at most three) to learn in time, each to its card's page. --}}
+                    @php($festivalName = __($words.'.festivals.'.$festival['key']))
+                    <aside @class(['s-jcount', 's-jcount-lamp' => $festival['key'] === 'hanukkah']) aria-labelledby="jcount-k">
+                        @if ($festival['key'] === 'hanukkah')
+                            {{ \App\Support\Pages\Hanukkiah::svg('s-hk s-hk-card') }}
+                        @endif
                         <p id="jcount-k" class="s-jcount-k">{{ $festival['on'] ? __($words.'.count_on_label') : __($words.'.count_label') }}</p>
-                        <p class="s-jcount-n s-xserif">{{ __($words.'.festivals.'.$festival['key']) }}</p>
-                        <p class="s-jcount-line">{{ $festival['on'] ? __($words.'.count_until', ['date' => \App\Support\Languages\Dates::weekdayDayMonth($festival['until'])]) : ($festival['days'] === 0 ? __($words.'.count_tonight') : trans_choice($words.'.count_in', $festival['days'], ['count' => $festival['days']])) }}</p>
-                        @unless ($festival['on'])
-                            <p class="s-jcount-date">{{ __($words.'.count_from', ['date' => \App\Support\Languages\Dates::weekdayDayMonth($festival['from'])]) }}</p>
-                        @endunless
+                        <div class="s-jcount-top">
+                            <p class="s-jcount-n s-xserif">{{ $festivalName }}</p>
+                            <div class="s-jcount-when">
+                                @if ($festival['on'])
+                                    <p class="s-jcount-date">{{ __($words.'.count_until', ['date' => \App\Support\Languages\Dates::weekdayDayMonth($festival['until'])]) }}</p>
+                                @else
+                                    <p class="s-jcount-d">{{ $festival['days'] === 0 ? __($words.'.count_tonight') : trans_choice($words.'.count_days', $festival['days'], ['count' => $festival['days']]) }}</p>
+                                    <p class="s-jcount-date">{{ __($words.'.count_sundown', ['date' => \App\Support\Languages\Dates::weekdayDayMonth($festival['from'])]) }}</p>
+                                @endif
+                            </div>
+                        </div>
+                        @if (($festivalSongs ?? []) !== [] && trans()->has($words.'.count_learn.'.$festival['key']))
+                            <p class="s-jcount-learn">{{ __($words.'.count_learn.'.$festival['key']) }}</p>
+                            <ul class="s-jcount-songs">
+                                @foreach ($festivalSongs as $song)
+                                    <li><a href="{{ $song['url'] }}"><b translate="no">{{ $song['title'] }}</b>@if ($song['level'] !== null)<span>{{ $song['level'] }}</span>@endif<x-site.icon name="arrow" size="16" /></a></li>
+                                @endforeach
+                            </ul>
+                        @endif
                     </aside>
                 @endif
             </div>
         </section>
 
-        @include('site._songbook', ['songs' => $songs, 'heading' => __($words.'.songbook'), 'sub' => __($words.'.songbook_sub'), 'subPart' => __($words.'.songbook_part'), 'places' => null, 'chips' => $chips ?? null])
+        @include('site._songbook', ['songs' => $songs, 'heading' => __($words.'.songbook'), 'sub' => __($words.'.songbook_sub'), 'subPart' => __($words.'.songbook_part'), 'places' => null, 'chips' => $chips ?? null, 'note' => trans()->has($words.'.songbook_note') ? __($words.'.songbook_note') : null])
+
+        {{-- Where the songs and their parts come from (Hillel's redesign: the hero's long intro moved here), its heading at
+             left from 900 px. --}}
+        <section class="s-wrap s-sec2 s-xfrom" aria-labelledby="from-h">
+            <h2 id="from-h">{{ __($words.'.from') }} <em class="s-xserif">{{ __($words.'.from_em') }}</em></h2>
+            <div>
+                @foreach ((array) \Illuminate\Support\Facades\Lang::get($words.'.intro') as $paragraph)
+                    <p>{{ $paragraph }}</p>
+                @endforeach
+            </div>
+        </section>
 
         @include('site.tools._about', ['tie' => __('site.carols.tie'), 'tryLink' => __($words.'.try_link'), 'try' => \App\Support\Http\Hosts::app('/?ref=songs'), 'links' => ['app' => \App\Support\Http\Hosts::app('/')]])
         @include('site.tools._directory', ['directory' => \App\Support\Site\SitePages::directory()])
@@ -78,4 +111,7 @@
 @section('scripts')
     <script type="module" src="/js/public/mixer.js"></script>
     <script type="module" src="/js/public/carols.js"></script>
+    @if ($slug === \App\Support\Pages\JewishSongs::SLUG)
+        <script type="module" src="/js/public/hanukkiah.js"></script>
+    @endif
 @endsection

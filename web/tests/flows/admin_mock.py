@@ -21,7 +21,8 @@ def journey(f):
     # The example's second-factor check has run out: one line, with the way to confirm it.
     assert f.js("document.querySelector('[data-home-sudo] a').getAttribute('href')") == "/admin/second-factor?sudo=1&intended=%2Fadmin"
     # What needs you now: the total beside the title, and a card per kind; the five numbers as one panel.
-    f.wait("document.querySelector('[data-needs-total]')?.textContent.trim() && document.querySelector('[data-admin-needs] [data-needs-voices] [data-needs-song]')", what="the total and the voices card")
+    f.wait("document.querySelector('[data-needs-total]')?.textContent.trim()", what="the total")
+    assert not f.js("!!document.querySelector('[data-admin-needs] [data-needs-voices], [data-admin-needs] [data-needs-part]')"), "the voices aren't in What needs you now"
     f.wait("document.querySelectorAll('[data-home-panel] [data-tile]').length === 5", what="the five numbers in one panel")
     if f.size == "desktop":
         tops = f.js("[...document.querySelectorAll('[data-home-panel] [data-tile]')].map((d) => Math.round(d.getBoundingClientRect().top))")
