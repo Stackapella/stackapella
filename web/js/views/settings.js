@@ -111,7 +111,9 @@ export const SettingsView = {
                             <li v-for="key in SECTIONS" :key="key"><a :href="'#' + key" class="block rounded-xl px-3 py-2 text-sm font-semibold transition" :class="section === key ? 'bg-raised text-cream' : 'text-muted hover:text-cream'" :aria-current="section === key ? 'true' : null" @click.prevent="jump(key)">{{ t(SECTION_WORDS[key]) }}</a></li>
                         </ul>
                     </nav>
-                    <div class="flex min-w-0 max-w-2xl flex-1 flex-col gap-8">
+                    <!-- From 900 px the sections fill the row beside their nav (Hillel's width design), not a column with the right
+                         left empty; below it, as before. -->
+                    <div class="flex min-w-0 max-w-2xl flex-1 flex-col gap-8 min-[900px]:max-w-none" data-settings-sections>
                 <p v-if="!account.loaded" class="text-muted" role="status">{{ t('settings.loading') }}</p>
                 <!-- A guest (docs/account-nudges-plan.md, card D): what's on this device, what an account adds, and the way in. -->
                 <section v-else-if="!account.me" class="card space-y-4 p-5 md:p-6" aria-labelledby="guest-heading" data-guest-settings>

@@ -156,7 +156,8 @@ export const CreateView = {
             return Math.max(0, this.steps.indexOf(this.draft.step));
         },
         wide() {
-            return this.draft && ['edit', 'check', 'key'].includes(this.draft.step);
+            // Tempo and Words too (Hillel's width design): their cards side by side from 900 px rather than a column with the right empty.
+            return this.draft && ['edit', 'check', 'key', 'tempo', 'words'].includes(this.draft.step);
         },
         /** The template as it would be saved: its parts in order with their versions, and the credits. */
         finished() {

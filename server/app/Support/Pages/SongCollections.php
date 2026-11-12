@@ -183,7 +183,7 @@ final class SongCollections
         foreach ([...$order, 'more'] as $key) {
             $in = array_values(array_filter($songs, static fn (array $song): bool => self::group(array_values(array_filter((array) ($song['genre'] ?? []), 'is_string'))) === $key));
             if ($in !== []) {
-                $groups[] = ['key' => $key, 'songs' => $in, 'link' => $key === 'christmas' ? (Carols::inSeason() && app(Carols::class)->songs() !== [] ? Carols::PATH : null) : ($open[$key] ?? null)];
+                $groups[] = ['key' => $key, 'songs' => $in, 'link' => $key === 'christmas' ? (Carols::inSeason() && app(Carols::class)->slugs() !== [] ? Carols::PATH : null) : ($open[$key] ?? null)];
             }
         }
 

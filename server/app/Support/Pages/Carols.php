@@ -25,6 +25,24 @@ final class Carols
 
     public function __construct(private readonly SongParts $parts) {}
 
+    /** @var list<string>|null */
+    private ?array $slugs = null;
+
+    /**
+     * Each open carol's slug, as songs() lists them, without building their cards (each plays a first line): read
+     * once a request (it's scoped), for the checks that only ask whether there are carols or whether a song is one.
+     *
+     * @return list<string>
+     */
+    public function slugs(): array
+    {
+        if (! SongParts::open()) {
+            return [];
+        }
+
+        return $this->slugs ??= array_values($this->parts->songs()->filter(self::isCarol(...))->map(static fn (Template $template): string => (string) $template->slug)->all());
+    }
+
     /**
      * Each open carol: its title and page, where it comes from (the first sentence of its part pages' About, checked
      * by the courses lead), and its parts, each to its own page.
@@ -140,7 +158,7 @@ final class Carols
     /** Whether the choir pages and the landing point here: while the carols are pushed (promoted) and a carol is open. */
     public static function linked(): bool
     {
-        return self::promoted() && app(self::class)->songs() !== [];
+        return self::promoted() && app(self::class)->slugs() !== [];
     }
 
     /**
@@ -161,7 +179,7 @@ final class Carols
     /** Whether a song is one of the open carols, so its part pages point back here. */
     public static function has(string $slug): bool
     {
-        return in_array($slug, array_column(app(self::class)->songs(), 'slug'), true);
+        return in_array($slug, app(self::class)->slugs(), true);
     }
 
     /**

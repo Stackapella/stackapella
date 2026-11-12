@@ -485,7 +485,8 @@
             "metre": "Su compás ({metre}) aún no se puede cantar aquí.",
             "empty": "No encontramos ninguna nota en ese archivo.",
             "signIn": "Importar partituras requiere una cuenta gratis. Tus canciones y tu progreso van contigo."
-        }
+        },
+        "rightsFrom": "Derechos: según confirmó {who} con la solicitud."
     },
     "part": {
         "practise": "Practicar esta voz",
@@ -1682,7 +1683,8 @@
             "keepAll": "Cada lección de cada curso, todo gratis",
             "free": "Gratis, sin tarjeta y sin periodo de prueba.",
             "email": "Prefiero usar mi correo",
-            "signIn": "¿Ya tienes una cuenta? Entrar"
+            "signIn": "¿Ya tienes una cuenta? Entrar",
+            "keepLessons": "{count, plural, one {Tu lección} other {Tus # lecciones}} de este curso hasta ahora"
         },
         "yours": "Tus cursos",
         "progressShort": "{done} de {total}",
@@ -1899,7 +1901,9 @@
             "unheardTitle": "Vamos a intentarlo otra vez",
             "unheard": "Esta vez no hay estrellas: no te oímos bien. Vuelve a intentarlo en un lugar más tranquilo, un poco más cerca del micrófono. No te cuesta nada.",
             "skippedTitle": "Omitida por ahora",
-            "skipped": "Esta vez no hay estrellas, y no pierdes nada. Vuelve a cantarla cuando quieras."
+            "skipped": "Esta vez no hay estrellas, y no pierdes nada. Vuelve a cantarla cuando quieras.",
+            "skippedSerious": "No pierdes nada. Vuelve a cantarla cuando quieras.",
+            "unheardSerious": "Esta vez no cuenta: no te oímos bien. Vuelve a intentarlo en un lugar más tranquilo, un poco más cerca del micrófono. No te cuesta nada."
         },
         "openIn": "Abrirla en Cantar",
         "recordIn": "Grabarla en Cantar",
@@ -2028,7 +2032,8 @@
         "singToFinish": "Cántala una vez para terminar",
         "singToGoOn": "Cántala una vez para seguir",
         "stars": {
-            "hold": "Aquí las estrellas premian cuánto tiempo mantienes la nota y con qué estabilidad."
+            "hold": "Aquí las estrellas premian cuánto tiempo mantienes la nota y con qué estabilidad.",
+            "holdSerious": "Aquí cuenta cuánto tiempo mantienes la nota y con qué estabilidad."
         },
         "vibrato": {
             "heard": "Un vibrato suave, unas {rate} veces por segundo.",
@@ -2069,7 +2074,8 @@
             "title": "Ya está el belting de hoy.",
             "line": "Tu voz se recupera durante la noche."
         },
-        "lockedSerious": "Esta lección se abre cuando hayas cantado las anteriores."
+        "lockedSerious": "Esta lección se abre cuando hayas cantado las anteriores.",
+        "resultSerious": "{percent}% afinado"
     },
     "install": {
         "title": "Instalar Stackapella",
@@ -2179,7 +2185,8 @@
             "welcomeYesterday": "Hola de nuevo. Ayer: {note}, {stars, plural, one {1 estrella} other {# estrellas}}.",
             "welcomeLast": "Hola de nuevo. La última vez: {note}, {stars, plural, one {1 estrella} other {# estrellas}}.",
             "welcomeYesterdaySerious": "Hola de nuevo. Ayer: {note}, {lessons, plural, one {1 lección} other {# lecciones}}.",
-            "welcomeLastSerious": "Hola de nuevo. La última vez: {note}, {lessons, plural, one {1 lección} other {# lecciones}}."
+            "welcomeLastSerious": "Hola de nuevo. La última vez: {note}, {lessons, plural, one {1 lección} other {# lecciones}}.",
+            "allDoneTitleSerious": "Canta otra vez la que quieras"
         },
         "accountLink": "{name}: tu cuenta y ajustes",
         "accountLinkPlus": "{name}, con Plus: tu cuenta y ajustes",
@@ -4993,7 +5000,8 @@
             "cupYou": "Tú: #{rank}, {points} puntos",
             "cupYours": "Tú: {points} puntos esta semana",
             "endsDays": "{days, plural, one {Termina en # día} other {Termina en # días}}",
-            "sung": "Desafío de hoy: {percent}%."
+            "sung": "Desafío de hoy: {percent}%.",
+            "sing": "Cantarla"
         },
         "initials": {
             "title": "Escribe tus iniciales",

@@ -36,6 +36,9 @@ final class SyncOfficialTemplates
     /** At most this many songs withdrawn in one sync (or a quarter of them, if more). */
     private const MOST_WITHDRAWN = 3;
 
+    /** @var array<string, list<string>> each file's problems, by its bytes' hash and the schemas' folder */
+    private static array $checked = [];
+
     public function __construct(private readonly TemplateRules $rules, private readonly SocialPoster $poster, private readonly CarryVoicesOver $carry, private readonly CourseClips $clips) {}
 
     /**
@@ -63,7 +66,9 @@ final class SyncOfficialTemplates
                 continue;
             }
 
-            $problems = [...$schemas->check(json_decode($json, false), 'template.json'), ...$this->rules->problems($data), ...$this->rules->officialProblems($data)];
+            // A file's checks read nothing but its bytes and the schemas, so they're done once a process for the same
+            // bytes (the tests sync the same files many times; a deploy's sync, once).
+            $problems = self::$checked[hash('sha256', $json).':'.config('templates.schemas')] ??= [...$schemas->check(json_decode($json, false), 'template.json'), ...$this->rules->problems($data), ...$this->rules->officialProblems($data)];
 
             if ($problems !== []) {
                 $report['problems'][] = "{$name}: ".implode('; ', $problems);

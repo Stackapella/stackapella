@@ -57,11 +57,12 @@ final class BrandMarkTest extends TestCase
         [$right, $bottom] = $square ? [$width, $height] : [(int) ($width * 0.3), (int) ($height * 0.35)];
 
         $seen = [];
-        for ($y = 0; $y < $bottom; $y += 2) {
+        // Each colour's channels, read once (not once a pixel); the scan stops once every bar is seen.
+        $channels = array_map(static fn (string $colour): array => sscanf($colour, '#%02x%02x%02x') ?? [0, 0, 0], array_combine(self::COLOURS, self::COLOURS));
+        for ($y = 0; $y < $bottom && count($seen) < count(self::COLOURS); $y += 2) {
             for ($x = 0; $x < $right; $x += 2) {
                 $rgb = imagecolorat($image, $x, $y);
-                foreach (self::COLOURS as $colour) {
-                    [$r, $g, $b] = sscanf($colour, '#%02x%02x%02x') ?? [0, 0, 0];
+                foreach ($channels as $colour => [$r, $g, $b]) {
                     if (abs(($rgb >> 16 & 255) - $r) + abs(($rgb >> 8 & 255) - $g) + abs(($rgb & 255) - $b) < 60) {
                         $seen[$colour] = true;
                     }

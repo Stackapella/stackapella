@@ -27,6 +27,9 @@ final class LinkPreviewsTest extends TestCase
 {
     use RefreshDatabase;
 
+    /** The cards themselves are what's tested here (TestCase fakes their job everywhere else). */
+    protected bool $makesSongCards = true;
+
     private const SLACK = 'Slackbot-LinkExpanding 1.0 (+https://api.slack.com/robots)';
 
     /**

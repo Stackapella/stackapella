@@ -72,11 +72,11 @@ final class SongPagesController extends Controller
         }
 
         $song = SongPage::of($template);
-        // More to learn: the same level first, three of them.
+        // More to learn: the same level first, three of them (picked by the level SongPage::of reads, before building
+        // the three: building every song's page for three was most of the page's time).
         $more = $catalogue->open()->reject(fn (Template $other): bool => $other->is($template))
-            ->map(fn (Template $other): array => SongPage::of($other))
-            ->sortBy(fn (array $other): int => $other['difficulty'] === $song['difficulty'] ? 0 : 1)
-            ->take(3)->values()->all();
+            ->sortBy(fn (Template $other): int => (string) (((array) ($other->currentVersion->data ?? []))['difficulty'] ?? '') === $song['difficulty'] ? 0 : 1)
+            ->take(3)->map(fn (Template $other): array => SongPage::of($other))->values()->all();
 
         return response()->view('public.song', [
             'song' => $song,

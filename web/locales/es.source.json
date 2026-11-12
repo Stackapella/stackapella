@@ -485,7 +485,8 @@
             "metre": "Its metre ({metre}) can't be sung here yet.",
             "empty": "We couldn't find any notes in that file.",
             "signIn": "Bringing in sheet music needs a free account. Your songs and progress come with you."
-        }
+        },
+        "rightsFrom": "Rights: as {who} confirmed with the request."
     },
     "part": {
         "practise": "Practise this part",
@@ -1682,7 +1683,8 @@
             "keepAll": "Every lesson of every course, all free",
             "free": "Free, with no card and no trial.",
             "email": "Use my email instead",
-            "signIn": "Already have an account? Sign in"
+            "signIn": "Already have an account? Sign in",
+            "keepLessons": "{count, plural, one {Your lesson} other {Your # lessons}} from this course so far"
         },
         "yours": "Your courses",
         "progressShort": "{done} of {total}",
@@ -1899,7 +1901,9 @@
             "unheardTitle": "Let's try that again",
             "unheard": "No stars this time: we couldn't hear you clearly. Try again somewhere quieter, a little closer to the mic. It doesn't cost you anything.",
             "skippedTitle": "Skipped for now",
-            "skipped": "No stars this time, and nothing lost. Come back and sing it when you're ready."
+            "skipped": "No stars this time, and nothing lost. Come back and sing it when you're ready.",
+            "skippedSerious": "Nothing lost. Come back and sing it when you're ready.",
+            "unheardSerious": "Nothing counted this time: we couldn't hear you clearly. Try again somewhere quieter, a little closer to the mic. It doesn't cost you anything."
         },
         "openIn": "Open it in Sing",
         "recordIn": "Record it in Sing",
@@ -2028,7 +2032,8 @@
         "singToFinish": "Sing it once to finish",
         "singToGoOn": "Sing it once to go on",
         "stars": {
-            "hold": "Stars here are for how long you held the note, and how steadily."
+            "hold": "Stars here are for how long you held the note, and how steadily.",
+            "holdSerious": "This one is about how long you held the note, and how steadily."
         },
         "vibrato": {
             "heard": "A gentle vibrato, about {rate} a second.",
@@ -2069,7 +2074,8 @@
             "title": "That's today's belting.",
             "line": "Your voice recovers overnight."
         },
-        "lockedSerious": "This lesson opens once you've sung the ones before it."
+        "lockedSerious": "This lesson opens once you've sung the ones before it.",
+        "resultSerious": "{percent}% on pitch"
     },
     "install": {
         "title": "Install Stackapella",
@@ -2179,7 +2185,8 @@
             "welcomeYesterday": "Welcome back. Yesterday: {note}, {stars, plural, one {1 star} other {# stars}}.",
             "welcomeLast": "Welcome back. Last time: {note}, {stars, plural, one {1 star} other {# stars}}.",
             "welcomeYesterdaySerious": "Welcome back. Yesterday: {note}, {lessons, plural, one {1 lesson} other {# lessons}}.",
-            "welcomeLastSerious": "Welcome back. Last time: {note}, {lessons, plural, one {1 lesson} other {# lessons}}."
+            "welcomeLastSerious": "Welcome back. Last time: {note}, {lessons, plural, one {1 lesson} other {# lessons}}.",
+            "allDoneTitleSerious": "Sing any of them again"
         },
         "accountLink": "{name}: your account and settings",
         "accountLinkPlus": "{name}, on Plus: your account and settings",
@@ -4993,7 +5000,8 @@
             "cupYou": "You: #{rank}, {points} points",
             "cupYours": "You: {points} points this week",
             "endsDays": "{days, plural, one {Ends in # day} other {Ends in # days}}",
-            "sung": "Today's challenge: {percent}%."
+            "sung": "Today's challenge: {percent}%.",
+            "sing": "Sing it"
         },
         "initials": {
             "title": "Enter your initials",

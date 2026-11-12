@@ -95,6 +95,18 @@ final class UsageCountsTest extends TestCase
         $this->assertSame($kinds, $kept);
     }
 
+    public function test_a_units_song_offer_counts_by_its_place_only(): void
+    {
+        // Shown, tapped and a take kept, at each place a unit's end offers a song (config counts.song_offers).
+        $kinds = ['us_shown:u1', 'us_tap:u1', 'us_kept:u1', 'us_shown:wall', 'us_kept:u4'];
+        $this->postJson('/api/counts', ['events' => array_map(static fn (string $kind): array => ['kind' => $kind], [...$kinds, 'us_shown:u9', 'us_tap:anywhere', 'us_kept'])])->assertNoContent();
+
+        $kept = DB::table('usage_counts')->pluck('kind')->all();
+        sort($kept);
+        sort($kinds);
+        $this->assertSame($kinds, $kept);
+    }
+
     public function test_every_courses_lessons_and_steps_count_only_by_a_real_lesson_and_step(): void
     {
         // A Plus course's and a song course's lessons, as the free course's are (docs/retention-plan.md, section 8).

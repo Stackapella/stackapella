@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests;
 
+use App\Jobs\MakeSongCard;
 use App\Models\User;
 use App\Support\Admin\AdminGate;
 use App\Support\Admin\SecondFactor;
@@ -11,8 +12,10 @@ use App\Support\Web\AppShell;
 use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\RefreshDatabaseState;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
 use Illuminate\Routing\Route;
+use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
@@ -27,8 +30,40 @@ abstract class TestCase extends BaseTestCase
     /** @var list<string> What a test without a transaction wrote to the database (it must write nothing). */
     private array $committed = [];
 
+    /**
+     * Whether this test makes the song pages' link cards for real (App\Jobs\MakeSongCard: a PNG drawn each, most of a
+     * song page's first visit). Off, the job is faked (only it; every other job runs) and a song page links the
+     * landing's card, as it does until its own is made. The cards' own tests turn it on.
+     */
+    protected bool $makesSongCards = false;
+
+    /** When this test started (for TEST_PROFILE) and the memory in use then. */
+    private static float $startedAt = 0.0;
+
+    private static int $memoryAtStart = 0;
+
+    protected function tearDown(): void
+    {
+        // What a test without a transaction wrote stays in the database (assertPostConditions fails it): start afresh.
+        if ($this->committed !== []) {
+            TestDatabase::forget();
+        }
+
+        parent::tearDown();
+
+        // `TEST_PROFILE=<file> sh tool/test.sh ...` adds a line a test to <file>: its name, milliseconds (set-up and
+        // tear-down included), and the memory in use before and after it and the run's peak so far, in bytes.
+        $profile = getenv('TEST_PROFILE');
+        if (is_string($profile) && $profile !== '') {
+            gc_collect_cycles();
+            file_put_contents($profile, sprintf("%s::%s\t%.1f\t%d\t%d\t%d\n", static::class, $this->name(), (hrtime(true) - self::$startedAt) / 1e6, self::$memoryAtStart, memory_get_usage(), memory_get_peak_usage()), FILE_APPEND);
+        }
+    }
+
     protected function setUp(): void
     {
+        self::$startedAt = hrtime(true);
+        self::$memoryAtStart = memory_get_usage();
         parent::setUp();
 
         // Tests never reach the outside world. Fake what you need with Http::fake().
@@ -39,6 +74,17 @@ abstract class TestCase extends BaseTestCase
         Storage::fake('backup');
 
         Event::listen(QueryExecuted::class, static fn (QueryExecuted $query) => QueryGuard::query($query->sql));
+
+        if (! $this->makesSongCards) {
+            Bus::fake([MakeSongCard::class]);
+        }
+
+        // A schema change on the test database (DDL also commits what the test wrote): the next run migrates afresh.
+        Event::listen(QueryExecuted::class, static function (QueryExecuted $query): void {
+            if ($query->connectionName === config('database.default') && preg_match('/^\s*(?:create(?!\s+temporary)|alter|drop(?!\s+temporary)|rename|truncate)\b/i', $query->sql) === 1) {
+                TestDatabase::forget();
+            }
+        });
 
         // A test with no transaction commits whatever it writes into the run's database, for every later
         // test to find (a page's rate-limit rows once broke OpsTest's cache prune): it must write nothing.
@@ -51,6 +97,28 @@ abstract class TestCase extends BaseTestCase
                 }
             });
         }
+    }
+
+    /**
+     * The test database is migrated afresh only when it has to be (TestDatabase::isCurrent): when the migrations
+     * changed, or the last run changed its schema or left rows behind. Migrating took 12 seconds of every run, a
+     * one-test run's included.
+     *
+     * @return array<class-string, class-string>
+     */
+    protected function setUpTraits()
+    {
+        if (! RefreshDatabaseState::$migrated && isset(class_uses_recursive(static::class)[RefreshDatabase::class]) && TestDatabase::isCurrent()) {
+            RefreshDatabaseState::$migrated = true;
+        }
+        $migrated = RefreshDatabaseState::$migrated;
+        $uses = parent::setUpTraits();
+
+        if (! $migrated && RefreshDatabaseState::$migrated) {
+            TestDatabase::markCurrent();
+        }
+
+        return $uses;
     }
 
     protected function assertPostConditions(): void

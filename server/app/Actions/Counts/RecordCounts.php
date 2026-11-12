@@ -174,6 +174,7 @@ final class RecordCounts
             'features' => array_values(array_map('strval', (array) config('counts.features'))),
             'tools' => array_values(array_map('strval', (array) config('tools.slugs'))),
             'breadth' => array_map('strval', range(0, count((array) config('counts.features')))),
+            'song_offers' => array_values(array_map('strval', (array) config('counts.song_offers'))),
             'shares' => self::shares(),
             'course_lessons' => array_keys(self::courseLessons()),
             'course_steps' => array_merge(...array_map(static fn (string $id, int $steps): array => array_map(static fn (int $i): string => $id.'.'.$i, $steps > 0 ? range(0, $steps - 1) : []), array_keys(self::courseLessons()), self::courseLessons())),
@@ -206,7 +207,7 @@ final class RecordCounts
         $paths = [$root.'/course.json', $root.'/plus/courses.json', $root.'/songs/index.json', ...glob($root.'/plus/*/*.json') ?: [], ...glob($root.'/songs/*.json') ?: []];
         $stamp = array_map(static fn (string $path): string => $path.':'.(is_file($path) ? filemtime($path).':'.filesize($path) : '-'), $paths);
 
-        return substr(hash('sha256', implode('|', $stamp).json_encode([config('counts.detailed'), config('counts.features'), config('counts.share_surfaces'), config('counts.share_methods'), config('tools.slugs')])), 0, 16);
+        return substr(hash('sha256', implode('|', $stamp).json_encode([config('counts.detailed'), config('counts.features'), config('counts.share_surfaces'), config('counts.share_methods'), config('counts.song_offers'), config('tools.slugs')])), 0, 16);
     }
 
     /**

@@ -688,7 +688,7 @@ final class SitePages
      */
     private static function collectionCards(): array
     {
-        $cards = app(Carols::class)->songs() === [] ? [] : [[
+        $cards = app(Carols::class)->slugs() === [] ? [] : [[
             'key' => trim(str_replace('/', '-', Carols::PATH), '-'), 'eyebrow' => (string) __('site.carols.crumb'), 'headline' => (string) __('site.carols.headline'),
             'em' => (string) __('site.carols.headline_em'), 'lead' => (string) __('site.carols.lead'), 'theme' => 'carols',
         ]];

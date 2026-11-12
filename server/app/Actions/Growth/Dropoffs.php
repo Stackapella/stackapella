@@ -129,6 +129,17 @@ final class Dropoffs
             }
         }
 
+        // A unit's end offering a song (docs/retention-plan.md, section 8, row 8), each place its own path: the offer
+        // shown, its button tapped, a take kept from that visit.
+        foreach ((array) config('counts.song_offers') as $place) {
+            $place = (string) $place;
+            $paths[] = ['path' => 'offer:'.$place, 'label' => $place === 'wall' ? 'The song offered at the wall' : 'The song offered after unit '.substr($place, 1), 'steps' => [
+                ['step' => 'us_shown:'.$place, 'label' => 'shown', 'kinds' => ['us_shown:'.$place]],
+                ['step' => 'us_tap:'.$place, 'label' => 'tapped', 'kinds' => ['us_tap:'.$place]],
+                ['step' => 'us_kept:'.$place, 'label' => 'a take kept', 'kinds' => ['us_kept:'.$place]],
+            ]];
+        }
+
         return $paths;
     }
 

@@ -23,12 +23,14 @@ export const TempoStep = {
     data: () => ({ taps: [], clicking: null, timing: false, micProblem: null, audio }),
     setup: () => ({ SPEEDS, SIGNATURES, COUNTS }),
     template: `
-        <section class="space-y-6">
-            <div>
+        <!-- From 900 px (Hillel's width design), Sing it's tempo and beat at left, with Pickup notes and Before you sing at
+             right, beside them rather than under the sticky bar. A phone keeps this order. -->
+        <section class="space-y-6" :class="draft.mode === 'sing' ? 'app-split min-[900px]:gap-y-6 min-[900px]:space-y-0' : ''" data-create-tempo>
+            <div class="min-[900px]:col-start-1">
                 <h2 class="text-4xl font-extrabold tracking-tight text-cream">{{ t('create.tempo.title') }}</h2>
                 <p class="mt-2 text-muted">{{ draft.mode === 'sing' ? t('create.tempo.hintSing') : t('create.tempo.hintWrite') }}</p>
             </div>
-            <div class="card space-y-6 p-5 md:p-7">
+            <div class="card space-y-6 p-5 md:p-7 min-[900px]:col-start-1">
                 <div class="flex flex-wrap items-center justify-between gap-4">
                     <div class="flex items-center gap-3">
                         <button type="button" class="glass-bubble grid size-11 place-items-center rounded-full text-cream transition" :aria-label="t('create.tempo.slower')" @click="setTempo(draft.template.tempo - 1)"><Icon name="minus" :size="18" /></button>
@@ -53,7 +55,7 @@ export const TempoStep = {
                 </div>
                 <p v-if="taps.length > 1" class="text-sm text-muted" role="status">{{ t('create.tempo.tapping') }}</p>
             </div>
-            <fieldset class="card space-y-5 p-5 md:p-7">
+            <fieldset class="card space-y-5 p-5 md:p-7 min-[900px]:col-start-1">
                 <legend class="sr-only">{{ t('create.tempo.signature') }}</legend>
                 <div class="flex flex-wrap items-center justify-between gap-3">
                     <p class="text-lg font-bold text-cream" aria-hidden="true">{{ t('create.tempo.signature') }}</p>
@@ -71,7 +73,7 @@ export const TempoStep = {
                 </div>
                 <p class="text-sm text-muted">{{ t('create.tempo.straight') }}</p>
             </fieldset>
-            <div v-if="draft.mode === 'sing'" class="grid gap-4 md:grid-cols-2">
+            <div v-if="draft.mode === 'sing'" class="grid gap-4 md:grid-cols-2 min-[900px]:sticky min-[900px]:top-6 min-[900px]:col-start-2 min-[900px]:row-span-3 min-[900px]:row-start-2 min-[900px]:!grid-cols-1" data-create-notes>
                 <div class="card space-y-2 p-5">
                     <p class="text-xs font-bold uppercase tracking-widest text-accent">{{ t('create.tempo.pickupEyebrow') }}</p>
                     <p class="font-semibold text-cream">{{ t('create.tempo.pickupTitle') }}</p>

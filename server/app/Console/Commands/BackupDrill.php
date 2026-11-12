@@ -161,11 +161,11 @@ final class BackupDrill extends Command
     {
         $keys = DB::select('select table_name as child, column_name as col, referenced_table_name as parent, referenced_column_name as ref from information_schema.key_column_usage where table_schema = ? and referenced_table_name is not null', [$live]);
         $problems = [];
+        // The copy's tables, read once (a query a key was most of the drill's time on a server with many databases).
+        $tables = array_flip(array_map('strval', array_column(DB::select('select table_name as name from information_schema.tables where table_schema = ?', [$scratch]), 'name')));
 
         foreach ($keys as $key) {
-            $there = DB::select('select count(*) as total from information_schema.tables where table_schema = ? and table_name in (?, ?)', [$scratch, $key->child, $key->parent])[0]->total ?? 0;
-
-            if ((int) $there < 2) {
+            if (! isset($tables[$key->child], $tables[$key->parent])) {
                 continue;
             }
 

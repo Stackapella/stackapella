@@ -63,7 +63,7 @@ final class SitemapPaths
             $paths = [...$paths, ...app(SongParts::class)->paths()];
         }
         // The Christmas carols page, while a carol is open.
-        if (app(Carols::class)->songs() !== []) {
+        if (app(Carols::class)->slugs() !== []) {
             $paths[] = Carols::PATH;
         }
         // The song collections that are pages (SongCollections: enough open songs).

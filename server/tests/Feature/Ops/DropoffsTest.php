@@ -95,6 +95,24 @@ final class DropoffsTest extends TestCase
         $this->assertSame(0.4, $report['falls'][0]['fall']);
     }
 
+    public function test_each_units_song_offer_is_a_path_shown_tapped_kept(): void
+    {
+        // After unit 1: 200 saw the song, 40 tapped, 30 kept a take.
+        self::counted(['us_shown:u1' => 200, 'us_tap:u1' => 40, 'us_kept:u1' => 30]);
+
+        $paths = collect($this->report()['paths'])->keyBy('path');
+
+        // Each step is read by how many went on to the next: shown to tapped, tapped to a take kept.
+        foreach ((array) config('counts.song_offers') as $place) {
+            $this->assertSame(['us_shown:'.$place, 'us_tap:'.$place], array_column($paths['offer:'.$place]['steps'], 'step'), $place);
+        }
+        [$shown, $tapped] = $paths['offer:u1']['steps'];
+        $this->assertEquals([200, 40, 0.2], [$shown['entered'], $shown['passed'], $shown['passThrough']]);
+        $this->assertEquals([40, 30, 0.75], [$tapped['entered'], $tapped['passed'], $tapped['passThrough']]);
+        $this->assertSame('The song offered after unit 1', $paths['offer:u1']['label']);
+        $this->assertSame('The song offered at the wall', $paths['offer:wall']['label']);
+    }
+
     public function test_admin_and_the_growth_data_read_the_latest_week(): void
     {
         DropoffReport::factory()->create(['week_end' => '2026-11-05', 'data' => ['weekStart' => '2026-10-30', 'weekEnd' => '2026-11-05', 'floor' => 30, 'margin' => 0.15, 'paths' => [], 'worst' => [], 'falls' => []]]);

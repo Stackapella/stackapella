@@ -113,7 +113,16 @@ return [
         // The "try next" line (breadth's nudge): shown and tapped, by feature.
         'try_shown' => 'features',
         'try_tap' => 'features',
+        // A unit's end offering a song to sing (docs/retention-plan.md, section 8, row 8): the offer shown, its button
+        // tapped, a take kept from that visit, each by its place (song_offers below), once a device a place.
+        'us_shown' => 'song_offers',
+        'us_tap' => 'song_offers',
+        'us_kept' => 'song_offers',
     ],
+
+    // Where a song is offered at a unit's end (us_*): after units 1 to 4, and the wall. Units 5 to 8 join when theirs
+    // are set (the retention agent, docs/retention-plan.md).
+    'song_offers' => ['u1', 'u2', 'u3', 'u4', 'wall'],
 
     // The features breadth counts (ft:<feature>), each a device's first use.
     'features' => ['lesson', 'warmup', 'singalong', 'record', 'stack', 'whole', 'course', 'create', 'share', 'together', 'tool'],
