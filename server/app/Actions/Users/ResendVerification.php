@@ -21,7 +21,8 @@ final class ResendVerification
 {
     public function __construct(private readonly EmailTokens $tokens, private readonly AddressLimits $limits) {}
 
-    public function handle(string $email, ?string $ip = null, ?string $browserHash = null): void
+    /** @param  list<string>  $doneLessons  the free course's lessons the device finished signed out (the mail's next lesson) */
+    public function handle(string $email, ?string $ip = null, ?string $browserHash = null, array $doneLessons = []): void
     {
         $email = strtolower(trim($email));
         $user = User::query()->where('email', $email)->whereNull('email_verified_at')->whereNotNull('password')->first();
@@ -34,6 +35,6 @@ final class ResendVerification
         // Bound like the sign-up's (SignUpBrowser): to the secret the asker holds, else to one nobody
         // holds, so a link asked for without it starts the account fresh. Never unbound.
         $bound = $browserHash ?? hash('sha256', Str::random(48));
-        Mail::to((string) $user->email)->locale($user->preferredLocale())->send(new VerifyEmailAddress($this->tokens->issue($user, EmailToken::VERIFY, (string) $user->email, 24, browserHash: $bound), $user->name));
+        Mail::to((string) $user->email)->locale($user->preferredLocale())->send(new VerifyEmailAddress($this->tokens->issue($user, EmailToken::VERIFY, (string) $user->email, 24, browserHash: $bound), $user->name, $doneLessons));
     }
 }

@@ -14,7 +14,9 @@ use App\Support\Flags;
 use App\Support\Http\Hosts;
 use App\Support\Languages\Dates;
 use App\Support\Languages\Languages;
+use App\Support\Languages\NoteNames;
 use App\Support\Languages\TranslationMaps;
+use App\Support\Pages\Carols;
 use App\Support\Site\HelpGuide;
 use App\Support\Site\SitemapPaths;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -424,5 +426,57 @@ final class LanguagesTest extends TestCase
             $this->assertSame($words, Dates::weekdayDayMonth($sunday), $language);
         }
         app()->setLocale('en');
+    }
+
+    public function test_a_course_page_lists_its_units_and_lessons_in_the_pages_language(): void
+    {
+        // /es/courses/perfect-your-pitch showed "Land it" (courses, 2026-11-12): the outline read English only.
+        app(Flags::class)->set('lang_es', 'on', null, 'Spanish checked');
+
+        $this->get('/es/courses/perfect-your-pitch')->assertOk()->assertSee('Aterriza')->assertDontSee('Land it');
+        $this->get('/courses/perfect-your-pitch')->assertOk()->assertSee('Land it')->assertDontSee('Aterriza');
+    }
+
+    public function test_a_spanish_song_page_opens_the_song_in_the_app_not_the_spanish_landing(): void
+    {
+        config(['app.is_nexus' => true, 'app.coming_soon' => false]);
+        app(SyncOfficialTemplates::class)->handle();
+        // /es/songs/michael-row's "Learn this song" went to /es/?song=..., which is only ever the landing.
+        app(Flags::class)->set('lang_es', 'on', null, 'Spanish checked');
+        $html = (string) $this->get('/es/songs/michael-row')->assertOk()->getContent();
+
+        $this->assertStringContainsString('/?song=michael-row&amp;ref=song-page"', $html);
+        $this->assertStringNotContainsString('/es/?song=', $html);
+        // Its other links still stay in Spanish.
+        $this->assertStringContainsString('href="/es/songs"', $html);
+    }
+
+    public function test_the_site_names_keys_and_notes_as_each_language_does(): void
+    {
+        // Spanish names notes in fixed Do, as the app does: "Do mayor", not "C mayor" (frontend's Spanish walk).
+        foreach (['en' => ['Eb', 'E♭4', 'Fm', 'C♯ major'], 'es' => ['Mi♭', 'Mi♭4', 'Fa menor', 'Do♯ mayor']] as $language => $names) {
+            app()->setLocale($language);
+            $this->assertSame($names, [NoteNames::name('Eb'), NoteNames::name('E♭4'), NoteNames::name('Fm'), Carols::meta(['key' => 'C#'])[0]], $language);
+        }
+        app()->setLocale('en');
+
+        config(['app.is_nexus' => true, 'app.coming_soon' => false]);
+        app(SyncOfficialTemplates::class)->handle();
+        app(Flags::class)->set('lang_es', 'on', null, 'Spanish checked');
+        $page = (string) $this->get('/es/songs/hymns')->assertOk()->getContent();
+        $this->assertMatchesRegularExpression('/(Do|Re|Mi|Fa|Sol|La|Si)[♭♯]? mayor/u', $page);
+        $this->assertDoesNotMatchRegularExpression('/\b[A-G][♭♯]? mayor/u', $page);
+    }
+
+    public function test_a_validation_message_names_its_field_in_the_language(): void
+    {
+        // "El campo password es obligatorio." (frontend's Spanish walk): the field's name is in Spanish too.
+        app(Flags::class)->set('lang_es', 'on', null, 'Spanish checked');
+        $form = ['name' => 'Ana', 'email' => 'ana@example.com', 'birthMonth' => 5, 'birthYear' => 1990, 'elapsedMs' => 45000, 'nickname' => ''];
+
+        $this->withHeaders(['Accept-Language' => 'es'])->postJson('/api/auth/register', $form)->assertStatus(422)
+            ->assertJsonPath('errors.password.0', 'El campo contraseña es obligatorio.');
+        $this->withHeaders(['Accept-Language' => 'en'])->postJson('/api/auth/register', $form)->assertStatus(422)
+            ->assertJsonPath('errors.password.0', 'The password field is required.');
     }
 }

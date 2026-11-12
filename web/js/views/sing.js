@@ -24,7 +24,7 @@ import { countInText } from '../components/count-in.js';
 import { session } from '../stores/session.js';
 import { slotName } from '../templates.js';
 import { newSinger, shownTitle } from '../stores/projects.js';
-import { beatsPerBar, formatTime } from '../theme.js';
+import { beatsPerBar, formatTime, keyLabel } from '../theme.js';
 import { midiName, octaveFit, suggestPart, suggestTranspose } from '../dsp.js';
 import { realKeyFit } from '../real-key.js';
 import { HeadphonesDialog, RangeDialog, TimingDialog } from '../components/dialogs.js';
@@ -270,7 +270,7 @@ export const SingView = {
         songInfo() {
             const p = this.project;
             const section = this.sections.find((s) => this.position >= s.startSeconds && this.position < s.endSeconds);
-            return [section?.name, t('studio.meta.key', { key: p.key }), t('studio.meta.bpm', { bpm: p.bpm })].filter(Boolean).join(' · ');
+            return [section?.name, p.key ? t('studio.meta.key', { key: keyLabel(p.key) }) : null, t('studio.meta.bpm', { bpm: p.bpm })].filter(Boolean).join(' · ');
         },
         notes() {
             return this.focusPart ? sessionStore.templatePart(this.focusPart)?.guide.notes ?? [] : [];

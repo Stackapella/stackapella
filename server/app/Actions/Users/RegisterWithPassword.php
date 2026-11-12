@@ -43,8 +43,9 @@ final class RegisterWithPassword
 
     /**
      * @param  array{month: int, year: int}  $birth  when they were born (Age)
+     * @param  list<string>  $doneLessons  the free course's lessons the device finished signed out (the mail's next lesson)
      */
-    public function handle(string $name, string $email, string $password, ?string $ref, string $locale, ?string $ip, array $birth, ?string $invite = null, ?string $early = null, ?string $country = null, ?string $browserHash = null): void
+    public function handle(string $name, string $email, string $password, ?string $ref, string $locale, ?string $ip, array $birth, ?string $invite = null, ?string $early = null, ?string $country = null, ?string $browserHash = null, array $doneLessons = []): void
     {
         $email = strtolower(trim($email));
         $existing = User::query()->where('email', $email)->first();
@@ -97,7 +98,7 @@ final class RegisterWithPassword
 
         if ($this->limits->allows('verification-email', $email) && ! EmailSuppression::isSuppressed($email)) {
             // Bound to the browser or app that signed up (SignUpBrowser).
-            Mail::to($email)->locale($user->preferredLocale())->send(new VerifyEmailAddress($this->tokens->issue($user, EmailToken::VERIFY, $email, 24, browserHash: $browserHash), $user->name));
+            Mail::to($email)->locale($user->preferredLocale())->send(new VerifyEmailAddress($this->tokens->issue($user, EmailToken::VERIFY, $email, 24, browserHash: $browserHash), $user->name, $doneLessons));
         }
     }
 }

@@ -266,7 +266,7 @@
         "routeQuestion": "What will you record with?",
         "skip": "Skip and use an estimate",
         "start": "Start the check",
-        "listening": "Listening for the chirps. Keep the room quiet.",
+        "listening": "Listening for the clicks. Keep the room quiet.",
         "result": "Your delay is {ms} ms. New parts will be lined up automatically.",
         "hideDetails": "Hide details",
         "showDetails": "Show details",
@@ -275,7 +275,7 @@
         "estimate": "Browser's estimate",
         "again": "Measure again",
         "startRecording": "Start recording",
-        "failed": "We couldn't hear the chirps.",
+        "failed": "We couldn't hear the clicks.",
         "failedHint": "Turn the volume up, check the right microphone is picked, and for headphones hold an earbud right against the mic.",
         "useEstimate": "Use an estimate",
         "interrupted": "The timing check stopped before it finished. Try again.",
@@ -741,7 +741,7 @@
             "tryForGuide": "Try for guide",
             "readyToRecord": "Learn it with the guide, then record your take.",
             "creditTitle": "Your credit",
-            "creditShown": "Shown on every part you sing, such as \"{part} sung by {name}\".",
+            "creditShown": "Your name is shown on every part you sing, such as \"{part} sung by {name}\".",
             "creditShownAnonymous": "Your parts show without a name, as you chose.",
             "anonymous": "Anonymous",
             "editCredit": "Edit",
@@ -928,7 +928,7 @@
             "onHome": "On your comfortable note.",
             "aboveHome": "{count, plural, one {# semitone} other {# semitones}} above your comfortable note.",
             "belowHome": "{count, plural, one {# semitone} other {# semitones}} below your comfortable note.",
-            "aroundHome": "Anywhere from {low} semitones below to {high} semitones above your comfortable note.",
+            "aroundHome": "Anywhere from {low, plural, one {1 semitone} other {# semitones}} below to {high, plural, one {1 semitone} other {# semitones}} above your comfortable note.",
             "hearNote": "Hear your note",
             "record": "Record",
             "recordAgain": "Record again",
@@ -2119,7 +2119,8 @@
             "line": "Your voice recovers overnight."
         },
         "lockedSerious": "This lesson opens once you've sung the ones before it.",
-        "resultSerious": "{percent}% on pitch"
+        "resultSerious": "{percent}% on pitch",
+        "nextUp": "Next: Lesson {number}, {title}, {minutes, plural, one {about 1 minute} other {about # minutes}}."
     },
     "install": {
         "title": "Install Stackapella",
@@ -2829,7 +2830,7 @@
         "free": {
             "title": "Free",
             "storage": "1 GB",
-            "stems": "Only with Download and delete",
+            "stems": "Each take as recorded, from Download my data",
             "templates": "1"
         },
         "plus": {
@@ -3030,7 +3031,7 @@
         "leave": "Leave (your draft is kept)",
         "draftSaved": "Draft saved",
         "progress": "Step {step} of {total}",
-        "keptDraft": "Your draft is kept. Find it under Unfinished on the home page.",
+        "keptDraft": "Your draft is kept. Find it in Your songs, marked Draft.",
         "draftGone": "That draft isn't on this device any more. It may have been saved or discarded.",
         "couldNotStart": "The creator couldn't open that just now. Try again in a moment.",
         "copyTitle": "{title} (my copy)",
@@ -3529,7 +3530,7 @@
         "hum": {
             "title": "Hum your tune",
             "hint": "Hum or sing it in your own time, up to {seconds} seconds. Breathe between lines: that's how we find them.",
-            "ready": "Press Start and hum. No words needed.",
+            "ready": "Press Start humming and hum. No words needed.",
             "start": "Start humming",
             "again": "Hum it again",
             "recording": "Listening: {seconds} s",
@@ -3851,8 +3852,8 @@
             "ask": "Want learning tracks of a piece you're rehearsing?",
             "askLink": "Send us your song",
             "makeLink": "Make tracks from a score",
-            "title": "Ask for learning tracks",
-            "intro": "Tell us the piece. We'll email you to ask for the score (a PDF or MusicXML), make each part a learning track with its guide voice, and put it in your account to share here.",
+            "title": "Send us your song",
+            "intro": "Send the score of a piece your choir is rehearsing. We'll make each part a learning track with its guide voice and put the song in this group, usually within a working day.",
             "piece": "The piece",
             "piecePlaceholder": "God So Loved the World",
             "composer": "Composer or arranger",
@@ -3869,7 +3870,31 @@
             "send": "Send",
             "sending": "Sending",
             "sent": "Thanks. We'll make the tracks for {piece} and put the song in this group. It shows here when it's ready.",
-            "tooMany": "You've asked a few times in the last hour. Try again a little later."
+            "tooMany": "You've asked a few times in the last hour. Try again a little later.",
+            "scores": "The score",
+            "scoresHint": "A PDF, MusicXML, or photos of the pages: up to {count} files of 25 MB. Only we see them.",
+            "scoreAdd": "Add files",
+            "scoreMore": "Add more",
+            "scoreSending": "Sending",
+            "scoreReady": "Ready",
+            "scoreRemove": "Remove {name}",
+            "scoreWrongKind": "{name} isn't a PDF, MusicXML or photo.",
+            "scoreTooBig": "{name} is over 25 MB. A PDF or MusicXML of the score is usually much smaller.",
+            "scoreTooMany": "Up to {count} files a request.",
+            "scoreType": "That file isn't what its name says. Add it again as a PDF, MusicXML or photo.",
+            "scoreBroken": "That file didn't arrive whole. Remove it and add it again.",
+            "scoreTooMuchToday": "That's a lot of files for one day. Try again tomorrow.",
+            "needsPiece": "Name the piece to send",
+            "needsSending": "Sending the files",
+            "needsScore": "Add the score to send",
+            "needsRights": "Choose whose music it is to send",
+            "requestsTitle": "Songs you sent us",
+            "status": {
+                "received": "With us. Usually ready within a working day.",
+                "delivered": "Your tracks are ready",
+                "closed": "Closed. We emailed you about it."
+            },
+            "open": "Open"
         },
         "rehearsal": {
             "next": "Next rehearsal: {date}",
@@ -3959,7 +3984,7 @@
     "moved": {
         "arriving": "Your songs are arriving",
         "waiting": "Waiting for the old address",
-        "received": "{count} things received",
+        "received": "{count, plural, one {1 thing received} other {# things received}}",
         "here": "Your songs are here",
         "hereBody": "Your songs, takes and settings came across. Anything that was already here stayed as it was.",
         "nothingNew": "Everything was here already.",
@@ -4361,7 +4386,7 @@
                 }
             }
         },
-        "setup": "For **{browser}** on **{device}**",
+        "setup": "For **{browser}** on your **{device}**",
         "change": "Change",
         "hearing": "Your mic works",
         "hearingLine": "We can hear you. Carrying on...",
@@ -4386,7 +4411,7 @@
             "windows": "Windows",
             "ios": "iPhone or iPad",
             "android": "Android",
-            "computer": "a computer"
+            "computer": "computer"
         },
         "drawing": {
             "microphone": "Microphone"
@@ -4548,7 +4573,7 @@
             "plus": "+{xp}",
             "xpEarned": "XP earned"
         },
-        "streak": "{count}-day streak",
+        "streak": "{count, plural, one {1-day streak} other {#-day streak}}",
         "lessonOf": "Lesson {place} of {total} done",
         "pathLabel": "This unit's lessons",
         "path": {
@@ -4626,7 +4651,8 @@
             "streakSerious": "{days} days in a row"
         },
         "onPitch": "{percent}% on pitch",
-        "lessonDone": "Lesson done"
+        "lessonDone": "Lesson done",
+        "upNextLesson": "Up next · Lesson {number} · {minutes} min"
     },
     "menu": {
         "file": "File",
@@ -5012,7 +5038,7 @@
             "rate": "Bonus x{count}!",
             "rateChip": "x{count}",
             "rateChipLabel": "{count} times the bonus",
-            "streak": "Streak! {count} days"
+            "streak": "{count, plural, one {Streak! 1 day} other {Streak! # days}}"
         },
         "workout": {
             "title": "Training mode"
@@ -5121,6 +5147,9 @@
         "record": {
             "title": "New record",
             "from": "up from {before}"
+        },
+        "wrap": {
+            "nudgeTitle": "CONTINUE TOMORROW?"
         }
     },
     "chordMoment": {
@@ -5157,7 +5186,11 @@
             "keepLessons": "{count, plural, one {1 lesson} other {# lessons}}",
             "keepSongs": "your songs"
         },
-        "installApp": "Install the app: it opens like an app, with no browser bar."
+        "installApp": "Install the app: it opens like an app, with no browser bar.",
+        "nudgeTitle": "Pick this up tomorrow?",
+        "nudge": "Nudge me tomorrow at about this time",
+        "nudgeSet": "Done: a nudge tomorrow at {time}. Change it any time in Settings, under Practice reminders.",
+        "nudgeFailed": "The nudge couldn't be set here. Practice reminders in Settings can try again."
     },
     "voiceCard": {
         "title": "Unit 1 done: your voice",

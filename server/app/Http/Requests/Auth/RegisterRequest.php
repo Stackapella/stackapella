@@ -56,6 +56,10 @@ final class RegisterRequest extends FormRequest
             'turnstileToken' => ['nullable', 'string', 'max:4000'],
             'invite' => ['nullable', 'string', 'max:100'],
             'early' => ['nullable', 'string', 'max:100'],
+            // The free course's lessons this device finished with a star, signed out (the account's own progress only
+            // reaches it once verified): the verification mail names the next one (frontend's Spanish walk, 2026-11-12).
+            'doneLessons' => ['sometimes', 'array', 'max:200'],
+            'doneLessons.*' => ['string', 'max:80', 'regex:/^[A-Za-z0-9-]+$/'],
         ];
     }
 }

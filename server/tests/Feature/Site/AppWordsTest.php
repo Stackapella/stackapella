@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Site;
 
 use App\Support\Site\AppWords;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\File;
 use Tests\TestCase;
 
@@ -27,5 +28,23 @@ final class AppWordsTest extends TestCase
         foreach (array_unique($keys) as $key) {
             $this->assertNotSame('', AppWords::get($key), $key);
         }
+    }
+
+    public function test_the_words_read_in_the_pages_language_and_in_english_when_a_line_is_missing_or_stale(): void
+    {
+        $this->assertSame('Copy link', AppWords::get('share.copy'));
+        app()->setLocale('es');
+        $this->assertSame('Copiar enlace', AppWords::get('share.copy'));
+
+        // A line whose English changed since it was translated reads in English, as the app shows it.
+        $read = static fn (string $name): array => Arr::dot((array) json_decode((string) file_get_contents(dirname(base_path()).'/web/locales/'.$name.'.json'), true));
+        [$en, $es, $source] = [$read('en'), $read('es'), $read('es.source')];
+        foreach ($en as $key => $english) {
+            if (is_string($english) && isset($es[$key], $source[$key]) && $source[$key] !== $english) {
+                $this->assertSame($english, AppWords::get((string) $key), (string) $key);
+                break;
+            }
+        }
+        app()->setLocale('en');
     }
 }

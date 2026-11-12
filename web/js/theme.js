@@ -2,6 +2,7 @@
 // things (keys, default part names), in the person's language.
 
 import { t } from './i18n.js';
+import { nameKeyNote } from './note-names.js';
 
 export const PART_COLORS = ['#f2a06b', '#c9b456', '#93c26e', '#4ccfb0', '#3ec5e2', '#7db0f7', '#b9a3f5', '#e58fcb'];
 
@@ -15,12 +16,12 @@ export function defaultPartName(index) {
 
 /** "G" as "G", "Em" as "E minor". */
 export function keyLabel(key) {
-    return key.endsWith('m') ? t('music.minorKey', { note: key.slice(0, -1) }) : key;
+    return key.endsWith('m') ? t('music.minorKey', { note: nameKeyNote(key.slice(0, -1)) }) : nameKeyNote(key);
 }
 
 /** "G major" or "E minor", for the key picker. */
 export function keyChoiceLabel(key) {
-    return key.endsWith('m') ? t('music.minorKey', { note: key.slice(0, -1) }) : t('music.majorKey', { note: key });
+    return key.endsWith('m') ? t('music.minorKey', { note: nameKeyNote(key.slice(0, -1)) }) : t('music.majorKey', { note: nameKeyNote(key) });
 }
 
 export const KEYS = ['C', 'C#', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B'].flatMap((note) => [note, `${note}m`]);

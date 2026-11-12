@@ -379,7 +379,7 @@ final class SitePages
     }
 
     /**
-     * Each unit's title and its lessons' titles (in English), and how many lessons, from a course file.
+     * Each unit's title and its lessons' titles (in the page's language), and how many lessons, from a course file.
      *
      * @return array{units: list<array{title: string, lessons: list<string>}>, lessons: int}|null
      */
@@ -391,7 +391,9 @@ final class SitePages
             return null;
         }
 
-        $title = static fn (mixed $t): string => is_array($t) ? (string) ($t['en'] ?? '') : (is_string($t) ? $t : '');
+        // In the page's language, else English (as Lessons::words; courses, 2026-11-12: /es/courses showed "Land it").
+        $locale = app()->getLocale();
+        $title = static fn (mixed $t): string => is_array($t) ? (string) ($t[$locale] ?? $t['en'] ?? '') : (is_string($t) ? $t : '');
         $units = [];
 
         foreach ($course['units'] as $unit) {

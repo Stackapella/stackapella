@@ -137,12 +137,22 @@ final class AuthController extends Controller
         if ($request->validated('nickname') === null && ! $tooQuick) {
             $invite = $request->validated('invite');
             $early = $request->validated('early');
-            $register->handle((string) $request->validated('name'), (string) $request->validated('email'), (string) $request->validated('password'), $request->validated('ref'), app()->getLocale(), $request->ip(), $birth, is_string($invite) && $invite !== '' ? $invite : null, is_string($early) && $early !== '' ? $early : null, Country::of($request), $browserHash);
+            $register->handle((string) $request->validated('name'), (string) $request->validated('email'), (string) $request->validated('password'), $request->validated('ref'), app()->getLocale(), $request->ip(), $birth, is_string($invite) && $invite !== '' ? $invite : null, is_string($early) && $early !== '' ? $early : null, Country::of($request), $browserHash, self::doneLessons($request->validated('doneLessons')));
         }
 
         $answer = $this->checkEmail();
 
         return $cookie !== null ? $answer->withCookie($cookie) : $answer;
+    }
+
+    /**
+     * The lessons a signed-out device finished, for the verification mail's next lesson.
+     *
+     * @return list<string>
+     */
+    private static function doneLessons(mixed $sent): array
+    {
+        return array_values(array_filter(is_array($sent) ? $sent : [], 'is_string'));
     }
 
     public function verify(TokenRequest $request, VerifyEmail $verify, AcceptInvite $acceptInvite): AccountResource
@@ -162,7 +172,7 @@ final class AuthController extends Controller
 
     public function resend(EmailRequest $request, ResendVerification $resend): JsonResponse
     {
-        $resend->handle((string) $request->validated('email'), $request->ip(), SignUpBrowser::hash($request));
+        $resend->handle((string) $request->validated('email'), $request->ip(), SignUpBrowser::hash($request), self::doneLessons($request->validated('doneLessons')));
 
         return $this->checkEmail();
     }

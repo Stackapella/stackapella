@@ -141,7 +141,10 @@ final class SiteLanguage
         $rest = $relative ? $url : substr($url, strlen($public));
         $path = (string) strtok($rest === '' ? '/' : $rest, '?#');
         $tail = substr($rest, strlen($path));
-        $done = SiteLanguages::serves($language, $path) && ! str_starts_with($path, '/'.$language.'/')
+        // The app's own link to a song (/?song=, SongPage's "Learn this song") opens the app, which picks its own
+        // language: /es/ is only ever the landing, so it never opened the song (frontend's Spanish walk, 2026-11-12).
+        $app = $path === '/' && preg_match('/[?&]song=/', $tail) === 1;
+        $done = ! $app && SiteLanguages::serves($language, $path) && ! str_starts_with($path, '/'.$language.'/')
             ? ($relative ? '' : $public).'/'.$language.$path.$tail
             : $url;
 

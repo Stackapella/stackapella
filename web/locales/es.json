@@ -741,7 +741,7 @@
             "tryForGuide": "Intentar ser guía",
             "readyToRecord": "Apréndela con la guía y luego graba tu toma.",
             "creditTitle": "Tu crédito",
-            "creditShown": "Aparece en cada voz que cantas, como \"{part}: la canta {name}\".",
+            "creditShown": "Tu nombre aparece en cada voz que cantas, por ejemplo: \"{part}: la canta {name}\".",
             "creditShownAnonymous": "Tus voces aparecen sin nombre, como elegiste.",
             "anonymous": "Sin nombre",
             "editCredit": "Editar",
@@ -928,7 +928,7 @@
             "onHome": "En tu nota cómoda.",
             "aboveHome": "{count, plural, one {# semitono} other {# semitonos}} por encima de tu nota cómoda.",
             "belowHome": "{count, plural, one {# semitono} other {# semitonos}} por debajo de tu nota cómoda.",
-            "aroundHome": "En cualquier punto entre {low} por debajo y {high} por encima de tu nota cómoda (en semitonos).",
+            "aroundHome": "En cualquier punto entre {low, plural, one {1 semitono} other {# semitonos}} por debajo y {high, plural, one {1 semitono} other {# semitonos}} por encima de tu nota cómoda.",
             "hearNote": "Escuchar tu nota",
             "record": "Grabar",
             "recordAgain": "Grabar de nuevo",
@@ -2119,7 +2119,8 @@
             "line": "Tu voz se recupera durante la noche."
         },
         "lockedSerious": "Esta lección se abre cuando hayas cantado las anteriores.",
-        "resultSerious": "{percent}% afinado"
+        "resultSerious": "{percent}% afinado",
+        "nextUp": "Siguiente: lección {number}, {title}, {minutes, plural, one {cerca de 1 minuto} other {unos # minutos}}."
     },
     "install": {
         "title": "Instalar Stackapella",
@@ -3030,7 +3031,7 @@
         "leave": "Salir (tu borrador se conserva)",
         "draftSaved": "Borrador guardado",
         "progress": "Paso {step} de {total}",
-        "keptDraft": "Tu borrador se ha guardado. Lo encontrarás en Tus canciones, marcado como Borrador.",
+        "keptDraft": "Tu borrador está guardado. Está en Tus canciones, marcado como Borrador.",
         "draftGone": "Ese borrador ya no está en este dispositivo. Puede que se guardara o se descartara.",
         "couldNotStart": "No se pudo abrir ahora. Vuelve a intentarlo en un momento.",
         "copyTitle": "{title} (mi copia)",
@@ -3529,7 +3530,7 @@
         "hum": {
             "title": "Tararea tu melodía",
             "hint": "Tararéala o cántala a tu ritmo, hasta {seconds} segundos. Respira entre líneas: así es como las encontramos.",
-            "ready": "Toca Empezar y tararea. No hace falta letra.",
+            "ready": "Toca Empezar a tararear y tararea. No hace falta letra.",
             "start": "Empezar a tararear",
             "again": "Tararear de nuevo",
             "recording": "Escuchando: {seconds} s",
@@ -3851,8 +3852,8 @@
             "ask": "¿Quieres pistas de estudio de una obra que ensaya tu coro?",
             "askLink": "Envíanos tu canción",
             "makeLink": "Crea pistas desde una partitura",
-            "title": "Pedir pistas de estudio",
-            "intro": "Dinos la obra. Te escribiremos para pedirte la partitura (un PDF o MusicXML), haremos de cada voz una pista de estudio con su voz guía y la pondremos en tu cuenta para que la compartas aquí.",
+            "title": "Envíanos tu canción",
+            "intro": "Envía la partitura de una obra que ensaya tu coro. Haremos de cada voz una pista de estudio con su voz guía y pondremos la canción en este grupo, normalmente en un día laborable.",
             "piece": "La obra",
             "piecePlaceholder": "God So Loved the World",
             "composer": "Quién la compuso o arregló",
@@ -3869,7 +3870,31 @@
             "send": "Enviar",
             "sending": "Enviando",
             "sent": "Gracias. Haremos las pistas de {piece} y pondremos la canción en este grupo. Aparecerá aquí cuando esté lista.",
-            "tooMany": "Lo has pedido varias veces en la última hora. Vuelve a intentarlo un poco más tarde."
+            "tooMany": "Lo has pedido varias veces en la última hora. Vuelve a intentarlo un poco más tarde.",
+            "scores": "La partitura",
+            "scoresHint": "Un PDF, MusicXML o fotos de las páginas: hasta {count} archivos de 25 MB. Solo los vemos nosotros.",
+            "scoreAdd": "Añadir",
+            "scoreMore": "Añadir más",
+            "scoreSending": "Enviando",
+            "scoreReady": "Listo",
+            "scoreRemove": "Quitar {name}",
+            "scoreWrongKind": "{name} no es un PDF, un MusicXML ni una foto.",
+            "scoreTooBig": "{name} pesa más de 25 MB. Un PDF o MusicXML de la partitura suele ser mucho más pequeño.",
+            "scoreTooMany": "Hasta {count} archivos por envío.",
+            "scoreType": "Ese archivo no es lo que dice su nombre. Vuelve a añadirlo como PDF, MusicXML o foto.",
+            "scoreBroken": "Ese archivo no llegó completo. Quítalo y vuelve a añadirlo.",
+            "scoreTooMuchToday": "Son muchos archivos para un solo día. Vuelve a intentarlo mañana.",
+            "needsPiece": "Falta el nombre de la obra",
+            "needsSending": "Enviando los archivos",
+            "needsScore": "Falta la partitura",
+            "needsRights": "Falta decir de quién es la música",
+            "requestsTitle": "Tus envíos",
+            "status": {
+                "received": "La tenemos. Suele estar lista en un día laborable.",
+                "delivered": "Tus pistas están listas",
+                "closed": "Cerrada. Te lo explicamos por correo."
+            },
+            "open": "Abrir"
         },
         "rehearsal": {
             "next": "Próximo ensayo: {date}",
@@ -3959,7 +3984,7 @@
     "moved": {
         "arriving": "Tus canciones están llegando",
         "waiting": "Esperando a la dirección anterior",
-        "received": "Elementos recibidos: {count}",
+        "received": "{count, plural, one {1 elemento recibido} other {# elementos recibidos}}",
         "here": "Tus canciones están aquí",
         "hereBody": "Tus canciones, tomas y ajustes han llegado. Lo que ya estaba aquí se quedó como estaba.",
         "nothingNew": "Ya estaba todo aquí.",
@@ -4361,7 +4386,7 @@
                 }
             }
         },
-        "setup": "Para **{browser}** (**{device}**)",
+        "setup": "Para **{browser}** en tu **{device}**",
         "change": "Cambiar",
         "hearing": "Tu micrófono funciona",
         "hearingLine": "Te oímos. Seguimos...",
@@ -4548,7 +4573,7 @@
             "plus": "+{xp}",
             "xpEarned": "XP ganados"
         },
-        "streak": "Día {count} de racha",
+        "streak": "{count, plural, one {Racha de 1 día} other {Racha de # días}}",
         "lessonOf": "Lección {place} de {total} completada",
         "pathLabel": "Lecciones de esta unidad",
         "path": {
@@ -4626,7 +4651,8 @@
             "streakSerious": "{days} días seguidos"
         },
         "onPitch": "{percent}% afinado",
-        "lessonDone": "Lección completada"
+        "lessonDone": "Lección completada",
+        "upNextLesson": "Siguiente · Lección {number} · {minutes} min"
     },
     "menu": {
         "file": "Archivo",
@@ -5012,7 +5038,7 @@
             "rate": "¡Bonus x{count}!",
             "rateChip": "x{count}",
             "rateChipLabel": "{count} veces el bonus",
-            "streak": "¡Racha! Día {count}"
+            "streak": "{count, plural, one {¡Racha! 1 día} other {¡Racha! # días}}"
         },
         "workout": {
             "title": "Modo entrenamiento"
@@ -5121,6 +5147,9 @@
         "record": {
             "title": "Nuevo récord",
             "from": "antes: {before}"
+        },
+        "wrap": {
+            "nudgeTitle": "¿SEGUIMOS MAÑANA?"
         }
     },
     "chordMoment": {
@@ -5157,7 +5186,11 @@
             "keepLessons": "{count, plural, one {1 lección} other {# lecciones}}",
             "keepSongs": "tus canciones"
         },
-        "installApp": "Instala la app: se abre como una app, sin la barra del navegador."
+        "installApp": "Instala la app: se abre como una app, sin la barra del navegador.",
+        "nudgeTitle": "¿Lo retomas mañana?",
+        "nudge": "Avísame mañana más o menos a esta hora",
+        "nudgeSet": "Hecho: un aviso mañana a las {time}. Cámbialo cuando quieras en Ajustes, en Recordatorios de práctica.",
+        "nudgeFailed": "Aquí no se pudo programar el aviso. Puedes volver a intentarlo en Ajustes, en Recordatorios de práctica."
     },
     "voiceCard": {
         "title": "Unidad 1 completada: tu voz",

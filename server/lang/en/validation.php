@@ -199,7 +199,17 @@ return [
     |
     */
 
-    'attributes' => [],
+    // The fields' names as the messages say them (Laravel's own, written out so each language can name them).
+    'attributes' => [
+        'name' => 'name',
+        'email' => 'email',
+        'password' => 'password',
+        'birthMonth' => 'birth month',
+        'birthYear' => 'birth year',
+        'message' => 'message',
+        'title' => 'title',
+        'handle' => 'handle',
+    ],
 
     /*
     | Stackapella's own rules.

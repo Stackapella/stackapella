@@ -6,7 +6,7 @@
 @php($s = $songPart['song'])
 @php($p = $songPart['part'])
 @php($melody = $p['key'] === ($s['melodyPart'] ?? null))
-@php($fill = ['song' => $s['title'], 'part' => mb_strtolower($p['name']), 'key' => $s['key'], 'low' => $p['lowName'], 'high' => $p['highName']])
+@php($fill = ['song' => $s['title'], 'part' => mb_strtolower($p['name']), 'key' => \App\Support\Languages\NoteNames::name($s['key']), 'low' => \App\Support\Languages\NoteNames::name($p['lowName']), 'high' => \App\Support\Languages\NoteNames::name($p['highName'])])
 @php($heading = __($melody ? 'site.song_part.headline_melody' : 'site.song_part.headline', $fill))
 {{-- In the page's title and description a round is named without its "(round)"; the description says round. --}}
 @php($metaFill = [...$fill, 'song' => $songPart['round'] ? \App\Support\Pages\SongParts::searchTitle($s['title']) : $s['title']])
@@ -71,9 +71,9 @@
                         @foreach ($songPart['parts'] as $other)
                             <li>
                                 @if ($other['current'])
-                                    <span class="s-spart-chip s-v{{ $loop->iteration }}" aria-current="page"><b>{{ $other['name'] }}</b><span translate="no">{{ __('site.song_part.other_range', ['low' => $other['lowName'], 'high' => $other['highName']]) }}</span>@if ($other['melody'])<span class="s-spart-tag">{{ __('site.song_part.melody_tag') }}</span>@endif</span>
+                                    <span class="s-spart-chip s-v{{ $loop->iteration }}" aria-current="page"><b>{{ $other['name'] }}</b><span translate="no">{{ __('site.song_part.other_range', ['low' => \App\Support\Languages\NoteNames::name($other['lowName']), 'high' => \App\Support\Languages\NoteNames::name($other['highName'])]) }}</span>@if ($other['melody'])<span class="s-spart-tag">{{ __('site.song_part.melody_tag') }}</span>@endif</span>
                                 @else
-                                    <a href="{{ $other['url'] }}" class="s-spart-chip s-v{{ $loop->iteration }}"><b>{{ $other['name'] }}</b><span translate="no">{{ __('site.song_part.other_range', ['low' => $other['lowName'], 'high' => $other['highName']]) }}</span>@if ($other['melody'])<span class="s-spart-tag">{{ __('site.song_part.melody_tag') }}</span>@endif</a>
+                                    <a href="{{ $other['url'] }}" class="s-spart-chip s-v{{ $loop->iteration }}"><b>{{ $other['name'] }}</b><span translate="no">{{ __('site.song_part.other_range', ['low' => \App\Support\Languages\NoteNames::name($other['lowName']), 'high' => \App\Support\Languages\NoteNames::name($other['highName'])]) }}</span>@if ($other['melody'])<span class="s-spart-tag">{{ __('site.song_part.melody_tag') }}</span>@endif</a>
                                 @endif
                             </li>
                         @endforeach

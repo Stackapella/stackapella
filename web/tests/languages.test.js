@@ -2,7 +2,9 @@
 // on, and a translation made from older English never shown.
 import { midiName } from '/js/dsp.js';
 import { coverage, inLanguage, isLive, loadLanguage, locale, preferredLanguages, t } from '/js/i18n.js';
-import { chooseNaming, isSolfa, nameNote, naming, namingSample, noteNames } from '/js/note-names.js';
+import { chooseNaming, isSolfa, nameKeyNote, nameNote, naming, namingSample, noteNames } from '/js/note-names.js';
+import { keyChoiceLabel, keyLabel } from '/js/theme.js';
+import { prettyKey } from '/js/components/key-control.js';
 import { assert, test } from './harness.js';
 
 const same = (actual, expected, what = '') => assert(actual === expected, `${what ? what + ': ' : ''}expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`);
@@ -28,6 +30,41 @@ test('languages: every note name follows the naming: auto by the language, a cho
         same(midiName(71), 'H4');
     } finally {
         chooseNaming(was);
+    }
+});
+
+test('languages: keys follow the note naming, their own spelling kept', () => {
+    same(['C', 'Db', 'F#', 'Bb', 'B'].map((k) => nameKeyNote(k, 'letters')).join(' '), 'C Db F# Bb B');
+    same(['C', 'Db', 'F#', 'Bb', 'B', 'G'].map((k) => nameKeyNote(k, 'fixed')).join(' '), 'Do Reb Fa# Sib Si Sol');
+    same(['C', 'Db', 'F#', 'Eb', 'Ab', 'Bb', 'B'].map((k) => nameKeyNote(k, 'german')).join(' '), 'C Des Fis Es As B H');
+    same(nameKeyNote('', 'fixed'), '', 'anything else as it came');
+    const was = noteNames.choice;
+    try {
+        chooseNaming('fixed');
+        same(keyLabel('F'), 'Fa');
+        assert(keyLabel('Bbm').startsWith('Sib'), keyLabel('Bbm'));
+        assert(keyChoiceLabel('G').startsWith('Sol'), keyChoiceLabel('G'));
+        same(prettyKey('Eb'), 'Mi♭', 'the key control draws the flat');
+        assert(prettyKey('F#m').startsWith('Fa♯'), prettyKey('F#m'));
+        chooseNaming('letters');
+        same(prettyKey('Eb'), 'E♭');
+        same(keyLabel('C'), 'C');
+    } finally {
+        chooseNaming(was);
+    }
+});
+
+test('languages: a speaker of a region gets the base language without asking for a regional file', async () => {
+    const was = window.fetch;
+    const asked = [];
+    window.fetch = (url, ...rest) => (asked.push(String(url)), was(url, ...rest));
+    try {
+        await loadLanguage(['es-ES', 'es']);
+        same(locale.lang, 'es');
+        assert(!asked.some((url) => url.includes('es-ES')), asked.join(' '));
+    } finally {
+        window.fetch = was;
+        await loadLanguage(['en']);
     }
 });
 

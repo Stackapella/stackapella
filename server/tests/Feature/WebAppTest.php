@@ -8,6 +8,7 @@ use App\Models\BetaSinger;
 use App\Models\EarlyAccessLink;
 use App\Support\Accounts\BetaPass;
 use App\Support\Accounts\EarlyAccess;
+use App\Support\Flags;
 use App\Support\Http\Hosts;
 use App\Support\Pages\MudeoArrival;
 use App\Support\Web\AppShell;
@@ -130,6 +131,16 @@ final class WebAppTest extends TestCase
         // Someone who has used the app gets the app at /, and the landing at /?landing.
         $this->assertStringContainsString('name="public-url"', (string) $this->withUnencryptedCookie('sa_app', '1')->get('/')->getContent());
         $this->withUnencryptedCookie('sa_app', '1')->get('/?landing')->assertViewIs('pages.landing');
+    }
+
+    public function test_the_shell_names_the_languages_open_now_so_a_first_visit_mounts_in_its_own(): void
+    {
+        $this->assertStringContainsString('<meta name="live-languages" content="en">', (string) $this->get('/sing')->getContent());
+
+        // As auth.config's `languages` says, once Spanish is switched on.
+        app(Flags::class)->set('lang_es', 'on', null, 'Spanish checked');
+        $this->assertStringContainsString('<meta name="live-languages" content="en,es">', (string) $this->get('/sing')->getContent());
+        $this->getJson('/api/auth/config')->assertJsonPath('data.languages', ['en', 'es']);
     }
 
     public function test_the_app_may_compile_templates_and_use_the_microphone_but_the_admin_is_never_framed(): void

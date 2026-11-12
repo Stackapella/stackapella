@@ -37,6 +37,21 @@ export function nameNote(midi, system = naming()) {
     return names ? `${names[((m % 12) + 12) % 12]}${Math.floor(m / 12) - 1}` : letterName(m);
 }
 
+// A key's note ("F#", "Bb", "C") in each system, its own spelling kept (Reb stays Reb, never Do#): fixed Do as Spanish
+// writes keys ("Sib mayor"), German's with -is and -es (Fis, Es, B for B flat, H for B).
+const FIXED_LETTERS = { C: 'Do', D: 'Re', E: 'Mi', F: 'Fa', G: 'Sol', A: 'La', B: 'Si' }; // i18n-ignore: note names
+const GERMAN_KEYS = { Bb: 'B', B: 'H', Eb: 'Es', Ab: 'As' }; // i18n-ignore: note names
+
+/** A key's note name, "F#" read in `system` (the one in use by default): "Fa#", "Fis". Anything else as it came. */
+export function nameKeyNote(note, system = naming()) {
+    const match = /^([A-G])([#b]?)$/.exec(String(note));
+    if (!match || system === 'letters') return note;
+    const [, letter, accidental] = match;
+    if (system === 'fixed') return FIXED_LETTERS[letter] + accidental;
+    if (system === 'german') return GERMAN_KEYS[note] ?? letter + (accidental === '#' ? 'is' : accidental === 'b' ? 'es' : '');
+    return note;
+}
+
 /** The first notes of a scale in `system`, for Settings' choices ("C D E", "Do Re Mi", "C D E ... H"). */
 export function namingSample(system) {
     if (system === 'german') return 'C D E … A H'; // i18n-ignore: note names

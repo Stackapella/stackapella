@@ -9,10 +9,13 @@
 @section('content')
     <x-site.header :app-url="$links['app']" />
     <main class="cmp">
-        <section class="s-wrap s-featurehead cmp-head" aria-labelledby="page-h">
-            <p class="s-eyebrow">{{ __('site.compare.index.eyebrow') }}</p>
-            <h1 id="page-h">{{ __('site.compare.index.headline') }}</h1>
-            <p class="cmp-asof">{{ $common['asof'] }}</p>
+        {{-- The heading at left and the lead large at right from 900 px, as on each comparison. --}}
+        <section class="s-wrap s-featurehead cmp-head cmp-top" aria-labelledby="page-h">
+            <div>
+                <p class="s-eyebrow">{{ __('site.compare.index.eyebrow') }}</p>
+                <h1 id="page-h">{{ __('site.compare.index.headline') }}</h1>
+                <p class="cmp-asof">{{ $common['asof'] }}</p>
+            </div>
             <p class="s-lede">{{ __('site.compare.index.lead') }}</p>
         </section>
         <section class="s-wrap s-sec">

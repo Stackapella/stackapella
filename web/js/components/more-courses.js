@@ -6,7 +6,7 @@
 // in the heading's line. Rows and cards are links, so the hub's own Continue stays its one primary.
 // Shows nothing when no course is open to this account (everyone but staff, until launch).
 
-import { localized, t, tk } from '../i18n.js';
+import { inLanguage, localized, t, tk } from '../i18n.js';
 import { navigate } from '../router.js';
 import { account } from '../stores/account.js';
 import { learning, loadLearning, loadPlusCourses } from '../stores/learning.js';
@@ -55,8 +55,12 @@ export const MoreCourses = {
                             <a v-if="cell.open" :href="href(cell.open)" :class="CELL" class="group hover:bg-raised/50" :aria-label="label(cell.open)" @click.prevent="navigate(href(cell.open))">
                                 <span class="size-2.5 shrink-0 rounded-full lg:mt-1.5" :style="{ backgroundColor: colour(cell.entry) }" aria-hidden="true"></span>
                                 <span class="min-w-0">
-                                    <span class="block font-bold leading-snug text-cream" translate="no">{{ localized(cell.entry.title) }}</span>
-                                    <span class="block truncate text-sm text-muted lg:line-clamp-2 lg:whitespace-normal" translate="no">{{ localized(cell.entry.line) }}</span>
+                                    <!-- Not yet in the person's language: its English, marked as the card marks it (the Spanish walk, 2026-11-12). -->
+                                    <span class="flex flex-wrap items-baseline gap-x-2">
+                                        <span class="font-bold leading-snug text-cream" translate="no" :lang="english(cell.entry) ? 'en' : null">{{ localized(cell.entry.title) }}</span>
+                                        <span v-if="english(cell.entry)" class="text-xs font-semibold text-muted" data-in-english>{{ t('courses.inEnglish') }}</span>
+                                    </span>
+                                    <span class="block truncate text-sm text-muted lg:line-clamp-2 lg:whitespace-normal" translate="no" :lang="english(cell.entry) ? 'en' : null">{{ localized(cell.entry.line) }}</span>
                                 </span>
                                 <span :class="STATE" data-course-state>{{ cell.open.summary.started ? t('courses.progressShort', { done: cell.open.summary.done, total: cell.open.summary.total }) : t('courses.lessons', { count: cell.open.summary.total }) }}</span>
                                 <Icon name="chevron" :size="16" class="shrink-0 -rotate-90 text-muted transition group-hover:text-cream lg:col-start-3 lg:row-span-2 lg:row-start-1 lg:self-center rtl:rotate-90" />
@@ -106,6 +110,8 @@ export const MoreCourses = {
     methods: {
         navigate,
         href: (c) => '/learn/c/' + c.entry.id,
+        /** The course isn't in the person's language yet (as CourseCard says it). */
+        english: (entry) => !inLanguage(entry.title),
         colour(entry) {
             return this.paint(PART_COLORS[((entry.colour ?? 4) - 1) % PART_COLORS.length]);
         },

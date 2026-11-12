@@ -11,6 +11,7 @@ import { formatWait, t, tk } from '../i18n.js';
 import { goBack, navigate, route } from '../router.js';
 import { account, lastMethod, linkToken, loadAuthConfig, providerSignIn, signedIn, signUpRef } from '../stores/account.js';
 import { local, session as tabStorage } from '../storage.js';
+import { doneLessons } from '../stores/learning.js';
 
 // What an ask was for (`?for=`), as sign-up's title: the reason in the person's words.
 const SIGN_UP = tk('auth.signUpTitle');
@@ -402,6 +403,7 @@ export const AuthView = {
                     elapsedMs: Math.round(performance.now() - this.startedAt),
                     nickname: this.form.nickname,
                     turnstileToken: this.turnstile,
+                    doneLessons: await doneLessons(),
                     ...(this.invite ? { invite: this.invite } : {}),
                     ...(this.early ? { early: this.early } : {}),
                 });
@@ -436,7 +438,7 @@ export const AuthView = {
             this.busy = true;
             try {
                 if (kind === 'reset') await api.auth.password.forgot({ email, turnstileToken: this.turnstile });
-                else await api.auth.verification.resend({ email, turnstileToken: this.turnstile });
+                else await api.auth.verification.resend({ email, turnstileToken: this.turnstile, doneLessons: await doneLessons() });
                 this.sent(email, kind);
                 toast(t('auth.sent.again'));
             } catch (error) {

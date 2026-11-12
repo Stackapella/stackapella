@@ -104,5 +104,7 @@
     "Your copy of everything we keep about you is ready to download.": "Ya puedes descargar tu copia de todo lo que guardamos sobre ti.",
     "The link works until :date.": "El enlace es válido hasta el :date.",
     "Download my data": "Descargar mis datos",
-    "you asked for a copy of your Stackapella data": "pediste una copia de tus datos de Stackapella"
+    "you asked for a copy of your Stackapella data": "pediste una copia de tus datos de Stackapella",
+    "Your next lesson: Lesson :n, :title": "Tu próxima lección: Lección :n, :title",
+    "Start the lesson": "Empezar la lección"
 }

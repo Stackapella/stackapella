@@ -3,12 +3,14 @@
 // and everything scored moves with it; the choice sticks for that lesson or song.
 
 import { t } from '../i18n.js';
+import { nameKeyNote } from '../note-names.js';
 import { Icon } from './icon.js';
 
 /** "Eb" as "E♭", "F#m" as "F♯ minor". */
 export function prettyKey(key) {
     const minor = key.endsWith('m');
-    const note = (minor ? key.slice(0, -1) : key).replace(/^([A-G])b$/, '$1♭').replace('#', '♯');
+    // The note in the naming in use (Do Re Mi in Spanish, H in German), its flat and sharp drawn: "Si♭", "Fa♯".
+    const note = nameKeyNote(minor ? key.slice(0, -1) : key).replace(/^([A-Z][a-z]*?)b$/, '$1♭').replace('#', '♯');
     return minor ? t('music.minorKey', { note }) : note;
 }
 

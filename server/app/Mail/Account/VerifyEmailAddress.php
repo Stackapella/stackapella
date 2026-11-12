@@ -13,7 +13,8 @@ use App\Support\Mail\Bold;
  */
 final class VerifyEmailAddress extends AccountMail
 {
-    public function __construct(public readonly string $token, public readonly string $personName) {}
+    /** @param  list<string>  $doneLessons  the free course's lessons the device finished before it had an account */
+    public function __construct(public readonly string $token, public readonly string $personName, public readonly array $doneLessons = []) {}
 
     protected function key(): string
     {
@@ -39,8 +40,8 @@ final class VerifyEmailAddress extends AccountMail
     }
 
     /**
-     * The free course's next lesson for this account (its first lesson without a star in its saved progress, or
-     * lesson 1), linked with ?ref=welcome so Growth counts who came back from it (docs/retention-plan.md, row 7).
+     * The free course's next lesson for this account: its first lesson without a star in its saved progress or among
+     * the lessons the device finished signed out (a guest who did lesson 1 at the account wall is sent to lesson 2), linked with ?ref=welcome so Growth counts who came back from it (docs/retention-plan.md, row 7).
      *
      * @return array{line: string, button: string, url: string}|null
      */
@@ -60,7 +61,7 @@ final class VerifyEmailAddress extends AccountMail
 
                 $n++;
 
-                if ((int) ($done[$lesson['id']]['stars'] ?? 0) > 0) {
+                if ((int) ($done[$lesson['id']]['stars'] ?? 0) > 0 || in_array($lesson['id'], $this->doneLessons, true)) {
                     continue;
                 }
 

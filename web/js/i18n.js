@@ -137,6 +137,9 @@ export async function loadLanguage(wanted = preferredLanguages(), { lessonFirst 
         if (lang === 'pseudo' || lang === 'en' || lang.startsWith('en-')) {
             break; // English (any region) needs no other file
         }
+        // Only base languages ship (es.json, never es-ES.json), and preferredLanguages() lists each region's base after
+        // it: asking for the region first was a 404 awaited before every start in a Spanish browser.
+        if (lang.includes('-')) continue;
         const found = await fetchMessages(lang).catch(() => null);
         if (found) {
             chosen = lang;

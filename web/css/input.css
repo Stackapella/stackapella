@@ -7419,6 +7419,23 @@ a.s-vt-rung:hover { background: color-mix(in srgb, var(--color-cream) 5%, transp
 .cmp-sources ol { margin-top: 12px; padding-inline-start: 22px; list-style: decimal; font-size: 15px; line-height: 1.7; }
 .cmp-sources a { overflow-wrap: anywhere; }
 .cmp-hub b { display: block; }
+/* The close: words, then Start singing as a cream pill on the dark band (the theme's dark pill vanished on it). */
+.cmp-try { --primary: #F7F1E6; --primary-ink: #211A14; }
+.cmp-try-in { display: grid; gap: 22px; }
+.cmp-try .btn-lg { justify-self: start; white-space: nowrap; }
+/* From 900 px a comparison uses the width (docs/design-rules.md, "A page about one thing uses the width"): the heading
+   at left and the lead large at right; Moving over, the questions and the sources each a row, the heading at left. */
+@media (min-width: 900px) {
+    .cmp-top { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 56px; align-items: start; }
+    .cmp-top .s-lede { margin-top: 0; padding-top: 4px; font-size: 20px; line-height: 1.5; max-width: 46ch; }
+    .cmp-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); column-gap: 64px; align-items: start; }
+    .cmp-row > h2 { grid-column: 1; grid-row: 1 / span 6; }
+    .cmp-row > :not(h2) { grid-column: 2; }
+    .cmp-row > h2 + * { margin-top: 0; }
+    .cmp-sources ol { columns: 2; column-gap: 40px; }
+    .cmp-try-in { grid-template-columns: minmax(0, 1fr) auto; align-items: center; column-gap: 48px; }
+    .cmp-try .btn-lg { justify-self: end; }
+}
 @media (max-width: 759px) {
     .cmp-table thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
     .cmp-table, .cmp-table tbody, .cmp-table tr, .cmp-table th, .cmp-table td { display: block; }

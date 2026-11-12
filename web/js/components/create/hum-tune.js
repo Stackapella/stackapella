@@ -12,7 +12,7 @@ import { noteEvents } from '../../transcribe.js';
 import { beatsFromTaps, humToMelody, rehum } from '../../hum.js';
 import { readyToSing } from '../../creator-audio.js';
 import { renderPart } from '../../synth.js';
-import { PART_COLORS } from '../../theme.js';
+import { keyLabel, PART_COLORS } from '../../theme.js';
 import { Icon } from '../icon.js';
 import { MicPicker, micError } from '../mic.js';
 import { Notice } from '../form.js';
@@ -31,7 +31,7 @@ export const HumTuneStep = {
     props: { draft: { type: Object, required: true } },
     emits: ['change', 'tune'],
     data: () => ({ state: 'idle', seconds: 0, live: [], problem: null, micProblem: null, melody: null, playing: false, taps: [], again: null, useClick: false, clickBpm: 80, audio }),
-    setup: () => ({ formatNumber, MOST_SECONDS, COLOR }),
+    setup: () => ({ formatNumber, keyLabel, MOST_SECONDS, COLOR }),
     template: `
         <section class="space-y-6" data-hum-tune :data-state="state">
             <div>
@@ -46,7 +46,7 @@ export const HumTuneStep = {
                 <p v-else-if="state === 'working'" class="text-muted" role="status">{{ t('create.sing.working') }}</p>
                 <template v-else-if="melody">
                     <!-- Here's your tune: what was heard, played back by the guide voice. -->
-                    <p class="font-bold text-cream" data-hum-found>{{ t('create.hum.found', { bpm: formatNumber(melody.tempo), signature: melody.timeSignature, key: melody.key, count: formatNumber(melody.notes.length) }) }}</p>
+                    <p class="font-bold text-cream" data-hum-found>{{ t('create.hum.found', { bpm: formatNumber(melody.tempo), signature: melody.timeSignature, key: keyLabel(melody.key), count: formatNumber(melody.notes.length) }) }}</p>
                     <Roll :parts="[{ key: 'tune', color: paint(COLOR), notes: melody.notes }]" :beats-per-bar="perBar" :pickup-beats="melody.pickupBeats" :end-beat="endBeat" :zoom="20" :label="t('create.sing.notesLabel', { count: melody.notes.length })" />
                     <!-- Again for one line: hum just that line, and it takes its place (the tempo, bars and key stay). -->
                     <ol v-if="melody.phrases?.length > 1" class="flex flex-wrap gap-2" :aria-label="t('create.hum.lines')" data-hum-lines>

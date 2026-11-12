@@ -205,5 +205,13 @@
     "One of the last seven days.": "Uno de los últimos siete días.",
     "At most 120 seconds.": "Como máximo 120 segundos.",
     "Arms a and b (and c), in order, with weights adding up to 100.": "Variantes a y b (y c), en orden, con pesos que sumen 100.",
-    "This month's board is the current arrangement's only.": "La clasificación del mes solo es para el arreglo actual."
+    "This month's board is the current arrangement's only.": "La clasificación del mes solo es para el arreglo actual.",
+    "@attributes.name:name": "nombre",
+    "@attributes.email:email": "correo electrónico",
+    "@attributes.password:password": "contraseña",
+    "@attributes.birthMonth:birth month": "mes de nacimiento",
+    "@attributes.birthYear:birth year": "año de nacimiento",
+    "@attributes.message:message": "mensaje",
+    "@attributes.title:title": "título",
+    "@attributes.handle:handle": "nombre de usuario"
 }

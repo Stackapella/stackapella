@@ -917,7 +917,8 @@ export const api = {
             open: (token, extra = {}) => call('auth.link.open', { body: { token, ...extra } }),
         },
         verification: {
-            resend: ({ email, turnstileToken = null }) => call('auth.verification.resend', { body: { email, turnstileToken } }),
+            // doneLessons: the free lessons this device finished signed out, so the mail names the next one.
+            resend: ({ email, turnstileToken = null, doneLessons = null }) => call('auth.verification.resend', { body: { email, turnstileToken, ...(doneLessons ? { doneLessons } : {}) } }),
         },
         signin: ({ email, password, remember = true, turnstileToken = null }) => call('auth.signin', { body: { email, password, remember, turnstileToken } }),
         signout: Object.assign(() => call('auth.signout'), {

@@ -179,7 +179,8 @@ function servedByProduction(string $repo): array
 /** Passes the request to the API server and its answer back, keeping this origin's Host. */
 function forward(string $api, string $uri): void
 {
-    $keep = ['accept', 'content-type', 'cookie', 'x-xsrf-token', 'x-app-version', 'x-requested-with', 'origin', 'referer', 'user-agent'];
+    // accept-language: the server's language for a request (RequestLanguage: a new account's locale, its mails).
+    $keep = ['accept', 'accept-language', 'content-type', 'cookie', 'x-xsrf-token', 'x-app-version', 'x-requested-with', 'origin', 'referer', 'user-agent'];
     $headers = ['Host: '.($_SERVER['HTTP_HOST'] ?? 'localhost'), 'X-Forwarded-For: '.($_SERVER['REMOTE_ADDR'] ?? '127.0.0.1')];
     foreach (getallheaders() as $name => $value) {
         if (in_array(strtolower($name), $keep, true)) {

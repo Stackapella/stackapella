@@ -1613,6 +1613,10 @@ that. **`signupKey`** (optional, 20 to 128 characters): an app's own secret for 
 - `early` (optional) is the early-access link's code (`/early/<code>`, "The mudeo email"): an
   open one gets this sign-up through paused sign-ups too, and the account is marked "from mudeo".
   The Google and Apple sign-in forms take `early` as well;
+- `doneLessons` (optional, up to 200 lesson ids, letters, digits and dashes): the free course's lessons this
+  device finished with a star while signed out. The verification email names the first lesson of the free course
+  that is in neither these nor the account's saved progress (so a guest who finished lesson 1 at the account wall
+  is sent to lesson 2); an id that isn't a lesson is ignored;
 - limited (`sign-up`, per IP).
 
 | Status | Code | Schema | Example |
@@ -1704,7 +1708,8 @@ without using the link up: the app asks "Sign in as kim@example.com?", and sends
 #### `auth.verification.resend`
 
 Send the verification email again ("Resend" waits 60 seconds in the app). **Request:**
-`{ "email": "..." }`, plus `turnstileToken` in shield mode.
+`{ "email": "..." }`, plus `turnstileToken` in shield mode, and `doneLessons` (optional) as `auth.register`'s, for
+the email's next lesson.
 
 | Status | Code | Schema | Example |
 |---|---|---|---|

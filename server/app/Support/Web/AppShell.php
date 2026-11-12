@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Support\Web;
 
 use App\Support\Http\Hosts;
+use App\Support\Languages\Languages;
 use RuntimeException;
 
 /**
@@ -30,6 +31,10 @@ final class AppShell
 
         // The public site's address, for the logo's link and the credits' profile links.
         $meta = '<meta name="public-url" content="'.htmlspecialchars(Hosts::publicUrl(), ENT_QUOTES).'">';
+
+        // The languages open now (auth.config's `languages`), so a first visit mounts in the browser's language from
+        // the start rather than after auth.config answers (frontend2, 2026-11-12).
+        $meta .= '<meta name="live-languages" content="'.htmlspecialchars(implode(',', app(Languages::class)->offered()), ENT_QUOTES).'">';
 
         if ($domain !== '') {
             $meta .= '<meta name="theme-cookie-domain" content="'.htmlspecialchars($domain, ENT_QUOTES).'">';

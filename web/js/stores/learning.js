@@ -54,6 +54,23 @@ async function readProgress() {
     }
 }
 
+/** The free course's lessons finished with a star in `progress` (ids, at most 200), as auth.register's doneLessons takes them. */
+export function starredLessons(progress) {
+    return Object.entries(progress?.lessons ?? {})
+        .filter(([id, lesson]) => (lesson?.stars ?? 0) > 0 && /^[A-Za-z0-9-]+$/.test(id))
+        .map(([id]) => id)
+        .slice(0, 200);
+}
+
+/**
+ * What this device finished while signed out, for the sign-up mail (backend, 2026-11-12): it names the first lesson
+ * still to do, so a guest who did lesson 1 isn't sent to lesson 1 again (their progress reaches the account only later).
+ */
+export async function doneLessons() {
+    if (!readOk) await readProgress();
+    return starredLessons(learning.progress);
+}
+
 /**
  * Loads the course and the learner's progress. A course that didn't load (offline, say) is tried
  * again on the next call, and `learning.failed` says so meanwhile.

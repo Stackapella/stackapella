@@ -10,13 +10,17 @@
 @endsection
 
 @php($cols = (array) $page['columns'])
+{{-- From 900 px (docs/design-rules.md, "A page about one thing uses the width"): the heading at left and the lead large
+     at right; Moving over, the questions and the sources each a row, the heading at left and the rest at right. --}}
 @section('content')
     <x-site.header :app-url="$links['app']" />
     <main class="cmp">
-        <section class="s-wrap s-featurehead cmp-head" aria-labelledby="page-h">
-            <nav class="s-crumb" aria-label="{{ __('pages.site.crumb') }}"><a href="/compare">{{ __('site.compare.index.eyebrow') }}</a><span aria-hidden="true">/</span><span aria-current="page">{{ $page['name'] }}</span></nav>
-            <h1 id="page-h">{{ $page['headline'] }}</h1>
-            <p class="cmp-asof">{{ $common['asof'] }}</p>
+        <section class="s-wrap s-featurehead cmp-head cmp-top" aria-labelledby="page-h">
+            <div>
+                <nav class="s-crumb" aria-label="{{ __('pages.site.crumb') }}"><a href="/compare">{{ __('site.compare.index.eyebrow') }}</a><span aria-hidden="true">/</span><span aria-current="page">{{ $page['name'] }}</span></nav>
+                <h1 id="page-h">{{ $page['headline'] }}</h1>
+                <p class="cmp-asof">{{ $common['asof'] }}</p>
+            </div>
             <p class="s-lede">{{ $page['lead'] }}</p>
         </section>
 
@@ -78,26 +82,29 @@
         </section>
 
         @isset($page['moving'])
-            <section class="s-wrap s-sec" aria-labelledby="moving-h">
+            <section class="s-wrap s-sec cmp-row" aria-labelledby="moving-h">
                 <h2 id="moving-h" class="s-title">{{ $common['titles']['moving'] }}</h2>
                 <p class="s-lede">{{ $page['moving'] }}</p>
             </section>
         @endisset
 
-        <section class="s-wrap s-sec" aria-labelledby="faq-h">
+        <section class="s-wrap s-sec cmp-row" aria-labelledby="faq-h">
             <h2 id="faq-h" class="s-title">{{ $common['titles']['faq'] }}</h2>
             @include('site.courses._faq')
         </section>
 
-        <section class="s-ink" aria-labelledby="try-h">
-            <div class="s-wrap s-sec">
-                <h2 id="try-h" class="s-title">{{ $common['titles']['try'] }}</h2>
-                <p class="s-lede">{{ $common['try_body'] }}</p>
-                <p class="s-actions-l"><a href="{{ $links['start'] }}" class="btn-primary btn-lg">{{ __('pages.site.start') }} <x-site.icon name="arrow" size="18" /></a></p>
+        {{-- The close as one row from 900 px, its words at left and Start singing at right, a cream pill on the dark band. --}}
+        <section class="s-ink cmp-try" aria-labelledby="try-h">
+            <div class="s-wrap cmp-try-in">
+                <div>
+                    <h2 id="try-h" class="s-title">{{ $common['titles']['try'] }}</h2>
+                    <p class="s-lede">{{ $common['try_body'] }}</p>
+                </div>
+                <a href="{{ $links['start'] }}" class="btn-primary btn-lg">{{ __('pages.site.start') }} <x-site.icon name="arrow" size="18" /></a>
             </div>
         </section>
 
-        <section class="s-wrap s-sec cmp-sources" aria-labelledby="sources-h">
+        <section class="s-wrap s-sec cmp-sources cmp-row" aria-labelledby="sources-h">
             <h2 id="sources-h" class="s-kick">{{ $common['titles']['sources'] }}</h2>
             <p class="cmp-note">{{ $common['seen'] }}</p>
             <ol>

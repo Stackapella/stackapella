@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Support\Pages;
 
 use App\Models\Template;
+use App\Support\Languages\NoteNames;
 use Illuminate\Support\Carbon;
 
 /**
@@ -131,10 +132,11 @@ final class Carols
         return $line;
     }
 
-    /** A note's name with real flat and sharp signs ("Eb5" to "E♭5", "F#2" to "F♯2"), as the music font draws them. */
+    /** A note's name with real flat and sharp signs ("Eb5" to "E♭5", "F#2" to "F♯2"), as the music font draws them, in the page's language's names. */
     public static function signs(string $note): string
     {
-        return (string) preg_replace(['/([A-G])b/', '/([A-G])#/'], ['$1♭', '$1♯'], $note);
+        // In the page's language's names: "Mi♭5" in Spanish (NoteNames).
+        return NoteNames::name((string) preg_replace(['/([A-G])b/', '/([A-G])#/'], ['$1♭', '$1♯'], $note));
     }
 
     public static function isCarol(Template $template): bool

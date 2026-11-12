@@ -837,10 +837,14 @@ final class GrowthCompare
     {
         $breaks = [];
 
-        foreach ((array) config('counts.breaks') as $date => $break) {
-            if (is_string($date) && $date > $earliest && $date <= $this->now->toDateString()) {
-                $kinds = $break['kinds'] ?? '*';
-                $breaks[] = ['date' => $date, 'kinds' => is_array($kinds) ? array_values($kinds) : ['*'], 'note' => (string) ($break['note'] ?? '')];
+        foreach ((array) config('counts.breaks') as $date => $entry) {
+            if (! is_string($date) || $date <= $earliest || $date > $this->now->toDateString()) {
+                continue;
+            }
+            // One break on a day, or a list of them when two changes went out the same day.
+            foreach (array_is_list((array) $entry) ? (array) $entry : [$entry] as $break) {
+                $kinds = ((array) $break)['kinds'] ?? '*';
+                $breaks[] = ['date' => $date, 'kinds' => is_array($kinds) ? array_values($kinds) : ['*'], 'note' => (string) (((array) $break)['note'] ?? '')];
             }
         }
 

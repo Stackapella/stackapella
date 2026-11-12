@@ -69,6 +69,11 @@ final class GrowthCompareTest extends TestCase
 
         // The counting change on 8 November lies inside the comparison.
         $today->assertJsonPath('data.breaks.0', ['date' => '2026-11-08', 'kinds' => ['*'], 'note' => 'crawlers']);
+        // Two changes on one day are two breaks.
+        config(['counts.breaks' => ['2026-11-08' => [['kinds' => ['ft:*'], 'note' => 'a'], ['kinds' => '*', 'note' => 'b']]]]);
+        $this->getJson('/api/admin/growth?period=today')->assertOk()
+            ->assertJsonPath('data.breaks.0', ['date' => '2026-11-08', 'kinds' => ['ft:*'], 'note' => 'a'])
+            ->assertJsonPath('data.breaks.1', ['date' => '2026-11-08', 'kinds' => ['*'], 'note' => 'b']);
         $today->assertJsonPath('data.period.early', false);
 
         // Aggregates only: no ids, no sources, no countries.

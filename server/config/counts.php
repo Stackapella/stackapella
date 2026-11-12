@@ -198,9 +198,14 @@ return [
     // section 6): Growth says so beside a comparison whose baseline lies before one. Never adjusted.
     'breaks' => [
         '2026-11-08' => ['kinds' => '*', 'note' => 'crawlers'],
-        // The app first sent ft:<feature> and br:<n> on 12 November, about 04:05 UTC (build dde69063a; retention and
-        // frontend). The fill-in from what a device already held is never sent as ft, and br waits for it.
-        '2026-11-12' => ['kinds' => ['ft:*', 'br:*'], 'note' => 'ft and br begin; 13 November is the first whole day'],
+        '2026-11-12' => [
+            // The app first sent ft:<feature> and br:<n> on 12 November, about 04:05 UTC (build dde69063a; retention and
+            // frontend). The fill-in from what a device already held is never sent as ft, and br waits for it.
+            ['kinds' => ['ft:*', 'br:*'], 'note' => 'ft and br begin; 13 November is the first whole day'],
+            // Until push167 (ed6f180c4, about 04:45 UTC; the fix 6a60dac25), a guest's view of the course wall also
+            // counted as lesson 2's start (retention and the coordinator).
+            ['kinds' => ['lesson_start', 'fl_s:1-match', 'fs_r:1-match.0'], 'note' => 'wall views no longer count as starts; 13 November is the first whole day'],
+        ],
     ],
 
     // At most this many of one kind, and this many kinds, in one request.
