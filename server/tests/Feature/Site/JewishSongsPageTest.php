@@ -85,6 +85,22 @@ final class JewishSongsPageTest extends TestCase
         $this->assertStringNotContainsString('data-hanukkiah', (string) Hanukkiah::svg('hk', false));
     }
 
+    public function test_the_hanukkah_guide_links_the_page_and_every_part_of_its_two_songs(): void
+    {
+        $this->catalogue();
+        $html = (string) $this->get('/guides/hanukkah-songs-for-choir')->assertOk()->getContent();
+
+        $this->assertStringContainsString('href="/songs/jewish-songs"', $html);
+        foreach (['maoz-tzur', 'oy-chanukah'] as $song) {
+            foreach (['soprano', 'alto', 'tenor', 'bass'] as $part) {
+                $this->assertStringContainsString('href="/songs/'.$song.'/'.$part.'"', $html);
+            }
+        }
+        // Its questions, with FAQPage data.
+        $this->assertStringContainsString('When is Hanukkah 2026?', $html);
+        $this->assertStringContainsString('"@type":"FAQPage"', $html);
+    }
+
     public function test_a_songs_tag_is_its_first_festival_else_every_day(): void
     {
         $this->assertSame('hanukkah', JewishSongs::tag(['jewish', 'hanukkah', 'traditional']));
@@ -109,6 +125,9 @@ final class JewishSongsPageTest extends TestCase
         // Hanukkah's songs as rows to learn in time, each to its page (Hillel's redesign of the card).
         $this->assertStringContainsString('Learn in time for the first candle', $html);
         $this->assertMatchesRegularExpression('#<ul class="s-jcount-songs">\s*<li><a href="/songs/maoz-tzur"><b translate="no">Maoz Tzur</b>#', $html);
+        // The card's last row is our Hanukkah guide; the intro ends with a For choirs lead-in.
+        $this->assertMatchesRegularExpression('#<li><a href="/guides/hanukkah-songs-for-choir"><b>A three-week plan for your choir</b><span>Guide</span>.*?</li>\s*</ul>\s*</aside>#s', $html);
+        $this->assertStringContainsString('href="/for/choir-directors?ref=for-choirs-collection"', $html);
         // The intro is its own section after the songs, not in the hero.
         $this->assertMatchesRegularExpression('#id="songbook".*<section class="s-wrap s-sec2 s-xfrom" aria-labelledby="from-h">.*Union Hymnal#s', $html);
         preg_match_all('#class="s-xplace">([^<]+)<#', $html, $tags);

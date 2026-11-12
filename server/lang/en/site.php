@@ -1648,7 +1648,7 @@ return [
             'lead' => 'Learn your part of a Hanukkah, Passover or Shabbat song, then sing it with your choir or your family. Free, in your browser, no account.',
             'intro' => [
                 'Hanukkah songs for choir, and songs for the Passover seder and for Shabbat, each in four parts: learn the tune or a harmony by ear, hear it with the other voices, then sing it together.',
-                'Every song here comes from a printing before 1931. Maoz Tzur and Oy Chanukah are our own four parts on the harmonies A. Z. Idelsohn printed in 1911 or 1912 and Pesach Lvov wrote for Susman Kisselgof\'s songbook of 1911 and 1912, and Adon Olam on the harmony Eliezer Gerovitsch printed in 1897; Ein Keloheinu is adapted from the Union Hymnal\'s four parts of 1897; the rest are our own four-part arrangements. Where a Hebrew song names Hashem, it is sung in the substituted forms customary when singing outside prayer, as its page says.',
+                'Every song here comes from a printing before 1931. Maoz Tzur and Oy Chanukah are our own four parts on the harmonies A. Z. Idelsohn printed in 1911 or 1912 and that Susman Kisselgof\'s songbook of 1911 and 1912 prints under Pesach Lvov\'s name, and Adon Olam on the harmony Eliezer Gerovitsch printed in 1897; Ein Keloheinu is adapted from the Union Hymnal\'s four parts of 1897; the rest are our own four-part arrangements. Where a Hebrew song names Hashem, it is sung in the substituted forms customary when singing outside prayer, as its page says.',
             ],
             'pick' => 'Pick a song',
             'songbook' => 'The songs',
@@ -1669,6 +1669,9 @@ return [
             'count_until' => 'Until :date',
             // Under the countdown, before that festival's songs (only a festival with songs here has a line).
             'count_learn' => ['hanukkah' => 'Learn in time for the first candle', 'passover' => 'Learn in time for the seder'],
+            // The card's last row while it's Hanukkah: our guide (/guides/hanukkah-songs-for-choir), in place of a level, Guide.
+            'count_guide' => ['hanukkah' => 'A three-week plan for your choir'],
+            'count_guide_tag' => 'Guide',
         ],
         // Google's suggestions, 2026-11-12: "folk songs for choir", "folk songs satb", "irish folk songs satb",
         // "folk songs to sing acapella". The courses lead checked the history (2026-11-12).

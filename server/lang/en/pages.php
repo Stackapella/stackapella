@@ -234,6 +234,12 @@ return [
         'faq_title' => 'Questions',
         // A guide's questions (shown after its words, with FAQPage data for search).
         'faqs' => [
+            // The Hanukkah guide (the courses lead's answers, 2026-11-12).
+            'hanukkah-songs-for-choir' => [
+                ['When is Hanukkah 2026?', 'It begins at sundown on Friday 4 December 2026 and ends at nightfall on Saturday 12 December: eight nights, with one more light each night. The first night is a Friday, so the Hanukkah lights are lit before the Shabbat candles.'],
+                ['What is Maoz Tzur about?', 'It\'s the Hebrew hymn sung after the Hanukkah lights are lit. Its first verse praises Hashem as the rock of salvation and asks for the Temple to be rebuilt; its fifth tells the Hanukkah story: the Greeks made the oil unclean, one jar was found, and eight days of praise were set.'],
+                ['Can a choir sing these Hanukkah songs in parts?', 'Yes. Both are set for 2 to 4 singers, with the tune in the soprano. Start with the tune and the alto, then add the bass, and the tenor fills the middle. Each part has its own page to learn it by ear.'],
+            ],
             'satb-explained' => [
                 ['What do SSA and SSAA mean?', 'They name upper-voice parts the same way SATB does. SSA is three parts: first soprano, second soprano and alto. SSAA has four: two soprano parts and two alto parts. Women\'s, girls\' and children\'s choirs often sing them.'],
                 ['What does TTBB mean?', 'Four lower-voice parts: first tenor, second tenor, baritone and bass (sometimes called first and second bass). Men\'s choirs often sing TTBB. Barbershop also has four parts, named tenor, lead, baritone and bass, with the tune in the lead, the second part from the top.'],

@@ -46,6 +46,8 @@ final class DocumentPagesController extends Controller
         // Written and checked on 2026-11-08 but never listed until now: sight-singing (retitled for the solfege
         // searches, docs/search-content-plan.md) and vibrato.
         'sight-reading-for-singers', 'how-to-sing-with-vibrato',
+        // The season's (the coordinator, 2026-11-12: "hanukkah songs for choir" has demand, and Hanukkah begins 4 December).
+        'hanukkah-songs-for-choir',
     ];
 
     /**

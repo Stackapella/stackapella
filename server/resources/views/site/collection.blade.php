@@ -82,6 +82,10 @@
                                 @foreach ($festivalSongs as $song)
                                     <li><a href="{{ $song['url'] }}"><b translate="no">{{ $song['title'] }}</b>@if ($song['level'] !== null)<span>{{ $song['level'] }}</span>@endif<x-site.icon name="arrow" size="16" /></a></li>
                                 @endforeach
+                                {{-- Our guide to the festival's songs for a choir, when there is one (the Hanukkah guide). --}}
+                                @if (trans()->has($words.'.count_guide.'.$festival['key']))
+                                    <li><a href="/guides/{{ $festival['key'] }}-songs-for-choir"><b>{{ __($words.'.count_guide.'.$festival['key']) }}</b><span>{{ __($words.'.count_guide_tag') }}</span><x-site.icon name="arrow" size="16" /></a></li>
+                                @endif
                             </ul>
                         @endif
                     </aside>
@@ -99,6 +103,8 @@
                 @foreach ((array) \Illuminate\Support\Facades\Lang::get($words.'.intro') as $paragraph)
                     <p>{{ $paragraph }}</p>
                 @endforeach
+                {{-- A For choirs lead-in (Hillel, 2026-11-12: For choirs left the header for the pages a director reads). --}}
+                <p><a href="/for/choir-directors?ref=for-choirs-collection" class="s-lk">{{ __('pages.songs.for_choirs') }}&#8288;<x-site.icon name="arrow" size="16" /></a></p>
             </div>
         </section>
 
