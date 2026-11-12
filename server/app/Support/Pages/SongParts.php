@@ -8,6 +8,8 @@ use App\Http\Resources\GuideRecording;
 use App\Models\Template;
 use App\Models\TemplateGuide;
 use App\Support\Http\Hosts;
+use App\Support\Languages\PartNames;
+use App\Support\Languages\SongDescriptions;
 use App\Support\Templates\Catalogue;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
@@ -203,7 +205,7 @@ final class SongParts
                 'key' => (string) ($data['key'] ?? ''),
                 'difficulty' => (string) ($data['difficulty'] ?? ''),
                 'genre' => array_values(array_filter((array) ($data['genre'] ?? []), 'is_string')),
-                'description' => (string) ($data['description'] ?? ''),
+                'description' => SongDescriptions::of((string) ($data['description'] ?? '')),
                 'about' => trans()->has($about) ? (string) __($about) : null,
                 'melodyPart' => array_values(array_filter($parts, static fn (array $p): bool => $p['melody']))[0]['key'] ?? null,
                 'pageUrl' => $base,
@@ -248,7 +250,7 @@ final class SongParts
             $high = (int) ($part['range']['high'] ?? 0);
             $parts[] = [
                 'key' => $part['key'],
-                'name' => (string) ($part['name'] ?? $part['key']),
+                'name' => PartNames::name((string) $part['key'], (string) ($part['name'] ?? $part['key'])),
                 'melody' => ($part['melody'] ?? false) === true,
                 'low' => $low,
                 'high' => $high,

@@ -4,7 +4,7 @@
         <li><a href="/courses/{{ $slug }}">{{ __('site.courses.pages.'.$slug.'.name') }} <x-site.icon name="arrow" size="16" /></a></li>
     @endforeach
     @foreach ((array) ($page['guides'] ?? []) as $guideSlug)
-        @php($guideDoc = app(\App\Support\Legal\LegalText::class)->read($guideSlug, folder: 'guides'))
+        @php($guideDoc = app(\App\Support\Legal\LegalText::class)->read($guideSlug, app()->getLocale(), folder: 'guides'))
         <li><a href="/guides/{{ $guideSlug }}">{{ $guideDoc['title'] }} <x-site.icon name="arrow" size="16" /></a></li>
     @endforeach
 </ul>

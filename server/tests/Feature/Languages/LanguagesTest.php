@@ -7,6 +7,7 @@ namespace Tests\Feature\Languages;
 use App\Actions\Templates\SyncOfficialTemplates;
 use App\Mail\Account\ResetPassword;
 use App\Mail\Account\VerifyEmailAddress;
+use App\Models\Template;
 use App\Models\User;
 use App\Support\Admin\SecondFactor;
 use App\Support\Admin\StaffDevice;
@@ -16,6 +17,7 @@ use App\Support\Languages\Dates;
 use App\Support\Languages\Languages;
 use App\Support\Languages\NoteNames;
 use App\Support\Languages\TranslationMaps;
+use App\Support\Legal\LegalText;
 use App\Support\Pages\Carols;
 use App\Support\Site\HelpGuide;
 use App\Support\Site\SitemapPaths;
@@ -478,5 +480,48 @@ final class LanguagesTest extends TestCase
             ->assertJsonPath('errors.password.0', 'El campo contraseña es obligatorio.');
         $this->withHeaders(['Accept-Language' => 'en'])->postJson('/api/auth/register', $form)->assertStatus(422)
             ->assertJsonPath('errors.password.0', 'The password field is required.');
+    }
+
+    public function test_the_spanish_landing_is_one_address_in_its_canonical_hreflang_links_and_the_sitemap(): void
+    {
+        // The switch-on rehearsal (2026-11-12): hreflang and the sitemap named /es, the page's canonical /es/.
+        app(Flags::class)->set('lang_es', 'on', null, 'Spanish checked');
+        $landing = Hosts::publicUrl().'/es';
+
+        foreach (['/es', '/es/'] as $path) {
+            $html = (string) $this->get($path)->assertOk()->getContent();
+            $this->assertStringContainsString('<link rel="canonical" href="'.$landing.'"', $html, $path);
+            $this->assertStringContainsString('hreflang="es" href="'.$landing.'"', $html, $path);
+        }
+        $this->assertStringContainsString('<loc>'.$landing.'</loc>', (string) $this->get('/sitemap.xml')->getContent());
+        $this->assertStringNotContainsString('href="/es/"', (string) $this->get('/es/songs')->getContent());
+    }
+
+    public function test_spanish_pages_name_parts_units_and_related_guides_in_spanish(): void
+    {
+        // The coordinator's native read of the Spanish site (2026-11-12): four places still read the English.
+        config(['app.is_nexus' => true, 'app.coming_soon' => false]);
+        app(SyncOfficialTemplates::class)->handle();
+        app(Flags::class)->set('lang_es', 'on', null, 'Spanish checked');
+
+        // A part as Spanish names it: "alto" reads as "high", so the alto is the contralto (the courses lead).
+        $alto = (string) $this->get('/es/songs/amazing-grace/alto')->assertOk()->getContent();
+        $this->assertStringContainsString('voz de contralto', $alto);
+        $this->assertStringContainsString('<b>Bajo</b>', $alto);
+        $this->assertStringNotContainsString('<b>Alto</b>', $alto);
+        $this->assertStringContainsString('<b>Alto</b>', (string) $this->get('/songs/amazing-grace/alto')->getContent());
+
+        // Its description under the title (the courses lead's map, by its English), and English on the English page.
+        $english = (string) (((array) Template::query()->where('slug', 'amazing-grace')->firstOrFail()->currentVersion?->data)['description'] ?? '');
+        $spanish = (array) json_decode((string) file_get_contents(resource_path('data/song_descriptions/es.json')), true);
+        $this->assertArrayHasKey($english, $spanish);
+        $this->get('/es/songs/amazing-grace')->assertOk()->assertSee($spanish[$english])->assertDontSee($english);
+        $this->get('/songs/amazing-grace')->assertOk()->assertSee($english);
+
+        // The landing's stages, and the guides a page points to, in Spanish.
+        $this->get('/es')->assertOk()->assertSee('Encuentra tu voz');
+        $guides = (string) $this->get('/es/courses/ear-training')->assertOk()->getContent();
+        $this->assertStringContainsString(e(app(LegalText::class)->read('singing-in-tune', 'es', 'guides')['title']), $guides);
+        $this->assertStringNotContainsString(e(app(LegalText::class)->read('singing-in-tune', 'en', 'guides')['title']), $guides);
     }
 }

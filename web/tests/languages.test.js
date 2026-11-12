@@ -11,7 +11,7 @@ const same = (actual, expected, what = '') => assert(actual === expected, `${wha
 
 test('languages: note names in letters, fixed Do and German, octaves scientific in each', () => {
     same([60, 61, 63, 66, 70, 71, 57].map((m) => nameNote(m, 'letters')).join(' '), 'C4 C#4 Eb4 F#4 Bb4 B4 A3');
-    same([60, 61, 63, 66, 67, 70, 71].map((m) => nameNote(m, 'fixed')).join(' '), 'Do4 Do#4 Mib4 Fa#4 Sol4 Sib4 Si4');
+    same([60, 61, 63, 66, 67, 70, 71].map((m) => nameNote(m, 'fixed')).join(' '), 'Do4 Do♯4 Mi♭4 Fa♯4 Sol4 Si♭4 Si4');
     same([60, 61, 63, 66, 70, 71].map((m) => nameNote(m, 'german')).join(' '), 'C4 Cis4 Es4 Fis4 B4 H4');
     same(namingSample('fixed'), 'Do Re Mi');
     same(namingSample('letters'), 'C D E');
@@ -35,14 +35,14 @@ test('languages: every note name follows the naming: auto by the language, a cho
 
 test('languages: keys follow the note naming, their own spelling kept', () => {
     same(['C', 'Db', 'F#', 'Bb', 'B'].map((k) => nameKeyNote(k, 'letters')).join(' '), 'C Db F# Bb B');
-    same(['C', 'Db', 'F#', 'Bb', 'B', 'G'].map((k) => nameKeyNote(k, 'fixed')).join(' '), 'Do Reb Fa# Sib Si Sol');
+    same(['C', 'Db', 'F#', 'Bb', 'B', 'G'].map((k) => nameKeyNote(k, 'fixed')).join(' '), 'Do Re♭ Fa♯ Si♭ Si Sol');
     same(['C', 'Db', 'F#', 'Eb', 'Ab', 'Bb', 'B'].map((k) => nameKeyNote(k, 'german')).join(' '), 'C Des Fis Es As B H');
     same(nameKeyNote('', 'fixed'), '', 'anything else as it came');
     const was = noteNames.choice;
     try {
         chooseNaming('fixed');
         same(keyLabel('F'), 'Fa');
-        assert(keyLabel('Bbm').startsWith('Sib'), keyLabel('Bbm'));
+        assert(keyLabel('Bbm').startsWith('Si♭'), keyLabel('Bbm'));
         assert(keyChoiceLabel('G').startsWith('Sol'), keyChoiceLabel('G'));
         same(prettyKey('Eb'), 'Mi♭', 'the key control draws the flat');
         assert(prettyKey('F#m').startsWith('Fa♯'), prettyKey('F#m'));
@@ -103,4 +103,45 @@ test('languages: a key translated from older English shows the new English; cont
         Object.assign(locale, saved);
     }
     same(coverage(), 1, 'English is all there');
+});
+
+test("languages: the site's language (its sa_lang cookie) comes after the app's own choice and before the browser's, only when it's switched on", async () => {
+    const { local } = await import('/js/storage.js');
+    const live = locale.live;
+    const saved = local.get('stackapella.lang');
+    try {
+        local.remove('stackapella.lang');
+        document.cookie = 'sa_lang=es; Path=/';
+        locale.live = ['en', 'es'];
+        const asked = new URLSearchParams(location.search).get('lang');
+        if (!asked) assert(preferredLanguages()[0] === 'es', `the site's choice first: ${preferredLanguages()}`);
+        locale.live = ['en'];
+        assert(!preferredLanguages().includes('es') || asked === 'es', 'not while Spanish is off');
+        locale.live = ['en', 'es'];
+        local.set('stackapella.lang', 'en');
+        if (!asked) assert(preferredLanguages()[0] === 'en', `the app's own choice wins: ${preferredLanguages()}`);
+    } finally {
+        document.cookie = 'sa_lang=; Path=/; Max-Age=0';
+        if (saved == null) local.remove('stackapella.lang');
+        else local.set('stackapella.lang', saved);
+        locale.live = live;
+    }
+});
+
+test("languages: a library song named its own way in the page's language (Frère Jacques), English and a renamed song as they are", async () => {
+    const { songTitle } = await import('/js/song-titles.js');
+    const { shownTitle } = await import('/js/project-title.js');
+    const [lang, messages] = [locale.lang, locale.messages];
+    const song = { id: 'are-you-sleeping', title: 'Are You Sleeping (Frère Jacques)' };
+    try {
+        assert(songTitle(song) === song.title && songTitle({ id: 'amazing-grace', title: 'Amazing Grace' }) === 'Amazing Grace', 'English: the template\'s own');
+        locale.lang = 'es';
+        locale.messages = { ...messages, songTitles: { areYouSleeping: 'Frère Jacques' } };
+        assert(songTitle(song) === 'Frère Jacques' && songTitle({ id: 'amazing-grace', title: 'Amazing Grace' }) === 'Amazing Grace', songTitle(song));
+        assert(shownTitle({ title: song.title, template: song }) === 'Frère Jacques', 'a project still named as its song');
+        assert(shownTitle({ title: 'Our round', template: song }) === 'Our round', 'a renamed one keeps its name');
+    } finally {
+        locale.lang = lang;
+        locale.messages = messages;
+    }
 });

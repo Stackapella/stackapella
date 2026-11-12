@@ -56,7 +56,7 @@ export const LevelBar = {
     template: `
         <!-- Levels and XP are game mode's (docs/skins-plan.md): serious mode shows none. -->
         <div v-if="game()" class="min-w-0 flex-1">
-            <p data-ui="facts" class="flex justify-between gap-3 text-sm"><span class="truncate font-semibold text-cream">{{ t('course.levelName', { level: level.level, name: t(level.name) }) }}</span><span class="shrink-0 text-muted">{{ t('course.xp', { xp: learning.progress.xp.total }) }}</span></p>
+            <p data-ui="facts" class="flex justify-between gap-3 text-sm"><span class="min-w-0 pe-2 font-semibold text-cream">{{ t('course.levelName', { level: level.level, name: t(level.name) }) }}</span><span class="shrink-0 text-muted">{{ t('course.xp', { xp: learning.progress.xp.total }) }}</span></p>
             <div class="mt-1.5 h-1.5 overflow-hidden rounded-full bg-ink" data-level-bar role="progressbar" :aria-valuenow="level.into" aria-valuemin="0" :aria-valuemax="level.needed" :aria-label="t('course.xpLabel', { xp: level.into, needed: level.needed })">
                 <div class="h-full rounded-full" :style="{ width: Math.round((level.into / level.needed) * 100) + '%', background: color }"></div>
             </div>
@@ -203,7 +203,7 @@ export const HomeLead = {
                 <!-- 42.png and Hillel's Home design: the unit as an eyebrow, its path of glass gems, the lesson's label and title, the unit's progress, Continue lesson. -->
                 <div class="flex flex-wrap items-start justify-between gap-3">
                     <p class="tabular-nums text-xs font-bold uppercase tracking-[0.14em] text-accent-strong" translate="no" data-lead-eyebrow>{{ effect('title') ? t('game.home.stage', { number: unitNumber, title: localized(next.unit.title) }) : t('home.lead.unit', { number: unitNumber, title: localized(next.unit.title) }) }}</p>
-                    <div class="flex items-center gap-4">
+                    <div class="flex flex-wrap items-center gap-x-4 gap-y-2">
                         <!-- The arcade screen: your high score beside the map, as the first-day hero has it in its corner (the eyebrow already names the stage) -->
                         <p v-if="effect('arcade')" class="gs-score hidden"><span aria-hidden="true">{{ t('game.arcade.hi', { score: String(learning.progress.xp.total).padStart(6, '0') }) }}</span><span class="sr-only">{{ t('game.arcade.hiLabel', { stage: unitNumber, xp: learning.progress.xp.total }) }}</span></p>
                         <a href="/learn" class="btn-go" @click.prevent="navigate('/learn')">{{ t('home.lead.map') }}</a>

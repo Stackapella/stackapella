@@ -7622,6 +7622,13 @@ a.s-vt-rung:hover { background: color-mix(in srgb, var(--color-cream) 5%, transp
 .s-tl-list h2 a:hover { text-decoration: underline; text-underline-offset: 4px; }
 .s-tl-list li { scroll-margin-top: 24px; }
 .s-tl-list p { margin-top: 6px; font-size: 16px; line-height: 1.6; color: var(--color-muted); }
+/* From 900 px each change is a row on the width (the width design): its title at left, its words at right, a hairline
+   between, as the tool guides' sections are. */
+@media (min-width: 900px) {
+    .s-tl-list { max-width: none; gap: 0; padding-top: 0; border-top: 0; }
+    .s-tl-list li { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); column-gap: 64px; align-items: start; padding-block: 28px; border-top: 1px solid var(--color-line); }
+    .s-tl-list li > p { margin-top: 0; max-width: 64ch; }
+}
 .s-press-grid { display: grid; gap: 18px; }
 /* The contact button holds the whole address, so on a 320 phone it wraps rather than run past the edge. */
 .s-press-contact { max-width: 100%; white-space: normal; overflow-wrap: anywhere; text-align: center; }
@@ -7717,7 +7724,6 @@ a.s-vt-rung:hover { background: color-mix(in srgb, var(--color-cream) 5%, transp
     .s-featurehead { padding-top: 72px; }
     .s-ticks-2 { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
     .s-factcard { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 32px; }
-    .s-tl-list { gap: 34px; padding-top: 40px; }
     .s-press-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px; }
     .s-cards-row .s-cards { grid-template-columns: repeat(var(--n), minmax(0, 1fr)); }
     .s-doc.s-doc-toc { max-width: 1000px; display: grid; grid-template-columns: 240px minmax(0, 680px); gap: 56px; align-items: start; }
@@ -8970,6 +8976,8 @@ a.s-vt-rung:hover { background: color-mix(in srgb, var(--color-cream) 5%, transp
    they do, the word lands in the display face, "Stage 2-3 clear" in HUD type, the +XP chip in yellow
    (it counts up, tally.js) and the level bar a power bar that fills; a tap lands it all. */
 :root[data-skin='game']:not([data-game-off~='celebrations']) [data-lesson-end] h1 { font-family: var(--ge-display); font-weight: 400; text-transform: uppercase; letter-spacing: 0.01em; animation: ge-word 420ms cubic-bezier(0.3, 1.5, 0.5, 1) 0.9s both; }
+/* The praise word fits a phone's card in the wide display face, however long the language's word is (Spanish "¡Brillante!" pushed the card off the screen). */
+:root[data-skin='game'] [data-lesson-end] h1 { max-width: 100%; font-size: min(3rem, 8.2vw); overflow-wrap: anywhere; }
 :root[data-skin='game']:not([data-game-off~='celebrations']) [data-end-place] { font: 400 10px/1.6 var(--ge-hud); letter-spacing: 0.04em; text-transform: uppercase; color: var(--ge-cyan); }
 :root[data-skin='game']:not([data-game-off~='celebrations']) [data-end-xp] { color: var(--ge-yellow); }
 :root[data-skin='game']:not([data-game-off~='celebrations']):not([data-game-off~='meter']) [data-end-level] [data-level-bar] { height: 0.8rem; border-radius: 2px; -webkit-mask: repeating-linear-gradient(90deg, #000 0 calc(100% / 12 - 2px), transparent calc(100% / 12 - 2px) calc(100% / 12)); mask: repeating-linear-gradient(90deg, #000 0 calc(100% / 12 - 2px), transparent calc(100% / 12 - 2px) calc(100% / 12)); }
@@ -8979,6 +8987,14 @@ a.s-vt-rung:hover { background: color-mix(in srgb, var(--color-cream) 5%, transp
 @keyframes ge-word { from { transform: scale(0.8); } 60% { transform: scale(1.06); } to { transform: none; } }
 @keyframes ge-fill { from { transform: scaleX(0); } to { transform: none; } }
 @media (prefers-reduced-motion: reduce) { :root[data-skin='game']:not([data-game-off~='celebrations']) [data-lesson-end] :is(h1, [data-level-bar] > div) { animation: none; } }
+/* The word (BRILLIANT!) on one line in its card on any phone and in any language: a pixel face's every letter takes a
+   whole cell, so ¡Brillante! is one more than Brilliant! and spilt the card at 390 (frontend's Spanish walk, 2026-11-12).
+   Its size steps down with the width so twelve letters (¡Fantástico!) fit from 320 up: the display face's letters are
+   0.46 em wide, the pixel face's (Celebrations off) 0.67. */
+@media (max-width: 47.99rem) {
+    :root[data-skin='game']:not([data-game-off~='celebrations']) [data-lesson-end] h1 { font-size: min(3rem, calc((100vw - 5rem) / 5.6)); }
+    :root[data-skin='game'][data-game-off~='celebrations'] [data-lesson-end] h1 { font-size: min(3rem, calc((100vw - 5rem) / 8)); }
+}
 
 /* A challenge link (Hillel's 101.png): INCOMING and 1P vs 2P across the top, a tilted red banner between hazard stripes
    that slides in with one flash (never a full-screen strobe), then the challenger, the card and the buttons in turn.
@@ -9340,7 +9356,8 @@ a.s-vt-rung:hover { background: color-mix(in srgb, var(--color-cream) 5%, transp
 @media (max-width: 47.99rem) { :root[data-skin='game'][data-gs] .gs-hi { position: static; justify-items: start; margin-top: 0.9rem; } }
 :root[data-skin='game'][data-gs] [data-lead-lanes] { --gs-label: 7.5rem; position: relative; container-type: inline-size; margin-top: 1.75rem; padding: 0.9rem 1rem; background: var(--arc-well); box-shadow: inset 0 0 0 var(--arc-edge-w) var(--arc-line); }
 :root[data-skin='game'][data-gs] [data-lead-lanes] > li { gap: 1rem; }
-:root[data-skin='game'][data-gs] [data-lead-lanes] > li > span { width: var(--gs-label); white-space: nowrap; font: 400 11px/1.4 var(--arc-pixel); }
+/* A long label wraps within its column (Spanish "Contralto · tú" ran into the lane, 2026-11-12). */
+:root[data-skin='game'][data-gs] [data-lead-lanes] > li > span { width: var(--gs-label); overflow-wrap: anywhere; font: 400 11px/1.4 var(--arc-pixel); }
 @media (max-width: 47.99rem) { :root[data-skin='game'][data-gs] [data-lead-lanes] { --gs-label: 6rem; } :root[data-skin='game'][data-gs] [data-lead-lanes] > li > span { font-size: 8px; } }
 :root[data-skin='game'][data-gs] [data-lead-lanes] > li > span[data-you] { color: var(--ge-yellow); }
 :root[data-skin='game'][data-gs] [data-lead-lanes] svg { height: 1.9rem; border-radius: 0; background: transparent; box-shadow: none !important; }
@@ -9358,6 +9375,9 @@ a.s-vt-rung:hover { background: color-mix(in srgb, var(--color-cream) 5%, transp
 :root[data-skin='game'][data-gs] [data-ask]::before { display: none; }
 :root[data-skin='game'][data-gs] [data-ask] > svg:first-child { box-sizing: content-box; padding: 0.55rem; background: var(--arc-purple); color: #fff; }
 :root[data-skin='game'][data-gs] [data-ask] h2 { color: var(--ge-yellow); text-shadow: none; }
+/* The first session's wrap asks inside its own panel (data-session-wrap's keep-it slot): no second frame, its words would
+   touch it, but serious mode's divider above as the arcade's dashed rule. */
+:root[data-skin='game'][data-gs] [data-session-wrap] [data-ask] { border: 0; border-top: var(--arc-edge-w) dashed var(--arc-line); border-radius: 0; box-shadow: none; background: none; }
 
 /* Scanlines are a look with their own switch (Settings, game mode: Scanlines): off, the dots alone. */
 :root[data-skin='game'][data-gs][data-game-off~='scanlines'] body { background-image: var(--arc-ground-still); }
@@ -9412,7 +9432,7 @@ a.s-vt-rung:hover { background: color-mix(in srgb, var(--color-cream) 5%, transp
 /* Its part bars as pixel blocks (a round's stay staggered: that's the song's own shape). */
 :root[data-skin='game'][data-gs] [data-cover] * { border-radius: 0; }
 /* A unit's song on Home (retention row 8): the rows of the parts that are you are lit, the others are hollow bulbs. */
-:root[data-skin='game'][data-gs] [data-cover-row][data-mine='no'] [data-cover-dash] { background: transparent !important; box-shadow: inset 0 0 0 1px var(--arc-line); }
+:root[data-skin='game'][data-gs] [data-cover-row][data-mine='no'] [data-cover-dash] { background: transparent !important; box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-muted) 75%, transparent); }
 
 /* A tag on a card (data-ui="tag": Real voices, Free this month, Draft): a square pixel label, on one line. */
 :root[data-skin='game'][data-gs] [data-ui='tag'] { border-radius: 0; padding: 0.25rem 0.35rem; font: 400 7px/1.2 var(--arc-pixel); letter-spacing: 0; white-space: nowrap; box-shadow: inset 0 0 0 1px currentColor; background: var(--arc-panel); }
@@ -9600,6 +9620,22 @@ a.s-vt-rung:hover { background: color-mix(in srgb, var(--color-cream) 5%, transp
 :root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-tool-how:has(.s-tool-how-n) li { grid-template-columns: minmax(0, 1fr); gap: 6px; padding: 14px 16px; border: var(--arc-edge-w) solid var(--arc-line); background: var(--arc-panel); }
 :root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-tool-how:has(.s-tool-how-n) li::before { content: none; }
 :root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-tool-how-n { font-family: var(--a-hud); font-size: 10px; text-transform: uppercase; color: var(--arc-yellow); }
+/* A tool or warm-up guide's sections (marketing's .s-tool-guides, also the reference indexes): each heading in the pixel face
+   as large beside VT323's big body as the page's other headings, wrapping evenly (a step smaller while its column is narrow,
+   900 to 1199 px, so none runs to four lines), and the rule between rows dashed. A reference index's title beside its lead
+   on two lines, not three (Voice types and their ranges). A guide's table never scrolls on its own: the pixel face's last
+   link pads 3 px past it (.s-lk's tap padding) and drew a scrollbar. */
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-tool-guides > .s-tool-guide > h2 { font-size-adjust: 0.6; line-height: 1.35; text-wrap: balance; }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-tool-table { overflow-y: hidden; }
+@media (min-width: 900px) {
+    :root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-tool-guides > .s-tool-guide + .s-tool-guide { border-top: var(--arc-edge-w) dashed var(--arc-line); }
+    :root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-tool-guides > .s-tool-guide > h2 { font-size-adjust: 0.55; }
+    :root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-ref-head-ix h1 { font-size-adjust: 0.42; text-wrap: balance; }
+}
+@media (min-width: 1200px) {
+    :root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-tool-guides > .s-tool-guide > h2 { font-size-adjust: 0.6; }
+    :root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-ref-head-ix h1 { font-size-adjust: 0.5; }
+}
 :root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-unit { border: var(--arc-frame) solid var(--neon, var(--arc-line)); }
 :root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-unit-n { font-family: var(--a-hud); font-weight: 400; font-size: 10px; letter-spacing: 0; color: color-mix(in srgb, var(--neon, var(--color-part-ink-2)) 85%, var(--color-cream)); }
 :root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-coursecards .s-card { border-radius: var(--arc-radius); border: 3px solid var(--neon, var(--arc-line)); background: var(--arc-well); box-shadow: 4px 4px 0 var(--arc-line); }

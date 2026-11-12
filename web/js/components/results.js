@@ -257,7 +257,7 @@ export const LessonEnd = {
     template: `
         <!-- One centred panel (Hillel, 2026-10-31: "this screen isn't laid out well"): the result and what's next in the same frame, a line between. -->
         <section class="mx-auto grid w-full max-w-4xl gap-8 rounded-stage border border-edge bg-panel p-5 md:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] md:items-center md:gap-10 md:p-8" data-lesson-end data-ui="stage">
-            <div class="flex flex-col gap-6">
+            <div class="flex min-w-0 flex-col gap-6">
                 <div class="flex flex-col items-center gap-4 text-center md:items-start md:text-start">
                     <StarDiscs ref="stars" :stars="done.stars" big :fresh="done.fresh" />
                     <!-- Serious mode (docs/skins-plan.md): the measure, not the stars, the praise or the XP. -->

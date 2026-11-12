@@ -434,6 +434,7 @@
     "/js/lane-painter.js",
     "/js/synth.js",
     "/js/dsp.js",
+    "/js/notes.js",
     "/js/colors.js",
     "/js/pitchtrack.js",
     "/js/livevoice.js",

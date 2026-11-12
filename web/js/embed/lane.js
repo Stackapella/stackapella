@@ -30,12 +30,19 @@
 
 import { LanePainter } from '../lane-painter.js';
 import { renderPart } from '../synth.js';
-import { hzToMidi, midiName } from '../dsp.js';
+import { hzToMidi } from '../dsp.js';
+import { pageNaming, pitchName } from '../notes.js';
 import { token } from '../colors.js';
 import { trackInWorker, VOICED_CLARITY } from '../pitchtrack.js';
 import { follow, voiceFollower } from '../livevoice.js';
 import { catalogueGuides, realVoice, songTemplate } from '../public/app-voices.js';
 import { expressiveTrack, renderTrack } from './take.js';
+
+/** The keyboard's notes in the page's language (notes.js pageNaming): Do5 on a Spanish page, C5 on an English one. */
+const laneNoteName = (midi) => {
+    const { name, octave } = pitchName(midi, { naming: pageNaming() });
+    return `${name}${octave}`;
+};
 
 const ZOOMS = [10, 6, 3.5]; // seconds across: zoomed out, the app's own, zoomed in
 const UNDER = 0.22; // the other parts, quietly under the take
@@ -138,7 +145,7 @@ export function mount(el, { take: takeUrl = null, song: songSource = null, zoom 
                 underKeys: others.map((p) => p.key),
                 parts: Object.fromEntries(template.parts.map((p) => [p.key, p.guide.notes.filter(within)])),
             };
-            painter.set({ notes, words: notes.filter((n) => n.lyric).map((n) => ({ beat: n.beat, text: n.lyric })), beatSeconds: 60 / template.tempo, noteName: midiName, keyboard: true, state: 'turn', secondsShown: ZOOMS[state.zoom] });
+            painter.set({ notes, words: notes.filter((n) => n.lyric).map((n) => ({ beat: n.beat, text: n.lyric })), beatSeconds: 60 / template.tempo, noteName: laneNoteName, keyboard: true, state: 'turn', secondsShown: ZOOMS[state.zoom] });
             colour();
             state.ready = true;
             emit('state', { playing: false, ready: true });

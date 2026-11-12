@@ -1638,7 +1638,7 @@ return [
             'lead' => 'Learn your part of a Hanukkah, Passover or Shabbat song, then sing it with your choir or your family. Free, in your browser, no account.',
             'intro' => [
                 'Hanukkah songs for choir, and songs for the Passover seder and for Shabbat, each in four parts: learn the tune or a harmony by ear, hear it with the other voices, then sing it together.',
-                'Every song here comes from a printing before 1931. Maoz Tzur and Oy Chanukah are our own four parts on the harmonies A. Z. Idelsohn printed in 1912 and Pesach Lvov wrote for Susman Kisselgof\'s songbook of 1911 and 1912; Ein Keloheinu is adapted from the Union Hymnal\'s four parts of 1897; the rest are our own four-part arrangements. Where a Hebrew song names God, it is sung in the substituted forms customary when singing outside prayer, as its page says.',
+                'Every song here comes from a printing before 1931. Maoz Tzur and Oy Chanukah are our own four parts on the harmonies A. Z. Idelsohn printed in 1911 or 1912 and Pesach Lvov wrote for Susman Kisselgof\'s songbook of 1911 and 1912, and Adon Olam on the harmony Eliezer Gerovitsch printed in 1897; Ein Keloheinu is adapted from the Union Hymnal\'s four parts of 1897; the rest are our own four-part arrangements. Where a Hebrew song names God, it is sung in the substituted forms customary when singing outside prayer, as its page says.',
             ],
             'pick' => 'Pick a song',
             'songbook' => 'The songs',
@@ -1807,6 +1807,8 @@ return [
     ],
 
     'song_part' => [
+        // Each part as a song names it (its key's usual name), so a language can name it its own way (PartNames).
+        'names' => ['soprano' => 'Soprano', 'alto' => 'Alto', 'tenor' => 'Tenor', 'bass' => 'Bass', 'baritone' => 'Baritone', 'lead' => 'Lead'],
         'title' => ':song :Part Part: Hear It, Learn It',
         'title_melody' => ':song Melody (:Part Part): Hear It, Learn It',
         'description' => 'Learn the :part part of :song by ear: hear it alone or with the other parts, and sing along as each note lights up. Range :low to :high. Free.',

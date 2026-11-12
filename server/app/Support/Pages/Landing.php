@@ -7,6 +7,7 @@ namespace App\Support\Pages;
 use App\Models\Template;
 use App\Support\Flags;
 use App\Support\Http\Hosts;
+use App\Support\Languages\PartNames;
 use App\Support\Outreach\Outreach;
 use App\Support\Site\ComingSoon;
 use App\Support\Site\Drawings;
@@ -186,7 +187,7 @@ final class Landing
             // Coloured as the studio colours a song's parts: in their order.
             'parts' => array_map(static fn (array $part, int $i): array => [
                 'key' => (string) ($part['key'] ?? ''),
-                'name' => (string) ($part['name'] ?? ''),
+                'name' => PartNames::name((string) ($part['key'] ?? ''), (string) ($part['name'] ?? '')),
                 'color' => $i % 8 + 1,
                 'range' => ['low' => (int) ($part['range']['low'] ?? 48), 'high' => (int) ($part['range']['high'] ?? 72)],
                 'notes' => $notes($part),

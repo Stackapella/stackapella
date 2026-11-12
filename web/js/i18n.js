@@ -229,7 +229,10 @@ export function preferredLanguages() {
         return ['localhost', '127.0.0.1'].includes(location.hostname) ? ['pseudo'] : [];
     }
     // A language asked for in the address opens even before it's switched on (checking a draft); the rest only once live.
-    const list = [local.get('stackapella.lang'), ...(navigator.languages ?? [navigator.language])].filter(Boolean);
+    // The app's own choice, then the site's (its header's language switcher sets a first-party sa_lang cookie, "en" or
+    // "es", so a choice made on the site carries into the app), then the browser's; only switched-on ones count.
+    const site = /(?:^|;\s*)sa_lang=([a-z]{2,3})(?:;|$)/.exec(document.cookie)?.[1] ?? null;
+    const list = [local.get('stackapella.lang'), site, ...(navigator.languages ?? [navigator.language])].filter(Boolean);
     const live = [...new Set(list.flatMap((lang) => [lang, lang.split('-')[0]]))].filter((lang) => isLive(lang));
     return [...new Set([...(asked ? [asked, asked.split('-')[0]] : []), ...live])];
 }

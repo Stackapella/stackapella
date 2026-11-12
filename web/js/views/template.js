@@ -33,6 +33,7 @@ import { lazyComponent } from '../game/modules.js';
 
 const PartBoard = lazyComponent('boards', 'PartBoard'); // game mode's only: loaded with game mode
 import { game } from '../skin.js';
+import { songTitle } from '../song-titles.js';
 
 const STATES = {
     saved: { tone: 'good', label: tk('template.state.saved') },
@@ -59,9 +60,9 @@ export const TemplateView = {
     components: { AccountWall, Field, Icon, AppScreen, PartBoard, ShareIdea },
     props: { id: { type: String, required: true } },
     data: () => ({ directed: null, template: null, grant: null, boards: null, missing: false, failed: false, singers: 4, picked: null, player: null, playingPart: null, starting: false, changing: false, details: { description: '', words: '', tune: '' }, backingUp: false }),
-    setup: () => ({ STATES, DIFFICULTY, account, signInTo, signUpFor, keyLabel, midiName, templatePartName, singerOptions, formatTime, goBack, paint, PART_COLORS, game }),
+    setup: () => ({ STATES, DIFFICULTY, account, signInTo, signUpFor, keyLabel, midiName, templatePartName, singerOptions, formatTime, goBack, paint, PART_COLORS, game, songTitle }),
     template: `
-        <AppScreen :title="template?.title ?? t('template.title')" :title-is-content="!!template" back="/" measure="">
+        <AppScreen :title="template ? songTitle(template) : t('template.title')" :title-is-content="!!template" back="/" measure="">
             <!-- Signed out, a private song is a 404 too: a director opening their choir's song from an email, on a device they've never signed in on, signs in and comes back to it (docs/agents/handoff-frontend2.md, choir tracks stage 1) -->
             <div v-if="missing && !account.me" class="card space-y-4 p-6" role="alert" data-template-sign-in>
                 <p class="text-cream">{{ t('template.signInToOpen') }}</p>
@@ -125,7 +126,7 @@ export const TemplateView = {
                             <button type="button" class="glass-bubble relative z-10 grid size-11 shrink-0 place-items-center rounded-full text-cream" :aria-label="playingPart === part.key ? t('studio.stop') : t('template.hearPart', { part: templatePartName(part) })" @click="hearPart(part)"><Icon :name="playingPart === part.key ? 'stop' : 'play'" :size="16" /></button>
                             <!-- The picked part's leaderboard (components/boards.js; docs/leaderboard-redesign-plan.md: one board, under
                                  the part you picked), above the row's hit area so it never picks the part -->
-                            <PartBoard v-if="picked === part.key && game() && template.id && !template.course && !imported && onBoards" :key="'board-' + part.key" class="relative z-10 min-w-0 basis-full sm:ps-8" :song-title="template.title" :template-id="template.id" :part-key="part.key" :part-name="templatePartName(part)" :color="paint(part.color ?? PART_COLORS[i % PART_COLORS.length])" />
+                            <PartBoard v-if="picked === part.key && game() && template.id && !template.course && !imported && onBoards" :key="'board-' + part.key" class="relative z-10 min-w-0 basis-full sm:ps-8" :song-title="songTitle(template)" :template-id="template.id" :part-key="part.key" :part-name="templatePartName(part)" :color="paint(part.color ?? PART_COLORS[i % PART_COLORS.length])" />
                         </li>
                     </ul>
                     <p data-ui="facts" class="flex flex-wrap items-center justify-between gap-2 text-xs text-muted">

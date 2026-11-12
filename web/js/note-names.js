@@ -11,7 +11,8 @@ import { local } from './storage.js';
 
 export const NAMINGS = ['auto', 'letters', 'fixed', 'german'];
 const KEY = 'stackapella.noteNames';
-const FIXED = ['Do', 'Do#', 'Re', 'Mib', 'Mi', 'Fa', 'Fa#', 'Sol', 'Lab', 'La', 'Sib', 'Si']; // i18n-ignore: note names
+// Sharps and flats drawn (♯ ♭), as the reference cards and the key control draw them (the courses lead, 2026-11-12).
+const FIXED = ['Do', 'Do♯', 'Re', 'Mi♭', 'Mi', 'Fa', 'Fa♯', 'Sol', 'La♭', 'La', 'Si♭', 'Si']; // i18n-ignore: note names
 const GERMAN = ['C', 'Cis', 'D', 'Es', 'E', 'F', 'Fis', 'G', 'As', 'A', 'B', 'H']; // i18n-ignore: note names
 // A language's own names when "auto": the rest read letters.
 const BY_LANGUAGE = { es: 'fixed', de: 'german' };
@@ -42,14 +43,19 @@ export function nameNote(midi, system = naming()) {
 const FIXED_LETTERS = { C: 'Do', D: 'Re', E: 'Mi', F: 'Fa', G: 'Sol', A: 'La', B: 'Si' }; // i18n-ignore: note names
 const GERMAN_KEYS = { Bb: 'B', B: 'H', Eb: 'Es', Ab: 'As' }; // i18n-ignore: note names
 
-/** A key's note name, "F#" read in `system` (the one in use by default): "Fa#", "Fis". Anything else as it came. */
+/** A key's note name, "F#" read in `system` (the one in use by default): "Fa♯", "Fis". Anything else as it came. */
 export function nameKeyNote(note, system = naming()) {
     const match = /^([A-G])([#b]?)$/.exec(String(note));
     if (!match || system === 'letters') return note;
     const [, letter, accidental] = match;
-    if (system === 'fixed') return FIXED_LETTERS[letter] + accidental;
+    if (system === 'fixed') return FIXED_LETTERS[letter] + (accidental === '#' ? '♯' : accidental === 'b' ? '♭' : '');
     if (system === 'german') return GERMAN_KEYS[note] ?? letter + (accidental === '#' ? 'is' : accidental === 'b' ? 'es' : '');
     return note;
+}
+
+/** A key's note as it's shown, its sharp and flat drawn in every naming: "E♭", "F♯", "Si♭", "Fis". */
+export function drawnKeyNote(note) {
+    return nameKeyNote(note).replace(/^([A-G])b$/, '$1♭').replace('#', '♯');
 }
 
 /** The first notes of a scale in `system`, for Settings' choices ("C D E", "Do Re Mi", "C D E ... H"). */

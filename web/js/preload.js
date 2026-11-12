@@ -88,6 +88,7 @@
         '/js/theory.js',
         '/js/logo-mark.js',
         '/js/public/season.js',
+        '/js/song-titles.js',
         '/engine/engine.js',
         '/js/timing-check.js',
         '/js/mic-choice.js',

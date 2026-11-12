@@ -81,13 +81,42 @@ final class SongCollections
      */
     public function songs(string $slug): array
     {
+        return $this->cards($this->ordered($slug));
+    }
+
+    /**
+     * A collection's open songs' slugs in its page's order (by title), without building their cards: /songs samples a
+     * few of each and builds only those (a card plays its first line, so building every one cost /songs about 70 ms).
+     *
+     * @return list<string>
+     */
+    public function ordered(string $slug): array
+    {
         $members = $this->members($slug);
 
         return array_values($this->parts->songs()
             ->filter(static fn (Template $template): bool => in_array((string) $template->slug, $members, true))
-            ->map(static fn (Template $template): array => Carols::card($template))
-            ->sortBy('title', SORT_NATURAL | SORT_FLAG_CASE)
+            ->sortBy(static fn (Template $template): string => (string) $template->title, SORT_NATURAL | SORT_FLAG_CASE)
+            ->map(static fn (Template $template): string => (string) $template->slug)
             ->all());
+    }
+
+    /**
+     * These open songs' cards, in the order given (a slug that isn't an open song with pages is left out).
+     *
+     * @param  list<string>  $slugs
+     * @return list<array{slug: string, title: string, url: string, from: string|null, line: array<string, mixed>|null, meta: list<string>, parts: list<array{key: string, name: string, melody: bool, lowName: string, highName: string, url: string}>}>
+     */
+    public function cards(array $slugs): array
+    {
+        $cards = [];
+        foreach ($this->parts->songs() as $template) {
+            if (in_array((string) $template->slug, $slugs, true)) {
+                $cards[(string) $template->slug] = Carols::card($template);
+            }
+        }
+
+        return array_values(array_filter(array_map(static fn (string $slug): ?array => $cards[$slug] ?? null, $slugs)));
     }
 
     /**

@@ -13,7 +13,7 @@
         @foreach ($units as $unit)
             <li @class(['s-stage', 's-stage-plus' => $loop->iteration > 7])>
                 <span class="s-stage-n">{{ __('pages.landing.game.stage', ['n' => $loop->iteration]) }}</span>
-                <b>{{ $unit['title']['en'] ?? '' }}</b>
+                <b>{{ $unit['title'][app()->getLocale()] ?? $unit['title']['en'] ?? '' }}</b>
                 <span class="s-stage-foot"><span>{{ trans_choice('pages.landing.game.lessons', count((array) ($unit['lessons'] ?? []))) }}</span><span class="s-tag">{{ __('pages.landing.game.free') }}</span></span>
             </li>
         @endforeach

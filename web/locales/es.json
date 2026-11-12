@@ -5534,5 +5534,8 @@
         "firstTime": "La primera vez",
         "secondTime": "La segunda vez",
         "thirdTimeSoftly": "La tercera vez, suave"
+    },
+    "songTitles": {
+        "areYouSleeping": "Frère Jacques"
     }
 }

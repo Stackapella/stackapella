@@ -29,6 +29,7 @@ import { confirmAction } from '../components/confirm.js';
 import { InviteAccept, InviteCard } from '../components/invite-card.js';
 import { askBirth } from '../components/birth.js';
 import { daysUntil, isoDate, rehearsalDates } from '../rehearsal.js';
+import { songTitle } from '../song-titles.js';
 
 const STATUS = {
     none: { tone: 'text-muted', label: tk('groups.status.none') },
@@ -211,7 +212,7 @@ export const GroupView = {
     components: { Frame, Field, Icon, Modal },
     props: { id: { type: String, required: true } },
     data: () => ({ settingRehearsal: false, rehearsalDate: '', rehearsalWeekly: true, rehearsalError: null, asking: false, tracks: { piece: '', composer: '', voicing: '', note: '', rights: '' }, scores: [], requests: null, tracksErrors: null, tracksError: null, tracksSent: false, directorImport: null, group: null, failed: null, link: null, inviting: false, sharing: false, songs: [], pick: '', busy: false, editing: null, starting: null, renaming: false, newName: '', renameError: null, templates: {} }),
-    setup: () => ({ account, STATUS, RIGHTS, SCORE_ACCEPT, SCORE_FILES, REQUEST_STATUS, templatePartName, formatDate, navigate, paint, PART_COLORS }),
+    setup: () => ({ account, STATUS, RIGHTS, SCORE_ACCEPT, SCORE_FILES, REQUEST_STATUS, templatePartName, formatDate, navigate, paint, PART_COLORS, songTitle }),
     template: `
         <Frame :title="group?.name ?? t('groups.title')" back="/groups" title-is-content>
             <p v-if="failed" class="card p-6 text-cream" role="alert">{{ failed }}</p>
@@ -255,7 +256,7 @@ export const GroupView = {
                             <!-- The title and its line take the card's width; on a phone the buttons go under them, full width (beside them they squeezed the title to a word a line). -->
                             <div class="flex flex-col gap-3 sm:flex-row sm:items-start" data-group-song>
                                 <div class="min-w-0 flex-1">
-                                    <p class="font-bold text-cream" translate="no">{{ song.title }}</p>
+                                    <p class="font-bold text-cream" translate="no">{{ songTitle({ id: song.templateId, title: song.title }) }}</p>
                                     <p v-if="director && !anyAssigned(song)" class="text-sm text-warn">{{ t('groups.nobodyYet') }}</p>
                                     <!-- Assigning a choir song by song is one dropdown per singer: the parts they have in the group's last song, in one tap. -->
                                     <button v-if="director && copyPlan(song).length && (editing === song.templateId || !anyAssigned(song))" type="button" class="btn-secondary btn-sm mt-2" :disabled="busy" data-same-parts @click="copyParts(song)">{{ t('groups.sameParts', { title: copySource(song).title }) }}</button>
@@ -633,7 +634,7 @@ export const GroupView = {
             if (m.role === 'director') return t('groups.directorDoes');
             const parts = m.assignments.map((a) => {
                 const song = this.group.songs.find((s) => s.templateId === a.templateId);
-                return song ? t('groups.partIn', { part: this.partName(song, a.partKey), title: song.title }) : null;
+                return song ? t('groups.partIn', { part: this.partName(song, a.partKey), title: songTitle({ id: song.templateId, title: song.title }) }) : null;
             }).filter(Boolean);
             const last = Math.max(0, ...m.assignments.map((a) => Date.parse(a.updatedAt) || 0));
             const when = last ? t('groups.active', { when: activeWhen(last) }) : t('groups.joined', { date: formatDate(m.joinedAt, { day: 'numeric', month: 'short' }) });

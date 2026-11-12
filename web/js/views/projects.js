@@ -47,6 +47,7 @@ import { learnGroupSong, myGroupParts } from '../group-songs.js';
 import { daysUntil, rehearsalDates } from '../rehearsal.js';
 import { confirmAction, deleteSong, UNDO_SECONDS } from '../components/confirm.js';
 import { CardMenu } from '../components/card-menu.js';
+import { songTitle } from '../song-titles.js';
 
 const DIFFICULTY = { beginner: tk('templates.difficulty.beginner'), intermediate: tk('templates.difficulty.intermediate'), advanced: tk('templates.difficulty.advanced') };
 // The bands' marks are the accent: nothing on the home that isn't a part wears a part's colour (Hillel's call).
@@ -70,7 +71,7 @@ const TemplateDialog = defineAsyncComponent(dialogLoader);
 
 export const ProjectsView = {
     components: { StorageMeter, CreditLine, PlayerChip, DailyTag, CardMenu, HomeCourses, ThemeSwitch, Icon, Logo, TemplateDialog, HomeLead, HomeBand, SongCover, InstallCard, WeekCard, WorkoutStrip, StatusChip, Modal, Notice, RemindAsk, FirstWeek },
-    setup: () => ({ templatePartName, ideas, mine, canStart, projects, account, learning, shownTitle, formatTime, timeAgo, PART_COLORS, lengthBeats, partsFor, keyLabel, DIFFICULTY, creditsFor, navigate, BAND_COLORS, BETA_STATUS, publicSiteUrl, effect, dailyState }),
+    setup: () => ({ templatePartName, ideas, mine, canStart, projects, account, learning, shownTitle, songTitle, formatTime, timeAgo, PART_COLORS, lengthBeats, partsFor, keyLabel, DIFFICULTY, creditsFor, navigate, BAND_COLORS, BETA_STATUS, publicSiteUrl, effect, dailyState }),
     data: () => ({ storageUsage: null, locked: false, clip: null, templates: [], openTemplate: null, singers: 4, previewing: false, preparingPreview: false, starting: false, groups: null, choirParts: [], startingChoir: null, betaParts: null, avatarFailed: false, making: false, importProblems: null, sheetScore: null, sheetSaving: false, sheetView: null, sessionStore: null, songsOpen: tabStorage.get('stackapella.songsOpen') === '1', lookedAt: lastLooked(), newsCounted: null, yoursOpen: false, songColumns: songColumns(), newing: false, showInfo: false, previewOf: null, playingSong: null, renaming: null, newName: '' }),
     template: `
         <div class="min-h-dvh">
@@ -186,11 +187,11 @@ export const ProjectsView = {
                                                 <span v-else-if="!item.tpl.reviewed" data-ui="tag" data-tone="pink" class="rounded-full bg-raised px-2 py-0.5 text-[10px] text-muted">{{ t('projects.draft') }}</span>
                                             </span>
                                         </span>
-                                        <span class="px-1 font-bold leading-tight text-cream" translate="no" data-ui="cartridge-title">{{ item.tpl.title }}</span>
+                                        <span class="px-1 font-bold leading-tight text-cream" translate="no" data-ui="cartridge-title">{{ songTitle(item.tpl) }}</span>
                                         <span class="px-1 text-xs text-muted" :aria-label="singerText(item.tpl) + ' · ' + t(DIFFICULTY[item.tpl.difficulty] ?? DIFFICULTY.beginner)"><span aria-hidden="true">{{ singerCount(item.tpl) }} · {{ t(DIFFICULTY[item.tpl.difficulty] ?? DIFFICULTY.beginner) }}</span></span>
                                     </button>
                                     <!-- Hillel: the preview's Play at the picture's top right, on hover (always on touch); a tap on the card still opens it. -->
-                                    <button type="button" class="card-tools tap-44 absolute end-3 top-3 grid size-9 place-items-center rounded-full glass-bubble" :class="songOn(item.tpl.id) ? 'is-on bg-accent text-accent-ink' : 'bg-panel text-cream'" :aria-label="songOn(item.tpl.id) ? t('home.songs.stopNamed', { title: item.tpl.title }) : t('home.yours.playNamed', { title: item.tpl.title })" :aria-pressed="songOn(item.tpl.id) ? 'true' : 'false'" data-song-play @click="playLibrary(item.tpl)"><Icon :name="songOn(item.tpl.id) ? 'stop' : 'play'" :size="16" /></button>
+                                    <button type="button" class="card-tools tap-44 absolute end-3 top-3 grid size-9 place-items-center rounded-full glass-bubble" :class="songOn(item.tpl.id) ? 'is-on bg-accent text-accent-ink' : 'bg-panel text-cream'" :aria-label="songOn(item.tpl.id) ? t('home.songs.stopNamed', { title: songTitle(item.tpl) }) : t('home.yours.playNamed', { title: songTitle(item.tpl) })" :aria-pressed="songOn(item.tpl.id) ? 'true' : 'false'" data-song-play @click="playLibrary(item.tpl)"><Icon :name="songOn(item.tpl.id) ? 'stop' : 'play'" :size="16" /></button>
                                 </li>
                                 <li v-if="!trimmed && !songsOpen && hiddenSongs" class="w-40 shrink-0 snap-start md:w-auto">
                                     <button type="button" class="flex w-full flex-col gap-2 rounded-3xl p-1 text-start hover:bg-raised/50" aria-controls="home-songs" :aria-expanded="'false'" data-browse-all @click="openSongs(true)">

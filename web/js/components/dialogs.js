@@ -23,6 +23,7 @@ import { navigate } from '../router.js';
 import { inFirstWeek } from './voice-care.js';
 import { prefs } from '../stores/prefs.js';
 import { exportNeedsPlus, isPlus } from '../stores/plan.js';
+import { songTitle } from '../song-titles.js';
 
 // A song's pace in words for a new singer (no BPM: the design rules' first-week words).
 const TEMPO = { slow: tk('templates.tempo.slow'), steady: tk('templates.tempo.steady'), lively: tk('templates.tempo.lively') };
@@ -822,9 +823,9 @@ export const TemplateDialog = {
     // locked: a guest on a song that needs a free account (the catalogue's summary: no notes): its clip, and the way to an account.
     props: { template: { type: Object, required: true }, previewing: Boolean, preparing: Boolean, credits: { type: Array, default: () => [] }, locked: Boolean, singers: { type: Number, default: 4 } },
     emits: ['start', 'preview', 'close', 'signup', 'copy', 'singers'],
-    setup: () => ({ midiName, formatTime, formatNumber, primary, secondary, singerOptions, templatePartName, keyLabel, DIFFICULTY, formatList, TEMPO }),
+    setup: () => ({ midiName, formatTime, formatNumber, primary, secondary, singerOptions, templatePartName, keyLabel, DIFFICULTY, formatList, TEMPO, songTitle }),
     template: `
-        <Modal :title="template.title" title-is-content wide @close="$emit('close')">
+        <Modal :title="songTitle(template)" title-is-content wide @close="$emit('close')">
             <div class="space-y-5">
                 <p class="text-cream" translate="no">{{ template.description }}</p>
                 <p v-if="locked" class="font-semibold text-part-2">{{ t('templates.needsAccount') }}</p>
@@ -848,7 +849,7 @@ export const TemplateDialog = {
                     <button type="button" :class="[primary, 'w-full justify-center']" data-song-start @click="$emit('start')">{{ t('templates.start') }}</button>
                     <div class="grid grid-cols-2 gap-2 sm:gap-3">
                         <button type="button" :class="[secondary, 'w-full justify-center']" :aria-pressed="previewing ? 'true' : 'false'" data-song-play @click="$emit('preview')"><span class="inline-flex items-center gap-2"><Icon :name="previewing ? 'stop' : 'play'" :size="16" />{{ preparing ? t('templates.preparing') : previewing ? t('studio.stop') : t('templates.play') }}</span></button>
-                        <button type="button" class="btn-ghost w-full justify-center" :aria-label="t('templates.editLabel', { title: template.title })" data-song-edit @click="$emit('copy')">{{ t('template.edit') }}</button>
+                        <button type="button" class="btn-ghost w-full justify-center" :aria-label="t('templates.editLabel', { title: songTitle(template) })" data-song-edit @click="$emit('copy')">{{ t('template.edit') }}</button>
                     </div>
                     <button v-if="hasCourse" type="button" class="btn-ghost btn-sm" data-song-course @click="learnIt"><Icon name="arrow" :size="16" /> {{ t('songCourse.open') }}</button>
                 </div>

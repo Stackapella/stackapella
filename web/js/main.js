@@ -181,6 +181,9 @@ keepLinkToken();
 // visit (no service worker yet, as js/preload.js decides) starts with lesson 1's own words, and
 // fetches the rest once the page has loaded and the browser is idle.
 const lessonFirst = !navigator.serviceWorker?.controller;
+// Come from a song's part page (?song=, ?song=&part=): the next screen is Sing, so it's fetched ahead first (read now,
+// before Home takes the address's song away; frontend's Start-to-Sing probe, 2026-11-12).
+const songArrival = new URLSearchParams(location.search).has('song');
 await loadLanguage(undefined, { first: lessonFirst ? firstWordsFor(location.pathname) : null }).catch((error) => console.error('The words did not load', error));
 // Then (Hillel: "when I click some pages (ie settings or a course) the screen is blank for a second"),
 // the screens most often opened next are fetched ahead, one at a time while the browser is idle, so
@@ -188,9 +191,14 @@ await loadLanguage(undefined, { first: lessonFirst ? firstWordsFor(location.path
 const whenIdle = (run) => ('requestIdleCallback' in window ? requestIdleCallback(run, { timeout: 8000 }) : setTimeout(run, 1000));
 async function fetchAhead() {
     await allWords();
+    const ahead1 = (view) => new Promise((done) => whenIdle(() => ahead.get(view).prefetch().then(done)));
+    if (songArrival) {
+        // The song's Start makes a project (the song stores) and opens Sing: those first, the lesson's pieces after.
+        await prefetchStores();
+        for (const view of [SingView, StudioView]) await ahead1(view);
+    }
     await prefetchResults(); // what lesson 1 shows after its first take
     await prefetchStores(); // your songs, your templates and the real voices (lazy-stores.js)
-    const ahead1 = (view) => new Promise((done) => whenIdle(() => ahead.get(view).prefetch().then(done)));
     for (const view of [LearnView, ProjectsView, SettingsView, CourseView]) await ahead1(view);
     // A Plus course's page and the courses' data, when Plus courses show (asked now: the account has
     // loaded). Guests see them too once auth.config says so (courses.js courseVisible).
@@ -201,7 +209,7 @@ async function fetchAhead() {
         // whose lesson 1 needs the line for its mic and guide (2026-11-12, the speed pass); the screens that show them ask.
         if (!lessonFirst) await new Promise((done) => whenIdle(() => loadPlusCourses().then(done)));
     }
-    for (const view of [SingView, StudioView]) await ahead1(view);
+    if (!songArrival) for (const view of [SingView, StudioView]) await ahead1(view);
 }
 const afterLoad = (run) => (document.readyState === 'complete' ? whenIdle(run) : window.addEventListener('load', () => whenIdle(run), { once: true }));
 afterLoad(fetchAhead);

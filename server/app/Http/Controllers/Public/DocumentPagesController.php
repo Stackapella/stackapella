@@ -104,7 +104,7 @@ final class DocumentPagesController extends Controller
                 'faq' => array_values(array_filter((array) Lang::get('pages.guides.faqs.'.$slug, []), 'is_array')),
                 // The section a panel of the four parts' ranges follows (pages.guides.ranges.after.<slug>), if any.
                 'ranges' => Lang::has('pages.guides.ranges.after.'.$slug) ? (string) Lang::get('pages.guides.ranges.after.'.$slug) : null,
-                'next' => array_map(fn (string $other): array => ['slug' => $other, 'title' => (string) ($this->read($text, $other, 'guides')['title'] ?? $other)], $next),
+                'next' => array_map(fn (string $other): array => ['slug' => $other, 'title' => (string) ($this->read($text, $other, 'guides', app()->getLocale())['title'] ?? $other)], $next),
             ],
             // The guide's own song plays beside it whenever it's open ($song is null otherwise): Hillel's "Yes, play for
             // guests" (2026-11-08) for every open song on a public page, as the part pages do (the coordinator,

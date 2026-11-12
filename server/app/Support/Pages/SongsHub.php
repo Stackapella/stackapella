@@ -53,15 +53,19 @@ final class SongsHub
         // The carol season (November to Twelfth Night, Carols::inSeason), as /songs has always linked the page.
         $season = Carols::inSeason() && $carols !== [];
         if ($season) {
-            $bands[] = ['key' => 'christmas', 'path' => Carols::PATH, 'count' => count($carols), 'season' => true, 'samples' => self::pick($carols, self::SAMPLES['christmas'], 'christmas')];
+            $chosen = self::choose(array_column($carols, 'slug'), self::SAMPLES['christmas']);
+            $bySlug = array_column($carols, null, 'slug');
+            $bands[] = ['key' => 'christmas', 'path' => Carols::PATH, 'count' => count($carols), 'season' => true, 'samples' => self::kinds(array_map(static fn (string $slug): array => $bySlug[$slug], $chosen), 'christmas')];
         }
 
         $panels = [];
         foreach ($this->collections->open() as $open) {
             $slug = $open['slug'];
             // A collection's Christmas songs (a carol that's also a hymn) are the carols band's in season, not its sample.
-            $cards = array_values(array_filter($this->collections->songs($slug), fn (array $card): bool => ! ($season && Carols::has($card['slug']))));
-            $panels[] = ['key' => $slug, 'path' => $open['path'], 'count' => count($this->collections->members($slug)), 'season' => false, 'samples' => self::pick($cards, self::SAMPLES[$slug] ?? [], $slug)];
+            $ordered = array_values(array_filter($this->collections->ordered($slug), static fn (string $song): bool => ! ($season && Carols::has($song))));
+            // Only the samples' cards are built (each plays its first line), never the whole collection's.
+            $samples = $this->collections->cards(self::choose($ordered, self::SAMPLES[$slug] ?? []));
+            $panels[] = ['key' => $slug, 'path' => $open['path'], 'count' => count($this->collections->members($slug)), 'season' => false, 'samples' => self::kinds($samples, $slug)];
         }
         // The biggest first; the Jewish songs first of all around Hanukkah and Passover (JewishSongs::inSeason), right after
         // the carols' band in December.
@@ -104,26 +108,27 @@ final class SongsHub
     }
 
     /**
-     * The picks that are open, in their order, then the rest of the collection's cards, up to PER_BAND.
+     * The picks that are open, in their order, then the rest of the collection's songs in its order, up to PER_BAND.
+     *
+     * @param  list<string>  $ordered  the collection's open songs, in its page's order
+     * @param  list<string>  $picks
+     * @return list<string>
+     */
+    private static function choose(array $ordered, array $picks): array
+    {
+        $chosen = array_values(array_intersect($picks, $ordered));
+
+        return array_slice(array_values(array_unique([...$chosen, ...$ordered])), 0, self::PER_BAND);
+    }
+
+    /**
+     * Each with its kind for its card's line (Hillel's songbook design: "C major · SATB"): a round, four choir parts, or how many.
      *
      * @param  list<array<string, mixed>>  $cards
-     * @param  list<string>  $picks
      * @return list<array<string, mixed>>
      */
-    private static function pick(array $cards, array $picks, string $key = ''): array
+    private static function kinds(array $cards, string $key): array
     {
-        $bySlug = array_column($cards, null, 'slug');
-        $chosen = array_values(array_filter(array_map(static fn (string $slug): ?array => $bySlug[$slug] ?? null, $picks)));
-        foreach ($cards as $card) {
-            if (count($chosen) >= self::PER_BAND) {
-                break;
-            }
-            if (! in_array($card['slug'], array_column($chosen, 'slug'), true)) {
-                $chosen[] = $card;
-            }
-        }
-
-        // Each with its kind for its card's line (Hillel's songbook design: "C major · SATB"): a round, four choir parts, or how many.
-        return array_map(static fn (array $card): array => [...$card, 'kind' => $key === 'rounds' ? 'round' : (array_column($card['parts'], 'key') === SongParts::SATB ? 'satb' : 'parts')], array_slice($chosen, 0, self::PER_BAND));
+        return array_map(static fn (array $card): array => [...$card, 'kind' => $key === 'rounds' ? 'round' : (array_column($card['parts'], 'key') === SongParts::SATB ? 'satb' : 'parts')], $cards);
     }
 }

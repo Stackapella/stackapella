@@ -43,7 +43,7 @@ export const Coach = {
         <section class="flex min-h-0 flex-col overflow-y-auto" :aria-label="t('sing.coach.title', { part: partName })" data-coach>
             <div class="space-y-5 px-5 pb-5 pt-7">
                 <p class="text-xs font-bold uppercase tracking-[0.14em]" :style="{ color: paintInk(color) }">{{ t('sing.coach.stepOf', { step: stepIndex + 1, total: STEPS.length }) }}</p>
-                <ol class="grid grid-cols-4 gap-1.5" :aria-label="t('sing.coach.steps')">
+                <ol class="grid grid-cols-4 gap-x-3 gap-y-1.5" :aria-label="t('sing.coach.steps')">
                     <li v-for="(s, i) in STEPS" :key="s">
                         <button type="button" class="w-full text-start" :aria-current="i === stepIndex ? 'step' : null" @click="$emit('step', s)">
                             <span class="block h-1 rounded-full" :style="{ background: i <= stepIndex ? color : 'var(--color-line)' }" aria-hidden="true"></span>

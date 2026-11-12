@@ -100,6 +100,11 @@ final class JewishSongsPageTest extends TestCase
                 continue;
             }
             $this->assertStringStartsWith('Stackapella', $credit, $slug);
+            // Our parts on someone's printed harmony ("Stackapella, on Eliezer Gerovitsch's harmony (1897)"): the intro names
+            // the song, as it names Maoz Tzur's and Oy Chanukah's.
+            if (str_contains($credit, 'harmony')) {
+                $this->assertStringContainsString((string) $template->title, $intro, $slug.' keeps a printed harmony, so the intro names it');
+            }
         }
         // God's names: the substituted forms where a song names God, as its page says (Hillel; the courses lead's wording).
         $this->assertStringContainsString('substituted forms', $intro);

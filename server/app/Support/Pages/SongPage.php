@@ -6,6 +6,8 @@ namespace App\Support\Pages;
 
 use App\Models\Template;
 use App\Support\Http\Hosts;
+use App\Support\Languages\PartNames;
+use App\Support\Languages\SongDescriptions;
 use Illuminate\Support\Facades\Storage;
 
 /**
@@ -32,14 +34,14 @@ final class SongPage
         return [
             'slug' => $template->slug,
             'title' => $template->title,
-            'description' => (string) ($data['description'] ?? ''),
+            'description' => SongDescriptions::of((string) ($data['description'] ?? '')),
             // Its story where it has one (lang song_about), the part pages' About too.
             'about' => trans()->has('song_about.'.$template->slug) ? (string) __('song_about.'.$template->slug) : null,
             'difficulty' => (string) ($data['difficulty'] ?? ''),
             'genre' => array_values(array_filter((array) ($data['genre'] ?? []), 'is_string')),
             'parts' => array_map(static fn (array $part): array => [
                 'key' => (string) ($part['key'] ?? ''),
-                'name' => (string) ($part['name'] ?? ''),
+                'name' => PartNames::name((string) ($part['key'] ?? ''), (string) ($part['name'] ?? '')),
                 'low' => self::note((int) ($part['range']['low'] ?? 0)),
                 'high' => self::note((int) ($part['range']['high'] ?? 0)),
             ], $parts),
@@ -80,7 +82,7 @@ final class SongPage
         return [
             'marks' => array_map(static fn (int $c): array => ['name' => self::note($c), 'at' => $at($c)], range($bottom, $top, 12)),
             'parts' => array_map(static fn (array $part, int $i): array => [
-                'name' => (string) ($part['name'] ?? ''),
+                'name' => PartNames::name((string) ($part['key'] ?? ''), (string) ($part['name'] ?? '')),
                 'color' => $i % 8 + 1,
                 'low' => self::note($low($part)),
                 'high' => self::note($high($part)),
