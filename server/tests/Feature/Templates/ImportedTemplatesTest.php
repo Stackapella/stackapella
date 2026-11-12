@@ -113,6 +113,34 @@ final class ImportedTemplatesTest extends TestCase
         $this->save((string) Str::uuid())->assertOk()->assertJsonPath('data.imported', false)->assertJsonPath('data.rightsConfirmedAt', null);
     }
 
+    public function test_a_directors_confirmed_sentence_is_kept_word_for_word_as_its_rights_record_and_a_copy_keeps_it(): void
+    {
+        $ana = $this->adult();
+        $id = (string) Str::uuid();
+        $this->save($id, ['source' => 'sheet-music', 'rightsConfirmed' => true, 'rights' => 'nonsense'])->assertJsonValidationErrors('rights');
+
+        $this->assertMatchesContract($this->save($id, ['source' => 'sheet-music', 'rightsConfirmed' => true, 'rights' => 'own-arrangement']), 'templates.save', 200);
+        $song = Template::query()->where('slug', $id)->firstOrFail();
+        // As Give this song keeps a partner's: who, the exact sentence, from where (and when, rights_confirmed_at).
+        $this->assertSame([$ana->name.' <'.$ana->email.'>', __('support.tracks.rights.own-arrangement'), 'sheet-music'], [$song->rights_confirmed_by, $song->rights_wording, $song->rights_source]);
+        $this->assertNotNull($song->rights_confirmed_at);
+        // It's the singer's own song, not one we gave.
+        $this->assertFalse($song->isGiven());
+
+        // "Make a copy" keeps the same record.
+        $copy = (string) Str::uuid();
+        $this->save($copy, ['copiedFrom' => $id])->assertOk();
+        $this->assertSame(__('support.tracks.rights.own-arrangement'), Template::query()->where('slug', $copy)->value('rights_wording'));
+
+        // An app from before sends rightsConfirmed alone: still saved, with no sentence; without the source, rights is ignored.
+        $old = (string) Str::uuid();
+        $this->save($old, ['source' => 'sheet-music', 'rightsConfirmed' => true])->assertOk();
+        $this->assertNull(Template::query()->where('slug', $old)->value('rights_wording'));
+        $plain = (string) Str::uuid();
+        $this->save($plain, ['rights' => 'public-domain'])->assertOk()->assertJsonPath('data.imported', false);
+        $this->assertNull(Template::query()->where('slug', $plain)->value('rights_wording'));
+    }
+
     public function test_the_rights_wording_is_kept_and_a_repeat_infringer_makes_no_new_import(): void
     {
         $ana = $this->adult();

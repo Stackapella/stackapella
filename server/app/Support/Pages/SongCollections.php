@@ -21,6 +21,7 @@ final class SongCollections
         'spirituals' => ['spiritual'],
         'sea-shanties' => ['sea shanty'],
         'rounds' => ['round'],
+        'jewish-songs' => ['jewish'],
     ];
 
     /**
@@ -30,6 +31,8 @@ final class SongCollections
      */
     public const GROUPS = [
         'christmas' => ['christmas', 'carol'],
+        // Before folk: the Jewish songs are traditional too, and their page is theirs (2026-11-11).
+        'jewish-songs' => ['jewish'],
         'rounds' => ['round'],
         'spirituals' => ['spiritual'],
         'hymns' => ['hymn', 'gospel'],

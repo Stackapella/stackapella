@@ -226,11 +226,11 @@ export const ProjectsView = {
                                     <!-- Hillel: every song of yours looks the same, like a library song (the picture, its title and details underneath); only its tag differs. A tap opens it. -->
                                     <button type="button" class="flex w-full flex-col gap-2 rounded-3xl p-1 text-start hover:bg-raised/50" data-ui="cartridge" :aria-label="t('projects.open', { title: c.title })" @click="c.open()">
                                         <span class="relative block">
-                                            <SongCover :class="c.kind === 'draft' ? 'border-dashed' : ''" :song="c.song" :parts="c.parts" :seed="seedOf(c.key)" />
+                                            <SongCover :class="c.kind === 'draft' ? 'border-dashed' : ''" :song="c.song" :parts="c.parts" :mine="c.mine" :seed="seedOf(c.key)" />
                                             <span v-if="c.tag" data-ui="tag" :data-tone="c.warn ? 'yellow' : 'cyan'" class="absolute start-3 top-3 rounded-full bg-raised px-2 py-0.5 text-[10px] font-bold" :class="c.warn ? 'text-warn' : 'text-accent-strong'" translate="no">{{ c.tag }}</span>
                                         </span>
                                         <span class="truncate pe-9 ps-1 font-bold leading-tight" data-ui="cartridge-title" :class="c.named ? 'text-cream' : 'italic text-muted'" :translate="c.named ? 'no' : null">{{ c.title }}</span>
-                                        <span class="truncate px-1 text-xs text-muted">{{ c.meta }}</span>
+                                        <span class="px-1 text-xs text-muted" :class="c.mine ? '' : 'truncate'" :data-parts-you="c.mine ? '' : null">{{ c.meta }}</span>
                                     </button>
                                     <button type="button" class="card-tools tap-44 absolute end-3 top-3 grid size-9 place-items-center rounded-full glass-bubble disabled:opacity-50" :class="songOn(c.key) ? 'is-on bg-accent text-accent-ink' : 'bg-panel text-cream'" :disabled="!c.play" :title="c.play ? null : c.why" :aria-label="!c.play ? c.why : songOn(c.key) ? t('home.songs.stopNamed', { title: c.title }) : t('home.yours.playNamed', { title: c.title })" :aria-pressed="songOn(c.key) ? 'true' : 'false'" data-song-play @click="c.play && c.play()"><Icon :name="songOn(c.key) ? 'stop' : 'play'" :size="16" /></button>
                                     <CardMenu class="card-tools absolute end-0 top-[7.1rem]" :label="t('home.yours.moreNamed', { title: c.title })" :items="c.menu" />
@@ -380,7 +380,11 @@ export const ProjectsView = {
                 if (item.kind === 'project') {
                     const p = item.p;
                     const tag = p.notSaved && account.me ? [t('cloud.notSaved'), true] : p.readOnly ? [t('cloud.readOnly'), true] : p.shared ? [p.shared.removed ? t('together.cardGone') : t('together.cardWith', { owner: p.shared.owner?.name ?? '' }), false] : p.course ? [t('home.projects.fromCourse'), false] : [null, false];
-                    return { key: 'p-' + p.id, kind: 'project', title: shownTitle(p), named: !!p.title?.trim(), tag: tag[0], warn: tag[1], meta: [t('studio.partCount', { count: p.partCount }), t('projects.edited', { when: timeAgo(p.updatedAt) })].join(' · '), parts: Math.max(1, p.partCount), song: p.template ?? null, open: () => this.open(p), play: () => this.playProject(p), menu: this.projectActions(p) };
+                    // A unit's song (retention row 8) with a take kept says how much of it is you: "1 of 4 parts is you"; in game
+                    // mode its cover's rows for your parts are lit, the others hollow.
+                    const yours = p.course?.unitSong && p.recordedCount > 0 && p.template;
+                    const meta = yours ? t('home.yours.partsYou', { mine: p.recordedCount, count: p.partCount }) : [t('studio.partCount', { count: p.partCount }), t('projects.edited', { when: timeAgo(p.updatedAt) })].join(' · ');
+                    return { key: 'p-' + p.id, kind: 'project', title: shownTitle(p), named: !!p.title?.trim(), tag: tag[0], warn: tag[1], meta, mine: yours ? p.yourParts : null, parts: Math.max(1, p.partCount), song: p.template ?? null, open: () => this.open(p), play: () => this.playProject(p), menu: this.projectActions(p) };
                 }
                 if (item.kind === 'written') {
                     const r = item.r;

@@ -193,7 +193,7 @@ final class BuildExport implements ShouldQueue
             'id' => $template->slug,
             'visibility' => $template->visibility,
             // A song made from sheet music: when they confirmed the right to use it, and the wording's version.
-            'fromSheetMusic' => $template->imported_at !== null ? ['importedAt' => $template->imported_at->utc()->toIso8601ZuluString(), 'rightsConfirmedAt' => $template->rights_confirmed_at?->utc()->toIso8601ZuluString(), 'rightsWording' => $template->rights_statement, 'rightsConfirmedBy' => $template->rights_confirmed_by, 'rightsSource' => $template->rights_source] : null,
+            'fromSheetMusic' => $template->imported_at !== null ? ['importedAt' => $template->imported_at->utc()->toIso8601ZuluString(), 'rightsConfirmedAt' => $template->rights_confirmed_at?->utc()->toIso8601ZuluString(), 'rightsWording' => $template->rights_wording ?? $template->rights_statement, 'rightsConfirmedBy' => $template->rights_confirmed_by, 'rightsSource' => $template->rights_source] : null,
             'versions' => $template->versions->sortBy('version')->map(static fn (TemplateVersion $version): array => (array) $version->data)->values()->all(),
             'recordedGuides' => $template->recordings->where('status', TemplateRecording::READY)->map(static fn (TemplateRecording $recording): array => [
                 'part' => $recording->part_key,

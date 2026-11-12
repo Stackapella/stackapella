@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Templates;
 
+use App\Actions\Groups\RequestTracks;
 use App\Support\Templates\Imported;
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -40,6 +41,9 @@ final class SaveTemplateRequest extends FormRequest
             // Made from sheet music the singer brought: they confirm they have the rights to it.
             'source' => ['nullable', 'string', 'in:'.Imported::SOURCE],
             'rightsConfirmed' => ['required_if:source,'.Imported::SOURCE, 'accepted_if:source,'.Imported::SOURCE],
+            // Which of "Send us your song"'s two sentences they confirmed (RequestTracks::RIGHTS), kept word for word as
+            // the song's rights record. Optional: an app from before 2026-11-12 sends only rightsConfirmed.
+            'rights' => ['exclude_unless:source,'.Imported::SOURCE, 'nullable', 'string', 'in:'.implode(',', RequestTracks::RIGHTS)],
             // "Make a copy": the template it copies, so a copy of an imported song stays one.
             'copiedFrom' => ['nullable', 'string', 'max:80'],
         ];

@@ -1,7 +1,8 @@
 """A unit's song at its end (retention row 8; js/unit-song.js): at unit 1's challenge sung with stars, one quiet card under
 the next lesson offers Michael, Row the Boat Ashore's tune; it opens that part straight in Sing along with the other
 voices, made once and kept. Counted once a device a place (us_shown, us_tap). A unit that sings on "oo" gets the
-singer's part on it, the other parts with their words.
+singer's part on it, the other parts with their words. With a take kept, Home's card for the song says "1 of 4 parts
+is you", and game mode's cover lights your part's row.
 """
 import json
 import sys
@@ -74,6 +75,32 @@ def journey(f):
         const parts = p.template.parts;
         return { same: p.id === again.id, sung: [...new Set(parts.find((x) => x.melody).guide.notes.map((n) => n.lyric).filter(Boolean))], others: parts.filter((x) => !x.melody).some((x) => x.guide.notes.some((n) => n.lyric && n.lyric !== 'oo')) }; })()""")
     assert oo == {"same": True, "sung": ["oo"], "others": True}, oo
+
+    # A take kept in it: Home's own card for the song says how much of it is you (plan idea 4); game mode lights the
+    # cover's row for your part and leaves the others hollow.
+    counts = f.js("""(async () => { const { projects, openProject, savePart, loadProjects } = await import('/js/stores/projects.js');
+        await loadProjects();
+        const p = projects.all.find((x) => x.course?.unitSong && x.template?.id === 'michael-row');
+        const { parts } = await openProject(p.id);
+        const part = parts.find((x) => x.templatePartKey === p.course.partKey);
+        await savePart({ ...part, frames: 48000, sampleRate: 48000 }, new Float32Array(48000));
+        return { count: parts.length, key: part.templatePartKey }; })()""")
+    f.go("/?api=mock&scenario=&as=member", "document.querySelector('[data-parts-you]')")
+    line = f.js("document.querySelector('[data-parts-you]').textContent.trim()")
+    assert line == t(f, "home.yours.partsYou", {"mine": 1, "count": counts["count"]}), line
+    rows = f.js("[...document.querySelector('[data-parts-you]').closest('li').querySelectorAll('[data-cover-row]')].map((r) => [r.dataset.part, r.dataset.mine])")
+    assert [r for r in rows if r[1] == "yes"] == [[counts["key"], "yes"]] and all(r[1] == "no" for r in rows if r[0] != counts["key"]), rows
+    hollow = f.js("getComputedStyle(document.querySelector('[data-mine=no] [data-cover-dash]')).backgroundColor")
+    if f.skin == "game":
+        assert hollow == "rgba(0, 0, 0, 0)", f"the other parts' rows are hollow in game mode: {hollow}"
+    else:
+        assert hollow != "rgba(0, 0, 0, 0)", "serious mode's cover is as it was"
+    # Home settles (its bands load in turn) before it's scrolled to the card.
+    f.wait("document.fonts.status === 'loaded' && !document.querySelector('[data-screen-loading]')", what="Home settled")
+    f.run("await new Promise((r) => setTimeout(r, 600)); document.querySelector('[data-parts-you]').closest('li').scrollIntoView({ block: 'center', inline: 'center' })")
+    f.wait("(() => { const r = document.querySelector('[data-parts-you]').closest('li').getBoundingClientRect(); return r.top > 0 && r.bottom < innerHeight; })()", what="the song's card in view")
+    f.no_sideways("Home with the unit's song")
+    f.shot("home-parts-you")
 
 
 if __name__ == "__main__":

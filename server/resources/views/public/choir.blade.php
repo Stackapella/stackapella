@@ -30,7 +30,7 @@
                 <div class="s-step s-v1 s-listen">
                     <h2>{{ __('pages.together.listen') }}</h2>
                     @if ($choir['mixedAt'])
-                        <p>{{ __('pages.together.mixed', ['when' => \Illuminate\Support\Carbon::parse($choir['mixedAt'])->isoFormat('D MMMM YYYY')]) }}</p>
+                        <p>{{ __('pages.together.mixed', ['when' => \App\Support\Languages\Dates::dayMonthYear(\Illuminate\Support\Carbon::parse($choir['mixedAt']))]) }}</p>
                     @endif
                     <audio controls preload="none" src="{{ $choir['mixUrl'] }}"></audio>
                 </div>

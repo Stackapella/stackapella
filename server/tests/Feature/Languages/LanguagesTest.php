@@ -12,12 +12,14 @@ use App\Support\Admin\SecondFactor;
 use App\Support\Admin\StaffDevice;
 use App\Support\Flags;
 use App\Support\Http\Hosts;
+use App\Support\Languages\Dates;
 use App\Support\Languages\Languages;
 use App\Support\Languages\TranslationMaps;
 use App\Support\Site\HelpGuide;
 use App\Support\Site\SitemapPaths;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Mail;
@@ -405,5 +407,16 @@ final class LanguagesTest extends TestCase
         $value = $mint();
         $admin->forceFill(['suspended_at' => now()])->save();
         $this->assertFalse($previews($value));
+    }
+
+    public function test_a_date_is_written_as_each_language_writes_it(): void
+    {
+        $twelfth = Carbon::parse('2027-01-06');
+        $mixed = Carbon::parse('2026-11-03');
+        foreach (['en' => ['6 January', '3 November 2026'], 'es' => ['6 de enero', '3 de noviembre de 2026'], 'de' => ['6. Januar', '3. November 2026']] as $language => [$dayMonth, $dayMonthYear]) {
+            app()->setLocale($language);
+            $this->assertSame([$dayMonth, $dayMonthYear], [Dates::dayMonth($twelfth), Dates::dayMonthYear($mixed)], $language);
+        }
+        app()->setLocale('en');
     }
 }

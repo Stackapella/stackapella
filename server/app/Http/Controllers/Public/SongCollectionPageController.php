@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Public;
 
 use App\Http\Controllers\Controller;
+use App\Models\Template;
 use App\Support\Http\Hosts;
+use App\Support\Pages\JewishSongs;
 use App\Support\Pages\PageGone;
 use App\Support\Pages\SongCollections;
 use Illuminate\Http\Response;
@@ -25,10 +27,35 @@ final class SongCollectionPageController extends Controller
             return PageGone::response('/songs');
         }
 
+        $jewish = $collection === JewishSongs::SLUG;
+        $festival = $jewish ? JewishSongs::festival() : null;
+        $chips = $jewish ? self::festivalChips(array_column($songs, 'slug')) : null;
+        // The coming festival's songs first (Hanukkah's in the weeks before it), the rest in their order.
+        if ($festival !== null && $chips !== null) {
+            $name = (string) __('site.collections.jewish-songs.festivals.'.$festival['key']);
+            usort($songs, static fn (array $a, array $b): int => (($chips[$b['slug']] ?? '') === $name) <=> (($chips[$a['slug']] ?? '') === $name));
+        }
+
         return response()->view(SongCollections::VIEW, [
             'slug' => $collection,
             'songs' => $songs,
             'canonical' => Hosts::publicUrl().SongCollections::path($collection),
+            // The Jewish songs page's own: its countdown to the next festival, and each card's festival from its genre.
+            'festival' => $festival,
+            'chips' => $chips,
         ], 200, SongPagesController::headers());
+    }
+
+    /**
+     * Each song's festival, in the page's words, by slug.
+     *
+     * @param  list<string>  $slugs
+     * @return array<string, string>
+     */
+    private static function festivalChips(array $slugs): array
+    {
+        return Template::query()->with('currentVersion')->whereIn('slug', $slugs)->get()
+            ->mapWithKeys(static fn (Template $t): array => [(string) $t->slug => (string) __('site.collections.jewish-songs.festivals.'.JewishSongs::tag(array_values(array_filter((array) (((array) $t->currentVersion?->data)['genre'] ?? []), 'is_string'))))])
+            ->all();
     }
 }

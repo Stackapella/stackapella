@@ -2122,6 +2122,7 @@
             "ideasHint": "Melodías de otras personas que esperan voces reales. Añade la tuya a una."
         },
         "yours": {
+            "partsYou": "{mine, plural, one {# de {count} voces es tuya} other {# de {count} voces son tuyas}}",
             "written": "Escrita por ti",
             "sheet": "Desde partitura",
             "draftTag": "Borrador",
@@ -3831,16 +3832,15 @@
             "voicingPlaceholder": "SATB, divisi en los tenores",
             "rights": "¿De quién es la música?",
             "publicDomain": "De dominio público",
-            "publicDomainHint": "Todas las personas cuyo trabajo utiliza (quien compuso la música, quien escribió la letra, cualquier arreglista o traductor) murieron hace más de 70 años, y la obra se imprimió antes de 1931.",
+            "publicDomainSentence": "Confirmo que esta obra es de dominio público: todas las personas cuyo trabajo utiliza (quien la compuso, quien escribió la letra, quien la arregló, quien la tradujo) murieron hace más de 70 años, y la música se imprimió antes de 1931.",
             "ownArrangement": "Un arreglo nuestro",
-            "ownArrangementHint": "Lo hiciste tú o alguien de tu coro, y el coro puede usarlo.",
+            "ownArrangementSentence": "Confirmo que es un arreglo propio de nuestro coro: lo arreglé yo o alguien del coro, y el coro puede usarlo.",
             "rightsOther": "Por ahora solo podemos hacer pistas de estos dos tipos, no de un arreglo publicado que aún tenga derechos de autor.",
             "note": "¿Algo que debamos saber?",
             "notePlaceholder": "Nuestra tonalidad y tempo, las estrofas que cantamos, los cortes",
-            "confirm": "Confirmo lo que he dicho arriba sobre los derechos de esta obra.",
             "send": "Enviar",
             "sending": "Enviando",
-            "sent": "Gracias. Te escribiremos a {email} para pedirte la partitura.",
+            "sent": "Gracias. Haremos las pistas de {piece} y pondremos la canción en este grupo. Aparecerá aquí cuando esté lista.",
             "tooMany": "Lo has pedido varias veces en la última hora. Vuelve a intentarlo un poco más tarde."
         },
         "rehearsal": {

@@ -362,6 +362,8 @@ def journey(f):
         if not q("the sign-up form", "document.querySelector('form input[autocomplete=name]')"):
             return
         j.look_at("Sign up", "signup")
+        # What the guest had before signing up: kept afterwards is the check (the lesson-2 wall means it's lesson 1 alone now).
+        had = f.js(f"Object.keys({STORE}.learning.progress.lessons).length")
         f.type("form input[autocomplete=name]", "Robin Vale")
         f.type("form input[type=email]", "robin@example.com")
         f.type("form input[autocomplete=new-password]", "a long enough password")
@@ -378,8 +380,8 @@ def journey(f):
         time.sleep(1.0)
         j.look_at("Home, signed in", "signed-in")
         kept = f.js(f"Object.keys({STORE}.learning.progress.lessons).length")
-        if kept < 3:
-            j.note("after signing up", f"the guest's lessons aren't kept: {kept} left")
+        if kept < had:
+            j.note("after signing up", f"the guest's lessons aren't kept: {kept} of {had}")
         songs = f.js("(await import('/js/stores/projects.js')).projects.all.length")
         if songs < 1:
             j.note("after signing up", "the guest's song isn't kept")

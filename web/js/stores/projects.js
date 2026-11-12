@@ -27,7 +27,7 @@ async function summarise(project) {
     const length = parts.reduce((max, p) => Math.max(max, p.offsetSeconds + Math.max(p.frames / p.sampleRate, p.guideSeconds ?? 0)), 0);
     // A template part with no take yet shows its guide.
     // deviceBytes: the takes as 16-bit, as they're kept here and sent up (Storage shows it until the account counts it).
-    return { ...project, partCount: parts.length, recordedCount: parts.filter((p) => p.frames > 0).length, length, recorded: parts.some((p) => p.frames > 0), everyPart: parts.length > 0 && parts.every((p) => p.frames > 0), deviceBytes: parts.reduce((sum, p) => sum + ((p.frames || 0) + (p.keptTakes ?? []).reduce((k, t) => k + (t.frames || 0), 0)) * 2, 0), thumbnail: markRaw(parts.map((p) => ({ peaks: p.peaks ?? p.guidePeaks, color: p.color }))) };
+    return { ...project, partCount: parts.length, recordedCount: parts.filter((p) => p.frames > 0).length, yourParts: parts.filter((p) => p.frames > 0 && p.templatePartKey).map((p) => p.templatePartKey), length, recorded: parts.some((p) => p.frames > 0), everyPart: parts.length > 0 && parts.every((p) => p.frames > 0), deviceBytes: parts.reduce((sum, p) => sum + ((p.frames || 0) + (p.keptTakes ?? []).reduce((k, t) => k + (t.frames || 0), 0)) * 2, 0), thumbnail: markRaw(parts.map((p) => ({ peaks: p.peaks ?? p.guidePeaks, color: p.color }))) };
 }
 
 export async function loadProjects() {

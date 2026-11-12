@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Actions\Templates;
 
+use App\Actions\Groups\RequestTracks;
 use App\Actions\Ideas\Ideas;
 use App\Actions\Projects\Owned;
 use App\Enums\TemplateAccess;
@@ -48,12 +49,22 @@ final class OwnTemplates
      *
      * @param  array<string, mixed>  $data  the template JSON
      * @param  array{song: string, source?: string|null, ownWork: bool}|null  $declaration
+     * @param  string|null  $rights  which of "Send us your song"'s sentences a song from sheet music was confirmed with
+     *                               (RequestTracks::RIGHTS): kept word for word, by whom and from where, as Give this
+     *                               song keeps a partner's (docs/score-import-plan.md, section 4)
      */
-    public function save(User $user, string $uuid, array $data, ?string $visibility, ?bool $libraryOptIn, ?array $declaration = null, ?string $parentId = null, bool $imported = false, ?string $copiedFrom = null): Template
+    public function save(User $user, string $uuid, array $data, ?string $visibility, ?bool $libraryOptIn, ?array $declaration = null, ?string $parentId = null, bool $imported = false, ?string $copiedFrom = null, ?string $rights = null): Template
     {
         $this->check($uuid, $data);
         // A copy of an imported song is imported too, with the original's rights confirmation.
         $import = $imported ? ['imported_at' => now(), 'rights_confirmed_at' => now(), 'rights_statement' => (string) config('site.import_rights_version')] : null;
+        if ($import !== null && $rights !== null && in_array($rights, RequestTracks::RIGHTS, true)) {
+            $import += [
+                'rights_confirmed_by' => $user->name.' <'.$user->email.'>',
+                'rights_wording' => (string) __('support.tracks.rights.'.$rights),
+                'rights_source' => Imported::SOURCE,
+            ];
+        }
 
         if ($copiedFrom !== null) {
             $original = $this->openable($user, $copiedFrom);
@@ -66,7 +77,9 @@ final class OwnTemplates
 
             // Never the partner's named confirmation: that marks a song we gave (Template::isGiven), and a copy is the
             // person's own, counted toward their plan.
-            $import ??= $original->isImported() ? ['imported_at' => $original->imported_at, 'rights_confirmed_at' => $original->rights_confirmed_at, 'rights_statement' => $original->rights_statement] : null;
+            // A song from the person's own sheet music keeps their confirmed sentence in the copy.
+            $import ??= $original->isImported() ? ['imported_at' => $original->imported_at, 'rights_confirmed_at' => $original->rights_confirmed_at, 'rights_statement' => $original->rights_statement,
+                ...($original->isGiven() ? [] : ['rights_confirmed_by' => $original->rights_confirmed_by, 'rights_wording' => $original->rights_wording, 'rights_source' => $original->rights_source])] : null;
         }
 
         // A new song from sheet music only while import is on (staff try it before), never by

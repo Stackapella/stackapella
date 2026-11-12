@@ -9,7 +9,7 @@
 
 import { AccountWall } from '../components/account-wall.js';
 import { AppScreen } from '../components/page.js';
-import { api } from '../api.js';
+import { api, uploadTo } from '../api.js';
 import { formatDate, locale, t, tk } from '../i18n.js';
 import { goBack, navigate } from '../router.js';
 import { account } from '../stores/account.js';
@@ -39,11 +39,33 @@ const REFUSED = {
     not_found: tk('groups.refused.notFound'),
     offline: tk('common.offline'),
 };
-/** Learning tracks' two kinds of piece, for now (docs/choir-tracks-plan.md, "Rights check"): the server's `rights` values. */
+/**
+ * Learning tracks' two kinds of piece, for now (docs/choir-tracks-plan.md, "Rights check"): the server's `rights` values,
+ * each with the sentence the director confirms, word for word the one the server keeps as the record
+ * (server/lang/en/support.php, tracks.rights). Choosing one is the confirmation: the sentence says "I confirm".
+ */
 const RIGHTS = {
-    'public-domain': { name: tk('groups.tracks.publicDomain'), hint: tk('groups.tracks.publicDomainHint') },
-    'own-arrangement': { name: tk('groups.tracks.ownArrangement'), hint: tk('groups.tracks.ownArrangementHint') },
+    'public-domain': { name: tk('groups.tracks.publicDomain'), sentence: tk('groups.tracks.publicDomainSentence') },
+    'own-arrangement': { name: tk('groups.tracks.ownArrangement'), sentence: tk('groups.tracks.ownArrangementSentence') },
 };
+/**
+ * "Send us your song": the score's files (contract/api.md, groups.tracks.scores.*). Their type by extension first,
+ * since browsers often give none for MusicXML; 25 MB a file, 10 a request.
+ */
+const SCORE_TYPES = { pdf: 'application/pdf', musicxml: 'application/vnd.recordare.musicxml+xml', xml: 'application/vnd.recordare.musicxml+xml', mxl: 'application/vnd.recordare.musicxml', jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', heic: 'image/heic' };
+const SCORE_ACCEPT = '.pdf,.musicxml,.xml,.mxl,.jpg,.jpeg,.png,.heic,application/pdf,image/jpeg,image/png,image/heic';
+const SCORE_BYTES = 25 * 1024 * 1024;
+const SCORE_FILES = 10;
+const scoreType = (file) => SCORE_TYPES[file.name.split('.').pop().toLowerCase()] ?? (Object.values(SCORE_TYPES).includes(file.type) ? file.type : null);
+async function sha256(file) {
+    const digest = await crypto.subtle.digest('SHA-256', await file.arrayBuffer());
+    return [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, '0')).join('');
+}
+/** Why a file didn't go (the server's check, or the way there). */
+const SCORE_REFUSED = { score_type: tk('groups.tracks.scoreType'), upload_incomplete: tk('groups.tracks.scoreBroken'), upload_mismatch: tk('groups.tracks.scoreBroken'), rate_limited: tk('groups.tracks.scoreTooMuchToday') };
+const scoreRefusal = (error) => (SCORE_REFUSED[error?.code] ? t(SCORE_REFUSED[error.code]) : refusal(error));
+/** A request's status line (groups.tracks.list). */
+const REQUEST_STATUS = { received: tk('groups.tracks.status.received'), delivered: tk('groups.tracks.status.delivered'), closed: tk('groups.tracks.status.closed') };
 const refusal = (error) => t(REFUSED[error?.code] ?? tk('groups.refused.other'));
 
 /** "Soprano or Bass", as the person's language lists alternatives. */
@@ -179,8 +201,8 @@ export const GroupsView = {
 export const GroupView = {
     components: { Frame, Field, Icon, Modal },
     props: { id: { type: String, required: true } },
-    data: () => ({ settingRehearsal: false, rehearsalDate: '', rehearsalWeekly: true, rehearsalError: null, asking: false, tracks: { piece: '', composer: '', voicing: '', note: '', rights: '', confirmed: false }, tracksErrors: null, tracksError: null, tracksSent: false, group: null, failed: null, link: null, inviting: false, sharing: false, songs: [], pick: '', busy: false, editing: null, starting: null, renaming: false, newName: '', renameError: null, templates: {} }),
-    setup: () => ({ account, STATUS, RIGHTS, templatePartName, formatDate, navigate, paint, PART_COLORS }),
+    data: () => ({ settingRehearsal: false, rehearsalDate: '', rehearsalWeekly: true, rehearsalError: null, asking: false, tracks: { piece: '', composer: '', voicing: '', note: '', rights: '' }, scores: [], requests: null, tracksErrors: null, tracksError: null, tracksSent: false, group: null, failed: null, link: null, inviting: false, sharing: false, songs: [], pick: '', busy: false, editing: null, starting: null, renaming: false, newName: '', renameError: null, templates: {} }),
+    setup: () => ({ account, STATUS, RIGHTS, SCORE_ACCEPT, SCORE_FILES, REQUEST_STATUS, templatePartName, formatDate, navigate, paint, PART_COLORS }),
     template: `
         <Frame :title="group?.name ?? t('groups.title')" back="/groups" title-is-content>
             <p v-if="failed" class="card p-6 text-cream" role="alert">{{ failed }}</p>
@@ -266,6 +288,19 @@ export const GroupView = {
                 </section>
                 <!-- Learning tracks of the choir's own piece (docs/choir-tracks-plan.md, stage 1): one quiet line, the director's only. -->
                 <p v-if="director" class="-mt-4 text-sm text-muted" data-ask-tracks>{{ t('groups.tracks.ask') }} <button type="button" class="link inline-flex min-h-6 items-center" @click="openTracks">{{ t('groups.tracks.askLink') }}</button></p>
+                <!-- The songs the director sent us, newest first, with where each has got to; a delivered one is in the group, ready to open (the director's in-app note: no email). -->
+                <section v-if="director && requests?.length" class="space-y-3" aria-labelledby="group-requests" data-tracks-requests>
+                    <h2 id="group-requests" class="text-sm font-bold text-muted">{{ t('groups.tracks.requestsTitle') }}</h2>
+                    <ul class="card divide-y divide-line">
+                        <li v-for="r in requests" :key="r.id" class="flex flex-wrap items-center gap-3 px-4 py-3" :data-tracks-request="r.status">
+                            <span class="min-w-0 flex-1">
+                                <span class="block truncate font-semibold text-cream" translate="no">{{ r.piece }}</span>
+                                <span class="block text-sm" :class="r.status === 'delivered' ? 'font-semibold text-good' : 'text-muted'">{{ t(REQUEST_STATUS[r.status] ?? REQUEST_STATUS.received) }}</span>
+                            </span>
+                            <button v-if="r.status === 'delivered' && r.song" type="button" class="btn-primary btn-sm" data-tracks-open @click="openRequest(r)">{{ t('groups.tracks.open') }}</button>
+                        </li>
+                    </ul>
+                </section>
                 </div>
 
                 <!-- At right: who's in it, and the group's own settings. -->
@@ -332,7 +367,7 @@ export const GroupView = {
             </Modal>
             <Modal v-if="asking" :title="t('groups.tracks.title')" @close="asking = false">
                 <div v-if="tracksSent" class="space-y-4" role="status" data-tracks-sent>
-                    <p class="text-cream">{{ t('groups.tracks.sent', { email: account.me?.email ?? '' }) }}</p>
+                    <p class="text-cream">{{ t('groups.tracks.sent', { piece: tracksSent }) }}</p>
                     <div class="flex justify-end"><button type="button" class="btn-primary" @click="asking = false">{{ t('common.done') }}</button></div>
                 </div>
                 <form v-else class="space-y-4" novalidate data-tracks-form @submit.prevent="sendTracks">
@@ -346,11 +381,29 @@ export const GroupView = {
                     <Field :label="t('groups.tracks.voicing')" :error="tracksErrors?.voicing" v-slot="f">
                         <input :id="f.id" v-model="tracks.voicing" class="input" maxlength="60" translate="no" :placeholder="t('groups.tracks.voicingPlaceholder')" :aria-describedby="f.describedby" />
                     </Field>
+                    <!-- The score: each file goes as it's picked (a presigned PUT, then checked), private to us. -->
+                    <fieldset class="space-y-2" data-tracks-scores>
+                        <legend class="label">{{ t('groups.tracks.scores') }}</legend>
+                        <p class="text-sm text-muted">{{ t('groups.tracks.scoresHint', { count: SCORE_FILES }) }}</p>
+                        <ul v-if="scores.length" class="divide-y divide-line rounded-2xl border border-line">
+                            <li v-for="(f, i) in scores" :key="f.key" class="flex flex-wrap items-center gap-x-3 gap-y-1 px-3 py-2 text-sm" :data-score="f.status">
+                                <span class="min-w-0 flex-1 truncate text-cream" translate="no">{{ f.name }}</span>
+                                <span v-if="f.status === 'uploading'" class="text-muted" role="status">{{ t('groups.tracks.scoreSending') }}</span>
+                                <span v-else-if="f.status === 'ready'" class="font-semibold text-good">{{ t('groups.tracks.scoreReady') }}</span>
+                                <button type="button" class="btn-ghost btn-sm" :aria-label="t('groups.tracks.scoreRemove', { name: f.name })" @click="removeScore(i)"><Icon name="close" :size="16" /></button>
+                                <p v-if="f.error" class="basis-full text-bad" role="alert">{{ f.error }}</p>
+                            </li>
+                        </ul>
+                        <label v-if="scores.length < SCORE_FILES" class="btn-secondary btn-sm w-fit cursor-pointer focus-within:outline-2"><Icon name="plus" :size="16" /> {{ scores.length ? t('groups.tracks.scoreMore') : t('groups.tracks.scoreAdd') }}
+                            <input type="file" class="sr-only" multiple :accept="SCORE_ACCEPT" data-score-input @change="addScores($event.target.files); $event.target.value = ''" />
+                        </label>
+                        <p v-if="tracksErrors?.scoreIds" class="field-error" role="alert">{{ tracksErrors.scoreIds }}</p>
+                    </fieldset>
                     <fieldset class="space-y-2" data-tracks-rights>
                         <legend class="label">{{ t('groups.tracks.rights') }}</legend>
                         <label v-for="(words, r) in RIGHTS" :key="r" class="radio-card">
                             <input v-model="tracks.rights" type="radio" name="tracks-rights" class="radio mt-px" :value="r" />
-                            <span><span class="block font-semibold text-cream">{{ t(words.name) }}</span><span class="block text-sm text-muted">{{ t(words.hint) }}</span></span>
+                            <span><span class="block font-semibold text-cream">{{ t(words.name) }}</span><span class="block text-sm text-muted">{{ t(words.sentence) }}</span></span>
                         </label>
                         <p class="text-sm text-muted">{{ t('groups.tracks.rightsOther') }}</p>
                         <p v-if="tracksErrors?.rights" class="field-error" role="alert">{{ tracksErrors.rights }}</p>
@@ -358,11 +411,11 @@ export const GroupView = {
                     <Field :label="t('groups.tracks.note')" :error="tracksErrors?.note" v-slot="f">
                         <textarea :id="f.id" v-model="tracks.note" class="input min-h-24" maxlength="2000" :placeholder="t('groups.tracks.notePlaceholder')" :aria-describedby="f.describedby"></textarea>
                     </Field>
-                    <label class="check-row rounded-2xl bg-raised p-3"><input v-model="tracks.confirmed" type="checkbox" class="checkbox" data-tracks-confirm /><span>{{ t('groups.tracks.confirm') }}</span></label>
                     <p v-if="tracksError" class="field-error" role="alert">{{ tracksError }}</p>
-                    <div class="flex justify-end gap-3">
+                    <div class="flex flex-wrap items-center justify-end gap-3">
+                        <p v-if="tracksNeeds" class="me-auto text-sm text-muted" data-tracks-needs>{{ tracksNeeds }}</p>
                         <button type="button" class="btn-secondary" @click="asking = false">{{ t('common.cancel') }}</button>
-                        <button type="submit" class="btn-primary" :disabled="busy || !tracks.piece.trim() || !tracks.rights || !tracks.confirmed">{{ busy ? t('groups.tracks.sending') : t('groups.tracks.send') }}</button>
+                        <button type="submit" class="btn-primary" :disabled="busy || !!tracksNeeds">{{ busy ? t('groups.tracks.sending') : t('groups.tracks.send') }}</button>
                     </div>
                 </form>
             </Modal>
@@ -424,6 +477,14 @@ export const GroupView = {
             if (this.director) return null;
             return this.group?.songs.find((s) => this.myPart(s) && this.myPart(s).status !== 'recorded')?.templateId ?? null;
         },
+        /** What the request still needs before it can go (shown beside Send), or null. */
+        tracksNeeds() {
+            if (!this.tracks.piece.trim()) return t('groups.tracks.needsPiece');
+            if (this.scores.some((f) => f.status === 'uploading')) return t('groups.tracks.needsSending');
+            if (!this.scores.some((f) => f.status === 'ready')) return t('groups.tracks.needsScore');
+            if (!this.tracks.rights) return t('groups.tracks.needsRights');
+            return null;
+        },
         /** The director first, then the singers as they joined. */
         members() {
             return [...(this.group?.members ?? [])].sort((a, b) => (a.role === 'director' ? -1 : b.role === 'director' ? 1 : 0));
@@ -443,9 +504,57 @@ export const GroupView = {
             try {
                 this.group = (await api.groups.show(this.id)).data;
                 this.loadParts();
+                this.loadRequests();
             } catch (error) {
                 this.failed = refusal(error);
             }
+        },
+        /** The songs the director sent us, and where each has got to (nothing for a member). */
+        async loadRequests() {
+            if (!this.director) return;
+            try {
+                this.requests = (await api.groups.tracks.list(this.id)).data;
+            } catch (error) {
+                console.warn('The tracks requests did not load', error);
+            }
+        },
+        /** A delivered request's song: it's in the group, so it opens as the group's songs do. */
+        openRequest(r) {
+            const song = this.group.songs.find((s) => s.templateId === r.song.id);
+            if (song) this.learn(song);
+            else navigate('/t/' + r.song.id);
+        },
+        /** The score's files, each sent as it's picked: checked here for kind and size, then by the server. */
+        addScores(files) {
+            for (const file of files) {
+                if (this.scores.length >= SCORE_FILES) {
+                    toast(t('groups.tracks.scoreTooMany', { count: SCORE_FILES }), { tone: 'error' });
+                    break;
+                }
+                const type = scoreType(file);
+                const entry = { key: crypto.randomUUID(), name: file.name, id: null, status: 'failed', error: null };
+                if (!type) entry.error = t('groups.tracks.scoreWrongKind', { name: file.name });
+                else if (file.size > SCORE_BYTES) entry.error = t('groups.tracks.scoreTooBig', { name: file.name });
+                else entry.status = 'uploading';
+                this.scores.push(entry);
+                if (entry.status === 'uploading') this.sendScore(this.scores.at(-1), file, type);
+            }
+        },
+        async sendScore(entry, file, contentType) {
+            try {
+                const { data, upload } = await api.groups.tracks.scores.create(this.id, { name: file.name.slice(0, 200), contentType, bytes: file.size, sha256: await sha256(file) });
+                entry.id = data.id;
+                await uploadTo(upload, file);
+                await api.groups.tracks.scores.complete(this.id, data.id);
+                entry.status = 'ready';
+            } catch (error) {
+                entry.status = 'failed';
+                entry.error = scoreRefusal(error);
+            }
+        },
+        /** Takes a file out of the request (the server deletes a file no request uses, a day on). */
+        removeScore(i) {
+            this.scores.splice(i, 1);
         },
         /** Each song's parts (for assigning), loaded as each song is. */
         async loadParts() {
@@ -640,11 +749,14 @@ export const GroupView = {
             const f = this.tracks;
             const trimmed = (v) => v.trim() || undefined;
             try {
-                await api.groups.tracks.create(this.id, { piece: f.piece.trim(), composer: trimmed(f.composer), voicing: trimmed(f.voicing), note: trimmed(f.note), rights: f.rights, rightsConfirmed: f.confirmed });
-                this.tracksSent = true;
-                this.tracks = { piece: '', composer: '', voicing: '', note: '', rights: '', confirmed: false };
+                const scoreIds = this.scores.filter((s) => s.status === 'ready').map((s) => s.id);
+                await api.groups.tracks.create(this.id, { piece: f.piece.trim(), composer: trimmed(f.composer), voicing: trimmed(f.voicing), note: trimmed(f.note), rights: f.rights, rightsConfirmed: true, scoreIds });
+                this.tracksSent = f.piece.trim();
+                this.tracks = { piece: '', composer: '', voicing: '', note: '', rights: '' };
+                this.scores = [];
+                this.loadRequests();
             } catch (error) {
-                if (error?.code === 'validation_failed' && error.errors) this.tracksErrors = Object.fromEntries(Object.entries(error.errors).map(([k, v]) => [k === 'rightsConfirmed' ? 'rights' : k, Array.isArray(v) ? v[0] : v]));
+                if (error?.code === 'validation_failed' && error.errors) this.tracksErrors = Object.fromEntries(Object.entries(error.errors).map(([k, v]) => [k === 'rightsConfirmed' ? 'rights' : k.startsWith('scoreIds') ? 'scoreIds' : k, Array.isArray(v) ? v[0] : v]));
                 else if (error?.code === 'rate_limited') this.tracksError = t('groups.tracks.tooMany');
                 else this.tracksError = refusal(error);
             } finally {

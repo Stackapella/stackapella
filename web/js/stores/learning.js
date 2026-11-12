@@ -201,9 +201,11 @@ export async function syncLearning() {
         await loadLearning();
         if (!readOk) return;
         let theirs = (await api.account.learning.show()).data;
-        // The course was started over (here or on another device) since this device last heard:
-        // the account's progress replaces this one, never merged (a merge would bring it all back).
-        if ((theirs.epoch ?? 0) !== learning.epoch) await takeTheirs(theirs);
+        // The course was started over on the account (on another device) since this device last heard: the account's
+        // progress replaces this one, never merged (a merge would bring it all back).
+        const step = epochStep(theirs.epoch ?? 0, learning.epoch);
+        if (step === 'take') await takeTheirs(theirs);
+        else if (step === 'adopt') await adoptEpoch(theirs.epoch ?? 0);
         for (let attempt = 0; attempt < 3; attempt++) {
             const merged = mergeProgress(learning.progress, Object.keys(theirs.progress ?? {}).length ? { ...emptyProgress(), ...theirs.progress } : null);
             if (!same(merged, learning.progress)) {
@@ -226,6 +228,23 @@ export async function syncLearning() {
         }
     })().finally(() => (sending = null));
     return sending;
+}
+
+/**
+ * What a sync does with the two epochs (start-over counts): 'take' the account's progress when it started over since this
+ * device last heard; 'adopt' its epoch when this device started over where the account didn't (a guest who started over,
+ * then signed up: taking the account's empty progress instead lost their whole first week), merging as usual; else 'merge'.
+ */
+export function epochStep(theirs, mine) {
+    return theirs > mine ? 'take' : theirs < mine ? 'adopt' : 'merge';
+}
+
+/** The account's epoch as this device's, its progress kept (merged with the account's next). */
+async function adoptEpoch(epoch) {
+    learning.epoch = epoch;
+    learning.undoUntil = null; // the device's own start-over isn't the account's to undo
+    await db.put('learning', { epoch, undoUntil: null, snapshot: null }, 'reset');
+    tabs?.postMessage('saved');
 }
 
 /** The account's progress as this device's, after a start-over (theirs is newer by its epoch). */

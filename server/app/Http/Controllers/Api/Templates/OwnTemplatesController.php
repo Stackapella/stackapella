@@ -51,7 +51,7 @@ final class OwnTemplatesController extends Controller
         $parent = $request->validated('parentId');
         $copiedFrom = $request->validated('copiedFrom');
         $saved = $templates->save($user, $template, $json, is_string($visibility) ? $visibility : null, $optIn === null ? null : (bool) $optIn, $declaration, is_string($parent) ? $parent : null,
-            imported: $request->validated('source') === Imported::SOURCE, copiedFrom: is_string($copiedFrom) ? $copiedFrom : null);
+            imported: $request->validated('source') === Imported::SOURCE, copiedFrom: is_string($copiedFrom) ? $copiedFrom : null, rights: is_string($rights = $request->validated('rights')) ? $rights : null);
 
         return $this->template($saved);
     }

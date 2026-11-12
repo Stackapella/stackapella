@@ -8,6 +8,7 @@ use App\Enums\TemplateAccess;
 use App\Http\Controllers\Controller;
 use App\Models\Template;
 use App\Support\Http\Hosts;
+use App\Support\Languages\Dates;
 use App\Support\Pages\Carols;
 use App\Support\Pages\Landing;
 use App\Support\Pages\SongCollections;
@@ -58,7 +59,7 @@ final class SongPagesController extends Controller
             'try' => Landing::lineOf('silent-night') ?? Landing::lineOf('amazing-grace'),
             'rounds' => in_array('rounds', array_column(app(SongCollections::class)->open(), 'slug'), true) ? SongCollections::path('rounds') : null,
             // The season band's chip: when it ends (Carols::seasonEnds).
-            'until' => Carols::seasonEnds()->translatedFormat('j F'),
+            'until' => Dates::dayMonth(Carols::seasonEnds()),
             'meta' => ['title' => __('pages.songs.title'), 'description' => __('pages.songs.description'), 'url' => Hosts::publicUrl().'/songs'],
         ], 200, self::headers());
     }

@@ -1,5 +1,5 @@
 {{-- A songbook (the carols page and the song collections, SongCollections): each song as a card, its number, an optional
-     place-and-year chip (`places`: a words key whose children are by song), its first line to play (mixer.js), its line
+     place-and-year chip (`places`: a words key whose children are by song; or `chips`, a tag by song, the Jewish songs' festivals), its first line to play (mixer.js), its line
      from the song file and its parts as rows to their pages; with an "I sing" filter that rings one part on every card
      (js/public/carols.js). `songs` are Carols::card()s; `heading`, `sub` and `subPart` (":part") are the page's words. --}}
 @php($singParts = collect($songs)->flatMap(fn (array $song): array => $song['parts'])->unique('key')->mapWithKeys(fn (array $part): array => [$part['key'] => $part['name']])->all())
@@ -32,7 +32,9 @@
                     <article id="carol-{{ $carol['slug'] }}" class="s-xcard s-xrib{{ $loop->index % 3 + 1 }}" aria-labelledby="carol-{{ $carol['slug'] }}-h" @if ($carol['line'] !== null) data-player @endif>
                         <div class="s-xcard-top">
                             <span class="s-xno s-xserif"><x-site.skin :game="__('site.carols.game.stage', ['n' => sprintf('%02d', $loop->iteration)])" :serious="__('site.carols.number', ['n' => sprintf('%02d', $loop->iteration)])" /></span>
-                            @if ($places !== null && trans()->has($places.'.'.$carol['slug']))
+                            @if (($chips ?? null) !== null && isset($chips[$carol['slug']]))
+                                <span class="s-xplace">{{ $chips[$carol['slug']] }}</span>
+                            @elseif ($places !== null && trans()->has($places.'.'.$carol['slug']))
                                 <span class="s-xplace">{{ __($places.'.'.$carol['slug']) }}</span>
                             @endif
                             {{-- Its first line in every part, in the guide voices (mixer.js), one carol at a time. --}}

@@ -190,28 +190,55 @@ def journey(f):
     assert first == "band-groups", f"the choir before the library: {first}"
     f.run("sessionStorage.removeItem('stackapella.mockChoirMember'); sessionStorage.removeItem('stackapella.mockAccount')")
 
-    # Learning tracks of the choir's own piece (docs/choir-tracks-plan.md): one quiet line, the director's only; the form says
-    # whose music it may be, plainly, and that we'll email for the score; nothing but its fields is sent.
+    # Send us your song (docs/choir-tracks-plan.md): one quiet line, the director's only. The form takes the piece, the
+    # score's files (each sent as it's picked: scores.create, the PUT, complete) and one of the two rights sentences,
+    # word for word the server's; Send waits for all three and says what's missing. Nothing but its fields is sent.
+    ADD = """const input = document.querySelector('[data-score-input]'); const dt = new DataTransfer();
+        dt.items.add(new File(['%%PDF-1.4 a score'], %s, { type: %s })); input.files = dt.files; input.dispatchEvent(new Event('change', { bubbles: true }));"""
     f.go("/groups/Gp4rQs?api=mock&scenario=&as=plus", "document.querySelector('[data-ask-tracks]')")
+    # The songs sent before, and where each has got to: a delivered one is ready, with Open.
+    f.wait("document.querySelector('[data-tracks-requests] [data-tracks-request=delivered] [data-tracks-open]')", what="the requests, one ready to open")
+    f.wait_text(t(f, "groups.tracks.status.received"))
     f.click_t("groups.tracks.askLink")
     f.wait("document.querySelector('[data-tracks-form]')", what="the tracks form")
-    f.wait_text(t(f, "groups.tracks.publicDomainHint"))
+    f.wait_text(t(f, "groups.tracks.publicDomainSentence"))
     f.shot("tracks-form")
     send = "document.querySelector('[data-tracks-form] button[type=submit]')"
+    needs = "document.querySelector('[data-tracks-needs]')?.textContent.trim()"
     f.type("[data-tracks-form] input[maxlength='200']", "God So Loved the World")
-    assert f.js(f"{send}.disabled"), "not before the rights are chosen and confirmed"
-    f.run("document.querySelector('[data-tracks-rights] input[value=public-domain]').click(); document.querySelector('[data-tracks-confirm]').click()")
+    assert f.js(f"{send}.disabled") and f.js(needs) == t(f, "groups.tracks.needsScore"), f.js(needs)
+    # A file that isn't a score never goes.
     f.run("window.mockBodies = [];")
+    f.run(ADD % ('"notes.txt"', '"text/plain"'))
+    f.wait_text(t(f, "groups.tracks.scoreWrongKind", {"name": "notes.txt"}))
+    assert not f.js("window.mockBodies.some((b) => b.operation === 'groups.tracks.scores.create')"), "a text file was sent"
+    f.run("document.querySelector('[data-score=failed] button').click()")
+    # A PDF goes, and is ready; its type and size are what the server is told.
+    f.run(ADD % ('"God So Loved the World.pdf"', '""'))
+    f.wait("document.querySelector('[data-score=ready]')", what="the file sent and checked")
+    sent = f.js("window.mockBodies.find((b) => b.operation === 'groups.tracks.scores.create')?.body")
+    assert sent["contentType"] == "application/pdf" and sent["bytes"] == 16 and len(sent["sha256"]) == 64, sent
+    assert f.js(f"{send}.disabled") and f.js(needs) == t(f, "groups.tracks.needsRights"), f.js(needs)
+    f.run("document.querySelector('[data-tracks-rights] input[value=public-domain]').click()")
+    f.wait(f"!{send}.disabled", what="Send open")
+    f.shot("tracks-ready")
     f.run(f"{send}.click()")
     f.wait("document.querySelector('[data-tracks-sent]')", what="sent")
     body = f.js("window.mockBodies.find((b) => b.operation === 'groups.tracks.create')?.body")
-    assert body == {"piece": "God So Loved the World", "rights": "public-domain", "rightsConfirmed": True}, body
+    assert body == {"piece": "God So Loved the World", "rights": "public-domain", "rightsConfirmed": True, "scoreIds": ["Sc0rE1"]}, body
     f.shot("tracks-sent")
+    # A file that isn't what it says: the server's check, said plainly.
+    f.go("/groups/Gp4rQs?api=mock&scenario=groups.tracks.scores.complete:score_type&as=plus", "document.querySelector('[data-ask-tracks]')")
+    f.click_t("groups.tracks.askLink")
+    f.run(ADD % ('"Shenandoah.pdf"', '"application/pdf"'))
+    f.wait_text(t(f, "groups.tracks.scoreType"))
     # Five an hour: said plainly.
     f.go("/groups/Gp4rQs?api=mock&scenario=groups.tracks.create:rate_limited&as=plus", "document.querySelector('[data-ask-tracks]')")
     f.click_t("groups.tracks.askLink")
     f.type("[data-tracks-form] input[maxlength='200']", "Shenandoah")
-    f.run("document.querySelector('[data-tracks-rights] input[value=own-arrangement]').click(); document.querySelector('[data-tracks-confirm]').click()")
+    f.run(ADD % ('"Shenandoah.musicxml"', '""'))
+    f.wait("document.querySelector('[data-score=ready]')", what="the MusicXML sent")
+    f.run("document.querySelector('[data-tracks-rights] input[value=own-arrangement]').click()")
     f.run(f"{send}.click()")
     f.wait_text(t(f, "groups.tracks.tooMany"))
     # A member never sees it.

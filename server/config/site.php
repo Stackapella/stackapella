@@ -26,6 +26,15 @@ return [
     // landing's one line and the seasonal links on choir pages show from this month-day to this one, then hide by
     // themselves (App\Support\Pages\Carols::promoted). The carols page itself stays.
     'carols_promoted' => ['from' => '11-01', 'until' => '12-26'],
+    // The Jewish songs page's countdown and /songs's season for it (App\Support\Pages\JewishSongs): each festival's first
+    // evening and its last day, from Hebcal (the coordinator, 2026-11-11). Add the next year's before the last one passes;
+    // with none ahead, the countdown simply isn't shown.
+    'jewish_festivals' => [
+        ['key' => 'hanukkah', 'from' => '2026-12-04', 'until' => '2026-12-12'],
+        ['key' => 'tu-bishvat', 'from' => '2027-01-22', 'until' => '2027-01-23'],
+        ['key' => 'purim', 'from' => '2027-03-22', 'until' => '2027-03-23'],
+        ['key' => 'passover', 'from' => '2027-04-21', 'until' => '2027-04-29'],
+    ],
 
     'contact_email' => env('SITE_CONTACT_EMAIL') ?: 'contact@stackapella.com',
 

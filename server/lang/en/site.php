@@ -1619,6 +1619,45 @@ return [
             // On each of its songs' pages and part pages (SongCollections::home).
             'more' => 'More hymns, part by part',
         ],
+        // Google's suggestions, 2026-11-11: "jewish songs", "traditional jewish songs" (with Shabbat and kids), "hanukkah songs"
+        // (the big seasonal one, "hanukkah songs for choir" too), "passover songs", "shabbat songs"; no Search Console
+        // impressions for any of them yet (the coordinator's pull, 2026-11-11). Every tune printed before 1931 (the
+        // arranger's research, docs/collections/); God's names sung in the substituted forms, as each song's page says (Hillel).
+        'jewish-songs' => [
+            'title' => 'Jewish Songs for Hanukkah, Passover and Shabbat',
+            'description' => 'Traditional Jewish songs for Hanukkah, Passover and Shabbat in four-part harmony, free: learn your part by ear and sing it with a choir or family.',
+            'crumb' => 'Jewish songs',
+            // Its panel on /songs out of season (public/songs.blade.php).
+            'band' => 'Jewish songs',
+            'band_em' => 'for the festivals',
+            'band_line' => 'Hanukkah, Passover and Shabbat songs, for your choir or your family.',
+            // /songs's way to the page (SongsHub): how many there are.
+            'all' => 'All :count Jewish songs',
+            'headline' => 'Traditional Jewish songs,',
+            'headline_em' => 'part by part',
+            'lead' => 'Learn your part of a Hanukkah, Passover or Shabbat song, then sing it with your choir or your family. Free, in your browser, no account.',
+            'intro' => [
+                'Hanukkah songs for choir, and songs for the Passover seder and for Shabbat, each in four parts: learn the tune or a harmony by ear, hear it with the other voices, then sing it together.',
+                'Every song here comes from a printing before 1931. Maoz Tzur and Oy Chanukah are our own four parts on the harmonies A. Z. Idelsohn printed in 1912 and Pesach Lvov wrote for Susman Kisselgof\'s songbook of 1911 and 1912; Ein Keloheinu is adapted from the Union Hymnal\'s four parts of 1897; the rest are our own four-part arrangements. Where a Hebrew song names God, it is sung in the substituted forms customary when singing outside prayer, as its page says.',
+            ],
+            'pick' => 'Pick a song',
+            'songbook' => 'The songs',
+            'songbook_sub' => 'Pick your part, or press play to hear how each song begins.',
+            'songbook_part' => 'Showing your :part part in every song. Press play to hear it with the others.',
+            'list' => 'Traditional Jewish songs to sing in four parts',
+            'try_link' => 'Learn a Jewish song, free',
+            'songs_link' => 'Jewish songs, part by part',
+            // On each of its songs' pages and part pages (SongCollections::home).
+            'more' => 'More Jewish songs, part by part',
+            // Each card's festival, from its file's genre (App\Support\Pages\JewishSongs::tag), and the hero's countdown.
+            'festivals' => ['hanukkah' => 'Hanukkah', 'passover' => 'Passover', 'purim' => 'Purim', 'shabbat' => 'Shabbat', 'tu-bishvat' => 'Tu BiShvat', 'every-day' => 'Every day'],
+            'count_label' => 'The next festival',
+            'count_on_label' => 'On now',
+            'count_tonight' => 'begins at sundown tonight',
+            'count_in' => '{1} begins at sundown tomorrow|[2,*] begins at sundown in :count days',
+            'count_from' => 'First evening :date',
+            'count_until' => 'Until :date',
+        ],
         // Google's suggestions, 2026-11-10: "spirituals for choir", "spirituals satb", "easy spirituals for choir",
         // "african american spirituals satb". The courses lead checked the history (2026-11-10).
         'spirituals' => [

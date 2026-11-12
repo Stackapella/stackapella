@@ -78,7 +78,7 @@ return [
         'free_title' => 'Every song, free',
         // /songs in groups (SongCollections::grouped), and the row that jumps to them.
         'groups' => [
-            'christmas' => 'Christmas', 'rounds' => 'Rounds', 'spirituals' => 'Spirituals', 'hymns' => 'Hymns',
+            'christmas' => 'Christmas', 'jewish-songs' => 'Jewish songs', 'rounds' => 'Rounds', 'spirituals' => 'Spirituals', 'hymns' => 'Hymns',
             'sea-shanties' => 'Sea shanties', 'folk' => 'Folk songs', 'classical' => 'Classical and sacred', 'stage' => 'Barbershop, parlour and stage', 'more' => 'More songs',
         ],
         'jump' => 'Song groups',

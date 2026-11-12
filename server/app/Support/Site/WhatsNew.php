@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Support\Site;
 
+use App\Support\Languages\Dates;
 use Illuminate\Support\Carbon;
 use InvalidArgumentException;
 
@@ -33,7 +34,7 @@ final class WhatsNew
 
         $list = array_values(array_map(static fn (mixed $e): array => [
             'date' => (string) ($e['date'] ?? ''),
-            'day' => Carbon::parse((string) ($e['date'] ?? ''))->isoFormat('D MMMM YYYY'),
+            'day' => Dates::dayMonthYear(Carbon::parse((string) ($e['date'] ?? ''))),
             'title' => (string) ($e['title'] ?? ''),
             'body' => (string) ($e['body'] ?? ''),
         ], $entries));

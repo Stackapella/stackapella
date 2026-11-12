@@ -46,10 +46,21 @@
                         @include('site._share', ['surface' => 'page-collection', 'url' => $canonical, 'title' => $title, 'name' => __($words.'.crumb'), 'lg' => true])
                     </div>
                 </div>
+                {{-- The Jewish songs page's countdown to its next festival (App\Support\Pages\JewishSongs::festival). --}}
+                @if (($festival ?? null) !== null)
+                    <aside class="s-jcount" aria-labelledby="jcount-k">
+                        <p id="jcount-k" class="s-jcount-k">{{ $festival['on'] ? __($words.'.count_on_label') : __($words.'.count_label') }}</p>
+                        <p class="s-jcount-n s-xserif">{{ __($words.'.festivals.'.$festival['key']) }}</p>
+                        <p class="s-jcount-line">{{ $festival['on'] ? __($words.'.count_until', ['date' => $festival['until']->translatedFormat('l j F')]) : ($festival['days'] === 0 ? __($words.'.count_tonight') : trans_choice($words.'.count_in', $festival['days'], ['count' => $festival['days']])) }}</p>
+                        @unless ($festival['on'])
+                            <p class="s-jcount-date">{{ __($words.'.count_from', ['date' => $festival['from']->translatedFormat('l j F')]) }}</p>
+                        @endunless
+                    </aside>
+                @endif
             </div>
         </section>
 
-        @include('site._songbook', ['songs' => $songs, 'heading' => __($words.'.songbook'), 'sub' => __($words.'.songbook_sub'), 'subPart' => __($words.'.songbook_part'), 'places' => null])
+        @include('site._songbook', ['songs' => $songs, 'heading' => __($words.'.songbook'), 'sub' => __($words.'.songbook_sub'), 'subPart' => __($words.'.songbook_part'), 'places' => null, 'chips' => $chips ?? null])
 
         @include('site.tools._about', ['tie' => __('site.carols.tie'), 'tryLink' => __($words.'.try_link'), 'try' => \App\Support\Http\Hosts::app('/?ref=songs'), 'links' => ['app' => \App\Support\Http\Hosts::app('/')]])
         @include('site.tools._directory', ['directory' => \App\Support\Site\SitePages::directory()])

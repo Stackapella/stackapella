@@ -546,14 +546,15 @@ function coverRow(seed, row) {
  * colour). With the song (`song`: its template, from the catalogue or carried), each row is a
  * miniature of that part: a dash per phrase where it sings, a gap for each rest, a late entry set in,
  * each dash nudged by its phrase's pitch (js/song-shape.js). Without it (`voices` or `parts` only),
- * plain dashes, varied by `seed`.
+ * plain dashes, varied by `seed`. `mine` (part keys) marks the parts that are your takes: game mode lights those rows
+ * and leaves the others hollow, like bulbs filling.
  */
 export const SongCover = {
-    props: { parts: { type: Number, default: 0 }, voices: { type: Array, default: null }, seed: { type: Number, default: 0 }, song: { type: Object, default: null } },
+    props: { parts: { type: Number, default: 0 }, voices: { type: Array, default: null }, seed: { type: Number, default: 0 }, song: { type: Object, default: null }, mine: { type: Array, default: null } },
     template: `
         <span class="flex h-28 flex-col justify-end rounded-2xl border border-edge bg-panel px-5 pb-6" :class="rows.length > 4 ? 'gap-1.5' : 'gap-2.5'" aria-hidden="true" :data-cover="shaped ? 'song' : 'plain'">
             <template v-if="shaped">
-                <span v-for="row in rows" :key="row.i" class="relative block h-1.5" data-cover-row :data-part="row.key">
+                <span v-for="row in rows" :key="row.i" class="relative block h-1.5" data-cover-row :data-part="row.key" :data-mine="mine ? (mine.includes(row.key) ? 'yes' : 'no') : null">
                     <span v-for="(d, k) in row.shape" :key="k" class="absolute top-0 h-full rounded-full" data-cover-dash
                         :style="{ insetInlineStart: d[0] / 10 + '%', width: 'max(3px, calc(' + (d[1] - d[0]) / 10 + '% - 3px))', background: row.color, translate: '0 ' + -d[2] * 0.5 + 'px' }"></span>
                 </span>

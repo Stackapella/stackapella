@@ -27,6 +27,7 @@ final class SongsHub
         'spirituals' => ['swing-low', 'michael-row', 'wade-in-the-water', 'deep-river'],
         'sea-shanties' => ['drunken-sailor', 'shenandoah', 'spanish-ladies', 'leave-her-johnny'],
         'rounds' => ['are-you-sleeping', 'row-row-row', 'three-blind-mice', 'londons-burning'],
+        'jewish-songs' => ['maoz-tzur', 'oy-chanukah', 'adir-hu', 'ein-keloheinu'],
     ];
 
     /** How many songs a band samples (a phone shows the first three). */
@@ -60,7 +61,10 @@ final class SongsHub
             $cards = array_values(array_filter($this->collections->songs($slug), fn (array $card): bool => ! ($season && Carols::has($card['slug']))));
             $panels[] = ['key' => $slug, 'path' => $open['path'], 'count' => count($this->collections->members($slug)), 'season' => false, 'samples' => self::pick($cards, self::SAMPLES[$slug] ?? [], $slug)];
         }
-        usort($panels, static fn (array $a, array $b): int => $b['count'] <=> $a['count']);
+        // The biggest first; the Jewish songs first of all around Hanukkah and Passover (JewishSongs::inSeason), right after
+        // the carols' band in December.
+        $first = JewishSongs::inSeason() ? JewishSongs::SLUG : null;
+        usort($panels, static fn (array $a, array $b): int => [$b['key'] === $first, $b['count']] <=> [$a['key'] === $first, $a['count']]);
         $bands = [...$bands, ...$panels];
 
         // Out of season the carols aren't a band (their songs are in the A to Z); /songs points to the page only in season.

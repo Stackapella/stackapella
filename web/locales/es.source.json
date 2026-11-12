@@ -2122,6 +2122,7 @@
             "ideasHint": "Tunes people wrote, waiting for real voices. Add yours to one."
         },
         "yours": {
+            "partsYou": "{mine, plural, one {# of {count} parts is you} other {# of {count} parts are you}}",
             "written": "Written by you",
             "sheet": "From sheet music",
             "draftTag": "Draft",
@@ -3831,16 +3832,15 @@
             "voicingPlaceholder": "SATB, divisi in the tenors",
             "rights": "Whose music is it?",
             "publicDomain": "In the public domain",
-            "publicDomainHint": "Everyone whose work it uses (the composer, the words, any arranger or translator) died more than 70 years ago, and it was printed before 1931.",
+            "publicDomainSentence": "I confirm this piece is in the public domain: everyone whose work it uses (composer, lyricist, arranger, translator) died more than 70 years ago, and the music was printed before 1931.",
             "ownArrangement": "Our own arrangement",
-            "ownArrangementHint": "You or a member of your choir arranged it, and the choir may use it.",
+            "ownArrangementSentence": "I confirm this is our choir's own arrangement: I or a member of the choir arranged it, and the choir may use it.",
             "rightsOther": "For now we can only make tracks of these two kinds, not of a published arrangement still in copyright.",
             "note": "Anything we should know?",
             "notePlaceholder": "Our key and tempo, the verses we sing, any cuts",
-            "confirm": "I confirm what I've said above about this piece's rights.",
             "send": "Send",
             "sending": "Sending",
-            "sent": "Thanks. We'll email you at {email} to ask for the score.",
+            "sent": "Thanks. We'll make the tracks for {piece} and put the song in this group. It shows here when it's ready.",
             "tooMany": "You've asked a few times in the last hour. Try again a little later."
         },
         "rehearsal": {

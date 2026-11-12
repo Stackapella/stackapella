@@ -3150,7 +3150,10 @@ first save (they stay as they were).
 
 **Imported sheet music:** a song made from a score the singer brought sends `"source": "sheet-music"`
 with `"rightsConfirmed": true` (required with that source; the server keeps when, as
-`rightsConfirmedAt`, and nothing about the file). "Make a copy" sends `"copiedFrom": "<the template's
+`rightsConfirmedAt`, and nothing about the file), and `"rights"`, which of "Send us your song"'s two sentences
+the singer confirmed (`public-domain` or `own-arrangement`; optional, ignored without that source): the server
+keeps it word for word as the song's rights record, with who confirmed it and where, as Give this song keeps a
+partner's. A copy of it keeps the same record. "Make a copy" sends `"copiedFrom": "<the template's
 id>"` (one the person may open, else `404`): a copy of an imported song is imported too, and
 only its owner may copy it (anyone else, such as a member of a group it's shared with, is `422`
 `imported_private`). An imported
