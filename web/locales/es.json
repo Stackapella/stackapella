@@ -1718,7 +1718,14 @@
             "free": "Gratis, sin tarjeta y sin periodo de prueba.",
             "email": "Prefiero usar mi correo",
             "signIn": "¿Ya tienes una cuenta? Entrar",
-            "keepLessons": "{count, plural, one {Tu lección} other {Tus # lecciones}} de este curso hasta ahora"
+            "keepLessons": "{count, plural, one {Tu lección} other {Tus # lecciones}} de este curso hasta ahora",
+            "songFirst": "O canta antes una canción",
+            "sendLink": "Enviarme el enlace",
+            "shareText": "Mi próxima lección de canto: {title}",
+            "calendar": "Añadir mañana a mi calendario",
+            "morning": "Por la mañana",
+            "evening": "Por la tarde",
+            "calendarTitle": "Cantar: {title}"
         },
         "yours": "Tus cursos",
         "progressShort": "{done} de {total}",

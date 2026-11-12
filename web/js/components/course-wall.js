@@ -20,6 +20,8 @@ import { midiName } from '../dsp.js';
 import { Icon } from './icon.js';
 import { game } from '../skin.js';
 import { addTomorrow, nextUpLine, sendMyselfTheLink } from '../next-up.js';
+import { countUnitSong, unitSongProject } from '../unit-song.js';
+import { toast } from './ui.js';
 
 const PROVIDERS = { google: tk('auth.google'), apple: tk('auth.apple') };
 
@@ -56,7 +58,8 @@ export const CourseWall = {
             </p>
             <!-- One quiet way back for a guest not making an account yet, idea 2: a text link, never a button. The share sheet
                  where the device has one, else one calendar entry for tomorrow, morning or evening, made here. -->
-            <p class="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm" data-wall-back>
+            <div class="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
+            <p class="flex flex-wrap items-center gap-x-4 gap-y-2" data-wall-back>
                 <button v-if="canShare" type="button" class="link inline-flex min-h-6 items-center" data-wall-send @click="sendMyselfTheLink(lessonId)">{{ t('courses.wall.sendLink') }}</button>
                 <button v-else-if="!choosingTime" type="button" class="link inline-flex min-h-6 items-center" data-wall-calendar @click="choosingTime = true">{{ t('courses.wall.calendar') }}</button>
                 <template v-else>
@@ -65,8 +68,12 @@ export const CourseWall = {
                     <button type="button" class="link inline-flex min-h-6 items-center" data-wall-calendar-at="evening" @click="addTomorrow(lessonId, 'evening')">{{ t('courses.wall.evening') }}</button>
                 </template>
             </p>
+            <!-- Unit 1's song (retention row 8, idea 4): for a guest not ready for an account, a minute inside a real song first,
+                 opened straight in Sing along on its tune. Beside the way back, its own element; the free course's full wall only. -->
+            <p v-if="song" class="flex items-center" data-wall-song><button type="button" class="link inline-flex min-h-6 items-center" :disabled="songOpening" data-wall-song-open @click="singSong">{{ t('courses.wall.songFirst') }}</button></p>
+            </div>
         </section>`,
-    data: () => ({ uid: 'wall-' + Math.random().toString(36).slice(2, 8), choosingTime: false, canShare: typeof navigator.share === 'function' }),
+    data: () => ({ uid: 'wall-' + Math.random().toString(36).slice(2, 8), choosingTime: false, canShare: typeof navigator.share === 'function', songOpening: false }),
     computed: {
         next: (vm) => '/learn/' + vm.lessonId,
         nextUp: (vm) => nextUpLine(vm.lessonId),
@@ -77,6 +84,8 @@ export const CourseWall = {
             const { arm, ready } = experiment('wall1');
             return ready && arm ? arm : null;
         },
+        /** Unit 1's song, offered on the free course's full wall (not a Plus course's, not the map's compact card). */
+        song: (vm) => (!vm.course && !vm.compact ? learning.course?.units?.[0]?.song ?? null : null),
         providers: () => (account.config?.methods ?? Object.keys(PROVIDERS)).filter((m) => m in PROVIDERS),
         inline: (vm) => vm.arm === 'b' && vm.providers.length > 0,
         /** What comes with the account: the stars this course has from them, their note, their place, every lesson. */
@@ -98,6 +107,7 @@ export const CourseWall = {
     mounted() {
         askShown('acct_course');
         askShown(`acct_course_${this.place}`);
+        if (this.song) countUnitSong('shown', 'wall');
     },
     methods: {
         yes() {
@@ -109,6 +119,19 @@ export const CourseWall = {
             askYes('acct_course');
             askYes(`acct_course_${this.place}`);
             providerSignIn(p, { intended: this.next });
+        },
+        /** Sing unit 1's song first: its tune in Sing along, the other voices around it (counted us_tap:wall, us_kept:wall). */
+        async singSong() {
+            this.songOpening = true;
+            try {
+                const project = await unitSongProject(this.song, { lessonId: this.lessonId, unitId: learning.course.units[0].id, place: 'wall' });
+                navigate(`/p/${project.id}/sing`);
+            } catch (error) {
+                console.error("Unit 1's song could not open from the wall", error);
+                toast(t('course.songFailed'), { tone: 'error' });
+            } finally {
+                this.songOpening = false;
+            }
         },
         notNow() {
             askNot('acct_course');

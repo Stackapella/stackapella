@@ -1718,7 +1718,14 @@
             "free": "Free, with no card and no trial.",
             "email": "Use my email instead",
             "signIn": "Already have an account? Sign in",
-            "keepLessons": "{count, plural, one {Your lesson} other {Your # lessons}} from this course so far"
+            "keepLessons": "{count, plural, one {Your lesson} other {Your # lessons}} from this course so far",
+            "songFirst": "Or sing a song first",
+            "sendLink": "Send myself the link",
+            "shareText": "My next singing lesson: {title}",
+            "calendar": "Add tomorrow to my calendar",
+            "morning": "Morning",
+            "evening": "Evening",
+            "calendarTitle": "Sing: {title}"
         },
         "yours": "Your courses",
         "progressShort": "{done} of {total}",

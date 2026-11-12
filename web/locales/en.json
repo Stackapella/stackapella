@@ -4259,6 +4259,7 @@
             "calendar": "Add tomorrow to my calendar",
             "morning": "Morning",
             "evening": "Evening",
+            "songFirst": "Or sing a song first",
             "calendarTitle": "Sing: {title}"
         },
         "yours": "Your courses",

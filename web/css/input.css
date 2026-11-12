@@ -2292,6 +2292,8 @@ a.s-spart-chip:hover { background: var(--color-raised); }
 .s-ref-head { display: grid; gap: 14px; padding-top: 40px; }
 .s-ref-head h1 { font-size: clamp(36px, 9vw, 56px); line-height: 1.04; letter-spacing: -0.025em; }
 .s-ref-lead { font-size: clamp(18px, 4.6vw, 22px); line-height: 1.45; color: color-mix(in srgb, var(--color-cream) 82%, var(--color-ink)); max-width: 46ch; }
+/* A reference index (/intervals, /chords, /voice-types): the same top, its table close under it. */
+.s-ref-head-ix + section { padding-top: 40px; }
 .s-ref-body { display: grid; gap: 36px; margin-top: 28px; }
 .s-ref-prose > .s-tool-guide + .s-tool-guide { margin-top: 36px; }
 .s-ref-prose .s-tool-guide h2 { font-size: 22px; }

@@ -62,6 +62,7 @@ import { capMinutes, capReached } from '../daily-cap.js';
 import { slowed } from '../home-today.js';
 import { BossBar, BossEnd, BossIntro } from '../components/boss.js';
 import { BOSS_PASS, bossBeaten, bossOpen, bossPercent, bossResult, challengeOf } from '../boss.js';
+import { nextUpLine } from '../next-up.js';
 
 // The song step's key line, in Sing's own words for the part that fits (views/sing.js FIT_WORDS).
 const FIT_WORDS = { real: tk('sing.realKey'), fits: tk('sing.fitsYourRange'), lower: tk('sing.fitsYourRangeLower'), higher: tk('sing.fitsYourRangeHigher'), closest: tk('course.fitClosest') };
@@ -79,12 +80,12 @@ export const LearnView = {
     // `kept`: this visit's sung steps, their results and takes by step index (a later step may build on
     // one: js/lesson-steps.js's `earlier`), emptied on replay and gone when the lesson closes.
     // `sharpen`: this lesson's place in a Sharpen up session (`{ place, total, start, nextId }`), or null.
-    data: () => ({ sharpen: null, guiding: false, step: 0, micAsked: false, result: null, done: null, ran: false, checking: false, error: null, askHeard: false, tip: null, used: false, skippedHome: false, noSound: false, skipped: false, micPermission: null, noteClip: null, kept: { results: {}, takes: {} }, titleCard: null, songLooked: false, songStep: null, songError: null, flipRestAt: null, capRest: false, capFrom: null, takesOn: {}, bossStarted: false, bossNotes: null, bossLive: 0, bossSaid: '', fitLine: '', unitSongOpening: false, slower: new URLSearchParams(location.search).get('slower') === '1' }),
+    data: () => ({ sharpen: null, guiding: false, step: 0, micAsked: false, result: null, done: null, ran: false, checking: false, error: null, askHeard: false, tip: null, used: false, skippedHome: false, noSound: false, skipped: false, micPermission: null, noteClip: null, kept: { results: {}, takes: {} }, titleCard: null, songLooked: false, songStep: null, songError: null, flipRestAt: null, capRest: false, capFrom: null, takesOn: {}, bossStarted: false, bossNotes: null, bossLive: 0, bossSaid: '', fitLine: '', unitSongOpening: false, startPending: false, slower: new URLSearchParams(location.search).get('slower') === '1' }),
     // A step's Then and now offers its card with the lesson's name and link (docs/design-rules.md, Sharing in lessons).
     provide() {
         return { lessonShare: () => this.thenShareContext };
     },
-    setup: () => ({ account, learning, STEP_KIND, localized, PART_COLORS, TIP_WORDS, HEARD, game, sk, askYes, effect, bossResult, bossBeaten , courseRules, streakMilestone }),
+    setup: () => ({ account, learning, nextUpLine, STEP_KIND, localized, PART_COLORS, TIP_WORDS, HEARD, game, sk, askYes, effect, bossResult, bossBeaten , courseRules, streakMilestone }),
     template: `
         <div data-ui="screen" class="flex min-h-dvh flex-col bg-ink">
             <!-- Game mode's title card, the first time a lesson opens (docs/game-elements-plan.md) -->
@@ -151,6 +152,8 @@ export const LearnView = {
                             <button type="button" class="chip tap-44 text-muted hover:text-cream" @click="askHeard = false">{{ t('course.heard.skip') }}</button>
                         </div>
                     </div>
+                    <!-- What waits, named (docs/retention-plan.md, idea 2), as the course wall says it: lesson 1's end is where a first session often ends. -->
+                    <p v-if="next && nextUpLine(next.id)" class="text-sm text-muted" translate="no" data-end-next-line>{{ nextUpLine(next.id) }}</p>
                     <!-- One primary way on (onboarding review 2, 7): Next lesson; sharing and singing again are quieter. -->
                     <div class="flex flex-wrap justify-center gap-3">
                         <button type="button" class="btn-primary order-first basis-full sm:order-last sm:basis-auto" @click="continueOn">{{ next ? t('course.next') : t('course.backToCourse') }}</button>
@@ -592,7 +595,11 @@ export const LearnView = {
         // The title card waits for the wall to be ruled out: once the account is known (a member opening a later lesson
         // directly) or comes after a sign-in, it plays as on any first visit.
         needsAccount(now, before) {
-            if (now === false && before !== false) this.showTitle();
+            if (now === false && before !== false) {
+                this.showTitle();
+                this.countStart(); // the lesson opens now (the account loaded, or the guest signed up): its start and its step
+                this.reachStep(this.step);
+            }
         },
         // The lesson's own step components (lesson-steps.js loads them on demand), fetched as it opens.
         'entry.lesson': { handler: (lesson) => prefetchSteps(lesson), immediate: true },
@@ -675,11 +682,10 @@ export const LearnView = {
             this.flipOpen({ check: true });
             this.capOpen({ check: true });
             tabStorage.set(`stackapella.lesson.${this.id}.reached`, ''); // a new run: its steps count afresh
-            if (!this.entry.boss) {
-                count('lesson_start'); // a lesson begun, not one come back to from Sing
-                countFor(this.entry.course ? 'pl_s' : 'fl_s', this.entry.course ? this.entry.course.id : this.entry.lesson.id); // by course, or the free course's lesson
-                if (this.entry.course) countFor('cl_s', this.entry.lesson.id); // any other course's lesson, by its own id
-            }
+            // Counted once the lesson really opens: never behind the course's account wall (a walled guest's view isn't a
+            // start: first_week_real, 2026-11-12, found every wall view counted lesson 2 started), nor before that's known.
+            this.startPending = !this.entry.boss;
+            if (this.needsAccount === false) this.countStart();
             this.beginSharpen();
             this.showTitle();
         }
@@ -1048,9 +1054,18 @@ export const LearnView = {
          * finish were lost), cs_r:<lessonId>.<step> in any other; once per step each time the lesson is run, kept for the
          * tab so coming back from Sing doesn't count again.
          */
+        /** lesson_start and the course's start, once this run, when the lesson opens (never behind the wall). */
+        countStart() {
+            if (!this.startPending || !this.entry) return;
+            this.startPending = false;
+            count('lesson_start'); // a lesson begun, not one come back to from Sing
+            countFor(this.entry.course ? 'pl_s' : 'fl_s', this.entry.course ? this.entry.course.id : this.entry.lesson.id); // by course, or the free course's lesson
+            if (this.entry.course) countFor('cl_s', this.entry.lesson.id); // any other course's lesson, by its own id
+        },
         reachStep(index) {
             const entry = this.entry;
             if (!entry || entry.boss || entry.cooldown || index === null || index === undefined) return;
+            if (this.needsAccount !== false) return; // behind the wall, or not yet known: counted when it opens
             const key = `stackapella.lesson.${this.id}.reached`;
             const reached = (tabStorage.get(key) ?? '').split(',').filter(Boolean);
             if (reached.includes(String(index))) return;

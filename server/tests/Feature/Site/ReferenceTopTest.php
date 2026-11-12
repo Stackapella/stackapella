@@ -35,6 +35,16 @@ final class ReferenceTopTest extends TestCase
         $this->assertStringNotContainsString('href="/intervals/perfect-fifth" class="s-card s-ref-fam"', $html);
     }
 
+    public function test_a_reference_index_puts_its_lead_beside_its_heading_and_its_guide_in_rows(): void
+    {
+        foreach (['/intervals', '/chords', '/voice-types'] as $path) {
+            $html = (string) $this->get($path)->assertOk()->getContent();
+
+            $this->assertMatchesRegularExpression('#<section class="s-wrap s-thead s-ref-head s-ref-head-ix".*?<h1 id="page-h">.*?</div>\s*<p class="s-ref-lead">#s', $html, $path);
+            $this->assertMatchesRegularExpression('#<div class="s-wrap s-sec2 s-tool-guides">\s*<section class="s-tool-guide"#', $html, $path);
+        }
+    }
+
     public function test_a_chord_and_a_voice_type_are_numbered_by_their_place_with_their_line(): void
     {
         $rows = Reference::rows('chords');

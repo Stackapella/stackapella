@@ -76,6 +76,23 @@ def journey(f):
         return { same: p.id === again.id, sung: [...new Set(parts.find((x) => x.melody).guide.notes.map((n) => n.lyric).filter(Boolean))], others: parts.filter((x) => !x.melody).some((x) => x.guide.notes.some((n) => n.lyric && n.lyric !== 'oo')) }; })()""")
     assert oo == {"same": True, "sung": ["oo"], "others": True}, oo
 
+    # The account wall (a guest at lesson 2): beside its one quiet way back, its own line offers unit 1's song first, opened
+    # straight in Sing along on its tune; shown and tapped counted at the wall (us_shown:wall, us_tap:wall).
+    f.run("localStorage.removeItem('stackapella.unitSong.counted')")
+    f.go("/?api=mock&scenario=&as=signedOut", "document.querySelector('#app header')")
+    f.go("/learn/1-match", "document.querySelector('[data-needs-account] [data-wall-song]')")
+    assert f.js("document.querySelectorAll('[data-wall-back] button').length") == 1, "the way back keeps its one link"
+    assert not f.js("document.querySelector('[data-wall-song] button').className.includes('btn-')"), "a text link, not a button"
+    f.wait_text(t(f, "courses.wall.songFirst"))
+    f.wait(f"{COUNTED}['us_shown:wall']", what="the wall's song counted shown")
+    f.run("document.querySelector('[data-wall-song]').scrollIntoView({ block: 'center' })")
+    f.no_sideways("the wall with the song first")
+    f.shot("wall-song")
+    f.run("document.querySelector('[data-wall-song-open]').click()")
+    f.wait("/^\\/p\\/[^/]+\\/sing$/.test(location.pathname)", what="Sing, from the wall")
+    f.wait("(async () => { const { session } = await import('/js/stores/session.js'); return session.project?.template?.id === 'michael-row' && session.focusPart?.templatePartKey === session.project.course.partKey; })()", what="unit 1's song on its tune")
+    assert f.js(COUNTED).get("us_tap:wall"), f.js(COUNTED)
+
     # A take kept in it: Home's own card for the song says how much of it is you (plan idea 4); game mode lights the
     # cover's row for your part and leaves the others hollow.
     counts = f.js("""(async () => { const { projects, openProject, savePart, loadProjects } = await import('/js/stores/projects.js');

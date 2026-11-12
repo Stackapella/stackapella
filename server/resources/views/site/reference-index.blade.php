@@ -16,10 +16,14 @@
 @section('content')
     @include('site.tools._brand-row', ['onTool' => true, 'toolName' => (string) $words['eyebrow'], 'toolSlug' => null, 'ref' => $kind])
     <main>
-        <section class="s-wrap s-thead s-thead-hub" aria-labelledby="page-h">
-            <p class="s-eyebrow"><span class="s-dots" aria-hidden="true">@foreach ([1, 2, 3, 4] as $n)<b class="s-v{{ $n }}"></b>@endforeach</span>{{ $words['eyebrow'] }}</p>
-            <h1 id="page-h">{{ $words['headline'] }}</h1>
-            <p class="s-lede">{{ $words['lead'] }}</p>
+        {{-- The reference pages' top (docs/design-rules.md, "A compact tool sits beside its words"): the heading at left
+             and the lead large at right from 900 px, then the table and the guide on the width. --}}
+        <section class="s-wrap s-thead s-ref-head s-ref-head-ix" aria-labelledby="page-h">
+            <div>
+                <p class="s-eyebrow"><span class="s-dots" aria-hidden="true">@foreach ([1, 2, 3, 4] as $n)<b class="s-v{{ $n }}"></b>@endforeach</span>{{ $words['eyebrow'] }}</p>
+                <h1 id="page-h">{{ $words['headline'] }}</h1>
+            </div>
+            <p class="s-ref-lead">{{ $words['lead'] }}</p>
         </section>
 
         <section class="s-wrap s-sec2 s-tool-guide" aria-labelledby="page-h">
@@ -33,14 +37,19 @@
             </table></div>
         </section>
 
+        {{-- Each section's heading at left and its words at right from 900 px, as on the tool pages. --}}
+        @if ((array) ($words['guide'] ?? []) !== [])
+        <div class="s-wrap s-sec2 s-tool-guides">
         @foreach ((array) ($words['guide'] ?? []) as $section)
-            <section class="s-wrap s-sec2 s-tool-guide" aria-labelledby="guide-{{ $loop->iteration }}">
+            <section class="s-tool-guide" aria-labelledby="guide-{{ $loop->iteration }}">
                 <h2 id="guide-{{ $loop->iteration }}">{{ $section['heading'] }}</h2>
                 @foreach ((array) $section['body'] as $paragraph)
                     <p>{{ $paragraph }}</p>
                 @endforeach
             </section>
         @endforeach
+        </div>
+        @endif
 
         {{-- Its lessons to go on with (marketing's map), at the end of the teaching, before About. --}}
         @include('site.courses._lessons-across', ['path' => '/'.request()->path()])
