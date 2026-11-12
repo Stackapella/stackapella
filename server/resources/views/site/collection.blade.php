@@ -51,9 +51,9 @@
                     <aside class="s-jcount" aria-labelledby="jcount-k">
                         <p id="jcount-k" class="s-jcount-k">{{ $festival['on'] ? __($words.'.count_on_label') : __($words.'.count_label') }}</p>
                         <p class="s-jcount-n s-xserif">{{ __($words.'.festivals.'.$festival['key']) }}</p>
-                        <p class="s-jcount-line">{{ $festival['on'] ? __($words.'.count_until', ['date' => $festival['until']->translatedFormat('l j F')]) : ($festival['days'] === 0 ? __($words.'.count_tonight') : trans_choice($words.'.count_in', $festival['days'], ['count' => $festival['days']])) }}</p>
+                        <p class="s-jcount-line">{{ $festival['on'] ? __($words.'.count_until', ['date' => \App\Support\Languages\Dates::weekdayDayMonth($festival['until'])]) : ($festival['days'] === 0 ? __($words.'.count_tonight') : trans_choice($words.'.count_in', $festival['days'], ['count' => $festival['days']])) }}</p>
                         @unless ($festival['on'])
-                            <p class="s-jcount-date">{{ __($words.'.count_from', ['date' => $festival['from']->translatedFormat('l j F')]) }}</p>
+                            <p class="s-jcount-date">{{ __($words.'.count_from', ['date' => \App\Support\Languages\Dates::weekdayDayMonth($festival['from'])]) }}</p>
                         @endunless
                     </aside>
                 @endif

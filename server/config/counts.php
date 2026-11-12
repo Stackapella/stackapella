@@ -198,6 +198,9 @@ return [
     // section 6): Growth says so beside a comparison whose baseline lies before one. Never adjusted.
     'breaks' => [
         '2026-11-08' => ['kinds' => '*', 'note' => 'crawlers'],
+        // The app first sent ft:<feature> and br:<n> on 12 November, about 04:05 UTC (build dde69063a; retention and
+        // frontend). The fill-in from what a device already held is never sent as ft, and br waits for it.
+        '2026-11-12' => ['kinds' => ['ft:*', 'br:*'], 'note' => 'ft and br begin; 13 November is the first whole day'],
     ],
 
     // At most this many of one kind, and this many kinds, in one request.

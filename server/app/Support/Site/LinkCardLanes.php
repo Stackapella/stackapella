@@ -22,12 +22,14 @@ final class LinkCardLanes
         'sea-shanties' => ['drunken-sailor', 'bass', 16],
         'rounds' => ['row-row-row', 'alto', 8],
         'jewish-songs' => ['maoz-tzur', 'soprano', 16],
+        'folk-songs' => ['danny-boy', 'tenor', 16],
+        'barbershop-songs' => ['down-by-the-old-mill-stream', 'lead', 16],
     ];
 
     /**
      * The lanes for a collection's card, or null when its song isn't in the library.
      *
-     * @return array{song: string, part: string, length: string, lit: int, lanes: list<list<array{x: float, w: float, y: float}>>}|null
+     * @return array{song: string, part: string, length: string, lit: int, keys: list<string>, lanes: list<list<array{x: float, w: float, y: float}>>}|null
      */
     public static function for(string $theme): ?array
     {
@@ -70,9 +72,19 @@ final class LinkCardLanes
                 $litName = (string) ($part['name'] ?? $lit);
             }
         }
+        // Each lane's letter from its part's name (a barbershop song's tenor, lead, baritone and bass read T L Br B, not
+        // S A T B), or S A T B when two parts would share one.
+        $keys = array_map(static function (array $part): string {
+            $name = (string) ($part['name'] ?? '');
+
+            return str_starts_with(strtolower($name), 'bari') ? 'Br' : strtoupper(mb_substr($name, 0, 1));
+        }, array_slice($parts, 0, 4));
+        if (in_array('', $keys, true) || count(array_unique($keys)) !== count($keys)) {
+            $keys = array_slice(['S', 'A', 'T', 'B'], 0, count($keys));
+        }
         $seconds = (int) round($end * 60 / max(1.0, (float) ($data['tempo'] ?? 80)));
 
         // The title without a note in brackets ("Row, Row, Row Your Boat (round)"), to fit beside the part and the length.
-        return ['song' => trim((string) preg_replace('/\\s*\\([^)]*\\)$/', '', (string) $template->title)), 'part' => $litName, 'length' => intdiv($seconds, 60).':'.str_pad((string) ($seconds % 60), 2, '0', STR_PAD_LEFT), 'lit' => $litIndex, 'lanes' => array_slice($lanes, 0, 4)];
+        return ['song' => trim((string) preg_replace('/\\s*\\([^)]*\\)$/', '', (string) $template->title)), 'part' => $litName, 'length' => intdiv($seconds, 60).':'.str_pad((string) ($seconds % 60), 2, '0', STR_PAD_LEFT), 'lit' => $litIndex, 'keys' => $keys, 'lanes' => array_slice($lanes, 0, 4)];
     }
 }

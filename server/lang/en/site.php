@@ -1658,6 +1658,64 @@ return [
             'count_from' => 'First evening :date',
             'count_until' => 'Until :date',
         ],
+        // Google's suggestions, 2026-11-12: "folk songs for choir", "folk songs satb", "irish folk songs satb",
+        // "folk songs to sing acapella". The courses lead checked the history (2026-11-12).
+        'folk-songs' => [
+            'title' => 'Folk Songs for Choir: Learn Your Part Free',
+            'description' => 'Folk songs for choir in harmony, free: Danny Boy, Loch Lomond, The Water Is Wide and more. Learn your part by ear, hear it with the others, and sing along.',
+            'crumb' => 'Folk songs',
+            // Its panel on /songs (Hillel's songbook design): a short title with its serif tail, and one line.
+            'band' => 'Folk songs',
+            'band_em' => 'from near and far',
+            'band_line' => 'Learn your part of a folk song by ear.',
+            // /songs's way to the page (SongsHub): how many there are.
+            'all' => 'All :count folk songs',
+            'headline' => 'Folk songs for choir,',
+            'headline_em' => 'part by part',
+            'lead' => 'Learn your part of a folk song before rehearsal. Free, in your browser, no account.',
+            'intro' => [
+                'Some of these tunes have no known author, and others have one. Greensleeves is an English tune of the 1500s, the tune of the Welsh lullaby All Through the Night has its earliest known printing in 1784, and Cecil Sharp heard The Water Is Wide in Somerset. Loch Lomond and Auld Lang Syne come from Scotland, Danny Boy sets words of 1913 to the Londonderry Air, an Irish tune printed in 1855, Home on the Range comes from Kansas, Red River Valley from Canada and the United States, Sakura Sakura from Japan, and La Paloma is the habanera Sebastián Iradier wrote after he heard habaneras in Cuba.',
+                'Every song here is public domain and set for 2 to 4 singers, and each card says its key and how hard it is. Play a song\'s first line to hear every part together, then open your part to hear it alone or with the others under it, and sing along as each note lights up. Each song\'s page tells where it comes from.',
+            ],
+            'pick' => 'Pick a folk song',
+            'songbook' => 'The folk songs',
+            'songbook_sub' => 'Pick your part, or press play to hear a song\'s first line in every part.',
+            'songbook_part' => 'Showing your :part part in every song. Press play to hear it with the others.',
+            'list' => 'Folk songs to learn in harmony',
+            'try_link' => 'Learn a folk song, free',
+            'songs_link' => 'Folk songs, part by part',
+            // On each of its songs' pages and part pages (SongCollections::home).
+            'more' => 'More folk songs, part by part',
+        ],
+        // Google's suggestions, 2026-11-12: "barbershop songs", "barbershop quartet songs to sing", "barbershop songs for
+        // beginners", "easy barbershop songs", "victorian parlour songs". The courses lead checked the history (2026-11-12).
+        'barbershop-songs' => [
+            'title' => 'Barbershop and Parlour Songs: Learn Your Part Free',
+            'description' => 'Barbershop and parlour songs in close harmony, free: Sweet Adeline, Daisy Bell, Let Me Call You Sweetheart and more. Learn your part by ear and sing along.',
+            'crumb' => 'Barbershop and parlour',
+            // Its panel on /songs (Hillel's songbook design): a short title with its serif tail, and one line.
+            'band' => 'Barbershop',
+            'band_em' => 'and parlour',
+            'band_line' => 'Learn your part of an old favourite in close harmony.',
+            // /songs's way to the page (SongsHub): how many there are.
+            'all' => 'All :count barbershop and parlour songs',
+            'headline' => 'Barbershop and parlour songs,',
+            'headline_em' => 'part by part',
+            'lead' => 'Learn your part of an old favourite in close harmony. Free, in your browser, no account.',
+            'intro' => [
+                'These are popular songs from 1892 to 1910: Daisy Bell of 1892, Asleep in the Deep of 1897, Sweet Adeline of 1903, and two waltz songs of 1910, Let Me Call You Sweetheart and Down by the Old Mill Stream. Sweet Adeline became a barbershop favourite, and Down by the Old Mill Stream came out with a setting of its chorus for men\'s voices. Every one is public domain, and each card says its key and how hard it is.',
+                'Down by the Old Mill Stream is voiced as barbershop sings it: the lead has the tune, the tenor rings above it, the baritone fills the chord and the bass holds the roots. The others are for soprano, alto, tenor and bass, and in Asleep in the Deep, written for a baritone or bass voice, the bass sings the tune. Play a song\'s first line to hear every part together, then open your part to hear it alone or with the others under it, and sing along as each note lights up.',
+            ],
+            'pick' => 'Pick a song',
+            'songbook' => 'The songs',
+            'songbook_sub' => 'Pick your part, or press play to hear a song\'s first line in every part.',
+            'songbook_part' => 'Showing your :part part in every song. Press play to hear it with the others.',
+            'list' => 'Barbershop and parlour songs to learn in harmony',
+            'try_link' => 'Learn a barbershop song, free',
+            'songs_link' => 'Barbershop and parlour songs, part by part',
+            // On each of its songs' pages and part pages (SongCollections::home).
+            'more' => 'More barbershop and parlour songs, part by part',
+        ],
         // Google's suggestions, 2026-11-10: "spirituals for choir", "spirituals satb", "easy spirituals for choir",
         // "african american spirituals satb". The courses lead checked the history (2026-11-10).
         'spirituals' => [

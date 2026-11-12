@@ -9,6 +9,7 @@ use App\Support\Http\Hosts;
 use App\Support\Pages\Carols;
 use App\Support\Pages\SongCollections;
 use App\Support\Pages\SongParts;
+use App\Support\Pages\SongsHub;
 use App\Support\Templates\Catalogue;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
@@ -125,18 +126,20 @@ final class SongCollectionsTest extends TestCase
         $this->assertSame('hymns', SongCollections::group(['gospel', 'hymn', 'american']));
         $this->assertSame('sea-shanties', SongCollections::group(['folk', 'sea shanty']));
         $this->assertSame('spirituals', SongCollections::group(['spiritual', 'folk']));
-        $this->assertSame('folk', SongCollections::group(['folk', 'traditional']));
+        $this->assertSame('folk-songs', SongCollections::group(['folk', 'traditional']));
         $this->assertSame('more', SongCollections::group(['celebration-unknown']));
     }
 
-    /** @return array<string, array{string, string}> */
+    /** @return array<string, array{string, list<string>}> */
     public static function collections(): array
     {
-        return ['spirituals' => ['spirituals', 'spiritual'], 'sea shanties' => ['sea-shanties', 'sea shanty'], 'rounds' => ['rounds', 'round']];
+        return ['spirituals' => ['spirituals', ['spiritual']], 'sea shanties' => ['sea-shanties', ['sea shanty']], 'rounds' => ['rounds', ['round']],
+            'folk songs' => ['folk-songs', ['folk']], 'barbershop and parlour' => ['barbershop-songs', ['barbershop', 'parlour song', 'early popular song']]];
     }
 
+    /** @param  list<string>  $genres */
     #[DataProvider('collections')]
-    public function test_each_collection_lists_its_open_songs_with_their_parts(string $slug, string $genre): void
+    public function test_each_collection_lists_its_open_songs_with_their_parts(string $slug, array $genres): void
     {
         $songs = app(SongCollections::class)->songs($slug);
         $this->assertGreaterThanOrEqual(SongCollections::MIN, count($songs));
@@ -151,7 +154,9 @@ final class SongCollectionsTest extends TestCase
             }
         }
         foreach (app(Catalogue::class)->open() as $template) {
-            $in = in_array($genre, array_map('strtolower', (array) (((array) $template->currentVersion?->data)['genre'] ?? [])), true);
+            $own = array_values(array_map('strtolower', array_filter((array) (((array) $template->currentVersion?->data)['genre'] ?? []), 'is_string')));
+            // Folk and barbershop take only what /songs groups under them: a shanty or a round tagged folk keeps its own page.
+            $in = array_intersect($genres, $own) !== [] && (! in_array($slug, SongCollections::OWN_GROUP_ONLY, true) || SongCollections::group($own) === $slug);
             $this->assertSame($in && SongParts::hasPages($template), in_array($template->slug, array_column($songs, 'slug'), true), $template->slug);
         }
         $this->get('/songs')->assertSee('href="'.SongCollections::path($slug).'"', false);
@@ -228,8 +233,8 @@ final class SongCollectionsTest extends TestCase
         // A round goes to the rounds page; a song no page collects has neither.
         $round = app(SongCollections::class)->songs('rounds')[0];
         $this->assertMatchesRegularExpression('#<a href="/songs/rounds"\s*>#', (string) $this->get('/songs/'.$round['slug'])->getContent());
-        $this->assertNull(app(SongCollections::class)->home('danny-boy'));
-        $this->get('/songs/danny-boy')->assertOk()->assertDontSee('class="s-carols-link"', false);
+        $this->assertNull(app(SongCollections::class)->home('happy-birthday'));
+        $this->get('/songs/happy-birthday')->assertOk()->assertDontSee('class="s-carols-link"', false);
     }
 
     public function test_a_carol_points_to_the_carols_page_in_its_season_and_to_its_other_page_after(): void
@@ -268,5 +273,53 @@ final class SongCollectionsTest extends TestCase
         $this->get('/songs/hymns')->assertNotFound();
         $this->assertStringNotContainsString('/songs/hymns<', (string) $this->get('/sitemap.xml')->getContent());
         $this->get('/songs')->assertOk()->assertDontSee('href="/songs/hymns"', false);
+    }
+
+    public function test_the_folk_and_barbershop_intros_name_exactly_the_songs_their_pages_list(): void
+    {
+        foreach (['folk-songs' => 10, 'barbershop-songs' => 5] as $slug => $count) {
+            $songs = app(SongCollections::class)->songs($slug);
+            $this->assertCount($count, $songs, $slug);
+            $intro = implode(' ', (array) __('site.collections.'.$slug.'.intro'));
+            // Every song it lists is named, so a song joining or leaving changes the words first (the courses lead checked them).
+            foreach ($songs as $song) {
+                $this->assertStringContainsString($song['title'], $intro, $slug.': '.$song['title']);
+            }
+        }
+
+        // Not folk songs, not barbershop or parlour: they stay in the A to Z, under Other songs.
+        $listed = [...array_column(app(SongCollections::class)->songs('folk-songs'), 'slug'), ...array_column(app(SongCollections::class)->songs('barbershop-songs'), 'slug')];
+        $index = collect(app(SongsHub::class)->index(app(Catalogue::class)->open()))->keyBy(static fn (array $e): string => basename($e['url']));
+        foreach (['happy-birthday', 'now-is-the-month-of-maying', 'with-cat-like-tread'] as $slug) {
+            $this->assertNotContains($slug, $listed);
+            $this->assertSame(['other'], $index[$slug]['in'] ?? null, $slug);
+        }
+    }
+
+    public function test_the_barbershop_intro_says_who_sings_the_tune_as_the_songs_are_voiced(): void
+    {
+        $tune = static fn (string $slug): array => array_values(array_column(array_filter(SongParts::parts(Template::query()->with('currentVersion')->where('slug', $slug)->firstOrFail()), static fn (array $p): bool => $p['melody']), 'key'));
+        // "the lead has the tune" in Down by the Old Mill Stream, and in Asleep in the Deep "the bass sings the tune".
+        $this->assertSame(['lead'], $tune('down-by-the-old-mill-stream'));
+        $this->assertSame(['bass'], $tune('asleep-in-the-deep'));
+        $intro = implode(' ', (array) __('site.collections.barbershop-songs.intro'));
+        $this->assertStringContainsString('the lead has the tune', $intro);
+        $this->assertStringContainsString('the bass sings the tune', $intro);
+    }
+
+    public function test_songs_counts_each_collection_as_its_page_lists_it(): void
+    {
+        $hub = app(SongsHub::class);
+        $index = $hub->index(app(Catalogue::class)->open());
+        foreach ($hub->bands() as $band) {
+            if ($band['key'] === 'christmas') {
+                continue;
+            }
+            $page = count(app(SongCollections::class)->songs($band['key']));
+            // The panel's count, and the A to Z's filter for it, are the page's own.
+            $this->assertSame($page, $band['count'], $band['key']);
+            $this->assertSame($page, count(array_filter($index, static fn (array $e): bool => in_array($band['key'], $e['in'], true))), $band['key']);
+        }
+        $this->get('/songs')->assertSee('href="/songs/folk-songs"', false)->assertSee('href="/songs/barbershop-songs"', false)->assertSee(__('pages.songs.other'));
     }
 }

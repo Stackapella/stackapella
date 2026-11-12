@@ -14,7 +14,7 @@ import { publicSiteUrl } from '../hosts.js';
 import { navigate } from '../router.js';
 import { betaWaiting, homeBands, sangThisWeek } from '../home.js';
 import { creditsFor, loadCatalogue } from '../stores/catalogue.js';
-import { toRaw } from 'vue';
+import { markRaw, toRaw } from 'vue';
 import { createProject, deleteProject, loadProjects, projects, saveProject, shownTitle, startFromTemplate } from '../stores/projects.js';
 import { ideas, ideasOpen } from '../stores/ideas.js';
 import { learning } from '../stores/learning.js';
@@ -40,8 +40,6 @@ import { ThemeSwitch } from '../components/appearance.js';
 import { readImport } from '../creator.js';
 import { session as tabStorage } from '../storage.js';
 import { deleteTemplate, discardDraft, loadMine, mine, saveTemplate } from '../stores/templates.js';
-import { SheetImport } from '../components/create/sheet-import.js';
-import { readSheetFile } from '../sheet-import.js';
 import { count, tried } from '../usage.js';
 import { lastLooked, lookedNow, newsPick } from '../song-news.js';
 import { leftProject, loadShared } from '../stores/cloud.js';
@@ -53,8 +51,6 @@ import { learnGroupSong, myGroupParts } from '../group-songs.js';
 import { daysUntil, rehearsalDates } from '../rehearsal.js';
 import { confirmAction, deleteSong, UNDO_SECONDS } from '../components/confirm.js';
 import { CardMenu } from '../components/card-menu.js';
-import * as sessionStore from '../stores/session.js';
-import { session } from '../stores/session.js';
 
 const DIFFICULTY = { beginner: tk('templates.difficulty.beginner'), intermediate: tk('templates.difficulty.intermediate'), advanced: tk('templates.difficulty.advanced') };
 // The bands' marks are the accent: nothing on the home that isn't a part wears a part's colour (Hillel's call).
@@ -73,9 +69,9 @@ const playableDraft = (draft) => (draft.template?.tempo && draft.template.parts?
 const SEASON_WORDS = { carols: tk('home.songs.news.carols') };
 
 export const ProjectsView = {
-    components: { StorageMeter, CreditLine, SheetImport, PlayerChip, DailyTag, CardMenu, HomeCourses, ThemeSwitch, Icon, Logo, TemplateDialog, HomeLead, HomeBand, SongCover, InstallCard, WeekCard, WorkoutStrip, StatusChip, Modal, Notice, RemindAsk, FirstWeek },
-    setup: () => ({ templatePartName, ideas, session, mine, friendlyProblem, canStart, projects, account, learning, shownTitle, formatTime, timeAgo, PART_COLORS, lengthBeats, partsFor, keyLabel, DIFFICULTY, creditsFor, navigate, BAND_COLORS, BETA_STATUS, publicSiteUrl, effect, dailyState }),
-    data: () => ({ storageUsage: null, locked: false, clip: null, templates: [], openTemplate: null, singers: 4, previewing: false, preparingPreview: false, starting: false, groups: null, choirParts: [], startingChoir: null, betaParts: null, avatarFailed: false, making: false, importProblems: null, sheetScore: null, sheetSaving: false, songsOpen: tabStorage.get('stackapella.songsOpen') === '1', lookedAt: lastLooked(), newsCounted: null, yoursOpen: false, songColumns: songColumns(), newing: false, showInfo: false, previewOf: null, playingSong: null, renaming: null, newName: '' }),
+    components: { StorageMeter, CreditLine, PlayerChip, DailyTag, CardMenu, HomeCourses, ThemeSwitch, Icon, Logo, TemplateDialog, HomeLead, HomeBand, SongCover, InstallCard, WeekCard, WorkoutStrip, StatusChip, Modal, Notice, RemindAsk, FirstWeek },
+    setup: () => ({ templatePartName, ideas, mine, friendlyProblem, canStart, projects, account, learning, shownTitle, formatTime, timeAgo, PART_COLORS, lengthBeats, partsFor, keyLabel, DIFFICULTY, creditsFor, navigate, BAND_COLORS, BETA_STATUS, publicSiteUrl, effect, dailyState }),
+    data: () => ({ storageUsage: null, locked: false, clip: null, templates: [], openTemplate: null, singers: 4, previewing: false, preparingPreview: false, starting: false, groups: null, choirParts: [], startingChoir: null, betaParts: null, avatarFailed: false, making: false, importProblems: null, sheetScore: null, sheetSaving: false, sheetView: null, sessionStore: null, songsOpen: tabStorage.get('stackapella.songsOpen') === '1', lookedAt: lastLooked(), newsCounted: null, yoursOpen: false, songColumns: songColumns(), newing: false, showInfo: false, previewOf: null, playingSong: null, renaming: null, newName: '' }),
     template: `
         <div class="min-h-dvh">
             <!-- The app's top bar on the site header's grid (app-wrap app-top): the logo where the site's is. -->
@@ -304,7 +300,7 @@ export const ProjectsView = {
                     </div>
                 </div>
             </Modal>
-            <SheetImport v-if="sheetScore" :score="sheetScore" :busy="sheetSaving" @close="sheetScore = null" @make="makeFromSheet" />
+            <component :is="sheetView" v-if="sheetScore && sheetView" :score="sheetScore" :busy="sheetSaving" @close="sheetScore = null" @make="makeFromSheet" />
             <CreditLine />
             </div>
         </div>`,
@@ -668,7 +664,7 @@ export const ProjectsView = {
             // One thing plays at a time: a Your songs recording stops for this.
             if (this.playingSong) {
                 this.playingSong = null;
-                if (session.playing) await sessionStore.stopPlayback();
+                if (this.sessionStore?.session.playing) await this.sessionStore.stopPlayback();
             }
             // A Plus song without Plus: its short clip, a finished mix (never its parts).
             if (this.locked) {
@@ -722,7 +718,7 @@ export const ProjectsView = {
         },
         /** Whether this card's Play is playing ('p-' a recording, 'w-' a written song, a library song's id). */
         songOn(key) {
-            return key.startsWith('p-') ? this.playingSong === key && session.playing : this.previewOf === key && this.previewing;
+            return key.startsWith('p-') ? this.playingSong === key && !!this.sessionStore?.session.playing : this.previewOf === key && this.previewing;
         },
         /** Anything playing on Home stops: a library preview, a written song, a recording (one at a time). */
         async stopSongs() {
@@ -730,7 +726,7 @@ export const ProjectsView = {
             this.previewOf = null;
             if (this.playingSong) {
                 this.playingSong = null;
-                if (session.playing) await sessionStore.stopPlayback();
+                if (this.sessionStore?.session.playing) await this.sessionStore.stopPlayback();
             }
         },
         /** Play on a recording's card: its current mix (the takes, guides for the parts not sung yet). */
@@ -741,10 +737,13 @@ export const ProjectsView = {
             if (again) return;
             this.playingSong = key;
             try {
+                // The studio's session store (Home's heaviest import): loaded on the first Play, not with Home (2026-11-12).
+                this.sessionStore ??= markRaw(await import('../stores/session.js'));
+                const sessionStore = this.sessionStore;
                 await sessionStore.openSession(project.id);
                 sessionStore.setScreen('studio');
                 if (this.playingSong !== key || !(await sessionStore.ready())) return;
-                session.position = 0;
+                sessionStore.session.position = 0;
                 await sessionStore.togglePlay();
             } catch (error) {
                 console.error('The song did not play', error);
@@ -885,6 +884,9 @@ export const ProjectsView = {
                 toast(t('sheet.error.signIn'), { actions: [{ label: t('wrap.makeAccount'), run: () => navigate(signUpFor('sheet', '/')) }] });
                 return;
             }
+            // The reader and its screen, loaded with the first file (off Home's first load, 2026-11-12).
+            const [{ readSheetFile }, { SheetImport }] = await Promise.all([import('../sheet-import.js'), import('../components/create/sheet-import.js')]);
+            this.sheetView ??= markRaw(SheetImport);
             const score = await readSheetFile(file);
             if (score.unreadable || score.unsupported === 'timewise') toast(t('sheet.error.unreadable'), { tone: 'error' });
             else if (score.unsupported === 'metre') toast(t('sheet.error.metre', { metre: score.metre ?? '?' }), { tone: 'error' });

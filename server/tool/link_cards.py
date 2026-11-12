@@ -156,6 +156,19 @@ def _flames():
     return '<svg width="1200" height="630" viewBox="0 0 1200 630">' + "".join(out) + "</svg>"
 
 
+def _hills():
+    # The folk songs' hills and a winding path, faint lines at the top right.
+    return ('<svg width="1200" height="630" viewBox="0 0 1200 630">'
+            '<path d="M760 120 C 840 82, 910 86, 980 106 S 1120 126, 1200 96" fill="none" stroke="#E9A27A" stroke-opacity=".45" stroke-width="3"/>'
+            '<path d="M840 150 C 920 112, 1000 116, 1070 132 S 1170 142, 1200 132" fill="none" stroke="#E9A27A" stroke-opacity=".35" stroke-width="3"/>'
+            '<path d="M1040 150 C 1048 136, 1074 130, 1068 118 S 1084 104, 1106 98" fill="none" stroke="#E9A27A" stroke-opacity=".45" stroke-width="2.5" stroke-dasharray="6 6"/></svg>')
+
+
+def _stripes():
+    # Barbershop's pole stripes, a short diagonal band at the top right.
+    return '<svg width="1200" height="630" viewBox="0 0 1200 630">' + "".join(f'<path d="M{930 + i * 26} 52 l 20 0 l -18 28 l -20 0 z" fill="#E8C26A" fill-opacity="{.5 if i % 2 == 0 else .25}"/>' for i in range(9)) + "</svg>"
+
+
 # Each collection's ground, gold and muted line, its small accent and that accent's CSS.
 THEMES = {
     "carols": {"bg": "#163D2D", "ac": "#F2C46B", "mu": "#C8D3C6", "motif": _lights, "hat": True,
@@ -166,6 +179,8 @@ THEMES = {
     "sea-shanties": {"bg": "#0E3440", "ac": "#F2C46B", "mu": "#BAD7D1", "motif": _waves, "css": ""},
     "rounds": {"bg": "#3A2416", "ac": "#FFB45C", "mu": "#E3D1C1", "motif": _rings, "css": ""},
     "jewish-songs": {"bg": "#1B2D63", "ac": "#F3D27A", "mu": "#CDD6EF", "motif": _flames, "css": ""},
+    "folk-songs": {"bg": "#2F3B21", "ac": "#E9A27A", "mu": "#D6DCC8", "motif": _hills, "css": ""},
+    "barbershop-songs": {"bg": "#3A1420", "ac": "#E8C26A", "mu": "#EAD3D7", "motif": _stripes, "css": ""},
 }
 
 # The lanes' part colours, soprano to bass (the mark's own, as the songs colour their parts).
@@ -181,7 +196,7 @@ def _lanes(lanes):
         colour = LANE_COLOURS[i % 4]
         opacity = 1 if i == lanes["lit"] else 0.32
         bars = "".join(f'<i style="left:{n["x"] * 100:.2f}%;width:{max(n["w"] * 100 - 0.8, 0.8):.2f}%;top:{round(4 + (1 - n["y"]) * 20)}px;background:{colour}"></i>' for n in notes)
-        rows.append(f'<div class="lane" style="opacity:{opacity}"><div class="k" style="color:{colour}">{LANE_KEYS[i % 4]}</div><div class="track">{bars}</div></div>')
+        rows.append(f'<div class="lane" style="opacity:{opacity}"><div class="k" style="color:{colour}">{html.escape(lanes.get("keys", LANE_KEYS)[i % 4])}</div><div class="track">{bars}</div></div>')
     caption = f'<div class="cap"><div>{html.escape(lanes["song"])} · {html.escape(lanes["part"])}</div><div>{html.escape(lanes["length"])}</div></div>'
     return '<div class="lanes">' + "".join(rows) + caption + "</div>"
 

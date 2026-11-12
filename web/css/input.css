@@ -2571,6 +2571,8 @@ a.s-vt-rung:hover { background: color-mix(in srgb, var(--color-cream) 5%, transp
 .s-tone-sea-shanties { --tb: #0D3340; --ta: #F0D9A8; --tm: #BFDCD6; --tl: #164658; --primary: #F0D9A8; --primary-ink: #0D3340; }
 .s-tone-rounds { --tb: #3A2416; --ta: #FFB45C; --tm: #E6D3C2; --tl: #4D3221; --primary: #FFB45C; --primary-ink: #3A2416; }
 .s-tone-jewish-songs { --tb: #1B2D63; --ta: #F3D27A; --tm: #CDD6EF; --tl: #283F82; --primary: #F3D27A; --primary-ink: #1B2D63; }
+.s-tone-folk-songs { --tb: #2F3B21; --ta: #E9A27A; --tm: #D6DCC8; --tl: #3E4D2C; --primary: #E9A27A; --primary-ink: #2F3B21; }
+.s-tone-barbershop-songs { --tb: #3A1420; --ta: #E8C26A; --tm: #EAD3D7; --tl: #4E1C2B; --primary: #E8C26A; --primary-ink: #3A1420; }
 /* The Jewish songs page's countdown to its next festival (site/collection, JewishSongs::festival): a card on its hero. */
 .s-jcount { align-self: end; padding: 22px 24px; border-radius: 22px; background: var(--tl); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ta) 40%, transparent); }
 .s-jcount-k { font-size: 12.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--ta); }
@@ -2616,6 +2618,8 @@ a.s-vt-rung:hover { background: color-mix(in srgb, var(--color-cream) 5%, transp
 .s-tone-sea-shanties { --dot: #1E8C8C; }
 .s-tone-rounds { --dot: #E0891E; }
 .s-tone-jewish-songs { --dot: #3E5FC4; }
+.s-tone-folk-songs { --dot: #6E8B3D; }
+.s-tone-barbershop-songs { --dot: #B0304A; }
 .s-tone-other { --dot: #9A9085; }
 .s-sh-try .s-mixer { box-shadow: 0 24px 48px -28px rgb(60 40 10 / 0.35); }
 @media (max-width: 639px) { .s-sh-try-k { display: none; } }

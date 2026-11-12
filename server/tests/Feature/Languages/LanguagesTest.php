@@ -417,6 +417,12 @@ final class LanguagesTest extends TestCase
             app()->setLocale($language);
             $this->assertSame([$dayMonth, $dayMonthYear], [Dates::dayMonth($twelfth), Dates::dayMonthYear($mixed)], $language);
         }
+        // The Jewish songs page's countdown: "Hasta el domingo 14 de diciembre", "Primera noche: ..." (courses, 2026-11-12).
+        $sunday = Carbon::parse('2025-12-14');
+        foreach (['en' => 'Sunday 14 December', 'es' => 'domingo 14 de diciembre', 'de' => 'Sonntag, 14. Dezember'] as $language => $words) {
+            app()->setLocale($language);
+            $this->assertSame($words, Dates::weekdayDayMonth($sunday), $language);
+        }
         app()->setLocale('en');
     }
 }

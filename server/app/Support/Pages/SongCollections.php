@@ -22,6 +22,10 @@ final class SongCollections
         'sea-shanties' => ['sea shanty'],
         'rounds' => ['round'],
         'jewish-songs' => ['jewish'],
+        // Only what's a folk song: Happy Birthday and Morley's madrigal are under /songs's folk group, not on its page.
+        'folk-songs' => ['folk'],
+        // Not With Cat-like Tread: a comic opera chorus is neither barbershop nor parlour (the coordinator, 2026-11-12).
+        'barbershop-songs' => ['barbershop', 'parlour song', 'early popular song'],
     ];
 
     /**
@@ -37,10 +41,16 @@ final class SongCollections
         'spirituals' => ['spiritual'],
         'hymns' => ['hymn', 'gospel'],
         'sea-shanties' => ['sea shanty'],
-        'folk' => ['folk', 'traditional', 'celebration'],
+        'folk-songs' => ['folk', 'traditional', 'celebration'],
         'classical' => ['classical', 'latin', 'choral'],
-        'stage' => ['barbershop', 'parlour song', 'early popular song', 'musical theatre'],
+        'barbershop-songs' => ['barbershop', 'parlour song', 'early popular song', 'musical theatre'],
     ];
+
+    /**
+     * Collections that list only the songs /songs groups under them: "folk" also tags shanties, rounds, hymns and a
+     * carol, which keep their own pages, so Folk songs lists the 10 that are only folk (the coordinator, 2026-11-12).
+     */
+    public const OWN_GROUP_ONLY = ['folk-songs', 'barbershop-songs'];
 
     /** Fewer open songs than this and the collection isn't a page (it would be thin). */
     public const MIN = 4;
@@ -93,7 +103,7 @@ final class SongCollections
         }
 
         $members = $this->members[$slug] ??= array_values($this->parts->songs()
-            ->filter(static fn (Template $template): bool => self::belongs($template, self::COLLECTIONS[$slug]))
+            ->filter(static fn (Template $template): bool => self::collects($slug, $template))
             ->map(static fn (Template $template): string => (string) $template->slug)
             ->all());
 
@@ -144,7 +154,7 @@ final class SongCollections
         $newest = null;
         foreach ($this->parts->songs() as $template) {
             $when = $template->currentVersion->created_at ?? null;
-            if (isset(self::COLLECTIONS[$slug]) && self::belongs($template, self::COLLECTIONS[$slug]) && $when !== null && ($newest === null || $when->greaterThan($newest))) {
+            if (isset(self::COLLECTIONS[$slug]) && self::collects($slug, $template) && $when !== null && ($newest === null || $when->greaterThan($newest))) {
                 $newest = $when;
             }
         }
@@ -193,11 +203,12 @@ final class SongCollections
         return $groups;
     }
 
-    /** @param  list<string>  $genres */
-    private static function belongs(Template $template, array $genres): bool
+    /** Whether a collection's page lists a song: one of its genres, and for OWN_GROUP_ONLY its /songs group too. */
+    private static function collects(string $slug, Template $template): bool
     {
-        $own = array_map(static fn (string $g): string => strtolower(trim($g)), array_filter((array) (((array) $template->currentVersion?->data)['genre'] ?? []), 'is_string'));
+        $own = array_map(static fn (string $g): string => strtolower(trim($g)), array_values(array_filter((array) (((array) $template->currentVersion?->data)['genre'] ?? []), 'is_string')));
 
-        return array_intersect($own, $genres) !== [];
+        return array_intersect($own, self::COLLECTIONS[$slug]) !== []
+            && (! in_array($slug, self::OWN_GROUP_ONLY, true) || self::group($own) === $slug);
     }
 }

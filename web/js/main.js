@@ -195,7 +195,9 @@ async function fetchAhead() {
     const config = await loadAuthConfig().catch(() => null);
     if (courseVisible({ status: 'live' }, account.me, config)) {
         await ahead1(PlusCourseView);
-        await new Promise((done) => whenIdle(() => loadPlusCourses().then(done)));
+        // Every Plus course's lessons (25 files, about 420 KB): not on a first visit, whose first week never shows them and
+        // whose lesson 1 needs the line for its mic and guide (2026-11-12, the speed pass); the screens that show them ask.
+        if (!lessonFirst) await new Promise((done) => whenIdle(() => loadPlusCourses().then(done)));
     }
     for (const view of [SingView, StudioView]) await ahead1(view);
 }

@@ -68,7 +68,7 @@ return [
         'kind' => ['satb' => 'SATB', 'round' => 'Round', 'parts' => ':count parts'],
         'index_search' => 'Search by title',
         'all_songs' => 'All songs',
-        'other' => 'Folk & parlour',
+        'other' => 'Other songs',
         'shown' => '{1} :count song|[2,*] :count songs',
         'none' => 'No song matches that. Try another word or another group.',
         'end_em' => 'and start.',
@@ -79,7 +79,7 @@ return [
         // /songs in groups (SongCollections::grouped), and the row that jumps to them.
         'groups' => [
             'christmas' => 'Christmas', 'jewish-songs' => 'Jewish songs', 'rounds' => 'Rounds', 'spirituals' => 'Spirituals', 'hymns' => 'Hymns',
-            'sea-shanties' => 'Sea shanties', 'folk' => 'Folk songs', 'classical' => 'Classical and sacred', 'stage' => 'Barbershop, parlour and stage', 'more' => 'More songs',
+            'sea-shanties' => 'Sea shanties', 'folk-songs' => 'Folk songs', 'classical' => 'Classical and sacred', 'barbershop-songs' => 'Barbershop, parlour and stage', 'more' => 'More songs',
         ],
         'jump' => 'Song groups',
         // /songs as a sampler (App\Support\Pages\SongsHub): each collection's band and its way on, then every song.

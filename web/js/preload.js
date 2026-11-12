@@ -172,6 +172,43 @@
         '/js/just.js',
     ];
     // preload_list.py: lesson end
+    // Home's own view on a first visit that opens the app at "/" (written by tool/preload_list.py: views/projects.js and what
+    // it imports beyond the lists above), and all the words, which Home's screen waits for: asked for with Vue, not after it.
+    if (location.pathname === '/') {
+        // preload_list.py: home begin
+    const HOME = [
+        '/js/views/projects.js',
+        '/js/hosts.js',
+        '/js/home.js',
+        '/js/stores/ideas.js',
+        '/js/components/home.js',
+        '/js/game/title-screen.js',
+        '/js/components/session-wrap.js',
+        '/js/components/beta.js',
+        '/js/components/form.js',
+        '/js/components/appearance.js',
+        '/js/creator.js',
+        '/js/song-news.js',
+        '/js/components/create/save.js',
+        '/js/group-songs.js',
+        '/js/rehearsal.js',
+        '/js/components/card-menu.js',
+        '/js/workout.js',
+        '/js/reading-lines.js',
+        '/js/components/course-card.js',
+        '/js/song-shape.js',
+        '/js/components/home-today-line.js',
+        '/js/reminders.js',
+        '/js/quality.js',
+        '/js/beta.js',
+        '/js/game-toggle.js',
+        '/js/accent-colours.js',
+        '/js/whatsnext.js',
+    ];
+    // preload_list.py: home end
+        for (const module of HOME) preload(module);
+        preload('/locales/en.json', { rel: 'preload', as: 'fetch', crossOrigin: 'anonymous' });
+    }
     let lessonAsked = false;
     window.stackapellaPreloadLesson = () => {
         if (lessonAsked) return;

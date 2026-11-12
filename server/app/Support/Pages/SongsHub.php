@@ -28,6 +28,8 @@ final class SongsHub
         'sea-shanties' => ['drunken-sailor', 'shenandoah', 'spanish-ladies', 'leave-her-johnny'],
         'rounds' => ['are-you-sleeping', 'row-row-row', 'three-blind-mice', 'londons-burning'],
         'jewish-songs' => ['maoz-tzur', 'oy-chanukah', 'adir-hu', 'ein-keloheinu'],
+        'folk-songs' => ['danny-boy', 'auld-lang-syne', 'the-water-is-wide', 'sakura-sakura'],
+        'barbershop-songs' => ['sweet-adeline', 'daisy-bell', 'let-me-call-you-sweetheart', 'asleep-in-the-deep'],
     ];
 
     /** How many songs a band samples (a phone shows the first three). */

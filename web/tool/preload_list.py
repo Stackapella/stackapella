@@ -42,6 +42,8 @@ BEGIN, END = "    // preload_list.py: begin", "    // preload_list.py: end"
 GAME_BEGIN, GAME_END = "    // preload_list.py: game begin", "    // preload_list.py: game end"
 GAME_LOADERS = WEB / "js" / "game" / "modules.js"
 LESSON_BEGIN, LESSON_END = "    // preload_list.py: lesson begin", "    // preload_list.py: lesson end"
+HOME_BEGIN, HOME_END = "    // preload_list.py: home begin", "    // preload_list.py: home end"
+HOME_VIEW = WEB / "js" / "views" / "projects.js"
 LESSON_LOADERS = (WEB / "js" / "components" / "lazy-lesson.js", WEB / "js" / "lazy-stores.js")
 SING_STORE = (WEB / "js" / "stores" / "session.js").resolve()
 LOADER = re.compile(r"""^\s*(\w+):\s*\(\)\s*=>\s*import\(\s*['"](\.{1,2}/[^'"]+)['"]\s*\)""", re.M)
@@ -107,6 +109,15 @@ def lesson_modules(modules):
     return [f"/{p.relative_to(WEB).as_posix()}" for p in own] + graph(own, known)
 
 
+def home_modules(modules):
+    """Home's view (views/projects.js) and what it imports that main.js's and the lesson's lists haven't: a first visit
+    that opens the app at "/" asks for them at once instead of after Vue has run (2026-11-12, the speed pass)."""
+    # Never one already listed (main.js's, the lesson's or game mode's): console_clean wants each preloaded once.
+    known = {(WEB / m.lstrip("/")).resolve() for m in modules + lesson_modules(modules) + game_modules(modules)}
+    view = HOME_VIEW.resolve()
+    return ([] if view in known else [f"/{view.relative_to(WEB).as_posix()}"]) + graph((view,), known)
+
+
 def block(text, begin, end, name, modules):
     lines = [begin, f"    const {name} = ["]
     lines += [f"        '{m}'," for m in modules]
@@ -118,6 +129,7 @@ def block(text, begin, end, name, modules):
 def written(modules):
     text = block(PRELOAD.read_text(), BEGIN, END, "MODULES", modules)
     text = block(text, LESSON_BEGIN, LESSON_END, "LESSON", lesson_modules(modules))
+    text = block(text, HOME_BEGIN, HOME_END, "HOME", home_modules(modules))
     return block(text, GAME_BEGIN, GAME_END, "GAME", game_modules(modules))
 
 

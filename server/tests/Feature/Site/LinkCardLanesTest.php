@@ -37,6 +37,7 @@ final class LinkCardLanesTest extends TestCase
         $this->assertSame([['x' => 0.0, 'w' => 0.25, 'y' => 0.5]], $lanes['lanes'][0], 'The window starts at beat 4, where the last part comes in, so the soprano\'s pickup is left out; a lone note sits mid-lane.');
         $this->assertSame([0.0, 1.0], array_column($lanes['lanes'][3], 'y'), 'Each lane spans its own lowest to highest note in the window.');
         $this->assertCount(2, $lanes['lanes'][3], 'A note past the 16 beats is not drawn.');
+        $this->assertSame(['S', 'A', 'T', 'B'], $lanes['keys'], 'Each lane is lettered from its part\'s name.');
     }
 
     public function test_a_collection_whose_song_is_missing_gets_no_lanes(): void

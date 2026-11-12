@@ -19,6 +19,9 @@ final class Dates
     /** @var array<string, string> a day, month and year, by language (English otherwise) */
     private const DAY_MONTH_YEAR = ['es' => 'D [de] MMMM [de] YYYY', 'de' => 'D. MMMM YYYY'];
 
+    /** @var array<string, string> a weekday, day and month, by language (English otherwise) */
+    private const WEEKDAY_DAY_MONTH = ['es' => 'dddd D [de] MMMM', 'de' => 'dddd, D. MMMM'];
+
     public static function dayMonth(CarbonInterface $date): string
     {
         return self::format($date, self::DAY_MONTH[App::getLocale()] ?? 'D MMMM');
@@ -27,6 +30,12 @@ final class Dates
     public static function dayMonthYear(CarbonInterface $date): string
     {
         return self::format($date, self::DAY_MONTH_YEAR[App::getLocale()] ?? 'D MMMM YYYY');
+    }
+
+    /** "Sunday 14 December", "domingo 14 de diciembre": the Jewish songs page's countdown (courses, 2026-11-12). */
+    public static function weekdayDayMonth(CarbonInterface $date): string
+    {
+        return self::format($date, self::WEEKDAY_DAY_MONTH[App::getLocale()] ?? 'dddd D MMMM');
     }
 
     private static function format(CarbonInterface $date, string $format): string
