@@ -35,6 +35,9 @@ final class SongCollections
         'thanksgiving-hymns' => ['thanksgiving'],
         // Shaker songs, led by Simple Gifts, our biggest search cluster (Hillel, 2026-11-12).
         'shaker-songs' => ['shaker'],
+        // Choral classics: the composed choir pieces no other page collects (the coordinator, on the SEO audit, 2026-11-13).
+        // Their genres differ (classical, sacred, art song, comic opera), so it lists them by name (MEMBERS) and by no genre.
+        'choral-classics' => [],
     ];
 
     /**
@@ -43,6 +46,7 @@ final class SongCollections
      */
     public const MEMBERS = [
         'shaker-songs' => ['simple-gifts'],
+        'choral-classics' => ['ave-verum-corpus', 'brahms-lullaby', 'now-is-the-month-of-maying', 'with-cat-like-tread', 'the-lord-bless-you'],
     ];
 
     /**
@@ -64,6 +68,8 @@ final class SongCollections
         'thanksgiving-hymns' => ['thanksgiving'],
         'hymns' => ['hymn', 'gospel'],
         'sea-shanties' => ['sea shanty'],
+        // Its home and trail for the songs it lists by name (MEMBERS); no genre puts a song in it on /songs.
+        'choral-classics' => [],
         // Before folk: the Scottish songs are folk songs too, and their own page is their group and home while it's open
         // (OPEN_ONLY), so Folk songs lists them only until then.
         'scottish-songs' => ['scottish'],

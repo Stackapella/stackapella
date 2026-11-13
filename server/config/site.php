@@ -26,14 +26,29 @@ return [
     // landing's one line and the seasonal links on choir pages show from this month-day to this one, then hide by
     // themselves (App\Support\Pages\Carols::promoted). The carols page itself stays.
     'carols_promoted' => ['from' => '11-01', 'until' => '12-26'],
-    // The Jewish songs page's countdown and /songs's season for it (App\Support\Pages\JewishSongs): each festival's first
-    // evening and its last day, from Hebcal (the coordinator, 2026-11-11). Add the next year's before the last one passes;
-    // with none ahead, the countdown simply isn't shown.
-    'jewish_festivals' => [
-        ['key' => 'hanukkah', 'from' => '2026-12-04', 'until' => '2026-12-12'],
-        ['key' => 'tu-bishvat', 'from' => '2027-01-22', 'until' => '2027-01-23'],
-        ['key' => 'purim', 'from' => '2027-03-22', 'until' => '2027-03-23'],
-        ['key' => 'passover', 'from' => '2027-04-21', 'until' => '2027-04-29'],
+    // The festivals calendar (Hillel, 2026-11-12: "have the main songs page automatically highlight which section is
+    // coming up next"): the one source for every date-aware collection, App\Support\Pages\Festivals. Each: its key (its
+    // name is site.festivals.<key>), the collection page it leads to, its first day, whether it begins at sundown the
+    // evening of that day (then it runs `days` days after it), how many days it runs, and how many days before it /songs
+    // starts leading with it as "Coming up" (`ahead`, 35 by default; 0 never leads, only counts on its own page). A festival
+    // whose collection isn't open yet takes no part. Jewish dates from Hebcal (the coordinator, 2026-11-11; the Jewish
+    // songs page's countdown reads them); add each next year's before the last one passes.
+    'festivals' => [
+        ['key' => 'thanksgiving', 'collection' => 'thanksgiving-hymns', 'from' => '2026-11-26', 'days' => 1],
+        ['key' => 'hanukkah', 'collection' => 'jewish-songs', 'from' => '2026-12-04', 'evening' => true, 'days' => 8, 'ahead' => 21],
+        ['key' => 'christmas', 'collection' => 'christmas-carols', 'from' => '2026-12-25', 'days' => 1],
+        ['key' => 'new-year', 'collection' => 'scottish-songs', 'from' => '2026-12-31', 'days' => 2],
+        ['key' => 'tu-bishvat', 'collection' => 'jewish-songs', 'from' => '2027-01-22', 'evening' => true, 'days' => 1, 'ahead' => 0],
+        ['key' => 'burns-night', 'collection' => 'scottish-songs', 'from' => '2027-01-25', 'days' => 1],
+        ['key' => 'st-patricks-day', 'collection' => 'irish-songs', 'from' => '2027-03-17', 'days' => 1],
+        ['key' => 'purim', 'collection' => 'jewish-songs', 'from' => '2027-03-22', 'evening' => true, 'days' => 1, 'ahead' => 0],
+        ['key' => 'easter', 'collection' => 'easter-songs', 'from' => '2027-03-28', 'days' => 1],
+        ['key' => 'passover', 'collection' => 'jewish-songs', 'from' => '2027-04-21', 'evening' => true, 'days' => 8, 'ahead' => 21],
+        ['key' => 'independence-day', 'collection' => 'american-songs', 'from' => '2027-07-04', 'days' => 1],
+        ['key' => 'thanksgiving', 'collection' => 'thanksgiving-hymns', 'from' => '2027-11-25', 'days' => 1],
+        ['key' => 'hanukkah', 'collection' => 'jewish-songs', 'from' => '2027-12-24', 'evening' => true, 'days' => 8, 'ahead' => 21],
+        ['key' => 'christmas', 'collection' => 'christmas-carols', 'from' => '2027-12-25', 'days' => 1],
+        ['key' => 'new-year', 'collection' => 'scottish-songs', 'from' => '2027-12-31', 'days' => 2],
     ],
 
     'contact_email' => env('SITE_CONTACT_EMAIL') ?: 'contact@stackapella.com',

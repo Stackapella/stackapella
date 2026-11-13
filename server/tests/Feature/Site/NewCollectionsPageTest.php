@@ -180,6 +180,36 @@ final class NewCollectionsPageTest extends TestCase
         }
     }
 
+    public function test_choral_classics_lists_its_five_by_name_in_its_own_palette_with_no_motif_and_is_their_home(): void
+    {
+        // The coordinator (2026-11-13, the SEO audit): the composed choir pieces no other page collects.
+        $songs = ['ave-verum-corpus', 'brahms-lullaby', 'now-is-the-month-of-maying', 'with-cat-like-tread', 'the-lord-bless-you'];
+        $html = (string) $this->get('/songs/choral-classics')->assertOk()->getContent();
+        $this->assertStringContainsString('<title>'.e(SitePages::title('Choral Classics: Mozart, Brahms, Morley and More')).'</title>', $html);
+        $this->assertStringContainsString('class="s-xhero s-tone s-tone-choral-classics"', $html);
+        $this->assertStringNotContainsString('s-tone-motif', $html, 'no motif');
+        foreach ($songs as $slug) {
+            $this->assertStringContainsString('href="/songs/'.$slug.'"', $html, $slug);
+            $this->assertStringContainsString('href="/songs/choral-classics"', (string) $this->get('/songs/'.$slug)->assertOk()->getContent(), $slug.' is home');
+        }
+        $this->assertSame($songs, app(SongCollections::class)->members('choral-classics') === [] ? [] : array_values(array_intersect($songs, app(SongCollections::class)->members('choral-classics'))));
+    }
+
+    public function test_the_choral_classics_intro_names_each_song_and_its_maker_as_its_file_credits_them(): void
+    {
+        // Its claims, checked against the songs: each title named, and each tune's maker as the song file credits it.
+        $intro = implode(' ', (array) __('site.collections.choral-classics.intro'));
+        foreach (['Ave verum corpus' => 'Mozart', 'Now Is the Month of Maying' => 'Morley', 'With Cat-like Tread' => 'Sullivan', 'The Lord Bless You' => 'Lutkin', "Brahms's Lullaby" => 'Brahms'] as $title => $maker) {
+            $this->assertStringContainsStringIgnoringCase($title, $intro);
+            $this->assertStringContainsString($maker, $intro);
+        }
+        foreach (app(SongCollections::class)->members('choral-classics') as $slug) {
+            $credits = (array) (((array) Template::query()->with('currentVersion')->where('slug', $slug)->firstOrFail()->currentVersion?->data)['credits'] ?? []);
+            $tune = (string) ($credits['tune'] ?? '');
+            $this->assertTrue(collect(['Mozart', 'Morley', 'Sullivan', 'Lutkin', 'Brahms'])->contains(static fn (string $maker): bool => str_contains($tune, $maker)), $slug.': '.$tune);
+        }
+    }
+
     public function test_a_motif_is_drawn_only_for_a_collection_that_has_one(): void
     {
         $this->assertSame('', (string) Motif::svg('hymns', 'x'));

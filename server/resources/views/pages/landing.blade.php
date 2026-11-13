@@ -21,9 +21,9 @@
     @php($facts = \App\Support\Pages\Landing::list('facts', [':free_songs' => (string) $plans['freeSongs']]))
     <main class="s-lv2">
         <section class="s-wrap s-hero s-hero-home" aria-labelledby="hero-h">
-            {{-- Landing v2 (docs/landing-v2-plan.md): the headline huge on the left; on the right its line, Start
-                 singing and Hear four voices, and the chord promise. Game mode is the header's (the mock's place),
-                 so the hero is one clear choice. --}}
+            {{-- Hillel's newest landing design (2026-11-12, after landing v2): the headline across the page in two lines,
+                 "made by you." in the accent; under it its line on the left, and Start singing, Hear four voices and the
+                 chord promise on the right. Game mode is the header's, so the hero is one clear choice. --}}
             <div class="s-hero-split">
                 <h1 id="hero-h"><span>{{ __('pages.landing.headline') }}</span> <span class="s-hero-em">{{ __('pages.landing.headline_em') }}</span></h1>
                 <div class="s-hero-go">
@@ -58,15 +58,17 @@
                      (js/public/site.js). --}}
                 <div class="s-heroslot" data-heroslot>
                     <div class="s-slot-s">
-                        <x-site.mixer :song="$hero" id="hero">
+                        {{-- Nothing picked until it is, as on the song pages (the song page review's rule): every part
+                             as loud as the others, and no row says My part until "I sing this" is tapped. --}}
+                        <x-site.mixer :song="$hero" id="hero" :picked="false">
                             <p class="s-mix-hint">{{ __('pages.landing.hero.hint') }}</p>
-                            {{-- The four facts in the card's foot (the mock's place). --}}
+                            {{-- The next step in the card's foot (Hillel's newest landing design): four voices heard,
+                                 the next four are yours, straight into lesson 1 (no account needed). --}}
                             <x-slot:foot>
-                                <ul class="s-mix-facts">
-                                    @foreach ($facts as $fact)
-                                        <li class="s-v{{ $loop->iteration }}"><i aria-hidden="true"></i>{{ $fact }}</li>
-                                    @endforeach
-                                </ul>
+                                <div class="s-next4">
+                                    <p>{{ __('pages.landing.next_four') }}</p>
+                                    <a href="{{ $links['start'] }}" class="btn-primary" data-funnel-start>{{ __('pages.landing.first_note') }} <x-site.icon name="arrow" size="16" /></a>
+                                </div>
                             </x-slot:foot>
                         </x-site.mixer>
                     </div>
@@ -77,7 +79,7 @@
                             <div class="s-cab-foot">
                                 <button type="button" class="s-cab-play" data-cab-play aria-label="{{ __('pages.landing.game.play') }}" data-label-play="{{ __('pages.landing.game.play') }}" data-label-pause="{{ __('pages.landing.game.pause') }}"><span class="s-i-play"><x-site.icon name="play" size="18" /></span><span class="s-i-stop"><x-site.icon name="pause" size="18" /></span></button>
                                 <div class="s-cab-words">
-                                    <p translate="no">@foreach ($hero['words'] as $word)<span data-beat="{{ $word['beat'] }}">{{ $word['text'] }}</span>{{ $word['joins'] ? '' : ' ' }}@endforeach</p>
+                                    <p translate="no">@foreach ($hero['words'] as $word)@if ($word['br'] && ! $loop->first)<span aria-hidden="true">/ </span>@endif<span data-beat="{{ $word['beat'] }}">{{ $word['text'] }}</span>{{ $word['joins'] ? '' : ' ' }}@endforeach</p>
                                     <i class="s-cab-progress"><b data-cab-progress></b></i>
                                 </div>
                                 <span class="s-cab-time" data-cab-time>0:00</span>
@@ -88,8 +90,8 @@
                     </div>
                 </div>
             @endif
-            {{-- The same facts under the cabinet in the game skin (and for both when there's no song to play). --}}
-            <ul @class(['s-factrow', 's-skin-g' => $hero !== null])>
+            {{-- The four facts under the player (and under the cabinet in the game skin). --}}
+            <ul class="s-factrow">
                 @foreach ($facts as $fact)
                     <li class="s-v{{ $loop->iteration }}"><i class="gem" aria-hidden="true"></i>{{ $fact }}</li>
                 @endforeach
@@ -165,10 +167,13 @@
                 <span class="s-stackbig" aria-hidden="true">@foreach ([[1, 100], [2, 74], [3, 88], [4, 62]] as [$n, $w])<b class="s-v{{ $n }}" style="width: {{ $w }}%"></b>@endforeach</span>
                 <p class="s-kick s-skin-g s-player">{{ __('pages.landing.game.final_kick') }}</p>
                 <h2 id="final-h">{{ __('pages.landing.final_title') }}</h2>
-                <p>{{ __('pages.landing.final_body') }}</p>
-                <p class="s-final-btns">
-                    <a href="{{ $links['start'] }}" class="btn-primary btn-lg" data-funnel-start>{{ __('pages.landing.start') }} <x-site.icon name="arrow" size="18" /></a>
-                </p>
+                {{-- Start singing beside its line (Hillel's newest design): lesson 1, which needs no account. --}}
+                <div class="s-final-go">
+                    <p class="s-final-btns">
+                        <a href="{{ $links['start'] }}" class="btn-primary btn-lg" data-funnel-start>{{ __('pages.landing.start') }} <x-site.icon name="arrow" size="18" /></a>
+                    </p>
+                    <p>{{ __('pages.landing.final_body') }}</p>
+                </div>
             </div>
         </section>
     </main>

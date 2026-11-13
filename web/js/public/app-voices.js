@@ -5,11 +5,41 @@
 
 import { recordingApplies, trimDecoded } from '../recorded-guides.js';
 
+// The song's own answer from the public catalogue (templates.show: its template and its voices), read once a page.
+const answers = new Map();
+function songAnswer(slug) {
+    if (!answers.has(slug)) {
+        const answer = (async () => {
+            const response = await fetch('/api/templates/{id}'.replace('{id}', encodeURIComponent(slug)), { headers: { Accept: 'application/json' } });
+            if (!response.ok) throw new Error(`The song answered ${response.status}`);
+            return (await response.json()).data;
+        })();
+        answer.catch(() => answers.delete(slug));
+        answers.set(slug, answer);
+    }
+    return answers.get(slug);
+}
+
 /**
- * The song's current guides, by part key, from the public catalogue (the same source Sing uses), only where a real
- * voice belongs to this version of the song; {} when it has none, null when the catalogue can't be read.
+ * The song's current guides, by part key (the same voices Sing uses), only where a real voice belongs to this version
+ * of the song; {} when it has none, null when neither the song nor the catalogue can be read. From the song's own
+ * answer (a few KB, read anyway for the whole song's notes), else the whole catalogue (a Plus song, signed out, is
+ * refused its own: Slow 4G, 2026-11-13: the catalogue alone was 1.9 s of every press's 1.5 s wait).
  */
 export async function catalogueGuides(id, template) {
+    try {
+        const answer = await songAnswer(id);
+        const guides = {};
+        for (const voice of answer.voices ?? []) {
+            if (voice.default === true && recordingApplies({ recording: voice, version: answer.template?.version, template })) guides[voice.partKey] = voice;
+        }
+        return guides;
+    } catch {
+        return listedGuides(id, template);
+    }
+}
+
+async function listedGuides(id, template) {
     try {
         const response = await fetch('/api/templates', { headers: { Accept: 'application/json' } });
         if (!response.ok) throw new Error(`The catalogue answered ${response.status}`);
@@ -27,9 +57,7 @@ export async function catalogueGuides(id, template) {
 
 /** A library song's template as the app reads it (templates.show; a Plus song, signed out, is refused: 403). */
 export async function songTemplate(slug) {
-    const response = await fetch('/api/templates/{id}'.replace('{id}', encodeURIComponent(slug)), { headers: { Accept: 'application/json' } });
-    if (!response.ok) throw new Error(`The song answered ${response.status}`);
-    return (await response.json()).data.template;
+    return (await songAnswer(slug)).template;
 }
 
 /** A real voice at `context`'s rate: `{ samples, offsetSeconds }` (its samples start that far into the song). */

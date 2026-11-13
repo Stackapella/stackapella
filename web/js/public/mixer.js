@@ -30,14 +30,21 @@
 // The whole song (Hillel: "let's always play the full songs. none are that long"): a song whose data says `whole`
 // starts at once with its opening line (the notes in the page), while the rest of the song comes from the public
 // catalogue (/api/templates/<slug>, as the part pages read it) and is sung by the same worker; it joins on the audio
-// clock exactly where the song has got to, so the parts never drift. The seam for showreel's rendered full mixes, later:
-// the song's data gains a `mix` URL, and a player with one plays that file instead of joining the rest. A press answers
-// at once and shows its loading, a slow load and a failure the same way on every player (play-state.js).
+// clock exactly where the song has got to, so the parts never drift. A press answers at once and shows its loading, a
+// slow load and a failure the same way on every player (play-state.js).
+//
+// The song's render (the showreel agent's stereo mix of every part, `audio` in the data, only where it's of the song's
+// current version): while every part sounds as mixed, Play streams that one file, a quarter of the bytes of four
+// voices, through the AudioContext (so Stop fades it), its own time the clock for the lights. A part heard alone or
+// brought forward needs the voices apart: the player moves to them at the same point, and back to the render when all
+// of them sound again. The voices apart are the app's own, made when the player comes into view; a song's recorded
+// voices download only once a part is heard on its own (Slow 4G: the four took 14 s, the render under 5).
 
 import { heardTime } from '../../engine/clock.js';
 import { renderGuide } from '../guides.js';
 import { catalogueGuides, placed, realVoice, songTemplate } from './app-voices.js';
 import { playState } from './play-state.js';
+import { note } from './report.js';
 
 const START_AHEAD = 0.1; // seconds: room to start every voice on the same frame
 const SWITCH = 0.012; // the time constant of a voice's switch, about 50 ms to silence
@@ -53,6 +60,15 @@ const BRING = 0.05; // the time constant of bringing a voice forward: about 150 
 const RATE = 48000;
 // A press waits this long for the real voices still on their way, then the app's own voice sings.
 const REAL_WAIT = 1500;
+// The render plays at its own mastered level (-16 LUFS) through the master, which carries LEVEL for the voices.
+const MIX_GAIN = 1 / LEVEL;
+const MIX_MOVE = 0.03; // the time constant of moving between the render and the voices apart: about 100 ms
+
+/** The render this browser plays: the m4a where it can, else the mp3; null without one. Pure (the tests check it). */
+export function renderUrl(audio, canPlay) {
+    if (audio?.m4a && canPlay('audio/mp4') !== '') return audio.m4a;
+    return audio?.mp3 ?? null;
+}
 
 let context = null;
 const players = [];
@@ -85,6 +101,17 @@ export function sounding(parts, at, secondsPerBeat) {
 export function joinAt(start, lineSeconds, now) {
     const when = Math.max(start + lineSeconds, now);
     return { when, offset: when - start };
+}
+
+/** The media CDN's connection opened ahead (on a slow network its handshake is most of the wait), once per host. */
+function preconnect(url) {
+    const origin = new URL(url, location.href).origin;
+    if (origin === location.origin || document.querySelector(`link[rel=preconnect][href="${origin}"]`)) return;
+    const link = document.createElement('link');
+    link.rel = 'preconnect';
+    link.href = origin;
+    link.crossOrigin = 'anonymous';
+    document.head.append(link);
 }
 
 for (const root of document.querySelectorAll('[data-player]')) {
@@ -168,7 +195,27 @@ function setUp(root) {
         made = null;
         throw error;
     }));
+    // The render, while every part sounds as it was mixed: all on, none alone or brought forward, no Studio controls.
+    const mixUrl = renderUrl(song.audio, (type) => document.createElement('audio').canPlayType(type));
+    let mixFailed = false; // a render that wouldn't play isn't tried again on this page: the voices sing it
+    const mixable = () => mixUrl !== null && !mixFailed && !levels.size && !pans.size && !solos.size && forward === null && [...on.values()].every(Boolean);
+    // { el, gain, user }: the render's <audio>, made (and loading) once someone might press, routed through the
+    // context the first time it plays; `user` is the play that wants it sounding, so a late pause never cuts a new play.
+    let media = null;
+    const mediaOf = () => {
+        if (media) return media;
+        const el = new Audio();
+        el.crossOrigin = 'anonymous'; // the media CDN answers any origin; without it the context hears silence
+        el.preload = 'auto';
+        el.src = mixUrl;
+        media = { el, gain: null, user: null };
+        el.addEventListener('ended', () => {
+            if (play && play.mix === media && play.ending === 'mix') stopped();
+        });
+        return media;
+    };
     // A part with a real voice for this version of the song sings with it (the same voices Sing plays), cut to the line.
+    let realHere = null; // the real voices once they're here, for whoever doesn't wait on them
     const realVoices = () => (real ??= (async () => {
         const guides = (await catalogueGuides(song.song, { version: song.version })) ?? {};
         const decoder = new OfflineAudioContext(1, 1, RATE);
@@ -181,6 +228,7 @@ function setUp(root) {
                 console.warn('A real voice could not load: the synth sings it', error);
             }
         }));
+        realHere = voices;
         return voices;
     })());
     const ready = () => synthVoices();
@@ -205,7 +253,8 @@ function setUp(root) {
             sampleRate: RATE,
             human: 'full',
         })));
-        const voices = await realVoices();
+        // With a render, the voices apart never wait on a download: the real ones join only if they're here already.
+        const voices = mixUrl ? realHere : await realVoices();
         return parts.map((part, i) => {
             const voice = voices?.[part.key];
             return voice ? placed(voice.samples, voice.offsetSeconds, RATE, Math.max(rendered[i].length, Math.round(length * RATE))) : rendered[i];
@@ -218,7 +267,9 @@ function setUp(root) {
     let following = song.parts.map((part) => ({ key: part.key, notes: part.notes }));
     const likely = () => {
         synthVoices().catch(() => {});
-        realVoices();
+        // With a render, that file starts coming (the voices apart wait until a part is heard on its own).
+        if (mixUrl) mediaOf();
+        else realVoices();
         if (whole) fullParts().catch(() => {});
     };
     let pending = null; // the press whose voices are still rendering; Stop or another player cancels it
@@ -254,10 +305,41 @@ function setUp(root) {
         if (time) time.textContent = `${clock(at)} / ${clock(length)}`;
     }
 
+    // Where the song has got to: the render's own time while it plays, else the audio clock from the voices' start.
+    function position() {
+        if (!play) return 0;
+        if (play.mix) return play.mix.el.currentTime;
+        return Math.max(0, heardTime(context) - play.start);
+    }
+
     function tick() {
         if (!play) return;
-        show(Math.max(0, heardTime(context) - play.start));
+        show(position());
         frame = requestAnimationFrame(tick);
+    }
+
+    // The render's element pauses once its fade is over, on the audio clock (an empty source's end), unless a play
+    // wants it sounding again by then.
+    function pauseAfter(m, when) {
+        const mark = context.createBufferSource();
+        mark.buffer = context.createBuffer(1, 1, context.sampleRate);
+        mark.connect(context.destination);
+        mark.addEventListener('ended', () => {
+            if (m.user === null) m.el.pause();
+        });
+        mark.start(when);
+    }
+
+    // The render into this play's master (made once per element: an element feeds one source node for good).
+    function mixInto(master) {
+        const m = mediaOf();
+        if (!m.gain) {
+            m.gain = context.createGain();
+            context.createMediaElementSource(m.el).connect(m.gain);
+        }
+        m.gain.disconnect();
+        m.gain.connect(master);
+        return m;
     }
 
     function stopped() {
@@ -269,6 +351,7 @@ function setUp(root) {
     }
 
     function ramp(key, constant) {
+        if (play?.mix) return; // the render sounds: the voices apart are silent until a move brings them in
         const gain = play?.gains.get(key)?.gain;
         if (!gain) return;
         gain.cancelScheduledValues(context.currentTime);
@@ -316,6 +399,7 @@ function setUp(root) {
         if (!on.get(key)) switchTo(key, true);
         for (const other of picks.keys()) ramp(other, BRING);
         showSets();
+        remix();
         // Said to the page, which may follow it (a song page's Learn names the part: js/public/song-page.js).
         root.dispatchEvent(new CustomEvent('mixer-pick', { bubbles: true, detail: { key } }));
     }
@@ -352,80 +436,248 @@ function setUp(root) {
         // Made and resumed inside the press, as Safari asks (made already on the pointer going down, when it can be).
         context ??= new AudioContext({ latencyHint: 'playback' });
         const resumed = context.resume();
+        const master = context.createGain();
+        master.gain.value = LEVEL;
+        master.connect(context.destination);
+        // `gen` counts the moves between the render and the voices apart: an end or a join from before a move is ignored.
+        const current = { start: 0, master, gains: new Map(), panners: new Map(), sources: [], stop, joining: false, ending: null, lineEnded: false, mix: null, gen: 0, move: null };
         try {
+            // The render, started inside the press (as iPhone asks of a media element); the voices sing if it can't.
+            if (mixable() && (await fromRender(current, press, resumed))) return;
+            if (pending !== press) return master.disconnect();
             const voicesOnTheWay = realVoices();
             const rendered = [...(await ready())];
             // The real voices if they're here in time; else the app's own voice sings and they're kept for the next press.
             // A limit on the wait for the network, not audio timing: the voices still start together on the audio clock.
             const voices = await Promise.race([voicesOnTheWay, new Promise((resolve) => setTimeout(() => resolve(null), REAL_WAIT))]);
-            song.parts.forEach((part, i) => {
-                const voice = voices?.[part.key];
-                if (voice) rendered[i] = placed(voice.samples, voice.offsetSeconds, RATE, rendered[i].length);
-            });
+            withReal(rendered, voices);
             await resumed;
-            if (pending !== press) return; // stopped, or another player started, while it rendered
+            if (pending !== press) return master.disconnect(); // stopped, or another player started, while it rendered
             pending = null;
-            const master = context.createGain();
-            master.gain.value = LEVEL;
-            master.connect(context.destination);
-            const at = context.currentTime + START_AHEAD;
-            const gains = new Map();
-            const panners = new Map();
-            const sources = song.parts.map((part, i) => {
-                const samples = rendered[i];
-                const buffer = context.createBuffer(1, Math.max(1, samples.length), RATE);
-                buffer.copyToChannel(samples, 0);
-                const source = context.createBufferSource();
-                source.buffer = buffer;
-                const gain = context.createGain();
-                gain.gain.value = level(part.key);
-                if (pans.has(part.key) && context.createStereoPanner) {
-                    const panner = context.createStereoPanner();
-                    panner.pan.value = placeOf(part.key);
-                    panners.set(part.key, panner);
-                    source.connect(gain).connect(panner).connect(master);
-                } else {
-                    source.connect(gain).connect(master);
-                }
-                source.start(at);
-                gains.set(part.key, gain);
-                return source;
-            });
-            // The whole song: the rest joins where the line ends; until it has, the line's end doesn't end the play.
-            // `ending`: which voices' end ends the play, the line's until the rest has joined.
-            const current = { start: at, master, gains, panners, sources, stop, joining: whole, ending: 'line', lineEnded: false };
             play = current;
-            // The longest voice ending ends the play.
-            const ends = (list, which) => {
-                const left = (source) => source.buffer.duration - (source.from ?? 0);
-                const last = list.reduce((a, b) => (left(b) > left(a) ? b : a));
-                last.addEventListener('ended', () => {
-                    if (which === 'line') current.lineEnded = true;
-                    if (play === current && current.ending === which && !current.joining) stopped();
-                });
-            };
-            ends(sources, 'line');
-            root.setAttribute('data-playing', '');
-            root.setAttribute('data-played', '');
-            loading(false);
-            states.playing();
-            label(true);
-            frame = requestAnimationFrame(tick);
-            if (whole) join(current, ends);
-            else current.joining = false;
+            voicesAt(current, rendered, context.currentTime + START_AHEAD, 0, false);
+            playing();
+            remix(); // all of them sounding again while it loaded: the render takes over
         } finally {
             if (pending === press) pending = null;
             if (pending === null) loading(false);
         }
     }
 
+    // The render from the start: true once it sounds (or the press was cancelled meanwhile), false if it can't play.
+    async function fromRender(current, press, resumed) {
+        const m = mixInto(current.master);
+        m.user = current;
+        m.gain.gain.cancelScheduledValues(0);
+        m.gain.gain.value = MIX_GAIN;
+        if (m.el.currentTime !== 0) m.el.currentTime = 0;
+        const sounding = m.el.play();
+        try {
+            await Promise.all([sounding, resumed]);
+        } catch (error) {
+            console.warn('The render could not play: the voices sing it', error); // i18n-ignore
+            // A Stop while it started (AbortError) isn't a failure; anything else is told once a page.
+            if (error?.name !== 'AbortError') mixFailed = true;
+            if (error?.name !== 'AbortError') note('A song render could not play, the voices sang it', { error: error?.name ?? 'Error', format: mixUrl.split('.').pop() }); // i18n-ignore
+            m.user = null;
+            m.el.pause();
+            return false;
+        }
+        if (pending !== press) {
+            m.user = null;
+            m.el.pause();
+            current.master.disconnect();
+            return true;
+        }
+        pending = null;
+        current.mix = m;
+        current.ending = 'mix';
+        play = current;
+        playing();
+        // The lights follow the whole song's notes once they're here; the voices apart get ready for a part on its own.
+        if (whole) {
+            fullParts().then((parts) => (following = parts)).catch(() => {});
+            const soon = () => fullVoices().catch(() => {});
+            if ('requestIdleCallback' in window) requestIdleCallback(soon, { timeout: 4000 });
+            else soon();
+        }
+        remix(); // a part alone already, while it loaded: the voices apart take over
+        return true;
+    }
+
+    function playing() {
+        root.setAttribute('data-playing', '');
+        root.setAttribute('data-played', '');
+        loading(false);
+        states.playing();
+        label(true);
+        frame = requestAnimationFrame(tick);
+    }
+
+    // The line's voices with the real ones placed in, where they're here.
+    function withReal(rendered, voices) {
+        song.parts.forEach((part, i) => {
+            const voice = voices?.[part.key];
+            if (voice) rendered[i] = placed(voice.samples, voice.offsetSeconds, RATE, rendered[i].length);
+        });
+    }
+
+    // A voice's gain in this play (and its panner, where the Studio places it), made the first time.
+    function gainOf(current, key) {
+        let gain = current.gains.get(key);
+        if (gain) return gain;
+        gain = context.createGain();
+        gain.gain.value = 0;
+        if (pans.has(key) && context.createStereoPanner) {
+            const panner = context.createStereoPanner();
+            panner.pan.value = placeOf(key);
+            current.panners.set(key, panner);
+            gain.connect(panner).connect(current.master);
+        } else {
+            gain.connect(current.master);
+        }
+        current.gains.set(key, gain);
+        return gain;
+    }
+
+    // The voices apart from `offset` seconds into the song, starting at `at` on the audio clock: the line's
+    // (`rendered`), and the rest joining where the line ends. `fadeIn` when they take over from the render.
+    function voicesAt(current, rendered, at, offset, fadeIn) {
+        const gen = ++current.gen;
+        current.start = at - offset;
+        current.ending = 'line';
+        current.lineEnded = offset >= lineLength;
+        current.joining = whole;
+        for (const part of song.parts) {
+            const gain = gainOf(current, part.key).gain;
+            gain.cancelScheduledValues(context.currentTime);
+            if (fadeIn) {
+                gain.setValueAtTime(0, context.currentTime);
+                gain.setTargetAtTime(level(part.key), at, MIX_MOVE);
+            } else {
+                gain.value = level(part.key);
+            }
+        }
+        const line = song.parts.map((part, i) => {
+            const samples = rendered[i];
+            const buffer = context.createBuffer(1, Math.max(1, samples.length), RATE);
+            buffer.copyToChannel(samples, 0);
+            const source = context.createBufferSource();
+            source.buffer = buffer;
+            source.from = offset;
+            source.connect(current.gains.get(part.key));
+            if (offset < buffer.duration) source.start(at, offset);
+            return source;
+        }).filter((source) => source.from < source.buffer.duration);
+        current.sources.push(...line);
+        // The whole song: the rest joins where the line ends; until it has, the line's end doesn't end the play.
+        if (line.length) ends(current, line, 'line', gen);
+        if (whole) join(current, gen);
+        else {
+            current.joining = false;
+            if (!line.length) stopped();
+        }
+    }
+
+    // The longest of `list` ending ends the play, when `which` (the line's voices or the rest) is what's playing.
+    function ends(current, list, which, gen) {
+        const left = (source) => source.buffer.duration - (source.from ?? 0);
+        const last = list.reduce((a, b) => (left(b) > left(a) ? b : a));
+        last.addEventListener('ended', () => {
+            if (current.gen !== gen) return;
+            if (which === 'line') current.lineEnded = true;
+            if (play === current && current.ending === which && !current.joining) stopped();
+        });
+    }
+
+    // Between the render and the voices apart, after a part is switched, heard alone or brought forward (or all of
+    // them again), at the same point in the song. A move still on its way is cancelled by a change back.
+    function remix() {
+        if (!play || !mixUrl) return;
+        const want = mixable();
+        if (want === (play.mix !== null)) {
+            play.move = null;
+            return;
+        }
+        if (want) toRender(play);
+        else toVoices(play);
+    }
+
+    // The render carries on until the voices apart are made from where it is; then they fade in as it fades out.
+    async function toVoices(current) {
+        const move = (current.move = {});
+        const m = current.mix;
+        realVoices(); // a part on its own: the recorded voices start coming, for the voices apart from now on
+        let rendered = null;
+        try {
+            if (m.el.currentTime < lineLength - 1) rendered = [...(await ready())];
+            else await fullVoices();
+        } catch (error) {
+            console.warn('The voices apart could not be made: the render plays on', error); // i18n-ignore
+            return;
+        }
+        if (play !== current || current.move !== move || current.mix !== m) return;
+        current.move = null;
+        if (rendered) withReal(rendered, realHere);
+        else rendered = song.parts.map(() => new Float32Array(1)); // past the line: the rest joins at once
+        const at = context.currentTime + START_AHEAD;
+        current.mix = null;
+        voicesAt(current, rendered, at, m.el.currentTime + START_AHEAD, true);
+        m.gain.gain.cancelScheduledValues(context.currentTime);
+        m.gain.gain.setTargetAtTime(0, at, MIX_MOVE);
+        m.user = null;
+        pauseAfter(m, at + MIX_MOVE * 6);
+    }
+
+    // Back to the render (inside the tap, as iPhone asks of a media element): it starts where the voices are, and
+    // takes over once it sounds there.
+    function toRender(current) {
+        const move = (current.move = {});
+        const m = mixInto(current.master);
+        m.user = current;
+        m.gain.gain.cancelScheduledValues(context.currentTime);
+        m.gain.gain.value = 0;
+        m.el.currentTime = position();
+        const gone = () => {
+            if (m.user === current && current.mix !== m) {
+                m.user = null;
+                m.el.pause();
+            }
+        };
+        m.el.play().then(async () => {
+            if (play !== current || current.move !== move) return gone();
+            // Where the voices have got to while it started (it has that much already, so this seek is quick).
+            m.el.currentTime = position() + 0.03;
+            await new Promise((resolve) => m.el.addEventListener('seeked', resolve, { once: true }));
+            if (play !== current || current.move !== move) return gone();
+            current.move = null;
+            const now = context.currentTime;
+            m.gain.gain.setTargetAtTime(MIX_GAIN, now, MIX_MOVE);
+            for (const gain of current.gains.values()) {
+                gain.gain.cancelScheduledValues(now);
+                gain.gain.setTargetAtTime(0, now, MIX_MOVE);
+            }
+            for (const source of current.sources) source.stop(now + MIX_MOVE * 6);
+            current.sources = [];
+            current.gen += 1;
+            current.joining = false;
+            current.ending = 'mix';
+            current.mix = m;
+        }).catch((error) => {
+            console.warn('The render could not play: the voices carry on', error); // i18n-ignore
+            if (error?.name !== 'AbortError') mixFailed = true;
+            if (error?.name !== 'AbortError') note('A song render could not take over again, the voices carried on', { error: error?.name ?? 'Error', format: mixUrl.split('.').pop() }); // i18n-ignore
+            gone();
+        });
+    }
+
     // The rest of the song, sung by the worker (or the real voices), started on the audio clock at the line's end, or
     // where the song has got to if it came late, through the same gains (the voices' switches keep working).
-    async function join(current, ends) {
+    async function join(current, gen) {
         try {
             const rest = await fullVoices();
             fullParts().then((parts) => (following = parts)).catch(() => {});
-            if (play !== current) return;
+            if (play !== current || current.gen !== gen) return;
             const { when, offset } = joinAt(current.start, lineLength, context.currentTime + START_AHEAD);
             const more = song.parts.map((part, i) => {
                 const samples = rest[i];
@@ -442,11 +694,12 @@ function setUp(root) {
             current.joining = false;
             if (more.length) {
                 current.ending = 'rest';
-                ends(more, 'rest');
+                ends(current, more, 'rest', gen);
             } else if (current.lineEnded) stopped();
         } catch (error) {
             // The rest couldn't come: the line already played says so, and the play ends with it.
             console.warn('The rest of the song could not load', error); // i18n-ignore
+            if (current.gen !== gen) return;
             current.joining = false;
             if (play === current && current.lineEnded) stopped();
         }
@@ -459,9 +712,15 @@ function setUp(root) {
         }
         if (!play) return;
         const { master, sources } = play;
+        play.move = null;
         const now = context.currentTime;
         master.gain.setTargetAtTime(0, now, FADE_OUT / 4);
         for (const source of sources) source.stop(now + FADE_OUT);
+        // The render (sounding, or on its way back) pauses once the fade is over.
+        if (media?.user === play) {
+            media.user = null;
+            pauseAfter(media, now + FADE_OUT);
+        }
         stopped();
     }
 
@@ -469,12 +728,7 @@ function setUp(root) {
     button.addEventListener('pointerdown', () => {
         if (!play && !pending) context ??= new AudioContext({ latencyHint: 'playback' });
     });
-    button.addEventListener('click', () => {
-        // A second press while it renders, or while it plays, stops it.
-        if (play || pending) {
-            stop();
-            return;
-        }
+    function begin() {
         // One player at a time.
         for (const other of players) other.stop();
         start().catch((error) => {
@@ -482,6 +736,14 @@ function setUp(root) {
             stopped();
             states.failed();
         });
+    }
+    button.addEventListener('click', () => {
+        // A second press while it renders, or while it plays, stops it.
+        if (play || pending) {
+            stop();
+            return;
+        }
+        begin();
     });
 
     for (const [key, el] of voices) {
@@ -492,6 +754,7 @@ function setUp(root) {
             event.stopPropagation();
             switchTo(key, !on.get(key));
             showSets();
+            remix();
         });
     }
     const order = [...picks.keys()];
@@ -514,12 +777,19 @@ function setUp(root) {
             const solo = button.getAttribute('aria-pressed') === 'true';
             for (const other of on.keys()) switchTo(other, solo || other === key);
             showSets();
+            // "Tap a part to hear it on its own": while nothing plays, the tap plays it (it used to only switch).
+            if (!play && !pending) begin();
+            else remix();
+        });
+        button.addEventListener('pointerdown', () => {
+            if (!play && !pending) context ??= new AudioContext({ latencyHint: 'playback' });
         });
     }
     for (const el of sets) {
         el.addEventListener('click', () => {
             for (const key of on.keys()) switchTo(key, el.dataset.set === 'all' || key === el.dataset.set);
             showSets();
+            remix();
         });
     }
 
@@ -541,6 +811,7 @@ function setUp(root) {
         const seen = new IntersectionObserver((entries) => {
             if (!entries.some((e) => e.isIntersecting)) return;
             seen.disconnect();
+            if (mixUrl) preconnect(mixUrl);
             const soon = () => synthVoices().catch(() => {});
             if ('requestIdleCallback' in window) requestIdleCallback(soon, { timeout: 2000 });
             else soon();

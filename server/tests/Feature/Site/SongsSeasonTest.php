@@ -43,8 +43,11 @@ final class SongsSeasonTest extends TestCase
         $this->assertSame('christmas', $this->bands('2026-11-12 12:00:00')[0]);
         $this->assertNotSame(JewishSongs::SLUG, $this->bands('2026-11-12 12:00:00')[1]);
 
-        // From 13 November (21 days before its first evening, 4 December) to its last day, 12 December: right after the carols.
-        foreach (['2026-11-13 08:00:00', '2026-12-04 20:00:00', '2026-12-12 20:00:00'] as $at) {
+        // Up to Thanksgiving (26 November), its hymns come right after the carols, the festival nearest first (Festivals).
+        $this->assertSame(['christmas', 'thanksgiving-hymns'], array_slice($this->bands('2026-11-13 08:00:00'), 0, 2));
+
+        // Then the Jewish songs, from Hanukkah's 21 days ahead of its first evening (4 December) to its last day, 12 December.
+        foreach (['2026-11-27 08:00:00', '2026-12-04 20:00:00', '2026-12-12 20:00:00'] as $at) {
             $this->assertSame(['christmas', JewishSongs::SLUG], array_slice($this->bands($at), 0, 2), $at);
         }
         $this->assertNotSame(JewishSongs::SLUG, $this->bands('2026-12-13 08:00:00')[1]);

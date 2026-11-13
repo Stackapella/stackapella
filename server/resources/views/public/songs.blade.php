@@ -16,6 +16,8 @@
     <meta property="og:image:height" content="630">
     <meta name="twitter:card" content="summary_large_image">
     <link rel="canonical" href="{{ $meta['url'] }}">
+    {{-- Every open song as a list, and the page's trail (the SEO audit: /songs had no structured data). --}}
+    <x-site.json-ld :data="\App\Support\Site\StructuredData::songbook(__('pages.songs.title'), $meta['url'], $index)" />
 @endsection
 
 {{-- A band's words: the carols' own, else its collection's. --}}
@@ -55,6 +57,21 @@
             @endif
         </section>
 
+        {{-- Coming up (Hillel, 2026-11-12: "have the main songs page automatically highlight which section is coming up
+             next"): the festival on now or nearest, as its own card in its collection's tone, and a second as a smaller
+             line (App\Support\Pages\Festivals, SongsHub::next). The server shows its own day's; js/public/coming-up.js
+             picks again on the visitor's day from every card here, and moves that collection's panel first. --}}
+        @if ($next['cards'] !== [])
+            <section class="s-wrap s-sh-next" aria-label="{{ __('pages.songs.next.label') }}" data-coming-up @if ($next['pick'] === null) hidden @endif>
+                @foreach ($next['cards'] as $i => $card)
+                    @include('site._festival-card', ['card' => $card, 'id' => 'next-'.$i, 'class' => 's-tone-'.$card['band'].' s-sh-next-card', 'hidden' => $i !== $next['pick'], 'lamp' => false])
+                @endforeach
+                @foreach ($next['cards'] as $i => $card)
+                    <p class="s-sh-next-also" data-also="{{ $i }}" @if ($i !== $next['also']) hidden @endif>{{ __('pages.songs.next.also') }} <a href="{{ $card['link']['url'] }}" class="s-lk">{{ $card['name'] }}</a>, <span data-when>{{ $card['on'] ? $card['untilLine'] : $card['when'] }}</span></p>
+                @endforeach
+            </section>
+        @endif
+
         @if ($season !== null)
             @php($words = $w($season['key']))
             <section id="band-{{ $season['key'] }}" class="s-sh-band s-tone s-tone-{{ $season['key'] }} s-sh-season" aria-labelledby="band-{{ $season['key'] }}-h">
@@ -91,7 +108,7 @@
                 <div class="s-sh-grid">
                     @foreach ($panels as $band)
                         @php($words = $w($band['key']))
-                        <section id="band-{{ $band['key'] }}" class="s-sh-panel s-tone s-tone-{{ $band['key'] }}" aria-labelledby="band-{{ $band['key'] }}-h">
+                        <section id="band-{{ $band['key'] }}" class="s-sh-panel s-tone s-tone-{{ $band['key'] }}" aria-labelledby="band-{{ $band['key'] }}-h" data-band="{{ $band['key'] }}" data-order="{{ $band['order'] ?? $loop->index }}">
                             @include('site._tone-motif', ['key' => $band['key']])
                             <div class="s-sh-panel-in">
                                 <div class="s-sh-panel-top">
@@ -161,5 +178,6 @@
     <script type="module" src="/js/public/mixer.js"></script>
     <script type="module" src="/js/public/carols.js"></script>
     <script type="module" src="/js/public/hanukkiah.js"></script>
+    <script type="module" src="/js/public/coming-up.js"></script>
     <script type="module" src="/js/public/songbook.js"></script>
 @endsection

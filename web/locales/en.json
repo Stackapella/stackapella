@@ -678,6 +678,7 @@
         "next": "Next"
     },
     "templates": {
+        "needsAccountNoClip": "Make a free account to start this song.",
         "loadFailed": "The song didn't load.",
         "notHere": "This song isn't available where you are yet.",
         "notHereUntil": "This song isn't available where you are yet. It opens here in {year}.",
@@ -688,9 +689,9 @@
         "play": "Play",
         "preparing": "Getting it ready",
         "difficulty": {
-            "beginner": "Beginner",
-            "intermediate": "Intermediate",
-            "advanced": "Advanced"
+            "beginner": "For beginners",
+            "intermediate": "A step up",
+            "advanced": "A challenge"
         },
         "range": "{low} to {high}",
         "credits": "Words: {words}. Tune: {tune}. Arrangement: {arrangement}.",
@@ -4159,6 +4160,7 @@
         "closestPart": "None of the parts quite fits your range, even with the key moved. {part} is the closest. Change part from the top if you like."
     },
     "auth": {
+        "introLibrary": "The library's songs need an account. It's free, and the lessons need none.",
         "signIn": "Sign in",
         "intro": "Optional. You can learn and record without an account. Signing in syncs your songs across your devices.",
         "introGroups": "A group needs an account, so your singers can join you. Free for you and every singer.",
@@ -4288,6 +4290,7 @@
             "stay": "Stay as {current}"
         },
         "reason": {
+            "library": "A free account opens every song",
             "requests": "To ask for a song or vote for one, make a free account",
             "progress": "Save your progress with a free account",
             "reminders": "Reminders need an account, so we know where to send them",

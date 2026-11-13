@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Exceptions\Refusal;
 use App\Http\Controllers\Auth\ProviderController;
 use App\Http\Controllers\HealthController;
+use App\Http\Controllers\Internal\CorrectionsExportController;
 use App\Http\Controllers\Internal\GrowthDataController;
 use App\Http\Controllers\Ops\SecurityTxtController;
 use App\Http\Controllers\PreviewLinkController;
@@ -109,6 +110,7 @@ return Application::configure(basePath: dirname(__DIR__))
             Route::get('/up/scheduler', [HealthController::class, 'scheduler'])->middleware('throttle:health')->name('health.scheduler');
             // The growth data for app:pull-growth (docs/growth-data.md): a bearer token, no session.
             Route::get('/api/internal/growth', GrowthDataController::class)->middleware('throttle:growth-data')->name('internal.growth');
+            Route::get('/api/internal/corrections', CorrectionsExportController::class)->middleware('throttle:corrections-export')->name('internal.corrections');
             Route::get('/.well-known/security.txt', SecurityTxtController::class)->middleware('throttle:public-pages')->name('security.txt');
 
             Route::middleware('web')->group(base_path('routes/web.php'));

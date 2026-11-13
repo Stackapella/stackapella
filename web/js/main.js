@@ -277,6 +277,10 @@ async function readGate({ fresh = false } = {}) {
     }
 }
 readGate();
+// A link to a song (a song page's Learn, ?song= on Home): its sheet's code comes now, with the app's, so the sheet opens as
+// Home does; asked for once Home was up, a slow phone showed Home's own Start 1.2 to 3.3 s before the song you came for
+// (the first-session walk, 2026-11-14).
+if (location.pathname === '/' && new URLSearchParams(location.search).has('song')) import('./components/dialogs.js').catch((error) => console.warn("The song's sheet was not fetched ahead", error));
 watch(() => account.me?.id, (id) => id && readGate({ fresh: true }));
 watch(() => account.me?.staff, (staff) => setDraftsFor({ admin: staff === 'admin' }), { immediate: true });
 watch([() => gate.comingSoon, () => route.name, () => route.params.token], ([closed, name, token]) => {

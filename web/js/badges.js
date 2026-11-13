@@ -6,7 +6,10 @@
 import { levelFor, weeksInARow } from './course.js';
 import { tk } from './i18n.js';
 
-const span = (progress) => (progress.range ? progress.range.high - progress.range.low : 0);
+// A range sung or set (measured or chosen), never one a part's pick filled in while none was known ('picked'): picking
+// Alto on a first song gave a brand-new singer "An octave" for nothing sung (the first-session walk, 2026-11-14).
+const ownRange = (progress) => (progress.range && progress.rangeSource !== 'picked' ? progress.range : null);
+const span = (progress) => (ownRange(progress) ? ownRange(progress).high - ownRange(progress).low : 0);
 const count = (progress, name) => progress.counts?.[name] ?? 0;
 const lessonsWith = (progress, stars) => Object.values(progress.lessons ?? {}).filter((l) => l.stars >= stars).length;
 const practiceDays = (progress) => Object.values(progress.practice ?? {}).filter((seconds) => seconds >= 300).length;
@@ -26,8 +29,8 @@ export const BADGES = [
     { id: 'octave', name: tk('badges.octave.name'), line: tk('badges.octave.line'), group: 'range', icon: 'sliders', earned: (p) => span(p) >= 12, goal: (p) => [span(p), 12] },
     { id: 'octaveAndHalf', name: tk('badges.octaveAndHalf.name'), line: tk('badges.octaveAndHalf.line'), group: 'range', icon: 'sliders', earned: (p) => span(p) >= 18, goal: (p) => [span(p), 18] },
     { id: 'twoOctaves', name: tk('badges.twoOctaves.name'), line: tk('badges.twoOctaves.line'), group: 'range', icon: 'sliders', earned: (p) => span(p) >= 24, goal: (p) => [span(p), 24] },
-    { id: 'highG', name: tk('badges.highG.name'), line: tk('badges.highG.line'), group: 'range', icon: 'arrow', earned: (p) => (p.range?.high ?? 0) >= 79 }, // G5
-    { id: 'lowAndSteady', name: tk('badges.lowAndSteady.name'), line: tk('badges.lowAndSteady.line'), group: 'range', icon: 'arrow', earned: (p) => (p.range?.low ?? 999) <= 43 }, // G2
+    { id: 'highG', name: tk('badges.highG.name'), line: tk('badges.highG.line'), group: 'range', icon: 'arrow', earned: (p) => (ownRange(p)?.high ?? 0) >= 79 }, // G5
+    { id: 'lowAndSteady', name: tk('badges.lowAndSteady.name'), line: tk('badges.lowAndSteady.line'), group: 'range', icon: 'arrow', earned: (p) => (ownRange(p)?.low ?? 999) <= 43 }, // G2
     // Skill
     { id: 'threeStars', name: tk('badges.threeStars.name'), line: tk('badges.threeStars.line'), group: 'skill', icon: 'star', earned: (p) => lessonsWith(p, 3) >= 1 },
     { id: 'tenThreeStars', name: tk('badges.tenThreeStars.name'), line: tk('badges.tenThreeStars.line'), group: 'skill', icon: 'star', earned: (p) => lessonsWith(p, 3) >= 10, goal: (p) => [lessonsWith(p, 3), 10] },

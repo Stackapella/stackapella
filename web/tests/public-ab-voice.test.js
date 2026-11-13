@@ -8,10 +8,10 @@ const SONG = { song: 'test-ab', version: 1, tempo: 120, beats: 4, parts: [{ key:
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 const near = (a, b) => a !== null && Math.abs(a - b) < 0.05;
 
-/** The catalogue (real voices) is the server's: here it has none. */
+/** The song's own answer and the catalogue (real voices) are the server's: here the song isn't one, and none has a voice. */
 async function noCatalogue(body) {
     const fetched = window.fetch;
-    window.fetch = (url, ...rest) => (String(url).endsWith('/api/templates') ? Promise.resolve(new Response(JSON.stringify({ data: [] }), { headers: { 'Content-Type': 'application/json' } })) : fetched(url, ...rest));
+    window.fetch = (url, ...rest) => (String(url).includes('/api/templates') ? Promise.resolve(new Response(JSON.stringify({ data: [] }), { status: String(url).endsWith('/api/templates') ? 200 : 404, headers: { 'Content-Type': 'application/json' } })) : fetched(url, ...rest));
     try {
         return await body();
     } finally {

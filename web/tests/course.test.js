@@ -122,6 +122,9 @@ test('badges: each is earned once, from what was done; two devices keep the earl
     assert(!newBadges(p).length, 'once each');
     p = { ...p, range: { low: 41, high: 70 } };
     assert(newBadges(p).join() === 'octave,octaveAndHalf,twoOctaves,lowAndSteady', newBadges(p).join());
+    // A range a part's pick filled in (nothing sung) earns no range badge; the same range sung does.
+    const picked = { ...emptyProgress(), range: { low: 59, high: 71 }, rangeSource: 'picked' };
+    assert(!newBadges(picked).includes('octave') && newBadges({ ...picked, rangeSource: 'measured' }).includes('octave'), newBadges(picked).join());
     const both = mergeProgress(withBadges(p, ['octave'], 300), withBadges(emptyProgress(), ['octave', 'firstShare'], 200));
     assert(both.badges.octave === 200 && both.badges.firstShare === 200 && both.badges.firstNote === 100 && both.counts.bestCombo === 12, 'merged: the earlier, and the best counts');
     assert(BADGES.length >= 25 && BADGES.every((b) => b.name && b.line && b.icon), 'about 25, each with words and a picture');

@@ -92,6 +92,8 @@ final class SongPagesController extends Controller
         return response()->view('public.songs', [
             'count' => count($songs),
             'bands' => $hub->bands(),
+            // "Coming up" (Festivals): each festival card its script may pick, and the server's pick for today.
+            'next' => $hub->next(),
             'index' => $hub->index(),
             'q' => mb_substr($q, 0, 60),
             // The hero's "Try it": a song's first line in four parts, each switchable (x-site.mixer, js/public/mixer.js).

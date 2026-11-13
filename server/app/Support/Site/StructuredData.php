@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Support\Site;
 
 use App\Support\Http\Hosts;
+use App\Support\Pages\SongPage;
 
 /**
  * What search engines read about the public site (schema.org JSON-LD): only what the page itself
@@ -133,6 +134,25 @@ final class StructuredData
     }
 
     /**
+     * The songbook, /songs: every open song as a list, and its place under the site's home.
+     *
+     * @param  list<array{title: string, url: string}>  $songs
+     * @return list<array<string, mixed>>
+     */
+    public static function songbook(string $name, string $url, array $songs): array
+    {
+        return [
+            [
+                '@context' => 'https://schema.org',
+                '@type' => 'ItemList',
+                'name' => $name,
+                'itemListElement' => array_map(static fn (array $song, int $i): array => ['@type' => 'ListItem', 'position' => $i + 1, 'name' => $song['title'], 'url' => Hosts::publicUrl().$song['url']], $songs, array_keys($songs)),
+            ],
+            self::breadcrumbs([[(string) __('site.song_part.songs'), $url]]),
+        ];
+    }
+
+    /**
      * The trail a page shows above its heading, as a list from the site's home: each step's name and
      * address, the last one this page.
      *
@@ -211,7 +231,7 @@ final class StructuredData
      *
      * The whole song's audio, where the page plays it (SongAudioFiles::forPage), as the composition's MusicRecording.
      *
-     * @param  array{title: string, description: string, pageUrl: string, genre: list<string>, credits: list<string>, audio?: array{mp3: string|null, m4a: string|null, seconds: float, credit: string|null}|null}  $song
+     * @param  array{title: string, description: string, pageUrl: string, genre: list<string>, credits: list<string>, key?: string, audio?: array{mp3: string|null, m4a: string|null, seconds: float, credit: string|null}|null}  $song
      * @param  array<string, mixed>|null  $story
      * @return list<array<string, mixed>>
      */
@@ -227,6 +247,11 @@ final class StructuredData
             'isAccessibleForFree' => true,
             'inLanguage' => app()->getLocale(),
         ];
+        // Its opening key, by name, as the page says it (SongPage::keyName).
+        $key = SongPage::keyName((string) ($song['key'] ?? ''));
+        if ($key !== null) {
+            $composition['musicalKey'] = $key;
+        }
         if (is_array($song['audio'] ?? null) && ($song['audio']['mp3'] ?? $song['audio']['m4a']) !== null) {
             $audio = $song['audio'];
             $duration = 'PT'.(int) floor($audio['seconds'] / 60).'M'.(int) round(fmod($audio['seconds'], 60)).'S';

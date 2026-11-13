@@ -160,6 +160,17 @@ final class Lessons
         '/guides/satb-explained' => ['harmony/low-and-inner-voices', 'range-and-registers/easy-range-and-chest-voice', 'learn-your-choir-part/your-line-in-the-sound'],
         '/guides/singing-in-tune' => ['perfect-your-pitch/bullseye', 'perfect-your-pitch/scoop-or-clean', 'perfect-your-pitch/no-sag'],
         '/guides/what-is-harmony' => ['harmony/your-first-harmony', 'ear-training/three-or-five', 'improvising-harmony/harmony-or-the-tune'],
+        // The guides that had none (marketing2, 2026-11-13, the coordinator's item 6), each to lessons that teach its skill;
+        // sight-reading and vibrato already link theirs in their text, and the tag guide's swipe, post and tag lessons too.
+        '/guides/choir-voicings' => ['harmony/low-and-inner-voices', 'learn-your-choir-part/your-line-in-the-sound', 'harmony/find-your-voice'],
+        '/guides/what-is-a-descant' => ['counterpoint/float-above-it', 'improvising-harmony/a-part-above', 'perfect-your-pitch/dont-get-pulled'],
+        '/guides/find-your-starting-note' => ['perfect-your-pitch/your-note-cold', 'perfect-your-pitch/from-your-anchor', 'sight-singing/do-mi-so'],
+        '/guides/vocal-percussion' => ['a-cappella-bass/keep-the-time', 'a-cappella-bass/steady-or-rushing', 'a-cappella-bass/under-the-group'],
+        '/guides/hanukkah-songs-for-choir' => ['learn-your-choir-part/your-line-in-the-sound', 'learn-your-choir-part/fix-the-hard-bars', 'learn-your-choir-part/ready-for-rehearsal'],
+        '/guides/how-to-blend-in-a-choir' => ['perfect-your-pitch/hear-the-ring', 'perfect-your-pitch/the-chords-change-you-dont', 'learn-your-choir-part/your-line-in-the-sound'],
+        '/guides/how-to-run-a-sectional' => ['learn-your-choir-part/fix-the-hard-bars', 'learn-your-choir-part/guide-on-guide-off', 'learn-your-choir-part/ready-for-rehearsal'],
+        '/guides/how-to-start-an-a-cappella-group' => ['a-cappella-bass/under-the-group', 'harmony/find-your-voice', 'counterpoint/a-slow-line-under-a-tune'],
+        '/guides/barbershop-tags' => ['barbershop/a-chord-that-rings', 'barbershop/the-barbershop-seventh', 'barbershop/the-lead'],
         '/intervals' => ['ear-training/song-starts', 'ear-training/up-or-down-step-or-leap', 'ear-training/leaps-down'],
         '/chords' => ['ear-training/bright-or-dark', 'improvising-harmony/sing-the-chord', 'ear-training/the-chords-root'],
         '/voice-types' => ['range-and-registers/easy-range-and-chest-voice', 'range-and-registers/mapping-your-break'],

@@ -7,7 +7,7 @@
         <p class="s-kick">{{ __('pages.landing.steps_kick') }}</p>
     @endunless
     <div class="s-headsplit">
-        <h2 id="steps-h" class="s-title"><x-site.skin :game="__('pages.landing.game.steps_title')" :serious="__('pages.landing.steps_title')" /></h2>
+        <h2 id="steps-h" class="s-title"><x-site.skin heading :game="__('pages.landing.game.steps_title')" :serious="__('pages.landing.steps_title')" /></h2>
         <p class="s-lede">{{ __('pages.landing.steps_lead') }}</p>
     </div>
     <div class="s-steps s-bento">

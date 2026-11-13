@@ -105,6 +105,24 @@ final class SongAudioTest extends TestCase
         $this->assertSame(['m4a' => $m4a, 'mp3' => $url], $plus->viewData('line')['audio']);
     }
 
+    public function test_an_upload_of_one_song_keeps_every_other_song_in_the_manifest(): void
+    {
+        // Re-renders come a song or two at a time (Jerusalem's v2, the coordinator, 2026-11-13): the committed manifest
+        // keeps every song not in the folder as it was, and takes the folder's songs' new entries.
+        $other = ['slug' => 'other-song', 'version' => 4, 'duration' => 61.5, 'files' => [['name' => 'other-song.mp3', 'bytes' => 3, 'sha256' => str_repeat('a', 64)]]];
+        File::put($this->dir.'/song_audio.json', (string) json_encode(['source' => 'x', 'songs' => ['other-song' => $other]]));
+
+        $this->render();
+        $this->artisan('app:song-audio:upload', ['folder' => $this->dir.'/renders', '--local' => true])->expectsOutput('2 files uploaded, 0 already there, 0 songs skipped; 2 songs in data/song_audio.json.')->assertSuccessful();
+        $this->assertSame(['a-song', 'other-song'], array_keys(SongAudioFiles::manifest()));
+        $this->assertSame($other, SongAudioFiles::manifest()['other-song'], 'kept as it was');
+
+        // The same song rendered again (a new take of it): replaced, and the other still kept.
+        $this->render('new mp3 bytes', ['duration' => 50.5]);
+        $this->artisan('app:song-audio:upload', ['folder' => $this->dir.'/renders', '--local' => true])->assertSuccessful();
+        $this->assertSame([50.5, $other], [SongAudioFiles::manifest()['a-song']['duration'], SongAudioFiles::manifest()['other-song']]);
+    }
+
     public function test_a_render_that_doesnt_match_waits(): void
     {
         $this->render();

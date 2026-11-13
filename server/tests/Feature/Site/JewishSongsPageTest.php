@@ -9,6 +9,7 @@ use App\Support\Pages\Hanukkiah;
 use App\Support\Pages\JewishSongs;
 use App\Support\Pages\SongCollections;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Carbon;
 use Tests\Support\BetaFixtures;
 use Tests\TestCase;
 
@@ -25,9 +26,9 @@ final class JewishSongsPageTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        config(['app.is_nexus' => true, 'app.coming_soon' => false, 'site.jewish_festivals' => [
-            ['key' => 'hanukkah', 'from' => '2026-12-04', 'until' => '2026-12-12'],
-            ['key' => 'passover', 'from' => '2027-04-21', 'until' => '2027-04-29'],
+        config(['app.is_nexus' => true, 'app.coming_soon' => false, 'site.festivals' => [
+            ['key' => 'hanukkah', 'collection' => 'jewish-songs', 'from' => '2026-12-04', 'evening' => true, 'days' => 8, 'ahead' => 21],
+            ['key' => 'passover', 'collection' => 'jewish-songs', 'from' => '2027-04-21', 'evening' => true, 'days' => 8, 'ahead' => 21],
         ]]);
     }
 
@@ -69,10 +70,10 @@ final class JewishSongsPageTest extends TestCase
         rsort($sorted);
         $this->assertSame($sorted, array_values($x), 'candle 1 rightmost, then leftward');
 
-        config(['site.jewish_festivals' => [
-            ['key' => 'hanukkah', 'from' => '2026-12-04', 'until' => '2026-12-12'],
-            ['key' => 'passover', 'from' => '2027-04-21', 'until' => '2027-04-29'],
-            ['key' => 'hanukkah', 'from' => '2027-12-24', 'until' => '2028-01-01'],
+        config(['site.festivals' => [
+            ['key' => 'hanukkah', 'collection' => 'jewish-songs', 'from' => '2026-12-04', 'evening' => true, 'days' => 8, 'ahead' => 21],
+            ['key' => 'passover', 'collection' => 'jewish-songs', 'from' => '2027-04-21', 'evening' => true, 'days' => 8, 'ahead' => 21],
+            ['key' => 'hanukkah', 'collection' => 'jewish-songs', 'from' => '2027-12-24', 'evening' => true, 'days' => 8, 'ahead' => 21],
         ]]);
         $svg = (string) Hanukkiah::svg('s-hk');
         $this->assertStringContainsString('data-hanukkiah="2026-12-04 2027-12-24"', $svg);
@@ -120,7 +121,7 @@ final class JewishSongsPageTest extends TestCase
         $this->assertStringContainsString('<title>Jewish Songs for Hanukkah, Passover and Shabbat</title>', $html);
         $this->assertStringContainsString('class="s-xhero s-tone s-tone-jewish-songs"', $html);
         $this->assertStringContainsString('Hanukkah', $html);
-        $this->assertStringContainsString('<p class="s-jcount-d">23 days</p>', $html);
+        $this->assertMatchesRegularExpression('#<p class="s-jcount-d" data-when\s*>23 days</p>#', $html);
         $this->assertStringContainsString('Sundown, Friday 4 December', $html);
         // Hanukkah's songs as rows to learn in time, each to its page (Hillel's redesign of the card).
         $this->assertStringContainsString('Learn in time for the first candle', $html);
@@ -133,6 +134,29 @@ final class JewishSongsPageTest extends TestCase
         preg_match_all('#class="s-xplace">([^<]+)<#', $html, $tags);
         $this->assertNotEmpty($tags[1]);
         $this->assertSame('Hanukkah', $tags[1][0], 'the coming festival\'s songs first');
+    }
+
+    public function test_its_search_title_leads_with_hanukkah_from_three_weeks_before_to_its_last_day(): void
+    {
+        // The window is Hanukkah's (21 days ahead of 4 December to 12 December); Passover has no title of its own.
+        $this->assertNull(JewishSongs::seasonKey(Carbon::parse('2026-11-12')));
+        $this->assertSame('hanukkah', JewishSongs::seasonKey(Carbon::parse('2026-11-13')));
+        $this->assertSame('hanukkah', JewishSongs::seasonKey(Carbon::parse('2026-12-12')));
+        $this->assertNull(JewishSongs::seasonKey(Carbon::parse('2026-12-13')));
+        $this->assertNull(JewishSongs::seasonKey(Carbon::parse('2027-04-01')), 'Passover keeps the page\'s own title');
+
+        $this->catalogue();
+        if (count(app(SongCollections::class)->members(JewishSongs::SLUG)) < SongCollections::MIN) {
+            $this->markTestSkipped('fewer than four Jewish songs open in this content');
+        }
+        $season = e(__('site.collections.jewish-songs.season_title.hanukkah'));
+        $own = e(__('site.collections.jewish-songs.title'));
+        foreach (['2026-11-12 12:00:00' => $own, '2026-11-13 08:00:00' => $season, '2026-12-12 20:00:00' => $season, '2026-12-13 08:00:00' => $own] as $at => $title) {
+            $this->travelTo($at);
+            $html = (string) $this->get('/songs/jewish-songs')->assertOk()->getContent();
+            $this->assertStringContainsString('<meta property="og:title" content="'.$title.'">', $html, $at);
+        }
+        $this->assertStringContainsString(e(__('site.collections.jewish-songs.description')), $html, 'its own description after the season');
     }
 
     public function test_the_intro_names_every_song_that_keeps_someone_elses_parts(): void

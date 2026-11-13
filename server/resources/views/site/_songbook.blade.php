@@ -6,7 +6,7 @@
         <section id="songbook" class="s-wrap s-xbook" aria-labelledby="book-h" data-songbook>
             <div class="s-xbook-head">
                 <div>
-                    <h2 id="book-h"><x-site.skin :game="__('site.carols.game.stage_select')" :serious="$heading" /></h2>
+                    <h2 id="book-h"><x-site.skin heading :game="__('site.carols.game.stage_select')" :serious="$heading" /></h2>
                     <p class="s-xbook-sub" data-book-sub data-any="{{ $sub }}" data-part="{{ $subPart }}">{{ $sub }}</p>
                     {{-- A page's own note on its cards (a round's parts all sing the tune, an octave apart). --}}
                     @if (($note ?? null) !== null)

@@ -12,6 +12,7 @@ below the fold, its own weight). Needs the server's pages:
 import json
 import re
 import sys
+import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "tool"))
@@ -30,13 +31,20 @@ OWN_KB = 650  # the page and its own files, its stylesheets aside (the landing i
 CSS_KB = 700  # site.css (about 385 since the course pages' rules went to courses.css)
 COURSES_KB = 90  # the page's course sheet, its courses only (/course-css/, about 17 to 55; courses.css whole is 310), only where a .cp- class shows
 REQUESTS = 45  # the page's own files (the landing's demo about 32)
+PREFETCH_KB = 1380  # the app's first screen, prefetched at idle (AppPrefetch): its own budget, never the page's weight; the landing's was 1,251 KB in 123 files on 2026-11-13 (a song page's 730), so 10% over, and it says which files grew
 SPEED = """(() => {
   const bad = [];
   const res = performance.getEntriesByType('resource');
   for (const r of res) if (r.renderBlockingStatus === 'blocking' && !r.name.startsWith(location.origin)) bad.push(`another site blocks the first paint: ${r.name.slice(0, 70)}`);
   for (const img of document.images) if (img.getBoundingClientRect().top > innerHeight * 1.5 && img.loading !== 'lazy') bad.push(`an image far below the fold loads at once: ${(img.currentSrc || img.src).replace(location.origin, '').slice(0, 60)}`);
   for (const v of document.querySelectorAll('video')) if (v.preload === 'auto' && !v.autoplay) bad.push(`a video preloads: ${(v.currentSrc || v.src || '').replace(location.origin, '').slice(0, 60)}`);
-  const own = res.filter((r) => r.name.startsWith(location.origin));
+  // The app's first screen, prefetched while the visitor reads (<link rel=prefetch>, js/public/app-prefetch.js): idle-time and
+  // low priority, so never the page's own weight or requests; it has its own budget, which names the biggest files.
+  const prefetched = new Set([...document.querySelectorAll('link[rel=prefetch]')].map((l) => l.href));
+  const fetched = res.filter((r) => prefetched.has(r.name));
+  const ahead = fetched.reduce((s, r) => s + r.decodedBodySize, 0) / 1024;
+  if (ahead > PREFETCH_KB) bad.push(`the app prefetch is ${Math.round(ahead)} KB (budget PREFETCH_KB): ${[...fetched].sort((a, b) => b.decodedBodySize - a.decodedBodySize).slice(0, 4).map((r) => `${r.name.replace(location.origin, '')} ${Math.round(r.decodedBodySize / 1024)} KB`).join(', ')}`);
+  const own = res.filter((r) => r.name.startsWith(location.origin) && !prefetched.has(r.name));
   const siteSheet = (r) => /\\/(css\\/site|site-css\\/[a-z]+)\\.css(\\?|$)/.test(r.name);  // site.css, or its page family's cut of it
   const css = own.filter(siteSheet).reduce((s, r) => s + r.decodedBodySize, 0) / 1024;
   const courseSheet = (r) => /\\/(css\\/courses|course-css\\/[a-z0-9.]+)\\.css(\\?|$)/.test(r.name);
@@ -53,7 +61,14 @@ SPEED = """(() => {
   if (css > CSS_KB) bad.push(`site.css is ${Math.round(css)} KB (budget CSS_KB)`);
   if (own.length > REQUESTS) bad.push(`${own.length} requests for its own files (budget REQUESTS)`);
   return bad;
-})()""".replace("OWN_KB", str(OWN_KB)).replace("COURSES_KB", str(COURSES_KB)).replace("CSS_KB", str(CSS_KB)).replace("REQUESTS", str(REQUESTS))
+})()""".replace("OWN_KB", str(OWN_KB)).replace("COURSES_KB", str(COURSES_KB)).replace("CSS_KB", str(CSS_KB)).replace("REQUESTS", str(REQUESTS)).replace("PREFETCH_KB", str(PREFETCH_KB))
+PREFETCH_DONE = """(() => {
+  const list = document.querySelector('[data-app-prefetch]');
+  if (!list) return true;
+  const links = [...document.querySelectorAll('link[rel=prefetch]')];
+  const names = new Set(performance.getEntriesByType('resource').map((r) => r.name));
+  return links.length > 0 && links.every((l) => names.has(l.href));
+})()"""
 THEMES = [f"{family}-{mode}" for family in ("warm", "midnight", "graphite", "stage") for mode in ("light", "dark")]
 WIDTHS = [320, 360, 375, 390, 768, 1440, 1920]
 # The serious skin in every theme, then the game skin in dark and in two light themes (Hillel, 2026-11-02: "Whole site
@@ -141,6 +156,11 @@ def main():
                             for low in chrome.evaluate(CONTRAST):
                                 found.append(f"{where}: below AA: {low}")
                         if width == 390 and (skin, theme) == LOOKS[0]:
+                            # The app prefetch starts at idle: weigh the page once its prefetches have all arrived, so the
+                            # budgets read the same every run (it ran 650 KB over or under by when the check happened).
+                            settle = time.time() + 12
+                            while time.time() < settle and not chrome.evaluate(PREFETCH_DONE):
+                                time.sleep(0.25)
                             for problem in chrome.evaluate(SPEED):
                                 found.append(f"{page} speed: {problem}")
                 errors = [e for e in chrome.errors if "favicon" not in e]

@@ -9,6 +9,7 @@ import { Gems, gemInk } from '../gems.js';
 import { Icon } from '../icon.js';
 import { KeyControl } from '../key-control.js';
 import { game } from '../../skin.js';
+import { renameScreen } from '../../screen-name.js';
 
 const STEP = {
     listen: { name: tk('sing.coach.step.listen'), hint: tk('sing.coach.hint.listen'), action: tk('sing.coach.action.listen') },
@@ -30,6 +31,7 @@ export const Coach = {
         here: { type: Number, default: 0 }, // the phrase you're on
         playing: Boolean,
         // The song's key (128.png), while nothing's recorded in it: Lower and Higher move the whole song.
+        // Game mode keeps it back on Listen, until there's singing to judge by (first-session fix 5).
         musicKey: { type: String, default: null },
         canLower: { type: Boolean, default: true },
         canHigher: { type: Boolean, default: true },
@@ -40,6 +42,7 @@ export const Coach = {
         starting(now) {
             if (!now) this.pressed = false;
         },
+        step: { immediate: true, handler: () => renameScreen() },
     },
     setup: () => ({ STEP, STEPS, game }),
     // 66.png: "Step 1 of 4" over the steps as bars, the step and its line, the key, Next; the phrases
@@ -54,21 +57,22 @@ export const Coach = {
                     <li v-for="(s, i) in STEPS" :key="s">
                         <button type="button" class="w-full text-start" :aria-current="i === stepIndex ? 'step' : null" @click="$emit('step', s)">
                             <span class="block h-1 rounded-full" :style="{ background: i <= stepIndex ? color : 'var(--color-line)' }" aria-hidden="true"></span>
-                            <span class="mt-2 block text-xs font-semibold leading-tight" :class="i === stepIndex ? 'text-cream' : 'text-muted'">{{ t(STEP[s].name) }}</span>
+                            <span class="mt-2 block text-xs font-semibold leading-tight" data-step-name :class="i === stepIndex ? 'text-cream' : 'text-muted'">{{ t(STEP[s].name) }}</span>
                         </button>
                     </li>
                 </ol>
                 <div>
-                    <h2 class="text-3xl font-extrabold tracking-tight text-cream">{{ t(STEP[step].name) }}</h2>
+                    <!-- The screen's heading (h1): the tab says the step, and a screen reader hears where it is (WCAG 2.4.2). -->
+                    <h1 class="text-3xl font-extrabold tracking-tight text-cream">{{ t(STEP[step].name) }}</h1>
                     <p class="mt-2 text-muted">{{ t(STEP[step].hint, { part: partName }) }}</p>
                 </div>
-                <KeyControl v-if="musicKey" :music-key="musicKey" :can-lower="canLower" :can-higher="canHigher" @lower="$emit('lower')" @higher="$emit('higher')" />
+                <KeyControl v-if="musicKey && !(game() && step === 'listen')" :music-key="musicKey" :can-lower="canLower" :can-higher="canHigher" @lower="$emit('lower')" @higher="$emit('higher')" />
                 <button type="button" class="btn-primary btn-lg w-full" :class="step === 'record' ? '' : 'md:hidden'" :aria-busy="pressed && starting ? 'true' : null" data-coach-action @click="pressed = true; $emit('action')"><span v-if="pressed && starting" class="spinner" aria-hidden="true"></span><Icon v-else :name="step === 'record' ? 'record' : 'play'" :size="18" /> {{ t(STEP[step].action, { part: partName, number: here + 1 }) }}</button>
                 <button v-if="step !== 'record' && stepIndex < STEPS.length - 1" type="button" class="btn-secondary w-full" @click="$emit('step', STEPS[stepIndex + 1])">{{ t('sing.coach.next', { step: t(STEP[STEPS[stepIndex + 1]].name) }) }}</button>
             </div>
             <div v-if="step !== 'record'" class="px-5">
                 <div class="flex items-baseline justify-between gap-3">
-                    <h3 class="font-bold text-cream">{{ t('sing.coach.phrasesTitle') }}</h3>
+                    <h2 class="font-bold text-cream">{{ t('sing.coach.phrasesTitle') }}</h2>
                     <span class="tabular-nums text-sm text-muted">{{ t('sing.coach.heardOf', { done: doneCount, total: phrases.length }) }}</span>
                 </div>
                 <ol class="mt-3 space-y-2 pb-4" :aria-label="t('sing.coach.path')">
@@ -82,7 +86,7 @@ export const Coach = {
                                 <Icon v-if="counts[p.index]" name="check" :size="16" /><template v-else>{{ p.index + 1 }}</template>
                             </span>
                             <span class="min-w-0">
-                                <span class="block truncate font-bold" :class="counts[p.index] || p.index <= here ? 'text-cream' : 'text-cream/60'" translate="no">{{ p.label }}</span>
+                                <span class="block truncate font-bold" data-phrase-line :class="counts[p.index] || p.index <= here ? 'text-cream' : 'text-cream/60'" translate="no">{{ p.label }}</span>
                                 <span class="block tabular-nums text-xs text-muted">{{ counts[p.index] ? t('sing.coach.practised', { count: counts[p.index] }) : p.start ? t('sing.coach.startsOn', { note: p.start }) : t('sing.coach.notYet') }}</span>
                             </span>
                         </button>
@@ -110,7 +114,7 @@ export const StepDone = {
     template: `
         <div class="m-auto flex max-w-lg flex-col items-center gap-5 p-6 text-center">
             <span class="grid size-16 place-items-center rounded-full" :style="{ background: color, color: paintText(color) }"><Icon name="check" :size="32" /></span>
-            <h2 ref="heading" tabindex="-1" class="text-2xl font-extrabold text-cream outline-none">{{ t(DONE[step], { part: partName }) }}</h2>
+            <h1 ref="heading" tabindex="-1" class="text-2xl font-extrabold text-cream outline-none">{{ t(DONE[step], { part: partName }) }}</h1>
             <ul class="w-full space-y-1.5 text-start text-sm text-cream">
                 <li v-for="p in phrases" :key="p.index" class="flex items-center gap-2"><Icon name="check" :size="16" :style="{ color }" /> <span translate="no" class="truncate">{{ p.label }}</span></li>
             </ul>
@@ -121,6 +125,7 @@ export const StepDone = {
         </div>`,
     mounted() {
         this.$refs.heading.focus();
+        renameScreen();
     },
 };
 

@@ -232,6 +232,55 @@ final class SyncTemplatesTest extends TestCase
         $this->get('/songs/happy-birthday')->assertOk();
     }
 
+    public function test_a_hidden_song_leaves_the_library_whatever_its_reviewed_versions_and_comes_back_when_the_flag_goes(): void
+    {
+        $folder = dirname(base_path()).'/web/templates';
+        $ids = ['amazing-grace', 'happy-birthday', 'are-you-sleeping', 'michael-row'];
+        foreach ($ids as $id) {
+            File::copy($folder.'/'.$id.'.json', $this->folder.'/'.$id.'.json');
+        }
+        config(['templates.folders' => [$this->folder]]);
+        app(SyncOfficialTemplates::class)->handle();
+        $write = function (string $id, array $with, string $file = ''): void {
+            $data = [...(array) json_decode((string) File::get(dirname(base_path()).'/web/templates/'.$id.'.json'), true), ...$with];
+            File::put($this->folder.'/'.($file !== '' ? $file : $id.'.json'), (string) json_encode($data));
+        };
+
+        // As Red River Valley: a newer version, unreviewed, alone leaves the last reviewed one live...
+        $version = (int) Template::query()->where('slug', 'happy-birthday')->firstOrFail()->currentVersion?->version;
+        $write('happy-birthday', ['version' => $version + 1, 'reviewed' => false]);
+        $this->assertSame([], app(SyncOfficialTemplates::class)->handle()['withdrawn']);
+        $this->get('/songs/happy-birthday')->assertOk();
+
+        // ...and "hidden": true takes it off the site and the library at once.
+        $write('happy-birthday', ['version' => $version + 1, 'reviewed' => false, 'hidden' => true]);
+        $report = app(SyncOfficialTemplates::class)->handle();
+        $this->assertSame(['happy-birthday (hidden)'], $report['withdrawn']);
+        $this->assertSame([], $report['problems']);
+        $this->get('/songs/happy-birthday')->assertNotFound();
+        $this->assertNotContains('happy-birthday', array_column((array) $this->getJson('/api/templates')->json('data'), 'id'));
+        $this->assertSame([], app(SyncOfficialTemplates::class)->handle()['withdrawn'], 'once');
+
+        // Hiding is on purpose: more at once than a lost content fetch may withdraw (3) is still done.
+        foreach ($ids as $id) {
+            $write($id, $id === 'happy-birthday' ? ['version' => $version + 1, 'reviewed' => false, 'hidden' => true] : ['hidden' => true]);
+        }
+        app(SyncOfficialTemplates::class)->handle();
+        $this->assertSame(4, Template::query()->whereNotNull('withdrawn_at')->count());
+
+        // The flag gone: back, each on its newest reviewed version.
+        foreach ($ids as $id) {
+            File::copy($folder.'/'.$id.'.json', $this->folder.'/'.$id.'.json');
+        }
+        app(SyncOfficialTemplates::class)->handle();
+        $this->assertSame(0, Template::query()->whereNotNull('withdrawn_at')->count());
+        $this->get('/songs/happy-birthday')->assertOk();
+
+        // Never on a staged next version.
+        $write('michael-row', ['version' => 99, 'reviewed' => false, 'hidden' => true], 'michael-row.next.json');
+        $this->assertStringContainsString('a staged version is never hidden', implode(' ', app(SyncOfficialTemplates::class)->handle()['problems']));
+    }
+
     public function test_a_content_fetch_that_went_wrong_withdraws_nothing(): void
     {
         $folder = dirname(base_path()).'/web/templates';

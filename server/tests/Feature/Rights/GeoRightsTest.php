@@ -169,6 +169,32 @@ final class GeoRightsTest extends TestCase
         $this->assertStringNotContainsString('id="song-mixer"', (string) $mexico->getContent());
     }
 
+    public function test_the_dry_run_page_says_what_the_switch_would_withhold_and_what_is_held_everywhere(): void
+    {
+        // Words by someone who died in 1960: held in Mexico (life + 100), free in the US (printed 1900). And a maker whose
+        // death isn't known: held everywhere, which the page names (none should be, at the switch).
+        $this->wordsSong();
+        // An unknown death, printed in 1900: free in the US (by its printing), held where the term runs from a death.
+        $this->song('unknown-song', [['name' => 'Someone', 'role' => 'words', 'died' => 'unknown']]);
+        // And one with no printing date either: held everywhere, which the page names (none should be, at the switch).
+        $lost = Template::factory()->create(['slug' => 'lost-song', 'title' => 'Lost song', 'access' => TemplateAccess::Free]);
+        $data = [...(array) TemplateVersion::factory()->make()->data, 'makers' => [['name' => 'Nobody', 'role' => 'words', 'died' => 'unknown']]];
+        unset($data['firstPublished']);
+        $lost->forceFill(['current_version_id' => TemplateVersion::factory()->create(['template_id' => $lost->id, 'reviewed' => true, 'data' => $data, 'sha256' => hash('sha256', (string) json_encode($data))])->id])->save();
+        $path = storage_path('framework/testing/dry-run-'.getmypid().'.md');
+
+        $this->artisan('app:rights:withheld', ['--markdown' => $path])->assertSuccessful();
+        $page = (string) file_get_contents($path);
+        @unlink($path);
+
+        $this->assertStringContainsString('- Open songs: 3.', $page);
+        $this->assertStringContainsString('- Withheld everywhere (every row at once): 1: lost-song.', $page);
+        $this->assertStringContainsString("## US, United States\n\n1 withheld:\n- lost-song: not known yet (unknown)\n\n", $page);
+        $this->assertStringContainsString("## MX, Mexico\n\n3 withheld:\n- lost-song: not known yet (unknown)\n- unknown-song: not known yet (unknown)\n- words-song: free from 2061 (term)", $page);
+        $this->assertStringContainsString("## Unknown country\n\n3 withheld:", $page);
+        $this->assertStringContainsString('### PR (Puerto Rico), US (United States): 1 song', $page);
+    }
+
     public function test_where_only_the_music_is_protected_the_words_stay(): void
     {
         // A tune by someone who died in 1960 on traditional words printed in 1900: the player goes in Mexico, not the words.

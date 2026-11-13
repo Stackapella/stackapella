@@ -62,6 +62,12 @@ final class Prices
         ];
     }
 
+    /** A currency's sign alone ("$", "€", "£"), for /pricing's currency switch. */
+    public static function symbol(string $currency): string
+    {
+        return self::SYMBOLS[$currency] ?? strtoupper($currency);
+    }
+
     /** A price as the page's language writes it: "$3.33" in English, "3,33 US$" and "3,33 €" in Spanish (ICU). */
     public static function format(int $cents, string $currency): string
     {

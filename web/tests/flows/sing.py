@@ -63,6 +63,7 @@ def journey(f):
     assert in_a_row == (f.size == "desktop"), f"the ways aren't {'in a row' if f.size == 'desktop' else 'stacked'}: {sizes}"
     f.run("document.querySelector(\'[data-way=parts]\').click()")  # the way starts at once
     f.wait_text(t(f, "sing.chooser.yourPart"))
+    f.wait(f"document.title.startsWith({t(f, 'sing.chooser.yourPart')!r})", what="the tab named for the part step")
     # Each part in words before its notes (the first-session review's proposal 2, Hillel: yes): serious mode's list.
     if f.skin == "serious":
         words = f.js("[...document.querySelectorAll('[data-part-words]')].map((w) => w.textContent.trim())")
@@ -71,17 +72,30 @@ def journey(f):
     f.wait(alto_button, what="the alto to choose")  # game mode's part select comes with Sing (js/game/modules.js WITH_SING)
     f.run(f"{alto_button}.click()")
     f.wait_text(t(f, "sing.coach.hint.listen", {"part": alto}))
+    # The coach's step is the screen's one heading, and the tab says it (the first-session walk, 2026-11-14: the tab still
+    # said "How do you want to sing?" and the coach had no h1).
+    listen = t(f, "sing.coach.step.listen")
+    f.wait(f"document.title.startsWith({listen!r})", what="the tab named for the coach's step")
+    assert f.js("document.querySelectorAll('#app h1').length") == 1, f.js("[...document.querySelectorAll('#app h1')].map((h) => h.textContent.trim())")
     # 66.png: between plays the stage is the phrase you're on (desktop); Play starts the step's action.
     if f.size == "desktop":
         f.wait("document.querySelector('[data-phrase-stage]')", what="the phrase stage")
     f.shot("coach")
-    # Not in your range? (128.png): Lower moves the whole song a semitone, and the key says so.
+    # Not in your range? (128.png): Lower moves the whole song a semitone, and the key says so. Game mode keeps it
+    # back on Listen until there's singing to judge by (first-session fix 5), so there it's tried on Sing along.
+    if f.skin == "game":
+        assert not f.js("!!document.querySelector('[data-key-control]')"), "no key control on Listen in game mode"
+        f.run("document.querySelectorAll('[data-coach] ol')[0].querySelectorAll('li button')[1].click()")
+        f.wait("document.querySelector('[data-key-control]')", what="the key control on Sing along")
     key = f"{SESSION}.session.project"
     start = f.js(f"{key}.transpose || 0")
     f.run("document.querySelectorAll('[data-key-control] button')[0].click()")  # Lower
     f.wait(f"({key}.transpose || 0) === {start - 1} && {key}.key !== {key}.template.key || {start - 1} === 0", what="Lower moved the song's key")
     f.run("document.querySelectorAll('[data-key-control] button')[1].click()")  # Higher
     f.wait(f"({key}.transpose || 0) === {start}", what="Higher put it back")
+    if f.skin == "game":
+        f.run("document.querySelectorAll('[data-coach] ol')[0].querySelectorAll('li button')[0].click()")
+        f.wait_text(t(f, "sing.coach.hint.listen", {"part": alto}))
     f.js(f"{AUDIO}.unlock()")
     # N readies the next phrase between plays (the stage says so); the step bar's Listen starts afresh.
     if f.size == "desktop":

@@ -16,7 +16,7 @@
         <section class="s-wrap s-crs-head" aria-labelledby="page-h">
             <div>
                 <p class="s-eyebrow"><x-site.skin :game="__('pages.landing.game.courses_kick')" :serious="__('site.courses.index.kicker')" /></p>
-                <h1 id="page-h"><x-site.skin :game="__('pages.landing.game.courses_title')" :serious="__('site.courses.index.headline')" /></h1>
+                <h1 id="page-h"><x-site.skin heading :game="__('pages.landing.game.courses_title')" :serious="__('site.courses.index.headline')" /></h1>
                 <p class="s-lede">{{ __('site.courses.index.lead_count', ['count' => $total]) }}</p>
             </div>
             <div class="s-crs-start">

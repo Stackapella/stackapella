@@ -47,9 +47,10 @@ test('site mixer: a solo wins over the switches, two sound together, and the fad
 
     // It plays with panners and faders in place, and moving them while it plays throws nothing.
     const play = root.querySelector('[data-play]');
-    // The catalogue (real voices) is the server's: here it has none, so the synth sings every part.
     const fetched = window.fetch;
-    window.fetch = (url, ...rest) => (String(url).endsWith('/api/templates') ? Promise.resolve(new Response(JSON.stringify({ data: [] }), { headers: { 'Content-Type': 'application/json' } })) : fetched(url, ...rest));
+    // The song's own answer and the catalogue are the server's: here neither has a real voice (the song isn't one), so the
+    // synth sings every part.
+    window.fetch = (url, ...rest) => (String(url).includes('/api/templates') ? Promise.resolve(new Response(JSON.stringify({ data: [] }), { status: String(url).endsWith('/api/templates') ? 200 : 404, headers: { 'Content-Type': 'application/json' } })) : fetched(url, ...rest));
     play.click();
     // The voices render first (a test waits on the page; the sound itself is on the audio clock).
     for (let i = 0; i < 200 && !root.hasAttribute('data-playing'); i++) await new Promise((r) => setTimeout(r, 50));
@@ -112,4 +113,106 @@ test('play state: a press shows loading at once, a slow load a quiet hint, a fai
     assert(!root.hasAttribute('data-failed') && button.getAttribute('aria-label') === 'Play', 'trying again puts the label back');
     states.idle();
     root.remove();
+});
+
+// The song's render (Slow 4G, 2026-11-13: four voices took 14 s, the render under 5): Play streams it while every part
+// sounds as mixed, a part heard alone moves to the voices apart, and a part's tap while nothing plays plays it.
+test('public mixer: the render this browser plays is the m4a where it can, else the mp3', async () => {
+    const { renderUrl } = await import('/js/public/mixer.js');
+    const both = { m4a: 'a.m4a', mp3: 'a.mp3' };
+    assert(renderUrl(both, () => 'maybe') === 'a.m4a', 'the m4a where it plays');
+    assert(renderUrl(both, () => '') === 'a.mp3', 'else the mp3');
+    assert(renderUrl({ m4a: null, mp3: 'a.mp3' }, () => 'maybe') === 'a.mp3', 'only an mp3');
+    assert(renderUrl(null, () => 'maybe') === null && renderUrl(undefined, () => 'maybe') === null, 'no render');
+});
+
+test('public mixer: Play streams the render, a part alone moves to the voices apart, and a part tap while stopped plays it', async () => {
+    const root = document.createElement('div');
+    root.dataset.player = '';
+    root.hidden = true;
+    // A render the test server has (any short file stands in), and two voices in rows as a song page has them.
+    const song = { song: 'test-render', version: 1, tempo: 120, beats: 8, audio: { m4a: null, mp3: '/sounds/stars-3.mp3' }, parts: ['soprano', 'bass'].map((key, i) => ({ key, notes: [{ beat: 0, length: 8, pitch: 72 - i * 12 }] })) };
+    root.innerHTML = `<script type="application/json" data-song>${JSON.stringify(song)}</script>
+        <button data-play data-label-play="Play" data-label-stop="Stop"></button>
+        ${song.parts.map(({ key }) => `<div data-voice="${key}"><button data-hear-alone aria-pressed="false" data-label="${key} alone" data-label-back="All"></button>
+            <button data-pick aria-checked="false" data-label="I sing ${key}" data-label-you="You"></button></div>`).join('')}`;
+    document.body.append(root);
+    const asked = [];
+    const played = [];
+    const fetched = window.fetch;
+    window.fetch = (url, ...rest) => {
+        asked.push(String(url));
+        return String(url).includes('/api/templates') ? Promise.resolve(new Response(JSON.stringify({ data: [] }), { status: String(url).endsWith('/api/templates') ? 200 : 404, headers: { 'Content-Type': 'application/json' } })) : fetched(url, ...rest);
+    };
+    const playMedia = HTMLMediaElement.prototype.play;
+    HTMLMediaElement.prototype.play = function () {
+        played.push(this.currentSrc || this.src);
+        return playMedia.call(this);
+    };
+    const until = async (what, ok) => {
+        for (let i = 0; i < 200 && !ok(); i++) await new Promise((r) => setTimeout(r, 50));
+        assert(ok(), what);
+    };
+    try {
+        await import('/js/public/mixer.js?render');
+        const play = root.querySelector('[data-play]');
+        play.click();
+        await until('Play plays', () => root.hasAttribute('data-playing'));
+        assert(played.some((src) => src.endsWith('/sounds/stars-3.mp3')), `the render plays: ${played}`);
+        assert(!asked.some((url) => url.endsWith('/api/templates')), `no catalogue for the render: ${asked}`);
+        // The bass alone: the voices apart take over, at the same point.
+        const bassAlone = root.querySelector('[data-voice="bass"] [data-hear-alone]');
+        bassAlone.click();
+        assert(bassAlone.getAttribute('aria-pressed') === 'true', 'the bass is heard alone');
+        assert(root.hasAttribute('data-playing'), 'it carries on playing');
+        play.click();
+        assert(!root.hasAttribute('data-playing'), 'Stop stops it');
+        // A tap on a part while nothing plays plays that part (it used to only switch the others off).
+        played.length = 0;
+        const sopranoAlone = root.querySelector('[data-voice="soprano"] [data-hear-alone]');
+        sopranoAlone.click();
+        await until('a part tap plays', () => root.hasAttribute('data-playing'));
+        assert(sopranoAlone.getAttribute('aria-pressed') === 'true', 'the soprano alone');
+        assert(!played.length, `a part alone is the voices apart, not the render: ${played}`);
+        play.click();
+        assert(!root.hasAttribute('data-playing'), 'Stop stops the part too');
+    } finally {
+        window.fetch = fetched;
+        HTMLMediaElement.prototype.play = playMedia;
+        root.remove();
+    }
+});
+
+// A render that won't play is told to our Sentry once a page (public/report.js), with the browser and nothing about
+// who it was, so a browser that can't stream it shows up before a singer tells us.
+test('public report: a note is a warning with the page and the browser only, sent once a page through the tunnel', async () => {
+    const { noteEvent, note } = await import('/js/public/report.js');
+    const ua = 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.1 Mobile/15E148 Safari/604.1';
+    const event = noteEvent('A song render could not play, the voices sang it', { error: 'NotSupportedError' }, { path: '/songs/danny-boy', origin: 'https://stackapella.com', ua, hostname: 'stackapella.com' });
+    assert(event.level === 'warning' && event.message.formatted.startsWith('A song render') && event.environment === 'production', 'a warning in production');
+    assert(event.tags.browser === 'Safari 18' && event.tags.os === 'iOS' && event.tags.error === 'NotSupportedError', `the browser and the error: ${JSON.stringify(event.tags)}`);
+    assert(event.request.url === 'https://stackapella.com/songs/danny-boy' && !('user' in event), 'the page, never who');
+
+    const posted = [];
+    const fetched = window.fetch;
+    window.fetch = (url, init) => {
+        if (String(url).endsWith('/api/auth/config')) return Promise.resolve(new Response(JSON.stringify({ data: { sentryDsn: 'https://key@o1.ingest.sentry.io/2' } }), { headers: { 'Content-Type': 'application/json' } }));
+        if (String(url).endsWith('/log/errors')) {
+            posted.push(init.body);
+            return Promise.resolve(new Response('', { status: 200 }));
+        }
+        return fetched(url, init);
+    };
+    try {
+        note('A test note', { error: 'X' });
+        note('A test note', { error: 'X' });
+        for (let i = 0; i < 40 && !posted.length; i++) await new Promise((r) => setTimeout(r, 25));
+        await new Promise((r) => setTimeout(r, 50));
+        assert(posted.length === 1, `sent once: ${posted.length}`);
+        const [header, , body] = posted[0].split('\n');
+        assert(JSON.parse(header).dsn === 'https://key@o1.ingest.sentry.io/2', 'with our DSN, for the tunnel');
+        assert(JSON.parse(body).message.formatted === 'A test note', 'the note itself');
+    } finally {
+        window.fetch = fetched;
+    }
 });

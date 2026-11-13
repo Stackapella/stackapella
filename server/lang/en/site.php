@@ -708,10 +708,9 @@ return [
             ['Choir groups', 'Free: share songs with your choir, give each singer a part, and see who has started and who has recorded it. You never see their recordings or contact details. For singers 18 and over.'],
             ['Record and stack', 'Record each part over the others, exactly in time, then mix and export: WAV for free, MP3 and each part on its own with Plus.'],
             ['Your own arrangements', 'Write a harmony in the song builder, or start from a copy of one of ours, and share it for your singers to learn.'],
-            ['The course as homework', 'Short lessons from a first note to holding a part on your own, all free.'],
         ],
         'coaching_open' => ['Coaching', 'Vocal coaches can apply now. Finding a coach in the app comes once there are enough of them.'],
-        'coaching_soon' => ['Coaching', 'Working with a vocal coach in the app is coming soon.'],
+        'coaching_soon' => ['Coaching', 'Working with a vocal coach in the app is coming soon. The course works as homework today.'],
         'shot_alt' => 'The studio: four parts stacked, each with solo and mute, one soloed.',
         // The landing's real screenshot of a director's choir group (frontend2's walk; sample singers).
         'group_alt' => 'A choir group\'s song in the app, Amazing Grace: four of four parts covered and two recorded, each part with its singer and whether they have recorded it, are learning it or haven\'t started.',
@@ -1532,7 +1531,7 @@ return [
             'shchedryk' => 'Ukraine · trad.',
             'silent-night' => 'Austria · 1816',
         ],
-        'lead' => 'Learn your SATB part before rehearsal. Free, in your browser, no account.',
+        'lead' => 'Learn your SATB part before rehearsal. Free, in your browser. Hear every song without an account.',
         // How a carol is learnt here, in three steps under the hero (the UX review, 2026-11-10).
         'steps' => [
             ['Hear it', 'Press play to hear the first line as the choir sings it. The ranges show which part fits you.'],
@@ -1589,6 +1588,9 @@ return [
             'choir-course' => 'Learning carols this season? Every part of each carol, free',
             'practise-a-choir-part' => 'Rehearsing carols this season? Learn your part of each one, free',
             'what-is-a-descant' => 'Singing carols this season? Learn your part of each one first, free',
+            'how-to-run-a-sectional' => 'Running carol sectionals this season? Send each section its part of every carol, free',
+            'how-to-blend-in-a-choir' => 'Singing carols this season? Learn your part of each one first, free',
+            'find-your-starting-note' => 'Singing carols this season? Hear each part\'s first note and learn the rest, free',
             'part' => 'More Christmas carols, part by part',
         ],
     ],
@@ -1622,6 +1624,22 @@ return [
             'failed' => 'It didn\'t send. Check your connection and try again.',
         ],
     ],
+    // Each festival in the calendar by its key (config site.festivals, App\Support\Pages\Festivals): its name on /songs's
+    // "Coming up".
+    'festivals' => [
+        'hanukkah' => 'Hanukkah',
+        'christmas' => 'Christmas',
+        'new-year' => 'New Year',
+        'tu-bishvat' => 'Tu BiShvat',
+        'burns-night' => 'Burns Night',
+        'st-patricks-day' => 'St Patrick\'s Day',
+        'purim' => 'Purim',
+        'easter' => 'Easter',
+        'passover' => 'Passover',
+        'independence-day' => 'Independence Day',
+        'thanksgiving' => 'Thanksgiving',
+    ],
+
     'collections' => [
         // Google's suggestions, 2026-11-10: "hymns satb", "easy hymns for choir", "hymns in 4 part harmony".
         'hymns' => [
@@ -1639,7 +1657,7 @@ return [
             'all' => 'All :count hymns',
             'headline' => 'Hymns in four parts,',
             'headline_em' => 'part by part',
-            'lead' => 'Learn your part of a hymn before Sunday or rehearsal. Free, in your browser, no account.',
+            'lead' => 'Learn your part of a hymn before Sunday or rehearsal. Free, in your browser. Hear every song without an account.',
             'intro' => [
                 'Every hymn here is public domain and set in four parts, soprano, alto, tenor and bass, with the tune in the soprano. Each card says its key and how hard it is.',
                 'Play a hymn\'s first line to hear all four parts together, then open your part to hear it alone or with the others under it, and sing along as each note lights up.',
@@ -1660,6 +1678,10 @@ return [
         // arranger's research, docs/collections/); God's names sung in the substituted forms, as each song's page says (Hillel).
         'jewish-songs' => [
             'title' => 'Jewish Songs for Hanukkah, Passover and Shabbat',
+            // In a festival's window only (JewishSongs::seasonKey: Hanukkah from 21 days before its first evening to its
+            // last day), the page's search title and description lead with it; then back to the title above.
+            'season_title' => ['hanukkah' => 'Hanukkah Songs for Choir: Learn Every Part Free'],
+            'season_description' => ['hanukkah' => 'Hanukkah songs for choir in four-part harmony, free: Maoz Tzur and Oy Chanukah, each part to learn by ear in time for the first candle.'],
             'description' => 'Traditional Jewish songs for Hanukkah, Passover and Shabbat in four-part harmony, free: learn your part by ear and sing it with a choir or family.',
             'crumb' => 'Jewish songs',
             // The intro's own section after the songs, its heading's last words in the italic serif (Hillel's redesign).
@@ -1673,7 +1695,7 @@ return [
             'all' => 'All :count Jewish songs',
             'headline' => 'Traditional Jewish songs,',
             'headline_em' => 'part by part',
-            'lead' => 'Learn your part of a Hanukkah, Passover or Shabbat song, then sing it with your choir or your family. Free, in your browser, no account.',
+            'lead' => 'Learn your part of a Hanukkah, Passover or Shabbat song, then sing it with your choir or your family. Free, in your browser. Hear every song without an account.',
             'intro' => [
                 'Hanukkah songs for choir, and songs for the Passover seder and for Shabbat, each in four parts: learn the tune or a harmony by ear, hear it with the other voices, then sing it together.',
                 'Every song here comes from a printing before 1931. Maoz Tzur and Oy Chanukah are our own four parts on the harmonies A. Z. Idelsohn printed in 1911 or 1912 and that Susman Kisselgof\'s songbook of 1911 and 1912 prints under Pesach Lvov\'s name, and Adon Olam on the harmony Eliezer Gerovitsch printed in 1897; Ein Keloheinu is adapted from the Union Hymnal\'s four parts of 1897; the rest are our own four-part arrangements. Where a Hebrew song names Hashem, it is sung in the substituted forms customary when singing outside prayer, as its page says.',
@@ -1718,7 +1740,7 @@ return [
             'all' => 'All :count folk songs',
             'headline' => 'Folk songs for choir,',
             'headline_em' => 'part by part',
-            'lead' => 'Learn your part of a folk song before rehearsal. Free, in your browser, no account.',
+            'lead' => 'Learn your part of a folk song before rehearsal. Free, in your browser. Hear every song without an account.',
             'intro' => [
                 'Some of these tunes have no known author, and others have one. Greensleeves is an English tune of the 1500s, the tune of the Welsh lullaby All Through the Night has its earliest known printing in 1784, and Cecil Sharp heard The Water Is Wide in Somerset. Danny Boy sets words of 1913 to the Londonderry Air, an Irish tune printed in 1855, Home on the Range comes from Kansas, Sakura Sakura from Japan, and La Paloma is the habanera Sebastián Iradier wrote after he heard habaneras in Cuba. Las Mañanitas is the Mexican song of birthday mornings.',
                 'Every song here is public domain and set for 2 to 4 singers, and each card says its key and how hard it is. Play a song\'s first line to hear every part together, then open your part to hear it alone or with the others under it, and sing along as each note lights up. Each song\'s page tells where it comes from.',
@@ -1750,7 +1772,7 @@ return [
             'all' => 'All :count barbershop and parlour songs',
             'headline' => 'Barbershop and parlour songs,',
             'headline_em' => 'part by part',
-            'lead' => 'Learn your part of an old favourite in close harmony. Free, in your browser, no account.',
+            'lead' => 'Learn your part of an old favourite in close harmony. Free, in your browser. Hear every song without an account.',
             'intro' => [
                 'These are popular songs from 1892 to 1910: Daisy Bell of 1892, Asleep in the Deep of 1897, Sweet Adeline of 1903, and two waltz songs of 1910, Let Me Call You Sweetheart and Down by the Old Mill Stream. Sweet Adeline became a barbershop favourite, and Down by the Old Mill Stream came out with a setting of its chorus for men\'s voices. Every one is public domain, and each card says its key and how hard it is.',
                 'Down by the Old Mill Stream is voiced as barbershop sings it: the lead has the tune, the tenor rings above it, the baritone fills the chord and the bass holds the roots. The others are for soprano, alto, tenor and bass, and in Asleep in the Deep, written for a baritone or bass voice, the bass sings the tune. Play a song\'s first line to hear every part together, then open your part to hear it alone or with the others under it, and sing along as each note lights up.',
@@ -1770,7 +1792,7 @@ return [
         // Syne and Loch Lomond lines are their song pages' own (song_about, the courses lead's).
         'scottish-songs' => [
             'title' => 'Scottish Songs for Choir: Auld Lang Syne and More',
-            'description' => 'Scottish songs for choir in harmony, free: Auld Lang Syne for New Year and Burns Night, Loch Lomond and more. Learn your part by ear, hear it with the others, and sing along.',
+            'description' => 'Scottish songs for choir in harmony, free: Auld Lang Syne for New Year and Burns Night, Loch Lomond and more. Learn your part by ear and sing along.',
             'crumb' => 'Scottish songs',
             // The intro's own section after the songs, its heading's last words in the italic serif (Hillel's redesign).
             'from' => 'Where these songs',
@@ -1783,7 +1805,7 @@ return [
             'all' => 'All :count Scottish songs',
             'headline' => 'Scottish songs,',
             'headline_em' => 'part by part',
-            'lead' => 'Learn your part of a Scottish song, from Auld Lang Syne at New Year to Burns Night. Free, in your browser, no account.',
+            'lead' => 'Learn your part of a Scottish song, from Auld Lang Syne at New Year to Burns Night. Free, in your browser. Hear every song without an account.',
             'intro' => [
                 'Auld Lang Syne sees the old year out, and closes many a Burns Night supper on 25 January: Robert Burns wrote its words in 1788, to a traditional Scottish tune. Loch Lomond was first printed in Edinburgh in about 1841, and it is probably older than that.',
                 'Every song here is public domain, and each card says its key and how hard it is. Play a song\'s first line to hear every part together, then open your part to hear it alone or with the others under it, and sing along as each note lights up. Each song\'s page says whose arrangement it is and where its words and tune come from.',
@@ -1813,7 +1835,7 @@ return [
             'all' => 'All :count villancicos',
             'headline' => 'Villancicos,',
             'headline_em' => 'part by part',
-            'lead' => 'Learn your part of a Spanish Christmas carol before Christmas. Free, in your browser, no account.',
+            'lead' => 'Learn your part of a Spanish Christmas carol before Christmas. Free, in your browser. Hear every song without an account.',
             'intro' => [
                 'Villancicos are Christmas songs in Spanish and Spain\'s other languages, sung in Spain and across Latin America, and many are centuries old.',
                 'Every song here is public domain, and each card says its key and how hard it is. El cant dels ocells keeps Lluís Millet\'s own harmonisation, printed in 1917; each other song\'s page says whose arrangement it is and where its words and tune come from. Play a song\'s first line to hear every part together, then open your part to hear it alone or with the others under it, and sing along as each note lights up.',
@@ -1841,7 +1863,7 @@ return [
             'all' => 'All :count Thanksgiving hymns',
             'headline' => 'Thanksgiving and harvest hymns,',
             'headline_em' => 'part by part',
-            'lead' => 'Learn your part of a hymn of thanks before Thanksgiving or your harvest festival. Free, in your browser, no account.',
+            'lead' => 'Learn your part of a hymn of thanks before Thanksgiving or your harvest festival. Free, in your browser. Hear every song without an account.',
             'intro' => [
                 'Every hymn here keeps the four parts a hymnal printed for it, adapted by us: Now Thank We All Our God on Felix Mendelssohn\'s harmony as The Hymnal of 1916 prints it, Praise to the Lord, the Almighty on William Sterndale Bennett and Otto Goldschmidt\'s of 1863, Come, Ye Thankful People, Come on George J. Elvey\'s own four parts of 1861, and We Gather Together on the four parts The Beacon Hymnal printed for its tune, Kremser, in 1924.',
                 'Every hymn here is public domain, and each card says its key and how hard it is. Play a hymn\'s first line to hear all four parts together, then open your part to hear it alone or with the others under it, and sing along as each note lights up. Each hymn\'s page says where its words and tune come from.',
@@ -1869,7 +1891,7 @@ return [
             'all' => 'All :count Shaker songs',
             'headline' => 'Shaker songs,',
             'headline_em' => 'part by part',
-            'lead' => 'Learn your part of Simple Gifts and the Shaker songs beside it. Free, in your browser, no account.',
+            'lead' => 'Learn your part of Simple Gifts and the Shaker songs beside it. Free, in your browser. Hear every song without an account.',
             'intro' => [
                 'Simple Gifts is a Shaker song for dancing in worship, usually credited to Elder Joseph Brackett and dated 1848, though the copy we sing from, in Mary Hazzard\'s handwritten songbook, is unsigned and undated. The Shakers were a religious community that worshipped by singing and dancing, and every other song here comes from the same songbook, copied in the late 1840s and early 1850s.',
                 'Every song here is public domain and our own arrangement, and each card says its key and how hard it is. Play a song\'s first line to hear every part together, then open your part to hear it alone or with the others under it, and sing along as each note lights up. Each song\'s page tells its story.',
@@ -1882,6 +1904,34 @@ return [
             'try_link' => 'Learn a Shaker song, free',
             'songs_link' => 'Shaker songs, part by part',
             'more' => 'More Shaker songs, part by part',
+        ],
+        // The coordinator, 2026-11-13 (the SEO audit): the composed choir pieces no other page collects, listed by name
+        // (SongCollections::MEMBERS). The words and their facts are the courses lead's, checked against the five songs' stories.
+        'choral-classics' => [
+            'title' => 'Choral Classics: Mozart, Brahms, Morley and More',
+            'description' => 'Choral classics to sing in harmony, free: Mozart\'s Ave verum corpus, Morley\'s May song, Brahms\'s Lullaby and more. Learn your part by ear and sing along.',
+            'crumb' => 'Choral classics',
+            'from' => 'Where these songs',
+            'from_em' => 'come from',
+            'band' => 'Choral classics',
+            'band_em' => 'and Ave verum corpus',
+            'band_line' => 'Pieces by Morley, Mozart, Brahms, Sullivan and Lutkin.',
+            'all' => 'All :count choral classics',
+            'headline' => 'Choral classics,',
+            'headline_em' => 'part by part',
+            'lead' => 'Learn your part of a choral classic, from Morley\'s May song to Mozart\'s Ave verum corpus. Free, in your browser. Hear every song without an account.',
+            'intro' => [
+                'Now Is the Month of Maying is Thomas Morley\'s dancing May song, a ballett with "fa la" refrains, printed in London in 1595 for five voices. Ave verum corpus is Mozart\'s short Latin motet, K. 618, which he dated 17 June 1791, the last year of his life. Brahms\'s Lullaby is Johannes Brahms\'s Wiegenlied, Op. 49 No. 4, written in 1868 for a friend\'s newborn son and sung here in Arthur Westbrook\'s English of 1901. With Cat-like Tread is the pirates\' chorus from Gilbert and Sullivan\'s The Pirates of Penzance, premiered in New York in 1879, and The Lord Bless You and Keep You is Peter C. Lutkin\'s choral blessing of 1900, ending in a sevenfold Amen.',
+                'Every song here is public domain, and most keep their composer\'s own voice parts: Mozart\'s four as he wrote them, Morley\'s five as four, with his two tenors joined, and Sullivan\'s and Lutkin\'s, adapted by us. Brahms wrote his lullaby for one voice and piano, so its parts are our own arrangement on his piano harmony. Each card says its key and how hard it is. Play a song\'s first line to hear every part together, then open your part to hear it alone or with the others under it, and sing along as each note lights up. Each song\'s page tells its story.',
+            ],
+            'pick' => 'Pick a choral classic',
+            'songbook' => 'The choral classics',
+            'songbook_sub' => 'Pick your part, or press play to hear a song\'s first line in every part.',
+            'songbook_part' => 'Showing your :part part in every song. Press play to hear it with the others.',
+            'list' => 'Choral classics to learn in harmony',
+            'try_link' => 'Learn a choral classic, free',
+            'songs_link' => 'Choral classics, part by part',
+            'more' => 'More choral classics, part by part',
         ],
         // Google's suggestions, 2026-11-10: "spirituals for choir", "spirituals satb", "easy spirituals for choir",
         // "african american spirituals satb". The courses lead checked the history (2026-11-10).
@@ -1900,7 +1950,7 @@ return [
             'all' => 'All :count spirituals',
             'headline' => 'Spirituals for choir,',
             'headline_em' => 'part by part',
-            'lead' => 'Learn your part of a spiritual before rehearsal. Free, in your browser, no account.',
+            'lead' => 'Learn your part of a spiritual before rehearsal. Free, in your browser. Hear every song without an account.',
             'intro' => [
                 'Spirituals are songs first sung by enslaved African Americans. They were sung long before they were written down; the first printed collections came after emancipation, and the Fisk Jubilee Singers carried them across the United States from 1871 and to Europe from 1873. Composers such as Harry T. Burleigh later set them for concert singers and choirs.',
                 'Deep River is Burleigh\'s own setting, as G. Schirmer printed it in 1914; Go Down, Moses keeps the four-part answer from Theodore F. Seward\'s Jubilee Songs of 1872; and There Is a Balm in Gilead keeps the four parts R. Nathaniel Dett printed in his Hampton Institute collection of 1927. The rest are our own four-part arrangements of the traditional tunes and words. Each song\'s page tells where it comes from. Learn the words and their story as well as the notes.',
@@ -1932,7 +1982,7 @@ return [
             'all' => 'All :count sea shanties',
             'headline' => 'Sea shanties,',
             'headline_em' => 'part by part',
-            'lead' => 'Learn your part of a sea shanty, then sing it with friends or your choir. Free, in your browser, no account.',
+            'lead' => 'Learn your part of a sea shanty, then sing it with friends or your choir. Free, in your browser. Hear every song without an account.',
             'intro' => [
                 'Shanties were the work songs of sailing ships: the shantyman usually sang a line and the crew answered as they hauled on a rope or marched round the capstan, so the singing kept everyone pulling together.',
                 'These are our own four-part arrangements of the tunes and words that W. B. Whall, Cecil Sharp and R. R. Terry printed from 1909 to 1921, and each song\'s page says which job it was sung for.',
@@ -1968,7 +2018,7 @@ return [
             'all' => 'All :count rounds',
             'headline' => 'Rounds to sing,',
             'headline_em' => 'voice by voice',
-            'lead' => 'Learn a round, then sing it with your kids, your choir or your friends. Free, in your browser, no account.',
+            'lead' => 'Learn a round, then sing it with your kids, your choir or your friends. Free, in your browser. Hear every song without an account.',
             'intro' => [
                 'In a round everyone sings the same tune, but not at the same time: the first voice starts, and each of the others starts from the beginning a little later, so the tune makes harmony with itself. There is only one tune to learn, which makes a round a good first step into singing harmony.',
                 'These are our own settings of rounds printed long ago, the oldest in Thomas Ravenscroft\'s Pammelia of 1609. Each is for 2 to 4 singers, the tenor and bass an octave lower, and each song\'s page says when it was printed and how far apart the voices come in.',
@@ -2074,7 +2124,8 @@ return [
             'proof' => ['Every course free', 'Open source', 'No ads, no tracking'],
             'proof_label' => 'About Stackapella',
             'how_link' => 'How Stackapella works',
-            'shot_alt' => 'Stackapella recording the alto part of Amazing Grace: each note is a bar with its name, and the one being sung says A little low, go up.',
+            // Says what the picture shows without naming its song, since it sits on every song's part pages (the SEO audit).
+            'shot_alt' => 'Stackapella recording a part: each note is a bar with its name, and the one being sung says A little low, go up.',
             'stack' => [
                 'title' => 'Amazing Grace',
                 'sub' => '4 parts · all sung by you',
@@ -4726,6 +4777,15 @@ return [
                         ],
                     ],
                     [
+                        // Where the numbers come from (the coordinator, 2026-11-13: "say plainly what is and isn't supported"),
+                        // each fact checked by the courses lead (sources: ~/Code/courses-lead-work/es-site/432-history.md).
+                        'heading' => 'Where 440 and 432 come from',
+                        'body' => [
+                            'The pitch of A has moved over the centuries and from town to town. France fixed it at 435 Hz by decree in 1859, a conference in London agreed on 440 Hz in 1939, and the international standard ISO 16 has named A440 since 1975. Many orchestras still tune a little higher, to 442 or 443.',
+                            'No international standard has named 432 Hz, though Italy\'s War Ministry set it for military bands in 1884. Its popularity today comes mostly from claims online that it matches nature, mathematics or the body, and there is little scientific support for any of them. It is simply a lower A, about a third of a semitone below the standard, and fine to use when everyone agrees on it.',
+                        ],
+                    ],
+                    [
                         'heading' => 'Notes at A432 and at A440',
                         'body' => [
                             'Every note moves down by the same 31.8 cents. Middle C at A432 comes out at 256.87 Hz, close to the C256 fork but not the same.',
@@ -6694,6 +6754,11 @@ return [
         'security' => 'The security policy',
         'notices' => 'Every library, font, sound and sample set we use, credited',
         'terms' => 'Self-hosting terms',
+        // Hillel's 2026-11-12 design: each "what's open" card's tag, in the cards' order; how it's built; No npm's trade.
+        'tags' => ['Open · AAL', 'Open · CC BY-SA 4.0', 'Not open · Ours'],
+        'built_title' => 'How it\'s made',
+        'npm_cost' => ['The cost', 'A little speed on first load.'],
+        'npm_gain' => ['The gain', 'A web app anyone can read, change and serve as files.'],
     ],
 
     'selfhost' => [
@@ -7808,8 +7873,8 @@ return [
             ],
             'cyberbass-and-choralia' => [
                 'name' => 'CyberBass and Choralia',
-                'title' => 'Stackapella, CyberBass and Choralia compared, as of November 2026',
-                'description' => 'How Stackapella compares with CyberBass and Choralia, the free choir practice-track sites: prices, practising your part, pitch feedback, courses and recording, with sources.',
+                'title' => 'CyberBass and Choralia: Free Choir Practice Tracks, Compared',
+                'description' => 'CyberBass and Choralia are free sites of choir practice tracks, your part brought forward. How they compare with Stackapella, which listens as you sing.',
                 'summary' => 'All three help choir singers learn their part by ear.',
                 'headline' => 'Stackapella and CyberBass and Choralia',
                 // Two sites, so its "who it's for" heading is plural (the shared one is ":name is for").
@@ -10090,8 +10155,8 @@ return [
                 'group' => 'styles',
                 'name' => 'Yodeling',
                 'summary' => 'Quick flips between chest and head voice.',
-                'title' => 'Yodeling course',
-                'description' => 'Quick flips between chest and head voice. A free styles course on Stackapella, in short lessons.',
+                'title' => 'Learn to Yodel: A Free Yodeling Course',
+                'description' => 'Learn to yodel: the quick flip between chest and head voice, clean and on pitch, in short free lessons that hear each flip as you sing.',
                 'headline' => 'Yodeling',
                 'lead' => 'The quick flip between chest voice and head voice, clean and on pitch.',
                 'learn' => ['Chest voice and head voice', 'The flip, slow then quick', 'A yodel on a tune'],

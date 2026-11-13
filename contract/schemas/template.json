@@ -34,6 +34,10 @@
             "type": "boolean",
             "description": "False until the musician has checked it; drafts only show on localhost or with ?drafts=1."
         },
+        "hidden": {
+            "type": "boolean",
+            "description": "Optional. True takes the song off the site and the app's library (the sync withdraws it), whatever its versions' reviewed say, until the flag goes; projects made from it keep it. For a song Hillel has hidden until it's rebuilt (Red River Valley, 2026-11-13). Never on a staged .next.json."
+        },
         "title": {
             "type": "string"
         },

@@ -23,7 +23,8 @@ final class CatalogueTest extends TestCase
         $response = $this->getJson('/api/templates');
 
         $this->assertMatchesContract($response, 'templates.catalogue', 200);
-        $this->assertSame(Template::query()->count(), count($response->json('data')));
+        // Every song the sync keeps live: a song its file hides ("hidden": true) is withdrawn and not listed.
+        $this->assertSame(Template::query()->whereNull('withdrawn_at')->count(), count($response->json('data')));
         $this->assertStringNotContainsString('"notes"', (string) $response->getContent());
         $this->assertStringNotContainsString('"lyric"', (string) $response->getContent());
         $grace = collect($response->json('data'))->firstWhere('id', 'amazing-grace');

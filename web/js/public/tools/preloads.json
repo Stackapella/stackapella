@@ -309,6 +309,9 @@
   "/js/public/carols.js": [
     "/js/public/carols.js"
   ],
+  "/js/public/coming-up.js": [
+    "/js/public/coming-up.js"
+  ],
   "/js/public/correction.js": [
     "/js/public/correction.js"
   ],
@@ -383,9 +386,11 @@
     "/js/guides.js",
     "/js/public/app-voices.js",
     "/js/public/play-state.js",
+    "/js/public/report.js",
     "/js/synth.js",
     "/js/scoring.js",
     "/js/recorded-guides.js",
+    "/js/sentry-envelope.js",
     "/js/pitchtrack.js",
     "/js/db.js",
     "/js/dsp.js"

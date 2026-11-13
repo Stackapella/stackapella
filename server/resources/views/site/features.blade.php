@@ -29,7 +29,7 @@
         </section>
 
         <section class="s-wrap s-sec" aria-labelledby="works-h">
-            <h2 id="works-h" class="s-title"><x-site.skin :game="__('pages.landing.game.works')" :serious="__('pages.site.works')" /></h2>
+            <h2 id="works-h" class="s-title"><x-site.skin heading :game="__('pages.landing.game.works')" :serious="__('pages.site.works')" /></h2>
             @include('site._tiles', ['tiles' => $works, 'bento' => true])
         </section>
 

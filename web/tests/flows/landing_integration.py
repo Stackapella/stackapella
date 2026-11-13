@@ -19,7 +19,8 @@ HERO = "document.querySelector('.s-mixer')"
 def journey(f):
     f.go("/", f"{HERO}?.hasAttribute('data-ready')")
     assert f.js(f"[...{HERO}.querySelectorAll('[data-voice]')].every((v) => !v.hasAttribute('data-off'))"), "every voice on"
-    assert f.js(f"{HERO}.querySelector('[role=radio][aria-checked=true]').closest('[data-voice]').dataset.voice") == "soprano", "the melody forward (a7950e90: the players lead with the tune)"
+    # Nothing picked until it is, as on the song pages (the song page review's rule, 2026-11-13): no row is yours yet.
+    assert f.js(f"{HERO}.querySelectorAll('[role=radio][aria-checked=true], .s-is-you').length") == 0, "nothing picked at first"
     assert f.js("document.documentElement.scrollWidth <= innerWidth"), "no sideways scrolling"
     f.shot("ready")
 
@@ -36,7 +37,7 @@ def journey(f):
     f.run(f"{row('tenor')}.querySelector('[data-hear-alone]').click()")
     assert f.js(f"{row('tenor')}.hasAttribute('data-solo') && {row('tenor')}.querySelector('[data-hear-alone]').getAttribute('aria-pressed') === 'true'"), "the tenor row lit, alone"
     assert f.js(f"[...{HERO}.querySelectorAll('[data-voice]')].filter((v) => v.hasAttribute('data-off')).map((v) => v.dataset.voice).sort().join()") == "alto,bass,soprano", "the others off"
-    assert f.js(f"{row('soprano')}.querySelector('[data-pick]').getAttribute('aria-checked')") == "true", "hearing a part alone doesn't choose it"
+    assert f.js(f"{HERO}.querySelectorAll('[role=radio][aria-checked=true]').length") == 0, "hearing a part alone doesn't choose it"
     assert f.js(f"{HERO}.hasAttribute('data-playing')"), "hearing one part doesn't stop the line"
     f.shot("tenor-alone")
 

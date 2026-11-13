@@ -831,7 +831,7 @@ export const TemplateDialog = {
         <Modal :title="songTitle(template)" title-is-content wide @close="$emit('close')">
             <div class="space-y-5">
                 <p class="text-cream" translate="no">{{ template.description }}</p>
-                <p v-if="locked" class="font-semibold text-part-2">{{ t('templates.needsAccount') }}</p>
+                <p v-if="locked" class="font-semibold text-part-2">{{ template.previewUrl ? t('templates.needsAccount') : t('templates.needsAccountNoClip') }}</p>
                 <p class="text-sm text-muted">{{ t(DIFFICULTY[template.difficulty] ?? DIFFICULTY.beginner) }} · {{ t('studio.meta.key', { key: keyLabel(template.key) }) }} · {{ t(TEMPO[template.tempo <= 84 ? 'slow' : template.tempo <= 112 ? 'steady' : 'lively']) }}<template v-if="!template.summary"> · {{ formatTime(seconds) }}</template></p>
                 <p v-if="template.credits" class="text-xs text-muted">{{ [t('templates.credits', { words: template.credits.words, tune: template.credits.tune, arrangement: template.credits.arrangement }), template.reviewed ? '' : t('templates.draftNote')].filter(Boolean).join(' ') }}</p>
                 <p v-if="credits.length" class="text-sm text-cream">{{ t('templates.sungBy', { names: formatList(credits) }) }}</p>

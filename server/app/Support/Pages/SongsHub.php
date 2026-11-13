@@ -7,6 +7,7 @@ namespace App\Support\Pages;
 use App\Support\Languages\SongWords;
 use App\Support\Templates\Catalogue;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
 
 /**
  * /songs as a sampler (Hillel, 2026-11-11: "change the /songs page so it samples and then leads to the page for each
@@ -36,10 +37,17 @@ final class SongsHub
         'villancicos' => ['noche-de-paz', 'riu-riu-chiu', 'pastores-a-belen', 'el-cant-dels-ocells'],
         'thanksgiving-hymns' => ['now-thank-we-all-our-god', 'praise-to-the-lord', 'come-ye-thankful-people', 'we-gather-together'],
         'shaker-songs' => ['simple-gifts', 'i-will-bow-and-be-simple', 'o-the-beautiful-treasure', 'who-will-bow-and-bend'],
+        'choral-classics' => ['ave-verum-corpus', 'now-is-the-month-of-maying', 'the-lord-bless-you', 'brahms-lullaby'],
     ];
 
     /** How many songs a band samples (a phone shows the first three). */
     public const PER_BAND = 4;
+
+    /** @var array<string, array<string, mixed>>|null every card read so far (built()) */
+    private ?array $built = null;
+
+    /** @var list<string> every slug built() has been asked for */
+    private array $asked = [];
 
     public function __construct(private readonly SongCollections $collections, private readonly Carols $carols, private readonly Catalogue $catalogue) {}
 
@@ -49,9 +57,22 @@ final class SongsHub
      * popularity: the next Wednesday review's Search Console pull can set it; until then, size). Each with its samples (the
      * collection page's own cards, so each plays its first line) and how many songs the page has.
      *
-     * @return list<array{key: string, path: string, count: int, season: bool, samples: list<array<string, mixed>>}>
+     * @return list<array{key: string, path: string, count: int, season: bool, samples: list<array<string, mixed>>, order?: int}>
      */
     public function bands(): array
+    {
+        // Kept under the catalogue's fingerprint, this build, the page's language and today (the seasons turn by the day):
+        // building each sample's card (its opening line to play) was most of /songs's time.
+        $key = 'songs.bands.'.$this->catalogue->fingerprint().'.'.(string) config('app.build').'.'.app()->getLocale().'.'.now()->toDateString();
+
+        /** @var list<array{key: string, path: string, count: int, season: bool, samples: list<array<string, mixed>>}> */
+        return Cache::remember($key, now()->addDay(), fn (): array => $this->build());
+    }
+
+    /**
+     * @return list<array{key: string, path: string, count: int, season: bool, samples: list<array<string, mixed>>}>
+     */
+    private function build(): array
     {
         // Each band's samples chosen first (the carols by slug, Carols::slugs, and each collection's from the open songs'
         // index), then every sample's card built from one read of just those songs (each plays its first line).
@@ -66,7 +87,7 @@ final class SongsHub
             $ordered = array_values(array_filter($this->collections->ordered($slug), static fn (string $song): bool => $slug === 'villancicos' || ! ($season && Carols::has($song))));
             $chosen[$slug] = self::choose($ordered, self::SAMPLES[$slug] ?? []);
         }
-        $cards = array_column($this->collections->cards(array_values(array_unique(array_merge([], ...array_values($chosen))))), null, 'slug');
+        $cards = $this->built(array_merge([], ...array_values($chosen)));
         $samples = static fn (string $key): array => array_values(array_filter(array_map(static fn (string $song): ?array => $cards[$song] ?? null, $chosen[$key])));
 
         $bands = $season ? [['key' => 'christmas', 'path' => Carols::PATH, 'count' => count($carols), 'season' => true, 'samples' => self::kinds($samples('christmas'), 'christmas')]] : [];
@@ -75,16 +96,111 @@ final class SongsHub
             $slug = $open['slug'];
             $panels[] = ['key' => $slug, 'path' => $open['path'], 'count' => count($this->collections->members($slug)), 'season' => false, 'samples' => self::kinds($samples($slug), $slug)];
         }
-        // The biggest first; the Jewish songs first of all around Hanukkah and Passover (JewishSongs::inSeason), right after
-        // the carols' band in December.
-        // On the Spanish site in the carol season, the villancicos first of all (Hillel's new collections: they lead on /es).
-        $first = $season && app()->getLocale() === 'es' ? 'villancicos' : (JewishSongs::inSeason() ? JewishSongs::SLUG : null);
-        usort($panels, static fn (array $a, array $b): int => [$b['key'] === $first, $b['count']] <=> [$a['key'] === $first, $a['count']]);
+        // The biggest first (each keeps that place as its `order`, for the page's script); then the collection whose
+        // festival is coming up (Festivals: Hanukkah and Passover's Jewish songs, a Burns Night, a St Patrick's Day) first
+        // of all, right after the carols' band in December. On the Spanish site in the carol season, the villancicos lead
+        // instead (Hillel's new collections: they lead on /es).
+        usort($panels, static fn (array $a, array $b): int => $b['count'] <=> $a['count']);
+        foreach ($panels as $i => $panel) {
+            $panels[$i]['order'] = $i;
+        }
+        $coming = Festivals::open($this->live())[0] ?? null;
+        $first = $season && app()->getLocale() === 'es' ? 'villancicos' : ($coming !== null ? self::band($coming['collection']) : null);
+        usort($panels, static fn (array $a, array $b): int => [$b['key'] === $first, $b['order'] * -1] <=> [$a['key'] === $first, $a['order'] * -1]);
         $bands = [...$bands, ...$panels];
 
         // Out of season the carols aren't a band (their songs are in the A to Z); /songs points to the page only in season.
 
         return $bands;
+    }
+
+    /**
+     * "Coming up" at the top of /songs (Hillel, 2026-11-12: "have the main songs page automatically highlight which
+     * section is coming up next"): a card for each festival that's open or opens soon and leads to a live collection
+     * (Festivals::candidates), and which the server shows for its own day: `pick` as the card, `also` as the smaller line
+     * under it (indexes into `cards`, or null). js/public/coming-up.js picks again on the visitor's day.
+     *
+     * @return array{cards: list<array<string, mixed>>, pick: int|null, also: int|null}
+     */
+    public function next(): array
+    {
+        $live = $this->live();
+        $festivals = Festivals::candidates($live);
+        // Each festival's songs chosen first, then every card built from one read of just those songs (as bands()).
+        $chosen = array_map(fn (array $f): array => $this->festivalSlugs($f['key'], self::band($f['collection'])), $festivals);
+        $built = $this->built(array_merge([], ...$chosen));
+        $cards = [];
+        $index = [];
+        foreach ($festivals as $i => $f) {
+            $band = self::band($f['collection']);
+            $words = $band === 'christmas' ? 'site.carols' : 'site.collections.'.$band;
+            $count = $band === 'christmas' ? count($this->carols->slugs()) : count($this->collections->members($band));
+            $songs = array_values(array_filter(array_map(static fn (string $slug): ?array => $built[$slug] ?? null, $chosen[$i])));
+            $index[$f['key'].'@'.$f['from']->format('Y-m-d')] = count($cards);
+            $cards[] = Festivals::card($f, (string) __('site.festivals.'.$f['key']), [
+                'kick' => 'pages.songs.next.kick', 'kick_on' => 'pages.songs.next.kick_on', 'days' => 'pages.songs.next.days', 'tonight' => 'pages.songs.next.tonight',
+                'today' => 'pages.songs.next.today', 'start' => 'pages.songs.next.start', 'start_evening' => 'pages.songs.next.start_evening', 'until' => 'pages.songs.next.until',
+            ], $songs, (string) __('pages.songs.next.learn'), ['url' => $band === 'christmas' ? Carols::PATH : SongCollections::path($band), 'label' => (string) __($words.'.all', ['count' => $count])]);
+        }
+        $open = array_map(static fn (array $f): ?int => $index[$f['key'].'@'.$f['from']->format('Y-m-d')] ?? null, Festivals::open($live));
+
+        return ['cards' => $cards, 'pick' => $open[0] ?? null, 'also' => $open[1] ?? null];
+    }
+
+    /**
+     * The cards for these songs, from one read shared by bands() and next(): the first call reads every song either
+     * will show (the bands' samples and the festivals' songs), so /songs reads the song files once.
+     *
+     * @param  list<string>  $slugs
+     * @return array<string, array<string, mixed>>
+     */
+    private function built(array $slugs): array
+    {
+        // A slug asked for before is never read again, even when it has no card (a song not open).
+        if ($this->built === null || array_diff($slugs, $this->asked) !== []) {
+            $festivals = $this->built === null ? array_merge([], ...array_map(fn (array $f): array => $this->festivalSlugs($f['key'], self::band($f['collection'])), Festivals::candidates($this->live()))) : [];
+            $this->asked = array_values(array_unique([...$this->asked, ...$slugs, ...$festivals]));
+            $this->built = array_column($this->collections->cards($this->asked), null, 'slug');
+        }
+
+        return $this->built;
+    }
+
+    /**
+     * The collections that are live pages, as the calendar names them (the carols' is christmas-carols).
+     *
+     * @return list<string>
+     */
+    private function live(): array
+    {
+        return array_values([...array_map(static fn (array $open): string => $open['slug'], $this->collections->open()), ...($this->carols->slugs() !== [] ? ['christmas-carols'] : [])]);
+    }
+
+    /** A calendar collection's band on /songs (the carols' is christmas). */
+    private static function band(string $collection): string
+    {
+        return $collection === 'christmas-carols' ? 'christmas' : $collection;
+    }
+
+    /**
+     * A festival's songs to learn in time, at most three, by slug: the Jewish songs' tagged with that festival, else its
+     * collection's first.
+     *
+     * @return list<string>
+     */
+    private function festivalSlugs(string $key, string $band): array
+    {
+        if ($band === 'christmas') {
+            return array_slice($this->carols->slugs(), 0, 3);
+        }
+        $slugs = $this->collections->ordered($band);
+        if ($band === JewishSongs::SLUG) {
+            // From the open songs' index (Catalogue::openIndex), never their notes.
+            $tagged = array_column(array_filter($this->catalogue->openIndex(), static fn (array $t): bool => JewishSongs::tag($t['genre']) === $key), 'slug');
+            $slugs = array_values(array_filter($slugs, static fn (string $slug): bool => in_array($slug, $tagged, true)));
+        }
+
+        return array_slice($slugs, 0, 3);
     }
 
     /**

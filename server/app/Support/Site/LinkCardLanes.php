@@ -28,6 +28,7 @@ final class LinkCardLanes
         'villancicos' => ['noche-de-paz', 'soprano', 16],
         'thanksgiving-hymns' => ['now-thank-we-all-our-god', 'soprano', 16],
         'shaker-songs' => ['simple-gifts', 'soprano', 16],
+        'choral-classics' => ['ave-verum-corpus', 'soprano', 16],
     ];
 
     /**

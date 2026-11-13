@@ -16,6 +16,7 @@ import { lazyComponent } from '../../game/modules.js';
 
 const PartSelect = lazyComponent('partSelect', 'PartSelect'); // game mode's only: loaded as it's first drawn (js/game/modules.js WITH_SING)
 import { effect } from '../../game/effects.js';
+import { renameScreen } from '../../screen-name.js';
 
 const WAYS = ['parts', 'whole', 'studio'];
 const LABELS = { parts: tk('sing.chooser.parts'), whole: tk('sing.chooser.whole'), studio: tk('sing.chooser.studio') };
@@ -68,8 +69,8 @@ export const Chooser = {
                      unless it's the way used last time. -->
                 <div class="grid auto-rows-fr gap-4" :class="shownWays.length === 3 ? 'md:grid-cols-3' : 'md:grid-cols-2'">
                     <button v-for="w in shownWays" :key="w" type="button" class="card-interactive flex flex-col gap-4 p-5 text-start" :data-way="w" @click="choose(w)">
-                        <span class="flex items-center gap-3">
-                            <span class="flex-1 text-lg font-bold text-cream">{{ t(LABELS[w]) }}</span>
+                        <span class="flex items-center gap-3" data-way-head>
+                            <span class="flex-1 text-lg font-bold text-cream" data-way-name>{{ t(LABELS[w]) }}</span>
                             <span v-if="last === w" class="rounded-full bg-raised px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-muted" data-last-time>{{ t('sing.chooser.lastTime') }}</span>
                             <span v-else-if="!last && w === 'parts'" class="rounded-full border border-accent px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-accent-strong" data-first-pick>{{ t('sing.chooser.firstPick') }}</span>
                         </span>
@@ -162,7 +163,11 @@ export const Chooser = {
             return t('sing.chooser.wholeTime', { minutes: formatNumber(Math.max(1, Math.ceil(this.length / 60) + 1)) });
         },
     },
+    watch: {
+        partStep: () => renameScreen(), // the part step names the tab, as the choice before it did
+    },
     mounted() {
+        renameScreen(); // back from the coach to the choice, at the same address
         // Use this every time (Settings' How you sing): opened by itself with your part known, straight in.
         const remembered = prefs.singWay;
         if (this.auto && !this.way && this.focus && remembered) {

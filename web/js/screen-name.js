@@ -52,6 +52,18 @@ function nameWhenShown(moved) {
     observer.observe(app, { childList: true, subtree: true });
 }
 
+/**
+ * The tab named again from the heading now shown, focus left where it is: for a screen whose heading changes without
+ * the route changing (Sing's choice, then its coach's steps, all at /p/<id>/sing; the first-session walk, 2026-11-14,
+ * found its tab still saying "How do you want to sing?" while the coach said Listen).
+ */
+export function renameScreen() {
+    nextTick(() => {
+        const h1 = heading();
+        if (h1) name(h1, false);
+    });
+}
+
 /** Names every screen as the route changes, from the first. */
 export function nameScreens() {
     let first = true;

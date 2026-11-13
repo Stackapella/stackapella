@@ -40,7 +40,7 @@ final class UploadSongAudioCommand extends Command
         }
         $this->info($this->option('check')
             ? count($result['songs']).' songs check out, '.count($result['skipped']).' skipped.'
-            : "{$result['uploaded']} files uploaded, {$result['unchanged']} already there, ".count($result['skipped']).' songs skipped; '.count($result['songs']).' songs in '.SongAudioFiles::MANIFEST.'.');
+            : "{$result['uploaded']} files uploaded, {$result['unchanged']} already there, ".count($result['skipped']).' songs skipped; '.count(SongAudioFiles::manifest()).' songs in '.SongAudioFiles::MANIFEST.'.');
 
         return $result['skipped'] === [] ? self::SUCCESS : self::FAILURE;
     }

@@ -65,6 +65,7 @@
         '/js/courses.js',
         '/js/screen-name.js',
         '/js/page-lesson.js',
+        '/js/sentry-envelope.js',
         '/js/sound-log.js',
         '/js/theme.js',
         '/js/theory.js',

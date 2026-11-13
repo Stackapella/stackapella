@@ -344,7 +344,7 @@ export const ProjectsView = {
         plus: () => account.me?.plan === 'plus',
         /** Every library song opens with an account (2026-11-07); a guest's locked song asks for a free one. */
         signedIn: () => !!account.me,
-        signUpForSong: (vm) => `/signin?mode=signup&for=songs&next=${encodeURIComponent('/?song=' + (vm.openTemplate?.id ?? ''))}`,
+        signUpForSong: (vm) => `/signin?mode=signup&for=library&next=${encodeURIComponent('/?song=' + (vm.openTemplate?.id ?? ''))}`,
         /** Storage 80% full on the free plan, past the first week: Home shows the meter (usage.show, read once). */
         storageNear: (vm) => !vm.plus && !vm.firstWeek && !!vm.storageUsage?.storage?.limitBytes && vm.storageUsage.storage.usedBytes / vm.storageUsage.storage.limitBytes >= 0.8,
         /** The projects that count toward the free plan's limit (the course's own don't). */
@@ -553,7 +553,9 @@ export const ProjectsView = {
     mounted() {
         // The song's sheet fetched once Home is up and the page is idle, so a tap on a song opens it at once.
         const idle = window.requestIdleCallback ?? ((run) => setTimeout(run, 1500));
-        idle(() => dialogLoader.prefetch(), { timeout: 5000 });
+        // A link to a song opens its sheet straight away: its code at once, not when the page is idle.
+        if (new URLSearchParams(location.search).has('song')) dialogLoader.prefetch();
+        else idle(() => dialogLoader.prefetch(), { timeout: 5000 });
         // A first look at Home's picks starts the library's clock: nothing is "new" the first time (song-news.js).
         if (!this.lookedAt) lookedNow();
         this.onResize = () => (this.songColumns = songColumns());

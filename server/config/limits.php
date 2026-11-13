@@ -212,6 +212,11 @@ return [
         'ip' => ['max' => 10, 'per' => 'minute', 'by' => 'ip'],
     ],
 
+    // The corrections export (app:pull-corrections): one pull a day, a few retries.
+    'corrections-export' => [
+        'ip' => ['max' => 10, 'per' => 'minute', 'by' => 'ip'],
+    ],
+
     'error-reports' => [
         'ip' => ['max' => 60, 'per' => 'minute', 'by' => 'ip'],
     ],

@@ -39,10 +39,18 @@ return [
         // Hillel's song page design (Danny Boy v2, "Responsive wrapping fixes"): the hero's actions, "Find your part" with
         // each part's one true tag, the words, and the story (App\Support\Pages\SongStories) with its contents and sources.
         'learn_part' => 'Learn the :part part',
+        // A song page's <title> and og:title, the longest that fits (SongPage::pageTitle; the SEO audit, 2026-11-13).
+        'page_title' => ['full' => ':song: Harmony Parts, Lyrics and Meaning', 'short' => ':song: Harmony Parts and Lyrics', 'shortest' => ':song Harmony Parts'],
         'check_range' => 'Check my range',
         // How each part goes (was Find your part: the hero's player picks now, the song page review, 2026-11-13).
         'how' => 'How each part goes',
         'how_lead' => 'Each part\'s range on one scale, and where it goes in the words.',
+        // Its key and tempo, one quiet line under How each part goes (SongPage::keyTempo).
+        'key_tempo' => 'Key of :key · about :bpm beats a minute',
+        'key_only' => 'Key of :key',
+        'tempo_only' => 'About :bpm beats a minute',
+        'changes_key' => 'changes key',
+        'changes_metre' => 'changes time',
         'tag' => ['melody' => 'Melody', 'lowest' => 'Lowest part', 'smallest' => 'Smallest range', 'widest' => 'Widest range', 'harmony' => 'Harmony', 'tune' => 'The tune'],
         'practise' => 'Practise the :part part',
         'unsure' => 'Not sure which part?',
@@ -88,8 +96,9 @@ return [
     'songs' => [
         // A round's note after its title in the A to Z, as the song file writes it ("Row, Row, Row Your Boat (round)").
         'round_note' => '(round)',
-        'title' => 'Songs to learn in harmony',
-        'description' => 'Every song on Stackapella, arranged in parts to learn one at a time.',
+        // The songbook's title and meta, saying what people search for (the SEO audit, 2026-11-13).
+        'title' => 'Songs to Learn in Harmony: Free SATB Parts',
+        'description' => 'Carols, hymns, spirituals, rounds, folk and Jewish songs, each arranged in parts. Hear any part on its own, learn yours, then sing it with the others.',
         // Hillel's "Songbook page rebuild" (2026-11-11): the heading with its last words in the serif, the count in the eyebrow.
         'headline' => 'Songs to sing',
         'headline_em' => 'in harmony',
@@ -98,6 +107,21 @@ return [
         'search' => 'Search :count songs, try “Shenandoah”',
         'search_short' => 'Search :count songs',
         'search_label' => 'Search the songs by title',
+        // "Coming up" (Hillel, 2026-11-12: "have the main songs page automatically highlight which section is coming up
+        // next"): the festival card at the top while one is near (App\Support\Pages\Festivals, js/public/coming-up.js).
+        'next' => [
+            'label' => 'Coming up',
+            'kick' => 'Coming up',
+            'kick_on' => 'On now',
+            'days' => '{1} Tomorrow|[2,*] In :count days',
+            'tonight' => 'Tonight',
+            'today' => 'Today',
+            'start' => ':date',
+            'start_evening' => 'From sundown, :date',
+            'until' => 'Until :date',
+            'learn' => 'Songs to learn in time',
+            'also' => 'Also coming up:',
+        ],
         'all_short' => 'All :count',
         'try' => 'Try it',
         'try_note' => 'Tap a part again to bring all of them back. Sing yours alone, then with the others.',
@@ -253,6 +277,7 @@ return [
             ['The basics', ['what-is-harmony', 'satb-explained', 'choir-voicings', 'what-is-a-descant', 'find-your-voice-type']],
             ['Learn your part', ['find-your-part', 'find-your-starting-note', 'hold-your-part', 'practise-a-choir-part', 'a-round-for-beginners']],
             ['Skills', ['ear-training', 'sight-reading-for-singers', 'singing-in-tune', 'how-to-sing-with-vibrato', 'breathing-basics', 'arranging-a-cappella', 'vocal-percussion']],
+            ['Singing together', ['how-to-blend-in-a-choir', 'how-to-run-a-sectional', 'how-to-start-an-a-cappella-group', 'barbershop-tags']],
         ],
         // A panel of the four choir parts' usual ranges, each to hear (site._guide-ranges, js/public/guide-ranges.js),
         // after the section a guide names here.
@@ -627,6 +652,13 @@ return [
         'free_courses_title' => 'Every course is free.',
         // The beginner course's dark card (landing v2): the place to start, never "the free course" (every course is).
         'start_here' => 'Start here',
+        // Hillel's newest landing design (2026-11-12): the Start here card as the courses page has it, the player's next step
+        // and the tools as one line under the courses.
+        'start_here_count' => 'Start here · :units units · :lessons lessons',
+        'start_body' => 'The beginner course: from finding your comfortable note to singing all four parts of Amazing Grace.',
+        'next_four' => 'That\'s four voices. The next four are yours.',
+        'first_note' => 'Sing the first note',
+        'free_tools_line' => 'Free tools, no account:',
         'try_lesson' => 'Try lesson 1',
         'free_courses_lead' => 'Short lessons with a guide voice, from your first note to vibrato and barbershop. Try the first lesson without an account.',
         'free_tools_kick' => 'Free tools',
@@ -826,7 +858,7 @@ return [
             'banner_link' => 'What changed',
         ],
         'final_title' => 'Your first voice is the hardest. Let\'s find it together.',
-        'final_body' => 'Lesson 1 starts with one comfortable note.',
+        'final_body' => 'Lesson 1 starts with one comfortable note. No account needed.',
     ],
 
     'pricing' => [
@@ -857,6 +889,10 @@ return [
         'currency' => 'Prices in',
         'currencies' => ['usd' => 'US dollars', 'eur' => 'euros', 'gbp' => 'pounds'],
         'compare' => 'Free and Plus, side by side',
+        'only_different' => 'Only what\'s different',
+        // Shown only while checkout is open and billing.trial_days is set (never a trial that isn't real).
+        'try_plus' => '{1} Try Plus free for :days day|[2,*] Try Plus free for :days days',
+        'cancel_any_time' => 'Cancel any time.',
         'feature' => 'What you get',
         'yes' => 'Yes',
         'no' => 'No',

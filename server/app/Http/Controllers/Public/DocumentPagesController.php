@@ -48,6 +48,9 @@ final class DocumentPagesController extends Controller
         'sight-reading-for-singers', 'how-to-sing-with-vibrato',
         // The season's (the coordinator, 2026-11-12: "hanukkah songs for choir" has demand, and Hanukkah begins 4 December).
         'hanukkah-songs-for-choir',
+        // Singing together (docs/search-content-plan.md, item 5, marketing2 2026-11-13), each checked for demand first
+        // and fact-checked by the courses lead: blend, a sectional, starting a group, barbershop tags.
+        'how-to-blend-in-a-choir', 'how-to-run-a-sectional', 'how-to-start-an-a-cappella-group', 'barbershop-tags',
     ];
 
     /**

@@ -52,6 +52,9 @@ final class SyncOfficialTemplates
         $present = [];
         // Each song's staged next version (`<id>.next.json`), by its id: its version number.
         $staged = [];
+        // The songs whose file says "hidden": true (Hillel's "hide until", Red River Valley): withdrawn, whatever their
+        // versions' reviewed. A newer unreviewed version alone leaves the last reviewed one live, so this is the way to hide.
+        $hidden = [];
         $schemas = new SchemaChecker((string) config('templates.schemas'));
 
         foreach ($this->files() as $path) {
@@ -67,6 +70,13 @@ final class SyncOfficialTemplates
                 $report['problems'][] = "{$name}: isn't valid JSON";
 
                 continue;
+            }
+            if (($data['hidden'] ?? false) === true && is_string($data['id'] ?? null)) {
+                if (str_ends_with($name, '.next.json')) {
+                    $report['problems'][] = "{$name}: a staged version is never hidden; hide the song in {$data['id']}.json";
+                } else {
+                    $hidden[] = $data['id'];
+                }
             }
 
             // A file's checks read nothing but its bytes and the schemas, so they're done once a process for the same
@@ -115,7 +125,7 @@ final class SyncOfficialTemplates
                 : "{$data['id']}@{$data['version']}";
         }
 
-        $report = $this->withdraw($present, $report);
+        $report = $this->withdraw($present, $hidden, $report);
         $report['problems'] = [...$report['problems'], ...$this->stage($staged)];
 
         // Recorded voices whose part sings the same in a newer version follow it there.
@@ -232,13 +242,22 @@ final class SyncOfficialTemplates
      * the projects made from it. One that comes back returns. Never many at once: a content fetch
      * that went wrong (no files, or most missing) is a problem to look at, not a withdrawal.
      *
+     * A song its file hides ("hidden": true) is withdrawn the same way, on purpose, so never counted toward that limit,
+     * and returns when the flag goes.
+     *
      * @param  list<string>  $present
+     * @param  list<string>  $hidden
      * @param  array{added: list<string>, opened: list<string>, unchanged: list<string>, problems: list<string>, carried: list<string>, withdrawn: list<string>}  $report
      * @return array{added: list<string>, opened: list<string>, unchanged: list<string>, problems: list<string>, carried: list<string>, withdrawn: list<string>}
      */
-    private function withdraw(array $present, array $report): array
+    private function withdraw(array $present, array $hidden, array $report): array
     {
-        Template::query()->official()->whereNotNull('withdrawn_at')->whereIn('slug', $present)->update(['withdrawn_at' => null]);
+        Template::query()->official()->whereNotNull('withdrawn_at')->whereIn('slug', array_values(array_diff($present, $hidden)))->update(['withdrawn_at' => null]);
+        $hiding = array_values(array_map(strval(...), Template::query()->official()->whereNull('withdrawn_at')->whereNull('deleted_at')->whereIn('slug', $hidden)->pluck('slug')->all()));
+        if ($hiding !== []) {
+            Template::query()->official()->whereIn('slug', $hiding)->update(['withdrawn_at' => now()]);
+            $report['withdrawn'] = array_values(array_map(static fn (string $slug): string => "{$slug} (hidden)", $hiding));
+        }
         $gone = Template::query()->official()->whereNull('withdrawn_at')->whereNull('deleted_at')->whereNotIn('slug', $present)->pluck('slug')->all();
         $official = Template::query()->official()->whereNull('deleted_at')->count();
 
@@ -253,7 +272,7 @@ final class SyncOfficialTemplates
         }
 
         Template::query()->official()->whereIn('slug', $gone)->update(['withdrawn_at' => now()]);
-        $report['withdrawn'] = array_values($gone);
+        $report['withdrawn'] = [...$report['withdrawn'], ...array_values($gone)];
 
         return $report;
     }

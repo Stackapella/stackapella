@@ -106,6 +106,15 @@ return [
         'url' => env('GROWTH_DATA_URL', 'https://app.stackapella.com'),
     ],
 
+    // The readers' open corrections for the courses lead's daily triage (Internal\CorrectionsExportController,
+    // app:pull-corrections): its own token, so it can be revoked alone; unset, the endpoint is off. `dir` is where the
+    // pull writes YYYY-MM-DD.json (the courses lead's work folder on their machine).
+    'corrections_export' => [
+        'token' => env('CORRECTIONS_EXPORT_TOKEN'),
+        'url' => env('CORRECTIONS_EXPORT_URL', 'https://app.stackapella.com'),
+        'dir' => env('CORRECTIONS_EXPORT_DIR'),
+    ],
+
     // Cloudflare Turnstile, shown only while shield mode is on.
     'turnstile' => [
         'site_key' => env('TURNSTILE_SITE_KEY'),

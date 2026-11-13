@@ -68,7 +68,7 @@ final class Pictures
     /**
      * The song's first `count` words, from its opening line (Landing::hero's words).
      *
-     * @param  array{words?: list<array{beat: float, text: string, joins: bool}>}|null  $hero
+     * @param  array{words?: list<array{beat: float, text: string, joins: bool, br: bool}>}|null  $hero
      */
     public static function firstWords(?array $hero, int $count): string
     {

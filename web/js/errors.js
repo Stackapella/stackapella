@@ -7,9 +7,12 @@
 // (auth.config's sentryDsn), offline, more than MAX_A_PAGE times, or twice for the same error.
 
 import { APP_VERSION } from './api.js';
+import { describeBrowser, environmentOf, envelopeFor } from './sentry-envelope.js';
 import { account } from './stores/account.js';
 import { version } from './version.js';
 import { fromSound, noteSound } from './sound-log.js';
+
+export { describeBrowser, envelopeFor };
 
 const MAX_A_PAGE = 10;
 const WAITING_MAX = 5; // kept while offline, sent when the connection is back
@@ -29,7 +32,6 @@ const OURS = /^(?:https?:\/\/(?:[\w-]+\.)*stackapella\.com\/|https:\/\/cdn\.jsde
 // JAVASCRIPT-7 was 100 frames of two minified functions on "line 230" of the 69-line /learn/1-match, on iOS. Such an
 // event still goes, tagged injected and at the info level, so an odd stack of ours can never vanish (the coordinator).
 const PAGE_LINES = typeof document === 'undefined' ? 0 : document.documentElement.outerHTML.split('\n').length + 1;
-const BROWSERS = [['Edge', /Edg\/(\d+)/], ['Firefox', /Firefox\/(\d+)/], ['Chrome', /Chrome\/(\d+)/], ['Safari', /Version\/(\d+).*Safari/]]; // i18n-ignore: sent to Sentry, never shown
 
 const sent = new Set();
 let count = 0;
@@ -44,14 +46,6 @@ export function scrubPath(path) {
     }
     // Ids stay (a song's or a lesson's id says which screen), but a long opaque segment is a token.
     return bare.replace(/\/[A-Za-z0-9_-]{32,}(?=\/|$)/g, '/:token');
-}
-
-/** "Chrome 131 on macOS": the browser and OS from the user agent, nothing finer. */
-export function describeBrowser(ua) {
-    const found = BROWSERS.map(([name, pattern]) => [name, pattern.exec(ua)]).find(([, m]) => m);
-    const browser = found ? [found[0], found[1][1]] : ['Other', '']; // i18n-ignore: sent to Sentry, never shown
-    const os = /iPhone|iPad/.test(ua) ? 'iOS' : /Android/.test(ua) ? 'Android' : /Mac OS X/.test(ua) ? 'macOS' : /Windows/.test(ua) ? 'Windows' : /Linux/.test(ua) ? 'Linux' : 'Other'; // i18n-ignore: sent to Sentry, never shown
-    return { browser: { name: browser[0], version: browser[1] }, os: { name: os } };
 }
 
 /** A stack's frames, oldest first as Sentry wants, each its file (without query), function, line and column. */
@@ -96,18 +90,12 @@ export function eventFor(error, { mechanism = 'onerror', context = null, path = 
         platform: 'javascript',
         level: foreign ? 'info' : 'error',
         release: build ? `${release}+${build}` : release,
-        environment: location.hostname === 'localhost' || location.hostname === '127.0.0.1' ? 'development' : location.hostname.startsWith('beta.') ? 'beta' : 'production',
+        environment: environmentOf(location.hostname),
         exception: { values: [{ type, value, stacktrace: { frames: framesOf(error?.stack) }, mechanism: { type: mechanism, handled: false } }] },
         request: { url: `${location.origin}${scrubPath(path)}` },
         contexts: { browser, os },
         tags: { route: scrubPath(path), ...(context ? { vue: context } : {}), ...(foreign ? { injected: 'true' } : {}) },
     };
-}
-
-/** A Sentry envelope: its header (with the DSN the tunnel checks), the item's header, the event. */
-export function envelopeFor(event, dsn) {
-    const body = JSON.stringify(event);
-    return `${JSON.stringify({ event_id: event.event_id, dsn, sent_at: new Date().toISOString() })}\n${JSON.stringify({ type: 'event', length: new TextEncoder().encode(body).length })}\n${body}\n`;
 }
 
 /** Whether an error isn't ours to report: an extension's, a resize loop, an aborted fetch. */

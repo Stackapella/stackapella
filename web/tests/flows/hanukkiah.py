@@ -51,6 +51,11 @@ def journey(f):
     assert len(panel) == 1 and panel[0]["lit"] == [0, 1, 2, 3, 4], f"/songs's lamp on night 4: {panel}"
     f.js("document.querySelector('svg.s-hk').scrollIntoView({ block: 'center' })")
     f.shot("songs-night-4")
+    # A song's hero shows the lamp only on a Hanukkah song (the arranger's check: Lecha Dodi, a Sabbath hymn, showed it).
+    f.go("/songs/maoz-tzur", "document.querySelector('h1')")
+    assert f.js("document.querySelectorAll('.s-sg-hero svg.s-hk').length") == 1, "Maoz Tzur's hero has the lamp"
+    f.go("/songs/lecha-dodi", "document.querySelector('h1')")
+    assert f.js("document.querySelectorAll('.s-sg-hero svg.s-hk').length") == 0, "Lecha Dodi's hero has no lamp"
 
 
 run("hanukkiah", journey)

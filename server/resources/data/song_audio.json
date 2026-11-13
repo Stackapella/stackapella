@@ -642,7 +642,7 @@
         "coventry-carol": {
             "slug": "coventry-carol",
             "title": "Coventry Carol",
-            "version": 1,
+            "version": 2,
             "tempo": 80,
             "key": "Gm",
             "guides": {
@@ -659,12 +659,12 @@
                 {
                     "name": "coventry-carol.mp3",
                     "bytes": 2058785,
-                    "sha256": "5f54aba21b43d6b4a4cfd9075ad7ece6957cf9f2f6c3f405ade9e287642f1f5f"
+                    "sha256": "a81df21c1a8e5a1d09dcb9763b1811b4ce1aa295d9ddb195e5a9e8a1b5d9f8b0"
                 },
                 {
                     "name": "coventry-carol.m4a",
-                    "bytes": 2079676,
-                    "sha256": "c10e078775a911522d06ec377edcea2160befd3f586dacf6dba1896e6a43ab83"
+                    "bytes": 2079764,
+                    "sha256": "fb6170511920ba03ae30091a41fe75ae51067bdb8f9f8a55478420157fb285f2"
                 }
             ]
         },
@@ -700,7 +700,7 @@
         "danny-boy": {
             "slug": "danny-boy",
             "title": "Danny Boy",
-            "version": 6,
+            "version": 7,
             "tempo": 60,
             "key": "D",
             "guides": {
@@ -717,12 +717,12 @@
                 {
                     "name": "danny-boy.mp3",
                     "bytes": 1074850,
-                    "sha256": "7be93ac3b74fd826fb2a717abaec7656eb0c124f6fa798b015371837010ffc30"
+                    "sha256": "16be0998545a369719b9e195fce588d0390bb12a2f89fe936ca948a295b664cb"
                 },
                 {
                     "name": "danny-boy.m4a",
-                    "bytes": 1073344,
-                    "sha256": "bc6626674af250fc4dd5182dc384f4755cf277b779eddd151b6ea7ed170234c8"
+                    "bytes": 1073376,
+                    "sha256": "6f112f9cdcc41ed5e10eb1fd56e47cfb8fc3bd82ba9d321d81eb6dda61270df8"
                 }
             ]
         },
@@ -1454,7 +1454,7 @@
         "in-the-bleak-midwinter": {
             "slug": "in-the-bleak-midwinter",
             "title": "In the Bleak Midwinter",
-            "version": 1,
+            "version": 2,
             "tempo": 100,
             "key": "F",
             "guides": {
@@ -1471,12 +1471,12 @@
                 {
                     "name": "in-the-bleak-midwinter.mp3",
                     "bytes": 1885877,
-                    "sha256": "e11d2fdbac7bacf423f7f6dc4131f85b3ab8a009670256ccc33ea25ff8c1c8ab"
+                    "sha256": "430e69ecfac15f01fa65d3070299a371bdd2c376921d79a7fd44f422c9abb60a"
                 },
                 {
                     "name": "in-the-bleak-midwinter.m4a",
-                    "bytes": 1906602,
-                    "sha256": "2e2fbac15ca8b7b87eb84f42389a312bf42ad2c37d3be5ee28d0609716280bc9"
+                    "bytes": 1906838,
+                    "sha256": "7bbdd16c97a51ab51e69a06b92e83ed4071caa778b0571e39ffb2c92a6bc7361"
                 }
             ]
         },
@@ -1541,7 +1541,7 @@
         "jerusalem": {
             "slug": "jerusalem",
             "title": "Jerusalem",
-            "version": 1,
+            "version": 2,
             "tempo": 60,
             "key": "D",
             "guides": {
@@ -1558,12 +1558,12 @@
                 {
                     "name": "jerusalem.mp3",
                     "bytes": 810681,
-                    "sha256": "3348b8c80583371905e2076181d02b70bbb9e0b4a0ec646398fbf6cb037dadac"
+                    "sha256": "5d5747fb5b8fed78fafa4cc365edca683eea7b066142d3540321c53cfa88faa1"
                 },
                 {
                     "name": "jerusalem.m4a",
-                    "bytes": 811327,
-                    "sha256": "2b197f6ae6080d2186eacf407ece868db229c74bd64648c5f9dcbe7fd1dd1f52"
+                    "bytes": 811360,
+                    "sha256": "548a56230238a3c8bdfda09243f8b1041a1f7eb3f2b8d7dde35303eb4ad5db71"
                 }
             ]
         },
@@ -1657,7 +1657,7 @@
         "ki-lo-naeh": {
             "slug": "ki-lo-naeh",
             "title": "Ki Lo Na'eh",
-            "version": 1,
+            "version": 2,
             "tempo": 88,
             "key": "D",
             "guides": {
@@ -1674,12 +1674,12 @@
                 {
                     "name": "ki-lo-naeh.mp3",
                     "bytes": 1439210,
-                    "sha256": "17dd1c60b6d1969fb35da5496d57a6c5b31e6e48ce527ca5b7496f9e3c596485"
+                    "sha256": "3b695e7a6f8802996ea391a2267da66a0a51fec734aea838d120383061b8f921"
                 },
                 {
                     "name": "ki-lo-naeh.m4a",
-                    "bytes": 1452834,
-                    "sha256": "c101bdba575c4afbca1d8baf06db641db6cc33eca3f2ddc549c16599fb47ed70"
+                    "bytes": 1452878,
+                    "sha256": "e082c5eff3802a7deeb2bd79833c3a0618b7560bd5ecb3f77046cb3af4553fa7"
                 }
             ]
         },
@@ -2034,7 +2034,7 @@
         "now-is-the-month-of-maying": {
             "slug": "now-is-the-month-of-maying",
             "title": "Now Is the Month of Maying",
-            "version": 4,
+            "version": 5,
             "tempo": 112,
             "key": "G",
             "guides": {
@@ -2051,12 +2051,12 @@
                 {
                     "name": "now-is-the-month-of-maying.mp3",
                     "bytes": 1140124,
-                    "sha256": "6e76f457eb646d467466888e05e23aaaf81a905e2c11f680414f34eb1135c76b"
+                    "sha256": "5eeb85816d839c311c051a76823d4cf18e5570b755dd59fdb7c061c007fc28ba"
                 },
                 {
                     "name": "now-is-the-month-of-maying.m4a",
-                    "bytes": 1145676,
-                    "sha256": "80ca2a77d73eead7aef757f72d41b936131d7ec14b5199f25b9217edb2e127cb"
+                    "bytes": 1145175,
+                    "sha256": "5ef8ecd00bbfc6000591528ee8288b0eec5ed2b9dae0c28b71d7901208dc4809"
                 }
             ]
         },
@@ -3252,7 +3252,7 @@
         "who-will-bow-and-bend": {
             "slug": "who-will-bow-and-bend",
             "title": "Who Will Bow and Bend",
-            "version": 1,
+            "version": 2,
             "tempo": 100,
             "key": "C",
             "guides": {
@@ -3269,12 +3269,12 @@
                 {
                     "name": "who-will-bow-and-bend.mp3",
                     "bytes": 1885851,
-                    "sha256": "45541a2a0dfcb9b2ed78d4ef40f29480827e70ec7e32564fe8914554c38f7d56"
+                    "sha256": "be11582d31f54571fc958509f8c988b7bb46b852aa66f205e59f1dc21bbc4dbf"
                 },
                 {
                     "name": "who-will-bow-and-bend.m4a",
-                    "bytes": 1903543,
-                    "sha256": "139ab77bb65e8c0c4e5df0cc5f327c9843515f6023ce1388acbc2be76e70bbe2"
+                    "bytes": 1903898,
+                    "sha256": "587057d40006b03bae7f8cc38c5193662c058ec25221e50342216628b0405ad3"
                 }
             ]
         },

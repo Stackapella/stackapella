@@ -655,6 +655,7 @@
         "next": "Siguiente"
     },
     "templates": {
+        "needsAccountNoClip": "Crea una cuenta gratis para empezar esta canción.",
         "loadFailed": "No se pudo cargar la canción.",
         "notHere": "Esta canción todavía no está disponible donde estás.",
         "notHereUntil": "Esta canción todavía no está disponible donde estás. Llega aquí en {year}.",
@@ -665,9 +666,9 @@
         "play": "Reproducir",
         "preparing": "Preparando",
         "difficulty": {
-            "beginner": "Principiante",
-            "intermediate": "Intermedio",
-            "advanced": "Avanzado"
+            "beginner": "Para principiantes",
+            "intermediate": "Un paso más",
+            "advanced": "Un reto"
         },
         "range": "{low} a {high}",
         "credits": "Letra: {words}. Melodía: {tune}. Arreglo: {arrangement}.",
@@ -1425,6 +1426,7 @@
         "closestPart": "Ninguna voz encaja del todo en tu extensión, ni cambiando la tonalidad. La más cercana es {part}. Si quieres, cambia de voz desde arriba."
     },
     "auth": {
+        "introLibrary": "Las canciones de la biblioteca piden una cuenta. Es gratis, y las lecciones no la piden.",
         "signIn": "Entrar",
         "intro": "Opcional. Puedes aprender y grabar sin cuenta. Si inicias sesión, tus canciones se sincronizan en todos tus dispositivos.",
         "introGroups": "Un grupo necesita una cuenta, para que tus cantantes puedan unirse. Gratis para ti y para todos tus cantantes.",
@@ -1554,6 +1556,7 @@
             "stay": "Seguir como {current}"
         },
         "reason": {
+            "library": "Una cuenta gratis abre todas las canciones",
             "requests": "Para pedir una canción o votar por una, crea una cuenta gratis",
             "progress": "Guarda tu progreso con una cuenta gratis",
             "reminders": "Los recordatorios requieren una cuenta, para saber adónde enviarlos",

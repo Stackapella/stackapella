@@ -63,7 +63,7 @@
         @endforeach
     </div>
     @if ($song['words'] !== [])
-        <div class="s-mix-words" aria-hidden="true"><p class="s-lyrics">@foreach ($song['words'] as $word)<span data-beat="{{ $word['beat'] }}">{{ $word['text'] }}</span>{{ $word['joins'] ? '' : ' ' }}@endforeach</p></div>
+        <div class="s-mix-words" aria-hidden="true"><p class="s-lyrics">@foreach (\App\Support\Pages\Landing::lines($song['words']) as $line)<span data-line>@foreach ($line as $word)<span data-beat="{{ $word['beat'] }}">{{ $word['text'] }}</span>{{ $word['joins'] ? '' : ' ' }}@endforeach</span>@endforeach</p></div>
     @endif
     @isset($foot)
         <div class="s-mix-foot">{{ $foot }}</div>

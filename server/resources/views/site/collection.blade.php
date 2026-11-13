@@ -3,8 +3,8 @@
      short intro, then the songbook (site._songbook: each song a card with its first line to play and its parts to their
      pages, and the "I sing" filter), the About panel and the free tools. The carols page's frame, its hero in the collection's own palette (s-tone-<slug>). Words: site.collections.<slug>. --}}
 @php($words = 'site.collections.'.$slug)
-@php($title = __($words.'.title'))
-@php($description = __($words.'.description'))
+@php($title = ($season ?? null) !== null ? __($words.'.season_title.'.$season) : __($words.'.title'))
+@php($description = ($season ?? null) !== null ? __($words.'.season_description.'.$season) : __($words.'.description'))
 @extends('public.layout', ['title' => \App\Support\Site\SitePages::title($title)])
 
 @section('arcade')
@@ -55,40 +55,10 @@
                         <x-site.mixer :song="$try" id="try-mixer"><span class="s-sh-try-k">{{ __('pages.songs.try') }}</span><x-slot:foot>{{ __('pages.songs.try_note') }}</x-slot:foot></x-site.mixer>
                     </div>
                 @endif
-                {{-- The Jewish songs page's countdown to its next festival (App\Support\Pages\JewishSongs::festival). --}}
-                @if (($festival ?? null) !== null)
-                    {{-- Hillel's redesign (2026-11-12): the festival large, the days large beside it with its first sundown,
-                         then that festival's songs (at most three) to learn in time, each to its card's page. --}}
-                    @php($festivalName = __($words.'.festivals.'.$festival['key']))
-                    <aside @class(['s-jcount', 's-jcount-lamp' => $festival['key'] === 'hanukkah']) aria-labelledby="jcount-k">
-                        @if ($festival['key'] === 'hanukkah')
-                            {{ \App\Support\Pages\Hanukkiah::svg('s-hk s-hk-card') }}
-                        @endif
-                        <p id="jcount-k" class="s-jcount-k">{{ $festival['on'] ? __($words.'.count_on_label') : __($words.'.count_label') }}</p>
-                        <div class="s-jcount-top">
-                            <p class="s-jcount-n s-xserif">{{ $festivalName }}</p>
-                            <div class="s-jcount-when">
-                                @if ($festival['on'])
-                                    <p class="s-jcount-date">{{ __($words.'.count_until', ['date' => \App\Support\Languages\Dates::weekdayDayMonth($festival['until'])]) }}</p>
-                                @else
-                                    <p class="s-jcount-d">{{ $festival['days'] === 0 ? __($words.'.count_tonight') : trans_choice($words.'.count_days', $festival['days'], ['count' => $festival['days']]) }}</p>
-                                    <p class="s-jcount-date">{{ __($words.'.count_sundown', ['date' => \App\Support\Languages\Dates::weekdayDayMonth($festival['from'])]) }}</p>
-                                @endif
-                            </div>
-                        </div>
-                        @if (($festivalSongs ?? []) !== [] && trans()->has($words.'.count_learn.'.$festival['key']))
-                            <p class="s-jcount-learn">{{ __($words.'.count_learn.'.$festival['key']) }}</p>
-                            <ul class="s-jcount-songs">
-                                @foreach ($festivalSongs as $song)
-                                    <li><a href="{{ $song['url'] }}"><b translate="no">{{ $song['title'] }}</b>@if ($song['level'] !== null)<span>{{ $song['level'] }}</span>@endif<x-site.icon name="arrow" size="16" /></a></li>
-                                @endforeach
-                                {{-- Our guide to the festival's songs for a choir, when there is one (the Hanukkah guide). --}}
-                                @if (trans()->has($words.'.count_guide.'.$festival['key']))
-                                    <li><a href="/guides/{{ $festival['key'] }}-songs-for-choir"><b>{{ __($words.'.count_guide.'.$festival['key']) }}</b><span>{{ __($words.'.count_guide_tag') }}</span><x-site.icon name="arrow" size="16" /></a></li>
-                                @endif
-                            </ul>
-                        @endif
-                    </aside>
+                {{-- The Jewish songs page's countdown to its next festival (App\Support\Pages\JewishSongs::festival), the shared
+                     festival card: the festival large, the days beside it with its first sundown, then its songs to learn in time. --}}
+                @if (($festivalCard ?? null) !== null)
+                    @include('site._festival-card', ['card' => $festivalCard, 'id' => 'jcount'])
                 @endif
             </div>
         </section>

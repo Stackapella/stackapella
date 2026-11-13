@@ -125,7 +125,7 @@ final class Landing
      * range, and the melody's syllables with their beats, for js/public/mixer.js to sing in the
      * app's guide voices. Null when the song isn't in the library.
      *
-     * @return array{song: string, title: string, version: int, tempo: float, beats: float, length: string, you: string, parts: list<array{key: string, name: string, color: int, range: array{low: int, high: int}, notes: list<array{beat: float, length: float, pitch: int}>}>, words: list<array{beat: float, text: string, joins: bool}>}|null
+     * @return array{song: string, title: string, version: int, tempo: float, beats: float, length: string, you: string, parts: list<array{key: string, name: string, color: int, range: array{low: int, high: int}, notes: list<array{beat: float, length: float, pitch: int}>}>, words: list<array{beat: float, text: string, joins: bool, br: bool}>}|null
      */
     public static function hero(): ?array
     {
@@ -138,7 +138,7 @@ final class Landing
      * Any official song's opening line in the hero's shape (a feature page's demo; a view may not
      * query), or null when there's no such song.
      *
-     * @return array{song: string, title: string, version: int, tempo: float, beats: float, length: string, you: string, parts: list<array{key: string, name: string, color: int, range: array{low: int, high: int}, notes: list<array{beat: float, length: float, pitch: int}>}>, words: list<array{beat: float, text: string, joins: bool}>}|null
+     * @return array{song: string, title: string, version: int, tempo: float, beats: float, length: string, you: string, parts: list<array{key: string, name: string, color: int, range: array{low: int, high: int}, notes: list<array{beat: float, length: float, pitch: int}>}>, words: list<array{beat: float, text: string, joins: bool, br: bool}>}|null
      */
     public static function lineOf(string $slug): ?array
     {
@@ -156,7 +156,7 @@ final class Landing
      * notes, and js/public/mixer.js fetches the rest (and `length` is the whole song's). The landing's hero keeps its
      * one line (its words and its title say so).
      *
-     * @return array{song: string, title: string, version: int, tempo: float, beats: float, songBeats: float, whole: bool, length: string, you: string, parts: list<array{key: string, name: string, color: int, range: array{low: int, high: int}, notes: list<array{beat: float, length: float, pitch: int}>}>, words: list<array{beat: float, text: string, joins: bool}>}|null
+     * @return array{song: string, title: string, version: int, tempo: float, beats: float, songBeats: float, whole: bool, length: string, you: string, parts: list<array{key: string, name: string, color: int, range: array{low: int, high: int}, notes: list<array{beat: float, length: float, pitch: int}>}>, words: list<array{beat: float, text: string, joins: bool, br: bool}>}|null
      */
     public static function line(Template $template, ?float $end = null, ?string $you = null): ?array
     {
@@ -212,6 +212,8 @@ final class Landing
                 'beat' => (float) $note['beat'],
                 'text' => rtrim((string) $note['lyric'], '-'),
                 'joins' => str_ends_with((string) $note['lyric'], '-'),
+                // A new sung line starts here (the template's `br`): the strip breaks before it, never "calling From glen".
+                'br' => ($note['br'] ?? false) === true,
             ], array_filter($line($melody), static fn (array $note): bool => is_string($note['lyric'] ?? null) && $note['lyric'] !== ''))),
         ];
     }
@@ -367,10 +369,29 @@ final class Landing
     }
 
     /**
+     * The hero's words in their sung lines, each starting where the template breaks (`br`), for the words strip.
+     *
+     * @param  list<array{beat: float, text: string, joins: bool, br: bool}>  $words
+     * @return list<list<array{beat: float, text: string, joins: bool, br: bool}>>
+     */
+    public static function lines(array $words): array
+    {
+        $lines = [];
+        foreach ($words as $word) {
+            if ($word['br'] || $lines === []) {
+                $lines[] = [];
+            }
+            $lines[array_key_last($lines)][] = $word;
+        }
+
+        return $lines;
+    }
+
+    /**
      * The hero's words as one line of text ("Amazing grace, how sweet the sound..."), for its text
      * alternative.
      *
-     * @param  list<array{beat: float, text: string, joins: bool}>  $words
+     * @param  list<array{beat: float, text: string, joins: bool, br: bool}>  $words
      */
     public static function sentence(array $words): string
     {

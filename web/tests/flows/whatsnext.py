@@ -62,6 +62,12 @@ def journey(f):
     f.go("/?api=mock&scenario=&as=signedOut&song=silent-night&ref=song-page", "document.querySelector('#app header')")
     f.wait_text(t(f, "templates.needsAccount"))
     assert not f.js("!!document.querySelector('[role=dialog] [data-song-start]')"), "a guest can start an account song"
+    # Its Make a free account says what's true there: the library's songs need one (never "Optional"), counted as songs.
+    f.run("document.querySelector('[role=dialog] [data-song-signup]').click()")
+    f.wait("location.pathname === '/signin' && new URLSearchParams(location.search).get('for') === 'library'", what="sign-up, for the library")
+    f.wait_text(t(f, "auth.reason.library"))
+    page = f.js("document.querySelector('main').innerText")
+    assert t(f, "auth.introLibrary") in page and t(f, "auth.intro") not in page, "the library's sign-up says an account is optional"
     f.run("sessionStorage.removeItem('stackapella.mockOpenSong')")
     f.go("/?api=mock&scenario=", "document.querySelector('#app header')")
 

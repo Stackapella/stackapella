@@ -16,9 +16,9 @@ import { doneLessons } from '../stores/learning.js';
 // What an ask was for (`?for=`), as sign-up's title: the reason in the person's words.
 const SIGN_UP = tk('auth.signUpTitle');
 /** Where an account is the feature itself, the line under the title says so ("Optional" would be untrue there). */
-const INTROS = { groups: tk('auth.introGroups'), groupsStart: tk('auth.introGroups') };
+const INTROS = { groups: tk('auth.introGroups'), groupsStart: tk('auth.introGroups'), library: tk('auth.introLibrary') }; // library: a library song's Make a free account, where an account is needed, never "optional"
 const INTRO = tk('auth.intro');
-const REASONS = { progress: tk('auth.reason.progress'), reminders: tk('auth.reason.reminders'), share: tk('auth.reason.share'), boards: tk('auth.reason.boards'), songs: tk('auth.reason.songs'), daily: tk('auth.reason.daily'), friends: tk('auth.reason.friends'), groups: tk('auth.reason.groups'), groupsStart: tk('auth.reason.groupsStart'), voice: tk('auth.reason.voice'), plus: tk('auth.reason.plus'), template: tk('auth.reason.template'), sheet: tk('auth.reason.sheet'), settings: tk('auth.reason.settings'), week: tk('auth.reason.week'), unit: tk('auth.reason.unit'), risk: tk('auth.reason.risk'), school: tk('auth.reason.school'), requests: tk('auth.reason.requests'), course: tk('auth.reason.course') };
+const REASONS = { progress: tk('auth.reason.progress'), reminders: tk('auth.reason.reminders'), share: tk('auth.reason.share'), boards: tk('auth.reason.boards'), songs: tk('auth.reason.songs'), library: tk('auth.reason.library'), daily: tk('auth.reason.daily'), friends: tk('auth.reason.friends'), groups: tk('auth.reason.groups'), groupsStart: tk('auth.reason.groupsStart'), voice: tk('auth.reason.voice'), plus: tk('auth.reason.plus'), template: tk('auth.reason.template'), sheet: tk('auth.reason.sheet'), settings: tk('auth.reason.settings'), week: tk('auth.reason.week'), unit: tk('auth.reason.unit'), risk: tk('auth.reason.risk'), school: tk('auth.reason.school'), requests: tk('auth.reason.requests'), course: tk('auth.reason.course') };
 import { TurnstileBox } from '../turnstile.js';
 import { Field, Notice } from '../components/form.js';
 import { Icon, Logo } from '../components/icon.js';
@@ -410,7 +410,8 @@ export const AuthView = {
                     ...(this.early ? { early: this.early } : {}),
                 });
                 tabStorage.set('stackapella.next', this.next);
-                if (this.reason) count(`su_${this.reason}`); // an account made from an ask, by its reason (no one's details)
+                // An account made from an ask, by its reason (no one's details); a library song's ask counts as songs, as it always has.
+                if (this.reason) count(`su_${this.reason === 'library' ? 'songs' : this.reason}`);
                 this.sent(this.form.email.trim(), 'verify');
             } catch (error) {
                 this.refuse(error);

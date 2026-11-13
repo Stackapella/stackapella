@@ -273,7 +273,13 @@ final class SongStoriesTest extends TestCase
         $html = (string) $this->get('/songs/amazing-grace')->assertOk()->getContent();
 
         // Its own title and description, as its searches were written for.
-        $this->assertStringContainsString('<title>Test Song: history, meaning and the words explained</title>', $html);
+        // Its <title> leads with the harmony intent, the longest form that fits (SongPage::pageTitle); the story's heading is its own.
+        $this->assertStringContainsString('<title>Amazing Grace: Harmony Parts, Lyrics and Meaning</title>', $html);
+        $this->assertStringContainsString('<meta property="og:title" content="Amazing Grace: Harmony Parts, Lyrics and Meaning">', $html);
+        $this->assertSame('Are You Sleeping (Frère Jacques): Harmony Parts and Lyrics', SongPage::pageTitle('Are You Sleeping (Frère Jacques)'));
+        $this->assertSame('Now Is the Month of Maying: Harmony Parts and Lyrics', SongPage::pageTitle('Now Is the Month of Maying'));
+        $this->assertSame('It Came Upon the Midnight Clear, Again Harmony Parts', SongPage::pageTitle('It Came Upon the Midnight Clear, Again'));
+        $this->assertSame('Row, Row, Row Your Boat Round: Learn Every Part', SongPage::pageTitle('Row, Row, Row Your Boat', true), 'a round says round');
         $this->assertStringContainsString('<meta name="description" content="Written down in 1816 for the tests, and sung by nobody since.">', $html);
         $this->assertStringContainsString('A song made for the tests, with its sources and questions.', $html, 'the lead under the heading');
         // Each section it has, by its heading's id, listed in its contents; the timeline under where it comes from.
@@ -326,6 +332,21 @@ final class SongStoriesTest extends TestCase
         $this->assertStringContainsString(e(__('pages.song.be_voice_note')), $html);
         $this->assertStringContainsString('we may choose your part', (string) __('pages.song.be_voice_note'));
         $this->assertStringContainsString('data-be-voice="alto"', (string) $this->get('/songs/amazing-grace/alto')->assertOk()->getContent());
+    }
+
+    public function test_a_song_page_says_its_key_and_tempo_in_one_quiet_line_and_its_schema_names_the_key(): void
+    {
+        // The SEO audit (2026-11-13): "original key", "what key". The song file's opening key and tempo, as much as it has.
+        $this->assertSame('Key of G major · about 76 beats a minute', SongPage::keyTempo('G', 76.4));
+        $this->assertSame('Key of E♭ minor', SongPage::keyTempo('Ebm', 0));
+        $this->assertSame('About 60 beats a minute', SongPage::keyTempo('', 60));
+        $this->assertNull(SongPage::keyTempo('H', 0));
+        $this->assertSame('Key of D major · about 64 beats a minute · changes time', SongPage::keyTempo('D', 64, false, true));
+
+        app(SyncOfficialTemplates::class)->handle();
+        $html = (string) $this->get('/songs/amazing-grace')->assertOk()->getContent();
+        $this->assertMatchesRegularExpression('#<p class="s-sg-keyline">Key of [A-G][♭♯]? (major|minor) · about \d+ beats a minute</p>#u', $html);
+        $this->assertMatchesRegularExpression('#"musicalKey":"[A-G][^"]* (major|minor)"#u', $html);
     }
 
     public function test_a_whole_mix_credits_each_real_voice_else_says_the_voices_are_synthesized(): void

@@ -83,6 +83,19 @@ final class InfoPagesController extends Controller
         $plans = (array) config('usage.plans');
         $limit = static fn (?int $value, string $unit = ''): string => $value === null ? __('pages.pricing.unlimited') : ($unit === 'bytes' ? round($value / 1024 ** 3).' GB' : (string) $value);
         $currency = Prices::currency($request);
+        $limits = [
+            'projects' => [$limit($plans['free']['projects']), $limit($plans['plus']['projects'])],
+            'storage' => [$limit($plans['free']['storage_bytes'], 'bytes'), $limit($plans['plus']['storage_bytes'], 'bytes')],
+            'singers' => [$limit($plans['free']['singers']), $limit($plans['plus']['singers'])],
+            'templates' => [$limit($plans['free']['templates']), $limit($plans['plus']['templates'])],
+        ];
+        $rows = (array) Teams::words('pages.pricing.rows');
+        // Coaching only once it's open (it waits for after launch, docs/decisions.md).
+        $groups = ComingSoon::open('coaching') ? self::PRICING_GROUPS : array_map(static fn (array $keys): array => array_values(array_diff($keys, ['coaching'])), self::PRICING_GROUPS);
+        // "Plus for your work." with the plan's name apart, so the page can colour it (Hillel's 2026-11-12 design).
+        $more = (string) __('pages.landing.plans_title_more');
+        $plusName = (string) __('pages.landing.plans_plus');
+        $at = mb_strpos($more, $plusName);
 
         return response()->view('pages.pricing', [
             'title' => __('pages.pricing.title'),
@@ -92,18 +105,11 @@ final class InfoPagesController extends Controller
             'trialDays' => (int) config('billing.trial_days'),
             'freeSongs' => count((array) config('templates.free')),
             'songs' => app(Catalogue::class)->songCount(),
-            'limits' => [
-                'projects' => [$limit($plans['free']['projects']), $limit($plans['plus']['projects'])],
-                'storage' => [$limit($plans['free']['storage_bytes'], 'bytes'), $limit($plans['plus']['storage_bytes'], 'bytes')],
-                'singers' => [$limit($plans['free']['singers']), $limit($plans['plus']['singers'])],
-                'templates' => [$limit($plans['free']['templates']), $limit($plans['plus']['templates'])],
-            ],
+            'titleMore' => $at === false ? [$more, '', ''] : [mb_substr($more, 0, $at), $plusName, mb_substr($more, $at + mb_strlen($plusName))],
             'checkoutOpen' => filled(config('billing.prices.month')) && filled(config('billing.prices.year')),
-            // The page's lists, as lang/en/pages.php has them.
-            'rows' => (array) Teams::words('pages.pricing.rows'),
-            // The comparison in groups (the design round), each row's key in the order shown;
-            // coaching only once it's open (it waits for after launch, docs/decisions.md).
-            'groups' => ComingSoon::open('coaching') ? self::PRICING_GROUPS : array_map(static fn (array $rows): array => array_values(array_diff($rows, ['coaching'])), self::PRICING_GROUPS),
+            // The comparison in groups (the design round), each row's label and its Free and Plus cells; `same` marks
+            // what both plans share, which "Only what's different" folds (a group whose rows are all the same, whole).
+            'compare' => self::compare($groups, $rows, $limits),
             'plans' => Landing::plans(),
             'smallPrint' => (array) Lang::get('pages.pricing.small_print'),
             'faq' => array_map(static fn (array $qa): array => [$qa[0], str_replace(':days', (string) config('billing.trial_days'), (string) $qa[1])], [
@@ -111,6 +117,33 @@ final class InfoPagesController extends Controller
                 ...(OpenSource::on() ? [(array) Lang::get('pages.pricing.faq_selfhost')] : []),
             ]),
         ], 200, $this->headers(varies: true));
+    }
+
+    /**
+     * The pricing comparison's groups and rows: each row's label, its Free and Plus cells (a limit from config/usage
+     * where there is one, else the words), and whether the two plans share it.
+     *
+     * @param  array<string, list<string>>  $groups
+     * @param  array<mixed>  $rows
+     * @param  array<string, array{string, string}>  $limits
+     * @return list<array{key: string, same: bool, rows: list<array{label: string, cells: array{string, string}, same: bool}>}>
+     */
+    private static function compare(array $groups, array $rows, array $limits): array
+    {
+        $out = [];
+        foreach ($groups as $group => $keys) {
+            $lines = [];
+            foreach ($keys as $key) {
+                if (! is_array($rows[$key] ?? null)) {
+                    continue;
+                }
+                $cells = $limits[$key] ?? [(string) $rows[$key][1], (string) $rows[$key][2]];
+                $lines[] = ['label' => (string) $rows[$key][0], 'cells' => $cells, 'same' => $cells[0] === $cells[1]];
+            }
+            $out[] = ['key' => $group, 'same' => $lines !== [] && array_filter($lines, static fn (array $l): bool => ! $l['same']) === [], 'rows' => $lines];
+        }
+
+        return $out;
     }
 
     public function help(): Response

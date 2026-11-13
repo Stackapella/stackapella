@@ -116,7 +116,8 @@ h1 em{display:block;font:italic 500 {emsize}px/1.06 Newsreader,Georgia,serif;let
 
 # The card's two fixed lines (the site's own: every part page plays for guests and the courses are free; Hillel, 2026-11-08).
 PICK = "Pick your part"
-FREE = "Free · In your browser · No account"
+# Only what a guest gets: hearing needs no account, learning a library song needs a free one (the coordinator, 2026-11-13).
+FREE = "Free · In your browser"
 
 
 def _lights():
@@ -188,6 +189,8 @@ THEMES = {
     "scottish-songs": {"bg": "#3F3159", "ac": "#E9B9E6", "mu": "#DCD2E6", "motif": lambda: _motif("scottish-songs"), "css": ".mo{display:block;height:100%;width:auto}"},
     "villancicos": {"bg": "#551D08", "ac": "#F7C24A", "mu": "#EED5C6", "motif": lambda: _motif("villancicos"), "css": ".mo{display:block;height:100%;width:auto}"},
     "shaker-songs": {"bg": "#35485A", "ac": "#F4CF8A", "mu": "#DCE3EA", "motif": lambda: _motif("shaker-songs"), "css": ".mo{display:block;height:100%;width:auto}"},
+    # Choral classics: its own palette, no motif (the coordinator, 2026-11-13).
+    "choral-classics": {"bg": "#3F2433", "ac": "#EBC77E", "mu": "#E6D6DD", "motif": lambda: "", "css": ""},
     "thanksgiving-hymns": {"bg": "#4A3006", "ac": "#F6A75E", "mu": "#EBDCC2", "motif": lambda: _motif("thanksgiving-hymns"), "css": ".mo{display:block;height:100%;width:auto}"},
 }
 

@@ -5,7 +5,7 @@
      Learn naming the part you pick under the rows; every verse, one sung line a line; "How each part goes", each part's
      range on one scale, its one true tag and where it goes in the words; then its story (SongStories) with its contents,
      timeline, questions and numbered sources, else its About; what to sing next; the page's last word. --}}
-@extends('public.layout', ['title' => \App\Support\Site\SitePages::title($meta['title'])])
+@extends('public.layout', ['title' => \App\Support\Site\SitePages::title(\App\Support\Pages\SongPage::pageTitle(\App\Support\Pages\SongParts::searchTitle($song['title']), \App\Support\Pages\SongParts::round($song['genre'])))])
 
 @section('head')
     {{-- How it looks when shared: the song's own card (SongCards) once the server has made it,
@@ -14,7 +14,7 @@
     @php($imageAlt = $meta['imageAlt'] ?? __('site.meta.app.default.image_alt'))
     <meta name="description" content="{{ $meta['description'] }}">
     <meta property="og:site_name" content="{{ __('meta.brand') }}">
-    <meta property="og:title" content="{{ $meta['title'] }}">
+    <meta property="og:title" content="{{ \App\Support\Pages\SongPage::pageTitle(\App\Support\Pages\SongParts::searchTitle($song['title']), \App\Support\Pages\SongParts::round($song['genre'])) }}">
     <meta property="og:description" content="{{ $meta['description'] }}">
     <meta property="og:url" content="{{ $meta['url'] }}">
     <meta property="og:type" content="music.song">
@@ -23,7 +23,7 @@
     <meta property="og:image:height" content="630">
     <meta property="og:image:alt" content="{{ $imageAlt }}">
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="{{ $meta['title'] }}">
+    <meta name="twitter:title" content="{{ \App\Support\Pages\SongPage::pageTitle(\App\Support\Pages\SongParts::searchTitle($song['title']), \App\Support\Pages\SongParts::round($song['genre'])) }}">
     <meta name="twitter:description" content="{{ $meta['description'] }}">
     <meta name="twitter:image" content="{{ $image }}">
     <meta name="twitter:image:alt" content="{{ $imageAlt }}">
@@ -53,7 +53,9 @@
              screen (under it on a phone), the whole song to play, a row a part, and under the rows Learn the part you
              pick (the tune's until you pick), Share, and Check my range. --}}
         <section class="s-xhero s-tone s-tone-{{ $tone }} s-sg-hero" aria-labelledby="page-h">
-            @include('site._tone-motif', ['key' => $tone])
+            {{-- Its collection's motif, where it's true of the song: the hanukkiah only on a Hanukkah song (the arranger's check:
+                 Lecha Dodi, a Sabbath hymn, showed it); the other Jewish songs keep the palette without it. --}}
+            @include('site._tone-motif', ['key' => $tone === 'jewish-songs' && ! in_array('hanukkah', $song['genre'], true) ? '' : $tone])
             <div @class(['s-wrap s-xhero-in s-xcoll-in', 's-xcoll-has-try' => $line !== null || $song['previewUrl'] !== null])>
                 <div class="s-xhero-text">
                     <x-site.crumbs :trail="[[__('pages.song.eyebrow'), '/songs'], ...($home !== null ? [[$home['name'], $home['path']]] : []), [$song['title'], null, true]]" :ld="true" />
@@ -115,6 +117,10 @@
                 <div class="s-sg-head">
                     <h2 id="parts-h" class="s-h2">{{ __('pages.song.how') }}</h2>
                     <p class="s-sub">{{ __('pages.song.how_lead') }}</p>
+                    @php($keyTempo = \App\Support\Pages\SongPage::keyTempo($song['key'] ?? '', (float) ($song['tempo'] ?? 0), (bool) ($song['changesKey'] ?? false), (bool) ($song['changesMetre'] ?? false)))
+                    @if ($keyTempo !== null)
+                        <p class="s-sg-keyline">{{ $keyTempo }}</p>
+                    @endif
                 </div>
                 <ul class="s-sg-how">
                     @foreach ($cards as $card)

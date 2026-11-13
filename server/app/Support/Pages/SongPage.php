@@ -9,6 +9,7 @@ use App\Support\Http\Hosts;
 use App\Support\Languages\NoteNames;
 use App\Support\Languages\PartNames;
 use App\Support\Languages\SongWords;
+use App\Support\Site\SitePages;
 use Illuminate\Support\Facades\Storage;
 
 /**
@@ -43,6 +44,13 @@ final class SongPage
             'about' => trans()->has('song_about.'.$template->slug) ? (string) __('song_about.'.$template->slug) : null,
             'difficulty' => (string) ($data['difficulty'] ?? ''),
             'genre' => array_values(array_filter((array) ($data['genre'] ?? []), 'is_string')),
+            // Its opening key and tempo, as the song file has them (the SEO audit: "original key", "what key").
+            'key' => is_string($data['key'] ?? null) ? $data['key'] : '',
+            'tempo' => is_numeric($data['tempo'] ?? null) ? (float) $data['tempo'] : 0.0,
+            // A change of time: any entry in the file's top-level meters list (docs/meters-plan.md).
+            'changesMetre' => is_array($data['meters'] ?? null) && $data['meters'] !== [],
+            // Not checked: the song file has one key per song and no field for a change, so no file can say it yet.
+            'changesKey' => false,
             'parts' => array_map(static fn (array $part): array => [
                 'key' => (string) ($part['key'] ?? ''),
                 'name' => PartNames::name((string) ($part['key'] ?? ''), (string) ($part['name'] ?? '')),
@@ -227,6 +235,62 @@ final class SongPage
         }
 
         return $cards;
+    }
+
+    /**
+     * A song page's <title> and og:title (the coordinator's call on the SEO audit, 2026-11-13): the harmony intent first,
+     * the one family of searches the pages ranked for, then lyrics and meaning, in the longest form that fits a search
+     * result (SitePages::TITLE_FITS); never SATB, since rounds, duets and three-part songs aren't. The story's own
+     * heading stays its own.
+     */
+    public static function pageTitle(string $song, bool $round = false): string
+    {
+        // A round says round, never harmony or SATB (SatbGuideTest): its own title.
+        if ($round) {
+            return (string) __('pages.song.title_round', ['title' => $song]);
+        }
+        $title = $song;
+        foreach (['full', 'short', 'shortest'] as $form) {
+            $title = (string) __('pages.song.page_title.'.$form, ['song' => $song]);
+            if (mb_strlen($title) <= SitePages::TITLE_FITS) {
+                return $title;
+            }
+        }
+
+        return $title;
+    }
+
+    /**
+     * A song's key by name ("G major", "E♭ minor"), or null where its file names none (the song file's "G", "Eb", "Fm").
+     */
+    public static function keyName(string $key): ?string
+    {
+        if (preg_match('/^([A-G])([b#]?)(m?)$/', $key, $m) !== 1) {
+            return null;
+        }
+
+        return (string) __($m[3] === 'm' ? 'site.carols.key_minor' : 'site.carols.key_major', ['note' => Carols::signs($m[1].$m[2])]);
+    }
+
+    /**
+     * The song page's one quiet line of its key and tempo ("Key of G major · about 76 beats a minute"; the coordinator's
+     * call on the SEO audit, 2026-11-13), as much of it as the file has, then "changes key" or "changes time" where it
+     * does; null when it has neither key nor tempo. The tempo is in the beat the song counts (a 6/8 song's dotted quarters).
+     */
+    public static function keyTempo(string $key, float $tempo, bool $changesKey = false, bool $changesMetre = false): ?string
+    {
+        $name = self::keyName($key);
+        $bpm = (int) round($tempo);
+        $changes = array_filter([$changesKey ? (string) __('pages.song.changes_key') : null, $changesMetre ? (string) __('pages.song.changes_metre') : null]);
+        $line = match (true) {
+            $name !== null && $bpm > 0 => (string) __('pages.song.key_tempo', ['key' => $name, 'bpm' => $bpm]),
+            $name !== null => (string) __('pages.song.key_only', ['key' => $name]),
+            $bpm > 0 => (string) __('pages.song.tempo_only', ['bpm' => $bpm]),
+            default => null,
+        };
+
+        // A change of key or time said after it, where the file shows one (the coordinator: "changes key").
+        return $line === null || $changes === [] ? $line : implode(' · ', [$line, ...$changes]);
     }
 
     /**

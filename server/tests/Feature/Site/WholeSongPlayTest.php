@@ -49,6 +49,23 @@ final class WholeSongPlayTest extends TestCase
         $this->assertFalse($hero['whole']);
     }
 
+    public function test_the_words_strip_breaks_where_a_sung_line_starts_instead_of_running_lines_together(): void
+    {
+        $template = Template::query()->with('currentVersion')->where('slug', 'amazing-grace')->firstOrFail();
+        $line = Landing::line($template);
+        $this->assertNotNull($line);
+        $starts = array_values(array_filter(array_slice($line['words'], 1), static fn (array $w): bool => $w['br']));
+        $this->assertNotEmpty($starts, 'the opening line holds more than one sung line');
+
+        $html = (string) $this->get('/songs/amazing-grace')->assertOk()->getContent();
+        $this->assertSame(1, preg_match('#<p class="s-lyrics">(.*?)</p>#s', $html, $strip));
+        // One block per sung line, each starting with the word the template breaks before.
+        $this->assertSame(count($starts) + 1, substr_count($strip[1], '<span data-line>'));
+        foreach ($starts as $word) {
+            $this->assertStringContainsString('<span data-line><span data-beat="'.$word['beat'].'">', $strip[1], $word['text']);
+        }
+    }
+
     public function test_a_collections_cards_and_its_try_player_play_whole_songs_and_the_player_is_named_without_first_line(): void
     {
         $html = (string) $this->get('/songs/hymns')->assertOk()->getContent();

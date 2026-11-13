@@ -119,6 +119,31 @@ final class SongCollectionsTest extends TestCase
         $this->assertStringContainsString('data-hear-alone', $html);
     }
 
+    public function test_no_collection_lead_or_link_card_promises_no_account_for_learning(): void
+    {
+        // The coordinator (2026-11-13): a guest hears every song without an account, but learning a library song takes a
+        // free one, so no collection page or card says "no account" alone; they say what a guest can do without one.
+        $leads = [(string) __('site.carols.lead'), ...array_map(static fn (string $slug): string => (string) __('site.collections.'.$slug.'.lead'), array_keys(SongCollections::COLLECTIONS))];
+        foreach ($leads as $lead) {
+            $this->assertDoesNotMatchRegularExpression('/\bno account\b/i', $lead, $lead);
+            $this->assertStringContainsString('without an account', $lead, $lead);
+        }
+        $this->assertDoesNotMatchRegularExpression('/^FREE = .*No account/m', (string) file_get_contents(base_path('tool/link_cards.py')), 'the cards\' strip');
+    }
+
+    public function test_the_songbook_lists_every_open_song_for_search_engines_with_its_trail(): void
+    {
+        // The SEO audit (2026-11-13): /songs had no structured data. Its ItemList is the A to Z, each song to its page.
+        $html = (string) $this->get('/songs')->assertOk()->getContent();
+        preg_match_all('#<script type="application/ld\+json">(.*?)</script>#s', $html, $m);
+        $data = array_map(static fn (string $json): mixed => json_decode($json, true), $m[1]);
+        $list = collect($data)->firstWhere('@type', 'ItemList');
+        $this->assertNotEmpty($list['itemListElement']);
+        $this->assertSame(substr_count($html, '<li data-in="'), count($list['itemListElement']), 'one entry a song in the A to Z');
+        $this->assertStringStartsWith(Hosts::publicUrl().'/songs/', $list['itemListElement'][0]['url']);
+        $this->assertNotNull(collect($data)->firstWhere('@type', 'BreadcrumbList'));
+    }
+
     public function test_each_collection_offers_its_link_cards_song_to_try_with_that_cards_part_lit(): void
     {
         $seen = 0;
@@ -354,12 +379,13 @@ final class SongCollectionsTest extends TestCase
             }
         }
 
-        // Not folk songs, not barbershop or parlour: they stay in the A to Z, under Other songs.
+        // Not folk songs, not barbershop or parlour: Happy Birthday stays in the A to Z under Other songs; Morley's madrigal
+        // and the comic opera chorus are Choral classics' (the coordinator, 2026-11-13).
         $listed = [...array_column(app(SongCollections::class)->songs('folk-songs'), 'slug'), ...array_column(app(SongCollections::class)->songs('barbershop-songs'), 'slug')];
         $index = collect(app(SongsHub::class)->index())->keyBy(static fn (array $e): string => basename($e['url']));
-        foreach (['happy-birthday', 'now-is-the-month-of-maying', 'with-cat-like-tread'] as $slug) {
+        foreach (['happy-birthday' => ['other'], 'now-is-the-month-of-maying' => ['choral-classics'], 'with-cat-like-tread' => ['choral-classics']] as $slug => $in) {
             $this->assertNotContains($slug, $listed);
-            $this->assertSame(['other'], $index[$slug]['in'] ?? null, $slug);
+            $this->assertSame($in, $index[$slug]['in'] ?? null, $slug);
         }
     }
 

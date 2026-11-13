@@ -8,7 +8,7 @@ use Illuminate\Support\Carbon;
 
 /**
  * The Jewish songs page (/songs/jewish-songs; Hillel, 2026-11-11: "a 'traditional jewish songs' page like we have a carols
- * page"), a song collection with two things of its own: its countdown to the next festival (config site.jewish_festivals,
+ * page"), a song collection with two things of its own: its countdown to the next festival (config site.festivals,
  * Hebcal's dates) and each song's festival as a tag on its card, from its file's genre. Its season on /songs is a few
  * weeks before Hanukkah and Passover until they end. Words: site.collections.jewish-songs.
  */
@@ -18,11 +18,6 @@ final class JewishSongs
 
     /** The festivals a song's genre can name, in the order a tag prefers (a Hanukkah song that's also sung every Shabbat is a Hanukkah song). */
     public const FESTIVALS = ['hanukkah', 'passover', 'purim', 'shabbat'];
-
-    /** The festivals that bring the page into season on /songs, and how many days ahead. */
-    public const SEASONS = ['hanukkah', 'passover'];
-
-    public const AHEAD = 21;
 
     /**
      * The festival on now or next: its key, its first evening and last day, the days until it begins (0 on its first
@@ -44,12 +39,53 @@ final class JewishSongs
         return null;
     }
 
-    /** Whether /songs leads with the page: from AHEAD days before Hanukkah or Passover until it ends. */
+    /**
+     * The hero's countdown card for `festival` (from festival()): the shared festival card (site._festival-card) in the
+     * page's own words, with that festival's songs to learn in time.
+     *
+     * @param  array{key: string, from: Carbon, until: Carbon, days: int, on: bool}  $festival
+     * @param  list<array<string, mixed>>  $songs
+     * @return array<string, mixed>|null
+     */
+    public static function card(array $festival, array $songs): ?array
+    {
+        foreach (Festivals::all() as $f) {
+            if ($f['collection'] === self::SLUG && $f['key'] === $festival['key'] && $f['from']->equalTo($festival['from'])) {
+                $w = 'site.collections.'.self::SLUG;
+                $learn = trans()->has($w.'.count_learn.'.$f['key']) ? (string) __($w.'.count_learn.'.$f['key']) : null;
+
+                return Festivals::card($f, (string) __($w.'.festivals.'.$f['key']), [
+                    'kick' => $w.'.count_label', 'kick_on' => $w.'.count_on_label', 'days' => $w.'.count_days', 'tonight' => $w.'.count_tonight',
+                    'today' => $w.'.count_tonight', 'start' => $w.'.count_sundown', 'start_evening' => $w.'.count_sundown', 'until' => $w.'.count_until',
+                ], $learn !== null ? $songs : [], $learn);
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * The festival whose search title the page wears now, or null: one of its own festivals whose window is open
+     * (Festivals::state: from `ahead` days before it to its last day, so Hanukkah's from 13 November to 12 December
+     * 2026) and that has a title of its own (site.collections.jewish-songs.season_title). The coordinator, 2026-11-13:
+     * people search the festival by name before the day, as the carols page leads with Christmas in its season.
+     */
+    public static function seasonKey(?Carbon $today = null): ?string
+    {
+        foreach (Festivals::all() as $festival) {
+            if ($festival['collection'] === self::SLUG && Festivals::state($festival, $today ?? now())['open'] && trans()->has('site.collections.'.self::SLUG.'.season_title.'.$festival['key'])) {
+                return $festival['key'];
+            }
+        }
+
+        return null;
+    }
+
+    /** Whether /songs leads with the page: while a festival of its own in the calendar (Hanukkah, Passover) is open. */
     public static function inSeason(): bool
     {
-        $today = now()->startOfDay();
-        foreach (self::dates() as $festival) {
-            if (in_array($festival['key'], self::SEASONS, true) && $today->greaterThanOrEqualTo($festival['from']->copy()->subDays(self::AHEAD)) && $today->lessThanOrEqualTo($festival['until'])) {
+        foreach (Festivals::all() as $festival) {
+            if ($festival['collection'] === self::SLUG && Festivals::state($festival, now())['open']) {
                 return true;
             }
         }
@@ -86,20 +122,16 @@ final class JewishSongs
     }
 
     /**
-     * The configured festivals, in date order, each with its dates as days.
+     * The page's festivals in the calendar (config site.festivals, App\Support\Pages\Festivals), in date order, each with
+     * its first day and last.
      *
      * @return list<array{key: string, from: Carbon, until: Carbon}>
      */
     private static function dates(): array
     {
-        $dates = [];
-        foreach ((array) config('site.jewish_festivals') as $festival) {
-            if (is_array($festival) && is_string($festival['key'] ?? null) && is_string($festival['from'] ?? null) && is_string($festival['until'] ?? null)) {
-                $dates[] = ['key' => $festival['key'], 'from' => Carbon::parse($festival['from'])->startOfDay(), 'until' => Carbon::parse($festival['until'])->startOfDay()];
-            }
-        }
-        usort($dates, static fn (array $a, array $b): int => $a['from'] <=> $b['from']);
-
-        return $dates;
+        return array_values(array_map(
+            static fn (array $f): array => ['key' => $f['key'], 'from' => $f['from'], 'until' => $f['until']],
+            array_filter(Festivals::all(), static fn (array $f): bool => $f['collection'] === self::SLUG),
+        ));
     }
 }
