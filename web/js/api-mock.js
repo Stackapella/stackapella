@@ -180,6 +180,13 @@ async function stateful(operation, params, body, cases, query = {}) {
             const { data } = await example('templates.show.200.json');
             return respond(200, { data: { ...data, template } });
         }
+        // An open library song as the server sends it (stackapella.mockOpenSong, this tab): reviewed, to a guest as well
+        // (`grant: "open"`, which plays it but doesn't let a guest start it: the catalogue's `access` says that).
+        if (tabStorage.get('stackapella.mockOpenSong') === params.id) {
+            const { data } = await example('templates.show.200.json');
+            const as = tabStorage.get('stackapella.mockAs') || 'member';
+            return respond(200, { data: { ...data, grant: as === 'signedOut' ? 'open' : 'account', template: { ...data.template, id: params.id, reviewed: true } } });
+        }
     }
     if (operation === 'templates.catalogue') {
         // The examples' real voices live on a CDN the mock can't reach: they play a local fixture

@@ -325,6 +325,8 @@ final class SitePagesTest extends TestCase
         $this->assertSame(1, substr_count($html, '<h1'));
         // Every library song is free with an account (2026-11-07): none says Plus.
         $page->assertSee('data-learn', false)->assertSee('D4');
+        // Free, and it says the account a guest will be asked for (frontend2's newcomer walk).
+        $page->assertSee('<li class="s-sg-chip-free">'.__('pages.song.free_account').'</li>', false);
         // Not only the bundled songs: every open song plays on its page (Hillel, 2026-11-13: "it should be easy to hear the
         // song on the song page"), as its collection's page already played it. It replaces the clip-only rule of 2026-10-27.
         $this->assertStringContainsString('data-song', $html);
@@ -529,7 +531,7 @@ final class SitePagesTest extends TestCase
         $free = strpos($html, 'href="/features/course"');
         $this->assertNotFalse($free, 'the free course is on /courses');
         $this->assertLessThan(strpos($html, 'href="/courses/'), $free, 'and listed before the other courses');
-        $this->assertStringContainsString(e(__('site.courses.index.free_name')), $html);
+        $this->assertStringContainsString(e(__('site.courses.index.start_title')), $html, 'the Start here card names it');
     }
 
     public function test_a_course_page_shows_its_units_from_its_file_how_it_listens_and_its_songs(): void

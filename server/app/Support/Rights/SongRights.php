@@ -132,12 +132,17 @@ final class SongRights
             }
             // Each exception's `life` is its whole term. A death known only by its year counts as before a date in that
             // year, an unknown printing as before any date, and a condition we can't know (an author "mort pour la
-            // France", a war veteran) as met: the longer term, always.
+            // France", a war veteran) as met: the longer term. But only where it could be true at all: `diedIn` lists
+            // the years a death must fall in (a war's, for France's; alive in the war, for Russia's), so an American
+            // hymn writer who died at home in 1921 never takes France's +30 (the arranger's check, 2026-11-13).
             $applies = match (true) {
                 is_string($exception['diedBefore'] ?? null) => $died <= (int) substr($exception['diedBefore'], 0, 4),
                 is_string($exception['publishedBefore'] ?? null) => $printed === null || $printed <= (int) substr($exception['publishedBefore'], 0, 4),
                 default => true,
             };
+            if ($applies && is_array($exception['diedIn'] ?? null)) {
+                $applies = array_filter($exception['diedIn'], static fn (mixed $years): bool => is_array($years) && $died >= (int) ($years[0] ?? PHP_INT_MAX) && $died <= (int) ($years[1] ?? PHP_INT_MIN)) !== [];
+            }
             if ($applies && is_int($exception['freeIfDiedBefore'] ?? null) && $died < $exception['freeIfDiedBefore']) {
                 $applies = false;
             }

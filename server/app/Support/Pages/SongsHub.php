@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Support\Pages;
 
-use App\Models\Template;
 use App\Support\Languages\SongWords;
+use App\Support\Templates\Catalogue;
 use Illuminate\Support\Collection;
 
 /**
@@ -41,7 +41,7 @@ final class SongsHub
     /** How many songs a band samples (a phone shows the first three). */
     public const PER_BAND = 4;
 
-    public function __construct(private readonly SongCollections $collections, private readonly Carols $carols) {}
+    public function __construct(private readonly SongCollections $collections, private readonly Carols $carols, private readonly Catalogue $catalogue) {}
 
     /**
      * The page's bands: the carols first in their season (November to Twelfth Night, Carols::inSeason), as the season's
@@ -53,26 +53,27 @@ final class SongsHub
      */
     public function bands(): array
     {
-        $bands = [];
-
-        $carols = $this->carols->songs();
+        // Each band's samples chosen first (the carols by slug, Carols::slugs, and each collection's from the open songs'
+        // index), then every sample's card built from one read of just those songs (each plays its first line).
+        $carols = $this->carols->slugs();
         // The carol season (November to Twelfth Night, Carols::inSeason), as /songs has always linked the page.
         $season = Carols::inSeason() && $carols !== [];
-        if ($season) {
-            $chosen = self::choose(array_column($carols, 'slug'), self::SAMPLES['christmas']);
-            $bySlug = array_column($carols, null, 'slug');
-            $bands[] = ['key' => 'christmas', 'path' => Carols::PATH, 'count' => count($carols), 'season' => true, 'samples' => self::kinds(array_map(static fn (string $slug): array => $bySlug[$slug], $chosen), 'christmas')];
-        }
-
-        $panels = [];
+        $chosen = $season ? ['christmas' => self::choose($carols, self::SAMPLES['christmas'])] : [];
         foreach ($this->collections->open() as $open) {
             $slug = $open['slug'];
             // A collection's Christmas songs (a carol that's also a hymn) are the carols band's in season, not its sample;
             // the villancicos are all Christmas songs, so theirs stay.
             $ordered = array_values(array_filter($this->collections->ordered($slug), static fn (string $song): bool => $slug === 'villancicos' || ! ($season && Carols::has($song))));
-            // Only the samples' cards are built (each plays its first line), never the whole collection's.
-            $samples = $this->collections->cards(self::choose($ordered, self::SAMPLES[$slug] ?? []));
-            $panels[] = ['key' => $slug, 'path' => $open['path'], 'count' => count($this->collections->members($slug)), 'season' => false, 'samples' => self::kinds($samples, $slug)];
+            $chosen[$slug] = self::choose($ordered, self::SAMPLES[$slug] ?? []);
+        }
+        $cards = array_column($this->collections->cards(array_values(array_unique(array_merge([], ...array_values($chosen))))), null, 'slug');
+        $samples = static fn (string $key): array => array_values(array_filter(array_map(static fn (string $song): ?array => $cards[$song] ?? null, $chosen[$key])));
+
+        $bands = $season ? [['key' => 'christmas', 'path' => Carols::PATH, 'count' => count($carols), 'season' => true, 'samples' => self::kinds($samples('christmas'), 'christmas')]] : [];
+        $panels = [];
+        foreach ($this->collections->open() as $open) {
+            $slug = $open['slug'];
+            $panels[] = ['key' => $slug, 'path' => $open['path'], 'count' => count($this->collections->members($slug)), 'season' => false, 'samples' => self::kinds($samples($slug), $slug)];
         }
         // The biggest first; the Jewish songs first of all around Hanukkah and Passover (JewishSongs::inSeason), right after
         // the carols' band in December.
@@ -91,26 +92,26 @@ final class SongsHub
      * collections that list it (the A to Z's filters, Hillel's songbook design) and its dot, the first of them in
      * /songs's group order, or `other` (folk and parlour) when no collection lists it.
      *
-     * @param  Collection<int, Template>  $songs
+     * From the open songs' index (Catalogue::openIndex), never their notes.
+     *
      * @return list<array{title: string, url: string, letter: string, in: list<string>, dot: string}>
      */
-    public function index(Collection $songs): array
+    public function index(): array
     {
-        $carols = array_column($this->carols->songs(), 'slug');
-        $members = ['christmas' => $carols];
+        $members = ['christmas' => $this->carols->slugs()];
         foreach ($this->collections->open() as $open) {
             $members[$open['slug']] = $this->collections->members($open['slug']);
         }
 
-        return array_values($songs
-            ->map(static function (Template $t) use ($members): array {
-                $in = array_keys(array_filter($members, static fn (array $slugs): bool => in_array((string) $t->slug, $slugs, true)));
+        return array_values(collect($this->catalogue->openIndex())
+            ->map(static function (array $t) use ($members): array {
+                $in = array_keys(array_filter($members, static fn (array $slugs): bool => in_array($t['slug'], $slugs, true)));
                 $order = array_keys(SongCollections::GROUPS);
                 usort($in, static fn (string $a, string $b): int => array_search($a, $order, true) <=> array_search($b, $order, true));
                 // A round's note in the page's language: "(canon)" in Spanish.
-                $title = SongWords::title((string) $t->title, (string) $t->slug);
+                $title = SongWords::title($t['title'], $t['slug']);
 
-                return ['title' => $title, 'url' => '/songs/'.$t->slug, 'letter' => mb_strtoupper(mb_substr(ltrim($title, '"\'('), 0, 1)), 'in' => $in === [] ? ['other'] : $in, 'dot' => $in[0] ?? 'other'];
+                return ['title' => $title, 'url' => '/songs/'.$t['slug'], 'letter' => mb_strtoupper(mb_substr(ltrim($title, '"\'('), 0, 1)), 'in' => $in === [] ? ['other'] : $in, 'dot' => $in[0] ?? 'other'];
             })
             ->sortBy('title', SORT_NATURAL | SORT_FLAG_CASE)
             ->all());

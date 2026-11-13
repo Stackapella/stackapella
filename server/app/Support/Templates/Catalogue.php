@@ -5,12 +5,15 @@ declare(strict_types=1);
 namespace App\Support\Templates;
 
 use App\Enums\TemplateAccess;
+use App\Http\Resources\CatalogueSongResource;
 use App\Models\GroupSong;
 use App\Models\Template;
 use App\Models\TemplateGuide;
 use App\Models\User;
 use App\Support\Pages\SongParts;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 
 /**
  * The library as anyone may see it (docs/pricing-plan.md): every song's current version, its
@@ -42,6 +45,66 @@ final class Catalogue
 
     /** @var Collection<int, Template>|null */
     private ?Collection $open = null;
+
+    /**
+     * The open songs (self::open()) as the song pages pick by them, in title order: slug, title, genres and difficulty,
+     * without loading every song's notes. Building self::open() reads all 117 current versions, 3.6 MB of JSON, and was
+     * most of a song page's time. Kept a day in the cache under the catalogue's fingerprint, so a new version, a review,
+     * a withdrawal or a rename reads it afresh at once.
+     *
+     * @return list<array{slug: string, title: string, genre: list<string>, difficulty: string}>
+     */
+    public function openIndex(): array
+    {
+        return $this->openIndex ??= Cache::remember('catalogue.open-index.'.$this->fingerprint(), now()->addDay(), fn (): array => array_values($this->open()
+            ->map(static function (Template $template): array {
+                $data = (array) $template->currentVersion?->data;
+
+                return [
+                    'slug' => (string) $template->slug,
+                    'title' => (string) $template->title,
+                    'genre' => array_values(array_filter((array) ($data['genre'] ?? []), 'is_string')),
+                    'difficulty' => is_string($data['difficulty'] ?? null) ? $data['difficulty'] : '',
+                ];
+            })->all()));
+    }
+
+    /** @var list<array{slug: string, title: string, genre: list<string>, difficulty: string}>|null */
+    private ?array $openIndex = null;
+
+    /**
+     * The library's songs (self::songs()) as the app's catalogue sends them, without their voices or season
+     * (CatalogueSongResource::fixed): kept a day under the catalogue's fingerprint and this build (whose words name the
+     * songs' titles in other languages), so the library never reads all 117 versions' notes for a request.
+     *
+     * @return list<array<string, mixed>>
+     */
+    public function listing(): array
+    {
+        $key = 'catalogue.listing.'.$this->fingerprint().'.'.(string) config('app.build');
+
+        return Cache::remember($key, now()->addDay(), fn (): array => array_values($this->songs()->map(static fn (Template $template): array => CatalogueSongResource::fixed($template))->all()));
+    }
+
+    /** What self::open() and self::songs() are made of, in one cheap row: which versions are current (a version never changes), reviewed and live. Once a request. */
+    public function fingerprint(): string
+    {
+        return $this->fingerprint ??= $this->readFingerprint();
+    }
+
+    private ?string $fingerprint = null;
+
+    private function readFingerprint(): string
+    {
+        $row = DB::table('templates')
+            ->leftJoin('template_versions', 'template_versions.id', '=', 'templates.current_version_id')
+            ->whereNull('templates.owner_id')
+            ->selectRaw('count(*) as songs, coalesce(sum(templates.current_version_id), 0) as versions, coalesce(sum(templates.withdrawn_at is null), 0) as live, '
+                .'coalesce(sum(template_versions.reviewed), 0) as reviewed, max(templates.updated_at) as touched')
+            ->first();
+
+        return hash('xxh128', (string) json_encode($row));
+    }
 
     /** Whether the public site may show this song (self::open()). */
     public static function isOpen(Template $template): bool

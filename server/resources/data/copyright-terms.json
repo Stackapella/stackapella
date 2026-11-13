@@ -981,7 +981,18 @@
       {
         "condition": "author recorded as \"mort pour la France\"",
         "life": 109,
-        "note": "L123-10: +30 years on top of the extended term; 109 assumes a pre-1948 musical work (70 + 8y120d + 30, rounded up); 100 otherwise"
+        "note": "L123-10: +30 years on top of the extended term; 109 assumes a pre-1948 musical work (70 + 8y120d + 30, rounded up); 100 otherwise",
+        "diedIn": [
+          [
+            1914,
+            1919
+          ],
+          [
+            1939,
+            1945
+          ]
+        ],
+        "noteDiedIn": "The mention marks a death in France's wars (L123-10): taken as met for a death in 1914-1919 or 1939-1945, since we can't read the record, and never for a death in any other year."
       }
     ],
     "shorterTerm": true,
@@ -2455,7 +2466,14 @@
       {
         "condition": "author worked during or fought in the Great Patriotic War (1941-1945)",
         "life": 74,
-        "freeIfDiedBefore": 1939
+        "freeIfDiedBefore": 1939,
+        "diedIn": [
+          [
+            1941,
+            9999
+          ]
+        ],
+        "noteDiedIn": "Only an author alive in the war (22 June 1941 on) worked or fought in it."
       },
       {
         "condition": "author repressed and rehabilitated after death",

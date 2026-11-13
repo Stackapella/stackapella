@@ -48,6 +48,25 @@ export async function listTemplates({ drafts = showDrafts(), library = true } = 
 }
 
 /**
+ * The song a link asks for (a song page's Start), on its own, never waiting on the whole catalogue (/api/templates): one
+ * the app carries from its file; a library song from the library's one song (templates.show), only for someone signed
+ * in, since a guest may hear an open song (`grant: "open"`) but needs a free account to start it, which the catalogue's
+ * `access` says. Null otherwise (a guest's library song, a draft not shown, one not available here, none such): the
+ * catalogue's summary then decides, as before. The first-open speed pass, 2026-11-13: from a song page, the sheet waited
+ * on the catalogue's server time.
+ */
+export async function linkedTemplate(id, { signedIn = false, drafts = showDrafts() } = {}) {
+    try {
+        const index = await fetchJson('/templates/index.json');
+        const template = index.templates.includes(id) ? await loadBundled(id) : signedIn ? await loadTemplate(id) : null;
+        return template && (template.reviewed || drafts) ? template : null;
+    } catch (error) {
+        if (!(error instanceof TemplateError) && !error?.code) console.warn('The linked song did not load on its own', error);
+        return null;
+    }
+}
+
+/**
  * A song the app doesn't carry, as the catalogue lists it: its title, parts and ranges, its preview
  * clip and whether a guest may start it (`access`). `summary: true`:
  * loadTemplate() fetches the song itself.

@@ -323,7 +323,7 @@ final class SitePages
      * `order`, matched by `slug`, else `id`), so the site and Home never drift. A course the
      * catalogue doesn't list yet keeps its place from Lang, after the catalogue's.
      *
-     * @return array<string, array{name: string, icon: string, courses: list<string>}>
+     * @return array<string, array{name: string, icon: string, blurb: string, courses: list<string>}>
      */
     public static function courseGroups(): array
     {
@@ -345,7 +345,7 @@ final class SitePages
             $fromCatalogue = $catalogue->filter(static fn (array $c): bool => $c['group'] === $key)->map(static fn (array $c): string => (string) ($c['slug'] ?? $c['id']))
                 ->filter(static fn (string $slug): bool => in_array($slug, self::courses(), true))->values()->all();
             $fromLang = array_values(array_diff(array_map('strval', (array) ($group['courses'] ?? [])), $listed));
-            $groups[(string) $key] = ['name' => (string) ($group['name'] ?? ''), 'icon' => (string) ($group['icon'] ?? ''), 'courses' => [...$fromCatalogue, ...$fromLang]];
+            $groups[(string) $key] = ['name' => (string) ($group['name'] ?? ''), 'icon' => (string) ($group['icon'] ?? ''), 'blurb' => (string) ($group['blurb'] ?? ''), 'courses' => [...$fromCatalogue, ...$fromLang]];
         }
 
         return $groups;

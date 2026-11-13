@@ -31,6 +31,7 @@ use App\Models\UserLearning;
 use App\Support\Flags;
 use App\Support\Sharing\HarmonyFiles;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Testing\TestResponse;
@@ -120,8 +121,20 @@ final class QueryBudgetTest extends TestCase
             }
         };
 
-        $this->assertFlat('templates.catalogue', $seed, fn () => $this->getJson('/api/templates'), 20);
-        $this->assertFlat('templates.catalogue, signed in', fn (int $n) => $seed($n), fn () => $this->actingAs($this->viewer ??= $this->adult())->getJson('/api/templates'), 25, 1, 6);
+        // The songs are kept under the catalogue's fingerprint (Catalogue::listing), so new songs make the next request
+        // build them again: each seeding asks once, and both counts are of a kept list. Then both of a list built afresh.
+        $warm = function (int $n) use ($seed): void {
+            $seed($n);
+            $this->getJson('/api/templates')->assertOk();
+        };
+        $cold = function (): TestResponse {
+            Cache::flush();
+
+            return $this->getJson('/api/templates');
+        };
+        $this->assertFlat('templates.catalogue', $warm, fn () => $this->getJson('/api/templates'), 20);
+        $this->assertFlat('templates.catalogue, built afresh', $seed, $cold, 20);
+        $this->assertFlat('templates.catalogue, signed in', fn (int $n) => $warm($n), fn () => $this->actingAs($this->viewer ??= $this->adult())->getJson('/api/templates'), 25, 1, 6);
     }
 
     private ?User $viewer = null;

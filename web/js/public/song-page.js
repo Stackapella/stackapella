@@ -20,7 +20,17 @@ export function learnPart(key) {
     }
 }
 
-page?.addEventListener('mixer-pick', (event) => learnPart(event.detail?.key));
+// Until a part is picked, Learn follows the part heard alone (a newcomer hearing the alto read "Learn the soprano part" as
+// a mismatch: frontend2's walk, 2026-11-13), and the melody's again when every part plays. A pick then holds.
+const melody = page?.querySelector('[data-learn-parts]')?.dataset.first ?? null;
+let picked = false;
+page?.addEventListener('mixer-pick', (event) => {
+    picked = true;
+    learnPart(event.detail?.key);
+});
+page?.addEventListener('mixer-solo', (event) => {
+    if (!picked) learnPart(event.detail?.key ?? melody);
+});
 
 const words = document.querySelector('[data-words]');
 const toggle = words?.querySelector('[data-meaning-toggle]');

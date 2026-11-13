@@ -1999,6 +1999,8 @@ select:disabled {
 .s-sg-try .s-mixer:not(.s-mixer-studio) .s-ch-name { flex-direction: column; align-items: flex-start; gap: 2px; }
 .s-sg-try .s-ch-name b { font-size: 16px; }
 .s-sg-try .s-ch-name small { font-size: 12.5px; }
+/* A row's range never breaks inside itself or leaves its dot behind ("· G3 to C4" is one piece, in either skin). */
+.s-ch-range { white-space: nowrap; }
 .s-sg-try .s-ch-wave { height: 26px; }
 @media (min-width: 600px) {
     .s-sg-try .s-mixer:not(.s-mixer-studio) .s-ch { grid-template-columns: 40px minmax(0, 1.15fr) minmax(0, .85fr) auto; grid-template-areas: "disc name wave state"; column-gap: 14px; }
@@ -2883,6 +2885,66 @@ a.s-vt-rung:hover { background: color-mix(in srgb, var(--color-cream) 5%, transp
 .s-fix-status:empty { display: none; }
 .s-fix-status { font-size: 14.5px; font-weight: 600; }
 .s-fix-go { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 10px; }
+/* The courses page (Hillel's design with filters, 2026-11-13; site/courses.blade.php). The head beside a Start here card on
+   a dark ground in either theme (cream words, AA); a sticky filter bar; each group numbered, its words left of three
+   columns of cards, a dot in the group's colour; a course not open yet dashed and Soon; a dark close. */
+.s-cg-skills { --cg: var(--color-part-1); --cgi: var(--color-part-ink-1); }
+.s-cg-harmony { --cg: var(--color-part-3); --cgi: var(--color-part-ink-3); }
+.s-cg-styles { --cg: var(--color-part-4); --cgi: var(--color-part-ink-4); }
+.s-crs-head { display: grid; gap: 28px; padding-block: 40px 36px; }
+.s-crs-head > * { min-width: 0; }
+@media (min-width: 900px) { .s-crs-head { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: center; gap: 56px; padding-block: 64px 48px; } }
+.s-crs-head h1 { margin-top: 10px; font-size: clamp(40px, 9vw, 64px); font-weight: 800; line-height: 1.02; letter-spacing: -0.03em; }
+.s-crs-head .s-lede { margin-top: 18px; max-width: 34em; }
+.s-crs-start { display: grid; gap: 14px; padding: 28px; border-radius: 22px; background: #211b17; color: #f7f1e6; }
+.s-crs-start-k { font-size: 12px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: #f2c14e; }
+.s-crs-start-h { font-size: clamp(24px, 3.2vw, 30px); font-weight: 800; line-height: 1.12; letter-spacing: -0.02em; }
+.s-crs-start p:not(.s-crs-start-k) { color: #d9cfc2; }
+.s-crs-start-h a { color: inherit; }
+.s-crs-start-h a:hover { text-decoration: underline; text-underline-offset: 4px; }
+.s-crs-start-bar { display: flex; gap: 6px; }
+.s-crs-start-bar b { flex: 1; height: 5px; border-radius: 3px; background: var(--c); }
+.s-crs-start-go { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 16px; margin-top: 4px; }
+.s-crs-start-go .btn-primary { --primary: #f7f1e6; --primary-ink: #211b17; }
+.s-crs-start-meta { font-size: 13.5px; color: #c9bdae; }
+.s-crs-bar { position: sticky; top: 0; z-index: 20; border-block: 1px solid var(--color-line); background: var(--color-ink); }
+.s-crs-bar-in { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 16px; padding-block: 12px; }
+.s-crs-chips { display: flex; gap: 8px; min-width: 0; max-width: 100%; overflow-x: auto; scrollbar-width: none; }
+.s-crs-chip { display: inline-flex; align-items: center; gap: 7px; min-height: 44px; padding-inline: 16px; border-radius: 999px; white-space: nowrap; font-size: 14.5px; font-weight: 700; box-shadow: inset 0 0 0 1px var(--color-line); }
+.s-crs-chip i { width: 8px; height: 8px; border-radius: 50%; background: var(--cg); }
+.s-crs-chip .s-crs-n { font-weight: 600; color: var(--color-muted); }
+.s-crs-chip[aria-pressed="true"] { background: var(--color-cream); color: var(--color-ink); box-shadow: none; }
+.s-crs-chip[aria-pressed="true"] .s-crs-n { color: inherit; opacity: .75; }
+.s-crs-search { display: flex; align-items: center; gap: 8px; min-height: 44px; flex: 1 1 220px; max-width: 320px; padding-inline: 14px; border-radius: 999px; box-shadow: inset 0 0 0 1px var(--color-line); color: var(--color-muted); }
+.s-crs-search input { flex: 1; min-width: 0; background: transparent; border: 0; outline: 0; font-size: 15px; color: var(--color-cream); }
+.s-crs-search:focus-within { box-shadow: inset 0 0 0 2px var(--color-accent); }
+.s-crs-group { display: grid; gap: 20px; padding-block: 40px; border-bottom: 1px solid var(--color-line); }
+@media (min-width: 900px) { .s-crs-group { grid-template-columns: 240px minmax(0, 1fr); gap: 40px; padding-block: 56px; } }
+.s-crs-num { display: flex; align-items: center; gap: 10px; font-size: 12px; font-weight: 700; color: var(--cgi); }
+.s-crs-num::before { content: ''; width: 22px; height: 3px; border-radius: 2px; background: var(--cg); }
+.s-crs-group-head h2 { margin-top: 8px; font-size: clamp(26px, 3vw, 30px); font-weight: 800; letter-spacing: -0.02em; }
+.s-crs-blurb { margin-top: 6px; color: var(--color-muted); }
+.s-crs-meta { margin-top: 10px; font-size: 13px; color: var(--color-muted); }
+.s-crs-cards { display: grid; gap: 12px; }
+@media (min-width: 640px) { .s-crs-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (min-width: 1100px) { .s-crs-cards { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.s-crs-card { position: relative; display: flex; flex-direction: column; gap: 6px; padding: 18px; border-radius: 16px; background: var(--color-panel); box-shadow: inset 0 0 0 1px var(--color-line); }
+.s-crs-card[hidden] { display: none; }
+.s-crs-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--cg); }
+.s-crs-card h3 { font-size: 16px; font-weight: 800; }
+.s-crs-card h3 a:hover { text-decoration: underline; text-underline-offset: 3px; }
+.s-crs-card p { font-size: 14px; line-height: 1.45; color: var(--color-muted); }
+.s-crs-try { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; margin-top: auto; font-size: 14px; font-weight: 700; color: var(--cgi); }
+.s-crs-soon { background: transparent; box-shadow: inset 0 0 0 1px var(--color-line); border: 1px dashed var(--color-line); }
+.s-crs-soon .s-crs-dot { background: transparent; box-shadow: inset 0 0 0 1.5px var(--cg); }
+.s-crs-soon-tag { position: absolute; top: 16px; inset-inline-end: 16px; padding: 2px 9px; border-radius: 999px; font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; background: var(--color-raised); color: var(--color-muted); }
+.s-crs-empty { display: grid; justify-items: start; gap: 14px; padding-block: 48px; }
+.s-crs-empty[hidden] { display: none; }
+.s-crs-close { margin-top: 64px; background: #211b17; color: #f7f1e6; }
+.s-crs-close-in { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 20px 32px; padding-block: 56px; }
+.s-crs-close h2 { font-size: clamp(28px, 4vw, 40px); font-weight: 800; letter-spacing: -0.02em; }
+.s-crs-close p { margin-top: 10px; max-width: 34em; color: #d9cfc2; }
+.s-crs-close .btn-primary { --primary: #f7f1e6; --primary-ink: #211b17; }
 .s-xband { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 24px 32px; padding: 36px 40px; border-radius: 28px; background: var(--color-panel); border: 1px solid var(--color-line); }
 .s-xband > div { max-width: 640px; }
 .s-xband h2 { font-size: clamp(26px, 3.4vw, 32px); font-weight: 800; letter-spacing: -0.02em; }
@@ -10333,6 +10395,31 @@ a.s-vt-rung:hover { background: color-mix(in srgb, var(--color-cream) 5%, transp
 :root[data-skin='game'][data-gs] body.s-arcade .s-th-mic { box-shadow: inset 0 0 0 1px var(--arc-line); }
 :root[data-skin='game'][data-gs] body.s-arcade .s-th-card { border-radius: 0; border: var(--arc-edge-w) solid var(--color-edge); }
 @media (hover: hover) and (prefers-reduced-motion: no-preference) { :root[data-skin='game'][data-gs] body.s-arcade .s-th-card:hover { box-shadow: 2px 2px 0 var(--arc-shadow-c); } }
+/* The courses page, game skin: a stage select. Start here is the yellow-framed cabinet panel and the close a panel band
+   (no brown: the arcade's own panels, so every theme's ink holds), the chips and search square with the pressed chip on
+   the hard shadow, the cards square on the edge line, the dots and bars square, the numbers and Soon in HUD type. */
+:root[data-skin='game'][data-gs] body.s-arcade .s-crs-start { border-radius: 0; border: var(--arc-frame) solid var(--arc-yellow); background: var(--arc-panel); color: var(--color-cream); box-shadow: 4px 4px 0 var(--arc-shadow-c); }
+:root[data-skin='game'][data-gs] body.s-arcade .s-crs-start p:not(.s-crs-start-k), :root[data-skin='game'][data-gs] body.s-arcade .s-crs-start-meta, :root[data-skin='game'][data-gs] body.s-arcade .s-crs-close p { color: var(--color-muted); }
+:root[data-skin='game'][data-gs] body.s-arcade .s-crs-start-k { color: var(--arc-yellow); font-family: var(--arc-pixel); font-size: 10px; font-weight: 400; }
+:root[data-skin='game'][data-gs] body.s-arcade :is(.s-crs-start-go, .s-crs-close) .btn-primary { --primary: inherit; --primary-ink: inherit; }
+/* One line where it fits; a longer language (Spanish's Empezar...) wraps inside the button on a small phone rather than
+   widening the page. */
+@media (min-width: 400px) { :root[data-skin='game'][data-gs] body.s-arcade :is(.s-crs-start-go, .s-crs-close) .btn-primary { white-space: nowrap; } }
+:root[data-skin='game'][data-gs] body.s-arcade :is(.s-crs-start-go, .s-crs-close) .btn-primary { text-align: center; }
+@media (max-width: 359.98px) { :root[data-skin='game'][data-gs] body.s-arcade :is(.s-crs-start-go, .s-crs-close) .btn-primary { padding-inline: 12px; font-size: 0.9em; } }
+:root[data-skin='game'][data-gs] body.s-arcade :is(.s-crs-start-bar b, .s-crs-chip i, .s-crs-dot, .s-crs-num::before, .s-crs-soon-tag) { border-radius: 0; }
+:root[data-skin='game'][data-gs] body.s-arcade .s-crs-bar { background: var(--arc-bg); }
+:root[data-skin='game'][data-gs] body.s-arcade .s-crs-chip { border-radius: 0; box-shadow: inset 0 0 0 var(--arc-edge-w) var(--arc-line); font-family: var(--arc-pixel); font-size: 10px; font-weight: 400; letter-spacing: 0.04em; text-transform: uppercase; }
+:root[data-skin='game'][data-gs] body.s-arcade .s-crs-chip[aria-pressed="true"] { box-shadow: 3px 3px 0 var(--arc-shadow-c); }
+:root[data-skin='game'][data-gs] body.s-arcade .s-crs-search { border-radius: 0; box-shadow: none; border: var(--arc-edge-w) solid var(--arc-line); background: var(--arc-well); }
+:root[data-skin='game'][data-gs] body.s-arcade .s-crs-search:focus-within { border-color: var(--color-accent); box-shadow: none; }
+:root[data-skin='game'][data-gs] body.s-arcade .s-crs-num, :root[data-skin='game'][data-gs] body.s-arcade .s-crs-soon-tag { font-family: var(--arc-pixel); font-weight: 400; }
+:root[data-skin='game'][data-gs] body.s-arcade .s-crs-num { font-size: 10px; }
+:root[data-skin='game'][data-gs] body.s-arcade .s-crs-soon-tag { font-size: 8px; padding: 4px 6px; }
+:root[data-skin='game'][data-gs] body.s-arcade .s-crs-card { border-radius: 0; box-shadow: none; border: var(--arc-edge-w) solid var(--color-edge); }
+:root[data-skin='game'][data-gs] body.s-arcade .s-crs-soon { border-style: dashed; border-color: var(--arc-line); }
+@media (hover: hover) and (prefers-reduced-motion: no-preference) { :root[data-skin='game'][data-gs] body.s-arcade .s-crs-card:not(.s-crs-soon):hover { box-shadow: 2px 2px 0 var(--arc-shadow-c); } }
+:root[data-skin='game'][data-gs] body.s-arcade .s-crs-close { background: var(--arc-panel); color: var(--color-cream); border-block: var(--arc-frame) solid var(--arc-yellow); }
 /* The song page with its story on the arcade screen (game's pass, 2026-11-13): its pieces square, the part cards on a hard
    shadow (the picked one in its part colour), the story's reading text in Figtree under the pixel headings, the
    timeline's years in the HUD face. */

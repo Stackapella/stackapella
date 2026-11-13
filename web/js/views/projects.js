@@ -18,7 +18,7 @@ import { createProject, deleteProject, loadProjects, projects, saveProject, show
 import { ideas, ideasOpen } from '../stores/ideas.js';
 import { learning } from '../stores/learning.js';
 import { account, loadAccount } from '../stores/account.js';
-import { canStart, lengthBeats, listTemplates, loadTemplate, onDraftsChange, partsFor, singerOptions, templatePartName } from '../templates.js';
+import { canStart, lengthBeats, linkedTemplate, listTemplates, loadTemplate, onDraftsChange, partsFor, singerOptions, templatePartName } from '../templates.js';
 import { formatTime, keyLabel, PART_COLORS } from '../theme.js';
 import { HomeBand, HomeCourses, HomeLead, SongCover, WeekCard, WorkoutStrip } from '../components/home.js';
 import { PlayerChip } from '../game/title-screen.js';
@@ -533,27 +533,20 @@ export const ProjectsView = {
         this.stopDrafts = onDraftsChange(() => listTemplates().then((list) => (this.templates = list), (error) => console.warn('Templates not loaded', error)));
         // The library (/api/templates and the bundled songs) after Home's first frame (the first-visit speed pass,
         // 2026-11-13), so it never competes with what draws it; at once when a link asked for a song (?song=).
-        const linked = new URLSearchParams(location.search).has('song');
+        const linked = new URLSearchParams(location.search).get('song');
         const afterFirstFrame = (run) => this.$nextTick(() => requestAnimationFrame(() => requestAnimationFrame(run)));
+        // The linked song opens on its own (its file, or the library's one song), not after the whole catalogue: from a song
+        // page, the sheet waited on /api/templates' server time (the first-open speed pass, 2026-11-13).
+        if (linked) loadAccount().then(() => linkedTemplate(linked, { signedIn: !!account.me })).then((song) => song && this.openLinked(song));
         (linked ? (run) => run() : afterFirstFrame)(() => listTemplates()
             .then((list) => {
                 this.templates = list;
-                // A link to a song (a shared harmony's "Learn this harmony", a song page's Start, What's next): it opens here.
-                // A song part page's link names the part too (&part=alto): Start then gives you that part.
-                const query = new URLSearchParams(location.search);
-                const wanted = query.get('song');
+                // Opened on its own before the catalogue came: its own title in other languages comes with the catalogue.
+                const titles = this.openTemplate && list.find((s) => s.id === this.openTemplate.id)?.titles;
+                if (titles && Object.keys(titles).length && !this.openTemplate.titles) this.openTemplate = { ...this.openTemplate, titles };
+                const wanted = new URLSearchParams(location.search).get('song'); // still asked for: not opened above
                 const song = wanted && list.find((s) => s.id === wanted);
-                if (song) {
-                    const part = query.get('part');
-                    if (part && song.parts?.some((p) => p.key === part)) this.linkedPart = { song: song.id, part };
-                    const url = new URL(location.href);
-                    url.searchParams.delete('song');
-                    url.searchParams.delete('part');
-                    history.replaceState(history.state, '', url.pathname + url.search);
-                    // Once the account is known: a Plus member must never see the song as locked.
-                    if (account.loaded) this.infoSong(song);
-                    else this.linkedSong = song;
-                }
+                if (song) this.openLinked(song);
             })
             .catch((error) => console.warn('Templates not loaded', error)));
     },
@@ -611,6 +604,23 @@ export const ProjectsView = {
         },
     },
     methods: {
+        /**
+         * A link to a song (a shared harmony's "Learn this harmony", a song page's Start, What's next) opens it here, once.
+         * A song part page's link names the part too (&part=alto): Start then gives you that part.
+         */
+        openLinked(song) {
+            const query = new URLSearchParams(location.search);
+            if (query.get('song') !== song.id) return; // opened already
+            const part = query.get('part');
+            if (part && song.parts?.some((p) => p.key === part)) this.linkedPart = { song: song.id, part };
+            const url = new URL(location.href);
+            url.searchParams.delete('song');
+            url.searchParams.delete('part');
+            history.replaceState(history.state, '', url.pathname + url.search);
+            // Once the account is known: a Plus member must never see the song as locked.
+            if (account.loaded) this.infoSong(song);
+            else this.linkedSong = song;
+        },
         /** Shows every song, or two rows again; remembered for this visit only. */
         /** How far a song's best part sits outside the singer's range, in semitones (0: it fits; no range, 0). */
         outside(tpl) {

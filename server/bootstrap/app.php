@@ -68,6 +68,7 @@ use App\Http\Middleware\SecurityHeaders;
 use App\Http\Middleware\SessionlessAnonymousReads;
 use App\Http\Middleware\Shield;
 use App\Http\Middleware\SignedInHint;
+use App\Http\Middleware\Throttle;
 use App\Services\EventSchedule\EventScheduleError;
 use App\Support\Accounts\BetaPass;
 use App\Support\Admin\IntendedUrl;
@@ -288,6 +289,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'paused' => PausedFeature::class,
             'shield' => Shield::class,
             'nexus' => NexusOnly::class,
+            // Laravel's throttle, with the public pages' limiter counting on this instance (no database write a view).
+            'throttle' => Throttle::class,
         ]);
 
         // Webhooks are signed instead (Stripe, Event Schedule, from later milestones), and Apple's

@@ -21,12 +21,12 @@
                 {
                     "name": "abide-with-me.mp3",
                     "bytes": 682779,
-                    "sha256": "6c43c404e2a9ee502ba8250c54dc581ffd74c8b70e65a5f535cea8a71d16909c"
+                    "sha256": "70d95956ddf83450fd0bf546f776df12ae693ef7f8d0869c0f919a726aa9aeb0"
                 },
                 {
                     "name": "abide-with-me.m4a",
-                    "bytes": 681436,
-                    "sha256": "7cc57ab879125d6ca8b2127452cdb36a1d7745dfe62f02cfd7f7ccc71fcea69a"
+                    "bytes": 681259,
+                    "sha256": "1d191c21bdb05901030554b0ed8acb46aadd2357e1b17fca70f8dacf0df7882c"
                 }
             ]
         },
@@ -50,12 +50,12 @@
                 {
                     "name": "adir-hu.mp3",
                     "bytes": 1744486,
-                    "sha256": "0bb72333783fcec6c5fb55d2cd7afccd3cb2f203a52450ba4b73ecafa2bdfd7b"
+                    "sha256": "55b7e24be426fb90065c316eac88a614e9874b5dbcfaa1c87a6199f3117bfbdc"
                 },
                 {
                     "name": "adir-hu.m4a",
-                    "bytes": 1762169,
-                    "sha256": "f608ba961c26657639bc3ebeabfba3b2dcf2fb8d2cc1dd863492b1d68ce2ad5b"
+                    "bytes": 1760826,
+                    "sha256": "3fa79a81b0beb9cd2849fa0d9995c74dca538b47efb42f943723d119bb76dc10"
                 }
             ]
         },
@@ -79,12 +79,12 @@
                 {
                     "name": "adon-olam.mp3",
                     "bytes": 1648588,
-                    "sha256": "cd438d181328ee68a2df3b1c98a7c8933310c78fc9f0e9c8302f5ef0d2e4420b"
+                    "sha256": "470c439a680946877f36273a9829d262eefc0cc0c5c96297ca42167ae2cf835e"
                 },
                 {
                     "name": "adon-olam.m4a",
-                    "bytes": 1663535,
-                    "sha256": "338d04b3fe0e9861f2f48063079cc2f1c83e9315a0548145d049e3518e065809"
+                    "bytes": 1663633,
+                    "sha256": "437ee8031f91184078a4d256a89266bf1b939662bf71464c83f7d2e11a61f6a1"
                 }
             ]
         },
@@ -108,12 +108,12 @@
                 {
                     "name": "all-through-the-night.mp3",
                     "bytes": 896254,
-                    "sha256": "1cade99685f414012d899a8710025eaf90207ebaa7adc51726e537664acbd440"
+                    "sha256": "55af9c000bd93d82ef0d675e24780518ef64888d53d4578d23935629da7f5c0e"
                 },
                 {
                     "name": "all-through-the-night.m4a",
-                    "bytes": 899458,
-                    "sha256": "9a2386cfbd5c75533d319e99fdbc302788070d787a7780845c16f031366f5c08"
+                    "bytes": 899070,
+                    "sha256": "16daae9459a2db7d9d253771b92aa771595db8a99aa8e3923e10fa2db1de3b23"
                 }
             ]
         },
@@ -137,12 +137,41 @@
                 {
                     "name": "amazing-grace.mp3",
                     "bytes": 610199,
-                    "sha256": "4fb1b39a0fd7d5ff11bb34fc015dabda0b230dc6d7142a20078f971f0e0d783e"
+                    "sha256": "89cbdd041ec1644b5e04248b5b3654e1aa0aa89ba5ccf291a073b12b1892fd0a"
                 },
                 {
                     "name": "amazing-grace.m4a",
-                    "bytes": 613565,
-                    "sha256": "6c25dcddd2338817566ca019a5513e108ad61f78e588526922c69890a19bf204"
+                    "bytes": 613706,
+                    "sha256": "7a336fbdab7821f6e075089b51db4e4b2269409f46b452cfe2fc612c7cc0023e"
+                }
+            ]
+        },
+        "angels-we-have-heard-on-high": {
+            "slug": "angels-we-have-heard-on-high",
+            "title": "Angels We Have Heard on High",
+            "version": 1,
+            "tempo": 116,
+            "key": "G",
+            "guides": {
+                "soprano": null,
+                "alto": null,
+                "tenor": null,
+                "bass": null
+            },
+            "credit": "Words: English words attributed to James Chadwick (by 1862), from the French carol \"Les anges dans nos campagnes\". Tune: Traditional French carol (\"Gloria\"). Arrangement: Stackapella.",
+            "duration": 99.831,
+            "channels": 2,
+            "lufs": -16,
+            "files": [
+                {
+                    "name": "angels-we-have-heard-on-high.mp3",
+                    "bytes": 1598669,
+                    "sha256": "7c5fd8b8bc0cf0067810929a83867151a8ba8ed9a12b56323f90bc2be9e55979"
+                },
+                {
+                    "name": "angels-we-have-heard-on-high.m4a",
+                    "bytes": 1612379,
+                    "sha256": "8c3710e660af038a6e40f46e7593e3a4881c7f4e79bd2b7974786e4d836d3b5c"
                 }
             ]
         },
@@ -158,20 +187,20 @@
                 "tenor": null,
                 "bass": null
             },
-            "credit": "Words: an older Scottish song, said to be by Douglas of Fingland, reworked by Lady John Scott (1810-1900), who altered its second verse. Tune: Lady John Scott (Alicia Ann Spottiswoode, 1810-1900). Arrangement: Stackapella.",
+            "credit": "Words: an older Scottish song, said to be by Douglas of Fingland, reworked by Lady John Scott (1810-1900), who altered the old verses and wrote a third. Tune: Lady John Scott (Alicia Ann Spottiswoode, 1810-1900). Arrangement: Stackapella.",
             "duration": 73.701,
             "channels": 2,
             "lufs": -16,
             "files": [
                 {
                     "name": "annie-laurie.mp3",
-                    "bytes": 1180516,
-                    "sha256": "b585632652a49798d69a647f0ee06088ddec455c0ce1d8fbfc1a080c06f2b588"
+                    "bytes": 1180532,
+                    "sha256": "a8a6a19f4c489444e450e57a7d5d089dd0947c47b55d990e9c0b01e4fcc07f46"
                 },
                 {
                     "name": "annie-laurie.m4a",
-                    "bytes": 1188501,
-                    "sha256": "a0d9859f413752592269c1c45fc764cca40376534d34f77a9b61d2711ec350db"
+                    "bytes": 1189200,
+                    "sha256": "2d358914c15791c7e0c10e8d18797d4515991a8419217b671539c373cbd7d3fc"
                 }
             ]
         },
@@ -187,20 +216,49 @@
                 "tenor": null,
                 "bass": null
             },
-            "credit": "Words: traditional English version. Tune: \"Frère Jacques\", traditional French (known from a manuscript of about 1780). Arrangement: Stackapella (round setting).",
+            "credit": "Words: traditional English version, in print by 1916. Tune: \"Frère Jacques\", traditional French (earliest known printing Paris, 1811). Arrangement: Stackapella (round setting).",
             "duration": 55.39,
             "channels": 2,
             "lufs": -16,
             "files": [
                 {
                     "name": "are-you-sleeping.mp3",
-                    "bytes": 887690,
-                    "sha256": "3edce0cc1ce41285a061787ca46e66e3066e1499ca715299a2fc4f9deec60a9c"
+                    "bytes": 887722,
+                    "sha256": "1f80054a4f972aa5688e42d9e894773d0a94bfcbfbcac5022e4a5cd3a1e101a2"
                 },
                 {
                     "name": "are-you-sleeping.m4a",
-                    "bytes": 887677,
-                    "sha256": "d3a84697cd0ccf74e2f63e8323fabed378cdbe31b85a9fee74f4c5ae2007ec27"
+                    "bytes": 886554,
+                    "sha256": "bd0f09f7726ae95d0c1a0635aed25ecdac501dd08ba9759943dbd317b2bcd638"
+                }
+            ]
+        },
+        "asleep-in-the-deep": {
+            "slug": "asleep-in-the-deep",
+            "title": "Asleep in the Deep",
+            "version": 3,
+            "tempo": 60,
+            "key": "F",
+            "guides": {
+                "soprano": null,
+                "alto": null,
+                "tenor": null,
+                "bass": null
+            },
+            "credit": "Words: Arthur J. Lamb (1897). Tune: H. W. Petrie (1897). Arrangement: Stackapella, on Petrie's harmony.",
+            "duration": 98.59,
+            "channels": 2,
+            "lufs": -16,
+            "files": [
+                {
+                    "name": "asleep-in-the-deep.mp3",
+                    "bytes": 1578611,
+                    "sha256": "35d24578f94f463fa36e54c50bac56999a189464f5b61390145700b340e389bd"
+                },
+                {
+                    "name": "asleep-in-the-deep.m4a",
+                    "bytes": 1591550,
+                    "sha256": "2b0d228304d936c52ece802a9fdca24d549990323f6a7408492e9e9e44dcef0f"
                 }
             ]
         },
@@ -224,12 +282,12 @@
                 {
                     "name": "auld-lang-syne.mp3",
                     "bytes": 446937,
-                    "sha256": "bb88cf6a4e4b02aad4193de75a6d460c671e585a103e69eddc73683d695a6587"
+                    "sha256": "38c11869276e8a8f34aadc53808c201a29c8f0e12ab75305233270fc742f9010"
                 },
                 {
                     "name": "auld-lang-syne.m4a",
-                    "bytes": 439711,
-                    "sha256": "af41750c8434605666ab30de84a9b0c5943bde296067a9fcdfc1561c6c620dbd"
+                    "bytes": 440336,
+                    "sha256": "7eff4dd9b2e4d183e92bfbceeca0895514162073641f373bb57519acbe547c19"
                 }
             ]
         },
@@ -253,12 +311,12 @@
                 {
                     "name": "ave-verum-corpus.mp3",
                     "bytes": 1602845,
-                    "sha256": "030af467dec7e260b981f02b7c807848cdea788563b7ec0da71a4a730995b6c5"
+                    "sha256": "81fab7dfe79924bd2a087818e3a852548687588b5cae77b5b58c63d4837d2876"
                 },
                 {
                     "name": "ave-verum-corpus.m4a",
-                    "bytes": 1609786,
-                    "sha256": "e1dc6b8e675b44dddaf6307a49fad2d2ab557c6c384843b1e0f697749d9f0889"
+                    "bytes": 1610718,
+                    "sha256": "80972f625b9925b95e248e731813e05119e58766968a72fec54efc1e5aee6c32"
                 }
             ]
         },
@@ -282,12 +340,12 @@
                 {
                     "name": "away-in-a-manger.mp3",
                     "bytes": 591465,
-                    "sha256": "90b24feae17ac7f2c9e16e4bc3230fad896ed924d1dd74279229f03fc7365f67"
+                    "sha256": "df471e4658e2ccda6c497b44b23e702b0d02df8518dabffb63c7db20f0583b3b"
                 },
                 {
                     "name": "away-in-a-manger.m4a",
-                    "bytes": 588999,
-                    "sha256": "c2bbfd845d09e5e9405f6ab206f9492ec62a5ce1580357fdf926922796172a4d"
+                    "bytes": 588702,
+                    "sha256": "d67c704e91d7858a082e719a2a5f1ba1c6aba7ffb2a120ce71f2e6950ddb7cd2"
                 }
             ]
         },
@@ -311,19 +369,19 @@
                 {
                     "name": "balm-in-gilead.mp3",
                     "bytes": 2475073,
-                    "sha256": "060ed8b76034cb3b18df44b311a15f415c868331d05937808490da6c57e1bcd8"
+                    "sha256": "7503728978922f60f0912b1afe70f58d11ce6301f77176951f1b7ee96956300e"
                 },
                 {
                     "name": "balm-in-gilead.m4a",
-                    "bytes": 2505879,
-                    "sha256": "8814e88509729139f666153a3727b81fa142b0e62b1570d50a247eaf5908a729"
+                    "bytes": 2506607,
+                    "sha256": "9cf171b04ed3148b70b5f8442bf193c0e382fb0ca33116241e3811986484b779"
                 }
             ]
         },
         "be-thou-my-vision": {
             "slug": "be-thou-my-vision",
             "title": "Be Thou My Vision",
-            "version": 6,
+            "version": 7,
             "tempo": 84,
             "key": "F",
             "guides": {
@@ -340,12 +398,12 @@
                 {
                     "name": "be-thou-my-vision.mp3",
                     "bytes": 591578,
-                    "sha256": "2d8fb6ab10bf0bfce0f5f46eeeec0da945b8365966d32f64aa458483991e6456"
+                    "sha256": "a968c79e061adbba80619fe8b1186ab49049bba4789b5126773b693e725f83c1"
                 },
                 {
                     "name": "be-thou-my-vision.m4a",
-                    "bytes": 588349,
-                    "sha256": "d22712a31e700b50a5fc5479686ce1a2aefbe86a32cae764774893e6519bbe15"
+                    "bytes": 588767,
+                    "sha256": "131337e770567527224fac9e451a069535b98ea0cf2cf0af2221a61712170e3c"
                 }
             ]
         },
@@ -369,12 +427,12 @@
                 {
                     "name": "blow-boys-blow.mp3",
                     "bytes": 1738814,
-                    "sha256": "6705a47fb2a91e1e1c7e4bcf6d4e6bedecf150fc9605eea01be81d076c477870"
+                    "sha256": "dab996e4f6624c6a06d1b44e3d230bcf8cad3c69763fc4a7d5626f7a96769f25"
                 },
                 {
                     "name": "blow-boys-blow.m4a",
-                    "bytes": 1760093,
-                    "sha256": "0f895e3c08a1b6ae8c87f1d547198081e34d948f48475c5e843d05a46f2dcd0f"
+                    "bytes": 1760044,
+                    "sha256": "44148f04afd28ddabbdff1eeadf967396e1e8e0797b2fbe3c40418bf8ce76a7b"
                 }
             ]
         },
@@ -398,12 +456,12 @@
                 {
                     "name": "blow-the-man-down.mp3",
                     "bytes": 983393,
-                    "sha256": "8568d4321379ea9107ec3a4c02dd8da36a503e958db61475d2d9c501320e97e5"
+                    "sha256": "8bd8b53cfbe07b153ed2f308fdd822b94a9faf5b04943d5961ec6a8eeea77f61"
                 },
                 {
                     "name": "blow-the-man-down.m4a",
-                    "bytes": 989599,
-                    "sha256": "f7281fac06a32fed1a07a9a9c2e26bf8cff5378089beb109b370a7509d4d44df"
+                    "bytes": 990122,
+                    "sha256": "a47ff5f04d5a8244345a21c415ce877f4aee6a983eb56d447fbc3da08a2bb699"
                 }
             ]
         },
@@ -427,12 +485,12 @@
                 {
                     "name": "brahms-lullaby.mp3",
                     "bytes": 1578787,
-                    "sha256": "fc78117bcaa7b249ee72b1d51a768c81a6ec4ceb4100384794eae1c2e6b6a548"
+                    "sha256": "ef464d8cac1caccd8f3cc51607b0fdeaf79f1a68d6ee85a725839580be20b443"
                 },
                 {
                     "name": "brahms-lullaby.m4a",
-                    "bytes": 1591779,
-                    "sha256": "dca6be5a5de66724f0a32f85ad62db55ee2ad75eee531739c219e0a64967bdd3"
+                    "bytes": 1591111,
+                    "sha256": "ccffa0ce450ee2f1382e5133d81190720bb3fd1f6ebd1c714275cbd53500ca7d"
                 }
             ]
         },
@@ -456,12 +514,12 @@
                 {
                     "name": "bully-in-the-alley.mp3",
                     "bytes": 1664346,
-                    "sha256": "e7056306f599651c6a49e86adb0649897a30d9865ea560485bd0390f5b356804"
+                    "sha256": "2e7d9dc296de7342bc6c180c9498c5f311a0aa07fb8a4af8891276db7d578c04"
                 },
                 {
                     "name": "bully-in-the-alley.m4a",
-                    "bytes": 1683258,
-                    "sha256": "fa2b2220a4cb7d79c9fe7f4a36dafc42ca84b44df01eff9be37ad37e57541145"
+                    "bytes": 1683721,
+                    "sha256": "cef2a8f06f94e3391ef853dff1687e473da5acdc49658d84d65d0e3db087b005"
                 }
             ]
         },
@@ -485,12 +543,12 @@
                 {
                     "name": "caro-mio-ben.mp3",
                     "bytes": 1706953,
-                    "sha256": "3cff7f1589033f03af9166724bc291a74ca206cb13cf8f682ba7e4da00d52a5e"
+                    "sha256": "331b8a7e93131d1ff8d8d3d9d0765d4209ea82dba24e9fa090c012b25b11ebe2"
                 },
                 {
                     "name": "caro-mio-ben.m4a",
-                    "bytes": 1719806,
-                    "sha256": "955b19da9493fd96bcc6e06816a63a7cc30f5d612e12660c03aae8b6dbb2d981"
+                    "bytes": 1719671,
+                    "sha256": "097c25c0b53e508c12ea1754fcb0e2fb3a6864e89bf747a658db0ebbaee353ae"
                 }
             ]
         },
@@ -514,12 +572,12 @@
                 {
                     "name": "come-thou-fount.mp3",
                     "bytes": 554956,
-                    "sha256": "147c89215266a92f40a9cdf394b763632b820a61bb50832e61aacb0694936ec4"
+                    "sha256": "ea7e3caf09ce08de12a7cf689be869787755c86e4a2674f663199e6422e27c99"
                 },
                 {
                     "name": "come-thou-fount.m4a",
-                    "bytes": 553018,
-                    "sha256": "3bcfb664d74d6168b70425ca8e5f56ef66a771f35c1ab48bc03ea9176e9df476"
+                    "bytes": 551666,
+                    "sha256": "d14b2738c0e5833f68324c132986c5b0a2518fca2f4bc9ec0c4d474a9a5434d4"
                 }
             ]
         },
@@ -535,20 +593,20 @@
                 "tenor": null,
                 "bass": null
             },
-            "credit": "Words: Henry Alford (1844; verse 4 as he revised it for The Year of Praise, 1867). Tune: George J. Elvey, \"St. George\" (1861; today \"St. George's, Windsor\"). Arrangement: George J. Elvey's four parts (Hymns Ancient and Modern, 1861), adapted by Stackapella.",
+            "credit": "Words: Henry Alford (1844; verse 4 as he revised it for The Year of Praise, 1867). Tune: George J. Elvey, \"St. George\" (1858; so named in Hymns Ancient and Modern, 1861; today \"St. George's, Windsor\"). Arrangement: George J. Elvey's four parts (Hymns Ancient and Modern, 1861), adapted by Stackapella.",
             "duration": 79.39,
             "channels": 2,
             "lufs": -16,
             "files": [
                 {
                     "name": "come-ye-thankful-people.mp3",
-                    "bytes": 1271577,
-                    "sha256": "9bd1e3fff91cadd4760a659d35b5e97c08a5265ca543a8c3aa75c4f3e5bc4b87"
+                    "bytes": 1271621,
+                    "sha256": "a991ca79a0ad509df18f0426b22ffc223f9b9f233127b049b7ff0293878fdbfd"
                 },
                 {
                     "name": "come-ye-thankful-people.m4a",
-                    "bytes": 1280074,
-                    "sha256": "b85644cca2846cfed0994e8a49a791c3646b14895311fb506f6ea7e69b6d4dc1"
+                    "bytes": 1281365,
+                    "sha256": "6a95a58897d912bb45c3efc2ed52cc8aa18610718dec4cd05d38480cc2022513"
                 }
             ]
         },
@@ -572,12 +630,41 @@
                 {
                     "name": "comin-thro-the-rye.mp3",
                     "bytes": 1050612,
-                    "sha256": "5e0d2b7002dac184a2247eac4a93998a05344c590925aa361a5874882b7fee98"
+                    "sha256": "79311f830bc66b8a0b74b95b2b7f58b84f586de88c1a573298dca28a068bbec0"
                 },
                 {
                     "name": "comin-thro-the-rye.m4a",
-                    "bytes": 1055373,
-                    "sha256": "af526df43a346882933592b923654ab39480ccfd06dece6c7064eacc0823cb73"
+                    "bytes": 1055169,
+                    "sha256": "ab2747d27a30a680b35d7dac38884ef858e1895a8ab87f697153ffacc88d9d68"
+                }
+            ]
+        },
+        "coventry-carol": {
+            "slug": "coventry-carol",
+            "title": "Coventry Carol",
+            "version": 1,
+            "tempo": 80,
+            "key": "Gm",
+            "guides": {
+                "soprano": null,
+                "alto": null,
+                "tenor": null,
+                "bass": null
+            },
+            "credit": "Words: The women's song from the Pageant of the Shearmen and Tailors, Coventry (as printed by Thomas Sharp, 1825). Tune: The anonymous setting of 1591 (as printed by Thomas Sharp, 1825). Arrangement: The 1591 three-part setting, adapted by Stackapella, with a tenor by Stackapella.",
+            "duration": 128.59,
+            "channels": 2,
+            "lufs": -16,
+            "files": [
+                {
+                    "name": "coventry-carol.mp3",
+                    "bytes": 2058785,
+                    "sha256": "5f54aba21b43d6b4a4cfd9075ad7ece6957cf9f2f6c3f405ade9e287642f1f5f"
+                },
+                {
+                    "name": "coventry-carol.m4a",
+                    "bytes": 2079676,
+                    "sha256": "c10e078775a911522d06ec377edcea2160befd3f586dacf6dba1896e6a43ab83"
                 }
             ]
         },
@@ -601,12 +688,12 @@
                 {
                     "name": "daisy-bell.mp3",
                     "bytes": 1439210,
-                    "sha256": "996fd2493e1f760393c02fb6816f27201d8be911fb6a7ac6332a9a7ed950f28f"
+                    "sha256": "34d635fa10f9038e14024a22f3640558575a98f53c1289067b4fef38bc6df6d8"
                 },
                 {
                     "name": "daisy-bell.m4a",
-                    "bytes": 1450335,
-                    "sha256": "85c9f6d0511093453aa3e7c96fd946d3a8030a6cff1751362f50762ff609984f"
+                    "bytes": 1451202,
+                    "sha256": "94922a456e5b26f2881afb9f04ec836a89a8320811d7004a6a0872e5983283dd"
                 }
             ]
         },
@@ -630,12 +717,12 @@
                 {
                     "name": "danny-boy.mp3",
                     "bytes": 1074850,
-                    "sha256": "5ad8c8086f0959c01e4df67414b38acd4568214e407b6dc1e96f53cc56df8fb5"
+                    "sha256": "7be93ac3b74fd826fb2a717abaec7656eb0c124f6fa798b015371837010ffc30"
                 },
                 {
                     "name": "danny-boy.m4a",
-                    "bytes": 1074506,
-                    "sha256": "88d413d1eb82232ac626c57b8a3f7e9ce1b7df28924484a0006d892064a32d90"
+                    "bytes": 1073344,
+                    "sha256": "bc6626674af250fc4dd5182dc384f4755cf277b779eddd151b6ea7ed170234c8"
                 }
             ]
         },
@@ -651,20 +738,20 @@
                 "tenor": null,
                 "bass": null
             },
-            "credit": "Words: Traditional English, as printed in The Golden Book of Favorite Songs (1923). Tune: \"Nos Galan\", traditional Welsh (in print by 1781). Arrangement: The Golden Book of Favorite Songs' four parts (1923), adapted by Stackapella.",
+            "credit": "Words: Thomas Oliphant (1862), revised by 1877, as printed in The Golden Book of Favorite Songs (1923). Tune: \"Nos Galan\", traditional Welsh (in print by 1781). Arrangement: The Golden Book of Favorite Songs' four parts (1923), adapted by Stackapella.",
             "duration": 34.59,
             "channels": 2,
             "lufs": -16,
             "files": [
                 {
                     "name": "deck-the-halls.mp3",
-                    "bytes": 554991,
-                    "sha256": "7eebf16388d03befa26f166f0fbf3081ba263387a93cf0f3c4932c2820f18bee"
+                    "bytes": 555011,
+                    "sha256": "9dbb2b9fae409786288572aeacaab38b9038f2013293ce132f740b1aa7b61799"
                 },
                 {
                     "name": "deck-the-halls.m4a",
-                    "bytes": 550489,
-                    "sha256": "0d781b681bff559d38e4a43c800672c0b5ede0b9383968e220bdc0bc2fa42262"
+                    "bytes": 551044,
+                    "sha256": "a787aa0890c6d0e51e8225bfe3936334fdf3c84e49dfedd5bc0518f9ed6f8c90"
                 }
             ]
         },
@@ -688,12 +775,12 @@
                 {
                     "name": "deep-river.mp3",
                     "bytes": 1770708,
-                    "sha256": "3f7d94acf7883699eb0e487aed96c8e1f91bc2805cacbc33eb5ca2a6323d6f1c"
+                    "sha256": "97f81200cc4f0196daf388dfbd0132c1fd2c391da6ecb562c216e1cb97881adb"
                 },
                 {
                     "name": "deep-river.m4a",
-                    "bytes": 1786266,
-                    "sha256": "0436279e92fe8ba21aac6f247de22cb8d9c772542d2b491bcc4de0dca9f4c557"
+                    "bytes": 1786351,
+                    "sha256": "15dd15bfcfae0220aa5d8b9cb7a576e8da19643ba2b9af9e20eed9ec39dc6bf6"
                 }
             ]
         },
@@ -717,12 +804,12 @@
                 {
                     "name": "didnt-my-lord-deliver-daniel.mp3",
                     "bytes": 2193111,
-                    "sha256": "0b9947749ef94667578009d1e066a740afe843d785600370d695c011ac1c2ff8"
+                    "sha256": "f1f0dabe71f1962a91946fd71fecbc3e732cac71c2aeb7b300e72693ab450172"
                 },
                 {
                     "name": "didnt-my-lord-deliver-daniel.m4a",
-                    "bytes": 2220635,
-                    "sha256": "e67e49b9c75fa5d0f8986fea28cb163ffdd85bb8fd090e85fdececd43a1ef203"
+                    "bytes": 2218081,
+                    "sha256": "b7cddcd39113b4fcb111737aa85809e7bf61f2a57f5323fb58cb307a8ca2f218"
                 }
             ]
         },
@@ -746,12 +833,12 @@
                 {
                     "name": "down-by-the-old-mill-stream.mp3",
                     "bytes": 1002655,
-                    "sha256": "e917949c5626bf4b207a1b7e4584d4242d4492932c48e2461aef0241b0925906"
+                    "sha256": "41949e097fc27f2acab2a140bf3ba71fd17f535d5f87e4e14b115011d67e4b1c"
                 },
                 {
                     "name": "down-by-the-old-mill-stream.m4a",
-                    "bytes": 1007025,
-                    "sha256": "96fe26ec0927be97094fdc77136ae89267c382fe7d59801dd5a3b6fc988f15ce"
+                    "bytes": 1006389,
+                    "sha256": "a347d8c3102bdf27fc38ecbd54644aa85fc64881ab6f2451ce071c608e92d4b0"
                 }
             ]
         },
@@ -775,12 +862,12 @@
                 {
                     "name": "drunken-sailor.mp3",
                     "bytes": 741154,
-                    "sha256": "d8cbf33160575887635e5a8e658bbc0b1a275aeb1fe3494c9af0df64e165a445"
+                    "sha256": "cb31bc43a3babccb00f88ffbea51d86f7cb5ce0253b61228f1620de4c3bb5247"
                 },
                 {
                     "name": "drunken-sailor.m4a",
-                    "bytes": 741711,
-                    "sha256": "4bbcf731e913b0a220fa52989b4b7bc5b5da4b0c6ea81d3996a7c031f07c8a55"
+                    "bytes": 742721,
+                    "sha256": "aa853cc28dddd38de7223eca6996794f357beabbd9068836f96c76f3ef5ae371"
                 }
             ]
         },
@@ -804,12 +891,12 @@
                 {
                     "name": "echad-mi-yodea.mp3",
                     "bytes": 1151990,
-                    "sha256": "8c7236cead7712bdbf1fc5d57970800accdf937d08dc0422cf93d07005e6f262"
+                    "sha256": "847b63e7fc5c21bbb0071f1c0605ae75f9b56600bff859ebbfd61e4e09615375"
                 },
                 {
                     "name": "echad-mi-yodea.m4a",
-                    "bytes": 1159057,
-                    "sha256": "7836494cf897861880b1ca2592214a6755b24ed74cefc510b68c521a63b14d7a"
+                    "bytes": 1157313,
+                    "sha256": "6df5a3e70dac62041de0461f2c4984722a1f39dfc1b8308d041a5902f9269175"
                 }
             ]
         },
@@ -833,12 +920,12 @@
                 {
                     "name": "ein-keloheinu.mp3",
                     "bytes": 2010676,
-                    "sha256": "ac97ea8d093b2ec67a75908a85c5b0a1479f00b41cd5a7aeb316119a305e6425"
+                    "sha256": "c74f72753019256e6562c4a159ffd3055bf28ae063c5e97c5d1be929642cb3a2"
                 },
                 {
                     "name": "ein-keloheinu.m4a",
-                    "bytes": 2027996,
-                    "sha256": "18d359ee14a6f30c58d6d029c0b3fc626b84da0b10d0adbf22870dccbaaeb059"
+                    "bytes": 2030596,
+                    "sha256": "3c537d2a11957b63ac117ba2ff7885fad0ded8d2058e48338791eb723c9ff9a2"
                 }
             ]
         },
@@ -862,12 +949,12 @@
                 {
                     "name": "el-cant-dels-ocells.mp3",
                     "bytes": 1962940,
-                    "sha256": "ae6ddbea241226c22bdfcdf90ac58520671ee0477168cabfe02d8d6464ae93a0"
+                    "sha256": "49f232302622a3e21e028f829a03febe4f181e7034894e66732c366d0672a038"
                 },
                 {
                     "name": "el-cant-dels-ocells.m4a",
-                    "bytes": 1981644,
-                    "sha256": "ddfb5630584d305710db50b5f532a4f66201b689e0de27cfed7850bc10ecf61a"
+                    "bytes": 1982182,
+                    "sha256": "3d4c1e293b44a3781ee2655b0f56df80f7f932d85b0cda879ec07376a0c3f874"
                 }
             ]
         },
@@ -891,12 +978,12 @@
                 {
                     "name": "eliyahu-hanavi.mp3",
                     "bytes": 828312,
-                    "sha256": "8f2ed49be16690a80f75c7d88e891631599469c08ad3052990875d7980fa5ea7"
+                    "sha256": "7b17eeaaba00d6000b98c908e08c8e058d8aba7d79346f31813b873e108ff339"
                 },
                 {
                     "name": "eliyahu-hanavi.m4a",
-                    "bytes": 828604,
-                    "sha256": "15b82490ddbf87626cb7827ceb9ead92e2cdaf62ef559f4829a47180ee47f75b"
+                    "bytes": 828882,
+                    "sha256": "4361878429a9d80185cf0a5735bc326aa8acd7d9859528f1f2c98600c04fe897"
                 }
             ]
         },
@@ -920,12 +1007,12 @@
                 {
                     "name": "every-time-i-feel-the-spirit.mp3",
                     "bytes": 1798340,
-                    "sha256": "ee2d0e0dd21b35cb3c0ec7d1fd8d250c9d2745ca7e6f6513e10d73701ad12feb"
+                    "sha256": "650314dd7bb5a8988aa7a9a317f291688661b910f7f16cf8860b3b39e0e2ffce"
                 },
                 {
                     "name": "every-time-i-feel-the-spirit.m4a",
-                    "bytes": 1816781,
-                    "sha256": "e627f3f92135c7f5fba7fa8aa94b38c47bbbd5867c3f20780c90d035d76ca1c2"
+                    "bytes": 1814875,
+                    "sha256": "8141f2a6786fd896e297c225e2c268fdfb93f372260cc9b5b341a7d1ea84e8e9"
                 }
             ]
         },
@@ -949,12 +1036,12 @@
                 {
                     "name": "ezekiel-saw-the-wheel.mp3",
                     "bytes": 1551421,
-                    "sha256": "4ba0f0863903f850d31f8934c73347c0c03a6c3c175933f0981cd4b283da63b4"
+                    "sha256": "43e9c3d5ddc65720b2746b0e0fe72f686330c9d2a7ec2c3aeffe6a1e69de420d"
                 },
                 {
                     "name": "ezekiel-saw-the-wheel.m4a",
-                    "bytes": 1567018,
-                    "sha256": "3a6d3f659103812d38dc5ad6ac3cb436e2bd8ac7766cac3cc4f63e574976d8ba"
+                    "bytes": 1567313,
+                    "sha256": "981854e0a3eabc5e5cb0436139aadbe9e4e3dd357d0210c36d3a1493fa2d67f7"
                 }
             ]
         },
@@ -978,12 +1065,12 @@
                 {
                     "name": "go-down-moses.mp3",
                     "bytes": 2090995,
-                    "sha256": "6ee06b4cd1cbcbf6b5ad299c8ceb589210f2282e5087298ac35f35ac9991e3dd"
+                    "sha256": "11f854535ccfa1c3ade7adb38caac5e3c8c1e74ec5bb9a3bebbd70dd699b418c"
                 },
                 {
                     "name": "go-down-moses.m4a",
-                    "bytes": 2116392,
-                    "sha256": "fbfdedd396054c69c4efb041eadff0bef67e35dc38d70d6fea234ee5dcf90644"
+                    "bytes": 2117662,
+                    "sha256": "b246fffa1e0ddfd161775816666b136aba683210809a0b4abcf9869be62a5642"
                 }
             ]
         },
@@ -1007,12 +1094,41 @@
                 {
                     "name": "god-rest-ye.mp3",
                     "bytes": 650990,
-                    "sha256": "d3cc72615ea55cef2adfc61ab65d57dbedc485494860cb6243abc176a96e484d"
+                    "sha256": "b91e028502974f8b66c28c94486721af13e234bf215631c124ce7f022bbd6459"
                 },
                 {
                     "name": "god-rest-ye.m4a",
-                    "bytes": 648264,
-                    "sha256": "3a3960329fc43b78f12b9544e6d9ab93b497d133c7d8f290db63d7b02d93aab3"
+                    "bytes": 648182,
+                    "sha256": "b911bc2ce74698324e533a8e7a4257f59138d71cf2f218af6764bec6d82c6938"
+                }
+            ]
+        },
+        "good-king-wenceslas": {
+            "slug": "good-king-wenceslas",
+            "title": "Good King Wenceslas",
+            "version": 1,
+            "tempo": 120,
+            "key": "A",
+            "guides": {
+                "soprano": null,
+                "alto": null,
+                "tenor": null,
+                "bass": null
+            },
+            "credit": "Words: John Mason Neale (Carols for Christmas-tide, 1853). Tune: \"Tempus adest floridum\" (Piae Cantiones, 1582), as Thomas Helmore set it to Neale's words. Arrangement: Stackapella, on the chords of Bramley and Stainer's Christmas Carols New and Old.",
+            "duration": 104.59,
+            "channels": 2,
+            "lufs": -16,
+            "files": [
+                {
+                    "name": "good-king-wenceslas.mp3",
+                    "bytes": 1674759,
+                    "sha256": "8ab9038243fb0cbb79a1d3618d4f34ba819515aedccc78b88ad984c376d722dc"
+                },
+                {
+                    "name": "good-king-wenceslas.m4a",
+                    "bytes": 1688837,
+                    "sha256": "05f4a7c8b47e99fd0616a923f178b4f6449a8083a8ce0c04d1173a0911b69ce5"
                 }
             ]
         },
@@ -1036,12 +1152,12 @@
                 {
                     "name": "greensleeves.mp3",
                     "bytes": 554995,
-                    "sha256": "9cabe68c602dfd98ea425170e853d88913d365f89b8e6f41e978607ad293bd17"
+                    "sha256": "61d50a5658e06ead5fc1a766a72f2d922302f8ecc2c24d6b4e2a97efe945be9d"
                 },
                 {
                     "name": "greensleeves.m4a",
-                    "bytes": 550982,
-                    "sha256": "3f0b4e5a369ccff335c19aa2660bbda7f7271308955825587a951fa9b14445b9"
+                    "bytes": 550340,
+                    "sha256": "0d1debee099068fc9b7488a106c4f643cca623409aaa4199f69ed83fb5da709c"
                 }
             ]
         },
@@ -1057,7 +1173,7 @@
                 "tenor": null,
                 "bass": null
             },
-            "credit": "Words: Traditional (published 1912). Tune: \"Good Morning to All\", Mildred J. Hill (1893). Arrangement: Stackapella.",
+            "credit": "Words: Traditional (published 1911). Tune: \"Good Morning to All\", Mildred J. Hill (1893). Arrangement: Stackapella.",
             "duration": 17.59,
             "channels": 2,
             "lufs": -16,
@@ -1065,12 +1181,12 @@
                 {
                     "name": "happy-birthday.mp3",
                     "bytes": 282619,
-                    "sha256": "3405eb6c3791e8aee0c12585a8ec1d3169488665e8a56acce36de862314675ce"
+                    "sha256": "71ada71e8ed89ce2e0bacea78072308e902fa8c91986220c053727766aad7621"
                 },
                 {
                     "name": "happy-birthday.m4a",
-                    "bytes": 274891,
-                    "sha256": "e3c8bfa3818535d9374112cd07da059fbfdcceae0ab3a83399b1911c6ce14c31"
+                    "bytes": 275099,
+                    "sha256": "8ee7ee7af5c351616ce7f62887667d45508cf1a494bfbe144d3d8a22996908d5"
                 }
             ]
         },
@@ -1094,12 +1210,12 @@
                 {
                     "name": "hark-the-herald.mp3",
                     "bytes": 877552,
-                    "sha256": "8a54120c2ed2396e093433557706c4801d1f7045c298e7c2aacc9d7ce9f4b549"
+                    "sha256": "70921cd85f409caf69626e72e50ea6a51adf8d5965ac671d7528ee184b31def6"
                 },
                 {
                     "name": "hark-the-herald.m4a",
-                    "bytes": 880454,
-                    "sha256": "550765e930d66a67a2b10cc921b2ce9176e07001cf56f7c70592e68aa287063e"
+                    "bytes": 881253,
+                    "sha256": "3050654e2c3e0b82faf8b134d3baa3a1d803d9c95a62911c74b196fac388ba1f"
                 }
             ]
         },
@@ -1123,12 +1239,12 @@
                 {
                     "name": "haul-away-joe.mp3",
                     "bytes": 896342,
-                    "sha256": "9838862cfc76f1cf2212fdac189a69f965978ea705cc3a44377d6ba114947130"
+                    "sha256": "08ac8621298028ab3e4b553f4e0272ac995a81b6501d4ffa80197c6d118fd6b8"
                 },
                 {
                     "name": "haul-away-joe.m4a",
-                    "bytes": 900355,
-                    "sha256": "db1d224641270abfe544ce37dd69fac301bbcc189c337e88c9eb1a6fae10f1f6"
+                    "bytes": 899863,
+                    "sha256": "2516e5641deb3c4100df75100565483e19041686531e44cc860d9a1e470b9eb2"
                 }
             ]
         },
@@ -1152,12 +1268,12 @@
                 {
                     "name": "haul-on-the-bowline.mp3",
                     "bytes": 810715,
-                    "sha256": "6825022e8bd3bf65dc8dc10a576460e36eca52a49aa55019ee5fe3a2c6fbc36b"
+                    "sha256": "489c6fcbde5db11ed1bf11d006014021ec3099ecd19a61c0b9146abe7b4e0053"
                 },
                 {
                     "name": "haul-on-the-bowline.m4a",
-                    "bytes": 813327,
-                    "sha256": "8de958ce6c22f24fe8fd6137b1d1d8990e98f2576f39efe8e732f5230f985c4c"
+                    "bytes": 812872,
+                    "sha256": "93a2d4d1af2eedd5e01887521fe38fc9e1119fce7674b54dab079da3b2e4c005"
                 }
             ]
         },
@@ -1181,12 +1297,12 @@
                 {
                     "name": "heavenly-treasures.mp3",
                     "bytes": 1066793,
-                    "sha256": "37e4139b500f7501bd8550b11cdc7344841d6ac89219a268eee453b17a3578d5"
+                    "sha256": "66a04f05fa95068ca2f95739347386848611d9feab600605dffca65221f8d16f"
                 },
                 {
                     "name": "heavenly-treasures.m4a",
-                    "bytes": 1071067,
-                    "sha256": "3fdef0132ad1c29bb2772209926de50e8a7f537450b01d6ecf4421903bdb8ed5"
+                    "bytes": 1070939,
+                    "sha256": "055150e23bbda5716b5543218146363e6d3c9979ccffcc268e172b29a85fcecb"
                 }
             ]
         },
@@ -1210,12 +1326,12 @@
                 {
                     "name": "hey-ho-nobody-home.mp3",
                     "bytes": 802970,
-                    "sha256": "a8945db8664a3e5d9432820d3d847b56c8a8a67fceb8b0ac9d824fe28013ab65"
+                    "sha256": "a58b6a35edf32411fdc43349f9f52e9b5ec225d978b25d3cd4d07240edac40c6"
                 },
                 {
                     "name": "hey-ho-nobody-home.m4a",
-                    "bytes": 800674,
-                    "sha256": "16b2c6d5b83869c5fa0e227ea91366dd2d41b509574422bba26ecae44741a3dd"
+                    "bytes": 802436,
+                    "sha256": "a2b3f1f3eaaddcdd77056cb1b0aa34d5dffc28c2821794a53cab67af98e7c6a2"
                 }
             ]
         },
@@ -1239,12 +1355,12 @@
                 {
                     "name": "holy-holy-holy.mp3",
                     "bytes": 710813,
-                    "sha256": "8be31c772bada8b86383a895a4c3ea47a5e6cf43b3cb6973f69d109aae360727"
+                    "sha256": "74056492fe0ecd113edd7338e4891c30fc9dd52869fa6332846d8e7858420d0f"
                 },
                 {
                     "name": "holy-holy-holy.m4a",
-                    "bytes": 709380,
-                    "sha256": "9eeb20c41678a47c243745865d790fbd8db305fdcb42288e7bc16717fb72ad30"
+                    "bytes": 709128,
+                    "sha256": "ad2279d7116214a6e0d5424f8db18f746859fb8f5c635e64f2ca50c6e9992972"
                 }
             ]
         },
@@ -1268,12 +1384,41 @@
                 {
                     "name": "home-on-the-range.mp3",
                     "bytes": 964203,
-                    "sha256": "1aacc8663bfb99f84dbb3777d1ff2fb5384b4d1148d22a44373a3af22ddf68c2"
+                    "sha256": "83b535a725b7f521ff38d2b94c58152b2f445a65fdf5e6606e3c14e6407b842b"
                 },
                 {
                     "name": "home-on-the-range.m4a",
-                    "bytes": 966475,
-                    "sha256": "26d0a953ff1e101a22cf16a236b72cd04d64df89a8e43d094e0fb36260db4bfd"
+                    "bytes": 966469,
+                    "sha256": "e7456c880824314746b54be93795e9e50cde8b61358f5be11a355a40778db368"
+                }
+            ]
+        },
+        "i-saw-three-ships": {
+            "slug": "i-saw-three-ships",
+            "title": "I Saw Three Ships",
+            "version": 1,
+            "tempo": 60,
+            "key": "G",
+            "guides": {
+                "soprano": null,
+                "alto": null,
+                "tenor": null,
+                "bass": null
+            },
+            "credit": "Words: Traditional English (as printed by Bramley and Stainer). Tune: Traditional English, from Derbyshire (as printed by Bramley and Stainer). Arrangement: Stackapella, after John Stainer's harmony in Christmas Carols New and Old.",
+            "duration": 66.59,
+            "channels": 2,
+            "lufs": -16,
+            "files": [
+                {
+                    "name": "i-saw-three-ships.mp3",
+                    "bytes": 1066866,
+                    "sha256": "564f88f93604e1846e8859cdf15cdb8f50764ffe1f091118a8c42e55441524b3"
+                },
+                {
+                    "name": "i-saw-three-ships.m4a",
+                    "bytes": 1072232,
+                    "sha256": "80869717743e3ba3b5674b1d925a99fd794814989ab431d4a5c0b3e1fa018ab2"
                 }
             ]
         },
@@ -1297,12 +1442,70 @@
                 {
                     "name": "i-will-bow-and-be-simple.mp3",
                     "bytes": 1271518,
-                    "sha256": "01c1f98d4b7f2cf6d1d45c7f0b42bf3b9e0cd0058ef86a606bbbb5bb6a5e1a80"
+                    "sha256": "3cde321baecadf7a4401fffb6c6e006de441bd4c7e4d0e7b38064579accf107e"
                 },
                 {
                     "name": "i-will-bow-and-be-simple.m4a",
-                    "bytes": 1278637,
-                    "sha256": "c6b850500d9b950fc889de39af9745e886f4d99ad32fe5000d6e48a1c8dcaf7d"
+                    "bytes": 1279495,
+                    "sha256": "6ed5a71e8e75e14d9dbc38fcd710792b2fbb54c46575c10368802a729f80d6a3"
+                }
+            ]
+        },
+        "in-the-bleak-midwinter": {
+            "slug": "in-the-bleak-midwinter",
+            "title": "In the Bleak Midwinter",
+            "version": 1,
+            "tempo": 100,
+            "key": "F",
+            "guides": {
+                "soprano": null,
+                "alto": null,
+                "tenor": null,
+                "bass": null
+            },
+            "credit": "Words: Christina G. Rossetti (1872). Tune: \"Cranham\", Gustav Holst (1906). Arrangement: Gustav Holst's four parts (The English Hymnal, 1906), adapted by Stackapella.",
+            "duration": 117.79,
+            "channels": 2,
+            "lufs": -16,
+            "files": [
+                {
+                    "name": "in-the-bleak-midwinter.mp3",
+                    "bytes": 1885877,
+                    "sha256": "e11d2fdbac7bacf423f7f6dc4131f85b3ab8a009670256ccc33ea25ff8c1c8ab"
+                },
+                {
+                    "name": "in-the-bleak-midwinter.m4a",
+                    "bytes": 1906602,
+                    "sha256": "2e2fbac15ca8b7b87eb84f42389a312bf42ad2c37d3be5ee28d0609716280bc9"
+                }
+            ]
+        },
+        "it-came-upon-the-midnight-clear": {
+            "slug": "it-came-upon-the-midnight-clear",
+            "title": "It Came Upon the Midnight Clear",
+            "version": 1,
+            "tempo": 60,
+            "key": "Bb",
+            "guides": {
+                "soprano": null,
+                "alto": null,
+                "tenor": null,
+                "bass": null
+            },
+            "credit": "Words: Edmund Hamilton Sears (1849). Tune: \"Carol\", Richard Storrs Willis (1850, full form by 1869). Arrangement: Richard Storrs Willis's four parts (as printed by Charles L. Hutchins, 1916), adapted by Stackapella.",
+            "duration": 102.59,
+            "channels": 2,
+            "lufs": -16,
+            "files": [
+                {
+                    "name": "it-came-upon-the-midnight-clear.mp3",
+                    "bytes": 1642864,
+                    "sha256": "be16681e45e147f9c21c306be93baddba1316c73f383cb4db5ebc1c317673a43"
+                },
+                {
+                    "name": "it-came-upon-the-midnight-clear.m4a",
+                    "bytes": 1656714,
+                    "sha256": "36d3e364347fc964b5f209295afb973bf0b9e46ebcffd9efa46d44d35afee1aa"
                 }
             ]
         },
@@ -1318,20 +1521,20 @@
                 "tenor": null,
                 "bass": null
             },
-            "credit": "Words: Horatio G. Spafford (1873). Tune: Philip P. Bliss, \"Ville du Havre\" (1876). Arrangement: Philip P. Bliss (1876), adapted by Stackapella.",
+            "credit": "Words: Horatio G. Spafford (printed 1876). Tune: Philip P. Bliss, \"Ville du Havre\" (1876). Arrangement: Philip P. Bliss (1876), adapted by Stackapella.",
             "duration": 57.373,
             "channels": 2,
             "lufs": -16,
             "files": [
                 {
                     "name": "it-is-well.mp3",
-                    "bytes": 919328,
-                    "sha256": "b092231127e8da96f1fb89c0e011331322ca1988b528610b338bba47a1f3334f"
+                    "bytes": 919336,
+                    "sha256": "889aed47e0c857ecb4589253bd0d6861ef9c6a904deefa152dbe5f2e38317f5f"
                 },
                 {
                     "name": "it-is-well.m4a",
-                    "bytes": 923142,
-                    "sha256": "bcce7e90597de6221365f483d444f1ba59fc4ec92ab849fb0946608e914335f7"
+                    "bytes": 922158,
+                    "sha256": "9e00fc9f7addcb5ce4b7b729a298c6c354c4d083eb1573988925e389e69396ea"
                 }
             ]
         },
@@ -1384,12 +1587,12 @@
                 {
                     "name": "jingle-bells.mp3",
                     "bytes": 1066756,
-                    "sha256": "e8bc03cc7783e1d81346ebb3f7cf9f6d2a4d15195dc01eb04ce7380d9afc46cb"
+                    "sha256": "74af3ba9f9bc49a5201a61f2d55e6a46dd44c8638ebe8fbf428ad9e03a6ad48a"
                 },
                 {
                     "name": "jingle-bells.m4a",
-                    "bytes": 1071778,
-                    "sha256": "9fdfd15fcb55217deb4245cf7a294402977204599eb9bbfb6f67804bbad02b4c"
+                    "bytes": 1070970,
+                    "sha256": "ab029f2fff16ea8694ba8d3f456098b85b7d9d75a99aa75bc521ad97a5fb41fc"
                 }
             ]
         },
@@ -1413,12 +1616,12 @@
                 {
                     "name": "joy-to-the-world.mp3",
                     "bytes": 682781,
-                    "sha256": "39a19483f1436a8bf3c07342b6b7339323bf74cf05971cb355d4863014833f35"
+                    "sha256": "9557216b88716500d04c5a49f89a82ae286e90b2e7bbf5393732908ba93cbd6f"
                 },
                 {
                     "name": "joy-to-the-world.m4a",
-                    "bytes": 680641,
-                    "sha256": "6b1658fc548ce8a053d09b138f2b0fee6e8b8baafa4ea25f6dce713963c0976e"
+                    "bytes": 680900,
+                    "sha256": "12f255eb79731f5f07eaa0ad335c29fc9e654418b4621af07a18f155e5882cff"
                 }
             ]
         },
@@ -1442,12 +1645,12 @@
                 {
                     "name": "keep-on-the-sunny-side.mp3",
                     "bytes": 657068,
-                    "sha256": "36f7028f484a1d5fa8c39e7c6e91620ca2af375dd67973fb418712e621a2b445"
+                    "sha256": "d7ae0a9d6cecf7910d178a7dcb52381acf5cee97fe0008f44abf865bd9b759b6"
                 },
                 {
                     "name": "keep-on-the-sunny-side.m4a",
-                    "bytes": 655636,
-                    "sha256": "ef84bcab23bce4640090fe9be4200e3a364faf908a810eae4046381b11e9170e"
+                    "bytes": 656039,
+                    "sha256": "be67aa4b5aed82b32ba677665bce68ff52a6e4f1f46fba0a001f5b02628c3ed1"
                 }
             ]
         },
@@ -1471,12 +1674,12 @@
                 {
                     "name": "ki-lo-naeh.mp3",
                     "bytes": 1439210,
-                    "sha256": "ee25206a5f14e5a28eb26781098ec65ae911c913dc100e394ac210ebc6ce5925"
+                    "sha256": "17dd1c60b6d1969fb35da5496d57a6c5b31e6e48ce527ca5b7496f9e3c596485"
                 },
                 {
                     "name": "ki-lo-naeh.m4a",
-                    "bytes": 1452651,
-                    "sha256": "05c003d34f02f06c4d0ef1acf8807383a92b12caf50de723a36a55e4358febfb"
+                    "bytes": 1452834,
+                    "sha256": "c101bdba575c4afbca1d8baf06db641db6cc33eca3f2ddc549c16599fb47ed70"
                 }
             ]
         },
@@ -1500,12 +1703,12 @@
                 {
                     "name": "la-paloma.mp3",
                     "bytes": 1497504,
-                    "sha256": "16c1c4928bf8d83e6d0c4c51ac861086968b1179983c921869f62213b1194069"
+                    "sha256": "e1c8e58b3dc25fe90f864c30018f22f26dfc951e8b947e26d38d5ff7a82f95a5"
                 },
                 {
                     "name": "la-paloma.m4a",
-                    "bytes": 1508739,
-                    "sha256": "6dfdf495ffb4ccd8c091089c8e68eeae2b5079eaeaa86bc8486c4d2d31725565"
+                    "bytes": 1508001,
+                    "sha256": "0c0db97e92b23ca98977e68a2c83dbc9422025501adb7d786d69a767cf6c050c"
                 }
             ]
         },
@@ -1529,12 +1732,12 @@
                 {
                     "name": "las-mananitas.mp3",
                     "bytes": 1066727,
-                    "sha256": "66dff33c8edb96c4139a6990fa9eec0622b79f3a22ce7a2325349640012c1488"
+                    "sha256": "ea15dda643e7d2d425e29fdf785fc794e7fa4d8e39af1f5bbe4fc31ae0aa88ca"
                 },
                 {
                     "name": "las-mananitas.m4a",
-                    "bytes": 1071540,
-                    "sha256": "06a733b4a8f7966c981ad3278b8f74d98bae6cab24d16fef99d8705e11a436de"
+                    "bytes": 1071505,
+                    "sha256": "630f5ae5b8192798470657f3653a35f1ade053221ec94f62bbe085c1ad0ef64c"
                 }
             ]
         },
@@ -1558,12 +1761,12 @@
                 {
                     "name": "leave-her-johnny.mp3",
                     "bytes": 1066829,
-                    "sha256": "a171cd51208f2c7a6be3f2c3b8d4e07019ac31c52341eee7018b6cd1564fd618"
+                    "sha256": "4cf76f3958b19a2a075747288d47f4b0d490054c1f07fc608346af1c297be61d"
                 },
                 {
                     "name": "leave-her-johnny.m4a",
-                    "bytes": 1071240,
-                    "sha256": "48e5084e46ba0cb516fd1d4a5f5725ad0589e57020afaef8d01c673bb7ea912b"
+                    "bytes": 1073965,
+                    "sha256": "f80d18983789567fc4743a73faf2b37fc52254da6535b2ea5db02adb62c97934"
                 }
             ]
         },
@@ -1587,12 +1790,12 @@
                 {
                     "name": "lecha-dodi.mp3",
                     "bytes": 1834792,
-                    "sha256": "a363bc02e89058720d0c67422ab7d1258e8dfce939a74358425442e928c24afa"
+                    "sha256": "5a7550df1780a3d6cf3754882a84c2989a34109865898b6f26a5aef50c708cea"
                 },
                 {
                     "name": "lecha-dodi.m4a",
-                    "bytes": 1852913,
-                    "sha256": "8ef4655d347a8152da28675ade5be7063f0063727048f7cc287bcb057dcf162a"
+                    "bytes": 1851149,
+                    "sha256": "9349bdbc0a0e538055daba2ea7fde8c45397f514ce178968e107376f52f69a8e"
                 }
             ]
         },
@@ -1616,12 +1819,12 @@
                 {
                     "name": "let-me-call-you-sweetheart.mp3",
                     "bytes": 1002603,
-                    "sha256": "a155c6b11b46280f998be190de183dfa55b973f7e5e952117b82264138c85187"
+                    "sha256": "9736137021fb666c67468cf34358790629f26d83de1023b516eeed5592bc63bf"
                 },
                 {
                     "name": "let-me-call-you-sweetheart.m4a",
-                    "bytes": 1007068,
-                    "sha256": "b83d0bdf74fc5ca1f94341f27d665c161d6d1a8e1b2ea5c1b584a2d1e417f30f"
+                    "bytes": 1006393,
+                    "sha256": "dd296a5a5e853cf5e0d08d24b7801414bdfc3eedde93eeb4463867a0a6205ec3"
                 }
             ]
         },
@@ -1645,12 +1848,12 @@
                 {
                     "name": "lift-every-voice.mp3",
                     "bytes": 1066794,
-                    "sha256": "8c0422e98f7820bbd336d1e2e6659dd65565951bd5317072916794ee979e04df"
+                    "sha256": "59430bb107229ec2ad30c426f0f24ee33855ea41655d1c34557eb4594b20f419"
                 },
                 {
                     "name": "lift-every-voice.m4a",
-                    "bytes": 1071359,
-                    "sha256": "a14ca5c3008d66f9c5aaf156d99b41482774fc69503b386e7168088f6d940a71"
+                    "bytes": 1071453,
+                    "sha256": "e24f752785d1f15d2cf0382d2fd93e02105b69e660a1ea48220ea981790469e4"
                 }
             ]
         },
@@ -1674,12 +1877,12 @@
                 {
                     "name": "loch-lomond.mp3",
                     "bytes": 1760599,
-                    "sha256": "5ceb3eb4f930a91e85f9501e98659eb45d599f31784bab7541655a919f350891"
+                    "sha256": "9b0adb97bafb0d0bfb7b0fa2181bb36e27481a8b4f7a095692b3277b2b891df5"
                 },
                 {
                     "name": "loch-lomond.m4a",
-                    "bytes": 1777270,
-                    "sha256": "0aa07cdc7f690eaaa323b86133b4eb0a62ad33f908c803cc08cd014977c0ed76"
+                    "bytes": 1777309,
+                    "sha256": "fda961941ab29fe7c8b3fb1f0035362ddc0fc9f6ea605eaa42e874eb1aba2077"
                 }
             ]
         },
@@ -1703,12 +1906,12 @@
                 {
                     "name": "londons-burning.mp3",
                     "bytes": 660218,
-                    "sha256": "1dd2361e67ba1e0c6f13a24501ca5d12c68d846c1e8645a11cc4b46e72e6d6b0"
+                    "sha256": "17e309574e9fbbdf39678204020ec4f301a4eb1908c9a6387f01467819150ded"
                 },
                 {
                     "name": "londons-burning.m4a",
-                    "bytes": 657513,
-                    "sha256": "f4f9c08fdebd34a17e974a8eaf6ff064615260e6ed8046980189dd7c7fbd36a1"
+                    "bytes": 658107,
+                    "sha256": "99a25672d2cb63e609eb55c8b58d5fc6c86f7ca822d39fe6f7b116e25aba4310"
                 }
             ]
         },
@@ -1724,7 +1927,7 @@
                 "tenor": null,
                 "bass": null
             },
-            "credit": "Words: Hebrew piyyut signed Mordecai in its acrostic (13th century). Tune: traditional Ashkenazi Hanukkah tune, from a 15th-century German folk song (printed by Baer after 1883 and Idelsohn 1911/12). Arrangement: Stackapella, on A. Z. Idelsohn's harmony (1911/12).",
+            "credit": "Words: Hebrew piyyut signed Mordecai in its acrostic (12th or 13th century). Tune: traditional Ashkenazi Hanukkah tune (earliest known printing 1815; printed by Baer after 1883 and Idelsohn 1911/12). Arrangement: Stackapella, on A. Z. Idelsohn's harmony (1911/12).",
             "duration": 109.257,
             "channels": 2,
             "lufs": -16,
@@ -1732,12 +1935,12 @@
                 {
                     "name": "maoz-tzur.mp3",
                     "bytes": 1749643,
-                    "sha256": "947cc0b4a7ddb155903037f9f72bc47f5a08deca483c0dfbad6e5faee6962f91"
+                    "sha256": "a973276ee26fce0075b0b4c56de1b21aaa868d28a1e0b73eb4da548d93f0f28c"
                 },
                 {
                     "name": "maoz-tzur.m4a",
-                    "bytes": 1766182,
-                    "sha256": "ae1cd0af5fee8c69ef506a2bae46370a8d747161f858bfc02ecfbbc019ed61d1"
+                    "bytes": 1765657,
+                    "sha256": "72e6290f2821a55f358005e1c88f1636074a72b81819b89c328cd1b96e78bdfb"
                 }
             ]
         },
@@ -1761,12 +1964,12 @@
                 {
                     "name": "michael-row.mp3",
                     "bytes": 376730,
-                    "sha256": "820a7bc149879d33a08df3a0e8cf7af908e7300e37c1d56dadf22d9c62aebb86"
+                    "sha256": "32d0761fad4c7657a49f69a658005e47f3e142bf2ebfcf8122c9be2679880def"
                 },
                 {
                     "name": "michael-row.m4a",
-                    "bytes": 371605,
-                    "sha256": "25ee76e32ce1878c8a8d594ef446b35fbddd164ea57b41d705ee4f8d084d700f"
+                    "bytes": 370550,
+                    "sha256": "ba56d2462eaf39e42996969a6374b4792e7522ba8c0101977e88d05d96cabf04"
                 }
             ]
         },
@@ -1790,12 +1993,12 @@
                 {
                     "name": "nearer-my-god.mp3",
                     "bytes": 810669,
-                    "sha256": "95da643658c96ddb847f2e8d8bb51c598e661315b23e18f983f25efaffc3be89"
+                    "sha256": "ca69a717d077c7ba36ed7f92e02af5f37d2627d66a40c89a4220abdd7be134a9"
                 },
                 {
                     "name": "nearer-my-god.m4a",
-                    "bytes": 811138,
-                    "sha256": "dc7ab723b6c9125c22324e6620bcb30d872af8934fd4b44f64dfb5741b890eeb"
+                    "bytes": 812216,
+                    "sha256": "f1b0d7b8e2050c879a4b6b21d0f526228de4211b2bfde7ebf9339ff38446f728"
                 }
             ]
         },
@@ -1819,19 +2022,19 @@
                 {
                     "name": "noche-de-paz.mp3",
                     "bytes": 1963187,
-                    "sha256": "59d91103be4ead5e23657e948d61fc4bb3477bf82261409a73c706f319117114"
+                    "sha256": "866f7e39fb1bcad3dec7662f6fda1aba6904cc4267dd55b75809ebe1c662fb91"
                 },
                 {
                     "name": "noche-de-paz.m4a",
-                    "bytes": 1983277,
-                    "sha256": "e835e87cff27adb752afcb847051db0331102429274e3a0ebd3c01fc2cb79b82"
+                    "bytes": 1983290,
+                    "sha256": "ae358a0693a42926a732829286ce75d1cbc954bfec8c255efda0dc52f7df6f60"
                 }
             ]
         },
         "now-is-the-month-of-maying": {
             "slug": "now-is-the-month-of-maying",
             "title": "Now Is the Month of Maying",
-            "version": 3,
+            "version": 4,
             "tempo": 112,
             "key": "G",
             "guides": {
@@ -1848,12 +2051,12 @@
                 {
                     "name": "now-is-the-month-of-maying.mp3",
                     "bytes": 1140124,
-                    "sha256": "ba864b55d24d6d32bb432852c8b45a352bdeaf54736f7171ab7e22162896f7c3"
+                    "sha256": "6e76f457eb646d467466888e05e23aaaf81a905e2c11f680414f34eb1135c76b"
                 },
                 {
                     "name": "now-is-the-month-of-maying.m4a",
-                    "bytes": 1144938,
-                    "sha256": "364da178955348e027f8c1f8c86bd9b1ca86652dc608f5db4b5b45bec898962d"
+                    "bytes": 1145676,
+                    "sha256": "80ca2a77d73eead7aef757f72d41b936131d7ec14b5199f25b9217edb2e127cb"
                 }
             ]
         },
@@ -1877,12 +2080,12 @@
                 {
                     "name": "now-thank-we-all-our-god.mp3",
                     "bytes": 1688853,
-                    "sha256": "194947fdd02f5b4e3eaddd797b1ed6b1bda52010ea844d27e4a4f370aa112c42"
+                    "sha256": "3ee7b165adc24be90f3436b729aeda75588da6fdb9fff0499e0d0df896bd64b1"
                 },
                 {
                     "name": "now-thank-we-all-our-god.m4a",
-                    "bytes": 1703420,
-                    "sha256": "5a7763abe9fcae7f6f2b3a027a5f0478aa72999806aa7916bbc0963b7a81f78d"
+                    "bytes": 1702151,
+                    "sha256": "a7b16293f447e9b47eb158e7e871e59a4b3f2debb284749a252a1acdb6391e2d"
                 }
             ]
         },
@@ -1906,12 +2109,41 @@
                 {
                     "name": "o-come-all-ye-faithful.mp3",
                     "bytes": 859886,
-                    "sha256": "319cf3e468f5e2d4234ae8617ab787021ce082b92a39f7a9be7f78f6f20ac650"
+                    "sha256": "168063b3e29abc091cf2a7e87f783df0d304340ccb45a22ec6bb98f918dafd29"
                 },
                 {
                     "name": "o-come-all-ye-faithful.m4a",
-                    "bytes": 860891,
-                    "sha256": "6a2b4ace35f15331d6e45654810a884da6d15dd9b5fddc422361844d5cfbadca"
+                    "bytes": 861353,
+                    "sha256": "4db1297f0735ae17eb67649a2eb3dd1f16719484ccdbc5dd36cba6e5018b99e4"
+                }
+            ]
+        },
+        "o-come-o-come-emmanuel": {
+            "slug": "o-come-o-come-emmanuel",
+            "title": "O Come, O Come, Emmanuel",
+            "version": 1,
+            "tempo": 84,
+            "key": "Em",
+            "guides": {
+                "soprano": null,
+                "alto": null,
+                "tenor": null,
+                "bass": null
+            },
+            "credit": "Words: John Mason Neale (1851), as altered for Hymns Ancient and Modern (1861). Tune: \"Veni Emmanuel\", from the Hymnal Noted (musical editor Thomas Helmore). Arrangement: W. H. Monk's four parts (1861), adapted by Stackapella.",
+            "duration": 165.447,
+            "channels": 2,
+            "lufs": -16,
+            "files": [
+                {
+                    "name": "o-come-o-come-emmanuel.mp3",
+                    "bytes": 2648564,
+                    "sha256": "bb385f8071a76f6d75f7c2a4e71e6b8420f0493057bcc80a6a0037f62482eb6a"
+                },
+                {
+                    "name": "o-come-o-come-emmanuel.m4a",
+                    "bytes": 2678661,
+                    "sha256": "a33b63ad7d2ad5996bd5f2f3238aa85b3b435278587ab37e12d329da9ccca04f"
                 }
             ]
         },
@@ -1935,12 +2167,41 @@
                 {
                     "name": "o-holy-night.mp3",
                     "bytes": 1642870,
-                    "sha256": "3e704c8c5c9bdabd34f77940a14f7f05d4765a94071cfef57f7c19fb8208d3e3"
+                    "sha256": "929ae853a041fb8019bfab2eeffe89fdca785d76a1552f312709f0c3b22345e6"
                 },
                 {
                     "name": "o-holy-night.m4a",
-                    "bytes": 1628120,
-                    "sha256": "57c85bfa22708329807cbbf5fa7439b25fd1c4972075e2a9afb87b776bc091e6"
+                    "bytes": 1626676,
+                    "sha256": "aef862637f7601a965363cb1b32b512abdf19682b5de0d08d66c89f2aafa52eb"
+                }
+            ]
+        },
+        "o-little-town-of-bethlehem": {
+            "slug": "o-little-town-of-bethlehem",
+            "title": "O Little Town of Bethlehem",
+            "version": 1,
+            "tempo": 76,
+            "key": "G",
+            "guides": {
+                "soprano": null,
+                "alto": null,
+                "tenor": null,
+                "bass": null
+            },
+            "credit": "Words: Phillips Brooks (1868). Tune: Lewis H. Redner, \"St. Louis\" (1868). Arrangement: Lewis H. Redner's four parts as Carols Old and Carols New (1916) prints them, adapted by Stackapella.",
+            "duration": 154.169,
+            "channels": 2,
+            "lufs": -16,
+            "files": [
+                {
+                    "name": "o-little-town-of-bethlehem.mp3",
+                    "bytes": 2468048,
+                    "sha256": "cdef58744c1b13f983e664ac3635d61020b5228e14fbc967c95ac86f918fa3bd"
+                },
+                {
+                    "name": "o-little-town-of-bethlehem.m4a",
+                    "bytes": 2496796,
+                    "sha256": "4cffdc0d344bfbcc6d39e54674c89520386104132c07e32c9f5b08bd3da1999c"
                 }
             ]
         },
@@ -1964,12 +2225,12 @@
                 {
                     "name": "o-the-beautiful-treasure.mp3",
                     "bytes": 1271454,
-                    "sha256": "d44cda589c7c6b4442183388e2d0b2c0ff6684c92e4d0ad89c95e6f8d08d453d"
+                    "sha256": "ae106cf8ea3a3fa7bfa4e2ecb478e1aa78038955a3b36320325362d8339caf66"
                 },
                 {
                     "name": "o-the-beautiful-treasure.m4a",
-                    "bytes": 1278709,
-                    "sha256": "0e0bce410e47c7d549a8d97a2977a65f940eb5ec3eab6f9f166d9852dc37ad4b"
+                    "bytes": 1278596,
+                    "sha256": "4d2bbcfcae22110c314cc5515f873b0b18206e9308e1f044864a141839ea700d"
                 }
             ]
         },
@@ -1993,12 +2254,12 @@
                 {
                     "name": "ode-to-joy.mp3",
                     "bytes": 657033,
-                    "sha256": "a5d0cded9b3fa0e25b10e8e2090c7341a747eaeffe2ea64d5c7e32c23a1456c8"
+                    "sha256": "cc4009be56b06d20194ce9147b7f0de80fa231ee77935cd3808cd035fbeb52ef"
                 },
                 {
                     "name": "ode-to-joy.m4a",
-                    "bytes": 655741,
-                    "sha256": "7888d90b55bbfe617410e2b512f3888422ff61d0054b89f18f5a00a8191371b4"
+                    "bytes": 655277,
+                    "sha256": "3e060b93b663cdea2b5f2328fb366385d0e11a6872e4599cf5365523b110fde8"
                 }
             ]
         },
@@ -2022,12 +2283,12 @@
                 {
                     "name": "oh-how-lovely.mp3",
                     "bytes": 1962784,
-                    "sha256": "8b141b2170a82e34a33cd842d672d4185960e32dcf8801ff9c775416bbf54284"
+                    "sha256": "feab52a29b4ca9129325ad9973da268a3b7d95e6779f43abd528fdf420b2b2a5"
                 },
                 {
                     "name": "oh-how-lovely.m4a",
-                    "bytes": 1976925,
-                    "sha256": "6dc53a9f1e36a664055b9feb56ba89f2868e5c8558a2e24720b0081403bb5664"
+                    "bytes": 1977349,
+                    "sha256": "32c79542b4564cac06bd728401f64ca39e5ae385ab5a269a7a3b7b6b93cc16aa"
                 }
             ]
         },
@@ -2051,12 +2312,12 @@
                 {
                     "name": "oy-chanukah.mp3",
                     "bytes": 1194659,
-                    "sha256": "c89e1b0d6420835f001d4aed38f62c52c0c7f157fc3fe9f5405734269131167e"
+                    "sha256": "17029fa717b46c28fff22752942bf5b31e9bc8c17712502adbe6eb87fd4ebb00"
                 },
                 {
                     "name": "oy-chanukah.m4a",
-                    "bytes": 1199829,
-                    "sha256": "9109d3c36ec66e24cb37b26a0c6b62934718ef493e76b24fae786a9a13ce9638"
+                    "bytes": 1199454,
+                    "sha256": "a96f6d99f2bfdd61f5417c17d851e86ccfbab68f0bcab598a2180fbb87171319"
                 }
             ]
         },
@@ -2080,12 +2341,12 @@
                 {
                     "name": "oyfn-pripetchik.mp3",
                     "bytes": 1770650,
-                    "sha256": "e8ac88f4d2d79749f2d68f5b1a749295e2f0be1999443a5a81e72b72349a3416"
+                    "sha256": "cdd7cc6360a907cdf4c5feb86746d12519cd9b74d383e08655abf2de81ce6a65"
                 },
                 {
                     "name": "oyfn-pripetchik.m4a",
-                    "bytes": 1787395,
-                    "sha256": "33bc711e5893f2e424b701aa75164c11ad65a06829ad433d16d0dda3e28d0c99"
+                    "bytes": 1787954,
+                    "sha256": "415f9abce2d5a3eee246973007131c88c2f935b47b599bd50ff566814cdd7576"
                 }
             ]
         },
@@ -2109,12 +2370,12 @@
                 {
                     "name": "pastores-a-belen.mp3",
                     "bytes": 971094,
-                    "sha256": "f650d43e66d5d619a8100eaad49254ffc50b9997dd415d920776acd246ecd37e"
+                    "sha256": "96404149165e8e5e4b21019e28732c897bc98648bf37cc11176429a1ad346cab"
                 },
                 {
                     "name": "pastores-a-belen.m4a",
-                    "bytes": 975945,
-                    "sha256": "854cc09d1fdb0d1e852b5225ecbe8639bdb290a9af58573a256758180f03168a"
+                    "bytes": 975347,
+                    "sha256": "4cb10dc8556374e21e7036660ab4dc96118bdbc89b828d7bd2e7b604cbf2b039"
                 }
             ]
         },
@@ -2138,12 +2399,12 @@
                 {
                     "name": "praise-to-the-lord.mp3",
                     "bytes": 1050780,
-                    "sha256": "cf71d434c5712b65746df48b972f3315a398b8ef79238d8d85700738ea1534cb"
+                    "sha256": "31bfe5976f66920b6ce85a7f56f10d8c931133c1922d56bff28e289369fbd8aa"
                 },
                 {
                     "name": "praise-to-the-lord.m4a",
-                    "bytes": 1056544,
-                    "sha256": "27a1f4e76b792aa1bc87c37ec5b47bc7dfbcbb862f0cb8c3c28bf47c472b7618"
+                    "bytes": 1055536,
+                    "sha256": "bb5217f6580f4a535eaa94f9d4ce5e4de71e630c182f94f2b43e163553d08305"
                 }
             ]
         },
@@ -2167,19 +2428,19 @@
                 {
                     "name": "red-red-rose.mp3",
                     "bytes": 1578654,
-                    "sha256": "18ce440de22277729d7389de5a632a1791ba502ebab805165a6bf98b3ea70c8e"
+                    "sha256": "f47025baaf4995976a70f45e0a4562cd798259ef44d284366a606518fe208b69"
                 },
                 {
                     "name": "red-red-rose.m4a",
-                    "bytes": 1591224,
-                    "sha256": "b849fc62e2d53d248dc104deed3da6ba075f0f3064deeab9b6f4dc265bad4149"
+                    "bytes": 1590821,
+                    "sha256": "d60c5d9b342a86053c4dbe4cd1b205ea81e225fb4579047f189df5b5f219f5f6"
                 }
             ]
         },
         "riu-riu-chiu": {
             "slug": "riu-riu-chiu",
             "title": "Riu, Riu, Chiu",
-            "version": 1,
+            "version": 3,
             "tempo": 100,
             "key": "Ebm",
             "guides": {
@@ -2196,12 +2457,12 @@
                 {
                     "name": "riu-riu-chiu.mp3",
                     "bytes": 1876673,
-                    "sha256": "adec9e127cefbf4b2f941592a055829aaee2362f0d214c297fcadf2e6f0aa62c"
+                    "sha256": "728e85e902ce577ad483c1bad84679d05c7df2c2f82cfb7d07bbe2627e5dba59"
                 },
                 {
                     "name": "riu-riu-chiu.m4a",
-                    "bytes": 1897347,
-                    "sha256": "8f2a73185930cc60d9f63a300078077861ca648c7c5d3f9ed5bb67b6a21660fa"
+                    "bytes": 1898082,
+                    "sha256": "7964d6e6140b1956e12f6e917279a7e3085f5e361f264325206c4e20573b6edb"
                 }
             ]
         },
@@ -2225,12 +2486,12 @@
                 {
                     "name": "row-row-row.mp3",
                     "bytes": 1002681,
-                    "sha256": "324947cdfc366c35298d20b3ac001b3db123eaa8563bface7f54a07f6b2842d2"
+                    "sha256": "8e19b896dd40bf03da9f8164098f0edbfc3b27d10e69b0952b5672f6040e92e1"
                 },
                 {
                     "name": "row-row-row.m4a",
-                    "bytes": 1002095,
-                    "sha256": "f611d51fd7b5c2cb694b4f70e5a1c76916f173180e693c3883e010a1d2e0fb4f"
+                    "bytes": 1001921,
+                    "sha256": "f975b8f521e780348f4170bfd3edac41fa1ec3d191f0ed69c96b225c56291f1d"
                 }
             ]
         },
@@ -2254,12 +2515,12 @@
                 {
                     "name": "rozhinkes-mit-mandlen.mp3",
                     "bytes": 750299,
-                    "sha256": "16e2eaf59f0cbe1c75b56da13fed2feb1c0c30a8cbeabc0208b7c3cff4b94043"
+                    "sha256": "151d2d615c715f66293853a288c19543120ec51770aaab126d90b940ec798c0d"
                 },
                 {
                     "name": "rozhinkes-mit-mandlen.m4a",
-                    "bytes": 750509,
-                    "sha256": "794f295ed634fb7db331772c5ba5cdfe3f245bcad7dbba407537ab1303c15926"
+                    "bytes": 749559,
+                    "sha256": "513fda075b3a20abbe13f0d90eadb827187dd24ceadf867fd70473077356fc2e"
                 }
             ]
         },
@@ -2283,12 +2544,12 @@
                 {
                     "name": "sakura-sakura.mp3",
                     "bytes": 857481,
-                    "sha256": "441157623724c84768602b17a8f083e2a8984edb940947820e6ea07468c3bded"
+                    "sha256": "e59c3fbc003b9376568140feece916e58f371325af36bf4d8648224c061f4b71"
                 },
                 {
                     "name": "sakura-sakura.m4a",
-                    "bytes": 857445,
-                    "sha256": "43b951e48ff7bf2814c536824e985369ef3643f381331b99c02ba8f8a599d2f4"
+                    "bytes": 857947,
+                    "sha256": "97f9780da099c7856cf9835f76d39ca7fc66443483a1ee88b6ff15ff6782f905"
                 }
             ]
         },
@@ -2312,20 +2573,20 @@
                 {
                     "name": "shall-we-gather.mp3",
                     "bytes": 725395,
-                    "sha256": "6dcc9d44ecf49cd617daaf4eb8762257dd38b6b7ecc52ff2cc095939cb37d26a"
+                    "sha256": "7bbf4035e12d35d39ec0bcfc347f7e8393e754365bd0c7cd9c5a7c96bb4cd778"
                 },
                 {
                     "name": "shall-we-gather.m4a",
-                    "bytes": 724438,
-                    "sha256": "0535dc25fb8a3fa8e97a81e0763d6c8395fae7c16777b6bb6c2514b51d904651"
+                    "bytes": 724776,
+                    "sha256": "6cd042048a31108a7a923c851d59604215c88af9a7c559a05c02f9b67b0099d5"
                 }
             ]
         },
         "shchedryk": {
             "slug": "shchedryk",
             "title": "Shchedryk",
-            "version": 5,
-            "tempo": 132,
+            "version": 7,
+            "tempo": 120,
             "key": "Gm",
             "guides": {
                 "soprano": null,
@@ -2334,19 +2595,19 @@
                 "bass": null
             },
             "credit": "Words: traditional Ukrainian shchedrivka (New Year song). Tune: traditional Ukrainian folk melody. Arrangement: Stackapella.",
-            "duration": 42.135,
+            "duration": 46.09,
             "channels": 2,
             "lufs": -16,
             "files": [
                 {
                     "name": "shchedryk.mp3",
-                    "bytes": 675455,
-                    "sha256": "b4fe29e1e00b4eb830627fc15dc0e796fe62f737e15e870ffeffbb4c5638cce7"
+                    "bytes": 738815,
+                    "sha256": "e7b3381a89859469d82add218d0d3e03ac4527170d13235a622e25753ad586d1"
                 },
                 {
                     "name": "shchedryk.m4a",
-                    "bytes": 672898,
-                    "sha256": "44c82477856718c1346542f427016a7eca17c246996e0c603246ba1fee62ec86"
+                    "bytes": 738336,
+                    "sha256": "c274f52e4563423f9c05bb49551c2c4eb231264c602d4be2edecd3eb04650a63"
                 }
             ]
         },
@@ -2370,12 +2631,12 @@
                 {
                     "name": "shenandoah.mp3",
                     "bytes": 667428,
-                    "sha256": "5a7aae0577558df5d7e3a72fb35edd00b70abea040758bbf445ab95c8dfdc8ad"
+                    "sha256": "6b72ad6cce3fdaac1377bb7db4ef603b6eace09c2180ffa38bf5704671f998f8"
                 },
                 {
                     "name": "shenandoah.m4a",
-                    "bytes": 665456,
-                    "sha256": "156257a179a314626a58272318247a0a79cb962f3783ffc98e2e2e312b093da7"
+                    "bytes": 665769,
+                    "sha256": "a7e4256e92b7402f8e8af2e6b8b08ef73c86e9e45f3cbda4ac7750c8a3093fb5"
                 }
             ]
         },
@@ -2399,12 +2660,12 @@
                 {
                     "name": "shorty-george-blues.mp3",
                     "bytes": 2644599,
-                    "sha256": "cbe81537e1aa14fc2925cd2a6103368268995b58bb36165847339713ca920ec7"
+                    "sha256": "69c5899939792a22059be76f2a2d32819d87af64251a4c30bf8c47da9e09d774"
                 },
                 {
                     "name": "shorty-george-blues.m4a",
-                    "bytes": 2672381,
-                    "sha256": "e6f97e7db644ccc695f40a674095b8e03fac7c6c4478438720122f8811e72fdc"
+                    "bytes": 2672641,
+                    "sha256": "cb7e08ffe1ec80fba392a13c50161527a2fc0924ac618a794cbba2d2f0b2fd34"
                 }
             ]
         },
@@ -2428,12 +2689,12 @@
                 {
                     "name": "shoshanat-yaakov.mp3",
                     "bytes": 1570952,
-                    "sha256": "a38ff51acdaba2f1bd0bd9b67b8d6947eb480e4ee4287926a80316c1377bc934"
+                    "sha256": "bc7281e0e1adb39f2547b388b0d08f27bf57e5964251dc4f40e205e220ca9342"
                 },
                 {
                     "name": "shoshanat-yaakov.m4a",
-                    "bytes": 1583119,
-                    "sha256": "665ef159665899270c4126804859a8a1eca6506feefe68b76b6596f175bfb7a8"
+                    "bytes": 1582925,
+                    "sha256": "6d6678175c02b406681f0672c74a2359a11b9dbe7fb6a5e2aad09eb302cdd0f1"
                 }
             ]
         },
@@ -2457,12 +2718,12 @@
                 {
                     "name": "silent-night.mp3",
                     "bytes": 1046404,
-                    "sha256": "aefad98aed8fe37e91f2488bf2c59d3fb3495e73141f20054935bb148dda7c52"
+                    "sha256": "ca72ff339a182ca5dffb40b7ebcc43b3b690e9bed46f624227703efb49995969"
                 },
                 {
                     "name": "silent-night.m4a",
-                    "bytes": 1049373,
-                    "sha256": "83e297df58f803d5c9ac92a06801f97eefe8067872b5562f121884fd6c410337"
+                    "bytes": 1048567,
+                    "sha256": "b2db943dc0bf9e79ce683c5af240aee9765d6e2d961633b6ebbd21ec732dccb9"
                 }
             ]
         },
@@ -2486,12 +2747,12 @@
                 {
                     "name": "simple-gifts.mp3",
                     "bytes": 702736,
-                    "sha256": "b284c91d5b667fbaccbee3b7929318fbf58b8fdf2e02e227d99588e53222cefa"
+                    "sha256": "b7296b7fcf01d72a7a93a2055ef021d7104d2104bebf2f5b8117bb2cd4fa6abb"
                 },
                 {
                     "name": "simple-gifts.m4a",
-                    "bytes": 700903,
-                    "sha256": "8a56c5001dba8714924cccecab4ce5a28f20b434b6cecf13bea3061efc03b6ee"
+                    "bytes": 701134,
+                    "sha256": "03fd787c90afe721df4eeb20ea9459bdfe94af95a7d8345ac1d541d8e751bb41"
                 }
             ]
         },
@@ -2515,12 +2776,12 @@
                 {
                     "name": "skye-boat-song.mp3",
                     "bytes": 1519984,
-                    "sha256": "30d33baaa4369e7ce9e4a5b895423b1e7eafbc35140a2468247e3674f155600f"
+                    "sha256": "f0baa03cfd6afdb808386f474d1fbe4387ad8fccb0d0ac6e6f44f890e61da1a0"
                 },
                 {
                     "name": "skye-boat-song.m4a",
-                    "bytes": 1531616,
-                    "sha256": "bc9b04d9240bb3b68c4a6351ae3c43f763bdc905bd1f3244603db60f04f5db48"
+                    "bytes": 1532107,
+                    "sha256": "5251ecc5906a5dae66451edeced678d2aea699f63133f23b41337534f55e2535"
                 }
             ]
         },
@@ -2544,12 +2805,12 @@
                 {
                     "name": "spanish-ladies.mp3",
                     "bytes": 1642846,
-                    "sha256": "96a05e237289e2604f4c5140bc17bf9fc4c2b63c6302608f425e4f7a9d49f745"
+                    "sha256": "470bfcd36e454b751a585de4940dc0af0c1314281a33446436ad708cbd1beeda"
                 },
                 {
                     "name": "spanish-ladies.m4a",
-                    "bytes": 1657462,
-                    "sha256": "92d01f5f2dc805cce67ce7edf858c1e75128d6f702093b79851c52eadc43495e"
+                    "bytes": 1657544,
+                    "sha256": "4fa679e924edc8044d44e2090b8c49085d6c5d31cf28ea14f8623efe77e8e387"
                 }
             ]
         },
@@ -2573,12 +2834,12 @@
                 {
                     "name": "steal-away.mp3",
                     "bytes": 1439256,
-                    "sha256": "f97dd8859d14e447cf8e32f8dfae575de90a00ee9fa9e714144c489faa567867"
+                    "sha256": "2bbafe620490040c108e65e25fa7b841e31df61b47d8ccdd3e92b4c7b62f3ff7"
                 },
                 {
                     "name": "steal-away.m4a",
-                    "bytes": 1450315,
-                    "sha256": "7ceb601d013b941b385bd092039d542926ac510f5093b2d79f4530ef2232e074"
+                    "bytes": 1449977,
+                    "sha256": "a1b29843372907614a858b4c433a1835ef877ee47e85df72ae85f2920f8e3138"
                 }
             ]
         },
@@ -2602,12 +2863,12 @@
                 {
                     "name": "sweet-adeline.mp3",
                     "bytes": 562911,
-                    "sha256": "7051cfb22d12729200d084a59c2d17ce1c8e3f9d889f5501e70dd72c6da9bdb1"
+                    "sha256": "772c7c1bbfe3b495935ba31ddecf4266f22f13cad579fdb4085d806f98b4b662"
                 },
                 {
                     "name": "sweet-adeline.m4a",
-                    "bytes": 558995,
-                    "sha256": "7df8a5b9f7b437041a344d9eec6236a0a7d5fa465c5265deb67b8f198955503d"
+                    "bytes": 558740,
+                    "sha256": "42ddc5a2a2bda7942e6db9122de71585c82c4de3c465b479e5ee81b4db198067"
                 }
             ]
         },
@@ -2631,12 +2892,70 @@
                 {
                     "name": "swing-low.mp3",
                     "bytes": 1255334,
-                    "sha256": "ecbebbf0997b0ba1e5a7445ee28ccf50abbe4f785bd3e153e1e30f57a13490b9"
+                    "sha256": "ac317a951252d408f4606b0a86292b8cdb68a3104f42f70fedbc900c31a7f9eb"
                 },
                 {
                     "name": "swing-low.m4a",
-                    "bytes": 1261561,
-                    "sha256": "317e4cc4a145481cf1bc20c1ed5a5847c1ad077d899525bd704be58b5cb0baad"
+                    "bytes": 1261298,
+                    "sha256": "73b280f9961c13082c1aac6b801d5a948a101fa52f805999561ae3051f790441"
+                }
+            ]
+        },
+        "the-first-noel": {
+            "slug": "the-first-noel",
+            "title": "The First Noel",
+            "version": 1,
+            "tempo": 90,
+            "key": "D",
+            "guides": {
+                "soprano": null,
+                "alto": null,
+                "tenor": null,
+                "bass": null
+            },
+            "credit": "Words: Traditional English (as printed by Bramley and Stainer, 1867). Tune: Traditional English (as printed by Bramley and Stainer, 1867). Arrangement: John Stainer's four parts, adapted by Stackapella.",
+            "duration": 100.59,
+            "channels": 2,
+            "lufs": -16,
+            "files": [
+                {
+                    "name": "the-first-noel.mp3",
+                    "bytes": 1610962,
+                    "sha256": "bc79ed60e147499c1ab50a6f8c773f4177d928823caad785b3d97f114a78489c"
+                },
+                {
+                    "name": "the-first-noel.m4a",
+                    "bytes": 1624061,
+                    "sha256": "a9071be9deb03d19f9e46bb62ecaca70a36fa81de57f68e31e602b1f102e8c7a"
+                }
+            ]
+        },
+        "the-holly-and-the-ivy": {
+            "slug": "the-holly-and-the-ivy",
+            "title": "The Holly and the Ivy",
+            "version": 1,
+            "tempo": 90,
+            "key": "G",
+            "guides": {
+                "soprano": null,
+                "alto": null,
+                "tenor": null,
+                "bass": null
+            },
+            "credit": "Words: Traditional English (as printed by Cecil Sharp, 1911). Tune: Traditional English, as sung by Mrs Mary Clayton of Chipping Campden (noted and printed by Cecil Sharp, 1911). Arrangement: Stackapella.",
+            "duration": 102.59,
+            "channels": 2,
+            "lufs": -16,
+            "files": [
+                {
+                    "name": "the-holly-and-the-ivy.mp3",
+                    "bytes": 1642843,
+                    "sha256": "1e3176aa51ffae3c505e7a2d0e61e1fa48426d2ed8881b44b59f1965064e8484"
+                },
+                {
+                    "name": "the-holly-and-the-ivy.m4a",
+                    "bytes": 1657820,
+                    "sha256": "849a0c43350aba86d53752636e5f53e0d836aceda7daaf553ca9d07a6e67dbfe"
                 }
             ]
         },
@@ -2660,12 +2979,12 @@
                 {
                     "name": "the-lord-bless-you.mp3",
                     "bytes": 1514939,
-                    "sha256": "2b7d90bca21c93c903a1dc700facd599a488c6a0274ddffd17122c345874688c"
+                    "sha256": "e572f2299e65598529ea148ca7880cff84dde7e0777c1e2c551903071bbe9949"
                 },
                 {
                     "name": "the-lord-bless-you.m4a",
-                    "bytes": 1525905,
-                    "sha256": "11e386658aad8b3fd4d51964290e2838056090f9dc78623ef9676b48bef90c09"
+                    "bytes": 1526168,
+                    "sha256": "c49bcaa9d8b77dcee17e2c7545425afe278b9c857a720ab12b7bf3f0c2e7b6c0"
                 }
             ]
         },
@@ -2689,12 +3008,12 @@
                 {
                     "name": "the-water-is-wide.mp3",
                     "bytes": 1194752,
-                    "sha256": "e67e9e44e758d8e24b95576d4ea928ba49ec37feff1b52ca9b08c23cd3cfa4a6"
+                    "sha256": "9d48fec2fcbb6079a17b21938c314127d1356cec32a9232195c5608c950d47bc"
                 },
                 {
                     "name": "the-water-is-wide.m4a",
-                    "bytes": 1199655,
-                    "sha256": "fd3cbec4fd104b5dca984ea4dab5387e7b66ff2ed69f9c204d2d78bfd768fb83"
+                    "bytes": 1199723,
+                    "sha256": "9207b3aa9aca60bd21fdad6e1952d3da051a998b6ccc6d64f0fe77c4e9c33a73"
                 }
             ]
         },
@@ -2718,12 +3037,12 @@
                 {
                     "name": "three-blind-mice.mp3",
                     "bytes": 1216146,
-                    "sha256": "064c29e0f2126aefce3dbd2f7c0a6970990c138559497a0c374078f28ca3d2c6"
+                    "sha256": "17d352d81baf731be1ec36f9eed9000e531fefd44e53fa2b055084cccaa439be"
                 },
                 {
                     "name": "three-blind-mice.m4a",
-                    "bytes": 1218588,
-                    "sha256": "009794963592ac1a8a1fc6768c4934f3237a23b9927ecb625a3a7064cbbef6fb"
+                    "bytes": 1218857,
+                    "sha256": "aaeaa17c4ff4499c36f1e64360136919198f987417b5ff64d64a7aa247f7d0ba"
                 }
             ]
         },
@@ -2747,12 +3066,12 @@
                 {
                     "name": "tzur-mishelo.mp3",
                     "bytes": 1834801,
-                    "sha256": "d924933c6f575c3a89d947b85ed61ad59399a348bea52ee5e31836666f6751c2"
+                    "sha256": "067060db62c32bd401e964262ac75ee2919f8666f8f883b3d099a341513fec28"
                 },
                 {
                     "name": "tzur-mishelo.m4a",
-                    "bytes": 1851364,
-                    "sha256": "31a3a6dccf0e1d1949b6d8569ca5a77cfce87fe71b2879a57e79142ab53af866"
+                    "bytes": 1850867,
+                    "sha256": "36458e3a8bea03dbf8dde9b9252edb4c784f6ba5cdb396568b410d30ace53cad"
                 }
             ]
         },
@@ -2776,12 +3095,12 @@
                 {
                     "name": "wade-in-the-water.mp3",
                     "bytes": 956925,
-                    "sha256": "ee2705ef7c22e5e0b4e8e985aa9fb4a0daa1d900c62155f456dba7a476efccad"
+                    "sha256": "c8561a06b902e2101351cad0c530af7bc3a02dacd317b19502fd93cff7325350"
                 },
                 {
                     "name": "wade-in-the-water.m4a",
-                    "bytes": 960713,
-                    "sha256": "6759902025de214bc8fdf171918bcf8c6ebdd32e2359f43318c9e8dc32b87117"
+                    "bytes": 960205,
+                    "sha256": "cba7148832260acf3ca4ad1d21f2f57a8374f0db6f707fd91c221ea39da9ebe4"
                 }
             ]
         },
@@ -2805,12 +3124,41 @@
                 {
                     "name": "we-gather-together.mp3",
                     "bytes": 1077731,
-                    "sha256": "e7ce5b3bffa579933ac48d3c2801ec04c1bef38d3cdf6f850cb02ec6a18e7331"
+                    "sha256": "75f8386e71cfd540ac385a5a2e736a5daa649607ca4bde8e5c43e96bfbf3d9ce"
                 },
                 {
                     "name": "we-gather-together.m4a",
-                    "bytes": 1082584,
-                    "sha256": "fa9ea28cb8ff1915186c15588802f9248720ffe2b689e25ff901ec873726c63c"
+                    "bytes": 1082342,
+                    "sha256": "b8f9b141126cac92850c5a3a0bf18648b6f28bdf1b7ce881d25cebd643739da9"
+                }
+            ]
+        },
+        "we-three-kings": {
+            "slug": "we-three-kings",
+            "title": "We Three Kings of Orient Are",
+            "version": 1,
+            "tempo": 120,
+            "key": "Em",
+            "guides": {
+                "soprano": null,
+                "alto": null,
+                "tenor": null,
+                "bass": null
+            },
+            "credit": "Words: John Henry Hopkins Jr. (1857). Tune: John Henry Hopkins Jr. (1857). Arrangement: John Henry Hopkins Jr.'s trio and chorus (1863?), adapted by Stackapella.",
+            "duration": 98.59,
+            "channels": 2,
+            "lufs": -16,
+            "files": [
+                {
+                    "name": "we-three-kings.mp3",
+                    "bytes": 1578679,
+                    "sha256": "e0ff3aafd0abd3e02d3d168e1118323635d2f6fdf5520d7433401e1b11101f44"
+                },
+                {
+                    "name": "we-three-kings.m4a",
+                    "bytes": 1591318,
+                    "sha256": "70ba84918776a5463878076112c49ac0ee963ea74d6eed2d76c69df90aaabe59"
                 }
             ]
         },
@@ -2834,12 +3182,41 @@
                 {
                     "name": "were-you-there.mp3",
                     "bytes": 3431098,
-                    "sha256": "fb41cd0dcb9f46d3a01156792879f21b6db78aab85c7b7b34491ae31251b288a"
+                    "sha256": "d2693eaddfef3b431b3139a0bdc3d60052d830123a037775b3ca45ca7114ed00"
                 },
                 {
                     "name": "were-you-there.m4a",
-                    "bytes": 3480000,
-                    "sha256": "d8fb1d68e2225fec4ad63f5be47cf4240b74c8130fda0a256865f9763cadccc4"
+                    "bytes": 3480275,
+                    "sha256": "14dd3c026b472f2723c973ffa681fe7a0b39af24b683bbe4688531a06bb35acb"
+                }
+            ]
+        },
+        "what-child-is-this": {
+            "slug": "what-child-is-this",
+            "title": "What Child Is This?",
+            "version": 1,
+            "tempo": 60,
+            "key": "F#m",
+            "guides": {
+                "soprano": null,
+                "alto": null,
+                "tenor": null,
+                "bass": null
+            },
+            "credit": "Words: William Chatterton Dix (as printed in Bramley and Stainer, Christmas Carols New and Old). Tune: Greensleeves, Old English (as printed in Bramley and Stainer, Christmas Carols New and Old). Arrangement: Stackapella, on the harmony of Bramley and Stainer's Christmas Carols New and Old.",
+            "duration": 66.59,
+            "channels": 2,
+            "lufs": -16,
+            "files": [
+                {
+                    "name": "what-child-is-this.mp3",
+                    "bytes": 1066928,
+                    "sha256": "675ec1642d1d21533ab1bd31ecf4f978916608e4e73982673e8bb2d766d17912"
+                },
+                {
+                    "name": "what-child-is-this.m4a",
+                    "bytes": 1071317,
+                    "sha256": "405e793086c89ee1cf50ae1690203a6b13268a0c1a7a91ffac03808cf5d78582"
                 }
             ]
         },
@@ -2863,12 +3240,12 @@
                 {
                     "name": "white-coral-bells.mp3",
                     "bytes": 1802928,
-                    "sha256": "cc8f9682e01d22a6166fdc90b39f121274cdbc10b82eef87c99445e05decaee8"
+                    "sha256": "afd9bed4d70acadaae06297db6350b62fe23dd734b553fa835e44a1ccab059e3"
                 },
                 {
                     "name": "white-coral-bells.m4a",
-                    "bytes": 1817374,
-                    "sha256": "a1dbeb4b3254f697bda161302af2c34b5e82bb460928f487f5147dbc149479bf"
+                    "bytes": 1817939,
+                    "sha256": "79b2d540dd113fc291bb5e307334eb05f983ffb301e1b89a313b724f101bab6b"
                 }
             ]
         },
@@ -2892,12 +3269,12 @@
                 {
                     "name": "who-will-bow-and-bend.mp3",
                     "bytes": 1885851,
-                    "sha256": "2319db7aef211575a61ec9dc5ac61b920102c709c833a9369daf87c83aba74ee"
+                    "sha256": "45541a2a0dfcb9b2ed78d4ef40f29480827e70ec7e32564fe8914554c38f7d56"
                 },
                 {
                     "name": "who-will-bow-and-bend.m4a",
-                    "bytes": 1903890,
-                    "sha256": "156c26a312c8523e6a0e701ccb208d5504cc00930630046f2cc18e811269b1ee"
+                    "bytes": 1903543,
+                    "sha256": "139ab77bb65e8c0c4e5df0cc5f327c9843515f6023ce1388acbc2be76e70bbe2"
                 }
             ]
         },
@@ -2921,12 +3298,12 @@
                 {
                     "name": "will-ye-no-come-back-again.mp3",
                     "bytes": 1659677,
-                    "sha256": "56f323ce7b3253d0e9495802127974efcceec506a977fc9983cc0208eb454f86"
+                    "sha256": "40c996c3796c03aac04583dbb436b989fb8272f822ea6188a6a4c586524cfc2f"
                 },
                 {
                     "name": "will-ye-no-come-back-again.m4a",
-                    "bytes": 1673363,
-                    "sha256": "a3fb57529d39201fc220fb00f19fde4dce63e1f6d502bf490cf444ad04ea8709"
+                    "bytes": 1673238,
+                    "sha256": "01a665788c05b8050b23b30cc60ce67e8601cbca3428065d07e64edb413b7164"
                 }
             ]
         },
@@ -2950,12 +3327,12 @@
                 {
                     "name": "with-cat-like-tread.mp3",
                     "bytes": 725380,
-                    "sha256": "9cc685f32c9571a61c6fd7405085b044a9b8c3c1a97051d15edbec7d21e4c2a3"
+                    "sha256": "0043fa32e6e9c8fae836cfd1a0b8c9c444e79a47fcccf5fe86a8056c8b89c0f3"
                 },
                 {
                     "name": "with-cat-like-tread.m4a",
-                    "bytes": 721175,
-                    "sha256": "6e054392707312cc2675e712306a9eb4b3311a32b0206c5e6e25defabc798126"
+                    "bytes": 720911,
+                    "sha256": "90a018b023add7cfd68f8178781369be0021c1058906cccc972846653812bded"
                 }
             ]
         },
@@ -2979,12 +3356,12 @@
                 {
                     "name": "ye-banks-and-braes.mp3",
                     "bytes": 1578742,
-                    "sha256": "5e6415e6f280320d4c752f938a56dd20af35e3a3d156d8dc6f29189e7fe094e6"
+                    "sha256": "e5eac35f4735074d135a99283d571963fd6442f38a644e0c30788045f515a483"
                 },
                 {
                     "name": "ye-banks-and-braes.m4a",
-                    "bytes": 1593743,
-                    "sha256": "9c58b51083b4c03a3b5a28131cc04155c92dd9fd049029665717b7096adf95b5"
+                    "bytes": 1594378,
+                    "sha256": "d2a381fd158c9fc2b25c7d2c8ccee94fbadd1491a28315f3dab7e0fe84f0dbc3"
                 }
             ]
         }

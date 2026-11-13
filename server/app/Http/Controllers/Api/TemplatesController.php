@@ -40,22 +40,25 @@ final class TemplatesController extends Controller
     {
         $user = $request->user();
         $user = $user instanceof User ? $user : null;
-        $songs = $catalogue->songs();
+        // Each song as the catalogue keeps it (Catalogue::listing: no request reads every song's notes), then its voices.
+        $songs = $catalogue->listing();
 
         // A song withheld where the visitor is isn't listed there (docs/geo-rights-plan.md); admins and editors see all.
         if (! ($user?->is_admin || $user?->is_editor)) {
             $withheld = $rights->withheldSlugs(RightsHere::country($request));
-            $songs = $withheld === [] ? $songs : $songs->reject(static fn (Template $template): bool => in_array($template->slug, $withheld, true))->values();
+            $songs = $withheld === [] ? $songs : array_values(array_filter($songs, static fn (array $song): bool => ! in_array($song['id'], $withheld, true)));
         }
 
-        $startable = $songs->filter(fn (Template $template): bool => $catalogue->mayStart($template, $user));
-        $guides = $catalogue->guides($startable->pluck('current_version_id')->filter()->map(static fn (mixed $id): int => (int) $id)->values()->all());
+        // Who may start it (Catalogue::grant): a free song anyone, any other an account.
+        $startable = static fn (array $song): bool => $song['_free'] || $user !== null;
+        $versionIds = static fn (array $songs): array => array_values(array_filter(array_map(static fn (array $song): ?int => $song['_versionId'], $songs)));
+        $guides = $catalogue->guides($versionIds(array_filter($songs, $startable)));
         // Which parts have a real voice, for every song (one read): hasRealGuide and wantsVoice.
-        $voiced = TemplateGuide::query()->where('is_default', true)->whereIn('template_version_id', $songs->pluck('current_version_id')->filter())
+        $voiced = TemplateGuide::query()->where('is_default', true)->whereIn('template_version_id', $versionIds($songs))
             ->get(['template_version_id', 'part_key'])->mapWithKeys(static fn (TemplateGuide $g): array => [$g->template_version_id.':'.$g->part_key => true])->all();
 
         return response()->json([
-            'data' => $songs->map(fn (Template $template): array => (new CatalogueSongResource($template, $startable->contains($template) ? $guides : collect(), $voiced))->toArray($request))->values(),
+            'data' => array_map(static fn (array $song): array => CatalogueSongResource::finish($song, $startable($song) ? $guides : collect(), $voiced), $songs),
         ]);
     }
 

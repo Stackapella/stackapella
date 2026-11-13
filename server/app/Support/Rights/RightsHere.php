@@ -70,11 +70,12 @@ final class RightsHere
         if (! $this->on()) {
             return [];
         }
-        $songs = $this->catalogue->songs();
-        $key = 'rights:withheld:'.($country === '' ? '-' : $country).':'.now()->year.':'.hash('sha256', $songs->pluck('current_version_id')->implode(',').'|'.self::terms());
+        // Keyed by the catalogue's fingerprint (one cheap row), so the songs' notes are read only when it changes: this
+        // runs at every app start (auth.config) and for the library.
+        $key = 'rights:withheld:'.($country === '' ? '-' : $country).':'.now()->year.':'.hash('sha256', $this->catalogue->fingerprint().'|'.self::terms());
 
         /** @var list<string> */
-        return Cache::remember($key, now()->addHour(), fn (): array => $songs
+        return Cache::remember($key, now()->addHour(), fn (): array => $this->catalogue->songs()
             ->filter(fn (Template $template): bool => $this->withheld($template, $country) !== null)
             ->map(static fn (Template $template): string => (string) $template->slug)
             ->values()->all());

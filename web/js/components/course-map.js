@@ -28,7 +28,8 @@ import { game } from '../skin.js';
 export const CourseMap = {
     components: { CourseWall, Icon, StageMap },
     // A Plus course's data (js/courses.js); the free course when none.
-    props: { course: { type: Object, default: null }, focusUnit: { type: String, default: null } }, // focusUnit: a song course's part, picked on the song page
+    // focusUnit: a song course's part, picked on the song page. upNext: the lesson the page's Up next already starts.
+    props: { course: { type: Object, default: null }, focusUnit: { type: String, default: null }, upNext: { type: String, default: null } },
     data: () => ({ expanded: null, picked: {} }),
     setup: () => ({ learning, localized, lessonMinutes, effect, game, formatNumber, BOSS_PASS }),
     template: `
@@ -54,8 +55,10 @@ export const CourseMap = {
                 <div v-if="isOpen(u)" class="border-t border-edge px-5 pb-5 pt-6">
                     <!-- Game mode's stage select (docs/game-elements-plan.md): the open unit as a map -->
                     <StageMap v-if="effect('stages')" :nodes="mapNodes(u, unit)" :colour="colorOf(unit)" @pick="(id) => pick(u, id)" />
-                    <ol v-else class="flex items-start" :aria-label="t('home.lead.path')">
-                        <li v-for="(lesson, i) in unit.lessons" :key="lesson.id" class="relative flex min-w-0 flex-1 flex-col items-center gap-2 text-center">
+                    <!-- More than five lessons (a song course's seven): on a phone the path scrolls sideways, each lesson a column wide
+                         enough for its name, instead of squeezing the bubbles over each other (the finish-line audit, 2026-11-13). -->
+                    <ol v-else class="flex items-start" :class="unit.lessons.length > 5 ? 'max-md:-mx-5 max-md:snap-x max-md:overflow-x-auto max-md:px-5 max-md:pb-1 max-md:[scrollbar-width:none]' : ''" :aria-label="t('home.lead.path')" :data-lesson-path="u">
+                        <li v-for="(lesson, i) in unit.lessons" :key="lesson.id" class="relative flex min-w-0 flex-1 flex-col items-center gap-2 text-center" :class="unit.lessons.length > 5 ? 'max-md:w-20 max-md:flex-none max-md:snap-center' : ''" :data-path-lesson="lesson.id">
                             <span v-if="i > 0" class="absolute end-1/2 top-7 h-0.5 w-full -translate-y-1/2" :style="{ background: stars(unit.lessons[i - 1]) ? colorOf(unit) : 'var(--color-line)' }" aria-hidden="true"></span>
                             <button type="button" class="relative z-[1] grid size-14 place-items-center transition disabled:cursor-not-allowed" :class="[nodeClass(unit, lesson), pickedId(u) === lesson.id ? pickedClass(lesson) : '']" :style="nodeStyle(unit, lesson)" :disabled="locked(u, unit, lesson)"
                                 :aria-label="game() ? t('course.lessonLabel', { title: localized(lesson.title), stars: stars(lesson) }) : stars(lesson) ? t('course.lessonDone', { title: localized(lesson.title) }) : localized(lesson.title)" :aria-current="lesson.id === current ? 'step' : null" :aria-pressed="pickedId(u) === lesson.id ? 'true' : 'false'" :data-node="stars(lesson) ? 'done' : lesson.id === current ? 'now' : locked(u, unit, lesson) ? 'locked' : lesson.challenge ? 'challenge' : 'next'" @click="pick(u, lesson.id)">
@@ -74,7 +77,8 @@ export const CourseMap = {
                         <p v-if="!open(u)" class="mt-4 text-sm text-muted" data-lesson-locked>{{ game() ? t('course.locked') : t('course.lockedSerious') }}</p>
                         <!-- Signed out past a course's first lesson (Hillel, 2026-11-06): a free account, never a price. -->
                         <CourseWall v-else-if="needsAccount(pickedLesson(u))" compact place="map" :course="course" :lesson-id="pickedLesson(u).id" class="mt-4" />
-                        <button v-else type="button" class="btn-primary mt-4 w-full" @click="navigate('/learn/' + pickedLesson(u).id)">{{ stars(pickedLesson(u)) ? t('course.replay') : t('course.startLesson') }}</button>
+                        <!-- Up next above already starts this one: no second Start lesson. -->
+                        <button v-else-if="pickedLesson(u).id !== upNext" type="button" class="btn-primary mt-4 w-full" @click="navigate('/learn/' + pickedLesson(u).id)">{{ stars(pickedLesson(u)) ? t('course.replay') : t('course.startLesson') }}</button>
                     </div>
                     <!-- The unit's boss (docs/boss-round-plan.md): optional, past week one; locked until the challenge has stars. -->
                     <div v-if="bossOf(unit) && open(u)" class="mt-4 flex flex-wrap items-center gap-x-4 gap-y-3 rounded-2xl border border-line p-4" data-ui="boss-row" data-boss-row :data-open="bossOf(unit).open ? '' : null">
@@ -89,6 +93,12 @@ export const CourseMap = {
                 </div>
             </li>
         </ol>`,
+    mounted() {
+        this.centrePaths();
+    },
+    updated() {
+        this.centrePaths();
+    },
     created() {
         loadLearning();
     },
@@ -110,6 +120,16 @@ export const CourseMap = {
         },
     },
     methods: {
+        /** A path that scrolls (more than five lessons, on a phone): the lesson you're on in the middle of it, once. */
+        centrePaths() {
+            for (const ol of this.$el?.querySelectorAll?.('[data-lesson-path]') ?? []) {
+                if (ol.dataset.centred || ol.scrollWidth <= ol.clientWidth) continue;
+                const now = ol.querySelector('[aria-current]')?.closest('li');
+                if (!now) continue;
+                ol.scrollLeft = now.offsetLeft - (ol.clientWidth - now.offsetWidth) / 2;
+                ol.dataset.centred = '1';
+            }
+        },
         navigate,
         maxStars,
         starsToOpen,

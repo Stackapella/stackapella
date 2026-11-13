@@ -62,6 +62,19 @@ def journey(f):
     assert t(f, "songCourse.eyebrow") in f.js("document.querySelector('header').innerText"), "named as the song's step by step course"
     no_star_words(f, "the course page")
     f.no_sideways("the song's course page")
+    # The open unit's seven lessons (the finish-line audit, 2026-11-13): no bubble over another, every name whole (on a
+    # phone the path scrolls sideways instead), and the lesson card under it doesn't repeat Up next's Start lesson.
+    # Game mode draws the open unit as its stage map instead of the path.
+    if f.skin != "game":
+        path = f.js("""(() => {
+            const ol = document.querySelector('[data-lesson-path]');
+            const bubbles = [...ol.querySelectorAll('li > button')].map((b) => b.getBoundingClientRect());
+            const overlaps = bubbles.slice(1).filter((r, i) => r.left < bubbles[i].right - 0.5).length;
+            const cut = [...ol.querySelectorAll('li > span.line-clamp-2')].filter((s) => s.scrollHeight > s.clientHeight + 1 || s.scrollWidth > s.clientWidth + 1).map((s) => s.textContent);
+            return { lessons: bubbles.length, overlaps, cut, scrolls: ol.scrollWidth > ol.clientWidth };
+        })()""")
+        assert path["lessons"] >= 6 and not path["overlaps"] and not path["cut"], f"the lesson path: {path}"
+    assert not f.js("document.querySelector('[data-picked-lesson] .btn-primary')"), "the lesson card repeats Up next's Start lesson"
     picture(f, "song-course-page")
 
     # A part picked: Up next is in its unit.

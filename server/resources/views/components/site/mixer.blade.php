@@ -6,7 +6,7 @@
      switched on at first (A cappella's stack starts with the bass alone); the rest start off. `foot`, a
      named slot, is the card's last row (the landing's facts; a song page's Learn and Share). `picked` false starts
      with no part yours (a song page: nothing looks picked until it is). A part's `line`, when given, is its row's small
-     line (a song page's "Melody · B3 to E5"), else its role. --}}
+     line (a song page's "Melody"), with its `rangeLine` after it ("· B3 to E5", one unbroken piece), else its role. --}}
 @props(['song', 'id' => 'mixer', 'studio' => false, 'on' => null, 'picked' => true])
 <div @class(['s-mixer', 's-mixer-studio' => $studio]) id="{{ $id }}" data-player role="group" aria-labelledby="{{ $id }}-title">
     <script type="application/json" data-song>@json($song)</script>
@@ -39,7 +39,7 @@
                 <span class="s-ch-name" aria-hidden="true"><b>@unless ($studio)<span class="s-ch-play"><x-site.icon name="play" size="12" /></span>@endunless{{ $part['name'] }}</b>
                     <span class="s-you">{{ __('pages.landing.hero.you') }}</span>
                     @if (is_string($part['line'] ?? null))
-                        <small>{{ $part['line'] }}</small>
+                        <small>{{ $part['line'] }}@if (is_string($part['rangeLine'] ?? null)) <span class="s-ch-range" translate="no">· {{ $part['rangeLine'] }}</span>@endif</small>
                     @elseif (\Illuminate\Support\Facades\Lang::has('pages.landing.hero.roles.'.$part['key']))
                         <small>{{ __('pages.landing.hero.roles.'.$part['key']) }}</small>
                     @endif

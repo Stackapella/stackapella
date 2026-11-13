@@ -121,6 +121,7 @@ function setUp(root) {
     const sets = [...root.querySelectorAll('[data-set]')];
     // A row you tap to hear its part alone, and again for all of them (the hero's mixer, outside the Studio).
     const alone = new Map([...root.querySelectorAll('[data-voice]')].map((el) => [el.dataset.voice, el.querySelector('[data-hear-alone]')]).filter(([, el]) => el));
+    let heardAlone = null; // the part heard alone, last said to the page
     const marks = [...root.querySelectorAll('[data-beat]')].map((el) => ({
         el,
         from: Number(el.dataset.beat) * secondsPerBeat,
@@ -323,6 +324,11 @@ function setUp(root) {
         // The row heard alone, when one is: [data-solo] on it, its button pressed and saying it brings the others back.
         const heard = [...on].filter(([, value]) => value).map(([key]) => key);
         const only = heard.length === 1 && on.size > 1 ? heard[0] : null;
+        // Said to the page when it changes (a song page's Learn follows the part heard alone until one is picked).
+        if (only !== heardAlone && alone.size) {
+            heardAlone = only;
+            root.dispatchEvent(new CustomEvent('mixer-solo', { bubbles: true, detail: { key: only } }));
+        }
         for (const [key, button] of alone) {
             const solo = key === only;
             voices.get(key)?.toggleAttribute('data-solo', solo);

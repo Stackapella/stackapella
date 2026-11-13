@@ -127,7 +127,7 @@ export const CourseView = {
             <!-- Back to the course on day one after two lessons or more (onboarding step 5): the session's wrap here too. -->
             <SessionWrap v-if="wrap" class="mt-4" :lessons="wrap.lessons" :stars="wrap.stars" />
             <WhatsNext v-if="learning.loaded && !waiting" class="mt-6" />
-            <CourseMap class="mt-6" />
+            <CourseMap class="mt-6" :up-next="next?.lesson.id ?? null" />
             <!-- Voice care's cool-down (docs/voice-care-plan.md): a quiet way in, never a card. -->
             <p v-if="!inFirstWeek()" class="mt-6 text-sm text-muted" data-cooldown-link>{{ t('voiceCare.mapLine') }} <a href="/cooldown" class="link" @click.prevent="navigate('/cooldown')">{{ t('voiceCare.coolDown') }}</a></p>
             <MoreCourses class="mt-10" />

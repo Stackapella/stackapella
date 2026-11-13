@@ -19,6 +19,10 @@ return [
 
     'default' => env('CACHE_STORE', 'database'),
 
+    // A store on this instance alone, never a shared write: the public pages' rate limiter counts here
+    // (App\Http\Middleware\Throttle), right while there's one web instance (.do/app.yaml, instance_count).
+    'instance_store' => env('CACHE_INSTANCE_STORE', 'file'),
+
     /*
     |--------------------------------------------------------------------------
     | Cache Stores

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Resources;
 
+use App\Enums\TemplateAccess;
 use App\Models\Template;
 use App\Models\TemplateGuide;
 use App\Support\Languages\SongWords;
@@ -30,14 +31,6 @@ final class CatalogueSongResource extends JsonResource
     public function __construct(Template $template, private readonly Collection $guides, private readonly array $voiced = [])
     {
         parent::__construct($template);
-    }
-
-    /**
-     * @return Collection<int, TemplateGuide>
-     */
-    private function versions(?int $versionId, string $partKey): Collection
-    {
-        return $this->guides->get($versionId.':'.$partKey) ?? new Collection;
     }
 
     /**
@@ -69,14 +62,22 @@ final class CatalogueSongResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        $template = $this->resource;
+        return self::finish(self::fixed($this->resource), $this->guides, $this->voiced);
+    }
+
+    /**
+     * What a song says whoever asks and whenever: everything from its current version and its row, but not its voices
+     * or its season. The catalogue keeps these (Catalogue::listing) so the library never reads every song's notes for
+     * a request; self::finish() adds the rest. Its `_` keys are for finish() alone, never sent.
+     *
+     * @return array<string, mixed>
+     */
+    public static function fixed(Template $template): array
+    {
         $version = $template->currentVersion;
-        /** @var array<string, mixed> $data */
         $data = $version->data ?? [];
-        /** @var list<array{key: string, name: string, range: array{low: int, high: int}}> $parts */
-        $parts = (array) ($data['parts'] ?? []);
-        // Each part's coarse shape for Home's covers (no notes, no words): a little arithmetic on
-        // the notes, cheaper than a cache lookup a song.
+        $parts = array_values(array_filter((array) ($data['parts'] ?? []), 'is_array'));
+        // Each part's coarse shape for Home's covers (no notes, no words): a little arithmetic on the notes.
         $shapes = SongShape::of($data);
 
         return [
@@ -89,7 +90,8 @@ final class CatalogueSongResource extends JsonResource
             // The /songs group it sits in (SongCollections::group, as /songs and its A to Z place it), null for "more";
             // and its own titles in other languages, for the app's Browse all (frontend, 2026-11-12).
             'group' => ($group = SongCollections::group(array_values(array_filter((array) ($data['genre'] ?? []), 'is_string')))) === 'more' ? null : $group,
-            'titles' => (object) SongWords::titles((string) $template->slug),
+            // Arrays here, objects in self::finish(): the cache restores no objects (cache.serializable_classes).
+            'titles' => SongWords::titles((string) $template->slug),
             'language' => (string) ($data['language'] ?? 'en'),
             'key' => (string) ($data['key'] ?? ''),
             'tempo' => $data['tempo'] ?? 0,
@@ -97,8 +99,8 @@ final class CatalogueSongResource extends JsonResource
             'reviewed' => (bool) $version?->reviewed,
             // When it opened in the library (its first reviewed version), for Home's "New and in season"; null while hidden.
             'openedAt' => $template->opened_at?->utc()->toIso8601ZuluString(),
-            // In season now (config templates.seasons: carols until 26 December), for Home's tag; null otherwise.
-            'season' => self::season((array) ($data['genre'] ?? [])),
+            // In season now (config templates.seasons): self::finish(), by the day.
+            'season' => null,
             // free: the app bundles it, guests too; account: any signed-in account (2026-11-07).
             'access' => $template->access->api(),
             // The song of the month ended (2026-11-07); always null, for older apps.
@@ -106,20 +108,46 @@ final class CatalogueSongResource extends JsonResource
             'previewUrl' => $template->preview_key !== null ? Storage::disk('media')->url($template->preview_key) : null,
             // Which parts sing for each number of singers (the library card's "2 to 4 singers"); an
             // object always, {} when the song has none.
-            'voicings' => (object) array_map(static fn (mixed $keys): array => array_values(array_filter((array) $keys, 'is_string')), (array) ($data['voicings'] ?? [])),
-            'parts' => array_map(fn (array $part): array => [
+            'voicings' => array_map(static fn (mixed $keys): array => array_values(array_filter((array) $keys, 'is_string')), (array) ($data['voicings'] ?? [])),
+            'parts' => array_map(static fn (array $part): array => [
                 'key' => $part['key'],
                 'name' => $part['name'],
                 'range' => ['low' => $part['range']['low'], 'high' => $part['range']['high']],
                 'shape' => $shapes[$part['key']] ?? [],
-                'guide' => ($guide = $this->versions($version?->id, $part['key'])->firstWhere('is_default', true)) !== null ? GuideRecording::of($guide) : null,
-                // Every published version, for the learner's choice of voice (the default first).
-                'versions' => $this->versions($version?->id, $part['key'])->map(static fn (TemplateGuide $g): array => [...GuideRecording::of($g), 'default' => $g->is_default])->values()->all(),
-                // A real voice sings it (docs/open-guide-voices-plan.md), whether or not this caller may start the song.
-                'hasRealGuide' => isset($this->voiced[$version?->id.':'.$part['key']]),
             ], $parts),
-            // An open song with a part still on the synth: "Be the voice" may ask for it.
-            'wantsVoice' => Catalogue::isOpen($template) && collect($parts)->contains(fn (array $part): bool => ! isset($this->voiced[$version?->id.':'.$part['key']])),
+            '_versionId' => $version?->id,
+            '_open' => Catalogue::isOpen($template),
+            '_free' => $template->access === TemplateAccess::Free,
         ];
+    }
+
+    /**
+     * A song as the library sends it: self::fixed() with its season today, each part's voices (only for a caller who may
+     * start it: `$guides` is empty otherwise) and whether a real voice sings it.
+     *
+     * @param  array<string, mixed>  $fixed
+     * @param  Collection<string, Collection<int, TemplateGuide>>  $guides
+     * @param  array<string, bool>  $voiced
+     * @return array<string, mixed>
+     */
+    public static function finish(array $fixed, Collection $guides, array $voiced): array
+    {
+        $versionId = $fixed['_versionId'];
+        $versions = static fn (string $part): Collection => $guides->get($versionId.':'.$part) ?? new Collection;
+        $parts = array_map(static fn (array $part): array => [
+            ...$part,
+            'guide' => ($guide = $versions($part['key'])->firstWhere('is_default', true)) instanceof TemplateGuide ? GuideRecording::of($guide) : null,
+            // Every published version, for the learner's choice of voice (the default first).
+            'versions' => $versions($part['key'])->map(static fn (TemplateGuide $g): array => [...GuideRecording::of($g), 'default' => $g->is_default])->values()->all(),
+            // A real voice sings it (docs/open-guide-voices-plan.md), whether or not this caller may start the song.
+            'hasRealGuide' => isset($voiced[$versionId.':'.$part['key']]),
+        ], $fixed['parts']);
+        $song = [...$fixed, 'titles' => (object) $fixed['titles'], 'season' => self::season($fixed['genre']), 'voicings' => (object) $fixed['voicings'], 'parts' => $parts,
+            // An open song with a part still on the synth: "Be the voice" may ask for it.
+            'wantsVoice' => $fixed['_open'] && collect($parts)->contains(static fn (array $part): bool => ! $part['hasRealGuide']),
+        ];
+        unset($song['_versionId'], $song['_open'], $song['_free']);
+
+        return $song;
     }
 }

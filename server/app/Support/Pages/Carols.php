@@ -52,7 +52,8 @@ final class Carols
             return [];
         }
 
-        return $this->slugs ??= array_values($this->parts->songs()->filter(self::isCarol(...))->map(static fn (Template $template): string => (string) $template->slug)->all());
+        // From the open songs' index, not their notes: every song page asks (its trail, SongCollections::home).
+        return $this->slugs ??= array_values(array_map(static fn (array $song): string => $song['slug'], array_filter($this->parts->index(), static fn (array $song): bool => self::carolGenres($song['genre']))));
     }
 
     /**
@@ -167,8 +168,12 @@ final class Carols
 
     public static function isCarol(Template $template): bool
     {
-        $genres = array_filter((array) (((array) $template->currentVersion?->data)['genre'] ?? []), 'is_string');
+        return self::carolGenres(array_values(array_filter((array) (((array) $template->currentVersion?->data)['genre'] ?? []), 'is_string')));
+    }
 
+    /** @param  list<string>  $genres  a song's own */
+    private static function carolGenres(array $genres): bool
+    {
         return array_intersect(array_map(static fn (string $genre): string => strtolower(trim($genre)), $genres), self::GENRES) !== [];
     }
 

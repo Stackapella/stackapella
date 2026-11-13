@@ -35,18 +35,19 @@
     <x-site.header />
     {{-- The part Learn names until one is picked: the melody's (Hillel's "Melody first"). --}}
     @php($first = collect($cards)->firstWhere('melody', true) ?? ($cards[0] ?? null))
-    {{-- Each part's row in the player says its tag and range ("Melody · B3 to E5"), so the choice is made where you hear. --}}
+    {{-- Each part's row in the player says its tag and range ("Melody · B3 to E5"), so the choice is made where you hear;
+         the range is its own piece, kept on one line. --}}
     {{-- A round's parts all sing the tune, entering in turn: each one's tag says so, never Melody and Harmony. --}}
     @php($tagOf = \App\Support\Pages\SongParts::round($song['genre']) ? static fn (array $card): string => 'tune' : static fn (array $card): string => $card['tag'])
-    @php($rowLine = static fn (array $card): string => __('pages.song.row_line', ['tag' => __('pages.song.tag.'.$tagOf($card)), 'range' => __('pages.song.range', ['low' => \App\Support\Pages\Carols::signs($card['low']), 'high' => \App\Support\Pages\Carols::signs($card['high'])])]))
+    @php($rangeOf = static fn (array $card): string => __('pages.song.range', ['low' => \App\Support\Pages\Carols::signs($card['low']), 'high' => \App\Support\Pages\Carols::signs($card['high'])]))
     @if ($line !== null)
         @php($byKey = collect($cards)->keyBy('key'))
-        @php($line['parts'] = array_map(static fn (array $part): array => $byKey->has($part['key']) ? [...$part, 'line' => $rowLine($byKey->get($part['key']))] : $part, $line['parts']))
+        @php($line['parts'] = array_map(static fn (array $part): array => $byKey->has($part['key']) ? [...$part, 'line' => __('pages.song.tag.'.$tagOf($byKey->get($part['key']))), 'rangeLine' => $rangeOf($byKey->get($part['key']))] : $part, $line['parts']))
     @endif
     <main data-sg-page>
         {{-- Learn's part for each pick (js/public/song-page.js follows the player's "I sing this"). --}}
         @if ($first !== null)
-            <script type="application/json" data-learn-parts>@json(collect($cards)->mapWithKeys(fn (array $card): array => [$card['key'] => ['name' => mb_strtolower($card['name']), 'href' => $learn[$card['key']]]]))</script>
+            <script type="application/json" data-learn-parts data-first="{{ $first['key'] }}">@json(collect($cards)->mapWithKeys(fn (array $card): array => [$card['key'] => ['name' => mb_strtolower($card['name']), 'href' => $learn[$card['key']]]]))</script>
         @endif
         {{-- The top, in its collection's palette: where you are, the song, its lead and facts as chips; beside it on a wide
              screen (under it on a phone), the whole song to play, a row a part, and under the rows Learn the part you
@@ -59,7 +60,7 @@
                     <h1 id="page-h" translate="no">{{ $song['title'] }}</h1>
                     <p class="s-lead">{{ $story !== null && $story['lead'] !== '' ? $story['lead'] : $song['description'] }}</p>
                     <ul class="s-sg-chips">
-                        <li class="s-sg-chip-free">{{ __('pages.song.free') }}</li>
+                        <li class="s-sg-chip-free">{{ __(($song['account'] ?? false) ? 'pages.song.free_account' : 'pages.song.free') }}</li>
                         <li>{{ __('pages.songs.parts', ['count' => count($song['parts'])]) }}</li>
                         @if (\Illuminate\Support\Facades\Lang::has('pages.song.difficulty.'.$song['difficulty']))
                             <li>{{ __('pages.song.difficulty.'.$song['difficulty']) }}</li>

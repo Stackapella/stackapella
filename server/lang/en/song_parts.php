@@ -180,7 +180,7 @@ return [
         'soprano' => 'Carries Kirkpatrick\'s gentle tune in three time, which reaches its top E on "a" in "no crib for a bed" and on "He" in "looked down where He lay".',
         'alto' => 'Sings Kirkpatrick\'s second voice, smoothed in places so it moves by step, mostly a sixth or a third under the tune, mostly on B, D and C.',
         'tenor' => 'Fills in the middle of the chord, mostly on G, with A, F-sharp and C where the chords change.',
-        'bass' => 'Sings the lowest notes of Kirkpatrick\'s accompaniment, low and gentle, mostly on G and D.',
+        'bass' => 'Sings a bass line of our own on Kirkpatrick\'s harmony, low and gentle, mostly on G and D.',
     ],
     'the-lord-bless-you' => [
         'soprano' => 'Sings the top line of the blessing, then comes into the Amen last and rises to the highest note of the piece, a G, in its second Amen.',
@@ -274,7 +274,7 @@ return [
     ],
     'now-is-the-month-of-maying' => [
         'soprano' => 'Carries Morley\'s dancing tune, often up on its top D, on "playing", "his bonny lass" and the fa las, and down to the D an octave below in the fa las.',
-        'alto' => 'Sings a tune of its own close under the soprano, mostly on G and F-sharp, reaching A only in the second half, on "his bonny", "grass" and its fa las.',
+        'alto' => 'Sings a tune of its own close under the soprano, mostly on G and F-sharp, reaching A only in the second half, on "his bonny" and its fa las.',
         'tenor' => 'Sings Morley\'s two tenor parts joined into one, most often on D, up to F on "his" and down to E in the second half\'s fa las.',
         'bass' => 'Sings the foundation, mostly D and G, from a low G on "Now", "Maying", "When" and the fa las up to A on "bonny" and the "Fa" after "grass".',
     ],
@@ -501,7 +501,7 @@ return [
         'bass' => 'Rests while the soprano sings each verse alone and joins for "Ki lo nae, ki lo yae." and every answer, singing the bass line, most often on D, then B, up to its top F-sharp on the "lecha" before "Adoshem" in every answer, and down to its low F-sharp, an octave under it, on every "nae," and the "ki" after it, and on "af", the "lecha," after it and "hamamlacha," in every answer.',
     ],
     'lecha-dodi' => [
-        'soprano' => 'Carries the tune Francis L. Cohen printed for the weeks of the Omer, most often on G, then B, up to its top E on every "dodi", and down to its low D on every "penei", on "Shamor" and "Adoshem" in verse 1 and on the first "Boi" and "toch" in verse 9.',
+        'soprano' => 'Carries the tune Abraham Baer printed for the weeks of the Omer, most often on G, then B, up to its top E on every "dodi", and down to its low D on every "penei", on "Shamor" and "Adoshem" in verse 1 and on the first "Boi" and "toch" in verse 9.',
         'alto' => 'Sings under the tune, mostly a third or a sixth below it, most often on E, then C, up to its top B on every "Lecha", on "velithila." at the end of verse 1 and on "chala!" at the end of verse 9, and down to its low B on every "penei" and "nekabela.", on "Shamor", both "echad,", "hishmianu", "hameyuchad." and "Adoshem" in verse 1, and on the first "Boi", "bala,", "gam", "uvetzahala,", "toch" and "segula." in verse 9.',
         'tenor' => 'Sings the middle of the chord, most often on G, then C, up to its top D on every "Lecha", and down to its low D, an octave under it, only on the very last "nekabela.".',
         'bass' => 'Sings the bass line, most often on C, then D, up to its top E on "bedibur", "hishmianu", "ushmo" and "ultiferet" in verse 1 and on "ateret", "gam", "am", "chala," and the "boi" after it in verse 9, and down to its low G on every "Lecha", "likrat", "Shabat" and "nekabela." and on the last word of every line of both verses: both "echad,", "hameyuchad." and "velithila." in verse 1, and "bala,", "uvetzahala,", "segula." and "chala!" in verse 9.',

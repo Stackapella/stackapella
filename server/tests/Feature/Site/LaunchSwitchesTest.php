@@ -34,7 +34,8 @@ final class LaunchSwitchesTest extends TestCase
         $this->get('/courses/'.$this->aCourseStillComing())->assertOk()
             ->assertSee(__('pages.site.course_soon'))
             ->assertDontSee(__('pages.site.course_try'));
-        $this->get('/courses')->assertOk()->assertSee(__('pages.site.course_open'));
+        // The open course offers its first lesson from /courses (Hillel's design, 2026-11-13); the others say Soon.
+        $this->get('/courses')->assertOk()->assertSee(__('site.courses.index.try'))->assertSee('?ref=courses-hub', false)->assertSee(__('site.courses.index.soon'));
     }
 
     public function test_the_free_plan_lists_every_course_once_they_open(): void

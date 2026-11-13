@@ -34,6 +34,6 @@ final class CarolsPageController extends Controller
             'tonight' => Carols::tonight($songs),
             'totals' => Carols::totals($songs),
             'canonical' => Hosts::publicUrl().Carols::PATH,
-        ], 200, SongPagesController::headers());
+        ], 200, SongPagesController::edgeHeaders());
     }
 }

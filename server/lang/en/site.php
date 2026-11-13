@@ -7975,14 +7975,36 @@ return [
             'description' => 'Deeper courses for your voice, in short lessons: counterpoint, vibrato, range, diction, sight-singing, scat, barbershop and more. Every course is free.',
             'headline' => 'Free singing courses',
             'lead' => 'Deeper courses for your voice, built on the same short lessons as the beginner course. Every course is free: try the first lesson without an account, and a free account opens the rest. More are on the way.',
+            // Hillel's courses page with filters (2026-11-13): the head, the Start here card, the filters and the close.
+            'kicker' => 'Courses',
+            'lead_count' => ':count courses, all built from short lessons. Try the first lesson of any course without an account; a free account opens the rest.',
+            'start_kick' => 'Start here · Beginner course',
+            'start_title' => 'From your first note',
+            'start_title_2' => 'to four-part harmony',
+            'start_body' => 'Find your comfortable note, then build up to singing all four parts of Amazing Grace.',
+            'start_button' => 'Start lesson 1',
+            'start_meta' => ':units units · :lessons lessons · no account to start',
+            'filter_label' => 'Show courses',
+            'search_label' => 'Search courses',
+            'search_placeholder' => 'Search courses',
+            'group_meta' => '{1} :count course|[2,*] :count courses',
+            'group_soon' => ':count coming soon',
+            'try' => 'Try lesson 1',
+            'soon' => 'Soon',
+            'empty' => 'No courses match “:q”',
+            'show_all' => 'Show all courses',
+            'shown' => '{0} No courses shown|{1} :count course shown|[2,*] :count courses shown',
+            'close_title' => 'Not sure where to begin?',
+            'close_body' => 'The beginner course takes you from one steady note to four-part harmony, a few minutes at a time.',
+            'close_button' => 'Start the beginner course',
         ],
         // Singing skills, Harmony and Styles (Hillel), as the app's catalogue has them
         // (web/course/plus/courses.json: `group` and `order` win where a course is listed). The first
         // in each are the launch courses; Vibrato is featured.
         'groups' => [
-            'skills' => ['name' => 'Singing skills', 'icon' => 'mic', 'courses' => ['perfect-your-pitch', 'breath-and-stamina', 'ear-training', 'vibrato', 'range-and-registers', 'humming-and-lip-trills', 'belting', 'diction', 'other-languages']],
-            'harmony' => ['name' => 'Harmony', 'icon' => 'spark', 'courses' => ['counterpoint', 'improvising-harmony', 'learn-your-choir-part', 'barbershop', 'sight-singing', 'a-cappella-bass', 'gospel-runs', 'scat', 'backing-vocals']],
-            'styles' => ['name' => 'Styles', 'icon' => 'hum', 'courses' => ['folk-and-early-music', 'yodeling', 'pop-and-country', 'musical-theatre', 'whistling', 'live-looping', 'sea-shanties-and-work-songs', 'classical-singing-basics', 'blues-singing']],
+            'skills' => ['name' => 'Singing skills', 'blurb' => 'Technique for your own voice.', 'icon' => 'mic', 'courses' => ['perfect-your-pitch', 'breath-and-stamina', 'ear-training', 'vibrato', 'range-and-registers', 'humming-and-lip-trills', 'belting', 'diction', 'other-languages']],
+            'harmony' => ['name' => 'Harmony', 'blurb' => 'Singing with, and against, other parts.', 'icon' => 'spark', 'courses' => ['counterpoint', 'improvising-harmony', 'learn-your-choir-part', 'barbershop', 'sight-singing', 'a-cappella-bass', 'gospel-runs', 'scat', 'backing-vocals']],
+            'styles' => ['name' => 'Styles', 'blurb' => 'Genres and traditions.', 'icon' => 'hum', 'courses' => ['folk-and-early-music', 'yodeling', 'pop-and-country', 'musical-theatre', 'whistling', 'live-looping', 'sea-shanties-and-work-songs', 'classical-singing-basics', 'blues-singing']],
         ],
         'pages' => [
             'counterpoint' => [

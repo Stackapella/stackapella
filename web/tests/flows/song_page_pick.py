@@ -1,6 +1,6 @@
 """A song page's hero player picks the part (public/song.blade.php, js/public/song-page.js, js/public/mixer.js; option C
 of the song page review, Hillel 2026-11-13): nothing looks picked at first and Learn names the melody's part; tapping a
-part's row hears it alone and leaves Learn as it was; its "I sing this" makes it yours ("My part") and both Learns, under
+part's row hears it alone and, until a pick, Learn follows it; its "I sing this" makes it yours ("My part") and both Learns, under
 the rows and at the page's close, name it and open the app on it. How each part goes has nothing to pick, and each of its
 rows links to its part page. Needs the real server (a site page)."""
 import json
@@ -28,10 +28,13 @@ def journey(f):
     assert f.js("document.querySelectorAll('.s-sg-pick, [data-picked]').length") == 0, "no card buttons, nothing marked picked"
     assert f.js("document.querySelectorAll('.s-sg-how-row a[data-part-link]').length") >= 2, "How each part goes links each part's page"
 
-    # Tapping a row hears it alone: Learn stays.
+    # Tapping a row hears it alone, and until a pick Learn follows it (frontend2's newcomer walk: hearing the alto under
+    # "Learn the soprano part" read as a mismatch); every part again, and it's the melody's.
     f.run(f"{PLAYER}.querySelector('[data-voice=alto] [data-hear-alone]').click()")
-    assert json.loads(f.js(STATE)) == before, "a row heard alone changed Learn"
+    heard = json.loads(f.js(STATE))
+    assert all("alto" in label.lower() for label in heard["labels"]) and heard["mine"] == [], f"Learn follows the alto heard alone: {heard}"
     f.run(f"{PLAYER}.querySelector('[data-voice=alto] [data-hear-alone]').click()")
+    assert json.loads(f.js(STATE)) == before, "every part again: the melody's"
 
     # I sing this: yours, and both Learns name it.
     f.run(f"{PLAYER}.querySelector('[data-voice=alto] [data-pick]').click()")
@@ -39,6 +42,9 @@ def journey(f):
     assert alto["mine"] == ["alto"], f"the alto row is yours: {alto}"
     assert all("alto" in label.lower() for label in alto["labels"]), f"Learn names the alto: {alto}"
     assert all("part=alto" in href for href in alto["hrefs"]), f"Learn opens the alto: {alto}"
+    # A pick holds: hearing another part alone doesn't move Learn.
+    f.run(f"{PLAYER}.querySelector('[data-voice=tenor] [data-hear-alone]').click()")
+    assert json.loads(f.js(STATE))["labels"] == alto["labels"], "a pick holds while another part plays alone"
     f.shot("alto")
 
 

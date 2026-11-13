@@ -356,7 +356,7 @@ final class SongCollectionsTest extends TestCase
 
         // Not folk songs, not barbershop or parlour: they stay in the A to Z, under Other songs.
         $listed = [...array_column(app(SongCollections::class)->songs('folk-songs'), 'slug'), ...array_column(app(SongCollections::class)->songs('barbershop-songs'), 'slug')];
-        $index = collect(app(SongsHub::class)->index(app(Catalogue::class)->open()))->keyBy(static fn (array $e): string => basename($e['url']));
+        $index = collect(app(SongsHub::class)->index())->keyBy(static fn (array $e): string => basename($e['url']));
         foreach (['happy-birthday', 'now-is-the-month-of-maying', 'with-cat-like-tread'] as $slug) {
             $this->assertNotContains($slug, $listed);
             $this->assertSame(['other'], $index[$slug]['in'] ?? null, $slug);
@@ -377,7 +377,7 @@ final class SongCollectionsTest extends TestCase
     public function test_songs_counts_each_collection_as_its_page_lists_it(): void
     {
         $hub = app(SongsHub::class);
-        $index = $hub->index(app(Catalogue::class)->open());
+        $index = $hub->index();
         foreach ($hub->bands() as $band) {
             if ($band['key'] === 'christmas') {
                 continue;

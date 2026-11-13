@@ -40,6 +40,30 @@ def journey(f):
     f.shot("map")
     f.run("document.querySelector('[aria-labelledby=next-title] a').click()")
     f.wait("location.pathname === '/' && document.querySelector('[role=dialog]')", what="the suggested song open")
+    # A library song's link opens on the song alone, never waiting on the whole catalogue (the first-open speed pass,
+    # 2026-11-13): with the catalogue failing (and none kept on the device), a member's sheet still opens, Start ready.
+    # The mock answers silent-night as the server does an open song: reviewed, and to a guest too (grant "open").
+    f.go("/?api=mock&as=member", "document.querySelector('#app header')")
+    f.run("sessionStorage.setItem('stackapella.mockOpenSong', 'silent-night')")
+    clean = "localStorage.removeItem('stackapella.catalogue')"
+    f.run(clean)
+    f.go("/?api=mock&as=member&scenario=templates.catalogue:server_error&song=silent-night&ref=song-page", "document.querySelector('#app header')")
+    f.wait("document.querySelector('[role=dialog] [data-song-start]:not([disabled])')", what="the library song's sheet, without the catalogue")
+    assert f.js("!location.search.includes('song=')"), "the link's song left the address"
+    # A guest may hear an open song but needs a free account to start it: never the song alone for a guest, so with the
+    # catalogue down no Start is offered; with it, the sheet says an account is needed, as before.
+    f.go("/?api=mock&scenario=&as=member", "document.querySelector('#app header')")
+    f.run(clean)
+    f.go("/?api=mock&as=signedOut&scenario=templates.catalogue:server_error&song=silent-night&ref=song-page", "document.querySelector('#app header')")
+    f.wait("(window.mockBodies ?? []).some((b) => b.operation === 'account.show')", what="the guest known")
+    f.run("await new Promise((r) => setTimeout(r, 2500))")
+    assert not f.js("(window.mockBodies ?? []).some((b) => b.operation === 'templates.show')"), "a guest's library song fetched to open on its own"
+    assert not f.js("!!document.querySelector('[role=dialog] [data-song-start]')"), "a guest's library song opened to start without the catalogue"
+    f.go("/?api=mock&scenario=&as=signedOut&song=silent-night&ref=song-page", "document.querySelector('#app header')")
+    f.wait_text(t(f, "templates.needsAccount"))
+    assert not f.js("!!document.querySelector('[role=dialog] [data-song-start]')"), "a guest can start an account song"
+    f.run("sessionStorage.removeItem('stackapella.mockOpenSong')")
+    f.go("/?api=mock&scenario=", "document.querySelector('#app header')")
 
 
 if __name__ == "__main__":

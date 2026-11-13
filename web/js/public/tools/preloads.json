@@ -316,6 +316,9 @@
     "/js/public/counterpoint.js",
     "/js/public/voices.js"
   ],
+  "/js/public/courses-filter.js": [
+    "/js/public/courses-filter.js"
+  ],
   "/js/public/demo-slot.js": [
     "/js/public/demo-slot.js",
     "/js/public/demo-player.js",

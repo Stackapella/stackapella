@@ -50,7 +50,7 @@ final class SongCollectionPageController extends Controller
             // Beside the heading (the width design): the song on its link card, its opening in four parts to switch,
             // that card's part lit. The Jewish page has its countdown there instead.
             'try' => $festival === null ? self::tryLine($collection) : null,
-        ], 200, SongPagesController::headers());
+        ], 200, SongPagesController::edgeHeaders());
     }
 
     /**

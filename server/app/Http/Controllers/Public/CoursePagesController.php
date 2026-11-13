@@ -29,9 +29,32 @@ final class CoursePagesController extends Controller
 
         $index = (array) Lang::get('site.courses.index');
 
+        // Hillel's courses page with filters (2026-11-13): each group's courses as cards, each knowing whether it's open
+        // (else Soon), its page, and its first lesson in the app; the counts the chips and the head say, from the catalogue.
+        $groups = [];
+        foreach (SitePages::courseGroups() as $key => $group) {
+            $cards = array_map(static fn (string $slug): array => [
+                'slug' => $slug,
+                'name' => (string) __('site.courses.pages.'.$slug.'.name'),
+                'summary' => (string) __('site.courses.pages.'.$slug.'.summary'),
+                'open' => $open = SitePages::courseOpen($slug),
+                'url' => '/courses/'.$slug,
+                'try' => $open ? Lessons::firstLesson($slug, 'courses-hub') : null,
+            ], $group['courses']);
+            $groups[$key] = [...$group, 'cards' => $cards, 'soon' => count(array_filter($cards, static fn (array $c): bool => ! $c['open']))];
+        }
+        $beginner = Lessons::pages('harmony');
+
         return response()->view('site.courses', [
             'meta' => ['title' => SitePages::title((string) ($index['title'] ?? '')), 'description' => (string) ($index['description'] ?? ''), 'url' => Hosts::publicUrl().'/courses'],
-            'groups' => SitePages::courseGroups(),
+            'groups' => $groups,
+            'total' => array_sum(array_map(static fn (array $g): int => count($g['cards']), $groups)),
+            // The beginner course: its first lesson in the app, and its units and lessons as it has them.
+            'beginner' => [
+                'try' => Lessons::firstLesson('harmony', 'courses-hub') ?? '/features/course',
+                'units' => count($beginner),
+                'lessons' => array_sum(array_map(static fn (array $unit): int => count((array) ($unit['lessons'] ?? [])), $beginner)),
+            ],
             'links' => Landing::links(Landing::ref($request->query('ref'))),
             'draw' => SitePages::draw(),
         ], 200, SongPagesController::headers());

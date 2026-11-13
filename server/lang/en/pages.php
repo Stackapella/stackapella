@@ -27,6 +27,7 @@ return [
         'start' => 'Learn this song',
         'start_note' => 'Opens in the app, in your browser.',
         'free' => 'Free',
+        'free_account' => 'Free with an account',
         'difficulty' => ['beginner' => 'For beginners', 'intermediate' => 'A step up'],
         'crumb' => 'Where you are',
         'parts_lead' => 'Each part\'s lowest and highest note. Pick the one that sits where you sing comfortably.',
@@ -44,8 +45,6 @@ return [
         'how_lead' => 'Each part\'s range on one scale, and where it goes in the words.',
         'tag' => ['melody' => 'Melody', 'lowest' => 'Lowest part', 'smallest' => 'Smallest range', 'widest' => 'Widest range', 'harmony' => 'Harmony', 'tune' => 'The tune'],
         'practise' => 'Practise the :part part',
-        // A part's row in the hero's player: its tag and its range ("Melody · B3 to E5").
-        'row_line' => ':tag · :range',
         'unsure' => 'Not sure which part?',
         'words_heading' => 'The words',
         'meaning_show' => 'Show the meaning',
@@ -535,6 +534,8 @@ return [
         'course_open' => 'Open now',
         'course_open_line' => 'Open now, and free.',
         'course_try' => 'Start the first lesson',
+        // The courses page's first filter chip: every course ("Todos": site.json's All is the parts' "Todas").
+        'courses_all' => 'All',
         'course_join_open' => 'Every course is free.',
         'course_join_note' => 'Try the first lesson without an account; a free account opens the rest.',
         // The coaches' page once coach sign-up opens (the coach_signup flag): the directory stays hidden.

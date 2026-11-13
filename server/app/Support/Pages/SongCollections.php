@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Support\Pages;
 
-use App\Models\Template;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Lang;
 
@@ -164,10 +163,10 @@ final class SongCollections
     {
         $members = $this->members($slug);
 
-        return array_values($this->parts->songs()
-            ->filter(static fn (Template $template): bool => in_array((string) $template->slug, $members, true))
-            ->sortBy(static fn (Template $template): string => (string) $template->title, SORT_NATURAL | SORT_FLAG_CASE)
-            ->map(static fn (Template $template): string => (string) $template->slug)
+        return array_values(collect($this->parts->index())
+            ->filter(static fn (array $song): bool => in_array($song['slug'], $members, true))
+            ->sortBy(static fn (array $song): string => $song['title'], SORT_NATURAL | SORT_FLAG_CASE)
+            ->map(static fn (array $song): string => $song['slug'])
             ->all());
     }
 
@@ -180,10 +179,9 @@ final class SongCollections
     public function cards(array $slugs): array
     {
         $cards = [];
-        foreach ($this->parts->songs() as $template) {
-            if (in_array((string) $template->slug, $slugs, true)) {
-                $cards[(string) $template->slug] = Carols::card($template);
-            }
+        // Only these songs read whole (SongParts::whole), never every song's notes: /songs builds a few of each collection's.
+        foreach ($this->parts->whole($slugs) as $template) {
+            $cards[(string) $template->slug] = Carols::card($template);
         }
 
         return array_values(array_filter(array_map(static fn (string $slug): ?array => $cards[$slug] ?? null, $slugs)));
@@ -201,10 +199,11 @@ final class SongCollections
             return [];
         }
 
-        $members = $this->members[$slug] ??= array_values($this->parts->songs()
-            ->filter(fn (Template $template): bool => $this->collects($slug, $template))
-            ->map(static fn (Template $template): string => (string) $template->slug)
-            ->all());
+        // From the open songs' index, not their notes: a song page asks this for its trail (SongCollections::home).
+        $members = $this->members[$slug] ??= array_values(array_map(
+            static fn (array $song): string => $song['slug'],
+            array_filter($this->parts->index(), fn (array $song): bool => $this->collects($slug, $song['slug'], $song['genre'])),
+        ));
 
         return count($members) >= self::MIN ? $members : [];
     }
@@ -253,7 +252,7 @@ final class SongCollections
         $newest = null;
         foreach ($this->parts->songs() as $template) {
             $when = $template->currentVersion->created_at ?? null;
-            if (isset(self::COLLECTIONS[$slug]) && $this->collects($slug, $template) && $when !== null && ($newest === null || $when->greaterThan($newest))) {
+            if (isset(self::COLLECTIONS[$slug]) && $this->collects($slug, (string) $template->slug, array_values(array_filter((array) (((array) $template->currentVersion?->data)['genre'] ?? []), 'is_string'))) && $when !== null && ($newest === null || $when->greaterThan($newest))) {
                 $newest = $when;
             }
         }
@@ -306,10 +305,11 @@ final class SongCollections
      * Whether a collection's page lists a song: one of its genres, and for OWN_GROUP_ONLY its /songs group too, counting an
      * OPEN_ONLY group only while its page is open.
      */
-    private function collects(string $slug, Template $template): bool
+    /** @param  list<string>  $genres  the song's own */
+    private function collects(string $slug, string $song, array $genres): bool
     {
-        $own = array_map(static fn (string $g): string => strtolower(trim($g)), array_values(array_filter((array) (((array) $template->currentVersion?->data)['genre'] ?? []), 'is_string')));
-        if (in_array((string) $template->slug, self::MEMBERS[$slug] ?? [], true)) {
+        $own = array_map(static fn (string $g): string => strtolower(trim($g)), $genres);
+        if (in_array($song, self::MEMBERS[$slug] ?? [], true)) {
             return true;
         }
         if (array_intersect($own, self::COLLECTIONS[$slug]) === []) {

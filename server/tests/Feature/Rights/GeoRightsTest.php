@@ -72,13 +72,20 @@ final class GeoRightsTest extends TestCase
         $this->withHeaders(self::visitor('MX'))->getJson('/api/auth/config')->assertJsonPath('data.withheldSongs', []);
         $this->withHeaders(self::visitor('MX'))->getJson('/api/rights/here')->assertExactJson(['data' => ['country' => 'MX', 'withheld' => []]]);
         // The song and part pages keep exactly their shared cache, so the deploy can't slow them (the coordinator's ask).
-        // As Symfony writes SongPagesController::headers()'s 'public, max-age=300'.
-        $shared = 'max-age=300, public';
+        // As Symfony writes SongPagesController::headers()'s 'public, max-age=300, stale-while-revalidate=86400'.
+        $shared = 'max-age=300, public, stale-while-revalidate=86400';
         foreach (['/songs/words-song', '/songs/words-song/soprano'] as $path) {
             foreach (['MX', 'US'] as $country) {
                 $page = $this->withHeaders(self::visitor($country))->get($path)->assertOk();
                 $this->assertSame($shared, $page->headers->get('Cache-Control'), $path.' '.$country);
+                // The same for everyone, so Cloudflare's edge may keep it (a Cache Rule that respects the header).
+                $this->assertSame('max-age=300, stale-while-revalidate=600', $page->headers->get('Cloudflare-CDN-Cache-Control'), $path.' '.$country);
             }
+        }
+        $this->assertSame('max-age=300, stale-while-revalidate=600', $this->get('/songs')->assertOk()->headers->get('Cloudflare-CDN-Cache-Control'), '/songs');
+        // A page that reads differently by country or cookie never says so (the edge can't keep a copy per country).
+        foreach (['/pricing', '/'] as $path) {
+            $this->assertNull($this->get($path)->headers->get('Cloudflare-CDN-Cache-Control'), $path);
         }
         $song = $this->withHeaders(self::visitor('MX'))->get('/songs/words-song');
         $this->assertNull($song->viewData('rights'));
@@ -135,6 +142,7 @@ final class GeoRightsTest extends TestCase
         $this->assertStringNotContainsString('id="song-words"', (string) $mexico->getContent());
         $this->assertStringContainsString('no-store', (string) $mexico->headers->get('Cache-Control'));
         $this->assertStringContainsString('private', (string) $mexico->headers->get('Cache-Control'));
+        $this->assertNull($mexico->headers->get('Cloudflare-CDN-Cache-Control'), "never at Cloudflare's edge");
 
         // Free in the US, but it reads differently elsewhere: still private.
         $us = $this->withHeaders(self::visitor('US'))->get('/songs/words-song')->assertOk();

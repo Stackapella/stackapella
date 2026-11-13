@@ -1469,8 +1469,9 @@
     "How each part goes": "Cómo va cada voz",
     "Each part's range on one scale, and where it goes in the words.": "La extensión de cada voz en una misma escala, y por dónde va en la letra.",
     "Practise the :part part": "Practicar la voz de :part",
-    ":tag · :range": ":tag · :range",
     "Not sure which part?": "¿No sabes qué voz cantar?",
     "Kind of song": "Tipo de canción",
-    "All of :song, from \":words\", in its parts: the tune with the others under it. Tap a part to hear it on its own, and pick the one you sing.": "La canción completa :song, desde \":words\", a varias voces: la melodía con las demás por debajo. Toca una voz para oírla sola y elige la que cantas."
+    "All of :song, from \":words\", in its parts: the tune with the others under it. Tap a part to hear it on its own, and pick the one you sing.": "La canción completa :song, desde \":words\", a varias voces: la melodía con las demás por debajo. Toca una voz para oírla sola y elige la que cantas.",
+    "All": "Todos",
+    "Free with an account": "Gratis con una cuenta"
 }

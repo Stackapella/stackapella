@@ -66,6 +66,29 @@ final class SongParts
     }
 
     /**
+     * The open songs' slugs, titles, genres and difficulty, in title order, without their notes (Catalogue::openIndex).
+     *
+     * @return list<array{slug: string, title: string, genre: list<string>, difficulty: string}>
+     */
+    public function index(): array
+    {
+        return $this->catalogue->openIndex();
+    }
+
+    /**
+     * These open songs, read whole (their current versions, notes and all), and only these: what a page builds cards or
+     * pages from once the index (self::index()) has picked them. A slug that isn't an open song is left out.
+     *
+     * @param  list<string>  $slugs
+     * @return Collection<int, Template>
+     */
+    public function whole(array $slugs): Collection
+    {
+        return $slugs === [] ? new Collection : Template::query()->listed()->with('currentVersion')->whereNotNull('current_version_id')->whereIn('slug', $slugs)->get()
+            ->filter(Catalogue::isOpen(...))->values();
+    }
+
+    /**
      * Whether a song has part pages: the pages are open, and it's live (ours, listed, not
      * withdrawn), its current version reviewed, its words and tune public domain.
      */
