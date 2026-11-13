@@ -103,6 +103,11 @@
                 @foreach ((array) \Illuminate\Support\Facades\Lang::get($words.'.intro') as $paragraph)
                     <p>{{ $paragraph }}</p>
                 @endforeach
+                {{-- More to sing: the collections nearest this one that are pages now (SongCollections::SEE_ALSO). --}}
+                @php($seeAlso = app(\App\Support\Pages\SongCollections::class)->seeAlso($slug))
+                @if ($seeAlso !== [])
+                    <p class="s-xsee">{{ __('site.see_also') }} @foreach ($seeAlso as $other)<a href="{{ $other['url'] }}" class="s-lk">{{ $other['name'] }}</a>@if (! $loop->last), @endif @endforeach</p>
+                @endif
                 {{-- A For choirs lead-in (Hillel, 2026-11-12: For choirs left the header for the pages a director reads). --}}
                 <p><a href="/for/choir-directors?ref=for-choirs-collection" class="s-lk">{{ __('pages.songs.for_choirs') }}&#8288;<x-site.icon name="arrow" size="16" /></a></p>
             </div>

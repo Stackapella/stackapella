@@ -97,6 +97,10 @@ final class TemplateRules
         $perBar = self::beatsPerBar((string) ($t['timeSignature'] ?? ''));
         $need(is_numeric($t['pickupBeats'] ?? null) && $t['pickupBeats'] >= 0 && $t['pickupBeats'] < $perBar, 'pickupBeats must be 0 or more, and less than a bar');
 
+        foreach (self::meterProblems($t) as $problem) {
+            $need(false, $problem);
+        }
+
         $parts = is_array($t['parts'] ?? null) ? $t['parts'] : [];
         $need($parts !== [], 'parts are missing');
         $need(count($parts) <= self::MAX_PARTS, 'parts: at most '.self::MAX_PARTS);
@@ -244,5 +248,74 @@ final class TemplateRules
         }
 
         return $end;
+    }
+
+    /**
+     * A song whose time signature changes (docs/meters-plan.md), as the app checks it (web/js/templates.js): each change a
+     * known metre, after the one before (and the pickup), on a bar line of the metre before it, and a real change. A beat
+     * keeps its length across a change. Absent, the song keeps its timeSignature throughout.
+     *
+     * @param  array<string, mixed>  $t
+     * @return list<string>
+     */
+    public static function meterProblems(array $t): array
+    {
+        if (! array_key_exists('meters', $t)) {
+            return [];
+        }
+        $meters = $t['meters'];
+        if (! is_array($meters) || $meters === [] || ! array_is_list($meters)) {
+            return ['meters must be a list of changes, or left out'];
+        }
+
+        $eps = 1e-6;
+        $pickup = is_numeric($t['pickupBeats'] ?? null) ? (float) $t['pickupBeats'] : 0.0;
+        $previous = ['beat' => $pickup, 'timeSignature' => $t['timeSignature'] ?? null];
+        // The runs of bars so far, as the app's barAt reads them: the first from the pickup, then each earlier change after it.
+        $runs = [['from' => $pickup, 'timeSignature' => (string) ($t['timeSignature'] ?? '4/4')]];
+        $problems = [];
+
+        foreach ($meters as $i => $m) {
+            $name = "meters[{$i}]";
+            $beat = is_array($m) && (is_int($m['beat'] ?? null) || is_float($m['beat'] ?? null)) && is_finite((float) $m['beat']) ? (float) $m['beat'] : null;
+            $sig = is_array($m) ? ($m['timeSignature'] ?? null) : null;
+
+            if ($beat === null || $beat <= (float) $previous['beat']) {
+                $problems[] = "{$name}: beat must come after the change before it (and after the pickup)";
+            }
+            if (! in_array($sig, self::TIME_SIGNATURES, true)) {
+                $problems[] = "{$name}: timeSignature must be one of ".implode(', ', self::TIME_SIGNATURES);
+            }
+            if ($sig === $previous['timeSignature']) {
+                $problems[] = "{$name}: the same time signature as before it";
+            }
+            if ($beat !== null) {
+                $run = $runs[0];
+                foreach ($runs as $r) {
+                    if ($r['from'] <= $beat + $eps) {
+                        $run = $r;
+                    }
+                }
+                $bar = self::beatsPerBar($run['timeSignature']);
+                $start = $run['from'] + floor(($beat - $run['from']) / $bar + $eps) * $bar;
+                if (abs($beat - $start) >= $eps) {
+                    $problems[] = "{$name}: beat ".self::number($beat).' is not on a bar line';
+                }
+                if ($beat > $pickup + $eps) {
+                    $runs[] = ['from' => $beat, 'timeSignature' => is_string($sig) ? $sig : '4/4'];
+                }
+                if ($beat > (float) $previous['beat']) {
+                    $previous = ['beat' => $beat, 'timeSignature' => $sig];
+                }
+            }
+        }
+
+        return $problems;
+    }
+
+    /** A beat as the app prints it: 12, not 12.0. */
+    private static function number(float $beat): string
+    {
+        return $beat == floor($beat) ? (string) (int) $beat : (string) $beat;
     }
 }

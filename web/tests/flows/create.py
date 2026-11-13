@@ -185,6 +185,8 @@ def journey(f):
     f.wait_text("Amazing Grace")
     f.run("[...document.querySelectorAll('#home-songs [data-song-card]')].find((c) => c.textContent.includes('Amazing Grace')).querySelector('button').click()")
     f.wait("document.querySelector('[role=dialog] [data-song-start]')", what="the song's sheet")
+    f.run("(await import('/js/stores/learning.js')).learning.progress.lessons = { ...(await import('/js/stores/learning.js')).learning.progress.lessons, '1-comfortable': { stars: 1 } }")  # Edit is there once a first song is sung (a first visit's sheet is the song, Start and Play)
+    f.wait("document.querySelector('[role=dialog] [data-song-edit]')", what="Edit on the sheet")
     f.run("document.querySelector('[role=dialog] [data-song-edit]').click()")  # Hillel: Edit is Make a copy
     f.wait_text(t(f, "create.edit.title"))
     if f.size == "desktop":

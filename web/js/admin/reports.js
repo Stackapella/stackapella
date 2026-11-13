@@ -65,7 +65,7 @@ export const ReportsSection = {
             </ul>
             <button v-if="cursor && !failed" type="button" class="btn-secondary" :disabled="loadingMore" @click="load(true)">{{ loadingMore ? t('admin.loading') : t('admin.loadMore') }}</button>
             <ChangeSheet v-if="change" :title="t(ACTIONS[change.action], { title: change.item.harmony.title || t('project.untitled') })" :me="me" :busy="busy" :errors="errors" :fields="['reason', 'note', 'takedown']"
-                :reasoned="change.action !== 'restore' && change.action !== 'dismiss'" :needs-sudo="change.action === 'remove'" @close="change = null" @confirm="apply">
+                :reasoned="change.action !== 'restore' && change.action !== 'dismiss'" :told="change.action === 'hide' || change.action === 'remove'" :needs-sudo="change.action === 'remove'" @close="change = null" @confirm="apply">
                 <p class="text-sm text-muted">{{ change.action === 'remove' ? t('admin.reports.removeHint') : change.action === 'hide' ? t('admin.reports.hideHint') : t('admin.reports.restoreHint') }}</p>
                 <Field v-if="change.action === 'hide' || change.action === 'remove'" :label="t('admin.reports.why')" :error="errors?.takedown" v-slot="f">
                     <select :id="f.id" v-model="takedown" class="input">

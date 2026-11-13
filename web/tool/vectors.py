@@ -37,6 +37,11 @@ SCRIPT = r"""(async () => {
         suggestKeyOptions: Object.entries(T.VOICE_RANGES).flatMap(([voice, range]) => ['major', 'minor'].flatMap((mode) => [1, 2].map((headroom) => ({ input: { range, mode, sections: ['verse', 'chorus', 'bridge'], headroom, voice }, output: T.suggestKey(range, { mode, sections: ['verse', 'chorus', 'bridge'], headroom }) })))),
         nextKey: Object.entries(T.VOICE_RANGES).flatMap(([voice, range]) => ['major', 'minor'].flatMap((mode) => [-1, 1].flatMap((direction) => { const best = T.suggestKey(range, { mode, sections: ['verse', 'chorus'] }); const once = T.nextKey(range, best.tonicMidi, direction, { mode, sections: ['verse', 'chorus'] }); return [{ input: { range, from: best.tonicMidi, direction, mode, sections: ['verse', 'chorus'], voice }, output: once }, ...(once ? [{ input: { range, from: once.tonicMidi, direction, mode, sections: ['verse', 'chorus'], voice }, output: T.nextKey(range, once.tonicMidi, direction, { mode, sections: ['verse', 'chorus'] }) }] : [])]; }))),
         suggestKey: Object.entries(T.VOICE_RANGES).flatMap(([voice, range]) => ['major', 'minor'].flatMap((mode) => ['verse', 'chorus', 'bridge'].map((section) => ({ input: { range, mode, section, voice }, output: T.suggestKey(range, { mode, section }) })))).concat([{ input: { range: { low: 60, high: 66 }, mode: 'major', section: 'verse' }, output: T.suggestKey({ low: 60, high: 66 }) }]),
+        // Metre changes (docs/meters-plan.md): bars and bar lines in one metre, with a pickup, and with two changes.
+        barAt: [{ timeSignature: '3/4', pickupBeats: 1 }, { timeSignature: '6/8', pickupBeats: 0, meters: [{ beat: 16, timeSignature: '4/4' }, { beat: 32, timeSignature: '6/8' }] }, { timeSignature: '4/4', pickupBeats: 1, meters: [{ beat: 9, timeSignature: '3/4' }] }]
+            .flatMap((song) => Array.from({ length: 48 }, (_, i) => i - 6).map((beat) => ({ input: { song, beat }, output: T.barAt(song, beat) }))),
+        bars: [{ timeSignature: '6/8', pickupBeats: 0, meters: [{ beat: 16, timeSignature: '4/4' }, { beat: 32, timeSignature: '6/8' }] }, { timeSignature: '3/4', pickupBeats: 1, meters: [{ beat: 7, timeSignature: '2/4' }] }]
+            .map((song) => ({ input: { song, toBeat: 40 }, output: T.bars(song, 40) })),
     };
     return JSON.stringify(out);
 })()"""

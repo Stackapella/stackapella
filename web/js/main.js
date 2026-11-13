@@ -91,6 +91,8 @@ const GroupView = screen(() => import('./views/groups.js').then((m) => m.GroupVi
 const ChoirJoinView = screen(() => import('./views/groups.js').then((m) => m.ChoirJoinView));
 // Songs arriving from the old address (docs/app-subdomain-plan.md).
 const MovedView = screen(() => import('./views/moved.js').then((m) => m.MovedView));
+const NoticesView = screen(() => import('./views/notices.js').then((m) => m.NoticesView), { title: tk('notices.title') });
+const NoticeView = screen(() => import('./views/notices.js').then((m) => m.NoticeView), { title: tk('notices.oneTitle') });
 const ContactView = screen(() => import('./views/contact.js').then((m) => m.ContactView), { title: tk('contact.title') });
 // A teacher's warm-up from a link (docs/warmup-builder-plan.md): only a link opens it.
 const WarmupView = screen(() => import('./views/warmup.js').then((m) => m.WarmupView), { title: tk('warmup.title') });
@@ -104,7 +106,7 @@ const IdeaView = screen(() => import('./views/ideas.js').then((m) => m.IdeaView)
 const FIRST_INSTALL_WAIT_MS = 15000; // a timer for when to install, never for audio
 
 const App = {
-    components: { LaunchCredit, RequestsView, ReadLinesView, ProjectsView, StudioView, SingView, PrintView, AuthView, SettingsView, StorageView, VoiceView, WorkoutView, PlusView, RemindersView, ClassesView, ClassJoinView, CloudConflicts, LearnView, CourseView, PlusCourseView, BirthHost, NewVersion, AdminView, StyleguideView, StyleguideGameView, BetaView, CreateView, TemplateView, JoinView, EarlyView, GroupsView, GroupView, ChoirJoinView, MovedView, ContactView, WarmupView, IdeasView, IdeaView, VoicesView, ResetView, Toasts, ConfirmHost, MicHelpHost, MicCheckHost, ChallengeView },
+    components: { LaunchCredit, RequestsView, ReadLinesView, ProjectsView, StudioView, SingView, PrintView, AuthView, SettingsView, StorageView, VoiceView, WorkoutView, PlusView, RemindersView, ClassesView, ClassJoinView, CloudConflicts, LearnView, CourseView, PlusCourseView, BirthHost, NewVersion, AdminView, StyleguideView, StyleguideGameView, BetaView, CreateView, TemplateView, JoinView, EarlyView, GroupsView, GroupView, ChoirJoinView, MovedView, ContactView, NoticesView, NoticeView, WarmupView, IdeasView, IdeaView, VoicesView, ResetView, Toasts, ConfirmHost, MicHelpHost, MicCheckHost, ChallengeView },
     setup: () => ({ route, COOL_DOWN }),
     template: `
         <!-- A self-hosted install's credit, as the licence asks, on whichever screen the app opens (components/credit.js). -->
@@ -129,6 +131,8 @@ const App = {
         <ChoirJoinView v-else-if="route.name === 'choir'" :key="'c-' + route.params.token" :token="route.params.token" />
         <MovedView v-else-if="route.name === 'moved'" />
         <ContactView v-else-if="route.name === 'contact'" />
+        <NoticesView v-else-if="route.name === 'notices'" />
+        <NoticeView v-else-if="route.name === 'notice'" />
         <WarmupView v-else-if="route.name === 'warmup'" />
         <IdeasView v-else-if="route.name === 'ideas'" />
         <RequestsView v-else-if="route.name === 'requests'" />
@@ -258,7 +262,7 @@ watch(() => account.me?.id, (id) => id && signedInSync().catch((error) => consol
 // Before launch (coming soon), someone the server hasn't let in (no beta pass, not signed in) sees
 // only signing in, the admin and the invite pages; anything else goes to sign-in. The server's gate
 // covers full page loads; this covers moving around inside the app. Asked again after a sign-in.
-const OPEN_BEFORE_LAUNCH = new Set(['auth', 'admin', 'early', 'invite', 'join', 'choir', 'teacher', 'moved', 'contact']);
+const OPEN_BEFORE_LAUNCH = new Set(['auth', 'admin', 'early', 'invite', 'join', 'choir', 'teacher', 'moved', 'contact', 'notice', 'notices']);
 const gate = reactive({ comingSoon: false });
 async function readGate({ fresh = false } = {}) {
     try {

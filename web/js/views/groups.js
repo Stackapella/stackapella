@@ -28,7 +28,6 @@ import { paint } from '../colors.js';
 import { PART_COLORS } from '../theme.js';
 import { markRaw } from 'vue';
 import { Modal, toast } from '../components/ui.js';
-import { GameOnly, sk } from '../skin.js';
 import { confirmAction } from '../components/confirm.js';
 import { InviteAccept, InviteCard } from '../components/invite-card.js';
 import { askBirth } from '../components/birth.js';
@@ -110,21 +109,20 @@ const AdultCheck = {
 };
 
 export const GroupsView = {
-    components: { AccountWall, Frame, EmptyState, Field, Icon, Modal, AdultCheck, GameOnly, PlusMoment },
+    components: { AccountWall, Frame, EmptyState, Field, Icon, Modal, AdultCheck, PlusMoment },
     data: () => ({ refusedPlus: false, groups: null, failed: null, making: false, wantStart: new URLSearchParams(location.search).get('start') === '1', shareAfter: new URLSearchParams(location.search).get('share'), here: location.pathname + location.search, name: '', adult: false, busy: false, error: null }),
-    setup: () => ({ account, navigate, sk, teams }),
+    setup: () => ({ account, navigate, teams }),
     template: `
-        <Frame :title="sk('groups.title', 'game.groups.title')">
-            <template #aside><button v-if="account.me" type="button" class="btn-primary btn-sm" @click="making = true"><Icon name="plus" :size="16" /> {{ sk('groups.start', 'game.groups.start') }}</button></template>
+        <Frame :title="t('groups.title')">
+            <template #aside><button v-if="account.me" type="button" class="btn-primary btn-sm" @click="making = true"><Icon name="plus" :size="16" /> {{ t('groups.start') }}</button></template>
             <!-- The wall keeps the address, so ?start=1 (the directors' pages link here to start one) opens the start sheet after sign-up. -->
             <AccountWall v-if="account.loaded && !account.me" :reason="wantStart ? 'groupsStart' : 'groups'" :next="here" />
             <p v-else-if="failed" class="card p-6 text-cream" role="alert">{{ failed }}</p>
             <p v-else-if="!groups" class="text-muted" role="status">{{ t('create.loading') }}</p>
             <EmptyState v-else-if="!groups.length" icon="list" :title="t('groups.none')" :body="t('groups.noneHint')">
-                <button type="button" class="btn-primary" @click="making = true">{{ sk('groups.start', 'game.groups.start') }}</button>
+                <button type="button" class="btn-primary" @click="making = true">{{ t('groups.start') }}</button>
             </EmptyState>
             <div v-else class="space-y-3">
-                <GameOnly><p class="ge-kick" data-groups-kick>{{ t('game.groups.kick') }}</p></GameOnly>
                 <ul class="grid gap-3 min-[640px]:grid-cols-2">
                     <li v-for="g in groups" :key="g.id" class="min-w-0">
                         <a :href="'/groups/' + g.id" class="card-interactive flex h-full items-center gap-4 p-4" data-group-card @click.prevent="navigate('/groups/' + g.id)">
@@ -141,8 +139,8 @@ export const GroupsView = {
             </div>
             <!-- Teaming up is Plus (docs/pricing-plan.md, top): a singer without it meets the Plus moment, with the trial, before
                  the form, and comes back here (?start=1) once Plus is on. Everyone they invite joins free. -->
-            <PlusMoment v-if="making && needsPlus" :title="sk('groups.start', 'game.groups.start')" :text="t('groups.plusText')" from="group_start" :next="'/groups?start=1' + (shareAfter ? '&share=' + encodeURIComponent(shareAfter) : '')" @close="making = false" />
-            <Modal v-else-if="making" :title="sk('groups.start', 'game.groups.start')" @close="making = false">
+            <PlusMoment v-if="making && needsPlus" :title="t('groups.start')" :text="t('groups.plusText')" from="group_start" :next="'/groups?start=1' + (shareAfter ? '&share=' + encodeURIComponent(shareAfter) : '')" @close="making = false" />
+            <Modal v-else-if="making" :title="t('groups.start')" @close="making = false">
                 <!-- Under 18 by the account's own birth date: no "I'm 18 or over" to tick, a kind word instead. -->
                 <div v-if="minor" class="space-y-4" data-too-young>
                     <p class="text-cream">{{ t('groups.tooYoungStart') }}</p>

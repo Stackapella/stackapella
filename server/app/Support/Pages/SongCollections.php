@@ -6,6 +6,7 @@ namespace App\Support\Pages;
 
 use App\Models\Template;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Lang;
 
 /**
  * The song collections (/songs/<collection>, docs/search-content-plan.md: pages for what choirs search, each checked for
@@ -99,6 +100,43 @@ final class SongCollections
     public static function slugs(): array
     {
         return array_keys(self::COLLECTIONS);
+    }
+
+    /**
+     * Where a collection's page sends a singer next, "More to sing:" at the end of its intro: the collections nearest it
+     * (a song that moved to its own page, the season's page beside the year-round one), in this order. Only those that
+     * are pages now are linked (seeAlso), so none points at a 404.
+     */
+    public const SEE_ALSO = [
+        'folk-songs' => ['scottish-songs', 'shaker-songs', 'sea-shanties'],
+        'scottish-songs' => ['folk-songs'],
+        'shaker-songs' => ['hymns', 'folk-songs'],
+        'hymns' => ['thanksgiving-hymns', 'spirituals', 'shaker-songs'],
+        'thanksgiving-hymns' => ['hymns'],
+        'spirituals' => ['hymns'],
+        'christmas-carols' => ['villancicos'],
+        'villancicos' => ['christmas-carols'],
+        'sea-shanties' => ['folk-songs'],
+        'rounds' => ['folk-songs'],
+    ];
+
+    /**
+     * A collection's "More to sing:" links (SEE_ALSO), each a page now, with its name as its trail says it.
+     *
+     * @return list<array{url: string, name: string}>
+     */
+    public function seeAlso(string $slug): array
+    {
+        $links = [];
+        foreach (self::SEE_ALSO[$slug] ?? [] as $other) {
+            if ($other === 'christmas-carols') {
+                $links[] = ['url' => Carols::PATH, 'name' => (string) __('site.carols.crumb')];
+            } elseif (Lang::has('site.collections.'.$other.'.crumb') && $this->members($other) !== []) {
+                $links[] = ['url' => self::path($other), 'name' => (string) __('site.collections.'.$other.'.crumb')];
+            }
+        }
+
+        return $links;
     }
 
     public static function path(string $slug): string

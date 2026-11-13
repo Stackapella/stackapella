@@ -25,6 +25,8 @@ export const ScoreSystem = {
     setup: () => ({ GAP, STAFF, GLYPH, CLEF, MUSIC_FONT }),
     template: `
         <svg :viewBox="'0 0 ' + width + ' ' + sys.height" class="block w-full overflow-visible" role="img">
+            <!-- And over the top staff, what the beat was and is ("♩. = ♩"): the pulse goes on unchanged. -->
+            <text v-for="bar in sys.bars.filter((b) => b.time)" :key="'eq' + bar.index" :x="bar.x + 4" :y="sys.staves[0].y - 8 - (sys.staves[0].chords.length ? 30 : 0)" font-size="13" :fill="ink" data-score-equal>{{ (bar.time.from === 'dotted' ? '♩.' : '♩') + ' = ' + (bar.time.to === 'dotted' ? '♩.' : '♩') }}</text>
             <text v-if="sys.barNumber" :x="edge" :y="sys.staves[0].y - 8 - (sys.staves[0].chords.length ? 16 : 0)" font-size="11" font-style="italic" :fill="ink">{{ sys.barNumber }}</text>
             <line v-if="sys.staves.length > 1" :x1="edge" :x2="edge" :y1="sys.staves[0].y" :y2="sys.staves.at(-1).y + STAFF" :stroke="ink" stroke-width="1.6" />
             <g v-for="st in sys.staves" :key="st.key + (st.cue ? '-cue' : '')" :opacity="st.cue ? 0.55 : 1" :fill="ink" :stroke="ink">
@@ -37,6 +39,11 @@ export const ScoreSystem = {
                     <text :x="timeX(st)" :y="y(st, 2) + 7" font-size="21" font-weight="700" font-family="serif" text-anchor="middle" stroke="none">{{ layout.time.beatType }}</text>
                 </template>
                 <line v-for="(bar, b) in sys.bars.slice(1)" :key="'b' + b" :x1="bar.x" :x2="bar.x" :y1="st.y" :y2="st.y + STAFF" stroke-width="1" />
+                <!-- Where the metre changes (docs/meters-plan.md): the new time signature after its bar line. -->
+                <g v-for="bar in sys.bars.filter((b) => b.time)" :key="'ts' + bar.index" font-size="18" font-weight="700" font-family="serif" text-anchor="middle" stroke="none" data-score-metre>
+                    <text :x="bar.x + 11" :y="y(st, 6) + 6">{{ bar.time.beats }}</text>
+                    <text :x="bar.x + 11" :y="y(st, 2) + 6">{{ bar.time.beatType }}</text>
+                </g>
                 <line :x1="sys.right" :x2="sys.right" :y1="st.y" :y2="st.y + STAFF" stroke-width="1" />
                 <rect v-if="sys.last" :x="sys.right + 2" :y="st.y" width="4" :height="STAFF" stroke="none" />
                 <text v-for="(c, i) in st.chords" :key="'c' + i" :x="c.x" :y="st.y - Math.max(10, (st.high - 8) * 5 + 10) - 4" font-size="14" font-weight="600" stroke="none">{{ c.name }}</text>

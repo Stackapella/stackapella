@@ -18,6 +18,12 @@ const CLEF = 30;
 const ACCIDENTAL = 8; // a key signature's step
 const TIME = 22;
 const BAR_PAD = 14; // room inside a bar before its first note and after its last
+const TIME_CHANGE = 18; // room after a bar line where the metre changes, for its new time signature
+const WORD_CHAR = 8.5; // a word's width per letter at the print's 15px (and a chord name's at 14px bold)
+const HEAD_GAP = 16; // two notes' heads never closer
+const WORD_GAP = 6; // between two words
+
+const wordWidth = (text) => (text ? text.length * WORD_CHAR : 0);
 const SHARP_AT = [8, 5, 9, 6, 3, 7, 4];
 const FLAT_AT = [4, 7, 3, 6, 2, 5, 1];
 const FLAGS = { eighth: 1, '16th': 2, '32nd': 3 };
@@ -69,7 +75,11 @@ export function printLayout(template, { partKeys = null, cue = false, names = tr
             item.bar = b;
             if (!item.rest) notes.push(item);
         }));
-        const laid = staffLayout(notes.map((it) => ({ beat: (bars[it.bar].start + it.at) / scale, length: it.d / scale, pitch: it.pitch })), { key, clef, beatsPerBar: metre.perBar, pickupBeats: template.pickupBeats ?? 0 }).notes;
+        // A song whose metre changes: each note's bar is known, so accidentals go by bar index (exact in any metre).
+        const changing = bars.some((bar) => bar.timeSignature);
+        const laid = changing
+            ? staffLayout(notes.map((it) => ({ beat: it.bar * 1e6 + it.at, length: it.d, pitch: it.pitch })), { key, clef, beatsPerBar: 1e6, pickupBeats: 0 }).notes
+            : staffLayout(notes.map((it) => ({ beat: (bars[it.bar].start + it.at) / scale, length: it.d / scale, pitch: it.pitch })), { key, clef, beatsPerBar: metre.perBar, pickupBeats: template.pickupBeats ?? 0 }).notes;
         notes.forEach((it, i) => {
             const n = laid[i];
             Object.assign(it, { position: n.position, accidental: it.tieIn ? null : n.accidental, ledgers: n.ledgers, stem: n.position < 4 ? 'up' : 'down', name: n.name });
@@ -77,33 +87,101 @@ export function printLayout(template, { partKeys = null, cue = false, names = tr
         return { part, cue: isCue, clef, measures };
     });
 
-    // Systems: the pickup goes with the first one; the bars after it in groups.
+    // Each bar's spacing needs, across every staff (the parts share their onsets): from each onset to the next, room for the
+    // widest pair of words or chord names and for the heads; at its bar lines, room for half its first and last word, so
+    // no word runs into a neighbour's (quick 6/8 pairs ran together at the bar's proportional spacing).
+    const spacingOf = bars.map((bar, i) => {
+        const at = new Map(); // onset -> { word, head }
+        const mark = (onset, text, accidental) => {
+            const was = at.get(onset) ?? { word: 0, accidental: false };
+            at.set(onset, { word: Math.max(was.word, wordWidth(text)), accidental: was.accidental || accidental });
+        };
+        for (const st of staffBars) {
+            const m = st.measures[i];
+            for (const it of m.items) mark(it.at, it.rest || it.tieIn ? null : it.word ? it.word.text + '-' : null, !!it.accidental);
+            for (const c of m.chords) mark(c.at, chordName(c.chord, 0, key), false);
+        }
+        const onsets = [...at.keys()].sort((a, b) => a - b);
+        const needs = onsets.map((o, k) => (k === 0 ? 0 : Math.max(HEAD_GAP + (at.get(o).accidental ? 12 : 0), (at.get(onsets[k - 1]).word + at.get(o).word) / 2 + WORD_GAP)));
+        const startPad = Math.max(BAR_PAD, (onsets.length ? at.get(onsets[0]).word / 2 : 0) + 4 + (onsets.length && at.get(onsets[0]).accidental ? 12 : 0));
+        const endPad = Math.max(BAR_PAD, (onsets.length ? at.get(onsets.at(-1)).word / 2 : 0) + 4);
+        return { onsets, needs, startPad, endPad, min: startPad + needs.reduce((a, b) => a + b, 0) + endPad, length: bar.length };
+    });
+
+    // Systems: the pickup goes with the first one; then as many bars as fit their words, at most the page's usual count.
     const per = perSystem ?? barsPerSystem(template.timeSignature);
+    const signatureWidth = (clef) => signaturePositions(key, clef).length * ACCIDENTAL;
+    const fullBar = metre.perBar * scale;
+    const leftOf = (s) => edge + CLEF + signatureWidth('treble') + (s === 0 ? TIME : 0) + 8;
+    const right = page - 2;
+    // One width per division for every system, so a short last system ends early (ragged right), as before.
+    const unit = (right - leftOf(1)) / (per * fullBar);
+    const natural = (i) => Math.max(bars[i].length, fullBar / 3) * unit;
+    // A bar where the metre changes (docs/meters-plan.md) keeps room for its new time signature too.
+    const changesAt = (i) => i > 0 && bars[i].timeSignature && bars[i].timeSignature !== bars[i - 1].timeSignature;
+    const widthOf = (i) => Math.max(natural(i), spacingOf[i].min + (changesAt(i) ? TIME_CHANGE : 0));
     const groups = [];
     let b = 0;
     while (b < bars.length) {
-        const take = per + (b === 0 && bars[0].pickup ? 1 : 0);
-        groups.push(bars.slice(b, b + take).map((_, i) => b + i));
-        b += take;
+        const most = per + (b === 0 && bars[0].pickup ? 1 : 0);
+        const room = right - leftOf(groups.length);
+        const group = [b];
+        let used = widthOf(b);
+        while (group.length < most && b + group.length < bars.length && used + widthOf(b + group.length) <= room + 0.5) {
+            used += widthOf(b + group.length);
+            group.push(b + group.length);
+        }
+        groups.push(group);
+        b += group.length;
     }
-    const signatureWidth = (clef) => signaturePositions(key, clef).length * ACCIDENTAL;
-    const fullBar = metre.perBar * scale;
     const systems = groups.map((indexes, s) => {
-        const left = edge + CLEF + signatureWidth('treble') + (s === 0 ? TIME : 0) + 8;
-        const right = page - 2;
-        // One width per division for every system, so a short last system ends early (ragged right);
-        // a system with the pickup too fits it in.
-        const length = indexes.reduce((sum, i) => sum + Math.max(bars[i].length, fullBar / 3), 0);
-        const unit = (right - left) / Math.max(per * fullBar, length);
+        const left = leftOf(s);
+        // Every system but the last fills the line; the last ends where its bars do (and may not run past the page).
+        const widths = indexes.map(widthOf);
+        const total = widths.reduce((a, w) => a + w, 0);
+        const stretch = s < groups.length - 1 || total > right - left ? (right - left) / total : 1;
         let x = left;
-        const sysBars = indexes.map((i) => {
-            const width = Math.max(bars[i].length, fullBar / 3) * unit;
+        const sysBars = indexes.map((i, k) => {
+            const width = widths[k] * stretch;
             const bar = { index: i, x, width };
+            // The metre changes here (docs/meters-plan.md): its time signature after the bar line, and what a beat was.
+            const changed = i > 0 && bars[i].timeSignature && bars[i].timeSignature !== bars[i - 1].timeSignature;
+            if (changed) {
+                const before = metreOf(bars[i - 1].timeSignature);
+                const after = metreOf(bars[i].timeSignature);
+                bar.time = { beats: after.beats, beatType: after.beatType, from: before.beatType === 8 ? 'dotted' : 'plain', to: after.beatType === 8 ? 'dotted' : 'plain' };
+            }
             x += width;
             return bar;
         });
         const widthUsed = x;
-        const xOf = (bar, at) => bar.x + BAR_PAD + (at / bars[bar.index].length) * (bar.width - 2 * BAR_PAD);
+        /** An onset's x in its bar: by its time, pushed on where words or heads need room, and fitted inside the bar. */
+        const placed = new Map(); // bar index -> Map(onset -> x from the bar's start)
+        const xOf = (bar, at) => {
+            if (!placed.has(bar.index)) {
+                const sp = spacingOf[bar.index];
+                const room = bar.time ? TIME_CHANGE : 0; // a time signature written after this bar line
+                const inner = bar.width - sp.startPad - room - sp.endPad;
+                const gaps = sp.onsets.map((o, k) => (k === 0 ? (o / sp.length) * inner : Math.max(sp.needs[k], ((o - sp.onsets[k - 1]) / sp.length) * inner)));
+                let tail = sp.onsets.length ? ((sp.length - sp.onsets.at(-1)) / sp.length) * inner : 0;
+                const over = gaps.reduce((a, g) => a + g, 0) + tail - inner;
+                if (over > 0) {
+                    // Pushed past the bar: give back from the time-spaced gaps (never from what the words need).
+                    const spare = gaps.reduce((a, g, k) => a + Math.max(0, g - (k === 0 ? 0 : sp.needs[k])), 0) + tail;
+                    const keep = spare > 0 ? Math.max(0, 1 - over / spare) : 0;
+                    gaps.forEach((g, k) => (gaps[k] = (k === 0 ? 0 : sp.needs[k]) + Math.max(0, g - (k === 0 ? 0 : sp.needs[k])) * keep));
+                    tail *= keep;
+                }
+                const xs = new Map();
+                let along = sp.startPad + room;
+                sp.onsets.forEach((o, k) => {
+                    along += gaps[k];
+                    xs.set(o, along);
+                });
+                placed.set(bar.index, xs);
+            }
+            return bar.x + (placed.get(bar.index).get(at) ?? BAR_PAD);
+        };
         const laidStaves = staffBars.map((st) => {
             const items = [];
             const chords = [];

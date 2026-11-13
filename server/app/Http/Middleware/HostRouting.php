@@ -22,7 +22,7 @@ use Symfony\Component\HttpFoundation\Response;
 final class HostRouting
 {
     /** App pages that are never an old install's: these always just redirect. */
-    private const REDIRECTED = ['admin', 'admin/*', 'auth/*', 'signin', 'verify', 'reset', 'email/*', 'notice', 'beta/*', 'early/*', 'invite/*', 'preview/*', 'join/*', 'choir/*', 'teacher/*', 'class', 'class/*', 'plus/return', 'connect/*', 'warmup'];
+    private const REDIRECTED = ['admin', 'admin/*', 'auth/*', 'signin', 'verify', 'reset', 'email/*', 'notice', 'notices', 'beta/*', 'early/*', 'invite/*', 'preview/*', 'join/*', 'choir/*', 'teacher/*', 'class', 'class/*', 'plus/return', 'connect/*', 'warmup'];
 
     public function handle(Request $request, Closure $next): Response
     {

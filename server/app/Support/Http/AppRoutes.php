@@ -19,7 +19,7 @@ final class AppRoutes
         'p/*', 'admin', 'admin/*', 'styleguide', 'styleguide/*', 'settings', 'settings/*', 'storage', 'voice', 'workout',
         'plus', 'plus/*', 'class', 'class/*', 'learn', 'learn/*', 'beta', 'beta/*', 'create', 'create/*', 't/*',
         'join/*', 'early/*', 'invite/*', 'groups', 'groups/*', 'choir/*', 'challenge/*', 'moved', 'contact', 'cooldown',
-        'warmup', 'start-fresh', 'ideas', 'ideas/*', 'requests', 'voices',
+        'warmup', 'start-fresh', 'ideas', 'ideas/*', 'requests', 'voices', 'notices',
         // Signing in and the emails' links (the router's auth pages and HostRouting's redirected ones).
         'signin', 'signin/*', 'verify', 'reset', 'email/*', 'notice', 'auth/*', 'preview/*', 'teacher/*', 'connect/*',
     ];

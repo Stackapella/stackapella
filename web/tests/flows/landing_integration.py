@@ -18,7 +18,7 @@ HERO = "document.querySelector('.s-mixer')"
 
 def journey(f):
     f.go("/", f"{HERO}?.hasAttribute('data-ready')")
-    assert f.js(f"[...{HERO}.querySelectorAll('[data-toggle]')].every((b) => b.getAttribute('aria-checked') === 'true')"), "every voice on"
+    assert f.js(f"[...{HERO}.querySelectorAll('[data-voice]')].every((v) => !v.hasAttribute('data-off'))"), "every voice on"
     assert f.js(f"{HERO}.querySelector('[role=radio][aria-checked=true]').closest('[data-voice]').dataset.voice") == "soprano", "the melody forward (a7950e90: the players lead with the tune)"
     assert f.js("document.documentElement.scrollWidth <= innerWidth"), "no sideways scrolling"
     f.shot("ready")
@@ -30,27 +30,32 @@ def journey(f):
     play = f"{HERO}.querySelector('[data-play]')"
     assert f.js(f"{play}.getAttribute('aria-label') === {play}.dataset.labelStop"), "Play became Stop"
 
-    # The tenor out, mid-line: still playing, and only its switch changed (the soprano stays forward).
-    f.run(f"{HERO}.querySelector('[data-voice=tenor] [data-toggle]').click()")
-    assert f.js(f"{HERO}.querySelector('[data-voice=tenor] [data-toggle]').getAttribute('aria-checked')") == "false"
-    assert f.js(f"{HERO}.querySelector('[data-voice=tenor]').hasAttribute('data-off')"), "the row looks off"
-    assert f.js(f"{HERO}.querySelector('[data-voice=soprano] [data-pick]').getAttribute('aria-checked')") == "true", "the switch didn't choose"
-    assert f.js(f"{HERO}.hasAttribute('data-playing')"), "switching a voice doesn't stop the line"
-    f.shot("tenor-out")
+    # The tenor alone, mid-line, by tapping its row (Hillel, 2026-11-13: tap-to-solo): still playing, every other voice
+    # off, its row lit; "You" stays where it was.
+    row = lambda part: f"{HERO}.querySelector('[data-voice={part}]')"
+    f.run(f"{row('tenor')}.querySelector('[data-hear-alone]').click()")
+    assert f.js(f"{row('tenor')}.hasAttribute('data-solo') && {row('tenor')}.querySelector('[data-hear-alone]').getAttribute('aria-pressed') === 'true'"), "the tenor row lit, alone"
+    assert f.js(f"[...{HERO}.querySelectorAll('[data-voice]')].filter((v) => v.hasAttribute('data-off')).map((v) => v.dataset.voice).sort().join()") == "alto,bass,soprano", "the others off"
+    assert f.js(f"{row('soprano')}.querySelector('[data-pick]').getAttribute('aria-checked')") == "true", "hearing a part alone doesn't choose it"
+    assert f.js(f"{HERO}.hasAttribute('data-playing')"), "hearing one part doesn't stop the line"
+    f.shot("tenor-alone")
 
-    # The alto forward by its row: "You" moves with it, and the soprano steps back.
-    f.run(f"{HERO}.querySelector('[data-voice=alto] [data-pick]').click()")
+    # Tapping it again brings every part back.
+    f.run(f"{row('tenor')}.querySelector('[data-hear-alone]').click()")
+    assert f.js(f"[...{HERO}.querySelectorAll('[data-voice]')].every((v) => !v.hasAttribute('data-off') && !v.hasAttribute('data-solo'))"), "all of them again"
+
+    # The alto made yours by its small control: "You" moves with it, and the soprano steps back.
+    f.run(f"{row('alto')}.querySelector('[data-pick]').click()")
     assert f.js(f"[...{HERO}.querySelectorAll('[data-pick]')].map((b) => b.getAttribute('aria-checked')).join()") == "false,true,false,false"
-    assert f.js(f"{HERO}.querySelector('[data-voice=alto]').classList.contains('s-is-you') && !{HERO}.querySelector('[data-voice=soprano]').classList.contains('s-is-you')")
-    assert f.js(f"{HERO}.querySelector('[data-voice=alto] [data-pick]').getAttribute('aria-label')") != "Alto", "named as your part"
-    # The arrow keys move it on, like any radio group, and a voice that was off comes back on.
-    f.run(f"const a = {HERO}.querySelector('[data-voice=alto] [data-pick]'); a.focus(); a.dispatchEvent(new KeyboardEvent('keydown', {{ key: 'ArrowDown', bubbles: true }}))")
-    assert f.js(f"document.activeElement === {HERO}.querySelector('[data-voice=tenor] [data-pick]')"), "focus moved to the tenor"
-    assert f.js(f"{HERO}.querySelector('[data-voice=tenor] [data-pick]').getAttribute('aria-checked')") == "true"
-    assert f.js(f"{HERO}.querySelector('[data-voice=tenor] [data-toggle]').getAttribute('aria-checked')") == "true", "forward means on"
+    assert f.js(f"{row('alto')}.classList.contains('s-is-you') && !{row('soprano')}.classList.contains('s-is-you')")
+    assert f.js(f"{row('alto')}.querySelector('[data-pick]').getAttribute('aria-label')") == f.js(f"{row('alto')}.querySelector('[data-pick]').dataset.labelYou"), "named as your part"
+    # The arrow keys move it on, like any radio group.
+    f.run(f"const a = {row('alto')}.querySelector('[data-pick]'); a.focus(); a.dispatchEvent(new KeyboardEvent('keydown', {{ key: 'ArrowDown', bubbles: true }}))")
+    assert f.js(f"document.activeElement === {row('tenor')}.querySelector('[data-pick]')"), "focus moved to the tenor"
+    assert f.js(f"{row('tenor')}.querySelector('[data-pick]').getAttribute('aria-checked')") == "true"
     assert f.js(f"[...{HERO}.querySelectorAll('[data-pick]')].filter((b) => b.tabIndex === 0).length") == 1, "one tab stop"
     assert f.js(f"{HERO}.hasAttribute('data-playing')"), "choosing doesn't stop the line"
-    f.shot("tenor-forward")
+    f.shot("tenor-yours")
 
     f.run(f"{play}.click()")
     f.wait(f"!{HERO}.hasAttribute('data-playing')", what="stopped")

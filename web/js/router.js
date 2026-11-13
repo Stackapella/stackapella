@@ -40,6 +40,8 @@ const routes = [
     { name: 'challenge', pattern: /^\/challenge\/([\w-]+)\/?$/, keys: ['token'] },
     { name: 'moved', pattern: /^\/moved\/?$/, keys: [] },
     { name: 'contact', pattern: /^\/contact\/?$/, keys: [] },
+    { name: 'notices', pattern: /^\/notices\/?$/, keys: [] }, // a signed-in person's statements of reasons (views/notices.js)
+    { name: 'notice', pattern: /^\/notice\/?$/, keys: [] }, // one, by the private link in its email
     { name: 'cooldown', pattern: /^\/cooldown\/?$/, keys: [] },
     { name: 'warmup', pattern: /^\/warmup\/?$/, keys: [] }, // a teacher's warm-up: /warmup#<code> (js/warmup.js)
     { name: 'fresh', pattern: /^\/start-fresh\/?$/, keys: [] },

@@ -27,6 +27,7 @@ import { renderPart } from '../synth.js';
 import { droneNotes } from '../drone.js';
 import { lengthBeats, lyricLines, partsFor, phrases as templatePhrases } from '../templates.js';
 import { beatsPerBar, defaultPartName, PART_COLORS, transposeKey } from '../theme.js';
+import { barAt } from '../theory.js';
 import { toast } from '../components/ui.js';
 import { earn, learning, practised } from './learning.js';
 import { onCloudChange, refreshShared } from './cloud.js';
@@ -983,6 +984,7 @@ export async function listenThenRepeat() {
     engine.play({
         bpm: session.tempo,
         beatsPerBar: beatsPerBar(session.project.timeSignature),
+        ...songMetre(),
         pickupBeats: session.pickup,
         metronome: session.project.metronome,
         // Round and round on one phrase, unless you've turned Loop off.
@@ -1077,6 +1079,7 @@ export function climb(startFrame) {
     engine.play({
         bpm: session.tempo,
         beatsPerBar: beatsPerBar(session.project.timeSignature),
+        ...songMetre(),
         pickupBeats: session.pickup,
         metronome: session.project.metronome,
         repeat: { phrases: [next], mute: [guideId(focus.id), focus.id], cueBeats: 1, cycle: true },
@@ -1121,6 +1124,7 @@ export function startPlayback({ to = null } = {}) {
         toSeconds: phrase ? null : to, // a stretch (Play phrase N) ends on the audio clock
         bpm: session.tempo,
         beatsPerBar: beatsPerBar(session.project.timeSignature),
+        ...songMetre(),
         pickupBeats: session.pickup,
         metronome: session.project.metronome,
         loop: phrase ? { startSeconds: phrase.startSeconds, endSeconds: phrase.endSeconds } : null,
@@ -1203,10 +1207,11 @@ function tick() {
         if (position < session.recordFrom - 0.02) {
             // The click sounding now: its beat in the song, then its place in the bar (as the clicks accent it).
             const left = Math.ceil((session.recordFrom - position) / beat - 0.02);
-            const perBar = beatsPerBar(session.project.timeSignature);
             const clickBeat = Math.round(session.recordFrom / beat) - left;
             // Before the first click (the engine's lead): 0, counting in with nothing to show yet.
-            session.countIn = left > session.countInBeats ? 0 : ((((clickBeat - session.pickup) % perBar) + perBar) % perBar) + 1;
+            // Counted in the metre of the bar recording starts in (as the engine's count-in clicks are).
+            const bar = barAt(metreSong(), Math.round(session.recordFrom / beat));
+            session.countIn = left > session.countInBeats ? 0 : ((((clickBeat - bar.start) % bar.beats) + bar.beats) % bar.beats) + 1;
         } else {
             session.countIn = null;
         }
@@ -1227,6 +1232,17 @@ function tick() {
  * Records from the position (or from 0:00, `fromStart`): into the part `session.rerecordId` names, or a new part. The mic is
  * already open (the screen opened it during setup, docs/architecture.md "Invariants").
  */
+/** The open song's metre for barAt: its time signature, pickup and changes (docs/meters-plan.md; none on most songs). */
+function metreSong() {
+    return { timeSignature: session.project?.timeSignature ?? '4/4', pickupBeats: session.pickup ?? 0, meters: session.project?.template?.meters ?? null };
+}
+
+/** What engine.play needs to accent a changing song's bar lines: nothing at all for a song in one metre. */
+function songMetre() {
+    const meters = session.project?.template?.meters;
+    return meters?.length ? { meters, timeSignature: session.project.timeSignature } : {};
+}
+
 export async function startRecording({ fromStart = false } = {}) {
     if (!(await ready())) return;
     // The studio always records from the start (Hillel: "In the studio we should always rewind to
@@ -1244,14 +1260,17 @@ export async function startRecording({ fromStart = false } = {}) {
         color: target?.color ?? PART_COLORS.find((c) => !used.has(c)) ?? PART_COLORS[session.parts.length % PART_COLORS.length],
     };
     session.recordFrom = session.position;
-    const perBar = beatsPerBar(session.project.timeSignature);
-    // Count in to the bar line, then on to where recording starts (a pickup starts mid-bar).
-    const intoBar = (((Math.round(session.recordFrom / session.beatSeconds) - session.pickup) % perBar) + perBar) % perBar;
+    // Count in to the bar line, then on to where recording starts (a pickup starts mid-bar), in the metre there.
+    const fromBeat = Math.round(session.recordFrom / session.beatSeconds);
+    const bar = barAt(metreSong(), fromBeat);
+    const perBar = beatsPerBar(bar.timeSignature);
+    const intoBar = fromBeat - bar.start;
     engine.play({
         fromSeconds: session.recordFrom,
         bpm: session.project.bpm || 90,
         beatsPerBar: perBar,
         pickupBeats: session.pickup,
+        ...songMetre(),
         countInBeats: (session.countInBeats = session.project.countInBars ? session.project.countInBars * perBar + intoBar : 0),
         countInSounds: chipCountIn(), // game mode with Game sounds on: chip blips (the take's own clicks stay)
         metronome: session.project.metronome && !!session.project.bpm,
@@ -1627,6 +1646,7 @@ export async function renderMix({ chords = false, room = null, track = null, onl
     const clicked = withClicks(rendered, {
         beatSeconds: 60 / (session.project.bpm || 90), // takes are recorded at full speed
         beatsPerBar: beatsPerBar(session.project.timeSignature),
+        ...songMetre(),
         pickupBeats: session.pickup,
         accent: click(rendered.sampleRate, { hz: 2500 }),
         normal: click(rendered.sampleRate),

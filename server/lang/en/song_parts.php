@@ -24,7 +24,7 @@ return [
         'soprano' => 'Carries the tune, which climbs from low C to high F; take the top gently or move the key.',
         'alto' => 'Sings the words mostly a third or sixth under the tune, moving mostly by step, a calm first harmony to learn.',
         'tenor' => 'Sings the words in the middle of the chord, resting often on F and never jumping far.',
-        'bass' => 'Sings the words on the bass line, walking mostly by step down and up beneath the tune.',
+        'bass' => 'Sings the words on the bass line, walking down and up beneath the tune, by step about half the time.',
     ],
     'danny-boy' => [
         'soprano' => 'Carries the tune, slow and wide, saving its highest notes for the second half; take them gently.',
@@ -275,7 +275,7 @@ return [
     'now-is-the-month-of-maying' => [
         'soprano' => 'Carries Morley\'s dancing tune, often up on its top D, on "playing", "his bonny lass" and the fa las, and down to the D an octave below in the fa las.',
         'alto' => 'Sings a tune of its own close under the soprano, mostly on G and F-sharp, reaching A only in the second half, on "his bonny", "grass" and its fa las.',
-        'tenor' => 'Sings Morley\'s two tenor parts joined into one, mostly on D, up to F on "his" and down to E in the second half\'s fa las.',
+        'tenor' => 'Sings Morley\'s two tenor parts joined into one, most often on D, up to F on "his" and down to E in the second half\'s fa las.',
         'bass' => 'Sings the foundation, mostly D and G, from a low G on "Now", "Maying", "When" and the fa las up to A on "bonny" and the "Fa" after "grass".',
     ],
     'asleep-in-the-deep' => [
@@ -616,15 +616,15 @@ return [
     ],
     'riu-riu-chiu' => [
         'soprano' => 'Sings the opening call and both verses alone and the tune in every refrain, on just six notes, most often on B-flat, its top note, which begins every line, and down to its low D, a D natural, only on the end of "nuestra" and the start of "cordera" in each refrain\'s last line.',
-        'alto' => 'Rests while the soprano sings the call and the verses, and in every refrain sings under the tune on just six notes, most often on E-flat, often a third below it, up to its top G-flat on the first "Riu" and, crossing above the tune, on "la" in "la guarda ribera" and at the end of both lines that end "cordera", and down to its low B-flat only on "de nuestra" in the refrain\'s last line.',
-        'tenor' => 'Rests while the soprano sings the call and the verses, and in every refrain sings mostly on B-flat, with many repeated notes, up to its top D-flat on the first "Riu" and the start of the second, and on "Dios", the start of "guardó" and "el" in both "Dios guardó el lobo" lines, and down to its low E-flat only on the end of "guarda" and the start of "ribera", and on the middle of the last "cordera".',
-        'bass' => 'Rests while the soprano sings the call and the verses, which the 1556 print gives to the bass, and in every refrain sings the print\'s bass, on the roots of the chords nearly nine tenths of the time, most often on E-flat, up to its top B-flat on "Dios", the start of "guardó" and "el" in both "Dios guardó el lobo" lines, and down to the B-flat an octave under it on the end of "chiu", the last two syllables of "ribera", the end of each "lobo", and the end of "nuestra" and the start of "cordera" in both lines that end "cordera".',
+        'alto' => 'Rests while the soprano sings the call and the verses, and in every refrain sings under the tune on just five notes, most often on E-flat, often a third below it, up to its top G-flat on the first "Riu" and, crossing above the tune, on "la" in "la guarda ribera" and at the end of both lines that end "cordera", and down to its low D-flat on the end of the second "Riu", on the first "lo-" and the second "el" of both "el lobo, el lobo" lines, and on the end of the last "lobo".',
+        'tenor' => 'Rests while the soprano sings the call and the verses, and in every refrain sings mostly on B-flat, with many repeated notes, up to its top D-flat on the first "Riu" and the start of the second, and on the first "el" in both "Dios guardó el lobo" lines, and down to its low E-flat only on the end of "guarda" and the start of "ribera", and on the middle of the last "cordera".',
+        'bass' => 'Rests while the soprano sings the call and the verses, which the 1556 print gives to the bass, and in every refrain sings the print\'s bass, on the roots of the chords nearly nine tenths of the time, most often on E-flat, up to its top B-flat on "Dios", the start of "guardó" and "el" in both "Dios guardó el lobo" lines, and down to the B-flat an octave under it on the end of "chiu", the last two syllables of "ribera", the end of the second "lobo" in each line, and the end of "nuestra" and the start of "cordera" in both lines that end "cordera".',
     ],
     'noche-de-paz' => [
         'soprano' => 'Carries the tune, most often on C and G, which take nearly half its time between them, up to its top F only on the first "estrella" in verse 1, the first "buen" in verse 2 and the first "eterno" in verse 3, and down to its low C only on the last note of each verse: "paz.", the end of "Redentor." and the end of "fulgor.".',
         'alto' => 'Sings the words a third or a sixth under the tune about three quarters of the time, mostly a third, most often on E, up to its top A once in each of the third and fourth lines of every verse, on "astros" and "anunciando", "celestes" and "glorias", "rostro" and "pesebre,", and down to its low B on "Todo", "En el" and "Ved qué" at the start of the second line, through "Brilla la estrella", "Por nuestro buen Re-" and "Astro de eterno" in the fifth line, and on the last "estrella", "buen" and "eterno", crossing above the tune only on the last two notes of each verse, "de paz.", the end of "Redentor." and "fulgor.".',
         'tenor' => 'Sings the words on just five notes, from E up to C, most often on G, with many repeated notes, up to its top C on "¡Noche de" at the start of each verse and on the three notes before the last note of the third and fourth lines, and down to its low E on the end of the second line, "derredor.", "al pastor," and "resplandor", and on the last word of the fifth line, "paz,", the end of "Redentor," and the end of "fulgor,".',
-        'bass' => 'Hums the roots of the chords on "oo" in long held notes, mostly on C, up to its top F under the first half of the third and fourth lines of each verse, and down to its low G under the first half of the second and fifth lines, and for a moment under the last "estrella", "buen" and "eterno", before stepping up through B to each verse\'s closing C.',
+        'bass' => 'Sings the roots of the chords on "oo" in long held notes, mostly on C, up to its top F under the first half of the third and fourth lines of each verse, and down to its low G under the first half of the second and fifth lines, and for a moment under the last "estrella", "buen" and "eterno", before stepping up through B to each verse\'s closing C.',
     ],
     'pastores-a-belen' => [
         'soprano' => 'Carries the tune, most often on B and C, with many repeated notes, from its low D, only on the first notes of "Pastores" and "Vamos", leaping up a sixth from there, to its top E: on the middle of "María.", on the "llí, a-" that joins two "allí"s before "Nos espera Jesús," and again before "Nos convida su luz.", and on the start of "Niño" in the refrain\'s second "Llevemos" line.',

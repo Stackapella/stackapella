@@ -6,6 +6,7 @@ import { api } from './api.js';
 import { locale, t, tk } from './i18n.js';
 import { local } from './storage.js';
 import { beatsPerBar, TIME_SIGNATURES } from './theme.js';
+import { barAt } from './theory.js';
 
 /** The songs free for everyone, bundled with the app (docs/decisions.md, "Four songs free"). The free course uses only these. */
 export const FREE_SONGS = ['amazing-grace', 'are-you-sleeping', 'michael-row', 'happy-birthday'];
@@ -309,6 +310,21 @@ export function validateTemplate(t) {
     need(t?.licence && typeof t.licence === 'object', 'licence is missing');
     const perBar = beatsPerBar(t?.timeSignature);
     need(Number.isFinite(t?.pickupBeats) && t.pickupBeats >= 0 && t.pickupBeats < perBar, 'pickupBeats must be 0 or more, and less than a bar');
+    // A song whose time signature changes (docs/meters-plan.md): each change a known metre, after the last, on a bar line of
+    // the metre before it, and a change (not the same metre again). A beat keeps its length across a change.
+    if (t?.meters !== undefined) {
+        need(Array.isArray(t.meters) && t.meters.length > 0, 'meters must be a list of changes, or left out');
+        let previous = { beat: t.pickupBeats ?? 0, timeSignature: t.timeSignature };
+        for (const [i, m] of (Array.isArray(t.meters) ? t.meters : []).entries()) {
+            const name = `meters[${i}]`;
+            need(Number.isFinite(m?.beat) && m.beat > previous.beat, `${name}: beat must come after the change before it (and after the pickup)`);
+            need(TIME_SIGNATURES.includes(m?.timeSignature), `${name}: timeSignature must be one of ${TIME_SIGNATURES.join(', ')}`);
+            need(m?.timeSignature !== previous.timeSignature, `${name}: the same time signature as before it`);
+            const earlier = { timeSignature: t.timeSignature, pickupBeats: t.pickupBeats ?? 0, meters: t.meters.slice(0, i) };
+            need(!Number.isFinite(m?.beat) || barAt(earlier, m.beat).downbeat, `${name}: beat ${m?.beat} is not on a bar line`);
+            if (Number.isFinite(m?.beat) && m.beat > previous.beat) previous = m;
+        }
+    }
     need(Array.isArray(t?.parts) && t.parts.length > 0, 'parts are missing');
     need((t?.parts?.length ?? 0) <= MAX_PARTS, `parts: at most ${MAX_PARTS}`);
     const keys = new Set();

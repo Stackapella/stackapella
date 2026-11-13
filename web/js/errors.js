@@ -9,6 +9,7 @@
 import { APP_VERSION } from './api.js';
 import { account } from './stores/account.js';
 import { version } from './version.js';
+import { fromSound, noteSound } from './sound-log.js';
 
 const MAX_A_PAGE = 10;
 const WAITING_MAX = 5; // kept while offline, sent when the connection is back
@@ -147,6 +148,7 @@ export function report(error, { mechanism = 'onerror', context = null } = {}) {
 /** Listens for what isn't caught: window errors, unhandled rejections, and Vue's own (with the component). */
 export function watchErrors(app) {
     window.addEventListener('error', (event) => {
+        if (event.error && fromSound(event.error)) noteSound('error', event.error); // for Send diagnostics, if the person sends it
         if (event.error) report(event.error, { mechanism: 'onerror' });
         else if (event.message) report({ name: 'Error', message: event.message, filename: event.filename, stack: '' }, { mechanism: 'onerror' }); // i18n-ignore: sent to Sentry, never shown
     });
@@ -154,6 +156,7 @@ export function watchErrors(app) {
         // Not an Error (JAVASCRIPT-6 was just "Na"): its kind too, as "(object Foo)" or "(string)", so the report says what it was.
         const kind = (r) => `${typeof r}${r && typeof r === 'object' && r.constructor?.name && r.constructor.name !== 'Object' ? ` ${r.constructor.name}` : ''}`; // i18n-ignore: sent to Sentry, never shown
         const reason = event.reason instanceof Error ? event.reason : { name: 'UnhandledRejection', message: `${String(event.reason?.message ?? event.reason)} (${kind(event.reason)})`, stack: String(event.reason?.stack ?? '') };
+        if (fromSound(reason)) noteSound('error', reason);
         report(reason, { mechanism: 'onunhandledrejection' });
     });
     window.addEventListener('online', () => waiting.splice(0).forEach(send));

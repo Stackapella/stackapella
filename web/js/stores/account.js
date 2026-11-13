@@ -86,10 +86,11 @@ export function lastMethod() {
 
 /**
  * Takes a link's token (and the reset link's email) out of the address bar at once, keeping them in
- * the tab for the screen that uses them (linkToken()). For /verify, /reset, /signin/link and /email/*.
+ * the tab for the screen that uses them (linkToken()). For /verify, /reset, /signin/link, /email/* and
+ * /notice (a statement of reasons sent by email, views/notices.js).
  */
 export function keepLinkToken(path = location.pathname) {
-    if (!/^\/(verify|reset|signin\/link|email\/(confirm|revert))\/?$/.test(path)) return;
+    if (!/^\/(verify|reset|signin\/link|email\/(confirm|revert)|notice)\/?$/.test(path)) return;
     const params = new URLSearchParams(location.search);
     if (!params.has('token')) return;
     tabStorage.set('stackapella.link', JSON.stringify({ path, token: params.get('token'), email: params.get('email') ?? '' }));

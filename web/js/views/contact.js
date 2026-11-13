@@ -4,11 +4,14 @@
 // the device's details as a switch, on for a recording problem or something broken, with exactly what
 // goes along a tap away (never any audio). Send says what it's waiting for until it's ready; the
 // thanks names the email and the message's reference. Replies come by email. In shield mode
-// Cloudflare's check comes first, as at sign-up.
+// Cloudflare's check comes first, as at sign-up. Send diagnostics (/contact?diagnostics=1, from the mic's
+// help) is the same form about sound, sent as `diagnostics`, with what goes along shown open: the device's
+// details and this tab's sound problems (js/sound-log.js), each line as it's sent.
 
 import { api, APP_VERSION, ApiError } from '../api.js';
 import { audio, engine } from '../audio.js';
 import { describeDevice } from '../beta-outbox.js';
+import { soundLog } from '../sound-log.js';
 import { formatWait, t, tk } from '../i18n.js';
 import { navigate } from '../router.js';
 import { account, loadAuthConfig } from '../stores/account.js';
@@ -31,11 +34,11 @@ const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export const ContactView = {
     components: { Field, Switch, Icon, Notice, AppScreen, TurnstileBox },
-    data: () => ({ topic: 'recording', message: '', email: '', details: true, detailsChosen: false, showSent: false, website: '', busy: false, sent: null, errors: null, refusal: null, config: null, turnstile: null, turnstileKey: 0 }),
+    data: () => ({ topic: 'recording', diagnostics: new URLSearchParams(location.search).has('diagnostics'), message: '', email: '', details: true, detailsChosen: false, showSent: new URLSearchParams(location.search).has('diagnostics'), website: '', busy: false, sent: null, errors: null, refusal: null, config: null, turnstile: null, turnstileKey: 0 }),
     setup: () => ({ TOPICS, account, navigate }),
     template: `
-        <AppScreen :title="t('contact.title')" back="/settings" measure="max-w-2xl" content-class="gap-4 pt-4 md:gap-6" data-ui="screen" class="bg-ink">
-                <p class="-mt-3 text-muted md:-mt-5">{{ t('contact.intro') }}</p>
+        <AppScreen :title="diagnostics ? t('contact.diagnostics.title') : t('contact.title')" :back="diagnostics ? backTo : '/settings'" measure="max-w-2xl" content-class="gap-4 pt-4 md:gap-6" data-ui="screen" class="bg-ink">
+                <p class="-mt-3 text-muted md:-mt-5">{{ diagnostics ? t('contact.diagnostics.intro') : t('contact.intro') }}</p>
                 <section v-if="sent" class="card space-y-3 p-6" role="status">
                     <Icon name="check" :size="28" class="text-good" />
                     <h2 class="text-xl font-bold text-cream">{{ t('contact.sentTitle', { email: shownEmail }) }}</h2>
@@ -44,14 +47,14 @@ export const ContactView = {
                 </section>
                 <form v-else class="flex flex-col gap-4" @submit.prevent="send">
                     <div class="card flex flex-col gap-5 p-5 md:p-6">
-                        <div class="space-y-2">
+                        <div v-if="!diagnostics" class="space-y-2">
                             <p id="contact-topic" class="text-sm font-semibold text-cream">{{ t('contact.about') }}</p>
                             <div class="flex flex-wrap gap-2" role="radiogroup" aria-labelledby="contact-topic">
                                 <button v-for="(about, id) in TOPICS" :key="id" type="button" role="radio" :aria-checked="topic === id ? 'true' : 'false'" class="filter-chip" @click="choose(id)">{{ t(about.word) }}</button>
                             </div>
                         </div>
                         <Field :label="t('contact.message')" :error="errors?.message" required v-slot="f">
-                            <textarea :id="f.id" v-model="message" rows="6" required maxlength="5000" class="input" :placeholder="t(TOPICS[topic].placeholder)" :aria-describedby="f.describedby" :aria-invalid="f.invalid"></textarea>
+                            <textarea :id="f.id" v-model="message" rows="6" required maxlength="5000" class="input" :placeholder="diagnostics ? t('contact.diagnostics.placeholder') : t(TOPICS[topic].placeholder)" :aria-describedby="f.describedby" :aria-invalid="f.invalid"></textarea>
                         </Field>
                         <Field :label="t('contact.email')" :error="errors?.email" required v-slot="f">
                             <div v-if="account.me" class="flex items-center gap-2">
@@ -65,7 +68,7 @@ export const ContactView = {
                             <button type="button" class="link-quiet min-h-11 text-sm text-accent" :aria-expanded="showSent ? 'true' : 'false'" aria-controls="contact-sent" @click="showSent = !showSent">{{ showSent ? t('contact.hideSent') : t('contact.seeSent') }}</button>
                             <div v-if="showSent" id="contact-sent" class="space-y-2">
                                 <dl v-if="details" class="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 rounded-2xl bg-raised p-3 text-xs text-muted">
-                                    <template v-for="(value, key) in shownContext" :key="key"><dt class="font-semibold">{{ t(key) }}</dt><dd class="min-w-0 break-words" translate="no">{{ value }}</dd></template>
+                                    <template v-for="(value, key) in shownContext" :key="key"><dt class="font-semibold">{{ t(key) }}</dt><dd class="min-w-0 whitespace-pre-line break-words" translate="no" :data-sent="key">{{ value }}</dd></template>
                                 </dl>
                                 <p class="text-xs text-muted">{{ details ? t('contact.sentAlong') : t('contact.sentNothing') }}</p>
                             </div>
@@ -82,6 +85,13 @@ export const ContactView = {
                 </form>
         </AppScreen>`,
     computed: {
+        /** Where Send diagnostics came from (its `from`), to go back to; Settings otherwise. */
+        backTo: () => {
+            const from = new URLSearchParams(location.search).get('from');
+            return from?.startsWith('/') && !from.startsWith('//') ? from : '/settings';
+        },
+        /** This tab's sound problems (js/sound-log.js), read as the form opens. */
+        sounds: () => soundLog(),
         shownEmail() {
             return account.me?.email ?? this.email.trim();
         },
@@ -99,6 +109,7 @@ export const ContactView = {
                 device: describeDevice(),
                 page: new URLSearchParams(location.search).get('from'),
                 ...(audio.latencyFrames != null ? { timingCheck: { latencyMs: Math.round((audio.latencyFrames / (engine.sampleRate || 48000)) * 1000) } } : {}),
+                ...(this.sounds.length ? { audioErrors: this.sounds } : {}),
             };
         },
         shownContext() {
@@ -109,6 +120,8 @@ export const ContactView = {
                 [tk('contact.context.browser')]: c.browser,
                 ...(c.page ? { [tk('contact.context.page')]: c.page } : {}),
                 ...(c.timingCheck ? { [tk('contact.context.timing')]: `${c.timingCheck.latencyMs} ms` } : {}),
+                // Send diagnostics says so even when there's none, so the person knows what it looked for.
+                ...(c.audioErrors ? { [tk('contact.context.sound')]: c.audioErrors.join('\n') } : this.diagnostics ? { [tk('contact.context.sound')]: t('contact.diagnostics.noSound') } : {}),
             };
         },
     },
@@ -134,7 +147,7 @@ export const ContactView = {
             this.refusal = null;
             try {
                 const body = {
-                    category: TOPICS[this.topic].category,
+                    category: this.diagnostics ? 'diagnostics' : TOPICS[this.topic].category,
                     message: this.message.trim(),
                     ...(account.me ? {} : { email: this.email.trim() }),
                     ...(this.details ? { context: this.context } : {}),

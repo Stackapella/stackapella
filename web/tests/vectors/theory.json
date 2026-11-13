@@ -1,6 +1,3156 @@
 {
  "module": "js/theory.js",
  "vectors": {
+  "barAt": [
+   {
+    "input": {
+     "beat": -6,
+     "song": {
+      "pickupBeats": 1,
+      "timeSignature": "3/4"
+     }
+    },
+    "output": {
+     "beats": 3,
+     "downbeat": false,
+     "start": -8,
+     "timeSignature": "3/4"
+    }
+   },
+   {
+    "input": {
+     "beat": -5,
+     "song": {
+      "pickupBeats": 1,
+      "timeSignature": "3/4"
+     }
+    },
+    "output": {
+     "beats": 3,
+     "downbeat": true,
+     "start": -5,
+     "timeSignature": "3/4"
+    }
+   },
+   {
+    "input": {
+     "beat": -4,
+     "song": {
+      "pickupBeats": 1,
+      "timeSignature": "3/4"
+     }
+    },
+    "output": {
+     "beats": 3,
+     "downbeat": false,
+     "start": -5,
+     "timeSignature": "3/4"
+    }
+   },
+   {
+    "input": {
+     "beat": -3,
+     "song": {
+      "pickupBeats": 1,
+      "timeSignature": "3/4"
+     }
+    },
+    "output": {
+     "beats": 3,
+     "downbeat": false,
+     "start": -5,
+     "timeSignature": "3/4"
+    }
+   },
+   {
+    "input": {
+     "beat": -2,
+     "song": {
+      "pickupBeats": 1,
+      "timeSignature": "3/4"
+     }
+    },
+    "output": {
+     "beats": 3,
+     "downbeat": true,
+     "start": -2,
+     "timeSignature": "3/4"
+    }
+   },
+   {
+    "input": {
+     "beat": -1,
+     "song": {
+      "pickupBeats": 1,
+      "timeSignature": "3/4"
+     }
+    },
+    "output": {
+     "beats": 3,
+     "downbeat": false,
+     "start": -2,
+     "timeSignature": "3/4"
+    }
+   },
+   {
+    "input": {
+     "beat": 0,
+     "song": {
+      "pickupBeats": 1,
+      "timeSignature": "3/4"
+     }
+    },
+    "output": {
+     "beats": 3,
+     "downbeat": false,
+     "start": -2,
+     "timeSignature": "3/4"
+    }
+   },
+   {
+    "input": {
+     "beat": 1,
+     "song": {
+      "pickupBeats": 1,
+      "timeSignature": "3/4"
+     }
+    },
+    "output": {
+     "beats": 3,
+     "downbeat": true,
+     "start": 1,
+     "timeSignature": "3/4"
+    }
+   },
+   {
+    "input": {
+     "beat": 2,
+     "song": {
+      "pickupBeats": 1,
+      "timeSignature": "3/4"
+     }
+    },
+    "output": {
+     "beats": 3,
+     "downbeat": false,
+     "start": 1,
+     "timeSignature": "3/4"
+    }
+   },
+   {
+    "input": {
+     "beat": 3,
+     "song": {
+      "pickupBeats": 1,
+      "timeSignature": "3/4"
+     }
+    },
+    "output": {
+     "beats": 3,
+     "downbeat": false,
+     "start": 1,
+     "timeSignature": "3/4"
+    }
+   },
+   {
+    "input": {
+     "beat": 4,
+     "song": {
+      "pickupBeats": 1,
+      "timeSignature": "3/4"
+     }
+    },
+    "output": {
+     "beats": 3,
+     "downbeat": true,
+     "start": 4,
+     "timeSignature": "3/4"
+    }
+   },
+   {
+    "input": {
+     "beat": 5,
+     "song": {
+      "pickupBeats": 1,
+      "timeSignature": "3/4"
+     }
+    },
+    "output": {
+     "beats": 3,
+     "downbeat": false,
+     "start": 4,
+     "timeSignature": "3/4"
+    }
+   },
+   {
+    "input": {
+     "beat": 6,
+     "song": {
+      "pickupBeats": 1,
+      "timeSignature": "3/4"
+     }
+    },
+    "output": {
+     "beats": 3,
+     "downbeat": false,
+     "start": 4,
+     "timeSignature": "3/4"
+    }
+   },
+   {
+    "input": {
+     "beat": 7,
+     "song": {
+      "pickupBeats": 1,
+      "timeSignature": "3/4"
+     }
+    },
+    "output": {
+     "beats": 3,
+     "downbeat": true,
+     "start": 7,
+     "timeSignature": "3/4"
+    }
+   },
+   {
+    "input": {
+     "beat": 8,
+     "song": {
+      "pickupBeats": 1,
+      "timeSignature": "3/4"
+     }
+    },
+    "output": {
+     "beats": 3,
+     "downbeat": false,
+     "start": 7,
+     "timeSignature": "3/4"
+    }
+   },
+   {
+    "input": {
+     "beat": 9,
+     "song": {
+      "pickupBeats": 1,
+      "timeSignature": "3/4"
+     }
+    },
+    "output": {
+     "beats": 3,
+     "downbeat": false,
+     "start": 7,
+     "timeSignature": "3/4"
+    }
+   },
+   {
+    "input": {
+     "beat": 10,
+     "song": {
+      "pickupBeats": 1,
+      "timeSignature": "3/4"
+     }
+    },
+    "output": {
+     "beats": 3,
+     "downbeat": true,
+     "start": 10,
+     "timeSignature": "3/4"
+    }
+   },
+   {
+    "input": {
+     "beat": 11,
+     "song": {
+      "pickupBeats": 1,
+      "timeSignature": "3/4"
+     }
+    },
+    "output": {
+     "beats": 3,
+     "downbeat": false,
+     "start": 10,
+     "timeSignature": "3/4"
+    }
+   },
+   {
+    "input": {
+     "beat": 12,
+     "song": {
+      "pickupBeats": 1,
+      "timeSignature": "3/4"
+     }
+    },
+    "output": {
+     "beats": 3,
+     "downbeat": false,
+     "start": 10,
+     "timeSignature": "3/4"
+    }
+   },
+   {
+    "input": {
+     "beat": 13,
+     "song": {
+      "pickupBeats": 1,
+      "timeSignature": "3/4"
+     }
+    },
+    "output": {
+     "beats": 3,
+     "downbeat": true,
+     "start": 13,
+     "timeSignature": "3/4"
+    }
+   },
+   {
+    "input": {
+     "beat": 14,
+     "song": {
+      "pickupBeats": 1,
+      "timeSignature": "3/4"
+     }
+    },
+    "output": {
+     "beats": 3,
+     "downbeat": false,
+     "start": 13,
+     "timeSignature": "3/4"
+    }
+   },
+   {
+    "input": {
+     "beat": 15,
+     "song": {
+      "pickupBeats": 1,
+      "timeSignature": "3/4"
+     }
+    },
+    "output": {
+     "beats": 3,
+     "downbeat": false,
+     "start": 13,
+     "timeSignature": "3/4"
+    }
+   },
+   {
+    "input": {
+     "beat": 16,
+     "song": {
+      "pickupBeats": 1,
+      "timeSignature": "3/4"
+     }
+    },
+    "output": {
+     "beats": 3,
+     "downbeat": true,
+     "start": 16,
+     "timeSignature": "3/4"
+    }
+   },
+   {
+    "input": {
+     "beat": 17,
+     "song": {
+      "pickupBeats": 1,
+      "timeSignature": "3/4"
+     }
+    },
+    "output": {
+     "beats": 3,
+     "downbeat": false,
+     "start": 16,
+     "timeSignature": "3/4"
+    }
+   },
+   {
+    "input": {
+     "beat": 18,
+     "song": {
+      "pickupBeats": 1,
+      "timeSignature": "3/4"
+     }
+    },
+    "output": {
+     "beats": 3,
+     "downbeat": false,
+     "start": 16,
+     "timeSignature": "3/4"
+    }
+   },
+   {
+    "input": {
+     "beat": 19,
+     "song": {
+      "pickupBeats": 1,
+      "timeSignature": "3/4"
+     }
+    },
+    "output": {
+     "beats": 3,
+     "downbeat": true,
+     "start": 19,
+     "timeSignature": "3/4"
+    }
+   },
+   {
+    "input": {
+     "beat": 20,
+     "song": {
+      "pickupBeats": 1,
+      "timeSignature": "3/4"
+     }
+    },
+    "output": {
+     "beats": 3,
+     "downbeat": false,
+     "start": 19,
+     "timeSignature": "3/4"
+    }
+   },
+   {
+    "input": {
+     "beat": 21,
+     "song": {
+      "pickupBeats": 1,
+      "timeSignature": "3/4"
+     }
+    },
+    "output": {
+     "beats": 3,
+     "downbeat": false,
+     "start": 19,
+     "timeSignature": "3/4"
+    }
+   },
+   {
+    "input": {
+     "beat": 22,
+     "song": {
+      "pickupBeats": 1,
+      "timeSignature": "3/4"
+     }
+    },
+    "output": {
+     "beats": 3,
+     "downbeat": true,
+     "start": 22,
+     "timeSignature": "3/4"
+    }
+   },
+   {
+    "input": {
+     "beat": 23,
+     "song": {
+      "pickupBeats": 1,
+      "timeSignature": "3/4"
+     }
+    },
+    "output": {
+     "beats": 3,
+     "downbeat": false,
+     "start": 22,
+     "timeSignature": "3/4"
+    }
+   },
+   {
+    "input": {
+     "beat": 24,
+     "song": {
+      "pickupBeats": 1,
+      "timeSignature": "3/4"
+     }
+    },
+    "output": {
+     "beats": 3,
+     "downbeat": false,
+     "start": 22,
+     "timeSignature": "3/4"
+    }
+   },
+   {
+    "input": {
+     "beat": 25,
+     "song": {
+      "pickupBeats": 1,
+      "timeSignature": "3/4"
+     }
+    },
+    "output": {
+     "beats": 3,
+     "downbeat": true,
+     "start": 25,
+     "timeSignature": "3/4"
+    }
+   },
+   {
+    "input": {
+     "beat": 26,
+     "song": {
+      "pickupBeats": 1,
+      "timeSignature": "3/4"
+     }
+    },
+    "output": {
+     "beats": 3,
+     "downbeat": false,
+     "start": 25,
+     "timeSignature": "3/4"
+    }
+   },
+   {
+    "input": {
+     "beat": 27,
+     "song": {
+      "pickupBeats": 1,
+      "timeSignature": "3/4"
+     }
+    },
+    "output": {
+     "beats": 3,
+     "downbeat": false,
+     "start": 25,
+     "timeSignature": "3/4"
+    }
+   },
+   {
+    "input": {
+     "beat": 28,
+     "song": {
+      "pickupBeats": 1,
+      "timeSignature": "3/4"
+     }
+    },
+    "output": {
+     "beats": 3,
+     "downbeat": true,
+     "start": 28,
+     "timeSignature": "3/4"
+    }
+   },
+   {
+    "input": {
+     "beat": 29,
+     "song": {
+      "pickupBeats": 1,
+      "timeSignature": "3/4"
+     }
+    },
+    "output": {
+     "beats": 3,
+     "downbeat": false,
+     "start": 28,
+     "timeSignature": "3/4"
+    }
+   },
+   {
+    "input": {
+     "beat": 30,
+     "song": {
+      "pickupBeats": 1,
+      "timeSignature": "3/4"
+     }
+    },
+    "output": {
+     "beats": 3,
+     "downbeat": false,
+     "start": 28,
+     "timeSignature": "3/4"
+    }
+   },
+   {
+    "input": {
+     "beat": 31,
+     "song": {
+      "pickupBeats": 1,
+      "timeSignature": "3/4"
+     }
+    },
+    "output": {
+     "beats": 3,
+     "downbeat": true,
+     "start": 31,
+     "timeSignature": "3/4"
+    }
+   },
+   {
+    "input": {
+     "beat": 32,
+     "song": {
+      "pickupBeats": 1,
+      "timeSignature": "3/4"
+     }
+    },
+    "output": {
+     "beats": 3,
+     "downbeat": false,
+     "start": 31,
+     "timeSignature": "3/4"
+    }
+   },
+   {
+    "input": {
+     "beat": 33,
+     "song": {
+      "pickupBeats": 1,
+      "timeSignature": "3/4"
+     }
+    },
+    "output": {
+     "beats": 3,
+     "downbeat": false,
+     "start": 31,
+     "timeSignature": "3/4"
+    }
+   },
+   {
+    "input": {
+     "beat": 34,
+     "song": {
+      "pickupBeats": 1,
+      "timeSignature": "3/4"
+     }
+    },
+    "output": {
+     "beats": 3,
+     "downbeat": true,
+     "start": 34,
+     "timeSignature": "3/4"
+    }
+   },
+   {
+    "input": {
+     "beat": 35,
+     "song": {
+      "pickupBeats": 1,
+      "timeSignature": "3/4"
+     }
+    },
+    "output": {
+     "beats": 3,
+     "downbeat": false,
+     "start": 34,
+     "timeSignature": "3/4"
+    }
+   },
+   {
+    "input": {
+     "beat": 36,
+     "song": {
+      "pickupBeats": 1,
+      "timeSignature": "3/4"
+     }
+    },
+    "output": {
+     "beats": 3,
+     "downbeat": false,
+     "start": 34,
+     "timeSignature": "3/4"
+    }
+   },
+   {
+    "input": {
+     "beat": 37,
+     "song": {
+      "pickupBeats": 1,
+      "timeSignature": "3/4"
+     }
+    },
+    "output": {
+     "beats": 3,
+     "downbeat": true,
+     "start": 37,
+     "timeSignature": "3/4"
+    }
+   },
+   {
+    "input": {
+     "beat": 38,
+     "song": {
+      "pickupBeats": 1,
+      "timeSignature": "3/4"
+     }
+    },
+    "output": {
+     "beats": 3,
+     "downbeat": false,
+     "start": 37,
+     "timeSignature": "3/4"
+    }
+   },
+   {
+    "input": {
+     "beat": 39,
+     "song": {
+      "pickupBeats": 1,
+      "timeSignature": "3/4"
+     }
+    },
+    "output": {
+     "beats": 3,
+     "downbeat": false,
+     "start": 37,
+     "timeSignature": "3/4"
+    }
+   },
+   {
+    "input": {
+     "beat": 40,
+     "song": {
+      "pickupBeats": 1,
+      "timeSignature": "3/4"
+     }
+    },
+    "output": {
+     "beats": 3,
+     "downbeat": true,
+     "start": 40,
+     "timeSignature": "3/4"
+    }
+   },
+   {
+    "input": {
+     "beat": 41,
+     "song": {
+      "pickupBeats": 1,
+      "timeSignature": "3/4"
+     }
+    },
+    "output": {
+     "beats": 3,
+     "downbeat": false,
+     "start": 40,
+     "timeSignature": "3/4"
+    }
+   },
+   {
+    "input": {
+     "beat": -6,
+     "song": {
+      "meters": [
+       {
+        "beat": 16,
+        "timeSignature": "4/4"
+       },
+       {
+        "beat": 32,
+        "timeSignature": "6/8"
+       }
+      ],
+      "pickupBeats": 0,
+      "timeSignature": "6/8"
+     }
+    },
+    "output": {
+     "beats": 2,
+     "downbeat": true,
+     "start": -6,
+     "timeSignature": "6/8"
+    }
+   },
+   {
+    "input": {
+     "beat": -5,
+     "song": {
+      "meters": [
+       {
+        "beat": 16,
+        "timeSignature": "4/4"
+       },
+       {
+        "beat": 32,
+        "timeSignature": "6/8"
+       }
+      ],
+      "pickupBeats": 0,
+      "timeSignature": "6/8"
+     }
+    },
+    "output": {
+     "beats": 2,
+     "downbeat": false,
+     "start": -6,
+     "timeSignature": "6/8"
+    }
+   },
+   {
+    "input": {
+     "beat": -4,
+     "song": {
+      "meters": [
+       {
+        "beat": 16,
+        "timeSignature": "4/4"
+       },
+       {
+        "beat": 32,
+        "timeSignature": "6/8"
+       }
+      ],
+      "pickupBeats": 0,
+      "timeSignature": "6/8"
+     }
+    },
+    "output": {
+     "beats": 2,
+     "downbeat": true,
+     "start": -4,
+     "timeSignature": "6/8"
+    }
+   },
+   {
+    "input": {
+     "beat": -3,
+     "song": {
+      "meters": [
+       {
+        "beat": 16,
+        "timeSignature": "4/4"
+       },
+       {
+        "beat": 32,
+        "timeSignature": "6/8"
+       }
+      ],
+      "pickupBeats": 0,
+      "timeSignature": "6/8"
+     }
+    },
+    "output": {
+     "beats": 2,
+     "downbeat": false,
+     "start": -4,
+     "timeSignature": "6/8"
+    }
+   },
+   {
+    "input": {
+     "beat": -2,
+     "song": {
+      "meters": [
+       {
+        "beat": 16,
+        "timeSignature": "4/4"
+       },
+       {
+        "beat": 32,
+        "timeSignature": "6/8"
+       }
+      ],
+      "pickupBeats": 0,
+      "timeSignature": "6/8"
+     }
+    },
+    "output": {
+     "beats": 2,
+     "downbeat": true,
+     "start": -2,
+     "timeSignature": "6/8"
+    }
+   },
+   {
+    "input": {
+     "beat": -1,
+     "song": {
+      "meters": [
+       {
+        "beat": 16,
+        "timeSignature": "4/4"
+       },
+       {
+        "beat": 32,
+        "timeSignature": "6/8"
+       }
+      ],
+      "pickupBeats": 0,
+      "timeSignature": "6/8"
+     }
+    },
+    "output": {
+     "beats": 2,
+     "downbeat": false,
+     "start": -2,
+     "timeSignature": "6/8"
+    }
+   },
+   {
+    "input": {
+     "beat": 0,
+     "song": {
+      "meters": [
+       {
+        "beat": 16,
+        "timeSignature": "4/4"
+       },
+       {
+        "beat": 32,
+        "timeSignature": "6/8"
+       }
+      ],
+      "pickupBeats": 0,
+      "timeSignature": "6/8"
+     }
+    },
+    "output": {
+     "beats": 2,
+     "downbeat": true,
+     "start": 0,
+     "timeSignature": "6/8"
+    }
+   },
+   {
+    "input": {
+     "beat": 1,
+     "song": {
+      "meters": [
+       {
+        "beat": 16,
+        "timeSignature": "4/4"
+       },
+       {
+        "beat": 32,
+        "timeSignature": "6/8"
+       }
+      ],
+      "pickupBeats": 0,
+      "timeSignature": "6/8"
+     }
+    },
+    "output": {
+     "beats": 2,
+     "downbeat": false,
+     "start": 0,
+     "timeSignature": "6/8"
+    }
+   },
+   {
+    "input": {
+     "beat": 2,
+     "song": {
+      "meters": [
+       {
+        "beat": 16,
+        "timeSignature": "4/4"
+       },
+       {
+        "beat": 32,
+        "timeSignature": "6/8"
+       }
+      ],
+      "pickupBeats": 0,
+      "timeSignature": "6/8"
+     }
+    },
+    "output": {
+     "beats": 2,
+     "downbeat": true,
+     "start": 2,
+     "timeSignature": "6/8"
+    }
+   },
+   {
+    "input": {
+     "beat": 3,
+     "song": {
+      "meters": [
+       {
+        "beat": 16,
+        "timeSignature": "4/4"
+       },
+       {
+        "beat": 32,
+        "timeSignature": "6/8"
+       }
+      ],
+      "pickupBeats": 0,
+      "timeSignature": "6/8"
+     }
+    },
+    "output": {
+     "beats": 2,
+     "downbeat": false,
+     "start": 2,
+     "timeSignature": "6/8"
+    }
+   },
+   {
+    "input": {
+     "beat": 4,
+     "song": {
+      "meters": [
+       {
+        "beat": 16,
+        "timeSignature": "4/4"
+       },
+       {
+        "beat": 32,
+        "timeSignature": "6/8"
+       }
+      ],
+      "pickupBeats": 0,
+      "timeSignature": "6/8"
+     }
+    },
+    "output": {
+     "beats": 2,
+     "downbeat": true,
+     "start": 4,
+     "timeSignature": "6/8"
+    }
+   },
+   {
+    "input": {
+     "beat": 5,
+     "song": {
+      "meters": [
+       {
+        "beat": 16,
+        "timeSignature": "4/4"
+       },
+       {
+        "beat": 32,
+        "timeSignature": "6/8"
+       }
+      ],
+      "pickupBeats": 0,
+      "timeSignature": "6/8"
+     }
+    },
+    "output": {
+     "beats": 2,
+     "downbeat": false,
+     "start": 4,
+     "timeSignature": "6/8"
+    }
+   },
+   {
+    "input": {
+     "beat": 6,
+     "song": {
+      "meters": [
+       {
+        "beat": 16,
+        "timeSignature": "4/4"
+       },
+       {
+        "beat": 32,
+        "timeSignature": "6/8"
+       }
+      ],
+      "pickupBeats": 0,
+      "timeSignature": "6/8"
+     }
+    },
+    "output": {
+     "beats": 2,
+     "downbeat": true,
+     "start": 6,
+     "timeSignature": "6/8"
+    }
+   },
+   {
+    "input": {
+     "beat": 7,
+     "song": {
+      "meters": [
+       {
+        "beat": 16,
+        "timeSignature": "4/4"
+       },
+       {
+        "beat": 32,
+        "timeSignature": "6/8"
+       }
+      ],
+      "pickupBeats": 0,
+      "timeSignature": "6/8"
+     }
+    },
+    "output": {
+     "beats": 2,
+     "downbeat": false,
+     "start": 6,
+     "timeSignature": "6/8"
+    }
+   },
+   {
+    "input": {
+     "beat": 8,
+     "song": {
+      "meters": [
+       {
+        "beat": 16,
+        "timeSignature": "4/4"
+       },
+       {
+        "beat": 32,
+        "timeSignature": "6/8"
+       }
+      ],
+      "pickupBeats": 0,
+      "timeSignature": "6/8"
+     }
+    },
+    "output": {
+     "beats": 2,
+     "downbeat": true,
+     "start": 8,
+     "timeSignature": "6/8"
+    }
+   },
+   {
+    "input": {
+     "beat": 9,
+     "song": {
+      "meters": [
+       {
+        "beat": 16,
+        "timeSignature": "4/4"
+       },
+       {
+        "beat": 32,
+        "timeSignature": "6/8"
+       }
+      ],
+      "pickupBeats": 0,
+      "timeSignature": "6/8"
+     }
+    },
+    "output": {
+     "beats": 2,
+     "downbeat": false,
+     "start": 8,
+     "timeSignature": "6/8"
+    }
+   },
+   {
+    "input": {
+     "beat": 10,
+     "song": {
+      "meters": [
+       {
+        "beat": 16,
+        "timeSignature": "4/4"
+       },
+       {
+        "beat": 32,
+        "timeSignature": "6/8"
+       }
+      ],
+      "pickupBeats": 0,
+      "timeSignature": "6/8"
+     }
+    },
+    "output": {
+     "beats": 2,
+     "downbeat": true,
+     "start": 10,
+     "timeSignature": "6/8"
+    }
+   },
+   {
+    "input": {
+     "beat": 11,
+     "song": {
+      "meters": [
+       {
+        "beat": 16,
+        "timeSignature": "4/4"
+       },
+       {
+        "beat": 32,
+        "timeSignature": "6/8"
+       }
+      ],
+      "pickupBeats": 0,
+      "timeSignature": "6/8"
+     }
+    },
+    "output": {
+     "beats": 2,
+     "downbeat": false,
+     "start": 10,
+     "timeSignature": "6/8"
+    }
+   },
+   {
+    "input": {
+     "beat": 12,
+     "song": {
+      "meters": [
+       {
+        "beat": 16,
+        "timeSignature": "4/4"
+       },
+       {
+        "beat": 32,
+        "timeSignature": "6/8"
+       }
+      ],
+      "pickupBeats": 0,
+      "timeSignature": "6/8"
+     }
+    },
+    "output": {
+     "beats": 2,
+     "downbeat": true,
+     "start": 12,
+     "timeSignature": "6/8"
+    }
+   },
+   {
+    "input": {
+     "beat": 13,
+     "song": {
+      "meters": [
+       {
+        "beat": 16,
+        "timeSignature": "4/4"
+       },
+       {
+        "beat": 32,
+        "timeSignature": "6/8"
+       }
+      ],
+      "pickupBeats": 0,
+      "timeSignature": "6/8"
+     }
+    },
+    "output": {
+     "beats": 2,
+     "downbeat": false,
+     "start": 12,
+     "timeSignature": "6/8"
+    }
+   },
+   {
+    "input": {
+     "beat": 14,
+     "song": {
+      "meters": [
+       {
+        "beat": 16,
+        "timeSignature": "4/4"
+       },
+       {
+        "beat": 32,
+        "timeSignature": "6/8"
+       }
+      ],
+      "pickupBeats": 0,
+      "timeSignature": "6/8"
+     }
+    },
+    "output": {
+     "beats": 2,
+     "downbeat": true,
+     "start": 14,
+     "timeSignature": "6/8"
+    }
+   },
+   {
+    "input": {
+     "beat": 15,
+     "song": {
+      "meters": [
+       {
+        "beat": 16,
+        "timeSignature": "4/4"
+       },
+       {
+        "beat": 32,
+        "timeSignature": "6/8"
+       }
+      ],
+      "pickupBeats": 0,
+      "timeSignature": "6/8"
+     }
+    },
+    "output": {
+     "beats": 2,
+     "downbeat": false,
+     "start": 14,
+     "timeSignature": "6/8"
+    }
+   },
+   {
+    "input": {
+     "beat": 16,
+     "song": {
+      "meters": [
+       {
+        "beat": 16,
+        "timeSignature": "4/4"
+       },
+       {
+        "beat": 32,
+        "timeSignature": "6/8"
+       }
+      ],
+      "pickupBeats": 0,
+      "timeSignature": "6/8"
+     }
+    },
+    "output": {
+     "beats": 4,
+     "downbeat": true,
+     "start": 16,
+     "timeSignature": "4/4"
+    }
+   },
+   {
+    "input": {
+     "beat": 17,
+     "song": {
+      "meters": [
+       {
+        "beat": 16,
+        "timeSignature": "4/4"
+       },
+       {
+        "beat": 32,
+        "timeSignature": "6/8"
+       }
+      ],
+      "pickupBeats": 0,
+      "timeSignature": "6/8"
+     }
+    },
+    "output": {
+     "beats": 4,
+     "downbeat": false,
+     "start": 16,
+     "timeSignature": "4/4"
+    }
+   },
+   {
+    "input": {
+     "beat": 18,
+     "song": {
+      "meters": [
+       {
+        "beat": 16,
+        "timeSignature": "4/4"
+       },
+       {
+        "beat": 32,
+        "timeSignature": "6/8"
+       }
+      ],
+      "pickupBeats": 0,
+      "timeSignature": "6/8"
+     }
+    },
+    "output": {
+     "beats": 4,
+     "downbeat": false,
+     "start": 16,
+     "timeSignature": "4/4"
+    }
+   },
+   {
+    "input": {
+     "beat": 19,
+     "song": {
+      "meters": [
+       {
+        "beat": 16,
+        "timeSignature": "4/4"
+       },
+       {
+        "beat": 32,
+        "timeSignature": "6/8"
+       }
+      ],
+      "pickupBeats": 0,
+      "timeSignature": "6/8"
+     }
+    },
+    "output": {
+     "beats": 4,
+     "downbeat": false,
+     "start": 16,
+     "timeSignature": "4/4"
+    }
+   },
+   {
+    "input": {
+     "beat": 20,
+     "song": {
+      "meters": [
+       {
+        "beat": 16,
+        "timeSignature": "4/4"
+       },
+       {
+        "beat": 32,
+        "timeSignature": "6/8"
+       }
+      ],
+      "pickupBeats": 0,
+      "timeSignature": "6/8"
+     }
+    },
+    "output": {
+     "beats": 4,
+     "downbeat": true,
+     "start": 20,
+     "timeSignature": "4/4"
+    }
+   },
+   {
+    "input": {
+     "beat": 21,
+     "song": {
+      "meters": [
+       {
+        "beat": 16,
+        "timeSignature": "4/4"
+       },
+       {
+        "beat": 32,
+        "timeSignature": "6/8"
+       }
+      ],
+      "pickupBeats": 0,
+      "timeSignature": "6/8"
+     }
+    },
+    "output": {
+     "beats": 4,
+     "downbeat": false,
+     "start": 20,
+     "timeSignature": "4/4"
+    }
+   },
+   {
+    "input": {
+     "beat": 22,
+     "song": {
+      "meters": [
+       {
+        "beat": 16,
+        "timeSignature": "4/4"
+       },
+       {
+        "beat": 32,
+        "timeSignature": "6/8"
+       }
+      ],
+      "pickupBeats": 0,
+      "timeSignature": "6/8"
+     }
+    },
+    "output": {
+     "beats": 4,
+     "downbeat": false,
+     "start": 20,
+     "timeSignature": "4/4"
+    }
+   },
+   {
+    "input": {
+     "beat": 23,
+     "song": {
+      "meters": [
+       {
+        "beat": 16,
+        "timeSignature": "4/4"
+       },
+       {
+        "beat": 32,
+        "timeSignature": "6/8"
+       }
+      ],
+      "pickupBeats": 0,
+      "timeSignature": "6/8"
+     }
+    },
+    "output": {
+     "beats": 4,
+     "downbeat": false,
+     "start": 20,
+     "timeSignature": "4/4"
+    }
+   },
+   {
+    "input": {
+     "beat": 24,
+     "song": {
+      "meters": [
+       {
+        "beat": 16,
+        "timeSignature": "4/4"
+       },
+       {
+        "beat": 32,
+        "timeSignature": "6/8"
+       }
+      ],
+      "pickupBeats": 0,
+      "timeSignature": "6/8"
+     }
+    },
+    "output": {
+     "beats": 4,
+     "downbeat": true,
+     "start": 24,
+     "timeSignature": "4/4"
+    }
+   },
+   {
+    "input": {
+     "beat": 25,
+     "song": {
+      "meters": [
+       {
+        "beat": 16,
+        "timeSignature": "4/4"
+       },
+       {
+        "beat": 32,
+        "timeSignature": "6/8"
+       }
+      ],
+      "pickupBeats": 0,
+      "timeSignature": "6/8"
+     }
+    },
+    "output": {
+     "beats": 4,
+     "downbeat": false,
+     "start": 24,
+     "timeSignature": "4/4"
+    }
+   },
+   {
+    "input": {
+     "beat": 26,
+     "song": {
+      "meters": [
+       {
+        "beat": 16,
+        "timeSignature": "4/4"
+       },
+       {
+        "beat": 32,
+        "timeSignature": "6/8"
+       }
+      ],
+      "pickupBeats": 0,
+      "timeSignature": "6/8"
+     }
+    },
+    "output": {
+     "beats": 4,
+     "downbeat": false,
+     "start": 24,
+     "timeSignature": "4/4"
+    }
+   },
+   {
+    "input": {
+     "beat": 27,
+     "song": {
+      "meters": [
+       {
+        "beat": 16,
+        "timeSignature": "4/4"
+       },
+       {
+        "beat": 32,
+        "timeSignature": "6/8"
+       }
+      ],
+      "pickupBeats": 0,
+      "timeSignature": "6/8"
+     }
+    },
+    "output": {
+     "beats": 4,
+     "downbeat": false,
+     "start": 24,
+     "timeSignature": "4/4"
+    }
+   },
+   {
+    "input": {
+     "beat": 28,
+     "song": {
+      "meters": [
+       {
+        "beat": 16,
+        "timeSignature": "4/4"
+       },
+       {
+        "beat": 32,
+        "timeSignature": "6/8"
+       }
+      ],
+      "pickupBeats": 0,
+      "timeSignature": "6/8"
+     }
+    },
+    "output": {
+     "beats": 4,
+     "downbeat": true,
+     "start": 28,
+     "timeSignature": "4/4"
+    }
+   },
+   {
+    "input": {
+     "beat": 29,
+     "song": {
+      "meters": [
+       {
+        "beat": 16,
+        "timeSignature": "4/4"
+       },
+       {
+        "beat": 32,
+        "timeSignature": "6/8"
+       }
+      ],
+      "pickupBeats": 0,
+      "timeSignature": "6/8"
+     }
+    },
+    "output": {
+     "beats": 4,
+     "downbeat": false,
+     "start": 28,
+     "timeSignature": "4/4"
+    }
+   },
+   {
+    "input": {
+     "beat": 30,
+     "song": {
+      "meters": [
+       {
+        "beat": 16,
+        "timeSignature": "4/4"
+       },
+       {
+        "beat": 32,
+        "timeSignature": "6/8"
+       }
+      ],
+      "pickupBeats": 0,
+      "timeSignature": "6/8"
+     }
+    },
+    "output": {
+     "beats": 4,
+     "downbeat": false,
+     "start": 28,
+     "timeSignature": "4/4"
+    }
+   },
+   {
+    "input": {
+     "beat": 31,
+     "song": {
+      "meters": [
+       {
+        "beat": 16,
+        "timeSignature": "4/4"
+       },
+       {
+        "beat": 32,
+        "timeSignature": "6/8"
+       }
+      ],
+      "pickupBeats": 0,
+      "timeSignature": "6/8"
+     }
+    },
+    "output": {
+     "beats": 4,
+     "downbeat": false,
+     "start": 28,
+     "timeSignature": "4/4"
+    }
+   },
+   {
+    "input": {
+     "beat": 32,
+     "song": {
+      "meters": [
+       {
+        "beat": 16,
+        "timeSignature": "4/4"
+       },
+       {
+        "beat": 32,
+        "timeSignature": "6/8"
+       }
+      ],
+      "pickupBeats": 0,
+      "timeSignature": "6/8"
+     }
+    },
+    "output": {
+     "beats": 2,
+     "downbeat": true,
+     "start": 32,
+     "timeSignature": "6/8"
+    }
+   },
+   {
+    "input": {
+     "beat": 33,
+     "song": {
+      "meters": [
+       {
+        "beat": 16,
+        "timeSignature": "4/4"
+       },
+       {
+        "beat": 32,
+        "timeSignature": "6/8"
+       }
+      ],
+      "pickupBeats": 0,
+      "timeSignature": "6/8"
+     }
+    },
+    "output": {
+     "beats": 2,
+     "downbeat": false,
+     "start": 32,
+     "timeSignature": "6/8"
+    }
+   },
+   {
+    "input": {
+     "beat": 34,
+     "song": {
+      "meters": [
+       {
+        "beat": 16,
+        "timeSignature": "4/4"
+       },
+       {
+        "beat": 32,
+        "timeSignature": "6/8"
+       }
+      ],
+      "pickupBeats": 0,
+      "timeSignature": "6/8"
+     }
+    },
+    "output": {
+     "beats": 2,
+     "downbeat": true,
+     "start": 34,
+     "timeSignature": "6/8"
+    }
+   },
+   {
+    "input": {
+     "beat": 35,
+     "song": {
+      "meters": [
+       {
+        "beat": 16,
+        "timeSignature": "4/4"
+       },
+       {
+        "beat": 32,
+        "timeSignature": "6/8"
+       }
+      ],
+      "pickupBeats": 0,
+      "timeSignature": "6/8"
+     }
+    },
+    "output": {
+     "beats": 2,
+     "downbeat": false,
+     "start": 34,
+     "timeSignature": "6/8"
+    }
+   },
+   {
+    "input": {
+     "beat": 36,
+     "song": {
+      "meters": [
+       {
+        "beat": 16,
+        "timeSignature": "4/4"
+       },
+       {
+        "beat": 32,
+        "timeSignature": "6/8"
+       }
+      ],
+      "pickupBeats": 0,
+      "timeSignature": "6/8"
+     }
+    },
+    "output": {
+     "beats": 2,
+     "downbeat": true,
+     "start": 36,
+     "timeSignature": "6/8"
+    }
+   },
+   {
+    "input": {
+     "beat": 37,
+     "song": {
+      "meters": [
+       {
+        "beat": 16,
+        "timeSignature": "4/4"
+       },
+       {
+        "beat": 32,
+        "timeSignature": "6/8"
+       }
+      ],
+      "pickupBeats": 0,
+      "timeSignature": "6/8"
+     }
+    },
+    "output": {
+     "beats": 2,
+     "downbeat": false,
+     "start": 36,
+     "timeSignature": "6/8"
+    }
+   },
+   {
+    "input": {
+     "beat": 38,
+     "song": {
+      "meters": [
+       {
+        "beat": 16,
+        "timeSignature": "4/4"
+       },
+       {
+        "beat": 32,
+        "timeSignature": "6/8"
+       }
+      ],
+      "pickupBeats": 0,
+      "timeSignature": "6/8"
+     }
+    },
+    "output": {
+     "beats": 2,
+     "downbeat": true,
+     "start": 38,
+     "timeSignature": "6/8"
+    }
+   },
+   {
+    "input": {
+     "beat": 39,
+     "song": {
+      "meters": [
+       {
+        "beat": 16,
+        "timeSignature": "4/4"
+       },
+       {
+        "beat": 32,
+        "timeSignature": "6/8"
+       }
+      ],
+      "pickupBeats": 0,
+      "timeSignature": "6/8"
+     }
+    },
+    "output": {
+     "beats": 2,
+     "downbeat": false,
+     "start": 38,
+     "timeSignature": "6/8"
+    }
+   },
+   {
+    "input": {
+     "beat": 40,
+     "song": {
+      "meters": [
+       {
+        "beat": 16,
+        "timeSignature": "4/4"
+       },
+       {
+        "beat": 32,
+        "timeSignature": "6/8"
+       }
+      ],
+      "pickupBeats": 0,
+      "timeSignature": "6/8"
+     }
+    },
+    "output": {
+     "beats": 2,
+     "downbeat": true,
+     "start": 40,
+     "timeSignature": "6/8"
+    }
+   },
+   {
+    "input": {
+     "beat": 41,
+     "song": {
+      "meters": [
+       {
+        "beat": 16,
+        "timeSignature": "4/4"
+       },
+       {
+        "beat": 32,
+        "timeSignature": "6/8"
+       }
+      ],
+      "pickupBeats": 0,
+      "timeSignature": "6/8"
+     }
+    },
+    "output": {
+     "beats": 2,
+     "downbeat": false,
+     "start": 40,
+     "timeSignature": "6/8"
+    }
+   },
+   {
+    "input": {
+     "beat": -6,
+     "song": {
+      "meters": [
+       {
+        "beat": 9,
+        "timeSignature": "3/4"
+       }
+      ],
+      "pickupBeats": 1,
+      "timeSignature": "4/4"
+     }
+    },
+    "output": {
+     "beats": 4,
+     "downbeat": false,
+     "start": -7,
+     "timeSignature": "4/4"
+    }
+   },
+   {
+    "input": {
+     "beat": -5,
+     "song": {
+      "meters": [
+       {
+        "beat": 9,
+        "timeSignature": "3/4"
+       }
+      ],
+      "pickupBeats": 1,
+      "timeSignature": "4/4"
+     }
+    },
+    "output": {
+     "beats": 4,
+     "downbeat": false,
+     "start": -7,
+     "timeSignature": "4/4"
+    }
+   },
+   {
+    "input": {
+     "beat": -4,
+     "song": {
+      "meters": [
+       {
+        "beat": 9,
+        "timeSignature": "3/4"
+       }
+      ],
+      "pickupBeats": 1,
+      "timeSignature": "4/4"
+     }
+    },
+    "output": {
+     "beats": 4,
+     "downbeat": false,
+     "start": -7,
+     "timeSignature": "4/4"
+    }
+   },
+   {
+    "input": {
+     "beat": -3,
+     "song": {
+      "meters": [
+       {
+        "beat": 9,
+        "timeSignature": "3/4"
+       }
+      ],
+      "pickupBeats": 1,
+      "timeSignature": "4/4"
+     }
+    },
+    "output": {
+     "beats": 4,
+     "downbeat": true,
+     "start": -3,
+     "timeSignature": "4/4"
+    }
+   },
+   {
+    "input": {
+     "beat": -2,
+     "song": {
+      "meters": [
+       {
+        "beat": 9,
+        "timeSignature": "3/4"
+       }
+      ],
+      "pickupBeats": 1,
+      "timeSignature": "4/4"
+     }
+    },
+    "output": {
+     "beats": 4,
+     "downbeat": false,
+     "start": -3,
+     "timeSignature": "4/4"
+    }
+   },
+   {
+    "input": {
+     "beat": -1,
+     "song": {
+      "meters": [
+       {
+        "beat": 9,
+        "timeSignature": "3/4"
+       }
+      ],
+      "pickupBeats": 1,
+      "timeSignature": "4/4"
+     }
+    },
+    "output": {
+     "beats": 4,
+     "downbeat": false,
+     "start": -3,
+     "timeSignature": "4/4"
+    }
+   },
+   {
+    "input": {
+     "beat": 0,
+     "song": {
+      "meters": [
+       {
+        "beat": 9,
+        "timeSignature": "3/4"
+       }
+      ],
+      "pickupBeats": 1,
+      "timeSignature": "4/4"
+     }
+    },
+    "output": {
+     "beats": 4,
+     "downbeat": false,
+     "start": -3,
+     "timeSignature": "4/4"
+    }
+   },
+   {
+    "input": {
+     "beat": 1,
+     "song": {
+      "meters": [
+       {
+        "beat": 9,
+        "timeSignature": "3/4"
+       }
+      ],
+      "pickupBeats": 1,
+      "timeSignature": "4/4"
+     }
+    },
+    "output": {
+     "beats": 4,
+     "downbeat": true,
+     "start": 1,
+     "timeSignature": "4/4"
+    }
+   },
+   {
+    "input": {
+     "beat": 2,
+     "song": {
+      "meters": [
+       {
+        "beat": 9,
+        "timeSignature": "3/4"
+       }
+      ],
+      "pickupBeats": 1,
+      "timeSignature": "4/4"
+     }
+    },
+    "output": {
+     "beats": 4,
+     "downbeat": false,
+     "start": 1,
+     "timeSignature": "4/4"
+    }
+   },
+   {
+    "input": {
+     "beat": 3,
+     "song": {
+      "meters": [
+       {
+        "beat": 9,
+        "timeSignature": "3/4"
+       }
+      ],
+      "pickupBeats": 1,
+      "timeSignature": "4/4"
+     }
+    },
+    "output": {
+     "beats": 4,
+     "downbeat": false,
+     "start": 1,
+     "timeSignature": "4/4"
+    }
+   },
+   {
+    "input": {
+     "beat": 4,
+     "song": {
+      "meters": [
+       {
+        "beat": 9,
+        "timeSignature": "3/4"
+       }
+      ],
+      "pickupBeats": 1,
+      "timeSignature": "4/4"
+     }
+    },
+    "output": {
+     "beats": 4,
+     "downbeat": false,
+     "start": 1,
+     "timeSignature": "4/4"
+    }
+   },
+   {
+    "input": {
+     "beat": 5,
+     "song": {
+      "meters": [
+       {
+        "beat": 9,
+        "timeSignature": "3/4"
+       }
+      ],
+      "pickupBeats": 1,
+      "timeSignature": "4/4"
+     }
+    },
+    "output": {
+     "beats": 4,
+     "downbeat": true,
+     "start": 5,
+     "timeSignature": "4/4"
+    }
+   },
+   {
+    "input": {
+     "beat": 6,
+     "song": {
+      "meters": [
+       {
+        "beat": 9,
+        "timeSignature": "3/4"
+       }
+      ],
+      "pickupBeats": 1,
+      "timeSignature": "4/4"
+     }
+    },
+    "output": {
+     "beats": 4,
+     "downbeat": false,
+     "start": 5,
+     "timeSignature": "4/4"
+    }
+   },
+   {
+    "input": {
+     "beat": 7,
+     "song": {
+      "meters": [
+       {
+        "beat": 9,
+        "timeSignature": "3/4"
+       }
+      ],
+      "pickupBeats": 1,
+      "timeSignature": "4/4"
+     }
+    },
+    "output": {
+     "beats": 4,
+     "downbeat": false,
+     "start": 5,
+     "timeSignature": "4/4"
+    }
+   },
+   {
+    "input": {
+     "beat": 8,
+     "song": {
+      "meters": [
+       {
+        "beat": 9,
+        "timeSignature": "3/4"
+       }
+      ],
+      "pickupBeats": 1,
+      "timeSignature": "4/4"
+     }
+    },
+    "output": {
+     "beats": 4,
+     "downbeat": false,
+     "start": 5,
+     "timeSignature": "4/4"
+    }
+   },
+   {
+    "input": {
+     "beat": 9,
+     "song": {
+      "meters": [
+       {
+        "beat": 9,
+        "timeSignature": "3/4"
+       }
+      ],
+      "pickupBeats": 1,
+      "timeSignature": "4/4"
+     }
+    },
+    "output": {
+     "beats": 3,
+     "downbeat": true,
+     "start": 9,
+     "timeSignature": "3/4"
+    }
+   },
+   {
+    "input": {
+     "beat": 10,
+     "song": {
+      "meters": [
+       {
+        "beat": 9,
+        "timeSignature": "3/4"
+       }
+      ],
+      "pickupBeats": 1,
+      "timeSignature": "4/4"
+     }
+    },
+    "output": {
+     "beats": 3,
+     "downbeat": false,
+     "start": 9,
+     "timeSignature": "3/4"
+    }
+   },
+   {
+    "input": {
+     "beat": 11,
+     "song": {
+      "meters": [
+       {
+        "beat": 9,
+        "timeSignature": "3/4"
+       }
+      ],
+      "pickupBeats": 1,
+      "timeSignature": "4/4"
+     }
+    },
+    "output": {
+     "beats": 3,
+     "downbeat": false,
+     "start": 9,
+     "timeSignature": "3/4"
+    }
+   },
+   {
+    "input": {
+     "beat": 12,
+     "song": {
+      "meters": [
+       {
+        "beat": 9,
+        "timeSignature": "3/4"
+       }
+      ],
+      "pickupBeats": 1,
+      "timeSignature": "4/4"
+     }
+    },
+    "output": {
+     "beats": 3,
+     "downbeat": true,
+     "start": 12,
+     "timeSignature": "3/4"
+    }
+   },
+   {
+    "input": {
+     "beat": 13,
+     "song": {
+      "meters": [
+       {
+        "beat": 9,
+        "timeSignature": "3/4"
+       }
+      ],
+      "pickupBeats": 1,
+      "timeSignature": "4/4"
+     }
+    },
+    "output": {
+     "beats": 3,
+     "downbeat": false,
+     "start": 12,
+     "timeSignature": "3/4"
+    }
+   },
+   {
+    "input": {
+     "beat": 14,
+     "song": {
+      "meters": [
+       {
+        "beat": 9,
+        "timeSignature": "3/4"
+       }
+      ],
+      "pickupBeats": 1,
+      "timeSignature": "4/4"
+     }
+    },
+    "output": {
+     "beats": 3,
+     "downbeat": false,
+     "start": 12,
+     "timeSignature": "3/4"
+    }
+   },
+   {
+    "input": {
+     "beat": 15,
+     "song": {
+      "meters": [
+       {
+        "beat": 9,
+        "timeSignature": "3/4"
+       }
+      ],
+      "pickupBeats": 1,
+      "timeSignature": "4/4"
+     }
+    },
+    "output": {
+     "beats": 3,
+     "downbeat": true,
+     "start": 15,
+     "timeSignature": "3/4"
+    }
+   },
+   {
+    "input": {
+     "beat": 16,
+     "song": {
+      "meters": [
+       {
+        "beat": 9,
+        "timeSignature": "3/4"
+       }
+      ],
+      "pickupBeats": 1,
+      "timeSignature": "4/4"
+     }
+    },
+    "output": {
+     "beats": 3,
+     "downbeat": false,
+     "start": 15,
+     "timeSignature": "3/4"
+    }
+   },
+   {
+    "input": {
+     "beat": 17,
+     "song": {
+      "meters": [
+       {
+        "beat": 9,
+        "timeSignature": "3/4"
+       }
+      ],
+      "pickupBeats": 1,
+      "timeSignature": "4/4"
+     }
+    },
+    "output": {
+     "beats": 3,
+     "downbeat": false,
+     "start": 15,
+     "timeSignature": "3/4"
+    }
+   },
+   {
+    "input": {
+     "beat": 18,
+     "song": {
+      "meters": [
+       {
+        "beat": 9,
+        "timeSignature": "3/4"
+       }
+      ],
+      "pickupBeats": 1,
+      "timeSignature": "4/4"
+     }
+    },
+    "output": {
+     "beats": 3,
+     "downbeat": true,
+     "start": 18,
+     "timeSignature": "3/4"
+    }
+   },
+   {
+    "input": {
+     "beat": 19,
+     "song": {
+      "meters": [
+       {
+        "beat": 9,
+        "timeSignature": "3/4"
+       }
+      ],
+      "pickupBeats": 1,
+      "timeSignature": "4/4"
+     }
+    },
+    "output": {
+     "beats": 3,
+     "downbeat": false,
+     "start": 18,
+     "timeSignature": "3/4"
+    }
+   },
+   {
+    "input": {
+     "beat": 20,
+     "song": {
+      "meters": [
+       {
+        "beat": 9,
+        "timeSignature": "3/4"
+       }
+      ],
+      "pickupBeats": 1,
+      "timeSignature": "4/4"
+     }
+    },
+    "output": {
+     "beats": 3,
+     "downbeat": false,
+     "start": 18,
+     "timeSignature": "3/4"
+    }
+   },
+   {
+    "input": {
+     "beat": 21,
+     "song": {
+      "meters": [
+       {
+        "beat": 9,
+        "timeSignature": "3/4"
+       }
+      ],
+      "pickupBeats": 1,
+      "timeSignature": "4/4"
+     }
+    },
+    "output": {
+     "beats": 3,
+     "downbeat": true,
+     "start": 21,
+     "timeSignature": "3/4"
+    }
+   },
+   {
+    "input": {
+     "beat": 22,
+     "song": {
+      "meters": [
+       {
+        "beat": 9,
+        "timeSignature": "3/4"
+       }
+      ],
+      "pickupBeats": 1,
+      "timeSignature": "4/4"
+     }
+    },
+    "output": {
+     "beats": 3,
+     "downbeat": false,
+     "start": 21,
+     "timeSignature": "3/4"
+    }
+   },
+   {
+    "input": {
+     "beat": 23,
+     "song": {
+      "meters": [
+       {
+        "beat": 9,
+        "timeSignature": "3/4"
+       }
+      ],
+      "pickupBeats": 1,
+      "timeSignature": "4/4"
+     }
+    },
+    "output": {
+     "beats": 3,
+     "downbeat": false,
+     "start": 21,
+     "timeSignature": "3/4"
+    }
+   },
+   {
+    "input": {
+     "beat": 24,
+     "song": {
+      "meters": [
+       {
+        "beat": 9,
+        "timeSignature": "3/4"
+       }
+      ],
+      "pickupBeats": 1,
+      "timeSignature": "4/4"
+     }
+    },
+    "output": {
+     "beats": 3,
+     "downbeat": true,
+     "start": 24,
+     "timeSignature": "3/4"
+    }
+   },
+   {
+    "input": {
+     "beat": 25,
+     "song": {
+      "meters": [
+       {
+        "beat": 9,
+        "timeSignature": "3/4"
+       }
+      ],
+      "pickupBeats": 1,
+      "timeSignature": "4/4"
+     }
+    },
+    "output": {
+     "beats": 3,
+     "downbeat": false,
+     "start": 24,
+     "timeSignature": "3/4"
+    }
+   },
+   {
+    "input": {
+     "beat": 26,
+     "song": {
+      "meters": [
+       {
+        "beat": 9,
+        "timeSignature": "3/4"
+       }
+      ],
+      "pickupBeats": 1,
+      "timeSignature": "4/4"
+     }
+    },
+    "output": {
+     "beats": 3,
+     "downbeat": false,
+     "start": 24,
+     "timeSignature": "3/4"
+    }
+   },
+   {
+    "input": {
+     "beat": 27,
+     "song": {
+      "meters": [
+       {
+        "beat": 9,
+        "timeSignature": "3/4"
+       }
+      ],
+      "pickupBeats": 1,
+      "timeSignature": "4/4"
+     }
+    },
+    "output": {
+     "beats": 3,
+     "downbeat": true,
+     "start": 27,
+     "timeSignature": "3/4"
+    }
+   },
+   {
+    "input": {
+     "beat": 28,
+     "song": {
+      "meters": [
+       {
+        "beat": 9,
+        "timeSignature": "3/4"
+       }
+      ],
+      "pickupBeats": 1,
+      "timeSignature": "4/4"
+     }
+    },
+    "output": {
+     "beats": 3,
+     "downbeat": false,
+     "start": 27,
+     "timeSignature": "3/4"
+    }
+   },
+   {
+    "input": {
+     "beat": 29,
+     "song": {
+      "meters": [
+       {
+        "beat": 9,
+        "timeSignature": "3/4"
+       }
+      ],
+      "pickupBeats": 1,
+      "timeSignature": "4/4"
+     }
+    },
+    "output": {
+     "beats": 3,
+     "downbeat": false,
+     "start": 27,
+     "timeSignature": "3/4"
+    }
+   },
+   {
+    "input": {
+     "beat": 30,
+     "song": {
+      "meters": [
+       {
+        "beat": 9,
+        "timeSignature": "3/4"
+       }
+      ],
+      "pickupBeats": 1,
+      "timeSignature": "4/4"
+     }
+    },
+    "output": {
+     "beats": 3,
+     "downbeat": true,
+     "start": 30,
+     "timeSignature": "3/4"
+    }
+   },
+   {
+    "input": {
+     "beat": 31,
+     "song": {
+      "meters": [
+       {
+        "beat": 9,
+        "timeSignature": "3/4"
+       }
+      ],
+      "pickupBeats": 1,
+      "timeSignature": "4/4"
+     }
+    },
+    "output": {
+     "beats": 3,
+     "downbeat": false,
+     "start": 30,
+     "timeSignature": "3/4"
+    }
+   },
+   {
+    "input": {
+     "beat": 32,
+     "song": {
+      "meters": [
+       {
+        "beat": 9,
+        "timeSignature": "3/4"
+       }
+      ],
+      "pickupBeats": 1,
+      "timeSignature": "4/4"
+     }
+    },
+    "output": {
+     "beats": 3,
+     "downbeat": false,
+     "start": 30,
+     "timeSignature": "3/4"
+    }
+   },
+   {
+    "input": {
+     "beat": 33,
+     "song": {
+      "meters": [
+       {
+        "beat": 9,
+        "timeSignature": "3/4"
+       }
+      ],
+      "pickupBeats": 1,
+      "timeSignature": "4/4"
+     }
+    },
+    "output": {
+     "beats": 3,
+     "downbeat": true,
+     "start": 33,
+     "timeSignature": "3/4"
+    }
+   },
+   {
+    "input": {
+     "beat": 34,
+     "song": {
+      "meters": [
+       {
+        "beat": 9,
+        "timeSignature": "3/4"
+       }
+      ],
+      "pickupBeats": 1,
+      "timeSignature": "4/4"
+     }
+    },
+    "output": {
+     "beats": 3,
+     "downbeat": false,
+     "start": 33,
+     "timeSignature": "3/4"
+    }
+   },
+   {
+    "input": {
+     "beat": 35,
+     "song": {
+      "meters": [
+       {
+        "beat": 9,
+        "timeSignature": "3/4"
+       }
+      ],
+      "pickupBeats": 1,
+      "timeSignature": "4/4"
+     }
+    },
+    "output": {
+     "beats": 3,
+     "downbeat": false,
+     "start": 33,
+     "timeSignature": "3/4"
+    }
+   },
+   {
+    "input": {
+     "beat": 36,
+     "song": {
+      "meters": [
+       {
+        "beat": 9,
+        "timeSignature": "3/4"
+       }
+      ],
+      "pickupBeats": 1,
+      "timeSignature": "4/4"
+     }
+    },
+    "output": {
+     "beats": 3,
+     "downbeat": true,
+     "start": 36,
+     "timeSignature": "3/4"
+    }
+   },
+   {
+    "input": {
+     "beat": 37,
+     "song": {
+      "meters": [
+       {
+        "beat": 9,
+        "timeSignature": "3/4"
+       }
+      ],
+      "pickupBeats": 1,
+      "timeSignature": "4/4"
+     }
+    },
+    "output": {
+     "beats": 3,
+     "downbeat": false,
+     "start": 36,
+     "timeSignature": "3/4"
+    }
+   },
+   {
+    "input": {
+     "beat": 38,
+     "song": {
+      "meters": [
+       {
+        "beat": 9,
+        "timeSignature": "3/4"
+       }
+      ],
+      "pickupBeats": 1,
+      "timeSignature": "4/4"
+     }
+    },
+    "output": {
+     "beats": 3,
+     "downbeat": false,
+     "start": 36,
+     "timeSignature": "3/4"
+    }
+   },
+   {
+    "input": {
+     "beat": 39,
+     "song": {
+      "meters": [
+       {
+        "beat": 9,
+        "timeSignature": "3/4"
+       }
+      ],
+      "pickupBeats": 1,
+      "timeSignature": "4/4"
+     }
+    },
+    "output": {
+     "beats": 3,
+     "downbeat": true,
+     "start": 39,
+     "timeSignature": "3/4"
+    }
+   },
+   {
+    "input": {
+     "beat": 40,
+     "song": {
+      "meters": [
+       {
+        "beat": 9,
+        "timeSignature": "3/4"
+       }
+      ],
+      "pickupBeats": 1,
+      "timeSignature": "4/4"
+     }
+    },
+    "output": {
+     "beats": 3,
+     "downbeat": false,
+     "start": 39,
+     "timeSignature": "3/4"
+    }
+   },
+   {
+    "input": {
+     "beat": 41,
+     "song": {
+      "meters": [
+       {
+        "beat": 9,
+        "timeSignature": "3/4"
+       }
+      ],
+      "pickupBeats": 1,
+      "timeSignature": "4/4"
+     }
+    },
+    "output": {
+     "beats": 3,
+     "downbeat": false,
+     "start": 39,
+     "timeSignature": "3/4"
+    }
+   }
+  ],
+  "bars": [
+   {
+    "input": {
+     "song": {
+      "meters": [
+       {
+        "beat": 16,
+        "timeSignature": "4/4"
+       },
+       {
+        "beat": 32,
+        "timeSignature": "6/8"
+       }
+      ],
+      "pickupBeats": 0,
+      "timeSignature": "6/8"
+     },
+     "toBeat": 40
+    },
+    "output": [
+     {
+      "beats": 2,
+      "start": 0,
+      "timeSignature": "6/8"
+     },
+     {
+      "beats": 2,
+      "start": 2,
+      "timeSignature": "6/8"
+     },
+     {
+      "beats": 2,
+      "start": 4,
+      "timeSignature": "6/8"
+     },
+     {
+      "beats": 2,
+      "start": 6,
+      "timeSignature": "6/8"
+     },
+     {
+      "beats": 2,
+      "start": 8,
+      "timeSignature": "6/8"
+     },
+     {
+      "beats": 2,
+      "start": 10,
+      "timeSignature": "6/8"
+     },
+     {
+      "beats": 2,
+      "start": 12,
+      "timeSignature": "6/8"
+     },
+     {
+      "beats": 2,
+      "start": 14,
+      "timeSignature": "6/8"
+     },
+     {
+      "beats": 4,
+      "start": 16,
+      "timeSignature": "4/4"
+     },
+     {
+      "beats": 4,
+      "start": 20,
+      "timeSignature": "4/4"
+     },
+     {
+      "beats": 4,
+      "start": 24,
+      "timeSignature": "4/4"
+     },
+     {
+      "beats": 4,
+      "start": 28,
+      "timeSignature": "4/4"
+     },
+     {
+      "beats": 2,
+      "start": 32,
+      "timeSignature": "6/8"
+     },
+     {
+      "beats": 2,
+      "start": 34,
+      "timeSignature": "6/8"
+     },
+     {
+      "beats": 2,
+      "start": 36,
+      "timeSignature": "6/8"
+     },
+     {
+      "beats": 2,
+      "start": 38,
+      "timeSignature": "6/8"
+     }
+    ]
+   },
+   {
+    "input": {
+     "song": {
+      "meters": [
+       {
+        "beat": 7,
+        "timeSignature": "2/4"
+       }
+      ],
+      "pickupBeats": 1,
+      "timeSignature": "3/4"
+     },
+     "toBeat": 40
+    },
+    "output": [
+     {
+      "beats": 1,
+      "start": 0,
+      "timeSignature": "3/4"
+     },
+     {
+      "beats": 3,
+      "start": 1,
+      "timeSignature": "3/4"
+     },
+     {
+      "beats": 3,
+      "start": 4,
+      "timeSignature": "3/4"
+     },
+     {
+      "beats": 2,
+      "start": 7,
+      "timeSignature": "2/4"
+     },
+     {
+      "beats": 2,
+      "start": 9,
+      "timeSignature": "2/4"
+     },
+     {
+      "beats": 2,
+      "start": 11,
+      "timeSignature": "2/4"
+     },
+     {
+      "beats": 2,
+      "start": 13,
+      "timeSignature": "2/4"
+     },
+     {
+      "beats": 2,
+      "start": 15,
+      "timeSignature": "2/4"
+     },
+     {
+      "beats": 2,
+      "start": 17,
+      "timeSignature": "2/4"
+     },
+     {
+      "beats": 2,
+      "start": 19,
+      "timeSignature": "2/4"
+     },
+     {
+      "beats": 2,
+      "start": 21,
+      "timeSignature": "2/4"
+     },
+     {
+      "beats": 2,
+      "start": 23,
+      "timeSignature": "2/4"
+     },
+     {
+      "beats": 2,
+      "start": 25,
+      "timeSignature": "2/4"
+     },
+     {
+      "beats": 2,
+      "start": 27,
+      "timeSignature": "2/4"
+     },
+     {
+      "beats": 2,
+      "start": 29,
+      "timeSignature": "2/4"
+     },
+     {
+      "beats": 2,
+      "start": 31,
+      "timeSignature": "2/4"
+     },
+     {
+      "beats": 2,
+      "start": 33,
+      "timeSignature": "2/4"
+     },
+     {
+      "beats": 2,
+      "start": 35,
+      "timeSignature": "2/4"
+     },
+     {
+      "beats": 2,
+      "start": 37,
+      "timeSignature": "2/4"
+     },
+     {
+      "beats": 2,
+      "start": 39,
+      "timeSignature": "2/4"
+     }
+    ]
+   }
+  ],
   "blues": [
    {
     "input": {

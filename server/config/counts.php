@@ -175,7 +175,9 @@ return [
     // 2026-10-29: "Anonymous totals").
     'server_kinds' => [
         // Be the voice's ladder (docs/open-guide-voices-plan.md): a volunteer's take sent, a guide published, a take not chosen.
-        'take_sent', 'guide_published', 'guide_not_chosen', 'mudeo_visit', 'mudeo_used', 'plus_started'],
+        'take_sent', 'guide_published', 'guide_not_chosen', 'mudeo_visit', 'mudeo_used', 'plus_started',
+        // An app start (auth.config) with a country and without one (XX, T1): geo_rights' unknown-country share.
+        'cfg_country', 'cfg_no_country'],
 
     // A shared link's page opened, counted by the server as so:<surface> (docs/retention-plan.md, sharing): a shared
     // song's page, an invite to sing a part, Hillel's invite link, a choir group's join link, a challenge. By surface

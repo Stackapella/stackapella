@@ -4,6 +4,7 @@
 // tests/practice.test.js.
 
 import { tk } from './i18n.js';
+import { barAt } from './theory.js';
 
 /** The practice modes, as translation keys. */
 export const MODES = {
@@ -186,9 +187,11 @@ export function trackLevels(levels, partId, kind) {
 
 /**
  * A render with a click on every beat and a bar of count-in before it (the track gets longer by that
- * bar; the singing keeps its place after it). Bar lines are accented, after the pickup.
+ * bar; the singing keeps its place after it). Bar lines are accented, after the pickup, and where a song's metre changes
+ * (`meters` with its `timeSignature`, docs/meters-plan.md) on its own bar lines.
  */
-export function withClicks({ channels, sampleRate }, { beatSeconds, beatsPerBar, pickupBeats = 0, accent, normal }) {
+export function withClicks({ channels, sampleRate }, { beatSeconds, beatsPerBar, pickupBeats = 0, meters = null, timeSignature = null, accent, normal }) {
+    const song = meters?.length ? { timeSignature, pickupBeats, meters } : null;
     const lead = Math.round(beatsPerBar * beatSeconds * sampleRate);
     const out = channels.map((c) => {
         const longer = new Float32Array(c.length + lead);
@@ -197,7 +200,8 @@ export function withClicks({ channels, sampleRate }, { beatSeconds, beatsPerBar,
     });
     for (let beat = -beatsPerBar; Math.round(beat * beatSeconds * sampleRate) + lead < out[0].length; beat++) {
         const at = lead + Math.round(beat * beatSeconds * sampleRate);
-        const sound = (((beat - pickupBeats) % beatsPerBar) + beatsPerBar) % beatsPerBar === 0 ? accent : normal;
+        const downbeat = song ? barAt(song, beat).downbeat : (((beat - pickupBeats) % beatsPerBar) + beatsPerBar) % beatsPerBar === 0;
+        const sound = downbeat ? accent : normal;
         for (const c of out) for (let i = 0; i < sound.length && at + i < c.length; i++) c[at + i] += sound[i] * 0.5;
     }
     return { channels: out, sampleRate };

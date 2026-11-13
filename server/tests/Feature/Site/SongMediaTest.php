@@ -119,6 +119,14 @@ final class SongMediaTest extends TestCase
         $this->get('/song-media/test-song/1-800.webp')->assertNotFound();
         $this->get('/song-media/no-song/1-960.webp')->assertNotFound();
 
+        // With the site and the app on their own hosts (production), the picture answers on the host the song page is
+        // on (its src is root-relative), and on the app's: never the site's "moving" page (2026-11-13, live).
+        config(['app.url' => 'https://app.example.com', 'hosts.public_url' => 'https://example.com']);
+        foreach (['https://example.com', 'https://app.example.com'] as $host) {
+            $picture = $this->get($host.$image['src'])->assertOk();
+            $this->assertSame('image/webp', $picture->headers->get('Content-Type'), $host);
+        }
+
         // Marked up as what it is.
         $objects = array_values(array_filter(StructuredData::song(['title' => 'Test Song', 'description' => 'A song.', 'pageUrl' => 'https://example.com/songs/test-song', 'genre' => [], 'credits' => []], $story), static fn (array $d): bool => $d['@type'] === 'ImageObject'));
         $this->assertCount(1, $objects);

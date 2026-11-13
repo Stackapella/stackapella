@@ -48,6 +48,16 @@ def journey(f):
     assert not f.js("document.querySelector('[role=dialog]')"), "Play opened the sheet"
     f.run(f"{CARDS}[0].querySelector('[data-song-play]').click()")
     f.wait(f"!{AUDIO}.engine.playing", what="the preview stopped")
+    # A first visit (nothing sung yet; the first-session review, Hillel: yes): the song, Start and Play; how many sing it
+    # and Edit wait until a first song is sung.
+    if not f.js("(await import('/js/first-song.js')).sungYet()"):
+        f.run(f"{CARDS}[0].querySelector('button').click()")
+        f.wait(f"{PLAY} && document.querySelector('[role=dialog] [data-song-start]')", what="a first visit's sheet")
+        assert not f.js("document.querySelector('[data-song-singers]') || document.querySelector('[data-song-edit]')"), "How many singers or Edit on a first visit"
+        f.shot("sheet-first-visit")
+        f.press("Escape")
+        f.wait("!document.querySelector('[role=dialog]')", what="the sheet closed")
+    f.run("(await import('/js/stores/learning.js')).learning.progress.lessons = { ...(await import('/js/stores/learning.js')).learning.progress.lessons, '1-comfortable': { stars: 1 } }")  # sung a first song: the whole sheet
     # A tap: the sheet. One primary (Hillel, 2026-11-02): Start full width first, then Play and Edit side by side at equal widths.
     f.run(f"{CARDS}[0].querySelector('button').click()")
     f.wait(f"{PLAY} && document.querySelector('[role=dialog] [data-song-start]')", what="the song's sheet")

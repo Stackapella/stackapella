@@ -72,16 +72,11 @@ def check(f, path):
     # Reading text is never in the pixel face: it goes on headings and labels, not a guide's or a page's paragraphs.
     long = "[...document.querySelectorAll('main p, main li')].filter((e) => e.offsetWidth && e.textContent.trim().length > 120 && getComputedStyle(e).fontFamily.startsWith('\"Stackapella Pixel\"')).map((e) => e.textContent.trim().slice(0, 40))"
     assert not f.js(long), f"{path}: a paragraph in the pixel face: {f.js(long)}"
-    # The frame: the pixel wordmark, a square Theme button, and its menu framed; a tool's key control square.
+    # The frame: a tool's key control square (light and dark is the header's switch since 2026-11-13, checked below).
     if f.js("!!document.querySelector('.s-tbrand')"):
         if f.js("!!document.querySelector('[data-tool-key] > *')"):
             assert f.js("getComputedStyle(document.querySelector('[data-tool-key] > *')).borderTopLeftRadius") == "0px", f"{path}: a square key control"
-        assert f.js("getComputedStyle(document.querySelector('[data-theme-menu-button]')).borderTopLeftRadius") == "0px", f"{path}: a square Theme button"
-        f.run("document.querySelector('[data-theme-menu-button]').click()")
-        f.wait("!document.querySelector('[data-theme-menu]').hidden", what="the Theme menu")
-        assert f.js("getComputedStyle(document.querySelector('[data-theme-menu]')).borderTopLeftRadius") == "0px", f"{path}: a square Theme menu"
-        f.run("document.querySelector('[data-theme-menu-button]').click()")
-    # The site header's icon buttons (the menu, light and dark) square like the tool bar's Theme button.
+    # The site header's icon buttons (the menu, light and dark) square.
     shown = "[...document.querySelectorAll('.s-top .s-iconbtn')].filter((b) => b.offsetWidth)"
     if f.js(f"{shown}.length"):
         assert f.js(f"{shown}.every((b) => getComputedStyle(b).borderTopLeftRadius === '0px')"), f"{path}: a round icon button in the header"

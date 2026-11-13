@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Api\Auth;
 
 use App\Actions\Beta\AcceptInvite;
 use App\Actions\Counts\Funnel;
+use App\Actions\Counts\RecordCounts;
 use App\Actions\Users\RegisterWithPassword;
 use App\Actions\Users\ResendVerification;
 use App\Actions\Users\ResetPassword;
@@ -61,6 +62,12 @@ final class AuthController extends Controller
             Country::daily($user, $request);
         }
 
+        // How often the app starts without a country (Cloudflare's XX, Tor's T1), which geo_rights treats by every
+        // country's strictest rule: its share against cfg_country decides whether that rule stays (the coordinator,
+        // 2026-11-13). The two letters only, as every count keeps them.
+        $country = Country::of($request);
+        app(RecordCounts::class)->server($country === null ? 'cfg_no_country' : 'cfg_country', $user instanceof User, $country);
+
         return response()->json(['data' => [
             // Apple and Google only with all their settings (SignInProviders); Event Schedule only once
             // its OAuth client is set up (or locally, its fake).
@@ -76,7 +83,7 @@ final class AuthController extends Controller
             'languages' => $languages->offered(),
             // The songs withheld where the visitor is (docs/geo-rights-plan.md): the app leaves them out and a course
             // step sings its altSong instead. Never the country itself. Empty while geo_rights is off.
-            'withheldSongs' => app(RightsHere::class)->withheldSlugs(RightsHere::country($request)),
+            'withheldSongs' => app(RightsHere::class)->withheldSlugs($country ?? ''),
             // Before launch, for someone not let in yet (no beta pass, not signed in): the app shows
             // only signing in and the invite pages.
             'comingSoon' => config('app.coming_soon') === true && ! BetaPass::valid($request) && $request->user() === null,

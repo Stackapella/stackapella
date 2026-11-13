@@ -11,6 +11,7 @@ use App\Models\User;
 use App\Support\Flags;
 use App\Support\Rights\RightsHere;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Tests\Contract\AssertsContract;
 use Tests\TestCase;
 
@@ -163,5 +164,26 @@ final class GeoRightsTest extends TestCase
         $page = $this->withHeaders(self::visitor('MX'))->get('/songs/old-song')->assertOk();
         $this->assertNull($page->viewData('rights'));
         $this->assertStringContainsString('public', (string) $page->headers->get('Cache-Control'));
+    }
+
+    public function test_the_report_counts_each_countrys_withheld_songs_and_lists_one_countrys(): void
+    {
+        $this->wordsSong();
+        $this->song('open-song', [['name' => 'A Composer', 'role' => 'music', 'died' => 1850]]);
+
+        $this->artisan('app:rights:withheld')->expectsOutput('2 open songs.')->expectsOutputToContain('MX')->doesntExpectOutputToContain('US ')->assertSuccessful();
+        $this->artisan('app:rights:withheld', ['country' => 'mx'])->expectsOutput('words-song  free from 2061 (term)')->doesntExpectOutputToContain('open-song')->assertSuccessful();
+    }
+
+    public function test_an_app_start_counts_whether_it_had_a_country(): void
+    {
+        config(['counts.enabled' => true]);
+        $this->withHeaders(self::visitor('MX'))->getJson('/api/auth/config')->assertOk();
+        $this->withHeaders(self::visitor('XX'))->getJson('/api/auth/config')->assertOk();
+        $this->withHeaders(self::visitor('T1'))->getJson('/api/auth/config')->assertOk();
+
+        $this->assertSame(['cfg_country' => 1, 'cfg_no_country' => 2], DB::table('usage_counts')->whereIn('kind', ['cfg_country', 'cfg_no_country'])
+            ->selectRaw('kind, sum(count) as n')->groupBy('kind')->orderBy('kind')->pluck('n', 'kind')->map(static fn (mixed $n): int => (int) $n)->all());
+        $this->assertSame('MX', DB::table('usage_counts')->where('kind', 'cfg_country')->value('country'));
     }
 }

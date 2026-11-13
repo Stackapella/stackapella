@@ -73,7 +73,7 @@ api.groups.list = async () => structuredClone(list); api.groups.show = async () 
 api.billing.show = async () => ({ data: { plan: 'free', trial: { days: 7, intervals: ['year'] } } }); (await import('/js/stores/plan.js')).plan.billing = null;"""
     visit("groups-paused-tag", app("/groups", together), "document.querySelector('[data-group-paused]')")
     visit("groups-plus-sheet", app("/groups", together), "document.querySelector('[data-group-paused]')",
-          lambda: (f.click(f.js("(await import('/js/skin.js')).sk('groups.start', 'game.groups.start')")), f.wait("document.querySelector('[data-plus-moment] [data-plus-trial]')")))
+          lambda: (f.click(f.js("(await import('/js/i18n.js')).t('groups.start')")), f.wait("document.querySelector('[data-plus-moment] [data-plus-trial]')")))
     visit("group-paused-leader", app("/groups/Gp4rQs", together), "document.querySelector('[data-paused-note]')")
     joinpaused = FIX + TEAMS_ON + """const js = await get('together', 'groups.join.show'); api.groups.join.show = async () => structuredClone(js);"""
     visit("choir-join-paused", app("/choir/tok123", joinpaused), "document.querySelector('[data-paused-sing]')")

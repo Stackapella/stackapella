@@ -29,9 +29,9 @@ return [
     // Guides are levelled to about this loudness (RMS, dBFS) when published.
     'guide_rms_dbfs' => -20.0,
 
-    // A guide's AAC bitrate (kbps, mono). 128 until Hillel hears the 64 and 48 pairs; app:guides:reencode brings the
+    // A guide's AAC bitrate (kbps, mono): 64 since Hillel heard the pairs (2026-11-13); app:guides:reencode brought the
     // published guides to it from their masters, in place.
-    'guide_kbps' => 128,
+    'guide_kbps' => 64,
 
     // Rejected takes' masters are deleted after this many days; accepted ones are kept.
     'rejected_master_days' => 90,

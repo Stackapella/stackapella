@@ -176,6 +176,8 @@
 @endsection
 
 @section('scripts')
+    {{-- The app's first screen, fetched while the visitor reads (first-session review, item 3): timing only. --}}
+    @include('site._app-prefetch', ['prefetch' => \App\Support\Site\AppPrefetch::landing()])
     <script type="module" src="/js/public/mixer.js"></script>
     <script type="module" src="/js/public/cabinet.js"></script>
     {{-- The funnel (the backend's $funnel): whether counts are on, and the experiment enrolling, if any. --}}

@@ -110,7 +110,8 @@
     "/js/public/tool-layout.js",
     "/js/public/tool-prefs.js",
     "/js/public/tones.js",
-    "/js/public/voices.js"
+    "/js/public/voices.js",
+    "/js/theory.js"
   ],
   "/js/public/tools/metronome.js": [
     "/js/public/tools/metronome.js",
@@ -284,6 +285,9 @@
     "/js/public/a-cappella-bass.js",
     "/js/public/voices.js",
     "/js/public/demo-player.js"
+  ],
+  "/js/public/app-prefetch.js": [
+    "/js/public/app-prefetch.js"
   ],
   "/js/public/barbershop.js": [
     "/js/public/barbershop.js",

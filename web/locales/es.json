@@ -1,4 +1,80 @@
 {
+    "notices": {
+        "token": {
+            "notFound": "No se encuentra este aviso. Revisa el enlace de tu correo.",
+            "missing": "Este enlace ya se usó aquí o está incompleto. Vuelve a abrir el enlace de tu correo."
+        },
+        "draft": "Este texto es un borrador que nuestro abogado aún está revisando.",
+        "rights": "Si después de una revisión sigues sin estar de acuerdo, quizá puedas llevarlo a un órgano certificado de resolución extrajudicial de litigios, o a los tribunales.",
+        "review": {
+            "yourText": "Lo que escribiste",
+            "reversed": "Revisado el {date}: se deshizo.",
+            "kept": "Revisado el {date}: la decisión se mantiene.",
+            "waiting": "Pediste una revisión el {date}. Te contaremos lo que se decida.",
+            "closed": "Ya no se puede revisar: ya se pidió una revisión o han pasado más de 6 meses.",
+            "failed": "No se envió. Vuelve a intentarlo.",
+            "sent": "Enviado. Te contaremos lo que se decida.",
+            "sending": "Enviando",
+            "send": "Enviar",
+            "label": "Por qué debería revisarse de nuevo",
+            "body": "Cuéntanos por qué crees que fue un error. Una persona lo vuelve a revisar y te contamos por correo lo que se decidió. Puedes pedirla una vez.",
+            "title": "Pedir una revisión",
+            "ask": "Pedir una revisión",
+            "canAsk": "Si crees que fue un error, puedes pedir una revisión una vez, dentro de los 6 meses siguientes."
+        },
+        "state": {
+            "reversed": "Revisado: se deshizo",
+            "kept": "Revisado: se mantiene",
+            "waiting": "Revisión pedida"
+        },
+        "why": {
+            "coach_agreement": "Incumplía el acuerdo para coaches.",
+            "terms": "Incumplía nuestras condiciones de uso.",
+            "reports": "Varias personas lo denunciaron, así que se ocultó automáticamente hasta que alguien del equipo lo revise.",
+            "copyright": "Recibimos un aviso de derechos de autor sobre ello (nuestra política de derechos de autor explica qué pasa a continuación).",
+            "community_guidelines": "Incumplía nuestras normas de la comunidad."
+        },
+        "what": {
+            "template_hidden": "Se retiró tu plantilla de la biblioteca: ahora solo tú puedes abrirla. Las canciones ya creadas con ella conservan su copia.",
+            "idea_voice_hidden": "Se ocultó tu voz en la idea de otra persona.",
+            "idea_hidden": "Se retiró tu idea de la sección Ideas: ahora solo tú puedes abrirla.",
+            "choir_voice_removed": "Se retiró tu voz de un coro.",
+            "comment_hidden": "Se ocultó tu comentario en la galería.",
+            "coach_suspended": "Se suspendió tu coaching, y se reembolsaron tus revisiones pendientes.",
+            "coach_paused": "Tu coaching está en pausa: tu perfil y tus servicios no están disponibles por ahora.",
+            "account_suspended": "Se suspendió tu cuenta de Stackapella: no se puede iniciar sesión en ella.",
+            "account_limited": "Por ahora, lo que tu cuenta puede compartir y enviar está limitado.",
+            "harmony_removed": "Se retiró tu armonía compartida de forma definitiva.",
+            "harmony_hidden": "Se ocultó tu armonía compartida: su enlace indica que no está disponible."
+        },
+        "kind": {
+            "template_hidden": "Se retiró una plantilla de la biblioteca",
+            "idea_voice_hidden": "Se ocultó tu voz en una idea",
+            "idea_hidden": "Se retiró una idea de la sección Ideas",
+            "choir_voice_removed": "Se retiró tu voz de un coro",
+            "comment_hidden": "Se ocultó un comentario",
+            "coach_suspended": "Se suspendió tu coaching",
+            "coach_paused": "Tu coaching está en pausa",
+            "account_suspended": "Se suspendió tu cuenta",
+            "account_limited": "Tu cuenta está limitada",
+            "harmony_removed": "Se retiró una armonía compartida",
+            "harmony_hidden": "Se ocultó una armonía compartida"
+        },
+        "readRule": "Léela",
+        "byPerson": "Una persona de Stackapella.",
+        "automatic": "Automáticamente, antes de que lo revisara una persona.",
+        "howLabel": "Cómo se decidió",
+        "noteLabel": "Nuestra nota",
+        "whyLabel": "Por qué",
+        "whatLabel": "Qué se hizo",
+        "settingsHint": "{count, plural, one {Uno sobre tu cuenta o lo que compartiste} other {# sobre tu cuenta o lo que compartiste}}",
+        "loadFailed": "Tus avisos no se cargaron.",
+        "none": "No se ha ocultado nada de lo que compartiste y tu cuenta no está limitada.",
+        "noneTitle": "Ningún aviso",
+        "intro": "Cuando se oculta o se retira algo que compartiste, o se limita tu cuenta, aquí te contamos qué se hizo y por qué. Puedes pedir una revisión.",
+        "oneTitle": "Un aviso sobre tu cuenta",
+        "title": "Avisos"
+    },
     "styles": {
         "keyDrift": {
             "held": "Mantuviste la tonalidad hasta el final, y el {intervals}% de tus intervalos sonaron afinados.",
@@ -312,6 +388,16 @@
         "bass": "Bajo",
         "default": {
             "track": "Pista {number}"
+        },
+        "words": {
+            "tune": "La melodía",
+            "tuneHighest": "La melodía, la voz más aguda",
+            "tuneLowest": "La melodía, la voz más grave",
+            "lowest": "La voz más grave",
+            "aboveTune": "Por encima de la melodía",
+            "underTune": "Justo debajo de la melodía",
+            "under": "Debajo de la voz de {part}",
+            "underMen": "Debajo de la voz de {part}, a menudo hombres"
         }
     },
     "music": {
@@ -1492,6 +1578,13 @@
         }
     },
     "settings": {
+        "legal": {
+            "accessibility": "Accesibilidad",
+            "guidelines": "Normas de la comunidad",
+            "privacy": "Privacidad",
+            "terms": "Términos",
+            "label": "Legal"
+        },
         "tools": {
             "title": "Herramientas gratis",
             "hint": "Un afinador, un test de extensión vocal, un metrónomo y más, en nuestra web"
@@ -4237,6 +4330,12 @@
         }
     },
     "contact": {
+        "diagnostics": {
+            "noSound": "Ninguno en esta visita",
+            "placeholder": "¿Qué estabas haciendo cuando pasó? ¿En qué pantalla, y qué oíste, o no oíste?",
+            "intro": "Cuéntanos qué falló con el sonido. Tu mensaje va con los detalles de tu dispositivo y los problemas de sonido de esta visita, cada línea en la lista de abajo, y nunca con audio.",
+            "title": "Enviar diagnóstico"
+        },
         "title": "Contacto",
         "intro": "Hillel lee todos los mensajes y responde por correo.",
         "about": "¿De qué se trata?",
@@ -4254,6 +4353,7 @@
         "details": "Incluir datos del dispositivo",
         "detailsHint": "{device} · app {version}. Ayuda con los problemas de grabación.",
         "context": {
+            "sound": "Problemas de sonido",
             "version": "Versión de la app",
             "device": "Dispositivo",
             "page": "Página",
@@ -4344,6 +4444,7 @@
         }
     },
     "micHelp": {
+        "sendDiagnostics": "Enviar diagnóstico",
         "tryAgain": "Reintentar",
         "trying": "Probando micrófono...",
         "reload": "Recargar y probar",
@@ -5082,11 +5183,6 @@
         "statPart": "afinado y resonando"
     },
     "game": {
-        "groups": {
-            "title": "Co-op",
-            "start": "Empezar co-op",
-            "kick": "2P cooperativo · tus grupos de coro"
-        },
         "settings": {
             "intro": "Los extras del modo juego, uno a uno. Si tu dispositivo tiene el movimiento reducido activado, se quedan quietos.",
             "all": "Efectos de juego",

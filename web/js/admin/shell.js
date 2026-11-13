@@ -28,6 +28,7 @@ import { ChoirGroupsSection } from './choir-groups.js';
 import { RevenueSection } from './revenue.js';
 import { LiveSection } from './live.js';
 import { CorrectionsSection } from './corrections.js';
+import { AppealsSection } from './appeals.js';
 import { SearchSection } from './search.js';
 import { CohortsSection } from './cohorts.js';
 import { ActivitySection } from './activity.js';
@@ -66,6 +67,7 @@ export const SECTIONS = [
     { name: 'support', group: 'inbox', path: '/admin/support', label: tk('admin.nav.support'), hint: tk('admin.nav.supportHint'), icon: 'info', role: 'admin' },
     { name: 'feedback', group: 'inbox', path: '/admin/feedback', label: tk('admin.nav.feedback'), hint: tk('admin.nav.feedbackHint'), icon: 'info', role: 'editor', count: (c) => c.unread, words: tk('admin.nav.unreadCount') },
     { name: 'corrections', group: 'inbox', path: '/admin/corrections', label: tk('admin.nav.corrections'), hint: tk('admin.nav.correctionsHint'), icon: 'note', role: 'editor', count: (c) => c.corrections, words: tk('admin.nav.correctionsCount') },
+    { name: 'appeals', group: 'inbox', path: '/admin/appeals', label: tk('admin.nav.appeals'), hint: tk('admin.nav.appealsHint'), icon: 'alert', role: 'admin' },
     { name: 'reports', group: 'inbox', path: '/admin/reports', label: tk('admin.nav.reports'), hint: tk('admin.nav.reportsHint'), icon: 'alert', role: 'admin' },
     { name: 'review', group: 'inbox', path: '/admin/review', label: tk('admin.nav.review'), hint: tk('admin.nav.reviewHint'), icon: 'mic', role: 'editor', count: (c) => c.waiting, words: tk('admin.nav.waitingCount') },
     { name: 'people', group: 'users', path: '/admin/people', label: tk('admin.nav.people'), hint: tk('admin.nav.peopleHint'), icon: 'list', role: 'admin' },
@@ -212,7 +214,7 @@ const HomeSection = {
 };
 
 export const AdminView = {
-    components: { Icon, Logo, Notice, RequestsSection, HomeSection, SafetySection, SwitchesSection, AuditSection, ReviewSection, SingersSection, GuidesSection, FeedbackSection, ReportsSection, IdeasSection, MudeoSection, SupportSection, LinksSection, PeopleSection, PostsSection, OverviewSection, SourcesSection, ChoirGroupsSection, RevenueSection, CorrectionsSection, LiveSection, SearchSection, SchoolSection, CohortsSection, ActivitySection, CodeWatchSection, ExperimentsSection, OutreachSection, UsageSection, FunnelSection, DropoffsSection, SharingSection, BreadthSection },
+    components: { Icon, Logo, Notice, RequestsSection, HomeSection, SafetySection, SwitchesSection, AuditSection, ReviewSection, SingersSection, GuidesSection, FeedbackSection, ReportsSection, IdeasSection, MudeoSection, SupportSection, LinksSection, PeopleSection, PostsSection, OverviewSection, SourcesSection, ChoirGroupsSection, RevenueSection, CorrectionsSection, AppealsSection, LiveSection, SearchSection, SchoolSection, CohortsSection, ActivitySection, CodeWatchSection, ExperimentsSection, OutreachSection, UsageSection, FunnelSection, DropoffsSection, SharingSection, BreadthSection },
     data: () => ({ me: null, failed: false, overview: null, overviewFailed: false }),
     setup: () => ({ route, formatNumber }),
     template: `
@@ -275,6 +277,7 @@ export const AdminView = {
                 <RevenueSection v-else-if="current === 'revenue'" :me="me" />
                 <LiveSection v-else-if="current === 'live'" :me="me" />
                 <CorrectionsSection v-else-if="current === 'corrections'" :me="me" @changed="loadOverview" />
+                <AppealsSection v-else-if="current === 'appeals'" :me="me" />
                 <SearchSection v-else-if="current === 'search'" :me="me" />
                 <CohortsSection v-else-if="current === 'cohorts'" :me="me" />
                 <ActivitySection v-else-if="current === 'activity'" :me="me" />

@@ -19,7 +19,8 @@ final class Hosts
      * 9116 scopes it to the host it's fetched from), and the static files the public pages load
      * too (styles, scripts, icons, and a page's course and family stylesheets, Public\CourseCssController and
      * Public\SiteCssController). */
-    public const SHARED_PATHS = ['up', 'up/scheduler', 'webhooks/*', 'log/errors', 'robots.txt', '*.txt', '.well-known/security.txt', 'dev/upload/*', 'css/*', 'course-css/*', 'site-css/*', 'js/*', 'icons/*', 'favicon.ico', 'tools-sw.js'];
+    // song-media/*: a song story's pictures, shown by the site's song pages at the page's own host (root-relative).
+    public const SHARED_PATHS = ['up', 'up/scheduler', 'webhooks/*', 'log/errors', 'robots.txt', '*.txt', '.well-known/security.txt', 'dev/upload/*', 'css/*', 'course-css/*', 'site-css/*', 'js/*', 'icons/*', 'favicon.ico', 'tools-sw.js', 'song-media/*'];
 
     public static function appUrl(): string
     {

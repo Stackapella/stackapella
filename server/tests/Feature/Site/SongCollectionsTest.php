@@ -114,9 +114,9 @@ final class SongCollectionsTest extends TestCase
         $this->assertMatchesRegularExpression('#<li data-in="[a-z -]+" data-title="amazing grace" >#', $html);
         $this->assertMatchesRegularExpression('#<li data-in="[a-z -]+" data-title="silent night"\s+hidden\s*>#', $html);
         $this->assertStringContainsString('<link rel="canonical" href="'.Hosts::publicUrl().'/songs">', $html);
-        // A song to try in the hero: its parts, each switchable (x-site.mixer).
+        // A song to try in the hero: its parts, each row heard alone with a tap (x-site.mixer, tap-to-solo).
         $this->assertStringContainsString('id="try-mixer"', $html);
-        $this->assertStringContainsString('data-toggle', $html);
+        $this->assertStringContainsString('data-hear-alone', $html);
     }
 
     public function test_each_collection_offers_its_link_cards_song_to_try_with_that_cards_part_lit(): void
@@ -305,6 +305,26 @@ final class SongCollectionsTest extends TestCase
             foreach ($collections as $collection) {
                 $page->assertSee('href="/songs/'.$collection.'"', false);
                 $this->assertNotSame([], app(SongCollections::class)->members($collection), $collection);
+            }
+        }
+    }
+
+    public function test_a_collections_more_to_sing_links_its_nearest_pages_and_never_a_404(): void
+    {
+        $collections = app(SongCollections::class);
+        foreach (SongCollections::SEE_ALSO as $slug => $others) {
+            foreach ($collections->seeAlso($slug) as $link) {
+                $this->get($link['url'])->assertOk();
+            }
+        }
+        // The songs that moved to their own pages: folk sends a singer to them, and they back to folk.
+        foreach (['/songs/folk-songs' => ['scottish-songs', 'shaker-songs'], '/songs/hymns' => ['thanksgiving-hymns'], '/songs/scottish-songs' => ['folk-songs'], '/songs/christmas-carols' => ['villancicos']] as $page => $expected) {
+            $html = (string) $this->get($page)->assertOk()->getContent();
+            foreach ($expected as $other) {
+                if ($collections->members($other) === []) {
+                    continue;
+                }
+                $this->assertMatchesRegularExpression('#<p class="(s-wrap )?s-xsee">'.preg_quote(__('site.see_also'), '#').' .*href="/songs/'.$other.'"#s', $html, $page.' links '.$other);
             }
         }
     }

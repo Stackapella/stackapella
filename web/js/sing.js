@@ -5,6 +5,7 @@
 
 import { midiName } from './dsp.js';
 import { tk } from './i18n.js';
+import { barAt, bars as barsOf, meterChanges } from './theory.js';
 
 /** A note's word: its own syllable, or (for a held note with none) the syllable it continues. */
 function syllableAt(notes, index) {
@@ -221,13 +222,16 @@ export function staffPitch(position, { key = 'C', clef = 'treble' } = {}) {
  * The staff for a line of notes: the clef, the key signature, and each note's position (0 is the
  * bottom line, 1 the space above it, 8 the top line), accidental (`sharp`, `flat`, `natural` or
  * null, against the signature and earlier accidentals in the bar), ledger lines, head (`hollow`
- * for two beats or more) and stem (up below the middle line), plus the bar lines' beats.
+ * for two beats or more) and stem (up below the middle line), plus the bar lines' beats. A song whose time signature
+ * changes (`timeSignature` and `meters`, docs/meters-plan.md) has its bar lines where its bars fall, and `changes` says
+ * where a new time signature is written.
  */
-export function staffLayout(notes, { key = 'C', transpose = 0, clef = 'treble', beatsPerBar = 4, pickupBeats = 0 } = {}) {
+export function staffLayout(notes, { key = 'C', transpose = 0, clef = 'treble', beatsPerBar = 4, pickupBeats = 0, timeSignature = null, meters = null } = {}) {
+    const song = meters?.length ? { timeSignature, pickupBeats, meters } : null;
     const signature = keySignature(key);
     const inKey = (letter) => (signature.letters.includes(letter) ? (signature.type === 'sharp' ? 1 : -1) : 0);
     const bottom = BOTTOM_LINE[clef] ?? BOTTOM_LINE.treble;
-    const barOf = (beat) => Math.floor((beat - pickupBeats) / beatsPerBar);
+    const barOf = song ? (beat) => barAt(song, beat).start : (beat) => Math.floor((beat - pickupBeats) / beatsPerBar);
     const seen = new Map(); // `${bar}:${step}` -> the alteration written last in that bar
     const laid = notes.map((note) => {
         const sounding = note.pitch + transpose;
@@ -257,12 +261,18 @@ export function staffLayout(notes, { key = 'C', transpose = 0, clef = 'treble', 
         };
     });
     const bars = [];
+    const changes = [];
     if (notes.length) {
         const from = notes[0].beat;
         const to = notes[notes.length - 1].beat + notes[notes.length - 1].length;
-        for (let b = Math.ceil((from - pickupBeats) / beatsPerBar) * beatsPerBar + pickupBeats; b <= to + 1e-9; b += beatsPerBar) {
-            if (b > from + 1e-9) bars.push(b);
+        if (song) {
+            for (const bar of barsOf(song, to + 1e-9, Math.max(0, from))) if (bar.start > from + 1e-9 && bar.start <= to + 1e-9) bars.push(bar.start);
+            for (const m of meterChanges(song)) if (m.beat >= from - 1e-9 && m.beat <= to + 1e-9) changes.push(m);
+        } else {
+            for (let b = Math.ceil((from - pickupBeats) / beatsPerBar) * beatsPerBar + pickupBeats; b <= to + 1e-9; b += beatsPerBar) {
+                if (b > from + 1e-9) bars.push(b);
+            }
         }
     }
-    return { clef, signature, notes: laid, bars };
+    return { clef, signature, notes: laid, bars, changes };
 }

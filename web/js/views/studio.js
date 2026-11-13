@@ -49,6 +49,7 @@ import { heardSpan } from '../trim.js';
 import { LockedBanner } from '../components/cloud.js';
 import { lockReason } from '../stores/plan.js';
 import { count } from '../usage.js';
+import { noteSound } from '../sound-log.js';
 
 const roundButton = 'grid shrink-0 place-items-center rounded-full glass-bubble text-sm font-bold text-cream transition';
 
@@ -112,7 +113,7 @@ export const StudioView = {
                         <input id="song-name" :value="project.title" maxlength="80" autocomplete="off" translate="no" :placeholder="t('project.namePlaceholder')" :readonly="!!project.shared"
                             class="block w-full truncate rounded-lg border border-transparent bg-transparent px-1 -mx-1 text-lg font-extrabold tracking-tight text-cream placeholder:text-muted hover:border-line focus:border-accent md:text-xl"
                             @change="rename($event.target.value)" @keydown.enter="$event.target.blur()" />
-                        <button type="button" class="block min-h-6 max-w-full truncate text-start text-xs text-muted hover:text-cream md:text-sm" @click="dialog = project.shared ? 'together' : 'settings'">{{ meta }}<span v-if="credit"> · {{ credit }}</span> · <span :class="saving ? 'text-muted' : 'text-good'">{{ saving ? t('common.saving') : t('common.saved') }}</span></button>
+                        <button type="button" data-song-meta class="block min-h-6 max-w-full truncate text-start text-xs text-muted hover:text-cream md:text-sm" @click="dialog = project.shared ? 'together' : 'settings'">{{ meta }}<span v-if="credit"> · {{ credit }}</span> · <span :class="saving ? 'text-muted' : 'text-good'">{{ saving ? t('common.saving') : t('common.saved') }}</span></button>
                     </div>
                     <span v-if="recording" class="flex items-center gap-2 rounded-full bg-record px-3 py-1.5 text-sm font-bold text-record-label" role="status"><span class="size-2 animate-pulse rounded-full bg-record-label"></span><span translate="no">{{ t('studio.recordingNamed', { name: liveName }) }}</span><span class="tabular-nums">{{ formatTime(Math.max(0, position - recordFrom)) }}</span></span>
                     <template v-else>
@@ -326,7 +327,7 @@ export const StudioView = {
                     <div class="flex items-center gap-2 md:gap-3">
                         <div class="w-16 shrink-0 md:w-auto md:min-w-48">
                             <p class="text-xl font-bold tabular-nums md:text-4xl" :class="recording ? 'text-record' : 'text-cream'">{{ formatTime(position) }}<span class="hidden text-base font-normal text-muted md:inline"> / {{ formatTime(contentLength) }}</span></p>
-                            <p class="truncate text-[11px] text-muted md:text-xs">{{ recording ? t('studio.othersPlayOn', { where: barBeat || '' }) : barBeat }}</p>
+                            <p data-bar-beat class="truncate text-[11px] text-muted md:text-xs">{{ recording ? t('studio.othersPlayOn', { where: barBeat || '' }) : barBeat }}</p>
                         </div>
                         <template v-if="recording">
                             <button type="button" class="ms-auto flex items-center gap-3 rounded-full border-2 border-record py-2 pe-6 ps-2 font-bold text-cream" @click="recordOrStop">
@@ -740,7 +741,10 @@ export const StudioView = {
         this.onOnline = () => this.isTemplate && sessionStore.refreshVoices();
         window.addEventListener('online', this.onOnline);
         this.resize = new ResizeObserver(() => this.measureBox());
-        this.onInterrupt = (reason) => this.interrupted(reason);
+        this.onInterrupt = (reason) => {
+            noteSound(`stopped (${reason})`); // the audio or the mic ended under a take or playback: for Send diagnostics
+            this.interrupted(reason);
+        };
         engine.onInterrupt = this.onInterrupt;
     },
     updated() {

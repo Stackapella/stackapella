@@ -8,6 +8,7 @@ import { measureClaps, measureLatency } from './timing-check.js';
 import { tk } from './i18n.js';
 import { local } from './storage.js';
 import { countMic, countMicFailure, explainFirst, micPermission } from './mic-help.js';
+import { noteSound } from './sound-log.js';
 import { pickByLabel, rememberMicLabel, rememberedMicLabel } from './mic-choice.js';
 
 export const engine = new Engine();
@@ -130,6 +131,7 @@ export async function openMic(deviceId = local.get('stackapella.mic') || '') {
             return null;
         }
         countMicFailure(error);
+        noteSound('mic', error); // for Send diagnostics, if the person sends it
         throw error;
     }
     if (asking) countMic('mic_granted');
@@ -147,6 +149,7 @@ export async function openMic(deviceId = local.get('stackapella.mic') || '') {
         } catch (error) {
             // The mic is open: at the old rate the browser resamples it, which is better than no mic.
             console.warn(`The audio could not move to the mic's rate (${micRate} Hz)`, error);
+            noteSound(`rate ${engine.sampleRate} to ${micRate} Hz`, error);
         }
     }
     audio.mic = { deviceId: mic.deviceId, groupId: mic.settings.groupId, label: mic.label };

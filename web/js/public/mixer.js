@@ -119,6 +119,8 @@ function setUp(root) {
     const rows = new Map([...root.querySelectorAll('[data-part-key]')].map((el) => [el.dataset.partKey, el]));
     const voices = new Map([...root.querySelectorAll('[data-voice]')].map((el) => [el.dataset.voice, el]));
     const sets = [...root.querySelectorAll('[data-set]')];
+    // A row you tap to hear its part alone, and again for all of them (the hero's mixer, outside the Studio).
+    const alone = new Map([...root.querySelectorAll('[data-voice]')].map((el) => [el.dataset.voice, el.querySelector('[data-hear-alone]')]).filter(([, el]) => el));
     const marks = [...root.querySelectorAll('[data-beat]')].map((el) => ({
         el,
         from: Number(el.dataset.beat) * secondsPerBeat,
@@ -134,7 +136,8 @@ function setUp(root) {
     const picks = new Map([...voices].map(([key, el]) => [key, el.querySelector('[data-pick]')]).filter(([, el]) => el));
     const on = new Map(song.parts.map((p) => {
         const toggle = toggles.get(p.key);
-        return [p.key, toggle ? toggle.getAttribute('aria-checked') !== 'false' : voices.get(p.key)?.getAttribute('aria-pressed') !== 'false'];
+        const voice = voices.get(p.key);
+        return [p.key, toggle ? toggle.getAttribute('aria-checked') !== 'false' : voice?.getAttribute('aria-pressed') !== 'false' && !voice?.hasAttribute('data-off')];
     }));
     // The voice brought forward, when the player has a choice of one (the hero's mixer).
     let forward = picks.size ? ([...picks].find(([, el]) => el.getAttribute('aria-checked') === 'true')?.[0] ?? null) : null;
@@ -315,6 +318,15 @@ function setUp(root) {
     }
 
     function showSets() {
+        // The row heard alone, when one is: [data-solo] on it, its button pressed and saying it brings the others back.
+        const heard = [...on].filter(([, value]) => value).map(([key]) => key);
+        const only = heard.length === 1 && on.size > 1 ? heard[0] : null;
+        for (const [key, button] of alone) {
+            const solo = key === only;
+            voices.get(key)?.toggleAttribute('data-solo', solo);
+            button.setAttribute('aria-pressed', String(solo));
+            button.setAttribute('aria-label', solo ? button.dataset.labelBack : button.dataset.label);
+        }
         for (const el of sets) {
             const only = el.dataset.set;
             const pressed = only === 'all' ? [...on.values()].every(Boolean) : [...on].every(([key, value]) => value === (key === only));
@@ -486,6 +498,14 @@ function setUp(root) {
             const next = order[(to + order.length) % order.length];
             bringForward(next);
             picks.get(next).focus();
+        });
+    }
+    for (const [key, button] of alone) {
+        button.addEventListener('click', () => {
+            // Alone already: all of them again. Else this one alone; playing carries on from the same spot.
+            const solo = button.getAttribute('aria-pressed') === 'true';
+            for (const other of on.keys()) switchTo(other, solo || other === key);
+            showSets();
         });
     }
     for (const el of sets) {

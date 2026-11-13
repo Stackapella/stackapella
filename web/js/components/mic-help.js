@@ -12,6 +12,7 @@ import { Icon } from './icon.js';
 import { LevelMeter } from './level-meter.js';
 import { Modal, toast } from './ui.js';
 import { count } from '../usage.js';
+import { navigate } from '../router.js';
 
 const HEARD_MS = 1500; // the meter shows this long once the mic works, then the screen carries on
 
@@ -88,7 +89,11 @@ export const MicHelpHost = {
                     </details>
                 </template>
                 <div v-if="!refusedGently" class="flex items-center justify-between gap-3 border-t border-edge pt-4">
-                    <button type="button" class="btn-ghost btn-sm" :title="t('micHelp.copyDetails')" @click="copyDetails">{{ t('micHelp.details') }}</button>
+                    <div class="flex flex-wrap gap-1">
+                        <button type="button" class="btn-ghost btn-sm" :title="t('micHelp.copyDetails')" @click="copyDetails">{{ t('micHelp.details') }}</button>
+                        <!-- Still stuck: the device's details and this tab's sound problems to us, shown before they go (views/contact.js). -->
+                        <button type="button" class="btn-ghost btn-sm" data-send-diagnostics @click="sendDiagnostics">{{ t('micHelp.sendDiagnostics') }}</button>
+                    </div>
                     <button v-if="state !== 'hearing'" type="button" class="btn-primary" :disabled="micHelp.trying" @click="tryAgain">{{ micHelp.trying ? t('micHelp.trying') : t('micHelp.tryAgain') }}</button>
                 </div>
             </div>
@@ -236,6 +241,11 @@ export const MicHelpHost = {
         },
         reload: reloadForMic,
         close: closeMicHelp,
+        sendDiagnostics() {
+            const from = location.pathname;
+            closeMicHelp();
+            navigate(`/contact?diagnostics=1&from=${encodeURIComponent(from)}`);
+        },
         /** Listen through it, from a refusal: the screen's own way on without the mic. */
         listenInstead() {
             const listen = micHelp.gentle?.listen;

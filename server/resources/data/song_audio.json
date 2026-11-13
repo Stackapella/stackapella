@@ -1,0 +1,2992 @@
+{
+    "source": "server/resources/promo/songaudio",
+    "songs": {
+        "abide-with-me": {
+            "slug": "abide-with-me",
+            "title": "Abide with Me",
+            "version": 1,
+            "tempo": 96,
+            "key": "Eb",
+            "guides": {
+                "soprano": null,
+                "alto": null,
+                "tenor": null,
+                "bass": null
+            },
+            "credit": "Words: Henry Francis Lyte (1847). Tune: William Henry Monk, \"Eventide\" (1861). Arrangement: Hymns Ancient and Modern (1861), adapted by Stackapella.",
+            "duration": 42.59,
+            "channels": 2,
+            "lufs": -16,
+            "files": [
+                {
+                    "name": "abide-with-me.mp3",
+                    "bytes": 682779,
+                    "sha256": "6c43c404e2a9ee502ba8250c54dc581ffd74c8b70e65a5f535cea8a71d16909c"
+                },
+                {
+                    "name": "abide-with-me.m4a",
+                    "bytes": 681436,
+                    "sha256": "7cc57ab879125d6ca8b2127452cdb36a1d7745dfe62f02cfd7f7ccc71fcea69a"
+                }
+            ]
+        },
+        "adir-hu": {
+            "slug": "adir-hu",
+            "title": "Adir Hu",
+            "version": 1,
+            "tempo": 88,
+            "key": "C",
+            "guides": {
+                "soprano": null,
+                "alto": null,
+                "tenor": null,
+                "bass": null
+            },
+            "credit": "Words: traditional Hebrew hymn of the Passover Haggadah. Tune: traditional. Arrangement: Stackapella.",
+            "duration": 108.954,
+            "channels": 2,
+            "lufs": -16,
+            "files": [
+                {
+                    "name": "adir-hu.mp3",
+                    "bytes": 1744486,
+                    "sha256": "0bb72333783fcec6c5fb55d2cd7afccd3cb2f203a52450ba4b73ecafa2bdfd7b"
+                },
+                {
+                    "name": "adir-hu.m4a",
+                    "bytes": 1762169,
+                    "sha256": "f608ba961c26657639bc3ebeabfba3b2dcf2fb8d2cc1dd863492b1d68ce2ad5b"
+                }
+            ]
+        },
+        "adon-olam": {
+            "slug": "adon-olam",
+            "title": "Adon Olam",
+            "version": 2,
+            "tempo": 84,
+            "key": "Dm",
+            "guides": {
+                "soprano": null,
+                "alto": null,
+                "tenor": null,
+                "bass": null
+            },
+            "credit": "Words: Hebrew hymn, author unknown (medieval). Tune: old synagogue tune (\"A. W.\", alte Weise), as Eliezer Gerovitsch printed it (1897). Arrangement: Stackapella, on Eliezer Gerovitsch's harmony (1897).",
+            "duration": 102.947,
+            "channels": 2,
+            "lufs": -16,
+            "files": [
+                {
+                    "name": "adon-olam.mp3",
+                    "bytes": 1648588,
+                    "sha256": "cd438d181328ee68a2df3b1c98a7c8933310c78fc9f0e9c8302f5ef0d2e4420b"
+                },
+                {
+                    "name": "adon-olam.m4a",
+                    "bytes": 1663535,
+                    "sha256": "338d04b3fe0e9861f2f48063079cc2f1c83e9315a0548145d049e3518e065809"
+                }
+            ]
+        },
+        "all-through-the-night": {
+            "slug": "all-through-the-night",
+            "title": "All Through the Night",
+            "version": 3,
+            "tempo": 72,
+            "key": "G",
+            "guides": {
+                "soprano": null,
+                "alto": null,
+                "tenor": null,
+                "bass": null
+            },
+            "credit": "Words: Harold Boulton (1892). Tune: traditional Welsh, \"Ar Hyd y Nos\" (printed 1784). Arrangement: Stackapella.",
+            "duration": 55.923,
+            "channels": 2,
+            "lufs": -16,
+            "files": [
+                {
+                    "name": "all-through-the-night.mp3",
+                    "bytes": 896254,
+                    "sha256": "1cade99685f414012d899a8710025eaf90207ebaa7adc51726e537664acbd440"
+                },
+                {
+                    "name": "all-through-the-night.m4a",
+                    "bytes": 899458,
+                    "sha256": "9a2386cfbd5c75533d319e99fdbc302788070d787a7780845c16f031366f5c08"
+                }
+            ]
+        },
+        "amazing-grace": {
+            "slug": "amazing-grace",
+            "title": "Amazing Grace",
+            "version": 4,
+            "tempo": 80,
+            "key": "G",
+            "guides": {
+                "soprano": "hMYZDL",
+                "alto": "zc6Pz6",
+                "tenor": "ZcqF2k",
+                "bass": "gjb5cT"
+            },
+            "credit": "Words: John Newton (1779). Tune: \"New Britain\", American folk hymn (1829). Arrangement: Stackapella. Soprano and alto sung by Daniella Goldfine.",
+            "duration": 38.06,
+            "channels": 2,
+            "lufs": -16,
+            "files": [
+                {
+                    "name": "amazing-grace.mp3",
+                    "bytes": 610199,
+                    "sha256": "4fb1b39a0fd7d5ff11bb34fc015dabda0b230dc6d7142a20078f971f0e0d783e"
+                },
+                {
+                    "name": "amazing-grace.m4a",
+                    "bytes": 613565,
+                    "sha256": "6c25dcddd2338817566ca019a5513e108ad61f78e588526922c69890a19bf204"
+                }
+            ]
+        },
+        "annie-laurie": {
+            "slug": "annie-laurie",
+            "title": "Annie Laurie",
+            "version": 1,
+            "tempo": 54,
+            "key": "C",
+            "guides": {
+                "soprano": null,
+                "alto": null,
+                "tenor": null,
+                "bass": null
+            },
+            "credit": "Words: an older Scottish song, said to be by Douglas of Fingland, reworked by Lady John Scott (1810-1900), who altered its second verse. Tune: Lady John Scott (Alicia Ann Spottiswoode, 1810-1900). Arrangement: Stackapella.",
+            "duration": 73.701,
+            "channels": 2,
+            "lufs": -16,
+            "files": [
+                {
+                    "name": "annie-laurie.mp3",
+                    "bytes": 1180516,
+                    "sha256": "b585632652a49798d69a647f0ee06088ddec455c0ce1d8fbfc1a080c06f2b588"
+                },
+                {
+                    "name": "annie-laurie.m4a",
+                    "bytes": 1188501,
+                    "sha256": "a0d9859f413752592269c1c45fc764cca40376534d34f77a9b61d2711ec350db"
+                }
+            ]
+        },
+        "are-you-sleeping": {
+            "slug": "are-you-sleeping",
+            "title": "Are You Sleeping (Frère Jacques)",
+            "version": 4,
+            "tempo": 100,
+            "key": "Eb",
+            "guides": {
+                "soprano": null,
+                "alto": null,
+                "tenor": null,
+                "bass": null
+            },
+            "credit": "Words: traditional English version. Tune: \"Frère Jacques\", traditional French (known from a manuscript of about 1780). Arrangement: Stackapella (round setting).",
+            "duration": 55.39,
+            "channels": 2,
+            "lufs": -16,
+            "files": [
+                {
+                    "name": "are-you-sleeping.mp3",
+                    "bytes": 887690,
+                    "sha256": "3edce0cc1ce41285a061787ca46e66e3066e1499ca715299a2fc4f9deec60a9c"
+                },
+                {
+                    "name": "are-you-sleeping.m4a",
+                    "bytes": 887677,
+                    "sha256": "d3a84697cd0ccf74e2f63e8323fabed378cdbe31b85a9fee74f4c5ae2007ec27"
+                }
+            ]
+        },
+        "auld-lang-syne": {
+            "slug": "auld-lang-syne",
+            "title": "Auld Lang Syne",
+            "version": 8,
+            "tempo": 76,
+            "key": "F",
+            "guides": {
+                "soprano": null,
+                "alto": null,
+                "tenor": null,
+                "bass": null
+            },
+            "credit": "Words: Robert Burns (1788). Tune: traditional Scottish. Arrangement: Stackapella.",
+            "duration": 27.853,
+            "channels": 2,
+            "lufs": -16,
+            "files": [
+                {
+                    "name": "auld-lang-syne.mp3",
+                    "bytes": 446937,
+                    "sha256": "bb88cf6a4e4b02aad4193de75a6d460c671e585a103e69eddc73683d695a6587"
+                },
+                {
+                    "name": "auld-lang-syne.m4a",
+                    "bytes": 439711,
+                    "sha256": "af41750c8434605666ab30de84a9b0c5943bde296067a9fcdfc1561c6c620dbd"
+                }
+            ]
+        },
+        "ave-verum-corpus": {
+            "slug": "ave-verum-corpus",
+            "title": "Ave verum corpus",
+            "version": 2,
+            "tempo": 96,
+            "key": "D",
+            "guides": {
+                "soprano": null,
+                "alto": null,
+                "tenor": null,
+                "bass": null
+            },
+            "credit": "Words: a medieval (13th-century) Eucharistic hymn. Tune: Wolfgang Amadeus Mozart, K. 618 (1791). Arrangement: Mozart's own four voice parts (1791).",
+            "duration": 100.09,
+            "channels": 2,
+            "lufs": -16,
+            "files": [
+                {
+                    "name": "ave-verum-corpus.mp3",
+                    "bytes": 1602845,
+                    "sha256": "030af467dec7e260b981f02b7c807848cdea788563b7ec0da71a4a730995b6c5"
+                },
+                {
+                    "name": "ave-verum-corpus.m4a",
+                    "bytes": 1609786,
+                    "sha256": "e1dc6b8e675b44dddaf6307a49fad2d2ab557c6c384843b1e0f697749d9f0889"
+                }
+            ]
+        },
+        "away-in-a-manger": {
+            "slug": "away-in-a-manger",
+            "title": "Away in a Manger",
+            "version": 1,
+            "tempo": 84,
+            "key": "G",
+            "guides": {
+                "soprano": null,
+                "alto": null,
+                "tenor": null,
+                "bass": null
+            },
+            "credit": "Words: Anonymous (in print by 1882), as printed in Joy and Praise (1908). Tune: \"Cradle Song\", William J. Kirkpatrick (1895). Arrangement: Kirkpatrick's own duet and accompaniment (1895), set for four voices by Stackapella.",
+            "duration": 36.876,
+            "channels": 2,
+            "lufs": -16,
+            "files": [
+                {
+                    "name": "away-in-a-manger.mp3",
+                    "bytes": 591465,
+                    "sha256": "90b24feae17ac7f2c9e16e4bc3230fad896ed924d1dd74279229f03fc7365f67"
+                },
+                {
+                    "name": "away-in-a-manger.m4a",
+                    "bytes": 588999,
+                    "sha256": "c2bbfd845d09e5e9405f6ab206f9492ec62a5ce1580357fdf926922796172a4d"
+                }
+            ]
+        },
+        "balm-in-gilead": {
+            "slug": "balm-in-gilead",
+            "title": "There Is a Balm in Gilead",
+            "version": 1,
+            "tempo": 60,
+            "key": "A",
+            "guides": {
+                "soprano": null,
+                "alto": null,
+                "tenor": null,
+                "bass": null
+            },
+            "credit": "Words: traditional spiritual, as sung by the students of Hampton Institute (printed 1927). Tune: traditional spiritual, as R. Nathaniel Dett transcribed it from the singing of the Hampton Institute students (printed 1927). Arrangement: R. Nathaniel Dett's own four parts (1927), adapted by Stackapella.",
+            "duration": 154.59,
+            "channels": 2,
+            "lufs": -16,
+            "files": [
+                {
+                    "name": "balm-in-gilead.mp3",
+                    "bytes": 2475073,
+                    "sha256": "060ed8b76034cb3b18df44b311a15f415c868331d05937808490da6c57e1bcd8"
+                },
+                {
+                    "name": "balm-in-gilead.m4a",
+                    "bytes": 2505879,
+                    "sha256": "8814e88509729139f666153a3727b81fa142b0e62b1570d50a247eaf5908a729"
+                }
+            ]
+        },
+        "be-thou-my-vision": {
+            "slug": "be-thou-my-vision",
+            "title": "Be Thou My Vision",
+            "version": 6,
+            "tempo": 84,
+            "key": "F",
+            "guides": {
+                "soprano": null,
+                "alto": null,
+                "tenor": null,
+                "bass": null
+            },
+            "credit": "Words: Irish, anonymous, 10th or 11th century; translated by Mary Byrne (1905), versified by Eleanor Hull (1912). Tune: \"Slane\", traditional Irish melody, from P. W. Joyce, Old Irish Folk Music and Songs (1909), No. 323; earliest known pairing with these words in the Church of Ireland's Church Hymnal (1919). Arrangement: Stackapella.",
+            "duration": 36.876,
+            "channels": 2,
+            "lufs": -16,
+            "files": [
+                {
+                    "name": "be-thou-my-vision.mp3",
+                    "bytes": 591578,
+                    "sha256": "2d8fb6ab10bf0bfce0f5f46eeeec0da945b8365966d32f64aa458483991e6456"
+                },
+                {
+                    "name": "be-thou-my-vision.m4a",
+                    "bytes": 588349,
+                    "sha256": "d22712a31e700b50a5fc5479686ce1a2aefbe86a32cae764774893e6519bbe15"
+                }
+            ]
+        },
+        "blow-boys-blow": {
+            "slug": "blow-boys-blow",
+            "title": "Blow, Boys, Blow",
+            "version": 1,
+            "tempo": 120,
+            "key": "G",
+            "guides": {
+                "soprano": null,
+                "alto": null,
+                "tenor": null,
+                "bass": null
+            },
+            "credit": "Words: traditional sea shanty (as printed by R. R. Terry, 1921). Tune: traditional sea shanty (as printed by R. R. Terry, 1921). Arrangement: Stackapella, on R. R. Terry's harmony.",
+            "duration": 108.59,
+            "channels": 2,
+            "lufs": -16,
+            "files": [
+                {
+                    "name": "blow-boys-blow.mp3",
+                    "bytes": 1738814,
+                    "sha256": "6705a47fb2a91e1e1c7e4bcf6d4e6bedecf150fc9605eea01be81d076c477870"
+                },
+                {
+                    "name": "blow-boys-blow.m4a",
+                    "bytes": 1760093,
+                    "sha256": "0f895e3c08a1b6ae8c87f1d547198081e34d948f48475c5e843d05a46f2dcd0f"
+                }
+            ]
+        },
+        "blow-the-man-down": {
+            "slug": "blow-the-man-down",
+            "title": "Blow the Man Down",
+            "version": 2,
+            "tempo": 150,
+            "key": "F",
+            "guides": {
+                "soprano": null,
+                "alto": null,
+                "tenor": null,
+                "bass": null
+            },
+            "credit": "Words: traditional sea shanty. Tune: traditional sea shanty. Arrangement: Stackapella.",
+            "duration": 61.39,
+            "channels": 2,
+            "lufs": -16,
+            "files": [
+                {
+                    "name": "blow-the-man-down.mp3",
+                    "bytes": 983393,
+                    "sha256": "8568d4321379ea9107ec3a4c02dd8da36a503e958db61475d2d9c501320e97e5"
+                },
+                {
+                    "name": "blow-the-man-down.m4a",
+                    "bytes": 989599,
+                    "sha256": "f7281fac06a32fed1a07a9a9c2e26bf8cff5378089beb109b370a7509d4d44df"
+                }
+            ]
+        },
+        "brahms-lullaby": {
+            "slug": "brahms-lullaby",
+            "title": "Brahms's Lullaby",
+            "version": 1,
+            "tempo": 60,
+            "key": "Eb",
+            "guides": {
+                "soprano": null,
+                "alto": null,
+                "tenor": null,
+                "bass": null
+            },
+            "credit": "Words: Arthur Westbrook (1901), after Natalia Macfarren's English (about 1874), from the German: verse 1 the folk verse in Des Knaben Wunderhorn (1808), verse 2 Georg Scherer's (1849). Tune: Johannes Brahms, Op. 49 No. 4 (1868). Arrangement: Stackapella, on Brahms's piano harmony.",
+            "duration": 98.59,
+            "channels": 2,
+            "lufs": -16,
+            "files": [
+                {
+                    "name": "brahms-lullaby.mp3",
+                    "bytes": 1578787,
+                    "sha256": "fc78117bcaa7b249ee72b1d51a768c81a6ec4ceb4100384794eae1c2e6b6a548"
+                },
+                {
+                    "name": "brahms-lullaby.m4a",
+                    "bytes": 1591779,
+                    "sha256": "dca6be5a5de66724f0a32f85ad62db55ee2ad75eee531739c219e0a64967bdd3"
+                }
+            ]
+        },
+        "bully-in-the-alley": {
+            "slug": "bully-in-the-alley",
+            "title": "Bully in the Alley",
+            "version": 1,
+            "tempo": 90,
+            "key": "G",
+            "guides": {
+                "soprano": null,
+                "alto": null,
+                "tenor": null,
+                "bass": null
+            },
+            "credit": "Words: traditional sea shanty (as sung by John Short, Watchet; printed 1914). Tune: traditional sea shanty (as sung by John Short, Watchet; printed 1914). Arrangement: Stackapella, on Cecil Sharp's harmony.",
+            "duration": 103.923,
+            "channels": 2,
+            "lufs": -16,
+            "files": [
+                {
+                    "name": "bully-in-the-alley.mp3",
+                    "bytes": 1664346,
+                    "sha256": "e7056306f599651c6a49e86adb0649897a30d9865ea560485bd0390f5b356804"
+                },
+                {
+                    "name": "bully-in-the-alley.m4a",
+                    "bytes": 1683258,
+                    "sha256": "fa2b2220a4cb7d79c9fe7f4a36dafc42ca84b44df01eff9be37ad37e57541145"
+                }
+            ]
+        },
+        "caro-mio-ben": {
+            "slug": "caro-mio-ben",
+            "title": "Caro mio ben",
+            "version": 1,
+            "tempo": 60,
+            "key": "Eb",
+            "guides": {
+                "soprano": null,
+                "alto": null,
+                "tenor": null,
+                "bass": null
+            },
+            "credit": "Words: anonymous (18th century): the print names no poet. Tune: attributed to Giuseppe Giordani (1743 to 1798) in Parisotti's print (1894); probably by Tommaso Giordani. Arrangement: Stackapella.",
+            "duration": 106.59,
+            "channels": 2,
+            "lufs": -16,
+            "files": [
+                {
+                    "name": "caro-mio-ben.mp3",
+                    "bytes": 1706953,
+                    "sha256": "3cff7f1589033f03af9166724bc291a74ca206cb13cf8f682ba7e4da00d52a5e"
+                },
+                {
+                    "name": "caro-mio-ben.m4a",
+                    "bytes": 1719806,
+                    "sha256": "955b19da9493fd96bcc6e06816a63a7cc30f5d612e12660c03aae8b6dbb2d981"
+                }
+            ]
+        },
+        "come-thou-fount": {
+            "slug": "come-thou-fount",
+            "title": "Come, Thou Fount of Every Blessing",
+            "version": 1,
+            "tempo": 90,
+            "key": "Eb",
+            "guides": {
+                "soprano": null,
+                "alto": null,
+                "tenor": null,
+                "bass": null
+            },
+            "credit": "Words: Robert Robinson (1758). Tune: \"Nettleton\", from Wyeth's Repository of Sacred Music, Part Second (1813). Arrangement: The Methodist Hymnal (1905), adapted by Stackapella.",
+            "duration": 34.59,
+            "channels": 2,
+            "lufs": -16,
+            "files": [
+                {
+                    "name": "come-thou-fount.mp3",
+                    "bytes": 554956,
+                    "sha256": "147c89215266a92f40a9cdf394b763632b820a61bb50832e61aacb0694936ec4"
+                },
+                {
+                    "name": "come-thou-fount.m4a",
+                    "bytes": 553018,
+                    "sha256": "3bcfb664d74d6168b70425ca8e5f56ef66a771f35c1ab48bc03ea9176e9df476"
+                }
+            ]
+        },
+        "come-ye-thankful-people": {
+            "slug": "come-ye-thankful-people",
+            "title": "Come, Ye Thankful People, Come",
+            "version": 1,
+            "tempo": 100,
+            "key": "G",
+            "guides": {
+                "soprano": null,
+                "alto": null,
+                "tenor": null,
+                "bass": null
+            },
+            "credit": "Words: Henry Alford (1844; verse 4 as he revised it for The Year of Praise, 1867). Tune: George J. Elvey, \"St. George\" (1861; today \"St. George's, Windsor\"). Arrangement: George J. Elvey's four parts (Hymns Ancient and Modern, 1861), adapted by Stackapella.",
+            "duration": 79.39,
+            "channels": 2,
+            "lufs": -16,
+            "files": [
+                {
+                    "name": "come-ye-thankful-people.mp3",
+                    "bytes": 1271577,
+                    "sha256": "9bd1e3fff91cadd4760a659d35b5e97c08a5265ca543a8c3aa75c4f3e5bc4b87"
+                },
+                {
+                    "name": "come-ye-thankful-people.m4a",
+                    "bytes": 1280074,
+                    "sha256": "b85644cca2846cfed0994e8a49a791c3646b14895311fb506f6ea7e69b6d4dc1"
+                }
+            ]
+        },
+        "comin-thro-the-rye": {
+            "slug": "comin-thro-the-rye",
+            "title": "Comin' Thro' the Rye",
+            "version": 1,
+            "tempo": 60,
+            "key": "G",
+            "guides": {
+                "soprano": null,
+                "alto": null,
+                "tenor": null,
+                "bass": null
+            },
+            "credit": "Words: traditional Scottish, after Robert Burns. Tune: traditional Scottish. Arrangement: Stackapella.",
+            "duration": 65.59,
+            "channels": 2,
+            "lufs": -16,
+            "files": [
+                {
+                    "name": "comin-thro-the-rye.mp3",
+                    "bytes": 1050612,
+                    "sha256": "5e0d2b7002dac184a2247eac4a93998a05344c590925aa361a5874882b7fee98"
+                },
+                {
+                    "name": "comin-thro-the-rye.m4a",
+                    "bytes": 1055373,
+                    "sha256": "af526df43a346882933592b923654ab39480ccfd06dece6c7064eacc0823cb73"
+                }
+            ]
+        },
+        "daisy-bell": {
+            "slug": "daisy-bell",
+            "title": "Daisy Bell",
+            "version": 2,
+            "tempo": 132,
+            "key": "G",
+            "guides": {
+                "soprano": null,
+                "alto": null,
+                "tenor": null,
+                "bass": null
+            },
+            "credit": "Words: Harry Dacre (1892). Tune: Harry Dacre (1892). Arrangement: Stackapella, on Dacre's own harmony.",
+            "duration": 89.863,
+            "channels": 2,
+            "lufs": -16,
+            "files": [
+                {
+                    "name": "daisy-bell.mp3",
+                    "bytes": 1439210,
+                    "sha256": "996fd2493e1f760393c02fb6816f27201d8be911fb6a7ac6332a9a7ed950f28f"
+                },
+                {
+                    "name": "daisy-bell.m4a",
+                    "bytes": 1450335,
+                    "sha256": "85c9f6d0511093453aa3e7c96fd946d3a8030a6cff1751362f50762ff609984f"
+                }
+            ]
+        },
+        "danny-boy": {
+            "slug": "danny-boy",
+            "title": "Danny Boy",
+            "version": 6,
+            "tempo": 60,
+            "key": "D",
+            "guides": {
+                "soprano": null,
+                "alto": null,
+                "tenor": null,
+                "bass": null
+            },
+            "credit": "Words: Frederic Weatherly (1913). Tune: Londonderry Air, Irish traditional (Petrie, 1855), with Weatherly's words fitted to it by us. Arrangement: Stackapella.",
+            "duration": 67.09,
+            "channels": 2,
+            "lufs": -16,
+            "files": [
+                {
+                    "name": "danny-boy.mp3",
+                    "bytes": 1074850,
+                    "sha256": "5ad8c8086f0959c01e4df67414b38acd4568214e407b6dc1e96f53cc56df8fb5"
+                },
+                {
+                    "name": "danny-boy.m4a",
+                    "bytes": 1074506,
+                    "sha256": "88d413d1eb82232ac626c57b8a3f7e9ce1b7df28924484a0006d892064a32d90"
+                }
+            ]
+        },
+        "deck-the-halls": {
+            "slug": "deck-the-halls",
+            "title": "Deck the Halls",
+            "version": 1,
+            "tempo": 120,
+            "key": "Eb",
+            "guides": {
+                "soprano": null,
+                "alto": null,
+                "tenor": null,
+                "bass": null
+            },
+            "credit": "Words: Traditional English, as printed in The Golden Book of Favorite Songs (1923). Tune: \"Nos Galan\", traditional Welsh (in print by 1781). Arrangement: The Golden Book of Favorite Songs' four parts (1923), adapted by Stackapella.",
+            "duration": 34.59,
+            "channels": 2,
+            "lufs": -16,
+            "files": [
+                {
+                    "name": "deck-the-halls.mp3",
+                    "bytes": 554991,
+                    "sha256": "7eebf16388d03befa26f166f0fbf3081ba263387a93cf0f3c4932c2820f18bee"
+                },
+                {
+                    "name": "deck-the-halls.m4a",
+                    "bytes": 550489,
+                    "sha256": "0d781b681bff559d38e4a43c800672c0b5ede0b9383968e220bdc0bc2fa42262"
+                }
+            ]
+        },
+        "deep-river": {
+            "slug": "deep-river",
+            "title": "Deep River",
+            "version": 1,
+            "tempo": 60,
+            "key": "Eb",
+            "guides": {
+                "soprano": null,
+                "alto": null,
+                "tenor": null,
+                "bass": null
+            },
+            "credit": "Words: traditional spiritual, as H. T. Burleigh set them (1914). Tune: traditional spiritual, as arranged by H. T. Burleigh (1914). Arrangement: H. T. Burleigh's own four parts (1914), adapted by Stackapella.",
+            "duration": 110.59,
+            "channels": 2,
+            "lufs": -16,
+            "files": [
+                {
+                    "name": "deep-river.mp3",
+                    "bytes": 1770708,
+                    "sha256": "3f7d94acf7883699eb0e487aed96c8e1f91bc2805cacbc33eb5ca2a6323d6f1c"
+                },
+                {
+                    "name": "deep-river.m4a",
+                    "bytes": 1786266,
+                    "sha256": "0436279e92fe8ba21aac6f247de22cb8d9c772542d2b491bcc4de0dca9f4c557"
+                }
+            ]
+        },
+        "didnt-my-lord-deliver-daniel": {
+            "slug": "didnt-my-lord-deliver-daniel",
+            "title": "Didn't My Lord Deliver Daniel",
+            "version": 1,
+            "tempo": 100,
+            "key": "Am",
+            "guides": {
+                "soprano": null,
+                "alto": null,
+                "tenor": null,
+                "bass": null
+            },
+            "credit": "Words: traditional spiritual, as sung by the Fisk Jubilee Singers (published 1872). Tune: traditional spiritual, as sung by the Fisk Jubilee Singers (published 1872). Arrangement: Stackapella.",
+            "duration": 136.99,
+            "channels": 2,
+            "lufs": -16,
+            "files": [
+                {
+                    "name": "didnt-my-lord-deliver-daniel.mp3",
+                    "bytes": 2193111,
+                    "sha256": "0b9947749ef94667578009d1e066a740afe843d785600370d695c011ac1c2ff8"
+                },
+                {
+                    "name": "didnt-my-lord-deliver-daniel.m4a",
+                    "bytes": 2220635,
+                    "sha256": "e67e49b9c75fa5d0f8986fea28cb163ffdd85bb8fd090e85fdececd43a1ef203"
+                }
+            ]
+        },
+        "down-by-the-old-mill-stream": {
+            "slug": "down-by-the-old-mill-stream",
+            "title": "Down by the Old Mill Stream",
+            "version": 3,
+            "tempo": 96,
+            "key": "A",
+            "guides": {
+                "tenor": null,
+                "lead": null,
+                "baritone": null,
+                "bass": null
+            },
+            "credit": "Words: Tell Taylor (1910). Tune: Tell Taylor (1910). Arrangement: Stackapella, barbershop voicing over the 1910 sheet music's own harmony.",
+            "duration": 62.59,
+            "channels": 2,
+            "lufs": -16,
+            "files": [
+                {
+                    "name": "down-by-the-old-mill-stream.mp3",
+                    "bytes": 1002655,
+                    "sha256": "e917949c5626bf4b207a1b7e4584d4242d4492932c48e2461aef0241b0925906"
+                },
+                {
+                    "name": "down-by-the-old-mill-stream.m4a",
+                    "bytes": 1007025,
+                    "sha256": "96fe26ec0927be97094fdc77136ae89267c382fe7d59801dd5a3b6fc988f15ce"
+                }
+            ]
+        },
+        "drunken-sailor": {
+            "slug": "drunken-sailor",
+            "title": "Drunken Sailor",
+            "version": 1,
+            "tempo": 88,
+            "key": "Em",
+            "guides": {
+                "soprano": null,
+                "alto": null,
+                "tenor": null,
+                "bass": null
+            },
+            "credit": "Words: traditional sea shanty (as printed by R. R. Terry, 1921). Tune: traditional sea shanty (as printed by R. R. Terry, 1921). Arrangement: Stackapella.",
+            "duration": 46.226,
+            "channels": 2,
+            "lufs": -16,
+            "files": [
+                {
+                    "name": "drunken-sailor.mp3",
+                    "bytes": 741154,
+                    "sha256": "d8cbf33160575887635e5a8e658bbc0b1a275aeb1fe3494c9af0df64e165a445"
+                },
+                {
+                    "name": "drunken-sailor.m4a",
+                    "bytes": 741711,
+                    "sha256": "4bbcf731e913b0a220fa52989b4b7bc5b5da4b0c6ea81d3996a7c031f07c8a55"
+                }
+            ]
+        },
+        "echad-mi-yodea": {
+            "slug": "echad-mi-yodea",
+            "title": "Echad Mi Yodea",
+            "version": 1,
+            "tempo": 90,
+            "key": "Fm",
+            "guides": {
+                "soprano": null,
+                "alto": null,
+                "tenor": null,
+                "bass": null
+            },
+            "credit": "Words: traditional Hebrew counting song of the Passover Haggadah. Tune: traditional. Arrangement: Stackapella.",
+            "duration": 71.923,
+            "channels": 2,
+            "lufs": -16,
+            "files": [
+                {
+                    "name": "echad-mi-yodea.mp3",
+                    "bytes": 1151990,
+                    "sha256": "8c7236cead7712bdbf1fc5d57970800accdf937d08dc0422cf93d07005e6f262"
+                },
+                {
+                    "name": "echad-mi-yodea.m4a",
+                    "bytes": 1159057,
+                    "sha256": "7836494cf897861880b1ca2592214a6755b24ed74cefc510b68c521a63b14d7a"
+                }
+            ]
+        },
+        "ein-keloheinu": {
+            "slug": "ein-keloheinu",
+            "title": "Ein Keloheinu",
+            "version": 1,
+            "tempo": 80,
+            "key": "G",
+            "guides": {
+                "soprano": null,
+                "alto": null,
+                "tenor": null,
+                "bass": null
+            },
+            "credit": "Words: traditional Hebrew liturgy. Tune: Julius Freudenthal (1843). Arrangement: the Union Hymnal's four parts (1897), probably Julius Freudenthal's, adapted by Stackapella.",
+            "duration": 125.59,
+            "channels": 2,
+            "lufs": -16,
+            "files": [
+                {
+                    "name": "ein-keloheinu.mp3",
+                    "bytes": 2010676,
+                    "sha256": "ac97ea8d093b2ec67a75908a85c5b0a1479f00b41cd5a7aeb316119a305e6425"
+                },
+                {
+                    "name": "ein-keloheinu.m4a",
+                    "bytes": 2027996,
+                    "sha256": "18d359ee14a6f30c58d6d029c0b3fc626b84da0b10d0adbf22870dccbaaeb059"
+                }
+            ]
+        },
+        "el-cant-dels-ocells": {
+            "slug": "el-cant-dels-ocells",
+            "title": "El cant dels ocells",
+            "version": 1,
+            "tempo": 60,
+            "key": "Fm",
+            "guides": {
+                "soprano": null,
+                "alto": null,
+                "tenor": null,
+                "bass": null
+            },
+            "credit": "Words: traditional Catalan, as printed by Lluís Millet (1917). Tune: traditional Catalan, as printed by Lluís Millet (1917). Arrangement: Lluís Millet (1867-1941), harmony printed 1917, adapted by Stackapella.",
+            "duration": 122.59,
+            "channels": 2,
+            "lufs": -16,
+            "files": [
+                {
+                    "name": "el-cant-dels-ocells.mp3",
+                    "bytes": 1962940,
+                    "sha256": "ae6ddbea241226c22bdfcdf90ac58520671ee0477168cabfe02d8d6464ae93a0"
+                },
+                {
+                    "name": "el-cant-dels-ocells.m4a",
+                    "bytes": 1981644,
+                    "sha256": "ddfb5630584d305710db50b5f532a4f66201b689e0de27cfed7850bc10ecf61a"
+                }
+            ]
+        },
+        "eliyahu-hanavi": {
+            "slug": "eliyahu-hanavi",
+            "title": "Eliyahu HaNavi",
+            "version": 1,
+            "tempo": 88,
+            "key": "Gm",
+            "guides": {
+                "soprano": null,
+                "alto": null,
+                "tenor": null,
+                "bass": null
+            },
+            "credit": "Words: traditional Hebrew refrain. Tune: traditional Eastern Ashkenazi folk tune (as printed by A. Z. Idelsohn, 1929). Arrangement: Stackapella.",
+            "duration": 51.681,
+            "channels": 2,
+            "lufs": -16,
+            "files": [
+                {
+                    "name": "eliyahu-hanavi.mp3",
+                    "bytes": 828312,
+                    "sha256": "8f2ed49be16690a80f75c7d88e891631599469c08ad3052990875d7980fa5ea7"
+                },
+                {
+                    "name": "eliyahu-hanavi.m4a",
+                    "bytes": 828604,
+                    "sha256": "15b82490ddbf87626cb7827ceb9ead92e2cdaf62ef559f4829a47180ee47f75b"
+                }
+            ]
+        },
+        "every-time-i-feel-the-spirit": {
+            "slug": "every-time-i-feel-the-spirit",
+            "title": "Every Time I Feel the Spirit",
+            "version": 1,
+            "tempo": 70,
+            "key": "Eb",
+            "guides": {
+                "soprano": null,
+                "alto": null,
+                "tenor": null,
+                "bass": null
+            },
+            "credit": "Words: traditional spiritual, as sung at Hampton Institute (printed 1909). Tune: traditional spiritual, as sung at Hampton Institute (printed 1909). Arrangement: Stackapella.",
+            "duration": 112.304,
+            "channels": 2,
+            "lufs": -16,
+            "files": [
+                {
+                    "name": "every-time-i-feel-the-spirit.mp3",
+                    "bytes": 1798340,
+                    "sha256": "ee2d0e0dd21b35cb3c0ec7d1fd8d250c9d2745ca7e6f6513e10d73701ad12feb"
+                },
+                {
+                    "name": "every-time-i-feel-the-spirit.m4a",
+                    "bytes": 1816781,
+                    "sha256": "e627f3f92135c7f5fba7fa8aa94b38c47bbbd5867c3f20780c90d035d76ca1c2"
+                }
+            ]
+        },
+        "ezekiel-saw-the-wheel": {
+            "slug": "ezekiel-saw-the-wheel",
+            "title": "Ezekiel Saw the Wheel",
+            "version": 1,
+            "tempo": 84,
+            "key": "G",
+            "guides": {
+                "soprano": null,
+                "alto": null,
+                "tenor": null,
+                "bass": null
+            },
+            "credit": "Words: traditional spiritual, as sung at Hampton Institute (printed 1909). Tune: traditional spiritual, as sung at Hampton Institute (printed 1909). Arrangement: Stackapella.",
+            "duration": 96.876,
+            "channels": 2,
+            "lufs": -16,
+            "files": [
+                {
+                    "name": "ezekiel-saw-the-wheel.mp3",
+                    "bytes": 1551421,
+                    "sha256": "4ba0f0863903f850d31f8934c73347c0c03a6c3c175933f0981cd4b283da63b4"
+                },
+                {
+                    "name": "ezekiel-saw-the-wheel.m4a",
+                    "bytes": 1567018,
+                    "sha256": "3a6d3f659103812d38dc5ad6ac3cb436e2bd8ac7766cac3cc4f63e574976d8ba"
+                }
+            ]
+        },
+        "go-down-moses": {
+            "slug": "go-down-moses",
+            "title": "Go Down, Moses",
+            "version": 1,
+            "tempo": 60,
+            "key": "Gm",
+            "guides": {
+                "soprano": null,
+                "alto": null,
+                "tenor": null,
+                "bass": null
+            },
+            "credit": "Words: traditional spiritual, as sung by the Fisk Jubilee Singers (published 1872). Tune: traditional spiritual, as sung by the Fisk Jubilee Singers (published 1872). Arrangement: Stackapella, built on Theodore F. Seward's 1872 answer.",
+            "duration": 130.59,
+            "channels": 2,
+            "lufs": -16,
+            "files": [
+                {
+                    "name": "go-down-moses.mp3",
+                    "bytes": 2090995,
+                    "sha256": "6ee06b4cd1cbcbf6b5ad299c8ceb589210f2282e5087298ac35f35ac9991e3dd"
+                },
+                {
+                    "name": "go-down-moses.m4a",
+                    "bytes": 2116392,
+                    "sha256": "fbfdedd396054c69c4efb041eadff0bef67e35dc38d70d6fea234ee5dcf90644"
+                }
+            ]
+        },
+        "god-rest-ye": {
+            "slug": "god-rest-ye",
+            "title": "God Rest Ye Merry, Gentlemen",
+            "version": 1,
+            "tempo": 120,
+            "key": "Em",
+            "guides": {
+                "soprano": null,
+                "alto": null,
+                "tenor": null,
+                "bass": null
+            },
+            "credit": "Words: Traditional English (as printed by Bramley and Stainer, 1867). Tune: Traditional English (as printed by Bramley and Stainer, 1867). Arrangement: Bramley and Stainer's four parts (1867), adapted by Stackapella.",
+            "duration": 40.59,
+            "channels": 2,
+            "lufs": -16,
+            "files": [
+                {
+                    "name": "god-rest-ye.mp3",
+                    "bytes": 650990,
+                    "sha256": "d3cc72615ea55cef2adfc61ab65d57dbedc485494860cb6243abc176a96e484d"
+                },
+                {
+                    "name": "god-rest-ye.m4a",
+                    "bytes": 648264,
+                    "sha256": "3a3960329fc43b78f12b9544e6d9ab93b497d133c7d8f290db63d7b02d93aab3"
+                }
+            ]
+        },
+        "greensleeves": {
+            "slug": "greensleeves",
+            "title": "Greensleeves",
+            "version": 1,
+            "tempo": 60,
+            "key": "F#m",
+            "guides": {
+                "soprano": null,
+                "alto": null,
+                "tenor": null,
+                "bass": null
+            },
+            "credit": "Words: traditional (English, 16th century), as printed in William Chappell, Popular Music of the Olden Time (1855 to 1859). Tune: traditional (English, 16th century). Arrangement: Stackapella, on G. A. Macfarren's harmony (1855 to 1859).",
+            "duration": 34.59,
+            "channels": 2,
+            "lufs": -16,
+            "files": [
+                {
+                    "name": "greensleeves.mp3",
+                    "bytes": 554995,
+                    "sha256": "9cabe68c602dfd98ea425170e853d88913d365f89b8e6f41e978607ad293bd17"
+                },
+                {
+                    "name": "greensleeves.m4a",
+                    "bytes": 550982,
+                    "sha256": "3f0b4e5a369ccff335c19aa2660bbda7f7271308955825587a951fa9b14445b9"
+                }
+            ]
+        },
+        "happy-birthday": {
+            "slug": "happy-birthday",
+            "title": "Happy Birthday",
+            "version": 6,
+            "tempo": 100,
+            "key": "G",
+            "guides": {
+                "soprano": null,
+                "alto": null,
+                "tenor": null,
+                "bass": null
+            },
+            "credit": "Words: Traditional (published 1912). Tune: \"Good Morning to All\", Mildred J. Hill (1893). Arrangement: Stackapella.",
+            "duration": 17.59,
+            "channels": 2,
+            "lufs": -16,
+            "files": [
+                {
+                    "name": "happy-birthday.mp3",
+                    "bytes": 282619,
+                    "sha256": "3405eb6c3791e8aee0c12585a8ec1d3169488665e8a56acce36de862314675ce"
+                },
+                {
+                    "name": "happy-birthday.m4a",
+                    "bytes": 274891,
+                    "sha256": "e3c8bfa3818535d9374112cd07da059fbfdcceae0ab3a83399b1911c6ce14c31"
+                }
+            ]
+        },
+        "hark-the-herald": {
+            "slug": "hark-the-herald",
+            "title": "Hark! The Herald Angels Sing",
+            "version": 1,
+            "tempo": 92,
+            "key": "G",
+            "guides": {
+                "soprano": null,
+                "alto": null,
+                "tenor": null,
+                "bass": null
+            },
+            "credit": "Words: Charles Wesley (1739), altered by George Whitefield (1753) and others. Tune: Felix Mendelssohn (1840), adapted by William H. Cummings (1856). Arrangement: Hymns Ancient and Modern (1875), adapted by Stackapella.",
+            "duration": 54.764,
+            "channels": 2,
+            "lufs": -16,
+            "files": [
+                {
+                    "name": "hark-the-herald.mp3",
+                    "bytes": 877552,
+                    "sha256": "8a54120c2ed2396e093433557706c4801d1f7045c298e7c2aacc9d7ce9f4b549"
+                },
+                {
+                    "name": "hark-the-herald.m4a",
+                    "bytes": 880454,
+                    "sha256": "550765e930d66a67a2b10cc921b2ce9176e07001cf56f7c70592e68aa287063e"
+                }
+            ]
+        },
+        "haul-away-joe": {
+            "slug": "haul-away-joe",
+            "title": "Haul Away, Joe",
+            "version": 1,
+            "tempo": 90,
+            "key": "C#m",
+            "guides": {
+                "soprano": null,
+                "alto": null,
+                "tenor": null,
+                "bass": null
+            },
+            "credit": "Words: traditional sea shanty (as sung by John Short, Watchet; printed 1914). Tune: traditional sea shanty (as sung by John Short, Watchet; printed 1914). Arrangement: Stackapella, on Cecil Sharp's harmony.",
+            "duration": 55.923,
+            "channels": 2,
+            "lufs": -16,
+            "files": [
+                {
+                    "name": "haul-away-joe.mp3",
+                    "bytes": 896342,
+                    "sha256": "9838862cfc76f1cf2212fdac189a69f965978ea705cc3a44377d6ba114947130"
+                },
+                {
+                    "name": "haul-away-joe.m4a",
+                    "bytes": 900355,
+                    "sha256": "db1d224641270abfe544ce37dd69fac301bbcc189c337e88c9eb1a6fae10f1f6"
+                }
+            ]
+        },
+        "haul-on-the-bowline": {
+            "slug": "haul-on-the-bowline",
+            "title": "Haul on the Bowline",
+            "version": 1,
+            "tempo": 80,
+            "key": "D",
+            "guides": {
+                "soprano": null,
+                "alto": null,
+                "tenor": null,
+                "bass": null
+            },
+            "credit": "Words: traditional sea shanty (as sung by John Short, Watchet; printed 1914). Tune: traditional sea shanty (as sung by John Short, Watchet; printed 1914). Arrangement: Stackapella, on Cecil Sharp's harmony.",
+            "duration": 50.59,
+            "channels": 2,
+            "lufs": -16,
+            "files": [
+                {
+                    "name": "haul-on-the-bowline.mp3",
+                    "bytes": 810715,
+                    "sha256": "6825022e8bd3bf65dc8dc10a576460e36eca52a49aa55019ee5fe3a2c6fbc36b"
+                },
+                {
+                    "name": "haul-on-the-bowline.m4a",
+                    "bytes": 813327,
+                    "sha256": "8de958ce6c22f24fe8fd6137b1d1d8990e98f2576f39efe8e732f5230f985c4c"
+                }
+            ]
+        },
+        "heavenly-treasures": {
+            "slug": "heavenly-treasures",
+            "title": "I Am Fill'd with Heavenly Treasures",
+            "version": 1,
+            "tempo": 60,
+            "key": "Em",
+            "guides": {
+                "soprano": null,
+                "alto": null,
+                "tenor": null,
+                "bass": null
+            },
+            "credit": "Words: Shaker song (Mary Hazzard's songbook, about 1847). Tune: Shaker song (Mary Hazzard's songbook, about 1847). Arrangement: Stackapella.",
+            "duration": 66.59,
+            "channels": 2,
+            "lufs": -16,
+            "files": [
+                {
+                    "name": "heavenly-treasures.mp3",
+                    "bytes": 1066793,
+                    "sha256": "37e4139b500f7501bd8550b11cdc7344841d6ac89219a268eee453b17a3578d5"
+                },
+                {
+                    "name": "heavenly-treasures.m4a",
+                    "bytes": 1071067,
+                    "sha256": "3fdef0132ad1c29bb2772209926de50e8a7f537450b01d6ecf4421903bdb8ed5"
+                }
+            ]
+        },
+        "hey-ho-nobody-home": {
+            "slug": "hey-ho-nobody-home",
+            "title": "Hey, Ho, Nobody Home (round)",
+            "version": 1,
+            "tempo": 96,
+            "key": "Fm",
+            "guides": {
+                "soprano": null,
+                "alto": null,
+                "tenor": null,
+                "bass": null
+            },
+            "credit": "Words: anonymous (printed 1609). Tune: anonymous, in Thomas Ravenscroft's Pammelia (1609). Arrangement: Stackapella (round setting).",
+            "duration": 50.09,
+            "channels": 2,
+            "lufs": -16,
+            "files": [
+                {
+                    "name": "hey-ho-nobody-home.mp3",
+                    "bytes": 802970,
+                    "sha256": "a8945db8664a3e5d9432820d3d847b56c8a8a67fceb8b0ac9d824fe28013ab65"
+                },
+                {
+                    "name": "hey-ho-nobody-home.m4a",
+                    "bytes": 800674,
+                    "sha256": "16b2c6d5b83869c5fa0e227ea91366dd2d41b509574422bba26ecae44741a3dd"
+                }
+            ]
+        },
+        "holy-holy-holy": {
+            "slug": "holy-holy-holy",
+            "title": "Holy, Holy, Holy",
+            "version": 1,
+            "tempo": 92,
+            "key": "E",
+            "guides": {
+                "soprano": null,
+                "alto": null,
+                "tenor": null,
+                "bass": null
+            },
+            "credit": "Words: Reginald Heber (written by 1823). Tune: John Bacchus Dykes, \"Nicaea\" (1861). Arrangement: John Bacchus Dykes (1861), adapted by Stackapella.",
+            "duration": 44.329,
+            "channels": 2,
+            "lufs": -16,
+            "files": [
+                {
+                    "name": "holy-holy-holy.mp3",
+                    "bytes": 710813,
+                    "sha256": "8be31c772bada8b86383a895a4c3ea47a5e6cf43b3cb6973f69d109aae360727"
+                },
+                {
+                    "name": "holy-holy-holy.m4a",
+                    "bytes": 709380,
+                    "sha256": "9eeb20c41678a47c243745865d790fbd8db305fdcb42288e7bc16717fb72ad30"
+                }
+            ]
+        },
+        "home-on-the-range": {
+            "slug": "home-on-the-range",
+            "title": "Home on the Range",
+            "version": 3,
+            "tempo": 100,
+            "key": "G",
+            "guides": {
+                "soprano": null,
+                "alto": null,
+                "tenor": null,
+                "bass": null
+            },
+            "credit": "Words: Brewster Higley (1872 or 1873). Tune: Daniel E. Kelley (1870s). Arrangement: Stackapella.",
+            "duration": 60.19,
+            "channels": 2,
+            "lufs": -16,
+            "files": [
+                {
+                    "name": "home-on-the-range.mp3",
+                    "bytes": 964203,
+                    "sha256": "1aacc8663bfb99f84dbb3777d1ff2fb5384b4d1148d22a44373a3af22ddf68c2"
+                },
+                {
+                    "name": "home-on-the-range.m4a",
+                    "bytes": 966475,
+                    "sha256": "26d0a953ff1e101a22cf16a236b72cd04d64df89a8e43d094e0fb36260db4bfd"
+                }
+            ]
+        },
+        "i-will-bow-and-be-simple": {
+            "slug": "i-will-bow-and-be-simple",
+            "title": "I Will Bow and Be Simple",
+            "version": 1,
+            "tempo": 100,
+            "key": "C",
+            "guides": {
+                "soprano": null,
+                "alto": null,
+                "tenor": null,
+                "bass": null
+            },
+            "credit": "Words: Shaker song (Mary Hazzard's songbook, undated, between songs dated 1851 and 1852). Tune: Shaker song (Mary Hazzard's songbook, undated, between songs dated 1851 and 1852). Arrangement: Stackapella.",
+            "duration": 79.39,
+            "channels": 2,
+            "lufs": -16,
+            "files": [
+                {
+                    "name": "i-will-bow-and-be-simple.mp3",
+                    "bytes": 1271518,
+                    "sha256": "01c1f98d4b7f2cf6d1d45c7f0b42bf3b9e0cd0058ef86a606bbbb5bb6a5e1a80"
+                },
+                {
+                    "name": "i-will-bow-and-be-simple.m4a",
+                    "bytes": 1278637,
+                    "sha256": "c6b850500d9b950fc889de39af9745e886f4d99ad32fe5000d6e48a1c8dcaf7d"
+                }
+            ]
+        },
+        "it-is-well": {
+            "slug": "it-is-well",
+            "title": "It Is Well with My Soul",
+            "version": 1,
+            "tempo": 92,
+            "key": "C",
+            "guides": {
+                "soprano": null,
+                "alto": null,
+                "tenor": null,
+                "bass": null
+            },
+            "credit": "Words: Horatio G. Spafford (1873). Tune: Philip P. Bliss, \"Ville du Havre\" (1876). Arrangement: Philip P. Bliss (1876), adapted by Stackapella.",
+            "duration": 57.373,
+            "channels": 2,
+            "lufs": -16,
+            "files": [
+                {
+                    "name": "it-is-well.mp3",
+                    "bytes": 919328,
+                    "sha256": "b092231127e8da96f1fb89c0e011331322ca1988b528610b338bba47a1f3334f"
+                },
+                {
+                    "name": "it-is-well.m4a",
+                    "bytes": 923142,
+                    "sha256": "bcce7e90597de6221365f483d444f1ba59fc4ec92ab849fb0946608e914335f7"
+                }
+            ]
+        },
+        "jerusalem": {
+            "slug": "jerusalem",
+            "title": "Jerusalem",
+            "version": 1,
+            "tempo": 60,
+            "key": "D",
+            "guides": {
+                "soprano": null,
+                "alto": null,
+                "tenor": null,
+                "bass": null
+            },
+            "credit": "Words: William Blake (c. 1804), from the preface to Milton. Tune: Hubert Parry, \"Jerusalem\" (1916). Arrangement: Parry's own accompaniment (1916), set for four voices by Stackapella.",
+            "duration": 50.59,
+            "channels": 2,
+            "lufs": -16,
+            "files": [
+                {
+                    "name": "jerusalem.mp3",
+                    "bytes": 810681,
+                    "sha256": "3348b8c80583371905e2076181d02b70bbb9e0b4a0ec646398fbf6cb037dadac"
+                },
+                {
+                    "name": "jerusalem.m4a",
+                    "bytes": 811327,
+                    "sha256": "2b197f6ae6080d2186eacf407ece868db229c74bd64648c5f9dcbe7fd1dd1f52"
+                }
+            ]
+        },
+        "jingle-bells": {
+            "slug": "jingle-bells",
+            "title": "Jingle Bells",
+            "version": 1,
+            "tempo": 120,
+            "key": "G",
+            "guides": {
+                "soprano": null,
+                "alto": null,
+                "tenor": null,
+                "bass": null
+            },
+            "credit": "Words: James Lord Pierpont (1857). Tune: James Lord Pierpont (1857). Arrangement: Stackapella, on the 1909 printing's harmony.",
+            "duration": 66.59,
+            "channels": 2,
+            "lufs": -16,
+            "files": [
+                {
+                    "name": "jingle-bells.mp3",
+                    "bytes": 1066756,
+                    "sha256": "e8bc03cc7783e1d81346ebb3f7cf9f6d2a4d15195dc01eb04ce7380d9afc46cb"
+                },
+                {
+                    "name": "jingle-bells.m4a",
+                    "bytes": 1071778,
+                    "sha256": "9fdfd15fcb55217deb4245cf7a294402977204599eb9bbfb6f67804bbad02b4c"
+                }
+            ]
+        },
+        "joy-to-the-world": {
+            "slug": "joy-to-the-world",
+            "title": "Joy to the World",
+            "version": 1,
+            "tempo": 120,
+            "key": "D",
+            "guides": {
+                "soprano": null,
+                "alto": null,
+                "tenor": null,
+                "bass": null
+            },
+            "credit": "Words: Isaac Watts (1719). Tune: \"Antioch\", arranged by Lowell Mason (1836). Arrangement: Lowell Mason's four parts (1848), adapted by Stackapella.",
+            "duration": 42.59,
+            "channels": 2,
+            "lufs": -16,
+            "files": [
+                {
+                    "name": "joy-to-the-world.mp3",
+                    "bytes": 682781,
+                    "sha256": "39a19483f1436a8bf3c07342b6b7339323bf74cf05971cb355d4863014833f35"
+                },
+                {
+                    "name": "joy-to-the-world.m4a",
+                    "bytes": 680641,
+                    "sha256": "6b1658fc548ce8a053d09b138f2b0fee6e8b8baafa4ea25f6dce713963c0976e"
+                }
+            ]
+        },
+        "keep-on-the-sunny-side": {
+            "slug": "keep-on-the-sunny-side",
+            "title": "Keep on the Sunny Side",
+            "version": 4,
+            "tempo": 100,
+            "key": "Ab",
+            "guides": {
+                "soprano": null,
+                "alto": null,
+                "tenor": null,
+                "bass": null
+            },
+            "credit": "Words: Ada Blenkhorn (1899). Tune: J. Howard Entwisle (1899). Arrangement: after J. Howard Entwisle's own four-part setting (1899), adapted for Stackapella.",
+            "duration": 40.99,
+            "channels": 2,
+            "lufs": -16,
+            "files": [
+                {
+                    "name": "keep-on-the-sunny-side.mp3",
+                    "bytes": 657068,
+                    "sha256": "36f7028f484a1d5fa8c39e7c6e91620ca2af375dd67973fb418712e621a2b445"
+                },
+                {
+                    "name": "keep-on-the-sunny-side.m4a",
+                    "bytes": 655636,
+                    "sha256": "ef84bcab23bce4640090fe9be4200e3a364faf908a810eae4046381b11e9170e"
+                }
+            ]
+        },
+        "ki-lo-naeh": {
+            "slug": "ki-lo-naeh",
+            "title": "Ki Lo Na'eh",
+            "version": 1,
+            "tempo": 88,
+            "key": "D",
+            "guides": {
+                "soprano": null,
+                "alto": null,
+                "tenor": null,
+                "bass": null
+            },
+            "credit": "Words: traditional Hebrew hymn of the Passover Haggadah. Tune: traditional. Arrangement: Stackapella.",
+            "duration": 89.863,
+            "channels": 2,
+            "lufs": -16,
+            "files": [
+                {
+                    "name": "ki-lo-naeh.mp3",
+                    "bytes": 1439210,
+                    "sha256": "ee25206a5f14e5a28eb26781098ec65ae911c913dc100e394ac210ebc6ce5925"
+                },
+                {
+                    "name": "ki-lo-naeh.m4a",
+                    "bytes": 1452651,
+                    "sha256": "05c003d34f02f06c4d0ef1acf8807383a92b12caf50de723a36a55e4358febfb"
+                }
+            ]
+        },
+        "la-paloma": {
+            "slug": "la-paloma",
+            "title": "La Paloma",
+            "version": 2,
+            "tempo": 66,
+            "key": "C",
+            "guides": {
+                "soprano": null,
+                "alto": null,
+                "tenor": null,
+                "bass": null
+            },
+            "credit": "Words: Sebastián Iradier, as usually credited (the 1859 Madrid edition names him for the music). Tune: Sebastián Iradier (published in Madrid, 1859). Arrangement: Stackapella, on Iradier's own chords.",
+            "duration": 93.499,
+            "channels": 2,
+            "lufs": -16,
+            "files": [
+                {
+                    "name": "la-paloma.mp3",
+                    "bytes": 1497504,
+                    "sha256": "16c1c4928bf8d83e6d0c4c51ac861086968b1179983c921869f62213b1194069"
+                },
+                {
+                    "name": "la-paloma.m4a",
+                    "bytes": 1508739,
+                    "sha256": "6dfdf495ffb4ccd8c091089c8e68eeae2b5079eaeaa86bc8486c4d2d31725565"
+                }
+            ]
+        },
+        "las-mananitas": {
+            "slug": "las-mananitas",
+            "title": "Las Mañanitas",
+            "version": 1,
+            "tempo": 90,
+            "key": "G",
+            "guides": {
+                "soprano": null,
+                "alto": null,
+                "tenor": null,
+                "bass": null
+            },
+            "credit": "Words: traditional Mexican. Tune: traditional Mexican. Arrangement: Stackapella.",
+            "duration": 66.59,
+            "channels": 2,
+            "lufs": -16,
+            "files": [
+                {
+                    "name": "las-mananitas.mp3",
+                    "bytes": 1066727,
+                    "sha256": "66dff33c8edb96c4139a6990fa9eec0622b79f3a22ce7a2325349640012c1488"
+                },
+                {
+                    "name": "las-mananitas.m4a",
+                    "bytes": 1071540,
+                    "sha256": "06a733b4a8f7966c981ad3278b8f74d98bae6cab24d16fef99d8705e11a436de"
+                }
+            ]
+        },
+        "leave-her-johnny": {
+            "slug": "leave-her-johnny",
+            "title": "Leave Her, Johnny",
+            "version": 1,
+            "tempo": 90,
+            "key": "Em",
+            "guides": {
+                "soprano": null,
+                "alto": null,
+                "tenor": null,
+                "bass": null
+            },
+            "credit": "Words: traditional sea shanty (John Short's version, as noted by Cecil Sharp, 1914). Tune: traditional sea shanty (John Short's version, as noted by Cecil Sharp, 1914). Arrangement: Stackapella.",
+            "duration": 66.59,
+            "channels": 2,
+            "lufs": -16,
+            "files": [
+                {
+                    "name": "leave-her-johnny.mp3",
+                    "bytes": 1066829,
+                    "sha256": "a171cd51208f2c7a6be3f2c3b8d4e07019ac31c52341eee7018b6cd1564fd618"
+                },
+                {
+                    "name": "leave-her-johnny.m4a",
+                    "bytes": 1071240,
+                    "sha256": "48e5084e46ba0cb516fd1d4a5f5725ad0589e57020afaef8d01c673bb7ea912b"
+                }
+            ]
+        },
+        "lecha-dodi": {
+            "slug": "lecha-dodi",
+            "title": "Lecha Dodi",
+            "version": 1,
+            "tempo": 90,
+            "key": "G",
+            "guides": {
+                "soprano": null,
+                "alto": null,
+                "tenor": null,
+                "bass": null
+            },
+            "credit": "Words: Solomon ha-Levi Alkabetz (16th century). Tune: traditional Ashkenazi melody for the Omer weeks (printed by Francis L. Cohen, 1904). Arrangement: Stackapella.",
+            "duration": 114.59,
+            "channels": 2,
+            "lufs": -16,
+            "files": [
+                {
+                    "name": "lecha-dodi.mp3",
+                    "bytes": 1834792,
+                    "sha256": "a363bc02e89058720d0c67422ab7d1258e8dfce939a74358425442e928c24afa"
+                },
+                {
+                    "name": "lecha-dodi.m4a",
+                    "bytes": 1852913,
+                    "sha256": "8ef4655d347a8152da28675ade5be7063f0063727048f7cc287bcb057dcf162a"
+                }
+            ]
+        },
+        "let-me-call-you-sweetheart": {
+            "slug": "let-me-call-you-sweetheart",
+            "title": "Let Me Call You Sweetheart",
+            "version": 7,
+            "tempo": 96,
+            "key": "B",
+            "guides": {
+                "soprano": null,
+                "alto": null,
+                "tenor": null,
+                "bass": null
+            },
+            "credit": "Words: Beth Slater Whitson (1910). Tune: Leo Friedman (1910). Arrangement: Stackapella.",
+            "duration": 62.59,
+            "channels": 2,
+            "lufs": -16,
+            "files": [
+                {
+                    "name": "let-me-call-you-sweetheart.mp3",
+                    "bytes": 1002603,
+                    "sha256": "a155c6b11b46280f998be190de183dfa55b973f7e5e952117b82264138c85187"
+                },
+                {
+                    "name": "let-me-call-you-sweetheart.m4a",
+                    "bytes": 1007068,
+                    "sha256": "b83d0bdf74fc5ca1f94341f27d665c161d6d1a8e1b2ea5c1b584a2d1e417f30f"
+                }
+            ]
+        },
+        "lift-every-voice": {
+            "slug": "lift-every-voice",
+            "title": "Lift Every Voice and Sing",
+            "version": 1,
+            "tempo": 60,
+            "key": "G",
+            "guides": {
+                "soprano": null,
+                "alto": null,
+                "tenor": null,
+                "bass": null
+            },
+            "credit": "Words: James Weldon Johnson (1900). Tune: J. Rosamond Johnson (1900). Arrangement: J. Rosamond Johnson's own four parts (1900), adapted by Stackapella.",
+            "duration": 66.59,
+            "channels": 2,
+            "lufs": -16,
+            "files": [
+                {
+                    "name": "lift-every-voice.mp3",
+                    "bytes": 1066794,
+                    "sha256": "8c0422e98f7820bbd336d1e2e6659dd65565951bd5317072916794ee979e04df"
+                },
+                {
+                    "name": "lift-every-voice.m4a",
+                    "bytes": 1071359,
+                    "sha256": "a14ca5c3008d66f9c5aaf156d99b41482774fc69503b386e7168088f6d940a71"
+                }
+            ]
+        },
+        "loch-lomond": {
+            "slug": "loch-lomond",
+            "title": "Loch Lomond",
+            "version": 4,
+            "tempo": 76,
+            "key": "G",
+            "guides": {
+                "soprano": null,
+                "alto": null,
+                "tenor": null,
+                "bass": null
+            },
+            "credit": "Words: traditional Scottish. Tune: traditional Scottish. Arrangement: Stackapella.",
+            "duration": 109.958,
+            "channels": 2,
+            "lufs": -16,
+            "files": [
+                {
+                    "name": "loch-lomond.mp3",
+                    "bytes": 1760599,
+                    "sha256": "5ceb3eb4f930a91e85f9501e98659eb45d599f31784bab7541655a919f350891"
+                },
+                {
+                    "name": "loch-lomond.m4a",
+                    "bytes": 1777270,
+                    "sha256": "0aa07cdc7f690eaaa323b86133b4eb0a62ad33f908c803cc08cd014977c0ed76"
+                }
+            ]
+        },
+        "londons-burning": {
+            "slug": "londons-burning",
+            "title": "London's Burning (round)",
+            "version": 1,
+            "tempo": 112,
+            "key": "F",
+            "guides": {
+                "soprano": null,
+                "alto": null,
+                "tenor": null,
+                "bass": null
+            },
+            "credit": "Words: traditional; the line \"Fetch the engines\" is first found in Goss (1927), its maker unknown. Tune: traditional, as John Goss printed it in the Daily Express Community Song Book (1927). Arrangement: Stackapella (round setting).",
+            "duration": 41.161,
+            "channels": 2,
+            "lufs": -16,
+            "files": [
+                {
+                    "name": "londons-burning.mp3",
+                    "bytes": 660218,
+                    "sha256": "1dd2361e67ba1e0c6f13a24501ca5d12c68d846c1e8645a11cc4b46e72e6d6b0"
+                },
+                {
+                    "name": "londons-burning.m4a",
+                    "bytes": 657513,
+                    "sha256": "f4f9c08fdebd34a17e974a8eaf6ff064615260e6ed8046980189dd7c7fbd36a1"
+                }
+            ]
+        },
+        "maoz-tzur": {
+            "slug": "maoz-tzur",
+            "title": "Maoz Tzur",
+            "version": 1,
+            "tempo": 90,
+            "key": "E",
+            "guides": {
+                "soprano": null,
+                "alto": null,
+                "tenor": null,
+                "bass": null
+            },
+            "credit": "Words: Hebrew piyyut signed Mordecai in its acrostic (13th century). Tune: traditional Ashkenazi Hanukkah tune, from a 15th-century German folk song (printed by Baer after 1883 and Idelsohn 1911/12). Arrangement: Stackapella, on A. Z. Idelsohn's harmony (1911/12).",
+            "duration": 109.257,
+            "channels": 2,
+            "lufs": -16,
+            "files": [
+                {
+                    "name": "maoz-tzur.mp3",
+                    "bytes": 1749643,
+                    "sha256": "947cc0b4a7ddb155903037f9f72bc47f5a08deca483c0dfbad6e5faee6962f91"
+                },
+                {
+                    "name": "maoz-tzur.m4a",
+                    "bytes": 1766182,
+                    "sha256": "ae1cd0af5fee8c69ef506a2bae46370a8d747161f858bfc02ecfbbc019ed61d1"
+                }
+            ]
+        },
+        "michael-row": {
+            "slug": "michael-row",
+            "title": "Michael, Row the Boat Ashore",
+            "version": 7,
+            "tempo": 92,
+            "key": "F",
+            "guides": {
+                "soprano": null,
+                "alto": null,
+                "tenor": null,
+                "bass": null
+            },
+            "credit": "Words: traditional spiritual (Slave Songs of the United States, 1867). Tune: traditional spiritual (1867). Arrangement: Stackapella.",
+            "duration": 23.46,
+            "channels": 2,
+            "lufs": -16,
+            "files": [
+                {
+                    "name": "michael-row.mp3",
+                    "bytes": 376730,
+                    "sha256": "820a7bc149879d33a08df3a0e8cf7af908e7300e37c1d56dadf22d9c62aebb86"
+                },
+                {
+                    "name": "michael-row.m4a",
+                    "bytes": 371605,
+                    "sha256": "25ee76e32ce1878c8a8d594ef446b35fbddd164ea57b41d705ee4f8d084d700f"
+                }
+            ]
+        },
+        "nearer-my-god": {
+            "slug": "nearer-my-god",
+            "title": "Nearer, My God, to Thee",
+            "version": 1,
+            "tempo": 120,
+            "key": "G",
+            "guides": {
+                "soprano": null,
+                "alto": null,
+                "tenor": null,
+                "bass": null
+            },
+            "credit": "Words: Sarah Flower Adams (1841). Tune: Lowell Mason, \"Bethany\" (usually dated 1856). Arrangement: Lowell Mason's four parts (1859), adapted by Stackapella.",
+            "duration": 50.59,
+            "channels": 2,
+            "lufs": -16,
+            "files": [
+                {
+                    "name": "nearer-my-god.mp3",
+                    "bytes": 810669,
+                    "sha256": "95da643658c96ddb847f2e8d8bb51c598e661315b23e18f983f25efaffc3be89"
+                },
+                {
+                    "name": "nearer-my-god.m4a",
+                    "bytes": 811138,
+                    "sha256": "dc7ab723b6c9125c22324e6620bcb30d872af8934fd4b44f64dfb5741b890eeb"
+                }
+            ]
+        },
+        "noche-de-paz": {
+            "slug": "noche-de-paz",
+            "title": "Noche de paz",
+            "version": 2,
+            "tempo": 36,
+            "key": "C",
+            "guides": {
+                "soprano": null,
+                "alto": null,
+                "tenor": null,
+                "bass": null
+            },
+            "credit": "Words: Spanish words after Joseph Mohr's German (1816), as printed, unsigned, in El Himnario evangélico (New York, 1893); often credited to Federico Fliedner (in 13 of the 18 hymnals from 1990 on that Hymnary.org indexes), though no printing we have seen before 1964 names him. Tune: Franz Xaver Gruber (1818). Arrangement: Stackapella.",
+            "duration": 122.59,
+            "channels": 2,
+            "lufs": -16,
+            "files": [
+                {
+                    "name": "noche-de-paz.mp3",
+                    "bytes": 1963187,
+                    "sha256": "59d91103be4ead5e23657e948d61fc4bb3477bf82261409a73c706f319117114"
+                },
+                {
+                    "name": "noche-de-paz.m4a",
+                    "bytes": 1983277,
+                    "sha256": "e835e87cff27adb752afcb847051db0331102429274e3a0ebd3c01fc2cb79b82"
+                }
+            ]
+        },
+        "now-is-the-month-of-maying": {
+            "slug": "now-is-the-month-of-maying",
+            "title": "Now Is the Month of Maying",
+            "version": 3,
+            "tempo": 112,
+            "key": "G",
+            "guides": {
+                "soprano": null,
+                "alto": null,
+                "tenor": null,
+                "bass": null
+            },
+            "credit": "Words: anonymous (printed 1595). Tune: Thomas Morley (1595). Arrangement: Thomas Morley (1595), his five voices as four for Stackapella.",
+            "duration": 71.161,
+            "channels": 2,
+            "lufs": -16,
+            "files": [
+                {
+                    "name": "now-is-the-month-of-maying.mp3",
+                    "bytes": 1140124,
+                    "sha256": "ba864b55d24d6d32bb432852c8b45a352bdeaf54736f7171ab7e22162896f7c3"
+                },
+                {
+                    "name": "now-is-the-month-of-maying.m4a",
+                    "bytes": 1144938,
+                    "sha256": "364da178955348e027f8c1f8c86bd9b1ca86652dc608f5db4b5b45bec898962d"
+                }
+            ]
+        },
+        "now-thank-we-all-our-god": {
+            "slug": "now-thank-we-all-our-god",
+            "title": "Now Thank We All Our God",
+            "version": 1,
+            "tempo": 84,
+            "key": "F",
+            "guides": {
+                "soprano": null,
+                "alto": null,
+                "tenor": null,
+                "bass": null
+            },
+            "credit": "Words: Martin Rinkart, \"Nun danket alle Gott\", translated by Catherine Winkworth (Lyra Germanica, second series, 1858). Tune: Johann Crüger, \"Nun danket\". Arrangement: Felix Mendelssohn's harmony as The Hymnal (1916) prints it, adapted by Stackapella.",
+            "duration": 105.447,
+            "channels": 2,
+            "lufs": -16,
+            "files": [
+                {
+                    "name": "now-thank-we-all-our-god.mp3",
+                    "bytes": 1688853,
+                    "sha256": "194947fdd02f5b4e3eaddd797b1ed6b1bda52010ea844d27e4a4f370aa112c42"
+                },
+                {
+                    "name": "now-thank-we-all-our-god.m4a",
+                    "bytes": 1703420,
+                    "sha256": "5a7763abe9fcae7f6f2b3a027a5f0478aa72999806aa7916bbc0963b7a81f78d"
+                }
+            ]
+        },
+        "o-come-all-ye-faithful": {
+            "slug": "o-come-all-ye-faithful",
+            "title": "O Come, All Ye Faithful",
+            "version": 7,
+            "tempo": 94,
+            "key": "G",
+            "guides": {
+                "soprano": null,
+                "alto": null,
+                "tenor": null,
+                "bass": null
+            },
+            "credit": "Words: Latin hymn \"Adeste Fideles\" (18th century); English words Frederick Oakeley (1841), as revised in Murray's Hymnal (1852). Tune: \"Adeste Fideles\", attributed to John Francis Wade (c. 1743). Arrangement: Stackapella.",
+            "duration": 53.654,
+            "channels": 2,
+            "lufs": -16,
+            "files": [
+                {
+                    "name": "o-come-all-ye-faithful.mp3",
+                    "bytes": 859886,
+                    "sha256": "319cf3e468f5e2d4234ae8617ab787021ce082b92a39f7a9be7f78f6f20ac650"
+                },
+                {
+                    "name": "o-come-all-ye-faithful.m4a",
+                    "bytes": 860891,
+                    "sha256": "6a2b4ace35f15331d6e45654810a884da6d15dd9b5fddc422361844d5cfbadca"
+                }
+            ]
+        },
+        "o-holy-night": {
+            "slug": "o-holy-night",
+            "title": "O Holy Night",
+            "version": 1,
+            "tempo": 60,
+            "key": "C",
+            "guides": {
+                "soprano": null,
+                "alto": null,
+                "tenor": null,
+                "bass": null
+            },
+            "credit": "Words: Placide Cappeau (French, 1847); English words John Sullivan Dwight (1855). Tune: Adolphe Adam (1847). Arrangement: Refrain as printed in Carols Old and Carols New (1916); verse set for four voices by Stackapella on its organ harmony.",
+            "duration": 102.59,
+            "channels": 2,
+            "lufs": -16,
+            "files": [
+                {
+                    "name": "o-holy-night.mp3",
+                    "bytes": 1642870,
+                    "sha256": "3e704c8c5c9bdabd34f77940a14f7f05d4765a94071cfef57f7c19fb8208d3e3"
+                },
+                {
+                    "name": "o-holy-night.m4a",
+                    "bytes": 1628120,
+                    "sha256": "57c85bfa22708329807cbbf5fa7439b25fd1c4972075e2a9afb87b776bc091e6"
+                }
+            ]
+        },
+        "o-the-beautiful-treasure": {
+            "slug": "o-the-beautiful-treasure",
+            "title": "O the Beautiful Treasure",
+            "version": 1,
+            "tempo": 100,
+            "key": "Em",
+            "guides": {
+                "soprano": null,
+                "alto": null,
+                "tenor": null,
+                "bass": null
+            },
+            "credit": "Words: Shaker song (Mary Hazzard's songbook, about 1849). Tune: Shaker song (Mary Hazzard's songbook, about 1849). Arrangement: Stackapella.",
+            "duration": 79.39,
+            "channels": 2,
+            "lufs": -16,
+            "files": [
+                {
+                    "name": "o-the-beautiful-treasure.mp3",
+                    "bytes": 1271454,
+                    "sha256": "d44cda589c7c6b4442183388e2d0b2c0ff6684c92e4d0ad89c95e6f8d08d453d"
+                },
+                {
+                    "name": "o-the-beautiful-treasure.m4a",
+                    "bytes": 1278709,
+                    "sha256": "0e0bce410e47c7d549a8d97a2977a65f940eb5ec3eab6f9f166d9852dc37ad4b"
+                }
+            ]
+        },
+        "ode-to-joy": {
+            "slug": "ode-to-joy",
+            "title": "Ode to Joy (Joyful, Joyful)",
+            "version": 8,
+            "tempo": 100,
+            "key": "G",
+            "guides": {
+                "soprano": null,
+                "alto": null,
+                "tenor": null,
+                "bass": null
+            },
+            "credit": "Words: Henry van Dyke (published 1911). Tune: Ludwig van Beethoven, Symphony No. 9 (1824). Arrangement: Stackapella.",
+            "duration": 40.99,
+            "channels": 2,
+            "lufs": -16,
+            "files": [
+                {
+                    "name": "ode-to-joy.mp3",
+                    "bytes": 657033,
+                    "sha256": "a5d0cded9b3fa0e25b10e8e2090c7341a747eaeffe2ea64d5c7e32c23a1456c8"
+                },
+                {
+                    "name": "ode-to-joy.m4a",
+                    "bytes": 655741,
+                    "sha256": "7888d90b55bbfe617410e2b512f3888422ff61d0054b89f18f5a00a8191371b4"
+                }
+            ]
+        },
+        "oh-how-lovely": {
+            "slug": "oh-how-lovely",
+            "title": "Oh, How Lovely Is the Evening (round)",
+            "version": 1,
+            "tempo": 108,
+            "key": "Eb",
+            "guides": {
+                "soprano": null,
+                "alto": null,
+                "tenor": null,
+                "bass": null
+            },
+            "credit": "Words: English words anonymous (printed 1896), after the German round \"O wie wohl ist mir am Abend\". Tune: German round (O wie wohl ist mir am Abend), a folk round after a canon by Karl Friedrich Schulz (died 1850). Arrangement: Stackapella (round setting).",
+            "duration": 122.59,
+            "channels": 2,
+            "lufs": -16,
+            "files": [
+                {
+                    "name": "oh-how-lovely.mp3",
+                    "bytes": 1962784,
+                    "sha256": "8b141b2170a82e34a33cd842d672d4185960e32dcf8801ff9c775416bbf54284"
+                },
+                {
+                    "name": "oh-how-lovely.m4a",
+                    "bytes": 1976925,
+                    "sha256": "6dc53a9f1e36a664055b9feb56ba89f2868e5c8558a2e24720b0081403bb5664"
+                }
+            ]
+        },
+        "oy-chanukah": {
+            "slug": "oy-chanukah",
+            "title": "Oy Chanukah",
+            "version": 1,
+            "tempo": 80,
+            "key": "Fm",
+            "guides": {
+                "soprano": null,
+                "alto": null,
+                "tenor": null,
+                "bass": null
+            },
+            "credit": "Words: Mordkhe Rivesman (printed 1911/12). Tune: traditional Hasidic tune (printed 1911/12). Arrangement: Stackapella, on Pesach Lvov's arrangement (1911/12).",
+            "duration": 74.59,
+            "channels": 2,
+            "lufs": -16,
+            "files": [
+                {
+                    "name": "oy-chanukah.mp3",
+                    "bytes": 1194659,
+                    "sha256": "c89e1b0d6420835f001d4aed38f62c52c0c7f157fc3fe9f5405734269131167e"
+                },
+                {
+                    "name": "oy-chanukah.m4a",
+                    "bytes": 1199829,
+                    "sha256": "9109d3c36ec66e24cb37b26a0c6b62934718ef493e76b24fae786a9a13ce9638"
+                }
+            ]
+        },
+        "oyfn-pripetchik": {
+            "slug": "oyfn-pripetchik",
+            "title": "Oyfn Pripetchik",
+            "version": 1,
+            "tempo": 80,
+            "key": "Fm",
+            "guides": {
+                "soprano": null,
+                "alto": null,
+                "tenor": null,
+                "bass": null
+            },
+            "credit": "Words: Mark Warshawsky (printed 1901). Tune: Mark Warshawsky (printed 1911/12). Arrangement: Stackapella, on Pesach Lvov's arrangement (1911/12).",
+            "duration": 110.59,
+            "channels": 2,
+            "lufs": -16,
+            "files": [
+                {
+                    "name": "oyfn-pripetchik.mp3",
+                    "bytes": 1770650,
+                    "sha256": "e8ac88f4d2d79749f2d68f5b1a749295e2f0be1999443a5a81e72b72349a3416"
+                },
+                {
+                    "name": "oyfn-pripetchik.m4a",
+                    "bytes": 1787395,
+                    "sha256": "33bc711e5893f2e424b701aa75164c11ad65a06829ad433d16d0dda3e28d0c99"
+                }
+            ]
+        },
+        "pastores-a-belen": {
+            "slug": "pastores-a-belen",
+            "title": "Pastores a Belén",
+            "version": 1,
+            "tempo": 60,
+            "key": "G",
+            "guides": {
+                "soprano": null,
+                "alto": null,
+                "tenor": null,
+                "bass": null
+            },
+            "credit": "Words: unsigned, as printed in Cánticos espirituales con música (Las Vegas, New Mexico, 1916). Tune: unsigned, as printed in Cánticos espirituales con música (Las Vegas, New Mexico, 1916). Arrangement: Stackapella.",
+            "duration": 60.59,
+            "channels": 2,
+            "lufs": -16,
+            "files": [
+                {
+                    "name": "pastores-a-belen.mp3",
+                    "bytes": 971094,
+                    "sha256": "f650d43e66d5d619a8100eaad49254ffc50b9997dd415d920776acd246ecd37e"
+                },
+                {
+                    "name": "pastores-a-belen.m4a",
+                    "bytes": 975945,
+                    "sha256": "854cc09d1fdb0d1e852b5225ecbe8639bdb290a9af58573a256758180f03168a"
+                }
+            ]
+        },
+        "praise-to-the-lord": {
+            "slug": "praise-to-the-lord",
+            "title": "Praise to the Lord, the Almighty",
+            "version": 1,
+            "tempo": 120,
+            "key": "G",
+            "guides": {
+                "soprano": null,
+                "alto": null,
+                "tenor": null,
+                "bass": null
+            },
+            "credit": "Words: Joachim Neander (1680), translated by Catherine Winkworth (1863). Tune: German chorale \"Lobe den Herren\" (earliest known printing: Stralsund Gesangbuch, 1665). Arrangement: William Sterndale Bennett and Otto Goldschmidt (1863), adapted by Stackapella.",
+            "duration": 65.59,
+            "channels": 2,
+            "lufs": -16,
+            "files": [
+                {
+                    "name": "praise-to-the-lord.mp3",
+                    "bytes": 1050780,
+                    "sha256": "cf71d434c5712b65746df48b972f3315a398b8ef79238d8d85700738ea1534cb"
+                },
+                {
+                    "name": "praise-to-the-lord.m4a",
+                    "bytes": 1056544,
+                    "sha256": "27a1f4e76b792aa1bc87c37ec5b47bc7dfbcbb862f0cb8c3c28bf47c472b7618"
+                }
+            ]
+        },
+        "red-red-rose": {
+            "slug": "red-red-rose",
+            "title": "My Love Is Like a Red, Red Rose",
+            "version": 1,
+            "tempo": 60,
+            "key": "C",
+            "guides": {
+                "soprano": null,
+                "alto": null,
+                "tenor": null,
+                "bass": null
+            },
+            "credit": "Words: Robert Burns (1794). Tune: traditional Scottish, \"Low down in the Broom\", as printed by R. A. Smith. Arrangement: Stackapella.",
+            "duration": 98.59,
+            "channels": 2,
+            "lufs": -16,
+            "files": [
+                {
+                    "name": "red-red-rose.mp3",
+                    "bytes": 1578654,
+                    "sha256": "18ce440de22277729d7389de5a632a1791ba502ebab805165a6bf98b3ea70c8e"
+                },
+                {
+                    "name": "red-red-rose.m4a",
+                    "bytes": 1591224,
+                    "sha256": "b849fc62e2d53d248dc104deed3da6ba075f0f3064deeab9b6f4dc265bad4149"
+                }
+            ]
+        },
+        "riu-riu-chiu": {
+            "slug": "riu-riu-chiu",
+            "title": "Riu, Riu, Chiu",
+            "version": 1,
+            "tempo": 100,
+            "key": "Ebm",
+            "guides": {
+                "soprano": null,
+                "alto": null,
+                "tenor": null,
+                "bass": null
+            },
+            "credit": "Words: anonymous, from Villancicos de diversos autores (Venice, 1556). Tune: anonymous, from Villancicos de diversos autores (Venice, 1556); attributed by some to Mateo Flecha the Elder or Bartomeu Càrceres. Arrangement: the 1556 print's own four voices, adapted by Stackapella.",
+            "duration": 117.19,
+            "channels": 2,
+            "lufs": -16,
+            "files": [
+                {
+                    "name": "riu-riu-chiu.mp3",
+                    "bytes": 1876673,
+                    "sha256": "adec9e127cefbf4b2f941592a055829aaee2362f0d214c297fcadf2e6f0aa62c"
+                },
+                {
+                    "name": "riu-riu-chiu.m4a",
+                    "bytes": 1897347,
+                    "sha256": "8f2a73185930cc60d9f63a300078077861ca648c7c5d3f9ed5bb67b6a21660fa"
+                }
+            ]
+        },
+        "row-row-row": {
+            "slug": "row-row-row",
+            "title": "Row, Row, Row Your Boat (round)",
+            "version": 4,
+            "tempo": 60,
+            "key": "C",
+            "guides": {
+                "soprano": null,
+                "alto": null,
+                "tenor": null,
+                "bass": null
+            },
+            "credit": "Words: traditional (in print by 1881). Tune: traditional, The Franklin Square Song Collection (1881), credited to Eliphalet Oram Lyte. Arrangement: Stackapella.",
+            "duration": 62.59,
+            "channels": 2,
+            "lufs": -16,
+            "files": [
+                {
+                    "name": "row-row-row.mp3",
+                    "bytes": 1002681,
+                    "sha256": "324947cdfc366c35298d20b3ac001b3db123eaa8563bface7f54a07f6b2842d2"
+                },
+                {
+                    "name": "row-row-row.m4a",
+                    "bytes": 1002095,
+                    "sha256": "f611d51fd7b5c2cb694b4f70e5a1c76916f173180e693c3883e010a1d2e0fb4f"
+                }
+            ]
+        },
+        "rozhinkes-mit-mandlen": {
+            "slug": "rozhinkes-mit-mandlen",
+            "title": "Rozhinkes mit Mandlen",
+            "version": 1,
+            "tempo": 57,
+            "key": "Em",
+            "guides": {
+                "soprano": null,
+                "alto": null,
+                "tenor": null,
+                "bass": null
+            },
+            "credit": "Words: Abraham Goldfaden. Tune: Abraham Goldfaden. Arrangement: Stackapella.",
+            "duration": 46.801,
+            "channels": 2,
+            "lufs": -16,
+            "files": [
+                {
+                    "name": "rozhinkes-mit-mandlen.mp3",
+                    "bytes": 750299,
+                    "sha256": "16e2eaf59f0cbe1c75b56da13fed2feb1c0c30a8cbeabc0208b7c3cff4b94043"
+                },
+                {
+                    "name": "rozhinkes-mit-mandlen.m4a",
+                    "bytes": 750509,
+                    "sha256": "794f295ed634fb7db331772c5ba5cdfe3f245bcad7dbba407537ab1303c15926"
+                }
+            ]
+        },
+        "sakura-sakura": {
+            "slug": "sakura-sakura",
+            "title": "Sakura Sakura",
+            "version": 2,
+            "tempo": 66,
+            "key": "Cm",
+            "guides": {
+                "soprano": null,
+                "alto": null,
+                "tenor": null,
+                "bass": null
+            },
+            "credit": "Words: traditional Japanese. Tune: traditional Japanese (printed 1888). Arrangement: Stackapella, held notes in the koto's manner.",
+            "duration": 53.499,
+            "channels": 2,
+            "lufs": -16,
+            "files": [
+                {
+                    "name": "sakura-sakura.mp3",
+                    "bytes": 857481,
+                    "sha256": "441157623724c84768602b17a8f083e2a8984edb940947820e6ea07468c3bded"
+                },
+                {
+                    "name": "sakura-sakura.m4a",
+                    "bytes": 857445,
+                    "sha256": "43b951e48ff7bf2814c536824e985369ef3643f381331b99c02ba8f8a599d2f4"
+                }
+            ]
+        },
+        "shall-we-gather": {
+            "slug": "shall-we-gather",
+            "title": "Shall We Gather at the River",
+            "version": 1,
+            "tempo": 90,
+            "key": "Eb",
+            "guides": {
+                "soprano": null,
+                "alto": null,
+                "tenor": null,
+                "bass": null
+            },
+            "credit": "Words: Robert Lowry (1864). Tune: Robert Lowry (1864). Arrangement: Robert Lowry's four parts (1869), adapted by Stackapella.",
+            "duration": 45.257,
+            "channels": 2,
+            "lufs": -16,
+            "files": [
+                {
+                    "name": "shall-we-gather.mp3",
+                    "bytes": 725395,
+                    "sha256": "6dcc9d44ecf49cd617daaf4eb8762257dd38b6b7ecc52ff2cc095939cb37d26a"
+                },
+                {
+                    "name": "shall-we-gather.m4a",
+                    "bytes": 724438,
+                    "sha256": "0535dc25fb8a3fa8e97a81e0763d6c8395fae7c16777b6bb6c2514b51d904651"
+                }
+            ]
+        },
+        "shchedryk": {
+            "slug": "shchedryk",
+            "title": "Shchedryk",
+            "version": 5,
+            "tempo": 132,
+            "key": "Gm",
+            "guides": {
+                "soprano": null,
+                "alto": null,
+                "tenor": null,
+                "bass": null
+            },
+            "credit": "Words: traditional Ukrainian shchedrivka (New Year song). Tune: traditional Ukrainian folk melody. Arrangement: Stackapella.",
+            "duration": 42.135,
+            "channels": 2,
+            "lufs": -16,
+            "files": [
+                {
+                    "name": "shchedryk.mp3",
+                    "bytes": 675455,
+                    "sha256": "b4fe29e1e00b4eb830627fc15dc0e796fe62f737e15e870ffeffbb4c5638cce7"
+                },
+                {
+                    "name": "shchedryk.m4a",
+                    "bytes": 672898,
+                    "sha256": "44c82477856718c1346542f427016a7eca17c246996e0c603246ba1fee62ec86"
+                }
+            ]
+        },
+        "shenandoah": {
+            "slug": "shenandoah",
+            "title": "Shenandoah",
+            "version": 8,
+            "tempo": 63,
+            "key": "F",
+            "guides": {
+                "soprano": null,
+                "alto": null,
+                "tenor": null,
+                "bass": null
+            },
+            "credit": "Words: traditional American (19th century). Tune: traditional, as printed by Richard Runciman Terry in The Shanty Book, Part I (1921). Arrangement: Stackapella.",
+            "duration": 41.638,
+            "channels": 2,
+            "lufs": -16,
+            "files": [
+                {
+                    "name": "shenandoah.mp3",
+                    "bytes": 667428,
+                    "sha256": "5a7aae0577558df5d7e3a72fb35edd00b70abea040758bbf445ab95c8dfdc8ad"
+                },
+                {
+                    "name": "shenandoah.m4a",
+                    "bytes": 665456,
+                    "sha256": "156257a179a314626a58272318247a0a79cb962f3783ffc98e2e2e312b093da7"
+                }
+            ]
+        },
+        "shorty-george-blues": {
+            "slug": "shorty-george-blues",
+            "title": "Shorty George Blues",
+            "version": 1,
+            "tempo": 88,
+            "key": "G",
+            "guides": {
+                "soprano": null,
+                "alto": null,
+                "tenor": null,
+                "bass": null
+            },
+            "credit": "Words: George W. Thomas and Hociel Thomas (1924). Tune: George W. Thomas (1924). Arrangement: Stackapella.",
+            "duration": 165.204,
+            "channels": 2,
+            "lufs": -16,
+            "files": [
+                {
+                    "name": "shorty-george-blues.mp3",
+                    "bytes": 2644599,
+                    "sha256": "cbe81537e1aa14fc2925cd2a6103368268995b58bb36165847339713ca920ec7"
+                },
+                {
+                    "name": "shorty-george-blues.m4a",
+                    "bytes": 2672381,
+                    "sha256": "e6f97e7db644ccc695f40a674095b8e03fac7c6c4478438720122f8811e72fdc"
+                }
+            ]
+        },
+        "shoshanat-yaakov": {
+            "slug": "shoshanat-yaakov",
+            "title": "Shoshanat Yaakov",
+            "version": 1,
+            "tempo": 60,
+            "key": "Bb",
+            "guides": {
+                "soprano": null,
+                "alto": null,
+                "tenor": null,
+                "bass": null
+            },
+            "credit": "Words: traditional Hebrew Purim hymn. Tune: synagogue tune, as Abraham Baer printed it (after 1883). Arrangement: Stackapella.",
+            "duration": 98.09,
+            "channels": 2,
+            "lufs": -16,
+            "files": [
+                {
+                    "name": "shoshanat-yaakov.mp3",
+                    "bytes": 1570952,
+                    "sha256": "a38ff51acdaba2f1bd0bd9b67b8d6947eb480e4ee4287926a80316c1377bc934"
+                },
+                {
+                    "name": "shoshanat-yaakov.m4a",
+                    "bytes": 1583119,
+                    "sha256": "665ef159665899270c4126804859a8a1eca6506feefe68b76b6596f175bfb7a8"
+                }
+            ]
+        },
+        "silent-night": {
+            "slug": "silent-night",
+            "title": "Silent Night",
+            "version": 8,
+            "tempo": 66,
+            "key": "C",
+            "guides": {
+                "soprano": null,
+                "alto": null,
+                "tenor": null,
+                "bass": null
+            },
+            "credit": "Words: Joseph Mohr (1816); English words John Freeman Young (1859). Tune: Franz Xaver Gruber (1818). Arrangement: Stackapella.",
+            "duration": 65.317,
+            "channels": 2,
+            "lufs": -16,
+            "files": [
+                {
+                    "name": "silent-night.mp3",
+                    "bytes": 1046404,
+                    "sha256": "aefad98aed8fe37e91f2488bf2c59d3fb3495e73141f20054935bb148dda7c52"
+                },
+                {
+                    "name": "silent-night.m4a",
+                    "bytes": 1049373,
+                    "sha256": "83e297df58f803d5c9ac92a06801f97eefe8067872b5562f121884fd6c410337"
+                }
+            ]
+        },
+        "simple-gifts": {
+            "slug": "simple-gifts",
+            "title": "Simple Gifts",
+            "version": 7,
+            "tempo": 96,
+            "key": "G",
+            "guides": {
+                "soprano": null,
+                "alto": null,
+                "tenor": null,
+                "bass": null
+            },
+            "credit": "Words: Joseph Brackett (attributed; usually dated 1848). Tune: Joseph Brackett (attributed; usually dated 1848). Arrangement: Stackapella.",
+            "duration": 43.84,
+            "channels": 2,
+            "lufs": -16,
+            "files": [
+                {
+                    "name": "simple-gifts.mp3",
+                    "bytes": 702736,
+                    "sha256": "b284c91d5b667fbaccbee3b7929318fbf58b8fdf2e02e227d99588e53222cefa"
+                },
+                {
+                    "name": "simple-gifts.m4a",
+                    "bytes": 700903,
+                    "sha256": "8a56c5001dba8714924cccecab4ce5a28f20b434b6cecf13bea3061efc03b6ee"
+                }
+            ]
+        },
+        "skye-boat-song": {
+            "slug": "skye-boat-song",
+            "title": "The Skye Boat Song",
+            "version": 1,
+            "tempo": 52,
+            "key": "G",
+            "guides": {
+                "soprano": null,
+                "alto": null,
+                "tenor": null,
+                "bass": null
+            },
+            "credit": "Words: Harold Boulton (Songs of the North, printed by 1888). Tune: Hebridean boatmen's air, four bars added by Anne Campbell Macleod (Songs of the North). Arrangement: Malcolm Lawson (Songs of the North), adapted by Stackapella.",
+            "duration": 94.898,
+            "channels": 2,
+            "lufs": -16,
+            "files": [
+                {
+                    "name": "skye-boat-song.mp3",
+                    "bytes": 1519984,
+                    "sha256": "30d33baaa4369e7ce9e4a5b895423b1e7eafbc35140a2468247e3674f155600f"
+                },
+                {
+                    "name": "skye-boat-song.m4a",
+                    "bytes": 1531616,
+                    "sha256": "bc9b04d9240bb3b68c4a6351ae3c43f763bdc905bd1f3244603db60f04f5db48"
+                }
+            ]
+        },
+        "spanish-ladies": {
+            "slug": "spanish-ladies",
+            "title": "Spanish Ladies",
+            "version": 1,
+            "tempo": 90,
+            "key": "Am",
+            "guides": {
+                "soprano": null,
+                "alto": null,
+                "tenor": null,
+                "bass": null
+            },
+            "credit": "Words: traditional sea shanty (as sung by Captain Lewis, Minehead; printed 1909). Tune: traditional sea shanty (as sung by Captain Lewis, Minehead; printed 1909). Arrangement: Stackapella, on Cecil Sharp's harmony.",
+            "duration": 102.59,
+            "channels": 2,
+            "lufs": -16,
+            "files": [
+                {
+                    "name": "spanish-ladies.mp3",
+                    "bytes": 1642846,
+                    "sha256": "96a05e237289e2604f4c5140bc17bf9fc4c2b63c6302608f425e4f7a9d49f745"
+                },
+                {
+                    "name": "spanish-ladies.m4a",
+                    "bytes": 1657462,
+                    "sha256": "92d01f5f2dc805cce67ce7edf858c1e75128d6f702093b79851c52eadc43495e"
+                }
+            ]
+        },
+        "steal-away": {
+            "slug": "steal-away",
+            "title": "Steal Away",
+            "version": 5,
+            "tempo": 66,
+            "key": "F",
+            "guides": {
+                "soprano": null,
+                "alto": null,
+                "tenor": null,
+                "bass": null
+            },
+            "credit": "Words: traditional spiritual, attributed to Wallace Willis (published 1872). Tune: traditional spiritual (published 1872). Arrangement: Stackapella.",
+            "duration": 89.863,
+            "channels": 2,
+            "lufs": -16,
+            "files": [
+                {
+                    "name": "steal-away.mp3",
+                    "bytes": 1439256,
+                    "sha256": "f97dd8859d14e447cf8e32f8dfae575de90a00ee9fa9e714144c489faa567867"
+                },
+                {
+                    "name": "steal-away.m4a",
+                    "bytes": 1450315,
+                    "sha256": "7ceb601d013b941b385bd092039d542926ac510f5093b2d79f4530ef2232e074"
+                }
+            ]
+        },
+        "sweet-adeline": {
+            "slug": "sweet-adeline",
+            "title": "Sweet Adeline",
+            "version": 6,
+            "tempo": 60,
+            "key": "Bb",
+            "guides": {
+                "soprano": null,
+                "alto": null,
+                "tenor": null,
+                "bass": null
+            },
+            "credit": "Words: Richard H. Gerard (1903). Tune: Harry Armstrong (1903). Arrangement: Stackapella.",
+            "duration": 35.09,
+            "channels": 2,
+            "lufs": -16,
+            "files": [
+                {
+                    "name": "sweet-adeline.mp3",
+                    "bytes": 562911,
+                    "sha256": "7051cfb22d12729200d084a59c2d17ce1c8e3f9d889f5501e70dd72c6da9bdb1"
+                },
+                {
+                    "name": "sweet-adeline.m4a",
+                    "bytes": 558995,
+                    "sha256": "7df8a5b9f7b437041a344d9eec6236a0a7d5fa465c5265deb67b8f198955503d"
+                }
+            ]
+        },
+        "swing-low": {
+            "slug": "swing-low",
+            "title": "Swing Low, Sweet Chariot",
+            "version": 8,
+            "tempo": 76,
+            "key": "G",
+            "guides": {
+                "soprano": null,
+                "alto": null,
+                "tenor": null,
+                "bass": null
+            },
+            "credit": "Words: traditional spiritual, attributed to Wallace Willis (published 1872). Tune: traditional spiritual (published 1872). Arrangement: Stackapella.",
+            "duration": 78.379,
+            "channels": 2,
+            "lufs": -16,
+            "files": [
+                {
+                    "name": "swing-low.mp3",
+                    "bytes": 1255334,
+                    "sha256": "ecbebbf0997b0ba1e5a7445ee28ccf50abbe4f785bd3e153e1e30f57a13490b9"
+                },
+                {
+                    "name": "swing-low.m4a",
+                    "bytes": 1261561,
+                    "sha256": "317e4cc4a145481cf1bc20c1ed5a5847c1ad077d899525bd704be58b5cb0baad"
+                }
+            ]
+        },
+        "the-lord-bless-you": {
+            "slug": "the-lord-bless-you",
+            "title": "The Lord Bless You and Keep You",
+            "version": 1,
+            "tempo": 60,
+            "key": "C",
+            "guides": {
+                "soprano": null,
+                "alto": null,
+                "tenor": null,
+                "bass": null
+            },
+            "credit": "Words: Numbers 6:24 to 26 (King James Version), as Lutkin set them. Tune: Peter C. Lutkin (1900). Arrangement: Lutkin's four parts (1900), adapted by Stackapella.",
+            "duration": 94.59,
+            "channels": 2,
+            "lufs": -16,
+            "files": [
+                {
+                    "name": "the-lord-bless-you.mp3",
+                    "bytes": 1514939,
+                    "sha256": "2b7d90bca21c93c903a1dc700facd599a488c6a0274ddffd17122c345874688c"
+                },
+                {
+                    "name": "the-lord-bless-you.m4a",
+                    "bytes": 1525905,
+                    "sha256": "11e386658aad8b3fd4d51964290e2838056090f9dc78623ef9676b48bef90c09"
+                }
+            ]
+        },
+        "the-water-is-wide": {
+            "slug": "the-water-is-wide",
+            "title": "The Water Is Wide",
+            "version": 8,
+            "tempo": 80,
+            "key": "G",
+            "guides": {
+                "soprano": null,
+                "alto": null,
+                "tenor": null,
+                "bass": null
+            },
+            "credit": "Words: traditional, as collected by Cecil Sharp and Charles Marson, Folk Songs from Somerset, third series (1906), no. 66, verses 1 and 6. Tune: traditional, sung by Mrs Cox of High Ham, collected by Cecil Sharp (1906). Arrangement: Stackapella.",
+            "duration": 74.59,
+            "channels": 2,
+            "lufs": -16,
+            "files": [
+                {
+                    "name": "the-water-is-wide.mp3",
+                    "bytes": 1194752,
+                    "sha256": "e67e9e44e758d8e24b95576d4ea928ba49ec37feff1b52ca9b08c23cd3cfa4a6"
+                },
+                {
+                    "name": "the-water-is-wide.m4a",
+                    "bytes": 1199655,
+                    "sha256": "fd3cbec4fd104b5dca984ea4dab5387e7b66ff2ed69f9c204d2d78bfd768fb83"
+                }
+            ]
+        },
+        "three-blind-mice": {
+            "slug": "three-blind-mice",
+            "title": "Three Blind Mice (round)",
+            "version": 1,
+            "tempo": 72,
+            "key": "C",
+            "guides": {
+                "soprano": null,
+                "alto": null,
+                "tenor": null,
+                "bass": null
+            },
+            "credit": "Words: traditional. Tune: traditional, as printed in Home Songs (Oliver Ditson, 1906). Arrangement: Stackapella (round setting).",
+            "duration": 75.923,
+            "channels": 2,
+            "lufs": -16,
+            "files": [
+                {
+                    "name": "three-blind-mice.mp3",
+                    "bytes": 1216146,
+                    "sha256": "064c29e0f2126aefce3dbd2f7c0a6970990c138559497a0c374078f28ca3d2c6"
+                },
+                {
+                    "name": "three-blind-mice.m4a",
+                    "bytes": 1218588,
+                    "sha256": "009794963592ac1a8a1fc6768c4934f3237a23b9927ecb625a3a7064cbbef6fb"
+                }
+            ]
+        },
+        "tzur-mishelo": {
+            "slug": "tzur-mishelo",
+            "title": "Tzur Mishelo",
+            "version": 1,
+            "tempo": 60,
+            "key": "Gm",
+            "guides": {
+                "soprano": null,
+                "alto": null,
+                "tenor": null,
+                "bass": null
+            },
+            "credit": "Words: traditional Hebrew Sabbath table hymn (zemer), anonymous. Tune: German melody for the Sabbath zemirot (printed by Francis L. Cohen, 1906). Arrangement: Stackapella.",
+            "duration": 114.59,
+            "channels": 2,
+            "lufs": -16,
+            "files": [
+                {
+                    "name": "tzur-mishelo.mp3",
+                    "bytes": 1834801,
+                    "sha256": "d924933c6f575c3a89d947b85ed61ad59399a348bea52ee5e31836666f6751c2"
+                },
+                {
+                    "name": "tzur-mishelo.m4a",
+                    "bytes": 1851364,
+                    "sha256": "31a3a6dccf0e1d1949b6d8569ca5a77cfce87fe71b2879a57e79142ab53af866"
+                }
+            ]
+        },
+        "wade-in-the-water": {
+            "slug": "wade-in-the-water",
+            "title": "Wade in the Water",
+            "version": 7,
+            "tempo": 84,
+            "key": "Fm",
+            "guides": {
+                "soprano": null,
+                "alto": null,
+                "tenor": null,
+                "bass": null
+            },
+            "credit": "Words: traditional spiritual (printed 1904). Tune: traditional spiritual (printed 1904). Arrangement: Stackapella.",
+            "duration": 59.733,
+            "channels": 2,
+            "lufs": -16,
+            "files": [
+                {
+                    "name": "wade-in-the-water.mp3",
+                    "bytes": 956925,
+                    "sha256": "ee2705ef7c22e5e0b4e8e985aa9fb4a0daa1d900c62155f456dba7a476efccad"
+                },
+                {
+                    "name": "wade-in-the-water.m4a",
+                    "bytes": 960713,
+                    "sha256": "6759902025de214bc8fdf171918bcf8c6ebdd32e2359f43318c9e8dc32b87117"
+                }
+            ]
+        },
+        "we-gather-together": {
+            "slug": "we-gather-together",
+            "title": "We Gather Together",
+            "version": 1,
+            "tempo": 90,
+            "key": "D",
+            "guides": {
+                "soprano": null,
+                "alto": null,
+                "tenor": null,
+                "bass": null
+            },
+            "credit": "Words: Theodore Baker (1894), from the Dutch \"Wilt heden nu treden\" in Adrianus Valerius's Nederlandtsche Gedenck-clanck (1626). Tune: \"Kremser\", a Netherlands folk tune printed by Valerius (1626), as Eduard Kremser arranged it. Arrangement: The four parts for the tune Kremser as The Beacon Hymnal printed them (1924), adapted by Stackapella.",
+            "duration": 67.257,
+            "channels": 2,
+            "lufs": -16,
+            "files": [
+                {
+                    "name": "we-gather-together.mp3",
+                    "bytes": 1077731,
+                    "sha256": "e7ce5b3bffa579933ac48d3c2801ec04c1bef38d3cdf6f850cb02ec6a18e7331"
+                },
+                {
+                    "name": "we-gather-together.m4a",
+                    "bytes": 1082584,
+                    "sha256": "fa9ea28cb8ff1915186c15588802f9248720ffe2b689e25ff901ec873726c63c"
+                }
+            ]
+        },
+        "were-you-there": {
+            "slug": "were-you-there",
+            "title": "Were You There",
+            "version": 1,
+            "tempo": 68,
+            "key": "G",
+            "guides": {
+                "soprano": null,
+                "alto": null,
+                "tenor": null,
+                "bass": null
+            },
+            "credit": "Words: traditional spiritual, as sung at Hampton Institute (published 1909). Tune: traditional spiritual, as sung at Hampton Institute (published 1909). Arrangement: Stackapella.",
+            "duration": 214.355,
+            "channels": 2,
+            "lufs": -16,
+            "files": [
+                {
+                    "name": "were-you-there.mp3",
+                    "bytes": 3431098,
+                    "sha256": "fb41cd0dcb9f46d3a01156792879f21b6db78aab85c7b7b34491ae31251b288a"
+                },
+                {
+                    "name": "were-you-there.m4a",
+                    "bytes": 3480000,
+                    "sha256": "d8fb1d68e2225fec4ad63f5be47cf4240b74c8130fda0a256865f9763cadccc4"
+                }
+            ]
+        },
+        "white-coral-bells": {
+            "slug": "white-coral-bells",
+            "title": "White Coral Bells (round)",
+            "version": 1,
+            "tempo": 96,
+            "key": "Bb",
+            "guides": {
+                "soprano": null,
+                "alto": null,
+                "tenor": null,
+                "bass": null
+            },
+            "credit": "Words: anonymous (printed 1916). Tune: anonymous, printed as \"May Bells\" in Hollis Dann's Fourth Year Music (1916). Arrangement: Stackapella (round setting).",
+            "duration": 112.59,
+            "channels": 2,
+            "lufs": -16,
+            "files": [
+                {
+                    "name": "white-coral-bells.mp3",
+                    "bytes": 1802928,
+                    "sha256": "cc8f9682e01d22a6166fdc90b39f121274cdbc10b82eef87c99445e05decaee8"
+                },
+                {
+                    "name": "white-coral-bells.m4a",
+                    "bytes": 1817374,
+                    "sha256": "a1dbeb4b3254f697bda161302af2c34b5e82bb460928f487f5147dbc149479bf"
+                }
+            ]
+        },
+        "who-will-bow-and-bend": {
+            "slug": "who-will-bow-and-bend",
+            "title": "Who Will Bow and Bend",
+            "version": 1,
+            "tempo": 100,
+            "key": "C",
+            "guides": {
+                "soprano": null,
+                "alto": null,
+                "tenor": null,
+                "bass": null
+            },
+            "credit": "Words: Shaker song (Mary Hazzard's songbook, about 1847). Tune: Shaker song (Mary Hazzard's songbook, about 1847). Arrangement: Stackapella.",
+            "duration": 117.79,
+            "channels": 2,
+            "lufs": -16,
+            "files": [
+                {
+                    "name": "who-will-bow-and-bend.mp3",
+                    "bytes": 1885851,
+                    "sha256": "2319db7aef211575a61ec9dc5ac61b920102c709c833a9369daf87c83aba74ee"
+                },
+                {
+                    "name": "who-will-bow-and-bend.m4a",
+                    "bytes": 1903890,
+                    "sha256": "156c26a312c8523e6a0e701ccb208d5504cc00930630046f2cc18e811269b1ee"
+                }
+            ]
+        },
+        "will-ye-no-come-back-again": {
+            "slug": "will-ye-no-come-back-again",
+            "title": "Will Ye No Come Back Again?",
+            "version": 1,
+            "tempo": 76,
+            "key": "F",
+            "guides": {
+                "soprano": null,
+                "alto": null,
+                "tenor": null,
+                "bass": null
+            },
+            "credit": "Words: Carolina Oliphant, Lady Nairne (1766 to 1845). Tune: as printed under Finlay Dun's name (1795 to 1853). Arrangement: Stackapella.",
+            "duration": 103.643,
+            "channels": 2,
+            "lufs": -16,
+            "files": [
+                {
+                    "name": "will-ye-no-come-back-again.mp3",
+                    "bytes": 1659677,
+                    "sha256": "56f323ce7b3253d0e9495802127974efcceec506a977fc9983cc0208eb454f86"
+                },
+                {
+                    "name": "will-ye-no-come-back-again.m4a",
+                    "bytes": 1673363,
+                    "sha256": "a3fb57529d39201fc220fb00f19fde4dce63e1f6d502bf490cf444ad04ea8709"
+                }
+            ]
+        },
+        "with-cat-like-tread": {
+            "slug": "with-cat-like-tread",
+            "title": "With Cat-like Tread",
+            "version": 1,
+            "tempo": 90,
+            "key": "A",
+            "guides": {
+                "soprano": null,
+                "alto": null,
+                "tenor": null,
+                "bass": null
+            },
+            "credit": "Words: W. S. Gilbert (1879). Tune: Arthur Sullivan (1879). Arrangement: Arthur Sullivan (1879), adapted by Stackapella.",
+            "duration": 45.257,
+            "channels": 2,
+            "lufs": -16,
+            "files": [
+                {
+                    "name": "with-cat-like-tread.mp3",
+                    "bytes": 725380,
+                    "sha256": "9cc685f32c9571a61c6fd7405085b044a9b8c3c1a97051d15edbec7d21e4c2a3"
+                },
+                {
+                    "name": "with-cat-like-tread.m4a",
+                    "bytes": 721175,
+                    "sha256": "6e054392707312cc2675e712306a9eb4b3311a32b0206c5e6e25defabc798126"
+                }
+            ]
+        },
+        "ye-banks-and-braes": {
+            "slug": "ye-banks-and-braes",
+            "title": "Ye Banks and Braes o' Bonnie Doon",
+            "version": 1,
+            "tempo": 40,
+            "key": "G",
+            "guides": {
+                "soprano": null,
+                "alto": null,
+                "tenor": null,
+                "bass": null
+            },
+            "credit": "Words: Robert Burns (printed 1792). Tune: \"The Caledonian Hunt's Delight\", by James Miller, fashioned into a tune by Stephen Clarke (printed 1792; sung here as G. F. Graham printed it in 1849). Arrangement: Stackapella.",
+            "duration": 98.59,
+            "channels": 2,
+            "lufs": -16,
+            "files": [
+                {
+                    "name": "ye-banks-and-braes.mp3",
+                    "bytes": 1578742,
+                    "sha256": "5e6415e6f280320d4c752f938a56dd20af35e3a3d156d8dc6f29189e7fe094e6"
+                },
+                {
+                    "name": "ye-banks-and-braes.m4a",
+                    "bytes": 1593743,
+                    "sha256": "9c58b51083b4c03a3b5a28131cc04155c92dd9fd049029665717b7096adf95b5"
+                }
+            ]
+        }
+    }
+}

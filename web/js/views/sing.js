@@ -72,6 +72,7 @@ import * as db from '../db.js';
 import { SONG_USED_SECONDS, counted as countDone, findLesson, learning, loadLearning, loadPlusCourses, pickRange, remember } from '../stores/learning.js';
 import { TrimSheet } from '../components/trim.js';
 import { heardSpan } from '../trim.js';
+import { partWords } from '../part-words.js';
 // The part's board after a take: game mode's only, loaded with game mode.
 const TakeBest = lazyComponent('boards', 'TakeBest');
 
@@ -530,7 +531,7 @@ export const SingView = {
         },
         staffNow() {
             if (!this.focusPart || !this.staffNotes.length) return null;
-            return staffLayout(this.staffNotes, { key: this.project.key || this.project.template.key, transpose: this.project.transpose || 0, clef: clefFor(this.focusPart.templatePartKey), beatsPerBar: this.perBar, pickupBeats: this.pickup });
+            return staffLayout(this.staffNotes, { key: this.project.key || this.project.template.key, transpose: this.project.transpose || 0, clef: clefFor(this.focusPart.templatePartKey), beatsPerBar: this.perBar, pickupBeats: this.pickup, timeSignature: this.project.timeSignature, meters: this.project.template?.meters ?? null });
         },
         staffCurrent() {
             return this.now.state === 'singing' ? this.staffNotes.indexOf(this.now.note) : -1;
@@ -566,7 +567,9 @@ export const SingView = {
             return sessionStore.sungSeconds() >= SONG_USED_SECONDS;
         },
         partChoices() {
-            return this.parts.filter((p) => p.templatePartKey).map((slot) => ({ slot, name: this.nameOf(slot), range: sessionStore.templatePart(slot)?.range ?? null, recorded: hasTake(slot) }));
+            // Each part in words before its notes ("Just under the tune"): the first-session review's proposal 2 (Hillel: yes).
+            const template = this.project?.template;
+            return this.parts.filter((p) => p.templatePartKey).map((slot) => ({ slot, name: this.nameOf(slot), words: partWords(template, slot.templatePartKey), range: sessionStore.templatePart(slot)?.range ?? null, recorded: hasTake(slot) }));
         },
         /** Just recorded's stack: each part's waveform (its take, or its guide), yours marked. */
         /**

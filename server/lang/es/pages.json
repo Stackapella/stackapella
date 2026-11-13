@@ -1466,5 +1466,11 @@
     "Timeline": "Cronología",
     "Checked against :count sources, :date.": "Contrastada con :count fuentes, :date.",
     "See the original": "Ver el original",
-    "Read it": "Leer"
+    "Read it": "Leer",
+    "Tap a part again to bring all of them back. Sing yours alone, then with the others.": "Vuelve a tocar una voz para recuperarlas todas. Canta la tuya sola y luego con las demás.",
+    "Press Play, then tap a part to hear it on its own.": "Toca Reproducir y luego toca una voz para oírla sola.",
+    "Hear all the parts again": "Volver a oír todas las voces",
+    "My part": "Mi voz",
+    "I sing this": "Yo canto esta",
+    "Make the :part your part": "Elegir la voz de :part como la tuya"
 }

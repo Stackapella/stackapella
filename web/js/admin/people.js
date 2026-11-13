@@ -332,7 +332,7 @@ const PersonPage = {
                     </ul>
                 </section>
 
-                <ChangeSheet v-if="sheet" :title="sheetTitle" :me="me" :busy="busy" :errors="errors" :fields="['level', 'email', 'amountCents', 'song', 'rights.confirmedBy', 'rights.confirmedAt', 'rights.wording', 'rights.source']" :reasoned="sheet !== 'tester' && sheet !== 'song'" :needs-sudo="sheet !== 'tester'" @close="sheet = null" @confirm="confirm">
+                <ChangeSheet v-if="sheet" :title="sheetTitle" :told="sheet === 'suspend' || (sheet === 'trust' && (level === '0' || level === '1'))" :me="me" :busy="busy" :errors="errors" :fields="['level', 'email', 'amountCents', 'song', 'rights.confirmedBy', 'rights.confirmedAt', 'rights.wording', 'rights.source']" :reasoned="sheet !== 'tester' && sheet !== 'song'" :needs-sudo="sheet !== 'tester'" @close="sheet = null" @confirm="confirm">
                     <p class="text-cream">{{ sheetBody }}</p>
                     <Field v-if="sheet === 'trust'" :label="t('admin.people.trust')" :error="errors?.level" v-slot="f">
                         <select :id="f.id" v-model="level" class="input w-full" :aria-describedby="f.describedby">

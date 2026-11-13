@@ -1546,7 +1546,7 @@ return [
         'weekly' => 'A new Christmas song opens every Monday until Christmas, from 16 November.',
         'parts' => 'Its parts',
         'song_page' => 'Learn :song',
-        'parts_hint' => 'Tap a part to hear it on its own and learn it, on its own page.',
+        'parts_hint' => 'Each part opens its own page, to hear it and learn it.',
         // Under the songbook (Hillel's Jewish Songs redesign, 2026-11-12): what the range bars show, and a way to ask for a song.
         'scale' => 'Bars show each part on one scale, :low to :high. The line is middle C.',
         'more' => 'Want another song?',
@@ -1595,6 +1595,8 @@ return [
 
     // The song collections, /songs/<collection> (App\Support\Pages\SongCollections; docs/search-content-plan.md: pages
     // for what choirs search, each checked for demand first): each one's words, the page there only with these.
+    // The end of a collection's intro (SongCollections::SEE_ALSO): the nearest collections, each a link.
+    'see_also' => 'More to sing:',
     'collections' => [
         // Google's suggestions, 2026-11-10: "hymns satb", "easy hymns for choir", "hymns in 4 part harmony".
         'hymns' => [

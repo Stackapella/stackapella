@@ -42,11 +42,11 @@ def journey(f):
     assert f.js("document.querySelector('[data-index-search]').value") == "grace", "the list's search took the hero's words"
     assert f.js(SHOWN) >= 1 and f.js(f"{SHOWN} < {total}"), "the list narrowed"
 
-    # The song to try: a switch for each part; switching one off doesn't error.
-    toggles = f.js("document.querySelectorAll('#try-mixer [data-toggle]').length")
-    assert toggles >= 2, f"the song to try has a switch per part ({toggles})"
-    f.run("document.querySelector('#try-mixer [data-toggle]').click()")
-    assert f.js("document.querySelector('#try-mixer [data-toggle]').getAttribute('aria-checked')") == "false", "a part switched off"
+    # The song to try: each part's row plays it alone (tap-to-solo); tapping one doesn't error.
+    rows = f.js("document.querySelectorAll('#try-mixer [data-hear-alone]').length")
+    assert rows >= 2, f"the song to try has a row per part ({rows})"
+    f.run("document.querySelector('#try-mixer [data-hear-alone]').click()")
+    assert f.js("document.querySelector('#try-mixer [data-hear-alone]').getAttribute('aria-pressed')") == "true", "a part heard alone"
     f.shot("songbook")
 
 

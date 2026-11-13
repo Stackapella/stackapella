@@ -23,6 +23,8 @@ final class GuidesReencodeTest extends TestCase
 
     private function published(): TemplateGuide
     {
+        // Published at the old 128, so each test can move it to another bitrate.
+        config(['beta.guide_kbps' => 128]);
         $template = $this->catalogue();
         [, $assignment] = $this->singerWithAlto();
         $wav = Wav::tone(2.0);

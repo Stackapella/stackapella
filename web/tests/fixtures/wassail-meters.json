@@ -1,0 +1,1534 @@
+{
+ "id": "wassail-meters-fixture",
+ "version": 1,
+ "reviewed": false,
+ "title": "Here We Come A-wassailing (metre-change fixture)",
+ "description": "A test fixture from the parked arrangement: verse 1 in 6/8, two chorus phrases in 4/4, verse 2 begun in 6/8.",
+ "language": "en",
+ "difficulty": "beginner",
+ "tempo": 90,
+ "key": "E",
+ "timeSignature": "6/8",
+ "pickupBeats": 0,
+ "credits": {
+  "words": "Traditional English (as printed by Bramley and Stainer, 1871)",
+  "tune": "Traditional, Yorkshire (as printed by Bramley and Stainer, 1871)",
+  "arrangement": "Stackapella"
+ },
+ "licence": {
+  "words": "public domain: traditional (the book's index gives the words' source as \"Traditional\"); the book's words editor Henry Ramsden Bramley died 1917",
+  "tune": "public domain: traditional (the index gives the air as \"Traditional (Yorkshire)\"); the book's music editor John Stainer died 1901",
+  "arrangement": "original, written for Stackapella: our own four parts under the printed tune. The book's four-part setting is unsigned (its index names a harmonizer for some carols, as \"Harm. by J. S.\" for I saw three ships, but none for this one), so it was read only to check the chords, and the alto, tenor and bass lines are our own. The tune as printed, except: the verse's last bar (\"seen.\", printed as a bar of 3/8 before the change to common time) is followed by a dotted crotchet's rest, so the chorus starts on a whole bar and everyone breathes before it; the notes before each breath give up three quarters of a beat (\"door\" and \"too\" in verses 2 and 3, \"you,\", \"too,\" and \"year,\" in the chorus, and the chorus's last \"year\" before verses 2 and 3, which also gives up the next verse's upbeat; verse 1's \"green\" is held for a beat and a quarter, where the book's starred quaver is silent), and at \"bless you, and send you\" \"you\" gives up half a beat and \"and\" comes in a quarter beat late; verse 1 leaves out the two notes the book marks as needed only for the other verses; the chorus's crotchet is sung at the verse's dotted crotchet (the book gives no relation) and written in the song's 6/8 beats; breaths written in for beginners. At the very end the alto sings a third above the tune's low E (F#4 to G#4), with the tenor on the fifth, so the last chord is whole at 2, 3 and 4 singers.",
+  "recordings": "synthesized guides",
+  "checked": null,
+  "source": "H. R. Bramley and John Stainer, Christmas Carols New and Old (London: Novello and Company, Limited; New York: Novello, Ewer and Co.; a later printing of the complete collection, its title page naming Sir John Stainer, so 1888 or later; catalogued [1880]), No. XXXVII, \"The Wassail Song\", p. 78 (four parts, Semi-Chorus in 6/8 and Chorus in common time, verse 1 under the music) and p. 79 (verses 2 to 8), and the index, p. 182 (\"Here we come a wassailing (The Wassail Song)\", words \"Traditional\", air \"Traditional (Yorkshire)\"); in E major as printed, written here in E; verses 1, 3 and 8 and the chorus as printed (\"wandering\" sung on two notes, as the 1871 printing hyphenates it \"wander-ing\"), verses 3 and 8 fitted to the notes by us (on the starred notes, as the book says, and \"beg-\" over the two notes verse 1 gives \"was-sail-\"); Harold B. Lee Library copy, read from the scan at archive.org/details/christmascarolsn00lond/page/n83 (verses n84, index n187). Compared with the first printing of the second series, Christmas Carols New and Old (London: Novello, Ewer and Co., 1871, as Hymnary.org dates it), No. XXXVII: the same music and words (there \"neighbour's children\", \"Master\" and \"Mistress\"), scan at hymnary.org/hymn/CCNO1871/37"
+ },
+ "meters": [
+  {
+   "beat": 16,
+   "timeSignature": "4/4"
+  },
+  {
+   "beat": 32,
+   "timeSignature": "6/8"
+  }
+ ],
+ "sections": [
+  {
+   "name": "Verse 1",
+   "startBeat": 0,
+   "endBeat": 16,
+   "phrases": [
+    [
+     0,
+     8
+    ],
+    [
+     8,
+     16
+    ]
+   ]
+  },
+  {
+   "name": "Chorus",
+   "startBeat": 16,
+   "endBeat": 32,
+   "phrases": [
+    [
+     16,
+     24
+    ],
+    [
+     24,
+     32
+    ]
+   ]
+  },
+  {
+   "name": "Verse 2",
+   "startBeat": 32,
+   "endBeat": 39.25,
+   "phrases": [
+    [
+     32,
+     39.25
+    ]
+   ]
+  }
+ ],
+ "chords": [
+  {
+   "beat": 0,
+   "root": 4,
+   "quality": "maj",
+   "bass": null
+  },
+  {
+   "beat": 1,
+   "root": 4,
+   "quality": "maj",
+   "bass": 11
+  },
+  {
+   "beat": 2,
+   "root": 4,
+   "quality": "maj",
+   "bass": null
+  },
+  {
+   "beat": 3,
+   "root": 4,
+   "quality": "maj",
+   "bass": 11
+  },
+  {
+   "beat": 4,
+   "root": 4,
+   "quality": "maj",
+   "bass": null
+  },
+  {
+   "beat": 5,
+   "root": 11,
+   "quality": "maj",
+   "bass": null
+  },
+  {
+   "beat": 8,
+   "root": 9,
+   "quality": "maj",
+   "bass": null
+  },
+  {
+   "beat": 9,
+   "root": 4,
+   "quality": "maj",
+   "bass": null
+  },
+  {
+   "beat": 10,
+   "root": 11,
+   "quality": "maj",
+   "bass": null
+  },
+  {
+   "beat": 11,
+   "root": 11,
+   "quality": "dom7",
+   "bass": null
+  },
+  {
+   "beat": 11.666667,
+   "root": 4,
+   "quality": "maj",
+   "bass": null
+  },
+  {
+   "beat": 12,
+   "root": 11,
+   "quality": "dom7",
+   "bass": null
+  },
+  {
+   "beat": 16,
+   "root": 4,
+   "quality": "maj",
+   "bass": null
+  },
+  {
+   "beat": 17,
+   "root": 11,
+   "quality": "dom7",
+   "bass": 3
+  },
+  {
+   "beat": 18,
+   "root": 4,
+   "quality": "maj",
+   "bass": null
+  },
+  {
+   "beat": 20,
+   "root": 1,
+   "quality": "min",
+   "bass": null
+  },
+  {
+   "beat": 21,
+   "root": 9,
+   "quality": "maj",
+   "bass": null
+  },
+  {
+   "beat": 22,
+   "root": 4,
+   "quality": "maj",
+   "bass": null
+  },
+  {
+   "beat": 25,
+   "root": 11,
+   "quality": "dom7",
+   "bass": 3
+  },
+  {
+   "beat": 26,
+   "root": 4,
+   "quality": "maj",
+   "bass": null
+  },
+  {
+   "beat": 28,
+   "root": 1,
+   "quality": "min",
+   "bass": null
+  },
+  {
+   "beat": 29,
+   "root": 9,
+   "quality": "maj",
+   "bass": null
+  },
+  {
+   "beat": 30,
+   "root": 4,
+   "quality": "maj",
+   "bass": null
+  },
+  {
+   "beat": 33.333333,
+   "root": 4,
+   "quality": "maj",
+   "bass": 11
+  },
+  {
+   "beat": 34.333333,
+   "root": 4,
+   "quality": "maj",
+   "bass": null
+  },
+  {
+   "beat": 35.333333,
+   "root": 4,
+   "quality": "maj",
+   "bass": 11
+  },
+  {
+   "beat": 36.333333,
+   "root": 4,
+   "quality": "maj",
+   "bass": null
+  },
+  {
+   "beat": 37.333333,
+   "root": 11,
+   "quality": "maj",
+   "bass": null
+  }
+ ],
+ "parts": [
+  {
+   "key": "soprano",
+   "name": "Soprano",
+   "melody": true,
+   "range": {
+    "low": 63,
+    "high": 76
+   },
+   "guide": {
+    "type": "notes",
+    "notes": [
+     {
+      "beat": 0,
+      "length": 0.666667,
+      "pitch": 64,
+      "lyric": "Here",
+      "br": true
+     },
+     {
+      "beat": 0.666667,
+      "length": 0.333333,
+      "pitch": 66,
+      "lyric": "we"
+     },
+     {
+      "beat": 1,
+      "length": 0.666667,
+      "pitch": 68,
+      "lyric": "come"
+     },
+     {
+      "beat": 1.666667,
+      "length": 0.333333,
+      "pitch": 66,
+      "lyric": "a-"
+     },
+     {
+      "beat": 2,
+      "length": 0.666667,
+      "pitch": 64,
+      "lyric": "was-"
+     },
+     {
+      "beat": 2.666667,
+      "length": 0.333333,
+      "pitch": 66,
+      "lyric": "sail-"
+     },
+     {
+      "beat": 3,
+      "length": 0.666667,
+      "pitch": 68,
+      "lyric": "ing"
+     },
+     {
+      "beat": 3.666667,
+      "length": 0.333333,
+      "pitch": 66,
+      "lyric": "A-"
+     },
+     {
+      "beat": 4,
+      "length": 0.666667,
+      "pitch": 64,
+      "lyric": "mong"
+     },
+     {
+      "beat": 4.666667,
+      "length": 0.333333,
+      "pitch": 71,
+      "lyric": "the"
+     },
+     {
+      "beat": 5,
+      "length": 0.666667,
+      "pitch": 71,
+      "lyric": "leaves"
+     },
+     {
+      "beat": 5.666667,
+      "length": 0.333333,
+      "pitch": 71,
+      "lyric": "so"
+     },
+     {
+      "beat": 6,
+      "length": 1.25,
+      "pitch": 71,
+      "lyric": "green,"
+     },
+     {
+      "beat": 8,
+      "length": 0.666667,
+      "pitch": 73,
+      "lyric": "Here",
+      "br": true
+     },
+     {
+      "beat": 8.666667,
+      "length": 0.333333,
+      "pitch": 73,
+      "lyric": "we"
+     },
+     {
+      "beat": 9,
+      "length": 0.666667,
+      "pitch": 71,
+      "lyric": "come"
+     },
+     {
+      "beat": 9.666667,
+      "length": 0.333333,
+      "pitch": 68,
+      "lyric": "a-"
+     },
+     {
+      "beat": 10,
+      "length": 1,
+      "pitch": 71,
+      "lyric": "wander-"
+     },
+     {
+      "beat": 11,
+      "length": 0.666667,
+      "pitch": 69,
+      "lyric": "ing,"
+     },
+     {
+      "beat": 11.666667,
+      "length": 0.333333,
+      "pitch": 68,
+      "lyric": "So"
+     },
+     {
+      "beat": 12,
+      "length": 0.666667,
+      "pitch": 66,
+      "lyric": "fair"
+     },
+     {
+      "beat": 12.666667,
+      "length": 0.333333,
+      "pitch": 64
+     },
+     {
+      "beat": 13,
+      "length": 0.666667,
+      "pitch": 66,
+      "lyric": "to"
+     },
+     {
+      "beat": 13.666667,
+      "length": 0.333333,
+      "pitch": 68,
+      "lyric": "be"
+     },
+     {
+      "beat": 14,
+      "length": 1,
+      "pitch": 69,
+      "lyric": "seen."
+     },
+     {
+      "beat": 16,
+      "length": 1,
+      "pitch": 68,
+      "lyric": "Love",
+      "br": true
+     },
+     {
+      "beat": 17,
+      "length": 1,
+      "pitch": 69,
+      "lyric": "and"
+     },
+     {
+      "beat": 18,
+      "length": 2,
+      "pitch": 71,
+      "lyric": "joy"
+     },
+     {
+      "beat": 20,
+      "length": 1,
+      "pitch": 76,
+      "lyric": "come"
+     },
+     {
+      "beat": 21,
+      "length": 1,
+      "pitch": 73,
+      "lyric": "to"
+     },
+     {
+      "beat": 22,
+      "length": 1.25,
+      "pitch": 71,
+      "lyric": "you,"
+     },
+     {
+      "beat": 24,
+      "length": 1,
+      "pitch": 68,
+      "lyric": "And",
+      "br": true
+     },
+     {
+      "beat": 25,
+      "length": 1,
+      "pitch": 69,
+      "lyric": "to"
+     },
+     {
+      "beat": 26,
+      "length": 1,
+      "pitch": 71,
+      "lyric": "you"
+     },
+     {
+      "beat": 27,
+      "length": 1,
+      "pitch": 71,
+      "lyric": "your"
+     },
+     {
+      "beat": 28,
+      "length": 1,
+      "pitch": 76,
+      "lyric": "was-"
+     },
+     {
+      "beat": 29,
+      "length": 1,
+      "pitch": 73,
+      "lyric": "sail"
+     },
+     {
+      "beat": 30,
+      "length": 1.25,
+      "pitch": 71,
+      "lyric": "too,"
+     },
+     {
+      "beat": 32.0,
+      "length": 0.333333,
+      "pitch": 64,
+      "lyric": "We",
+      "br": true
+     },
+     {
+      "beat": 32.333333,
+      "length": 0.666667,
+      "pitch": 64,
+      "lyric": "are"
+     },
+     {
+      "beat": 33.0,
+      "length": 0.333333,
+      "pitch": 66,
+      "lyric": "not"
+     },
+     {
+      "beat": 33.333333,
+      "length": 0.666667,
+      "pitch": 68,
+      "lyric": "dai-"
+     },
+     {
+      "beat": 34.0,
+      "length": 0.333333,
+      "pitch": 66,
+      "lyric": "ly"
+     },
+     {
+      "beat": 34.333333,
+      "length": 0.666667,
+      "pitch": 64,
+      "lyric": "beg-"
+     },
+     {
+      "beat": 35.0,
+      "length": 0.333333,
+      "pitch": 66
+     },
+     {
+      "beat": 35.333333,
+      "length": 0.666667,
+      "pitch": 68,
+      "lyric": "gars"
+     },
+     {
+      "beat": 36.0,
+      "length": 0.333333,
+      "pitch": 66,
+      "lyric": "That"
+     },
+     {
+      "beat": 36.333333,
+      "length": 0.666667,
+      "pitch": 64,
+      "lyric": "beg"
+     },
+     {
+      "beat": 37.0,
+      "length": 0.333333,
+      "pitch": 71,
+      "lyric": "from"
+     },
+     {
+      "beat": 37.333333,
+      "length": 0.666667,
+      "pitch": 71,
+      "lyric": "door"
+     },
+     {
+      "beat": 38.0,
+      "length": 0.333333,
+      "pitch": 71,
+      "lyric": "to"
+     },
+     {
+      "beat": 38.333333,
+      "length": 0.916667,
+      "pitch": 71,
+      "lyric": "door,"
+     }
+    ]
+   }
+  },
+  {
+   "key": "alto",
+   "name": "Alto",
+   "range": {
+    "low": 56,
+    "high": 69
+   },
+   "guide": {
+    "type": "notes",
+    "notes": [
+     {
+      "beat": 0,
+      "length": 0.666667,
+      "pitch": 56,
+      "lyric": "Here",
+      "br": true
+     },
+     {
+      "beat": 0.666667,
+      "length": 0.333333,
+      "pitch": 57,
+      "lyric": "we"
+     },
+     {
+      "beat": 1,
+      "length": 0.666667,
+      "pitch": 59,
+      "lyric": "come"
+     },
+     {
+      "beat": 1.666667,
+      "length": 0.333333,
+      "pitch": 57,
+      "lyric": "a-"
+     },
+     {
+      "beat": 2,
+      "length": 0.666667,
+      "pitch": 56,
+      "lyric": "was-"
+     },
+     {
+      "beat": 2.666667,
+      "length": 0.333333,
+      "pitch": 57,
+      "lyric": "sail-"
+     },
+     {
+      "beat": 3,
+      "length": 0.666667,
+      "pitch": 59,
+      "lyric": "ing"
+     },
+     {
+      "beat": 3.666667,
+      "length": 0.333333,
+      "pitch": 57,
+      "lyric": "A-"
+     },
+     {
+      "beat": 4,
+      "length": 0.666667,
+      "pitch": 59,
+      "lyric": "mong"
+     },
+     {
+      "beat": 4.666667,
+      "length": 0.333333,
+      "pitch": 64,
+      "lyric": "the"
+     },
+     {
+      "beat": 5,
+      "length": 0.666667,
+      "pitch": 63,
+      "lyric": "leaves"
+     },
+     {
+      "beat": 5.666667,
+      "length": 0.333333,
+      "pitch": 63,
+      "lyric": "so"
+     },
+     {
+      "beat": 6,
+      "length": 1.25,
+      "pitch": 63,
+      "lyric": "green,"
+     },
+     {
+      "beat": 8,
+      "length": 0.666667,
+      "pitch": 64,
+      "lyric": "Here",
+      "br": true
+     },
+     {
+      "beat": 8.666667,
+      "length": 0.333333,
+      "pitch": 64,
+      "lyric": "we"
+     },
+     {
+      "beat": 9,
+      "length": 0.666667,
+      "pitch": 68,
+      "lyric": "come"
+     },
+     {
+      "beat": 9.666667,
+      "length": 0.333333,
+      "pitch": 64,
+      "lyric": "a-"
+     },
+     {
+      "beat": 10,
+      "length": 1,
+      "pitch": 63,
+      "lyric": "wander-"
+     },
+     {
+      "beat": 11,
+      "length": 0.666667,
+      "pitch": 63,
+      "lyric": "ing,"
+     },
+     {
+      "beat": 11.666667,
+      "length": 0.333333,
+      "pitch": 64,
+      "lyric": "So"
+     },
+     {
+      "beat": 12,
+      "length": 1,
+      "pitch": 63,
+      "lyric": "fair"
+     },
+     {
+      "beat": 13,
+      "length": 0.666667,
+      "pitch": 63,
+      "lyric": "to"
+     },
+     {
+      "beat": 13.666667,
+      "length": 0.333333,
+      "pitch": 63,
+      "lyric": "be"
+     },
+     {
+      "beat": 14,
+      "length": 1,
+      "pitch": 63,
+      "lyric": "seen."
+     },
+     {
+      "beat": 16,
+      "length": 1,
+      "pitch": 64,
+      "lyric": "Love",
+      "br": true
+     },
+     {
+      "beat": 17,
+      "length": 1,
+      "pitch": 66,
+      "lyric": "and"
+     },
+     {
+      "beat": 18,
+      "length": 2,
+      "pitch": 68,
+      "lyric": "joy"
+     },
+     {
+      "beat": 20,
+      "length": 1,
+      "pitch": 68,
+      "lyric": "come"
+     },
+     {
+      "beat": 21,
+      "length": 1,
+      "pitch": 69,
+      "lyric": "to"
+     },
+     {
+      "beat": 22,
+      "length": 1.25,
+      "pitch": 68,
+      "lyric": "you,"
+     },
+     {
+      "beat": 24,
+      "length": 1,
+      "pitch": 64,
+      "lyric": "And",
+      "br": true
+     },
+     {
+      "beat": 25,
+      "length": 1,
+      "pitch": 66,
+      "lyric": "to"
+     },
+     {
+      "beat": 26,
+      "length": 1,
+      "pitch": 68,
+      "lyric": "you"
+     },
+     {
+      "beat": 27,
+      "length": 1,
+      "pitch": 68,
+      "lyric": "your"
+     },
+     {
+      "beat": 28,
+      "length": 1,
+      "pitch": 68,
+      "lyric": "was-"
+     },
+     {
+      "beat": 29,
+      "length": 1,
+      "pitch": 69,
+      "lyric": "sail"
+     },
+     {
+      "beat": 30,
+      "length": 1.25,
+      "pitch": 68,
+      "lyric": "too,"
+     },
+     {
+      "beat": 32.0,
+      "length": 0.333333,
+      "pitch": 56,
+      "lyric": "We",
+      "br": true
+     },
+     {
+      "beat": 32.333333,
+      "length": 0.666667,
+      "pitch": 56,
+      "lyric": "are"
+     },
+     {
+      "beat": 33.0,
+      "length": 0.333333,
+      "pitch": 57,
+      "lyric": "not"
+     },
+     {
+      "beat": 33.333333,
+      "length": 0.666667,
+      "pitch": 59,
+      "lyric": "dai-"
+     },
+     {
+      "beat": 34.0,
+      "length": 0.333333,
+      "pitch": 57,
+      "lyric": "ly"
+     },
+     {
+      "beat": 34.333333,
+      "length": 1,
+      "pitch": 56,
+      "lyric": "beg-"
+     },
+     {
+      "beat": 35.333333,
+      "length": 0.666667,
+      "pitch": 59,
+      "lyric": "gars"
+     },
+     {
+      "beat": 36.0,
+      "length": 0.333333,
+      "pitch": 57,
+      "lyric": "That"
+     },
+     {
+      "beat": 36.333333,
+      "length": 0.666667,
+      "pitch": 59,
+      "lyric": "beg"
+     },
+     {
+      "beat": 37.0,
+      "length": 0.333333,
+      "pitch": 64,
+      "lyric": "from"
+     },
+     {
+      "beat": 37.333333,
+      "length": 0.666667,
+      "pitch": 63,
+      "lyric": "door"
+     },
+     {
+      "beat": 38.0,
+      "length": 0.333333,
+      "pitch": 63,
+      "lyric": "to"
+     },
+     {
+      "beat": 38.333333,
+      "length": 0.916667,
+      "pitch": 63,
+      "lyric": "door,"
+     }
+    ]
+   }
+  },
+  {
+   "key": "tenor",
+   "name": "Tenor",
+   "range": {
+    "low": 52,
+    "high": 64
+   },
+   "guide": {
+    "type": "notes",
+    "notes": [
+     {
+      "beat": 0,
+      "length": 0.666667,
+      "pitch": 52,
+      "lyric": "Here",
+      "br": true
+     },
+     {
+      "beat": 0.666667,
+      "length": 0.333333,
+      "pitch": 52,
+      "lyric": "we"
+     },
+     {
+      "beat": 1,
+      "length": 0.666667,
+      "pitch": 52,
+      "lyric": "come"
+     },
+     {
+      "beat": 1.666667,
+      "length": 0.333333,
+      "pitch": 52,
+      "lyric": "a-"
+     },
+     {
+      "beat": 2,
+      "length": 0.666667,
+      "pitch": 52,
+      "lyric": "was-"
+     },
+     {
+      "beat": 2.666667,
+      "length": 0.333333,
+      "pitch": 52,
+      "lyric": "sail-"
+     },
+     {
+      "beat": 3,
+      "length": 0.666667,
+      "pitch": 52,
+      "lyric": "ing"
+     },
+     {
+      "beat": 3.666667,
+      "length": 0.333333,
+      "pitch": 52,
+      "lyric": "A-"
+     },
+     {
+      "beat": 4,
+      "length": 0.666667,
+      "pitch": 56,
+      "lyric": "mong"
+     },
+     {
+      "beat": 4.666667,
+      "length": 0.333333,
+      "pitch": 56,
+      "lyric": "the"
+     },
+     {
+      "beat": 5,
+      "length": 0.666667,
+      "pitch": 54,
+      "lyric": "leaves"
+     },
+     {
+      "beat": 5.666667,
+      "length": 0.333333,
+      "pitch": 54,
+      "lyric": "so"
+     },
+     {
+      "beat": 6,
+      "length": 1.25,
+      "pitch": 54,
+      "lyric": "green,"
+     },
+     {
+      "beat": 8,
+      "length": 0.666667,
+      "pitch": 57,
+      "lyric": "Here",
+      "br": true
+     },
+     {
+      "beat": 8.666667,
+      "length": 0.333333,
+      "pitch": 57,
+      "lyric": "we"
+     },
+     {
+      "beat": 9,
+      "length": 0.666667,
+      "pitch": 59,
+      "lyric": "come"
+     },
+     {
+      "beat": 9.666667,
+      "length": 0.333333,
+      "pitch": 59,
+      "lyric": "a-"
+     },
+     {
+      "beat": 10,
+      "length": 1,
+      "pitch": 59,
+      "lyric": "wander-"
+     },
+     {
+      "beat": 11,
+      "length": 0.666667,
+      "pitch": 59,
+      "lyric": "ing,"
+     },
+     {
+      "beat": 11.666667,
+      "length": 0.333333,
+      "pitch": 59,
+      "lyric": "So"
+     },
+     {
+      "beat": 12,
+      "length": 1,
+      "pitch": 57,
+      "lyric": "fair"
+     },
+     {
+      "beat": 13,
+      "length": 0.666667,
+      "pitch": 57,
+      "lyric": "to"
+     },
+     {
+      "beat": 13.666667,
+      "length": 0.333333,
+      "pitch": 57,
+      "lyric": "be"
+     },
+     {
+      "beat": 14,
+      "length": 1,
+      "pitch": 54,
+      "lyric": "seen."
+     },
+     {
+      "beat": 16,
+      "length": 1,
+      "pitch": 56,
+      "lyric": "Love",
+      "br": true
+     },
+     {
+      "beat": 17,
+      "length": 1,
+      "pitch": 59,
+      "lyric": "and"
+     },
+     {
+      "beat": 18,
+      "length": 2,
+      "pitch": 59,
+      "lyric": "joy"
+     },
+     {
+      "beat": 20,
+      "length": 1,
+      "pitch": 61,
+      "lyric": "come"
+     },
+     {
+      "beat": 21,
+      "length": 1,
+      "pitch": 64,
+      "lyric": "to"
+     },
+     {
+      "beat": 22,
+      "length": 1.25,
+      "pitch": 64,
+      "lyric": "you,"
+     },
+     {
+      "beat": 24,
+      "length": 1,
+      "pitch": 59,
+      "lyric": "And",
+      "br": true
+     },
+     {
+      "beat": 25,
+      "length": 1,
+      "pitch": 59,
+      "lyric": "to"
+     },
+     {
+      "beat": 26,
+      "length": 1,
+      "pitch": 59,
+      "lyric": "you"
+     },
+     {
+      "beat": 27,
+      "length": 1,
+      "pitch": 59,
+      "lyric": "your"
+     },
+     {
+      "beat": 28,
+      "length": 1,
+      "pitch": 61,
+      "lyric": "was-"
+     },
+     {
+      "beat": 29,
+      "length": 1,
+      "pitch": 64,
+      "lyric": "sail"
+     },
+     {
+      "beat": 30,
+      "length": 1.25,
+      "pitch": 64,
+      "lyric": "too,"
+     },
+     {
+      "beat": 32.0,
+      "length": 0.333333,
+      "pitch": 52,
+      "lyric": "We",
+      "br": true
+     },
+     {
+      "beat": 32.333333,
+      "length": 0.666667,
+      "pitch": 52,
+      "lyric": "are"
+     },
+     {
+      "beat": 33.0,
+      "length": 0.333333,
+      "pitch": 52,
+      "lyric": "not"
+     },
+     {
+      "beat": 33.333333,
+      "length": 0.666667,
+      "pitch": 52,
+      "lyric": "dai-"
+     },
+     {
+      "beat": 34.0,
+      "length": 0.333333,
+      "pitch": 52,
+      "lyric": "ly"
+     },
+     {
+      "beat": 34.333333,
+      "length": 1,
+      "pitch": 52,
+      "lyric": "beg-"
+     },
+     {
+      "beat": 35.333333,
+      "length": 0.666667,
+      "pitch": 52,
+      "lyric": "gars"
+     },
+     {
+      "beat": 36.0,
+      "length": 0.333333,
+      "pitch": 52,
+      "lyric": "That"
+     },
+     {
+      "beat": 36.333333,
+      "length": 0.666667,
+      "pitch": 56,
+      "lyric": "beg"
+     },
+     {
+      "beat": 37.0,
+      "length": 0.333333,
+      "pitch": 56,
+      "lyric": "from"
+     },
+     {
+      "beat": 37.333333,
+      "length": 0.666667,
+      "pitch": 54,
+      "lyric": "door"
+     },
+     {
+      "beat": 38.0,
+      "length": 0.333333,
+      "pitch": 54,
+      "lyric": "to"
+     },
+     {
+      "beat": 38.333333,
+      "length": 0.916667,
+      "pitch": 54,
+      "lyric": "door,"
+     }
+    ]
+   }
+  },
+  {
+   "key": "bass",
+   "name": "Bass",
+   "range": {
+    "low": 45,
+    "high": 57
+   },
+   "guide": {
+    "type": "notes",
+    "notes": [
+     {
+      "beat": 0,
+      "length": 0.666667,
+      "pitch": 52,
+      "lyric": "Here",
+      "br": true
+     },
+     {
+      "beat": 0.666667,
+      "length": 0.333333,
+      "pitch": 52,
+      "lyric": "we"
+     },
+     {
+      "beat": 1,
+      "length": 0.666667,
+      "pitch": 47,
+      "lyric": "come"
+     },
+     {
+      "beat": 1.666667,
+      "length": 0.333333,
+      "pitch": 47,
+      "lyric": "a-"
+     },
+     {
+      "beat": 2,
+      "length": 0.666667,
+      "pitch": 52,
+      "lyric": "was-"
+     },
+     {
+      "beat": 2.666667,
+      "length": 0.333333,
+      "pitch": 52,
+      "lyric": "sail-"
+     },
+     {
+      "beat": 3,
+      "length": 0.666667,
+      "pitch": 47,
+      "lyric": "ing"
+     },
+     {
+      "beat": 3.666667,
+      "length": 0.333333,
+      "pitch": 47,
+      "lyric": "A-"
+     },
+     {
+      "beat": 4,
+      "length": 0.666667,
+      "pitch": 52,
+      "lyric": "mong"
+     },
+     {
+      "beat": 4.666667,
+      "length": 0.333333,
+      "pitch": 52,
+      "lyric": "the"
+     },
+     {
+      "beat": 5,
+      "length": 0.666667,
+      "pitch": 47,
+      "lyric": "leaves"
+     },
+     {
+      "beat": 5.666667,
+      "length": 0.333333,
+      "pitch": 47,
+      "lyric": "so"
+     },
+     {
+      "beat": 6,
+      "length": 1.25,
+      "pitch": 47,
+      "lyric": "green,"
+     },
+     {
+      "beat": 8,
+      "length": 0.666667,
+      "pitch": 45,
+      "lyric": "Here",
+      "br": true
+     },
+     {
+      "beat": 8.666667,
+      "length": 0.333333,
+      "pitch": 45,
+      "lyric": "we"
+     },
+     {
+      "beat": 9,
+      "length": 0.666667,
+      "pitch": 52,
+      "lyric": "come"
+     },
+     {
+      "beat": 9.666667,
+      "length": 0.333333,
+      "pitch": 52,
+      "lyric": "a-"
+     },
+     {
+      "beat": 10,
+      "length": 1,
+      "pitch": 47,
+      "lyric": "wander-"
+     },
+     {
+      "beat": 11,
+      "length": 0.666667,
+      "pitch": 47,
+      "lyric": "ing,"
+     },
+     {
+      "beat": 11.666667,
+      "length": 0.333333,
+      "pitch": 52,
+      "lyric": "So"
+     },
+     {
+      "beat": 12,
+      "length": 1,
+      "pitch": 47,
+      "lyric": "fair"
+     },
+     {
+      "beat": 13,
+      "length": 0.666667,
+      "pitch": 47,
+      "lyric": "to"
+     },
+     {
+      "beat": 13.666667,
+      "length": 0.333333,
+      "pitch": 47,
+      "lyric": "be"
+     },
+     {
+      "beat": 14,
+      "length": 1,
+      "pitch": 47,
+      "lyric": "seen."
+     },
+     {
+      "beat": 16,
+      "length": 1,
+      "pitch": 52,
+      "lyric": "Love",
+      "br": true
+     },
+     {
+      "beat": 17,
+      "length": 1,
+      "pitch": 51,
+      "lyric": "and"
+     },
+     {
+      "beat": 18,
+      "length": 2,
+      "pitch": 52,
+      "lyric": "joy"
+     },
+     {
+      "beat": 20,
+      "length": 1,
+      "pitch": 49,
+      "lyric": "come"
+     },
+     {
+      "beat": 21,
+      "length": 1,
+      "pitch": 45,
+      "lyric": "to"
+     },
+     {
+      "beat": 22,
+      "length": 1.25,
+      "pitch": 52,
+      "lyric": "you,"
+     },
+     {
+      "beat": 24,
+      "length": 1,
+      "pitch": 52,
+      "lyric": "And",
+      "br": true
+     },
+     {
+      "beat": 25,
+      "length": 1,
+      "pitch": 51,
+      "lyric": "to"
+     },
+     {
+      "beat": 26,
+      "length": 1,
+      "pitch": 52,
+      "lyric": "you"
+     },
+     {
+      "beat": 27,
+      "length": 1,
+      "pitch": 52,
+      "lyric": "your"
+     },
+     {
+      "beat": 28,
+      "length": 1,
+      "pitch": 49,
+      "lyric": "was-"
+     },
+     {
+      "beat": 29,
+      "length": 1,
+      "pitch": 45,
+      "lyric": "sail"
+     },
+     {
+      "beat": 30,
+      "length": 1.25,
+      "pitch": 52,
+      "lyric": "too,"
+     },
+     {
+      "beat": 32.0,
+      "length": 0.333333,
+      "pitch": 52,
+      "lyric": "We",
+      "br": true
+     },
+     {
+      "beat": 32.333333,
+      "length": 0.666667,
+      "pitch": 52,
+      "lyric": "are"
+     },
+     {
+      "beat": 33.0,
+      "length": 0.333333,
+      "pitch": 52,
+      "lyric": "not"
+     },
+     {
+      "beat": 33.333333,
+      "length": 0.666667,
+      "pitch": 47,
+      "lyric": "dai-"
+     },
+     {
+      "beat": 34.0,
+      "length": 0.333333,
+      "pitch": 47,
+      "lyric": "ly"
+     },
+     {
+      "beat": 34.333333,
+      "length": 1,
+      "pitch": 52,
+      "lyric": "beg-"
+     },
+     {
+      "beat": 35.333333,
+      "length": 0.666667,
+      "pitch": 47,
+      "lyric": "gars"
+     },
+     {
+      "beat": 36.0,
+      "length": 0.333333,
+      "pitch": 47,
+      "lyric": "That"
+     },
+     {
+      "beat": 36.333333,
+      "length": 0.666667,
+      "pitch": 52,
+      "lyric": "beg"
+     },
+     {
+      "beat": 37.0,
+      "length": 0.333333,
+      "pitch": 52,
+      "lyric": "from"
+     },
+     {
+      "beat": 37.333333,
+      "length": 0.666667,
+      "pitch": 47,
+      "lyric": "door"
+     },
+     {
+      "beat": 38.0,
+      "length": 0.333333,
+      "pitch": 47,
+      "lyric": "to"
+     },
+     {
+      "beat": 38.333333,
+      "length": 0.916667,
+      "pitch": 47,
+      "lyric": "door,"
+     }
+    ]
+   }
+  }
+ ]
+}

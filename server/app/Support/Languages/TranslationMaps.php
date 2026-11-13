@@ -26,7 +26,7 @@ final class TranslationMaps implements Loader
      * may be text elsewhere (the courses lead, 2026-11-11: "groups" and "alto" would have become "grupos" and
      * "contralto"). Matched on the key path's end.
      */
-    private const IDENTIFIERS = ['pic', 'demo.part', 'demo.you', 'at', 'guide', 'slug', 'shot', 'icon', 'kind', 'song', 'flag', 'app'];
+    private const IDENTIFIERS = ['pic', 'demo.part', 'demo.you', 'demo.order', 'at', 'guide', 'slug', 'shot', 'icon', 'kind', 'song', 'flag', 'app'];
 
     public function __construct(private readonly Loader $files, private readonly string $langPath) {}
 
@@ -91,6 +91,9 @@ final class TranslationMaps implements Loader
             return false;
         }
 
+        // A list's item is its list's: demo.order.1 is under demo.order (the stack demo's parts, frontend2's audit, 2026-11-13:
+        // "bass" had become "bajo" and the page's words, keyed by part, no longer found it).
+        $path = (string) preg_replace('/(\.\d+)+$/', '', $path);
         foreach (self::IDENTIFIERS as $end) {
             if ($path === $end || str_ends_with($path, '.'.$end)) {
                 return true;

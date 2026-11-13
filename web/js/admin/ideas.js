@@ -50,7 +50,7 @@ export const IdeasSection = {
                     </div>
                 </li>
             </ul>
-            <ChangeSheet v-if="hiding" :title="t('admin.ideas.hideTitle', { title: hiding.title })" :me="me" :busy="busy" :errors="errors" :needs-sudo="false" @close="hiding = null" @confirm="hide">
+            <ChangeSheet v-if="hiding" :told="true" :title="t('admin.ideas.hideTitle', { title: hiding.title })" :me="me" :busy="busy" :errors="errors" :needs-sudo="false" @close="hiding = null" @confirm="hide">
                 <p class="text-sm text-muted">{{ t('admin.ideas.hideHint') }}</p>
             </ChangeSheet>
         </div>`,

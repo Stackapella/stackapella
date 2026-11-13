@@ -11,6 +11,7 @@
 
 import { heardTime } from './clock.js';
 import { click } from '../js/dsp.js';
+import { barAt } from '../js/theory.js';
 
 const workletUrl = new URL('./recorder-worklet.js', import.meta.url).href;
 // Failures another way of asking won't fix: the person (or the browser) said no, or the page can't ask.
@@ -494,7 +495,7 @@ export class Engine {
      * has just opened, a longer lead lets iOS finish switching its audio session before the first
      * click, instead of on it.
      */
-    play({ fromSeconds = 0, toSeconds = null, bpm = null, beatsPerBar = 4, pickupBeats = 0, countInBeats = 0, countInSounds = null, metronome = false, loop = null, repeat = null, record = false, latencyFrames = 0, onChunk = null, leadSeconds = LEAD_SECONDS, startFrame = null }) {
+    play({ fromSeconds = 0, toSeconds = null, bpm = null, beatsPerBar = 4, pickupBeats = 0, meters = null, timeSignature = null, countInBeats = 0, countInSounds = null, metronome = false, loop = null, repeat = null, record = false, latencyFrames = 0, onChunk = null, leadSeconds = LEAD_SECONDS, startFrame = null }) {
         // `startFrame` (a context frame ahead of now, such as passEnd()): this run begins there,
         // seamlessly after what is playing, which carries on until then (the tempo ladder's next
         // speed at a loop's end). Only what was scheduled from that frame on is cancelled.
@@ -506,13 +507,17 @@ export class Engine {
         const beat = bpm ? Math.round((sr * 60) / bpm) : 0;
         // The quiet bar before the first note is borrowed breath, so it sits on the same clock as the song.
         const start = first + (beat ? countInBeats * beat : 0);
-        const grid = { beatFrames: bpm ? (sr * 60) / bpm : 0, beatsPerBar, pickupBeats };
+        // meters: a song whose time signature changes (docs/meters-plan.md); its clicks accent its own bar lines.
+        const grid = { beatFrames: bpm ? (sr * 60) / bpm : 0, beatsPerBar, pickupBeats, meters: meters?.length ? meters : null, timeSignature };
         if (beat) {
             const startSeconds = loop?.startSeconds ?? repeat?.phrases[0]?.startSeconds ?? fromSeconds;
             const fromBeat = Math.round((startSeconds * sr) / grid.beatFrames);
             const sounds = countInSounds ?? this.clicks; // game mode's chip blips, for the count-in only
+            // A count-in counts the metre about to be sung: the bar it leads into, extended backwards (one metre: as ever).
+            const bar = grid.meters ? barAt({ timeSignature: grid.timeSignature, pickupBeats: grid.pickupBeats, meters: grid.meters }, fromBeat) : null;
+            const countGrid = bar ? { beatsPerBar: bar.beats, pickupBeats: bar.start, meters: null } : grid;
             for (let i = 0; i < countInBeats; i++) {
-                this.scheduleBuffer(this.isBarLine(fromBeat - countInBeats + i, grid) ? sounds.accent : sounds.normal, first + i * beat, 1, this.playBus, first);
+                this.scheduleBuffer(this.isBarLine(fromBeat - countInBeats + i, countGrid) ? sounds.accent : sounds.normal, first + i * beat, 1, this.playBus, first);
             }
         }
         this.timeline = {
@@ -565,6 +570,7 @@ export class Engine {
     }
 
     isBarLine(beatIndex, grid) {
+        if (grid.meters) return barAt({ timeSignature: grid.timeSignature, pickupBeats: grid.pickupBeats, meters: grid.meters }, beatIndex).downbeat;
         const n = grid.beatsPerBar;
         return (((beatIndex - grid.pickupBeats) % n) + n) % n === 0;
     }

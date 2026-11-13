@@ -37,6 +37,13 @@ const AVATAR_BYTES = 2 * 1024 * 1024;
 const AVATAR_SIDE = 3000;
 const METHODS = { google: tk('settings.methods.google'), apple: tk('settings.methods.apple'), password: tk('settings.methods.password') };
 const HANDLE_REASONS = { taken: tk('settings.handle.taken'), reserved: tk('settings.handle.reserved'), invalid: tk('settings.handle.invalid') };
+// The legal pages on our site, as its footer lists them (the finish-line audit, 2026-11-13: the app linked to none).
+const LEGAL = [
+    { word: tk('settings.legal.terms'), path: '/legal/terms' },
+    { word: tk('settings.legal.privacy'), path: '/legal/privacy' },
+    { word: tk('settings.legal.guidelines'), path: '/legal/community-guidelines' },
+    { word: tk('settings.legal.accessibility'), path: '/legal/accessibility' },
+];
 const EXPORT = { none: null, preparing: tk('settings.export.preparing'), ready: tk('settings.export.ready'), failed: tk('settings.export.failed') };
 
 /** A photo's size from an image element (it reads the size without keeping a decoded copy). */
@@ -78,6 +85,7 @@ const SECTION_WORDS = { profile: tk('settings.nav.profile'), account: tk('settin
 export const SettingsView = {
     components: { InstallRow, GameElements, GameModeSwitch, AppScreen, ThemeSwitch, Field, Notice, StatusChip, Icon, Logo, Modal, SyncStatus, Switch },
     data: () => ({
+        notices: 0, // statements of reasons about this account (views/notices.js): a row only when there are any
         hereSongs: null, // a guest's songs on this device (the Settings card's tally)
         backup: null, // 'making' or 'restoring' a backup file, while it runs
         restarting: false,
@@ -101,7 +109,7 @@ export const SettingsView = {
         editing: null, // 'email' or 'password': its change open under its row
         section: 'profile', // the section in view, marked in the sidebar
     }),
-    setup: () => ({ voiceCare, setNotes, ideas, learning, prefs, account, locale, noteNames, NAMINGS, chooseNaming, METHODS, HANDLE_REASONS, EXPORT, formatDate, formatBytes, SECTIONS, SECTION_WORDS, appearanceSummary, selfHosted, CREDIT_SITE, sk, game }),
+    setup: () => ({ voiceCare, setNotes, ideas, learning, prefs, account, locale, noteNames, NAMINGS, LEGAL, chooseNaming, METHODS, HANDLE_REASONS, EXPORT, formatDate, formatBytes, SECTIONS, SECTION_WORDS, appearanceSummary, selfHosted, CREDIT_SITE, sk, game }),
     template: `
         <AppScreen :title="t('settings.title')" back="/" measure="" data-ui="screen" class="bg-ink">
             <!-- How it looks is the header's Theme button, here as on every screen (Hillel's call). -->
@@ -336,7 +344,7 @@ export const SettingsView = {
                     <h2 id="device-heading" class="text-lg font-bold text-cream">{{ t('settings.nav.device') }}</h2>
                     <InstallRow />
                     <div class="card flex flex-wrap items-center justify-between gap-4 p-5">
-                        <div class="min-w-0 flex-1"><p class="font-semibold text-cream">{{ t('settings.wipe.title') }}</p><p class="text-sm text-muted">{{ account.me ? t('settings.wipe.hint') : t('settings.wipe.hintGuest') }}</p></div>
+                        <div class="min-w-0 flex-1" data-wipe-text><p class="font-semibold text-cream">{{ t('settings.wipe.title') }}</p><p class="text-sm text-muted">{{ account.me ? t('settings.wipe.hint') : t('settings.wipe.hintGuest') }}</p></div>
                         <button type="button" class="btn-ghost btn-sm shrink-0 text-bad" :disabled="busy === 'wipe'" data-wipe-start @click="wipeDevice">{{ t('settings.wipe.button') }}</button>
                     </div>
                 </section>
@@ -346,11 +354,20 @@ export const SettingsView = {
                     <span class="min-w-0 flex-1"><span class="block font-bold text-cream">{{ t('voices.title') }}</span><span class="block text-sm text-muted">{{ t('voices.settingsHint') }}</span></span>
                     <Icon name="arrow" :size="18" class="text-muted" />
                 </a>
+                <!-- Statements of reasons (views/notices.js): only for someone who has had one. -->
+                <a v-if="account.me && notices" href="/notices" class="card-interactive flex items-center gap-4 p-5" data-notices-row @click.prevent="navigate('/notices')">
+                    <span class="grid size-10 shrink-0 place-items-center rounded-full bg-raised text-cream" aria-hidden="true"><Icon name="alert" :size="20" /></span>
+                    <span class="min-w-0 flex-1"><span class="block font-bold text-cream">{{ t('notices.title') }}</span><span class="block text-sm text-muted">{{ t('notices.settingsHint', { count: notices }) }}</span></span>
+                    <Icon name="arrow" :size="18" class="text-muted" />
+                </a>
                 <a href="/contact?from=/settings" class="card-interactive flex items-center gap-4 p-5" @click.prevent="navigate('/contact?from=/settings')">
                     <span class="grid size-10 shrink-0 place-items-center rounded-full bg-raised text-cream" aria-hidden="true"><Icon name="info" :size="20" /></span>
                     <span class="min-w-0 flex-1"><span class="block font-bold text-cream">{{ t('contact.title') }}</span><span class="block text-sm text-muted">{{ t('settings.contactHint') }}</span></span>
                     <Icon name="arrow" :size="18" class="text-muted" />
                 </a>
+                <nav :aria-label="t('settings.legal.label')" class="flex flex-wrap justify-center gap-x-5 text-sm" data-legal>
+                    <a v-for="page in LEGAL" :key="page.path" :href="siteUrl(page.path)" class="link-quiet inline-flex min-h-6 items-center text-muted">{{ t(page.word) }}</a>
+                </nav>
                 <!-- The licence's credit (the AAL): on a self-hosted install, the name, Stackapella and the address, never changed. -->
                 <p v-if="selfHosted()" class="text-center text-xs text-muted" data-credit><span translate="no">{{ t('settings.credit') }}</span> · <a href="https://stackapella.com" class="link-quiet" rel="noopener" translate="no">{{ CREDIT_SITE }}</a></p>
                     </div>
@@ -376,8 +393,7 @@ export const SettingsView = {
     computed: {
         /** The tools' hub on the public site (its own host, or this one's /tools). */
         toolsUrl() {
-            const site = publicSiteUrl();
-            return new URL('/tools', site.startsWith('/') ? location.origin : site).href;
+            return this.siteUrl('/tools');
         },
         languagesShown: () => locale.live.length > 1 || locale.lang !== 'en',
         languages: () => [...new Set([...locale.live, locale.lang])],
@@ -433,6 +449,7 @@ export const SettingsView = {
         if (!account.me) deviceSummary().then((s) => (this.hereSongs = s.songs), (error) => console.warn('What is on this device not counted', error));
         if (account.me) this.loadExport();
         if (account.me) api.usage.show().then(({ data }) => (this.usage = data), (error) => console.warn('Storage not loaded', error));
+        if (account.me) api.notices.list().then(({ data }) => (this.notices = data.length), (error) => console.warn('Notices not loaded', error));
     },
     // (One watch and one unmounted: a second of each used to replace the first, so an account
     // changing never reset the page and its timers were left running.)
@@ -451,6 +468,11 @@ export const SettingsView = {
     },
     methods: {
         /** The tools opened from here: counted once a week a device (use_tools, read against app_week). */
+        /** A page of the public site: its own host, or this one's. */
+        siteUrl(path) {
+            const site = publicSiteUrl();
+            return new URL(path, site.startsWith('/') ? location.origin : site).href;
+        },
         toolsOpened() {
             const week = Math.floor(Date.now() / (7 * 86400000));
             if (local.get('stackapella.useTools') === String(week)) return;

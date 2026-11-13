@@ -58,6 +58,10 @@ def journey(f):
     assert in_a_row == (f.size == "desktop"), f"the ways aren't {'in a row' if f.size == 'desktop' else 'stacked'}: {sizes}"
     f.run("document.querySelector(\'[data-way=parts]\').click()")  # the way starts at once
     f.wait_text(t(f, "sing.chooser.yourPart"))
+    # Each part in words before its notes (the first-session review's proposal 2, Hillel: yes): serious mode's list.
+    if f.skin == "serious":
+        words = f.js("[...document.querySelectorAll('[data-part-words]')].map((w) => w.textContent.trim())")
+        assert len(words) >= 2 and all(words) and t(f, "parts.words.lowest") in " ".join(words), f"the parts' words: {words}"
     alto_button = f"[...document.querySelectorAll('main button, .card-interactive')].find((b) => b.textContent.includes({alto!r}))"
     f.wait(alto_button, what="the alto to choose")  # game mode's part select comes with Sing (js/game/modules.js WITH_SING)
     f.run(f"{alto_button}.click()")

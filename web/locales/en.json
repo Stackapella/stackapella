@@ -1,4 +1,80 @@
 {
+    "notices": {
+        "token": {
+            "notFound": "This notice can't be found. Check the link in your email.",
+            "missing": "This link has already been used here, or it's incomplete. Open the link in your email again."
+        },
+        "draft": "These words are a draft our lawyer is still checking.",
+        "rights": "If you still disagree after a review, you may be able to take it to a certified out-of-court dispute settlement body, or to court.",
+        "review": {
+            "yourText": "What you wrote",
+            "reversed": "Reviewed on {date}: it's undone.",
+            "kept": "Reviewed on {date}: the decision stands.",
+            "waiting": "You asked for a review on {date}. We'll tell you what's decided.",
+            "closed": "This can't be reviewed any more: a review was already asked for, or it's more than 6 months old.",
+            "failed": "That didn't send. Please try again.",
+            "sent": "Sent. We'll tell you what's decided.",
+            "sending": "Sending",
+            "send": "Send",
+            "label": "Why it should be looked at again",
+            "body": "Tell us why you think this was wrong. A person looks at it again and we tell you what was decided by email. You can ask once.",
+            "title": "Ask for a review",
+            "ask": "Ask for a review",
+            "canAsk": "If you think this was a mistake, you can ask for a review once, within 6 months."
+        },
+        "state": {
+            "reversed": "Reviewed: undone",
+            "kept": "Reviewed: it stands",
+            "waiting": "Review asked"
+        },
+        "why": {
+            "coach_agreement": "It broke the coach agreement.",
+            "terms": "It broke our terms of use.",
+            "reports": "Several people reported it, so it was hidden automatically until a person looks at it.",
+            "copyright": "We received a copyright notice about it (our copyright policy explains what happens next).",
+            "community_guidelines": "It broke our community guidelines."
+        },
+        "what": {
+            "template_hidden": "Your template was taken out of the library: only you can open it now. Songs already made from it keep their copy.",
+            "idea_voice_hidden": "Your voice on someone's idea was hidden.",
+            "idea_hidden": "Your idea was taken off the Ideas shelf: only you can open it now.",
+            "choir_voice_removed": "Your voice was taken out of a choir.",
+            "comment_hidden": "Your comment in the gallery was hidden.",
+            "coach_suspended": "Your coaching was suspended, and your open reviews refunded.",
+            "coach_paused": "Your coaching is paused: your profile and offerings aren't available for now.",
+            "account_suspended": "Your Stackapella account was suspended: it can't be signed in to.",
+            "account_limited": "What your account can share and send is limited for now.",
+            "harmony_removed": "Your shared harmony was taken down for good.",
+            "harmony_hidden": "Your shared harmony was hidden: its link shows that it isn't available."
+        },
+        "kind": {
+            "template_hidden": "A template was taken out of the library",
+            "idea_voice_hidden": "Your voice on an idea was hidden",
+            "idea_hidden": "An idea was taken off the shelf",
+            "choir_voice_removed": "Your voice was taken out of a choir",
+            "comment_hidden": "A comment was hidden",
+            "coach_suspended": "Your coaching was suspended",
+            "coach_paused": "Your coaching is paused",
+            "account_suspended": "Your account was suspended",
+            "account_limited": "Your account is limited",
+            "harmony_removed": "A shared harmony was taken down",
+            "harmony_hidden": "A shared harmony was hidden"
+        },
+        "readRule": "Read it",
+        "byPerson": "By a person at Stackapella.",
+        "automatic": "Automatically, before a person looked at it.",
+        "howLabel": "How it was decided",
+        "noteLabel": "Our note",
+        "whyLabel": "Why",
+        "whatLabel": "What was done",
+        "settingsHint": "{count, plural, one {One about your account or what you shared} other {# about your account or what you shared}}",
+        "loadFailed": "Your notices didn't load.",
+        "none": "Nothing you shared has been hidden, and your account isn't limited.",
+        "noneTitle": "No notices",
+        "intro": "When something you shared is hidden or taken down, or your account is limited, we tell you here what was done and why. You can ask for a review.",
+        "oneTitle": "A notice about your account",
+        "title": "Notices"
+    },
     "styles": {
         "keyDrift": {
             "held": "You held your key to the end, and {intervals}% of your intervals were in tune.",
@@ -335,6 +411,16 @@
         "bass": "Bass",
         "default": {
             "track": "Track {number}"
+        },
+        "words": {
+            "tune": "The tune",
+            "tuneHighest": "The tune, the highest part",
+            "tuneLowest": "The tune, the lowest part",
+            "lowest": "The lowest part",
+            "aboveTune": "Above the tune",
+            "underTune": "Just under the tune",
+            "under": "Under the {part}",
+            "underMen": "Under the {part}, often men"
         }
     },
     "music": {
@@ -702,6 +788,39 @@
         }
     },
     "admin": {
+        "reasonTold": "They read this as their notice's note, and the audit log keeps it, so write it to them.",
+        "reasonToldLabel": "Your note to them",
+        "appeals": {
+            "cannotReverse": "This can't be undone: the harmony was removed, or a later restriction on it still stands. Decide that one first.",
+            "alreadyDecided": "This review was already decided.",
+            "savedReversed": "Reversed. They're told.",
+            "savedKept": "Kept. They're told.",
+            "reverseIt": "Reverse it",
+            "keepIt": "Keep it",
+            "noteHelp": "They read this with the decision, so write it to them.",
+            "note": "Your note to them",
+            "reversedHint": "Undone where it can be: the harmony back, the account unsuspended, its trust back to earned, the coaching approved again.",
+            "reversed": "Reverse it",
+            "keptHint": "The decision stands. They're told, with your note.",
+            "kept": "Keep it",
+            "decisionLabel": "Decision",
+            "decideTitle": "Decide {name}'s review",
+            "decide": "Decide",
+            "decidedOn": "Decided {when}",
+            "theyWrote": "They wrote, {when}",
+            "ourNote": "Our note:",
+            "why": "Why:",
+            "automatic": "automatic",
+            "noticeOn": "notice {when}",
+            "none": "No decided reviews yet",
+            "noneWaiting": "No reviews waiting",
+            "status": {
+                "decided": "Decided",
+                "waiting": "Waiting"
+            },
+            "statusLabel": "Show",
+            "intro": "People told that something they shared was hidden or taken down, or that their account was limited, asked for a review. Look again, then keep it or reverse it. They read your note."
+        },
         "title": "Admin",
         "loading": "Loading",
         "loadFailed": "The admin couldn't load.",
@@ -723,6 +842,8 @@
             "editor": "Editor"
         },
         "nav": {
+            "appealsHint": "Reviews people asked for",
+            "appeals": "Appeals",
             "live": "Live",
             "liveHint": "Who's here right now, and the last 24 hours' sign-ups and activity.",
             "requests": "Requests",
@@ -2363,7 +2484,7 @@
             },
             "sheet": {
                 "suspend": "Suspend {name}",
-                "suspendBody": "They won't be able to sign in by any route, and every session they have ends now. Your reason is kept in the audit log and is what you'd tell them if they ask why.",
+                "suspendBody": "They won't be able to sign in by any route, and every session they have ends now. Your reason goes to them by email as their notice's note, and the audit log keeps it.",
                 "unsuspend": "Unsuspend {name}",
                 "unsuspendBody": "They can sign in again.",
                 "trust": "Set {name}'s trust level",
@@ -4191,6 +4312,13 @@
         }
     },
     "settings": {
+        "legal": {
+            "accessibility": "Accessibility",
+            "guidelines": "Community guidelines",
+            "privacy": "Privacy",
+            "terms": "Terms",
+            "label": "Legal"
+        },
         "tools": {
             "hint": "A tuner, a range test, a metronome and more, on our site",
             "title": "Free tools"
@@ -6936,6 +7064,12 @@
         }
     },
     "contact": {
+        "diagnostics": {
+            "noSound": "None noted on this visit",
+            "placeholder": "What were you doing when it happened? Which screen, and what did you hear, or not hear?",
+            "intro": "Tell us what went wrong with the sound. Your message goes with your device's details and the sound problems from this visit, every line listed below, and never any audio.",
+            "title": "Send diagnostics"
+        },
         "title": "Contact us",
         "intro": "Hillel reads every message and replies by email.",
         "about": "What's it about?",
@@ -6953,6 +7087,7 @@
         "details": "Include device details",
         "detailsHint": "{device} · app {version}. Helps with recording problems.",
         "context": {
+            "sound": "Sound problems",
             "version": "App version",
             "device": "Device",
             "page": "Page",
@@ -7043,6 +7178,7 @@
         }
     },
     "micHelp": {
+        "sendDiagnostics": "Send diagnostics",
         "tryAgain": "Try again",
         "trying": "Trying the mic...",
         "reload": "Reload and try",
@@ -7783,11 +7919,6 @@
     "game": {
         "wrap": {
             "nudgeTitle": "CONTINUE TOMORROW?"
-        },
-        "groups": {
-            "title": "Co-op",
-            "start": "Start co-op",
-            "kick": "2P co-op · your choir groups"
         },
         "settings": {
             "intro": "Game mode's extras, one at a time. With reduced motion on your device, they stay still.",

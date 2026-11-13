@@ -108,7 +108,7 @@ final class SongStories
         $keys = $file === $english ? null : self::keys((string) file_get_contents($english));
 
         // Parsed once per version of the file (its hash is in the key), on the file store: never the database.
-        return Cache::store('file')->rememberForever('song-story:'.self::PARSER.':'.$slug.':'.sha1($text.json_encode($keys)), static fn (): array => self::parse($slug, $file === $english ? 'en' : $language, $text, $keys));
+        return Cache::store((string) config('content.stories_cache', 'file'))->rememberForever('song-story:'.self::PARSER.':'.$slug.':'.sha1($text.json_encode($keys)), static fn (): array => self::parse($slug, $file === $english ? 'en' : $language, $text, $keys));
     }
 
     /** The first 12 hex of a file's sha256: what a translation names in `translatedFrom`. */

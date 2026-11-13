@@ -13,6 +13,68 @@ const pc = (n) => ((n % 12) + 12) % 12;
 export function beatsPerBar(timeSignature) {
     return { '4/4': 4, '3/4': 3, '6/8': 2, '2/4': 2 }[timeSignature] ?? 4;
 }
+
+// ---- Metre changes (docs/meters-plan.md) --------------------------------------------------------------------------
+// A song may change time signature mid-song: `meters`, a list of `{ beat, timeSignature }` in beats from the start, each
+// holding until the next. A beat keeps its length across a change (6/8 counts dotted quarters, 4/4 quarters, so a 6/8
+// verse's dotted quarter is the 4/4 chorus's quarter). A song with no `meters` takes exactly the old path: its bar lines
+// at the pickup plus whole bars of its one `timeSignature`, extended backwards for the count-in.
+
+const EPS = 1e-6;
+
+/** The song's metre changes after its start, in order: `[{ beat, timeSignature }]` (anything else left out). */
+export function meterChanges(song) {
+    return (Array.isArray(song?.meters) ? song.meters : [])
+        .filter((m) => m && Number.isFinite(m.beat) && m.beat > EPS && typeof m.timeSignature === 'string')
+        .map((m) => ({ beat: m.beat, timeSignature: m.timeSignature }))
+        .sort((a, b) => a.beat - b.beat);
+}
+
+/** The time signature in force at `beat`: the song's own, then each change from its beat on. */
+export function meterAt(song, beat) {
+    let timeSignature = song?.timeSignature ?? '4/4';
+    for (const m of meterChanges(song)) if (m.beat <= beat + EPS) timeSignature = m.timeSignature;
+    return timeSignature;
+}
+
+/**
+ * The bar `beat` falls in: `{ start, beats, timeSignature, downbeat }` (`downbeat`: the beat is the bar's first). Before
+ * the pickup (a count-in, the pickup itself) bars run backwards from it in the song's first metre, as they always have;
+ * from the pickup on, each metre runs in whole bars from where it starts.
+ */
+export function barAt(song, beat) {
+    const pickup = song?.pickupBeats ?? 0;
+    const first = song?.timeSignature ?? '4/4';
+    const runs = [{ from: pickup, timeSignature: first }, ...meterChanges(song).filter((m) => m.beat > pickup + EPS).map((m) => ({ from: m.beat, timeSignature: m.timeSignature }))];
+    let run = runs[0];
+    for (const r of runs) if (r.from <= beat + EPS) run = r;
+    const n = beatsPerBar(run.timeSignature);
+    const k = Math.floor((beat - run.from) / n + EPS);
+    let start = run.from + k * n;
+    let beats = n;
+    // A change that doesn't fall on a bar line cuts the bar short (the song check refuses that; this keeps it sane).
+    const next = runs.find((r) => r.from > start + EPS);
+    if (next && next.from < start + n - EPS) beats = next.from - start;
+    if (start > beat + EPS) start -= n;
+    return { start, beats, timeSignature: run.timeSignature, downbeat: Math.abs(beat - start) < EPS };
+}
+
+/** The bars from `fromBeat` (default 0) up to `toBeat`: `[{ start, beats, timeSignature }]`, a pickup its own short bar. */
+export function bars(song, toBeat, fromBeat = 0) {
+    const out = [];
+    const pickup = song?.pickupBeats ?? 0;
+    let at = fromBeat;
+    if (pickup > EPS && at < pickup - EPS) {
+        out.push({ start: at, beats: pickup - at, timeSignature: song?.timeSignature ?? '4/4' });
+        at = pickup;
+    }
+    while (at < toBeat - EPS) {
+        const bar = barAt(song, at);
+        out.push({ start: bar.start, beats: bar.beats, timeSignature: bar.timeSignature });
+        at = bar.start + bar.beats;
+    }
+    return out;
+}
 const DEGREES = { I: 0, II: 2, III: 4, IV: 5, V: 7, VI: 9, VII: 11 };
 // A chord's tones by quality, in semitones from its root.
 export const QUALITIES = {

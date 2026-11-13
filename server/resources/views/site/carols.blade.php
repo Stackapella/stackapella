@@ -105,6 +105,12 @@
 
         @include('site._songbook', ['songs' => $carols, 'heading' => __('site.carols.songbook'), 'sub' => __('site.carols.songbook_sub'), 'subPart' => __('site.carols.songbook_part'), 'places' => 'site.carols.places'])
 
+        {{-- More to sing: the carols' nearest collections that are pages now (SongCollections::SEE_ALSO), the villancicos. --}}
+        @php($seeAlso = app(\App\Support\Pages\SongCollections::class)->seeAlso('christmas-carols'))
+        @if ($seeAlso !== [])
+            <p class="s-wrap s-xsee">{{ __('site.see_also') }} @foreach ($seeAlso as $other)<a href="{{ $other['url'] }}" class="s-lk">{{ $other['name'] }}</a>@if (! $loop->last), @endif @endforeach</p>
+        @endif
+
         <section class="s-wrap s-xchoirs" aria-labelledby="choirs-h">
             <div class="s-xband">
                 <div>

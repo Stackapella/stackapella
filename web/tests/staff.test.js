@@ -1,5 +1,6 @@
 // The staff (js/sing.js staffLayout): notes on the right lines, with the key's accidentals.
 import { clefFor, keySignature, spell, staffLayout, staffPitch } from '/js/sing.js';
+import { staffRowWidth, staffRows, staffSpacing } from '/js/components/sing/staff.js';
 import { assert, test } from './harness.js';
 
 const one = (pitch, options) => staffLayout([{ beat: 0, length: 1, pitch }], options).notes[0];
@@ -68,4 +69,31 @@ test('staff: a position on the staff is the pitch staffLayout puts there, in the
             }
         }
     }
+});
+
+test("staff: on a phone, notes are spaced so their words never touch, and a long line breaks at bar lines into rows that fit", () => {
+    // A busy line: forty sixteenths with long syllables, bar lines every two beats (2/4).
+    const words = ['Ye-', 'ru-', 'sho-', 'la-', 'yim', 'hot', 'vi-', 'der', 'oyf-', 'ge-', 'lebt,'];
+    const notes = Array.from({ length: 40 }, (_, i) => ({ beat: i * 0.25, length: 0.25, pitch: 65, lyric: words[i % words.length], position: 4 }));
+    const { xs } = staffSpacing(notes);
+    for (let i = 1; i < notes.length; i++) {
+        const need = (notes[i - 1].lyric.length * 8 + notes[i].lyric.length * 8) / 2;
+        assert(xs[i] - xs[i - 1] >= need, `notes ${i - 1} and ${i}: ${xs[i] - xs[i - 1]} apart, the words need ${need}`);
+    }
+    // By beat alone (the editor's), nothing moves.
+    const plain = staffSpacing(notes, { spaced: false }).xs;
+    assert(plain.every((x, i) => Math.abs(x - i * 0.25 * 46) < 1e-9), 'the editor keeps beat spacing');
+    const layout = { notes, bars: [2, 4, 6, 8], signature: { type: 'flat', count: 4 } };
+    const starts = staffRows(layout, 4, 340);
+    assert(starts.length > 1, 'a phone breaks it');
+    starts.forEach((from, r) => {
+        const to = starts[r + 1] ?? notes.length;
+        assert(from === 0 || Number.isInteger(notes[from].beat / 2), `row ${r} starts mid-bar, at beat ${notes[from].beat}`);
+        const width = staffRowWidth(notes.slice(from, to), 4);
+        const oneBar = notes.slice(from, to).every((n) => Math.floor(n.beat / 2) === Math.floor(notes[from].beat / 2));
+        assert(width <= 340 || oneBar, `row ${r}: ${width} wide`);
+    });
+    // A line that fits stays one row; with no width measured yet, one row too.
+    assert(staffRows({ notes: notes.slice(0, 6), bars: [], signature: { count: 0 } }, 0, 400).join() === '0', 'a short line');
+    assert(staffRows(layout, 4, 0).join() === '0', 'before the width is known');
 });

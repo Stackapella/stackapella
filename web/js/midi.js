@@ -3,7 +3,8 @@
 // as lyric events. Pure: a template in, the file's bytes out, unit-tested in tests/sheet-music.test.js.
 
 import { keySignature } from './sing.js';
-import { metreOf, rightsOf } from './musicxml.js';
+import { metreOf, quartersAt, rightsOf } from './musicxml.js';
+import { meterChanges } from './theory.js';
 
 export const TICKS = 480; // per quarter note
 
@@ -44,6 +45,8 @@ export function toMidi(template, { partKeys = null } = {}) {
     if (!parts.length) throw new Error('No written parts to export');
     const metre = metreOf(template.timeSignature);
     const perBeat = Math.round(metre.quarters * TICKS);
+    // A beat in ticks from the start, metre by metre (one metre: beat x perBeat, as ever; docs/meters-plan.md).
+    const ticksAt = (beat) => Math.round(quartersAt(template, beat) * TICKS);
     // MIDI's time 0 is bar 1's downbeat: an upbeat starts the bar's missing beats in, so the bars line up.
     const upbeat = template.pickupBeats ? Math.round((metre.perBar - template.pickupBeats) * perBeat) : 0;
     const sig = keySignature(template.key || 'C');
@@ -55,6 +58,14 @@ export function toMidi(template, { partKeys = null } = {}) {
         { at: 0, order: 2, bytes: meta(0x58, [metre.beats, Math.log2(metre.beatType), metre.beatType === 8 ? 36 : 24, 8]) },
         { at: 0, order: 3, bytes: meta(0x59, [fifths & 255, /m$/.test(template.key ?? '') ? 1 : 0]) },
     ];
+    // Each metre change: its time signature, and the tempo in quarters (a 6/8 beat is a dotted quarter).
+    meterChanges(template).forEach((change) => {
+        const now = metreOf(change.timeSignature);
+        const at = upbeat + ticksAt(change.beat);
+        const us = Math.round(60000000 / (template.tempo * now.quarters));
+        head.push({ at, order: 1, bytes: meta(0x51, [(us >> 16) & 255, (us >> 8) & 255, us & 255]) });
+        head.push({ at, order: 2, bytes: meta(0x58, [now.beats, Math.log2(now.beatType), now.beatType === 8 ? 36 : 24, 8]) });
+    });
     const rights = rightsOf(template);
     if (rights) head.push({ at: 0, order: 4, bytes: meta(0x02, utf8(rights)) });
     const tracks = [track(head)];
@@ -65,8 +76,8 @@ export function toMidi(template, { partKeys = null } = {}) {
             { at: 0, order: 1, bytes: [0xc0 | channel, 52] }, // choir aahs
         ];
         for (const n of part.guide.notes) {
-            const on = upbeat + Math.round(n.beat * perBeat);
-            const off = Math.max(on + 1, upbeat + Math.round((n.beat + n.length) * perBeat));
+            const on = upbeat + ticksAt(n.beat);
+            const off = Math.max(on + 1, upbeat + ticksAt(n.beat + n.length));
             if (n.lyric) events.push({ at: on, order: 2, bytes: meta(0x05, utf8(n.lyric.replace(/-$/, ''))) });
             events.push({ at: on, order: 3, bytes: [0x90 | channel, n.pitch, 80] });
             events.push({ at: off, order: 1, bytes: [0x80 | channel, n.pitch, 0] }); // offs before the next note's on

@@ -1451,6 +1451,27 @@ select:disabled {
 .s-ch[data-off] .s-ch-name b { color: var(--color-muted); }
 [data-playing] .s-ch:not([data-off]) .s-disc:not(.gem) { box-shadow: 0 0 0 5px color-mix(in srgb, var(--c) 28%, transparent), 0 0 24px color-mix(in srgb, var(--c) 60%, transparent); }
 .s-ch.s-is-you { box-shadow: inset 0 0 0 2px var(--c); }
+/* The hero's rows outside the Studio (a singer, then the fresh-eyes check, 2026-11-13: one control): the row itself plays
+   its part alone ([data-solo] while it does), and a small My part at its end makes it yours. */
+.s-mixer:not(.s-mixer-studio) .s-ch { grid-template-columns: 40px minmax(0, 1fr) auto; grid-template-areas: "disc name state" "disc wave state"; }
+/* A small play mark before the name says the row plays its part. */
+.s-ch-play { display: inline-grid; place-items: center; width: 18px; height: 18px; margin-inline-end: -2px; border-radius: 50%; background: var(--c); color: var(--ct); align-self: center; }
+.s-ch-play svg { margin-inline-start: 1px; }
+/* The My part pill says it, so the name's You badge stays for the Studio. */
+.s-mixer:not(.s-mixer-studio) .s-you { display: none; }
+/* Your row keeps its line (the badge it made room for is gone), and a line wraps rather than cutting off. */
+.s-mixer:not(.s-mixer-studio) .s-ch.s-is-you .s-ch-name small { display: inline; }
+.s-mixer:not(.s-mixer-studio) .s-ch-name { flex-wrap: wrap; row-gap: 2px; white-space: normal; }
+.s-mixer:not(.s-mixer-studio) .s-ch-name small { flex-basis: 100%; overflow: visible; }
+.s-ch-mine { grid-area: state; justify-self: end; align-self: center; z-index: 2; display: inline-flex; align-items: center; min-height: 44px; padding-inline: 12px; border-radius: 999px; font-size: 12.5px; font-weight: 800; white-space: nowrap; color: var(--color-muted); box-shadow: inset 0 0 0 1.5px var(--color-line); }
+.s-ch-mine:hover { color: var(--color-cream); }
+.s-ch-mine[aria-checked="true"] { color: var(--color-cream); box-shadow: inset 0 0 0 2px var(--c); }
+.s-ch-mine[aria-checked="true"] .s-mine-off, .s-ch-mine:not([aria-checked="true"]) .s-mine-on { display: none; }
+.s-ch[data-solo] { background: color-mix(in srgb, var(--c) 16%, var(--color-raised)); box-shadow: inset 0 0 0 2px var(--c); }
+.s-mix-lead { margin-bottom: 8px; font-size: 13.5px; font-weight: 600; color: var(--color-muted); }
+/* A collection's hero keeps its tone's dark ground in a light theme too, where a part's ink (--ci) is dark: there My part
+   takes the row's own ink (both skins). */
+.s-xcoll-try .s-ch-mine[aria-checked="true"] { color: inherit; }
 /* The row is a radio (bring this voice forward) under its switch (on or off): the radio covers the
    row, the switch sits above it with a 44 px tap area. "You" follows the voice brought forward. */
 .s-ch > .s-ch-pick { position: absolute; inset: 0; z-index: 1; border-radius: inherit; cursor: pointer; }
@@ -2689,7 +2710,8 @@ a.s-vt-rung:hover { background: color-mix(in srgb, var(--color-cream) 5%, transp
 .s-xtonight .s-play svg { width: 16px; height: 16px; }
 /* The page's one inviting play (the design rules): a breathing ring until it's first pressed, none under reduced motion. */
 .s-xtonight[data-player]:not([data-played]):not([data-loading]):not([data-playing]) .s-play::after { animation: s-breathe 2.4s ease-out infinite; }
-@media (prefers-reduced-motion: reduce) { .s-xtonight[data-player] .s-play::after { animation: none; } }
+/* Under reduced motion, none: the same selector, so its :not()s don't outweigh this (frontend2's audit, 2026-11-13). */
+@media (prefers-reduced-motion: reduce) { .s-xtonight[data-player]:not([data-played]):not([data-loading]):not([data-playing]) .s-play::after { animation: none; } }
 .s-xtonight small { font-size: 12px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: #E9C46A; }
 .s-xtonight b { font-size: 16px; }
 .s-xtonight > a:hover b, .s-xtonight > a:focus-visible b { text-decoration: underline; text-underline-offset: 4px; }
@@ -2805,6 +2827,8 @@ a.s-vt-rung:hover { background: color-mix(in srgb, var(--color-cream) 5%, transp
 .s-xbook-foot { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px 24px; margin-top: 16px; font-size: 14px; color: var(--color-muted); }
 /* Where the songs come from: the intro, after the songs, its heading at left from 900 px. */
 .s-xfrom { display: grid; gap: 18px; }
+.s-xsee { margin-top: 18px; font-size: 15px; color: var(--color-muted); }
+.s-xsee .s-lk { font-weight: 600; }
 .s-xfrom h2 { font-size: clamp(28px, 3.6vw, 40px); line-height: 1.1; font-weight: 800; letter-spacing: -0.02em; text-wrap: balance; }
 .s-xfrom h2 em { font-weight: 400; }
 .s-xfrom p { max-width: 65ch; font-size: 17px; line-height: 1.65; color: var(--color-muted); }
@@ -8521,6 +8545,9 @@ a.s-vt-rung:hover { background: color-mix(in srgb, var(--color-cream) 5%, transp
 .s-cab-live::before { content: ''; width: 7px; height: 7px; border-radius: 9px; background: #ff4d5e; box-shadow: 0 0 8px #ff4d5e; }
 .s-cab-combo { margin-inline-start: auto; color: #ff4fa8; }
 .s-cab-combo b { color: #f7f4ff; font-weight: 400; }
+/* Score words wait for a score (Hillel, 2026-11-13, first-session proposal 5): no LIVE, and the combo only while the take
+   plays (PRESS START shows before it and after it ends). */
+.s-cab-live, .s-cabinet:has([data-cab-press]:not([hidden])) .s-cab-combo { display: none; }
 .s-cab-screen { position: relative; height: 240px; border-radius: 14px; overflow: hidden; background: #0c0a17; }
 /* Notes arrive from the right: the lane fades in over its last 56px, so a note's pill on the still first frame
    reads as coming in, not cut off at the edge (the first-15 review, at 390px). Pinned to the screen: the lane sets
@@ -9306,11 +9333,11 @@ a.s-vt-rung:hover { background: color-mix(in srgb, var(--color-cream) 5%, transp
 [data-skin='game'] .ge-vs-hazard { display: block; height: 0.6rem; background: var(--arc-hazard, repeating-linear-gradient(-45deg, var(--ge-yellow) 0 12px, #14101f 12px 24px)); }
 [data-skin='game'] .ge-vs-band { position: relative; margin: 0; padding: 1.4rem 1rem; background: #d92b3e; color: #fff; text-align: center; text-transform: uppercase; font: 400 clamp(1.15rem, 5.5vw, 1.75rem)/1.2 var(--ge-hud); text-shadow: 3px 3px 0 #5a0b14; }
 [data-skin='game'] .ge-vs-band::after { content: ''; position: absolute; inset: 0; background: #fff; opacity: 0; animation: ge-vs-flash 260ms ease-out 420ms both; }
-[data-skin='game'] .ge-vs-who { display: grid; justify-items: center; gap: 0.35rem; text-align: center; animation: ge-vs-in 320ms ease-out 760ms both; }
+[data-skin='game'] .ge-vs-who { display: grid; justify-items: center; gap: 0.35rem; text-align: center; animation: ge-vs-in 280ms ease-out 460ms both; }
 [data-skin='game'] .ge-vs-face { display: grid; place-items: center; width: 4.5rem; height: 4.5rem; margin-bottom: 0.5rem; background: var(--ge-part); color: var(--ge-part-text, #07060e); font: 400 1.4rem/1 var(--ge-hud); box-shadow: inset 0 0 0 3px rgb(0 0 0 / 0.25), 4px 4px 0 rgb(0 0 0 / 0.5); }
 [data-skin='game'] .ge-vs-name { margin: 0; font: 400 clamp(1.5rem, 7vw, 2.25rem)/1.15 var(--ge-hud); color: var(--color-cream); }
 [data-skin='game'] .ge-vs-says { margin: 0; font: 400 11px/1.4 var(--ge-hud); letter-spacing: 0.06em; text-transform: uppercase; color: var(--ge-yellow); }
-[data-skin='game'] .ge-vs-card { display: grid; grid-template-columns: 1fr auto; gap: 1rem; margin: 0; padding: 1.1rem 1.25rem; background: var(--color-panel); box-shadow: inset 0 0 0 2px var(--ge-part), 6px 6px 0 rgb(0 0 0 / 0.5); animation: ge-vs-in 320ms ease-out 960ms both; }
+[data-skin='game'] .ge-vs-card { display: grid; grid-template-columns: 1fr auto; gap: 1rem; margin: 0; padding: 1.1rem 1.25rem; background: var(--color-panel); box-shadow: inset 0 0 0 2px var(--ge-part), 6px 6px 0 rgb(0 0 0 / 0.5); animation: ge-vs-in 280ms ease-out 580ms both; }
 [data-skin='game'] .ge-vs-card dt { font: 400 9px/1.4 var(--ge-hud); letter-spacing: 0.06em; text-transform: uppercase; color: var(--color-muted); }
 [data-skin='game'] .ge-vs-card dd { margin: 0.3rem 0 0; }
 [data-skin='game'] .ge-vs-title { font-weight: 700; font-size: 1.2rem; color: var(--color-cream); }
@@ -9318,7 +9345,9 @@ a.s-vt-rung:hover { background: color-mix(in srgb, var(--color-cream) 5%, transp
 [data-skin='game'] .ge-vs-beat { text-align: end; }
 [data-skin='game'] .ge-vs-score { font: 400 1.6rem/1.2 var(--ge-hud); color: var(--ge-yellow); text-shadow: var(--ge-shadow); }
 [data-skin='game'] .ge-vs-yours { font-size: 0.8rem; color: var(--color-muted); }
-[data-skin='game'] .ge-vs-foot { display: grid; justify-items: center; gap: 0.75rem; animation: ge-vs-in 320ms ease-out 1160ms both; }
+/* Accept is in under a second (the finish-line audit, 2026-11-13: at 1.5 s a first look found the card half lit and no
+   action, so it read as disabled); the same order, each in turn. */
+[data-skin='game'] .ge-vs-foot { display: grid; justify-items: center; gap: 0.75rem; animation: ge-vs-in 280ms ease-out 680ms both; }
 [data-skin='game'] .ge-vs-later { display: inline-flex; align-items: center; min-height: 44px; padding-inline: 0.75rem; font: 400 11px/1 var(--ge-hud); letter-spacing: 0.06em; text-transform: uppercase; color: var(--color-muted); }
 [data-skin='game'] .ge-vs-later:hover, [data-skin='game'] .ge-vs-later:focus-visible { color: var(--color-cream); }
 @keyframes ge-vs-slide { from { opacity: 0; transform: translateX(-110%) rotate(-4deg); } to { opacity: 1; transform: rotate(-4deg); } }
@@ -9488,8 +9517,24 @@ a.s-vt-rung:hover { background: color-mix(in srgb, var(--color-cream) 5%, transp
 :root[data-skin='game']:not([data-game-off~='select']) [data-tracks] section [data-track-name]::before { content: counter(ge-player) 'P'; display: inline-block; margin-inline-end: 0.45rem; padding: 0.1rem 0.3rem; border-radius: 4px; background: var(--color-raised); color: var(--ge-yellow); font: 400 8.5px/1.5 var(--ge-hud); vertical-align: 0.15em; }
 :root[data-skin='game']:not([data-game-off~='select']) [data-tracks] section[data-next-track] { box-shadow: 0 0 0 2px var(--color-accent); border-radius: var(--r-control); }
 :root[data-skin='game']:not([data-game-off~='select']) [data-tracks] section[data-next-track] [data-track-name]::before { background: var(--color-accent); color: var(--color-accent-ink); }
-:root[data-skin='game']:not([data-game-off~='select']) [data-record]::before { content: '▸'; display: inline-block; margin-inline-end: 0.35rem; animation: ge-blink 500ms steps(1) 5; }
-@media (prefers-reduced-motion: reduce) { :root[data-skin='game'] [data-record]::before { animation: none; } }
+/* Record had a blinking ▸ before its words; it has its own disc now, so the mark read as stray (the finish-line audit,
+   2026-11-13) and went. The screen font is wider than the calm one, so the studio's lines that cut off there wrap
+   instead: the song's line under its name to two lines (a tap opens it all), a part's state and the place under the
+   time in full. */
+:root[data-skin='game'][data-gs] [data-song-meta] { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; white-space: normal; }
+:root[data-skin='game'][data-gs] [data-tracks] [data-status] { white-space: normal; text-overflow: clip; overflow: visible; line-height: 1.15; }
+/* The place under the time keeps one line (a second would make the dock taller than the room the page keeps for it): its
+   box grows to fit it instead. */
+:root[data-skin='game'][data-gs] :has(> [data-bar-beat]) { width: auto; min-width: 4rem; }
+:root[data-skin='game'][data-gs] [data-bar-beat] { text-overflow: clip; overflow: visible; }
+@media (max-width: 359.98px) {
+    /* A 320 phone: the box keeps its 64 px so Record keeps its words; the place a size smaller fits it. */
+    :root[data-skin='game'][data-gs] :has(> [data-bar-beat]) { width: 4rem; }
+    :root[data-skin='game'][data-gs] [data-bar-beat] { font-size: 9.5px; letter-spacing: -0.02em; }
+}
+/* Settings' Delete everything here is wide in the pixel face: its words keep a column of their own (the button wraps under
+   them on a phone) rather than one word a line beside it. */
+:root[data-skin='game'][data-gs] [data-wipe-text] { flex-basis: 14rem; }
 
 /* Initials: the arcade letter picker (three tall letters, ▲ and ▼ for each, the one now in your
    accent), and a board's entry shown by initials in HUD type. The picker is a form: plain in both
@@ -10000,6 +10045,16 @@ a.s-vt-rung:hover { background: color-mix(in srgb, var(--color-cream) 5%, transp
 :root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-spart-facts { gap: 8px; border-block: 0; }
 :root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-spart-facts > div, :root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-spart-facts > div + div { padding: 10px 14px; border: var(--arc-edge-w) solid var(--arc-line); background: var(--arc-well); }
 :root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) :is(.s-spart-facts dt, .s-spart-step-k) { font-family: var(--a-hud); font-size: 10px; font-weight: 400; text-transform: uppercase; }
+/* Idea 6 (Hillel's yes, 2026-11-13): the facts as HUD chips, the carols' totals look following the theme: each fact on the
+   hard shadow, its value in the HUD face in the arcade's yellow (ink on a light theme, for AA). */
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-spart-facts > div { box-shadow: 3px 3px 0 var(--arc-shadow-c); }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-spart-facts dd { font-family: var(--a-hud); font-size: 14px; font-weight: 400; line-height: 1.5; color: var(--arc-yellow); }
+:root[data-skin='game'][data-gs][data-theme$='-light'] body.s-arcade:not(.s-calm) .s-spart-facts dd { color: var(--color-cream); }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-spart-facts dd a { color: inherit; }
+@media (max-width: 47.99rem) {
+    :root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-vt-facts > div { padding-block: 12px; }
+    :root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-spart-facts dd { font-size: 13px; }
+}
 :root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-spart-steps li { padding: 18px; border: var(--arc-frame) solid var(--arc-line); background: var(--arc-panel); }
 :root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-spart-about-ruled { border-top: var(--arc-edge-w) dashed var(--arc-line); }
 /* /songs as the songbook in the 90s design's STAGE SELECT (docs/design-rules.md; marketing's .s-sh-*, each collection's
@@ -10229,6 +10284,15 @@ a.s-vt-rung:hover { background: color-mix(in srgb, var(--color-cream) 5%, transp
    meaning are read, so they take the calm face; a stanza's label (VERSE 1, CHORUS) is the HUD's. */
 :root[data-skin='game'][data-gs] body.s-arcade :is(.s-sg-words-intro, .s-sg-meaning) { font-family: "Figtree", system-ui, sans-serif; font-size-adjust: none; font-synthesis-weight: auto; }
 :root[data-skin='game'][data-gs] body.s-arcade .s-sg-label { font-family: var(--a-hud); font-size: 10px; font-weight: 400; letter-spacing: .06em; }
+/* hear-solo, the arcade half: the soloed row a selected stage (its part's frame, thicker, on the hard shadow), muted rows
+   on a dashed edge (a shape, not only a dim), My part a square pixel tag that frames in its colour when it's yours, the
+   play mark a square block. */
+:root[data-skin='game'][data-gs] body.s-arcade .s-ch[data-solo] { box-shadow: inset 0 0 0 var(--arc-frame) var(--c), 4px 4px 0 var(--arc-shadow-c); }
+:root[data-skin='game'][data-gs] body.s-arcade .s-ch[data-off] { box-shadow: none; outline: var(--arc-edge-w) dashed var(--color-line); outline-offset: calc(var(--arc-edge-w) * -1); }
+:root[data-skin='game'][data-gs] body.s-arcade :is(.s-ch-mine, .s-ch-play) { border-radius: 0; }
+:root[data-skin='game'][data-gs] body.s-arcade .s-ch-mine { font-family: var(--a-hud); font-size: 9.5px; font-weight: 400; letter-spacing: .04em; text-transform: uppercase; }
+:root[data-skin='game'][data-gs] body.s-arcade .s-ch-mine[aria-checked='true'] { box-shadow: inset 0 0 0 var(--arc-edge-w) var(--c), 2px 2px 0 var(--arc-shadow-c); }
+:root[data-skin='game'][data-gs] body.s-arcade .s-mix-lead { font-family: var(--a-hud); font-size: 10px; font-weight: 400; letter-spacing: .06em; text-transform: uppercase; }
 /* arcade-screen:end */
 /* Game mode's circles are arcade coins (Hillel's pick of two, 2026-11-08; the course map's stages, .ge-map-node, above):
    every bubble that reaches game mode (serious mode's look, docs/bubble-circles-plan.md: the avatars, New song's +, the

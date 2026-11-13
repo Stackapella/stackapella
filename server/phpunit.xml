@@ -37,6 +37,8 @@
         <env name="BROADCAST_CONNECTION" value="null"/>
         <!-- As production (.do/app.yaml): a cache read is a query here too. -->
         <env name="CACHE_STORE" value="database" force="true"/>
+        <!-- A story's parse: in memory, never one a previous run left in the file cache (config/content.php). -->
+        <env name="STORIES_CACHE" value="array" force="true"/>
         <env name="DB_CONNECTION" value="mysql" force="true"/>
         <env name="MAIL_MAILER" value="array" force="true"/>
         <env name="QUEUE_CONNECTION" value="sync" force="true"/>

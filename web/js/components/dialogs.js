@@ -824,7 +824,7 @@ export const TemplateDialog = {
     components: { Modal, Icon },
     // locked: a guest on a song that needs a free account (the catalogue's summary: no notes): its clip, and the way to an account.
     // load: the song's notes still coming ('loading'), or why they didn't ('failed', 'offline'); starting: Start was tapped.
-    props: { template: { type: Object, required: true }, previewing: Boolean, preparing: Boolean, credits: { type: Array, default: () => [] }, locked: Boolean, singers: { type: Number, default: 4 }, load: { type: String, default: null }, notHere: { type: String, default: null }, starting: Boolean },
+    props: { template: { type: Object, required: true }, previewing: Boolean, preparing: Boolean, credits: { type: Array, default: () => [] }, locked: Boolean, singers: { type: Number, default: 4 }, fresh: Boolean, load: { type: String, default: null }, notHere: { type: String, default: null }, starting: Boolean },
     emits: ['start', 'preview', 'close', 'signup', 'copy', 'singers', 'retry', 'voice'],
     setup: () => ({ midiName, formatTime, formatNumber, primary, secondary, singerOptions, templatePartName, keyLabel, DIFFICULTY, formatList, TEMPO, songTitle }),
     template: `
@@ -843,7 +843,9 @@ export const TemplateDialog = {
                 </div>
                 <div v-else class="space-y-3">
                     <!-- Hillel: "add back the 2/3/4 part toggle": how many sing it, from the song's own voicings; Start sings that many. -->
-                    <div v-if="singerOptions(template).length > 1" class="flex flex-wrap items-center justify-between gap-3" data-song-singers>
+                    <!-- A first visit (fresh: no song sung yet; the first-session review, Hillel: yes): the song, Start and Play;
+                         how many sing it and Edit wait until a first song is sung. -->
+                    <div v-if="!fresh && singerOptions(template).length > 1" class="flex flex-wrap items-center justify-between gap-3" data-song-singers>
                         <span :id="'singers-' + $.uid" class="text-sm font-semibold text-cream">{{ t('templates.singers.question') }}</span>
                         <div class="seg" role="radiogroup" :aria-labelledby="'singers-' + $.uid">
                             <button v-for="n in singerOptions(template)" :key="n" type="button" role="radio" class="seg-option tap-44" :aria-checked="singers === n ? 'true' : 'false'" @click="$emit('singers', n)">{{ formatNumber(n) }}</button>
@@ -860,7 +862,7 @@ export const TemplateDialog = {
                     <p v-else-if="load === 'failed' || load === 'offline'" class="flex flex-wrap items-center justify-center gap-2 text-sm text-warn" role="alert" data-song-load-failed>{{ load === 'offline' ? t('common.offline') : t('templates.loadFailed') }} <button type="button" class="link tap-44" @click="$emit('retry')">{{ t('common.tryAgain') }}</button></p>
                     <div class="grid grid-cols-2 gap-2 sm:gap-3">
                         <button type="button" :class="[secondary, 'w-full justify-center']" :aria-pressed="previewing ? 'true' : 'false'" data-song-play @click="$emit('preview')"><span class="inline-flex items-center gap-2"><Icon :name="previewing ? 'stop' : 'play'" :size="16" />{{ preparing ? t('templates.preparing') : previewing ? t('studio.stop') : t('templates.play') }}</span></button>
-                        <button type="button" class="btn-ghost w-full justify-center" :aria-label="t('templates.editLabel', { title: songTitle(template) })" data-song-edit @click="$emit('copy')">{{ t('template.edit') }}</button>
+                        <button v-if="!fresh" type="button" class="btn-ghost w-full justify-center" :aria-label="t('templates.editLabel', { title: songTitle(template) })" data-song-edit @click="$emit('copy')">{{ t('template.edit') }}</button>
                     </div>
                     <button v-if="hasCourse" type="button" class="btn-ghost btn-sm" data-song-course @click="learnIt"><Icon name="arrow" :size="16" /> {{ t('songCourse.open') }}</button>
                 </div>

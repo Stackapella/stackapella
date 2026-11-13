@@ -24,7 +24,7 @@ const HINTS = { parts: tk('sing.chooser.partsHint'), whole: tk('sing.chooser.who
 export const Chooser = {
     components: { Gems, Icon, PartSelect, NoVoiceTag },
     props: {
-        parts: { type: Array, required: true }, // [{ slot, name, range: { low, high }, recorded }]
+        parts: { type: Array, required: true }, // [{ slot, name, words, range: { low, high }, recorded }] (words: part-words.js)
         transpose: { type: Number, default: 0 },
         way: { type: String, default: null }, // the way chosen before, when choosing again
         suggested: { type: String, default: null }, // a slot id the range check suggests
@@ -119,7 +119,7 @@ export const Chooser = {
                             <span class="gem size-4 shrink-0 rounded-full" :style="{ '--gem': paint(part.slot.color) }" aria-hidden="true"></span>
                             <span class="min-w-0 flex-1">
                                 <span class="block font-bold text-cream" translate="no">{{ part.name }}<span v-if="part.slot.id === suggested" class="ms-2 text-xs font-semibold text-part-ink-4">{{ t('range.bestForYou') }}</span><NoVoiceTag v-if="noVoice.includes(part.slot.id)" class="ms-2 align-middle" /></span>
-                                <span class="tabular-nums text-xs text-muted">{{ part.range ? t('sing.chooser.range', { low: midiName(part.range.low + transpose), high: midiName(part.range.high + transpose) }) : '' }}<template v-if="part.recorded"> · {{ t('sing.chooser.recorded') }}</template></span>
+                                <span class="text-sm text-muted" data-part-words>{{ part.words }}<template v-if="part.words && part.range"> · </template></span><span class="tabular-nums text-sm text-muted">{{ part.range ? t('sing.chooser.range', { low: midiName(part.range.low + transpose), high: midiName(part.range.high + transpose) }) : '' }}<template v-if="part.recorded"> · {{ t('sing.chooser.recorded') }}</template></span>
                             </span>
                             <Icon name="arrow" :size="20" class="shrink-0 text-muted" />
                         </button>

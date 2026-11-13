@@ -597,6 +597,12 @@ async function read(response, operation) {
 const op = (operation) => (options = {}) => call(operation, options);
 
 export const api = {
+    // Statements of reasons (views/notices.js): a signed-in person's own by id, or by an email's private token.
+    notices: {
+        list: () => call('notices.list'),
+        show: (idOrToken) => call('notices.show', { params: { id: idOrToken } }),
+        appeal: (idOrToken, text) => call('notices.appeal', { params: { id: idOrToken }, body: { text } }),
+    },
     harmonies: {
         create: (fields) => call('harmonies.create', { body: fields }),
         complete: (id) => call('harmonies.complete', { params: { id } }),
@@ -894,6 +900,11 @@ export const api = {
         reach: { show: () => call('admin.reach.show') },
         revenue: { show: () => call('admin.revenue.show') },
         // Readers' "Suggest a correction" (docs/corrections-plan.md): the inbox, and a decision with its note.
+        // Ask for a review (admin/appeals.js): waiting, oldest first, or decided; kept or reversed, in sudo.
+        appeals: {
+            list: ({ status, cursor } = {}) => call('admin.appeals.list', { query: { status, cursor } }),
+            decide: (id, { decision, note = null }) => call('admin.appeals.decide', { params: { id }, body: { decision, note } }),
+        },
         corrections: {
             list: ({ state, kind, cursor } = {}) => call('admin.corrections.list', { query: { state, kind, cursor } }),
             update: (id, { state, note = null }) => call('admin.corrections.update', { params: { id }, body: { state, note } }),

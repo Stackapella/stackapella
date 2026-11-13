@@ -58,10 +58,12 @@ final class ToolFrameTest extends TestCase
             $this->assertStringContainsString('<svg', $top, "{$path}: the mark");
             $this->assertStringContainsString('>Stackapella</span>', $top, "{$path}: the name");
             $this->assertStringContainsString('href="/courses"', $top, "{$path}: the nav");
-            $this->assertStringNotContainsString('data-theme-toggle', $top, "{$path}: the tools' theme menu, not light and dark");
-            // Then the tool bar, with the Theme menu.
+            // Light and dark is the header's switch, where every page has it (Hillel, 2026-11-13); the tool bar has none.
+            $this->assertStringContainsString('data-theme-toggle', $top, "{$path}: light and dark in the header");
             $bar = substr($body, (int) strpos($body, '<div class="s-wrap s-tbrand'));
-            $this->assertStringContainsString('data-theme-menu-button', substr($bar, 0, 4000), "{$path}: the Theme button in the tool bar");
+            $bar = substr($bar, 0, (int) strpos($bar, '</div>', (int) strpos($bar, 's-tbrand-end')) + 6);
+            $this->assertStringNotContainsString('data-theme-menu-button', $bar, "{$path}: no theme button in the tool bar");
+            $this->assertStringNotContainsString('data-theme-toggle', $bar, "{$path}: no theme button in the tool bar");
         }
     }
 }

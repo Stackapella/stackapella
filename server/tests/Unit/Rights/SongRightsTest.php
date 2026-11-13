@@ -126,4 +126,15 @@ final class SongRightsTest extends TestCase
         $this->assertFalse(SongRights::status($tune, 'MX', 2026)['free']);
         $this->assertTrue(SongRights::status($tune, 'MX', 2026, SongRights::WORDS)['free']);
     }
+
+    public function test_the_us_goes_by_its_first_printing_never_by_an_unknown_death(): void
+    {
+        // Las Mañanitas as the content has it: printed in 1921, an editor whose death year isn't known. Before 1931 in the
+        // US: free there, whatever the makers. The unknown death holds it back only where the term runs from a death.
+        $song = ['makers' => [['name' => 'A', 'role' => 'edition', 'died' => 1921], ['name' => 'B', 'role' => 'edition', 'died' => 'unknown']], 'firstPublished' => ['year' => 1921, 'country' => 'US']];
+        $this->assertTrue(SongRights::status($song, 'US', 2026)['free']);
+        $this->assertSame(['free' => false, 'until' => null, 'reason' => 'unknown'], SongRights::status($song, 'MX', 2026));
+        // A visitor we can't place takes every country's rule at once, so it's held back there too.
+        $this->assertFalse(SongRights::status($song, 'XX', 2026)['free']);
+    }
 }

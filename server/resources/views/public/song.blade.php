@@ -203,6 +203,8 @@
 @endsection
 
 @section('scripts')
+    {{-- The app's first screen, fetched while the visitor reads (first-session review, item 3): timing only. --}}
+    @include('site._app-prefetch', ['prefetch' => \App\Support\Site\AppPrefetch::song()])
     @if ($line !== null)
         <script type="module" src="/js/public/mixer.js"></script>
     @endif

@@ -101,6 +101,7 @@ export const ChangeSheet = {
         fields: { type: Array, default: () => [] }, // the fields the slot shows errors for itself
         reasoned: { type: Boolean, default: true },
         needsSudo: { type: Boolean, default: true }, // the server asks for a recent second factor
+        told: Boolean, // the reason goes to the person as their notice's note (views/notices.js), not only the audit log
     },
     emits: ['close', 'confirm'],
     data: () => ({ reason: '' }),
@@ -115,7 +116,7 @@ export const ChangeSheet = {
         <Modal :title="title" :dismissable="!busy" @close="$emit('close')">
             <form class="space-y-5" @submit.prevent="$emit('confirm', reason.trim())">
                 <slot />
-                <Field v-if="reasoned" :label="t('admin.reason')" :help="t('admin.reasonHelp')" :error="errors?.reason" required v-slot="f">
+                <Field v-if="reasoned" :label="told ? t('admin.reasonToldLabel') : t('admin.reason')" :help="told ? t('admin.reasonTold') : t('admin.reasonHelp')" :error="errors?.reason" required v-slot="f">
                     <textarea :id="f.id" v-model="reason" rows="2" maxlength="500" required class="input" :aria-describedby="f.describedby" :aria-invalid="f.invalid"></textarea>
                 </Field>
                 <Notice v-if="otherErrors.length" tone="bad">{{ otherErrors.join(' ') }}</Notice>

@@ -96,7 +96,7 @@ export const Stage = {
             </template>
             <p v-else-if="comingUp" class="text-sm font-semibold text-muted">{{ comingUp }}</p>
             <slot />
-            <StaffLine v-if="staff" :layout="staff" :current="current" :color="color" class="w-full" />
+            <StaffLine v-if="staff" :layout="staff" :current="current" :color="color" wrap class="w-full" />
             <KaraokeLine v-if="words && line" :line="line" :position="position" :color="color" :pill="turn" :glow="!!tuning?.lit" :class="staff ? 'text-2xl md:text-4xl' : 'text-5xl leading-[1.08] md:text-7xl'" class="font-extrabold tracking-tight" />
             <p v-else-if="!words && !staff" class="text-2xl text-muted">{{ t('sing.noWords') }}</p>
             <p v-if="!turn && sings" class="text-base font-bold md:text-lg" :style="{ color: paintInk(color) }" aria-live="off">{{ sings }}</p>

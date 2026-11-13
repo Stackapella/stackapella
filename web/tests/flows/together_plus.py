@@ -32,7 +32,7 @@ def journey(f):
     f.go("/groups?api=mock&scenario=&as=member", "document.querySelector('#app header')")
     # With the plus_teams switch off (the mock's auth.config until it's on): starting a group is free, as before.
     f.wait("document.querySelector('#app main')", what="Choir groups")
-    f.click(f.js("(await import('/js/skin.js')).sk('groups.start', 'game.groups.start')"))
+    f.click(f.js("(await import('/js/i18n.js')).t('groups.start')"))
     f.wait("document.querySelector('[role=dialog]')", what="the start sheet")
     assert not f.js("!!document.querySelector('[data-plus-moment]')"), "no Plus sheet while the switch is off"
     f.press("Escape")
@@ -48,7 +48,7 @@ def journey(f):
     # Start a group, free: the Plus moment first, with the trial; no form behind it.
     # A free account with the trial still to take (the mock's billing example is a Plus account's).
     f.run("const { api } = await import('/js/api.js'); api.billing.show = async () => ({ data: { plan: 'free', trial: { days: 7, intervals: ['year'] } } }); const { plan } = await import('/js/stores/plan.js'); plan.billing = null;")
-    f.click(f.js("(await import('/js/skin.js')).sk('groups.start', 'game.groups.start')"))
+    f.click(f.js("(await import('/js/i18n.js')).t('groups.start')"))
     f.wait("document.querySelector('[data-plus-moment][data-moment=group_start]')", what="the Plus moment")
     assert not f.js("!!document.querySelector('[role=dialog] form')"), "no form before Plus"
     assert f.js("document.querySelector('[data-plus-moment]').textContent").find(t(f, "groups.plusText")) >= 0
@@ -75,7 +75,7 @@ def journey(f):
     f.run("document.querySelector('[data-plus-moment] button.btn-secondary').click()")
     go(f, "/")
     go(f, "/groups")
-    f.click(f.js("(await import('/js/skin.js')).sk('groups.start', 'game.groups.start')"))
+    f.click(f.js("(await import('/js/i18n.js')).t('groups.start')"))
     f.wait("document.querySelector('[role=dialog] form')", what="the start sheet again")
     f.run("const n = document.querySelector('[role=dialog] input.input'); n.value = 'Thursday Singers'; n.dispatchEvent(new Event('input')); const a = document.querySelector('[role=dialog] input[type=checkbox]'); if (!a.checked) a.click();")
     f.run("document.querySelector('[role=dialog] form button[type=submit]').click()")

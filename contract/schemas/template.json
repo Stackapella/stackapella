@@ -88,6 +88,32 @@
             "type": "number",
             "description": "Beats before bar 1: 0 or more, less than a bar."
         },
+        "meters": {
+            "type": "array",
+            "description": "Optional: where the time signature changes, in beats from the start, each holding until the next (docs/meters-plan.md). Each on a bar line of the metre before it, in order, and a different metre. A beat keeps its length across a change (6/8 counts dotted quarters). Left out: the song is in timeSignature throughout. At least one change, each after beat 0 (the app's and the server's checks; the schema subset has no minimum).",
+            "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                    "beat",
+                    "timeSignature"
+                ],
+                "properties": {
+                    "beat": {
+                        "type": "number"
+                    },
+                    "timeSignature": {
+                        "type": "string",
+                        "enum": [
+                            "4/4",
+                            "3/4",
+                            "6/8",
+                            "2/4"
+                        ]
+                    }
+                }
+            }
+        },
         "credits": {
             "type": "object",
             "additionalProperties": false,

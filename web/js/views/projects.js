@@ -54,6 +54,7 @@ import { groupCounts, librarySections } from '../library-filter.js';
 import { notHereLine } from '../withheld.js';
 import { teams } from '../teams.js';
 import { countVoice, voicelessParts } from '../be-the-voice.js';
+import { sungYet } from '../first-song.js';
 
 const DIFFICULTY = { beginner: tk('templates.difficulty.beginner'), intermediate: tk('templates.difficulty.intermediate'), advanced: tk('templates.difficulty.advanced') };
 // The bands' marks are the accent: nothing on the home that isn't a part wears a part's colour (Hillel's call).
@@ -88,7 +89,7 @@ const TemplateDialog = defineAsyncComponent(dialogLoader);
 
 export const ProjectsView = {
     components: { LibraryFilters, StorageMeter, CreditLine, PlayerChip, DailyTag, CardMenu, HomeCourses, ThemeSwitch, Icon, Logo, TemplateDialog, HomeLead, HomeBand, SongCover, InstallCard, WeekCard, WorkoutStrip, StatusChip, Modal, Notice, RemindAsk, FirstWeek },
-    setup: () => ({ GROUP_WORDS, templatePartName, ideas, mine, canStart, projects, account, learning, shownTitle, songTitle, formatTime, timeAgo, PART_COLORS, lengthBeats, partsFor, keyLabel, DIFFICULTY, creditsFor, navigate, BAND_COLORS, BETA_STATUS, publicSiteUrl, effect, dailyState }),
+    setup: () => ({ sungYet, GROUP_WORDS, templatePartName, ideas, mine, canStart, projects, account, learning, shownTitle, songTitle, formatTime, timeAgo, PART_COLORS, lengthBeats, partsFor, keyLabel, DIFFICULTY, creditsFor, navigate, BAND_COLORS, BETA_STATUS, publicSiteUrl, effect, dailyState }),
     data: () => ({ storageUsage: null, locked: false, clip: null, templates: [], openTemplate: null, singers: 4, previewing: false, preparingPreview: false, starting: false, groups: null, choirParts: [], startingChoir: null, betaParts: null, avatarFailed: false, making: false, importProblems: null, sheetScore: null, sheetSaving: false, sheetView: null, sessionStore: null, songsOpen: tabStorage.get('stackapella.songsOpen') === '1', libraryFilters: keptFilters(), lookedAt: lastLooked(), newsCounted: null, yoursOpen: false, songColumns: songColumns(), newing: false, showInfo: false, songLoad: null, songNotHere: null, previewOf: null, playingSong: null, renaming: null, newName: '' }),
     template: `
         <div class="min-h-dvh">
@@ -273,7 +274,7 @@ export const ProjectsView = {
             </div>
 
             <TemplateDialog v-if="openTemplate && showInfo" :template="openTemplate" :credits="creditsFor(openTemplate.id)" :singers="singers" @singers="(n) => { singers = n; if (previewing && !locked) previewLevels(); }"
-                :previewing="previewing" :preparing="preparingPreview" :load="songLoad" :not-here="songNotHere" :starting="starting" @retry="pickTemplate(openTemplate)" @copy="navigate('/create?copy=' + openTemplate.id)" @close="closeTemplate" @preview="preview" @start="start()" @voice="beTheVoice" :locked="locked" @signup="navigate(signUpForSong)" />
+                :previewing="previewing" :preparing="preparingPreview" :load="songLoad" :fresh="!sungYet()" :not-here="songNotHere" :starting="starting" @retry="pickTemplate(openTemplate)" @copy="navigate('/create?copy=' + openTemplate.id)" @close="closeTemplate" @preview="preview" @start="start()" @voice="beTheVoice" :locked="locked" @signup="navigate(signUpForSong)" />
             <Modal v-if="renaming" :title="t('home.yours.renameTitle')" @close="renaming = null">
                 <form class="space-y-4" @submit.prevent="saveName">
                     <label class="block space-y-1"><span class="text-sm font-semibold text-cream">{{ t('home.yours.nameLabel') }}</span>

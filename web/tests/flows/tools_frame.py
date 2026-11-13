@@ -26,7 +26,7 @@ ROW = """(() => {
   const first = [...document.body.children].find((el) => el.tagName !== 'SCRIPT');
   const name = [...(row?.querySelectorAll('.s-brand span') ?? [])].find((s) => s.textContent.trim() === 'Stackapella');
   return JSON.stringify({ first: first === row, top: row ? Math.round(row.getBoundingClientRect().top) : null,
-    mark: seen(row?.querySelector('.s-brand svg:not(.s-hat)')), name: seen(name), theme: seen(bar?.querySelector('[data-theme-menu-button]')),
+    mark: seen(row?.querySelector('.s-brand svg:not(.s-hat)')), name: seen(name), theme: innerWidth < 900 || seen(row?.querySelector(':scope > [data-theme-toggle]')), barTheme: !!bar?.querySelector('[data-theme-menu-button], [data-theme-toggle]'),
     home: row?.querySelector('.s-brand')?.getAttribute('href') ?? null });
 })()"""
 
@@ -73,9 +73,8 @@ def main():
                     # should take them to the main landing page").
                     ref = "tools" if path == "/tools" else "tool-" + path.split("/")[-1]
                     assert seen["home"] == f"/?ref={ref}", f"{label} {path}: the logo leads to {seen['home']}, not the landing"
-                    f.run("document.querySelector('[data-tool-bar] [data-theme-menu-button]').click()")
-                    f.wait("!document.querySelector('[data-theme-menu]').hidden", timeout=5, what=f"{label} {path}: the Theme menu")
-                    f.run("document.querySelector('[data-tool-bar] [data-theme-menu-button]').click()")
+                    # Light and dark is the header's (on a desktop in the bar, on a phone in its menu), never the tool bar's.
+                    assert not seen["barTheme"], f"{label} {path}: a theme button in the tool bar"
                 print(f"ok   tools_frame ({label}, {len(paths)} pages)")
             except Exception as error:  # noqa: BLE001 (every size and view is tried)
                 failures.append(f"{label}: {error}")

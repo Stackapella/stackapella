@@ -209,7 +209,9 @@ final class StructuredData
      * other names and Wikidata item, the story as an Article citing its sources, and its questions as a FAQPage. Only
      * what the page shows: pass the story only where the page renders it.
      *
-     * @param  array{title: string, description: string, pageUrl: string, genre: list<string>, credits: list<string>}  $song
+     * The whole song's audio, where the page plays it (SongAudioFiles::forPage), as the composition's MusicRecording.
+     *
+     * @param  array{title: string, description: string, pageUrl: string, genre: list<string>, credits: list<string>, audio?: array{mp3: string|null, m4a: string|null, seconds: float, credit: string|null}|null}  $song
      * @param  array<string, mixed>|null  $story
      * @return list<array<string, mixed>>
      */
@@ -225,6 +227,24 @@ final class StructuredData
             'isAccessibleForFree' => true,
             'inLanguage' => app()->getLocale(),
         ];
+        if (is_array($song['audio'] ?? null) && ($song['audio']['mp3'] ?? $song['audio']['m4a']) !== null) {
+            $audio = $song['audio'];
+            $duration = 'PT'.(int) floor($audio['seconds'] / 60).'M'.(int) round(fmod($audio['seconds'], 60)).'S';
+            $composition['recordedAs'] = array_filter([
+                '@type' => 'MusicRecording',
+                'name' => $song['title'],
+                'url' => $song['pageUrl'],
+                'duration' => $duration,
+                'byArtist' => ['@type' => 'Organization', 'name' => 'Stackapella'],
+                'creditText' => $audio['credit'],
+                'audio' => [
+                    '@type' => 'AudioObject',
+                    'contentUrl' => $audio['mp3'] ?? $audio['m4a'],
+                    'encodingFormat' => $audio['mp3'] !== null ? 'audio/mpeg' : 'audio/mp4',
+                    'duration' => $duration,
+                ],
+            ], static fn (mixed $v): bool => $v !== null);
+        }
         if ($story === null) {
             return [$composition];
         }

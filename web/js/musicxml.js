@@ -6,6 +6,7 @@
 
 import { keySignature, spell } from './sing.js';
 import { transposeKey } from './theme.js';
+import { bars as barsIn, meterChanges } from './theory.js';
 
 export const DIVISIONS = 24; // per quarter note: halves, thirds, quarters and eighths of a beat are whole numbers
 const STEPS = 'CDEFGAB';
@@ -24,6 +25,23 @@ const escape = (text) => String(text).replace(/&/g, '&amp;').replace(/</g, '&lt;
 export function metreOf(timeSignature) {
     const [beats, beatType] = String(timeSignature || '4/4').split('/').map(Number);
     return { beats, beatType, perBar: beatType === 8 ? beats / 3 : beats, quarters: beatType === 8 ? 1.5 : 1 };
+}
+
+/**
+ * Quarter notes from the song's start to `beat`. A beat is a dotted quarter in 6/8 and a quarter in 4/4, so a song whose
+ * time signature changes (`meters`, docs/meters-plan.md) adds them up metre by metre; one metre is beat x quarters.
+ */
+export function quartersAt(template, beat) {
+    let quarters = 0;
+    let from = 0;
+    let metre = metreOf(template.timeSignature);
+    for (const change of meterChanges(template)) {
+        if (change.beat >= beat) break;
+        quarters += (change.beat - from) * metre.quarters;
+        from = change.beat;
+        metre = metreOf(change.timeSignature);
+    }
+    return quarters + (beat - from) * metre.quarters;
 }
 
 /** The durations (divisions) a length is written with, longest first; a length no value fits is rounded to the grid. */
@@ -90,22 +108,22 @@ function harmonyXml(chord, key, offset) {
  * melody), `{ at, chord }`.
  */
 export function measuresOf(part, template, bars, { melody = false } = {}) {
-    const scale = metreOf(template.timeSignature).quarters * DIVISIONS;
+    const at = (beat) => Math.round(quartersAt(template, beat) * DIVISIONS); // a beat in divisions, metre by metre
     const notes = [...(part.guide?.notes ?? [])].sort((a, b) => a.beat - b.beat);
     const words = syllables(notes);
     // The part as events: a note or a rest, start and end in divisions.
     const events = [];
-    let at = 0;
+    let upTo = 0;
     notes.forEach((n, i) => {
-        const start = Math.round(n.beat * scale);
-        const end = Math.max(start + 1, Math.round((n.beat + n.length) * scale));
-        if (start > at) events.push({ start: at, end: start, rest: true });
-        events.push({ start: Math.max(start, at), end, pitch: n.pitch, word: words[i], breath: !!notes[i + 1]?.br, note: i });
-        at = end;
+        const start = at(n.beat);
+        const end = Math.max(start + 1, at(n.beat + n.length));
+        if (start > upTo) events.push({ start: upTo, end: start, rest: true });
+        events.push({ start: Math.max(start, upTo), end, pitch: n.pitch, word: words[i], breath: !!notes[i + 1]?.br, note: i });
+        upTo = end;
     });
     const songEnd = bars.at(-1).start + bars.at(-1).length;
-    if (at < songEnd) events.push({ start: at, end: songEnd, rest: true });
-    const chords = melody ? [...(template.chords ?? [])].map((c) => ({ ...c, at: Math.round(c.beat * scale) })) : [];
+    if (upTo < songEnd) events.push({ start: upTo, end: songEnd, rest: true });
+    const chords = melody ? [...(template.chords ?? [])].map((c) => ({ ...c, at: at(c.beat) })) : [];
     return bars.map((bar) => {
         const end = bar.start + bar.length;
         const items = [];
@@ -129,6 +147,12 @@ export function measuresOf(part, template, bars, { melody = false } = {}) {
     });
 }
 
+/** The tempo mark for a metre: the beat's note value (a dotted quarter in 6/8) and the song's beats a minute. */
+function tempoXml(metre, tempo) {
+    const unit = metre.beatType === 8 ? '<beat-unit>quarter</beat-unit><beat-unit-dot/>' : '<beat-unit>quarter</beat-unit>';
+    return `<direction placement="above"><direction-type><metronome>${unit}<per-minute>${tempo}</per-minute></metronome></direction-type><sound tempo="${Math.round(tempo * metre.quarters)}"/></direction>`;
+}
+
 /** One part's measures as MusicXML, from measuresOf, with the attributes and tempo in the first. */
 function partMeasures(part, template, bars, { first, melody }) {
     const key = template.key || 'C';
@@ -143,10 +167,12 @@ function partMeasures(part, template, bars, { first, melody }) {
         if (b === 0) {
             xml += `<attributes><divisions>${DIVISIONS}</divisions><key><fifths>${fifths}</fifths><mode>${/m$/.test(key) ? 'minor' : 'major'}</mode></key>`
                 + `<time><beats>${metre.beats}</beats><beat-type>${metre.beatType}</beat-type></time>${clefOf(part)}</attributes>`;
-            if (first) {
-                const unit = metre.beatType === 8 ? '<beat-unit>quarter</beat-unit><beat-unit-dot/>' : '<beat-unit>quarter</beat-unit>';
-                xml += `<direction placement="above"><direction-type><metronome>${unit}<per-minute>${template.tempo}</per-minute></metronome></direction-type><sound tempo="${Math.round(template.tempo * metre.quarters)}"/></direction>`;
-            }
+            if (first) xml += tempoXml(metre, template.tempo);
+        } else if (bar.timeSignature && bar.timeSignature !== bars[b - 1].timeSignature) {
+            // The metre changes here (docs/meters-plan.md): its time signature, and the beat's note value for the tempo.
+            const now = metreOf(bar.timeSignature);
+            xml += `<attributes><time><beats>${now.beats}</beats><beat-type>${now.beatType}</beat-type></time></attributes>`;
+            if (first) xml += tempoXml(now, template.tempo);
         }
         for (const item of items) {
             // A chord sits over the first note value of the stretch where it changes.
@@ -190,6 +216,17 @@ export function rightsOf(template) {
 
 /** The bars a song spans, in divisions: a pickup bar if it has one, then whole bars to its last note. */
 export function barsOf(template) {
+    if (meterChanges(template).length) {
+        // A song whose time signature changes: its bars where they fall, each with its own time signature.
+        const endBeat = Math.max(...template.parts.flatMap((p) => (p.guide?.notes ?? []).map((n) => n.beat + n.length)), 0);
+        const at = (beat) => Math.round(quartersAt(template, beat) * DIVISIONS);
+        return barsIn(template, endBeat).map((bar, i) => ({
+            start: at(bar.start),
+            length: at(bar.start + bar.beats) - at(bar.start),
+            timeSignature: bar.timeSignature,
+            ...(i === 0 && (template.pickupBeats ?? 0) > 0 ? { pickup: true } : {}),
+        }));
+    }
     const metre = metreOf(template.timeSignature);
     const scale = metre.quarters * DIVISIONS;
     const bar = metre.perBar * scale;

@@ -20,6 +20,7 @@ use App\Support\Pages\SongsHub;
 use App\Support\Pages\SongStories;
 use App\Support\Rights\RightsHere;
 use App\Support\Sharing\SongCards;
+use App\Support\SongAudio\SongAudioFiles;
 use App\Support\Templates\Catalogue;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -95,6 +96,9 @@ final class SongPagesController extends Controller
         $country = RightsHere::country($request);
         $withheld = $rights->withheld($template, $country);
         $wordsWithheld = $rights->wordsWithheld($template, $country);
+        // The whole song, every part mixed (the showreel agent's render of this version): for the page's player and its
+        // MusicRecording. Not where the music is withheld here, and not a Plus song's (its notes are an account's).
+        $song['audio'] = $template->access === TemplateAccess::Plus || $withheld !== null ? null : SongAudioFiles::forPage($template);
         if ($wordsWithheld) {
             $song['words'] = [];
             $song['lines'] = null;
