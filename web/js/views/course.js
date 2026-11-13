@@ -109,11 +109,12 @@ export const CourseView = {
                         </li>
                     </ol>
                     <div class="flex flex-wrap items-center gap-3">
-                        <span class="text-sm text-muted">{{ t('course.hub.goal') }}</span>
+                        <span class="text-sm text-muted">{{ t('course.hub.goalWeek') }}</span>
                         <div class="seg flex w-full sm:w-auto" role="radiogroup" :aria-label="t('course.goal.title')">
-                            <button v-for="g in GOALS" :key="g" type="button" role="radio" :aria-checked="learning.progress.goal === g ? 'true' : 'false'" class="seg-option min-w-0 flex-1 px-2 leading-tight whitespace-normal sm:px-4 sm:whitespace-nowrap" @click="setGoal(g)">{{ t('course.goal.days', { count: g }) }}</button>
+                            <button v-for="g in GOALS" :key="g" type="button" role="radio" :aria-checked="learning.progress.goal === g ? 'true' : 'false'" class="seg-option min-w-0 flex-1 px-4 tabular-nums whitespace-nowrap" :aria-label="t('course.goal.days', { count: g })" @click="setGoal(g)">{{ g }}</button>
                         </div>
-                        <button v-if="account.me" type="button" class="btn-ghost btn-sm" @click="navigate('/settings/reminders')">{{ t('reminders.ask') }}</button>
+                        <!-- A real button, so it reads as one (the finish-line audit: as a quiet ghost it looked like a label missing its control). -->
+                        <button v-if="account.me" type="button" class="btn-secondary btn-sm" data-remind-days @click="navigate('/settings/reminders')">{{ t('reminders.ask') }}</button>
                     </div>
                 </div>
                 <!-- The level and its XP: game mode's (serious mode shows the week alone). -->

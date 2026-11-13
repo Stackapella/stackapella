@@ -19,6 +19,7 @@ const LOADERS = {
     tally: () => import('./tally.js'),
     badgeNews: () => import('./badge-news.js'),
     stageMap: () => import('./stage-map.js'),
+    fresh: () => import('./fresh.js'),
     partSelect: () => import('./part-select.js'),
     settings: () => import('./settings.js'),
     boards: () => import('../components/boards.js'),

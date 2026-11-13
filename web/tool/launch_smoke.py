@@ -8,7 +8,8 @@ sign-ups and no writes. Each check prints PASS or FAIL; any FAIL exits 1.
 
 After the switch: signed out, the landing renders in both skins with no console errors and its Start
 reaches lesson 1 on the app with no early-access gate; /pricing, /how-it-works, /help and /courses
-render; www and the old public host 301 to the public site with the same path (and /h/<id> with
+render; a long song page's first story picture answers as an image at its src, and the page has no
+console errors scrolled to its end; www and the old public host 301 to the public site with the same path (and /h/<id> with
 --share); the old host's ?app is the moving page (a fresh device goes on to the app); robots.txt allows search on the public site and
 disallows it on the app and the old host; the app's /up answers 200. With --now, today's answers
 instead: the apex and www 302 to the beta, which serves the site with search off and no Start yet,
@@ -17,8 +18,10 @@ and the app shows a guest the early-access gate's Coming soon.
 import argparse
 import json
 import sys
+import re
 import time
 import urllib.error
+import urllib.parse
 import urllib.request
 from pathlib import Path
 
@@ -26,6 +29,9 @@ sys.path.insert(0, str(Path(__file__).parent))
 from cdp import Chrome  # noqa: E402
 
 PAGES = ["/pricing", "/how-it-works", "/help", "/courses"]
+# A long song page with story pictures: the two misses of 2026-11-13 (its pictures answered the site's
+# "moving" page, and the app prefetch's blocked fetches filled the console) only show on the real hosts.
+SONG = "/songs/amazing-grace"
 results = []
 
 
@@ -52,6 +58,32 @@ def fetch(url):
         return None, None, str(error)
 
 
+def content_type(url):
+    """(status, Content-Type) of a GET, without following redirects."""
+    opener = urllib.request.build_opener(NoFollow)
+    request = urllib.request.Request(url, headers={"User-Agent": "stackapella-launch-smoke"})
+    try:
+        with opener.open(request, timeout=20) as response:
+            return response.status, response.headers.get("Content-Type") or ""
+    except urllib.error.HTTPError as error:
+        return error.code, error.headers.get("Content-Type") or ""
+    except Exception as error:
+        return None, str(error)
+
+
+def song_picture(public, song):
+    """The song page's first story picture answers as an image at the src the page itself uses."""
+    url = f"https://{public}{song}"
+    status, _, body = fetch(url)
+    match = re.search(r'<img[^>]*\ssrc="([^"]*song-media/[^"]*)"', body)
+    if status != 200 or not match:
+        say(False, f"{url} has a story picture", f"got {status}, {'a picture' if match else 'no song-media picture'}")
+        return
+    src = urllib.parse.urljoin(url, match.group(1).replace("&amp;", "&"))
+    status, kind = content_type(src)
+    say(status == 200 and kind.startswith("image/"), f"{song}'s first story picture answers as an image", f"{src}: {status} {kind}")
+
+
 def redirects(url, code, to):
     status, location, _ = fetch(url)
     say(status == code and location == to, f"{url} {code}s to {to}", f"got {status} {location}")
@@ -66,11 +98,14 @@ def robots(host, allowed):
         say(status == 200 and blocked, f"{host}/robots.txt disallows search", f"{status}")
 
 
-def page(chrome, url, what, wait="document.querySelector('h1')"):
+def page(chrome, url, what, wait="document.querySelector('h1')", scroll=False):
     chrome.errors.clear()
     try:
         chrome.goto(url, wait=wait, timeout=30)
         time.sleep(1.5)  # late console errors (fonts, the theme, a lazy module)
+        if scroll:  # down the whole page, so every lazy picture and late fetch has its turn
+            chrome.evaluate("window.scrollTo(0, document.body.scrollHeight)")
+            time.sleep(3)
         # A guest's account check answers 401 by design; the browser itself logs any non-2xx response.
         errors = [e for e in chrome.errors if "favicon" not in e and not ("401" in e and "/api/account" in e)]
         say(not errors, what, "; ".join(errors[:3]))
@@ -154,9 +189,15 @@ def main():
         robots(args.old, allowed=False)
     robots(args.app, allowed=False)
 
+    if not now:
+        song_picture(public, SONG)
+
     chrome = Chrome()
     try:
         landing(chrome, public, args.app, now)
+        if not now:
+            page(chrome, f"https://{public}{SONG}", f"the song page {SONG} on {public} has no console errors, scrolled to its end",
+                 wait="document.querySelector('h1') && document.readyState === 'complete'", scroll=True)
         if not now:
             # The old host's app address: the moving page (for installs made there). With nothing kept
             # on this device there, it goes on to the new address at once, so a fresh browser lands on the app.

@@ -25,7 +25,9 @@ import { confirmAction } from '../components/confirm.js';
 
 const TABS = { open: tk('ideas.tabs.open'), complete: tk('ideas.tabs.complete'), mine: tk('ideas.tabs.mine') };
 const NEEDS = { soprano: tk('parts.soprano'), alto: tk('parts.alto'), tenor: tk('parts.tenor'), bass: tk('parts.bass') };
-const partColor = (index) => paint(PART_COLORS[(index * 3) % PART_COLORS.length]);
+// A part's colour as a song's (stores/projects.js makeSlot: its place among the parts), so Ideas' soprano, alto, tenor and
+// bass wear the colours they do everywhere else (the finish-line audit, 2026-11-13: they were spread across the palette).
+const partColor = (index) => paint(PART_COLORS[index % PART_COLORS.length]);
 
 /** The page's frame: the shared header, and the page. */
 const Frame = {
@@ -41,6 +43,7 @@ const Frame = {
 
 /** A tune on the shelf: its title, writer, note and parts (a filled dot has a voice). */
 const IdeaCard = {
+    components: { Icon },
     props: { idea: { type: Object, required: true } },
     setup: () => ({ partColor }),
     template: `
@@ -59,6 +62,8 @@ const IdeaCard = {
                     <span class="text-muted">{{ part.voices ? t('ideas.voices', { count: part.voices }) : t('ideas.needsVoice') }}</span>
                 </li>
             </ul>
+            <!-- The way in, said (the audit's fresh eyes: nothing on the card said how to join a tune). -->
+            <p v-if="!idea.complete" class="flex items-center gap-1 text-sm font-semibold text-accent-strong" data-idea-way-in>{{ idea.mine ? t('ideas.openYours') : t('ideas.singAPart') }} <Icon name="arrow" :size="16" class="rtl:-scale-x-100" /></p>
         </a>`,
     methods: { navigate, timeAgo },
 };

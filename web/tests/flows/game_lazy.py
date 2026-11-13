@@ -9,7 +9,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 from flow import run  # noqa: E402
 
-LAZY = ["game/chip", "game/daily", "game/ghost", "game/title-card", "game/tally", "game/badge-news", "game/stage-map", "game/part-select", "game/settings", "game/initials", "game/record", "components/boards"]
+LAZY = ["game/chip", "game/daily", "game/ghost", "game/title-card", "game/tally", "game/badge-news", "game/stage-map", "game/part-select", "game/fresh", "game/settings", "game/initials", "game/record", "components/boards"]
 FETCHED = "performance.getEntriesByType('resource').map((r) => new URL(r.name).pathname)"
 
 

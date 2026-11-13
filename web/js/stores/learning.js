@@ -82,7 +82,7 @@ export function loadLearning() {
     loading ??= (async () => {
         const [course] = await Promise.all([fetch('/course/course.json').then((r) => (r.ok ? r.json() : null)).catch(() => null), readProgress()]);
         raw.course = course;
-        learning.course = withholdCourse(course, withheldSongs(account.config));
+        learning.course = withholdCourse(course, appliedWithheld());
         learning.failed = !course;
         learning.loaded = true;
         if (!course) loading = null;
@@ -93,19 +93,32 @@ export function loadLearning() {
 
 // The courses as they came, so a change in what's withheld here (auth.config arriving, or a new list) reads them again
 // (js/withheld.js: a withheld song's step sings its altSong, or is left out).
-const raw = { course: null, courses: {} };
+const raw = { course: null, courses: {}, applied: null };
+
+/** The withheld songs the courses are read with now, remembered, so a config that says the same changes nothing. */
+function appliedWithheld() {
+    const withheld = withheldSongs(account.config);
+    raw.applied = JSON.stringify([...withheld].sort());
+    return withheld;
+}
 
 function keepCourse(id, data) {
     raw.courses[id] = data;
-    learning.courses[id] = withholdCourse(data, withheldSongs(account.config));
+    learning.courses[id] = withholdCourse(data, appliedWithheld());
 }
 
+// The courses read again only when the list differs from the one they were read with: auth.config arriving with the same
+// list (an empty one, almost always) leaves them as they are, along with anything set on them since (a lesson's tests write
+// their own steps in; week_a11y's loop step lost its lesson to the re-read).
 watch(
     () => JSON.stringify(account.config?.withheldSongs ?? null),
     () => {
         if (!account.config) return;
         keepWithheld(account.config);
         const withheld = withheldSongs(account.config);
+        const key = JSON.stringify([...withheld].sort());
+        if (key === raw.applied) return;
+        raw.applied = key;
         if (raw.course) learning.course = withholdCourse(raw.course, withheld);
         for (const [id, data] of Object.entries(raw.courses)) learning.courses[id] = withholdCourse(data, withheld);
     },

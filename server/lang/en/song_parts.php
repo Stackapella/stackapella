@@ -219,10 +219,10 @@ return [
         'bass' => 'Sings the low notes of Bliss\'s chords, mostly C and G, and joins the alto and tenor in the chorus\'s answers.',
     ],
     'holy-holy-holy' => [
-        'soprano' => 'Carries Dykes\'s tune, which opens by climbing E, G-sharp and B on "Holy, holy, holy" and reaches its top E on "morning" in "Early in the morning" and on "God" in "God in Three Persons".',
+        'soprano' => 'Carries Dykes\'s tune, which opens by climbing E, G-sharp and B on "Holy, holy, holy" and reaches its top E on the first syllable of "morning" in "Early in the morning" and on "God" in "God in Three Persons".',
         'alto' => 'Sings the words a third or a sixth under the tune, mostly on G-sharp and D-sharp, a third above it on the first "Holy," of lines one and three and at the end of "Trinity", with an A-sharp on "rise".',
         'tenor' => 'Fills in the middle of the chord, most often on B, then C-sharp, and has the D natural on "Three" in "God in Three Persons".',
-        'bass' => 'Sings Dykes\'s bass, mostly on the roots, E, A and B, rising to its top A on "Lord God" and the start of "Almighty", and on "merciful and".',
+        'bass' => 'Sings Dykes\'s bass, made easier in three spots, mostly on the roots, E, A and B, rising to its top A on "Lord God" and the start of "Almighty", and on "merciful and", where Dykes sings the low A on "Lord" and "merci-", and singing B, the chord\'s root, on "Early", where Dykes has D-sharp.',
     ],
     'go-down-moses' => [
         'soprano' => 'Sings every call alone, from "When Israel was in Egypt\'s land" to "Tell ole Pharoh", reaches its top D on "way down" and "Egypt" in "way down in Egypt land", and has the sharpened F on every "people".',
@@ -293,8 +293,8 @@ return [
     'abide-with-me' => [
         'soprano' => 'Carries Monk\'s calm tune, from E-flat up to C on "falls" and "deepens", and back down to E-flat on the last "me".',
         'alto' => 'Sings the words close under the tune on just four notes, mostly E-flat and D, stepping through E natural to F under "comforts flee".',
-        'tenor' => 'Sings the words in the middle of the chords, mostly on B-flat, from a low E-flat on "fast falls" and the "abide" of "Lord, with me abide" up to C on "Lord", "fail, and comforts" and the last "abide".',
-        'bass' => 'Sings the bass line, mostly roots, on E-flat, B-flat and C above all, down to a low G on "fast" and "helpers", and up to A-flat on "Help".',
+        'tenor' => 'Sings the words in the middle of the chords, mostly on B-flat, from a low E-flat on "fast falls" and the "a-" of "Lord, with me abide" up to C on "Lord", "fail, and com-" and the "a-" of the last "abide".',
+        'bass' => 'Sings the bass line, on E-flat, B-flat and C above all, down to a low G on "fast" and the "-ers" of "helpers", and up to A-flat on "Help".',
     ],
     'shall-we-gather' => [
         'soprano' => 'Carries Lowry\'s tune, cheerful and steady, up to its top E-flat on "gather at" and "saints at", and down to the low E-flat on each "God".',
@@ -304,15 +304,15 @@ return [
     ],
     'come-thou-fount' => [
         'soprano' => 'Carries the tune Nettleton, lilting in three, up to its top E-flat on "some", "flaming" and "above".',
-        'alto' => 'Sings close under the tune, mostly on E-flat, and climbs with everyone to B-flat on "melodious" and "flaming".',
+        'alto' => 'Sings close under the tune, mostly on E-flat, up to B-flat on "melodious" and "flaming" and down to a low G on "grace" and "love".',
         'tenor' => 'Sings the words in the middle of the chords, mostly on B-flat, with G and A-flat, up to E-flat on "melodious" and "tongues above".',
-        'bass' => 'Sings the roots, mostly E-flat and B-flat, up to A-flat on "heart", "songs", "melodious", "tongues" and "thy".',
+        'bass' => 'Sings the bass line, mostly on the roots E-flat and B-flat, up to A-flat on "heart", "songs", "melodious", "tongues" and "thy".',
     ],
     'nearer-my-god' => [
-        'soprano' => 'Carries Mason\'s tune Bethany, calm and even, from the low D on "Nearer" and "That" up to its top E on "all" in "Still all my song" and on the "Nearer" that follows.',
-        'alto' => 'Sings the words under the tune, mostly on D, with G, C and B, up to G for "Still all my song shall be, Nearer, my", and down to B on "Nearer", "That" and the last "thee".',
-        'tenor' => 'Sings the words in the middle of the chords, mostly on G, between F-sharp and C.',
-        'bass' => 'Sings mostly the roots, most often G, D and C, from the high G on the opening "Nearer" down to the low G on the last "thee".',
+        'soprano' => 'Carries Mason\'s tune Bethany, calm and even, from the low D on "Near-" and "That" up to its top E on "all" in "Still all my song" and on the "-er" of the "Nearer" that follows.',
+        'alto' => 'Sings the words under the tune, most often on D, with G, C, B and E, up to G for "Still all my song shall be, Nearer, my", and down to B on "Near-", "That" and the last "thee".',
+        'tenor' => 'Sings the words in the middle of the chords, most often on G, between F-sharp and C.',
+        'bass' => 'Sings mostly the roots, most often G, D and C, between the high G it opens on and the low G an octave below, which comes four times, last on the final "thee".',
     ],
     'greensleeves' => [
         'soprano' => 'Carries the old tune, gentle and lilting, up to its top E on the refrain\'s first and third "Greensleeves", and down to C-sharp on "discourteously" and "delight".',
@@ -531,8 +531,8 @@ return [
         'bass' => 'Sings the roots of the chords most of the time, most often on G, then D, with many leaps of a fourth or a fifth, within one octave, singing the low G wherever the tune drops to its low D and on the last word of each verse.',
     ],
     'come-ye-thankful-people' => [
-        'soprano' => 'Carries Elvey\'s tune, most often on B, up to its top E only in the last three lines of each verse, on "supplied;", "Come to" and the "the" of "Raise the song" in verse 1, and on "abide:", "Come, with" and the "the" of "Raise the glorious" in verse 4, and down to its low D only on the last word of the fourth line, "begin;" and "sin;".',
-        'alto' => 'Sings the words under the tune, mostly a sixth below it, most often on D, up to its top G-sharp on "Come to" in verse 1 and "Come, with" in verse 4, and crosses a third above the tune, to F-sharp, where the tune drops to its low D, on "begin;" and "sin;".',
+        'soprano' => 'Carries Elvey\'s tune, most often on B, up to its top E only in the last three lines of each verse, on the end of "supplied;", on "Come to" and on the "the" of "Raise the song" in verse 1, and on the end of "abide:", on "Come, with" and on the "the" of "Raise the glorious" in verse 4, and down to its low D only on the last note of the fourth line, the end of "begin;" and "sin;".',
+        'alto' => 'Sings the words under the tune, mostly a sixth below it, most often on D, up to its top G-sharp on "Come to" in verse 1 and "Come, with" in verse 4, and crosses a third above the tune, to F-sharp, where the tune drops to its low D, on the end of "begin;" and on "sin;".',
         'tenor' => 'Sings the words in the middle of the chord, mostly on G and A, with many repeated notes, up to its top E only on "to God\'s" in verse 1 and "with all" in verse 4, and down to its low D only on the last note of each verse, the "Home!" of "Harvest-Home!" in verse 1 and the "home!" of "Harvest-home!" in verse 4.',
         'bass' => 'Sings the bass line of Elvey\'s harmony, most often on G, often walking by step, as down D, C, B, A, G under "God, our Maker, doth provide" and "There for ever purified,", and rises to a G-sharp on the "Come" that opens the seventh line of each verse.',
     ],

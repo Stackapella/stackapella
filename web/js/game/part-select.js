@@ -6,6 +6,9 @@
 // arrows; a tap or Enter locks it in (the portrait flashes once). No difficulty is invented. Under the grid, a line
 // says what Busy and Leaps measure, and "Sing Tenor" (the part the cursor is on) is the screen's one primary, so a
 // first-timer who doesn't think to tap a card still has a way in (the first-15-minutes review, items 10 and 11).
+// On a first song (firstSong below, read as the select opens; the first-session review, proposals 2 and 5) 1P SELECT,
+// Busy, Leaps and the line saying what they measure wait: numbers for a game not yet played. Each part is said in words
+// under its name (part-words.js).
 
 import { tk } from '../i18n.js';
 import { midiName } from '../dsp.js';
@@ -13,6 +16,15 @@ import { session, templatePart } from '../stores/session.js';
 import { still } from './effects.js';
 import { run } from './motion.js';
 import { cue } from './chip.js';
+import { doneLessons } from '../stores/learning.js';
+import { loadProjects, projects } from '../stores/projects.js';
+
+/** Whether this is the singer's first song: first-song.js's sungYet() with the song being started left out (Start has
+ *  already made it a song of their own), read from the device, since Sing opened straight has neither store loaded. */
+export async function firstSong(projectId) {
+    const [done] = await Promise.all([doneLessons(), projects.loaded ? null : loadProjects()]);
+    return !done.length && projects.all.every((p) => p.id === projectId);
+}
 
 export const LEAP = 5; // semitones: a fourth or more
 export const CELLS = 8;
@@ -48,15 +60,15 @@ export const PartSelect = {
     emits: ['choose'],
     data() {
         const at = Math.max(0, this.parts.findIndex((p) => p.slot.id === this.suggested));
-        return { cursor: at, locking: null, blinking: !still() };
+        return { cursor: at, locking: null, blinking: !still(), first: null }; // first: a first song (null until read)
     },
     setup: () => ({ midiName, LEAP_WORDS, CELLS, leapWord, cellsOf }),
     // Each portrait carries its own numbers (the coordinator, after Hillel's "reskin" note): no stats
     // card. A tap chooses it, as the list did, after the lock-in flash; the 1P cursor follows the
     // pointer and the keyboard, starting on the part that fits your voice.
     template: `
-        <div class="flex flex-col gap-4">
-        <p class="ge-kick" data-select-kick>{{ t('game.select.kick') }}</p>
+        <div class="flex flex-col gap-4" :data-select-first="first === null ? null : String(first)">
+        <p v-if="first === false" class="ge-kick" data-select-kick>{{ t('game.select.kick') }}</p>
         <ul ref="grid" class="ge-select-grid" data-game-select @keydown="key">
             <li v-for="(part, i) in parts" :key="part.slot.id">
                 <button ref="portrait" type="button" class="ge-portrait" :class="[i === cursor ? 'is-picked' : '', i === cursor && blinking ? 'is-blinking' : '', locking === i ? 'is-locking' : '']" :style="{ '--ge-part': paint(part.slot.color) }"
@@ -64,17 +76,18 @@ export const PartSelect = {
                     <span v-if="i === cursor" class="ge-1p" aria-hidden="true">{{ t('game.select.cursor') }}</span>
                     <span class="ge-portrait-letter" aria-hidden="true" translate="no">{{ part.name.slice(0, 1) }}</span>
                     <span class="ge-portrait-name" translate="no">{{ part.name }}</span>
+                    <span v-if="part.words" class="ge-portrait-words" data-part-words>{{ part.words }}</span>
                     <span v-if="part.slot.id === suggested" class="ge-fits">{{ t('range.bestForYou') }}</span>
                     <span class="ge-portrait-stats">
                         <span class="ge-stat"><span>{{ t('game.select.range') }}</span><span>{{ stats[i].low !== null ? t('sing.chooser.rangeShort', { low: midiName(stats[i].low + transpose), high: midiName(stats[i].high + transpose) }) : '' }}</span></span>
-                        <span class="ge-stat"><span>{{ t('game.select.busy') }}</span><span class="ge-statbar" aria-hidden="true"><i v-for="n in CELLS" :key="n" :class="n <= cellsOf(stats[i].notes, most.notes) ? 'is-lit' : ''"></i></span><span class="sr-only">{{ t('game.select.notes', { count: stats[i].notes }) }}</span></span>
-                        <span class="ge-stat"><span>{{ t('game.select.leaps') }}</span><span class="ge-statbar" aria-hidden="true"><i v-for="n in CELLS" :key="n" :class="n <= cellsOf(stats[i].leapShare, most.leapShare) ? 'is-lit' : ''"></i></span><span class="sr-only">{{ t(LEAP_WORDS[leapWord(stats[i].leapShare)]) }}</span></span>
+                        <span v-if="first === false" class="ge-stat"><span>{{ t('game.select.busy') }}</span><span class="ge-statbar" aria-hidden="true"><i v-for="n in CELLS" :key="n" :class="n <= cellsOf(stats[i].notes, most.notes) ? 'is-lit' : ''"></i></span><span class="sr-only">{{ t('game.select.notes', { count: stats[i].notes }) }}</span></span>
+                        <span v-if="first === false" class="ge-stat"><span>{{ t('game.select.leaps') }}</span><span class="ge-statbar" aria-hidden="true"><i v-for="n in CELLS" :key="n" :class="n <= cellsOf(stats[i].leapShare, most.leapShare) ? 'is-lit' : ''"></i></span><span class="sr-only">{{ t(LEAP_WORDS[leapWord(stats[i].leapShare)]) }}</span></span>
                         <span v-if="part.recorded" class="ge-stat"><span>{{ t('sing.chooser.recorded') }}</span></span>
                     </span>
                 </button>
             </li>
         </ul>
-        <p class="text-sm text-muted" data-select-key>{{ t('game.select.key') }}</p>
+        <p v-if="first === false" class="text-sm text-muted" data-select-key>{{ t('game.select.key') }}</p>
         <button type="button" class="btn-primary btn-lg w-full sm:w-auto sm:self-start" :disabled="locking !== null" data-select-sing @click="lock(cursor)">{{ t('game.select.sing', { part: parts[cursor]?.name ?? '' }) }}</button>
         </div>`,
     computed: {
@@ -84,6 +97,12 @@ export const PartSelect = {
         most() {
             return { notes: Math.max(0, ...this.stats.map((s) => s.notes)), leapShare: Math.max(0, ...this.stats.map((s) => s.leapShare)) };
         },
+    },
+    created() {
+        firstSong(session.project?.id).then((first) => (this.first = first)).catch((error) => {
+            console.error('Could not tell a first song', error);
+            this.first = false;
+        });
     },
     mounted() {
         // The 1P cursor blinks 5 times (twice a second), then rests.

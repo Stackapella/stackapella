@@ -146,6 +146,15 @@ final class SongStoriesTest extends TestCase
         $this->assertSame(['test-song: title is in quotes: front matter values aren\'t quoted (the line splits on its first colon)'], $problems);
     }
 
+    public function test_the_check_fails_an_escaped_quote_in_front_matter(): void
+    {
+        // As O the Beautiful Treasure's description had it, shown on its page backslashes and all (2026-11-13).
+        $this->write('earliestPrinting: 1818, A Hymnal', 'earliestPrinting: the Shakers\' \\"Holy Ground\\" (1818)');
+
+        $this->assertSame(['test-song: earliestPrinting has a backslash: front matter values are shown as written, so quotes need no escaping'], SongStories::check('test-song'));
+        $this->artisan('app:stories:check', ['song' => 'test-song'])->assertFailed();
+    }
+
     public function test_the_check_wants_the_guides_sections_in_order(): void
     {
         $this->write("## Sing next\n\n- [Amazing Grace](/songs/amazing-grace): the same meter.\n- [Silent Night](/songs/silent-night): a good next step.\n\n", '');

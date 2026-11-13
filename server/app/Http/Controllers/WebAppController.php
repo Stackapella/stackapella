@@ -220,6 +220,8 @@ final class WebAppController extends Controller
         // Cloudflare's edge, so a page never runs one deploy's module beside another's.
         $response->headers->set('Cache-Control', 'public, no-cache, max-age=0, must-revalidate');
         $response->headers->set('Cloudflare-CDN-Cache-Control', 'no-store');
+        // As .do/nginx.conf: the site's pages prefetch these from the app's host (AppPrefetch); public code, no cookies.
+        $response->headers->set('Access-Control-Allow-Origin', '*');
 
         $response->setAutoEtag();
 

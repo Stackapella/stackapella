@@ -12,6 +12,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 from flow import run  # noqa: E402
 from game_frames import dark, every_theme, frames, light  # noqa: E402
 from home import home, progress, t  # noqa: E402
+from help_shots import clear_projects  # noqa: E402
 
 PRESS = "document.querySelector('[data-press-start]')"
 EYEBROW = "document.querySelector('[data-lead-eyebrow]').innerText"
@@ -36,6 +37,9 @@ def journey(f):
         assert f.js("document.querySelectorAll('[data-week-day][data-day-done]').length") >= 1, "today counted: a bulb lit"
     # Nothing stacked between the header and the course card.
     assert f.js("document.querySelector('#app header').nextElementSibling.contains(document.querySelector('[data-lead]'))"), "the course card comes straight after the header"
+    # A sung lesson: the arcade's STAGE and HI (game/fresh.js clears data-game-fresh).
+    hi = "[...document.querySelectorAll('.gs-hi, .gs-score')].some((e) => getComputedStyle(e).display !== 'none')"
+    assert f.js("!document.documentElement.hasAttribute('data-game-fresh')") and f.js(hi), "a sung lesson: STAGE and HI"
     f.no_sideways("the title screen")
     frames(f, "home", [0, 250, 600, 2600])
     f.shot("home")
@@ -47,6 +51,15 @@ def journey(f):
     f.run("(await import('/js/game/effects.js')).effects.title = false")
     f.wait(f"!{PRESS}", what="Continue lesson back")
     assert f.js(EYEBROW).upper() == unit.upper() and f.js("!document.querySelector('[data-game-player]')"), "the switch turns it all off"
+    f.run("(await import('/js/game/effects.js')).effects.title = true")
+    # Before a first song (the first-session review, proposal 5): no STAGE 01 or HI 000000, a score for a game not
+    # yet played.
+    progress(f, [], 0)
+    clear_projects(f)
+    home(f, "member")
+    f.wait("document.documentElement.hasAttribute('data-game-fresh')", what="a first visit is fresh")
+    assert f.js(f"!({hi})"), "no STAGE or HI before a first song"
+    f.shot("home-first")
     f.run("localStorage.removeItem('stackapella.gameEffects')")
 
 

@@ -24,18 +24,29 @@ export function beatToSeconds(beat, bpm, speed = 1) {
 }
 
 /** One period of the vowel at `hz`: harmonics weighted by the "oo" formants (moved by `shift`, a vowel's colour). */
+/** How far the fundamental stands above the strongest other harmonic, at least (about 1 dB). */
+const FUNDAMENTAL_LEAD = 1.12;
+
 function wavetable(hz, shift = 1) {
     const table = new Float32Array(TABLE + 1);
     const harmonics = Math.max(1, Math.min(14, Math.floor(4500 / hz)));
     let peak = 0;
+    const weights = [0];
     for (let k = 1; k <= harmonics; k++) {
         const f = k * hz;
         let weight = 0.08 / k; // a little of everything, so high notes still sound voiced
         for (const formant of FORMANTS) {
             weight += formant.gain * Math.exp(-(((f - formant.hz * shift) / formant.width) ** 2));
         }
+        weights.push(weight);
+    }
+    // The note itself leads (frontend2's spectrum pass, 2026-11-13): where a formant lifts a higher harmonic over it (from C#3
+    // to F3 the 300 Hz formant made the 2nd harmonic 6 to 16 dB louder, so basses and tenors heard their note an octave up,
+    // and the pitch tracker read it there), the fundamental is raised just above it. The formants still colour the rest.
+    weights[1] = Math.max(weights[1], FUNDAMENTAL_LEAD * Math.max(0, ...weights.slice(2)));
+    for (let k = 1; k <= harmonics; k++) {
         for (let i = 0; i <= TABLE; i++) {
-            table[i] += weight * Math.sin((2 * Math.PI * k * i) / TABLE);
+            table[i] += weights[k] * Math.sin((2 * Math.PI * k * i) / TABLE);
         }
     }
     for (const v of table) peak = Math.max(peak, Math.abs(v));
@@ -249,6 +260,12 @@ function renderHuman(notes, { bpm, sampleRate, transpose, speed, style, seed }) 
         const loud = 10 ** ((between(-1, 1) * style.loudness) / 20);
         const attack = between(0.05, 0.08);
         const release = between(0.08, 0.12);
+        // The same pitch again, joined on (frontend2's stress pass, 2026-11-13): the voice lets go about 50 ms early, so the
+        // next syllable starts again instead of melting into this one (a repeated note dipped only 1 to 3 dB before).
+        const next = timed[i + 1];
+        const repeatsInto = next && next.pitch === note.pitch && next.from - (note.from + note.held) < 0.04;
+        // At most a quarter of a short note goes (frontend2: a 179 ms syllable kept too little to read its pitch).
+        const sung = repeatsInto ? note.held - Math.min(between(0.045, 0.06), 0.25 * note.held) : note.held;
         const start = Math.max(0, Math.round((note.from + between(-1, 1) * style.onset) * sampleRate));
         let airAt = Math.floor(random() * air.length);
         // A soft breath just before a phrase.
@@ -260,7 +277,7 @@ function renderHuman(notes, { bpm, sampleRate, transpose, speed, style, seed }) 
             }
             airAt += length;
         }
-        const frames = Math.round((note.held + release) * sampleRate);
+        const frames = Math.round((sung + release) * sampleRate);
         let phase = random();
         let wave = random();
         // The pitch and the loudness move at the control rate, CONTROL samples at a time, in straight
@@ -285,7 +302,7 @@ function renderHuman(notes, { bpm, sampleRate, transpose, speed, style, seed }) 
                 cents = 1200 * Math.log2(1 + v.depth * Math.min(1, Math.max(0, (t - v.after) / 0.2)) * Math.sin(2 * Math.PI * v.hz * t));
             }
             const into = Math.min(1, t / attack);
-            const fade = t < note.held ? 1 : Math.max(0, 1 - (t - note.held) / release);
+            const fade = t < sung ? 1 : Math.max(0, 1 - (t - sung) / release);
             const x = (note.from + t - phraseFrom) / Math.max(0.2, phraseTo - phraseFrom);
             const swell = 1 - style.swell + style.swell * Math.sin(Math.PI * Math.min(1, Math.max(0, 0.15 + 0.85 * x)));
             const amp = into * into * (3 - 2 * into) * fade * loud * swell * (1 + style.shimmer * shimmer());

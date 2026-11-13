@@ -210,3 +210,61 @@ test('human voice: the same seed sings the same, another seed differently; a cou
     const { moves } = heldPitch(renderPart(straight, { bpm: 60, sampleRate: sr, human: 'full', seed: 5 }), straight, 60);
     assert(moves <= 6, `a straight tone asked for by a course wobbles ${moves.toFixed(1)} cents`);
 });
+
+/** A harmonic's power (dB) in `x` at `hz`: one Goertzel bin. */
+function harmonicDb(x, hz, sampleRate) {
+    const c = 2 * Math.cos((2 * Math.PI * hz) / sampleRate);
+    let s1 = 0;
+    let s2 = 0;
+    for (const v of x) {
+        const s = v + c * s1 - s2;
+        s2 = s1;
+        s1 = s;
+    }
+    return 10 * Math.log10(s1 * s1 + s2 * s2 - c * s1 * s2 + 1e-20);
+}
+
+test('synth: the note itself leads its harmonics at every pitch, so no part is heard an octave up', () => {
+    // frontend2's measure (2026-11-13): one 2 s note at 60 bpm, its held middle. From C#3 to F3 the 2nd harmonic was
+    // 6 to 16 dB over the fundamental; basses and tenors heard (and the tracker read) their note an octave up.
+    const rate = 48000;
+    for (const human of [null, 'guide']) {
+        for (let midi = 36; midi <= 84; midi += 1) {
+            const audio = renderPart([{ beat: 0, length: 2, pitch: midi }], { bpm: 60, sampleRate: rate, human, seed: 1 });
+            const mid = audio.subarray(Math.round(0.6 * rate), Math.round(1.6 * rate));
+            const hz = 440 * 2 ** ((midi - 69) / 12);
+            const h = [1, 2, 3, 4, 5].filter((k) => k * hz < rate / 2).map((k) => harmonicDb(mid, k * hz, rate));
+            assert(h[0] >= Math.max(...h.slice(1)), `${human ?? 'plain'} ${midiName(midi)}: the fundamental ${(h[0] - Math.max(...h.slice(1))).toFixed(1)} dB under a harmonic`);
+        }
+    }
+});
+
+test('synth: a low guide note reads at its own octave, D3 included', () => {
+    const rate = 48000;
+    for (const midi of [49, 50, 51, 52, 53]) {
+        const audio = renderPart([{ beat: 0, length: 2, pitch: midi }], { bpm: 60, sampleRate: rate, human: 'guide', seed: 2 });
+        const found = detectPitch(audio.subarray(Math.round(0.8 * rate), Math.round(0.8 * rate) + 4096), rate);
+        assert(found && Math.abs(cents(found.hz, midi)) < 60, `${midiName(midi)} read as ${found ? midiName(Math.round(69 + 12 * Math.log2(found.hz / 440))) : 'nothing'}`);
+    }
+});
+
+test('synth: the same pitch sung again is a new syllable, not one long note', () => {
+    // frontend2's stress pass: joined repeats dipped only 1 to 3 dB. Each join now dips enough to be heard as a new start.
+    const rate = 48000;
+    const bpm = 90;
+    const audio = renderPart(Array.from({ length: 8 }, (_, i) => ({ beat: i, length: 1, pitch: 61 })), { bpm, sampleRate: rate, human: 'guide', seed: 3 });
+    const win = Math.round(0.005 * rate);
+    const env = (t) => {
+        const a = Math.round(t * rate);
+        let s = 0;
+        for (let i = a; i < a + win; i++) s += audio[i] ** 2;
+        return Math.sqrt(s / win);
+    };
+    for (let j = 1; j < 8; j++) {
+        const join = (j * 60) / bpm;
+        let low = Infinity;
+        for (let t = join - 0.12; t < join + 0.08; t += 0.0025) low = Math.min(low, env(t));
+        const dip = 20 * Math.log10(env(join - 0.2) / low);
+        assert(dip >= 4, `join ${j}: a ${dip.toFixed(1)} dB dip`);
+    }
+});

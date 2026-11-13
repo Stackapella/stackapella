@@ -31,14 +31,12 @@ final class AppPrefetch
      */
     private static function urls(array $paths): array
     {
-        // Not where the site and the app are on two hosts (production): the app's files answer no CORS header, so a
-        // prefetch with crossorigin from the site is blocked and logs a console error (the launch smoke, 2026-11-13).
-        // Off there until the app's static files allow the site's origin. One host (a local server): this page's own.
-        if (Hosts::split()) {
-            return [];
-        }
+        // On the app's host where the site and the app are apart (production), whose static files answer any origin
+        // (.do/nginx.conf), so the crossorigin prefetch isn't blocked: it was, with a console error each, before they did
+        // (2026-11-13; server/tool/split-hosts.sh checks it). Else this page's own (a local server, maybe another port).
+        $split = Hosts::split();
 
-        return array_values(array_unique($paths));
+        return array_values(array_unique(array_map(static fn (string $p): string => $split ? Hosts::appLink($p) : $p, $paths)));
     }
 
     /**

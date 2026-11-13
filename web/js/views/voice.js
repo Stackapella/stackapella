@@ -109,15 +109,17 @@ const RangeKeyboard = {
     template: `
         <div ref="scroller" class="overflow-x-auto [scrollbar-width:thin]">
             <div class="min-w-[38rem] space-y-3">
-                <div class="grid grid-cols-[4.5rem_1fr_2.75rem] gap-3">
-                <span class="sticky start-0 z-10 bg-panel" aria-hidden="true"></span>
+                <!-- The side columns hold the parts' names and percents under it: with no range there are none, so the keys
+                     take the width (the finish-line audit: an empty third at the left). -->
+                <div :class="range ? 'grid grid-cols-[4.5rem_1fr_2.75rem] gap-3' : ''">
+                <span v-if="range" class="sticky start-0 z-10 bg-panel" aria-hidden="true"></span>
                 <svg :viewBox="'0 0 ' + width + ' 64'" class="block w-full" role="img" :aria-label="label">
                     <rect v-for="key in whites" :key="'w' + key.midi" :x="key.x" y="0" width="13" height="62" rx="2" class="cursor-pointer" :style="{ fill: lit(key.midi) ? 'var(--color-accent)' : IVORY }" @click="$emit('key', key.midi)" />
                     <rect v-for="key in blacks" :key="'b' + key.midi" :x="key.x" y="0" width="9" height="38" rx="2" class="cursor-pointer" :style="{ fill: lit(key.midi) ? 'color-mix(in oklab, var(--color-accent) 70%, black)' : EBONY }" @click="$emit('key', key.midi)" />
                     <circle v-if="homeX !== null" :cx="homeX" cy="54" r="3.5" :fill="EBONY" />
                     <text v-for="key in whites.filter((k) => k.midi % 12 === 0)" :key="'c' + key.midi" :x="key.x + 2" y="60" :fill="EBONY" fill-opacity="0.6" class="pointer-events-none text-[7px]">{{ name(key.midi) }}</text>
                 </svg>
-                <span aria-hidden="true"></span>
+                <span v-if="range" aria-hidden="true"></span>
                 </div>
                 <!-- Each part's usual range (outlined) and the part of it you can sing (filled), on the keyboard's scale. -->
                 <ul v-if="range" class="space-y-2">
@@ -186,37 +188,59 @@ const RangeKeyboard = {
             const have = high > low;
             return { have, low, high, percent: have ? Math.round(((high - low) / (r.high - r.low)) * 100) : 0 };
         },
-        /** On a phone the keyboard scrolls: it opens on your range. */
+        /** On a phone the keyboard scrolls: it opens on your range, or with none yet on your note or middle C. */
         toRange() {
             const box = this.$refs.scroller;
-            if (!box || !this.range || box.scrollWidth <= box.clientWidth) return;
-            const middle = ((this.x(this.range.low) + this.x(this.range.high)) / 2 / 100) * box.scrollWidth;
+            if (!box || box.scrollWidth <= box.clientWidth) return;
+            const centre = this.range ? (this.x(this.range.low) + this.x(this.range.high)) / 2 : this.x(this.home ?? 60);
+            const middle = (centre / 100) * box.scrollWidth;
             box.scrollLeft = Math.max(0, middle - box.clientWidth / 2);
         },
     },
 };
 
-/** On pitch over time: a line of the percents, oldest to newest. */
+/**
+ * On pitch over time: the percents oldest to newest, a dot for each, on a scale from 0 to 100% marked at the left, with
+ * the first and last dates under it (the finish-line audit: a lone line with no scale read as nothing).
+ */
+const PLOT = { left: 34, right: 316, top: 6, bottom: 96 }; // in the 320 by 116 drawing
 const HistoryChart = {
     props: { scores: { type: Array, required: true }, sample: Boolean },
+    setup: () => ({ PLOT }),
     template: `
-        <svg viewBox="0 0 300 100" class="block w-full" :class="sample ? 'opacity-60' : ''" role="img" :aria-label="label">
-            <line v-for="y in [25, 50, 75]" :key="y" x1="0" x2="300" :y1="100 - y" :y2="100 - y" class="stroke-line" stroke-width="0.5" />
-            <polyline :points="points" fill="none" class="stroke-part-4" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" />
+        <svg viewBox="0 0 320 116" class="block w-full" :class="sample ? 'opacity-60' : ''" role="img" :aria-label="label" data-history-chart>
+            <g v-for="y in [0, 50, 100]" :key="y">
+                <line :x1="PLOT.left" :x2="PLOT.right" :y1="yOf(y)" :y2="yOf(y)" class="stroke-line" stroke-width="0.5" />
+                <text :x="PLOT.left - 6" :y="yOf(y) + 3" text-anchor="end" class="fill-muted text-[9px] tabular-nums" aria-hidden="true">{{ y }}%</text>
+            </g>
+            <polyline v-if="ordered.length > 1" :points="points" fill="none" class="stroke-part-4" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" />
+            <circle v-for="(p, i) in dots" :key="i" :cx="p.x" :cy="p.y" r="3" class="fill-part-4" />
+            <template v-if="ordered.length">
+                <text :x="PLOT.left" y="112" class="fill-muted text-[9px]" aria-hidden="true">{{ dateOf(ordered[0]) }}</text>
+                <text v-if="ordered.length > 1" :x="PLOT.right" y="112" text-anchor="end" class="fill-muted text-[9px]" aria-hidden="true">{{ dateOf(ordered.at(-1)) }}</text>
+            </template>
         </svg>`,
     computed: {
         ordered() {
             return [...this.scores].reverse().filter((s) => s.summary?.pitchPercent !== null && s.summary?.pitchPercent !== undefined);
         },
+        dots() {
+            const n = this.ordered.length;
+            const span = PLOT.right - PLOT.left - 6;
+            return this.ordered.map((s, i) => ({ x: PLOT.left + 3 + (n > 1 ? (i / (n - 1)) * span : span / 2), y: this.yOf(s.summary.pitchPercent) }));
+        },
         points() {
-            const n = Math.max(1, this.ordered.length - 1);
-            return this.ordered.map((s, i) => `${((i / n) * 296 + 2).toFixed(1)},${(100 - s.summary.pitchPercent).toFixed(1)}`).join(' ');
+            return this.dots.map((p) => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
         },
         label() {
             const list = this.ordered;
             if (!list.length) return t('voice.history.none');
             return t('voice.history.label', { first: list[0].summary.pitchPercent, last: list.at(-1).summary.pitchPercent, count: list.length });
         },
+    },
+    methods: {
+        yOf: (percent) => PLOT.bottom - (percent / 100) * (PLOT.bottom - PLOT.top),
+        dateOf: (score) => (score.recordedAt ? formatDate(score.recordedAt, { month: 'short', day: 'numeric' }) : ''),
     },
 };
 

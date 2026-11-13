@@ -75,11 +75,13 @@ export const PlusCourseView = {
                     </div>
                     <button type="button" class="btn-secondary" data-fresh-lines-start @click="navigate('/learn/c/' + READING + '/lines')">{{ t('readLines.start') }}</button>
                 </section>
-                <p class="mt-4 text-sm text-muted" translate="no">{{ song ? t('songCourse.line') : localized(entry.line) }} {{ t('courses.notTeacher') }}</p>
+                <!-- The care line once (the finish-line audit: three on one screen). A course with its own safety note says the
+                     teacher line in that note's box; others keep the general line here. -->
+                <p class="mt-4 text-sm text-muted" translate="no">{{ song ? t('songCourse.line') : localized(entry.line) }} <template v-if="!entry.safety">{{ t('courses.notTeacher') }}</template></p>
                 <!-- The course's own page on the site: what it covers, unit by unit, who wrote and checked it. -->
                 <a v-if="aboutUrl" :href="aboutUrl" target="_blank" rel="noopener" class="link mt-2 inline-flex min-h-6 items-center gap-1 text-sm" data-course-about>{{ t('courses.about') }} <Icon name="arrow" :size="14" /></a>
                 <!-- A course's own safety note (its catalogue entry's safety), where its singing needs one. -->
-                <p v-if="entry.safety" class="mt-2 rounded-2xl border border-line p-3 text-sm text-cream" role="note" translate="no" data-course-safety>{{ localized(entry.safety) }}</p>
+                <p v-if="entry.safety" class="mt-2 rounded-2xl border border-line p-3 text-sm text-cream" role="note" translate="no" data-course-safety>{{ localized(entry.safety) }} {{ t('courses.teacher') }}</p>
                 <CourseMap class="mt-6" :course="course" :focus-unit="focusUnit" />
                 <div v-if="summary.started" class="mt-8 flex justify-center">
                     <button type="button" class="btn-ghost btn-sm" @click="restart">{{ t('courses.restart') }}</button>

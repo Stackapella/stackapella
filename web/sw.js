@@ -92,6 +92,7 @@ const SHELL = [
     '/js/game/versus.js',
     '/js/game/stage-map.js',
     '/js/game/part-select.js',
+    '/js/game/fresh.js',
     '/js/game/crt.js',
     '/js/game/ghost.js',
     '/js/game/initials.js',

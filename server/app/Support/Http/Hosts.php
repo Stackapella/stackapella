@@ -20,7 +20,9 @@ final class Hosts
      * too (styles, scripts, icons, and a page's course and family stylesheets, Public\CourseCssController and
      * Public\SiteCssController). */
     // song-media/*: a song story's pictures, shown by the site's song pages at the page's own host (root-relative).
-    public const SHARED_PATHS = ['up', 'up/scheduler', 'webhooks/*', 'log/errors', 'robots.txt', '*.txt', '.well-known/security.txt', 'dev/upload/*', 'css/*', 'course-css/*', 'site-css/*', 'js/*', 'icons/*', 'favicon.ico', 'tools-sw.js', 'song-media/*'];
+    // The PWA's static folders, as .do/nginx.conf serves them on every host (the site's tools import engine/*): a local
+    // server with two hosts answers as production does (server/tool/split-hosts.sh).
+    public const SHARED_PATHS = ['up', 'up/scheduler', 'webhooks/*', 'log/errors', 'robots.txt', '*.txt', '.well-known/security.txt', 'dev/upload/*', 'css/*', 'course-css/*', 'site-css/*', 'js/*', 'engine/*', 'sounds/*', 'templates/*', 'locales/*', 'course/*', 'fonts/*', 'icons/*', 'favicon.ico', 'tools-sw.js', 'song-media/*'];
 
     public static function appUrl(): string
     {

@@ -41,15 +41,28 @@ final class AppPrefetchTest extends TestCase
         }
     }
 
-    public function test_it_is_off_where_the_site_and_the_app_are_on_two_hosts(): void
+    public function test_on_two_hosts_it_asks_the_apps_host(): void
     {
-        // The app's files answer no CORS header to the site's origin: a cross-host prefetch is blocked with a console
-        // error (production's launch smoke, 2026-11-13). Off there: no list and no module on the page.
+        // As production: the site's page prefetches from the app's host, whose files answer any origin (the next test).
         config(['app.url' => 'https://app.stackapella.test', 'hosts.public_url' => 'https://stackapella.test']);
-        $this->assertSame([[], []], [AppPrefetch::landing(), AppPrefetch::song()]);
+        $this->assertContains('https://app.stackapella.test/js/main.js', AppPrefetch::landing());
+        foreach ([...AppPrefetch::landing(), ...AppPrefetch::song()] as $url) {
+            $this->assertStringStartsWith('https://app.stackapella.test/', $url);
+        }
         $page = (string) $this->get('https://stackapella.test/')->assertOk()->getContent();
-        $this->assertStringNotContainsString('data-app-prefetch', $page);
-        $this->assertStringNotContainsString('app-prefetch.js', $page);
+        $this->assertStringContainsString('data-app-prefetch', $page);
+        $this->assertStringContainsString('app-prefetch.js', $page);
+    }
+
+    public function test_the_apps_files_allow_the_sites_origin(): void
+    {
+        // The prefetch's other half: the app's host answers the site's crossorigin fetch of its modules, so the browser
+        // doesn't block it. nginx in production, WebAppController here, each the same.
+        config(['app.url' => 'https://app.stackapella.test', 'hosts.public_url' => 'https://stackapella.test']);
+        $this->get('https://app.stackapella.test/js/main.js', ['Origin' => 'https://stackapella.test'])->assertOk()->assertHeader('Access-Control-Allow-Origin', '*');
+        $nginx = (string) file_get_contents(dirname(base_path()).'/.do/nginx.conf');
+        $this->assertSame(1, preg_match('#location ~ \^/\(js\|[^)]+\)/ \{(.*?)\n        \}#s', $nginx, $static), "nginx.conf's static location");
+        $this->assertStringContainsString('add_header Access-Control-Allow-Origin "*" always;', $static[1]);
     }
 
     public function test_the_landing_and_a_song_page_carry_their_lists_and_the_module(): void

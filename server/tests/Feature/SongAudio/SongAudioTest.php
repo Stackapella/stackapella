@@ -78,12 +78,15 @@ final class SongAudioTest extends TestCase
         $this->artisan('app:song-audio:upload', ['folder' => $this->dir.'/renders', '--check' => true])->expectsOutput('1 songs check out, 0 skipped.')->assertSuccessful();
         $this->assertSame([], Storage::disk('media')->allFiles());
         $this->assertSame([], SongAudioFiles::manifest(), 'a check writes nothing');
+        // On a local media disk, never by chance: the keys alone left it local once, and the CDN had none of the files.
+        $this->artisan('app:song-audio:upload', ['folder' => $this->dir.'/renders'])->expectsOutputToContain('set MEDIA_DISK=spaces_media')->assertFailed();
+        $this->assertSame([], Storage::disk('media')->allFiles());
 
-        $this->artisan('app:song-audio:upload', ['folder' => $this->dir.'/renders'])->expectsOutput('2 files uploaded, 0 already there, 0 songs skipped; 1 songs in data/song_audio.json.')->assertSuccessful();
+        $this->artisan('app:song-audio:upload', ['folder' => $this->dir.'/renders', '--local' => true])->expectsOutput('2 files uploaded, 0 already there, 0 songs skipped; 1 songs in data/song_audio.json.')->assertSuccessful();
         $key = 'song-audio/a-song/2-'.substr(hash('sha256', 'mp3 bytes'), 0, 8).'.mp3';
         $this->assertSame('mp3 bytes', Storage::disk('media')->get($key));
         $this->assertSame(42.59, SongAudioFiles::manifest()['a-song']['duration']);
-        $this->artisan('app:song-audio:upload', ['folder' => $this->dir.'/renders'])->expectsOutput('0 files uploaded, 2 already there, 0 songs skipped; 1 songs in data/song_audio.json.')->assertSuccessful();
+        $this->artisan('app:song-audio:upload', ['folder' => $this->dir.'/renders', '--local' => true])->expectsOutput('0 files uploaded, 2 already there, 0 songs skipped; 1 songs in data/song_audio.json.')->assertSuccessful();
 
         $page = (string) $this->get('/songs/a-song')->assertOk()->getContent();
         $this->assertStringContainsString('MusicRecording', $page);
@@ -100,12 +103,12 @@ final class SongAudioTest extends TestCase
     {
         $this->render();
         File::put($this->dir.'/renders/a-song.mp3', 'other bytes');
-        $this->artisan('app:song-audio:upload', ['folder' => $this->dir.'/renders'])->expectsOutputToContain('a-song: skipped, a-song.mp3: missing, or not the bytes and sha256')->assertFailed();
+        $this->artisan('app:song-audio:upload', ['folder' => $this->dir.'/renders', '--local' => true])->expectsOutputToContain('a-song: skipped, a-song.mp3: missing, or not the bytes and sha256')->assertFailed();
 
         $this->render(with: ['files' => [['name' => '../a-song.mp3', 'bytes' => 1, 'sha256' => 'x']]]);
-        $this->artisan('app:song-audio:upload', ['folder' => $this->dir.'/renders'])->expectsOutputToContain('not <slug>.mp3 or <slug>.m4a')->assertFailed();
+        $this->artisan('app:song-audio:upload', ['folder' => $this->dir.'/renders', '--local' => true])->expectsOutputToContain('not <slug>.mp3 or <slug>.m4a')->assertFailed();
 
-        $this->artisan('app:song-audio:upload', ['folder' => $this->dir.'/nowhere'])->expectsOutputToContain('No manifest.json')->assertFailed();
+        $this->artisan('app:song-audio:upload', ['folder' => $this->dir.'/nowhere', '--local' => true])->expectsOutputToContain('No manifest.json')->assertFailed();
         $this->assertSame([], Storage::disk('media')->allFiles());
         $this->assertSame([], SongAudioFiles::manifest());
         $this->assertStringNotContainsString('MusicRecording', (string) $this->get('/songs/a-song')->assertOk()->getContent());
@@ -116,7 +119,7 @@ final class SongAudioTest extends TestCase
         $this->artisan('app:song-audio:stale')->expectsOutput('a-song  no render')->assertSuccessful();
 
         $this->render();
-        $this->artisan('app:song-audio:upload', ['folder' => $this->dir.'/renders'])->assertSuccessful();
+        $this->artisan('app:song-audio:upload', ['folder' => $this->dir.'/renders', '--local' => true])->assertSuccessful();
         $this->artisan('app:song-audio:stale')->expectsOutput('0 to render.')->assertSuccessful();
 
         // A real voice becomes a part's guide: the mix no longer has it.

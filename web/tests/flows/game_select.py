@@ -15,8 +15,10 @@ from help_shots import SESSION, clear_projects, new_song, t  # noqa: E402
 SELECT = "document.querySelector('[data-game-select]')"
 
 
-def part_step(f, select=True):
+def part_step(f, select=True, sung=True):
     clear_projects(f)
+    if sung:
+        new_song(f)  # a song before this one: not a first song, so the select's numbers show
     song = new_song(f)
     f.go(f"/p/{song}/sing", "document.querySelector('[data-way=whole]')")
     # Game mode shows the character select even when Sing has picked your part (Hillel, 2026-11-01), with that part
@@ -34,12 +36,22 @@ def part_step(f, select=True):
 def journey(f):
     f.go("/voice?api=mock&as=signedOut", "document.querySelector('#app header, #app main')")
     f.run("localStorage.removeItem('stackapella.gameEffects'); localStorage.removeItem('stackapella.singPrefs')")
+    # A first song (the first-session review, proposal 5): 1P SELECT, Busy, Leaps and their key wait for a song sung, the
+    # 1P chip stays (the choice by shape), and each part is said in words under its name (proposal 2).
+    part_step(f, sung=False)
+    if f.skin == "game":
+        f.wait("document.querySelector('[data-select-first]')?.dataset.selectFirst === 'true'", what="the select, on a first song")
+        fresh = f.js("({ kick: !!document.querySelector('[data-select-kick]'), key: !!document.querySelector('[data-select-key]'), stats: document.querySelectorAll('.ge-statbar').length, chip: !!document.querySelector('.ge-1p'), words: [...document.querySelectorAll('.ge-portrait [data-part-words]')].map((e) => e.innerText.trim()).filter(Boolean).length })")
+        assert fresh == {"kick": False, "key": False, "stats": 0, "chip": True, "words": 4}, f"a first song's select: {fresh}"
+        f.no_sideways("the first song's select")
+        f.shot("select-first")
     picked = part_step(f)
     if f.skin == "serious":
         assert f.js(f"!{SELECT}"), "serious mode: no character select"
         clear_projects(f)
         return
     f.wait(SELECT, what="the character select")
+    f.wait("document.querySelector('[data-select-first]')?.dataset.selectFirst === 'false'", what="the select, a song sung before")
     if picked:
         shown = f.js(f"{SELECT}.querySelector('[aria-current=true]')?.dataset.slot")
         assert shown == picked, f"the part Sing picked is pre-selected, one tap to confirm: {shown} vs {picked}"
@@ -66,7 +78,7 @@ def journey(f):
     # says what Busy and Leaps measure (item 11).
     sing = f.js("document.querySelector('[data-select-sing]').innerText")
     assert sing.upper() == t(f, "game.select.sing", {"part": picked}).upper(), f"the Sing button names the cursor's part: {sing} vs {picked}"
-    assert f.js("!!document.querySelector('[data-select-key]')"), "Busy and Leaps explained"
+    assert f.js("!!document.querySelector('[data-select-key]') && !!document.querySelector('[data-select-kick]')"), "Busy and Leaps explained, 1P SELECT back"
     assert f.js("getComputedStyle(document.querySelector('.ge-portrait')).borderTopLeftRadius") == "0px", "square cards"
     # The Sing button (phone) or a tap (desktop) chooses it: the song starts on that part.
     f.run("document.querySelector('[data-select-sing]').click()" if f.size == "phone" else "document.querySelector('.ge-portrait.is-picked').click()")

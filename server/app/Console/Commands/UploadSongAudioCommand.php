@@ -14,12 +14,20 @@ use Illuminate\Console\Command;
  */
 final class UploadSongAudioCommand extends Command
 {
-    protected $signature = 'app:song-audio:upload {folder : The renders folder, with manifest.json} {--check : Only check the files against the manifest}';
+    protected $signature = 'app:song-audio:upload {folder : The renders folder, with manifest.json} {--check : Only check the files against the manifest} {--local : Upload to a local media disk (tests, a dev machine)}';
 
     protected $description = 'Upload the whole-song renders a manifest lists, each checked by its bytes and sha256';
 
     public function handle(UploadSongAudio $upload): int
     {
+        // The keys alone leave the media disk local: the first upload (2026-11-13) put 206 files on the Mac, and the CDN
+        // answered 403 for each. Uploading for the site needs the Spaces disk said outright.
+        $driver = (string) config('filesystems.disks.media.driver');
+        if (! $this->option('check') && ! $this->option('local') && $driver !== 's3') {
+            $this->error("The media disk is {$driver}, not the CDN: set MEDIA_DISK=spaces_media and CDN_URL (with the Spaces keys), or pass --local.");
+
+            return self::FAILURE;
+        }
         try {
             $result = $upload->handle(rtrim((string) $this->argument('folder'), '/'), (bool) $this->option('check'));
         } catch (\InvalidArgumentException $e) {

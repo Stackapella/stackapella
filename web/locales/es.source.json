@@ -1807,6 +1807,7 @@
         "backToSong": "Back to Home"
     },
     "courses": {
+        "teacher": "No app replaces a voice teacher.",
         "eyebrow": "Course",
         "title": "Courses",
         "more": "More courses",
@@ -1972,6 +1973,7 @@
         }
     },
     "course": {
+        "mapLessonsStars": "{done} of {total} lessons · {stars}/{max} ★",
         "friendNote": {
             "both": "Your friend: {theirs} · You: {yours}",
             "ask": "Your friend's voice sits around {note}. What's yours?"
@@ -2148,6 +2150,7 @@
             "sunLong": "Sunday"
         },
         "hub": {
+            "goalWeek": "Days a week",
             "eyebrow": "Learn",
             "title": "Sing harmony",
             "voiceIs": "Your voice · {voice}",
@@ -2158,7 +2161,6 @@
             "workoutLine": "A warm-up, one thing to work on, and a quick review, picked for you.",
             "begin": "Begin",
             "daysOf": "{done} of {goal} days",
-            "goal": "Goal",
             "toLevel": "{xp} XP to Level {level}, {lessons, plural, one {about one lesson} other {about # lessons}}."
         },
         "startLesson": "Start lesson",
@@ -2169,7 +2171,6 @@
             "heading": "Did you know?",
             "source": "Source: {source}"
         },
-        "mapStars": "{stars}/{max} ★",
         "mapToOpen": "{stars}/{need} ★ to open",
         "stepLabel": "Step {step}",
         "speakerUnder": "Without headphones, the sound underneath plays first, then rests while you sing, so we hear only you. With headphones, it stays under you.",
@@ -5427,6 +5428,8 @@
         "done": "That's your Sharpen up done. Your best in each lesson is kept, and the course page picks your next ones."
     },
     "ideas": {
+        "openYours": "Open your tune",
+        "singAPart": "Sing a part",
         "title": "Ideas",
         "intro": "Tunes people wrote, waiting for real voices. Sing any part and add your voice.",
         "loading": "Loading tunes.",

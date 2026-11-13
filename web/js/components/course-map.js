@@ -48,7 +48,7 @@ export const CourseMap = {
                     </span>
                     <span class="mt-3 flex items-center gap-3">
                         <span class="block h-1.5 flex-1 overflow-hidden rounded-full bg-raised"><span class="block h-full rounded-full bg-accent" :style="{ width: barShare(u) * 100 + '%' }"></span></span>
-                        <span class="shrink-0 tabular-nums text-xs text-muted">{{ game() ? (open(u) ? t('course.mapStars', { stars: starsIn(unit), max: maxStars(unit) }) : t('course.mapToOpen', { stars: starsIn(units[u - 1]), need: starsToOpen(units[u - 1]) })) : open(u) ? t('course.mapLessons', { done: lessonsDone(unit), total: unit.lessons.length }) : t('course.mapOpensAfter', { number: u }) }}</span>
+                        <span class="shrink-0 tabular-nums text-xs text-muted">{{ game() ? (open(u) ? t('course.mapLessonsStars', { done: lessonsDone(unit), total: unit.lessons.length, stars: starsIn(unit), max: maxStars(unit) }) : t('course.mapToOpen', { stars: starsIn(units[u - 1]), need: starsToOpen(units[u - 1]) })) : open(u) ? t('course.mapLessons', { done: lessonsDone(unit), total: unit.lessons.length }) : t('course.mapOpensAfter', { number: u }) }}</span>
                     </span>
                 </button>
                 <div v-if="isOpen(u)" class="border-t border-edge px-5 pb-5 pt-6">

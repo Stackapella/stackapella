@@ -179,6 +179,10 @@ final class SongStories
             if (preg_match('/^"[^"]*"$/', $value) === 1) {
                 $problems[] = $at.$key.' is in quotes: front matter values aren\'t quoted (the line splits on its first colon)';
             }
+            // Nor escaped: a \" is shown as written (O the Beautiful Treasure's description showed its backslashes, 2026-11-13).
+            if (str_contains($value, '\\')) {
+                $problems[] = $at.$key.' has a backslash: front matter values are shown as written, so quotes need no escaping';
+            }
         }
         foreach (['updated', 'checked'] as $key) {
             if (isset($front[$key]) && preg_match('/^\d{4}-\d{2}-\d{2}$/', $front[$key]) !== 1) {

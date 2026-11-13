@@ -1807,6 +1807,7 @@
         "backToSong": "Volver al inicio"
     },
     "courses": {
+        "teacher": "Ninguna app sustituye a un docente de canto.",
         "eyebrow": "Curso",
         "title": "Cursos",
         "more": "Más cursos",
@@ -1972,6 +1973,7 @@
         }
     },
     "course": {
+        "mapLessonsStars": "{done} de {total} lecciones · {stars}/{max} ★",
         "friendNote": {
             "both": "Tu amigo: {theirs} · Tú: {yours}",
             "ask": "La voz de tu amigo ronda el {note}. ¿Y la tuya?"
@@ -2148,6 +2150,7 @@
             "sunLong": "Domingo"
         },
         "hub": {
+            "goalWeek": "Días por semana",
             "eyebrow": "Aprender",
             "title": "Canta a voces",
             "voiceIs": "Tu voz · {voice}",
@@ -2158,7 +2161,6 @@
             "workoutLine": "Un calentamiento, algo que trabajar y un repaso rápido, elegidos para ti.",
             "begin": "Comenzar",
             "daysOf": "{done} de {goal} días",
-            "goal": "Meta",
             "toLevel": "{xp} XP para el nivel {level}, {lessons, plural, one {más o menos una lección} other {unas # lecciones}}."
         },
         "startLesson": "Empezar lección",
@@ -2169,7 +2171,6 @@
             "heading": "¿Sabías que...?",
             "source": "Fuente: {source}"
         },
-        "mapStars": "{stars}/{max} ★",
         "mapToOpen": "{stars}/{need} ★ para abrir",
         "stepLabel": "Paso {step}",
         "speakerUnder": "Sin auriculares, el sonido de fondo suena primero y luego descansa mientras cantas, para que solo te oigamos a ti. Con auriculares, sigue sonando debajo de ti.",
@@ -5427,6 +5428,8 @@
         "done": "Ya está tu puesta a punto. Se guarda lo mejor de cada lección, y la página del curso elige las siguientes."
     },
     "ideas": {
+        "openYours": "Abre tu melodía",
+        "singAPart": "Canta una voz",
         "title": "Ideas",
         "intro": "Melodías que ha escrito la gente y que esperan voces reales. Canta cualquier voz y añade la tuya.",
         "loading": "Cargando melodías.",
