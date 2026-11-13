@@ -17,7 +17,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
 from course_css_exact import PROPS  # noqa: E402
-from flow import Flow  # noqa: E402
+from flow import Flow, once_more_if_chrome_dies  # noqa: E402
 from site_css_exact import EXTRA, SITE_SHEET  # noqa: E402
 from site_integration import PAGES  # noqa: E402
 
@@ -127,41 +127,56 @@ def main():
     try:
         for skin, (colour, mode) in LOOKS:
             for size, width in (("phone", 390), ("desktop", 1440)):
-                # The public pages.
-                f = Flow(site, size, "game-css", skin)
-                try:
-                    f.chrome.send("Emulation.setDeviceMetricsOverride", {"width": width, "height": 900, "deviceScaleFactor": 1, "mobile": width < 768})
-                    f.go("/", "document.querySelector('body')")
-                    look(f, skin, colour, mode)
-                    for path in dict.fromkeys(PAGES + EXTRA):
-                        f.go(path, "document.querySelector('body')")  # loaded in this look from the first paint
-                        time.sleep(1.5)
-                        base = f.js(SITE_SHEET)
-                        if not base:
-                            continue  # a page without the site's sheet (an embed has its own)
-                        if base != "/css/site.css":
-                            family_split(site, base, families)
-                        else:
-                            whole_pages.add(path)
-                        compare(f, path, base, "/css/.site-whole.css", skin, width, failed)
-                        checked += 1
-                finally:
-                    f.chrome.close()
-                # The app's screens.
-                f = Flow(app, size, "game-css", skin)
-                try:
-                    f.chrome.send("Emulation.setDeviceMetricsOverride", {"width": width, "height": 900, "deviceScaleFactor": 1, "mobile": width < 768})
-                    f.go("/?api=mock&as=admin", "document.querySelector('#app header')")
-                    look(f, skin, colour, mode)
-                    studio = f.js("(async () => { const { startFromTemplate } = await import('/js/stores/projects.js'); const { loadTemplate } = await import('/js/templates.js'); return (await startFromTemplate(await loadTemplate('amazing-grace'), { singers: 4 })).id; })()")
-                    for screen in APP_SCREENS:
-                        path = screen.format(studio=f"/p/{studio}")
-                        f.go(path, "document.querySelector('#app header, #app h1, #app main')")
-                        time.sleep(1.5)
-                        compare(f, path, "/css/app.css", "/css/.app-whole.css", skin, width, failed)
-                        checked += 1
-                finally:
-                    f.chrome.close()
+                # The public pages, then the app's screens: each on its own Chrome, kept to itself until it ends, so
+                # a Chrome that dies under a busy machine is tried once more from the start (flow.once_more_if_chrome_dies).
+                def site_pages():
+                    mine, seen, whole = [], 0, set()
+                    f = Flow(site, size, "game-css", skin)
+                    try:
+                        f.chrome.send("Emulation.setDeviceMetricsOverride", {"width": width, "height": 900, "deviceScaleFactor": 1, "mobile": width < 768})
+                        f.go("/", "document.querySelector('body')")
+                        look(f, skin, colour, mode)
+                        for path in dict.fromkeys(PAGES + EXTRA):
+                            f.go(path, "document.querySelector('body')")  # loaded in this look from the first paint
+                            time.sleep(1.5)
+                            base = f.js(SITE_SHEET)
+                            if not base:
+                                continue  # a page without the site's sheet (an embed has its own)
+                            if base != "/css/site.css":
+                                family_split(site, base, families)  # shared: its split files are removed at the end either way
+                            else:
+                                whole.add(path)
+                            compare(f, path, base, "/css/.site-whole.css", skin, width, mine)
+                            seen += 1
+                    finally:
+                        f.chrome.close()
+                    return mine, seen, whole
+
+                def app_screens():
+                    mine, seen = [], 0
+                    f = Flow(app, size, "game-css", skin)
+                    try:
+                        f.chrome.send("Emulation.setDeviceMetricsOverride", {"width": width, "height": 900, "deviceScaleFactor": 1, "mobile": width < 768})
+                        f.go("/?api=mock&as=admin", "document.querySelector('#app header')")
+                        look(f, skin, colour, mode)
+                        studio = f.js("(async () => { const { startFromTemplate } = await import('/js/stores/projects.js'); const { loadTemplate } = await import('/js/templates.js'); return (await startFromTemplate(await loadTemplate('amazing-grace'), { singers: 4 })).id; })()")
+                        for screen in APP_SCREENS:
+                            path = screen.format(studio=f"/p/{studio}")
+                            f.go(path, "document.querySelector('#app header, #app h1, #app main')")
+                            time.sleep(1.5)
+                            compare(f, path, "/css/app.css", "/css/.app-whole.css", skin, width, mine)
+                            seen += 1
+                    finally:
+                        f.chrome.close()
+                    return mine, seen
+
+                mine, seen, whole = once_more_if_chrome_dies(f"game css: the site's pages ({skin}, {width})", site_pages)
+                failed += mine
+                checked += seen
+                whole_pages |= whole
+                mine, seen = once_more_if_chrome_dies(f"game css: the app's screens ({skin}, {width})", app_screens)
+                failed += mine
+                checked += seen
     finally:
         for name in ("app", "site"):
             (WEB / f"css/.{name}-whole.css").unlink(missing_ok=True)

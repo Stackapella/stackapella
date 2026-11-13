@@ -16,6 +16,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "tool"))
 from cdp import Chrome  # noqa: E402
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from flow import once_more_if_chrome_dies  # noqa: E402
 
 # The landing (as everyone and as a mudeo singer), a page of each kind, and the pages other agents
 # share the frame with. SitePagesTest renders every one of the rest.
@@ -108,40 +110,47 @@ def main():
     base = (sys.argv[1] if len(sys.argv) > 1 else "http://127.0.0.1:8081").rstrip("/")
     failures = []
     for width in WIDTHS:
-        chrome = Chrome(None, width, 900, width < 900)
-        try:
-            chrome.goto(base + "/", "document.readyState === 'complete'")
-            for skin, theme in LOOKS:
-                family, mode = theme.split("-")
-                chrome.evaluate(f"localStorage.setItem('stackapella.appearance', {json.dumps(json.dumps({'mode': mode, 'gameMode': mode, 'colour': family, 'skin': skin, 'at': 1}))})")
-                for page in PAGES:
-                    # Each page as a new visitor: a mudeo visit's mark mustn't carry over to the next.
-                    chrome.send("Network.clearBrowserCookies")
-                    chrome.goto(base + page, "document.readyState === 'complete'")
-                    # Against clientWidth, not innerWidth: on a phone the layout stretches to fit
-                    # what's too wide, and innerWidth stretches with it (Yodeling's echo hid that way).
-                    facts = chrome.evaluate("({ theme: document.documentElement.dataset.theme, over: document.documentElement.scrollWidth - document.documentElement.clientWidth, h1: document.querySelectorAll('h1').length })")
-                    where = f"{page} {skin} {theme} {width}px"
-                    if facts["theme"] != theme:
-                        failures.append(f"{where}: shows {facts['theme']}")
-                    if facts["over"] > 0:
-                        failures.append(f"{where}: scrolls sideways by {facts['over']}px")
-                    if facts["h1"] != 1:
-                        failures.append(f"{where}: {facts['h1']} h1s")
-                    if width <= 390 and page.startswith("/courses/"):
-                        for thing, over in chrome.evaluate(STICKS_OUT):
-                            failures.append(f"{where}: sticks out by {over}px: {thing}")
-                    if width == 390:
-                        for low in chrome.evaluate(CONTRAST):
-                            failures.append(f"{where}: below AA: {low}")
-                    if width == 390 and (skin, theme) == LOOKS[0]:
-                        for problem in chrome.evaluate(SPEED):
-                            failures.append(f"{page} speed: {problem}")
-            errors = [e for e in chrome.errors if "favicon" not in e]
-            if errors:
-                failures.append(f"{width}px: page errors {errors[:3]}")
-        finally:
-            chrome.close()
+        # One Chrome per width, its findings kept to itself until it ends: a Chrome that dies under a busy machine is
+        # tried once more (flow.once_more_if_chrome_dies; 2026-11-12, at the 1440 page load with the load near 200).
+        def one_width(width=width):
+            found = []
+            chrome = Chrome(None, width, 900, width < 900)
+            try:
+                chrome.goto(base + "/", "document.readyState === 'complete'")
+                for skin, theme in LOOKS:
+                    family, mode = theme.split("-")
+                    chrome.evaluate(f"localStorage.setItem('stackapella.appearance', {json.dumps(json.dumps({'mode': mode, 'gameMode': mode, 'colour': family, 'skin': skin, 'at': 1}))})")
+                    for page in PAGES:
+                        # Each page as a new visitor: a mudeo visit's mark mustn't carry over to the next.
+                        chrome.send("Network.clearBrowserCookies")
+                        chrome.goto(base + page, "document.readyState === 'complete'")
+                        # Against clientWidth, not innerWidth: on a phone the layout stretches to fit
+                        # what's too wide, and innerWidth stretches with it (Yodeling's echo hid that way).
+                        facts = chrome.evaluate("({ theme: document.documentElement.dataset.theme, over: document.documentElement.scrollWidth - document.documentElement.clientWidth, h1: document.querySelectorAll('h1').length })")
+                        where = f"{page} {skin} {theme} {width}px"
+                        if facts["theme"] != theme:
+                            found.append(f"{where}: shows {facts['theme']}")
+                        if facts["over"] > 0:
+                            found.append(f"{where}: scrolls sideways by {facts['over']}px")
+                        if facts["h1"] != 1:
+                            found.append(f"{where}: {facts['h1']} h1s")
+                        if width <= 390 and page.startswith("/courses/"):
+                            for thing, over in chrome.evaluate(STICKS_OUT):
+                                found.append(f"{where}: sticks out by {over}px: {thing}")
+                        if width == 390:
+                            for low in chrome.evaluate(CONTRAST):
+                                found.append(f"{where}: below AA: {low}")
+                        if width == 390 and (skin, theme) == LOOKS[0]:
+                            for problem in chrome.evaluate(SPEED):
+                                found.append(f"{page} speed: {problem}")
+                errors = [e for e in chrome.errors if "favicon" not in e]
+                if errors:
+                    found.append(f"{width}px: page errors {errors[:3]}")
+            finally:
+                chrome.close()
+            return found
+
+        failures += once_more_if_chrome_dies(f"site_integration ({width}px)", one_width)
         print(f"{'ok  ' if not failures else 'FAIL'} site_integration ({width}px)")
     for failure in failures:
         print("     " + failure)

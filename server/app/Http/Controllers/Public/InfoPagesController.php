@@ -16,6 +16,7 @@ use App\Support\Site\ComingSoon;
 use App\Support\Site\HelpGuide;
 use App\Support\Site\OpenSource;
 use App\Support\Site\SitePages;
+use App\Support\Site\Teams;
 use App\Support\Templates\Catalogue;
 use App\Support\Trust\Country;
 use Illuminate\Http\JsonResponse;
@@ -99,14 +100,14 @@ final class InfoPagesController extends Controller
             ],
             'checkoutOpen' => filled(config('billing.prices.month')) && filled(config('billing.prices.year')),
             // The page's lists, as lang/en/pages.php has them.
-            'rows' => (array) Lang::get('pages.pricing.rows'),
+            'rows' => (array) Teams::words('pages.pricing.rows'),
             // The comparison in groups (the design round), each row's key in the order shown;
             // coaching only once it's open (it waits for after launch, docs/decisions.md).
             'groups' => ComingSoon::open('coaching') ? self::PRICING_GROUPS : array_map(static fn (array $rows): array => array_values(array_diff($rows, ['coaching'])), self::PRICING_GROUPS),
             'plans' => Landing::plans(),
             'smallPrint' => (array) Lang::get('pages.pricing.small_print'),
             'faq' => array_map(static fn (array $qa): array => [$qa[0], str_replace(':days', (string) config('billing.trial_days'), (string) $qa[1])], [
-                ...(array) Lang::get('pages.pricing.faq'),
+                ...(array) Teams::words('pages.pricing.faq'),
                 ...(OpenSource::on() ? [(array) Lang::get('pages.pricing.faq_selfhost')] : []),
             ]),
         ], 200, $this->headers(varies: true));

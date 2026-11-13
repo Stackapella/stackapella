@@ -111,7 +111,7 @@
                     {{-- Game mode's kicker (Hillel's 90s design): the band as two players' co-op. --}}
                     <p class="s-xband-k s-skin-g">{{ __('site.carols.game.co_op') }}</p>
                     <h2 id="choirs-h">{{ __('site.carols.choirs_title') }} <em class="s-xserif">{{ __('site.carols.choirs_title_em') }}</em></h2>
-                    <p>{{ __('site.carols.choirs_body') }}</p>
+                    <p>{{ \App\Support\Site\Teams::text('site.carols.choirs_body') }}</p>
                 </div>
                 <div class="s-xband-go">
                     <a href="{{ \App\Support\Http\Hosts::app('/groups?start=1&ref=carols') }}" class="btn-secondary btn-lg"><x-site.skin :game="__('site.carols.game.co_op_start')" :serious="__('site.carols.choirs_start')" /> <x-site.icon name="arrow" size="18" /></a>

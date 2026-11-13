@@ -13,6 +13,7 @@ use App\Support\Outreach\Outreach;
 use App\Support\Site\ComingSoon;
 use App\Support\Site\Drawings;
 use App\Support\Site\SitePages;
+use App\Support\Site\Teams;
 use App\Support\Templates\Catalogue;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Lang;
@@ -295,7 +296,7 @@ final class Landing
      */
     public static function faq(int $freeSongs, string $price, bool $openSource = false): array
     {
-        $faq = (array) Lang::get('pages.landing.faq');
+        $faq = (array) Teams::words('pages.landing.faq');
         if ($openSource) {
             $faq['privacy'][1] .= ' '.__('pages.landing.faq_privacy_check');
             $faq['open_source'] = (array) Lang::get('pages.landing.faq_open_source');
@@ -315,7 +316,7 @@ final class Landing
      */
     public static function list(string $key, array $replace = []): array
     {
-        $lines = array_values((array) Lang::get('pages.landing.'.$key));
+        $lines = array_values((array) Teams::words('pages.landing.'.$key));
 
         return array_map(static fn (mixed $line): mixed => is_string($line) ? strtr($line, $replace) : $line, $lines);
     }

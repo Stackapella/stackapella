@@ -39,7 +39,7 @@
             @endforeach
         </ul>
         {{-- Plus isn't the choir offer: a director's learning tracks are their own thing. --}}
-        <p class="s-plan-choirs">{{ __('pages.landing.plans_choirs') }} <a href="/for/choir-directors?ref={{ request()->is('pricing') ? 'for-choirs-pricing' : 'for-choirs-landing' }}">{{ __('pages.landing.plans_choirs_link') }}</a></p>
+        <p class="s-plan-choirs">{{ __('pages.landing.plans_choirs') }} <a href="/for/choir-directors?ref={{ request()->is('pricing') ? 'for-choirs-pricing' : 'for-choirs-landing' }}">{{ \App\Support\Site\Teams::text('pages.landing.plans_choirs_link') }}</a></p>
         <div class="s-plan-foot">
             @if ($plans['checkoutOpen'])
                 <a href="{{ $plus }}" class="btn-secondary btn-lg">{{ __('pages.landing.plans_get') }}</a>

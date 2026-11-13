@@ -122,7 +122,15 @@ def journey(f):
     assert sung and (not guide or guide == sung), f"the sung notes aren't on their guide notes' rows: {guide} vs {sung}"
     assert not f.js("document.querySelector('.lane-stage .lane-speck')"), "the drifting specks are back"
     f.shot("sing-it")
-    f.wait_text(t(f, "course.notHeard"), timeout=40)  # loopback hears the guide, but nobody in the turn
+    # The turn ends by the audio clock, which falls behind the wall clock on a starved machine (2026-11-12: at a load of
+    # 205 the 40 s wait ran out): so wait for the turn to end, as long as it takes, then for its answer.
+    f.wait(f"!{AUDIO}.engine.playing", timeout=180, what="the turn's end")
+    unheard = t(f, "course.notHeard")
+    try:
+        f.wait_text(unheard)  # loopback hears the guide, but nobody in the turn
+    except AssertionError:
+        said = f.js("[...document.querySelectorAll('[role=status]')].map((e) => e.innerText.trim()).filter(Boolean)")
+        raise AssertionError(f"[{f.name}, {f.size}] the turn ended without \"{unheard}\": it said {said}") from None
     f.click_t("course.finish")
     # Couldn't hear: no stars and no XP, and nothing lost.
     # Couldn't hear you (game mode asks "Continue?" instead).

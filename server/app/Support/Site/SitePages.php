@@ -475,7 +475,7 @@ final class SitePages
      */
     public static function page(string $area, string $slug): array
     {
-        $words = (array) Lang::get('site.'.$area.'.pages.'.$slug);
+        $words = (array) Teams::words('site.'.$area.'.pages.'.$slug);
         $page = self::fill($area === 'features' && ! self::soon($slug) ? self::now($words) : [...array_diff_key($words, ['now' => true])], [
             ':commission' => config('coaching.commission_percent').'%',
             ':email' => (string) config('site.contact_email'),

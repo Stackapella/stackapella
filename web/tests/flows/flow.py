@@ -12,7 +12,7 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "tool"))
-from cdp import Chrome  # noqa: E402
+from cdp import Chrome, ChromeDied  # noqa: E402
 
 # FLOW_BROWSER=firefox or safari runs a flow in that browser over WebDriver BiDi (tool/bidi.py), for
 # the cross-browser pass; Chrome is the default and the gate.
@@ -182,6 +182,17 @@ class Flow:
             raise AssertionError(f"[{self.name}, {self.size}] page errors: {errors}")
 
 
+def once_more_if_chrome_dies(what, attempt):
+    """Runs attempt(), and once more on a fresh Chrome if Chrome itself died under it (cdp.ChromeDied: the machine's
+    doing, as on 2026-11-12 at a load near 200, never the page's). Said in the log; a second death fails. `attempt`
+    starts its own Chrome and keeps what it finds to itself until it ends, so a dead first try leaves nothing behind."""
+    try:
+        return attempt()
+    except ChromeDied as error:
+        print(f"again {what}: {str(error).splitlines()[0]}; once more on a fresh Chrome", flush=True)
+        return attempt()
+
+
 def run(name, journey, sizes=("phone", "desktop")):
     """Runs `journey(flow)` at each size against the server in argv[1]; exits 1 on a failure."""
     base = sys.argv[1] if len(sys.argv) > 1 else "http://127.0.0.1:8081"
@@ -191,20 +202,31 @@ def run(name, journey, sizes=("phone", "desktop")):
     # FLOW_SKINS=game,serious runs each size in both skins (docs/skins-plan.md); game alone by default.
     skins = os.environ.get("FLOW_SKINS", "game").split(",")
     for size, skin in [(size, skin) for skin in skins for size in sizes]:
-        flow = Flow(base, size, name, skin)
         label = size if skin == "game" else f"{size}, {skin}"
-        try:
-            journey(flow)
-            flow.close()
-            print(f"ok   {name} ({label})")
-        except Exception as error:  # report every size, then fail
-            failed = True
+        for last_try in (False, True):
+            flow = Flow(base, size, name, skin)
             try:
-                flow.shot("failed")
+                journey(flow)
+                flow.close()
+                print(f"ok   {name} ({label})")
+                break
+            except ChromeDied as error:
                 flow.chrome.close()
-            except Exception:
-                pass
-            print(f"FAIL {name} ({label}): {error}")
-            for message in flow.chrome.errors[-5:]:
-                print(f"     page error: {message[:300]}")
+                if not last_try:
+                    # The browser went, not the app: this size once more on a fresh Chrome (once_more_if_chrome_dies).
+                    print(f"again {name} ({label}): {str(error).splitlines()[0]}; once more on a fresh Chrome", flush=True)
+                    continue
+                failed = True
+                print(f"FAIL {name} ({label}): {error}")
+            except Exception as error:  # report every size, then fail
+                failed = True
+                try:
+                    flow.shot("failed")
+                    flow.chrome.close()
+                except Exception:
+                    pass
+                print(f"FAIL {name} ({label}): {error}")
+                for message in flow.chrome.errors[-5:]:
+                    print(f"     page error: {message[:300]}")
+                break
     sys.exit(1 if failed else 0)

@@ -19,7 +19,7 @@ from game_frames import THEMES, pixel_face  # noqa: E402
 
 SITE = sys.argv[1] if len(sys.argv) > 1 else "http://127.0.0.1:8412"
 PAGES = ["/tools", "/tools/tuner", "/tools/metronome", "/tools/vocal-range-test", "/tools/pitch-pipe", "/tools/tuning-forks", "/tools/drone", "/warmups", "/warmups/humming-scale", "/songs/amazing-grace/alto", "/intervals/perfect-fifth", "/chords/major", "/voice-types/alto", "/courses/harmony/steady-notes", "/courses/perfect-your-pitch/scoop-or-clean", "/courses/vibrato/swing-and-settle", "/integrations", "/integrations/invoice-ninja", "/songs", "/songs/amazing-grace", "/compare", "/compare/smule", "/courses/other-languages", "/about", "/for/beginners", "/for/organizations", "/guides", "/guides/what-is-harmony", "/whats-new",
-         "/songs/christmas-carols", "/songs/hymns", "/songs/spirituals", "/songs/sea-shanties", "/songs/rounds", "/songs/folk-songs", "/songs/barbershop-songs", "/songs/jewish-songs", "/guides/hanukkah-songs-for-choir", "/es/guides/hanukkah-songs-for-choir", "/es/courses", "/es", "/es/songs", "/es/pricing", "/es/tools", "/songs/scottish-songs", "/songs/shaker-songs", "/songs/thanksgiving-hymns", "/songs/villancicos", "/es/songs/villancicos", "/songs/silent-night", "/songs/danny-boy", "/songs/hark-the-herald", "/songs/jingle-bells", "/songs/noche-de-paz", "/songs/maoz-tzur", "/songs/la-paloma"]  # the songbook and collection pages
+         "/songs/christmas-carols", "/songs/hymns", "/songs/spirituals", "/songs/sea-shanties", "/songs/rounds", "/songs/folk-songs", "/songs/barbershop-songs", "/songs/jewish-songs", "/guides/hanukkah-songs-for-choir", "/es/guides/hanukkah-songs-for-choir", "/es/courses", "/es", "/es/songs", "/es/pricing", "/es/tools", "/songs/scottish-songs", "/songs/shaker-songs", "/songs/thanksgiving-hymns", "/songs/villancicos", "/es/songs/villancicos", "/songs/silent-night", "/songs/danny-boy", "/songs/hark-the-herald", "/songs/jingle-bells", "/songs/noche-de-paz", "/songs/maoz-tzur", "/songs/la-paloma", "/songs/shchedryk", "/songs/riu-riu-chiu", "/songs/el-cant-dels-ocells", "/songs/coventry-carol", "/songs/deep-river", "/songs/drunken-sailor"]  # the songbook and collection pages
 STYLE = "getComputedStyle(document.querySelector({sel!r}))"
 # The site server's own folder (this checkout's), whose database says whether the courses are open: the lesson pages
 # exist only for open courses (SitePages::courseOpen), so a run that finds them closed opens them. It never closes them
@@ -169,20 +169,28 @@ def main():
     for skin in ("game", "serious"):
         for size, width, height in (("phone", 360, 780), ("desktop", 1440, 900)):
             for path in pages:
-                f = flow.Flow(SITE, size, "game_tools_site", skin=skin)
+                def one_page(path=path, skin=skin, size=size, width=width, height=height):
+                    f = flow.Flow(SITE, size, "game_tools_site", skin=skin)
+                    try:
+                        f.chrome.send("Emulation.setDeviceMetricsOverride", {"width": width, "height": height, "deviceScaleFactor": 2 if size == "phone" else 1, "mobile": size == "phone"})
+                        check(f, path)
+                    except flow.ChromeDied:
+                        f.chrome.close()
+                        raise
+                    except BaseException:
+                        try:
+                            f.close()
+                        except AssertionError:
+                            pass  # the page's own failure is the one to report
+                        raise
+                    f.close()  # page errors fail it too
                 try:
-                    f.chrome.send("Emulation.setDeviceMetricsOverride", {"width": width, "height": height, "deviceScaleFactor": 2 if size == "phone" else 1, "mobile": size == "phone"})
-                    check(f, path)
+                    # A Chrome that dies under a busy machine (2026-11-12) is tried once more on this page.
+                    flow.once_more_if_chrome_dies(f"game_tools_site ({path}, {skin}, {size})", one_page)
                     print(f"ok   game_tools_site ({path}, {skin}, {size})")
                 except Exception as error:  # noqa: BLE001 (every page, skin and size is tried)
                     failures.append(f"{path} {skin} {size}: {error}")
                     print(f"FAIL game_tools_site ({path}, {skin}, {size}): {error}")
-                finally:
-                    try:
-                        f.close()
-                    except AssertionError as error:  # page errors
-                        failures.append(f"{path} {skin} {size}: {error}")
-                        print(f"FAIL game_tools_site ({path}, {skin}, {size}): {error}")
     for skin in ("game", "serious"):
         try:
             header_fits(skin)

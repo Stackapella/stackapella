@@ -51,6 +51,16 @@ if signal.getsignal(signal.SIGTERM) is signal.SIG_DFL:
     signal.signal(signal.SIGTERM, _exit_on_term)
 
 
+class SocketClosed(RuntimeError):
+    """The other end closed the connection (or it was reset): a RuntimeError, as callers (bidi.py) have always caught."""
+
+
+class ChromeDied(Exception):
+    """Chrome itself went away under a call: the machine's doing (2026-11-12, at a load of 150 to 200, mid-run), never
+    the page's, since a page can only crash its own renderer. Not a RuntimeError, so a flow's polling loops (which take a
+    RuntimeError as "not yet") fail at once with Chrome's exit and last words instead of timing out on a dead browser."""
+
+
 class WebSocket:
     def __init__(self, url):
         host_port, path = url[len("ws://"):].split("/", 1)
@@ -86,7 +96,7 @@ class WebSocket:
         while len(self.buffer) < n:
             chunk = self.sock.recv(1 << 16)
             if not chunk:
-                raise RuntimeError("WebSocket closed")
+                raise SocketClosed("WebSocket closed")
             self.buffer += chunk
         data, self.buffer = self.buffer[:n], self.buffer[n:]
         return data
@@ -107,7 +117,7 @@ class WebSocket:
                 if first & 0x80:
                     return message.decode()
             elif opcode == 0x8:
-                raise RuntimeError("WebSocket closed by Chrome")
+                raise SocketClosed("WebSocket closed by Chrome")
 
 
 class ChromeDidNotStart(RuntimeError):
@@ -223,6 +233,24 @@ class Chrome:
             self.send("Emulation.setTouchEmulationEnabled", {"enabled": True})
 
     def send(self, method, params=None):
+        try:
+            return self._send(method, params)
+        except (SocketClosed, BrokenPipeError, ConnectionResetError) as error:
+            raise ChromeDied(self._why_gone(method, error)) from None
+
+    def _why_gone(self, method, error):
+        """What ended Chrome under `method`: its exit (a signal names who stopped it) and its last words."""
+        try:
+            code = self.process.wait(timeout=2)
+            how = f"killed by {signal.Signals(-code).name}" if code < 0 else f"exited with code {code}"
+        except subprocess.TimeoutExpired:
+            how = "its connection dropped, the browser still running"
+        except ValueError:
+            how = f"exited with {code}"
+        said = self._stderr_tail(8)
+        return f"Chrome died during {method} ({error}): {how}" + (f"\nIts last words:\n{said}" if said else "")
+
+    def _send(self, method, params):
         self.next_id += 1
         my_id = self.next_id
         self.ws.send(json.dumps({"id": my_id, "method": method, "params": params or {}}))

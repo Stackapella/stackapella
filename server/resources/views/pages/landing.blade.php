@@ -33,7 +33,7 @@
                         <a href="{{ $links['start'] }}" class="btn-primary btn-lg" data-funnel-start>{{ __('pages.landing.start') }} <x-site.icon name="arrow" size="18" /></a>
                         @if ($hero !== null)
                             <a href="#hero" class="btn-secondary btn-lg s-skin-s s-hear" data-hear="hero"><span class="s-hear-disc" aria-hidden="true"><x-site.icon name="play" size="14" /></span>{{ __('pages.landing.hear') }}</a>
-                            <button type="button" class="btn-secondary btn-lg s-skin-g" data-cab-start>{{ __('pages.landing.game.play') }}</button>
+                            <button type="button" class="btn-secondary btn-lg s-skin-g" data-cab-start>{{ __('pages.landing.hear') }}</button>
                         @endif
                     </div>
                     {{-- Lesson 1's chord moment, promised in the app's own words. While the onb1 experiment

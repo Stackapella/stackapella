@@ -31,7 +31,7 @@
             @endif
         </div>
         <ul class="s-teams-grid">
-            @foreach ([...(array) \Illuminate\Support\Facades\Lang::get('site.teams.items'), (array) \Illuminate\Support\Facades\Lang::get('site.teams.'.$coaching)] as [$heading, $body])
+            @foreach ([...(array) \App\Support\Site\Teams::words('site.teams.items'), (array) \Illuminate\Support\Facades\Lang::get('site.teams.'.$coaching)] as [$heading, $body])
                 <li><b>{{ $heading }}@if ($loop->last && $coaching === 'coaching_soon') <x-site.soon />@endif</b><span>{{ $body }}</span></li>
             @endforeach
         </ul>

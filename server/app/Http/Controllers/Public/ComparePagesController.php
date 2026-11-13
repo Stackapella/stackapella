@@ -10,9 +10,9 @@ use App\Support\Http\Hosts;
 use App\Support\Pages\Landing;
 use App\Support\Pages\Prices;
 use App\Support\Site\SitePages;
+use App\Support\Site\Teams;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
-use Illuminate\Support\Facades\Lang;
 use Illuminate\Support\Facades\View;
 
 /**
@@ -97,7 +97,7 @@ final class ComparePagesController extends Controller
      */
     private static function words(string $key): array
     {
-        $words = Lang::get('site.compare.'.$key);
+        $words = Teams::words('site.compare.'.$key);
 
         return is_array($words) ? $words : [];
     }

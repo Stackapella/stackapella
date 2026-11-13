@@ -320,7 +320,7 @@ final class HelpGuide
      */
     private static function raw(string $slug): array
     {
-        $raw = array_values((array) Lang::get('pages.help.pages.'.$slug.'.sections'));
+        $raw = array_values((array) Teams::words('pages.help.pages.'.$slug.'.sections'));
 
         if ($slug === 'mic') {
             $mic = MicHelp::sections((string) __('pages.help.pages.mic.why'));
