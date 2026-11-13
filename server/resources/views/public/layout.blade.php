@@ -13,6 +13,9 @@
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" dir="{{ __('meta.dir') }}" @if (\Illuminate\Support\Str::is(['/', 'how-it-works', 'pricing', 'help', 'help/*', 'features', 'features/*', 'courses', 'courses/*', 'songs', 'songs/*', 'compare', 'compare/*', 'about', 'for/*', 'guides', 'guides/*', 'whats-new'], ltrim(\App\Support\Languages\SiteLanguages::englishPath(request()->getPathInfo(), app()->getLocale()), '/') ?: '/') || $__env->hasSection('arcade')) data-gs @endif>
 <head>
     <meta charset="utf-8">
+    {{-- Every public page's Open Graph locale (the Spanish parity pass, 2026-11-13: only the landing, courses and tools had
+         one); the other languages' are added beside its hreflang links (SiteLanguage). --}}
+    <meta property="og:locale" content="{{ \App\Support\Languages\SiteLanguages::ogLocale(app()->getLocale()) }}">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     {{-- Kept out of search until the launch (SITE_INDEXING); a page can say so for itself (@section('robots')). --}}
     @hasSection('robots')

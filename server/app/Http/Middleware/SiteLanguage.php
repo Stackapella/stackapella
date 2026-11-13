@@ -113,6 +113,10 @@ final class SiteLanguage
         if ($alternates !== []) {
             $links = array_map(static fn (string $lang): string => '<link rel="alternate" hreflang="'.$lang.'" href="'.e(SiteLanguages::url($lang, $english)).'">', $alternates);
             $links[] = '<link rel="alternate" hreflang="x-default" href="'.e(SiteLanguages::url('en', $english)).'">';
+            // The other languages' Open Graph locales too, beside the page's own (public.layout), so a share in either finds them.
+            foreach (array_diff($alternates, [$language]) as $other) {
+                $links[] = '<meta property="og:locale:alternate" content="'.e(SiteLanguages::ogLocale($other)).'">';
+            }
             $html = (string) preg_replace('#</head>#i', implode('', $links).'</head>', $html, 1);
         }
 

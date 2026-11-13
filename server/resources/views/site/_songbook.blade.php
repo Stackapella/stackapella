@@ -65,7 +65,7 @@
                                 <li>
                                     <a href="{{ $part['url'] }}" class="s-xpart s-v{{ $loop->iteration }}" data-part-key="{{ $part['key'] }}">
                                         <i aria-hidden="true"></i>
-                                        <span class="s-xpart-name"><b>{{ $part['name'] }}</b>@if ($part['melody'])<span class="s-xmel">{{ __('site.song_part.melody_tag') }}</span>@endif</span>
+                                        <span class="s-xpart-name"><b>{{ $part['name'] }}</b>@if ($part['melody']) <span class="s-xmel">{{ __('site.song_part.melody_tag') }}</span>@endif</span>
                                         {{-- Its range on the songbook's one scale, E2 to G5 (Carols::SCALE), middle C marked; the words beside it say the same. --}}
                                         <span class="s-xbar" aria-hidden="true"><i style="--lo: {{ $at($part['low']) }}%; --hi: {{ $at($part['high']) }}%"></i></span>
                                         <span class="s-xrange" translate="no">{{ __('site.song_part.other_range', ['low' => $part['lowName'], 'high' => $part['highName']]) }}</span>

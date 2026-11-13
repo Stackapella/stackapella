@@ -80,13 +80,19 @@ final class ComparePagesController extends Controller
     }
 
     /**
-     * @return array{':price_month': string, ':price_year': string}
+     * Our prices in the visitor's currency, and Plus's as a sentence: while checkout is closed, that it isn't open yet
+     * (the pricing page's own test: both Stripe prices set), never a price as if it could be bought today.
+     *
+     * @return array{':price_month': string, ':price_year': string, ':plus_is': string, ':plus_price': string}
      */
     private static function prices(Request $request): array
     {
         $price = Prices::of(Prices::currency($request));
+        $amounts = [':price_month' => $price['month'], ':price_year' => $price['year']];
+        $paused = ! (filled(config('billing.prices.month')) && filled(config('billing.prices.year')));
+        $plus = static fn (string $key): string => strtr((string) __('site.compare.common.'.$key.($paused ? '_paused' : '')), $amounts);
 
-        return [':price_month' => $price['month'], ':price_year' => $price['year']];
+        return [':plus_is' => $plus('plus_is'), ':plus_price' => $plus('plus_price'), ...$amounts];
     }
 
     /**

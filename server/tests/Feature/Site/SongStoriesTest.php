@@ -55,7 +55,7 @@ final class SongStoriesTest extends TestCase
         $story = SongStories::story('test-song');
         $this->assertNotNull($story);
 
-        $this->assertStringContainsString('A song made for the tests, sung by nobody<sup class="s-cite"><a href="#source-1">[1]</a></sup>.', $story['opening']);
+        $this->assertStringContainsString('A song made for the tests, sung by nobody<sup class="s-cite"><a href="#source-1" aria-label="Source 1">[1]</a></sup>.', $story['opening']);
         $this->assertSame(['origins', 'words', 'sung', 'facts', 'singing', 'questions', 'next'], array_column($story['sections'], 'key'));
         $this->assertSame('where-it-comes-from', $story['sections'][0]['id']);
         // A source may be a print citation with no address (one whose publisher forbids linking, the Oklahoma Historical
@@ -63,7 +63,7 @@ final class SongStoriesTest extends TestCase
         $this->assertSame(['id' => 'two', 'n' => 2, 'html' => '<em>A Hymnal</em> (Boston, 1818), no. 12.', 'url' => null], $story['sources'][1]);
         $this->assertArrayNotHasKey('url', StructuredData::song(['title' => 'T', 'description' => 'D', 'pageUrl' => 'https://example.com/songs/t', 'genre' => ['hymn'], 'credits' => []], $story)[1]['citation'][1]);
         $this->assertStringNotContainsString('Timeline', $story['sections'][0]['html'], 'the timeline is its own list');
-        $this->assertSame([['year' => '1816', 'html' => 'written down <sup class="s-cite"><a href="#source-1">[1]</a></sup>'], ['year' => '1818', 'html' => 'printed <sup class="s-cite"><a href="#source-2">[2]</a></sup>']], $story['timeline']);
+        $this->assertSame([['year' => '1816', 'html' => 'written down <sup class="s-cite"><a href="#source-1" aria-label="Source 1">[1]</a></sup>'], ['year' => '1818', 'html' => 'printed <sup class="s-cite"><a href="#source-2" aria-label="Source 2">[2]</a></sup>']], $story['timeline']);
 
         // Old songs' dates, in English and Spanish (the courses lead): every form reads, nothing is dropped.
         $forms = ['13th century', 'late 12th century', '9th century BCE', '1911 to 1912', '1913 or 1914', 'About 1505', 'c. 1790', 'after 1883', '1820s', '1583/4', '1526/27', '1700?', 'hacia 1846 a 1850', 'después de 1883', 'finales del siglo XII', 'siglo IX a. C.', 'década de 1810'];
@@ -201,7 +201,7 @@ final class SongStoriesTest extends TestCase
         $this->write("The words mean what they say[^three].\n", "The words mean what they say[^three].\n\n### The full words\n\nAs Ann Writer printed them[^one].\n\n**Verse 1**\nSing it *once*,\nthen sing it again.\n\nThe second time\nsofter[^two].\n");
         $story = SongStories::story('test-song');
         $words = $story['fullWords'];
-        $this->assertStringContainsString('As Ann Writer printed them<sup class="s-cite"><a href="#source-1">[1]</a></sup>', $words['intro']);
+        $this->assertStringContainsString('As Ann Writer printed them<sup class="s-cite"><a href="#source-1" aria-label="Source 1">[1]</a></sup>', $words['intro']);
         $this->assertSame([
             ['label' => 'Verse 1', 'lines' => [['sung' => 'Sing it once,'], ['sung' => 'then sing it again.']]],
             ['label' => null, 'lines' => [['sung' => 'The second time'], ['sung' => 'softer.']]],
@@ -228,7 +228,7 @@ final class SongStoriesTest extends TestCase
         $html = (string) $this->get('/songs/amazing-grace')->assertOk()->getContent();
 
         // The story's words, not the template's verses: its note with its source, each stanza's label, sung in its language.
-        $this->assertStringContainsString('<div class="s-prose s-sg-words-intro"><p>As Ann Writer printed them<sup class="s-cite"><a href="#source-1">[1]</a></sup>', $html);
+        $this->assertStringContainsString('<div class="s-prose s-sg-words-intro"><p>As Ann Writer printed them<sup class="s-cite"><a href="#source-1" aria-label="Source 1">[1]</a></sup>', $html);
         $this->assertStringContainsString('<span class="s-sg-label">Verse 1</span>', $html);
         $this->assertStringContainsString('<span class="s-sg-sung" translate="no" lang="en">Line one of verse 1,</span>', $html);
         $verse = SongPage::verses(Template::query()->with('currentVersion')->where('slug', 'amazing-grace')->firstOrFail())[0][0] ?? null;

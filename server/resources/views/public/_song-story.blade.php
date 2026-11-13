@@ -27,7 +27,7 @@
                 <blockquote class="s-sst-quote">
                     <p>{{ $story['quote']['text'] }}</p>
                     @if ($quoteN !== null)
-                        <footer><sup class="s-cite"><a href="#source-{{ $quoteN }}">[{{ $quoteN }}]</a></sup></footer>
+                        <footer><sup class="s-cite"><a href="#source-{{ $quoteN }}" aria-label="{{ __('pages.site.cite', ['n' => $quoteN]) }}">[{{ $quoteN }}]</a></sup></footer>
                     @endif
                 </blockquote>
             @endif
@@ -39,7 +39,7 @@
                     <dl>
                         @foreach ($story['facts'] as $field => $value)
                             @if (is_string($value) && $value !== '')
-                                <div><dt>{{ __('pages.song.story.fact.'.$field) }}</dt><dd>{{ $value }}@if ($field === 'earliestPrinting' && $story['earliestPrintingSource'] !== null)<sup class="s-cite"><a href="#source-{{ $story['earliestPrintingSource'] }}">[{{ $story['earliestPrintingSource'] }}]</a></sup>@endif</dd></div>
+                                <div><dt>{{ __('pages.song.story.fact.'.$field) }}</dt><dd>{{ $value }}@if ($field === 'earliestPrinting' && $story['earliestPrintingSource'] !== null)<sup class="s-cite"><a href="#source-{{ $story['earliestPrintingSource'] }}" aria-label="{{ __('pages.site.cite', ['n' => $story['earliestPrintingSource']]) }}">[{{ $story['earliestPrintingSource'] }}]</a></sup>@endif</dd></div>
                             @endif
                         @endforeach
                         @if ($genres !== [])

@@ -10,7 +10,10 @@
 @php($heading = __($melody ? 'site.song_part.headline_melody' : 'site.song_part.headline', $fill))
 {{-- In the page's title and description a round is named without its "(round)"; the description says round. --}}
 @php($metaFill = [...$fill, 'song' => $songPart['round'] ? \App\Support\Pages\SongParts::searchTitle($s['title']) : $s['title']])
-@php($metaTitle = __($songPart['round'] ? 'site.song_part.title_round' : ($melody ? 'site.song_part.title_melody' : 'site.song_part.title'), $metaFill))
+@php($partTitle = __($songPart['round'] ? 'site.song_part.title_round' : ($melody ? 'site.song_part.title_melody' : 'site.song_part.title'), $metaFill))
+{{-- "...: Learn It by Ear" only where the whole title stays within 60 characters; else the part alone. --}}
+@php($learnTitle = __('site.song_part.title_learn', ['title' => $partTitle]))
+@php($metaTitle = mb_strlen($learnTitle) <= 60 ? $learnTitle : $partTitle)
 {{-- SATB named where it's true (docs/search-content-plan.md, item 4): choirs search it. --}}
 @php($description = __($songPart['round'] ? 'site.song_part.description_round' : ($songPart['satb'] ? 'site.song_part.description_satb' : 'site.song_part.description'), $metaFill))
 @extends('public.layout', ['title' => \App\Support\Site\SitePages::title($metaTitle)])

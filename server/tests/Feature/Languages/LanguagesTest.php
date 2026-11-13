@@ -121,6 +121,24 @@ final class LanguagesTest extends TestCase
         $this->get('/es/legal/terms')->assertNotFound();
     }
 
+    public function test_a_song_page_and_its_spanish_pair_name_each_other_and_their_open_graph_locales(): void
+    {
+        // The Spanish parity pass (2026-11-13): hreflang both ways, one og:locale for the page's own language and the
+        // other's as an alternate (it was on the landing, courses and tools only), and the Spanish title's pattern.
+        config(['app.is_nexus' => true, 'app.coming_soon' => false]);
+        app(SyncOfficialTemplates::class)->handle();
+        app(Flags::class)->set('lang_es', 'on', null, 'Spanish checked');
+        foreach (['/songs/amazing-grace' => ['en_US', 'es_ES'], '/es/songs/amazing-grace' => ['es_ES', 'en_US']] as $path => [$own, $other]) {
+            $html = (string) $this->get($path)->assertOk()->getContent();
+            $this->assertStringContainsString('hreflang="en" href="'.Hosts::publicUrl().'/songs/amazing-grace"', $html, $path);
+            $this->assertStringContainsString('hreflang="es" href="'.Hosts::publicUrl().'/es/songs/amazing-grace"', $html, $path);
+            $this->assertSame(1, substr_count($html, 'property="og:locale"'), $path);
+            $this->assertStringContainsString('<meta property="og:locale" content="'.$own.'">', $html, $path);
+            $this->assertStringContainsString('<meta property="og:locale:alternate" content="'.$other.'">', $html, $path);
+        }
+        $this->assertMatchesRegularExpression('#<title>Amazing Grace: voces(, letra y significado| y letra)?#u', (string) $this->get('/es/songs/amazing-grace')->getContent());
+    }
+
     public function test_spanish_pages_open_with_their_switch_named_in_hreflang_and_the_sitemap(): void
     {
         // On the live site, Spanish pages answer only once Spanish is open.

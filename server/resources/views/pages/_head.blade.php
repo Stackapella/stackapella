@@ -7,7 +7,6 @@
 <meta property="og:description" content="{{ $meta['description'] }}">
 <meta property="og:url" content="{{ $meta['url'] }}">
 <meta property="og:type" content="website">
-<meta property="og:locale" content="{{ str_replace('-', '_', app()->getLocale()) }}">
 <meta property="og:image" content="{{ \App\Support\Site\SitePages::image($meta['url']) }}">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">

@@ -27,6 +27,26 @@ mountThemeMenus();
 const stage = document.querySelector('[data-tool]');
 const say = document.querySelector('[data-tool-say]');
 
+/**
+ * Each tool's funnel (docs/growth-data.md, the backend's tool_open, tool_result and tool_try): one anonymous daily count of
+ * each kind per page view, by the page's own slug (/tools/<slug>, the Spanish /es/tools/<slug> too), through count.js's
+ * first-party path (no ID, no cookie). Opened is the first tap on a control inside the tool, a result its first result or
+ * free-lesson moment, and the way in a tap on the page's try link or the lesson line.
+ */
+const SLUG = location.pathname.match(/\/tools\/([a-z0-9-]+)\/?$/)?.[1] ?? null;
+const counted = new Set();
+function countOnce(kind) {
+    if (!SLUG || counted.has(kind)) return;
+    counted.add(kind);
+    countAnon(`${kind}:${SLUG}`);
+}
+stage?.addEventListener('click', (event) => {
+    if (event.target.closest?.('button, [role=button], [role=switch], input, select, summary')) countOnce('tool_open');
+});
+document.addEventListener('click', (event) => {
+    if (event.target.closest?.('[data-try-link], [data-tool-lesson-link]')) countOnce('tool_try');
+});
+
 function tell(text) {
     if (!say) return;
     say.textContent = text;
@@ -113,6 +133,7 @@ async function start() {
             bpm: Number(new URLSearchParams(location.search).get('bpm')) || null,
             // A tool's result (the range test's voice type) turns the band into its next step, when the page has one.
             onResult: (result) => {
+                countOnce('tool_result');
                 showResult(result);
                 offerLesson();
             },
@@ -124,7 +145,10 @@ async function start() {
                 if (tool) countAnon(`sh:tool-${tool}.${done === 'shared' ? 'sheet' : 'image'}`);
             },
             // The moment a tool's free lesson is wanted (its result), for the line under it.
-            onLesson: () => offerLesson(),
+            onLesson: () => {
+                countOnce('tool_result');
+                offerLesson();
+            },
             // A refused mic: 'denied', 'no-mic' or 'unsupported', in the page's own words.
             onError: (reason) => tell(stage.dataset[{ denied: 'denied', 'no-mic': 'noMic', unsupported: 'unsupported' }[reason]] ?? ''),
             // What the page hands the tool besides its words (the key finder's songs), when it has any.

@@ -36,7 +36,7 @@ final class SongStories
     ];
 
     /** The parser's version, in its cache key: a parse kept from an older one is never served (2: fullWords; 3: plain text's entities read back). */
-    private const PARSER = 3;
+    private const PARSER = 4;
 
     /** The words section's last subsection, the song's whole text, by the story's language (marketing's fullWords). */
     public const FULL_WORDS = ['The full words', 'La letra completa'];
@@ -107,8 +107,9 @@ final class SongStories
         $text = (string) file_get_contents($file);
         $keys = $file === $english ? null : self::keys((string) file_get_contents($english));
 
-        // Parsed once per version of the file (its hash is in the key), on the file store: never the database.
-        return Cache::store((string) config('content.stories_cache', 'file'))->rememberForever('song-story:'.self::PARSER.':'.$slug.':'.sha1($text.json_encode($keys)), static fn (): array => self::parse($slug, $file === $english ? 'en' : $language, $text, $keys));
+        // Parsed once per version of the file (its hash is in the key) and per page language (its citations' labels are in it),
+        // on the file store: never the database.
+        return Cache::store((string) config('content.stories_cache', 'file'))->rememberForever('song-story:'.self::PARSER.':'.app()->getLocale().':'.$slug.':'.sha1($text.json_encode($keys)), static fn (): array => self::parse($slug, $file === $english ? 'en' : $language, $text, $keys));
     }
 
     /** The first 12 hex of a file's sha256: what a translation names in `translatedFrom`. */
@@ -277,7 +278,7 @@ final class SongStories
         $sources = self::sources($body);
         $numbers = array_flip(array_keys($sources));
         $cite = static fn (string $html): string => (string) preg_replace_callback('/\[\^([A-Za-z0-9_-]+)\]/', static fn (array $m): string => isset($numbers[$m[1]])
-            ? '<sup class="s-cite"><a href="#source-'.($numbers[$m[1]] + 1).'">['.($numbers[$m[1]] + 1).']</a></sup>'
+            ? '<sup class="s-cite"><a href="#source-'.($numbers[$m[1]] + 1).'" aria-label="'.e(__('pages.site.cite', ['n' => $numbers[$m[1]] + 1])).'">['.($numbers[$m[1]] + 1).']</a></sup>'
             : '', $html);
         // A picture placed on a line of its own (`![[1]]`) is a placeholder the page splits on (`<!--figure:1-->`), never
         // in a paragraph; the hero's placement is dropped, as the page draws it by the heading (marketing, 2026-11-12).

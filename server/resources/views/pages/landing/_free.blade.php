@@ -21,7 +21,7 @@
     <div class="s-startcard s-ink">
         <div>
             <p class="s-kick">{{ __('pages.landing.start_here_count', ['units' => count($beginner), 'lessons' => array_sum(array_map(static fn (array $unit): int => count((array) ($unit['lessons'] ?? [])), $beginner))]) }}</p>
-            <h3><a href="/features/course">{{ __('site.courses.index.start_title') }}<br>{{ __('site.courses.index.start_title_2') }}.</a></h3>
+            <h3><a href="/features/course">{{ __('site.courses.index.start_title') }} <br>{{ __('site.courses.index.start_title_2') }}.</a></h3>
             <p>{{ __('pages.landing.start_body') }}</p>
         </div>
         <a href="{{ $links['start'] }}" class="s-startcard-go" data-funnel-start>{{ __('pages.landing.try_lesson') }} <x-site.icon name="arrow" size="16" /></a>

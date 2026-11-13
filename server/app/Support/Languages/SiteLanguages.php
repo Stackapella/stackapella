@@ -111,6 +111,14 @@ final class SiteLanguages
     }
 
     /**
+     * A language's Open Graph locale, language_TERRITORY as the protocol writes it ("en_US", "es_ES"), else the code as is.
+     */
+    public static function ogLocale(string $language): string
+    {
+        return ['en' => 'en_US', 'es' => 'es_ES'][$language] ?? str_replace('-', '_', $language);
+    }
+
+    /**
      * A page's address in a language.
      */
     public static function url(string $language, string $englishPath): string

@@ -4,6 +4,7 @@ range, the band's line says the range and its voice type, and its button opens t
 
     python3 -I tests/flows/tools_result.py http://127.0.0.1:8412
 """
+import json
 import sys
 import urllib.error
 import urllib.request
@@ -76,6 +77,39 @@ def drone(failures):
         f.close()
 
 
+# Each count the page sends, kept for the check (count.js beacons to /api/counts).
+SPY = """window.__beacons = [];
+navigator.sendBeacon = (url, body) => { body.text().then((text) => window.__beacons.push([url, text])); return true; };"""
+
+
+def funnel(failures):
+    """The tool's funnel (page.js): tool_open, tool_result and tool_try, each once a page view, by the page's own slug,
+    the kind and slug only. Taps the tool's controls more than once, reaches the result, then taps the try link twice and
+    the lesson line once (navigation held, so the page stays to be read)."""
+    f = flow.Flow(SITE, "phone", "tools_result", skin="serious")
+    try:
+        f.chrome.send("Page.addScriptToEvaluateOnNewDocument", {"source": SPY})
+        f.go(PAGE, "document.querySelector('[data-ui=tool-primary]') && document.querySelector('[data-try-line]')")
+        f.run("document.querySelector('[data-ui=tool-primary]').click(); document.querySelector('[data-manual]').click()")
+        f.wait("document.querySelector('[data-key=\"48\"]')", what="the keyboard")
+        f.run("document.querySelector('[data-key=\"48\"]').click(); document.querySelector('[data-key=\"69\"]').click()")
+        f.wait("document.querySelector('[data-ui=tool-next] a')", what="the lesson line")
+        f.run("""document.addEventListener('click', (e) => e.preventDefault(), true);
+            document.querySelector('[data-try-link]').click(); document.querySelector('[data-try-link]').click();
+            document.querySelector('[data-ui=tool-next] a').click();""")
+        f.wait("window.__beacons.filter(([u, t]) => u === '/api/counts' && t.includes('tool_try')).length >= 1", what="the try count")
+        kinds = [e["kind"] for url, text in f.js("window.__beacons") if url == "/api/counts" for e in json.loads(text)["events"]]
+        tool = [k for k in kinds if k.split(":")[0] in ("tool_open", "tool_result", "tool_try")]
+        want = ["tool_open:vocal-range-test", "tool_result:vocal-range-test", "tool_try:vocal-range-test"]
+        assert sorted(tool) == want, f"each once, by the page's slug: {tool}"
+        print("ok   tools_result (funnel counts)")
+    except Exception as error:  # noqa: BLE001
+        failures.append(f"funnel: {error}")
+        print(f"FAIL tools_result (funnel counts): {error}")
+    finally:
+        f.close()
+
+
 def main():
     failures = []
     key_finder(failures)
@@ -83,6 +117,7 @@ def main():
     if not listed():
         print("skip tools_result (the range test isn't listed yet)")
         sys.exit(1 if failures else 0)
+    funnel(failures)
     for size in ("phone", "desktop"):
         f = flow.Flow(SITE, size, "tools_result", skin="serious")
         try:

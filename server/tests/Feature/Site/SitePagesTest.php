@@ -244,6 +244,12 @@ final class SitePagesTest extends TestCase
             ->assertDontSee(':founder')->assertDontSee(':email');
         $this->get('/press')->assertOk()->assertSee($founder, false)->assertSee('$3.33')->assertDontSee(':founder')->assertSee('href="/icons/icon.svg"', false);
         $this->get('/press', ['CF-IPCountry' => 'GB'])->assertSee('£2.91');
+        // The site's own pages first in the screenshots, each in light, dark and game mode.
+        foreach (['landing', 'song-page', 'courses'] as $id) {
+            foreach (['light', 'dark', 'game'] as $variant) {
+                $this->get('/press')->assertSee('href="/icons/press/'.$id.'-'.$variant.'.png"', false);
+            }
+        }
         $this->assertFileExists(dirname(base_path()).'/web/icons/icon.svg');
 
         $entries = WhatsNew::entries();
@@ -253,6 +259,16 @@ final class SitePagesTest extends TestCase
         $this->get('/whats-new')->assertOk()->assertSee($entries[0]['title'])
             ->assertSee('id="'.Str::slug($entries[0]['title']).'"', false)
             ->assertDontSee('datetime=', false)->assertDontSee($entries[0]['day']);
+
+        // In Spanish, each line from resources/whats-new/es.json, keyed by the English; a line it lacks stays English.
+        app()->setLocale('es');
+        $spanish = (array) json_decode((string) file_get_contents(dirname((string) config('content.whats_new')).'/es.json'), true);
+        $this->assertNotSame([], $spanish);
+        foreach (WhatsNew::entries() as $i => $entry) {
+            $this->assertSame($spanish[$entries[$i]['title']] ?? $entries[$i]['title'], $entry['title']);
+            $this->assertSame($spanish[$entries[$i]['body']] ?? $entries[$i]['body'], $entry['body']);
+        }
+        app()->setLocale('en');
     }
 
     public function test_guides_and_legal_pages_read_as_pages_in_the_sites_frame(): void

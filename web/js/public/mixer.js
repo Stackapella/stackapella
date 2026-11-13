@@ -72,6 +72,32 @@ export function renderUrl(audio, canPlay) {
 
 let context = null;
 const players = [];
+// Each voice's samples as an AudioBuffer, made once (the context is one for the page): a press doesn't copy them again.
+const buffers = new WeakMap();
+
+/**
+ * Resolves after the next paint, so a tap shows its answer before the voices' samples are copied in (Core Web Vitals,
+ * 2026-11-13: the copying ran inside the tap, 160 ms at a slow phone's speed, and the row lit late). A yield of the main
+ * thread, not audio timing: every voice still starts together on the audio clock.
+ */
+function afterPaint() {
+    return new Promise((resolve) => requestAnimationFrame(() => {
+        const channel = new MessageChannel();
+        channel.port1.onmessage = () => resolve();
+        channel.port2.postMessage(null);
+    }));
+}
+
+/** `samples` as a mono AudioBuffer at RATE, in the page's context. */
+function bufferOf(samples) {
+    let buffer = buffers.get(samples);
+    if (!buffer) {
+        buffer = context.createBuffer(1, Math.max(1, samples.length), RATE);
+        buffer.copyToChannel(samples, 0);
+        buffers.set(samples, buffer);
+    }
+    return buffer;
+}
 
 /**
  * A voice's gain: 0 when it isn't heard (switched off, or another voice soloed; a solo wins over the
@@ -452,6 +478,7 @@ function setUp(root) {
             const voices = await Promise.race([voicesOnTheWay, new Promise((resolve) => setTimeout(() => resolve(null), REAL_WAIT))]);
             withReal(rendered, voices);
             await resumed;
+            await afterPaint();
             if (pending !== press) return master.disconnect(); // stopped, or another player started, while it rendered
             pending = null;
             play = current;
@@ -560,8 +587,7 @@ function setUp(root) {
         }
         const line = song.parts.map((part, i) => {
             const samples = rendered[i];
-            const buffer = context.createBuffer(1, Math.max(1, samples.length), RATE);
-            buffer.copyToChannel(samples, 0);
+            const buffer = bufferOf(samples);
             const source = context.createBufferSource();
             source.buffer = buffer;
             source.from = offset;
@@ -616,6 +642,7 @@ function setUp(root) {
             console.warn('The voices apart could not be made: the render plays on', error); // i18n-ignore
             return;
         }
+        await afterPaint();
         if (play !== current || current.move !== move || current.mix !== m) return;
         current.move = null;
         if (rendered) withReal(rendered, realHere);
@@ -676,13 +703,13 @@ function setUp(root) {
     async function join(current, gen) {
         try {
             const rest = await fullVoices();
+            await afterPaint();
             fullParts().then((parts) => (following = parts)).catch(() => {});
             if (play !== current || current.gen !== gen) return;
             const { when, offset } = joinAt(current.start, lineLength, context.currentTime + START_AHEAD);
             const more = song.parts.map((part, i) => {
                 const samples = rest[i];
-                const buffer = context.createBuffer(1, Math.max(1, samples.length), RATE);
-                buffer.copyToChannel(samples, 0);
+                const buffer = bufferOf(samples);
                 const source = context.createBufferSource();
                 source.buffer = buffer;
                 source.from = offset;

@@ -33,6 +33,10 @@ final class AppPrefetchTest extends TestCase
             $this->assertContains($path, $landing);
         }
         $this->assertContains('/js/views/template.js', $song);
+        // Learn on a song's page opens Home with the song's sheet: Home's view and the sheet's code, before the tap.
+        foreach (['/js/views/projects.js', '/js/components/dialogs.js'] as $path) {
+            $this->assertContains($path, $song);
+        }
         $this->assertNotContains('/course/course.json', $song, "a song's page doesn't need the courses");
         $this->assertGreaterThan(30, count($landing));
         $this->assertSame($landing, array_values(array_unique($landing)));

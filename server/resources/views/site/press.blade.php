@@ -1,6 +1,7 @@
 {{-- The press kit (/press), in the redesign's sections: who to write to first, Stackapella in a
      sentence and a paragraph, the facts, the logo on light and dark with its downloads, and the
-     screenshots from the app (the user guide's, light and dark) on the ink band. --}}
+     screenshots of the site (the landing, a song page, the courses page; light, dark and game) and the app (the user
+     guide's, light and dark) on the ink band. --}}
 @extends('public.layout')
 
 @section('head')
@@ -59,6 +60,9 @@
                                 <p class="s-press-shot-links">
                                     <a href="{{ $shot['files']['light']['png'] }}" class="s-lk" download>{{ __('site.press_words.light') }}</a>
                                     <a href="{{ $shot['files']['dark']['png'] }}" class="s-lk" download>{{ __('site.press_words.dark') }}</a>
+                                    @isset($shot['files']['game'])
+                                        <a href="{{ $shot['files']['game']['png'] }}" class="s-lk" download>{{ __('site.press_words.game') }}</a>
+                                    @endisset
                                 </p>
                             </li>
                         @endforeach

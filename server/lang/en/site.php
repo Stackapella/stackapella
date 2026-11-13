@@ -1450,9 +1450,16 @@ return [
         'card' => 'The link picture (PNG, 1200 by 630)',
         'contact' => 'Contact',
         'screenshots' => 'Screenshots',
-        'screenshots_lead' => 'Real screens from the app, in its light and dark themes. Use them when you write about Stackapella.',
+        'screenshots_lead' => 'Real screens from the site and the app, in light and dark (and game mode for the site). Use them when you write about Stackapella.',
         'light' => 'Light',
         'dark' => 'Dark',
+        'game' => 'Game mode',
+        // The site's own pages, before the app's screens (web/icons/press, in light, dark and game mode).
+        'site_shots' => [
+            'landing' => 'The home page: hear four voices sing, then sing the first note',
+            'song-page' => 'A song\'s page: play the whole song, hear a part on its own, and pick yours',
+            'courses' => 'Every course on one page, by group, with a search',
+        ],
         // The press kit's screenshots (the user guide's, web/icons/help), each with its caption.
         'shots' => [
             'getting-started--home' => 'The home screen: the course and your songs',
@@ -2038,10 +2045,13 @@ return [
     'song_part' => [
         // Each part as a song names it (its key's usual name), so a language can name it its own way (PartNames).
         'names' => ['soprano' => 'Soprano', 'alto' => 'Alto', 'tenor' => 'Tenor', 'bass' => 'Bass', 'baritone' => 'Baritone', 'lead' => 'Lead'],
-        'title' => ':song :Part Part: Hear It, Learn It',
-        'title_melody' => ':song Melody (:Part Part): Hear It, Learn It',
+        // A part page's search title (the coordinator, 2026-11-13: as people search it, "Amazing Grace Alto Part", up to 60
+        // characters): the part, then how you learn it, which drops away when the whole wouldn't fit (site/song-part).
+        'title' => ':song :Part Part',
+        'title_melody' => ':song :Part Part (Melody)',
+        'title_learn' => ':title: Learn It by Ear',
         'description' => 'Learn the :part part of :song by ear: hear it alone or with the other parts, and sing along as each note lights up. Range :low to :high. Free.',
-        'title_round' => ':song Round, :Part Part: Hear It, Learn It',
+        'title_round' => ':song Round, :Part Part',
         'description_round' => 'Learn the :part entry of :song, a round: hear it alone or with the other entries, and sing along as each note lights up. Range :low to :high. Free.',
         'description_satb' => 'Learn the :part part of :song (SATB) by ear: hear it alone or with the other three, and sing along as each note lights up. Range :low to :high. Free.',
         'crumb' => 'Where you are',
@@ -7034,7 +7044,13 @@ return [
         ],
         'common' => [
             'asof' => 'As of November 2026',
-            'seen' => 'Seen 2 November 2026, on each product\'s own listing or website.',
+            // Plus's price as the comparisons say it (ComparePagesController::prices): while checkout is closed, that it
+            // isn't open yet (as /pricing says), never a price as if it could be bought today.
+            'plus_is' => 'Plus is :price_month a month or :price_year a year',
+            'plus_is_paused' => 'Plus isn\'t open yet; it will be :price_month a month or :price_year a year',
+            'plus_price' => 'Plus, for :price_month a month or :price_year a year,',
+            'plus_price_paused' => 'Plus, not open yet (it will be :price_month a month or :price_year a year),',
+            'seen' => 'Seen 13 November 2026, on each product\'s own listing or website.',
             'us' => 'Stackapella',
             'rows' => [
                 'runs' => 'Where it runs',
@@ -7050,7 +7066,7 @@ return [
             ],
             'cells' => [
                 'runs' => 'In any modern browser, on phones and computers. It installs like an app; there\'s no app-store app yet',
-                'price' => 'Free to learn. Plus is :price_month a month or :price_year a year',
+                'price' => 'Free to learn. :plus_is',
                 'learn' => 'Yes: hear each part from a guide voice, then sing it while your notes light up as you hit them',
                 'stack' => 'Yes: record each part over the ones before, lined up in time',
                 'suggest' => 'Yes: sing or hum a tune, and alto, tenor and bass are suggested to fit it',
@@ -7106,7 +7122,7 @@ return [
                     ],
                     'price' => [
                         [
-                            'Free, with a daily recording limit on its built-in songs. Unlimited: $3.99 a month, $14.99 a year, or $24.99 once (US App Store)',
+                            'Free, with a daily recording limit on its built-in songs. Unlimited: $3.99 a month, $14.99 a year, or $34.99 once (US App Store)',
                             [1],
                         ],
                     ],
@@ -7180,7 +7196,7 @@ return [
                     ],
                     [
                         'Is Stackapella free?',
-                        'Yes: every course and every song in the library, with a free account, and unlimited workouts, your history, singing with friends and choir groups. Plus, for :price_month a month or :price_year a year, adds more storage, MP3 and stems, and unlimited private arrangements.',
+                        'Yes: every course and every song in the library, with a free account, and unlimited workouts, your history, singing with friends and choir groups. :plus_price adds more storage, MP3 and stems, and unlimited private arrangements.',
                     ],
                 ],
                 'sources' => [
@@ -7295,7 +7311,7 @@ return [
                     ],
                     [
                         'Is Stackapella free?',
-                        'Yes: every course and every song in the library, with a free account, and unlimited workouts, your history, singing with friends and choir groups. Plus, for :price_month a month or :price_year a year, adds more storage, MP3 and stems, and unlimited private arrangements.',
+                        'Yes: every course and every song in the library, with a free account, and unlimited workouts, your history, singing with friends and choir groups. :plus_price adds more storage, MP3 and stems, and unlimited private arrangements.',
                     ],
                 ],
                 'sources' => [
@@ -7411,7 +7427,7 @@ return [
                     ],
                     [
                         'Is Stackapella free?',
-                        'Yes: every course and every song in the library, with a free account, and unlimited workouts, your history, singing with friends and choir groups. Plus, for :price_month a month or :price_year a year, adds more storage, MP3 and stems, and unlimited private arrangements.',
+                        'Yes: every course and every song in the library, with a free account, and unlimited workouts, your history, singing with friends and choir groups. :plus_price adds more storage, MP3 and stems, and unlimited private arrangements.',
                     ],
                 ],
                 'sources' => [
@@ -7523,7 +7539,7 @@ return [
                     ],
                     [
                         'Is Stackapella free?',
-                        'Yes: every course and every song in the library, with a free account, and unlimited workouts, your history, singing with friends and choir groups. Plus, for :price_month a month or :price_year a year, adds more storage, MP3 and stems, and unlimited private arrangements.',
+                        'Yes: every course and every song in the library, with a free account, and unlimited workouts, your history, singing with friends and choir groups. :plus_price adds more storage, MP3 and stems, and unlimited private arrangements.',
                     ],
                 ],
                 'sources' => [
@@ -7632,7 +7648,7 @@ return [
                     ],
                     [
                         'Is Stackapella free?',
-                        'Yes: every course and every song in the library, with a free account, and unlimited workouts, your history, singing with friends and choir groups. Plus, for :price_month a month or :price_year a year, adds more storage, MP3 and stems, and unlimited private arrangements.',
+                        'Yes: every course and every song in the library, with a free account, and unlimited workouts, your history, singing with friends and choir groups. :plus_price adds more storage, MP3 and stems, and unlimited private arrangements.',
                     ],
                 ],
                 'sources' => [
@@ -7744,7 +7760,7 @@ return [
                     ],
                     [
                         'Is Stackapella free?',
-                        'Yes: every course and every song in the library, with a free account, and unlimited workouts, your history, singing with friends and choir groups. Plus, for :price_month a month or :price_year a year, adds more storage, MP3 and stems, and unlimited private arrangements.',
+                        'Yes: every course and every song in the library, with a free account, and unlimited workouts, your history, singing with friends and choir groups. :plus_price adds more storage, MP3 and stems, and unlimited private arrangements.',
                     ],
                 ],
                 'sources' => [
@@ -7855,7 +7871,7 @@ return [
                     ],
                     [
                         'Is Stackapella free?',
-                        'Yes: every course and every song in the library, with a free account, and unlimited workouts, your history, singing with friends and choir groups. Plus, for :price_month a month or :price_year a year, adds more storage, MP3 and stems, and unlimited private arrangements.',
+                        'Yes: every course and every song in the library, with a free account, and unlimited workouts, your history, singing with friends and choir groups. :plus_price adds more storage, MP3 and stems, and unlimited private arrangements.',
                     ],
                 ],
                 'sources' => [
@@ -8013,7 +8029,7 @@ return [
                     ],
                     [
                         'Is Stackapella free?',
-                        'Yes: every course and every song in the library, with a free account, and unlimited workouts, your history, singing with friends and choir groups. Plus, for :price_month a month or :price_year a year, adds more storage, MP3 and stems, and unlimited private arrangements.',
+                        'Yes: every course and every song in the library, with a free account, and unlimited workouts, your history, singing with friends and choir groups. :plus_price adds more storage, MP3 and stems, and unlimited private arrangements.',
                     ],
                 ],
                 'sources' => [

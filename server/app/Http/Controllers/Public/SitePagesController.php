@@ -65,12 +65,13 @@ final class SitePagesController extends Controller
 
         return response()->view('site.press', [
             ...$this->frame('press', '/press', Landing::ref($request->query('ref'))),
-            // The user guide's screenshots (both themes), those that are shot.
-            'shots' => array_values(array_filter(array_map(static function (string $id, string $caption): ?array {
+            // The site's own pages first (web/icons/press/<id>-light|dark|game.png: the landing, a song page and the courses
+            // page, in both skins), then the user guide's screenshots (both themes), those that are shot.
+            'shots' => [...self::siteShots(), ...array_values(array_filter(array_map(static function (string $id, string $caption): ?array {
                 $files = HelpGuide::shot($id);
 
                 return $files === null ? null : ['id' => $id, 'caption' => $caption, 'files' => $files];
-            }, array_keys((array) Lang::get('site.press_words.shots')), array_values((array) Lang::get('site.press_words.shots'))))),
+            }, array_keys((array) Lang::get('site.press_words.shots')), array_values((array) Lang::get('site.press_words.shots')))))],
             'facts' => array_map(static fn (mixed $v): HtmlString => self::founder(str_replace([':price', ':repo'], [$price['yearAsMonth'], OpenSource::repo()], (string) $v)), [
                 ...(array) Lang::get('site.press.facts'),
                 ...(OpenSource::on() ? [(string) __('site.press.open_source_label') => (string) __('site.press.open_source_fact')] : []),
@@ -100,6 +101,31 @@ final class SitePagesController extends Controller
             ...$this->frame('whats_new', '/whats-new', Landing::ref($request->query('ref'))),
             'entries' => WhatsNew::entries(),
         ], 200, SongPagesController::headers());
+    }
+
+    /**
+     * The site's own pages for the press kit (site.press_words.site_shots), each in its light, dark and game files when
+     * all three are there, in the app shots' shape.
+     *
+     * @return list<array{id: string, caption: string, files: array<string, array{png: string, width: int, height: int}>}>
+     */
+    private static function siteShots(): array
+    {
+        $shots = [];
+        foreach ((array) Lang::get('site.press_words.site_shots') as $id => $caption) {
+            $files = [];
+            foreach (['light', 'dark', 'game'] as $variant) {
+                $path = dirname(base_path()).'/web/icons/press/'.$id.'-'.$variant.'.png';
+                $size = is_file($path) ? getimagesize($path) : false;
+                if ($size === false) {
+                    continue 2;
+                }
+                $files[$variant] = ['png' => '/icons/press/'.$id.'-'.$variant.'.png', 'width' => (int) $size[0], 'height' => (int) $size[1]];
+            }
+            $shots[] = ['id' => (string) $id, 'caption' => (string) $caption, 'files' => $files];
+        }
+
+        return $shots;
     }
 
     /**

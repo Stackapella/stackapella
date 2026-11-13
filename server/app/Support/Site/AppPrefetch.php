@@ -19,10 +19,15 @@ final class AppPrefetch
         return self::urls([...self::list(''), ...self::list('learn '), '/js/main.js', '/locales/lesson1/en.json', '/course/course.json']);
     }
 
-    /** @return list<string> A song's page: the app and the song's sheet */
+    /**
+     * A song's page: the app, Home (a song page's Learn opens Home with the song's sheet, ?song=) and the sheet's own code,
+     * which main.js fetches at start on such a link (b102f383d; on a slow 4G phone it was the gap before the sheet, frontend2).
+     *
+     * @return list<string>
+     */
     public static function song(): array
     {
-        return self::urls([...self::list(''), '/js/main.js', '/js/views/template.js']);
+        return self::urls([...self::list(''), ...self::list('home '), '/js/main.js', '/js/components/dialogs.js', '/js/views/template.js']);
     }
 
     /**

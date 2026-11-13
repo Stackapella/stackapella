@@ -100,7 +100,7 @@ final class SongMediaTest extends TestCase
         $this->assertStringContainsString('1-480.webp', $image['srcset']);
         $this->assertStringContainsString('1-1440.webp', $image['srcset'], 'never upscaled: the 1440 is the 1200 original');
         $this->assertSame(['The church at Oberndorf', 'Library of Congress', 'LOT 123', 'No known restrictions (Library of Congress)', 'https://example.com/item/1'], [$image['alt'], $image['credit'], $image['callNumber'], $image['licenceName'], $image['sourceUrl']]);
-        $this->assertStringContainsString('<a href="#source-1">[1]</a>', $image['caption']);
+        $this->assertStringContainsString('<a href="#source-1" aria-label="Source 1">[1]</a>', $image['caption']);
         $this->assertSame([['label' => 'National Jukebox, 1916', 'url' => 'https://example.com/jukebox'], ['label' => 'Archive', 'url' => 'https://example.com/archive']], $story['listen']);
         $this->assertSame([['label' => 'The autograph', 'url' => 'https://example.com/autograph']], $story['original']);
         $this->assertNull($story['hero']);

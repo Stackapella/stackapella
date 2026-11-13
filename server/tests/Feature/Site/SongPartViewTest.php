@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Site;
 
+use App\Support\Pages\SongPage;
+use App\Support\Pages\SongParts;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\Support\BetaFixtures;
 use Tests\TestCase;
@@ -40,7 +42,7 @@ final class SongPartViewTest extends TestCase
     {
         $html = (string) $this->get('/songs/amazing-grace/alto')->assertOk()->getContent();
 
-        $this->assertStringContainsString('<title>Amazing Grace Alto Part: Hear It, Learn It | Stackapella</title>', $html);
+        $this->assertStringContainsString('<title>Amazing Grace Alto Part: Learn It by Ear | Stackapella</title>', $html);
         $this->assertStringContainsString('<h1 id="page-h">Amazing Grace: alto part</h1>', $html);
         $this->assertStringContainsString('B3 to B4', $html);
         $this->assertStringContainsString('<div class="s-spart-player" data-part-player></div>', $html);
@@ -97,5 +99,26 @@ final class SongPartViewTest extends TestCase
             ->assertSee('id="about-song-h"', false)
             ->assertSee(e($first), false)
             ->assertDontSee('s-spart-about-ruled', false);
+    }
+
+    public function test_every_part_page_title_is_how_people_search_it_within_sixty_characters(): void
+    {
+        $checked = 0;
+        foreach (app(SongParts::class)->songs() as $template) {
+            $song = ['slug' => (string) $template->slug];
+            $songPage = (string) $this->get('/songs/'.$song['slug'])->getContent();
+            foreach (array_column(SongPage::of($template)['parts'], 'key') as $part) {
+                $html = (string) $this->get('/songs/'.$song['slug'].'/'.$part)->assertOk()->getContent();
+                $this->assertSame(1, preg_match('#<title>(.*?)</title>#s', $html, $m));
+                $title = html_entity_decode(str_replace(' | '.__('meta.brand'), '', $m[1]), ENT_QUOTES | ENT_HTML5);
+                $this->assertLessThanOrEqual(60, mb_strlen($title), "{$song['slug']}/{$part}: {$title}");
+                $this->assertStringContainsString(' Part', $title, "{$song['slug']}/{$part} names its part");
+                $this->assertStringNotContainsString('SATB', $title);
+                $this->assertMatchesRegularExpression('#<meta name="description" content="[^"]*Range [A-G]#', $html, "{$song['slug']}/{$part}: its range");
+                $this->assertStringContainsString('href="/songs/'.$song['slug'].'/'.$part.'"', $songPage, "{$song['slug']} links its {$part} page");
+                $checked++;
+            }
+        }
+        $this->assertGreaterThan(0, $checked);
     }
 }

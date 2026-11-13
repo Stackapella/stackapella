@@ -1,5 +1,25 @@
 [
     {
+        "date": "2026-11-13",
+        "title": "Hear every song on its page",
+        "body": "Every song's page now plays the whole song. Tap a part to hear it on its own, choose the one you sing, and Learn takes you straight to it. The full words are there too, with what they mean where the song isn't in English."
+    },
+    {
+        "date": "2026-11-13",
+        "title": "The story of every song",
+        "body": "Each song's page tells where it comes from, what the words mean and how it's sung, with numbered sources you can check and pictures where we have them."
+    },
+    {
+        "date": "2026-11-13",
+        "title": "Every course on one page",
+        "body": "The courses page shows every course in its group, with chips to show one group and a search. Try the first lesson of any course without an account."
+    },
+    {
+        "date": "2026-11-13",
+        "title": "Choral classics",
+        "body": "A new collection: Mozart's Ave verum corpus, Brahms's Lullaby, Morley's Now Is the Month of Maying, Gilbert and Sullivan's With Cat-like Tread and Lutkin's The Lord Bless You, each part by part."
+    },
+    {
         "date": "2026-11-06",
         "title": "Every course is free",
         "body": "Every course is free, from your first note to four-part harmony and on to Vibrato, Barbershop and tags and the rest. Try the first lesson without an account; a free account opens the rest."
@@ -97,7 +117,7 @@
     {
         "date": "2026-10-28",
         "title": "A few small sounds",
-        "body": "Stackapella plays a short sound when your stars land, when it hears your mic, and at a few special moments. They work offline too. To turn them off, open Settings, then On this device, then Sounds."
+        "body": "Stackapella plays a short sound when your stars land, when it hears your mic, and at a few special moments. They work offline too. To turn them off, open Settings, then This device, then Sounds."
     },
     {
         "date": "2026-10-28",

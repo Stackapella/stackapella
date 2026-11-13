@@ -183,10 +183,15 @@ final class SongParts
         return in_array('round', array_map(static fn (string $g): string => strtolower(trim($g)), $genres), true);
     }
 
-    /** A round's title as search puts it, without its "(round)" (the page says round itself). */
+    /**
+     * A round's title as search puts it, without its "(round)" (the page says round itself), in English or as the
+     * page's language writes it (Spanish's "(canon)", pages.songs.round_note, as SongWords::title puts it).
+     */
     public static function searchTitle(string $title): string
     {
-        return trim((string) preg_replace('/\s*\(round\)\s*$/i', '', $title));
+        $label = preg_quote((string) __('pages.songs.round_note'), '/');
+
+        return trim((string) preg_replace('/\s*(?:\(round\)|'.$label.')\s*$/iu', '', $title));
     }
 
     /**

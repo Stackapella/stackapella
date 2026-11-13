@@ -126,7 +126,7 @@ class Flow:
         label = self.js(f"(await import('/js/i18n.js')).t({json.dumps(key)}, {json.dumps(values or {})})")
         return self.click(label)
 
-    KEYS = {"Enter": (13, "\r"), "Escape": (27, ""), "Tab": (9, ""), " ": (32, " "), "n": (78, "n"), "m": (77, "m"), "r": (82, "r")}
+    KEYS = {"Enter": (13, "\r"), "Escape": (27, ""), "Tab": (9, ""), " ": (32, " "), "n": (78, "n"), "m": (77, "m"), "r": (82, "r"), "ArrowLeft": (37, ""), "ArrowUp": (38, ""), "ArrowRight": (39, ""), "ArrowDown": (40, "")}
 
     def sing_view(self, view):
         """Sing's view (words, notes or staff), chosen in Session settings' Show."""

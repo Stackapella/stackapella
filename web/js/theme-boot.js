@@ -224,8 +224,10 @@
     }
     // Game mode in the app: its two faces on every screen (VT323, the screen's words; Stackapella Pixel, labels and
     // buttons) fetched as the page starts rather than once the stylesheet asks, so they land by the first paint
-    // (the slow-phone pass, 2026-11-02). Serious mode preloads nothing new; the site's pages don't all use both.
-    if (document.documentElement.dataset.skin === 'game' && document.querySelector('meta[name="stackapella-app"]')) {
+    // (the slow-phone pass, 2026-11-02). Serious mode preloads nothing new. A site page on the arcade screen (<html
+    // data-gs>) sets its body text in VT323 too, and its LCP is that text, so it gets the same head start (the Core
+    // Web Vitals pass, 2026-11-13: game mode's LCP ran about 600 ms behind serious on every page, waiting for the font).
+    if (document.documentElement.dataset.skin === 'game' && (document.querySelector('meta[name="stackapella-app"]') || document.documentElement.hasAttribute('data-gs'))) {
         for (const [href, type] of [['/fonts/vt323-latin.woff2', 'font/woff2']]) {
             const link = Object.assign(document.createElement('link'), { rel: 'preload', as: 'font', type, href, crossOrigin: 'anonymous' });
             document.head.append(link);

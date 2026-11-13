@@ -21,7 +21,7 @@
             </div>
             <div class="s-crs-start">
                 <p class="s-crs-start-k">{{ __('site.courses.index.start_kick') }}</p>
-                <h2 class="s-crs-start-h"><a href="/features/course">{{ __('site.courses.index.start_title') }}<br>{{ __('site.courses.index.start_title_2') }}</a></h2>
+                <h2 class="s-crs-start-h"><a href="/features/course">{{ __('site.courses.index.start_title') }} <br>{{ __('site.courses.index.start_title_2') }}</a></h2>
                 <p>{{ __('site.courses.index.start_body') }}</p>
                 <span class="s-crs-start-bar" aria-hidden="true">@for ($i = 0; $i < $beginner['units']; $i++)<b class="s-v{{ intdiv($i, 2) % 4 + 1 }}"></b>@endfor</span>
                 <div class="s-crs-start-go">
