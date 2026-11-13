@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Public;
 
-use App\Enums\TemplateAccess;
 use App\Http\Controllers\Controller;
 use App\Models\Template;
 use App\Support\Http\Hosts;
@@ -20,6 +19,7 @@ use App\Support\Pages\SongsHub;
 use App\Support\Pages\SongStories;
 use App\Support\Rights\RightsHere;
 use App\Support\Sharing\SongCards;
+use App\Support\Site\Correction;
 use App\Support\SongAudio\SongAudioFiles;
 use App\Support\Templates\Catalogue;
 use Illuminate\Http\Request;
@@ -97,8 +97,15 @@ final class SongPagesController extends Controller
         $withheld = $rights->withheld($template, $country);
         $wordsWithheld = $rights->wordsWithheld($template, $country);
         // The whole song, every part mixed (the showreel agent's render of this version): for the page's player and its
-        // MusicRecording. Not where the music is withheld here, and not a Plus song's (its notes are an account's).
-        $song['audio'] = $template->access === TemplateAccess::Plus || $withheld !== null ? null : SongAudioFiles::forPage($template);
+        // MusicRecording. Every open song's (Hillel, 2026-11-13: "it should be easy to hear the song on the song page"),
+        // not only the bundled ones; never where the music is withheld here.
+        $song['audio'] = $withheld !== null ? null : SongAudioFiles::forPage($template);
+        // The hero's player: the opening line's notes (js/public/mixer.js fetches the rest, as a guest may: the
+        // catalogue's open grant under its daily cap), and the render, when there is one, for all its parts at once.
+        $line = $withheld !== null ? null : Landing::line($template);
+        if ($line !== null) {
+            $line['audio'] = $song['audio'] === null ? null : ['m4a' => $song['audio']['m4a'], 'mp3' => $song['audio']['mp3']];
+        }
         if ($wordsWithheld) {
             $song['words'] = [];
             $song['lines'] = null;
@@ -130,6 +137,8 @@ final class SongPagesController extends Controller
         $home = $collections->home((string) $template->slug);
         $partCards = SongPage::cards($template, $song);
 
+        Correction::share('song', SongWords::title((string) $template->title, (string) $template->slug));
+
         return response()->view('public.song', [
             'song' => $song,
             'story' => $story,
@@ -154,9 +163,8 @@ final class SongPagesController extends Controller
             'tone' => $home['key'] ?? 'song',
             // The source a story's quote is from, by its number.
             'quoteN' => $story !== null && is_array($story['quote'] ?? null) ? (collect((array) $story['sources'])->firstWhere('id', $story['quote']['source'])['n'] ?? null) : null,
-            // A bundled song plays its opening line; any other only its clip: its notes come only to
-            // an account, through the API (Hillel, 2026-10-27).
-            'line' => $template->access === TemplateAccess::Plus || $withheld !== null ? null : Landing::line($template),
+            // Every open song plays, not only the bundled ones (Hillel, 2026-11-13); none where it's withheld here.
+            'line' => $line,
             // Null where it's free; else the year it's free here (null when that can't be known) and whether the words
             // are withheld too. The view's words are marketing's.
             'rights' => $withheld === null ? null : ['freeFrom' => $withheld['freeFrom'], 'words' => $wordsWithheld],

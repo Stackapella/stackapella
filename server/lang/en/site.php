@@ -1597,6 +1597,31 @@ return [
     // for what choirs search, each checked for demand first): each one's words, the page there only with these.
     // The end of a collection's intro (SongCollections::SEE_ALSO): the nearest collections, each a link.
     'see_also' => 'More to sing:',
+    // Suggest a correction (components/site/correction.blade.php; docs/corrections-plan.md): the link, its sheet, and
+    // what the sheet says as it sends (js/public/correction.js).
+    'correction' => [
+        'open' => 'Suggest a correction',
+        'title' => 'Suggest a correction',
+        'lead' => 'Something wrong or missing on :page? Tell us, and we\'ll look at it.',
+        'kind' => 'What is it about?',
+        'kinds' => ['fact' => 'A fact', 'words' => 'The words', 'notes' => 'The notes', 'other' => 'Something else'],
+        'text' => 'What should it say?',
+        'source' => 'Where did you see it?',
+        'optional' => '(a link, if you have one)',
+        'private' => 'We don\'t keep your name, email or anything else about you, so we can\'t reply.',
+        'cancel' => 'Cancel',
+        'send' => 'Send',
+        'said' => [
+            'sending' => 'Sending...',
+            'thanks' => 'Thank you. We read every one.',
+            'text_needed' => 'Say what should change.',
+            'bad_text' => 'Keep it under 2,000 characters.',
+            'bad_source' => 'That doesn\'t look like a link. Start it with https://',
+            'bad' => 'That didn\'t go through. Check it and try again.',
+            'too_many' => 'That\'s a lot for one go. Try again in a little while.',
+            'failed' => 'It didn\'t send. Check your connection and try again.',
+        ],
+    ],
     'collections' => [
         // Google's suggestions, 2026-11-10: "hymns satb", "easy hymns for choir", "hymns in 4 part harmony".
         'hymns' => [

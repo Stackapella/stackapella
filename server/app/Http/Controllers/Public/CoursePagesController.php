@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Support\Http\Hosts;
 use App\Support\Pages\Landing;
 use App\Support\Pages\Lessons;
+use App\Support\Site\Correction;
 use App\Support\Site\SitePages;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -58,6 +59,8 @@ final class CoursePagesController extends Controller
         $page = SitePages::page('courses', $slug);
         // Its group by the app's catalogue, so the site and Home agree.
         $page['group'] = SitePages::courseGroup($slug) ?? ($page['group'] ?? null);
+
+        Correction::share('course', (string) ($page['name'] ?? $page['headline'] ?? $slug));
 
         return response()->view('site.course', [
             'title' => SitePages::title((string) $page['title']),

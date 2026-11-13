@@ -1,8 +1,10 @@
 {{-- A song's page at /songs/<slug> (SongPagesController::show; Hillel's design, Danny Boy v2, "Responsive wrapping
-     fixes", and his "the definitive page for each song", docs/seo-growth-plan.md): the hero in the palette of the page
-     that collects it, with its opening to play and Learn the part you pick; "Find your part", each part's range on one
-     scale and one tag that is true of it; every verse, one sung line a line; then its story (SongStories) with its
-     contents, timeline, questions and numbered sources, else its About; what to sing next; the page's last word. --}}
+     fixes", and his "the definitive page for each song", docs/seo-growth-plan.md; the hero's player, Hillel 2026-11-13,
+     "it should be easy to hear the song on the song page", option C of the song page review): the hero in the palette of
+     the page that collects it, with the whole song to play, each part's row heard alone and picked ("I sing this"), and
+     Learn naming the part you pick under the rows; every verse, one sung line a line; "How each part goes", each part's
+     range on one scale, its one true tag and where it goes in the words; then its story (SongStories) with its contents,
+     timeline, questions and numbered sources, else its About; what to sing next; the page's last word. --}}
 @extends('public.layout', ['title' => \App\Support\Site\SitePages::title($meta['title'])])
 
 @section('head')
@@ -31,10 +33,24 @@
 
 @section('content')
     <x-site.header />
+    {{-- The part Learn names until one is picked: the melody's (Hillel's "Melody first"). --}}
     @php($first = collect($cards)->firstWhere('melody', true) ?? ($cards[0] ?? null))
+    {{-- Each part's row in the player says its tag and range ("Melody · B3 to E5"), so the choice is made where you hear. --}}
+    {{-- A round's parts all sing the tune, entering in turn: each one's tag says so, never Melody and Harmony. --}}
+    @php($tagOf = \App\Support\Pages\SongParts::round($song['genre']) ? static fn (array $card): string => 'tune' : static fn (array $card): string => $card['tag'])
+    @php($rowLine = static fn (array $card): string => __('pages.song.row_line', ['tag' => __('pages.song.tag.'.$tagOf($card)), 'range' => __('pages.song.range', ['low' => \App\Support\Pages\Carols::signs($card['low']), 'high' => \App\Support\Pages\Carols::signs($card['high'])])]))
+    @if ($line !== null)
+        @php($byKey = collect($cards)->keyBy('key'))
+        @php($line['parts'] = array_map(static fn (array $part): array => $byKey->has($part['key']) ? [...$part, 'line' => $rowLine($byKey->get($part['key']))] : $part, $line['parts']))
+    @endif
     <main data-sg-page>
-        {{-- The top, in its collection's palette: where you are, the song, its lead and facts as chips, Learn the part you
-             pick (the tune's until you pick), Check my range; beside it on a wide screen, its opening to play. --}}
+        {{-- Learn's part for each pick (js/public/song-page.js follows the player's "I sing this"). --}}
+        @if ($first !== null)
+            <script type="application/json" data-learn-parts>@json(collect($cards)->mapWithKeys(fn (array $card): array => [$card['key'] => ['name' => mb_strtolower($card['name']), 'href' => $learn[$card['key']]]]))</script>
+        @endif
+        {{-- The top, in its collection's palette: where you are, the song, its lead and facts as chips; beside it on a wide
+             screen (under it on a phone), the whole song to play, a row a part, and under the rows Learn the part you
+             pick (the tune's until you pick), Share, and Check my range. --}}
         <section class="s-xhero s-tone s-tone-{{ $tone }} s-sg-hero" aria-labelledby="page-h">
             @include('site._tone-motif', ['key' => $tone])
             <div @class(['s-wrap s-xhero-in s-xcoll-in', 's-xcoll-has-try' => $line !== null || $song['previewUrl'] !== null])>
@@ -48,27 +64,22 @@
                         @if (\Illuminate\Support\Facades\Lang::has('pages.song.difficulty.'.$song['difficulty']))
                             <li>{{ __('pages.song.difficulty.'.$song['difficulty']) }}</li>
                         @endif
-                        @foreach ($song['genre'] as $genre)
-                            <li>{{ \App\Support\Languages\SongWords::genre($genre) }}</li>
-                        @endforeach
-                    </ul>
-                    <div class="s-actions s-actions-row">
-                        @if ($first !== null)
-                            <a href="{{ $learn[$first['key']] }}" class="btn-primary btn-lg" data-learn data-label="{{ __('pages.song.learn_part', ['part' => ':part']) }}"><span data-learn-label>{{ __('pages.song.learn_part', ['part' => mb_strtolower($first['name'])]) }}</span> <x-site.icon name="arrow" size="18" /></a>
-                        @else
-                            <a href="{{ $song['startUrl'] }}" class="btn-primary btn-lg">{{ __('pages.song.start') }} <x-site.icon name="arrow" size="18" /></a>
+                        {{-- The kinds of song it is live in its story's At a glance; a song without a story keeps them here. --}}
+                        @if ($story === null)
+                            @foreach ($song['genre'] as $genre)
+                                <li>{{ \App\Support\Languages\SongWords::genre($genre) }}</li>
+                            @endforeach
                         @endif
-                        @include('site._share', ['surface' => 'page-song', 'url' => $meta['url'], 'title' => $song['title'], 'lg' => true])
-                    </div>
-                    {{-- Not sure which part fits: the range test, a quiet link so Learn and Share keep one row (share_buttons). --}}
-                    <p class="s-sg-note">{{ __('pages.song.start_note') }} <a href="/tools/vocal-range-test" class="s-lk">{{ __('pages.song.check_range') }}</a></p>
-                    @if (is_array($song['mix'] ?? null) && is_string($song['mix']['url'] ?? null))
-                        @include('public._song-mix', ['mix' => $song['mix'], 'count' => count($song['parts']), 'credit' => is_string($song['mix']['credits'] ?? null) ? $song['mix']['credits'] : \App\Support\Pages\SongPage::mixCredit($cards, $guides)])
+                    </ul>
+                    @if ($line === null)
+                        @include('public._song-actions')
                     @endif
                 </div>
                 @if ($line !== null)
-                    <div class="s-sh-try s-xcoll-try">
-                        <x-site.mixer :song="$line" id="song-mixer" />
+                    <div class="s-sh-try s-xcoll-try s-sg-try">
+                        <x-site.mixer :song="$line" id="song-mixer" :picked="false">
+                            <x-slot:foot>@include('public._song-actions')</x-slot:foot>
+                        </x-site.mixer>
                     </div>
                 @elseif ($song['previewUrl'] !== null)
                     <div class="s-step s-v1 s-listen">
@@ -79,61 +90,6 @@
                 @endif
             </div>
         </section>
-
-        {{-- Find your part: a card a part, its range on the page's one scale, its one true tag, its note, and its own page.
-             A pick (js/public/song-page.js) lights the card and names the part on Learn; nothing is kept. --}}
-        @if ($cards !== [])
-            <section id="find" class="s-wrap s-sec2 s-sg-parts" aria-labelledby="parts-h">
-                <div class="s-sg-head">
-                    <h2 id="parts-h" class="s-h2">{{ __('pages.song.find') }}</h2>
-                    <p class="s-sub">{{ __('pages.song.find_lead') }}</p>
-                </div>
-                <ul @class(['s-sg-cards', 's-sg-cards-'.count($cards)])>
-                    @foreach ($cards as $card)
-                        <li class="s-sg-card s-v{{ $card['color'] }}" data-part="{{ $card['key'] }}" @if ($first !== null && $card['key'] === $first['key']) data-picked @endif>
-                            <button type="button" class="s-sg-pick" data-pick="{{ $card['key'] }}" data-name="{{ mb_strtolower($card['name']) }}" data-href="{{ $learn[$card['key']] }}" aria-pressed="{{ $first !== null && $card['key'] === $first['key'] ? 'true' : 'false' }}" hidden><span class="sr-only">{{ __('pages.song.pick', ['part' => mb_strtolower($card['name'])]) }}</span></button>
-                            <div class="s-sg-card-top">
-                                <span class="s-disc" aria-hidden="true">{{ mb_substr($card['name'], 0, 1) }}</span>
-                                <span class="s-sg-tag">{{ __('pages.song.tag.'.$card['tag']) }}</span>
-                            </div>
-                            <h3>{{ $card['name'] }}</h3>
-                            <p class="s-sg-range" translate="no">{{ __('pages.song.range', ['low' => \App\Support\Pages\Carols::signs($card['low']), 'high' => \App\Support\Pages\Carols::signs($card['high'])]) }}</p>
-                            <span class="s-sg-bar" aria-hidden="true"><i style="--lo: {{ $card['from'] }}%; --hi: {{ $card['to'] }}%"></i></span>
-                            @if (\Illuminate\Support\Facades\Lang::has('song_parts.'.$song['slug'].'.'.$card['key']))
-                                <p class="s-sg-part-note">{{ __('song_parts.'.$song['slug'].'.'.$card['key']) }}</p>
-                            @endif
-                            {{-- Its guide voice: a real singer's, credited as its part page credits it, or the app's own with the ask to sing it. --}}
-                            @php($guide = $guides[$card['key']] ?? null)
-                            <p class="s-sg-voice">
-                                @if ($guide !== null && $guide['realVoice'])
-                                    <b>{{ __('pages.song.voice_real') }}</b>
-                                    @if ($guide['credit'] !== null && $guide['creditHandle'] !== null)
-                                        <a href="{{ '/@'.$guide['creditHandle'] }}" class="s-lk">{{ __('site.song_part.sung_by', ['name' => $guide['credit']]) }}</a>
-                                    @elseif ($guide['credit'] !== null)
-                                        <span>{{ __('site.song_part.sung_by', ['name' => $guide['credit']]) }}</span>
-                                    @endif
-                                @else
-                                    <span>{{ __('pages.song.voice_generated') }}</span>
-                                    @if ($lendVoice)
-                                        <a href="{{ $learn[$card['key']] }}" class="s-lk" data-be-voice="{{ $card['key'] }}">{{ __('pages.song.be_voice', ['part' => mb_strtolower($card['name'])]) }}</a>
-                                    @endif
-                                @endif
-                            </p>
-                            <p class="s-sg-card-foot">
-                                {{-- What a tap does, said: it picks the part for the page (Learn names it); its own page plays it alone. --}}
-                                <span class="s-sg-yours" aria-hidden="true"><span>{{ __('pages.song.picked') }}</span><span>{{ __('pages.song.pick_this') }}</span></span>
-                                @if ($card['url'] !== null)
-                                    <a href="{{ $card['url'] }}" class="s-lk" data-part-link="{{ $card['key'] }}">{{ __('pages.song.hear_alone', ['part' => mb_strtolower($card['name'])]) }}</a>
-                                @endif
-                            </p>
-                        </li>
-                    @endforeach
-                </ul>
-                @if ($lendVoice && collect($guides)->contains('realVoice', false))
-                    <p class="s-sg-voices-note">{{ __('pages.song.be_voice_note') }} <a href="/features/real-voices" class="s-lk">{{ __('pages.landing.guide.more') }}</a></p>
-                @endif
-            </section>
-        @endif
 
         {{-- Every verse, one sung line a line, stanzas apart; a long line wraps under itself (a hanging indent). --}}
         @if ($lines !== [])
@@ -150,8 +106,61 @@
             </section>
         @endif
 
+        {{-- How each part goes: a row a part, its tag, its range on the page's one scale and its guide voice, then where it
+             goes in the words (kept whole and unfolded: it's the page's facts) and its own page to practise it. Nothing to
+             pick here: the hero's player picks. --}}
+        @if ($cards !== [])
+            <section id="parts" class="s-wrap s-sec2 s-sg-parts" aria-labelledby="parts-h">
+                <div class="s-sg-head">
+                    <h2 id="parts-h" class="s-h2">{{ __('pages.song.how') }}</h2>
+                    <p class="s-sub">{{ __('pages.song.how_lead') }}</p>
+                </div>
+                <ul class="s-sg-how">
+                    @foreach ($cards as $card)
+                        <li id="{{ $card['key'] }}" class="s-sg-how-row s-v{{ $card['color'] }}" data-part="{{ $card['key'] }}">
+                            <div class="s-sg-how-facts">
+                                <span class="s-disc" aria-hidden="true">{{ mb_substr($card['name'], 0, 1) }}</span>
+                                <h3>{{ $card['name'] }}</h3>
+                                <span class="s-sg-tag">{{ __('pages.song.tag.'.$tagOf($card)) }}</span>
+                                <p class="s-sg-range" translate="no">{{ __('pages.song.range', ['low' => \App\Support\Pages\Carols::signs($card['low']), 'high' => \App\Support\Pages\Carols::signs($card['high'])]) }}</p>
+                                <span class="s-sg-bar" aria-hidden="true"><i style="--lo: {{ $card['from'] }}%; --hi: {{ $card['to'] }}%"></i></span>
+                                {{-- Its guide voice: a real singer's, credited as its part page credits it, or the app's own with the ask to sing it. --}}
+                                @php($guide = $guides[$card['key']] ?? null)
+                                <p class="s-sg-voice">
+                                    @if ($guide !== null && $guide['realVoice'])
+                                        <b>{{ __('pages.song.voice_real') }}</b>
+                                        @if ($guide['credit'] !== null && $guide['creditHandle'] !== null)
+                                            <a href="{{ '/@'.$guide['creditHandle'] }}" class="s-lk">{{ __('site.song_part.sung_by', ['name' => $guide['credit']]) }}</a>
+                                        @elseif ($guide['credit'] !== null)
+                                            <span>{{ __('site.song_part.sung_by', ['name' => $guide['credit']]) }}</span>
+                                        @endif
+                                    @else
+                                        <span>{{ __('pages.song.voice_generated') }}</span>
+                                        @if ($lendVoice)
+                                            <a href="{{ $learn[$card['key']] }}" class="s-lk" data-be-voice="{{ $card['key'] }}">{{ __('pages.song.be_voice', ['part' => mb_strtolower($card['name'])]) }}</a>
+                                        @endif
+                                    @endif
+                                </p>
+                            </div>
+                            <div class="s-sg-how-text">
+                                @if (\Illuminate\Support\Facades\Lang::has('song_parts.'.$song['slug'].'.'.$card['key']))
+                                    <p class="s-sg-part-note">{{ __('song_parts.'.$song['slug'].'.'.$card['key']) }}</p>
+                                @endif
+                                @if ($card['url'] !== null)
+                                    <a href="{{ $card['url'] }}" class="s-lk s-sg-practise" data-part-link="{{ $card['key'] }}">{{ __('pages.song.practise', ['part' => mb_strtolower($card['name'])]) }} <x-site.icon name="arrow" size="16" /></a>
+                                @endif
+                            </div>
+                        </li>
+                    @endforeach
+                </ul>
+                @if ($lendVoice && collect($guides)->contains('realVoice', false))
+                    <p class="s-sg-voices-note">{{ __('pages.song.be_voice_note') }} <a href="/features/real-voices" class="s-lk">{{ __('pages.landing.guide.more') }}</a></p>
+                @endif
+            </section>
+        @endif
+
         @if ($story !== null)
-            @include('public._song-story', ['story' => $story, 'song' => $song, 'quoteN' => $quoteN])
+            @include('public._song-story', ['story' => $story, 'song' => $song, 'quoteN' => $quoteN, 'genres' => array_map(static fn (string $genre): string => \App\Support\Languages\SongWords::genre($genre), $song['genre'])])
         @elseif ($song['about'] !== null)
             {{-- Its About, as its part pages tell it (site._song-about), until it has a story. --}}
             @include('site._song-about', ['heading' => __('site.song_part.about', ['song' => $song['title']]), 'credits' => $lines === [] ? $song['credits'] : [], 'text' => $song['about'], 'songPage' => null, 'home' => null, 'ruled' => false])
@@ -195,7 +204,12 @@
                     <h2 id="end-h">{{ __('pages.song.end_title', ['title' => $song['title']]) }}</h2>
                     <p>{{ __('pages.song.end_free') }}</p>
                 </div>
-                <a href="{{ $song['startUrl'] }}" class="btn-primary btn-lg">{{ __('pages.song.start') }} <x-site.icon name="arrow" size="18" /></a>
+                {{-- The hero's Learn again, following the pick (js/public/song-page.js). --}}
+                @if ($first !== null)
+                    <a href="{{ $learn[$first['key']] }}" class="btn-primary btn-lg" data-learn data-label="{{ __('pages.song.learn_part', ['part' => ':part']) }}"><span data-learn-label>{{ __('pages.song.learn_part', ['part' => mb_strtolower($first['name'])]) }}</span> <x-site.icon name="arrow" size="18" /></a>
+                @else
+                    <a href="{{ $song['startUrl'] }}" class="btn-primary btn-lg">{{ __('pages.song.start') }} <x-site.icon name="arrow" size="18" /></a>
+                @endif
             </div>
         </section>
     </main>
@@ -208,7 +222,5 @@
     @if ($line !== null)
         <script type="module" src="/js/public/mixer.js"></script>
     @endif
-    @if ($cards !== [])
-        <script type="module" src="/js/public/song-page.js"></script>
-    @endif
+    <script type="module" src="/js/public/song-page.js"></script>
 @endsection

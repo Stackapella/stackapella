@@ -213,5 +213,14 @@
     "@attributes.birthYear:birth year": "año de nacimiento",
     "@attributes.message:message": "mensaje",
     "@attributes.title:title": "título",
-    "@attributes.handle:handle": "nombre de usuario"
+    "@attributes.handle:handle": "nombre de usuario",
+    "name": "nombre",
+    "email": "correo electrónico",
+    "password": "contraseña",
+    "birth month": "mes de nacimiento",
+    "birth year": "año de nacimiento",
+    "message": "mensaje",
+    "title": "título",
+    "handle": "nombre de usuario",
+    "Say why it is rejected.": "Di por qué se rechaza."
 }

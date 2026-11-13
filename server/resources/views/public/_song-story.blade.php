@@ -31,7 +31,9 @@
                     @endif
                 </blockquote>
             @endif
-            @if (array_filter($story['facts']) !== [])
+            {{-- The facts, and the kinds of song it is (moved from the hero's chips, the song page review). --}}
+            @php($genres = $genres ?? [])
+            @if (array_filter($story['facts']) !== [] || $genres !== [])
                 <div class="s-sst-facts">
                     <h3 class="s-kick">{{ __('pages.song.story.facts') }}</h3>
                     <dl>
@@ -40,6 +42,9 @@
                                 <div><dt>{{ __('pages.song.story.fact.'.$field) }}</dt><dd>{{ $value }}@if ($field === 'earliestPrinting' && $story['earliestPrintingSource'] !== null)<sup class="s-cite"><a href="#source-{{ $story['earliestPrintingSource'] }}">[{{ $story['earliestPrintingSource'] }}]</a></sup>@endif</dd></div>
                             @endif
                         @endforeach
+                        @if ($genres !== [])
+                            <div><dt>{{ __('pages.song.story.fact.genre') }}</dt><dd>{{ implode(', ', $genres) }}</dd></div>
+                        @endif
                     </dl>
                 </div>
             @endif

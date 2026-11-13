@@ -450,7 +450,7 @@ final class LanguagesTest extends TestCase
         app(Flags::class)->set('lang_es', 'on', null, 'Spanish checked');
         $html = (string) $this->get('/es/songs/michael-row')->assertOk()->getContent();
 
-        $this->assertStringContainsString('/?song=michael-row&amp;ref=song-page"', $html);
+        $this->assertMatchesRegularExpression('#/\?song=michael-row&amp;part=[a-z]+&amp;ref=song-page"#', $html);
         $this->assertStringNotContainsString('/es/?song=', $html);
         // Its other links still stay in Spanish.
         $this->assertStringContainsString('href="/es/songs"', $html);
@@ -575,6 +575,7 @@ final class LanguagesTest extends TestCase
         app(Flags::class)->set('lang_es', 'on', null, 'Spanish checked');
 
         $song = (string) $this->get('/es/songs/amazing-grace')->assertOk()->getContent();
+        // No Spanish story yet: its kind of song stays a chip (with a story, it's in the story's At a glance).
         $this->assertStringContainsString('<li>Himno</li>', $song);
         $this->assertStringContainsString('himno popular estadounidense (1829)', $song);
         $this->assertStringContainsString('Aprende la voz de soprano', $song);
@@ -583,7 +584,7 @@ final class LanguagesTest extends TestCase
         $this->assertDoesNotMatchRegularExpression('/class="s-sg-range"[^>]*>[^<]*\bC\d/u', $song);
 
         $english = (string) $this->get('/songs/amazing-grace')->assertOk()->getContent();
-        $this->assertStringContainsString('<li>Hymn</li>', $english);
+        $this->assertMatchesRegularExpression('#<dt>Kind of song</dt><dd>[^<]*Hymn#u', $english);
         $this->assertStringContainsString('American folk hymn (1829)', $english);
         $this->assertStringContainsString('Learn the soprano part', $english);
 

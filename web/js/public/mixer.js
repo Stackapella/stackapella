@@ -315,6 +315,8 @@ function setUp(root) {
         if (!on.get(key)) switchTo(key, true);
         for (const other of picks.keys()) ramp(other, BRING);
         showSets();
+        // Said to the page, which may follow it (a song page's Learn names the part: js/public/song-page.js).
+        root.dispatchEvent(new CustomEvent('mixer-pick', { bubbles: true, detail: { key } }));
     }
 
     function showSets() {

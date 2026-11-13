@@ -10,6 +10,7 @@ use App\Support\Pages\PageGone;
 use App\Support\Pages\SongCollections;
 use App\Support\Pages\SongParts;
 use App\Support\Sharing\SongCards;
+use App\Support\Site\Correction;
 use Illuminate\Http\Response;
 
 /**
@@ -32,6 +33,8 @@ final class SongPartPagesController extends Controller
 
         // Its link card is its song's (the song page's own, SongCards), not the landing's (the coordinator's audit, 2026-11-11).
         $template = Template::query()->with('currentVersion')->where('slug', $slug)->first();
+
+        Correction::share('part', trim((string) ($page['song']['title'] ?? '').' · '.(string) (is_array($page['part'] ?? null) ? ($page['part']['name'] ?? '') : ''), ' ·'));
 
         return response()->view(SongParts::VIEW, ['songPart' => $page, 'image' => $template !== null ? $cards->url($template, 'join') : SongCards::fallback()], 200, SongPagesController::headersFor($template));
     }

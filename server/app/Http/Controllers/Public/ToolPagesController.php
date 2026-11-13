@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Support\Http\Hosts;
 use App\Support\Pages\Landing;
 use App\Support\Site\AppWords;
+use App\Support\Site\Correction;
 use App\Support\Site\SitePages;
 use App\Support\Tools\NoteChart;
 use App\Support\Tools\ToolPageData;
@@ -114,6 +115,8 @@ final class ToolPagesController extends Controller
 
         $page = $variant ? SitePages::variant($tool) : SitePages::tool($tool);
         $base = $variant ? (string) $page['tool'] : $tool;
+
+        Correction::share('tool', (string) ($page['name'] ?? $page['headline'] ?? ''));
 
         return response()->view('site.tool', [
             'title' => SitePages::title((string) $page['title']),

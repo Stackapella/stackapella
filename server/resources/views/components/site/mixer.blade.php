@@ -4,8 +4,10 @@
      text alternative are here, so the page says what it plays without the script. The slot is what
      sits beside Play on desktop (the hero's Start singing). `on`, when given, lists the part keys
      switched on at first (A cappella's stack starts with the bass alone); the rest start off. `foot`, a
-     named slot, is the card's last row (the landing's facts). --}}
-@props(['song', 'id' => 'mixer', 'studio' => false, 'on' => null])
+     named slot, is the card's last row (the landing's facts; a song page's Learn and Share). `picked` false starts
+     with no part yours (a song page: nothing looks picked until it is). A part's `line`, when given, is its row's small
+     line (a song page's "Melody · B3 to E5"), else its role. --}}
+@props(['song', 'id' => 'mixer', 'studio' => false, 'on' => null, 'picked' => true])
 <div @class(['s-mixer', 's-mixer-studio' => $studio]) id="{{ $id }}" data-player role="group" aria-labelledby="{{ $id }}-title">
     <script type="application/json" data-song>@json($song)</script>
     <div class="s-mix-head">
@@ -24,7 +26,7 @@
     @endunless
     <div class="s-channels" role="radiogroup" aria-label="{{ __('pages.landing.hero.parts_label') }}">
         @foreach ($song['parts'] as $part)
-            @php($you = $part['key'] === $song['you'])
+            @php($you = $picked && $part['key'] === $song['you'])
             @php($isOn = $on === null || in_array($part['key'], $on, true))
             <div class="s-ch s-v{{ $part['color'] }} {{ $you ? 's-is-you' : '' }}" data-voice="{{ $part['key'] }}" @if (! $isOn) data-off @endif>
                 @if ($studio)
@@ -34,9 +36,11 @@
                     <button type="button" class="s-ch-pick" aria-pressed="false" data-hear-alone aria-label="{{ __('pages.landing.hero.hear_only', ['part' => $part['name']]) }}" data-label="{{ __('pages.landing.hero.hear_only', ['part' => $part['name']]) }}" data-label-back="{{ __('pages.landing.hero.hear_all_back') }}"></button>
                 @endif
                 <span @class(['s-disc', 'gem', 'gem-dim' => ! $isOn]) aria-hidden="true">{{ mb_substr($part['name'], 0, 1) }}</span>
-                <span class="s-ch-name" aria-hidden="true">@unless ($studio)<span class="s-ch-play"><x-site.icon name="play" size="12" /></span>@endunless<b>{{ $part['name'] }}</b>
+                <span class="s-ch-name" aria-hidden="true"><b>@unless ($studio)<span class="s-ch-play"><x-site.icon name="play" size="12" /></span>@endunless{{ $part['name'] }}</b>
                     <span class="s-you">{{ __('pages.landing.hero.you') }}</span>
-                    @if (\Illuminate\Support\Facades\Lang::has('pages.landing.hero.roles.'.$part['key']))
+                    @if (is_string($part['line'] ?? null))
+                        <small>{{ $part['line'] }}</small>
+                    @elseif (\Illuminate\Support\Facades\Lang::has('pages.landing.hero.roles.'.$part['key']))
                         <small>{{ __('pages.landing.hero.roles.'.$part['key']) }}</small>
                     @endif
                 </span>
@@ -51,7 +55,7 @@
                 @endif
                 @unless ($studio)
                     {{-- Your part: a small radio at the row's end (the one sung louder, "You"); the row itself plays its part alone. --}}
-                    <button type="button" class="s-ch-mine" role="radio" aria-checked="{{ $you ? 'true' : 'false' }}" tabindex="{{ $you ? '0' : '-1' }}" data-pick aria-label="{{ __('pages.landing.hero.mine_label', ['part' => $part['name']]) }}" data-label="{{ __('pages.landing.hero.mine_label', ['part' => $part['name']]) }}" data-label-you="{{ __('pages.landing.hero.your_part', ['part' => $part['name']]) }}"><span class="s-mine-off">{{ __('pages.landing.hero.mine_pick') }}</span><span class="s-mine-on">{{ __('pages.landing.hero.mine') }}</span></button>
+                    <button type="button" class="s-ch-mine" role="radio" aria-checked="{{ $you ? 'true' : 'false' }}" tabindex="{{ $you || (! $picked && $loop->first) ? '0' : '-1' }}" data-pick aria-label="{{ __('pages.landing.hero.mine_label', ['part' => $part['name']]) }}" data-label="{{ __('pages.landing.hero.mine_label', ['part' => $part['name']]) }}" data-label-you="{{ __('pages.landing.hero.your_part', ['part' => $part['name']]) }}"><span class="s-mine-off">{{ __('pages.landing.hero.mine_pick') }}</span><span class="s-mine-on">{{ __('pages.landing.hero.mine') }}</span></button>
                 @else
                     <button type="button" class="s-ch-state" role="switch" aria-checked="{{ $isOn ? 'true' : 'false' }}" data-toggle aria-label="{{ __('pages.landing.hero.voice_switch', ['part' => $part['name']]) }}"><span class="switch-track" aria-hidden="true"><span class="switch-knob"></span></span></button>
                 @endunless
@@ -64,5 +68,9 @@
     @isset($foot)
         <div class="s-mix-foot">{{ $foot }}</div>
     @endisset
-    <p class="sr-only">{{ __(($song['whole'] ?? false) ? 'pages.landing.hero.alt_whole' : 'pages.landing.hero.alt', ['song' => $song['title'], 'words' => \App\Support\Pages\Landing::sentence($song['words']), 'you' => $yourPart]) }}</p>
+    @if ($picked)
+        <p class="sr-only">{{ __(($song['whole'] ?? false) ? 'pages.landing.hero.alt_whole' : 'pages.landing.hero.alt', ['song' => $song['title'], 'words' => \App\Support\Pages\Landing::sentence($song['words']), 'you' => $yourPart]) }}</p>
+    @else
+        <p class="sr-only">{{ __('pages.landing.hero.alt_open', ['song' => $song['title'], 'words' => \App\Support\Pages\Landing::sentence($song['words'])]) }}</p>
+    @endif
 </div>

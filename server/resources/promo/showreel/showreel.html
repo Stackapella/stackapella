@@ -43,6 +43,6 @@
 // The film's length in seconds: Amazing Grace's verse twice (96 beats) and two bars held, at 80 BPM.
 // render.py reads this line, and score.js must agree (it checks).
 // v5's cuts (js/score.js DURS): the hero, the short and the social
-window.DUR = { hero: 76.5, short: 40.5, social: 19.75, carols: (26 * 60) / 66, hanukkah: (36 * 60) / 90 }[new URLSearchParams(location.search).get('cut') || 'hero'];
+window.DUR = { hero: 76.5, short: 40.5, social: 19.75, carols: (26 * 60) / 66, hanukkah: (36 * 60) / 90, maoz: (164 * 60) / 90, maozr: (45.5 * 60) / 90, carolsr: (28 * 60) / 66, gracer: (40.5 * 60) / 80 }[new URLSearchParams(location.search).get('cut') || 'hero'];
 </script>
 <script type="module" src="js/main.js"></script>

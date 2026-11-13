@@ -33,6 +33,7 @@ def journey(f):
     f.run(f"{ROUTER}.navigate('/learn/{LESSON}')")
     f.wait_text("Sing the groove on the beat.")
     f.js(f"{AUDIO}.engine.setLoopback(true)")
+    f.wait("document.querySelector('[data-play-disc]')", what="the step's Start (its exercise loads after the step's words)")
     f.run("document.querySelector('[data-play-disc]').closest('button').click()")
     if f.js("!!document.querySelector('[role=dialog]')"):
         f.click_t("headphones.on")

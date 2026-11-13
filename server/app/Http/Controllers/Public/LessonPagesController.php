@@ -10,6 +10,7 @@ use App\Support\Http\Hosts;
 use App\Support\Pages\Landing;
 use App\Support\Pages\Lessons;
 use App\Support\Pages\PageGone;
+use App\Support\Site\Correction;
 use App\Support\Site\SitePages;
 use App\Support\Site\StructuredData;
 use Illuminate\Http\RedirectResponse;
@@ -38,6 +39,8 @@ final class LessonPagesController extends Controller
         $description = $found['description'] ?? (string) __('site.lessons.description', ['name' => $found['name'], 'course' => $found['courseName']]);
         $meta = ['title' => SitePages::title((string) $found['title']), 'description' => $description, 'url' => $url];
         $courseUrl = Hosts::publicUrl().$found['up'];
+
+        Correction::share('lesson', (string) $found['name']);
 
         return response()->view('site.lesson', [
             'title' => $meta['title'],

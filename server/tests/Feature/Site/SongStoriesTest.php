@@ -328,22 +328,17 @@ final class SongStoriesTest extends TestCase
         $this->assertStringContainsString('data-be-voice="alto"', (string) $this->get('/songs/amazing-grace/alto')->assertOk()->getContent());
     }
 
-    public function test_the_whole_mix_plays_by_the_heros_actions_only_once_the_server_has_it(): void
+    public function test_a_whole_mix_credits_each_real_voice_else_says_the_voices_are_synthesized(): void
     {
+        // One player on the page (the song page review, option C): no second, native player beside the hero's.
         app(SyncOfficialTemplates::class)->handle();
-        $this->assertStringNotContainsString('s-sg-mix', (string) $this->get('/songs/amazing-grace')->assertOk()->getContent(), 'no mix yet: nothing');
+        $this->assertStringNotContainsString('s-sg-mix', (string) $this->get('/songs/amazing-grace')->assertOk()->getContent());
 
         $cards = [['key' => 'soprano', 'name' => 'Soprano'], ['key' => 'alto', 'name' => 'Alto']];
         $none = ['soprano' => ['realVoice' => false, 'credit' => null, 'creditHandle' => null], 'alto' => ['realVoice' => false, 'credit' => null, 'creditHandle' => null]];
         $this->assertSame('Synthesized voices', SongPage::mixCredit($cards, $none));
         $alto = ['alto' => ['realVoice' => true, 'credit' => 'Rosa', 'creditHandle' => 'rosa']] + $none;
         $this->assertSame('Alto sung by Rosa; the other parts synthesized', SongPage::mixCredit($cards, $alto));
-
-        $html = (string) $this->view('public._song-mix', ['mix' => ['url' => 'https://example.com/mix.m4a', 'type' => 'audio/mp4'], 'count' => 4, 'credit' => SongPage::mixCredit($cards, $alto)]);
-        // Nothing loads until pressed, labelled by what it plays; its credit; and the way in beside it.
-        $this->assertMatchesRegularExpression('#<audio controls preload="none" src="https://example.com/mix.m4a"\s+type="audio/mp4"\s+aria-label="Hear all 4 parts"></audio>#', $html);
-        $this->assertStringContainsString('Alto sung by Rosa; the other parts synthesized', $html);
-        $this->assertStringContainsString('<a href="#find" class="btn-secondary btn-lg s-sg-mix-cta">Sing along: pick your part</a>', $html);
     }
 
     public function test_a_song_not_in_the_pages_language_shows_each_lines_script_and_meaning_and_a_long_one_can_hide_them(): void

@@ -67,7 +67,7 @@ export const ContactView = {
                             <Switch :on="details" :label="t('contact.details')" :hint="t('contact.detailsHint', { device: context.device, version: context.appVersion })" @change="setDetails" />
                             <button type="button" class="link-quiet min-h-11 text-sm text-accent" :aria-expanded="showSent ? 'true' : 'false'" aria-controls="contact-sent" @click="showSent = !showSent">{{ showSent ? t('contact.hideSent') : t('contact.seeSent') }}</button>
                             <div v-if="showSent" id="contact-sent" class="space-y-2">
-                                <dl v-if="details" class="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 rounded-2xl bg-raised p-3 text-xs text-muted">
+                                <dl v-if="details" data-diag-details class="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 rounded-2xl bg-raised p-3 text-xs text-muted">
                                     <template v-for="(value, key) in shownContext" :key="key"><dt class="font-semibold">{{ t(key) }}</dt><dd class="min-w-0 whitespace-pre-line break-words" translate="no" :data-sent="key">{{ value }}</dd></template>
                                 </dl>
                                 <p class="text-xs text-muted">{{ details ? t('contact.sentAlong') : t('contact.sentNothing') }}</p>

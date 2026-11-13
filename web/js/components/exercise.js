@@ -50,6 +50,8 @@ const HELD_BEATS = 24; // a note in Wait for me holds this long, at most (with h
 const COMBO_SHOWN = 3; // the combo shows from this many in a row
 const WEAK_TAKE = 70; // a take under this percent (or unheard) is weak: after two, Sing it with the guide
 const MIN_BEAT_PX = 48; // a beat is never narrower: a brick stays its note's length
+const LABELLED_BEAT_PX = 22; // a labelled lane's beat (the warm-up's pattern), scrolling past this
+const LABELLED_SQUEEZE_PX = 16; // narrower still, only when the whole pass then fits
 const LABEL_CHAR_PX = 9; // a syllable or name shows only when all of it fits its brick (never a cut-off "l…"), as Sing's lane
 const LABEL_PAD_PX = 10;
 const PLAYHEAD_AT = 0.35; // a longer exercise scrolls with the playhead here, across
@@ -358,7 +360,8 @@ export const Exercise = {
             </div>
             <!-- Tune the chord (exercise.tuning, ux-spec 5.10c): a held chord note against its pure tuning, a view only, never scored; hidden through a speaker -->
             <RingMeter v-if="running && ring" class="mx-auto w-full max-w-md" :reading="ring" :color="color" data-lesson-ring />
-            <p v-if="mode !== 'try'" class="min-h-6 text-center text-sm font-semibold" :style="{ color: phaseKey === 'listen' ? null : color }" :class="phaseKey === 'listen' ? 'text-muted' : ''" aria-live="polite">{{ running ? (restLabel && beatNow < restBeats ? restLabel : t(PHASE[phaseKey])) : scoring ? t('course.scoring') : '' }}</p>
+            <!-- Bare (the host has its own Start): at rest the empty line takes no room, so no gap sits under the lane (the finish-line audit); it stays a live region. -->
+            <p v-if="mode !== 'try'" class="text-center text-sm font-semibold" :style="{ color: phaseKey === 'listen' ? null : color }" :class="[phaseKey === 'listen' ? 'text-muted' : '', bare && !running && !scoring ? 'sr-only' : 'min-h-6']" aria-live="polite" data-lane-status>{{ running ? (restLabel && beatNow < restBeats ? restLabel : t(PHASE[phaseKey])) : scoring ? t('course.scoring') : '' }}</p>
             <div v-if="running && combo >= COMBO_SHOWN && game() && courseRules.combo" class="flex items-center justify-center gap-4 text-sm">
                 <span class="whitespace-nowrap rounded-full bg-raised px-3 py-1 font-semibold text-cream" data-combo>{{ t('course.combo', { count: combo }) }}</span>
                 <span v-if="earnsBonus && bonusRate(combo) >= 2" class="ge-rate whitespace-nowrap" data-bonus-rate><span aria-hidden="true">{{ t('game.popup.rateChip', { count: bonusRate(combo) }) }}</span><span class="sr-only">{{ t('game.popup.rateChipLabel', { count: bonusRate(combo) }) }}</span></span>
@@ -520,8 +523,14 @@ export const Exercise = {
          * the next (31's finding: at a phone's width a beat had 20 px, or 8 for a long tune). A longer
          * exercise scrolls, the playhead held at 35% across.
          */
-        // Labelled (the warm-up's short pattern), down to 22 px a beat so the whole pass fits, a phone's too.
-        pxPerBeat: (vm) => Math.max(vm.labelled ? 22 : MIN_BEAT_PX, ((vm.width || 320) - vm.edge - 8) / vm.span),
+        // Labelled (the warm-up's short pattern), down to 22 px a beat so the whole pass fits, a phone's too; and to 16 when
+        // that's what fits it whole (the five-note scale's held "oo" ran off a 390 px phone: the finish-line audit). A pass
+        // too long even at 16 keeps 22 and scrolls, as before.
+        pxPerBeat(vm) {
+            const fit = ((vm.width || 320) - vm.edge - 8) / vm.span;
+            if (!vm.labelled) return Math.max(MIN_BEAT_PX, fit);
+            return fit >= LABELLED_SQUEEZE_PX ? fit : LABELLED_BEAT_PX;
+        },
         scrollX() {
             const width = this.width || 320;
             const content = this.edge + 8 + this.pxPerBeat * this.span;

@@ -25,6 +25,26 @@ const SEASON_CUTS = {
         heard: ['The soprano has the tune', 'The alto joins', 'The tenor joins', 'The bass joins, on "oo": four parts'] },
     hanukkah: { song: 'maoz-tzur', bpm: 90, verse: 31.5, hold: 4.5, enter: [0, 7.5, 16, 23.5], all: 28, end: 30, lanes: 6, phrases: [[0, 7.5], [7.5, 16], [16, 23.5], [23.5, 31.5]], key: 4,
         heard: ['The soprano has the tune', 'The alto joins', 'The tenor joins', 'The bass joins: four parts'] },
+    // Maoz Tzur once through (a one-off for Hillel's post, 16:9): the Hanukkah cut's opening and joins, then the
+    // whole template, verses 1 and 5 with their repeats, the last "nim." held under the end card
+    maoz: { song: 'maoz-tzur', bpm: 90, verse: 160, hold: 4, enter: [0, 7.5, 16, 23.5], all: 28, end: 158, lanes: 6, key: 4,
+        phrases: [[0, 7.5], [7.5, 16], [16, 23.5], [23.5, 31.5], [31.5, 40], [40, 48], [48, 56], [56, 64], [64, 72], [72, 80], [80, 96], [96, 111.5], [111.5, 120], [120, 128], [128, 136], [136, 144], [144, 152], [152, 160]],
+        heard: ['The soprano has the tune', 'The alto joins', 'The tenor joins', 'The bass joins: four parts'] },
+    // Maoz Tzur for Hillel's Reddit post (16:9, about 30 s): the new hanukkiah first, the parts joining, then to the
+    // phrase end "mat-be-ach," (beat 38, 25.3 s), whose chord becomes the mark and the card ("Keep singing, part by
+    // part.") as the voices fade out on it (`fade`: from beat 39 to 40.5, after the word is sung; the chimes stay)
+    maozr: { song: 'maoz-tzur', bpm: 90, verse: 40, hold: 5.5, enter: [0, 7.5, 16, 23.5], all: 28, end: 38, fade: [39, 40.5], lanes: 6, key: 4,
+        phrases: [[0, 7.5], [7.5, 16], [16, 23.5], [23.5, 31.5], [31.5, 40]],
+        heard: ['The soprano has the tune', 'The alto joins', 'The tenor joins', 'The bass joins: four parts'] },
+    // the same Reddit cut on Silent Night (the carols cut, 16:9): its first two lines, "all is bright," (beat 21) the
+    // chord that becomes the card as the voices fade
+    carolsr: { song: 'silent-night', bpm: 66, verse: 24, hold: 4, enter: [0, 6, 12, 18], all: 20, end: 21, fade: [22.5, 24], lanes: 4.5, phrases: [[0, 6], [6, 12], [12, 18], [18, 24]], key: 0,
+        heard: ['The soprano has the tune', 'The alto joins', 'The tenor joins', 'The bass joins, on "oo": four parts'] },
+    // and on Amazing Grace, in the catalogue's real voices (`real`, as the app plays them, with their credit), a voice
+    // joining every half line, to "I once was lost, but now am found," (beat 34) as the card
+    gracer: { song: 'amazing-grace', path: '/web/templates/amazing-grace.json', real: true, bpm: 80, verse: 36, hold: 4.5, enter: [0, 6, 12, 18], all: 24, end: 34, fade: [35, 36.5], lanes: 6,
+        phrases: [[0, 12], [12, 24], [24, 36]], key: 7,
+        heard: ['A real singer sings the tune', 'The alto joins', 'The tenor joins', 'The bass joins, on "oo": four voices'] },
 };
 const CUTQ = new URLSearchParams(location.search).get('cut');
 export const CUT = ['hero', 'short', 'social', ...Object.keys(SEASON_CUTS)].includes(CUTQ) ? CUTQ : 'hero';
@@ -42,7 +62,7 @@ export const HOLD = SC ? SC.hold : CUT === 'social' ? 7 / 3 : 6; // the last cho
 export const END = PASSES * VERSE + HOLD;
 export const BEATS = END - FROM; // the film's length in beats
 export const DUR = BEATS * SPB;
-export const DURS = { hero: 76.5, short: 40.5, social: 19.75, carols: (26 * 60) / 66, hanukkah: (36 * 60) / 90 };
+export const DURS = { hero: 76.5, short: 40.5, social: 19.75, carols: (26 * 60) / 66, hanukkah: (36 * 60) / 90, maoz: (164 * 60) / 90, maozr: (45.5 * 60) / 90, carolsr: (28 * 60) / 66, gracer: (40.5 * 60) / 80 };
 export const sec = (beat) => beat * SPB;
 export const beatAt = (t) => t / SPB;
 export const PARTS = ['soprano', 'alto', 'tenor', 'bass'];
@@ -52,7 +72,7 @@ export const PARTS = ['soprano', 'alto', 'tenor', 'bass'];
 export const S = { song: null, parts: null, chords: null, phrases: null, voice: null, voices: null };
 
 export async function load() {
-    const song = await (await fetch(SC ? `/server/database/templates/${SC.song}.json` : '/web/templates/amazing-grace.json')).json();
+    const song = await (await fetch(SC ? (SC.path ?? `/server/database/templates/${SC.song}.json`) : '/web/templates/amazing-grace.json')).json();
     S.song = song;
     // a season cut sings only the song's opening lines
     const head = (list) => (SC ? list.filter((x) => x.beat < VERSE - 1e-6).map((x) => ({ ...x })) : list);
@@ -62,7 +82,7 @@ export async function load() {
     S.chords = twice(head(song.chords));
     S.phrases = SC ? SC.phrases : twice(song.sections[0].phrases.map(([a, b]) => ({ beat: a, end: b }))).map((p) => [p.beat, p.end + p.pass * PASS2]);
     S.voice = voiceCurve(S.parts[0]);
-    S.voices = SC ? null : (await fetch('voices/voices.json').then((r) => (r.ok ? r.json() : null)).catch(() => null))?.parts ?? null;
+    S.voices = SC && !SC.real ? null : (await fetch('voices/voices.json').then((r) => (r.ok ? r.json() : null)).catch(() => null))?.parts ?? null;
     // When each of your notes is first in tune, and how much of it you held there (the sheen).
     const step = 0.01;
     for (const n of S.parts[0]) {

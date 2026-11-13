@@ -314,7 +314,7 @@ final class SitePagesTest extends TestCase
         }
     }
 
-    public function test_an_account_songs_page_plays_its_clip_and_never_its_parts_or_notes(): void
+    public function test_a_plus_stored_songs_page_plays_its_opening_line_for_a_guest(): void
     {
         $template = Template::factory()->create(['slug' => 'amazing-grace', 'title' => 'Amazing Grace', 'access' => TemplateAccess::Plus]);
         $template->forceFill(['current_version_id' => TemplateVersion::factory()->create(['template_id' => $template->id, 'reviewed' => true])->id])->save();
@@ -324,11 +324,12 @@ final class SitePagesTest extends TestCase
 
         $this->assertSame(1, substr_count($html, '<h1'));
         // Every library song is free with an account (2026-11-07): none says Plus.
-        $page->assertSee(__('pages.song.start'))->assertSee('D4');
-        // A song the app doesn't bundle: the preview clip, never a single part or the notes (Hillel, 2026-10-27).
-        $this->assertStringNotContainsString('data-song', $html);
-        $this->assertStringNotContainsString('"pitch"', $html);
-        $this->assertStringNotContainsString('/js/public/mixer.js', $html);
+        $page->assertSee('data-learn', false)->assertSee('D4');
+        // Not only the bundled songs: every open song plays on its page (Hillel, 2026-11-13: "it should be easy to hear the
+        // song on the song page"), as its collection's page already played it. It replaces the clip-only rule of 2026-10-27.
+        $this->assertStringContainsString('data-song', $html);
+        $this->assertStringContainsString('"pitch"', $html);
+        $this->assertStringContainsString('/js/public/mixer.js', $html);
 
         $this->get('/songs')->assertOk()->assertSee('href="/songs/amazing-grace"', false);
     }
@@ -351,11 +352,14 @@ final class SitePagesTest extends TestCase
             ->assertSee('<script type="module" src="/js/public/mixer.js"></script>', false)
             ->assertSee('role="radiogroup"', false)
             // A live song's parts each link to their page, named by the link, and the tune's is the one to learn first.
-            ->assertSee(__('pages.song.hear_alone', ['part' => 'soprano']))
+            ->assertSee(__('pages.song.practise', ['part' => 'soprano']))
             ->assertSee(__('pages.song.learn_part', ['part' => 'soprano']))
             ->assertSee(__('pages.song.end_title', ['title' => 'Amazing Grace']))
             ->assertSee('href="/songs/happy-birthday"', false);
-        $this->assertSame(4, substr_count($html, 'class="s-sg-card '));
+        $this->assertSame(4, substr_count($html, 'class="s-sg-how-row '));
+        // Nothing looks picked until it is: no row is yours, and Learn names the melody's part (twice: the hero and the close).
+        $this->assertStringNotContainsString('s-is-you', $html);
+        $this->assertSame(2, substr_count($html, __('pages.song.learn_part', ['part' => 'soprano'])));
         // Its opening line ends on a phrase's end, not part way through the song.
         $line = json_decode((string) preg_replace('/^.*<script type="application\/json" data-song>(.*?)<\/script>.*$/s', '$1', $html), true);
         $this->assertSame(24, (int) $line['beats']);

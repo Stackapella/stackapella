@@ -27,8 +27,9 @@ const clock = (s) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStar
 // gems are big and chunky, as in the arcade lanes: each is taller than two semitones.
 const PXB = 200, SP = 26, GH = 64, GAP = 70, GW = 14; // v5: the lanes closer, so the whole stack fits under the line
 const X = (b) => b * PXB;
-const RANGE = CUT === 'carols' ? [[64, 74], [59, 64], [55, 62], [43, 48]] : CUT === 'hanukkah' ? [[59, 75], [56, 70], [51, 61], [45, 54]] : [[62, 74], [59, 71], [55, 60], [43, 50]];
-const REAL = SEASONAL ? '' : tr('a real voice'); // a season cut's voices are the app's guide, not recordings
+const LOOK = { maoz: 'hanukkah', maozr: 'hanukkah', carolsr: 'carols' }[CUT] ?? CUT; // Maoz Tzur once through (and its Reddit cut) looks like the Hanukkah cut
+const RANGE = CUT === 'maoz' ? [[59, 76], [56, 71], [51, 64], [45, 57]] : CUT === 'maozr' ? [[59, 76], [56, 69], [51, 59], [45, 52]] : LOOK === 'carols' ? [[64, 74], [59, 64], [55, 62], [43, 48]] : CUT === 'hanukkah' ? [[59, 75], [56, 70], [51, 61], [45, 54]] : [[62, 74], [59, 71], [55, 60], [43, 50]];
+const REAL = SEASONAL && !SC.real ? '' : tr('a real voice'); // a season cut's voices are the app's guide, not recordings
 const LANES = (() => {
     let top = 0;
     return RANGE.map(([lo, hi], i) => {
@@ -123,7 +124,8 @@ const ENDS = {
     thumb: { mark: 0, k: 1, h: 0, p: 0, site: 0, br: '' },
 };
 const EL = ENDS[FORMAT];
-const CARD = { carols: ['Christmas carols,', 'stackapella.com/songs/christmas-carols'], hanukkah: ['Hanukkah songs,', 'stackapella.com/songs/jewish-songs'] }[CUT];
+const KEEP = { maozr: 'jewish-songs', carolsr: 'christmas-carols', gracer: 'amazing-grace' }[CUT]; // the Reddit cuts' card: "Keep singing, part by part." and the page
+const CARD = KEEP ? ['Keep singing,', `stackapella.com/songs/${KEEP}`] : { carols: ['Christmas carols,', 'stackapella.com/songs/christmas-carols'], hanukkah: ['Hanukkah songs,', 'stackapella.com/songs/jewish-songs'] }[LOOK];
 endEl.innerHTML = CARD ? `<h2>${CARD[0]}${EL.br} <em>part by part.</em></h2><p></p><p class="site">${CARD[1]}</p><p class="credit"></p>`
     : `<h2>${tr('Harmony,')}${EL.br} <em>${tr('made by you.')}</em></h2><p></p><p class="site">${SITE}</p><p class="credit"></p>`;
 endEl.style.cssText = `left:${END.cx - CX}px;top:${END.cy - CY}px;width:${W}px;height:${H}px`;
@@ -649,7 +651,7 @@ function drawPlanes(list, t) {
         const w = q.w ?? q.h * (cr.w * c.w) / (cr.h * c.h), h = q.h ?? w * (cr.h * c.h) / (cr.w * c.w);
         const file = c.frames ? `${q.id}/${String(Math.min(c.frames - 1, Math.max(0, Math.floor((q.clock ?? 0) * c.fps)))).padStart(4, '0')}.jpg` : `${q.id}.jpg`;
         const src = `captures/${CUTNAME}/${file}`;
-        if (P.img._src !== src) { P.img._src = src; P.img.src = src; pending.push(P.img.decode().catch(() => { throw new Error(`could not load ${src}`); })); }
+        if (P.img._src !== src) { P.img._src = src; P.img.src = src; pending.push(P.img.decode().catch(() => { if (P.img._src === src) throw new Error(`could not load ${src}`); })); } // (a decode the plane has moved past since is no error)
         const iw = w / cr.w, ih = iw * (c.h / c.w);
         set(P.img, 'width', `${iw.toFixed(1)}px`);
         set(P.img, 'transform', `translate(${(-cr.x * iw).toFixed(1)}px,${(-cr.y * ih).toFixed(1)}px)`);
@@ -705,8 +707,10 @@ const LINES = {
     // the carols cut: the page speaks for itself first; then the page's own promises, a line a voice
     carols: [L5E(sec(4.5), sec(12), 'Silent Night, in four parts.', 'parts.', 1), L5E(sec(12), sec(18), 'Hear each part, then sing yours.', 'yours.', 2), L5E(sec(18), sec(21.4), 'Free, in your browser.', 'Free,', 3)],
     // the Hanukkah cut: the same promises (its page's own), a line a voice
+    // the Amazing Grace Reddit cut: its voices are the catalogue's real singers (fact-checked as the hero's line)
+    gracer: [L5E(sec(6), sec(18), 'Amazing Grace, in four parts.', 'parts.', 1), L5E(sec(18), sec(27), 'Learn your part from a real singer.', 'singer.', 2), L5E(sec(27), sec(34.5), 'Free, in your browser.', 'Free,', 3)],
     hanukkah: [L5E(sec(6), sec(16), 'Maoz Tzur, in four parts.', 'parts.', 1), L5E(sec(16), sec(23.5), 'Hear each part, then sing yours.', 'yours.', 2), L5E(sec(23.5), sec(30.5), 'Free, in your browser.', 'Free,', 3)],
-}[CUT];
+}[LOOK];
 function drawLine(t) {
     const l = LINES.findLast((x) => t >= x.a - 1e-6 && t < x.b);
     vis(lineEl, !!l);
@@ -788,7 +792,8 @@ const carolEnd = (t) => { const a = B(CUE.end), u = E.io(range(t, a, a + 1.1)), 
 // to the whole heading; in the vertical cut its songbook comes in under it and the pointer picks Alto
 const HERO_FULL = { x: 0.085, y: 0, w: 0.53, h: 0.56 }, HERO_HAT = { x: 0.085, y: 0, w: 0.21, h: 0.2219 };
 function carolsPage(t) {
-    const b = B(SC.lanes), u = E.snap(range(t, 0.3, 1.9)), leave = E.in(range(t, b - 0.22, b)), w = W - 80;
+    // (16:9, the Reddit cut: the page's plane as tall as the frame allows, not as wide)
+    const b = B(SC.lanes), u = E.snap(range(t, 0.3, 1.9)), leave = E.in(range(t, b - 0.22, b)), w = FORMAT === 'wide' ? 1300 : W - 80;
     const crop = { x: lerp(HERO_HAT.x, HERO_FULL.x, u), y: 0, w: lerp(HERO_HAT.w, HERO_FULL.w, u), h: lerp(HERO_HAT.h, HERO_FULL.h, u) };
     const push = lerp(1, 1.04, range(t, 1.9, b)) * (1 + 0.08 * leave);
     const list = [{ id: 'carols', crop, clock: t * 0.66, x: CX, y: VERT ? lerp(880, 640, E.io(range(t, B(2) - 0.55, B(2) + 0.35))) : CY + 10, w, glow: 2, ry: lerp(-5, -1.5, range(t, 0, b)), rx: 2, s: push, sheen: range(t, 0.2, 1.2) }];
@@ -819,6 +824,35 @@ function hanukkahPage(t) {
             s: lerp(0.88, 1, arrive) * push, rx: lerp(7, 2, arrive), ry: lerp(-8, 0, arrive) + lerp(-5, -1.5, range(t, 0, b)), o: clamp(0.4 + arrive * 2.4), sheen: range(t, a + 0.12, a + 1.0) });
     }
     return list;
+}
+// the Reddit cut's opening (Hillel: "use the new better menora at the start"): close on the hanukkiah in the top
+// right of the next festival's card (Collections v2: the card sits beside the heading), back to the whole card, then
+// back again to the whole hero, the heading and the card together; one plane, its crop drawn back in two moves
+function lampPage(t) {
+    const b = B(SC.lanes), leave = E.in(range(t, b - 0.22, b)), C = CAPS.hanukkah.crops, pad = 0.012;
+    const card = { x: C.count.x - pad, y: C.count.y - pad * 1.6, w: C.count.w + 2 * pad, h: C.count.h + 3.2 * pad };
+    // the lamp's own rect once capture.py has filmed the new page; until then the card's top-right corner, where it sits
+    const L = C.lamp ?? { x: card.x + card.w * 0.7, y: card.y + card.h * 0.06, w: card.w * 0.22, h: card.h * 0.2 };
+    const h = Math.min(card.h, L.h / 0.55), w = (h * card.w) / card.h;
+    const lamp = { x: clamp(L.x + L.w / 2 - w / 2, card.x, card.x + card.w - w), y: clamp(L.y + L.h / 2 - h / 2, card.y, card.y + card.h - h), w, h };
+    const hero = { x: C.text.x - 0.025, y: C.hero.y + 0.03, w: card.x + card.w + 0.025 - (C.text.x - 0.025), h: C.hero.h - 0.03 };
+    const u1 = E.snap(range(t, 0.5, 1.6)), u2 = E.io(range(t, 1.9, 2.9));
+    const mid = lerp4(lamp, card, u1), crop = lerp4(mid, hero, u2);
+    // the card's plane as tall as the frame allows, the hero's as wide
+    const cardW = VERT ? 980 : 1040, heroW = W - (VERT ? 80 : 240); // (the hero's plane clear of the frame's edges as it pushes in)
+    const push = lerp(1, 1.04, range(t, 0, b)) * (1 + 0.08 * leave), ry = lerp(-5, -1.5, range(t, 0, b));
+    return [{ id: 'hanukkah', crop, clock: 0, x: CX, y: CY, w: lerp(cardW, heroW, u2), glow: 2, s: push, rx: 2, ry, sheen: range(t, 0.2, 1.2) }];
+}
+// the Amazing Grace Reddit cut's opening: its song page as served, close on the title (the hymn's name, its blurb and
+// tags), then back to the whole head, the title beside the page's own four-part player
+function gracePage(t) {
+    const b = B(SC.lanes), leave = E.in(range(t, b - 0.22, b)), C = CAPS.grace.crops, pad = 0.02;
+    const head = { x: C.head.x - pad, y: C.head.y, w: C.head.w + 2 * pad, h: C.head.h + pad };
+    const w = C.actions.x + C.actions.w + pad - (C.title.x - pad), h = (w * head.h) / head.w;
+    const title = { x: C.title.x - pad, y: clamp(C.title.y - 0.06, head.y, head.y + head.h - h), w, h };
+    const u = E.snap(range(t, 0.6, 2.4)), crop = lerp4(title, head, u);
+    const push = lerp(1, 1.04, range(t, 0, b)) * (1 + 0.08 * leave), ry = lerp(-5, -1.5, range(t, 0, b));
+    return [{ id: 'grace', crop, clock: 0, x: CX, y: CY, w: W - (VERT ? 80 : 240), glow: 2, s: push, rx: 2, ry, sheen: range(t, 0.2, 1.2) }];
 }
 const endCam = (t) => ({ x: END.cx, y: END.cy, zoom: lerp(1, 1.04, range(t, B(CUE.end), B(LAST - 1))) });
 
@@ -948,6 +982,18 @@ const SHOTS_BY_CUT = {
         // "bright": the four held notes become the mark, and the card with the carols' address
         { a: B(CUE.end), set: 'lanes', mark: 'end', wordsAt: B(CUE.end) + 0.7, cam: carolEnd },
     ],
+    // the Amazing Grace Reddit cut: its song page, then the lanes
+    gracer: [
+        { a: 0, set: 'planes', wash: 3, soft: true, planes: gracePage },
+        { a: B(6), set: 'lanes', cam: carolCam, trail: true, hold: true },
+        { a: B(CUE.end), set: 'lanes', mark: 'end', wordsAt: B(CUE.end) + 0.7, cam: carolEnd },
+    ],
+    // the Reddit cut: the same, opening on the new hanukkiah
+    maozr: [
+        { a: 0, set: 'planes', wash: 3, soft: true, planes: lampPage },
+        { a: B(6), set: 'lanes', cam: carolCam, trail: true, hold: true },
+        { a: B(CUE.end), set: 'lanes', mark: 'end', wordsAt: B(CUE.end) + 0.7, cam: carolEnd },
+    ],
     hanukkah: [
         { a: 0, set: 'planes', wash: 3, soft: true, planes: hanukkahPage },
         // the lanes a beat and a half before the alto's pickup; one shot through all three joining
@@ -965,7 +1011,7 @@ const SHOTS_BY_CUT = {
         { a: B(48), set: 'mark', url: B(45) },
     ],
 };
-const SHOTS = SHOTS_BY_CUT[CUT];
+const SHOTS = SHOTS_BY_CUT[CUT in SHOTS_BY_CUT ? CUT : LOOK];
 SHOTS.forEach((s, i) => { s.b = SHOTS[i + 1] ? SHOTS[i + 1].a : sec(LAST); });
 export const CUTS = SHOTS.slice(1).map((s) => s.a - sec(FROM));
 export const EDIT = { wide: [[0, DUR]], vertical: [[0, DUR]], square: [[0, DUR]], thumb: [[0, 3.75]] }[FORMAT];

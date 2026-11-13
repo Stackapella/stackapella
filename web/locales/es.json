@@ -2751,7 +2751,7 @@
         "chosenByYou": "Elegida por ti",
         "change": {
             "open": "Cambiar de voz",
-            "choose": "Elegirla",
+            "choose": "Indicarla a mano",
             "title": "Tu extensión",
             "hint": "Elige una voz o fija tus notas más grave y más aguda. Las canciones se abren en la voz que mejor encaja.",
             "types": "Voces",
@@ -5570,6 +5570,7 @@
         "title": "Presta tu voz",
         "settingsHint": "Graba una voz de canción o un clip de lección que aún suene con el sintetizador.",
         "off": "\"Presta tu voz\" aún no está abierto.",
+        "offNow": "Mientras tanto, aprende una parte y guarda tus tomas: cuando abra, podrás ofrecer una desde Cantar.",
         "isBetaSinger": "Ya cantas para Stackapella: tus voces están en tu página de la beta.",
         "toYourParts": "Tus voces",
         "intro": "Algunas voces de canciones y clips de lecciones aún suenan con una voz sintética. Graba una, y cuando Hillel la acepte, quien esté aprendiendo oirá ahí tu voz.",

@@ -110,6 +110,16 @@ export function keepWithheld(config) {
     }
 }
 
+/** Whether a withheld list was kept from a visit before (an empty one counts: the list is known). */
+export function keptWithheldList() {
+    try {
+        return local.get(KEPT) !== null;
+    } catch (error) {
+        console.info('The kept withheld songs were unreadable', error?.message ?? error);
+        return false;
+    }
+}
+
 function readKept() {
     try {
         return JSON.parse(local.get(KEPT) ?? '[]');
@@ -127,4 +137,14 @@ export function notHereLine(error) {
     if (error?.code !== 'not_available_here') return null;
     const year = Number.isInteger(error.body?.freeFrom) ? error.body.freeFrom : null;
     return year ? t('templates.notHereUntil', { year: String(year) }) : t('templates.notHere'); // a year, never "2,031"
+}
+
+/**
+ * Whether a lesson (as it came, before any swap) could sing another song where the singer is: a step, a boss's song or the
+ * lesson itself carries an altSong. Learn waits a moment for the withheld list only then, so lesson 1 never waits.
+ */
+export function mayFallBack(lesson) {
+    if (!lesson) return false;
+    if (lesson.altSong) return true;
+    return (lesson.steps ?? []).some((step) => step?.altSong || step?.exercise?.song?.altSong);
 }

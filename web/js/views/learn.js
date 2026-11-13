@@ -15,7 +15,7 @@ import { api, ApiError } from '../api.js';
 import { account } from '../stores/account.js';
 import { backTo, goBack, navigate } from '../router.js';
 import { addXp, cappedWidening, dayOf, nextLesson, strictnessFor, starsFor, unitOpen, voiceType } from '../course.js';
-import { addCourseTime, COOL_DOWN, finishBoss, finishLesson, findLesson, KEY_REACH, knownRange, SONG_USED_SECONDS, loadCooldown, learning, loadLearning, loadPlusCourses, loadSongCourse, noteSung, practised, remember, setCoursePersonal, setHome, setLessonKey } from '../stores/learning.js';
+import { addCourseTime, COOL_DOWN, findLesson, finishBoss, finishLesson, KEY_REACH, knownRange, learning, loadCooldown, loadLearning, loadPlusCourses, loadSongCourse, noteSung, practised, rawLesson, remember, setCoursePersonal, setHome, setLessonKey, SONG_USED_SECONDS } from '../stores/learning.js';
 import { keyName } from '../theory.js';
 import { keepScore } from '../stores/cloud.js';
 import { audio, closeMic, engine } from '../audio.js';
@@ -60,7 +60,9 @@ import { slowed } from '../home-today.js';
 import { BOSS_PASS, bossBeaten, bossOpen, bossPercent, bossResult, challengeOf } from '../boss.js';
 import { addTomorrow, nextUpLine, sendMyselfTheLink } from '../next-up.js';
 import { HearFirst } from '../components/hear-first.js';
-import { notHereLine } from '../withheld.js';
+import { keptWithheldList, mayFallBack, notHereLine } from '../withheld.js';
+
+const CONFIG_WAIT_MS = 1500; // the most a first visit's lesson waits for the withheld list
 
 // The song step's key line, in Sing's own words for the part that fits (views/sing.js FIT_WORDS).
 const FIT_WORDS = { real: tk('sing.realKey'), fits: tk('sing.fitsYourRange'), lower: tk('sing.fitsYourRangeLower'), higher: tk('sing.fitsYourRangeHigher'), closest: tk('course.fitClosest') };
@@ -98,7 +100,7 @@ export const LearnView = {
     // `kept`: this visit's sung steps, their results and takes by step index (a later step may build on
     // one: js/lesson-steps.js's `earlier`), emptied on replay and gone when the lesson closes.
     // `sharpen`: this lesson's place in a Sharpen up session (`{ place, total, start, nextId }`), or null.
-    data: () => ({ sharpen: null, guiding: false, step: 0, micAsked: false, result: null, done: null, ran: false, checking: false, error: null, askHeard: false, tip: null, used: false, skippedHome: false, noSound: false, skipped: false, micPermission: null, noteClip: null, kept: { results: {}, takes: {} }, titleCard: null, songLooked: false, songStep: null, songError: null, flipRestAt: null, capRest: false, capFrom: null, takesOn: {}, bossStarted: false, bossNotes: null, bossLive: 0, bossSaid: '', fitLine: '', unitSongOpening: false, startPending: false, cantSing: false, listening: false, calendarTime: false, homeWaited: false, micFailed: false, slower: new URLSearchParams(location.search).get('slower') === '1' }),
+    data: () => ({ configWaited: false, sharpen: null, guiding: false, step: 0, micAsked: false, result: null, done: null, ran: false, checking: false, error: null, askHeard: false, tip: null, used: false, skippedHome: false, noSound: false, skipped: false, micPermission: null, noteClip: null, kept: { results: {}, takes: {} }, titleCard: null, songLooked: false, songStep: null, songError: null, flipRestAt: null, capRest: false, capFrom: null, takesOn: {}, bossStarted: false, bossNotes: null, bossLive: 0, bossSaid: '', fitLine: '', unitSongOpening: false, startPending: false, cantSing: false, listening: false, calendarTime: false, homeWaited: false, micFailed: false, slower: new URLSearchParams(location.search).get('slower') === '1' }),
     // A step's Then and now offers its card with the lesson's name and link (docs/design-rules.md, Sharing in lessons).
     provide() {
         return { lessonShare: () => this.thenShareContext };
@@ -125,7 +127,7 @@ export const LearnView = {
             </div></header>
             <!-- A lesson's end sits in the middle of a desktop's height, not at the top over an empty half (Hillel: "too much bottom space"). -->
             <div class="mx-auto flex w-full flex-col gap-6 px-4 pb-[max(4rem,calc(env(safe-area-inset-bottom)+2rem))] pt-8 min-[900px]:px-10" :class="flipRestAt || capRest ? 'max-w-xl flex-1 justify-center' : entry?.boss && (!bossStarted || done) ? 'max-w-xl md:flex-1 md:justify-center md:pb-16' : split ? 'max-w-[1200px] md:pt-16' : done && !done.unheard && !noteDone ? 'max-w-5xl md:flex-1 md:justify-center md:pb-16' : done && noteDone ? 'max-w-3xl' : takeResult && !done ? 'max-w-4xl' : 'max-w-xl'">
-                <LoadingBlock v-if="!learning.loaded || !variant.ready || !mic2.ready || (!entry && !learning.coursesLoaded && !songLooked)" :failed="learning.failed" @retry="retryLoad" />
+                <LoadingBlock v-if="!learning.loaded || !variant.ready || !mic2.ready || waitingForWithheld || (!entry && !learning.coursesLoaded && !songLooked)" :failed="learning.failed" @retry="retryLoad" />
                 <p v-else-if="!entry" class="text-cream">{{ t('course.noLesson') }} <a href="/" class="link" @click.prevent="navigate('/')">{{ t('course.backToCourse') }}</a></p>
                 <!-- Signed out past lesson 1 of a course (Hillel, 2026-11-06): a free account, never a price. -->
                 <!-- The account still being checked where a guest would meet the wall: the lesson's own wait, never a flash of the wall. -->
@@ -426,6 +428,12 @@ export const LearnView = {
          * app's own browser stays out (its in-app card is the same in both arms).
          */
         mic2: (vm) => (vm.lessonOne && !vm.inApp ? experiment('mic2') : { arm: null, ready: true }),
+        /**
+         * A very first visit, before auth.config (and its withheld list) has come: a lesson that could sing another song where
+         * the singer is waits for it, at most CONFIG_WAIT_MS, so a withheld song never shows and then swaps. Lessons with no
+         * altSong (lesson 1) never wait; a list kept from a visit before means no wait either.
+         */
+        waitingForWithheld: (vm) => !account.config && !keptWithheldList() && !vm.configWaited && mayFallBack(rawLesson(vm.id)),
         mic2b: (vm) => vm.mic2.arm === 'b',
         /** Arm b's first screen: Hear it first in place of the reading. */
         hearFirst: (vm) => vm.mic2b && vm.step === 0 && vm.current?.kind === 'learn' && !vm.done,
@@ -643,6 +651,13 @@ export const LearnView = {
         },
     },
     watch: {
+        /** The first-visit wait's cap: the lesson as it is once CONFIG_WAIT_MS have passed (a screen's timer, never audio). */
+        waitingForWithheld: {
+            immediate: true,
+            handler(waiting) {
+                if (waiting && !this.configWait) this.configWait = setTimeout(() => (this.configWaited = true), CONFIG_WAIT_MS);
+            },
+        },
         /** A friend's landing that reached its own note: counted once (note_friend_found). */
         done(now, before) {
             if (now && !before && this.noteDone && this.friendNote) count('note_friend_found');

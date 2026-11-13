@@ -54,6 +54,11 @@ def journey(f):
     assert len(sizes) == 2, sizes
     assert f.js("!!document.querySelector('[data-way=parts] [data-first-pick]') && !!document.querySelector('[data-more-ways] [data-way=studio]')"), "the first-song pick and More ways"
     assert len({w for w, _, _ in sizes}) == 1 and len({h for _, h, _ in sizes}) == 1, f"the ways aren't the same size: {sizes}"
+    # The whole song's picture draws Amazing Grace's four parts, each in its own colour, and each way shows a chevron
+    # (the finish-line audit, 2026-11-13).
+    rows = f.js("[...document.querySelectorAll('[data-way=whole] [data-gem]')].map((g) => g.dataset.gem)")
+    assert len(rows) == 4 and len(set(rows)) == 4, f"the whole song's picture: {rows}"
+    assert f.js("[...document.querySelectorAll('[data-way]')].every((b) => b.querySelector('[data-way-go]'))"), "a way without its chevron"
     in_a_row = len({top for _, _, top in sizes}) == 1
     assert in_a_row == (f.size == "desktop"), f"the ways aren't {'in a row' if f.size == 'desktop' else 'stacked'}: {sizes}"
     f.run("document.querySelector(\'[data-way=parts]\').click()")  # the way starts at once

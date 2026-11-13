@@ -144,6 +144,23 @@ final class GeoRightsTest extends TestCase
         $this->assertStringContainsString('no-store', (string) $us->headers->get('Cache-Control'));
     }
 
+    public function test_a_plus_stored_song_plays_for_a_guest_except_where_it_is_withheld(): void
+    {
+        // Every non-bundled song is stored as Plus (2026-11-07), and every open one plays on its page (Hillel, 2026-11-13).
+        $this->wordsSong()->forceFill(['access' => TemplateAccess::Plus])->save();
+        $this->on();
+
+        $us = $this->withHeaders(self::visitor('US'))->get('/songs/words-song')->assertOk();
+        $this->assertSame('words-song', $us->viewData('line')['song'] ?? null);
+        $this->assertNull($us->viewData('line')['audio'], 'no render yet');
+        $this->assertStringContainsString('id="song-mixer"', (string) $us->getContent());
+
+        $mexico = $this->withHeaders(self::visitor('MX'))->get('/songs/words-song')->assertOk();
+        $this->assertNull($mexico->viewData('line'));
+        $this->assertNull($mexico->viewData('song')['audio']);
+        $this->assertStringNotContainsString('id="song-mixer"', (string) $mexico->getContent());
+    }
+
     public function test_where_only_the_music_is_protected_the_words_stay(): void
     {
         // A tune by someone who died in 1960 on traditional words printed in 1900: the player goes in Mexico, not the words.

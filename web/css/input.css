@@ -1455,8 +1455,10 @@ select:disabled {
    its part alone ([data-solo] while it does), and a small My part at its end makes it yours. */
 .s-mixer:not(.s-mixer-studio) .s-ch { grid-template-columns: 40px minmax(0, 1fr) auto; grid-template-areas: "disc name state" "disc wave state"; }
 /* A small play mark before the name says the row plays its part. */
-.s-ch-play { display: inline-grid; place-items: center; width: 18px; height: 18px; margin-inline-end: -2px; border-radius: 50%; background: var(--c); color: var(--ct); align-self: center; }
+.s-ch-play { display: inline-grid; place-items: center; flex: none; width: 18px; height: 18px; border-radius: 50%; background: var(--c); color: var(--ct); align-self: center; }
 .s-ch-play svg { margin-inline-start: 1px; }
+/* The mark sits inside the name, so a layout that stacks the name's lines (a wide card) keeps them together. */
+.s-mixer:not(.s-mixer-studio) .s-ch-name b { display: inline-flex; align-items: center; gap: 8px; }
 /* The My part pill says it, so the name's You badge stays for the Studio. */
 .s-mixer:not(.s-mixer-studio) .s-you { display: none; }
 /* Your row keeps its line (the badge it made room for is gone), and a line wraps rather than cutting off. */
@@ -1988,27 +1990,58 @@ select:disabled {
 .s-sg-hero .s-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
 .s-sg-hero .s-actions .btn-lg { white-space: nowrap; }
 .s-sg-note { margin-top: 12px; font-size: 14px; color: var(--color-muted); }
-.s-sg-mix { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 12px 16px; margin-top: 22px; }
-.s-sg-mix-play { flex: 1 1 280px; min-width: 0; max-width: 420px; }
-/* A fixed height, nothing preloaded: the player never moves the page as it loads. */
-.s-sg-mix audio { display: block; width: 100%; height: 54px; border-radius: 999px; }
-.s-sg-mix-credit { margin-top: 8px; font-size: 13.5px; line-height: 1.45; color: var(--color-muted); }
-.s-sg-mix-cta { white-space: nowrap; }
+/* A song page's player (option C of the song page review): compact rows, as the landing's hero has them: the disc, the
+   part's name over its tag and range ("Melody · B3 to E5"), its notes beside them from a tablet up (under them on a
+   phone), and I sing this at the end. */
+.s-sg-try .s-mixer:not(.s-mixer-studio) .s-ch { grid-template-columns: 40px minmax(0, 1fr) auto; grid-template-areas: "disc name state" "disc wave state"; column-gap: 12px; row-gap: 4px; min-height: 64px; padding-block: 10px; padding-inline: 12px 12px; border-radius: 18px; }
+.s-sg-try .s-ch .s-disc { width: 40px; height: 40px; font-size: 16px; }
+.s-sg-try .s-ch::before { background: radial-gradient(circle 46px at 32px 50%, color-mix(in srgb, var(--c) 14%, transparent), transparent); }
+.s-sg-try .s-mixer:not(.s-mixer-studio) .s-ch-name { flex-direction: column; align-items: flex-start; gap: 2px; }
+.s-sg-try .s-ch-name b { font-size: 16px; }
+.s-sg-try .s-ch-name small { font-size: 12.5px; }
+.s-sg-try .s-ch-wave { height: 26px; }
+@media (min-width: 600px) {
+    .s-sg-try .s-mixer:not(.s-mixer-studio) .s-ch { grid-template-columns: 40px minmax(0, 1.15fr) minmax(0, .85fr) auto; grid-template-areas: "disc name wave state"; column-gap: 14px; }
+    .s-sg-try .s-ch-name small { white-space: nowrap; }
+    .s-sg-try .s-ch-wave { height: 34px; }
+}
+/* Less empty ground under the hero (about 150 px on a desktop, the song page review): the words, or the parts, start sooner. */
+.s-sg-hero + .s-sg-words { margin-top: 24px; padding-top: 44px; }
+.s-sg-hero + .s-sg-parts { padding-top: 40px; }
+.s-sg-try .s-mix-foot .s-sg-actions { margin-top: 0; }
+/* The hero's text sits level with the player beside it. */
+@media (min-width: 900px) { .s-sg-hero .s-xhero-in.s-xcoll-has-try { align-items: center; } }
+/* A song page's actions in its player's foot (public/_song-actions): part of the panel under a rule, never a box of its
+   own; Learn takes the room and Share sits beside it, wrapping under it where both don't fit (a narrow phone). */
+.s-sg-try, .s-sg-try .s-mixer { min-width: 0; }
+.s-sg-try .s-mixer .s-mix-foot { margin: 8px 4px 0; padding: 16px 4px 6px; background: none; border-radius: 0; }
+.s-sg-try .s-sg-actions { margin-top: 0; gap: 10px; }
+.s-sg-try .s-sg-actions > .btn-primary { flex: 1 1 auto; justify-content: center; }
+.s-sg-try .s-sg-note { margin-top: 10px; font-size: 13.5px; }
+/* Check my range keeps one line: the sentence wraps before it, never inside it. */
+.s-sg-note .s-lk { white-space: nowrap; }
 .s-sg-parts { scroll-margin-top: 16px; }
 .s-sg-head { display: grid; gap: 4px; }
 @media (min-width: 900px) { .s-sg-head { grid-template-columns: minmax(0, 1fr) minmax(0, 26em); align-items: end; gap: 32px; } }
-.s-sg-cards { display: grid; gap: 14px; margin-top: 28px; }
-@media (min-width: 600px) { .s-sg-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-@media (min-width: 1024px) { .s-sg-cards-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); } .s-sg-cards-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
-.s-sg-card { position: relative; display: flex; flex-direction: column; gap: 8px; padding: 20px 20px 18px; border-radius: 20px; background: var(--color-panel); border: 2px solid var(--color-line); transition: border-color .15s; }
-.s-sg-card[data-picked] { border-color: var(--c); }
-.s-sg-card:has(.s-sg-pick:hover):not([data-picked]) { border-color: color-mix(in srgb, var(--c) 50%, var(--color-line)); }
-.s-sg-pick { position: absolute; inset: 0; z-index: 1; border-radius: 18px; cursor: pointer; }
-.s-sg-pick:focus-visible { outline: 3px solid var(--c); outline-offset: 2px; }
-.s-sg-card-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-.s-sg-card .s-disc { width: 34px; height: 34px; font-size: 15px; }
+/* How each part goes (the song page review, option C): one panel, a ruled row a part; its facts (disc, name, tag, range,
+   the range bar on the page's one scale, its guide voice) at left on a wide screen, where it goes in the words and its
+   part page at right, about 75 characters a line. Nothing to pick: the hero's player picks. */
+.s-sg-how { margin-top: 28px; border-radius: 20px; background: var(--color-panel); border: 1px solid var(--color-line); }
+.s-sg-how-row { display: grid; gap: 14px; padding: 22px 20px; scroll-margin-top: 16px; }
+.s-sg-how-row + .s-sg-how-row { border-top: 1px solid var(--color-line); }
+@media (min-width: 900px) { .s-sg-how-row { grid-template-columns: 300px minmax(0, 1fr); gap: 40px; padding: 26px 28px; } }
+.s-sg-how-facts { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 0 12px; align-self: start; }
+.s-sg-how-facts .s-disc { grid-column: 1; grid-row: 1 / span 2; width: 34px; height: 34px; font-size: 15px; }
+.s-sg-how-facts h3 { grid-column: 2; grid-row: 1; font-size: 19px; line-height: 1.2; font-weight: 800; }
+.s-sg-how-facts .s-sg-tag { grid-column: 2; grid-row: 2; }
+.s-sg-how-facts .s-sg-range { grid-column: 3; grid-row: 1; color: var(--color-cream); }
+.s-sg-how-facts .s-sg-bar, .s-sg-how-facts .s-sg-voice { grid-column: 1 / -1; }
+.s-sg-how-facts .s-sg-bar { margin-block: 12px 0; }
+.s-sg-how-facts .s-sg-voice { margin-top: 0; padding-top: 8px; font-size: 13.5px; }
+.s-sg-how-text { display: grid; justify-items: start; gap: 6px; }
+.s-sg-how-text .s-sg-part-note { max-width: 46em; font-size: 16px; line-height: 1.55; color: var(--color-cream); }
+.s-sg-practise { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; font-size: 15px; font-weight: 700; }
 .s-sg-tag { font-size: 12px; font-weight: 750; letter-spacing: .04em; color: var(--ci); }
-.s-sg-card h3 { margin-top: 6px; font-size: 22px; line-height: 1.15; font-weight: 800; letter-spacing: -0.01em; }
 .s-sg-range { font-size: 14px; font-weight: 600; color: var(--color-muted); }
 .s-sg-bar { position: relative; display: block; height: 8px; margin-block: 6px 4px; border-radius: 99px; background: var(--color-raised); }
 .s-sg-bar i { position: absolute; inset-block: 0; left: var(--lo); width: calc(var(--hi) - var(--lo)); min-width: 10px; border-radius: 99px; background: var(--c); }
@@ -2019,13 +2052,6 @@ select:disabled {
 .s-spart-be { margin-top: 16px; font-size: 14.5px; line-height: 1.55; color: var(--color-muted); }
 .s-spart-be > .s-lk:first-child { display: inline-block; margin-bottom: 4px; }
 .s-sg-voices-note { margin-top: 18px; max-width: 60em; font-size: 14.5px; line-height: 1.55; color: var(--color-muted); }
-.s-sg-card-foot { margin-top: 0; padding-top: 10px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 12px; font-size: 14.5px; }
-.s-sg-card-foot .s-lk { position: relative; z-index: 2; }
-.s-sg-yours { font-size: 12.5px; font-weight: 750; letter-spacing: .08em; text-transform: uppercase; color: var(--ci); }
-/* "Your part" on the picked card; "Pick this part" on the others once the script can pick (it shows the buttons). */
-.s-sg-yours > span { display: none; }
-.s-sg-card[data-picked] .s-sg-yours > span:first-child { display: inline; }
-.s-sg-card:not([data-picked]):has(.s-sg-pick:not([hidden])) .s-sg-yours > span:last-child { display: inline; }
 .s-sg-words-in { display: grid; gap: 24px; }
 @media (min-width: 900px) { .s-sg-words-in { grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: 48px; } }
 .s-sg-lyrics { display: grid; gap: 26px; font-size: clamp(20px, 4.6vw, 28px); line-height: 1.38; font-weight: 650; letter-spacing: -0.005em; }
@@ -2836,6 +2862,27 @@ a.s-vt-rung:hover { background: color-mix(in srgb, var(--color-cream) 5%, transp
 @media (min-width: 900px) { .s-xfrom { grid-template-columns: minmax(0, 2fr) minmax(0, 3fr); gap: 64px; padding-top: 48px; margin-top: 64px; border-top: 1px solid var(--color-line); } }
 /* The band for choir directors: plain out of season, the season's red in it. */
 .s-xchoirs { margin-top: 56px; }
+/* Suggest a correction (components/site/correction.blade.php): a quiet link, then a sheet like the tools' (a dialog). */
+.s-fix-open { margin-top: 28px; font-size: 14.5px; }
+.s-fix-form { display: grid; gap: 16px; padding: 24px; }
+.s-fix-h { font-size: 22px; font-weight: 800; letter-spacing: -0.01em; }
+.s-fix-lead, .s-fix-note { font-size: 14.5px; color: var(--color-muted); }
+.s-fix-kinds { display: flex; flex-wrap: wrap; gap: 8px; border: 0; padding: 0; margin: 0; }
+.s-fix-kinds legend { margin-bottom: 8px; font-size: 14px; font-weight: 700; }
+.s-fix-kinds label { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding-inline: 14px; border-radius: 999px; box-shadow: inset 0 0 0 1px var(--color-line); font-size: 14.5px; font-weight: 600; cursor: pointer; }
+.s-fix-kinds label:has(input:checked) { box-shadow: inset 0 0 0 2px var(--color-cream); }
+.s-fix-kinds input { accent-color: var(--color-cream); }
+.s-fix-field { display: grid; gap: 6px; font-size: 14px; font-weight: 700; }
+.s-fix-field small { font-weight: 500; color: var(--color-muted); }
+.s-fix-field :is(textarea, input) { width: 100%; padding: 10px 12px; border-radius: 12px; background: var(--color-raised); color: var(--color-cream); font-size: 16px; font-weight: 400; box-shadow: inset 0 0 0 1px var(--color-line); border: 0; }
+.s-fix-field :is(textarea, input):focus { outline: 2px solid var(--color-accent); outline-offset: 1px; }
+.s-fix-field [aria-invalid="true"] { box-shadow: inset 0 0 0 2px #e5484d; }
+.s-fix-error { font-size: 13.5px; font-weight: 600; color: var(--color-cream); }
+.s-fix-error::before { content: '! '; color: #e5484d; }
+.s-fix-trap { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.s-fix-status:empty { display: none; }
+.s-fix-status { font-size: 14.5px; font-weight: 600; }
+.s-fix-go { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 10px; }
 .s-xband { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 24px 32px; padding: 36px 40px; border-radius: 28px; background: var(--color-panel); border: 1px solid var(--color-line); }
 .s-xband > div { max-width: 640px; }
 .s-xband h2 { font-size: clamp(26px, 3.4vw, 32px); font-weight: 800; letter-spacing: -0.02em; }
@@ -3362,6 +3409,8 @@ a.s-vt-rung:hover { background: color-mix(in srgb, var(--color-cream) 5%, transp
     .s-hero-home .s-play svg { width: 30px; height: 30px; }
     .s-hero-home .s-mix-head .s-t b { font-size: 17px; }
     .s-hero-home .s-mix-hint { display: block; max-width: 32ch; font-size: 13.5px; line-height: 1.4; color: var(--color-muted); text-align: start; }
+    /* The hint above says it (Hillel, 2026-11-13: the line flush at the card's edge "looks off"), so the rows' own lead goes. */
+    .s-hero-home .s-mix-lead { display: none; }
     .s-hero-home .s-channels { padding: 12px 12px 0; gap: 8px; }
     .s-hero-home .s-ch { grid-template-columns: 40px 170px minmax(0, 1fr) 46px; min-height: 68px; column-gap: 16px; padding-block: 10px; padding-inline: 14px 16px; border-radius: 18px; }
     .s-hero-home .s-ch .s-disc { width: 40px; height: 40px; font-size: 16px; }
@@ -9255,7 +9304,8 @@ a.s-vt-rung:hover { background: color-mix(in srgb, var(--color-cream) 5%, transp
 /* A stage clear's level (slice 2): the reward line in yellow. */
 [data-skin='game'] .ge-title--clear [data-game-level-up] { color: var(--ge-yellow); }
 [data-skin='game'] .ge-title-act { position: absolute; inset-inline-end: 1.75rem; bottom: 13%; display: grid; place-items: center; width: 4.5rem; height: 4.5rem; border-radius: 50%; background: var(--color-ink); color: var(--color-cream); box-shadow: 0 0 0 4px var(--ge-fill-y), 0 0 0 7px var(--ge-fill-y-ink); font: 400 2rem/1 var(--ge-display); animation: ge-title-act 1.2s cubic-bezier(0.3, 1.5, 0.5, 1) forwards; }
-@keyframes ge-title-in { 0% { opacity: 0; } 6%, 86% { opacity: 1; } 100% { opacity: 0; } }
+/* Leaving, it takes no taps: what shows through is what a tap presses (a tap in its fade went to the card and was lost). */
+@keyframes ge-title-in { 0% { opacity: 0; } 6%, 86% { opacity: 1; pointer-events: auto; } 87% { pointer-events: none; } 100% { opacity: 0; pointer-events: none; } }
 @keyframes ge-title-band { 0% { transform: translateX(-105%) skewX(-12deg); } 26%, 84% { transform: translateX(0) skewX(-12deg); } 100% { transform: translateX(-105%) skewX(-12deg); } }
 @keyframes ge-title-foot { 0%, 8% { transform: translateY(100%); } 30%, 84% { transform: translateY(0); } 100% { transform: translateY(100%); } }
 @keyframes ge-title-name { 0%, 16% { opacity: 0; transform: translateX(3rem); } 40%, 84% { opacity: 1; transform: translateX(0); } 100% { opacity: 0; transform: translateX(3rem); } }
@@ -9646,6 +9696,13 @@ a.s-vt-rung:hover { background: color-mix(in srgb, var(--color-cream) 5%, transp
 
 /* Panels are framed like the stage card (docs/design-rules.md): a thin bright frame and a hard offset shadow. */
 :root[data-skin='game'][data-gs] :is(#app, [role='dialog']) .card:not([data-ask], [data-lead], [data-ui]) { border: var(--arc-edge-w) solid var(--arc-purple); box-shadow: var(--arc-shadow); }
+/* Settings' link rows (Lend your voice, Notices, Contact us) are framed like its panels above them, not on a hairline. */
+:root[data-skin='game'][data-gs] :is([data-lend-voice], [data-notices-row], [data-contact-row]) { border: var(--arc-edge-w) solid var(--arc-purple); box-shadow: var(--arc-shadow); }
+:root[data-skin='game'][data-gs] :is([data-lend-voice], [data-notices-row], [data-contact-row]):is(:hover, :focus-visible) { border-color: var(--color-cream); }
+/* A paused song's note (components/paused-note.js) on the arcade's panel in a dashed frame: paused by its edge, not a grey
+   box; and Send diagnostics' list of what's sent in the arcade's well, as its fields are. */
+:root[data-skin='game'][data-gs] [data-paused-note] { border: var(--arc-edge-w) dashed var(--arc-line); background: var(--arc-panel); }
+:root[data-skin='game'][data-gs] [data-diag-details] { background: var(--arc-well); }
 /* The course's account wall where it's compact (components/course-wall.js: the course map's picked lesson, Home's ask): its
    heading is the pixel face at 1.5, so a wrapped "Keep going with a free account" read as two lines; tight, as the
    arcade's other headings are. The full wall's heading is tight already. */
@@ -10279,9 +10336,8 @@ a.s-vt-rung:hover { background: color-mix(in srgb, var(--color-cream) 5%, transp
 /* The song page with its story on the arcade screen (game's pass, 2026-11-13): its pieces square, the part cards on a hard
    shadow (the picked one in its part colour), the story's reading text in Figtree under the pixel headings, the
    timeline's years in the HUD face. */
-:root[data-skin='game'][data-gs] body.s-arcade :is(.s-sg-chips li, .s-sg-card, .s-sg-pick, .s-sg-bar, .s-sg-bar i, .s-sg-next a, .s-sst-toc, .s-sst-quote, .s-sst-facts, .s-sst-dyk li, .s-fig img) { border-radius: 0; }
-:root[data-skin='game'][data-gs] body.s-arcade .s-sg-card { box-shadow: 4px 4px 0 var(--arc-shadow-c); }
-:root[data-skin='game'][data-gs] body.s-arcade .s-sg-card[data-picked] { box-shadow: 4px 4px 0 var(--c); }
+:root[data-skin='game'][data-gs] body.s-arcade :is(.s-sg-chips li, .s-sg-how, .s-sg-bar, .s-sg-bar i, .s-sg-next a, .s-sst-toc, .s-sst-quote, .s-sst-facts, .s-sst-dyk li, .s-fig img) { border-radius: 0; }
+:root[data-skin='game'][data-gs] body.s-arcade .s-sg-how { box-shadow: 4px 4px 0 var(--arc-shadow-c); }
 :root[data-skin='game'][data-gs] body.s-arcade .s-sst-main :is(p, li, blockquote, figcaption, dd, dt) { font-family: "Figtree", system-ui, sans-serif; font-size-adjust: none; font-synthesis-weight: auto; }
 :root[data-skin='game'][data-gs] body.s-arcade .s-sst-tl b { font-family: var(--a-hud); font-style: normal; font-weight: 400; font-size: 14px; line-height: 1.6; }
 /* Its words band: the sung lines stay in the screen face (they're sung, as Sing's line is); the intro and each line's
@@ -10296,6 +10352,16 @@ a.s-vt-rung:hover { background: color-mix(in srgb, var(--color-cream) 5%, transp
 :root[data-skin='game'][data-gs] body.s-arcade :is(.s-ch-mine, .s-ch-play) { border-radius: 0; }
 :root[data-skin='game'][data-gs] body.s-arcade .s-ch-mine { font-family: var(--a-hud); font-size: 9.5px; font-weight: 400; letter-spacing: .04em; text-transform: uppercase; }
 :root[data-skin='game'][data-gs] body.s-arcade .s-ch-mine[aria-checked='true'] { box-shadow: inset 0 0 0 var(--arc-edge-w) var(--c), 2px 2px 0 var(--arc-shadow-c); }
+/* A song page's player, game skin: the screen font runs wider, so a row keeps the phone's stack (the name over its tag and
+   range, the notes under them) at every width; beside them, the range ran under the notes. On a phone I sing this
+   packs tighter, so a tag and its range fit on one line where they can. */
+:root[data-skin='game'][data-gs] body.s-arcade .s-sg-try .s-ch-name small { font-size: 11.5px; text-wrap: balance; }
+@media (min-width: 600px) {
+    :root[data-skin='game'][data-gs] body.s-arcade .s-sg-try .s-mixer:not(.s-mixer-studio) .s-ch { grid-template-columns: 40px minmax(0, 1fr) auto; grid-template-areas: "disc name state" "disc wave state"; column-gap: 12px; }
+    :root[data-skin='game'][data-gs] body.s-arcade .s-sg-try .s-ch-name small { white-space: normal; }
+    :root[data-skin='game'][data-gs] body.s-arcade .s-sg-try .s-ch-wave { height: 26px; }
+}
+@media (max-width: 599.98px) { :root[data-skin='game'][data-gs] body.s-arcade .s-sg-try .s-ch-mine { padding-inline: 8px; letter-spacing: 0; } }
 :root[data-skin='game'][data-gs] body.s-arcade .s-mix-lead { font-family: var(--a-hud); font-size: 10px; font-weight: 400; letter-spacing: .06em; text-transform: uppercase; }
 /* arcade-screen:end */
 /* Game mode's circles are arcade coins (Hillel's pick of two, 2026-11-08; the course map's stages, .ge-map-node, above):

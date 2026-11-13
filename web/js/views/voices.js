@@ -59,7 +59,12 @@ export const VoicesView = {
                 </ul>
             </section>
             <p v-if="state === 'loading'" class="text-muted" role="status">{{ t('common.loading') }}</p>
-            <Notice v-else-if="state === 'off'" tone="info" data-voices-off>{{ t('voices.off') }}</Notice>
+            <!-- Off (an old link, a shared take's "see how it goes"): calm, and what to do now, never a dead end. -->
+            <div v-else-if="state === 'off'" class="card space-y-3 p-5" role="status" data-voices-off>
+                <p class="text-cream">{{ t('voices.off') }}</p>
+                <p class="text-muted">{{ t('voices.offNow') }}</p>
+                <a href="/" class="btn-secondary self-start" data-voices-off-home @click.prevent="navigate('/')">{{ t('projects.title') }}</a>
+            </div>
             <AccountWall v-else-if="state === 'signedOut'" reason="voice" next="/voices" />
             <div v-else-if="state === 'betaSinger'" class="card space-y-3 p-5" data-voices-beta>
                 <p class="text-cream">{{ t('voices.isBetaSinger') }}</p>

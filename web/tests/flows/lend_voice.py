@@ -22,6 +22,10 @@ def journey(f):
     f.go("/settings", "document.querySelector('#device')")
     assert f.js("!document.querySelector('[data-lend-voice]')"), "no row while the switch is off"
     f.go("/voices", "document.querySelector('[data-voices-off]')")
+    # Never a dead end (frontend2's audit): what to do now, and the way back to your songs.
+    assert f.js("document.querySelector('[data-voices-off]').textContent.includes(" + json.dumps(t(f, 'voices.offNow')) + ")"), "the off page says what to do now"
+    f.run("document.querySelector('[data-voices-off-home]').click()")
+    f.wait("location.pathname === '/'", what="Your songs, from the off page")
 
     # On: the row in Settings opens it, and a refusal is said in words.
     f.run("sessionStorage.setItem('stackapella.mockLendVoice', '1');")

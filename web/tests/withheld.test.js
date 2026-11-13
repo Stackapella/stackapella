@@ -2,7 +2,9 @@
 // sings each withheld song's altSong (its own template, words and exercises), hides what has none, and never lets a
 // hidden lesson or boss count or block. The real course is the fixture for the fallbacks the courses lead wrote.
 import { emptyProgress, maxStars, nextLesson } from '/js/course.js';
-import { notHereLine, withheldSongs, withholdCourse } from '/js/withheld.js';
+import { keptWithheldList, mayFallBack, notHereLine, withheldSongs, withholdCourse } from '/js/withheld.js';
+import { loadLearning, rawLesson } from '/js/stores/learning.js';
+import { local } from '/js/storage.js';
 import { assert, test } from './harness.js';
 
 const course = () => fetch('/course/course.json').then((r) => r.json());
@@ -136,4 +138,27 @@ test('withheld: the list is read from auth.config, strings only, and a 451 is a 
     const none = notHereLine(refusal(null));
     assert(none && !/\d{4}/.test(none), `without one: ${none}`);
     assert(notHereLine({ code: 'offline' }) === null && notHereLine(null) === null, 'any other failure is not this');
+});
+
+test("withheld: a first visit waits for the list only on a lesson that could swap a song; lesson 1 never does", async () => {
+    await loadLearning();
+    const one = rawLesson('1-comfortable');
+    assert(one && !mayFallBack(one), 'lesson 1 has no altSong: it never waits');
+    assert(mayFallBack(rawLesson('5-round')), '5-round could sing Hey Ho instead');
+    assert(mayFallBack(rawLesson('3-challenge')) && mayFallBack(rawLesson('3-boss')), "unit 3's challenge and its boss");
+    const c = await course();
+    const unitOne = c.units[0].lessons.map((l) => l.id);
+    assert(unitOne.every((id) => !mayFallBack(rawLesson(id))), `a unit 1 lesson would wait: ${unitOne.filter((id) => mayFallBack(rawLesson(id)))}`);
+    assert(!mayFallBack(null), 'no lesson');
+    // A list kept from a visit before (an empty one too) means the list is known: no wait.
+    const before = local.get('stackapella.withheldSongs');
+    try {
+        local.remove('stackapella.withheldSongs');
+        assert(!keptWithheldList(), 'nothing kept');
+        local.set('stackapella.withheldSongs', '[]');
+        assert(keptWithheldList(), 'an empty list kept');
+    } finally {
+        if (before === null) local.remove('stackapella.withheldSongs');
+        else local.set('stackapella.withheldSongs', before);
+    }
 });

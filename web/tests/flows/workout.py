@@ -20,6 +20,13 @@ def t(f, key, values=None):
 
 
 def journey(f):
+    # At rest, the five-note warm-up (no range yet): the whole pass on the lane, its held "oo" too, with no fade
+    # at the right; and "Ready when you are" close under it, no empty line between (the finish-line audit).
+    f.go("/workout?api=mock&as=member", "document.querySelector('[data-round-tabs]')")
+    assert not f.js("!!document.querySelector('[data-lane-more]')"), "the warm-up runs off the lane's right edge"
+    gap = f.js("Math.round(document.querySelector('[data-lane-status]').closest('.space-y-4').nextElementSibling.getBoundingClientRect().top - document.querySelector('.lane-stage').getBoundingClientRect().bottom)")
+    assert gap <= 32, f"{gap} px between the lane and Ready when you are"
+    f.shot("at-rest")
     f.go("/learn", "document.querySelector('h1')")
     f.mic_checked()  # the mic check (5.1) has its own journeys
     f.run(f"const l = {LEARNING}; await l.loadLearning(); await l.setHome(57); await l.finishLesson('1-match', {{ percent: 60, stars: 1 }}); await l.remember({{ percent: 60, insights: ['flatHigh'] }});")

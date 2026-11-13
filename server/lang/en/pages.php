@@ -39,13 +39,14 @@ return [
         // each part's one true tag, the words, and the story (App\Support\Pages\SongStories) with its contents and sources.
         'learn_part' => 'Learn the :part part',
         'check_range' => 'Check my range',
-        'find' => 'Find your part',
-        'find_lead' => 'Pick the one that sits where you sing comfortably. The page follows your pick.',
-        'tag' => ['melody' => 'Melody', 'lowest' => 'Lowest part', 'smallest' => 'Smallest range', 'widest' => 'Widest range', 'harmony' => 'Harmony'],
-        'pick' => 'Pick the :part part',
-        'picked' => 'Your part',
-        'pick_this' => 'Pick this part',
-        'hear_alone' => 'Hear the :part alone',
+        // How each part goes (was Find your part: the hero's player picks now, the song page review, 2026-11-13).
+        'how' => 'How each part goes',
+        'how_lead' => 'Each part\'s range on one scale, and where it goes in the words.',
+        'tag' => ['melody' => 'Melody', 'lowest' => 'Lowest part', 'smallest' => 'Smallest range', 'widest' => 'Widest range', 'harmony' => 'Harmony', 'tune' => 'The tune'],
+        'practise' => 'Practise the :part part',
+        // A part's row in the hero's player: its tag and its range ("Melody · B3 to E5").
+        'row_line' => ':tag · :range',
+        'unsure' => 'Not sure which part?',
         'words_heading' => 'The words',
         'meaning_show' => 'Show the meaning',
         // A long song's words fold after three stanzas (public._song-words).
@@ -53,9 +54,7 @@ return [
         'meaning_hide' => 'Hide the meaning',
         // Each part's guide voice, and the true ask where none is a real singer yet (Hillel: "asking the person to sing and
         // become the voice"; the landing's guide voices words: may be chosen, never promised).
-        // The whole mix by the hero's actions (public/_song-mix), once the server has it.
-        'mix_label' => 'Hear all :count parts',
-        'mix_cta' => 'Sing along: pick your part',
+        // The whole mix's credit (SongPage::mixCredit): each real voice by name, else the synthesized voices said.
         'mix_sung' => ':part sung by :name',
         'mix_synth' => 'Synthesized voices',
         'mix_rest_synth' => 'the other parts synthesized',
@@ -67,7 +66,7 @@ return [
             'heading' => 'The story of :song',
             'contents' => 'On this page',
             'facts' => 'At a glance',
-            'fact' => ['words' => 'Words', 'tune' => 'Tune', 'tuneName' => 'Tune name', 'meter' => 'Meter', 'earliestPrinting' => 'Earliest known printing', 'language' => 'Language', 'origin' => 'Origin', 'occasion' => 'Sung at', 'alsoKnownAs' => 'Also known as'],
+            'fact' => ['words' => 'Words', 'tune' => 'Tune', 'tuneName' => 'Tune name', 'meter' => 'Meter', 'earliestPrinting' => 'Earliest known printing', 'language' => 'Language', 'origin' => 'Origin', 'occasion' => 'Sung at', 'alsoKnownAs' => 'Also known as', 'genre' => 'Kind of song'],
             'timeline' => 'Timeline',
             'sources' => 'Sources',
             'checked' => 'Checked against :count sources, :date.',
@@ -614,6 +613,8 @@ return [
             'mine_label' => 'Make the :part your part',
             'alt' => ':song\'s first line, ":words", in four parts: the soprano sings the tune, with the alto, tenor and bass under it. Your part is the :you. Press a voice to take it out of the harmony or bring it back.',
             'alt_whole' => 'All of :song, from ":words", in its parts: the tune with the others under it. Your part is the :you. Press a voice to take it out of the harmony or bring it back.',
+            // A song page's player, where nothing is yours until you pick it.
+            'alt_open' => 'All of :song, from ":words", in its parts: the tune with the others under it. Tap a part to hear it on its own, and pick the one you sing.',
             'parts' => ['soprano' => 'Soprano', 'alto' => 'Alto', 'tenor' => 'Tenor', 'bass' => 'Bass'],
             'roles' => ['soprano' => 'The tune', 'alto' => 'Just under the tune', 'tenor' => 'Fills the chord', 'bass' => 'Holds the roots'],
         ],

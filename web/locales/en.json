@@ -5485,7 +5485,7 @@
         "chosenByYou": "Chosen by you",
         "change": {
             "open": "Change it",
-            "choose": "Choose it",
+            "choose": "Set it yourself",
             "title": "Your range",
             "hint": "Pick a voice, or set your lowest and highest notes. Songs open on the part that fits it.",
             "types": "Voices",
@@ -8304,6 +8304,7 @@
         "title": "Lend your voice",
         "settingsHint": "Record a song part or a lesson clip that still plays the synth.",
         "off": "Lend your voice isn't open yet.",
+        "offNow": "Until then, learn a part and keep your takes: once it opens, you can offer one from Sing.",
         "isBetaSinger": "You already sing for Stackapella: your parts are on your beta page.",
         "toYourParts": "Your parts",
         "intro": "Some song parts and lesson clips still play a synth voice. Record one, and once Hillel accepts it, everyone learning hears your voice there.",

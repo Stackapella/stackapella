@@ -360,7 +360,7 @@ export const SettingsView = {
                     <span class="min-w-0 flex-1"><span class="block font-bold text-cream">{{ t('notices.title') }}</span><span class="block text-sm text-muted">{{ t('notices.settingsHint', { count: notices }) }}</span></span>
                     <Icon name="arrow" :size="18" class="text-muted" />
                 </a>
-                <a href="/contact?from=/settings" class="card-interactive flex items-center gap-4 p-5" @click.prevent="navigate('/contact?from=/settings')">
+                <a href="/contact?from=/settings" class="card-interactive flex items-center gap-4 p-5" data-contact-row @click.prevent="navigate('/contact?from=/settings')">
                     <span class="grid size-10 shrink-0 place-items-center rounded-full bg-raised text-cream" aria-hidden="true"><Icon name="info" :size="20" /></span>
                     <span class="min-w-0 flex-1"><span class="block font-bold text-cream">{{ t('contact.title') }}</span><span class="block text-sm text-muted">{{ t('settings.contactHint') }}</span></span>
                     <Icon name="arrow" :size="18" class="text-muted" />

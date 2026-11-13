@@ -32,7 +32,8 @@ APP = str(A.get('app', 'http://127.0.0.1:8462')).rstrip('/')
 # Two public pages are filmed as they're served: the site's /open-source (behind a flag the local
 # server's shared database keeps off) and GitHub's page for the Stackapella organisation, signed out.
 # Both are public and show no one's data; nothing else is read from production.
-LIVE = 'https://stackapella.com'
+# the live site's pages (--live= points them at a local server, to film a page before it deploys)
+LIVE = str(A.get('live', 'https://stackapella.com')).rstrip('/')
 SITE = str(A.get('site', 'http://127.0.0.1:8461')).rstrip('/')
 # --lang=es films the app and the site in that language (each language's film is its own render): the app with the
 # language chosen on the device, as Settings keeps it, and the site's pages at /<lang>/. Its captures are their own
@@ -282,6 +283,8 @@ SHOTS = {
     # the Hanukkah cut's (render.py --cut=hanukkah): the Jewish songs page as it is served (a public page, no one's
     # data): the nine lights, the heading and the next festival's card
     'hanukkah': {'size': 'desktop-close', 'skin': 'serious', 'url': 'LIVE/songs/jewish-songs', 'wait': "document.querySelector('.s-jcount')"},
+    # the Amazing Grace Reddit cut's (render.py --cut=gracer): the song's own page as it is served (public, no one's data)
+    'grace': {'size': 'desktop-close', 'skin': 'serious', 'url': 'LIVE/songs/amazing-grace', 'wait': "document.querySelector('h1')"},
     # January's: the hymns (/songs/hymns), or the whole songbook (/songs)
     'hymns': {'size': 'desktop', 'skin': 'serious', 'url': 'SITE/songs/hymns', 'wait': "document.querySelector('h1')"},
     'hymns-book': {'size': 'desktop', 'skin': 'serious', 'url': 'SITE/songs/hymns', 'wait': "document.querySelector('[data-songbook]')", 'then': BOOK,
@@ -321,7 +324,11 @@ SHOTS['github']['crops'] = {'card': GH_CARD}
 SHOTS['choir-director']['crops'] = {'song': 'li.card'}
 SHOTS['choir-member']['crops'] = {'song': 'section li.card, section .card'}
 SHOTS['daily']['crops'] = {'stage': '[data-lead]'}
-SHOTS['hanukkah']['crops'] = {'count': '.s-jcount', 'head': '.s-xhero-text h1', 'text': '.s-xhero-text', 'motif': '.s-tone-motif', 'hero': '.s-xhero'}
+SHOTS['hanukkah']['crops'] = {'count': '.s-jcount', 'head': '.s-xhero-text h1', 'text': '.s-xhero-text', 'motif': "(() => { const e = document.querySelector('.s-tone-motif'); if (!e) return null; const r = e.getBoundingClientRect(); return [r.left, r.top, r.right, r.bottom]; })()",
+                             'hero': '.s-xhero',
+                             # Collections v2's hanukkiah in the festival card (the Reddit cut opens on it); null, so left out, without it
+                             'lamp': "(() => { const e = document.querySelector('.s-jcount .s-hk-card'); if (!e) return null; const r = e.getBoundingClientRect(); return [r.left, r.top, r.right, r.bottom]; })()"}
+SHOTS['grace']['crops'] = {'head': 'section.s-head', 'title': 'h1', 'mixer': '.s-mixer', 'actions': '.s-actions'}
 SHOTS['carols-book']['crops'] = {'card': '[data-songbook] .s-xcard', 'filter': '.s-xfilter',
                                  'row': "(() => { const c = [...document.querySelectorAll('[data-songbook] .s-xcard')].slice(0, 3).map((e) => e.getBoundingClientRect()), f = document.querySelector('.s-xfilter').getBoundingClientRect(); return [c[0].left, f.top - 8, c[2].right, c[0].bottom]; })()"}
 
@@ -376,7 +383,10 @@ def shoot(cut, sid, spec):
             entry['crops'] = {}
             for name, how in spec['crops'].items():
                 js = how if how.lstrip().startswith('(') else f"(() => {{ const r = document.querySelector({json.dumps(how)}).getBoundingClientRect(); return [r.left, r.top, r.right, r.bottom]; }})()"
-                l, t_, r_, b = c.evaluate(js)
+                rect = c.evaluate(js)
+                if rect is None:
+                    continue
+                l, t_, r_, b = rect
                 entry['crops'][name] = {'x': round(max(0, l) / w, 4), 'y': round(max(0, t_) / h, 4), 'w': round((min(w, r_) - max(0, l)) / w, 4), 'h': round((min(h, b) - max(0, t_)) / h, 4)}
         if not clip:
             jpeg(c, out / f'{sid}.jpg')

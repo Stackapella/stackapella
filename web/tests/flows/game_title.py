@@ -60,6 +60,12 @@ def journey(f):
     frames(f, "title-light", [600])
     dark(f)
     every_theme(f, "the title card", settle="for (const a of document.getAnimations()) { a.pause(); a.currentTime = 600; }")
+    # Shown, a tap is the card's (it ends it); leaving, a tap goes through to what shows under it. A slow phone's tap in
+    # the fade, or on the card's last invisible moments, went to the card and was lost (the Slow 4G walks, 2026-11-13).
+    at = lambda ms: f.js(f"(() => {{ for (const a of document.getAnimations()) {{ a.pause(); a.currentTime = {ms}; }} return getComputedStyle({CARD}).pointerEvents; }})()")
+    assert at(600) == "auto", "the card shown takes its tap"
+    assert at(1100) == "none" and at(1200) == "none", "the card leaving takes no tap"
+    assert not f.js(f"{CARD}.contains(document.elementFromPoint(innerWidth / 2, innerHeight / 2))"), "a tap in the fade lands under the card"
     f.run("localStorage.removeItem('stackapella.titlesSeen')")
 
 

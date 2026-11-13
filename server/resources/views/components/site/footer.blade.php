@@ -18,6 +18,12 @@
 {{-- Off the nexus (a self-hosted install) the marketing pages aren't there (docs/branding-matrix.md), so
      neither are their links: Help (without What's new) and Legal stay. --}}
 @php($groups = config('app.is_nexus', true) ? $groups : [...array_diff_key($groups, array_flip(['learn', 'reference', 'product', 'company'])), 'help' => array_diff_key($groups['help'], ['whats_new' => true])])
+{{-- Suggest a correction, at the end of a song, part, course, lesson or tool page: the page's controller shares
+     `correction` (its type and title, App\Support\Site\Correction::share). --}}
+@php($correction = \App\Support\Site\Correction::here())
+@if ($correction !== null)
+    <div class="s-wrap s-fix-wrap"><x-site.correction :type="$correction['type']" :title="$correction['title']" /></div>
+@endif
 <footer class="s-wrap s-footer">
     <div class="s-foot-grid">
         <div class="s-foot-brand">

@@ -84,6 +84,7 @@ const kept = {
     singingFrom: null, // performance.now() when playing or recording began, for the weekly goal
     samples: new Map(), // part id -> its take's samples
     guides: new Map(), // slot id -> rendered guide samples
+    guideRates: new Map(), // slot id -> the sample rate its guide was rendered at (a render in progress mixes two)
     guidesKey: null,
     rung: null, // the tempo ladder's next speed, rendered ahead ({ id, speed, ready, result })
     guidesReady: null,
@@ -217,6 +218,7 @@ export function closeSession() {
     Object.assign(session, { openedId: null, project: null, parts: [], missing: false, position: 0, playing: false, recording: false, countIn: null, recordFrom: 0, live: null, rerecordId: null, inReview: false, reviewing: false, hearing: { off: [], guideLevel: GUIDE_LEVELS.medium, recordGuide: false }, phase: null, preparing: false, busy: false, starting: false });
     kept.samples = new Map();
     kept.guides = new Map();
+    kept.guideRates = new Map();
     kept.guidesKey = null;
     kept.rung = null;
     kept.guidesReady = null;
@@ -313,10 +315,12 @@ async function readyNow() {
             const samples = kept.samples.get(part.id);
             if (samples) engine.setPart(part.id, engineSamples(part, samples), part.sampleRate, voiceMix(part.id));
             const guide = kept.guides.get(part.id);
-            if (guide) engine.setPart(guideId(part.id), guide, kept.guidesRate, voiceMix(guideId(part.id)));
+            // At its own rate: a render still going keeps each guide as it's done, before kept.guidesRate is set (it was
+            // null mid-render, and an AudioBuffer of rate 0 threw; frontend2's finish-line audit, 2026-11-13).
+            if (guide) engine.setPart(guideId(part.id), guide, kept.guideRates.get(part.id) ?? kept.guidesRate ?? engine.sampleRate, voiceMix(guideId(part.id)));
         }
-        if (kept.backing) engine.setPart(BACKING, kept.backing, kept.guidesRate, voiceMix(BACKING));
-        if (kept.drone) engine.setPart(DRONE, kept.drone, kept.guidesRate, voiceMix(DRONE));
+        if (kept.backing) engine.setPart(BACKING, kept.backing, kept.guidesRate ?? engine.sampleRate, voiceMix(BACKING));
+        if (kept.drone) engine.setPart(DRONE, kept.drone, kept.guidesRate ?? engine.sampleRate, voiceMix(DRONE));
         engine.projectId = loaded;
     }
     syncMix();
@@ -427,6 +431,7 @@ async function renderGuides(key, sampleRate) {
 /** A slot's rendered guide kept for the engine, its lane's outline and length (the voice's own, at its own rate). */
 function keepGuide(part, rendered, sampleRate) {
     kept.guides.set(part.id, rendered.samples);
+    kept.guideRates.set(part.id, sampleRate);
     kept.guideOffsets.set(part.id, rendered.offsetSeconds);
     part.guidePeaks = markRaw(toPeaks(rendered.samples, FRAMES_PER_PEAK));
     part.guidePeaksRate = sampleRate;
@@ -655,7 +660,7 @@ function heardEnd(all) {
     let end = 0;
     for (const part of session.parts) {
         if (all.get(part.id)?.audible && part.frames > 0) end = Math.max(end, heardSpan(part).to);
-        if (all.get(guideId(part.id))?.audible && kept.guides.get(part.id)) end = Math.max(end, (kept.guideOffsets.get(part.id) ?? 0) + kept.guides.get(part.id).length / kept.guidesRate);
+        if (all.get(guideId(part.id))?.audible && kept.guides.get(part.id)) end = Math.max(end, (kept.guideOffsets.get(part.id) ?? 0) + kept.guides.get(part.id).length / (kept.guideRates.get(part.id) ?? kept.guidesRate ?? engine.sampleRate));
     }
     return end || session.contentLength;
 }
@@ -1056,6 +1061,7 @@ export function climb(startFrame) {
     session.practice.speed = rung.speed;
     for (const { part, samples, offsetSeconds } of rung.rendered) {
         kept.guides.set(part.id, samples);
+        kept.guideRates.set(part.id, rung.sampleRate);
         kept.guideOffsets.set(part.id, offsetSeconds);
         part.guidePeaks = markRaw(toPeaks(samples, FRAMES_PER_PEAK));
         part.guidePeaksRate = rung.sampleRate;
@@ -1680,7 +1686,7 @@ export async function shareMix({ room = null, partId = null } = {}) {
             const samples = trimmedSamples(kept.samples.get(part.id), part.sampleRate, trimsOf(part));
             tracks.push({ name: (part.name || '').slice(0, 60) || '1', color: part.color.toLowerCase(), peaks: trackPeaks(samples, part.sampleRate, { offsetSeconds: voiceMix(part.id, all).offsetSeconds, volume: take.volume, mixSeconds }) });
         } else if (guide?.audible && kept.guides.get(part.id)) {
-            tracks.push({ name: (part.name || '').slice(0, 60) || '1', color: part.color.toLowerCase(), peaks: trackPeaks(kept.guides.get(part.id), kept.guidesRate, { offsetSeconds: kept.guideOffsets.get(part.id) ?? 0, volume: guide.volume, mixSeconds }) });
+            tracks.push({ name: (part.name || '').slice(0, 60) || '1', color: part.color.toLowerCase(), peaks: trackPeaks(kept.guides.get(part.id), kept.guideRates.get(part.id) ?? kept.guidesRate ?? engine.sampleRate, { offsetSeconds: kept.guideOffsets.get(part.id) ?? 0, volume: guide.volume, mixSeconds }) });
             if (session.guideVoices[part.id]?.kind === 'real') guides.push(...(session.guideVoices[part.id].ids ?? []));
         }
     }

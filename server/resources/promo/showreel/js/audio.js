@@ -164,16 +164,28 @@ async function mixCarols() {
     const wet = ctx.createGain(); wet.gain.value = 0.26; verb.connect(wet).connect(comp);
     const bus = ctx.createGain(); bus.connect(dry); bus.connect(verb);
     const PLACE = [[1.0, 0], [0.8, -0.3], [0.78, 0.3], [0.9, 0]];
+    // a cut in real voices (`real`): each take from the template's beat 0, let in at its join as mix() does
+    const real = SC.real ? await realVoices() : null;
     PARTS.forEach((key, i) => {
-        const notes = S.parts[i].filter((n) => n.beat >= CUE.enter[i] - 1e-6);
-        const pcm = renderPart(notes, { bpm: BPM, sampleRate: RATE, human: 'full', seed: 11 + i });
+        const level = (real ? 1 : 0.4) * PLACE[i][0];
+        let pcm, at = 0;
+        if (real) { pcm = real[i].samples; at = real[i].offset; }
+        else pcm = renderPart(S.parts[i].filter((n) => n.beat >= CUE.enter[i] - 1e-6), { bpm: BPM, sampleRate: RATE, human: 'full', seed: 11 + i });
         const buf = ctx.createBuffer(1, pcm.length, RATE); buf.copyToChannel(pcm, 0);
         const src = ctx.createBufferSource(), g = ctx.createGain(), p = ctx.createStereoPanner();
         src.buffer = buf; p.pan.value = PLACE[i][1];
-        g.gain.setValueAtTime(0.4 * PLACE[i][0], 0);
-        g.gain.setTargetAtTime(0, DUR - 1.25, 0.3);
+        if (real && i > 0) {
+            g.gain.setValueAtTime(0, 0);
+            g.gain.setValueAtTime(0, joinAt(i));
+            g.gain.linearRampToValueAtTime(level, joinAt(i) + JOIN_RAMP);
+        } else g.gain.setValueAtTime(level, 0);
+        if (SC.fade) {
+            // the voices fade out on the held chord (the Reddit cut), the card's chimes after them still heard
+            g.gain.setValueAtTime(level, sec(SC.fade[0]));
+            g.gain.linearRampToValueAtTime(0, sec(SC.fade[1]));
+        } else g.gain.setTargetAtTime(0, DUR - 1.25, 0.3);
         src.connect(g).connect(p).connect(bus);
-        src.start(0);
+        if (at >= 0) src.start(at); else src.start(0, -at);
     });
     const ch = ctx.createGain(); ch.connect(dry); ch.connect(verb);
     [1, 2, 3].forEach((i) => chime(ctx, ch, sec(CUE.enter[i]), [88, 91, 96][i - 1] + SC.key, 0.022));

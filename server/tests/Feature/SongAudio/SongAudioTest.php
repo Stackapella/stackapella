@@ -94,9 +94,15 @@ final class SongAudioTest extends TestCase
         $url = Storage::disk('media')->url($key);
         $this->assertTrue(str_contains($page, '"contentUrl":"'.$url.'"') || str_contains($page, '"contentUrl":"'.str_replace('/', '\/', $url).'"'), 'the MusicRecording plays the mp3');
 
-        // Withheld here, or a Plus song: no audio.
+        // A song stored as Plus is an open song all the same: a guest hears it (Hillel, 2026-11-13: "it should be easy to
+        // hear the song on the song page"), and the render is the hero player's source for all its parts.
         $this->song->forceFill(['access' => TemplateAccess::Plus])->save();
-        $this->assertStringNotContainsString('MusicRecording', (string) $this->get('/songs/a-song')->getContent());
+        $this->app->forgetScopedInstances();
+        $plus = $this->get('/songs/a-song')->assertOk();
+        $this->assertStringContainsString('MusicRecording', (string) $plus->getContent());
+        $this->assertStringContainsString('id="song-mixer"', (string) $plus->getContent());
+        $m4a = Storage::disk('media')->url('song-audio/a-song/2-'.substr(hash('sha256', 'm4a bytes'), 0, 8).'.m4a');
+        $this->assertSame(['m4a' => $m4a, 'mp3' => $url], $plus->viewData('line')['audio']);
     }
 
     public function test_a_render_that_doesnt_match_waits(): void

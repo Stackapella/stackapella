@@ -102,6 +102,17 @@ function appliedWithheld() {
     return withheld;
 }
 
+/** A lesson as its course came, before any withheld song was swapped (Learn's first-visit wait reads it). */
+export function rawLesson(id) {
+    for (const course of [raw.course, ...Object.values(raw.courses)]) {
+        for (const unit of course?.units ?? []) {
+            const found = unit.lessons?.find((l) => l.id === id) ?? (unit.boss?.id === id ? unit.boss : null);
+            if (found) return found;
+        }
+    }
+    return null;
+}
+
 function keepCourse(id, data) {
     raw.courses[id] = data;
     learning.courses[id] = withholdCourse(data, appliedWithheld());

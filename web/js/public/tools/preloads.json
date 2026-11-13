@@ -309,6 +309,9 @@
   "/js/public/carols.js": [
     "/js/public/carols.js"
   ],
+  "/js/public/correction.js": [
+    "/js/public/correction.js"
+  ],
   "/js/public/counterpoint.js": [
     "/js/public/counterpoint.js",
     "/js/public/voices.js"

@@ -82,9 +82,8 @@ export const Chooser = {
                                 <span class="block h-2.5" :data-gem="barColor"></span>
                             </template>
                             <template v-else-if="w === 'whole'">
-                                <span class="block h-2.5" data-gem="var(--color-part-3)"></span>
-                                <span class="block h-2.5" data-gem="var(--color-part-4)"></span>
-                                <span class="block h-2.5" :data-gem="barColor"></span>
+                                <!-- Every part of this song, each in its colour (the finish-line audit: three lines drew a four-part song). -->
+                                <span v-for="c in wholeColors" :key="c.id" class="block h-2.5" :data-gem="c.color"></span>
                             </template>
                             <template v-else>
                                 <span class="flex gap-1"><span class="h-2.5 w-1/3" data-gem="var(--color-part-3)"></span><span class="h-2.5 flex-1 rounded-full bg-raised"></span></span>
@@ -93,14 +92,18 @@ export const Chooser = {
                             </template>
                         </span>
                         <span class="text-muted">{{ t(HINTS[w]) }}</span>
-                        <span class="mt-auto tabular-nums text-xs text-muted">{{ w === 'parts' ? partsTime : w === 'whole' ? wholeTime : t('sing.chooser.studioTime') }}</span>
+                        <!-- The chevron says a tap goes straight in (the finish-line audit: the cards read as pictures). -->
+                        <span class="mt-auto flex items-center gap-2 tabular-nums text-xs text-muted"><span class="flex-1">{{ w === 'parts' ? partsTime : w === 'whole' ? wholeTime : t('sing.chooser.studioTime') }}</span><Icon name="chevron" :size="18" class="shrink-0 -rotate-90 rtl:rotate-90" data-way-go /></span>
                     </button>
                 </div>
                 <details v-if="shownWays.length < WAYS.length" class="group" data-more-ways>
                     <summary class="link-quiet inline-flex min-h-11 cursor-pointer list-none items-center gap-1.5 text-sm [&::-webkit-details-marker]:hidden">{{ t('sing.chooser.moreWays') }} <Icon name="chevron" :size="14" class="transition group-open:rotate-180" /></summary>
-                    <button type="button" class="card-interactive mt-2 flex w-full flex-col gap-1 p-4 text-start" data-way="studio" @click="choose('studio')">
-                        <span class="font-bold text-cream">{{ t(LABELS.studio) }}</span>
-                        <span class="text-sm text-muted">{{ t(HINTS.studio) }}</span>
+                    <button type="button" class="card-interactive mt-2 flex w-full items-center gap-3 p-4 text-start" data-way="studio" @click="choose('studio')">
+                        <span class="flex min-w-0 flex-1 flex-col gap-1">
+                            <span class="font-bold text-cream">{{ t(LABELS.studio) }}</span>
+                            <span class="text-sm text-muted">{{ t(HINTS.studio) }}</span>
+                        </span>
+                        <Icon name="chevron" :size="18" class="shrink-0 -rotate-90 text-muted rtl:rotate-90" data-way-go />
                     </button>
                 </details>
                 <p v-if="installHint" class="rounded-2xl border border-line p-4 text-sm text-muted">{{ t('sing.chooser.install') }}</p>
@@ -140,6 +143,11 @@ export const Chooser = {
             const r = this.focus?.range;
             const range = r ? t('sing.chooser.rangeShort', { low: midiName(r.low + this.transpose), high: midiName(r.high + this.transpose) }) : '';
             return [range, this.bpm ? t('studio.meta.bpm', { bpm: this.bpm }) : ''].filter(Boolean).join(' · ');
+        },
+        /** The whole song's picture: a line for each part (up to six), in its own colour. */
+        wholeColors() {
+            const shown = this.parts.slice(0, 6).map((part) => ({ id: part.slot.id, color: paint(part.slot.color) }));
+            return shown.length ? shown : [{ id: 'yours', color: this.barColor }];
         },
         barColor() {
             return this.focus ? paint(this.focus.slot.color) : 'var(--color-part-1)';
