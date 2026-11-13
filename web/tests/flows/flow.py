@@ -45,8 +45,8 @@ class Flow:
             self.chrome.send("Page.addScriptToEvaluateOnNewDocument", {"source": f"""try {{ const c = JSON.parse(localStorage.getItem('stackapella.appearance') || '{{}}'); if (c.skin !== '{skin}') localStorage.setItem('stackapella.appearance', JSON.stringify({{ ...c, skin: '{skin}', at: Date.now() }})); const m = JSON.parse(sessionStorage.getItem('stackapella.mockAppearance') || '{{}}'); if (m.skin !== '{skin}') sessionStorage.setItem('stackapella.mockAppearance', JSON.stringify({{ ...m, skin: '{skin}' }})); }} catch (e) {{}}"""})
         self.step = 0
         # Substrings of console errors this journey causes on purpose. Without a server, the
-        # app's start-up calls (the catalogue, the account, coming soon) are 404s, all handled.
-        self.expected_errors = ["404 (Not Found) " + self.base + "/api/templates", "404 (Not Found) " + self.base + "/api/account", "404 (Not Found) " + self.base + "/api/auth/config", "404 (Not Found) " + self.base + "/api/boards/daily"]
+        # app's start-up calls (the catalogue, the account, coming soon, Admin > Live's heartbeat) are 404s, all handled.
+        self.expected_errors = ["404 (Not Found) " + self.base + "/api/templates", "404 (Not Found) " + self.base + "/api/account", "404 (Not Found) " + self.base + "/api/auth/config", "404 (Not Found) " + self.base + "/api/boards/daily", "404 (Not Found) " + self.base + "/api/live/beat"]
 
     def go(self, path, wait=None):
         self.chrome.goto(self.base + path, wait)

@@ -164,4 +164,29 @@ final class GrowthCompareTest extends TestCase
         $this->assertSame('early', $chart['metrics']['arrivals']['projection']['hidden']);
         $this->assertMatchesRegularExpression('/^(monday|tuesday|wednesday)-(morning|afternoon|evening)$/', (string) $chart['metrics']['arrivals']['projection']['showsFrom']);
     }
+
+    public function test_app_starts_sit_under_visits_and_visits_borrow_the_apps_day_shape_until_they_have_their_own(): void
+    {
+        // The app's hours go back three weeks; Visits' only three days (the section counts came later).
+        foreach (range(1, 21) as $back) {
+            $date = CarbonImmutable::parse('2026-11-09')->subDays($back)->toDateString();
+            DB::table('usage_count_hours')->insert(['hour' => "{$date} 06:00:00", 'kind' => 'f_arrive', 'audience' => 'guest', 'source' => '', 'count' => 3]);
+        }
+        foreach (range(1, 3) as $back) {
+            DB::table('usage_count_hours')->insert(['hour' => CarbonImmutable::parse('2026-11-09')->subDays($back)->toDateString().' 09:00:00', 'kind' => 'sv_songs', 'audience' => 'guest', 'source' => '', 'count' => 2]);
+        }
+        // App starts this morning, by the hour.
+        DB::table('usage_count_hours')->insert(['hour' => '2026-11-09 08:00:00', 'kind' => 'app_open', 'audience' => 'guest', 'source' => '', 'count' => 5]);
+        DB::table('usage_counts')->insert(['day' => '2026-11-09', 'kind' => 'app_open', 'audience' => 'guest', 'country' => '', 'variant' => '', 'source' => '', 'count' => 5]);
+
+        $this->actingAsAdmin();
+        $today = $this->getJson('/api/admin/growth?period=today');
+        $this->assertMatchesContract($today, 'admin.growth.show', 200);
+        $metrics = $today->json('data.chart.metrics');
+        $this->assertSame(['borrowedShape', 'arrivals'], [$metrics['visits']['projection']['basis'], $metrics['visits']['projection']['shapeFrom']]);
+        $this->assertSame('dayShape', $metrics['arrivals']['projection']['basis']);
+        $this->assertArrayNotHasKey('shapeFrom', $metrics['arrivals']['projection']);
+        $this->assertCount(count($metrics['signUps']['now']), $metrics['appStarts']['now'], 'a strip like Sign-ups');
+        $this->assertEquals(5, array_sum(array_map(static fn (mixed $v): float => (float) $v, array_filter($metrics['appStarts']['now'], static fn (mixed $v): bool => $v !== null))));
+    }
 }

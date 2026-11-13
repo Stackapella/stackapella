@@ -343,25 +343,8 @@ export function settleFlip(seen, found) {
     return { flip: Math.round(sorted[sorted.length >> 1]), seen: all };
 }
 
-export const FLIP_KEYS = [0, 7, 5]; // the song tag's key: the line's own, else its V, else its IV
-export const FLIP_KEY_MOVES = [0, 1, -1, 2, 3]; // semitones the tag may move from the flip: its top stays 1 to 5 above it
-
-/**
- * Where a song's yodel tag sits (`base: 'flipKey'`), in semitones above the comfortable note: the
- * flip note (`flip`), moved by the first of FLIP_KEY_MOVES that puts the tag's home note (two below
- * its flip note, as in On the chord) in the line's key (`key`, the line's home note in semitones
- * above the comfortable note), else in its V, else its IV. Five moves in a row always meet one of
- * the three keys, so this never fails.
- */
-export function flipKeyBase(flip, key = 0) {
-    const pc = (n) => ((n % 12) + 12) % 12;
-    for (const k of FLIP_KEYS) {
-        for (const move of FLIP_KEY_MOVES) {
-            if (pc(flip + move - 2 - key - k) === 0) return flip + move;
-        }
-    }
-    return flip;
-}
+// The tag's key, on its own (js/flip-key.js), kept here for the scorers that read it.
+export { FLIP_KEY_MOVES, FLIP_KEYS, flipKeyBase } from './flip-key.js';
 
 export const MOVE_MIN_SECONDS = 0.5; // moves are judged only on notes this long: each keeps a centre for its pitch
 export const SCOOP_FROM = [100, 450]; // cents below: a smaller dip is an accidental flat start, not a style (the guide starts at most 400 below)

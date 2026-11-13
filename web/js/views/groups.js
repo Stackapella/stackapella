@@ -10,11 +10,15 @@
 import { AccountWall } from '../components/account-wall.js';
 import { AppScreen } from '../components/page.js';
 import { api, uploadTo } from '../api.js';
-import { countShare, shareRef, tried } from '../usage.js';
+import { count, countShare, shareRef, tried } from '../usage.js';
 import { first } from '../funnel.js';
 import { formatDate, locale, t, tk } from '../i18n.js';
 import { goBack, navigate } from '../router.js';
-import { account } from '../stores/account.js';
+import { account, selfHosted } from '../stores/account.js';
+import { teams } from '../teams.js';
+import { isPlus } from '../stores/plan.js';
+import { PlusMoment } from '../components/plus-moment.js';
+import { PausedNote } from '../components/paused-note.js';
 import { learnGroupSong } from '../group-songs.js';
 import { loadMine, mine } from '../stores/templates.js';
 import { listTemplates, loadTemplate, templatePartName } from '../templates.js';
@@ -106,9 +110,9 @@ const AdultCheck = {
 };
 
 export const GroupsView = {
-    components: { AccountWall, Frame, EmptyState, Field, Icon, Modal, AdultCheck, GameOnly },
-    data: () => ({ groups: null, failed: null, making: false, wantStart: new URLSearchParams(location.search).get('start') === '1', shareAfter: new URLSearchParams(location.search).get('share'), here: location.pathname + location.search, name: '', adult: false, busy: false, error: null }),
-    setup: () => ({ account, navigate, sk }),
+    components: { AccountWall, Frame, EmptyState, Field, Icon, Modal, AdultCheck, GameOnly, PlusMoment },
+    data: () => ({ refusedPlus: false, groups: null, failed: null, making: false, wantStart: new URLSearchParams(location.search).get('start') === '1', shareAfter: new URLSearchParams(location.search).get('share'), here: location.pathname + location.search, name: '', adult: false, busy: false, error: null }),
+    setup: () => ({ account, navigate, sk, teams }),
     template: `
         <Frame :title="sk('groups.title', 'game.groups.title')">
             <template #aside><button v-if="account.me" type="button" class="btn-primary btn-sm" @click="making = true"><Icon name="plus" :size="16" /> {{ sk('groups.start', 'game.groups.start') }}</button></template>
@@ -128,13 +132,17 @@ export const GroupsView = {
                             <span class="min-w-0 flex-1">
                                 <span class="block truncate font-bold text-cream" translate="no">{{ g.name }}</span>
                                 <span class="text-sm text-muted">{{ g.role === 'director' ? t('groups.youDirectCount', { count: Math.max(0, g.members - 1) }) : t('groups.directedBy', { name: g.director.name }) + ' · ' + t('groups.memberCount', { count: g.members }) }} · {{ t('groups.songCount', { count: g.songs }) }}</span>
+                                <span v-if="teams.on && g.readOnly === true" class="mt-1 flex w-fit items-center gap-1 text-xs font-semibold text-muted" data-group-paused><Icon name="pause" :size="12" />{{ t('groups.paused.tag') }}</span>
                             </span>
                             <Icon name="arrow" :size="18" class="text-muted" />
                         </a>
                     </li>
                 </ul>
             </div>
-            <Modal v-if="making" :title="sk('groups.start', 'game.groups.start')" @close="making = false">
+            <!-- Teaming up is Plus (docs/pricing-plan.md, top): a singer without it meets the Plus moment, with the trial, before
+                 the form, and comes back here (?start=1) once Plus is on. Everyone they invite joins free. -->
+            <PlusMoment v-if="making && needsPlus" :title="sk('groups.start', 'game.groups.start')" :text="t('groups.plusText')" from="group_start" :next="'/groups?start=1' + (shareAfter ? '&share=' + encodeURIComponent(shareAfter) : '')" @close="making = false" />
+            <Modal v-else-if="making" :title="sk('groups.start', 'game.groups.start')" @close="making = false">
                 <!-- Under 18 by the account's own birth date: no "I'm 18 or over" to tick, a kind word instead. -->
                 <div v-if="minor" class="space-y-4" data-too-young>
                     <p class="text-cream">{{ t('groups.tooYoungStart') }}</p>
@@ -156,11 +164,17 @@ export const GroupsView = {
     computed: {
         /** Under 18 by the account's own birth date (given, and not an adult). */
         minor: () => !!account.me?.birthGiven && account.me?.isAdult === false,
+        /** Starting a group needs Plus (a school or partner code's Plus counts); the server's refusal says so too. */
+        needsPlus() {
+            return this.refusedPlus || (teams.on && !selfHosted() && !isPlus());
+        },
     },
     watch: {
         /** The Start a group sheet shown: a choir's path begins (grp_start, this device's first). */
         making(open) {
-            if (open) first('grp_start');
+            if (!open) return;
+            first('grp_start');
+            if (this.needsPlus) count('grp_plus_seen');
         },
         'account.me.id': {
             handler(id) {
@@ -192,9 +206,11 @@ export const GroupsView = {
                 const { data } = await api.groups.create({ name: this.name.trim(), adult: true });
                 first('grp_made');
                 tried('together');
-                navigate(`/groups/${data.id}` + (this.shareAfter ? `?share=${encodeURIComponent(this.shareAfter)}` : ''));
+                // made=1: the group's link is the next thing in front of the director (docs/improvement-log.md, row 2).
+                navigate(`/groups/${data.id}?made=1` + (this.shareAfter ? `&share=${encodeURIComponent(this.shareAfter)}` : ''));
             } catch (error) {
-                if (error?.code === 'validation_failed') this.error = error.errors?.name ?? t('groups.nameInvalid');
+                if (error?.code === 'plus_required') this.refusedPlus = true; // the plan changed elsewhere: the moment, not an error
+                else if (error?.code === 'validation_failed') this.error = error.errors?.name ?? t('groups.nameInvalid');
                 // 18 and over: someone who hasn't said when they were born is asked once, then it tries again.
                 else if (error?.code === 'adult_required' && !account.me?.birthGiven) {
                     this.busy = false;
@@ -209,34 +225,39 @@ export const GroupsView = {
 };
 
 export const GroupView = {
-    components: { Frame, Field, Icon, Modal },
+    components: { Frame, Field, Icon, Modal, PausedNote },
     props: { id: { type: String, required: true } },
-    data: () => ({ settingRehearsal: false, rehearsalDate: '', rehearsalWeekly: true, rehearsalError: null, asking: false, tracks: { piece: '', composer: '', voicing: '', note: '', rights: '' }, scores: [], requests: null, tracksErrors: null, tracksError: null, tracksSent: false, directorImport: null, group: null, failed: null, link: null, inviting: false, sharing: false, songs: [], pick: '', busy: false, editing: null, starting: null, renaming: false, newName: '', renameError: null, templates: {} }),
+    data: () => ({ justMade: false, settingRehearsal: false, rehearsalDate: '', rehearsalWeekly: true, rehearsalError: null, asking: false, tracks: { piece: '', composer: '', voicing: '', note: '', rights: '' }, scores: [], requests: null, tracksErrors: null, tracksError: null, tracksSent: false, directorImport: null, group: null, failed: null, link: null, inviting: false, sharing: false, songs: [], pick: '', busy: false, editing: null, starting: null, renaming: false, newName: '', renameError: null, templates: {} }),
     setup: () => ({ account, STATUS, RIGHTS, SCORE_ACCEPT, SCORE_FILES, REQUEST_STATUS, templatePartName, formatDate, navigate, paint, PART_COLORS, songTitle }),
     template: `
         <Frame :title="group?.name ?? t('groups.title')" back="/groups" title-is-content>
             <p v-if="failed" class="card p-6 text-cream" role="alert">{{ failed }}</p>
             <p v-else-if="!group" class="text-muted" role="status">{{ t('create.loading') }}</p>
             <div v-else class="space-y-8 min-[900px]:grid min-[900px]:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] min-[900px]:items-start min-[900px]:gap-x-8 min-[900px]:gap-y-8 min-[900px]:space-y-0">
+                <!-- Paused (its leader's Plus ended; docs/pricing-plan.md, top): one calm note for everyone, the way back to
+                     Plus for the leader only; nothing to buy for a member. Listening and their takes stay; nothing new. -->
+                <PausedNote v-if="paused" class="min-[900px]:col-span-2" :title="t('groups.paused.title')" :text="director ? t('groups.paused.leader') : t('groups.paused.member', { name: group.director.name })" :action="director ? t('groups.paused.action') : ''" from="group_start" />
                 <!-- Invite singers sits by the count, not in the header, so a group's name keeps the width (a long one ran under it in the game skin). -->
                 <div class="-mt-2 flex flex-wrap items-center justify-between gap-x-3 gap-y-2 min-[900px]:col-span-2">
                     <p class="text-muted">{{ director ? t('groups.youDirectCount', { count: singers.length }) : t('groups.directedBy', { name: group.director.name }) + ' · ' + t('groups.memberCount', { count: group.memberCount }) }}</p>
-                    <p v-if="noPartYet" class="basis-full text-cream" data-no-part-yet>{{ t('groups.noPartYet', { name: group.director.name }) }}</p>
-                    <button v-if="director" type="button" class="btn-sm" :class="group.songs.length ? 'btn-primary' : 'btn-secondary'" :aria-expanded="inviting ? 'true' : 'false'" aria-controls="group-link" data-invite @click="invite">{{ t('groups.invite') }}</button>
+                    <p v-if="noPartYet && !paused" class="basis-full text-cream" data-no-part-yet>{{ t('groups.noPartYet', { name: group.director.name }) }}</p>
+                    <button v-if="director && !paused && !justMade" type="button" class="btn-sm" :class="group.songs.length ? 'btn-primary' : 'btn-secondary'" :aria-expanded="inviting ? 'true' : 'false'" aria-controls="group-link" data-invite @click="invite">{{ t('groups.invite') }}</button>
                     <!-- The next rehearsal, when the director has set one (nothing at all otherwise): information, never a nag. -->
                     <p v-if="rehearsalLine" class="basis-full text-cream" data-rehearsal>{{ rehearsalLine }}</p>
                 </div>
 
-                <!-- Invite singers: the group's link, to send however you like. -->
-                <section v-if="director && inviting" id="group-link" class="card space-y-3 p-5 min-[900px]:col-span-2" :aria-label="t('groups.linkTitle')">
-                    <p class="text-cream">{{ t('groups.linkHint') }}</p>
+                <!-- Invite singers: the group's link, to send however you like. Just after the group is made it's already open,
+                     the next thing in front of the director, to send to the choir (docs/improvement-log.md, row 2). -->
+                <section v-if="director && (inviting || justMade) && !paused" id="group-link" class="card space-y-3 p-5 min-[900px]:col-span-2" :aria-label="t('groups.linkTitle')" :data-group-made="justMade ? '' : null">
+                    <h2 v-if="justMade" class="text-lg font-bold text-cream">{{ t('groups.made.title') }}</h2>
+                    <p class="text-cream">{{ justMade ? t('groups.made.hint', { name: group.name }) : t('groups.linkHint') }}</p>
                     <div v-if="shownLink" class="flex flex-wrap items-center gap-2">
                         <input class="input min-w-0 flex-1 basis-56" :value="shownLink" readonly :aria-label="t('groups.linkTitle')" translate="no" @focus="$event.target.select()" />
                         <button type="button" class="btn-primary" @click="copy">{{ t('groups.copyLink') }}</button>
                         <button v-if="canShare" type="button" class="btn-secondary" @click="share">{{ t('share.share') }}</button>
                     </div>
                     <p v-else-if="group.link" class="text-sm text-muted">{{ t('groups.linkHidden') }}</p>
-                    <div class="flex flex-wrap items-center justify-between gap-3">
+                    <div v-if="!justMade" class="flex flex-wrap items-center justify-between gap-3">
                         <p class="text-sm text-muted">{{ group.link ? t('groups.linkMadeReset', { date: formatDate(group.link.createdAt, { day: 'numeric', month: 'short' }) }) : '' }}</p>
                         <button v-if="group.link" type="button" class="btn-secondary btn-sm" :disabled="busy" @click="makeLink">{{ shownLink ? t('groups.resetLink') : t('groups.newLink') }}</button>
                     </div>
@@ -248,7 +269,7 @@ export const GroupView = {
                     <div class="flex items-center justify-between gap-3">
                         <h2 id="group-songs" class="text-xl font-extrabold tracking-tight text-cream">{{ t('groups.songsTitle') }}</h2>
                         <!-- A new group's first step is a song, so its singers find something to learn when they join: Share a song is the page's primary until there is one. -->
-                        <button v-if="director" type="button" class="btn-sm" :class="group.songs.length ? 'btn-secondary' : 'btn-primary'" data-share-song @click="openShare"><Icon name="plus" :size="16" /> {{ t('groups.shareSong') }}</button>
+                        <button v-if="director && !paused" type="button" class="btn-sm" :class="group.songs.length || justMade ? 'btn-secondary' : 'btn-primary'" data-share-song @click="openShare"><Icon name="plus" :size="16" /> {{ t('groups.shareSong') }}</button>
                     </div>
                     <p v-if="!group.songs.length" class="text-muted">{{ director ? t('groups.noSongsDirector') : t('groups.noSongs') }}</p>
                     <ul class="space-y-3">
@@ -456,6 +477,10 @@ export const GroupView = {
         director() {
             return this.group?.role === 'director';
         },
+        /** Read-only while its leader's Plus has ended (groups.show's readOnly: true). */
+        paused() {
+            return teams.on && this.group?.readOnly === true;
+        },
         /** Make tracks from a score: a director's, once sheet_import lets directors in (staff before). */
         canImport() {
             return this.director && !!(account.me?.staff || account.config?.sheetImport);
@@ -508,7 +533,14 @@ export const GroupView = {
     },
     async created() {
         await this.load();
-        const share = new URLSearchParams(location.search).get('share');
+        const asked = new URLSearchParams(location.search);
+        const share = asked.get('share');
+        if (asked.get('made') === '1' && this.director && !this.paused) {
+            history.replaceState(history.state, '', location.pathname);
+            this.justMade = true;
+            if (!this.group.link) await this.makeLink();
+            count('grp_link_shown');
+        }
         if (share && this.director) {
             history.replaceState(history.state, '', location.pathname);
             this.pick = share;
@@ -723,6 +755,7 @@ export const GroupView = {
         },
         async copy() {
             first('grp_link');
+            if (this.justMade) count('grp_link_sent');
             countShare('group', 'copy');
             try {
                 await navigator.clipboard.writeText(this.sentLink());
@@ -734,6 +767,7 @@ export const GroupView = {
         share() {
             // Closing the share sheet rejects too: nothing to say.
             first('grp_link');
+            if (this.justMade) count('grp_link_sent');
             countShare('group', 'sheet');
             navigator.share({ title: this.group.name, url: this.sentLink() }).catch((error) => console.info('Not shared', error.name));
         },
@@ -877,14 +911,14 @@ export const GroupView = {
 };
 
 export const ChoirJoinView = {
-    components: { InviteAccept, InviteCard },
+    components: { InviteAccept, InviteCard, PausedNote },
     props: { token: { type: String, required: true } },
     // `back`: arrived back from this group's own link after signing up or in (?join=1, which the link's own sign-in sets), so
     // the join goes ahead at once; from anywhere else, never (the coordinator, 2026-11-08).
-    data: () => ({ group: null, problem: null, joining: false, tooYoung: false, back: new URLSearchParams(location.search).get('join') === '1' }),
-    setup: () => ({ account, navigate }),
+    data: () => ({ group: null, problem: null, joining: false, tooYoung: false, paused: false, back: new URLSearchParams(location.search).get('join') === '1' }),
+    setup: () => ({ account, navigate, teams }),
     template: `
-        <InviteCard :part="null" :from="group?.director.name ?? ''" :kind="group ? t('groups.joinKind', { name: group.name, count: group.members }) : ''" :lead="group ? t('groups.joinLead', { name: group.name }) : ''" :sign-in="'/signin?next=' + encodeURIComponent('/choir/' + token + '?join=1')">
+        <InviteCard :part="null" :from="group?.director.name ?? ''" :kind="group ? t('groups.joinKind', { name: group.name, count: group.members }) : ''" :lead="group && !paused && !(teams.on && group.readOnly === true) ? t('groups.joinLead', { name: group.name }) : ''" :sign-in="'/signin?next=' + encodeURIComponent('/choir/' + token + '?join=1')">
             <template v-if="problem || !group" #top>
                 <p v-if="problem" class="text-lg text-cream" role="alert">{{ problem }}</p>
                 <p v-else class="text-muted" role="status">{{ t('create.loading') }}</p>
@@ -892,7 +926,13 @@ export const ChoirJoinView = {
             </template>
             <template v-if="group && !problem">
                 <!-- Under 18 by the account's own birth date: said plainly and kindly, never a tick to claim otherwise (groups are 18 and over). -->
-                <template v-if="account.me && tooYoung">
+                <!-- Paused (its leader's Plus ended): it takes nobody new for now; said calmly, nothing to buy, and the way to
+                     sing on your own meanwhile. -->
+                <template v-if="paused || (teams.on && group.readOnly === true)">
+                    <PausedNote :title="t('groups.paused.title')" :text="t('groups.paused.join', { name: group.director.name })" />
+                    <a href="/" class="btn-primary btn-lg w-full" data-paused-sing @click.prevent="navigate('/')">{{ t('groups.startSinging') }}</a>
+                </template>
+                <template v-else-if="account.me && tooYoung">
                     <p class="text-cream" role="status" data-too-young>{{ t('groups.tooYoung') }}</p>
                     <a href="/" class="btn-primary btn-lg w-full" @click.prevent="navigate('/')">{{ t('groups.startSinging') }}</a>
                 </template>
@@ -903,6 +943,7 @@ export const ChoirJoinView = {
     async created() {
         try {
             this.group = (await api.groups.join.show(this.token)).data;
+            if (teams.on && this.group.readOnly === true) count('grp_paused_seen');
         } catch (error) {
             this.problem = error?.code === 'not_found' ? t('groups.linkGone') : refusal(error);
         }
@@ -916,7 +957,7 @@ export const ChoirJoinView = {
     methods: {
         /** Back from this link's own sign-up or sign-in: joined at once, once, the address made plain. */
         joinOnReturn() {
-            if (!this.back || !this.group || !account.me?.id || this.joining) return;
+            if (!this.back || !this.group || !account.me?.id || this.joining || (teams.on && this.group.readOnly === true)) return;
             this.back = false;
             history.replaceState(history.state, '', `/choir/${this.token}`);
             this.join();
@@ -935,6 +976,10 @@ export const ChoirJoinView = {
                     this.joining = false;
                     if (await askBirth()) return this.join();
                 } else if (error?.code === 'adult_required') this.tooYoung = true; // their birth date says under 18
+                else if (error?.code === 'shared_paused') {
+                    this.paused = true; // paused since the page opened
+                    count('grp_paused_seen');
+                }
                 else this.problem = refusal(error);
             } finally {
                 this.joining = false;

@@ -11,11 +11,14 @@
     <svg class="s-tone-motif" viewBox="0 0 1200 120" preserveAspectRatio="xMaxYMin slice" aria-hidden="true" focusable="false">@foreach ([1, 2, 3, 4] as $k)<circle cx="{{ 1040 + $k * 22 }}" cy="{{ 10 + $k * 8 }}" r="{{ 70 - $k * 4 }}" fill="none" stroke="var(--color-part-{{ $k }})" stroke-width="7" stroke-dasharray="{{ round((70 - $k * 4) * 6.283 * (0.95 - $k * 0.18)) }} 2000"/>@endforeach</svg>
 @elseif ($key === 'jewish-songs')
     {{-- A hanukkiah, its lights counting the night during Hanukkah (App\Support\Pages\Hanukkiah, js/public/hanukkiah.js). --}}
-    {{ \App\Support\Pages\Hanukkiah::svg('s-tone-motif s-hk') }}
+    {{ \App\Support\Pages\Hanukkiah::svg('s-tone-motif s-obj s-hk') }}
 @elseif ($key === 'folk-songs')
     <svg class="s-tone-motif" viewBox="0 0 1200 120" preserveAspectRatio="xMaxYMin slice" aria-hidden="true" focusable="false"><path d="M700 92 C 800 52, 880 56, 960 80 S 1120 104, 1200 70" fill="none" stroke="currentColor" stroke-width="2.5"/><path d="M780 118 C 870 78, 960 82, 1040 100 S 1160 112, 1200 98" fill="none" stroke="currentColor" stroke-width="2.5"/><path d="M1000 118 C 1010 104, 1040 98, 1032 86 S 1050 70, 1076 64" fill="none" stroke="currentColor" stroke-width="2" stroke-dasharray="6 6"/></svg>
 @elseif ($key === 'barbershop-songs')
     <svg class="s-tone-motif" viewBox="0 0 1200 120" preserveAspectRatio="xMaxYMin slice" aria-hidden="true" focusable="false">@for ($i = 0; $i < 9; $i++)<path d="M{{ 930 + $i * 34 }} 0 l 26 0 l -60 120 l -26 0 z" fill="currentColor" opacity="{{ $i % 2 === 0 ? 1 : .5 }}"/>@endfor</svg>
+@elseif (\App\Support\Pages\Motif::has($key))
+    {{-- A whole object, the thistle or the star lantern (App\Support\Pages\Motif). --}}
+    {{ \App\Support\Pages\Motif::svg($key, 's-tone-motif s-obj') }}
 @elseif ($key === 'christmas')
     <div class="s-xlights" aria-hidden="true">@for ($i = 0; $i < 24; $i++)<i></i>@endfor</div>
 @endif

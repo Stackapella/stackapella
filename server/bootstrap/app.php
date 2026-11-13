@@ -298,7 +298,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         // Reports also come from the public site's pages, across origins and without the app's
         // XSRF cookie (docs/app-subdomain-plan.md, "Report from a shared page").
-        $middleware->validateCsrfTokens(except: ['webhooks/*', 'auth/apple/callback', 'api/reminders/devices/*', 'api/reports', 'preview/*', 'unsubscribe/*']);
+        $middleware->validateCsrfTokens(except: ['webhooks/*', 'auth/apple/callback', 'api/reminders/devices/*', 'api/reports', 'api/corrections', 'preview/*', 'unsubscribe/*']);
 
         $middleware->redirectGuestsTo(fn (Request $request): string => route('admin.sign-in', ['intended' => $request->getRequestUri()]));
     })

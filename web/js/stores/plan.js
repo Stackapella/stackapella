@@ -5,6 +5,7 @@
 import { reactive } from 'vue';
 import { api } from '../api.js';
 import { account, loadAccount } from './account.js';
+import { teams } from '../teams.js';
 
 export const plan = reactive({ billing: null, prices: null, loaded: false });
 
@@ -89,6 +90,9 @@ export function watchPlan() {
  */
 export function lockReason(project) {
     if (!project || project.beta || project.course) return null;
+    // A friend's song paused because its starter's Plus ended (teaming up is Plus, behind plus_teams): listened to and kept,
+    // nothing new recorded until it opens again.
+    if (project.readOnly === 'plus_ended' && project.shared && teams.on) return 'plus_ended';
     return project.readOnly === 'limit' ? 'limit' : null;
 }
 

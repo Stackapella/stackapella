@@ -43,8 +43,10 @@ final class SyncTemplatesTest extends TestCase
         $this->artisan('app:templates:sync')->assertSuccessful();
 
         $files = array_filter([...glob(dirname(base_path()).'/web/templates/*.json') ?: [], ...glob(database_path('templates/*.json')) ?: []], static fn (string $f): bool => basename($f) !== 'index.json');
-        // A song may be in both folders while it moves from the app's files to the server's.
-        $count = count(array_unique(array_map('basename', $files)));
+        // A song may be in both folders while it moves from the app's files to the server's, and a staged next version
+        // (<id>.next.json) is one more version of a song, not another song.
+        $versions = count(array_unique(array_map('basename', $files)));
+        $count = count(array_unique(array_map(static fn (string $f): string => (string) preg_replace('/\.next\.json$/', '.json', basename($f)), $files)));
         $this->assertSame($count, Template::query()->count());
         $this->assertSame(TemplateAccess::Free, Template::query()->where('slug', 'amazing-grace')->firstOrFail()->access);
         $this->assertSame(TemplateAccess::Plus, Template::query()->where('slug', 'silent-night')->firstOrFail()->access);
@@ -52,7 +54,7 @@ final class SyncTemplatesTest extends TestCase
 
         // Again: nothing changes.
         $this->artisan('app:templates:sync')->expectsOutput(count($files).' unchanged.')->assertSuccessful();
-        $this->assertSame($count, TemplateVersion::query()->count());
+        $this->assertSame($versions, TemplateVersion::query()->count());
     }
 
     public function test_a_published_version_is_never_overwritten(): void
@@ -165,6 +167,31 @@ final class SyncTemplatesTest extends TestCase
         $this->artisan('app:templates:sync')->assertSuccessful();
 
         $this->assertSame($template['version'], Template::query()->firstOrFail()->currentVersion?->version);
+    }
+
+    public function test_an_open_song_must_name_its_makers_and_its_first_printing_or_making(): void
+    {
+        // Geo-rights step 2 (docs/geo-rights-plan.md): an open song's rights are worked out from these by country.
+        config(['templates.folders' => [$this->folder]]);
+        $song = [...(array) json_decode((string) file_get_contents(dirname(base_path()).'/web/templates/amazing-grace.json'), true), 'reviewed' => true];
+        $bare = $song;
+        unset($bare['makers'], $bare['firstPublished'], $bare['made']);
+
+        File::put($this->folder.'/amazing-grace.json', (string) json_encode($bare));
+        $report = app(SyncOfficialTemplates::class)->handle();
+        $this->assertStringContainsString('an open song needs makers and firstPublished (or made)', implode("\n", $report['problems']));
+        $this->assertSame(0, Template::query()->count());
+
+        // A draft (not reviewed yet) may wait for them.
+        File::put($this->folder.'/amazing-grace.json', (string) json_encode([...$bare, 'reviewed' => false]));
+        $this->assertSame([], app(SyncOfficialTemplates::class)->handle()['problems']);
+
+        // Never printed: the year it was written stands in (a manuscript; traditional, so no makers).
+        File::put($this->folder.'/amazing-grace.json', (string) json_encode([...$bare, 'version' => $song['version'] + 1, 'makers' => [], 'made' => 1847]));
+        $this->assertSame([], app(SyncOfficialTemplates::class)->handle()['problems']);
+
+        File::put($this->folder.'/amazing-grace.json', (string) json_encode([...$song, 'version' => $song['version'] + 2]));
+        $this->assertSame([], app(SyncOfficialTemplates::class)->handle()['problems']);
     }
 
     public function test_a_broken_template_is_refused_with_its_problems(): void

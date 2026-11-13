@@ -35,8 +35,8 @@ final class SongStories
         'sources' => ['Sources', true],
     ];
 
-    /** The parser's version, in its cache key: a parse kept from an older one is never served (2: fullWords). */
-    private const PARSER = 2;
+    /** The parser's version, in its cache key: a parse kept from an older one is never served (2: fullWords; 3: plain text's entities read back). */
+    private const PARSER = 3;
 
     /** The words section's last subsection, the song's whole text, by the story's language (marketing's fullWords). */
     public const FULL_WORDS = ['The full words', 'La letra completa'];
@@ -279,7 +279,9 @@ final class SongStories
         // in a paragraph; the hero's placement is dropped, as the page draws it by the heading (marketing, 2026-11-12).
         $hero = preg_match('/^[a-z0-9-]+$/', (string) ($front['hero'] ?? '')) === 1 ? (string) $front['hero'] : null;
         $figures = static fn (string $html): string => (string) preg_replace_callback('#<p>!\[\[([a-z0-9-]+)\]\]</p>\n?#', static fn (array $m): string => $m[1] === $hero ? '' : '<!--figure:'.$m[1].'-->'."\n", $html);
-        $plain = static fn (string $markdown): string => trim((string) preg_replace('/\s+/', ' ', strip_tags((string) preg_replace('/\[\^[A-Za-z0-9_-]+\]/', '', self::markdown($markdown)))));
+        // Plain text: the markdown's HTML without its tags, and its entities (&quot;, &amp;) read back as the characters
+        // they stand for, since every use prints or encodes it again (a view's {{ }}, JSON-LD).
+        $plain = static fn (string $markdown): string => trim((string) preg_replace('/\s+/', ' ', html_entity_decode(strip_tags((string) preg_replace('/\[\^[A-Za-z0-9_-]+\]/', '', self::markdown($markdown))), ENT_QUOTES | ENT_HTML5, 'UTF-8')));
 
         $sections = self::sections($body);
         $found = $keys ?? array_map(static fn (array $s): string => self::keyOf($s['heading']) ?? '?', $sections);

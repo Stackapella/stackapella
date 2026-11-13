@@ -9,6 +9,7 @@ import { cloud, settle } from '../stores/cloud.js';
 import { liveSession } from '../stores/session-live.js';
 import { shownTitle } from '../project-title.js';
 import { Modal, toast } from './ui.js';
+import { PausedNote } from './paused-note.js';
 
 /** "4.2 MB", "1.1 GB", in the person's language. */
 export function formatBytes(bytes) {
@@ -89,10 +90,12 @@ const LOCKED_ACTION = { limit: tk('locked.choose') };
 
 /** A project that can be played and exported, not changed: why, and the way out. */
 export const LockedBanner = {
-    props: { reason: { type: String, required: true } },
+    components: { PausedNote },
+    props: { reason: { type: String, required: true }, owner: { type: String, default: '' } }, // owner: whose song it is (a paused one)
     setup: () => ({ LOCKED, LOCKED_ACTION, navigate }),
     template: `
-        <div class="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-2xl bg-raised px-4 py-3 text-sm text-cream" role="status">
+        <PausedNote v-if="reason === 'plus_ended'" :title="t('together.paused.songTitle')" :text="t('together.paused.songMember', { name: owner })" />
+        <div v-else class="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-2xl bg-raised px-4 py-3 text-sm text-cream" role="status">
             <span class="min-w-0 flex-1">{{ t(LOCKED[reason]) }}</span>
             <a v-if="reason === 'limit'" href="/storage" class="btn-go" @click.prevent="navigate('/storage')">{{ t(LOCKED_ACTION.limit) }}</a>
         </div>`,
@@ -136,6 +139,7 @@ export const SyncStatus = {
             if (cloud.waiting === 'email_unverified') return t('cloud.status.unverified');
             if (cloud.waiting === 'storage_limit') return t('cloud.status.full');
             if (cloud.waiting === 'project_read_only') return t('cloud.status.readOnly');
+            if (cloud.waiting === 'shared_paused') return t('cloud.status.paused');
             if (cloud.pending) return t('cloud.status.pending', { count: cloud.pending });
             return cloud.lastSynced ? t('cloud.status.saved') : t('cloud.status.starting');
         },

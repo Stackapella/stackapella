@@ -70,6 +70,7 @@ export const session = reactive({
     preparing: false, // guides being rendered
     guidesVersion: 0,
     busy: false,
+    starting: false, // a Play or a recording getting audio and the guides ready (ready())
     // Per slot id, what its guide is: { kind: 'real' | 'synth', credit, offered } (offered: a real
     // voice exists but the synth plays, for `why`: 'key', 'speed', 'version', 'chosen' or 'failed').
     guideVoices: {},
@@ -212,7 +213,7 @@ export function closeSession() {
         engine.stop();
     }
     kept.wakeLock?.release().catch((error) => console.info('The wake lock was already gone', error));
-    Object.assign(session, { openedId: null, project: null, parts: [], missing: false, position: 0, playing: false, recording: false, countIn: null, recordFrom: 0, live: null, rerecordId: null, inReview: false, reviewing: false, hearing: { off: [], guideLevel: GUIDE_LEVELS.medium, recordGuide: false }, phase: null, preparing: false, busy: false });
+    Object.assign(session, { openedId: null, project: null, parts: [], missing: false, position: 0, playing: false, recording: false, countIn: null, recordFrom: 0, live: null, rerecordId: null, inReview: false, reviewing: false, hearing: { off: [], guideLevel: GUIDE_LEVELS.medium, recordGuide: false }, phase: null, preparing: false, busy: false, starting: false });
     kept.samples = new Map();
     kept.guides = new Map();
     kept.guidesKey = null;
@@ -281,6 +282,19 @@ function applyRoom() {
 
 /** Unlocks audio (from the click) and loads this project's takes and guides into the engine. */
 export async function ready() {
+    // `starting` while a Play or a recording waits for audio and the guides: its disc shows it at once (Hillel, 2026-11-12:
+    // "make sure there is instant feedback if we need to load"). Counted, as calls overlap.
+    kept.readying = (kept.readying ?? 0) + 1;
+    session.starting = true;
+    try {
+        return await readyNow();
+    } finally {
+        kept.readying--;
+        session.starting = kept.readying > 0;
+    }
+}
+
+async function readyNow() {
     const id = session.openedId;
     await unlock();
     if (session.isTemplate) {

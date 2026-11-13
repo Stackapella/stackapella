@@ -153,6 +153,13 @@ def _flames():
     return f'<div style="position:absolute;right:76px;top:38px;width:204px">{lamp}</div>'
 
 
+def _motif(key):
+    # A collection's whole-object motif (the thistle, the star lantern) at the top right, the page's own serious drawing
+    # (App\Support\Pages\Motif), clear of the lanes below it.
+    svg = subprocess.check_output(["php", "artisan", "tinker", "--execute", f"echo App\\Support\\Pages\\Motif::svg('{key}', 'mo', false);"], cwd=SERVER).decode().strip().splitlines()[-1]
+    return f'<div style="position:absolute;right:84px;top:28px;height:140px">{svg}</div>'
+
+
 def _hills():
     # The folk songs' hills and a winding path, faint lines at the top right.
     return ('<svg width="1200" height="630" viewBox="0 0 1200 630">'
@@ -178,6 +185,10 @@ THEMES = {
     "jewish-songs": {"bg": "#1B2D63", "ac": "#F3D27A", "mu": "#CDD6EF", "motif": _flames, "css": ".hk{display:block;width:100%;height:auto}.s-hk-game{display:none}"},
     "folk-songs": {"bg": "#2F3B21", "ac": "#E9A27A", "mu": "#D6DCC8", "motif": _hills, "css": ""},
     "barbershop-songs": {"bg": "#3A1420", "ac": "#E8C26A", "mu": "#EAD3D7", "motif": _stripes, "css": ""},
+    "scottish-songs": {"bg": "#3F3159", "ac": "#E9B9E6", "mu": "#DCD2E6", "motif": lambda: _motif("scottish-songs"), "css": ".mo{display:block;height:100%;width:auto}"},
+    "villancicos": {"bg": "#551D08", "ac": "#F7C24A", "mu": "#EED5C6", "motif": lambda: _motif("villancicos"), "css": ".mo{display:block;height:100%;width:auto}"},
+    "shaker-songs": {"bg": "#35485A", "ac": "#F4CF8A", "mu": "#DCE3EA", "motif": lambda: _motif("shaker-songs"), "css": ".mo{display:block;height:100%;width:auto}"},
+    "thanksgiving-hymns": {"bg": "#4A3006", "ac": "#F6A75E", "mu": "#EBDCC2", "motif": lambda: _motif("thanksgiving-hymns"), "css": ".mo{display:block;height:100%;width:auto}"},
 }
 
 # The lanes' part colours, soprano to bass (the mark's own, as the songs colour their parts).

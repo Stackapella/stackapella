@@ -45,6 +45,11 @@ final class CatalogueTest extends TestCase
         $this->assertSame(['free', 'account'], [$songs['amazing-grace']['access'], $songs['silent-night']['access']]);
         $this->assertNotNull($songs['amazing-grace']['parts'][1]['guide']);
         $this->assertNull($songs['silent-night']['parts'][1]['guide'], 'Signed out, a song the app doesn\'t bundle never gives away its parts.');
+        // Whether a real voice sings it shows all the same (Be the voice asks only where none does), and the song wants one
+        // while a part is still on the synth.
+        $this->assertSame([true, false], [$songs['silent-night']['parts'][1]['hasRealGuide'], $songs['silent-night']['parts'][0]['hasRealGuide']]);
+        $this->assertTrue($songs['amazing-grace']['parts'][1]['hasRealGuide']);
+        $this->assertSame(collect($songs['silent-night']['parts'])->contains('hasRealGuide', false), $songs['silent-night']['wantsVoice']);
         $this->assertNull($songs['silent-night']['freeUntil']);
 
         // Every library song is free with an account (2026-11-07): any plan.

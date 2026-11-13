@@ -146,7 +146,7 @@ final class ToolPagesController extends Controller
             return null;
         }
 
-        return ['line' => $result['line'], 'link' => $result['link'], 'to' => self::tryUrl((string) $result['to'], 'tool-'.$page['slug']), 'parts' => $result['parts'], 'types' => (array) ($page['card'] ?? [])];
+        return ['line' => $result['line'], 'link' => $result['link'], 'to' => self::tryUrl((string) $result['to'], 'tool-'.$page['slug']), 'parts' => (array) ($result['parts'] ?? []), 'types' => (array) ($page['card'] ?? [])];
     }
 
     /**

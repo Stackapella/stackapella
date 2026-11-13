@@ -129,6 +129,9 @@ final class GeoRightsTest extends TestCase
         $this->assertSame(['freeFrom' => 2061, 'words' => true], $mexico->viewData('rights'));
         $this->assertNull($mexico->viewData('line'));
         $this->assertSame([], $mexico->viewData('song')['words']);
+        // Nor the template's verses in the words band.
+        $this->assertSame([], $mexico->viewData('lines'));
+        $this->assertStringNotContainsString('id="song-words"', (string) $mexico->getContent());
         $this->assertStringContainsString('no-store', (string) $mexico->headers->get('Cache-Control'));
         $this->assertStringContainsString('private', (string) $mexico->headers->get('Cache-Control'));
 

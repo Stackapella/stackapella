@@ -1,0 +1,123 @@
+{
+    "$id": "admin.live.show.json",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "at",
+                "refreshSeconds",
+                "now",
+                "views",
+                "areas"
+            ],
+            "properties": {
+                "at": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "refreshSeconds": {
+                    "type": "integer"
+                },
+                "now": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                        "total",
+                        "signedIn",
+                        "guests"
+                    ],
+                    "properties": {
+                        "total": {
+                            "type": "integer"
+                        },
+                        "signedIn": {
+                            "type": "integer",
+                            "description": "Accounts with a session active in the last 2 minutes (admins only with ?admins=1)."
+                        },
+                        "guests": {
+                            "type": "integer",
+                            "description": "The last whole minute's beats / 2, less signedIn."
+                        }
+                    }
+                },
+                "views": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                        "perMinute",
+                        "last30"
+                    ],
+                    "properties": {
+                        "perMinute": {
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            },
+                            "description": "Page views (beats with view: true) each of the last 30 minutes, this one so far last."
+                        },
+                        "last30": {
+                            "type": "integer"
+                        }
+                    }
+                },
+                "areas": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "key",
+                            "now",
+                            "views30",
+                            "top"
+                        ],
+                        "properties": {
+                            "key": {
+                                "type": "string",
+                                "enum": [
+                                    "courses",
+                                    "studio",
+                                    "app",
+                                    "site",
+                                    "tools"
+                                ]
+                            },
+                            "now": {
+                                "type": "integer"
+                            },
+                            "views30": {
+                                "type": "integer"
+                            },
+                            "top": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "additionalProperties": false,
+                                    "required": [
+                                        "page",
+                                        "views"
+                                    ],
+                                    "properties": {
+                                        "page": {
+                                            "type": "string"
+                                        },
+                                        "views": {
+                                            "type": "integer"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "description": "Busiest first; top is its pages by views in 30 minutes, 3 at most."
+                }
+            }
+        }
+    }
+}

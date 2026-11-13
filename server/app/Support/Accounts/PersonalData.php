@@ -80,6 +80,7 @@ final class PersonalData
         'checkout_sessions.user_id' => ['records/plus-checkouts.json', null],
         'choir_voices.user_id' => ['records/choir-voices.json', null],
         'coach_applications.decided_by' => [null, "Staff's own actions."],
+        'corrections.decided_by' => [null, "Staff's own actions (set to null when the account goes)."],
         'coach_applications.user_id' => ['records/coach-application.json', null],
         'coach_messages.sender_id' => ['coaching.json', null],
         'coach_offerings.coach_id' => ['records/coach-offerings.json', null],

@@ -5,8 +5,11 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api\Voices;
 
 use App\Actions\Voices\LendVoice;
+use App\Actions\Voices\ShareVoice;
 use App\Enums\CreditMode;
+use App\Enums\SubmissionStatus;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Voices\ShareVoiceRequest;
 use App\Http\Resources\Beta\BetaMeResource;
 use App\Models\BetaAssignment;
 use App\Models\User;
@@ -45,6 +48,29 @@ final class VoicesController extends Controller
         $singer = $this->voices->join($user, (int) $request->input('agreementVersion'), CreditMode::from((string) $request->input('credit')), $request->boolean('linksProfile'));
 
         return (new BetaMeResource($singer->load('user'), VoiceCount::of($singer)))->response()->setStatusCode(200);
+    }
+
+    /** voices.share: a kept take offered as a part's guide voice (docs/open-guide-voices-plan.md). */
+    public function share(ShareVoiceRequest $request, ShareVoice $share, #[CurrentUser] User $user): JsonResponse
+    {
+        $submission = $share->handle($user, [
+            'takeId' => (string) $request->validated('takeId'),
+            'templateId' => (string) $request->validated('templateId'),
+            'templateVersion' => (int) $request->validated('templateVersion'),
+            'partKey' => (string) $request->validated('partKey'),
+            'credit' => (string) $request->validated('credit'),
+            'linksProfile' => $request->boolean('linksProfile'),
+            'agreementVersion' => (int) $request->validated('agreementVersion'),
+            'adult' => $request->boolean('adult'),
+        ]);
+
+        return response()->json(['data' => [
+            'id' => $submission->sqid(),
+            'status' => $submission->status === SubmissionStatus::Held ? 'held' : 'sent',
+            'templateId' => (string) $request->validated('templateId'),
+            'partKey' => (string) $submission->part_key,
+            'sharedAt' => $submission->created_at?->utc()->toIso8601ZuluString(),
+        ]]);
     }
 
     public function claims(#[CurrentUser] User $user): JsonResponse

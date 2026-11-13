@@ -6,6 +6,7 @@
 // A song course (docs/song-courses-plan.md) shows here too, at /learn/s/<song id>: the same page for
 // one song, opened from that song's sheet on Home (a `?part=` the unit to start in), with no Sharpen up.
 
+import { LoadingBlock } from '../components/screen-loading.js';
 import { localized, t } from '../i18n.js';
 import { goBack, navigate } from '../router.js';
 import { account } from '../stores/account.js';
@@ -27,13 +28,13 @@ import { endSharpen, sharpenPicks, startSharpen } from '../sharpen.js';
 import { COURSE as READING, readingLevel } from '../reading-lines.js';
 
 export const PlusCourseView = {
-    components: { AppScreen, CourseMap, CoursePart, CourseWall, Icon },
+    components: { LoadingBlock, AppScreen, CourseMap, CoursePart, CourseWall, Icon },
     props: { id: { type: String, required: true }, song: Boolean }, // song: id is a song's, for its song course
     setup: () => ({ learning, localized, lessonMinutes }),
     data: () => ({ songLooked: false, part: new URLSearchParams(location.search).get('part') }),
     template: `
         <AppScreen :title="course ? localized(song ? course.title : entry.title) : t('courses.title')" :eyebrow="song ? t('songCourse.eyebrow') : t('courses.eyebrow')" :back="song ? '/' : '/learn'" :back-label="t('home.back')" title-is-content measure="">
-            <p v-if="!learning.loaded || (!(song ? songLooked : learning.coursesLoaded) && !course)" class="text-muted" role="status">{{ t('course.loading') }}</p>
+            <LoadingBlock v-if="!learning.loaded || (!(song ? songLooked : learning.coursesLoaded) && !course)" :failed="learning.failed" @retry="retryLoad" />
             <p v-else-if="!course && song" class="text-cream">{{ t('songCourse.notHere') }} <a href="/" class="link" @click.prevent="navigate('/')">{{ t('songCourse.backToSong') }}</a></p>
             <p v-else-if="!course" class="text-cream">{{ t('courses.notHere') }} <a href="/learn" class="link" @click.prevent="navigate('/learn')">{{ t('course.backToCourse') }}</a></p>
             <template v-else>
@@ -148,6 +149,10 @@ export const PlusCourseView = {
         } else loadPlusCourses();
     },
     methods: {
+        /** Try again after the course's data didn't load (LoadingBlock's Retry). */
+        retryLoad() {
+            loadLearning();
+        },
         goBack,
         navigate,
         game, // serious mode shows no stars

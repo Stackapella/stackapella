@@ -28,7 +28,9 @@ import { deleteEverythingHere, deviceSummary } from '../device.js';
 import { signInTo, signUpFor } from '../components/account-wall.js';
 import { ideas, ideasOpen } from '../stores/ideas.js';
 import { setNotes, voiceCare } from '../voice-day.js';
-import { session } from '../storage.js';
+import { local, session } from '../storage.js';
+import { publicSiteUrl } from '../hosts.js';
+import { count } from '../usage.js';
 import { loadBilling, plan } from '../stores/plan.js';
 
 const AVATAR_BYTES = 2 * 1024 * 1024;
@@ -260,6 +262,8 @@ export const SettingsView = {
                         <a v-if="account.me" href="/groups" class="flex items-center justify-between gap-4 p-5 hover:bg-raised/50" @click.prevent="navigate('/groups')"><span class="min-w-0"><span class="block font-semibold text-cream">{{ t('groups.title') }}</span><span class="block text-sm text-muted">{{ t('groups.settingsHint') }}</span></span><Icon name="chevron" :size="18" class="shrink-0 -rotate-90 text-muted rtl:rotate-90" /></a>
                         <!-- A warm-up for students (docs/warmup-builder-plan.md): made here, shared as a link; no account needed. -->
                         <a href="/warmup" class="flex items-center justify-between gap-4 p-5 hover:bg-raised/50" data-make-warmup @click.prevent="navigate('/warmup')"><span class="min-w-0"><span class="block font-semibold text-cream">{{ t('warmup.make.title') }}</span><span class="block text-sm text-muted">{{ t('warmup.make.settingsHint') }}</span></span><Icon name="chevron" :size="18" class="shrink-0 -rotate-90 text-muted rtl:rotate-90" /></a>
+                        <!-- The free tools on our site (docs/retention-plan.md, idea 7: "the app never links to the tools"): one row. -->
+                        <a :href="toolsUrl" class="flex items-center justify-between gap-4 p-5 hover:bg-raised/50" data-free-tools @click="toolsOpened"><span class="min-w-0"><span class="block font-semibold text-cream">{{ t('settings.tools.title') }}</span><span class="block text-sm text-muted">{{ t('settings.tools.hint') }}</span></span><Icon name="chevron" :size="18" class="shrink-0 -rotate-90 text-muted rtl:rotate-90" /></a>
                         <!-- Class codes for teachers (docs/school-offer-plan.md): Plus for a year for their students; adults only. -->
                         <a v-if="config?.schools && account.me && account.me.isAdult !== false" href="/settings/classes" class="flex items-center justify-between gap-4 p-5 hover:bg-raised/50" data-class-codes @click.prevent="navigate('/settings/classes')"><span class="min-w-0"><span class="block font-semibold text-cream">{{ t('school.classes.title') }}</span><span class="block text-sm text-muted">{{ t('school.settings.teacherHint') }}</span></span><Icon name="chevron" :size="18" class="shrink-0 -rotate-90 text-muted rtl:rotate-90" /></a>
                         <div class="py-3 pe-3 ps-5" data-sounds><Switch :on="prefs.sounds" :label="t('settings.device.sounds')" :hint="sk('settings.device.soundsHintSerious', 'settings.device.soundsHint')" @change="(on) => (prefs.sounds = on)" /></div>
@@ -370,6 +374,11 @@ export const SettingsView = {
             </Modal>
         </AppScreen>`,
     computed: {
+        /** The tools' hub on the public site (its own host, or this one's /tools). */
+        toolsUrl() {
+            const site = publicSiteUrl();
+            return new URL('/tools', site.startsWith('/') ? location.origin : site).href;
+        },
         languagesShown: () => locale.live.length > 1 || locale.lang !== 'en',
         languages: () => [...new Set([...locale.live, locale.lang])],
         /** Some screens still English (a key not yet translated, or its English changed since): said under the row. */
@@ -441,6 +450,13 @@ export const SettingsView = {
         this.sections?.disconnect();
     },
     methods: {
+        /** The tools opened from here: counted once a week a device (use_tools, read against app_week). */
+        toolsOpened() {
+            const week = Math.floor(Date.now() / (7 * 86400000));
+            if (local.get('stackapella.useTools') === String(week)) return;
+            local.set('stackapella.useTools', String(week));
+            count('use_tools');
+        },
         /** A language in its own words, as a choice list names them: "English", "Español", "Deutsch". */
         languageName(lang) {
             const name = new Intl.DisplayNames([lang], { type: 'language' }).of(lang) ?? lang;

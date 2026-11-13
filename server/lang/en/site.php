@@ -1546,6 +1546,7 @@ return [
         'weekly' => 'A new Christmas song opens every Monday until Christmas, from 16 November.',
         'parts' => 'Its parts',
         'song_page' => 'Learn :song',
+        'parts_hint' => 'Tap a part to hear it on its own and learn it, on its own page.',
         // Under the songbook (Hillel's Jewish Songs redesign, 2026-11-12): what the range bars show, and a way to ask for a song.
         'scale' => 'Bars show each part on one scale, :low to :high. The line is middle C.',
         'more' => 'Want another song?',
@@ -1692,7 +1693,7 @@ return [
             'headline_em' => 'part by part',
             'lead' => 'Learn your part of a folk song before rehearsal. Free, in your browser, no account.',
             'intro' => [
-                'Some of these tunes have no known author, and others have one. Greensleeves is an English tune of the 1500s, the tune of the Welsh lullaby All Through the Night has its earliest known printing in 1784, and Cecil Sharp heard The Water Is Wide in Somerset. Loch Lomond and Auld Lang Syne come from Scotland, Danny Boy sets words of 1913 to the Londonderry Air, an Irish tune printed in 1855, Home on the Range comes from Kansas, Sakura Sakura from Japan, and La Paloma is the habanera Sebastián Iradier wrote after he heard habaneras in Cuba. From Scotland, too, come Comin\' Thro\' the Rye, My Love Is Like a Red, Red Rose, Annie Laurie, Will Ye No Come Back Again?, Ye Banks and Braes o\' Bonnie Doon and The Skye Boat Song. I Will Bow and Be Simple, O the Beautiful Treasure, Who Will Bow and Bend and I Am Fill\'d with Heavenly Treasures are Shaker songs from Mary Hazzard\'s manuscript songbook, begun in 1847, and Las Mañanitas is the Mexican song of birthday mornings.',
+                'Some of these tunes have no known author, and others have one. Greensleeves is an English tune of the 1500s, the tune of the Welsh lullaby All Through the Night has its earliest known printing in 1784, and Cecil Sharp heard The Water Is Wide in Somerset. Danny Boy sets words of 1913 to the Londonderry Air, an Irish tune printed in 1855, Home on the Range comes from Kansas, Sakura Sakura from Japan, and La Paloma is the habanera Sebastián Iradier wrote after he heard habaneras in Cuba. Las Mañanitas is the Mexican song of birthday mornings.',
                 'Every song here is public domain and set for 2 to 4 singers, and each card says its key and how hard it is. Play a song\'s first line to hear every part together, then open your part to hear it alone or with the others under it, and sing along as each note lights up. Each song\'s page tells where it comes from.',
             ],
             'pick' => 'Pick a folk song',
@@ -1736,6 +1737,124 @@ return [
             'songs_link' => 'Barbershop and parlour songs, part by part',
             // On each of its songs' pages and part pages (SongCollections::home).
             'more' => 'More barbershop and parlour songs, part by part',
+        ],
+        // The demand check, 2026-11-12 (Google's suggestions: "auld lang syne satb", "auld lang syne choir arrangement",
+        // "scottish songs for choir"): one page for Scottish songs that is New Year's and Burns Night's too. The Auld Lang
+        // Syne and Loch Lomond lines are their song pages' own (song_about, the courses lead's).
+        'scottish-songs' => [
+            'title' => 'Scottish Songs for Choir: Auld Lang Syne and More',
+            'description' => 'Scottish songs for choir in harmony, free: Auld Lang Syne for New Year and Burns Night, Loch Lomond and more. Learn your part by ear, hear it with the others, and sing along.',
+            'crumb' => 'Scottish songs',
+            // The intro's own section after the songs, its heading's last words in the italic serif (Hillel's redesign).
+            'from' => 'Where these songs',
+            'from_em' => 'come from',
+            // Its panel on /songs (Hillel's songbook design): a short title with its serif tail, and one line.
+            'band' => 'Scottish songs',
+            'band_em' => 'for New Year',
+            'band_line' => 'Auld Lang Syne and more, to learn by ear.',
+            // /songs's way to the page (SongsHub): how many there are.
+            'all' => 'All :count Scottish songs',
+            'headline' => 'Scottish songs,',
+            'headline_em' => 'part by part',
+            'lead' => 'Learn your part of a Scottish song, from Auld Lang Syne at New Year to Burns Night. Free, in your browser, no account.',
+            'intro' => [
+                'Auld Lang Syne sees the old year out, and closes many a Burns Night supper on 25 January: Robert Burns wrote its words in 1788, to a traditional Scottish tune. Loch Lomond was first printed in Edinburgh in about 1841, and it is probably older than that.',
+                'Every song here is public domain, and each card says its key and how hard it is. Play a song\'s first line to hear every part together, then open your part to hear it alone or with the others under it, and sing along as each note lights up. Each song\'s page says whose arrangement it is and where its words and tune come from.',
+            ],
+            'pick' => 'Pick a Scottish song',
+            'songbook' => 'The Scottish songs',
+            'songbook_sub' => 'Pick your part, or press play to hear a song\'s first line in every part.',
+            'songbook_part' => 'Showing your :part part in every song. Press play to hear it with the others.',
+            'list' => 'Scottish songs to learn in harmony',
+            'try_link' => 'Learn a Scottish song, free',
+            'songs_link' => 'Scottish songs, part by part',
+            // On each of its songs' pages and part pages (SongCollections::home).
+            'more' => 'More Scottish songs, part by part',
+        ],
+        // The demand check, 2026-11-12 (Spain and Mexico: "villancicos para coro", "villancicos a 4 voces"): the Spanish
+        // Christmas carols, which lead on the Spanish site in the carol season (SongsHub). Its Spanish title is the
+        // demand check's ("Villancicos tradicionales para coro: aprende tu voz"), away from the carols page's.
+        'villancicos' => [
+            'title' => 'Villancicos: Spanish Christmas Carols for Choir',
+            'description' => 'Villancicos, the Spanish Christmas carols, in harmony for choir, free. Learn your part by ear, hear it with the others, and sing along.',
+            'crumb' => 'Villancicos',
+            'from' => 'Where these villancicos',
+            'from_em' => 'come from',
+            'band' => 'Villancicos',
+            'band_em' => 'for Christmas',
+            'band_line' => 'Spanish Christmas carols to learn part by part.',
+            'all' => 'All :count villancicos',
+            'headline' => 'Villancicos,',
+            'headline_em' => 'part by part',
+            'lead' => 'Learn your part of a Spanish Christmas carol before Christmas. Free, in your browser, no account.',
+            'intro' => [
+                'Villancicos are Christmas songs in Spanish and Spain\'s other languages, sung in Spain and across Latin America, and many are centuries old.',
+                'Every song here is public domain, and each card says its key and how hard it is. El cant dels ocells keeps Lluís Millet\'s own harmonisation, printed in 1917; each other song\'s page says whose arrangement it is and where its words and tune come from. Play a song\'s first line to hear every part together, then open your part to hear it alone or with the others under it, and sing along as each note lights up.',
+            ],
+            'pick' => 'Pick a villancico',
+            'songbook' => 'The villancicos',
+            'songbook_sub' => 'Pick your part, or press play to hear a villancico\'s first line in every part.',
+            'songbook_part' => 'Showing your :part part in every villancico. Press play to hear it with the others.',
+            'list' => 'Villancicos to learn in harmony',
+            'try_link' => 'Learn a villancico, free',
+            'songs_link' => 'Villancicos, part by part',
+            'more' => 'More villancicos, part by part',
+        ],
+        // The demand check, 2026-11-12: a page only as Thanksgiving AND harvest hymns, so it earns in the autumn harvest
+        // season too. Whose four parts each keeps is from each song's own credits (NewCollectionsPageTest checks it).
+        'thanksgiving-hymns' => [
+            'title' => 'Thanksgiving and Harvest Hymns for Choir',
+            'description' => 'Thanksgiving and harvest hymns in four-part harmony, free: learn your soprano, alto, tenor or bass part by ear, hear it with the others, and sing along.',
+            'crumb' => 'Thanksgiving hymns',
+            'from' => 'Where these hymns',
+            'from_em' => 'come from',
+            'band' => 'Thanksgiving',
+            'band_em' => 'and harvest hymns',
+            'band_line' => 'Hymns of thanks for Thanksgiving and harvest festivals.',
+            'all' => 'All :count Thanksgiving hymns',
+            'headline' => 'Thanksgiving and harvest hymns,',
+            'headline_em' => 'part by part',
+            'lead' => 'Learn your part of a hymn of thanks before Thanksgiving or your harvest festival. Free, in your browser, no account.',
+            'intro' => [
+                'Every hymn here keeps the four parts a hymnal printed for it, adapted by us: Now Thank We All Our God on Felix Mendelssohn\'s harmony as The Hymnal of 1916 prints it, Praise to the Lord, the Almighty on William Sterndale Bennett and Otto Goldschmidt\'s of 1863, Come, Ye Thankful People, Come on George J. Elvey\'s own four parts of 1861, and We Gather Together on the four parts The Beacon Hymnal printed for its tune, Kremser, in 1924.',
+                'Every hymn here is public domain, and each card says its key and how hard it is. Play a hymn\'s first line to hear all four parts together, then open your part to hear it alone or with the others under it, and sing along as each note lights up. Each hymn\'s page says where its words and tune come from.',
+            ],
+            'pick' => 'Pick a hymn',
+            'songbook' => 'The hymns',
+            'songbook_sub' => 'Pick your part, or press play to hear a hymn\'s first line in every part.',
+            'songbook_part' => 'Showing your :part part in every hymn. Press play to hear it with the others.',
+            'list' => 'Thanksgiving and harvest hymns to learn in four parts',
+            'try_link' => 'Learn a Thanksgiving hymn, free',
+            'songs_link' => 'Thanksgiving hymns, part by part',
+            'more' => 'More Thanksgiving hymns, part by part',
+        ],
+        // Hillel, 2026-11-12: Shaker songs, led by Simple Gifts, the site's biggest song search. The facts are the songs'
+        // own stories and credits (the courses lead's); NewCollectionsPageTest checks the intro against the credits.
+        'shaker-songs' => [
+            'title' => 'Shaker Songs for Choir: Simple Gifts and More',
+            'description' => 'Shaker songs for choir in harmony, free: Simple Gifts and songs from the same Shaker songbook. Learn your part by ear, hear it with the others, and sing along.',
+            'crumb' => 'Shaker songs',
+            'from' => 'Where these songs',
+            'from_em' => 'come from',
+            'band' => 'Shaker songs',
+            'band_em' => 'and Simple Gifts',
+            'band_line' => 'Songs of Shaker worship, Simple Gifts first.',
+            'all' => 'All :count Shaker songs',
+            'headline' => 'Shaker songs,',
+            'headline_em' => 'part by part',
+            'lead' => 'Learn your part of Simple Gifts and the Shaker songs beside it. Free, in your browser, no account.',
+            'intro' => [
+                'Simple Gifts is a Shaker song for dancing in worship, usually credited to Elder Joseph Brackett and dated 1848, though the copy we sing from, in Mary Hazzard\'s handwritten songbook, is unsigned and undated. The Shakers were a religious community that worshipped by singing and dancing, and every other song here comes from the same songbook, copied in the late 1840s and early 1850s.',
+                'Every song here is public domain and our own arrangement, and each card says its key and how hard it is. Play a song\'s first line to hear every part together, then open your part to hear it alone or with the others under it, and sing along as each note lights up. Each song\'s page tells its story.',
+            ],
+            'pick' => 'Pick a Shaker song',
+            'songbook' => 'The Shaker songs',
+            'songbook_sub' => 'Pick your part, or press play to hear a song\'s first line in every part.',
+            'songbook_part' => 'Showing your :part part in every song. Press play to hear it with the others.',
+            'list' => 'Shaker songs to learn in harmony',
+            'try_link' => 'Learn a Shaker song, free',
+            'songs_link' => 'Shaker songs, part by part',
+            'more' => 'More Shaker songs, part by part',
         ],
         // Google's suggestions, 2026-11-10: "spirituals for choir", "spirituals satb", "easy spirituals for choir",
         // "african american spirituals satb". The courses lead checked the history (2026-11-10).
@@ -2405,12 +2524,12 @@ return [
                 // The free lesson the tool leads to once it has a result (page.js, in the tool's bar): a course's first lesson, which a
                 // guest can open (courses.js guestLesson; tests/flows/tool_lessons.py checks every one).
                 'lesson' => ['line' => 'Want your range to feel easier?', 'link' => 'Try a free lesson', 'to' => '/learn/range-1-span'],
-                // After a result (the courses lead's): the part to learn, one free target for everyone; Sing can't open a chosen part.
+                // After a result (docs/retention-plan.md, idea 7; the words marketing's): the range, and the app opened knowing it
+                // (page.js adds ?range=A2-D4 to `to`), so Home's picks fit it and no range check asks.
                 'result' => [
-                    'line' => 'Your range fits the usual :type range. Learn the :part of Amazing Grace, free, and move it up or down until it sits right for you.',
-                    'link' => 'Learn your part, free',
-                    'to' => '/?song=amazing-grace',
-                    'parts' => ['bass' => 'bass', 'baritone' => 'bass', 'tenor' => 'tenor', 'alto' => 'alto', 'mezzo' => 'alto', 'soprano' => 'tune'],
+                    'line' => 'Your range is :low to :high (:type). Open the app to see the songs that fit it, free.',
+                    'link' => 'Songs for my range',
+                    'to' => '/',
                 ],
                 // The tool's own words (js/public/tools/vocal-range-test.js, the frontend's WORDS; :name placeholders).
                 'card' => [

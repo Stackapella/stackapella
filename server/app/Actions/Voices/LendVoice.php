@@ -17,6 +17,7 @@ use App\Models\User;
 use App\Support\Accounts\Age;
 use App\Support\Flags;
 use App\Support\Gallery\Gallery;
+use App\Support\Templates\Staging;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -68,25 +69,26 @@ final class LendVoice
     {
         $this->ensureOpen();
         $items = [];
-        // Held: every open claim and invited singer's part, read once.
-        $held = self::open()->get(['template_id', 'part_key', 'course_clip_id']);
-        $heldParts = $held->filter(static fn (BetaAssignment $a): bool => $a->template_id !== null)->map(static fn (BetaAssignment $a): string => $a->template_id.':'.$a->part_key)->all();
-        $heldClips = $held->pluck('course_clip_id')->filter()->all();
+        // Held: every open claim on a lesson clip, read once. A song's part is never held: several singers may record it,
+        // and Hillel chooses (docs/open-guide-voices-plan.md).
+        $heldClips = self::open()->whereNotNull('course_clip_id')->pluck('course_clip_id')->all();
 
         if ($kind !== 'clips' && ($skill === null || $skill === 'any')) {
-            $templates = Template::query()->official()->listed()->with('currentVersion')->whereNotNull('current_version_id')->orderBy('title')->get();
-            $voiced = TemplateGuide::query()->whereIn('template_version_id', $templates->pluck('current_version_id'))->where('is_default', true)->get(['template_version_id', 'part_key'])
+            $templates = Template::query()->official()->listed()->with(['currentVersion', 'stagedVersion'])->whereNotNull('current_version_id')->orderBy('title')->get();
+            $voiced = TemplateGuide::query()->whereIn('template_version_id', $templates->map(static fn (Template $t): ?int => $t->recordingVersion()?->id)->filter())->where('is_default', true)->get(['template_version_id', 'part_key'])
                 ->map(static fn (TemplateGuide $g): string => $g->template_version_id.':'.$g->part_key)->all();
 
             foreach ($templates as $template) {
-                $version = $template->currentVersion;
+                // A staged next version is what's recorded, and only its changed parts are wanted (Staging).
+                $version = $template->recordingVersion();
 
-                if ($version === null || ! $version->reviewed) {
+                if ($version === null || ! Staging::recordable($template, $version)) {
                     continue;
                 }
+                $changed = $template->staged_version_id !== null ? Staging::changed($template) : null;
 
                 foreach ((array) ($version->data['parts'] ?? []) as $part) {
-                    if (! is_array($part) || ! is_string($part['key'] ?? null) || in_array($version->id.':'.$part['key'], $voiced, true) || in_array($template->id.':'.$part['key'], $heldParts, true)) {
+                    if (! is_array($part) || ! is_string($part['key'] ?? null) || ($changed !== null && ! in_array($part['key'], $changed, true)) || in_array($version->id.':'.$part['key'], $voiced, true)) {
                         continue;
                     }
 
@@ -169,20 +171,28 @@ final class LendVoice
         return DB::transaction(function () use ($singer, $item): BetaAssignment {
             BetaSinger::query()->whereKey($singer->id)->lockForUpdate()->first();
 
-            if (self::open()->where('beta_singer_id', $singer->id)->count() >= (int) config('beta.claims_at_once')) {
+            [$what, $id, $part] = array_pad(explode(':', $item, 3), 3, null);
+
+            // A song's part is an open take now (docs/open-guide-voices-plan.md): no limit on how many a singer records at
+            // once. A lesson clip's slot is still one singer's claim, three at a time.
+            if ($what !== 'song' && self::open()->where('beta_singer_id', $singer->id)->whereNotNull('course_clip_id')->count() >= (int) config('beta.claims_at_once')) {
                 throw new Refusal(409, 'claim_limit');
             }
-
-            [$what, $id, $part] = array_pad(explode(':', $item, 3), 3, null);
             $assignment = new BetaAssignment;
 
             if ($what === 'song' && is_string($id) && is_string($part)) {
-                $template = Template::query()->official()->listed()->with('currentVersion')->where('slug', $id)->lockForUpdate()->first() ?? throw new Refusal(404, 'not_found');
-                $version = $template->currentVersion;
-                $parts = array_column(array_filter((array) ($version->data['parts'] ?? []), 'is_array'), 'key');
+                $template = Template::query()->official()->listed()->with(['currentVersion', 'stagedVersion'])->where('slug', $id)->lockForUpdate()->first() ?? throw new Refusal(404, 'not_found');
+                $version = $template->recordingVersion();
+                $parts = $template->staged_version_id !== null ? Staging::changed($template) : array_column(array_filter((array) ($version->data['parts'] ?? []), 'is_array'), 'key');
 
-                if ($version === null || ! $version->reviewed || ! in_array($part, $parts, true) || TemplateGuide::query()->where('template_version_id', $version->id)->where('part_key', $part)->where('is_default', true)->exists() || self::held(self::forSong($template->id, $part))) {
+                if ($version === null || ! Staging::recordable($template, $version) || ! in_array($part, $parts, true) || TemplateGuide::query()->where('template_version_id', $version->id)->where('part_key', $part)->where('is_default', true)->exists()) {
                     throw new Refusal(409, 'not_wanted');
+                }
+
+                // Several singers may record the same part, and Hillel chooses; one open take a part a person.
+                $mine = self::forSong($template->id, $part)->where('beta_singer_id', $singer->id)->whereIn('id', self::open()->select('id'))->first();
+                if ($mine !== null) {
+                    return $mine;
                 }
 
                 $assignment->forceFill(['template_id' => $template->id, 'part_key' => $part]);

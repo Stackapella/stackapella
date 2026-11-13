@@ -11,6 +11,8 @@ namespace App\Enums;
 enum SubmissionStatus: string
 {
     case Uploading = 'uploading';
+    // A volunteer's shared take (voices.share) waiting for its account's email to be confirmed; then it's processed.
+    case Held = 'held';
     case Processing = 'processing';
     case Submitted = 'submitted';
     case InReview = 'in_review';
@@ -18,6 +20,9 @@ enum SubmissionStatus: string
     case Rejected = 'rejected';
     case Accepted = 'accepted';
     case Failed = 'failed';
+    // Another take of the same part was published as its voice (open takes, docs/open-guide-voices-plan.md): kept, with
+    // Hillel's optional note for the others who sang it.
+    case NotChosen = 'not_chosen';
 
     public function label(): string
     {

@@ -82,13 +82,15 @@
         "status": {
             "type": "string",
             "enum": [
+                "held",
                 "to_record",
                 "submitted",
                 "in_review",
                 "retake",
                 "guide",
                 "accepted",
-                "rejected"
+                "rejected",
+                "not_chosen"
             ],
             "description": "What My parts shows: To record, Submitted, In review, Hillel asked for another take, Now the guide (this singer's take is the part's default voice on the current version), Accepted as an alternate voice, or not used."
         },

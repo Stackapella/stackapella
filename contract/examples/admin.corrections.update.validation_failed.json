@@ -1,0 +1,9 @@
+{
+    "message": "Say why it is rejected.",
+    "code": "validation_failed",
+    "errors": {
+        "note": [
+            "Say why it is rejected."
+        ]
+    }
+}

@@ -1,0 +1,132 @@
+{
+    "$id": "admin.correction.json",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "id",
+        "kind",
+        "state",
+        "text",
+        "source",
+        "page",
+        "lang",
+        "createdAt",
+        "decision"
+    ],
+    "properties": {
+        "id": {
+            "type": "string"
+        },
+        "kind": {
+            "type": "string",
+            "enum": [
+                "fact",
+                "words",
+                "notes",
+                "other"
+            ]
+        },
+        "state": {
+            "type": "string",
+            "enum": [
+                "new",
+                "accepted",
+                "done",
+                "rejected"
+            ]
+        },
+        "text": {
+            "type": "string"
+        },
+        "source": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "description": "A URL the reader gave, or null."
+        },
+        "page": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "type",
+                "title",
+                "path"
+            ],
+            "properties": {
+                "type": {
+                    "type": "string",
+                    "enum": [
+                        "song",
+                        "part",
+                        "course",
+                        "lesson",
+                        "tool"
+                    ]
+                },
+                "title": {
+                    "type": "string"
+                },
+                "path": {
+                    "type": "string"
+                }
+            }
+        },
+        "lang": {
+            "type": "string"
+        },
+        "createdAt": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "format": "date-time"
+        },
+        "decision": {
+            "type": [
+                "object",
+                "null"
+            ],
+            "additionalProperties": false,
+            "required": [
+                "state",
+                "note",
+                "by",
+                "at"
+            ],
+            "properties": {
+                "state": {
+                    "type": "string",
+                    "enum": [
+                        "accepted",
+                        "done",
+                        "rejected"
+                    ]
+                },
+                "note": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "by": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                        "name"
+                    ],
+                    "properties": {
+                        "name": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "at": {
+                    "type": "string",
+                    "format": "date-time"
+                }
+            }
+        }
+    },
+    "description": "A reader's correction: what they wrote and on which page, never anything about them."
+}

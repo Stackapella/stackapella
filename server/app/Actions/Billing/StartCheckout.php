@@ -23,10 +23,11 @@ use Illuminate\Validation\ValidationException;
 final class StartCheckout
 {
     /**
-     * The upgrade moments the app sends (contract/api.md): since 2026-11-07 only the solo extras
-     * (docs/pricing-plan.md). Anything else, an older app's plus_song or workout too, is "other".
+     * The upgrade moments the app sends (contract/api.md): the solo extras, and since 2026-11-12 starting something
+     * shared (a group, a friend on your song; docs/pricing-plan.md). Anything else, an older app's plus_song or workout
+     * too, is "other".
      */
-    public const MOMENTS = ['storage_limit', 'mp3', 'stems', 'guide', 'private_template', 'settings'];
+    public const MOMENTS = ['storage_limit', 'mp3', 'stems', 'guide', 'private_template', 'settings', 'group_start', 'invite_friend'];
 
     public function __construct(private readonly BillingGateway $gateway, private readonly BillingState $state, private readonly Plans $plans, private readonly TrustLevel $trust) {}
 

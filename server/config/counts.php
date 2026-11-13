@@ -93,6 +93,14 @@ return [
         'lesson_song_open', 'lesson_song_back',
         'cr_open', 'cr_notes', 'cr_part2', 'cr_saved', 'cr_shared',
         'grp_start', 'grp_made', 'grp_link', 'grp_joined', 'grp_assigned', 'grp_sang',
+        // Be the voice, the recording ladder (docs/open-guide-voices-plan.md): the call to action seen and tapped, a take
+        // recorded, an account made after one, kept privately, shared publicly, offered as a guide (the server's own are
+        // in server_kinds).
+        'be_voice_shown', 'be_voice_tap', 'rec_take', 'acct_after_take', 'take_saved_private', 'take_shared_public', 'guide_offered',
+        // Teaming up is Plus (frontend2, 2026-11-12/13): Start a group's Plus sheet shown, a paused choir's join page shown, a
+        // new group's "Send this link to your choir" shown and sent, a friend from lesson 1's note card asked for and finding
+        // their own note, and the app opened from the range test's result.
+        'grp_plus_seen', 'grp_paused_seen', 'grp_link_shown', 'grp_link_sent', 'note_friend_seen', 'note_friend_found', 'tool_range_in',
         'part_sing', 'share_opened', 'invite_sung',
         // Weekly use of what section 2 found under-used, once a device a week (read against app_week).
         'use_library', 'use_song_course', 'use_course', 'use_workout', 'use_boss', 'use_studio', 'use_group', 'use_tools', 'remind_on',
@@ -152,6 +160,9 @@ return [
     'song_offers' => ['u1', 'u2', 'u3', 'u4', 'wall'],
 
     // The features breadth counts (ft:<feature>), each a device's first use.
+    // Admin > Live's per-minute heartbeat counts (App\Support\Live\LiveBeats): a cache store, never the database.
+    'live_store' => 'file',
+
     'features' => ['lesson', 'warmup', 'singalong', 'record', 'stack', 'whole', 'course', 'create', 'share', 'together', 'tool'],
 
     // What can be shared, and how (sh:<surface>.<method>); each surface's own source tag is share-<surface>
@@ -162,7 +173,9 @@ return [
     // Kinds only the server counts, never taken from counts.create: the mudeo email's link opened in
     // a browser, and someone who came from it making a first song or finishing a lesson (Hillel,
     // 2026-10-29: "Anonymous totals").
-    'server_kinds' => ['mudeo_visit', 'mudeo_used', 'plus_started'],
+    'server_kinds' => [
+        // Be the voice's ladder (docs/open-guide-voices-plan.md): a volunteer's take sent, a guide published, a take not chosen.
+        'take_sent', 'guide_published', 'guide_not_chosen', 'mudeo_visit', 'mudeo_used', 'plus_started'],
 
     // A shared link's page opened, counted by the server as so:<surface> (docs/retention-plan.md, sharing): a shared
     // song's page, an invite to sing a part, Hillel's invite link, a choir group's join link, a challenge. By surface

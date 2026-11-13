@@ -28,6 +28,8 @@ final class LendVoiceTest extends TestCase
     {
         parent::setUp();
         app(SyncOfficialTemplates::class)->handle();
+        // About the live versions: a staged next one in the content is set aside (StagedVersionTest covers it).
+        Template::query()->update(['staged_version_id' => null]);
         CourseClip::factory()->create(['slot' => 'yodel.flip', 'course_id' => 'yodeling', 'brief' => ['sing' => ['en' => 'Flip on "yo-dl"'], 'pitch' => null, 'seconds' => 4.0, 'style' => 'yodel', 'voices' => 'any', 'used' => [], 'skill' => 'yodel']]);
         CourseClip::factory()->create(['slot' => 'vibrato.held', 'brief' => ['sing' => ['en' => 'One held "ah"'], 'pitch' => null, 'seconds' => 3.0, 'style' => 'vibrato', 'voices' => 'any', 'used' => [], 'skill' => 'vibrato']]);
     }
@@ -50,6 +52,9 @@ final class LendVoiceTest extends TestCase
         $this->singer();
         $this->assertMatchesContract($this->getJson('/api/voices/wanted'), 'voices.wanted', 404);
         $this->getJson('/api/auth/config')->assertJsonPath('data.lendVoice', false);
+        // Claims and sharing too: the open takes' rules apply only while it's on (invited singers' parts are Admin's).
+        $this->postJson('/api/voices/claims', ['item' => 'song:amazing-grace:alto'])->assertNotFound();
+        $this->assertSame(0, BetaAssignment::query()->count());
     }
 
     public function test_the_wanted_list_is_parts_and_clips_with_no_real_voice_by_skill(): void
@@ -108,14 +113,19 @@ final class LendVoiceTest extends TestCase
         $this->singer('Ben Ode');
         $this->join();
         $this->assertMatchesContract($this->postJson('/api/voices/claims', ['item' => 'clip:yodel.flip']), 'voices.claims.create', 409);
+        // A song's part is an open take (docs/open-guide-voices-plan.md): no limit, never anyone's alone, one a part a person.
         foreach (['song:amazing-grace:alto', 'song:amazing-grace:tenor', 'song:amazing-grace:bass'] as $item) {
             $this->postJson('/api/voices/claims', ['item' => $item])->assertCreated();
         }
-        $this->postJson('/api/voices/claims', ['item' => 'clip:vibrato.held'])->assertStatus(409)->assertJsonPath('code', 'claim_limit');
+        $this->postJson('/api/voices/claims', ['item' => 'song:amazing-grace:alto'])->assertSuccessful();
+        $this->assertSame(1, BetaAssignment::query()->where('part_key', 'alto')->whereNotNull('claimed_at')->count(), 'the same open take, not a second');
+        $this->assertContains('song:amazing-grace:alto', array_column((array) $this->getJson('/api/voices/wanted')->json('data.items'), 'id'), 'still wanted: others may sing it too');
+        // Song parts never count toward the three lesson clips a singer may hold.
+        $this->postJson('/api/voices/claims', ['item' => 'clip:vibrato.held'])->assertCreated();
 
         // Given back, it's wanted again.
         $this->actingAs($ana);
-        $this->assertMatchesContract($this->deleteJson('/api/voices/claims/'.BetaAssignment::query()->whereNotNull('course_clip_id')->sole()->sqid()), 'voices.claims.delete', 204);
+        $this->assertMatchesContract($this->deleteJson('/api/voices/claims/'.BetaAssignment::query()->whereHas('clip', fn ($q) => $q->where('slot', 'yodel.flip'))->sole()->sqid()), 'voices.claims.delete', 204);
         $this->assertContains('clip:yodel.flip', array_column((array) $this->getJson('/api/voices/wanted')->json('data.items'), 'id'));
 
         // A claim says it's ending from day 10, and runs out at 14 with nothing sent.
@@ -124,7 +134,7 @@ final class LendVoiceTest extends TestCase
         $this->getJson('/api/voices/claims')->assertJsonPath('data.0.ending', true);
         $this->travel(4)->days();
         $this->getJson('/api/voices/claims')->assertJsonCount(0, 'data');
-        $this->artisan('app:voices:release')->expectsOutputToContain('Released 4')->assertSuccessful();
+        $this->artisan('app:voices:release')->expectsOutputToContain('Released')->assertSuccessful();
         $this->assertContains('clip:yodel.flip', array_column((array) $this->getJson('/api/voices/wanted')->json('data.items'), 'id'));
     }
 

@@ -54,6 +54,8 @@ final class DirectorImportTest extends TestCase
 
     private function group(string $name = 'Thursday Singers'): string
     {
+        $this->withPlus();
+
         return (string) $this->postJson('/api/groups', ['name' => $name, 'adult' => true])->assertCreated()->json('data.id');
     }
 

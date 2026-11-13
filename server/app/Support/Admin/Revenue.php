@@ -38,6 +38,7 @@ final class Revenue
      * @return array{
      *     mrr: list<array{currency: string, cents: int}>,
      *     arr: list<array{currency: string, cents: int}>,
+     *     ifAllConvert: array{mrr: list<array{currency: string, cents: int}>, arr: list<array{currency: string, cents: int}>},
      *     monthAgo: list<array{currency: string, cents: int}>,
      *     unpriced: int,
      *     subscribers: list<array{state: string, store: string, plan: string, count: int}>,
@@ -74,9 +75,13 @@ final class Revenue
             ];
         }
 
+        // If every web trial running now goes on to pay (Admin > Live, docs/realtime-dashboard-plan.md).
+        $converted = $this->mrrIfAllConvert($now, $web, $mrr);
+
         return [
             'mrr' => self::money($mrr),
             'arr' => self::money($arr),
+            'ifAllConvert' => ['mrr' => self::money($converted), 'arr' => self::money(array_map(fn (float $cents): float => $cents * 12, $converted))],
             'monthAgo' => self::money($monthAgo),
             'unpriced' => $unpriced,
             'subscribers' => $this->subscribers($web, $stores, $now),
@@ -167,6 +172,29 @@ final class Revenue
         $unpriced += $stores->filter(fn (StoreSubscription $s): bool => $s->created_at !== null && $s->created_at->lte($at) && ((self::storeEnd($s)?->gt($at)) ?? true))->count();
 
         return [$cents, $unpriced];
+    }
+
+    /**
+     * Today's MRR with every web trial still running (not cancelling) counted at its price.
+     *
+     * @param  Collection<int, Web>  $web
+     * @param  array<string, float>  $mrr  today's
+     * @return array<string, float>
+     */
+    private function mrrIfAllConvert(Carbon $now, Collection $web, array $mrr): array
+    {
+        foreach ($web as $s) {
+            if ($s['status'] !== 'trialing' || $s['ends'] !== null || self::webBilledAt($s, $now)) {
+                continue;
+            }
+            $currency = $this->currencies[$s['user']] ?? null;
+            $amount = $currency !== null && $s['plan'] !== null ? config('billing.amounts.'.$currency.'.'.$s['plan']) : null;
+            if (is_int($amount)) {
+                $mrr[$currency] = ($mrr[$currency] ?? 0.0) + ($s['plan'] === 'year' ? $amount / 12 : $amount);
+            }
+        }
+
+        return $mrr;
     }
 
     /**

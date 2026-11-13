@@ -107,7 +107,8 @@ final class CarolsPageTest extends TestCase
                 $this->get($page)->assertOk()->assertSee($link, false);
             }
         }
-        $this->get('/')->assertSee(__('pages.landing.carols'));
+        // As read: its last word sits with the arrow in a span that never wraps.
+        $this->get('/')->assertSeeText(__('pages.landing.carols'));
 
         foreach (['2026-12-27 08:00:00', '2027-01-06 12:00:00', '2027-10-31 20:00:00'] as $day) {
             $this->travelTo($day);

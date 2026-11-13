@@ -62,3 +62,18 @@ if (visit) {
     const { kind } = JSON.parse(visit.textContent);
     navigator.sendBeacon?.('/api/counts', new Blob([JSON.stringify({ events: [{ kind }], signedIn: false })], { type: 'application/json' }));
 }
+
+// Admin > Live's heartbeat for the public pages (docs/realtime-dashboard-plan.md; Hillel: "Allow, cache only"): the same
+// section, no ID and no path, once as this page's view and then every 30 seconds while the tab is in view, so "right now"
+// counts the people reading the site. Only where the section count goes (counts on, the public site). A page timer, never
+// for audio.
+if (visit) {
+    const section = String(JSON.parse(visit.textContent).kind ?? '').replace(/^sv_/, '');
+    const area = section === 'tools' ? 'tools' : 'site';
+    const beat = (view) => {
+        if (document.visibilityState !== 'visible' || !/^[a-z0-9_-]{1,40}$/.test(section)) return;
+        navigator.sendBeacon?.('/api/live/beat', new Blob([JSON.stringify({ area, page: section, view })], { type: 'application/json' }));
+    };
+    beat(true);
+    setInterval(() => beat(false), 30000);
+}

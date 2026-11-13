@@ -100,6 +100,14 @@ Schedule::command('app:voices:release')
     ->withoutOverlapping(30)
     ->runInBackground();
 
+// Be the voice: a take shared before its email was confirmed goes on once it is.
+Schedule::command('app:voices:release-held')
+    ->onOneServer()
+    ->name('voices-release-held')
+    ->everyFiveMinutes()
+    ->withoutOverlapping(10)
+    ->runInBackground();
+
 Schedule::command('app:boards:prune-daily')
     ->onOneServer()
     ->name('boards-prune-daily')

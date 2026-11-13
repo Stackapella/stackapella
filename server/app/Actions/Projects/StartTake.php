@@ -92,6 +92,12 @@ final class StartTake
 
         $this->plans->ensureEditable($owner, $part->project);
 
+        // A friend singing on someone's song: only while its owner has Plus (docs/pricing-plan.md, 2026-11-12). The
+        // owner singing their own song alone is always free.
+        if ($part->project->user_id !== $user->id && ! $this->plans->sharedOpen($owner)) {
+            throw new Refusal(403, 'shared_paused');
+        }
+
         if ($this->trust->of($user) === TrustLevel::NEW) {
             throw new Refusal(403, 'email_unverified');
         }

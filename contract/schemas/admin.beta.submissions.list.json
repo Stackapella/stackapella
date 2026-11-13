@@ -14,7 +14,92 @@
             }
         },
         "meta": {
-            "$ref": "meta.json"
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "nextCursor"
+            ],
+            "properties": {
+                "nextCursor": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "description": "Pass as ?cursor= for the next page; null on the last."
+                },
+                "groups": {
+                    "type": "array",
+                    "description": "With ?groupBy=part: this page's takes by song part, the oldest waiting first; each take's id is in data.",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "templateId",
+                            "title",
+                            "version",
+                            "partKey",
+                            "partName",
+                            "guide",
+                            "takes"
+                        ],
+                        "properties": {
+                            "templateId": {
+                                "type": "string"
+                            },
+                            "title": {
+                                "type": "string"
+                            },
+                            "version": {
+                                "type": "integer"
+                            },
+                            "partKey": {
+                                "type": "string"
+                            },
+                            "partName": {
+                                "type": "string"
+                            },
+                            "guide": {
+                                "type": [
+                                    "object",
+                                    "null"
+                                ],
+                                "additionalProperties": false,
+                                "required": [
+                                    "submission",
+                                    "singer"
+                                ],
+                                "properties": {
+                                    "submission": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ]
+                                    },
+                                    "singer": {
+                                        "type": "object",
+                                        "additionalProperties": false,
+                                        "required": [
+                                            "name"
+                                        ],
+                                        "properties": {
+                                            "name": {
+                                                "type": "string"
+                                            }
+                                        }
+                                    }
+                                },
+                                "description": "The part's guide now, or null."
+                            },
+                            "takes": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }

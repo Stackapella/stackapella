@@ -22,7 +22,8 @@
         "openedAt",
         "season",
         "group",
-        "titles"
+        "titles",
+        "wantsVoice"
     ],
     "properties": {
         "id": {
@@ -199,6 +200,10 @@
                 }
             },
             "description": "The song's own titles in other languages, by language code (Frère Jacques in es); only the languages the site offers."
+        },
+        "wantsVoice": {
+            "type": "boolean",
+            "description": "An open song with a part still on the synth: Be the voice may ask for it."
         }
     },
     "title": "A song in the catalogue: what anyone may see, never the notes"

@@ -26,6 +26,23 @@ final class SongCollections
         'folk-songs' => ['folk'],
         // Not With Cat-like Tread: a comic opera chorus is neither barbershop nor parlour (the coordinator, 2026-11-12).
         'barbershop-songs' => ['barbershop', 'parlour song', 'early popular song'],
+        // Scottish songs, New Year's and Burns Night's page too (the demand check, 2026-11-12: one page, not two).
+        'scottish-songs' => ['scottish'],
+        // Spanish Christmas carols, for the Spanish site above all (Hillel's new collections, 2026-11-12).
+        'villancicos' => ['villancico'],
+        // Thanksgiving and harvest hymns (the demand check: a page only as harvest hymns too, so it earns in the autumn
+        // harvest season as well as in November). They're hymns as well, and the hymns page keeps them.
+        'thanksgiving-hymns' => ['thanksgiving'],
+        // Shaker songs, led by Simple Gifts, our biggest search cluster (Hillel, 2026-11-12).
+        'shaker-songs' => ['shaker'],
+    ];
+
+    /**
+     * Songs a collection lists by name though their file's genre doesn't name it: Simple Gifts is a Shaker song, tagged
+     * folk and hymn in its file.
+     */
+    public const MEMBERS = [
+        'shaker-songs' => ['simple-gifts'],
     ];
 
     /**
@@ -34,13 +51,22 @@ final class SongCollections
      * rounds; a song in none is under "more".
      */
     public const GROUPS = [
+        // Before Christmas: a villancico's own page is its home, its trail and its group, when that page is open.
+        'villancicos' => ['villancico'],
         'christmas' => ['christmas', 'carol'],
         // Before folk: the Jewish songs are traditional too, and their page is theirs (2026-11-11).
         'jewish-songs' => ['jewish'],
         'rounds' => ['round'],
         'spirituals' => ['spiritual'],
+        // Before the hymns and folk: a Shaker song's home and trail is its own page while it's open, Simple Gifts too (MEMBERS).
+        'shaker-songs' => ['shaker'],
+        // Before the hymns: a Thanksgiving hymn's home and trail is its own page, while that page is open.
+        'thanksgiving-hymns' => ['thanksgiving'],
         'hymns' => ['hymn', 'gospel'],
         'sea-shanties' => ['sea shanty'],
+        // Before folk: the Scottish songs are folk songs too, and their own page is their group and home while it's open
+        // (OPEN_ONLY), so Folk songs lists them only until then.
+        'scottish-songs' => ['scottish'],
         'folk-songs' => ['folk', 'traditional', 'celebration'],
         'classical' => ['classical', 'latin', 'choral'],
         'barbershop-songs' => ['barbershop', 'parlour song', 'early popular song', 'musical theatre'],
@@ -51,6 +77,12 @@ final class SongCollections
      * carol, which keep their own pages, so Folk songs lists the 10 that are only folk (the coordinator, 2026-11-12).
      */
     public const OWN_GROUP_ONLY = ['folk-songs', 'barbershop-songs'];
+
+    /**
+     * Groups that hold their songs only while their page is open: a Scottish song stays on Folk songs until the Scottish
+     * page has its four, so no song is ever on neither.
+     */
+    public const OPEN_ONLY = ['scottish-songs', 'villancicos', 'thanksgiving-hymns', 'shaker-songs'];
 
     /** Fewer open songs than this and the collection isn't a page (it would be thin). */
     public const MIN = 4;
@@ -132,7 +164,7 @@ final class SongCollections
         }
 
         $members = $this->members[$slug] ??= array_values($this->parts->songs()
-            ->filter(static fn (Template $template): bool => self::collects($slug, $template))
+            ->filter(fn (Template $template): bool => $this->collects($slug, $template))
             ->map(static fn (Template $template): string => (string) $template->slug)
             ->all());
 
@@ -147,17 +179,17 @@ final class SongCollections
      * 2026-11-10: each collection linked from its songs): the first of /songs's groups, in order, whose page lists it,
      * the carols page only while the carols are linked (Carols::linked), or null.
      *
-     * @return array{path: string, name: string, more: string}|null
+     * @return array{key: string, path: string, name: string, more: string}|null
      */
     public function home(string $song): ?array
     {
         foreach (array_keys(self::GROUPS) as $key) {
             if ($key === 'christmas') {
                 if (Carols::linked() && Carols::has($song)) {
-                    return ['path' => Carols::PATH, 'name' => (string) __('site.carols.crumb'), 'more' => (string) __('site.carols.links.part')];
+                    return ['key' => 'christmas', 'path' => Carols::PATH, 'name' => (string) __('site.carols.crumb'), 'more' => (string) __('site.carols.links.part')];
                 }
             } elseif (in_array($song, $this->members($key), true)) {
-                return ['path' => self::path($key), 'name' => (string) __('site.collections.'.$key.'.crumb'), 'more' => (string) __('site.collections.'.$key.'.more')];
+                return ['key' => $key, 'path' => self::path($key), 'name' => (string) __('site.collections.'.$key.'.crumb'), 'more' => (string) __('site.collections.'.$key.'.more')];
             }
         }
 
@@ -183,7 +215,7 @@ final class SongCollections
         $newest = null;
         foreach ($this->parts->songs() as $template) {
             $when = $template->currentVersion->created_at ?? null;
-            if (isset(self::COLLECTIONS[$slug]) && self::collects($slug, $template) && $when !== null && ($newest === null || $when->greaterThan($newest))) {
+            if (isset(self::COLLECTIONS[$slug]) && $this->collects($slug, $template) && $when !== null && ($newest === null || $when->greaterThan($newest))) {
                 $newest = $when;
             }
         }
@@ -232,12 +264,28 @@ final class SongCollections
         return $groups;
     }
 
-    /** Whether a collection's page lists a song: one of its genres, and for OWN_GROUP_ONLY its /songs group too. */
-    private static function collects(string $slug, Template $template): bool
+    /**
+     * Whether a collection's page lists a song: one of its genres, and for OWN_GROUP_ONLY its /songs group too, counting an
+     * OPEN_ONLY group only while its page is open.
+     */
+    private function collects(string $slug, Template $template): bool
     {
         $own = array_map(static fn (string $g): string => strtolower(trim($g)), array_values(array_filter((array) (((array) $template->currentVersion?->data)['genre'] ?? []), 'is_string')));
+        if (in_array((string) $template->slug, self::MEMBERS[$slug] ?? [], true)) {
+            return true;
+        }
+        if (array_intersect($own, self::COLLECTIONS[$slug]) === []) {
+            return false;
+        }
+        if (! in_array($slug, self::OWN_GROUP_ONLY, true)) {
+            return true;
+        }
+        foreach (self::GROUPS as $key => $names) {
+            if (array_intersect($own, $names) !== [] && (! in_array($key, self::OPEN_ONLY, true) || $this->members($key) !== [])) {
+                return $key === $slug;
+            }
+        }
 
-        return array_intersect($own, self::COLLECTIONS[$slug]) !== []
-            && (! in_array($slug, self::OWN_GROUP_ONLY, true) || self::group($own) === $slug);
+        return false;
     }
 }

@@ -16,7 +16,8 @@
     "/js/public/voices.js",
     "/js/storage.js",
     "/js/scoring.js",
-    "/js/pitchtrack.js"
+    "/js/pitchtrack.js",
+    "/js/flip-key.js"
   ],
   "/js/public/tools/chord-transposer.js": [
     "/js/public/tools/chord-transposer.js",
@@ -60,7 +61,8 @@
     "/js/theory.js",
     "/js/storage.js",
     "/js/scoring.js",
-    "/js/pitchtrack.js"
+    "/js/pitchtrack.js",
+    "/js/flip-key.js"
   ],
   "/js/public/tools/interval-trainer.js": [
     "/js/public/tools/interval-trainer.js",
@@ -79,7 +81,8 @@
     "/js/public/voices.js",
     "/js/storage.js",
     "/js/scoring.js",
-    "/js/pitchtrack.js"
+    "/js/pitchtrack.js",
+    "/js/flip-key.js"
   ],
   "/js/public/tools/intonation-meter.js": [
     "/js/public/tools/intonation-meter.js",
@@ -435,6 +438,9 @@
     "/js/public/site.js",
     "/js/public/game-toggle.js",
     "/js/public/season.js"
+  ],
+  "/js/public/song-page.js": [
+    "/js/public/song-page.js"
   ],
   "/js/public/song-part-page.js": [
     "/js/public/song-part-page.js",

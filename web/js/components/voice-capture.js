@@ -53,6 +53,9 @@ export const VoiceCapture = {
         color: { type: String, default: 'var(--color-part-1)' }, // the live colour (--capture-live); found, the accent (--capture-done)
         holdSeconds: { type: Number, default: HOLD_SECONDS },
         best: { type: Number, default: null }, // the range check's note so far (the host's)
+        // Lesson 1's first capture (the first-week UX review, 2026-11-12): the mic's name, Change and the zoom row wait until
+        // something is wrong (the mic blocked, or no sound: then the no-sound card names the mic and offers another).
+        calm: Boolean,
     },
     emits: ['found', 'held', 'no-sound', 'again'],
     data: () => ({ phase: 'idle', shown: null, markerAlpha: 1, span: WIDE_SPAN, centre: 57, hold: 0, level: 0, db: null, nudge: null, why: null, found: null, showMic: false, switching: false, checking: false, micWorks: false, spoken: '', heldNote: null }),
@@ -112,7 +115,7 @@ export const VoiceCapture = {
                             </div>
                             <div class="absolute top-0 h-10 w-0.5 -translate-x-1/2 rounded-full" :style="{ left: '50%', background: accent, opacity: shown === null ? 0.35 : 1 }"></div>
                         </div>
-                        <div class="flex items-center justify-between text-xs text-muted" aria-hidden="true" data-ui="capture-zoom">
+                        <div v-if="!calm" class="flex items-center justify-between text-xs text-muted" aria-hidden="true" data-ui="capture-zoom">
                             <span>{{ t('capture.lower') }}</span>
                             <span class="flex items-center gap-1" data-zoom-dots><span v-for="i in 3" :key="i" class="size-1.5 rounded-full" :class="i - 1 <= zoom ? '' : 'bg-line'" :style="i - 1 <= zoom ? { background: accent } : null"></span><span class="ms-1">{{ t(zoomWord) }}</span></span>
                             <span>{{ t('capture.higher') }}</span>
@@ -121,7 +124,7 @@ export const VoiceCapture = {
                     <p v-if="phase === 'found' && mode === 'note'" class="max-w-sm text-cream" data-suits>{{ t(partsFor(found)) }}</p>
                     <button v-if="phase === 'blocked'" type="button" class="btn-secondary" @click="start"><Icon name="mic" :size="18" /> {{ t('listening.micAgain') }}</button>
                     <!-- The mic, named, with its level and Change. -->
-                    <div class="flex w-full items-center gap-2.5 border-t border-line pt-3" data-mic-row data-ui="capture-mic">
+                    <div v-if="!calm || phase === 'blocked'" class="flex w-full items-center gap-2.5 border-t border-line pt-3" data-mic-row data-ui="capture-mic">
                         <span class="flex h-4 shrink-0 items-end gap-[3px]" aria-hidden="true" data-ui="capture-level"><span v-for="bar in LEVEL_BARS" :key="bar" class="w-[3px] rounded-full" :class="level >= bar * 0.9 ? 'bg-cream' : 'bg-line'" :style="{ height: 4 + bar * 12 + 'px' }"></span></span>
                         <span class="min-w-0 flex-1 truncate text-start text-[0.8125rem] text-muted" translate="no">{{ micName }}</span>
                         <button type="button" class="link-quiet min-h-11 text-[0.8125rem] font-semibold" :aria-expanded="showMic ? 'true' : 'false'" @click="showMic = !showMic">{{ t('capture.change') }}</button>

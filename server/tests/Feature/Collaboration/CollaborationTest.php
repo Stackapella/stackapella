@@ -13,6 +13,7 @@ use App\Models\ProjectInvite;
 use App\Models\ProjectMember;
 use App\Models\Take;
 use App\Models\User;
+use App\Support\Flags;
 use App\Support\Usage\Plans;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Storage;
@@ -53,6 +54,7 @@ final class CollaborationTest extends TestCase
 
     private function inviteToken(string $project): string
     {
+        $this->withPlus();
         $url = (string) $this->postJson('/api/projects/'.$project.'/invites', ['partKey' => 'tenor', 'partName' => 'Tenor'])->assertCreated()->json('data.url');
 
         return Str::afterLast($url, '/join/');
@@ -64,6 +66,7 @@ final class CollaborationTest extends TestCase
         $owner = $this->owner();
         [$project, $part] = $this->projectWithPart();
 
+        $this->withPlus();
         $made = $this->postJson('/api/projects/'.$project.'/invites', ['partKey' => 'tenor', 'partName' => 'Tenor']);
         $this->assertMatchesContract($made, 'invites.create', 201);
         $token = Str::afterLast((string) $made->json('data.url'), '/join/');
@@ -152,14 +155,14 @@ final class CollaborationTest extends TestCase
 
     public function test_how_many_may_sing_follows_the_plans_limit(): void
     {
-        // Friends are free (2026-11-07): the free plan takes as many as Plus. Two here, to fill it.
-        $this->assertSame(config('usage.plans.plus.singers'), config('usage.plans.free.singers'));
-        config(['usage.plans.free.singers' => 2]);
+        // Inviting needs Plus (2026-11-12), so the owner's Plus sets how many may sing. Two here, to fill it.
+        config(['usage.plans.plus.singers' => 2]);
         $this->owner();
         [$project] = $this->projectWithPart();
 
         $this->inviteToken($project);
         $this->inviteToken($project);
+        $this->withPlus();
         $full = $this->postJson('/api/projects/'.$project.'/invites', []);
         $this->assertMatchesContract($full, 'invites.create', 403);
         $full->assertJsonPath('code', 'invite_limit');
@@ -184,9 +187,65 @@ final class CollaborationTest extends TestCase
 
     }
 
+    public function test_with_plus_teams_off_a_free_owner_invites_and_their_friends_sing_as_before(): void
+    {
+        // The plus_teams switch off (its default): singing with friends is free, as since 2026-11-07.
+        $owner = $this->owner();
+        [$project] = $this->projectWithPart();
+        $made = $this->postJson('/api/projects/'.$project.'/invites', ['partKey' => 'tenor', 'partName' => 'Tenor']);
+        $this->assertMatchesContract($made, 'invites.create', 201);
+        $token = Str::afterLast((string) $made->json('data.url'), '/join/');
+        $this->as(User::factory()->create());
+        $this->postJson('/api/join/'.$token)->assertOk();
+        $theirs = (string) Str::uuid();
+        $this->savePart($theirs, $project, 0, ['name' => 'Tenor', 'templatePartKey' => 'tenor'])->assertOk();
+        $this->startTake((string) Str::uuid(), $theirs, Wav::tone(0.5))->assertCreated();
+        $this->getJson('/api/projects/'.$project)->assertOk()->assertJsonPath('data.project.readOnly', null);
+        $this->assertSame('free', app(Plans::class)->plan($owner));
+    }
+
+    public function test_inviting_needs_plus_friends_join_free_and_a_lapsed_owners_song_pauses_for_them(): void
+    {
+        app(Flags::class)->set('plus_teams', 'on', null, 'test');
+        // Whoever starts the shared song needs Plus; everyone invited joins free (docs/pricing-plan.md, 2026-11-12).
+        $owner = $this->owner();
+        [$project, $ownersPart] = $this->projectWithPart();
+        $refused = $this->postJson('/api/projects/'.$project.'/invites', []);
+        $this->assertMatchesContract($refused, 'invites.create', 403);
+        $refused->assertJsonPath('code', 'plus_required');
+
+        $token = $this->inviteToken($project);
+        $later = $this->inviteToken($project);
+        $this->as(User::factory()->create(['name' => 'Sam Lee']));
+        $this->postJson('/api/join/'.$token)->assertOk();
+        $theirs = (string) Str::uuid();
+        $this->savePart($theirs, $project, 0, ['name' => 'Tenor', 'templatePartKey' => 'tenor'])->assertOk();
+        $wav = Wav::tone(0.5);
+
+        // The owner's Plus ends: the song pauses for its friends. They listen and keep every take; they record nothing
+        // new on it, and nobody new joins (a calm refusal, nothing to buy).
+        User::query()->whereKey($owner->id)->update(['plan' => 'free']);
+        $paused = $this->startTake((string) Str::uuid(), $theirs, $wav);
+        $this->assertMatchesContract($paused, 'takes.create', 403);
+        $paused->assertJsonPath('code', 'shared_paused');
+        $shown = $this->getJson('/api/projects/'.$project)->assertOk();
+        $this->assertMatchesContract($shown, 'projects.show', 200);
+        $shown->assertJsonPath('data.project.readOnly', 'plus_ended');
+
+        $this->as(User::factory()->create());
+        $join = $this->postJson('/api/join/'.$later);
+        $this->assertMatchesContract($join, 'invites.accept', 403);
+        $join->assertJsonPath('code', 'shared_paused');
+
+        // The owner still sings their own song alone, free, and it isn't read-only for them.
+        $this->as($owner);
+        $this->startTake((string) Str::uuid(), $ownersPart, $wav)->assertCreated();
+        $this->getJson('/api/projects/'.$project)->assertOk()->assertJsonPath('data.project.readOnly', null);
+    }
+
     public function test_a_full_project_refuses_one_more_singer(): void
     {
-        config(['usage.plans.free.singers' => 2]);
+        config(['usage.plans.plus.singers' => 2]);
         $owner = $this->owner();
         [$project] = $this->projectWithPart();
         $tokens = [$this->inviteToken($project), $this->inviteToken($project)];

@@ -35,6 +35,46 @@ return [
         'more' => 'More songs to learn',
         'end_title' => 'Learn :title, part by part.',
         'end_free' => 'Start with the part that fits your voice. It\'s free.',
+        // Hillel's song page design (Danny Boy v2, "Responsive wrapping fixes"): the hero's actions, "Find your part" with
+        // each part's one true tag, the words, and the story (App\Support\Pages\SongStories) with its contents and sources.
+        'learn_part' => 'Learn the :part part',
+        'check_range' => 'Check my range',
+        'find' => 'Find your part',
+        'find_lead' => 'Pick the one that sits where you sing comfortably. The page follows your pick.',
+        'tag' => ['melody' => 'Melody', 'lowest' => 'Lowest part', 'smallest' => 'Smallest range', 'widest' => 'Widest range', 'harmony' => 'Harmony'],
+        'pick' => 'Pick the :part part',
+        'picked' => 'Your part',
+        'pick_this' => 'Pick this part',
+        'hear_alone' => 'Hear the :part alone',
+        'words_heading' => 'The words',
+        'meaning_show' => 'Show the meaning',
+        // A long song's words fold after three stanzas (public._song-words).
+        'all_verses' => 'Show all :count verses',
+        'meaning_hide' => 'Hide the meaning',
+        // Each part's guide voice, and the true ask where none is a real singer yet (Hillel: "asking the person to sing and
+        // become the voice"; the landing's guide voices words: may be chosen, never promised).
+        // The whole mix by the hero's actions (public/_song-mix), once the server has it.
+        'mix_label' => 'Hear all :count parts',
+        'mix_cta' => 'Sing along: pick your part',
+        'mix_sung' => ':part sung by :name',
+        'mix_synth' => 'Synthesized voices',
+        'mix_rest_synth' => 'the other parts synthesized',
+        'voice_real' => 'Real voice',
+        'voice_generated' => 'Generated voice',
+        'be_voice' => 'Be the voice: sing the :part',
+        'be_voice_note' => 'Some parts still have the app\'s own voice. Sing one, make your harmony public and say yes to featuring it, and we may choose your part as the voice others learn from, credited to you by your profile name. Free, for singers 18 and over.',
+        'story' => [
+            'heading' => 'The story of :song',
+            'contents' => 'On this page',
+            'facts' => 'At a glance',
+            'fact' => ['words' => 'Words', 'tune' => 'Tune', 'tuneName' => 'Tune name', 'meter' => 'Meter', 'earliestPrinting' => 'Earliest known printing', 'language' => 'Language', 'origin' => 'Origin', 'occasion' => 'Sung at', 'alsoKnownAs' => 'Also known as'],
+            'timeline' => 'Timeline',
+            'sources' => 'Sources',
+            'checked' => 'Checked against :count sources, :date.',
+            'original' => 'See the original',
+            'listen' => 'Hear it',
+            'source_link' => 'Read it',
+        ],
     ],
     // The shared harmony's own frame (views/public/harmony.blade.php; its other words are sharing.php).
     'harmony_page' => [
@@ -561,6 +601,12 @@ return [
             'your_part' => ':part, your part, louder',
             'parts_label' => 'Your part',
             'voice_switch' => ':part voice',
+            // The row of chips under the voices: hear one part alone, or all of them (a singer: "on a phone, it was hard to
+            // figure out how to change to listen to one part or another").
+            'hear_lead' => 'Tap a part to hear it on its own',
+            'hear' => 'Hear:',
+            'hear_all' => 'All parts',
+            'hear_only' => 'Hear the :part alone',
             'alt' => ':song\'s first line, ":words", in four parts: the soprano sings the tune, with the alto, tenor and bass under it. Your part is the :you. Press a voice to take it out of the harmony or bring it back.',
             'alt_whole' => 'All of :song, from ":words", in its parts: the tune with the others under it. Your part is the :you. Press a voice to take it out of the harmony or bring it back.',
             'parts' => ['soprano' => 'Soprano', 'alto' => 'Alto', 'tenor' => 'Tenor', 'bass' => 'Bass'],
@@ -822,7 +868,7 @@ return [
             'stems' => ['Export each part on its own', 'Each take as recorded, from Download my data', 'Yes'],
             'share' => ['Share links and share videos', 'Yes', 'Yes'],
             'templates' => ['Private or unlisted arrangements of your own', ':free', ':plus'],
-            'guides' => ['Your own voice as a song\'s guide', 'No', 'Yes'],
+            'guides' => ['Your own voice as a song\'s guide', 'Yes', 'Yes'],
             'groups' => ['Choir groups (18 and over)', 'Yes', 'Yes'],
             'coaching' => ['Buy take reviews and lessons from coaches', 'Yes', 'Yes'],
         ],

@@ -52,13 +52,15 @@
         "status": {
             "type": "string",
             "enum": [
+                "held",
                 "to_record",
                 "submitted",
                 "in_review",
                 "retake",
                 "guide",
                 "accepted",
-                "rejected"
+                "rejected",
+                "not_chosen"
             ]
         },
         "kind": {

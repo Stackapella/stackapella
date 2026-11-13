@@ -16,6 +16,11 @@ import { toast } from '../components/ui.js';
 import { account, loadAccount, loadAuthConfig } from '../stores/account.js';
 import { Agreement } from './beta.js';
 import { AccountWall } from '../components/account-wall.js';
+import { loadProjects, projects } from '../stores/projects.js';
+import { loadCatalogue } from '../stores/catalogue.js';
+import { needsVoice } from '../be-the-voice.js';
+import { templatePartName } from '../templates.js';
+import { songTitle } from '../song-titles.js';
 
 const KINDS = ['all', 'songs', 'clips'];
 const KIND_WORDS = { all: tk('voices.kind.all'), songs: tk('voices.kind.songs'), clips: tk('voices.kind.clips') };
@@ -41,6 +46,18 @@ export const VoicesView = {
     setup: () => ({ KINDS, KIND_WORDS, account, day, navigate }),
     template: `
         <AppScreen :title="t('voices.title')" back="/settings" :measure="state === 'volunteer' ? '' : 'max-w-3xl'">
+            <!-- Ready to share (Be the voice; the engagement review): your takes of parts that still have no voice, earlier Not nows
+                 included. Each opens its take in Sing with the share sheet. -->
+            <section v-if="account.me && ready.length" class="mb-8 space-y-3" aria-labelledby="voices-ready" data-voices-ready>
+                <h2 id="voices-ready" class="text-xl font-extrabold tracking-tight text-cream">{{ t('voices.ready.title') }}</h2>
+                <p class="text-sm text-muted">{{ t('voices.ready.line') }}</p>
+                <ul class="card divide-y divide-line">
+                    <li v-for="r in ready" :key="r.projectId + ':' + r.partKey" class="flex flex-wrap items-center gap-3 p-4">
+                        <span class="min-w-0 flex-1"><span class="block font-bold text-cream" translate="no">{{ r.song }}</span><span class="text-sm text-muted" translate="no">{{ r.part }}</span></span>
+                        <button type="button" class="btn-secondary btn-sm" @click="navigate('/p/' + r.projectId + '/sing?voice=' + encodeURIComponent(r.partKey))">{{ t('voices.be.share') }}</button>
+                    </li>
+                </ul>
+            </section>
             <p v-if="state === 'loading'" class="text-muted" role="status">{{ t('common.loading') }}</p>
             <Notice v-else-if="state === 'off'" tone="info" data-voices-off>{{ t('voices.off') }}</Notice>
             <AccountWall v-else-if="state === 'signedOut'" reason="voice" next="/voices" />
@@ -113,7 +130,20 @@ export const VoicesView = {
                 </section>
             </div>
         </AppScreen>`,
+    computed: {
+        /** Your kept takes of library songs' parts that still have no voice: { projectId, partKey, song, part }. */
+        ready() {
+            return projects.list
+                .filter((p) => p.template?.id && !p.course && !p.beta && !p.shared)
+                .flatMap((p) => (p.yourParts ?? []).filter((key) => needsVoice(p.template.id, key)).map((key) => {
+                    const part = p.template.parts?.find((tp) => tp.key === key);
+                    return { projectId: p.id, partKey: key, song: songTitle(p.template), part: part ? templatePartName(part) : key };
+                }));
+        },
+    },
     async created() {
+        loadProjects().catch((error) => console.warn('Your songs did not load', error));
+        loadCatalogue().catch((error) => console.warn('The catalogue did not load', error));
         await this.load();
     },
     methods: {

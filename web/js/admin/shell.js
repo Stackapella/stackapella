@@ -26,6 +26,8 @@ import { change, OverviewSection } from './growth.js';
 import { SourcesSection } from './sources.js';
 import { ChoirGroupsSection } from './choir-groups.js';
 import { RevenueSection } from './revenue.js';
+import { LiveSection } from './live.js';
+import { CorrectionsSection } from './corrections.js';
 import { SearchSection } from './search.js';
 import { CohortsSection } from './cohorts.js';
 import { ActivitySection } from './activity.js';
@@ -63,6 +65,7 @@ export const SECTIONS = [
     { name: 'home', group: 'inbox', path: '/admin', label: tk('admin.nav.home'), hint: null, icon: 'home', role: 'editor', count: (c) => c.home, words: tk('admin.needs.homeCount') },
     { name: 'support', group: 'inbox', path: '/admin/support', label: tk('admin.nav.support'), hint: tk('admin.nav.supportHint'), icon: 'info', role: 'admin' },
     { name: 'feedback', group: 'inbox', path: '/admin/feedback', label: tk('admin.nav.feedback'), hint: tk('admin.nav.feedbackHint'), icon: 'info', role: 'editor', count: (c) => c.unread, words: tk('admin.nav.unreadCount') },
+    { name: 'corrections', group: 'inbox', path: '/admin/corrections', label: tk('admin.nav.corrections'), hint: tk('admin.nav.correctionsHint'), icon: 'note', role: 'editor', count: (c) => c.corrections, words: tk('admin.nav.correctionsCount') },
     { name: 'reports', group: 'inbox', path: '/admin/reports', label: tk('admin.nav.reports'), hint: tk('admin.nav.reportsHint'), icon: 'alert', role: 'admin' },
     { name: 'review', group: 'inbox', path: '/admin/review', label: tk('admin.nav.review'), hint: tk('admin.nav.reviewHint'), icon: 'mic', role: 'editor', count: (c) => c.waiting, words: tk('admin.nav.waitingCount') },
     { name: 'people', group: 'users', path: '/admin/people', label: tk('admin.nav.people'), hint: tk('admin.nav.peopleHint'), icon: 'list', role: 'admin' },
@@ -78,6 +81,7 @@ export const SECTIONS = [
     { name: 'search', group: 'marketing', path: '/admin/search', label: tk('admin.nav.search'), hint: tk('admin.nav.searchHint'), icon: 'arrow', role: 'admin' },
     { name: 'mudeo', group: 'marketing', path: '/admin/mudeo', label: tk('admin.nav.campaigns'), hint: tk('admin.nav.campaignsHint'), icon: 'arrow', role: 'admin' },
     { name: 'growth', group: 'numbers', path: '/admin/growth', label: tk('admin.nav.growth'), hint: tk('admin.nav.growthHint'), icon: 'sparkle', role: 'admin' },
+    { name: 'live', group: 'numbers', path: '/admin/live', label: tk('admin.nav.live'), hint: tk('admin.nav.liveHint'), icon: 'wave', role: 'admin' },
     { name: 'usage', group: 'numbers', path: '/admin/usage', label: tk('admin.nav.usage'), hint: tk('admin.nav.usageHint'), icon: 'sparkle', role: 'admin' },
     { name: 'activity', group: 'numbers', path: '/admin/activity', label: tk('admin.nav.activity'), hint: tk('admin.nav.activityHint'), icon: 'wave', role: 'admin' },
     { name: 'funnel', group: 'numbers', path: '/admin/funnel', label: tk('admin.nav.funnel'), hint: tk('admin.nav.funnelHint'), icon: 'list', role: 'admin' },
@@ -122,7 +126,7 @@ const HomeSection = {
                 <a :href="sudoPath" class="tap-44 inline-flex items-center gap-1 font-semibold text-warn hover:underline">{{ t('admin.home.sudoConfirm') }}<span aria-hidden="true" class="rtl:-scale-x-100">→</span></a>
             </p>
             <!-- What needs you now (admin/needs.js): a card for each kind that has something, side by side from 900 px. -->
-            <NeedsCard :outreach="overview?.outreach ?? null" :not-synced="overview?.songsNotSynced ?? []" :sitemap="overview?.sitemapProblems ?? []" :admin="me.role === 'admin'" :loaded="!!overview" :failed="overviewFailed" @retry="$emit('retry')" />
+            <NeedsCard :outreach="overview?.outreach ?? null" :not-synced="overview?.songsNotSynced ?? []" :sitemap="overview?.sitemapProblems ?? []" :corrections="overview?.corrections?.new ?? 0" :admin="me.role === 'admin'" :loaded="!!overview" :failed="overviewFailed" @retry="$emit('retry')" />
             <!-- The last 7 days against the 7 before (docs/admin-analytics-plan.md, slice 1), as Hillel drew it: one ruled
                  panel, each a label over a big number with its change small beside it; five across from 900 px, two on a
                  phone. The two all-time counts say so, since they aren't the week's. -->
@@ -208,7 +212,7 @@ const HomeSection = {
 };
 
 export const AdminView = {
-    components: { Icon, Logo, Notice, RequestsSection, HomeSection, SafetySection, SwitchesSection, AuditSection, ReviewSection, SingersSection, GuidesSection, FeedbackSection, ReportsSection, IdeasSection, MudeoSection, SupportSection, LinksSection, PeopleSection, PostsSection, OverviewSection, SourcesSection, ChoirGroupsSection, RevenueSection, SearchSection, SchoolSection, CohortsSection, ActivitySection, CodeWatchSection, ExperimentsSection, OutreachSection, UsageSection, FunnelSection, DropoffsSection, SharingSection, BreadthSection },
+    components: { Icon, Logo, Notice, RequestsSection, HomeSection, SafetySection, SwitchesSection, AuditSection, ReviewSection, SingersSection, GuidesSection, FeedbackSection, ReportsSection, IdeasSection, MudeoSection, SupportSection, LinksSection, PeopleSection, PostsSection, OverviewSection, SourcesSection, ChoirGroupsSection, RevenueSection, CorrectionsSection, LiveSection, SearchSection, SchoolSection, CohortsSection, ActivitySection, CodeWatchSection, ExperimentsSection, OutreachSection, UsageSection, FunnelSection, DropoffsSection, SharingSection, BreadthSection },
     data: () => ({ me: null, failed: false, overview: null, overviewFailed: false }),
     setup: () => ({ route, formatNumber }),
     template: `
@@ -269,6 +273,8 @@ export const AdminView = {
                 <SourcesSection v-else-if="current === 'sources'" :me="me" />
                 <ChoirGroupsSection v-else-if="current === 'groups'" :me="me" />
                 <RevenueSection v-else-if="current === 'revenue'" :me="me" />
+                <LiveSection v-else-if="current === 'live'" :me="me" />
+                <CorrectionsSection v-else-if="current === 'corrections'" :me="me" @changed="loadOverview" />
                 <SearchSection v-else-if="current === 'search'" :me="me" />
                 <CohortsSection v-else-if="current === 'cohorts'" :me="me" />
                 <ActivitySection v-else-if="current === 'activity'" :me="me" />
@@ -367,7 +373,7 @@ export const AdminView = {
         },
         countOf(s) {
             const b = this.overview?.beta;
-            return s.count?.({ waiting: b?.waiting ?? 0, unread: b?.unreadFeedback ?? 0, home: homeCount(this.overview) }) ?? 0;
+            return s.count?.({ waiting: b?.waiting ?? 0, unread: b?.unreadFeedback ?? 0, corrections: this.overview?.corrections?.new ?? 0, home: homeCount(this.overview) }) ?? 0;
         },
         closeAccount() {
             this.$refs.account?.removeAttribute('open');

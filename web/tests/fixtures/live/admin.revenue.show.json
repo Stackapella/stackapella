@@ -1,0 +1,218 @@
+{
+    "data": {
+        "mrr": [
+            {
+                "currency": "gbp",
+                "cents": 898
+            },
+            {
+                "currency": "usd",
+                "cents": 4658
+            }
+        ],
+        "arr": [
+            {
+                "currency": "gbp",
+                "cents": 10776
+            },
+            {
+                "currency": "usd",
+                "cents": 55896
+            }
+        ],
+        "monthAgo": [
+            {
+                "currency": "gbp",
+                "cents": 449
+            },
+            {
+                "currency": "usd",
+                "cents": 2329
+            }
+        ],
+        "unpriced": 2,
+        "subscribers": [
+            {
+                "state": "paying",
+                "store": "apple",
+                "plan": "year",
+                "count": 2
+            },
+            {
+                "state": "paying",
+                "store": "web",
+                "plan": "month",
+                "count": 6
+            },
+            {
+                "state": "paying",
+                "store": "web",
+                "plan": "year",
+                "count": 3
+            },
+            {
+                "state": "trialing",
+                "store": "web",
+                "plan": "year",
+                "count": 4
+            },
+            {
+                "state": "pastDue",
+                "store": "web",
+                "plan": "month",
+                "count": 1
+            },
+            {
+                "state": "cancelling",
+                "store": "web",
+                "plan": "month",
+                "count": 1
+            }
+        ],
+        "months": [
+            {
+                "month": "2025-11",
+                "mrr": [],
+                "unpriced": 0,
+                "new": 0,
+                "lost": 0
+            },
+            {
+                "month": "2025-12",
+                "mrr": [],
+                "unpriced": 0,
+                "new": 0,
+                "lost": 0
+            },
+            {
+                "month": "2026-01",
+                "mrr": [],
+                "unpriced": 0,
+                "new": 0,
+                "lost": 0
+            },
+            {
+                "month": "2026-02",
+                "mrr": [],
+                "unpriced": 0,
+                "new": 0,
+                "lost": 0
+            },
+            {
+                "month": "2026-03",
+                "mrr": [],
+                "unpriced": 0,
+                "new": 0,
+                "lost": 0
+            },
+            {
+                "month": "2026-04",
+                "mrr": [],
+                "unpriced": 0,
+                "new": 0,
+                "lost": 0
+            },
+            {
+                "month": "2026-05",
+                "mrr": [],
+                "unpriced": 0,
+                "new": 0,
+                "lost": 0
+            },
+            {
+                "month": "2026-06",
+                "mrr": [],
+                "unpriced": 0,
+                "new": 0,
+                "lost": 0
+            },
+            {
+                "month": "2026-07",
+                "mrr": [],
+                "unpriced": 0,
+                "new": 0,
+                "lost": 0
+            },
+            {
+                "month": "2026-08",
+                "mrr": [],
+                "unpriced": 0,
+                "new": 0,
+                "lost": 0
+            },
+            {
+                "month": "2026-09",
+                "mrr": [
+                    {
+                        "currency": "gbp",
+                        "cents": 449
+                    },
+                    {
+                        "currency": "usd",
+                        "cents": 2329
+                    }
+                ],
+                "unpriced": 0,
+                "new": 5,
+                "lost": 0
+            },
+            {
+                "month": "2026-10",
+                "mrr": [
+                    {
+                        "currency": "gbp",
+                        "cents": 898
+                    },
+                    {
+                        "currency": "usd",
+                        "cents": 4658
+                    }
+                ],
+                "unpriced": 2,
+                "new": 10,
+                "lost": 1
+            }
+        ],
+        "oneOff": [
+            {
+                "month": "2026-10",
+                "kind": "coaching",
+                "currency": "usd",
+                "payments": 3,
+                "gross": 7500,
+                "ours": 1125
+            },
+            {
+                "month": "2026-10",
+                "kind": "packs",
+                "currency": "gbp",
+                "payments": 2,
+                "gross": 1800,
+                "ours": 270
+            }
+        ],
+        "timezone": "UTC",
+        "ifAllConvert": {
+            "mrr": [
+                {
+                    "currency": "gbp",
+                    "cents": 1347
+                },
+                {
+                    "currency": "usd",
+                    "cents": 7154
+                }
+            ],
+            "arr": [
+                {
+                    "currency": "gbp",
+                    "cents": 16164
+                },
+                {
+                    "currency": "usd",
+                    "cents": 85848
+                }
+            ]
+        }
+    }
+}

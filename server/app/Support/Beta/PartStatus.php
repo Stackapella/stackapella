@@ -28,8 +28,11 @@ final class PartStatus
             null, SubmissionStatus::Uploading, SubmissionStatus::Failed => 'to_record',
             SubmissionStatus::Processing, SubmissionStatus::Submitted => 'submitted',
             SubmissionStatus::InReview => 'in_review',
+            // Shared before the account's email was confirmed (voices.share): sent on once it is.
+            SubmissionStatus::Held => 'held',
             SubmissionStatus::Retake => 'retake',
             SubmissionStatus::Rejected => 'rejected',
+            SubmissionStatus::NotChosen => 'not_chosen',
             // Accepted, and either the voice learners hear, or kept as an alternate.
             SubmissionStatus::Accepted => $isTheVoice ? 'guide' : 'accepted',
         };

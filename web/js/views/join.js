@@ -11,6 +11,7 @@ import { account } from '../stores/account.js';
 import { joinedProject } from '../stores/cloud.js';
 import { loadProjects } from '../stores/projects.js';
 import { InviteAccept, InviteCard } from '../components/invite-card.js';
+import { PausedNote } from '../components/paused-note.js';
 
 const GONE = {
     invite_used: tk('join.used'),
@@ -21,9 +22,9 @@ const GONE = {
 };
 
 export const JoinView = {
-    components: { InviteAccept, InviteCard },
+    components: { InviteAccept, InviteCard, PausedNote },
     props: { token: { type: String, required: true } },
-    data: () => ({ invite: null, problem: null, joining: false }),
+    data: () => ({ invite: null, problem: null, joining: false, paused: false }),
     setup: () => ({ account, navigate }),
     template: `
         <InviteCard :from="invite?.owner.name ?? ''" :kind="kind" :lead="lead" :song="invite?.song?.id ?? 'amazing-grace'" :part="invite?.partKey ?? 'alto'" :sign-in="'/signin?next=/join/' + token">
@@ -33,7 +34,9 @@ export const JoinView = {
                 <button v-if="problem" type="button" class="btn-secondary" @click="navigate('/')">{{ t('common.backToProjects') }}</button>
             </template>
             <template v-if="invite && !problem">
-                <button v-if="account.me" type="button" class="btn-primary btn-lg w-full" :disabled="joining" @click="join">{{ joining ? t('join.joining') : t('invite.accept') }}</button>
+                <!-- The song is paused (its starter's Plus ended; teaming up is Plus): calm, nothing to buy, try again later. -->
+                <PausedNote v-if="paused" :title="t('together.paused.songTitle')" :text="t('together.accept.paused', { name: invite.owner.name })" />
+                <button v-else-if="account.me" type="button" class="btn-primary btn-lg w-full" :disabled="joining" @click="join">{{ joining ? t('join.joining') : t('invite.accept') }}</button>
                 <InviteAccept v-else-if="account.loaded" :next="'/join/' + token" />
             </template>
         </InviteCard>`,
@@ -66,6 +69,10 @@ export const JoinView = {
                 await loadProjects();
                 navigate(`/p/${data.project.id}`, { replace: true });
             } catch (error) {
+                if (error?.code === 'shared_paused') {
+                    this.paused = true;
+                    return;
+                }
                 this.problem = GONE[error?.code] ? t(GONE[error.code]) : error?.code === 'offline' ? t('common.offline') : t('join.failed');
             } finally {
                 this.joining = false;

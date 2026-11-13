@@ -10,6 +10,7 @@ use App\Models\GroupMember;
 use App\Models\Part;
 use App\Models\Template;
 use App\Models\User;
+use App\Support\Flags;
 use App\Support\Ids;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
@@ -192,9 +193,9 @@ final class GroupsTest extends TestCase
         $this->assertMatchesContract($this->deleteJson('/api/groups/'.$id.'/songs/'.$uuid), 'groups.songs.delete', 204);
     }
 
-    public function test_groups_are_free_for_everyone_with_limits(): void
+    public function test_with_plus_teams_off_groups_stay_free_for_everyone_as_before(): void
     {
-        // Since 2026-11-07 every singer is free: a free account directs a group.
+        // The plus_teams switch off (its default): every singer is free, as since 2026-11-07; a free account directs a group.
         $this->as(User::factory()->create());
         $this->assertMatchesContract($this->postJson('/api/groups', ['name' => 'Choir', 'adult' => true]), 'groups.create', 201);
         $this->assertMatchesContract($this->postJson('/api/groups', ['name' => '', 'adult' => true]), 'groups.create', 422);
@@ -222,6 +223,60 @@ final class GroupsTest extends TestCase
         $this->as(User::factory()->create());
         $this->assertMatchesContract($this->postJson('/api/choir/'.$token, ['adult' => true]), 'groups.join', 200);
         $this->as($director);
+        $this->assertMatchesContract($this->postJson('/api/groups/'.$id.'/link'), 'groups.link.create', 201);
+
+        $this->assertMatchesContract($this->deleteJson('/api/groups/'.$id), 'groups.delete', 204);
+        $this->assertNull(Group::query()->find(Ids::decode($id)));
+        $this->assertSame(0, GroupMember::query()->whereNull('group_id')->count());
+    }
+
+    public function test_starting_a_group_needs_plus_members_join_free_and_it_pauses_when_plus_ends(): void
+    {
+        $this->getJson('/api/auth/config')->assertJsonPath('data.plusTeams', false);
+        app(Flags::class)->set('plus_teams', 'on', null, 'test');
+        $this->getJson('/api/auth/config')->assertJsonPath('data.plusTeams', true);
+        // Since 2026-11-12 (docs/pricing-plan.md): whoever starts the group needs Plus; everyone invited joins free.
+        $this->as(User::factory()->create());
+        $this->assertMatchesContract($this->postJson('/api/groups', ['name' => 'Choir', 'adult' => true]), 'groups.create', 403);
+        $this->postJson('/api/groups', ['name' => 'Choir', 'adult' => true])->assertJsonPath('code', 'plus_required');
+        $this->assertMatchesContract($this->getJson('/api/groups/nope'), 'groups.show', 404);
+
+        [$director, $id, $token] = $this->group();
+        $this->assertMatchesContract($this->postJson('/api/groups', ['name' => '', 'adult' => true]), 'groups.create', 422);
+        foreach (range(2, 5) as $i) {
+            $this->postJson('/api/groups', ['name' => 'Choir '.$i, 'adult' => true])->assertCreated();
+        }
+        $this->postJson('/api/groups', ['name' => 'One too many', 'adult' => true])->assertStatus(403)->assertJsonPath('code', 'group_limit');
+
+        config(['usage.group_members' => 1]);
+        $this->as(User::factory()->create());
+        $this->postJson('/api/choir/'.$token, ['adult' => true])->assertOk();
+        $this->as(User::factory()->create());
+        $this->postJson('/api/choir/'.$token, ['adult' => true])->assertStatus(403)->assertJsonPath('code', 'group_full');
+        config(['usage.group_members' => 60]);
+
+        // The director's Plus ends: the group pauses. Everyone keeps what they have; nobody new joins (a calm refusal,
+        // nothing to buy), and the director's new link, song or assignment asks for Plus again.
+        $director->forceFill(['plan' => 'free'])->save();
+        $this->as($director);
+        $this->getJson('/api/groups/'.$id)->assertOk()->assertJsonPath('data.readOnly', true);
+        $this->getJson('/api/groups')->assertJsonPath('data.0.readOnly', true);
+        $this->assertMatchesContract($this->postJson('/api/groups/'.$id.'/songs', ['templateId' => 'amazing-grace']), 'groups.songs.create', 403);
+        $this->assertMatchesContract($this->putJson('/api/groups/'.$id.'/songs/amazing-grace/assignments', ['assignments' => []]), 'groups.assignments.update', 403);
+        $this->assertMatchesContract($this->postJson('/api/groups/'.$id.'/link'), 'groups.link.create', 403);
+        $joinPage = $this->getJson('/api/choir/'.$token)->assertOk()->assertJsonPath('data.readOnly', true);
+        $this->assertMatchesContract($joinPage, 'groups.join.show', 200);
+        $this->as(User::factory()->create());
+        $this->assertMatchesContract($this->postJson('/api/choir/'.$token, ['adult' => true]), 'groups.join', 403);
+        $this->postJson('/api/choir/'.$token, ['adult' => true])->assertJsonPath('code', 'shared_paused');
+
+        // Plus again: it opens at once.
+        $director->forceFill(['plan' => 'plus'])->save();
+        $this->assertMatchesContract($this->postJson('/api/choir/'.$token, ['adult' => true]), 'groups.join', 200);
+        $this->as($director);
+        $this->getJson('/api/groups/'.$id)->assertJsonPath('data.readOnly', false);
+        $this->assertMatchesContract($this->postJson('/api/groups/'.$id.'/songs', ['templateId' => 'amazing-grace']), 'groups.songs.create', 200);
+        $this->assertMatchesContract($this->putJson('/api/groups/'.$id.'/songs/amazing-grace/assignments', ['assignments' => []]), 'groups.assignments.update', 200);
         $this->assertMatchesContract($this->postJson('/api/groups/'.$id.'/link'), 'groups.link.create', 201);
 
         $this->assertMatchesContract($this->deleteJson('/api/groups/'.$id), 'groups.delete', 204);

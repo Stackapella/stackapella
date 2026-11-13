@@ -24,10 +24,14 @@ def journey(f):
     f.wait_text("Silent Night")
     assert not f.js("[...document.querySelectorAll('#band-songs [data-ui=tag]')].some((t) => /plus/i.test(t.textContent))"), "no song says Plus"
 
-    # The Plus page from inviting a friend: singing with others first, then the extras for you.
-    f.go("/plus?api=mock&as=member&from=friend", "document.querySelector('h1')")
-    f.wait_text(t(f, "plus.moment.friend"))
+    # The Plus page: while the plus_teams switch is off (the mock's auth.config), singing together is among what's free;
+    # switched on, it leads (docs/pricing-plan.md, top).
+    f.go("/plus?api=mock&as=member&from=invite_friend", "document.querySelector('h1')")
+    f.wait_text(t(f, "plus.headlineSolo"))
+    assert t(f, "plus.highlight.together") not in f.js("document.body.innerText"), "Sing together isn't sold while the switch is off"
+    f.run("await (await import('/js/stores/account.js')).loadAuthConfig(); (await import('/js/teams.js')).teams.on = true")
     f.wait_text(t(f, "plus.highlight.together"))
+    f.wait_text(t(f, "plus.moment.inviteFriend"))
     groups = f.js("[...document.querySelectorAll('table tbody th[colspan], table caption, h3')].map((e) => e.textContent.trim())")
     print(f"    the table's groups: {groups}")
     f.wait_text(t(f, "plus.yearly"))

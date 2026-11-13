@@ -28,6 +28,7 @@ import { adoptAccountAppearance, appearance, game } from './stores/appearance.js
 import { paint, paintInk, paintText } from './colors.js';
 import { loadOutbox, outbox, sendAll } from './beta-outbox.js';
 import { count, countReach } from './usage.js';
+import { takeToolRange } from './tool-range.js';
 import { arrive, first } from './funnel.js';
 import { daysAway } from './asks.js';
 import { lazyView } from './lazy.js';
@@ -226,6 +227,9 @@ count('app_open'); // each time the app is opened (a load): anonymous, with no I
 countReach(); // and once a day, a week and a month on this device (app_day, app_week, app_month)
 whenIdle(() => import('./tried-backfill.js').then((m) => m.startTried()).catch((error) => console.info('Breadth was not started', error?.message ?? error))); // breadth's tried set, filled in once, uncounted
 count(game() ? 'open_game' : 'open_serious'); // and in which skin
+// A range the free range test found (?range=A2-D4; docs/retention-plan.md, idea 7): the singer's range from the first screen.
+takeToolRange().catch((error) => console.info('The range from the tool was not kept', error?.message ?? error));
+whenIdle(() => import('./live-beat.js').then((m) => m.startBeat()).catch((error) => console.info('Live beat was not started', error?.message ?? error))); // Admin > Live's right now: an area and a screen, no ID
 
 // Who's signed in (never needed to learn or record), and what a Google or Apple sign-in came back with.
 rememberRef();

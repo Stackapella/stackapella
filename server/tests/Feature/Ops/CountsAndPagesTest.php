@@ -182,6 +182,8 @@ final class CountsAndPagesTest extends TestCase
 
     public function test_a_song_page_shows_its_parts_words_and_a_way_in(): void
     {
+        // A song page without a story here (a story gives the page its own title, description and About).
+        config(['content.stories' => storage_path('framework/testing/no-stories')]);
         $this->publish();
 
         $page = $this->get('/songs/silent-night')->assertOk()->assertViewIs('public.song');

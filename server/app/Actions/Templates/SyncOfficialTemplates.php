@@ -11,6 +11,7 @@ use App\Models\Template;
 use App\Models\TemplateVersion;
 use App\Services\Social\SocialPoster;
 use App\Support\Contract\SchemaChecker;
+use App\Support\Pages\SongParts;
 use App\Support\Templates\TemplateRules;
 use App\Support\Tools\KnownSongs;
 use Illuminate\Support\Facades\Cache;
@@ -49,6 +50,8 @@ final class SyncOfficialTemplates
         $report = ['added' => [], 'opened' => [], 'unchanged' => [], 'problems' => [], 'carried' => [], 'withdrawn' => []];
         // Every song a file names, valid or not: a broken file is a problem, never a withdrawal.
         $present = [];
+        // Each song's staged next version (`<id>.next.json`), by its id: its version number.
+        $staged = [];
         $schemas = new SchemaChecker((string) config('templates.schemas'));
 
         foreach ($this->files() as $path) {
@@ -70,14 +73,32 @@ final class SyncOfficialTemplates
             // bytes (the tests sync the same files many times; a deploy's sync, once).
             $problems = self::$checked[hash('sha256', $json).':'.config('templates.schemas')] ??= [...$schemas->check(json_decode($json, false), 'template.json'), ...$this->rules->problems($data), ...$this->rules->officialProblems($data)];
 
+            // An open song (reviewed and public domain) says who made it and when it was first printed (or, never printed,
+            // written), so its rights can be worked out by country (docs/geo-rights-plan.md, step 2).
+            if ($problems === [] && ($data['reviewed'] ?? false) === true && SongParts::publicDomain($data) && ! self::hasRightsFacts($data)) {
+                $problems[] = 'an open song needs makers and firstPublished (or made) (docs/geo-rights-plan.md)';
+            }
+
             if ($problems !== []) {
                 $report['problems'][] = "{$name}: ".implode('; ', $problems);
 
                 continue;
             }
 
+            // A staged next version (docs/decisions.md, 2026-11-12, Amazing Grace) waits beside the live one for new
+            // recordings: never reviewed, so it can't go live by itself; the switch renames it over the live file.
+            $isStaged = str_ends_with($name, '.next.json');
+            if ($isStaged && ($data['reviewed'] ?? false) === true) {
+                $report['problems'][] = "{$name}: a staged version is never reviewed; to switch, it replaces {$data['id']}.json";
+
+                continue;
+            }
+
             /** @var array{id: string, version: int, title: string, reviewed: bool} $data */
             $result = $this->publish($data);
+            if ($isStaged && $result !== 'problem') {
+                $staged[$data['id']] = $data['version'];
+            }
 
             // A song is new to singers when a version of it is first reviewed (added reviewed, or
             // its musician's check just came in): a post for Hillel to approve. Songs already out
@@ -95,6 +116,7 @@ final class SyncOfficialTemplates
         }
 
         $report = $this->withdraw($present, $report);
+        $report['problems'] = [...$report['problems'], ...$this->stage($staged)];
 
         // Recorded voices whose part sings the same in a newer version follow it there.
         $report['carried'] = $this->carry->handle();
@@ -234,6 +256,44 @@ final class SyncOfficialTemplates
         $report['withdrawn'] = array_values($gone);
 
         return $report;
+    }
+
+    /**
+     * Marks each song's staged next version, and clears it from every song without one (switched, or withdrawn). A
+     * staged version must be newer than the live one.
+     *
+     * @param  array<string, int>  $staged  each song's staged version number, by its id
+     * @return list<string> problems
+     */
+    private function stage(array $staged): array
+    {
+        $problems = [];
+        foreach (Template::query()->official()->with('currentVersion')->where(fn ($q) => $q->whereNotNull('staged_version_id')->orWhereIn('slug', array_keys($staged)))->get() as $template) {
+            $number = $staged[$template->slug] ?? null;
+            $version = $number !== null ? TemplateVersion::query()->where('template_id', $template->id)->where('version', $number)->first() : null;
+            if ($version !== null && $version->version <= (int) $template->currentVersion?->version) {
+                $problems[] = "{$template->slug}.next.json: its version {$number} isn't newer than the live {$template->currentVersion?->version}";
+                $version = null;
+            }
+            if ($template->staged_version_id !== $version?->id) {
+                $template->forceFill(['staged_version_id' => $version?->id])->save();
+            }
+        }
+
+        return $problems;
+    }
+
+    /**
+     * Whether a song names its makers (a list; empty for traditional) and its first printing's year, or the year it was
+     * written when it was never printed.
+     *
+     * @param  array<string, mixed>  $data
+     */
+    private static function hasRightsFacts(array $data): bool
+    {
+        $printed = is_array($data['firstPublished'] ?? null) && is_int($data['firstPublished']['year'] ?? null);
+
+        return is_array($data['makers'] ?? null) && ($printed || is_int($data['made'] ?? null));
     }
 
     /**

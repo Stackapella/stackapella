@@ -87,6 +87,8 @@ final class SongPartViewTest extends TestCase
 
     public function test_a_song_page_tells_its_story_as_its_part_pages_do(): void
     {
+        // A song page without a story here (a story gives the page its own title, description and About).
+        config(['content.stories' => storage_path('framework/testing/no-stories')]);
         $about = __('song_about.amazing-grace');
         $this->assertIsString($about);
         $first = trim(explode("\n\n", $about)[0]);

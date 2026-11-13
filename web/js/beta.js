@@ -10,7 +10,7 @@ import * as db from './db.js';
 import { DEFAULT_BAR } from './quality.js';
 import { local } from './storage.js';
 import { loadProjects, projects, saveProject, startFromTemplate } from './stores/projects.js';
-import { loadTemplate, singerOptions } from './templates.js';
+import { loadTemplate, singerOptions, validateTemplate } from './templates.js';
 
 export class TemplateChanged extends Error {}
 
@@ -30,9 +30,14 @@ export async function startBetaRecording(part, { loop = false } = {}) {
         navigate(`/p/${existing.id}`);
         return existing;
     }
-    const template = await loadTemplate(part.template.id);
+    let template = await loadTemplate(part.template.id);
     if (template.version !== part.template.version) {
-        // The app's copy of the notes is another version than the one Hillel asked for.
+        // A staged next version (a corrected arrangement recorded before it becomes the song's own, decisions 2026-11-13),
+        // or the app's copy behind the server's: the part's own version, from the server.
+        template = validateTemplate((await api.templates.show(part.template.id, { version: part.template.version })).data.template);
+    }
+    if (template.version !== part.template.version) {
+        // The server has no such version either: the notes changed under the part.
         throw new TemplateChanged(`${template.id}: the app has version ${template.version}, the part is for ${part.template.version}`);
     }
     const project = await startFromTemplate(template, {

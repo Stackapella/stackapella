@@ -31,6 +31,9 @@
                 </div>
             </div>
 
+            {{-- What a part row does, said once (a singer: "it was hard to figure out how to change to listen to one part or
+                 another"): each row is a link to that part's own page, where it plays alone. --}}
+            <p class="s-xparts-hint">{{ __('site.carols.parts_hint') }}</p>
             {{-- At most three across; when three would leave one card alone on its last row (7, 10, 13, 16), the last four sit two and two. --}}
             @php($scale = \App\Support\Pages\Carols::SCALE)
             @php($at = static fn (int $midi): float => round(($midi - $scale[0]) / ($scale[1] - $scale[0]) * 100, 2))

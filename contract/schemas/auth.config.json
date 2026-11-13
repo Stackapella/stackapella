@@ -31,7 +31,8 @@
                 "schools",
                 "songRequests",
                 "languages",
-                "withheldSongs"
+                "withheldSongs",
+                "plusTeams"
             ],
             "properties": {
                 "methods": {
@@ -261,6 +262,10 @@
                         "type": "string"
                     },
                     "description": "The songs (slugs) withheld where the visitor is, by its copyright term (docs/geo-rights-plan.md): the app leaves them out and a course step sings its altSong. Never the country. Empty while geo_rights is off."
+                },
+                "plusTeams": {
+                    "type": "boolean",
+                    "description": "Teaming up is Plus (the plus_teams switch, docs/pricing-plan.md): while true, starting a group or inviting a friend asks for Plus, and paused songs and choirs show as paused. False: singing together is free, as before."
                 }
             }
         }

@@ -27,6 +27,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $free_until
  * @property string|null $preview_key
  * @property int|null $current_version_id
+ * @property int|null $staged_version_id the content's staged next version (<id>.next.json), never current
  * @property Carbon|null $opened_at when the library song opened (its first reviewed version)
  * @property int|null $owner_id
  * @property string|null $visibility
@@ -113,6 +114,22 @@ final class Template extends Model
     public function currentVersion(): BelongsTo
     {
         return $this->belongsTo(TemplateVersion::class, 'current_version_id');
+    }
+
+    /**
+     * The staged next version (the content's `<id>.next.json`), recorded for before it goes live.
+     *
+     * @return BelongsTo<TemplateVersion, $this>
+     */
+    public function stagedVersion(): BelongsTo
+    {
+        return $this->belongsTo(TemplateVersion::class, 'staged_version_id');
+    }
+
+    /** The version new recordings are made of: the staged next one when there is one, else the current one. */
+    public function recordingVersion(): ?TemplateVersion
+    {
+        return $this->staged_version_id !== null ? $this->stagedVersion : $this->currentVersion;
     }
 
     /**

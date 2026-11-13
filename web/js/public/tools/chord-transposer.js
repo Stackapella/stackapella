@@ -150,6 +150,7 @@ const PANEL = `
 /** More: Hillel's settings sheet (tool-layout.js sheetRow), a hairline row each. */
 function buildSheet(ui, w) {
     sheetRow(ui.sheet, { label: w('toKey') }).side.innerHTML = '<select class="input w-auto" data-to-key></select>';
+    ui.sheet.querySelector('[data-to-key]').setAttribute('aria-label', w('toKey')); // the row's label is beside it, not for it
     sheetRow(ui.sheet, { label: w('spelling') }).body.innerHTML = '<div class="flex flex-wrap gap-1.5" role="group" data-spellings></div>';
     sheetRow(ui.sheet).body.innerHTML = '<div class="flex flex-wrap gap-2"><button type="button" class="btn-secondary btn-sm" data-sample data-w="sample"></button><button type="button" class="btn-ghost btn-sm" data-clear data-w="clear"></button></div>';
     sheetRow(ui.sheet).body.innerHTML = '<p class="text-sm text-muted" data-w="kept"></p>';

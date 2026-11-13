@@ -1,0 +1,186 @@
+{
+    "$id": "admin.pulse.show.json",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "at",
+                "active",
+                "signUps24h",
+                "activity24h"
+            ],
+            "properties": {
+                "at": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "active": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                        "signedIn7d",
+                        "change",
+                        "active30d",
+                        "weeks"
+                    ],
+                    "properties": {
+                        "signedIn7d": {
+                            "type": "integer"
+                        },
+                        "change": {
+                            "type": "integer",
+                            "description": "signedIn7d less the 7 days before."
+                        },
+                        "active30d": {
+                            "type": "integer"
+                        },
+                        "weeks": {
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            },
+                            "description": "12 weekly points, this week last."
+                        }
+                    }
+                },
+                "signUps24h": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                        "funnel",
+                        "hourly",
+                        "people",
+                        "sources"
+                    ],
+                    "properties": {
+                        "funnel": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "required": [
+                                "created",
+                                "lesson1",
+                                "wholeSong",
+                                "keptPart",
+                                "shared"
+                            ],
+                            "properties": {
+                                "created": {
+                                    "type": "integer"
+                                },
+                                "lesson1": {
+                                    "type": "integer"
+                                },
+                                "wholeSong": {
+                                    "type": "integer"
+                                },
+                                "keptPart": {
+                                    "type": "integer"
+                                },
+                                "shared": {
+                                    "type": "integer"
+                                }
+                            }
+                        },
+                        "hourly": {
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            },
+                            "description": "Sign-ups each of the last 24 hours, this one so far last."
+                        },
+                        "people": {
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "additionalProperties": false,
+                                "required": [
+                                    "id",
+                                    "name",
+                                    "steps",
+                                    "at"
+                                ],
+                                "properties": {
+                                    "id": {
+                                        "type": "string"
+                                    },
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "steps": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string",
+                                            "enum": [
+                                                "created",
+                                                "lesson1",
+                                                "wholeSong",
+                                                "keptPart",
+                                                "shared"
+                                            ]
+                                        }
+                                    },
+                                    "at": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ],
+                                        "format": "date-time"
+                                    }
+                                }
+                            },
+                            "description": "The day's new accounts, as Admin > People shows them, 50 at most."
+                        },
+                        "sources": {
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "additionalProperties": false,
+                                "required": [
+                                    "source",
+                                    "n"
+                                ],
+                                "properties": {
+                                    "source": {
+                                        "type": "string"
+                                    },
+                                    "n": {
+                                        "type": "integer"
+                                    },
+                                    "sources": {
+                                        "type": "integer"
+                                    }
+                                }
+                            },
+                            "description": "Totals only, Growth's names; small carries how many sources it folds."
+                        }
+                    }
+                },
+                "activity24h": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "kind",
+                            "n"
+                        ],
+                        "properties": {
+                            "kind": {
+                                "type": "string"
+                            },
+                            "n": {
+                                "type": "integer"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

@@ -36,7 +36,7 @@ final class FriendsOnAHarmonyTest extends TestCase
     {
         $owner = $this->owner();
         // An adult: featuring, like the gallery, is 18 and over.
-        $owner->forceFill(['name' => 'Ana Ruiz', 'adult_confirmed_at' => now()])->save();
+        $owner->forceFill(['name' => 'Ana Ruiz', 'adult_confirmed_at' => now(), 'plan' => 'plus'])->save();
         [$project, $part] = $this->recordedProject();
         $url = (string) $this->postJson('/api/projects/'.$project.'/invites', ['partKey' => 'tenor', 'partName' => 'Tenor'])->assertCreated()->json('data.url');
 

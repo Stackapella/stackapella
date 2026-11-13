@@ -2,6 +2,8 @@
 // each of getUserMedia's failures its own plain cause.
 import { adviceFor, CAUSES, deviceOf, diagnose, micFailKind, PLATFORMS } from '/js/mic-help.js';
 import { KINDS } from '/js/usage.js';
+import { GAP, hearFirstClip, VOICES } from '/js/components/hear-first.js';
+import { chromeIntent } from '/js/components/mic-help.js';
 import { assert, test } from './harness.js';
 
 const UA = {
@@ -63,5 +65,23 @@ test('mic help: every cause of a mic that did not open is a count the app sends 
     assert(micFailKind('blocked') === 'mic_denied', 'a refusal is mic_denied');
     assert(micFailKind('inApp') === 'mic_failed_inapp' && micFailKind('notFound') === 'mic_failed_notfound', 'the rest by cause');
     for (const cause of Object.keys(CAUSES)) assert(KINDS.has(micFailKind(cause)), `${cause}: ${micFailKind(cause)} is a kind`);
-    for (const kind of ['mic_primer', 'mic_primer_not', 'mic_prompt', 'mic_granted', 'l1_inapp']) assert(KINDS.has(kind), kind);
+    for (const kind of ['mic_primer', 'mic_primer_not', 'mic_prompt', 'mic_granted', 'l1_inapp', 'l1_hear', 'l1_later_shown', 'l1_listen', 'l1_listen_heard', 'l1_later_link', 'l1_later_cal', 'inapp_handoff']) assert(KINDS.has(kind), kind);
+});
+
+test('hear it first (mic2): four voices, a rest, then the same chord with a gap in the middle; filled, the gap is sung', () => {
+    const rate = 8000;
+    const gapped = hearFirstClip(rate);
+    const filled = hearFirstClip(rate, { filled: true });
+    assert(VOICES.length === 4 && GAP > 0 && GAP < 3, 'four voices, the gap inside');
+    assert(gapped.samples.length === filled.samples.length && Math.abs(gapped.second - 2.7) < 0.01, `two chords and a rest: ${gapped.second}`);
+    const energy = (clip, from, to) => clip.samples.slice(Math.round(from * rate), Math.round(to * rate)).reduce((sum, v) => sum + v * v, 0);
+    assert(energy(gapped, 2.25, 2.65) < 1e-6, 'silent between the chords');
+    assert(energy(gapped, 0.5, 1.5) > energy(gapped, 3.2, 4.2) * 1.15, 'the second chord has one voice fewer');
+    assert(Math.abs(energy(filled, 0.5, 1.5) - energy(filled, 3.2, 4.2)) < energy(filled, 0.5, 1.5) * 0.05, 'filled: both chords whole');
+    assert(gapped.samples.reduce((m, v) => Math.max(m, Math.abs(v)), 0) <= 0.9 + 1e-6, 'never clips');
+});
+
+test('mic help: Open in Chrome is an Android intent for this same page, falling back to it', () => {
+    const link = chromeIntent('https://stackapella.com/learn/1-comfortable?ref=social');
+    assert(link === 'intent://stackapella.com/learn/1-comfortable?ref=social#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url=https%3A%2F%2Fstackapella.com%2Flearn%2F1-comfortable%3Fref%3Dsocial;end', link);
 });

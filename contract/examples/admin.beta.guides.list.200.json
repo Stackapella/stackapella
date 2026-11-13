@@ -90,7 +90,8 @@
                                 "singer": {
                                     "id": "Rt6Hc1",
                                     "name": "Ben Ode"
-                                }
+                                },
+                                "version": 4
                             }
                         ],
                         "changed": false,
@@ -143,7 +144,15 @@
                     }
                 }
             ],
-            "olderGuides": 0
+            "olderGuides": 0,
+            "staged": {
+                "version": 5,
+                "changed": [
+                    "soprano",
+                    "alto",
+                    "bass"
+                ]
+            }
         }
     ]
 }

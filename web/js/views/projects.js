@@ -51,6 +51,9 @@ import { CardMenu } from '../components/card-menu.js';
 import { songTitle } from '../song-titles.js';
 import { GROUP_WORDS, LibraryFilters } from '../components/library-filters.js';
 import { groupCounts, librarySections } from '../library-filter.js';
+import { notHereLine } from '../withheld.js';
+import { teams } from '../teams.js';
+import { countVoice, voicelessParts } from '../be-the-voice.js';
 
 const DIFFICULTY = { beginner: tk('templates.difficulty.beginner'), intermediate: tk('templates.difficulty.intermediate'), advanced: tk('templates.difficulty.advanced') };
 // The bands' marks are the accent: nothing on the home that isn't a part wears a part's colour (Hillel's call).
@@ -86,7 +89,7 @@ const TemplateDialog = defineAsyncComponent(dialogLoader);
 export const ProjectsView = {
     components: { LibraryFilters, StorageMeter, CreditLine, PlayerChip, DailyTag, CardMenu, HomeCourses, ThemeSwitch, Icon, Logo, TemplateDialog, HomeLead, HomeBand, SongCover, InstallCard, WeekCard, WorkoutStrip, StatusChip, Modal, Notice, RemindAsk, FirstWeek },
     setup: () => ({ GROUP_WORDS, templatePartName, ideas, mine, canStart, projects, account, learning, shownTitle, songTitle, formatTime, timeAgo, PART_COLORS, lengthBeats, partsFor, keyLabel, DIFFICULTY, creditsFor, navigate, BAND_COLORS, BETA_STATUS, publicSiteUrl, effect, dailyState }),
-    data: () => ({ storageUsage: null, locked: false, clip: null, templates: [], openTemplate: null, singers: 4, previewing: false, preparingPreview: false, starting: false, groups: null, choirParts: [], startingChoir: null, betaParts: null, avatarFailed: false, making: false, importProblems: null, sheetScore: null, sheetSaving: false, sheetView: null, sessionStore: null, songsOpen: tabStorage.get('stackapella.songsOpen') === '1', libraryFilters: keptFilters(), lookedAt: lastLooked(), newsCounted: null, yoursOpen: false, songColumns: songColumns(), newing: false, showInfo: false, previewOf: null, playingSong: null, renaming: null, newName: '' }),
+    data: () => ({ storageUsage: null, locked: false, clip: null, templates: [], openTemplate: null, singers: 4, previewing: false, preparingPreview: false, starting: false, groups: null, choirParts: [], startingChoir: null, betaParts: null, avatarFailed: false, making: false, importProblems: null, sheetScore: null, sheetSaving: false, sheetView: null, sessionStore: null, songsOpen: tabStorage.get('stackapella.songsOpen') === '1', libraryFilters: keptFilters(), lookedAt: lastLooked(), newsCounted: null, yoursOpen: false, songColumns: songColumns(), newing: false, showInfo: false, songLoad: null, songNotHere: null, previewOf: null, playingSong: null, renaming: null, newName: '' }),
     template: `
         <div class="min-h-dvh">
             <!-- The app's top bar on the site header's grid (app-wrap app-top): the logo where the site's is. -->
@@ -270,7 +273,7 @@ export const ProjectsView = {
             </div>
 
             <TemplateDialog v-if="openTemplate && showInfo" :template="openTemplate" :credits="creditsFor(openTemplate.id)" :singers="singers" @singers="(n) => { singers = n; if (previewing && !locked) previewLevels(); }"
-                :previewing="previewing" :preparing="preparingPreview" @copy="navigate('/create?copy=' + openTemplate.id)" @close="closeTemplate" @preview="preview" @start="start()" :locked="locked" @signup="navigate(signUpForSong)" />
+                :previewing="previewing" :preparing="preparingPreview" :load="songLoad" :not-here="songNotHere" :starting="starting" @retry="pickTemplate(openTemplate)" @copy="navigate('/create?copy=' + openTemplate.id)" @close="closeTemplate" @preview="preview" @start="start()" @voice="beTheVoice" :locked="locked" @signup="navigate(signUpForSong)" />
             <Modal v-if="renaming" :title="t('home.yours.renameTitle')" @close="renaming = null">
                 <form class="space-y-4" @submit.prevent="saveName">
                     <label class="block space-y-1"><span class="text-sm font-semibold text-cream">{{ t('home.yours.nameLabel') }}</span>
@@ -397,7 +400,7 @@ export const ProjectsView = {
             return this.yourSongs.map((item) => {
                 if (item.kind === 'project') {
                     const p = item.p;
-                    const tag = p.notSaved && account.me ? [t('cloud.notSaved'), true] : p.readOnly ? [t('cloud.readOnly'), true] : p.shared ? [p.shared.removed ? t('together.cardGone') : t('together.cardWith', { owner: p.shared.owner?.name ?? '' }), false] : p.course ? [t('home.projects.fromCourse'), false] : [null, false];
+                    const tag = p.notSaved && account.me ? [t('cloud.notSaved'), true] : p.readOnly === 'plus_ended' && p.shared && teams.on ? [t('together.paused.tag'), true] : p.readOnly ? [t('cloud.readOnly'), true] : p.shared ? [p.shared.removed ? t('together.cardGone') : t('together.cardWith', { owner: p.shared.owner?.name ?? '' }), false] : p.course ? [t('home.projects.fromCourse'), false] : [null, false];
                     // A unit's song (retention row 8) with a take kept says how much of it is you: "1 of 4 parts is you"; in game
                     // mode its cover's rows for your parts are lit, the others hollow.
                     const yours = p.course?.unitSong && p.recordedCount > 0 && p.template;
@@ -527,7 +530,11 @@ export const ProjectsView = {
         loadCatalogue(); // real voices' credits on the songs
         // Drafts start or stop showing (before the launch, an admin): the library again.
         this.stopDrafts = onDraftsChange(() => listTemplates().then((list) => (this.templates = list), (error) => console.warn('Templates not loaded', error)));
-        listTemplates()
+        // The library (/api/templates and the bundled songs) after Home's first frame (the first-visit speed pass,
+        // 2026-11-13), so it never competes with what draws it; at once when a link asked for a song (?song=).
+        const linked = new URLSearchParams(location.search).has('song');
+        const afterFirstFrame = (run) => this.$nextTick(() => requestAnimationFrame(() => requestAnimationFrame(run)));
+        (linked ? (run) => run() : afterFirstFrame)(() => listTemplates()
             .then((list) => {
                 this.templates = list;
                 // A link to a song (a shared harmony's "Learn this harmony", a song page's Start, What's next): it opens here.
@@ -547,7 +554,7 @@ export const ProjectsView = {
                     else this.linkedSong = song;
                 }
             })
-            .catch((error) => console.warn('Templates not loaded', error));
+            .catch((error) => console.warn('Templates not loaded', error)));
     },
     mounted() {
         // The song's sheet fetched once Home is up and the page is idle, so a tap on a song opens it at once.
@@ -664,23 +671,36 @@ export const ProjectsView = {
          * library song with an account); a guest's song that needs one opens with its clip and the way to a free account.
          */
         async pickTemplate(template) {
-            let song = template;
             this.locked = !canStart(template, this.signedIn);
-            if (template.summary && !this.locked) {
-                toast(t('templates.loading'), { seconds: 2 });
-                try {
-                    song = await loadTemplate(template.id);
-                } catch (error) {
-                    if (error?.code === 'account_required') this.locked = true; // a guest's song that needs a free account
-                    else {
-                        console.error('The song did not load', error);
-                        toast(error?.code === 'offline' ? t('common.offline') : t('projects.couldNotStart'), { tone: 'error' });
-                        return;
-                    }
+            // Shown at once from what the library already knows (its title, words and parts), the notes coming in behind it:
+            // Start waits, busy, and says so after a few seconds, with Retry if they don't come (Hillel, 2026-11-12: "make sure
+            // there is instant feedback if we need to load").
+            this.singers = Math.max(...singerOptions(template));
+            this.openTemplate = template;
+            this.songNotHere = null;
+            this.songLoad = template.summary && !this.locked ? 'loading' : null;
+            if (!this.songLoad) return;
+            try {
+                const song = await loadTemplate(template.id);
+                if (this.openTemplate?.id !== template.id) return; // another song was opened meanwhile
+                this.singers = Math.max(...singerOptions(song));
+                this.openTemplate = song;
+                this.songLoad = null;
+            } catch (error) {
+                if (this.openTemplate?.id !== template.id) return;
+                if (error?.code === 'account_required') {
+                    this.locked = true; // a guest's song that needs a free account
+                    this.songLoad = null;
+                    return;
                 }
+                this.songNotHere = notHereLine(error);
+                if (this.songNotHere) {
+                    this.songLoad = 'withheld'; // not available where the singer is: calm, nothing to retry
+                    return;
+                }
+                console.error('The song did not load', error);
+                this.songLoad = error?.code === 'offline' ? 'offline' : 'failed';
             }
-            this.singers = Math.max(...singerOptions(song));
-            this.openTemplate = song;
         },
         /** Each of the song's parts, heard or not for the singers chosen (a few ms' ramp, no click). */
         previewLevels() {
@@ -871,8 +891,8 @@ export const ProjectsView = {
         /** A tap on a library song: its sheet (what it is, Play, Start). */
         async infoSong(template) {
             await this.stopSongs();
+            this.showInfo = true;
             await this.pickTemplate(template);
-            if (this.openTemplate?.id === template.id) this.showInfo = true;
             // Start opens Sing: its code comes in while the sheet is read, so Sing's choice shows at once after Start (on a slow
             // phone its few levels of imports took about 2 s after the tap: the speed pass, 2026-11-12). Game mode's part select
             // follows Sing's store in (game/modules.js).
@@ -908,6 +928,16 @@ export const ProjectsView = {
         },
         open(project) {
             navigate(`/p/${project.id}`);
+        },
+        /**
+         * Be the voice, from the song's sheet: the song started on the first part no one has sung, ready to record in Sing,
+         * a guest too (record first: an account, the agreement and sending come only if they choose to share it).
+         */
+        beTheVoice() {
+            countVoice('bv_sheet_tap');
+            const part = voicelessParts(this.openTemplate.id)[0];
+            if (part) this.linkedPart = { song: this.openTemplate.id, part };
+            this.start();
         },
         /** A song's cover seed, from its id: the same colours wherever it's listed. */
         seedOf: (id) => [...String(id)].reduce((hash, c) => (hash * 31 + c.charCodeAt(0)) >>> 0, 7),

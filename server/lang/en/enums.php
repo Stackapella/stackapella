@@ -18,7 +18,21 @@ return [
         'name' => 'By name',
         'anonymous' => 'Anonymous',
     ],
+    'correction_kind' => [
+        'fact' => 'A fact',
+        'words' => 'The words',
+        'notes' => 'The notes',
+        'other' => 'Something else',
+    ],
+    'correction_state' => [
+        'new' => 'To read',
+        'accepted' => 'Accepted',
+        'done' => 'Done',
+        'rejected' => 'Rejected',
+    ],
     'submission_status' => [
+        'not_chosen' => 'Another take was chosen',
+        'held' => 'Waiting for the email to be confirmed',
         'uploading' => 'Uploading',
         'processing' => 'Processing',
         'submitted' => 'Submitted',

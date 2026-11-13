@@ -6,10 +6,11 @@ import { leftSong } from '../unit-song.js';
 import { VoiceCareLine } from '../components/voice-care.js';
 import { TimingLine } from '../components/timing-line.js';
 import { game } from '../skin.js';
-import { toRefs } from 'vue';
+import { defineAsyncComponent, toRefs } from 'vue';
 import { audio, closeMic, engine, latencyNow, openMic } from '../audio.js';
 import { follow, hintStep, voiceFollower } from '../livevoice.js';
 import { formatList, t, tk } from '../i18n.js';
+import { screenLoading } from '../components/screen-loading.js';
 import { BACKING, DRONE, GUIDE_LEVELS, guideId, hasTake } from '../practice.js';
 import { RecordSetup } from '../record-setup.js';
 import { goBack, navigate } from '../router.js';
@@ -18,6 +19,9 @@ import { scoreTake } from '../scoring.js';
 import { trackFrame, trackInWorker, VOICED_CLARITY } from '../pitchtrack.js';
 import * as sessionStore from '../stores/session.js';
 import { account } from '../stores/account.js';
+import { claimInvitation, countVoice, later, needsVoice, saidLater, usableTake, voiceAskOpen } from '../be-the-voice.js';
+import { sendVoiceTake } from '../voice-take.js';
+import { signUpFor } from '../components/account-wall.js';
 import { count, tried } from '../usage.js';
 import { local } from '../storage.js';
 import { countInText } from '../components/count-in.js';
@@ -91,10 +95,10 @@ const FIT_WORDS = { real: tk('sing.realKey'), fits: tk('sing.fitsYourRange'), lo
 
 export const SingView = {
     mixins: [RecordSetup],
-    components: { DailyShare, RingMeter, VoiceCareLine, TimingLine, PopupSlot, TakeBest, IdeaVoice, PhraseStage, Chooser, Stage, RecordingStage, Lane, NowCard, Coach, StepDone, JustRecorded, LineBar, ModeBar, SingHeader, Transport, TurnBand, PartSheet, SettingsSheet, HeadphonesDialog, TimingDialog, RangeDialog, Icon, VoiceNote, ResingSheet, ResungCard, TrimSheet, WhatsNext, LockedBanner, ShareSheet },
+    components: { SingShell: screenLoading(), ShareVoice: defineAsyncComponent(() => import('../components/share-voice.js').then((m) => m.ShareVoice)), DailyShare, RingMeter, VoiceCareLine, TimingLine, PopupSlot, TakeBest, IdeaVoice, PhraseStage, Chooser, Stage, RecordingStage, Lane, NowCard, Coach, StepDone, JustRecorded, LineBar, ModeBar, SingHeader, Transport, TurnBand, PartSheet, SettingsSheet, HeadphonesDialog, TimingDialog, RangeDialog, Icon, VoiceNote, ResingSheet, ResungCard, TrimSheet, WhatsNext, LockedBanner, ShareSheet },
     props: { id: { type: String, required: true } },
     setup: () => ({ ...toRefs(session), audio, formatTime, shownTitle, prefs, game, effect }),
-    data: () => ({ crt: false, ghostTake: null, pendingGhost: null, hud: popupQueue(), viewPicked: false, readied: null, combo: 0, hintState: { hint: null }, voice: voiceFollower(), dialog: null, choosing: false, recorded: null, said: '', suggested: null, celebrated: null, lining: false, lined: null, resingPlanned: null, resung: null, takeNumbers: {}, fitSuggestion: null, ring: null, ringChord: '', lessonStep: null, lessonOpening: false }),
+    data: () => ({ crt: false, ghostTake: null, pendingGhost: null, hud: popupQueue(), viewPicked: false, readied: null, combo: 0, hintState: { hint: null }, voice: voiceFollower(), dialog: null, choosing: false, recorded: null, said: '', suggested: null, celebrated: null, lining: false, lined: null, resingPlanned: null, resung: null, takeNumbers: {}, fitSuggestion: null, ring: null, ringChord: '', lessonStep: null, lessonOpening: false, voiceAt: 0, voicePartId: null }),
     template: `
         <div class="flex h-dvh flex-col bg-ink" :data-paused="paused ? '' : null">
             <p class="sr-only" aria-live="polite">{{ said }}</p>
@@ -102,15 +106,16 @@ export const SingView = {
                 <p class="text-cream">{{ t('studio.missing') }}</p>
                 <button type="button" class="btn-primary mt-4" @click="navigate('/')">{{ t('common.backToProjects') }}</button>
             </div>
-            <p v-else-if="!project" class="m-auto text-muted" role="status">{{ t('sing.loading') }}</p>
+            <!-- Opening: the screen's frame at once (Back, a skeleton, a spinner, the slow line after a few seconds), never a bare line. -->
+            <SingShell v-else-if="!project" />
             <div v-else-if="!isTemplate" class="m-auto max-w-sm px-4 text-center">
                 <p class="text-cream">{{ t('sing.notTemplate') }}</p>
                 <button type="button" class="btn-primary mt-4" @click="navigate('/')">{{ t('common.backToProjects') }}</button>
             </div>
             <!-- A lesson's song (Hillel agreed, 2026-11-11): no chooser and no part picker, the step's part and way set while its lesson is read. -->
-            <p v-else-if="lessonOpening" class="m-auto text-muted" role="status">{{ t('sing.loading') }}</p>
+            <SingShell v-else-if="lessonOpening" />
             <Chooser v-else-if="choosing || !way || !focusPart" :parts="partChoices" :transpose="project.transpose || 0" :way="choosing ? null : way" :suggested="suggested"
-                :title="shownTitle(project)" :focus="focusPart ? { slot: focusPart, name: partName, range: templatePart(focusPart)?.range ?? null } : null" :bpm="project.bpm" :phrases="phraseRows.length" :length="lengthSeconds" :auto="!choosing"
+                :title="shownTitle(project)" :focus="focusPart ? { slot: focusPart, name: partName, range: templatePart(focusPart)?.range ?? null } : null" :bpm="project.bpm" :phrases="phraseRows.length" :length="lengthSeconds" :auto="!choosing" :no-voice="noVoiceSlots"
                 @choose="choose" @range="dialog = 'range'" @back="leave" @studio="openStudio" />
             <!-- Recording strips everything else away (113.png): the lane, the words, Stop -->
             <RecordingStage v-else-if="recording" :title="shownTitle(project)" :named="!!project.title?.trim()" :part-name="partName" :color="paint(focusPart.color)" :take="takeNumbers[rerecordId] ?? 1" :hearing="hearLine"
@@ -127,7 +132,7 @@ export const SingView = {
                 <SingHeader v-else :title="shownTitle(project)" :named="!!project.title?.trim()" :info="songInfo" :part-name="partName" :color="paint(focusPart.color)" :chip="chip"
                     :recording="recording" :recorded-seconds="recordedSeconds" :count-in="countIn" :about="about" :badge="settingsBadge"
                     @back="leave" @part="dialog = 'part'" @settings="dialog = 'settings'" :marked="hearingChanged" />
-                <LockedBanner v-if="locked" :reason="locked" class="mx-4 mt-2 md:mx-6" />
+                <LockedBanner v-if="locked" :reason="locked" :owner="project?.shared?.owner?.name ?? ''" class="mx-4 mt-2 md:mx-6" />
                 <!-- A lesson's step done here (sung long enough, or recorded): the way back, where its Finish now waits. Secondary: the coach keeps the one primary. -->
                 <div v-if="lessonDone && !recording" class="mx-4 mt-2 flex justify-end md:mx-6" data-lesson-back>
                     <button type="button" class="btn-secondary btn-sm max-sm:w-full" @click="backToLesson"><Icon name="back" :size="16" /> {{ t('sing.lessonBack') }}</button>
@@ -136,7 +141,7 @@ export const SingView = {
                 <VoiceNote v-if="!recording" @use-range="useRange" />
 
                 <div class="flex min-h-0 flex-1 flex-col md:flex-row">
-                    <Coach v-if="way === 'parts' && !recording" class="min-h-0 flex-1 md:w-96 md:flex-none md:shrink-0 md:border-e md:border-line" :class="overlay ? 'hidden md:flex' : ''" :part-name="partName" :color="paint(focusPart.color)" :step="coach.step"
+                    <Coach v-if="way === 'parts' && !recording" :starting="starting" class="min-h-0 flex-1 md:w-96 md:flex-none md:shrink-0 md:border-e md:border-line" :class="overlay ? 'hidden md:flex' : ''" :part-name="partName" :color="paint(focusPart.color)" :step="coach.step"
                         :phrases="phraseRows" :counts="coach.phrases" :here="here" :playing="playing"
                         :music-key="keyMovable ? project.key || project.template.key : null" :can-lower="keyLowerable" :can-higher="keyRaisable" @lower="moveKey(-1)" @higher="moveKey(1)"
                         @action="coachAction" @phrase="playPhrase" @repeat="repeatPhrase" @first-note="firstNote" @step="setStep" @other-part="dialog = 'part'" />
@@ -147,8 +152,8 @@ export const SingView = {
                         <JustRecorded v-else-if="recorded" class="m-auto" :outcome="recorded" :part-name="nameOf(recorded.part)" :next-name="recorded.next ? nameOf(recorded.next) : ''" :hearing="playing"
                             :nudge-ms="nudgeMsOf(recorded.part)" :lining="lining" :lined="lined" :can-resing="phraseRows.length > 1" :color="paint(recorded.part.color)" :stack="recordedStack"
                             :score="recorded.report?.score ?? null" :notes="reportNotes" :track="recorded.report?.track ?? null" :beat-seconds="fullBeatSeconds" :offset-seconds="recorded.part.offsetSeconds + (recorded.part.nudgeSeconds || 0)"
-                            :phrases="reportPhrases" :phrase-labels="phraseRows.map((p) => p.label)" :position="position" :length-seconds="lengthSeconds" :bleed="!!recorded.report?.bleed" :sung-by="sungBy"
-                            @hear="hearTake" @mute="toggleHearing" @again="recordPart" @next="nextPart" @nudge="nudge" @nudged="nudged" @line-up="lineUp" @studio="openStudio" @resing="resingFrom" @trim="openTrim" :polished="prefs.hearPolished" @polish="hearPolished" @share="dialog = 'share'" @hear-phrase="hearPhrase">
+                            :phrases="reportPhrases" :phrase-labels="phraseRows.map((p) => p.label)" :position="position" :length-seconds="lengthSeconds" :bleed="!!recorded.report?.bleed" :sung-by="sungBy" :voice="voiceInvite"
+                            @hear="hearTake" @mute="toggleHearing" @again="recordPart" @next="nextPart" @nudge="nudge" @nudged="nudged" @line-up="lineUp" @studio="openStudio" @resing="resingFrom" @trim="openTrim" :polished="prefs.hearPolished" @polish="hearPolished" @share="dialog = 'share'" @hear-phrase="hearPhrase" @voice-share="voiceShare" @voice-later="voiceLater">
                             <template #report>
                                 <!-- The part's leaderboard (components/boards.js): your best, or why it didn't count; never a lesson's song -->
                                 <TakeBest v-if="game() && recorded.report?.score?.percent != null && !project.course && project.template?.id" :key="'best-' + recorded.part.id" @result="ghostResult" :template-id="project.template.id" :template-version="project.template.version" :part-key="recorded.part.templatePartKey"
@@ -198,7 +203,7 @@ export const SingView = {
 
                 <div v-if="getReady && !recording" class="flex justify-center pb-2"><button type="button" class="btn-secondary btn-sm" @click="firstNote"><Icon name="note" :size="16" /> {{ t('sing.firstNoteCard.playMine') }}</button></div>
                 <LineBar v-if="way === 'whole' && !recording && !recorded && phraseRows.length > 1" class="hidden bg-panel md:grid" :lines="phraseRows" :position="position" @seek="seekLine" />
-                <Transport v-if="!recorded && !resung" :class="coaching && !playing ? 'hidden md:flex' : ''" :position="position" :length="lengthSeconds" :playing="playing && !recording" :recording="recording" :busy="busy" :loop="!!practice.loop" :part-name="partName"
+                <Transport v-if="!recorded && !resung" :starting="starting" :class="coaching && !playing ? 'hidden md:flex' : ''" :position="position" :length="lengthSeconds" :playing="playing && !recording" :recording="recording" :busy="busy" :loop="!!practice.loop" :part-name="partName"
                     :turn="way === 'parts' && phase === 'turn' && !recording" :bpm="way === 'whole' ? Math.round((project.bpm || project.template.tempo) * (practice.speed ?? 1)) : 0" :slower="canSlower" :faster="canFaster" @tempo="stepTempo" @play="transportPlay" @record="recordPart" @loop="loop" @again="repeatPhrase(here)" />
             </template>
 
@@ -208,6 +213,7 @@ export const SingView = {
             <PartSheet v-if="dialog === 'part'" :parts="partSheet" :focus-id="focusPart?.id" :voice="focusPart ? guideVoices[focusPart.id] ?? null : null" :key-note="keyNote" :way="way" :disabled="recording" :lend="lendLine"
                 @select="selectPart" @voice="chooseVoice" @range="dialog = 'range'" @way="switchWay" @close="dialog = null" @lend="openVoices" />
             <ShareSheet v-if="dialog === 'share'" :title="project.title || ''" :parts="sharedParts" @close="dialog = null" />
+            <ShareVoice v-if="dialog === 'voice' && voicePart" :part="nameOf(voicePart)" :song="shownTitle(project)" :part-key="voicePart.templatePartKey" :saved="voiceSaved" :send="sendVoice" @close="dialog = null" />
             <TrimSheet v-if="dialog === 'trim' && recorded" :part="recorded.part" :name="nameOf(recorded.part)" :color="paint(recorded.part.color)" :beat-seconds="60 / (project.bpm || 90)" :playing="playing"
                 @trim="trim" @play-start="hearEdge('start')" @play-end="hearEdge('end')" @play-trimmed="hearTrimmed" @stop="stopHearing" @close="closeTrim" />
             <ResingSheet v-if="dialog === 'resing'" :phrases="phraseRows" :plan="resingPlanned" @pick="pickResing" @start="startResing" @close="closeResing" />
@@ -432,6 +438,35 @@ export const SingView = {
             if (!account.config?.lendVoice || !weekOld || !me.isAdult || this.project?.beta || this.project?.course || !this.project?.template?.id || !this.focusPart?.templatePartKey) return false;
             return !this.guideVoices[this.focusPart.id]?.versions?.length;
         },
+        /**
+         * Be the voice's invitation under this take's review (be-the-voice.js): { part, guest } for a usable take of a library
+         * song's part no one has given a real voice, once a session, not after a Not now in the last 14 days. Never in a
+         * lesson's song, a beta take or a friend's project. `voiceAt` redraws it after a Not now.
+         */
+        voiceInvite() {
+            void this.voiceAt;
+            const part = this.recorded?.part;
+            if (!this.voiceTake(part)) return null;
+            if (saidLater(this.project.template.id, part.templatePartKey) || !claimInvitation(this.project.template.id, part.templatePartKey)) return null;
+            return { part: this.nameOf(part), guest: !account.me };
+        },
+        /** The part Be the voice's sheet is for: the review's, or the one a sign-up came back to (?voice=<partId>). */
+        voicePart() {
+            return this.parts.find((p) => p.id === this.voicePartId) ?? null;
+        },
+        /** Whether that part's take is saved to the account (the sheet waits for it before Share it). */
+        voiceSaved() {
+            const part = this.voicePart;
+            return !!part?.takeId && part.syncedTakeId === part.takeId;
+        },
+        /**
+         * The parts no one has sung yet (Be the voice's tag in the part picker), of a library song: from day one, as it says
+         * why that part sounds like a synth (the coordinator for Hillel, 2026-11-12: information, not clutter).
+         */
+        noVoiceSlots() {
+            if (!voiceAskOpen() || this.project?.beta || this.project?.course || !this.project?.template?.id) return [];
+            return this.partChoices.filter((c) => needsVoice(this.project.template.id, c.slot.templatePartKey)).map((c) => c.slot.id);
+        },
         /** Your part's sheet: each part with its range and its guide's voice. */
         partSheet() {
             return this.partChoices.map((c) => {
@@ -616,6 +651,13 @@ export const SingView = {
         },
     },
     watch: {
+        /** Be the voice's pool and its invitation shown (anonymous daily counts, the review's section 5). */
+        'recorded.part.takeId'(takeId, before) {
+            if (takeId && takeId !== before && this.voiceTake(this.recorded?.part)) countVoice('bv_sung');
+        },
+        voiceInvite(now, before) {
+            if (now && !before) countVoice('bv_shown');
+        },
         // Game mode's ghost: your best take of this part, loaded as the part is chosen (or the song's version changes).
         ghostKeyNow: {
             async handler(now) {
@@ -726,6 +768,13 @@ export const SingView = {
         },
     },
     async created() {
+        // Back from making an account to share a take (Be the voice): the same take, its sheet open.
+        const query = new URLSearchParams(location.search);
+        const back = query.get('voice');
+        if (back) {
+            query.delete('voice');
+            history.replaceState(history.state, '', location.pathname + (query.size ? `?${query}` : ''));
+        }
         // The studio may have it open already (Sing from the studio): no need to load it again.
         if (session.openedId !== this.id || !session.project) await sessionStore.openSession(this.id);
         // A beta take is recorded in the studio's beta mode (the sound check, Check and send).
@@ -734,6 +783,13 @@ export const SingView = {
             return;
         }
         sessionStore.setScreen('sing');
+        // Signed in to share a take (Be the voice): straight to its sheet, the take found by its part.
+        const backPart = back && this.parts.find((p) => p.id === back || p.templatePartKey === back);
+        if (backPart && account.me) {
+            this.voicePartId = backPart.id;
+            this.dialog = 'voice';
+            countVoice('bv_resume');
+        }
         if (this.isTemplate) sessionStore.refreshVoices();
         if (session.project?.course?.lessonId && this.isTemplate) await this.openForLesson();
         this.pickFitting().catch((error) => console.warn('The part that fits was not picked', error));
@@ -917,6 +973,42 @@ export const SingView = {
         openVoices() {
             this.dialog = null;
             navigate('/voices');
+        },
+        /** Whether `part`'s take could be the guide (be-the-voice.js usableTake): the call open, a library song, no voice yet. */
+        voiceTake(part) {
+            if (!part?.templatePartKey || !voiceAskOpen() || this.project?.beta || this.project?.course || this.project?.shared || !this.project?.template?.id) return false;
+            if (!needsVoice(this.project.template.id, part.templatePartKey)) return false;
+            return usableTake({
+                seconds: (part.frames || 0) / (part.sampleRate || 48000),
+                partSeconds: part.guideSeconds ?? 0,
+                transpose: this.project.transpose || 0,
+                score: this.recorded?.part?.id === part.id ? this.recorded.report?.score : null,
+                bleed: !!this.recorded?.report?.bleed,
+                speakers: sessionStore.onSpeakers(),
+            });
+        },
+        /** Share it: a guest makes a free account first ("Save your alto and share it") and comes straight back to this take. */
+        voiceShare() {
+            const part = this.recorded?.part;
+            if (!part) return;
+            countVoice(`bv_share_tap:${account.me ? 'member' : 'guest'}`);
+            if (!account.me) {
+                navigate(`${signUpFor('voice', `/p/${this.id}/sing?voice=${encodeURIComponent(part.id)}`)}&part=${encodeURIComponent(this.nameOf(part))}`);
+                return;
+            }
+            this.voicePartId = part.id;
+            this.dialog = 'voice';
+        },
+        /** Not now: that part, 14 days. */
+        voiceLater() {
+            const part = this.recorded?.part;
+            if (!part) return;
+            later(this.project.template.id, part.templatePartKey);
+            this.voiceAt++;
+        },
+        /** The take as the part's guide (Share it in Be the voice's sheet): sent with the agreement's version and the credit. */
+        async sendVoice({ credit, agreementVersion, adult }) {
+            return sendVoiceTake(this.voicePart, { project: this.project, credit, agreementVersion, adult });
         },
         async chooseVoice(voice) {
             if (this.focusPart) await sessionStore.setVoice(this.focusPart, voice);

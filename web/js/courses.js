@@ -15,6 +15,17 @@ import { pageGrants, pageLesson } from './page-lesson.js';
  */
 export const GUEST_LESSONS = 1;
 
+/** The free course's id (web/course/course.json). */
+export const FREE_COURSE = 'stackapella-course';
+
+// How many of the free course's lessons a guest may sing: GUEST_LESSONS, unless this device is in wall2's arm b (lessons
+// 1.1 to 1.3, the wall before 1.4; docs/improvement-log.md row 12). Set by js/experiments.js, which knows the arm; kept
+// here as a function so this module stays pure.
+let freeGuestLessons = () => GUEST_LESSONS;
+export function setFreeGuestLessons(howMany) {
+    freeGuestLessons = howMany;
+}
+
 /** A course's lessons, flat, each with its unit and places: `{ unit, unitIndex, lesson, index, place }`. */
 export function courseLessons(course) {
     let place = 0;
@@ -122,10 +133,13 @@ export function guestOpen(course, lessonId) {
     return course?.id && pageGrants[course.id] ? pageGrants[course.id] === lessonId : guestLesson(course, lessonId);
 }
 
-/** Whether a guest may sing this lesson of `course` (any course, the free one too): one of its first GUEST_LESSONS. */
+/**
+ * Whether a guest may sing this lesson of `course` (any course, the free one too): one of its first GUEST_LESSONS (the free
+ * course's, wall2's arm b: three).
+ */
 export function guestLesson(course, lessonId) {
     const at = courseLessons(course).findIndex((l) => l.lesson.id === lessonId);
-    return at >= 0 && at < GUEST_LESSONS;
+    return at >= 0 && at < (course?.id === FREE_COURSE ? freeGuestLessons() : GUEST_LESSONS);
 }
 
 /**

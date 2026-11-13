@@ -13,6 +13,8 @@ const M = { top: 18, right: 14, bottom: 26, left: 40 };
 export const HOUR_MARGINS = M;
 const HOURS = 24;
 const HIDDEN = { early: tk('admin.growth.chart.hidden.early'), tooFew: tk('admin.growth.chart.hidden.tooFew'), noHistory: tk('admin.growth.chart.hidden.noHistory') };
+// A projection made with another line's day shape (`basis` borrowedShape: too little history of its own yet), said plainly.
+const BORROWED = { arrivals: tk('admin.growth.chart.borrowed.arrivals') };
 
 /** Running totals of per-slot counts, null where the count is null (after now). */
 export function runningTotals(counts = []) {
@@ -59,7 +61,7 @@ export function hourSeries(chart, key) {
     // The path's values run from the now slot's end to midnight: drawn from the now dot. A running total can't end below
     // what is already in, so the fan's low edge (low x the usual shape) is held at the count so far until it rises past it.
     const along = (arr) => [[nowSlot + fraction, soFar], ...(arr ?? []).map((v, j) => [nowSlot + j + 1, Math.max(v, soFar)])];
-    const projection = p?.shown && p.path ? { mean: along(p.path.mean), lowPath: along(p.path.low), highPath: along(p.path.high), value: p.value, low: p.low, high: p.high, share: p.share } : null;
+    const projection = p?.shown && p.path ? { mean: along(p.path.mean), lowPath: along(p.path.low), highPath: along(p.path.high), value: p.value, low: p.low, high: p.high, share: p.share, borrowedFrom: p.basis === 'borrowedShape' ? (p.shapeFrom ?? 'arrivals') : null } : null;
     return { today: todayPts, before: beforePts, usual, projection, soFar, beforeTotal: m.previousTotal ?? before.filter((v) => v !== null).at(-1) ?? 0, hidden: p && !p.shown ? p.hidden : null, showsFrom: p?.showsFrom ?? null, perHour: m.now, beforePerHour: m.previous, estimated: m.previousEstimated ?? [] };
 }
 
@@ -131,6 +133,7 @@ export const HourChart = {
             </div>
             <slot name="under" />
             <p v-if="hiddenLine" class="text-xs text-muted" data-projection-hidden>{{ hiddenLine }}</p>
+            <p v-if="borrowedLine" class="text-xs text-muted" data-projection-borrowed>{{ borrowedLine }}</p>
             <button type="button" class="link inline-flex min-h-6 items-center text-xs" :aria-expanded="table ? 'true' : 'false'" data-chart-table-toggle @click="table = !table">{{ table ? t('admin.growth.chart.showChart') : t('admin.growth.chart.showTable') }}</button>
             <div v-if="table" class="max-h-96 overflow-auto" data-chart-table>
                 <table class="w-full text-sm">
@@ -179,6 +182,11 @@ export const HourChart = {
         header() {
             return t('admin.growth.chart.beforeHad', { n: formatNumber(this.s.beforeTotal) });
         },
+        /** The weaker estimate, said: a projection drawn with another line's daily pattern (and its wider range). */
+        borrowedLine() {
+            const from = this.s.projection?.borrowedFrom;
+            return from ? t(BORROWED[from] ?? BORROWED.arrivals) : '';
+        },
         hiddenLine() {
             const h = this.s.hidden;
             if (!h || !HIDDEN[h]) return '';
@@ -188,7 +196,7 @@ export const HourChart = {
         summary() {
             const before = this.beforeAt(this.nowX);
             const base = t('admin.growth.chart.summary', { what: this.label, n: formatNumber(Math.round(this.s.soFar)), cut: this.cut, before: formatNumber(Math.round(before ?? 0)), total: formatNumber(this.s.beforeTotal) });
-            return this.s.projection ? `${base} ${t('admin.growth.chart.summaryProjected', { n: formatNumber(roundProjected(this.s.projection.value)) })}` : base;
+            return this.s.projection ? [base, t('admin.growth.chart.summaryProjected', { n: formatNumber(roundProjected(this.s.projection.value)) }), this.borrowedLine].filter(Boolean).join(' ') : base;
         },
         rows() {
             const nowSlot = this.chart.now?.slot ?? 0;

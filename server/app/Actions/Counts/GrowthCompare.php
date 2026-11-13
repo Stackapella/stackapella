@@ -64,6 +64,9 @@ final class GrowthCompare
 
     private ?CarbonImmutable $hourlySince = null;
 
+    /** Visits' own hourly history is under 14 days: its day shape is the app's (Arrivals'), and its projection says so. */
+    private bool $siteBorrowed = false;
+
     private CarbonImmutable $now;
 
     private string $zone;
@@ -81,8 +84,17 @@ final class GrowthCompare
         $this->now = CarbonImmutable::now()->setTimezone($this->zone);
         $minutes = $this->now->hour * 60 + $this->now->minute;
 
-        $first = DB::table('usage_count_hours')->whereNotIn('kind', self::BACKFILLED)->min('hour');
+        // When hourly counting began, and when Visits' own hours did, in one read.
+        $siteKinds = ['site_visit', ...$this->kinds('sv')];
+        $firsts = DB::table('usage_count_hours')->whereNotIn('kind', self::BACKFILLED)
+            ->selectRaw('min(hour) as first, min(case when kind in ('.implode(',', array_fill(0, count($siteKinds), '?')).') then hour end) as site', $siteKinds)->first();
+        $first = $firsts?->first;
+        $siteFirst = $firsts?->site;
         $this->hourlySince = $first !== null ? CarbonImmutable::parse((string) $first, 'UTC') : null;
+        // Only while the app has a shape of its own to lend (14 days of hours) and Visits doesn't yet.
+        $twoWeeks = $this->now->startOfDay()->subDays(14)->utc();
+        $this->siteBorrowed = $this->hourlySince !== null && $this->hourlySince->lte($twoWeeks)
+            && ($siteFirst === null || CarbonImmutable::parse((string) $siteFirst, 'UTC')->gt($twoWeeks));
 
         foreach ($this->weights() as $family => $weights) {
             $this->shares[$family] = FairCompare::shape($weights, 4, $minutes);
@@ -373,6 +385,8 @@ final class GrowthCompare
         $kinds = array_values(array_unique([
             ...array_merge(...array_map(fn (array $m): array => $this->kinds($m['kinds']), array_values(self::METRICS))),
             ...$this->kinds('askShown'), 'f_course_lesson', ...array_merge(...array_values(self::TILES)), ...array_merge(...array_values(self::STEPS)),
+            // The chart's App starts strip.
+            'app_open',
         ]));
         $earliest = min([$this->now->toDateString(), ...$froms]);
 
@@ -420,7 +434,7 @@ final class GrowthCompare
         $own = $this->hourlySince !== null && $this->hourlySince->lte($today->subDays(14)->utc());
 
         /** @var array<string, list<int>> */
-        return Cache::remember('growth:shape:'.$this->zone.':'.$today->toDateString().':'.($own ? 'own' : 'proxy'), 3600, function () use ($today, $own): array {
+        return Cache::remember('growth:shape:'.$this->zone.':'.$today->toDateString().':'.($own ? 'own' : 'proxy').($this->siteBorrowed ? ':borrowed' : ''), 3600, function () use ($today, $own): array {
             $from = $today->subDays(28)->utc()->format('Y-m-d H:i:s');
             $to = $today->utc()->format('Y-m-d H:i:s');
             $local = fn (array $rows): array => array_reduce(array_keys($rows), function (array $by, int|string $hour) use ($rows): array {
@@ -443,7 +457,10 @@ final class GrowthCompare
                     $byKind[(string) $row->kind][substr((string) $row->hour, 0, 19)] = (int) $row->n;
                 }
 
-                return array_map(fn (array $kinds): array => $sum(...array_map(fn (string $kind): array => $local($byKind[$kind] ?? []), $kinds)), $families);
+                $shapes = array_map(fn (array $kinds): array => $sum(...array_map(fn (string $kind): array => $local($byKind[$kind] ?? []), $kinds)), $families);
+
+                // Visits' own hours too few yet: the app's day shape stands in (said on its projection).
+                return $this->siteBorrowed ? ['site' => $shapes['app'], ...array_diff_key($shapes, ['site' => true])] : $shapes;
             }
 
             $admins = Counts::admins();
@@ -494,6 +511,11 @@ final class GrowthCompare
         $metrics['signUps'] = $kind === 'hours'
             ? ['now' => self::cells($signUps['now']), 'previous' => self::cells($signUps['previous'])]
             : ['now' => $signUps['now'], 'previous' => $signUps['previous']];
+        // App starts (every load of the app, app_open), the strip under Visits as Sign-ups is under Arrivals.
+        $appStarts = $this->series($kind, $period, $slots, ['app_open'], 'app', $windows, false);
+        $metrics['appStarts'] = $kind === 'hours'
+            ? ['now' => self::cells($appStarts['now']), 'previous' => self::cells($appStarts['previous'])]
+            : ['now' => $appStarts['now'], 'previous' => $appStarts['previous']];
 
         $start = CarbonImmutable::parse($kind === 'hours' ? $this->now->subDay()->toDateString() : $slots[0], $this->zone)->utc();
         $releases = array_values(array_filter(array_column(Releases::recent(), 'firstSeenAt'), fn (string $at): bool => CarbonImmutable::parse($at)->gte($start) && CarbonImmutable::parse($at)->lte($this->now)));
@@ -549,7 +571,7 @@ final class GrowthCompare
             ] : null;
 
             $n = $this->total($kinds, $today);
-            $projection = FairCompare::projectDay($n, $share, $since !== null && $since <= $this->now->subDays(7)->toDateString());
+            $projection = FairCompare::projectDay($n, $share, $since !== null && $since <= $this->now->subDays(7)->toDateString(), $this->borrows($family));
             $weights = $this->weights()[$family];
             $path = null;
 
@@ -563,7 +585,8 @@ final class GrowthCompare
             }
 
             $out['projection'] = [
-                ...self::projection($projection, 'dayShape', $share, $projection['hidden'] === 'early' ? FairCompare::reaches($weights, 4, 0.25) : null),
+                ...self::projection($projection, $this->borrows($family) ? 'borrowedShape' : 'dayShape', $share, $projection['hidden'] === 'early' ? FairCompare::reaches($weights, 4, 0.25) : null),
+                ...($this->borrows($family) ? ['shapeFrom' => 'arrivals'] : []),
                 'slot' => $projection['shown'] ? ['index' => $hour, 'value' => $projection['value'], 'low' => $projection['low'], 'high' => $projection['high']] : null,
                 'path' => $path, 'rate' => null, 'periodTotal' => null,
             ];
@@ -626,7 +649,7 @@ final class GrowthCompare
 
         $index = (int) array_search($today, $slots, true);
         $history = $since !== null && $since <= $this->now->subDays(7)->toDateString();
-        $day = FairCompare::projectDay($this->total($kinds, $today), $share, $history);
+        $day = FairCompare::projectDay($this->total($kinds, $today), $share, $history, $this->borrows($family));
         $slot = $day['shown'] ? ['index' => $index, 'value' => $day['value'], 'low' => $day['low'], 'high' => $day['high']] : null;
         $before = (int) array_sum(array_slice(array_map(static fn (?float $v): float => (float) $v, $nowLine), 0, $index));
 
@@ -642,12 +665,19 @@ final class GrowthCompare
         }
 
         $out['projection'] = [
-            ...self::projection($day, 'dayShape', $share, $day['hidden'] === 'early' ? FairCompare::reaches($this->weights()[$family], 4, 0.25) : null),
+            ...self::projection($day, $this->borrows($family) ? 'borrowedShape' : 'dayShape', $share, $day['hidden'] === 'early' ? FairCompare::reaches($this->weights()[$family], 4, 0.25) : null),
+            ...($this->borrows($family) ? ['shapeFrom' => 'arrivals'] : []),
             'slot' => $slot, 'path' => null, 'rate' => null,
             'periodTotal' => $slot !== null ? $before + (int) $slot['value'] : null,
         ];
 
         return $out;
+    }
+
+    /** Whether this line's day shape is borrowed (Visits, while its own hours are too few). */
+    private function borrows(string $family): bool
+    {
+        return $family === 'site' && $this->siteBorrowed;
     }
 
     /**

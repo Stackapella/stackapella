@@ -81,6 +81,7 @@ function fakeAccount({ projectLimit = 3 } = {}) {
             create: async (body) => {
                 if (body.scores) takeScores.set(body.id, body.scores);
                 if (limits.full) throw new Refusal(403, 'storage_limit');
+                if (limits.paused) throw new Refusal(403, 'shared_paused');
                 if (limits.capped) throw Object.assign(new Refusal(429, 'rate_limited'), { retryAfter: 3600 });
                 if (!parts.has(body.partId)) throw new Refusal(409, 'part_missing');
                 const had = takes.get(body.id);
@@ -337,6 +338,24 @@ test('sync: a take refused for a full account waits, and a pull never replaces i
     await p.resolve(p.state.conflicts[0], 'mine');
     await p.run();
     assert(account.parts.get('a1').currentTakeId === 't2' && !p.state.waiting, 'the new recording is the part\'s');
+});
+
+test("sync: a take refused on a friend's paused song waits on this device, and goes up once the song is back", async () => {
+    const account = fakeAccount();
+    const phone = fakeDevice();
+    const p = sync(account, phone);
+    await recorded(account, phone, p);
+    account.limits.paused = true; // the song's owner's Plus ended (docs/pricing-plan.md, teaming up)
+    await phone.db.put('parts', { ...(await phone.db.get('parts', 'a1')), takeId: 't2' });
+    await phone.db.putAudio('a1', new Float32Array(4800).fill(0.7));
+    await p.enqueue('part', 'a1', { projectId: 'p1' });
+    await p.run();
+    assert(p.state.waiting === 'shared_paused' && (await phone.db.get('outbox', 'part:a1')), 'kept, waiting, never dropped');
+    assert((await phone.db.get('parts', 'a1')).takeWaiting === 'shared_paused', 'the part says why');
+    assert(!account.takes.has('t2') || account.takes.get('t2').status !== 'ready', 'not in the account yet');
+    account.limits.paused = false; // Plus is back
+    await p.run();
+    assert(account.takes.get('t2')?.status === 'ready' && account.parts.get('a1').currentTakeId === 't2', 'sent once the song was back');
 });
 
 test('sync: a delete that meets a change elsewhere asks; Delete it deletes, Keep their version brings it back', async () => {

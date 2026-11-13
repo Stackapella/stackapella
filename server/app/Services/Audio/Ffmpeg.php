@@ -92,7 +92,7 @@ final class Ffmpeg
             'volume='.round($gainDb, 2).'dB',
         ]);
 
-        $result = Process::timeout(200)->run(['ffmpeg', '-hide_banner', '-nostats', '-y', ...self::LOCAL_IN, '-i', $in, '-af', $filter, '-c:a', 'aac', '-b:a', '128k', '-ar', (string) $sampleRate, '-ac', '1', '-movflags', '+faststart', '-f', 'mp4', $out]);
+        $result = Process::timeout(200)->run(['ffmpeg', '-hide_banner', '-nostats', '-y', ...self::LOCAL_IN, '-i', $in, '-af', $filter, '-c:a', 'aac', '-b:a', ((int) config('beta.guide_kbps') ?: 128).'k', '-ar', (string) $sampleRate, '-ac', '1', '-movflags', '+faststart', '-f', 'mp4', $out]);
 
         if (! $result->successful() || ! is_file($out)) {
             throw new RuntimeException('ffmpeg could not make the guide: '.mb_strimwidth($result->errorOutput(), 0, 500, '...'));
@@ -193,6 +193,19 @@ final class Ffmpeg
         }
 
         return array_values(array_filter($needed, static fn (string $encoder): bool => preg_match('/^\s*[VAS][^\s]*\s+'.preg_quote($encoder, '/').'\s/m', $result->output()) !== 1));
+    }
+
+    /**
+     * A kept take back as the master a guide is made from (voices.share): a mono 16-bit WAV at its own rate, sample for
+     * sample (FLAC is lossless).
+     */
+    public function decodeToWav(string $in, string $out): void
+    {
+        $result = Process::timeout(200)->run(['ffmpeg', '-hide_banner', '-nostats', '-y', ...self::LOCAL_IN, '-i', $in, '-c:a', 'pcm_s16le', '-ac', '1', '-f', 'wav', '-bitexact', $out]);
+
+        if (! $result->successful() || ! is_file($out) || filesize($out) <= 44) {
+            throw new RuntimeException('ffmpeg could not make the WAV: '.mb_strimwidth($result->errorOutput(), 0, 300));
+        }
     }
 
     /**

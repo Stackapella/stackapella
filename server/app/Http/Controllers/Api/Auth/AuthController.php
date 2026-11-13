@@ -112,6 +112,9 @@ final class AuthController extends Controller
             // Song requests (the song_requests switch); staff see them before (account.songRequests).
             'songRequests' => $flags->on('song_requests'),
             'schools' => $flags->on('schools'),
+            // Teaming up is Plus (the plus_teams switch, docs/pricing-plan.md): the app asks for Plus before Start a group and
+            // Invite singers, and shows paused songs and choirs, only while it's on.
+            'plusTeams' => $flags->on('plus_teams'),
             // The browser error reporter's DSN (public by design: its envelopes come to /log/errors).
             'sentryDsn' => is_string($dsn = config('sentry.browser_dsn')) && $dsn !== '' ? $dsn : null,
         ]]);

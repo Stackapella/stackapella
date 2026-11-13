@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace Tests\Feature\Site;
 
 use App\Actions\Templates\SyncOfficialTemplates;
+use App\Models\Template;
+use App\Support\Flags;
+use App\Support\Pages\SongPage;
 use App\Support\Pages\SongStories;
 use App\Support\Site\SitemapPaths;
 use App\Support\Site\StructuredData;
@@ -207,6 +210,41 @@ final class SongStoriesTest extends TestCase
         $this->assertArrayNotHasKey('lyrics', StructuredData::song($song, $hidden)[0]);
     }
 
+    public function test_a_song_page_shows_the_storys_full_words_with_labels_and_folds_a_long_song_after_three(): void
+    {
+        app(SyncOfficialTemplates::class)->handle();
+        $stanzas = implode("\n\n", array_map(static fn (int $n): string => "**Verse {$n}**\nLine one of verse {$n},\nline two of verse {$n}.", range(1, 5)));
+        $this->write("The words mean what they say[^three].\n", "The words mean what they say[^three].\n\n### The full words\n\nAs Ann Writer printed them[^one].\n\n{$stanzas}\n");
+        File::copy($this->dir.'/test-song.md', $this->dir.'/amazing-grace.md');
+        $html = (string) $this->get('/songs/amazing-grace')->assertOk()->getContent();
+
+        // The story's words, not the template's verses: its note with its source, each stanza's label, sung in its language.
+        $this->assertStringContainsString('<div class="s-prose s-sg-words-intro"><p>As Ann Writer printed them<sup class="s-cite"><a href="#source-1">[1]</a></sup>', $html);
+        $this->assertStringContainsString('<span class="s-sg-label">Verse 1</span>', $html);
+        $this->assertStringContainsString('<span class="s-sg-sung" translate="no" lang="en">Line one of verse 1,</span>', $html);
+        $verse = SongPage::verses(Template::query()->with('currentVersion')->where('slug', 'amazing-grace')->firstOrFail())[0][0] ?? null;
+        $this->assertIsString($verse, 'the template has verses to replace');
+        $band = (string) strstr((string) strstr($html, 'id="song-words"'), '</section>', true);
+        $this->assertStringNotContainsString(e($verse), $band, 'no template verse in the words band');
+        // Five stanzas: three show, the other two fold under Show all 5 verses.
+        $this->assertMatchesRegularExpression('#Verse 3</span>.*<details class="s-sg-more">\s*<summary class="btn-secondary">'.preg_quote(__('pages.song.all_verses', ['count' => 5]), '#').'</summary>.*Verse 4</span>.*Verse 5</span>.*</details>#s', $html);
+        $this->assertSame(1, substr_count($html, '<details class="s-sg-more">'));
+    }
+
+    public function test_full_words_with_quotes_and_ampersands_read_as_written_never_double_escaped(): void
+    {
+        app(SyncOfficialTemplates::class)->handle();
+        $this->write("The words mean what they say[^three].\n", "The words mean what they say[^three].\n\n### The full words\n\n**Verse 1**\nSays he, \"You're a Black Baller,\nGreensleeves was all my joy, &c.\n");
+        $story = SongStories::story('test-song');
+        $this->assertSame([['sung' => 'Says he, "You\'re a Black Baller,'], ['sung' => 'Greensleeves was all my joy, &c.']], $story['fullWords']['stanzas'][0]['lines'], 'plain text, its entities read back');
+        File::copy($this->dir.'/test-song.md', $this->dir.'/amazing-grace.md');
+        $html = (string) $this->get('/songs/amazing-grace')->assertOk()->getContent();
+        $this->assertStringContainsString('Says he, &quot;You&#039;re a Black Baller,', $html, 'escaped once, as the page prints it');
+        $this->assertStringContainsString('all my joy, &amp;c.', $html);
+        $this->assertStringNotContainsString('&amp;quot;', $html);
+        $this->assertStringNotContainsString('&amp;amp;', $html);
+    }
+
     public function test_full_words_in_another_script_or_language_carry_their_meaning(): void
     {
         $this->write('language: English', 'language: Hebrew');
@@ -217,5 +255,133 @@ final class SongStoriesTest extends TestCase
         // A "### The full words" that isn't the words section's last subsection is prose, as before.
         $this->write("its meaning\n", "its meaning\n\n### Afterwards\n\nMore.\n");
         $this->assertNull(SongStories::story('test-song')['fullWords']);
+    }
+
+    public function test_a_song_page_shows_its_story_whole_and_a_song_without_one_keeps_its_about(): void
+    {
+        app(SyncOfficialTemplates::class)->handle();
+        File::copy($this->dir.'/test-song.md', $this->dir.'/amazing-grace.md');
+        $html = (string) $this->get('/songs/amazing-grace')->assertOk()->getContent();
+
+        // Its own title and description, as its searches were written for.
+        $this->assertStringContainsString('<title>Test Song: history, meaning and the words explained</title>', $html);
+        $this->assertStringContainsString('<meta name="description" content="Written down in 1816 for the tests, and sung by nobody since.">', $html);
+        $this->assertStringContainsString('A song made for the tests, with its sources and questions.', $html, 'the lead under the heading');
+        // Each section it has, by its heading's id, listed in its contents; the timeline under where it comes from.
+        foreach (['where-it-comes-from', 'what-the-words-mean', 'how-it-is-sung', 'did-you-know', 'singing-it', 'questions'] as $id) {
+            $this->assertStringContainsString('<section id="'.$id.'"', $html, $id);
+            $this->assertStringContainsString('<a href="#'.$id.'">', $html, $id.' in the contents');
+        }
+        $this->assertStringNotContainsString('<section id="sing-next"', $html, 'its Sing next is the page\'s More songs');
+        $this->assertMatchesRegularExpression('#<ol class="s-sst-tl">.*1816.*written down.*1818.*printed#s', $html);
+        // Every source numbered and its own id, as the citations link them; the questions answered on the page and as FAQ data.
+        $story = SongStories::story('amazing-grace');
+        $this->assertNotNull($story);
+        foreach ($story['sources'] as $source) {
+            $this->assertStringContainsString('<li id="source-'.$source['n'].'">', $html);
+        }
+        $this->assertStringContainsString('<h4>Who wrote it?</h4>', $html);
+        $this->assertStringContainsString('"@type":"FAQPage"', $html);
+        // Every verse, one sung line a line.
+        $this->assertMatchesRegularExpression('#<div id="song-words" class="s-sg-lyrics">\s*<p>\s*<span class="s-sg-line">\s*<span class="s-sg-sung" translate="no"(?: lang="en")?>Amazing grace[^<]*</span>\s*</span>\s*<span class="s-sg-line">#', $html);
+
+        // A song with no story keeps its About, and the page's composition data alone.
+        File::delete($this->dir.'/amazing-grace.md');
+        $plain = (string) $this->get('/songs/amazing-grace')->assertOk()->getContent();
+        $this->assertStringNotContainsString('class="s-wrap s-sec2 s-sst"', $plain);
+        $this->assertStringNotContainsString('"@type":"FAQPage"', $plain);
+        $this->assertStringContainsString(__('site.song_part.about', ['song' => 'Amazing Grace']), $plain);
+    }
+
+    public function test_each_part_says_whose_voice_it_is_and_asks_for_one_only_behind_the_lend_voice_flag(): void
+    {
+        app(SyncOfficialTemplates::class)->handle();
+        $html = (string) $this->get('/songs/amazing-grace')->assertOk()->getContent();
+        // No real voices here: each part says so, and with the flag missing (or off) nothing asks.
+        $this->assertSame(4, substr_count($html, '<span>'.e(__('pages.song.voice_generated')).'</span>'));
+        $this->assertStringNotContainsString('data-be-voice', $html);
+        $this->assertStringNotContainsString('data-be-voice', (string) $this->get('/songs/amazing-grace/alto')->assertOk()->getContent());
+    }
+
+    public function test_with_lend_voice_on_a_part_with_no_real_voice_asks_to_be_sung_on_the_song_and_part_pages(): void
+    {
+        config(['flags.lend_voice' => ['kind' => 'feature', 'values' => ['off', 'on']]]);
+        app(Flags::class)->set('lend_voice', 'on', null, 'Lend your voice');
+        app(SyncOfficialTemplates::class)->handle();
+
+        $html = (string) $this->get('/songs/amazing-grace')->assertOk()->getContent();
+        foreach (['soprano', 'alto', 'tenor', 'bass'] as $part) {
+            $this->assertStringContainsString('data-be-voice="'.$part.'">'.e(__('pages.song.be_voice', ['part' => $part])).'</a>', $html);
+        }
+        // Its one true note: may be chosen, never promised.
+        $this->assertStringContainsString(e(__('pages.song.be_voice_note')), $html);
+        $this->assertStringContainsString('we may choose your part', (string) __('pages.song.be_voice_note'));
+        $this->assertStringContainsString('data-be-voice="alto"', (string) $this->get('/songs/amazing-grace/alto')->assertOk()->getContent());
+    }
+
+    public function test_the_whole_mix_plays_by_the_heros_actions_only_once_the_server_has_it(): void
+    {
+        app(SyncOfficialTemplates::class)->handle();
+        $this->assertStringNotContainsString('s-sg-mix', (string) $this->get('/songs/amazing-grace')->assertOk()->getContent(), 'no mix yet: nothing');
+
+        $cards = [['key' => 'soprano', 'name' => 'Soprano'], ['key' => 'alto', 'name' => 'Alto']];
+        $none = ['soprano' => ['realVoice' => false, 'credit' => null, 'creditHandle' => null], 'alto' => ['realVoice' => false, 'credit' => null, 'creditHandle' => null]];
+        $this->assertSame('Synthesized voices', SongPage::mixCredit($cards, $none));
+        $alto = ['alto' => ['realVoice' => true, 'credit' => 'Rosa', 'creditHandle' => 'rosa']] + $none;
+        $this->assertSame('Alto sung by Rosa; the other parts synthesized', SongPage::mixCredit($cards, $alto));
+
+        $html = (string) $this->view('public._song-mix', ['mix' => ['url' => 'https://example.com/mix.m4a', 'type' => 'audio/mp4'], 'count' => 4, 'credit' => SongPage::mixCredit($cards, $alto)]);
+        // Nothing loads until pressed, labelled by what it plays; its credit; and the way in beside it.
+        $this->assertMatchesRegularExpression('#<audio controls preload="none" src="https://example.com/mix.m4a"\s+type="audio/mp4"\s+aria-label="Hear all 4 parts"></audio>#', $html);
+        $this->assertStringContainsString('Alto sung by Rosa; the other parts synthesized', $html);
+        $this->assertStringContainsString('<a href="#find" class="btn-secondary btn-lg s-sg-mix-cta">Sing along: pick your part</a>', $html);
+    }
+
+    public function test_a_song_not_in_the_pages_language_shows_each_lines_script_and_meaning_and_a_long_one_can_hide_them(): void
+    {
+        // The shape backend and the courses lead give ($song['lines']): a list per stanza of {sung, script?, scriptLang?,
+        // meaning?}, the meaning in the page's language.
+        $given = [[
+            ['sung' => 'Tzur mishelo achalnu', 'script' => 'צוּר מִשֶּׁלּוֹ אָכַלְנוּ', 'scriptLang' => 'he', 'meaning' => 'The Rock whose food we have eaten'],
+            ['sung' => 'barchu emunai', 'script' => 'בָּרְכוּ אֱמוּנַי', 'scriptLang' => 'he', 'meaning' => 'bless him, my faithful friends'],
+            ['meaning' => 'a line with no sung words is left out'],
+        ]];
+        $lines = SongPage::lines($given, [['as sung']]);
+        $this->assertCount(2, $lines[0]);
+        $this->assertSame([[['sung' => 'as sung']]], SongPage::lines(null, [['as sung']]), 'no line by line words yet: the sung lines');
+        $this->assertFalse(SongPage::meaningToggle($lines), 'a short song shows its meanings, no button');
+
+        $html = (string) $this->view('public._song-words', ['lines' => $lines, 'toggle' => SongPage::meaningToggle($lines)]);
+        $this->assertMatchesRegularExpression('#<span class="s-sg-script" translate="no"\s+lang="he"\s+dir="auto">צוּר מִשֶּׁלּוֹ אָכַלְנוּ</span>\s*<span class="s-sg-sung" translate="no">Tzur mishelo achalnu</span>\s*<span class="s-sg-meaning">The Rock whose food we have eaten</span>#u', $html);
+        $this->assertStringNotContainsString('data-meaning-toggle', $html);
+
+        // A long song (more than 16 sung lines) with meanings gets the button, shown as hiding them: they show without the script.
+        $long = SongPage::lines([array_fill(0, SongPage::MEANING_LINES + 1, $given[0][0])], []);
+        $this->assertTrue(SongPage::meaningToggle($long));
+        $this->assertStringContainsString('data-meaning-toggle aria-expanded="true"', (string) $this->view('public._song-words', ['lines' => $long, 'toggle' => true]));
+    }
+
+    public function test_a_storys_pictures_show_where_it_places_them_with_every_credit_and_never_cropped(): void
+    {
+        // The shape backend gives (story['images'] keyed by number, story['hero']), placed by <!--figure:n--> on its own line.
+        $story = SongStories::story('test-song');
+        $this->assertNotNull($story);
+        $image = ['src' => '/media/test-song/1-960.webp', 'srcset' => '/media/test-song/1-480.webp 480w, /media/test-song/1-960.webp 960w', 'width' => 960, 'height' => 1240,
+            'alt' => 'The first printing\'s title page', 'caption' => 'The title page of the first printing.', 'date' => '1816', 'library' => 'Library of Congress', 'callNumber' => 'M1.A1',
+            'credit' => null, 'licence' => 'PD-old', 'licenceName' => 'Public domain', 'licenceUrl' => null, 'sourceUrl' => 'https://www.loc.gov/item/example/'];
+        $story['images'] = ['1' => $image, '2' => ['src' => '/media/test-song/2-960.webp', 'width' => 960, 'height' => 640, 'alt' => 'A church', 'licenceName' => 'CC BY 4.0', 'licenceUrl' => 'https://creativecommons.org/licenses/by/4.0/', 'credit' => 'Ann Photographer']];
+        $story['hero'] = '1';
+        $story['opening'] .= "<!--figure:2-->\n<!--figure:9-->\n";
+
+        $html = (string) $this->view('public._song-story', ['story' => $story, 'song' => ['title' => 'Test Song'], 'quoteN' => null]);
+        // Its own size, lazy (the story is below the fold), with its caption, date, library and call number, licence and original.
+        $this->assertMatchesRegularExpression('#<img src="/media/test-song/1-960.webp"\s+srcset="[^"]+"\s+sizes="[^"]+"\s+width="960" height="1240" alt="The first printing&\#039;s title page"\s+loading="lazy"\s+decoding="async">#', $html);
+        $this->assertStringContainsString('1816 · Library of Congress, M1.A1', $html);
+        $this->assertStringContainsString('<a href="https://www.loc.gov/item/example/" class="s-lk">'.e(__('pages.song.story.original')).'</a>', $html);
+        // A placed picture with a credit and a licence link; a missing one draws nothing.
+        $this->assertStringContainsString('Ann Photographer', $html);
+        $this->assertStringContainsString('<a href="https://creativecommons.org/licenses/by/4.0/" class="s-lk" rel="license">CC BY 4.0</a>', $html);
+        $this->assertSame(2, substr_count($html, '<figure class="s-fig">'));
+        $this->assertStringNotContainsString('<!--figure:', $html);
     }
 }

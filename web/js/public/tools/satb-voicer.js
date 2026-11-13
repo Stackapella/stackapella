@@ -175,6 +175,7 @@ function buildSheet(ui, w) {
     const tempo = sheetRow(ui.sheet, { label: w('tempo') });
     tempo.side.innerHTML = '<span class="tabular-nums text-cream" data-tempo-value></span>';
     tempo.body.innerHTML = '<input type="range" class="range w-full" min="40" max="160" step="2" data-tempo>';
+    tempo.body.querySelector('[data-tempo]').setAttribute('aria-label', w('tempo')); // the row's label is beside it, not for it
     sheetRow(ui.sheet).body.innerHTML = '<button type="button" class="btn-secondary btn-sm" data-copy data-w="copy"></button>';
 }
 

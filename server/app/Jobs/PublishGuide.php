@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Jobs;
 
+use App\Actions\Counts\RecordCounts;
 use App\Enums\SubmissionStatus;
 use App\Models\BetaSinger;
 use App\Models\BetaSubmission;
@@ -64,36 +65,10 @@ final class PublishGuide implements ShouldQueue
         $previous = TemplateGuide::query()->where('beta_submission_id', $submission->id)->first();
 
         $rate = $submission->sample_rate;
-        $ms = static fn (int|float $milliseconds): int => (int) round($milliseconds * $rate / 1000);
-
-        // The song time where the guide starts (after the trimmed start), and the take's sample that
-        // sounds then. Frame 0 of the take is beat 0; a positive nudge plays it later.
-        $startTime = $ms($submission->trim_start_ms);
-        $from = $startTime - $ms($submission->offset_ms);
-        $offsetFrames = $startTime;
-
-        if ($from < 0) {
-            $offsetFrames += -$from;
-            $from = 0;
-        }
-
-        $to = $submission->frames - $ms($submission->trim_end_ms);
-        $target = (float) config('beta.guide_rms_dbfs');
-        $level = $submission->loudness_dbfs !== null ? $target - (float) $submission->loudness_dbfs : 0.0;
-        $gain = max(-24.0, min(24.0, $level + (float) $submission->gain_db));
-
-        // Never louder than the take's loudest sample allows: at most -2 dBFS after the gain, which
-        // leaves room for the AAC encoder's overshoot (about 0.7 dB on a pure tone).
-        if ($submission->peak_dbfs !== null) {
-            $gain = min($gain, -2.0 - (float) $submission->peak_dbfs);
-        }
-
-        $in = (string) tempnam(sys_get_temp_dir(), 'master');
         $out = sys_get_temp_dir().'/guide-'.Str::lower(Str::random(16)).'.m4a';
-        file_put_contents($in, Storage::disk('private')->readStream($submission->master_key));
 
         try {
-            $ffmpeg->encodeGuide($in, $out, $rate, $from, max($from + 1, $to), $gain, mutes: $this->mutes($submission, $rate, $offsetFrames, max(1, $to - $from)));
+            ['from' => $from, 'to' => $to, 'offsetFrames' => $offsetFrames] = $this->encode($ffmpeg, $submission, $out);
 
             $key = 'guides/'.Str::lower(Str::random(32)).'.m4a';
             Storage::disk('media')->put($key, (string) file_get_contents($out), ['visibility' => 'public', 'ContentType' => 'audio/mp4', 'CacheControl' => 'public, max-age=31536000, immutable']);
@@ -129,6 +104,7 @@ final class PublishGuide implements ShouldQueue
                     'frames' => max(1, $to - $from),
                     'offset_frames' => $offsetFrames,
                     'gain' => 1,
+                    'kbps' => (int) config('beta.guide_kbps'),
                     'published_at' => now(),
                 ])->save();
 
@@ -147,10 +123,59 @@ final class PublishGuide implements ShouldQueue
                 app(CdnPurge::class)->forget([$previous->media_key]);
                 Storage::disk('media')->delete($previous->media_key);
             }
+            // A guide published, for the recording ladder (anonymous; a republish with new trims isn't a new one).
+            if ($previous === null) {
+                app(RecordCounts::class)->server('guide_published', true, null);
+            }
         } finally {
-            @unlink($in);
             @unlink($out);
         }
+    }
+
+    /**
+     * The take cut, levelled and encoded as its guide into `$out` (at beta.guide_kbps): Hillel's nudge applied, the trims,
+     * the breaths a carried version silences. Also what ReencodeGuide re-encodes a published guide with, so the same take
+     * gives the same guide, sample for sample, at another bitrate.
+     *
+     * @return array{from: int, to: int, offsetFrames: int}
+     */
+    public function encode(Ffmpeg $ffmpeg, BetaSubmission $submission, string $out): array
+    {
+        $rate = $submission->sample_rate;
+        $ms = static fn (int|float $milliseconds): int => (int) round($milliseconds * $rate / 1000);
+
+        // The song time where the guide starts (after the trimmed start), and the take's sample that
+        // sounds then. Frame 0 of the take is beat 0; a positive nudge plays it later.
+        $startTime = $ms($submission->trim_start_ms);
+        $from = $startTime - $ms($submission->offset_ms);
+        $offsetFrames = $startTime;
+
+        if ($from < 0) {
+            $offsetFrames += -$from;
+            $from = 0;
+        }
+
+        $to = $submission->frames - $ms($submission->trim_end_ms);
+        $target = (float) config('beta.guide_rms_dbfs');
+        $level = $submission->loudness_dbfs !== null ? $target - (float) $submission->loudness_dbfs : 0.0;
+        $gain = max(-24.0, min(24.0, $level + (float) $submission->gain_db));
+
+        // Never louder than the take's loudest sample allows: at most -2 dBFS after the gain, which
+        // leaves room for the AAC encoder's overshoot (about 0.7 dB on a pure tone).
+        if ($submission->peak_dbfs !== null) {
+            $gain = min($gain, -2.0 - (float) $submission->peak_dbfs);
+        }
+
+        $in = (string) tempnam(sys_get_temp_dir(), 'master');
+        file_put_contents($in, Storage::disk('private')->readStream($submission->master_key));
+
+        try {
+            $ffmpeg->encodeGuide($in, $out, $rate, $from, max($from + 1, $to), $gain, mutes: $this->mutes($submission, $rate, $offsetFrames, max(1, $to - $from)));
+        } finally {
+            @unlink($in);
+        }
+
+        return ['from' => $from, 'to' => $to, 'offsetFrames' => $offsetFrames];
     }
 
     /**

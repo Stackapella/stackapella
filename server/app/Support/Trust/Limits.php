@@ -239,7 +239,7 @@ final class Limits
         // Write-only counts (counts.create): past the limit nothing is counted, and the answer is the
         // same 204 as ever, since every sender is a beacon that never reads it, and a browser logs a
         // beacon's 429 as a console error a visitor would see.
-        if ($limiter === 'counts') {
+        if (in_array($limiter, ['counts', 'live-beat'], true)) {
             return response()->noContent();
         }
 

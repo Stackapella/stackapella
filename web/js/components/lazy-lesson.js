@@ -36,6 +36,17 @@ export const NoteResult = lazyPart(() => results().then((m) => m.NoteResult));
 export const TakeResult = lazyPart(() => results().then((m) => m.TakeResult));
 export const LessonEnd = lazyPart(() => results().then((m) => m.LessonEnd));
 export const KeepSong = lazyPart(() => import('./keep-song.js').then((m) => m.KeepSong));
+// Off lesson 1's first screen too (the first-visit speed pass, 2026-11-13): the account wall, the chord moment and Then
+// and now (a lesson's end), the voice card (unit 1's end) and the boss lessons'. Not the note finder: loaded here, the mic
+// step after Continue opened 1.8 s late on Slow 4G, so it stays with the lesson (views/learn.js).
+const boss = () => import('./boss.js');
+export const CourseWall = lazyPart(() => import('./course-wall.js').then((m) => m.CourseWall));
+export const ChordMoment = lazyPart(() => import('./chord-moment.js').then((m) => m.ChordMoment));
+export const ThenAndNow = lazyPart(() => import('./then-and-now.js').then((m) => m.ThenAndNow));
+export const VoiceCard = lazyPart(() => import('./voice-card.js').then((m) => m.VoiceCard));
+export const BossBar = lazyPart(() => boss().then((m) => m.BossBar));
+export const BossEnd = lazyPart(() => boss().then((m) => m.BossEnd));
+export const BossIntro = lazyPart(() => boss().then((m) => m.BossIntro));
 
 let fetching = null;
 /**

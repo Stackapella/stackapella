@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Actions\Beta;
 
+use App\Actions\Counts\RecordCounts;
 use App\Actions\Voices\VolunteerAbuse;
 use App\Enums\SubmissionStatus;
 use App\Exceptions\Refusal;
@@ -52,7 +53,7 @@ final class ReviewSubmission
         return $submission;
     }
 
-    public function accept(BetaSubmission $submission, bool $makeDefault, User $actor, ?string $ip = null): BetaSubmission
+    public function accept(BetaSubmission $submission, bool $makeDefault, User $actor, ?string $ip = null, ?string $notChosenNote = null): BetaSubmission
     {
         $this->decide($submission, SubmissionStatus::Accepted, null, null, $actor, $ip);
 
@@ -65,6 +66,18 @@ final class ReviewSubmission
         ])->save();
 
         PublishGuide::dispatch($submission->id, $makeDefault);
+
+        // Open takes (docs/open-guide-voices-plan.md): published as the part's voice, every other take of this part still
+        // waiting is kept, marked not chosen, with Hillel's note for them; each counted, anonymously.
+        if ($makeDefault) {
+            $others = BetaSubmission::query()->whereKeyNot($submission->id)->where('template_version_id', $submission->template_version_id)->where('part_key', $submission->part_key)
+                ->whereIn('status', [SubmissionStatus::Submitted->value, SubmissionStatus::InReview->value, SubmissionStatus::Held->value])->pluck('id');
+            if ($others->isNotEmpty()) {
+                $note = $notChosenNote !== null && trim($notChosenNote) !== '' ? trim($notChosenNote) : null;
+                BetaSubmission::query()->whereKey($others)->update(['status' => SubmissionStatus::NotChosen->value, 'admin_note' => $note, 'reviewed_by' => $actor->id, 'reviewed_at' => now()]);
+                $others->each(fn () => app(RecordCounts::class)->server('guide_not_chosen', true, null));
+            }
+        }
 
         return $submission;
     }

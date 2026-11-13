@@ -175,6 +175,8 @@ export const OPERATIONS = {
     'admin.people.list': ['GET', '/api/admin/people'],
     'admin.people.countries': ['GET', '/api/admin/people/countries'],
     'counts.create': ['POST', '/api/counts'],
+    'corrections.create': ['POST', '/api/corrections'],
+    'live.beat': ['POST', '/api/live/beat'],
     'admin.counts.show': ['GET', '/api/admin/counts'],
     'admin.funnel.show': ['GET', '/api/admin/funnel'],
     'admin.dropoffs.show': ['GET', '/api/admin/dropoffs'],
@@ -182,6 +184,7 @@ export const OPERATIONS = {
     'admin.breadth.show': ['GET', '/api/admin/breadth'],
     'voices.wanted': ['GET', '/api/voices/wanted'],
     'voices.join': ['POST', '/api/voices/join'],
+    'voices.share': ['POST', '/api/voices/share'], // Be the voice: a synced take offered as its part's guide
     'voices.summary': ['GET', '/api/voices/summary'],
     'voices.claims.list': ['GET', '/api/voices/claims'],
     'voices.claims.create': ['POST', '/api/voices/claims'],
@@ -210,6 +213,10 @@ export const OPERATIONS = {
     'admin.groups.list': ['GET', '/api/admin/groups'],
     'admin.reach.show': ['GET', '/api/admin/reach'],
     'admin.revenue.show': ['GET', '/api/admin/revenue'],
+    'admin.corrections.list': ['GET', '/api/admin/corrections'],
+    'admin.corrections.update': ['PATCH', '/api/admin/corrections/{id}'],
+    'admin.live.show': ['GET', '/api/admin/live'],
+    'admin.pulse.show': ['GET', '/api/admin/pulse'],
     'admin.cohorts.show': ['GET', '/api/admin/cohorts'],
     'admin.churn.show': ['GET', '/api/admin/churn'],
     'admin.activity.show': ['GET', '/api/admin/activity'],
@@ -683,6 +690,8 @@ export const api = {
     },
     voices: {
         wanted: ({ kind, skill } = {}) => call('voices.wanted', { query: { kind, skill } }),
+        // Be the voice: a take already saved to the account, offered as its part's guide (docs/open-guide-voices-plan.md).
+        share: (fields) => call('voices.share', { body: fields }),
         join: (body) => call('voices.join', { body }),
         summary: () => call('voices.summary'),
         claims: { list: () => call('voices.claims.list'), create: (item) => call('voices.claims.create', { body: { item } }), delete: (id) => call('voices.claims.delete', { params: { id } }) },
@@ -793,11 +802,11 @@ export const api = {
                 again: (id, { note } = {}) => call('admin.beta.assignments.again', { params: { id }, body: note ? { note } : {} }),
             },
             submissions: {
-                list: ({ status, template, part, singer, cursor } = {}) => call('admin.beta.submissions.list', { query: { status, template, part, singer, cursor } }),
+                list: ({ status, template, part, singer, groupBy, cursor } = {}) => call('admin.beta.submissions.list', { query: { status, template, part, singer, groupBy, cursor } }),
                 show: (id) => call('admin.beta.submissions.show', { params: { id } }),
                 open: (id) => call('admin.beta.submissions.open', { params: { id } }),
                 adjust: (id, fields) => call('admin.beta.submissions.adjust', { params: { id }, body: fields }),
-                accept: (id, { makeDefault = true } = {}) => call('admin.beta.submissions.accept', { params: { id }, body: { makeDefault } }),
+                accept: (id, { makeDefault = true, notChosenNote = null } = {}) => call('admin.beta.submissions.accept', { params: { id }, body: notChosenNote ? { makeDefault, notChosenNote } : { makeDefault } }),
                 retake: (id, { note, beat = null }) => call('admin.beta.submissions.retake', { params: { id }, body: { note, beat } }),
                 // abuse: refused for abuse (the volunteer can't claim again; contract, Lend your voice slice 3).
                 reject: (id, { note = null, abuse = false } = {}) => call('admin.beta.submissions.reject', { params: { id }, body: abuse ? { note, abuse: true } : { note } }),
@@ -884,6 +893,14 @@ export const api = {
         groups: { list: () => call('admin.groups.list') },
         reach: { show: () => call('admin.reach.show') },
         revenue: { show: () => call('admin.revenue.show') },
+        // Readers' "Suggest a correction" (docs/corrections-plan.md): the inbox, and a decision with its note.
+        corrections: {
+            list: ({ state, kind, cursor } = {}) => call('admin.corrections.list', { query: { state, kind, cursor } }),
+            update: (id, { state, note = null }) => call('admin.corrections.update', { params: { id }, body: { state, note } }),
+        },
+        // The live view (docs/realtime-dashboard-plan.md): anonymous per-minute counts held in cache, never stored.
+        live: { show: ({ admins = false } = {}) => call('admin.live.show', { query: { admins: admins ? 1 : undefined } }) },
+        pulse: { show: ({ admins = false } = {}) => call('admin.pulse.show', { query: { admins: admins ? 1 : undefined } }) },
         cohorts: { show: () => call('admin.cohorts.show') },
         churn: { show: () => call('admin.churn.show') },
         activity: { show: () => call('admin.activity.show') },
@@ -908,6 +925,14 @@ export const api = {
     // Anonymous usage counts: js/usage.js sends them itself (sendBeacon, so a page closing still sends).
     counts: {
         create: (body) => call('counts.create', { body }),
+    },
+    // A reader's "Suggest a correction" (the public pages' form, marketing's; docs/corrections-plan.md), as the contract has it.
+    corrections: {
+        create: (body) => call('corrections.create', { body }),
+    },
+    // The live view's heartbeat: an area, a page and whether it's a screen opened (a view), no ID and no cookie (js/live-beat.js).
+    live: {
+        beat: ({ area, page, view = false }) => call('live.beat', { body: { area, page, view } }),
     },
     auth: {
         config: () => call('auth.config'),

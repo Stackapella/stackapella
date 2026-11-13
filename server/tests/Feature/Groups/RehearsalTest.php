@@ -42,6 +42,7 @@ final class RehearsalTest extends TestCase
     {
         $this->travelTo('2026-11-10T10:00:00Z');
         $director = $this->as(User::factory()->create(['name' => 'Ana Ruiz']));
+        $this->withPlus();
         $id = (string) $this->postJson('/api/groups', ['name' => 'Thursday Singers', 'adult' => true])->assertCreated()->assertJsonPath('data.rehearsal', null)->json('data.id');
         $token = Str::afterLast((string) $this->postJson('/api/groups/'.$id.'/link')->assertCreated()->json('data.url'), '/choir/');
         $this->postJson('/api/groups/'.$id.'/songs', ['templateId' => 'amazing-grace'])->assertOk();
@@ -121,6 +122,7 @@ final class RehearsalTest extends TestCase
     {
         $this->travelTo('2026-11-10T10:00:00Z');
         $this->as(User::factory()->create());
+        $this->withPlus();
         $id = (string) $this->postJson('/api/groups', ['name' => 'Thursday Singers', 'adult' => true])->assertCreated()->json('data.id');
         $this->patchJson('/api/groups/'.$id, ['name' => 'Concert Choir', 'rehearsal' => ['date' => '2026-11-11', 'weekly' => false]])->assertOk()->assertJsonPath('data.name', 'Concert Choir');
 

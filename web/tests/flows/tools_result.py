@@ -1,6 +1,6 @@
 """A free tool's result turns the page's band into its next step, and a tool gets its data from the page (docs/tools-plan.md): after the range test finds a
-range, the band's line names the voice type and the part to learn, and its button leads to that song with the tool's
-?ref= tag. It runs the manual entry (C3 to A4, a tenor), so no mic is needed, against the server's own site:
+range, the band's line says the range and its voice type, and its button opens the app already knowing the range
+(?range=C3-A4, letter names; docs/retention-plan.md, idea 7) with the tool's ?ref= tag. It runs the manual entry (C3 to A4, a tenor), so no mic is needed, against the server's own site:
 
     python3 -I tests/flows/tools_result.py http://127.0.0.1:8412
 """
@@ -94,9 +94,9 @@ def main():
             f.wait(f"document.querySelector('[data-try-line]').textContent !== {before!r}", timeout=5, what="the band's result line")
             line = f.js("document.querySelector('[data-try-line]').textContent")
             href = f.js("document.querySelector('[data-try-link]').getAttribute('href')")
-            assert "tenor range" in line and "the tenor of" in line, f"{size}: the line doesn't name the type and part: {line}"
-            assert ":type" not in line and ":part" not in line, f"{size}: a placeholder is left in the line: {line}"
-            assert "song=amazing-grace" in href and "ref=tool-vocal-range-test" in href, f"{size}: the button's address: {href}"
+            assert "C3 to A4" in line and "(tenor)" in line, f"{size}: the line doesn't say the range and its type: {line}"
+            assert ":" not in line.replace("C3 to A4", ""), f"{size}: a placeholder is left in the line: {line}"
+            assert "range=C3-A4" in href and "ref=tool-vocal-range-test" in href, f"{size}: the button's address: {href}"
             # A range found: the tool's bar offers its free lesson (page.js), a guest's first lesson, tagged.
             f.wait("document.querySelector('[data-ui=tool-next] a')", what="the lesson line")
             lesson = f.js("document.querySelector('[data-ui=tool-next] a').getAttribute('href')")

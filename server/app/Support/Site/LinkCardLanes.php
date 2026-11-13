@@ -24,6 +24,10 @@ final class LinkCardLanes
         'jewish-songs' => ['maoz-tzur', 'soprano', 16],
         'folk-songs' => ['danny-boy', 'tenor', 16],
         'barbershop-songs' => ['down-by-the-old-mill-stream', 'lead', 16],
+        'scottish-songs' => ['auld-lang-syne', 'soprano', 16],
+        'villancicos' => ['noche-de-paz', 'soprano', 16],
+        'thanksgiving-hymns' => ['now-thank-we-all-our-god', 'soprano', 16],
+        'shaker-songs' => ['simple-gifts', 'soprano', 16],
     ];
 
     /**

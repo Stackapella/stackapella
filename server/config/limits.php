@@ -196,6 +196,17 @@ return [
         'ip' => ['max' => in_array(env('APP_ENV'), ['local', 'testing'], true) ? (int) (env('PUBLIC_PAGES_LIMIT') ?: 2000) : 120, 'per' => 'minute', 'by' => 'ip'],
     ],
 
+    // Admin > Live's heartbeat (docs/realtime-dashboard-plan.md): one every 30 seconds and on each move, from every app
+    // open on an address; far more is someone inflating "right now". Local and testing take PUBLIC_PAGES_LIMIT, as counts.
+    'live-beat' => [
+        'ip' => ['max' => in_array(env('APP_ENV'), ['local', 'testing'], true) ? (int) (env('PUBLIC_PAGES_LIMIT') ?: 2000) : 240, 'per' => 'minute', 'by' => 'ip'],
+    ],
+
+    // Be the voice's shared takes (voices.share): the action allows 10 sent a day; this guards the attempts around it.
+    'voice-shares' => [
+        'account' => ['max' => 30, 'per' => 'day', 'by' => 'account'],
+    ],
+
     // The growth data pull (docs/growth-data.md): one person's dev machine, a few times a day.
     'growth-data' => [
         'ip' => ['max' => 10, 'per' => 'minute', 'by' => 'ip'],
@@ -216,6 +227,13 @@ return [
 
     'reports' => [
         'account' => ['max' => 10, 'per' => 'hour', 'by' => 'account'],
+    ],
+
+    // Readers' corrections (docs/corrections-plan.md), anonymous: a few a minute and 20 a day an address, the address
+    // used for the limit only, never kept.
+    'corrections' => [
+        'minute' => ['max' => 5, 'per' => 'minute', 'by' => 'ip'],
+        'day' => ['max' => 20, 'per' => 'day', 'by' => 'ip'],
     ],
 
     // The gallery (N1; the trust and safety plan's "When the gallery opens"). Doing it twice is a

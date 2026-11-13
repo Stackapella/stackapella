@@ -49,6 +49,7 @@
         "languages": [
             "en"
         ],
-        "withheldSongs": []
+        "withheldSongs": [],
+        "plusTeams": false
     }
 }

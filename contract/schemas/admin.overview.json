@@ -15,7 +15,8 @@
                 "growth",
                 "outreach",
                 "songsNotSynced",
-                "sitemapProblems"
+                "sitemapProblems",
+                "corrections"
             ],
             "properties": {
                 "beta": {
@@ -155,6 +156,19 @@
                         "type": "string"
                     },
                     "description": "What the weekly sitemap check (Wednesdays) last found: a page search engines can't index, and why, one line each; the first 5, each cut at 200 characters, then \"and N more\". Empty when it was clean or hasn't run. For \"What needs you now\"."
+                },
+                "corrections": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                        "new"
+                    ],
+                    "properties": {
+                        "new": {
+                            "type": "integer"
+                        }
+                    },
+                    "description": "Readers' corrections still to read (Inbox > Corrections' badge, Home's row)."
                 }
             }
         }

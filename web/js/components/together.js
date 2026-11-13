@@ -10,7 +10,11 @@ import { api } from '../api.js';
 import { formatDate, formatList, t } from '../i18n.js';
 import { navigate } from '../router.js';
 import { templatePartName } from '../templates.js';
-import { account } from '../stores/account.js';
+import { account, selfHosted } from '../stores/account.js';
+import { isPlus } from '../stores/plan.js';
+import { teams } from '../teams.js';
+import { PausedNote } from './paused-note.js';
+import { PlusMoment } from './plus-moment.js';
 import { changed, leftProject, syncNow } from '../stores/cloud.js';
 import { storedProject } from '../stores/projects.js';
 import { Icon } from './icon.js';
@@ -18,11 +22,11 @@ import { Notice } from './form.js';
 import { Modal, toast } from './ui.js';
 
 export const TogetherSheet = {
-    components: { AccountWall, Icon, Modal, Notice },
+    components: { AccountWall, Icon, Modal, Notice, PausedNote, PlusMoment },
     props: { project: { type: Object, required: true }, parts: { type: Array, default: () => [] } },
     emits: ['close', 'add-part', 'left'],
-    data: () => ({ members: null, invites: [], failed: null, partKey: '', made: null, busy: false, removing: null, leaving: false, addKey: '', stored: null, saving: false }),
-    setup: () => ({ account, templatePartName, formatDate }),
+    data: () => ({ members: null, invites: [], failed: null, partKey: '', made: null, busy: false, removing: null, leaving: false, addKey: '', stored: null, saving: false, askPlus: false, refusedPlus: false }),
+    setup: () => ({ account, templatePartName, formatDate, teams }),
     template: `
         <Modal :title="t('together.title')" :subtitle="singer ? '' : t('together.hint')" wide @close="$emit('close')">
             <div class="space-y-5">
@@ -41,6 +45,8 @@ export const TogetherSheet = {
                     </div>
                 </template>
                 <template v-else>
+                    <!-- Teaming up is Plus (behind plus_teams): the starter whose Plus ended sees their friends' song paused, and the quiet way back. -->
+                    <PausedNote v-if="ownerPaused" :title="t('together.paused.songTitle')" :text="t('together.paused.songOwner')" :action="t('together.paused.songAction')" from="invite_friend" />
                     <p v-if="failed" class="text-sm text-bad" role="alert">{{ failed }}</p>
                     <p v-else-if="!members" class="text-muted" role="status">{{ t('create.loading') }}</p>
                     <section v-else class="space-y-2" :aria-label="t('together.who')">
@@ -111,8 +117,18 @@ export const TogetherSheet = {
                     </section>
                 </template>
             </div>
+            <!-- Inviting needs Plus (behind plus_teams): a short sheet on top, the way back is this song. -->
+            <PlusMoment v-if="askPlus" :title="t('together.invite.plusTitle')" :text="t('plus.moment.inviteFriend')" from="invite_friend" :next="'/p/' + project.id" @close="askPlus = false" />
         </Modal>`,
     computed: {
+        /** Inviting needs Plus (teaming up is Plus, behind plus_teams; everyone invited joins free): the moment before the link. */
+        needsPlus() {
+            return this.refusedPlus || (teams.on && !selfHosted() && !isPlus());
+        },
+        /** The starter's song with friends in it, paused for them because the starter's Plus ended. */
+        ownerPaused() {
+            return teams.on && !this.singer && !selfHosted() && !isPlus() && (this.members ?? []).some((m) => m.role === 'singer');
+        },
         singer() {
             return !!this.project.shared;
         },
@@ -161,11 +177,20 @@ export const TogetherSheet = {
         async invite() {
             this.busy = true;
             this.failed = null;
+            if (this.needsPlus) {
+                this.askPlus = true; // the Plus moment, never an error
+                this.busy = false;
+                return;
+            }
             try {
                 const part = this.templateParts.find((p) => p.key === this.partKey);
                 this.made = (await api.invites.create(this.project.id, part ? { partKey: part.key, partName: templatePartName(part) } : {})).data;
                 this.invites = (await api.invites.list(this.project.id)).data;
             } catch (error) {
+                if (error?.code === 'plus_required') {
+                    this.refusedPlus = this.askPlus = true; // the plan changed elsewhere: the moment, not an error
+                    return;
+                }
                 this.failed = error?.code === 'invite_limit' ? t('together.limit') : error?.code === 'imported_private' ? t('together.imported') : error?.code === 'offline' ? t('common.offline') : t('together.notMade');
             } finally {
                 this.busy = false;

@@ -19,6 +19,9 @@ return [
     // The songs' stories: <slug>.md and <language>/<slug>.md, beside the songs (App\Support\Pages\SongStories).
     'stories' => database_path('templates/stories'),
 
+    // The songs' line meanings: meaning/<slug>.json, beside the songs (App\Support\Pages\SongMeanings).
+    'meanings' => database_path('templates/meaning'),
+
     // What's new, newest first (App\Support\Site\WhatsNew).
     'whats_new' => resource_path('whats-new/en.json'),
 

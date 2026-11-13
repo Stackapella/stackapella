@@ -3,7 +3,7 @@
 // is data (web/course/course.json); js/course.js holds its rules.
 
 import { addSpent } from '../daily-cap.js';
-import { reactive } from 'vue';
+import { reactive, watch } from 'vue';
 import * as db from '../db.js';
 import { api } from '../api.js';
 import { mockWanted } from '../api-mode.js';
@@ -18,6 +18,7 @@ import { askYes, first, goalMet } from '../funnel.js';
 import { courseLessons, courseOf, recordCourseLesson, restartedCourseProgress } from '../courses.js';
 import { recordBoss, unitOfBoss } from '../boss.js';
 import { coursePart, lessonForPart, partsOf } from '../course-parts.js';
+import { keepWithheld, withheldSongs, withholdCourse } from '../withheld.js';
 
 /** Singing in a lesson's song this long does the step that uses it (the lesson's checkUse, and Sing's Back to the lesson). */
 export const SONG_USED_SECONDS = 20;
@@ -80,7 +81,8 @@ export function loadLearning() {
     // mic): the pages that show them call loadPlusCourses() themselves.
     loading ??= (async () => {
         const [course] = await Promise.all([fetch('/course/course.json').then((r) => (r.ok ? r.json() : null)).catch(() => null), readProgress()]);
-        learning.course = course;
+        raw.course = course;
+        learning.course = withholdCourse(course, withheldSongs(account.config));
         learning.failed = !course;
         learning.loaded = true;
         if (!course) loading = null;
@@ -88,6 +90,26 @@ export function loadLearning() {
     })();
     return loading;
 }
+
+// The courses as they came, so a change in what's withheld here (auth.config arriving, or a new list) reads them again
+// (js/withheld.js: a withheld song's step sings its altSong, or is left out).
+const raw = { course: null, courses: {} };
+
+function keepCourse(id, data) {
+    raw.courses[id] = data;
+    learning.courses[id] = withholdCourse(data, withheldSongs(account.config));
+}
+
+watch(
+    () => JSON.stringify(account.config?.withheldSongs ?? null),
+    () => {
+        if (!account.config) return;
+        keepWithheld(account.config);
+        const withheld = withheldSongs(account.config);
+        if (raw.course) learning.course = withholdCourse(raw.course, withheld);
+        for (const [id, data] of Object.entries(raw.courses)) learning.courses[id] = withholdCourse(data, withheld);
+    },
+);
 
 const getJson = (path) => fetch(path).then((r) => (r.ok ? r.json() : null)).catch(() => null);
 
@@ -150,7 +172,7 @@ export function loadPlusCourse(id) {
         courseLoading.set(id, (async () => {
             const entry = (await loadPlusCatalogue()).find((c) => c.id === id);
             const data = entry?.status === 'live' && entry.file ? await getJson(`/course/plus/${entry.file}`) : null;
-            if (data) learning.courses[id] = data;
+            if (data) keepCourse(id, data);
             else courseLoading.delete(id);
             return data;
         })());
@@ -186,7 +208,7 @@ export async function loadSongCourse({ template = null, lessonId = null }) {
     if (!entry) return null;
     if (!learning.courses[entry.id]) {
         const data = await getJson(`/course/songs/${entry.file}`);
-        if (data) learning.courses[entry.id] = data;
+        if (data) keepCourse(entry.id, data);
     }
     return learning.courses[entry.id] ? entry : null;
 }
@@ -406,6 +428,9 @@ export async function finishLesson(lessonId, { percent, onTime = true, timing = 
         // The funnel's first lessons and first unit (the free course only), each counted once on this device.
         const sung = Object.values(progress.lessons).filter((l) => l?.stars).length;
         if (sung >= 1) first('f_lesson1');
+        // wall2 (docs/improvement-log.md row 12): a guest who finishes lesson 1 is drawn here, where the wall's timing
+        // starts to differ (loaded late: experiments.js reads this store).
+        if (sung >= 1 && !account.me) import('../experiments.js').then(({ experiment }) => experiment('wall2'), (error) => console.info('wall2 not drawn', error?.message ?? error));
         if (sung >= 2) first('f_lesson2');
         if (sung >= 3) first('f_lesson3');
         if (entry && learning.course?.units?.[0] === entry.unit && unitDone(progress)) first('f_unit1');

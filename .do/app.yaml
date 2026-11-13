@@ -50,6 +50,8 @@ services:
     dockerfile_path: .do/Dockerfile
     source_dir: /
     instance_size_slug: apps-s-1vcpu-1gb
+    # One web instance: Admin > Live's per-minute counts sit in this instance's file cache (counts.live_store);
+    # before raising it, move them to a shared cache store (never the database).
     instance_count: 1
     http_port: 8080
     health_check:

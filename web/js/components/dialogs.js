@@ -24,6 +24,8 @@ import { inFirstWeek } from './voice-care.js';
 import { prefs } from '../stores/prefs.js';
 import { exportNeedsPlus, isPlus } from '../stores/plan.js';
 import { songTitle } from '../song-titles.js';
+import { SLOW_MS } from './screen-loading.js';
+import { pastFirstWeek, voiceAskOpen, voicelessParts } from '../be-the-voice.js';
 
 // A song's pace in words for a new singer (no BPM: the design rules' first-week words).
 const TEMPO = { slow: tk('templates.tempo.slow'), steady: tk('templates.tempo.steady'), lively: tk('templates.tempo.lively') };
@@ -821,8 +823,9 @@ export const RangeDialog = {
 export const TemplateDialog = {
     components: { Modal, Icon },
     // locked: a guest on a song that needs a free account (the catalogue's summary: no notes): its clip, and the way to an account.
-    props: { template: { type: Object, required: true }, previewing: Boolean, preparing: Boolean, credits: { type: Array, default: () => [] }, locked: Boolean, singers: { type: Number, default: 4 } },
-    emits: ['start', 'preview', 'close', 'signup', 'copy', 'singers'],
+    // load: the song's notes still coming ('loading'), or why they didn't ('failed', 'offline'); starting: Start was tapped.
+    props: { template: { type: Object, required: true }, previewing: Boolean, preparing: Boolean, credits: { type: Array, default: () => [] }, locked: Boolean, singers: { type: Number, default: 4 }, load: { type: String, default: null }, notHere: { type: String, default: null }, starting: Boolean },
+    emits: ['start', 'preview', 'close', 'signup', 'copy', 'singers', 'retry', 'voice'],
     setup: () => ({ midiName, formatTime, formatNumber, primary, secondary, singerOptions, templatePartName, keyLabel, DIFFICULTY, formatList, TEMPO, songTitle }),
     template: `
         <Modal :title="songTitle(template)" title-is-content wide @close="$emit('close')">
@@ -832,6 +835,8 @@ export const TemplateDialog = {
                 <p class="text-sm text-muted">{{ t(DIFFICULTY[template.difficulty] ?? DIFFICULTY.beginner) }} · {{ t('studio.meta.key', { key: keyLabel(template.key) }) }} · {{ t(TEMPO[template.tempo <= 84 ? 'slow' : template.tempo <= 112 ? 'steady' : 'lively']) }}<template v-if="!template.summary"> · {{ formatTime(seconds) }}</template></p>
                 <p v-if="template.credits" class="text-xs text-muted">{{ [t('templates.credits', { words: template.credits.words, tune: template.credits.tune, arrangement: template.credits.arrangement }), template.reviewed ? '' : t('templates.draftNote')].filter(Boolean).join(' ') }}</p>
                 <p v-if="credits.length" class="text-sm text-cream">{{ t('templates.sungBy', { names: formatList(credits) }) }}</p>
+                <!-- Be the voice (be-the-voice.js): the parts no one has sung yet, past the first week, one quiet line. -->
+                <p v-if="voiceless.length" class="text-sm text-muted" data-song-no-voice>{{ t('voices.be.sheet', { parts: formatList(voiceless) }) }} <button type="button" class="link tap-44" data-be-the-voice-go @click="$emit('voice')">{{ t('voices.be.go') }}</button></p>
                 <div v-if="locked" class="flex flex-wrap items-center gap-3">
                     <button v-if="template.previewUrl" type="button" :class="secondary" @click="$emit('preview')"><span class="inline-flex items-center gap-2"><Icon :name="previewing ? 'stop' : 'play'" :size="16" />{{ previewing ? t('studio.stop') : t('templates.previewClip') }}</span></button>
                     <button type="button" :class="[primary, 'ms-auto']" data-song-signup @click="$emit('signup')">{{ t('wrap.makeAccount') }}</button>
@@ -846,7 +851,13 @@ export const TemplateDialog = {
                     </div>
                     <!-- One primary (Hillel, 2026-11-02, the first-15-minutes review, superseding "3 buttons the same width"):
                          Start full width first, then Play and Edit (Edit makes a copy), quieter, side by side. -->
-                    <button type="button" :class="[primary, 'w-full justify-center']" data-song-start @click="$emit('start')">{{ t('templates.start') }}</button>
+                    <!-- Instant feedback (Hillel, 2026-11-12): Start is busy at once while the notes come or the song opens; a line after
+                         a few seconds, and Retry if they don't come. -->
+                    <button type="button" :class="[primary, 'w-full justify-center']" :disabled="!!load || starting" :aria-busy="load === 'loading' || starting ? 'true' : null" data-song-start @click="$emit('start')"><span v-if="load === 'loading' || starting" class="spinner" aria-hidden="true"></span>{{ t('templates.start') }}</button>
+                    <p v-if="load === 'loading' && slow" class="text-center text-sm text-muted" role="status" data-song-slow>{{ t('common.stillLoading') }}</p>
+                    <!-- Not available where the singer is (geo rights): said calmly, with nothing to retry or buy. -->
+                    <p v-else-if="load === 'withheld'" class="text-center text-sm text-muted" role="status" data-song-not-here>{{ notHere }}</p>
+                    <p v-else-if="load === 'failed' || load === 'offline'" class="flex flex-wrap items-center justify-center gap-2 text-sm text-warn" role="alert" data-song-load-failed>{{ load === 'offline' ? t('common.offline') : t('templates.loadFailed') }} <button type="button" class="link tap-44" @click="$emit('retry')">{{ t('common.tryAgain') }}</button></p>
                     <div class="grid grid-cols-2 gap-2 sm:gap-3">
                         <button type="button" :class="[secondary, 'w-full justify-center']" :aria-pressed="previewing ? 'true' : 'false'" data-song-play @click="$emit('preview')"><span class="inline-flex items-center gap-2"><Icon :name="previewing ? 'stop' : 'play'" :size="16" />{{ preparing ? t('templates.preparing') : previewing ? t('studio.stop') : t('templates.play') }}</span></button>
                         <button type="button" class="btn-ghost w-full justify-center" :aria-label="t('templates.editLabel', { title: songTitle(template) })" data-song-edit @click="$emit('copy')">{{ t('template.edit') }}</button>
@@ -855,7 +866,28 @@ export const TemplateDialog = {
                 </div>
             </div>
         </Modal>`,
+    data: () => ({ slow: false }),
+    watch: {
+        /** After 4 s of loading, "Still loading" (a timer for the words only, never for audio). */
+        load: {
+            immediate: true,
+            handler(now) {
+                clearTimeout(this.slowTimer);
+                this.slow = false;
+                if (now === 'loading') this.slowTimer = setTimeout(() => (this.slow = true), SLOW_MS);
+            },
+        },
+    },
+    beforeUnmount() {
+        clearTimeout(this.slowTimer);
+    },
     computed: {
+        /** The song's parts with no real voice yet, by name (Be the voice), once the singer is past the first week. */
+        voiceless() {
+            if (!pastFirstWeek() || !voiceAskOpen()) return [];
+            const keys = voicelessParts(this.template.id);
+            return this.template.parts.filter((p) => keys.includes(p.key)).map((p) => templatePartName(p));
+        },
         seconds() {
             return this.template.summary ? 0 : (lengthBeats(this.template) * 60) / this.template.tempo;
         },

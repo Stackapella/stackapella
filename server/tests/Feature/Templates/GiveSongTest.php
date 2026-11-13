@@ -54,7 +54,7 @@ final class GiveSongTest extends TestCase
         $this->assertSame('private', $template->refresh()->visibility);
     }
 
-    public function test_a_free_director_shares_every_song_given_them_with_their_group_and_no_plan_is_needed(): void
+    public function test_a_director_shares_every_song_given_them_with_their_group_and_the_songs_need_no_plan(): void
     {
         // Stage 1 of the choir tracks (docs/choir-tracks-plan.md): we make the songs, give them to the
         // director's account, and they share them with their group. Nothing asks for Plus, and a
@@ -68,6 +68,7 @@ final class GiveSongTest extends TestCase
         $this->assertSame(0, app(Plans::class)->countedTemplates($director)->count());
 
         $this->actingAs($director->refresh());
+        $this->withPlus();
         $group = (string) $this->postJson('/api/groups', ['name' => 'Thursday Singers', 'adult' => true])->assertCreated()->json('data.id');
         foreach ($slugs as $slug) {
             $this->postJson('/api/groups/'.$group.'/songs', ['templateId' => $slug])->assertOk();

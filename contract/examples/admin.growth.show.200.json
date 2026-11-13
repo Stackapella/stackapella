@@ -939,6 +939,24 @@
                         0,
                         0
                     ]
+                },
+                "appStarts": {
+                    "now": [
+                        0,
+                        0,
+                        0,
+                        null,
+                        null,
+                        null
+                    ],
+                    "previous": [
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0
+                    ]
                 }
             },
             "releases": [],

@@ -8,8 +8,9 @@
      page, its parts, the carols) and the comparisons (game's arcade pass, 2026-11-10), About, the "for" pages, the
      guides and What's new (the next pass, 2026-11-10), and any page that opts in with @section('arcade'). A calm page
      among them (a help article, a guide) keeps its reading type under the arcade header. The legal pages stay off it
-     (docs/decisions.md). --}}
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" dir="{{ __('meta.dir') }}" @if (request()->is('/', 'how-it-works', 'pricing', 'help', 'help/*', 'features', 'features/*', 'courses', 'courses/*', 'songs', 'songs/*', 'compare', 'compare/*', 'about', 'for/*', 'guides', 'guides/*', 'whats-new') || $__env->hasSection('arcade')) data-gs @endif>
+     (docs/decisions.md). A page in another language (/es/guides/...) is matched by its English path, so it takes the
+     same screen (it didn't: game mode's Spanish pages had the arcade header but not its screen). --}}
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" dir="{{ __('meta.dir') }}" @if (\Illuminate\Support\Str::is(['/', 'how-it-works', 'pricing', 'help', 'help/*', 'features', 'features/*', 'courses', 'courses/*', 'songs', 'songs/*', 'compare', 'compare/*', 'about', 'for/*', 'guides', 'guides/*', 'whats-new'], ltrim(\App\Support\Languages\SiteLanguages::englishPath(request()->getPathInfo(), app()->getLocale()), '/') ?: '/') || $__env->hasSection('arcade')) data-gs @endif>
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">

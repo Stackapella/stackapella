@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Support\Admin;
 
+use App\Actions\Groups\ManageGroups;
 use App\Models\Group;
 use App\Models\GroupMember;
 use App\Models\GroupSong;
@@ -28,14 +29,15 @@ final class GroupPractice
     public const LIMIT = 100;
 
     /**
-     * @return array{groups: list<array<string, mixed>>, total: int}
+     * @return array{groups: list<array<string, mixed>>, total: int, paused: int}
      */
     public function show(): array
     {
+        $plus = app(ManageGroups::class);
         $weeks = $this->weeks();
         $from = $weeks[0]->copy()->utc();
         $total = Group::query()->count();
-        $groups = Group::query()->with('director')->withCount([
+        $groups = Group::query()->with('director.subscriptions')->withCount([
             'members as singers_count' => fn ($query) => $query->where('role', GroupMember::MEMBER),
             'songs',
         ])->latest('id')->limit(self::LIMIT * 5)->get();
@@ -67,7 +69,7 @@ final class GroupPractice
             return null;
         };
 
-        $rows = $groups->map(function (Group $group) use ($members, $songs, $takes, $scores, $weeks, $weekOf): array {
+        $rows = $groups->map(function (Group $group) use ($members, $songs, $takes, $scores, $weeks, $weekOf, $plus): array {
             $theirs = $members->get($group->id, collect())->pluck('user_id')->map(fn (mixed $id): int => (int) $id)->flip();
             $own = array_flip($songs->get($group->id, []));
             $mine = fn (array $row): bool => $theirs->has($row['singer']) && isset($own[$row['slug']]);
@@ -88,6 +90,8 @@ final class GroupPractice
                 'id' => $group->sqid(),
                 'name' => $group->name,
                 'director' => ['id' => $group->director->sqid(), 'name' => $group->director->name],
+                // Paused: its director's Plus has ended (docs/pricing-plan.md, 2026-11-12).
+                'readOnly' => $plus->readOnly($group),
                 'members' => (int) $group->getAttribute('singers_count'),
                 'songs' => (int) $group->getAttribute('songs_count'),
                 'createdAt' => $group->created_at?->utc()->toIso8601ZuluString(),
@@ -98,7 +102,7 @@ final class GroupPractice
         $recent = fn (array $row): int => $row['weeks'][self::WEEKS - 1]['singers'] + $row['weeks'][self::WEEKS - 2]['singers'];
         $sorted = $rows->sort(fn (array $a, array $b): int => [$recent($b), $b['createdAt']] <=> [$recent($a), $a['createdAt']])->take(self::LIMIT)->all();
 
-        return ['groups' => array_values($sorted), 'total' => $total];
+        return ['groups' => array_values($sorted), 'total' => $total, 'paused' => $rows->where('readOnly', true)->count()];
     }
 
     /**

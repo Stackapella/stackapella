@@ -73,6 +73,8 @@ export const AuthView = {
             mode: q.get('mode') === 'signup' ? 'signup' : q.get('mode') === 'forgot' ? 'forgot' : 'signin',
             // Why an ask sent them here (onboarding step 7): sign-up says so in its title.
             reason: REASONS[q.get('for')] ? q.get('for') : null,
+            // Be the voice's sign-up names the take's part: "Save your alto and share it" (the engagement review).
+            forPart: q.get('for') === 'voice' && q.get('part') ? q.get('part').slice(0, 40) : null,
             next: safeNext(q.get('next') ?? tabStorage.get('stackapella.next')),
             invite,
             early,
@@ -211,7 +213,7 @@ export const AuthView = {
                 <!-- Sign in, or sign up -->
                 <template v-else>
                     <div>
-                        <h1 ref="heading" tabindex="-1" class="text-3xl font-extrabold tracking-tight text-cream outline-none">{{ mode === 'signup' ? t(REASONS[reason] ?? SIGN_UP) : t('auth.signInTitle') }}</h1>
+                        <h1 ref="heading" tabindex="-1" class="text-3xl font-extrabold tracking-tight text-cream outline-none">{{ mode === 'signup' ? (forPart ? t('auth.reason.voicePart', { part: forPart }) : t(REASONS[reason] ?? SIGN_UP)) : t('auth.signInTitle') }}</h1>
                         <p class="mt-2 text-muted">{{ invite ? t('auth.inviteIntro') : early ? t('auth.earlyIntro') : t(INTROS[reason] ?? INTRO) }}</p>
                     </div>
                     <Notice v-if="config?.signups === 'paused' && mode === 'signup' && !invite && !early" tone="warn">{{ t('auth.error.paused') }}</Notice>

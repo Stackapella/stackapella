@@ -20,6 +20,9 @@ const FUNNEL = ['f_day7', 'f_plus', 'f_arrive', 'f_arrive_start', 'f_mic', 'f_no
 const NUDGES = ['acct_week', 'acct_songs', 'acct_unit', 'acct_risk', 'acct_settings', 'acct_course']; // the account nudges' asks
 const ASKED = ['install', 'account', 'name', 'share', 'goal', 'remind', 'nudge', ...NUDGES].flatMap((ask) => [`ask_${ask}_shown`, `ask_${ask}_yes`]);
 for (const kind of [...FUNNEL, ...ASKED]) KINDS.add(kind);
+// Be the voice (js/be-the-voice.js; the engagement review's section 5): the pool, the invitation, its answers, the
+// guest's run back and where a send stopped. Mirrors server/config/counts.php; take_sent and guide_published are the server's.
+for (const kind of ['bv_sung', 'bv_shown', 'bv_later', 'bv_share_tap:guest', 'bv_share_tap:member', 'bv_resume', 'bv_stop:age', 'bv_stop:email', 'bv_stop:check', 'bv_stop:upload', 'bv_sheet_tap']) KINDS.add(kind);
 // What's been built since (Hillel: "update the admin usage page with all of the new stuff, ie
 // courses, etc"): the skins, the Plus courses' extras, Hum a tune, the studio, the onboarding's
 // asks and Melody first. Still a number per kind per day; nothing about who.
@@ -42,6 +45,12 @@ for (const kind of [
     // A choir group's path, each a device's first (js/funnel.js first): the start sheet shown, a group made, its link first
     // sent, an invite accepted, a director's first part given, a member's first take on a group's song.
     'grp_start', 'grp_made', 'grp_link', 'grp_joined', 'grp_assigned', 'grp_sang',
+    // A range carried in from the free range test (js/tool-range.js), and the tools opened from Settings (once a week).
+    'tool_range_in', 'use_tools',
+    // Teaming up is Plus (docs/pricing-plan.md, top): Start a group's Plus moment shown, a paused choir's join page shown.
+    'grp_plus_seen', 'grp_paused_seen',
+    // A new group's link put in front of its director (docs/improvement-log.md, row 2): shown, and copied or shared from there.
+    'grp_link_shown', 'grp_link_sent',
     // The thread back (docs/retention-plan.md, idea 2): the wall's Send myself the link and Add tomorrow to my calendar.
     'back_link_tap', 'back_cal_tap',
     'school_redeemed',
@@ -56,6 +65,11 @@ for (const kind of [
     'mic_failed_inapp', 'mic_failed_insecure', 'mic_failed_unsupported', 'mic_failed_notfound', 'mic_failed_inuse', 'mic_failed_other',
     // The free course's first lesson begun in an app's own browser (js/mic-help.js deviceOf), against fl_s:<its id>.
     'l1_inapp',
+    // Open in Chrome tapped on the in-app card (Android): read against l1_inapp.
+    'inapp_handoff',
+    // Experiment mic2's arm b (docs/improvement-log.md row 11), once a lesson run: Hear it first played; Can't sing right
+    // now? opened, Listen through it chosen (and heard to its end), and its way back later (the share sheet, a calendar).
+    'l1_hear', 'l1_later_shown', 'l1_listen', 'l1_listen_heard', 'l1_later_link', 'l1_later_cal',
 ]) KINDS.add(kind);
 // Kinds with a detail, `<prefix>:<id>`: a Plus course's lessons by course, the free course by lesson.
 // The server keeps only ids the courses have.
@@ -89,7 +103,7 @@ export function count(kind) {
 
 // A share, counted as sh:<surface>.<method>: what was shared and how. The lists mirror server/config/counts.php
 // (share_surfaces and share_methods); anything else is dropped, as count() drops an unknown kind.
-export const SHARE_SURFACES = new Set(['song', 'lesson', 'note', 'daily', 'invite', 'challenge', 'group', 'class', 'arrangement', 'warmup', 'app', 'embed', 'page-song', 'page-part', 'page-course', 'page-lesson', 'page-carols']);
+export const SHARE_SURFACES = new Set(['song', 'lesson', 'note', 'daily', 'invite', 'challenge', 'group', 'class', 'arrangement', 'warmup', 'app', 'embed', 'page-song', 'page-part', 'page-course', 'page-lesson', 'page-carols', 'voice']);
 export const SHARE_METHODS = new Set(['sheet', 'copy', 'video', 'image', 'embed']);
 
 /** Counts a share of `surface` by `method`: countShare('daily', 'sheet') is sh:daily.sheet. */

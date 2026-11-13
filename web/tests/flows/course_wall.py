@@ -112,7 +112,22 @@ def journey(f):
     f.wait("window.__left", what="Google's sign-in started")
     left = f.js("window.__left")
     assert left == {"action": "/auth/google", "intended": "/learn/1-match"}, f"to Google and back to lesson 2: {left}"
+    wall2_later(f)
     member_never_walled(f)
+
+
+def wall2_later(f):
+    """wall2's arm b (previewed; docs/improvement-log.md row 12): a guest sings lessons 1.2 and 1.3, and meets the wall
+    before 1.4, after the first session's three wins; the map and Home say so too."""
+    f.go("/?x=wall2-b", "document.querySelector('#app header')")
+    f.go("/learn/1-match", "document.querySelector('main h1')")
+    f.wait(f"!{WALL} && document.querySelector('[data-step-bars]')", what="lesson 1.2 open to a guest in arm b")
+    f.go("/learn/1-high-low", "document.querySelector('main h1')")
+    f.wait(f"!{WALL} && document.querySelector('[data-step-bars]')", what="lesson 1.3 open to a guest in arm b")
+    f.go("/learn/1-breath", WALL)
+    f.shot("wall2-b")
+    f.run("sessionStorage.removeItem('stackapella.experimentPreview')")
+    f.go("/learn/1-match", WALL)
 
 
 # Whether the wall ever drew, from the first moment a page loads (a flash of one frame counts).

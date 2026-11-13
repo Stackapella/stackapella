@@ -1,0 +1,135 @@
+{
+    "data": {
+        "at": "2026-11-12T15:42:10Z",
+        "refreshSeconds": 15,
+        "now": {
+            "total": 14,
+            "signedIn": 5,
+            "guests": 9
+        },
+        "views": {
+            "perMinute": [
+                3,
+                5,
+                4,
+                6,
+                2,
+                4,
+                7,
+                5,
+                3,
+                6,
+                8,
+                5,
+                4,
+                7,
+                9,
+                6,
+                5,
+                8,
+                10,
+                7,
+                6,
+                9,
+                11,
+                8,
+                7,
+                10,
+                12,
+                9,
+                11,
+                4
+            ],
+            "last30": 201
+        },
+        "areas": [
+            {
+                "key": "courses",
+                "now": 5,
+                "views30": 71,
+                "top": [
+                    {
+                        "page": "lesson",
+                        "views": 44
+                    },
+                    {
+                        "page": "course",
+                        "views": 18
+                    },
+                    {
+                        "page": "courses",
+                        "views": 9
+                    }
+                ]
+            },
+            {
+                "key": "tools",
+                "now": 4,
+                "views30": 58,
+                "top": [
+                    {
+                        "page": "/tools/vocal-range-test",
+                        "views": 31
+                    },
+                    {
+                        "page": "/tools/tuner",
+                        "views": 19
+                    },
+                    {
+                        "page": "/tools/metronome",
+                        "views": 8
+                    }
+                ]
+            },
+            {
+                "key": "site",
+                "now": 3,
+                "views30": 42,
+                "top": [
+                    {
+                        "page": "/",
+                        "views": 20
+                    },
+                    {
+                        "page": "/songs/amazing-grace",
+                        "views": 13
+                    },
+                    {
+                        "page": "/pricing",
+                        "views": 9
+                    }
+                ]
+            },
+            {
+                "key": "studio",
+                "now": 2,
+                "views30": 27,
+                "top": [
+                    {
+                        "page": "studio",
+                        "views": 19
+                    },
+                    {
+                        "page": "sing",
+                        "views": 8
+                    }
+                ]
+            },
+            {
+                "key": "app",
+                "now": 0,
+                "views30": 14,
+                "top": [
+                    {
+                        "page": "home",
+                        "views": 11
+                    },
+                    {
+                        "page": "settings",
+                        "views": 3
+                    }
+                ]
+            }
+        ]
+    }
+}

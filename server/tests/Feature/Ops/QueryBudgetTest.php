@@ -275,8 +275,9 @@ final class QueryBudgetTest extends TestCase
             }
         };
 
-        // The overview's 31: the song sync's and the weekly sitemap check's kept problems are a Setting each (2026-11-09).
-        foreach (['/api/admin/overview' => 31, '/api/admin/growth?days=84' => 14, '/api/admin/reach' => 14, '/api/admin/active' => 18, '/api/admin/revenue' => 15, '/api/admin/churn' => 13, '/api/admin/cohorts' => 17, '/api/admin/activity' => 24] as $path => $ceiling) {
+        // The overview's 32: the song sync's and the weekly sitemap check's kept problems are a Setting each (2026-11-09), and
+        // the corrections still to read one count (2026-11-13).
+        foreach (['/api/admin/overview' => 32, '/api/admin/growth?days=84' => 14, '/api/admin/reach' => 14, '/api/admin/active' => 18, '/api/admin/revenue' => 15, '/api/admin/churn' => 13, '/api/admin/cohorts' => 17, '/api/admin/activity' => 24] as $path => $ceiling) {
             $this->assertFlat($path, $people, function () use ($admin, $path): TestResponse {
                 $this->actingAsAdmin($admin);
 

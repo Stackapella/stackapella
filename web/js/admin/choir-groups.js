@@ -3,10 +3,12 @@
 // singers practise it in the week before rehearsal"). A plain table, newest groups first as the server orders
 // them (singers over the last two weeks, then the newest): each group's name, director, members and songs, and its
 // last 8 weeks as a small bar of singers, with this week's singers and the 8 weeks' takes and scored runs. Totals
-// only: never which member.
+// only: never which member. A group paused because its leader's Plus ended (docs/pricing-plan.md, top: readOnly
+// true) is tagged, and the paused are counted.
 
 import { api } from '../api.js';
 import { formatDate, formatNumber, t } from '../i18n.js';
+import { StatusChip } from '../components/form.js';
 import { LoadFailed, zoneName } from './common.js';
 
 const week = (date) => formatDate(`${date}T12:00:00Z`, { month: 'short', day: 'numeric', timeZone: 'UTC' });
@@ -35,7 +37,7 @@ const WeekBars = {
 };
 
 export const ChoirGroupsSection = {
-    components: { LoadFailed, WeekBars },
+    components: { LoadFailed, StatusChip, WeekBars },
     props: { me: { type: Object, required: true } },
     data: () => ({ report: null, failed: false }),
     setup: () => ({ formatNumber, zoneName }),
@@ -43,7 +45,7 @@ export const ChoirGroupsSection = {
         <section class="space-y-6" aria-labelledby="choir-groups-h" data-choir-groups>
             <div>
                 <h1 id="choir-groups-h" class="text-3xl font-extrabold tracking-tight text-cream">{{ t('admin.choirGroups.title') }}</h1>
-                <p class="mt-1 text-sm text-muted">{{ report ? t('admin.choirGroups.intro', { shown: groups.length, total: report.total, zone: zoneName(report.timezone) }) : t('admin.choirGroups.introLoading') }}</p>
+                <p class="mt-1 text-sm text-muted">{{ report ? t('admin.choirGroups.intro', { shown: groups.length, total: report.total, zone: zoneName(report.timezone) }) : t('admin.choirGroups.introLoading') }}<template v-if="report?.paused"> {{ t('admin.choirGroups.pausedCount', { count: report.paused }) }}</template></p>
             </div>
             <LoadFailed v-if="failed" :message="failed" @retry="load" />
             <p v-else-if="!report" class="text-muted" role="status">{{ t('admin.loading') }}</p>
@@ -66,7 +68,7 @@ export const ChoirGroupsSection = {
                         </thead>
                         <tbody class="divide-y divide-line">
                             <tr v-for="g in groups" :key="g.id" :data-group="g.id">
-                                <th scope="row" class="py-2.5 pe-2 text-start font-normal"><span class="block font-semibold text-cream">{{ g.name }}</span><span class="block text-xs text-muted">{{ t('admin.choirGroups.started', { date: formatDate(g.createdAt, { dateStyle: 'medium' }) }) }}</span></th>
+                                <th scope="row" class="py-2.5 pe-2 text-start font-normal"><span class="flex flex-wrap items-center gap-x-2 font-semibold text-cream">{{ g.name }}<StatusChip v-if="paused(g)" tone="muted" :label="t('admin.choirGroups.paused')" data-paused /></span><span class="block text-xs text-muted">{{ t('admin.choirGroups.started', { date: formatDate(g.createdAt, { dateStyle: 'medium' }) }) }}</span></th>
                                 <td class="px-2 py-2.5 text-cream">{{ g.director?.name ?? '' }}</td>
                                 <td class="px-2 py-2.5 text-end tabular-nums text-cream" data-col="members">{{ formatNumber(g.members) }}</td>
                                 <td class="px-2 py-2.5 text-end tabular-nums text-cream" data-col="songs">{{ formatNumber(g.songs) }}</td>
@@ -83,7 +85,7 @@ export const ChoirGroupsSection = {
                     <li v-for="g in groups" :key="g.id" class="card p-4" :data-group="g.id">
                         <div class="flex items-start justify-between gap-3">
                             <div class="min-w-0">
-                                <p class="font-semibold text-cream">{{ g.name }}</p>
+                                <p class="flex flex-wrap items-center gap-x-2 font-semibold text-cream">{{ g.name }}<StatusChip v-if="paused(g)" tone="muted" :label="t('admin.choirGroups.paused')" data-paused /></p>
                                 <p class="text-sm text-muted">{{ g.director?.name ?? '' }} · {{ t('admin.choirGroups.started', { date: formatDate(g.createdAt, { dateStyle: 'medium' }) }) }}</p>
                             </div>
                             <WeekBars :group="g" />
@@ -111,6 +113,7 @@ export const ChoirGroupsSection = {
     methods: {
         formatDate,
         thisWeek: (g) => g.weeks.at(-1)?.singers ?? 0,
+        paused: (g) => g.readOnly === true,
         total: (g, key) => sum(g.weeks, key),
         async load() {
             this.failed = false;

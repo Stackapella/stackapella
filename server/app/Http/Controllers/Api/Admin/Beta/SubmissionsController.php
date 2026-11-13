@@ -15,6 +15,7 @@ use App\Http\Resources\GuideRecording;
 use App\Models\BetaSubmission;
 use App\Models\TemplateGuide;
 use App\Models\User;
+use App\Support\Beta\SubmissionGroups;
 use App\Support\Http\CursorList;
 use App\Support\Ids;
 use Illuminate\Container\Attributes\CurrentUser;
@@ -45,8 +46,16 @@ final class SubmissionsController extends Controller
             ->when(is_string($singer), fn ($query) => $query->whereHas('assignment', fn ($q) => $q->where('beta_singer_id', $singerId ?? 0)))
             ->orderByDesc('id')
             ->cursorPaginate(50);
+        $response = CursorList::response($page, BetaSubmissionResource::class, $request);
 
-        return CursorList::response($page, BetaSubmissionResource::class, $request);
+        // Grouped by song part, for Hillel's compare view (open takes): this page's takes only, each part's guide now.
+        if ($request->validated('groupBy') === 'part') {
+            $body = (array) $response->getData(true);
+            $body['meta']['groups'] = SubmissionGroups::of(collect($page->items()));
+            $response->setData($body);
+        }
+
+        return $response;
     }
 
     public function show(BetaSubmission $submission): JsonResponse
@@ -88,7 +97,9 @@ final class SubmissionsController extends Controller
 
     public function accept(DecideSubmissionRequest $request, BetaSubmission $submission, ReviewSubmission $review, #[CurrentUser] User $admin): JsonResponse
     {
-        return $this->respond($review->accept($submission, $request->boolean('makeDefault', true), $admin, $request->ip()));
+        $note = $request->validated('notChosenNote');
+
+        return $this->respond($review->accept($submission, $request->boolean('makeDefault', true), $admin, $request->ip(), is_string($note) ? $note : null));
     }
 
     public function retake(DecideSubmissionRequest $request, BetaSubmission $submission, ReviewSubmission $review, #[CurrentUser] User $admin): JsonResponse

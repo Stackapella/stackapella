@@ -9,13 +9,14 @@ use App\Http\Resources\GuideRecording;
 use App\Models\BetaAssignment;
 use App\Models\TemplateGuide;
 use App\Support\Beta\PartStatus;
+use App\Support\Templates\Staging;
 use App\Support\Templates\TemplateRules;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Collection;
 
 /**
- * One part on My parts (contract/schemas/beta.part.json). Needs template.currentVersion and
+ * One part on My parts (contract/schemas/beta.part.json). Needs template.currentVersion, template.stagedVersion and
  * latestSubmission.templateVersion loaded, and the version's guides passed in.
  *
  * @property BetaAssignment $resource
@@ -58,7 +59,8 @@ final class BetaPartResource extends JsonResource
         }
 
         $template = $assignment->template ?? throw new \LogicException('An assignment is a part or a clip.');
-        $version = $template->currentVersion;
+        // A staged next version is what the singer records, before it goes live (its `version`; the app loads it).
+        $version = $template->recordingVersion();
         /** @var array<string, mixed> $data */
         $data = $version->data ?? [];
         $latest = $assignment->latestSubmission;
@@ -78,7 +80,7 @@ final class BetaPartResource extends JsonResource
             // How to use vibrato on this part (docs/vibrato-plan.md): the part's own, else the song's.
             'style' => self::style($data, (string) $assignment->part_key),
             'status' => PartStatus::of($latest, $this->guides->contains(fn (TemplateGuide $guide): bool => $guide->submission?->beta_assignment_id === $assignment->id), $assignment->askedAgain()),
-            'recordable' => (bool) $version?->reviewed,
+            'recordable' => Staging::recordable($template, $version),
             'latestSubmission' => $latest !== null ? BetaSubmissionResource::fields($latest) : null,
             // `mine`: this singer's own take, told apart from another singer's on the same part.
             'guides' => $this->guides->map(static fn (TemplateGuide $guide): array => [...GuideRecording::of($guide), 'mine' => $guide->submission?->assignment->beta_singer_id === $assignment->beta_singer_id])->values()->all(),

@@ -8,7 +8,8 @@
         "title",
         "reviewed",
         "parts",
-        "olderGuides"
+        "olderGuides",
+        "staged"
     ],
     "properties": {
         "id": {
@@ -56,6 +57,31 @@
         "olderGuides": {
             "type": "integer",
             "description": "Guides recorded for older versions of this template (kept, flagged; the synth plays until a new take is accepted)."
+        },
+        "staged": {
+            "type": [
+                "object",
+                "null"
+            ],
+            "additionalProperties": false,
+            "required": [
+                "version",
+                "changed"
+            ],
+            "properties": {
+                "version": {
+                    "type": "integer",
+                    "description": "The staged next version, which new recordings target."
+                },
+                "changed": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "The parts whose notes change in it, which need new voices; the others move over at the switch."
+                }
+            },
+            "description": "A staged next version (the content's <id>.next.json, never current), or null."
         }
     },
     "title": "One template's real voices: \"3 of 4 parts are real voices\""

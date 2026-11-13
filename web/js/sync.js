@@ -379,7 +379,8 @@ export function createSync(deps) {
         }
         // Waiting on the person (an email to confirm, room to make, a plan): kept, and sent again on
         // every run until it goes, so a recording is never dropped.
-        if (code === 'storage_limit' || code === 'email_unverified' || code === 'project_read_only') {
+        // shared_paused: a friend's song whose owner's Plus ended (docs/pricing-plan.md, teaming up); it goes once it's back.
+        if (code === 'storage_limit' || code === 'email_unverified' || code === 'project_read_only' || code === 'shared_paused') {
             const part = await db.get('parts', entry.targetId);
             if (part) await db.put('parts', { ...part, takeWaiting: code });
             state.waiting = code;

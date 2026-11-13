@@ -9,6 +9,8 @@ import { goBack } from '../router.js';
 import { Icon, Logo } from './icon.js';
 
 export const LOADING_DELAY_MS = 150;
+/** How long a load runs before it says it's still going (Hillel's instant-feedback rule). */
+export const SLOW_MS = 4000;
 
 /** The loading frame for one screen: `title` is a key, a function giving the words, or null (unknown yet); `home` for the home's own header. */
 export function screenLoading({ title = null, home = false } = {}) {
@@ -39,7 +41,47 @@ export function screenLoading({ title = null, home = false } = {}) {
                         <div class="skeleton h-3 w-full"></div>
                         <div class="skeleton h-3 w-5/6"></div>
                     </div>
+                    <!-- Still going after a few seconds: said, so a slow line never looks stuck (Hillel, 2026-11-12). -->
+                    <p v-if="slow" class="mt-6 text-sm text-muted" data-screen-slow>{{ t('common.stillLoading') }}</p>
                 </div>
             </div>`,
+        data: () => ({ slow: false }),
+        mounted() {
+            this.slowTimer = setTimeout(() => (this.slow = true), SLOW_MS); // the words only, never audio
+        },
+        beforeUnmount() {
+            clearTimeout(this.slowTimer);
+        },
     };
 }
+
+/**
+ * Loading inside a screen whose frame is already up (a course's page, a lesson): a quiet skeleton and a spinner at once,
+ * "Still loading" after a few seconds, and, once it has `failed`, what happened and Try again (emits retry).
+ */
+export const LoadingBlock = {
+    props: { failed: Boolean },
+    emits: ['retry'],
+    data: () => ({ slow: false }),
+    template: `
+        <div class="space-y-4" :aria-busy="failed ? null : 'true'" data-loading-block>
+            <template v-if="failed">
+                <p class="text-cream" role="alert">{{ t('common.loadFailed') }}</p>
+                <button type="button" class="btn-secondary" @click="$emit('retry')">{{ t('common.tryAgain') }}</button>
+            </template>
+            <template v-else>
+                <p class="flex items-center gap-2 text-muted" role="status"><span class="spinner text-accent" aria-hidden="true"></span>{{ slow ? t('common.stillLoading') : t('common.loading') }}</p>
+                <div class="space-y-3" aria-hidden="true">
+                    <div class="skeleton h-10 w-full"></div>
+                    <div class="skeleton h-4 w-2/3"></div>
+                    <div class="skeleton h-3 w-5/6"></div>
+                </div>
+            </template>
+        </div>`,
+    mounted() {
+        this.slowTimer = setTimeout(() => (this.slow = true), SLOW_MS); // the words only, never audio
+    },
+    beforeUnmount() {
+        clearTimeout(this.slowTimer);
+    },
+};

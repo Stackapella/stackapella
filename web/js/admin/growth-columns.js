@@ -16,6 +16,8 @@ export const COLUMN_MARGINS = { top: 22, right: 10, bottom: 24, left: 40 };
 const M = COLUMN_MARGINS;
 
 const HIDDEN = { early: tk('admin.growth.chart.hidden.early'), tooFew: tk('admin.growth.chart.hidden.tooFew'), noHistory: tk('admin.growth.chart.hidden.noHistory') };
+// A projection made with another line's shape (`basis` borrowedShape: too little history of its own yet), said plainly.
+const BORROWED = { arrivals: tk('admin.growth.chart.borrowed.arrivals') };
 const HIDDEN_FROM = tk('admin.growth.chart.hiddenFrom');
 const HEADER = {
     '7d': tk('admin.growth.chart.head.7d'),
@@ -159,6 +161,7 @@ export const ColumnChart = {
             <slot name="under" />
             <p v-if="nowSlot !== null && !table" class="text-xs text-muted" data-so-far-note>{{ t(SO_FAR_NOTE[chart.kind] ?? SO_FAR_NOTE.days, { cut }) }}</p>
             <p v-if="hiddenLine" class="text-xs text-muted" data-projection-hidden>{{ hiddenLine }}</p>
+            <p v-if="borrowedLine" class="text-xs text-muted" data-projection-borrowed>{{ borrowedLine }}</p>
             <button type="button" class="link inline-flex min-h-6 items-center text-xs" :aria-expanded="table ? 'true' : 'false'" data-chart-table-toggle @click="table = !table">{{ table ? t('admin.growth.chart.showChart') : t('admin.growth.chart.showTable') }}</button>
             <div v-if="table" class="max-h-96 overflow-auto" data-chart-table>
                 <table class="w-full text-sm">
@@ -269,6 +272,11 @@ export const ColumnChart = {
             if (total) return t(HEADER[`${this.period}Projected`] ?? HEADER['7dProjected'], { ...values, projected: np(total.value), low: np(total.low), high: np(total.high) });
             return t(HEADER[this.period] ?? HEADER['7d'], values);
         },
+        /** The weaker estimate, said: a projection drawn with another line's pattern (and its wider range). */
+        borrowedLine() {
+            const p = this.projection;
+            return p?.basis === 'borrowedShape' ? t(BORROWED[p.shapeFrom] ?? BORROWED.arrivals) : '';
+        },
         hiddenLine() {
             const p = this.m.projection;
             if (!p || p.shown || !HIDDEN[p.hidden]) return '';
@@ -349,24 +357,33 @@ export const ColumnChart = {
     },
 };
 
+/** A strip's words by its metric: Sign-ups under Arrivals, App starts under Visits. */
+const STRIPS = {
+    signUps: { title: tk('admin.growth.chart.strip.title'), count: tk('admin.growth.chart.strip.count') },
+    appStarts: { title: tk('admin.growth.chart.strip.appStarts.title'), count: tk('admin.growth.chart.strip.appStarts.count') },
+};
+
 /**
- * The sign-up strip (spec 11.1, F3e): under Arrivals, a cell per slot lined up with the chart's slots, the count as a
+ * A strip of counts (spec 11.1, F3e): Sign-ups under Arrivals, and App starts under Visits (Hillel, 2026-11-12: "i like
+ * how sign ups are shown under arrivals, lets add app starts the same way under visits": a site visit that went on into
+ * the app, f_arrive_start). A cell per slot lined up with the chart's slots, the count as a
  * digit ("0" muted) and the period before's small beneath it. No bars, no line and no projection: at single digits a shape
  * would be noise. Today's strip is six 4-hour cells. Past 14 slots (4 weeks, This month) a digit a day is too small to read,
  * so each cell sums 7 days from the period's first, spanning their columns (the axis names each block's first day); the
  * block with today in it is so far. A real row of text, so it reads without the table.
  */
-export const SignUpStrip = {
+export const CountStrip = {
     props: {
+        metric: { type: String, default: 'signUps' },
         chart: { type: Object, required: true },
         period: { type: String, required: true },
         margins: { type: Object, required: true },
     },
-    setup: () => ({ n0 }),
+    setup: () => ({ n0, STRIPS }),
     template: `
-        <div v-if="cells.length" class="space-y-1" data-signup-strip>
+        <div v-if="cells.length" class="space-y-1" :data-strip="metric" :data-signup-strip="metric === 'signUps' ? '' : null">
             <p class="flex flex-wrap items-baseline justify-between gap-x-3 text-xs text-muted" :style="inset">
-                <span class="font-semibold text-cream">{{ t('admin.growth.chart.strip.title') }}</span>
+                <span class="font-semibold text-cream">{{ t(STRIPS[metric].title) }}</span>
                 <span>{{ t('admin.growth.chart.strip.key') }}</span>
             </p>
             <ol class="grid tabular-nums" :style="{ ...inset, gridTemplateColumns: 'repeat(' + slots + ', minmax(0, 1fr))' }">
@@ -382,11 +399,11 @@ export const SignUpStrip = {
             return { paddingInlineStart: `${this.margins.left}px`, paddingInlineEnd: `${this.margins.right}px` };
         },
         slots() {
-            return this.chart.metrics?.signUps?.now?.length ?? 0;
+            return this.chart.metrics?.[this.metric]?.now?.length ?? 0;
         },
         /** A cell a slot, or past 14 slots a cell a 7 days: the counts summed (null when none of its days has come). */
         cells() {
-            const s = this.chart.metrics?.signUps;
+            const s = this.chart.metrics?.[this.metric];
             if (!s?.now) return [];
             const before = s.previous ?? [];
             const size = this.slots > 14 ? 7 : 1;
@@ -409,7 +426,7 @@ export const SignUpStrip = {
         },
         words(from, to, now, before) {
             const parts = [];
-            if (now !== null) parts.push(t('admin.growth.chart.strip.count', { n: n0(now) }));
+            if (now !== null) parts.push(t(STRIPS[this.metric].count, { n: n0(now) }));
             if (before !== null) parts.push(t('admin.growth.chart.strip.before', { n: n0(before) }));
             return `${this.name(from, to)}: ${parts.join(', ')}`;
         },

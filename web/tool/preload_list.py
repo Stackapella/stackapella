@@ -92,8 +92,8 @@ def game_modules(modules):
     own = [(GAME_LOADERS.parent / spec).resolve() for spec in DYNAMIC.findall(source)]
     known = {(WEB / m.lstrip("/")).resolve() for m in modules + learn_modules(modules)}
     resolved = lambda paths: {(WEB / p.lstrip("/")).resolve() for p in paths}
-    sing = {SING_STORE} | resolved(graph((SING_STORE,), known))
-    with_sing = {m for m in own if ({m} | resolved(graph((m,), known))) & sing}
+    # One that reaches the store itself; a module both merely share (scoring.js, once it left lesson 1's first list) isn't it.
+    with_sing = {m for m in own if SING_STORE in ({m} | resolved(graph((m,), known)))}
     # modules.js's loadGame imports every loader as game mode comes on, but those it names WITH_SING: one that needs
     # Sing's store and isn't named would bring the store onto lesson 1 anyway, a round trip late.
     listed = set(re.findall(r"'(\w+)'", (WITH_SING.search(source) or [None, ""])[1]))

@@ -10,6 +10,7 @@ use App\Support\Usage\Plans;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\Auth;
 
 /**
  * contract/schemas/project.json. `bytes` comes from withSum (takes_bytes), or 0.
@@ -49,7 +50,8 @@ final class ProjectResource extends JsonResource
             'settings' => (object) $project->settings,
             'version' => $project->version,
             'bytes' => (int) $project->getAttribute('takes_bytes'),
-            'readOnly' => app(Plans::class)->readOnlyOf($project),
+            // A friend sees someone's song paused once its owner's Plus has ended.
+            'readOnly' => app(Plans::class)->readOnlyFor($project, Auth::id() !== null ? (int) Auth::id() : null),
             'createdAt' => ($project->device_created_at ?? $project->created_at)?->utc()->toIso8601ZuluString(),
             'updatedAt' => $project->updated_at?->utc()->toIso8601ZuluString(),
             'binnedAt' => $project->binned_at?->utc()->toIso8601ZuluString(),

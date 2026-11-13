@@ -90,9 +90,10 @@
             ],
             "enum": [
                 "limit",
+                "plus_ended",
                 null
             ],
-            "description": "Readable (and exportable as WAV), not editable: beyond a plan's project limit after a downgrade (only where an install sets one; none does since 2026-11-07). Null: editable."
+            "description": "Readable (and exportable as WAV), not editable: beyond a plan's project limit after a downgrade (only where an install sets one; none does since 2026-11-07). Null: editable. `plus_ended`: a friend's view of someone's song whose owner's Plus has ended: paused, listen and keep every take, record nothing new (docs/pricing-plan.md, 2026-11-12)."
         }
     }
 }

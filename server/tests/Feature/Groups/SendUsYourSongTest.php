@@ -43,6 +43,7 @@ final class SendUsYourSongTest extends TestCase
 
         $this->director = User::factory()->create(['name' => 'Ana Ruiz', 'email' => 'ana@example.com', 'email_verified_at' => now()])->fresh() ?? throw new \RuntimeException('no user');
         $this->actingAs($this->director);
+        $this->withPlus();
         $this->group = (string) $this->postJson('/api/groups', ['name' => 'Thursday Singers', 'adult' => true])->assertCreated()->json('data.id');
     }
 

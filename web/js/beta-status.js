@@ -4,6 +4,8 @@ import { tk } from './i18n.js';
 
 export const BETA_STATUS = {
     to_record: { label: tk('beta.status.to_record'), tone: 'muted' },
+    // Shared before the account's email was confirmed (Be the voice): sent on by itself once it is.
+    held: { label: tk('beta.status.held'), tone: 'muted' },
     submitted: { label: tk('beta.status.submitted'), tone: 'info' },
     in_review: { label: tk('beta.status.in_review'), tone: 'info' },
     retake: { label: tk('beta.status.retake'), tone: 'warn' },

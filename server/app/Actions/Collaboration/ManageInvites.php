@@ -39,6 +39,12 @@ final class ManageInvites
                 Imported::refuse();
             }
 
+            // Singing together needs Plus on the side that starts it, and everyone invited joins free (docs/pricing-plan.md,
+            // Hillel 2026-11-12).
+            if (! $this->plans->mayStartShared($user)) {
+                throw new Refusal(403, 'plus_required');
+            }
+
             if ($this->taken($project) >= $this->plans->singerLimit($user)) {
                 throw new Refusal(403, 'invite_limit');
             }
@@ -93,6 +99,11 @@ final class ManageInvites
 
             $this->usable($invite);
             Owned::live($project);
+
+            // The song's owner no longer has Plus: paused, nobody new joins (a calm note, nothing to buy).
+            if (! $this->plans->sharedOpen($owner)) {
+                throw new Refusal(403, 'shared_paused');
+            }
 
             if (ProjectMember::query()->where('project_id', $project->id)->count() >= $this->plans->singerLimit($owner)) {
                 throw new Refusal(403, 'invite_limit');

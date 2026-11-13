@@ -66,6 +66,10 @@
                             @endif
                         </dd></div>
                     </dl>
+                    {{-- The app's own voice sings it so far: the true ask (pages.song.be_voice_note; Hillel). --}}
+                    @if (! $songPart['guide']['realVoice'] && \App\Support\Pages\SongParts::lendVoice())
+                        <p class="s-spart-be"><a href="{{ $songPart['startUrl'] }}" class="s-lk" data-be-voice="{{ $p['key'] }}">{{ __('pages.song.be_voice', ['part' => mb_strtolower($p['name'])]) }}</a> <span>{{ __('pages.song.be_voice_note') }}</span> <a href="/features/real-voices" class="s-lk">{{ __('pages.landing.guide.more') }}</a></p>
+                    @endif
                     <h2 id="switch-h" class="s-kick s-spart-switch">{{ __('site.song_part.switch') }}</h2>
                     <ul class="s-spart-chips" aria-labelledby="switch-h">
                         @foreach ($songPart['parts'] as $other)

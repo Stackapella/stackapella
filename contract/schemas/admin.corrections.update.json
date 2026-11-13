@@ -1,0 +1,13 @@
+{
+    "$id": "admin.corrections.update.json",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "$ref": "admin.correction.json"
+        }
+    }
+}

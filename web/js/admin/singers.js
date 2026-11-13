@@ -21,6 +21,7 @@ const LINK = {
 };
 export const ASSIGNMENT = {
     to_record: { tone: 'muted', label: tk('admin.assignment.to_record') },
+    held: { tone: 'muted', label: tk('admin.assignment.held') }, // shared before the email was confirmed: it comes on its own
     submitted: { tone: 'info', label: tk('admin.assignment.submitted') },
     in_review: { tone: 'info', label: tk('admin.assignment.in_review') },
     retake: { tone: 'warn', label: tk('admin.assignment.retake') },

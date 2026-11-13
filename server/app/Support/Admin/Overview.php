@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace App\Support\Admin;
 
+use App\Enums\CorrectionState;
 use App\Enums\SubmissionStatus;
 use App\Models\BetaFeedback;
 use App\Models\BetaSinger;
 use App\Models\BetaSubmission;
+use App\Models\Correction;
 use App\Models\Template;
 use App\Models\TemplateGuide;
 use App\Models\User;
@@ -47,6 +49,8 @@ final class Overview
             'songsNotSynced' => SyncProblems::latest(),
             // What the weekly sitemap check found, the first few and how many more.
             'sitemapProblems' => SitemapProblems::brief(),
+            // Readers' corrections still to read (Inbox > Corrections' badge, Home's row).
+            'corrections' => ['new' => Correction::query()->where('state', CorrectionState::New->value)->count()],
         ];
     }
 

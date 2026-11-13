@@ -11,6 +11,7 @@ use App\Models\Take;
 use App\Models\Template;
 use App\Models\TemplateRecording;
 use App\Models\User;
+use App\Support\Flags;
 use App\Support\Sync\SyncSeq;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
@@ -53,6 +54,21 @@ final class Plans
     }
 
     /**
+     * Whether the person may start something shared (a friend on their song, a choir group): Plus, while the
+     * `plus_teams` switch is on (docs/pricing-plan.md, 2026-11-12); anyone while it's off.
+     */
+    public function mayStartShared(User $user): bool
+    {
+        return ! app(Flags::class)->on('plus_teams') || $this->isPlus($user);
+    }
+
+    /** Whether a shared song or group whose starter this is still takes new singers and takes: as mayStartShared. */
+    public function sharedOpen(User $starter): bool
+    {
+        return $this->mayStartShared($starter);
+    }
+
+    /**
      * Why each of the person's projects can't change (docs/pricing-plan.md, "Downgrades"), or null
      * when it can: beyond a plan's project limit, past the ones they chose to keep editable (the
      * newest by default). No plan has a project limit since 2026-11-07 (storage is the free plan's
@@ -84,6 +100,27 @@ final class Plans
         }
 
         return $this->readOnly[$user->id] = $map;
+    }
+
+    /** @var array<int, bool> whether each owner has Plus, worked out once a request */
+    private array $ownerPlus = [];
+
+    /**
+     * As readOnlyOf, for whoever is looking: a friend on someone's song sees it paused (`plus_ended`) once its owner's
+     * Plus has ended (docs/pricing-plan.md, 2026-11-12: whoever starts the shared song needs Plus).
+     *
+     * @return 'limit'|'plus_ended'|null
+     */
+    public function readOnlyFor(Project $project, ?int $viewerId): ?string
+    {
+        if ($viewerId !== null && $viewerId !== $project->user_id) {
+            $this->ownerPlus[$project->user_id] ??= ($owner = User::query()->find($project->user_id)) !== null && $this->sharedOpen($owner);
+            if (! $this->ownerPlus[$project->user_id]) {
+                return 'plus_ended';
+            }
+        }
+
+        return $this->readOnlyOf($project);
     }
 
     /**

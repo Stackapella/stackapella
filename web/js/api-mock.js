@@ -204,7 +204,9 @@ async function stateful(operation, params, body, cases, query = {}) {
         const lendVoice = tabStorage.get('stackapella.mockLendVoice') === '1' || !!data.lendVoice;
         // A self-hosted install, for this tab (`stackapella.mockSelfHosted`): the licence's credit shows.
         const selfHosted = tabStorage.get('stackapella.mockSelfHosted') === '1' || !!data.selfHosted;
-        return respond(200, { data: { ...data, ideas: !scenarios().includes('ideas.list:not_found'), experiments, lendVoice, selfHosted } });
+        // Songs withheld where the visitor is, for a flow (stackapella.mockWithheld, this tab): js/withheld.js swaps them.
+        const withheldSongs = JSON.parse(tabStorage.get('stackapella.mockWithheld') || 'null') ?? data.withheldSongs ?? [];
+        return respond(200, { data: { ...data, ideas: !scenarios().includes('ideas.list:not_found'), experiments, lendVoice, selfHosted, withheldSongs } });
     }
     // Who's signed in, and what that allows.
     const as = tabStorage.get('stackapella.mockAs') || 'member';

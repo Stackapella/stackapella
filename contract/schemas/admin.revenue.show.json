@@ -15,7 +15,8 @@
                 "unpriced",
                 "subscribers",
                 "months",
-                "oneOff"
+                "oneOff",
+                "ifAllConvert"
             ],
             "properties": {
                 "mrr": {
@@ -211,6 +212,55 @@
                 "timezone": {
                     "type": "string",
                     "description": "The timezone the days are in (a PHP name; UTC unless set)."
+                },
+                "ifAllConvert": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                        "mrr",
+                        "arr"
+                    ],
+                    "properties": {
+                        "mrr": {
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "additionalProperties": false,
+                                "required": [
+                                    "currency",
+                                    "cents"
+                                ],
+                                "properties": {
+                                    "currency": {
+                                        "type": "string"
+                                    },
+                                    "cents": {
+                                        "type": "integer"
+                                    }
+                                }
+                            }
+                        },
+                        "arr": {
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "additionalProperties": false,
+                                "required": [
+                                    "currency",
+                                    "cents"
+                                ],
+                                "properties": {
+                                    "currency": {
+                                        "type": "string"
+                                    },
+                                    "cents": {
+                                        "type": "integer"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "description": "MRR and ARR if every web trial running now goes on to pay, per currency."
                 }
             }
         }

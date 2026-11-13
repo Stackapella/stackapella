@@ -11,7 +11,8 @@
             "required": [
                 "groups",
                 "total",
-                "timezone"
+                "timezone",
+                "paused"
             ],
             "properties": {
                 "groups": {
@@ -26,7 +27,8 @@
                             "members",
                             "songs",
                             "createdAt",
-                            "weeks"
+                            "weeks",
+                            "readOnly"
                         ],
                         "properties": {
                             "id": {
@@ -94,6 +96,10 @@
                                     }
                                 },
                                 "description": "The last 8 weeks, oldest first, the current one last."
+                            },
+                            "readOnly": {
+                                "type": "boolean",
+                                "description": "Paused: the director's Plus has ended, so nobody new joins and nothing new is shared (docs/pricing-plan.md, 2026-11-12)."
                             }
                         }
                     },
@@ -105,6 +111,10 @@
                 },
                 "timezone": {
                     "type": "string"
+                },
+                "paused": {
+                    "type": "integer",
+                    "description": "How many of the listed groups are paused (their director's Plus has ended)."
                 }
             }
         }

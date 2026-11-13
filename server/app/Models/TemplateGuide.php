@@ -30,6 +30,7 @@ use Illuminate\Support\Carbon;
  * @property int $frames
  * @property int $offset_frames
  * @property string $gain
+ * @property int|null $kbps the bitrate it was encoded at; null for one made before 2026-11-13 (128)
  * @property Carbon $published_at
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at

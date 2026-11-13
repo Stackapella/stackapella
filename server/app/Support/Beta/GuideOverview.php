@@ -11,6 +11,7 @@ use App\Models\BetaSubmission;
 use App\Models\Report;
 use App\Models\Template;
 use App\Models\TemplateGuide;
+use App\Support\Templates\Staging;
 use Illuminate\Support\Collection;
 
 /**
@@ -28,7 +29,7 @@ final class GuideOverview
     public function templates(?string $slug): array
     {
         $templates = Template::query()->official()
-            ->with('currentVersion')
+            ->with(['currentVersion', 'stagedVersion'])
             ->when($slug !== null && $slug !== '', fn ($query) => $query->where('slug', $slug))
             ->whereNotNull('current_version_id')
             ->orderBy('title')
@@ -76,6 +77,9 @@ final class GuideOverview
                         $takes->filter(static fn (BetaSubmission $t): bool => $t->assignment->template_id === $template->id && $t->part_key === $part['key']),
                     ),
                 ], $parts),
+                // A staged next version (the content's <id>.next.json): its number, and the parts whose notes change in
+                // it, which need new voices (the others' voices move over at the switch, CarryVoicesOver).
+                'staged' => $template->stagedVersion === null ? null : ['version' => $template->stagedVersion->version, 'changed' => Staging::changed($template)],
                 'olderGuides' => $guides->filter(static fn (TemplateGuide $g): bool => $g->templateVersion->template_id === $template->id && $g->template_version_id !== $version?->id)->count(),
             ];
         })->values()->all();
@@ -151,8 +155,9 @@ final class GuideOverview
 
         return [
             'voiced' => $voiced,
-            'review' => array_values($takes->filter(static fn (BetaSubmission $t): bool => $t->template_version_id === $currentId && $t->status->isWaiting())
-                ->map(static fn (BetaSubmission $t): array => ['submission' => $t->sqid(), 'status' => $t->status->value, 'singer' => ['id' => $t->assignment->singer->sqid(), 'name' => $t->assignment->singer->name]])->all()),
+            // Takes for the current version, or for a staged next one (its new voices, reviewed before the switch).
+            'review' => array_values($takes->filter(static fn (BetaSubmission $t): bool => in_array($t->template_version_id, [$currentId, $template->staged_version_id], true) && $t->status->isWaiting())
+                ->map(static fn (BetaSubmission $t): array => ['submission' => $t->sqid(), 'status' => $t->status->value, 'version' => $t->template_version_id === $template->staged_version_id ? (int) $template->stagedVersion?->version : (int) $template->currentVersion?->version, 'singer' => ['id' => $t->assignment->singer->sqid(), 'name' => $t->assignment->singer->name]])->all()),
             'changed' => ! $voiced && ($older->isNotEmpty() || $olderTakes->isNotEmpty()),
             'unassigned' => ! $voiced && ! $singers->contains('open', true),
             'singers' => array_values($singers->all()),

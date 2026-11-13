@@ -1,0 +1,9 @@
+{
+    "message": "The text field is required.",
+    "code": "validation_failed",
+    "errors": {
+        "text": [
+            "The text field is required."
+        ]
+    }
+}

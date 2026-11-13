@@ -7,6 +7,7 @@ namespace App\Support\Pages;
 use App\Http\Resources\GuideRecording;
 use App\Models\Template;
 use App\Models\TemplateGuide;
+use App\Support\Flags;
 use App\Support\Http\Hosts;
 use App\Support\Languages\PartNames;
 use App\Support\Languages\SongWords;
@@ -227,6 +228,8 @@ final class SongParts
                 'url' => $base.'/'.$p['key'], 'current' => $p['key'] === $key,
             ], $parts),
             'guide' => ['synth' => true, 'realVoice' => $voice !== null, 'credit' => $credit['credit'] ?? null, 'creditHandle' => $credit['creditHandle'] ?? null],
+            // The same, by the API's name (docs/open-guide-voices-plan.md): the part pages' "Be the voice" shows where it's false.
+            'hasRealGuide' => $voice !== null,
             'startUrl' => Hosts::app('/?'.http_build_query(['song' => $template->slug, 'part' => $key, 'ref' => self::SOURCE])),
             'lastModified' => $this->changed($template, $voice),
         ];
@@ -260,6 +263,33 @@ final class SongParts
         }
 
         return $parts;
+    }
+
+    /** Whether the song and part pages ask a singer to be a part's voice: the lend_voice flag, off where it isn't defined. */
+    public static function lendVoice(): bool
+    {
+        $flags = app(Flags::class);
+
+        return $flags->exists('lend_voice') && $flags->on('lend_voice');
+    }
+
+    /**
+     * Each part's guide voice for a song's own page, in one look-up for all its parts: whether a real voice sings it,
+     * and its credit (GuideRecording), as each part page says it.
+     *
+     * @return array<string, array{realVoice: bool, credit: string|null, creditHandle: string|null}>
+     */
+    public function guides(Template $template): array
+    {
+        $voices = $this->voices(collect([$template]));
+        $guides = [];
+        foreach (self::parts($template) as $part) {
+            $voice = $voices->get($template->current_version_id.':'.$part['key'])?->first();
+            $credit = $voice !== null ? GuideRecording::of($voice) : null;
+            $guides[$part['key']] = ['realVoice' => $voice !== null, 'credit' => $credit['credit'] ?? null, 'creditHandle' => $credit['creditHandle'] ?? null];
+        }
+
+        return $guides;
     }
 
     /**

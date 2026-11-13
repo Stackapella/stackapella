@@ -204,4 +204,16 @@ abstract class TestCase extends BaseTestCase
         $plain = static fn (string $page): string => (string) preg_replace(['#\s*<meta (?:property="og:|name="twitter:)[^>]*>#', '#<meta name="description"[^>]*>#'], ['', '<meta name="description">'], $page);
         $this->assertSame($plain(app(AppShell::class)->html()), $plain((string) $html), $message);
     }
+
+    /**
+     * The signed-in account gets Plus: starting a group or inviting a friend needs it since 2026-11-12
+     * (docs/pricing-plan.md), and a test about something else starts one on the way.
+     */
+    protected function withPlus(): void
+    {
+        $user = auth()->user();
+        if ($user instanceof User) {
+            $user->forceFill(['plan' => 'plus'])->save();
+        }
+    }
 }

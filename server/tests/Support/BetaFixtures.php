@@ -19,6 +19,9 @@ trait BetaFixtures
     protected function catalogue(bool $reviewed = true): Template
     {
         app(SyncOfficialTemplates::class)->handle();
+        // These tests are about recording the live version: a staged next one in the content (Amazing Grace's v5) is set
+        // aside, as StagedVersionTest covers recording for one with its own files.
+        Template::query()->update(['staged_version_id' => null]);
         $template = Template::query()->with('currentVersion')->where('slug', 'amazing-grace')->firstOrFail();
 
         // A test-only shortcut: in real life a version's reviewed comes from its file.

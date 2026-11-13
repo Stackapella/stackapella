@@ -9,6 +9,7 @@ use App\Models\TemplateGuide;
 use App\Support\Languages\SongWords;
 use App\Support\Pages\SongCollections;
 use App\Support\Stats\ReportDay;
+use App\Support\Templates\Catalogue;
 use App\Support\Templates\SongShape;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -24,8 +25,9 @@ final class CatalogueSongResource extends JsonResource
 {
     /**
      * @param  Collection<string, Collection<int, TemplateGuide>>  $guides  every published version by "versionId:part" (the default first), or empty when the caller can't start this song
+     * @param  array<string, bool>  $voiced  "versionId:part" for every part with a real voice, whoever is asking
      */
-    public function __construct(Template $template, private readonly Collection $guides)
+    public function __construct(Template $template, private readonly Collection $guides, private readonly array $voiced = [])
     {
         parent::__construct($template);
     }
@@ -113,7 +115,11 @@ final class CatalogueSongResource extends JsonResource
                 'guide' => ($guide = $this->versions($version?->id, $part['key'])->firstWhere('is_default', true)) !== null ? GuideRecording::of($guide) : null,
                 // Every published version, for the learner's choice of voice (the default first).
                 'versions' => $this->versions($version?->id, $part['key'])->map(static fn (TemplateGuide $g): array => [...GuideRecording::of($g), 'default' => $g->is_default])->values()->all(),
+                // A real voice sings it (docs/open-guide-voices-plan.md), whether or not this caller may start the song.
+                'hasRealGuide' => isset($this->voiced[$version?->id.':'.$part['key']]),
             ], $parts),
+            // An open song with a part still on the synth: "Be the voice" may ask for it.
+            'wantsVoice' => Catalogue::isOpen($template) && collect($parts)->contains(fn (array $part): bool => ! isset($this->voiced[$version?->id.':'.$part['key']])),
         ];
     }
 }

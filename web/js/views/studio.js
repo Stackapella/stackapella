@@ -143,7 +143,7 @@ export const StudioView = {
                     </template>
                 </header>
 
-                <LockedBanner v-if="locked" :reason="locked" class="mx-3 mt-1 md:mx-5" />
+                <LockedBanner v-if="locked" :reason="locked" :owner="project?.shared?.owner?.name ?? ''" class="mx-3 mt-1 md:mx-5" />
                 <p v-if="project.shared" class="mx-3 mt-1 rounded-2xl bg-raised px-4 py-3 text-sm text-cream md:mx-5" role="status">
                     {{ project.shared.removed ? t('together.noLonger') : t('together.banner', { owner: project.shared.owner?.name ?? '' }) }}
                     <button v-if="!project.shared.removed" type="button" class="link ms-1" @click="dialog = 'together'">{{ t('together.who') }}</button>
@@ -335,7 +335,7 @@ export const StudioView = {
                         </template>
                         <template v-else>
                             <button type="button" :class="[roundButton, 'ms-auto size-11', playing || position > 0 ? '' : 'hidden md:grid']" :aria-label="playing ? t('studio.stop') : t('studio.rewind')" @click="stopOrRewind"><Icon :name="playing ? 'stop' : 'rewind'" :size="16" /></button>
-                            <button v-if="somethingToPlay" type="button" class="grid size-14 shrink-0 place-items-center transition bubble bubble-lg bubble-primary" data-disc="play" :aria-label="playing ? t('studio.pause') : t('studio.play')" @click="togglePlay"><Icon :name="playing ? 'pause' : 'play'" :size="26" /></button>
+                            <button v-if="somethingToPlay" type="button" class="grid size-14 shrink-0 place-items-center transition bubble bubble-lg bubble-primary" data-disc="play" :aria-label="playing ? t('studio.pause') : t('studio.play')" :aria-busy="starting && !playing ? 'true' : null" @click="togglePlay"><span v-if="starting && !playing" class="spinner size-6" aria-hidden="true"></span><Icon v-else :name="playing ? 'pause' : 'play'" :size="26" /></button>
                             <button type="button" class="flex min-w-0 flex-1 items-center gap-2 rounded-full glass-record py-2 pe-4 ps-2 font-semibold transition disabled:opacity-50 md:max-w-xs md:flex-none md:pe-7" :disabled="noTrack" data-record :class="playing || position > 0 ? '' : somethingToPlay ? 'ms-auto md:ms-0' : 'ms-auto md:flex-1'" @click="transportRecord">
                                 <span class="grid size-10 shrink-0 place-items-center rounded-full bg-ink/90 text-record"><Icon name="record" :size="16" /></span>
                                 <span class="line-clamp-2 text-start leading-tight">{{ recordLabel }}</span>

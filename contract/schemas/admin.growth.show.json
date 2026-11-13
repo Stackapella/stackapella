@@ -1075,7 +1075,8 @@
                             "required": [
                                 "visits",
                                 "arrivals",
-                                "signUps"
+                                "signUps",
+                                "appStarts"
                             ],
                             "properties": {
                                 "visits": {
@@ -1202,7 +1203,8 @@
                                                     "enum": [
                                                         "dayShape",
                                                         "dailyRate",
-                                                        "weekShape"
+                                                        "weekShape",
+                                                        "borrowedShape"
                                                     ]
                                                 },
                                                 "share": {
@@ -1302,6 +1304,13 @@
                                                         "null"
                                                     ],
                                                     "description": "The period's projected total (whole slots plus the current one's projection)."
+                                                },
+                                                "shapeFrom": {
+                                                    "type": "string",
+                                                    "enum": [
+                                                        "arrivals"
+                                                    ],
+                                                    "description": "With basis borrowedShape: the line whose day shape it borrowed (this line's own hours are too few yet); its range is wider."
                                                 }
                                             }
                                         }
@@ -1431,7 +1440,8 @@
                                                     "enum": [
                                                         "dayShape",
                                                         "dailyRate",
-                                                        "weekShape"
+                                                        "weekShape",
+                                                        "borrowedShape"
                                                     ]
                                                 },
                                                 "share": {
@@ -1531,6 +1541,13 @@
                                                         "null"
                                                     ],
                                                     "description": "The period's projected total (whole slots plus the current one's projection)."
+                                                },
+                                                "shapeFrom": {
+                                                    "type": "string",
+                                                    "enum": [
+                                                        "arrivals"
+                                                    ],
+                                                    "description": "With basis borrowedShape: the line whose day shape it borrowed (this line's own hours are too few yet); its range is wider."
                                                 }
                                             }
                                         }
@@ -1564,6 +1581,35 @@
                                         }
                                     },
                                     "description": "Sign-ups per slot (Today: six 4-hour cells)."
+                                },
+                                "appStarts": {
+                                    "type": "object",
+                                    "additionalProperties": false,
+                                    "required": [
+                                        "now",
+                                        "previous"
+                                    ],
+                                    "properties": {
+                                        "now": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": [
+                                                    "number",
+                                                    "null"
+                                                ]
+                                            }
+                                        },
+                                        "previous": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": [
+                                                    "number",
+                                                    "null"
+                                                ]
+                                            }
+                                        }
+                                    },
+                                    "description": "Every load of the app (app_open) in each slot: the strip under Visits."
                                 }
                             }
                         },

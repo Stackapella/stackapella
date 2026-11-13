@@ -11,6 +11,7 @@ use App\Models\BetaSinger;
 use App\Models\BetaSubmission;
 use App\Support\Beta\TakeBar;
 use App\Support\Storage\Uploads;
+use App\Support\Templates\Staging;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
@@ -54,9 +55,11 @@ final class StartSubmission
                 throw ValidationException::withMessages(['scores' => __('validation.take_not_ready')]);
             }
         } else {
-            $version = $assignment->template?->currentVersion;
+            // The version new recordings are made of: a staged next version when the song has one (never reviewed
+            // until it goes live), else the current one.
+            $version = $assignment->template?->recordingVersion();
 
-            if ($version === null || ! $version->reviewed) {
+            if ($version === null || $assignment->template === null || ! Staging::recordable($assignment->template, $version)) {
                 throw new Refusal(403, 'not_recordable');
             }
 

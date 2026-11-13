@@ -1,0 +1,41 @@
+{
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "id",
+                "status",
+                "templateId",
+                "partKey",
+                "sharedAt"
+            ],
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "status": {
+                    "enum": [
+                        "sent",
+                        "held"
+                    ]
+                },
+                "templateId": {
+                    "type": "string"
+                },
+                "partKey": {
+                    "type": "string"
+                },
+                "sharedAt": {
+                    "type": "string",
+                    "format": "date-time"
+                }
+            }
+        }
+    }
+}

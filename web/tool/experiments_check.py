@@ -12,7 +12,7 @@ from pathlib import Path
 
 WEB = Path(__file__).resolve().parents[1]
 LIST = WEB / "course" / "format" / "experiments.json"
-CALL = re.compile(r"\bexperiment\(\s*'([a-z0-9-]+)'")
+CALL = re.compile(r"\b(?:experiment|keptArm)\(\s*'([a-z0-9-]+)'")
 
 
 def main():

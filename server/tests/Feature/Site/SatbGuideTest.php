@@ -53,6 +53,8 @@ final class SatbGuideTest extends TestCase
 
     public function test_an_satb_songs_pages_say_satb(): void
     {
+        // A song page without a story here (a story gives the page its own title, description and About).
+        config(['content.stories' => storage_path('framework/testing/no-stories')]);
         $this->get('/songs/amazing-grace')->assertOk()
             ->assertSee('<meta name="description" content="'.e(__('pages.song.description_satb', ['title' => 'Amazing Grace'])).'"', false);
         $this->get('/songs/amazing-grace/alto')->assertOk()->assertSee('of Amazing Grace (SATB) by ear', false);
@@ -71,6 +73,8 @@ final class SatbGuideTest extends TestCase
 
     public function test_a_round_says_round_never_satb_or_harmony(): void
     {
+        // A song page without a story here (a story gives the page its own title, description and About).
+        config(['content.stories' => storage_path('framework/testing/no-stories')]);
         $this->get('/songs/row-row-row')->assertOk()
             ->assertSee('<title>Row, Row, Row Your Boat Round: Learn Every Part', false)
             ->assertSee('<meta name="description" content="'.e(__('pages.song.description_round', ['title' => 'Row, Row, Row Your Boat'])).'"', false)

@@ -220,7 +220,9 @@ export function adviceFor(error, { userAgent, standalone = false, touchPoints = 
  * The open mic help, if any: `{ error, retry, attempts }`. `retry` is the screen's own way to open
  * the mic and carry on (a tap on Try again calls it); it resolves truthy once it worked.
  */
-export const micHelp = reactive({ open: false, error: null, retry: null, attempts: [], trying: false, primer: null });
+export const micHelp = reactive({ open: false, error: null, retry: null, attempts: [], trying: false, primer: null, gentle: null });
+// gentle: `{ listen }` while a screen treats a refusal as a choice (experiment mic2's arm b, lesson 1): a "No" opens on
+// "No problem" with Listen through it, and the browser's steps wait behind Show me how.
 
 const EXPLAINED_KEY = 'stackapella.micExplained';
 

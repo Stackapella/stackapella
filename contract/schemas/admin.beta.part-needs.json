@@ -24,7 +24,8 @@
                 "required": [
                     "submission",
                     "status",
-                    "singer"
+                    "singer",
+                    "version"
                 ],
                 "properties": {
                     "submission": {
@@ -34,8 +35,10 @@
                     "status": {
                         "type": "string",
                         "enum": [
+                            "held",
                             "submitted",
-                            "in_review"
+                            "in_review",
+                            "not_chosen"
                         ]
                     },
                     "singer": {
@@ -53,6 +56,10 @@
                                 "type": "string"
                             }
                         }
+                    },
+                    "version": {
+                        "type": "integer",
+                        "description": "The song version the take is for: the current one, or a staged next one (the template's staged.version)."
                     }
                 }
             }
@@ -103,13 +110,15 @@
                     "status": {
                         "type": "string",
                         "enum": [
+                            "held",
                             "to_record",
                             "submitted",
                             "in_review",
                             "retake",
                             "guide",
                             "accepted",
-                            "rejected"
+                            "rejected",
+                            "not_chosen"
                         ],
                         "description": "As My parts shows it (retake while asked again); guide is never set here: voiced says that."
                     },

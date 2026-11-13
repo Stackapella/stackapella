@@ -324,7 +324,7 @@ final class SongCollectionsTest extends TestCase
 
     public function test_the_folk_and_barbershop_intros_name_exactly_the_songs_their_pages_list(): void
     {
-        foreach (['folk-songs' => 20, 'barbershop-songs' => 5] as $slug => $count) {
+        foreach (['folk-songs' => 8, 'barbershop-songs' => 5] as $slug => $count) {
             $songs = app(SongCollections::class)->songs($slug);
             $this->assertCount($count, $songs, $slug);
             $intro = implode(' ', (array) __('site.collections.'.$slug.'.intro'));

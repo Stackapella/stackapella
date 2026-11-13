@@ -335,6 +335,8 @@ final class SitePagesTest extends TestCase
 
     public function test_a_free_songs_page_plays_its_opening_line_and_charts_its_parts(): void
     {
+        // A song page without a story here (the content's stories would replace its description and its More songs).
+        config(['content.stories' => storage_path('framework/testing/no-stories')]);
         foreach (['amazing-grace' => 'Amazing Grace', 'happy-birthday' => 'Happy Birthday'] as $slug => $title) {
             $template = Template::factory()->create(['slug' => $slug, 'title' => $title, 'access' => TemplateAccess::Free]);
             $template->forceFill(['current_version_id' => TemplateVersion::factory()->create(['template_id' => $template->id, 'reviewed' => true])->id])->save();
@@ -348,11 +350,12 @@ final class SitePagesTest extends TestCase
             ->assertSee('data-song', false)
             ->assertSee('<script type="module" src="/js/public/mixer.js"></script>', false)
             ->assertSee('role="radiogroup"', false)
-            // A live song's parts each link to their page, named by the link.
-            ->assertSee(__('pages.song.part_link', ['part' => 'soprano', 'low' => 'D4', 'high' => 'D5']))
+            // A live song's parts each link to their page, named by the link, and the tune's is the one to learn first.
+            ->assertSee(__('pages.song.hear_alone', ['part' => 'soprano']))
+            ->assertSee(__('pages.song.learn_part', ['part' => 'soprano']))
             ->assertSee(__('pages.song.end_title', ['title' => 'Amazing Grace']))
             ->assertSee('href="/songs/happy-birthday"', false);
-        $this->assertSame(4, substr_count($html, 'class="s-range-row'));
+        $this->assertSame(4, substr_count($html, 'class="s-sg-card '));
         // Its opening line ends on a phrase's end, not part way through the song.
         $line = json_decode((string) preg_replace('/^.*<script type="application\/json" data-song>(.*?)<\/script>.*$/s', '$1', $html), true);
         $this->assertSame(24, (int) $line['beats']);

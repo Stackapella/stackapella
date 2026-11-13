@@ -4,7 +4,7 @@
 // singer's request (in sudo).
 
 import { api } from '../api.js';
-import { t } from '../i18n.js';
+import { formatList, t } from '../i18n.js';
 import { templatePartName } from '../templates.js';
 import { EmptyState, StatusChip } from '../components/form.js';
 import { Icon } from '../components/icon.js';
@@ -38,10 +38,13 @@ export const GuidesSection = {
                             <StatusChip tone="muted" :label="t('admin.guides.version', { version: song.version })" />
                         </div>
                     </div>
+                    <!-- A staged next version (the song's notes corrected; admin.beta.guides.list staged): new takes target it, and
+                         only the parts whose notes change need a new voice (the others' move over at the switch). -->
+                    <p v-if="song.staged" class="mt-2 text-sm text-cream" data-guide-staged>{{ stagedLine(song) }}</p>
                     <p v-if="song.olderGuides" class="mt-2 text-sm text-warn">{{ t('admin.guides.older', { count: song.olderGuides }) }}</p>
                     <ul class="mt-4 divide-y divide-line rounded-2xl border border-line">
                         <li v-for="part in song.parts" :key="part.key" class="px-3 py-2.5">
-                            <p class="text-sm font-bold text-cream">{{ templatePartName(part) }}</p>
+                            <p class="flex flex-wrap items-center gap-2 text-sm font-bold text-cream">{{ templatePartName(part) }}<StatusChip v-if="song.staged?.changed?.includes(part.key)" tone="warn" :label="t('admin.guides.stagedPart', { version: song.staged.version })" data-guide-staged-part /></p>
                             <p v-if="!part.guides.length" class="text-sm text-muted">{{ t('admin.guides.synthOnly') }}</p>
                             <ul v-else class="mt-1 space-y-1.5">
                                 <li v-for="guide in part.guides" :key="guide.id" class="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
@@ -90,6 +93,12 @@ export const GuidesSection = {
         this.playing?.audio.pause();
     },
     methods: {
+        /** "Next version v5 staged: re-record Soprano, Alto and Bass", or that no part needs a new voice. */
+        stagedLine(song) {
+            const names = song.parts.filter((p) => song.staged.changed?.includes(p.key)).map((p) => templatePartName(p));
+            if (!names.length) return t('admin.guides.stagedNone', { version: song.staged.version });
+            return t('admin.guides.staged', { version: song.staged.version, parts: formatList(names) });
+        },
         load() {
             // The published course clips, beside the songs (a list that won't load just isn't shown).
             api.admin.beta.clips.list().then(({ data }) => (this.clips = (data ?? []).filter((c) => c.status === 'published')), (error) => console.warn('Clips did not load', error));

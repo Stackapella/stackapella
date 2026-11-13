@@ -109,6 +109,7 @@
         "status": {
             "type": "string",
             "enum": [
+                "held",
                 "uploading",
                 "processing",
                 "submitted",
@@ -116,7 +117,8 @@
                 "retake",
                 "rejected",
                 "accepted",
-                "failed"
+                "failed",
+                "not_chosen"
             ]
         },
         "failure": {

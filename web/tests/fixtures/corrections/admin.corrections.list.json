@@ -1,0 +1,102 @@
+{
+    "data": [
+        {
+            "id": "c7Hq2",
+            "kind": "fact",
+            "state": "new",
+            "text": "John Newton wrote the words in 1772, not 1779. 1779 is when Olney Hymns was printed.",
+            "source": "https://hymnary.org/text/amazing_grace_how_sweet_the_sound",
+            "page": {
+                "type": "song",
+                "title": "Amazing Grace",
+                "path": "/songs/amazing-grace"
+            },
+            "lang": "en",
+            "createdAt": "2026-11-12T14:20:00Z",
+            "decision": null
+        },
+        {
+            "id": "c7Hq3",
+            "kind": "notes",
+            "state": "new",
+            "text": "Bar 12 in the alto: the second beat should be a C, not a B. The sheet I learned from has C.",
+            "source": null,
+            "page": {
+                "type": "part",
+                "title": "Silent Night, Alto",
+                "path": "/songs/silent-night/alto"
+            },
+            "lang": "en",
+            "createdAt": "2026-11-12T11:05:00Z",
+            "decision": null
+        },
+        {
+            "id": "c7Hq4",
+            "kind": "words",
+            "state": "new",
+            "text": "En la segunda estrofa dice \"pastores\" y debería ser \"los pastores\".",
+            "source": null,
+            "page": {
+                "type": "song",
+                "title": "Noche de paz",
+                "path": "/es/canciones/noche-de-paz"
+            },
+            "lang": "es",
+            "createdAt": "2026-11-11T21:40:00Z",
+            "decision": null
+        },
+        {
+            "id": "c7Hq5",
+            "kind": "other",
+            "state": "accepted",
+            "text": "The tuner shows A4 = 440 but my piano is at 442 and there was no way to change it.",
+            "source": null,
+            "page": {
+                "type": "tool",
+                "title": "Tuner",
+                "path": "/tools/tuner"
+            },
+            "lang": "en",
+            "createdAt": "2026-11-10T09:12:00Z",
+            "decision": {
+                "state": "accepted",
+                "note": "It's in More; we'll make it easier to find.",
+                "by": {
+                    "name": "Hillel Coren"
+                },
+                "at": "2026-11-10T12:00:00Z"
+            }
+        },
+        {
+            "id": "c7Hq6",
+            "kind": "fact",
+            "state": "rejected",
+            "text": "Shenandoah is a sea shanty from the 1600s.",
+            "source": null,
+            "page": {
+                "type": "course",
+                "title": "Folk songs",
+                "path": "/courses/folk-songs"
+            },
+            "lang": "en",
+            "createdAt": "2026-11-09T16:30:00Z",
+            "decision": {
+                "state": "rejected",
+                "note": "Our sources date it to the early 1800s.",
+                "by": {
+                    "name": "Hillel Coren"
+                },
+                "at": "2026-11-09T18:00:00Z"
+            }
+        }
+    ],
+    "meta": {
+        "nextCursor": null,
+        "counts": {
+            "new": 3,
+            "accepted": 1,
+            "done": 0,
+            "rejected": 1
+        }
+    }
+}

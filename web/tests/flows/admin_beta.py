@@ -122,6 +122,11 @@ def journey(f):
     assert not f.js("!!document.querySelector('a[href=\"/admin/guides\"] [data-nav-count]')"), "Guides has no count: the parts needing voices are a backlog, not the Inbox"
     f.click_t("admin.nav.guides")
     f.wait_text(t(f, "admin.guides.progress", {"done": 2, "total": 4}))
+    # A staged next version (the example's Amazing Grace, v5): the line names the parts to re-record, each marked.
+    f.wait("document.querySelector('[data-guide-staged]')", what="the staged version's line")
+    staged = f.js("document.querySelector('[data-guide-staged]').textContent.trim()")
+    assert staged.startswith("Next version v5 staged: re-record ") and "{" not in staged, staged
+    assert f.js("document.querySelectorAll('[data-guide-staged-part]').length") == 3, "three parts change in v5"
     f.wait_text(t(f, "admin.review.onPitch", {"percent": 91}))
     f.shot("guides")
     # Each part's needs, and Ask again for a singer who recorded an older version: one tap, or with a note.

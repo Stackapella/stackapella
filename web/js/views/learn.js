@@ -4,6 +4,7 @@
 // it, Record) makes or reopens the course's own copy of it, and Sing brings the learner back here.
 // In a Sharpen up session (js/sharpen.js) a lesson opens at its scored part and goes on to the next.
 
+import { LoadingBlock } from '../components/screen-loading.js';
 import { VoiceCareLine } from '../components/voice-care.js';
 import { markRaw } from 'vue';
 import { game, sk } from '../skin.js';
@@ -18,27 +19,23 @@ import { addCourseTime, COOL_DOWN, finishBoss, finishLesson, findLesson, KEY_REA
 import { keyName } from '../theory.js';
 import { keepScore } from '../stores/cloud.js';
 import { audio, closeMic, engine } from '../audio.js';
-import { deviceOf, micExplained } from '../mic-help.js';
+import { deviceOf, micExplained, micHelp } from '../mic-help.js';
 import { playSound, starsSound } from '../sounds.js';
 import { prefetchStores, projectsStore } from '../lazy-stores.js';
 import { loadTemplate, partsFor, templatePartName, validateTemplate } from '../templates.js';
 import { trackInWorker } from '../pitchtrack.js';
-import { scoreTake } from '../scoring.js';
 import { PART_COLORS } from '../theme.js';
 import { midiName } from '../dsp.js';
 import { session as tabStorage } from '../storage.js';
-import { VoiceCapture } from '../components/voice-capture.js';
 import { InAppCard } from '../components/mic-help.js';
-import { ChordMoment } from '../components/chord-moment.js';
-import { ThenAndNow } from '../components/then-and-now.js';
-import { CourseWall } from '../components/course-wall.js';
 import { CoursePart } from '../components/course-part.js';
-import { VoiceCard } from '../components/voice-card.js';
 import { LearnVisual } from '../components/learn-visual.js';
-import { Exercise, KeepSong, LessonEnd, NoteResult, prefetchLesson, TakeResult } from '../components/lazy-lesson.js';
+import { BossBar, BossEnd, BossIntro, ChordMoment, CourseWall, Exercise, KeepSong, LessonEnd, NoteResult, prefetchLesson, TakeResult, ThenAndNow, VoiceCard } from '../components/lazy-lesson.js';
+// The note finder stays with the lesson (measured 2026-11-13: loaded on use, the mic step after Continue opened 1.8 s
+// later on Slow 4G, where most new singers leave; with the lesson, at once).
+import { VoiceCapture } from '../components/voice-capture.js';
 import { FactCard } from '../components/fact-card.js';
 import { daysInARow, easyRange, endLine, HEARD, lessonMinutes, levelWord, noteLine, resultLine, unitPath } from '../results.js';
-import { celebrate } from '../celebrate.js';
 import { Icon, Logo } from '../components/icon.js';
 import { toast } from '../components/ui.js';
 import { count, countFor } from '../usage.js';
@@ -50,25 +47,27 @@ import { isSongLesson, songExercise, songFit, songOf, songTranspose } from '../s
 import { underLayers } from '../under-mix.js';
 import { realKeyFit } from '../real-key.js';
 import { countUnitSong, unitSongOffer, unitSongProject } from '../unit-song.js';
-import { lessonFor } from '../experiments.js';
+import { experiment, lessonFor } from '../experiments.js';
 import { isScored, prefetchSteps, stepOf } from '../lesson-steps.js';
 import { clearMs, cue, lazyComponent, load, markTitleSeen, titleSeen } from '../game/modules.js';
 import { endSharpen, sharpenAt, sharpenOn, sharpenStart } from '../sharpen.js';
 import { courseRules, effect, setCourseRules } from '../game/effects.js';
-import { flipKeyBase } from '../style-scores.js';
+import { flipKeyBase } from '../flip-key.js';
 import { flipLesson, flipRest, flipStarted, flipStopped } from '../flip-rest.js';
 import { whistleBase } from '../whistle.js';
 import { capMinutes, capReached } from '../daily-cap.js';
 import { slowed } from '../home-today.js';
-import { BossBar, BossEnd, BossIntro } from '../components/boss.js';
 import { BOSS_PASS, bossBeaten, bossOpen, bossPercent, bossResult, challengeOf } from '../boss.js';
-import { nextUpLine } from '../next-up.js';
+import { addTomorrow, nextUpLine, sendMyselfTheLink } from '../next-up.js';
+import { HearFirst } from '../components/hear-first.js';
+import { notHereLine } from '../withheld.js';
 
 // The song step's key line, in Sing's own words for the part that fits (views/sing.js FIT_WORDS).
 const FIT_WORDS = { real: tk('sing.realKey'), fits: tk('sing.fitsYourRange'), lower: tk('sing.fitsYourRangeLower'), higher: tk('sing.fitsYourRangeHigher'), closest: tk('course.fitClosest') };
 const STEP_KIND = { learn: tk('course.step.learn'), try: tk('course.step.try'), play: tk('course.step.play'), use: tk('course.step.use'), record: tk('course.step.record'), home: tk('course.step.home') };
 // Words for the scorer's tips (js/scoring.js TIPS).
 const TIP_WORDS = { breathSupport: tk('course.tip.breathSupport'), relaxHigh: tk('course.tip.relaxHigh'), listenFirst: tk('course.tip.listenFirst'), onsets: tk('course.tip.onsets'), breatheEarly: tk('course.tip.breatheEarly'), waitForBeat: tk('course.tip.waitForBeat') };
+const HOME_WAIT_MS = 20000; // mic2's arm b: Skip shows after this long finding your note with no note yet
 const DEFAULT_HOME = 57; // A3, where most untrained voices are comfortable, until unit 1 finds theirs
 const FLIP_UNTIL_FOUND = 5; // semitones above the comfortable note, until the course finds the singer's flip
 
@@ -88,13 +87,18 @@ function takeFriendNote(search = location.search) {
     tabStorage.set(FRIEND_KEY, their);
 }
 
+/** The stars' celebration (js/celebrate.js), loaded on use: only a lesson's end shows it. */
+function celebrateAt(stars, el) {
+    import('../celebrate.js').then((m) => m.celebrate(stars, el), (error) => console.info('No celebration', error?.message ?? error));
+}
+
 export const LearnView = {
-    components: { VoiceCapture, BossBar, BossEnd, BossIntro, VoiceCareLine, ChordMoment, SessionWrap, ThenAndNow, CoursePart, CourseWall, VoiceCard, FactCard, Exercise, InAppCard, KeepSong, LearnVisual, LessonEnd, NoteResult, TakeResult, Icon, Logo, ShareResult, TitleCard },
+    components: { LoadingBlock, HearFirst, VoiceCapture, BossBar, BossEnd, BossIntro, VoiceCareLine, ChordMoment, SessionWrap, ThenAndNow, CoursePart, CourseWall, VoiceCard, FactCard, Exercise, InAppCard, KeepSong, LearnVisual, LessonEnd, NoteResult, TakeResult, Icon, Logo, ShareResult, TitleCard },
     props: { id: { type: String, required: true } },
     // `kept`: this visit's sung steps, their results and takes by step index (a later step may build on
     // one: js/lesson-steps.js's `earlier`), emptied on replay and gone when the lesson closes.
     // `sharpen`: this lesson's place in a Sharpen up session (`{ place, total, start, nextId }`), or null.
-    data: () => ({ sharpen: null, guiding: false, step: 0, micAsked: false, result: null, done: null, ran: false, checking: false, error: null, askHeard: false, tip: null, used: false, skippedHome: false, noSound: false, skipped: false, micPermission: null, noteClip: null, kept: { results: {}, takes: {} }, titleCard: null, songLooked: false, songStep: null, songError: null, flipRestAt: null, capRest: false, capFrom: null, takesOn: {}, bossStarted: false, bossNotes: null, bossLive: 0, bossSaid: '', fitLine: '', unitSongOpening: false, startPending: false, slower: new URLSearchParams(location.search).get('slower') === '1' }),
+    data: () => ({ sharpen: null, guiding: false, step: 0, micAsked: false, result: null, done: null, ran: false, checking: false, error: null, askHeard: false, tip: null, used: false, skippedHome: false, noSound: false, skipped: false, micPermission: null, noteClip: null, kept: { results: {}, takes: {} }, titleCard: null, songLooked: false, songStep: null, songError: null, flipRestAt: null, capRest: false, capFrom: null, takesOn: {}, bossStarted: false, bossNotes: null, bossLive: 0, bossSaid: '', fitLine: '', unitSongOpening: false, startPending: false, cantSing: false, listening: false, calendarTime: false, homeWaited: false, micFailed: false, slower: new URLSearchParams(location.search).get('slower') === '1' }),
     // A step's Then and now offers its card with the lesson's name and link (docs/design-rules.md, Sharing in lessons).
     provide() {
         return { lessonShare: () => this.thenShareContext };
@@ -121,7 +125,7 @@ export const LearnView = {
             </div></header>
             <!-- A lesson's end sits in the middle of a desktop's height, not at the top over an empty half (Hillel: "too much bottom space"). -->
             <div class="mx-auto flex w-full flex-col gap-6 px-4 pb-[max(4rem,calc(env(safe-area-inset-bottom)+2rem))] pt-8 min-[900px]:px-10" :class="flipRestAt || capRest ? 'max-w-xl flex-1 justify-center' : entry?.boss && (!bossStarted || done) ? 'max-w-xl md:flex-1 md:justify-center md:pb-16' : split ? 'max-w-[1200px] md:pt-16' : done && !done.unheard && !noteDone ? 'max-w-5xl md:flex-1 md:justify-center md:pb-16' : done && noteDone ? 'max-w-3xl' : takeResult && !done ? 'max-w-4xl' : 'max-w-xl'">
-                <p v-if="!learning.loaded || !variant.ready || (!entry && !learning.coursesLoaded && !songLooked)" class="text-muted" role="status">{{ t('course.loading') }}</p>
+                <LoadingBlock v-if="!learning.loaded || !variant.ready || !mic2.ready || (!entry && !learning.coursesLoaded && !songLooked)" :failed="learning.failed" @retry="retryLoad" />
                 <p v-else-if="!entry" class="text-cream">{{ t('course.noLesson') }} <a href="/" class="link" @click.prevent="navigate('/')">{{ t('course.backToCourse') }}</a></p>
                 <!-- Signed out past lesson 1 of a course (Hillel, 2026-11-06): a free account, never a price. -->
                 <!-- The account still being checked where a guest would meet the wall: the lesson's own wait, never a flash of the wall. -->
@@ -235,10 +239,17 @@ export const LearnView = {
                     <div v-if="split" class="md:order-2 md:pb-8"><LearnVisual :key="'v' + step" :type="current.visual" class="max-w-[12rem] md:max-w-[22rem]" /></div>
                     <div class="flex flex-col gap-5">
                     <BossBar v-if="entry.boss && effect('boss')" :total="bossTotal" :scored="bossScored" :live="result ? 0 : bossLive" :round="bossRound" :rounds="bossRounds" :said="bossSaid" />
-                    <p v-if="step === 0 && entry.lesson.findsHome && chordMoment" class="-mb-2 text-sm font-semibold text-accent-strong" data-chord-promise>{{ t('chordMoment.promise') }}</p>
+                    <p v-if="step === 0 && entry.lesson.findsHome && chordMoment && !hearFirst" class="-mb-2 text-sm font-semibold text-accent-strong" data-chord-promise>{{ t('chordMoment.promise') }}</p>
                     <p v-if="current.kind === 'home'" class="-mb-3 text-sm font-semibold text-accent-strong" translate="no">{{ localized(entry.unit.title) }} · {{ t('course.stepLabel', { step: step + 1 }) }}</p>
-                    <h1 ref="heading" tabindex="-1" class="font-bold leading-snug text-cream outline-none" data-step-line :class="current.headline ? 'text-3xl font-extrabold tracking-tight' : 'text-2xl'" translate="no">{{ localized(current.headline ?? current.text) }}</h1>
-                    <ol v-if="current.steps?.length" class="space-y-2.5">
+                    <!-- mic2's arm b (docs/improvement-log.md row 11): hear it first, one tip, and the mic ask below; no reading screen. -->
+                    <template v-if="hearFirst">
+                        <h1 ref="heading" tabindex="-1" class="text-3xl font-extrabold leading-snug tracking-tight text-cream outline-none" data-step-line>{{ t('mic2.title') }}</h1>
+                        <HearFirst :color="color" @heard="countOnce('l1_hear')" />
+                        <p class="text-cream" data-mic2-tip>{{ t('mic2.tip') }}</p>
+                        <button v-if="!cantSing" type="button" class="link-quiet min-h-11 self-start text-sm" data-cant-sing-open @click="openCantSing">{{ t('mic2.cantSing') }}</button>
+                    </template>
+                    <h1 v-else ref="heading" tabindex="-1" class="font-bold leading-snug text-cream outline-none" data-step-line :class="current.headline ? 'text-3xl font-extrabold tracking-tight' : 'text-2xl'" translate="no">{{ localized(current.headline ?? current.text) }}</h1>
+                    <ol v-if="current.steps?.length && !hearFirst" class="space-y-2.5">
                         <li v-for="(item, i) in current.steps" :key="i" class="flex items-center gap-4 rounded-2xl border border-edge bg-panel px-4 py-3.5">
                             <span class="w-5 shrink-0 text-center text-xl font-extrabold tabular-nums text-accent-strong" aria-hidden="true">{{ i + 1 }}</span>
                             <span class="min-w-0"><span class="block font-bold text-cream" translate="no">{{ localized(item.title) }}</span><span class="block text-sm text-muted" translate="no">{{ localized(item.detail) }}</span></span>
@@ -291,7 +302,7 @@ export const LearnView = {
                         </div>
                         <template v-else>
                             <p v-if="friendNote" class="text-center text-lg font-semibold text-cream" data-friend-note>{{ t('course.friendNote.ask', { note: friendNote }) }}</p>
-                            <VoiceCapture mode="note" :color="color" @found="foundHome" @no-sound="(now) => (noSound = now)" />
+                            <VoiceCapture mode="note" :color="color" :calm="lessonOne" @found="foundHome" @no-sound="(now) => (noSound = now)" />
                         </template>
                         <p v-if="skippedHome" class="text-center text-muted" role="status">{{ t('course.home.skipped') }}</p>
                     </template>
@@ -305,6 +316,21 @@ export const LearnView = {
                     </template>
                     <!-- A whistle moved down to compare (js/whistle.js), said once on this device. -->
                     <p v-if="registered && result?.foldSaid" class="text-sm text-muted" role="status" data-whistle-fold>{{ t('course.whistle.folded') }}</p>
+                    <!-- mic2's arm b: Can't sing right now? Listen through it (the chord with the practice voice in your place), or
+                         a way back later (the wall's own: the share sheet, else one calendar entry for tomorrow). -->
+                    <div v-if="mic2b && cantSing && !done" class="flex flex-col gap-3 rounded-2xl border border-edge bg-panel p-4" data-cant-sing>
+                        <p class="font-semibold text-cream">{{ t('mic2.later.title') }}</p>
+                        <HearFirst v-if="listening" filled :color="color" @heard="countOnce('l1_listen_heard')" />
+                        <div class="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
+                            <button v-if="!listening" type="button" class="btn-secondary max-sm:w-full max-sm:justify-center" data-cant-sing-listen @click="listenThrough">{{ t('mic2.later.listen') }}</button>
+                            <button v-if="canShareLink" type="button" class="btn-secondary max-sm:w-full max-sm:justify-center" data-cant-sing-link @click="laterLink">{{ t('courses.wall.sendLink') }}</button>
+                            <button v-else-if="!calendarTime" type="button" class="btn-secondary max-sm:w-full max-sm:justify-center" data-cant-sing-calendar @click="calendarTime = true">{{ t('courses.wall.calendar') }}</button>
+                            <template v-else>
+                                <button type="button" class="btn-secondary max-sm:w-full max-sm:justify-center" data-cant-sing-calendar-at="morning" @click="laterCalendar('morning')">{{ t('courses.wall.morning') }}</button>
+                                <button type="button" class="btn-secondary max-sm:w-full max-sm:justify-center" data-cant-sing-calendar-at="evening" @click="laterCalendar('evening')">{{ t('courses.wall.evening') }}</button>
+                            </template>
+                        </div>
+                    </div>
                     <p v-if="error" class="text-sm text-bad" role="alert">{{ error }}</p>
 
                     <!-- The foot, pinned: Back in glass, and the way on (or past) at the end. A sung step (128.png):
@@ -314,7 +340,9 @@ export const LearnView = {
                         <button v-if="sungStep && !canGoOn" type="button" class="link-quiet min-h-11 px-2 text-sm" data-skip @click="skip">{{ t('course.skip') }}</button>
                         <button v-else type="button" class="btn-ghost" @click="step === 0 ? goBack('/') : go(step - 1)">{{ t('common.back') }}</button>
                         <!-- Finding your note, there's nothing to press until a note is held (or skipped): a hint, not a dead button. -->
-                        <button v-if="current.kind === 'home' && !canGoOn" type="button" class="link-quiet min-h-11 text-sm" @click="skipHome">{{ noSound ? t('micCheck.skipSetup') : t('course.home.skip') }}</button>
+                        <button v-if="current.kind === 'home' && !canGoOn && homeSkip" type="button" class="link-quiet min-h-11 text-sm" data-home-skip @click="skipHome">{{ noSound ? t('micCheck.skipSetup') : t('course.home.skip') }}</button>
+                        <!-- mic2's arm b: no equal Skip while the mic is fine; a quiet Can't sing right now? in its place. -->
+                        <button v-else-if="current.kind === 'home' && !canGoOn" type="button" class="link-quiet min-h-11 text-sm" :disabled="cantSing" data-cant-sing-open @click="openCantSing">{{ t('mic2.cantSing') }}</button>
                         <p v-else-if="current.kind === 'record' && !canGoOn" class="text-sm text-muted">{{ t('course.recordGoOnHint') }}</p>
                         <!-- A sung step (Hillel, as the warm-up): what's left to do beside the way on, which lights up once it's done. -->
                         <div v-else class="ms-auto flex items-center gap-3 max-sm:flex-1 max-sm:justify-end">
@@ -322,7 +350,8 @@ export const LearnView = {
                             <button type="button" class="btn-primary max-sm:grow" :disabled="!canGoOn" data-go-on @click="goOn"><Icon v-if="askMic && !inApp" name="mic" :size="18" /> {{ askMic ? (inApp ? t('course.mic.carryOn') : t('course.mic.turnOn')) : takesUsed && takeResult ? t('course.goodEnough') : last ? t('course.finish') : t('course.continue') }}</button>
                         </div>
                         <!-- Before the browser asks for the mic: why we listen, in one line (docs/onboarding-review.md, step 2). -->
-                        <p v-if="askMic" class="basis-full text-center text-xs text-muted sm:text-end" data-mic-why>{{ t('course.mic.why') }}</p>
+                        <p v-if="askMic && mic2b" class="flex basis-full items-start justify-center gap-2 text-cream sm:justify-end" data-mic-why><Icon name="lock" :size="18" class="mt-0.5 shrink-0 text-accent-strong" />{{ t('mic2.privacy') }}</p>
+                        <p v-else-if="askMic" class="basis-full text-center text-xs text-muted sm:text-end" data-mic-why>{{ t('course.mic.why') }}</p>
                     </div>
                     </div>
                 </section>
@@ -389,7 +418,23 @@ export const LearnView = {
         /** Where Back to the course goes: the Plus course's page, or the free course. */
         courseHome: (vm) => (vm.songEntry ? `/learn/s/${vm.songEntry.template}` : vm.entry?.course ? `/learn/c/${vm.entry.course.id}` : '/learn'),
         /** A Learn step with a picture: side by side on a wide screen. */
-        split: (vm) => !vm.done && vm.current?.kind === 'learn' && !!vm.current.visual,
+        split: (vm) => !vm.done && vm.current?.kind === 'learn' && !!vm.current.visual && !vm.hearFirst,
+        /** The free course's first lesson. */
+        lessonOne: (vm) => !!vm.entry && !vm.entry.course && vm.entry.unitIndex === 0 && vm.entry.unit.lessons[0]?.id === vm.entry.lesson.id,
+        /**
+         * Experiment mic2 (docs/improvement-log.md row 11): lesson 1's first screen, drawn as lesson 1 first shows. An
+         * app's own browser stays out (its in-app card is the same in both arms).
+         */
+        mic2: (vm) => (vm.lessonOne && !vm.inApp ? experiment('mic2') : { arm: null, ready: true }),
+        mic2b: (vm) => vm.mic2.arm === 'b',
+        /** Arm b's first screen: Hear it first in place of the reading. */
+        hearFirst: (vm) => vm.mic2b && vm.step === 0 && vm.current?.kind === 'learn' && !vm.done,
+        /** Arm b: Skip on finding your note only once the mic failed, nothing was heard, or 20 s passed with no note. */
+        homeSkip: (vm) => !vm.mic2b || vm.micFailed || vm.noSound || vm.homeWaited,
+        /** Arm b, finding your note and waiting for one (the 20 s before Skip shows). */
+        homeWaiting: (vm) => vm.mic2b && !vm.done && vm.current?.kind === 'home' && !vm.canGoOn && !vm.micFirst,
+        micHelpOpen: () => micHelp.open,
+        canShareLink: () => typeof navigator.share === 'function',
         /** A lesson whose sound under you rests through a speaker (`headphones: "needed"`, its own or its course's). */
         needsHeadphones: (vm) => (vm.entry?.lesson.headphones ?? vm.entry?.course?.headphones) === 'needed',
         /** The part pick on a course with parts: its first lesson's first card. */
@@ -602,6 +647,26 @@ export const LearnView = {
         done(now, before) {
             if (now && !before && this.noteDone && this.friendNote) count('note_friend_found');
         },
+        // mic2's arm b: a refusal is a choice (the mic help opens on "No problem", Listen through it), and Skip shows once
+        // the mic has failed.
+        mic2b: {
+            immediate: true,
+            handler(on) {
+                if (on) micHelp.gentle = { listen: () => this.listenThrough() };
+                else if (this.gentleSet) micHelp.gentle = null;
+                this.gentleSet = on;
+            },
+        },
+        micHelpOpen(open) {
+            if (open && this.mic2b) this.micFailed = true;
+        },
+        homeWaiting: {
+            immediate: true,
+            handler(waiting) {
+                clearTimeout(this.homeWait);
+                if (waiting && !this.homeWaited) this.homeWait = setTimeout(() => (this.homeWaited = true), HOME_WAIT_MS); // a screen's hint, never audio
+            },
+        },
         /** The unit's song on screen: counted once a device a place (us_shown). */
         'unitSong.place': {
             immediate: true,
@@ -738,8 +803,40 @@ export const LearnView = {
         setCourseRules(); // every other screen keeps game mode's everything
         this.capStop();
         document.removeEventListener('visibilitychange', this.capSeen);
+        clearTimeout(this.homeWait);
+        if (this.gentleSet) micHelp.gentle = null;
     },
     methods: {
+        /** Try again after the course's data didn't load (LoadingBlock's Retry). */
+        retryLoad() {
+            loadLearning();
+        },
+        /** mic2's own counts, once a lesson run (docs/improvement-log.md row 11). */
+        countOnce(kind) {
+            this.countedOnce ??= new Set();
+            if (this.countedOnce.has(kind)) return;
+            this.countedOnce.add(kind);
+            count(kind);
+        },
+        /** Can't sing right now?: its two ways, shown in place. */
+        openCantSing() {
+            this.cantSing = true;
+            this.countOnce('l1_later_shown');
+        },
+        /** Listen through it: the chord with the practice voice in your place (from the link, or a refusal). */
+        listenThrough() {
+            this.cantSing = true;
+            this.listening = true;
+            this.countOnce('l1_listen');
+        },
+        laterLink() {
+            this.countOnce('l1_later_link');
+            sendMyselfTheLink(this.entry.lesson.id);
+        },
+        laterCalendar(when) {
+            this.countOnce('l1_later_cal');
+            addTomorrow(this.entry.lesson.id, when);
+        },
         /**
          * Focus on `selector` once it's on the page: the next tick, or, if a part draws a moment later (a lesson part whose
          * code came in just now, components/lazy-lesson.js), as soon as it does, for up to 3 s.
@@ -863,7 +960,7 @@ export const LearnView = {
                 // A song this account may not open (plus_required, not_found) is a refusal, not a fault.
                 if (error instanceof ApiError && error.status < 500) console.info('The lesson song was refused', error.code);
                 else console.error('The lesson song could not open', error);
-                this.songError = t('course.songFailed');
+                this.songError = notHereLine(error) ?? t('course.songFailed');
             }
         },
         /** Lower or Higher: a semitone, for every exercise in this lesson from now on. */
@@ -997,7 +1094,7 @@ export const LearnView = {
                 cue('stageClear');
             }
             // Earned just now: a small celebration for 2 stars, the full burst for 3, as the stars land.
-            if (outcome.stars >= 2) this.$nextTick(() => celebrate(outcome.stars, this.$refs.end?.starsEl() ?? this.$refs.noteResult?.$el ?? null));
+            if (outcome.stars >= 2) this.$nextTick(() => celebrateAt(outcome.stars, this.$refs.end?.starsEl() ?? this.$refs.noteResult?.$el ?? null));
             // Once, at the end of the first lesson, for a signed-in learner: where they came from.
             this.askHeard = !!account.me && !account.me.heardFrom && this.entry.lesson.findsHome;
             this.$nextTick(() => (this.$refs.end ? this.$refs.end.focus() : this.$refs.heading?.focus({ preventScroll: true })));
@@ -1060,7 +1157,7 @@ export const LearnView = {
                 // The boss stage's win: its fanfare and the full burst. The calm review has none.
                 if (outcome.beaten && effect('boss')) {
                     cue('stageClear');
-                    this.$nextTick(() => celebrate(3, this.$refs.bossEnd?.$el ?? null));
+                    this.$nextTick(() => celebrateAt(3, this.$refs.bossEnd?.$el ?? null));
                 }
             }
             this.$nextTick(() => this.$refs.bossEnd?.focus());
@@ -1219,6 +1316,7 @@ export const LearnView = {
                     const samples = takes.get(part.id);
                     const notes = template.parts.find((tp) => tp.key === part.templatePartKey).guide.notes;
                     const track = await trackInWorker(samples, part.sampleRate);
+                    const { scoreTake } = await import('../scoring.js'); // on use: lesson 1's first screen never scores
                     const score = scoreTake(track, notes, { beatSeconds: 60 / template.tempo, startSeconds: part.offsetSeconds + (part.nudgeSeconds || 0), transpose: project.transpose || 0, strictness: this.strictness, timing: 'none' });
                     if (score.status === 'scored') percents.push(score.percent);
                     if (score.status === 'scored' && !this.tip) this.tip = score.tips?.[0] ?? null;

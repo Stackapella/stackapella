@@ -13,20 +13,29 @@ import { ApiError } from '../api.js';
 import { formatDate, formatNumber, t, tk } from '../i18n.js';
 import { goBack, navigate, route } from '../router.js';
 import { account, selfHosted } from '../stores/account.js';
+import { teams } from '../teams.js';
 import { checkout, guessCurrency, isPlus, loadBilling, loadPrices, plan, portal } from '../stores/plan.js';
 import { Notice } from '../components/form.js';
 import { Icon, Logo } from '../components/icon.js';
+import { keptNext, NEXT_KEY } from '../components/plus-moment.js';
+import { session } from '../storage.js';
 
-// The upgrade moments (contract/api.md billing.checkout's `moment`) and what each says first. Learning to
-// sing is free, with friends and choirs too, history included; the paid plan, Plus
-// is for using the app in a more professional capacity (Hillel, 2026-11-07; vision principle 8): never in
-// front of a course, song, workout, friend, group or your history.
+// The upgrade moments (contract/api.md billing.checkout's `moment`) and what each says first. Learning alone is free,
+// history included; teaming up is Plus: whoever starts a shared song or a choir group, everyone they invite joining free
+// (Hillel, 2026-11-12; docs/pricing-plan.md, top). Never in front of a course, song, workout or your history, and never
+// asked of someone joining.
 const MOMENTS = {
     storage_limit: tk('plus.moment.storageLimit'),
     mp3: tk('plus.moment.mp3'),
     stems: tk('plus.moment.stems'),
     private_template: tk('plus.moment.privateTemplate'),
+    // Teaming up is Plus (docs/pricing-plan.md, top): starting a choir group, inviting a friend (frontend's words).
+    group_start: tk('plus.moment.groupStart'),
+    invite_friend: tk('plus.moment.inviteFriend'),
 };
+// Once Plus is on, the way back to what led here (components/plus-moment.js keepNext), by its moment.
+const NEXT_WORDS = { group_start: tk('plus.next.groupStart'), invite_friend: tk('plus.next.inviteFriend') };
+const CARRY_ON = tk('plus.next.carryOn');
 // docs/features.md, "Free and Plus, side by side": the extras Plus adds for you, then what's free for every
 // singer. `free: null` is a dash (Free hasn't it); a row the same on both shows only under Everything.
 const GROUPS = [
@@ -35,6 +44,10 @@ const GROUPS = [
         { what: tk('plus.row.mp3'), free: null, plus: tk('plus.yes') },
         { what: tk('plus.row.stems'), free: tk('plus.free.stems'), plus: tk('plus.yes'), note: tk('plus.row.stemsNote') },
         { what: tk('plus.row.templates'), free: tk('plus.free.templates'), plus: tk('plus.unlimited') },
+        // Teaming up (Hillel, 2026-11-12): starting one is Plus; joining one you're invited to is free on either plan. Only
+        // while the plus_teams switch is on (`teams`); until then both are free, in the group below (`solo`).
+        { what: tk('plus.row.friends'), free: tk('plus.free.joinInvited'), plus: tk('plus.plus.startInvite'), teams: true },
+        { what: tk('plus.row.choir'), free: tk('plus.free.joinInvited'), plus: tk('plus.plus.startChoir'), teams: true },
     ] },
     // Free for every singer (Hillel, 2026-11-06 and 11-07): the same on both, so only under Everything.
     { name: tk('plus.group.free'), rows: [
@@ -45,8 +58,8 @@ const GROUPS = [
         { what: tk('plus.row.workout'), free: tk('plus.asMany'), plus: tk('plus.asMany') },
         { what: tk('plus.row.report'), free: tk('plus.plus.report'), plus: tk('plus.plus.report') },
         { what: tk('plus.row.projects'), free: tk('plus.asFit'), plus: tk('plus.asFit') },
-        { what: tk('plus.row.friends'), free: tk('plus.yes'), plus: tk('plus.yes') },
-        { what: tk('plus.row.choir'), free: tk('plus.yes'), plus: tk('plus.yes') },
+        { what: tk('plus.row.friends'), free: tk('plus.yes'), plus: tk('plus.yes'), solo: true },
+        { what: tk('plus.row.choir'), free: tk('plus.yes'), plus: tk('plus.yes'), solo: true },
         { what: tk('plus.row.share'), free: tk('plus.yes'), plus: tk('plus.yes') },
         { what: tk('plus.row.preview'), free: tk('plus.yes'), plus: tk('plus.yes') },
         { what: tk('plus.row.wav'), free: tk('plus.yes'), plus: tk('plus.yes'), note: tk('plus.row.wavNote') },
@@ -58,17 +71,17 @@ const STATUS = { trialing: tk('plus.status.trialing'), active: tk('plus.status.a
 
 export const PlusView = {
     components: { AccountWall, AppScreen, Notice, Icon, Logo },
-    data: () => ({ interval: 'year', currency: guessCurrency(), busy: false, notice: null, failed: false, everything: false }),
-    setup: () => ({ account, selfHosted, plan, navigate, goBack, MOMENTS, GROUPS, CURRENCIES, STATUS, HIGHLIGHT_COLORS, formatDate, formatNumber }),
+    data: () => ({ interval: 'year', currency: guessCurrency(), busy: false, notice: null, failed: false, everything: false, next: keptNext() }),
+    setup: () => ({ account, selfHosted, plan, navigate, goBack, MOMENTS, NEXT_WORDS, CARRY_ON, GROUPS, CURRENCIES, STATUS, HIGHLIGHT_COLORS, formatDate, formatNumber }),
     template: `
         <AppScreen :title="t('plus.title')" back="/" measure="" content-class="gap-8 md:gap-12" data-ui="screen" class="bg-ink">
                 <!-- A self-hosted install: everything is included, nothing to buy. -->
                 <p v-if="selfHosted()" class="card p-6 text-cream" role="status" data-self-hosted>{{ t('plus.included') }}</p>
                 <div v-if="!selfHosted()" class="mt-4 grid gap-8 md:mt-6 md:grid-cols-[minmax(0,1fr)_minmax(0,25rem)] md:gap-12">
                     <section class="space-y-6" aria-labelledby="plus-heading">
-                        <p v-if="moment" class="font-semibold text-part-2">{{ t(MOMENTS[moment]) }}</p>
-                        <h2 id="plus-heading" class="text-4xl font-extrabold tracking-tight text-cream md:text-5xl">{{ t('plus.headline') }}</h2>
-                        <p class="text-lg text-muted">{{ t('plus.story') }}</p>
+                        <p v-if="moment" class="font-semibold text-accent-strong">{{ t(MOMENTS[moment]) }}</p>
+                        <h2 id="plus-heading" class="text-4xl font-extrabold tracking-tight text-cream md:text-5xl">{{ teamsOn ? t('plus.headline') : t('plus.headlineSolo') }}</h2>
+                        <p class="text-lg text-muted">{{ teamsOn ? t('plus.story') : t('plus.storySolo') }}</p>
                         <ul class="space-y-5">
                             <li v-for="(h, i) in highlights" :key="h.title" class="flex gap-4">
                                 <span class="gem grid size-10 shrink-0 place-items-center rounded-xl" :style="{ '--gem': HIGHLIGHT_COLORS[i], '--gem-ink': 'var(--color-ink)' }" aria-hidden="true"><Icon :name="h.icon" :size="20" /></span>
@@ -92,6 +105,7 @@ export const PlusView = {
                             <h2 id="yours-heading" class="text-lg font-bold text-cream">{{ t('plus.yours') }}</h2>
                             <p v-if="billing" class="text-cream">{{ statusText }}</p>
                             <Notice v-if="billing?.notice === 'payment_failed'" tone="warn">{{ t('plus.notice.paymentFailed', { date: formatDate(billing.pastDueUntil) }) }}</Notice>
+                            <button v-if="next" type="button" class="btn-primary self-start" data-plus-next @click="goNext">{{ t(NEXT_WORDS[next.from] ?? CARRY_ON) }}</button>
                             <button v-if="billing?.subscription" type="button" class="btn-secondary self-start" :disabled="busy" @click="manage">{{ t('plus.manage') }}</button>
                             <p v-else-if="billing" class="text-sm text-muted">{{ t('plus.byInvoice') }}</p>
                         </section>
@@ -143,7 +157,7 @@ export const PlusView = {
                                     <tr><th colspan="3" class="px-5 pt-5 pb-2 text-start text-xs font-bold tracking-widest text-muted uppercase" scope="colgroup">{{ t(group.name) }}</th></tr>
                                     <tr v-for="row in group.rows" :key="row.what" class="border-t border-line">
                                         <th class="px-5 py-3 text-start font-semibold text-cream" scope="row">{{ t(row.what) }}<span v-if="row.note" class="block text-xs font-normal text-muted">{{ t(row.note, { polished: t('polish.name') }) }}</span></th>
-                                        <td class="px-3 py-3 text-muted"><template v-if="row.free">{{ t(row.free) }}</template><template v-else><span aria-hidden="true">—</span><span class="sr-only">{{ t('plus.no') }}</span></template></td>
+                                        <td class="px-3 py-3 text-muted"><template v-if="row.free">{{ t(row.free) }}</template><template v-else><span aria-hidden="true">–</span><span class="sr-only">{{ t('plus.no') }}</span></template></td>
                                         <td class="px-3 py-3 pe-5 font-semibold text-cream">{{ t(row.plus) }}</td>
                                     </tr>
                                 </tbody>
@@ -154,13 +168,16 @@ export const PlusView = {
                 </section>
         </AppScreen>`,
     computed: {
+        teamsOn: () => teams.on,
         billing: () => plan.billing,
         /** What Plus gets you (the room and the extras), and what stays free for every singer. */
         highlights() {
+            // Sing together leads only while teaming up is Plus (the plus_teams switch); until then it's in what's free.
             return [
+                this.teamsOn ? { icon: 'mic', title: t('plus.highlight.together'), text: t('plus.highlight.togetherText') } : null,
                 { icon: 'list', title: t('plus.highlight.extras'), text: t('plus.highlight.extrasText') },
-                { icon: 'note', title: t('plus.highlight.free'), text: t('plus.highlight.freeText') },
-            ];
+                { icon: 'note', title: t('plus.highlight.free'), text: this.teamsOn ? t('plus.highlight.freeText') : t('plus.highlight.freeTextSolo') },
+            ].filter(Boolean);
         },
         /** Yearly's saving over twelve months of Monthly, in the currency shown. */
         saving() {
@@ -177,7 +194,8 @@ export const PlusView = {
         },
         /** The table: only the rows where Free and Plus differ, unless Everything. */
         shownGroups() {
-            return GROUPS.map((g) => ({ ...g, rows: this.everything ? g.rows : g.rows.filter((r) => r.free !== r.plus) }));
+            const shown = (r) => (r.teams ? this.teamsOn : r.solo ? !this.teamsOn : true);
+            return GROUPS.map((g) => ({ ...g, rows: g.rows.filter(shown).filter((r) => this.everything || r.free !== r.plus) }));
         },
         onPlus: () => isPlus(),
         moment: () => {
@@ -229,6 +247,12 @@ export const PlusView = {
         }
     },
     methods: {
+        /** Back to what led here (a choir to start), once: the way back is forgotten as it's taken. */
+        goNext() {
+            const { path } = this.next;
+            session.remove(NEXT_KEY);
+            navigate(path);
+        },
         priceOf(interval) {
             return plan.prices?.prices.find((p) => p.interval === interval && p.currency === this.currency) ?? null;
         },

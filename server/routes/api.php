@@ -20,6 +20,7 @@ use App\Http\Controllers\Api\Admin\BreadthController as AdminBreadth;
 use App\Http\Controllers\Api\Admin\CoachDirectoryController as AdminCoachDirectory;
 use App\Http\Controllers\Api\Admin\CoachingController as AdminCoaching;
 use App\Http\Controllers\Api\Admin\CodeWatchController as AdminCodeWatch;
+use App\Http\Controllers\Api\Admin\CorrectionsController as AdminCorrections;
 use App\Http\Controllers\Api\Admin\DiagnosticsController as AdminDiagnostics;
 use App\Http\Controllers\Api\Admin\DisputesController;
 use App\Http\Controllers\Api\Admin\DropoffsController as AdminDropoffs;
@@ -35,6 +36,7 @@ use App\Http\Controllers\Api\Admin\GrowthController as AdminGrowth;
 use App\Http\Controllers\Api\Admin\IdeasController as AdminIdeas;
 use App\Http\Controllers\Api\Admin\LibraryController as AdminLibrary;
 use App\Http\Controllers\Api\Admin\LimitsController;
+use App\Http\Controllers\Api\Admin\LiveController as AdminLive;
 use App\Http\Controllers\Api\Admin\MeController;
 use App\Http\Controllers\Api\Admin\MudeoController as AdminMudeo;
 use App\Http\Controllers\Api\Admin\NetworkController as AdminNetwork;
@@ -72,6 +74,7 @@ use App\Http\Controllers\Api\Coaching\EngagementsController;
 use App\Http\Controllers\Api\Coaching\ReviewsController;
 use App\Http\Controllers\Api\Coaching\TeacherController;
 use App\Http\Controllers\Api\Collaboration\CollaborationController;
+use App\Http\Controllers\Api\CorrectionsController;
 use App\Http\Controllers\Api\Counts\CountsController;
 use App\Http\Controllers\Api\Courses\ClipsController as CourseClipsController;
 use App\Http\Controllers\Api\EventSchedule\ConnectionController;
@@ -84,6 +87,7 @@ use App\Http\Controllers\Api\Groups\RehearsalsController;
 use App\Http\Controllers\Api\Ideas\IdeasController as IdeasApi;
 use App\Http\Controllers\Api\Leagues\LeaguesController as LeaguesApi;
 use App\Http\Controllers\Api\Library\LibraryController as LibraryApi;
+use App\Http\Controllers\Api\Live\BeatController;
 use App\Http\Controllers\Api\Projects\EditableController;
 use App\Http\Controllers\Api\Projects\PartsController as ProjectParts;
 use App\Http\Controllers\Api\Projects\ProjectsController;
@@ -334,6 +338,8 @@ Route::get('/boards/daily', [BoardsController::class, 'daily'])->middleware('thr
 // Anonymous usage counts: no session, no CSRF (a beacon), nothing kept but the day's numbers. Only its own limit
 // (limits.counts): a beacon from every public page mustn't spend a shared address's budget for the API itself.
 Route::post('/counts', [CountsController::class, 'store'])->withoutMiddleware([StartSession::class, ShareErrorsFromSession::class, PreventRequestForgery::class, GrantBetaPass::class, 'throttle:api'])->middleware('throttle:counts')->name('counts.create');
+// Admin > Live's heartbeat (docs/realtime-dashboard-plan.md): as the counts, no session and no CSRF, a quiet 204.
+Route::post('/live/beat', BeatController::class)->withoutMiddleware([StartSession::class, ShareErrorsFromSession::class, PreventRequestForgery::class, GrantBetaPass::class, 'throttle:api'])->middleware('throttle:live-beat')->name('live.beat');
 Route::post('/support', [SupportController::class, 'store'])->middleware(['throttle:support', 'shield'])->name('support.create');
 Route::get('/notices', [SupportController::class, 'notices'])->middleware('auth')->name('notices.list');
 Route::get('/notices/{notice}', [SupportController::class, 'notice'])->middleware('throttle:invite-links')->name('notices.show');
@@ -341,6 +347,8 @@ Route::post('/notices/{notice}/appeal', [SupportController::class, 'appeal'])->m
 
 // Reports need no account (the DSA's notice route), with the limiter and shield mode.
 Route::post('/reports', SharingReports::class)->middleware(['throttle:reports', 'shield'])->name('reports.create');
+// A reader's correction from the public pages (docs/corrections-plan.md): anyone; CSRF-exempt as reports.
+Route::post('/corrections', CorrectionsController::class)->middleware(['throttle:corrections', 'shield'])->name('corrections.create');
 
 // The gallery (N1; contract/api.md, "The gallery (N1)"): anyone reads it once it's open.
 Route::get('/explore', [GalleryApi::class, 'explore'])->middleware(['throttle:public-pages', 'revalidate'])->name('explore.list');
@@ -446,6 +454,7 @@ Route::get('/voices/summary', [VoicesController::class, 'summary'])->middleware(
 Route::middleware('auth')->prefix('voices')->name('voices.')->group(function (): void {
     Route::get('/wanted', [VoicesController::class, 'wanted'])->name('wanted');
     Route::post('/join', [VoicesController::class, 'join'])->middleware('age')->name('join');
+    Route::post('/share', [VoicesController::class, 'share'])->middleware(['age', 'paused:uploads', 'throttle:voice-shares'])->name('share');
     Route::get('/claims', [VoicesController::class, 'claims'])->name('claims.list');
     Route::post('/claims', [VoicesController::class, 'claim'])->middleware('throttle:voice-claims')->name('claims.create');
     Route::delete('/claims/{claim}', [VoicesController::class, 'release'])->name('claims.delete');
@@ -550,6 +559,8 @@ Route::middleware(['auth', 'editor', 'second-factor'])->prefix('admin')->name('a
         Route::get('/audit', AuditController::class)->name('audit.list');
         Route::get('/billing/disputes', DisputesController::class)->name('billing.disputes.list');
         Route::get('/reports', [AdminReports::class, 'index'])->name('reports.list');
+        Route::get('/corrections', [AdminCorrections::class, 'index'])->name('corrections.list');
+        Route::patch('/corrections/{correction}', [AdminCorrections::class, 'update'])->where('correction', '[A-Za-z0-9]{1,20}')->name('corrections.update');
         Route::get('/coaching/applications', [AdminCoaching::class, 'applications'])->name('coaching.applications.list');
         Route::post('/coaching/applications/{application}', [AdminCoaching::class, 'decide'])->middleware('sudo')->name('coaching.applications.decide');
         Route::put('/coaching/coaches/{coach}', [AdminCoaching::class, 'coach'])->middleware('sudo')->name('coaching.coaches.update');
@@ -607,6 +618,8 @@ Route::middleware(['auth', 'editor', 'second-factor'])->prefix('admin')->name('a
         Route::post('/school/partners', [AdminSchool::class, 'partner'])->middleware('sudo')->name('school.partners.create');
         Route::post('/experiments', [AdminExperiments::class, 'store'])->middleware('sudo')->name('experiments.create');
         Route::patch('/experiments/{experiment}', [AdminExperiments::class, 'update'])->where('experiment', '[a-z][a-z0-9-]{1,23}')->middleware('sudo')->name('experiments.update');
+        Route::get('/live', [AdminLive::class, 'show'])->name('live.show');
+        Route::get('/pulse', [AdminLive::class, 'pulse'])->name('pulse.show');
         Route::get('/growth', [AdminGrowth::class, 'overview'])->name('growth.show');
         Route::get('/sources', [AdminGrowth::class, 'sources'])->name('sources.show');
         Route::get('/active', [AdminGrowth::class, 'active'])->name('active.show');

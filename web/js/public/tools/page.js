@@ -34,18 +34,32 @@ function tell(text) {
 }
 
 /** The band's line and button for a tool's result: the range test's "the part that fits you". */
-function showResult({ type } = {}) {
+// Letter names for a range carried into the app (?range=A2-D4; js/tool-range.js reads them): never the page's own naming.
+const LETTERS = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+const letterName = (midi) => `${LETTERS[((midi % 12) + 12) % 12]}${Math.floor(midi / 12) - 1}`;
+
+/**
+ * A tool's result in its About block (the range test's: docs/retention-plan.md, idea 7): the line says the range and its
+ * voice type, and the link opens the app already knowing the range (?range=A2-D4, letter names and nothing else), so
+ * Home's picks fit it and no range check asks.
+ */
+function showResult({ type, low, high } = {}) {
     const data = document.querySelector('[data-tool-result]');
     if (!data || !type) return;
     const { line, link, to, parts, types } = JSON.parse(data.textContent);
-    const part = parts[type];
+    const part = parts?.[type];
     const lineEl = document.querySelector('[data-try-line]');
     const linkEl = document.querySelector('[data-try-link]');
-    if (!part || !lineEl || !linkEl) return;
+    if (!lineEl || !linkEl || (line.includes(':part') && !part)) return;
+    const ranged = Number.isInteger(low) && Number.isInteger(high) && high > low;
+    if (line.includes(':low') && !ranged) return;
+    const names = ranged ? { low: letterName(low).replace('#', '♯'), high: letterName(high).replace('#', '♯') } : {};
     lineEl.classList.add('s-about-result'); // a sentence, not a headline: a smaller size
-    lineEl.textContent = line.replace(/:(\w+)/g, (m, k) => ({ type: (types[type] ?? type).toLowerCase(), part }[k] ?? m));
+    lineEl.textContent = line.replace(/:(\w+)/g, (m, k) => ({ type: (types[type] ?? type).toLowerCase(), part, ...names }[k] ?? m));
     linkEl.querySelector('[data-try-words]').textContent = link;
-    linkEl.href = to;
+    const url = new URL(to, location.href);
+    if (ranged) url.searchParams.set('range', `${letterName(low)}-${letterName(high)}`);
+    linkEl.href = url.href;
 }
 
 /**

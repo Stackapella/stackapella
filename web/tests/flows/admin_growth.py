@@ -142,7 +142,7 @@ def journey(f):
 
     # One header bar; the Numbers pages as underline tabs, Overview first (Hillel's menu by job, 2026-11-10).
     pages = json.loads(f.js("JSON.stringify([...document.querySelectorAll('[data-nav-sections] a')].map((a) => a.getAttribute('href')))"))
-    assert pages == ["/admin/growth", "/admin/usage", "/admin/activity", "/admin/funnel", "/admin/dropoffs", "/admin/sources", "/admin/breadth", "/admin/sharing", "/admin/cohorts", "/admin/experiments", "/admin/revenue"], pages
+    assert pages == ["/admin/growth", "/admin/live", "/admin/usage", "/admin/activity", "/admin/funnel", "/admin/dropoffs", "/admin/sources", "/admin/breadth", "/admin/sharing", "/admin/cohorts", "/admin/experiments", "/admin/revenue"], pages
     assert f.js("document.querySelector('[data-nav-sections] [aria-current=page]').getAttribute('href')") == "/admin/growth"
     groups = f.js("[...document.querySelectorAll('header [data-nav-groups] a')].map((a) => a.textContent.trim().replace(/\\d+$/, '').trim())")
     assert groups == [t(f, f"admin.nav.group.{k}") for k in ("inbox", "users", "library", "marketing", "numbers", "settings")], groups
@@ -156,6 +156,7 @@ def journey(f):
     site_sections(f)
     fair_cards(f)
     today_chart(f)
+    visits_borrowed(f)
     period_charts(f)
 
 
@@ -552,6 +553,24 @@ const growth = api.admin.growth.show; api.admin.growth.show = async (q) => { con
     f.run("document.querySelector('[data-growth-site]').scrollIntoView()")
     f.no_sideways("site visits by section")
     f.shot("site-sections")
+
+def visits_borrowed(f):
+    """Visits too young for its own day shape (backend: under 14 days of hours) borrows Arrivals', said under the chart
+    with its wider range; App starts sits under Visits as Sign-ups does under Arrivals (metrics.appStarts, app_open)."""
+    stub = TODAY_CHART + """
+const m = fx.data.chart.metrics;
+m.appStarts = { now: m.signUps.now.map((n) => (n === null ? null : n * 3)), previous: m.signUps.previous.map((n) => (n === null ? null : n * 3)) };
+m.visits.projection = { ...JSON.parse(JSON.stringify(m.arrivals.projection)), basis: 'borrowedShape', shapeFrom: 'arrivals' };
+api.admin.growth.show = async () => JSON.parse(JSON.stringify(fx));"""
+    open_growth(f, "localStorage.removeItem('stackapella.admin.growth.period');\n" + stub)
+    f.wait("document.querySelector('[data-projection-borrowed]')", what="Visits' borrowed shape, said")
+    line = f.js("document.querySelector('[data-projection-borrowed]').textContent.trim()")
+    assert line and "{" not in line, line
+    f.wait("document.querySelector('[data-strip=appStarts]')", what="App starts under Visits")
+    f.no_sideways("Visits with App starts")
+    f.run("document.querySelector('[data-strip=appStarts]').scrollIntoView({ block: 'center' })")
+    f.shot("visits-app-starts")
+
 
 if __name__ == "__main__":
     run("admin_growth", journey, sizes=("desktop", "phone"))

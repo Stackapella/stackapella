@@ -191,6 +191,20 @@
                 "ours": 270
             }
         ],
-        "timezone": "UTC"
+        "timezone": "UTC",
+        "ifAllConvert": {
+            "mrr": [
+                {
+                    "currency": "usd",
+                    "cents": 2994
+                }
+            ],
+            "arr": [
+                {
+                    "currency": "usd",
+                    "cents": 35928
+                }
+            ]
+        }
     }
 }

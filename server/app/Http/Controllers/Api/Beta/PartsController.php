@@ -22,7 +22,7 @@ final class PartsController extends Controller
         $singer = EnsureBetaSinger::singer($request);
 
         $assignments = BetaAssignment::query()
-            ->with(['template.currentVersion', 'latestSubmission.templateVersion', 'clip.submission'])
+            ->with(['template.currentVersion', 'template.stagedVersion', 'latestSubmission.templateVersion', 'clip.submission'])
             ->where('beta_singer_id', $singer->id)
             ->orderByDesc('id')
             ->get()
@@ -32,13 +32,13 @@ final class PartsController extends Controller
 
         $guides = TemplateGuide::query()
             ->with(['submission.assignment.singer.user', 'creditUser'])
-            ->whereIn('template_version_id', $assignments->map(static fn (BetaAssignment $a): ?int => $a->template?->current_version_id)->filter()->unique()->values())
+            ->whereIn('template_version_id', $assignments->map(static fn (BetaAssignment $a): ?int => $a->template?->recordingVersion()?->id)->filter()->unique()->values())
             ->where('is_default', true)
             ->get()
             ->groupBy('template_version_id');
 
         return response()->json([
-            'data' => $assignments->map(fn (BetaAssignment $assignment): array => (new BetaPartResource($assignment, $guides->get((int) $assignment->template?->current_version_id, collect())))->toArray($request))->values(),
+            'data' => $assignments->map(fn (BetaAssignment $assignment): array => (new BetaPartResource($assignment, $guides->get((int) $assignment->template?->recordingVersion()?->id, collect())))->toArray($request))->values(),
         ]);
     }
 }

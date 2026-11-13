@@ -31,6 +31,11 @@ final class SongsHub
         'jewish-songs' => ['maoz-tzur', 'oy-chanukah', 'adir-hu', 'ein-keloheinu'],
         'folk-songs' => ['danny-boy', 'auld-lang-syne', 'the-water-is-wide', 'sakura-sakura'],
         'barbershop-songs' => ['sweet-adeline', 'daisy-bell', 'let-me-call-you-sweetheart', 'asleep-in-the-deep'],
+        // The demand check's leads (2026-11-12): what people search first.
+        'scottish-songs' => ['auld-lang-syne', 'loch-lomond', 'ye-banks-and-braes', 'red-red-rose'],
+        'villancicos' => ['noche-de-paz', 'riu-riu-chiu', 'pastores-a-belen', 'el-cant-dels-ocells'],
+        'thanksgiving-hymns' => ['now-thank-we-all-our-god', 'praise-to-the-lord', 'come-ye-thankful-people', 'we-gather-together'],
+        'shaker-songs' => ['simple-gifts', 'i-will-bow-and-be-simple', 'o-the-beautiful-treasure', 'who-will-bow-and-bend'],
     ];
 
     /** How many songs a band samples (a phone shows the first three). */
@@ -62,15 +67,17 @@ final class SongsHub
         $panels = [];
         foreach ($this->collections->open() as $open) {
             $slug = $open['slug'];
-            // A collection's Christmas songs (a carol that's also a hymn) are the carols band's in season, not its sample.
-            $ordered = array_values(array_filter($this->collections->ordered($slug), static fn (string $song): bool => ! ($season && Carols::has($song))));
+            // A collection's Christmas songs (a carol that's also a hymn) are the carols band's in season, not its sample;
+            // the villancicos are all Christmas songs, so theirs stay.
+            $ordered = array_values(array_filter($this->collections->ordered($slug), static fn (string $song): bool => $slug === 'villancicos' || ! ($season && Carols::has($song))));
             // Only the samples' cards are built (each plays its first line), never the whole collection's.
             $samples = $this->collections->cards(self::choose($ordered, self::SAMPLES[$slug] ?? []));
             $panels[] = ['key' => $slug, 'path' => $open['path'], 'count' => count($this->collections->members($slug)), 'season' => false, 'samples' => self::kinds($samples, $slug)];
         }
         // The biggest first; the Jewish songs first of all around Hanukkah and Passover (JewishSongs::inSeason), right after
         // the carols' band in December.
-        $first = JewishSongs::inSeason() ? JewishSongs::SLUG : null;
+        // On the Spanish site in the carol season, the villancicos first of all (Hillel's new collections: they lead on /es).
+        $first = $season && app()->getLocale() === 'es' ? 'villancicos' : (JewishSongs::inSeason() ? JewishSongs::SLUG : null);
         usort($panels, static fn (array $a, array $b): int => [$b['key'] === $first, $b['count']] <=> [$a['key'] === $first, $a['count']]);
         $bands = [...$bands, ...$panels];
 

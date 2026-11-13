@@ -60,7 +60,8 @@
                         "takes": 14,
                         "scores": 37
                     }
-                ]
+                ],
+                "readOnly": false
             },
             {
                 "id": "Hq5sTu",
@@ -121,10 +122,12 @@
                         "takes": 0,
                         "scores": 0
                     }
-                ]
+                ],
+                "readOnly": false
             }
         ],
         "total": 2,
-        "timezone": "UTC"
+        "timezone": "UTC",
+        "paused": 0
     }
 }

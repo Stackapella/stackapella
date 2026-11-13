@@ -11,12 +11,13 @@ import { micDb } from '../mic-check.js';
 import { Icon } from './icon.js';
 import { LevelMeter } from './level-meter.js';
 import { Modal, toast } from './ui.js';
+import { count } from '../usage.js';
 
 const HEARD_MS = 1500; // the meter shows this long once the mic works, then the screen carries on
 
 export const MicHelpHost = {
     components: { Icon, LevelMeter, Modal },
-    data: () => ({ micHelp, chosen: null, permission: null, picking: false, failedOnce: false, state: 'blocked', db: null }),
+    data: () => ({ micHelp, chosen: null, permission: null, picking: false, failedOnce: false, state: 'blocked', db: null, showHow: false }),
     setup: () => ({ CAUSES, PLATFORMS, SYSTEMS, DEVICE_WORDS, boldParts }),
     template: `
         <Modal v-if="micHelp.primer && !micHelp.open" :title="t('micHelp.primerTitle')" @close="micHelp.primer(false)">
@@ -32,9 +33,17 @@ export const MicHelpHost = {
         <!-- v2 (77.png): the state is the header (blocked, then checking, then hearing you); the setup as
              a sentence with Change; the browser's steps, numbered, beside a small drawing of where to
              click; the device's steps folded away until a retry fails; Try again last. -->
-        <Modal v-if="micHelp.open" :title="headerTitle" :subtitle="headerLine" :tone="state === 'hearing' ? 'good' : micHelp.trying ? 'busy' : 'bad'" wide @close="close">
+        <Modal v-if="micHelp.open" :title="headerTitle" :subtitle="headerLine" :tone="refusedGently ? null : state === 'hearing' ? 'good' : micHelp.trying ? 'busy' : 'bad'" wide @close="close">
             <div class="space-y-5" data-mic-help :data-cause="advice.cause" :data-state="state">
-                <template v-if="state === 'hearing'">
+                <!-- A refusal as a choice (mic2's arm b): no error, a way on without the mic, the steps one tap away. -->
+                <template v-if="refusedGently">
+                    <p class="text-cream" data-mic-refused>{{ t('mic2.refused.body') }}</p>
+                    <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
+                        <button type="button" class="btn-primary max-sm:w-full max-sm:justify-center" data-mic-refused-listen @click="listenInstead">{{ t('mic2.later.listen') }}</button>
+                        <button type="button" class="btn-secondary max-sm:w-full max-sm:justify-center" data-mic-refused-how @click="showHow = true">{{ t('mic2.refused.how') }}</button>
+                    </div>
+                </template>
+                <template v-else-if="state === 'hearing'">
                     <LevelMeter :db="db" />
                 </template>
                 <template v-else>
@@ -78,7 +87,7 @@ export const MicHelpHost = {
                         </ol>
                     </details>
                 </template>
-                <div class="flex items-center justify-between gap-3 border-t border-edge pt-4">
+                <div v-if="!refusedGently" class="flex items-center justify-between gap-3 border-t border-edge pt-4">
                     <button type="button" class="btn-ghost btn-sm" :title="t('micHelp.copyDetails')" @click="copyDetails">{{ t('micHelp.details') }}</button>
                     <button v-if="state !== 'hearing'" type="button" class="btn-primary" :disabled="micHelp.trying" @click="tryAgain">{{ micHelp.trying ? t('micHelp.trying') : t('micHelp.tryAgain') }}</button>
                 </div>
@@ -104,12 +113,18 @@ export const MicHelpHost = {
             return DRAWINGS[this.platform] ?? null;
         },
         /** The header carries the state: what's wrong, then checking, then hearing you. */
+        /** A refusal on a screen that treats it as a choice, before Show me how. */
+        refusedGently() {
+            return !!micHelp.gentle && this.advice.cause === 'blocked' && !this.showHow && this.state !== 'hearing' && !micHelp.trying;
+        },
         headerTitle() {
+            if (this.refusedGently) return t('mic2.refused.title');
             if (this.state === 'hearing') return t('micHelp.hearing');
             if (micHelp.trying) return t('micHelp.checking');
             return t(CAUSES[this.advice.cause].title);
         },
         headerLine() {
+            if (this.refusedGently) return '';
             if (this.state === 'hearing') return t('micHelp.hearingLine');
             if (micHelp.trying) return t('micHelp.checkingLine');
             if (this.failedOnce && this.advice.system) return t('micHelp.stillLine', { device: t(DEVICE_WORDS[this.advice.system]) });
@@ -126,7 +141,7 @@ export const MicHelpHost = {
     watch: {
         'micHelp.open': {
             handler(open) {
-                if (open) Object.assign(this, { state: 'blocked', failedOnce: false, picking: false });
+                if (open) Object.assign(this, { state: 'blocked', failedOnce: false, picking: false, showHow: false });
                 if (open && !micHelp.attempts?.length) micHelp.attempts = engine.micAttempts ?? [];
                 if (open) this.watchPermission();
                 else this.unwatch();
@@ -221,6 +236,12 @@ export const MicHelpHost = {
         },
         reload: reloadForMic,
         close: closeMicHelp,
+        /** Listen through it, from a refusal: the screen's own way on without the mic. */
+        listenInstead() {
+            const listen = micHelp.gentle?.listen;
+            closeMicHelp();
+            listen?.();
+        },
     },
 };
 
@@ -229,17 +250,31 @@ export const MicHelpHost = {
  * can't share it (docs/onboarding-review.md, step 1): say so first, with how to open the page in
  * the phone's browser and Copy link. The lesson's own button carries on anyway.
  */
+/**
+ * An Android intent that opens `url` in Chrome, out of an app's own browser; where Chrome isn't installed, the browser
+ * falls back to the same page.
+ */
+export function chromeIntent(url) {
+    const page = new URL(url);
+    return `intent://${page.host}${page.pathname}${page.search}#Intent;scheme=${page.protocol.replace(':', '')};package=com.android.chrome;S.browser_fallback_url=${encodeURIComponent(page.href)};end`;
+}
+
 export const InAppCard = {
     components: { Icon },
     props: { app: { type: String, required: true } },
-    setup: () => ({ browser: /Android/.test(navigator.userAgent) ? 'Chrome' : 'Safari' }), // i18n-ignore: browsers' names
+    setup: () => ({ browser: /Android/.test(navigator.userAgent) ? 'Chrome' : 'Safari', chromeLink: /Android/.test(navigator.userAgent) ? chromeIntent(location.href) : null }), // i18n-ignore: browsers' names
     template: `
         <div class="space-y-3 rounded-2xl border border-line bg-panel p-4" role="status" data-in-app>
             <p class="flex items-center gap-2 font-bold text-cream"><Icon name="mic" :size="18" class="text-warn" />{{ t('course.mic.inAppTitle') }}</p>
             <p class="text-sm text-muted">{{ t('course.mic.inApp', { app, browser }) }}</p>
-            <button type="button" class="btn-secondary btn-sm" @click="copyLink"><Icon name="arrow" :size="16" /> {{ t('micHelp.copyLink') }}</button>
+            <div class="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
+                <!-- Android: one tap out of the app's browser into Chrome, on this same page (the first-week UX review). -->
+                <a v-if="chromeLink" :href="chromeLink" class="btn-secondary max-sm:w-full max-sm:justify-center" data-in-app-chrome @click="count('inapp_handoff')">{{ t('course.mic.openInChrome') }}</a>
+                <button type="button" :class="chromeLink ? 'btn-ghost btn-sm self-start' : 'btn-secondary btn-sm'" @click="copyLink"><Icon name="arrow" :size="16" /> {{ t('micHelp.copyLink') }}</button>
+            </div>
         </div>`,
     methods: {
+        count,
         async copyLink() {
             try {
                 await navigator.clipboard.writeText(location.href);

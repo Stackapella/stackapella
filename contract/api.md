@@ -72,7 +72,7 @@ Every error response has this shape (`schemas/error.json`):
 | 400 | `bad_request` | A request the server can't read at all (broken JSON, for example), as opposed to one that fails validation | Says something went wrong, and to try again |
 | 401 | `unauthenticated` | Signed out, or the admin session ended (the admin area only: the account stays signed in) | Asks the person to sign in |
 | 403 | `forbidden` | Not allowed, with no more specific code | Says it isn't allowed |
-| 403 | *(a specific code)* | A refusal with a reason: `not_admin`, `second_factor_required`, `sudo_required`, `blocked`, `project_limit`, `project_read_only`, `storage_limit`, `email_unverified`, `plus_required`, `account_required`, `consent_required`... | Words that code |
+| 403 | *(a specific code)* | A refusal with a reason: `not_admin`, `second_factor_required`, `sudo_required`, `blocked`, `project_limit`, `project_read_only`, `storage_limit`, `email_unverified`, `plus_required`, `shared_paused` (a shared song or group whose starter's Plus has ended: nothing to buy for this person), `account_required`, `consent_required`... | Words that code |
 | 404 | `not_found` | No such record, or one the person can't see | Says it's gone |
 | 409 | `version_conflict` | The record changed since the app read it (its `version`); `current` is the server's copy | Asks "Keep mine or Use theirs" (or merges, for a project's `settings`) |
 | 409 | *(a specific code)* | The record's state doesn't allow it: `binned`, `part_gone`, `project_missing`, `part_missing`, `upload_incomplete`, `upload_mismatch`... | Words or handles that code |
@@ -177,6 +177,7 @@ Each operation is one function in `web/js/api.js` named after it, and one route 
 | `voices.claims.list` | `GET /api/voices/claims` | Anyone signed in | L |
 | `voices.claims.create` | `POST /api/voices/claims` | Anyone signed in | L |
 | `voices.claims.delete` | `DELETE /api/voices/claims/{id}` | Anyone signed in | L |
+| `voices.share` | `POST /api/voices/share` | Anyone signed in | L |
 | `school.classes.list` | `GET /api/school/classes` | Anyone signed in | L |
 | `school.classes.create` | `POST /api/school/classes` | Anyone signed in | L |
 | `school.classes.update` | `PATCH /api/school/classes/{id}` | Anyone signed in | L |
@@ -300,6 +301,9 @@ Each operation is one function in `web/js/api.js` named after it, and one route 
 | `videos.show` | `GET /api/videos/{id}` | The owner | M6 |
 | `reports.create` | `POST /api/reports` | Anyone (signed out too) | M6 |
 | `admin.reports.list` | `GET /api/admin/reports` | An admin | M6 |
+| `corrections.create` | `POST /api/corrections` | Anyone (signed out too) | L |
+| `admin.corrections.list` | `GET /api/admin/corrections` | An admin or editor | L |
+| `admin.corrections.update` | `PATCH /api/admin/corrections/{id}` | An admin or editor | L |
 | `admin.harmonies.hide` | `POST /api/admin/harmonies/{id}/hide` | An admin | M6 |
 | `admin.harmonies.restore` | `POST /api/admin/harmonies/{id}/restore` | An admin | M6 |
 | `admin.harmonies.remove` | `POST /api/admin/harmonies/{id}/remove` | An admin, in sudo | M6 |
@@ -411,6 +415,7 @@ Each operation is one function in `web/js/api.js` named after it, and one route 
 | `admin.books.records.retry` | `POST /api/admin/books/records/{id}/retry` | An admin | M10 |
 | `admin.books.plusInvoices.create` | `POST /api/admin/books/plus-invoices` | An admin, in sudo | M10 |
 | `counts.create` | `POST /api/counts` | Anyone | L |
+| `live.beat` | `POST /api/live/beat` | Anyone | L |
 | `support.create` | `POST /api/support` | Anyone | L |
 | `notices.list` | `GET /api/notices` | Anyone signed in | L |
 | `notices.show` | `GET /api/notices/{id}` | The person, or anyone with the link | L |
@@ -558,6 +563,8 @@ Each operation is one function in `web/js/api.js` named after it, and one route 
 | `admin.groups.list` | `GET /api/admin/groups` | An admin | L |
 | `admin.reach.show` | `GET /api/admin/reach` | An admin | L |
 | `admin.revenue.show` | `GET /api/admin/revenue` | An admin | L |
+| `admin.live.show` | `GET /api/admin/live` | An admin | L |
+| `admin.pulse.show` | `GET /api/admin/pulse` | An admin | L |
 | `admin.cohorts.show` | `GET /api/admin/cohorts` | An admin | L |
 | `admin.churn.show` | `GET /api/admin/churn` | An admin | L |
 | `admin.activity.show` | `GET /api/admin/activity` | An admin | L |
@@ -1086,6 +1093,34 @@ Give a claim back: gone if nothing was sent, else ended, its takes staying for t
 | 204 | | | |
 | 404 | `not_found` | `error.json` | `voices.claims.delete.not_found.json` |
 
+#### `voices.share`
+
+Offer a take you've synced as a part's guide voice (docs/open-guide-voices-plan.md, "The recording ladder"; Hillel:
+record first, the legal part only when you offer it). Records the volunteers' agreement at this moment (its version,
+the time, the credit and the 18+ answer); it replaces `voices.join`. Anyone signed in. **Request:** `{ "takeId":
+"<the take's id>", "templateId": "silent-night", "templateVersion": 4, "partKey": "alto", "credit": "name" |
+"anonymous", "linksProfile": false, "agreementVersion": 2, "adult": true }`:
+- `takeId`: one of the caller's own takes, ready, of that song version's part, sung at key offset 0 (a guide plays in
+  the recording key);
+- `status` is `sent` (in Hillel's queue) or `held` (the account's email isn't confirmed yet: it's sent once it is);
+- several singers may offer takes for the same part, and Hillel chooses one; offering for a part that has a guide
+  is allowed (it may replace it);
+- at most 10 shared takes a day; recording is never limited.
+- behind `lend_voice` (off: `404 not_found`); an invited (paid) beta singer records their own assignments instead
+  (`409 beta_singer`); a held take shows as `held` in the beta lists until its email is confirmed, then it's processed
+  into Hillel's queue.
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 200 |  | `voices.share.json` | `voices.share.200.json` |
+| 403 | `adult_required` | `error.json` | `voices.share.adult_required.json` |
+| 403 | `volunteer_blocked` | `error.json` | `voices.share.volunteer_blocked.json` |
+| 404 | `not_found` | `error.json` | `voices.share.not_found.json` |
+| 409 | `agreement_changed` | `error.json` | `voices.share.agreement_changed.json` |
+| 409 | `already_sent` | `error.json` | `voices.share.already_sent.json` |
+| 409 | `beta_singer` | `error.json` | `voices.share.beta_singer.json` |
+| 429 | `rate_limited` | `error.json` | `voices.share.rate_limited.json` |
+
 #### `beta.me.show`
 
 The signed-in singer: the welcome, consent and My parts read it. **Request:** none.
@@ -1332,6 +1367,8 @@ asked to be forgotten, or who was blocked for abuse (`singer_gone`).
 
 #### `admin.beta.submissions.list`
 
+With `?groupBy=part` (open takes, docs/open-guide-voices-plan.md), `meta.groups` lists this page's takes by song part, each with its version and the part's `guide` now, the group with the oldest waiting take first; `data` stays the same list.
+
 The review queue, newest first, 50 a page. **Request:** `?status=` (`waiting` for submitted and in
 review, or one status), `?template=`, `?part=`, `?singer=` (a singer's id: their takes, with your
 notes, from the Singers screen), `?cursor=`, all optional.
@@ -1374,6 +1411,8 @@ while it's waiting for review, or once accepted (then publish it again with
 | 422 | `validation_failed` | `error.json` | `admin.beta.submissions.adjust.validation_failed.json` |
 
 #### `admin.beta.submissions.accept`
+
+`notChosenNote` (optional, up to 500 characters): when it's published as the part's voice (`makeDefault`), every other take of that part still waiting (submitted, in review or held) becomes `not_chosen`, kept, with this note for its singer.
 
 Accept it as the guide: the server publishes it (trims, 10 ms fades, gain, levelled to about -20
 dBFS, the offset applied, an AAC with its edit list on the CDN) and, unless `makeDefault` is
@@ -2370,6 +2409,7 @@ Start sending a take. **Request:** `{ "id": "<uuid>", "partId": "<uuid>", "sampl
 | 422 | `validation_failed` | `error.json` | `takes.create.validation_failed.json` |
 | 403 | `not_your_part` | `error.json` | `takes.create.not_your_part.json` |
 | 429 | `rate_limited` | `error.json` | `takes.create.rate_limited.json` |
+| 403 | `shared_paused` | `error.json` | `takes.create.shared_paused.json` |
 
 #### `takes.complete`
 
@@ -2646,10 +2686,11 @@ Start Checkout. **Request:** `{ "interval": "year", "currency": "usd", "trial": 
   first currency);
 - `trial` asks for the trial `billing.show` offers (its `trial.intervals`); one this account has
   had, or not offered for this interval, answers `409 trial_used`;
-- `moment` is the upgrade moment that led here, counted on the server, never in the browser: since
-  2026-11-07 the solo extras only, `storage_limit`, `mp3`, `stems`, `guide` (your own recorded
-  guide), `private_template` or `settings` (anything else, an older app's `plus_song` too, is kept
-  as `other`);
+- `moment` is the upgrade moment that led here, counted on the server, never in the browser: the
+  solo extras, `storage_limit`, `mp3`, `stems`, `guide` (your own recorded guide),
+  `private_template` or `settings`, and since 2026-11-12 starting something shared, `group_start`
+  (Start a group) or `invite_friend` (a friend on your song) (anything else, an older app's
+  `plus_song` too, is kept as `other`);
 - `startNowConsent` (optional): true when the person ticked the consent to start at once. Where
   `billing.prices` says it's needed and it isn't true, `422 validation_failed` on
   `startNowConsent`. The server records it with the checkout (when, the words' version, the
@@ -3061,6 +3102,45 @@ notice route). **Request:** `{ "harmonyId": "<id>", "reason": "copyright", "note
 | 422 | `validation_failed` | `error.json` | `reports.create.validation_failed.json` |
 | 429 | `rate_limited` | `error.json` | `reports.create.rate_limited.json` |
 
+#### `corrections.create`
+
+A reader's correction or suggestion from a public page's "Suggest a correction" (docs/corrections-plan.md; Hillel,
+2026-11-12). Anyone, no account and no CSRF token (as `reports.create`); nothing about the reader is kept, no
+account, email or address, even when signed in. **Request:** `{ "kind": "fact|words|notes|other", "text": "...",
+"source": "https://..." | null, "page": { "type": "song|part|course|lesson|tool", "path": "/songs/amazing-grace",
+"title": "Amazing Grace" }, "lang": "en|es|de", "nickname": "" }`: `text` 1 to 2000 characters, `source` http(s) only,
+`path` one of our pages (from `/`, no host), `nickname` the honeypot (empty). `422` names the field in `errors`; past 5 a
+minute or 20 a day an address, `429` (the address is used for the limit only).
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 201 | | `corrections.create.json` | `corrections.create.201.json` |
+| 422 | `validation_failed` | `error.json` | `corrections.create.validation_failed.json` |
+| 429 | `rate_limited` | `error.json` | `corrections.create.rate_limited.json` |
+
+#### `admin.corrections.list`
+
+Inbox > Corrections: readers' corrections, newest first. **Request:** `?state=new|accepted|done|rejected` and
+`?kind=fact|words|notes|other` (none: all), `?cursor=`. `meta.counts` is how many are in each state, whatever the
+filters.
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 200 | | `admin.corrections.list.json` | `admin.corrections.list.200.json` |
+
+#### `admin.corrections.update`
+
+The team's decision: from `new`, `accepted` or `rejected`; from `accepted`, `done` or `rejected`; any other move is
+`409 not_allowed`, and a rejection needs its `note` (`422` on `note`). **Request:** `{ "state": "accepted|done|rejected",
+"note": "..." }`. The answer is the correction with its `decision`.
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 200 | | `admin.corrections.update.json` | `admin.corrections.update.200.json` |
+| 404 | `not_found` | `error.json` | `admin.corrections.update.not_found.json` |
+| 409 | `not_allowed` | `error.json` | `admin.corrections.update.not_allowed.json` |
+| 422 | `validation_failed` | `error.json` | `admin.corrections.update.validation_failed.json` |
+
 #### `admin.reports.list`
 
 The trust and safety queue's harmonies: each with open reports, hidden by reports, or with a held
@@ -3338,7 +3418,11 @@ by accident. The owner can't leave
 
 The owner makes an invite link. **Request:** `{ "partKey": "tenor", "partName": "Tenor" }`, both
 optional. The answer has the link's `url` (with its token): shown once, as the server keeps only a
-hash.
+hash. Behind the `plus_teams` switch (`auth.config`'s `plusTeams`; off, inviting is free as before), inviting
+needs Plus (since 2026-11-12, `docs/pricing-plan.md`: whoever starts the shared song
+needs Plus, and everyone invited joins free): `403 plus_required` otherwise. Once the owner's Plus
+ends the song is paused for its friends: `invites.accept` and a friend's `takes.create` answer
+`403 shared_paused`, and the friend's `project` reads `readOnly: "plus_ended"`.
 
 | Status | Code | Schema | Example |
 |---|---|---|---|
@@ -3348,6 +3432,7 @@ hash.
 | 404 | `not_found` | `error.json` | `invites.create.not_found.json` |
 | 409 | `binned` | `error.json` | `invites.create.binned.json` |
 | 422 | `imported_private` | `error.json` | `invites.create.imported_private.json` |
+| 403 | `plus_required` | `error.json` | `invites.create.plus_required.json` |
 
 #### `invites.list`
 
@@ -3393,15 +3478,20 @@ invite, or one you've already joined, answers the project as it is. **Request:**
 | 410 | `invite_revoked` | `error.json` | `invites.accept.invite_revoked.json` |
 | 410 | `invite_used` | `error.json` | `invites.accept.invite_used.json` |
 | 404 | `not_found` | `error.json` | `invites.accept.not_found.json` |
+| 403 | `shared_paused` | `error.json` | `invites.accept.shared_paused.json` |
 
 #### Choir groups
 
-**A director's group** (free for everyone since 2026-11-07, `docs/pricing-plan.md`: every singer
-is free): members join by the group's link, the director shares songs (official, or their own
-templates) and assigns parts, and sees who has recorded theirs.
+**A director's group** (since 2026-11-12, `docs/pricing-plan.md`: whoever starts the group needs
+Plus, and everyone invited joins free): members join by the group's link, the director shares songs
+(official, or their own templates) and assigns parts, and sees who has recorded theirs.
 
-- **No plan needed:** any adult account makes a group, and anyone with the link joins. No group
-  operation answers `plus_required`, and `readOnly` is always false (kept for older apps).
+- **Plus starts it** (behind the `plus_teams` switch, `auth.config`'s `plusTeams`; off, groups are free as
+  before): starting a group needs Plus (`groups.create` `403 plus_required`); members
+  never need a plan. When the director's Plus ends the group is paused (`readOnly: true` on
+  `groups.list`, `groups.show`, `groups.join.show` and `admin.groups.list`): everyone keeps what
+  they have, `groups.join` answers `403 shared_paused` (a calm note, nothing to buy), and the
+  director's new link, song or assignment answers `403 plus_required`, until Plus is back.
 - **Sizes:** up to 60 members a group, 5 groups a director (`403 group_limit`).
 - **18 and over, for now:** until Hillel decides how members under 18 take part, making or joining
   a group asks once that the person is 18 or over (`"adult": true` in the request, kept on the
@@ -3438,6 +3528,7 @@ The groups the person directs or sings in. **Request:** none.
 | 403 | `group_limit` | `error.json` | `groups.create.group_limit.json` |
 | 422 | `validation_failed` | `error.json` | `groups.create.validation_failed.json` |
 | 403 | `adult_required` | `error.json` | `groups.create.adult_required.json` |
+| 403 | `plus_required` | `error.json` | `groups.create.plus_required.json` |
 
 #### `groups.show`
 
@@ -3483,6 +3574,7 @@ offers Reset link). A member never sees it. **Request:** none.
 |---|---|---|---|
 | 201 |  | `group.link.json` | `groups.link.create.201.json` |
 | 403 | `director_only` | `error.json` | `groups.link.create.director_only.json` |
+| 403 | `plus_required` | `error.json` | `groups.link.create.plus_required.json` |
 
 #### `groups.join.show`
 
@@ -3505,6 +3597,7 @@ Join, signed in, with `{ "adult": true }` the first time. Already a member: the 
 | 403 | `group_full` | `error.json` | `groups.join.group_full.json` |
 | 404 | `not_found` | `error.json` | `groups.join.not_found.json` |
 | 403 | `adult_required` | `error.json` | `groups.join.adult_required.json` |
+| 403 | `shared_paused` | `error.json` | `groups.join.shared_paused.json` |
 
 #### `groups.members.delete`
 
@@ -3527,6 +3620,7 @@ it is.
 | 200 |  | `groups.show.json` | `groups.songs.create.200.json` |
 | 403 | `director_only` | `error.json` | `groups.songs.create.director_only.json` |
 | 404 | `not_found` | `error.json` | `groups.songs.create.not_found.json` |
+| 403 | `plus_required` | `error.json` | `groups.songs.create.plus_required.json` |
 
 #### `groups.tracks.create`
 
@@ -3622,6 +3716,7 @@ one part of a song.
 | 403 | `director_only` | `error.json` | `groups.assignments.update.director_only.json` |
 | 422 | `validation_failed` | `error.json` | `groups.assignments.update.validation_failed.json` |
 | 404 | `not_found` | `error.json` | `groups.assignments.update.not_found.json` |
+| 403 | `plus_required` | `error.json` | `groups.assignments.update.plus_required.json` |
 
 ### Coaching, without the directory (M8)
 
@@ -6287,6 +6382,19 @@ subscription starts (any store): the app doesn't send it.
 | 204 | | | |
 | 422 | `validation_failed` | `error.json` | `counts.create.validation_failed.json` |
 
+#### `live.beat`
+
+The app's and the public pages' heartbeat for Admin > Live (docs/realtime-dashboard-plan.md): every 30 seconds while
+visible, and on each screen change with `view: true`. No ID, no session and no cookie of its own, no CSRF token: as
+`counts.create`, it's always a quiet 204, a crawler's or a malformed beat (an unknown area, a bad page name) counts nothing,
+and past its limit nothing is counted. Staff devices are counted apart (`admin.live.show?admins=1`); admin and the
+styleguide never beat. **Request:** `{ "area": "courses|studio|app|site|tools", "page": "lesson", "view": true }`
+(`page`: the app's router name, or the public page's own name; `view` optional).
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 204 | | | |
+
 #### `admin.funnel.show`
 
 Admin > Funnel. **Request:** `?experiment=onb1`, or none: every device over `?days=7`, `30` (the
@@ -6481,6 +6589,32 @@ Counts under 5 are shown as they are; the page draws no percentage on them.
 | Status | Code | Schema | Example |
 |---|---|---|---|
 | 200 | | `admin.revenue.show.json` | `admin.revenue.show.200.json` |
+
+`ifAllConvert` is today's MRR and ARR if every web trial running now (not cancelling) goes on to pay, per currency
+(Admin > Live).
+
+#### `admin.live.show`
+
+Admin > Numbers > Live's "right now" (docs/realtime-dashboard-plan.md; Hillel: "Allow, cache only"), polled every
+`refreshSeconds` while in view: `now.signedIn` is accounts with a session active in the last 2 minutes, `now.guests` the
+last whole minute's beats (`live.beat`) / 2 less those, `views.perMinute` the page views of each of the last 30 minutes
+(this one so far last), and `areas` each area's people now, views in 30 minutes and top 3 pages, busiest first. Numbers
+only, from counts held in cache for half an hour, never stored. **Request:** `?admins=1` counts staff too.
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 200 | | `admin.live.show.json` | `admin.live.show.200.json` |
+
+#### `admin.pulse.show`
+
+Admin > Live's slower half, every minute: active singers (as `admin.active.show`, with `change` from the 7 days before
+and 12 weekly points), the last 24 hours' sign-ups (the five steps reached, from each account's tried features; sign-ups
+by the hour; the new accounts as Admin > People shows them; and sources as totals only, Hillel's "Totals only"), and the
+day's activity counts. **Request:** none.
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 200 | | `admin.pulse.show.json` | `admin.pulse.show.200.json` |
 
 #### `admin.cohorts.show`
 

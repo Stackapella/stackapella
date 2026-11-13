@@ -1,7 +1,7 @@
 // The Plus courses (js/courses.js): each course's own progress, the gates (staff before launch,
 // lesson 1 free, units by stars), merging two devices, restarting one course, and the course files
 // themselves (every lesson id unique, prefixed, and shaped like the free course's).
-import { courseLessons, courseOf, courseSummary, courseView, courseVisible, guestLesson, GUEST_LESSONS, lessonAccess, lessonAfter, mergeCourses, nextInCourse, recordCourseLesson, restartedCourseProgress } from '/js/courses.js';
+import { courseLessons, courseOf, courseSummary, courseView, courseVisible, FREE_COURSE, guestLesson, GUEST_LESSONS, lessonAccess, lessonAfter, mergeCourses, nextInCourse, recordCourseLesson, restartedCourseProgress } from '/js/courses.js';
 import { emptyProgress, mergeProgress, recordLesson } from '/js/course.js';
 import { stepOf } from '/js/lesson-steps.js';
 import { partsFor, validateTemplate } from '/js/templates.js';
@@ -228,5 +228,21 @@ test('plus courses: a record step\'s own song (courseSong) is a valid song, with
             const keys = partsFor(song, step.singers).map((p) => p.key);
             assert(step.part === 'all' || [step.part].flat().every((k) => keys.includes(k)), `${step.courseSong}: ${step.part} is sung by ${step.singers} singers (${keys})`);
         }
+    }
+});
+
+test('courses: wall2 arm b lets a guest sing the free course\'s first three lessons, and only the free course\'s', async () => {
+    const { keptArm, WALL2_GUEST_LESSONS } = await import('/js/experiments.js');
+    const free = { id: FREE_COURSE, units: [{ id: 'u1', lessons: [{ id: 'f-1' }, { id: 'f-2' }, { id: 'f-3' }, { id: 'f-4' }] }] };
+    const before = sessionStorage.getItem('stackapella.experimentPreview');
+    try {
+        sessionStorage.removeItem('stackapella.experimentPreview');
+        assert(keptArm('wall2') === null && guestLesson(free, 'f-1') && !guestLesson(free, 'f-2'), 'outside wall2: the wall before lesson 2');
+        sessionStorage.setItem('stackapella.experimentPreview', 'wall2-b');
+        assert(WALL2_GUEST_LESSONS === 3 && guestLesson(free, 'f-3') && !guestLesson(free, 'f-4'), 'arm b: the wall before lesson 4');
+        assert(guestLesson(course, 'vib-a') && !guestLesson(course, 'vib-b'), 'a Plus course keeps the wall after its first lesson');
+    } finally {
+        if (before === null) sessionStorage.removeItem('stackapella.experimentPreview');
+        else sessionStorage.setItem('stackapella.experimentPreview', before);
     }
 });

@@ -25,6 +25,7 @@ final class TracksRequestTest extends TestCase
     {
         $director = User::factory()->create(['name' => 'Ana Ruiz', 'email' => 'ana@example.com'])->fresh() ?? throw new \RuntimeException('no user');
         $this->actingAs($director);
+        $this->withPlus();
         $group = (string) $this->postJson('/api/groups', ['name' => 'Thursday Singers', 'adult' => true])->assertCreated()->json('data.id');
 
         // The rights tick is required, and only the two kinds of piece stage 1 takes.
@@ -70,6 +71,7 @@ final class TracksRequestTest extends TestCase
     {
         $director = User::factory()->create()->fresh() ?? throw new \RuntimeException('no user');
         $this->actingAs($director);
+        $this->withPlus();
         $group = (string) $this->postJson('/api/groups', ['name' => 'Thursday Singers', 'adult' => true])->assertCreated()->json('data.id');
         $token = Str::afterLast((string) $this->postJson('/api/groups/'.$group.'/link')->assertCreated()->json('data.url'), '/choir/');
 

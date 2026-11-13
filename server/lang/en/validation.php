@@ -300,4 +300,5 @@ return [
     'experiment_arms' => 'Arms a and b (and c), in order, with weights adding up to 100.',
     'board_month_version' => 'This month\'s board is the current arrangement\'s only.',
 
+    'correction_reject_note' => 'Say why it is rejected.',
 ];

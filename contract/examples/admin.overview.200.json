@@ -30,6 +30,9 @@
         },
         "timezone": "UTC",
         "songsNotSynced": [],
-        "sitemapProblems": []
+        "sitemapProblems": [],
+        "corrections": {
+            "new": 3
+        }
     }
 }

@@ -15,6 +15,7 @@ import { reactive, watch } from 'vue';
 import { account } from './stores/account.js';
 import { learning } from './stores/learning.js';
 import { local, session as tabStorage } from './storage.js';
+import { GUEST_LESSONS, setFreeGuestLessons } from './courses.js';
 
 const KEPT = 'stackapella.experiments'; // { "<id>": "<arm>" | "-" (kept out) }
 const CONFIG = 'stackapella.experimentsConfig'; // the last auth.config's running experiments
@@ -26,7 +27,7 @@ const OUT = '-';
 const WEEK = 7 * 86400000;
 const PHONE_WIDTH = 640;
 
-const state = reactive({ late: false });
+const state = reactive({ late: false, drawn: 0 }); // drawn: bumped at each draw, so keptArm's readers update
 setTimeout(() => (state.late = true), WAIT_MS);
 
 function readJson(key, store = local) {
@@ -111,11 +112,30 @@ export function experiment(id) {
     const { arm, keep } = decide(found, { kept, facts: facts(), random: random() });
     if (keep) {
         local.set(KEPT, JSON.stringify({ ...kept, [id]: keep }));
+        state.drawn += 1;
         // Drawn into an arm: its denominator, counted once (js/usage.js; loaded late, as usage needs this module).
         if (keep !== OUT) import('./usage.js').then((usage) => usage.countEnrol(`${id}-${keep}`), (error) => console.info('Enrolment not counted', error?.message ?? error));
     }
     return { arm, ready: true, preview: false };
 }
+
+/**
+ * This device's arm in experiment `id` if it already has one (or previews one), never drawing: for a screen that differs
+ * by an arm drawn elsewhere (wall2, drawn at lesson 1's end, moves the wall on Home, the map and the lessons).
+ */
+export function keptArm(id) {
+    void state.drawn;
+    const preview = tabStorage.get(PREVIEW);
+    if (preview?.startsWith(`${id}-`)) return preview.slice(id.length + 1);
+    if (!(running() ?? []).some((e) => e.id === id)) return null;
+    const arm = (readJson(KEPT) ?? {})[id];
+    return arm && arm !== OUT ? arm : null;
+}
+
+// wall2 (docs/improvement-log.md row 12): arm b lets a guest sing the free course's lessons 1.2 and 1.3 too, the wall
+// before 1.4, after the first session's three wins. Plus and song courses keep the wall after their first lesson.
+export const WALL2_GUEST_LESSONS = 3;
+setFreeGuestLessons(() => (keptArm('wall2') === 'b' ? WALL2_GUEST_LESSONS : GUEST_LESSONS));
 
 /** The config was too slow: the control for this visit, and not enrolled (nothing kept, nothing counted). */
 function lateFor(id) {

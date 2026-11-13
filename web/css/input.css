@@ -1412,8 +1412,21 @@ select:disabled {
     .s-hero-home [data-player]:not([data-played]):not([data-loading]):not([data-playing]) .s-play::after { animation: none; }
 }
 /* Play and the tune's two buttons do something only with the script: hidden until it's ready. */
-[data-player]:has(> [data-song]):not([data-ready]) :is([data-play], [data-set]) { visibility: hidden; }
+[data-player]:has(> [data-song]):not([data-ready]) :is([data-play], [data-set], [data-hear-parts]) { visibility: hidden; }
 .s-channels { display: grid; gap: 6px; }
+/* The mixer's Hear row (a singer: "on a phone, it was hard to figure out how to change to listen to one part or another"):
+   a line saying what it does, then All parts and each part as chips, 44 px tall, wrapping whole chips at 320 px, the one
+   you hear ringed. */
+/* The chip row's box (its own name: the landing's Hear four voices button is .s-hear). */
+.s-hear-parts { display: grid; gap: 8px; margin-top: 12px; }
+.s-hear-k { font-size: 13.5px; font-weight: 600; color: var(--color-muted); }
+.s-hear-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.s-hear-l { font-size: 14px; font-weight: 800; margin-inline-end: 2px; }
+.s-hear-chip { display: inline-flex; align-items: center; gap: 7px; min-height: 44px; padding-inline: 14px; border-radius: 999px; background: var(--color-raised); font-size: 14.5px; font-weight: 700; white-space: nowrap; color: var(--color-cream); transition: box-shadow .15s, background .15s; }
+.s-hear-chip i { width: 8px; height: 8px; border-radius: 50%; background: var(--c); }
+.s-hear-chip:hover { box-shadow: inset 0 0 0 1px var(--color-line); }
+.s-hear-chip[aria-pressed="true"] { background: var(--color-panel); box-shadow: inset 0 0 0 2px var(--color-cream); }
+@media (max-width: 380px) { .s-hear-chip { padding-inline: 11px; font-size: 14px; } }
 .s-ch { position: relative; display: grid; grid-template-columns: 40px minmax(0, 1fr) 30px; grid-template-areas: "disc name state" "disc wave wave"; column-gap: 12px; row-gap: 4px; align-items: center; text-align: start; padding-block: 9px; padding-inline: 10px 12px; border-radius: 18px; background: var(--color-raised); overflow: hidden; transition: background .2s; min-height: 62px; width: 100%; cursor: pointer; }
 .s-ch:disabled { cursor: default; }
 .s-ch::before { content: ''; position: absolute; inset: 0; background: radial-gradient(circle 46px at 30px 50%, color-mix(in srgb, var(--c) 18%, transparent), transparent); pointer-events: none; transition: opacity .2s; }
@@ -1617,6 +1630,12 @@ select:disabled {
     .s-top:has(> .s-lang) .s-brand .s-word { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 }
 
+/* From 360 to 389 px the name, Open the app and the menu all fit, but only just: the button a little narrower keeps the
+   name clear of it (the fresh-eyes check, 2026-11-13: "Open the app nearly touches the logo"). */
+@media (min-width: 360px) and (max-width: 389px) {
+    .s-top > .btn-primary { padding-inline: 16px; }
+}
+
 @media (max-width: 359px) {
     .s-brand .s-word { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
     .s-rv-slots span { font-size: 0; gap: 0; }
@@ -1681,6 +1700,12 @@ select:disabled {
     .s-letter div + div > p:first-child { margin-top: 0; }
     .s-final { margin-top: 112px; padding: 72px 40px; }
     .s-foot-grid { grid-template-columns: 2fr 5fr; gap: 48px; }
+}
+/* Another language's nav is longer (Spanish: Canciones, Cursos, Herramientas, Precios) and its language button joins the
+   row, so at 900 the row ran 33 px into the margin: there the phone header holds until 960. */
+@media (min-width: 900px) and (max-width: 959.98px) {
+    :root:not(:lang(en)) :is(.s-nav, .s-top > [data-theme-toggle]) { display: none; }
+    :root:not(:lang(en)) .s-top > .s-menu { display: block; }
 }
 
 /* Reduced motion: nothing glides, glows or travels along the line; the words and notes still
@@ -1930,6 +1955,119 @@ select:disabled {
 .s-verse-big { font-size: clamp(22px, 5.6vw, 32px); line-height: 1.35; font-weight: 700; letter-spacing: -0.01em; text-wrap: balance; }
 .s-verse-big span { display: block; }
 .s-verse-big span:nth-child(n + 3) { color: var(--color-muted); }
+/* A song's page (public/song.blade.php; Hillel's Danny Boy design, "Responsive wrapping fixes"): the hero in the palette
+   of the page that collects it (s-tone-<key>, its own when none does), "Find your part" cards, every verse a sung line a
+   line with a hanging indent, then its story (public/_song-story) in a reading column with its contents beside it. */
+.s-tone-song { --tb: #211B17; --ta: #F0B36A; --tm: #D3C7B8; --tl: #2E2620; --primary: #F0B36A; --primary-ink: #211B17; }
+.s-tone-song { --dot: #9A9085; }
+.s-sg-hero h1 { font-size: clamp(46px, 9vw, 96px); }
+.s-sg-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+.s-sg-chips li { padding: 5px 12px; border-radius: 999px; font-size: 13.5px; font-weight: 650; line-height: 1.3; box-shadow: inset 0 0 0 1px rgba(247, 241, 230, .3); }
+.s-sg-chips .s-sg-chip-free { background: var(--ta); color: var(--tb); box-shadow: none; }
+.s-sg-hero .s-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.s-sg-hero .s-actions .btn-lg { white-space: nowrap; }
+.s-sg-note { margin-top: 12px; font-size: 14px; color: var(--color-muted); }
+.s-sg-mix { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 12px 16px; margin-top: 22px; }
+.s-sg-mix-play { flex: 1 1 280px; min-width: 0; max-width: 420px; }
+/* A fixed height, nothing preloaded: the player never moves the page as it loads. */
+.s-sg-mix audio { display: block; width: 100%; height: 54px; border-radius: 999px; }
+.s-sg-mix-credit { margin-top: 8px; font-size: 13.5px; line-height: 1.45; color: var(--color-muted); }
+.s-sg-mix-cta { white-space: nowrap; }
+.s-sg-parts { scroll-margin-top: 16px; }
+.s-sg-head { display: grid; gap: 4px; }
+@media (min-width: 900px) { .s-sg-head { grid-template-columns: minmax(0, 1fr) minmax(0, 26em); align-items: end; gap: 32px; } }
+.s-sg-cards { display: grid; gap: 14px; margin-top: 28px; }
+@media (min-width: 600px) { .s-sg-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (min-width: 1024px) { .s-sg-cards-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); } .s-sg-cards-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+.s-sg-card { position: relative; display: flex; flex-direction: column; gap: 8px; padding: 20px 20px 18px; border-radius: 20px; background: var(--color-panel); border: 2px solid var(--color-line); transition: border-color .15s; }
+.s-sg-card[data-picked] { border-color: var(--c); }
+.s-sg-card:has(.s-sg-pick:hover):not([data-picked]) { border-color: color-mix(in srgb, var(--c) 50%, var(--color-line)); }
+.s-sg-pick { position: absolute; inset: 0; z-index: 1; border-radius: 18px; cursor: pointer; }
+.s-sg-pick:focus-visible { outline: 3px solid var(--c); outline-offset: 2px; }
+.s-sg-card-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.s-sg-card .s-disc { width: 34px; height: 34px; font-size: 15px; }
+.s-sg-tag { font-size: 12px; font-weight: 750; letter-spacing: .04em; color: var(--ci); }
+.s-sg-card h3 { margin-top: 6px; font-size: 22px; line-height: 1.15; font-weight: 800; letter-spacing: -0.01em; }
+.s-sg-range { font-size: 14px; font-weight: 600; color: var(--color-muted); }
+.s-sg-bar { position: relative; display: block; height: 8px; margin-block: 6px 4px; border-radius: 99px; background: var(--color-raised); }
+.s-sg-bar i { position: absolute; inset-block: 0; left: var(--lo); width: calc(var(--hi) - var(--lo)); min-width: 10px; border-radius: 99px; background: var(--c); }
+.s-sg-part-note { font-size: 15px; line-height: 1.5; color: var(--color-muted); }
+.s-sg-voice { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; margin-top: auto; padding-top: 10px; font-size: 14px; color: var(--color-muted); }
+.s-sg-voice b { font-weight: 750; color: var(--color-cream); }
+.s-sg-voice .s-lk, .s-sg-voices-note .s-lk { position: relative; z-index: 2; }
+.s-spart-be { margin-top: 16px; font-size: 14.5px; line-height: 1.55; color: var(--color-muted); }
+.s-spart-be > .s-lk:first-child { display: inline-block; margin-bottom: 4px; }
+.s-sg-voices-note { margin-top: 18px; max-width: 60em; font-size: 14.5px; line-height: 1.55; color: var(--color-muted); }
+.s-sg-card-foot { margin-top: 0; padding-top: 10px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 12px; font-size: 14.5px; }
+.s-sg-card-foot .s-lk { position: relative; z-index: 2; }
+.s-sg-yours { font-size: 12.5px; font-weight: 750; letter-spacing: .08em; text-transform: uppercase; color: var(--ci); }
+/* "Your part" on the picked card; "Pick this part" on the others once the script can pick (it shows the buttons). */
+.s-sg-yours > span { display: none; }
+.s-sg-card[data-picked] .s-sg-yours > span:first-child { display: inline; }
+.s-sg-card:not([data-picked]):has(.s-sg-pick:not([hidden])) .s-sg-yours > span:last-child { display: inline; }
+.s-sg-words-in { display: grid; gap: 24px; }
+@media (min-width: 900px) { .s-sg-words-in { grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: 48px; } }
+.s-sg-lyrics { display: grid; gap: 26px; font-size: clamp(20px, 4.6vw, 28px); line-height: 1.38; font-weight: 650; letter-spacing: -0.005em; }
+/* One sung line a line: a long one wraps under itself, indented, so it never reads as the next line (every width); its
+   script above it (Hebrew right to left, its own line) and its meaning under it, smaller and muted, each wrapping so. */
+.s-sg-line, .s-sg-line > span { display: block; }
+.s-sg-line > span { padding-inline-start: 1.1em; text-indent: -1.1em; }
+.s-sg-line + .s-sg-line { margin-top: 8px; }
+.s-sg-script { font-size: .92em; }
+.s-sg-meaning { margin-top: 2px; font-size: 16px; line-height: 1.45; font-weight: 500; letter-spacing: 0; color: var(--color-muted); }
+[data-meaning-hidden] .s-sg-meaning { display: none; }
+.s-sg-meaning-toggle { margin-bottom: 18px; white-space: nowrap; }
+.s-sg-label { display: block; margin-bottom: 6px; font-size: 13px; line-height: 1.3; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--color-muted); }
+.s-sg-words-intro { margin-bottom: 22px; font-size: 16px; }
+/* A long song's further stanzas, folded under Show all verses (a details element); once open, the button goes. */
+.s-sg-more > summary { width: fit-content; list-style: none; cursor: pointer; white-space: nowrap; font-size: 16px; letter-spacing: 0; }
+.s-sg-more > summary::-webkit-details-marker { display: none; }
+.s-sg-more[open] > summary { display: none; }
+.s-sg-next { display: grid; gap: 12px; margin-top: 24px; }
+@media (min-width: 900px) { .s-sg-next { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.s-sg-next a { display: grid; gap: 6px; height: 100%; padding: 18px 20px; border-radius: 18px; background: var(--color-panel); border: 1px solid var(--color-line); transition: border-color .15s; }
+.s-sg-next a:hover { border-color: var(--color-cream); }
+.s-sg-next b { font-size: 18px; font-weight: 800; }
+.s-sg-next span { font-size: 15px; line-height: 1.5; color: var(--color-muted); }
+.s-sst-grid { display: grid; gap: 28px; margin-top: 28px; }
+@media (min-width: 1024px) { .s-sst-grid { grid-template-columns: 220px minmax(0, 46em); gap: 56px; } .s-sst-toc { position: sticky; top: 24px; align-self: start; } }
+.s-sst-toc ol { display: grid; gap: 2px; margin-top: 10px; }
+.s-sst-toc a { display: block; padding-block: 8px; font-size: 15px; font-weight: 600; color: var(--color-muted); text-decoration: none; }
+.s-sst-toc a:hover { color: var(--color-cream); text-decoration: underline; text-underline-offset: 4px; }
+@media (max-width: 1023px) { .s-sst-toc { padding: 16px 20px; border-radius: 18px; background: var(--color-panel); border: 1px solid var(--color-line); } .s-sst-toc a { padding-block: 6px; } }
+.s-sst-main { min-width: 0; }
+.s-sst .s-prose a { text-decoration: underline; text-underline-offset: 3px; }
+.s-sst .s-cite a { color: var(--color-accent); text-decoration: none; padding-inline: 1px; }
+.s-sst-quote { margin-top: 28px; padding: 22px 24px; border-radius: 20px; background: var(--color-panel); border: 1px solid var(--color-line); }
+.s-sst-quote p { font-family: ui-serif, 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, serif; font-style: italic; font-size: clamp(20px, 4.4vw, 24px); line-height: 1.4; }
+.s-sst-quote p::before { content: "\201C"; } .s-sst-quote p::after { content: "\201D"; }
+.s-sst-facts { margin-top: 28px; padding: 20px 22px; border-radius: 20px; background: var(--color-panel); border: 1px solid var(--color-line); }
+.s-sst-facts dl { display: grid; gap: 12px; margin-top: 12px; }
+.s-sst-facts dl > div { display: grid; gap: 2px; }
+@media (min-width: 600px) { .s-sst-facts dl > div { grid-template-columns: 11em minmax(0, 1fr); gap: 16px; } }
+.s-sst-facts dt { font-size: 14px; font-weight: 700; color: var(--color-muted); }
+.s-sst-facts dd { font-size: 15.5px; line-height: 1.5; }
+.s-sst-sec { margin-top: 48px; scroll-margin-top: 24px; }
+.s-sst-sec > h3 { margin-bottom: 14px; font-size: clamp(22px, 5vw, 28px); line-height: 1.2; font-weight: 800; letter-spacing: -0.015em; }
+.s-sst-tl-h { margin-top: 28px; }
+.s-sst-tl { margin-top: 10px; border-top: 1px solid var(--color-line); }
+.s-sst-tl li { display: grid; grid-template-columns: 5.5em minmax(0, 1fr); gap: 16px; padding-block: 14px; border-bottom: 1px solid var(--color-line); font-size: 16px; line-height: 1.55; }
+.s-sst-tl b { font-size: 20px; line-height: 1.25; font-weight: 700; color: var(--color-part-ink-2); }
+@media (max-width: 599px) { .s-sst-tl li { grid-template-columns: minmax(0, 1fr); gap: 2px; } }
+.s-sst-dyk { display: grid; gap: 12px; }
+.s-sst-dyk li { padding: 16px 18px; border-radius: 16px; background: var(--color-panel); border: 1px solid var(--color-line); font-size: 16px; line-height: 1.55; }
+.s-sst-qs { display: grid; gap: 22px; }
+.s-sst-q h4 { font-size: 18px; line-height: 1.35; font-weight: 750; margin-bottom: 6px; }
+.s-sst-checked { font-size: 14.5px; color: var(--color-muted); }
+.s-sst-src { display: grid; gap: 10px; margin-top: 14px; padding-inline-start: 1.6em; list-style: decimal; font-size: 14.5px; line-height: 1.55; color: var(--color-muted); }
+.s-sst-src li { scroll-margin-top: 24px; overflow-wrap: anywhere; }
+.s-sst-src li:target { color: var(--color-cream); }
+.s-sst-listen { display: grid; gap: 8px; margin-top: 10px; }
+.s-fig { margin-block: 24px; }
+/* Never cropped: a printed page keeps its own shape (its width and height), at most most of a screen tall. */
+.s-fig img { display: block; width: 100%; height: auto; max-height: 80vh; object-fit: contain; border-radius: 14px; background: var(--color-raised); }
+.s-fig figcaption { display: grid; gap: 4px; margin-top: 10px; font-size: 14px; line-height: 1.5; color: var(--color-muted); }
+.s-fig-cap { color: var(--color-cream); }
 .s-more-songs { margin-top: 20px; }
 .s-range { margin-top: 4px; }
 .s-range-scale, .s-range-row { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 12px; }
@@ -2608,6 +2746,7 @@ a.s-vt-rung:hover { background: color-mix(in srgb, var(--color-cream) 5%, transp
 .s-xfilter-seg button[aria-pressed="true"] { background: var(--color-panel); box-shadow: inset 0 0 0 2px var(--color-cream); }
 .s-xfilter-menu { display: none; min-height: 44px; padding: 0 36px 0 16px; border-radius: 999px; background: var(--color-raised); color: var(--color-cream); font-size: 16px; font-weight: 700; }
 @media (max-width: 639px) { .s-xfilter-seg { display: none; } .s-xfilter-menu { display: block; } }
+.s-xparts-hint { margin-bottom: 14px; font-size: 14px; font-weight: 600; color: var(--color-muted); }
 .s-xcards { display: grid; gap: 20px; }
 /* Two across from 600 px, three from 900, never more (Hillel, 2026-11-12: "keep it to 3 songs per row"). When three would
    leave one card alone on the last row (7, 10, 13, 16), the last four sit two and two (s-xcards-tail, the songbook's count
@@ -2694,6 +2833,10 @@ a.s-vt-rung:hover { background: color-mix(in srgb, var(--color-cream) 5%, transp
 .s-tone-sea-shanties { --tb: #0D3340; --ta: #F0D9A8; --tm: #BFDCD6; --tl: #164658; --primary: #F0D9A8; --primary-ink: #0D3340; }
 .s-tone-rounds { --tb: #3A2416; --ta: #FFB45C; --tm: #E6D3C2; --tl: #4D3221; --primary: #FFB45C; --primary-ink: #3A2416; }
 .s-tone-jewish-songs { --tb: #1B2D63; --ta: #F3D27A; --tm: #CDD6EF; --tl: #283F82; --primary: #F3D27A; --primary-ink: #1B2D63; }
+.s-tone-scottish-songs { --tb: #3F3159; --ta: #E9B9E6; --tm: #DCD2E6; --tl: #4E3F6B; --primary: #E9B9E6; --primary-ink: #3F3159; }
+.s-tone-shaker-songs { --tb: #35485A; --ta: #F4CF8A; --tm: #DCE3EA; --tl: #43586B; --primary: #F4CF8A; --primary-ink: #35485A; }
+.s-tone-thanksgiving-hymns { --tb: #4A3006; --ta: #F6A75E; --tm: #EBDCC2; --tl: #5C3E0F; --primary: #F6A75E; --primary-ink: #4A3006; }
+.s-tone-villancicos { --tb: #551D08; --ta: #F7C24A; --tm: #EED5C6; --tl: #692A12; --primary: #F7C24A; --primary-ink: #551D08; }
 .s-tone-folk-songs { --tb: #2F3B21; --ta: #E9A27A; --tm: #D6DCC8; --tl: #3E4D2C; --primary: #E9A27A; --primary-ink: #2F3B21; }
 .s-tone-barbershop-songs { --tb: #3A1420; --ta: #E8C26A; --tm: #EAD3D7; --tl: #4E1C2B; --primary: #E8C26A; --primary-ink: #3A1420; }
 /* The Jewish songs page's countdown to its next festival (site/collection, JewishSongs::festival): a card on its hero. */
@@ -2737,6 +2880,16 @@ a.s-vt-rung:hover { background: color-mix(in srgb, var(--color-cream) 5%, transp
 .s-hk [data-unlit] .s-hk-flame, .s-hk .s-hk-game { display: none; }
 :root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-hk .s-hk-serious { display: none; }
 :root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-hk .s-hk-game { display: inline; }
+/* A collection's whole object (App\Support\Pages\Motif: the thistle, the star lantern, the wheat sheaf): a lamp-sized
+   drawing at its own size beside the heading, not a band sliced to the edge. The hero's words start lower, so the object
+   is clear of the heading between phone and desktop. Game mode draws its pixel version. */
+.s-tone-motif.s-obj { top: 12px; right: clamp(16px, 4vw, 56px); width: auto; height: 96px; opacity: .94; }
+.s-obj .s-obj-game { display: none; }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-obj .s-obj-serious { display: none; }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-obj .s-obj-game { display: inline; }
+@media (max-width: 639px) { .s-xhero.s-tone .s-tone-motif.s-obj { top: 10px; height: 72px; } }
+@media (min-width: 640px) and (max-width: 899px) { .s-xhero.s-tone:has(.s-obj) .s-xhero-in { padding-top: 132px; } }
+@media (min-width: 900px) { .s-xhero.s-tone:has(.s-obj) .s-xhero-in { padding-top: 88px; } }
 /* /songs (public/songs, SongsHub): the promise and the swatches, the season's band, the panels, then every song. */
 .s-sh-hero { display: grid; gap: 28px; padding-top: 32px; }
 .s-sh-hero h1 { margin-top: 10px; font-size: clamp(36px, 9vw, 60px); line-height: 1.04; letter-spacing: -.025em; }
@@ -2763,6 +2916,10 @@ a.s-vt-rung:hover { background: color-mix(in srgb, var(--color-cream) 5%, transp
 .s-tone-sea-shanties { --dot: #1E8C8C; }
 .s-tone-rounds { --dot: #E0891E; }
 .s-tone-jewish-songs { --dot: #3E5FC4; }
+.s-tone-scottish-songs { --dot: #B24FC0; }
+.s-tone-villancicos { --dot: #E2602A; }
+.s-tone-thanksgiving-hymns { --dot: #B98A2A; }
+.s-tone-shaker-songs { --dot: #4F8A9E; }
 .s-tone-folk-songs { --dot: #6E8B3D; }
 .s-tone-barbershop-songs { --dot: #B0304A; }
 .s-tone-other { --dot: #9A9085; }
@@ -2808,6 +2965,7 @@ a.s-vt-rung:hover { background: color-mix(in srgb, var(--color-cream) 5%, transp
 /* Inset from the corners, so no rounded corner cuts it. */
 .s-sh-panel .s-tone-motif { top: 10px; right: 22px; width: calc(100% - 44px); height: 30px; }
 .s-sh-panel .s-tone-motif.s-hk { top: 8px; right: 22px; width: auto; height: 44px; aspect-ratio: 240 / 152; opacity: .94; }
+.s-sh-panel .s-tone-motif.s-obj { top: 8px; right: 22px; width: auto; height: 44px; }
 .s-sh-panel-in { position: relative; z-index: 1; padding: 44px 20px 20px; }
 .s-sh-panel-top { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
 .s-sh-panel h3 { font-size: clamp(24px, 6vw, 30px); line-height: 1.1; letter-spacing: -.02em; }
@@ -2864,7 +3022,7 @@ a.s-vt-rung:hover { background: color-mix(in srgb, var(--color-cream) 5%, transp
     .s-sh-season .s-xsnow { -webkit-mask-image: linear-gradient(to right, transparent 0 42%, #000 58%); mask-image: linear-gradient(to right, transparent 0 42%, #000 58%); }
     .s-sh-flip .s-tone-motif { right: auto; left: 0; transform: scaleX(-1); }
     /* The lamp is never mirrored: night 1's candle stays on the right as you face it. */
-    .s-sh-flip .s-tone-motif.s-hk { right: auto; left: 22px; transform: none; }
+    .s-sh-flip .s-tone-motif.s-obj { right: auto; left: 22px; transform: none; }
     .s-sh-words { align-self: end; }
     .s-sh-all { align-self: start; }
     .s-sh-letters { columns: 4; }
@@ -8426,7 +8584,7 @@ a.s-vt-rung:hover { background: color-mix(in srgb, var(--color-cream) 5%, transp
 .s-stage { display: grid; gap: 10px; padding: 16px; border-radius: 16px; background: var(--color-panel); border: 1px solid var(--color-line); }
 .s-stage-n { font-family: var(--a-hud); font-size: 9px; letter-spacing: .06em; text-transform: uppercase; color: var(--a-pink); }
 .s-stage b { font-size: 16px; font-weight: 800; line-height: 1.25; }
-.s-stage-foot { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 13px; color: var(--color-muted); }
+.s-stage-foot { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 4px 8px; font-size: 13px; color: var(--color-muted); }
 .s-tag-plus { color: var(--a-pink); }
 .s-badges span { display: inline-flex; align-items: center; gap: 10px; min-height: 40px; padding: 4px 16px 4px 8px; border-radius: 99px; background: var(--color-panel); box-shadow: inset 0 0 0 1px var(--color-line); font-weight: 650; font-size: 14px; }
 .s-badges .gem { --gem: var(--c); width: 18px; height: 18px; border-radius: 99px; }
@@ -9722,6 +9880,16 @@ a.s-vt-rung:hover { background: color-mix(in srgb, var(--color-cream) 5%, transp
 :root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-xfilter { flex-wrap: wrap; }
 :root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-xfilter-k { font-family: var(--a-hud); font-size: 10px; font-weight: 400; text-transform: uppercase; }
 :root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-xfilter-seg { gap: 12px; padding: 0 6px 6px 0; background: none; }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-hear-chip { --ct: var(--arc-bg); color: var(--a-ink); transition: none; border-radius: 0; border: var(--arc-frame) solid var(--arc-line); background: var(--arc-well); font-family: var(--a-hud); font-size: 11px; font-weight: 400; text-transform: uppercase; }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-hear-chip:not([class*='s-v']) { --c: var(--a-ink); }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-hear-chip.s-v1 { --ct: var(--color-part-text-1); }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-hear-chip.s-v2 { --ct: var(--color-part-text-2); }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-hear-chip.s-v3 { --ct: var(--color-part-text-3); }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-hear-chip.s-v4 { --ct: var(--color-part-text-4); }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-hear-chip i { width: 10px; height: 10px; border-radius: 0; }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-hear-chip[aria-pressed="true"] { background: var(--c); color: var(--ct); border-color: var(--c); box-shadow: var(--arc-shadow); }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-hear-chip[aria-pressed="true"] i { background: var(--ct); }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-hear-k { font-family: var(--a-hud); font-size: 10px; text-transform: uppercase; }
 :root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-xfilter-seg button { --c: var(--color-cream); --ct: var(--arc-bg); gap: 10px; padding-inline: 16px; border-radius: 0; border: var(--arc-frame) solid var(--arc-line); background: var(--arc-well); font-family: var(--a-hud); font-size: 10px; font-weight: 400; text-transform: uppercase; }
 :root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-xfilter-seg button.s-v1 { --c: var(--color-part-1); --ct: var(--color-part-text-1); }
 :root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-xfilter-seg button.s-v2 { --c: var(--color-part-2); --ct: var(--color-part-text-2); }
@@ -9979,6 +10147,35 @@ a.s-vt-rung:hover { background: color-mix(in srgb, var(--color-cream) 5%, transp
    Theme button and its menu square and framed, the menu's light/dark switch as the arcade's segmented control. */
 :root[data-skin='game'][data-gs] body.s-arcade :is(.s-tmenu > .s-iconbtn, .s-top .s-iconbtn, .s-top .s-langbtn) { border-radius: 0; background: var(--arc-panel); box-shadow: inset 0 0 0 var(--arc-edge-w) var(--arc-purple), var(--arc-shadow); }
 :root[data-skin='game'][data-gs] body.s-arcade .s-lang-panel a { border-radius: 0; }
+/* The header's nav (marketing's header-nav: Songs, Courses, Tools, Pricing) in the HUD's pixel caps, the page you're on
+   underlined in the accent as well as lit (state never by colour alone), and the phone menu a square framed panel on
+   the hard shadow. The pixel caps are wider: from 900 px the row ran 31 px into the page's margin (Spanish too), so
+   game mode keeps the phone header (the menu, no nav row) until 960, and Open the app never shrinks to clip its words. */
+:root[data-skin='game'][data-gs] body.s-arcade .s-nav a { border-radius: 0; font-family: var(--a-hud); font-size: 11px; font-weight: 400; letter-spacing: .04em; text-transform: uppercase; text-decoration-thickness: 3px; text-underline-offset: 9px; }
+:root[data-skin='game'][data-gs] body.s-arcade .s-nav a[aria-current='page'] { text-decoration-color: var(--color-accent); }
+:root[data-skin='game'][data-gs] body.s-arcade .s-menu-panel { border-radius: 0; border: var(--arc-edge-w) solid var(--arc-line); background: var(--arc-panel); box-shadow: var(--arc-shadow); }
+:root[data-skin='game'][data-gs] body.s-arcade .s-menu-panel :is(a, button) { border-radius: 0; }
+:root[data-skin='game'][data-gs] body.s-arcade .s-top > .btn-primary { flex: none; }
+@media (max-width: 359.98px) { :root[data-skin='game'][data-gs] body.s-arcade .s-top > .btn-primary { padding-inline: 8px; font-size: 0.9em; } }
+@media (min-width: 900px) and (max-width: 959.98px) {
+    :root[data-skin='game'][data-gs] body.s-arcade :is(.s-nav, .s-top > [data-theme-toggle]) { display: none; }
+    :root[data-skin='game'][data-gs] body.s-arcade .s-top > .s-menu { display: block; }
+}
+/* Another language's nav is longer in the pixel caps and its language button joins the row (Spanish: 432 px against
+   English's 337), so there the phone header holds until 1152. */
+@media (min-width: 900px) and (max-width: 1151.98px) {
+    :root[data-skin='game'][data-gs]:not(:lang(en)) body.s-arcade :is(.s-nav, .s-top > [data-theme-toggle]) { display: none; }
+    :root[data-skin='game'][data-gs]:not(:lang(en)) body.s-arcade .s-top > .s-menu { display: block; }
+}
+/* The landing's closing heading in another language (Spanish's "encontrarla." is 353 px in the pixel face at 38 px, its
+   phone box 316): sized so a long word fits the row, English untouched. */
+:root[data-skin='game'][data-gs]:not(:lang(en)) body.s-arcade:not(.s-calm) .s-lv2 .s-final h2 { font-size: min(clamp(38px, 10vw, 76px), calc((100vw - 48px) / 9.5)); }
+/* A guide's own pieces (the Hanukkah guide, 2026-11-12: its song's mixer and numbered steps), on a calm page that keeps its
+   reading type: the mixer is played, so it takes the arcade frame in the accent on the hard shadow, its rows, play
+   block and You tag square (the part gems stay round); each step's number a square block in the HUD face. */
+:root[data-skin='game'][data-gs] body.s-arcade .s-gmixer .s-mixer { border-radius: 0; border: var(--arc-frame) solid var(--color-accent); box-shadow: var(--arc-shadow); }
+:root[data-skin='game'][data-gs] body.s-arcade .s-gmixer :is(.s-ch, .s-ch-pick, .s-play, .s-you) { border-radius: 0; }
+:root[data-skin='game'][data-gs] body.s-arcade .s-gstep .s-disc { border-radius: 0; font-family: var(--a-hud); font-size: 13px; font-weight: 400; }
 :root[data-skin='game'][data-gs] body.s-arcade :is(.s-tmenu-panel, .s-lang-panel) { border-radius: 0; border: var(--arc-edge-w) solid var(--arc-purple); background: var(--arc-panel); box-shadow: var(--arc-shadow); }
 :root[data-skin='game'][data-gs] body.s-arcade .s-tmenu :is(.s-seg2, .s-seg2 button, .s-tmenu-sw) { border-radius: 0; }
 :root[data-skin='game'][data-gs] body.s-arcade .s-tmenu .s-seg2 { background: var(--arc-panel); box-shadow: inset 0 0 0 var(--arc-edge-w) var(--color-cream), var(--arc-shadow); }
@@ -10020,6 +10217,18 @@ a.s-vt-rung:hover { background: color-mix(in srgb, var(--color-cream) 5%, transp
 :root[data-skin='game'][data-gs] body.s-arcade .s-th-mic { box-shadow: inset 0 0 0 1px var(--arc-line); }
 :root[data-skin='game'][data-gs] body.s-arcade .s-th-card { border-radius: 0; border: var(--arc-edge-w) solid var(--color-edge); }
 @media (hover: hover) and (prefers-reduced-motion: no-preference) { :root[data-skin='game'][data-gs] body.s-arcade .s-th-card:hover { box-shadow: 2px 2px 0 var(--arc-shadow-c); } }
+/* The song page with its story on the arcade screen (game's pass, 2026-11-13): its pieces square, the part cards on a hard
+   shadow (the picked one in its part colour), the story's reading text in Figtree under the pixel headings, the
+   timeline's years in the HUD face. */
+:root[data-skin='game'][data-gs] body.s-arcade :is(.s-sg-chips li, .s-sg-card, .s-sg-pick, .s-sg-bar, .s-sg-bar i, .s-sg-next a, .s-sst-toc, .s-sst-quote, .s-sst-facts, .s-sst-dyk li, .s-fig img) { border-radius: 0; }
+:root[data-skin='game'][data-gs] body.s-arcade .s-sg-card { box-shadow: 4px 4px 0 var(--arc-shadow-c); }
+:root[data-skin='game'][data-gs] body.s-arcade .s-sg-card[data-picked] { box-shadow: 4px 4px 0 var(--c); }
+:root[data-skin='game'][data-gs] body.s-arcade .s-sst-main :is(p, li, blockquote, figcaption, dd, dt) { font-family: "Figtree", system-ui, sans-serif; font-size-adjust: none; font-synthesis-weight: auto; }
+:root[data-skin='game'][data-gs] body.s-arcade .s-sst-tl b { font-family: var(--a-hud); font-style: normal; font-weight: 400; font-size: 14px; line-height: 1.6; }
+/* Its words band: the sung lines stay in the screen face (they're sung, as Sing's line is); the intro and each line's
+   meaning are read, so they take the calm face; a stanza's label (VERSE 1, CHORUS) is the HUD's. */
+:root[data-skin='game'][data-gs] body.s-arcade :is(.s-sg-words-intro, .s-sg-meaning) { font-family: "Figtree", system-ui, sans-serif; font-size-adjust: none; font-synthesis-weight: auto; }
+:root[data-skin='game'][data-gs] body.s-arcade .s-sg-label { font-family: var(--a-hud); font-size: 10px; font-weight: 400; letter-spacing: .06em; }
 /* arcade-screen:end */
 /* Game mode's circles are arcade coins (Hillel's pick of two, 2026-11-08; the course map's stages, .ge-map-node, above):
    every bubble that reaches game mode (serious mode's look, docs/bubble-circles-plan.md: the avatars, New song's +, the

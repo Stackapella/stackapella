@@ -28,6 +28,7 @@ final class ListSubmissionsRequest extends FormRequest
             'singer' => ['nullable', 'string', 'max:40'],
             'part' => ['nullable', 'string', Rule::in([...TemplateRules::OFFICIAL_KEYS, ...TemplateRules::BARBERSHOP_KEYS])],
             'cursor' => ['nullable', 'string', 'max:500', new ValidCursor],
+            'groupBy' => ['nullable', Rule::in(['part'])],
         ];
     }
 }

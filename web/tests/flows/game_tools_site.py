@@ -19,7 +19,7 @@ from game_frames import THEMES, pixel_face  # noqa: E402
 
 SITE = sys.argv[1] if len(sys.argv) > 1 else "http://127.0.0.1:8412"
 PAGES = ["/tools", "/tools/tuner", "/tools/metronome", "/tools/vocal-range-test", "/tools/pitch-pipe", "/tools/tuning-forks", "/tools/drone", "/warmups", "/warmups/humming-scale", "/songs/amazing-grace/alto", "/intervals/perfect-fifth", "/chords/major", "/voice-types/alto", "/courses/harmony/steady-notes", "/courses/perfect-your-pitch/scoop-or-clean", "/courses/vibrato/swing-and-settle", "/integrations", "/integrations/invoice-ninja", "/songs", "/songs/amazing-grace", "/compare", "/compare/smule", "/courses/other-languages", "/about", "/for/beginners", "/for/organizations", "/guides", "/guides/what-is-harmony", "/whats-new",
-         "/songs/christmas-carols", "/songs/hymns", "/songs/spirituals", "/songs/sea-shanties", "/songs/rounds", "/songs/folk-songs", "/songs/barbershop-songs", "/songs/jewish-songs"]  # the songbook and collection pages
+         "/songs/christmas-carols", "/songs/hymns", "/songs/spirituals", "/songs/sea-shanties", "/songs/rounds", "/songs/folk-songs", "/songs/barbershop-songs", "/songs/jewish-songs", "/guides/hanukkah-songs-for-choir", "/es/guides/hanukkah-songs-for-choir", "/es/courses", "/es", "/es/songs", "/es/pricing", "/es/tools", "/songs/scottish-songs", "/songs/shaker-songs", "/songs/thanksgiving-hymns", "/songs/villancicos", "/es/songs/villancicos", "/songs/silent-night", "/songs/danny-boy", "/songs/hark-the-herald", "/songs/jingle-bells", "/songs/noche-de-paz", "/songs/maoz-tzur", "/songs/la-paloma"]  # the songbook and collection pages
 STYLE = "getComputedStyle(document.querySelector({sel!r}))"
 # The site server's own folder (this checkout's), whose database says whether the courses are open: the lesson pages
 # exist only for open courses (SitePages::courseOpen), so a run that finds them closed opens them. It never closes them
@@ -134,6 +134,31 @@ def legal_plain(size, width, height):
         f.close()
 
 
+HEADER_FIT = """(() => { const top = document.querySelector('.s-top'); const b = top.querySelector(':scope > .btn-primary');
+    const edge = top.getBoundingClientRect().right - parseFloat(getComputedStyle(top).paddingRight);
+    return { clip: b.scrollWidth - b.clientWidth, over: Math.round(b.getBoundingClientRect().right - edge), sideways: document.documentElement.scrollWidth - document.documentElement.clientWidth }; })()"""
+
+
+def header_fits(skin):
+    """The header's row fits from the nav's breakpoint up, English and Spanish (the game agent's header pass, 2026-11-13: the
+    pixel caps ran 31 px into the margin at 900 and Spanish's 114 px at 960): Open the app whole, nothing past the
+    row's edge or sideways; a page in another language takes the arcade screen as its English page does."""
+    f = flow.Flow(SITE, "desktop", "game_tools_site", skin=skin)
+    try:
+        for path in ("/songs", "/es/courses"):
+            if not listed(path):
+                continue
+            for width in (900, 960, 1024, 1100, 1152, 1280):
+                f.chrome.send("Emulation.setDeviceMetricsOverride", {"width": width, "height": 800, "deviceScaleFactor": 1, "mobile": False})
+                f.go(path, "document.readyState === 'complete' && document.querySelector('.s-top')")
+                fit = f.js(HEADER_FIT)
+                assert fit["clip"] <= 0 and fit["over"] <= 0 and fit["sideways"] <= 0, f"{path} at {width}: the header doesn't fit: {fit}"
+            if skin == "game":
+                assert f.js("document.documentElement.hasAttribute('data-gs')"), f"{path}: not on the arcade screen"
+    finally:
+        f.close()
+
+
 def main():
     if courses_flag() != "on":
         courses_flag("on")
@@ -158,6 +183,13 @@ def main():
                     except AssertionError as error:  # page errors
                         failures.append(f"{path} {skin} {size}: {error}")
                         print(f"FAIL game_tools_site ({path}, {skin}, {size}): {error}")
+    for skin in ("game", "serious"):
+        try:
+            header_fits(skin)
+            print(f"ok   game_tools_site (header fits, {skin})")
+        except Exception as error:  # noqa: BLE001
+            failures.append(f"header {skin}: {error}")
+            print(f"FAIL game_tools_site (header fits, {skin}): {error}")
     for size, width, height in (("phone", 360, 780), ("desktop", 1440, 900)):
         try:
             legal_plain(size, width, height)

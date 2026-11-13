@@ -23,7 +23,7 @@ import { SiteSectionsCard } from './site-sections.js';
 import { FROM_DAYS, PERIODS } from './growth-compare.js';
 import { METRICS as METRIC_NAMES, MetricCard, TrackingPanel } from './growth-cards.js';
 import { HOUR_MARGINS, HourChart } from './growth-chart.js';
-import { COLUMN_MARGINS, ColumnChart, SignUpStrip } from './growth-columns.js';
+import { COLUMN_MARGINS, ColumnChart, CountStrip } from './growth-columns.js';
 
 // Each period's days, for what still reads a day count (the reach chart, and the cards from an older server); 4 weeks and
 // This month read as 30 there, 12 weeks as 84 (the people chart a week at a time).
@@ -75,7 +75,7 @@ export function sortSources(rows, by, rate = false) {
 
 export const OverviewSection = {
     mixins: [remembers('growth', { period: PERIODS, sortBy: Object.keys(COLUMNS) })],
-    components: { LoadFailed, ReachChart, SiteSectionsCard, MetricCard, TrackingPanel, HourChart, ColumnChart, SignUpStrip },
+    components: { LoadFailed, ReachChart, SiteSectionsCard, MetricCard, TrackingPanel, HourChart, ColumnChart, CountStrip },
     props: { me: { type: Object, required: true } },
     data: () => ({ period: 'today', showHow: false, growth: null, sources: null, funnel: null, failed: false, sortBy: 'day2', updatedAt: null, now: Date.now(), refreshing: false, staleSince: null }),
     setup: () => ({ zoneName, PERIODS, PERIOD_NAMES, METRIC_NAMES, FEW, TILES, STEPS, COLUMNS, SHORT, ARM_COLORS, formatNumber, pct, day, navigate, HOUR_MARGINS, COLUMN_MARGINS }),
@@ -119,19 +119,23 @@ export const OverviewSection = {
                     <p v-if="breakLine" class="text-sm text-muted" data-growth-break>{{ breakLine }}</p>
                     <!-- So far, against before (spec 4.4 and 11): Visits and Arrivals as two small multiples, each its own
                          y-axis from 0 (never one chart with two scales). Today hour by hour, with the projection; the other
-                         periods day by day or week by week as columns. Sign-ups as a strip of counts under Arrivals. -->
+                         periods day by day or week by week as columns. App starts and Sign-ups as strips of counts under Visits and Arrivals. -->
                     <section v-if="['hours', 'days', 'weeks'].includes(growth.chart?.kind)" class="card space-y-4 p-5 md:p-6" aria-labelledby="growth-chart-h" data-growth-charts :data-chart-period="shownPeriod">
                         <h2 id="growth-chart-h" class="text-lg font-bold text-cream">{{ t('admin.growth.chart.title') }}</h2>
                         <div v-if="growth.chart.kind === 'hours'" class="grid gap-6 lg:grid-cols-2">
-                            <HourChart :chart="growth.chart" metric="visits" :label="t(METRIC_NAMES.visits)" :cut="growth.period?.cut ?? ''" :weekday="compareContext.weekday" />
+                            <HourChart :chart="growth.chart" metric="visits" :label="t(METRIC_NAMES.visits)" :cut="growth.period?.cut ?? ''" :weekday="compareContext.weekday">
+                                <template #under><CountStrip metric="appStarts" :chart="growth.chart" :period="shownPeriod" :margins="HOUR_MARGINS" /></template>
+                            </HourChart>
                             <HourChart :chart="growth.chart" metric="arrivals" :label="t(METRIC_NAMES.arrivals)" :cut="growth.period?.cut ?? ''" :weekday="compareContext.weekday">
-                                <template #under><SignUpStrip :chart="growth.chart" :period="shownPeriod" :margins="HOUR_MARGINS" /></template>
+                                <template #under><CountStrip metric="signUps" :chart="growth.chart" :period="shownPeriod" :margins="HOUR_MARGINS" /></template>
                             </HourChart>
                         </div>
                         <div v-else :key="shownPeriod" class="grid gap-6 lg:grid-cols-2">
-                            <ColumnChart :chart="growth.chart" metric="visits" :label="t(METRIC_NAMES.visits)" :period="shownPeriod" :cut="growth.period?.cut ?? ''" />
+                            <ColumnChart :chart="growth.chart" metric="visits" :label="t(METRIC_NAMES.visits)" :period="shownPeriod" :cut="growth.period?.cut ?? ''">
+                                <template #under><CountStrip metric="appStarts" :chart="growth.chart" :period="shownPeriod" :margins="COLUMN_MARGINS" /></template>
+                            </ColumnChart>
                             <ColumnChart :chart="growth.chart" metric="arrivals" :label="t(METRIC_NAMES.arrivals)" :period="shownPeriod" :cut="growth.period?.cut ?? ''">
-                                <template #under><SignUpStrip :chart="growth.chart" :period="shownPeriod" :margins="COLUMN_MARGINS" /></template>
+                                <template #under><CountStrip metric="signUps" :chart="growth.chart" :period="shownPeriod" :margins="COLUMN_MARGINS" /></template>
                             </ColumnChart>
                         </div>
                     </section>

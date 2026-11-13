@@ -136,6 +136,7 @@ export const Transport = {
         playing: Boolean,
         recording: Boolean,
         busy: Boolean,
+        starting: Boolean, // the session getting audio and the guides ready (session.js ready()): the tapped disc spins
         loop: Boolean,
         partName: { type: String, default: '' },
         turn: Boolean, // part by part, your turn: Again beside Pause
@@ -145,6 +146,13 @@ export const Transport = {
     },
     emits: ['play', 'record', 'loop', 'again', 'tempo'],
     setup: () => ({ formatTime }),
+    // The disc just tapped (Play or Record), spinning while the session gets ready (instant feedback, Hillel 2026-11-12).
+    data: () => ({ pressed: null }),
+    watch: {
+        starting(now) {
+            if (!now) this.pressed = null;
+        },
+    },
     template: `
         <div class="sing-controls px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-2 md:flex md:items-center md:gap-6 md:border-t md:border-line md:bg-panel min-[900px]:px-6 md:py-3">
             <span class="hidden min-w-36 text-2xl font-bold tabular-nums text-cream md:inline">{{ formatTime(position) }} <span class="text-sm font-normal text-muted">/ {{ formatTime(length) }}</span></span>
@@ -154,8 +162,8 @@ export const Transport = {
             </div>
             <div v-else-if="!turn" class="hidden flex-1 items-center justify-center gap-4 md:flex">
                 <button type="button" class="btn-secondary" :aria-pressed="loop ? 'true' : 'false'" :class="loop ? 'ring-2 ring-cream/60' : ''" @click="$emit('loop')"><Icon name="loop" :size="16" /> {{ t('sing.transport.loopLine') }}</button>
-                <button type="button" class="grid size-[4.5rem] place-items-center transition disabled:opacity-40 bubble bubble-lg bubble-primary" data-disc="play" :disabled="busy" :aria-label="playing ? t('studio.pause') : t('studio.play')" data-play @click="$emit('play')"><Icon :name="playing ? 'pause' : 'play'" :size="30" /></button>
-                <button type="button" class="btn-secondary" :disabled="busy" :aria-label="t('sing.recordPart', { name: partName })" @click="$emit('record')"><span class="size-2.5 rounded-full bg-record" aria-hidden="true"></span> {{ t('sing.transport.record') }}</button>
+                <button type="button" class="grid size-[4.5rem] place-items-center transition disabled:opacity-40 bubble bubble-lg bubble-primary" data-disc="play" :disabled="busy" :aria-label="playing ? t('studio.pause') : t('studio.play')" data-play :aria-busy="spinning('play') ? 'true' : null" @click="press('play')"><span v-if="spinning('play')" class="spinner size-7" aria-hidden="true"></span><Icon v-else :name="playing ? 'pause' : 'play'" :size="30" /></button>
+                <button type="button" class="btn-secondary" :disabled="busy" :aria-label="t('sing.recordPart', { name: partName })" :aria-busy="spinning('record') ? 'true' : null" @click="press('record')"><span v-if="spinning('record')" class="spinner" aria-hidden="true"></span><span v-else class="size-2.5 rounded-full bg-record" aria-hidden="true"></span> {{ t('sing.transport.record') }}</button>
             </div>
             <div v-if="!recording && !turn && bpm" class="hidden shrink-0 items-center gap-2 text-sm text-muted md:flex">
                 {{ t('sing.transport.tempo') }}
@@ -168,14 +176,23 @@ export const Transport = {
                     <button type="button" class="grid size-14 place-items-center rounded-full border transition" :class="loop ? 'border-cream bg-raised text-cream' : 'border-line text-cream hover:bg-raised'" :aria-pressed="loop" :aria-label="t('practice.loop')" @click="$emit('loop')"><Icon name="loop" :size="22" /></button>
                     <span class="text-xs font-semibold text-muted">{{ t('practice.loop') }}</span>
                 </div>
-                <button type="button" class="grid size-[4.5rem] place-items-center transition disabled:opacity-40 bubble bubble-lg bubble-primary" data-disc="play" :disabled="busy" :aria-label="playing ? t('studio.pause') : t('studio.play')" data-play @click="$emit('play')"><Icon :name="playing ? 'pause' : 'play'" :size="30" /></button>
+                <button type="button" class="grid size-[4.5rem] place-items-center transition disabled:opacity-40 bubble bubble-lg bubble-primary" data-disc="play" :disabled="busy" :aria-label="playing ? t('studio.pause') : t('studio.play')" data-play :aria-busy="spinning('play') ? 'true' : null" @click="press('play')"><span v-if="spinning('play')" class="spinner size-7" aria-hidden="true"></span><Icon v-else :name="playing ? 'pause' : 'play'" :size="30" /></button>
                 <div class="flex w-20 flex-col items-center gap-1">
                     <button v-if="turn" type="button" class="grid size-14 place-items-center rounded-full glass-bubble text-cream" :aria-label="t('sing.turn.again')" @click="$emit('again')"><Icon name="repeat" :size="22" /></button>
-                    <button v-else type="button" class="grid size-14 place-items-center transition disabled:opacity-40 bubble bubble-lg bubble-record" data-record-disc :disabled="busy" :aria-label="t('sing.recordPart', { name: partName })" @click="$emit('record')"><Icon name="record" :size="22" /></button>
+                    <button v-else type="button" class="grid size-14 place-items-center transition disabled:opacity-40 bubble bubble-lg bubble-record" data-record-disc :disabled="busy" :aria-label="t('sing.recordPart', { name: partName })" :aria-busy="spinning('record') ? 'true' : null" @click="press('record')"><span v-if="spinning('record')" class="spinner size-5" aria-hidden="true"></span><Icon v-else name="record" :size="22" /></button>
                     <span class="text-xs font-semibold text-muted">{{ turn ? t('sing.turn.again') : t('sing.transport.record') }}</span>
                 </div>
             </div>
         </div>`,
+    methods: {
+        press(which) {
+            this.pressed = which;
+            this.$emit(which);
+        },
+        spinning(which) {
+            return this.starting && this.pressed === which && !this.playing && !this.recording;
+        },
+    },
 };
 
 /** Under the parts on a wide screen (98.png): the song's lines as segments, filled as they're sung; a tap goes there. */

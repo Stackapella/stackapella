@@ -228,9 +228,10 @@ final class FairCompare
      *
      * @return array{shown: bool, hidden: string|null, value: int|null, low: int|null, high: int|null}
      */
-    public static function projectDay(int $n, float $s, bool $history = true): array
+    public static function projectDay(int $n, float $s, bool $history = true, bool $borrowed = false): array
     {
-        return self::project($n, $s, $history, $s < 0.25, 15, 1.0);
+        // A shape borrowed from another line (too little history of its own) is less sure: a wider range.
+        return self::project($n, $s, $history, $s < 0.25, 15, 1.0, $borrowed ? 1.5 : 1.0);
     }
 
     /**
@@ -302,7 +303,7 @@ final class FairCompare
     /**
      * @return array{shown: bool, hidden: string|null, value: int|null, low: int|null, high: int|null}
      */
-    private static function project(int $n, float $share, bool $history, bool $early, int $few, float $scale): array
+    private static function project(int $n, float $share, bool $history, bool $early, int $few, float $scale, float $widen = 1.0): array
     {
         $hidden = match (true) {
             ! $history => 'noHistory',
@@ -316,7 +317,7 @@ final class FairCompare
         }
 
         $value = $n / $share * $scale;
-        $range = 2 * sqrt($n * self::PROJECTION_WIDEN) / $share * $scale;
+        $range = 2 * sqrt($n * self::PROJECTION_WIDEN) / $share * $scale * $widen;
 
         return ['shown' => true, 'hidden' => null, 'value' => (int) round($value), 'low' => (int) max($n, round($value - $range)), 'high' => (int) round($value + $range)];
     }

@@ -14,22 +14,31 @@ use App\Models\Template;
 use App\Models\User;
 use App\Support\Accounts\Age;
 use App\Support\Ids;
+use App\Support\Usage\Plans;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 /**
- * Choir groups (contract/api.md, "Choir groups"): any adult account makes a group, members join by
- * its one link, and the director shares songs and assigns parts. Free for everyone since
- * 2026-11-07 (docs/pricing-plan.md: every singer is free).
+ * Choir groups (contract/api.md, "Choir groups"): an adult account with Plus makes a group, members join free by its
+ * one link, and the director shares songs and assigns parts (docs/pricing-plan.md, Hillel 2026-11-12: "you can learn
+ * alone for free but to team up becomes more serious"; whoever starts the group needs Plus, everyone invited joins
+ * free). When the director's Plus ends the group pauses: everyone keeps what they have, nobody new joins and nothing
+ * new is shared or assigned, until it's back.
  */
 final class ManageGroups
 {
+    public function __construct(private readonly Plans $plans) {}
+
     public function create(User $user, string $name, bool $adult = false): Group
     {
         return DB::transaction(function () use ($user, $name, $adult): Group {
             Owned::lockAccount($user);
             $this->ensureAdult($user, $adult);
+
+            if (! $this->plans->mayStartShared($user)) {
+                throw new Refusal(403, 'plus_required');
+            }
 
             if (Group::query()->where('director_id', $user->id)->count() >= (int) config('usage.groups_per_director')) {
                 throw new Refusal(403, 'group_limit');
@@ -68,12 +77,28 @@ final class ManageGroups
     }
 
     /**
-     * Groups are free since 2026-11-07 (docs/pricing-plan.md), so none is read-only; the API keeps
-     * the field for older apps.
+     * Paused: the director's Plus has ended (worked out on read, so it opens again the moment Plus is back).
      */
     public function readOnly(Group $group): bool
     {
-        return false;
+        $director = $group->relationLoaded('director') ? $group->director : $group->director()->first();
+
+        return $director !== null && ! $this->plans->sharedOpen($director);
+    }
+
+    /**
+     * The director's, for a change that shares something new: refused while the group is paused, so the director
+     * renews Plus (members are never asked).
+     */
+    private function directedOpen(User $user, string $sqid): Group
+    {
+        $group = $this->directed($user, $sqid);
+
+        if ($this->readOnly($group)) {
+            throw new Refusal(403, 'plus_required');
+        }
+
+        return $group;
     }
 
     /**
@@ -110,7 +135,7 @@ final class ManageGroups
      */
     public function newLink(User $user, string $sqid): string
     {
-        $group = $this->directed($user, $sqid);
+        $group = $this->directedOpen($user, $sqid);
         $this->rotateLink($group);
 
         return (string) $group->linkUrl();
@@ -138,6 +163,11 @@ final class ManageGroups
             }
 
             $this->ensureAdult($user, $adult);
+
+            // A paused group takes nobody new: a calm note for the singer, nothing to buy (its director renews).
+            if ($this->readOnly($group)) {
+                throw new Refusal(403, 'shared_paused');
+            }
 
             if (GroupMember::query()->where('group_id', $group->id)->where('role', GroupMember::MEMBER)->count() >= (int) config('usage.group_members')) {
                 throw new Refusal(403, 'group_full');
@@ -180,7 +210,7 @@ final class ManageGroups
      */
     public function addSong(User $user, string $sqid, string $templateId): Group
     {
-        $group = $this->directed($user, $sqid);
+        $group = $this->directedOpen($user, $sqid);
         $template = Template::query()->where('slug', $templateId)->whereNull('deleted_at')->where(fn ($query) => $query->whereNull('owner_id')->orWhere('owner_id', $user->id))->whereNotNull('current_version_id')->first()
             ?? throw new Refusal(404, 'not_found');
 
@@ -202,7 +232,7 @@ final class ManageGroups
      */
     public function assign(User $user, string $sqid, string $templateId, array $assignments): Group
     {
-        $group = $this->directed($user, $sqid);
+        $group = $this->directedOpen($user, $sqid);
         $song = GroupSong::query()->with('template.currentVersion')->where('group_id', $group->id)->whereHas('template', fn ($query) => $query->where('slug', $templateId))->first()
             ?? throw new Refusal(404, 'not_found');
 

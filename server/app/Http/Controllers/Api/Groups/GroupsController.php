@@ -97,6 +97,8 @@ final class GroupsController extends Controller
             'name' => $group->name,
             'director' => ['name' => $group->director->name],
             'members' => GroupMember::query()->where('group_id', $group->id)->count(),
+            // Paused (its director's Plus has ended): the page takes nobody new.
+            'readOnly' => $this->groups->readOnly($group),
         ]]);
     }
 

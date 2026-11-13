@@ -52,6 +52,8 @@
         "couldNotSave": "No se pudo guardar. Tu trabajo sigue aquí; vuelve a intentarlo en un momento.",
         "undo": "Deshacer",
         "tryAgain": "Reintentar",
+        "stillLoading": "Sigue cargando. Con una conexión lenta tarda un poco.",
+        "loadFailed": "No se pudo cargar. Comprueba tu conexión y vuelve a intentarlo.",
         "cancel": "Cancelar",
         "save": "Guardar",
         "done": "Listo",
@@ -567,6 +569,9 @@
         "next": "Siguiente"
     },
     "templates": {
+        "loadFailed": "No se pudo cargar la canción.",
+        "notHere": "Esta canción todavía no está disponible donde estás.",
+        "notHereUntil": "Esta canción todavía no está disponible donde estás. Llega aquí en {year}.",
         "singers": {
             "question": "¿Cuántos cantantes?"
         },
@@ -589,7 +594,6 @@
         "start": "Empezar",
         "sungBy": "Voces reales: {names}",
         "previewClip": "Escuchar un fragmento",
-        "loading": "Abriendo la canción...",
         "needsAccount": "Crea una cuenta gratis para empezar esta canción. Su fragmento suena aquí."
     },
     "projects": {
@@ -756,6 +760,7 @@
         },
         "status": {
             "to_record": "Por grabar",
+            "held": "Esperando a tu correo",
             "submitted": "Enviada",
             "in_review": "Hillel la está escuchando",
             "retake": "Otra toma, por favor",
@@ -959,7 +964,6 @@
             "resting": "{part} descansa"
         },
         "open": "Cantar",
-        "loading": "Preparando la canción",
         "notTemplate": "Cantar es para canciones hechas con una plantilla de armonía. Esta no tiene notas que seguir.",
         "parts": "Las voces",
         "mode": "Cómo oyes tu parte",
@@ -1475,6 +1479,7 @@
             "groups": "Crea una cuenta gratis para los grupos de coro",
             "groupsStart": "Crea una cuenta gratis para crear el grupo de tu coro",
             "voice": "Crea una cuenta gratis para añadir tu voz",
+            "voicePart": "Guarda tu voz de {part} y compártela",
             "plus": "Crea una cuenta gratis para Plus",
             "template": "Conserva tu canción con una cuenta gratis",
             "sheet": "Crea una cuenta gratis para importar partituras",
@@ -1487,6 +1492,10 @@
         }
     },
     "settings": {
+        "tools": {
+            "title": "Herramientas gratis",
+            "hint": "Un afinador, un test de extensión vocal, un metrónomo y más, en nuestra web"
+        },
         "language": {
             "title": "Idioma",
             "hint": "Los textos de la app y tus correos. Las canciones conservan su propia letra.",
@@ -1870,6 +1879,10 @@
         }
     },
     "course": {
+        "friendNote": {
+            "both": "Tu amigo: {theirs} · Tú: {yours}",
+            "ask": "La voz de tu amigo ronda el {note}. ¿Y la tuya?"
+        },
         "unitSong": {
             "sing": "Cantarla"
         },
@@ -2091,7 +2104,8 @@
             "why": "Escuchamos mientras cantas para mostrar tus notas. No se graba ni se envía nada a menos que decidas guardar una toma. Después, toca Permitir.",
             "inAppTitle": "Cantar requiere micrófono",
             "inApp": "El navegador de {app} no suele poder compartirlo. Abre esta página en {browser}: toca el menú (··· o el botón de compartir) y luego Abrir en el navegador. O copia el enlace y pégalo allí.",
-            "carryOn": "Seguir de todos modos"
+            "carryOn": "Seguir de todos modos",
+            "openInChrome": "Abrir en Chrome"
         },
         "mapLessons": "{done} de {total} lecciones",
         "mapOpensAfter": "Se abre al terminar la unidad {number}",
@@ -2354,6 +2368,7 @@
             "unverified": "Confirma tu correo y tus grabaciones pasarán a tu cuenta. Mientras tanto, están a salvo en este dispositivo.",
             "full": "Almacenamiento lleno: por ahora, las grabaciones nuevas se quedan en este dispositivo.",
             "readOnly": "Algunas canciones superan el límite del plan gratis, así que sus cambios se quedan en este dispositivo.",
+            "paused": "La canción de un amigo está en pausa, así que tus grabaciones para ella se quedan en este dispositivo hasta que vuelva.",
             "pending": "{count, plural, one {# cambio va} other {# cambios van}} de camino a tu cuenta.",
             "saved": "Todo está guardado en tu cuenta.",
             "starting": "Comprobando tu cuenta."
@@ -2811,10 +2826,20 @@
         "warmUpOurs": "El habitual"
     },
     "plus": {
+        "storySolo": "Aprender a cantar es gratis, también con tus amigos y tu coro. Plus es para trabajarlo a fondo: más espacio para tus grabaciones, y MP3 y cada voz por separado.",
+        "next": {
+            "inviteFriend": "Volver a tu canción",
+            "groupStart": "Crear tu grupo de coro",
+            "carryOn": "Seguir"
+        },
+        "momentTrial": "Pruébalo gratis durante {days} días. Aprender por tu cuenta sigue siendo gratis: todos los cursos, canciones y entrenamientos.",
+        "headlineSolo": "Más espacio. Todos los formatos.",
         "title": "Stackapella Plus",
-        "story": "Aprender a cantar es gratis. Plus es para trabajar de forma más profesional: espacio para tus grabaciones, MP3 y cada voz por separado, y tus propias guías grabadas.",
+        "story": "Aprender a cantar es gratis. Plus es para formar equipo y para trabajarlo a fondo: crea un grupo de coro o invita a amigos a tu canción (todas las personas que invites se unen gratis), más espacio para tus grabaciones, y MP3 y cada voz por separado.",
         "moment": {
+            "groupStart": "Los grupos de coro vienen con Plus. Todas las personas que invites se unen gratis.",
             "storageLimit": "Tu almacenamiento está casi lleno. Plus tiene 50 GB.",
+            "inviteFriend": "Cantar tu canción con amigos viene con Plus. Todas las personas que invites se unen gratis.",
             "mp3": "La exportación en MP3 es de Plus. WAV es gratis.",
             "stems": "Cada voz por separado es de Plus.",
             "privateTemplate": "Tu primer arreglo privado es gratis. Plus guarda todos los que quieras."
@@ -2847,12 +2872,15 @@
         "compare": "Gratis y Plus, frente a frente",
         "what": "Qué incluye",
         "free": {
+            "joinInvited": "Unirte cuando te inviten",
             "title": "Gratis",
             "storage": "1 GB",
             "stems": "Cada toma tal como se grabó, desde Descargar mis datos",
             "templates": "1"
         },
         "plus": {
+            "startInvite": "Invitar a quien quieras, gratis para ellos",
+            "startChoir": "Crear grupos, gratis para los miembros",
             "title": "Plus",
             "report": "Sí, con tu historial",
             "storage": "50 GB"
@@ -2890,12 +2918,15 @@
         "failed": "No se pudo abrir la página de pago ahora. Vuelve a intentarlo en un momento.",
         "pendingHint": "Tarda un momento después del pago. La página se actualiza sola cuando termina.",
         "noSubscription": "Esta cuenta no tiene ninguna suscripción que gestionar.",
-        "headline": "Más espacio. Todos los formatos. Tus propias guías.",
+        "headline": "Cantar juntos. Más espacio. Todos los formatos.",
         "highlight": {
+            "togetherText": "Crea un grupo de coro o invita a amigos a cantar tu canción. Todas las personas que invites se unen gratis.",
+            "together": "Cantar juntos",
+            "freeTextSolo": "Todas las canciones y cursos, todos los entrenamientos que quieras, tu historial, y cantar con amigos y con tu coro, sin pagar nada.",
             "extras": "Más espacio y extras",
-            "extrasText": "50 GB para grabaciones, MP3 y cada voz por separado, y tus propias guías grabadas.",
+            "extrasText": "50 GB para grabaciones, y MP3 y cada voz por separado.",
             "free": "Gratis para cada cantante",
-            "freeText": "Todas las canciones y cursos, todos los entrenamientos que quieras, tu historial, y cantar con amigos y con tu coro, sin pagar nada."
+            "freeText": "Todas las canciones y cursos, todos los entrenamientos que quieras, tu historial, y unirte a cualquier coro o canción a la que te inviten, sin pagar nada."
         },
         "save": "Ahorra un {percent}%",
         "billedMonthly": "Pago mensual",
@@ -3676,7 +3707,21 @@
         "saveFirstHint": "Tus tomas y ajustes van con ella. Luego tendrás un enlace de invitación.",
         "notNow": "Ahora no",
         "saveAndInvite": "Guardar e invitar",
-        "notSavedYet": "Ahora no se pudo guardar. Revisa tu conexión, o las canciones de tu plan en Almacenamiento, y vuelve a intentarlo."
+        "notSavedYet": "Ahora no se pudo guardar. Revisa tu conexión, o las canciones de tu plan en Almacenamiento, y vuelve a intentarlo.",
+        "paused": {
+            "songTitle": "Esta canción está en pausa",
+            "songMember": "El Plus de {name} ha terminado, así que esta canción está en pausa. Puedes seguir escuchándola y conservar tus grabaciones; no se puede grabar nada nuevo hasta que vuelva a abrirse.",
+            "songOwner": "Tu Plus ha terminado, así que esta canción está en pausa para los amigos que la cantan. Tú puedes seguir cantándola por tu cuenta, y vuelve a abrirse para ellos en cuanto vuelvas a tener Plus.",
+            "songAction": "Volver a activar Plus",
+            "songRecord": "Esta canción está en pausa, así que no se puede grabar nada nuevo en ella hasta que vuelva a abrirse.",
+            "tag": "En pausa"
+        },
+        "invite": {
+            "plusTitle": "Invitar a cantantes"
+        },
+        "accept": {
+            "paused": "La canción de {name} está en pausa por ahora, así que no puede sumar cantantes nuevos. Vuelve a probar el enlace más tarde o pregúntale a {name}."
+        }
     },
     "join": {
         "joining": "Uniéndote",
@@ -3803,6 +3848,19 @@
         }
     },
     "groups": {
+        "plusText": "Los grupos de coro vienen con Plus: comparte canciones, asigna una voz a cada cantante y ve quién está practicando. Todas las personas que invites se unen gratis.",
+        "paused": {
+            "title": "Este coro está en pausa",
+            "tag": "En pausa",
+            "member": "El Plus de {name} ha terminado, así que el coro está en pausa. Puedes seguir escuchando sus canciones y conservar tus grabaciones; no se puede grabar nada nuevo hasta que vuelva a abrirse.",
+            "leader": "Tu Plus ha terminado, así que tu coro está en pausa para todos. Los miembros pueden seguir escuchando y conservar sus grabaciones, y vuelve a abrirse en cuanto vuelvas a tener Plus.",
+            "join": "El coro de {name} está en pausa por ahora, así que no puede sumar cantantes nuevos. Vuelve a probar el enlace más tarde o pregúntale a {name}.",
+            "action": "Volver a activar Plus"
+        },
+        "made": {
+            "title": "Envía este enlace a tu coro",
+            "hint": "Cualquiera que lo abra puede unirse gratis a {name} y encontrará allí las canciones que compartas."
+        },
         "title": "Grupos de coro",
         "start": "Crear un grupo",
         "startHint": "Tus cantantes se unen con un enlace que les envías, aprenden las canciones que compartes, y tú ves quién ha aprendido su voz. Gratis para ti y para todos tus cantantes.",
@@ -4258,6 +4316,33 @@
             "again": "Enviarlo de nuevo"
         }
     },
+    "mic2": {
+        "title": "Escúchalo primero",
+        "tip": "Cuando quieras, tararea en \"oo\" (una u) cualquier nota que te resulte fácil. Ninguna está mal.",
+        "cantSing": "¿No puedes cantar ahora?",
+        "privacy": "Solo escuchamos mientras cantas. No se graba nada.",
+        "play": "Tocar el acorde",
+        "playing": "Sonando el acorde",
+        "playTitle": "Cuatro voces, un acorde",
+        "playLead": "Luego una se calla. Escucha el hueco.",
+        "filledTitle": "La voz de práctica en tu lugar",
+        "filledLead": "Así suena con todas las voces cantadas.",
+        "lanes": "Las cuatro voces",
+        "voice": "Voz",
+        "yourVoice": "Tu voz",
+        "guideHere": "Voz de práctica",
+        "gapLine": "Ese hueco es para tu voz.",
+        "filledLine": "Cuando puedas cantar, tu voz ocupa ese lugar.",
+        "later": {
+            "title": "No pasa nada. Elige una:",
+            "listen": "Escúchala entera"
+        },
+        "refused": {
+            "title": "No pasa nada",
+            "body": "Puedes escuchar la lección 1 entera ahora y activar el micrófono cuando quieras.",
+            "how": "Muéstrame cómo activarlo"
+        }
+    },
     "micHelp": {
         "tryAgain": "Reintentar",
         "trying": "Probando micrófono...",
@@ -4437,7 +4522,7 @@
     },
     "capture": {
         "listening": "Canta una nota cómoda",
-        "listeningSub": "Como un \"aaah\" largo. Cualquier altura sirve.",
+        "listeningSub": "Como un \"oo\" largo. Cualquier altura sirve.",
         "hearing": "Buscando tu nota...",
         "hearingSub": "Sigue cantando, deja que se asiente. Es normal que tiemble un poco al principio.",
         "holding": "Mantenla ahí",
@@ -4477,7 +4562,7 @@
         "nudge": {
             "quiet": "Prueba un poco más fuerte, o más cerca del teléfono.",
             "silent": "Aún no oímos nada. Comprueba que el micrófono de abajo sea el correcto.",
-            "unsteady": "Elige una nota fácil y mantenla, como un \"ahh\" largo, un par de segundos."
+            "unsteady": "Elige una nota fácil y mantenla, como un \"oo\" largo, un par de segundos."
         },
         "suits": {
             "low": "Grave y cálida: las voces de bajo y barítono pueden irte mejor. Los ejercicios empiezan desde aquí.",
@@ -4624,6 +4709,7 @@
         "chartStart": "Inicio",
         "chartEnd": "Fin",
         "share": {
+            "noteAsk": "¿Y la tuya?",
             "button": "Compartir",
             "unitDone": "Unidad completada",
             "courseDone": "Curso completado",
@@ -4658,7 +4744,7 @@
             "namePlaceholder": "Tu nombre",
             "by": "La canta {name}",
             "noteTitle": "Mi voz ronda",
-            "noteText": "Mi nota cómoda para cantar es {note}. Encuentra la tuya:",
+            "noteText": "Mi nota cómoda para cantar es {note}. ¿Y la tuya? Encuéntrala en un minuto:",
             "note": "Compartir mi nota",
             "textSerious": "Canté “{lesson}” en Stackapella: {percent}% afinado.",
             "litOf": "{lit} de {count} notas iluminadas",
@@ -5454,6 +5540,42 @@
             "failed": "La denuncia no se envió. Vuelve a intentarlo."
         },
         "partLine": "Aún no hay voz real.",
+        "ready": {
+            "title": "Listas para compartir",
+            "line": "Tus tomas de voces que aún no tienen voz real. Comparte una y podría ser la voz con la que todos aprendan."
+        },
+        "be": {
+            "tag": "Aún sin voz",
+            "sheet": "Aún no hay voz real para {parts}. Canta una y podría ser la tuya.",
+            "go": "Pon tú la voz",
+            "good": "Tu voz de {part} sonó bien.",
+            "invite": "Nadie le ha puesto aún una voz real. Comparte esta toma y podría ser la voz con la que todos aprendan.",
+            "guestSaves": "Primero se guarda en una cuenta gratis, privada para ti.",
+            "share": "Compartirla",
+            "later": "Ahora no",
+            "sheetTitle": "Comparte tu voz de {part}",
+            "sheetIntro": "Tu toma está guardada en tu cuenta, privada para ti. Compártela y podría ser la voz de {part} con la que todos aprendan.",
+            "pointTeam": "Solo la oye nuestro equipo hasta que se elija.",
+            "pointUnpaid": "Sin pago, y no se usan todas las tomas. Puedes retirarla cuando quieras.",
+            "full": "Leer el acuerdo completo",
+            "adult": "Tengo 18 años o más",
+            "preview": "Voz guía: {name}",
+            "previewAnonymous": "Voz guía: anónima",
+            "saving": "Primero guardamos tu toma en tu cuenta.",
+            "private": "Mantenerla privada por ahora",
+            "under18": "Tengo menos de 18 años",
+            "youngTitle": "¡Gracias!",
+            "young": "Las voces guía son para adultos, pero tu toma está guardada y es tuya.",
+            "sending": "Enviando",
+            "sent": "Enviada",
+            "sentLine": "Nuestro equipo escucha cada toma, normalmente en unos días. Te avisaremos en Presta tu voz.",
+            "heldTitle": "Guardada",
+            "heldLine": "La enviaremos en cuanto confirmes tu correo.",
+            "sentLink": "Verla en Presta tu voz",
+            "failed": "No se envió. Tu toma sigue guardada, así que vuelve a intentarlo en un momento.",
+            "betaSinger": "Tú grabas tus voces en Mis voces, así que llegan a nuestro equipo desde allí.",
+            "myParts": "Abrir Mis voces"
+        },
         "partLineLink": "¿Prestas la tuya?",
         "creditBy": {
             "beatbox": "Beatbox de {name}",

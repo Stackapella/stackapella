@@ -13,9 +13,11 @@ use App\Support\Languages\SongWords;
 use App\Support\Pages\Carols;
 use App\Support\Pages\Landing;
 use App\Support\Pages\SongCollections;
+use App\Support\Pages\SongMeanings;
 use App\Support\Pages\SongPage;
 use App\Support\Pages\SongParts;
 use App\Support\Pages\SongsHub;
+use App\Support\Pages\SongStories;
 use App\Support\Rights\RightsHere;
 use App\Support\Sharing\SongCards;
 use App\Support\Templates\Catalogue;
@@ -79,7 +81,7 @@ final class SongPagesController extends Controller
         ], 200, self::headers());
     }
 
-    public function show(Request $request, string $slug, SongCards $cards, Catalogue $catalogue, SongCollections $collections, RightsHere $rights): Response
+    public function show(Request $request, string $slug, SongCards $cards, Catalogue $catalogue, SongCollections $collections, SongParts $songParts, RightsHere $rights): Response
     {
         $template = Template::query()->listed()->whereNotNull('current_version_id')->with('currentVersion')->where('slug', $slug)->first();
 
@@ -95,6 +97,7 @@ final class SongPagesController extends Controller
         $wordsWithheld = $rights->wordsWithheld($template, $country);
         if ($wordsWithheld) {
             $song['words'] = [];
+            $song['lines'] = null;
         }
         // More to learn: the same level first, three of them (picked by the level SongPage::of reads, before building
         // the three: building every song's page for three was most of the page's time).
@@ -102,8 +105,51 @@ final class SongPagesController extends Controller
             ->sortBy(fn (Template $other): int => (string) (((array) ($other->currentVersion->data ?? []))['difficulty'] ?? '') === $song['difficulty'] ? 0 : 1)
             ->take(3)->map(fn (Template $other): array => SongPage::of($other))->values()->all();
 
+        // Its story, when the courses lead's is reviewed (SongStories::story, in the page's language while its translation
+        // is current): the page then carries its title and description, as its searches were written for.
+        $story = SongStories::story((string) $template->slug);
+        // Where the words are the protected part here (geo rights), the story keeps its history but not its full words.
+        if ($story !== null && $wordsWithheld) {
+            $story = SongStories::withoutWords($story);
+        }
+        // Its Sing next picks only where those songs are open (a story may name one that isn't yet): never a broken link.
+        if ($story !== null && is_array($story['next'] ?? null)) {
+            $open = $catalogue->open()->map(static fn (Template $t): string => (string) $t->slug)->all();
+            $story['next'] = array_values(array_filter($story['next'], static fn (mixed $next): bool => is_array($next) && in_array($next['slug'] ?? null, $open, true)));
+        }
+        // A full-words line without a meaning of its own takes the song's meaning for it, where it sings the same.
+        if ($story !== null && is_array($story['fullWords'] ?? null)) {
+            /** @var list<list<array{sung: string, meaning?: string}>>|null $meanings SongPage::of()'s lines (SongMeanings::forPage) */
+            $meanings = is_array($song['lines'] ?? null) ? $song['lines'] : null;
+            $story = SongMeanings::fillFullWords($story, $meanings);
+        }
+        $home = $collections->home((string) $template->slug);
+        $partCards = SongPage::cards($template, $song);
+
         return response()->view('public.song', [
             'song' => $song,
+            'story' => $story,
+            // Every verse, one sung line a line; the "Find your part" cards; each part's Learn in the app.
+            // Every verse a stanza of sung lines: with each line's script and meaning in the page's language once the song has
+            // them ($song['lines'], see public/_song-words), else as sung.
+            // The story's full words where it has them (its "### The full words" block, SongStories::fullWords: every stanza
+            // with its label, each line's script and meaning), else the template's verses. Null when withheld here.
+            // Where the words are the protected part here, none: not the template's verses either.
+            'lines' => $wordsWithheld ? [] : (is_array($story['fullWords'] ?? null) ? array_column($story['fullWords']['stanzas'], 'lines') : SongPage::lines($song['lines'] ?? null, SongPage::verses($template))),
+            'labels' => is_array($story['fullWords'] ?? null) ? array_column($story['fullWords']['stanzas'], 'label') : [],
+            'wordsIntro' => is_array($story['fullWords'] ?? null) ? (string) $story['fullWords']['intro'] : '',
+            'sungLanguage' => is_string($story['sungLanguage'] ?? null) ? $story['sungLanguage'] : (is_string($song['sungLanguage'] ?? null) ? $song['sungLanguage'] : null),
+            'cards' => $partCards,
+            // Each part's guide voice: a real singer's (credited) or the app's own, one look-up for the song (SongParts::guides).
+            'guides' => $songParts->guides($template),
+            // The ask to sing a part with no real voice yet, once the lend_voice flag is on (docs/open-guide-voices-plan.md);
+            // a flag this install doesn't have yet is off.
+            'lendVoice' => SongParts::lendVoice(),
+            'learn' => array_combine(array_column($partCards, 'key'), array_map(static fn (array $card): string => Hosts::app('/?'.http_build_query(['song' => $template->slug, 'part' => $card['key'], 'ref' => 'song-page'])), $partCards)),
+            // The page that collects it gives the hero its palette (its link card's and band's); a song no page collects, the songs' own.
+            'tone' => $home['key'] ?? 'song',
+            // The source a story's quote is from, by its number.
+            'quoteN' => $story !== null && is_array($story['quote'] ?? null) ? (collect((array) $story['sources'])->firstWhere('id', $story['quote']['source'])['n'] ?? null) : null,
             // A bundled song plays its opening line; any other only its clip: its notes come only to
             // an account, through the API (Hillel, 2026-10-27).
             'line' => $template->access === TemplateAccess::Plus || $withheld !== null ? null : Landing::line($template),
@@ -112,14 +158,14 @@ final class SongPagesController extends Controller
             'rights' => $withheld === null ? null : ['freeFrom' => $withheld['freeFrom'], 'words' => $wordsWithheld],
             'more' => $more,
             // The page that collects it, in its trail and below its more songs (SongCollections::home).
-            'home' => $collections->home((string) $template->slug),
+            'home' => $home,
             'meta' => [
-                // A round says round (its searches do), never SATB or harmony; SATB named where it's true
-                // (docs/search-content-plan.md, item 4): choirs search it.
-                'title' => SongParts::round($song['genre'])
+                // A story's own title and description where it shows; else a round says round (its searches do), never SATB
+                // or harmony; SATB named where it's true (docs/search-content-plan.md, item 4): choirs search it.
+                'title' => $story !== null && $story['title'] !== '' ? $story['title'] : (SongParts::round($song['genre'])
                     ? __('pages.song.title_round', ['title' => SongParts::searchTitle((string) $template->title)])
-                    : __('pages.song.title', ['title' => SongWords::title((string) $template->title, (string) $template->slug)]),
-                'description' => match (true) {
+                    : __('pages.song.title', ['title' => SongWords::title((string) $template->title, (string) $template->slug)])),
+                'description' => $story !== null && $story['description'] !== '' ? $story['description'] : match (true) {
                     SongParts::round($song['genre']) => __('pages.song.description_round', ['title' => SongParts::searchTitle((string) $template->title)]),
                     SongParts::satb(array_column($song['parts'], 'key')) => __('pages.song.description_satb', ['title' => SongWords::title((string) $template->title, (string) $template->slug)]),
                     default => __('pages.song.description', ['title' => SongWords::title((string) $template->title, (string) $template->slug), 'parts' => implode(', ', array_column($song['parts'], 'name'))]),

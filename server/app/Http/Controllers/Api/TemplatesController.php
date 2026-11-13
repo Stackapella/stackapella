@@ -50,9 +50,12 @@ final class TemplatesController extends Controller
 
         $startable = $songs->filter(fn (Template $template): bool => $catalogue->mayStart($template, $user));
         $guides = $catalogue->guides($startable->pluck('current_version_id')->filter()->map(static fn (mixed $id): int => (int) $id)->values()->all());
+        // Which parts have a real voice, for every song (one read): hasRealGuide and wantsVoice.
+        $voiced = TemplateGuide::query()->where('is_default', true)->whereIn('template_version_id', $songs->pluck('current_version_id')->filter())
+            ->get(['template_version_id', 'part_key'])->mapWithKeys(static fn (TemplateGuide $g): array => [$g->template_version_id.':'.$g->part_key => true])->all();
 
         return response()->json([
-            'data' => $songs->map(fn (Template $template): array => (new CatalogueSongResource($template, $startable->contains($template) ? $guides : collect()))->toArray($request))->values(),
+            'data' => $songs->map(fn (Template $template): array => (new CatalogueSongResource($template, $startable->contains($template) ? $guides : collect(), $voiced))->toArray($request))->values(),
         ]);
     }
 

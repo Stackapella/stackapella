@@ -21,6 +21,7 @@ const DONE = { listen: tk('sing.coach.done.listen'), singAlong: tk('sing.coach.d
 export const Coach = {
     components: { Icon, KeyControl },
     props: {
+        starting: Boolean, // the session getting audio and the guides ready: the action spins once tapped
         partName: { type: String, required: true },
         color: { type: String, required: true },
         step: { type: String, required: true },
@@ -34,6 +35,12 @@ export const Coach = {
         canHigher: { type: Boolean, default: true },
     },
     emits: ['action', 'phrase', 'step', 'other-part', 'lower', 'higher'],
+    data: () => ({ pressed: false }),
+    watch: {
+        starting(now) {
+            if (!now) this.pressed = false;
+        },
+    },
     setup: () => ({ STEP, STEPS, game }),
     // 66.png: "Step 1 of 4" over the steps as bars, the step and its line, the key, Next; the phrases
     // as cards (the one you're on outlined in your colour); Choose another part and Skip to record.
@@ -56,7 +63,7 @@ export const Coach = {
                     <p class="mt-2 text-muted">{{ t(STEP[step].hint, { part: partName }) }}</p>
                 </div>
                 <KeyControl v-if="musicKey" :music-key="musicKey" :can-lower="canLower" :can-higher="canHigher" @lower="$emit('lower')" @higher="$emit('higher')" />
-                <button type="button" class="btn-primary btn-lg w-full" :class="step === 'record' ? '' : 'md:hidden'" @click="$emit('action')"><Icon :name="step === 'record' ? 'record' : 'play'" :size="18" /> {{ t(STEP[step].action, { part: partName, number: here + 1 }) }}</button>
+                <button type="button" class="btn-primary btn-lg w-full" :class="step === 'record' ? '' : 'md:hidden'" :aria-busy="pressed && starting ? 'true' : null" data-coach-action @click="pressed = true; $emit('action')"><span v-if="pressed && starting" class="spinner" aria-hidden="true"></span><Icon v-else :name="step === 'record' ? 'record' : 'play'" :size="18" /> {{ t(STEP[step].action, { part: partName, number: here + 1 }) }}</button>
                 <button v-if="step !== 'record' && stepIndex < STEPS.length - 1" type="button" class="btn-secondary w-full" @click="$emit('step', STEPS[stepIndex + 1])">{{ t('sing.coach.next', { step: t(STEP[STEPS[stepIndex + 1]].name) }) }}</button>
             </div>
             <div v-if="step !== 'record'" class="px-5">

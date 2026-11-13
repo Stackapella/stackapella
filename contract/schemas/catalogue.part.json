@@ -8,7 +8,8 @@
         "range",
         "guide",
         "versions",
-        "shape"
+        "shape",
+        "hasRealGuide"
     ],
     "properties": {
         "key": {
@@ -61,6 +62,10 @@
                     "type": "integer"
                 }
             }
+        },
+        "hasRealGuide": {
+            "type": "boolean",
+            "description": "A real voice sings this part (a published guide), whether or not this caller may start the song (docs/open-guide-voices-plan.md)."
         }
     },
     "title": "One part of a song in the catalogue: never its notes"

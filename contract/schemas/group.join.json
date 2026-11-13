@@ -11,7 +11,8 @@
             "required": [
                 "name",
                 "director",
-                "members"
+                "members",
+                "readOnly"
             ],
             "properties": {
                 "name": {
@@ -31,6 +32,10 @@
                 },
                 "members": {
                     "type": "integer"
+                },
+                "readOnly": {
+                    "type": "boolean",
+                    "description": "Paused: the director's Plus has ended, so the group takes nobody new (groups.join answers 403 shared_paused)."
                 }
             }
         }

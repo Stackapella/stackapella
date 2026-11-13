@@ -1,0 +1,57 @@
+{
+    "$id": "admin.corrections.list.json",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data",
+        "meta"
+    ],
+    "properties": {
+        "data": {
+            "type": "array",
+            "items": {
+                "$ref": "admin.correction.json"
+            }
+        },
+        "meta": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "nextCursor",
+                "counts"
+            ],
+            "properties": {
+                "nextCursor": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "counts": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                        "new",
+                        "accepted",
+                        "done",
+                        "rejected"
+                    ],
+                    "properties": {
+                        "new": {
+                            "type": "integer"
+                        },
+                        "accepted": {
+                            "type": "integer"
+                        },
+                        "done": {
+                            "type": "integer"
+                        },
+                        "rejected": {
+                            "type": "integer"
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

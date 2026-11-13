@@ -42,7 +42,8 @@
                                     "singer": {
                                         "id": "Rt6Hc1",
                                         "name": "Ben Ode"
-                                    }
+                                    },
+                                    "version": 4
                                 }
                             ],
                             "changed": false,

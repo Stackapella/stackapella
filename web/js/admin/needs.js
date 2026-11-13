@@ -28,6 +28,8 @@ const STATUS = {
     guide: tk('admin.needs.status.accepted'),
     accepted: tk('admin.needs.status.accepted'),
     rejected: tk('admin.needs.status.rejected'),
+    held: tk('admin.needs.status.held'),
+    not_chosen: tk('admin.needs.status.notChosen'),
 };
 
 /**
@@ -82,7 +84,7 @@ export const NeedsCard = {
     // and what the weekly sitemap check last found (sitemapProblems: a page search can't index and why; "and N more").
     // For an admin, the week's three worst drop-offs and how sharing went (admin.dropoffs.show, admin.sharing.show), asked here.
     // `loaded` once the overview came, `failed` when it didn't (the shell's ask; retry asks again).
-    props: { outreach: { type: Object, default: null }, notSynced: { type: Array, default: () => [] }, sitemap: { type: Array, default: () => [] }, admin: { type: Boolean, default: false }, loaded: { type: Boolean, default: false }, failed: { type: Boolean, default: false } },
+    props: { outreach: { type: Object, default: null }, corrections: { type: Number, default: 0 }, notSynced: { type: Array, default: () => [] }, sitemap: { type: Array, default: () => [] }, admin: { type: Boolean, default: false }, loaded: { type: Boolean, default: false }, failed: { type: Boolean, default: false } },
     emits: ['retry'],
     data: () => ({ dropoffs: null, sharing: null, breadth: null }),
     setup: () => ({ listCount, formatNumber, dropPath, lastWeekOf, surfaceName }),
@@ -94,6 +96,17 @@ export const NeedsCard = {
             <p v-else-if="!total" class="text-sm text-muted" data-needs-none>{{ t('admin.needs.none') }}</p>
             <!-- Sharing isn't a need, so it shows (and counts) only beside the rest; nothing needing him, it sits under the line. -->
             <div v-if="loaded && (total || sharing)" class="grid items-start gap-4 min-[900px]:grid-cols-2">
+                <!-- Readers' corrections still to read (admin.overview's corrections.new), one row to the inbox. -->
+                <section v-if="corrections" class="card overflow-hidden" aria-labelledby="needs-corrections-h" data-needs-corrections>
+                    <div class="flex items-center justify-between gap-3 border-b border-line px-5 py-3.5">
+                        <h3 id="needs-corrections-h" class="eyebrow text-muted">{{ t('admin.nav.corrections') }}</h3>
+                    </div>
+                    <a href="/admin/corrections" class="flex min-h-14 items-center gap-3.5 px-5 py-3 text-cream transition hover:bg-(--fill)" data-needs-corrections-row @click.prevent="navigate('/admin/corrections')">
+                        <span class="grid h-7 min-w-7 shrink-0 place-items-center rounded-lg bg-accent/15 px-1.5 text-sm font-bold tabular-nums text-accent-strong" data-count>{{ formatNumber(corrections) }}</span>
+                        <span class="min-w-0 flex-1">{{ t('admin.needs.corrections', { count: corrections }) }}</span>
+                        <Icon name="chevron" :size="16" class="shrink-0 -rotate-90 text-muted rtl:rotate-90" />
+                    </a>
+                </section>
                 <!-- Outreach (docs/outreach-plan.md): a row for each kind waiting, its count at the left, each to where it's done. -->
                 <section v-if="outreachRows.length" class="card overflow-hidden" aria-labelledby="needs-outreach-h" data-needs-outreach>
                     <div class="flex items-center justify-between gap-3 border-b border-line px-5 py-3.5">
@@ -160,7 +173,7 @@ export const NeedsCard = {
         },
         /** What needs him now, beside the title: outreach's, the week's worst drop-offs and the site's (never the voices). */
         total() {
-            return this.outreachRows.reduce((sum, row) => sum + row.count, 0) + listCount(this.notSynced) + listCount(this.sitemap) + this.worst.length;
+            return this.outreachRows.reduce((sum, row) => sum + row.count, 0) + this.corrections + listCount(this.notSynced) + listCount(this.sitemap) + this.worst.length;
         },
         /** The week's three worst drop-offs (none before the first report). */
         worst() {
@@ -198,7 +211,7 @@ export const PartNeeds = {
         <div v-if="shown" class="mt-2 space-y-2" data-part-needs>
             <div v-if="needs.review.length || needs.changed || needs.unassigned" class="flex flex-wrap items-center gap-2">
                 <NeedChips :needs="needs" />
-                <button v-if="needs.unassigned && isAdmin" type="button" class="link tap-44 text-sm" @click="navigate('/admin/singers')">{{ t('admin.needs.findSinger') }}</button>
+                <button v-if="needs.unassigned && isAdmin" type="button" class="link tap-44 inline-flex min-h-6 items-center text-sm" @click="navigate('/admin/singers')">{{ t('admin.needs.findSinger') }}</button>
             </div>
             <ul v-if="needs.singers.length" class="space-y-1.5 text-sm">
                 <li v-for="s in needs.singers" :key="s.assignment" class="space-y-2" :data-needs-singer="s.assignment">

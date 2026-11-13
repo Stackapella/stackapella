@@ -502,6 +502,8 @@ final class LanguagesTest extends TestCase
 
     public function test_spanish_pages_name_parts_units_and_related_guides_in_spanish(): void
     {
+        // A song page without a story here (the content's stories would replace its description and its More songs).
+        config(['content.stories' => storage_path('framework/testing/no-stories')]);
         // The coordinator's native read of the Spanish site (2026-11-12): four places still read the English.
         config(['app.is_nexus' => true, 'app.coming_soon' => false]);
         app(SyncOfficialTemplates::class)->handle();
@@ -573,16 +575,17 @@ final class LanguagesTest extends TestCase
         app(Flags::class)->set('lang_es', 'on', null, 'Spanish checked');
 
         $song = (string) $this->get('/es/songs/amazing-grace')->assertOk()->getContent();
-        $this->assertStringContainsString('<span>Himno</span>', $song);
+        $this->assertStringContainsString('<li>Himno</li>', $song);
         $this->assertStringContainsString('himno popular estadounidense (1829)', $song);
-        $this->assertStringContainsString('Aprende la voz de soprano (de ', $song);
-        $this->assertMatchesRegularExpression('/s-range-scale.*>Do\d</su', $song);
-        $this->assertDoesNotMatchRegularExpression('/s-range-scale[^\n]*>C\d</u', $song);
+        $this->assertStringContainsString('Aprende la voz de soprano', $song);
+        // Each part's range on its Find your part card, in Spanish note names.
+        $this->assertMatchesRegularExpression('/class="s-sg-range"[^>]*>[^<]*Do\d/u', $song);
+        $this->assertDoesNotMatchRegularExpression('/class="s-sg-range"[^>]*>[^<]*\bC\d/u', $song);
 
         $english = (string) $this->get('/songs/amazing-grace')->assertOk()->getContent();
-        $this->assertStringContainsString('<span>Hymn</span>', $english);
+        $this->assertStringContainsString('<li>Hymn</li>', $english);
         $this->assertStringContainsString('American folk hymn (1829)', $english);
-        $this->assertStringContainsString('Learn the soprano part (', $english);
+        $this->assertStringContainsString('Learn the soprano part', $english);
 
         // The part page's key, and a round's note in the A to Z.
         $this->get('/es/songs/amazing-grace/alto')->assertOk()->assertSee('<dd translate="no">Sol</dd>', false);

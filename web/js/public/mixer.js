@@ -11,7 +11,8 @@
 // - [data-voice="<part key>"]: a voice. Either a button, aria-pressed while it sings (the tune), or a
 //   row (the hero's mixer) holding [data-pick], a radio that brings that voice forward (louder, and
 //   "You": the row gets s-is-you), and [data-toggle], a switch that only turns it on or off;
-// - [data-set="<part key>|all"]: a button that leaves only that voice on, or all of them;
+// - [data-set="<part key>|all"]: a button that leaves only that voice on, or all of them (the mixer's "Hear" row,
+//   aria-pressed on the one that says what you hear; switching while it plays carries on from the same spot);
 // - optional, for the Studio page's mixer: [data-level="<part key>"], a range input (0 to 1, 1 when
 //   missing) setting that voice's level; [data-solo="<part key>"], a button (aria-pressed) that
 //   solos it: while any voice is soloed only the soloed ones sound, whatever their switches say, and
@@ -310,6 +311,7 @@ function setUp(root) {
         // Brought forward means heard: a voice switched off comes back on.
         if (!on.get(key)) switchTo(key, true);
         for (const other of picks.keys()) ramp(other, BRING);
+        showSets();
     }
 
     function showSets() {

@@ -268,6 +268,9 @@ final class ArchitectureTest extends TestCase
     {
         $allowed = [
             'admin/auth/second-factor-setup.blade.php' => 1, // the QR code SVG we generate
+            'public/_song-story.blade.php' => 6, // a song's story, HTML SongStories makes from the reviewed markdown (its prose, timeline, figures)
+            'site/_story-figure.blade.php' => 1, // a story picture's caption, HTML SongStories makes from the reviewed markdown (its credit's links)
+            'public/_song-words.blade.php' => 1, // the full words' note, HTML SongStories makes from the reviewed markdown, with its citations
         ];
 
         foreach ($this->views() as $file) {

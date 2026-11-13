@@ -35,7 +35,12 @@ export const STATUS = {
     rejected: { tone: 'muted', label: tk('admin.review.status.rejected') },
     accepted: { tone: 'good', label: tk('admin.review.status.accepted') },
     failed: { tone: 'bad', label: tk('admin.review.status.failed') },
+    // Open takes (slice 2b): held until the singer's email is confirmed, and not chosen once another became the voice.
+    held: { tone: 'muted', label: tk('admin.review.status.held') },
+    not_chosen: { tone: 'muted', label: tk('admin.review.status.notChosen') },
 };
+/** A status as its chip, a newer one the screen doesn't know yet said plainly rather than breaking the list. */
+const statusOf = (status) => STATUS[status] ?? { tone: 'muted', label: tk('admin.review.status.other') };
 const PUBLISH = {
     pending: { tone: 'info', label: tk('admin.review.publish.pending') },
     published: { tone: 'good', label: tk('admin.review.publish.published') },
@@ -78,15 +83,26 @@ function setShortcuts(on) {
 /** The queue as last listed, for J and K on a take. */
 const queue = { ids: [], query: '' };
 
+/** Groups by song part (admin.beta.submissions.list?groupBy=part, meta.groups) merged across pages: one a part. */
+export function mergeGroups(had = [], more = []) {
+    const out = had.map((g) => ({ ...g, takes: [...g.takes] }));
+    for (const g of more) {
+        const same = out.find((o) => o.templateId === g.templateId && o.partKey === g.partKey && o.version === g.version);
+        if (same) same.takes.push(...g.takes.filter((id) => !same.takes.includes(id)));
+        else out.push({ ...g, takes: [...g.takes] });
+    }
+    return out;
+}
+
 /** The queue: the takes waiting, or any status, by song and part. */
 const QueueList = {
     components: { EmptyState, LoadFailed, StatusChip, Icon },
     props: { templates: { type: Array, required: true } },
     data() {
         const q = new URLSearchParams(location.search);
-        return { items: null, failed: false, cursor: null, loadingMore: false, status: q.get('status') ?? 'waiting', template: q.get('template') ?? '', part: q.get('part') ?? '', singer: q.get('singer') ?? '' };
+        return { groups: null, items: null, failed: false, cursor: null, loadingMore: false, status: q.get('status') ?? 'waiting', template: q.get('template') ?? '', part: q.get('part') ?? '', singer: q.get('singer') ?? '' };
     },
-    setup: () => ({ FILTERS, PARTS, STATUS, when, templatePartName, takeTitle, singerName, shortcuts, setShortcuts }),
+    setup: () => ({ FILTERS, PARTS, STATUS, statusOf, when, templatePartName, takeTitle, singerName, shortcuts, setShortcuts }),
     template: `
         <div class="space-y-6">
             <div class="flex flex-wrap items-end justify-between gap-3">
@@ -113,6 +129,31 @@ const QueueList = {
             <LoadFailed v-if="failed" :message="failed" @retry="load()" />
             <p v-else-if="!items" class="text-muted" role="status">{{ t('admin.loading') }}</p>
             <EmptyState v-else-if="!items.length" icon="mic" :title="status === 'waiting' ? t('admin.review.noneWaiting') : t('admin.review.none')" />
+            <!-- The waiting takes by song part (open takes: several singers may record one part): the part's voice now beside
+                 them, one tap to hear it and compare, the part with the oldest waiting take first. -->
+            <div v-else-if="grouped.length" class="space-y-4" data-review-groups>
+                <section v-for="g in grouped" :key="g.templateId + ':' + g.partKey + ':' + g.version" class="card overflow-hidden" :aria-label="g.title + ', ' + g.partName" :data-review-group="g.partKey">
+                    <div class="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 border-b border-line px-4 py-3">
+                        <h2 class="font-bold text-cream"><span translate="no">{{ g.title }}</span> · {{ g.partName }} <span class="text-sm font-normal text-muted">{{ t('admin.review.group.version', { version: g.version }) }}</span></h2>
+                        <p class="flex flex-wrap items-center gap-x-2 text-sm text-muted" data-group-voice>
+                            <span>{{ g.guide ? t('admin.review.group.voiceNow', { name: g.guide.singer.name }) : t('admin.review.group.noVoice') }}</span>
+                            <a v-if="g.guide?.submission" :href="'/admin/review/' + g.guide.submission" class="link tap-44 inline-flex min-h-6 items-center" data-group-hear @click.prevent="openId(g.guide.submission)">{{ t('admin.review.group.hear') }}</a>
+                        </p>
+                    </div>
+                    <ul class="divide-y divide-line">
+                        <li v-for="item in g.items" :key="item.id">
+                            <a :href="'/admin/review/' + item.id" class="flex flex-wrap items-center gap-x-4 gap-y-1 px-4 py-3 hover:bg-raised" @click.prevent="open(item)">
+                                <span class="min-w-0 flex-1">
+                                    <span class="block font-bold text-cream" translate="no">{{ singerName(item.singer) }}</span>
+                                    <span class="text-sm text-muted">{{ when(item.createdAt) }}</span>
+                                </span>
+                                <span v-if="item.scores?.pitchPercent !== null && item.scores?.pitchPercent !== undefined" class="text-sm text-cream">{{ t('admin.review.onPitch', { percent: item.scores.pitchPercent }) }}<template v-if="item.scores.timingPercent !== null && item.scores.timingPercent !== undefined"> · {{ t('admin.review.timingPercent', { percent: item.scores.timingPercent }) }}</template></span>
+                                <StatusChip :tone="statusOf(item.status).tone" :label="t(statusOf(item.status).label)" />
+                            </a>
+                        </li>
+                    </ul>
+                </section>
+            </div>
             <ul v-else class="card divide-y divide-line">
                 <li v-for="item in items" :key="item.id">
                     <a :href="'/admin/review/' + item.id" class="flex flex-wrap items-center gap-x-4 gap-y-1 px-4 py-3 hover:bg-raised" @click.prevent="open(item)">
@@ -123,13 +164,21 @@ const QueueList = {
                         </span>
                         <span v-if="item.scores?.pitchPercent !== null && item.scores?.pitchPercent !== undefined" class="text-sm text-cream">{{ t('admin.review.onPitch', { percent: item.scores.pitchPercent }) }}<template v-if="item.scores.timingPercent !== null && item.scores.timingPercent !== undefined"> · {{ t('admin.review.timingPercent', { percent: item.scores.timingPercent }) }}</template></span>
                         <StatusChip v-if="item.template && item.template.version !== item.template.currentVersion" tone="warn" :label="t('admin.review.olderVersion', { version: item.template.version })" />
-                        <StatusChip :tone="STATUS[item.status].tone" :label="t(STATUS[item.status].label)" />
+                        <StatusChip :tone="statusOf(item.status).tone" :label="t(statusOf(item.status).label)" />
                     </a>
                 </li>
             </ul>
             <button v-if="cursor && !failed" type="button" class="btn-secondary" :disabled="loadingMore" @click="load(true)">{{ loadingMore ? t('admin.loading') : t('admin.loadMore') }}</button>
             <label class="check-row text-muted"><input type="checkbox" class="checkbox" :checked="shortcuts.on" @change="setShortcuts($event.target.checked)" /> <span>{{ t('admin.review.keys') }}</span></label>
         </div>`,
+    computed: {
+        /** The page's takes in their groups (ids joined to the list), when the server sent groups. */
+        grouped() {
+            if (!this.groups?.length || !this.items) return [];
+            const byId = new Map(this.items.map((item) => [item.id, item]));
+            return this.groups.map((g) => ({ ...g, items: g.takes.map((id) => byId.get(id)).filter(Boolean) })).filter((g) => g.items.length);
+        },
+    },
     created() {
         this.load();
     },
@@ -144,12 +193,21 @@ const QueueList = {
         },
         async load(more = false) {
             if (!more) history.replaceState({}, '', `/admin/review${this.query() ? `?${this.query()}` : ''}`);
-            await loadInto(this, 'items', () => api.admin.beta.submissions.list({ status: this.status || undefined, template: this.template || undefined, part: this.part || undefined, singer: this.singer || undefined, cursor: more ? this.cursor : undefined }), { more });
+            // The waiting queue by song part; any other status as one list, as before.
+            const groupBy = this.status === 'waiting' ? 'part' : undefined;
+            if (!more) this.groups = null;
+            await loadInto(this, 'items', () => api.admin.beta.submissions.list({ status: this.status || undefined, template: this.template || undefined, part: this.part || undefined, singer: this.singer || undefined, groupBy, cursor: more ? this.cursor : undefined }).then((page) => {
+                if (groupBy) this.groups = mergeGroups(more ? this.groups ?? [] : [], page.meta?.groups ?? []);
+                return page;
+            }), { more });
             queue.ids = (this.items ?? []).map((item) => item.id);
             queue.query = this.query();
         },
         open(item) {
-            navigate(`/admin/review/${item.id}${queue.query ? `?${queue.query}` : ''}`);
+            this.openId(item.id);
+        },
+        openId(id) {
+            navigate(`/admin/review/${id}${queue.query ? `?${queue.query}` : ''}`);
         },
     },
 };
@@ -186,15 +244,23 @@ const RetakeSheet = {
 /** Accepting (as the default voice, or kept as an alternate), or rejecting with a kind note. */
 const DecideSheet = {
     components: { Modal, Field },
-    props: { kind: { type: String, required: true }, busy: Boolean },
+    // waiting: how many other takes of this part are still waiting (told they weren't chosen when this becomes its voice).
+    props: { kind: { type: String, required: true }, busy: Boolean, waiting: { type: Number, default: 0 } },
     emits: ['close', 'confirm'],
-    data: () => ({ makeDefault: true, note: '', abuse: false }),
+    data: () => ({ makeDefault: true, note: '', abuse: false, notChosen: '' }),
     template: `
         <Modal :title="kind === 'accept' ? t('admin.review.acceptTitle') : t('admin.review.rejectTitle')" :dismissable="!busy" @close="$emit('close')">
-            <form class="space-y-5" @submit.prevent="$emit('confirm', kind === 'accept' ? { makeDefault } : { note: note.trim() || null, abuse })">
+            <form class="space-y-5" @submit.prevent="$emit('confirm', kind === 'accept' ? { makeDefault, notChosenNote: makeDefault && waiting ? notChosen.trim() || null : null } : { note: note.trim() || null, abuse })">
                 <template v-if="kind === 'accept'">
                     <p class="text-cream">{{ t('admin.review.acceptBody') }}</p>
                     <label class="check-row"><input v-model="makeDefault" type="checkbox" class="checkbox" /> <span>{{ t('admin.review.makeDefault') }}<span class="block text-sm text-muted">{{ t('admin.review.makeDefaultHelp') }}</span></span></label>
+                    <!-- Open takes: the part's other waiting takes are told they weren't chosen, with one note for all of them. -->
+                    <template v-if="makeDefault && waiting">
+                        <p class="text-sm text-cream" data-not-chosen-count>{{ t('admin.review.notChosen.count', { count: waiting }) }}</p>
+                        <Field :label="t('admin.review.notChosen.note')" :help="t('admin.review.notChosen.help')" v-slot="f">
+                            <textarea :id="f.id" v-model="notChosen" rows="3" maxlength="500" class="input" :aria-describedby="f.describedby" data-not-chosen-note></textarea>
+                        </Field>
+                    </template>
                 </template>
                 <template v-else>
                     <!-- A normal "not this one", or refused for abuse (Lend your voice: they can't claim again). -->
@@ -222,6 +288,7 @@ const ReviewTake = {
     data: () => ({
         item: null,
         failed: false,
+        waitingOthers: 0, // other waiting takes of this part (the accept sheet's not chosen)
         template: null,
         master: null,
         track: null,
@@ -238,7 +305,7 @@ const ReviewTake = {
         errors: null,
         newTakeNote: '',
     }),
-    setup: () => ({ STATUS, PUBLISH, FAILURE, TENDENCY, ADJUST, templatePartName, takeTitle, singerName, formatDate, formatNumber, when }),
+    setup: () => ({ STATUS, statusOf, PUBLISH, FAILURE, TENDENCY, ADJUST, templatePartName, takeTitle, singerName, formatDate, formatNumber, when }),
     template: `
         <div class="space-y-6" :class="item ? 'max-sm:pb-40' : ''">
             <a :href="backHref" class="btn-ghost btn-sm" @click.prevent="back"><Icon name="back" :size="16" /> {{ t('admin.review.backToQueue') }}</a>
@@ -251,7 +318,7 @@ const ReviewTake = {
                         <p class="text-sm text-muted">{{ t('admin.review.sungBy', { name: singerName(item.singer) }) }}<template v-if="item.singer.credit"> · {{ t('admin.review.creditAs', { credit: item.singer.credit }) }}</template> · {{ when(item.createdAt) }}</p>
                     </div>
                     <div class="flex flex-wrap gap-2">
-                        <StatusChip :tone="STATUS[item.status].tone" :label="t(STATUS[item.status].label)" />
+                        <StatusChip :tone="statusOf(item.status).tone" :label="t(statusOf(item.status).label)" />
                         <StatusChip v-if="PUBLISH[item.publish]" :tone="PUBLISH[item.publish].tone" :label="t(PUBLISH[item.publish].label)" />
                     </div>
                 </header>
@@ -363,7 +430,7 @@ const ReviewTake = {
                 </div>
             </div>
             <RetakeSheet v-if="sheet === 'retake'" :phrases="phrases" :picked="picked" :busy="busy" :errors="errors" @close="sheet = null" @send="retake" />
-            <DecideSheet v-if="sheet === 'accept' || sheet === 'reject'" :kind="sheet" :busy="busy" @close="sheet = null" @confirm="decide" />
+            <DecideSheet v-if="sheet === 'accept' || sheet === 'reject'" :kind="sheet" :busy="busy" :waiting="waitingOthers" @close="sheet = null" @confirm="decide" />
             <ChangeSheet v-if="sheet === 'newTake'" :title="t('admin.newTake.title', { name: singerName(item.singer), part: templatePartName({ key: item.partKey }) })" :me="me" :busy="busy" :errors="errors" :reasoned="false" :needs-sudo="false" @close="sheet = null" @confirm="newTake">
                 <p class="text-cream">{{ t('admin.newTake.body', { name: singerName(item.singer) }) }}</p>
                 <label class="block space-y-1.5"><span class="label">{{ t('admin.needs.noteLabel', { name: singerName(item.singer) }) }}</span><textarea v-model="newTakeNote" class="input min-h-16 w-full" maxlength="500" rows="2" data-new-take-note></textarea></label>
@@ -571,6 +638,20 @@ const ReviewTake = {
         ask(kind) {
             this.errors = null;
             this.sheet = kind;
+            if (kind === 'accept') this.countWaiting();
+        },
+        /** The part's other waiting takes, for the accept sheet's "not chosen" line (the same version's, this one left out). */
+        async countWaiting() {
+            this.waitingOthers = 0;
+            const it = this.item;
+            if (!it?.template?.id || !it.partKey) return;
+            try {
+                const page = await api.admin.beta.submissions.list({ status: 'waiting', template: it.template.id, part: it.partKey, groupBy: 'part' });
+                const group = (page.meta?.groups ?? []).find((g) => g.takes.includes(it.id));
+                this.waitingOthers = group ? group.takes.filter((id) => id !== it.id).length : 0;
+            } catch (error) {
+                console.info('The part\'s other takes were not counted', error?.message ?? error);
+            }
         },
         askNewTake() {
             this.newTakeNote = t('admin.newTake.note');

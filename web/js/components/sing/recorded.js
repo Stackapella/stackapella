@@ -13,6 +13,7 @@ import { oneThing, phraseReview } from '../../report.js';
 import { formatTime } from '../../theme.js';
 import { Icon } from '../icon.js';
 import { sk } from '../../skin.js';
+import { BeTheVoice } from '../../be-the-voice.js';
 
 const MAX_NUDGE_MS = 150;
 const LEVEL = { excellent: tk('report.level.excellent'), close: tk('report.level.close'), gettingThere: tk('report.level.gettingThere'), tricky: tk('report.level.tricky') };
@@ -59,7 +60,7 @@ const PeakRow = {
 };
 
 export const JustRecorded = {
-    components: { Icon, PeakRow },
+    components: { Icon, PeakRow, BeTheVoice },
     props: {
         outcome: { type: Object, required: true }, // sessionStore.finishRecording's
         partName: { type: String, required: true },
@@ -84,8 +85,9 @@ export const JustRecorded = {
         lengthSeconds: { type: Number, default: 1 },
         bleed: Boolean,
         sungBy: { type: String, default: '' }, // the song and who sang it, once two or more of its parts are yours (onboarding step 10)
+        voice: { type: Object, default: null }, // Be the voice's invitation (js/be-the-voice.js): { part, guest }, or null
     },
-    emits: ['hear', 'mute', 'again', 'next', 'nudge', 'nudged', 'line-up', 'studio', 'resing', 'trim', 'polish', 'share', 'hear-phrase'],
+    emits: ['hear', 'mute', 'again', 'next', 'nudge', 'nudged', 'line-up', 'studio', 'resing', 'trim', 'polish', 'share', 'hear-phrase', 'voice-share', 'voice-later'],
     data: () => ({ nudging: false, picked: null }),
     setup: () => ({ MAX_NUDGE_MS, CHART, formatNumber, formatTime, sk }),
     template: `
@@ -193,6 +195,8 @@ export const JustRecorded = {
                     <p v-else-if="!score && notes.length" class="text-sm text-muted" role="status">{{ t('report.working') }}</p>
                     <p v-else-if="score && score.status !== 'scored'" class="text-sm text-cream" role="status">{{ sk('report.unheardSerious', 'report.unheard') }}</p>
                 </div>
+                <!-- Be the voice (Hillel, 2026-11-12): a usable take of a part no one has given a real voice, one calm card after the take's own checks. -->
+                <BeTheVoice v-if="voice" :part="voice.part" :guest="voice.guest" @share="$emit('voice-share')" @later="$emit('voice-later')" />
             </div>
             <!-- One clear decision, always in view. -->
             <div class="sticky bottom-0 z-10 border-t border-edge bg-ink/95 px-4 py-3 backdrop-blur md:px-8">

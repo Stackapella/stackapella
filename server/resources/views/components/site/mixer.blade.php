@@ -45,6 +45,22 @@
             </div>
         @endforeach
     </div>
+    {{-- Which part you hear, as one labelled row of chips under the voices (a singer, 2026-11-12: "on a phone, it was hard to
+         figure out how to change to listen to one part or another"): a part alone, or all of them. They're the voices'
+         switches in one tap (js/public/mixer.js [data-set]), so playing carries on from the same spot. The Studio's mixer
+         has its own Solo per voice. --}}
+    @unless ($studio)
+        <div class="s-hear-parts" data-hear-parts>
+            <p class="s-hear-k" id="{{ $id }}-hear">{{ __('pages.landing.hero.hear_lead') }}</p>
+            <div class="s-hear-row" role="group" aria-labelledby="{{ $id }}-hear">
+                <span class="s-hear-l" aria-hidden="true">{{ __('pages.landing.hero.hear') }}</span>
+                <button type="button" class="s-hear-chip" data-set="all" aria-pressed="false">{{ __('pages.landing.hero.hear_all') }}</button>
+                @foreach ($song['parts'] as $part)
+                    <button type="button" class="s-hear-chip s-v{{ $part['color'] }}" data-set="{{ $part['key'] }}" aria-pressed="false" aria-label="{{ __('pages.landing.hero.hear_only', ['part' => $part['name']]) }}"><i aria-hidden="true"></i>{{ $part['name'] }}</button>
+                @endforeach
+            </div>
+        </div>
+    @endunless
     @if ($song['words'] !== [])
         <div class="s-mix-words" aria-hidden="true"><p class="s-lyrics">@foreach ($song['words'] as $word)<span data-beat="{{ $word['beat'] }}">{{ $word['text'] }}</span>{{ $word['joins'] ? '' : ' ' }}@endforeach</p></div>
     @endif

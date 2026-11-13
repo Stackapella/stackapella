@@ -60,7 +60,7 @@ final class SharingTest extends TestCase
     public function test_a_shared_page_opened_counts_by_surface_and_never_for_a_crawler(): void
     {
         config(['counts.enabled' => true]);
-        $director = User::factory()->create()->fresh() ?? throw new \RuntimeException('no user');
+        $director = User::factory()->create(['plan' => 'plus'])->fresh() ?? throw new \RuntimeException('no user');
         $this->actingAs($director);
         $group = (string) $this->postJson('/api/groups', ['name' => 'Thursday Singers', 'adult' => true])->assertCreated()->json('data.id');
         $token = (string) str($this->postJson('/api/groups/'.$group.'/link')->assertCreated()->json('data.url'))->afterLast('/choir/');

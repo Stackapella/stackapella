@@ -52,6 +52,8 @@
         "couldNotSave": "Couldn't save just now. Your work is still here; try again in a moment.",
         "undo": "Undo",
         "tryAgain": "Try again",
+        "stillLoading": "Still loading. A slow connection takes a moment.",
+        "loadFailed": "This didn't load. Check your connection, then try again.",
         "cancel": "Cancel",
         "save": "Save",
         "done": "Done",
@@ -567,6 +569,9 @@
         "next": "Next"
     },
     "templates": {
+        "loadFailed": "The song didn't load.",
+        "notHere": "This song isn't available where you are yet.",
+        "notHereUntil": "This song isn't available where you are yet. It opens here in {year}.",
         "singers": {
             "question": "How many singers?"
         },
@@ -589,7 +594,6 @@
         "start": "Start",
         "sungBy": "Real voices: {names}",
         "previewClip": "Hear a preview",
-        "loading": "Opening the song...",
         "needsAccount": "Make a free account to start this song. Its clip plays here."
     },
     "projects": {
@@ -756,6 +760,7 @@
         },
         "status": {
             "to_record": "To record",
+            "held": "Waiting for your email",
             "submitted": "Sent",
             "in_review": "Hillel is listening",
             "retake": "Another take, please",
@@ -959,7 +964,6 @@
             "resting": "{part} is resting"
         },
         "open": "Sing",
-        "loading": "Getting the song ready",
         "notTemplate": "Sing is for songs made from a harmony template. This one has no notes to follow.",
         "parts": "The parts",
         "mode": "How you hear your part",
@@ -1475,6 +1479,7 @@
             "groups": "Make a free account for choir groups",
             "groupsStart": "Make a free account to start your choir's group",
             "voice": "Make a free account to add your voice",
+            "voicePart": "Save your {part} and share it",
             "plus": "Make a free account for Plus",
             "template": "Keep your song with a free account",
             "sheet": "Make a free account to bring in sheet music",
@@ -1487,6 +1492,10 @@
         }
     },
     "settings": {
+        "tools": {
+            "title": "Free tools",
+            "hint": "A tuner, a range test, a metronome and more, on our site"
+        },
         "language": {
             "title": "Language",
             "hint": "The app's words, and your emails. Songs keep their own words.",
@@ -1870,6 +1879,10 @@
         }
     },
     "course": {
+        "friendNote": {
+            "both": "Your friend: {theirs} · You: {yours}",
+            "ask": "Your friend's voice sits around {note}. What's yours?"
+        },
         "unitSong": {
             "sing": "Sing it"
         },
@@ -2091,7 +2104,8 @@
             "why": "We listen while you sing to show your notes. Nothing is recorded or sent unless you choose to save a take. Then tap Allow.",
             "inAppTitle": "Singing needs your mic",
             "inApp": "{app}'s browser usually can't share it. Open this page in {browser}: tap the menu (··· or the share button), then Open in browser. Or copy the link and paste it there.",
-            "carryOn": "Carry on anyway"
+            "carryOn": "Carry on anyway",
+            "openInChrome": "Open in Chrome"
         },
         "mapLessons": "{done} of {total} lessons",
         "mapOpensAfter": "Opens as you finish unit {number}",
@@ -2354,6 +2368,7 @@
             "unverified": "Confirm your email and your recordings go to your account. Until then they're safe on this device.",
             "full": "Your storage is full, so new recordings stay on this device for now.",
             "readOnly": "Some songs are past the free plan's limit, so their changes stay on this device.",
+            "paused": "A friend's song is paused, so your recordings for it stay on this device until it's back.",
             "pending": "{count, plural, one {# change is} other {# changes are}} on the way to your account.",
             "saved": "Everything is saved to your account.",
             "starting": "Checking your account."
@@ -2811,10 +2826,20 @@
         "warmUpOurs": "Today's usual"
     },
     "plus": {
+        "storySolo": "Learning to sing is free, with your friends and your choir too. Plus is for working at it: more room for your recordings, and MP3 and each part on its own.",
+        "next": {
+            "inviteFriend": "Back to your song",
+            "groupStart": "Start your choir group",
+            "carryOn": "Carry on"
+        },
+        "momentTrial": "Try it free for {days} days. Learning alone stays free: every course, song and workout.",
+        "headlineSolo": "More room. Every format.",
         "title": "Stackapella Plus",
-        "story": "Learning to sing is free. Plus is for working at it in a more professional way: room for your recordings, MP3 and each part on its own, and your own recorded guides.",
+        "story": "Learning to sing is free. Plus is for teaming up and for working at it: start a choir group or invite friends onto your song (everyone you invite joins free), more room for your recordings, and MP3 and each part on its own.",
         "moment": {
+            "groupStart": "Choir groups come with Plus. Everyone you invite joins free.",
             "storageLimit": "Your storage is nearly full. Plus has 50 GB.",
+            "inviteFriend": "Singing your song with friends comes with Plus. Everyone you invite joins free.",
             "mp3": "MP3 export is on Plus. WAV is free.",
             "stems": "Each part on its own is on Plus.",
             "privateTemplate": "Your first private arrangement is free. Plus keeps as many as you like."
@@ -2847,12 +2872,15 @@
         "compare": "Free and Plus, side by side",
         "what": "What you get",
         "free": {
+            "joinInvited": "Join when invited",
             "title": "Free",
             "storage": "1 GB",
             "stems": "Each take as recorded, from Download my data",
             "templates": "1"
         },
         "plus": {
+            "startInvite": "Invite anyone, free for them",
+            "startChoir": "Start groups, free for members",
             "title": "Plus",
             "report": "Yes, with your history",
             "storage": "50 GB"
@@ -2890,12 +2918,15 @@
         "failed": "Couldn't open Checkout just now. Try again in a moment.",
         "pendingHint": "This takes a moment after Checkout. The page updates by itself when it's done.",
         "noSubscription": "There's no subscription to manage on this account.",
-        "headline": "More room. Every format. Your own guides.",
+        "headline": "Sing together. More room. Every format.",
         "highlight": {
+            "togetherText": "Start a choir group or invite friends to sing your song. Everyone you invite joins free.",
+            "together": "Sing together",
+            "freeTextSolo": "Every song and course, as many workouts as you like, your history, and singing with friends and your choir, with nothing to pay.",
             "extras": "More room, and the extras",
-            "extrasText": "50 GB for recordings, MP3 and each part on its own, and your own recorded guides.",
+            "extrasText": "50 GB for recordings, and MP3 and each part on its own.",
             "free": "Free for every singer",
-            "freeText": "Every song and course, as many workouts as you like, your history, and singing with friends and your choir, with nothing to pay."
+            "freeText": "Every song and course, as many workouts as you like, your history, and joining any choir or song you're invited to, with nothing to pay."
         },
         "save": "Save {percent}%",
         "billedMonthly": "Billed monthly",
@@ -3676,7 +3707,21 @@
         "saveFirstHint": "Your takes and settings come with it. Then you'll get an invite link.",
         "notNow": "Not now",
         "saveAndInvite": "Save and invite",
-        "notSavedYet": "It couldn't be saved just now. Check your connection, or your plan's songs in Storage, and try again."
+        "notSavedYet": "It couldn't be saved just now. Check your connection, or your plan's songs in Storage, and try again.",
+        "paused": {
+            "songTitle": "This song is paused",
+            "songMember": "{name}'s Plus has ended, so this song is paused. You can still listen and keep your takes; nothing new can be recorded until it opens again.",
+            "songOwner": "Your Plus has ended, so this song is paused for the friends singing it. You can still sing it on your own, and it opens again for them the moment Plus is back.",
+            "songAction": "Turn Plus back on",
+            "songRecord": "This song is paused, so nothing new can be recorded on it until it opens again.",
+            "tag": "Paused"
+        },
+        "invite": {
+            "plusTitle": "Invite singers"
+        },
+        "accept": {
+            "paused": "{name}'s song is paused for now, so it can't take new singers. Try the link again later, or ask {name}."
+        }
     },
     "join": {
         "joining": "Joining",
@@ -3803,6 +3848,19 @@
         }
     },
     "groups": {
+        "plusText": "Choir groups come with Plus: share songs, give each singer a part and see who's practising. Everyone you invite joins free.",
+        "paused": {
+            "title": "This choir is paused",
+            "tag": "Paused",
+            "member": "{name}'s Plus has ended, so the choir is paused. You can still listen to its songs and keep your takes; nothing new can be recorded until it opens again.",
+            "leader": "Your Plus has ended, so your choir is paused for everyone. Members can still listen and keep their takes, and it opens again the moment Plus is back.",
+            "join": "{name}'s choir is paused for now, so it can't take new singers. Try the link again later, or ask {name}.",
+            "action": "Turn Plus back on"
+        },
+        "made": {
+            "title": "Send this link to your choir",
+            "hint": "Everyone who opens it can join {name} free, and finds the songs you share there."
+        },
         "title": "Choir groups",
         "start": "Start a group",
         "startHint": "Your singers join by a link you send them, learn the songs you share, and you see who has learned their part. Free for you and all your singers.",
@@ -4258,6 +4316,33 @@
             "again": "Send it again"
         }
     },
+    "mic2": {
+        "title": "Hear it first",
+        "tip": "When you're ready, hum any easy note on \"oo\". There's no wrong one.",
+        "cantSing": "Can't sing right now?",
+        "privacy": "We only listen while you sing. Nothing is recorded.",
+        "play": "Play the chord",
+        "playing": "Playing the chord",
+        "playTitle": "Four voices, one chord",
+        "playLead": "Then one drops out. Listen for the gap.",
+        "filledTitle": "The practice voice in your place",
+        "filledLead": "This is how it sounds with every part sung.",
+        "lanes": "The four voices",
+        "voice": "Voice",
+        "yourVoice": "Your voice",
+        "guideHere": "Practice voice",
+        "gapLine": "That gap is for your voice.",
+        "filledLine": "Whenever you can sing, your voice takes that place.",
+        "later": {
+            "title": "No problem. Pick one:",
+            "listen": "Listen through it"
+        },
+        "refused": {
+            "title": "No problem",
+            "body": "You can listen through lesson 1 now and turn the mic on whenever you like.",
+            "how": "Show me how to turn it on"
+        }
+    },
     "micHelp": {
         "tryAgain": "Try again",
         "trying": "Trying the mic...",
@@ -4437,7 +4522,7 @@
     },
     "capture": {
         "listening": "Sing any easy note",
-        "listeningSub": "Like a long \"ahh\". Any pitch is fine.",
+        "listeningSub": "Like a long \"oo\". Any pitch is fine.",
         "hearing": "Finding your note...",
         "hearingSub": "Keep singing, let it settle. It's normal to wobble at first.",
         "holding": "Hold it right there",
@@ -4477,7 +4562,7 @@
         "nudge": {
             "quiet": "Try a little louder, or closer to the phone.",
             "silent": "We can't hear anything yet. Check the mic below is the right one.",
-            "unsteady": "Pick one easy note and hold it, like a long \"ahh\", for a couple of seconds."
+            "unsteady": "Pick one easy note and hold it, like a long \"oo\", for a couple of seconds."
         },
         "suits": {
             "low": "Low and warm: bass and baritone parts may suit you best. The exercises start from here.",
@@ -4624,6 +4709,7 @@
         "chartStart": "Start",
         "chartEnd": "End",
         "share": {
+            "noteAsk": "What's yours?",
             "button": "Share",
             "unitDone": "Unit done",
             "courseDone": "Course done",
@@ -4658,7 +4744,7 @@
             "namePlaceholder": "Your first name",
             "by": "Sung by {name}",
             "noteTitle": "My voice sits around",
-            "noteText": "My comfortable singing note is {note}. Find yours:",
+            "noteText": "My comfortable singing note is {note}. What's yours? Find it in a minute:",
             "note": "Share my note",
             "textSerious": "I sang “{lesson}” in Stackapella: {percent}% on pitch.",
             "litOf": "{lit} of {count} notes lit",
@@ -5454,6 +5540,42 @@
             "failed": "The report didn't send. Try again."
         },
         "partLine": "No real voice yet.",
+        "ready": {
+            "title": "Ready to share",
+            "line": "Your takes of parts that still have no real voice. Share one and it could be the voice everyone learns from."
+        },
+        "be": {
+            "tag": "No voice yet",
+            "sheet": "The {parts} have no real voice yet. Sing one and it could be yours.",
+            "go": "Be the voice",
+            "good": "That {part} sounded good.",
+            "invite": "No one has given it a real voice yet. Share this take and it could be the voice everyone learns from.",
+            "guestSaves": "It saves to a free account first, private to you.",
+            "share": "Share it",
+            "later": "Not now",
+            "sheetTitle": "Share your {part}",
+            "sheetIntro": "Your take is saved to your account, private to you. Share it and it could be the {part} everyone learns from.",
+            "pointTeam": "Only our team hears it until it's chosen.",
+            "pointUnpaid": "Unpaid, and not every take is used. You can take it back any time.",
+            "full": "Read the full agreement",
+            "adult": "I'm 18 or over",
+            "preview": "Guide voice: {name}",
+            "previewAnonymous": "Guide voice: anonymous",
+            "saving": "Saving your take to your account first.",
+            "private": "Keep it private for now",
+            "under18": "I'm under 18",
+            "youngTitle": "Thank you!",
+            "young": "Guide voices are for adults, but your take is saved and it's yours.",
+            "sending": "Sending",
+            "sent": "Sent",
+            "sentLine": "Our team listens to every take, usually within a few days. We'll tell you in Lend your voice.",
+            "heldTitle": "Saved",
+            "heldLine": "We'll send it once you confirm your email.",
+            "sentLink": "See it in Lend your voice",
+            "failed": "It didn't send. Your take is still saved, so try again in a moment.",
+            "betaSinger": "You record your parts in My parts, so they reach our team from there.",
+            "myParts": "Open My parts"
+        },
         "partLineLink": "Lend yours?",
         "creditBy": {
             "beatbox": "Beatbox by {name}",
