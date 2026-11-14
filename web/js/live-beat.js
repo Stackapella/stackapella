@@ -4,6 +4,7 @@
 // it holds in cache for a few minutes and never stores. Staff screens (admin, the styleguide) never beat. A timer for
 // the page, never for audio.
 
+import { automated } from './automated.js';
 import { api } from './api.js';
 import { route } from './router.js';
 import { watch } from 'vue';
@@ -30,7 +31,7 @@ let last = 0;
  */
 export async function beat(name = route.name, { view = false } = {}) {
     const area = areaFor(name);
-    if (!area || document.visibilityState !== 'visible') return false;
+    if (!area || document.visibilityState !== 'visible' || automated()) return false; // a robot isn't someone here
     last = Date.now();
     try {
         await api.live.beat({ area, page: name, view });

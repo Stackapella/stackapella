@@ -7,8 +7,34 @@
     var script = window.HTMLScriptElement;
     if (!script || typeof script.supports !== 'function' || !script.supports('importmap')) return;
 
+    // Counted, anonymous, once a page each (boot_failed, boot_reset): how often the app fails to start, and the way back
+    // is taken (the PWA update pass's watch, 2026-11-14). A beacon to our own server, nothing about who.
+    // As js/automated.js does for the app: never for a robot, and only once someone has pressed, typed, touched or wheeled
+    // (held till then; a page closed untouched sends nothing).
+    var touched = false;
+    var held = [];
+    function onInput(event) {
+        if (!event.isTrusted || touched) return;
+        touched = true;
+        var now = held;
+        held = [];
+        for (var i = 0; i < now.length; i++) send(now[i]);
+    }
+    ['pointerdown', 'keydown', 'touchstart', 'wheel'].forEach(function (kind) { window.addEventListener(kind, onInput, { capture: true, passive: true }); });
+    function count(kind, now) {
+        if (navigator.webdriver === true) return; // a robot counts nothing (js/automated.js)
+        if (now || touched || window.__stackapellaPerson) send(kind);
+        else held.push(kind);
+    }
+    function send(kind) {
+        try { if (navigator.sendBeacon) navigator.sendBeacon('/api/counts', new Blob([JSON.stringify({ events: [{ kind: kind }], signedIn: false })], { type: 'application/json' })); } catch (error) { if (window.console) console.info('Not counted', kind); }
+    }
+
     function check() {
         if (window.stackapellaStarted || document.querySelector('[data-boot-failed]')) return;
+        // At once, while the page is seen: the person this failed for is the one most likely to leave untouched, so
+        // waiting for a touch would hide the very failures this counts (backend and the coordinator, 2026-11-14).
+        if (document.visibilityState === 'visible') count('boot_failed', true);
         var theme = document.documentElement.getAttribute('data-theme') || '';
         var dark = theme ? theme.indexOf('light') === -1 : true;
         var box = document.createElement('main');
@@ -27,7 +53,9 @@
         button.type = 'button';
         button.appendChild(document.createTextNode('Reload')); // i18n-ignore: the app's translations never load here
         button.style.cssText = 'font:inherit;font-weight:700;font-size:1.125rem;padding:0.75rem 1.5rem;border-radius:999px;border:0;cursor:pointer;background:' + (dark ? '#ffffff' : '#211a15') + ';color:' + (dark ? '#000000' : '#ffffff');
+        var reset = false;
         button.onclick = function () {
+            if (!reset) { reset = true; count('boot_reset'); }
             // Online, the app's worker and its kept copies go first, so the reload comes whole from the network: sw.js serves
             // a page its build's kept files, and a broken copy would only load again (the PWA update pass, 2026-11-14).
             // Offline they stay, for the app to open without a connection.

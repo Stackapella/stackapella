@@ -56,7 +56,7 @@ final class Catalogue
      */
     public function openIndex(): array
     {
-        return $this->openIndex ??= Cache::remember('catalogue.open-index.'.$this->fingerprint(), now()->addDay(), fn (): array => array_values($this->open()
+        return $this->openIndex ??= self::kept('catalogue.open-index.'.$this->fingerprint(), fn (): array => array_values($this->open()
             ->map(static function (Template $template): array {
                 $data = (array) $template->currentVersion?->data;
 
@@ -83,7 +83,26 @@ final class Catalogue
     {
         $key = 'catalogue.listing.'.$this->fingerprint().'.'.(string) config('app.build');
 
-        return Cache::remember($key, now()->addDay(), fn (): array => array_values($this->songs()->map(static fn (Template $template): array => CatalogueSongResource::fixed($template))->all()));
+        return self::kept($key, fn (): array => array_values($this->songs()->map(static fn (Template $template): array => CatalogueSongResource::fixed($template))->all()));
+    }
+
+    /**
+     * Kept a day in the cache under `$key`, which names the songs (and, for code-shaped answers, the build). A
+     * developer's machine with no build (APP_BUILD unset) builds afresh each request instead: its code changes without a
+     * new build, so a kept answer would show the last code's shape for a day (marketing2's stale /songs, 2026-11-14).
+     *
+     * @template T
+     *
+     * @param  \Closure(): T  $build
+     * @return T
+     */
+    public static function kept(string $key, \Closure $build): mixed
+    {
+        if (app()->isLocal() && (string) config('app.build') === '') {
+            return $build();
+        }
+
+        return Cache::remember($key, now()->addDay(), $build);
     }
 
     /** What self::open() and self::songs() are made of, in one cheap row: which versions are current (a version never changes), reviewed and live. Once a request. */

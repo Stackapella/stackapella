@@ -8,7 +8,7 @@
      to us is the app's form and Email us is a plain address: two ways in, not one twice. Company's fourth is Integrations
      (Hillel, 2026-11-09); Self-host stays a click away, on /open-source and /features. --}}
 @php($groups = [
-    'learn' => ['courses' => '/courses', 'free_tools' => \App\Support\Site\SitePages::toolsHome(), 'warmups' => '/warmups', 'guides' => '/guides'],
+    'learn' => ['songs' => '/songs', 'courses' => '/courses', 'free_tools' => \App\Support\Site\SitePages::toolsHome(), 'guides' => '/guides'],
     'reference' => ['intervals' => '/intervals', 'chords' => '/chords', 'voice_types' => '/voice-types', 'note_chart' => '/tools/note-frequency-chart'],
     'product' => ['features' => '/features', 'how' => '/how-it-works', 'pricing' => '/pricing', 'for_choirs' => '/for/choir-directors?ref=for-choirs-footer'],
     'help' => ['help' => '/help', 'whats_new' => '/whats-new', 'contact_app' => \App\Support\Http\Hosts::app('/contact'), 'email_us' => 'mailto:'.config('site.contact_email')],

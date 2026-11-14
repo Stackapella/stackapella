@@ -70,6 +70,7 @@ def journey(f):
         assert not f.js("/\\bauth\\.[a-z]/.test(document.body.innerText)"), "a raw key on screen"
         new_version(f)
         missing_file(f)
+        boot_counts(f)
         kill_switch(f)
     finally:
         for probe in PROBES + [LATE]:
@@ -126,6 +127,81 @@ def missing_file(f):
     f.run("for (const key of await caches.keys()) if (key.startsWith('stackapella-')) await (await caches.open(key)).delete('/js/router.js');")
     f.go("/?api=mock&scenario=", "document.querySelector('header')")
     assert f.js("!!window.stackapellaStarted"), "the app didn't start with a file missing from its cache"
+
+
+def counted(f):
+    """The anonymous counts the page has sent to /api/counts, by kind (the beacons, from Chrome's own network events)."""
+    return list(f.chrome.counts)
+
+
+def watch_counts(f):
+    f.chrome.counts = []
+    original = f.chrome.on_event
+
+    def on_event(message):
+        if message.get("method") == "Network.requestWillBeSent" and message["params"]["request"]["url"].endswith("/api/counts"):
+            body = message["params"]["request"].get("postData")
+            if body is None:
+                body = f.chrome.send("Network.getRequestPostData", {"requestId": message["params"]["requestId"]}).get("postData", "{}")
+            f.chrome.counts += [e["kind"] for e in json.loads(body).get("events", [])]
+        original(message)
+
+    f.chrome.on_event = on_event
+    f.chrome.send("Network.enable")
+
+
+def settle(f, done, seconds=5):
+    """Chrome's messages read for up to `seconds` (each f.js reads them) until `done()`, then a moment more for any repeat."""
+    import time
+    end = time.time() + seconds
+    while time.time() < end and not done():
+        f.js("1")
+        time.sleep(0.1)
+    for _ in range(10):
+        f.js("1")
+        time.sleep(0.1)
+
+
+def press(f, selector):
+    """A real press and release on `selector`, from Chrome's own input (trusted, as a person's)."""
+    box = f.js(f"(() => {{ const r = document.querySelector({json.dumps(selector)})?.getBoundingClientRect(); return r ? [r.left + r.width / 2, r.top + r.height / 2] : null; }})()")
+    if not box:
+        return
+    for kind in ("mousePressed", "mouseReleased"):
+        f.chrome.send("Input.dispatchMouseEvent", {"type": kind, "x": box[0], "y": box[1], "button": "left", "clickCount": 1})
+
+
+def boot_counts(f):
+    """A page whose kept build is broken: boot-watch says so and counts boot_failed once; its Reload counts boot_reset once
+    and brings the page back from the network (the PWA update pass's watch)."""
+    f.expected_errors += ["Unexpected token ';'", "/api/counts"]  # the broken main.js planted below; the mock server has no counts
+    watch_counts(f)
+    f.run("""for (const key of await caches.keys()) if (key.startsWith('stackapella-'))
+        await (await caches.open(key)).put('/js/main.js', new Response('export const broken = ;', { headers: { 'Content-Type': 'text/javascript' } }));""")
+    # A robot (navigator.webdriver, js/automated.js) counts nothing, even here.
+    f.as_robot()
+    f.go("/?api=mock&scenario=", "document.body")
+    f.wait("!!document.querySelector('[data-boot-failed]')", timeout=20, what="boot-watch's screen, for a robot")
+    settle(f, lambda: False, seconds=1)
+    assert counted(f) == [], f"a robot's visit counted {counted(f)}"
+    # A person who hasn't touched the page: boot_failed goes at once while the screen is seen (the one it failed for is
+    # the likeliest to leave untouched), once; a press after it sends nothing more.
+    untouched = f.chrome.send("Page.addScriptToEvaluateOnNewDocument", {"source": "Object.defineProperty(Navigator.prototype, 'webdriver', { get: () => false, configurable: true });"})["identifier"]
+    f.go("/?api=mock&scenario=", "document.body")
+    f.wait("!!document.querySelector('[data-boot-failed]')", timeout=20, what="boot-watch's screen")
+    settle(f, lambda: "boot_failed" in counted(f))
+    assert counted(f) == ["boot_failed"], f"an untouched page, the screen seen: {counted(f)}"
+    press(f, "h1")  # a real press, as Chrome's own input
+    settle(f, lambda: False, seconds=1)
+    assert counted(f) == ["boot_failed"], f"after a press: {counted(f)}"
+    press(f, "[data-boot-failed] button")
+    press(f, "[data-boot-failed] button")
+    f.wait("!!window.stackapellaStarted && !!document.querySelector('header')", timeout=40, what="the page back from the network")
+    settle(f, lambda: "boot_reset" in counted(f))
+    assert counted(f).count("boot_reset") == 1 and counted(f).count("boot_failed") == 1, f"counted {counted(f)}"
+    f.chrome.send("Page.removeScriptToEvaluateOnNewDocument", {"identifier": untouched})
+    f.as_person()
+    f.wait("!!navigator.serviceWorker.controller", timeout=60, what="a worker in charge again")
 
 
 def kill_switch(f):

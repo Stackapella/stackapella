@@ -10,6 +10,7 @@
 
 const READY_MS = 20000; // a new build's precache, on a slow line
 const SWITCH_MS = 5000;
+export const REFRESH_MS = 6000; // Refresh waits no longer for the new build's worker: then the network (Hillel saw it take a while)
 export const SILENT_MS = 8000; // the silent reload only this soon after opening
 
 let touched = false;
@@ -32,7 +33,8 @@ export function servedBuild(controller = navigator.serviceWorker?.controller) {
 /** The new build's worker once it's installed and waiting (asking the server for it first), or null in `ms`. */
 async function waitingWorker(registration, ms = READY_MS) {
     if (!registration) return null;
-    await registration.update().catch((error) => console.debug('No update check', error?.message ?? error));
+    // The check itself waits no longer than the rest (a slow line asking for sw.js).
+    await Promise.race([registration.update().catch((error) => console.debug('No update check', error?.message ?? error)), new Promise((resolve) => setTimeout(resolve, ms))]);
     // One still installing is newer than one waiting (two deploys while the page was open): that's the one to wait for,
     // or the reload would land on the build between and ask again.
     const installing = registration.installing;
@@ -51,9 +53,9 @@ async function waitingWorker(registration, ms = READY_MS) {
 }
 
 /** Has `worker` take over this page; true once it's in charge. */
-function takeOver(worker) {
+function takeOver(worker, ms = SWITCH_MS) {
     return new Promise((resolve) => {
-        const timer = setTimeout(() => resolve(false), SWITCH_MS);
+        const timer = setTimeout(() => resolve(false), ms);
         navigator.serviceWorker.addEventListener(
             'controllerchange',
             () => {
@@ -66,11 +68,14 @@ function takeOver(worker) {
     });
 }
 
-/** Reloads into the newest build: its waiting worker first, else without a worker (from the network). */
-export async function reloadIntoNew({ reload = () => location.reload() } = {}) {
-    const registration = await navigator.serviceWorker?.getRegistration().catch(() => null);
-    const worker = await waitingWorker(registration);
-    if (!(worker && (await takeOver(worker))) && registration) {
+/**
+ * Reloads into the newest build: its waiting worker first if it's ready within `ms` (and takes over in a moment), else
+ * without a worker, from the network. Either way never the old build, and never longer than about `ms` and a moment.
+ */
+export async function reloadIntoNew({ reload = () => location.reload(), ms = READY_MS, registration } = {}) {
+    registration ??= await navigator.serviceWorker?.getRegistration().catch(() => null);
+    const worker = await waitingWorker(registration, ms);
+    if (!(worker && (await takeOver(worker, Math.min(SWITCH_MS, 2000)))) && registration) {
         // No new worker in time: let this one go, so the reload asks the server; the page registers the new build again.
         await registration.unregister().catch((error) => console.warn('The old worker was not let go', error));
     }

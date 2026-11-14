@@ -113,11 +113,14 @@ final class LandingPageTest extends TestCase
 
         // Hillel: a short catalogue looks thin; the song pages stay, for search and shared links. The one exception is
         // the carols page, linked in its season only (Hillel, 2026-11-10; CarolsPageTest proves the window). The site's
-        // bar and its phone menu lead to the songbook itself (Hillel, 2026-11-12: "songs courses tools pricing").
-        $body = (string) preg_replace('#<header class="s-wrap s-top">.*?</header>#s', '', (string) $page->getContent());
+        // bar and its phone menu lead to the songbook itself (Hillel, 2026-11-12: "songs courses tools pricing"), and so
+        // does the footer's Learn column (the five pages' cohesion plan, step 0), and so does the closing band's Explore
+        // Stackapella, which leads every one of the five pages to the other four (Hillel, 2026-11-14, choice B).
+        $chrome = '#<header class="s-wrap s-top">.*?</header>|<footer class="s-wrap s-footer">.*?</footer>|<section class="s-ink s-close".*?</section>#s';
+        $body = (string) preg_replace($chrome, '', (string) $page->getContent());
         preg_match_all('#href="(/songs[^"]*)"#', $body, $links);
         $this->assertSame([], array_values(array_diff($links[1], [Carols::PATH])));
-        $this->assertDoesNotMatchRegularExpression('#href="/songs#', (string) preg_replace('#<header class="s-wrap s-top">.*?</header>#s', '', (string) $this->get('/pricing')->assertOk()->getContent()));
+        $this->assertDoesNotMatchRegularExpression('#href="/songs#', (string) preg_replace($chrome, '', (string) $this->get('/pricing')->assertOk()->getContent()));
         $this->get('/songs')->assertOk();
     }
 

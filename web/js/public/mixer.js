@@ -45,7 +45,9 @@ import { renderGuide } from '../guides.js';
 import { catalogueGuides, placed, realVoice, songTemplate } from './app-voices.js';
 import { playState } from './play-state.js';
 import { note } from './report.js';
+import { countAnon } from './count.js';
 
+let renderFallbackCounted = false; // render_fallback, once a page whatever players it has
 const START_AHEAD = 0.1; // seconds: room to start every voice on the same frame
 const SWITCH = 0.012; // the time constant of a voice's switch, about 50 ms to silence
 const FADE_OUT = 0.04;
@@ -506,6 +508,11 @@ function setUp(root) {
             // A Stop while it started (AbortError) isn't a failure; anything else is told once a page.
             if (error?.name !== 'AbortError') mixFailed = true;
             if (error?.name !== 'AbortError') note('A song render could not play, the voices sang it', { error: error?.name ?? 'Error', format: mixUrl.split('.').pop() }); // i18n-ignore
+            // Counted once a page as well (anonymous: render_fallback), so how often the voices stand in can be read.
+            if (error?.name !== 'AbortError' && !renderFallbackCounted) {
+                renderFallbackCounted = true;
+                countAnon('render_fallback');
+            }
             m.user = null;
             m.el.pause();
             return false;

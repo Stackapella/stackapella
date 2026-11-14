@@ -5,6 +5,7 @@
 
 import { mountGameToggles } from './game-toggle.js';
 import { showHats } from './season.js';
+import { automated, whenHuman } from '../automated.js';
 
 // The logo's Santa hat on the visitor's own Christmas Eve and Day (season.js); the carols page wears it all season.
 showHats();
@@ -57,10 +58,12 @@ for (const menu of document.querySelectorAll('.s-menu')) {
 // This page load's one count, by its section only (sv_<section>, App\Support\Site\SiteVisit): the footer
 // carries the kind only on the public site while counts are on, and it goes as funnel.js's site_visit does,
 // a beacon to our own server with no source, no id and no path.
-const visit = document.querySelector('[data-site-visit]');
+// Not for a robot (js/automated.js): a crawler running our JavaScript counts nothing, nor beats.
+const visit = automated() ? null : document.querySelector('[data-site-visit]');
 if (visit) {
     const { kind } = JSON.parse(visit.textContent);
-    navigator.sendBeacon?.('/api/counts', new Blob([JSON.stringify({ events: [{ kind }], signedIn: false })], { type: 'application/json' }));
+    // Once a person has interacted with the page (held till then): js/automated.js.
+    whenHuman(() => navigator.sendBeacon?.('/api/counts', new Blob([JSON.stringify({ events: [{ kind }], signedIn: false })], { type: 'application/json' })));
 }
 
 // Admin > Live's heartbeat for the public pages (docs/realtime-dashboard-plan.md; Hillel: "Allow, cache only"): the same

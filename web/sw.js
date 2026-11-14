@@ -42,6 +42,7 @@ const SHELL = [
     '/js/beta-status.js',
     '/js/screen-name.js',
     '/js/sw-update.js',
+    '/js/automated.js',
     '/locales/en.json',
     '/js/audio.js',
     '/js/mic-choice.js',
@@ -528,6 +529,9 @@ async function fromBuild(event, request, key) {
     if (hit && !missed) {
         missed = true;
         console.warn('A cached file was broken; asking the network', typeof key === 'string' ? key : key.url);
+        // Counted once a worker (anonymous: sw_cache_broken), so how often a kept build breaks can be read.
+        // Not for a robot (js/automated.js; a worker may lack navigator.webdriver, so its headless user agent too).
+        if (!(self.navigator?.webdriver === true || /HeadlessChrome/.test(self.navigator?.userAgent ?? ''))) fetch('/api/counts', { method: 'POST', body: JSON.stringify({ events: [{ kind: 'sw_cache_broken' }], signedIn: false }), headers: { 'Content-Type': 'application/json' }, credentials: 'omit', keepalive: true }).catch(() => console.info('sw_cache_broken not counted'));
     }
     try {
         return await fetchAndKeep(event, request, key);

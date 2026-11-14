@@ -137,8 +137,9 @@
                 </div>
                 <div class="s-courses">
                     {{-- The groups as /courses has them (the catalogue's, SitePages::courseGroups), each course's name and line from its page. --}}
-                    @foreach (\App\Support\Site\SitePages::courseGroups() as $group)
-                        <section class="s-card3d s-v{{ $loop->iteration }}" aria-labelledby="courses-{{ $loop->iteration }}">
+                    {{-- Each group in its own colour, the same as /courses (s-cg-<group>; the five-pages plan, step 0). --}}
+                    @foreach (\App\Support\Site\SitePages::courseGroups() as $groupKey => $group)
+                        <section class="s-card3d s-cg-{{ $groupKey }}" aria-labelledby="courses-{{ $loop->iteration }}">
                             <header><h3 id="courses-{{ $loop->iteration }}"><i aria-hidden="true"></i>{{ $group['name'] }}</h3><span>{{ trans_choice('pages.pricing.courses_count', count($group['courses'])) }}</span></header>
                             @php($split = \App\Support\Site\SitePages::courseSplit($group['courses']))
                             {{-- Each open course a chip to its page (Hillel's 2026-11-12 design), then the ones still to come as one quiet chip. --}}
@@ -161,16 +162,7 @@
             </div>
         </section>
 
-        <section class="s-wrap" aria-labelledby="end-h">
-            {{-- The last word, plain (the design: no art beside it). --}}
-            <div class="s-end s-end-plain">
-                <div>
-                    <h2 id="end-h">{{ __('pages.site.final_title') }}</h2>
-                    <p>{{ __('pages.site.start_note') }}</p>
-                </div>
-                <a href="{{ \App\Support\Http\Hosts::app('/learn/1-comfortable') }}" class="btn-primary btn-lg">{{ __('pages.pricing.start_free') }} <x-site.icon name="arrow" size="18" /></a>
-            </div>
-        </section>
+        <x-site.close-band page="pricing" :href="\App\Support\Http\Hosts::app('/learn/1-comfortable')" />
     </main>
     @include('pages._footer')
 @endsection

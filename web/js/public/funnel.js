@@ -9,6 +9,8 @@
 
 // counts.create's path, as api.js lists it (tool/api_check.py holds a public page to the contract's paths): named here
 // so the landing doesn't download all of api.js (15 KB) for one string.
+import { whenHuman } from '../automated.js';
+
 const COUNTS = '/api/counts';
 
 const config = JSON.parse(document.querySelector('[data-funnel]')?.textContent ?? '{}');
@@ -66,7 +68,8 @@ for (const el of document.querySelectorAll('[data-variant-except]')) el.hidden =
 
 function beacon(body) {
     // As js/usage.js sends its counts: a beacon to counts.create, so leaving the page still sends.
-    navigator.sendBeacon?.(COUNTS, new Blob([JSON.stringify(body)], { type: 'application/json' }));
+    // Only for a person, once they've interacted with the page (never for a robot): js/automated.js.
+    whenHuman(() => navigator.sendBeacon?.(COUNTS, new Blob([JSON.stringify(body)], { type: 'application/json' })));
 }
 
 if (config.counts) {

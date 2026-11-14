@@ -363,6 +363,25 @@ return [
 
     // The feature and "for" pages' own frame (views/site); their words are in lang/en/site.php.
     'site' => [
+        // The five marketing pages' one closing band (docs/marketing-pages-cohesion-plan.md, piece 6; Hillel, 2026-11-14):
+        // a line with its key phrase in colour, Start singing (lesson 1), a caption true of what it says, then the other
+        // four pages with their counts (x-site.close-band, App\Support\Site\Explore).
+        'close' => [
+            'home' => ['title' => 'Your first voice is the hardest.', 'em' => 'Let\'s find it together.', 'line' => 'Lesson 1 starts with one comfortable note. No account needed.'],
+            'songs' => ['title' => 'Pick a part', 'em' => 'and start.', 'line' => 'Free, in your browser. Hear every song without an account.'],
+            'courses' => ['title' => 'Not sure where to begin?', 'em' => 'Start with lesson 1.', 'line' => 'Try the first lesson of any course without an account.'],
+            'tools' => ['title' => 'Tuned up?', 'em' => 'Now sing a part.', 'line' => 'Lesson 1 is free in your browser, with no account and nothing to install.'],
+            'pricing' => ['title' => 'Your first voice is the hardest.', 'em' => 'Let\'s find it together.', 'line' => 'Free, in your browser. No account needed to start.'],
+        ],
+        'explore' => [
+            'title' => 'Explore Stackapella',
+            'game' => 'Continue?',
+            'home' => ['name' => 'Home', 'fact' => ':count voices: hear a song come together'],
+            'songs' => ['name' => 'Songs', 'fact' => ':count songs to learn, part by part'],
+            'courses' => ['name' => 'Courses', 'fact' => ':count courses, every one free'],
+            'tools' => ['name' => 'Tools', 'fact' => ':count free tools, no account'],
+            'pricing' => ['name' => 'Pricing', 'fact' => 'Free to learn, Plus for your work', 'readout' => 'Free'],
+        ],
         // Every play control while it loads (js/public/play-state.js; Hillel: "make sure there is instant feedback if we
         // need to load for good UX"): said at once, a quiet hint after a few seconds, and a failure.
         'play_loading' => 'Loading...',

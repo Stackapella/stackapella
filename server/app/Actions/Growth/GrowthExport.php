@@ -30,13 +30,13 @@ use Illuminate\Support\Facades\DB;
 final class GrowthExport
 {
     /** Bump when a field's shape or meaning changes, and say so in docs/growth-data.md. */
-    public const SCHEMA_VERSION = 18;
+    public const SCHEMA_VERSION = 21;
 
     /** The range-scoped sections' windows, in days (null: since the first count). */
     public const RANGES = ['7' => 7, '30' => 30, '90' => 90, 'all' => null];
 
     /** Every top-level key, in order (GrowthDataDictionaryTest checks each is documented). */
-    public const SECTIONS = ['meta', 'daily', 'funnel', 'signups', 'cohorts', 'courses', 'sources', 'siteSections', 'partPlays', 'plus', 'outreach', 'releases', 'dropoffs', 'sharing', 'breadth'];
+    public const SECTIONS = ['meta', 'daily', 'funnel', 'signups', 'cohorts', 'courses', 'sources', 'siteSections', 'partPlays', 'plus', 'outreach', 'releases', 'dropoffs', 'sharing', 'breadth', 'experiments'];
 
     /** The sections `meta.range` applies to; the rest say their own windows. */
     public const RANGED = ['funnel', 'courses', 'sources', 'siteSections', 'partPlays'];
@@ -86,6 +86,8 @@ final class GrowthExport
                 // The sitemap's last dating run (app:sitemap:dates, after each deploy and daily): our own page paths only.
                 'sitemapDates' => Cache::get(RecordPageVersions::LAST),
                 'notes' => self::notes(),
+                // The changes in what's counted (config counts.breaks), so a reader of the pull sees a day that reads high or low.
+                'breaks' => self::breaks(),
             ],
             'daily' => $this->daily($today),
             'funnel' => $this->funnel($days),
@@ -104,7 +106,68 @@ final class GrowthExport
             'sharing' => app(Sharing::class)->build(),
             // How much of the app singers use, this week and the four before (App\Actions\Growth\Breadth): br and ft totals only.
             'breadth' => app(Breadth::class)->build(),
+            'experiments' => $this->experiments($from),
         ];
+    }
+
+    /**
+     * Each experiment that has started (Admin > Experiments), with its arms' own daily counts (experiment_counts: arm
+     * sizes as exp_enrol, the funnel's first steps and what it measures), summed over guests and accounts. An arm's
+     * kind on a day under GROUP_MIN is suppressed (its count null). No ids: an arm is its letter.
+     *
+     * @return list<array{id: string, status: string, startsOn: string|null, endsOn: string|null, metric: string, winner: string|null, arms: list<string>, counts: list<array{day: string, arm: string, kind: string, count: int|null, suppressed: bool}>}>
+     */
+    private function experiments(string $from): array
+    {
+        $out = [];
+        foreach (Funnel::registry() as $experiment) {
+            if ($experiment->starts_on === null) {
+                continue;
+            }
+            $arms = array_values(array_map('strval', $experiment->armNames()));
+            $variants = array_map(static fn (string $arm): string => $experiment->key.'-'.$arm, $arms);
+            $rows = DB::table('experiment_counts')->whereIn('variant', $variants)->where('day', '>=', $from)
+                ->groupBy('day', 'variant', 'kind')->orderBy('day')->orderBy('variant')->orderBy('kind')
+                ->selectRaw('day, variant, kind, sum(count) as n')->get();
+            $out[] = [
+                'id' => (string) $experiment->key,
+                'status' => $experiment->status(),
+                'startsOn' => $experiment->starts_on->toDateString(),
+                'endsOn' => $experiment->ends_on?->toDateString(),
+                'metric' => (string) $experiment->metric,
+                'winner' => $experiment->winner !== null ? (string) $experiment->winner : null,
+                'arms' => $arms,
+                'counts' => array_values($rows->map(static fn (object $row): array => [
+                    'day' => substr((string) $row->day, 0, 10),
+                    'arm' => substr((string) $row->variant, strlen((string) $experiment->key) + 1),
+                    'kind' => (string) $row->kind,
+                    'count' => (int) $row->n >= self::GROUP_MIN ? (int) $row->n : null,
+                    'suppressed' => (int) $row->n < self::GROUP_MIN,
+                ])->all()),
+            ];
+        }
+
+        return $out;
+    }
+
+    /**
+     * config counts.breaks, one entry each: the day, the kinds it touches ('*' for all) and what changed.
+     *
+     * @return list<array{date: string, kinds: list<string>|string, note: string}>
+     */
+    private static function breaks(): array
+    {
+        $out = [];
+        foreach ((array) config('counts.breaks') as $date => $entry) {
+            foreach (isset($entry['note']) ? [$entry] : (array) $entry as $one) {
+                if (is_array($one) && is_string($one['note'] ?? null)) {
+                    $kinds = $one['kinds'] ?? '*';
+                    $out[] = ['date' => (string) $date, 'kinds' => is_array($kinds) ? array_values(array_map('strval', $kinds)) : (string) $kinds, 'note' => $one['note']];
+                }
+            }
+        }
+
+        return $out;
     }
 
     /**

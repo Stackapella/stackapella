@@ -5,6 +5,7 @@
 // no one) and the day it arrived; none of it leaves the device except as part of a daily total
 // (js/usage.js, counts.create). No ID, no path, nothing about anyone.
 
+import { whenHuman } from './automated.js';
 import { watch } from 'vue';
 import { local, session as tabStorage } from './storage.js';
 import { count } from './usage.js';
@@ -42,11 +43,16 @@ export function variant() {
 
 /** Counts `kind` once on this device, ever (a funnel step, or an ask shown or said yes to). */
 export function first(kind) {
-    const record = kept();
-    if (record.firsts[kind]) return false;
-    record.firsts[kind] = true;
-    keep(record);
-    count(kind);
+    if (kept().firsts[kind]) return false;
+    // Marked as it's counted, once a person has interacted with the page (js/automated.js): a page closed untouched
+    // leaves its first to the next visit someone touches, rather than marking one that was never sent.
+    whenHuman(() => {
+        const record = kept();
+        if (record.firsts[kind]) return;
+        record.firsts[kind] = true;
+        keep(record);
+        count(kind);
+    });
     return true;
 }
 

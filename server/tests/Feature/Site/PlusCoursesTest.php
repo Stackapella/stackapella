@@ -26,7 +26,7 @@ final class PlusCoursesTest extends TestCase
         $this->assertLessThan(strpos($html, 'data-plus-courses'), strpos($html, 'id="compare-h"'), 'the courses come after the comparison');
         $section = substr($html, (int) strpos($html, 'data-plus-courses'));
 
-        return substr($section, 0, (int) strpos($section, 'aria-labelledby="end-h"'));
+        return substr($section, 0, (int) strpos($section, 'aria-labelledby="close-h"'));
     }
 
     public function test_before_any_course_opens_the_page_says_coming_soon_once_and_names_every_course(): void

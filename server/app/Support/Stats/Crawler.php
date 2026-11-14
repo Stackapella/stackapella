@@ -15,6 +15,11 @@ final class Crawler
 {
     public static function is(Request $request): bool
     {
+        // A scripted browser's own client hint says so too ("HeadlessChrome" among its brands), even under another agent.
+        if (str_contains(strtolower((string) $request->header('Sec-CH-UA')), 'headlesschrome')) {
+            return true;
+        }
+
         $agent = strtolower((string) $request->userAgent());
 
         if ($agent === '') {

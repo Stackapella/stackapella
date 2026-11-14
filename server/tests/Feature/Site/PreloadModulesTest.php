@@ -45,7 +45,8 @@ final class PreloadModulesTest extends TestCase
     {
         $have = '<head><link rel="modulepreload" href="/js/public/site.js"></head><script type="module" src="/js/public/site.js?v=abc"></script>';
         $lacks = array_values(array_diff(ToolPreloads::for('/js/public/site.js'), ['/js/public/site.js']));
-        $this->assertSame(['/js/public/game-toggle.js', '/js/public/season.js'], $lacks, "site.js's imports");
+        // automated.js: the human-only gate for its counts (js/automated.js, 2026-11-14).
+        $this->assertSame(['/js/public/game-toggle.js', '/js/public/season.js', '/js/automated.js'], $lacks, "site.js's imports");
         $this->assertSame(array_map(static fn (string $m): string => '<link rel="modulepreload" href="'.$m.'">'."\n", $lacks), PreloadModules::links($have), 'only what the page lacks, a ?v= read past');
         $this->assertSame([], PreloadModules::links('<script type="module" src="/js/nothing-here.js"></script>'));
         $this->assertSame([], PreloadModules::links('<script type="module" src="https://example.org/js/x.js"></script>'), 'only our own addresses');

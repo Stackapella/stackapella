@@ -89,6 +89,7 @@
             <p class="s-th-warmups">{{ $words['embed_line'] }} <a href="/tools/embed" class="s-lk">{{ $words['embed_link'] }}&#8288;<x-site.icon name="arrow" size="16" /></a></p>
         </section>
         @include('site.tools._about', ['tie' => $words['tie'], 'tryLink' => $words['try_link']])
+        <x-site.close-band page="tools" :href="\App\Support\Http\Hosts::app('/learn/1-comfortable?ref=tools')" />
     </main>
     <x-site.footer />
     {{-- The tools' own service worker (no tool on this page: page.js only registers it), and the hub's search and chips. --}}

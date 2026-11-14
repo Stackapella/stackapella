@@ -163,15 +163,7 @@
             <p class="s-sh-none" data-none hidden>{{ __('pages.songs.none') }}</p>
         </section>
 
-        <section class="s-ink s-sh-end" aria-labelledby="end-h">
-            <div class="s-wrap s-sh-end-in">
-                <div>
-                    <h2 id="end-h">{{ __('pages.songs.end_title') }} <em class="s-xserif">{{ __('pages.songs.end_em') }}</em></h2>
-                    <p>{{ __('pages.songs.end_body') }}</p>
-                </div>
-                <a href="{{ \App\Support\Http\Hosts::app('/?ref=songs') }}" class="btn-primary btn-lg">{{ __('pages.site.start') }} <x-site.icon name="arrow" size="18" /></a>
-            </div>
-        </section>
+        <x-site.close-band page="songs" :href="\App\Support\Http\Hosts::app('/learn/1-comfortable?ref=songs')" />
     </main>
     <x-site.footer />
 @endsection

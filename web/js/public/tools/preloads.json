@@ -345,7 +345,8 @@
     "/js/public/demo-player.js"
   ],
   "/js/public/funnel.js": [
-    "/js/public/funnel.js"
+    "/js/public/funnel.js",
+    "/js/automated.js"
   ],
   "/js/public/gospel-runs.js": [
     "/js/public/gospel-runs.js",
@@ -389,10 +390,12 @@
     "/js/public/app-voices.js",
     "/js/public/play-state.js",
     "/js/public/report.js",
+    "/js/public/count.js",
     "/js/synth.js",
     "/js/scoring.js",
     "/js/recorded-guides.js",
     "/js/sentry-envelope.js",
+    "/js/automated.js",
     "/js/pitchtrack.js",
     "/js/db.js",
     "/js/dsp.js"
@@ -441,7 +444,8 @@
   ],
   "/js/public/share.js": [
     "/js/public/share.js",
-    "/js/public/count.js"
+    "/js/public/count.js",
+    "/js/automated.js"
   ],
   "/js/public/showreel.js": [
     "/js/public/showreel.js"
@@ -454,7 +458,8 @@
   "/js/public/site.js": [
     "/js/public/site.js",
     "/js/public/game-toggle.js",
-    "/js/public/season.js"
+    "/js/public/season.js",
+    "/js/automated.js"
   ],
   "/js/public/song-page.js": [
     "/js/public/song-page.js"
@@ -462,6 +467,7 @@
   "/js/public/song-part-page.js": [
     "/js/public/song-part-page.js",
     "/js/public/part-player.js",
+    "/js/automated.js",
     "/js/embed/lane.js",
     "/js/public/play-state.js",
     "/js/public/tool-layout.js",
@@ -493,7 +499,8 @@
   "/js/public/tools/page.js": [
     "/js/public/tools/page.js",
     "/js/public/theme-menu.js",
-    "/js/public/count.js"
+    "/js/public/count.js",
+    "/js/automated.js"
   ],
   "/js/public/vibrato.js": [
     "/js/public/vibrato.js",

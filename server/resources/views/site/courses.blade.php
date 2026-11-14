@@ -83,15 +83,7 @@
             <button type="button" class="btn-secondary" data-courses-reset>{{ __('site.courses.index.show_all') }}</button>
         </div>
 
-        <section class="s-crs-close" aria-labelledby="close-h">
-            <div class="s-wrap s-crs-close-in">
-                <div>
-                    <h2 id="close-h">{{ __('site.courses.index.close_title') }}</h2>
-                    <p>{{ __('site.courses.index.close_body') }}</p>
-                </div>
-                <a href="{{ $beginner['try'] }}" class="btn-primary btn-lg">{{ __('site.courses.index.close_button') }} <x-site.icon name="arrow" size="18" /></a>
-            </div>
-        </section>
+        <x-site.close-band page="courses" :href="$beginner['try']" />
     </main>
     <x-site.footer />
 @endsection

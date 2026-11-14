@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Ops;
 
+use App\Actions\Counts\Funnel;
 use App\Actions\Growth\GrowthExport;
 use App\Console\Commands\RecordPageVersions;
 use App\Models\AuditLog;
+use App\Models\Experiment;
 use App\Models\OutreachMessage;
 use App\Models\OutreachTarget;
 use App\Models\Project;
@@ -16,6 +18,7 @@ use App\Models\Take;
 use App\Models\User;
 use App\Support\Ops\Releases;
 use App\Support\Site\SitePages;
+use App\Support\Stats\ReportDay;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
@@ -254,5 +257,48 @@ final class GrowthDataTest extends TestCase
         }
 
         $this->assertStringContainsString('Schema version: '.GrowthExport::SCHEMA_VERSION, $doc);
+    }
+
+    public function test_the_experiments_section_gives_each_arms_counts_by_kind_and_day_and_suppresses_under_three(): void
+    {
+        // Funnel::registry is cached a few minutes: the rows made here, read now.
+        Cache::forget(Funnel::CACHE);
+        Experiment::query()->delete();
+        $short = Experiment::factory()->create(['key' => 'short1', 'metric' => 'fl_d:1-comfortable', 'starts_on' => now()->subDays(3)->toDateString()]);
+        Experiment::factory()->create(['key' => 'draft1', 'starts_on' => null]);
+        Cache::forget(Funnel::CACHE);
+        $day = ReportDay::today();
+        $cell = static fn (string $d, string $arm, string $kind, string $audience, int $n): array => ['day' => $d, 'variant' => 'short1-'.$arm, 'kind' => $kind, 'audience' => $audience, 'count' => $n];
+        DB::table('experiment_counts')->insert([
+            $cell($day, 'a', 'exp_enrol', 'guest', 4), $cell($day, 'a', 'exp_enrol', 'account', 1),
+            $cell($day, 'b', 'exp_enrol', 'guest', 2),
+            $cell($day, 'a', 'fs_r:1-comfortable.3', 'guest', 3),
+            $cell(now()->subDays(60)->toDateString(), 'a', 'exp_enrol', 'guest', 9),
+        ]);
+
+        $experiments = app(GrowthExport::class)->build('30')['experiments'];
+
+        $this->assertSame(['short1'], array_column($experiments, 'id'), 'only an experiment that has started');
+        $this->assertSame(['a', 'b'], $experiments[0]['arms']);
+        $this->assertSame($short->starts_on?->toDateString(), $experiments[0]['startsOn']);
+        $this->assertSame([
+            ['day' => $day, 'arm' => 'a', 'kind' => 'exp_enrol', 'count' => 5, 'suppressed' => false],
+            ['day' => $day, 'arm' => 'a', 'kind' => 'fs_r:1-comfortable.3', 'count' => 3, 'suppressed' => false],
+            ['day' => $day, 'arm' => 'b', 'kind' => 'exp_enrol', 'count' => null, 'suppressed' => true],
+        ], $experiments[0]['counts'], 'guests and accounts summed, under 3 suppressed, and nothing before the range');
+    }
+
+    public function test_the_meta_names_each_change_in_whats_counted(): void
+    {
+        // Today's crawler from the lesson pages (the coordinator, 2026-11-14), beside 8 November's crawler change.
+        $breaks = app(GrowthExport::class)->build('7')['meta']['breaks'];
+        $this->assertContains(['date' => '2026-11-08', 'kinds' => '*', 'note' => 'crawlers'], $breaks);
+        $crawler = collect($breaks)->firstWhere('date', '2026-11-14');
+        $this->assertSame(['f_arrive', 'f_arrive_start', 'app_open', 'br:0'], $crawler['kinds'] ?? null);
+        $this->assertStringContainsString('a crawler opened the app from the lesson pages', (string) ($crawler['note'] ?? ''));
+        // And the human-only counting that went live the same evening (deploy 743b36b4), without boot_failed.
+        $human = collect($breaks)->first(static fn (array $b): bool => $b['date'] === '2026-11-14' && str_contains($b['note'], 'touches the page'));
+        $this->assertContains('sv_*', $human['kinds'] ?? []);
+        $this->assertNotContains('boot_failed', $human['kinds'] ?? []);
     }
 }

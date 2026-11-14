@@ -104,6 +104,10 @@ return [
         'part_sing', 'share_opened', 'invite_sung',
         // Weekly use of what section 2 found under-used, once a device a week (read against app_week).
         'use_library', 'use_song_course', 'use_course', 'use_workout', 'use_boss', 'use_studio', 'use_group', 'use_tools', 'remind_on',
+        // The app's health where Sentry can't see it (the coordinator, 2026-11-14): the "didn't start" screen shown
+        // (js/boot-watch.js) and its Reset tapped, a cached file the service worker found broken and fetched again
+        // (sw.js), and a song's render that wouldn't play so the voices played instead (js/public/mixer.js).
+        'boot_failed', 'boot_reset', 'sw_cache_broken', 'render_fallback',
     ],
 
     // Kinds with a detail, "<prefix>:<id>", counted only when the id is a real one (a course in
@@ -231,6 +235,8 @@ return [
         'ahrefsbot', 'semrushbot', 'mj12bot', 'dotbot', 'rogerbot', 'screaming frog', 'bytespider', 'gptbot', 'oai-searchbot', 'chatgpt-user',
         'claudebot', 'claude-user', 'claude-searchbot', 'perplexitybot', 'ccbot', 'amazonbot', 'meta-externalagent', 'facebookexternalhit',
         'twitterbot', 'linkedinbot', 'slackbot', 'discordbot', 'telegrambot', 'whatsapp', 'pinterestbot', 'chrome-lighthouse',
+        // A scripted browser that says so (Puppeteer's and Playwright's default agents; the coordinator, 2026-11-14).
+        'headlesschrome', 'phantomjs',
     ],
 
     // The weekly drop-off report (App\Actions\Growth\Dropoffs; docs/retention-plan.md, "Detect"): a step fewer than
@@ -249,6 +255,16 @@ return [
             // Until push167 (ed6f180c4, about 04:45 UTC; the fix 6a60dac25), a guest's view of the course wall also
             // counted as lesson 2's start (retention and the coordinator).
             ['kinds' => ['lesson_start', 'fl_s:1-match', 'fs_r:1-match.0'], 'note' => 'wall views no longer count as starts; 13 November is the first whole day'],
+        ],
+        // About 74 app arrivals tagged ref=lesson-page that did nothing else: a crawler running the lesson pages' script
+        // and following their /learn links, whose agent no list named (Hillel saw the jump in Admin; the coordinator).
+        '2026-11-14' => [
+            ['kinds' => ['f_arrive', 'f_arrive_start', 'app_open', 'br:0'], 'note' => 'a crawler opened the app from the lesson pages; arrivals, app opens and breadth 0 read high'],
+            // From deploy 743b36b4, healthy about 17:05 UTC (frontend2's 56ea8aee1): what a page sent on load waits for a
+            // person's first press, key, touch or wheel, and a webdriver browser sends nothing. boot_failed counts at once
+            // when its screen is visible, so it isn't one of these.
+            ['kinds' => ['app_open', 'open_game', 'open_serious', 'app_day', 'app_week', 'app_month', 'f_arrive', 'f_arrive_start', 'f_day2', 'f_week1', 'f_day7', 'f_day14', 'f_account', 'f_name', 'f_install', 'sv_*', 'site_visit'],
+                'note' => 'counted only once a person touches the page (a press, key, touch or wheel), never from a webdriver browser; these read lower from here (deploy 743b36b4, about 17:05 UTC); 15 November is the first whole day'],
         ],
     ],
 

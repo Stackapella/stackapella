@@ -105,6 +105,7 @@
         '/js/game/effects.js',
         '/js/game/arcade.js',
         '/js/wav.js',
+        '/js/automated.js',
         '/js/experiments.js',
         '/js/daily-cap.js',
         '/js/course.js',

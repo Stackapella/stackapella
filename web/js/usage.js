@@ -7,6 +7,7 @@
 // (sendBeacon); offline or refused, it's simply dropped. Off when the server
 // says so (auth.config.usageCounts: a self-hosted install, unless its owner turned it on).
 
+import { whenHuman } from './automated.js';
 import { api, OPERATIONS } from './api.js';
 import { mockWanted } from './api-mode.js';
 import { account, ref } from './stores/account.js';
@@ -242,13 +243,16 @@ function post(payload) {
         (globalThis.countsSent ??= []).push(JSON.parse(body)); // the flows read what would have gone
         return;
     }
-    const path = OPERATIONS['counts.create'][1];
-    try {
-        if (navigator.sendBeacon?.(path, new Blob([body], { type: 'application/json' }))) return;
-        fetch(path, { method: 'POST', body, headers: { 'Content-Type': 'application/json' }, credentials: 'omit', keepalive: true }).catch((error) => console.info('Usage counts not sent', error?.message ?? error));
-    } catch (error) {
-        console.info('Usage counts not sent', error?.message ?? error);
-    }
+    // Only for a person, and only once they've interacted with the page (held till then; never for a robot): js/automated.js.
+    whenHuman(() => {
+        const path = OPERATIONS['counts.create'][1];
+        try {
+            if (navigator.sendBeacon?.(path, new Blob([body], { type: 'application/json' }))) return;
+            fetch(path, { method: 'POST', body, headers: { 'Content-Type': 'application/json' }, credentials: 'omit', keepalive: true }).catch((error) => console.info('Usage counts not sent', error?.message ?? error));
+        } catch (error) {
+            console.info('Usage counts not sent', error?.message ?? error);
+        }
+    });
 }
 
 addEventListener('pagehide', () => send({ leaving: true }));
@@ -272,6 +276,11 @@ export function periodKeys(at = Date.now()) {
 
 /** Counts this device once in each new day, week and month (at app open). */
 export function countReach(at = Date.now()) {
+    // Once a person has interacted with this page (js/automated.js): a day only an untouched page saw isn't marked.
+    whenHuman(() => reach(at));
+}
+
+function reach(at) {
     let kept = {};
     try {
         kept = JSON.parse(localStorage.getItem(REACH) || '{}') ?? {};

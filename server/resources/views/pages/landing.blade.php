@@ -162,20 +162,10 @@
 
         @include('pages.landing._way')
 
-        <section class="s-ink" aria-labelledby="final-h">
-            <div class="s-wrap s-final">
-                <span class="s-stackbig" aria-hidden="true">@foreach ([[1, 100], [2, 74], [3, 88], [4, 62]] as [$n, $w])<b class="s-v{{ $n }}" style="width: {{ $w }}%"></b>@endforeach</span>
-                <p class="s-kick s-skin-g s-player">{{ __('pages.landing.game.final_kick') }}</p>
-                <h2 id="final-h">{{ __('pages.landing.final_title') }}</h2>
-                {{-- Start singing beside its line (Hillel's newest design): lesson 1, which needs no account. --}}
-                <div class="s-final-go">
-                    <p class="s-final-btns">
-                        <a href="{{ $links['start'] }}" class="btn-primary btn-lg" data-funnel-start>{{ __('pages.landing.start') }} <x-site.icon name="arrow" size="18" /></a>
-                    </p>
-                    <p>{{ __('pages.landing.final_body') }}</p>
-                </div>
-            </div>
-        </section>
+        <x-site.close-band page="home" :href="$links['start']" funnel>
+            <span class="s-stackbig" aria-hidden="true">@foreach ([[1, 100], [2, 74], [3, 88], [4, 62]] as [$n, $w])<b class="s-v{{ $n }}" style="width: {{ $w }}%"></b>@endforeach</span>
+            <p class="s-kick s-skin-g s-player">{{ __('pages.landing.game.final_kick') }}</p>
+        </x-site.close-band>
     </main>
     <x-site.footer />
 @endsection

@@ -7,7 +7,6 @@ namespace App\Support\Pages;
 use App\Support\Languages\SongWords;
 use App\Support\Templates\Catalogue;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Cache;
 
 /**
  * /songs as a sampler (Hillel, 2026-11-11: "change the /songs page so it samples and then leads to the page for each
@@ -66,7 +65,7 @@ final class SongsHub
         $key = 'songs.bands.'.$this->catalogue->fingerprint().'.'.(string) config('app.build').'.'.app()->getLocale().'.'.now()->toDateString();
 
         /** @var list<array{key: string, path: string, count: int, season: bool, samples: list<array<string, mixed>>}> */
-        return Cache::remember($key, now()->addDay(), fn (): array => $this->build());
+        return Catalogue::kept($key, fn (): array => $this->build());
     }
 
     /**

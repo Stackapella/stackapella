@@ -116,4 +116,21 @@ final class CatalogueListingTest extends TestCase
         $this->assertCount(6, $this->list());
         $this->assertSame([], $read, 'no version read');
     }
+
+    public function test_a_developers_machine_without_a_build_keeps_nothing_so_code_changes_show_at_once(): void
+    {
+        $this->song('a-song', TemplateAccess::Free);
+        $key = fn (): string => 'catalogue.listing.'.app(Catalogue::class)->fingerprint().'.'.(string) config('app.build');
+
+        $this->app->instance('env', 'local');
+        config(['app.build' => null]);
+        $this->app->forgetScopedInstances();
+        app(Catalogue::class)->listing();
+        $this->assertNull(Cache::get($key()), 'local, no build: built each request');
+
+        config(['app.build' => 'abc123']);
+        $this->app->forgetScopedInstances();
+        app(Catalogue::class)->listing();
+        $this->assertNotNull(Cache::get($key()), 'a build: kept');
+    }
 }

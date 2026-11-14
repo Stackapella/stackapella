@@ -215,8 +215,13 @@ final class UsageCountsTest extends TestCase
         }
         $this->assertSame(0, DB::table('usage_counts')->count());
 
-        // A phone whose agent holds "bot" in its brand still counts.
-        $this->withHeader('User-Agent', 'Mozilla/5.0 (Linux; Android 12; Cubot KingKong 7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Mobile Safari/537.36')->postJson('/api/counts', $events)->assertNoContent();
+        // A scripted browser that says so, in its agent (Puppeteer's default) or only in its client hint, counts nothing.
+        $this->withHeader('User-Agent', 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/130.0.0.0 Safari/537.36')->postJson('/api/counts', $events)->assertNoContent();
+        $this->withHeaders(['User-Agent' => 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36', 'Sec-CH-UA' => '"HeadlessChrome";v="130", "Chromium";v="130", "Not?A_Brand";v="99"'])->postJson('/api/counts', $events)->assertNoContent();
+        $this->assertSame(0, DB::table('usage_counts')->count());
+
+        // A phone whose agent holds "bot" in its brand still counts, and so does Chrome's own client hint.
+        $this->withHeaders(['User-Agent' => 'Mozilla/5.0 (Linux; Android 12; Cubot KingKong 7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Mobile Safari/537.36', 'Sec-CH-UA' => '"Google Chrome";v="130", "Chromium";v="130", "Not?A_Brand";v="99"'])->postJson('/api/counts', $events)->assertNoContent();
         $this->assertSame(['f_arrive', 'site_visit', 'sv_lesson'], DB::table('usage_counts')->orderBy('kind')->pluck('kind')->all());
     }
 
@@ -247,5 +252,18 @@ final class UsageCountsTest extends TestCase
         $this->postJson('/api/auth/register', ['name' => 'Ana', 'email' => 'ana@example.com', 'password' => 'a-fine-long-passphrase-42', 'birthMonth' => 5, 'birthYear' => 1990])->assertStatus(202);
 
         $this->assertSame(1, (int) DB::table('usage_counts')->where('kind', 'sign_up')->where('audience', 'account')->value('count'));
+    }
+
+    public function test_the_apps_health_counts_where_sentry_cant_see(): void
+    {
+        // The "didn't start" screen and its Reset, a broken cached file, a render that fell back to the voices
+        // (the coordinator, 2026-11-14): anonymous daily counts, signed in or not.
+        $kinds = ['boot_failed', 'boot_reset', 'sw_cache_broken', 'render_fallback'];
+        $this->postJson('/api/counts', ['events' => array_map(static fn (string $kind): array => ['kind' => $kind], [...$kinds, 'boot_whatever']), 'signedIn' => false])->assertNoContent();
+
+        $kept = DB::table('usage_counts')->pluck('kind')->all();
+        sort($kept);
+        sort($kinds);
+        $this->assertSame($kinds, $kept, 'the four, and nothing unknown');
     }
 }

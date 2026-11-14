@@ -11,6 +11,11 @@
 <ul id="results"></ul>
 <script type="module">
 import { run } from './harness.js';
+import { useAutomated, useHuman } from '/js/automated.js';
+// The tests run in headless Chrome (navigator.webdriver): the counts' own tests send on purpose, as a person's browser
+// who has interacted (js/automated.js holds counts until then).
+useAutomated(() => false);
+useHuman(true);
 import { loadLanguage } from '/js/i18n.js';
 import './i18n.test.js';
 import './sw-routes.test.js';
@@ -120,6 +125,7 @@ import './wave-lane.test.js';
         import './voices-demo.test.js';
         import './tools-sw.test.js';
         import './sw-update.test.js';
+        import './sw-counts.test.js';
         import './mic-choice.test.js';
         import './public-listen.test.js';
         import './public-mixer.test.js';

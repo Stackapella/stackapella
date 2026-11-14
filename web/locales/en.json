@@ -4532,6 +4532,7 @@
         }
     },
     "version": {
+        "updating": "Updating",
         "ready": "A new version of Stackapella is ready",
         "refresh": "Refresh",
         "notNow": "Not now",

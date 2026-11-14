@@ -43,10 +43,27 @@ class Flow:
             # The skin (docs/skins-plan.md) chosen before any page script runs, as theme-boot reads it, and
             # the mock account's too (the account's choice wins when it loads).
             self.chrome.send("Page.addScriptToEvaluateOnNewDocument", {"source": f"""try {{ const c = JSON.parse(localStorage.getItem('stackapella.appearance') || '{{}}'); if (c.skin !== '{skin}') localStorage.setItem('stackapella.appearance', JSON.stringify({{ ...c, skin: '{skin}', at: Date.now() }})); const m = JSON.parse(sessionStorage.getItem('stackapella.mockAppearance') || '{{}}'); if (m.skin !== '{skin}') sessionStorage.setItem('stackapella.mockAppearance', JSON.stringify({{ ...m, skin: '{skin}' }})); }} catch (e) {{}}"""})
+        # A person's browser, as the counts see it: js/automated.js sends nothing when navigator.webdriver is true, which
+        # headless Chrome sets, and the flows check what a person's visit sends. as_robot() puts it back.
+        # Also as someone who has already interacted (js/automated.js holds counts until a real press; the flows press by
+        # script, which isn't one).
+        self.as_person()
         self.step = 0
         # Substrings of console errors this journey causes on purpose. Without a server, the
         # app's start-up calls (the catalogue, the account, coming soon, Admin > Live's heartbeat) are 404s, all handled.
         self.expected_errors = ["404 (Not Found) " + self.base + "/api/templates", "404 (Not Found) " + self.base + "/api/account", "404 (Not Found) " + self.base + "/api/auth/config", "404 (Not Found) " + self.base + "/api/boards/daily", "404 (Not Found) " + self.base + "/api/live/beat"]
+
+    PERSON = "Object.defineProperty(Navigator.prototype, 'webdriver', { get: () => false, configurable: true }); window.__stackapellaPerson = true;"
+
+    def as_person(self):
+        """From the next page on: a person's browser, who has interacted (js/automated.js sends their counts at once)."""
+        self.person = self.chrome.send("Page.addScriptToEvaluateOnNewDocument", {"source": self.PERSON})["identifier"]
+        return self
+
+    def as_robot(self):
+        """From the next page on, navigator.webdriver is true again: a crawler's visit, as js/automated.js sees it."""
+        self.chrome.send("Page.removeScriptToEvaluateOnNewDocument", {"identifier": self.person})
+        return self
 
     def go(self, path, wait=None):
         self.chrome.goto(self.base + path, wait)

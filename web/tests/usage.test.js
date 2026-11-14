@@ -170,3 +170,82 @@ test('usage counts: a feature\'s first use goes once as ft:, never for one alrea
         keys.forEach((k, i) => (had.kept[i] === null ? localStorage.removeItem(k) : localStorage.setItem(k, had.kept[i])));
     }
 });
+
+test('usage: a robot (navigator.webdriver: a crawler running our pages, a headless probe) sends no count at all', async () => {
+    const { useAutomated } = await import('/js/automated.js');
+    const beacon = navigator.sendBeacon;
+    const sent = [];
+    navigator.sendBeacon = (url) => sent.push(url) > 0;
+    useAutomated(() => true);
+    try {
+        count('app_open');
+        send();
+        const { countAnon } = await import('/js/public/count.js');
+        countAnon('render_fallback');
+        assert(sent.length === 0, `sent ${sent.join(', ')}`);
+    } finally {
+        useAutomated(() => false);
+        navigator.sendBeacon = beacon;
+    }
+    const { automated } = await import('/js/automated.js');
+    useAutomated(() => navigator.webdriver === true);
+    assert(automated() === (navigator.webdriver === true), 'the real check reads navigator.webdriver');
+    useAutomated(() => false);
+});
+
+test('usage: counts wait for the first real interaction, then go once; a page closed untouched sends nothing', async () => {
+    const { useHuman, interactNow } = await import('/js/automated.js');
+    const beacon = navigator.sendBeacon;
+    const sent = [];
+    navigator.sendBeacon = (url, blob) => {
+        blob.text().then((text) => sent.push(...JSON.parse(text).events.map((e) => e.kind)));
+        return true;
+    };
+    const settle = () => new Promise((resolve) => setTimeout(resolve, 50));
+    const config = account.config;
+    account.config = { usageCounts: true };
+    try {
+        // Untouched: held.
+        useHuman(false);
+        count('app_open');
+        send();
+        await settle();
+        assert(sent.length === 0, `sent before any interaction: ${sent}`);
+        // The first press: what was held goes, once; a second press sends nothing more.
+        interactNow();
+        await settle();
+        assert(sent.filter((k) => k === 'app_open').length === 1, `after the press: ${sent}`);
+        interactNow();
+        await settle();
+        assert(sent.filter((k) => k === 'app_open').length === 1, `sent twice: ${sent}`);
+        // A new page, closed untouched: what it held is dropped (useHuman stands for the next page).
+        useHuman(false);
+        count('app_open');
+        send();
+        useHuman(true);
+        await settle();
+        assert(sent.filter((k) => k === 'app_open').length === 1, `an untouched page's count went: ${sent}`);
+    } finally {
+        useHuman(true);
+        navigator.sendBeacon = beacon;
+        account.config = config;
+    }
+});
+
+test('usage: a day is marked as counted only once someone interacted, so an untouched open never takes the day', async () => {
+    const { useHuman, interactNow } = await import('/js/automated.js');
+    const { countReach } = await import('/js/usage.js');
+    const before = localStorage.getItem('stackapella.reach');
+    try {
+        localStorage.removeItem('stackapella.reach');
+        useHuman(false);
+        countReach(Date.parse('2026-11-14T12:00:00Z'));
+        assert(localStorage.getItem('stackapella.reach') === null, 'marked before any interaction');
+        interactNow();
+        assert(JSON.parse(localStorage.getItem('stackapella.reach') || '{}').app_day, 'not marked after the press');
+    } finally {
+        useHuman(true);
+        if (before === null) localStorage.removeItem('stackapella.reach');
+        else localStorage.setItem('stackapella.reach', before);
+    }
+});

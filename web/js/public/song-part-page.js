@@ -2,6 +2,7 @@
 // words from the page and mounts the frontend's part player (part-player.js), for a free song only. No inline script,
 // so the page keeps the site's script policy.
 import { mountPartPlayer } from './part-player.js';
+import { whenHuman } from '../automated.js';
 
 const el = document.querySelector('[data-part-player]');
 const data = document.querySelector('[data-part-player-data]');
@@ -22,5 +23,5 @@ el?.addEventListener('click', (event) => {
     const button = event.target instanceof Element ? event.target.closest('[data-ui="part-play"]') : null;
     if (played || !button || button.dataset.state !== 'paused' || !document.querySelector('[data-site-visit]')) return;
     played = true;
-    navigator.sendBeacon?.('/api/counts', new Blob([JSON.stringify({ events: [{ kind: 'part_play' }], signedIn: false })], { type: 'application/json' }));
+    whenHuman(() => navigator.sendBeacon?.('/api/counts', new Blob([JSON.stringify({ events: [{ kind: 'part_play' }], signedIn: false })], { type: 'application/json' }))); // a person only: js/automated.js
 }, true);

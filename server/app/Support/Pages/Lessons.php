@@ -45,9 +45,6 @@ final class Lessons
      *  showed no step). */
     private const SUNG = ['play', 'try', 'wave', 'bullseye', 'choose', 'selfcheck', 'breathhold', 'record', 'home', 'use'];
 
-    /** @var array<string, list<array<string, mixed>>>|null */
-    private static ?array $built = null;
-
     /**
      * The courses with lesson pages, in the site's order: course slug => its catalogue facts.
      *
@@ -89,10 +86,10 @@ final class Lessons
      */
     public static function pages(string $course): array
     {
-        self::$built ??= [];
+        // Built once per language a request (LessonPagesBuilt is scoped): the slugs are the English's, the words the page's language.
+        $built = app(LessonPagesBuilt::class);
 
-        // Built once per language a request: the slugs are the English's, the words the page's language.
-        return self::$built[app()->getLocale().':'.$course] ??= self::build($course);
+        return $built->pages[app()->getLocale().':'.$course] ??= self::build($course);
     }
 
     /**
@@ -277,7 +274,7 @@ final class Lessons
     /** Forgets the pages built this request (tests that change the content). */
     public static function forget(): void
     {
-        self::$built = null;
+        app(LessonPagesBuilt::class)->pages = [];
     }
 
     /**

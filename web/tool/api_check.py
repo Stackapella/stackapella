@@ -9,11 +9,14 @@ WEB = Path(__file__).resolve().parent.parent
 problems = []
 # The public pages (js/public) have no import map, so they can't load api.js: they may call a path
 # api.js's operations list has (the contract's), and nothing else.
+CLASSIC = {"boot-watch.js"}
 KNOWN = set(re.findall(r"""\[\s*'[A-Z]+',\s*'(/api/[^']+)'\s*\]""", (WEB / "js" / "api.js").read_text()))
 for path in sorted((WEB / "js").rglob("*.js")):
     if path.name in ("api.js", "api-mock.js"):
         continue
-    public = path.parent.name == "public"
+    # A classic script that runs before the app (boot-watch.js, which counts boot_failed when the app never started) can't
+    # load api.js either: the public pages' rule.
+    public = path.parent.name == "public" or path.name in CLASSIC
     for number, line in enumerate(path.read_text().splitlines(), 1):
         if not re.search(r"""['"`]/api/""", line) or line.strip().startswith(("//", "*")):
             continue
