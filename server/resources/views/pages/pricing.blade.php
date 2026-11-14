@@ -16,9 +16,9 @@
         <div class="s-plans-sec">
             <section class="s-wrap s-pricehead" aria-labelledby="page-h">
                 <div>
-                    <p class="s-eyebrow"><span class="s-dots" aria-hidden="true">@foreach ([1, 2, 3, 4] as $n)<b class="s-v{{ $n }}"></b>@endforeach</span><x-site.skin :game="__('pages.landing.game.pricing_kick')" :serious="__('pages.pricing.title')" /></p>
-                    {{-- Hillel's 2026-11-12 design: the plan's name in its card's warm ink (never a fixed pink). --}}
-                    <h1 id="page-h">{{ __('pages.landing.plans_title') }} <span class="s-h-more">{{ $titleMore[0] }}@if ($titleMore[1] !== '')<span class="s-h-plus">{{ $titleMore[1] }}</span>@endif{{ $titleMore[2] }}</span></h1>
+                    <p class="s-eyebrow"><span class="s-dots" aria-hidden="true">@foreach ([1, 2, 3, 4] as $n)<b class="s-v{{ $n }}"></b>@endforeach</span><x-site.skin :game="__('pages.landing.game.pricing_kick')" :serious="__('pages.pricing.eyebrow')" /></p>
+                    {{-- The second line in the warm amber, the five pages' key phrase (never a fixed pink). --}}
+                    <h1 id="page-h">{{ __('pages.landing.plans_title') }} <span class="s-h-more">{{ __('pages.landing.plans_title_more') }}</span></h1>
                 </div>
                 {{-- How you pay and the currency, one row (the design), each a segmented control. --}}
                 <div class="s-pricehead-side">
@@ -41,7 +41,7 @@
 
             {{-- The two plans (Hillel's plans design, pages/_plan-cards). --}}
             <section class="s-wrap" aria-label="{{ __('pages.pricing.title') }}">
-                @include('pages._plan-cards', ['h' => 'h2', 'id' => 'pricing', 'lead' => true, 'start' => \App\Support\Http\Hosts::app('/learn/1-comfortable'), 'plus' => \App\Support\Http\Hosts::app('/plus?from=pricing')])
+                @include('pages._plan-cards', ['h' => 'h2', 'id' => 'pricing', 'start' => \App\Support\Http\Hosts::app('/learn/1-comfortable'), 'plus' => \App\Support\Http\Hosts::app('/plus?from=pricing')])
                 {{-- Under the cards: the tax and renewal line at left, the choir offer at right (it isn't Plus). --}}
                 <div class="s-plans-under">
                     <p class="s-cur">{{ $price['taxIncluded'] ? __('pages.pricing.tax_included') : __('pages.pricing.tax_added') }} {{ $smallPrint[0] }}</p>
@@ -122,7 +122,8 @@
              app's own More courses list has them (ce5498af): each group's open courses as short rows, linked to
              their pages, then the ones still to come in one quiet line. Open is the catalogue's own (live, with
              plus_courses on), so the page is never ahead of the app. --}}
-        <section class="s-ink" aria-labelledby="courses-h" data-plus-courses>
+        {{-- A light band (the five-pages direction): the page ends in one dark block, the shared close, right under it. --}}
+        <section class="s-pc-band" aria-labelledby="courses-h" data-plus-courses>
             <div class="s-wrap">
                 <div class="s-courses-head">
                     <div>

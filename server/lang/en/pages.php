@@ -902,6 +902,8 @@ return [
         'courses_free' => 'Try the first lesson without an account; a free account opens the rest.',
         'courses_coach' => 'Courses get you started; a coach takes you further. Working with a coach in the app is coming soon.',
         'title' => 'Pricing',
+        // The hero's eyebrow (the five-pages direction: the page, then what it holds).
+        'eyebrow' => 'Pricing · Free and Plus',
         'meta_title' => 'Stackapella pricing: free to learn, Plus for your work',
         'description' => 'Every course, every song and your history are free. Plus adds storage, MP3 and stems, and unlimited private arrangements, for working with what you make.',
         'headline' => 'Free to learn. Plus for your work.',

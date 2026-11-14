@@ -1,6 +1,6 @@
-{{-- Free and Plus (docs/features.md; Hillel's plans design), with the prices in the visitor's currency
-     and the numbers from config: the title with its second line muted, the Yearly or Monthly switch
-     level with its foot, and the two cards (pages/_plan-cards). --}}
+{{-- Free and Plus (docs/features.md), with the prices in the visitor's currency and the numbers from config: the title
+     with its second line muted, the Yearly or Monthly switch level with its foot, and the two cards, the same component as
+     /pricing's (pages/_plan-cards; the five-pages plan). --}}
 <section id="plans" class="s-wrap s-sec s-plans-sec" aria-labelledby="plans-h">
     <div class="s-plans-head">
         <div>
@@ -15,8 +15,10 @@
         </fieldset>
     </div>
     @include('pages._plan-cards', ['h' => 'h3', 'id' => 'plans', 'start' => $links['start'], 'plus' => $links['plus']])
+    {{-- Under the cards, as on /pricing: the tax line, the choir offer (it isn't Plus), then the way to the full comparison. --}}
     <div class="s-plans-foot">
         <p class="s-cur">{{ $price['taxIncluded'] ? __('pages.pricing.tax_included') : __('pages.pricing.tax_added') }}</p>
+        <p class="s-plan-choirs">{{ __('pages.landing.plans_choirs') }} <a href="/for/choir-directors?ref=for-choirs-landing">{{ \App\Support\Site\Teams::text('pages.landing.plans_choirs_link') }}</a></p>
         <a href="/pricing" class="btn-ghost">{{ __('pages.landing.plans_compare') }} <x-site.icon name="arrow" size="16" /></a>
     </div>
 </section>

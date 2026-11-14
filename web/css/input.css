@@ -1594,7 +1594,7 @@ select:disabled {
 
 /* Plans. */
 .s-plans { display: grid; gap: 14px; margin-top: 24px; }
-.s-plan { border-radius: 28px; padding: 24px; background: var(--color-panel); border: 1px solid var(--color-line); position: relative; overflow: hidden; }
+.s-plan { border-radius: var(--k-r-feature); padding: 24px; background: var(--color-panel); border: 1px solid var(--color-line); position: relative; overflow: hidden; }
 .s-plan-plus, .s-table-plans {
     /* Hillel's plans design: a warm fill and a solid edge, no corner glow. Ink is 4.5:1 or more on the fill. */
     --warm-fill: color-mix(in srgb, #d79a4e 10%, var(--color-panel)); --warm-edge: color-mix(in srgb, #d79a4e 60%, var(--color-panel)); --warm-ink: #e8b479;
@@ -3538,7 +3538,7 @@ a.s-vt-rung:hover { background: color-mix(in srgb, var(--color-cream) 5%, transp
 .s-plan-k { margin-top: 24px; padding-top: 24px; border-top: 1px solid var(--color-line); font-size: 13.5px; font-weight: 700; color: var(--color-muted); }
 .s-plan-k + ul { margin-top: 10px; }
 .s-plans-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; margin-top: 14px; }
-.s-plans-foot .s-cur { margin-top: 0; }
+.s-plans-foot .s-cur, .s-plans-foot .s-plan-choirs { margin-top: 0; }
 .s-waylist { display: grid; margin-top: 22px; border: 1px solid var(--color-line); border-radius: 22px; overflow: hidden; }
 .s-waylist li + li { border-top: 1px solid var(--color-line); }
 .s-waylist a { display: grid; grid-template-columns: 36px minmax(0, 1fr) auto; align-items: center; gap: 12px; padding: 14px 16px; min-height: 64px; }
@@ -8332,7 +8332,8 @@ a.s-vt-rung:hover { background: color-mix(in srgb, var(--color-cream) 5%, transp
     .s-bento7 > li:nth-child(1), .s-bento7 > li:nth-child(4) { grid-column: span 7; }
     .s-bento7 > li:nth-child(2), .s-bento7 > li:nth-child(3) { grid-column: span 5; }
     .s-bento7 .s-tile .s-pic { height: 190px; }
-    .s-pricehead { grid-template-columns: minmax(0, 1fr) auto; align-items: end; padding-top: 72px; }
+    /* The toggles under the H1, never beside it (the five-pages plan: beside it, the H1 broke to three lines at 1440). */
+    .s-pricehead { align-items: end; padding-top: 72px; }
     .s-pricehead-side { justify-items: end; }
     .s-plans.s-plans-2 { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px; margin-top: 40px; }
     .s-plans-2 .s-plan { padding: 36px; }
@@ -8343,11 +8344,19 @@ a.s-vt-rung:hover { background: color-mix(in srgb, var(--color-cream) 5%, transp
 /* /pricing (Hillel's 2026-11-12 Pricing design, docs/decisions.md): the plan's name in the person's accent, how you pay
    and the currency on one row, each card's button under its price, Plus's column on the warm fill, "Only what's
    different", and the free courses as chips. No fixed pink: every colour is the theme's (or the warm card's). */
-.s-pricehead h1 .s-h-more { color: inherit; }
-.s-pricehead { --warm-ink: #e8b479; }
-:root[data-theme$="-light"] .s-pricehead { --warm-ink: #82520f; }
-/* Plus's name wears its card's warm ink, never the theme's accent (pink in two default themes; the coordinator: "no pink"). */
-.s-h-plus { color: var(--warm-ink); }
+/* The five-pages direction: the hubs' H1 size, and the whole second line ("Plus for your work.") in the warm amber, the
+   same as the other pages' key phrase (--s-hl-em's values); never the theme's pink. */
+.s-pricehead h1 { font-size: var(--k-h1); line-height: 0.98; letter-spacing: -0.042em; }
+.s-pricehead h1 .s-h-more { color: var(--s-hl-em); }
+/* The switches pressed in ink on cream, as the five pages' chips are (calm has no pink on these pages); game keeps its own. */
+:root:not([data-skin='game']) .s-pricehead :is(.s-bill label:has(:checked), .s-cur-seg strong) { background: var(--color-cream); color: var(--color-ink); box-shadow: none; }
+:root:not([data-skin='game']) .s-pricehead .s-bill label:has(:checked) b { color: color-mix(in srgb, var(--color-ink) 70%, transparent); opacity: 1; }
+/* The courses band, light: the raised ground and the five pages' section rhythm, its cards on the panel. */
+.s-pc-band { background: var(--color-raised); padding-block: var(--k-sec); margin-top: var(--k-sec); }
+.s-pc-band .s-card3d { background: var(--color-panel); }
+.s-pc-band .s-kick { color: var(--s-hl-em); } /* part-ink-2 is under AA on the raised band in the light themes */
+/* The shared close (marketing's .s-close) sits right under the band, no gap between the two. */
+.s-pc-band + .s-close { margin-top: 0; }
 .s-pricehead-side { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
 .s-cur-sym :is(a, strong) { min-width: 44px; justify-content: center; padding-inline: 12px; font-size: 15px; }
 .s-plan-cta { display: grid; gap: 10px; margin-top: 22px; text-align: center; }
@@ -8380,7 +8389,7 @@ a.s-vt-rung:hover { background: color-mix(in srgb, var(--color-cream) 5%, transp
 .s-coursechip-soon { border: 1px dashed color-mix(in srgb, var(--color-cream) 26%, transparent); color: var(--color-muted); }
 .s-coursechip-soon b { color: var(--color-cream); font-weight: 650; margin-inline-end: 4px; white-space: nowrap; }
 @media (min-width: 900px) {
-    .s-pricehead-side { justify-content: flex-end; }
+    .s-pricehead-side { justify-content: flex-start; }
     .s-plans-under { grid-template-columns: minmax(0, 1fr) auto; align-items: start; }
     .s-plans-under .s-plan-choirs { text-align: end; }
     .s-courses .s-coursechips a, .s-coursechip-soon { min-height: 36px; }
@@ -10823,6 +10832,11 @@ a.s-vt-rung:hover { background: color-mix(in srgb, var(--color-cream) 5%, transp
 :root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) :is(.s-sh-hero, .s-crs-head, .s-th-hero) h1.s-hub-h1 { font-size: var(--k-g-h1); line-height: 1.12; letter-spacing: .01em; }
 :root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-hub-h1 > em.s-hl-em { color: var(--arc-pink); }
 :root[data-skin='game'][data-gs] body.s-arcade .s-hub-dots b { border-radius: 0; }
+/* The landing's plans foot: Compare the plans is a frameless ghost in the arcade, so its side padding read as an indent
+   under the tax and choirs lines on a phone; its text lines up with theirs (the 44 px height stays). */
+:root[data-skin='game'][data-gs] body.s-arcade .s-plans-foot .btn-ghost { padding-inline: 0; }
+/* Pricing's H1: its second line (.s-h-more) pink in the arcade, as the hubs' second lines are (the calm amber reached game). */
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-pricehead h1 .s-h-more { color: var(--arc-pink); }
 /* arcade-screen:end */
 /* Game mode's circles are arcade coins (Hillel's pick of two, 2026-11-08; the course map's stages, .ge-map-node, above):
    every bubble that reaches game mode (serious mode's look, docs/bubble-circles-plan.md: the avatars, New song's +, the

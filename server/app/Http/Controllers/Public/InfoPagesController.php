@@ -92,10 +92,6 @@ final class InfoPagesController extends Controller
         $rows = (array) Teams::words('pages.pricing.rows');
         // Coaching only once it's open (it waits for after launch, docs/decisions.md).
         $groups = ComingSoon::open('coaching') ? self::PRICING_GROUPS : array_map(static fn (array $keys): array => array_values(array_diff($keys, ['coaching'])), self::PRICING_GROUPS);
-        // "Plus for your work." with the plan's name apart, so the page can colour it (Hillel's 2026-11-12 design).
-        $more = (string) __('pages.landing.plans_title_more');
-        $plusName = (string) __('pages.landing.plans_plus');
-        $at = mb_strpos($more, $plusName);
 
         return response()->view('pages.pricing', [
             'title' => __('pages.pricing.title'),
@@ -105,7 +101,6 @@ final class InfoPagesController extends Controller
             'trialDays' => (int) config('billing.trial_days'),
             'freeSongs' => count((array) config('templates.free')),
             'songs' => app(Catalogue::class)->songCount(),
-            'titleMore' => $at === false ? [$more, '', ''] : [mb_substr($more, 0, $at), $plusName, mb_substr($more, $at + mb_strlen($plusName))],
             'checkoutOpen' => filled(config('billing.prices.month')) && filled(config('billing.prices.year')),
             // The comparison in groups (the design round), each row's label and its Free and Plus cells; `same` marks
             // what both plans share, which "Only what's different" folds (a group whose rows are all the same, whole).

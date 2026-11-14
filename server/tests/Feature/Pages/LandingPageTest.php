@@ -170,11 +170,12 @@ final class LandingPageTest extends TestCase
 
         $this->get('/')->assertOk()
             ->assertSee('2 GB for your recordings')->assertSee('70 GB for your recordings')
-            ->assertSee(__('pages.landing.plans_get'))->assertSee(__('pages.landing.plans_trial', ['days' => 10]))
+            // The plan cards are /pricing's (the five-pages plan): the trial named on Plus's button, with its days.
+            ->assertSee(trans_choice('pages.pricing.try_plus', 10, ['days' => 10]))->assertSee(__('pages.pricing.cancel_any_time'))
             ->assertSee('$3.33')->assertSee('$39.99')->assertSee('$0<', false);
 
         config(['billing.prices.month' => null]);
-        $this->get('/')->assertSee(__('pages.landing.plans_paused'))->assertDontSee(__('pages.landing.plans_get'));
+        $this->get('/')->assertSee(__('pages.landing.plans_paused'))->assertDontSee('Try Plus free');
     }
 
     public function test_plus_says_who_it_is_for_and_leaves_choirs_to_the_learning_tracks(): void
