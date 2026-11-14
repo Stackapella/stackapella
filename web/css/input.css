@@ -3721,6 +3721,41 @@ a.s-vt-rung:hover { background: color-mix(in srgb, var(--color-cream) 5%, transp
 .s-sh-try .s-mixer { border-radius: var(--k-r-feature); box-shadow: var(--k-sh-feature), var(--k-hi); border: 1px solid var(--k-line); }
 .s-crs-start { border-radius: var(--k-r-feature); box-shadow: var(--k-sh-feature), var(--k-hi); }
 
+/* The filter bar (the design direction's "Filter bar", from /courses' bar): full bleed and sticky, the page showing
+   through it blurred; chips with their counts first (All first and pressed), the search at the row's end. Chips never
+   wrap: one row that scrolls with a fade. Each hub keeps its own hooks and what its chips do. */
+.s-fbar { position: sticky; top: 0; z-index: 30; margin-top: 0; border-block: 1px solid var(--k-line); background: color-mix(in srgb, var(--color-ink) 86%, transparent); -webkit-backdrop-filter: saturate(1.4) blur(14px); backdrop-filter: saturate(1.4) blur(14px); }
+.s-fbar-in { display: flex; align-items: center; gap: 12px 20px; padding-block: 12px; }
+.s-fbar .s-fbar-chips { display: flex; flex: 1 1 auto; flex-wrap: nowrap; gap: 8px; min-width: 0; max-width: none; margin: 0; padding: 0 40px 0 0; overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: none; -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 40px), transparent); mask-image: linear-gradient(to right, #000 calc(100% - 40px), transparent); }
+.s-fbar .s-fbar-chips::-webkit-scrollbar { display: none; }
+.s-fbar .s-fbar-chips > * { flex: none; }
+.s-fbar .s-fchip { display: inline-flex; align-items: center; gap: 8px; height: 44px; min-height: 44px; padding: 0 16px; border: 1px solid var(--k-line); border-radius: 999px; background: var(--color-panel); color: var(--color-cream); font-size: var(--k-small); font-weight: 650; white-space: nowrap; box-shadow: var(--k-sh-rest); transition: border-color .15s, background-color .15s; }
+.s-fbar .s-fchip:hover { border-color: var(--k-line-strong); }
+.s-fbar .s-fchip:focus-visible { outline: 2px solid var(--color-cream); outline-offset: 3px; }
+.s-fbar .s-fchip i { width: 8px; height: 8px; margin: 0; border-radius: 99px; }
+.s-fbar .s-fchip :is(span, .s-crs-n) { margin: 0; padding: 0; background: none; font-size: var(--k-meta); font-weight: 600; color: var(--color-muted); font-variant-numeric: tabular-nums; opacity: 1; }
+.s-fbar :is(.s-fchip[aria-pressed='true'], .s-fchip[aria-current='true'], .s-fchip.is-on) { border-color: var(--color-cream); background: var(--color-cream); color: var(--color-ink); box-shadow: none; }
+.s-fbar :is(.s-fchip[aria-pressed='true'], .s-fchip[aria-current='true'], .s-fchip.is-on) :is(span, .s-crs-n) { color: color-mix(in srgb, var(--color-ink) 70%, transparent); }
+.s-fbar .s-fbar-search { display: flex; flex: 0 0 280px; align-items: center; gap: 10px; width: 280px; max-width: none; height: 44px; min-height: 44px; margin: 0; padding: 0 16px; border: 0; border-radius: 999px; background: color-mix(in srgb, var(--color-cream) 6%, transparent); box-shadow: none; }
+.s-fbar .s-fbar-search svg { width: 16px; height: 16px; color: var(--color-muted); }
+.s-fbar .s-fbar-search input { height: 44px; font-size: 16px; }
+@media (max-width: 899px) {
+    .s-fbar-in { flex-direction: column; align-items: stretch; gap: 10px; }
+    .s-fbar .s-fbar-chips { width: 100%; }
+    .s-fbar .s-fbar-search { flex-basis: auto; width: 100%; }
+}
+.s-fbar + * { margin-top: clamp(32px, 3.4vw, 48px); }
+.s-sh-hero, .s-th-hero { padding-bottom: clamp(40px, 4.4vw, 64px); }
+/* The A to Z's own chips: on a phone one row that scrolls with a fade, as every chip row (a long Spanish group,
+   "Himnos de Acción de Gracias", outgrew a 320 px screen in game). */
+@media (max-width: 899px) {
+    .s-sh-filters { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; padding-right: 40px; -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 40px), transparent); mask-image: linear-gradient(to right, #000 calc(100% - 40px), transparent); }
+    .s-sh-filters::-webkit-scrollbar { display: none; }
+    .s-sh-filters > * { flex: none; }
+}
+/* At 320 a long Spanish phrase can't stay on one line: it wraps there. */
+@media (max-width: 359.98px) { :is(.s-sh-grid-head, .s-sh-band) h2 em { white-space: normal; } }
+
 /* The closing band (x-site.close-band): one centred block under a warm stage light, then Explore Stackapella. */
 .s-close { --primary: var(--k-band-ink); --primary-ink: #17120f; margin-top: var(--k-sec); padding-block: clamp(72px, 8.4vw, 120px) clamp(64px, 6.6vw, 96px); background: radial-gradient(56% 70% at 50% 0%, var(--k-spot), transparent 72%), var(--k-band); color: var(--k-band-ink); border-top: 1px solid var(--k-band-line); }
 .s-close-in { display: grid; justify-items: center; text-align: center; }
@@ -10837,6 +10872,22 @@ a.s-vt-rung:hover { background: color-mix(in srgb, var(--color-cream) 5%, transp
 :root[data-skin='game'][data-gs] body.s-arcade .s-plans-foot .btn-ghost { padding-inline: 0; }
 /* Pricing's H1: its second line (.s-h-more) pink in the arcade, as the hubs' second lines are (the calm amber reached game). */
 :root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-pricehead h1 .s-h-more { color: var(--arc-pink); }
+/* The hubs' shared filter bar (the cohesion plan's step 3), game skin: the bar on the arcade screen with 2 px rules; square
+   chips framed on a 3 px drop (the row keeps 3 px under it so its scroll doesn't clip the drop), the count in the screen
+   font in the hub's neon (songs pink, courses yellow, tools cyan, as their tiles in the close), a pressed chip filled with
+   the neon, the search a framed well. */
+:root[data-skin='game'][data-gs] body.s-arcade .s-fbar { --neon: var(--arc-cyan); border-block: var(--arc-edge-w) solid var(--arc-line); background: color-mix(in srgb, var(--arc-bg) 92%, transparent); }
+:root[data-skin='game'][data-gs] body.s-arcade .s-fbar:has(.s-sh-chips) { --neon: var(--arc-pink); }
+:root[data-skin='game'][data-gs] body.s-arcade .s-fbar:has(.s-crs-chips) { --neon: var(--arc-yellow); }
+:root[data-skin='game'][data-gs] body.s-arcade .s-fbar .s-fbar-chips { padding-bottom: 3px; }
+:root[data-skin='game'][data-gs] body.s-arcade .s-fbar .s-fchip { border-radius: 0; border: var(--arc-edge-w) solid var(--arc-line); background: var(--arc-panel); color: var(--color-cream); box-shadow: 3px 3px 0 var(--arc-shadow-c); font-family: var(--arc-screen); font-size: 17px; font-weight: 400; letter-spacing: 0; text-transform: none; }
+:root[data-skin='game'][data-gs] body.s-arcade .s-fbar .s-fchip:hover { border-color: var(--color-cream); }
+:root[data-skin='game'][data-gs] body.s-arcade .s-fbar .s-fchip i { border-radius: 0; }
+:root[data-skin='game'][data-gs] body.s-arcade .s-fbar .s-fchip :is(span, .s-crs-n) { font-family: var(--arc-screen); font-size: 17px; font-weight: 400; color: color-mix(in srgb, var(--neon) 80%, var(--color-cream)); }
+:root[data-skin='game'][data-gs] body.s-arcade .s-fbar :is(.s-fchip[aria-pressed='true'], .s-fchip[aria-current='true'], .s-fchip.is-on) { border-color: var(--neon); background: var(--neon); color: var(--arc-bg); box-shadow: 3px 3px 0 var(--arc-shadow-c); }
+:root[data-skin='game'][data-gs] body.s-arcade .s-fbar :is(.s-fchip[aria-pressed='true'], .s-fchip[aria-current='true'], .s-fchip.is-on) :is(span, .s-crs-n) { color: color-mix(in srgb, var(--arc-bg) 75%, transparent); }
+:root[data-skin='game'][data-gs] body.s-arcade .s-fbar .s-fbar-search { border-radius: 0; border: var(--arc-edge-w) solid var(--arc-line); background: var(--arc-well); }
+:root[data-skin='game'][data-gs] body.s-arcade .s-fbar .s-fbar-search:focus-within { border-color: var(--color-cream); }
 /* arcade-screen:end */
 /* Game mode's circles are arcade coins (Hillel's pick of two, 2026-11-08; the course map's stages, .ge-map-node, above):
    every bubble that reaches game mode (serious mode's look, docs/bubble-circles-plan.md: the avatars, New song's +, the

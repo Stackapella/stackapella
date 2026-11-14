@@ -37,16 +37,6 @@
                 <x-site.hub-eyebrow :words="__('pages.site.hub.songs.eyebrow')" :game="__('pages.site.hub.songs.game_eyebrow')" :count="$count" />
                 <h1 id="page-h" class="s-hub-h1"><span>{{ __('pages.songs.headline') }}</span> <em class="s-hl-em">{{ __('pages.songs.headline_em') }}</em></h1>
                 <p class="s-lede">{{ __('pages.songs.lead') }}</p>
-                {{-- Search: the A to Z narrows as you type (js/public/songbook.js); without the script, ?q= does it on the server. --}}
-                <form class="s-sh-search" action="/songs#every-song" method="get" role="search" data-songbook-search>
-                    <x-site.icon name="search" size="18" />
-                    <input type="search" name="q" value="{{ $q }}" placeholder="{{ __('pages.songs.search', ['count' => $count]) }}" data-short="{{ __('pages.songs.search_short', ['count' => $count]) }}" aria-label="{{ __('pages.songs.search_label') }}" autocomplete="off">
-                </form>
-                <ul class="s-sh-chips" aria-label="{{ __('pages.songs.jump') }}">
-                    @foreach ($bands as $band)
-                        <li><a href="{{ $band['path'] }}" class="s-sh-chip2 s-tone-{{ $band['key'] }}"><i aria-hidden="true"></i>{{ __($w($band['key']).'.crumb') }}<span>{{ $band['count'] }}</span></a></li>
-                    @endforeach
-                </ul>
                 @if ($rounds !== null)
                     <p class="s-sh-start"><a href="{{ $rounds }}" class="s-lk">{{ __('pages.songs.start_round') }}&#8288;<x-site.icon name="arrow" size="16" /></a></p>
                 @endif
@@ -54,10 +44,27 @@
             {{-- A song to try: its first line in four parts, each switched on or off as it plays (x-site.mixer). --}}
             @if ($try !== null)
                 <div class="s-sh-try">
-                    <x-site.mixer :song="$try" id="try-mixer"><span class="s-sh-try-k">{{ __('pages.songs.try') }}</span><x-slot:foot>{{ __('pages.songs.try_note') }}</x-slot:foot></x-site.mixer>
+                    <x-site.mixer :song="$try" id="try-mixer" :picked="false"><span class="s-sh-try-k">{{ __('pages.songs.try') }}</span><x-slot:foot>{{ __('pages.songs.try_note') }}</x-slot:foot></x-site.mixer>
                 </div>
             @endif
         </section>
+        {{-- The filter bar (the five pages' kit, piece 3): All and each collection with its count (each a link to its page),
+             then the search; one scrolling row on a phone. --}}
+        <div class="s-fbar">
+            <div class="s-wrap s-fbar-in">
+                <ul class="s-sh-chips s-fbar-chips" aria-label="{{ __('pages.songs.jump') }}">
+                    <li><a href="#every-song" class="s-sh-chip2 s-fchip is-on" aria-current="true">{{ __('pages.site.courses_all') }}<span>{{ $count }}</span></a></li>
+                    @foreach ($bands as $band)
+                        <li><a href="{{ $band['path'] }}" class="s-sh-chip2 s-fchip s-tone-{{ $band['key'] }}"><i aria-hidden="true"></i>{{ __($w($band['key']).'.crumb') }}<span>{{ $band['count'] }}</span></a></li>
+                    @endforeach
+                </ul>
+                {{-- Search: the A to Z narrows as you type (js/public/songbook.js); without the script, ?q= does it on the server. --}}
+                <form class="s-sh-search s-fbar-search" action="/songs#every-song" method="get" role="search" data-songbook-search>
+                    <x-site.icon name="search" size="18" />
+                    <input type="search" name="q" value="{{ $q }}" placeholder="{{ __('pages.songs.search', ['count' => $count]) }}" data-short="{{ __('pages.songs.search_short', ['count' => $count]) }}" aria-label="{{ __('pages.songs.search_label') }}" autocomplete="off">
+                </form>
+            </div>
+        </div>
 
         {{-- Coming up (Hillel, 2026-11-12: "have the main songs page automatically highlight which section is coming up
              next"): the festival on now or nearest, as its own card in its collection's tone, and a second as a smaller

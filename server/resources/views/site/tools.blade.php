@@ -21,17 +21,22 @@
             <x-site.hub-eyebrow :words="__('pages.site.hub.tools.eyebrow')" :count="count($tools)" />
             <h1 id="page-h" class="s-hub-h1"><span>{{ __('pages.site.hub.tools.headline') }}</span> <em class="s-hl-em">{{ __('pages.site.hub.tools.headline_em') }}</em></h1>
             <p class="s-lede">{{ $words['lead'] }}</p>
-            <label class="s-sh-search s-th-search">
-                <x-site.icon name="search" size="18" />
-                <input type="search" placeholder="{{ $words['search'] }}" aria-label="{{ $words['search_label'] }}" autocomplete="off" data-tools-search>
-            </label>
-            <nav class="s-th-chips" aria-label="{{ $words['chips_label'] }}">
-                <a href="#tools-all" class="s-sh-filter is-on" aria-current="true" data-tools-filter="">{{ $words['all'] }}<span>{{ count($tools) }}</span></a>
-                @foreach ($groups as $group)
-                    <a href="#tools-{{ $group['key'] }}" class="s-sh-filter s-v{{ $group['colour'] }}" data-tools-filter="{{ $group['key'] }}"><i aria-hidden="true"></i>{{ $words['groups'][$group['key']] }}<span>{{ count($group['tools']) }}</span></a>
-                @endforeach
-            </nav>
         </section>
+        {{-- The filter bar (the five pages' kit, piece 3): the chips with their counts, then the search; one scrolling row on a phone. --}}
+        <div class="s-fbar">
+            <div class="s-wrap s-fbar-in">
+                <nav class="s-th-chips s-fbar-chips" aria-label="{{ $words['chips_label'] }}">
+                    <a href="#tools-all" class="s-sh-filter s-fchip is-on" aria-current="true" data-tools-filter="">{{ $words['all'] }}<span>{{ count($tools) }}</span></a>
+                    @foreach ($groups as $group)
+                        <a href="#tools-{{ $group['key'] }}" class="s-sh-filter s-fchip s-v{{ $group['colour'] }}" data-tools-filter="{{ $group['key'] }}"><i aria-hidden="true"></i>{{ $words['groups'][$group['key']] }}<span>{{ count($group['tools']) }}</span></a>
+                    @endforeach
+                </nav>
+                <label class="s-sh-search s-th-search s-fbar-search">
+                    <x-site.icon name="search" size="18" />
+                    <input type="search" placeholder="{{ $words['search'] }}" aria-label="{{ $words['search_label'] }}" autocomplete="off" data-tools-search>
+                </label>
+            </div>
+        </div>
 
         @if ($most !== [])
             <section class="s-wrap s-th-most-wrap" aria-labelledby="most-h" data-tools-most>

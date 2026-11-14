@@ -33,15 +33,15 @@
         </section>
 
         {{-- The filters: one chip pressed at a time, and a search; both narrow the cards below, nothing reloads. --}}
-        <div class="s-crs-bar" data-courses-filter>
-            <div class="s-wrap s-crs-bar-in">
-                <div class="s-crs-chips" role="group" aria-label="{{ __('site.courses.index.filter_label') }}">
-                    <button type="button" class="s-crs-chip" data-filter="all" aria-pressed="true">{{ __('pages.site.courses_all') }} <span class="s-crs-n">{{ $total }}</span></button>
+        <div class="s-crs-bar s-fbar" data-courses-filter>
+            <div class="s-wrap s-crs-bar-in s-fbar-in">
+                <div class="s-crs-chips s-fbar-chips" role="group" aria-label="{{ __('site.courses.index.filter_label') }}">
+                    <button type="button" class="s-crs-chip s-fchip" data-filter="all" aria-pressed="true">{{ __('pages.site.courses_all') }} <span class="s-crs-n">{{ $total }}</span></button>
                     @foreach ($groups as $key => $group)
-                        <button type="button" class="s-crs-chip s-cg-{{ $key }}" data-filter="{{ $key }}" aria-pressed="false"><i aria-hidden="true"></i>{{ $group['name'] }} <span class="s-crs-n">{{ count($group['cards']) }}</span></button>
+                        <button type="button" class="s-crs-chip s-fchip s-cg-{{ $key }}" data-filter="{{ $key }}" aria-pressed="false"><i aria-hidden="true"></i>{{ $group['name'] }} <span class="s-crs-n">{{ count($group['cards']) }}</span></button>
                     @endforeach
                 </div>
-                <label class="s-crs-search">
+                <label class="s-crs-search s-fbar-search">
                     <span class="sr-only">{{ __('site.courses.index.search_label') }}</span>
                     <x-site.icon name="search" size="16" />
                     <input type="search" data-courses-search placeholder="{{ __('site.courses.index.search_placeholder') }}" autocomplete="off" enterkeyhint="search">
