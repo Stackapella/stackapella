@@ -21,7 +21,8 @@ final class ToolPagesTest extends TestCase
     public function test_the_hub_lists_and_links_every_built_tool(): void
     {
         $this->assertNotSame([], SitePages::TOOLS);
-        $hub = $this->get('/tools')->assertOk()->assertSee(__('site.tools.index.headline'));
+        // The hub's headline is the five pages' two-line one, its key phrase in colour (docs/marketing-pages-cohesion-plan.md).
+        $hub = $this->get('/tools')->assertOk()->assertSee(__('pages.site.hub.tools.headline'))->assertSee(__('pages.site.hub.tools.headline_em'));
 
         foreach (SitePages::TOOLS as $slug) {
             $hub->assertSee('href="/tools/'.$slug.'"', false)->assertSee(__('site.tools.pages.'.$slug.'.name'));

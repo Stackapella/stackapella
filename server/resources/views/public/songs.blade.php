@@ -34,8 +34,8 @@
         {{ \App\Support\Site\Icons::sprite(['play', 'stop']) }}
         <section class="s-wrap s-sh-hero" aria-labelledby="page-h">
             <div>
-                <p class="s-eyebrow"><x-site.skin :game="__('pages.landing.game.songs_kick')" :serious="__('pages.songs.eyebrow_count', ['count' => $count])" /></p>
-                <h1 id="page-h">{{ __('pages.songs.headline') }} <em class="s-xserif">{{ __('pages.songs.headline_em') }}</em></h1>
+                <x-site.hub-eyebrow :words="__('pages.site.hub.songs.eyebrow')" :game="__('pages.site.hub.songs.game_eyebrow')" :count="$count" />
+                <h1 id="page-h" class="s-hub-h1"><span>{{ __('pages.songs.headline') }}</span> <em class="s-hl-em">{{ __('pages.songs.headline_em') }}</em></h1>
                 <p class="s-lede">{{ __('pages.songs.lead') }}</p>
                 {{-- Search: the A to Z narrows as you type (js/public/songbook.js); without the script, ?q= does it on the server. --}}
                 <form class="s-sh-search" action="/songs#every-song" method="get" role="search" data-songbook-search>

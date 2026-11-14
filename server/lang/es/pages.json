@@ -1518,5 +1518,15 @@
     ":count songs to learn, part by part": ":count canciones para aprender, voz por voz",
     ":count courses, every one free": ":count cursos, todos gratis",
     ":count free tools, no account": ":count herramientas gratis, sin cuenta",
-    "Free to learn, Plus for your work": "Aprender es gratis; Plus, para tus creaciones"
+    "Free to learn, Plus for your work": "Aprender es gratis; Plus, para tus creaciones",
+    "Songbook · :count songs": "Cancionero · :count canciones",
+    "Song select · :count songs": "Elige canción · :count canciones",
+    "Courses · :count, all free": "Cursos · :count, todos gratis",
+    "Free singing": "Cursos de canto",
+    "courses": "gratis",
+    "Course": "Selección",
+    "select": "de cursos",
+    "Tools · :count, all free": "Herramientas · :count, todas gratis",
+    "Free tools for": "Herramientas gratis para",
+    "singers and musicians": "cantantes y músicos"
 }

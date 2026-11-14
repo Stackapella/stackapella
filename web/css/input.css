@@ -3695,6 +3695,32 @@ a.s-vt-rung:hover { background: color-mix(in srgb, var(--color-cream) 5%, transp
 }
 .s-hl-em { font-style: normal; color: var(--s-hl-em); }
 
+/* A hub's hero (the design direction's "Hub hero"): the eyebrow with the four voice dots and the count, and one H1 size on
+   every hub, two lines, the key phrase in colour, balanced. */
+:is(.s-sh-hero, .s-crs-head, .s-th-hero) h1.s-hub-h1 { margin-top: 18px; font-size: var(--k-h1); line-height: .98; letter-spacing: -0.042em; font-weight: 800; text-wrap: balance; }
+.s-hub-h1 > span, .s-hub-h1 > em { display: block; }
+.s-hub-h1 > em { white-space: normal; }
+:is(.s-sh-hero, .s-crs-head, .s-th-hero) .s-lede { margin-top: 20px; max-width: 40ch; font-size: var(--k-lede); line-height: 1.6; }
+.s-hub-eyebrow { display: flex; align-items: center; gap: 10px; font-size: var(--k-eyebrow); font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--color-muted); white-space: nowrap; }
+.s-hub-eyebrow .s-n { color: var(--color-cream); font-weight: 800; font-variant-numeric: tabular-nums; }
+.s-hub-dots { display: inline-flex; gap: 3px; }
+.s-hub-dots b { display: block; width: 7px; height: 7px; border-radius: 9px; background: var(--c); }
+.s-hub-dots .s-v1 { --c: var(--color-part-1); }
+.s-hub-dots .s-v2 { --c: var(--color-part-2); }
+.s-hub-dots .s-v3 { --c: var(--color-part-3); }
+.s-hub-dots .s-v4 { --c: var(--color-part-4); }
+@media (max-width: 359.98px) { .s-hub-eyebrow { white-space: normal; } }
+/* /songs: a player wants width, so its split is 45/55 and its part rows go one line each (disc, name, the notes, the
+   pick); the player shrinks to about 480 px and the collections start a screen higher. The song pages keep theirs. */
+@media (min-width: 900px) {
+    .s-sh-hero { grid-template-columns: minmax(0, 45fr) minmax(0, 55fr); gap: var(--k-hero-gap); padding-top: var(--k-hero-top); }
+    .s-sh-try .s-mixer:not(.s-mixer-studio) .s-ch { grid-template-columns: 44px 128px minmax(0, 1fr) auto; grid-template-areas: "disc name wave state"; column-gap: 14px; min-height: 72px; padding-block: 10px; }
+    .s-sh-try .s-ch .s-disc { width: 44px; height: 44px; }
+    .s-sh-try .s-channels { gap: 8px; }
+}
+.s-sh-try .s-mixer { border-radius: var(--k-r-feature); box-shadow: var(--k-sh-feature), var(--k-hi); border: 1px solid var(--k-line); }
+.s-crs-start { border-radius: var(--k-r-feature); box-shadow: var(--k-sh-feature), var(--k-hi); }
+
 /* The closing band (x-site.close-band): one centred block under a warm stage light, then Explore Stackapella. */
 .s-close { --primary: var(--k-band-ink); --primary-ink: #17120f; margin-top: var(--k-sec); padding-block: clamp(72px, 8.4vw, 120px) clamp(64px, 6.6vw, 96px); background: radial-gradient(56% 70% at 50% 0%, var(--k-spot), transparent 72%), var(--k-band); color: var(--k-band-ink); border-top: 1px solid var(--k-band-line); }
 .s-close-in { display: grid; justify-items: center; text-align: center; }
@@ -8458,7 +8484,7 @@ a.s-vt-rung:hover { background: color-mix(in srgb, var(--color-cream) 5%, transp
    its line on the left and the buttons on the right under it from 900px; the player's next step in its foot, the four facts
    under it; the courses as ruled rows, the tools one line of chips; the close left-aligned, its button beside its line. */
 .s-lv2 .s-hero-home h1 > span { display: block; }
-:root:not([data-skin="game"]) .s-lv2 .s-hero-em { color: var(--color-accent); }
+:root:not([data-skin="game"]) .s-lv2 .s-hero-em { color: var(--s-hl-em); } /* warm, never pink in calm (Hillel, 2026-11-14) */
 .s-next4 { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 20px; }
 .s-next4 p { font-size: 17px; font-weight: 750; letter-spacing: -0.01em; color: var(--color-cream); }
 .s-lv2 .s-hero-home .s-factrow { margin-top: 22px; }
@@ -10790,6 +10816,13 @@ a.s-vt-rung:hover { background: color-mix(in srgb, var(--color-cream) 5%, transp
 :root[data-skin='game'][data-gs] body.s-arcade .s-explore-ic { display: none; }
 :root[data-skin='game'][data-gs] body.s-arcade .s-explore-hud { display: block; grid-area: hud; font-family: var(--a-hud); font-size: 22px; line-height: 1; color: color-mix(in srgb, var(--neon) 80%, var(--color-cream)); text-shadow: 2px 2px 0 var(--arc-shadow-c); }
 :root[data-skin='game'][data-gs] body.s-arcade .s-explore-name { font-family: var(--a-hud); font-size: 13px; font-weight: 400; letter-spacing: .06em; text-transform: uppercase; }
+/* The hubs' shared hero (the cohesion plan's step 2), game skin: one headline size for /songs, /courses and /tools
+   (the direction's --k-g-h1), the pixel face's own spacing rather than the calm face's tight tracking, the second line
+   in the arcade pink, and the eyebrow's four voice dots as square pixels. */
+:root[data-skin='game'][data-gs] body.s-arcade { --k-g-h1: clamp(30px, 3.5vw, 50px); }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) :is(.s-sh-hero, .s-crs-head, .s-th-hero) h1.s-hub-h1 { font-size: var(--k-g-h1); line-height: 1.12; letter-spacing: .01em; }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-hub-h1 > em.s-hl-em { color: var(--arc-pink); }
+:root[data-skin='game'][data-gs] body.s-arcade .s-hub-dots b { border-radius: 0; }
 /* arcade-screen:end */
 /* Game mode's circles are arcade coins (Hillel's pick of two, 2026-11-08; the course map's stages, .ge-map-node, above):
    every bubble that reaches game mode (serious mode's look, docs/bubble-circles-plan.md: the avatars, New song's +, the

@@ -18,8 +18,8 @@
     @include('site.tools._brand-row')
     <main>
         <section class="s-wrap s-thead s-thead-hub s-th-hero" aria-labelledby="page-h">
-            <p class="s-eyebrow"><span class="s-dots" aria-hidden="true">@foreach ([1, 2, 3, 4] as $n)<b class="s-v{{ $n }}"></b>@endforeach</span>{{ str_replace(':count', (string) count($tools), $words['eyebrow_count']) }}</p>
-            <h1 id="page-h">{{ $words['headline'] }}</h1>
+            <x-site.hub-eyebrow :words="__('pages.site.hub.tools.eyebrow')" :count="count($tools)" />
+            <h1 id="page-h" class="s-hub-h1"><span>{{ __('pages.site.hub.tools.headline') }}</span> <em class="s-hl-em">{{ __('pages.site.hub.tools.headline_em') }}</em></h1>
             <p class="s-lede">{{ $words['lead'] }}</p>
             <label class="s-sh-search s-th-search">
                 <x-site.icon name="search" size="18" />

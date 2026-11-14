@@ -373,6 +373,13 @@ return [
             'tools' => ['title' => 'Tuned up?', 'em' => 'Now sing a part.', 'line' => 'Lesson 1 is free in your browser, with no account and nothing to install.'],
             'pricing' => ['title' => 'Your first voice is the hardest.', 'em' => 'Let\'s find it together.', 'line' => 'Free, in your browser. No account needed to start.'],
         ],
+        // The four hubs' hero (the design direction's "Hub hero"): the eyebrow with the page and its count, and the H1 on two
+        // lines, its key phrase in colour (warm in calm, pink in game). Game words only where game says it its own way.
+        'hub' => [
+            'songs' => ['eyebrow' => 'Songbook · :count songs', 'game_eyebrow' => 'Song select · :count songs'],
+            'courses' => ['eyebrow' => 'Courses · :count, all free', 'headline' => 'Free singing', 'headline_em' => 'courses', 'game_headline' => 'Course', 'game_headline_em' => 'select'],
+            'tools' => ['eyebrow' => 'Tools · :count, all free', 'headline' => 'Free tools for', 'headline_em' => 'singers and musicians'],
+        ],
         'explore' => [
             'title' => 'Explore Stackapella',
             'game' => 'Continue?',
