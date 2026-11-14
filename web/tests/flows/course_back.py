@@ -48,8 +48,10 @@ def journey(f):
     f.wait(COURSE, what="Home's courses")
     f.run(f"{COURSE}.click()")
     at(f, course, "the course")
-    f.wait("document.querySelector('[data-picked-lesson] button, [data-course-map] button.btn-primary')", what="a lesson to start")
-    f.run("document.querySelector('[data-picked-lesson] button, [data-course-map] button.btn-primary').click()")
+    # Up next's Start, or the picked lesson's (its card has none when it's the one Up next starts, 2a93348df).
+    start = "document.querySelector('[data-up-next] .btn-primary, [data-picked-lesson] button, [data-course-map] button.btn-primary')"
+    f.wait(start, what="a lesson to start")
+    f.run(f"{start}.click()")
     f.wait("location.pathname.startsWith('/learn/') && !location.pathname.startsWith('/learn/c/')", what="the lesson")
     f.wait("document.querySelector('header button[aria-label]')", what="the lesson's Back")
     f.run("document.querySelector('header button[aria-label]').click()")

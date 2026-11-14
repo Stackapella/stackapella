@@ -58,7 +58,7 @@ function visibilityObserver() {
 function chirp(on) {
     try {
         audio ??= new (window.AudioContext || window.webkitAudioContext)();
-        if (audio.state === 'suspended') audio.resume();
+        if (audio.state !== 'running' && audio.state !== 'closed') audio.resume().catch((error) => console.debug('The press sound did not resume', error)); // 'interrupted' on iOS too
         const t = audio.currentTime + 0.01;
         const gain = audio.createGain();
         const osc = audio.createOscillator();

@@ -40,7 +40,11 @@ final class AppPrefetchTest extends TestCase
         $this->assertNotContains('/course/course.json', $song, "a song's page doesn't need the courses");
         $this->assertGreaterThan(30, count($landing));
         $this->assertSame($landing, array_values(array_unique($landing)));
-        foreach ([...$landing, ...$song] as $url) {
+        // Vue from its CDN first, exactly as preload.js asks for it (so its version never drifts); then the app's own paths.
+        preg_match("#preload\\('(https://cdn\\.jsdelivr\\.net/npm/vue@[^']+)'#", $source, $vue);
+        $this->assertSame($vue[1], $landing[0]);
+        $this->assertSame($vue[1], $song[0]);
+        foreach ([...array_slice($landing, 1), ...array_slice($song, 1)] as $url) {
             $this->assertMatchesRegularExpression('#^/[\w./-]+$#', $url);
         }
     }
@@ -50,9 +54,10 @@ final class AppPrefetchTest extends TestCase
         // As production: the site's page prefetches from the app's host, whose files answer any origin (the next test).
         config(['app.url' => 'https://app.stackapella.test', 'hosts.public_url' => 'https://stackapella.test']);
         $this->assertContains('https://app.stackapella.test/js/main.js', AppPrefetch::landing());
-        foreach ([...AppPrefetch::landing(), ...AppPrefetch::song()] as $url) {
+        foreach ([...array_slice(AppPrefetch::landing(), 1), ...array_slice(AppPrefetch::song(), 1)] as $url) {
             $this->assertStringStartsWith('https://app.stackapella.test/', $url);
         }
+        $this->assertStringStartsWith('https://cdn.jsdelivr.net/npm/vue@', AppPrefetch::landing()[0], 'the CDN keeps its own address');
         $page = (string) $this->get('https://stackapella.test/')->assertOk()->getContent();
         $this->assertStringContainsString('data-app-prefetch', $page);
         $this->assertStringContainsString('app-prefetch.js', $page);

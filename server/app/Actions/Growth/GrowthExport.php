@@ -30,7 +30,7 @@ use Illuminate\Support\Facades\DB;
 final class GrowthExport
 {
     /** Bump when a field's shape or meaning changes, and say so in docs/growth-data.md. */
-    public const SCHEMA_VERSION = 17;
+    public const SCHEMA_VERSION = 18;
 
     /** The range-scoped sections' windows, in days (null: since the first count). */
     public const RANGES = ['7' => 7, '30' => 30, '90' => 90, 'all' => null];

@@ -118,7 +118,9 @@ if ($file !== false && is_dir($file) && is_file($file.'/index.html')) {
     $file .= '/index.html';
 }
 $inside = $file !== false && str_starts_with($file, $base.DIRECTORY_SEPARATOR) && is_file($file)
-    && ! str_starts_with($file, $root.'/tool') && ! str_starts_with($file, $root.'/bin');
+    // The folders tool/ and bin/, not every name that starts so (/tools-sw.js, the tools' own worker, was answered with
+    // the app's page here: the Safari audit, 2026-11-14).
+    && ! str_starts_with($file, $root.'/tool/') && ! str_starts_with($file, $root.'/bin/');
 if (! $inside) {
     // A file production's nginx would look for and not find (a served folder, a name with an extension): a 404, as
     // there, never the app's page with a 200 (a mock once took that page for a song file: course_song, 2026-11-02).

@@ -34,7 +34,7 @@ LESSONS = {
     "imp-4-hints": "Fewer lights",
     "imp-4-free": "No lights at all",
     "imp-4-high": "The tenor, a part above the lead, is part of blu",
-    "imp-4-challenge": "Red River Valley, a tune new to this course",
+    "imp-4-challenge": "Shenandoah, a tune new to this course",
 }
 
 
@@ -100,7 +100,7 @@ def journey(f):
     f.click_t("course.continue")
     f.wait_text("First sing the tune itself")
     f.click_t("course.skip")
-    f.wait_text("Now hold the harmony on the long notes")
+    f.wait_text("Now hold the part above on its two long notes")
     f.click_t("course.skip")
     f.wait_text("Now the part above")
     f.js(f"{AUDIO}.unlock()")

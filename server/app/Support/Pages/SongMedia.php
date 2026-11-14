@@ -18,10 +18,14 @@ use Illuminate\Support\Str;
  */
 final class SongMedia
 {
-    /** The only licences a picture may have, each with its readable name and its page (null where there's none). */
+    /**
+     * The only licences a picture may have, each with its readable name and its page. A public-domain picture points to
+     * Creative Commons' Public Domain Mark, the page that says what "no known copyright" means, so its ImageObject has a
+     * `license` and search can show it as licensable (the coordinator, 2026-11-13).
+     */
     public const LICENCES = [
-        'PD-old' => ['name' => 'Public domain', 'url' => null],
-        'PD-US-gov' => ['name' => 'Public domain (US government work)', 'url' => null],
+        'PD-old' => ['name' => 'Public domain', 'url' => 'https://creativecommons.org/publicdomain/mark/1.0/'],
+        'PD-US-gov' => ['name' => 'Public domain (US government work)', 'url' => 'https://creativecommons.org/publicdomain/mark/1.0/'],
         'CC0' => ['name' => 'CC0', 'url' => 'https://creativecommons.org/publicdomain/zero/1.0/'],
         'LoC-no-known-restrictions' => ['name' => 'No known restrictions (Library of Congress)', 'url' => 'https://www.loc.gov/legal/understanding-copyright/'],
         'CC-BY-4.0' => ['name' => 'CC BY 4.0', 'url' => 'https://creativecommons.org/licenses/by/4.0/'],

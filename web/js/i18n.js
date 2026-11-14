@@ -37,6 +37,10 @@ export const locale = reactive({ lang: 'en', dir: 'ltr', messages: {}, english: 
 // A first visit's first words, by where it opens (tool/preload_list.py writes both, js/preload.js asks for the one it
 // needs with Vue): lesson 1's own (a lesson, the cool-down), or Home's (the app at "/", 2026-11-12, main.js's split).
 const FIRST_WORDS = { lesson: '/locales/lesson1/en.json', home: '/locales/home1/en.json' };
+// The same bundles in a translated language (tool/preload_list.py writes them from <lang>.json and <lang>.source.json),
+// so a first visit in Spanish starts as small as one in English, not with all of es.json (the first-session walk,
+// 2026-11-14: a Spanish first visit drew 1 to 2 s after an English one on a slow phone).
+const firstWordsIn = (bundle, lang, source = false) => FIRST_WORDS[bundle].replace('/en.json', `/${lang}${source ? '.source' : ''}.json`);
 /** The first words a first visit opening `path` starts with ('lesson', 'home'), or null: all of en.json at once. */
 export function firstWordsFor(path) {
     if (path === '/') return 'home';
@@ -44,6 +48,7 @@ export function firstWordsFor(path) {
     return null;
 }
 let partial = false;
+let partialLang = null; // the translated language whose first words alone are in, while partial
 const bundles = new Set(); // the first-word bundles in so far, while partial
 let allLoading = null;
 export const words = { missed: [] };
@@ -139,12 +144,14 @@ function lookup(messages, key) {
 export async function loadLanguage(wanted = preferredLanguages(), { first = null } = {}) {
     // first: a first visit's start (main.js), with the opening screen's own words ('lesson' or 'home'); the rest, later.
     partial = !!FIRST_WORDS[first];
+    partialLang = null;
     bundles.clear();
     locale.english = partial
         ? await getJson(FIRST_WORDS[first]).then((words) => (bundles.add(first), words)).catch(() => ((partial = false), fetchMessages('en')))
         : await fetchMessages('en');
     let chosen = 'en';
     let messages = locale.english;
+    let source = null; // a first bundle's own (partialLang)
     for (const lang of wanted) {
         if (lang === 'pseudo' || lang === 'en' || lang.startsWith('en-')) {
             break; // English (any region) needs no other file
@@ -152,21 +159,37 @@ export async function loadLanguage(wanted = preferredLanguages(), { first = null
         // Only base languages ship (es.json, never es-ES.json), and preferredLanguages() lists each region's base after
         // it: asking for the region first was a 404 awaited before every start in a Spanish browser.
         if (lang.includes('-')) continue;
-        const found = await fetchMessages(lang).catch(() => null);
+        // A first visit in a translated language: that screen's own words in it, the rest later (allWords), as English.
+        const start = partial && SOURCED.has(lang) ? await firstIn(first, lang) : null;
+        const found = start?.messages ?? (await fetchMessages(lang).catch(() => null));
         if (found) {
             chosen = lang;
             messages = found;
+            if (start) {
+                partialLang = lang;
+                source = start.source;
+            }
             break;
         }
     }
     // What each key was translated from (none for English, or when the file isn't there: then nothing counts as stale).
-    locale.source = SOURCED.has(chosen.split('-')[0]) ? await getJson(`/locales/${encodeURIComponent(chosen)}.source.json`).catch(() => null) : null;
+    locale.source = partialLang ? source : SOURCED.has(chosen.split('-')[0]) ? await getJson(`/locales/${encodeURIComponent(chosen)}.source.json`).catch(() => null) : null;
     locale.pseudo = wanted[0] === 'pseudo';
     locale.lang = chosen;
     locale.dir = RTL.has(chosen.split('-')[0]) ? 'rtl' : 'ltr';
     locale.messages = messages;
     document.documentElement.lang = chosen;
     document.documentElement.dir = locale.dir;
+}
+
+/** A first-words bundle in a translated language, with what it was translated from; null when it isn't there. */
+async function firstIn(bundle, lang) {
+    try {
+        const [messages, source] = await Promise.all([getJson(firstWordsIn(bundle, lang)), getJson(firstWordsIn(bundle, lang, true))]);
+        return { messages, source };
+    } catch {
+        return null; // all of <lang>.json instead
+    }
 }
 
 /**
@@ -178,11 +201,15 @@ export function wordsFor(bundle = null) {
     return () => {
         if (!partial || bundles.has(bundle)) return Promise.resolve();
         if (!FIRST_WORDS[bundle]) return allWords();
-        return getJson(FIRST_WORDS[bundle])
-            .then((more) => {
+        return Promise.all([getJson(FIRST_WORDS[bundle]), partialLang ? firstIn(bundle, partialLang) : null])
+            .then(([more, translated]) => {
                 if (!partial) return; // everything came meanwhile
+                if (partialLang && !translated) return allWords();
                 const english = deepMerge(locale.english, more);
-                if (locale.messages === locale.english) locale.messages = english;
+                if (translated) {
+                    locale.messages = deepMerge(locale.messages, translated.messages);
+                    locale.source = deepMerge(locale.source ?? {}, translated.source);
+                } else if (locale.messages === locale.english) locale.messages = english;
                 locale.english = english;
                 bundles.add(bundle);
             })
@@ -202,9 +229,18 @@ function deepMerge(a, b) {
 /** All of en.json, after a first visit started with a screen's own words (resolves at once otherwise, and on failure). */
 export function allWords() {
     if (!partial) return Promise.resolve();
-    allLoading ??= fetchMessages('en')
-        .then((english) => {
-            if (locale.messages === locale.english) locale.messages = english;
+    const lang = partialLang;
+    allLoading ??= Promise.all([
+        fetchMessages('en'),
+        lang ? fetchMessages(lang) : null,
+        lang ? getJson(`/locales/${encodeURIComponent(lang)}.source.json`).catch(() => null) : null,
+    ])
+        .then(([english, translated, source]) => {
+            if (lang && partialLang === lang && translated) {
+                locale.messages = translated;
+                locale.source = source;
+                partialLang = null;
+            } else if (!lang && locale.messages === locale.english) locale.messages = english;
             locale.english = english;
             partial = false;
         })

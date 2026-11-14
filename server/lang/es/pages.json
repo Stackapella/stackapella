@@ -513,7 +513,7 @@
     "The first verse": "La primera estrofa",
     "Credits": "Créditos",
     "Learn this song": "Aprende esta canción",
-    "Opens in the app, in your browser.": "Se abre en la app, en tu navegador.",
+    "Opens in your browser, nothing to install.": "Se abre en tu navegador, sin instalar nada.",
     "For beginners": "Para principiantes",
     "A step up": "Un paso más",
     "Each part's lowest and highest note. Pick the one that sits where you sing comfortably.": "La nota más grave y la más aguda de cada voz. Elige la que encaja con tu tesitura.",
@@ -1499,5 +1499,7 @@
     "Key of :key": "En :key",
     "About :bpm beats a minute": "Unos :bpm pulsos por minuto",
     "changes key": "cambia de tonalidad",
-    "changes time": "cambia de compás"
+    "changes time": "cambia de compás",
+    "Copyright": "Derechos de autor",
+    "Our other policies": "Nuestras otras políticas"
 }

@@ -35,7 +35,7 @@ const SEASON_CUTS = {
     // part.") as the voices fade out on it (`fade`: from beat 39 to 40.5, after the word is sung; the chimes stay)
     maozr: { song: 'maoz-tzur', bpm: 90, verse: 40, hold: 5.5, enter: [0, 7.5, 16, 23.5], all: 28, end: 38, fade: [39, 40.5], lanes: 6, key: 4,
         phrases: [[0, 7.5], [7.5, 16], [16, 23.5], [23.5, 31.5], [31.5, 40]],
-        heard: ['The soprano has the tune', 'The alto joins', 'The tenor joins', 'The bass joins: four parts'] },
+        heard: ['The soprano has the tune', 'The alto joins', 'The tenor joins', 'The bass joins: four parts', 'Four parts together'] },
     // the same Reddit cut on Silent Night (the carols cut, 16:9): its first two lines, "all is bright," (beat 21) the
     // chord that becomes the card as the voices fade
     carolsr: { song: 'silent-night', bpm: 66, verse: 24, hold: 4, enter: [0, 6, 12, 18], all: 20, end: 21, fade: [22.5, 24], lanes: 4.5, phrases: [[0, 6], [6, 12], [12, 18], [18, 24]], key: 0,
@@ -45,6 +45,22 @@ const SEASON_CUTS = {
     gracer: { song: 'amazing-grace', path: '/web/templates/amazing-grace.json', real: true, bpm: 80, verse: 36, hold: 4.5, enter: [0, 6, 12, 18], all: 24, end: 34, fade: [35, 36.5], lanes: 6,
         phrases: [[0, 12], [12, 24], [24, 36]], key: 7,
         heard: ['A real singer sings the tune', 'The alto joins', 'The tenor joins', 'The bass joins, on "oo": four voices'] },
+    // and on Now Thank We All Our God for the Thanksgiving hymns page (the app's guide voices): a part joining at
+    // "With", "and voi-ces" and "Who", to "In whom his world re-joi-ces;" (beat 35, 25.0 s) as the card
+    // and Oy Chanukah for Hanukkah (from 2026-12-04), opening on the same hanukkiah: its first verse, a part joining
+    // at "A-le nakht", "zu-dik" and "ge-shvin-der" (the bass on "dm"), to "in kon." (beat 30.5, 22.9 s), all four on it,
+    // as the card; the card holds to 30 s
+    oyr: { song: 'oy-chanukah', bpm: 80, verse: 32, hold: 8, enter: [0, 8.5, 12.5, 16], all: 16.5, end: 30.5, fade: [32, 33.5], lanes: 6, key: 5,
+        phrases: [[0, 12.5], [12.5, 24.5], [24.5, 32]],
+        heard: ['The soprano has the tune', 'The alto joins', 'The tenor joins', 'The bass joins, on "dm": four parts'] },
+    // Hark! The Herald Angels Sing for r/acappella (the carols cut's page and look, square or vertical): a part joining
+    // each line, to "Joy-ful, all ye na-tions, rise," (beat 38, 24.8 s), all four on it, as the card; to 30 s
+    harkr: { song: 'hark-the-herald', bpm: 92, verse: 40, hold: 6, enter: [0, 8, 16, 24], all: 24, end: 38, fade: [39, 40.5], lanes: 6, key: 7,
+        phrases: [[0, 8], [8, 16], [16, 24], [24, 32], [32, 40]],
+        heard: ['The soprano has the tune', 'The alto joins', 'The tenor joins', 'The bass joins: four parts', 'Four parts together'] },
+    thanksr: { song: 'now-thank-we-all-our-god', bpm: 84, verse: 40, hold: 2.5, enter: [0, 8, 12, 20], all: 20, end: 35, fade: [36.5, 38], lanes: 6,
+        phrases: [[0, 8], [8, 20], [20, 28], [28, 40]], key: 5,
+        heard: ['The soprano has the tune', 'The alto joins', 'The tenor joins', 'The bass joins: four parts'] },
 };
 const CUTQ = new URLSearchParams(location.search).get('cut');
 export const CUT = ['hero', 'short', 'social', ...Object.keys(SEASON_CUTS)].includes(CUTQ) ? CUTQ : 'hero';
@@ -62,7 +78,7 @@ export const HOLD = SC ? SC.hold : CUT === 'social' ? 7 / 3 : 6; // the last cho
 export const END = PASSES * VERSE + HOLD;
 export const BEATS = END - FROM; // the film's length in beats
 export const DUR = BEATS * SPB;
-export const DURS = { hero: 76.5, short: 40.5, social: 19.75, carols: (26 * 60) / 66, hanukkah: (36 * 60) / 90, maoz: (164 * 60) / 90, maozr: (45.5 * 60) / 90, carolsr: (28 * 60) / 66, gracer: (40.5 * 60) / 80 };
+export const DURS = { hero: 76.5, short: 40.5, social: 19.75, carols: (26 * 60) / 66, hanukkah: (36 * 60) / 90, maoz: (164 * 60) / 90, maozr: (45.5 * 60) / 90, carolsr: (28 * 60) / 66, gracer: (40.5 * 60) / 80, thanksr: (42.5 * 60) / 84, oyr: (40 * 60) / 80, harkr: (46 * 60) / 92 };
 export const sec = (beat) => beat * SPB;
 export const beatAt = (t) => t / SPB;
 export const PARTS = ['soprano', 'alto', 'tenor', 'bass'];

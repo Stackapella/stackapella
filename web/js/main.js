@@ -1,3 +1,4 @@
+import { firstUsable } from './first-screen.js';
 import { createApp, defineAsyncComponent, reactive, watch } from 'vue';
 import { watchErrors } from './errors.js';
 import { setDraftsFor } from './templates.js';
@@ -195,6 +196,9 @@ await loadLanguage(undefined, { first: lessonFirst ? firstWordsFor(location.path
 // they open at once: after the words, once the first screen is up (timers for the page, never audio).
 const whenIdle = (run) => ('requestIdleCallback' in window ? requestIdleCallback(run, { timeout: 8000 }) : setTimeout(run, 1000));
 async function fetchAhead() {
+    // A first visit fetches nothing more until its first screen can be used (lesson 1's way on, Home's first frame), at
+    // most 10 s: the words and the next screens took lesson 1's bandwidth on Slow 4G (js/first-screen.js).
+    if (lessonFirst) await Promise.race([firstUsable, new Promise((done) => setTimeout(done, 10000))]);
     await allWords();
     const ahead1 = (view) => new Promise((done) => whenIdle(() => ahead.get(view).prefetch().then(done)));
     if (songArrival) {

@@ -31,6 +31,11 @@
         <section class="s-wrap s-sec" aria-labelledby="works-h">
             <h2 id="works-h" class="s-title"><x-site.skin heading :game="__('pages.landing.game.works')" :serious="__('pages.site.works')" /></h2>
             @include('site._tiles', ['tiles' => $works, 'bento' => true])
+            {{-- The comparisons, one quiet line while they're listed (the compare_pages switch; the internal-link audit,
+                 2026-11-13: nothing linked /compare). --}}
+            @if (app(\App\Support\Flags::class)->on('compare_pages'))
+                <p class="s-more">{{ __('site.compare.index.from_features') }} <a href="/compare" class="s-lk">{{ __('site.compare.index.from_features_link') }}&#8288;<x-site.icon name="arrow" size="16" /></a></p>
+            @endif
         </section>
 
         @if ($coming !== [])

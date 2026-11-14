@@ -32,7 +32,7 @@ LESSONS = {
     "yodel-4-roll": "A roll is several flips on one breath",
     "yodel-4-ladder": "The same roll at three speeds",
     "yodel-4-hear": "Fast, a roll either flips cleanly",
-    "yodel-4-challenge": "A line of Red River Valley sung plainly",
+    "yodel-4-challenge": "A line of Keep on the Sunny Side sung plainly",
 }
 
 

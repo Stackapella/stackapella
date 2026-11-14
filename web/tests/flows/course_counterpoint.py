@@ -20,7 +20,7 @@ ROUTER = "(await import('/js/router.js'))"
 AUDIO = "(await import('/js/audio.js'))"
 
 LESSONS = {
-    "cp-1-round": "A round is one tune that fits itself",
+    "cp-1-round": "A round is one tune that fits with itself",
     "cp-1-hear": "Your ear can follow two voices at once",
     "cp-1-pedal": "A note held under a moving tune is a pedal",
     "cp-1-ostinato": "A pattern sung over and over is an ostinato",
@@ -123,7 +123,7 @@ def journey(f):
     f.mic_checked()
     open_counterpoint(f)  # a reload forgets the course shown as live
     f.run(f"{ROUTER}.navigate('/learn/cp-1-round')")
-    f.wait_text("A round is one tune that fits itself")
+    f.wait_text("A round is one tune that fits with itself")
     f.click_t("course.continue")
     f.wait_text("The quick half")
     f.click_t("course.skip")  # Wait for me, skipped: the round is what this flow is about

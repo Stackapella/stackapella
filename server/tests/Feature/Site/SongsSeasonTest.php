@@ -60,6 +60,22 @@ final class SongsSeasonTest extends TestCase
         $this->assertSame('christmas', $this->bands('2027-11-01 08:00:00')[0]);
     }
 
+    public function test_the_sample_cards_stay_light(): void
+    {
+        // site_integration's OWN_KB (2026-11-14): a card plays the notes and shows no lyric, so its line carries no words, and
+        // Play and Stop are drawn once in the page's sprite rather than on every card.
+        $this->travelTo('2026-12-01 09:00:00');
+        $html = (string) $this->get('/songs')->assertOk()->getContent();
+        preg_match_all('#<li class="s-sh-song"[^>]*>.*?</li>#s', $html, $cards);
+        $this->assertGreaterThan(10, count($cards[0]));
+        foreach ($cards[0] as $card) {
+            $this->assertStringNotContainsString('"words"', $card);
+            $this->assertStringNotContainsString('<path', $card);
+        }
+        $this->assertSame(1, substr_count($html, 'id="si-play"'));
+        $this->assertSame(count($cards[0]), substr_count($html, 'href="#si-play"'));
+    }
+
     public function test_the_page_says_when_the_season_ends_and_tonights_carol_is_one_a_day(): void
     {
         $this->travelTo('2026-12-01 09:00:00');

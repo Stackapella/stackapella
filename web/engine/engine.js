@@ -104,6 +104,9 @@ export class Engine {
      */
     async build(sampleRate = null) {
         const ctx = new AudioContext(sampleRate ? { latencyHint: 'interactive', sampleRate } : { latencyHint: 'interactive' });
+        // Resumed now, still inside the tap that made it: WebKit lets a context start only within the gesture, and the
+        // worklet's fetch below can take a while on a slow line (the Safari audit, 2026-11-14). unlock() resumes again.
+        ctx.resume().catch((error) => console.debug('The new context did not resume yet', error));
         try {
             await ctx.audioWorklet.addModule(workletUrl);
         } catch (error) {
@@ -215,6 +218,9 @@ export class Engine {
         while (this.micPending) {
             await this.micPending.catch(() => {});
         }
+        // A mic whose track has ended (a call, another app taking it, AirPods away) is never handed out again: every take
+        // on it would be silence (the Safari audit, 2026-11-14). It's closed and opened afresh.
+        if (this.mic?.stream.getAudioTracks()[0]?.readyState === 'ended') this.closeMic();
         if (this.mic && (!deviceId || deviceId === this.mic.deviceId)) {
             return this.mic;
         }

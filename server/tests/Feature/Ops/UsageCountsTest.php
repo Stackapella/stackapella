@@ -86,8 +86,8 @@ final class UsageCountsTest extends TestCase
     public function test_the_loops_paths_weekly_use_tools_and_try_next_kinds_count(): void
     {
         $kinds = ['sing_open', 'sing_kept', 'song_part3', 'lesson_song_back', 'cr_shared', 'grp_sang', 'part_sing', 'invite_sung', 'use_boss', 'remind_on',
-            'tool_result:pitch-pipe', 'tool_try:pitch-pipe', 'try_shown:record', 'try_tap:stack'];
-        $this->postJson('/api/counts', ['events' => array_map(static fn (string $kind): array => ['kind' => $kind], [...$kinds, 'tool_try:nope', 'try_tap:nope'])])->assertNoContent();
+            'tool_open:pitch-pipe', 'tool_result:pitch-pipe', 'tool_try:pitch-pipe', 'try_shown:record', 'try_tap:stack'];
+        $this->postJson('/api/counts', ['events' => array_map(static fn (string $kind): array => ['kind' => $kind], [...$kinds, 'tool_try:nope', 'tool_open:nope', 'try_tap:nope'])])->assertNoContent();
 
         $kept = DB::table('usage_counts')->pluck('kind')->all();
         sort($kept);

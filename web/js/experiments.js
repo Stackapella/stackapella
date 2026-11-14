@@ -8,8 +8,10 @@
 // dropped on the next load. ?x=<id>-<arm> previews an arm in this tab, never counted.
 //
 // No flicker: the last config's experiments are kept too, so a returning device draws at once. A
-// brand-new device waits (ready false) until auth.config arrives, at most 1.5 seconds; past that it
-// sees the control, unenrolled, for this visit, so a slow network never tilts an arm.
+// brand-new device reads them from the page (the server's <meta name="experiments">, auth.config's own list), so it
+// draws at once too: lesson 1 waited a round trip for auth.config before (0.6 to 0.9 s on Slow 4G, 2026-11-14). Without
+// either it waits (ready false) until auth.config arrives, at most 1.5 seconds; past that it sees the control,
+// unenrolled, for this visit, so a slow network never tilts an arm.
 
 import { reactive, watch } from 'vue';
 import { account } from './stores/account.js';
@@ -91,9 +93,21 @@ function random() {
     return crypto.getRandomValues(new Uint32Array(1))[0] / 2 ** 32;
 }
 
-/** The running experiments: the server's, else the last ones it sent (null while neither is known). */
+/** The running experiments the page was served with (<meta name="experiments">): a list, or null. Pure but for `doc`. */
+export function pageExperiments(doc = document) {
+    const said = doc.querySelector('meta[name="experiments"]')?.getAttribute('content');
+    if (!said) return null;
+    try {
+        const list = JSON.parse(said);
+        return Array.isArray(list) ? list : null;
+    } catch {
+        return null; // a page that says nothing readable is a page that says nothing: auth.config decides
+    }
+}
+
+/** The running experiments: the server's, else the last ones it sent, else the page's (null while none is known). */
 function running() {
-    return account.config ? account.config.experiments ?? [] : readJson(CONFIG);
+    return account.config ? account.config.experiments ?? [] : readJson(CONFIG) ?? pageExperiments();
 }
 
 /**

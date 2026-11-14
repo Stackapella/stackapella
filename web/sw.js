@@ -347,6 +347,7 @@ const SHELL = [
     '/js/components/invite-card.js',
     '/js/components/key-control.js',
     '/js/errors.js',
+    '/js/first-screen.js',
     '/js/sentry-envelope.js',
     '/js/sound-log.js',
     '/js/notice-words.js',

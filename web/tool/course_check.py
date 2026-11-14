@@ -727,6 +727,198 @@ def warmups():
             problem(where, f"its notes run from {low:+d} to {high:+d} at the full climb, outside its bounds")
 
 
+# The public lesson pages' addresses (the site's Lessons.php): /courses/<course>/<page>, the page slugged from an English
+# title, so a retitle moves a page that search engines and the guides link to. The free course ("harmony") and the
+# choir-part course have a page a unit, from the unit's title; every other live course a page a lesson, a challenge folded into the lesson
+# before it, from the lesson's title. tools/page-slugs.json is the list the site has now; `--write-slugs` rewrites it.
+# The lists live beside the content repo's course_check (tools/), not here: content.sh copies only course/ and the
+# songs, so this copy checks the guards only when CONTENT_TOOLS names that folder.
+import os
+_TOOLS = Path(os.environ["CONTENT_TOOLS"]) if os.environ.get("CONTENT_TOOLS") else None
+SLUGS = (_TOOLS / "page-slugs.json") if _TOOLS else None
+PER_UNIT = {"choir-part"}  # catalogue ids (Lessons::PER_UNIT), besides the free course
+
+
+def slug(title):
+    """Laravel's Str::slug of a title with its apostrophes dropped, as Lessons::slug does."""
+    import unicodedata
+    plain = unicodedata.normalize("NFKD", title.replace("'", "").replace("\u2019", "")).encode("ascii", "ignore").decode()
+    return re.sub(r"[^a-z0-9]+", "-", plain.lower()).strip("-")
+
+
+def page_slugs():
+    """Each public course's pages, in order: {course slug: [{"slug", "title"}]}."""
+    courses = [("harmony", WEB / "course" / "course.json", True)]
+    catalogue = WEB / "course" / "plus" / "courses.json"
+    for c in json.loads(catalogue.read_text())["courses"] if catalogue.exists() else []:
+        if c.get("status") == "live" and c.get("slug") and c.get("file"):
+            courses.append((c["slug"], WEB / "course" / "plus" / c["file"], c.get("id") in PER_UNIT))
+    pages = {}
+    for course_slug, path, per_unit in courses:
+        if not path.exists():
+            continue
+        units = [u for u in json.loads(path.read_text()).get("units", []) if isinstance(u, dict)]
+        taken, out = set(), []
+        for u, unit in enumerate(units):
+            lessons = [l for l in unit.get("lessons", []) if isinstance(l, dict)]
+            if per_unit:
+                groups = [lessons] if lessons else []
+            else:
+                groups = []
+                for lesson in lessons:
+                    if lesson.get("challenge") and groups:
+                        groups[-1].append(lesson)
+                    else:
+                        groups.append([lesson])
+            for group in groups:
+                title = ((unit if per_unit else group[0]).get("title") or {})
+                title = (title.get("en", "") if isinstance(title, dict) else str(title)).strip()
+                s = slug(title)
+                if s == "" or s in taken:
+                    s = f"{s}-{u + 1}".strip("-")
+                taken.add(s)
+                out.append({"slug": s, "title": title})
+        pages[course_slug] = out
+    return pages
+
+
+def check_slugs():
+    if SLUGS is None:
+        return
+    # Laravel's Str::slug transliterates accents and drops punctuation; checked against it (2026-11-14) on these.
+    if slug("Pastores a Belén, Ñandú über Ödön: It\u2019s Ça va") != "pastores-a-belen-nandu-uber-odon-its-ca-va":
+        problem("course_check", "slug() no longer matches Laravel's Str::slug on accented titles")
+    now = page_slugs()
+    if "--write-slugs" in sys.argv:
+        SLUGS.write_text(json.dumps(now, ensure_ascii=False, indent=1) + "\n")
+        return
+    if not SLUGS.exists():
+        problem("page-slugs.json", "missing: run python3 -I tools/course_check.py --write-slugs once")
+        return
+    was = json.loads(SLUGS.read_text())
+    for course_slug, pages in was.items():
+        current = now.get(course_slug)
+        if current is None:
+            continue  # a course no longer live: its pages go with its course page, not here
+        by_slug = {p["slug"]: p for p in current}
+        for i, page in enumerate(pages):
+            if page["slug"] in by_slug:
+                continue
+            moved = current[i] if i < len(current) else None
+            now_called = f' (it is now titled "{moved["title"]}", at /courses/{course_slug}/{moved["slug"]})' if moved else ""
+            problem(f"page /courses/{course_slug}/{page['slug']}",
+                    f'is gone: the title "{page["title"]}" changed{now_called}. Keep the English title, or add a redirect '
+                    f"from the old address and run --write-slugs")
+        listed = {p["slug"] for p in pages}
+        for page in current:
+            if page["slug"] not in listed:
+                problem(f"page /courses/{course_slug}/{page['slug']}", f'is new ("{page["title"]}"): if that is meant, run --write-slugs')
+    for course_slug in now:
+        if course_slug not in was:
+            problem(f"course {course_slug}", "is live but its pages aren't in page-slugs.json: run --write-slugs")
+
+
+# Saved progress, streaks and links key on lesson ids, so an id must never vanish or come to mean another lesson.
+# tools/lesson-ids.json lists every course file's lesson ids in order; a generated course's (a song course by song_course.py,
+# its lessons a part's lines, or a Plus course a tools/*_course.py writes) also with its English title, so a regrouping that
+# shifts ids (two lines made alike, merged into one lesson) fails here; a hand-written course's ids alone, its titles free. `--write-lesson-ids` rewrites the list on purpose,
+# once saved progress is planned for (the app's progress for the moved ids, or the song's version bump).
+LESSON_IDS = (_TOOLS / "lesson-ids.json") if _TOOLS else None
+
+
+def generated_courses():
+    """The course files a tools/*_course.py writes (their lessons regroup when the generator's input changes)."""
+    found = set()
+    for tool in (_TOOLS.glob("*_course.py") if _TOOLS else []):
+        found.update(re.findall(r"course/plus/[a-z0-9-]+/course\.json", tool.read_text()))
+    return {str(Path(f).relative_to("course")) for f in found}
+
+
+def lesson_ids(files):
+    out = {}
+    generated = generated_courses()
+    for f in files:
+        if not f.exists():
+            continue
+        key = str(f.relative_to(WEB / "course"))
+        song = f.parent.name == "songs" or key in generated
+        lessons = [l for u in json.loads(f.read_text()).get("units", []) for l in u.get("lessons", []) if isinstance(l, dict)]
+        if song:
+            out[key] = [{"id": l.get("id"), "title": (l.get("title") or {}).get("en", "") if isinstance(l.get("title"), dict) else ""} for l in lessons]
+        else:
+            out[key] = [l.get("id") for l in lessons]
+    return out
+
+
+
+def check_languages(files):
+    """A course file translated into a language keeps it on every translated string: a word with "en" and another
+    language but not one the course's own title has fails (a reworded English that lost its German, 2026-11-14)."""
+    for f in files:
+        if not f.exists():
+            continue
+        data = json.loads(f.read_text())
+        title = data.get("title")
+        need = {k for k in title if k != "en"} if isinstance(title, dict) else set()
+        if not need:
+            continue
+        lost = []
+
+        def walk(o, at):
+            if isinstance(o, dict):
+                if isinstance(o.get("en"), str) and all(len(k) == 2 for k in o):
+                    have = {k for k in o if k != "en"}
+                    if have and need - have:
+                        lost.append((at, sorted(need - have), o["en"]))
+                    return
+                for k, v in o.items():
+                    walk(v, f"{at}.{k}")
+            elif isinstance(o, list):
+                for i, v in enumerate(o):
+                    walk(v, f"{at}[{i}]")
+        walk(data, "")
+        for at, langs, en in lost[:20]:
+            problem(f"{f.relative_to(WEB / 'course')}{at}", f"has {', '.join(sorted(need - set(langs)) or ['en'])} but not {', '.join(langs)}, which the course carries: \"{en[:60]}\" (add it to i18n/<lang>/, then i18n.py apply)")
+        if len(lost) > 20:
+            problem(str(f.relative_to(WEB / "course")), f"and {len(lost) - 20} more words missing a language the course carries")
+
+def check_lesson_ids(files):
+    if LESSON_IDS is None:
+        return
+    now = lesson_ids(files)
+    if "--write-lesson-ids" in sys.argv:
+        LESSON_IDS.write_text(json.dumps(now, ensure_ascii=False, indent=1) + "\n")
+        return
+    if not LESSON_IDS.exists():
+        problem("lesson-ids.json", "missing: run python3 -I tools/course_check.py --write-lesson-ids once")
+        return
+    was = json.loads(LESSON_IDS.read_text())
+    for key, listed in was.items():
+        current = now.get(key)
+        if current is None:
+            problem(f"course/{key}", "its lessons are listed in lesson-ids.json but the file is gone: plan saved progress, then --write-lesson-ids")
+            continue
+        if listed and isinstance(listed[0], dict):
+            titles = {l["id"]: l["title"] for l in current}
+            for l in listed:
+                if l["id"] not in titles:
+                    problem(f"course/{key} {l['id']}", f'("{l["title"]}") is gone: saved progress and links name it. Keep the lessons as they were, or plan the move and run --write-lesson-ids')
+                elif titles[l["id"]] != l["title"]:
+                    problem(f"course/{key} {l['id']}", f'now means "{titles[l["id"]]}", not "{l["title"]}": the lessons regrouped (two lines made alike?), so saved progress would point at the wrong lines')
+            new = [l["id"] for l in current if l["id"] not in {x["id"] for x in listed}]
+        else:
+            ids = set(current)
+            for lid in listed:
+                if lid not in ids:
+                    problem(f"course/{key} {lid}", "is gone: saved progress and links name it. Keep the id, or plan the move and run --write-lesson-ids")
+            new = [lid for lid in current if lid not in set(listed)]
+        if new:
+            problem(f"course/{key}", f"new lessons {', '.join(map(str, new[:4]))}{'...' if len(new) > 4 else ''}: if meant, run --write-lesson-ids")
+    for key in now:
+        if key not in was:
+            problem(f"course/{key}", "isn't in lesson-ids.json: run --write-lesson-ids")
+
+
 def main():
     seen, unplayable, facts = set(), {}, {}
     clips_path = WEB / "course" / "plus" / "clips.json"
@@ -751,6 +943,9 @@ def main():
             if fa.get("course") != fb.get("course") and len(shared) >= 2 and b not in fa["distinct"] and a not in fb["distinct"]:
                 problem(fb["where"], f"fact '{b}' looks like '{a}' ({fa['where']}), sharing {', '.join(sorted(shared))}: tell it in one course, or list it in distinct")
     warmups()
+    check_slugs()
+    check_lesson_ids(files)
+    check_languages(files)
     for f in files:
         if not f.exists():
             problem(str(f.relative_to(WEB)), "the catalogue names a file that isn't there")

@@ -16,7 +16,7 @@ final class AppPrefetch
     /** @return list<string> Start singing: the app, lesson 1's first screen, its words and the courses */
     public static function landing(): array
     {
-        return self::urls([...self::list(''), ...self::list('learn '), '/js/main.js', '/locales/lesson1/en.json', '/course/course.json']);
+        return self::urls([...self::vue(), ...self::list(''), ...self::list('learn '), '/js/main.js', '/locales/lesson1/en.json', '/course/course.json']);
     }
 
     /**
@@ -27,7 +27,7 @@ final class AppPrefetch
      */
     public static function song(): array
     {
-        return self::urls([...self::list(''), ...self::list('home '), '/js/main.js', '/js/components/dialogs.js', '/js/views/template.js']);
+        return self::urls([...self::vue(), ...self::list(''), ...self::list('home '), '/js/main.js', '/js/components/dialogs.js', '/js/views/template.js']);
     }
 
     /**
@@ -41,7 +41,22 @@ final class AppPrefetch
         // (2026-11-13; server/tool/split-hosts.sh checks it). Else this page's own (a local server, maybe another port).
         $split = Hosts::split();
 
-        return array_values(array_unique(array_map(static fn (string $p): string => $split ? Hosts::appLink($p) : $p, $paths)));
+        // A CDN's own address (Vue) stays as it is; the app's paths go to the app's host where the two are apart.
+        return array_values(array_unique(array_map(static fn (string $p): string => $split && str_starts_with($p, '/') ? Hosts::appLink($p) : $p, $paths)));
+    }
+
+    /**
+     * Vue from its CDN, as preload.js asks for it first (its own preload line, so the version never drifts): outside the
+     * generated lists, so a first lesson waited for it over a new connection (1.8 s on slow 4G, frontend's measure).
+     *
+     * @return list<string>
+     */
+    private static function vue(): array
+    {
+        $path = dirname(base_path()).'/web/js/preload.js';
+        $source = is_file($path) ? (string) file_get_contents($path) : '';
+
+        return preg_match("#preload\\('(https://cdn\\.jsdelivr\\.net/npm/vue@[\\w.-]+/dist/vue\\.esm-browser\\.prod\\.js)'#", $source, $m) === 1 ? [$m[1]] : [];
     }
 
     /**

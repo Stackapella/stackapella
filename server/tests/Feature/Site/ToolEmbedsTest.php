@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Site;
 
+use App\Support\Site\GamePreload;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\View;
@@ -75,8 +76,8 @@ final class ToolEmbedsTest extends TestCase
             $this->assertFalse($embed->headers->has('X-Frame-Options'), $tool);
             $this->assertSame([], $embed->headers->getCookies(), $tool);
             $this->assertFalse($embed->headers->has('Set-Cookie'), $tool);
-            // Scripts only from us, nothing from anyone else.
-            $this->assertSame(["'self'"], $this->csp($embed)['script-src'], $tool);
+            // Scripts only from us, nothing from anyone else (and GamePreload's inline script, by its hash).
+            $this->assertSame(["'self'", GamePreload::hash()], $this->csp($embed)['script-src'], $tool);
         }
 
         $tuner = $this->get('/embed/tools/tuner');

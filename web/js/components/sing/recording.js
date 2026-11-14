@@ -10,6 +10,7 @@ import { Icon } from '../icon.js';
 import { CountIn } from '../count-in.js';
 import { joinSyllables } from '../practice.js';
 import { KaraokeLine } from './stage.js';
+import { renameScreen } from '../../screen-name.js';
 
 export const RecordingStage = {
     components: { Icon, KaraokeLine, CountIn },
@@ -32,6 +33,9 @@ export const RecordingStage = {
     setup: () => ({ formatTime, joinSyllables }),
     template: `
         <div class="flex min-h-0 flex-1 flex-col" data-recording-stage>
+            <!-- The screen's heading for a screen reader (the song's title shows below it): focus comes here as the take
+                 starts, so the keyboard isn't left on the page, and Stop is the next Tab (the first-week a11y pass). -->
+            <h1 ref="heading" tabindex="-1" class="sr-only">{{ t('sing.recordingStage.heading', { title }) }}</h1>
             <div class="h-1 shrink-0 bg-record" aria-hidden="true"></div>
             <header class="grid grid-cols-[1fr_auto_1fr] items-center gap-3 px-4 pb-2 pt-[max(0.75rem,env(safe-area-inset-top))] md:pt-5 min-[900px]:px-8">
                 <span class="flex items-center gap-1.5 justify-self-start rounded-full glass-record px-3.5 py-1.5 text-sm font-bold tabular-nums" role="status">
@@ -73,5 +77,11 @@ export const RecordingStage = {
         </div>`,
     computed: {
         share: (vm) => (vm.length > 0 ? Math.min(1, Math.max(0, vm.position / vm.length)) : 0),
+    },
+    mounted() {
+        renameScreen();
+        // Only where focus was lost (the setup sheet's button that started the take is gone): a tap's focus stays put.
+        const lost = !document.activeElement || document.activeElement === document.body || !document.activeElement.isConnected;
+        if (lost) this.$refs.heading?.focus({ preventScroll: true });
     },
 };

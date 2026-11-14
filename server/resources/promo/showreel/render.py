@@ -57,7 +57,7 @@ for arg in sys.argv[1:]:
     A[k] = v if v else True
 # v5's three cuts (js/score.js CUT): the hero for the landing, the short (40.5 s, landscape) and the social
 # (19.75 s, vertical); the page checks its length against the score's
-CUTS = {'hero': 76.5, 'short': 40.5, 'social': 19.75, 'carols': 26 * 60 / 66, 'hanukkah': 36 * 60 / 90, 'maoz': 164 * 60 / 90, 'maozr': 45.5 * 60 / 90, 'carolsr': 28 * 60 / 66, 'gracer': 40.5 * 60 / 80}  # the season cuts, for posting (--format=vertical|square)
+CUTS = {'hero': 76.5, 'short': 40.5, 'social': 19.75, 'carols': 26 * 60 / 66, 'hanukkah': 36 * 60 / 90, 'maoz': 164 * 60 / 90, 'maozr': 45.5 * 60 / 90, 'carolsr': 28 * 60 / 66, 'gracer': 40.5 * 60 / 80, 'thanksr': 42.5 * 60 / 84, 'oyr': 40 * 60 / 80, 'harkr': 46 * 60 / 92}  # the season cuts, for posting (--format=vertical|square)
 cut = str(A.get('cut', 'hero'))
 if cut not in CUTS:
     raise SystemExit(f'no cut {cut}: {", ".join(CUTS)}')

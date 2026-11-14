@@ -2,7 +2,7 @@
 // audience, a new singer's first week, an experiment it excludes or four already; a lesson's variant
 // swapped in for its arm.
 import { assert, test } from './harness.js';
-import { audienceFits, decide, pickArm } from '../js/experiments.js';
+import { audienceFits, decide, pageExperiments, pickArm } from '../js/experiments.js';
 
 const FACTS = { isNew: true, firstWeek: false, skin: 'game', size: 'phone', signedIn: false };
 const ARMS = [{ arm: 'a', weight: 50 }, { arm: 'b', weight: 50 }];
@@ -55,4 +55,16 @@ test('experiments: the sample a test is read at, and the verdict only at the hor
     assert(verdictOf(reading, steps({ low: 2, high: 5 }, { low: -1, high: 1 }), on).key === 'better', 'better');
     assert(verdictOf(reading, steps({ low: -1, high: 4 }, null), on).key === 'none', 'the range includes zero: no clear difference');
     assert(verdictOf(reading, steps({ low: 2, high: 5 }, { low: -4, high: -1 }), on).key === 'guardrail', 'a worse guardrail outranks a better metric');
+});
+
+test('experiments: a brand-new device reads the running ones from the page, so lesson 1 needn\'t wait for auth.config', () => {
+    const page = (content) => {
+        const doc = document.implementation.createHTMLDocument('');
+        if (content !== null) doc.head.append(Object.assign(doc.createElement('meta'), { name: 'experiments', content }));
+        return doc;
+    };
+    const list = [{ id: 'mic2', arms: ARMS, enrol: true, audience: {}, excludes: [] }];
+    assert(JSON.stringify(pageExperiments(page(JSON.stringify(list)))) === JSON.stringify(list), 'the page\'s list');
+    assert(JSON.stringify(pageExperiments(page('[]'))) === '[]', 'none running is a list too: ready at once');
+    assert(pageExperiments(page(null)) === null && pageExperiments(page('{oops')) === null && pageExperiments(page('{}')) === null, 'nothing readable: unknown, auth.config decides');
 });

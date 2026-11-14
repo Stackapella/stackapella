@@ -128,8 +128,19 @@ final class DocumentPagesController extends Controller
             return response()->view('public.page-gone', ['links' => ['app' => '/']], 404, self::headers());
         }
 
+        // The other policies, each to its page, so every legal page is a link away (the internal-link audit, 2026-11-13: five
+        // had no link to them at all).
+        $others = [];
+        foreach ([...self::LEGAL, ...(OpenSource::on() ? self::OPEN_SOURCE_LEGAL : [])] as $other) {
+            $title = $other === $page ? null : ($this->read($text, $other, 'legal')['title'] ?? null);
+            if (is_string($title)) {
+                $others[] = ['url' => '/legal/'.$other, 'title' => $title];
+            }
+        }
+
         return response()->view('public.legal', [
             'document' => ['page' => $page, 'title' => $doc['title'], 'version' => $doc['version'], 'reviewed' => $doc['reviewed'], 'blocks' => $doc['blocks']],
+            'others' => $others,
             'meta' => ['title' => $doc['title'], 'description' => '', 'url' => Hosts::publicUrl().'/legal/'.$page],
         ], 200, self::headers());
     }

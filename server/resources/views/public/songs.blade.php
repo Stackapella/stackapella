@@ -30,6 +30,8 @@
 @section('content')
     <x-site.header />
     <main>
+        {{-- Play and Stop for every sample card, drawn once (public/_songs-samples.blade.php). --}}
+        {{ \App\Support\Site\Icons::sprite(['play', 'stop']) }}
         <section class="s-wrap s-sh-hero" aria-labelledby="page-h">
             <div>
                 <p class="s-eyebrow"><x-site.skin :game="__('pages.landing.game.songs_kick')" :serious="__('pages.songs.eyebrow_count', ['count' => $count])" /></p>

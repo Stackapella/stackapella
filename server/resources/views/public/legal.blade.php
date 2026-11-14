@@ -52,6 +52,16 @@
             @endif
             <x-site.prose :blocks="$document['blocks']" />
         </section>
+        @if (($others ?? []) !== [])
+            <nav class="s-wrap s-sec2 s-doc" aria-labelledby="others-h">
+                <h2 id="others-h" class="s-kick">{{ __('pages.legal.others') }}</h2>
+                <ul class="s-small">
+                    @foreach ($others as $other)
+                        <li><a href="{{ $other['url'] }}" class="s-lk">{{ $other['title'] }}</a></li>
+                    @endforeach
+                </ul>
+            </nav>
+        @endif
     </main>
     <x-site.footer />
 @endsection

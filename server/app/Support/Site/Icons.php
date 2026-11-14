@@ -71,6 +71,35 @@ final class Icons
     }
 
     /**
+     * Icons a page repeats many times (/songs's play and stop on every sample card), drawn once as symbols for
+     * {@see self::use()}: the page carries one copy of each path, not one per card.
+     *
+     * @param  list<string>  $names
+     */
+    public static function sprite(array $names): HtmlString
+    {
+        $symbols = '';
+        foreach ($names as $name) {
+            if (! isset(self::PATHS[$name])) {
+                throw new InvalidArgumentException("No icon [{$name}].");
+            }
+            $symbols .= sprintf('<symbol id="si-%s" viewBox="0 0 24 24">%s</symbol>', $name, self::PATHS[$name]);
+        }
+
+        return new HtmlString('<svg hidden aria-hidden="true">'.$symbols.'</svg>');
+    }
+
+    /** An icon drawn from the page's {@see self::sprite()}, which must name it. */
+    public static function use(string $name, int $size = 20): HtmlString
+    {
+        if (! isset(self::PATHS[$name])) {
+            throw new InvalidArgumentException("No icon [{$name}].");
+        }
+
+        return new HtmlString(sprintf('<svg width="%d" height="%d" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#si-%s"/></svg>', $size, $size, $name));
+    }
+
+    /**
      * Stackapella's mark (web/icons/icon.svg, drawn by web/tool/icons.py: four bars, one a voice, on
      * a black square), its own colours in every theme, the corners rounded as the app's header has it.
      */

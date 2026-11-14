@@ -5,6 +5,7 @@
 // In a Sharpen up session (js/sharpen.js) a lesson opens at its scored part and goes on to the next.
 
 import { LoadingBlock } from '../components/screen-loading.js';
+import { markUsable } from '../first-screen.js';
 import { VoiceCareLine } from '../components/voice-care.js';
 import { markRaw } from 'vue';
 import { game, sk } from '../skin.js';
@@ -14,6 +15,7 @@ import { formatDate, formatNumber, localized, t, tk } from '../i18n.js';
 import { api, ApiError } from '../api.js';
 import { account } from '../stores/account.js';
 import { backTo, goBack, navigate } from '../router.js';
+import { renameScreen } from '../screen-name.js';
 import { addXp, cappedWidening, dayOf, nextLesson, strictnessFor, starsFor, unitOpen, voiceType } from '../course.js';
 import { addCourseTime, COOL_DOWN, findLesson, finishBoss, finishLesson, KEY_REACH, knownRange, learning, loadCooldown, loadLearning, loadPlusCourses, loadSongCourse, noteSung, practised, rawLesson, remember, setCoursePersonal, setHome, setLessonKey, SONG_USED_SECONDS } from '../stores/learning.js';
 import { keyName } from '../theory.js';
@@ -127,12 +129,12 @@ export const LearnView = {
             </div></header>
             <!-- A lesson's end sits in the middle of a desktop's height, not at the top over an empty half (Hillel: "too much bottom space"). -->
             <div class="mx-auto flex w-full flex-col gap-6 px-4 pb-[max(4rem,calc(env(safe-area-inset-bottom)+2rem))] pt-8 min-[900px]:px-10" :class="flipRestAt || capRest ? 'max-w-xl flex-1 justify-center' : entry?.boss && (!bossStarted || done) ? 'max-w-xl md:flex-1 md:justify-center md:pb-16' : split ? 'max-w-[1200px] md:pt-16' : done && !done.unheard && !noteDone ? 'max-w-5xl md:flex-1 md:justify-center md:pb-16' : done && noteDone ? 'max-w-3xl' : takeResult && !done ? 'max-w-4xl' : 'max-w-xl'">
-                <LoadingBlock v-if="!learning.loaded || !variant.ready || !mic2.ready || waitingForWithheld || (!entry && !learning.coursesLoaded && !songLooked)" :failed="learning.failed" @retry="retryLoad" />
+                <LoadingBlock v-if="loadingBlock" :failed="learning.failed" @retry="retryLoad" />
                 <p v-else-if="!entry" class="text-cream">{{ t('course.noLesson') }} <a href="/" class="link" @click.prevent="navigate('/')">{{ t('course.backToCourse') }}</a></p>
                 <!-- Signed out past lesson 1 of a course (Hillel, 2026-11-06): a free account, never a price. -->
                 <!-- The account still being checked where a guest would meet the wall: the lesson's own wait, never a flash of the wall. -->
                 <p v-else-if="needsAccount === null" class="text-muted" role="status" data-account-checking>{{ t('course.loading') }}</p>
-                <CourseWall v-else-if="needsAccount" place="lesson" :course="entry.course" :lesson-id="entry.lesson.id" :home="courseHome" class="max-w-xl" />
+                <CourseWall v-else-if="needsAccount" place="lesson" :course="entry.course" :lesson-id="entry.lesson.id" :home="courseHome" :level="1" class="max-w-xl" />
                 <p v-else-if="!open" class="text-cream">{{ entry.boss ? sk('boss.lockedSerious', 'boss.locked') : sk('course.lockedSerious', 'course.locked') }} <a href="/" class="link" @click.prevent="navigate('/')">{{ t('course.backToCourse') }}</a></p>
                 <!-- A unit's boss round (docs/boss-round-plan.md): its intro before the first step, and its own end. -->
                 <BossIntro v-else-if="entry.boss && !bossStarted && !done" ref="bossIntro" :unit="entry.unitIndex + 1" :unit-title="localized(entry.unit.title)" :title="localized(entry.lesson.title)" :best="bossResult(learning.progress, entry.unit.id)?.best ?? null" :beaten="bossBeaten(learning.progress, entry.unit.id)" :ready="!!bossNotes" @start="bossStart" @later="goBack('/learn')" />
@@ -375,6 +377,8 @@ export const LearnView = {
             return courseVisible(learning.catalogue.find((c) => c.id === entry.course.id), account.me, account.config) ? entry : null;
         },
         /** An experiment's arm of this lesson (its `variants`, js/experiments.js), drawn as it opens. */
+        /** The lesson still loading (its data, its experiment's arm, the mic's arm, the withheld list). */
+        loadingBlock: (vm) => !learning.loaded || !vm.variant.ready || !vm.mic2.ready || vm.waitingForWithheld || (!vm.entry && !learning.coursesLoaded && !vm.songLooked),
         variant: (vm) => lessonFor(vm.found?.lesson),
         /** The lesson as this device sees it: its variant's steps for an arm it's in, else as written. */
         entry: (vm) => (vm.found && vm.variant.lesson !== vm.found.lesson ? { ...vm.found, lesson: vm.variant.lesson } : vm.found),
@@ -651,6 +655,13 @@ export const LearnView = {
         },
     },
     watch: {
+        // Loaded: the first screen can be used, and a first visit may fetch the rest of the app now (js/first-screen.js).
+        loadingBlock: {
+            handler(loading) {
+                if (!loading) markUsable();
+            },
+            immediate: true,
+        },
         /** The first-visit wait's cap: the lesson as it is once CONFIG_WAIT_MS have passed (a screen's timer, never audio). */
         waitingForWithheld: {
             immediate: true,
@@ -757,7 +768,12 @@ export const LearnView = {
         step(now) {
             this.reachStep(now);
             this.bossLive = 0;
-            this.$nextTick(() => this.$refs.heading?.focus({ preventScroll: true }));
+            // The new step's heading takes focus and names the tab: the route stays the lesson's, so screen-name.js
+            // wouldn't (the first-week a11y pass, 2026-11-14: the tab kept step 1's words through the lesson).
+            this.$nextTick(() => {
+                this.$refs.heading?.focus({ preventScroll: true });
+                renameScreen();
+            });
         },
         /** A song step's notes, loaded with its song each time the step (or the lesson) changes. */
         songKey: {
@@ -1112,7 +1128,11 @@ export const LearnView = {
             if (outcome.stars >= 2) this.$nextTick(() => celebrateAt(outcome.stars, this.$refs.end?.starsEl() ?? this.$refs.noteResult?.$el ?? null));
             // Once, at the end of the first lesson, for a signed-in learner: where they came from.
             this.askHeard = !!account.me && !account.me.heardFrom && this.entry.lesson.findsHome;
-            this.$nextTick(() => (this.$refs.end ? this.$refs.end.focus() : this.$refs.heading?.focus({ preventScroll: true })));
+            this.$nextTick(() => {
+                if (this.$refs.end) this.$refs.end.focus();
+                else this.$refs.heading?.focus({ preventScroll: true });
+                renameScreen();
+            });
         },
         /** "How did you hear about Stackapella?": once per person, one tap. */
         async saveHeard(value) {

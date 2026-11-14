@@ -220,7 +220,8 @@
     apply();
     // Game mode's sheet, fetched at once beside the page's own (js/game-css.js links it after that one).
     if (GAME_CSS && document.documentElement.dataset.skin === 'game') {
-        document.head.append(Object.assign(document.createElement('link'), { rel: 'preload', as: 'style', href: GAME_CSS }));
+        // Unless the page's head has already started it (server GamePreload's inline script).
+        if (!document.querySelector('link[rel="preload"][href="' + GAME_CSS + '"]')) document.head.append(Object.assign(document.createElement('link'), { rel: 'preload', as: 'style', href: GAME_CSS }));
     }
     // Game mode in the app: its two faces on every screen (VT323, the screen's words; Stackapella Pixel, labels and
     // buttons) fetched as the page starts rather than once the stylesheet asks, so they land by the first paint
@@ -229,6 +230,7 @@
     // Web Vitals pass, 2026-11-13: game mode's LCP ran about 600 ms behind serious on every page, waiting for the font).
     if (document.documentElement.dataset.skin === 'game' && (document.querySelector('meta[name="stackapella-app"]') || document.documentElement.hasAttribute('data-gs'))) {
         for (const [href, type] of [['/fonts/vt323-latin.woff2', 'font/woff2']]) {
+            if (document.querySelector('link[rel="preload"][href="' + href + '"]')) continue; // the head's GamePreload started it
             const link = Object.assign(document.createElement('link'), { rel: 'preload', as: 'font', type, href, crossOrigin: 'anonymous' });
             document.head.append(link);
         }

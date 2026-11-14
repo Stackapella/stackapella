@@ -24,15 +24,19 @@ self.addEventListener('activate', (event) => {
     );
 });
 
-/** One of ours, a GET, and not the API: the only requests this worker answers. */
+/**
+ * One of ours, a GET, and not the API: the only requests this worker answers. A media element's Range request is left
+ * to the browser: answered here it ended in a network error (a 206 can't be kept), and offline it would get a whole file
+ * where it asked for a part (the Safari audit, 2026-11-14; Safari asks in ranges even for short files).
+ */
 function ours(request) {
     const url = new URL(request.url);
-    return request.method === 'GET' && url.origin === self.location.origin && !url.pathname.startsWith('/api/');
+    return request.method === 'GET' && url.origin === self.location.origin && !url.pathname.startsWith('/api/') && !request.headers.has('range');
 }
 
 /** Kept only when whole and ours (no errors, redirects or opaque answers). */
 async function keep(request, response) {
-    if (response.ok && response.type === 'basic') {
+    if (response.ok && response.status !== 206 && response.type === 'basic') {
         const cache = await caches.open(CACHE);
         await cache.put(request, response.clone());
     }

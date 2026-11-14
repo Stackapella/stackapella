@@ -1406,6 +1406,7 @@
             "noWordsOff": "In phrase {number}, {count, plural, one {a note was} other {# notes were}} off the pitch."
         },
         "recordingStage": {
+            "heading": "Recording {title}",
             "recording": "Recording",
             "take": "Take {number}",
             "startOver": "Start over",
@@ -1976,6 +1977,7 @@
         }
     },
     "course": {
+        "speakerUnderAtOnce": "Without headphones, the sound underneath rests while you sing, so we hear only you. With headphones, it stays under you.",
         "mapLessonsStars": "{done} of {total} lessons · {stars}/{max} ★",
         "friendNote": {
             "both": "Your friend: {theirs} · You: {yours}",
@@ -2116,14 +2118,15 @@
         "skipNote": "Skip this note",
         "recordGoOnHint": "Record it, then check it, to go on.",
         "wait": {
+            "findLineAny": "Hum or sing it. The bar fills only while you're on the note, so take your time.",
             "notes": "The notes to find",
             "waiting": "Music is waiting for you",
             "slideUp": "Slide up",
             "comeDown": "Come down",
             "allMatched": "{count, plural, one {The note matched} other {All # notes matched}}",
-            "next": "{count, plural, one {Next, you'll sing it without the guide.} other {Next, you'll sing them without the guide.}}",
+            "next": "Go on to the next step when you're ready.",
             "find": "Find {note}",
-            "findLine": "Hum or sing 'ah'. The bar fills only while you're on the note, so take your time.",
+            "findLine": "Hum or sing '{word}'. The bar fills only while you're on the note, so take your time.",
             "hold": "That's it, hold it",
             "holdLine": "Stay on {note} while the bar fills.",
             "done": "Nicely done",

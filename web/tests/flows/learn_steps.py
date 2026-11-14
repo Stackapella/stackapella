@@ -24,7 +24,7 @@ def journey(f):
         colour, mode = theme.split("-")
         f.go("/learn/1-breath", "document.querySelector('main h1')")
         f.run(f"localStorage.setItem('stackapella.appearance', {json.dumps(json.dumps({'mode': mode, 'colour': colour}))}); window.stackapellaTheme.apply();")
-        f.wait_text("Breath that's steady gives notes that are steady.")
+        f.wait_text("Steady breath makes steady notes.")
         assert f.js("document.querySelectorAll('main ol li').length") == 3, "three step cards"
         f.wait("document.querySelector('main canvas')", what="the breathing picture")
         f.wait_text(t(f, "learnVisual.breatheIn"))

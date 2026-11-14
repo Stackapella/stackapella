@@ -25,7 +25,7 @@ return [
         'verse' => 'The first verse',
         'credits' => 'Credits',
         'start' => 'Learn this song',
-        'start_note' => 'Opens in the app, in your browser.',
+        'start_note' => 'Opens in your browser, nothing to install.',
         'free' => 'Free',
         'free_account' => 'Free with an account',
         'difficulty' => ['beginner' => 'For beginners', 'intermediate' => 'A step up'],
@@ -209,6 +209,9 @@ return [
         'terms' => 'Terms',
         'privacy' => 'Privacy',
         'guidelines' => 'Community guidelines',
+        // The DMCA page (the internal-link audit, 2026-11-13: nothing linked it); the footer keeps four a column, so the
+        // community guidelines and the security policy are in every policy's "Our other policies" list instead.
+        'copyright' => 'Copyright',
         'accessibility' => 'Accessibility',
         'contact' => 'Contact us',
         'contact_app' => 'Write to us',
@@ -234,6 +237,8 @@ return [
         'eyebrow' => 'The small print',
         'version' => 'Version :version',
         'draft' => 'A draft our lawyer is still checking',
+        // The other policies, listed at the foot of each one.
+        'others' => 'Our other policies',
     ],
 
     // The guides (/guides and each guide's frame; the guides' own words are resources/guides/en).

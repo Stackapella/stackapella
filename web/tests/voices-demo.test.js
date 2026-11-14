@@ -43,3 +43,27 @@ test('demo styled line: plain notes on their beats, and each move where it was a
     const last = line[line.length - 1];
     assert(-cents(last.f, 60) >= FALL_BY && 4 - last.at <= 0.4, 'the fall-off drops at the end of the last note');
 });
+
+test('voices: a tap wakes a context iOS left interrupted (after a call or another app), not only a suspended one', async () => {
+    const real = window.AudioContext;
+    let resumed = 0;
+    window.AudioContext = class {
+        constructor() {
+            this.state = 'interrupted';
+        }
+        createPeriodicWave() {
+            return {};
+        }
+        resume() {
+            resumed += 1;
+            return Promise.resolve();
+        }
+    };
+    try {
+        const fresh = await import('/js/public/voices.js?wake'); // its own module copy, so its context is the fake
+        fresh.audio();
+        assert(resumed === 1, `resumed ${resumed} times`);
+    } finally {
+        window.AudioContext = real;
+    }
+});

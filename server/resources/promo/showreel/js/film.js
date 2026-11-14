@@ -27,8 +27,8 @@ const clock = (s) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStar
 // gems are big and chunky, as in the arcade lanes: each is taller than two semitones.
 const PXB = 200, SP = 26, GH = 64, GAP = 70, GW = 14; // v5: the lanes closer, so the whole stack fits under the line
 const X = (b) => b * PXB;
-const LOOK = { maoz: 'hanukkah', maozr: 'hanukkah', carolsr: 'carols' }[CUT] ?? CUT; // Maoz Tzur once through (and its Reddit cut) looks like the Hanukkah cut
-const RANGE = CUT === 'maoz' ? [[59, 76], [56, 71], [51, 64], [45, 57]] : CUT === 'maozr' ? [[59, 76], [56, 69], [51, 59], [45, 52]] : LOOK === 'carols' ? [[64, 74], [59, 64], [55, 62], [43, 48]] : CUT === 'hanukkah' ? [[59, 75], [56, 70], [51, 61], [45, 54]] : [[62, 74], [59, 71], [55, 60], [43, 50]];
+const LOOK = { maoz: 'hanukkah', maozr: 'hanukkah', oyr: 'hanukkah', carolsr: 'carols', harkr: 'carols' }[CUT] ?? CUT; // Maoz Tzur once through (and its Reddit cut) looks like the Hanukkah cut
+const RANGE = CUT === 'maoz' ? [[59, 76], [56, 71], [51, 64], [45, 57]] : CUT === 'maozr' ? [[59, 76], [56, 69], [51, 59], [45, 52]] : CUT === 'thanksr' ? [[65, 74], [57, 70], [53, 62], [41, 58]] : CUT === 'oyr' ? [[65, 77], [56, 70], [48, 64], [41, 53]] : CUT === 'harkr' ? [[62, 74], [61, 69], [54, 64], [43, 55]] : LOOK === 'carols' ? [[64, 74], [59, 64], [55, 62], [43, 48]] : CUT === 'hanukkah' ? [[59, 75], [56, 70], [51, 61], [45, 54]] : [[62, 74], [59, 71], [55, 60], [43, 50]];
 const REAL = SEASONAL && !SC.real ? '' : tr('a real voice'); // a season cut's voices are the app's guide, not recordings
 const LANES = (() => {
     let top = 0;
@@ -124,7 +124,7 @@ const ENDS = {
     thumb: { mark: 0, k: 1, h: 0, p: 0, site: 0, br: '' },
 };
 const EL = ENDS[FORMAT];
-const KEEP = { maozr: 'jewish-songs', carolsr: 'christmas-carols', gracer: 'amazing-grace' }[CUT]; // the Reddit cuts' card: "Keep singing, part by part." and the page
+const KEEP = { maozr: 'jewish-songs', carolsr: 'christmas-carols', gracer: 'amazing-grace', thanksr: 'thanksgiving-hymns', oyr: 'jewish-songs', harkr: 'christmas-carols' }[CUT]; // the Reddit cuts' card: "Keep singing, part by part." and the page
 const CARD = KEEP ? ['Keep singing,', `stackapella.com/songs/${KEEP}`] : { carols: ['Christmas carols,', 'stackapella.com/songs/christmas-carols'], hanukkah: ['Hanukkah songs,', 'stackapella.com/songs/jewish-songs'] }[LOOK];
 endEl.innerHTML = CARD ? `<h2>${CARD[0]}${EL.br} <em>part by part.</em></h2><p></p><p class="site">${CARD[1]}</p><p class="credit"></p>`
     : `<h2>${tr('Harmony,')}${EL.br} <em>${tr('made by you.')}</em></h2><p></p><p class="site">${SITE}</p><p class="credit"></p>`;
@@ -697,7 +697,7 @@ const ACCENT = (k) => (k === 'brand' ? 'var(--accent)' : PART_VAR[k]);
 const L5 = (a, b, en, lit, colour) => { const [text, accent] = LINE_T(en, lit); return { a, b, text, accent, colour }; };
 const L5E = (a, b, text, accent, colour) => ({ a, b, text, accent, colour }); // a season cut's line: English only
 const LINE1 = 'Learn your harmony from a real singer.', LINE2 = 'Record each part over the others.', LINE3 = 'Stack your own voices, exactly in time.', LINE4 = 'The whole song is you.';
-const LINES = {
+const LINES_BY = {
     hero: [L5(-1, sec(12), LINE1, 'singer.', 0), L5(sec(12), sec(24), LINE2, 'others.', 1), L5(sec(24), sec(36), LINE3, 'time.', 2), L5(sec(36), sec(48), LINE4, 'you.', 'brand'),
         L5(sec(48), sec(66), 'Free to learn.', 'Free', 0), L5(sec(66), sec(72), 'Or play it as a game.', 'game.', 1), L5(sec(72), sec(84), 'For one voice, or a whole choir.', 'choir.', 2),
         L5(sec(84), sec(88), 'Open source on GitHub.', 'GitHub.', 3), L5(DUR - SPB, DUR + 1, LINE1, 'singer.', 0)],
@@ -709,8 +709,15 @@ const LINES = {
     // the Hanukkah cut: the same promises (its page's own), a line a voice
     // the Amazing Grace Reddit cut: its voices are the catalogue's real singers (fact-checked as the hero's line)
     gracer: [L5E(sec(6), sec(18), 'Amazing Grace, in four parts.', 'parts.', 1), L5E(sec(18), sec(27), 'Learn your part from a real singer.', 'singer.', 2), L5E(sec(27), sec(34.5), 'Free, in your browser.', 'Free,', 3)],
+    // the Thanksgiving Reddit cut: the same promises, a line from each joining voice
+    thanksr: [L5E(sec(8), sec(20), 'Now Thank We All Our God, in four parts.', 'parts.', 1), L5E(sec(20), sec(28), 'Hear each part, then sing yours.', 'yours.', 2), L5E(sec(28), sec(35.5), 'Free, in your browser.', 'Free,', 3)],
+    // Hark! The Herald's r/acappella cut (the carols look, its own lines)
+    harkr: [L5E(sec(8), sec(16), 'Hark! The Herald Angels Sing, in four parts.', 'parts.', 1), L5E(sec(16), sec(24), 'Hear each part, then sing yours.', 'yours.', 2), L5E(sec(24), sec(38.5), 'Free, in your browser.', 'Free,', 3)],
+    // Oy Chanukah's Reddit cut (the Hanukkah look, so its own lines by its cut)
+    oyr: [L5E(sec(8.5), sec(16.5), 'Oy Chanukah, in four parts.', 'parts.', 1), L5E(sec(16.5), sec(24.5), 'Hear each part, then sing yours.', 'yours.', 2), L5E(sec(24.5), sec(31), 'Free, in your browser.', 'Free,', 3)],
     hanukkah: [L5E(sec(6), sec(16), 'Maoz Tzur, in four parts.', 'parts.', 1), L5E(sec(16), sec(23.5), 'Hear each part, then sing yours.', 'yours.', 2), L5E(sec(23.5), sec(30.5), 'Free, in your browser.', 'Free,', 3)],
-}[LOOK];
+};
+const LINES = LINES_BY[CUT in LINES_BY ? CUT : LOOK];
 function drawLine(t) {
     const l = LINES.findLast((x) => t >= x.a - 1e-6 && t < x.b);
     vis(lineEl, !!l);
@@ -811,6 +818,7 @@ function carolsPage(t) {
 // then the next festival's card comes in under it (capture.py films the page as served, so the card's day count
 // is the capture day's: film it again on the day it is posted)
 function hanukkahPage(t) {
+    if (!CAPS.hanukkah.crops.motif) return lampPage(t); // Collections v2 has no motif: open on its hanukkiah, as the Reddit cut does
     const b = B(SC.lanes), u = E.snap(range(t, 0.3, 1.9)), leave = E.in(range(t, b - 0.22, b)), w = W - 80, C = CAPS.hanukkah.crops;
     const full = { x: C.text.x - 0.021, y: C.hero.y, w: 0.53, h: C.text.y + 0.325 - C.hero.y }, k = full.h / full.w;
     const lights = { x: C.motif.x + C.motif.w - 0.235, y: C.hero.y, w: 0.225, h: 0.225 * k };
@@ -853,6 +861,18 @@ function gracePage(t) {
     const u = E.snap(range(t, 0.6, 2.4)), crop = lerp4(title, head, u);
     const push = lerp(1, 1.04, range(t, 0, b)) * (1 + 0.08 * leave), ry = lerp(-5, -1.5, range(t, 0, b));
     return [{ id: 'grace', crop, clock: 0, x: CX, y: CY, w: W - (VERT ? 80 : 240), glow: 2, s: push, rx: 2, ry, sheen: range(t, 0.2, 1.2) }];
+}
+// the Thanksgiving Reddit cut's opening: the Thanksgiving hymns page as served, close on its words (the title, the
+// blurb, the buttons), then back to the whole hero, the words beside the page's own four-part player
+function thanksPage(t) {
+    const b = B(SC.lanes), leave = E.in(range(t, b - 0.22, b)), C = CAPS.thanks.crops, pad = 0.02;
+    const hero = { x: C.hero.x - pad, y: C.hero.y - pad, w: C.hero.w + 2 * pad, h: C.hero.h + 2 * pad };
+    const w = C.text.w + 2 * pad, h = (w * hero.h) / hero.w;
+    const text = { x: C.text.x - pad, y: clamp(C.text.y + C.text.h / 2 - h / 2, hero.y, hero.y + hero.h - h), w, h };
+    const u = E.snap(range(t, 0.6, 2.4)), crop = lerp4(text, hero, u);
+    const push = lerp(1, 1.04, range(t, 0, b)) * (1 + 0.08 * leave), ry = lerp(-5, -1.5, range(t, 0, b));
+    const c = CAPS.thanks, fit = ((H - 150) * hero.w * c.w) / (hero.h * c.h); // the whole hero inside the frame
+    return [{ id: 'thanks', crop, clock: 0, x: CX, y: CY, w: Math.min(W - (VERT ? 80 : 240), fit), glow: 2, s: push, rx: 2, ry, sheen: range(t, 0.2, 1.2) }];
 }
 const endCam = (t) => ({ x: END.cx, y: END.cy, zoom: lerp(1, 1.04, range(t, B(CUE.end), B(LAST - 1))) });
 
@@ -985,6 +1005,24 @@ const SHOTS_BY_CUT = {
     // the Amazing Grace Reddit cut: its song page, then the lanes
     gracer: [
         { a: 0, set: 'planes', wash: 3, soft: true, planes: gracePage },
+        { a: B(6), set: 'lanes', cam: carolCam, trail: true, hold: true },
+        { a: B(CUE.end), set: 'lanes', mark: 'end', wordsAt: B(CUE.end) + 0.7, cam: carolEnd },
+    ],
+    // the Thanksgiving Reddit cut: its collection page, then the lanes
+    thanksr: [
+        { a: 0, set: 'planes', wash: 3, soft: true, planes: thanksPage },
+        { a: B(6), set: 'lanes', cam: carolCam, trail: true, hold: true },
+        { a: B(CUE.end), set: 'lanes', mark: 'end', wordsAt: B(CUE.end) + 0.7, cam: carolEnd },
+    ],
+    // Hark! The Herald's: the carols page, then the lanes
+    harkr: [
+        { a: 0, set: 'planes', wash: 2, soft: true, planes: carolsPage },
+        { a: B(SC.lanes), set: 'lanes', cam: carolCam, trail: true, hold: true },
+        { a: B(CUE.end), set: 'lanes', mark: 'end', wordsAt: B(CUE.end) + 0.7, cam: carolEnd },
+    ],
+    // Oy Chanukah's: the same as Maoz Tzur's
+    oyr: [
+        { a: 0, set: 'planes', wash: 3, soft: true, planes: lampPage },
         { a: B(6), set: 'lanes', cam: carolCam, trail: true, hold: true },
         { a: B(CUE.end), set: 'lanes', mark: 'end', wordsAt: B(CUE.end) + 0.7, cam: carolEnd },
     ],

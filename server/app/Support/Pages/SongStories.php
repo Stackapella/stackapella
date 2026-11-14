@@ -35,8 +35,8 @@ final class SongStories
         'sources' => ['Sources', true],
     ];
 
-    /** The parser's version, in its cache key: a parse kept from an older one is never served (2: fullWords; 3: plain text's entities read back). */
-    private const PARSER = 4;
+    /** The parser's version, in its cache key: a parse kept from an older one is never served (2: fullWords; 3: plain text's entities read back; 5: public-domain pictures name their licence page). */
+    private const PARSER = 5;
 
     /** The words section's last subsection, the song's whole text, by the story's language (marketing's fullWords). */
     public const FULL_WORDS = ['The full words', 'La letra completa'];

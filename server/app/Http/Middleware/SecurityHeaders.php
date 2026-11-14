@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Middleware;
 
 use App\Support\Http\Hosts;
+use App\Support\Site\GamePreload;
 use App\Support\Site\Showreel;
 use App\Support\Web\AppShell;
 use Closure;
@@ -53,6 +54,14 @@ final class SecurityHeaders
     {
         $response = $next($request);
         $headers = $response->headers;
+        // What Cloudflare's edge may keep (SongPagesController::edgeHeaders) never outlives a later "private" or
+        // "no-store" (a language preview on an admin's device): the edge reads its own header first, so it would keep
+        // one person's page for everyone. Such a page tells the edge no-store outright (never just drops the header:
+        // the app shell and others already say no-store there on purpose).
+        $cacheControl = strtolower((string) $headers->get('Cache-Control'));
+        if ($headers->has('Cloudflare-CDN-Cache-Control') && (str_contains($cacheControl, 'private') || str_contains($cacheControl, 'no-store'))) {
+            $headers->set('Cloudflare-CDN-Cache-Control', 'no-store');
+        }
         // The service worker runs under its own script's policy: the app's, so it can precache the
         // pinned libraries from the CDN, the fonts and the media (a page's 'self' alone made every
         // new version's install fail, leaving browsers on an old one).
@@ -137,7 +146,9 @@ final class SecurityHeaders
 
         return $this->build([
             'default-src' => ["'self'"],
-            'script-src' => ["'self'", ...$turnstile],
+            // GamePreload's one inline script (game mode's sheet and VT323 started early), by its hash, where it's drawn: the
+            // public pages and the tool embeds, never the admin or another embed.
+            'script-src' => ["'self'", ...(! $isAdmin && (! $isEmbed || $isToolEmbed) ? [GamePreload::hash()] : []), ...$turnstile],
             // Our own embeds may be framed by a page of ours (/tools/embed previews them); the admin and
             // the embeds themselves frame nothing.
             'frame-src' => $turnstile === [] ? ["'none'"] : ["'self'", ...$turnstile],
@@ -148,8 +159,9 @@ final class SecurityHeaders
             'img-src' => array_values(array_unique(array_filter(["'self'", 'data:', $media, Showreel::origin()]))),
             'media-src' => array_values(array_unique(array_filter(["'self'", $media, Showreel::origin()]))),
             // The public site's pages send Report to the app's host (docs/app-subdomain-plan.md), and the
-            // landing's lane fetches a part's guide from the media CDN to score it (an <audio> can't be tracked).
-            'connect-src' => array_values(array_unique(array_filter(["'self'", $media, ...(Hosts::split() ? [Hosts::appUrl()] : [])]))),
+            // landing's lane fetches a part's guide from the media CDN to score it (an <audio> can't be tracked). The app
+            // prefetch (AppPrefetch) warms the app's files and Vue from the app's own CDN, so lesson 1 doesn't wait for it.
+            'connect-src' => array_values(array_unique(array_filter(["'self'", $media, ...(Hosts::split() ? [Hosts::appUrl()] : []), ...$this->shell->cdnSources()]))),
             'object-src' => ["'none'"],
             'base-uri' => ["'self'"],
             // Signing in posts here and is redirected to Google; browsers apply form-action to it.

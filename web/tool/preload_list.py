@@ -34,7 +34,6 @@ WEB = Path(__file__).resolve().parent.parent
 ENTRY = WEB / "js" / "main.js"
 PRELOAD = WEB / "js" / "preload.js"
 ENGLISH = WEB / "locales" / "en.json"
-FIRST_WORDS = WEB / "locales" / "lesson1" / "en.json"
 # A static import or re-export (`import x from './y.js'`, `import './y.js'`, `export { x } from './y.js'`),
 # never import() and never a bare specifier (vue, which preload.js preloads on its own).
 STATIC = re.compile(r"""^\s*(?:import|export)\s+(?:[^'"`;()]*?\s+from\s+)?['"](\.{1,2}/[^'"]+|/[^'"]+)['"]""", re.M)
@@ -44,7 +43,6 @@ GAME_LOADERS = WEB / "js" / "game" / "modules.js"
 LESSON_BEGIN, LESSON_END = "    // preload_list.py: lesson begin", "    // preload_list.py: lesson end"
 HOME_BEGIN, HOME_END = "    // preload_list.py: home begin", "    // preload_list.py: home end"
 HOME_VIEW = WEB / "js" / "views" / "projects.js"
-HOME_WORDS = WEB / "locales" / "home1" / "en.json"
 LEARN_BEGIN, LEARN_END = "    // preload_list.py: learn begin", "    // preload_list.py: learn end"
 LEARN_VIEW = WEB / "js" / "views" / "learn.js"
 LESSON_LOADERS = (WEB / "js" / "components" / "lazy-lesson.js", WEB / "js" / "lazy-stores.js")
@@ -146,8 +144,13 @@ def written(modules):
     return block(text, GAME_BEGIN, GAME_END, "GAME", game_modules(modules))
 
 
-def words(modules):
-    """en.json with only the keys these modules use, in en.json's order."""
+# The translated languages (each with its .source.json, as js/i18n.js SOURCED): each first-words bundle in them too, the
+# same keys from <lang>.json and <lang>.source.json, so a first visit in Spanish starts as small as one in English.
+TRANSLATED = sorted(p.name.split(".")[0] for p in (WEB / "locales").glob("*.source.json"))
+
+
+def words(modules, of=ENGLISH):
+    """`of` (en.json, or a translation or its .source.json) with only the keys these modules use, in its order."""
     used = set()
     for path in [ENTRY, *(WEB / m.lstrip("/") for m in modules)]:
         # Comments don't count, as in the words check.
@@ -165,29 +168,42 @@ def words(modules):
                 out[name] = inner
         return out
 
-    return json.dumps(keep(json.loads(ENGLISH.read_text()), ""), ensure_ascii=False, separators=(",", ":")) + "\n"
+    return json.dumps(keep(json.loads(of.read_text()), ""), ensure_ascii=False, separators=(",", ":")) + "\n"
+
+
+def bundles(modules):
+    """Every first-words file and its text: lesson 1's and Home's, in English and in each translated language."""
+    # Game mode's own words too (its title card, its HUD: loaded with game mode on a first visit, and blank until all the
+    # words came; 2.5 KB gzipped each), so a game-mode first visit has every word its first screen draws.
+    game = game_modules(modules)
+    sets = {"lesson1": modules + learn_modules(modules) + lesson_modules(modules) + game, "home1": modules + home_modules(modules) + game}
+    out = {}
+    for folder, used in sets.items():
+        for name in ["en", *TRANSLATED]:
+            for suffix in ([""] if name == "en" else ["", ".source"]):
+                out[WEB / "locales" / folder / f"{name}{suffix}.json"] = words(used, WEB / "locales" / f"{name}{suffix}.json")
+    return out
 
 
 def main():
     modules = graph()
     new = written(modules)
-    lesson_words = words(modules + learn_modules(modules) + lesson_modules(modules))
-    home_words = words(modules + home_modules(modules))
+    files = bundles(modules)
     count = len(modules)
     if "--check" in sys.argv:
         if new != PRELOAD.read_text():
             sys.exit("FAIL js/preload.js's module list is out of date: run python3 -I web/tool/preload_list.py")
-        if not FIRST_WORDS.exists() or lesson_words != FIRST_WORDS.read_text():
-            sys.exit("FAIL locales/lesson1/en.json is out of date: run python3 -I web/tool/preload_list.py")
-        if not HOME_WORDS.exists() or home_words != HOME_WORDS.read_text():
-            sys.exit("FAIL locales/home1/en.json is out of date: run python3 -I web/tool/preload_list.py")
+        for path, text in files.items():
+            if not path.exists() or text != path.read_text():
+                sys.exit(f"FAIL {path.relative_to(WEB)} is out of date: run python3 -I web/tool/preload_list.py")
         print(f"preload: {count} modules and their words, up to date")
         return
     PRELOAD.write_text(new)
-    for path, text in ((FIRST_WORDS, lesson_words), (HOME_WORDS, home_words)):
+    for path, text in files.items():
         path.parent.mkdir(exist_ok=True)
         path.write_text(text)
-    print(f"preload: wrote {count} modules into js/preload.js, lesson 1's words ({len(lesson_words) // 1024} KB) and Home's ({len(home_words) // 1024} KB)")
+    sizes = ", ".join(f"{path.parent.name}/{path.name} {len(text) // 1024} KB" for path, text in files.items())
+    print(f"preload: wrote {count} modules into js/preload.js, and the first words: {sizes}")
 
 
 if __name__ == "__main__":

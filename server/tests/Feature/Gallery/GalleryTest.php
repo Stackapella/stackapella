@@ -361,6 +361,9 @@ final class GalleryTest extends TestCase
 
     public function test_a_days_likes_are_named_after_the_latest_liker_not_blocked_and_hidden_only_when_all_are(): void
     {
+        // At noon UTC: a harmony's likes are one item a UTC day (Bell), so three likes a minute apart that began just
+        // before midnight made two items, and the suite failed only when it ran then (the arranger's chain36).
+        $this->travelTo(now()->utc()->setTime(12, 0));
         $this->open();
         $ana = $this->singer('ana');
         $harmony = $this->listed($ana);

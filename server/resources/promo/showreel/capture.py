@@ -285,6 +285,8 @@ SHOTS = {
     'hanukkah': {'size': 'desktop-close', 'skin': 'serious', 'url': 'LIVE/songs/jewish-songs', 'wait': "document.querySelector('.s-jcount')"},
     # the Amazing Grace Reddit cut's (render.py --cut=gracer): the song's own page as it is served (public, no one's data)
     'grace': {'size': 'desktop-close', 'skin': 'serious', 'url': 'LIVE/songs/amazing-grace', 'wait': "document.querySelector('h1')"},
+    # the Thanksgiving Reddit cut's (render.py --cut=thanksr): the collection page as it is served
+    'thanks': {'size': 'desktop-close', 'skin': 'serious', 'url': 'LIVE/songs/thanksgiving-hymns', 'wait': "document.querySelector('h1')"},
     # January's: the hymns (/songs/hymns), or the whole songbook (/songs)
     'hymns': {'size': 'desktop', 'skin': 'serious', 'url': 'SITE/songs/hymns', 'wait': "document.querySelector('h1')"},
     'hymns-book': {'size': 'desktop', 'skin': 'serious', 'url': 'SITE/songs/hymns', 'wait': "document.querySelector('[data-songbook]')", 'then': BOOK,
@@ -328,6 +330,7 @@ SHOTS['hanukkah']['crops'] = {'count': '.s-jcount', 'head': '.s-xhero-text h1', 
                              'hero': '.s-xhero',
                              # Collections v2's hanukkiah in the festival card (the Reddit cut opens on it); null, so left out, without it
                              'lamp': "(() => { const e = document.querySelector('.s-jcount .s-hk-card'); if (!e) return null; const r = e.getBoundingClientRect(); return [r.left, r.top, r.right, r.bottom]; })()"}
+SHOTS['thanks']['crops'] = {'hero': '.s-xhero-in', 'text': '.s-xhero-text', 'title': '.s-xhero-text h1', 'mixer': '.s-mixer'}
 SHOTS['grace']['crops'] = {'head': 'section.s-head', 'title': 'h1', 'mixer': '.s-mixer', 'actions': '.s-actions'}
 SHOTS['carols-book']['crops'] = {'card': '[data-songbook] .s-xcard', 'filter': '.s-xfilter',
                                  'row': "(() => { const c = [...document.querySelectorAll('[data-songbook] .s-xcard')].slice(0, 3).map((e) => e.getBoundingClientRect()), f = document.querySelector('.s-xfilter').getBoundingClientRect(); return [c[0].left, f.top - 8, c[2].right, c[0].bottom]; })()"}

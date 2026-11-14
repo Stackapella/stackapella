@@ -130,7 +130,9 @@ return [
         // A share, sh:<surface>.<method>: what was shared and how (config counts.share_surfaces and share_methods;
         // a free tool's surface is tool-<slug>).
         'sh' => 'shares',
-        // A free tool's result reached, and its way into the app tapped: tool_result:<slug>, tool_try:<slug>.
+        // A free tool opened (its first use on the page: the mic started, a note played), its result reached, and its
+        // way into the app tapped: tool_open:<slug>, tool_result:<slug>, tool_try:<slug>, each tool's funnel.
+        'tool_open' => 'tools',
         'tool_result' => 'tools',
         'tool_try' => 'tools',
         // The "try next" line (breadth's nudge): shown and tapped, by feature.

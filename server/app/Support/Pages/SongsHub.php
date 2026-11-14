@@ -249,12 +249,20 @@ final class SongsHub
 
     /**
      * Each with its kind for its card's line (Hillel's songbook design: "C major · SATB"): a round, four choir parts, or how many.
+     * Its line to play leaves out the words: a card on /songs plays the notes and shows no lyric, and the words were about a
+     * tenth of the page (site_integration's OWN_KB, 2026-11-14).
      *
      * @param  list<array<string, mixed>>  $cards
      * @return list<array<string, mixed>>
      */
     private static function kinds(array $cards, string $key): array
     {
-        return array_map(static fn (array $card): array => [...$card, 'kind' => $key === 'rounds' ? 'round' : (array_column($card['parts'], 'key') === SongParts::SATB ? 'satb' : 'parts')], $cards);
+        return array_map(static function (array $card) use ($key): array {
+            if (is_array($card['line'] ?? null)) {
+                unset($card['line']['words']);
+            }
+
+            return [...$card, 'kind' => $key === 'rounds' ? 'round' : (array_column($card['parts'], 'key') === SongParts::SATB ? 'satb' : 'parts')];
+        }, $cards);
     }
 }

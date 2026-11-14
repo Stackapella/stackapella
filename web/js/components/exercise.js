@@ -372,7 +372,7 @@ export const Exercise = {
                 <button v-if="waiting.searching > 2 * HINT_AFTER" type="button" class="btn-ghost btn-sm" @click="skipNote">{{ t('course.skipNote') }}</button>
             </div>
             <p v-if="error" class="text-center text-sm text-bad" role="alert">{{ error }}</p>
-            <p v-if="speaker && soundsUnder && (mode !== 'try' || answered())" class="text-center text-sm text-muted">{{ mode === 'try' ? t('course.speakerTry') : exercise.turn === false ? t('course.speakerUnder') : t('course.speakerPlay') }}</p>
+            <p v-if="speaker && soundsUnder && (mode !== 'try' || answered())" class="text-center text-sm text-muted">{{ mode === 'try' ? t('course.speakerTry') : exercise.turn === false ? (laid.turnFrom > 0 ? t('course.speakerUnder') : t('course.speakerUnderAtOnce')) : t('course.speakerPlay') }}</p>
             <HeadphonesDialog v-if="asking" speaker-option simple :needed="!!headphonesFor" :action="t('headphones.on')" @ok="headphonesOn" @speaker="useSpeaker" @close="asking = false" />
             <!-- Waiting for you needs no Stop: Hear the note again, or Start over. -->
             <div v-if="mode === 'try' && (running || waitDone)" class="flex flex-wrap justify-center gap-3">
@@ -570,7 +570,11 @@ export const Exercise = {
             const count = this.laid.guide.length;
             if (this.waitDone) return t('course.wait.doneLine', { count });
             if (!this.running) return t('course.wait.readyLine', { count });
-            return this.onNote ? t('course.wait.holdLine', { note: this.name(this.waitNote.pitch) }) : t('course.wait.findLine');
+            if (this.onNote) return t('course.wait.holdLine', { note: this.name(this.waitNote.pitch) });
+            // The note's own sound when it has one ("oo", a word), never an "ah" the guide doesn't sing (the courses lead's
+            // first-week read, 2026-11-14: lesson 2's guide sang "oo" under "Hum or sing 'ah'").
+            const word = this.waitNote?.lyric?.trim();
+            return word ? t('course.wait.findLine', { word }) : t('course.wait.findLineAny');
         },
         waitLabel() {
             return this.waitNote ? t('course.wait.label', { note: this.name(this.waitNote.pitch), percent: Math.round(this.fill * 100) }) : '';

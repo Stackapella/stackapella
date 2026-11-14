@@ -343,6 +343,15 @@ test('engine: an interruption during the timing check stops it, instead of measu
     assert(error?.name === 'AbortError', `got ${error}`);
 });
 
+test('engine: a mic whose track ended (a call, another app) is opened afresh, never reused silent', async () => {
+    const first = await engine.openMic();
+    first.stream.getAudioTracks()[0].stop(); // what iOS does when a call takes the mic: the track ends
+    const again = await engine.openMic();
+    assert(again !== first, 'the ended mic was handed out again');
+    assert(again.stream.getAudioTracks()[0].readyState === 'live', `its track is ${again.stream.getAudioTracks()[0].readyState}`);
+    engine.closeMic();
+});
+
 test('engine: two mic opens at once share one mic, and closing while the browser asks closes it', async () => {
     const [a, b] = await Promise.all([engine.openMic(), engine.openMic()]);
     assert(a === b && engine.mic === a, 'one mic');

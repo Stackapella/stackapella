@@ -34,6 +34,7 @@ python3 -I tool/flags_check.py
 python3 -I tool/skin_check.py
 python3 -I tool/preload_list.py --check
 python3 -I tool/tool_preloads.py --check
+python3 -I tool/cdn_pins_check.py
 
 # The tests that ask for a file that isn't there on purpose (a language with no words, a guide that won't load) get a
 # 404, as production answers; those two are expected, any other page error fails the run.

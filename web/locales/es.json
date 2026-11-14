@@ -1406,6 +1406,7 @@
             "noWordsOff": "En la frase {number}, {count, plural, one {una nota quedó desafinada} other {# notas quedaron desafinadas}}."
         },
         "recordingStage": {
+            "heading": "Grabando {title}",
             "recording": "Grabando",
             "take": "Toma {number}",
             "startOver": "Reiniciar",
@@ -1976,6 +1977,7 @@
         }
     },
     "course": {
+        "speakerUnderAtOnce": "Sin auriculares, el sonido de fondo descansa mientras cantas, para que solo te oigamos a ti. Con auriculares, sigue sonando debajo de ti.",
         "mapLessonsStars": "{done} de {total} lecciones · {stars}/{max} ★",
         "friendNote": {
             "both": "Tu amigo: {theirs} · Tú: {yours}",
@@ -2116,14 +2118,15 @@
         "skipNote": "Omitir esta nota",
         "recordGoOnHint": "Grábala y luego revísala para seguir.",
         "wait": {
+            "findLineAny": "Tararéala o cántala. La barra solo se llena mientras estás en la nota, así que tómate tu tiempo.",
             "notes": "Las notas que encontrar",
             "waiting": "La música te espera",
             "slideUp": "Sube",
             "comeDown": "Baja",
             "allMatched": "{count, plural, one {Nota encontrada} other {Las # notas encontradas}}",
-            "next": "{count, plural, one {Ahora la cantarás sin la guía.} other {Ahora las cantarás sin la guía.}}",
+            "next": "Sigue al siguiente paso cuando quieras.",
             "find": "Busca {note}",
-            "findLine": "Tararea o canta \"ah\". La barra solo se llena mientras estás en la nota, así que tómate tu tiempo.",
+            "findLine": "Tararea o canta \"{word}\". La barra solo se llena mientras estás en la nota, así que tómate tu tiempo.",
             "hold": "Eso es, mantenla",
             "holdLine": "Quédate en {note} mientras se llena la barra.",
             "done": "Muy bien",

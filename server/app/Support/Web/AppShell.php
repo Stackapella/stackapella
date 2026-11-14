@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Support\Web;
 
+use App\Actions\Counts\Funnel;
 use App\Support\Http\Hosts;
 use App\Support\Languages\Languages;
 use RuntimeException;
@@ -35,6 +36,9 @@ final class AppShell
         // The languages open now (auth.config's `languages`), so a first visit mounts in the browser's language from
         // the start rather than after auth.config answers (frontend2, 2026-11-12).
         $meta .= '<meta name="live-languages" content="'.htmlspecialchars(implode(',', app(Languages::class)->offered()), ENT_QUOTES).'">';
+        // The running experiments (auth.config's `experiments`, Funnel::running), so a first visit draws lesson 1's arm at
+        // once instead of waiting a round trip for auth.config (frontend, the lesson 1 speed task); auth.config confirms.
+        $meta .= '<meta name="experiments" content="'.htmlspecialchars((string) json_encode(app(Funnel::class)->running(), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE), ENT_QUOTES).'">';
 
         if ($domain !== '') {
             $meta .= '<meta name="theme-cookie-domain" content="'.htmlspecialchars($domain, ENT_QUOTES).'">';

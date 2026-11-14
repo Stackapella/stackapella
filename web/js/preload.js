@@ -18,6 +18,25 @@
     const opens = location.pathname === '/' ? 'home' : /^\/(learn\/[\w-]+|cooldown)\/?$/.test(location.pathname) ? 'lesson' : null;
     // That screen's own words (js/i18n.js fetches them on a first visit): asked for now, not after the modules.
     preload(opens === 'lesson' ? '/locales/lesson1/en.json' : opens === 'home' ? '/locales/home1/en.json' : '/locales/en.json', { rel: 'preload', as: 'fetch', crossOrigin: 'anonymous' });
+    // In a translated language, its words for that screen too (js/i18n.js loadLanguage), chosen as preferredLanguages()
+    // does: ?lang= first, then this device's choice, the site's (sa_lang) and the browser's, if it's switched on.
+    if (opens) {
+        const TRANSLATED = ['es']; // the languages with first-words bundles (tool/preload_list.py: each .source.json)
+        const live = (document.querySelector('meta[name="live-languages"]')?.content ?? '').split(',').map((lang) => lang.trim());
+        let kept = null;
+        try {
+            kept = localStorage.getItem('stackapella.lang');
+        } catch {
+            kept = null; // no storage here: the address and the browser decide
+        }
+        const asked = new URLSearchParams(location.search).get('lang');
+        const site = /(?:^|;\s*)sa_lang=([a-z]{2,3})(?:;|$)/.exec(document.cookie)?.[1];
+        const base = (lang) => String(lang).split('-')[0];
+        const lang = asked ? base(asked) : [kept, site, ...(navigator.languages ?? [navigator.language])].filter(Boolean).map(base).find((l) => l === 'en' || live.includes(l));
+        if (TRANSLATED.includes(lang)) {
+            for (const file of [`${lang}.json`, `${lang}.source.json`]) preload(`/locales/${opens === 'lesson' ? 'lesson1' : 'home1'}/${file}`, { rel: 'preload', as: 'fetch', crossOrigin: 'anonymous' });
+        }
+    }
     // The courses (js/stores/learning.js fetches them as the app starts): lesson 1 can't draw without them, and asked for
     // only once every module had run, they came a round trip and a server's answer late (a slow 4G phone, 2026-11-08).
     preload('/course/course.json', { rel: 'preload', as: 'fetch', crossOrigin: 'anonymous' });
@@ -25,6 +44,7 @@
     // import graph, and tool/test.sh fails when it's stale. main.js itself is the page's own script.
     // preload_list.py: begin
     const MODULES = [
+        '/js/first-screen.js',
         '/js/errors.js',
         '/js/templates.js',
         '/js/api.js',

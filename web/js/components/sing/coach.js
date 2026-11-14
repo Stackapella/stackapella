@@ -42,7 +42,15 @@ export const Coach = {
         starting(now) {
             if (!now) this.pressed = false;
         },
-        step: { immediate: true, handler: () => renameScreen() },
+        // Each step (and the coach's arrival) takes focus to its heading and names the tab: the part's button that
+        // brought you here, or Next, is gone or renamed, and focus was left on the page (the first-week a11y pass).
+        step: {
+            immediate: true,
+            handler() {
+                renameScreen();
+                this.$nextTick(() => this.$refs.heading?.focus({ preventScroll: true }));
+            },
+        },
     },
     setup: () => ({ STEP, STEPS, game }),
     // 66.png: "Step 1 of 4" over the steps as bars, the step and its line, the key, Next; the phrases
@@ -63,7 +71,7 @@ export const Coach = {
                 </ol>
                 <div>
                     <!-- The screen's heading (h1): the tab says the step, and a screen reader hears where it is (WCAG 2.4.2). -->
-                    <h1 class="text-3xl font-extrabold tracking-tight text-cream">{{ t(STEP[step].name) }}</h1>
+                    <h1 ref="heading" tabindex="-1" class="text-3xl font-extrabold tracking-tight text-cream outline-none">{{ t(STEP[step].name) }}</h1>
                     <p class="mt-2 text-muted">{{ t(STEP[step].hint, { part: partName }) }}</p>
                 </div>
                 <KeyControl v-if="musicKey && !(game() && step === 'listen')" :music-key="musicKey" :can-lower="canLower" :can-higher="canHigher" @lower="$emit('lower')" @higher="$emit('higher')" />

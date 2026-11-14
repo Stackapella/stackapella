@@ -114,6 +114,110 @@ def check(f, screen, failures):
     f.chrome.errors.clear()
 
 
+# Where focus is, and whether the tab is named for the screen's one heading (the first-week a11y pass, 2026-11-14).
+FOCUS_ON_HEADING = """(() => { const h = [...document.querySelectorAll('#app h1')]; const e = document.activeElement;
+    const words = h[0]?.textContent.trim().replace(/\\s+/g, ' ') ?? '';
+    return { headings: h.length, onHeading: !!h[0] && e === h[0], named: !!words && document.title.startsWith(words.slice(0, 30)), focus: e === document.body ? 'body' : e.tagName.toLowerCase() + ' ' + (e.innerText || e.getAttribute('aria-label') || '').trim().slice(0, 40), title: document.title }; })()"""
+
+
+PASSED = []  # what the last tab_to went past, for its failure message
+
+
+def tab_to(f, test, limit=40):
+    """Tabs until the focused element passes `test` (a JS expression over `e`); False if it never does."""
+    PASSED.clear()
+    for _ in range(limit):
+        f.press("Tab")
+        if f.js(f"(() => {{ const e = document.activeElement; return !!({test}); }})()"):
+            return True
+        PASSED.append(f.js("(() => { const e = document.activeElement; return (e.innerText || e.getAttribute('aria-label') || e.tagName).trim().replace(/\\s+/g, ' ').slice(0, 30); })()"))
+    return False
+
+
+def on_heading(f, screen, failures):
+    """After a change made with the keyboard: focus on the new screen's heading, and the tab named for it."""
+    state = f.js(FOCUS_ON_HEADING)
+    if state["headings"] != 1:
+        failures.append(f"{screen}: {state['headings']} h1s")
+    if not state["onHeading"]:
+        failures.append(f"{screen}: focus isn't on the new heading but on {state['focus']}")
+    if not state["named"]:
+        failures.append(f"{screen}: the tab says {state['title']!r}, not the screen's heading")
+
+
+def keyboard_lesson(f, failures):
+    """Lesson 1 by Tab and Enter alone: Continue moves focus to the next step's heading and names the tab; the mic's
+    live words stay few while it listens (nothing said on every reading); a guest's account ask has its own heading."""
+    f.run("sessionStorage.removeItem('stackapella.lesson.1-comfortable')")
+    f.go("/learn/1-comfortable?api=mock&scenario=&as=signedOut", "document.querySelector('[data-go-on]:not([disabled])')")
+    if not tab_to(f, "e.matches('[data-go-on]')"):
+        failures.append("keyboard lesson: Continue never reached by Tab")
+        return
+    f.press("Enter")
+    f.wait("document.querySelector('[data-listening]')", what="the note step")
+    time.sleep(0.6)
+    on_heading(f, "keyboard lesson: after Continue", failures)
+    f.run("""window.__live = 0; const said = new Map(); new MutationObserver(() => { for (const r of document.querySelectorAll('[aria-live]:not([aria-live=off]), [role=status], [role=alert]')) {
+        const t = r.textContent.trim(); if (t && said.get(r) !== t) { said.set(r, t); window.__live++; } } }).observe(document.body, { subtree: true, childList: true, characterData: true });""")
+    time.sleep(8)
+    if f.js("window.__live") > 6:
+        failures.append(f"keyboard lesson: {f.js('window.__live')} live announcements in 8 s while listening")
+    f.go("/learn/1-match?api=mock&scenario=&as=signedOut", "document.querySelector('[data-needs-account]')")
+    time.sleep(0.6)
+    state = f.js(FOCUS_ON_HEADING)
+    if state["headings"] != 1 or not state["named"]:
+        failures.append(f"keyboard lesson: the account ask has {state['headings']} h1s and the tab says {state['title']!r}")
+
+
+def keyboard_sing(f, failures, song):
+    """Sing by Tab and Enter alone: the way, the part, the coach's steps (each takes focus to its heading and names the
+    tab), Record, the setup sheets, and the take: its heading has focus, and Stop is a few Tabs away."""
+    f.go(f"/p/{song}/sing?api=mock&scenario=&as=signedOut", "document.querySelector('[data-way=parts]')")
+    if not tab_to(f, "e.matches('[data-way=parts]')"):
+        failures.append("keyboard sing: Part by part never reached by Tab")
+        return
+    f.press("Enter")
+    time.sleep(0.8)
+    alto = t(f, "parts.alto")
+    if not tab_to(f, f"(e.innerText || e.getAttribute('aria-label') || '').includes({alto!r}) && e.matches('button, [role=radio]')"):
+        failures.append(f"keyboard sing: the alto never reached by Tab, past {PASSED[:12]}")
+        return
+    f.press("Enter")
+    time.sleep(0.8)
+    if f.js("!!document.querySelector('[data-select-sing]')") and tab_to(f, "e.matches('[data-select-sing]')"):
+        f.press("Enter")  # game mode's part select: its Sing button
+    f.wait("document.querySelector('[data-coach]')", what="the coach")
+    time.sleep(0.6)
+    on_heading(f, "keyboard sing: the coach", failures)
+    for n in range(3):
+        if not tab_to(f, "/^\\S+:/.test((e.innerText || '').trim()) && e.closest('[data-coach]')"):
+            failures.append(f"keyboard sing: the coach's Next {n + 1} never reached by Tab")
+            return
+        f.press("Enter")
+        time.sleep(0.6)
+        on_heading(f, f"keyboard sing: the coach's step {n + 2}", failures)
+    record = t(f, "sing.coach.action.record", {"part": alto})
+    if not tab_to(f, f"e.tagName === 'BUTTON' && (e.innerText || '').trim() === {record!r}"):
+        failures.append("keyboard sing: Record never reached by Tab")
+        return
+    f.press("Enter")
+    for _ in range(4):  # the first take's setup sheets: headphones, the mic, the timing check
+        time.sleep(1.2)
+        if not f.js("!!document.querySelector('[role=dialog][aria-modal=true]')"):
+            break
+        if not tab_to(f, "e.closest('[role=dialog]') && (e.classList.contains('btn-primary') || /estimate|start|continue|^skip$/i.test((e.innerText || '').trim()))", 15):
+            failures.append(f"keyboard sing: a setup sheet's way on never reached by Tab, past {PASSED[:12]}")
+            return
+        f.press("Enter")
+    f.wait("document.querySelector('[data-recording-stage]')", timeout=15, what="the take")
+    time.sleep(0.4)
+    on_heading(f, "keyboard sing: the take", failures)
+    if not tab_to(f, "e.matches('[data-stop]')", 6):
+        failures.append("keyboard sing: Stop isn't within 6 Tabs of the take's heading")
+    else:
+        f.press("Enter")
+
+
 def journey(f):
     failures = []
     f.chrome.send("Emulation.setEmulatedMedia", {"features": [{"name": "prefers-reduced-motion", "value": "reduce"}]})
@@ -156,6 +260,10 @@ def journey(f):
         f.run("document.querySelector('main .card-interactive, main [data-game-select] [data-slot]')?.click()")
         f.wait("document.querySelector('[data-coach]')", what="Sing's coach")
     visit("sing-coach", f"/p/{song}/sing?api=mock&scenario=&as=signedOut", "document.querySelector('h1')", coach)
+    try:
+        keyboard_sing(f, failures, new_song(f, "amazing-grace"))
+    except (AssertionError, TimeoutError) as error:
+        failures.append(f"keyboard sing: couldn't walk: {error}")
     # Game mode's Paused (stopped part of the way through): its blinking word and ring stop under reduced motion.
     try:
         f.run("document.querySelector('.h-dvh.flex-col')?.setAttribute('data-paused', '')")
@@ -163,6 +271,11 @@ def journey(f):
         still(f, "sing-paused", failures)
     except (AssertionError, TimeoutError) as error:
         failures.append(f"sing-paused: couldn't check: {error}")
+
+    try:
+        keyboard_lesson(f, failures)
+    except (AssertionError, TimeoutError) as error:
+        failures.append(f"keyboard lesson: couldn't walk: {error}")
 
     visit("signup", "/signin?mode=signup&api=mock&scenario=&as=signedOut", "document.querySelector('form')")
 

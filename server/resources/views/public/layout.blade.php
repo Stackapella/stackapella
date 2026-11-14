@@ -49,6 +49,9 @@
     @php($siteCss = \App\Support\Site\SiteCss::urls($web, '/'.ltrim(request()->path(), '/'), $__env->yieldContent('content').$__env->yieldContent('head')))
     <meta name="css-family" content="{{ \App\Support\Site\SiteCss::family('/'.ltrim(request()->path(), '/')) }}">
     <meta name="game-css" content="{{ $siteCss[1] }}">
+    {{-- Game mode's sheet and VT323 start downloading here, before theme-boot.js arrives (App\Support\Site\GamePreload;
+         inline, allowed by its CSP hash; serious mode adds nothing). --}}
+    {{ \App\Support\Site\GamePreload::tag() }}
     <script src="{{ \App\Support\Http\StaticVersions::url($web, '/js/theme-boot.js') }}"></script>
     <link rel="stylesheet" href="{{ $siteCss[0] }}">
     <script src="{{ \App\Support\Http\StaticVersions::url($web, '/js/game-css.js') }}"></script>

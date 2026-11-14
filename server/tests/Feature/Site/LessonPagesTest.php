@@ -74,6 +74,16 @@ final class LessonPagesTest extends TestCase
         $this->get(self::SITE.'/courses/perfect-your-pitch/scoop-or-clean?ref=share-lesson')->assertOk()->assertSee(e('ref=share-lesson'), false);
     }
 
+    public function test_a_lesson_page_retitled_with_its_song_leads_to_its_new_address(): void
+    {
+        // Backing vocals' Red River Valley lesson became Home on the Range's (2026-11-13); its old page was in the sitemap.
+        $this->open();
+        $new = self::SITE.'/courses/backing-vocals/home-on-the-range-a-pad-then-answers';
+        $this->get($new)->assertOk();
+        $this->get(self::SITE.'/courses/backing-vocals/red-river-valley-a-pad-then-answers')->assertStatus(301)->assertRedirect($new);
+        $this->assertNotContains('/courses/backing-vocals/red-river-valley-a-pad-then-answers', Lessons::paths());
+    }
+
     public function test_the_thin_courses_have_a_page_per_unit(): void
     {
         $this->open();
@@ -198,8 +208,8 @@ final class LessonPagesTest extends TestCase
         $this->open();
         $html = (string) $this->get(self::SITE.'/courses/harmony/find-your-voice')->assertOk()->getContent();
 
-        // "Sing any note that feels easy": a home step, now among the steps (Lessons::SUNG).
-        $this->assertStringContainsString('Sing any note that feels easy', $html);
+        // "Sing any easy note on "oo"": a home step, now among the steps (Lessons::SUNG).
+        $this->assertStringContainsString('Sing any easy note on', $html);
         // The challenge has no teaching: its steps are in the reading column, under its heading.
         preg_match_all('#<div class="s-lesson-read">(.*?)<div class="s-lesson-side">#s', $html, $reads);
         $this->assertNotEmpty(array_filter($reads[1], static fn (string $read): bool => str_contains($read, 'class="s-tool-how"')), 'a reading column holds the challenge\'s steps');

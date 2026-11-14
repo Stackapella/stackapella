@@ -3,6 +3,7 @@
 // each card with Play and a More menu), then the song library (Preview and Info on each, a tap
 // starts it). On a wide screen, the week and level, and the install card, sit at the side.
 
+import { markUsable } from '../first-screen.js';
 import { closeMic, engine, unlock } from '../audio.js';
 import { CreditLine } from '../components/credit.js';
 import { api } from '../api.js';
@@ -551,6 +552,7 @@ export const ProjectsView = {
             .catch((error) => console.warn('Templates not loaded', error)));
     },
     mounted() {
+        markUsable(); // Home's first frame: a first visit may fetch the rest of the app now (js/first-screen.js)
         // The song's sheet fetched once Home is up and the page is idle, so a tap on a song opens it at once.
         const idle = window.requestIdleCallback ?? ((run) => setTimeout(run, 1500));
         // A link to a song opens its sheet straight away: its code at once, not when the page is idle.

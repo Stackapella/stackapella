@@ -152,20 +152,8 @@ jobs:
           test -z "$(git ls-files --others --exclude-standard -- css)" || (echo "A stylesheet tool/tailwind.sh built isn't committed." && exit 1)
 
       - name: Every CDN library is pinned with an integrity hash
-        run: |
-          python3 -I - <<'PY'
-          import re, sys
-          html = open('index.html').read()
-          tags = re.findall(r'<(?:script|link)\b[^>]*https://cdn\.jsdelivr\.net[^>]*>', html)
-          bad = [t for t in tags if not re.search(r'@\d+\.\d+\.\d+/', t) or 'integrity="sha' not in t or 'crossorigin="anonymous"' not in t]
-          for url in re.findall(r'"(https://cdn\.jsdelivr\.net/[^"]+)"', html):
-              if not re.search(r'@\d+\.\d+\.\d+/', url):
-                  bad.append(url)
-          if bad:
-              print("Not pinned to an exact version with an integrity hash:\n" + "\n".join(bad))
-              sys.exit(1)
-          print(f"{len(tags)} CDN tags pinned.")
-          PY
+        # tool/cdn_pins_check.py, which tool/test.sh runs too (so a land chain meets it before a deploy does).
+        run: python3 -I tool/cdn_pins_check.py
 
       - name: The web tests (headless Chrome)
         # The runner's Chrome (tool/cdp.py defaults to the Mac's). Ubuntu 24.04's AppArmor blocks the

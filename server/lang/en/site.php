@@ -2148,6 +2148,9 @@ return [
             'warmups' => 'Warm-ups to sing along with',
             // Under a tool's how-to, its variant pages (a variant's: the other variants of its tool).
             'also' => 'Also:',
+            // Under the directory, beside the warm-ups line: the embeds' page.
+            'embed_line' => 'Run a choir, school or studio website?',
+            'embed_link' => 'Put a free tool on your page',
             'directory' => 'All free tools',
             'groups' => ['tune' => 'Tune', 'time' => 'Keep time', 'voice' => 'Know your voice', 'harmony' => 'Chords & harmony', 'ear' => 'Train your ear', 'setup' => 'Check your setup'],
             // The hub's sections (Hillel's tools page, 2026-11-12): each group's line under its name.
@@ -7041,6 +7044,9 @@ return [
             'eyebrow' => 'Compare',
             'headline' => 'How Stackapella compares',
             'lead' => 'Side-by-side notes on other apps for learning and singing harmony, from each one\'s own listing or website. Each page says where the other fits better, too.',
+            // One quiet line under /features' grid, to the comparisons.
+            'from_features' => 'Weighing it up against other apps?',
+            'from_features_link' => 'How Stackapella compares',
         ],
         'common' => [
             'asof' => 'As of November 2026',

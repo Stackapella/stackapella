@@ -13,7 +13,7 @@
     'product' => ['features' => '/features', 'how' => '/how-it-works', 'pricing' => '/pricing', 'for_choirs' => '/for/choir-directors?ref=for-choirs-footer'],
     'help' => ['help' => '/help', 'whats_new' => '/whats-new', 'contact_app' => \App\Support\Http\Hosts::app('/contact'), 'email_us' => 'mailto:'.config('site.contact_email')],
     'company' => ['about' => '/about', 'press' => '/press', ...(\App\Support\Site\OpenSource::on() ? ['open_source' => '/open-source'] : []), 'integrations' => '/integrations'],
-    'legal' => ['terms' => '/legal/terms', 'privacy' => '/legal/privacy', 'guidelines' => '/legal/community-guidelines', 'accessibility' => '/legal/accessibility'],
+    'legal' => ['terms' => '/legal/terms', 'privacy' => '/legal/privacy', 'copyright' => '/legal/copyright', 'accessibility' => '/legal/accessibility'],
 ])
 {{-- Off the nexus (a self-hosted install) the marketing pages aren't there (docs/branding-matrix.md), so
      neither are their links: Help (without What's new) and Legal stay. --}}

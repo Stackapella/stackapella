@@ -16,6 +16,8 @@
     <link rel="preload" as="font" type="font/woff2" href="/fonts/figtree-latin.woff2" crossorigin>
     {{-- Game mode's own sheet, only in game mode, right after site.css (docs/css-split-plan.md, step 3; public/layout's). --}}
     <meta name="game-css" content="{{ \App\Support\Http\StaticVersions::url((string) config('app.web_path'), '/css/site-game.css') }}">
+    {{-- Game mode's sheet starts downloading before theme-boot.js arrives (App\Support\Site\GamePreload). --}}
+    {{ \App\Support\Site\GamePreload::tag() }}
     <script src="{{ \App\Support\Http\StaticVersions::url((string) config('app.web_path'), '/js/theme-boot.js') }}"></script>
     <link rel="stylesheet" href="{{ \App\Support\Http\StaticVersions::url((string) config('app.web_path'), '/css/site.css') }}">
     <script src="{{ \App\Support\Http\StaticVersions::url((string) config('app.web_path'), '/js/game-css.js') }}"></script>

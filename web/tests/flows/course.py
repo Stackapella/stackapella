@@ -90,9 +90,13 @@ def journey(f):
     assert not f.js("!!document.querySelector('[data-headphones]')"), "no headphones question in Wait for me"
     # The Wait for me view (80.png): the note's pills, its bar, and no Stop.
     f.wait("document.querySelector('[data-wait-lane]') && document.querySelector('[data-wait-pills]')", what="Wait for me's lane and pills")
+    # Its line names the note's own sound, never an "ah" the guide doesn't sing (the courses lead's first-week read).
+    assert "'ah'" not in f.js("document.querySelector('[data-wait-lane]').closest('section, main').innerText"), "Hum or sing 'ah' under an 'oo'"
     f.wait("document.querySelectorAll('[data-wait-pills] li svg').length >= 1", what="a note found (its pill ticked)")
     f.shot("wait-for-me")
     f.wait("document.querySelector('[data-wait-done]')", timeout=30, what="every note found")  # it ends by itself
+    # It promises nothing about the next step (it said "without the guide" before steps that sing with it).
+    assert t(f, "course.wait.next") in f.js("document.querySelector('[data-wait-done]').innerText"), "the try's last line"
     f.click_t("course.continue")
     # Not in your range? (128.png): Lower moves this lesson's exercises a semitone, kept with the
     # course's progress; Higher puts it back.

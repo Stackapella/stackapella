@@ -26,6 +26,15 @@ final class Lessons
     /** The free course's place under /courses (its own page is /features/course). */
     public const FREE = 'harmony';
 
+    /**
+     * A lesson page whose address changed with its song (a page's slug is its English title's), so the old one 301s to the
+     * new: Backing vocals' Red River Valley lesson became Home on the Range's when Red River Valley left the site
+     * (2026-11-13), and its old page had been in the sitemap.
+     */
+    private const RETITLED = [
+        'backing-vocals' => ['red-river-valley-a-pad-then-answers' => 'home-on-the-range-a-pad-then-answers'],
+    ];
+
     /** Courses whose lessons are too short to stand alone: one page per unit (the courses lead). Sight-singing left this
      *  list on 2026-11-08 once its lessons were rebuilt (content d0def31e8), then Vibrato and Range and registers once
      *  theirs grew (afd0bd985): a course's old unit pages 301 to their first lesson. */
@@ -116,7 +125,11 @@ final class Lessons
     /** The page slug a lesson or unit id (or a unit's old page) is on, so that address 301s to it; or null. */
     public static function slugFor(string $course, string $id): ?string
     {
+        $id = self::RETITLED[$course][$id] ?? $id;
         foreach (self::pages($course) as $page) {
+            if ($page['slug'] === $id) {
+                return (string) $page['slug'];
+            }
             if (in_array($id, [...(array) $page['ids'], ...(array) $page['aliases']], true)) {
                 return (string) $page['slug'];
             }

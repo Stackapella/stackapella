@@ -49,7 +49,9 @@ function create() {
 
 export function audio() {
     create();
-    if (ctx.state === 'suspended') ctx.resume();
+    // Any state but running (or closed): iOS leaves a context 'interrupted' after a call or a trip to another app, not
+    // 'suspended', and a tap must wake it then too (the Safari audit, 2026-11-14).
+    if (ctx.state !== 'running' && ctx.state !== 'closed') ctx.resume().catch((error) => console.debug('The audio did not resume', error));
     return ctx;
 }
 

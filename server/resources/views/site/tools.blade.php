@@ -85,6 +85,8 @@
             @endforeach
             <p class="s-th-none" role="status" hidden data-tools-none data-text="{{ $words['no_match'] }}"><span data-tools-none-text></span> <button type="button" class="s-lk" data-tools-reset>{{ $words['show_all'] }}</button></p>
             <p class="s-th-warmups">{{ $words['warming_up'] }} <a href="/warmups" class="s-lk">{{ $words['warmups'] }}&#8288;<x-site.icon name="arrow" size="16" /></a></p>
+            {{-- The embeds for choir, school and teacher sites (the internal-link audit, 2026-11-13: nothing linked /tools/embed). --}}
+            <p class="s-th-warmups">{{ $words['embed_line'] }} <a href="/tools/embed" class="s-lk">{{ $words['embed_link'] }}&#8288;<x-site.icon name="arrow" size="16" /></a></p>
         </section>
         @include('site.tools._about', ['tie' => $words['tie'], 'tryLink' => $words['try_link']])
     </main>
