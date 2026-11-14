@@ -47,6 +47,7 @@ export const WORDS = [
     'referenceLabel', 'reference', 'lower', 'higher', 'transposition', 'concert', 'inKey',
     'instrumentLabel', 'chromatic', 'guitar', 'bass4', 'bass5', 'ukulele', 'violin', 'viola', 'cello', 'mandolin', 'banjo',
     'strings', 'stringHint', 'tuningLabel', 'standard', 'dropD', 'halfDown', 'dropC', 'dadgad', 'openG', 'openD', 'openE',
+    'dStandard', 'dropCs', 'dropB', 'openC', 'openA', 'hearNote', 'tapToHear', 'voiceLowHint',
     'naming', 'letters', 'fixedDo', 'german', 'sensitivity', 'sensitivityLow', 'sensitivityHigh', 'zone', 'zoneValue',
     'settingsTitle', 'reset', 'referenceHint', 'soundingPitch', 'writtenPitch', 'sensLow', 'sensMedium', 'sensHigh', 'zoneStrict', 'zoneForgiving', 'zoneShort',
 ];
@@ -56,9 +57,13 @@ export { REFERENCE } from '../tuner-reading.js';
 export const TRANSPOSITIONS = { C: 0, 'B♭': 2, 'E♭': 9, F: 7, G: 5, A: 3 };
 const FLAT_KEYS = new Set(['B♭', 'E♭', 'F']);
 // Each instrument's open strings (concert MIDI, lowest first); a guitar's by tuning.
+// The tunings guitarists reach for, standard first, then the lowered ones, then the open ones (the tools review,
+// 2026-11-14: D standard, drop C♯, drop B, open C and open A joined them).
 export const GUITAR_TUNINGS = {
-    standard: [40, 45, 50, 55, 59, 64], dropD: [38, 45, 50, 55, 59, 64], halfDown: [39, 44, 49, 54, 58, 63], dropC: [36, 43, 48, 53, 57, 62],
+    standard: [40, 45, 50, 55, 59, 64], dropD: [38, 45, 50, 55, 59, 64], halfDown: [39, 44, 49, 54, 58, 63],
+    dStandard: [38, 43, 48, 53, 57, 62], dropCs: [37, 44, 49, 54, 58, 63], dropC: [36, 43, 48, 53, 57, 62], dropB: [35, 42, 47, 52, 56, 61],
     dadgad: [38, 45, 50, 55, 57, 62], openG: [38, 43, 50, 55, 59, 62], openD: [38, 45, 50, 54, 57, 62], openE: [40, 47, 52, 56, 59, 64],
+    openC: [36, 43, 48, 55, 60, 64], openA: [40, 45, 52, 57, 61, 64],
 };
 export const INSTRUMENTS = {
     chromatic: null, guitar: 'guitar', bass4: [28, 33, 38, 43], bass5: [23, 28, 33, 38, 43], ukulele: [67, 60, 64, 69],
@@ -111,14 +116,15 @@ const HERO = `
     <span class="text-[1.75rem] font-extrabold transition-colors" data-prev data-ui="tuner-neighbours"></span>
     <span class="text-[0.6875rem] font-semibold tracking-[0.06em] text-muted uppercase" data-w="lowerNote"></span>
   </span>
-  <span class="flex items-end leading-[0.8] transition-opacity" data-ui="tuner-note">
+  <!-- The note is a button: a tap plays it (the tools review, 2026-11-14: a singer wants to hear the target). -->
+  <button type="button" class="flex items-end rounded-2xl leading-[0.8] transition-opacity enabled:cursor-pointer" data-hear-note data-ui="tuner-note">
     <span class="my-8 block h-3 w-32 rounded-full bg-raised md:my-12" aria-hidden="true" data-placeholder></span>
     <span class="text-[clamp(5.5rem,30vw,9.375rem)] font-black tracking-[-0.05em] text-cream [@media(max-height:640px)]:text-[5.5rem]" data-name></span>
     <span class="mb-1 ms-1 flex flex-col items-start leading-none">
       <span class="text-[2.25rem] font-extrabold text-cream [@media(max-height:640px)]:text-2xl" data-acc></span>
       <span class="text-[2.25rem] font-extrabold tabular-nums text-muted [@media(max-height:640px)]:text-2xl" data-octave></span>
     </span>
-  </span>
+  </button>
   <span class="grid justify-items-end gap-0.5 transition-opacity" data-next-block>
     <span class="text-[1.75rem] font-extrabold transition-colors" data-next data-ui="tuner-neighbours"></span>
     <span class="text-[0.6875rem] font-semibold tracking-[0.06em] text-muted uppercase" data-w="higherNote"></span>
@@ -148,6 +154,9 @@ const READOUT = `
 const EXTRA = `
 <div class="grid gap-2 text-start" data-ui="tuner-strings" hidden>
   <span class="text-xs font-bold tracking-[0.12em] text-muted uppercase" data-strings-label></span>
+  <!-- A guitar's tuning, picked right here on the first screen (the tools review: every rival shows it); the same as Settings'. -->
+  <label class="flex items-center gap-2 text-xs font-bold tracking-[0.12em] text-muted uppercase" data-tuning-quick-field hidden><span data-w="guitar"></span><span aria-hidden="true">·</span>
+    <select class="input min-h-11 w-auto py-1 text-sm font-semibold normal-case tracking-normal" data-tuning-quick data-ui="tuner-tuning-quick" aria-label=""></select></label>
   <div class="grid gap-1.5" role="group" data-strings></div>
   <p class="text-xs text-muted" data-string-hint></p>
 </div>`;
@@ -210,6 +219,8 @@ export function mountTuner(root, { words = {}, keySlot = null, onError = null, o
     let view = null;
     let target = null; // a string tapped: the tuner measures from it
     let quietUntil = 0; // while a string's note plays, the mic's readings are its own sound: ignored
+    const tuned = new Set(); // the strings once in tune, ticked
+    let tunedFor = '';
     let started = false; // listened once: stopped now reads as paused
     let spokenAt = -Infinity;
     let tunedSince = null; // a sung note in tune since (s, the mic's clock), for the page's lesson line
@@ -224,6 +235,9 @@ export function mountTuner(root, { words = {}, keySlot = null, onError = null, o
             changed({ restart: true });
         },
     });
+    // An instrument's own page (the guitar tuner, the ukulele tuner): its instrument is the point, so no Voice to switch to
+    // (the tools review: tapping Voice there hid the strings).
+    if (preset?.instrument && preset.instrument !== 'chromatic') ui.modes.hidden = true;
     const reference = stepper($('[data-reference-side]'), {
         hook: 'tuner-reference',
         label: '', // the row says Reference pitch / Frequency of A4: the stepper says only "440 Hz"
@@ -291,6 +305,8 @@ export function mountTuner(root, { words = {}, keySlot = null, onError = null, o
     });
     $('[data-instrument]').append(...Object.keys(INSTRUMENTS).map((key) => new Option(w(key), key)));
     $('[data-tuning]').append(...Object.keys(GUITAR_TUNINGS).map((key) => new Option(w(key), key)));
+    $('[data-tuning-quick]').append(...Object.keys(GUITAR_TUNINGS).map((key) => new Option(w(key), key)));
+    $('[data-tuning-quick]').setAttribute('aria-label', w('tuningLabel'));
 
     const zoneOf = () => settings.zone ?? TUNER.tolerance[settings.mode];
     /** A concert note as the player reads it: its name in their naming, transposed for their instrument. */
@@ -306,6 +322,7 @@ export function mountTuner(root, { words = {}, keySlot = null, onError = null, o
         $('[data-transposition-side]').textContent = w(settings.transposition === 'C' ? 'soundingPitch' : 'writtenPitch');
         $('[data-instrument]').value = settings.instrument;
         $('[data-tuning]').value = settings.tuning;
+        $('[data-tuning-quick]').value = settings.tuning;
         $('[data-tuning-field]').hidden = settings.instrument !== 'guitar';
         // The strings the instrument is tuned to, small under its tuning (E A D G B E).
         $('[data-tuning-strings]').textContent = (stringsOf(settings.instrument, settings.tuning) ?? []).map((m) => named(m).name).join(' ');
@@ -335,7 +352,13 @@ export function mountTuner(root, { words = {}, keySlot = null, onError = null, o
         // The strings, for a stringed instrument: each named as the player reads it.
         const list = strings();
         $('[data-ui=tuner-strings]').hidden = !list;
-        $('[data-strings-label]').textContent = settings.instrument === 'guitar' ? `${w('guitar')} · ${w(settings.tuning)}` : w(settings.instrument);
+        $('[data-strings-label]').textContent = settings.instrument === 'guitar' ? '' : w(settings.instrument);
+        $('[data-strings-label]').hidden = settings.instrument === 'guitar';
+        $('[data-tuning-quick-field]').hidden = settings.instrument !== 'guitar';
+        if (`${list}` !== tunedFor) {
+            tuned.clear();
+            tunedFor = `${list}`;
+        }
         if (list) {
             if (target !== null && !list.includes(target)) target = null;
             $('[data-strings]').replaceChildren(...list.map((midi) => {
@@ -375,6 +398,9 @@ export function mountTuner(root, { words = {}, keySlot = null, onError = null, o
         $('[data-acc]').textContent = acc;
         $('[data-octave]').textContent = note ? String(note.octave) : '';
         $('[data-ui=tuner-note]').style.opacity = live ? '1' : shown ? '0.5' : '0.35';
+        $('[data-hear-note]').disabled = !note;
+        if (note) $('[data-hear-note]').setAttribute('aria-label', fill(w('hearNote'), { note: `${note.name}${note.octave}` }));
+        else $('[data-hear-note]').removeAttribute('aria-label');
         // The neighbours either side; the one the pitch is drifting toward brightens.
         const toward = live && !inTune && Math.abs(cents) > 10 ? Math.sign(cents) : 0;
         for (const [sel, step] of [['[data-prev]', -1], ['[data-next]', 1]]) {
@@ -390,8 +416,9 @@ export function mountTuner(root, { words = {}, keySlot = null, onError = null, o
         let hint = '';
         let tone = 'muted';
         if (!listening) [status, hint] = started ? [w('paused'), w('resume')] : ['', w('idleHint')];
-        else if (view?.status === 'held') status = w('lastNote');
-        else if (!shown) [status, tone] = view?.quiet ? [w('tooQuiet'), 'warn'] : [w('listening'), 'muted'];
+        else if (view?.status === 'held') [status, hint] = [w('lastNote'), w('tapToHear')];
+        // Voice reads nothing under 60 Hz, so a bass's low strings stay silent there: say where to go (the tools review).
+        else if (!shown) [status, hint, tone] = view?.quiet ? [w('tooQuiet'), '', 'warn'] : [w('listening'), voiced && !ui.modes.hidden ? w('voiceLowHint') : '', 'muted'];
         else if (inTune) [status, hint, tone] = [w('inTune'), w('hold'), 'good'];
         else if (settling) [status, hint, tone] = [w('nearly'), w('hold'), 'good'];
         else {
@@ -425,6 +452,10 @@ export function mountTuner(root, { words = {}, keySlot = null, onError = null, o
             // The string being tuned: the one tapped, or else the one nearest the note heard; green once in tune.
             const nearest = target === null && shown && strings()?.reduce((best, x) => (Math.abs(x - view.midi) < Math.abs(best - view.midi) ? x : best));
             const current = s === target || s === nearest;
+            // A string once in tune keeps a tick until the instrument or tuning changes, so "4 of 6 done" shows.
+            if (current && inTune && live) tuned.add(s);
+            const label = `${named(s).name}${named(s).octave}${tuned.has(s) ? ' ✓' : ''}`;
+            if (b.textContent !== label) b.textContent = label;
             b.setAttribute('aria-pressed', String(current));
             b.classList.toggle('bg-good!', Boolean(current && inTune && live));
             b.classList.toggle('text-ink!', Boolean(current && inTune && live));
@@ -531,6 +562,7 @@ export function mountTuner(root, { words = {}, keySlot = null, onError = null, o
         started = true;
         awake = keepAwake();
         state = tunerReading();
+        quietUntil = 0; // a new listen reads the room from its first frame, even just after a note was played
         view = null;
         render();
         const reach = REACH[settings.mode];
@@ -575,6 +607,13 @@ export function mountTuner(root, { words = {}, keySlot = null, onError = null, o
     }
 
 
+    // A note heard: a pitch pipe's reed so a low string is heard on a phone's speaker too; the mic's readings are
+    // ignored while it sounds.
+    function sound(midi) {
+        voice(midiToHz(midi, settings.reference), { timbre: 'reed', level: 0.12, attack: 0.02, release: 0.1 }).stop(1.4);
+        quietUntil = audio().currentTime + 1.9; // its 1.4 s and the fade, on the clock the readings carry
+    }
+
     ui.onPrimary(() => (session ? stop() : start()));
     root.addEventListener('click', (event) => {
         const b = event.target.closest('button');
@@ -585,15 +624,13 @@ export function mountTuner(root, { words = {}, keySlot = null, onError = null, o
         } else if (b.dataset.string) {
             const midi = Number(b.dataset.string);
             target = target === midi ? null : midi;
-            if (target !== null) {
-                // Its note, a pitch pipe's reed so a low string is heard on a phone's speaker too; the
-                // mic's readings are ignored while it sounds.
-                voice(midiToHz(midi, settings.reference), { timbre: 'reed', level: 0.12, attack: 0.02, release: 0.1 }).stop(1.4);
-                quietUntil = audio().currentTime + 1.9; // its 1.4 s and the fade, on the clock the readings carry
-            }
+            if (target !== null) sound(midi);
             state = tunerReading();
             view = null;
             render();
+        } else if (b.dataset.hearNote !== undefined) {
+            const midi = view && view.midi !== null ? view.note : target;
+            if (midi !== null && midi !== undefined) sound(midi);
         }
     });
     $('[data-instrument]').addEventListener('change', (event) => {
@@ -602,10 +639,12 @@ export function mountTuner(root, { words = {}, keySlot = null, onError = null, o
         if (restart) settings.mode = 'instrument';
         changed({ restart });
     });
-    $('[data-tuning]').addEventListener('change', (event) => {
-        settings.tuning = event.target.value;
-        changed();
-    });
+    for (const picker of [$('[data-tuning]'), $('[data-tuning-quick]')]) {
+        picker.addEventListener('change', (event) => {
+            settings.tuning = event.target.value;
+            changed();
+        });
+    }
     $('[data-sensitivity]').addEventListener('input', (event) => {
         settings.quietDb = -Number(event.target.value);
         changed();

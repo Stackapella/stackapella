@@ -2999,7 +2999,7 @@ a.s-vt-rung:hover { background: color-mix(in srgb, var(--color-cream) 5%, transp
 .s-jcount-songs span { font-size: 14px; color: var(--tm); }
 .s-jcount-songs svg { flex: none; color: var(--ta); }
 .s-jcount-songs a:hover b { text-decoration: underline; text-underline-offset: 3px; }
-.s-jcount-all { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; margin-top: 6px; font-size: 15px; font-weight: 700; color: var(--ta); white-space: nowrap; }
+.s-jcount-all { display: inline-flex; align-items: center; gap: 6px; max-width: 100%; min-height: 44px; margin-top: 6px; font-size: 15px; font-weight: 700; color: var(--ta); } /* may wrap: a Spanish "all" link in the arcade font ran off a phone */
 .s-jcount-all:hover { text-decoration: underline; text-underline-offset: 3px; }
 /* /songs's "Coming up" (App\Support\Pages\Festivals; Hillel, 2026-11-12): the festival's card in its collection's own tone
    on the page's ground, wide from 900 px (the festival and how soon on the left, its songs on the right), and a smaller
@@ -3130,7 +3130,7 @@ a.s-vt-rung:hover { background: color-mix(in srgb, var(--color-cream) 5%, transp
 .s-sh-panel .s-tone-motif.s-hk { top: 8px; right: 22px; width: auto; height: 44px; aspect-ratio: 240 / 152; opacity: .94; }
 .s-sh-panel .s-tone-motif.s-obj { top: 8px; right: 22px; width: auto; height: 44px; }
 .s-sh-panel-in { position: relative; z-index: 1; padding: 44px 20px 20px; }
-.s-sh-panel-top { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.s-sh-panel-top { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 12px; } /* wraps: a long Spanish heading in the arcade font pushed "All" off a phone */
 .s-sh-panel h3 { font-size: clamp(24px, 6vw, 30px); line-height: 1.1; letter-spacing: -.02em; }
 .s-sh-panel h3 em { white-space: nowrap; }
 .s-sh-panel-all { flex: none; display: inline-flex; align-items: center; gap: 4px; min-height: 44px; font-size: 14.5px; font-weight: 700; color: var(--ta); white-space: nowrap; }

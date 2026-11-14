@@ -2,10 +2,10 @@
 without a mic: Hillel's "Tuner v2" over the competitor review's MUSTs and SHOULDs
 (docs/tools/competitors-tuner-metronome-range.md). Listen first; Voice is the start, ±10 cents; 8 cents sharp reads the pill
 "In tune" / "Hold it there" with the neighbours either side; 30 cents sharp says "Sharp" / "Sing a little lower ↓", the cents
-as ¢, and brightens the note it drifts toward; the sound stopping holds "Last note"; stopped reads "Paused"; a hum just over
+as ¢, and brightens the note it drifts toward; Voice listening points a bass to Instrument; the sound stopping holds "Last note", the note a button that plays it; stopped reads "Paused"; a hum just over
 the room's level is "Too quiet"; Instrument wants ±5 ("Sharp" / "Tune a little lower ↓") and the trace says how much of it
 was in tune; the A4 stepper sets 442 (and the presets in More); a B♭ transposition relabels the note; a guitar in Drop D
-shows "Guitar · Drop D" and its strings, a tapped one the target; the settings stay after a reload. Both skins
+shows Drop D in the first screen's tuning picker (and Open C picked there moves the strings and Settings) and its strings, a tapped one the target, ticked once in tune; the settings stay after a reload. Both skins
 (FLOW_SKINS=game,serious)."""
 import sys
 from pathlib import Path
@@ -33,6 +33,8 @@ def journey(f):
     f.run("document.querySelector('[data-start]').click()")
     f.wait(f"{CARD}.dataset.state === 'listening' && window.__play", what="listening")
     assert f.js(STATUS) == "Listening..."
+    # Voice hears nothing under 60 Hz: while nothing's heard it points a bass player to Instrument (the tools review).
+    assert f.js(HINT) == "Tuning a bass or a low string? Pick Instrument.", f.js(HINT)
     f.shot("listening")
     # A voice 8 cents sharp: inside Voice's ±10, after half a second.
     f.run(f"window.__play({hz(8)}, 1.2)")
@@ -60,6 +62,10 @@ def journey(f):
     f.run("window.__play(0, 0.6, -80)")
     f.wait(f"{CARD}.dataset.reading === 'held'", what="held")
     assert f.js(STATUS) == "Last note" and f.js(NOTE) == "A4"
+    # The note is a button: it says so, and a tap plays it (the tools review, 2026-11-14).
+    assert f.js(HINT) == "Tap the note to hear it", f.js(HINT)
+    assert f.js("document.querySelector('[data-hear-note]').getAttribute('aria-label')") == "Hear A4"
+    f.run("document.querySelector('[data-hear-note]').click()")
     f.shot("last-note")
     # Started in a room humming at -42 dB, a pitch only a little above it is too quiet.
     f.run("document.querySelector('[data-start]').click()")
@@ -107,19 +113,28 @@ def journey(f):
     f.run("const t = document.querySelector('[data-tuning]'); t.value = 'dropD'; t.dispatchEvent(new Event('change'))")
     f.wait("document.querySelectorAll('[data-string]').length === 6", what="six strings")
     assert f.js("document.querySelector('[data-string]').textContent") == "D2"
-    assert f.js("document.querySelector('[data-strings-label]').textContent") == "Guitar · Drop D"
+    # The tuning shows, and is picked, on the first screen too (the tools review, 2026-11-14), the same as Settings'.
+    assert f.js("!document.querySelector('[data-tuning-quick-field]').hidden && document.querySelector('[data-tuning-quick]').value") == "dropD"
     f.shot("settings")
     f.run("document.querySelector('[data-sheet-done]').click()")
     f.run("document.querySelector('[data-string=\"38\"]').click()")
     f.wait("document.querySelector('[data-string=\"38\"]').getAttribute('aria-pressed') === 'true'", what="string chosen")
     f.wait(f"({NOTE}) === 'D2'", what="the target shown")
+    # Tuned once, the string keeps a tick (its own note's 1.9 s first, while the readings are ignored).
+    f.run(f"window.__play({hz(0, 38, 442)}, 3.2)")
+    f.wait("document.querySelector('[data-string=\"38\"]').textContent === 'D2 ✓'", what="the tuned string ticked")
     f.shot("guitar")
+    # Open C from the first screen: the lowest string a C2, and Settings follows.
+    f.run("const t = document.querySelector('[data-tuning-quick]'); t.value = 'openC'; t.dispatchEvent(new Event('change'))")
+    f.wait("document.querySelector('[data-string]').textContent === 'C2'", what="open C's strings")
+    assert f.js("document.querySelector('[data-tuning]').value") == "openC"
+    f.run("const t = document.querySelector('[data-tuning-quick]'); t.value = 'dropD'; t.dispatchEvent(new Event('change'))")
     f.no_sideways("the tuner with strings")
     # The settings are kept on this device.
     f.run("window.__tuner.stop(); window.__old = true; location.reload()")
     f.wait("!window.__old && window.__tuner && document.querySelector('[data-ui=tuner-summary]')", what="reloaded")
     summary = f.js("document.querySelector('[data-ui=tuner-summary]').textContent")
-    assert f.js("document.querySelector('[data-strings-label]').textContent") == "Guitar · Drop D" and f.js("document.querySelector('[data-ui=tuner-reference] [data-step-value]').textContent") == "442 Hz", summary
+    assert f.js("document.querySelector('[data-tuning-quick]').value") == "dropD" and f.js("document.querySelector('[data-ui=tuner-reference] [data-step-value]').textContent") == "442 Hz", summary
     f.run("localStorage.removeItem('stackapella.tools.tuner')")
 
 

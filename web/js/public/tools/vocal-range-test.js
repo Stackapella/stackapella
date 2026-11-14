@@ -46,6 +46,7 @@ export const WORDS = [
     'options', 'naming', 'letters', 'fixedDo', 'save', 'saved', 'history', 'retake', 'share', 'shareText', 'copied',
     'cardTitle', 'cardChallenge', 'cardTagline', 'cardSite', 'cardSaved',
     'manual', 'manualHow', 'manualLow', 'manualHigh', 'restart', 'keyboard', 'noMic', 'holding', 'settingsTitle', 'reset',
+    'noFry', 'sinceLast', 'sinceSame', 'semitoneHigher', 'semitonesHigher', 'semitoneLower', 'semitonesLower', 'theSame',
 ];
 
 export const HOLD_SECONDS = 1; // the app's range check holds a note this long (RANGE_HOLD_SECONDS)
@@ -115,6 +116,8 @@ const HERO = `
   <p class="text-sm font-semibold text-muted" data-w="yourRange"></p>
   <p class="text-[2.75rem] font-black leading-tight text-cream" translate="no" data-range></p>
   <p class="mt-1 text-sm text-muted" data-span></p>
+  <!-- Against the last result saved on this device (the tools review, 2026-11-14: rivals sell retesting; ours kept the history but never used it). -->
+  <p class="mx-auto mt-1 max-w-prose text-sm text-cream" data-since data-ui="range-since" hidden></p>
   <div class="mt-3 flex justify-center text-cream" data-staff data-ui="range-staff"></div>
   <p class="mx-auto mt-3 max-w-prose text-lg text-balance text-cream" data-type data-ui="range-type"></p>
   <p class="mx-auto mt-1 max-w-prose text-balance text-cream" data-choir data-ui="range-choir"></p>
@@ -164,6 +167,8 @@ export function mountRangeTest(root, { words = {}, keySlot = null, onResult = nu
     const prefs = toolPrefs('range', { defaults: DEFAULTS, valid: VALID, clean: (s) => ({ ...s, history: s.history.slice(0, 10) }) });
     let naming = prefs.value.naming;
     let history = prefs.value.history;
+    // The results saved from the one on screen, so "since last time" compares it with the one before.
+    const savedNow = new Set();
     const write = ({ naming: n, history: h }) => {
         prefs.value.naming = n;
         prefs.value.history = h;
@@ -282,8 +287,10 @@ export function mountRangeTest(root, { words = {}, keySlot = null, onResult = nu
         if (singing) {
             $('[data-title]').textContent = w(step === 'low' ? 'lowTitle' : 'highTitle');
             $('[data-how]').textContent = w(step === 'low' ? 'lowHow' : 'highHow');
-            $('[data-strain]').hidden = step !== 'high';
-            $('[data-strain]').textContent = w('noStrain');
+            // The low step's trap is a creak or growl counted as a note (the tools review: the commonest impossible low
+            // result); the high step's is strain.
+            $('[data-strain]').hidden = false;
+            $('[data-strain]').textContent = w(step === 'low' ? 'noFry' : 'noStrain');
             const p = live === null ? null : pitchName(live, { naming });
             $('[data-live-name]').textContent = p ? p.name : '·';
             $('[data-live-octave]').textContent = p ? String(p.octave) : '';
@@ -313,11 +320,30 @@ export function mountRangeTest(root, { words = {}, keySlot = null, onResult = nu
         renderKeyboard();
     }
 
+    // What changed since the last result saved on this device, before this one: '' when there's none.
+    function sinceWords(lo, hi) {
+        const last = history.find((h) => !savedNow.has(h.at));
+        if (!last) return '';
+        const date = new Date(last.at).toLocaleDateString(document.documentElement.lang || undefined, { day: 'numeric', month: 'long' });
+        if (last.low === lo && last.high === hi) return fill(w('sinceSame'), { date, range: fill(w('rangeValue'), { low: name(last.low), high: name(last.high) }) });
+        // Semitones higher (+) or lower (-) than last time.
+        const move = (d) => (d === 0 ? w('theSame') : Math.abs(d) === 1 ? w(d > 0 ? 'semitoneHigher' : 'semitoneLower') : fill(w(d > 0 ? 'semitonesHigher' : 'semitonesLower'), { n: Math.abs(d) }));
+        return fill(w('sinceLast'), {
+            date,
+            range: fill(w('rangeValue'), { low: name(last.low), high: name(last.high) }),
+            top: move(hi - last.high),
+            bottom: move(lo - last.low),
+        });
+    }
+
     function renderResult() {
         const lo = Math.min(low, high);
         const hi = Math.max(low, high);
         $('[data-range]').textContent = fill(w('rangeValue'), { low: name(lo), high: name(hi) });
         $('[data-span]').textContent = spanWords(lo, hi, w);
+        const since = sinceWords(lo, hi);
+        $('[data-since]').hidden = !since;
+        $('[data-since]').textContent = since;
         $('[data-staff]').replaceChildren(grandStaff([lo, hi], { label: fill(w('rangeValue'), { low: name(lo), high: name(hi) }) }));
         const ranked = voiceTypes({ low: lo, high: hi });
         const type = ranked[0].type;
@@ -495,6 +521,7 @@ export function mountRangeTest(root, { words = {}, keySlot = null, onResult = nu
     }
     function restart() {
         low = null;
+        savedNow.clear();
         high = null;
         comfort = null;
         falsetto = null;
@@ -505,6 +532,7 @@ export function mountRangeTest(root, { words = {}, keySlot = null, onResult = nu
     $('[data-manual]').addEventListener('click', () => {
         stopMic();
         low = null;
+        savedNow.clear();
         high = null;
         best = null;
         live = null;
@@ -516,7 +544,9 @@ export function mountRangeTest(root, { words = {}, keySlot = null, onResult = nu
     $('[data-save]').addEventListener('click', () => {
         const lo = Math.min(low, high);
         const hi = Math.max(low, high);
-        history = [{ at: Date.now(), low: lo, high: hi }, ...history].slice(0, 10);
+        const at = Date.now();
+        savedNow.add(at);
+        history = [{ at, low: lo, high: hi }, ...history].slice(0, 10);
         write({ naming, history });
         $('[data-said]').textContent = w('saved');
         renderResult();

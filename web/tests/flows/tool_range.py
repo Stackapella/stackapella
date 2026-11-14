@@ -3,7 +3,8 @@ without a mic, against the competitor review's MUSTs and SHOULDs (docs/tools/com
 the low step counts only a note held for a second and keeps the lowest; Done plays it back ("We heard G2"); Not quite redoes
 the step; the high step says "Stop before it hurts" and asks about falsetto; the result is G2 to E4 with its span, the
 baritone guess, the choir part and the honest line, on the keyboard and a staff; More compares every type; Options saves on
-this device; the manual mode picks notes by tapping keys. Both skins (FLOW_SKINS=game,serious)."""
+this device; the low step warns that a creak doesn't count; the manual mode picks notes by tapping keys, and its result says
+what changed since the one saved before it. Both skins (FLOW_SKINS=game,serious)."""
 import sys
 from pathlib import Path
 
@@ -20,6 +21,8 @@ def journey(f):
     f.shot("intro")
     f.run("document.querySelector('[data-ui=tool-primary]').click()")
     f.wait(f"{CARD}.dataset.step === 'low' && window.__sing", what="the low step")
+    # The low step's trap: a creak or growl counted as a note (the tools review, 2026-11-14).
+    assert f.js("document.querySelector('[data-strain]').textContent") == "A creak or a growl doesn't count: keep it a clear 'ah'."
     # A passing note (half a second) doesn't count; held notes do, and the lowest is kept.
     f.run("window.__sing(45, 0.5); window.__sing(null, 0.5)")
     assert f.js("document.querySelector('[data-ui=tool-primary]').disabled"), "nothing held yet"
@@ -77,6 +80,7 @@ def journey(f):
     f.wait("document.querySelectorAll('[data-compare] > div').length === 6", what="every type compared")
     f.run("document.querySelector('[data-save]').click()")
     f.wait("document.querySelector('[data-history] li')", what="saved")
+    assert f.js("document.querySelector('[data-since]').hidden"), "the result just saved isn't compared with itself"
     f.shot("more")
     # No mic: the lowest and highest picked on the keyboard.
     f.run("document.querySelector('[data-ui=tool-primary]').click(); document.querySelector('[data-manual]').click()")
@@ -85,6 +89,10 @@ def journey(f):
     f.wait(f"{CARD}.dataset.step === 'result'", what="a manual result")
     assert f.js("document.querySelector('[data-range]').textContent") == "C3 to A4"
     assert f.js("document.querySelector('[data-type]').textContent") == "Your range fits the usual tenor range."
+    # Against the result saved before it (G2 to E4): what changed since then.
+    since = f.js("document.querySelector('[data-since]').textContent")
+    assert since.startswith("Since ") and since.endswith(" (G2 to E4): 5 semitones higher at the top, 5 semitones higher at the bottom."), since
+    f.shot("since")
     f.run("localStorage.removeItem('stackapella.tools.range')")
 
 

@@ -19,7 +19,7 @@ CHECKS = {
     "ukulele-tuner": ("tuner", f"{PRESSED.format('instrument')} && document.querySelector('[data-instrument]').value === 'ukulele'"),
     "violin-tuner": ("tuner", f"{PRESSED.format('instrument')} && document.querySelector('[data-instrument]').value === 'violin'"),
     "voice-tuner": ("tuner", PRESSED.format("voice")),
-    "guitar-tuner": ("tuner", f"{PRESSED.format('instrument')} && document.querySelector('[data-instrument]').value === 'guitar' && document.querySelector('[data-tuning]').value === 'standard'"),
+    "guitar-tuner": ("tuner", f"{PRESSED.format('instrument')} && document.querySelector('[data-instrument]').value === 'guitar' && document.querySelector('[data-tuning]').value === 'standard' && document.querySelector('[data-tuning-quick]').value === 'standard'"),
     "bass-tuner": ("tuner", f"{PRESSED.format('instrument')} && document.querySelector('[data-instrument]').value === 'bass4'"),
     "cello-tuner": ("tuner", f"{PRESSED.format('instrument')} && document.querySelector('[data-instrument]').value === 'cello'"),
     "viola-tuner": ("tuner", f"{PRESSED.format('instrument')} && document.querySelector('[data-instrument]').value === 'viola'"),
@@ -39,6 +39,10 @@ def journey(f):
         f.go(f"/tools/{slug}", READY)
         f.no_sideways(slug)
         assert f.js(opened), f"{slug} opens its tool with its preset"
+        if tool == "tuner":
+            # An instrument's own page has no Voice to switch to (the tools review, 2026-11-14); the voice tuner keeps both.
+            hidden = f.js("document.querySelector('[data-ui=tool-modes]').hidden")
+            assert hidden == (slug != "voice-tuner"), f"{slug}: Voice | Instrument {'shown' if not hidden else 'hidden'}"
         assert f.js("[...document.body.children].find((el) => el.tagName !== 'SCRIPT') === document.querySelector('body > header.s-top') && !!document.querySelector('body > header.s-top + [data-tool-bar]')"), f"{slug}: the site header first, then the tool bar"
         home = f.js("document.querySelector('header.s-top .s-brand').getAttribute('href')")
         assert home == f"/?ref=tool-{slug}", f"{slug}: the logo leads to {home}"

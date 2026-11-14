@@ -71,7 +71,8 @@ def main():
                         assert seen[part], f"{label} {path}: the row's {part} isn't showing"
                     # The logo leads to the landing, counted (Hillel: "if a user clicks the logo at the top of a tool it
                     # should take them to the main landing page").
-                    ref = "tools" if path == "/tools" else "tool-" + path.split("/")[-1]
+                    # The hub-like pages (/tools and its embed directory, /tools/embed) tag ?ref=tools; a tool its own.
+                    ref = "tools" if path in ("/tools", "/tools/embed") else "tool-" + path.split("/")[-1]
                     assert seen["home"] == f"/?ref={ref}", f"{label} {path}: the logo leads to {seen['home']}, not the landing"
                     # Light and dark is the header's (on a desktop in the bar, on a phone in its menu), never the tool bar's.
                     assert not seen["barTheme"], f"{label} {path}: a theme button in the tool bar"
