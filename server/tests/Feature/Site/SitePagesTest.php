@@ -225,7 +225,7 @@ final class SitePagesTest extends TestCase
         // Our own stills, lazy and sized; nothing from YouTube loads with the page.
         $this->assertSame(2, preg_match_all('/<img src="\/icons\/about\/[a-z-]+\.jpg" width="960" height="540" alt="" loading="lazy">/', $html));
         $this->assertDoesNotMatchRegularExpression('/<iframe|ytimg|youtube\.com\/embed|nofollow/i', $html);
-        foreach (['music-maker-pro', 'mudeo-flutter-show'] as $still) {
+        foreach (['music-maker-pro', 'mudeo-boring-show'] as $still) {
             $this->assertFileExists(dirname(base_path())."/web/icons/about/{$still}.jpg");
         }
     }

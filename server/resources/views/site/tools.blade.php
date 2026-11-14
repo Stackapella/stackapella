@@ -17,10 +17,44 @@
 @section('content')
     @include('site.tools._brand-row')
     <main>
-        <section class="s-wrap s-thead s-thead-hub s-th-hero" aria-labelledby="page-h">
-            <x-site.hub-eyebrow :words="__('pages.site.hub.tools.eyebrow')" :count="count($tools)" />
-            <h1 id="page-h" class="s-hub-h1"><span>{{ __('pages.site.hub.tools.headline') }}</span> <em class="s-hl-em">{{ __('pages.site.hub.tools.headline_em') }}</em></h1>
-            <p class="s-lede">{{ $words['lead'] }}</p>
+        {{-- The hub hero (the five pages' kit): the words at left, the page's thing to try at right: Most used, one panel
+             of three rows (Hillel's yes to the design direction, 2026-11-14). It stays put while a chip filters. --}}
+        <section class="s-wrap s-thead s-thead-hub s-th-hero s-hub-hero" aria-labelledby="page-h">
+            <div class="s-hub-words">
+                <x-site.hub-eyebrow :words="__('pages.site.hub.tools.eyebrow')" :count="count($tools)" />
+                <h1 id="page-h" class="s-hub-h1"><span>{{ __('pages.site.hub.tools.headline') }}</span> <em class="s-hl-em">{{ __('pages.site.hub.tools.headline_em') }}</em></h1>
+                <p class="s-lede">{{ $words['lead'] }}</p>
+            </div>
+            @if ($most !== [])
+                <section class="s-th-most-wrap s-th-most-panel" aria-labelledby="most-h">
+                    <h2 id="most-h" class="s-th-label">{{ $words['most_used'] }}</h2>
+                    <ul class="s-th-most">
+                        @foreach ($most as $tool)
+                            <li>
+                                <a href="{{ $tool['url'] }}" class="s-th-big">
+                                    {{-- A small drawing of the tool at work (static: never the mic). --}}
+                                    <span class="s-th-pic" aria-hidden="true">
+                                        @if ($tool['slug'] === 'tuner')
+                                            <span class="s-th-pic-read"><b>{{ $words['preview']['note'] }}</b><em class="s-th-good">{{ $words['preview']['cents'] }}</em></span>
+                                            <span class="s-th-ticks">@foreach (range(0, 10) as $i)<i @class(['is-on' => $i === 5])></i>@endforeach</span>
+                                        @elseif ($tool['slug'] === 'metronome')
+                                            <span class="s-th-pic-read"><b>{{ $words['preview']['bpm'] }}</b><em>{{ $words['preview']['beat'] }}</em></span>
+                                            <span class="s-th-beats">@foreach (range(0, 3) as $i)<i @class(['is-on' => $i === 0])></i>@endforeach</span>
+                                        @elseif ($tool['slug'] === 'vocal-range-test')
+                                            <span class="s-th-pic-read"><b>{{ $words['preview']['range'] }}</b><em class="s-th-part">{{ $words['preview']['part'] }}</em></span>
+                                            <span class="s-th-keys">@foreach (range(0, 15) as $i)<i @class(['is-on' => $i >= 4 && $i <= 10])></i>@endforeach</span>
+                                        @else
+                                            <span class="s-who-ic"><x-site.icon :name="$tool['icon']" size="22" /></span>
+                                        @endif
+                                    </span>
+                                    <span class="s-th-big-head"><b>{{ $tool['name'] }}</b><span class="s-th-open">{{ $words['open'] }}&#8288;<x-site.icon name="arrow" size="14" /></span></span>
+                                    <span class="s-th-line">{{ $tool['summary'] }}</span>
+                                </a>
+                            </li>
+                        @endforeach
+                    </ul>
+                </section>
+            @endif
         </section>
         {{-- The filter bar (the five pages' kit, piece 3): the chips with their counts, then the search; one scrolling row on a phone. --}}
         <div class="s-fbar">
@@ -38,43 +72,15 @@
             </div>
         </div>
 
-        @if ($most !== [])
-            <section class="s-wrap s-th-most-wrap" aria-labelledby="most-h" data-tools-most>
-                <h2 id="most-h" class="s-th-label">{{ $words['most_used'] }}</h2>
-                <ul class="s-th-most">
-                    @foreach ($most as $tool)
-                        <li>
-                            <a href="{{ $tool['url'] }}" class="s-th-big">
-                                {{-- A small drawing of the tool at work (static: never the mic). --}}
-                                <span class="s-th-pic" aria-hidden="true">
-                                    @if ($tool['slug'] === 'tuner')
-                                        <span class="s-th-pic-read"><b>{{ $words['preview']['note'] }}</b><em class="s-th-good">{{ $words['preview']['cents'] }}</em></span>
-                                        <span class="s-th-ticks">@foreach (range(0, 10) as $i)<i @class(['is-on' => $i === 5])></i>@endforeach</span>
-                                    @elseif ($tool['slug'] === 'metronome')
-                                        <span class="s-th-pic-read"><b>{{ $words['preview']['bpm'] }}</b><em>{{ $words['preview']['beat'] }}</em></span>
-                                        <span class="s-th-beats">@foreach (range(0, 3) as $i)<i @class(['is-on' => $i === 0])></i>@endforeach</span>
-                                    @elseif ($tool['slug'] === 'vocal-range-test')
-                                        <span class="s-th-pic-read"><b>{{ $words['preview']['range'] }}</b><em class="s-th-part">{{ $words['preview']['part'] }}</em></span>
-                                        <span class="s-th-keys">@foreach (range(0, 15) as $i)<i @class(['is-on' => $i >= 4 && $i <= 10])></i>@endforeach</span>
-                                    @else
-                                        <span class="s-who-ic"><x-site.icon :name="$tool['icon']" size="22" /></span>
-                                    @endif
-                                </span>
-                                <span class="s-th-big-head"><b>{{ $tool['name'] }}</b><span class="s-th-open">{{ $words['open'] }}&#8288;<x-site.icon name="arrow" size="14" /></span></span>
-                                <span class="s-th-line">{{ $tool['summary'] }}</span>
-                            </a>
-                        </li>
-                    @endforeach
-                </ul>
-            </section>
-        @endif
 
         <section class="s-wrap s-th-groups" id="tools-all" aria-label="{{ $words['directory'] }}">
             @foreach ($groups as $group)
                 <section class="s-th-grp s-v{{ $group['colour'] }}" id="tools-{{ $group['key'] }}" aria-labelledby="grp-{{ $group['key'] }}" data-tools-group="{{ $group['key'] }}">
                     <div class="s-th-grp-head">
-                        <h2 id="grp-{{ $group['key'] }}"><i aria-hidden="true"></i>{{ $words['groups'][$group['key']] }}</h2>
+                        <p class="s-grp-num" aria-hidden="true">{{ str_pad((string) $loop->iteration, 2, '0', STR_PAD_LEFT) }}</p>
+                        <h2 id="grp-{{ $group['key'] }}">{{ $words['groups'][$group['key']] }}</h2>
                         <p>{{ $words['group_lines'][$group['key']] }}</p>
+                        <p class="s-grp-meta">{{ trans_choice('pages.site.hub.tools.group_meta', count($group['tools']), ['count' => count($group['tools'])]) }}</p>
                     </div>
                     <ul class="s-th-list">
                         @foreach ($group['tools'] as $tool)

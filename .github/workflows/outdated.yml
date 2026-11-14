@@ -12,6 +12,8 @@ permissions:
 
 jobs:
   outdated:
+    # Only in the public repo (Hillel, 2026-11-14: "only run in stackapella/stackapella"): anywhere else it skips at once.
+    if: github.repository == 'Stackapella/stackapella'
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:

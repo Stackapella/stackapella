@@ -10,7 +10,7 @@ import { cloud, syncNow } from '../stores/cloud.js';
 import { sessionBusy } from '../stores/session-live.js';
 import { route } from '../router.js';
 import { version } from '../version.js';
-import { REFRESH_MS, reloadIntoNew } from '../sw-update.js';
+import { reloadIntoNew } from '../sw-update.js';
 import { Icon } from './icon.js';
 import { toast } from './ui.js';
 
@@ -67,9 +67,9 @@ export const NewVersion = {
                 await Promise.race([syncNow().catch((error) => console.warn('Saving before the refresh failed', error)), new Promise((resolve) => setTimeout(resolve, SAVE_FIRST_MS))]);
                 this.refreshing = 'updating';
             }
-            // Into the new build: its waiting worker takes over first if it's ready in a few seconds, else the reload comes
-            // from the network (never the old build again, never an open-ended wait: js/sw-update.js REFRESH_MS).
-            await reloadIntoNew({ ms: REFRESH_MS });
+            // Into the new build at once: its waiting worker if it's ready, else straight from the network (never the old
+            // build, never a wait on a precache: js/sw-update.js).
+            await reloadIntoNew({ build: version.now });
         },
     },
 };

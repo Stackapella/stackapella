@@ -16,7 +16,7 @@
         <div class="s-plans-sec">
             <section class="s-wrap s-pricehead" aria-labelledby="page-h">
                 <div>
-                    <p class="s-eyebrow"><span class="s-dots" aria-hidden="true">@foreach ([1, 2, 3, 4] as $n)<b class="s-v{{ $n }}"></b>@endforeach</span><x-site.skin :game="__('pages.landing.game.pricing_kick')" :serious="__('pages.pricing.eyebrow')" /></p>
+                    <p class="s-eyebrow s-hub-eyebrow"><span class="s-dots" aria-hidden="true">@foreach ([1, 2, 3, 4] as $n)<b class="s-v{{ $n }}"></b>@endforeach</span><x-site.skin :game="__('pages.landing.game.pricing_kick')" :serious="__('pages.pricing.eyebrow')" /></p>
                     {{-- The second line in the warm amber, the five pages' key phrase (never a fixed pink). --}}
                     <h1 id="page-h">{{ __('pages.landing.plans_title') }} <span class="s-h-more">{{ __('pages.landing.plans_title_more') }}</span></h1>
                 </div>

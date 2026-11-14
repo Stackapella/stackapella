@@ -1529,5 +1529,6 @@
     "Tools · :count, all free": "Herramientas · :count, todas gratis",
     "Free tools for": "Herramientas gratis para",
     "singers and musicians": "cantantes y músicos",
-    "Pricing · Free and Plus": "Precios · Gratis y Plus"
+    "Pricing · Free and Plus": "Precios · Gratis y Plus",
+    "{1} 1 tool|[2,*] :count tools": "{1} 1 herramienta|[2,*] :count herramientas"
 }

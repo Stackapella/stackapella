@@ -10,7 +10,8 @@
 
 const READY_MS = 20000; // a new build's precache, on a slow line
 const SWITCH_MS = 5000;
-export const REFRESH_MS = 6000; // Refresh waits no longer for the new build's worker: then the network (Hillel saw it take a while)
+export const TAKE_OVER_MS = 250; // a new worker's handover, at most, before the network instead
+export const COMING_MS = 1500; // a new build's script, on a slow line, before its worker starts
 export const SILENT_MS = 8000; // the silent reload only this soon after opening
 
 let touched = false;
@@ -52,6 +53,21 @@ async function waitingWorker(registration, ms = READY_MS) {
     });
 }
 
+/** The worker `registration` starts installing next (its script fetched), or null in `ms`. */
+function coming(registration, ms = COMING_MS) {
+    return new Promise((resolve) => {
+        const timer = setTimeout(() => resolve(null), ms);
+        registration.addEventListener(
+            'updatefound',
+            () => {
+                clearTimeout(timer);
+                resolve(registration.installing);
+            },
+            { once: true },
+        );
+    });
+}
+
 /** Has `worker` take over this page; true once it's in charge. */
 function takeOver(worker, ms = SWITCH_MS) {
     return new Promise((resolve) => {
@@ -69,16 +85,27 @@ function takeOver(worker, ms = SWITCH_MS) {
 }
 
 /**
- * Reloads into the newest build: its waiting worker first if it's ready within `ms` (and takes over in a moment), else
- * without a worker, from the network. Either way never the old build, and never longer than about `ms` and a moment.
+ * Reloads into the newest build, at once (Hillel: Refresh "used to be instant"): a new build's worker, still installing
+ * or waiting (the server's build, never one between), takes over and the page reloads on it; otherwise this worker is let
+ * go and the reload comes from the network, the new build's files straight from the server.
+ * Never the old build, and never a wait on a precache: the reload starts within TAKE_OVER_MS of the tap, or of the new
+ * build's worker starting (its script, COMING_MS at most).
  */
-export async function reloadIntoNew({ reload = () => location.reload(), ms = READY_MS, registration } = {}) {
+export async function reloadIntoNew({ reload = () => location.reload(), registration, build = null } = {}) {
     registration ??= await navigator.serviceWorker?.getRegistration().catch(() => null);
-    const worker = await waitingWorker(registration, ms);
-    if (!(worker && (await takeOver(worker, Math.min(SWITCH_MS, 2000)))) && registration) {
-        // No new worker in time: let this one go, so the reload asks the server; the page registers the new build again.
-        await registration.unregister().catch((error) => console.warn('The old worker was not let go', error));
+    // One still installing is the newest (sw.js then ends its install at once rather than wait on the precache); else the
+    // waiting one, if it's the server's build: an older one would land the reload between and ask again.
+    const waiting = registration?.waiting;
+    const current = waiting && (!build || new URL(waiting.scriptURL).searchParams.get('build') === build);
+    // None yet: the page registers the new build as it learns of it, so its worker starts once its script comes; letting
+    // this one go now would wait behind that whole install (7 s in deploy.py), and the reload would ask again.
+    const worker = registration?.installing ?? (current ? waiting : null) ?? (registration ? await coming(registration) : null);
+    if (worker && (await takeOver(worker, TAKE_OVER_MS))) {
+        reload();
+        return;
     }
+    // None in time: this one is let go so the reload asks the server (the page registers its build afresh).
+    if (registration) await registration.unregister().catch((error) => console.warn('The old worker was not let go', error));
     reload();
 }
 

@@ -3746,6 +3746,60 @@ a.s-vt-rung:hover { background: color-mix(in srgb, var(--color-cream) 5%, transp
 }
 .s-fbar + * { margin-top: clamp(32px, 3.4vw, 48px); }
 .s-sh-hero, .s-th-hero { padding-bottom: clamp(40px, 4.4vw, 64px); }
+
+/* /tools' hero splits like the others (55/45) with Most used at right as one panel of three rows (the design
+   direction's "Most used": one panel, not floating bits), the readout tiles kept live. */
+.s-hub-hero { display: grid; gap: var(--k-hero-gap); align-items: start; padding-top: var(--k-hero-top); }
+@media (min-width: 900px) { .s-hub-hero { grid-template-columns: minmax(0, 55fr) minmax(0, 45fr); } }
+.s-th-most-panel { padding: 18px 20px 6px; border: 1px solid var(--k-line); border-radius: var(--k-r-feature); background: var(--color-panel); box-shadow: var(--k-sh-feature), var(--k-hi); }
+.s-th-most-panel > .s-th-label { margin: 0; padding-bottom: 6px; font-size: var(--k-eyebrow); font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--color-muted); }
+.s-th-most-panel .s-th-most { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0; margin: 0; }
+.s-th-most-panel .s-th-most > li + li { border-top: 1px solid var(--k-line); }
+.s-th-most-panel .s-th-big { display: grid; grid-template-columns: 128px minmax(0, 1fr); grid-template-rows: auto 1fr; column-gap: 18px; row-gap: 4px; align-items: start; height: auto; padding: 14px 0; border: 0; border-radius: 0; background: none; box-shadow: none; }
+.s-th-most-panel .s-th-pic { grid-row: 1 / span 2; height: 76px; min-height: 76px; margin: 0; padding: 10px 12px; border-radius: var(--k-r-inner); overflow: hidden; }
+.s-th-most-panel .s-th-pic-read b { font-size: 22px; }
+.s-th-most-panel .s-th-big-head { align-self: end; }
+.s-th-most-panel .s-th-big-head b { font-size: var(--k-h4); }
+.s-th-most-panel .s-th-big:focus-visible { outline: 2px solid var(--color-cream); outline-offset: 3px; border-radius: var(--k-r-inner); }
+@media (max-width: 599px) {
+    .s-th-most-panel .s-th-big { grid-template-columns: 116px minmax(0, 1fr); column-gap: 14px; }
+    .s-th-most-panel .s-th-pic-read b { font-size: 19px; }
+    .s-th-most-panel .s-th-pic-read em { font-size: 11px; }
+}
+
+/* Numbered groups (/tools and /courses, the design direction's "Numbered group"): a 264 px label column, sticky from
+   900 px so a group's name stays beside its cards; the number with a rule in the group's colour, the name, its line and
+   its count; the rule between groups on the content's edges. */
+.s-th-grp, .s-crs-group { gap: 24px 48px; padding-block: var(--k-grp) 0; border: 0; }
+.s-th-grp + .s-th-grp, .s-crs-group + .s-crs-group { background: linear-gradient(var(--k-line), var(--k-line)) center top / calc(100% - 32px) 1px no-repeat; }
+@media (min-width: 900px) {
+    .s-th-grp, .s-crs-group { grid-template-columns: 264px minmax(0, 1fr); gap: 24px 48px; padding-block: var(--k-grp) 0; }
+    .s-th-grp + .s-th-grp, .s-crs-group + .s-crs-group { background-size: calc(100% - 80px) 1px; }
+    :is(.s-th-grp, .s-crs-group) > :first-child { position: sticky; top: 96px; align-self: start; }
+}
+/* /tools' groups already sit inside the row's padding (.s-th-groups is the .s-wrap), so their rule is full width. */
+.s-th-grp + .s-th-grp { background-size: 100% 1px; }
+.s-grp-num, .s-crs-num { display: flex; align-items: center; gap: 10px; margin: 0 0 14px; font-size: var(--k-meta); font-weight: 800; letter-spacing: .06em; color: var(--color-muted); font-variant-numeric: tabular-nums; }
+.s-grp-num::before { content: ''; width: 20px; height: 2px; border-radius: 2px; background: var(--c, var(--color-cream)); }
+.s-crs-num::before { width: 20px; height: 2px; }
+.s-th-grp-head h2, .s-crs-group-head h2 { display: block; margin: 0; font-size: var(--k-h3); line-height: 1.08; letter-spacing: -0.025em; font-weight: 800; white-space: normal; }
+.s-th-grp-head > p:not(.s-grp-num):not(.s-grp-meta), .s-crs-blurb { max-width: 28ch; margin-top: 10px; font-size: 15px; line-height: 1.5; color: var(--color-muted); }
+.s-grp-meta, .s-crs-meta { margin-top: 12px; font-size: var(--k-meta); color: var(--color-muted); font-variant-numeric: tabular-nums; }
+.s-th-groups { padding-top: 8px; }
+
+/* Cards (the design direction's "List card" and three depths): one list card on /courses and /tools, a hairline at
+   rest, a 2 px lift with a soft long shadow and the arrow nudging 3 px on hover; the feature surfaces at 24 px. Calm
+   only: game keeps its square frames and the hard-shadow press. */
+:root:not([data-skin='game']) :is(.s-crs-card, .s-th-card) { padding: var(--k-card-pad); border: 1px solid var(--k-line); border-radius: var(--k-r-card); background: var(--color-panel); box-shadow: var(--k-sh-rest), var(--k-hi); transition: transform .2s var(--k-ease), box-shadow .2s var(--k-ease), border-color .2s; }
+:root:not([data-skin='game']) :is(.s-crs-card, .s-th-card):hover { transform: translateY(-2px); border-color: var(--k-line-strong); box-shadow: var(--k-sh-hover), var(--k-hi); }
+:root:not([data-skin='game']) :is(.s-crs-card, .s-th-card):focus-within { outline: 2px solid var(--color-cream); outline-offset: 3px; }
+:root:not([data-skin='game']) :is(.s-crs-cards, .s-th-list) { gap: var(--k-card-gap); }
+:root:not([data-skin='game']) :is(.s-crs-card h3, .s-th-card-top b) { font-size: var(--k-h4); font-weight: 750; letter-spacing: -0.01em; }
+:root:not([data-skin='game']) :is(.s-crs-card > p, .s-th-card .s-th-line) { font-size: var(--k-small); line-height: 1.5; color: var(--color-muted); }
+:root:not([data-skin='game']) :is(.s-crs-try svg, .s-th-card-top > svg) { transition: transform .2s var(--k-ease); }
+:root:not([data-skin='game']) :is(.s-crs-card, .s-th-card):hover :is(.s-crs-try svg, .s-th-card-top > svg) { transform: translateX(3px); }
+@media (prefers-reduced-motion: reduce) { :root:not([data-skin='game']) :is(.s-crs-card, .s-th-card, .s-crs-try svg, .s-th-card-top > svg) { transition: none; transform: none !important; } }
+:root:not([data-skin='game']) :is(.s-step, .s-card3d) { border-radius: var(--k-r-feature); }
 /* The A to Z's own chips: on a phone one row that scrolls with a fade, as every chip row (a long Spanish group,
    "Himnos de Acción de Gracias", outgrew a 320 px screen in game). */
 @media (max-width: 899px) {
@@ -8655,7 +8709,7 @@ a.s-vt-rung:hover { background: color-mix(in srgb, var(--color-cream) 5%, transp
     .s-mix-facts { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px 28px; }
 }
 @media (min-width: 900px) {
-    .s-lv2 .s-sec { padding-top: 128px; }
+    .s-lv2 .s-sec { padding-top: 112px; } /* the five pages share one rhythm (the design direction: 128 to 112) */
     .s-headsplit { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 64px; align-items: end; }
     .s-headsplit .s-lede { margin-top: 0; padding-bottom: 8px; max-width: 40ch; }
     .s-coachbar { margin-top: 28px; padding: 22px 28px; }
@@ -8680,7 +8734,7 @@ a.s-vt-rung:hover { background: color-mix(in srgb, var(--color-cream) 5%, transp
     .s-startcard h3 { font-size: 24px; }
     .s-toolsrow { grid-template-columns: minmax(0, 4fr) minmax(0, 7fr); gap: 56px; align-items: start; margin-top: 56px; }
     .s-toolsrow-chips { padding-top: 4px; }
-    .s-lv2 .s-teams { margin-top: 128px; }
+    .s-lv2 .s-teams { margin-top: 112px; }
     .s-teams-landing .s-split { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 64px; }
     .s-lv2 .s-teams-grid { margin-top: 64px; }
     .s-alsofor { margin-top: 24px; }
@@ -10863,7 +10917,7 @@ a.s-vt-rung:hover { background: color-mix(in srgb, var(--color-cream) 5%, transp
 /* The hubs' shared hero (the cohesion plan's step 2), game skin: one headline size for /songs, /courses and /tools
    (the direction's --k-g-h1), the pixel face's own spacing rather than the calm face's tight tracking, the second line
    in the arcade pink, and the eyebrow's four voice dots as square pixels. */
-:root[data-skin='game'][data-gs] body.s-arcade { --k-g-h1: clamp(30px, 3.5vw, 50px); }
+:root[data-skin='game'][data-gs] body.s-arcade { --k-g-h1: clamp(30px, 3.5vw, 50px); --k-g-hud-lg: 40px; }
 :root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) :is(.s-sh-hero, .s-crs-head, .s-th-hero) h1.s-hub-h1 { font-size: var(--k-g-h1); line-height: 1.12; letter-spacing: .01em; }
 :root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-hub-h1 > em.s-hl-em { color: var(--arc-pink); }
 :root[data-skin='game'][data-gs] body.s-arcade .s-hub-dots b { border-radius: 0; }
@@ -10888,6 +10942,24 @@ a.s-vt-rung:hover { background: color-mix(in srgb, var(--color-cream) 5%, transp
 :root[data-skin='game'][data-gs] body.s-arcade .s-fbar :is(.s-fchip[aria-pressed='true'], .s-fchip[aria-current='true'], .s-fchip.is-on) :is(span, .s-crs-n) { color: color-mix(in srgb, var(--arc-bg) 75%, transparent); }
 :root[data-skin='game'][data-gs] body.s-arcade .s-fbar .s-fbar-search { border-radius: 0; border: var(--arc-edge-w) solid var(--arc-line); background: var(--arc-well); }
 :root[data-skin='game'][data-gs] body.s-arcade .s-fbar .s-fbar-search:focus-within { border-color: var(--color-cream); }
+/* /tools' Most used in the hero (the cohesion plan's step 4), game skin: one cabinet framed in cyan on the hard shadow,
+   MOST USED set into its top edge like a marquee, its three rows parted by rules instead of each framed, and the readout
+   tiles as small screens with scanlines. */
+:root[data-skin='game'][data-gs] body.s-arcade .s-th-most-panel { position: relative; margin-top: 10px; padding-top: 22px; border-radius: 0; border: var(--arc-frame) solid var(--arc-cyan); background: var(--arc-well); box-shadow: 6px 6px 0 var(--arc-shadow-c); }
+:root[data-skin='game'][data-gs] body.s-arcade .s-th-most-panel > .s-th-label { position: absolute; top: 0; left: 16px; translate: 0 -55%; padding: 2px 10px; background: var(--arc-bg); font-family: var(--a-hud); font-size: 11px; font-weight: 400; letter-spacing: .08em; color: var(--arc-cyan); }
+:root[data-skin='game'][data-gs] body.s-arcade .s-th-most-panel .s-th-most > li + li { border-top: var(--arc-edge-w) solid var(--arc-line); }
+:root[data-skin='game'][data-gs] body.s-arcade .s-th-most-panel .s-th-big { border: 0; background: transparent; box-shadow: none; }
+:root[data-skin='game'][data-gs] body.s-arcade .s-th-most-panel .s-th-big:is(:hover, :focus-visible) { background: color-mix(in srgb, var(--arc-cyan) 8%, transparent); }
+:root[data-skin='game'][data-gs] body.s-arcade .s-th-most-panel .s-th-pic { background: repeating-linear-gradient(to bottom, transparent 0 2px, rgb(0 0 0 / .22) 2px 3px), var(--arc-panel); box-shadow: inset 0 0 0 var(--arc-edge-w) var(--arc-line); }
+/* The numbered groups (/tools and /courses): the number a HUD readout in the group's colour with a soft glow, its meta
+   in pixel caps, and dashed 2 px rules between groups. */
+:root[data-skin='game'][data-gs] body.s-arcade :is(.s-grp-num, .s-crs-num) { font-family: var(--arc-screen); font-size: var(--k-g-hud-lg); font-weight: 400; line-height: 1; letter-spacing: 0; color: var(--c, var(--color-cream)); text-shadow: 0 0 10px color-mix(in srgb, var(--c, var(--color-cream)) 55%, transparent); }
+:root[data-skin='game'][data-gs] body.s-arcade .s-crs-num { color: var(--cg, var(--color-cream)); text-shadow: 0 0 10px color-mix(in srgb, var(--cg, var(--color-cream)) 55%, transparent); }
+:root[data-skin='game'][data-gs] body.s-arcade :is(.s-grp-num, .s-crs-num)::before { border-radius: 0; }
+:root[data-skin='game'][data-gs] body.s-arcade :is(.s-grp-meta, .s-crs-meta) { font-family: var(--a-hud); font-size: 11px; letter-spacing: .06em; text-transform: uppercase; }
+:root[data-skin='game'][data-gs] body.s-arcade :is(.s-th-grp + .s-th-grp, .s-crs-group + .s-crs-group) { background-image: repeating-linear-gradient(90deg, var(--arc-line) 0 8px, transparent 8px 14px); background-size: calc(100% - 32px) 2px; }
+@media (min-width: 900px) { :root[data-skin='game'][data-gs] body.s-arcade .s-crs-group + .s-crs-group { background-size: calc(100% - 80px) 2px; } }
+:root[data-skin='game'][data-gs] body.s-arcade .s-th-grp + .s-th-grp { background-size: 100% 2px; }
 /* arcade-screen:end */
 /* Game mode's circles are arcade coins (Hillel's pick of two, 2026-11-08; the course map's stages, .ge-map-node, above):
    every bubble that reaches game mode (serious mode's look, docs/bubble-circles-plan.md: the avatars, New song's +, the

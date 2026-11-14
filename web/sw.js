@@ -422,6 +422,13 @@ async function precache() {
     await Promise.all(results.map((r) => cache.put(...r.value)));
 }
 
+// Refresh pressed while this build still precaches (js/sw-update.js) never waits on it: the install ends at once, this
+// worker takes over, the files it doesn't hold yet come from the network (fromBuild keeps each), and the precache
+// finishes behind it. Before, Refresh waited on the precache, seconds on a slow line (Hillel, 2026-11-14).
+let installed = Promise.resolve();
+let hurry;
+const hurried = new Promise((resolve) => (hurry = resolve));
+
 self.addEventListener('install', (event) => {
     if (KILL) {
         event.waitUntil(self.skipWaiting());
@@ -430,17 +437,19 @@ self.addEventListener('install', (event) => {
     // From the network, not the browser's cache: a new version's files, never a mix with the old.
     // The carried files come over now, while the old version and its cache are still in charge.
     // A first install takes over at once; a new build waits for its pages to ask (or for the old build's to close).
-    event.waitUntil(
-        precache()
-            .then(() => caches.keys())
-            .then((keys) => carryOver(keys.filter((key) => key.startsWith('stackapella-') && key !== CACHE)))
-            .then(() => (self.registration.active ? null : self.skipWaiting())),
-    );
+    installed = precache()
+        .then(() => caches.keys())
+        .then((keys) => carryOver(keys.filter((key) => key.startsWith('stackapella-') && key !== CACHE)))
+        .then(() => (self.registration.active ? null : self.skipWaiting()));
+    event.waitUntil(Promise.race([installed, hurried]));
 });
 
-// A page asking the waiting new build to take over (js/sw-update.js): it reloads once this worker is in charge.
+// A page asking the new build to take over, waiting or still installing (js/sw-update.js): it reloads once this worker
+// is in charge. The rest of a hurried precache keeps the worker alive until it's done.
 self.addEventListener('message', (event) => {
-    if (event.data?.type === 'skip-waiting') event.waitUntil(self.skipWaiting());
+    if (event.data?.type !== 'skip-waiting') return;
+    hurry();
+    event.waitUntil(Promise.all([self.skipWaiting(), installed.catch((error) => console.warn('The precache behind a Refresh failed; files come from the network', error))]));
 });
 
 /**

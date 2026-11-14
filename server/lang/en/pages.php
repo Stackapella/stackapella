@@ -378,7 +378,7 @@ return [
         'hub' => [
             'songs' => ['eyebrow' => 'Songbook · :count songs', 'game_eyebrow' => 'Song select · :count songs'],
             'courses' => ['eyebrow' => 'Courses · :count, all free', 'headline' => 'Free singing', 'headline_em' => 'courses', 'game_headline' => 'Course', 'game_headline_em' => 'select'],
-            'tools' => ['eyebrow' => 'Tools · :count, all free', 'headline' => 'Free tools for', 'headline_em' => 'singers and musicians'],
+            'tools' => ['eyebrow' => 'Tools · :count, all free', 'headline' => 'Free tools for', 'headline_em' => 'singers and musicians', 'group_meta' => '{1} 1 tool|[2,*] :count tools'],
         ],
         'explore' => [
             'title' => 'Explore Stackapella',

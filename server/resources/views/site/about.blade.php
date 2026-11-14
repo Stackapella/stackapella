@@ -28,8 +28,9 @@
         </section>
 
         {{-- Who made this (Hillel's words, 2026-10-30): his two companies as plain followed links, his
-             three music apps as a short story, and two old videos as player-like cards with our own
-             stills that open YouTube in a new tab (no embed, nothing loaded from YouTube). --}}
+             three music apps as a short story, and two old videos as player-like cards with stills from the
+             videos (mudeo's is its YouTube thumbnail, Hillel 2026-11-14), kept on our server, that open YouTube
+             in a new tab (no embed, nothing loaded from YouTube). --}}
         <section class="s-wrap s-sec s-maker" aria-labelledby="maker-h">
             <h2 id="maker-h" class="s-title">{{ __('site.about.maker.heading') }}</h2>
             <p class="s-lede s-maker-intro">{{ __('site.about.maker.intro_start') }} <a href="https://invoiceninja.com" rel="noopener" class="s-lk">{{ __('site.about.maker.invoice_ninja') }}</a> {{ __('site.about.maker.intro_and') }} <a href="https://eventschedule.com" rel="noopener" class="s-lk">{{ __('site.about.maker.event_schedule') }}</a>{{ __('site.about.maker.intro_end') }}</p>
@@ -38,7 +39,7 @@
                     <li class="s-v{{ $loop->iteration }}"><span class="s-disc" aria-hidden="true">{{ $loop->iteration }}</span><div><h3>{{ $step['title'] }}</h3><p>{{ $step['body'] }}</p></div></li>
                 @endforeach
             </ol>
-            @php($videos = ['music_maker_pro' => ['https://www.youtube.com/watch?v=DIYLPU__dmk', '/icons/about/music-maker-pro.jpg'], 'mudeo_show' => ['https://www.youtube.com/watch?v=QFmrgkIwAds', '/icons/about/mudeo-flutter-show.jpg']])
+            @php($videos = ['music_maker_pro' => ['https://www.youtube.com/watch?v=DIYLPU__dmk', '/icons/about/music-maker-pro.jpg'], 'mudeo_show' => ['https://www.youtube.com/watch?v=QFmrgkIwAds', '/icons/about/mudeo-boring-show.jpg']])
             <ul class="s-maker-videos">
                 @foreach ((array) \Illuminate\Support\Facades\Lang::get('site.about.maker.videos') as $key => $video)
                     <li>

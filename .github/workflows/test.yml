@@ -19,6 +19,8 @@ concurrency:
 
 jobs:
   server:
+    # Only in the public repo (Hillel, 2026-11-14: "only run in stackapella/stackapella"): anywhere else it skips at once.
+    if: github.repository == 'Stackapella/stackapella'
     runs-on: ubuntu-24.04
     # The suite grows (about 1,560 tests on 2026-11-11, 7 to 9 minutes here).
     timeout-minutes: 30
@@ -107,6 +109,8 @@ jobs:
         run: php artisan test --parallel --processes=4 --compact
 
   web:
+    # Only in the public repo (Hillel, 2026-11-14: "only run in stackapella/stackapella"): anywhere else it skips at once.
+    if: github.repository == 'Stackapella/stackapella'
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     defaults:
@@ -165,6 +169,8 @@ jobs:
           tool/test.sh
 
   secrets:
+    # Only in the public repo (Hillel, 2026-11-14: "only run in stackapella/stackapella"): anywhere else it skips at once.
+    if: github.repository == 'Stackapella/stackapella'
     # Nothing unshareable in the history or the tree (server/tool/leak-check.sh, as before every
     # push): gitleaks at a pinned version, checked against its published sha256.
     runs-on: ubuntu-24.04

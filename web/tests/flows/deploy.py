@@ -88,6 +88,11 @@ def new_version(f):
     f.run("document.body.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }))")  # someone's using it: the prompt asks
     f.wait(f"{VERSION}.version.loaded", what="the build this page started with")
     assert not f.js(f"!!{PROMPT}"), "no prompt before a deploy"
+    # The lesson and its map opened once before the deploy: a view first opened after it reloads into the new build at
+    # once (js/lazy.js, one whole version), so the lesson below tests the prompt held, not that reload.
+    for path in ("/learn/1-match", "/learn", "/"):
+        f.run(f"(await import('/js/router.js')).navigate({path!r})")
+        f.wait(f"location.pathname === {path!r} && document.querySelector('main h1, main h2')", what=f"{path} opened before the deploy")
     BUILD.write_text("mock1111111111111111111111111111111111111")  # the deploy
     # Recording: it waits.
     f.run("(await import('/js/stores/session.js')).session.recording = true;")
@@ -107,19 +112,61 @@ def new_version(f):
     f.wait(PROMPT, what="the prompt back on the map")
     f.click(t(f, "version.notNow"), "[data-new-version] button")
     f.wait(f"!{PROMPT}", what="Not now")
-    # Found again (another deploy): Refresh reloads into it.
-    BUILD.write_text("mock2222222222222222222222222222222222222")
+    # Settled on the server's build, its own worker in charge (a view opened above may have reloaded into it already).
+    on_build(f, "mock1111111111111111111111111111111111111")
+    # Found again (another deploy), its worker installed and waiting: Refresh, at once, lands on it.
+    C = "mock2222222222222222222222222222222222222"
+    BUILD.write_text(C)
     f.run(f"await {VERSION}.checkVersion({{ now: true }})")
     f.wait(PROMPT, what="the prompt for the next build")
-    f.run("window.beforeRefresh = true")
-    f.click(t(f, "version.refresh"), "[data-new-version] button")
-    f.wait(f"!window.beforeRefresh && {STARTED} && document.querySelector('header')", what="the page reloaded")
-    f.wait(f"{STARTED} && {VERSION}.version.loaded === 'mock2222222222222222222222222222222222222'", what="running the new build")
+    f.wait(f"navigator.serviceWorker.getRegistration().then((r) => (r?.waiting?.scriptURL ?? '').includes('build={C}'))", timeout=120, what="its worker waiting")
+    f.wait(PROMPT, what="the prompt, its worker ready")
+    refresh(f, C, "a waiting new build")
     # Hillel had to click Refresh twice: the new build's own worker taking over the reloaded page
     # isn't a newer version. Once it's in charge, no prompt.
-    f.wait("navigator.serviceWorker.controller?.scriptURL.includes('build=mock2222222222222222222222222222222222222')", timeout=30, what="the new build's worker in charge")
+    f.wait(f"navigator.serviceWorker.controller?.scriptURL.includes('build={C}')", timeout=30, what="the new build's worker in charge")
     f.run("await new Promise((r) => setTimeout(r, 1000))")
     assert not f.js(f"!!{PROMPT}"), "the prompt came back after one Refresh"
+    # Another deploy, Refresh pressed while its worker is still installing: never waited on; the new build from the server.
+    D = "mock3333333333333333333333333333333333333"
+    BUILD.write_text(D)
+    f.run(f"await {VERSION}.checkVersion({{ now: true }})")
+    f.wait(PROMPT, what="the prompt for the build after")
+    refresh(f, D, "a build still installing")
+    assert not f.js(f"!!{PROMPT}"), "the prompt came back after one Refresh"
+    # From the network, the page registers its build's worker afresh: it installs and takes charge (the steps below use it).
+    f.wait(f"navigator.serviceWorker.controller?.scriptURL.includes('build={D}')", timeout=90, what="the new build's worker in charge again")
+
+
+def on_build(f, build):
+    """This page on `build`, its worker in charge: reopened (it updates by itself if untouched), else by its Refresh."""
+    import time
+    f.go("/?api=mock&scenario=&as=signedOut", "document.querySelector('header')")  # a guest: nothing to save first, Refresh alone is timed
+    end = time.time() + 120
+    here = f"{STARTED} && {VERSION}.version.loaded === {build!r} && (navigator.serviceWorker.controller?.scriptURL ?? '').includes('build={build}')"
+    def ask(expression):  # the page may reload itself under a question (its silent update, a Refresh): asked again
+        try:
+            return f.js(expression)
+        except Exception as error:
+            if "navigated or closed" not in str(error):
+                raise
+            return None
+
+    while time.time() < end and not ask(f"(async () => {{ try {{ return !!({here}); }} catch {{ return false; }} }})()"):
+        ask(f"!!window.stackapellaStarted && !!{PROMPT} && (document.querySelector('[data-new-version] .btn-primary')?.click(), true)")
+        time.sleep(1)
+    f.wait(here, timeout=5, what=f"on {build}, its worker in charge")
+
+
+def refresh(f, build, case):
+    """Refresh, timed from the press to the reload beginning (beforeunload; Hillel: it "used to be instant"), then on `build`, whole."""
+    f.run("window.beforeRefresh = true; window.__pressed = performance.now(); addEventListener('beforeunload', () => sessionStorage.setItem('refreshMs', String(Math.round(performance.now() - window.__pressed))), { once: true });")
+    f.run("document.querySelector('[data-new-version] .btn-primary').click()")  # Refresh, the prompt's one primary
+    f.wait(f"!window.beforeRefresh && {STARTED} && document.querySelector('header')", what="the page reloaded")
+    took = int(f.js("sessionStorage.getItem('refreshMs') ?? '99999'"))
+    print(f"Refresh with {case}: {took} ms")
+    assert took < 300, f"Refresh with {case}: the reload began {took} ms after the press"
+    f.wait(f"{STARTED} && {VERSION}.version.loaded === {build!r}", what=f"running the new build ({case})")
 
 
 def missing_file(f):
