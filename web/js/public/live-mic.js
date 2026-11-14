@@ -48,7 +48,7 @@ async function open(deviceId, { cancelEcho = false } = {}) {
 
 /**
  * The mic, opened (call it from a tap). `onFrame` hears each reading:
- * `{ at, hz, midi, cents, clear, loudness, clarity }` (`at` on the audio clock, `midi` fractional and
+ * `{ at, hz, midi, cents, clear, loudness, clarity, peak }` (`peak` the loudest sample, 0 to 1) (`at` on the audio clock, `midi` fractional and
  * null when unvoiced, `cents` from the target set with `target(midi)` or else from the nearest note,
  * `loudness` in dBFS). The tracker's reach can be changed: `minHz` and `maxHz`, `window` (samples
  * per reading: 4096 for an instrument's low strings) and `quietDb` (readings quieter than this are
@@ -76,12 +76,13 @@ export async function listen({ onFrame = null, deviceId = '', minHz = null, maxH
     let goal = null;
     let busy = false;
     let raf = 0;
+    let peak = 0; // the loudest sample of the window in flight (one at a time), so a clip shows however short
     worker.onmessage = ({ data }) => {
         busy = false;
         const voiced = data.hz > 0;
         const midi = voiced ? hzToMidi(data.hz) : null;
         const cents = midi === null ? null : Math.round(100 * (midi - (goal ?? Math.round(midi))));
-        const frame = { at: data.at, hz: voiced ? data.hz : 0, midi, cents, clear: voiced, loudness: data.loudness, clarity: data.clarity };
+        const frame = { at: data.at, hz: voiced ? data.hz : 0, midi, cents, clear: voiced, loudness: data.loudness, clarity: data.clarity, peak };
         frames.push(frame);
         while (frames.length && frame.at - frames[0].at > KEEP_SECONDS) frames.shift();
         onFrame?.(frame);
@@ -92,6 +93,8 @@ export async function listen({ onFrame = null, deviceId = '', minHz = null, maxH
         if (busy || c.state !== 'running') return;
         const samples = new Float32Array(window);
         analyser.getFloatTimeDomainData(samples);
+        peak = 0;
+        for (const x of samples) if (Math.abs(x) > peak) peak = Math.abs(x);
         busy = true;
         worker.postMessage({ samples, sampleRate: c.sampleRate, at: c.currentTime, ...reach }, [samples.buffer]);
     };

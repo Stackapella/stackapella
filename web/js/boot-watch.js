@@ -27,7 +27,17 @@
         button.type = 'button';
         button.appendChild(document.createTextNode('Reload')); // i18n-ignore: the app's translations never load here
         button.style.cssText = 'font:inherit;font-weight:700;font-size:1.125rem;padding:0.75rem 1.5rem;border-radius:999px;border:0;cursor:pointer;background:' + (dark ? '#ffffff' : '#211a15') + ';color:' + (dark ? '#000000' : '#ffffff');
-        button.onclick = function () { location.reload(); };
+        button.onclick = function () {
+            // Online, the app's worker and its kept copies go first, so the reload comes whole from the network: sw.js serves
+            // a page its build's kept files, and a broken copy would only load again (the PWA update pass, 2026-11-14).
+            // Offline they stay, for the app to open without a connection.
+            if (!navigator.onLine || !navigator.serviceWorker || !window.caches) { location.reload(); return; }
+            navigator.serviceWorker.getRegistrations()
+                .then(function (all) { return Promise.all(all.filter(function (r) { var w = r.active || r.waiting || r.installing; return w && w.scriptURL.indexOf('/sw.js') !== -1; }).map(function (r) { return r.unregister(); })); })
+                .then(function () { return caches.keys(); })
+                .then(function (keys) { return Promise.all(keys.filter(function (k) { return k.indexOf('stackapella-') === 0; }).map(function (k) { return caches.delete(k); })); })
+                .then(function () { location.reload(); }, function () { location.reload(); });
+        };
         box.appendChild(title);
         box.appendChild(line);
         box.appendChild(button);

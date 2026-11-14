@@ -24,6 +24,16 @@ export function levelWord(watch, db) {
     return state === 'ok' ? 'good' : 'listening';
 }
 
+// A sample at full scale is a clip: the take distorts even when the level on average reads good (the tools review,
+// 2026-11-14). It's said for CLIP_HOLD seconds after the last one.
+export const CLIP_PEAK = 0.99;
+const CLIP_HOLD = 1.5;
+
+/** The level word with clipping over it: 'clip' while a full-scale sample is under CLIP_HOLD seconds old. */
+export function clipWord(word, at, lastClipAt) {
+    return at - lastClipAt < CLIP_HOLD ? 'clip' : word;
+}
+
 /** The browser and system from the user agent, for the right fix: { browser, system }. */
 export function browserOf(ua = navigator.userAgent, platform = navigator.platform ?? '') {
     const system = /iPhone|iPad|iPod/.test(ua) || (platform === 'MacIntel' && navigator.maxTouchPoints > 1) ? 'ios'

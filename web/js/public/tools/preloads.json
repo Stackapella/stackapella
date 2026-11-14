@@ -123,6 +123,7 @@
     "/js/public/tones.js",
     "/js/public/voices.js",
     "/js/public/wake-lock.js",
+    "/js/public/demo-player.js",
     "/js/public/metronome-beats.js",
     "/js/dsp.js"
   ],
@@ -215,6 +216,7 @@
     "/js/public/tool-layout.js",
     "/js/public/voices.js",
     "/js/public/wake-lock.js",
+    "/js/public/demo-player.js",
     "/js/dsp.js",
     "/js/notes.js",
     "/js/public/tuner-reading.js",

@@ -179,15 +179,22 @@ def carried_over(f):
         changed = re.sub(r"const CACHE = (['`])([^'`]+)\1;", r"const CACHE = \1\2-next\1;", original, count=1)
         assert changed != original, "sw.js's CACHE line wasn't found to change"
         sw.write_text(changed)
-        f.run("await (await navigator.serviceWorker.getRegistration()).update();")
+        take_over(f)
         f.wait(f"caches.keys().then((keys) => keys.length === 1 && !{json.dumps(before)}.includes(keys[0]))", timeout=30, what="the new version in charge")
         assert f.js(f"caches.match({lame}).then((hit) => !!hit)"), "the encoder was lost with the old version"
     finally:
         sw.write_text(original)
     # And back to this version, online, so nothing is left to install once the server's gone.
-    f.run("await (await navigator.serviceWorker.getRegistration()).update();")
+    take_over(f)
     f.wait(f"caches.keys().then((keys) => keys.length === 1 && {json.dumps(before)}.includes(keys[0]))", timeout=30, what="this version back in charge")
     assert f.js(f"caches.match({lame}).then((hit) => !!hit)"), "the encoder was lost coming back"
+
+
+def take_over(f):
+    """A changed sw.js installs and waits beside the page (sw.js); asked, as the app's Refresh asks, it takes over."""
+    f.run("await (await navigator.serviceWorker.getRegistration()).update();")
+    f.wait("navigator.serviceWorker.getRegistration().then((r) => !!r.waiting)", timeout=30, what="the new version installed and waiting")
+    f.run("(await navigator.serviceWorker.getRegistration()).waiting.postMessage({ type: 'skip-waiting' })")
 
 
 def contact_send(f):

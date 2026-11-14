@@ -1,6 +1,6 @@
 // The mic test's reading (js/public/tools/mic-check-reading.js) on the app's own level maths (js/mic-level.js):
 // the level in a word, the fix for a blocked mic on this browser and system, and a busy mic told apart.
-import { browserOf, fixesToShow, fixKeys, headsetLike, levelWord, LOUD_DBFS, problemOf, roomWord } from '/js/public/tools/mic-check-reading.js';
+import { browserOf, clipWord, fixesToShow, fixKeys, headsetLike, levelWord, LOUD_DBFS, problemOf, roomWord } from '/js/public/tools/mic-check-reading.js';
 import { stepVoice, voiceWatch, VOICE_DBFS } from '/js/mic-level.js';
 import { FIX_WORDS, mountMicTest, WORDS as SCREEN_WORDS } from '/js/public/tools/mic-test.js';
 import { assert, test } from './harness.js';
@@ -18,6 +18,12 @@ test('mic test: the level in a word, from the app\'s own voice line', () => {
     assert(levelWord(watch(-30, 1), LOUD_DBFS + 2) === 'loud', 'too loud');
     assert(levelWord(watch(-90, 6), -90) === 'flat', 'nothing for a while');
     assert(levelWord(watch(-58, 6), -58) === 'quiet', 'only a faint signal for a while');
+});
+
+test('mic test: a clip is said over the level for a moment after it', () => {
+    assert(clipWord('good', 10, -Infinity) === 'good', 'no clip yet');
+    assert(clipWord('good', 10.5, 10) === 'clip', 'just clipped: distorting, even at a good level');
+    assert(clipWord('soft', 12, 10) === 'soft', 'a while after: the level again');
 });
 
 test('mic test: a blocked mic\'s fix for this browser and system, most specific first', () => {

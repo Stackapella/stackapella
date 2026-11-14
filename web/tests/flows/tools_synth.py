@@ -113,6 +113,33 @@ def remembers(f, tool):
     f.wait(f"!({stuck})", timeout=5, what=f"{tool}: Reset puts it back")
     f.run(f"localStorage.removeItem({key})")
 
+def pipe_octaves(f):
+    """The pitch pipe's octave: Z and X step it on a computer, and a saved song keeps its own (the tools review,
+    2026-11-14: a men's group got its note an octave high)."""
+    ready = "document.querySelector('[data-tool]')?.dataset.state === 'ready'"
+    value = "document.querySelector('[data-octave-slot] [data-step-value]').textContent"
+    key = json.dumps("stackapella.tools.pitch-pipe")
+    f.go("/tools/pitch-pipe", ready)
+    f.run(f"localStorage.removeItem({key}); window.__old = true; location.reload()")
+    f.wait(f"!window.__old && {ready}", what="pitch pipe: a fresh start")
+    start = f.js(value)
+    f.run("document.activeElement?.blur(); document.body.dispatchEvent(new KeyboardEvent('keydown', { key: 'z', bubbles: true }))")
+    f.wait(f"{value} !== {json.dumps(start)}", what="Z: an octave down")
+    low = f.js(value)
+    # A in that octave, saved as a song; then up two octaves, and the song brings its own back.
+    f.run(f"({DOWN})(document.querySelector('[data-note=\"9\"]')); ({UP})(document.querySelector('[data-note=\"9\"]'))")
+    f.run("const n = document.querySelector('[data-song-name]'); n.value = 'Low one'; document.querySelector('[data-song-form]').requestSubmit()")
+    f.wait("document.querySelector('.s-pipe-song')", what="the song saved")
+    label = f.js("document.querySelector('.s-pipe-song').textContent")
+    assert label == f"Low one, in A{low[-1]}", f"the song names its octave: {label}"
+    for _ in range(2):
+        f.run("document.activeElement?.blur(); document.body.dispatchEvent(new KeyboardEvent('keydown', { key: 'x', bubbles: true }))")
+    f.wait(f"{value} !== {json.dumps(low)}", what="X: up again")
+    f.run("document.querySelector('.s-pipe-song').click()")
+    f.wait(f"{value} === {json.dumps(low)}", what="the song's own octave back")
+    f.run(f"localStorage.removeItem({key})")
+
+
 def embedded(f, tool):
     """The tool in another site's frame (/embed/tools/<tool>): it mounts compact, fits the width, and carries the credit."""
     path = f"/embed/tools/{tool}"
@@ -156,6 +183,16 @@ def main():
                         print(f"FAIL tools_synth ({tool} remembers): {error}")
                     finally:
                         f.close()
+    if "pitch-pipe" in tools:
+        f = flow.Flow(SITE, "phone", "tools_synth", skin="serious")
+        try:
+            pipe_octaves(f)
+            print("ok   tools_synth (pitch pipe: Z and X, and a song's own octave)")
+        except Exception as error:  # noqa: BLE001
+            failures.append(f"pitch pipe octaves: {error}")
+            print(f"FAIL tools_synth (pitch pipe octaves): {error}")
+        finally:
+            f.close()
     # Embedded (the drone and the pitch pipe are embeddable), at a narrow and a wide frame.
     flow.SIZES.setdefault("frame300", (300, 640, True))
     flow.SIZES.setdefault("frame600", (600, 700, False))

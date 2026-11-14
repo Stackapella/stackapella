@@ -32,6 +32,16 @@ if ($path === '/test-result' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     return true;
 }
 
+// sw.js's kill switch, played locally (tests/flows/deploy.py): while tool/sw-kill.txt exists, the worker is served with
+// KILL on, as a deploy that sets it would be.
+if ($path === '/sw.js' && is_file(__DIR__.'/sw-kill.txt')) {
+    header('Content-Type: text/javascript; charset=utf-8');
+    header('Cache-Control: no-cache');
+    echo str_replace('const KILL = false;', 'const KILL = true;', (string) file_get_contents($root.'/sw.js'));
+
+    return true;
+}
+
 $serverPaths = '#^/(api(/|$)|admin/(sign-in|sign-out|second-factor)(/|$)|auth/|dev(/|$)|assets/|media/|private-media/|up$)#';
 if (preg_match($serverPaths, $path) === 1) {
     if ($api === 'mock' && $path === '/up') {

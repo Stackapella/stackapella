@@ -29,7 +29,7 @@ import { sheetRow, toolLayout } from '../tool-layout.js';
 import { audio } from '../voices.js';
 import { meterLevel, stepVoice, voiceWatch, VOICE_DBFS } from '../../mic-level.js';
 import { pitchName } from '../../notes.js';
-import { browserOf, fixesToShow, GOOD_DBFS, headsetLike, levelWord, LOUD_DBFS, problemOf, roomWord } from './mic-check-reading.js';
+import { browserOf, CLIP_PEAK, clipWord, fixesToShow, GOOD_DBFS, headsetLike, levelWord, LOUD_DBFS, problemOf, roomWord } from './mic-check-reading.js';
 
 /** The files the tool loads only when the mic opens: its page keeps them, so it works offline before a first Start. */
 export const WARM = TRACKER_FILES;
@@ -38,7 +38,7 @@ export const WARM = TRACKER_FILES;
 export const WORDS = [
     'start', 'asking', 'record', 'recording', 'play', 'stopPlaying', 'recordAgain', 'settings', 'settingsTitle', 'done',
     'idleHint', 'howItWorks', 'whatToDo', 'step1', 'step2', 'step3', 'privacy',
-    'listening', 'listeningHint', 'good', 'goodHint', 'soft', 'softHint', 'loud', 'loudHint', 'quiet', 'quietHint', 'flat', 'flatHint',
+    'listening', 'listeningHint', 'good', 'goodHint', 'soft', 'softHint', 'loud', 'loudHint', 'clip', 'clipHint', 'quiet', 'quietHint', 'flat', 'flatHint',
     'weHear', 'micLabel', 'yourTake', 'takeHint', 'recordingHint', 'noRecorder', 'noPlayback', 'headset', 'nextLabel',
     'denied', 'deniedHint', 'busy', 'busyHint', 'noMic', 'noMicHint', 'unsupported', 'unsupportedHint', 'fixTitle',
     'details', 'sampleRate', 'hz', 'channels', 'processing', 'room', 'roomQuiet', 'roomSome', 'roomNoisy', 'micOff', 'kept',
@@ -51,7 +51,7 @@ const SEGMENTS = 24; // the meter's bars
 const PEAK_HOLD = 1.5; // seconds the peak bar stays lit
 const VERDICT_WINDOW = 0.4; // the level said in words is the loudest of this last stretch, so it doesn't flicker
 const NOTE_FRESH = 0.5; // a note heard this recently is still shown
-const TONES = { good: 'good', soft: 'muted', listening: 'muted', loud: 'warn', quiet: 'warn', flat: 'warn' };
+const TONES = { good: 'good', soft: 'muted', listening: 'muted', loud: 'warn', clip: 'warn', quiet: 'warn', flat: 'warn' };
 const PROBLEM_WORDS = { denied: 'denied', busy: 'busy', 'no-mic': 'noMic', unsupported: 'unsupported' };
 const CEIL = 0; // the meter reads to full scale, so too loud has room at the top
 const LOUD_LINE = meterLevel(LOUD_DBFS, CEIL);
@@ -133,6 +133,7 @@ export function mountMicTest(root, { words = {}, keySlot = null, next = [], open
     let lit = '';
     let note = null; // { name, at }
     let noise = []; // the room's level between phrases
+    let clipAt = -Infinity; // the last moment a sample hit full scale
     let verdict = 'listening';
     let recorder = null;
     let take = null; // Float32Array, the last take
@@ -205,6 +206,8 @@ export function mountMicTest(root, { words = {}, keySlot = null, next = [], open
         while (recent.length && frame.at - recent[0].at > VERDICT_WINDOW) recent.shift();
         const loudest = Math.max(...recent.map((r) => (Number.isFinite(r.db) ? r.db : -Infinity)));
         verdict = levelWord(watch, loudest);
+        if (frame.peak >= CLIP_PEAK) clipAt = frame.at;
+        verdict = clipWord(verdict, frame.at, clipAt);
         if (frame.clear && frame.midi !== null) {
             const { name, octave } = pitchName(frame.midi);
             note = { name: `${name}${octave}`, at: frame.at };
@@ -235,6 +238,7 @@ export function mountMicTest(root, { words = {}, keySlot = null, next = [], open
             watchPermission(false);
             watch = voiceWatch();
             noise = [];
+            clipAt = -Infinity;
             phase = 'listening';
             await showMic();
         } catch (error) {
@@ -264,14 +268,15 @@ export function mountMicTest(root, { words = {}, keySlot = null, next = [], open
 
     function showRoom() {
         const sorted = [...noise].sort((a, b) => a - b);
-        const room = roomWord(sorted.length > 30 ? sorted[sorted.length >> 1] : null);
+        const median = sorted.length > 30 ? sorted[sorted.length >> 1] : null;
+        const room = roomWord(median);
         const list = $('[data-details]');
         list.querySelector('[data-room]')?.remove();
         list.querySelector('[data-room-value]')?.remove();
         if (!room) return;
         list.append(
             Object.assign(document.createElement('dt'), { className: 'text-muted', textContent: w('room') }),
-            Object.assign(document.createElement('dd'), { className: 'font-semibold', textContent: w({ quiet: 'roomQuiet', some: 'roomSome', noisy: 'roomNoisy' }[room]) }),
+            Object.assign(document.createElement('dd'), { className: 'font-semibold', textContent: `${w({ quiet: 'roomQuiet', some: 'roomSome', noisy: 'roomNoisy' }[room])} (${Math.round(median)} dBFS)` }),
         );
         list.lastElementChild.dataset.roomValue = '';
         list.lastElementChild.previousElementSibling.dataset.room = '';
@@ -442,6 +447,7 @@ export function mountMicTest(root, { words = {}, keySlot = null, next = [], open
         mic?.use(id).then(() => {
             watch = voiceWatch();
             noise = [];
+            clipAt = -Infinity;
             return showMic();
         }).catch((error) => console.warn('That mic could not be opened', error));
     });

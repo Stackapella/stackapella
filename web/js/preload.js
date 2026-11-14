@@ -66,6 +66,7 @@
         '/js/components/mic-check.js',
         '/js/game/fonts.js',
         '/js/version.js',
+        '/js/sw-update.js',
         '/js/components/install.js',
         '/js/components/controls.js',
         '/js/stores/account.js',

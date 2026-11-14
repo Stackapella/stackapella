@@ -31,6 +31,7 @@ import { toolPrefs } from '../tool-prefs.js';
 import { segmented, sheetRow, stepper, toolLayout } from '../tool-layout.js';
 import { audio, voice } from '../voices.js';
 import { keepAwake } from '../wake-lock.js';
+import { unlock } from '../demo-player.js';
 import { midiToHz } from '../../dsp.js';
 import { pageNaming, pitchName } from '../../notes.js';
 import { REFERENCE, stepTuner, TUNER, tunerReading } from '../tuner-reading.js';
@@ -559,6 +560,14 @@ export function mountTuner(root, { words = {}, keySlot = null, onError = null, o
     async function start() {
         if (session) return;
         session = { stop() {} }; // marked listening at once (the tap answers within a frame)
+        // A string's note may have set an iPhone's session to playback only; listening needs it to record too.
+        if ('audioSession' in navigator) {
+            try {
+                navigator.audioSession.type = 'play-and-record';
+            } catch (error) {
+                console.warn('audioSession.type could not be set', error);
+            }
+        }
         started = true;
         awake = keepAwake();
         state = tunerReading();
@@ -610,6 +619,9 @@ export function mountTuner(root, { words = {}, keySlot = null, onError = null, o
     // A note heard: a pitch pipe's reed so a low string is heard on a phone's speaker too; the mic's readings are
     // ignored while it sounds.
     function sound(midi) {
+        // Inside the tap: on an iPhone it sounds with the silent switch on, as the metronome, pitch pipe and drone do (the
+        // tools review, 2026-11-14); while the mic listens, a session that records too, so the reading carries on.
+        unlock(session ? 'play-and-record' : 'playback');
         voice(midiToHz(midi, settings.reference), { timbre: 'reed', level: 0.12, attack: 0.02, release: 0.1 }).stop(1.4);
         quietUntil = audio().currentTime + 1.9; // its 1.4 s and the fade, on the clock the readings carry
     }

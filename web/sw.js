@@ -1,8 +1,19 @@
 // Stackapella's service worker: lets the app install, and open without a connection.
 //
-// - Our own files: network first, so a new version shows at once, with the cached copy offline.
+// - Our own files: from this build's own cache (the whole app, precached as one build), the network only for a file it
+//   doesn't hold (then kept). A page is served one build's files, never the next build's beside its own: a page left
+//   open across a deploy got the new build's modules for whatever it imported next (the PWA update pass, 2026-11-14).
+// - A new build's worker installs beside the running one and waits: it takes over when the page asks (Refresh in "A new
+//   version is ready", or the app opened again before anything was done: js/sw-update.js), or when every page of the
+//   old build has closed. Only a first install, with no worker before it, takes over at once.
 // - Pinned CDN files (the version is in the URL, so they never change): cache first.
-// - Everything else (fonts aside), including the future /api, passes through untouched.
+// - Everything else (fonts aside), including /api, passes through untouched.
+//
+// The kill switch: KILL = true, deployed, makes this worker take over at once, delete every cache of ours, unregister
+// and reload every open page from the network (a worker that stranded installed users is undone by the next deploy:
+// sw.js is never cached, at the origin or the edge). tests/flows/deploy.py proves it recovers a page stuck on a broken
+// build. tool/serve.php sets it locally while tool/sw-kill.txt exists.
+const KILL = false;
 
 // One cache a build (the page registers /sw.js?build=<the server's build>): a new version installs a
 // whole set of its own beside the running one's, never overwriting files the running one serves, and
@@ -30,6 +41,7 @@ const SHELL = [
     '/js/song-titles.js',
     '/js/beta-status.js',
     '/js/screen-name.js',
+    '/js/sw-update.js',
     '/locales/en.json',
     '/js/audio.js',
     '/js/mic-choice.js',
@@ -410,14 +422,24 @@ async function precache() {
 }
 
 self.addEventListener('install', (event) => {
+    if (KILL) {
+        event.waitUntil(self.skipWaiting());
+        return;
+    }
     // From the network, not the browser's cache: a new version's files, never a mix with the old.
     // The carried files come over now, while the old version and its cache are still in charge.
+    // A first install takes over at once; a new build waits for its pages to ask (or for the old build's to close).
     event.waitUntil(
         precache()
             .then(() => caches.keys())
             .then((keys) => carryOver(keys.filter((key) => key.startsWith('stackapella-') && key !== CACHE)))
-            .then(() => self.skipWaiting()),
+            .then(() => (self.registration.active ? null : self.skipWaiting())),
     );
+});
+
+// A page asking the waiting new build to take over (js/sw-update.js): it reloads once this worker is in charge.
+self.addEventListener('message', (event) => {
+    if (event.data?.type === 'skip-waiting') event.waitUntil(self.skipWaiting());
 });
 
 /**
@@ -441,6 +463,17 @@ async function carryOver(old) {
 }
 
 self.addEventListener('activate', (event) => {
+    if (KILL) {
+        event.waitUntil(
+            caches
+                .keys()
+                .then((keys) => Promise.all(keys.filter((key) => key.startsWith('stackapella-')).map((key) => caches.delete(key))))
+                .then(() => self.registration.unregister())
+                .then(() => self.clients.matchAll({ type: 'window' }))
+                .then((pages) => Promise.all(pages.map((page) => page.navigate(page.url).catch(() => null)))),
+        );
+        return;
+    }
     event.waitUntil(
         caches
             .keys()
@@ -452,6 +485,7 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
+    if (KILL) return; // everything from the network while this worker unregisters
     const request = event.request;
     const url = new URL(request.url);
     if (request.method !== 'GET' || url.pathname.startsWith('/api/')) {
@@ -468,12 +502,39 @@ self.addEventListener('fetch', (event) => {
         event.respondWith(fetch(fresh(request)));
     } else if (request.mode === 'navigate' && !APP_ROUTE.test(url.pathname)) {
         // A server page (sign-in, the second factor, public pages): never stored as the app shell.
-    } else if (url.origin === self.location.origin) {
-        // An app address (like /p/123) is the app shell.
+    } else if (url.origin === self.location.origin && (request.mode === 'navigate' || APP_FILE.test(url.pathname))) {
+        // An app address (like /p/123) is the app shell; the app's own files are this build's.
         const key = request.mode === 'navigate' ? '/index.html' : request;
-        event.respondWith(fetchAndKeep(event, request, key).catch(() => caches.match(key)));
+        event.respondWith(fromBuild(event, request, key));
     }
+    // Anything else of ours (/up, the build's own answer; media; the server's pages' files) passes through untouched.
 });
+
+// The app's own files, as the server serves them (WebAppController::SERVED): kept per build. Never /up, which says
+// which build the server runs now, nor anything the server answers fresh. (contract/ and tests/fixtures/ are the local
+// mock API's answers and sounds, which production never serves: kept so the flows' offline app still has them.)
+const APP_FILE = /^\/(?:(?:js|engine|css|icons|sounds|fonts|templates|locales|course|contract|tests\/fixtures)\/|manifest\.webmanifest$|index\.html$)/;
+
+let missed = false; // said once a worker: a file this build should hold wasn't there
+
+/**
+ * This build's copy, so a page gets one build's files; one it doesn't hold (or holds broken) from the network, kept, and
+ * the cached copy (or any) when that fails too: never a blank page for a file the precache missed.
+ */
+async function fromBuild(event, request, key) {
+    const cache = await caches.open(CACHE);
+    const hit = await cache.match(key);
+    if (hit?.ok) return hit;
+    if (hit && !missed) {
+        missed = true;
+        console.warn('A cached file was broken; asking the network', typeof key === 'string' ? key : key.url);
+    }
+    try {
+        return await fetchAndKeep(event, request, key);
+    } catch (error) {
+        return hit ?? (await caches.match(key)) ?? Promise.reject(error);
+    }
+}
 
 /**
  * The request, asking the server whether it changed (the browser's cache would otherwise answer for

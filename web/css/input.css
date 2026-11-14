@@ -9743,6 +9743,8 @@ a.s-vt-rung:hover { background: color-mix(in srgb, var(--color-cream) 5%, transp
 /* The part in words under its name (part-words.js): a sentence, so Figtree, calm. */
 [data-skin='game'] .ge-portrait-words { grid-column: span 2; font-size: 0.8125rem; line-height: 1.35; color: var(--color-muted); }
 [data-skin='game'] .ge-fits { grid-column: span 2; justify-self: start; text-wrap: balance; padding: 0.2rem 0.4rem; border-radius: 0; border: 1px solid var(--color-part-3); color: var(--color-part-3); font: 400 8.5px/1.4 var(--ge-hud); text-transform: uppercase; }
+/* No voice yet (Be the voice): a quiet cartridge label, muted on a dashed line (an empty slot), beside Best for you's lit one. */
+[data-skin='game'] .ge-novoice { grid-column: span 2; justify-self: start; text-wrap: balance; padding: 0.2rem 0.4rem; border: 1px dashed var(--color-line); color: var(--color-muted); font: 400 8.5px/1.4 var(--ge-hud); letter-spacing: 0.03em; text-transform: uppercase; }
 [data-skin='game'] .ge-portrait-stats { grid-column: span 2; display: grid; gap: 0.3rem; margin-top: 0.15rem; }
 [data-skin='game'] .ge-stat { display: grid; grid-template-columns: minmax(3.6rem, max-content) 1fr; align-items: center; gap: 0.4rem; font: 400 8px/1.4 var(--ge-hud); letter-spacing: 0.03em; text-transform: uppercase; color: var(--color-muted); }
 [data-skin='game'] .ge-stat > span:nth-child(2) { color: var(--color-cream); }
@@ -10307,6 +10309,11 @@ a.s-vt-rung:hover { background: color-mix(in srgb, var(--color-cream) 5%, transp
 :root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-neon1 { --neon: var(--arc-red); }
 :root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-neon2 { --neon: var(--color-good); }
 :root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-neon3 { --neon: var(--arc-yellow); }
+/* A reference page's family (the other intervals, chords or voice types): each card framed in its neon on the hard
+   shadow, as the tools' cards are, its number a HUD readout in that neon (mixed toward cream for contrast). */
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-ref-family .s-ref-fam { border: var(--arc-edge-w) solid var(--neon, var(--arc-line)); box-shadow: 4px 4px 0 var(--arc-shadow-c); }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-ref-family .s-ref-fam:is(:hover, :focus-visible) { border-color: var(--color-cream); }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-ref-fam .s-ref-fam-n { font-family: var(--a-hud); font-size: 11px; line-height: 2; color: color-mix(in srgb, var(--neon, var(--color-muted)) 80%, var(--color-cream)); }
 :root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-song { border-radius: var(--arc-radius); border: 3px solid var(--neon, var(--arc-line)); background: var(--arc-well); box-shadow: 4px 4px 0 var(--arc-line); }
 :root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-song:hover { border-color: var(--color-cream); }
 /* Numbered steps as LEVEL cards (the landing's four, How it works' first lesson, a tool's how-to): the number's disc

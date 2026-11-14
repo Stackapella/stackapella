@@ -12,6 +12,7 @@
 // this page's own version, imported while nothing newer was known.
 
 import { checkVersion, version } from './version.js';
+import { reloadIntoNew } from './sw-update.js';
 import { allWords } from './i18n.js';
 import { session as tabStorage } from './storage.js';
 
@@ -19,7 +20,9 @@ const RELOADED = 'stackapella.reloadedFor';
 const never = () => new Promise(() => {}); // the page is going: nothing renders meanwhile
 
 /** A loader for defineAsyncComponent: the view, from the same version as the page, or a reload. Its `prefetch()` imports it ahead. */
-export function lazyView(load, { reload = () => location.reload(), check = checkVersion, state = version, path = () => location.pathname, words = allWords } = {}) {
+// The reload goes into the new build (its waiting worker first): a plain reload would be served the old build again, and
+// this view's open would reload again, for good (sw.js serves a page its own build's files: js/sw-update.js).
+export function lazyView(load, { reload = () => reloadIntoNew(), check = checkVersion, state = version, path = () => location.pathname, words = allWords } = {}) {
     let view = null; // once imported, opened or fetched ahead
     const loader = async () => {
         if (view) return view;

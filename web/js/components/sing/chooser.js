@@ -116,7 +116,7 @@ export const Chooser = {
                     <p class="mt-1 text-muted">{{ t('sing.chooser.yourPartHint') }}</p>
                 </div>
                 <!-- Game mode's character select (docs/game-elements-plan.md): the same parts and the same choice -->
-                <PartSelect v-if="effect('select')" :parts="parts" :transpose="transpose" :suggested="focus?.slot.id ?? suggested" @choose="(slotId) => $emit('choose', { way: picked, slotId })" />
+                <PartSelect v-if="effect('select')" :parts="parts" :transpose="transpose" :suggested="focus?.slot.id ?? suggested" :no-voice="noVoice" @choose="(slotId) => $emit('choose', { way: picked, slotId })" />
                 <ul v-else class="grid gap-3 md:grid-cols-2">
                     <li v-for="part in parts" :key="part.slot.id">
                         <button type="button" class="card-interactive flex w-full items-center gap-4 p-4 text-start" @click="$emit('choose', { way: picked, slotId: part.slot.id })">

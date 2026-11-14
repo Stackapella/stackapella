@@ -179,13 +179,15 @@ def keyboard_sing(f, failures, song):
     f.press("Enter")
     time.sleep(0.8)
     alto = t(f, "parts.alto")
-    if not tab_to(f, f"(e.innerText || e.getAttribute('aria-label') || '').includes({alto!r}) && e.matches('button, [role=radio]')"):
-        failures.append(f"keyboard sing: the alto never reached by Tab, past {PASSED[:12]}")
-        return
-    f.press("Enter")
-    time.sleep(0.8)
-    if f.js("!!document.querySelector('[data-select-sing]')") and tab_to(f, "e.matches('[data-select-sing]')"):
-        f.press("Enter")  # game mode's part select: its Sing button
+    # With a range already known (one picked earlier on this device), Sing goes straight to the coach on its part.
+    if not f.js("!!document.querySelector('[data-coach]')"):
+        if not tab_to(f, f"(e.innerText || e.getAttribute('aria-label') || '').includes({alto!r}) && e.matches('button, [role=radio]')"):
+            failures.append(f"keyboard sing: the alto never reached by Tab, past {PASSED[:12]}")
+            return
+        f.press("Enter")
+        time.sleep(0.8)
+        if f.js("!!document.querySelector('[data-select-sing]')") and tab_to(f, "e.matches('[data-select-sing]')"):
+            f.press("Enter")  # game mode's part select: its Sing button
     f.wait("document.querySelector('[data-coach]')", what="the coach")
     time.sleep(0.6)
     on_heading(f, "keyboard sing: the coach", failures)
@@ -196,8 +198,8 @@ def keyboard_sing(f, failures, song):
         f.press("Enter")
         time.sleep(0.6)
         on_heading(f, f"keyboard sing: the coach's step {n + 2}", failures)
-    record = t(f, "sing.coach.action.record", {"part": alto})
-    if not tab_to(f, f"e.tagName === 'BUTTON' && (e.innerText || '').trim() === {record!r}"):
+    record = t(f, "sing.coach.action.record", {"part": "\u0001"}).split("\u0001")[0]  # "Record the ", whichever part it's on
+    if not tab_to(f, f"e.tagName === 'BUTTON' && (e.innerText || '').trim().startsWith({record!r})"):
         failures.append("keyboard sing: Record never reached by Tab")
         return
     f.press("Enter")

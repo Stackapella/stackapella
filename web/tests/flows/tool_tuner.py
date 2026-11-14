@@ -117,8 +117,11 @@ def journey(f):
     assert f.js("!document.querySelector('[data-tuning-quick-field]').hidden && document.querySelector('[data-tuning-quick]').value") == "dropD"
     f.shot("settings")
     f.run("document.querySelector('[data-sheet-done]').click()")
+    # An iPhone's audio session (stubbed): a string's note while listening keeps the mic, so the session records too.
+    f.run("Object.defineProperty(navigator, 'audioSession', { value: { type: 'auto' }, configurable: true })")
     f.run("document.querySelector('[data-string=\"38\"]').click()")
     f.wait("document.querySelector('[data-string=\"38\"]').getAttribute('aria-pressed') === 'true'", what="string chosen")
+    assert f.js("navigator.audioSession.type") == "play-and-record", "a note while listening keeps the mic's session"
     f.wait(f"({NOTE}) === 'D2'", what="the target shown")
     # Tuned once, the string keeps a tick (its own note's 1.9 s first, while the readings are ignored).
     f.run(f"window.__play({hz(0, 38, 442)}, 3.2)")
@@ -135,6 +138,12 @@ def journey(f):
     f.wait("!window.__old && window.__tuner && document.querySelector('[data-ui=tuner-summary]')", what="reloaded")
     summary = f.js("document.querySelector('[data-ui=tuner-summary]').textContent")
     assert f.js("document.querySelector('[data-tuning-quick]').value") == "dropD" and f.js("document.querySelector('[data-ui=tuner-reference] [data-step-value]').textContent") == "442 Hz", summary
+    # Before Listen, a string's note asks the iPhone's session for playback, so the silent switch doesn't mute it (the
+    # tools review, 2026-11-14, as the metronome); Listen then asks for recording too.
+    f.run("Object.defineProperty(navigator, 'audioSession', { value: { type: 'auto' }, configurable: true })")
+    f.wait("document.querySelector('[data-string]')", what="the strings after the reload")
+    f.run("document.querySelector('[data-string]').click()")
+    assert f.js("navigator.audioSession.type") == "playback", "a note before Listen plays through the silent switch"
     f.run("localStorage.removeItem('stackapella.tools.tuner')")
 
 

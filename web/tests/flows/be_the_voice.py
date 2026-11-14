@@ -72,8 +72,8 @@ def journey(f):
     past_first_week(f, past=False)
     f.go(f"/p/{song}/sing", "document.querySelector('[data-way]')")
     f.run("document.querySelector('[data-way=parts]').click()")
-    if f.skin == "serious":
-        f.wait("document.querySelectorAll('[data-no-voice]').length === 2", what="two parts with no voice yet")
+    # Both skins: the calm list's tag, or game mode's cartridge label on the part select's portraits.
+    f.wait("document.querySelectorAll('[data-no-voice]').length === 2", what="two parts with no voice yet")
     f.shot("picker")
 
     # A whole tenor take, as a guest, over headphones in the song's key: the review invites it, once.

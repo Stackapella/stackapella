@@ -29,6 +29,7 @@ import { segmented, stepper, toolLayout } from '../tool-layout.js';
 import { sound } from '../tones.js';
 import { audio, reducedMotion } from '../voices.js';
 import { keepAwake } from '../wake-lock.js';
+import { unlock } from '../demo-player.js';
 import {
     BEATS, defaultAccents, defaultGroups, groupingsOf, markingOf, MARKINGS, nextAccent, nextStep, startPosition, SUBDIVISIONS, tap, tapTempo, TEMPO,
 } from '../metronome-beats.js';
@@ -38,7 +39,7 @@ export const WORDS = [
     'play', 'stop', 'tap', 'tempo', 'bpm', 'slower', 'faster', 'markings', 'beats', 'subdivision', 'subNone', 'subEighths', 'subTriplets',
     'subSixteenths', 'beatDot', 'accent', 'normal', 'silent', 'more', 'done', 'sound', 'woodblock', 'click', 'beep', 'soft', 'cowbell',
     'volume', 'volAccent', 'volBeat', 'volSub', 'countIn', 'off', 'oneBar', 'twoBars', 'counting', 'trainer', 'trainerAdd', 'trainerEvery',
-    'trainerMax', 'silentBars', 'silentPlay', 'silentMute', 'timer', 'timerMinutes', 'timeUp', 'grouping', 'visual', 'visualDots',
+    'trainerMax', 'silentBars', 'silentPlay', 'silentMute', 'timer', 'timerMinutes', 'timeUp', 'timeLeft', 'grouping', 'visual', 'visualDots',
     'visualPulse', 'presets', 'presetName', 'save', 'remove', 'extend', 'fewerBeats', 'moreBeats', 'playing', 'beatOf', 'bar',
     'time', 'beatsPerBar', 'tapBeat', 'subNoneShort', 'subEighthsShort', 'subTripletsShort', 'subSixteenthsShort', 'settingsTitle', 'reset',
 ];
@@ -361,10 +362,17 @@ export function mountMetronome(root, { words = {}, keySlot = null, bpm = null } 
         renderStatus();
     }
 
+    /** With the timer on, how long is left ("4:32 left"), so a practice block shows its end coming (the tools review). */
+    function timeLeft(beat) {
+        if (!(settings.minutes > 0) || !Number.isFinite(beat?.elapsed)) return '';
+        const left = Math.max(0, Math.ceil(settings.minutes * 60 - beat.elapsed));
+        return fill(w('timeLeft'), { time: `${Math.floor(left / 60)}:${String(left % 60).padStart(2, '0')}` });
+    }
+
     /** The pill: what's sounding now (the count-in, the beat), the timer's end, or how to start. */
     function renderStatus(beat = null) {
         if (clock && beat?.countIn) ui.setStatus({ tone: 'warn', text: w('counting'), hint: String(beat.beat + 1) });
-        else if (clock) ui.setStatus({ tone: 'good', text: w('playing'), hint: beat ? `${fill(w('bar'), { n: beat.bar + 1 })} · ${fill(w('beatOf'), { n: beat.beat + 1, total: settings.beats })}` : '' });
+        else if (clock) ui.setStatus({ tone: 'good', text: w('playing'), hint: beat ? [fill(w('bar'), { n: beat.bar + 1 }), fill(w('beatOf'), { n: beat.beat + 1, total: settings.beats }), timeLeft(beat)].filter(Boolean).join(' · ') : '' });
         else if (ended) ui.setStatus({ tone: 'muted', text: w('timeUp') });
         else ui.setStatus({}); // idle: no pill (Hillel's design)
     }
@@ -415,7 +423,7 @@ export function mountMetronome(root, { words = {}, keySlot = null, bpm = null } 
             const volume = settings.volumes[s.sound === 'accent' ? 'accent' : s.sound] ?? 1;
             if (volume > 0) sound(soundsNow()[s.sound], { at: time, level: s.level * volume });
         }
-        if (s.beat !== null) queue.push({ time, beat: s.beat, bar: s.bar, countIn: s.countIn, bpm: s.bpm, sounded: Boolean(s.sound) });
+        if (s.beat !== null) queue.push({ time, beat: s.beat, bar: s.bar, countIn: s.countIn, bpm: s.bpm, sounded: Boolean(s.sound), elapsed: s.pos.elapsed });
         // In a background tab nothing draws: keep only the latest few beats for when it's seen again.
         if (queue.length > 64) queue.splice(0, queue.length - 64);
         return s.gap;
@@ -471,7 +479,9 @@ export function mountMetronome(root, { words = {}, keySlot = null, bpm = null } 
 
     function play() {
         if (clock) return;
-        const c = audio();
+        // Inside the tap: on an iPhone it sounds with the silent switch on, as the pitch pipe and drone do (the tools
+        // review, 2026-11-14: the metronome alone stayed silent there).
+        const c = unlock();
         soundsNow();
         pos = startPosition();
         queue = [];
@@ -547,7 +557,10 @@ export function mountMetronome(root, { words = {}, keySlot = null, bpm = null } 
     $('[data-sound]').addEventListener('change', (event) => {
         settings.sound = event.target.value;
         save();
-        if (!clock) sound(soundsNow().accent, { level: settings.volumes.accent });
+        if (!clock) {
+            unlock();
+            sound(soundsNow().accent, { level: settings.volumes.accent });
+        }
     });
     for (const input of root.querySelectorAll('[data-volume]')) {
         input.addEventListener('input', () => {

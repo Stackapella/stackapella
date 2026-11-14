@@ -13,7 +13,7 @@
     <meta name="robots" content="noindex">
     <title>{{ $embed['name'] }}</title>
     <link rel="canonical" href="{{ $embed['pageUrl'] }}">
-    <link rel="preload" as="font" type="font/woff2" href="/fonts/figtree-latin.woff2" crossorigin>
+    {{-- Figtree's preload is GamePreload's: serious mode only here (the embed is on the arcade screen in game). --}}
     {{-- Game mode's own sheet, only in game mode, right after site.css (docs/css-split-plan.md, step 3; public/layout's). --}}
     <meta name="game-css" content="{{ \App\Support\Http\StaticVersions::url((string) config('app.web_path'), '/css/site-game.css') }}">
     {{-- Game mode's sheet starts downloading before theme-boot.js arrives (App\Support\Site\GamePreload). --}}

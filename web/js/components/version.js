@@ -10,6 +10,7 @@ import { cloud, syncNow } from '../stores/cloud.js';
 import { sessionBusy } from '../stores/session-live.js';
 import { route } from '../router.js';
 import { version } from '../version.js';
+import { reloadIntoNew } from '../sw-update.js';
 import { Icon } from './icon.js';
 import { toast } from './ui.js';
 
@@ -59,7 +60,8 @@ export const NewVersion = {
             if (account.me && cloud.pending > 0) {
                 await Promise.race([syncNow().catch((error) => console.warn('Saving before the refresh failed', error)), new Promise((resolve) => setTimeout(resolve, SAVE_FIRST_MS))]);
             }
-            location.reload();
+            // Into the new build: its waiting worker takes over first (else the reload would be the old build again).
+            await reloadIntoNew();
         },
     },
 };

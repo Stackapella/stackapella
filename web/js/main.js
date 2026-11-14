@@ -21,6 +21,7 @@ import { MicHelpHost } from './components/mic-help.js';
 import { MicCheckHost } from './components/mic-check.js';
 import './game/fonts.js'; // game mode's switches on <html> (its fonts are css/input.css's, fetched only when drawn)
 import { checkVersion, newVersionFound, version, watchVersion } from './version.js';
+import { servedBuild, updateAtLaunch } from './sw-update.js';
 import { listenForInstall } from './components/install.js';
 import { fill, fitSegments, radioArrows } from './components/controls.js';
 import { account, keepLinkToken, loadAccount, loadAuthConfig, rememberRef } from './stores/account.js';
@@ -169,6 +170,9 @@ const App = {
 storageEvents.blocked = () => toast(t('common.closeOtherTabs'), { seconds: 30 });
 // The API says this app is too old for it (426): "A new version is ready", as after a deploy.
 apiEvents.outdated = () => newVersionFound();
+// This page's build is its worker's when one served it (sw.js serves a page one build's files), never just the server's
+// answer: after a deploy a page can open on the build before it, and must know so (js/sw-update.js).
+version.loaded = servedBuild();
 watchVersion();
 apiEvents.ageUnconfirmed = () => {
     if (account.me) account.me = { ...account.me, birthGiven: false }; // When were you born? asks
@@ -361,9 +365,18 @@ if ('serviceWorker' in navigator) {
         .then(() => checkVersion({ now: true }))
         .then(() => {
             if (!version.loaded && navigator.serviceWorker.controller) return null;
-            return navigator.serviceWorker.register(version.loaded ? `/sw.js?build=${encodeURIComponent(version.loaded)}` : '/sw.js', { updateViaCache: 'none' });
+            // The server's build now (its worker installs and waits beside this page's): the app opened after a deploy, it
+            // takes over before anything is tapped and the page reloads on it (js/sw-update.js); later, Refresh does.
+            const build = version.now ?? version.loaded;
+            return navigator.serviceWorker.register(build ? `/sw.js?build=${encodeURIComponent(build)}` : '/sw.js', { updateViaCache: 'none' });
         })
+        .then((registration) => (registration && version.ready ? updateAtLaunch(registration) : null))
         .catch((error) => console.warn('Service worker not registered', error));
+    // A newer build found while this page is open: its worker installs now and waits, so Refresh finds it ready.
+    watch(
+        () => (version.ready ? version.now : null),
+        (build) => build && navigator.serviceWorker.register(`/sw.js?build=${encodeURIComponent(build)}`, { updateViaCache: 'none' }).catch((error) => console.warn('The new version was not fetched ahead', error)),
+    );
     // A new version that couldn't cache its files (sw.js precache) stays out; this one keeps running.
     navigator.serviceWorker.addEventListener('message', (event) => {
         if (event.data?.type === 'install-failed') console.error('A new version could not install: these files failed', event.data.failed);

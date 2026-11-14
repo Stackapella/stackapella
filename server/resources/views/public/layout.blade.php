@@ -10,7 +10,7 @@
      among them (a help article, a guide) keeps its reading type under the arcade header. The legal pages stay off it
      (docs/decisions.md). A page in another language (/es/guides/...) is matched by its English path, so it takes the
      same screen (it didn't: game mode's Spanish pages had the arcade header but not its screen). --}}
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" dir="{{ __('meta.dir') }}" @if (\Illuminate\Support\Str::is(['/', 'how-it-works', 'pricing', 'help', 'help/*', 'features', 'features/*', 'courses', 'courses/*', 'songs', 'songs/*', 'compare', 'compare/*', 'about', 'for/*', 'guides', 'guides/*', 'whats-new'], ltrim(\App\Support\Languages\SiteLanguages::englishPath(request()->getPathInfo(), app()->getLocale()), '/') ?: '/') || $__env->hasSection('arcade')) data-gs @endif>
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" dir="{{ __('meta.dir') }}" @if (\Illuminate\Support\Str::is(['/', 'how-it-works', 'pricing', 'help', 'help/*', 'features', 'features/*', 'courses', 'courses/*', 'songs', 'songs/*', 'compare', 'compare/*', 'about', 'for/*', 'guides', 'guides/*', 'whats-new'], ltrim(\App\Support\Languages\SiteLanguages::englishPath(request()->getPathInfo(), app()->getLocale()), '/') ?: '/') || $__env->hasSection('arcade')) data-gs @endif @if ($__env->hasSection('calm') && ! request()->is('help')) data-calm @endif>
 <head>
     <meta charset="utf-8">
     {{-- Every public page's Open Graph locale (the Spanish parity pass, 2026-11-13: only the landing, courses and tools had
@@ -28,7 +28,7 @@
     {{-- Figtree for reading; Bungee (headlines) and Stackapella Pixel (small HUD labels) for the site's arcade look (Hillel,
          2026-10-29: "love the 90's redesign"), all from our own address (css/input.css). Figtree's Latin half comes with
          the page; the others load as a page uses them. --}}
-    <link rel="preload" as="font" type="font/woff2" href="/fonts/figtree-latin.woff2" crossorigin>
+    {{-- Figtree's preload is GamePreload's (below): every page but game mode's arcade screen, which doesn't use it. --}}
     <meta name="theme-color" content="#17120f">
     {{-- The theme the person chose anywhere (mode, colour and accent), before the page paints: shared
          with the app's host by a cookie on this domain (hosts.pass_domain; host-only without it). --}}

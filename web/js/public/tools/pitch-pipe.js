@@ -177,12 +177,14 @@ export function mountPitchPipe(el, { words = {}, keySlot = null } = {}) {
         name: w('octave_name'),
         lower: w('lower'),
         higher: w('higher'),
-        step: (by) => {
-            quiet();
-            set.octave = Math.min(config.octaves[1], Math.max(config.octaves[0], set.octave + by));
-            keep({ octave: set.octave });
-        },
+        step: (by) => toOctave(set.octave + by),
     });
+    // The octave the pipe sounds in, kept on this device: the stepper, Z and X on a computer, and a saved song's own.
+    function toOctave(n) {
+        quiet();
+        set.octave = Math.min(config.octaves[1], Math.max(config.octaves[0], n));
+        keep({ octave: set.octave });
+    }
 
     const midiOf = (key) => 12 * (set.octave + 1) + Number(key.dataset.note);
     const reference = () => Number(set.ref);
@@ -292,9 +294,15 @@ export function mountPitchPipe(el, { words = {}, keySlot = null } = {}) {
             const play = document.createElement('button');
             play.type = 'button';
             play.className = 's-tool-pick s-pipe-song';
-            play.textContent = fill(w('song_play'), { song: song.name, note: named(song.pc) });
+            // A song keeps its octave too (the tools review, 2026-11-14: a men's group got its note an octave high).
+            const kept8 = Number.isInteger(song.octave) ? song.octave : null;
+            play.textContent = fill(w('song_play'), { song: song.name, note: `${named(song.pc)}${kept8 ?? ''}` });
             play.addEventListener('click', () => {
-                const key = keys[song.pc];
+                // Past the stepper's top, a top C is the thirteenth key an octave below.
+                const top = kept8 !== null && kept8 > config.octaves[1] && song.pc === 0;
+                const want = top ? kept8 - 1 : kept8;
+                if (want !== null && want !== set.octave) toOctave(want);
+                const key = keys[top ? 12 : song.pc];
                 sound(key);
                 letGo(key, 0);
             });
@@ -320,7 +328,9 @@ export function mountPitchPipe(el, { words = {}, keySlot = null } = {}) {
             songName.focus();
             return;
         }
-        saved.save({ songs: [...kept(), { name: title, pc: Number(last.dataset.note) % 12 }].slice(-config.songs) });
+        // The note's octave goes with it (the thirteenth key, the top C, is the next octave's C).
+        const note = Number(last.dataset.note);
+        saved.save({ songs: [...kept(), { name: title, pc: note % 12, octave: set.octave + Math.floor(note / 12) }].slice(-config.songs) });
         songName.value = '';
         songs();
     });
@@ -329,7 +339,14 @@ export function mountPitchPipe(el, { words = {}, keySlot = null } = {}) {
     // A computer's keys, A to K, as a piano's: held, as a press is.
     const down = new Map();
     const onKey = (event) => {
-        const key = keys[config.keys.indexOf(event.key.toLowerCase())];
+        const typed = event.key.toLowerCase();
+        // Z and X: an octave down and up, as on a music app's keyboard (the tools review).
+        if ((typed === 'z' || typed === 'x') && event.type === 'keydown' && !event.repeat && !event.metaKey && !event.ctrlKey && !event.altKey
+            && !event.target.closest?.('input, textarea, select, [contenteditable], dialog')) {
+            toOctave(set.octave + (typed === 'z' ? -1 : 1));
+            return;
+        }
+        const key = keys[config.keys.indexOf(typed)];
         if (!key || event.metaKey || event.ctrlKey || event.altKey || event.target.closest?.('input, textarea, select, [contenteditable], dialog')) return;
         if (event.type === 'keydown' && !event.repeat && !down.has(key)) {
             down.set(key, performance.now());
