@@ -83,6 +83,16 @@ def journey(f):
     assert f.js("(await import('/js/dsp.js')).midiName(62)") == "Re4"
     f.run("const s = document.querySelector('[data-note-names] select'); s.value = 'auto'; s.dispatchEvent(new Event('change'))")
     assert f.js("(await import('/js/dsp.js')).midiName(62)") == "D4", "auto in English: letters"
+    # Spanish picked: the app's words, and the site's own preference cookie (sa_lang: the code only), so what the server
+    # words for us (the catalogue's descriptions) follows; the songs are listed again in it.
+    f.run("document.cookie = 'sa_lang=; Max-Age=0; Path=/'; window.mockBodies = []")
+    f.run("const s = document.querySelector('[data-language] select'); s.value = 'es'; s.dispatchEvent(new Event('change'))")
+    f.wait("(await import('/js/i18n.js')).locale.lang === 'es'", what="Spanish chosen")
+    f.wait("/(?:^|; )sa_lang=es(?:;|$)/.test(document.cookie)", what="the site's language cookie")
+    f.wait("(window.mockBodies ?? []).some((b) => b.operation === 'templates.catalogue')", what="the songs listed again")
+    f.run("const s = document.querySelector('[data-language] select'); s.value = 'en'; s.dispatchEvent(new Event('change'))")
+    f.wait("/(?:^|; )sa_lang=en(?:;|$)/.test(document.cookie)", what="English back in the cookie")
+    f.run("document.cookie = 'sa_lang=; Max-Age=0; Path=/'; localStorage.removeItem('stackapella.lang')")
     f.run("(await import('/js/i18n.js')).setLiveLanguages(['en']); localStorage.removeItem('stackapella.noteNames')")
 
 

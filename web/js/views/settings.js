@@ -6,6 +6,8 @@
 import { GameModeSwitch, ThemeSwitch } from '../components/appearance.js';
 import { lazyComponent, setGlobal } from '../game/modules.js';
 import { api, ApiError } from '../api.js';
+import { langCookie } from '../public/lang-menu.js';
+import { loadCatalogue } from '../stores/catalogue.js';
 import { chooseLanguage, coverage, formatDate, locale, t, tk } from '../i18n.js';
 import { chooseNaming, naming, NAMINGS, namingSample, noteNames } from '../note-names.js';
 import { navigate } from '../router.js';
@@ -488,10 +490,21 @@ export const SettingsView = {
         namingLabel(n) {
             return n === 'auto' ? t('settings.noteNames.auto', { sample: namingSample(this.autoNaming) }) : namingSample(n);
         },
-        /** The language on this device, and on the account so emails follow it. */
+        /**
+         * The language on this device, and on the account so emails follow it. A guest's goes in the site's own
+         * preference cookie too (sa_lang, as its language menu sets it: the code only), so what the server words for us,
+         * like the songs' descriptions in the catalogue, follows it; the catalogue is asked again in the new language.
+         */
         async pickLanguage(lang) {
             await chooseLanguage(lang);
-            if (account.me) api.account.update({ locale: lang }).catch((error) => console.warn('The language was not saved to the account', error));
+            try {
+                const domain = document.querySelector('meta[name="theme-cookie-domain"]')?.getAttribute('content') || null;
+                document.cookie = langCookie(lang, { domain, secure: location.protocol === 'https:' });
+            } catch (error) {
+                console.warn('The language choice could not be remembered for the site', error);
+            }
+            const saved = account.me ? api.account.update({ locale: lang }).catch((error) => console.warn('The language was not saved to the account', error)) : Promise.resolve();
+            saved.then(() => loadCatalogue({ fresh: true })).catch((error) => console.warn('The songs were not listed again in the new language', error));
         },
         async downloadBackup() {
             this.backup = 'making';

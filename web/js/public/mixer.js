@@ -74,6 +74,23 @@ export function renderUrl(audio, canPlay) {
 
 let context = null;
 const players = [];
+
+/**
+ * The page's AudioContext, made ahead while nothing happens (the player in view), so a first tap only resumes it
+ * (Core Web Vitals, 2026-11-15: making it inside the tap was 190 ms of a 4x-slowed phone's 200 ms on /songs and a
+ * song page). Made before a press it starts suspended in Safari and Chrome, as autoplay asks; one that starts running
+ * anyway (autoplay allowed) is suspended at once, so no audio runs before a press. The press still resumes it inside
+ * the gesture, as Safari requires.
+ */
+function contextAhead() {
+    if (context) return;
+    try {
+        context = new AudioContext({ latencyHint: 'playback' });
+        if (context.state === 'running') context.suspend().catch(() => {});
+    } catch (error) {
+        console.warn('The player will make its sound on the first press', error); // i18n-ignore
+    }
+}
 // Each voice's samples as an AudioBuffer, made once (the context is one for the page): a press doesn't copy them again.
 const buffers = new WeakMap();
 
@@ -847,8 +864,10 @@ function setUp(root) {
             seen.disconnect();
             if (mixUrl) preconnect(mixUrl);
             const soon = () => synthVoices().catch(() => {});
-            if ('requestIdleCallback' in window) requestIdleCallback(soon, { timeout: 2000 });
-            else soon();
+            if ('requestIdleCallback' in window) {
+                requestIdleCallback(soon, { timeout: 2000 });
+                requestIdleCallback(contextAhead); // a quiet moment of its own: a long task, never in a tap's way
+            } else soon();
         });
         seen.observe(root);
     }

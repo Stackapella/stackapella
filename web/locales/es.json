@@ -668,7 +668,7 @@
             "question": "¿Cuántos cantantes?"
         },
         "editLabel": "Editar una copia de {title}",
-        "play": "Reproducir",
+        "play": "Escucharla",
         "preparing": "Preparando",
         "difficulty": {
             "beginner": "Para principiantes",
@@ -683,7 +683,7 @@
             "steady": "Moderado",
             "lively": "Vivo"
         },
-        "start": "Empezar",
+        "start": "Cantarla",
         "sungBy": "Voces reales: {names}",
         "previewClip": "Escuchar un fragmento",
         "needsAccount": "Crea una cuenta gratis para empezar esta canción. Su fragmento suena aquí."
@@ -1167,7 +1167,7 @@
             "wholeTag": "Si ya la conoces",
             "firstPick": "Ideal para tu primera canción",
             "moreWays": "Más opciones",
-            "partsTime": "unos {minutes} min · {count, plural, one {# frase} other {# frases}}",
+            "partsTime": "Primero, escúchala: {minutes, plural, one {cerca de un minuto} other {unos # minutos}} · {count, plural, one {# frase} other {# frases}}",
             "wholeTime": "unos {minutes} min · una toma",
             "always": "Usar siempre esta opción",
             "yourPartName": "Voz de {part}",

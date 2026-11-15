@@ -153,10 +153,13 @@ export const Chooser = {
         barColor() {
             return this.focus ? paint(this.focus.slot.color) : 'var(--color-part-1)';
         },
-        /** About three minutes a phrase: hear it, sing along, sing it on your own, then record. */
+        /**
+         * What the first step takes, not the whole way (the first-session walk: "about 12 min" deflated a newcomer Home had
+         * promised "a few minutes"): hearing it once through, a phrase at a time, then how many phrases there are.
+         */
         partsTime() {
             const n = Math.max(1, this.phrases);
-            return t('sing.chooser.partsTime', { minutes: formatNumber(n * 3), count: n });
+            return t('sing.chooser.partsTime', { minutes: Math.max(1, Math.ceil(this.length / 60)), count: n });
         },
         /** The song once through, and a minute to settle. */
         wholeTime() {

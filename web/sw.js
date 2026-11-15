@@ -184,6 +184,7 @@ const SHELL = [
     '/course/plus/barbershop/course.json',
     '/js/views/auth.js',
     '/js/views/settings.js',
+    '/js/public/lang-menu.js',
     '/js/views/storage.js',
     '/js/views/voice.js',
     '/js/views/workout.js',

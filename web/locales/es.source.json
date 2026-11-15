@@ -668,7 +668,7 @@
             "question": "How many singers?"
         },
         "editLabel": "Edit a copy of {title}",
-        "play": "Play",
+        "play": "Hear it",
         "preparing": "Getting it ready",
         "difficulty": {
             "beginner": "For beginners",
@@ -683,7 +683,7 @@
             "steady": "Steady pace",
             "lively": "Lively"
         },
-        "start": "Start",
+        "start": "Sing it",
         "sungBy": "Real voices: {names}",
         "previewClip": "Hear a preview",
         "needsAccount": "Make a free account to start this song. Its clip plays here."
@@ -1167,7 +1167,7 @@
             "wholeTag": "Know it already",
             "firstPick": "Best for your first song",
             "moreWays": "More ways",
-            "partsTime": "about {minutes} min · {count, plural, one {# phrase} other {# phrases}}",
+            "partsTime": "Hear it first: {minutes, plural, one {about a minute} other {about # minutes}} · {count, plural, one {# phrase} other {# phrases}}",
             "wholeTime": "about {minutes} min · one take",
             "always": "Use this every time",
             "yourPartName": "{part} part",

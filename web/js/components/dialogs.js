@@ -24,6 +24,7 @@ import { inFirstWeek } from './voice-care.js';
 import { prefs } from '../stores/prefs.js';
 import { exportNeedsPlus, isPlus } from '../stores/plan.js';
 import { songTitle } from '../song-titles.js';
+import { catalogue } from '../stores/catalogue.js';
 import { SLOW_MS } from './screen-loading.js';
 import { pastFirstWeek, voiceAskOpen, voicelessParts } from '../be-the-voice.js';
 
@@ -831,7 +832,7 @@ export const TemplateDialog = {
     template: `
         <Modal :title="songTitle(template)" title-is-content wide @close="$emit('close')">
             <div class="space-y-5">
-                <p class="text-cream" translate="no">{{ template.description }}</p>
+                <p class="text-cream" translate="no" data-song-description>{{ description }}</p>
                 <p v-if="locked" class="font-semibold text-part-2">{{ template.previewUrl ? t('templates.needsAccount') : t('templates.needsAccountNoClip') }}</p>
                 <p class="text-sm text-muted">{{ t(DIFFICULTY[template.difficulty] ?? DIFFICULTY.beginner) }} · {{ t('studio.meta.key', { key: keyLabel(template.key) }) }} · {{ t(TEMPO[template.tempo <= 84 ? 'slow' : template.tempo <= 112 ? 'steady' : 'lively']) }}<template v-if="!template.summary"> · {{ formatTime(seconds) }}</template></p>
                 <p v-if="template.credits" class="text-xs text-muted">{{ [t('templates.credits', { words: template.credits.words, tune: template.credits.tune, arrangement: template.credits.arrangement }), template.reviewed ? '' : t('templates.draftNote')].filter(Boolean).join(' ') }}</p>
@@ -887,6 +888,13 @@ export const TemplateDialog = {
         clearTimeout(this.slowTimer);
     },
     computed: {
+        /**
+         * The song's description in the app's language where we have it: the catalogue sends it in the request's
+         * language, as the song page says it (backend, 2026-11-15), while the full song's file keeps its English.
+         */
+        description() {
+            return catalogue.list.find((entry) => entry.id === this.template.id)?.description || this.template.description;
+        },
         /** The song's parts with no real voice yet, by name (Be the voice), once the singer is past the first week. */
         voiceless() {
             if (!pastFirstWeek() || !voiceAskOpen()) return [];

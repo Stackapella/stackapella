@@ -46,6 +46,12 @@ def journey(f):
     start = t(f, "templates.taste.start")
     assert f.js("document.querySelector('[role=dialog] [data-song-start]').textContent.trim()") == start, "Start doesn't say the first line"
     f.wait_text(t(f, "templates.taste.note"))
+    # The song's description as the catalogue words it, in the visitor's language (backend, 2026-11-15), over the full
+    # song file's English.
+    f.wait(f"(await import('/js/stores/catalogue.js')).catalogue.list.some((e) => e.id === {SONG!r})", what="the catalogue")
+    f.run(f"const e = (await import('/js/stores/catalogue.js')).catalogue.list.find((e) => e.id === {SONG!r}); window.__said = e.description; e.description = 'Una descripción en el idioma de quien la visita.';")
+    f.wait("document.querySelector('[data-song-description]')?.textContent === 'Una descripción en el idioma de quien la visita.'", what="the catalogue's description on the sheet")
+    f.run(f"(await import('/js/stores/catalogue.js')).catalogue.list.find((e) => e.id === {SONG!r}).description = window.__said")
     assert not f.js("!!document.querySelector('[role=dialog] [data-song-signup], [role=dialog] [data-song-edit]')"), "a wall or Edit on a guest's taste"
     f.shot("sheet")
     f.run("document.querySelector('[role=dialog] [data-song-start]').click()")

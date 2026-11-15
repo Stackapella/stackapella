@@ -11151,13 +11151,20 @@ main:has(> .s-close) .s-ink:not(.s-close) { padding-block: var(--k-sec); margin-
 :root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-lr-body { margin-left: 0; }
 :root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-lr-panel { border-radius: 0; border: var(--arc-frame) solid var(--arc-purple); background: var(--arc-well); box-shadow: var(--arc-shadow-lg); }
 :root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-lr-card { border-radius: 0; border: var(--arc-edge-w) solid var(--arc-line); background: var(--arc-panel); box-shadow: none; }
-:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-lr-pane .s-vis-shot { border-radius: 0; }
 :root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-lr-bar span { font-family: var(--a-hud); font-size: 8px; font-weight: 400; text-transform: uppercase; transition: none; }
 :root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-lr-bar i { height: 10px; border-radius: 0; background: var(--arc-line); transition: none; }
 @media (min-width: 900px) {
     :root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-lr-step { padding: 20px 22px; }
     :root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-lr-panel { border-radius: 0; }
 }
+/* The learn pane (live, marketing's .s-lr-learn): the course's name and Up next's lesson in the pixel face, Your voice a
+   square chip with a square dot, Up next in yellow pixel caps, and the next lesson a well on a hard shadow. */
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-lr-learn-top p b { font-family: var(--a-hud); font-size: 14px; font-weight: 400; line-height: 1.5; letter-spacing: 0; }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-lr-chip { border-radius: 0; border: var(--arc-edge-w) solid var(--arc-line); background: var(--arc-well); font-family: var(--a-hud); font-size: 9px; font-weight: 400; text-transform: uppercase; }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-lr-chip i { border-radius: 0; background: var(--arc-pink); }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-lr-learn-next { border-radius: 0; border: var(--arc-edge-w) solid var(--arc-line); background: var(--arc-well); box-shadow: var(--arc-shadow); }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-lr-learn-k { font-family: var(--a-hud); font-size: 10px; font-weight: 400; letter-spacing: 0; color: var(--arc-yellow); }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-lr-learn-t { font-family: var(--a-hud); font-size: 18px; font-weight: 400; line-height: 1.4; letter-spacing: 0; }
 /* Got a tune: the frame a square cabinet in the home purple, its card a panel, Line 1 of 4 and the part names in pixel
    caps, Sing line 1 a square chip in game's pink, the three ways ruled dashed. */
 :root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-lr-tune { border-radius: 0; border: var(--arc-frame) solid var(--arc-purple); background: var(--arc-well); box-shadow: var(--arc-shadow-lg); }
