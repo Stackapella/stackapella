@@ -713,7 +713,8 @@ return [
         'coaching_soon' => ['Coaching', 'Working with a vocal coach in the app is coming soon. The course works as homework today.'],
         'shot_alt' => 'The studio: four parts stacked, each with solo and mute, one soloed.',
         // The landing's real screenshot of a director's choir group (frontend2's walk; sample singers).
-        'group_alt' => 'A choir group\'s song in the app, Amazing Grace: four of four parts covered and two recorded, each part with its singer and whether they have recorded it, are learning it or haven\'t started.',
+        // The landing's choir group panel: sample names, said as such in its caption (never real singers).
+        'group_sample' => ['Priya Shah', 'Sam Lee', 'Kim Ode', 'Tom Okafor'],
         'group_caption' => 'A choir group in the app: who sings each part, and who has recorded it. Sample names.',
         'groups' => 'See choir groups',
         'directors' => 'For directors',

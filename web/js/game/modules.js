@@ -63,6 +63,7 @@ export const chipCountIn = () => loaded.chip?.chipCountIn() ?? null;
 // title-card.js: a lesson's title card, once a device.
 export const titleSeen = (lessonId) => loaded.titleCard?.titleSeen(lessonId) ?? true;
 export const markTitleSeen = (lessonId) => loaded.titleCard?.markTitleSeen(lessonId);
+export const anyTitleSeen = () => loaded.titleCard?.anyTitleSeen() ?? true;
 export const clearMs = () => loaded.titleCard?.CLEAR_MS ?? 2200;
 
 // tally.js: whether the lesson end's XP counts up (a switch, so no module needed).

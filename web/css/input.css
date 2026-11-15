@@ -8451,6 +8451,9 @@ main:has(> .s-close) .s-ink:not(.s-close) { padding-block: var(--k-sec); margin-
 /* The switches pressed in ink on cream, as the five pages' chips are (calm has no pink on these pages); game keeps its own. */
 :root:not([data-skin='game']) .s-pricehead :is(.s-bill label:has(:checked), .s-cur-seg strong) { background: var(--color-cream); color: var(--color-ink); box-shadow: none; }
 :root:not([data-skin='game']) .s-pricehead .s-bill label:has(:checked) b { color: color-mix(in srgb, var(--color-ink) 70%, transparent); opacity: 1; }
+/* Home's plan pair has the same ink switch, so calm shows no pink there either (Hillel, 2026-11-15). */
+:root:not([data-skin='game']) .s-plans-head .s-bill label:has(:checked) { background: var(--color-cream); color: var(--color-ink); box-shadow: none; }
+:root:not([data-skin='game']) .s-plans-head .s-bill label:has(:checked) b { color: color-mix(in srgb, var(--color-ink) 70%, transparent); opacity: 1; }
 /* The courses band, light: the raised ground and the five pages' section rhythm, its cards on the panel. */
 .s-pc-band { background: var(--color-raised); padding-block: var(--k-sec); margin-top: var(--k-sec); }
 .s-pc-band .s-card3d { background: var(--color-panel); }
@@ -8757,6 +8760,132 @@ main:has(> .s-close) .s-ink:not(.s-close) { padding-block: var(--k-sec); margin-
 /* The arcade's square corners on the pieces this pass adds (the game agent's pass restyles them further). */
 :root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) :is(.s-coachbar, .s-startcard, .s-startcard-go, .s-wayrow, .s-teams-group, .s-teams-group img, .s-mix-foot, .s-teams-grid b .s-soon) { border-radius: 0; }
 /* landing-v2:end */
+/* landing-redesign:start. Hillel's landing redesign (2026-11-15, review-2026-11-15/landing-redesign): the hero player
+   with its Play in the head and slimmer rows (each part's name and role on one line, its notes under them), the carol
+   line under the facts; How it works as one stepper; the Got a tune card; the choir group panel and its ruled grid.
+   Calm rules here; the game agent's arcade pass is its own landing-redesign game block. */
+.s-lv2 .s-hero-home .s-hero-carols { margin-top: 16px; text-align: center; font-size: 15px; font-weight: 600; }
+.s-lv2 .s-hero-home .s-ch-name { display: flex; flex-direction: row; flex-wrap: wrap; align-items: baseline; column-gap: 10px; row-gap: 0; }
+.s-lv2 .s-hero-home .s-ch-name small, .s-lv2 .s-hero-home .s-ch.s-is-you .s-ch-name small { display: inline; flex-basis: auto; grid-column: auto; }
+@media (min-width: 900px) {
+    .s-lv2 .s-hero-home .s-mix-head { padding: 22px 26px; column-gap: 18px; border-bottom: 0; }
+    .s-lv2 .s-hero-home .s-play { width: 56px; height: 56px; }
+    .s-lv2 .s-hero-home .s-play svg { width: 24px; height: 24px; }
+    .s-lv2 .s-hero-home .s-mix-head .s-t b { font-size: 19px; letter-spacing: -0.01em; }
+    .s-lv2 .s-hero-home .s-mix-head .s-t > span { font-size: 14px; margin-top: 3px; }
+    .s-lv2 .s-hero-home .s-channels { padding: 0 12px; gap: 6px; }
+    .s-lv2 .s-hero-home .s-ch { grid-template-columns: 44px minmax(0, 1fr) auto; grid-template-areas: "disc name state" "disc wave state"; min-height: 0; column-gap: 16px; row-gap: 6px; padding: 12px 18px; border-radius: 16px; }
+    .s-lv2 .s-hero-home .s-ch .s-disc { width: 44px; height: 44px; }
+    .s-lv2 .s-hero-home .s-ch::before { background: radial-gradient(circle 50px at 40px 50%, color-mix(in srgb, var(--c) 14%, transparent), transparent); }
+    .s-lv2 .s-hero-home .s-ch-name small { font-size: 13px; }
+    .s-lv2 .s-hero-home .s-ch-wave { height: 40px; }
+    .s-lv2 .s-hero-home .s-mix-words { padding: 26px 24px 28px; }
+}
+/* How it works as one stepper: the steps are radios (sr-only) in labels; the chosen step opens its text, its pane shows
+   in the panel and the voice bar fills up to it. A phone puts the panel under the chosen step (order); from 900 px the
+   steps sit in the left column, centred on the panel. */
+.s-lr-steps { display: flex; flex-direction: column; gap: 6px; min-width: 0; margin: 40px 0 0; padding: 0; border: 0; }
+.s-lr-step { order: calc(var(--n) * 2); padding: 18px; border-radius: 22px; border: 1px solid transparent; transition: background .25s, border-color .25s; }
+.s-lr-step:has(input:checked) { background: var(--color-panel); border-color: var(--color-line); }
+.s-lr-step:not(:has(input:checked)):hover { background: color-mix(in srgb, var(--color-panel) 55%, transparent); }
+.s-lr-step:has(input:focus-visible) { outline: 2px solid var(--color-cream); outline-offset: 2px; }
+.s-lr-pick { display: grid; grid-template-columns: 40px minmax(0, 1fr); column-gap: 14px; align-items: start; cursor: pointer; }
+.s-lr-step .s-disc { --gem: var(--c); --gem-ink: var(--ct); display: grid; place-items: center; width: 40px; height: 40px; border-radius: 99px; font-size: 18px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.s-lr-k { display: block; font-size: 13px; font-weight: 700; color: var(--ci); }
+.s-lr-t { display: block; margin-top: 4px; font-size: 20px; font-weight: 800; letter-spacing: -0.025em; line-height: 1.15; text-wrap: balance; color: var(--color-cream); }
+.s-lr-body { display: none; margin: 10px 0 0 54px; font-size: 15.5px; line-height: 1.6; color: color-mix(in srgb, var(--color-cream) 80%, var(--color-ink)); text-wrap: pretty; }
+.s-lr-step:has(input:checked) .s-lr-body { display: block; }
+.s-lr-panel { order: 3; display: flex; flex-direction: column; gap: 16px; min-width: 0; margin-block: 6px; padding: 14px; border-radius: var(--k-r-feature); background: var(--color-raised); }
+.s-lr-steps:has(#lr-step-2:checked) .s-lr-panel { order: 5; }
+.s-lr-steps:has(#lr-step-3:checked) .s-lr-panel { order: 7; }
+.s-lr-steps:has(#lr-step-4:checked) .s-lr-panel { order: 9; }
+.s-lr-card { flex: 1; display: flex; flex-direction: column; justify-content: center; min-height: 240px; padding: 18px; border: 1px solid var(--color-line); border-radius: 20px; background: var(--color-panel); box-shadow: var(--k-sh-feature); }
+.s-lr-pane { display: none; }
+.s-lr-steps:has(#lr-step-1:checked) .s-lr-pane[data-step="1"], .s-lr-steps:has(#lr-step-2:checked) .s-lr-pane[data-step="2"], .s-lr-steps:has(#lr-step-3:checked) .s-lr-pane[data-step="3"], .s-lr-steps:has(#lr-step-4:checked) .s-lr-pane[data-step="4"] { display: block; }
+.s-lr-pane .s-seg { font-size: 14px; }
+.s-lr-pane .s-seg span { padding: 10px 4px; }
+.s-lr-pane .s-gv-row { margin-top: 16px; }
+.s-lr-pane .s-gv-row .s-gv-wave { height: 48px; }
+.s-lr-pane .s-trk .s-wv { height: 32px; }
+.s-lr-rec { margin: 12px 0 0; }
+.s-lr-whole { height: 18px; margin-top: 5px; }
+.s-lr-bar { display: flex; gap: 10px; padding: 0 6px 4px; }
+.s-lr-bar span { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 8px; overflow: hidden; font-size: 12px; font-weight: 700; color: var(--color-muted); white-space: nowrap; text-overflow: ellipsis; transition: color .3s; }
+.s-lr-bar i { display: block; height: 8px; border-radius: 99px; background: color-mix(in srgb, var(--color-cream) 10%, transparent); transition: background .3s; }
+.s-lr-steps:has(#lr-step-1:checked) .s-lr-bar span:nth-child(-n+1), .s-lr-steps:has(#lr-step-2:checked) .s-lr-bar span:nth-child(-n+2), .s-lr-steps:has(#lr-step-3:checked) .s-lr-bar span:nth-child(-n+3), .s-lr-steps:has(#lr-step-4:checked) .s-lr-bar span { color: var(--color-cream); }
+.s-lr-steps:has(#lr-step-1:checked) .s-lr-bar span:nth-child(-n+1) i, .s-lr-steps:has(#lr-step-2:checked) .s-lr-bar span:nth-child(-n+2) i, .s-lr-steps:has(#lr-step-3:checked) .s-lr-bar span:nth-child(-n+3) i, .s-lr-steps:has(#lr-step-4:checked) .s-lr-bar i { background: var(--c); }
+@media (prefers-reduced-motion: reduce) { .s-lr-step, .s-lr-bar span, .s-lr-bar i { transition: none; } }
+@media (min-width: 900px) {
+    .s-lr-steps { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr); grid-template-rows: 1fr repeat(4, auto) 1fr; column-gap: 24px; row-gap: 6px; margin-top: 48px; }
+    .s-lr-step { grid-column: 1; grid-row: calc(var(--n) + 1); padding: 22px 24px; }
+    .s-lr-panel { grid-column: 2; grid-row: 1 / -1; margin: 0; padding: clamp(16px, 2.4vw, 28px); gap: 18px; border-radius: 28px; }
+    .s-lr-card { min-height: 440px; padding: clamp(18px, 2.4vw, 28px); }
+    .s-lr-pick { grid-template-columns: 46px minmax(0, 1fr); column-gap: 18px; }
+    .s-lr-step .s-disc { width: 46px; height: 46px; font-size: 20px; }
+    .s-lr-t { font-size: 24px; line-height: 1.12; }
+    .s-lr-body { margin-left: 64px; font-size: 16px; }
+    .s-lr-pane .s-gv-row .s-gv-wave { height: 56px; }
+    .s-lr-pane .s-trk .s-wv { height: 40px; }
+    .s-lr-whole { height: 20px; }
+}
+/* Got a tune in your head?: the creator's Sing step in a warm frame, the melody over the three parts it writes, Sing
+   line 1 in the calm key colour (never pink); the three ways as ruled rows. */
+.s-lr-tune { padding: clamp(16px, 3.4vw, 40px); border-radius: 28px; background: var(--color-raised); }
+.s-lr-tune-card { padding: 22px; border: 1px solid var(--color-line); border-radius: 22px; background: var(--color-panel); box-shadow: var(--k-sh-feature); }
+.s-lr-tune-of { font-size: 13px; font-weight: 700; color: var(--color-muted); }
+.s-lr-tune-line { margin-top: 12px; font-size: 17px; font-weight: 700; color: var(--color-cream); }
+.s-lr-tune-mel { height: 56px; margin: 22px 0 16px; }
+.s-lr-tune-parts { display: grid; gap: 8px; padding: 14px 0 18px; border-top: 1px dashed var(--k-line-strong); }
+.s-lr-tune-parts > div { display: grid; grid-template-columns: 44px minmax(0, 1fr); align-items: center; gap: 12px; height: 20px; }
+.s-lr-tune-parts span { font-size: 11px; font-weight: 700; color: var(--ci); }
+.s-lr-tune-parts .s-roll { height: 20px; opacity: .6; }
+.s-lr-tune-go { display: flex; justify-content: center; }
+.s-lr-tune-go span { display: inline-flex; align-items: center; gap: 8px; min-height: 34px; padding: 0 16px; border-radius: 99px; border: 1.5px solid var(--s-hl-em); background: color-mix(in srgb, var(--s-hl-em) 12%, transparent); font-size: 13px; font-weight: 700; color: var(--color-cream); white-space: nowrap; }
+.s-lr-tune-go i { width: 8px; height: 8px; border-radius: 99px; background: var(--s-hl-em); }
+.s-lr-ticks { gap: 0; max-width: none; margin-top: 28px; border-top: 1px solid var(--color-line); font-size: 16px; }
+.s-lr-ticks li { padding: 14px 0; border-bottom: 1px solid var(--color-line); }
+@media (min-width: 900px) { .s-lr-tune-card { padding: 28px; } }
+/* A serious tool: the choir group as a live panel (the app's words, sample names), larger than the old picture; the
+   features in a ruled three-column grid. */
+.s-lv2 .s-lr-group { padding: 0; border: 0; background: none; box-shadow: none; }
+.s-lr-group-card { padding: 18px 18px 4px; border: 1px solid var(--color-line); border-radius: var(--k-r-feature); background: var(--color-panel); box-shadow: var(--k-sh-feature); }
+.s-lr-group-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 16px; padding-bottom: 16px; border-bottom: 1px solid var(--color-line); }
+.s-lr-group-head b { display: block; font-size: 19px; font-weight: 800; letter-spacing: -0.01em; color: var(--color-cream); }
+.s-lr-group-head p > span { display: block; margin-top: 3px; font-size: 13.5px; color: var(--color-muted); font-variant-numeric: tabular-nums; }
+.s-lr-group-btns { display: flex; gap: 6px; }
+.s-lr-group-btns span { display: inline-flex; align-items: center; min-height: 36px; padding: 0 14px; border-radius: 99px; background: var(--color-raised); font-size: 14px; font-weight: 700; color: var(--color-cream); white-space: nowrap; }
+.s-lr-group li { display: grid; grid-template-columns: 36px minmax(0, 1fr) auto; align-items: center; gap: 14px; padding: 14px 0; border-bottom: 1px solid var(--color-line); }
+.s-lr-group li:last-child { border-bottom: 0; }
+.s-lr-group .s-disc { --gem: var(--c); --gem-ink: var(--ct); display: grid; place-items: center; width: 36px; height: 36px; border-radius: 99px; font-size: 14px; font-weight: 800; }
+.s-lr-group-who { min-width: 0; }
+.s-lr-group-who b { display: block; font-size: 16px; font-weight: 700; color: var(--color-cream); }
+.s-lr-group-who span { display: block; font-size: 13px; color: var(--color-muted); }
+.s-lr-status { padding: 5px 12px; border-radius: 99px; font-size: 12.5px; font-weight: 700; white-space: nowrap; color: var(--color-muted); background: var(--color-raised); }
+.s-lr-status-recorded { color: var(--color-part-ink-3); background: color-mix(in srgb, var(--color-part-3) 15%, transparent); }
+.s-lr-status-started { color: var(--color-part-ink-2); background: color-mix(in srgb, var(--color-part-2) 18%, transparent); }
+.s-lv2 .s-lr-group figcaption { margin-top: 14px; }
+.s-lv2 .s-teams-grid.s-lr-feats { gap: 0 40px; }
+.s-lv2 .s-lr-feats li { padding-block: 28px 32px; }
+.s-lv2 .s-lr-feats b { font-size: 19px; letter-spacing: -0.01em; }
+.s-lv2 .s-lr-feats li > span { font-size: 15.5px; line-height: 1.6; }
+@media (min-width: 900px) {
+    .s-lr-group-card { padding: 24px 24px 8px; }
+    .s-lv2 .s-teams-grid.s-lr-feats { margin-top: 80px; }
+}
+/* The learn step's pane: the course's home in live words, calm's key colour for the voice dot and Up next (no pink). */
+.s-lr-learn-top { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
+.s-lr-learn-top p span { display: block; font-size: 13px; color: var(--color-muted); }
+.s-lr-learn-top p b { display: block; font-size: 22px; font-weight: 800; letter-spacing: -0.02em; color: var(--color-cream); }
+.s-lr-chip { display: inline-flex; align-items: center; gap: 8px; min-height: 36px; padding: 0 14px; border-radius: 99px; background: var(--color-raised); font-size: 14px; font-weight: 600; color: var(--color-cream); white-space: nowrap; }
+.s-lr-chip i { width: 8px; height: 8px; border-radius: 99px; background: var(--s-hl-em); }
+.s-lr-learn-next { margin-top: 16px; padding: 18px 20px; border-radius: 16px; background: var(--color-raised); }
+.s-lr-learn-k { font-size: 11px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: var(--s-hl-em); }
+.s-lr-learn-t { margin-top: 4px; font-size: 26px; font-weight: 800; letter-spacing: -0.02em; color: var(--color-cream); }
+.s-lr-learn-roll { position: relative; height: 56px; margin-top: 14px; }
+.s-lr-learn-roll > span { position: absolute; inset: 0; }
+.s-lr-dim { opacity: .28; }
+.s-lr-lit { clip-path: inset(0 45% 0 0); }
+/* landing-redesign:end */
 /* redesign:end */
 
 /* Printable parts (js/views/print.js): only the score prints, black on white, a system never split
@@ -11004,6 +11133,57 @@ main:has(> .s-close) .s-ink:not(.s-close) { padding-block: var(--k-sec); margin-
    stay on one line, a size smaller on a narrow phone (the game buttons' rule otherwise wraps them, balanced). */
 :root[data-skin='game'][data-gs] body.s-arcade :is(.s-plan-cta, .s-share-btns) :is(.btn-primary, .btn-secondary) { white-space: nowrap; }
 @media (max-width: 399.98px) { :root[data-skin='game'][data-gs] body.s-arcade :is(.s-plan-cta, .s-share-btns) :is(.btn-primary, .btn-secondary) { font-size: 0.75rem; padding-inline: 12px; } }
+/* landing-redesign game:start. The landing redesign's arcade side (Hillel, 2026-11-15; marketing's .s-lr-* pieces, calm
+   rules in landing-redesign): How it works' stepper as LEVEL cards, each step's number its "Level n" caption in pixel caps in
+   its part's ink, the chosen step framed in that neon on a hard shadow; the panel a square cabinet framed in the home hub's
+   purple, its card a well, the voice bar square blocks under pixel-caps names. */
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-lr-step { border-radius: 0; border: var(--arc-edge-w) dashed transparent; transition: none; }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-lr-step:has(input:checked) { border: var(--arc-frame) solid var(--ci); background: var(--arc-panel); box-shadow: var(--arc-shadow); }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-lr-step:not(:has(input:checked)):hover { border-color: var(--arc-line); background: var(--arc-well); }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-lr-step:has(input:focus-visible) { outline-color: var(--a-ink); }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-lr-pick { grid-template-columns: minmax(0, 1fr); row-gap: 8px; }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-lr-step .s-disc { display: block; justify-self: start; width: auto; height: auto; padding: 0; border-radius: 0; background: none; box-shadow: none; color: var(--ci); font-family: var(--a-hud); font-size: 10px; font-weight: 400; text-transform: uppercase; }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) :is(.s-lr-step .s-disc.gem)::before { content: none; }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-lr-step .s-disc.gem { border: 0; }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-lr-rec { flex-wrap: wrap; row-gap: 8px; }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-lr-rec .s-recpill { white-space: nowrap; }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-lr-k { font-family: var(--a-hud); font-size: 9px; font-weight: 400; line-height: 1.6; text-transform: uppercase; }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-lr-body { margin-left: 0; }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-lr-panel { border-radius: 0; border: var(--arc-frame) solid var(--arc-purple); background: var(--arc-well); box-shadow: var(--arc-shadow-lg); }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-lr-card { border-radius: 0; border: var(--arc-edge-w) solid var(--arc-line); background: var(--arc-panel); box-shadow: none; }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-lr-pane .s-vis-shot { border-radius: 0; }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-lr-bar span { font-family: var(--a-hud); font-size: 8px; font-weight: 400; text-transform: uppercase; transition: none; }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-lr-bar i { height: 10px; border-radius: 0; background: var(--arc-line); transition: none; }
+@media (min-width: 900px) {
+    :root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-lr-step { padding: 20px 22px; }
+    :root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-lr-panel { border-radius: 0; }
+}
+/* Got a tune: the frame a square cabinet in the home purple, its card a panel, Line 1 of 4 and the part names in pixel
+   caps, Sing line 1 a square chip in game's pink, the three ways ruled dashed. */
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-lr-tune { border-radius: 0; border: var(--arc-frame) solid var(--arc-purple); background: var(--arc-well); box-shadow: var(--arc-shadow-lg); }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-lr-tune-card { border-radius: 0; border: var(--arc-edge-w) solid var(--arc-line); background: var(--arc-panel); box-shadow: none; }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-lr-tune-of { font-family: var(--a-hud); font-size: 10px; font-weight: 400; text-transform: uppercase; }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-lr-tune-parts { border-top: var(--arc-edge-w) dashed var(--arc-line); }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-lr-tune-parts span { font-family: var(--a-hud); font-size: 8px; font-weight: 400; text-transform: uppercase; }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-lr-tune-go span { border-radius: 0; border: var(--arc-edge-w) solid var(--arc-pink); background: var(--arc-well); box-shadow: var(--arc-shadow); font-family: var(--a-hud); font-size: 10px; font-weight: 400; text-transform: uppercase; }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-lr-tune-go i { border-radius: 0; background: var(--arc-pink); }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-lr-ticks { border-top: var(--arc-edge-w) dashed var(--arc-line); }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-lr-ticks li { border-bottom: var(--arc-edge-w) dashed var(--arc-line); }
+/* The choir group: one frame (the figure's old picture frame goes), the card a square panel in the home purple, the
+   song's name in the pixel face, Assign parts and Open square keys, each singer's letter an arcade coin, the rows ruled
+   dashed and each status a square tag in pixel caps. The features' rules dashed. */
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-lv2 .s-teams-group.s-lr-group { border: 0; background: none; box-shadow: none; }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-lr-group-card { border-radius: 0; border: var(--arc-frame) solid var(--arc-purple); background: var(--arc-panel); box-shadow: var(--arc-shadow-lg); }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-lr-group-head { border-bottom: var(--arc-edge-w) dashed var(--arc-line); }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-lr-group-head b { font-family: var(--a-hud); font-size: 14px; font-weight: 400; line-height: 1.5; letter-spacing: 0; }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-lr-group-btns span { border-radius: 0; border: var(--arc-edge-w) solid var(--arc-line); background: var(--arc-well); box-shadow: var(--arc-shadow); font-family: var(--a-hud); font-size: 9px; font-weight: 400; text-transform: uppercase; }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-lr-group li { border-bottom: var(--arc-edge-w) dashed var(--arc-line); }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-lr-group li:last-child { border-bottom: 0; }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-lr-group .s-disc.gem { --coin: var(--c); --coin-edge: var(--arc-shadow-c, #05030d); background: var(--coin); border: 2px solid var(--coin-edge); border-radius: 50%; box-shadow: inset 0 2px 0 color-mix(in oklab, var(--coin) 55%, white), inset 0 -3px 0 color-mix(in oklab, var(--coin) 62%, black), 0 4px 0 0 color-mix(in oklab, var(--coin) 45%, black), 0 4px 0 2px var(--coin-edge); font-family: var(--a-hud); font-size: 11px; font-weight: 400; }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-lr-group .s-disc.gem::before { content: none; }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-lr-status { border-radius: 0; border: var(--arc-edge-w) solid currentColor; font-family: var(--a-hud); font-size: 8px; font-weight: 400; line-height: 1.6; text-transform: uppercase; }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-lr-feats li { border-top: var(--arc-edge-w) dashed var(--arc-line); }
+/* landing-redesign game:end */
 /* arcade-screen:end */
 /* Game mode's circles are arcade coins (Hillel's pick of two, 2026-11-08; the course map's stages, .ge-map-node, above):
    every bubble that reaches game mode (serious mode's look, docs/bubble-circles-plan.md: the avatars, New song's +, the

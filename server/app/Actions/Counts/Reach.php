@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Actions\Counts;
 
+use App\Support\Stats\GrowthStart;
 use App\Support\Stats\ReportDay;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
@@ -42,7 +43,9 @@ final class Reach
         $first = $last->copy()->startOfWeek(Carbon::MONDAY)->subWeeks(23);
         $yesterday = $last->toDateString();
 
-        $rows = DB::table('usage_counts')->whereIn('kind', self::KINDS)->where('day', '>=', $first->toDateString())->where('day', '<=', $yesterday)
+        // From Growth's fresh start, when it's on: a day before it reads as not counted yet.
+        $start = app(GrowthStart::class);
+        $rows = $start->counts()->whereIn('kind', self::KINDS)->where('day', '>=', $first->toDateString())->where('day', '<=', $yesterday)
             ->groupBy('day', 'kind', 'audience')->selectRaw('day, kind, audience, sum(count) as n')->get();
         $counts = [];
 
@@ -55,7 +58,7 @@ final class Reach
 
         // The first day each kind was ever counted (it may be partial: the deploy came mid-day).
         $since = DB::table('usage_counts')->whereIn('kind', self::KINDS)->groupBy('kind')->selectRaw('kind, min(day) as day')->pluck('day', 'kind')
-            ->map(fn (mixed $day): string => substr((string) $day, 0, 10));
+            ->map(fn (mixed $day): string => $start->clip(substr((string) $day, 0, 10)));
         $opensSince = $since->get('app_open');
         $daySince = $since->get('app_day');
         $weekSince = $since->get('app_week');

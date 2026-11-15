@@ -91,10 +91,10 @@ def journey(f):
     f.wait("document.querySelector('[data-headphones]')", what="the headphones question (102.png)")
     f.shot("headphones")
     f.click_t("headphones.start")
-    f.wait("document.querySelector('[data-timing]')", what="the timing check (101.png)")
-    f.shot("timing")
-    f.click_t("timing.skip")
+    # No timing check first: the first take records with the estimate, the check offered after it (Hillel, 2026-11-15).
     f.wait(f"{AUDIO}.engine.playing?.recording", what="recording")
+    assert not f.js("!!document.querySelector('[data-timing]')"), "the timing check before the first take"
+    assert f.js(f"{AUDIO}.audio.latencyEstimated"), "the first take without the estimate"
     f.wait(f"{AUDIO}.engine.ctx.currentTime > {AUDIO}.engine.playing.startTime + 2", what="2 s recorded")
     # While singing: the same line, in place (Record moved nothing), the soprano's own words.
     words_readable(f, "[data-now-words]", "the line at the playhead, recording")

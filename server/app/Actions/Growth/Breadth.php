@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Actions\Growth;
 
 use App\Actions\Counts\Funnel;
+use App\Support\Stats\GrowthStart;
 use App\Support\Stats\ReportDay;
-use Illuminate\Support\Facades\DB;
 
 /**
  * How much of the app singers use (docs/retention-plan.md, "Breadth"; Hillel, 2026-11-11: "a goal should be to get
@@ -46,7 +46,7 @@ final class Breadth
         $firsts = array_fill(0, self::WEEKS, array_fill_keys($features, 0));
         $arrivals = array_fill(0, self::WEEKS, 0);
 
-        $rows = DB::table('usage_counts')->whereBetween('day', [$start->toDateString(), $to->toDateString()])
+        $rows = app(GrowthStart::class)->counts()->whereBetween('day', [$start->toDateString(), $to->toDateString()])
             ->where(static fn ($q) => $q->where('kind', 'like', 'br:%')->orWhere('kind', 'like', 'ft:%')->orWhereIn('kind', Funnel::ARRIVALS))
             ->selectRaw('day, kind, audience, sum(count) as n')->groupBy('day', 'kind', 'audience')->get();
 

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Actions\Counts;
 
 use App\Support\Outreach\Outreach;
+use App\Support\Stats\GrowthStart;
 use App\Support\Stats\ReportDay;
 use Illuminate\Support\Facades\DB;
 
@@ -402,7 +403,7 @@ final class RecordCounts
      */
     public function summary(int $days): array
     {
-        $since = ReportDay::now()->subDays($days - 1)->toDateString();
+        $since = app(GrowthStart::class)->clip(ReportDay::now()->subDays($days - 1)->toDateString());
         $base = static fn () => DB::table('usage_counts')->where('day', '>=', $since);
         $split = "sum(case when audience = 'guest' then count else 0 end) as guest, sum(case when audience = 'account' then count else 0 end) as account";
 

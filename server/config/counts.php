@@ -60,6 +60,9 @@ return [
         'school_redeemed',
         'su_week', 'su_songs', 'su_unit', 'su_risk', 'su_groups', 'su_friends', 'su_voice', 'su_plus', 'su_template', 'su_sheet', 'su_settings', 'su_daily', 'su_school',
         'ask_acct_week_not', 'ask_acct_songs_not', 'ask_acct_unit_not', 'ask_acct_risk_not', 'ask_acct_settings_not', 'ask_acct_course_not',
+        // Sing the first phrase, then ask (Hillel, 2026-11-15): the phrase ask's Not now, and a guest who sang a
+        // library song's first phrase to its end (its shown and yes are acct_phrase in the asks).
+        'ask_acct_phrase_not', 'phrase_sung',
         // Home after week one (docs/home-returning-plan.md, experiment ret1): each Today line shown and tapped.
         'home_today_gap_shown', 'home_today_gap_tap', 'home_today_done_shown', 'home_today_done_song_tap', 'home_today_done_course_tap',
         'home_today_stuck_shown', 'home_today_stuck_tap', 'home_today_daily_shown', 'home_today_daily_tap',
@@ -219,6 +222,8 @@ return [
     // acct_course_<place>: the course's account ask by where it was met (the home's lesson card, a
     // lesson, the course map, a course's page), beside acct_course's total; its Not now is the total's alone.
     'asks' => ['install', 'account', 'name', 'share', 'goal', 'remind', 'acct_week', 'acct_songs', 'acct_unit', 'acct_risk', 'acct_settings', 'acct_course',
+        // A library song's ask after its first phrase, sung as a guest.
+        'acct_phrase',
         'acct_course_home', 'acct_course_lesson', 'acct_course_map', 'acct_course_page',
         // The thread back's nudge (docs/retention-plan.md; its Not now is ask_nudge_not in kinds).
         'nudge'],

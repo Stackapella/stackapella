@@ -29,11 +29,10 @@ final class PlusSongsTest extends TestCase
 
     public function test_every_library_song_is_free_with_an_account_and_the_bundled_ones_for_anyone(): void
     {
-        // Signed out: a song the app bundles, and an open one (GuestOpenSongsTest), never one waiting to
-        // open (a free account opens them).
+        // Signed out: a song the app bundles, and an open one (GuestOpenSongsTest); one waiting to open only
+        // its first phrase (FirstPhraseGuestTest; a free account opens the whole song).
         $this->waiting('silent-night');
-        $this->assertMatchesContract($this->getJson('/api/templates/silent-night'), 'templates.show', 403);
-        $this->getJson('/api/templates/silent-night')->assertJsonPath('code', 'account_required');
+        $this->getJson('/api/templates/silent-night')->assertOk()->assertJsonPath('data.grant', 'phrase');
         $this->getJson('/api/templates/amazing-grace')->assertOk()->assertJsonPath('data.grant', 'free');
         $this->assertMatchesContract($this->getJson('/api/templates/nope'), 'templates.show', 404);
 
@@ -67,7 +66,7 @@ final class PlusSongsTest extends TestCase
         // A song whose old free month is now: nothing about it differs any more.
         $this->waiting('silent-night');
         Template::query()->where('slug', 'silent-night')->update(['free_from' => now()->startOfMonth(), 'free_until' => now()->endOfMonth()]);
-        $this->getJson('/api/templates/silent-night')->assertForbidden()->assertJsonPath('code', 'account_required');
+        $this->getJson('/api/templates/silent-night')->assertOk()->assertJsonPath('data.grant', 'phrase');
         $this->getJson('/api/templates')->assertOk()->assertJsonPath('data.'.collect($this->getJson('/api/templates')->json('data'))->search(fn (array $s): bool => $s['id'] === 'silent-night').'.freeUntil', null);
     }
 

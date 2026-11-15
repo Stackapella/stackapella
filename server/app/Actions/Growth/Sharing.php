@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Actions\Growth;
 
 use App\Actions\Counts\Funnel;
+use App\Support\Stats\GrowthStart;
 use App\Support\Stats\ReportDay;
-use Illuminate\Support\Facades\DB;
 
 /**
  * How often singers pass the app on, and what comes of it (docs/retention-plan.md, "Sharing"; Hillel, 2026-11-11: "I
@@ -47,12 +47,12 @@ final class Sharing
      */
     private function read(string $from, string $to): array
     {
-        $kinds = DB::table('usage_counts')->whereBetween('day', [$from, $to])
+        $kinds = app(GrowthStart::class)->counts()->whereBetween('day', [$from, $to])
             ->where(static fn ($q) => $q->where('kind', 'like', 'sh:%')->orWhere('kind', 'like', 'so:%')->orWhere('kind', 'app_week'))
             ->selectRaw('kind, sum(count) as n')->groupBy('kind')->pluck('n', 'kind')->map(static fn (mixed $n): int => (int) $n)->all();
         $followed = [];
 
-        foreach (DB::table('usage_counts')->whereBetween('day', [$from, $to])->where(static fn ($q) => $q->where('source', 'like', 'share-%')->orWhere('source', 'harmony'))
+        foreach (app(GrowthStart::class)->counts()->whereBetween('day', [$from, $to])->where(static fn ($q) => $q->where('source', 'like', 'share-%')->orWhere('source', 'harmony'))
             ->whereIn('kind', array_merge(...array_values(self::FOLLOWED)))->selectRaw('source, kind, sum(count) as n')->groupBy('source', 'kind')->get() as $row) {
             // A shared song's links were read as "harmony" before 2026-11-11: the song surface either way.
             $tag = (string) $row->source === 'harmony' ? 'share-song' : (string) $row->source;

@@ -18,7 +18,7 @@ import { enrolledVariants } from './experiments.js';
 export const KINDS = new Set(['app_open', 'app_day', 'app_week', 'app_month', 'lesson_start', 'lesson_done', 'unit_done', 'song_created', 'take_recorded', 'share_created', 'harmonise_used', 'export_done', 'result_shared']);
 // The funnel's steps and asks (docs/onboarding-review.md, section 4), each counted once per device by js/funnel.js.
 const FUNNEL = ['f_day7', 'f_plus', 'f_arrive', 'f_arrive_start', 'f_mic', 'f_note', 'f_note_skip', 'f_lesson1', 'f_chord', 'f_lesson2', 'f_lesson3', 'f_unit1', 'f_goal', 'f_install', 'f_name', 'f_account', 'f_share', 'f_remind', 'f_take', 'f_harmony', 'f_day2', 'f_week1', 'f_goal_met', 'f_day14', 'f_course_lesson'];
-const NUDGES = ['acct_week', 'acct_songs', 'acct_unit', 'acct_risk', 'acct_settings', 'acct_course']; // the account nudges' asks
+const NUDGES = ['acct_week', 'acct_songs', 'acct_unit', 'acct_risk', 'acct_settings', 'acct_course', 'acct_phrase']; // the account nudges' asks
 const ASKED = ['install', 'account', 'name', 'share', 'goal', 'remind', 'nudge', ...NUDGES].flatMap((ask) => [`ask_${ask}_shown`, `ask_${ask}_yes`]);
 for (const kind of [...FUNNEL, ...ASKED]) KINDS.add(kind);
 // Be the voice (js/be-the-voice.js; the engagement review's section 5): the pool, the invitation, its answers, the
@@ -40,6 +40,8 @@ for (const kind of [
     ...NUDGES.map((ask) => `ask_${ask}_not`),
     'sug_melody', 'sug_part', 'sug_switch',
     'daily_viewed', 'daily_sung',
+    // A guest's taste of a library song (Hillel, 2026-11-15): its first phrase sung along, before the account's invitation.
+    'phrase_sung',
     'ask_nudge_not', // the wrap's Nudge me tomorrow, put off (docs/retention-plan.md, idea 2)
     // Coming back (docs/retention-plan.md, section 8): days 1, 7, 14 and 30 since this device arrived, and once in days 1 to 6.
     'back_d1', 'back_d7', 'back_d14', 'back_d30', 'back_w1',

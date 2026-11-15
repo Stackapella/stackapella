@@ -54,7 +54,7 @@ def journey(f):
         if lesson == "sc-1-trade":
             picture(f, "scat-lesson-1")
             f.click_t("course.continue")
-            f.wait_text("Echo one call")
+            f.wait_text("One call, a note at a time")
             f.no_sideways("lesson 1's try")
             picture(f, "scat-lesson-1-try")
         if lesson == "sc-1-swing":

@@ -181,11 +181,18 @@ async function stateful(operation, params, body, cases, query = {}) {
             return respond(200, { data: { ...data, template } });
         }
         // An open library song as the server sends it (stackapella.mockOpenSong, this tab): reviewed, to a guest as well
-        // (`grant: "open"`, which plays it but doesn't let a guest start it: the catalogue's `access` says that).
+        // (`grant: "open"`: a guest sings its first line, the app's cut, before the account's invitation).
         if (tabStorage.get('stackapella.mockOpenSong') === params.id) {
             const { data } = await example('templates.show.200.json');
             const as = tabStorage.get('stackapella.mockAs') || 'member';
             return respond(200, { data: { ...data, grant: as === 'signedOut' ? 'open' : 'account', template: { ...data.template, id: params.id, reviewed: true } } });
+        }
+        // Any other library song to a guest: its first phrase (`grant: "phrase"`, as the server cuts it: templates.firstPhrase),
+        // no recorded voices; a scenario (templates.show:account_required) still answers as it says.
+        if ((tabStorage.get('stackapella.mockAs') || 'member') === 'signedOut' && !scenarios().some((s) => s.startsWith('templates.show:'))) {
+            const { data } = await example('templates.show.200.json');
+            const { firstPhrase } = await import('./first-phrase.js');
+            return respond(200, { data: { ...data, grant: 'phrase', voices: [], boards: false, freeUntil: null, template: firstPhrase({ ...data.template, id: params.id }) } });
         }
     }
     if (operation === 'templates.catalogue') {

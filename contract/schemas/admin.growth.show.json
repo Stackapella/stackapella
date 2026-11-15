@@ -12,6 +12,7 @@
                 "breaks",
                 "chart",
                 "comparisons",
+                "countFrom",
                 "countingSince",
                 "date",
                 "from",
@@ -214,6 +215,10 @@
                     ],
                     "format": "date-time",
                     "description": "When hourly counting began; a cut day before it is estimated."
+                },
+                "countFrom": {
+                    "type": ["string", "null"],
+                    "description": "Growth's fresh start (the growth_fresh_start switch, since 2026-11-15): while it's on, the first day counted (Jerusalem's day it was turned on), and every number here starts there; null while it's off."
                 },
                 "countingSince": {
                     "type": [

@@ -1,7 +1,8 @@
-"""Clap along (docs/wireless-timing-plan.md): before recording with Bluetooth, the timing check asks for claps on
-steady clicks instead of holding an earbud to the mic, with the AirPods tip and the click test a tap away. A simulated
-clapper stands in for the mic (the engine's measure: claps 200 ms behind each click, a human's ±20 ms, the usual lead),
-so the result is known; a clapper all over the place is asked to try again; skipping uses a typical wireless delay.
+"""Clap along (docs/wireless-timing-plan.md): with Bluetooth, the timing check asks for claps on steady clicks instead
+of holding an earbud to the mic, with the AirPods tip and the click test a tap away. Since 2026-11-15 the first take
+records with the estimate (a typical wireless delay over Bluetooth) and the check is offered under it (timing_after), so
+it's opened from there. A simulated clapper stands in for the mic (the engine's measure: claps 200 ms behind each click,
+a human's ±20 ms, the usual lead), so the result is known; a clapper all over the place is asked to try again.
 """
 import sys
 from pathlib import Path
@@ -37,17 +38,30 @@ CLAPPER = """((roundTrip, jitter) => {
 def journey(f):
     f.go("/", "document.querySelector('h1')")
     f.mic_checked()
+    f.run("Object.keys(localStorage).filter((k) => k.startsWith('stackapella.latency')).forEach((k) => localStorage.removeItem(k))")
     project = f.js("""(async () => {
         const { startFromTemplate } = await import('/js/stores/projects.js');
         const { loadTemplate } = await import('/js/templates.js');
         return (await startFromTemplate(await loadTemplate('amazing-grace'), { singers: 4 })).id;
     })()""")
-    f.go(f"/p/{project}", "document.querySelectorAll('canvas').length > 3")
-    f.js(f"{AUDIO}.unlock()")
-    soprano = f.js("(await import('/js/i18n.js')).t('parts.soprano')")
-    f.click_t("studio.recordNamed", {"name": soprano})
-    f.wait("document.querySelector('[data-headphones]')", what="the headphones question")
-    f.click_t("headphones.start")
+    # Sing's first take of the Alto over Bluetooth, straight in with the estimate, then its offer of the check.
+    f.go(f"/p/{project}/sing", "document.querySelector('h1')")
+    f.run("document.querySelector('[data-way=parts]').click()")
+    alto = f.js("(await import('/js/i18n.js')).t('parts.alto')")
+    f.wait(f"[...document.querySelectorAll('main button, .card-interactive')].some((b) => b.textContent.includes({alto!r}))", what="the alto to choose")
+    f.run(f"[...document.querySelectorAll('main button, .card-interactive')].find((b) => b.textContent.includes({alto!r})).click()")
+    skip_to = f.js("(await import('/js/i18n.js')).t('sing.coach.skipToRecord')")
+    f.wait_text(skip_to)
+    f.click(skip_to)
+    f.run(f"""const a = {AUDIO}; await a.unlock(); await a.openMic(); a.engine.setLoopback(true); a.chooseRoute('bluetooth');
+        sessionStorage.setItem('stackapella.headphones', '1');""")
+    f.click(f.js("(await import('/js/i18n.js')).t('sing.coach.action.record', { part: " + repr(alto) + " })"))
+    f.wait(f"{AUDIO}.engine.playing?.recording", timeout=20, what="recording, with no check first")
+    f.wait(f"{AUDIO}.engine.positionInfo()?.position > 2", timeout=30, what="a moment recorded")
+    f.click(f.js("(await import('/js/i18n.js')).t('sing.recordingStage.stopKeep')"))
+    f.run(f"{AUDIO}.engine.setLoopback(false)")
+    f.wait("document.querySelector('[data-timing-recheck-open]')", what="the check offered under the take")
+    f.run("document.querySelector('[data-timing-recheck-open]').click()")
     f.wait("document.querySelector('[data-timing]')", what="the timing check")
     # Bluetooth: clap along, the AirPods tip, and the click test a tap away.
     bluetooth = f.js("(await import('/js/i18n.js')).t('timing.route.bluetooth')")
@@ -56,7 +70,7 @@ def journey(f):
     hint = f.js("(await import('/js/i18n.js')).t('timing.clap.hint')")
     assert f.js("document.querySelector('[data-timing-hint]').textContent.trim()") == hint, "the clap-along hint"
     skip = f.js("(await import('/js/i18n.js')).t('timing.clap.skip')")
-    assert f.js(f"[...document.querySelectorAll('[data-timing] button')].some((b) => b.textContent.trim() === {skip!r})"), "Bluetooth's skip uses a typical wireless delay"
+    assert not f.js(f"[...document.querySelectorAll('[data-timing] button')].some((b) => b.textContent.trim() === {skip!r})"), "an estimate offered after a take used one"
     intro = f.js("(await import('/js/i18n.js')).t('timing.clap.intro')")
     assert f.js(f"document.body.innerText.includes({intro!r})"), "the intro says it listens for your claps"
     f.shot("clap-choose")

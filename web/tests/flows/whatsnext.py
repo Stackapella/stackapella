@@ -59,9 +59,14 @@ def journey(f):
     f.run("await new Promise((r) => setTimeout(r, 2500))")
     assert not f.js("(window.mockBodies ?? []).some((b) => b.operation === 'templates.show')"), "a guest's library song fetched to open on its own"
     assert not f.js("!!document.querySelector('[role=dialog] [data-song-start]')"), "a guest's library song opened to start without the catalogue"
+    # With it, a guest sings its first line before the ask (Hillel, 2026-11-15; tests/flows/taste.py): Start says so.
     f.go("/?api=mock&scenario=&as=signedOut&song=silent-night&ref=song-page", "document.querySelector('#app header')")
+    f.wait("document.querySelector('[role=dialog] [data-song-start]:not([disabled])')", what="a guest's Start on the first line")
+    f.wait_text(t(f, "templates.taste.start"))
+    # A song the server won't give a guest at all (account_required) asks for the account, as before.
+    f.go("/?api=mock&scenario=templates.show:account_required&as=signedOut&song=silent-night&ref=song-page", "document.querySelector('#app header')")
     f.wait_text(t(f, "templates.needsAccount"))
-    assert not f.js("!!document.querySelector('[role=dialog] [data-song-start]')"), "a guest can start an account song"
+    assert not f.js("!!document.querySelector('[role=dialog] [data-song-start]')"), "a guest can start a song the server refused"
     # Its Make a free account says what's true there: the library's songs need one (never "Optional"), counted as songs.
     f.run("document.querySelector('[role=dialog] [data-song-signup]').click()")
     f.wait("location.pathname === '/signin' && new URLSearchParams(location.search).get('for') === 'library'", what="sign-up, for the library")

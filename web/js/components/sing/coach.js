@@ -116,8 +116,10 @@ export const Coach = {
 /** A step done: a tick, a kind sentence, the checklist, the next step, or once more. */
 export const StepDone = {
     components: { Icon },
-    props: { step: { type: String, required: true }, partName: { type: String, required: true }, color: { type: String, required: true }, phrases: { type: Array, required: true }, next: String },
-    emits: ['next', 'again'],
+    // invite (a guest's taste of a library song, Hillel 2026-11-15: "Sing the first phrase, then ask"): 'ask', the free
+    // account's invitation in place of the next step (Not now goes on to it); 'quiet', one line beside the usual buttons.
+    props: { step: { type: String, required: true }, partName: { type: String, required: true }, color: { type: String, required: true }, phrases: { type: Array, required: true }, next: String, invite: { type: String, default: null }, title: { type: String, default: '' } },
+    emits: ['next', 'again', 'signup', 'not-now'],
     setup: () => ({ DONE, STEP }),
     template: `
         <div class="m-auto flex max-w-lg flex-col items-center gap-5 p-6 text-center">
@@ -126,10 +128,18 @@ export const StepDone = {
             <ul class="w-full space-y-1.5 text-start text-sm text-cream">
                 <li v-for="p in phrases" :key="p.index" class="flex items-center gap-2"><Icon name="check" :size="16" :style="{ color }" /> <span translate="no" class="truncate">{{ p.label }}</span></li>
             </ul>
-            <div class="flex flex-wrap justify-center gap-3">
+            <div v-if="invite === 'ask'" class="flex w-full flex-col items-center gap-4" data-taste-ask>
+                <p class="text-cream">{{ t('sing.taste.body', { title }) }}</p>
+                <div class="flex flex-wrap justify-center gap-3">
+                    <button type="button" class="btn-primary" data-taste-signup @click="$emit('signup')">{{ t('sing.taste.keepGoing') }}</button>
+                    <button type="button" class="btn-secondary" data-taste-not-now @click="$emit('not-now')">{{ t('common.notNow') }}</button>
+                </div>
+            </div>
+            <div v-else class="flex flex-wrap justify-center gap-3">
                 <button v-if="next" type="button" class="btn-primary" @click="$emit('next')">{{ t('sing.coach.next', { step: t(STEP[next].name) }) }}</button>
                 <button type="button" class="btn-secondary" @click="$emit('again')">{{ t('sing.coach.onceMore') }}</button>
             </div>
+            <p v-if="invite === 'quiet'" class="text-sm text-muted" data-taste-quiet>{{ t('sing.taste.quiet') }} <button type="button" class="link tap-44" @click="$emit('signup')">{{ t('sing.taste.makeAccount') }}</button></p>
         </div>`,
     mounted() {
         this.$refs.heading.focus();

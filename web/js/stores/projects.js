@@ -6,10 +6,10 @@ import * as db from '../db.js';
 import { local } from '../storage.js';
 import { peaks } from '../dsp.js';
 import { isNewSinger, PRACTICE_DEFAULTS } from '../practice.js';
-import { partsFor } from '../templates.js';
+import { firstPhrase, loadTemplate, partsFor } from '../templates.js';
 import { PART_COLORS, transposeKey } from '../theme.js';
 import { changed, deleted, onCloudChange, undoDeleted } from './cloud.js';
-import { account } from './account.js';
+import { account, loadAccount } from './account.js';
 import { count } from '../usage.js';
 
 // Another device changed something: the lists show it.
@@ -179,7 +179,9 @@ let persisting = null;
  * waveform outline (for the projects page). Counts toward the free limit like any project, except
  * a beta singer's recording project (`beta`), which is kept apart.
  */
-export async function startFromTemplate(template, { transpose = 0, focusKey = null, singers = null, beta = null, course = null, idea = null, keyChosen = false, renderGuides = true } = {}) {
+export async function startFromTemplate(whole, { transpose = 0, focusKey = null, singers = null, beta = null, course = null, idea = null, keyChosen = false, renderGuides = true, taste = false } = {}) {
+    // A guest's taste of a library song: its first phrase, then the free account's invitation (Sing; Hillel, 2026-11-15).
+    const template = taste ? (firstPhrase(toRaw(whole)) ?? whole) : whole;
     const project = await createProject({
         title: template.title,
         bpm: template.tempo,
@@ -195,6 +197,7 @@ export async function startFromTemplate(template, { transpose = 0, focusKey = nu
         ...(beta ? { beta } : {}),
         ...(course ? { course } : {}), // a song a lesson opened: listed, but not counted toward the limit
         ...(idea ? { idea } : {}), // an idea's tune (docs/ideas-app-plan.md): { id, writer, partKey }, to add your voice to it
+        ...(taste ? { taste: { song: whole.id } } : {}), // the song's first phrase only, until an account opens the rest (wholeSong)
     });
     // `renderGuides: false` (a song's Start from its sheet): Sing opens at once and its session renders the guides as it
     // opens (a part's real voice where there is one, the synth otherwise), while the singer reads how to sing. Rendering
@@ -205,6 +208,39 @@ export async function startFromTemplate(template, { transpose = 0, focusKey = nu
         if (part.key === focusKey) project.practice.focus = slot.id;
     }
     return saveProject(project);
+}
+
+/**
+ * A guest's taste (startFromTemplate's `taste`), now signed in: the whole song in its place, so they keep going where they
+ * were. Each part's guide runs the song's length (the session renders it as it opens), the parts the first phrase left
+ * out are added, and the part they sang has its first phrase heard already. Null when it isn't a taste, or the song
+ * didn't come (Sing goes on with the phrase, and tries again next time).
+ */
+export async function wholeSong(projectId) {
+    const project = await db.get('projects', projectId);
+    if (!project?.taste) return null;
+    if (!account.loaded) await loadAccount();
+    if (!account.me) return null;
+    let whole;
+    try {
+        whole = await loadTemplate(project.taste.song);
+    } catch (error) {
+        console.warn("The whole song didn't come: Sing goes on with its first phrase", error);
+        return null;
+    }
+    const { forgetGuides } = await import('../guides.js');
+    forgetGuides(whole.id);
+    const parts = await db.allBy('parts', 'projectId', projectId);
+    const transpose = project.transpose || 0;
+    const sung = partsFor(whole, project.singers || undefined);
+    for (const part of sung) {
+        const slot = parts.find((p) => p.templatePartKey === part.key);
+        if (slot) await savePart({ ...slot, guideSeconds: notesSeconds(part, whole.tempo), guidePeaks: null });
+        else await makeSlot(project, whole, part, transpose, {}, { render: false });
+    }
+    const progress = Object.fromEntries(Object.entries(project.practice?.progress ?? {}).map(([key]) => [key, { step: 'listen', phrases: { 0: 1 } }]));
+    const { taste: _taste, ...rest } = project;
+    return saveProject({ ...rest, template: structuredClone(toRaw(whole)), practice: { ...project.practice, progress } });
 }
 
 /**

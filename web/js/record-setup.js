@@ -84,10 +84,13 @@ export const RecordSetup = {
                 return;
             }
             // A guide for everyone needs a measured delay, and a sound check on this device and mic.
-            if (audio.latencyFrames === null || (this.project.beta && audio.latencyEstimated)) {
+            if (this.project.beta && (audio.latencyFrames === null || audio.latencyEstimated)) {
                 this.dialog = 'timing-record';
                 return;
             }
+            // Anyone else's first take on this mic records with the estimate, and the check is offered after it, under the
+            // take (TimingLine); measured, the take moves to match (Hillel, 2026-11-15: "Timing check after the first take").
+            if (audio.latencyFrames === null) useEstimate();
             if (this.project.beta && !soundChecked()) {
                 this.dialog = 'soundcheck';
                 return;

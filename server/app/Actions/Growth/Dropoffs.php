@@ -6,9 +6,9 @@ namespace App\Actions\Growth;
 
 use App\Actions\Counts\Funnel;
 use App\Models\DropoffReport;
+use App\Support\Stats\GrowthStart;
 use App\Support\Stats\ReportDay;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\DB;
 
 /**
  * The weekly drop-off report (docs/retention-plan.md, "Detect"; the coordinator, 2026-11-11): for each path singers
@@ -254,7 +254,7 @@ final class Dropoffs
      */
     private static function totals(Carbon $from, Carbon $to): array
     {
-        return DB::table('usage_counts')->whereBetween('day', [$from->toDateString(), $to->toDateString()])
+        return app(GrowthStart::class)->counts()->whereBetween('day', [$from->toDateString(), $to->toDateString()])
             ->selectRaw('kind, sum(count) as n')->groupBy('kind')->pluck('n', 'kind')
             ->map(static fn (mixed $n): int => (int) $n)->all();
     }

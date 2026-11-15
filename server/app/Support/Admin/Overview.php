@@ -16,6 +16,7 @@ use App\Models\User;
 use App\Support\Ops\SitemapProblems;
 use App\Support\Ops\SyncProblems;
 use App\Support\Stats\Counts;
+use App\Support\Stats\GrowthStart;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 
@@ -62,7 +63,7 @@ final class Overview
     private static function growth(): array
     {
         $admins = Counts::admins();
-        $signUps = fn (Carbon $from, Carbon $to): int => User::query()->where('is_admin', false)->where('created_at', '>', $from)->where('created_at', '<=', $to)->count();
+        $signUps = fn (Carbon $from, Carbon $to): int => app(GrowthStart::class)->since(User::query()->where('is_admin', false))->where('created_at', '>', $from)->where('created_at', '<=', $to)->count();
         $upgrades = fn (Carbon $from, Carbon $to): int => DB::table('subscriptions')->where('type', 'default')->whereIn('stripe_status', ['active', 'past_due'])
             ->whereNotIn('user_id', $admins)->where('created_at', '>', $from)->where('created_at', '<=', $to)->count();
         $now = now();

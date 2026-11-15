@@ -303,6 +303,25 @@ export async function checkTiming({ runs = 3, onProgress = () => {} } = {}) {
     };
 }
 
+/**
+ * Told of each measured round trip (frames at the engine's rate): the open song lines up the takes it recorded with an
+ * estimate (stores/session.js), as the timing check now comes after a first take (Hillel, 2026-11-15).
+ */
+const measuredListeners = new Set();
+export function onTimingMeasured(listener) {
+    measuredListeners.add(listener);
+    return () => measuredListeners.delete(listener);
+}
+
+/**
+ * How far to move a take recorded with an estimated round trip once the real one is measured, in seconds: earlier
+ * (negative) when the estimate was too short, so its singing came in late. Each in its own rate (invariant 2).
+ */
+export function estimateCorrection(recordedWith, takeRate, measuredFrames, measuredRate) {
+    if (!recordedWith?.estimated || !Number.isFinite(recordedWith.latencyFrames) || !(takeRate > 0) || !(measuredRate > 0)) return 0;
+    return recordedWith.latencyFrames / takeRate - measuredFrames / measuredRate;
+}
+
 /** A measured round trip, kept for this mic and route. */
 function keepTiming(frames) {
     local.set(latencyKey(), String(frames));
@@ -311,6 +330,13 @@ function keepTiming(frames) {
     audio.latencyTypical = false;
     audio.deviceChanged = false;
     recheckShown(); // a fresh timing: the count starts again
+    for (const listener of measuredListeners) {
+        try {
+            listener(frames, engine.sampleRate, audio.mic?.label ?? null);
+        } catch (error) {
+            console.error('A take was not lined up to the measured timing', error);
+        }
+    }
 }
 
 /**

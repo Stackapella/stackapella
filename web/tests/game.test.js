@@ -12,7 +12,7 @@ import { stageCues } from '/js/game/tally.js';
 import { badgeNews, badgeWords, sayBadges } from '/js/game/badge-news.js';
 import { route } from '/js/router.js';
 import { toasts } from '/js/components/ui.js';
-import { markTitleSeen, titleSeen } from '/js/game/title-card.js';
+import { anyTitleSeen, markTitleSeen, titleSeen } from '/js/game/title-card.js';
 import { nodeAt, segment, twoStarPercent } from '/js/game/stage-map.js';
 import { CELLS, cellsOf, leapWord, partStats } from '/js/game/part-select.js';
 import { addXp, DAILY_XP_CAP, dayOf, emptyProgress, starsFor, xpFor } from '/js/course.js';
@@ -359,10 +359,11 @@ test('game title cards: once a lesson on this device', () => {
     const kept = localStorage.getItem('stackapella.titlesSeen');
     try {
         localStorage.removeItem('stackapella.titlesSeen');
-        assert(!titleSeen('2-vowels'), 'not seen yet');
+        assert(!titleSeen('2-vowels') && !anyTitleSeen(), 'not seen yet, none on this device');
         markTitleSeen('2-vowels');
         markTitleSeen('2-vowels');
         assert(titleSeen('2-vowels') && !titleSeen('2-hold'), 'seen, that lesson only');
+        assert(anyTitleSeen(), 'one seen on this device');
         assert(JSON.parse(localStorage.getItem('stackapella.titlesSeen')).length === 1, 'kept once');
     } finally {
         if (kept === null) localStorage.removeItem('stackapella.titlesSeen');

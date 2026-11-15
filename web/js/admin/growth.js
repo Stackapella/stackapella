@@ -87,6 +87,8 @@ export const OverviewSection = {
                     <p class="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted">
                         <span v-if="growth?.period" data-growth-clock>{{ t('admin.growth.clock', { zone: zoneName(growth.timezone), cut: growth.period.cut }) }}</span>
                         <span v-else>{{ days === 1 ? t('admin.growth.introToday', { zone: zoneName(growth?.timezone) }) : t('admin.growth.introDays', { from: day(growth?.from), to: day(growth?.to), zone: zoneName(growth?.timezone) }) }}</span>
+                        <!-- Growth: fresh start (the growth_fresh_start switch): every view counts from that day, and says so. -->
+                        <span v-if="growth?.countFrom" class="inline-flex items-center gap-x-2" data-growth-fresh><span class="hidden sm:inline" aria-hidden="true">·</span>{{ t('admin.growth.countFrom', { date: day(growth.countFrom) }) }}</span>
                         <span v-if="updatedAt" class="inline-flex flex-wrap items-center gap-x-2" data-growth-updated>
                             <span class="hidden sm:inline" aria-hidden="true">·</span>
                             <span class="inline-flex items-center gap-1.5"><span class="size-1.5 rounded-full" :class="staleSince ? 'bg-warn' : 'bg-good'" aria-hidden="true"></span>{{ staleSince ? t('admin.usage.notUpdated', { when: updated }) : t('admin.usage.updated', { when: updated }) }}</span>

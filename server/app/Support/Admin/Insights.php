@@ -10,6 +10,7 @@ use App\Models\StoreSubscription;
 use App\Models\Take;
 use App\Models\User;
 use App\Support\Stats\Counts;
+use App\Support\Stats\GrowthStart;
 use App\Support\Stats\ReportDay;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -34,7 +35,7 @@ final class Insights
     {
         $zone = ReportDay::zone();
         $first = ReportDay::now()->startOfMonth()->subMonths(11);
-        $users = User::query()->where('is_admin', false)->where('created_at', '>=', $first->copy()->utc())
+        $users = app(GrowthStart::class)->since(User::query()->where('is_admin', false)->where('created_at', '>=', $first->copy()->utc()))
             ->get(['id', 'created_at', 'plus_paid_at', 'plus_paid_until'])->keyBy('id');
         $ids = $users->keys()->all();
 
@@ -157,7 +158,7 @@ final class Insights
         $bucket = static fn ($query): array => $query->where('created_at', '>=', $start)->groupByRaw($hour)->selectRaw($hour.' as h, count(*) as n')->pluck('n', 'h')->map(fn (mixed $n): int => (int) $n)->all();
         $takes = $bucket(Take::query()->toBase()->whereNotIn(DB::raw('coalesce(recorded_by, user_id)'), $admins));
         $scores = $bucket(Score::query()->toBase()->whereNotIn('user_id', $admins));
-        $signUps = $bucket(User::query()->toBase()->where('is_admin', false));
+        $signUps = $bucket(app(GrowthStart::class)->since(User::query()->toBase()->where('is_admin', false)));
         $hours = [];
 
         for ($i = 0; $i < 24; $i++) {
@@ -173,7 +174,7 @@ final class Insights
      */
     private function features(): array
     {
-        $rows = DB::table('usage_counts')->whereIn('kind', self::FEATURES)->where('day', '>', ReportDay::now()->subDays(30)->toDateString())
+        $rows = app(GrowthStart::class)->counts()->whereIn('kind', self::FEATURES)->where('day', '>', ReportDay::now()->subDays(30)->toDateString())
             ->groupBy('kind', 'audience')->selectRaw('kind, audience, sum(count) as n')->get();
 
         return array_map(static fn (string $kind): array => [

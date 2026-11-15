@@ -12,7 +12,7 @@ import { addSung, flushSung } from '../voice-day.js';
 import { computed, markRaw, reactive } from 'vue';
 import * as db from '../db.js';
 import { first } from '../funnel.js';
-import { audio, engine, leadSeconds, tookTake, unlock } from '../audio.js';
+import { audio, engine, estimateCorrection, leadSeconds, onTimingMeasured, tookTake, unlock } from '../audio.js';
 import { click, FRAMES_PER_PEAK, isSilent, peaks as toPeaks, suggestTranspose } from '../dsp.js';
 import { liveSession } from './session-live.js';
 import { renderGuide } from '../guides.js';
@@ -22,7 +22,7 @@ import { guideKey, loadRecordedGuide, mixVoices, recordingApplies } from '../rec
 import { catalogue, loadCatalogue, versionsFor } from './catalogue.js';
 import { t } from '../i18n.js';
 import { BACKING, DRONE, GUIDE_LEVELS, guideId, hasTake, nextSlot, PRACTICE_DEFAULTS, SPEAKERS_UNDER, trackLevels, voiceLevels, withClicks } from '../practice.js';
-import { clearTake, deleteKeptTake, deletePart, makeSlot, openProject, savePart, saveProject, useKeptTake } from './projects.js';
+import { clearTake, deleteKeptTake, deletePart, makeSlot, openProject, savePart, saveProject, useKeptTake, wholeSong } from './projects.js';
 import { renderPart } from '../synth.js';
 import { droneNotes } from '../drone.js';
 import { lengthBeats, lyricLines, partsFor, phrases as templatePhrases } from '../templates.js';
@@ -166,6 +166,7 @@ document.addEventListener('visibilitychange', () => {
 export async function openSession(id, { refresh = true } = {}) {
     closeSession();
     session.openedId = id;
+    await wholeSong(id).catch((error) => console.warn('The whole song was not put in', error)); // a guest's first phrase, signed in now
     const opened = await openProject(id);
     if (session.openedId !== id) return; // another project was opened meanwhile
     if (!opened) {
@@ -725,6 +726,21 @@ export function reviewListen() {
     session.reviewing = true;
     syncMix();
 }
+
+/**
+ * A measured timing (the check after a first take, Hillel 2026-11-15): each take in the open song recorded with an
+ * estimate on this mic moves by the difference, so it lines up as if it had been measured first. Its place moves, not
+ * its nudge (the singer's own), and it's marked measured, so it never moves twice.
+ */
+export function lineUpEstimated(frames, rate, mic) {
+    for (const part of session.parts) {
+        const used = part.recordedWith;
+        if (!part.takeId || !used?.estimated || (used.mic ?? null) !== (mic ?? null)) continue;
+        const shift = estimateCorrection(used, part.sampleRate, frames, rate);
+        updatePart(part, { offsetSeconds: part.offsetSeconds + shift, recordedWith: markRaw({ ...used, latencyFrames: Math.round((frames / rate) * part.sampleRate), estimated: false, lined: Math.round(shift * 1000) }) });
+    }
+}
+onTimingMeasured(lineUpEstimated);
 
 /** The review is over: Listen is as it was. */
 export function clearReview() {

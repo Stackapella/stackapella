@@ -1,5 +1,5 @@
 import { REFUSAL_ROUND, refusalKey, refusedAsItIs } from '/js/stores/templates.js';
-import { lengthBeats, listTemplates, loadTemplate, lyricLines, phrases, repairTemplate, TemplateError, templatePartName, validateTemplate } from '/js/templates.js';
+import { firstPhrase, lengthBeats, listTemplates, loadTemplate, lyricLines, phrases, repairTemplate, TemplateError, templatePartName, validateTemplate } from '/js/templates.js';
 import { renderGuide } from '/js/guides.js';
 import { detectPitch, hzToMidi } from '/js/dsp.js';
 import { beatToSeconds } from '/js/synth.js';
@@ -290,4 +290,41 @@ test("templates: a section's generic name shows in the page's language, a lyric'
         locale.lang = lang;
         locale.messages = messages;
     }
+});
+
+test("templates: a guest's taste is each song's first line, cut as the server cuts it, and still a valid song", async () => {
+    for (const id of (await (await fetch('/templates/index.json')).json()).templates) {
+        const whole = await loadTemplate(id);
+        const cut = firstPhrase(structuredClone(whole));
+        validateTemplate(structuredClone(cut));
+        const end = cut.sections[0].endBeat;
+        assert(cut.sections.length === 1 && cut.sections[0].phrases.length === 1 && cut.sections[0].phrases[0][1] === end, `${id}: one section, one phrase`);
+        assert(cut.parts.every((p) => p.guide.notes.length && p.guide.notes.every((n) => n.beat + n.length <= end + 1e-6)), `${id}: a note past the line`);
+        assert(cut.parts.some((p) => p.melody) || !whole.parts.some((p) => p.melody), `${id}: the tune left out`);
+        assert(JSON.stringify(firstPhrase(structuredClone(cut))) === JSON.stringify(cut), `${id}: cutting the cut changes it (the server's phrase answer, cut again)`);
+    }
+});
+
+test("templates: a taste starts with the intro and runs to the end of the tune's first line; a late part is left out", async () => {
+    const note = (beat, length, pitch) => ({ beat, length, pitch });
+    const { builder: _builder, meters: _meters, chords: _chords, ...base } = await loadTemplate('amazing-grace'); // its credits and licence
+    const song = {
+        ...base, id: 'taste-test', key: 'C', timeSignature: '4/4', pickupBeats: 0,
+        order: ['tune', 'low', 'late'], voicings: { 1: ['tune'], 2: ['tune', 'low'], 3: ['tune', 'low', 'late'] },
+        chords: [{ beat: 0, root: 0, quality: 'maj', bass: 0 }, { beat: 12, root: 7, quality: 'maj', bass: 7 }],
+        sections: [{ name: 'Intro', startBeat: 0, endBeat: 4, phrases: [[0, 4]] }, { name: 'Verse', startBeat: 4, endBeat: 16, phrases: [[4, 10], [10, 16]] }],
+        parts: [
+            { key: 'tune', name: 'Tune', melody: true, range: { low: 60, high: 67 }, guide: { type: 'notes', notes: [note(4, 2, 60), note(6, 6, 67), note(12, 4, 64)] } },
+            { key: 'low', name: 'Low', range: { low: 48, high: 55 }, guide: { type: 'notes', notes: [note(0, 4, 48), note(4, 12, 55)] } },
+            { key: 'late', name: 'Late', range: { low: 52, high: 60 }, guide: { type: 'notes', notes: [note(12, 4, 52)] } },
+        ],
+    };
+    validateTemplate(structuredClone(song));
+    const cut = firstPhrase(song);
+    validateTemplate(structuredClone(cut));
+    assert(JSON.stringify(cut.sections) === JSON.stringify([{ name: 'Intro', startBeat: 0, endBeat: 10, phrases: [[0, 10]] }]), JSON.stringify(cut.sections));
+    assert(JSON.stringify(cut.parts.map((p) => p.key)) === '["tune","low"]', 'the late part kept');
+    assert(cut.parts[0].guide.notes.at(-1).length === 4 && cut.parts[1].guide.notes.at(-1).length === 6, 'the held notes not clipped to the line');
+    assert(JSON.stringify(cut.order) === '["tune","low"]' && !cut.voicings[3] && cut.voicings[2], 'the order and voicings name the late part');
+    assert(cut.chords.length === 1, 'a chord past the line');
 });

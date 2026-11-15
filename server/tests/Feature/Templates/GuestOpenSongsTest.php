@@ -57,11 +57,10 @@ final class GuestOpenSongsTest extends TestCase
         $this->assertNotSame('', $etag);
         $this->getJson('/api/templates/'.$this->open, ['If-None-Match' => $etag])->assertStatus(304);
 
-        // Not reviewed yet: an account's, as before.
-        $this->assertMatchesContract($this->getJson('/api/templates/'.$this->closed), 'templates.show', 403);
-        $this->getJson('/api/templates/'.$this->closed)->assertJsonPath('code', 'account_required');
+        // Not reviewed yet: its first phrase only (Hillel, 2026-11-15; FirstPhraseGuestTest).
+        $this->getJson('/api/templates/'.$this->closed)->assertOk()->assertJsonPath('data.grant', 'phrase');
 
-        // Withdrawn, or no longer public domain: closed again.
+        // Withdrawn: closed again, not even its first phrase.
         Template::query()->where('slug', $this->open)->update(['withdrawn_at' => now()]);
         $this->getJson('/api/templates/'.$this->open)->assertForbidden()->assertJsonPath('code', 'account_required');
     }

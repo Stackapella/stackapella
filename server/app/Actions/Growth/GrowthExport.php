@@ -15,6 +15,7 @@ use App\Support\Ops\Releases;
 use App\Support\Outreach\Outreach;
 use App\Support\Site\SitePages;
 use App\Support\Site\SiteVisit;
+use App\Support\Stats\GrowthStart;
 use App\Support\Stats\ReportDay;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
@@ -30,7 +31,7 @@ use Illuminate\Support\Facades\DB;
 final class GrowthExport
 {
     /** Bump when a field's shape or meaning changes, and say so in docs/growth-data.md. */
-    public const SCHEMA_VERSION = 21;
+    public const SCHEMA_VERSION = 22;
 
     /** The range-scoped sections' windows, in days (null: since the first count). */
     public const RANGES = ['7' => 7, '30' => 30, '90' => 90, 'all' => null];
@@ -72,7 +73,12 @@ final class GrowthExport
         $range = array_key_exists($range, self::RANGES) ? $range : '30';
         $today = ReportDay::now()->startOfDay();
         $days = self::RANGES[$range] ?? max(1, (int) $today->diffInDays(Carbon::parse($this->firstCount() ?? $today->toDateString(), ReportDay::zone())) + 1);
-        $from = $today->copy()->subDays($days - 1)->toDateString();
+        // An experiment's arms are read over the whole range (both share any spam, and its stopping rules read them whole);
+        // everything else from Growth's fresh start, when it's on (GrowthStart).
+        $rangeFrom = $today->copy()->subDays($days - 1)->toDateString();
+        $start = app(GrowthStart::class);
+        $from = $start->clip($rangeFrom);
+        $days = (int) Carbon::parse($from, ReportDay::zone())->diffInDays($today) + 1;
 
         return [
             'meta' => [
@@ -80,6 +86,8 @@ final class GrowthExport
                 'generated_at' => now()->utc()->toIso8601ZuluString(),
                 'timezone' => ReportDay::zone(),
                 'range' => ['name' => $range, 'days' => $days, 'from' => $from, 'to' => $today->toDateString()],
+                // Growth's fresh start (the growth_fresh_start switch): the first day any part of the pull counts, or null.
+                'countFrom' => $start->day(),
                 'range_applies_to' => self::RANGED,
                 'app_commit' => config('app.build') ?: null,
                 'built_at' => config('app.built_at'),
@@ -106,7 +114,7 @@ final class GrowthExport
             'sharing' => app(Sharing::class)->build(),
             // How much of the app singers use, this week and the four before (App\Actions\Growth\Breadth): br and ft totals only.
             'breadth' => app(Breadth::class)->build(),
-            'experiments' => $this->experiments($from),
+            'experiments' => $this->experiments($rangeFrom),
         ];
     }
 
@@ -196,7 +204,7 @@ final class GrowthExport
 
     private function firstCount(): ?string
     {
-        $day = DB::table('usage_counts')->min('day');
+        $day = app(GrowthStart::class)->counts()->min('day');
 
         return $day !== null ? substr((string) $day, 0, 10) : null;
     }
@@ -209,7 +217,7 @@ final class GrowthExport
      */
     private function daily(Carbon $today): array
     {
-        $from = $today->copy()->subDays(self::DAILY_DAYS - 1);
+        $from = app(GrowthStart::class)->clipDay($today->copy()->subDays(self::DAILY_DAYS - 1));
         $dates = [];
 
         for ($day = $from->copy(); $day->lte($today); $day->addDay()) {
@@ -219,7 +227,7 @@ final class GrowthExport
         $index = array_flip($dates);
         $zeros = array_fill(0, count($dates), 0);
         $kinds = [];
-        $rows = DB::table('usage_counts')->where('day', '>=', $from->toDateString())
+        $rows = app(GrowthStart::class)->counts()->where('day', '>=', $from->toDateString())
             ->selectRaw("day, kind, sum(case when audience = 'guest' then count else 0 end) as guest, sum(case when audience = 'account' then count else 0 end) as account")
             ->groupBy('day', 'kind')->get();
 
@@ -236,7 +244,7 @@ final class GrowthExport
         }
 
         ksort($kinds);
-        $countries = DB::table('usage_counts')->where('day', '>=', $from->toDateString())->selectRaw('country, sum(count) as total')->groupBy('country')->pluck('total', 'country')
+        $countries = app(GrowthStart::class)->counts()->where('day', '>=', $from->toDateString())->selectRaw('country, sum(count) as total')->groupBy('country')->pluck('total', 'country')
             ->mapWithKeys(static fn (mixed $n, mixed $country): array => [(string) $country => (int) $n])->all();
 
         return ['from' => $from->toDateString(), 'to' => $today->toDateString(), 'dates' => $dates, 'kinds' => $kinds, 'countries' => self::foldCountries($countries)];
@@ -270,8 +278,8 @@ final class GrowthExport
     private function signups(Carbon $today): array
     {
         $zone = ReportDay::zone();
-        $firstDay = $today->copy()->subDays(self::DAILY_DAYS - 1);
-        $firstWeek = $today->copy()->startOfWeek(Carbon::MONDAY)->subWeeks(self::WEEKS - 1);
+        $firstDay = app(GrowthStart::class)->clipDay($today->copy()->subDays(self::DAILY_DAYS - 1));
+        $firstWeek = app(GrowthStart::class)->clipWeek($today->copy()->startOfWeek(Carbon::MONDAY)->subWeeks(self::WEEKS - 1));
         $since = $firstDay->lt($firstWeek) ? $firstDay : $firstWeek;
         $days = [];
         $weeks = [];
@@ -284,7 +292,7 @@ final class GrowthExport
             $weeks[$week->toDateString()] = 0;
         }
 
-        $people = DB::table('users')->where('is_admin', false);
+        $people = app(GrowthStart::class)->since(DB::table('users')->where('is_admin', false));
 
         foreach ((clone $people)->where('created_at', '>=', $since->copy()->utc())->pluck('created_at') as $at) {
             $local = Carbon::parse((string) $at, 'UTC')->setTimezone($zone);
@@ -324,9 +332,9 @@ final class GrowthExport
     private function cohorts(Carbon $today): array
     {
         $zone = ReportDay::zone();
-        $firstWeek = $today->copy()->startOfWeek(Carbon::MONDAY)->subWeeks(self::WEEKS - 1);
+        $firstWeek = app(GrowthStart::class)->clipWeek($today->copy()->startOfWeek(Carbon::MONDAY)->subWeeks(self::WEEKS - 1));
         $start = $firstWeek->copy()->utc();
-        $users = DB::table('users')->where('is_admin', false)->where('created_at', '>=', $start)->pluck('created_at', 'id');
+        $users = app(GrowthStart::class)->since(DB::table('users')->where('is_admin', false)->where('created_at', '>=', $start))->pluck('created_at', 'id');
 
         // The whole days after signing up that each account sang on (0 is the sign-up day itself).
         $sang = [];
@@ -419,7 +427,7 @@ final class GrowthExport
         $split = "sum(case when audience = 'guest' then count else 0 end) as guest, sum(case when audience = 'account' then count else 0 end) as account";
         $asks = self::accountAsks();
         $askKinds = array_merge(...array_map(static fn (string $ask): array => ['ask_'.$ask.'_shown', 'ask_'.$ask.'_yes', 'ask_'.$ask.'_not'], $asks));
-        $rows = DB::table('usage_counts')->where('day', '>=', $from)
+        $rows = app(GrowthStart::class)->counts()->where('day', '>=', $from)
             ->where(fn ($q) => $q->whereIn('kind', ['lesson_start', 'lesson_done', 'f_lesson1', ...$askKinds])
                 ->orWhere('kind', 'like', 'pl\_%')->orWhere('kind', 'like', 'fl\_%')->orWhere('kind', 'like', 'fs\_r:%'))
             ->selectRaw("kind, {$split}")->groupBy('kind')->get()
@@ -518,7 +526,7 @@ final class GrowthExport
      */
     private function siteSections(string $from): array
     {
-        $totals = DB::table('usage_counts')->whereIn('kind', array_map(static fn (string $section): string => 'sv_'.$section, SiteVisit::SECTIONS))->where('day', '>=', $from)->selectRaw('kind, sum(count) as total')->groupBy('kind')->pluck('total', 'kind');
+        $totals = app(GrowthStart::class)->counts()->whereIn('kind', array_map(static fn (string $section): string => 'sv_'.$section, SiteVisit::SECTIONS))->where('day', '>=', $from)->selectRaw('kind, sum(count) as total')->groupBy('kind')->pluck('total', 'kind');
 
         return array_map(static fn (string $section): array => ['section' => $section, 'visits' => (int) ($totals['sv_'.$section] ?? 0)], SiteVisit::SECTIONS);
     }
@@ -530,7 +538,7 @@ final class GrowthExport
      */
     private function partPlays(string $from): array
     {
-        $totals = DB::table('usage_counts')->whereIn('kind', ['sv_part', 'part_play'])->where('day', '>=', $from)->selectRaw('kind, sum(count) as total')->groupBy('kind')->pluck('total', 'kind');
+        $totals = app(GrowthStart::class)->counts()->whereIn('kind', ['sv_part', 'part_play'])->where('day', '>=', $from)->selectRaw('kind, sum(count) as total')->groupBy('kind')->pluck('total', 'kind');
 
         return ['visits' => (int) ($totals['sv_part'] ?? 0), 'plays' => (int) ($totals['part_play'] ?? 0)];
     }
@@ -548,7 +556,7 @@ final class GrowthExport
         $kinds = array_values(array_unique(array_merge(...array_values(self::SOURCE_COLUMNS))));
         $totals = [];
 
-        foreach (DB::table('usage_counts')->whereIn('kind', $kinds)->where('day', '>=', $from)->selectRaw('source, kind, sum(count) as total')->groupBy('source', 'kind')->get() as $row) {
+        foreach (app(GrowthStart::class)->counts()->whereIn('kind', $kinds)->where('day', '>=', $from)->selectRaw('source, kind, sum(count) as total')->groupBy('source', 'kind')->get() as $row) {
             $source = (string) $row->source;
             $source = match (true) {
                 $source === '' => '(none)',
@@ -636,7 +644,7 @@ final class GrowthExport
         $kinds = array_values(array_unique(array_merge(...array_values(Outreach::RESULTS))));
         $byRef = [];
 
-        foreach (DB::table('usage_counts')->where('source', 'like', Outreach::REF_PREFIX.'%')->whereIn('kind', $kinds)->selectRaw('source, kind, sum(count) as total')->groupBy('source', 'kind')->get() as $row) {
+        foreach (app(GrowthStart::class)->counts()->where('source', 'like', Outreach::REF_PREFIX.'%')->whereIn('kind', $kinds)->selectRaw('source, kind, sum(count) as total')->groupBy('source', 'kind')->get() as $row) {
             $byRef[(string) $row->source][(string) $row->kind] = (int) $row->total;
         }
 
@@ -664,7 +672,7 @@ final class GrowthExport
         }
 
         usort($angles, static fn (array $a, array $b): int => $a['angle'] <=> $b['angle']);
-        $firstWeek = $today->copy()->startOfWeek(Carbon::MONDAY)->subWeeks(11);
+        $firstWeek = app(GrowthStart::class)->clipWeek($today->copy()->startOfWeek(Carbon::MONDAY)->subWeeks(11));
         $weeks = [];
 
         for ($week = $firstWeek->copy(); $week->lte($today); $week->addWeek()) {

@@ -387,6 +387,7 @@ const SHELL = [
     '/js/synth-worker.js',
     '/js/guides.js',
     '/js/templates.js',
+    '/js/first-phrase.js',
     '/templates/index.json',
     '/templates/amazing-grace.json',
     '/templates/are-you-sleeping.json',
@@ -494,6 +495,14 @@ self.addEventListener('activate', (event) => {
     );
 });
 
+/**
+ * /?landing: on one host, the landing for anyone (the app's logo), which the server renders, so a worker the app
+ * installed must not answer it with the app shell (landing_audio's after-the-app step).
+ */
+function landing(url) {
+    return url.pathname === '/' && url.searchParams.has('landing');
+}
+
 self.addEventListener('fetch', (event) => {
     if (KILL) return; // everything from the network while this worker unregisters
     const request = event.request;
@@ -510,6 +519,9 @@ self.addEventListener('fetch', (event) => {
         // The admin's code is never kept: it's fetched fresh each time (docs/beta-singers-plan.md),
         // past the browser's own cache too, so a deploy shows at once.
         event.respondWith(fetch(fresh(request)));
+    } else if (request.mode === 'navigate' && landing(url)) {
+        // The landing is the server's; offline, the app's logo still opens the app rather than the browser's error page.
+        event.respondWith(fetch(request).catch(() => fromBuild(event, request, '/index.html')));
     } else if (request.mode === 'navigate' && !APP_ROUTE.test(url.pathname)) {
         // A server page (sign-in, the second factor, public pages): never stored as the app shell.
     } else if (url.origin === self.location.origin && (request.mode === 'navigate' || APP_FILE.test(url.pathname))) {

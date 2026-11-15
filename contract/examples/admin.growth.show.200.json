@@ -99,6 +99,7 @@
             }
         ],
         "hourlySince": "2026-11-07T23:00:00Z",
+        "countFrom": null,
         "countingSince": "2026-10-12",
         "metrics": [
             {

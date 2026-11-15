@@ -16,6 +16,7 @@ use App\Support\Http\Hosts;
 use App\Support\Languages\Dates;
 use App\Support\Languages\Languages;
 use App\Support\Languages\NoteNames;
+use App\Support\Languages\SongWords;
 use App\Support\Languages\TranslationMaps;
 use App\Support\Legal\LegalText;
 use App\Support\Pages\Carols;
@@ -633,5 +634,27 @@ final class LanguagesTest extends TestCase
         $this->assertSame(['es' => 'Frère Jacques'], $songs['are-you-sleeping']['titles'] ?? null);
         $this->assertSame('rounds', $songs['are-you-sleeping']['group'] ?? null);
         $this->assertSame('hymns', $songs['amazing-grace']['group'] ?? null);
+    }
+
+    public function test_the_catalogue_sends_a_songs_description_in_the_requests_language(): void
+    {
+        // The app's song sheet (and the Flutter apps) read the catalogue's description; on a Spanish visit, the /es song
+        // page's own words (resources/data/song_descriptions/es.json), else the English.
+        app(SyncOfficialTemplates::class)->handle();
+        app(Flags::class)->set('lang_es', 'on', null, 'Spanish checked');
+        $english = (string) (Template::query()->where('slug', 'silent-night')->with('currentVersion')->firstOrFail()->currentVersion?->data['description'] ?? '');
+        $spanish = (array) json_decode((string) file_get_contents(resource_path('data/song_descriptions/es.json')), true);
+        $this->assertArrayHasKey($english, $spanish);
+
+        $description = fn (array $headers): mixed => collect((array) $this->getJson('/api/templates', $headers)->assertOk()->json('data'))->keyBy('id')['silent-night']['description'] ?? null;
+        $this->assertSame($spanish[$english], $description(['Accept-Language' => 'es']));
+        $this->assertSame($english, $description(['Accept-Language' => 'en']));
+
+        // A Spanish answer never revalidates against the English one.
+        $etag = (string) $this->getJson('/api/templates', ['Accept-Language' => 'en'])->headers->get('ETag');
+        $this->getJson('/api/templates', ['Accept-Language' => 'es', 'If-None-Match' => $etag])->assertOk();
+
+        // A line its map doesn't have yet stays in English.
+        $this->assertSame('Not in any map.', SongWords::description('Not in any map.'));
     }
 }

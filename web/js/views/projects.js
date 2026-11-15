@@ -91,7 +91,7 @@ const TemplateDialog = defineAsyncComponent(dialogLoader);
 export const ProjectsView = {
     components: { LibraryFilters, StorageMeter, CreditLine, PlayerChip, DailyTag, CardMenu, HomeCourses, ThemeSwitch, Icon, Logo, TemplateDialog, HomeLead, HomeBand, SongCover, InstallCard, WeekCard, WorkoutStrip, StatusChip, Modal, Notice, RemindAsk, FirstWeek },
     setup: () => ({ sungYet, GROUP_WORDS, templatePartName, ideas, mine, canStart, projects, account, learning, shownTitle, songTitle, formatTime, timeAgo, PART_COLORS, lengthBeats, partsFor, keyLabel, DIFFICULTY, creditsFor, navigate, BAND_COLORS, BETA_STATUS, publicSiteUrl, effect, dailyState }),
-    data: () => ({ storageUsage: null, locked: false, clip: null, templates: [], openTemplate: null, singers: 4, previewing: false, preparingPreview: false, starting: false, groups: null, choirParts: [], startingChoir: null, betaParts: null, avatarFailed: false, making: false, importProblems: null, sheetScore: null, sheetSaving: false, sheetView: null, sessionStore: null, songsOpen: tabStorage.get('stackapella.songsOpen') === '1', libraryFilters: keptFilters(), lookedAt: lastLooked(), newsCounted: null, yoursOpen: false, songColumns: songColumns(), newing: false, showInfo: false, songLoad: null, songNotHere: null, previewOf: null, playingSong: null, renaming: null, newName: '' }),
+    data: () => ({ storageUsage: null, locked: false, taste: false, clip: null, templates: [], openTemplate: null, singers: 4, previewing: false, preparingPreview: false, starting: false, groups: null, choirParts: [], startingChoir: null, betaParts: null, avatarFailed: false, making: false, importProblems: null, sheetScore: null, sheetSaving: false, sheetView: null, sessionStore: null, songsOpen: tabStorage.get('stackapella.songsOpen') === '1', libraryFilters: keptFilters(), lookedAt: lastLooked(), newsCounted: null, yoursOpen: false, songColumns: songColumns(), newing: false, showInfo: false, songLoad: null, songNotHere: null, previewOf: null, playingSong: null, renaming: null, newName: '' }),
     template: `
         <div class="min-h-dvh">
             <!-- The app's top bar on the site header's grid (app-wrap app-top): the logo where the site's is. -->
@@ -275,7 +275,7 @@ export const ProjectsView = {
             </div>
 
             <TemplateDialog v-if="openTemplate && showInfo" :template="openTemplate" :credits="creditsFor(openTemplate.id)" :singers="singers" @singers="(n) => { singers = n; if (previewing && !locked) previewLevels(); }"
-                :previewing="previewing" :preparing="preparingPreview" :load="songLoad" :fresh="!sungYet()" :not-here="songNotHere" :starting="starting" @retry="pickTemplate(openTemplate)" @copy="navigate('/create?copy=' + openTemplate.id)" @close="closeTemplate" @preview="preview" @start="start()" @voice="beTheVoice" :locked="locked" @signup="navigate(signUpForSong)" />
+                :previewing="previewing" :preparing="preparingPreview" :load="songLoad" :fresh="!sungYet()" :not-here="songNotHere" :starting="starting" @retry="pickTemplate(openTemplate)" @copy="navigate('/create?copy=' + openTemplate.id)" @close="closeTemplate" @preview="preview" @start="start()" @voice="beTheVoice" :locked="locked" :taste="taste" @signup="navigate(signUpForSong)" />
             <Modal v-if="renaming" :title="t('home.yours.renameTitle')" @close="renaming = null">
                 <form class="space-y-4" @submit.prevent="saveName">
                     <label class="block space-y-1"><span class="text-sm font-semibold text-cream">{{ t('home.yours.nameLabel') }}</span>
@@ -683,10 +683,14 @@ export const ProjectsView = {
         partName: (part) => templatePartName({ key: part.partKey, name: part.partKey }),
         /**
          * A song's details. One the app doesn't carry is fetched whole when it can be started (every
-         * library song with an account); a guest's song that needs one opens with its clip and the way to a free account.
+         * library song with an account); a guest's is fetched too, to sing its first line (Start's taste), and one the
+         * server won't give a guest opens with the way to a free account.
          */
         async pickTemplate(template) {
-            this.locked = !canStart(template, this.signedIn);
+            // A guest's library song: its notes are asked for anyway, and sung as a taste, its first phrase (the server's
+            // "open" songs whole, the rest cut by it, "phrase"); one it won't give them asks for the account as before.
+            this.taste = !canStart(template, this.signedIn);
+            this.locked = false;
             // Shown at once from what the library already knows (its title, words and parts), the notes coming in behind it:
             // Start waits, busy, and says so after a few seconds, with Retry if they don't come (Hillel, 2026-11-12: "make sure
             // there is instant feedback if we need to load").
@@ -705,6 +709,7 @@ export const ProjectsView = {
                 if (this.openTemplate?.id !== template.id) return;
                 if (error?.code === 'account_required') {
                     this.locked = true; // a guest's song that needs a free account
+                    this.taste = false;
                     this.songLoad = null;
                     return;
                 }
@@ -932,7 +937,7 @@ export const ProjectsView = {
             this.stopPreview();
             try {
                 const linked = this.linkedPart?.song === this.openTemplate.id ? this.linkedPart.part : null; // the song part page's part
-                const project = await startFromTemplate(this.openTemplate, { singers: this.singers, renderGuides: false, ...(range ? { transpose: range.transpose, focusKey: range.partId, keyChosen: true } : linked ? { focusKey: linked } : {}) });
+                const project = await startFromTemplate(this.openTemplate, { singers: this.singers, renderGuides: false, taste: this.taste, ...(range ? { transpose: range.transpose, focusKey: range.partId, keyChosen: true } : linked ? { focusKey: linked } : {}) });
                 navigate(`/p/${project.id}/sing`); // a new template project starts by asking how to sing
             } catch (error) {
                 console.error('Starting a template failed', error);

@@ -678,6 +678,8 @@ return [
         'steps_title' => 'Four voices, four steps to your own harmony.',
         'steps_lead' => 'Each voice teaches you something. Sing the part that suits you, then stack more.',
         'steps_kick' => 'How it works',
+        // The stepper's four radios, said to a screen reader (the 2026-11-15 redesign).
+        'steps_pick' => 'The four steps',
         // Free courses and free tools, after how it works (pages/landing/_free).
         'free_courses_kick' => 'Free courses',
         'free_courses_title' => 'Every course is free.',
@@ -747,7 +749,7 @@ return [
         // The facts under the hero's player: short, true, each with a gem.
         'facts' => ['No account to start', 'Nothing to install', 'Every course, free', 'Every song, free with an account'],
         'steps' => [
-            'learn' => ['label' => 'Soprano · learn', 'title' => 'Start with the tune you know.', 'body' => 'Short lessons take you from finding your first note to holding a part on your own. Your notes light up as you hit them.', 'lesson' => 'Lesson 1 · Find your note', 'nice' => 'Nice!', 'points' => ['Every lesson is free', 'Stars and a weekly goal you choose', 'No music reading needed'], 'screens' => ['course' => 'The course map: the next lesson, today\'s workout and your week', 'lesson1' => 'Lesson 1, Your comfortable note: hum a note that feels easy, then sing it']],
+            'learn' => ['label' => 'Soprano · learn', 'title' => 'Start with the tune you know.', 'body' => 'Short lessons take you from finding your first note to holding a part on your own. Your notes light up as you hit them.', 'lesson' => 'Lesson 1 · Find your note', 'nice' => 'Nice!', 'points' => ['Every lesson is free', 'Stars and a weekly goal you choose', 'No music reading needed']],
             'voice' => ['label' => 'Alto · a real voice', 'title' => 'Learn your harmony from a real singer.', 'body' => 'A singer sings your part first. Listen, sing along with them, then sing it on your own. Most songs start with a clear practice voice, and real voices join them part by part.', 'listen' => 'Listen', 'along' => 'Sing along', 'alone' => 'On your own', 'singer' => 'Singer', 'you' => 'You'],
             'record' => ['label' => 'Tenor · record', 'title' => 'Record each part over the others, in time.', 'body' => 'Sing the next part while you hear the ones before. A quick timing check measures your headphones, so each take lands right where you sang it.', 'recording' => 'Recording the tenor', 'checked' => 'Timing checked'],
             'share' => ['label' => 'Bass · share', 'title' => 'Share the whole harmony.', 'body' => 'Polish it with one switch, then send a link anyone can open, or a short video with the words. Nothing is public until you share it.', 'every' => ':song, stacked', 'link' => 'Share a link', 'video' => 'Share a video'],
@@ -1618,7 +1620,7 @@ return [
                         '**Delete my account** deletes your account, your songs and your recordings for good. Your privacy says what\'s deleted and what stays. Under **This device**, signed in or not, **Delete everything here**, then **Delete everything**, clears the songs, takes, course progress, drafts and settings kept in this browser, and signs you out here. Songs backed up to your account come back when you sign in again.',
                     ]],
                     ['Contact us', [
-                        '**Contact us** is at the bottom of Settings. Hillel reads every message.',
+                        '**Contact us** is at the bottom of Settings. We read every message.',
                         'Choose what it\'s about (**Account or Plus** for anything about your account or paying), and say what happened: the box suggests what helps for that topic. For a recording problem, or something broken, **Include device details** is on; **See exactly what\'s sent** shows every detail, and never any audio. Tap **Send message**: Hillel replies by email.',
                     ]],
                 ],

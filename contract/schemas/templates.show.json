@@ -39,9 +39,10 @@
                         "admin",
                         "public",
                         "idea",
-                        "open"
+                        "open",
+                        "phrase"
                     ],
-                    "description": "Why the caller may have it: a song the app bundles (free, signed out too), any signed-in account (account: every library song since 2026-11-07), Hillel or the editor reviewing (admin, never counted toward the daily cap); for a person's template, their own, an unlisted template's link, a choir group's song, or a project they sing in made from it. public: a template listed in the library (N3). idea: a tune shared as an idea, while it's listed. open: signed out, a library song the public site shows (live, reviewed, public domain), its current version only (since 2026-11-08)."
+                    "description": "Why the caller may have it: a song the app bundles (free, signed out too), any signed-in account (account: every library song since 2026-11-07), Hillel or the editor reviewing (admin, never counted toward the daily cap); for a person's template, their own, an unlisted template's link, a choir group's song, or a project they sing in made from it. public: a template listed in the library (N3). idea: a tune shared as an idea, while it's listed. open: signed out, a library song the public site shows (live, reviewed, public domain), its current version only (since 2026-11-08). phrase: signed out, any other live library song, its current version cut to its first phrase (from sections[0].phrases[0]'s start to the end of the first phrase the melody starts a note in; parts with no note in it left out), with no voices and boards false (since 2026-11-15)."
                 },
                 "freeUntil": {
                     "type": [

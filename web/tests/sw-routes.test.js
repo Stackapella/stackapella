@@ -23,3 +23,15 @@ test('sw: the app shell covers every route the router knows', async () => {
         assert(appRoute.test(SAMPLES[name]), `sw.js's APP_ROUTE misses ${name} (${SAMPLES[name]})`);
     }
 });
+
+test('sw: /?landing goes to the server (the landing, on one host), never the app shell', async () => {
+    const sw = await (await fetch('/sw.js')).text();
+    const appRoute = new RegExp(sw.match(/const APP_ROUTE = \/(.+)\/;\n/)[1]);
+    const landing = new Function(`${sw.match(/function landing\(url\) \{\n[\s\S]+?\n\}\n/)[0]}return landing;`)();
+    const shell = (path) => { const url = new URL(path, 'https://example.com'); return !landing(url) && appRoute.test(url.pathname); };
+    assert(!shell('/?landing'), '/?landing is the server\'s');
+    assert(!shell('/?landing=1&ref=hn'), '/?landing with more is the server\'s');
+    assert(shell('/'), '/ is the app shell');
+    assert(shell('/?app'), '/?app is the app shell');
+    assert(shell('/p/abc?landing'), 'only / is the landing');
+});

@@ -397,6 +397,7 @@
         },
         "mic": "Microphone",
         "recheck": {
+            "estimated": "This take used an estimate of your headphones' delay. A 10-second check lines it up exactly, and every take after it.",
             "reconnect": "Headphones reconnected? Bluetooth timing can change when they do. A 10-second check keeps your next take in time.",
             "takes": "Bluetooth timing can drift over a long session. A 10-second check keeps your takes in time.",
             "check": "Check timing"
@@ -678,6 +679,10 @@
         "next": "Next"
     },
     "templates": {
+        "taste": {
+            "note": "No account needed for the first line. The whole song is free with an account.",
+            "start": "Sing the first line"
+        },
         "needsAccountNoClip": "Make a free account to start this song.",
         "loadFailed": "The song didn't load.",
         "notHere": "This song isn't available where you are yet.",
@@ -724,7 +729,7 @@
     },
     "requests": {
         "title": "Song requests",
-        "intro": "The songs people want to learn next, most wanted first. Vote for the ones you'd sing; Hillel arranges from the top.",
+        "intro": "The songs people want to learn next, most wanted first. Vote for the ones you'd sing; we arrange from the top.",
         "closed": "Song requests aren't open yet",
         "closedHint": "Soon you'll be able to ask for a song and vote for the ones you want.",
         "loading": "Loading requests...",
@@ -1214,6 +1219,7 @@
             "setNamed": "Set {name} to"
         },
         "flag": {
+            "growth_fresh_start": "Growth: fresh start",
             "plus_teams": "Teaming up is Plus",
             "geo_rights": "Songs by country",
             "pause_checkout": "Pause checkout",
@@ -1252,6 +1258,7 @@
             "event_schedule": "Event Schedule"
         },
         "flagHint": {
+            "growth_fresh_start": "Every growth view and the export count only from the start of the day (Jerusalem time) this was turned on. Saving it on again keeps that day; off shows all history again. Nothing is deleted.",
             "plus_teams": "Whoever starts a shared song or a choir group needs Plus, and everyone they invite joins free; a song or group pauses when that Plus ends. Off: singing together is free, as before. Switch it on with the app's screens and /pricing.",
             "geo_rights": "Withholds a song, or its words, where its copyright still runs in the visitor's country: the app says when it's free there, and the song's page stays without its player. Off until every open song has its makers and the lawyer has read the rules.",
             "pause_checkout": "Stops new Plus purchases (a burst of failed payments is card testing). Plans already paid keep working.",
@@ -2809,6 +2816,7 @@
                 "f_course_lesson": "A lesson done in any course"
             },
             "ask": {
+                "acct_phrase": "A library song's first line, then the invitation",
                 "title": "Ask",
                 "install": "Install the app",
                 "account": "Make an account",
@@ -2856,6 +2864,7 @@
             "lostHere": "lost here: {shares}"
         },
         "growth": {
+            "countFrom": "Counting from {date} (fresh start)",
             "title": "Growth",
             "introToday": "Today so far ({zone} time), anonymous counts",
             "introDays": "{from} to {to} ({zone} time), anonymous counts",
@@ -3771,6 +3780,12 @@
         }
     },
     "sing": {
+        "taste": {
+            "makeAccount": "Make a free account",
+            "quiet": "The rest of the song is free with an account.",
+            "keepGoing": "Keep going, free",
+            "body": "That's the first line of {title}. Make a free account to keep going: the whole song, every part, and your progress kept."
+        },
         "lessonBack": "Back to the lesson",
         "now": {
             "nextThen": "Now {now}, next {next}, then {then} ({direction, select, up {up} down {down} other {the same}})",
@@ -4161,6 +4176,7 @@
         "closestPart": "None of the parts quite fits your range, even with the key moved. {part} is the closest. Change part from the top if you like."
     },
     "auth": {
+        "introPhrase": "The whole song, every part, with your progress kept. It's free, and the lessons need none.",
         "introLibrary": "The library's songs need an account. It's free, and the lessons need none.",
         "signIn": "Sign in",
         "intro": "Optional. You can learn and record without an account. Signing in syncs your songs across your devices.",
@@ -4266,7 +4282,7 @@
             "title": "When were you born?",
             "month": "Month",
             "year": "Year",
-            "why": "Month and year only, so Stackapella suits your age. We never show it to anyone.",
+            "why": "Accounts are for 13 and over, and a few things are for 18 and over, so we ask. Month and year only, never shown to anyone.",
             "firstWhy": "So Stackapella suits your age (a few things are for 18 and over). Month and year only, never shown on your profile.",
             "adultWhy": "This is for 18 and over, so we ask once. This isn't shown on your profile.",
             "notAdult": "This one is for 18 and over, so it isn't open to you yet. Everything else is."
@@ -4291,6 +4307,7 @@
             "stay": "Stay as {current}"
         },
         "reason": {
+            "phrase": "Keep going with a free account",
             "library": "A free account opens every song",
             "requests": "To ask for a song or vote for one, make a free account",
             "progress": "Save your progress with a free account",
@@ -4445,7 +4462,7 @@
             "songsLeft": "{count, plural, =0 {You're at the limit: delete one to start another.} one {One more before you hit the limit.} other {# more before you hit the limit.}}",
             "included": "Everything is included on this server."
         },
-        "contactHint": "A question, a problem or an idea: Hillel reads every message.",
+        "contactHint": "A question, a problem or an idea: we read every message.",
         "devices": {
             "title": "Signed in on",
             "hint": "The apps signed in to your account. Signing one out keeps the songs on it there.",
@@ -7079,7 +7096,7 @@
             "title": "Send diagnostics"
         },
         "title": "Contact us",
-        "intro": "Hillel reads every message and replies by email.",
+        "intro": "We read every message and reply by email.",
         "about": "What's it about?",
         "category": {
             "recording": "Recording or sound",
@@ -7104,7 +7121,7 @@
         },
         "send": "Send message",
         "sending": "Sending",
-        "sentTitle": "Sent. Hillel will reply to {email} by email.",
+        "sentTitle": "Sent. We'll reply to {email} by email.",
         "backHome": "Back to singing",
         "refused": {
             "check": "The check that you're a person didn't go through. Try again.",
@@ -7133,7 +7150,7 @@
         "sentNothing": "Only your message and your email go, and never any audio.",
         "need": {
             "message": "Add a message to send",
-            "email": "Add your email so Hillel can reply"
+            "email": "Add your email so we can reply"
         },
         "reference": "Reference {id}"
     },

@@ -3,6 +3,7 @@
 // MIDI note numbers; a part's lyrics ride on its notes (a note without one continues a word).
 
 import { api } from './api.js';
+export { firstPhrase } from './first-phrase.js';
 import { locale, t, tk } from './i18n.js';
 import { local } from './storage.js';
 import { beatsPerBar, TIME_SIGNATURES } from './theme.js';

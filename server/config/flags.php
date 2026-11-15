@@ -94,5 +94,9 @@ return [
     // Plus, everyone invited joins free, and a song or group pauses when that Plus ends. Off until the app's screens and
     // the site's /pricing say so; Hillel switches it on, all at once. Off, singing together is free as before.
     'plus_teams' => ['kind' => 'feature', 'values' => ['off', 'on']],
+    // Growth's fresh start (Hillel, 2026-11-15; App\Support\Stats\GrowthStart): on, every growth view in Admin and the
+    // growth export count only from the start of the day (Jerusalem time) it was turned on; nothing is deleted. Saving
+    // it on again keeps that day; off shows all history again.
+    'growth_fresh_start' => ['kind' => 'feature', 'values' => ['off', 'on']],
 
 ];

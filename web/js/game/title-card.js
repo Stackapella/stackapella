@@ -2,7 +2,8 @@
 // first time a lesson opens on this device, bands in the unit's colour slide in with "Stage 2-3", the
 // (and, as `clear`, a unit's stage clear: "Stage 2 clear!" with the unit's name and a new level when one came with it)
 // unit's name and the lesson's, hold, and slide away, 1.2 s in all. A tap or any key ends it at once
-// (the tap stops here: it never also presses the button under the card), and nothing waits on it. Reduced motion: the card shows still, then goes. Not on a repeat visit.
+// (the tap stops here: it never also presses the button under the card), and nothing waits on it. Reduced motion: the card shows still, then goes. Not on a repeat visit, and not on the device's very first lesson (Hillel,
+// 2026-11-15: "Skip it on the first lesson"), so a newcomer goes straight in; it plays from the second lesson on.
 
 import { local } from '../storage.js';
 import { formatNumber } from '../i18n.js';
@@ -27,6 +28,9 @@ function seen() {
 
 /** Whether this lesson's card was shown on this device. */
 export const titleSeen = (lessonId) => seen().includes(lessonId);
+
+/** Whether any lesson's card was shown on this device (none yet: its very first lesson, which goes straight in). */
+export const anyTitleSeen = () => seen().length > 0;
 
 /** Marks this lesson's card as shown (the last 500 kept). */
 export function markTitleSeen(lessonId) {

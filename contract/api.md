@@ -865,7 +865,9 @@ fallback. **Request:** none.
 
 #### `templates.catalogue`
 
-Every song in the library, current versions only, for anyone (signed in or not). Never notes, words
+Every song in the library, current versions only, for anyone (signed in or not). A song's `description` is in the
+request's language (RequestLanguage: the account's, else the site menu's, else Accept-Language) where the song words'
+map has it, the same words as that language's song page, else English (since 2026-11-15); the ETag follows the answer. Never notes, words
 or part audio of a song the caller can't start: a part's `guide` and `versions` are filled only for
 a song the app bundles (`access: "free"`) and, signed in, every song (`access: "account"`: every
 library song is free with an account since 2026-11-07). The app's bundled templates are the offline
@@ -2623,7 +2625,15 @@ portal's `url` (in the installed app, the system browser).
   songs the public site shows) plays for guests, its current version only (`grant: "open"`, under
   the daily cap per network, `Cache-Control: private, no-cache` (kept by the browser, revalidated by its ETag); since 2026-11-08), so its
   public part page plays its part. Any other library song signed out, or an open song's older
-  `?version=`, is `403 account_required`: the app asks for a free account. The song of the month ended:
+  `?version=`, is `403 account_required`: the app asks for a free account. Since 2026-11-15 (Hillel: "Sing the
+  first phrase, then ask"), any other live library song signed out answers `grant: "phrase"`: its current version cut
+  to its first phrase (from `sections[0].phrases[0]`'s start to the end of the first phrase, across the sections in
+  order, that the melody starts a note in; the melody is the part marked `melody`, else the first part; one section
+  results, `{...sections[0], endBeat: E, phrases: [[start, E]]}`; a note starting in it is kept and clipped to its end, a part with no
+  note in it is left out with the `order` and `voicings` naming it, chords and `meters` only before the end, never
+  `builder`; the section ends where its last note does when that's sooner), `voices: []` and `boards: false`, under
+  the same daily cap and caching, with its own ETag; the cut passes validateTemplate. A song with no phrase the melody
+  starts a note in, or an older `?version=`, is `403 account_required`. The song of the month ended:
   `freeUntil` is always null. Offline, such a song stays usable until `billing.show`'s
   `plusOfflineUntil` (14 days after the last check), then read-only until the app is online again.
 - **Refusals:** `403 plus_required` (a Plus feature on a free account: Send to my teacher; your own recorded guide is free since 2026-11-12),
@@ -6470,6 +6480,14 @@ against is under `floor`. An account's tried set is never read here. **Request:*
 | 200 | | `admin.breadth.show.json` | `admin.breadth.show.200.json` |
 
 #### `admin.growth.show`
+
+**Growth's fresh start** (since 2026-11-15, Hillel: "i dont trust any of the growth data since we recently fixed for
+spam"): while the switch `growth_fresh_start` (Admin > Settings > Switches, sudo, audit-logged) is on, `countFrom` is
+the first day counted (Jerusalem's day it was last turned on; saving it on again keeps that day), and this Overview,
+admin.sources.show, admin.reach.show, admin.funnel.show (not an experiment's arms), admin.cohorts.show, admin.counts.show,
+admin.breadth.show, admin.sharing.show, admin.dropoffs.show's totals, admin.pulse.show and the growth export count only
+from it: a day before it reads as not counted yet (`countingSince` and `hourlySince` start there too). Nothing is
+deleted; off, `countFrom` is null and every view has all its history again.
 
 Admin > Growth's Overview (docs/admin-growth-plan.md; the fair comparisons are
 docs/growth-compare-plan.md). **Request:** `?period=today` (the default), `7d`, `28d` (4 weeks),

@@ -88,6 +88,7 @@
         '/js/page-lesson.js',
         '/js/sentry-envelope.js',
         '/js/sound-log.js',
+        '/js/first-phrase.js',
         '/js/theme.js',
         '/js/theory.js',
         '/js/api-mode.js',

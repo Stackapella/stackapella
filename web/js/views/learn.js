@@ -51,7 +51,7 @@ import { realKeyFit } from '../real-key.js';
 import { countUnitSong, unitSongOffer, unitSongProject } from '../unit-song.js';
 import { experiment, lessonFor } from '../experiments.js';
 import { isScored, prefetchSteps, stepOf } from '../lesson-steps.js';
-import { clearMs, cue, lazyComponent, load, markTitleSeen, titleSeen } from '../game/modules.js';
+import { anyTitleSeen, clearMs, cue, lazyComponent, load, markTitleSeen, titleSeen } from '../game/modules.js';
 import { endSharpen, sharpenAt, sharpenOn, sharpenStart } from '../sharpen.js';
 import { courseRules, effect, setCourseRules } from '../game/effects.js';
 import { flipKeyBase } from '../flip-key.js';
@@ -924,7 +924,11 @@ export const LearnView = {
             if (!entry || entry.boss || entry.lesson.unscored || !this.open || this.needsAccount !== false || this.step !== 0 || this.sharpen || !effect('titles')) return; // no fanfare before a wall
             await load('titleCard');
             if (this.entry !== entry || this.step !== 0 || titleSeen(entry.lesson.id)) return;
+            // Not over the device's very first lesson (Hillel, 2026-11-15: "Skip it on the first lesson"): no card seen and no
+            // lesson finished here yet. Marked seen all the same, so the card plays from the second lesson on.
+            const firstHere = !anyTitleSeen() && !Object.keys(learning.progress.lessons ?? {}).length;
             markTitleSeen(entry.lesson.id);
+            if (firstHere) return;
             this.titleCard = { unit: entry.unitIndex + 1, lesson: entry.index + 1, unitTitle: localized(entry.unit.title), lessonTitle: localized(entry.lesson.title), colour: this.color };
         },
         /** The first step's own mic moment (micFirst): said why, counted as the step before it would be, then the note finder asks. */

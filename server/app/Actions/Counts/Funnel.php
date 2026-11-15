@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Actions\Counts;
 
 use App\Models\Experiment;
+use App\Support\Stats\GrowthStart;
 use App\Support\Stats\ReportDay;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -217,7 +218,8 @@ final class Funnel
             $armOf = static fn (\stdClass $row): string => substr((string) $row->variant, strlen($experiment['id']) + 1);
         } else {
             $arms = ['all'];
-            $query->where('day', '>=', ReportDay::now()->subDays($days - 1)->toDateString());
+            // From Growth's fresh start, when it's on (an experiment's arms are read whole: both share any spam).
+            $query->where('day', '>=', app(GrowthStart::class)->clip(ReportDay::now()->subDays($days - 1)->toDateString()));
             $armOf = static fn (\stdClass $row): string => 'all';
         }
 

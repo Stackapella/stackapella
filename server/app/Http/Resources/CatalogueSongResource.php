@@ -142,7 +142,11 @@ final class CatalogueSongResource extends JsonResource
             // A real voice sings it (docs/open-guide-voices-plan.md), whether or not this caller may start the song.
             'hasRealGuide' => isset($voiced[$versionId.':'.$part['key']]),
         ], $fixed['parts']);
-        $song = [...$fixed, 'titles' => (object) $fixed['titles'], 'season' => self::season($fixed['genre']), 'voicings' => (object) $fixed['voicings'], 'parts' => $parts,
+        $song = [...$fixed,
+            // In the request's language where its map has it (SongWords, the /es song page's own source), else English;
+            // here and not in the cached listing, which every language shares.
+            'description' => SongWords::description((string) $fixed['description']),
+            'titles' => (object) $fixed['titles'], 'season' => self::season($fixed['genre']), 'voicings' => (object) $fixed['voicings'], 'parts' => $parts,
             // An open song with a part still on the synth: "Be the voice" may ask for it.
             'wantsVoice' => $fixed['_open'] && collect($parts)->contains(static fn (array $part): bool => ! $part['hasRealGuide']),
         ];

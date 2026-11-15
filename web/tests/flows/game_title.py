@@ -1,5 +1,5 @@
 """A lesson's title card (docs/game-elements-plan.md; the proposal's board 04): the first time a lesson
-opens in game mode, "Stage 1-1" with the unit's and the lesson's names slides in over the lesson and
+opens in game mode, from the device's second lesson on (its very first goes straight in), "Stage 1-1" with the unit's and the lesson's names slides in over the lesson and
 goes by itself in 1.2 s; a tap ends it sooner; it isn't shown again for that lesson, nor with the
 Title cards switch off, nor in serious mode. Frames of the slide from a card held open.
 """
@@ -32,26 +32,42 @@ def journey(f):
     if f.skin == "serious":
         assert f.js(f"!{CARD}"), "serious mode: no title card"
         return
-    f.wait(CARD, what="the title card")
+    # The device's very first lesson goes straight in (Hillel, 2026-11-15: "Skip it on the first lesson"), kept as seen.
+    quiet = "await import('/js/game/title-card.js'); await new Promise((r) => setTimeout(r, 600))"
+    f.run(quiet)
+    assert f.js(f"!{CARD}"), "no card on the device's first lesson"
+    assert f.js("JSON.parse(localStorage.getItem('stackapella.titlesSeen') || '[]').includes('1-comfortable')"), "the first lesson kept as seen"
+    # The second lesson has it, and it goes by itself.
+    f.go("/learn/1-match?api=mock&as=member", "document.querySelector('main h1')")
+    f.wait(CARD, what="the second lesson's title card")
     words = f.js(f"{CARD}.innerText")
-    assert t(f, "game.title.stage", {"unit": 1, "lesson": 1}).upper() in words.upper(), words
+    assert t(f, "game.title.stage", {"unit": 1, "lesson": 2}).upper() in words.upper(), words
     f.wait(f"!{CARD}", timeout=5, what="gone by itself")
-    assert f.js("JSON.parse(localStorage.getItem('stackapella.titlesSeen')).includes('1-comfortable')"), "kept as seen"
+    assert f.js("JSON.parse(localStorage.getItem('stackapella.titlesSeen')).includes('1-match')"), "kept as seen"
     # A repeat visit: no card.
-    f.go("/learn/1-comfortable?api=mock&as=member", "document.querySelector('main h1')")
-    f.run("await new Promise((r) => setTimeout(r, 400))")
+    f.go("/learn/1-match?api=mock&as=member", "document.querySelector('main h1')")
+    f.run(quiet)
     assert f.js(f"!{CARD}"), "not on a repeat visit"
     # A tap ends it at once.
-    f.go("/learn/1-match?api=mock&as=member", "document.querySelector('main h1')")
+    f.go("/learn/1-high-low?api=mock&as=member", "document.querySelector('main h1')")
     f.wait(CARD, what="the next lesson's card")
     f.run(f"{CARD}.click()")
     f.wait(f"!{CARD}", timeout=2, what="a tap ends it")
     # The Title cards switch off: none.
     f.run("(await import('/js/game/effects.js')).effects.titles = false")
-    f.go("/learn/1-high-low?api=mock&as=member", "document.querySelector('main h1')")
-    f.run("await new Promise((r) => setTimeout(r, 400))")
+    f.go("/learn/1-breath?api=mock&as=member", "document.querySelector('main h1')")
+    f.run(quiet)
     assert f.js(f"!{CARD}"), "the switch turns it off"
     f.run("localStorage.removeItem('stackapella.gameEffects')")
+    # A returning device (a lesson finished here, no card seen yet, as after switching game mode on) keeps its card.
+    f.run("""localStorage.removeItem('stackapella.titlesSeen');
+        const db = await import('/js/db.js');
+        const kept = (await db.get('learning', 'progress')) ?? {};
+        await db.put('learning', { ...kept, lessons: { ...(kept.lessons ?? {}), '1-comfortable': { stars: 2, bestPercent: 80, at: Date.now() } } }, 'progress');""")
+    f.go("/learn/1-comfortable?api=mock&as=member", "document.querySelector('main h1')")
+    f.wait(CARD, what="a returning device's card")
+    f.run(f"{CARD}.click()")
+    f.wait(f"!{CARD}", timeout=2, what="the returning card tapped away")
     # The slide, frame by frame, in game dark and light.
     f.run(HELD)
     f.wait(CARD, what="the held card")

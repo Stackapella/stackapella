@@ -157,6 +157,7 @@ def journey(f):
     fair_cards(f)
     today_chart(f)
     visits_borrowed(f)
+    fresh_start(f)
     period_charts(f)
 
 
@@ -570,6 +571,24 @@ api.admin.growth.show = async () => JSON.parse(JSON.stringify(fx));"""
     f.no_sideways("Visits with App starts")
     f.run("document.querySelector('[data-strip=appStarts]').scrollIntoView({ block: 'center' })")
     f.shot("visits-app-starts")
+
+
+def fresh_start(f):
+    """Growth: fresh start on (growth_fresh_start; admin.growth.show's countFrom): the header says where counting starts.
+    Off (countFrom null, the mock's own answer), it says nothing."""
+    stub = """const { api } = await import('/js/api.js'); const show = api.admin.growth.show;
+api.admin.growth.show = async (q) => { const r = await show(q); return { ...r, data: { ...r.data, countFrom: '2026-11-15' } }; };"""
+    open_growth(f, stub)
+    f.wait("document.querySelector('[data-growth-fresh]')", what="the fresh start, said")
+    date = f.js("(await import('/js/i18n.js')).formatDate('2026-11-15T12:00:00Z', { month: 'short', day: 'numeric' })")
+    said = f.js("document.querySelector('[data-growth-fresh]').textContent.replace('·', '').trim()")
+    assert said == t(f, "admin.growth.countFrom", {"date": date}), said
+    f.no_sideways("the fresh start line")
+    f.shot("fresh-start")
+    f.go("/admin/sources?api=mock&as=admin", "document.querySelector('h1')")
+    f.run("(await import('/js/router.js')).navigate('/admin/growth')")
+    f.wait("document.querySelector('[data-growth-tiles], [data-growth-clock]')", what="Growth again, unstubbed")
+    assert not f.js("!!document.querySelector('[data-growth-fresh]')"), "a fresh start said while it's off"
 
 
 if __name__ == "__main__":

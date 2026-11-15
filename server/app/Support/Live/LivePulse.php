@@ -7,8 +7,8 @@ namespace App\Support\Live;
 use App\Actions\Counts\ActiveSingers;
 use App\Actions\Counts\Growth;
 use App\Models\User;
+use App\Support\Stats\GrowthStart;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\DB;
 
 /**
  * admin.pulse.show (docs/realtime-dashboard-plan.md): the slower half of Admin > Live, every minute. Active singers
@@ -50,7 +50,7 @@ final class LivePulse
     private function signUps(Carbon $at): array
     {
         $from = $at->copy()->subDay();
-        $users = User::query()->where('created_at', '>=', $from)->where('is_admin', false)->orderByDesc('created_at')->get(['id', 'name', 'tried', 'created_at']);
+        $users = app(GrowthStart::class)->since(User::query()->where('created_at', '>=', $from))->where('is_admin', false)->orderByDesc('created_at')->get(['id', 'name', 'tried', 'created_at']);
         $stepsOf = static function (User $user): array {
             $tried = (array) ($user->tried ?? []);
 
@@ -90,7 +90,7 @@ final class LivePulse
     /** @return list<array{kind: string, n: int}> */
     private function activity(Carbon $at): array
     {
-        $totals = DB::table('usage_count_hours')->whereIn('kind', self::ACTIVITY)->where('hour', '>=', $at->copy()->subDay()->utc()->format('Y-m-d H:i:s'))
+        $totals = app(GrowthStart::class)->hours()->whereIn('kind', self::ACTIVITY)->where('hour', '>=', $at->copy()->subDay()->utc()->format('Y-m-d H:i:s'))
             ->selectRaw('kind, sum(count) as n')->groupBy('kind')->pluck('n', 'kind');
         $rows = array_map(static fn (string $kind): array => ['kind' => $kind, 'n' => (int) ($totals[$kind] ?? 0)], self::ACTIVITY);
         usort($rows, static fn (array $a, array $b): int => [$b['n'], $a['kind']] <=> [$a['n'], $b['kind']]);

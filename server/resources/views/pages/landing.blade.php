@@ -41,13 +41,6 @@
                          funnel.js knows this device's arm isn't the control (onb1-a). --}}
                     @php($chordTest = (($funnel['experiment']['id'] ?? null) === 'onb1') && ($funnel['experiment']['enrol'] ?? false))
                     <p class="s-hero-promise" @if ($chordTest) hidden data-variant-except="onb1-a" @endif>{{ __('pages.landing.chord_promise') }}</p>
-                    {{-- The landing's one seasonal line (Hillel, 2026-11-10), quiet, in its own place; it hides by itself
-                         after 26 December (Carols::linked, config site.carols_promoted). --}}
-                    @if (\App\Support\Pages\Carols::linked())
-                        <p class="s-hero-carols">@php($carols = __('pages.landing.carols'))
-                        {{-- The arrow keeps its last word with it, so it never wraps onto a line of its own (a 360 px phone). --}}
-                        <a href="{{ \App\Support\Pages\Carols::PATH }}" class="s-lk">{{ \Illuminate\Support\Str::beforeLast($carols, ' ') }} <span class="whitespace-nowrap">{{ \Illuminate\Support\Str::afterLast($carols, ' ') }}&nbsp;<x-site.icon name="arrow" size="16" /></span></a></p>
-                    @endif
                 </div>
             </div>
             @if ($hero !== null)
@@ -96,6 +89,13 @@
                     <li class="s-v{{ $loop->iteration }}"><i class="gem" aria-hidden="true"></i>{{ $fact }}</li>
                 @endforeach
             </ul>
+            {{-- The landing's one seasonal line (Hillel, 2026-11-10), quiet, under the facts (the 2026-11-15 redesign); it hides by itself
+                 after 26 December (Carols::linked, config site.carols_promoted). --}}
+            @if (\App\Support\Pages\Carols::linked())
+                <p class="s-hero-carols">@php($carols = __('pages.landing.carols'))
+                {{-- The arrow keeps its last word with it, so it never wraps onto a line of its own (a 360 px phone). --}}
+                <a href="{{ \App\Support\Pages\Carols::PATH }}" class="s-lk">{{ \Illuminate\Support\Str::beforeLast($carols, ' ') }} <span class="whitespace-nowrap">{{ \Illuminate\Support\Str::afterLast($carols, ' ') }}&nbsp;<x-site.icon name="arrow" size="16" /></span></a></p>
+            @endif
         </section>
 
         @if (\App\Support\Site\Showreel::available())

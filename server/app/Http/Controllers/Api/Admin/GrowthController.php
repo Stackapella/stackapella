@@ -13,6 +13,7 @@ use App\Support\Admin\Insights;
 use App\Support\Admin\Revenue;
 use App\Support\Admin\Search;
 use App\Support\Stats\FairCompare;
+use App\Support\Stats\GrowthStart;
 use App\Support\Stats\ReportDay;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -25,13 +26,13 @@ use Illuminate\Http\Request;
  */
 final class GrowthController extends Controller
 {
-    public function overview(Request $request, GrowthCompare $compare): JsonResponse
+    public function overview(Request $request, GrowthCompare $compare, GrowthStart $start): JsonResponse
     {
         // ?period= (docs/growth-compare-plan.md, 5.5), or the old ?days= an older web still sends.
         $period = $request->query('period');
         $period = is_string($period) && in_array($period, FairCompare::PERIODS, true) ? $period : (FairCompare::DAYS[(int) $request->query('days', '1')] ?? 'today');
 
-        return response()->json(['data' => [...$compare->show($period), 'timezone' => ReportDay::zone()]]);
+        return response()->json(['data' => [...$compare->show($period), 'timezone' => ReportDay::zone(), 'countFrom' => $start->day()]]);
     }
 
     public function sources(Request $request, Growth $growth): JsonResponse

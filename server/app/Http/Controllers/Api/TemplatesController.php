@@ -21,6 +21,7 @@ use App\Models\TemplateVersion;
 use App\Models\User;
 use App\Support\Rights\RightsHere;
 use App\Support\Templates\Catalogue;
+use App\Support\Templates\FirstPhrase;
 use App\Support\Templates\PersonsTemplate;
 use App\Support\Trust\IpHash;
 use App\Support\Trust\Limits;
@@ -83,7 +84,9 @@ final class TemplatesController extends Controller
         // Signed out, an open song (Catalogue::isOpen: live, reviewed, public domain) plays for guests, so
         // its public part page plays its part (Hillel, 2026-11-08: "Yes, play for guests"); its current
         // version only, under the daily cap a network has.
-        $grant = $catalogue->grant($song, $user) ?? (Catalogue::isOpen($song) ? 'open' : null);
+        // Any other library song signed out sings its first phrase alone (Hillel, 2026-11-15: "Sing the first phrase,
+        // then ask"): the song cut there (FirstPhrase), its current version only, no recorded voices.
+        $grant = $catalogue->grant($song, $user) ?? (Catalogue::isOpen($song) ? 'open' : ($song->withdrawn_at === null ? 'phrase' : null));
 
         // A song whose copyright still runs where the visitor is: 451, with the year it's free there when known
         // (docs/geo-rights-plan.md). Admins still open it, to review it.
@@ -103,19 +106,27 @@ final class TemplatesController extends Controller
             throw new Refusal(404, 'not_found');
         }
 
-        // A guest has the open song as it is now, never an older (or unreviewed) version.
-        if ($grant === 'open' && $version->id !== $song->current_version_id) {
+        // A guest has the song as it is now, never an older (or unreviewed) version.
+        $guest = in_array($grant, ['open', 'phrase'], true);
+        if ($guest && $version->id !== $song->current_version_id) {
+            throw new Refusal(403, 'account_required');
+        }
+
+        // A song with no phrase to cut at stays an account's.
+        $template = $grant === 'phrase' ? FirstPhrase::of($version->data) : $version->data;
+        if ($template === null) {
             throw new Refusal(403, 'account_required');
         }
 
         // A guest's copy is kept by their own browser and checked again by its ETag (Revalidate: private, no-cache),
         // as the catalogue's public reads are; an account's stays no-store.
-        if ($grant === 'open') {
+        if ($guest) {
             // On the request the middleware holds (a FormRequest is a copy of it).
             app('request')->attributes->set(Revalidate::ATTRIBUTE, true);
         }
-        $voices = $catalogue->guides([$version->id])->flatten(1)->values();
-        $etag = '"'.hash('sha256', $version->sha256.'|'.$voices->map(fn (TemplateGuide $g): string => $g->id.':'.$g->is_default.':'.$g->submission?->assignment->singer->credit())->implode(',')).'"';
+        $voices = $grant === 'phrase' ? collect() : $catalogue->guides([$version->id])->flatten(1)->values();
+        // The phrase is its own answer, never a 304 against the whole song's.
+        $etag = '"'.hash('sha256', $version->sha256.($grant === 'phrase' ? '|phrase' : '').'|'.$voices->map(fn (TemplateGuide $g): string => $g->id.':'.$g->is_default.':'.$g->submission?->assignment->singer->credit())->implode(',')).'"';
 
         if ($request->headers->get('If-None-Match') === $etag) {
             return response()->noContent(304)->setEtag(trim($etag, '"'));
@@ -143,13 +154,13 @@ final class TemplatesController extends Controller
         }
 
         return response()->json(['data' => [
-            'template' => $version->data,
+            'template' => $template,
             'voices' => $voices->map(fn (TemplateGuide $g): array => [...GuideRecording::of($g), 'default' => $g->is_default])->all(),
             'grant' => $grant,
             // The song of the month ended (2026-11-07); always null, for older apps.
             'freeUntil' => null,
-            // Our songs always have part boards.
-            'boards' => true,
+            // Our songs always have part boards; not for a phrase.
+            'boards' => $grant !== 'phrase',
         ]])->setEtag(trim($etag, '"'));
     }
 

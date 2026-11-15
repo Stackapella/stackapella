@@ -1,5 +1,5 @@
 // The device's audio settings (js/audio.js): what can be checked without a person and a mic.
-import { audio, engine, leadSeconds, looksWireless, MIC_SETTLE_SECONDS, RECHECK_TAKES, recheckDue, recheckShown, tookTake, unlock } from '/js/audio.js';
+import { audio, engine, estimateCorrection, leadSeconds, looksWireless, MIC_SETTLE_SECONDS, RECHECK_TAKES, recheckDue, recheckShown, tookTake, unlock } from '/js/audio.js';
 import { assert, close, test } from './harness.js';
 
 test('audio: wireless mics are spotted by their names, wired ones are not', () => {
@@ -87,4 +87,13 @@ test("audio: a device change as the mic opens isn't a reconnect; one with the mi
     } finally {
         Object.assign(audio, was);
     }
+});
+
+test('audio: a take recorded with an estimate moves by the measured difference, each in its own rate', () => {
+    // Estimated 20 ms at 48 kHz, measured 70 ms at 44.1 kHz: the singing came in 50 ms late, so it moves 50 ms earlier.
+    const shift = estimateCorrection({ latencyFrames: 960, estimated: true }, 48000, 3087, 44100);
+    assert(Math.abs(shift - -0.05) < 1e-9, `${shift}`);
+    assert(Math.abs(estimateCorrection({ latencyFrames: 4800, estimated: true }, 48000, 2400, 48000) - 0.05) < 1e-9, 'an estimate too long moves it later');
+    assert(estimateCorrection({ latencyFrames: 960, estimated: false }, 48000, 3087, 44100) === 0, 'a measured take moved');
+    assert(estimateCorrection(null, 48000, 3087, 44100) === 0, 'a take with no record of its timing moved');
 });

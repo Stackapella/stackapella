@@ -59,6 +59,7 @@ const ASKS = {
     acct_course_lesson: tk('admin.funnel.ask.acct_course_lesson'),
     acct_course_map: tk('admin.funnel.ask.acct_course_map'),
     acct_course_page: tk('admin.funnel.ask.acct_course_page'),
+    acct_phrase: tk('admin.funnel.ask.acct_phrase'),
 };
 
 const day = (date) => (date ? formatDate(`${date}T12:00:00Z`, { month: 'short', day: 'numeric', year: 'numeric' }) : '');

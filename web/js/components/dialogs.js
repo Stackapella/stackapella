@@ -823,8 +823,9 @@ export const RangeDialog = {
 export const TemplateDialog = {
     components: { Modal, Icon },
     // locked: a guest on a song that needs a free account (the catalogue's summary: no notes): its clip, and the way to an account.
+    // taste: a guest on a library song whose first phrase they may sing (templates.firstPhrase): Start sings that, the ask after.
     // load: the song's notes still coming ('loading'), or why they didn't ('failed', 'offline'); starting: Start was tapped.
-    props: { template: { type: Object, required: true }, previewing: Boolean, preparing: Boolean, credits: { type: Array, default: () => [] }, locked: Boolean, singers: { type: Number, default: 4 }, fresh: Boolean, load: { type: String, default: null }, notHere: { type: String, default: null }, starting: Boolean },
+    props: { template: { type: Object, required: true }, previewing: Boolean, preparing: Boolean, credits: { type: Array, default: () => [] }, locked: Boolean, taste: Boolean, singers: { type: Number, default: 4 }, fresh: Boolean, load: { type: String, default: null }, notHere: { type: String, default: null }, starting: Boolean },
     emits: ['start', 'preview', 'close', 'signup', 'copy', 'singers', 'retry', 'voice'],
     setup: () => ({ midiName, formatTime, formatNumber, primary, secondary, singerOptions, templatePartName, keyLabel, DIFFICULTY, formatList, TEMPO, songTitle }),
     template: `
@@ -855,14 +856,16 @@ export const TemplateDialog = {
                          Start full width first, then Play and Edit (Edit makes a copy), quieter, side by side. -->
                     <!-- Instant feedback (Hillel, 2026-11-12): Start is busy at once while the notes come or the song opens; a line after
                          a few seconds, and Retry if they don't come. -->
-                    <button type="button" :class="[primary, 'w-full justify-center']" :disabled="!!load || starting" :aria-busy="load === 'loading' || starting ? 'true' : null" data-song-start @click="$emit('start')"><span v-if="load === 'loading' || starting" class="spinner" aria-hidden="true"></span>{{ t('templates.start') }}</button>
+                    <button type="button" :class="[primary, 'w-full justify-center']" :disabled="!!load || starting" :aria-busy="load === 'loading' || starting ? 'true' : null" data-song-start @click="$emit('start')"><span v-if="load === 'loading' || starting" class="spinner" aria-hidden="true"></span>{{ taste ? t('templates.taste.start') : t('templates.start') }}</button>
+                    <!-- A guest on a library song sings its first line now, and is asked after it (Hillel, 2026-11-15). -->
+                    <p v-if="taste" class="text-center text-sm text-muted" data-song-taste>{{ t('templates.taste.note') }}</p>
                     <p v-if="load === 'loading' && slow" class="text-center text-sm text-muted" role="status" data-song-slow>{{ t('common.stillLoading') }}</p>
                     <!-- Not available where the singer is (geo rights): said calmly, with nothing to retry or buy. -->
                     <p v-else-if="load === 'withheld'" class="text-center text-sm text-muted" role="status" data-song-not-here>{{ notHere }}</p>
                     <p v-else-if="load === 'failed' || load === 'offline'" class="flex flex-wrap items-center justify-center gap-2 text-sm text-warn" role="alert" data-song-load-failed>{{ load === 'offline' ? t('common.offline') : t('templates.loadFailed') }} <button type="button" class="link tap-44" @click="$emit('retry')">{{ t('common.tryAgain') }}</button></p>
                     <div class="grid grid-cols-2 gap-2 sm:gap-3">
                         <button type="button" :class="[secondary, 'w-full justify-center']" :aria-pressed="previewing ? 'true' : 'false'" data-song-play @click="$emit('preview')"><span class="inline-flex items-center gap-2"><Icon :name="previewing ? 'stop' : 'play'" :size="16" />{{ preparing ? t('templates.preparing') : previewing ? t('studio.stop') : t('templates.play') }}</span></button>
-                        <button v-if="!fresh" type="button" class="btn-ghost w-full justify-center" :aria-label="t('templates.editLabel', { title: songTitle(template) })" data-song-edit @click="$emit('copy')">{{ t('template.edit') }}</button>
+                        <button v-if="!fresh && !taste" type="button" class="btn-ghost w-full justify-center" :aria-label="t('templates.editLabel', { title: songTitle(template) })" data-song-edit @click="$emit('copy')">{{ t('template.edit') }}</button>
                     </div>
                     <button v-if="hasCourse" type="button" class="btn-ghost btn-sm" data-song-course @click="learnIt"><Icon name="arrow" :size="16" /> {{ t('songCourse.open') }}</button>
                 </div>

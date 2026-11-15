@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Actions\Counts;
 
+use App\Support\Stats\GrowthStart;
 use App\Support\Stats\ReportDay;
 use Illuminate\Support\Facades\DB;
 
@@ -31,7 +32,7 @@ final class Growth
     public function sources(int $days): array
     {
         $today = ReportDay::now()->startOfDay();
-        $from = $today->copy()->subDays($days - 1)->toDateString();
+        $from = app(GrowthStart::class)->clip($today->copy()->subDays($days - 1)->toDateString());
         $kinds = array_values(array_unique(array_merge(...array_values(self::COLUMNS))));
 
         /** @var array<string, array<string, int>> $bySource [source][kind] => total */

@@ -22,6 +22,8 @@ import { account } from '../stores/account.js';
 import { claimInvitation, countVoice, later, needsVoice, saidLater, usableTake, voiceAskOpen } from '../be-the-voice.js';
 import { sendVoiceTake } from '../voice-take.js';
 import { signUpFor } from '../components/account-wall.js';
+import { askDue, askNotNow, askSeen } from '../asks.js';
+import { askNot, askShown, askYes } from '../funnel.js';
 import { count, tried } from '../usage.js';
 import { local } from '../storage.js';
 import { countInText } from '../components/count-in.js';
@@ -99,7 +101,7 @@ export const SingView = {
     components: { SingShell: screenLoading(), ShareVoice: defineAsyncComponent(() => import('../components/share-voice.js').then((m) => m.ShareVoice)), DailyShare, RingMeter, VoiceCareLine, TimingLine, PopupSlot, TakeBest, IdeaVoice, PhraseStage, Chooser, Stage, RecordingStage, Lane, NowCard, Coach, StepDone, JustRecorded, LineBar, ModeBar, SingHeader, Transport, TurnBand, PartSheet, SettingsSheet, HeadphonesDialog, TimingDialog, RangeDialog, Icon, VoiceNote, ResingSheet, ResungCard, TrimSheet, WhatsNext, LockedBanner, ShareSheet },
     props: { id: { type: String, required: true } },
     setup: () => ({ ...toRefs(session), audio, formatTime, shownTitle, prefs, game, effect }),
-    data: () => ({ crt: false, ghostTake: null, pendingGhost: null, hud: popupQueue(), viewPicked: false, readied: null, combo: 0, hintState: { hint: null }, voice: voiceFollower(), dialog: null, choosing: false, recorded: null, said: '', suggested: null, celebrated: null, lining: false, lined: null, resingPlanned: null, resung: null, takeNumbers: {}, fitSuggestion: null, ring: null, ringChord: '', lessonStep: null, lessonOpening: false, voiceAt: 0, voicePartId: null }),
+    data: () => ({ tasteAsked: false, crt: false, ghostTake: null, pendingGhost: null, hud: popupQueue(), viewPicked: false, readied: null, combo: 0, hintState: { hint: null }, voice: voiceFollower(), dialog: null, choosing: false, recorded: null, said: '', suggested: null, celebrated: null, lining: false, lined: null, resingPlanned: null, resung: null, takeNumbers: {}, fitSuggestion: null, ring: null, ringChord: '', lessonStep: null, lessonOpening: false, voiceAt: 0, voicePartId: null }),
     template: `
         <div class="flex h-dvh flex-col bg-ink" :data-paused="paused ? '' : null">
             <p class="sr-only" aria-live="polite">{{ said }}</p>
@@ -167,12 +169,14 @@ export const SingView = {
                                 <!-- Voice care: one quiet line after a long day's singing (docs/voice-care-plan.md) -->
                                 <VoiceCareLine :key="'care-' + recorded.part.id + '-' + (recorded.part.takeId ?? '')" />
                                 <!-- A fresh timing check, offered over Bluetooth after a reconnect or many takes (components/timing-line.js) -->
-                                <TimingLine :key="'timing-' + recorded.part.id + '-' + (recorded.part.takeId ?? '')" @check="dialog = 'timing'" />
-                                <WhatsNext v-if="recorded.everyPart" :current="{ id: project.template.id, difficulty: project.template.difficulty }" />
+                                <TimingLine :key="'timing-' + recorded.part.id + '-' + (recorded.part.takeId ?? '')" :take="recorded.part" @check="dialog = 'timing'" />
+                                <WhatsNext v-if="recorded.everyPart && !project.taste" :current="{ id: project.template.id, difficulty: project.template.difficulty }" />
+                                <!-- A guest's taste (the first line only): the rest of the song, one quiet line under the take. -->
+                                <p v-if="project.taste && guest" class="text-sm text-muted" data-taste-quiet>{{ t('sing.taste.quiet') }} <button type="button" class="link tap-44" @click="tasteSignUp">{{ t('sing.taste.makeAccount') }}</button></p>
                             </template>
                         </JustRecorded>
                         <StepDone v-else-if="way === 'parts' && showDone" :step="coach.step" :part-name="partName" :color="paint(focusPart.color)" :phrases="phraseRows" :next="nextStep(coach.step)"
-                            @next="setStep(nextStep(coach.step))" @again="onceMore" />
+                            :invite="tasteInvite" :title="shownTitle(project)" @next="setStep(nextStep(coach.step))" @again="onceMore" @signup="tasteSignUp" @not-now="tasteNotNow" />
                         <PhraseStage v-else-if="phraseStage" v-bind="phraseStage" :names="pitchName" :color="paint(focusPart.color)" @first-note="firstNote" />
                         <template v-else-if="view === 'notes'">
                             <div class="flex min-h-0 flex-1" data-ui="sing-stage">
@@ -556,6 +560,16 @@ export const SingView = {
         showDone() {
             return this.coach.step !== 'record' && stepDone(this.coach, this.phraseList.length) && this.celebrated !== `${this.focusPart.id}:${this.coach.step}` && !this.playing;
         },
+        /**
+         * A guest's taste of a library song (Hillel, 2026-11-15: "Sing the first phrase, then ask"), its phrase sung along:
+         * the free account's invitation to keep going ('ask'), or one quiet line once it's been put off (the ask ledger,
+         * asks.js). The rest of the song needs the account; the phrase goes on (on your own, record) with Not now.
+         */
+        tasteInvite() {
+            if (!this.project?.taste || account.me || this.coach.step !== 'singAlong' || !this.showDone) return null;
+            return this.tasteAsked || askDue('acct_phrase') ? 'ask' : 'quiet';
+        },
+        guest: () => !account.me,
         otherNames() {
             return this.parts.filter((p) => p.templatePartKey && p.id !== this.focusPart?.id).map((p) => this.nameOf(p)).join(', ');
         },
@@ -654,6 +668,15 @@ export const SingView = {
         },
     },
     watch: {
+        /** A guest's taste: its first phrase sung along, the invitation shown (counted once a device). */
+        tasteInvite(invite) {
+            if (!invite || !this.showDone) return;
+            count('phrase_sung');
+            if (invite !== 'ask') return;
+            this.tasteAsked = true; // stays the invitation while it's on screen, though seen now
+            askSeen('acct_phrase');
+            askShown('acct_phrase');
+        },
         /** Be the voice's pool and its invitation shown (anonymous daily counts, the review's section 5). */
         'recorded.part.takeId'(takeId, before) {
             if (takeId && takeId !== before && this.voiceTake(this.recorded?.part)) countVoice('bv_sung');
@@ -1352,6 +1375,18 @@ export const SingView = {
             if (step === 'record') this.recordPart();
             else if (step === 'own') this.repeatPhrase(this.here);
             else this.playPhrase(this.here);
+        },
+        /** The taste's Keep going: a free account, then back here on the whole song (projects.js wholeSong). */
+        tasteSignUp() {
+            if (this.tasteInvite === 'ask') askYes('acct_phrase');
+            navigate(signUpFor('phrase', `/p/${this.id}/sing`));
+        },
+        /** Not now: put away (the ledger), and the phrase goes on to the next step. */
+        tasteNotNow() {
+            askNotNow('acct_phrase');
+            askNot('acct_phrase');
+            this.tasteAsked = false;
+            this.setStep(nextStep(this.coach.step));
         },
         onceMore() {
             this.celebrated = `${this.focusPart.id}:${this.coach.step}`;

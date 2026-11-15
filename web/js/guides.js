@@ -54,6 +54,11 @@ function rendered(key, message, here) {
     return cache.get(key);
 }
 
+/** A song's guides forgotten: its first phrase's (a guest's taste) were kept under the same song and version. */
+export function forgetGuides(templateId) {
+    for (const key of cache.keys()) if (key.startsWith(`${templateId}@`)) cache.delete(key);
+}
+
 /**
  * The guide audio for `part` of `template` (from `templateVersion`), as a Float32Array, sung as a
  * person sings (js/synth.js, the human voice): `human` 'guide' in the app (its held notes stay on

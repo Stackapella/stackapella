@@ -11,6 +11,7 @@ use App\Support\Ops\Releases;
 use App\Support\Site\SiteVisit;
 use App\Support\Stats\Counts;
 use App\Support\Stats\FairCompare;
+use App\Support\Stats\GrowthStart;
 use App\Support\Stats\ReportDay;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Query\Builder;
@@ -37,7 +38,7 @@ final class GrowthCompare
     ];
 
     /** The account asks Growth sums (never the course ask's places, already in acct_course). */
-    private const ASKS = ['account', 'acct_week', 'acct_songs', 'acct_unit', 'acct_risk', 'acct_settings', 'acct_course'];
+    private const ASKS = ['account', 'acct_week', 'acct_songs', 'acct_unit', 'acct_risk', 'acct_settings', 'acct_course', 'acct_phrase'];
 
     /** Counts the server can date from its own records, filled in by the hour before hourly counting began. */
     private const BACKFILLED = ['sign_up', 'plus_started'];
@@ -86,7 +87,7 @@ final class GrowthCompare
 
         // When hourly counting began, and when Visits' own hours did, in one read.
         $siteKinds = ['site_visit', ...$this->kinds('sv')];
-        $firsts = DB::table('usage_count_hours')->whereNotIn('kind', self::BACKFILLED)
+        $firsts = app(GrowthStart::class)->hours()->whereNotIn('kind', self::BACKFILLED)
             ->selectRaw('min(hour) as first, min(case when kind in ('.implode(',', array_fill(0, count($siteKinds), '?')).') then hour end) as site', $siteKinds)->first();
         $first = $firsts?->first;
         $siteFirst = $firsts?->site;
@@ -390,11 +391,11 @@ final class GrowthCompare
         ]));
         $earliest = min([$this->now->toDateString(), ...$froms]);
 
-        foreach (DB::table('usage_counts')->whereIn('kind', $kinds)->where('day', '>=', $earliest)->selectRaw('day, kind, sum(count) as total')->groupBy('day', 'kind')->get() as $row) {
+        foreach (app(GrowthStart::class)->counts()->whereIn('kind', $kinds)->where('day', '>=', $earliest)->selectRaw('day, kind, sum(count) as total')->groupBy('day', 'kind')->get() as $row) {
             $this->days[substr((string) $row->day, 0, 10)][(string) $row->kind] = (int) $row->total;
         }
 
-        foreach (DB::table('usage_counts')->whereIn('kind', $kinds)->selectRaw('kind, min(day) as first')->groupBy('kind')->get() as $row) {
+        foreach (app(GrowthStart::class)->counts()->whereIn('kind', $kinds)->selectRaw('kind, min(day) as first')->groupBy('kind')->get() as $row) {
             $this->firsts[(string) $row->kind] = substr((string) $row->first, 0, 10);
         }
 
@@ -416,7 +417,7 @@ final class GrowthCompare
         $from = CarbonImmutable::parse(min($cutDays), $this->zone)->startOfDay()->utc()->format('Y-m-d H:i:s');
         $to = CarbonImmutable::parse(max($cutDays), $this->zone)->addDay()->startOfDay()->utc()->format('Y-m-d H:i:s');
 
-        foreach (DB::table('usage_count_hours')->whereIn('kind', $kinds)->where('hour', '>=', $from)->where('hour', '<', $to)->selectRaw('hour, kind, sum(count) as total')->groupBy('hour', 'kind')->get() as $row) {
+        foreach (app(GrowthStart::class)->hours()->whereIn('kind', $kinds)->where('hour', '>=', $from)->where('hour', '<', $to)->selectRaw('hour, kind, sum(count) as total')->groupBy('hour', 'kind')->get() as $row) {
             $this->hours[(string) $row->kind][substr((string) $row->hour, 0, 19)] = (int) $row->total;
         }
     }
@@ -434,7 +435,8 @@ final class GrowthCompare
         $own = $this->hourlySince !== null && $this->hourlySince->lte($today->subDays(14)->utc());
 
         /** @var array<string, list<int>> */
-        return Cache::remember('growth:shape:'.$this->zone.':'.$today->toDateString().':'.($own ? 'own' : 'proxy').($this->siteBorrowed ? ':borrowed' : ''), 3600, function () use ($today, $own): array {
+        // Keyed by Growth's fresh start too, so turning it on or off reads the shape again at once.
+        return Cache::remember('growth:shape:'.$this->zone.':'.$today->toDateString().':'.(app(GrowthStart::class)->day() ?? 'all').':'.($own ? 'own' : 'proxy').($this->siteBorrowed ? ':borrowed' : ''), 3600, function () use ($today, $own): array {
             $from = $today->subDays(28)->utc()->format('Y-m-d H:i:s');
             $to = $today->utc()->format('Y-m-d H:i:s');
             $local = fn (array $rows): array => array_reduce(array_keys($rows), function (array $by, int|string $hour) use ($rows): array {
@@ -453,7 +455,7 @@ final class GrowthCompare
                 ];
                 $byKind = [];
 
-                foreach (DB::table('usage_count_hours')->whereIn('kind', array_merge(...array_values($families)))->where('hour', '>=', $from)->where('hour', '<', $to)->groupBy('hour', 'kind')->selectRaw('hour, kind, sum(count) as n')->get() as $row) {
+                foreach (app(GrowthStart::class)->hours()->whereIn('kind', array_merge(...array_values($families)))->where('hour', '>=', $from)->where('hour', '<', $to)->groupBy('hour', 'kind')->selectRaw('hour, kind, sum(count) as n')->get() as $row) {
                     $byKind[(string) $row->kind][substr((string) $row->hour, 0, 19)] = (int) $row->n;
                 }
 
@@ -466,7 +468,7 @@ final class GrowthCompare
             $admins = Counts::admins();
             $bucket = "date_format(created_at, '%Y-%m-%d %H:00:00')";
             $grouped = static fn (Builder $query): array => $query->where('created_at', '>=', $from)->where('created_at', '<', $to)->groupByRaw($bucket)->selectRaw($bucket.' as h, count(*) as n')->pluck('n', 'h')->all();
-            $users = $local($grouped(User::query()->toBase()->where('is_admin', false)));
+            $users = $local($grouped(app(GrowthStart::class)->since(User::query()->toBase()->where('is_admin', false))));
             $records = $sum($users, $local($grouped(Take::query()->toBase()->whereNotIn(DB::raw('coalesce(recorded_by, user_id)'), $admins))), $local($grouped(Score::query()->toBase()->whereNotIn('user_id', $admins))));
 
             return ['site' => $records, 'app' => $records, 'accounts' => $sum($users)];

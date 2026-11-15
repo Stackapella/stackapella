@@ -64,6 +64,7 @@ use App\Support\Languages\TranslationMaps;
 use App\Support\Ops\TempFiles;
 use App\Support\Pages\Carols;
 use App\Support\Pages\LessonPagesBuilt;
+use App\Support\Stats\GrowthStart;
 use App\Support\Templates\Catalogue;
 use App\Support\Trust\Limits;
 use App\Support\Usage\Plans;
@@ -127,6 +128,7 @@ final class AppServiceProvider extends ServiceProvider
         $this->app->scoped(Catalogue::class);
         $this->app->scoped(LessonPagesBuilt::class);
         $this->app->scoped(Carols::class);
+        $this->app->scoped(GrowthStart::class);
 
         // Stripe, only through the gateway (the tests bind a fake).
         $this->app->bind(BillingGateway::class, StripeGateway::class);

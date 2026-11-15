@@ -374,6 +374,7 @@
         },
         "mic": "Micrófono",
         "recheck": {
+            "estimated": "Esta toma usó una estimación del retardo de tus auriculares. Una prueba de 10 segundos la sincroniza del todo, y también las tomas siguientes.",
             "reconnect": "¿Auriculares reconectados? Con Bluetooth, la sincronía puede cambiar al reconectarlos. Una prueba de 10 segundos mantiene a tiempo tu próxima toma.",
             "takes": "Con Bluetooth, la sincronía puede variar en una sesión larga. Una prueba de 10 segundos mantiene a tiempo tus tomas.",
             "check": "Comprobar sincronía"
@@ -655,6 +656,10 @@
         "next": "Siguiente"
     },
     "templates": {
+        "taste": {
+            "note": "Para la primera frase no hace falta cuenta. La canción entera es gratis con una cuenta.",
+            "start": "Canta la primera frase"
+        },
         "needsAccountNoClip": "Crea una cuenta gratis para empezar esta canción.",
         "loadFailed": "No se pudo cargar la canción.",
         "notHere": "Esta canción todavía no está disponible donde estás.",
@@ -701,7 +706,7 @@
     },
     "requests": {
         "title": "Peticiones de canciones",
-        "intro": "Las canciones que la gente quiere aprender, primero las más pedidas. Vota por las que cantarías; Hillel hace los arreglos empezando por arriba.",
+        "intro": "Las canciones que la gente quiere aprender, primero las más pedidas. Vota por las que cantarías; hacemos los arreglos empezando por arriba.",
         "closed": "Las peticiones aún no están abiertas",
         "closedHint": "Pronto podrás pedir una canción y votar por las que quieras.",
         "loading": "Cargando peticiones...",
@@ -1037,6 +1042,12 @@
         }
     },
     "sing": {
+        "taste": {
+            "makeAccount": "Crear una cuenta gratis",
+            "quiet": "El resto de la canción es gratis con una cuenta.",
+            "keepGoing": "Seguir, gratis",
+            "body": "Esa es la primera frase de {title}. Crea una cuenta gratis para seguir: la canción entera, todas las voces y tu progreso guardado."
+        },
         "lessonBack": "Volver a la lección",
         "now": {
             "nextThen": "Ahora {now}, luego {next}, después {then} ({direction, select, up {sube} down {baja} other {igual}})",
@@ -1427,6 +1438,7 @@
         "closestPart": "Ninguna voz encaja del todo en tu extensión, ni cambiando la tonalidad. La más cercana es {part}. Si quieres, cambia de voz desde arriba."
     },
     "auth": {
+        "introPhrase": "La canción entera, todas las voces, con tu progreso guardado. Es gratis, y las lecciones no la piden.",
         "introLibrary": "Las canciones de la biblioteca piden una cuenta. Es gratis, y las lecciones no la piden.",
         "signIn": "Entrar",
         "intro": "Opcional. Puedes aprender y grabar sin cuenta. Si inicias sesión, tus canciones se sincronizan en todos tus dispositivos.",
@@ -1532,7 +1544,7 @@
             "title": "¿Cuándo naciste?",
             "month": "Mes",
             "year": "Año",
-            "why": "Solo el mes y el año, para que Stackapella se adapte a tu edad. Nunca se lo mostramos a nadie.",
+            "why": "Las cuentas son para mayores de 13 años, y algunas cosas para mayores de 18, por eso lo preguntamos. Solo el mes y el año, nunca se lo mostramos a nadie.",
             "firstWhy": "Para que Stackapella se adapte a tu edad (algunas cosas son para mayores de 18). Solo el mes y el año, y nunca se muestran en tu perfil.",
             "adultWhy": "Esto es para mayores de 18, así que lo preguntamos una vez. No se muestra en tu perfil.",
             "notAdult": "Esto es para mayores de 18, así que aún no está disponible para ti. Todo lo demás sí."
@@ -1557,6 +1569,7 @@
             "stay": "Seguir como {current}"
         },
         "reason": {
+            "phrase": "Sigue con una cuenta gratis",
             "library": "Una cuenta gratis abre todas las canciones",
             "requests": "Para pedir una canción o votar por una, crea una cuenta gratis",
             "progress": "Guarda tu progreso con una cuenta gratis",
@@ -1711,7 +1724,7 @@
             "songsLeft": "{count, plural, =0 {Has llegado al límite: elimina una para empezar otra.} one {Te queda una antes del límite.} other {Te quedan # antes del límite.}}",
             "included": "Todo está incluido en este servidor."
         },
-        "contactHint": "Una pregunta, un problema o una idea: Hillel lee todos los mensajes.",
+        "contactHint": "Una pregunta, un problema o una idea: leemos todos los mensajes.",
         "devices": {
             "title": "Sesión iniciada en",
             "hint": "Las apps con sesión iniciada en tu cuenta. Si cierras la sesión en una, sus canciones se quedan en ella.",
@@ -4345,7 +4358,7 @@
             "title": "Enviar diagnóstico"
         },
         "title": "Contacto",
-        "intro": "Hillel lee todos los mensajes y responde por correo.",
+        "intro": "Leemos todos los mensajes y respondemos por correo.",
         "about": "¿De qué se trata?",
         "category": {
             "recording": "Grabación o sonido",
@@ -4370,7 +4383,7 @@
         },
         "send": "Enviar mensaje",
         "sending": "Enviando",
-        "sentTitle": "Enviado. Hillel te responderá a {email} por correo.",
+        "sentTitle": "Enviado. Te responderemos a {email} por correo.",
         "backHome": "Volver a cantar",
         "refused": {
             "check": "No se pudo comprobar que eres una persona. Vuelve a intentarlo.",
@@ -4399,7 +4412,7 @@
         "sentNothing": "Solo van tu mensaje y tu correo, y nunca ningún audio.",
         "need": {
             "message": "Añade un mensaje para enviar",
-            "email": "Añade tu correo para que Hillel te responda"
+            "email": "Añade tu correo para que te respondamos"
         },
         "reference": "Referencia {id}"
     },
