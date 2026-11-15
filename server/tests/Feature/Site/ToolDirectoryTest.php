@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Site;
 
+use App\Support\Site\Icons;
 use App\Support\Site\SitePages;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Lang;
@@ -64,7 +65,8 @@ final class ToolDirectoryTest extends TestCase
         $html = (string) $this->get('/tools/'.$tool)->assertOk()->getContent();
 
         $this->assertStringContainsString('data-try-line>'.e(SitePages::tool($tool)['tie']).'</h2>', $html);
-        $this->assertStringContainsString(e(str_replace(':count', (string) count(SitePages::TOOLS), (string) Lang::get('site.tools.index.see_all'))), $html);
+        // "See all N tools", its last word kept with its arrow (x-site.arrow-end).
+        $this->assertStringContainsString('href="/tools" class="s-lk">'.Icons::after(str_replace(':count', (string) count(SitePages::TOOLS), (string) Lang::get('site.tools.index.see_all')), spaced: true), $html);
         foreach (array_diff(SitePages::TOOLS, [$tool]) as $other) {
             $this->assertStringContainsString('href="/tools/'.$other.'"', $html, "{$tool}: links {$other}");
         }

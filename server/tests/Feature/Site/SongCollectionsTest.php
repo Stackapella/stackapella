@@ -10,6 +10,7 @@ use App\Support\Pages\Carols;
 use App\Support\Pages\SongCollections;
 use App\Support\Pages\SongParts;
 use App\Support\Pages\SongsHub;
+use App\Support\Site\Icons;
 use App\Support\Site\LinkCardLanes;
 use App\Support\Templates\Catalogue;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -293,7 +294,7 @@ final class SongCollectionsTest extends TestCase
         $hymn = app(SongCollections::class)->songs('hymns')[0];
         $trail = '#<a href="/songs/hymns"\s*>'.preg_quote(e(__('site.collections.hymns.crumb')), '#').'</a>#';
         $ld = '"name":"'.__('site.collections.hymns.crumb').'","item":"'.Hosts::publicUrl().'/songs/hymns"';
-        $more = e(__('site.collections.hymns.more'));
+        $more = (string) Icons::after(__('site.collections.hymns.more'), spaced: true);
 
         foreach (['/songs/'.$hymn['slug'], $hymn['parts'][1]['url']] as $url) {
             $html = (string) $this->get($url)->assertOk()->getContent();
@@ -316,7 +317,7 @@ final class SongCollectionsTest extends TestCase
         $slug = $carol[0]['slug'];
 
         $this->travelTo('2026-12-01 12:00:00');
-        $this->get('/songs/'.$slug.'/alto')->assertOk()->assertSee('<a href="/songs/christmas-carols">', false)->assertSee(e(__('site.carols.links.part')), false)
+        $this->get('/songs/'.$slug.'/alto')->assertOk()->assertSee('<a href="/songs/christmas-carols">', false)->assertSee((string) Icons::after(__('site.carols.links.part'), spaced: true), false)
             ->assertSee('"item":"'.Hosts::publicUrl().'/songs/christmas-carols"', false);
 
         $this->travelTo('2027-03-01 12:00:00');

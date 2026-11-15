@@ -92,9 +92,9 @@
             {{-- The landing's one seasonal line (Hillel, 2026-11-10), quiet, under the facts (the 2026-11-15 redesign); it hides by itself
                  after 26 December (Carols::linked, config site.carols_promoted). --}}
             @if (\App\Support\Pages\Carols::linked())
-                <p class="s-hero-carols">@php($carols = __('pages.landing.carols'))
+                <p class="s-hero-carols">
                 {{-- The arrow keeps its last word with it, so it never wraps onto a line of its own (a 360 px phone). --}}
-                <a href="{{ \App\Support\Pages\Carols::PATH }}" class="s-lk">{{ \Illuminate\Support\Str::beforeLast($carols, ' ') }} <span class="whitespace-nowrap">{{ \Illuminate\Support\Str::afterLast($carols, ' ') }}&nbsp;<x-site.icon name="arrow" size="16" /></span></a></p>
+                <a href="{{ \App\Support\Pages\Carols::PATH }}" class="s-lk"><x-site.arrow-end :text="__('pages.landing.carols')" spaced /></a></p>
             @endif
         </section>
 

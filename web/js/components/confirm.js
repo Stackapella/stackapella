@@ -81,11 +81,13 @@ export const ConfirmHost = {
  * Deleting a song (Hillel's 78.png, with Storage's 88.png): what's lost (its recorded parts, its
  * length, when it was last edited), where it goes (Recently deleted for 30 days when the account
  * has it, else off this device), and Undo in a toast with a countdown. Resolves true when it went.
+ * A song with nothing recorded yet goes at once, with the same Undo (Hillel, 2026-11-15); one whose
+ * count isn't known (recordedCount missing) still asks, since it may have takes.
  */
 export async function deleteSong(project) {
     const title = shownTitle(project);
     const edited = project.updatedAt ? timeAgo(project.updatedAt) : '';
-    const sure = await confirmAction({
+    const sure = project.recordedCount === 0 || (await confirmAction({
         title: t('confirm.deleteProject.title', { title }),
         body: project.version > 0 ? t('confirm.deleteProject.bodyBin', { seconds: UNDO_SECONDS }) : t('confirm.deleteProject.bodyDevice', { seconds: UNDO_SECONDS }),
         details: [
@@ -95,7 +97,7 @@ export async function deleteSong(project) {
         ].filter(Boolean),
         action: t('confirm.deleteProject.action'),
         cancel: t('confirm.keep'),
-    });
+    }));
     if (!sure) return false;
     const undo = await (await projectsStore()).deleteProject(project.id);
     toast(t('confirm.deleteProject.done', { title }), { seconds: UNDO_SECONDS, actions: [{ label: t('common.undo'), run: undo }] });

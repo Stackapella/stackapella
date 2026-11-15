@@ -19,12 +19,14 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Tests\Support\CloudSave;
+use Tests\Support\Plus;
 use Tests\Support\Wav;
 use Tests\TestCase;
 
 final class CollaborationTest extends TestCase
 {
     use CloudSave;
+    use Plus;
     use RefreshDatabase;
 
     private function as(User $user): User
@@ -241,6 +243,29 @@ final class CollaborationTest extends TestCase
         $this->as($owner);
         $this->startTake((string) Str::uuid(), $ownersPart, $wav)->assertCreated();
         $this->getJson('/api/projects/'.$project)->assertOk()->assertJsonPath('data.project.readOnly', null);
+    }
+
+    public function test_with_plus_teams_on_an_owner_in_the_free_trial_invites_until_the_trial_ends(): void
+    {
+        // Hillel, 2026-11-15: "you should need to start a trial to be able to add someone to a song". The 7-day trial
+        // counts as Plus for inviting; once the subscription is gone, inviting is refused again. Joining stays free.
+        app(Flags::class)->set('plus_teams', 'on', null, 'test');
+        $this->fakeStripe();
+        $owner = $this->owner();
+        [$project] = $this->projectWithPart();
+        $this->postJson('/api/projects/'.$project.'/invites', [])->assertForbidden()->assertJsonPath('code', 'plus_required');
+
+        $this->subscribe($owner, 'trialing');
+        $this->as($owner);
+        $made = $this->postJson('/api/projects/'.$project.'/invites', ['partKey' => 'tenor', 'partName' => 'Tenor']);
+        $this->assertMatchesContract($made, 'invites.create', 201);
+        $this->as(User::factory()->create());
+        $this->postJson('/api/join/'.Str::afterLast((string) $made->json('data.url'), '/join/'))->assertOk();
+
+        $this->stripeEvent('customer.subscription.deleted', $this->subscription($this->fresh($owner), 'canceled'))->assertOk();
+        $this->as($owner);
+        $this->assertSame('free', app(Plans::class)->plan($this->fresh($owner)));
+        $this->postJson('/api/projects/'.$project.'/invites', [])->assertForbidden()->assertJsonPath('code', 'plus_required');
     }
 
     public function test_a_full_project_refuses_one_more_singer(): void

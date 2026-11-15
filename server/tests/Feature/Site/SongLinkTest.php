@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Site;
 
 use App\Models\Template;
+use App\Support\Site\Icons;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Tests\Support\BetaFixtures;
@@ -33,7 +34,7 @@ final class SongLinkTest extends TestCase
 
         $this->get('/for/songwriters')->assertOk()
             ->assertSee('href="/songs/'.$slug.'"', false)
-            ->assertSee(e(__('site.for.pages.songwriters.song.line')), false);
+            ->assertSee((string) Icons::after(__('site.for.pages.songwriters.song.line'), spaced: true), false);
     }
 
     public function test_a_song_that_isnt_open_is_never_linked(): void

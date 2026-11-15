@@ -1316,10 +1316,10 @@ return [
                         ['tip' => 'If the mic won\'t start, we show you how to fix it on your device. The page about the mic has the same steps.'],
                     ], 'steps' => true],
                     ['Choose a song', [
-                        'Tap a song in the library to open it: what it\'s about, its level, key and tempo, and who wrote and sang it, with three buttons: **Play** to hear it, **Edit** to make a copy you can change in the song builder, and **Start**. Where a song can be sung by fewer singers, **How many singers?** picks 2, 3 or 4 parts.',
-                        '**Start** begins with those parts. Once we know your range, Sing opens on a part for you and says which: as a new singer, the melody, in your own octave; once you\'ve recorded parts of your own, the part that fits your range best. If we don\'t know your range yet, Sing asks **Which part is yours?**.',
+                        'Tap a song in the library to open it: what it\'s about, its level, key and tempo, and who wrote and sang it, with three buttons: **Hear it** to listen, **Edit** to make a copy you can change in the song builder, and **Sing it**. Where a song can be sung by fewer singers, **How many singers?** picks 2, 3 or 4 parts.',
+                        '**Sing it** begins with those parts. Once we know your range, Sing opens on a part for you and says which: as a new singer, the melody, in your own octave; once you\'ve recorded parts of your own, the part that fits your range best. If we don\'t know your range yet, Sing asks **Which part is yours?**.',
                         'The song joins **Your songs**: the free plan keeps 3, and songs the course opens don\'t count.',
-                        ['shot' => 'getting-started--song', 'alt' => 'Amazing Grace\'s sheet before it starts: what it\'s about, its details and credits, How many singers?, then Play, Edit and Start.'],
+                        ['shot' => 'getting-started--song', 'alt' => 'Amazing Grace\'s sheet before it starts: what it\'s about, its details and credits, How many singers?, then Sing it, Hear it and Edit.'],
                     ], 'steps' => true],
                     ['Choose how to sing', [
                         'We ask **How do you want to sing?**, with three choices that each start at once: **Part by part** teaches you one part, a phrase at a time, then records it (best for a song that\'s new to you); **The whole song** is your part straight through, with the others (best when you know it); **Open in the studio** gives you every part as a track to record and mix yourself. The one you used last says **Last time**. Tick **Use this every time** to go straight in next time; you can still switch.',
@@ -1490,7 +1490,7 @@ return [
                         'Each part is a track: a circle to pick it for recording, its colour and name, a tag (**Guide**, **Your take**, or a friend\'s name), **Solo** and **Mute** (**S** and **M** where the row is narrow), and its waveform across the song. Above them, a line says how many parts are recorded by you.',
                         'Tap a part\'s name to open its row: **Level** and **Pan**, each with its value, the **Timing** of your take, then **Retake**, **Trim**, **Rename** and **Voice**, **Learn it in Sing** for a song\'s part, and its **Takes**. **Voice** has the rest.',
                         'The part picked to record says **Next to record**, and a recorded part says when, for example **Recorded 1 hour ago**. Under the ruler, **Words** shows the song\'s lines: the one you\'re on is filled, and a tap goes there.',
-                        'On the home, **New song**, then **Just record**, opens an empty studio on **Sing the tune first**: every voice you add stacks on top, and you hear the others while you sing.',
+                        'On the home, **New song**, then **Just record**, opens an empty studio on **Record your first part**: every part you add stacks on top, and you hear the others while you record.',
                         ['shot' => 'studio--overview', 'alt' => 'The studio for Amazing Grace: the words as lines under the ruler, the Soprano and Alto tagged Your take and recorded an hour ago, the Tenor and Bass as guides, the Bass picked and Next to record, and the red Record Bass button with Headphones, Count-in, Click and Polished beside it.'],
                     ]],
                     ['Record a part', [

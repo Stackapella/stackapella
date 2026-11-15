@@ -86,7 +86,7 @@
                         <p class="s-xcount-line">
                             <span data-line-days data-one="{{ trans_choice('site.carols.count_line', 1, ['count' => 1]) }}" data-many="{{ trans_choice('site.carols.count_line', 2, ['count' => ':count']) }}" data-christmas="{{ __('site.carols.christmas') }}">{{ $countdown['christmas'] ? __('site.carols.christmas') : trans_choice('site.carols.count_line', $countdown['days'], ['count' => $countdown['days']]) }}</span>
                             @if ($tonight !== null)
-                                · <a href="#carol-{{ $tonight['slug'] }}" class="s-lk">{{ __('site.carols.tonight_line', ['song' => $tonight['title']]) }} <x-site.icon name="arrow" size="16" /></a>
+                                · <a href="#carol-{{ $tonight['slug'] }}" class="s-lk"><x-site.arrow-end :text="__('site.carols.tonight_line', ['song' => $tonight['title']])" spaced /></a>
                             @endif
                         </p>
                     </div>

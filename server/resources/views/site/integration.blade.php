@@ -68,7 +68,7 @@
                     <p class="int-tag int-tag-today">{{ __('site.integrations.today') }}</p>
                     <h2 id="tickets-h">{{ $page['tickets_title'] }}</h2>
                     <p>{{ $page['tickets'] }}</p>
-                    <a href="/integrations/event-schedule" class="s-lk">{{ $page['tickets_link'] }} <x-site.icon name="arrow" size="16" /></a>
+                    <a href="/integrations/event-schedule" class="s-lk"><x-site.arrow-end :text="$page['tickets_link']" spaced /></a>
                 </div>
             </section>
         @endisset

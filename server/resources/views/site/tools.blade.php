@@ -47,7 +47,7 @@
                                             <span class="s-who-ic"><x-site.icon :name="$tool['icon']" size="22" /></span>
                                         @endif
                                     </span>
-                                    <span class="s-th-big-head"><b>{{ $tool['name'] }}</b><span class="s-th-open">{{ $words['open'] }}&#8288;<x-site.icon name="arrow" size="14" /></span></span>
+                                    <span class="s-th-big-head"><b>{{ $tool['name'] }}</b><span class="s-th-open"><x-site.arrow-end :text="$words['open']" size="14" spaced /></span></span>
                                     <span class="s-th-line">{{ $tool['summary'] }}</span>
                                 </a>
                             </li>
@@ -95,9 +95,9 @@
                 </section>
             @endforeach
             <p class="s-th-none" role="status" hidden data-tools-none data-text="{{ $words['no_match'] }}"><span data-tools-none-text></span> <button type="button" class="s-lk" data-tools-reset>{{ $words['show_all'] }}</button></p>
-            <p class="s-th-warmups">{{ $words['warming_up'] }} <a href="/warmups" class="s-lk">{{ $words['warmups'] }}&#8288;<x-site.icon name="arrow" size="16" /></a></p>
+            <p class="s-th-warmups">{{ $words['warming_up'] }} <a href="/warmups" class="s-lk"><x-site.arrow-end :text="$words['warmups']" size="16" spaced /></a></p>
             {{-- The embeds for choir, school and teacher sites (the internal-link audit, 2026-11-13: nothing linked /tools/embed). --}}
-            <p class="s-th-warmups">{{ $words['embed_line'] }} <a href="/tools/embed" class="s-lk">{{ $words['embed_link'] }}&#8288;<x-site.icon name="arrow" size="16" /></a></p>
+            <p class="s-th-warmups">{{ $words['embed_line'] }} <a href="/tools/embed" class="s-lk"><x-site.arrow-end :text="$words['embed_link']" size="16" spaced /></a></p>
         </section>
         @include('site.tools._about', ['tie' => $words['tie'], 'tryLink' => $words['try_link']])
         <x-site.close-band page="tools" :href="\App\Support\Http\Hosts::app('/learn/1-comfortable?ref=tools')" />

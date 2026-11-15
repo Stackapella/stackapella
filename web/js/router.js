@@ -19,7 +19,8 @@ const routes = [
     { name: 'storage', pattern: /^\/storage\/?$/, keys: [] },
     { name: 'voice', pattern: /^\/voice\/?$/, keys: [] },
     { name: 'workout', pattern: /^\/workout\/?$/, keys: [] },
-    { name: 'plus', pattern: /^\/plus\/?$/, keys: [] },
+    // /settings/plus too: where Checkout's return page, the billing portal and the billing emails link (it went Home, losing the way back).
+    { name: 'plus', pattern: /^\/(?:settings\/)?plus\/?$/, keys: [] },
     { name: 'reminders', pattern: /^\/settings\/reminders\/?$/, keys: [] },
     { name: 'classes', pattern: /^\/settings\/classes\/?$/, keys: [] }, // a teacher's class codes (views/school.js)
     { name: 'classJoin', pattern: /^\/class(?:\/([\w-]+))?\/?$/, keys: ['code'] }, // a student joins with a class code

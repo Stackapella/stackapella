@@ -74,7 +74,7 @@
                                 </li>
                             @endforeach
                         </ul>
-                        <a href="{{ $carol['url'] }}" class="s-lk s-xmore">{{ __('site.carols.song_page', ['song' => $carol['title']]) }} <x-site.icon name="arrow" size="16" /></a>
+                        <a href="{{ $carol['url'] }}" class="s-lk s-xmore"><x-site.arrow-end :text="__('site.carols.song_page', ['song' => $carol['title']])" spaced /></a>
                     </article>
                 @endforeach
             </div>

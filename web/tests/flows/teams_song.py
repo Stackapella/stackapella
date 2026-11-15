@@ -45,10 +45,15 @@ def open_studio(f, pid, who="member", scenario="", teams=False):
         f.run(TEAMS_ON)
 
 
-def open_together(f):
+def press_invite(f):
+    """Invite singers: in the header's More menu on a phone."""
     if f.size == "phone":
         f.run("document.querySelector('header details') && (document.querySelector('header details').open = true)")
     f.click_t("studio.inviteSingers")
+
+
+def open_together(f):
+    press_invite(f)
     f.wait_text(t(f, "together.makeLink"))
 
 
@@ -70,6 +75,48 @@ def journey(f):
     assert not f.js(f"!!{MOMENT}") and not f.js(f"!!{PAUSED}"), "the switch is off: no Plus moment and nothing paused"
     f.shot("off-link")
 
+    # Switch on, a free account, nobody singing in it yet (Hillel, 2026-11-15: "in the studio if you click invite singers
+    # you should need to start a trial to be able to add someone to a song"): Invite singers is the Plus sheet at once,
+    # with the price and the trial, no invite form behind it; Escape closes it; its trial leads to Plus and back here.
+    open_studio(f, own, teams=True)
+    f.run("const { api } = await import('/js/api.js'); api.projects.members.list = async () => ({ data: [{ id: 'me', name: 'Kim Ode', role: 'owner' }] });"
+          " api.billing.show = async () => ({ data: { plan: 'free', trial: { days: 7, intervals: ['year'] } } }); (await import('/js/stores/plan.js')).plan.billing = null;")
+    press_invite(f)
+    f.wait(MOMENT, what="the Plus sheet, first")
+    f.wait(f"{MOMENT}.querySelector('[data-plus-price]') && {MOMENT}.querySelector('[data-plus-trial]')", what="the price and the trial")
+    words = f.js(f"{MOMENT}.innerText")
+    assert t(f, "together.invite.plusText") in words, f"not the invite sheet's words: {words}"
+    assert "$39.99" in words and "$4.99" in words, f"no price: {words}"
+    assert t(f, "plus.startTrial", {"days": 7}) in words, f"no trial button: {words}"
+    assert f.js(f"{MOMENT}.querySelectorAll('.btn-primary').length") == 1, "one primary"
+    assert not f.js("!!document.querySelector('[role=dialog] form')"), "the invite form behind the Plus sheet"
+    assert f.js(f"!!{MOMENT}.closest('[role=dialog]')?.getAttribute('aria-labelledby') || !!{MOMENT}.closest('[role=dialog]')?.getAttribute('aria-label')"), "the sheet has no name"
+    f.no_sideways("the Plus sheet")
+    f.shot("on-first")
+    f.press("Escape")
+    f.wait(f"!{MOMENT}", what="Escape closes the Plus sheet")
+    f.run("sessionStorage.removeItem('stackapella.plus.next')")
+    press_invite(f)
+    f.wait(MOMENT, what="the Plus sheet again")
+    f.run(f"{MOMENT}.querySelector('[data-plus-go]').click()")
+    f.wait("location.pathname === '/plus' && location.search.includes('from=invite_friend')", what="the Plus page from the sheet")
+    assert json.loads(f.js("sessionStorage.getItem('stackapella.plus.next')"))["path"] == f"/p/{own}?sheet=together"
+    # The trial on (as Checkout would leave it): Back to your song opens the invite sheet itself.
+    f.run("const { account } = await import('/js/stores/account.js'); account.me.plan = 'plus';")
+    f.wait("document.querySelector('[data-plus-next]')", what="Back to your song")
+    f.run("document.querySelector('[data-plus-next]').click()")
+    f.wait(f"location.pathname === '/p/{own}'", what="back on the song")
+    f.wait_text(t(f, "together.makeLink"))
+    assert not f.js(f"!!{MOMENT}"), "the Plus sheet with Plus on"
+    f.shot("on-trial-invite")
+
+    # A guest: Invite singers asks for an account first, then comes back to this sheet (and so to the Plus sheet).
+    open_studio(f, own, who="signedOut", teams=True)
+    press_invite(f)
+    f.wait("document.querySelector('[role=dialog] [data-account-wall][data-reason=friends]')", what="the account ask")
+    assert not f.js(f"!!{MOMENT}"), "a guest is offered Plus before an account"
+    assert "sheet%3Dtogether" in f.js("document.querySelector('[role=dialog] [data-wall-sign-up]').getAttribute('href')"), "the way back isn't the invite sheet"
+
     # Switch on, a free account: Make a link is the Plus moment, its way back this song; the friends' song is paused.
     open_studio(f, own, teams=True)
     open_together(f)
@@ -77,7 +124,7 @@ def journey(f):
     assert t(f, "together.paused.songOwner") in f.js(f"{PAUSED}.innerText"), "not the starter's words"
     make_link(f)
     f.wait(MOMENT, what="the Plus moment for inviting")
-    assert t(f, "plus.moment.inviteFriend") in f.js(f"{MOMENT}.innerText"), "not the invite moment's words"
+    assert t(f, "together.invite.plusText") in f.js(f"{MOMENT}.innerText"), "not the invite moment's words"
     assert not f.js("[...document.querySelectorAll('[role=dialog] code')].some((c) => c.textContent.includes('/join/'))"), "a link was made without Plus"
     f.shot("on-moment")
     not_now = json.dumps(t(f, "common.notNow"))

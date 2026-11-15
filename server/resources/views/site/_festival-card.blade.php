@@ -32,6 +32,6 @@
         </ul>
     @endif
     @if ($card['link'] !== null)
-        <a href="{{ $card['link']['url'] }}" class="s-jcount-all">{{ $card['link']['label'] }}&#8288;<x-site.icon name="arrow" size="16" /></a>
+        <a href="{{ $card['link']['url'] }}" class="s-jcount-all"><x-site.arrow-end :text="$card['link']['label']" size="16" spaced /></a>
     @endif
 </aside>

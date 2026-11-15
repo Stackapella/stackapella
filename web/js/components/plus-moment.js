@@ -3,9 +3,11 @@
 // free but to team up becomes more serious"): starting a choir group, inviting a friend onto your song. The primary
 // offers the 7-day trial where it's offered, else Plus; the Plus page brings you back to `next` once Plus is on. Never a
 // toast that leaves the person guessing; never in front of a course, song or workout; never asked of someone joining.
+// With `price`, it also says what Plus costs (Invite singers, Hillel 2026-11-15: a trial to add someone to a song).
 
 import { navigate } from '../router.js';
-import { loadBilling, loadPrices, plan } from '../stores/plan.js';
+import { formatNumber, t } from '../i18n.js';
+import { guessCurrency, loadBilling, loadPrices, plan } from '../stores/plan.js';
 import { account, selfHosted } from '../stores/account.js';
 import { session } from '../storage.js';
 import { Icon } from './icon.js';
@@ -38,12 +40,14 @@ export const PlusMoment = {
         from: { type: String, required: true }, // the moment (billing.checkout's `moment`, and the Plus page's ?from=)
         next: { type: String, default: '' }, // where to come back to once Plus is on
         other: { type: String, default: '' }, // a second way out (Manage songs), if there is one
+        price: { type: Boolean, default: false }, // say what Plus costs, a year and a month
     },
     emits: ['close', 'other'],
     template: `
         <Modal :title="title" @close="$emit('close')">
             <div class="space-y-5" data-plus-moment :data-moment="from">
                 <p class="text-cream/85">{{ text }}</p>
+                <p v-if="priceLine" class="font-semibold text-cream" data-plus-price>{{ priceLine }}</p>
                 <p v-if="trialDays" class="text-sm text-muted" data-plus-trial>{{ t('plus.momentTrial', { days: trialDays }) }}</p>
                 <!-- On a phone the primary takes the width, stacked first; from sm up, side by side at the end (design rules). -->
                 <div class="flex flex-col-reverse gap-3 sm:flex-row sm:flex-wrap sm:justify-end">
@@ -60,11 +64,23 @@ export const PlusMoment = {
             const offer = plan.billing ? plan.billing.trial : plan.prices?.trial;
             return offer ? offer.days ?? 7 : 0;
         },
+        /** "Plus is $39.99 a year or $4.99 a month", in the account's currency (else the region's); empty until the prices load. */
+        priceLine() {
+            if (!this.price || selfHosted()) return '';
+            const currency = plan.billing?.subscription?.currency ?? guessCurrency();
+            const of = (interval) => plan.prices?.prices?.find((p) => p.interval === interval && p.currency === currency)?.amountCents;
+            const [year, month] = [of('year'), of('month')];
+            if (!year || !month) return '';
+            const money = (cents) => formatNumber(cents / 100, { style: 'currency', currency: currency.toUpperCase() });
+            return t('plus.momentPrice', { year: money(year), month: money(month) });
+        },
     },
     created() {
+        if (selfHosted()) return;
+        const unread = (error) => console.info('The trial offer was not read', error?.message ?? error);
         // Whether the trial is this account's to take (billing.show), else the prices' offer for someone not signed in.
-        if (selfHosted() || plan.billing) return;
-        (account.me ? loadBilling() : loadPrices()).catch((error) => console.info('The trial offer was not read', error?.message ?? error));
+        if (!plan.billing) (account.me ? loadBilling() : loadPrices()).catch(unread);
+        if (this.price && account.me) loadPrices().catch(unread);
     },
     methods: {
         go() {

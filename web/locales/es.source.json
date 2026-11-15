@@ -225,17 +225,17 @@
         "originalStretch": "{key} may be a stretch for your range.",
         "singNamed": "Sing the {name}",
         "add": {
-            "firstTitle": "Sing the tune first",
-            "firstHint": "Every voice you add stacks on top, and you'll hear the others while you sing.",
+            "firstTitle": "Record your first part",
+            "firstHint": "Every part you add stacks on top, and you'll hear the others while you record.",
             "change": "Change",
             "title": "Add voice {number}",
-            "hint": "Sing along with {name}. Press record below.",
-            "hintPlain": "Sing along with what's here. Press record below.",
+            "hint": "Sing or play along with {name}. Press record below.",
+            "hintPlain": "Sing or play along with what's here. Press record below.",
             "orLearn": "Rather learn a harmony?",
             "pickSong": "Pick a song with ready-made parts",
             "upNext": "Up next",
             "waiting": "Waiting",
-            "nextTitle": "Sing {name} next",
+            "nextTitle": "Record {name} next",
             "another": "Add another voice",
             "ghostOnTop": "Stacks on top of {name}",
             "ghostLater": "Add when you're ready"
@@ -2947,6 +2947,7 @@
             "carryOn": "Carry on"
         },
         "momentTrial": "Try it free for {days} days. Learning alone stays free: every course, song and workout.",
+        "momentPrice": "Plus is {year} a year or {month} a month.",
         "headlineSolo": "More room. Every format.",
         "title": "Stackapella Plus",
         "story": "Learning to sing is free. Plus is for teaming up and for working at it: start a choir group or invite friends onto your song (everyone you invite joins free), more room for your recordings, and MP3 and each part on its own.",
@@ -3831,7 +3832,8 @@
             "tag": "Paused"
         },
         "invite": {
-            "plusTitle": "Invite singers"
+            "plusTitle": "Invite singers",
+            "plusText": "Invite friends to sing on your songs with Plus. Everyone you invite joins free."
         },
         "accept": {
             "paused": "{name}'s song is paused for now, so it can't take new singers. Try the link again later, or ask {name}."

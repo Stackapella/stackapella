@@ -79,7 +79,7 @@
                     <p class="s-xsee">{{ __('site.see_also') }} @foreach ($seeAlso as $other)<a href="{{ $other['url'] }}" class="s-lk">{{ $other['name'] }}</a>@if (! $loop->last), @endif @endforeach</p>
                 @endif
                 {{-- A For choirs lead-in (Hillel, 2026-11-12: For choirs left the header for the pages a director reads). --}}
-                <p><a href="/for/choir-directors?ref=for-choirs-collection" class="s-lk">{{ __('pages.songs.for_choirs') }}&#8288;<x-site.icon name="arrow" size="16" /></a></p>
+                <p><a href="/for/choir-directors?ref=for-choirs-collection" class="s-lk"><x-site.arrow-end :text="__('pages.songs.for_choirs')" size="16" /></a></p>
             </div>
         </section>
 

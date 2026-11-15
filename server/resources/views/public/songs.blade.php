@@ -38,7 +38,7 @@
                 <h1 id="page-h" class="s-hub-h1"><span>{{ __('pages.songs.headline') }}</span> <em class="s-hl-em">{{ __('pages.songs.headline_em') }}</em></h1>
                 <p class="s-lede">{{ __('pages.songs.lead') }}</p>
                 @if ($rounds !== null)
-                    <p class="s-sh-start"><a href="{{ $rounds }}" class="s-lk">{{ __('pages.songs.start_round') }}&#8288;<x-site.icon name="arrow" size="16" /></a></p>
+                    <p class="s-sh-start"><a href="{{ $rounds }}" class="s-lk"><x-site.arrow-end :text="__('pages.songs.start_round')" size="16" /></a></p>
                 @endif
             </div>
             {{-- A song to try: its first line in four parts, each switched on or off as it plays (x-site.mixer). --}}
@@ -111,7 +111,7 @@
                     <div class="s-sh-grid-note">
                         <p>{{ __('pages.songs.collections_note') }}</p>
                         {{-- For choirs, led to from where a director reads (Hillel, 2026-11-12), counted by its place. --}}
-                        <p class="s-sh-choirs"><a href="/for/choir-directors?ref=for-choirs-songs" class="s-lk">{{ __('pages.songs.for_choirs') }}&#8288;<x-site.icon name="arrow" size="16" /></a></p>
+                        <p class="s-sh-choirs"><a href="/for/choir-directors?ref=for-choirs-songs" class="s-lk"><x-site.arrow-end :text="__('pages.songs.for_choirs')" size="16" /></a></p>
                     </div>
                 </div>
                 <div class="s-sh-grid">
@@ -122,7 +122,7 @@
                             <div class="s-sh-panel-in">
                                 <div class="s-sh-panel-top">
                                     <h3 id="band-{{ $band['key'] }}-h">{{ __($words.'.band') }} <em class="s-xserif">{{ __($words.'.band_em') }}</em></h3>
-                                    <a href="{{ $band['path'] }}" class="s-sh-panel-all" aria-label="{{ __($words.'.all', ['count' => $band['count']]) }}">{{ __('pages.songs.all_short', ['count' => $band['count']]) }}&#8288;<x-site.icon name="arrow" size="16" /></a>
+                                    <a href="{{ $band['path'] }}" class="s-sh-panel-all" aria-label="{{ __($words.'.all', ['count' => $band['count']]) }}"><x-site.arrow-end :text="__('pages.songs.all_short', ['count' => $band['count']])" size="16" spaced /></a>
                                 </div>
                                 <p class="s-sh-line">{{ __($words.'.band_line') }}</p>
                                 @include('public._songs-samples', ['songs' => $band['samples']])

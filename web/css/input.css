@@ -1298,6 +1298,10 @@ select:disabled {
 /* Calm's link underline is ink, not pink (Hillel: "not pink for serious mode"; the design direction's final check). */
 :root:not([data-skin='game']) .s-lk { text-decoration-color: color-mix(in srgb, var(--color-cream) 40%, transparent); }
 :root:not([data-skin='game']) .s-lk:hover { text-decoration-color: var(--color-cream); }
+/* A link's last word and its arrow stay on one line (x-site.arrow-end; Hillel: "it should be after singers not next line").
+   The arrow is inline here, where preflight makes every svg a block; a page's own rule may set its alignment after this. */
+.s-nw { white-space: nowrap; }
+.s-nw > svg { display: inline-block; vertical-align: -0.2em; }
 .s-soon { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 700; color: var(--color-muted); white-space: nowrap; letter-spacing: 0; text-transform: none; }
 .s-soon::before { content: ''; width: 7px; height: 7px; border-radius: 9px; box-shadow: inset 0 0 0 1.5px var(--color-muted); }
 /* The eyebrow: uppercase, 0.12em, in the accent (docs/ux-spec.md 2.4); small words take the accent's

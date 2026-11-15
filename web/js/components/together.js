@@ -4,6 +4,10 @@
 // takes back an invite, and removes a singer (their parts kept, or taken out). A singer sees who's
 // in it, adds a part of the song as their own, and leaves (keeping their parts for the project, or
 // taking them out). A project not yet on the account, or signed out, says what's needed first.
+// Teaming up is Plus (behind plus_teams; Hillel, 2026-11-15: "in the studio if you click invite singers you should need
+// to start a trial to be able to add someone to a song"): the song's starter without Plus (a trial counts) gets the Plus
+// sheet in its place, with the price and the trial; once Plus is on, the Plus page leads back here (?sheet=together).
+// A starter whose friends already sing in it (paused, their Plus ended) sees them and the paused note instead.
 
 import { AccountWall } from './account-wall.js';
 import { api } from '../api.js';
@@ -28,10 +32,11 @@ export const TogetherSheet = {
     data: () => ({ members: null, invites: [], failed: null, partKey: '', made: null, busy: false, removing: null, leaving: false, addKey: '', stored: null, saving: false, askPlus: false, refusedPlus: false }),
     setup: () => ({ account, templatePartName, formatDate, teams }),
     template: `
-        <Modal :title="t('together.title')" :subtitle="singer ? '' : t('together.hint')" wide @close="$emit('close')">
+        <PlusMoment v-if="plusFirst" :title="t('together.invite.plusTitle')" :text="t('together.invite.plusText')" from="invite_friend" :next="backHere" price @close="$emit('close')" />
+        <Modal v-else :title="t('together.title')" :subtitle="singer ? '' : t('together.hint')" wide @close="$emit('close')">
             <div class="space-y-5">
                 <p v-if="singer" class="text-muted">{{ t('together.singerHint', { owner: project.shared.owner?.name ?? '' }) }}</p>
-                <AccountWall v-if="!account.me" reason="friends" :next="'/p/' + project.id" bare />
+                <AccountWall v-if="!account.me" reason="friends" :next="backHere" bare />
                 <!-- 106.png: first, save it to your account; then the invite link. -->
                 <template v-else-if="!onAccount">
                     <div class="rounded-2xl bg-raised/60 px-4 py-3" data-save-first>
@@ -118,9 +123,20 @@ export const TogetherSheet = {
                 </template>
             </div>
             <!-- Inviting needs Plus (behind plus_teams): a short sheet on top, the way back is this song. -->
-            <PlusMoment v-if="askPlus" :title="t('together.invite.plusTitle')" :text="t('plus.moment.inviteFriend')" from="invite_friend" :next="'/p/' + project.id" @close="askPlus = false" />
+            <PlusMoment v-if="askPlus" :title="t('together.invite.plusTitle')" :text="t('together.invite.plusText')" from="invite_friend" :next="backHere" price @close="askPlus = false" />
         </Modal>`,
     computed: {
+        /**
+         * Invite singers is the Plus sheet first: the starter, signed in, without Plus (a trial counts) while plus_teams is
+         * on, and nobody singing in it yet (friends found as it loads bring the sheet back, with its paused note).
+         */
+        plusFirst() {
+            return !this.singer && !!account.me && teams.on && !selfHosted() && !isPlus() && !(this.members ?? []).some((m) => m.role === 'singer');
+        },
+        /** Back to this song with this sheet open: after making an account, and once Plus is on. */
+        backHere() {
+            return '/p/' + this.project.id + '?sheet=together';
+        },
         /** Inviting needs Plus (teaming up is Plus, behind plus_teams; everyone invited joins free): the moment before the link. */
         needsPlus() {
             return this.refusedPlus || (teams.on && !selfHosted() && !isPlus());

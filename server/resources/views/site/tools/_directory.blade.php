@@ -6,7 +6,7 @@
         <div class="s-tdir-head">
             <h2 id="tools-h">{{ $ix['others'] }}</h2>
             <p>{{ $ix['others_sub'] }}</p>
-            <a href="/tools" class="s-lk">{{ str_replace(':count', (string) $directory['count'], $ix['see_all']) }} <x-site.icon name="arrow" size="16" /></a>
+            <a href="/tools" class="s-lk"><x-site.arrow-end :text="str_replace(':count', (string) $directory['count'], $ix['see_all'])" spaced /></a>
         </div>
         @if ($directory['featured'] !== null)
             @php($featured = $directory['featured'])

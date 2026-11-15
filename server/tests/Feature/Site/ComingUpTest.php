@@ -94,7 +94,7 @@ final class ComingUpTest extends TestCase
         // Hanukkah's card shown, in its collection's tone, with its Hanukkah songs and the way to the page; the rest hidden.
         // The lamp isn't in the card here: /songs's Jewish panel already draws it (never twice on a page).
         $this->assertMatchesRegularExpression('#<aside class="s-jcount s-tone-jewish-songs s-sh-next-card"[^>]*data-key="hanukkah"[^>]*data-from="2026-12-04"[^>]*data-evening[^>]*>\s*<p id="next-\d+-k" class="s-jcount-k" data-kick>Coming up</p>#', $html);
-        $this->assertMatchesRegularExpression('#data-key="hanukkah"(?:(?!</aside>).)*In 14 days(?:(?!</aside>).)*From sundown, Friday 4 December(?:(?!</aside>).)*href="/songs/maoz-tzur"(?:(?!</aside>).)*All \d+ Jewish songs#s', $html);
+        $this->assertMatchesRegularExpression('#data-key="hanukkah"(?:(?!</aside>).)*In 14 days(?:(?!</aside>).)*From sundown, Friday 4 December(?:(?!</aside>).)*href="/songs/maoz-tzur"(?:(?!</aside>).)*All \d+ Jewish <span class="s-nw">songs#s', $html);
         $this->assertMatchesRegularExpression('#data-key="christmas"[^>]*hidden#', $html);
         // Christmas, a little further, is the smaller line under it.
         $this->assertMatchesRegularExpression('#<p class="s-sh-next-also" data-also="\d+"\s*>Also coming up: <a href="/songs/christmas-carols" class="s-lk">Christmas</a>, <span data-when>In 35 days</span></p>#', $html);

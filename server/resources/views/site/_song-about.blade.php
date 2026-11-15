@@ -21,7 +21,7 @@
                         <a href="{{ $songPage[0] }}" class="s-lk">{{ $songPage[1] }}</a>
                     @endif
                     @if ($home !== null)
-                        <a href="{{ $home['path'] }}" class="s-lk">{{ $home['more'] }} <x-site.icon name="arrow" size="16" /></a>
+                        <a href="{{ $home['path'] }}" class="s-lk"><x-site.arrow-end :text="$home['more']" spaced /></a>
                     @endif
                 </p>
             @endif

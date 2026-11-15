@@ -47,3 +47,49 @@ test("teams: Record on a friend's paused song records nothing, and does with the
     const off = await recordOn(friendsPaused, false);
     assert(off.went, `switch off: ${JSON.stringify(off)}`);
 });
+
+// Hillel, 2026-11-15: "in the studio if you click invite singers you should need to start a trial to be able to add
+// someone to a song".
+test('teams: Invite singers is the Plus sheet first for a starter without Plus, only while plus_teams is on', async () => {
+    const { TogetherSheet } = await import('/js/components/together.js');
+    const { account } = await import('/js/stores/account.js');
+    const plusFirst = (screen) => TogetherSheet.computed.plusFirst.call(screen);
+    const before = { on: teams.on, me: account.me };
+    const own = { singer: false, members: null };
+    try {
+        teams.on = true;
+        account.me = { id: 'u-me', name: 'Kim Ode', plan: 'free' };
+        assert(plusFirst(own), 'a free starter gets the Plus sheet first');
+        assert(plusFirst({ ...own, members: [{ id: 'u-me', role: 'owner' }] }), 'nobody singing in it yet: still the Plus sheet');
+        assert(!plusFirst({ ...own, members: [{ id: 'u-me', role: 'owner' }, { id: 'u-sam', role: 'singer' }] }), 'friends already in it: who is in it, and the paused note');
+        assert(!plusFirst({ ...own, singer: true }), 'a friend on the song is never asked for Plus');
+        account.me = { ...account.me, plan: 'plus' }; // a trial counts: the account says plus
+        assert(!plusFirst(own), 'Plus (or the trial) invites as before');
+        account.me = null;
+        assert(!plusFirst(own), 'a guest is asked for an account first');
+        account.me = { id: 'u-me', name: 'Kim Ode', plan: 'free' };
+        teams.on = false;
+        assert(!plusFirst(own), 'switch off: inviting is free');
+    } finally {
+        teams.on = before.on;
+        account.me = before.me;
+    }
+});
+
+test("teams: the invite sheet says Plus's price, a year and a month, in the account's currency", async () => {
+    const { PlusMoment } = await import('/js/components/plus-moment.js');
+    const { plan } = await import('/js/stores/plan.js');
+    const before = { prices: plan.prices, billing: plan.billing };
+    try {
+        plan.prices = { prices: [{ interval: 'year', currency: 'usd', amountCents: 3999 }, { interval: 'month', currency: 'usd', amountCents: 499 }, { interval: 'year', currency: 'eur', amountCents: 3999 }, { interval: 'month', currency: 'eur', amountCents: 499 }] };
+        plan.billing = { plan: 'free', subscription: { currency: 'usd' } };
+        const line = PlusMoment.computed.priceLine.call({ price: true });
+        assert(line.includes('$39.99') && line.includes('$4.99'), line);
+        assert(PlusMoment.computed.priceLine.call({ price: false }) === '', 'no price unless asked');
+        plan.prices = null;
+        assert(PlusMoment.computed.priceLine.call({ price: true }) === '', 'nothing before the prices load');
+    } finally {
+        plan.prices = before.prices;
+        plan.billing = before.billing;
+    }
+});

@@ -225,17 +225,17 @@
         "originalStretch": "{key} puede quedar al límite de tu voz.",
         "singNamed": "Cantar {name}",
         "add": {
-            "firstTitle": "Canta primero la melodía",
-            "firstHint": "Cada voz que añades se apila encima, y oirás las demás mientras cantas.",
+            "firstTitle": "Graba tu primera parte",
+            "firstHint": "Cada parte que añades se apila encima, y oirás las demás mientras grabas.",
             "change": "Cambiar",
             "title": "Añadir voz {number}",
-            "hint": "Canta con {name}. Toca Grabar abajo.",
-            "hintPlain": "Canta con lo que ya hay. Toca Grabar abajo.",
+            "hint": "Canta o toca con {name}. Toca Grabar abajo.",
+            "hintPlain": "Canta o toca con lo que ya hay. Toca Grabar abajo.",
             "orLearn": "¿Prefieres aprender una armonía?",
             "pickSong": "Elige una canción con voces ya hechas",
             "upNext": "Siguiente",
             "waiting": "En espera",
-            "nextTitle": "Después, canta {name}",
+            "nextTitle": "Después, graba {name}",
             "another": "Añadir otra voz",
             "ghostOnTop": "Se apila sobre {name}",
             "ghostLater": "Añádela cuando quieras"
@@ -2947,6 +2947,7 @@
             "carryOn": "Seguir"
         },
         "momentTrial": "Pruébalo gratis durante {days} días. Aprender por tu cuenta sigue siendo gratis: todos los cursos, canciones y entrenamientos.",
+        "momentPrice": "Plus cuesta {year} al año o {month} al mes.",
         "headlineSolo": "Más espacio. Todos los formatos.",
         "title": "Stackapella Plus",
         "story": "Aprender a cantar es gratis. Plus es para formar equipo y para trabajarlo a fondo: crea un grupo de coro o invita a amigos a tu canción (todas las personas que invites se unen gratis), más espacio para tus grabaciones, y MP3 y cada voz por separado.",
@@ -3831,7 +3832,8 @@
             "tag": "En pausa"
         },
         "invite": {
-            "plusTitle": "Invitar a cantantes"
+            "plusTitle": "Invitar a cantantes",
+            "plusText": "Con Plus, invita a amigos a cantar en tus canciones. Todas las personas que invites se unen gratis."
         },
         "accept": {
             "paused": "La canción de {name} está en pausa por ahora, así que no puede sumar cantantes nuevos. Vuelve a probar el enlace más tarde o pregúntale a {name}."

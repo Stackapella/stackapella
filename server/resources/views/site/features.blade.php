@@ -34,7 +34,7 @@
             {{-- The comparisons, one quiet line while they're listed (the compare_pages switch; the internal-link audit,
                  2026-11-13: nothing linked /compare). --}}
             @if (app(\App\Support\Flags::class)->on('compare_pages'))
-                <p class="s-more">{{ __('site.compare.index.from_features') }} <a href="/compare" class="s-lk">{{ __('site.compare.index.from_features_link') }}&#8288;<x-site.icon name="arrow" size="16" /></a></p>
+                <p class="s-more">{{ __('site.compare.index.from_features') }} <a href="/compare" class="s-lk"><x-site.arrow-end :text="__('site.compare.index.from_features_link')" size="16" /></a></p>
             @endif
         </section>
 

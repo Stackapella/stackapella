@@ -234,8 +234,12 @@ def getting_started(f):
         shoot(f, "getting-started--home")
 
     if wanted("getting-started--song"):
+        # The sheet as the article tells it: a signed-in singer with a lesson sung, so How many singers? and Edit show
+        # (a first visit hides both, and a guest gets the first-line taste instead).
         light_first(f)
-        home_page(f, "signedOut")
+        home_page(f, "member")
+        progress(f, {"1-comfortable": {"stars": 2}}, 10)
+        home_page(f, "member")
         f.wait("document.querySelector('section[aria-labelledby=band-songs] li button:not([data-make])')", what="the songs")
         f.run("[...document.querySelectorAll('#home-songs [data-song-card]')].find((c) => c.textContent.includes('Amazing Grace')).querySelector('button').click()")
         f.wait("document.querySelector('[role=dialog]')?.innerText.includes('Amazing Grace')", what="the song dialog")

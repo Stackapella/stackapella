@@ -71,6 +71,22 @@ final class Icons
     }
 
     /**
+     * A link's words with an icon after them, the last word and the icon kept on one line (Hillel: "Fix the arrow, it
+     * should be after singers not next line"). The words stay one translated string; only the last word is split off,
+     * here, into a no-wrap span with the icon. The outer span makes the words one flex item, so a link laid out as a
+     * flex row still wraps its words as text. `spaced` puts a space between the word and the icon.
+     */
+    public static function after(string $text, string $name = 'arrow', int $size = 16, bool $spaced = false): HtmlString
+    {
+        $text = trim($text);
+        $split = preg_match('/^(.*\S)\s+(\S+)$/su', $text, $m) === 1;
+        $head = $split ? e($m[1]).' ' : '';
+        $last = e($split ? $m[2] : $text);
+
+        return new HtmlString('<span>'.$head.'<span class="s-nw">'.$last.($spaced ? ' ' : '').self::svg($name, $size).'</span></span>');
+    }
+
+    /**
      * Icons a page repeats many times (/songs's play and stop on every sample card), drawn once as symbols for
      * {@see self::use()}: the page carries one copy of each path, not one per card.
      *

@@ -1,7 +1,8 @@
 """No browser dialogs (Hillel's rule): deleting asks in the app's own sheet (78.png), which names the
 thing, what happens and what's lost, with the action on its own button. Keep it has the focus, so
 Enter keeps it, as Escape and the backdrop do; there's no extra close and no "Don't ask again".
-Undo follows, in a toast with a countdown bar. Deleting a part in the studio asks the same way, and
+Undo follows, in a toast with a countdown bar. A song with nothing recorded goes at once, with no
+sheet, and keeps its Undo (Hillel, 2026-11-15). Deleting a part in the studio asks the same way, and
 discarding a draft from the home has its Undo too.
 """
 import sys
@@ -90,6 +91,19 @@ def journey(f):
     f.shot("undo")
     f.click_t("common.undo")
     f.wait("document.body.innerText.includes('Keep me')", what="back with Undo")
+    # A song with nothing recorded goes at once, with no sheet (Hillel, 2026-11-15), and keeps its Undo.
+    f.run("const s = await import('/js/stores/projects.js'); await s.createProject({ title: 'Nothing yet' });")
+    home(f)
+    assert listed(f, "Nothing yet"), "the empty song isn't listed"
+    trash(f, "Nothing yet")
+    gone = t(f, "confirm.deleteProject.done", {"title": "Nothing yet"})
+    toast = f"[...document.querySelectorAll('[data-toasts] > div')].find((d) => d.innerText.includes({gone!r}))"
+    f.wait(toast, what="the deleted toast, at once")
+    assert not f.js(f"!!{SHEET}"), "a sheet for a song with nothing recorded"
+    assert not listed(f, "Nothing yet"), "the empty song is still listed"
+    f.shot("empty-deleted")
+    f.run(f"{toast}.querySelector('button').click()")
+    f.wait("document.body.innerText.includes('Nothing yet')", what="the empty song back with Undo")
     third = make(f, "Third song")
     home(f)
 
