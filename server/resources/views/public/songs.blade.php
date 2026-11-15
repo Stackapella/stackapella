@@ -61,7 +61,7 @@
                 {{-- Search: the A to Z narrows as you type (js/public/songbook.js); without the script, ?q= does it on the server. --}}
                 <form class="s-sh-search s-fbar-search" action="/songs#every-song" method="get" role="search" data-songbook-search>
                     <x-site.icon name="search" size="18" />
-                    <input type="search" name="q" value="{{ $q }}" placeholder="{{ __('pages.songs.search', ['count' => $count]) }}" data-short="{{ __('pages.songs.search_short', ['count' => $count]) }}" aria-label="{{ __('pages.songs.search_label') }}" autocomplete="off">
+                    <input type="search" name="q" value="{{ $q }}" placeholder="{{ __('pages.songs.search_short', ['count' => $count]) }}" data-short="{{ __('pages.songs.search_short', ['count' => $count]) }}" aria-label="{{ __('pages.songs.search_label') }}" autocomplete="off">
                 </form>
             </div>
         </div>
@@ -146,12 +146,12 @@
                 </label>
             </div>
             <div class="s-sh-filters" role="group" aria-label="{{ __('pages.songs.jump') }}">
-                <button type="button" class="s-sh-filter" data-filter="" aria-pressed="true">{{ __('pages.songs.all_songs') }}<span>{{ $count }}</span></button>
+                <button type="button" class="s-sh-filter s-fchip" data-filter="" aria-pressed="true">{{ __('pages.songs.all_songs') }}<span>{{ $count }}</span></button>
                 @foreach ($bands as $band)
-                    <button type="button" class="s-sh-filter s-tone-{{ $band['key'] }}" data-filter="{{ $band['key'] }}" aria-pressed="false"><i aria-hidden="true"></i>{{ __($w($band['key']).'.crumb') }}<span>{{ $band['count'] }}</span></button>
+                    <button type="button" class="s-sh-filter s-fchip s-tone-{{ $band['key'] }}" data-filter="{{ $band['key'] }}" aria-pressed="false"><i aria-hidden="true"></i>{{ __($w($band['key']).'.crumb') }}<span>{{ $band['count'] }}</span></button>
                 @endforeach
                 @if ($others > 0)
-                    <button type="button" class="s-sh-filter s-tone-other" data-filter="other" aria-pressed="false"><i aria-hidden="true"></i>{{ __('pages.songs.other') }}<span>{{ $others }}</span></button>
+                    <button type="button" class="s-sh-filter s-fchip s-tone-other" data-filter="other" aria-pressed="false"><i aria-hidden="true"></i>{{ __('pages.songs.other') }}<span>{{ $others }}</span></button>
                 @endif
                 <p class="s-sh-shown" role="status" data-shown data-one="{{ trans_choice('pages.songs.shown', 1, ['count' => 1]) }}" data-many="{{ trans_choice('pages.songs.shown', 2, ['count' => ':count']) }}">{{ trans_choice('pages.songs.shown', $count, ['count' => $count]) }}</p>
             </div>

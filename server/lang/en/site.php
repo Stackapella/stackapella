@@ -2164,7 +2164,7 @@ return [
             ],
             // The hub's eyebrow with the count, its search and chips, Most used, a tool card's mic badge, and no match.
             'eyebrow_count' => ':count free tools',
-            'search' => 'Search tools, e.g. tempo',
+            'search' => 'Search tools',
             'search_label' => 'Search the tools',
             'chips_label' => 'Tools by what you want to do',
             'all' => 'All',
